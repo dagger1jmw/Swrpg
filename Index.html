@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Star Wars Legends RPG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-dim: #7a6030;
+    --gold-bright: #f0c060;
+    --bg-deep: #080604;
+    --bg-panel: #0e0b07;
+    --bg-card: #141009;
+    --bg-input: #0a0704;
+    --text-main: #e8dcc8;
+    --text-dim: #8a7a60;
+    --text-bright: #f5ead8;
+    --red: #cc3333;
+    --red-dim: #661111;
+    --blue: #4488cc;
+    --green: #448844;
+    --border: #2a1f0e;
+    --border-bright: #4a3a20;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text-main);
+    font-family: 'Crimson Text', serif;
+    font-size: 17px;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Starfield background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 35%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 95% 65%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 42% 45%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 62% 25%, rgba(255,255,255,0.35) 0%, transparent 100%),
+      radial-gradient(2px 2px at 78% 12%, rgba(201,168,76,0.3) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── LAYOUT ── */
+  #app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── HEADER ── */
+  #header {
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, rgba(14,11,7,0.98) 0%, rgba(8,6,4,0.95) 100%);
+    backdrop-filter: blur(4px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  #header-title {
+    font-family: 'Cinzel', serif;
+    font-size: 15px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  #header-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-top: 1px;
+  }
+
+  .header-btns { display: flex; gap: 6px; align-items: center; }
+
+  .hbtn {
+    background: transparent;
+    border: 1px solid var(--border-bright);
+    color: var(--text-dim);
+    padding: 4px 12px;
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .hbtn:hover { border-color: var(--gold); color: var(--gold); }
+  .hbtn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.08); }
+  .hbtn.danger { border-color: var(--red-dim); color: #994444; }
+  .hbtn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── API KEY SCREEN ── */
+  #api-screen {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .api-box {
+    max-width: 560px;
+    width: 100%;
+    border: 1px solid var(--border-bright);
+    background: var(--bg-panel);
+    padding: 40px;
+  }
+
+  .api-box h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .api-box .subtitle {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+    letter-spacing: 1px;
+    margin-bottom: 32px;
+  }
+
+  .step {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step-text { font-size: 14px; color: var(--text-main); line-height: 1.6; }
+  .step-text a { color: var(--gold); text-decoration: none; }
+  .step-text a:hover { text-decoration: underline; }
+
+  .api-input-row { margin-top: 28px; }
+
+  .api-input-row label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .api-input-row input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border-bright);
+    color: var(--text-bright);
+    padding: 10px 14px;
+    font-family: 'Crimson Text', serif;
+    font-size: 15px;
+    outline: none;
+  }
+
+  .api-input-row input:focus { border-color: var(--gold); }
+
+  .api-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .btn-primary {
+    margin-top: 24px;
+    width: 100%;
+    background: var(--gold);
+    border: none;
+    color: var(--bg-deep);
+    padding: 12px;
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--gold-bright); }
+  .btn-primary:disabled { background: var(--gold-dim); cursor: not-allowed; }
+
+  /* ── MAIN GAME LAYOUT ── */
+  #game-layout {
+    display: none;
+    flex: 1;
+    overflow: hidden;
+    height: calc(100vh - 47px);
+  }
+
+  #game-layout.visible { display: flex; }
+
+  /* ── LEFT PANEL — CHARACTER SHEET ── */
+  #sheet-panel {
+    width: 260px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    background: var(--bg-panel);
+    overflow-y: auto;
+    padding: 16px;
+    display: none;
+  }
+  #sheet-panel.open { display: block; }
+
+  .sheet-title {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+
+  .sheet-name {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    color: var(--text-bright);
+    margin-bottom: 2px;
+  }
+
+  .sheet-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+  .stat-label { color: var(--text-dim); }
+  .stat-val { color: var(--text-bright); font-weight: 600; }
+
+  .bar-wrap { margin-bottom: 10px; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); margin-bottom: 3px; }
+  .bar-track { height: 5px; background: var(--border); border-radius: 2px; }
+  .bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+  .bar-hp { background: #cc4444; }
+  .bar-strain { background: #4488cc; }
+  .bar-align { background: linear-gradient(90deg, var(--blue), var(--text-dim), var(--red)); }
+
+  .sheet-section {
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .sheet-section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .tag-list { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  .tag {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid var(--border-bright);
+    color: var(--text-dim);
+    font-size: 11px;
+    padding: 2px 7px;
+  }
+
+  .faction-renown { font-size: 12px; margin-bottom: 4px; }
+  .fr-name { color: var(--text-dim); }
+  .fr-val { color: var(--gold); float: right; }
+
+  /* ── CENTER — STORY FEED ── */
+  #story-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  /* Era / location bar */
+  #location-bar {
+    padding: 6px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(14,11,7,0.9);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  #loc-text { color: var(--text-dim); }
+  #loc-text span { color: var(--gold); }
+  #date-text { color: var(--text-dim); font-style: italic; }
+
+  /* Story feed */
+  #story-feed {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    scroll-behavior: smooth;
+  }
+
+  /* Messages */
+  .msg { max-width: 820px; width: 100%; }
+
+  .msg-gm {
+    align-self: flex-start;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .msg-player {
+    align-self: flex-end;
+    max-width: 600px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .gm-text {
+    font-size: 16px;
+    line-height: 1.85;
+    color: var(--text-main);
+    white-space: pre-wrap;
+  }
+
+  /* Quick choices rendered from GM text */
+  .choice-btn {
+    display: block;
+    margin-top: 6px;
+    padding: 7px 14px;
+    border-left: 2px solid var(--border-bright);
+    color: var(--gold);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    text-align: left;
+    width: 100%;
+    font-family: 'Crimson Text', serif;
+  }
+  .choice-btn:hover {
+    border-left-color: var(--gold);
+    background: rgba(201,168,76,0.06);
+    padding-left: 20px;
+  }
+
+  .player-bubble {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold-dim);
+    padding: 8px 14px;
+    font-size: 14px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  /* Override / system messages */
+  .msg-system {
+    align-self: flex-start;
+    background: rgba(68,136,68,0.08);
+    border: 1px solid rgba(68,136,68,0.3);
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #88cc88;
+    max-width: 820px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .msg-system .sys-label {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+
+  /* Thinking indicator */
+  #thinking {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-style: italic;
+  }
+  #thinking.show { display: flex; }
+
+  .think-dots span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    margin: 0 2px;
+    animation: dot-pulse 1.2s ease-in-out infinite;
+  }
+  .think-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .think-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dot-pulse {
+    0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+    40% { transform: scale(1.1); opacity: 1; }
+  }
+
+  /* ── INPUT AREA ── */
+  #input-area {
+    border-top: 1px solid var(--border);
+    background: rgba(14,11,7,0.97);
+    padding: 14px 16px;
+    flex-shrink: 0;
+  }
+
+  #override-hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-style: italic;
+  }
+
+  .input-row { display: flex; gap: 8px; }
+
+  #player-input {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px solid var(--border-bright);
+    color: var(--text-bright);
+    padding: 10px 14px;
+    font-family: 'Crimson Text', serif;
+    font-size: 15px;
+    outline: none;
+    resize: none;
+    height: 44px;
+    min-height: 44px;
+    max-height: 160px;
+    line-height: 1.5;
+    transition: border-color 0.2s;
+  }
+  #player-input:focus { border-color: var(--gold); }
+  #player-input::placeholder { color: var(--text-dim); font-style: italic; }
+
+  #send-btn {
+    background: var(--gold);
+    border: none;
+    color: var(--bg-deep);
+    padding: 0 22px;
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  #send-btn:hover { background: var(--gold-bright); }
+  #send-btn:disabled { background: var(--gold-dim); cursor: not-allowed; }
+
+  /* ── RIGHT PANEL — WORLD LOG ── */
+  #log-panel {
+    width: 240px;
+    flex-shrink: 0;
+    border-left: 1px solid var(--border);
+    background: var(--bg-panel);
+    overflow-y: auto;
+    padding: 16px;
+    display: none;
+  }
+  #log-panel.open { display: block; }
+
+  .log-title {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+
+  .log-entry {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .log-entry:last-child { border-bottom: none; }
+
+  .log-turn {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 3px;
+  }
+
+  .log-event { font-size: 12px; color: var(--text-main); line-height: 1.5; }
+  .log-loc { font-size: 11px; color: var(--text-dim); margin-top: 2px; font-style: italic; }
+
+  /* legacy changes */
+  .legacy-entry {
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .legacy-name { color: var(--gold); }
+  .legacy-strength {
+    font-size: 10px;
+    padding: 1px 5px;
+    border: 1px solid;
+    margin-left: 4px;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 1px;
+  }
+  .legacy-fragile { color: var(--red); border-color: var(--red-dim); }
+  .legacy-established { color: #cc8833; border-color: #664411; }
+  .legacy-entrenched { color: var(--gold); border-color: var(--gold-dim); }
+  .legacy-foundational { color: var(--text-bright); border-color: var(--gold); }
+
+  /* Lineage panel */
+  .lineage-entry { font-size: 12px; margin-bottom: 6px; color: var(--text-dim); }
+  .lineage-entry .anc-name { color: var(--text-main); font-weight: 600; }
+
+  /* ── MODAL / SAVE-LOAD ── */
+  #modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  #modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-bright);
+    padding: 32px;
+    max-width: 480px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .modal h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .save-slot {
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .save-slot:hover { border-color: var(--gold); }
+  .save-slot-name {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    color: var(--text-bright);
+    margin-bottom: 3px;
+  }
+  .save-slot-meta { font-size: 12px; color: var(--text-dim); }
+  .save-slot-empty { opacity: 0.4; cursor: default; }
+  .save-slot-empty:hover { border-color: var(--border); }
+
+  .modal-btns { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+
+  .modal-btn {
+    background: transparent;
+    border: 1px solid var(--border-bright);
+    color: var(--text-dim);
+    padding: 7px 18px;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .modal-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .modal-btn.primary { background: var(--gold); color: var(--bg-deep); border-color: var(--gold); font-weight: 700; }
+  .modal-btn.primary:hover { background: var(--gold-bright); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg-deep); }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    #sheet-panel, #log-panel { position: fixed; top: 47px; bottom: 0; z-index: 50; }
+    #sheet-panel { left: 0; }
+    #log-panel { right: 0; }
+    #story-feed { padding: 16px; }
+  }
+
+  /* Save indicator */
+  #save-indicator {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+    transition: color 0.3s;
+  }
+  #save-indicator.saved { color: var(--green); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div>
+      <div id="header-title">Star Wars Legends RPG</div>
+      <div id="header-sub">Sandbox · Dynasty · Living Galaxy</div>
+    </div>
+    <div class="header-btns">
+      <span id="save-indicator">—</span>
+      <button class="hbtn" id="btn-sheet" onclick="togglePanel('sheet')" style="display:none">Character</button>
+      <button class="hbtn" id="btn-log" onclick="togglePanel('log')" style="display:none">World Log</button>
+      <button class="hbtn" id="btn-save" onclick="openSaveLoad('save')" style="display:none">Save</button>
+      <button class="hbtn" id="btn-load" onclick="openSaveLoad('load')">Load</button>
+      <button class="hbtn danger" id="btn-newgame" onclick="confirmNewGame()" style="display:none">New Game</button>
+      <button class="hbtn" onclick="openApiSettings()">API Key</button>
+    </div>
+  </div>
+
+  <!-- API KEY SCREEN -->
+  <div id="api-screen">
+    <div class="api-box">
+      <h1>⚔ The Force Awaits</h1>
+      <div class="subtitle">Star Wars Legends Sandbox RPG</div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          Go to <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> and sign in with your free Google account.
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          Click <strong style="color:var(--gold)">Create API Key</strong>. Copy the key — it starts with <code style="color:var(--gold)">AIza...</code>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          Paste it below. The key is saved locally in your browser only — it never leaves your device.
+        </div>
+      </div>
+
+      <div class="api-input-row">
+        <label>Gemini API Key</label>
+        <input type="password" id="api-key-input" placeholder="AIzaSy..." autocomplete="off" />
+        <div class="api-note">Free tier: 15 requests/min, 1 million tokens/day. Play as much as you want.</div>
+      </div>
+
+      <button class="btn-primary" onclick="startWithKey()">Enter the Galaxy</button>
+    </div>
+  </div>
+
+  <!-- GAME LAYOUT -->
+  <div id="game-layout">
+
+    <!-- LEFT: Character Sheet -->
+    <div id="sheet-panel">
+      <div class="sheet-title">⚔ Character Sheet</div>
+      <div id="sheet-content"><div style="color:var(--text-dim);font-size:13px;font-style:italic">Character not yet created.</div></div>
+    </div>
+
+    <!-- CENTER: Story -->
+    <div id="story-area">
+      <div id="location-bar">
+        <div id="loc-text">Location: <span id="loc-val">—</span></div>
+        <div id="date-text" id="date-val">—</div>
+      </div>
+
+      <div id="story-feed">
+        <!-- messages injected here -->
+      </div>
+
+      <div id="thinking" class="msg">
+        <div class="think-dots"><span></span><span></span><span></span></div>
+        <span>The Force stirs...</span>
+      </div>
+
+      <div id="input-area">
+        <div id="override-hint">Tip: Start with [OVERRIDE], [LORE CHECK], [SYSTEM EXPAND], [CORRECTION], or [AUTHOR NOTE] to speak as the player, not the character.</div>
+        <div class="input-row">
+          <textarea id="player-input" placeholder="Describe your action, or click a choice above..." rows="1"></textarea>
+          <button id="send-btn" onclick="sendMessage()">Act</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: World Log -->
+    <div id="log-panel">
+      <div class="log-title">◈ World Log</div>
+      <div id="log-content"><div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div></div>
+      <div class="log-title" style="margin-top:16px">⚡ Legacy Changes</div>
+      <div id="legacy-content"><div style="color:var(--text-dim);font-size:12px;font-style:italic">None established.</div></div>
+      <div class="log-title" style="margin-top:16px">🧬 Lineage</div>
+      <div id="lineage-content"><div style="color:var(--text-dim);font-size:12px;font-style:italic">No ancestors yet.</div></div>
+    </div>
+
+  </div>
+
+  <!-- SAVE/LOAD MODAL -->
+  <div id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="e=>e.stopPropagation()">
+      <h2 id="modal-title">Save Game</h2>
+      <div id="modal-slots"></div>
+      <div class="modal-btns">
+        <button class="modal-btn" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  MASTER GM SYSTEM PROMPT — full rules from the document
+// ═══════════════════════════════════════════════════════════════════
+const MASTER_PROMPT = `You are the Game Master of a text-based sandbox RPG set entirely within the Star Wars Legends universe. You must follow every rule below without exception.
+
+## IDENTITY & CORE RULES
+- The galaxy exists independently of the player. Simulate it as a living entity.
+- Never simplify or remove mechanics. Never railroad the story.
+- Canon events occur unless the player realistically interferes.
+- Always present choices before resolving any scene.
+- Choices format: A) ... B) ... C) ... D) ... Custom: [player may describe their own action]
+
+## CHARACTER SHEET TRACKING
+Maintain a complete character sheet at all times. After EVERY response, output a JSON block wrapped in <<<SHEET>>> ... <<<END_SHEET>>> containing:
+{
+  "name": "", "species": "", "homeworld": "", "faction": "", "age": 0,
+  "alignment": 0,
+  "hp": 100, "maxHp": 100, "strain": 0, "maxStrain": 12,
+  "forceTier": 1,
+  "forceStats": { "forceSense": 0, "meditation": 0, "forceKnowledge": 0, "forceControl": 0 },
+  "forceAbilities": {},
+  "lightsaberForms": {},
+  "stats": { "strength": 0, "agility": 0, "endurance": 0, "willpower": 0, "charisma": 0 },
+  "strengths": [], "weaknesses": [],
+  "inventory": [], "credits": 0,
+  "renown": { "jediOrder": 0, "sith": 0, "republic": 0, "underworld": 0, "mandalorians": 0 },
+  "innatetalent": "",
+  "knownSecrets": [],
+  "activeBonds": []
+}
+
+Also output <<<WORLD>>> ... <<<END_WORLD>>> after every response:
+{
+  "location": "", "era": "", "inGameDate": "",
+  "lastEvent": "",
+  "legacyChanges": [],
+  "lineageRecord": [],
+  "worldLog": [],
+  "galaxyState": { "jediOrder": "", "sith": "", "republic": "", "mandalorians": "", "underworld": "" }
+}
+
+## COMBAT SYSTEM
+Formula: Final Roll = d20 + Σ(Relevant Stats ÷ 20) + Situational Modifiers
+Roll results: ≤1 = Contested, 2-3 = Solid success, 4-6 = Strong success, 7+ = Overwhelming
+Failure scale: small = pressure/disadvantage, large = injury, extreme = limb loss or death
+Duel phases: Opening → Testing → Pressure → Breakthrough → Decisive Exchange
+Always show the dice roll and calculation explicitly.
+
+## FORCE BARRIER SYSTEM
+Every Padawan+ Force user has a passive Force barrier always active.
+- Barrier blocks: telekinesis impact (reduces but doesn't stop), lightsaber manipulation mid-combat, grabs/chokes/lifts
+- Barrier does NOT block: lightsaber strikes, blasters, physical impact, Force Lightning
+- Breaking barrier: sustained pressure over rounds, overwhelming output, distraction/exhaustion, coordinated multi-user attacks, strain 9+
+- Barrier strength scales with: Force Control stat, Force Attunement, current strain, emotional state, Force Tier
+
+## LIGHTSABER FORMS
+Forms level individually through use. Apply these counter matchups to dice modifiers:
+- Makashi beats Shii-Cho (+2 to rolls vs Shii-Cho)
+- Djem So beats Makashi (+2 to rolls vs Makashi)  
+- Soresu outlasts Ataru (Ataru practitioner gains +1 strain per round)
+- Ataru negated in confined spaces (-3 to all rolls)
+- Vaapad gains +3 vs dark side opponents
+- Form VII (Juyo/Vaapad): restricted for Jedi without Council permission
+
+## STRAIN SYSTEM
+Base costs: small=0, single-target=+1, multi-target=+2, large-scale=+3, battlefield=+4
+Penalties: 0-2=none, 3-5=-1, 6-8=-2, 9+=-3 and barrier weakens
+Dark Side path: +2 strain baseline but +2-4 Force Output
+Light Side path: -1 strain, +1 Control, +1.5 when acting selflessly
+Flow State: d20 minimum=10, +2 precision, -1 strain, near-failures become partial successes
+
+## PROGRESSION
+Skills level through use — no XP pool. Each ability tracked individually (0-150+ scale).
+Speed: 0-40 fast, 40-80 moderate, 80-85 slow, 85-95 very slow, 95-100 extremely slow, 100+ requires breakthrough
+Specialization: natural strengths grow faster; weaknesses require more effort
+Combat growth bonus: fighting equal/stronger opponents, adapting under pressure, sustained danger
+Breakthrough: triggered by insight, philosophical discovery, extreme events — cannot be forced
+
+## TRAINING & DOWNTIME
+During downtime offer two training choices from: Lightsaber Training, Force Meditation, Ability Practice, Physical Conditioning, Artifact Study, Strategic Study.
+
+## GALAXY SIMULATION
+Simulate periodically: wars evolve, political shifts, Jedi/Sith operations, artifact discoveries, criminal conflicts.
+Track factions: Jedi Order, Sith, Republic, Mandalorians, Crime Syndicates, Independent Systems.
+Generate rivals that grow alongside the player.
+Council AI: Jedi/Sith leadership act as independent entities — assign missions, investigations, hunts.
+
+## CUSTOM CHARACTERS
+Generate original characters for any role not filled by named canon characters.
+They are persistent, age in real time, can die and leave legacies.
+Must match era tone and power levels.
+
+## LEGACY SYSTEM
+At death/retirement: present Legacy Succession screen with deeds, legacy changes, descendants.
+Descendants: hybrid creation — inherited affinities (weighted probability), chosen fresh elements.
+Lineage Impressions: dominant abilities compound over generations into family traits.
+Legacy Changes: player-caused changes to galactic norms persist through simulation with Strength ratings: Fragile → Established → Entrenched → Foundational.
+Legacy Change Challenges: if simulation would overturn a change, PAUSE and notify player with full context before finalizing.
+
+## PLAYER OVERRIDE SYSTEM
+If player message begins with [OVERRIDE], [LORE CHECK], [SYSTEM EXPAND], [WORLD ADJUST], [CORRECTION], or [AUTHOR NOTE]:
+- Immediately exit narrative voice entirely
+- Respond in plain direct language as a system, not narrator
+- Address their point fully
+- Ask "Ready to resume?" when done
+
+## SIMULATION OUTPUT FORMAT (for time skips)
+TIME SKIP: [Start] → [End] | [X years]
+LEGACY CHANGE STATUS: [each change and status]
+LINEAGE EVENTS: [family events during skip]
+MAJOR GALAXY EVENTS: [key events with cause/consequence]
+WORLD STATE ON ARRIVAL: [current galaxy state]
+READY FOR CONTINUATION: [Y/N]
+
+## ALIGNMENT
+Track as number: -100 (full Dark) to +100 (full Light). 0 = Neutral.
+Shift gradually. Only defining moral moments cause large swings.
+Display as: Light (50-100), Neutral (-49 to 49), Dark (-50 to -100).
+
+## RENOWN
+Only increases if actions witnessed or reported.
+0-20 Unknown, 21-40 Noticed, 41-60 Known, 61-80 Renowned, 81-100 Legendary.
+
+## TONE
+- Immersive, atmospheric Star Wars Legends prose
+- Consequences are real. Deaths are permanent.
+- Political complexity and moral weight matter.
+- Never simplify for comfort.
+
+Begin campaign by presenting era selection, then full character creation.`;
+
+// ═══════════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════════
+let apiKey = '';
+let gameActive = false;
+let isThinking = false;
+let conversationHistory = [];
+let characterSheet = null;
+let worldState = null;
+let turnCount = 0;
+
+const SAVE_SLOTS = 5;
+
+// ═══════════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  apiKey = localStorage.getItem('sw_rpg_gemini_key') || '';
+  if (apiKey) {
+    showGame();
+    tryAutoLoad();
+  }
+
+  const input = document.getElementById('player-input');
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+  });
+});
+
+function tryAutoLoad() {
+  // Load slot 0 (autosave) if it exists
+  const raw = localStorage.getItem('sw_rpg_autosave');
+  if (raw) {
+    try {
+      const save = JSON.parse(raw);
+      loadFromSave(save);
+    } catch(e) {}
+  } else {
+    // Fresh game — start it
+    startNewGame();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  API KEY
+// ═══════════════════════════════════════════════════════════════════
+function startWithKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key || key.length < 20) {
+    alert('Please enter a valid Gemini API key.');
+    return;
+  }
+  apiKey = key;
+  localStorage.setItem('sw_rpg_gemini_key', key);
+  showGame();
+  startNewGame();
+}
+
+function openApiSettings() {
+  const key = prompt('Enter your Gemini API key (leave blank to keep current):', '');
+  if (key && key.length > 10) {
+    apiKey = key;
+    localStorage.setItem('sw_rpg_gemini_key', key);
+    alert('API key updated.');
+  }
+}
+
+function showGame() {
+  document.getElementById('api-screen').style.display = 'none';
+  document.getElementById('game-layout').classList.add('visible');
+  document.getElementById('btn-sheet').style.display = '';
+  document.getElementById('btn-log').style.display = '';
+  document.getElementById('btn-save').style.display = '';
+  document.getElementById('btn-newgame').style.display = '';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  GAME START
+// ═══════════════════════════════════════════════════════════════════
+function startNewGame() {
+  conversationHistory = [];
+  characterSheet = null;
+  worldState = null;
+  turnCount = 0;
+  document.getElementById('story-feed').innerHTML = '';
+  document.getElementById('sheet-content').innerHTML = '<div style="color:var(--text-dim);font-size:13px;font-style:italic">Character not yet created.</div>';
+  document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div>';
+  document.getElementById('legacy-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">None established.</div>';
+  document.getElementById('lineage-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No ancestors yet.</div>';
+  document.getElementById('loc-val').textContent = '—';
+  document.getElementById('date-text').textContent = '—';
+  gameActive = true;
+  callGemini("BEGIN_GAME");
+}
+
+function confirmNewGame() {
+  if (confirm('Start a new game? Your current progress will be lost unless saved. Continue?')) {
+    startNewGame();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  GEMINI API CALL
+// ═══════════════════════════════════════════════════════════════════
+async function callGemini(playerMessage) {
+  if (isThinking) return;
+  isThinking = true;
+  setThinking(true);
+
+  const isOverride = typeof playerMessage === 'string' && (
+    playerMessage.startsWith('[OVERRIDE]') ||
+    playerMessage.startsWith('[LORE CHECK]') ||
+    playerMessage.startsWith('[SYSTEM EXPAND]') ||
+    playerMessage.startsWith('[WORLD ADJUST]') ||
+    playerMessage.startsWith('[CORRECTION]') ||
+    playerMessage.startsWith('[AUTHOR NOTE]')
+  );
+
+  // Build messages array
+  const messages = [];
+
+  // Add history
+  for (const msg of conversationHistory) {
+    messages.push(msg);
+  }
+
+  // Add current player message
+  const userContent = playerMessage === "BEGIN_GAME"
+    ? "BEGIN CAMPAIGN. Present era selection immediately."
+    : playerMessage;
+
+  messages.push({ role: "user", parts: [{ text: userContent }] });
+
+  const body = {
+    system_instruction: { parts: [{ text: MASTER_PROMPT }] },
+    contents: messages,
+    generationConfig: {
+      temperature: 0.85,
+      maxOutputTokens: 2048,
+      topP: 0.95
+    }
+  };
+
+  try {
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }
+    );
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error?.message || `HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    // Parse sheet and world state
+    const sheetMatch = rawText.match(/<<<SHEET>>>([\s\S]*?)<<<END_SHEET>>>/);
+    const worldMatch = rawText.match(/<<<WORLD>>>([\s\S]*?)<<<END_WORLD>>>/);
+
+    if (sheetMatch) {
+      try { characterSheet = JSON.parse(sheetMatch[1].trim()); } catch(e) {}
+    }
+    if (worldMatch) {
+      try { worldState = JSON.parse(worldMatch[1].trim()); } catch(e) {}
+    }
+
+    // Clean display text
+    let displayText = rawText
+      .replace(/<<<SHEET>>>[\s\S]*?<<<END_SHEET>>>/g, '')
+      .replace(/<<<WORLD>>>[\s\S]*?<<<END_WORLD>>>/g, '')
+      .trim();
+
+    // Update history
+    conversationHistory.push({ role: "user", parts: [{ text: userContent }] });
+    conversationHistory.push({ role: "model", parts: [{ text: rawText }] });
+
+    // Keep history from growing too large (last 40 turns)
+    if (conversationHistory.length > 80) {
+      conversationHistory = conversationHistory.slice(-80);
+    }
+
+    turnCount++;
+
+    // Render
+    if (isOverride) {
+      renderSystemMessage(displayText);
+    } else {
+      renderGMMessage(displayText);
+    }
+
+    updateUI();
+    autoSave();
+
+  } catch (err) {
+    renderSystemMessage(`⚠ Error: ${err.message}\n\nCheck your API key or try again.`);
+  }
+
+  setThinking(false);
+  isThinking = false;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  SEND MESSAGE
+// ═══════════════════════════════════════════════════════════════════
+function sendMessage(prefilledText) {
+  const input = document.getElementById('player-input');
+  const text = prefilledText || input.value.trim();
+  if (!text || isThinking || !gameActive) return;
+
+  if (!prefilledText) {
+    input.value = '';
+    input.style.height = '44px';
+  }
+
+  // Show player bubble
+  renderPlayerMessage(text);
+
+  callGemini(text);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  RENDER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════
+function renderGMMessage(text) {
+  const feed = document.getElementById('story-feed');
+  const div = document.createElement('div');
+  div.className = 'msg msg-gm';
+
+  // Parse choices (A) B) C) etc
+  const parts = [];
+  const lines = text.split('\n');
+  let narrative = [];
+  let choices = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (/^[A-E]\)/.test(trimmed) || /^[A-E]\s*[\.\-\)]/.test(trimmed)) {
+      choices.push(trimmed);
+    } else {
+      narrative.push(line);
+    }
+  }
+
+  // Render narrative
+  const narDiv = document.createElement('div');
+  narDiv.className = 'gm-text';
+  narDiv.textContent = narrative.join('\n').trim();
+  div.appendChild(narDiv);
+
+  // Render choice buttons
+  if (choices.length > 0) {
+    const choiceWrap = document.createElement('div');
+    choiceWrap.style.marginTop = '12px';
+    for (const choice of choices) {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = choice;
+      btn.onclick = () => {
+        renderPlayerMessage(choice);
+        callGemini(choice);
+      };
+      choiceWrap.appendChild(btn);
+    }
+    div.appendChild(choiceWrap);
+  }
+
+  feed.appendChild(div);
+  scrollFeed();
+}
+
+function renderPlayerMessage(text) {
+  const feed = document.getElementById('story-feed');
+  const div = document.createElement('div');
+  div.className = 'msg msg-player';
+  div.innerHTML = `<div class="player-bubble">❯ ${escapeHtml(text)}</div>`;
+  feed.appendChild(div);
+  scrollFeed();
+}
+
+function renderSystemMessage(text) {
+  const feed = document.getElementById('story-feed');
+  const div = document.createElement('div');
+  div.className = 'msg msg-system';
+  div.innerHTML = `<div class="sys-label">◆ SYSTEM</div><div style="white-space:pre-wrap">${escapeHtml(text)}</div>`;
+  feed.appendChild(div);
+  scrollFeed();
+}
+
+function setThinking(show) {
+  const el = document.getElementById('thinking');
+  el.classList.toggle('show', show);
+  document.getElementById('send-btn').disabled = show;
+  if (show) scrollFeed();
+}
+
+function scrollFeed() {
+  const feed = document.getElementById('story-feed');
+  setTimeout(() => feed.scrollTop = feed.scrollHeight, 50);
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  UI UPDATES
+// ═══════════════════════════════════════════════════════════════════
+function updateUI() {
+  if (characterSheet) updateCharacterSheet();
+  if (worldState) updateWorldState();
+}
+
+function updateCharacterSheet() {
+  const s = characterSheet;
+  if (!s || !s.name) return;
+
+  const alignVal = s.alignment || 0;
+  const alignLabel = alignVal >= 50 ? 'Light' : alignVal <= -50 ? 'Dark' : 'Neutral';
+  const alignColor = alignVal >= 50 ? '#4488cc' : alignVal <= -50 ? '#cc3333' : '#888';
+  const alignPct = ((alignVal + 100) / 200 * 100).toFixed(0);
+
+  const hpPct = Math.max(0, Math.min(100, (s.hp / s.maxHp) * 100));
+  const strainPct = Math.max(0, Math.min(100, (s.strain / s.maxStrain) * 100));
+
+  const tierNames = ['', 'Untrained', 'Padawan', 'Knight', 'Master', 'Legendary'];
+  const tierName = tierNames[s.forceTier] || 'Unknown';
+
+  let html = `
+    <div class="sheet-name">${s.name}</div>
+    <div class="sheet-sub">${s.species || '—'} · ${s.faction || '—'} · Age ${s.age || '—'}</div>
+    <div class="sheet-sub" style="color:${alignColor}">${alignLabel} (${alignVal > 0 ? '+' : ''}${alignVal})</div>
+
+    <div class="bar-wrap">
+      <div class="bar-label"><span>HP</span><span>${s.hp}/${s.maxHp}</span></div>
+      <div class="bar-track"><div class="bar-fill bar-hp" style="width:${hpPct}%"></div></div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-label"><span>Strain</span><span>${s.strain}/${s.maxStrain}</span></div>
+      <div class="bar-track"><div class="bar-fill bar-strain" style="width:${strainPct}%"></div></div>
+    </div>
+
+    <div class="sheet-section">
+      <div class="sheet-section-title">Force · ${tierName}</div>`;
+
+  const fs = s.forceStats || {};
+  for (const [k, v] of Object.entries(fs)) {
+    const label = k.replace(/([A-Z])/g, ' $1').trim();
+    html += `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-val">${v}</span></div>`;
+  }
+  html += `</div>`;
+
+  // Force abilities
+  const fa = s.forceAbilities || {};
+  if (Object.keys(fa).length > 0) {
+    html += `<div class="sheet-section"><div class="sheet-section-title">Force Abilities</div><div class="tag-list">`;
+    for (const [k, v] of Object.entries(fa)) {
+      html += `<div class="tag">${k} ${v}</div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  // Lightsaber forms
+  const lf = s.lightsaberForms || {};
+  if (Object.keys(lf).length > 0) {
+    html += `<div class="sheet-section"><div class="sheet-section-title">Lightsaber Forms</div><div class="tag-list">`;
+    for (const [k, v] of Object.entries(lf)) {
+      html += `<div class="tag">${k} ${v}</div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  // Stats
+  const st = s.stats || {};
+  if (Object.keys(st).length > 0) {
+    html += `<div class="sheet-section"><div class="sheet-section-title">Stats</div>`;
+    for (const [k, v] of Object.entries(st)) {
+      const label = k.charAt(0).toUpperCase() + k.slice(1);
+      html += `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-val">${v}</span></div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Renown
+  const rn = s.renown || {};
+  if (Object.keys(rn).some(k => rn[k] > 0)) {
+    html += `<div class="sheet-section"><div class="sheet-section-title">Renown</div>`;
+    for (const [k, v] of Object.entries(rn)) {
+      if (v > 0) {
+        const label = k.replace(/([A-Z])/g, ' $1').trim();
+        html += `<div class="faction-renown"><span class="fr-name">${label}</span><span class="fr-val">${v}</span></div>`;
+      }
+    }
+    html += `</div>`;
+  }
+
+  // Inventory
+  const inv = s.inventory || [];
+  if (inv.length > 0) {
+    html += `<div class="sheet-section"><div class="sheet-section-title">Inventory</div><div class="tag-list">`;
+    for (const item of inv) {
+      html += `<div class="tag">${item}</div>`;
+    }
+    html += `</div>`;
+    if (s.credits > 0) html += `<div style="margin-top:6px;font-size:12px;color:var(--gold)">◈ ${s.credits} credits</div>`;
+    html += `</div>`;
+  }
+
+  if (s.innatetalent) {
+    html += `<div class="sheet-section"><div class="sheet-section-title">Innate Talent</div><div style="font-size:13px;color:var(--gold)">${s.innatetalent}</div></div>`;
+  }
+
+  document.getElementById('sheet-content').innerHTML = html;
+}
+
+function updateWorldState() {
+  const w = worldState;
+  if (!w) return;
+
+  // Location bar
+  if (w.location) document.getElementById('loc-val').textContent = w.location;
+  if (w.inGameDate) document.getElementById('date-text').textContent = w.inGameDate;
+
+  // World log
+  const log = w.worldLog || [];
+  if (log.length > 0) {
+    let logHtml = '';
+    for (const entry of log.slice().reverse().slice(0, 20)) {
+      logHtml += `<div class="log-entry">
+        <div class="log-turn">Turn ${entry.turn || '—'}</div>
+        <div class="log-event">${entry.event || ''}</div>
+        <div class="log-loc">${entry.location || ''}</div>
+      </div>`;
+    }
+    document.getElementById('log-content').innerHTML = logHtml;
+  }
+
+  // Legacy changes
+  const lc = w.legacyChanges || [];
+  if (lc.length > 0) {
+    let lcHtml = '';
+    for (const change of lc) {
+      const strengthClass = `legacy-${(change.strength || 'fragile').toLowerCase()}`;
+      lcHtml += `<div class="legacy-entry">
+        <span class="legacy-name">${change.name || ''}</span>
+        <span class="legacy-strength ${strengthClass}">${change.strength || 'Fragile'}</span>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:2px">${change.description || ''}</div>
+      </div>`;
+    }
+    document.getElementById('legacy-content').innerHTML = lcHtml;
+  }
+
+  // Lineage
+  const lineage = w.lineageRecord || [];
+  if (lineage.length > 0) {
+    let lHtml = '';
+    for (const anc of lineage) {
+      lHtml += `<div class="lineage-entry"><span class="anc-name">${anc.name || ''}</span> · ${anc.era || ''}<div style="font-size:11px;margin-top:1px">${(anc.dominantAbilities || []).join(', ')}</div></div>`;
+    }
+    document.getElementById('lineage-content').innerHTML = lHtml;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  PANEL TOGGLES
+// ═══════════════════════════════════════════════════════════════════
+function togglePanel(which) {
+  const sheet = document.getElementById('sheet-panel');
+  const log = document.getElementById('log-panel');
+  const btnSheet = document.getElementById('btn-sheet');
+  const btnLog = document.getElementById('btn-log');
+
+  if (which === 'sheet') {
+    const open = sheet.classList.toggle('open');
+    btnSheet.classList.toggle('active', open);
+  } else {
+    const open = log.classList.toggle('open');
+    btnLog.classList.toggle('active', open);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  SAVE / LOAD
+// ═══════════════════════════════════════════════════════════════════
+function autoSave() {
+  const save = buildSave('Auto Save', 0);
+  localStorage.setItem('sw_rpg_autosave', JSON.stringify(save));
+  const ind = document.getElementById('save-indicator');
+  ind.textContent = '✓ Saved';
+  ind.classList.add('saved');
+  setTimeout(() => {
+    ind.textContent = `Turn ${turnCount}`;
+    ind.classList.remove('saved');
+  }, 2000);
+}
+
+function buildSave(name, slot) {
+  return {
+    slot,
+    name,
+    savedAt: new Date().toISOString(),
+    turnCount,
+    characterSheet,
+    worldState,
+    conversationHistory: conversationHistory.slice(-60),
+    feedHtml: document.getElementById('story-feed').innerHTML
+  };
+}
+
+function loadFromSave(save) {
+  if (!save) return;
+  turnCount = save.turnCount || 0;
+  characterSheet = save.characterSheet || null;
+  worldState = save.worldState || null;
+  conversationHistory = save.conversationHistory || [];
+  if (save.feedHtml) {
+    document.getElementById('story-feed').innerHTML = save.feedHtml;
+    // Re-attach choice button handlers
+    document.querySelectorAll('.choice-btn').forEach(btn => {
+      btn.onclick = () => {
+        const text = btn.textContent;
+        renderPlayerMessage(text);
+        callGemini(text);
+      };
+    });
+  }
+  updateUI();
+  gameActive = true;
+  scrollFeed();
+  document.getElementById('save-indicator').textContent = `Turn ${turnCount}`;
+}
+
+function openSaveLoad(mode) {
+  const modal = document.getElementById('modal-overlay');
+  const title = document.getElementById('modal-title');
+  const slots = document.getElementById('modal-slots');
+
+  title.textContent = mode === 'save' ? 'Save Game' : 'Load Game';
+  slots.innerHTML = '';
+
+  // Read all slots
+  const savedSlots = [];
+  for (let i = 1; i <= SAVE_SLOTS; i++) {
+    const raw = localStorage.getItem(`sw_rpg_save_${i}`);
+    savedSlots.push(raw ? JSON.parse(raw) : null);
+  }
+
+  for (let i = 0; i < SAVE_SLOTS; i++) {
+    const s = savedSlots[i];
+    const div = document.createElement('div');
+    div.className = 'save-slot' + (s ? '' : ' save-slot-empty');
+
+    if (s) {
+      const date = new Date(s.savedAt).toLocaleString();
+      const charName = s.characterSheet?.name || 'Unknown';
+      const era = s.worldState?.era || '—';
+      div.innerHTML = `<div class="save-slot-name">Slot ${i+1}: ${s.name || 'Save ' + (i+1)}</div>
+        <div class="save-slot-meta">${charName} · ${era} · Turn ${s.turnCount} · ${date}</div>`;
+
+      if (mode === 'save') {
+        div.onclick = () => {
+          const name = prompt(`Name this save (Slot ${i+1}):`, s.name || `Save ${i+1}`);
+          if (name !== null) {
+            const newSave = buildSave(name || `Save ${i+1}`, i+1);
+            localStorage.setItem(`sw_rpg_save_${i+1}`, JSON.stringify(newSave));
+            autoSave();
+            closeModal();
+            alert('Game saved!');
+          }
+        };
+      } else {
+        div.onclick = () => {
+          if (confirm(`Load "${s.name}"? Current progress will be replaced.`)) {
+            loadFromSave(s);
+            closeModal();
+          }
+        };
+      }
+    } else {
+      div.innerHTML = `<div class="save-slot-name">Slot ${i+1}: Empty</div>
+        <div class="save-slot-meta">—</div>`;
+      if (mode === 'save') {
+        div.classList.remove('save-slot-empty');
+        div.onclick = () => {
+          const name = prompt(`Name this save (Slot ${i+1}):`, `Save ${i+1}`);
+          if (name !== null) {
+            const newSave = buildSave(name || `Save ${i+1}`, i+1);
+            localStorage.setItem(`sw_rpg_save_${i+1}`, JSON.stringify(newSave));
+            autoSave();
+            closeModal();
+            alert('Game saved!');
+          }
+        };
+      }
+    }
+    slots.appendChild(div);
+  }
+
+  modal.classList.add('show');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+</script>
+</body>
+</html>
