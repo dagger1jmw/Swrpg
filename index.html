@@ -958,17 +958,42 @@ window.addEventListener('load', () => {
 });
 
 function tryAutoLoad() {
-  // Load slot 0 (autosave) if it exists
   const raw = localStorage.getItem('sw_rpg_autosave');
   if (raw) {
     try {
       const save = JSON.parse(raw);
       loadFromSave(save);
+      return;
     } catch(e) {}
-  } else {
-    // Fresh game — start it
-    startNewGame();
   }
+  // No save found — show welcome prompt, don't auto-fire API
+  showWelcomePrompt();
+}
+
+function showWelcomePrompt() {
+  const feed = document.getElementById('story-feed');
+  feed.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'msg msg-gm';
+  div.innerHTML = `
+    <div class="gm-text" style="text-align:center;padding:40px 20px">
+      <div style="font-family:Cinzel,serif;font-size:22px;color:var(--gold);letter-spacing:3px;margin-bottom:16px">A LONG TIME AGO</div>
+      <div style="font-family:Cinzel,serif;font-size:13px;color:var(--text-dim);letter-spacing:2px;margin-bottom:32px">IN A GALAXY FAR, FAR AWAY...</div>
+      <div style="max-width:480px;margin:0 auto;color:var(--text-dim);font-size:15px;line-height:1.8;margin-bottom:32px">
+        The galaxy awaits. Your lineage has yet to begin.<br>When you are ready, begin your journey.
+      </div>
+      <button onclick="beginCampaign()" style="background:var(--gold);border:none;color:var(--bg-deep);padding:14px 40px;font-family:Cinzel,serif;font-size:14px;letter-spacing:3px;font-weight:700;cursor:pointer;text-transform:uppercase">
+        BEGIN CAMPAIGN
+      </button>
+    </div>`;
+  feed.appendChild(div);
+  gameActive = true;
+}
+
+function beginCampaign() {
+  if (isThinking) return;
+  document.getElementById('story-feed').innerHTML = '';
+  callGemini("BEGIN_GAME");
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -996,7 +1021,7 @@ async function startWithKey() {
   apiKey = key;
   localStorage.setItem('sw_rpg_gemini_key', key);
   showGame();
-  startNewGame();
+  showWelcomePrompt();
 }
 
 async function testApiKey(key) {
@@ -1101,15 +1126,16 @@ function startNewGame() {
   characterSheet = null;
   worldState = null;
   turnCount = 0;
-  document.getElementById('story-feed').innerHTML = '';
   document.getElementById('sheet-content').innerHTML = '<div style="color:var(--text-dim);font-size:13px;font-style:italic">Character not yet created.</div>';
   document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div>';
   document.getElementById('legacy-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">None established.</div>';
   document.getElementById('lineage-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No ancestors yet.</div>';
   document.getElementById('loc-val').textContent = '—';
   document.getElementById('date-text').textContent = '—';
+  document.getElementById('save-indicator').textContent = '—';
   gameActive = true;
-  callGemini("BEGIN_GAME");
+  isThinking = false;
+  showWelcomePrompt();
 }
 
 function confirmNewGame() {
