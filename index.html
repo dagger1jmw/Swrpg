@@ -1001,69 +1001,14 @@ function beginCampaign() {
 // ═══════════════════════════════════════════════════════════════════
 async function startWithKey() {
   const key = document.getElementById('api-key-input').value.trim();
-  if (!key || key.length < 20) {
-    showApiError('Please enter a valid Gemini API key (starts with AIza...)');
+  if (!key || key.length < 20 || !key.startsWith('AIza')) {
+    showApiError('Please enter a valid Gemini API key — it should start with AIza...');
     return;
   }
-  const btn = document.querySelector('.btn-primary');
-  btn.disabled = true;
-  btn.textContent = 'Connecting...';
-  showApiError('');
-
-  // Test the key with a minimal call before proceeding
-  const testOk = await testApiKey(key);
-  if (!testOk) {
-    btn.disabled = false;
-    btn.textContent = 'Enter the Galaxy';
-    return;
-  }
-
   apiKey = key;
   localStorage.setItem('sw_rpg_gemini_key', key);
   showGame();
   showWelcomePrompt();
-}
-
-async function testApiKey(key) {
-  try {
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: 'Reply with the single word: ready' }] }],
-          generationConfig: { maxOutputTokens: 10 }
-        })
-      }
-    );
-    if (resp.status === 400) {
-      // 400 can mean bad request format but key is valid — treat as ok
-      return true;
-    }
-    if (resp.status === 403 || resp.status === 401) {
-      showApiError('❌ API key rejected. Double-check you copied the full key from Google AI Studio.');
-      return false;
-    }
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      const msg = err?.error?.message || `HTTP ${resp.status}`;
-      // quota errors still mean key is valid
-      if (resp.status === 429) return true;
-      showApiError(`❌ ${msg}`);
-      return false;
-    }
-    return true;
-  } catch (e) {
-    // Network / CORS error
-    if (e.message.includes('Failed to fetch') || e.message.includes('Load failed') || e.message.includes('NetworkError')) {
-      showApiError(`❌ Network blocked.\n\nYour browser is preventing this file from reaching Google's servers because it's opened as a local file (file://).\n\nFix: Run the game through the built-in server — see instructions below.`);
-      showServerInstructions();
-      return false;
-    }
-    showApiError(`❌ ${e.message}`);
-    return false;
-  }
 }
 
 function showApiError(msg) {
@@ -1147,10 +1092,12 @@ function confirmNewGame() {
 // ═══════════════════════════════════════════════════════════════════
 //  GEMINI API CALL
 // ═══════════════════════════════════════════════════════════════════
-async function callGemini(playerMessage) {
-  if (isThinking) return;
-  isThinking = true;
-  setThinking(true);
+async function callGemini(playerMessage, retryCount = 0) {
+  if (isThinking && retryCount === 0) return;
+  if (retryCount === 0) {
+    isThinking = true;
+    setThinking(true);
+  }
 
   const isOverride = typeof playerMessage === 'string' && (
     playerMessage.startsWith('[OVERRIDE]') ||
@@ -1161,15 +1108,7 @@ async function callGemini(playerMessage) {
     playerMessage.startsWith('[AUTHOR NOTE]')
   );
 
-  // Build messages array
-  const messages = [];
-
-  // Add history
-  for (const msg of conversationHistory) {
-    messages.push(msg);
-  }
-
-  // Add current player message
+  const messages = [...conversationHistory];
   const userContent = playerMessage === "BEGIN_GAME"
     ? "BEGIN CAMPAIGN. Present era selection immediately."
     : playerMessage;
@@ -1196,13 +1135,21 @@ async function callGemini(playerMessage) {
       }
     );
 
+    // Rate limit — auto retry after delay
+    if (resp.status === 429) {
+      if (retryCount < 3) {
+        const waitSecs = (retryCount + 1) * 20;
+        showRetryMessage(waitSecs, retryCount + 1);
+        await sleep(waitSecs * 1000);
+        return callGemini(playerMessage, retryCount + 1);
+      } else {
+        throw new Error('Rate limit — the free tier allows 15 requests per minute. Please wait 60 seconds and try again.');
+      }
+    }
+
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
-      const msg = err?.error?.message || `HTTP ${resp.status}`;
-      if (resp.status === 429) {
-        throw new Error('Rate limit hit — wait a moment and try again. (Free tier: 15 requests/minute)');
-      }
-      throw new Error(msg);
+      throw new Error(err?.error?.message || `HTTP ${resp.status}`);
     }
 
     const data = await resp.json();
@@ -1211,13 +1158,8 @@ async function callGemini(playerMessage) {
     // Parse sheet and world state
     const sheetMatch = rawText.match(/<<<SHEET>>>([\s\S]*?)<<<END_SHEET>>>/);
     const worldMatch = rawText.match(/<<<WORLD>>>([\s\S]*?)<<<END_WORLD>>>/);
-
-    if (sheetMatch) {
-      try { characterSheet = JSON.parse(sheetMatch[1].trim()); } catch(e) {}
-    }
-    if (worldMatch) {
-      try { worldState = JSON.parse(worldMatch[1].trim()); } catch(e) {}
-    }
+    if (sheetMatch) { try { characterSheet = JSON.parse(sheetMatch[1].trim()); } catch(e) {} }
+    if (worldMatch) { try { worldState = JSON.parse(worldMatch[1].trim()); } catch(e) {} }
 
     // Clean display text
     let displayText = rawText
@@ -1228,15 +1170,11 @@ async function callGemini(playerMessage) {
     // Update history
     conversationHistory.push({ role: "user", parts: [{ text: userContent }] });
     conversationHistory.push({ role: "model", parts: [{ text: rawText }] });
-
-    // Keep history from growing too large (last 40 turns)
     if (conversationHistory.length > 80) {
       conversationHistory = conversationHistory.slice(-80);
     }
 
     turnCount++;
-
-    // Render
     if (isOverride) {
       renderSystemMessage(displayText);
     } else {
@@ -1249,13 +1187,29 @@ async function callGemini(playerMessage) {
   } catch (err) {
     let msg = err.message || 'Unknown error';
     if (msg.includes('Failed to fetch') || msg.includes('Load failed') || msg.includes('NetworkError')) {
-      msg = 'Network blocked — you need to run this file through a local server, not open it directly.\n\nSee the setup instructions on the start screen (click "API Key" button).';
+      msg = 'Could not reach the Gemini API. Check your internet connection, or your API key may be invalid.';
     }
-    renderSystemMessage(`⚠ Error: ${msg}`);
+    renderSystemMessage(`⚠ ${msg}`);
   }
 
   setThinking(false);
   isThinking = false;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function showRetryMessage(waitSecs, attempt) {
+  const feed = document.getElementById('story-feed');
+  let retryDiv = document.getElementById('retry-msg');
+  if (!retryDiv) {
+    retryDiv = document.createElement('div');
+    retryDiv.id = 'retry-msg';
+    retryDiv.className = 'msg msg-system';
+    retryDiv.style.cssText = 'border-color:rgba(201,168,76,0.4);background:rgba(201,168,76,0.06);color:var(--gold)';
+    feed.appendChild(retryDiv);
+  }
+  retryDiv.innerHTML = `<div class="sys-label">◆ RATE LIMIT</div>The Force requires patience... waiting ${waitSecs}s before attempt ${attempt}/3.`;
+  feed.scrollTop = feed.scrollHeight;
 }
 
 // ═══════════════════════════════════════════════════════════════════
