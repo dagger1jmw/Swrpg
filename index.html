@@ -1220,10 +1220,17 @@ async function callGemini(playerMessage, retryCount = 0) {
       ind.style.color = 'var(--gold-dim)';
     }
 
-    // Clean display text
+    // Clean display text — strip all data blocks aggressively
+    // Handle variants: spaces in tags, different bracket counts, unclosed blocks
     let displayText = rawText
-      .replace(/<<<SHEET>>>[\s\S]*?<<<END_SHEET>>>/g, '')
-      .replace(/<<<WORLD>>>[\s\S]*?<<<END_WORLD>>>/g, '')
+      // Standard closed blocks
+      .replace(/<<<\s*SHEET\s*>>>[\s\S]*?<<<\s*END_SHEET\s*>>>/gi, '')
+      .replace(/<<<\s*WORLD\s*>>>[\s\S]*?<<<\s*END_WORLD\s*>>>/gi, '')
+      // Unclosed blocks — strip from opening tag to end of string
+      .replace(/<<<\s*SHEET\s*>>>[\s\S]*/gi, '')
+      .replace(/<<<\s*WORLD\s*>>>[\s\S]*/gi, '')
+      // Any remaining <<< markers (malformed output)
+      .replace(/<<<[\s\S]*/g, '')
       .trim();
 
     // Update history
@@ -1521,16 +1528,23 @@ function updateWorldState() {
   if (w.location) document.getElementById('loc-val').textContent = w.location;
   if (w.inGameDate) document.getElementById('date-text').textContent = w.inGameDate;
 
-  // World log
+  // World log — handle both string entries and object entries
   const log = w.worldLog || [];
   if (log.length > 0) {
     let logHtml = '';
     for (const entry of log.slice().reverse().slice(0, 20)) {
-      logHtml += `<div class="log-entry">
-        <div class="log-turn">Turn ${entry.turn || '—'}</div>
-        <div class="log-event">${entry.event || ''}</div>
-        <div class="log-loc">${entry.location || ''}</div>
-      </div>`;
+      if (typeof entry === 'string') {
+        // Plain string format — just display it
+        logHtml += `<div class="log-entry">
+          <div class="log-event">${entry}</div>
+        </div>`;
+      } else {
+        logHtml += `<div class="log-entry">
+          <div class="log-turn">Turn ${entry.turn || '—'}</div>
+          <div class="log-event">${entry.event || ''}</div>
+          <div class="log-loc">${entry.location || ''}</div>
+        </div>`;
+      }
     }
     document.getElementById('log-content').innerHTML = logHtml;
   }
