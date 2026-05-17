@@ -802,34 +802,20 @@ const MASTER_PROMPT = `You are the Game Master of a text-based sandbox RPG set e
 - Always present choices before resolving any scene.
 - Choices format: A) ... B) ... C) ... D) ... Custom: [player may describe their own action]
 
-## CHARACTER SHEET TRACKING
-Maintain a complete character sheet at all times. After EVERY response, output a JSON block wrapped in <<<SHEET>>> ... <<<END_SHEET>>> containing:
-{
-  "name": "", "species": "", "homeworld": "", "faction": "", "age": 0,
-  "alignment": 0,
-  "hp": 100, "maxHp": 100, "strain": 0, "maxStrain": 12,
-  "forceTier": 1,
-  "forceStats": { "forceSense": 0, "meditation": 0, "forceKnowledge": 0, "forceControl": 0 },
-  "forceAbilities": {},
-  "lightsaberForms": {},
-  "stats": { "strength": 0, "agility": 0, "endurance": 0, "willpower": 0, "charisma": 0 },
-  "strengths": [], "weaknesses": [],
-  "inventory": [], "credits": 0,
-  "renown": { "jediOrder": 0, "sith": 0, "republic": 0, "underworld": 0, "mandalorians": 0 },
-  "innatetalent": "",
-  "knownSecrets": [],
-  "activeBonds": []
-}
+## CRITICAL OUTPUT FORMAT — MANDATORY ON EVERY SINGLE RESPONSE
+Every response you generate MUST end with both data blocks below. No exceptions. Not sometimes. EVERY response, including era selection, character creation questions, and all narrative turns. If you omit these blocks the game UI breaks. Output them even if values are empty or unchanged.
 
-Also output <<<WORLD>>> ... <<<END_WORLD>>> after every response:
-{
-  "location": "", "era": "", "inGameDate": "",
-  "lastEvent": "",
-  "legacyChanges": [],
-  "lineageRecord": [],
-  "worldLog": [],
-  "galaxyState": { "jediOrder": "", "sith": "", "republic": "", "mandalorians": "", "underworld": "" }
-}
+STEP 1: Write your narrative response and choices as normal.
+STEP 2: Immediately after, with no extra text, output the SHEET block:
+<<<SHEET>>>
+{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"hp":100,"maxHp":100,"strain":0,"maxStrain":12,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceAbilities":{},"lightsaberForms":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"strengths":[],"weaknesses":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
+<<<END_SHEET>>>
+STEP 3: Immediately after, output the WORLD block:
+<<<WORLD>>>
+{"location":"","era":"","inGameDate":"","lastEvent":"","legacyChanges":[],"lineageRecord":[],"worldLog":[],"galaxyState":{"jediOrder":"","sith":"","republic":"","mandalorians":"","underworld":""}}
+<<<END_WORLD>>>
+
+Fill every field with current values. worldLog is an array of objects: {"turn":1,"event":"what happened","location":"where"}. Keep worldLog to the last 20 entries. For character creation turns where no character exists yet, use placeholder values like "name":"Pending" and fill in what you do know such as era and location.
 
 ## COMBAT SYSTEM
 Formula: Final Roll = d20 + Σ(Relevant Stats ÷ 20) + Situational Modifiers
@@ -848,7 +834,7 @@ Every Padawan+ Force user has a passive Force barrier always active.
 ## LIGHTSABER FORMS
 Forms level individually through use. Apply these counter matchups to dice modifiers:
 - Makashi beats Shii-Cho (+2 to rolls vs Shii-Cho)
-- Djem So beats Makashi (+2 to rolls vs Makashi)  
+- Djem So beats Makashi (+2 to rolls vs Makashi)
 - Soresu outlasts Ataru (Ataru practitioner gains +1 strain per round)
 - Ataru negated in confined spaces (-3 to all rolls)
 - Vaapad gains +3 vs dark side opponents
@@ -894,6 +880,7 @@ If player message begins with [OVERRIDE], [LORE CHECK], [SYSTEM EXPAND], [WORLD 
 - Immediately exit narrative voice entirely
 - Respond in plain direct language as a system, not narrator
 - Address their point fully
+- Still output SHEET and WORLD blocks at the end
 - Ask "Ready to resume?" when done
 
 ## SIMULATION OUTPUT FORMAT (for time skips)
@@ -1155,11 +1142,48 @@ async function callGemini(playerMessage, retryCount = 0) {
     const data = await resp.json();
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-    // Parse sheet and world state
-    const sheetMatch = rawText.match(/<<<SHEET>>>([\s\S]*?)<<<END_SHEET>>>/);
-    const worldMatch = rawText.match(/<<<WORLD>>>([\s\S]*?)<<<END_WORLD>>>/);
-    if (sheetMatch) { try { characterSheet = JSON.parse(sheetMatch[1].trim()); } catch(e) {} }
-    if (worldMatch) { try { worldState = JSON.parse(worldMatch[1].trim()); } catch(e) {} }
+    // Parse sheet and world state — try multiple patterns in case AI formats slightly differently
+    const sheetMatch = rawText.match(/<<<SHEET>>>\s*([\s\S]*?)\s*<<<END_SHEET>>>/) ||
+                       rawText.match(/SHEET>>>([\s\S]*?)<<<END_SHEET/);
+    const worldMatch = rawText.match(/<<<WORLD>>>\s*([\s\S]*?)\s*<<<END_WORLD>>>/) ||
+                       rawText.match(/WORLD>>>([\s\S]*?)<<<END_WORLD/);
+
+    let sheetParsed = false;
+    let worldParsed = false;
+
+    if (sheetMatch) {
+      try {
+        const parsed = JSON.parse(sheetMatch[1].trim());
+        characterSheet = parsed;
+        sheetParsed = true;
+      } catch(e) {
+        // Try to extract just the JSON object if there's extra text
+        const jsonMatch = sheetMatch[1].match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try { characterSheet = JSON.parse(jsonMatch[0]); sheetParsed = true; } catch(e2) {}
+        }
+      }
+    }
+
+    if (worldMatch) {
+      try {
+        const parsed = JSON.parse(worldMatch[1].trim());
+        worldState = parsed;
+        worldParsed = true;
+      } catch(e) {
+        const jsonMatch = worldMatch[1].match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try { worldState = JSON.parse(jsonMatch[0]); worldParsed = true; } catch(e2) {}
+        }
+      }
+    }
+
+    // Update save indicator to show parsing status
+    const ind = document.getElementById('save-indicator');
+    if (!sheetParsed || !worldParsed) {
+      ind.textContent = `Turn ${turnCount} ⚠ sheet:${sheetParsed?'✓':'✗'} world:${worldParsed?'✓':'✗'}`;
+      ind.style.color = 'var(--gold-dim)';
+    }
 
     // Clean display text
     let displayText = rawText
