@@ -708,6 +708,7 @@
       <button class="hbtn" id="btn-save" onclick="openSaveLoad('save')" style="display:none">Save</button>
       <button class="hbtn" id="btn-load" onclick="openSaveLoad('load')">Load</button>
       <button class="hbtn danger" id="btn-newgame" onclick="confirmNewGame()" style="display:none">New Game</button>
+      <button class="hbtn danger" onclick="clearAllSaves()" title="Wipe corrupted save data and start fresh">Clear Cache</button>
       <button class="hbtn" onclick="openApiSettings()">API Key</button>
     </div>
   </div>
@@ -1627,6 +1628,8 @@ function loadFromSave(save) {
   characterSheet = save.characterSheet || null;
   worldState = save.worldState || null;
   conversationHistory = save.conversationHistory || [];
+  trimmedTurns = 0;
+
   if (save.feedHtml) {
     document.getElementById('story-feed').innerHTML = save.feedHtml;
     // Re-attach choice button handlers
@@ -1638,10 +1641,26 @@ function loadFromSave(save) {
       };
     });
   }
+
+  // Always rebuild panels fresh from saved data — never from cached HTML
+  document.getElementById('sheet-content').innerHTML = '<div style="color:var(--text-dim);font-size:13px;font-style:italic;padding-top:8px">Loading...</div>';
+  document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">Loading...</div>';
+  document.getElementById('legacy-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">None established.</div>';
+  document.getElementById('lineage-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No ancestors yet.</div>';
+
   updateUI();
   gameActive = true;
   scrollFeed();
   document.getElementById('save-indicator').textContent = `Turn ${turnCount}`;
+}
+
+function clearAllSaves() {
+  if (!confirm('This will wipe all saved game data including autosave and all slots. Your API key will be kept. Continue?')) return;
+  const key = localStorage.getItem('sw_rpg_gemini_key');
+  localStorage.clear();
+  if (key) localStorage.setItem('sw_rpg_gemini_key', key);
+  alert('All save data cleared. The page will now reload.');
+  location.reload();
 }
 
 function openSaveLoad(mode) {
