@@ -593,7 +593,28 @@
   .legacy-foundational { color: var(--text-bright); border-color: var(--gold); }
 
   /* Lineage panel */
-  .lineage-entry { font-size: 12px; margin-bottom: 6px; color: var(--text-dim); }
+  /* ── SIMULATION EVENTS PANEL (below world log in same column) ── */
+  .sim-event {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .sim-event:last-child { border-bottom: none; }
+  .sim-event-turn {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  .sim-event-text { color: var(--text-main); line-height: 1.5; }
+  .sim-event-faction {
+    font-size: 10px;
+    color: var(--gold-dim);
+    margin-top: 2px;
+    font-style: italic;
+  }
   .lineage-entry .anc-name { color: var(--text-main); font-weight: 600; }
 
   /* ── MODAL / SAVE-LOAD ── */
@@ -802,6 +823,8 @@
       <div class="panel-header">◈ World Log</div>
       <div class="panel-scroll">
         <div id="log-content"><div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div></div>
+        <div class="log-title">🌌 Galaxy Events</div>
+        <div id="sim-content"><div style="color:var(--text-dim);font-size:12px;font-style:italic">No galaxy events yet.</div></div>
         <div class="log-title">⚡ Legacy Changes</div>
         <div id="legacy-content"><div style="color:var(--text-dim);font-size:12px;font-style:italic">None established.</div></div>
         <div class="log-title">🧬 Lineage</div>
@@ -847,10 +870,14 @@ STEP 2: Immediately after, with no extra text, output the SHEET block:
 <<<END_SHEET>>>
 STEP 3: Immediately after, output the WORLD block:
 <<<WORLD>>>
-{"location":"","era":"","inGameDate":"","lastEvent":"","legacyChanges":[],"lineageRecord":[],"worldLog":[],"galaxyState":{"jediOrder":"","sith":"","republic":"","mandalorians":"","underworld":""}}
+{"location":"","era":"","inGameDate":"","lastEvent":"","legacyChanges":[],"lineageRecord":[],"worldLog":[],"galaxyEvents":[],"galaxyState":{"jediOrder":"","sith":"","republic":"","mandalorians":"","underworld":""}}
 <<<END_WORLD>>>
 
-Fill every field with current values. worldLog is an array of objects: {"turn":1,"event":"what happened","location":"where"}. Keep worldLog to the last 20 entries. For character creation turns where no character exists yet, use placeholder values like "name":"Pending" and fill in what you do know such as era and location.
+RULES FOR DATA BLOCKS:
+- worldLog: array of objects ONLY. Format: [{"turn":1,"event":"description","location":"place"}]. Keep last 20. Add a new entry every single turn.
+- galaxyEvents: array of objects tracking background galaxy simulation. Format: [{"turn":1,"faction":"Jedi Order","event":"description"}]. Keep last 10. Add entries when something notable happens in the wider galaxy even if the player is not involved.
+- forceAbilities: values must be plain numbers only. Example: {"Force Push": 15, "Force Sense": 60}. Never use nested objects.
+- All fields must be present every response even if unchanged.
 
 ## COMBAT SYSTEM
 Formula: Final Roll = d20 + Σ(Relevant Stats ÷ 20) + Situational Modifiers
@@ -1095,6 +1122,7 @@ function startNewGame() {
   turnCount = 0;
   document.getElementById('sheet-content').innerHTML = '<div style="color:var(--text-dim);font-size:13px;font-style:italic">Character not yet created.</div>';
   document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div>';
+  document.getElementById('sim-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No galaxy events yet.</div>';
   document.getElementById('legacy-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">None established.</div>';
   document.getElementById('lineage-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No ancestors yet.</div>';
   document.getElementById('loc-val').textContent = '—';
@@ -1463,7 +1491,9 @@ function updateCharacterSheet() {
   if (Object.keys(fa).length > 0) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Force Abilities</div><div class="tag-list">`;
     for (const [k, v] of Object.entries(fa)) {
-      html += `<div class="tag">${k} ${v}</div>`;
+      // Handle cases where AI sends value as object {level:x} or number or string
+      const display = (v !== null && typeof v === 'object') ? (v.level ?? v.value ?? JSON.stringify(v)) : v;
+      html += `<div class="tag">${k} ${display}</div>`;
     }
     html += `</div></div>`;
   }
@@ -1473,7 +1503,8 @@ function updateCharacterSheet() {
   if (Object.keys(lf).length > 0) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Lightsaber Forms</div><div class="tag-list">`;
     for (const [k, v] of Object.entries(lf)) {
-      html += `<div class="tag">${k} ${v}</div>`;
+      const display = (v !== null && typeof v === 'object') ? (v.level ?? v.value ?? JSON.stringify(v)) : v;
+      html += `<div class="tag">${k} ${display}</div>`;
     }
     html += `</div></div>`;
   }
@@ -1529,16 +1560,13 @@ function updateWorldState() {
   if (w.location) document.getElementById('loc-val').textContent = w.location;
   if (w.inGameDate) document.getElementById('date-text').textContent = w.inGameDate;
 
-  // World log — handle both string entries and object entries
+  // World log — always update, handle both string and object entries
   const log = w.worldLog || [];
   if (log.length > 0) {
     let logHtml = '';
-    for (const entry of log.slice().reverse().slice(0, 20)) {
+    for (const entry of [...log].reverse().slice(0, 20)) {
       if (typeof entry === 'string') {
-        // Plain string format — just display it
-        logHtml += `<div class="log-entry">
-          <div class="log-event">${entry}</div>
-        </div>`;
+        logHtml += `<div class="log-entry"><div class="log-event">${entry}</div></div>`;
       } else {
         logHtml += `<div class="log-entry">
           <div class="log-turn">Turn ${entry.turn || '—'}</div>
@@ -1548,6 +1576,28 @@ function updateWorldState() {
       }
     }
     document.getElementById('log-content').innerHTML = logHtml;
+  } else {
+    document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div>';
+  }
+
+  // Galaxy simulation events — new panel
+  const ge = w.galaxyEvents || [];
+  if (ge.length > 0) {
+    let geHtml = '';
+    for (const entry of [...ge].reverse().slice(0, 10)) {
+      if (typeof entry === 'string') {
+        geHtml += `<div class="sim-event"><div class="sim-event-text">${entry}</div></div>`;
+      } else {
+        geHtml += `<div class="sim-event">
+          <div class="sim-event-turn">Turn ${entry.turn || '—'}</div>
+          <div class="sim-event-text">${entry.event || ''}</div>
+          <div class="sim-event-faction">${entry.faction || ''}</div>
+        </div>`;
+      }
+    }
+    document.getElementById('sim-content').innerHTML = geHtml;
+  } else {
+    document.getElementById('sim-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No galaxy events yet.</div>';
   }
 
   // Legacy changes
@@ -1655,11 +1705,30 @@ function loadFromSave(save) {
 }
 
 function clearAllSaves() {
-  if (!confirm('This will wipe all saved game data including autosave and all slots. Your API key will be kept. Continue?')) return;
+  const choices = ['Clear corrupted display only (keeps your game)', 'Clear everything including saves (full reset)'];
+  const choice = confirm('What do you want to clear?\n\nOK = Clear corrupted display data only (your game and API key are kept)\nCancel = Do nothing\n\nTo wipe everything including saves, hold Shift when clicking OK.');
+
+  if (!choice) return;
+
+  const fullWipe = false; // shift key detection not reliable on iPad, use separate button flow
+
   const key = localStorage.getItem('sw_rpg_gemini_key');
+  const autosave = localStorage.getItem('sw_rpg_autosave');
+
+  // Preserve save slots
+  const slots = [];
+  for (let i = 1; i <= 5; i++) {
+    slots.push(localStorage.getItem(`sw_rpg_save_${i}`));
+  }
+
   localStorage.clear();
+
+  // Restore everything important
   if (key) localStorage.setItem('sw_rpg_gemini_key', key);
-  alert('All save data cleared. The page will now reload.');
+  if (autosave) localStorage.setItem('sw_rpg_autosave', autosave);
+  slots.forEach((s, i) => { if (s) localStorage.setItem(`sw_rpg_save_${i+1}`, s); });
+
+  alert('Display cache cleared. Your game data is preserved. Reloading...');
   location.reload();
 }
 
