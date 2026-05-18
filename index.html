@@ -878,6 +878,7 @@ RULES FOR DATA BLOCKS:
 - galaxyEvents: array of objects tracking background galaxy simulation. Format: [{"turn":1,"faction":"Jedi Order","event":"description"}]. Keep last 10. Add entries when something notable happens in the wider galaxy even if the player is not involved.
 - forceAbilities: values must be plain numbers only. Example: {"Force Push": 15, "Force Sense": 60}. Never use nested objects.
 - All fields must be present every response even if unchanged.
+- NEVER print the character sheet as a markdown list (** field:** value). The sidebar ONLY reads the JSON blocks. Markdown sheets in the story feed do nothing and confuse the player.
 
 ## COMBAT SYSTEM
 Formula: Final Roll = d20 + Σ(Relevant Stats ÷ 20) + Situational Modifiers
@@ -983,7 +984,8 @@ If player message begins with [OVERRIDE], [LORE CHECK], [SYSTEM EXPAND], [WORLD 
 - Immediately exit narrative voice entirely
 - Respond in plain direct language as a system, not narrator
 - Address their point fully
-- Still output SHEET and WORLD blocks at the end
+- ALWAYS output both <<<SHEET>>> and <<<WORLD>>> blocks at the end, even after overrides
+- Never print the character sheet as a markdown list with **field:** format — the UI cannot read it. Only the JSON blocks update the sidebar.
 - Ask "Ready to resume?" when done
 
 ## SIMULATION OUTPUT FORMAT (for time skips)
@@ -1414,6 +1416,39 @@ async function callGemini(playerMessage, retryCount = 0) {
       }
     }
 
+    // ── Also try to parse markdown sheet dumps (AI outputting **field:** value format) ──
+    if (!sheetParsed) {
+      // Detect markdown character sheet in response and parse it into our sheet object
+      const hasMarkdownSheet = rawText.includes('**name:**') || rawText.includes('**strain:**') || rawText.includes('**forceStats:**');
+      if (hasMarkdownSheet && characterSheet) {
+        // Parse key fields from markdown format
+        const extractMd = (field) => {
+          const m = rawText.match(new RegExp(`\\*\\*${field}:\\*\\*\\s*([^\n*]+)`));
+          return m ? m[1].trim() : null;
+        };
+        const extractMdJson = (field) => {
+          const m = rawText.match(new RegExp(`\\*\\*${field}:\\*\\*\\s*(\\{[^}]+\\}|\\[[^\]]*\\])`));
+          if (!m) return null;
+          try { return JSON.parse(m[1]); } catch(e) { return null; }
+        };
+
+        const strain = extractMd('strain');
+        const hp = extractMd('hp');
+        const alignment = extractMd('alignment');
+        const forceStats = extractMdJson('forceStats');
+        const forceAbilities = extractMdJson('forceAbilities');
+        const stats = extractMdJson('stats');
+
+        if (strain !== null) characterSheet.strain = parseInt(strain) || characterSheet.strain;
+        if (hp !== null) characterSheet.hp = parseInt(hp) || characterSheet.hp;
+        if (alignment !== null) characterSheet.alignment = parseInt(alignment) || characterSheet.alignment;
+        if (forceStats) characterSheet.forceStats = forceStats;
+        if (forceAbilities) characterSheet.forceAbilities = forceAbilities;
+        if (stats) characterSheet.stats = stats;
+        sheetParsed = true;
+      }
+    }
+
     // ── Status indicator ───────────────────────────────────────────
     const ind = document.getElementById('save-indicator');
     if (!sheetParsed && !worldParsed) {
@@ -1433,6 +1468,9 @@ async function callGemini(playerMessage, retryCount = 0) {
       .replace(/<<<\s*SHEET\s*>>>[\s\S]*/gi, '')
       .replace(/<<<\s*WORLD\s*>>>[\s\S]*/gi, '')
       .replace(/<<<[\s\S]*/g, '')
+      // Strip markdown character sheet dumps from display
+      .replace(/\*\*Revised Character Sheet[^*]*\*\*[\s\S]*?(?=\n\n[A-Z*]|\n\nReady|$)/gi, '[Character sheet updated in sidebar.]')
+      .replace(/\*\*Character Sheet[^*]*\*\*[\s\S]*?(?=\n\n[A-Z*]|\n\nReady|$)/gi, '[Character sheet updated in sidebar.]')
       .trim();
 
     // ── Update history ─────────────────────────────────────────────
