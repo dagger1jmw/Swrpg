@@ -948,8 +948,20 @@ If you output objects the UI breaks and shows [object Object]. Plain numbers onl
 ## TRAINING & DOWNTIME
 During downtime offer two training choices from: Lightsaber Training, Force Meditation, Ability Practice, Physical Conditioning, Artifact Study, Strategic Study.
 
-## GALAXY SIMULATION
-Simulate periodically: wars evolve, political shifts, Jedi/Sith operations, artifact discoveries, criminal conflicts.
+## GALAXY SIMULATION — MANDATORY EVERY TURN
+The galaxy runs independently. Every single turn you must:
+1. Check the ACTIVE THREATS list in the injected game state
+2. Advance at least one active threat — it escalates, changes, or produces a consequence
+3. Add a galaxyEvents entry for what happened in the galaxy this turn
+4. If the player's actions would logically attract attention (using Force powers, violence, unusual behavior), escalate the relevant faction threat
+
+THREAT EXAMPLES — once created, these PERSIST and GROW:
+- "Jedi Order searching for Force-sensitive child in Coruscant lower levels" → escalates each turn the child uses the Force openly → search teams move closer → eventually a Jedi arrives on scene
+- "Sith operative investigating Force disturbance" → gathers information → closes in
+- "Gang with bounty on player" → tracks movements → sends enforcers
+
+CRITICAL: If the injected state shows "Jedi Order: [active search]" you MUST reference and advance this. Do not reset or ignore ongoing situations. They accumulate. The world does not forget.
+
 Track factions: Jedi Order, Sith, Republic, Mandalorians, Crime Syndicates, Independent Systems.
 Generate rivals that grow alongside the player.
 Council AI: Jedi/Sith leadership act as independent entities — assign missions, investigations, hunts.
@@ -1012,6 +1024,7 @@ let worldState = null;
 let turnCount = 0;
 let campaignSummary = '';      // compressed narrative memory — rebuilt every 10 turns
 let isSummarizing = false;     // prevent double summarize calls
+let galaxySimState = {};       // persistent galaxy simulation state between turns
 
 const SAVE_SLOTS = 5;
 const RECENT_TURNS = 6;        // how many raw turns to send each request
@@ -1154,6 +1167,7 @@ function startNewGame() {
   fullHistory = [];
   campaignSummary = '';
   isSummarizing = false;
+  galaxySimState = {};
   characterSheet = null;
   worldState = null;
   turnCount = 0;
@@ -1254,32 +1268,54 @@ function showSummaryNotice() {
 function buildContext(userContent) {
   const messages = [];
 
-  // Always inject current turn number and authoritative state as the first exchange
-  // This ensures the AI always knows where it is regardless of history window
-  const stateBlock = `CURRENT GAME STATE (authoritative — use these exact values):
-Turn: ${turnCount + 1}
-Character Sheet: ${JSON.stringify(characterSheet || {})}
-World: location=${worldState?.location || '?'}, date=${worldState?.inGameDate || '?'}, era=${worldState?.era || '?'}
-Legacy Changes: ${JSON.stringify(worldState?.legacyChanges || [])}
+  // Build the full sheet summary so the AI sees exact current values
+  // and cannot accidentally revert to old ones from narrative history
+  const cs = characterSheet || {};
+  const ws = worldState || {};
 
-${campaignSummary ? `CAMPAIGN HISTORY SUMMARY (everything before turn ${turnCount - recentHistory.length / 2 + 1}):\n${campaignSummary}` : 'Campaign is just beginning.'}`;
+  const sheetSummary = `NAME: ${cs.name||'?'} | SPECIES: ${cs.species||'?'} | AGE: ${cs.age||'?'} | FACTION: ${cs.faction||'?'}
+ALIGNMENT: ${cs.alignment||0} | FORCE TIER: ${cs.forceTier||1}
+HP: ${cs.hp||100}/${cs.maxHp||100} | STRAIN: ${cs.strain||0}/${cs.maxStrain||12}
+FORCE STATS: ForceSense=${cs.forceStats?.forceSense||0}, Meditation=${cs.forceStats?.meditation||0}, ForceKnowledge=${cs.forceStats?.forceKnowledge||0}, ForceControl=${cs.forceStats?.forceControl||0}
+FORCE ABILITIES: ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||v.value||0):v}`).join(', ')||'none'}
+STATS: STR=${cs.stats?.strength||0}, AGI=${cs.stats?.agility||0}, END=${cs.stats?.endurance||0}, WILL=${cs.stats?.willpower||0}, CHA=${cs.stats?.charisma||0}
+INVENTORY: ${(cs.inventory||[]).join(', ')||'empty'} | CREDITS: ${cs.credits||0}
+RENOWN: Jedi=${cs.renown?.jediOrder||0}, Sith=${cs.renown?.sith||0}, Republic=${cs.renown?.republic||0}, Underworld=${cs.renown?.underworld||0}
+STRENGTHS: ${(cs.strengths||[]).join(', ')||'none'} | WEAKNESSES: ${(cs.weaknesses||[]).join(', ')||'none'}
+INNATE TALENT: ${cs.innatetalent||'none'} | KNOWN SECRETS: ${(cs.knownSecrets||[]).join(', ')||'none'}`;
 
-  messages.push({
-    role: 'user',
-    parts: [{ text: stateBlock }]
-  });
-  messages.push({
-    role: 'model',
-    parts: [{ text: `Understood. I am the GM at turn ${turnCount + 1}. I have the current character sheet, world state, and campaign history. I will continue the story from here and output updated <<<SHEET>>> and <<<WORLD>>> blocks after my response.` }]
-  });
+  const galaxySummary = `LOCATION: ${ws.location||'?'} | DATE: ${ws.inGameDate||'?'} | ERA: ${ws.era||'?'}
+GALAXY STATE: Jedi=${ws.galaxyState?.jediOrder||'?'}, Sith=${ws.galaxyState?.sith||'?'}, Republic=${ws.galaxyState?.republic||'?'}
+ACTIVE THREATS & ONGOING SITUATIONS:
+${Object.entries(galaxySimState).map(([k,v])=>`- ${k}: ${v}`).join('\n')||'- None tracked yet'}
+LEGACY CHANGES: ${JSON.stringify(ws.legacyChanges||[])}`;
 
-  // Append recent raw turns for narrative continuity
+  const stateBlock = `AUTHORITATIVE GAME STATE FOR TURN ${turnCount + 1} — these values are ground truth, override anything in history:
+
+CHARACTER SHEET:
+${sheetSummary}
+
+WORLD & GALAXY:
+${galaxySummary}
+
+${campaignSummary ? `CAMPAIGN HISTORY (turns 1–${Math.max(1, turnCount - recentHistory.length/2)}):\n${campaignSummary}` : 'Campaign is just beginning.'}
+
+CRITICAL RULES FOR THIS TURN:
+1. Use the EXACT stat values above as your starting point — do not use values from conversation history
+2. If strain changed this turn, the new value goes in the SHEET block — the UI cannot read narrative text
+3. The galaxy simulation runs independently — check ACTIVE THREATS and advance them this turn
+4. Output <<<SHEET>>> and <<<WORLD>>> blocks at the end of EVERY response without exception`;
+
+  messages.push({ role: 'user', parts: [{ text: stateBlock }] });
+  messages.push({ role: 'model', parts: [{ text: `Confirmed. I am the GM for turn ${turnCount + 1}. Starting stats: HP=${cs.hp||100}, Strain=${cs.strain||0}, ForceSense=${cs.forceStats?.forceSense||0}. Galaxy threats acknowledged. I will advance ongoing situations and output both data blocks.` }] });
+
+  // Recent raw turns for narrative continuity
   for (const msg of recentHistory) {
     messages.push(msg);
   }
 
-  // Current message with reminder
-  const reminder = `\n\n[SYSTEM: This is turn ${turnCount + 1}. Output <<<SHEET>>>{complete json}<<<END_SHEET>>> then <<<WORLD>>>{complete json}<<<END_WORLD>>> after your narrative. worldLog entry for turn ${turnCount + 1} is required. forceAbilities = plain integers only.]`;
+  // Current message with strict reminder
+  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: After your narrative, output both blocks with ALL fields updated to reflect what happened THIS turn. If strain changed, the new number must be in the SHEET block. forceAbilities = integers only. worldLog must have a new turn ${turnCount + 1} entry.]`;
   messages.push({ role: 'user', parts: [{ text: userContent + reminder }] });
 
   return messages;
@@ -1412,7 +1448,21 @@ async function callGemini(playerMessage, retryCount = 0) {
       recentHistory = recentHistory.slice(-(RECENT_TURNS * 2));
     }
 
-    // ── Fallback world log if block missing ────────────────────────
+    // ── Extract galaxy simulation state from world block ───────────
+    if (worldParsed && worldState) {
+      // Pull ongoing threats/situations out of galaxyEvents and galaxyState
+      // to persist them independently so the AI always sees them
+      const ge = worldState.galaxyEvents || [];
+      for (const event of ge) {
+        if (event && event.faction && event.event) {
+          galaxySimState[event.faction] = event.event;
+        }
+      }
+      // Also capture any active threats from the world state
+      if (worldState.activeThreats) {
+        Object.assign(galaxySimState, worldState.activeThreats);
+      }
+    }
     if (!worldParsed && worldState) {
       const firstLine = displayText.split('\n').find(l => l.trim().length > 20) || 'Turn continued.';
       const summary = firstLine.replace(/\*\*/g, '').trim().slice(0, 120);
@@ -1862,8 +1912,9 @@ function buildSave(name, slot) {
     characterSheet,
     worldState,
     campaignSummary,
+    galaxySimState,
     recentHistory,
-    fullHistory: fullHistory.slice(-200), // keep up to 100 full turns in save
+    fullHistory: fullHistory.slice(-200),
     feedHtml: document.getElementById('story-feed').innerHTML
   };
 }
@@ -1874,6 +1925,7 @@ function loadFromSave(save) {
   characterSheet = save.characterSheet || null;
   worldState = save.worldState || null;
   campaignSummary = save.campaignSummary || '';
+  galaxySimState = save.galaxySimState || {};
   recentHistory = save.recentHistory || save.conversationHistory?.slice(-12) || [];
   fullHistory = save.fullHistory || save.conversationHistory || [];
   trimmedTurns = 0;
