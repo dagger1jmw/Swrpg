@@ -1254,26 +1254,32 @@ function showSummaryNotice() {
 function buildContext(userContent) {
   const messages = [];
 
-  // If we have a campaign summary, inject it as an assistant message at the start
-  // so the AI treats it as established knowledge
-  if (campaignSummary) {
-    messages.push({
-      role: 'user',
-      parts: [{ text: 'Before we continue, here is a summary of everything that has happened so far in this campaign. Use this as your authoritative memory of all past events.' }]
-    });
-    messages.push({
-      role: 'model',
-      parts: [{ text: `CAMPAIGN MEMORY (Turns 1–${turnCount - RECENT_TURNS}):\n\n${campaignSummary}\n\nCurrent character sheet: ${JSON.stringify(characterSheet || {})}\nCurrent world state: ${JSON.stringify({ location: worldState?.location, era: worldState?.era, inGameDate: worldState?.inGameDate, legacyChanges: worldState?.legacyChanges || [], galaxyState: worldState?.galaxyState || {} })}\n\nI have this full context and am ready to continue the campaign from turn ${turnCount - recentHistory.length / 2 + 1}.` }]
-    });
-  }
+  // Always inject current turn number and authoritative state as the first exchange
+  // This ensures the AI always knows where it is regardless of history window
+  const stateBlock = `CURRENT GAME STATE (authoritative — use these exact values):
+Turn: ${turnCount + 1}
+Character Sheet: ${JSON.stringify(characterSheet || {})}
+World: location=${worldState?.location || '?'}, date=${worldState?.inGameDate || '?'}, era=${worldState?.era || '?'}
+Legacy Changes: ${JSON.stringify(worldState?.legacyChanges || [])}
 
-  // Append recent raw history (last RECENT_TURNS turns)
+${campaignSummary ? `CAMPAIGN HISTORY SUMMARY (everything before turn ${turnCount - recentHistory.length / 2 + 1}):\n${campaignSummary}` : 'Campaign is just beginning.'}`;
+
+  messages.push({
+    role: 'user',
+    parts: [{ text: stateBlock }]
+  });
+  messages.push({
+    role: 'model',
+    parts: [{ text: `Understood. I am the GM at turn ${turnCount + 1}. I have the current character sheet, world state, and campaign history. I will continue the story from here and output updated <<<SHEET>>> and <<<WORLD>>> blocks after my response.` }]
+  });
+
+  // Append recent raw turns for narrative continuity
   for (const msg of recentHistory) {
     messages.push(msg);
   }
 
-  // Append the current user message with reminder
-  const reminder = '\n\n[SYSTEM REMINDER: End your response with <<<SHEET>>>{json}<<<END_SHEET>>> and <<<WORLD>>>{json}<<<END_WORLD>>>. forceAbilities values must be plain integers. worldLog must include a new entry for this turn.]';
+  // Current message with reminder
+  const reminder = `\n\n[SYSTEM: This is turn ${turnCount + 1}. Output <<<SHEET>>>{complete json}<<<END_SHEET>>> then <<<WORLD>>>{complete json}<<<END_WORLD>>> after your narrative. worldLog entry for turn ${turnCount + 1} is required. forceAbilities = plain integers only.]`;
   messages.push({ role: 'user', parts: [{ text: userContent + reminder }] });
 
   return messages;
@@ -1411,6 +1417,7 @@ async function callGemini(playerMessage, retryCount = 0) {
       const firstLine = displayText.split('\n').find(l => l.trim().length > 20) || 'Turn continued.';
       const summary = firstLine.replace(/\*\*/g, '').trim().slice(0, 120);
       if (!worldState.worldLog) worldState.worldLog = [];
+      // Use real turnCount, not whatever the AI would have put
       worldState.worldLog.push({ turn: turnCount + 1, event: summary, location: worldState.location || '—' });
       if (worldState.worldLog.length > 20) worldState.worldLog = worldState.worldLog.slice(-20);
     }
@@ -1726,23 +1733,44 @@ function updateWorldState() {
   if (w.location) document.getElementById('loc-val').textContent = w.location;
   if (w.inGameDate) document.getElementById('date-text').textContent = w.inGameDate;
 
-  // World log — always update, handle both string and object entries
-  const log = w.worldLog || [];
-  if (log.length > 0) {
-    let logHtml = '';
-    for (const entry of [...log].reverse().slice(0, 20)) {
-      if (typeof entry === 'string') {
-        logHtml += `<div class="log-entry"><div class="log-event">${entry}</div></div>`;
-      } else {
-        logHtml += `<div class="log-entry">
-          <div class="log-turn">Turn ${entry.turn || '—'}</div>
-          <div class="log-event">${entry.event || ''}</div>
-          <div class="log-loc">${entry.location || ''}</div>
-        </div>`;
+  // World log — merge new entries with existing, use real turnCount for latest entry
+  const incomingLog = w.worldLog || [];
+  if (incomingLog.length > 0) {
+    // The most recent entry from the AI — stamp it with the real turn count
+    const latestEntry = incomingLog[incomingLog.length - 1];
+    if (latestEntry && typeof latestEntry === 'object') {
+      latestEntry.turn = turnCount; // override AI's possibly-wrong turn number
+    }
+
+    // Merge: build a map by turn number so we never lose old entries
+    const existingLog = worldState?._mergedLog || [];
+    const logMap = new Map();
+    for (const e of existingLog) {
+      if (e && e.turn) logMap.set(e.turn, e);
+    }
+    for (const e of incomingLog) {
+      if (typeof e === 'string') {
+        logMap.set(`str_${Date.now()}`, { turn: turnCount, event: e, location: w.location || '—' });
+      } else if (e && e.turn) {
+        logMap.set(e.turn, e);
       }
     }
+    // Store merged log back
+    const merged = Array.from(logMap.values()).sort((a, b) => (b.turn || 0) - (a.turn || 0));
+    if (!worldState) worldState = w;
+    worldState._mergedLog = merged;
+
+    // Render top 20
+    let logHtml = '';
+    for (const entry of merged.slice(0, 20)) {
+      logHtml += `<div class="log-entry">
+        <div class="log-turn">Turn ${entry.turn || '—'}</div>
+        <div class="log-event">${entry.event || ''}</div>
+        <div class="log-loc">${entry.location || ''}</div>
+      </div>`;
+    }
     document.getElementById('log-content').innerHTML = logHtml;
-  } else {
+  } else if (!worldState?._mergedLog?.length) {
     document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div>';
   }
 
