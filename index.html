@@ -909,12 +909,41 @@ Dark Side path: +2 strain baseline but +2-4 Force Output
 Light Side path: -1 strain, +1 Control, +1.5 when acting selflessly
 Flow State: d20 minimum=10, +2 precision, -1 strain, near-failures become partial successes
 
-## PROGRESSION
-Skills level through use — no XP pool. Each ability tracked individually (0-150+ scale).
-Speed: 0-40 fast, 40-80 moderate, 80-85 slow, 85-95 very slow, 95-100 extremely slow, 100+ requires breakthrough
-Specialization: natural strengths grow faster; weaknesses require more effort
-Combat growth bonus: fighting equal/stronger opponents, adapting under pressure, sustained danger
-Breakthrough: triggered by insight, philosophical discovery, extreme events — cannot be forced
+## PROGRESSION — STRICT NUMERIC RULES
+Stats use a 0–150 scale. Gains per turn are SMALL. Follow these EXACT limits:
+
+STAT GAINS PER TURN (not per session — per single action/turn):
+- Youngling tier (stat 0–20): max +3 per turn for a practiced skill, +1 for a rarely used skill
+- Padawan tier (stat 20–40): max +2 per turn
+- Knight tier (stat 40–80): max +1 per turn
+- Master tier (stat 80–100): max +0.5 per turn
+- High Master (85+): max +0.1 per turn, often 0
+- Legendary (100+): only breakthrough events grant gains, never regular turns
+
+A character at turn 20 who started untrained should have stats in the range of 5–25 depending on what they have actually practiced. Force Sense at 115 after 20 turns is completely wrong and breaks the system. An untrained street child who has used Force Sense a handful of times should be at roughly 8–15.
+
+LEGENDARY POTENTIAL IS A CEILING, NOT A BOOST. It does not accelerate early gains. It means the character CAN eventually reach 100+ with years of training. It has zero effect on stats below 40.
+
+CONTEXT MATTERS FOR GAINS:
+- Reading about a Force ability from a datapad: +0 to the actual ability stat (knowledge only)
+- Accidentally using a Force ability once: +1 to that ability
+- Deliberately practicing an ability for an extended period: +2–3 max
+- Combat pressure with a specific ability: +1–2
+- Breakthrough moment: +5–10 (rare, must be narratively earned)
+
+FORCE ABILITY FORMAT — CRITICAL:
+forceAbilities values must be plain integers ONLY. No objects, no descriptions, no nested data.
+CORRECT: {"Force Push": 8, "Force Sense": 12, "Reading the Current": 5}
+WRONG: {"Force Push": {"tier":1,"description":"...", "strainCost":4}}
+If you output objects the UI breaks and shows [object Object]. Plain numbers only.
+
+## PROGRESSION TIERS
+- Youngling (0–20): Fast small gains. Basic raw instinct. Character is learning what the Force even is.
+- Padawan (20–40): Structured growth. Foundational training. Can reliably perform basics.
+- Knight (40–80): Moderate growth. Experience-based. Competence becomes reliable.
+- Master (80–100): Slow growth. Requires genuine mastery and insight.
+- High Master (85+): Major difficulty spike. Most Force users plateau here permanently.
+- Legendary (100+): Requires breakthrough events. Standard training cannot reach this.
 
 ## TRAINING & DOWNTIME
 During downtime offer two training choices from: Lightsaber Training, Force Meditation, Ability Practice, Physical Conditioning, Artifact Study, Strategic Study.
@@ -976,12 +1005,17 @@ Begin campaign by presenting era selection, then full character creation.`;
 let apiKey = '';
 let gameActive = false;
 let isThinking = false;
-let conversationHistory = [];
+let recentHistory = [];        // last 6 turns sent to AI each request
+let fullHistory = [];          // complete history kept in save file only
 let characterSheet = null;
 let worldState = null;
 let turnCount = 0;
+let campaignSummary = '';      // compressed narrative memory — rebuilt every 10 turns
+let isSummarizing = false;     // prevent double summarize calls
 
 const SAVE_SLOTS = 5;
+const RECENT_TURNS = 6;        // how many raw turns to send each request
+const SUMMARIZE_EVERY = 10;    // compress every N turns
 
 // ═══════════════════════════════════════════════════════════════════
 //  INIT
@@ -1116,10 +1150,14 @@ function showGame() {
 //  GAME START
 // ═══════════════════════════════════════════════════════════════════
 function startNewGame() {
-  conversationHistory = [];
+  recentHistory = [];
+  fullHistory = [];
+  campaignSummary = '';
+  isSummarizing = false;
   characterSheet = null;
   worldState = null;
   turnCount = 0;
+  trimmedTurns = 0;
   document.getElementById('sheet-content').innerHTML = '<div style="color:var(--text-dim);font-size:13px;font-style:italic">Character not yet created.</div>';
   document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div>';
   document.getElementById('sim-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No galaxy events yet.</div>';
@@ -1141,6 +1179,107 @@ function confirmNewGame() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+//  CAMPAIGN SUMMARIZER — runs every SUMMARIZE_EVERY turns
+// ═══════════════════════════════════════════════════════════════════
+async function summarizeCampaign() {
+  if (isSummarizing || fullHistory.length < 4) return;
+  isSummarizing = true;
+
+  // Take all but the last RECENT_TURNS*2 messages for summarization
+  const toSummarize = fullHistory.slice(0, -(RECENT_TURNS * 2));
+  if (toSummarize.length < 4) { isSummarizing = false; return; }
+
+  const summaryPrompt = `You are summarizing a Star Wars Legends RPG campaign for long-term memory. 
+Below is the conversation history to compress. Output a concise but complete summary covering:
+- Character name, species, current age, faction, Force tier, key stats (just the important ones)
+- All significant story events in chronological order (2-3 sentences each)
+- Key NPCs met and their relationship to the player
+- All Legacy Changes established
+- Current major goals and ongoing threats
+- Any world-changing events that occurred
+- Lineage record if applicable
+
+Previous summary to build on:
+${campaignSummary || '(None — this is the first summary)'}
+
+New history to incorporate:
+${toSummarize.map(m => `${m.role.toUpperCase()}: ${
+  typeof m.parts[0].text === 'string' 
+    ? m.parts[0].text.replace(/<<<SHEET>>>[\s\S]*?<<<END_SHEET>>>/g,'').replace(/<<<WORLD>>>[\s\S]*?<<<END_WORLD>>>/g,'').trim().slice(0, 600)
+    : ''
+}`).join('\n\n')}
+
+Write the summary in third person. Be specific about names, places, dates, and mechanics. Keep it under 800 words.`;
+
+  try {
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: summaryPrompt }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 1200 }
+        })
+      }
+    );
+    if (resp.ok) {
+      const data = await resp.json();
+      const newSummary = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (newSummary.length > 100) {
+        campaignSummary = newSummary;
+        // Trim fullHistory — keep only what wasn't summarized
+        fullHistory = fullHistory.slice(-(RECENT_TURNS * 2));
+        showSummaryNotice();
+      }
+    }
+  } catch(e) {
+    // Silent fail — game continues, just without updated summary
+  }
+  isSummarizing = false;
+}
+
+function showSummaryNotice() {
+  const feed = document.getElementById('story-feed');
+  const div = document.createElement('div');
+  div.className = 'msg msg-system';
+  div.style.cssText = 'border-color:rgba(106,59,170,0.4);background:rgba(106,59,170,0.06);color:#ab80dd;font-size:12px;';
+  div.innerHTML = `<div class="sys-label">◆ MEMORY COMPRESSED</div>Campaign history archived. The Force remembers what matters.`;
+  feed.appendChild(div);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  BUILD CONTEXT — what actually gets sent to the AI each request
+// ═══════════════════════════════════════════════════════════════════
+function buildContext(userContent) {
+  const messages = [];
+
+  // If we have a campaign summary, inject it as an assistant message at the start
+  // so the AI treats it as established knowledge
+  if (campaignSummary) {
+    messages.push({
+      role: 'user',
+      parts: [{ text: 'Before we continue, here is a summary of everything that has happened so far in this campaign. Use this as your authoritative memory of all past events.' }]
+    });
+    messages.push({
+      role: 'model',
+      parts: [{ text: `CAMPAIGN MEMORY (Turns 1–${turnCount - RECENT_TURNS}):\n\n${campaignSummary}\n\nCurrent character sheet: ${JSON.stringify(characterSheet || {})}\nCurrent world state: ${JSON.stringify({ location: worldState?.location, era: worldState?.era, inGameDate: worldState?.inGameDate, legacyChanges: worldState?.legacyChanges || [], galaxyState: worldState?.galaxyState || {} })}\n\nI have this full context and am ready to continue the campaign from turn ${turnCount - recentHistory.length / 2 + 1}.` }]
+    });
+  }
+
+  // Append recent raw history (last RECENT_TURNS turns)
+  for (const msg of recentHistory) {
+    messages.push(msg);
+  }
+
+  // Append the current user message with reminder
+  const reminder = '\n\n[SYSTEM REMINDER: End your response with <<<SHEET>>>{json}<<<END_SHEET>>> and <<<WORLD>>>{json}<<<END_WORLD>>>. forceAbilities values must be plain integers. worldLog must include a new entry for this turn.]';
+  messages.push({ role: 'user', parts: [{ text: userContent + reminder }] });
+
+  return messages;
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  GEMINI API CALL
 // ═══════════════════════════════════════════════════════════════════
 async function callGemini(playerMessage, retryCount = 0) {
@@ -1159,19 +1298,18 @@ async function callGemini(playerMessage, retryCount = 0) {
     playerMessage.startsWith('[AUTHOR NOTE]')
   );
 
-  const messages = [...conversationHistory];
-  const userContent = playerMessage === "BEGIN_GAME"
-    ? "BEGIN CAMPAIGN. Present era selection immediately."
+  const userContent = playerMessage === 'BEGIN_GAME'
+    ? 'BEGIN CAMPAIGN. Present era selection immediately.'
     : playerMessage;
 
-  messages.push({ role: "user", parts: [{ text: userContent }] });
+  const messages = buildContext(userContent);
 
   const body = {
     system_instruction: { parts: [{ text: MASTER_PROMPT }] },
     contents: messages,
     generationConfig: {
       temperature: 0.85,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 4096,
       topP: 0.95
     }
   };
@@ -1186,7 +1324,6 @@ async function callGemini(playerMessage, retryCount = 0) {
       }
     );
 
-    // Rate limit — auto retry after delay
     if (resp.status === 429) {
       if (retryCount < 3) {
         const waitSecs = (retryCount + 1) * 20;
@@ -1194,7 +1331,7 @@ async function callGemini(playerMessage, retryCount = 0) {
         await sleep(waitSecs * 1000);
         return callGemini(playerMessage, retryCount + 1);
       } else {
-        throw new Error('Rate limit — the free tier allows 15 requests per minute. Please wait 60 seconds and try again.');
+        throw new Error('Rate limit — wait 60 seconds and try again.');
       }
     }
 
@@ -1206,7 +1343,7 @@ async function callGemini(playerMessage, retryCount = 0) {
     const data = await resp.json();
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-    // Parse sheet and world state — try multiple patterns in case AI formats slightly differently
+    // ── Parse data blocks ──────────────────────────────────────────
     const sheetMatch = rawText.match(/<<<SHEET>>>\s*([\s\S]*?)\s*<<<END_SHEET>>>/) ||
                        rawText.match(/SHEET>>>([\s\S]*?)<<<END_SHEET/);
     const worldMatch = rawText.match(/<<<WORLD>>>\s*([\s\S]*?)\s*<<<END_WORLD>>>/) ||
@@ -1217,59 +1354,74 @@ async function callGemini(playerMessage, retryCount = 0) {
 
     if (sheetMatch) {
       try {
-        const parsed = JSON.parse(sheetMatch[1].trim());
-        characterSheet = parsed;
+        characterSheet = JSON.parse(sheetMatch[1].trim());
         sheetParsed = true;
       } catch(e) {
-        // Try to extract just the JSON object if there's extra text
-        const jsonMatch = sheetMatch[1].match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          try { characterSheet = JSON.parse(jsonMatch[0]); sheetParsed = true; } catch(e2) {}
-        }
+        const j = sheetMatch[1].match(/\{[\s\S]*\}/);
+        if (j) { try { characterSheet = JSON.parse(j[0]); sheetParsed = true; } catch(e2) {} }
       }
     }
 
     if (worldMatch) {
       try {
-        const parsed = JSON.parse(worldMatch[1].trim());
-        worldState = parsed;
+        worldState = JSON.parse(worldMatch[1].trim());
         worldParsed = true;
       } catch(e) {
-        const jsonMatch = worldMatch[1].match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          try { worldState = JSON.parse(jsonMatch[0]); worldParsed = true; } catch(e2) {}
-        }
+        const j = worldMatch[1].match(/\{[\s\S]*\}/);
+        if (j) { try { worldState = JSON.parse(j[0]); worldParsed = true; } catch(e2) {} }
       }
     }
 
-    // Update save indicator to show parsing status
+    // ── Status indicator ───────────────────────────────────────────
     const ind = document.getElementById('save-indicator');
-    if (!sheetParsed || !worldParsed) {
-      ind.textContent = `Turn ${turnCount} ⚠ sheet:${sheetParsed?'✓':'✗'} world:${worldParsed?'✓':'✗'}`;
+    if (!sheetParsed && !worldParsed) {
+      ind.textContent = `Turn ${turnCount + 1} ⚠ No data`;
+      ind.style.color = '#cc6633';
+    } else if (!worldParsed) {
+      ind.textContent = `Turn ${turnCount + 1} ⚠ Log fallback`;
       ind.style.color = 'var(--gold-dim)';
+    } else {
+      ind.style.color = '';
     }
 
-    // Clean display text — strip all data blocks aggressively
-    // Handle variants: spaces in tags, different bracket counts, unclosed blocks
+    // ── Clean display text ─────────────────────────────────────────
     let displayText = rawText
-      // Standard closed blocks
       .replace(/<<<\s*SHEET\s*>>>[\s\S]*?<<<\s*END_SHEET\s*>>>/gi, '')
       .replace(/<<<\s*WORLD\s*>>>[\s\S]*?<<<\s*END_WORLD\s*>>>/gi, '')
-      // Unclosed blocks — strip from opening tag to end of string
       .replace(/<<<\s*SHEET\s*>>>[\s\S]*/gi, '')
       .replace(/<<<\s*WORLD\s*>>>[\s\S]*/gi, '')
-      // Any remaining <<< markers (malformed output)
       .replace(/<<<[\s\S]*/g, '')
       .trim();
 
-    // Update history
-    conversationHistory.push({ role: "user", parts: [{ text: userContent }] });
-    conversationHistory.push({ role: "model", parts: [{ text: rawText }] });
-    if (conversationHistory.length > 80) {
-      conversationHistory = conversationHistory.slice(-80);
+    // ── Update history ─────────────────────────────────────────────
+    const userMsg = { role: 'user', parts: [{ text: userContent }] };
+    const modelMsg = { role: 'model', parts: [{ text: rawText }] };
+
+    // Full history — unlimited, stored in save file
+    fullHistory.push(userMsg, modelMsg);
+
+    // Recent history — only last RECENT_TURNS turns sent to AI
+    recentHistory.push(userMsg, modelMsg);
+    if (recentHistory.length > RECENT_TURNS * 2) {
+      recentHistory = recentHistory.slice(-(RECENT_TURNS * 2));
+    }
+
+    // ── Fallback world log if block missing ────────────────────────
+    if (!worldParsed && worldState) {
+      const firstLine = displayText.split('\n').find(l => l.trim().length > 20) || 'Turn continued.';
+      const summary = firstLine.replace(/\*\*/g, '').trim().slice(0, 120);
+      if (!worldState.worldLog) worldState.worldLog = [];
+      worldState.worldLog.push({ turn: turnCount + 1, event: summary, location: worldState.location || '—' });
+      if (worldState.worldLog.length > 20) worldState.worldLog = worldState.worldLog.slice(-20);
     }
 
     turnCount++;
+
+    // ── Trigger summarization every N turns (background, non-blocking) ──
+    if (turnCount % SUMMARIZE_EVERY === 0 && !isSummarizing) {
+      summarizeCampaign(); // fire and forget — doesn't block gameplay
+    }
+
     if (isOverride) {
       renderSystemMessage(displayText);
     } else {
@@ -1282,7 +1434,7 @@ async function callGemini(playerMessage, retryCount = 0) {
   } catch (err) {
     let msg = err.message || 'Unknown error';
     if (msg.includes('Failed to fetch') || msg.includes('Load failed') || msg.includes('NetworkError')) {
-      msg = 'Could not reach the Gemini API. Check your internet connection, or your API key may be invalid.';
+      msg = 'Could not reach the Gemini API. Check your internet connection.';
     }
     renderSystemMessage(`⚠ ${msg}`);
   }
@@ -1491,9 +1643,16 @@ function updateCharacterSheet() {
   if (Object.keys(fa).length > 0) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Force Abilities</div><div class="tag-list">`;
     for (const [k, v] of Object.entries(fa)) {
-      // Handle cases where AI sends value as object {level:x} or number or string
-      const display = (v !== null && typeof v === 'object') ? (v.level ?? v.value ?? JSON.stringify(v)) : v;
-      html += `<div class="tag">${k} ${display}</div>`;
+      let display;
+      if (v === null || v === undefined) {
+        display = '—';
+      } else if (typeof v === 'object') {
+        // Extract any numeric value we can find, in priority order
+        display = v.level ?? v.value ?? v.rank ?? v.score ?? v.tier ?? '?';
+      } else {
+        display = v;
+      }
+      html += `<div class="tag">${k} <span style="color:var(--gold)">${display}</span></div>`;
     }
     html += `</div></div>`;
   }
@@ -1503,8 +1662,15 @@ function updateCharacterSheet() {
   if (Object.keys(lf).length > 0) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Lightsaber Forms</div><div class="tag-list">`;
     for (const [k, v] of Object.entries(lf)) {
-      const display = (v !== null && typeof v === 'object') ? (v.level ?? v.value ?? JSON.stringify(v)) : v;
-      html += `<div class="tag">${k} ${display}</div>`;
+      let display;
+      if (v === null || v === undefined) {
+        display = '—';
+      } else if (typeof v === 'object') {
+        display = v.level ?? v.value ?? v.rank ?? v.score ?? '?';
+      } else {
+        display = v;
+      }
+      html += `<div class="tag">${k} <span style="color:var(--gold)">${display}</span></div>`;
     }
     html += `</div></div>`;
   }
@@ -1667,7 +1833,9 @@ function buildSave(name, slot) {
     turnCount,
     characterSheet,
     worldState,
-    conversationHistory: conversationHistory.slice(-60),
+    campaignSummary,
+    recentHistory,
+    fullHistory: fullHistory.slice(-200), // keep up to 100 full turns in save
     feedHtml: document.getElementById('story-feed').innerHTML
   };
 }
@@ -1677,12 +1845,13 @@ function loadFromSave(save) {
   turnCount = save.turnCount || 0;
   characterSheet = save.characterSheet || null;
   worldState = save.worldState || null;
-  conversationHistory = save.conversationHistory || [];
+  campaignSummary = save.campaignSummary || '';
+  recentHistory = save.recentHistory || save.conversationHistory?.slice(-12) || [];
+  fullHistory = save.fullHistory || save.conversationHistory || [];
   trimmedTurns = 0;
 
   if (save.feedHtml) {
     document.getElementById('story-feed').innerHTML = save.feedHtml;
-    // Re-attach choice button handlers
     document.querySelectorAll('.choice-btn').forEach(btn => {
       btn.onclick = () => {
         const text = btn.textContent;
@@ -1692,9 +1861,10 @@ function loadFromSave(save) {
     });
   }
 
-  // Always rebuild panels fresh from saved data — never from cached HTML
+  // Rebuild panels fresh from data
   document.getElementById('sheet-content').innerHTML = '<div style="color:var(--text-dim);font-size:13px;font-style:italic;padding-top:8px">Loading...</div>';
   document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">Loading...</div>';
+  document.getElementById('sim-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No galaxy events yet.</div>';
   document.getElementById('legacy-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">None established.</div>';
   document.getElementById('lineage-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No ancestors yet.</div>';
 
@@ -1702,6 +1872,17 @@ function loadFromSave(save) {
   gameActive = true;
   scrollFeed();
   document.getElementById('save-indicator').textContent = `Turn ${turnCount}`;
+
+  // Show memory status
+  if (campaignSummary) {
+    const feed = document.getElementById('story-feed');
+    const div = document.createElement('div');
+    div.className = 'msg msg-system';
+    div.style.cssText = 'border-color:rgba(106,59,170,0.4);background:rgba(106,59,170,0.06);color:#ab80dd;font-size:12px;';
+    div.innerHTML = `<div class="sys-label">◆ CAMPAIGN MEMORY LOADED</div>Turn ${turnCount} · Campaign summary active · ${recentHistory.length / 2} recent turns in context`;
+    feed.appendChild(div);
+    scrollFeed();
+  }
 }
 
 function clearAllSaves() {
