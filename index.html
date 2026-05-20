@@ -298,8 +298,30 @@
   .bar-track { height: 5px; background: var(--border); border-radius: 2px; }
   .bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
   .bar-hp { background: #cc4444; }
-  .bar-strain { background: #4488cc; }
+  .bar-force-strain { background: #8855cc; }
+  .bar-phys-strain { background: #cc7733; }
+  .bar-mental-strain { background: #4488cc; }
+  .bar-xp { background: #44aa66; height: 3px; }
   .bar-align { background: linear-gradient(90deg, var(--blue), var(--text-dim), var(--red)); }
+
+  .ability-tag {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid var(--border-bright);
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .ability-tag-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+  }
+  .ability-name { color: var(--text-dim); }
+  .ability-val { color: var(--gold); font-weight: 600; }
+  .ability-xp-track { height: 3px; background: var(--border); margin-top: 3px; border-radius: 1px; }
+  .ability-xp-fill { height: 100%; background: #44aa66; border-radius: 1px; transition: width 0.4s; }
 
   .sheet-section {
     border-top: 1px solid var(--border);
@@ -866,7 +888,7 @@ Every response you generate MUST end with both data blocks below. No exceptions.
 STEP 1: Write your narrative response and choices as normal.
 STEP 2: Immediately after, with no extra text, output the SHEET block:
 <<<SHEET>>>
-{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"hp":100,"maxHp":100,"strain":0,"maxStrain":12,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceAbilities":{},"lightsaberForms":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"strengths":[],"weaknesses":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
+{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"hp":100,"maxHp":100,"forceStrain":0,"maxForceStrain":12,"physicalStrain":0,"maxPhysicalStrain":10,"mentalStrain":0,"maxMentalStrain":10,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"strengths":[],"weaknesses":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
 <<<END_SHEET>>>
 STEP 3: Immediately after, output the WORLD block:
 <<<WORLD>>>
@@ -903,48 +925,90 @@ Forms level individually through use. Apply these counter matchups to dice modif
 - Vaapad gains +3 vs dark side opponents
 - Form VII (Juyo/Vaapad): restricted for Jedi without Council permission
 
-## STRAIN SYSTEM
-Base costs: small=0, single-target=+1, multi-target=+2, large-scale=+3, battlefield=+4
-Penalties: 0-2=none, 3-5=-1, 6-8=-2, 9+=-3 and barrier weakens
-Dark Side path: +2 strain baseline but +2-4 Force Output
-Light Side path: -1 strain, +1 Control, +1.5 when acting selflessly
-Flow State: d20 minimum=10, +2 precision, -1 strain, near-failures become partial successes
+## THREE STRAIN BARS — TRACK ALL THREE SEPARATELY
+Every character has three independent strain pools. Track them separately in the SHEET block.
 
-## PROGRESSION — STRICT NUMERIC RULES
-Stats use a 0–150 scale. Gains per turn are SMALL. Follow these EXACT limits:
+FORCE STRAIN (forceStrain / maxForceStrain: 12):
+- Costs from using Force abilities (per existing strain cost rules)
+- Recovery: meditation, rest near Force nexus, time
+- At 9+: Force barrier weakens, rolls penalized
 
-STAT GAINS PER TURN (not per session — per single action/turn):
-- Youngling tier (stat 0–20): max +3 per turn for a practiced skill, +1 for a rarely used skill
-- Padawan tier (stat 20–40): max +2 per turn
-- Knight tier (stat 40–80): max +1 per turn
-- Master tier (stat 80–100): max +0.5 per turn
-- High Master (85+): max +0.1 per turn, often 0
-- Legendary (100+): only breakthrough events grant gains, never regular turns
+PHYSICAL STRAIN (physicalStrain / maxPhysicalStrain: 10):
+- Costs from: combat, running, physical exertion, injury, hunger, exhaustion
+- Recovery: sleep, rest, food, medical treatment
+- At max: character collapses, risks injury
 
-A character at turn 20 who started untrained should have stats in the range of 5–25 depending on what they have actually practiced. Force Sense at 115 after 20 turns is completely wrong and breaks the system. An untrained street child who has used Force Sense a handful of times should be at roughly 8–15.
+MENTAL STRAIN (mentalStrain / maxMentalStrain: 10):
+- Costs from: fear, grief, prolonged concentration, social stress, horror, mind attacks
+- Recovery: sleep, calm environment, comfort, meditation
+- At max: character freezes, panics, or breaks down temporarily
 
-LEGENDARY POTENTIAL IS A CEILING, NOT A BOOST. It does not accelerate early gains. It means the character CAN eventually reach 100+ with years of training. It has zero effect on stats below 40.
+When strain type is ambiguous, use best judgment. Reading for hours = +1 Mental. Combat = Physical + possibly Force. Seeing something horrific = Mental.
 
-CONTEXT MATTERS FOR GAINS:
-- Reading about a Force ability from a datapad: +0 to the actual ability stat (knowledge only)
-- Accidentally using a Force ability once: +1 to that ability
-- Deliberately practicing an ability for an extended period: +2–3 max
-- Combat pressure with a specific ability: +1–2
-- Breakthrough moment: +5–10 (rare, must be narratively earned)
+## XP-BASED ABILITY PROGRESSION — STRICT RULES
+Stats no longer increase by GM discretion. They increase ONLY when XP threshold is met.
 
-FORCE ABILITY FORMAT — CRITICAL:
-forceAbilities values must be plain integers ONLY. No objects, no descriptions, no nested data.
-CORRECT: {"Force Push": 8, "Force Sense": 12, "Reading the Current": 5}
-WRONG: {"Force Push": {"tier":1,"description":"...", "strainCost":4}}
-If you output objects the UI breaks and shows [object Object]. Plain numbers only.
+SHEET block must include these additional XP tracking fields:
+- forceStatsXP: {"forceSense": {"current": 0, "required": 10}, ...} for each force stat
+- forceAbilitiesXP: {"Force Push": {"current": 0, "required": 10}, ...} for each ability
+- lightsaberFormsXP: {"Shii-Cho": {"current": 0, "required": 10}, ...} for each form
+
+XP GAIN RULES (add to current XP each turn, never skip this):
+- Deliberately practicing an ability this turn: +2 XP to that ability
+- Using an ability under pressure/combat: +3 XP to that ability
+- Reading/studying theory (no practice): +0.5 XP to Force Knowledge only
+- Accidentally triggering an ability: +1 XP
+- Breakthrough moment: +10 XP (rare)
+- Passive observation with no relevant action: +0 XP
+
+WHEN XP REACHES REQUIRED THRESHOLD:
+- Stat increases by exactly 1
+- XP resets to 0
+- Required XP for next level increases per this scale:
+  stat 0-19: required=10, stat 20-39: required=25, stat 40-59: required=50
+  stat 60-79: required=100, stat 80-84: required=200, stat 85-94: required=500
+  stat 95-99: required=1000, stat 100+: required=5000
+
+NEVER increase a stat directly without going through XP. Always update the XP fields.
+
+## ALIGNMENT — CHOICE-BASED, NOT FORCE-BASED
+Alignment range: -100 (pure Dark) to +100 (pure Light). Current value must be in SHEET block.
+
+WHAT MOVES ALIGNMENT:
+- Minor decisions with moral weight: ±0.1 to ±0.5
+- Significant moral choices (choosing mercy vs. harm, honesty vs. deception): ±1 to ±3
+- Defining moments (killing in cold blood, saving a life at great cost, betrayal): ±5 to ±10
+
+WHAT DOES NOT MOVE ALIGNMENT:
+- Using Force powers (Force Push, Sense, etc.) — powers are tools, not moral choices
+- Standard meditation — maintaining existing connection, not moral growth
+- Combat in self-defense with no moral complexity
+
+LIGHT SIDE ALIGNMENT GAIN REQUIRES:
+- A conscious choice toward compassion, sacrifice, honesty, or protection
+- Sustained meditation specifically reflecting on light side philosophy and principles (rare, +0.5 max)
+- Choosing the harder right over the easier wrong
+
+DARK SIDE ALIGNMENT LOSS REQUIRES:
+- Anger used to harm, cruelty, deception for selfish gain, abandoning someone in need
+- Using fear or domination as tools deliberately
+
+## STRAIN SYSTEM — BASE COSTS
+Force actions: small=0 Force Strain, single-target=+1, multi-target=+2, large-scale=+3, battlefield=+4
+Force Strain penalties: 0-2=none, 3-5=-1 rolls, 6-8=-2 rolls, 9+=-3 rolls + barrier weakens
+Dark Side path: +2 Force Strain baseline but +2-4 Force Output
+Light Side path: -1 Force Strain, +1 Control, +1.5 when acting selflessly
+Flow State: d20 minimum=10, +2 precision, -1 Force Strain, near-failures become partial successes
 
 ## PROGRESSION TIERS
-- Youngling (0–20): Fast small gains. Basic raw instinct. Character is learning what the Force even is.
-- Padawan (20–40): Structured growth. Foundational training. Can reliably perform basics.
-- Knight (40–80): Moderate growth. Experience-based. Competence becomes reliable.
-- Master (80–100): Slow growth. Requires genuine mastery and insight.
-- High Master (85+): Major difficulty spike. Most Force users plateau here permanently.
-- Legendary (100+): Requires breakthrough events. Standard training cannot reach this.
+- Youngling (stat 0–20): Fast small XP gains. Basic raw instinct.
+- Padawan (stat 20–40): Structured growth. Foundational training.
+- Knight (stat 40–80): Moderate growth. Experience-based.
+- Master (stat 80–100): Slow growth. Requires genuine mastery.
+- High Master (stat 85+): Most Force users plateau here permanently.
+- Legendary (stat 100+): Only breakthrough XP events reach this.
+
+LEGENDARY POTENTIAL IS A CEILING, NOT A BOOST. It means the character CAN eventually reach 100+ with years of training. It has zero effect on XP gain rates below stat 40.
 
 ## TRAINING & DOWNTIME
 During downtime offer two training choices from: Lightsaber Training, Force Meditation, Ability Practice, Physical Conditioning, Artifact Study, Strategic Study.
@@ -1296,10 +1360,16 @@ function buildContext(userContent) {
   const ws = worldState || {};
 
   const sheetSummary = `NAME: ${cs.name||'?'} | SPECIES: ${cs.species||'?'} | AGE: ${cs.age||'?'} | FACTION: ${cs.faction||'?'}
-ALIGNMENT: ${cs.alignment||0} | FORCE TIER: ${cs.forceTier||1}
-HP: ${cs.hp||100}/${cs.maxHp||100} | STRAIN: ${cs.strain||0}/${cs.maxStrain||12}
+ALIGNMENT: ${cs.alignment||0} (moves by 0.1-0.5 per minor decision, 1-3 per significant choice, 5-10 per defining moment — Force use alone NEVER moves alignment)
+FORCE TIER: ${cs.forceTier||1}
+HP: ${cs.hp||100}/${cs.maxHp||100}
+FORCE STRAIN: ${cs.forceStrain ?? cs.strain ?? 0}/${cs.maxForceStrain ?? cs.maxStrain ?? 12} (costs from Force use — recovers via meditation)
+PHYSICAL STRAIN: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||10} (costs from exertion, combat, injury — recovers via rest)
+MENTAL STRAIN: ${cs.mentalStrain||0}/${cs.maxMentalStrain||10} (costs from stress, fear, prolonged focus — recovers via sleep/calm)
 FORCE STATS: ForceSense=${cs.forceStats?.forceSense||0}, Meditation=${cs.forceStats?.meditation||0}, ForceKnowledge=${cs.forceStats?.forceKnowledge||0}, ForceControl=${cs.forceStats?.forceControl||0}
+FORCE STATS XP: ${JSON.stringify(cs.forceStatsXP||{})}
 FORCE ABILITIES: ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||v.value||0):v}`).join(', ')||'none'}
+FORCE ABILITIES XP: ${JSON.stringify(cs.forceAbilitiesXP||{})}
 STATS: STR=${cs.stats?.strength||0}, AGI=${cs.stats?.agility||0}, END=${cs.stats?.endurance||0}, WILL=${cs.stats?.willpower||0}, CHA=${cs.stats?.charisma||0}
 INVENTORY: ${(cs.inventory||[]).join(', ')||'empty'} | CREDITS: ${cs.credits||0}
 RENOWN: Jedi=${cs.renown?.jediOrder||0}, Sith=${cs.renown?.sith||0}, Republic=${cs.renown?.republic||0}, Underworld=${cs.renown?.underworld||0}
@@ -1716,17 +1786,41 @@ function updateUI() {
   if (worldState) updateWorldState();
 }
 
+// XP required to advance to next level — scales with current stat value
+// Low stats level quickly, high stats require exponentially more work
+function xpRequired(statVal) {
+  const v = statVal || 0;
+  if (v < 20)  return 10;   // Youngling: 10 XP per level
+  if (v < 40)  return 25;   // Padawan: 25 XP per level
+  if (v < 60)  return 50;   // Knight-low: 50 XP per level
+  if (v < 80)  return 100;  // Knight-high: 100 XP per level
+  if (v < 85)  return 200;  // Master-low: 200 XP per level
+  if (v < 95)  return 500;  // Master-high: 500 XP per level
+  if (v < 100) return 1000; // High Master: 1000 XP per level
+  return 5000;              // Legendary: 5000 XP per level
+}
+
 function updateCharacterSheet() {
   const s = characterSheet;
   if (!s || !s.name) return;
 
   const alignVal = s.alignment || 0;
   const alignLabel = alignVal >= 50 ? 'Light' : alignVal <= -50 ? 'Dark' : 'Neutral';
-  const alignColor = alignVal >= 50 ? '#4488cc' : alignVal <= -50 ? '#cc3333' : '#888';
+  const alignColor = alignVal >= 50 ? '#4488cc' : alignVal <= -50 ? '#cc3333' : '#aaaaaa';
   const alignPct = ((alignVal + 100) / 200 * 100).toFixed(0);
 
-  const hpPct = Math.max(0, Math.min(100, (s.hp / s.maxHp) * 100));
-  const strainPct = Math.max(0, Math.min(100, (s.strain / s.maxStrain) * 100));
+  const hpPct = Math.max(0, Math.min(100, ((s.hp||100) / (s.maxHp||100)) * 100));
+
+  // Three strain bars
+  const fStrain = s.forceStrain ?? s.strain ?? 0;
+  const fStrainMax = s.maxForceStrain ?? s.maxStrain ?? 12;
+  const pStrain = s.physicalStrain ?? 0;
+  const pStrainMax = s.maxPhysicalStrain ?? 10;
+  const mStrain = s.mentalStrain ?? 0;
+  const mStrainMax = s.maxMentalStrain ?? 10;
+  const fStrainPct = Math.max(0, Math.min(100, (fStrain / fStrainMax) * 100));
+  const pStrainPct = Math.max(0, Math.min(100, (pStrain / pStrainMax) * 100));
+  const mStrainPct = Math.max(0, Math.min(100, (mStrain / mStrainMax) * 100));
 
   const tierNames = ['', 'Untrained', 'Padawan', 'Knight', 'Master', 'Legendary'];
   const tierName = tierNames[s.forceTier] || 'Unknown';
@@ -1734,65 +1828,96 @@ function updateCharacterSheet() {
   let html = `
     <div class="sheet-name">${s.name}</div>
     <div class="sheet-sub">${s.species || '—'} · ${s.faction || '—'} · Age ${s.age || '—'}</div>
-    <div class="sheet-sub" style="color:${alignColor}">${alignLabel} (${alignVal > 0 ? '+' : ''}${alignVal})</div>
+
+    <div class="bar-wrap" style="margin-bottom:6px">
+      <div class="bar-label">
+        <span style="color:${alignColor}">${alignLabel}</span>
+        <span style="color:${alignColor}">${alignVal > 0 ? '+' : ''}${alignVal}</span>
+      </div>
+      <div class="bar-track" style="height:6px;background:linear-gradient(90deg,#224466,#333,#662222)">
+        <div style="width:${alignPct}%;height:100%;background:white;opacity:0.7;border-radius:2px;transition:width 0.4s;box-shadow:0 0 4px ${alignColor}"></div>
+      </div>
+    </div>
 
     <div class="bar-wrap">
-      <div class="bar-label"><span>HP</span><span>${s.hp}/${s.maxHp}</span></div>
+      <div class="bar-label"><span>HP</span><span>${s.hp||100}/${s.maxHp||100}</span></div>
       <div class="bar-track"><div class="bar-fill bar-hp" style="width:${hpPct}%"></div></div>
     </div>
     <div class="bar-wrap">
-      <div class="bar-label"><span>Strain</span><span>${s.strain}/${s.maxStrain}</span></div>
-      <div class="bar-track"><div class="bar-fill bar-strain" style="width:${strainPct}%"></div></div>
+      <div class="bar-label"><span>Force Strain</span><span>${fStrain}/${fStrainMax}</span></div>
+      <div class="bar-track"><div class="bar-fill bar-force-strain" style="width:${fStrainPct}%"></div></div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-label"><span>Physical Strain</span><span>${pStrain}/${pStrainMax}</span></div>
+      <div class="bar-track"><div class="bar-fill bar-phys-strain" style="width:${pStrainPct}%"></div></div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-label"><span>Mental Strain</span><span>${mStrain}/${mStrainMax}</span></div>
+      <div class="bar-track"><div class="bar-fill bar-mental-strain" style="width:${mStrainPct}%"></div></div>
     </div>
 
     <div class="sheet-section">
       <div class="sheet-section-title">Force · ${tierName}</div>`;
 
   const fs = s.forceStats || {};
+  const fsXP = s.forceStatsXP || {};
   for (const [k, v] of Object.entries(fs)) {
     const label = k.replace(/([A-Z])/g, ' $1').trim();
-    html += `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-val">${v}</span></div>`;
+    const xpData = fsXP[k] || { current: 0, required: 10 };
+    const xpPct = Math.max(0, Math.min(100, (xpData.current / xpData.required) * 100));
+    html += `<div style="margin-bottom:6px">
+      <div class="stat-row"><span class="stat-label">${label}</span><span class="stat-val">${v}</span></div>
+      <div class="ability-xp-track"><div class="ability-xp-fill" style="width:${xpPct}%" title="${xpData.current}/${xpData.required} XP"></div></div>
+    </div>`;
   }
   html += `</div>`;
 
-  // Force abilities
+  // Force abilities with XP bars
   const fa = s.forceAbilities || {};
+  const faXP = s.forceAbilitiesXP || {};
   if (Object.keys(fa).length > 0) {
-    html += `<div class="sheet-section"><div class="sheet-section-title">Force Abilities</div><div class="tag-list">`;
+    html += `<div class="sheet-section"><div class="sheet-section-title">Force Abilities</div>`;
     for (const [k, v] of Object.entries(fa)) {
-      let display;
-      if (v === null || v === undefined) {
-        display = '—';
-      } else if (typeof v === 'object') {
-        // Extract any numeric value we can find, in priority order
-        display = v.level ?? v.value ?? v.rank ?? v.score ?? v.tier ?? '?';
-      } else {
-        display = v;
-      }
-      html += `<div class="tag">${k} <span style="color:var(--gold)">${display}</span></div>`;
+      let statVal;
+      if (v === null || v === undefined) statVal = 0;
+      else if (typeof v === 'object') statVal = v.level ?? v.value ?? v.rank ?? 0;
+      else statVal = v;
+
+      const xpData = faXP[k] || { current: 0, required: xpRequired(statVal) };
+      const xpPct = Math.max(0, Math.min(100, (xpData.current / xpData.required) * 100));
+
+      html += `<div class="ability-tag">
+        <div class="ability-tag-row">
+          <span class="ability-name">${k}</span>
+          <span class="ability-val">${statVal}</span>
+        </div>
+        <div class="ability-xp-track"><div class="ability-xp-fill" style="width:${xpPct}%" title="${xpData.current}/${xpData.required} XP to next level"></div></div>
+      </div>`;
     }
-    html += `</div></div>`;
+    html += `</div>`;
   }
 
-  // Lightsaber forms
+  // Lightsaber forms with XP bars
   const lf = s.lightsaberForms || {};
+  const lfXP = s.lightsaberFormsXP || {};
   if (Object.keys(lf).length > 0) {
-    html += `<div class="sheet-section"><div class="sheet-section-title">Lightsaber Forms</div><div class="tag-list">`;
+    html += `<div class="sheet-section"><div class="sheet-section-title">Lightsaber Forms</div>`;
     for (const [k, v] of Object.entries(lf)) {
-      let display;
-      if (v === null || v === undefined) {
-        display = '—';
-      } else if (typeof v === 'object') {
-        display = v.level ?? v.value ?? v.rank ?? v.score ?? '?';
-      } else {
-        display = v;
-      }
-      html += `<div class="tag">${k} <span style="color:var(--gold)">${display}</span></div>`;
+      let statVal = (typeof v === 'object') ? (v.level ?? v.value ?? 0) : (v || 0);
+      const xpData = lfXP[k] || { current: 0, required: xpRequired(statVal) };
+      const xpPct = Math.max(0, Math.min(100, (xpData.current / xpData.required) * 100));
+      html += `<div class="ability-tag">
+        <div class="ability-tag-row">
+          <span class="ability-name">${k}</span>
+          <span class="ability-val">${statVal}</span>
+        </div>
+        <div class="ability-xp-track"><div class="ability-xp-fill" style="width:${xpPct}%" title="${xpData.current}/${xpData.required} XP"></div></div>
+      </div>`;
     }
-    html += `</div></div>`;
+    html += `</div>`;
   }
 
-  // Stats
+  // Core stats
   const st = s.stats || {};
   if (Object.keys(st).length > 0) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Stats</div>`;
@@ -1820,9 +1945,7 @@ function updateCharacterSheet() {
   const inv = s.inventory || [];
   if (inv.length > 0) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Inventory</div><div class="tag-list">`;
-    for (const item of inv) {
-      html += `<div class="tag">${item}</div>`;
-    }
+    for (const item of inv) html += `<div class="tag">${item}</div>`;
     html += `</div>`;
     if (s.credits > 0) html += `<div style="margin-top:6px;font-size:12px;color:var(--gold)">◈ ${s.credits} credits</div>`;
     html += `</div>`;
@@ -1830,6 +1953,13 @@ function updateCharacterSheet() {
 
   if (s.innatetalent) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Innate Talent</div><div style="font-size:13px;color:var(--gold)">${s.innatetalent}</div></div>`;
+  }
+
+  if ((s.strengths||[]).length > 0 || (s.weaknesses||[]).length > 0) {
+    html += `<div class="sheet-section"><div class="sheet-section-title">Traits</div>`;
+    for (const str of (s.strengths||[])) html += `<div style="font-size:11px;color:#44aa66;margin-bottom:2px">+ ${str}</div>`;
+    for (const wk of (s.weaknesses||[])) html += `<div style="font-size:11px;color:#cc4444;margin-bottom:2px">− ${wk}</div>`;
+    html += `</div>`;
   }
 
   document.getElementById('sheet-content').innerHTML = html;
