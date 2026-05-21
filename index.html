@@ -1412,10 +1412,18 @@ const SUMMARIZE_EVERY = 10;    // compress every N turns
 //  INIT
 // ═══════════════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
-  apiKey = localStorage.getItem('sw_rpg_gemini_key') || '';
-  if (apiKey) {
+  apiKey = (localStorage.getItem('sw_rpg_gemini_key') || '').trim();
+  isThinking = false;
+
+  if (apiKey && apiKey.length > 20) {
+    // Valid key exists — go straight to game
     showGame();
     tryAutoLoad();
+  } else {
+    // No key — show setup screen
+    // Pre-fill if there's something partial saved
+    const saved = localStorage.getItem('sw_rpg_gemini_key') || '';
+    if (saved) document.getElementById('api-key-input').value = saved;
   }
 
   const input = document.getElementById('player-input');
@@ -1465,7 +1473,9 @@ function showWelcomePrompt() {
 }
 
 function beginCampaign() {
-  if (isThinking) return;
+  // Reset any stuck state
+  isThinking = false;
+  setThinking(false);
   document.getElementById('story-feed').innerHTML = '';
   callGemini("BEGIN_GAME");
 }
@@ -1479,10 +1489,10 @@ async function startWithKey() {
     showApiError('Please enter a valid Gemini API key — it should start with AIza...');
     return;
   }
-  apiKey = key;
-  localStorage.setItem('sw_rpg_gemini_key', key);
+  apiKey = key.trim();
+  localStorage.setItem('sw_rpg_gemini_key', key.trim());
   showGame();
-  showWelcomePrompt();
+  tryAutoLoad();
 }
 
 function showApiError(msg) {
