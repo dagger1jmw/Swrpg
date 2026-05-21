@@ -721,6 +721,64 @@
     color: var(--gold);
     font-weight: bold;
   }
+  /* ── SIMULATION PANEL ── */
+  #sim-panel-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.82);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+  }
+  #sim-panel-overlay.show { display: flex; }
+  #sim-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-bright);
+    width: min(680px, 95vw);
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #sim-panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  #sim-panel-header h2 { font-family: 'Cinzel', serif; font-size: 14px; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; }
+  #sim-panel-body { flex: 1; overflow-y: auto; padding: 20px; }
+  .sim-section { margin-bottom: 20px; }
+  .sim-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; display: block; }
+  #sim-routine-input {
+    width: 100%; background: var(--bg-input); border: 1px solid var(--border-bright);
+    color: var(--text-bright); padding: 10px 12px; font-family: 'Crimson Text', serif;
+    font-size: 14px; resize: vertical; min-height: 140px; outline: none; line-height: 1.6;
+  }
+  #sim-routine-input:focus { border-color: var(--gold); }
+  .sim-period-btns { display: flex; gap: 8px; }
+  .sim-period-btn {
+    flex: 1; background: transparent; border: 1px solid var(--border-bright);
+    color: var(--text-dim); padding: 8px; font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; transition: all 0.2s;
+  }
+  .sim-period-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .sim-period-btn.selected { background: rgba(201,168,76,0.1); border-color: var(--gold); color: var(--gold); }
+  #sim-progress { display: none; }
+  #sim-progress.show { display: block; }
+  .sim-progress-bar-wrap { height: 8px; background: var(--border); border-radius: 4px; margin: 10px 0; overflow: hidden; }
+  #sim-progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
+  #sim-status-text { font-size: 12px; color: var(--text-dim); font-style: italic; margin-bottom: 6px; }
+  #sim-chunk-log { max-height: 220px; overflow-y: auto; border: 1px solid var(--border); background: var(--bg-input); padding: 10px; font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+  .sim-chunk-entry { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .sim-chunk-entry:last-child { border-bottom: none; margin-bottom: 0; }
+  .sim-chunk-label { color: var(--gold); font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1px; margin-bottom: 3px; }
+  #sim-panel-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0; }
+  .sim-pause-note { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 8px; }
+
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: var(--bg-deep); }
   ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
@@ -762,6 +820,7 @@
       <span id="save-indicator">—</span>
       <button class="hbtn" id="btn-sheet" onclick="togglePanel('sheet')" style="display:none">Character</button>
       <button class="hbtn" id="btn-log" onclick="togglePanel('log')" style="display:none">World Log</button>
+      <button class="hbtn" id="btn-simulate" onclick="openSimPanel()" style="display:none">Simulate</button>
       <button class="hbtn" id="btn-save" onclick="openSaveLoad('save')" style="display:none">Save</button>
       <button class="hbtn" id="btn-load" onclick="openSaveLoad('load')">Load</button>
       <button class="hbtn danger" id="btn-newgame" onclick="confirmNewGame()" style="display:none">New Game</button>
@@ -881,9 +940,62 @@
     </div>
   </div>
 
-</div>
+  <!-- SIMULATION PANEL -->
+  <div id="sim-panel-overlay">
+    <div id="sim-panel">
+      <div id="sim-panel-header">
+        <h2>⏩ Time Simulation</h2>
+        <button class="modal-btn" onclick="closeSimPanel()" id="sim-close-btn">Close</button>
+      </div>
+      <div id="sim-panel-body">
 
-<script>
+        <!-- Setup phase -->
+        <div id="sim-setup">
+          <div class="sim-section">
+            <span class="sim-label">Daily Routine</span>
+            <textarea id="sim-routine-input" placeholder="Describe your character's daily schedule in detail. The more specific you are, the more accurate the simulation. E.g.: Morning meditation, strength training, Force ability practice, study in the archives, training with a master, lightsaber practice, sparring at night..."></textarea>
+            <div class="sim-pause-note">💡 Tip: The simulation will automatically pause if something significant happens that needs your decision — a major galaxy event, an unexpected encounter, or a crisis.</div>
+          </div>
+
+          <div class="sim-section">
+            <span class="sim-label">Simulation Period</span>
+            <div class="sim-period-btns">
+              <button class="sim-period-btn selected" onclick="selectPeriod('week', this)">1 Week</button>
+              <button class="sim-period-btn" onclick="selectPeriod('month', this)">1 Month</button>
+              <button class="sim-period-btn" onclick="selectPeriod('3month', this)">3 Months</button>
+              <button class="sim-period-btn" onclick="selectPeriod('6month', this)">6 Months</button>
+              <button class="sim-period-btn" onclick="selectPeriod('year', this)">1 Year</button>
+            </div>
+          </div>
+
+          <div class="sim-section">
+            <span class="sim-label">Pause Conditions (optional)</span>
+            <textarea id="sim-pause-conditions" style="width:100%;background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:8px 12px;font-family:'Crimson Text',serif;font-size:13px;resize:vertical;min-height:60px;outline:none;line-height:1.5" placeholder="E.g.: Pause if a stat reaches 50, pause if a Jedi contacts me, pause if any major event affects my training..."></textarea>
+          </div>
+        </div>
+
+        <!-- Progress phase -->
+        <div id="sim-progress">
+          <div id="sim-status-text">Preparing simulation...</div>
+          <div class="sim-progress-bar-wrap">
+            <div id="sim-progress-fill"></div>
+          </div>
+          <div id="sim-progress-label" style="font-size:11px;color:var(--text-dim);margin-bottom:12px;font-family:'Cinzel',serif;letter-spacing:1px"></div>
+          <div id="sim-chunk-log"></div>
+        </div>
+
+      </div>
+      <div id="sim-panel-footer">
+        <button class="modal-btn" id="sim-pause-btn" onclick="pauseSimulation()" style="display:none">⏸ Pause</button>
+        <button class="modal-btn" id="sim-resume-btn" onclick="resumeSimulation()" style="display:none">▶ Resume</button>
+        <button class="modal-btn danger" id="sim-abort-btn" onclick="abortSimulation()" style="display:none" style="border-color:#661111;color:#994444">✕ Abort</button>
+        <button class="modal-btn primary" id="sim-start-btn" onclick="startSimulation()">Run Simulation</button>
+        <button class="modal-btn" id="sim-done-btn" onclick="closeSimPanel()" style="display:none">Done</button>
+      </div>
+    </div>
+  </div>
+
+</div>
 // ═══════════════════════════════════════════════════════════════════
 //  MASTER GM SYSTEM PROMPT — full rules from the document
 // ═══════════════════════════════════════════════════════════════════
@@ -1281,6 +1393,17 @@ let isSummarizing = false;     // prevent double summarize calls
 let galaxySimState = {};       // persistent galaxy simulation state between turns
 let lastGalaxyEventDate = '';  // in-game date of last galaxy event, to throttle frequency
 
+// Simulation engine state
+let simActive = false;
+let simPaused = false;
+let simAborted = false;
+let simRoutine = '';
+let simPeriodType = 'month'; // 'week' | 'month' | 'year'
+let simChunksTotal = 0;
+let simChunksDone = 0;
+let simResults = [];          // accumulated chunk summaries
+let simPauseCallback = null;  // called when pause is hit
+
 const SAVE_SLOTS = 5;
 const RECENT_TURNS = 6;        // how many raw turns to send each request
 const SUMMARIZE_EVERY = 10;    // compress every N turns
@@ -1410,6 +1533,7 @@ function showGame() {
   document.getElementById('game-layout').classList.add('visible');
   document.getElementById('btn-sheet').style.display = '';
   document.getElementById('btn-log').style.display = '';
+  document.getElementById('btn-simulate').style.display = '';
   document.getElementById('btn-save').style.display = '';
   document.getElementById('btn-newgame').style.display = '';
 }
@@ -2393,6 +2517,464 @@ function clearAllSaves() {
 
   alert('Display cache cleared. Your game data is preserved. Reloading...');
   location.reload();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  SIMULATION ENGINE
+// ═══════════════════════════════════════════════════════════════════
+
+function openSimPanel() {
+  if (simActive && !simPaused) {
+    // Show running sim panel
+    document.getElementById('sim-panel-overlay').classList.add('show');
+    return;
+  }
+  // Reset to setup view
+  document.getElementById('sim-setup').style.display = 'block';
+  document.getElementById('sim-progress').classList.remove('show');
+  document.getElementById('sim-start-btn').style.display = '';
+  document.getElementById('sim-pause-btn').style.display = 'none';
+  document.getElementById('sim-resume-btn').style.display = 'none';
+  document.getElementById('sim-abort-btn').style.display = 'none';
+  document.getElementById('sim-done-btn').style.display = 'none';
+  document.getElementById('sim-close-btn').style.display = '';
+  document.getElementById('sim-panel-overlay').classList.add('show');
+}
+
+function closeSimPanel() {
+  if (simActive && !simPaused) return; // don't close while running
+  document.getElementById('sim-panel-overlay').classList.remove('show');
+}
+
+function selectPeriod(period, btn) {
+  simPeriodType = period;
+  document.querySelectorAll('.sim-period-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function getChunksForPeriod(period) {
+  // Each chunk = 1 week of in-game time
+  switch(period) {
+    case 'week':   return [{ label: 'Week 1', days: 7 }];
+    case 'month':  return [
+      { label: 'Week 1', days: 7 }, { label: 'Week 2', days: 7 },
+      { label: 'Week 3', days: 7 }, { label: 'Week 4', days: 7 }
+    ];
+    case '3month': return Array.from({length: 12}, (_, i) => ({ label: `Week ${i+1}`, days: 7 }));
+    case '6month': return Array.from({length: 26}, (_, i) => ({ label: `Week ${i+1}`, days: 7 }));
+    case 'year':   return Array.from({length: 52}, (_, i) => ({ label: `Week ${i+1}`, days: 7 }));
+    default:       return [{ label: 'Week 1', days: 7 }];
+  }
+}
+
+function getPeriodLabel(period) {
+  switch(period) {
+    case 'week': return '1 Week';
+    case 'month': return '1 Month';
+    case '3month': return '3 Months';
+    case '6month': return '6 Months';
+    case 'year': return '1 Year';
+    default: return period;
+  }
+}
+
+async function startSimulation() {
+  const routine = document.getElementById('sim-routine-input').value.trim();
+  if (!routine) { alert('Please describe your daily routine first.'); return; }
+
+  simRoutine = routine;
+  simPauseConditions = document.getElementById('sim-pause-conditions').value.trim();
+  simAborted = false;
+  simPaused = false;
+  simActive = true;
+  simResults = [];
+
+  const chunks = getChunksForPeriod(simPeriodType);
+  simChunksTotal = chunks.length;
+  simChunksDone = 0;
+
+  // Switch to progress view
+  document.getElementById('sim-setup').style.display = 'none';
+  document.getElementById('sim-progress').classList.add('show');
+  document.getElementById('sim-start-btn').style.display = 'none';
+  document.getElementById('sim-pause-btn').style.display = '';
+  document.getElementById('sim-abort-btn').style.display = '';
+  document.getElementById('sim-close-btn').style.display = 'none';
+
+  updateSimProgress(0, `Starting ${getPeriodLabel(simPeriodType)} simulation...`);
+  addSimLog(`Simulation started: ${getPeriodLabel(simPeriodType)} · ${chunks.length} weeks · Routine saved`, 'start');
+
+  await runSimChunks(chunks);
+}
+
+let simPauseConditions = '';
+
+async function runSimChunks(chunks) {
+  for (let i = simChunksDone; i < chunks.length; i++) {
+    if (simAborted) break;
+
+    // Wait if paused
+    if (simPaused) {
+      await waitForResume();
+      if (simAborted) break;
+    }
+
+    const chunk = chunks[i];
+    const pct = Math.round((i / chunks.length) * 100);
+    updateSimProgress(pct, `Simulating ${chunk.label} of ${chunks.length}...`);
+    document.getElementById('sim-progress-label').textContent =
+      `${chunk.label} / Week ${chunks.length} · ${chunks.length - i - 1} remaining`;
+
+    try {
+      const result = await simChunk(chunk, i + 1, chunks.length);
+      simResults.push({ chunk: chunk.label, summary: result.summary, mechanical: result.mechanical });
+      simChunksDone = i + 1;
+
+      // Add to chunk log
+      addSimLog(result.summary, chunk.label);
+
+      // Check for pause triggers
+      const shouldPause = checkPauseTriggers(result);
+      if (shouldPause) {
+        simPaused = true;
+        updateSimProgress(Math.round((simChunksDone / chunks.length) * 100),
+          `⏸ Paused — ${shouldPause}`);
+        showSimPausePrompt(shouldPause, result, chunks, i + 1);
+        return; // exit loop, user resumes
+      }
+
+      // Small delay between chunks to avoid rate limiting
+      if (i < chunks.length - 1) await sleep(1500);
+
+    } catch(err) {
+      addSimLog(`⚠ Error on ${chunk.label}: ${err.message} — retrying in 30s...`, 'error');
+      await sleep(30000);
+      i--; // retry this chunk
+      simChunksDone = i + 1;
+    }
+  }
+
+  if (!simAborted) {
+    await finishSimulation(chunks);
+  }
+}
+
+function waitForResume() {
+  return new Promise(resolve => { simPauseCallback = resolve; });
+}
+
+function pauseSimulation() {
+  if (!simActive) return;
+  simPaused = true;
+  document.getElementById('sim-pause-btn').style.display = 'none';
+  document.getElementById('sim-resume-btn').style.display = '';
+  updateSimProgress(
+    Math.round((simChunksDone / simChunksTotal) * 100),
+    `⏸ Paused after ${simChunksDone} of ${simChunksTotal} weeks. Review progress above then resume or adjust your routine.`
+  );
+  addSimLog('Simulation paused by player.', 'pause');
+}
+
+function resumeSimulation() {
+  if (!simActive) return;
+
+  // If there's a pending callback (mid-chunk pause), resolve it
+  if (simPauseCallback) {
+    const cb = simPauseCallback;
+    simPauseCallback = null;
+    simPaused = false;
+    document.getElementById('sim-pause-btn').style.display = '';
+    document.getElementById('sim-resume-btn').style.display = 'none';
+    addSimLog('Simulation resumed.', 'resume');
+    updateSimProgress(
+      Math.round((simChunksDone / simChunksTotal) * 100),
+      `Resuming from week ${simChunksDone + 1}...`
+    );
+    cb();
+    return;
+  }
+
+  // Otherwise restart the loop from where we left off
+  simPaused = false;
+  document.getElementById('sim-pause-btn').style.display = '';
+  document.getElementById('sim-resume-btn').style.display = 'none';
+  addSimLog('Simulation resumed.', 'resume');
+
+  const chunks = getChunksForPeriod(simPeriodType);
+  runSimChunks(chunks);
+}
+
+function abortSimulation() {
+  if (!confirm('Abort simulation? Progress so far will be kept and applied to your character.')) return;
+  simAborted = true;
+  simActive = false;
+  if (simPauseCallback) { simPauseCallback(); simPauseCallback = null; }
+  addSimLog('Simulation aborted by player.', 'abort');
+  updateSimProgress(
+    Math.round((simChunksDone / simChunksTotal) * 100),
+    `Simulation aborted. ${simChunksDone} of ${simChunksTotal} weeks completed.`
+  );
+  document.getElementById('sim-pause-btn').style.display = 'none';
+  document.getElementById('sim-resume-btn').style.display = 'none';
+  document.getElementById('sim-abort-btn').style.display = 'none';
+  document.getElementById('sim-done-btn').style.display = '';
+  document.getElementById('sim-close-btn').style.display = '';
+  applySimResultsToGame();
+}
+
+function showSimPausePrompt(reason, result, chunks, resumeFrom) {
+  document.getElementById('sim-pause-btn').style.display = 'none';
+  document.getElementById('sim-resume-btn').style.display = '';
+  document.getElementById('sim-abort-btn').style.display = '';
+
+  // Inject the event into the main story feed so player can react
+  closeSimPanel();
+  renderSystemMessage(
+    `⏸ SIMULATION PAUSED\n\nReason: ${reason}\n\nThis situation requires your attention. Review what happened, use the story feed to respond if needed, then open Simulate → Resume to continue the simulation from Week ${resumeFrom + 1}.`
+  );
+  // Also render the event as a GM message
+  renderGMMessage(result.event || result.summary);
+}
+
+function checkPauseTriggers(result) {
+  // Check custom pause conditions
+  if (simPauseConditions && result.pauseFlag) return result.pauseFlag;
+
+  // Auto-pause triggers
+  if (result.requiresDecision) return result.requiresDecision;
+
+  // Check if any stat crossed a tier threshold
+  if (characterSheet && result.statCrossed) return `Stat milestone: ${result.statCrossed}`;
+
+  return null;
+}
+
+async function simChunk(chunk, chunkNum, totalChunks) {
+  const cs = characterSheet || {};
+  const ws = worldState || {};
+
+  const prompt = `You are running a BACKGROUND SIMULATION of ${chunk.days} days of in-game time for a Star Wars Legends RPG.
+
+CURRENT CHARACTER STATE:
+${buildSheetSummaryForSim(cs)}
+
+CURRENT WORLD STATE:
+Location: ${ws.location || '?'} | Date: ${ws.inGameDate || '?'} | Era: ${ws.era || '?'}
+Active Threats: ${Object.entries(galaxySimState).map(([k,v]) => `${k}: ${v}`).join('; ') || 'none'}
+
+CAMPAIGN CONTEXT:
+${campaignSummary || 'Early campaign — character is training.'}
+
+PLAYER'S DAILY ROUTINE FOR THIS PERIOD:
+${simRoutine}
+
+${simPauseConditions ? `PAUSE CONDITIONS (flag these if they occur): ${simPauseConditions}` : ''}
+
+This is chunk ${chunkNum} of ${totalChunks} in a ${getPeriodLabel(simPeriodType)} simulation.
+
+SIMULATE ${chunk.days} DAYS following this routine. Output in this EXACT format:
+
+WEEK_SUMMARY: [3-5 sentences describing the week narratively — what happened, the mood, any notable moments]
+
+MECHANICAL_CHANGES:
+[List every stat, XP, and ability that changed. Format: StatName: old→new (reason)]
+[List XP gains: AbilityName XP: +N (now X/Y to next level)]
+[Strain at end of week: Force=X/12, Physical=X/10, Mental=X/10]
+[New abilities learned if any]
+[Alignment change if any: old→new (reason)]
+
+GALAXY_EVENTS:
+[Any notable galaxy events during this week — only if meaningful time-gated events occur. Use NONE if nothing significant.]
+
+NOTABLE_EVENTS:
+[Any NPC interactions, unexpected developments, or events that happened during the week. Use NONE if routine week.]
+
+REQUIRES_DECISION: [YES: reason | NO]
+PAUSE_FLAG: [reason if pause conditions were met | NONE]
+STAT_CROSSED: [StatName crossed tier boundary X | NONE]
+
+Then output the updated character sheet and world state:
+<<<SHEET>>>
+[complete updated JSON]
+<<<END_SHEET>>>
+<<<WORLD>>>
+[complete updated JSON with new worldLog entry]
+<<<END_WORLD>>>
+
+IMPORTANT SIMULATION RULES:
+- Apply XP gains based on what was actually practiced each day
+- Multiple days of practice compound — a week of daily Force Push training = significant XP
+- Use the XP threshold table to determine if stats level up
+- Galaxy events only trigger if meaningful time has passed since last event (${lastGalaxyEventDate || 'none yet'})
+- Keep stat gains realistic — a week of hard training at Youngling level might advance a stat 2-5 points total
+- If something happens that genuinely requires player input (combat, major choice, crisis), set REQUIRES_DECISION to YES`;
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: MASTER_PROMPT }] },
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.75, maxOutputTokens: 8192, topP: 0.9 }
+      })
+    }
+  );
+
+  if (response.status === 429) throw new Error('Rate limit — will retry');
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+  // Parse the structured response
+  const weekSummary = (raw.match(/WEEK_SUMMARY:\s*([\s\S]*?)(?=\n\nMECHANICAL_CHANGES:|$)/) || [])[1]?.trim() || '';
+  const mechanicalChanges = (raw.match(/MECHANICAL_CHANGES:\s*([\s\S]*?)(?=\n\nGALAXY_EVENTS:|$)/) || [])[1]?.trim() || '';
+  const galaxyEvents = (raw.match(/GALAXY_EVENTS:\s*([\s\S]*?)(?=\n\nNOTABLE_EVENTS:|$)/) || [])[1]?.trim() || '';
+  const notableEvents = (raw.match(/NOTABLE_EVENTS:\s*([\s\S]*?)(?=\n\nREQUIRES_DECISION:|$)/) || [])[1]?.trim() || '';
+  const requiresDecision = (raw.match(/REQUIRES_DECISION:\s*YES:\s*(.+)/) || [])[1]?.trim() || null;
+  const pauseFlag = (raw.match(/PAUSE_FLAG:\s*(?!NONE)(.+)/) || [])[1]?.trim() || null;
+  const statCrossed = (raw.match(/STAT_CROSSED:\s*(?!NONE)(.+)/) || [])[1]?.trim() || null;
+
+  // Parse and apply sheet/world updates
+  const sheetMatch = raw.match(/<<<SHEET>>>\s*([\s\S]*?)\s*<<<END_SHEET>>>/);
+  const worldMatch = raw.match(/<<<WORLD>>>\s*([\s\S]*?)\s*<<<END_WORLD>>>/);
+
+  if (sheetMatch) {
+    try {
+      const parsed = JSON.parse(sheetMatch[1].trim());
+      characterSheet = parsed;
+    } catch(e) {
+      const j = sheetMatch[1].match(/\{[\s\S]*\}/);
+      if (j) { try { characterSheet = JSON.parse(j[0]); } catch(e2) {} }
+    }
+  }
+  if (worldMatch) {
+    try {
+      const parsed = JSON.parse(worldMatch[1].trim());
+      worldState = parsed;
+    } catch(e) {
+      const j = worldMatch[1].match(/\{[\s\S]*\}/);
+      if (j) { try { worldState = JSON.parse(j[0]); } catch(e2) {} }
+    }
+  }
+
+  // Update galaxy sim state from any events
+  if (worldState?.galaxyEvents) {
+    for (const ev of worldState.galaxyEvents) {
+      if (ev?.faction && ev?.event) galaxySimState[ev.faction] = ev.event;
+    }
+  }
+
+  // Update UI incrementally
+  updateUI();
+  autoSave();
+
+  return {
+    summary: weekSummary + (mechanicalChanges ? '\n\n' + mechanicalChanges : ''),
+    mechanical: mechanicalChanges,
+    galaxyEvents,
+    notableEvents,
+    requiresDecision,
+    pauseFlag,
+    statCrossed,
+    event: notableEvents !== 'NONE' ? notableEvents : null
+  };
+}
+
+function buildSheetSummaryForSim(cs) {
+  return `Name: ${cs.name||'?'} | Age: ${cs.age||'?'} | Force Tier: ${cs.forceTier||1}
+HP: ${cs.hp||100}/${cs.maxHp||100} | Force Strain: ${cs.forceStrain||0}/${cs.maxForceStrain||12}
+Physical Strain: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||10} | Mental Strain: ${cs.mentalStrain||0}/${cs.maxMentalStrain||10}
+Force Stats: ForceSense=${cs.forceStats?.forceSense||0}(XP:${cs.forceStatsXP?.forceSense?.current||0}/${cs.forceStatsXP?.forceSense?.required||10}), Meditation=${cs.forceStats?.meditation||0}(XP:${cs.forceStatsXP?.meditation?.current||0}/${cs.forceStatsXP?.meditation?.required||10}), ForceKnowledge=${cs.forceStats?.forceKnowledge||0}(XP:${cs.forceStatsXP?.forceKnowledge?.current||0}/${cs.forceStatsXP?.forceKnowledge?.required||10}), ForceControl=${cs.forceStats?.forceControl||0}(XP:${cs.forceStatsXP?.forceControl?.current||0}/${cs.forceStatsXP?.forceControl?.required||10})
+Force Abilities: ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||0):v}(XP:${cs.forceAbilitiesXP?.[k]?.current||0}/${cs.forceAbilitiesXP?.[k]?.required||10})`).join(', ')||'none'}
+Lightsaber Forms: ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||0):v}(XP:${cs.lightsaberFormsXP?.[k]?.current||0}/${cs.lightsaberFormsXP?.[k]?.required||10})`).join(', ')||'none'}
+Stats: STR=${cs.stats?.strength||0}(XP:${cs.statsXP?.strength?.current||0}/${cs.statsXP?.strength?.required||10}), AGI=${cs.stats?.agility||0}(XP:${cs.statsXP?.agility?.current||0}/${cs.statsXP?.agility?.required||10}), END=${cs.stats?.endurance||0}(XP:${cs.statsXP?.endurance?.current||0}/${cs.statsXP?.endurance?.required||10}), WILL=${cs.stats?.willpower||0}(XP:${cs.statsXP?.willpower?.current||0}/${cs.statsXP?.willpower?.required||10}), CHA=${cs.stats?.charisma||0}(XP:${cs.statsXP?.charisma?.current||0}/${cs.statsXP?.charisma?.required||10})
+Alignment: ${cs.alignment||0}`;
+}
+
+async function finishSimulation(chunks) {
+  simActive = false;
+  simPaused = false;
+
+  updateSimProgress(100, `✓ Simulation complete — ${getPeriodLabel(simPeriodType)} simulated`);
+  document.getElementById('sim-progress-label').textContent =
+    `${chunks.length} weeks completed · Character updated`;
+  document.getElementById('sim-pause-btn').style.display = 'none';
+  document.getElementById('sim-resume-btn').style.display = 'none';
+  document.getElementById('sim-abort-btn').style.display = 'none';
+  document.getElementById('sim-done-btn').style.display = '';
+  document.getElementById('sim-close-btn').style.display = '';
+
+  // Build and show final summary in the story feed
+  const finalSummary = buildFinalSimSummary();
+  closeSimPanel();
+  renderGMMessage(finalSummary);
+  autoSave();
+}
+
+function applySimResultsToGame() {
+  if (simResults.length === 0) return;
+  const summary = buildFinalSimSummary();
+  closeSimPanel();
+  renderGMMessage(summary);
+  autoSave();
+}
+
+function buildFinalSimSummary() {
+  const periodLabel = getPeriodLabel(simPeriodType);
+  let text = `◆ SIMULATION COMPLETE — ${periodLabel}\n\n`;
+
+  if (simResults.length === 0) {
+    text += 'No weeks were completed.';
+    return text;
+  }
+
+  // Build week-by-week breakdown
+  simResults.forEach((r, i) => {
+    text += `── WEEK ${i + 1} ──\n${r.summary}\n\n`;
+  });
+
+  // Final character state
+  const cs = characterSheet;
+  if (cs) {
+    text += `── FINAL CHARACTER STATE ──\n`;
+    text += `HP: ${cs.hp||100}/${cs.maxHp||100} | Force Strain: ${cs.forceStrain||0} | Physical: ${cs.physicalStrain||0} | Mental: ${cs.mentalStrain||0}\n`;
+    text += `Force Stats: Sense ${cs.forceStats?.forceSense||0}, Meditation ${cs.forceStats?.meditation||0}, Knowledge ${cs.forceStats?.forceKnowledge||0}, Control ${cs.forceStats?.forceControl||0}\n`;
+    const abilities = Object.entries(cs.forceAbilities||{}).map(([k,v]) => `${k}: ${typeof v==='object'?(v.level||0):v}`).join(', ');
+    if (abilities) text += `Force Abilities: ${abilities}\n`;
+    const forms = Object.entries(cs.lightsaberForms||{}).map(([k,v]) => `${k}: ${typeof v==='object'?(v.level||0):v}`).join(', ');
+    if (forms) text += `Lightsaber Forms: ${forms}\n`;
+    text += `Stats: STR ${cs.stats?.strength||0}, AGI ${cs.stats?.agility||0}, END ${cs.stats?.endurance||0}, WILL ${cs.stats?.willpower||0}, CHA ${cs.stats?.charisma||0}\n`;
+    text += `Alignment: ${cs.alignment||0}`;
+  }
+
+  text += `\n\nThe simulation has ended. What would you like to do next?`;
+  return text;
+}
+
+function updateSimProgress(pct, statusText) {
+  document.getElementById('sim-progress-fill').style.width = pct + '%';
+  document.getElementById('sim-status-text').textContent = statusText;
+}
+
+function addSimLog(text, label) {
+  const log = document.getElementById('sim-chunk-log');
+  const entry = document.createElement('div');
+  entry.className = 'sim-chunk-entry';
+  const labelEl = document.createElement('div');
+  labelEl.className = 'sim-chunk-label';
+  labelEl.textContent = label || '';
+  const textEl = document.createElement('div');
+  textEl.textContent = text;
+  if (label) entry.appendChild(labelEl);
+  entry.appendChild(textEl);
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
 }
 
 function openSaveLoad(mode) {
