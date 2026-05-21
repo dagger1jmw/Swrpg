@@ -2831,33 +2831,22 @@ PAUSE_FLAG: [reason if pause condition met | NONE]`;
     ...Object.keys(abilityKeyMap), ...Object.keys(formKeyMap)
   ];
 
-  const practicePrompt = `Read this training routine and output the practice intensity for each stat/ability trained.
+  const practicePrompt = `Read this training routine and output the practice intensity for EVERY stat trained.
 
 ROUTINE:
-${simRoutine.slice(0,800)}
+${simRoutine.slice(0,1000)}
 
-Use ONLY these exact key names (copy exactly):
-${allKnownKeys.join(', ')}
+Output one line per stat trained. Use ONLY these exact key names:
+${allKnownKeys.join('\n')}
 
-For each key practiced, output: KEY=INTENSITY (LOW, MEDIUM, or HIGH)
-Include ALL lightsaber forms and force abilities that are trained in the routine.
-Also output: FORCESTRAIN=[0-12] PHYSICALSTRAIN=[0-10] MENTALSTRAIN=[0-10]
+Format: KEY=INTENSITY where INTENSITY is LOW, MEDIUM, or HIGH
+Also include: FORCESTRAIN=[0-12] PHYSICALSTRAIN=[0-10] MENTALSTRAIN=[0-10]
 
-EXAMPLE:
-FORCESENSE=MEDIUM
-FORCECONTROL=HIGH
-STRENGTH=MEDIUM
-SHII_CHO=HIGH
-FORCE_PUSH=HIGH
-FORCESTRAIN=2
-PHYSICALSTRAIN=3
-MENTALSTRAIN=1
+Output ALL stats from the routine — do not skip any. No explanations, just the lines.`;
 
-Output ONLY these lines. No explanations.`;
-
-  const call2 = await simApiCall(simSystemPrompt, practicePrompt, 512);
+  const call2 = await simApiCall(simSystemPrompt, practicePrompt, 1024);
   const raw2 = call2.text || '';
-  addSimLog(`Wk${chunkNum} practice: ${raw2.slice(0,300)}`, 'debug');
+  addSimLog(`Wk${chunkNum} practice(${raw2.split('\n').length} lines): ${raw2.slice(0,200)}`, 'debug');
 
   const XP_PER_DAY = {LOW:1, MEDIUM:1.5, HIGH:2};
   const WEEKLY_XP_CAP = 8;
@@ -2877,6 +2866,14 @@ Output ONLY these lines. No explanations.`;
       changesApplied++;
     }
     mechanicalChangeLines.push(`${statName} XP: +${weekXP.toFixed(1)} (${(xpObj.current||0).toFixed(1)}/${xpObj.required})`);
+  };
+
+  // Snapshot starting values so we can verify nothing decreased
+  const startSnapshot = {
+    forceStats: {...(characterSheet.forceStats||{})},
+    stats: {...(characterSheet.stats||{})},
+    forceAbilities: {...(characterSheet.forceAbilities||{})},
+    lightsaberForms: {...(characterSheet.lightsaberForms||{})}
   };
 
   const fsKeyMap = {FORCESENSE:'forceSense',MEDITATION:'meditation',FORCEKNOWLEDGE:'forceKnowledge',FORCECONTROL:'forceControl'};
@@ -2919,6 +2916,25 @@ Output ONLY these lines. No explanations.`;
     }
   }
 
+  // SAFETY: Ensure no stat decreased — simulation can only increase stats
+  for (const [k,v] of Object.entries(startSnapshot.forceStats)) {
+    if ((characterSheet.forceStats[k]||0) < v) { characterSheet.forceStats[k] = v; }
+  }
+  for (const [k,v] of Object.entries(startSnapshot.stats)) {
+    if ((characterSheet.stats[k]||0) < v) { characterSheet.stats[k] = v; }
+  }
+  for (const [k,v] of Object.entries(startSnapshot.forceAbilities)) {
+    const cur = typeof characterSheet.forceAbilities[k]==='object'?(characterSheet.forceAbilities[k].level||0):(characterSheet.forceAbilities[k]||0);
+    const old = typeof v==='object'?(v.level||0):(v||0);
+    if (cur < old) characterSheet.forceAbilities[k] = old;
+  }
+  for (const [k,v] of Object.entries(startSnapshot.lightsaberForms)) {
+    const cur = typeof characterSheet.lightsaberForms[k]==='object'?(characterSheet.lightsaberForms[k].level||0):(characterSheet.lightsaberForms[k]||0);
+    const old = typeof v==='object'?(v.level||0):(v||0);
+    if (cur < old) characterSheet.lightsaberForms[k] = old;
+  }
+
+  // Apply strain
   const fStrainM = raw2.match(/FORCESTRAIN\s*=\s*(\d+)/i);
   const pStrainM = raw2.match(/PHYSICALSTRAIN\s*=\s*(\d+)/i);
   const mStrainM = raw2.match(/MENTALSTRAIN\s*=\s*(\d+)/i);
@@ -2928,10 +2944,7 @@ Output ONLY these lines. No explanations.`;
 
   const mechanicalChanges = mechanicalChangeLines.join('\n');
   const trackedNames = [...new Set(mechanicalChangeLines.map(l=>l.split(' XP:')[0].split(':')[0].trim()))];
-  addSimLog(`Week ${chunkNum}: ${changesApplied} level-ups | tracking: ${trackedNames.join(', ')}`, 'applied');
-
-
-
+  addSimLog(`Week ${chunkNum}: ${changesApplied} level-ups | tracking: ${trackedNames.join(', ')||'none'}`, 'applied');
 
   // Update world log directly
   if (worldState) {
