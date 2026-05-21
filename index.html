@@ -902,7 +902,7 @@ Every response you generate MUST end with both data blocks below. No exceptions.
 STEP 1: Write your narrative response and choices as normal.
 STEP 2: Immediately after, with no extra text, output the SHEET block:
 <<<SHEET>>>
-{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"hp":100,"maxHp":100,"forceStrain":0,"maxForceStrain":12,"physicalStrain":0,"maxPhysicalStrain":10,"mentalStrain":0,"maxMentalStrain":10,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"strengths":[],"weaknesses":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
+{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":12,"physicalStrain":0,"maxPhysicalStrain":10,"mentalStrain":0,"maxMentalStrain":10,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
 <<<END_SHEET>>>
 STEP 3: Immediately after, output the WORLD block:
 <<<WORLD>>>
@@ -1060,6 +1060,14 @@ Every Padawan+ Force user has a passive Force barrier always active.
 - Barrier does NOT block: lightsaber strikes, blasters, physical impact, Force Lightning
 - Breaking barrier: sustained pressure over rounds, overwhelming output, distraction/exhaustion, coordinated multi-user attacks, strain 9+
 - Barrier strength scales with: Force Control stat, Force Attunement, current strain, emotional state, Force Tier
+
+FORCE BARRIER IN THE SHEET BLOCK:
+- forceBarrier: current integrity (0-100). Set to null if character has not yet learned/developed a Force Barrier.
+- maxForceBarrier: maximum integrity, defaults to 100. Scales up with Force Control as character develops.
+- Once a character begins developing a Force Barrier, set forceBarrier to a value (start around 20-40 for a beginner).
+- In combat, reduce forceBarrier as it takes hits. It regenerates slowly when not under active pressure.
+- At 0: barrier is broken — telekinesis and manipulation now land at full effect until it recovers.
+- Show barrier integrity changes in narration when it takes significant hits.
 
 ## LIGHTSABER FORMS — ROLL MODIFIERS
 Forms level individually through use. Apply these modifiers to opposed roll totals in duels:
@@ -1516,6 +1524,8 @@ FORCE STATS XP: ${JSON.stringify(cs.forceStatsXP||{})}
 FORCE ABILITIES: ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||v.value||0):v}`).join(', ')||'none'}
 FORCE ABILITIES XP: ${JSON.stringify(cs.forceAbilitiesXP||{})}
 STATS: STR=${cs.stats?.strength||0}, AGI=${cs.stats?.agility||0}, END=${cs.stats?.endurance||0}, WILL=${cs.stats?.willpower||0}, CHA=${cs.stats?.charisma||0}
+STATS XP: ${JSON.stringify(cs.statsXP||{})}
+FORCE BARRIER: ${cs.forceBarrier !== null && cs.forceBarrier !== undefined ? `${cs.forceBarrier}/${cs.maxForceBarrier||100}` : 'not yet developed'}
 INVENTORY: ${(cs.inventory||[]).join(', ')||'empty'} | CREDITS: ${cs.credits||0}
 RENOWN: Jedi=${cs.renown?.jediOrder||0}, Sith=${cs.renown?.sith||0}, Republic=${cs.renown?.republic||0}, Underworld=${cs.renown?.underworld||0}
 STRENGTHS: ${(cs.strengths||[]).join(', ')||'none'} | WEAKNESSES: ${(cs.weaknesses||[]).join(', ')||'none'}
@@ -2010,6 +2020,16 @@ function updateCharacterSheet() {
       <div class="bar-label"><span>HP</span><span>${s.hp||100}/${s.maxHp||100}</span></div>
       <div class="bar-track"><div class="bar-fill bar-hp" style="width:${hpPct}%"></div></div>
     </div>
+    ${(s.forceBarrier !== undefined && s.forceBarrier !== null) ? `
+    <div class="bar-wrap">
+      <div class="bar-label">
+        <span style="color:#88aadd">Force Barrier</span>
+        <span style="color:#88aadd">${s.forceBarrier}/${s.maxForceBarrier||100}</span>
+      </div>
+      <div class="bar-track" style="background:#111122">
+        <div style="width:${Math.max(0,Math.min(100,(s.forceBarrier/(s.maxForceBarrier||100))*100))}%;height:100%;border-radius:2px;transition:width 0.4s;background:linear-gradient(90deg,#334488,#6688cc);box-shadow:0 0 4px rgba(100,136,204,0.4)"></div>
+      </div>
+    </div>` : ''}
     <div class="bar-wrap">
       <div class="bar-label"><span>Force Strain</span><span>${fStrain}/${fStrainMax}</span></div>
       <div class="bar-track"><div class="bar-fill bar-force-strain" style="width:${fStrainPct}%"></div></div>
@@ -2084,13 +2104,19 @@ function updateCharacterSheet() {
     html += `</div>`;
   }
 
-  // Core stats
+  // Core stats with XP bars
   const st = s.stats || {};
+  const stXP = s.statsXP || {};
   if (Object.keys(st).length > 0) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Stats</div>`;
     for (const [k, v] of Object.entries(st)) {
       const label = k.charAt(0).toUpperCase() + k.slice(1);
-      html += `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-val">${v}</span></div>`;
+      const xpData = stXP[k] || { current: 0, required: xpRequired(v) };
+      const xpPct = Math.max(0, Math.min(100, (xpData.current / xpData.required) * 100));
+      html += `<div style="margin-bottom:6px">
+        <div class="stat-row"><span class="stat-label">${label}</span><span class="stat-val">${v}</span></div>
+        <div class="ability-xp-track"><div class="ability-xp-fill" style="width:${xpPct}%" title="${xpData.current}/${xpData.required} XP to next level"></div></div>
+      </div>`;
     }
     html += `</div>`;
   }
