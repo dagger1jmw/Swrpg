@@ -706,7 +706,21 @@
   .modal-btn.primary { background: var(--gold); color: var(--bg-deep); border-color: var(--gold); font-weight: 700; }
   .modal-btn.primary:hover { background: var(--gold-bright); }
 
-  /* scrollbar */
+  /* Roll display styling */
+  .gm-text .roll-block {
+    background: rgba(201,168,76,0.06);
+    border-left: 3px solid var(--gold-dim);
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 13px;
+    color: var(--text-dim);
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+  }
+  .gm-text .roll-result {
+    color: var(--gold);
+    font-weight: bold;
+  }
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: var(--bg-deep); }
   ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
@@ -902,12 +916,143 @@ RULES FOR DATA BLOCKS:
 - All fields must be present every response even if unchanged.
 - NEVER print the character sheet as a markdown list (** field:** value). The sidebar ONLY reads the JSON blocks. Markdown sheets in the story feed do nothing and confuse the player.
 
-## COMBAT SYSTEM
-Formula: Final Roll = d20 + Σ(Relevant Stats ÷ 20) + Situational Modifiers
-Roll results: ≤1 = Contested, 2-3 = Solid success, 4-6 = Strong success, 7+ = Overwhelming
-Failure scale: small = pressure/disadvantage, large = injury, extreme = limb loss or death
-Duel phases: Opening → Testing → Pressure → Breakthrough → Decisive Exchange
-Always show the dice roll and calculation explicitly.
+## ROLL SYSTEM — DIFFICULTY-SCALED WITH FULL DISPLAY
+
+### BASE FORMULA
+Final Roll = d20 + Σ(Relevant Stats ÷ 20) + Situational Modifiers
+
+### MANDATORY ROLL DISPLAY FORMAT — EVERY SINGLE ROLL
+Always show this exact format before narrating the result:
+
+Action: [what is being attempted]
+Difficulty: [tier name] | Stat Bonus: +[X] | Situational: +[X] (list each bonus/penalty and why)
+d20=[X], Bonus=+[total], Total=[final] | [Difficulty]: Fail<[N] / Contested [N]-[N] / Solid [N]-[N] / Strong [N]-[N] / Overwhelming [N]+
+Result: [outcome name] — [one line description]
+
+Example:
+Action: Force Push a training dummy
+Difficulty: Easy | Stat Bonus: +1.3 (ForceSense 26) | Situational: +0
+d20=14, Bonus=+1.3, Total=15.3 | Easy: Fail<4 / Contested 4-6 / Solid 7-10 / Strong 11-15 / Overwhelming 16+
+Result: Strong Success — Clean push, dummy slides back several meters
+
+### DIFFICULTY TIERS — ACTION DEFINES DIFFICULTY, LEVEL MODIFIES IT
+The complexity and scale of the action sets the base difficulty. The character's relevant stat level then applies a modifier to that difficulty — higher skill makes the same action easier.
+
+DIFFICULTY TIERS AND THRESHOLD TABLES:
+
+| Tier | Name | Fail | Contested | Solid | Strong | Overwhelming |
+|------|------|------|-----------|-------|--------|--------------|
+| 1 | Trivial | <4 | 4-6 | 7-10 | 11-15 | 16+ |
+| 2 | Easy | <6 | 6-8 | 9-12 | 13-17 | 18+ |
+| 3 | Moderate | <9 | 9-11 | 12-15 | 16-20 | 21+ |
+| 4 | Hard | <13 | 13-15 | 16-19 | 20-24 | 25+ |
+| 5 | Severe | <17 | 17-19 | 20-23 | 24-28 | 29+ |
+| 6 | Extreme | <22 | 22-24 | 25-28 | 29-33 | 34+ |
+| 7 | Legendary | <28 | 28-30 | 31-34 | 35-39 | 40+ |
+
+SKILL LEVEL MODIFIER TO DIFFICULTY (same action, higher skill = easier):
+- Stat 0-19 (Youngling): no modifier — use base difficulty
+- Stat 20-39 (Padawan): -1 difficulty tier for familiar actions
+- Stat 40-59 (Knight-low): -1 difficulty tier
+- Stat 60-79 (Knight-high): -2 difficulty tiers
+- Stat 80+ (Master+): -2 to -3 difficulty tiers depending on stat
+
+EXAMPLES:
+- Padawan (stat 8) Force Push a person: Hard → Hard (no modifier yet)
+- Knight (stat 45) Force Push a person: Hard → Moderate (-1 tier)
+- Master (stat 85) Force Push a person: Hard → Trivial (-3 tiers)
+- Padawan (stat 8) Force Push a boulder: Legendary → Legendary (no modifier)
+- Knight (stat 45) Force Push a boulder: Legendary → Extreme (-1 tier)
+- Master (stat 85) Force Push a boulder: Legendary → Hard (-3 tiers)
+
+TRAINING DRILL DIFFICULTY GUIDE:
+- Basic technique, small object, controlled environment: Easy to Moderate
+- Intermediate technique, medium object or multiple targets: Moderate to Hard
+- Advanced technique, large object, or sustained complex action: Hard to Severe
+- Near the edge of what the character has ever attempted: Extreme
+- Theoretically impossible for current tier: Legendary
+
+### OPPOSED ROLLS — COMBAT AND CONTESTED ACTIONS
+When two characters contest directly (dueling, Force power vs Force resistance, stealth vs detection):
+
+Both roll independently using the same formula.
+Winner = higher total. Margin = difference between totals.
+
+MARGIN RESULT TABLE:
+| Margin | Result |
+|--------|--------|
+| 0 (tie) | Contested — both hold, neither gains advantage |
+| 1-3 | Narrow win — slight advantage, partial position gain |
+| 4-7 | Clear win — meaningful advantage, pressure applied |
+| 8-12 | Dominant win — significant advantage, opponent in trouble |
+| 13+ | Overwhelming win — decisive, opponent at serious risk |
+
+For DUELS, show both rolls:
+Attacker: d20=[X] + [bonus] = [total]
+Defender: d20=[X] + [bonus] = [total]
+Margin: [winner] by [N] → [result]
+
+### STEALTH — ENVIRONMENTAL OPPOSED CHECK
+Stealth is not a single roll but a check against a detection threshold.
+
+YOUR STEALTH ROLL: d20 + (Agility÷20) + (relevant skill÷20) + environmental modifiers
+
+THEIR DETECTION THRESHOLD: Base awareness + modifiers (not a roll — a fixed value)
+- Untrained civilian: threshold 8
+- Trained guard: threshold 12
+- Elite soldier: threshold 16
+- Jedi with active Force Sense: threshold 18-22 depending on tier
+- Sith Lord: threshold 24+
+
+ENVIRONMENTAL MODIFIERS TO YOUR ROLL:
+- Darkness, crowds, loud ambient noise: +2 to +4
+- Open ground, silence, bright light: -3 to -5
+- Enemy actively searching for you specifically: -3
+- Enemy Force user passively sensing: -3
+- Enemy Force user actively scanning: -6
+
+Beat their threshold = undetected. Miss by 1-4 = partial detection (they feel something, not sure what). Miss by 5+ = detected.
+
+### CREATIVITY AND TACTICAL SETUP — EXPLICIT BONUS DISPLAY
+When the player sets up a creative tactical advantage BEFORE a roll, list bonuses explicitly:
+
+Format:
+Tactical Setup Bonuses:
++ [description]: +[N]
++ [description]: +[N]
+Total setup bonus: +[N]
+
+Then proceed with the normal roll display.
+
+CREATIVITY BONUS EXAMPLES (not exhaustive — reward any genuine tactical thinking):
+- Forcing opponent into confined space (counters Ataru): +3 and their Ataru penalty applies
+- Secured high ground: +2
+- Environmental hazard created or triggered: +2 to +4 depending on severity
+- Successful feint or misdirection this round: +2 to next roll
+- Ally coordinating attack: +2 per ally up to +6
+- Using the Force to enhance physical action before it: +1 to +3
+- Exploiting a specific enemy weakness you identified: +2 to +4
+- Unconventional approach that catches enemy off guard: +1 to +3
+
+IMPORTANT: The above is a guide, not a ceiling. Reward genuinely clever thinking that isn't listed. If the player does something creative that should help, give it a bonus, name it, and explain why. Do not cap creativity at these examples.
+
+### DUEL PHASE SYSTEM
+Lightsaber duels progress through structured phases. Enemy duelists adapt tactics based on experience and form mastery.
+Opening → Testing → Pressure → Breakthrough → Decisive Exchange
+
+### FORCE USER POWER TIERS
+Tier 1 — Untrained Sensitive: Instinctive, uncontrolled
+Tier 2 — Apprentice/Padawan: Learning fundamentals
+Tier 3 — Knight/Adept: Competent and reliable
+Tier 4 — Master/Sith Lord: Powerful and experienced
+Tier 5 — Legendary Master: Generational level
+Large tier gaps heavily affect opposed roll totals — a Tier 5 vs Tier 2 averages +15 margin most exchanges.
+
+### FAILURE CONSEQUENCES — SCALE TO MARGIN
+- Miss by 1-3: Minor setback, pressure, position disadvantage
+- Miss by 4-7: Meaningful failure, strain cost, momentum lost
+- Miss by 8-12: Serious failure, injury risk, significant setback
+- Miss by 13+: Catastrophic failure — injury, dangerous position, or worse
 
 ## FORCE BARRIER SYSTEM
 Every Padawan+ Force user has a passive Force barrier always active.
@@ -916,14 +1061,14 @@ Every Padawan+ Force user has a passive Force barrier always active.
 - Breaking barrier: sustained pressure over rounds, overwhelming output, distraction/exhaustion, coordinated multi-user attacks, strain 9+
 - Barrier strength scales with: Force Control stat, Force Attunement, current strain, emotional state, Force Tier
 
-## LIGHTSABER FORMS
-Forms level individually through use. Apply these counter matchups to dice modifiers:
-- Makashi beats Shii-Cho (+2 to rolls vs Shii-Cho)
-- Djem So beats Makashi (+2 to rolls vs Makashi)
-- Soresu outlasts Ataru (Ataru practitioner gains +1 strain per round)
-- Ataru negated in confined spaces (-3 to all rolls)
-- Vaapad gains +3 vs dark side opponents
-- Form VII (Juyo/Vaapad): restricted for Jedi without Council permission
+## LIGHTSABER FORMS — ROLL MODIFIERS
+Forms level individually through use. Apply these modifiers to opposed roll totals in duels:
+- Makashi vs Shii-Cho: Makashi user +2 to their roll
+- Djem So vs Makashi: Djem So user +2 to their roll
+- Soresu vs Ataru: Ataru user gains +1 Physical Strain per round from exertion
+- Ataru in confined spaces: Ataru user -3 to all rolls (counts as major tactical setup bonus for opponent)
+- Vaapad vs dark side opponent: Vaapad user +3 to their roll
+- Form VII (Juyo/Vaapad): restricted for Jedi without explicit Council permission
 
 ## THREE STRAIN BARS — TRACK ALL THREE SEPARATELY
 Every character has three independent strain pools. Track them separately in the SHEET block.
@@ -1408,7 +1553,7 @@ CRITICAL RULES FOR THIS TURN:
   }
 
   // Current message with strict reminder
-  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: After your narrative, output both blocks with ALL fields updated to reflect what happened THIS turn. If strain changed, the new number must be in the SHEET block. forceAbilities = integers only. worldLog must have a new turn ${turnCount + 1} entry.]`;
+  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: After your narrative, output both blocks with ALL fields updated to reflect what happened THIS turn. If strain changed, the new number must be in the SHEET block. forceAbilities = integers only. worldLog must have a new turn ${turnCount + 1} entry. FOR ANY ROLL: use the difficulty-scaled threshold table, show d20=[X], Bonus=+[X], Total=[X] | [Difficulty]: Fail<N / Contested N-N / Solid N-N / Strong N-N / Overwhelming N+. List all situational bonuses explicitly before rolling.]`;
   messages.push({ role: 'user', parts: [{ text: userContent + reminder }] });
 
   return messages;
@@ -1701,41 +1846,63 @@ function renderGMMessage(text) {
   const div = document.createElement('div');
   div.className = 'msg msg-gm';
 
-  // Parse choices A) B) C) etc
   const lines = text.split('\n');
-  let narrative = [];
-  let choices = [];
+  let segments = []; // {type: 'text'|'roll'|'choice', content/lines}
+  let textBuf = [];
+  let rollBuf = [];
+  let inRoll = false;
+
+  const flushText = () => { if (textBuf.length) { segments.push({type:'text', content: textBuf.join('\n')}); textBuf = []; } };
+  const flushRoll = () => { if (rollBuf.length) { segments.push({type:'roll', lines: [...rollBuf]}); rollBuf = []; inRoll = false; } };
 
   for (const line of lines) {
-    const trimmed = line.trim();
-    if (/^[A-E]\)/.test(trimmed) || /^[A-E]\s*[\.\-\)]/.test(trimmed)) {
-      choices.push(trimmed);
+    const t = line.trim();
+    const isChoice = /^[A-E]\)/.test(t) || /^[A-E]\s*[\.\-\)]/.test(t) || /^Custom:/.test(t);
+    const isRollStart = /^(Action:|Difficulty:|Tactical Setup Bonuses:|Attacker:|Defender:)/.test(t);
+    const isRollLine = /^(d20=|Result:|Margin:|\+\s.+:\s*[+-]|\- .+:\s*[+-]|Total setup bonus:)/.test(t);
+
+    if (isChoice) {
+      flushRoll(); flushText();
+      segments.push({type:'choice', content: t});
+    } else if (isRollStart) {
+      flushText(); inRoll = true; rollBuf.push(line);
+    } else if (inRoll || isRollLine) {
+      rollBuf.push(line);
+      if (/^Result:/.test(t)) flushRoll();
     } else {
-      narrative.push(line);
+      if (inRoll && t === '') { flushRoll(); textBuf.push(line); }
+      else textBuf.push(line);
     }
   }
+  flushRoll(); flushText();
 
-  // Render narrative
-  const narDiv = document.createElement('div');
-  narDiv.className = 'gm-text';
-  narDiv.textContent = narrative.join('\n').trim();
-  div.appendChild(narDiv);
-
-  // Render choice buttons
-  if (choices.length > 0) {
-    const choiceWrap = document.createElement('div');
-    choiceWrap.style.marginTop = '12px';
-    for (const choice of choices) {
+  // Render segments
+  for (const seg of segments) {
+    if (seg.type === 'text') {
+      const cleaned = seg.content.trim();
+      if (!cleaned) continue;
+      const p = document.createElement('div');
+      p.className = 'gm-text';
+      p.textContent = cleaned;
+      div.appendChild(p);
+    } else if (seg.type === 'roll') {
+      const rollDiv = document.createElement('div');
+      rollDiv.style.cssText = 'background:rgba(201,168,76,0.06);border-left:3px solid #7a6030;padding:10px 14px;margin:10px 0;font-size:13px;color:#a89070;font-family:"Courier New",monospace;white-space:pre-wrap;line-height:1.7';
+      const content = seg.lines.join('\n').trim();
+      // Highlight Result line in gold
+      const escaped = content
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/(Result:.*)/gm, '<span style="color:#c9a84c;font-weight:bold;font-size:14px">$1</span>')
+        .replace(/(d20=\d+.*Total=[\d.]+)/g, '<span style="color:#e8d5b0">$1</span>');
+      rollDiv.innerHTML = escaped;
+      div.appendChild(rollDiv);
+    } else if (seg.type === 'choice') {
       const btn = document.createElement('button');
       btn.className = 'choice-btn';
-      btn.textContent = choice;
-      btn.onclick = () => {
-        renderPlayerMessage(choice);
-        callGemini(choice);
-      };
-      choiceWrap.appendChild(btn);
+      btn.textContent = seg.content;
+      btn.onclick = () => { renderPlayerMessage(seg.content); callGemini(seg.content); };
+      div.appendChild(btn);
     }
-    div.appendChild(choiceWrap);
   }
 
   feed.appendChild(div);
