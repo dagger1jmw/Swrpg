@@ -2819,13 +2819,20 @@ STAT_CROSSED: [info | NONE]`;
   const call1 = await simApiCall(simSystemPrompt, summaryPrompt, 2048);
   const raw1 = call1.text || '';
 
-  const weekSummary = (raw1.match(/WEEK_SUMMARY:\s*([\s\S]*?)(?=\nMECHANICAL_CHANGES:)/) || [])[1]?.trim() || '';
-  const mechanicalChanges = (raw1.match(/MECHANICAL_CHANGES:\s*([\s\S]*?)(?=\nGALAXY_EVENTS:)/) || [])[1]?.trim() || '';
-  const galaxyEvents = (raw1.match(/GALAXY_EVENTS:\s*([^\n]+)/) || [])[1]?.trim() || '';
-  const notableEvents = (raw1.match(/NOTABLE_EVENTS:\s*([^\n]+)/) || [])[1]?.trim() || '';
+  // Log raw response for debugging
+  addSimLog(`Week ${chunkNum} raw (first 300): ${raw1.slice(0,300)}`, 'debug');
+
+  // Lenient parsing — handle blank lines, different spacing, any order
+  const weekSummary = (raw1.match(/WEEK_SUMMARY:\s*([\s\S]*?)(?=\n\s*MECHANICAL_CHANGES:|$)/) || [])[1]?.trim() || '';
+  const mechanicalChanges = (raw1.match(/MECHANICAL_CHANGES:\s*([\s\S]*?)(?=\n\s*GALAXY_EVENTS:|$)/) || [])[1]?.trim() || '';
+  const galaxyEvents = (raw1.match(/GALAXY_EVENTS:\s*([^\n]+)/) || [])[1]?.trim() || 'NONE';
+  const notableEvents = (raw1.match(/NOTABLE_EVENTS:\s*([^\n]+)/) || [])[1]?.trim() || 'NONE';
   const requiresDecision = (raw1.match(/REQUIRES_DECISION:\s*YES:\s*(.+)/) || [])[1]?.trim() || null;
   const pauseFlag = (raw1.match(/PAUSE_FLAG:\s*(?!NONE)(.+)/) || [])[1]?.trim() || null;
   const statCrossed = (raw1.match(/STAT_CROSSED:\s*(?!NONE)(.+)/) || [])[1]?.trim() || null;
+
+  // Log what was parsed
+  addSimLog(`Week ${chunkNum} mechChanges: "${mechanicalChanges.slice(0,200)}"`, 'debug');
 
   // ── Apply changes directly in JavaScript — no call 2 needed ─────
   // Parse the mechanical changes text and apply each stat update directly
@@ -3088,6 +3095,14 @@ function addSimLog(text, label) {
   const log = document.getElementById('sim-chunk-log');
   const entry = document.createElement('div');
   entry.className = 'sim-chunk-entry';
+  // Style debug entries smaller and dimmer
+  if (label === 'debug') {
+    entry.style.cssText = 'font-size:10px;color:#4a3a28;border-bottom:none;margin-bottom:2px;padding-bottom:2px;word-break:break-all';
+    entry.textContent = text;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+    return;
+  }
   const labelEl = document.createElement('div');
   labelEl.className = 'sim-chunk-label';
   labelEl.textContent = label || '';
