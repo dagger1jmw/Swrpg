@@ -2817,169 +2817,139 @@ PAUSE_FLAG: [reason if pause condition met | NONE]`;
   // Small delay between calls
   await sleep(800);
 
-  // ── CALL 2: Stat values only — explicit numbers, no prose ────────
-  // Ask for FINAL values after this week's training, not changes
-  // Compare to starting values in JS to detect what changed
-  const startingStats = {
-    forceSense: cs.forceStats?.forceSense || 0,
-    meditation: cs.forceStats?.meditation || 0,
-    forceKnowledge: cs.forceStats?.forceKnowledge || 0,
-    forceControl: cs.forceStats?.forceControl || 0,
-    strength: cs.stats?.strength || 0,
-    agility: cs.stats?.agility || 0,
-    endurance: cs.stats?.endurance || 0,
-    willpower: cs.stats?.willpower || 0,
-    charisma: cs.stats?.charisma || 0,
-    forceStrain: cs.forceStrain || 0,
-    physicalStrain: cs.physicalStrain || 0,
-    mentalStrain: cs.mentalStrain || 0
-  };
-  // Add abilities
-  for (const [k, v] of Object.entries(cs.forceAbilities || {})) {
-    startingStats[`ability_${k}`] = typeof v === 'object' ? (v.level || 0) : (v || 0);
-  }
-  for (const [k, v] of Object.entries(cs.lightsaberForms || {})) {
-    startingStats[`form_${k}`] = typeof v === 'object' ? (v.level || 0) : (v || 0);
-  }
+  // ── CALL 2: Ask AI which stats were practiced — JS handles all math ──
+  // The AI has no say in the numbers. It only identifies what was practiced.
+  const practicePrompt = `Given this daily routine for ${chunk.days} days, list ONLY the stats/abilities that were actively practiced. One per line, format: STAT_NAME=intensity where intensity is LOW, MEDIUM, or HIGH.
 
-  const statPrompt = `After ${chunk.days} days of this training routine, what are the final stat values?
+ROUTINE: ${simRoutine.slice(0,500)}
 
-STARTING VALUES:
-ForceSense=${startingStats.forceSense} Meditation=${startingStats.meditation} ForceKnowledge=${startingStats.forceKnowledge} ForceControl=${startingStats.forceControl}
-Strength=${startingStats.strength} Agility=${startingStats.agility} Endurance=${startingStats.endurance} Willpower=${startingStats.willpower} Charisma=${startingStats.charisma}
-${Object.entries(cs.forceAbilities||{}).map(([k,v])=>`${k}=${typeof v==='object'?(v.level||0):v}`).join(' ')}
-${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>`${k}=${typeof v==='object'?(v.level||0):v}`).join(' ')}
+Available stats to list (only include ones actually practiced):
+Force stats: FORCESENSE, MEDITATION, FORCEKNOWLEDGE, FORCECONTROL
+Physical stats: STRENGTH, AGILITY, ENDURANCE, WILLPOWER
+Force abilities: ${Object.keys(cs.forceAbilities||{}).join(', ')||'none'}
+Lightsaber forms: ${Object.keys(cs.lightsaberForms||{}).join(', ')||'none'}
 
-ROUTINE: ${simRoutine.slice(0,400)}
+Also output:
+FORCESTRAIN=[0-12] (end of week force strain)
+PHYSICALSTRAIN=[0-10] (end of week physical strain)  
+MENTALSTRAIN=[0-10] (end of week mental strain)
 
-RULES:
-- Weekly cap: max +${Math.min(15, 10)} per stat
-- Age ${cs.age||8} child — gains are small
-- Only stats actually trained this week can change
-- Alignment ONLY changes from moral choices (not Force use)
+Output ONLY these lines. Nothing else.`;
 
-Output ONLY these lines, no other text:
-FORCESENSE=[number]
-MEDITATION=[number]
-FORCEKNOWLEDGE=[number]
-FORCECONTROL=[number]
-STRENGTH=[number]
-AGILITY=[number]
-ENDURANCE=[number]
-WILLPOWER=[number]
-CHARISMA=[number]
-FORCESTRAIN=[number]
-PHYSICALSTRAIN=[number]
-MENTALSTRAIN=[number]
-ALIGNMENT=[number]
-${Object.keys(cs.forceAbilities||{}).map(k=>`ABILITY_${k.toUpperCase().replace(/\s+/g,'_')}=[number]`).join('\n')}
-${Object.keys(cs.lightsaberForms||{}).map(k=>`FORM_${k.toUpperCase().replace(/\s+/g,'_')}=[number]`).join('\n')}`;
-
-  const call2 = await simApiCall(simSystemPrompt, statPrompt, 1024);
+  const call2 = await simApiCall(simSystemPrompt, practicePrompt, 512);
   const raw2 = call2.text || '';
+  addSimLog(`Wk${chunkNum} practice: ${raw2.slice(0,300)}`, 'debug');
 
-  // Log for debugging
-  addSimLog(`Wk${chunkNum} raw2: ${raw2.slice(0,400)}`, 'debug');
+  // XP rates per day — fixed by code, not AI
+  // LOW = 1 XP/day, MEDIUM = 1.5 XP/day, HIGH = 2 XP/day
+  // 7 days per week, hard cap of 8 XP per stat per week
+  const XP_PER_DAY = {LOW: 1, MEDIUM: 1.5, HIGH: 2};
+  const WEEKLY_XP_CAP = 8; // hard cap — no matter what
 
-  // Parse key=value lines — extremely simple and reliable
   let changesApplied = 0;
   const mechanicalChangeLines = [];
 
-  const parseStatLine = (raw, key) => {
-    const patterns = [
-      new RegExp(`${key}\\s*=\\s*(\\d+(?:\\.\\d+)?)`, 'i'),
-      new RegExp(`${key}:\\s*(\\d+(?:\\.\\d+)?)`, 'i')
-    ];
-    for (const p of patterns) {
-      const m = raw.match(p);
-      if (m) return parseFloat(m[1]);
+  const applyXPToStat = (statName, intensity, getVal, setVal, xpObj) => {
+    const xpPerDay = XP_PER_DAY[intensity] || 1;
+    const weekXP = Math.min(xpPerDay * chunk.days, WEEKLY_XP_CAP);
+    
+    if (!xpObj) return;
+    xpObj.current = (xpObj.current || 0) + weekXP;
+    
+    let leveled = false;
+    while (xpObj.current >= xpObj.required) {
+      const oldVal = getVal();
+      const newVal = oldVal + 1;
+      setVal(newVal);
+      xpObj.current -= xpObj.required;
+      xpObj.required = xpRequired(newVal);
+      mechanicalChangeLines.push(`${statName}: ${oldVal}→${newVal} (+${weekXP.toFixed(1)} XP)`);
+      changesApplied++;
+      leveled = true;
     }
-    return null;
+    if (!leveled) {
+      mechanicalChangeLines.push(`${statName} XP: +${weekXP.toFixed(1)} (${xpObj.current.toFixed(1)}/${xpObj.required})`);
+    }
   };
 
-  // Apply force stats
-  const fsMap = {FORCESENSE:'forceSense',MEDITATION:'meditation',FORCEKNOWLEDGE:'forceKnowledge',FORCECONTROL:'forceControl'};
-  for (const [rawKey, sheetKey] of Object.entries(fsMap)) {
-    const val = parseStatLine(raw2, rawKey);
-    if (val !== null && !isNaN(val)) {
-      const old = startingStats[sheetKey.toLowerCase()] ?? (cs.forceStats?.[sheetKey] || 0);
-      if (val !== old) {
-        if (!characterSheet.forceStats) characterSheet.forceStats = {};
-        characterSheet.forceStats[sheetKey] = val;
-        mechanicalChangeLines.push(`${sheetKey}: ${old}→${val}`);
-        if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
-        characterSheet.forceStatsXP[sheetKey] = { current: 0, required: xpRequired(val) };
-        changesApplied++;
-      }
+  // Parse practice lines from raw2
+  const practiceLines = raw2.split('\n');
+  const fsKeyMap = {FORCESENSE:'forceSense', MEDITATION:'meditation', FORCEKNOWLEDGE:'forceKnowledge', FORCECONTROL:'forceControl'};
+  const stKeyMap = {STRENGTH:'strength', AGILITY:'agility', ENDURANCE:'endurance', WILLPOWER:'willpower', CHARISMA:'charisma'};
+
+  for (const line of practiceLines) {
+    const m = line.trim().match(/^([A-Z_][A-Z\s_]+?)\s*=\s*(LOW|MEDIUM|HIGH|\d+(?:\.\d+)?)/i);
+    if (!m) continue;
+    const key = m[1].trim().toUpperCase().replace(/\s+/g, '_');
+    const intensity = ['LOW','MEDIUM','HIGH'].includes(m[2].toUpperCase()) ? m[2].toUpperCase() : 'MEDIUM';
+
+    // Force stats
+    if (fsKeyMap[key]) {
+      const fk = fsKeyMap[key];
+      if (!characterSheet.forceStats) characterSheet.forceStats = {};
+      if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
+      if (!characterSheet.forceStatsXP[fk]) characterSheet.forceStatsXP[fk] = {current:0, required:xpRequired(characterSheet.forceStats[fk]||0)};
+      applyXPToStat(fk, intensity,
+        () => characterSheet.forceStats[fk] || 0,
+        (v) => { characterSheet.forceStats[fk] = v; },
+        characterSheet.forceStatsXP[fk]);
     }
-  }
-
-  // Apply physical stats
-  const stMap = {STRENGTH:'strength',AGILITY:'agility',ENDURANCE:'endurance',WILLPOWER:'willpower',CHARISMA:'charisma'};
-  for (const [rawKey, sheetKey] of Object.entries(stMap)) {
-    const val = parseStatLine(raw2, rawKey);
-    if (val !== null && !isNaN(val)) {
-      const old = cs.stats?.[sheetKey] || 0;
-      if (val !== old) {
-        if (!characterSheet.stats) characterSheet.stats = {};
-        characterSheet.stats[sheetKey] = val;
-        mechanicalChangeLines.push(`${sheetKey}: ${old}→${val}`);
-        if (!characterSheet.statsXP) characterSheet.statsXP = {};
-        characterSheet.statsXP[sheetKey] = { current: 0, required: xpRequired(val) };
-        changesApplied++;
-      }
+    // Physical stats
+    else if (stKeyMap[key]) {
+      const sk = stKeyMap[key];
+      if (!characterSheet.stats) characterSheet.stats = {};
+      if (!characterSheet.statsXP) characterSheet.statsXP = {};
+      if (!characterSheet.statsXP[sk]) characterSheet.statsXP[sk] = {current:0, required:xpRequired(characterSheet.stats[sk]||0)};
+      applyXPToStat(sk, intensity,
+        () => characterSheet.stats[sk] || 0,
+        (v) => { characterSheet.stats[sk] = v; },
+        characterSheet.statsXP[sk]);
     }
-  }
-
-  // Apply strain
-  const fsVal = parseStatLine(raw2, 'FORCESTRAIN');
-  if (fsVal !== null) { characterSheet.forceStrain = fsVal; }
-  const psVal = parseStatLine(raw2, 'PHYSICALSTRAIN');
-  if (psVal !== null) { characterSheet.physicalStrain = psVal; }
-  const msVal = parseStatLine(raw2, 'MENTALSTRAIN');
-  if (msVal !== null) { characterSheet.mentalStrain = msVal; }
-
-  // Apply alignment
-  const alVal = parseStatLine(raw2, 'ALIGNMENT');
-  if (alVal !== null && !isNaN(alVal) && alVal !== (cs.alignment || 0)) {
-    characterSheet.alignment = alVal;
-    mechanicalChangeLines.push(`alignment: ${cs.alignment||0}→${alVal}`);
-  }
-
-  // Apply force abilities
-  for (const [k, v] of Object.entries(cs.forceAbilities || {})) {
-    const rawKey = `ABILITY_${k.toUpperCase().replace(/\s+/g,'_')}`;
-    const val = parseStatLine(raw2, rawKey);
-    if (val !== null && !isNaN(val)) {
-      const old = typeof v === 'object' ? (v.level || 0) : (v || 0);
-      if (val !== old) {
-        characterSheet.forceAbilities[k] = val;
-        mechanicalChangeLines.push(`${k}: ${old}→${val}`);
+    // Force abilities — match by name
+    else {
+      const abilityName = Object.keys(cs.forceAbilities||{}).find(k => 
+        key === k.toUpperCase().replace(/\s+/g,'_') || key.includes(k.toUpperCase().replace(/\s+/g,'_').slice(0,6)));
+      if (abilityName) {
         if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
-        characterSheet.forceAbilitiesXP[k] = { current: 0, required: xpRequired(val) };
-        changesApplied++;
+        const curVal = typeof characterSheet.forceAbilities[abilityName] === 'object' 
+          ? (characterSheet.forceAbilities[abilityName].level || 0) 
+          : (characterSheet.forceAbilities[abilityName] || 0);
+        if (!characterSheet.forceAbilitiesXP[abilityName]) characterSheet.forceAbilitiesXP[abilityName] = {current:0, required:xpRequired(curVal)};
+        applyXPToStat(abilityName, intensity,
+          () => typeof characterSheet.forceAbilities[abilityName] === 'object' ? (characterSheet.forceAbilities[abilityName].level||0) : (characterSheet.forceAbilities[abilityName]||0),
+          (v) => { characterSheet.forceAbilities[abilityName] = v; },
+          characterSheet.forceAbilitiesXP[abilityName]);
+        continue;
+      }
+      // Lightsaber forms
+      const formName = Object.keys(cs.lightsaberForms||{}).find(k =>
+        key === k.toUpperCase().replace(/\s+/g,'_') || key.includes(k.toUpperCase().replace(/\s+/g,'_').slice(0,4)));
+      if (formName) {
+        if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
+        const curVal = typeof characterSheet.lightsaberForms[formName] === 'object'
+          ? (characterSheet.lightsaberForms[formName].level || 0)
+          : (characterSheet.lightsaberForms[formName] || 0);
+        if (!characterSheet.lightsaberFormsXP[formName]) characterSheet.lightsaberFormsXP[formName] = {current:0, required:xpRequired(curVal)};
+        applyXPToStat(formName, intensity,
+          () => typeof characterSheet.lightsaberForms[formName] === 'object' ? (characterSheet.lightsaberForms[formName].level||0) : (characterSheet.lightsaberForms[formName]||0),
+          (v) => { characterSheet.lightsaberForms[formName] = v; },
+          characterSheet.lightsaberFormsXP[formName]);
       }
     }
   }
 
-  // Apply lightsaber forms
-  for (const [k, v] of Object.entries(cs.lightsaberForms || {})) {
-    const rawKey = `FORM_${k.toUpperCase().replace(/\s+/g,'_')}`;
-    const val = parseStatLine(raw2, rawKey);
-    if (val !== null && !isNaN(val)) {
-      const old = typeof v === 'object' ? (v.level || 0) : (v || 0);
-      if (val !== old) {
-        characterSheet.lightsaberForms[k] = val;
-        mechanicalChangeLines.push(`${k}: ${old}→${val}`);
-        if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
-        characterSheet.lightsaberFormsXP[k] = { current: 0, required: xpRequired(val) };
-        changesApplied++;
-      }
-    }
-  }
+  // Apply strain from AI response
+  const fStrainM = raw2.match(/FORCESTRAIN\s*=\s*(\d+)/i);
+  const pStrainM = raw2.match(/PHYSICALSTRAIN\s*=\s*(\d+)/i);
+  const mStrainM = raw2.match(/MENTALSTRAIN\s*=\s*(\d+)/i);
+  if (fStrainM) characterSheet.forceStrain = Math.min(parseInt(fStrainM[1]), characterSheet.maxForceStrain||12);
+  if (pStrainM) characterSheet.physicalStrain = Math.min(parseInt(pStrainM[1]), characterSheet.maxPhysicalStrain||10);
+  if (mStrainM) characterSheet.mentalStrain = Math.min(parseInt(mStrainM[1]), characterSheet.maxMentalStrain||10);
 
   const mechanicalChanges = mechanicalChangeLines.join('\n');
-  addSimLog(`Week ${chunkNum}: Applied ${changesApplied} changes${changesApplied > 0 ? ' — ' + mechanicalChangeLines.slice(0,3).join(', ') : ''}`, 'applied');
+  addSimLog(`Week ${chunkNum}: ${changesApplied} level-ups | ${mechanicalChangeLines.length} tracked`, 'applied');
+
+
 
   // Update world log directly
   if (worldState) {
