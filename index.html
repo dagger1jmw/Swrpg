@@ -2827,66 +2827,34 @@ STAT_CROSSED: [info | NONE]`;
   const pauseFlag = (raw1.match(/PAUSE_FLAG:\s*(?!NONE)(.+)/) || [])[1]?.trim() || null;
   const statCrossed = (raw1.match(/STAT_CROSSED:\s*(?!NONE)(.+)/) || [])[1]?.trim() || null;
 
-  // ── CALL 2: JSON update only ────────────────────────────────────
-  const safeWS = JSON.stringify({location:ws.location,era:ws.era,inGameDate:ws.inGameDate,legacyChanges:ws.legacyChanges||[],galaxyState:ws.galaxyState||{},worldLog:(ws.worldLog||[]).slice(-5),galaxyEvents:ws.galaxyEvents||[]});
-  const safeCS = JSON.stringify(cs);
-  const safeSummary = (weekSummary||'week complete').slice(0,80).replace(/"/g,'\'');
-  const safeLoc = (ws.location||'').replace(/"/g,'\'');
+  // ── Apply changes directly in JavaScript — no call 2 needed ─────
+  // Parse the mechanical changes text and apply each stat update directly
+  // This is 100% reliable — no truncation possible, no JSON parsing errors
+  const changesApplied = applyMechanicalChangesFromText(mechanicalChanges);
+  addSimLog(`Week ${chunkNum}: Applied ${changesApplied} stat changes`, 'applied');
 
-  const jsonPrompt = `Apply these mechanical changes to the JSON and output updated versions.
-
-CHANGES TO APPLY:
-${mechanicalChanges || 'No stat changes.'}
-
-Also add worldLog entry: {"turn":${turnCount},"event":"${safeSummary}","location":"${safeLoc}"}
-
-CURRENT CHARACTER SHEET:
-${safeCS}
-
-CURRENT WORLD STATE:
-${safeWS}
-
-Output ONLY these two blocks, no other text:
-<<<UPDATED_SHEET>>>
-{updated character sheet json}
-<<<END_UPDATED_SHEET>>>
-<<<UPDATED_WORLD>>>
-{updated world json}
-<<<END_UPDATED_WORLD>>>`;
-
-  const call2 = await simApiCall(simSystemPrompt, jsonPrompt, 4096);
-  const raw2 = call2.text || '';
-
-  if (call2.truncated) {
-    addSimLog(`\u26A0 Week ${chunkNum}: JSON truncated — using fallback`, 'warning');
+  // Update world log directly
+  if (worldState) {
+    if (!worldState.worldLog) worldState.worldLog = [];
+    worldState.worldLog.push({
+      turn: turnCount,
+      event: (weekSummary || 'Week of training completed').slice(0, 120),
+      location: ws.location || ''
+    });
+    if (worldState.worldLog.length > 20) worldState.worldLog = worldState.worldLog.slice(-20);
+    // Also update merged log
+    if (!worldState._mergedLog) worldState._mergedLog = [];
+    worldState._mergedLog.unshift({
+      turn: turnCount,
+      event: (weekSummary || 'Week of training completed').slice(0, 120),
+      location: ws.location || ''
+    });
+    if (worldState._mergedLog.length > 50) worldState._mergedLog = worldState._mergedLog.slice(0, 50);
   }
 
-  const sheetMatch = raw2.match(/<<<UPDATED_SHEET>>>\s*([\s\S]*?)\s*<<<END_UPDATED_SHEET>>>/);
-  const worldMatch = raw2.match(/<<<UPDATED_WORLD>>>\s*([\s\S]*?)\s*<<<END_UPDATED_WORLD>>>/);
-
-  let sheetApplied = false;
-  if (sheetMatch) {
-    try { characterSheet = JSON.parse(sheetMatch[1].trim()); sheetApplied = true; }
-    catch(e) {
-      const j = sheetMatch[1].match(/\{[\s\S]*\}/);
-      if (j) { try { characterSheet = JSON.parse(j[0]); sheetApplied = true; } catch(e2) {} }
-    }
-  }
-
-  if (!sheetApplied) {
-    addSimLog(`\u26A0 Week ${chunkNum}: Applying changes from summary text`, 'warning');
-    applyMechanicalChangesFromText(mechanicalChanges);
-  }
-
-  if (worldMatch) {
-    try {
-      const p = JSON.parse(worldMatch[1].trim());
-      p._mergedLog = worldState?._mergedLog || [];
-      worldState = p;
-    } catch(e) {
-      const j = worldMatch[1].match(/\{[\s\S]*\}/);
-      if (j) { try { const p = JSON.parse(j[0]); p._mergedLog = worldState?._mergedLog||[]; worldState = p; } catch(e2) {} }
-    }
+  // Advance in-game date by 7 days
+  if (worldState?.inGameDate) {
+    worldState.inGameDate = advanceInGameDate(worldState.inGameDate, 7);
   }
 
   if (worldState?.galaxyEvents) {
@@ -2931,21 +2899,112 @@ async function simApiCall(systemPrompt, userPrompt, maxTokens) {
   };
 }
 
-function applyMechanicalChangesFromText(text) {
-  if (!text || !characterSheet) return;
-  const fsMap = {forcesense:'forceSense',meditation:'meditation',forceknowledge:'forceKnowledge',forcecontrol:'forceControl'};
-  const stMap = {strength:'strength',agility:'agility',endurance:'endurance',willpower:'willpower',charisma:'charisma'};
-  for (const line of text.split('\n')) {
-    const m = line.match(/^([\w][\w\s]+):\s*(\d+(?:\.\d+)?)\s*(?:->|→)\s*(\d+(?:\.\d+)?)/);
-    if (!m) continue;
-    const key = m[1].trim().toLowerCase().replace(/\s/g,'');
-    const val = parseFloat(m[3]);
-    if (isNaN(val)) continue;
-    if (fsMap[key] && characterSheet.forceStats) characterSheet.forceStats[fsMap[key]] = val;
-    else if (stMap[key] && characterSheet.stats) characterSheet.stats[stMap[key]] = val;
-    else if (characterSheet.forceAbilities?.[m[1].trim()] !== undefined) characterSheet.forceAbilities[m[1].trim()] = val;
-    else if (characterSheet.lightsaberForms?.[m[1].trim()] !== undefined) characterSheet.lightsaberForms[m[1].trim()] = val;
+function advanceInGameDate(dateStr, days) {
+  const match = dateStr.match(/Day (\d+)/i);
+  if (match) {
+    const newDay = parseInt(match[1]) + days;
+    return dateStr.replace(/Day \d+/i, `Day ${newDay}`);
   }
+  return dateStr;
+}
+
+function applyMechanicalChangesFromText(text) {
+  if (!text || !characterSheet) return 0;
+  let count = 0;
+  const fsMap = {
+    'forcesense': 'forceSense', 'force sense': 'forceSense',
+    'meditation': 'meditation',
+    'forceknowledge': 'forceKnowledge', 'force knowledge': 'forceKnowledge',
+    'forcecontrol': 'forceControl', 'force control': 'forceControl'
+  };
+  const stMap = {
+    'strength': 'strength', 'str': 'strength',
+    'agility': 'agility', 'agi': 'agility',
+    'endurance': 'endurance', 'end': 'endurance',
+    'willpower': 'willpower', 'will': 'willpower',
+    'charisma': 'charisma', 'cha': 'charisma'
+  };
+
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // Match "StatName: old→new" or "StatName: old->new"
+    const arrowMatch = trimmed.match(/^([A-Za-z][\w\s\-]+?):\s*(\d+(?:\.\d+)?)\s*(?:→|->)\s*(\d+(?:\.\d+)?)/);
+    if (arrowMatch) {
+      const rawName = arrowMatch[1].trim();
+      const newVal = parseFloat(arrowMatch[3]);
+      if (isNaN(newVal)) continue;
+      const keyLower = rawName.toLowerCase().replace(/\s+/g, '');
+      const keySpaced = rawName.toLowerCase();
+
+      if (fsMap[keyLower] || fsMap[keySpaced]) {
+        const fk = fsMap[keyLower] || fsMap[keySpaced];
+        if (!characterSheet.forceStats) characterSheet.forceStats = {};
+        characterSheet.forceStats[fk] = newVal;
+        if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
+        if (!characterSheet.forceStatsXP[fk]) characterSheet.forceStatsXP[fk] = {current:0,required:xpRequired(newVal)};
+        characterSheet.forceStatsXP[fk].required = xpRequired(newVal);
+        characterSheet.forceStatsXP[fk].current = 0;
+        count++;
+      } else if (stMap[keyLower] || stMap[keySpaced]) {
+        const sk = stMap[keyLower] || stMap[keySpaced];
+        if (!characterSheet.stats) characterSheet.stats = {};
+        characterSheet.stats[sk] = newVal;
+        if (!characterSheet.statsXP) characterSheet.statsXP = {};
+        if (!characterSheet.statsXP[sk]) characterSheet.statsXP[sk] = {current:0,required:xpRequired(newVal)};
+        characterSheet.statsXP[sk].required = xpRequired(newVal);
+        characterSheet.statsXP[sk].current = 0;
+        count++;
+      } else if (characterSheet.forceAbilities && rawName in characterSheet.forceAbilities) {
+        characterSheet.forceAbilities[rawName] = newVal;
+        if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
+        if (!characterSheet.forceAbilitiesXP[rawName]) characterSheet.forceAbilitiesXP[rawName] = {current:0,required:xpRequired(newVal)};
+        characterSheet.forceAbilitiesXP[rawName].required = xpRequired(newVal);
+        characterSheet.forceAbilitiesXP[rawName].current = 0;
+        count++;
+      } else if (characterSheet.lightsaberForms && rawName in characterSheet.lightsaberForms) {
+        characterSheet.lightsaberForms[rawName] = newVal;
+        if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
+        if (!characterSheet.lightsaberFormsXP[rawName]) characterSheet.lightsaberFormsXP[rawName] = {current:0,required:xpRequired(newVal)};
+        characterSheet.lightsaberFormsXP[rawName].required = xpRequired(newVal);
+        characterSheet.lightsaberFormsXP[rawName].current = 0;
+        count++;
+      }
+      continue;
+    }
+
+    // Match strain line: Force=X/12 Phys=X/10 Mental=X/10
+    if (/strain/i.test(trimmed)) {
+      const fv = trimmed.match(/force\s*=\s*(\d+)/i);
+      const pv = trimmed.match(/phys(?:ical)?\s*=\s*(\d+)/i);
+      const mv = trimmed.match(/mental\s*=\s*(\d+)/i);
+      if (fv) { characterSheet.forceStrain = parseInt(fv[1]); count++; }
+      if (pv) { characterSheet.physicalStrain = parseInt(pv[1]); count++; }
+      if (mv) { characterSheet.mentalStrain = parseInt(mv[1]); count++; }
+    }
+
+    // Match XP accumulation: "ForceSense XP: +8"
+    const xpMatch = trimmed.match(/^([A-Za-z][\w\s]+?)\s+XP:\s*\+(\d+(?:\.\d+)?)/i);
+    if (xpMatch) {
+      const rawName = xpMatch[1].trim();
+      const xpGain = parseFloat(xpMatch[2]);
+      const keyLower = rawName.toLowerCase().replace(/\s+/g,'');
+      const keySpaced = rawName.toLowerCase();
+      let fk = fsMap[keyLower] || fsMap[keySpaced];
+      if (fk) {
+        if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
+        const curVal = characterSheet.forceStats?.[fk] || 0;
+        if (!characterSheet.forceStatsXP[fk]) characterSheet.forceStatsXP[fk] = {current:0,required:xpRequired(curVal)};
+        characterSheet.forceStatsXP[fk].current = Math.min(
+          (characterSheet.forceStatsXP[fk].current||0) + xpGain,
+          characterSheet.forceStatsXP[fk].required - 0.01
+        );
+        count++;
+      }
+    }
+  }
+  return count;
 }
 
 
