@@ -890,9 +890,18 @@
 
     <!-- CENTER: Story -->
     <div id="story-area">
-      <div id="location-bar">
-        <div id="loc-text">Location: <span id="loc-val">—</span></div>
-        <div id="date-text" id="date-val">—</div>
+      <div id="location-bar" style="position:relative">
+        <div id="loc-text">📍 <span id="loc-val">—</span></div>
+        <div id="date-text" style="cursor:pointer" onclick="toggleCalendar()" title="Click to view calendar">📅 <span id="date-display">—</span></div>
+      </div>
+
+      <!-- Calendar popup -->
+      <div id="calendar-popup" style="display:none;position:absolute;top:0;right:0;z-index:150;background:var(--bg-panel);border:1px solid var(--border-bright);padding:16px;width:290px;box-shadow:0 4px 20px rgba(0,0,0,0.7)">
+        <div style="font-family:Cinzel,serif;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:10px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center">
+          <span>◈ Galactic Calendar</span>
+          <span onclick="toggleCalendar()" style="cursor:pointer;color:var(--text-dim);font-size:14px">✕</span>
+        </div>
+        <div id="calendar-content" style="font-size:13px;line-height:1.9;color:var(--text-main)"></div>
       </div>
 
       <div id="story-feed">
@@ -1027,6 +1036,7 @@ RULES FOR DATA BLOCKS:
 - worldLog: array of objects ONLY. Format: [{"turn":1,"event":"description","location":"place"}]. Keep last 20. Add a new entry every single turn.
 - galaxyEvents: array of objects tracking background galaxy simulation. Format: [{"turn":1,"faction":"Jedi Order","event":"description"}]. Keep last 10. Add entries when something notable happens in the wider galaxy even if the player is not involved.
 - forceAbilities: values must be plain numbers only. Example: {"Force Push": 15, "Force Sense": 60}. Never use nested objects.
+- inGameDate: use Galactic Standard Calendar format: "Day X, MonthName — YYYY BBY" e.g. "Day 14, Relona — 3661 BBY". Months in order: Elona, Kelona, Selona, Telona, Nelona, Relona, Welona, Helona, Melona, Nelona-II. Each month has 35 days. Year is 368 days total.
 - All fields must be present every response even if unchanged.
 - NEVER print the character sheet as a markdown list (** field:** value). The sidebar ONLY reads the JSON blocks. Markdown sheets in the story feed do nothing and confuse the player.
 
@@ -1592,7 +1602,7 @@ function startNewGame() {
   document.getElementById('legacy-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">None established.</div>';
   document.getElementById('lineage-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No ancestors yet.</div>';
   document.getElementById('loc-val').textContent = '—';
-  document.getElementById('date-text').textContent = '—';
+  document.getElementById('date-display').textContent = '—';
   document.getElementById('save-indicator').textContent = '—';
   gameActive = true;
   isThinking = false;
@@ -2339,7 +2349,25 @@ function updateWorldState() {
 
   // Location bar
   if (w.location) document.getElementById('loc-val').textContent = w.location;
-  if (w.inGameDate) document.getElementById('date-text').textContent = w.inGameDate;
+
+  // Date — parse and display using proper calendar
+  if (w.inGameDate) {
+    // Migrate old "Day 229" format to proper calendar format on first update
+    const raw = w.inGameDate;
+    const hasPropFormat = GSC_MONTHS.some(m => raw.includes(m));
+    if (!hasPropFormat) {
+      // Convert old format to new
+      const yearMatch = raw.match(/(\d{3,4})\s*(BBY|ABY)/i);
+      const dayMatch = raw.match(/Day\s*(\d+)/i);
+      if (yearMatch && dayMatch) {
+        const newDate = dateToString(parseInt(yearMatch[1]), yearMatch[2].toUpperCase(), parseInt(dayMatch[1]));
+        worldState.inGameDate = newDate;
+        w.inGameDate = newDate;
+      }
+    }
+    document.getElementById('date-display').textContent = w.inGameDate;
+    updateCalendarContent(w.inGameDate);
+  }
 
   // World log — merge new entries with existing, use real turnCount for latest entry
   const incomingLog = w.worldLog || [];
@@ -3039,13 +3067,151 @@ async function simApiCall(systemPrompt, userPrompt, maxTokens) {
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  STAR WARS GALACTIC STANDARD CALENDAR
+//  368 days per year, 10 months of 35 days + 3 festival weeks of 7 days
+//  Months: Elona, Kelona, Selona, Telona, Nelona, Relona, Welona, Helona, Melona, Nelona-II
+//  Standard format: Day X, Month Name, YYYY BBY/ABY
+// ═══════════════════════════════════════════════════════════════════
+const GSC_MONTHS = [
+  'Elona','Kelona','Selona','Telona','Nelona',
+  'Relona','Welona','Helona','Melona','Nelona-II'
+];
+const GSC_DAYS_PER_MONTH = 35;
+const GSC_MONTHS_PER_YEAR = 10;
+const GSC_DAYS_PER_YEAR = 368; // 10×35 + 3×6 festival days (simplified to 368)
+
+function parseDateString(dateStr) {
+  // Try to parse various formats the AI might use
+  // "3661 BBY (Day 229)" or "Day 229, 3661 BBY" or "Month X, Day Y, 3661 BBY"
+  if (!dateStr) return null;
+
+  // Extract year and era
+  const yearMatch = dateStr.match(/(\d{3,4})\s*(BBY|ABY)/i);
+  if (!yearMatch) return null;
+  const year = parseInt(yearMatch[1]);
+  const era = yearMatch[2].toUpperCase();
+
+  // Try to extract day of year
+  const dayMatch = dateStr.match(/Day\s*(\d+)/i);
+  const dayOfYear = dayMatch ? parseInt(dayMatch[1]) : 1;
+
+  return { year, era, dayOfYear: Math.max(1, dayOfYear) };
+}
+
+function dateToString(year, era, dayOfYear) {
+  // Convert day of year to month + day
+  const clampedDay = ((dayOfYear - 1) % GSC_DAYS_PER_YEAR) + 1;
+  const monthIndex = Math.min(Math.floor((clampedDay - 1) / GSC_DAYS_PER_MONTH), GSC_MONTHS_PER_YEAR - 1);
+  const dayOfMonth = ((clampedDay - 1) % GSC_DAYS_PER_MONTH) + 1;
+  const monthName = GSC_MONTHS[monthIndex];
+  return `Day ${dayOfMonth}, ${monthName} — ${year} ${era}`;
+}
+
 function advanceInGameDate(dateStr, days) {
-  const match = dateStr.match(/Day (\d+)/i);
-  if (match) {
-    const newDay = parseInt(match[1]) + days;
-    return dateStr.replace(/Day \d+/i, `Day ${newDay}`);
+  const parsed = parseDateString(dateStr);
+  if (!parsed) {
+    // Fallback: try to increment raw day number
+    const match = dateStr.match(/Day (\d+)/i);
+    if (match) {
+      const newDay = parseInt(match[1]) + days;
+      const yearMatch = dateStr.match(/(\d{3,4})\s*(BBY|ABY)/i);
+      if (yearMatch) {
+        const year = parseInt(yearMatch[1]);
+        const era = yearMatch[2].toUpperCase();
+        // Convert to proper format
+        return dateToString(year, era, newDay);
+      }
+      return dateStr.replace(/Day \d+/i, `Day ${newDay}`);
+    }
+    return dateStr;
   }
-  return dateStr;
+
+  let { year, era, dayOfYear } = parsed;
+  dayOfYear += days;
+
+  // Roll over years
+  while (dayOfYear > GSC_DAYS_PER_YEAR) {
+    dayOfYear -= GSC_DAYS_PER_YEAR;
+    // BBY counts down, ABY counts up
+    if (era === 'BBY') year -= 1;
+    else year += 1;
+    // Handle BBY→ABY transition
+    if (year === 0 && era === 'BBY') { year = 1; era = 'ABY'; }
+  }
+
+  return dateToString(year, era, dayOfYear);
+}
+
+// Parse a date string into total days elapsed from year 0 (for comparison/difference)
+function dateToAbsoluteDays(dateStr) {
+  const parsed = parseDateString(dateStr);
+  if (!parsed) return 0;
+  const { year, era, dayOfYear } = parsed;
+  const absYear = era === 'BBY' ? -year : year;
+  return absYear * GSC_DAYS_PER_YEAR + dayOfYear;
+}
+
+function daysBetweenDates(dateStr1, dateStr2) {
+  return Math.abs(dateToAbsoluteDays(dateStr2) - dateToAbsoluteDays(dateStr1));
+}
+
+let calendarOpen = false;
+function toggleCalendar() {
+  const popup = document.getElementById('calendar-popup');
+  calendarOpen = !calendarOpen;
+  popup.style.display = calendarOpen ? 'block' : 'none';
+  if (calendarOpen && worldState?.inGameDate) {
+    updateCalendarContent(worldState.inGameDate);
+  }
+}
+
+// Close calendar when clicking outside
+document.addEventListener('click', function(e) {
+  if (calendarOpen && !e.target.closest('#calendar-popup') && !e.target.closest('#date-text')) {
+    calendarOpen = false;
+    document.getElementById('calendar-popup').style.display = 'none';
+  }
+});
+
+function updateCalendarContent(dateStr) {
+  const el = document.getElementById('calendar-content');
+  if (!el || !dateStr) return;
+
+  const parsed = parseDateString(dateStr);
+  if (!parsed) { el.textContent = dateStr; return; }
+
+  const { year, era, dayOfYear } = parsed;
+  const clampedDay = ((dayOfYear - 1) % GSC_DAYS_PER_YEAR) + 1;
+  const monthIndex = Math.min(Math.floor((clampedDay - 1) / GSC_DAYS_PER_MONTH), GSC_MONTHS_PER_YEAR - 1);
+  const dayOfMonth = ((clampedDay - 1) % GSC_DAYS_PER_MONTH) + 1;
+  const monthName = GSC_MONTHS[monthIndex];
+  const daysIntoYear = clampedDay;
+  const daysRemaining = GSC_DAYS_PER_YEAR - daysIntoYear;
+
+  // Build month grid
+  let monthGrid = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin:8px 0;font-size:11px;text-align:center">';
+  // Day headers
+  ['M','T','W','T','F','S','S'].forEach(d => {
+    monthGrid += `<div style="color:var(--text-dim)">${d}</div>`;
+  });
+  // Days in month
+  for (let d = 1; d <= GSC_DAYS_PER_MONTH; d++) {
+    const isToday = d === dayOfMonth;
+    monthGrid += `<div style="padding:2px;${isToday ? 'background:var(--gold);color:#000;border-radius:2px;font-weight:bold' : 'color:var(--text-dim)'}">${d}</div>`;
+  }
+  monthGrid += '</div>';
+
+  el.innerHTML = `
+    <div style="color:var(--gold);font-family:Cinzel,serif;font-size:13px;margin-bottom:6px">${monthName}, ${year} ${era}</div>
+    <div style="color:var(--text-dim);font-size:11px;margin-bottom:8px">Day ${dayOfMonth} of ${monthName} · Day ${daysIntoYear} of year</div>
+    ${monthGrid}
+    <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:11px;color:var(--text-dim)">
+      <div>Month: <span style="color:var(--text-main)">${monthIndex + 1} / ${GSC_MONTHS_PER_YEAR}</span></div>
+      <div>Days remaining: <span style="color:var(--text-main)">${daysRemaining}</span></div>
+      <div>Era: <span style="color:var(--gold)">${era === 'BBY' ? 'Before the Battle of Yavin' : 'After the Battle of Yavin'}</span></div>
+    </div>
+  `;
 }
 
 function applyMechanicalChangesFromText(text) {
