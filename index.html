@@ -1163,8 +1163,25 @@ Flow State: d20 minimum=10, +2 precision, -1 Force Strain, near-failures become 
 
 LEGENDARY POTENTIAL IS A CEILING, NOT A BOOST. It means the character CAN eventually reach 100+ with years of training. It has zero effect on XP gain rates below stat 40.
 
-## TRAINING & DOWNTIME
-During downtime offer two training choices from: Lightsaber Training, Force Meditation, Ability Practice, Physical Conditioning, Artifact Study, Strategic Study.
+## TIME SKIP SUMMARIES — STRUCTURED FORMAT
+When the player requests a multi-day or multi-week summary, use this compact structure to fit everything in efficiently:
+
+OVERVIEW: [2-3 sentences on the overall arc of the period]
+
+DAY-BY-DAY or PERIOD HIGHLIGHTS:
+[Day/Period]: [Key events and outcomes — 2-4 sentences max per day]
+
+MECHANICAL UPDATES:
+- Stats changed: [list each with old→new value and reason]
+- XP gained: [list each ability and XP added]
+- New abilities or breakthroughs: [if any]
+- Strain at end of period: [Force/Physical/Mental]
+
+KEY INSIGHTS GAINED: [bullet list of major things learned — Force techniques, tactical lessons, wisdom from masters]
+
+NOTABLE EVENTS: [anything that happened outside training — NPC interactions, galaxy events, unexpected developments]
+
+Use this structure for any request covering more than 2 days. It keeps the response complete without unnecessary repetition. Still output both <<<SHEET>>> and <<<WORLD>>> blocks at the end.
 
 ## GALAXY SIMULATION — TIME-GATED, NOT TURN-GATED
 The galaxy runs on IN-GAME TIME, not turn count. A turn can represent minutes, hours, or months depending on what the player is doing.
@@ -1472,7 +1489,7 @@ Write the summary in third person. Be specific about names, places, dates, and m
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: summaryPrompt }] }],
-          generationConfig: { temperature: 0.3, maxOutputTokens: 1200 }
+          generationConfig: { temperature: 0.3, maxOutputTokens: 2048 }
         })
       }
     );
@@ -1599,7 +1616,7 @@ async function callGemini(playerMessage, retryCount = 0) {
     contents: messages,
     generationConfig: {
       temperature: 0.85,
-      maxOutputTokens: 4096,
+      maxOutputTokens: 8192,
       topP: 0.95
     }
   };
