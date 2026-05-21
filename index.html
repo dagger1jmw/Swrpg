@@ -873,7 +873,7 @@
         <div class="api-note">Free tier: 15 requests/min, 1 million tokens/day. Uses Gemini 2.0 Flash — completely free, no credit card needed.</div>
       </div>
 
-      <button class="btn-primary" onclick="startWithKey()">Enter the Galaxy</button>
+      <button class="btn-primary" id="enter-galaxy-btn">Enter the Galaxy</button>
     </div>
   </div>
 
@@ -1415,28 +1415,40 @@ window.addEventListener('load', () => {
   apiKey = (localStorage.getItem('sw_rpg_gemini_key') || '').trim();
   isThinking = false;
 
+  // Attach button listeners safely — avoids iPad Safari inline onclick issues
+  const enterBtn = document.getElementById('enter-galaxy-btn');
+  if (enterBtn) {
+    enterBtn.addEventListener('click', startWithKey);
+    enterBtn.addEventListener('touchend', function(e) { e.preventDefault(); startWithKey(); });
+  }
+
+  // Also attach api-key-input enter key
+  const keyInput = document.getElementById('api-key-input');
+  if (keyInput) {
+    keyInput.addEventListener('keydown', e => { if (e.key === 'Enter') startWithKey(); });
+  }
+
   if (apiKey && apiKey.length > 20) {
-    // Valid key exists — go straight to game
     showGame();
     tryAutoLoad();
   } else {
-    // No key — show setup screen
-    // Pre-fill if there's something partial saved
     const saved = localStorage.getItem('sw_rpg_gemini_key') || '';
-    if (saved) document.getElementById('api-key-input').value = saved;
+    if (saved && keyInput) keyInput.value = saved;
   }
 
   const input = document.getElementById('player-input');
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
-  input.addEventListener('input', () => {
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 160) + 'px';
-  });
+  if (input) {
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+    });
+  }
 });
 
 function tryAutoLoad() {
@@ -1457,17 +1469,25 @@ function showWelcomePrompt() {
   feed.innerHTML = '';
   const div = document.createElement('div');
   div.className = 'msg msg-gm';
-  div.innerHTML = `
-    <div class="gm-text" style="text-align:center;padding:40px 20px">
-      <div style="font-family:Cinzel,serif;font-size:22px;color:var(--gold);letter-spacing:3px;margin-bottom:16px">A LONG TIME AGO</div>
-      <div style="font-family:Cinzel,serif;font-size:13px;color:var(--text-dim);letter-spacing:2px;margin-bottom:32px">IN A GALAXY FAR, FAR AWAY...</div>
-      <div style="max-width:480px;margin:0 auto;color:var(--text-dim);font-size:15px;line-height:1.8;margin-bottom:32px">
-        The galaxy awaits. Your lineage has yet to begin.<br>When you are ready, begin your journey.
-      </div>
-      <button onclick="beginCampaign()" style="background:var(--gold);border:none;color:var(--bg-deep);padding:14px 40px;font-family:Cinzel,serif;font-size:14px;letter-spacing:3px;font-weight:700;cursor:pointer;text-transform:uppercase">
-        BEGIN CAMPAIGN
-      </button>
+
+  const inner = document.createElement('div');
+  inner.className = 'gm-text';
+  inner.style.cssText = 'text-align:center;padding:40px 20px';
+  inner.innerHTML = `
+    <div style="font-family:Cinzel,serif;font-size:22px;color:var(--gold);letter-spacing:3px;margin-bottom:16px">A LONG TIME AGO</div>
+    <div style="font-family:Cinzel,serif;font-size:13px;color:var(--text-dim);letter-spacing:2px;margin-bottom:32px">IN A GALAXY FAR, FAR AWAY...</div>
+    <div style="max-width:480px;margin:0 auto;color:var(--text-dim);font-size:15px;line-height:1.8;margin-bottom:32px">
+      The galaxy awaits. Your lineage has yet to begin.<br>When you are ready, begin your journey.
     </div>`;
+
+  const btn = document.createElement('button');
+  btn.textContent = 'BEGIN CAMPAIGN';
+  btn.style.cssText = 'background:var(--gold);border:none;color:#080604;padding:14px 40px;font-family:Cinzel,serif;font-size:14px;letter-spacing:3px;font-weight:700;cursor:pointer;text-transform:uppercase;-webkit-tap-highlight-color:transparent';
+  btn.addEventListener('click', beginCampaign);
+  btn.addEventListener('touchend', function(e) { e.preventDefault(); beginCampaign(); });
+
+  inner.appendChild(btn);
+  div.appendChild(inner);
   feed.appendChild(div);
   gameActive = true;
 }
