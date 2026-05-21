@@ -2819,22 +2819,27 @@ PAUSE_FLAG: [reason if pause condition met | NONE]`;
 
   // ── CALL 2: Ask AI which stats were practiced — JS handles all math ──
   // The AI has no say in the numbers. It only identifies what was practiced.
-  const practicePrompt = `Given this daily routine for ${chunk.days} days, list ONLY the stats/abilities that were actively practiced. One per line, format: STAT_NAME=intensity where intensity is LOW, MEDIUM, or HIGH.
+  // ── CALL 2: Ask AI which stats were practiced — JS handles all math ──
+  const practicePrompt = `Read this training routine and output a practice intensity for EVERY stat mentioned.
 
-ROUTINE: ${simRoutine.slice(0,500)}
+ROUTINE:
+${simRoutine.slice(0, 800)}
 
-Available stats to list (only include ones actually practiced):
+For each stat/ability mentioned in the routine, output one line: STAT_NAME=INTENSITY
+Intensity must be exactly: LOW, MEDIUM, or HIGH (copy from routine if specified, otherwise judge by time spent)
+
+Known stats to check (output ALL that appear in the routine):
 Force stats: FORCESENSE, MEDITATION, FORCEKNOWLEDGE, FORCECONTROL
 Physical stats: STRENGTH, AGILITY, ENDURANCE, WILLPOWER
-Force abilities: ${Object.keys(cs.forceAbilities||{}).join(', ')||'none'}
-Lightsaber forms: ${Object.keys(cs.lightsaberForms||{}).join(', ')||'none'}
+Force abilities: ${Object.keys(cs.forceAbilities||{}).map(k=>k.toUpperCase().replace(/\s+/g,'_')).join(', ')||'NONE'}
+Lightsaber forms: ${Object.keys(cs.lightsaberForms||{}).map(k=>k.toUpperCase().replace(/\s+/g,'_')).join(', ')||'NONE'}
 
-Also output:
-FORCESTRAIN=[0-12] (end of week force strain)
-PHYSICALSTRAIN=[0-10] (end of week physical strain)  
-MENTALSTRAIN=[0-10] (end of week mental strain)
+Also output strain at end of week:
+FORCESTRAIN=[0-12]
+PHYSICALSTRAIN=[0-10]
+MENTALSTRAIN=[0-10]
 
-Output ONLY these lines. Nothing else.`;
+Output ONLY these lines. One stat per line. No explanations.`;
 
   const call2 = await simApiCall(simSystemPrompt, practicePrompt, 512);
   const raw2 = call2.text || '';
@@ -2905,14 +2910,20 @@ Output ONLY these lines. Nothing else.`;
         (v) => { characterSheet.stats[sk] = v; },
         characterSheet.statsXP[sk]);
     }
-    // Force abilities — match by name
+    // Force abilities — exact match first, then partial
     else {
-      const abilityName = Object.keys(cs.forceAbilities||{}).find(k => 
-        key === k.toUpperCase().replace(/\s+/g,'_') || key.includes(k.toUpperCase().replace(/\s+/g,'_').slice(0,6)));
+      const normalizedKey = key.replace(/_/g,' ').toLowerCase();
+      const abilityName = Object.keys(cs.forceAbilities||{}).find(k => {
+        const kn = k.toLowerCase().replace(/[_\s]+/g,'_');
+        const kk = k.toLowerCase();
+        return key === k.toUpperCase().replace(/\s+/g,'_') ||
+               normalizedKey === kk ||
+               kn === key.toLowerCase();
+      });
       if (abilityName) {
         if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
-        const curVal = typeof characterSheet.forceAbilities[abilityName] === 'object' 
-          ? (characterSheet.forceAbilities[abilityName].level || 0) 
+        const curVal = typeof characterSheet.forceAbilities[abilityName] === 'object'
+          ? (characterSheet.forceAbilities[abilityName].level || 0)
           : (characterSheet.forceAbilities[abilityName] || 0);
         if (!characterSheet.forceAbilitiesXP[abilityName]) characterSheet.forceAbilitiesXP[abilityName] = {current:0, required:xpRequired(curVal)};
         applyXPToStat(abilityName, intensity,
@@ -2921,9 +2932,15 @@ Output ONLY these lines. Nothing else.`;
           characterSheet.forceAbilitiesXP[abilityName]);
         continue;
       }
-      // Lightsaber forms
-      const formName = Object.keys(cs.lightsaberForms||{}).find(k =>
-        key === k.toUpperCase().replace(/\s+/g,'_') || key.includes(k.toUpperCase().replace(/\s+/g,'_').slice(0,4)));
+      // Lightsaber forms — exact match first, then partial
+      const formName = Object.keys(cs.lightsaberForms||{}).find(k => {
+        const kn = k.toLowerCase().replace(/[_\s]+/g,'_');
+        const kk = k.toLowerCase();
+        return key === k.toUpperCase().replace(/\s+/g,'_') ||
+               normalizedKey === kk ||
+               kn === key.toLowerCase() ||
+               key.includes(k.toUpperCase().replace(/\s+/g,'_').slice(0,4));
+      });
       if (formName) {
         if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
         const curVal = typeof characterSheet.lightsaberForms[formName] === 'object'
