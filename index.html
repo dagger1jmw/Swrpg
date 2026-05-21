@@ -996,6 +996,8 @@
   </div>
 
 </div>
+
+<script>
 // ═══════════════════════════════════════════════════════════════════
 //  MASTER GM SYSTEM PROMPT — full rules from the document
 // ═══════════════════════════════════════════════════════════════════
@@ -1505,12 +1507,12 @@ function beginCampaign() {
 // ═══════════════════════════════════════════════════════════════════
 async function startWithKey() {
   const key = document.getElementById('api-key-input').value.trim();
-  if (!key || key.length < 20 || !key.startsWith('AIza')) {
-    showApiError('Please enter a valid Gemini API key — it should start with AIza...');
+  if (!key || key.length < 20) {
+    showApiError('Please enter your Gemini API key (at least 20 characters).');
     return;
   }
-  apiKey = key.trim();
-  localStorage.setItem('sw_rpg_gemini_key', key.trim());
+  apiKey = key;
+  localStorage.setItem('sw_rpg_gemini_key', key);
   showGame();
   tryAutoLoad();
 }
@@ -1520,8 +1522,10 @@ function showApiError(msg) {
   if (!el) {
     el = document.createElement('div');
     el.id = 'api-error';
-    el.style.cssText = 'margin-top:14px;padding:12px;background:rgba(180,40,40,0.12);border:1px solid #661111;color:#cc8888;font-size:13px;white-space:pre-wrap;line-height:1.6';
-    document.querySelector('.api-input-row').after(el);
+    el.style.cssText = 'margin-top:14px;padding:12px;background:rgba(180,40,40,0.15);border:1px solid #cc4444;color:#cc8888;font-size:13px;line-height:1.6';
+    // Append inside the api-box instead of using .after() which can fail
+    const box = document.querySelector('.api-box');
+    if (box) box.appendChild(el);
   }
   el.textContent = msg;
   el.style.display = msg ? 'block' : 'none';
