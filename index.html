@@ -2787,168 +2787,167 @@ async function simChunk(chunk, chunkNum, totalChunks) {
   const cs = characterSheet || {};
   const ws = worldState || {};
 
-  // Lean system prompt — only what simulation needs, not the full game rules
-  const simSystemPrompt = `You are a Star Wars Legends RPG simulation engine. Your only job is to simulate ${chunk.days} days of training and activity for a character, update their stats using the XP system, and output structured results.
+  const simSystemPrompt = `You are a Star Wars Legends RPG simulation engine processing ${chunk.days} days of training.
 
-XP THRESHOLD TABLE (required XP to gain +1 to a stat):
-stat 0-19: 10 XP | stat 20-39: 25 XP | stat 40-59: 50 XP | stat 60-79: 100 XP | stat 80-84: 200 XP | stat 85-94: 500 XP | stat 95-99: 1000 XP | stat 100+: 5000 XP
+XP THRESHOLDS: stat 0-19:10XP | 20-39:25XP | 40-59:50XP | 60-79:100XP | 80-84:200XP | 85-94:500XP | 95-99:1000XP | 100+:5000XP
+XP PER DAY: lightsaber practice:1.5 | sparring:2 | force practice:1.5 | force under pressure:2 | morning meditation:1(ForceSense only) | physical training:1.5 | studying:0.5(ForceKnowledge only)
+WEEKLY CAP: max 15 XP per stat per week. Character age ${cs.age||8} — child prodigy but still a child.
+ALIGNMENT: only moves from conscious moral choices. Force use and meditation alone = no change.`;
 
-XP GAIN PER DAY OF DELIBERATE PRACTICE (7 days per chunk):
-- Lightsaber form (slow deliberate solo practice): +1.5 XP/day to that form
-- Lightsaber form (sparring with force integration): +2 XP/day
-- Force ability (focused solo practice): +1.5 XP/day to that ability
-- Force ability (used under pressure in sparring): +2 XP/day
-- Force stat meditation (morning centering): +1 XP/day to ForceSense only
-- Physical training (strength, conditioning): +1.5 XP/day to relevant physical stat
-- Reading/studying theory: +0.5 XP/day to ForceKnowledge only
-- Incidental use during another activity: +0.5 XP/day
+  // ── CALL 1: Narrative + mechanical summary (no JSON, fast) ─────────
+  const summaryPrompt = `SIMULATE ${chunk.days} DAYS (week ${chunkNum}/${totalChunks}).
 
-WEEKLY CAP: No single stat can gain more than 15 XP in one week regardless of practice intensity. A week of perfect training is still a week. Growth is slow and cumulative over months and years.
-
-CONTEXT: Character is ${cs.age || 8} years old, Force Tier ${cs.forceTier || 1}. Gains should feel like those of a child prodigy — impressive for their age but still a child. An 8-year-old cannot train at adult Jedi Knight intensity even with exceptional potential.
-
-ALIGNMENT: Only moves from conscious moral choices. Force use alone = no change. Meditation alone = no change.
-
-GALAXY EVENTS: Only if weeks or months of in-game time have passed since last event. Routine training week = almost certainly NONE.
-
-Output ONLY the structured format requested. Be concise.`;
-
-  const prompt = `SIMULATE ${chunk.days} DAYS (chunk ${chunkNum}/${totalChunks} of ${getPeriodLabel(simPeriodType)} simulation).
-
-CURRENT CHARACTER (read-only — do not echo this back):
+CHARACTER STATE:
 ${buildSheetSummaryForSim(cs)}
+WORLD: ${ws.location||'?'} | ${ws.inGameDate||'?'} | Threats: ${Object.entries(galaxySimState).map(([k,v])=>`${k}:${v}`).join('; ')||'none'}
 
-WORLD: Location=${ws.location||'?'} | Date=${ws.inGameDate||'?'} | Era=${ws.era||'?'}
-Active Threats: ${Object.entries(galaxySimState).map(([k,v]) => `${k}: ${v}`).join('; ') || 'none'}
-Last galaxy event: ${lastGalaxyEventDate || 'none yet'}
-
-${campaignSummary ? `CAMPAIGN CONTEXT: ${campaignSummary.slice(0, 300)}` : ''}
-
-DAILY ROUTINE:
+ROUTINE:
 ${simRoutine}
-
 ${simPauseConditions ? `PAUSE IF: ${simPauseConditions}` : ''}
 
-OUTPUT FORMAT — output exactly this, nothing else before or after:
-
-WEEK_SUMMARY: [2-3 sentences max]
-
+Output ONLY this format:
+WEEK_SUMMARY: [2 sentences]
 MECHANICAL_CHANGES:
-[Each changed value on its own line: StatName: old→new | +X XP]
-[Strain end of week: Force=X/12, Phys=X/10, Mental=X/10]
-
+[StatName: old->new | +X XP (reason) -- one per line, only changed stats]
+[Strain: Force=X/12 Phys=X/10 Mental=X/10]
 GALAXY_EVENTS: [1 line or NONE]
-NOTABLE_EVENTS: [1-2 lines or NONE]
+NOTABLE_EVENTS: [1 line or NONE]
 REQUIRES_DECISION: [YES: reason | NO]
 PAUSE_FLAG: [reason | NONE]
-STAT_CROSSED: [StatName crossed tier X | NONE]
+STAT_CROSSED: [info | NONE]`;
 
+  const call1 = await simApiCall(simSystemPrompt, summaryPrompt, 2048);
+  const raw1 = call1.text || '';
+
+  const weekSummary = (raw1.match(/WEEK_SUMMARY:\s*([\s\S]*?)(?=\nMECHANICAL_CHANGES:)/) || [])[1]?.trim() || '';
+  const mechanicalChanges = (raw1.match(/MECHANICAL_CHANGES:\s*([\s\S]*?)(?=\nGALAXY_EVENTS:)/) || [])[1]?.trim() || '';
+  const galaxyEvents = (raw1.match(/GALAXY_EVENTS:\s*([^\n]+)/) || [])[1]?.trim() || '';
+  const notableEvents = (raw1.match(/NOTABLE_EVENTS:\s*([^\n]+)/) || [])[1]?.trim() || '';
+  const requiresDecision = (raw1.match(/REQUIRES_DECISION:\s*YES:\s*(.+)/) || [])[1]?.trim() || null;
+  const pauseFlag = (raw1.match(/PAUSE_FLAG:\s*(?!NONE)(.+)/) || [])[1]?.trim() || null;
+  const statCrossed = (raw1.match(/STAT_CROSSED:\s*(?!NONE)(.+)/) || [])[1]?.trim() || null;
+
+  // ── CALL 2: JSON update only ────────────────────────────────────
+  const safeWS = JSON.stringify({location:ws.location,era:ws.era,inGameDate:ws.inGameDate,legacyChanges:ws.legacyChanges||[],galaxyState:ws.galaxyState||{},worldLog:(ws.worldLog||[]).slice(-5),galaxyEvents:ws.galaxyEvents||[]});
+  const safeCS = JSON.stringify(cs);
+  const safeSummary = (weekSummary||'week complete').slice(0,80).replace(/"/g,'\'');
+  const safeLoc = (ws.location||'').replace(/"/g,'\'');
+
+  const jsonPrompt = `Apply these mechanical changes to the JSON and output updated versions.
+
+CHANGES TO APPLY:
+${mechanicalChanges || 'No stat changes.'}
+
+Also add worldLog entry: {"turn":${turnCount},"event":"${safeSummary}","location":"${safeLoc}"}
+
+CURRENT CHARACTER SHEET:
+${safeCS}
+
+CURRENT WORLD STATE:
+${safeWS}
+
+Output ONLY these two blocks, no other text:
 <<<UPDATED_SHEET>>>
-[Updated character sheet JSON with all changes applied]
+{updated character sheet json}
 <<<END_UPDATED_SHEET>>>
 <<<UPDATED_WORLD>>>
-[Updated world JSON with new worldLog entry for this week]
+{updated world json}
 <<<END_UPDATED_WORLD>>>`;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: simSystemPrompt }] },
-        contents: [{
-          role: 'user', parts: [{ text: prompt }]
-        }, {
-          role: 'model', parts: [{ text: `Understood. Simulating ${chunk.days} days. Starting values: ForceSense=${cs.forceStats?.forceSense||0}, Meditation=${cs.forceStats?.meditation||0}, ForceControl=${cs.forceStats?.forceControl||0}, Alignment=${cs.alignment||0}. Weekly XP cap: 15 per stat. Character age: ${cs.age||8}.` }]
-        }, {
-          role: 'user', parts: [{ text: 'Good. Now output the simulation results in the exact format specified.' }]
-        }],
-        generationConfig: { temperature: 0.6, maxOutputTokens: 4096, topP: 0.9 }
-      })
-    }
-  );
+  const call2 = await simApiCall(simSystemPrompt, jsonPrompt, 4096);
+  const raw2 = call2.text || '';
 
-  if (response.status === 429) throw new Error('Rate limit — will retry');
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `HTTP ${response.status}`);
+  if (call2.truncated) {
+    addSimLog(`\u26A0 Week ${chunkNum}: JSON truncated — using fallback`, 'warning');
   }
 
-  const data = await response.json();
-  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const sheetMatch = raw2.match(/<<<UPDATED_SHEET>>>\s*([\s\S]*?)\s*<<<END_UPDATED_SHEET>>>/);
+  const worldMatch = raw2.match(/<<<UPDATED_WORLD>>>\s*([\s\S]*?)\s*<<<END_UPDATED_WORLD>>>/);
 
-  // Check if response was cut off
-  const finishReason = data.candidates?.[0]?.finishReason;
-  if (finishReason === 'MAX_TOKENS') {
-    addSimLog(`⚠ Week ${chunkNum} response was truncated — applying partial results`, 'warning');
-  }
-
-  // Parse the structured response
-  const weekSummary = (raw.match(/WEEK_SUMMARY:\s*([\s\S]*?)(?=\nMECHANICAL_CHANGES:)/) || [])[1]?.trim() || '';
-  const mechanicalChanges = (raw.match(/MECHANICAL_CHANGES:\s*([\s\S]*?)(?=\nGALAXY_EVENTS:)/) || [])[1]?.trim() || '';
-  const galaxyEvents = (raw.match(/GALAXY_EVENTS:\s*([^\n]+)/) || [])[1]?.trim() || '';
-  const notableEvents = (raw.match(/NOTABLE_EVENTS:\s*([^\n]+)/) || [])[1]?.trim() || '';
-  const requiresDecision = (raw.match(/REQUIRES_DECISION:\s*YES:\s*(.+)/) || [])[1]?.trim() || null;
-  const pauseFlag = (raw.match(/PAUSE_FLAG:\s*(?!NONE)(.+)/) || [])[1]?.trim() || null;
-  const statCrossed = (raw.match(/STAT_CROSSED:\s*(?!NONE)(.+)/) || [])[1]?.trim() || null;
-
-  // Parse UPDATED blocks — use new tag names to avoid matching pre-filled data
-  const sheetMatch = raw.match(/<<<UPDATED_SHEET>>>\s*([\s\S]*?)\s*<<<END_UPDATED_SHEET>>>/);
-  const worldMatch = raw.match(/<<<UPDATED_WORLD>>>\s*([\s\S]*?)\s*<<<END_UPDATED_WORLD>>>/);
-
+  let sheetApplied = false;
   if (sheetMatch) {
-    try {
-      const parsed = JSON.parse(sheetMatch[1].trim());
-      characterSheet = parsed;
-    } catch(e) {
+    try { characterSheet = JSON.parse(sheetMatch[1].trim()); sheetApplied = true; }
+    catch(e) {
       const j = sheetMatch[1].match(/\{[\s\S]*\}/);
-      if (j) { try { characterSheet = JSON.parse(j[0]); } catch(e2) {
-        addSimLog(`⚠ Week ${chunkNum}: Could not parse sheet JSON`, 'warning');
-      }}
+      if (j) { try { characterSheet = JSON.parse(j[0]); sheetApplied = true; } catch(e2) {} }
     }
-  } else {
-    addSimLog(`⚠ Week ${chunkNum}: No updated sheet found in response`, 'warning');
+  }
+
+  if (!sheetApplied) {
+    addSimLog(`\u26A0 Week ${chunkNum}: Applying changes from summary text`, 'warning');
+    applyMechanicalChangesFromText(mechanicalChanges);
   }
 
   if (worldMatch) {
     try {
-      const parsed = JSON.parse(worldMatch[1].trim());
-      // Preserve merged log
-      parsed._mergedLog = worldState?._mergedLog || [];
-      worldState = parsed;
+      const p = JSON.parse(worldMatch[1].trim());
+      p._mergedLog = worldState?._mergedLog || [];
+      worldState = p;
     } catch(e) {
       const j = worldMatch[1].match(/\{[\s\S]*\}/);
-      if (j) { try {
-        const parsed = JSON.parse(j[0]);
-        parsed._mergedLog = worldState?._mergedLog || [];
-        worldState = parsed;
-      } catch(e2) {} }
+      if (j) { try { const p = JSON.parse(j[0]); p._mergedLog = worldState?._mergedLog||[]; worldState = p; } catch(e2) {} }
     }
   }
 
-  // Update galaxy sim state from any events
   if (worldState?.galaxyEvents) {
     for (const ev of worldState.galaxyEvents) {
       if (ev?.faction && ev?.event) galaxySimState[ev.faction] = ev.event;
     }
   }
 
-  // Update UI incrementally
   updateUI();
   autoSave();
 
   return {
     summary: weekSummary + (mechanicalChanges ? '\n\n' + mechanicalChanges : ''),
-    mechanical: mechanicalChanges,
-    galaxyEvents,
-    notableEvents,
-    requiresDecision,
-    pauseFlag,
-    statCrossed,
+    mechanical: mechanicalChanges, galaxyEvents, notableEvents,
+    requiresDecision, pauseFlag, statCrossed,
     event: notableEvents && notableEvents !== 'NONE' ? notableEvents : null
   };
 }
+
+async function simApiCall(systemPrompt, userPrompt, maxTokens) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        generationConfig: { temperature: 0.6, maxOutputTokens: maxTokens, topP: 0.9 }
+      })
+    }
+  );
+  if (response.status === 429) throw new Error('Rate limit — will retry');
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${response.status}`);
+  }
+  const data = await response.json();
+  return {
+    text: data.candidates?.[0]?.content?.parts?.[0]?.text || '',
+    truncated: data.candidates?.[0]?.finishReason === 'MAX_TOKENS'
+  };
+}
+
+function applyMechanicalChangesFromText(text) {
+  if (!text || !characterSheet) return;
+  const fsMap = {forcesense:'forceSense',meditation:'meditation',forceknowledge:'forceKnowledge',forcecontrol:'forceControl'};
+  const stMap = {strength:'strength',agility:'agility',endurance:'endurance',willpower:'willpower',charisma:'charisma'};
+  for (const line of text.split('\n')) {
+    const m = line.match(/^([\w][\w\s]+):\s*(\d+(?:\.\d+)?)\s*(?:->|→)\s*(\d+(?:\.\d+)?)/);
+    if (!m) continue;
+    const key = m[1].trim().toLowerCase().replace(/\s/g,'');
+    const val = parseFloat(m[3]);
+    if (isNaN(val)) continue;
+    if (fsMap[key] && characterSheet.forceStats) characterSheet.forceStats[fsMap[key]] = val;
+    else if (stMap[key] && characterSheet.stats) characterSheet.stats[stMap[key]] = val;
+    else if (characterSheet.forceAbilities?.[m[1].trim()] !== undefined) characterSheet.forceAbilities[m[1].trim()] = val;
+    else if (characterSheet.lightsaberForms?.[m[1].trim()] !== undefined) characterSheet.lightsaberForms[m[1].trim()] = val;
+  }
+}
+
 
 function buildSheetSummaryForSim(cs) {
   return `Name: ${cs.name||'?'} | Age: ${cs.age||'?'} | Force Tier: ${cs.forceTier||1}
