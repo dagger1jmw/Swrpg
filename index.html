@@ -1036,7 +1036,7 @@ RULES FOR DATA BLOCKS:
 - worldLog: array of objects ONLY. Format: [{"turn":1,"event":"description","location":"place"}]. Keep last 20. Add a new entry every single turn.
 - galaxyEvents: array of objects tracking background galaxy simulation. Format: [{"turn":1,"faction":"Jedi Order","event":"description"}]. Keep last 10. Add entries when something notable happens in the wider galaxy even if the player is not involved.
 - forceAbilities: values must be plain numbers only. Example: {"Force Push": 15, "Force Sense": 60}. Never use nested objects.
-- inGameDate: use Galactic Standard Calendar format: "Day X, MonthName — YYYY BBY" e.g. "Day 14, Relona — 3661 BBY". Months in order: Elona, Kelona, Selona, Telona, Nelona, Relona, Welona, Helona, Melona, Nelona-II. Each month has 35 days. Year is 368 days total.
+- inGameDate: use Galactic Standard Calendar format: "Weekday, Day X MonthName — YYYY BBY" e.g. "Taungsday, Day 14 Midyear — 3661 BBY". 12 months: Coruscann, Frostuary, Warming, Seedmonth, Bloomtide, Midyear, Heatmonth, Harvestide, Goldfall, Stormtide, Coldmonth, Yearend. Days of week: Primeday, Centaxday, Taungsday, Zhellday, Benduday, Restday, Endday. 368 days per year.
 - All fields must be present every response even if unchanged.
 - NEVER print the character sheet as a markdown list (** field:** value). The sidebar ONLY reads the JSON blocks. Markdown sheets in the story feed do nothing and confuse the player.
 
@@ -3068,44 +3068,79 @@ async function simApiCall(systemPrompt, userPrompt, maxTokens) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  STAR WARS GALACTIC STANDARD CALENDAR
-//  368 days per year, 10 months of 35 days + 3 festival weeks of 7 days
-//  Months: Elona, Kelona, Selona, Telona, Nelona, Relona, Welona, Helona, Melona, Nelona-II
-//  Standard format: Day X, Month Name, YYYY BBY/ABY
+//  STAR WARS GALACTIC STANDARD CALENDAR — 12 month / 368 day
+//  Per Legends Essential Atlas & Leland Chee 2005 canon revision
+//  Based on Coruscant's orbital period
+//  12 months of 30-31 days, 7-day weeks
+//  Days of the week: Primeday, Centaxday, Taungsday, Zhellday, Benduday, Taungsday-2, Benduday-2
+//  Month names: unofficial but consistent with Legends fan reference material
 // ═══════════════════════════════════════════════════════════════════
 const GSC_MONTHS = [
-  'Elona','Kelona','Selona','Telona','Nelona',
-  'Relona','Welona','Helona','Melona','Nelona-II'
+  'Coruscann', 'Frostuary', 'Warming',  'Seedmonth',
+  'Bloomtide', 'Midyear',   'Heatmonth','Harvestide',
+  'Goldfall',  'Stormtide', 'Coldmonth','Yearend'
 ];
-const GSC_DAYS_PER_MONTH = 35;
-const GSC_MONTHS_PER_YEAR = 10;
-const GSC_DAYS_PER_YEAR = 368; // 10×35 + 3×6 festival days (simplified to 368)
+// Days per month — 8 months of 31 days, 4 months of 30 days = 368 total
+// Months 6, 8, 12 have 30 days; month 2 has 30 days; rest have 31
+const GSC_DAYS_IN_MONTH = [31,30,31,31,31,30,31,30,31,31,31,30]; // sums to 368
+const GSC_DAYS_PER_WEEK = 7;
+const GSC_WEEK_DAYS = ['Primeday','Centaxday','Taungsday','Zhellday','Benduday','Restday','Endday'];
+const GSC_MONTHS_PER_YEAR = 12;
+const GSC_DAYS_PER_YEAR = 368;
+
+// Cumulative day offsets for each month
+const GSC_MONTH_OFFSETS = GSC_DAYS_IN_MONTH.reduce((acc, d, i) => {
+  acc.push(i === 0 ? 0 : acc[i-1] + GSC_DAYS_IN_MONTH[i-1]);
+  return acc;
+}, []);
 
 function parseDateString(dateStr) {
-  // Try to parse various formats the AI might use
-  // "3661 BBY (Day 229)" or "Day 229, 3661 BBY" or "Month X, Day Y, 3661 BBY"
   if (!dateStr) return null;
-
-  // Extract year and era
   const yearMatch = dateStr.match(/(\d{3,4})\s*(BBY|ABY)/i);
   if (!yearMatch) return null;
   const year = parseInt(yearMatch[1]);
   const era = yearMatch[2].toUpperCase();
 
-  // Try to extract day of year
+  // Try "Day X, MonthName" format
+  const fullMatch = dateStr.match(/Day\s*(\d+),?\s*([A-Za-z\-]+)/i);
+  if (fullMatch) {
+    const dayOfMonth = parseInt(fullMatch[1]);
+    const monthName = fullMatch[2];
+    const monthIndex = GSC_MONTHS.findIndex(m => m.toLowerCase() === monthName.toLowerCase());
+    if (monthIndex >= 0) {
+      const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + dayOfMonth;
+      return { year, era, dayOfYear: Math.max(1, dayOfYear) };
+    }
+  }
+
+  // Fallback: raw day number
   const dayMatch = dateStr.match(/Day\s*(\d+)/i);
   const dayOfYear = dayMatch ? parseInt(dayMatch[1]) : 1;
-
   return { year, era, dayOfYear: Math.max(1, dayOfYear) };
 }
 
+function dayOfYearToMonthDay(dayOfYear) {
+  const clamped = ((dayOfYear - 1) % GSC_DAYS_PER_YEAR) + 1;
+  let monthIndex = 0;
+  let remaining = clamped;
+  for (let i = 0; i < GSC_MONTHS_PER_YEAR; i++) {
+    if (remaining <= GSC_DAYS_IN_MONTH[i]) {
+      monthIndex = i;
+      break;
+    }
+    remaining -= GSC_DAYS_IN_MONTH[i];
+    if (i === GSC_MONTHS_PER_YEAR - 1) { monthIndex = i; remaining = GSC_DAYS_IN_MONTH[i]; }
+  }
+  return { monthIndex, dayOfMonth: remaining };
+}
+
 function dateToString(year, era, dayOfYear) {
-  // Convert day of year to month + day
-  const clampedDay = ((dayOfYear - 1) % GSC_DAYS_PER_YEAR) + 1;
-  const monthIndex = Math.min(Math.floor((clampedDay - 1) / GSC_DAYS_PER_MONTH), GSC_MONTHS_PER_YEAR - 1);
-  const dayOfMonth = ((clampedDay - 1) % GSC_DAYS_PER_MONTH) + 1;
+  const { monthIndex, dayOfMonth } = dayOfYearToMonthDay(dayOfYear);
   const monthName = GSC_MONTHS[monthIndex];
-  return `Day ${dayOfMonth}, ${monthName} — ${year} ${era}`;
+  // Day of week
+  const absDay = (era === 'BBY' ? -year : year) * GSC_DAYS_PER_YEAR + dayOfYear;
+  const weekDay = GSC_WEEK_DAYS[((absDay % GSC_DAYS_PER_WEEK) + GSC_DAYS_PER_WEEK) % GSC_DAYS_PER_WEEK];
+  return `${weekDay}, Day ${dayOfMonth} ${monthName} — ${year} ${era}`;
 }
 
 function advanceInGameDate(dateStr, days) {
@@ -3182,34 +3217,49 @@ function updateCalendarContent(dateStr) {
   if (!parsed) { el.textContent = dateStr; return; }
 
   const { year, era, dayOfYear } = parsed;
-  const clampedDay = ((dayOfYear - 1) % GSC_DAYS_PER_YEAR) + 1;
-  const monthIndex = Math.min(Math.floor((clampedDay - 1) / GSC_DAYS_PER_MONTH), GSC_MONTHS_PER_YEAR - 1);
-  const dayOfMonth = ((clampedDay - 1) % GSC_DAYS_PER_MONTH) + 1;
+  const { monthIndex, dayOfMonth } = dayOfYearToMonthDay(dayOfYear);
   const monthName = GSC_MONTHS[monthIndex];
-  const daysIntoYear = clampedDay;
+  const daysInMonth = GSC_DAYS_IN_MONTH[monthIndex];
+  const daysIntoYear = GSC_MONTH_OFFSETS[monthIndex] + dayOfMonth;
   const daysRemaining = GSC_DAYS_PER_YEAR - daysIntoYear;
 
-  // Build month grid
-  let monthGrid = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin:8px 0;font-size:11px;text-align:center">';
-  // Day headers
-  ['M','T','W','T','F','S','S'].forEach(d => {
-    monthGrid += `<div style="color:var(--text-dim)">${d}</div>`;
+  // Day of week
+  const absDay = (era === 'BBY' ? -year : year) * GSC_DAYS_PER_YEAR + dayOfYear;
+  const weekDayIndex = ((absDay % GSC_DAYS_PER_WEEK) + GSC_DAYS_PER_WEEK) % GSC_DAYS_PER_WEEK;
+  const weekDayName = GSC_WEEK_DAYS[weekDayIndex];
+
+  // Build month grid — 7-day weeks
+  let monthGrid = `<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">${monthName} — ${daysInMonth} days</div>`;
+  monthGrid += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin:6px 0;font-size:10px;text-align:center">';
+  // Week day headers — abbreviated
+  ['Pr','Ce','Ta','Zh','Be','Re','En'].forEach(d => {
+    monthGrid += `<div style="color:var(--gold-dim);font-family:Cinzel,serif">${d}</div>`;
   });
-  // Days in month
-  for (let d = 1; d <= GSC_DAYS_PER_MONTH; d++) {
+  // Find what weekday month starts on
+  const monthStartAbsDay = (era === 'BBY' ? -year : year) * GSC_DAYS_PER_YEAR + GSC_MONTH_OFFSETS[monthIndex] + 1;
+  const monthStartWeekday = ((monthStartAbsDay % GSC_DAYS_PER_WEEK) + GSC_DAYS_PER_WEEK) % GSC_DAYS_PER_WEEK;
+  // Empty cells before first day
+  for (let i = 0; i < monthStartWeekday; i++) {
+    monthGrid += '<div></div>';
+  }
+  // Day cells
+  for (let d = 1; d <= daysInMonth; d++) {
     const isToday = d === dayOfMonth;
-    monthGrid += `<div style="padding:2px;${isToday ? 'background:var(--gold);color:#000;border-radius:2px;font-weight:bold' : 'color:var(--text-dim)'}">${d}</div>`;
+    monthGrid += `<div style="padding:1px 0;${isToday ? 'background:var(--gold);color:#000;border-radius:2px;font-weight:bold' : 'color:var(--text-dim)'}">${d}</div>`;
   }
   monthGrid += '</div>';
 
   el.innerHTML = `
-    <div style="color:var(--gold);font-family:Cinzel,serif;font-size:13px;margin-bottom:6px">${monthName}, ${year} ${era}</div>
-    <div style="color:var(--text-dim);font-size:11px;margin-bottom:8px">Day ${dayOfMonth} of ${monthName} · Day ${daysIntoYear} of year</div>
+    <div style="color:var(--gold);font-family:Cinzel,serif;font-size:13px;margin-bottom:4px">${year} ${era}</div>
+    <div style="color:var(--text-main);font-size:12px;margin-bottom:8px">${weekDayName}, Day ${dayOfMonth} of ${monthName}</div>
     ${monthGrid}
-    <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:11px;color:var(--text-dim)">
-      <div>Month: <span style="color:var(--text-main)">${monthIndex + 1} / ${GSC_MONTHS_PER_YEAR}</span></div>
+    <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:11px;color:var(--text-dim);line-height:1.8">
+      <div>Month: <span style="color:var(--text-main)">${monthIndex + 1} of ${GSC_MONTHS_PER_YEAR}</span></div>
+      <div>Day of year: <span style="color:var(--text-main)">${daysIntoYear} of ${GSC_DAYS_PER_YEAR}</span></div>
       <div>Days remaining: <span style="color:var(--text-main)">${daysRemaining}</span></div>
-      <div>Era: <span style="color:var(--gold)">${era === 'BBY' ? 'Before the Battle of Yavin' : 'After the Battle of Yavin'}</span></div>
+    </div>
+    <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:6px;font-size:10px;color:var(--text-dim)">
+      Pr=Primeday · Ce=Centaxday · Ta=Taungsday<br>Zh=Zhellday · Be=Benduday
     </div>
   `;
 }
