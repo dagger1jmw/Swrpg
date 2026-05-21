@@ -2818,153 +2818,118 @@ PAUSE_FLAG: [reason if pause condition met | NONE]`;
   await sleep(800);
 
   // ── CALL 2: Ask AI which stats were practiced — JS handles all math ──
-  // The AI has no say in the numbers. It only identifies what was practiced.
-  // ── CALL 2: Ask AI which stats were practiced — JS handles all math ──
-  const practicePrompt = `Read this training routine and output a practice intensity for EVERY stat mentioned.
+  const abilityKeys = Object.keys(cs.forceAbilities||{});
+  const formKeys = Object.keys(cs.lightsaberForms||{});
+  const abilityKeyMap = {};
+  abilityKeys.forEach(k => { abilityKeyMap[k.toUpperCase().replace(/[\s\-]/g,'_')] = k; });
+  const formKeyMap = {};
+  formKeys.forEach(k => { formKeyMap[k.toUpperCase().replace(/[\s\-]/g,'_')] = k; });
+
+  const allKnownKeys = [
+    'FORCESENSE','MEDITATION','FORCEKNOWLEDGE','FORCECONTROL',
+    'STRENGTH','AGILITY','ENDURANCE','WILLPOWER','CHARISMA',
+    ...Object.keys(abilityKeyMap), ...Object.keys(formKeyMap)
+  ];
+
+  const practicePrompt = `Read this training routine and output the practice intensity for each stat/ability trained.
 
 ROUTINE:
-${simRoutine.slice(0, 800)}
+${simRoutine.slice(0,800)}
 
-For each stat/ability mentioned in the routine, output one line: STAT_NAME=INTENSITY
-Intensity must be exactly: LOW, MEDIUM, or HIGH (copy from routine if specified, otherwise judge by time spent)
+Use ONLY these exact key names (copy exactly):
+${allKnownKeys.join(', ')}
 
-Known stats to check (output ALL that appear in the routine):
-Force stats: FORCESENSE, MEDITATION, FORCEKNOWLEDGE, FORCECONTROL
-Physical stats: STRENGTH, AGILITY, ENDURANCE, WILLPOWER
-Force abilities: ${Object.keys(cs.forceAbilities||{}).map(k=>k.toUpperCase().replace(/\s+/g,'_')).join(', ')||'NONE'}
-Lightsaber forms: ${Object.keys(cs.lightsaberForms||{}).map(k=>k.toUpperCase().replace(/\s+/g,'_')).join(', ')||'NONE'}
+For each key practiced, output: KEY=INTENSITY (LOW, MEDIUM, or HIGH)
+Include ALL lightsaber forms and force abilities that are trained in the routine.
+Also output: FORCESTRAIN=[0-12] PHYSICALSTRAIN=[0-10] MENTALSTRAIN=[0-10]
 
-Also output strain at end of week:
-FORCESTRAIN=[0-12]
-PHYSICALSTRAIN=[0-10]
-MENTALSTRAIN=[0-10]
+EXAMPLE:
+FORCESENSE=MEDIUM
+FORCECONTROL=HIGH
+STRENGTH=MEDIUM
+SHII_CHO=HIGH
+FORCE_PUSH=HIGH
+FORCESTRAIN=2
+PHYSICALSTRAIN=3
+MENTALSTRAIN=1
 
-Output ONLY these lines. One stat per line. No explanations.`;
+Output ONLY these lines. No explanations.`;
 
   const call2 = await simApiCall(simSystemPrompt, practicePrompt, 512);
   const raw2 = call2.text || '';
   addSimLog(`Wk${chunkNum} practice: ${raw2.slice(0,300)}`, 'debug');
 
-  // XP rates per day — fixed by code, not AI
-  // LOW = 1 XP/day, MEDIUM = 1.5 XP/day, HIGH = 2 XP/day
-  // 7 days per week, hard cap of 8 XP per stat per week
-  const XP_PER_DAY = {LOW: 1, MEDIUM: 1.5, HIGH: 2};
-  const WEEKLY_XP_CAP = 8; // hard cap — no matter what
-
+  const XP_PER_DAY = {LOW:1, MEDIUM:1.5, HIGH:2};
+  const WEEKLY_XP_CAP = 8;
   let changesApplied = 0;
   const mechanicalChangeLines = [];
 
   const applyXPToStat = (statName, intensity, getVal, setVal, xpObj) => {
-    const xpPerDay = XP_PER_DAY[intensity] || 1;
-    const weekXP = Math.min(xpPerDay * chunk.days, WEEKLY_XP_CAP);
-    
+    const weekXP = Math.min((XP_PER_DAY[intensity]||1) * chunk.days, WEEKLY_XP_CAP);
     if (!xpObj) return;
-    xpObj.current = (xpObj.current || 0) + weekXP;
-    
-    let leveled = false;
+    xpObj.current = (xpObj.current||0) + weekXP;
     while (xpObj.current >= xpObj.required) {
       const oldVal = getVal();
-      const newVal = oldVal + 1;
-      setVal(newVal);
+      setVal(oldVal + 1);
       xpObj.current -= xpObj.required;
-      xpObj.required = xpRequired(newVal);
-      mechanicalChangeLines.push(`${statName}: ${oldVal}→${newVal} (+${weekXP.toFixed(1)} XP)`);
+      xpObj.required = xpRequired(oldVal + 1);
+      mechanicalChangeLines.push(`${statName}: ${oldVal}\u2192${oldVal+1}`);
       changesApplied++;
-      leveled = true;
     }
-    if (!leveled) {
-      mechanicalChangeLines.push(`${statName} XP: +${weekXP.toFixed(1)} (${xpObj.current.toFixed(1)}/${xpObj.required})`);
-    }
+    mechanicalChangeLines.push(`${statName} XP: +${weekXP.toFixed(1)} (${(xpObj.current||0).toFixed(1)}/${xpObj.required})`);
   };
 
-  // Parse practice lines from raw2
-  const practiceLines = raw2.split('\n');
-  const fsKeyMap = {FORCESENSE:'forceSense', MEDITATION:'meditation', FORCEKNOWLEDGE:'forceKnowledge', FORCECONTROL:'forceControl'};
-  const stKeyMap = {STRENGTH:'strength', AGILITY:'agility', ENDURANCE:'endurance', WILLPOWER:'willpower', CHARISMA:'charisma'};
+  const fsKeyMap = {FORCESENSE:'forceSense',MEDITATION:'meditation',FORCEKNOWLEDGE:'forceKnowledge',FORCECONTROL:'forceControl'};
+  const stKeyMap = {STRENGTH:'strength',AGILITY:'agility',ENDURANCE:'endurance',WILLPOWER:'willpower',CHARISMA:'charisma'};
 
-  for (const line of practiceLines) {
-    const m = line.trim().match(/^([A-Z_][A-Z\s_]+?)\s*=\s*(LOW|MEDIUM|HIGH|\d+(?:\.\d+)?)/i);
+  for (const line of raw2.split('\n')) {
+    const m = line.trim().match(/^([A-Z][A-Z0-9_\s]+?)\s*=\s*(LOW|MEDIUM|HIGH)/i);
     if (!m) continue;
-    const key = m[1].trim().toUpperCase().replace(/\s+/g, '_');
-    const intensity = ['LOW','MEDIUM','HIGH'].includes(m[2].toUpperCase()) ? m[2].toUpperCase() : 'MEDIUM';
+    const key = m[1].trim().toUpperCase().replace(/[\s\-]+/g,'_');
+    const intensity = m[2].toUpperCase();
 
-    // Force stats
     if (fsKeyMap[key]) {
       const fk = fsKeyMap[key];
       if (!characterSheet.forceStats) characterSheet.forceStats = {};
       if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
-      if (!characterSheet.forceStatsXP[fk]) characterSheet.forceStatsXP[fk] = {current:0, required:xpRequired(characterSheet.forceStats[fk]||0)};
-      applyXPToStat(fk, intensity,
-        () => characterSheet.forceStats[fk] || 0,
-        (v) => { characterSheet.forceStats[fk] = v; },
-        characterSheet.forceStatsXP[fk]);
-    }
-    // Physical stats
-    else if (stKeyMap[key]) {
+      if (!characterSheet.forceStatsXP[fk]) characterSheet.forceStatsXP[fk] = {current:0,required:xpRequired(characterSheet.forceStats[fk]||0)};
+      applyXPToStat(fk,intensity,()=>characterSheet.forceStats[fk]||0,v=>{characterSheet.forceStats[fk]=v;},characterSheet.forceStatsXP[fk]);
+    } else if (stKeyMap[key]) {
       const sk = stKeyMap[key];
       if (!characterSheet.stats) characterSheet.stats = {};
       if (!characterSheet.statsXP) characterSheet.statsXP = {};
-      if (!characterSheet.statsXP[sk]) characterSheet.statsXP[sk] = {current:0, required:xpRequired(characterSheet.stats[sk]||0)};
-      applyXPToStat(sk, intensity,
-        () => characterSheet.stats[sk] || 0,
-        (v) => { characterSheet.stats[sk] = v; },
-        characterSheet.statsXP[sk]);
-    }
-    // Force abilities — exact match first, then partial
-    else {
-      const normalizedKey = key.replace(/_/g,' ').toLowerCase();
-      const abilityName = Object.keys(cs.forceAbilities||{}).find(k => {
-        const kn = k.toLowerCase().replace(/[_\s]+/g,'_');
-        const kk = k.toLowerCase();
-        return key === k.toUpperCase().replace(/\s+/g,'_') ||
-               normalizedKey === kk ||
-               kn === key.toLowerCase();
-      });
-      if (abilityName) {
-        if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
-        const curVal = typeof characterSheet.forceAbilities[abilityName] === 'object'
-          ? (characterSheet.forceAbilities[abilityName].level || 0)
-          : (characterSheet.forceAbilities[abilityName] || 0);
-        if (!characterSheet.forceAbilitiesXP[abilityName]) characterSheet.forceAbilitiesXP[abilityName] = {current:0, required:xpRequired(curVal)};
-        applyXPToStat(abilityName, intensity,
-          () => typeof characterSheet.forceAbilities[abilityName] === 'object' ? (characterSheet.forceAbilities[abilityName].level||0) : (characterSheet.forceAbilities[abilityName]||0),
-          (v) => { characterSheet.forceAbilities[abilityName] = v; },
-          characterSheet.forceAbilitiesXP[abilityName]);
-        continue;
-      }
-      // Lightsaber forms — exact match first, then partial
-      const formName = Object.keys(cs.lightsaberForms||{}).find(k => {
-        const kn = k.toLowerCase().replace(/[_\s]+/g,'_');
-        const kk = k.toLowerCase();
-        return key === k.toUpperCase().replace(/\s+/g,'_') ||
-               normalizedKey === kk ||
-               kn === key.toLowerCase() ||
-               key.includes(k.toUpperCase().replace(/\s+/g,'_').slice(0,4));
-      });
-      if (formName) {
-        if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
-        const curVal = typeof characterSheet.lightsaberForms[formName] === 'object'
-          ? (characterSheet.lightsaberForms[formName].level || 0)
-          : (characterSheet.lightsaberForms[formName] || 0);
-        if (!characterSheet.lightsaberFormsXP[formName]) characterSheet.lightsaberFormsXP[formName] = {current:0, required:xpRequired(curVal)};
-        applyXPToStat(formName, intensity,
-          () => typeof characterSheet.lightsaberForms[formName] === 'object' ? (characterSheet.lightsaberForms[formName].level||0) : (characterSheet.lightsaberForms[formName]||0),
-          (v) => { characterSheet.lightsaberForms[formName] = v; },
-          characterSheet.lightsaberFormsXP[formName]);
-      }
+      if (!characterSheet.statsXP[sk]) characterSheet.statsXP[sk] = {current:0,required:xpRequired(characterSheet.stats[sk]||0)};
+      applyXPToStat(sk,intensity,()=>characterSheet.stats[sk]||0,v=>{characterSheet.stats[sk]=v;},characterSheet.statsXP[sk]);
+    } else if (abilityKeyMap[key]) {
+      const orig = abilityKeyMap[key];
+      if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
+      const cur = typeof characterSheet.forceAbilities[orig]==='object'?(characterSheet.forceAbilities[orig].level||0):(characterSheet.forceAbilities[orig]||0);
+      if (!characterSheet.forceAbilitiesXP[orig]) characterSheet.forceAbilitiesXP[orig] = {current:0,required:xpRequired(cur)};
+      applyXPToStat(orig,intensity,
+        ()=>typeof characterSheet.forceAbilities[orig]==='object'?(characterSheet.forceAbilities[orig].level||0):(characterSheet.forceAbilities[orig]||0),
+        v=>{characterSheet.forceAbilities[orig]=v;},characterSheet.forceAbilitiesXP[orig]);
+    } else if (formKeyMap[key]) {
+      const orig = formKeyMap[key];
+      if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
+      const cur = typeof characterSheet.lightsaberForms[orig]==='object'?(characterSheet.lightsaberForms[orig].level||0):(characterSheet.lightsaberForms[orig]||0);
+      if (!characterSheet.lightsaberFormsXP[orig]) characterSheet.lightsaberFormsXP[orig] = {current:0,required:xpRequired(cur)};
+      applyXPToStat(orig,intensity,
+        ()=>typeof characterSheet.lightsaberForms[orig]==='object'?(characterSheet.lightsaberForms[orig].level||0):(characterSheet.lightsaberForms[orig]||0),
+        v=>{characterSheet.lightsaberForms[orig]=v;},characterSheet.lightsaberFormsXP[orig]);
     }
   }
 
-  // Apply strain from AI response
   const fStrainM = raw2.match(/FORCESTRAIN\s*=\s*(\d+)/i);
   const pStrainM = raw2.match(/PHYSICALSTRAIN\s*=\s*(\d+)/i);
   const mStrainM = raw2.match(/MENTALSTRAIN\s*=\s*(\d+)/i);
-  if (fStrainM) characterSheet.forceStrain = Math.min(parseInt(fStrainM[1]), characterSheet.maxForceStrain||12);
-  if (pStrainM) characterSheet.physicalStrain = Math.min(parseInt(pStrainM[1]), characterSheet.maxPhysicalStrain||10);
-  if (mStrainM) characterSheet.mentalStrain = Math.min(parseInt(mStrainM[1]), characterSheet.maxMentalStrain||10);
+  if (fStrainM) characterSheet.forceStrain = Math.min(parseInt(fStrainM[1]),characterSheet.maxForceStrain||12);
+  if (pStrainM) characterSheet.physicalStrain = Math.min(parseInt(pStrainM[1]),characterSheet.maxPhysicalStrain||10);
+  if (mStrainM) characterSheet.mentalStrain = Math.min(parseInt(mStrainM[1]),characterSheet.maxMentalStrain||10);
 
   const mechanicalChanges = mechanicalChangeLines.join('\n');
-  addSimLog(`Week ${chunkNum}: ${changesApplied} level-ups | ${mechanicalChangeLines.length} tracked`, 'applied');
+  const trackedNames = [...new Set(mechanicalChangeLines.map(l=>l.split(' XP:')[0].split(':')[0].trim()))];
+  addSimLog(`Week ${chunkNum}: ${changesApplied} level-ups | tracking: ${trackedNames.join(', ')}`, 'applied');
+
 
 
 
