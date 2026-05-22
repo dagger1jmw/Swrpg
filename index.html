@@ -1040,143 +1040,157 @@ RULES FOR DATA BLOCKS:
 - All fields must be present every response even if unchanged.
 - NEVER print the character sheet as a markdown list (** field:** value). The sidebar ONLY reads the JSON blocks. Markdown sheets in the story feed do nothing and confuse the player.
 
-## ROLL SYSTEM — DIFFICULTY-SCALED WITH FULL DISPLAY
+## ROLL SYSTEM — FULLY REDESIGNED
 
-### BASE FORMULA
-Final Roll = d20 + Σ(Relevant Stats ÷ 20) + Situational Modifiers
+### COMPRESSED STAT BONUS FORMULA
+Stat bonuses use a logarithmic compression so high stats stay meaningful without dominating the d20.
 
-### MANDATORY ROLL DISPLAY FORMAT — EVERY SINGLE ROLL
-Always show this exact format before narrating the result:
+Per-stat bonus:
+- Stat 0–40:   bonus = stat ÷ 20                          (linear, +2.0 max)
+- Stat 41–80:  bonus = 2.0 + (stat − 40) ÷ 40            (slower, +3.0 max)
+- Stat 81–100: bonus = 3.0 + (stat − 80) ÷ 80            (very slow, +3.25 max)
+- Stat 101+:   bonus = 3.25 + (stat − 100) ÷ 200         (near-flat, soft cap ~3.5)
 
-Action: [what is being attempted]
-Difficulty: [tier name] | Stat Bonus: +[X] | Situational: +[X] (list each bonus/penalty and why)
-d20=[X], Bonus=+[total], Total=[final] | [Difficulty]: Fail<[N] / Contested [N]-[N] / Solid [N]-[N] / Strong [N]-[N] / Overwhelming [N]+
-Result: [outcome name] — [one line description]
+Sum ALL relevant stats using this formula. Do NOT use stat ÷ 20 anymore.
 
-Example:
-Action: Force Push a training dummy
-Difficulty: Easy | Stat Bonus: +1.3 (ForceSense 26) | Situational: +0
-d20=14, Bonus=+1.3, Total=15.3 | Easy: Fail<4 / Contested 4-6 / Solid 7-10 / Strong 11-15 / Overwhelming 16+
-Result: Strong Success — Clean push, dummy slides back several meters
+MAX TOTAL BONUS BY TIER (4 relevant stats):
+- Tier 1 Untrained (stat ~15): ~+3
+- Tier 2 Apprentice (stat ~30): ~+6
+- Tier 3 Adept (stat ~50): ~+9
+- Tier 4 Master (stat ~70): ~+11.5
+- Tier 5 High Master (stat ~90): ~+13
+- Tier 6 Legendary (stat ~110): ~+14
+- Tier 7 Transcendent (stat ~135): ~+15 (soft cap)
 
-### DIFFICULTY TIERS — ACTION DEFINES DIFFICULTY, LEVEL MODIFIES IT
-The complexity and scale of the action sets the base difficulty. The character's relevant stat level then applies a modifier to that difficulty — higher skill makes the same action easier.
+The d20 always matters. Even a Transcendent can fail on a 1.
 
-DIFFICULTY TIERS AND THRESHOLD TABLES:
+### SEVEN-TIER SYSTEM
+Derive tier from the PRIMARY STAT being used for that action:
+- Tier 1 Untrained:    stat 0–20
+- Tier 2 Apprentice:   stat 21–40
+- Tier 3 Adept:        stat 41–60
+- Tier 4 Master:       stat 61–80
+- Tier 5 High Master:  stat 81–100
+- Tier 6 Legendary:    stat 101–120
+- Tier 7 Transcendent: stat 121–150
 
-| Tier | Name | Fail | Contested | Solid | Strong | Overwhelming |
-|------|------|------|-----------|-------|--------|--------------|
-| 1 | Trivial | <4 | 4-6 | 7-10 | 11-15 | 16+ |
-| 2 | Easy | <6 | 6-8 | 9-12 | 13-17 | 18+ |
-| 3 | Moderate | <9 | 9-11 | 12-15 | 16-20 | 21+ |
-| 4 | Hard | <13 | 13-15 | 16-19 | 20-24 | 25+ |
-| 5 | Severe | <17 | 17-19 | 20-23 | 24-28 | 29+ |
-| 6 | Extreme | <22 | 22-24 | 25-28 | 29-33 | 34+ |
-| 7 | Legendary | <28 | 28-30 | 31-34 | 35-39 | 40+ |
+For LIGHTSABER DUELS: derive tier from the character's highest lightsaber form stat.
+For FORCE CONTESTS: derive tier from Force Control stat.
+For PHYSICAL ACTIONS: derive tier from the primary physical stat.
 
-SKILL LEVEL MODIFIER TO DIFFICULTY (same action, higher skill = easier):
-- Stat 0-19 (Youngling): no modifier — use base difficulty
-- Stat 20-39 (Padawan): -1 difficulty tier for familiar actions
-- Stat 40-59 (Knight-low): -1 difficulty tier
-- Stat 60-79 (Knight-high): -2 difficulty tiers
-- Stat 80+ (Master+): -2 to -3 difficulty tiers depending on stat
+### DYNAMIC THRESHOLDS — TIER RELATIVE
+Thresholds shift based on the GAP between character tier and task/opponent tier.
 
-EXAMPLES:
-- Padawan (stat 8) Force Push a person: Hard → Hard (no modifier yet)
-- Knight (stat 45) Force Push a person: Hard → Moderate (-1 tier)
-- Master (stat 85) Force Push a person: Hard → Trivial (-3 tiers)
-- Padawan (stat 8) Force Push a boulder: Legendary → Legendary (no modifier)
-- Knight (stat 45) Force Push a boulder: Legendary → Extreme (-1 tier)
-- Master (stat 85) Force Push a boulder: Legendary → Hard (-3 tiers)
+Same tier (gap 0):
+Fail<9 / Contested 9-12 / Solid 13-17 / Strong 18-22 / Overwhelming 23+
 
-TRAINING DRILL DIFFICULTY GUIDE:
-- Basic technique, small object, controlled environment: Easy to Moderate
-- Intermediate technique, medium object or multiple targets: Moderate to Hard
-- Advanced technique, large object, or sustained complex action: Hard to Severe
-- Near the edge of what the character has ever attempted: Extreme
-- Theoretically impossible for current tier: Legendary
+1 tier BELOW task (character outclassed):
+Fail<13 / Contested 13-16 / Solid 17-21 / Strong 22-26 / Overwhelming 27+
 
-### OPPOSED ROLLS — COMBAT AND CONTESTED ACTIONS
-When two characters contest directly (dueling, Force power vs Force resistance, stealth vs detection):
+2 tiers BELOW task:
+Fail<18 / Contested 18-21 / Solid 22-26 / Strong 27-31 / Overwhelming 32+
 
-Both roll independently using the same formula.
-Winner = higher total. Margin = difference between totals.
+1 tier ABOVE task (character advantaged):
+Fail<6 / Contested 6-9 / Solid 10-14 / Strong 15-19 / Overwhelming 20+
 
-MARGIN RESULT TABLE:
+2 tiers ABOVE task:
+Fail<3 / Contested 3-6 / Solid 7-11 / Strong 12-16 / Overwhelming 17+
+
+3+ tiers ABOVE task:
+Fail<2 / Contested 2-4 / Solid 5-9 / Strong 10-14 / Overwhelming 15+
+
+SKILL MODIFIER TO EFFECTIVE TIER (same action gets easier as skill grows):
+- Task that matches character tier: no shift
+- Task 1 tier below character: treat as 1-tier-above row
+- Task 2+ tiers below character: treat as 2-tiers-above row
+
+### OPPOSED ROLLS — DUELING AND FORCE CONTESTS
+Both sides roll: d20 + compressed stat bonus + form/ability bonuses
+Winner = higher total. Use margin table:
+
 | Margin | Result |
 |--------|--------|
-| 0 (tie) | Contested — both hold, neither gains advantage |
-| 1-3 | Narrow win — slight advantage, partial position gain |
-| 4-7 | Clear win — meaningful advantage, pressure applied |
-| 8-12 | Dominant win — significant advantage, opponent in trouble |
-| 13+ | Overwhelming win — decisive, opponent at serious risk |
+| 0 | Contested — both hold |
+| 1–3 | Narrow win — slight advantage |
+| 4–7 | Clear win — meaningful pressure |
+| 8–12 | Dominant win — opponent in serious trouble |
+| 13+ | Overwhelming — decisive, opponent at risk |
 
-For DUELS, show both rolls:
-Attacker: d20=[X] + [bonus] = [total]
-Defender: d20=[X] + [bonus] = [total]
-Margin: [winner] by [N] → [result]
+### TIER GAP BONUS — DUELS AND FORCE CONTESTS
+When a significant tier gap exists, the stronger combatant adds a flat bonus to every opposed roll:
 
-### STEALTH — ENVIRONMENTAL OPPOSED CHECK
-Stealth is not a single roll but a check against a detection threshold.
+| Tier Gap | Bonus to stronger side |
+|----------|------------------------|
+| 0 (equal) | +0 |
+| 1 tier above | +4 |
+| 2 tiers above | +9 |
+| 3 tiers above | +15 |
+| 4 tiers above | +22 |
+| 5 tiers above | +30 |
+| 6 tiers above | +39 |
 
-YOUR STEALTH ROLL: d20 + (Agility÷20) + (relevant skill÷20) + environmental modifiers
+EXAMPLE — Sidious (Tier 7 blade) vs 3 Jedi Masters (Tier 4 blade):
+Gap = 3 tiers → Sidious gets +15 on every exchange. Average total ~34. Masters average ~18. Margin ~16 = Overwhelming every exchange. Accurate.
 
-THEIR DETECTION THRESHOLD: Base awareness + modifiers (not a roll — a fixed value)
-- Untrained civilian: threshold 8
-- Trained guard: threshold 12
-- Elite soldier: threshold 16
-- Jedi with active Force Sense: threshold 18-22 depending on tier
-- Sith Lord: threshold 24+
+EXAMPLE — Vader (Tier 6 blade) vs Tier 4 Master:
+Gap = 2 tiers → Vader gets +9. Average total ~28. Master averages ~17. Margin ~11 = Dominant most exchanges. Master occasionally scores Narrow wins. Accurate.
 
-ENVIRONMENTAL MODIFIERS TO YOUR ROLL:
-- Darkness, crowds, loud ambient noise: +2 to +4
-- Open ground, silence, bright light: -3 to -5
-- Enemy actively searching for you specifically: -3
-- Enemy Force user passively sensing: -3
-- Enemy Force user actively scanning: -6
+### MULTIPLE OPPONENT RULE
+When one combatant faces multiple opponents simultaneously:
 
-Beat their threshold = undetected. Miss by 1-4 = partial detection (they feel something, not sure what). Miss by 5+ = detected.
+- Each additional attacker beyond the first: weaker side gains +2 coordination bonus per attacker
+- The dominant combatant gains +1 per attacker from Force awareness and battle precognition
+- Net effect: 3 attackers = +4 coordination for the group, +2 awareness for the dominant fighter
+- This reduces but NEVER eliminates a tier gap advantage
 
-### CREATIVITY AND TACTICAL SETUP — EXPLICIT BONUS DISPLAY
-When the player sets up a creative tactical advantage BEFORE a roll, list bonuses explicitly:
+EXAMPLE — Sidious vs 3 Masters:
+Masters get +4 coordination. Sidious gets +2 awareness. Net shift: Masters +2 effective.
+Margin still ~14. Still Overwhelming every exchange. Accurate — numbers don't save you against a 3-tier gap.
 
-Format:
-Tactical Setup Bonuses:
-+ [description]: +[N]
-+ [description]: +[N]
-Total setup bonus: +[N]
+EXAMPLE — Knight vs 3 Tier 2 opponents (equal situation):
+Knight is 1 tier above each. Gets +4 gap bonus. Opponents get +4 coordination.
+Near-equal fight — Knight has individual edge but is genuinely threatened. Correct.
 
-Then proceed with the normal roll display.
+### MANDATORY ROLL DISPLAY FORMAT
+Every roll must show:
 
-CREATIVITY BONUS EXAMPLES (not exhaustive — reward any genuine tactical thinking):
-- Forcing opponent into confined space (counters Ataru): +3 and their Ataru penalty applies
-- Secured high ground: +2
-- Environmental hazard created or triggered: +2 to +4 depending on severity
-- Successful feint or misdirection this round: +2 to next roll
-- Ally coordinating attack: +2 per ally up to +6
-- Using the Force to enhance physical action before it: +1 to +3
-- Exploiting a specific enemy weakness you identified: +2 to +4
-- Unconventional approach that catches enemy off guard: +1 to +3
+Action: [what]
+Tiers: Character=[tier name, primary stat=X] | Task/Opponent=[tier name]
+Gap: [+N tier gap bonus if applicable]
+Stat Bonus: +[X] using compressed formula (show each stat and its compressed value)
+Tactical Setup: +[N] (list each bonus — CAPPED AT +5 TOTAL)
+d20=[X], Bonus=+[total], Total=[final] | [Threshold row used]: Fail<N / Contested N-N / Solid N-N / Strong N-N / Overwhelming N+
+Result: [outcome] — [one line]
 
-IMPORTANT: The above is a guide, not a ceiling. Reward genuinely clever thinking that isn't listed. If the player does something creative that should help, give it a bonus, name it, and explain why. Do not cap creativity at these examples.
+TACTICAL BONUS CAP: Individual creativity bonuses stack freely but total tactical bonus cannot exceed +5. State "Tactical cap reached" if hit.
 
-### DUEL PHASE SYSTEM
-Lightsaber duels progress through structured phases. Enemy duelists adapt tactics based on experience and form mastery.
-Opening → Testing → Pressure → Breakthrough → Decisive Exchange
+### DUEL DISPLAY FORMAT
+Attacker: d20=[X] + compressed bonus=[X] + tier gap=[X] + form bonus=[X] = [total]
+Defender: d20=[X] + compressed bonus=[X] + form bonus=[X] = [total]
+Margin: [winner] by [N] — [result from margin table]
 
-### FORCE USER POWER TIERS
-Tier 1 — Untrained Sensitive: Instinctive, uncontrolled
-Tier 2 — Apprentice/Padawan: Learning fundamentals
-Tier 3 — Knight/Adept: Competent and reliable
-Tier 4 — Master/Sith Lord: Powerful and experienced
-Tier 5 — Legendary Master: Generational level
-Large tier gaps heavily affect opposed roll totals — a Tier 5 vs Tier 2 averages +15 margin most exchanges.
+### TRAINING DRILL DIFFICULTY
+- Technique well within character tier: treat as same-tier or 1-tier-below task
+- Technique at character tier ceiling: same-tier task
+- Technique beyond current tier: 1-tier-above task
+- Attempting something theoretically impossible: 2-tiers-above task
 
-### FAILURE CONSEQUENCES — SCALE TO MARGIN
-- Miss by 1-3: Minor setback, pressure, position disadvantage
-- Miss by 4-7: Meaningful failure, strain cost, momentum lost
-- Miss by 8-12: Serious failure, injury risk, significant setback
-- Miss by 13+: Catastrophic failure — injury, dangerous position, or worse
+### FAILURE CONSEQUENCES
+- Margin 1–3 against you: pressure, position disadvantage
+- Margin 4–7: meaningful failure, strain cost
+- Margin 8–12: serious failure, injury risk
+- Margin 13+: catastrophic — injury, dangerous position, or worse
+
+### LIGHTSABER FORMS — MODIFIERS STACK WITH TIER GAP
+Form counter bonuses apply ON TOP OF tier gap, not instead of it:
+- Makashi vs Shii-Cho: +2 to Makashi user's roll
+- Djem So vs Makashi: +2 to Djem So user's roll
+- Soresu vs Ataru: Ataru user +1 Physical Strain per round
+- Ataru in confined spaces: -3 to Ataru user's roll
+- Vaapad vs dark side opponent: +3 to Vaapad user's roll
+- Form VII restricted for Jedi without Council permission
+
+Form counters can help a lower-tier fighter. They cannot overcome a 3+ tier gap alone.
 
 ## FORCE BARRIER SYSTEM
 Every Padawan+ Force user has a passive Force barrier always active.
@@ -1194,13 +1208,7 @@ FORCE BARRIER IN THE SHEET BLOCK:
 - Show barrier integrity changes in narration when it takes significant hits.
 
 ## LIGHTSABER FORMS — ROLL MODIFIERS
-Forms level individually through use. Apply these modifiers to opposed roll totals in duels:
-- Makashi vs Shii-Cho: Makashi user +2 to their roll
-- Djem So vs Makashi: Djem So user +2 to their roll
-- Soresu vs Ataru: Ataru user gains +1 Physical Strain per round from exertion
-- Ataru in confined spaces: Ataru user -3 to all rolls (counts as major tactical setup bonus for opponent)
-- Vaapad vs dark side opponent: Vaapad user +3 to their roll
-- Form VII (Juyo/Vaapad): restricted for Jedi without explicit Council permission
+Form counter bonuses are defined in the ROLL SYSTEM section. They stack with tier gap bonuses. Form VII (Juyo/Vaapad) restricted for Jedi without Council permission.
 
 ## THREE STRAIN BARS — TRACK ALL THREE SEPARATELY
 Every character has three independent strain pools. Track them separately in the SHEET block.
@@ -1697,18 +1705,23 @@ function buildContext(userContent) {
   const cs = characterSheet || {};
   const ws = worldState || {};
 
+  const duelingTier = getCharDuelingTier();
+  const forceTier = getCharForceTier();
+
   const sheetSummary = `NAME: ${cs.name||'?'} | SPECIES: ${cs.species||'?'} | AGE: ${cs.age||'?'} | FACTION: ${cs.faction||'?'}
-ALIGNMENT: ${cs.alignment||0} (moves by 0.1-0.5 per minor decision, 1-3 per significant choice, 5-10 per defining moment — Force use alone NEVER moves alignment)
-FORCE TIER: ${cs.forceTier||1}
+ALIGNMENT: ${cs.alignment||0} (moves only from conscious moral choices — Force use alone = no change)
+DUELING TIER: ${duelingTier.name} (Tier ${duelingTier.num}) | FORCE TIER: ${forceTier.name} (Tier ${forceTier.num})
 HP: ${cs.hp||100}/${cs.maxHp||100}
-FORCE STRAIN: ${cs.forceStrain ?? cs.strain ?? 0}/${cs.maxForceStrain ?? cs.maxStrain ?? 12} (costs from Force use — recovers via meditation)
-PHYSICAL STRAIN: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||10} (costs from exertion, combat, injury — recovers via rest)
-MENTAL STRAIN: ${cs.mentalStrain||0}/${cs.maxMentalStrain||10} (costs from stress, fear, prolonged focus — recovers via sleep/calm)
-FORCE STATS: ForceSense=${cs.forceStats?.forceSense||0}, Meditation=${cs.forceStats?.meditation||0}, ForceKnowledge=${cs.forceStats?.forceKnowledge||0}, ForceControl=${cs.forceStats?.forceControl||0}
+FORCE STRAIN: ${cs.forceStrain ?? cs.strain ?? 0}/${cs.maxForceStrain ?? cs.maxStrain ?? 12}
+PHYSICAL STRAIN: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||10}
+MENTAL STRAIN: ${cs.mentalStrain||0}/${cs.maxMentalStrain||10}
+FORCE STATS (compressed bonus): ForceSense=${cs.forceStats?.forceSense||0}(+${compressedBonus(cs.forceStats?.forceSense).toFixed(2)}), Meditation=${cs.forceStats?.meditation||0}(+${compressedBonus(cs.forceStats?.meditation).toFixed(2)}), ForceKnowledge=${cs.forceStats?.forceKnowledge||0}(+${compressedBonus(cs.forceStats?.forceKnowledge).toFixed(2)}), ForceControl=${cs.forceStats?.forceControl||0}(+${compressedBonus(cs.forceStats?.forceControl).toFixed(2)})
 FORCE STATS XP: ${JSON.stringify(cs.forceStatsXP||{})}
-FORCE ABILITIES: ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||v.value||0):v}`).join(', ')||'none'}
+FORCE ABILITIES: ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||v.value||0):(v||0);return `${k}:${s}(+${compressedBonus(s).toFixed(2)})`;}).join(', ')||'none'}
 FORCE ABILITIES XP: ${JSON.stringify(cs.forceAbilitiesXP||{})}
-STATS: STR=${cs.stats?.strength||0}, AGI=${cs.stats?.agility||0}, END=${cs.stats?.endurance||0}, WILL=${cs.stats?.willpower||0}, CHA=${cs.stats?.charisma||0}
+LIGHTSABER FORMS: ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||0):(v||0);return `${k}:${s}(+${compressedBonus(s).toFixed(2)})`;}).join(', ')||'none'}
+LIGHTSABER FORMS XP: ${JSON.stringify(cs.lightsaberFormsXP||{})}
+STATS (compressed bonus): STR=${cs.stats?.strength||0}(+${compressedBonus(cs.stats?.strength).toFixed(2)}), AGI=${cs.stats?.agility||0}(+${compressedBonus(cs.stats?.agility).toFixed(2)}), END=${cs.stats?.endurance||0}(+${compressedBonus(cs.stats?.endurance).toFixed(2)}), WILL=${cs.stats?.willpower||0}(+${compressedBonus(cs.stats?.willpower).toFixed(2)}), CHA=${cs.stats?.charisma||0}(+${compressedBonus(cs.stats?.charisma).toFixed(2)})
 STATS XP: ${JSON.stringify(cs.statsXP||{})}
 FORCE BARRIER: ${cs.forceBarrier !== null && cs.forceBarrier !== undefined ? `${cs.forceBarrier}/${cs.maxForceBarrier||100}` : 'not yet developed'}
 INVENTORY: ${(cs.inventory||[]).join(', ')||'empty'} | CREDITS: ${cs.credits||0}
@@ -2148,7 +2161,47 @@ function updateUI() {
   if (worldState) updateWorldState();
 }
 
-// XP required to advance to next level — scales with current stat value
+// ═══════════════════════════════════════════════════════════════════
+//  COMPRESSED STAT BONUS — mirrors the prompt formula exactly
+// ═══════════════════════════════════════════════════════════════════
+function compressedBonus(stat) {
+  const s = stat || 0;
+  if (s <= 40)  return s / 20;
+  if (s <= 80)  return 2.0 + (s - 40) / 40;
+  if (s <= 100) return 3.0 + (s - 80) / 80;
+  return 3.25 + (s - 100) / 200;
+}
+
+function statToTier(stat) {
+  const s = stat || 0;
+  if (s <= 20)  return { num: 1, name: 'Untrained' };
+  if (s <= 40)  return { num: 2, name: 'Apprentice' };
+  if (s <= 60)  return { num: 3, name: 'Adept' };
+  if (s <= 80)  return { num: 4, name: 'Master' };
+  if (s <= 100) return { num: 5, name: 'High Master' };
+  if (s <= 120) return { num: 6, name: 'Legendary' };
+  return { num: 7, name: 'Transcendent' };
+}
+
+function tierGapBonus(higherTier, lowerTier) {
+  const gap = higherTier - lowerTier;
+  if (gap <= 0) return 0;
+  const bonuses = [0, 4, 9, 15, 22, 30, 39];
+  return bonuses[Math.min(gap, 6)];
+}
+
+// Get character's current dueling tier from highest lightsaber form
+function getCharDuelingTier() {
+  if (!characterSheet?.lightsaberForms) return { num: 1, name: 'Untrained' };
+  const highest = Math.max(0, ...Object.values(characterSheet.lightsaberForms).map(v =>
+    typeof v === 'object' ? (v.level || 0) : (v || 0)));
+  return statToTier(highest);
+}
+
+// Get character's Force tier from Force Control
+function getCharForceTier() {
+  return statToTier(characterSheet?.forceStats?.forceControl || 0);
+}
 // Low stats level quickly, high stats require exponentially more work
 function xpRequired(statVal) {
   const v = statVal || 0;
