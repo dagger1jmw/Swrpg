@@ -1025,7 +1025,7 @@ Every response you generate MUST end with both data blocks below. No exceptions.
 STEP 1: Write your narrative response and choices as normal.
 STEP 2: Immediately after, with no extra text, output the SHEET block:
 <<<SHEET>>>
-{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":12,"physicalStrain":0,"maxPhysicalStrain":10,"mentalStrain":0,"maxMentalStrain":10,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
+{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":12,"physicalStrain":0,"maxPhysicalStrain":10,"mentalStrain":0,"maxMentalStrain":10,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"aptitudes":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
 <<<END_SHEET>>>
 STEP 3: Immediately after, output the WORLD block:
 <<<WORLD>>>
@@ -1164,6 +1164,14 @@ Result: [outcome] — [one line]
 
 TACTICAL BONUS CAP: Total tactical bonus cannot exceed +5. State "Tactical cap reached" if hit.
 
+### SUB-ROLL RULE — REPETITIONS AND DRILLS
+When an action involves multiple repetitions (14 rounds of a drill, 10 sparring exchanges, etc.):
+- Use ONE roll from the pre-rolled values to determine the overall quality of the session
+- Do NOT generate individual rolls for each repetition — this would require dice the system hasn't pre-rolled
+- Describe the session outcome based on the single roll: high roll = consistently strong performance, low roll = mixed results
+- For drills with clear phases (warm-up, peak effort, fatigue), the single roll represents the average quality across all phases
+- Never invent d20 values that weren't in the pre-rolled system injection
+
 ### DUEL DISPLAY FORMAT
 Attacker: d20=[X] + compressed bonus=[X] + tier gap=[X] + form bonus=[X] = [total]
 Defender: d20=[X] + compressed bonus=[X] + form bonus=[X] = [total]
@@ -1256,7 +1264,36 @@ WHEN XP REACHES REQUIRED THRESHOLD:
 
 NEVER increase a stat directly without going through XP. Always update the XP fields.
 
-## ALIGNMENT — CHOICE-BASED, NOT FORCE-BASED
+## LIVING TRAITS SYSTEM — UPDATE EVERY TURN
+Traits are NOT static. They must be reviewed and updated every turn based on what happened.
+
+THREE TRAIT CATEGORIES in the SHEET block:
+
+STRENGTHS (positive character traits, physical/mental advantages):
+- Add when: a pattern of behavior becomes defining, a physical condition improves, a social relationship solidifies
+- Remove when: the underlying condition no longer applies (Malnourished → remove once character has had regular meals for weeks)
+- Examples: "Iron Will", "Natural Runner", "Quick Learner", "Calm Under Pressure"
+
+WEAKNESSES (negative traits, physical/mental disadvantages):
+- Add when: trauma, injury, poor conditions, or repeated failure creates a lasting pattern
+- Remove when: the condition is genuinely resolved — not just temporarily better
+- "Malnourished" should be removed once the character has been eating well for an extended period
+- Examples: "Socially Isolated", "Overconfident", "Untreated Injury", "Fear of Darkness"
+
+APTITUDES (discovered talents and exceptional abilities, distinct from general strengths):
+- Add when: a character demonstrates exceptional natural ability in a specific area, confirmed by multiple instances or NPC recognition
+- These are specific, not generic — "Exceptional aptitude for Force Absorb" not just "talented"
+- Never add on first encounter — requires pattern of evidence
+- Examples: "Exceptional Force Absorb Aptitude", "Natural Shii-Cho Instinct", "Accelerated Force Barrier Development"
+- These are permanent unless narratively contradicted
+
+REVIEW CHECKLIST each turn:
+1. Did anything happen that should add or remove a trait?
+2. Has a temporary condition (hunger, illness, isolation) been resolved?
+3. Did an NPC comment on or confirm a character ability pattern?
+4. Did the character demonstrate something exceptional that wasn't already captured?
+
+Always carry existing traits forward in the SHEET block. Never silently drop traits.
 Alignment range: -100 (pure Dark) to +100 (pure Light). Current value must be in SHEET block.
 
 WHAT MOVES ALIGNMENT:
@@ -1727,6 +1764,7 @@ FORCE BARRIER: ${cs.forceBarrier !== null && cs.forceBarrier !== undefined ? `${
 INVENTORY: ${(cs.inventory||[]).join(', ')||'empty'} | CREDITS: ${cs.credits||0}
 RENOWN: Jedi=${cs.renown?.jediOrder||0}, Sith=${cs.renown?.sith||0}, Republic=${cs.renown?.republic||0}, Underworld=${cs.renown?.underworld||0}
 STRENGTHS: ${(cs.strengths||[]).join(', ')||'none'} | WEAKNESSES: ${(cs.weaknesses||[]).join(', ')||'none'}
+APTITUDES: ${(cs.aptitudes||[]).join(', ')||'none'}
 INNATE TALENT: ${cs.innatetalent||'none'} | KNOWN SECRETS: ${(cs.knownSecrets||[]).join(', ')||'none'}`;
 
   const galaxySummary = `LOCATION: ${ws.location||'?'} | DATE: ${ws.inGameDate||'?'} | ERA: ${ws.era||'?'}
@@ -2402,10 +2440,24 @@ function updateCharacterSheet() {
     html += `<div class="sheet-section"><div class="sheet-section-title">Innate Talent</div><div style="font-size:13px;color:var(--gold)">${s.innatetalent}</div></div>`;
   }
 
-  if ((s.strengths||[]).length > 0 || (s.weaknesses||[]).length > 0) {
+  // Traits — strengths, weaknesses, aptitudes
+  const strengths = s.strengths || [];
+  const weaknesses = s.weaknesses || [];
+  const aptitudes = s.aptitudes || []; // discovered through training/events
+  if (strengths.length > 0 || weaknesses.length > 0 || aptitudes.length > 0) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Traits</div>`;
-    for (const str of (s.strengths||[])) html += `<div style="font-size:11px;color:#44aa66;margin-bottom:2px">+ ${str}</div>`;
-    for (const wk of (s.weaknesses||[])) html += `<div style="font-size:11px;color:#cc4444;margin-bottom:2px">− ${wk}</div>`;
+    if (aptitudes.length > 0) {
+      html += `<div style="font-size:10px;letter-spacing:1px;color:var(--gold-dim);font-family:Cinzel,serif;margin-bottom:4px;margin-top:2px">APTITUDES</div>`;
+      for (const a of aptitudes) html += `<div style="font-size:11px;color:#88ccff;margin-bottom:3px">◆ ${a}</div>`;
+    }
+    if (strengths.length > 0) {
+      html += `<div style="font-size:10px;letter-spacing:1px;color:var(--gold-dim);font-family:Cinzel,serif;margin-bottom:4px;margin-top:6px">STRENGTHS</div>`;
+      for (const str of strengths) html += `<div style="font-size:11px;color:#44aa66;margin-bottom:3px">+ ${str}</div>`;
+    }
+    if (weaknesses.length > 0) {
+      html += `<div style="font-size:10px;letter-spacing:1px;color:var(--gold-dim);font-family:Cinzel,serif;margin-bottom:4px;margin-top:6px">WEAKNESSES</div>`;
+      for (const wk of weaknesses) html += `<div style="font-size:11px;color:#cc4444;margin-bottom:3px">− ${wk}</div>`;
+    }
     html += `</div>`;
   }
 
