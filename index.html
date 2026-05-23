@@ -724,7 +724,64 @@
     color: var(--gold);
     font-weight: bold;
   }
-  /* ── SIMULATION PANEL ── */
+  /* ── CHARACTERS PANEL ── */
+  #chars-panel {
+    display: none;
+    flex-direction: column;
+    width: var(--panel-w);
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  #chars-panel.open { display: flex; }
+
+  .char-card {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .char-card:hover { background: rgba(201,168,76,0.04); }
+  .char-card.expanded { background: rgba(201,168,76,0.06); }
+  .char-name {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  .char-title {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .char-relation {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  .char-relation.ally { background: rgba(68,170,102,0.15); color: #44aa66; }
+  .char-relation.neutral { background: rgba(150,150,150,0.1); color: #888; }
+  .char-relation.hostile { background: rgba(204,68,68,0.15); color: #cc4444; }
+  .char-relation.mentor { background: rgba(100,136,204,0.15); color: #6688cc; }
+  .char-summary {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-top: 6px;
+    display: none;
+  }
+  .char-card.expanded .char-summary { display: block; }
+  .char-last-seen {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-top: 4px;
+    display: none;
+  }
+  .char-card.expanded .char-last-seen { display: block; }
   #sim-panel-overlay {
     display: none;
     position: fixed;
@@ -823,6 +880,7 @@
       <span id="save-indicator">—</span>
       <button class="hbtn" id="btn-sheet" onclick="togglePanel('sheet')" style="display:none">Character</button>
       <button class="hbtn" id="btn-log" onclick="togglePanel('log')" style="display:none">World Log</button>
+      <button class="hbtn" id="btn-chars" onclick="togglePanel('chars')" style="display:none">People</button>
       <button class="hbtn" id="btn-simulate" onclick="openSimPanel()" style="display:none">Simulate</button>
       <button class="hbtn" id="btn-sync" onclick="manualStrainSync()" style="display:none" title="Manually update strain bars from current sheet">Sync</button>
       <button class="hbtn" id="btn-save" onclick="openSaveLoad('save')" style="display:none">Save</button>
@@ -896,7 +954,10 @@
     <div id="story-area">
       <div id="location-bar" style="position:relative">
         <div id="loc-text">📍 <span id="loc-val">—</span></div>
-        <div id="date-text" style="cursor:pointer" onclick="toggleCalendar()" title="Click to view calendar">📅 <span id="date-display">—</span></div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div id="time-display" style="font-size:12px;color:var(--text-dim);font-style:italic">🕐 <span id="time-val">—</span></div>
+          <div id="date-text" style="cursor:pointer" onclick="toggleCalendar()" title="Click to view calendar">📅 <span id="date-display">—</span></div>
+        </div>
       </div>
 
       <!-- Calendar popup -->
@@ -937,6 +998,14 @@
         <div id="legacy-content"><div style="color:var(--text-dim);font-size:12px;font-style:italic">None established.</div></div>
         <div class="log-title">🧬 Lineage</div>
         <div id="lineage-content"><div style="color:var(--text-dim);font-size:12px;font-style:italic">No ancestors yet.</div></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Characters / People -->
+    <div id="chars-panel">
+      <div class="panel-header">◈ People</div>
+      <div class="panel-scroll" id="chars-content">
+        <div style="color:var(--text-dim);font-size:12px;font-style:italic;padding:8px">No characters recorded yet.</div>
       </div>
     </div>
 
@@ -1084,16 +1153,17 @@ STEP 3: Output the SHEET block (full JSON for complete state):
 
 STEP 4: Output the WORLD block:
 <<<WORLD>>>
-{complete json}
+{"location":"","era":"","inGameDate":"","inGameTime":"Morning (06:00)","lastEvent":"","legacyChanges":[],"lineageRecord":[],"worldLog":[],"galaxyEvents":[],"galaxyState":{"jediOrder":"","sith":"","republic":"","mandalorians":"","underworld":""},"trackedCharacters":[]}
 <<<END_WORLD>>>
 
 RULES FOR DATA BLOCKS:
-- worldLog: array of objects ONLY. Format: [{"turn":1,"event":"description","location":"place"}]. Keep last 20. Add a new entry every single turn.
-- galaxyEvents: array of objects tracking background galaxy simulation. Format: [{"turn":1,"faction":"Jedi Order","event":"description"}]. Keep last 10. Add entries when something notable happens in the wider galaxy even if the player is not involved.
-- forceAbilities: values must be plain numbers only. Example: {"Force Push": 15, "Force Sense": 60}. Never use nested objects.
-- inGameDate: use Galactic Standard Calendar format: "Weekday, Day X MonthName — YYYY BBY" e.g. "Taungsday, Day 14 Midyear — 3661 BBY". 12 months: Coruscann, Frostuary, Warming, Seedmonth, Bloomtide, Midyear, Heatmonth, Harvestide, Goldfall, Stormtide, Coldmonth, Yearend. Days of week: Primeday, Centaxday, Taungsday, Zhellday, Benduday, Restday, Endday. 368 days per year.
-- All fields must be present every response even if unchanged.
-- NEVER print the character sheet as a markdown list (** field:** value). The sidebar ONLY reads the JSON blocks. Markdown sheets in the story feed do nothing and confuse the player.
+- worldLog: array of objects. Format: [{"turn":1,"event":"description","location":"place"}]. Keep last 20. Add new entry every turn.
+- inGameTime: current time of day as a string. Update every turn based on time elapsed. Format: "Morning (06:00)" or "Late Night (02:15)". Use 24-hour clock in parentheses. Time periods: Pre-Dawn (03-05), Dawn (05-06), Morning (06-11), Midday (11-13), Afternoon (13-17), Evening (17-21), Night (21-24), Late Night (00-03).
+- trackedCharacters: array of NPCs the player has meaningful interaction with. Format: [{"name":"Master Shara","title":"Jedi Knight, Combat Instructor","relation":"Mentor","summary":"Jared's primary combat trainer. Noticed his exceptional Force Absorb aptitude. Stern but encouraging teaching style. Believes Jared has unusual potential.","lastSeen":"Day 28 Goldfall, Training Salle Gamma"}]. Relations: Mentor, Ally, Neutral, Hostile, Rival, Friend, Unknown. Update summary as relationship develops. Remove characters who are no longer relevant.
+- galaxyEvents: Format: [{"turn":1,"faction":"Jedi Order","event":"description"}]. Keep last 10.
+- forceAbilities: plain numbers only.
+- inGameDate: Galactic Standard Calendar format.
+- All fields must be present every response.
 
 ## ROLL SYSTEM — FULLY REDESIGNED
 
@@ -1688,6 +1758,7 @@ function showGame() {
   document.getElementById('game-layout').classList.add('visible');
   document.getElementById('btn-sheet').style.display = '';
   document.getElementById('btn-log').style.display = '';
+  document.getElementById('btn-chars').style.display = '';
   document.getElementById('btn-simulate').style.display = '';
   document.getElementById('btn-sync').style.display = '';
   document.getElementById('btn-save').style.display = '';
@@ -1834,7 +1905,7 @@ STRENGTHS: ${(cs.strengths||[]).join(', ')||'none'} | WEAKNESSES: ${(cs.weakness
 APTITUDES: ${(cs.aptitudes||[]).join(', ')||'none'}
 INNATE TALENT: ${cs.innatetalent||'none'} | KNOWN SECRETS: ${(cs.knownSecrets||[]).join(', ')||'none'}`;
 
-  const galaxySummary = `LOCATION: ${ws.location||'?'} | DATE: ${ws.inGameDate||'?'} | ERA: ${ws.era||'?'}
+  const galaxySummary = `LOCATION: ${ws.location||'?'} | DATE: ${ws.inGameDate||'?'} | TIME: ${ws.inGameTime||'?'} | ERA: ${ws.era||'?'}
 GALAXY STATE: Jedi=${ws.galaxyState?.jediOrder||'?'}, Sith=${ws.galaxyState?.sith||'?'}, Republic=${ws.galaxyState?.republic||'?'}
 LAST GALAXY EVENT DATE: ${lastGalaxyEventDate || 'none yet'}
 ACTIVE THREATS & ONGOING SITUATIONS:
@@ -2726,6 +2797,12 @@ function updateWorldState() {
   // Location bar
   if (w.location) document.getElementById('loc-val').textContent = w.location;
 
+  // Time of day
+  if (w.inGameTime) {
+    const timeEl = document.getElementById('time-val');
+    if (timeEl) timeEl.textContent = w.inGameTime;
+  }
+
   // Date — parse and display using proper calendar
   if (w.inGameDate) {
     // Migrate old "Day 229" format to proper calendar format on first update
@@ -2838,16 +2915,54 @@ function updateWorldState() {
 function togglePanel(which) {
   const sheet = document.getElementById('sheet-panel');
   const log = document.getElementById('log-panel');
-  const btnSheet = document.getElementById('btn-sheet');
-  const btnLog = document.getElementById('btn-log');
+  const chars = document.getElementById('chars-panel');
 
   if (which === 'sheet') {
     const open = sheet.classList.toggle('open');
-    btnSheet.classList.toggle('active', open);
-  } else {
+    log.classList.remove('open');
+    chars.classList.remove('open');
+  } else if (which === 'log') {
     const open = log.classList.toggle('open');
-    btnLog.classList.toggle('active', open);
+    sheet.classList.remove('open');
+    chars.classList.remove('open');
+  } else if (which === 'chars') {
+    const open = chars.classList.toggle('open');
+    sheet.classList.remove('open');
+    log.classList.remove('open');
+    if (open) renderCharactersPanel();
   }
+}
+
+function renderCharactersPanel() {
+  const container = document.getElementById('chars-content');
+  if (!container) return;
+  const chars = worldState?.trackedCharacters || [];
+  if (chars.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic;padding:8px">No characters recorded yet. Significant NPCs will appear here as you meet them.</div>';
+    return;
+  }
+  container.innerHTML = '';
+  for (const ch of chars) {
+    const card = document.createElement('div');
+    card.className = 'char-card';
+    card.onclick = () => card.classList.toggle('expanded');
+    const relationClass = {ally:'ally', mentor:'mentor', hostile:'hostile'}[ch.relation?.toLowerCase()] || 'neutral';
+    card.innerHTML = `
+      <div class="char-name">${ch.name || '?'}</div>
+      <div class="char-title">${ch.title || ''}</div>
+      <span class="char-relation ${relationClass}">${ch.relation || 'Known'}</span>
+      <div class="char-summary">${ch.summary || 'No notes yet.'}</div>
+      <div class="char-last-seen">Last seen: ${ch.lastSeen || '—'}</div>`;
+    container.appendChild(card);
+  }
+}
+
+// Update time display from worldState
+function updateTimeDisplay() {
+  const ws = worldState;
+  if (!ws?.inGameTime) return;
+  const el = document.getElementById('time-val');
+  if (el) el.textContent = ws.inGameTime;
 }
 
 // ═══════════════════════════════════════════════════════════════════
