@@ -2375,9 +2375,9 @@ async function callGemini(playerMessage, retryCount = 0) {
           const currentParsed = parseDateString(worldState.inGameDate);
           const useYear = year || currentParsed?.year || 3661;
           const useEra = era || currentParsed?.era || 'BBY';
-          // Calculate day of year
           const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + day;
           const newDateStr = dateToString(useYear, useEra, dayOfYear);
+          // Update worldState.inGameDate so updateWorldState (called later) uses the right value
           worldState.inGameDate = newDateStr;
           const dateEl = document.getElementById('date-display');
           if (dateEl) dateEl.textContent = newDateStr;
@@ -2853,23 +2853,21 @@ function updateWorldState() {
     const timeEl = document.getElementById('time-val');
     if (timeEl) timeEl.textContent = w.inGameTime;
   }
-  // Date — parse and display using proper calendar
-  if (w.inGameDate) {
-    // Migrate old "Day 229" format to proper calendar format on first update
-    const raw = w.inGameDate;
+  // Date — use worldState.inGameDate which may already be corrected by the narrative parser
+  const currentDate = worldState.inGameDate || w.inGameDate;
+  if (currentDate) {
+    const raw = currentDate;
     const hasPropFormat = GSC_MONTHS.some(m => raw.includes(m));
     if (!hasPropFormat) {
-      // Convert old format to new
       const yearMatch = raw.match(/(\d{3,4})\s*(BBY|ABY)/i);
       const dayMatch = raw.match(/Day\s*(\d+)/i);
       if (yearMatch && dayMatch) {
         const newDate = dateToString(parseInt(yearMatch[1]), yearMatch[2].toUpperCase(), parseInt(dayMatch[1]));
         worldState.inGameDate = newDate;
-        w.inGameDate = newDate;
       }
     }
-    document.getElementById('date-display').textContent = w.inGameDate;
-    updateCalendarContent(w.inGameDate);
+    document.getElementById('date-display').textContent = worldState.inGameDate;
+    updateCalendarContent(worldState.inGameDate);
   }
 
   // World log — merge new entries with existing, use real turnCount for latest entry
