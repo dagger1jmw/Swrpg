@@ -1048,20 +1048,34 @@ AGILITY=45
 ENDURANCE=28
 WILLPOWER=51
 CHARISMA=36
+AGE=9
 Force Push=58
 Telekinesis=59
 Shii-Cho=55
+XP_FORCE_SENSE=8.5
+XP_MEDITATION=12.0
+XP_FORCE_KNOWLEDGE=9.0
+XP_FORCE_CONTROL=14.0
+XP_STRENGTH=6.0
+XP_AGILITY=41.5
+XP_ENDURANCE=33.5
+XP_WILLPOWER=7.0
+XP_CHARISMA=0
+XP_Force Push=22.0
+XP_Telekinesis=18.5
+XP_Shii-Cho=21.0
 <<<END_CHANGES>>>
 
 RULES FOR CHANGES BLOCK:
-- Include ALL stats listed above every turn with their CURRENT value after this turn
-- Use exact key names: HP, FORCE_STRAIN, PHYSICAL_STRAIN, MENTAL_STRAIN, FORCE_BARRIER, ALIGNMENT
-- Force stats: FORCE_SENSE, MEDITATION, FORCE_KNOWLEDGE, FORCE_CONTROL
-- Physical stats: STRENGTH, AGILITY, ENDURANCE, WILLPOWER, CHARISMA
-- Force abilities and lightsaber forms: use the exact name as stored (e.g. "Force Push=58")
-- Numbers only — no text, no units, no arrows
+- Include ALL stat values AND all XP_* values every turn
+- Stat values: current level after this turn (integer or decimal)
+- XP_* values: accumulated XP toward next level. Format: XP_StatName=currentXP
+- For force stats use: XP_FORCE_SENSE, XP_MEDITATION, XP_FORCE_KNOWLEDGE, XP_FORCE_CONTROL
+- For physical stats use: XP_STRENGTH, XP_AGILITY, XP_ENDURANCE, XP_WILLPOWER, XP_CHARISMA
+- For abilities/forms: XP_Force Push, XP_Telekinesis, XP_Shii-Cho etc (exact name with XP_ prefix)
+- When XP reaches the required threshold, increment the stat by 1 and reset XP to 0
+- XP thresholds: stat 0-19=10, 20-39=25, 40-59=50, 60-79=100, 80-84=200, 85-94=500, 95-99=1000, 100+=5000
 - This block is what updates the character sheet sidebar — if you skip it, nothing updates
-- AGE should be updated when the character has a birthday
 
 STEP 3: Output the SHEET block (full JSON for complete state):
 <<<SHEET>>>
@@ -1968,23 +1982,66 @@ async function callGemini(playerMessage, retryCount = 0) {
     }
 
     // ── Parse CHANGES block — structured delta, always present ──────
-    // This is the primary update mechanism. Simpler and more reliable than full JSON.
     const changesMatch = rawText.match(/<<<CHANGES>>>\s*([\s\S]*?)\s*<<<END_CHANGES>>>/);
     if (changesMatch && characterSheet) {
       const changesText = changesMatch[1];
-      // Each line: KEY=VALUE
       for (const line of changesText.split('\n')) {
-        const m = line.trim().match(/^([A-Z_]+)\s*=\s*(.+)$/);
+        const m = line.trim().match(/^([A-Za-z_][A-Za-z0-9_\s\-]+?)\s*=\s*(.+)$/);
         if (!m) continue;
         const key = m[1].trim();
         const rawVal = m[2].trim();
         const val = isNaN(rawVal) ? rawVal : parseFloat(rawVal);
 
+        // XP fields — XP_STAT_NAME or XP_Ability Name
+        if (key.startsWith('XP_')) {
+          const statName = key.slice(3); // remove XP_ prefix
+          const xpVal = parseFloat(rawVal);
+          if (isNaN(xpVal)) continue;
+          const statNameLower = statName.toLowerCase().replace(/[\s_]/g, '');
+          const fsMap = {forcesense:'forceSense',meditation:'meditation',forceknowledge:'forceKnowledge',forcecontrol:'forceControl'};
+          const stMap = {strength:'strength',agility:'agility',endurance:'endurance',willpower:'willpower',charisma:'charisma'};
+          if (fsMap[statNameLower]) {
+            const k = fsMap[statNameLower];
+            if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
+            const curStat = characterSheet.forceStats?.[k] || 0;
+            if (!characterSheet.forceStatsXP[k]) characterSheet.forceStatsXP[k] = {current:0, required:xpRequired(curStat)};
+            characterSheet.forceStatsXP[k].current = xpVal;
+            characterSheet.forceStatsXP[k].required = xpRequired(curStat);
+          } else if (stMap[statNameLower]) {
+            const k = stMap[statNameLower];
+            if (!characterSheet.statsXP) characterSheet.statsXP = {};
+            const curStat = characterSheet.stats?.[k] || 0;
+            if (!characterSheet.statsXP[k]) characterSheet.statsXP[k] = {current:0, required:xpRequired(curStat)};
+            characterSheet.statsXP[k].current = xpVal;
+            characterSheet.statsXP[k].required = xpRequired(curStat);
+          } else {
+            // Ability or form
+            const abilityKey = Object.keys(characterSheet.forceAbilities||{}).find(k => k.toLowerCase().replace(/[\s_]/g,'') === statNameLower);
+            const formKey = Object.keys(characterSheet.lightsaberForms||{}).find(k => k.toLowerCase().replace(/[\s_]/g,'') === statNameLower);
+            if (abilityKey) {
+              if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
+              const curStat = typeof characterSheet.forceAbilities[abilityKey]==='object' ? (characterSheet.forceAbilities[abilityKey].level||0) : (characterSheet.forceAbilities[abilityKey]||0);
+              if (!characterSheet.forceAbilitiesXP[abilityKey]) characterSheet.forceAbilitiesXP[abilityKey] = {current:0, required:xpRequired(curStat)};
+              characterSheet.forceAbilitiesXP[abilityKey].current = xpVal;
+              characterSheet.forceAbilitiesXP[abilityKey].required = xpRequired(curStat);
+            } else if (formKey) {
+              if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
+              const curStat = typeof characterSheet.lightsaberForms[formKey]==='object' ? (characterSheet.lightsaberForms[formKey].level||0) : (characterSheet.lightsaberForms[formKey]||0);
+              if (!characterSheet.lightsaberFormsXP[formKey]) characterSheet.lightsaberFormsXP[formKey] = {current:0, required:xpRequired(curStat)};
+              characterSheet.lightsaberFormsXP[formKey].current = xpVal;
+              characterSheet.lightsaberFormsXP[formKey].required = xpRequired(curStat);
+            }
+          }
+          continue;
+        }
+
+        // Regular stat fields
+        if (isNaN(val)) continue;
         switch(key) {
           case 'HP':                characterSheet.hp = val; break;
-          case 'FORCE_STRAIN':      characterSheet.forceStrain = val; break;
-          case 'PHYSICAL_STRAIN':   characterSheet.physicalStrain = val; break;
-          case 'MENTAL_STRAIN':     characterSheet.mentalStrain = val; break;
+          case 'FORCE_STRAIN':      characterSheet.forceStrain = Math.max(0,Math.min(characterSheet.maxForceStrain||12,val)); break;
+          case 'PHYSICAL_STRAIN':   characterSheet.physicalStrain = Math.max(0,Math.min(characterSheet.maxPhysicalStrain||10,val)); break;
+          case 'MENTAL_STRAIN':     characterSheet.mentalStrain = Math.max(0,Math.min(characterSheet.maxMentalStrain||10,val)); break;
           case 'FORCE_BARRIER':     characterSheet.forceBarrier = val; break;
           case 'ALIGNMENT':         characterSheet.alignment = val; break;
           case 'FORCE_SENSE':       if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceSense = val; break;
@@ -1998,47 +2055,59 @@ async function callGemini(playerMessage, retryCount = 0) {
           case 'CHARISMA':          if (!characterSheet.stats) characterSheet.stats={}; characterSheet.stats.charisma = val; break;
           case 'AGE':               characterSheet.age = val; break;
           case 'CREDITS':           characterSheet.credits = val; break;
-          default:
-            // Force abilities and lightsaber forms
-            if (characterSheet.forceAbilities && key in characterSheet.forceAbilities) {
-              characterSheet.forceAbilities[key] = val;
-            } else if (characterSheet.lightsaberForms && key in characterSheet.lightsaberForms) {
-              characterSheet.lightsaberForms[key] = val;
-            } else {
-              // Try matching with spaces (e.g. FORCE_PUSH → "Force Push")
-              const humanKey = key.replace(/_/g, ' ').toLowerCase();
-              const abilityMatch = Object.keys(characterSheet.forceAbilities||{}).find(k => k.toLowerCase() === humanKey);
-              const formMatch = Object.keys(characterSheet.lightsaberForms||{}).find(k => k.toLowerCase() === humanKey);
-              if (abilityMatch) characterSheet.forceAbilities[abilityMatch] = val;
-              else if (formMatch) characterSheet.lightsaberForms[formMatch] = val;
-            }
+          default: {
+            const humanKey = key.toLowerCase();
+            const abilityMatch = Object.keys(characterSheet.forceAbilities||{}).find(k => k.toLowerCase() === humanKey);
+            const formMatch = Object.keys(characterSheet.lightsaberForms||{}).find(k => k.toLowerCase() === humanKey);
+            if (abilityMatch) characterSheet.forceAbilities[abilityMatch] = val;
+            else if (formMatch) characterSheet.lightsaberForms[formMatch] = val;
+          }
         }
       }
       sheetParsed = true;
     }
 
     // ── Always parse strain and XP from narrative text ─────────────
-    // Runs regardless of whether CHANGES or SHEET blocks were found
-    // This catches formats like "Physical Strain: +2 -> 4/10" and "Agility: +2 XP -> 41.5/50"
     if (characterSheet) {
       const rt = rawText;
+      const maxFS = characterSheet.maxForceStrain || 12;
+      const maxPS = characterSheet.maxPhysicalStrain || 10;
+      const maxMS = characterSheet.maxMentalStrain || 10;
 
-      // Strain: final value after arrow — handles "+ -> X/Y" and "-> X" and ": X"
-      // Pattern covers: "Physical Strain: +2 -> 4/10", "Force Strain: 2 → 0", "Strain reduced to 0"
-      const strainFinalPatterns = [
-        { re: /Force\s*Strain[^:]*:\s*(?:[+-]?\d+(?:\.\d+)?\s*(?:→|->)\s*)?(\d+)(?:\/\d+)?/gi, field: 'forceStrain' },
-        { re: /Physical\s*Strain[^:]*:\s*(?:[+-]?\d+(?:\.\d+)?\s*(?:→|->)\s*)?(\d+)(?:\/\d+)?/gi, field: 'physicalStrain' },
-        { re: /Mental\s*Strain[^:]*:\s*(?:[+-]?\d+(?:\.\d+)?\s*(?:→|->)\s*)?(\d+)(?:\/\d+)?/gi, field: 'mentalStrain' },
+      // Only match explicit update lines — must have arrow or "reduced to" or ": X/Y" format
+      // Pattern: "Physical Strain: +2 (reason) -> 4/10" or "Physical Strain: 2 → 0"
+      // IMPORTANT: require the final value to be followed by /digit or end-of-content
+      // This prevents matching "45 minutes of Physical Strain training"
+      const strainUpdateRe = [
+        { re: /\bForce\s*Strain\s*:[^.\n]*?(?:→|->)\s*(\d+)\s*\/?\d*/gi, field: 'forceStrain', max: maxFS },
+        { re: /\bPhysical\s*Strain\s*:[^.\n]*?(?:→|->)\s*(\d+)\s*\/?\d*/gi, field: 'physicalStrain', max: maxPS },
+        { re: /\bMental\s*Strain\s*:[^.\n]*?(?:→|->)\s*(\d+)\s*\/?\d*/gi, field: 'mentalStrain', max: maxMS },
       ];
-      for (const { re, field } of strainFinalPatterns) {
+      for (const { re, field, max } of strainUpdateRe) {
         const matches = [...rt.matchAll(re)];
         if (matches.length > 0) {
           const val = parseInt(matches[matches.length - 1][1]);
-          if (!isNaN(val) && val >= 0) characterSheet[field] = val;
+          if (!isNaN(val) && val >= 0 && val <= max) {
+            characterSheet[field] = val;
+          }
         }
       }
 
-      // Full restoration phrases
+      // Explicit "reduced to X" format
+      const reducedRe = [
+        { re: /\bForce\s*Strain\s+(?:reduced|lowered|dropped)\s+to\s+(\d+)/gi, field: 'forceStrain', max: maxFS },
+        { re: /\bPhysical\s*Strain\s+(?:reduced|lowered|dropped)\s+to\s+(\d+)/gi, field: 'physicalStrain', max: maxPS },
+        { re: /\bMental\s*Strain\s+(?:reduced|lowered|dropped)\s+to\s+(\d+)/gi, field: 'mentalStrain', max: maxMS },
+      ];
+      for (const { re, field, max } of reducedRe) {
+        const matches = [...rt.matchAll(re)];
+        if (matches.length > 0) {
+          const val = parseInt(matches[matches.length - 1][1]);
+          if (!isNaN(val) && val >= 0 && val <= max) characterSheet[field] = val;
+        }
+      }
+
+      // Full restoration
       if (/fully restored.*(?:strain|0 force|0 physical)|all strain.*(?:cleared|0)|(?:strain|fatigue).*fully.*(?:restored|recovered)/i.test(rt)) {
         characterSheet.forceStrain = 0;
         characterSheet.physicalStrain = 0;
@@ -2048,10 +2117,16 @@ async function callGemini(playerMessage, retryCount = 0) {
       // Triple format: "0 Force, 0 Physical, and 0 Mental Strain"
       const tripleMatch = rt.match(/(\d+)\s*Force[^,\n]*,\s*(\d+)\s*Physical[^,\n]*,\s*(?:and\s*)?(\d+)\s*Mental\s*Strain/i);
       if (tripleMatch) {
-        characterSheet.forceStrain = Math.max(0, parseInt(tripleMatch[1]));
-        characterSheet.physicalStrain = Math.max(0, parseInt(tripleMatch[2]));
-        characterSheet.mentalStrain = Math.max(0, parseInt(tripleMatch[3]));
+        const fv = parseInt(tripleMatch[1]), pv = parseInt(tripleMatch[2]), mv = parseInt(tripleMatch[3]);
+        if (fv <= maxFS) characterSheet.forceStrain = fv;
+        if (pv <= maxPS) characterSheet.physicalStrain = pv;
+        if (mv <= maxMS) characterSheet.mentalStrain = mv;
       }
+
+      // Safety clamp — strain can NEVER exceed max or go below 0
+      characterSheet.forceStrain = Math.max(0, Math.min(maxFS, characterSheet.forceStrain || 0));
+      characterSheet.physicalStrain = Math.max(0, Math.min(maxPS, characterSheet.physicalStrain || 0));
+      characterSheet.mentalStrain = Math.max(0, Math.min(maxMS, characterSheet.mentalStrain || 0));
 
       // XP accumulation: "Agility: +2 XP -> 41.5/50" — update XP progress bars
       // Pattern: "StatName: +N XP -> current/required" or "StatName: +N XP (now X/Y)"
