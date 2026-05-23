@@ -1189,8 +1189,10 @@ MAX TOTAL BONUS BY TIER (4 relevant stats):
 
 The d20 always matters. Even a Transcendent can fail on a 1.
 
-### SEVEN-TIER SYSTEM
-Derive tier from the PRIMARY STAT being used for that action:
+### SEVEN-TIER SYSTEM — ABILITY-SPECIFIC, NOT OVERALL
+Tier is ALWAYS derived from the SPECIFIC stat or ability being used in THIS action. Never use highest stat, average, or overall tier.
+
+TIER THRESHOLDS (same for all stats):
 - Tier 1 Untrained:    stat 0–20
 - Tier 2 Apprentice:   stat 21–40
 - Tier 3 Adept:        stat 41–60
@@ -1199,9 +1201,47 @@ Derive tier from the PRIMARY STAT being used for that action:
 - Tier 6 Legendary:    stat 101–120
 - Tier 7 Transcendent: stat 121–150
 
-For LIGHTSABER DUELS: derive tier from the character's highest lightsaber form stat.
-For FORCE CONTESTS: derive tier from Force Control stat.
-For PHYSICAL ACTIONS: derive tier from the primary physical stat.
+LIGHTSABER DUELS — use the FORM being actively used this exchange:
+- If Jared is using Djem So (stat 1), his tier is Tier 1 for this exchange
+- If Jared is using Shii-Cho (stat 55), his tier is Tier 3 for this exchange
+- The opponent's tier is derived from THEIR active form
+- Switching forms mid-duel changes tier immediately
+- Physical stats (Strength, Agility) add to the roll via compressed bonus but do NOT determine tier
+
+FORCE ABILITY CONTESTS — use the SPECIFIC ability on each side:
+- Force Lightning (stat 120) vs Force Barrier (stat 40): Lightning is Tier 6, Barrier is Tier 3 → 3-tier gap, +15 to attacker
+- Force Push (stat 58) vs Force Resistance (stat 30): Push is Tier 3, Resistance is Tier 2 → 1-tier gap, +4 to attacker
+- Telekinesis contest: both sides use their Telekinesis stat
+- Force Sense vs Stealth: Force Sense stat vs Agility/Stealth stat
+- Never use "Force Tier" or average Force stats for these contests — use the specific ability stat
+
+PHYSICAL ACTIONS — use the primary physical stat:
+- Athletics, climbing, running → Agility stat
+- Lifting, breaking → Strength stat
+- Sustained effort → Endurance stat
+
+ROLL DISPLAY MUST SHOW SPECIFIC STATS:
+Action: [what, specifying which form/ability]
+Attacker: [name] using [Form/Ability] (stat=[X]) → Tier [N] [name]
+Defender: [name] using [Form/Ability] (stat=[X]) → Tier [N] [name]
+Tier Gap: [higher side] is [N] tier(s) above → +[bonus] to [attacker/defender]
+Stat Bonus: +[X] total (list each relevant stat with compressed value)
+Tactical Setup: +[N] (list bonuses — CAPPED AT +5)
+
+EXAMPLE — Jared (Djem So=1) vs Training Bot (Djem So=25):
+Attacker: Jared using Djem So (1) → Tier 1 Untrained
+Defender: Bot using Djem So (25) → Tier 2 Apprentice
+Tier Gap: Bot 1 tier above → +4 to Bot's roll
+Jared Stat Bonus: +2.13 (Str 45) +2.45 (Agi 58) +0.05 (Djem So 1) = +4.63
+Bot Stat Bonus: +1.25 (Str) +1.25 (Agi) +1.25 (Djem So 25) = +3.75
+Bot total: d20 + 3.75 + 4 (tier gap) = significantly ahead despite Jared's superior physicals
+
+EXAMPLE — Sith Force Lightning (120) vs Jared Force Barrier (40):
+Attacker: Sith using Force Lightning (120) → Tier 6 Legendary
+Defender: Jared using Force Barrier (40) → Tier 2 Apprentice
+Tier Gap: Sith 4 tiers above → +22 to Sith's roll
+Jared's high Telekinesis or Force Control is IRRELEVANT to this specific contest
+Result: Barrier is under extreme pressure — narrative should reflect this danger
 
 ### DYNAMIC THRESHOLDS — TIER RELATIVE
 Thresholds shift based on the GAP between character tier and task/opponent tier.
@@ -1880,8 +1920,8 @@ function buildContext(userContent) {
   const cs = characterSheet || {};
   const ws = worldState || {};
 
-  const duelingTier = getCharDuelingTier();
-  const forceTier = getCharForceTier();
+  const duelingTier = getCharDuelingTier(); // kept for reference only — actual tier per exchange uses active form
+  const forceTier = getCharForceTier();     // kept for reference only — actual tier per contest uses specific ability
 
   const sheetSummary = `NAME: ${cs.name||'?'} | SPECIES: ${cs.species||'?'} | AGE: ${cs.age||'?'} | FACTION: ${cs.faction||'?'}
 ALIGNMENT: ${cs.alignment||0} (moves only from conscious moral choices — Force use alone = no change)
@@ -1892,9 +1932,9 @@ PHYSICAL STRAIN: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||10}
 MENTAL STRAIN: ${cs.mentalStrain||0}/${cs.maxMentalStrain||10}
 FORCE STATS (compressed bonus): ForceSense=${cs.forceStats?.forceSense||0}(+${compressedBonus(cs.forceStats?.forceSense).toFixed(2)}), Meditation=${cs.forceStats?.meditation||0}(+${compressedBonus(cs.forceStats?.meditation).toFixed(2)}), ForceKnowledge=${cs.forceStats?.forceKnowledge||0}(+${compressedBonus(cs.forceStats?.forceKnowledge).toFixed(2)}), ForceControl=${cs.forceStats?.forceControl||0}(+${compressedBonus(cs.forceStats?.forceControl).toFixed(2)})
 FORCE STATS XP: ${JSON.stringify(cs.forceStatsXP||{})}
-FORCE ABILITIES: ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||v.value||0):(v||0);return `${k}:${s}(+${compressedBonus(s).toFixed(2)})`;}).join(', ')||'none'}
+FORCE ABILITIES (stat → compressed bonus → tier): ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||v.value||0):(v||0);return `${k}:${s}(+${compressedBonus(s).toFixed(2)},${statToTier(s).name})`;}).join(', ')||'none'}
 FORCE ABILITIES XP: ${JSON.stringify(cs.forceAbilitiesXP||{})}
-LIGHTSABER FORMS: ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||0):(v||0);return `${k}:${s}(+${compressedBonus(s).toFixed(2)})`;}).join(', ')||'none'}
+LIGHTSABER FORMS (stat → compressed bonus → tier): ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||0):(v||0);return `${k}:${s}(+${compressedBonus(s).toFixed(2)},${statToTier(s).name})`;}).join(', ')||'none'}
 LIGHTSABER FORMS XP: ${JSON.stringify(cs.lightsaberFormsXP||{})}
 STATS (compressed bonus): STR=${cs.stats?.strength||0}(+${compressedBonus(cs.stats?.strength).toFixed(2)}), AGI=${cs.stats?.agility||0}(+${compressedBonus(cs.stats?.agility).toFixed(2)}), END=${cs.stats?.endurance||0}(+${compressedBonus(cs.stats?.endurance).toFixed(2)}), WILL=${cs.stats?.willpower||0}(+${compressedBonus(cs.stats?.willpower).toFixed(2)}), CHA=${cs.stats?.charisma||0}(+${compressedBonus(cs.stats?.charisma).toFixed(2)})
 STATS XP: ${JSON.stringify(cs.statsXP||{})}
