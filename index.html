@@ -2016,7 +2016,74 @@ async function callGemini(playerMessage, retryCount = 0) {
       }
       sheetParsed = true;
     }
-    if (!sheetParsed) {
+
+    // ── Always parse strain and XP from narrative text ─────────────
+    // Runs regardless of whether CHANGES or SHEET blocks were found
+    // This catches formats like "Physical Strain: +2 -> 4/10" and "Agility: +2 XP -> 41.5/50"
+    if (characterSheet) {
+      const rt = rawText;
+
+      // Strain: final value after arrow — handles "+ -> X/Y" and "-> X" and ": X"
+      // Pattern covers: "Physical Strain: +2 -> 4/10", "Force Strain: 2 → 0", "Strain reduced to 0"
+      const strainFinalPatterns = [
+        { re: /Force\s*Strain[^:]*:\s*(?:[+-]?\d+(?:\.\d+)?\s*(?:→|->)\s*)?(\d+)(?:\/\d+)?/gi, field: 'forceStrain' },
+        { re: /Physical\s*Strain[^:]*:\s*(?:[+-]?\d+(?:\.\d+)?\s*(?:→|->)\s*)?(\d+)(?:\/\d+)?/gi, field: 'physicalStrain' },
+        { re: /Mental\s*Strain[^:]*:\s*(?:[+-]?\d+(?:\.\d+)?\s*(?:→|->)\s*)?(\d+)(?:\/\d+)?/gi, field: 'mentalStrain' },
+      ];
+      for (const { re, field } of strainFinalPatterns) {
+        const matches = [...rt.matchAll(re)];
+        if (matches.length > 0) {
+          const val = parseInt(matches[matches.length - 1][1]);
+          if (!isNaN(val) && val >= 0) characterSheet[field] = val;
+        }
+      }
+
+      // Full restoration phrases
+      if (/fully restored.*(?:strain|0 force|0 physical)|all strain.*(?:cleared|0)|(?:strain|fatigue).*fully.*(?:restored|recovered)/i.test(rt)) {
+        characterSheet.forceStrain = 0;
+        characterSheet.physicalStrain = 0;
+        characterSheet.mentalStrain = 0;
+      }
+
+      // Triple format: "0 Force, 0 Physical, and 0 Mental Strain"
+      const tripleMatch = rt.match(/(\d+)\s*Force[^,\n]*,\s*(\d+)\s*Physical[^,\n]*,\s*(?:and\s*)?(\d+)\s*Mental\s*Strain/i);
+      if (tripleMatch) {
+        characterSheet.forceStrain = Math.max(0, parseInt(tripleMatch[1]));
+        characterSheet.physicalStrain = Math.max(0, parseInt(tripleMatch[2]));
+        characterSheet.mentalStrain = Math.max(0, parseInt(tripleMatch[3]));
+      }
+
+      // XP accumulation: "Agility: +2 XP -> 41.5/50" — update XP progress bars
+      // Pattern: "StatName: +N XP -> current/required" or "StatName: +N XP (now X/Y)"
+      const xpNarrativeRe = /([A-Za-z][A-Za-z\s]+?):\s*\+(\d+(?:\.\d+)?)\s*XP.*?(?:->|→|\(now\s+)(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)/gi;
+      const xpMatches = [...rt.matchAll(xpNarrativeRe)];
+      for (const m of xpMatches) {
+        const name = m[1].trim();
+        const current = parseFloat(m[3]);
+        const required = parseFloat(m[4]);
+        if (isNaN(current) || isNaN(required)) continue;
+        const nameLower = name.toLowerCase().replace(/\s+/g, '');
+        const fsMap = {forcesense:'forceSense',meditation:'meditation',forceknowledge:'forceKnowledge',forcecontrol:'forceControl'};
+        const stMap = {strength:'strength',agility:'agility',endurance:'endurance',willpower:'willpower',charisma:'charisma'};
+        if (fsMap[nameLower]) {
+          if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
+          characterSheet.forceStatsXP[fsMap[nameLower]] = { current, required };
+        } else if (stMap[nameLower]) {
+          if (!characterSheet.statsXP) characterSheet.statsXP = {};
+          characterSheet.statsXP[stMap[nameLower]] = { current, required };
+        } else {
+          const abilityKey = Object.keys(characterSheet.forceAbilities||{}).find(k => k.toLowerCase().replace(/\s+/g,'') === nameLower);
+          const formKey = Object.keys(characterSheet.lightsaberForms||{}).find(k => k.toLowerCase().replace(/\s+/g,'') === nameLower);
+          if (abilityKey) {
+            if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
+            characterSheet.forceAbilitiesXP[abilityKey] = { current, required };
+          } else if (formKey) {
+            if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
+            characterSheet.lightsaberFormsXP[formKey] = { current, required };
+          }
+        }
+      }
+    }
       // Detect markdown character sheet in response and parse it into our sheet object
       const hasMarkdownSheet = rawText.includes('**name:**') || rawText.includes('**strain:**') || rawText.includes('**forceStats:**') || rawText.includes('**forceStrain:**') || rawText.includes('**physicalStrain:**');
       if (hasMarkdownSheet && characterSheet) {
@@ -2049,60 +2116,6 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (stats) characterSheet.stats = stats;
         sheetParsed = true;
       }
-
-      // Parse strain from narrative — catches every format the AI might use
-      // Run on every response regardless of JSON block success
-      if (characterSheet) {
-        const rt = rawText;
-
-        // Format: "Force Strain: 2 → 0" or "Force Strain: 2 -> 0"
-        const arrowPatterns = [
-          { re: /Force\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/gi, field: 'forceStrain' },
-          { re: /Physical\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/gi, field: 'physicalStrain' },
-          { re: /Mental\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/gi, field: 'mentalStrain' },
-        ];
-        for (const { re, field } of arrowPatterns) {
-          const matches = [...rt.matchAll(re)];
-          if (matches.length > 0) {
-            const val = parseInt(matches[matches.length - 1][1]);
-            if (!isNaN(val)) characterSheet[field] = Math.max(0, val);
-          }
-        }
-
-        // Format: "0 Force Strain" or "Force Strain reduced to 0" or "Force Strain: 0"
-        const setPatterns = [
-          { re: /Force\s*Strain(?:\s+reduced)?\s*(?:to|:)\s*(\d+)/gi, field: 'forceStrain' },
-          { re: /Physical\s*Strain(?:\s+reduced)?\s*(?:to|:)\s*(\d+)/gi, field: 'physicalStrain' },
-          { re: /Mental\s*Strain(?:\s+reduced)?\s*(?:to|:)\s*(\d+)/gi, field: 'mentalStrain' },
-          { re: /(\d+)\s*Force\s*Strain/gi, field: 'forceStrain' },
-          { re: /(\d+)\s*Physical\s*Strain/gi, field: 'physicalStrain' },
-          { re: /(\d+)\s*Mental\s*Strain/gi, field: 'mentalStrain' },
-        ];
-        for (const { re, field } of setPatterns) {
-          const matches = [...rt.matchAll(re)];
-          if (matches.length > 0) {
-            const val = parseInt(matches[matches.length - 1][1]);
-            if (!isNaN(val)) characterSheet[field] = Math.max(0, val);
-          }
-        }
-
-        // Format: "fully restored to 0 Force, 0 Physical, and 0 Mental"
-        // or "strain levels were fully restored to 0"
-        if (/fully restored.*strain|strain.*fully restored|all strain.*0|0.*all strain/i.test(rt)) {
-          characterSheet.forceStrain = 0;
-          characterSheet.physicalStrain = 0;
-          characterSheet.mentalStrain = 0;
-        }
-
-        // Format: "0 Force, 0 Physical, and 0 Mental Strain"
-        const tripleMatch = rt.match(/(\d+)\s*Force[^,\n]*,\s*(\d+)\s*Physical[^,\n]*,\s*and\s*(\d+)\s*Mental\s*Strain/i);
-        if (tripleMatch) {
-          characterSheet.forceStrain = Math.max(0, parseInt(tripleMatch[1]));
-          characterSheet.physicalStrain = Math.max(0, parseInt(tripleMatch[2]));
-          characterSheet.mentalStrain = Math.max(0, parseInt(tripleMatch[3]));
-        }
-      }
-    }
 
     // ── Status indicator ───────────────────────────────────────────
     const ind = document.getElementById('save-indicator');
