@@ -2123,8 +2123,18 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (mv <= maxMS) characterSheet.mentalStrain = mv;
       }
 
-      // Safety clamp — strain can NEVER exceed max or go below 0
-      characterSheet.forceStrain = Math.max(0, Math.min(maxFS, characterSheet.forceStrain || 0));
+      // Force Barrier — catch dissipation/restoration phrases
+      if (/barrier.*(?:dissipat|fad|releas|drop|collaps|fell|broke|shatter)|(?:dissipat|releas|let go).*barrier/i.test(rt)) {
+        characterSheet.forceBarrier = 0;
+      }
+      // "Force Barrier: X" or "barrier reduced to X" or "barrier at X"
+      const barrierMatch = rt.match(/(?:Force\s*Barrier|barrier)[^.\n]*?(?::|at|to|=)\s*(\d+)(?:\/\d+)?/i);
+      if (barrierMatch) {
+        const bv = parseInt(barrierMatch[1]);
+        if (!isNaN(bv) && bv >= 0 && bv <= (characterSheet.maxForceBarrier||100)) {
+          characterSheet.forceBarrier = bv;
+        }
+      }
       characterSheet.physicalStrain = Math.max(0, Math.min(maxPS, characterSheet.physicalStrain || 0));
       characterSheet.mentalStrain = Math.max(0, Math.min(maxMS, characterSheet.mentalStrain || 0));
 
@@ -2921,17 +2931,21 @@ function loadFromSave(save) {
 
 function manualStrainSync() {
   if (!characterSheet) return;
-  // Prompt player to enter current strain values directly
-  const fs = prompt(`Force Strain (current value, 0-12):`, characterSheet.forceStrain ?? 0);
+  const fs = prompt(`Force Strain (0-${characterSheet.maxForceStrain||12}):`, characterSheet.forceStrain ?? 0);
   if (fs === null) return;
-  const ps = prompt(`Physical Strain (current value, 0-10):`, characterSheet.physicalStrain ?? 0);
+  const ps = prompt(`Physical Strain (0-${characterSheet.maxPhysicalStrain||10}):`, characterSheet.physicalStrain ?? 0);
   if (ps === null) return;
-  const ms = prompt(`Mental Strain (current value, 0-10):`, characterSheet.mentalStrain ?? 0);
+  const ms = prompt(`Mental Strain (0-${characterSheet.maxMentalStrain||10}):`, characterSheet.mentalStrain ?? 0);
   if (ms === null) return;
+  const fb = prompt(`Force Barrier (0-${characterSheet.maxForceBarrier||100}, or -1 if not developed):`, characterSheet.forceBarrier ?? 'null');
+  if (fb === null) return;
 
   characterSheet.forceStrain = Math.max(0, Math.min(characterSheet.maxForceStrain||12, parseInt(fs)||0));
   characterSheet.physicalStrain = Math.max(0, Math.min(characterSheet.maxPhysicalStrain||10, parseInt(ps)||0));
   characterSheet.mentalStrain = Math.max(0, Math.min(characterSheet.maxMentalStrain||10, parseInt(ms)||0));
+  const fbVal = parseFloat(fb);
+  if (!isNaN(fbVal) && fbVal >= 0) characterSheet.forceBarrier = Math.min(characterSheet.maxForceBarrier||100, fbVal);
+  else if (fbVal < 0) characterSheet.forceBarrier = null;
 
   updateCharacterSheet();
   autoSave();
