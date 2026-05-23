@@ -1031,9 +1031,46 @@ STEP 2: Immediately after, with no extra text, output the SHEET block:
 <<<SHEET>>>
 {"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":12,"physicalStrain":0,"maxPhysicalStrain":10,"mentalStrain":0,"maxMentalStrain":10,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"aptitudes":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
 <<<END_SHEET>>>
-STEP 3: Immediately after, output the WORLD block:
+STEP 2: Output the CHANGES block — REQUIRED EVERY TURN, even if nothing changed:
+<<<CHANGES>>>
+HP=100
+FORCE_STRAIN=0
+PHYSICAL_STRAIN=2
+MENTAL_STRAIN=0
+FORCE_BARRIER=40
+ALIGNMENT=49.6
+FORCE_SENSE=64
+MEDITATION=55
+FORCE_KNOWLEDGE=39
+FORCE_CONTROL=68
+STRENGTH=28
+AGILITY=45
+ENDURANCE=28
+WILLPOWER=51
+CHARISMA=36
+Force Push=58
+Telekinesis=59
+Shii-Cho=55
+<<<END_CHANGES>>>
+
+RULES FOR CHANGES BLOCK:
+- Include ALL stats listed above every turn with their CURRENT value after this turn
+- Use exact key names: HP, FORCE_STRAIN, PHYSICAL_STRAIN, MENTAL_STRAIN, FORCE_BARRIER, ALIGNMENT
+- Force stats: FORCE_SENSE, MEDITATION, FORCE_KNOWLEDGE, FORCE_CONTROL
+- Physical stats: STRENGTH, AGILITY, ENDURANCE, WILLPOWER, CHARISMA
+- Force abilities and lightsaber forms: use the exact name as stored (e.g. "Force Push=58")
+- Numbers only — no text, no units, no arrows
+- This block is what updates the character sheet sidebar — if you skip it, nothing updates
+- AGE should be updated when the character has a birthday
+
+STEP 3: Output the SHEET block (full JSON for complete state):
+<<<SHEET>>>
+{complete json}
+<<<END_SHEET>>>
+
+STEP 4: Output the WORLD block:
 <<<WORLD>>>
-{"location":"","era":"","inGameDate":"","lastEvent":"","legacyChanges":[],"lineageRecord":[],"worldLog":[],"galaxyEvents":[],"galaxyState":{"jediOrder":"","sith":"","republic":"","mandalorians":"","underworld":""}}
+{complete json}
 <<<END_WORLD>>>
 
 RULES FOR DATA BLOCKS:
@@ -1930,7 +1967,55 @@ async function callGemini(playerMessage, retryCount = 0) {
       }
     }
 
-    // ── Also try to parse markdown sheet dumps (AI outputting **field:** value format) ──
+    // ── Parse CHANGES block — structured delta, always present ──────
+    // This is the primary update mechanism. Simpler and more reliable than full JSON.
+    const changesMatch = rawText.match(/<<<CHANGES>>>\s*([\s\S]*?)\s*<<<END_CHANGES>>>/);
+    if (changesMatch && characterSheet) {
+      const changesText = changesMatch[1];
+      // Each line: KEY=VALUE
+      for (const line of changesText.split('\n')) {
+        const m = line.trim().match(/^([A-Z_]+)\s*=\s*(.+)$/);
+        if (!m) continue;
+        const key = m[1].trim();
+        const rawVal = m[2].trim();
+        const val = isNaN(rawVal) ? rawVal : parseFloat(rawVal);
+
+        switch(key) {
+          case 'HP':                characterSheet.hp = val; break;
+          case 'FORCE_STRAIN':      characterSheet.forceStrain = val; break;
+          case 'PHYSICAL_STRAIN':   characterSheet.physicalStrain = val; break;
+          case 'MENTAL_STRAIN':     characterSheet.mentalStrain = val; break;
+          case 'FORCE_BARRIER':     characterSheet.forceBarrier = val; break;
+          case 'ALIGNMENT':         characterSheet.alignment = val; break;
+          case 'FORCE_SENSE':       if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceSense = val; break;
+          case 'MEDITATION':        if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.meditation = val; break;
+          case 'FORCE_KNOWLEDGE':   if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceKnowledge = val; break;
+          case 'FORCE_CONTROL':     if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceControl = val; break;
+          case 'STRENGTH':          if (!characterSheet.stats) characterSheet.stats={}; characterSheet.stats.strength = val; break;
+          case 'AGILITY':           if (!characterSheet.stats) characterSheet.stats={}; characterSheet.stats.agility = val; break;
+          case 'ENDURANCE':         if (!characterSheet.stats) characterSheet.stats={}; characterSheet.stats.endurance = val; break;
+          case 'WILLPOWER':         if (!characterSheet.stats) characterSheet.stats={}; characterSheet.stats.willpower = val; break;
+          case 'CHARISMA':          if (!characterSheet.stats) characterSheet.stats={}; characterSheet.stats.charisma = val; break;
+          case 'AGE':               characterSheet.age = val; break;
+          case 'CREDITS':           characterSheet.credits = val; break;
+          default:
+            // Force abilities and lightsaber forms
+            if (characterSheet.forceAbilities && key in characterSheet.forceAbilities) {
+              characterSheet.forceAbilities[key] = val;
+            } else if (characterSheet.lightsaberForms && key in characterSheet.lightsaberForms) {
+              characterSheet.lightsaberForms[key] = val;
+            } else {
+              // Try matching with spaces (e.g. FORCE_PUSH → "Force Push")
+              const humanKey = key.replace(/_/g, ' ').toLowerCase();
+              const abilityMatch = Object.keys(characterSheet.forceAbilities||{}).find(k => k.toLowerCase() === humanKey);
+              const formMatch = Object.keys(characterSheet.lightsaberForms||{}).find(k => k.toLowerCase() === humanKey);
+              if (abilityMatch) characterSheet.forceAbilities[abilityMatch] = val;
+              else if (formMatch) characterSheet.lightsaberForms[formMatch] = val;
+            }
+        }
+      }
+      sheetParsed = true;
+    }
     if (!sheetParsed) {
       // Detect markdown character sheet in response and parse it into our sheet object
       const hasMarkdownSheet = rawText.includes('**name:**') || rawText.includes('**strain:**') || rawText.includes('**forceStats:**') || rawText.includes('**forceStrain:**') || rawText.includes('**physicalStrain:**');
@@ -2033,12 +2118,12 @@ async function callGemini(playerMessage, retryCount = 0) {
 
     // ── Clean display text ─────────────────────────────────────────
     let displayText = rawText
+      .replace(/<<<\s*CHANGES\s*>>>[\s\S]*?<<<\s*END_CHANGES\s*>>>/gi, '')
       .replace(/<<<\s*SHEET\s*>>>[\s\S]*?<<<\s*END_SHEET\s*>>>/gi, '')
       .replace(/<<<\s*WORLD\s*>>>[\s\S]*?<<<\s*END_WORLD\s*>>>/gi, '')
       .replace(/<<<\s*SHEET\s*>>>[\s\S]*/gi, '')
       .replace(/<<<\s*WORLD\s*>>>[\s\S]*/gi, '')
       .replace(/<<<[\s\S]*/g, '')
-      // Strip markdown character sheet dumps from display
       .replace(/\*\*Revised Character Sheet[^*]*\*\*[\s\S]*?(?=\n\n[A-Z*]|\n\nReady|$)/gi, '[Character sheet updated in sidebar.]')
       .replace(/\*\*Character Sheet[^*]*\*\*[\s\S]*?(?=\n\n[A-Z*]|\n\nReady|$)/gi, '[Character sheet updated in sidebar.]')
       .trim();
