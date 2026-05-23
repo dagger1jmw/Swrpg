@@ -2312,13 +2312,11 @@ async function callGemini(playerMessage, retryCount = 0) {
       recentHistory = recentHistory.slice(-(RECENT_TURNS * 2));
     }
 
-    // ── Extract galaxy simulation state from world block ───────────
     if (worldParsed && worldState) {
       const ge = worldState.galaxyEvents || [];
       for (const event of ge) {
         if (event && event.faction && event.event) {
           galaxySimState[event.faction] = event.event;
-          // Track when the last real galaxy event fired
           if (event.turn === turnCount + 1) {
             lastGalaxyEventDate = worldState.inGameDate || '';
           }
@@ -2332,9 +2330,41 @@ async function callGemini(playerMessage, retryCount = 0) {
       const firstLine = displayText.split('\n').find(l => l.trim().length > 20) || 'Turn continued.';
       const summary = firstLine.replace(/\*\*/g, '').trim().slice(0, 120);
       if (!worldState.worldLog) worldState.worldLog = [];
-      // Use real turnCount, not whatever the AI would have put
       worldState.worldLog.push({ turn: turnCount + 1, event: summary, location: worldState.location || '—' });
       if (worldState.worldLog.length > 20) worldState.worldLog = worldState.worldLog.slice(-20);
+    }
+
+    // ── Parse time from narrative — runs LAST so it overrides stale JSON ──
+    // The JSON world block often has the old time (from state injection) not the new time.
+    // The narrative "It is now Evening (20:00)" is always the authoritative current time.
+    if (worldState) {
+      const timePatterns = [
+        /it is now \*?\*?([A-Za-z\s]+\(\d{2}:\d{2}\))\*?\*?/i,
+        /it is (?:currently|now)\s+\*?\*?(\d{2}:\d{2})\*?\*?/i,
+        /\*\*(Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\((\d{2}:\d{2})\)\*\*/i,
+        /\b(Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\((\d{2}:\d{2})\)/i,
+      ];
+      for (const re of timePatterns) {
+        // Find the LAST occurrence (most recent time mentioned)
+        const matches = [...rawText.matchAll(new RegExp(re.source, re.flags + 'g'))];
+        if (matches.length > 0) {
+          const m = matches[matches.length - 1];
+          let timeStr;
+          if (m[2] && m[2].includes(':')) {
+            timeStr = `${m[1]} (${m[2]})`;
+          } else if (m[1] && m[1].includes(':')) {
+            timeStr = m[1];
+          } else {
+            timeStr = m[1]?.replace(/\*\*/g, '').trim();
+          }
+          if (timeStr && timeStr.includes('(')) {
+            worldState.inGameTime = timeStr;
+            const timeEl = document.getElementById('time-val');
+            if (timeEl) timeEl.textContent = timeStr;
+            break;
+          }
+        }
+      }
     }
 
     turnCount++;
