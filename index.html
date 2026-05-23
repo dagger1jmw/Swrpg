@@ -821,6 +821,7 @@
       <button class="hbtn" id="btn-sheet" onclick="togglePanel('sheet')" style="display:none">Character</button>
       <button class="hbtn" id="btn-log" onclick="togglePanel('log')" style="display:none">World Log</button>
       <button class="hbtn" id="btn-simulate" onclick="openSimPanel()" style="display:none">Simulate</button>
+      <button class="hbtn" id="btn-sync" onclick="manualStrainSync()" style="display:none" title="Manually update strain bars from current sheet">Sync</button>
       <button class="hbtn" id="btn-save" onclick="openSaveLoad('save')" style="display:none">Save</button>
       <button class="hbtn" id="btn-load" onclick="openSaveLoad('load')">Load</button>
       <button class="hbtn danger" id="btn-newgame" onclick="confirmNewGame()" style="display:none">New Game</button>
@@ -1623,6 +1624,7 @@ function showGame() {
   document.getElementById('btn-sheet').style.display = '';
   document.getElementById('btn-log').style.display = '';
   document.getElementById('btn-simulate').style.display = '';
+  document.getElementById('btn-sync').style.display = '';
   document.getElementById('btn-save').style.display = '';
   document.getElementById('btn-newgame').style.display = '';
 }
@@ -1949,24 +1951,56 @@ async function callGemini(playerMessage, retryCount = 0) {
         sheetParsed = true;
       }
 
-      // Also parse narrative strain recovery lines like "Force Strain: 2 → 0" or "Physical Strain: 4 → 0"
-      // The AI often prints these in the story even when it correctly updates the JSON
-      const strainRecoveryPatterns = [
-        { re: /Force\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/i, field: 'forceStrain' },
-        { re: /Physical\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/i, field: 'physicalStrain' },
-        { re: /Mental\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/i, field: 'mentalStrain' },
-      ];
-      if (!sheetParsed || true) { // always try to parse strain from narrative
-        for (const { re, field } of strainRecoveryPatterns) {
-          // Find the LAST match (most recent value)
-          const matches = [...rawText.matchAll(new RegExp(re.source, 'gi'))];
+      // Parse strain from narrative — catches every format the AI might use
+      // Run on every response regardless of JSON block success
+      if (characterSheet) {
+        const rt = rawText;
+
+        // Format: "Force Strain: 2 → 0" or "Force Strain: 2 -> 0"
+        const arrowPatterns = [
+          { re: /Force\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/gi, field: 'forceStrain' },
+          { re: /Physical\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/gi, field: 'physicalStrain' },
+          { re: /Mental\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/gi, field: 'mentalStrain' },
+        ];
+        for (const { re, field } of arrowPatterns) {
+          const matches = [...rt.matchAll(re)];
           if (matches.length > 0) {
-            const lastMatch = matches[matches.length - 1];
-            const val = parseInt(lastMatch[1]);
-            if (!isNaN(val) && characterSheet) {
-              characterSheet[field] = Math.max(0, val);
-            }
+            const val = parseInt(matches[matches.length - 1][1]);
+            if (!isNaN(val)) characterSheet[field] = Math.max(0, val);
           }
+        }
+
+        // Format: "0 Force Strain" or "Force Strain reduced to 0" or "Force Strain: 0"
+        const setPatterns = [
+          { re: /Force\s*Strain(?:\s+reduced)?\s*(?:to|:)\s*(\d+)/gi, field: 'forceStrain' },
+          { re: /Physical\s*Strain(?:\s+reduced)?\s*(?:to|:)\s*(\d+)/gi, field: 'physicalStrain' },
+          { re: /Mental\s*Strain(?:\s+reduced)?\s*(?:to|:)\s*(\d+)/gi, field: 'mentalStrain' },
+          { re: /(\d+)\s*Force\s*Strain/gi, field: 'forceStrain' },
+          { re: /(\d+)\s*Physical\s*Strain/gi, field: 'physicalStrain' },
+          { re: /(\d+)\s*Mental\s*Strain/gi, field: 'mentalStrain' },
+        ];
+        for (const { re, field } of setPatterns) {
+          const matches = [...rt.matchAll(re)];
+          if (matches.length > 0) {
+            const val = parseInt(matches[matches.length - 1][1]);
+            if (!isNaN(val)) characterSheet[field] = Math.max(0, val);
+          }
+        }
+
+        // Format: "fully restored to 0 Force, 0 Physical, and 0 Mental"
+        // or "strain levels were fully restored to 0"
+        if (/fully restored.*strain|strain.*fully restored|all strain.*0|0.*all strain/i.test(rt)) {
+          characterSheet.forceStrain = 0;
+          characterSheet.physicalStrain = 0;
+          characterSheet.mentalStrain = 0;
+        }
+
+        // Format: "0 Force, 0 Physical, and 0 Mental Strain"
+        const tripleMatch = rt.match(/(\d+)\s*Force[^,\n]*,\s*(\d+)\s*Physical[^,\n]*,\s*and\s*(\d+)\s*Mental\s*Strain/i);
+        if (tripleMatch) {
+          characterSheet.forceStrain = Math.max(0, parseInt(tripleMatch[1]));
+          characterSheet.physicalStrain = Math.max(0, parseInt(tripleMatch[2]));
+          characterSheet.mentalStrain = Math.max(0, parseInt(tripleMatch[3]));
         }
       }
     }
@@ -2698,7 +2732,25 @@ function loadFromSave(save) {
   }
 }
 
-function clearAllSaves() {
+function manualStrainSync() {
+  if (!characterSheet) return;
+  // Prompt player to enter current strain values directly
+  const fs = prompt(`Force Strain (current value, 0-12):`, characterSheet.forceStrain ?? 0);
+  if (fs === null) return;
+  const ps = prompt(`Physical Strain (current value, 0-10):`, characterSheet.physicalStrain ?? 0);
+  if (ps === null) return;
+  const ms = prompt(`Mental Strain (current value, 0-10):`, characterSheet.mentalStrain ?? 0);
+  if (ms === null) return;
+
+  characterSheet.forceStrain = Math.max(0, Math.min(characterSheet.maxForceStrain||12, parseInt(fs)||0));
+  characterSheet.physicalStrain = Math.max(0, Math.min(characterSheet.maxPhysicalStrain||10, parseInt(ps)||0));
+  characterSheet.mentalStrain = Math.max(0, Math.min(characterSheet.maxMentalStrain||10, parseInt(ms)||0));
+
+  updateCharacterSheet();
+  autoSave();
+}
+
+
   const choices = ['Clear corrupted display only (keeps your game)', 'Clear everything including saves (full reset)'];
   const choice = confirm('What do you want to clear?\n\nOK = Clear corrupted display data only (your game and API key are kept)\nCancel = Do nothing\n\nTo wipe everything including saves, hold Shift when clicking OK.');
 
