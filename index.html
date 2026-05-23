@@ -1202,11 +1202,20 @@ TIER THRESHOLDS (same for all stats):
 - Tier 7 Transcendent: stat 121–150
 
 LIGHTSABER DUELS — use the FORM being actively used this exchange:
-- If Jared is using Djem So (stat 1), his tier is Tier 1 for this exchange
-- If Jared is using Shii-Cho (stat 55), his tier is Tier 3 for this exchange
+- If Jared is using Djem So (stat 1), his PRIMARY TIER is Tier 1 for this exchange
+- If Jared is using Shii-Cho (stat 55), his PRIMARY TIER is Tier 3 for this exchange
 - The opponent's tier is derived from THEIR active form
 - Switching forms mid-duel changes tier immediately
 - Physical stats (Strength, Agility) add to the roll via compressed bonus but do NOT determine tier
+
+EXPERIENCE MODIFIER — combat instincts carry over between forms:
+Formula: experience bonus = compressedBonus(highest owned form stat) × 0.4
+This represents footwork, opponent-reading, Force integration, and general combat instinct.
+It is a FLAT BONUS to the roll only — it does NOT change tier or affect the tier gap calculation.
+Example: Shii-Cho 55 → compressedBonus(55) = 2.375 → experience modifier = +0.95
+A fighter with Shii-Cho 55 learning Djem So (1) fights at Tier 1 technique but adds +0.95 from experience.
+The bot with no experience has no modifier.
+Show experience modifier explicitly in the roll display.
 
 FORCE ABILITY CONTESTS — use the SPECIFIC ability on each side:
 - Force Lightning (stat 120) vs Force Barrier (stat 40): Lightning is Tier 6, Barrier is Tier 3 → 3-tier gap, +15 to attacker
@@ -1215,33 +1224,61 @@ FORCE ABILITY CONTESTS — use the SPECIFIC ability on each side:
 - Force Sense vs Stealth: Force Sense stat vs Agility/Stealth stat
 - Never use "Force Tier" or average Force stats for these contests — use the specific ability stat
 
+FORCE EXPERIENCE MODIFIERS — small secondary bonuses to Force contests:
+Force Control adds: compressedBonus(ForceControl) × 0.3 (represents precision and discipline)
+Force Sense adds: compressedBonus(ForceSense) × 0.2 (represents reading the opponent's Force signature)
+These are FLAT BONUSES only — they do NOT affect tier or tier gap.
+Example: ForceControl 68 → compressedBonus(68) = 2.7 → +0.81 modifier
+Example: ForceSense 66 → compressedBonus(66) = 2.65 → +0.53 modifier
+Total Force experience modifier ≈ +1.34 — meaningful but not dominant
+Show these modifiers in the roll display separately from the primary ability bonus.
+
 PHYSICAL ACTIONS — use the primary physical stat:
 - Athletics, climbing, running → Agility stat
 - Lifting, breaking → Strength stat
 - Sustained effort → Endurance stat
 
 ROLL DISPLAY MUST SHOW SPECIFIC STATS:
-Action: [what, specifying which form/ability]
+Action: [what, specifying which form/ability being used]
 Attacker: [name] using [Form/Ability] (stat=[X]) → Tier [N] [name]
-Defender: [name] using [Form/Ability] (stat=[X]) → Tier [N] [name]
-Tier Gap: [higher side] is [N] tier(s) above → +[bonus] to [attacker/defender]
-Stat Bonus: +[X] total (list each relevant stat with compressed value)
-Tactical Setup: +[N] (list bonuses — CAPPED AT +5)
+  Form/Ability bonus: +[X]
+  Physical/Force bonuses: +[X] ([stat list])
+  Experience modifier: +[X] (compressedBonus([highest form/ForceControl]) × [0.4/0.3])
+  Total stat bonus: +[X]
+Defender: [same format]
+Tier Gap: [N] tiers → +[bonus] to [side]
+Tactical Setup: +[N] (list — CAPPED AT +5)
+d20=[SYSTEM VALUE], Total=[final] | [Threshold row]: Fail<N / Contested N-N / Solid N-N / Strong N-N / Overwhelming N+
+Result: [outcome]
 
-EXAMPLE — Jared (Djem So=1) vs Training Bot (Djem So=25):
-Attacker: Jared using Djem So (1) → Tier 1 Untrained
+EXAMPLE — Jared (Djem So=2, Shii-Cho=55) vs Training Bot (Djem So=25):
+Attacker: Jared using Djem So (2) → Tier 1 Untrained
+  Form bonus: +0.10 (Djem So 2)
+  Physical bonus: +2.13 (Str) +2.45 (Agi) +2.20 (End) = +6.78
+  Experience modifier: compressedBonus(55) × 0.4 = 2.375 × 0.4 = +0.95
+  Total stat bonus: +7.83
 Defender: Bot using Djem So (25) → Tier 2 Apprentice
+  Form bonus: +1.25 (Djem So 25)
+  Physical bonus: +1.25 (Str) +1.25 (Agi) +1.25 (End) = +3.75
+  No experience modifier
+  Total stat bonus: +5.0
 Tier Gap: Bot 1 tier above → +4 to Bot's roll
-Jared Stat Bonus: +2.13 (Str 45) +2.45 (Agi 58) +0.05 (Djem So 1) = +4.63
-Bot Stat Bonus: +1.25 (Str) +1.25 (Agi) +1.25 (Djem So 25) = +3.75
-Bot total: d20 + 3.75 + 4 (tier gap) = significantly ahead despite Jared's superior physicals
+Bot total roll: d20 + 5.0 + 4 = d20 + 9.0
+Jared total roll: d20 + 7.83
+Close fight — Jared's physicals compensate for being outclassed in the form.
 
 EXAMPLE — Sith Force Lightning (120) vs Jared Force Barrier (40):
 Attacker: Sith using Force Lightning (120) → Tier 6 Legendary
+  Lightning bonus: +3.35 (compressed)
+  Force experience: ForceControl 85 × 0.3 = +0.97, ForceSense 80 × 0.2 = +0.62 → +1.59
+  Total: +4.94
 Defender: Jared using Force Barrier (40) → Tier 2 Apprentice
+  Barrier bonus: +2.0 (compressed)
+  Force experience: ForceControl 68 × 0.3 = +0.81, ForceSense 66 × 0.2 = +0.53 → +1.34
+  Total: +3.34
 Tier Gap: Sith 4 tiers above → +22 to Sith's roll
-Jared's high Telekinesis or Force Control is IRRELEVANT to this specific contest
-Result: Barrier is under extreme pressure — narrative should reflect this danger
+Sith total: d20 + 4.94 + 22 = d20 + 26.94 — overwhelming
+Jared's high Telekinesis is irrelevant. The barrier is under extreme pressure.
 
 ### DYNAMIC THRESHOLDS — TIER RELATIVE
 Thresholds shift based on the GAP between character tier and task/opponent tier.
