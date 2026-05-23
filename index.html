@@ -2357,31 +2357,39 @@ async function callGemini(playerMessage, retryCount = 0) {
         }
       }
 
-      // Date — match "Day 29 Goldfall" or "Day 29 Goldfall — 3661 BBY"
-      // Also catches "on Day 29 Goldfall" in narrative text
+      // Date — ONLY parse from "Time Elapsed" / "It is now" lines to avoid stale dates in JSON
       const monthNames = GSC_MONTHS.join('|');
-      const dateRe = new RegExp(`(?:on\\s+)?Day\\s+(\\d+)\\s+(${monthNames})(?:\\s+[—-]\\s+(\\d{3,4})\\s*(BBY|ABY))?`, 'gi');
-      const dateMatches = [...rt.matchAll(dateRe)];
-      if (dateMatches.length > 0) {
-        const dm = dateMatches[dateMatches.length - 1];
-        const day = parseInt(dm[1]);
-        const month = dm[2];
-        const year = dm[3] ? parseInt(dm[3]) : null;
-        const era = dm[4] || null;
+      const timeLines = rt.split('\n').filter(l =>
+        /time elapsed|it is now|it is currently/i.test(l)
+      ).join(' ');
 
-        // Build new date string
-        const monthIndex = GSC_MONTHS.findIndex(m => m.toLowerCase() === month.toLowerCase());
-        if (monthIndex >= 0 && day >= 1 && day <= GSC_DAYS_IN_MONTH[monthIndex]) {
-          const currentParsed = parseDateString(worldState.inGameDate);
-          const useYear = year || currentParsed?.year || 3661;
-          const useEra = era || currentParsed?.era || 'BBY';
-          const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + day;
-          const newDateStr = dateToString(useYear, useEra, dayOfYear);
-          // Update worldState.inGameDate so updateWorldState (called later) uses the right value
-          worldState.inGameDate = newDateStr;
-          const dateEl = document.getElementById('date-display');
-          if (dateEl) dateEl.textContent = newDateStr;
-          updateCalendarContent(newDateStr);
+      const dateSource = timeLines || ''; // only use time lines, never full response
+      if (dateSource) {
+        const dateRe = new RegExp(`(?:on\\s+)?Day\\s+(\\d+)\\s+(${monthNames})(?:\\s+[—\\-]\\s+(\\d{3,4})\\s*(BBY|ABY))?`, 'gi');
+        const dateMatches = [...dateSource.matchAll(dateRe)];
+        if (dateMatches.length > 0) {
+          const dm = dateMatches[dateMatches.length - 1];
+          const day = parseInt(dm[1]);
+          const month = dm[2];
+          const year = dm[3] ? parseInt(dm[3]) : null;
+          const era = dm[4] || null;
+          const monthIndex = GSC_MONTHS.findIndex(m => m.toLowerCase() === month.toLowerCase());
+          if (monthIndex >= 0 && day >= 1 && day <= GSC_DAYS_IN_MONTH[monthIndex]) {
+            const currentParsed = parseDateString(worldState.inGameDate);
+            const useYear = year || currentParsed?.year || 3661;
+            const useEra = era || currentParsed?.era || 'BBY';
+            const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + day;
+            const newDateStr = dateToString(useYear, useEra, dayOfYear);
+            // Safety: only advance, never go back
+            const newAbs = dateToAbsoluteDays(newDateStr);
+            const oldAbs = worldState.inGameDate ? dateToAbsoluteDays(worldState.inGameDate) : 0;
+            if (newAbs >= oldAbs) {
+              worldState.inGameDate = newDateStr;
+              const dateEl = document.getElementById('date-display');
+              if (dateEl) dateEl.textContent = newDateStr;
+              updateCalendarContent(newDateStr);
+            }
+          }
         }
       }
     }
