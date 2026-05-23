@@ -2334,35 +2334,54 @@ async function callGemini(playerMessage, retryCount = 0) {
       if (worldState.worldLog.length > 20) worldState.worldLog = worldState.worldLog.slice(-20);
     }
 
-    // ── Parse time from narrative — runs LAST so it overrides stale JSON ──
-    // The JSON world block often has the old time (from state injection) not the new time.
-    // The narrative "It is now Evening (20:00)" is always the authoritative current time.
+    // ── Parse time and date from narrative — runs LAST to override stale JSON ──
     if (worldState) {
+      const rt = rawText.replace(/\*\*/g, ''); // strip all bold markdown first
+
+      // Time — match "It is now Pre-Dawn (06:00)" or "Evening (20:00)" anywhere
       const timePatterns = [
-        /it is now \*?\*?([A-Za-z\s]+\(\d{2}:\d{2}\))\*?\*?/i,
-        /it is (?:currently|now)\s+\*?\*?(\d{2}:\d{2})\*?\*?/i,
-        /\*\*(Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\((\d{2}:\d{2})\)\*\*/i,
-        /\b(Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\((\d{2}:\d{2})\)/i,
+        /it is now ((?:Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\(\d{2}:\d{2}\))/i,
+        /it is (?:currently\s+)?((?:Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\(\d{2}:\d{2}\))/i,
+        /((?:Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\(\d{2}:\d{2}\))/i,
       ];
       for (const re of timePatterns) {
-        // Find the LAST occurrence (most recent time mentioned)
-        const matches = [...rawText.matchAll(new RegExp(re.source, re.flags + 'g'))];
-        if (matches.length > 0) {
-          const m = matches[matches.length - 1];
-          let timeStr;
-          if (m[2] && m[2].includes(':')) {
-            timeStr = `${m[1]} (${m[2]})`;
-          } else if (m[1] && m[1].includes(':')) {
-            timeStr = m[1];
-          } else {
-            timeStr = m[1]?.replace(/\*\*/g, '').trim();
-          }
-          if (timeStr && timeStr.includes('(')) {
+        const allMatches = [...rt.matchAll(new RegExp(re.source, 'gi'))];
+        if (allMatches.length > 0) {
+          const timeStr = allMatches[allMatches.length - 1][1].trim();
+          if (timeStr) {
             worldState.inGameTime = timeStr;
             const timeEl = document.getElementById('time-val');
             if (timeEl) timeEl.textContent = timeStr;
             break;
           }
+        }
+      }
+
+      // Date — match "Day 29 Goldfall" or "Day 29 Goldfall — 3661 BBY"
+      // Also catches "on Day 29 Goldfall" in narrative text
+      const monthNames = GSC_MONTHS.join('|');
+      const dateRe = new RegExp(`(?:on\\s+)?Day\\s+(\\d+)\\s+(${monthNames})(?:\\s+[—-]\\s+(\\d{3,4})\\s*(BBY|ABY))?`, 'gi');
+      const dateMatches = [...rt.matchAll(dateRe)];
+      if (dateMatches.length > 0) {
+        const dm = dateMatches[dateMatches.length - 1];
+        const day = parseInt(dm[1]);
+        const month = dm[2];
+        const year = dm[3] ? parseInt(dm[3]) : null;
+        const era = dm[4] || null;
+
+        // Build new date string
+        const monthIndex = GSC_MONTHS.findIndex(m => m.toLowerCase() === month.toLowerCase());
+        if (monthIndex >= 0 && day >= 1 && day <= GSC_DAYS_IN_MONTH[monthIndex]) {
+          const currentParsed = parseDateString(worldState.inGameDate);
+          const useYear = year || currentParsed?.year || 3661;
+          const useEra = era || currentParsed?.era || 'BBY';
+          // Calculate day of year
+          const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + day;
+          const newDateStr = dateToString(useYear, useEra, dayOfYear);
+          worldState.inGameDate = newDateStr;
+          const dateEl = document.getElementById('date-display');
+          if (dateEl) dateEl.textContent = newDateStr;
+          updateCalendarContent(newDateStr);
         }
       }
     }
