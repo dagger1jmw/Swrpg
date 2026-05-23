@@ -1917,9 +1917,8 @@ async function callGemini(playerMessage, retryCount = 0) {
     // ── Also try to parse markdown sheet dumps (AI outputting **field:** value format) ──
     if (!sheetParsed) {
       // Detect markdown character sheet in response and parse it into our sheet object
-      const hasMarkdownSheet = rawText.includes('**name:**') || rawText.includes('**strain:**') || rawText.includes('**forceStats:**');
+      const hasMarkdownSheet = rawText.includes('**name:**') || rawText.includes('**strain:**') || rawText.includes('**forceStats:**') || rawText.includes('**forceStrain:**') || rawText.includes('**physicalStrain:**');
       if (hasMarkdownSheet && characterSheet) {
-        // Parse key fields from markdown format
         const extractMd = (field) => {
           const m = rawText.match(new RegExp(`\\*\\*${field}:\\*\\*\\s*([^\n*]+)`));
           return m ? m[1].trim() : null;
@@ -1930,20 +1929,45 @@ async function callGemini(playerMessage, retryCount = 0) {
           try { return JSON.parse(m[1]); } catch(e) { return null; }
         };
 
-        const strain = extractMd('strain');
+        const forceStrain = extractMd('forceStrain') ?? extractMd('strain');
+        const physicalStrain = extractMd('physicalStrain');
+        const mentalStrain = extractMd('mentalStrain');
         const hp = extractMd('hp');
         const alignment = extractMd('alignment');
         const forceStats = extractMdJson('forceStats');
         const forceAbilities = extractMdJson('forceAbilities');
         const stats = extractMdJson('stats');
 
-        if (strain !== null) characterSheet.strain = parseInt(strain) || characterSheet.strain;
+        if (forceStrain !== null) characterSheet.forceStrain = parseInt(forceStrain) || 0;
+        if (physicalStrain !== null) characterSheet.physicalStrain = parseInt(physicalStrain) || 0;
+        if (mentalStrain !== null) characterSheet.mentalStrain = parseInt(mentalStrain) || 0;
         if (hp !== null) characterSheet.hp = parseInt(hp) || characterSheet.hp;
         if (alignment !== null) characterSheet.alignment = parseInt(alignment) || characterSheet.alignment;
         if (forceStats) characterSheet.forceStats = forceStats;
         if (forceAbilities) characterSheet.forceAbilities = forceAbilities;
         if (stats) characterSheet.stats = stats;
         sheetParsed = true;
+      }
+
+      // Also parse narrative strain recovery lines like "Force Strain: 2 → 0" or "Physical Strain: 4 → 0"
+      // The AI often prints these in the story even when it correctly updates the JSON
+      const strainRecoveryPatterns = [
+        { re: /Force\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/i, field: 'forceStrain' },
+        { re: /Physical\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/i, field: 'physicalStrain' },
+        { re: /Mental\s*Strain:\s*\d+\s*(?:→|->)\s*(\d+)/i, field: 'mentalStrain' },
+      ];
+      if (!sheetParsed || true) { // always try to parse strain from narrative
+        for (const { re, field } of strainRecoveryPatterns) {
+          // Find the LAST match (most recent value)
+          const matches = [...rawText.matchAll(new RegExp(re.source, 'gi'))];
+          if (matches.length > 0) {
+            const lastMatch = matches[matches.length - 1];
+            const val = parseInt(lastMatch[1]);
+            if (!isNaN(val) && characterSheet) {
+              characterSheet[field] = Math.max(0, val);
+            }
+          }
+        }
       }
     }
 
