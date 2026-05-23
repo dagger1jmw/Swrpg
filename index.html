@@ -1202,11 +1202,23 @@ TIER THRESHOLDS (same for all stats):
 - Tier 7 Transcendent: stat 121–150
 
 LIGHTSABER DUELS — use the FORM being actively used this exchange:
-- If Jared is using Djem So (stat 1), his PRIMARY TIER is Tier 1 for this exchange
+- If Jared is using Djem So (stat 2), his PRIMARY TIER is Tier 1 for this exchange
 - If Jared is using Shii-Cho (stat 55), his PRIMARY TIER is Tier 3 for this exchange
 - The opponent's tier is derived from THEIR active form
 - Switching forms mid-duel changes tier immediately
 - Physical stats (Strength, Agility) add to the roll via compressed bonus but do NOT determine tier
+
+TIER GAP CALCULATION — active forms only, no exceptions:
+The tier gap bonus is calculated ONLY from the two active form stats.
+NEVER use "overall dueling tier", "highest form", or any form other than the one currently being used.
+The experience modifier already accounts for the fighter's general competence — adding an overall tier gap on top is double-counting.
+
+Correct: Jared (Djem So 2, Tier 1) vs Bot (Djem So 25, Tier 2) → Bot 1 tier above → +4 to Bot
+Wrong: Using Shii-Cho 55 (Tier 3 Adept) as Jared's tier when he is actively fighting with Djem So
+
+The experience modifier (+0.95 from Shii-Cho) already represents that Jared isn't clumsy — he moves like a trained fighter. But in Djem So specifically, the bot has better technique and the tier gap reflects that.
+
+ANAKIN/OBI-WAN vs DOOKU example: When they used Ataru against Dooku (a Makashi master), they were clumsy and outmatched — because Ataru wasn't their primary form AND Makashi counters it. When they switched to Djem So and Soresu respectively, they became genuinely dangerous. The form switch changed the tier math entirely. This is the correct model.
 
 EXPERIENCE MODIFIER — combat instincts carry over between forms:
 Formula: experience bonus = compressedBonus(highest owned form stat) × 0.4
@@ -1260,12 +1272,17 @@ Attacker: Jared using Djem So (2) → Tier 1 Untrained
 Defender: Bot using Djem So (25) → Tier 2 Apprentice
   Form bonus: +1.25 (Djem So 25)
   Physical bonus: +1.25 (Str) +1.25 (Agi) +1.25 (End) = +3.75
-  No experience modifier
   Total stat bonus: +5.0
-Tier Gap: Bot 1 tier above → +4 to Bot's roll
-Bot total roll: d20 + 5.0 + 4 = d20 + 9.0
-Jared total roll: d20 + 7.83
-Close fight — Jared's physicals compensate for being outclassed in the form.
+Tier Gap: Bot is 1 tier above Jared in active form → +4 to Bot's roll
+Bot total: d20 + 5.0 + 4 = d20 + 9.0
+Jared total: d20 + 7.83
+Despite Jared's superior physicals, the bot has the edge from Djem So technique.
+Average expected margin: Bot +1.17. Tight fight, slightly favoring the bot. Correct.
+
+If Jared switches to Shii-Cho mid-duel:
+Jared now Tier 3 Adept. Bot still Tier 2 (Djem So 25). Jared 1 tier above → +4 to Jared.
+Jared Shii-Cho bonus: +2.375. Total: d20 + 7.83 (physicals) + 2.375 (form) + 4 (tier gap) = d20 + 14.2 vs d20 + 9.0
+Jared now clearly dominant — the form switch changed everything. Correct.
 
 EXAMPLE — Sith Force Lightning (120) vs Jared Force Barrier (40):
 Attacker: Sith using Force Lightning (120) → Tier 6 Legendary
