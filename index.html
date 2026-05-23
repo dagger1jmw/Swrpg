@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Star Wars Legends RPG</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Star Wars Legends RPG v2.5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1470,42 +1473,53 @@ const SUMMARIZE_EVERY = 10;    // compress every N turns
 //  INIT
 // ═══════════════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
-  apiKey = (localStorage.getItem('sw_rpg_gemini_key') || '').trim();
-  isThinking = false;
+  try {
+    apiKey = (localStorage.getItem('sw_rpg_gemini_key') || '').trim();
+    isThinking = false;
 
-  // Attach button listeners safely — avoids iPad Safari inline onclick issues
-  const enterBtn = document.getElementById('enter-galaxy-btn');
-  if (enterBtn) {
-    enterBtn.addEventListener('click', startWithKey);
-    enterBtn.addEventListener('touchend', function(e) { e.preventDefault(); startWithKey(); });
-  }
+    // Attach button listeners safely
+    const enterBtn = document.getElementById('enter-galaxy-btn');
+    if (enterBtn) {
+      enterBtn.addEventListener('click', startWithKey);
+      enterBtn.addEventListener('touchend', function(e) { e.preventDefault(); startWithKey(); });
+    }
 
-  // Also attach api-key-input enter key
-  const keyInput = document.getElementById('api-key-input');
-  if (keyInput) {
-    keyInput.addEventListener('keydown', e => { if (e.key === 'Enter') startWithKey(); });
-  }
+    const keyInput = document.getElementById('api-key-input');
+    if (keyInput) {
+      keyInput.addEventListener('keydown', e => { if (e.key === 'Enter') startWithKey(); });
+    }
 
-  if (apiKey && apiKey.length > 20) {
-    showGame();
-    tryAutoLoad();
-  } else {
-    const saved = localStorage.getItem('sw_rpg_gemini_key') || '';
-    if (saved && keyInput) keyInput.value = saved;
-  }
+    // If we have a valid API key, skip the setup screen entirely
+    if (apiKey && apiKey.length > 10) {
+      showGame();
+      tryAutoLoad();
+    } else {
+      // No key — show setup screen, pre-fill if partial key exists
+      const saved = localStorage.getItem('sw_rpg_gemini_key') || '';
+      if (saved && keyInput) keyInput.value = saved;
+    }
 
-  const input = document.getElementById('player-input');
-  if (input) {
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-    input.addEventListener('input', () => {
-      input.style.height = 'auto';
-      input.style.height = Math.min(input.scrollHeight, 160) + 'px';
-    });
+    const input = document.getElementById('player-input');
+    if (input) {
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+      input.addEventListener('input', () => {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+      });
+    }
+  } catch(err) {
+    // If anything in init fails, at least try to show the game if we have a key
+    console.error('Init error:', err);
+    const k = localStorage.getItem('sw_rpg_gemini_key');
+    if (k && k.length > 10) {
+      apiKey = k.trim();
+      try { showGame(); tryAutoLoad(); } catch(e2) { console.error('Fallback failed:', e2); }
+    }
   }
 });
 
