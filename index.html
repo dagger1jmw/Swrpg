@@ -1136,15 +1136,27 @@ XP_Shii-Cho=21.0
 <<<END_CHANGES>>>
 
 RULES FOR CHANGES BLOCK:
-- Include ALL stat values AND all XP_* values every turn
-- Stat values: current level after this turn (integer or decimal)
-- XP_* values: accumulated XP toward next level. Format: XP_StatName=currentXP
-- For force stats use: XP_FORCE_SENSE, XP_MEDITATION, XP_FORCE_KNOWLEDGE, XP_FORCE_CONTROL
-- For physical stats use: XP_STRENGTH, XP_AGILITY, XP_ENDURANCE, XP_WILLPOWER, XP_CHARISMA
-- For abilities/forms: XP_Force Push, XP_Telekinesis, XP_Shii-Cho etc (exact name with XP_ prefix)
-- When XP reaches the required threshold, increment the stat by 1 and reset XP to 0
-- XP thresholds: stat 0-19=10, 20-39=25, 40-59=50, 60-79=100, 80-84=200, 85-94=500, 95-99=1000, 100+=5000
-- This block is what updates the character sheet sidebar — if you skip it, nothing updates
+- Include ALL stat values AND XP lines every turn
+- Stat values: current level after this turn
+- XP lines for TRAINING sessions: TRAINING: category.StatName, hours, intensity, difficulty, outcome
+  - category: forceStats / stats / forceAbilities / lightsaberForms
+  - StatName: exact key (e.g. forceSense, Shii-Cho, Force Push, strength)
+  - hours: decimal hours of actual practice (0.5, 1.0, 2.5, 3.0 etc)
+  - intensity: casual / standard / intense / pushing / elite
+  - difficulty: basic / ceiling / above / far (relative to current stat level)
+  - outcome: failure / partial / solid / strong / overwhelming / breakthrough
+  - Example: TRAINING: lightsaberForms.Shii-Cho, 2.5, intense, ceiling, strong
+  - Example: TRAINING: forceStats.forceSense, 1.0, standard, basic, solid
+- XP lines for COMBAT: COMBAT: category.StatName, rounds, tierGap, engagement, outcome[, secondary: category.StatName2]
+  - rounds: number of exchanges (3=brief, 8=extended, 15=prolonged)
+  - tierGap: opponent tier MINUS your tier in that specific skill (-1=fighting below, 0=equal, 1=one above, 2=two above)
+  - engagement: passive / mixed / aggressive
+  - outcome: overwhelming_win / win / strong_win / narrow_loss / loss / survived
+  - secondary: optional second stat that was actively used (gets 40% of primary XP)
+  - Example: COMBAT: lightsaberForms.Djem So, 8, 1, aggressive, narrow_loss, secondary: forceAbilities.Force Push
+- Include one TRAINING or COMBAT line per skill that was meaningfully used this turn
+- Still include XP_ lines for accumulated XP without level-ups (for progress bar display)
+- This block is what updates the character sheet — if you skip it, nothing updates
 
 STEP 3: Output the SHEET block (full JSON for complete state):
 <<<SHEET>>>
@@ -2172,6 +2184,34 @@ async function callGemini(playerMessage, retryCount = 0) {
     if (changesMatch && characterSheet) {
       const changesText = changesMatch[1];
       for (const line of changesText.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        // TRAINING: StatPath, hours, intensity, difficulty, outcome
+        if (trimmed.startsWith('TRAINING:')) {
+          const parts = trimmed.slice(9).split(',').map(s => s.trim());
+          if (parts.length >= 5) {
+            const xp = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4]);
+            applyXPToSheet(parts[0], xp);
+          }
+          continue;
+        }
+
+        // COMBAT: StatPath, rounds, tierGap, engagement, outcome[, secondary: StatPath2]
+        if (trimmed.startsWith('COMBAT:')) {
+          const rest = trimmed.slice(7);
+          const secIdx = rest.toLowerCase().indexOf(', secondary:');
+          const mainPart = secIdx >= 0 ? rest.slice(0, secIdx) : rest;
+          const secPath = secIdx >= 0 ? rest.slice(secIdx + 12).trim() : null;
+          const parts = mainPart.split(',').map(s => s.trim());
+          if (parts.length >= 5) {
+            const {primary, secondary} = calcCombatXP(parseInt(parts[1]), parseInt(parts[2]), parts[3], parts[4]);
+            applyXPToSheet(parts[0], primary);
+            if (secPath) applyXPToSheet(secPath, secondary);
+          }
+          continue;
+        }
+
         const m = line.trim().match(/^([A-Za-z_][A-Za-z0-9_\s\-]+?)\s*=\s*(.+)$/);
         if (!m) continue;
         const key = m[1].trim();
@@ -2754,17 +2794,93 @@ function getCharDuelingTier() {
 function getCharForceTier() {
   return statToTier(characterSheet?.forceStats?.forceControl || 0);
 }
-// Low stats level quickly, high stats require exponentially more work
+
+// ═══════════════════════════════════════════════════════════════════
+//  XP SYSTEM — EXPONENTIAL CURVE + TIME/DIFFICULTY/OUTCOME FACTORS
+// ═══════════════════════════════════════════════════════════════════
+
+// XP required to advance stat by 1 — true exponential, 7% harder per level
+// stat 0→1: 100 XP | stat 20→21: 387 XP | stat 40→41: 1,497 XP
+// stat 60→61: 5,793 XP | stat 80→81: 22,406 XP | stat 100→101: 86,717 XP
 function xpRequired(statVal) {
-  const v = statVal || 0;
-  if (v < 20)  return 10;   // Youngling: 10 XP per level
-  if (v < 40)  return 25;   // Padawan: 25 XP per level
-  if (v < 60)  return 50;   // Knight-low: 50 XP per level
-  if (v < 80)  return 100;  // Knight-high: 100 XP per level
-  if (v < 85)  return 200;  // Master-low: 200 XP per level
-  if (v < 95)  return 500;  // Master-high: 500 XP per level
-  if (v < 100) return 1000; // High Master: 1000 XP per level
-  return 5000;              // Legendary: 5000 XP per level
+  const v = Math.max(0, Math.floor(statVal || 0));
+  return Math.floor(100 * Math.pow(1.07, v));
+}
+
+// Training XP: time(hours) × intensity × difficulty × outcome
+function calcTrainingXP(hours, intensity, difficulty, outcome) {
+  const iMap = {casual:10,slow:10,deliberate:10,standard:15,normal:15,moderate:15,intense:20,focused:20,hard:20,pushing:25,limits:25,extreme:25,elite:30,sparring:30,danger:30};
+  const dMap = {basic:1.0,easy:1.0,within:1.0,familiar:1.0,ceiling:1.3,challenging:1.3,above:1.6,difficult:1.6,far:2.0,impossible:2.0};
+  const oMap = {failure:0.8,struggle:0.8,partial:1.0,contested:1.0,solid:1.2,success:1.2,strong:1.5,good:1.5,overwhelming:2.0,exceptional:2.0,breakthrough:3.0,insight:3.0};
+  const i = iMap[(intensity||'').toLowerCase()] || 15;
+  const d = dMap[(difficulty||'').toLowerCase()] || 1.0;
+  const o = oMap[(outcome||'').toLowerCase()] || 1.0;
+  return Math.round((hours||1) * i * d * o);
+}
+
+// Combat XP: duration × tier_gap_factor × engagement × outcome
+// Returns {primary, secondary} — secondary is 40% for supporting skills used
+function calcCombatXP(rounds, tierGap, engagement, outcome) {
+  const dur = (rounds||5) <= 3 ? 20 : (rounds||5) <= 10 ? 30 : 40;
+  const tMap = {'-2':0.5,'-1':0.5,'0':1.5,'1':2.5,'2':4.0,'3':6.0};
+  const eMap = {passive:0.7,defensive:0.7,mixed:1.0,balanced:1.0,aggressive:1.3,offensive:1.3,leading:1.3};
+  const oMap = {overwhelming_win:0.5,dominated:0.5,win:1.2,victory:1.2,strong_win:2.0,narrow_loss:1.5,close:1.5,loss:1.8,lost_to_stronger:1.8,survived:2.5};
+  const gk = Math.min(3,Math.max(-2,tierGap||0)).toString();
+  const t = tMap[gk] || 1.5;
+  const e = eMap[(engagement||'mixed').toLowerCase()] || 1.0;
+  const o = oMap[(outcome||'win').toLowerCase().replace(/\s+/g,'_')] || 1.2;
+  const primary = Math.round(dur * t * e * o);
+  return { primary, secondary: Math.round(primary * 0.4) };
+}
+
+// Apply XP to a stat path like "forceStats.forceSense" and level up if threshold crossed
+function applyXPToSheet(statPath, xpToAdd) {
+  if (!characterSheet || !xpToAdd || xpToAdd <= 0) return 0;
+  const parts = statPath.split('.');
+  const category = parts[0], key = parts[1];
+  if (!category || !key) return 0;
+
+  const getSet = () => {
+    if (category === 'forceStats') return {
+      get: () => characterSheet.forceStats?.[key] || 0,
+      set: (v) => { if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats[key]=v; },
+      xpStore: () => { if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP={}; return characterSheet.forceStatsXP; }
+    };
+    if (category === 'stats') return {
+      get: () => characterSheet.stats?.[key] || 0,
+      set: (v) => { if (!characterSheet.stats) characterSheet.stats={}; characterSheet.stats[key]=v; },
+      xpStore: () => { if (!characterSheet.statsXP) characterSheet.statsXP={}; return characterSheet.statsXP; }
+    };
+    if (category === 'forceAbilities') return {
+      get: () => typeof characterSheet.forceAbilities?.[key]==='object' ? (characterSheet.forceAbilities[key].level||0) : (characterSheet.forceAbilities?.[key]||0),
+      set: (v) => { if (!characterSheet.forceAbilities) characterSheet.forceAbilities={}; characterSheet.forceAbilities[key]=v; },
+      xpStore: () => { if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP={}; return characterSheet.forceAbilitiesXP; }
+    };
+    if (category === 'lightsaberForms') return {
+      get: () => typeof characterSheet.lightsaberForms?.[key]==='object' ? (characterSheet.lightsaberForms[key].level||0) : (characterSheet.lightsaberForms?.[key]||0),
+      set: (v) => { if (!characterSheet.lightsaberForms) characterSheet.lightsaberForms={}; characterSheet.lightsaberForms[key]=v; },
+      xpStore: () => { if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP={}; return characterSheet.lightsaberFormsXP; }
+    };
+    return null;
+  };
+
+  const accessor = getSet();
+  if (!accessor) return 0;
+  const store = accessor.xpStore();
+  let sv = accessor.get();
+  if (!store[key]) store[key] = {current:0, required:xpRequired(sv)};
+  const xpObj = store[key];
+  xpObj.current = (xpObj.current||0) + xpToAdd;
+  xpObj.required = xpRequired(sv);
+  let levelUps = 0;
+  while (xpObj.current >= xpObj.required) {
+    xpObj.current -= xpObj.required;
+    sv++;
+    accessor.set(sv);
+    xpObj.required = xpRequired(sv);
+    levelUps++;
+  }
+  return levelUps;
 }
 
 function updateCharacterSheet() {
