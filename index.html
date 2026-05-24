@@ -1611,7 +1611,16 @@ At END 48: mitigation ≈ 0.22 (22% less strain per round)
 At END 80: mitigation ≈ 0.30 (30% less strain per round)
 
 ## XP-BASED ABILITY PROGRESSION — STRICT RULES
-Stats no longer increase by GM discretion. They increase ONLY when XP threshold is met.
+ABSOLUTE RULE: You NEVER directly set a stat to a higher value. You NEVER write "Djem So increased to 4". You NEVER write "+15 XP" in narrative prose. Stats are controlled ENTIRELY by JavaScript reading TRAINING: and COMBAT: lines from the CHANGES block.
+
+The XP formula is: xpRequired(stat) = floor(100 × 1.07^stat)
+- stat 0→1: 100 XP needed | stat 3→4: 123 XP | stat 10→11: 197 XP
+- stat 20→21: 387 XP | stat 40→41: 1,497 XP | stat 55→56: 4,131 XP
+- stat 68→69: ~9,700 XP | stat 80→81: ~22,400 XP
+
+Your job is ONLY to output TRAINING: or COMBAT: lines with the right parameters. JavaScript calculates the XP, tracks the total, and levels up the stat automatically when the threshold is crossed.
+
+Current XP progress is shown in the state injection (e.g. "Djem So:3[45/123XP]"). This means Djem So is at stat 3 with 45 XP accumulated, needing 123 to reach stat 4. Do not override these values.
 
 SHEET block must include these additional XP tracking fields:
 - forceStatsXP: {"forceSense": {"current": 0, "required": 10}, ...} for each force stat
@@ -2140,11 +2149,9 @@ MENTAL STRAIN: ${cs.mentalStrain||0}/${cs.maxMentalStrain||10}
 FORCE STATS (compressed bonus): ForceSense=${cs.forceStats?.forceSense||0}(+${compressedBonus(cs.forceStats?.forceSense).toFixed(2)}), Meditation=${cs.forceStats?.meditation||0}(+${compressedBonus(cs.forceStats?.meditation).toFixed(2)}), ForceKnowledge=${cs.forceStats?.forceKnowledge||0}(+${compressedBonus(cs.forceStats?.forceKnowledge).toFixed(2)}), ForceControl=${cs.forceStats?.forceControl||0}(+${compressedBonus(cs.forceStats?.forceControl).toFixed(2)})
 FORCE STATS XP: ${JSON.stringify(cs.forceStatsXP||{})}
 FORCE ABILITIES (stat → compressed bonus → tier): ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||v.value||0):(v||0);return `${k}:${s}(+${compressedBonus(s).toFixed(2)},${statToTier(s).name})`;}).join(', ')||'none'}
-FORCE ABILITIES XP: ${JSON.stringify(cs.forceAbilitiesXP||{})}
-LIGHTSABER FORMS (stat → compressed bonus → tier): ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||0):(v||0);return `${k}:${s}(+${compressedBonus(s).toFixed(2)},${statToTier(s).name})`;}).join(', ')||'none'}
-LIGHTSABER FORMS XP: ${JSON.stringify(cs.lightsaberFormsXP||{})}
-STATS (compressed bonus): STR=${cs.stats?.strength||0}(+${compressedBonus(cs.stats?.strength).toFixed(2)}), AGI=${cs.stats?.agility||0}(+${compressedBonus(cs.stats?.agility).toFixed(2)}), END=${cs.stats?.endurance||0}(+${compressedBonus(cs.stats?.endurance).toFixed(2)}), WILL=${cs.stats?.willpower||0}(+${compressedBonus(cs.stats?.willpower).toFixed(2)}), CHA=${cs.stats?.charisma||0}(+${compressedBonus(cs.stats?.charisma).toFixed(2)})
-STATS XP: ${JSON.stringify(cs.statsXP||{})}
+FORCE ABILITIES XP: ${Object.entries(cs.forceAbilitiesXP||{}).map(([k,v])=>`${k}:${v.current||0}/${v.required||100}XP`).join(', ')||'none'}
+LIGHTSABER FORMS (stat → tier → XP progress): ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||0):(v||0);const xp=cs.lightsaberFormsXP?.[k];return `${k}:${s}(${statToTier(s).name})[${xp?`${xp.current||0}/${xp.required||100}XP`:'0/?XP'}]`;}).join(', ')||'none'}
+STATS (stat → XP progress): STR=${cs.stats?.strength||0}[${cs.statsXP?.strength?`${cs.statsXP.strength.current||0}/${cs.statsXP.strength.required||100}XP`:'0/?XP'}] AGI=${cs.stats?.agility||0}[${cs.statsXP?.agility?`${cs.statsXP.agility.current||0}/${cs.statsXP.agility.required||100}XP`:'0/?XP'}] END=${cs.stats?.endurance||0}[${cs.statsXP?.endurance?`${cs.statsXP.endurance.current||0}/${cs.statsXP.endurance.required||100}XP`:'0/?XP'}] WILL=${cs.stats?.willpower||0}[${cs.statsXP?.willpower?`${cs.statsXP.willpower.current||0}/${cs.statsXP.willpower.required||100}XP`:'0/?XP'}] CHA=${cs.stats?.charisma||0}[${cs.statsXP?.charisma?`${cs.statsXP.charisma.current||0}/${cs.statsXP.charisma.required||100}XP`:'0/?XP'}]
 FORCE BARRIER: ${cs.forceBarrier !== null && cs.forceBarrier !== undefined ? `${cs.forceBarrier}/${cs.maxForceBarrier||100}` : 'not yet developed'}
 INVENTORY: ${(cs.inventory||[]).join(', ')||'empty'} | CREDITS: ${cs.credits||0}
 RENOWN: Jedi=${cs.renown?.jediOrder||0}, Sith=${cs.renown?.sith||0}, Republic=${cs.renown?.republic||0}, Underworld=${cs.renown?.underworld||0}
@@ -2173,8 +2180,8 @@ CRITICAL RULES FOR THIS TURN:
 1. Use the EXACT stat values above as your starting point
 2. TIME IS NOW: ${ws.inGameTime||'unknown'} on ${ws.inGameDate||'unknown'}. Every action takes time. State how much time passes at the start of your response ("Time Elapsed: X minutes/hours"). Update inGameTime in the WORLD block to reflect the new time after this action. If time passes midnight, advance the date too.
 3. Time period labels: Pre-Dawn 03:00-05:59, Dawn 06:00-06:59, Morning 07:00-11:59, Midday 12:00-13:59, Afternoon 14:00-17:59, Evening 18:00-20:59, Night 21:00-23:59, Late Night 00:00-02:59
-4. If strain changed this turn, the new value goes in both CHANGES and SHEET blocks
-5. The galaxy simulation runs independently — check ACTIVE THREATS and advance them
+4. XP SYSTEM — CRITICAL: You NEVER directly increment stat values. You NEVER write "+3 XP" in prose. Stats only increase when JavaScript calculates enough XP from TRAINING: or COMBAT: lines. The XP progress shown above (e.g. "Djem So:3[45/114XP]") is authoritative — do not override it. Output TRAINING:/COMBAT: lines in the CHANGES block and JavaScript handles all math.
+5. If strain changed this turn, update in CHANGES block (FORCE_STRAIN=, PHYSICAL_STRAIN=, MENTAL_STRAIN=)
 6. Output <<<CHANGES>>>, <<<SHEET>>> and <<<WORLD>>> blocks at the end of EVERY response`;
 
   messages.push({ role: 'user', parts: [{ text: stateBlock }] });
