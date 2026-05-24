@@ -2760,11 +2760,11 @@ async function callGemini(playerMessage, retryCount = 0) {
     if (msg.includes('Failed to fetch') || msg.includes('Load failed') || msg.includes('NetworkError')) {
       msg = 'Could not reach the Gemini API. Check your internet connection.';
     }
-    renderSystemMessage(`⚠ ${msg}`);
+    try { renderSystemMessage(`⚠ ${msg}`); } catch(e2) {}
+  } finally {
+    isThinking = false;
+    setThinking(false);
   }
-
-  setThinking(false);
-  isThinking = false;
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -2935,8 +2935,13 @@ function renderSystemMessage(text) {
 
 function setThinking(show) {
   const el = document.getElementById('thinking');
-  el.classList.toggle('show', show);
-  document.getElementById('send-btn').disabled = show;
+  if (el) el.classList.toggle('show', show);
+  const btn = document.getElementById('send-btn');
+  if (btn) {
+    btn.disabled = show;
+    btn.textContent = show ? '...' : 'ACT';
+    btn.style.opacity = show ? '0.5' : '1';
+  }
   if (show) scrollFeed();
 }
 
@@ -3650,6 +3655,12 @@ function loadFromSave(save) {
 }
 
 function manualStrainSync() {
+  // Also reset stuck thinking state
+  if (isThinking) {
+    isThinking = false;
+    setThinking(false);
+    renderSystemMessage('State reset. You can now send messages.');
+  }
   if (!characterSheet) return;
   const maxFS = characterSheet.maxForceStrain || 100;
   const maxPS = characterSheet.maxPhysicalStrain || 100;
