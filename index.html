@@ -3216,7 +3216,8 @@ function applyXPToSheet(statPath, xpToAdd) {
 
   // Get current stat value from masterXP (authoritative), fall back to characterSheet for initial value
   if (!masterXP[category][key]) {
-    // First time seeing this stat — seed from characterSheet
+    // First time seeing this stat — seed from characterSheet current value
+    // (which may already reflect a manual [OVERRIDE] correction)
     let seedVal = 0;
     if (characterSheet) {
       if (category === 'forceStats') seedVal = characterSheet.forceStats?.[key] || 0;
@@ -3224,7 +3225,29 @@ function applyXPToSheet(statPath, xpToAdd) {
       else if (category === 'forceAbilities') seedVal = typeof characterSheet.forceAbilities?.[key]==='object' ? (characterSheet.forceAbilities[key].level||0) : (characterSheet.forceAbilities?.[key]||0);
       else if (category === 'lightsaberForms') seedVal = typeof characterSheet.lightsaberForms?.[key]==='object' ? (characterSheet.lightsaberForms[key].level||0) : (characterSheet.lightsaberForms[key]||0);
     }
-    masterXP[category][key] = { stat: seedVal, current: 0, required: xpRequired(seedVal) };
+    // Preserve any XP already accumulated in the legacy store
+    let existingCurrent = 0;
+    if (characterSheet) {
+      if (category === 'forceStats') existingCurrent = characterSheet.forceStatsXP?.[key]?.current || 0;
+      else if (category === 'stats') existingCurrent = characterSheet.statsXP?.[key]?.current || 0;
+      else if (category === 'forceAbilities') existingCurrent = characterSheet.forceAbilitiesXP?.[key]?.current || 0;
+      else if (category === 'lightsaberForms') existingCurrent = characterSheet.lightsaberFormsXP?.[key]?.current || 0;
+    }
+    masterXP[category][key] = { stat: seedVal, current: existingCurrent, required: xpRequired(seedVal) };
+  } else {
+    // Entry exists — but if characterSheet has a HIGHER stat value (from a manual correction
+    // that wrote to masterXP via arrowMatch), trust that over the stored stat
+    let csVal = 0;
+    if (characterSheet) {
+      if (category === 'forceStats') csVal = characterSheet.forceStats?.[key] || 0;
+      else if (category === 'stats') csVal = characterSheet.stats?.[key] || 0;
+      else if (category === 'forceAbilities') csVal = typeof characterSheet.forceAbilities?.[key]==='object' ? (characterSheet.forceAbilities[key].level||0) : (characterSheet.forceAbilities?.[key]||0);
+      else if (category === 'lightsaberForms') csVal = typeof characterSheet.lightsaberForms?.[key]==='object' ? (characterSheet.lightsaberForms[key].level||0) : (characterSheet.lightsaberForms[key]||0);
+    }
+    if (csVal > masterXP[category][key].stat) {
+      masterXP[category][key].stat = csVal;
+      masterXP[category][key].required = xpRequired(csVal);
+    }
   }
 
   const entry = masterXP[category][key];
@@ -4528,7 +4551,10 @@ function applyMechanicalChangesFromText(text) {
         if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
         if (!characterSheet.forceStatsXP[fk]) characterSheet.forceStatsXP[fk] = {current:0,required:xpRequired(newVal)};
         characterSheet.forceStatsXP[fk].required = xpRequired(newVal);
-        // Do NOT reset .current — JS XP tracking is authoritative
+        // Sync to masterXP so XP gains next turn use the correct stat level
+        if (!masterXP.forceStats) masterXP.forceStats = {};
+        if (!masterXP.forceStats[fk]) masterXP.forceStats[fk] = { stat: newVal, current: 0, required: xpRequired(newVal) };
+        else { masterXP.forceStats[fk].stat = newVal; masterXP.forceStats[fk].required = xpRequired(newVal); }
         count++;
       } else if (stMap[keyLower] || stMap[keySpaced]) {
         const sk = stMap[keyLower] || stMap[keySpaced];
@@ -4537,21 +4563,27 @@ function applyMechanicalChangesFromText(text) {
         if (!characterSheet.statsXP) characterSheet.statsXP = {};
         if (!characterSheet.statsXP[sk]) characterSheet.statsXP[sk] = {current:0,required:xpRequired(newVal)};
         characterSheet.statsXP[sk].required = xpRequired(newVal);
-        // Do NOT reset .current — JS XP tracking is authoritative
+        if (!masterXP.stats) masterXP.stats = {};
+        if (!masterXP.stats[sk]) masterXP.stats[sk] = { stat: newVal, current: 0, required: xpRequired(newVal) };
+        else { masterXP.stats[sk].stat = newVal; masterXP.stats[sk].required = xpRequired(newVal); }
         count++;
       } else if (characterSheet.forceAbilities && rawName in characterSheet.forceAbilities) {
         characterSheet.forceAbilities[rawName] = newVal;
         if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
         if (!characterSheet.forceAbilitiesXP[rawName]) characterSheet.forceAbilitiesXP[rawName] = {current:0,required:xpRequired(newVal)};
         characterSheet.forceAbilitiesXP[rawName].required = xpRequired(newVal);
-        // Do NOT reset .current — JS XP tracking is authoritative
+        if (!masterXP.forceAbilities) masterXP.forceAbilities = {};
+        if (!masterXP.forceAbilities[rawName]) masterXP.forceAbilities[rawName] = { stat: newVal, current: 0, required: xpRequired(newVal) };
+        else { masterXP.forceAbilities[rawName].stat = newVal; masterXP.forceAbilities[rawName].required = xpRequired(newVal); }
         count++;
       } else if (characterSheet.lightsaberForms && rawName in characterSheet.lightsaberForms) {
         characterSheet.lightsaberForms[rawName] = newVal;
         if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
         if (!characterSheet.lightsaberFormsXP[rawName]) characterSheet.lightsaberFormsXP[rawName] = {current:0,required:xpRequired(newVal)};
         characterSheet.lightsaberFormsXP[rawName].required = xpRequired(newVal);
-        // Do NOT reset .current — JS XP tracking is authoritative
+        if (!masterXP.lightsaberForms) masterXP.lightsaberForms = {};
+        if (!masterXP.lightsaberForms[rawName]) masterXP.lightsaberForms[rawName] = { stat: newVal, current: 0, required: xpRequired(newVal) };
+        else { masterXP.lightsaberForms[rawName].stat = newVal; masterXP.lightsaberForms[rawName].required = xpRequired(newVal); }
         count++;
       }
       continue;
