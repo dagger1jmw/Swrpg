@@ -2294,12 +2294,28 @@ async function callGemini(playerMessage, retryCount = 0) {
     let worldParsed = false;
 
     if (sheetMatch) {
+      // Preserve XP stores before overwriting — the AI's SHEET JSON carries
+      // the XP values from BEFORE this turn's CHANGES block ran (stale).
+      // JS-tracked XP is authoritative; restore it after the sheet parse.
+      const savedXP = {
+        forceStatsXP:      characterSheet?.forceStatsXP      ? JSON.parse(JSON.stringify(characterSheet.forceStatsXP))      : null,
+        statsXP:           characterSheet?.statsXP            ? JSON.parse(JSON.stringify(characterSheet.statsXP))            : null,
+        forceAbilitiesXP:  characterSheet?.forceAbilitiesXP  ? JSON.parse(JSON.stringify(characterSheet.forceAbilitiesXP))  : null,
+        lightsaberFormsXP: characterSheet?.lightsaberFormsXP ? JSON.parse(JSON.stringify(characterSheet.lightsaberFormsXP)) : null,
+      };
       try {
         characterSheet = JSON.parse(sheetMatch[1].trim());
         sheetParsed = true;
       } catch(e) {
         const j = sheetMatch[1].match(/\{[\s\S]*\}/);
         if (j) { try { characterSheet = JSON.parse(j[0]); sheetParsed = true; } catch(e2) {} }
+      }
+      // Restore JS-authoritative XP stores (never trust the AI's XP values)
+      if (sheetParsed && characterSheet) {
+        if (savedXP.forceStatsXP)      characterSheet.forceStatsXP      = savedXP.forceStatsXP;
+        if (savedXP.statsXP)           characterSheet.statsXP           = savedXP.statsXP;
+        if (savedXP.forceAbilitiesXP)  characterSheet.forceAbilitiesXP  = savedXP.forceAbilitiesXP;
+        if (savedXP.lightsaberFormsXP) characterSheet.lightsaberFormsXP = savedXP.lightsaberFormsXP;
       }
     }
 
@@ -4463,7 +4479,7 @@ function applyMechanicalChangesFromText(text) {
         if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
         if (!characterSheet.forceStatsXP[fk]) characterSheet.forceStatsXP[fk] = {current:0,required:xpRequired(newVal)};
         characterSheet.forceStatsXP[fk].required = xpRequired(newVal);
-        characterSheet.forceStatsXP[fk].current = 0;
+        // Do NOT reset .current — JS XP tracking is authoritative
         count++;
       } else if (stMap[keyLower] || stMap[keySpaced]) {
         const sk = stMap[keyLower] || stMap[keySpaced];
@@ -4472,21 +4488,21 @@ function applyMechanicalChangesFromText(text) {
         if (!characterSheet.statsXP) characterSheet.statsXP = {};
         if (!characterSheet.statsXP[sk]) characterSheet.statsXP[sk] = {current:0,required:xpRequired(newVal)};
         characterSheet.statsXP[sk].required = xpRequired(newVal);
-        characterSheet.statsXP[sk].current = 0;
+        // Do NOT reset .current — JS XP tracking is authoritative
         count++;
       } else if (characterSheet.forceAbilities && rawName in characterSheet.forceAbilities) {
         characterSheet.forceAbilities[rawName] = newVal;
         if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
         if (!characterSheet.forceAbilitiesXP[rawName]) characterSheet.forceAbilitiesXP[rawName] = {current:0,required:xpRequired(newVal)};
         characterSheet.forceAbilitiesXP[rawName].required = xpRequired(newVal);
-        characterSheet.forceAbilitiesXP[rawName].current = 0;
+        // Do NOT reset .current — JS XP tracking is authoritative
         count++;
       } else if (characterSheet.lightsaberForms && rawName in characterSheet.lightsaberForms) {
         characterSheet.lightsaberForms[rawName] = newVal;
         if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
         if (!characterSheet.lightsaberFormsXP[rawName]) characterSheet.lightsaberFormsXP[rawName] = {current:0,required:xpRequired(newVal)};
         characterSheet.lightsaberFormsXP[rawName].required = xpRequired(newVal);
-        characterSheet.lightsaberFormsXP[rawName].current = 0;
+        // Do NOT reset .current — JS XP tracking is authoritative
         count++;
       }
       continue;
