@@ -2316,6 +2316,41 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (savedXP.statsXP)           characterSheet.statsXP           = savedXP.statsXP;
         if (savedXP.forceAbilitiesXP)  characterSheet.forceAbilitiesXP  = savedXP.forceAbilitiesXP;
         if (savedXP.lightsaberFormsXP) characterSheet.lightsaberFormsXP = savedXP.lightsaberFormsXP;
+
+        // Also reconcile stat VALUES: the AI's SHEET JSON reports last-known stat levels
+        // and may not reflect level-ups that just happened in the CHANGES block.
+        // If our saved xpRequired implies a higher stat than the AI reported, trust JS.
+        const reconcileStat = (statObj, xpStore, setFn) => {
+          if (!xpStore || !statObj) return;
+          for (const [k, xpData] of Object.entries(xpStore)) {
+            // Work backwards: what stat level does this xpRequired correspond to?
+            // xpRequired(sv) = floor(100 * 1.07^sv), so sv = log(required/100)/log(1.07)
+            const impliedStat = Math.round(Math.log(xpData.required / 100) / Math.log(1.07));
+            const currentStat = statObj[k] || 0;
+            if (impliedStat > currentStat) {
+              setFn(k, impliedStat);
+            }
+          }
+        };
+        reconcileStat(characterSheet.forceStats,     characterSheet.forceStatsXP,     (k,v) => { characterSheet.forceStats[k] = v; });
+        reconcileStat(characterSheet.stats,          characterSheet.statsXP,          (k,v) => { characterSheet.stats[k] = v; });
+        // forceAbilities and lightsaberForms store values differently
+        if (characterSheet.forceAbilitiesXP && characterSheet.forceAbilities) {
+          for (const [k, xpData] of Object.entries(characterSheet.forceAbilitiesXP)) {
+            const impliedStat = Math.round(Math.log(xpData.required / 100) / Math.log(1.07));
+            const cur = typeof characterSheet.forceAbilities[k] === 'object'
+              ? (characterSheet.forceAbilities[k].level || 0) : (characterSheet.forceAbilities[k] || 0);
+            if (impliedStat > cur) characterSheet.forceAbilities[k] = impliedStat;
+          }
+        }
+        if (characterSheet.lightsaberFormsXP && characterSheet.lightsaberForms) {
+          for (const [k, xpData] of Object.entries(characterSheet.lightsaberFormsXP)) {
+            const impliedStat = Math.round(Math.log(xpData.required / 100) / Math.log(1.07));
+            const cur = typeof characterSheet.lightsaberForms[k] === 'object'
+              ? (characterSheet.lightsaberForms[k].level || 0) : (characterSheet.lightsaberForms[k] || 0);
+            if (impliedStat > cur) characterSheet.lightsaberForms[k] = impliedStat;
+          }
+        }
       }
     }
 
