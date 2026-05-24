@@ -1640,7 +1640,8 @@ XP GAIN RULES (add to current XP each turn, never skip this):
 - Reading/studying theory (no practice): +0.5 XP to Force Knowledge only
 - Accidentally triggering an ability: +1 XP
 - Breakthrough moment: +10 XP (rare)
-- Passive observation with no relevant action: +0 XP
+- Passive observation with no relevant action: +0 XP — do NOT emit a TRAINING: line at all
+- Social/travel/dialogue turns with no Force use: do NOT emit TRAINING: lines
 
 WHEN XP REACHES REQUIRED THRESHOLD:
 - Stat increases by exactly 1
@@ -2364,7 +2365,7 @@ async function callGemini(playerMessage, retryCount = 0) {
             const xp = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4]);
             const res = applyXPToSheet(parts[0], xp);
             const label = parts[0].split('.')[1] || parts[0];
-            turnXPLog.push({ label, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'training' });
+            if (res.xpAdded > 0) turnXPLog.push({ label, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'training' });
           }
           continue;
         }
@@ -2380,11 +2381,11 @@ async function callGemini(playerMessage, retryCount = 0) {
             const {primary, secondary} = calcCombatXP(parseInt(parts[1]), parseInt(parts[2]), parts[3], parts[4]);
             const res = applyXPToSheet(parts[0], primary);
             const label = parts[0].split('.')[1] || parts[0];
-            turnXPLog.push({ label, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'combat' });
+            if (res.xpAdded > 0) turnXPLog.push({ label, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'combat' });
             if (secPath) {
               const res2 = applyXPToSheet(secPath, secondary);
               const label2 = secPath.split('.')[1] || secPath;
-              turnXPLog.push({ label: label2, xpAdded: res2.xpAdded, levelUps: res2.levelUps, newStat: res2.newStat, xpCurrent: res2.xpCurrent, xpRequired: res2.xpRequired, type: 'combat' });
+              if (res2.xpAdded > 0) turnXPLog.push({ label: label2, xpAdded: res2.xpAdded, levelUps: res2.levelUps, newStat: res2.newStat, xpCurrent: res2.xpCurrent, xpRequired: res2.xpRequired, type: 'combat' });
             }
           }
           continue;
@@ -2568,7 +2569,7 @@ async function callGemini(playerMessage, retryCount = 0) {
             // Multiply by 50 as a conservative conversion factor
             const resP = applyXPToSheet(path, xpRaw * 50);
             const labelP = path.split('.')[1] || path;
-            turnXPLog.push({ label: labelP, xpAdded: resP.xpAdded, levelUps: resP.levelUps, newStat: resP.newStat, xpCurrent: resP.xpCurrent, xpRequired: resP.xpRequired, type: 'training' });
+            if (resP.xpAdded > 0) turnXPLog.push({ label: labelP, xpAdded: resP.xpAdded, levelUps: resP.levelUps, newStat: resP.newStat, xpCurrent: resP.xpCurrent, xpRequired: resP.xpRequired, type: 'training' });
           }
         }
       }
@@ -2786,7 +2787,7 @@ async function callGemini(playerMessage, retryCount = 0) {
     }
 
     // ── XP Summary block ─────────────────────────────────────────────
-    if (turnXPLog.length > 0 && !isOverride) {
+    if (turnXPLog.filter(e => e.xpAdded > 0).length > 0 && !isOverride) {
       const feed = document.getElementById('story-feed');
       const xpDiv = document.createElement('div');
       xpDiv.className = 'msg';
@@ -3060,11 +3061,11 @@ function endCombat(outcome, engagement) {
     console.log('[endCombat] XP:', primary, 'to', activeCombat.primarySkill, '|', secondary, 'to', activeCombat.secondarySkill);
     const res1 = applyXPToSheet(activeCombat.primarySkill, primary);
     const label1 = activeCombat.primarySkill.split('.')[1] || activeCombat.primarySkill;
-    turnXPLog.push({ label: label1, xpAdded: res1.xpAdded, levelUps: res1.levelUps, newStat: res1.newStat, xpCurrent: res1.xpCurrent, xpRequired: res1.xpRequired, type: 'combat' });
+    if (res1.xpAdded > 0) turnXPLog.push({ label: label1, xpAdded: res1.xpAdded, levelUps: res1.levelUps, newStat: res1.newStat, xpCurrent: res1.xpCurrent, xpRequired: res1.xpRequired, type: 'combat' });
     if (activeCombat.secondarySkill) {
       const res2 = applyXPToSheet(activeCombat.secondarySkill, secondary);
       const label2 = activeCombat.secondarySkill.split('.')[1] || activeCombat.secondarySkill;
-      turnXPLog.push({ label: label2, xpAdded: res2.xpAdded, levelUps: res2.levelUps, newStat: res2.newStat, xpCurrent: res2.xpCurrent, xpRequired: res2.xpRequired, type: 'combat' });
+      if (res2.xpAdded > 0) turnXPLog.push({ label: label2, xpAdded: res2.xpAdded, levelUps: res2.levelUps, newStat: res2.newStat, xpCurrent: res2.xpCurrent, xpRequired: res2.xpRequired, type: 'combat' });
     }
   } else {
     console.warn('[endCombat] no primarySkill — XP skipped');
