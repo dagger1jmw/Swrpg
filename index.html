@@ -1908,16 +1908,28 @@ window.addEventListener('load', () => {
 });
 
 function tryAutoLoad() {
-  const raw = localStorage.getItem('sw_rpg_autosave');
-  if (raw) {
-    try {
-      const save = JSON.parse(raw);
-      loadFromSave(save);
-      return;
-    } catch(e) {}
-  }
-  // No save found — show welcome prompt, don't auto-fire API
-  showWelcomePrompt();
+  try {
+    const raw = localStorage.getItem('sw_rpg_autosave');
+    if (!raw) return;
+    const save = JSON.parse(raw);
+    if (save?.characterSheet?.name) {
+      characterSheet = save.characterSheet;
+      migrateStrainScale(characterSheet); // fix old-scale saves
+      worldState = save.worldState || {};
+      fullHistory = save.fullHistory || [];
+      recentHistory = save.recentHistory || [];
+      campaignSummary = save.campaignSummary || '';
+      turnCount = save.turnCount || 0;
+      galaxySimState = save.galaxySimState || {};
+      lastGalaxyEventDate = save.lastGalaxyEventDate || '';
+      // Re-render recent history
+      for (const msg of recentHistory) {
+        if (msg.role === 'user') renderPlayerMessage(typeof msg.parts[0].text === 'string' ? msg.parts[0].text.replace(/\[DICE PRE-ROLLED[\s\S]*?\]/g,'').replace(/\[TURN \d+[\s\S]*?\]/g,'').trim() : '');
+        else if (msg.role === 'model') renderGMMessage(typeof msg.parts[0].text === 'string' ? msg.parts[0].text : '');
+      }
+      updateUI();
+    }
+  } catch(e) { console.error('Auto-load failed:', e); }
 }
 
 function showWelcomePrompt() {
@@ -2150,7 +2162,7 @@ function buildContext(userContent) {
 ALIGNMENT: ${cs.alignment||0} (moves only from conscious moral choices — Force use alone = no change)
 DUELING TIER: ${duelingTier.name} (Tier ${duelingTier.num}) | FORCE TIER: ${forceTier.name} (Tier ${forceTier.num})
 HP: ${cs.hp||100}/${cs.maxHp||100}
-FORCE STRAIN: ${cs.forceStrain ?? cs.strain ?? 0}/${cs.maxForceStrain ?? cs.maxStrain ?? 12}
+FORCE STRAIN: ${cs.forceStrain ?? cs.strain ?? 0}/${cs.maxForceStrain ?? cs.maxStrain ?? 100}
 PHYSICAL STRAIN: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||10}
 MENTAL STRAIN: ${cs.mentalStrain||0}/${cs.maxMentalStrain||10}
 FORCE STATS (stat/tier/XP — READ ONLY, do not modify): ForceSense=${cs.forceStats?.forceSense||0}(${statToTier(cs.forceStats?.forceSense||0).name})[${(()=>{const x=cs.forceStatsXP?.forceSense;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] Meditation=${cs.forceStats?.meditation||0}(${statToTier(cs.forceStats?.meditation||0).name})[${(()=>{const x=cs.forceStatsXP?.meditation;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] ForceKnowledge=${cs.forceStats?.forceKnowledge||0}(${statToTier(cs.forceStats?.forceKnowledge||0).name})[${(()=>{const x=cs.forceStatsXP?.forceKnowledge;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] ForceControl=${cs.forceStats?.forceControl||0}(${statToTier(cs.forceStats?.forceControl||0).name})[${(()=>{const x=cs.forceStatsXP?.forceControl;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}]
@@ -2429,9 +2441,9 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (isNaN(val)) continue;
         switch(key) {
           case 'HP':                characterSheet.hp = val; break;
-          case 'FORCE_STRAIN':      characterSheet.forceStrain = Math.max(0,Math.min(characterSheet.maxForceStrain||12,val)); break;
-          case 'PHYSICAL_STRAIN':   characterSheet.physicalStrain = Math.max(0,Math.min(characterSheet.maxPhysicalStrain||10,val)); break;
-          case 'MENTAL_STRAIN':     characterSheet.mentalStrain = Math.max(0,Math.min(characterSheet.maxMentalStrain||10,val)); break;
+          case 'FORCE_STRAIN':      characterSheet.forceStrain = Math.max(0,Math.min(characterSheet.maxForceStrain||100,val)); break;
+          case 'PHYSICAL_STRAIN':   characterSheet.physicalStrain = Math.max(0,Math.min(characterSheet.maxPhysicalStrain||1000,val)); break;
+          case 'MENTAL_STRAIN':     characterSheet.mentalStrain = Math.max(0,Math.min(characterSheet.maxMentalStrain||1000,val)); break;
           case 'FORCE_BARRIER':     characterSheet.forceBarrier = val; break;
           case 'ALIGNMENT':         characterSheet.alignment = val; break;
           case 'FORCE_SENSE':       if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceSense = val; break;
@@ -2528,63 +2540,9 @@ async function callGemini(playerMessage, retryCount = 0) {
       characterSheet.physicalStrain = Math.max(0, Math.min(maxPS, characterSheet.physicalStrain || 0));
       characterSheet.mentalStrain = Math.max(0, Math.min(maxMS, characterSheet.mentalStrain || 0));
 
-      // Fallback: parse narrative XP lines like "Djem So: +3 XP (combat)" if TRAINING/COMBAT lines missing
-      // Uses conservative defaults since we can't determine time/intensity from prose alone
-      if (characterSheet) {
-        const xpNarrRe = /\*?\s*([A-Za-z][A-Za-z\s\-]+?):\s*\+(\d+(?:\.\d+)?)\s*XP/gi;
-        const fsMap2 = {forcesense:'forceStats.forceSense',meditation:'forceStats.meditation',forceknowledge:'forceStats.forceKnowledge',forcecontrol:'forceStats.forceControl'};
-        const stMap2 = {strength:'stats.strength',agility:'stats.agility',endurance:'stats.endurance',willpower:'stats.willpower',charisma:'stats.charisma'};
-        const narrativeXPMatches = [...rawText.matchAll(xpNarrRe)];
-        for (const m of narrativeXPMatches) {
-          const name = m[1].trim();
-          const xpRaw = parseFloat(m[2]);
-          if (isNaN(xpRaw) || xpRaw <= 0) continue;
-          const key = name.toLowerCase().replace(/[\s\-]/g,'');
-          let path = fsMap2[key] || stMap2[key];
-          if (!path) {
-            // Try abilities and forms
-            const abilityKey = Object.keys(characterSheet.forceAbilities||{}).find(k=>k.toLowerCase().replace(/[\s\-]/g,'')=== key);
-            const formKey = Object.keys(characterSheet.lightsaberForms||{}).find(k=>k.toLowerCase().replace(/[\s\-]/g,'')=== key);
-            if (abilityKey) path = `forceAbilities.${abilityKey}`;
-            else if (formKey) path = `lightsaberForms.${formKey}`;
-          }
-          if (path) {
-            // Scale up the prose XP to match the new exponential system
-            // Old system gave 1-3 XP, new system needs 100+ for low stats
-            // Multiply by 50 as a conservative conversion factor
-            applyXPToSheet(path, xpRaw * 50);
-          }
-        }
-      }
-      // Pattern: "StatName: +N XP -> current/required" or "StatName: +N XP (now X/Y)"
-      const xpNarrativeRe = /([A-Za-z][A-Za-z\s]+?):\s*\+(\d+(?:\.\d+)?)\s*XP.*?(?:->|→|\(now\s+)(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)/gi;
-      const xpMatches = [...rt.matchAll(xpNarrativeRe)];
-      for (const m of xpMatches) {
-        const name = m[1].trim();
-        const current = parseFloat(m[3]);
-        const required = parseFloat(m[4]);
-        if (isNaN(current) || isNaN(required)) continue;
-        const nameLower = name.toLowerCase().replace(/\s+/g, '');
-        const fsMap = {forcesense:'forceSense',meditation:'meditation',forceknowledge:'forceKnowledge',forcecontrol:'forceControl'};
-        const stMap = {strength:'strength',agility:'agility',endurance:'endurance',willpower:'willpower',charisma:'charisma'};
-        if (fsMap[nameLower]) {
-          if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
-          characterSheet.forceStatsXP[fsMap[nameLower]] = { current, required };
-        } else if (stMap[nameLower]) {
-          if (!characterSheet.statsXP) characterSheet.statsXP = {};
-          characterSheet.statsXP[stMap[nameLower]] = { current, required };
-        } else {
-          const abilityKey = Object.keys(characterSheet.forceAbilities||{}).find(k => k.toLowerCase().replace(/\s+/g,'') === nameLower);
-          const formKey = Object.keys(characterSheet.lightsaberForms||{}).find(k => k.toLowerCase().replace(/\s+/g,'') === nameLower);
-          if (abilityKey) {
-            if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
-            characterSheet.forceAbilitiesXP[abilityKey] = { current, required };
-          } else if (formKey) {
-            if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
-            characterSheet.lightsaberFormsXP[formKey] = { current, required };
-          }
-        }
-      }
+      // NOTE: Narrative XP fallback disabled — TRAINING:/COMBAT: lines in CHANGES block are the only XP source.
+      // Parsing prose XP causes double-application when AI narrates what JS already calculated.
+      // NOTE: Narrative XP bar updater disabled — CHANGES block is authoritative for XP state.
     }
       // Detect markdown character sheet in response and parse it into our sheet object
       const hasMarkdownSheet = rawText.includes('**name:**') || rawText.includes('**strain:**') || rawText.includes('**forceStats:**') || rawText.includes('**forceStrain:**') || rawText.includes('**physicalStrain:**');
@@ -2962,8 +2920,23 @@ function updateUI() {
   if (worldState) updateWorldState();
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  COMBAT STATE — persists across turns during active combat
+// Migrate old-scale strain values (0-12 / 0-10) to new scale (0-100)
+function migrateStrainScale(sheet) {
+  if (!sheet) return;
+  // If maxForceStrain is 12 or less, this is an old-scale save
+  if ((sheet.maxForceStrain || 12) <= 12) {
+    const fsRatio = (sheet.forceStrain || 0) / (sheet.maxForceStrain || 12);
+    const psRatio = (sheet.physicalStrain || 0) / (sheet.maxPhysicalStrain || 10);
+    const msRatio = (sheet.mentalStrain || 0) / (sheet.maxMentalStrain || 10);
+    sheet.maxForceStrain = 100;
+    sheet.maxPhysicalStrain = 100;
+    sheet.maxMentalStrain = 100;
+    sheet.forceStrain = Math.round(fsRatio * 100);
+    sheet.physicalStrain = Math.round(psRatio * 100);
+    sheet.mentalStrain = Math.round(msRatio * 100);
+    console.log('[migrateStrainScale] Migrated old-scale strain to 100-scale');
+  }
+}
 // ═══════════════════════════════════════════════════════════════════
 let activeCombat = null; // null when not in combat
 
@@ -3206,11 +3179,11 @@ function updateCharacterSheet() {
 
   // Three strain bars
   const fStrain = s.forceStrain ?? s.strain ?? 0;
-  const fStrainMax = s.maxForceStrain ?? s.maxStrain ?? 12;
+  const fStrainMax = s.maxForceStrain ?? s.maxStrain ?? 100;
   const pStrain = s.physicalStrain ?? 0;
-  const pStrainMax = s.maxPhysicalStrain ?? 10;
+  const pStrainMax = s.maxPhysicalStrain ?? 100;
   const mStrain = s.mentalStrain ?? 0;
-  const mStrainMax = s.maxMentalStrain ?? 10;
+  const mStrainMax = s.maxMentalStrain ?? 100;
   const fStrainPct = Math.max(0, Math.min(100, (fStrain / fStrainMax) * 100));
   const pStrainPct = Math.max(0, Math.min(100, (pStrain / pStrainMax) * 100));
   const mStrainPct = Math.max(0, Math.min(100, (mStrain / mStrainMax) * 100));
@@ -4038,9 +4011,9 @@ PAUSE_FLAG: [reason if pause condition met | NONE]`;
   const estPhysStrain = hasIntensePhysical ? 4 : 2;
   const estMentalStrain = routineLower.includes('prolonged') || routineLower.includes('study') ? 3 : 1;
 
-  characterSheet.forceStrain = Math.min(estForceStrain, characterSheet.maxForceStrain||12);
-  characterSheet.physicalStrain = Math.min(estPhysStrain, characterSheet.maxPhysicalStrain||10);
-  characterSheet.mentalStrain = Math.min(estMentalStrain, characterSheet.maxMentalStrain||10);
+  characterSheet.forceStrain = Math.min(estForceStrain, characterSheet.maxForceStrain||100);
+  characterSheet.physicalStrain = Math.min(estPhysStrain, characterSheet.maxPhysicalStrain||100);
+  characterSheet.mentalStrain = Math.min(estMentalStrain, characterSheet.maxMentalStrain||100);
 
   const XP_PER_DAY = {LOW:1, MEDIUM:1.5, HIGH:2};
   const WEEKLY_XP_CAP = 8;
