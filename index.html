@@ -1910,44 +1910,11 @@ window.addEventListener('load', () => {
 function tryAutoLoad() {
   try {
     const raw = localStorage.getItem('sw_rpg_autosave');
-    if (!raw) return;
+    if (!raw) { showWelcomePrompt(); return; }
     const save = JSON.parse(raw);
     if (save?.characterSheet?.name) {
-      characterSheet = save.characterSheet;
-      migrateStrainScale(characterSheet);
-      worldState = save.worldState || {};
-      fullHistory = save.fullHistory || [];
-      recentHistory = save.recentHistory || [];
-      campaignSummary = save.campaignSummary || '';
-      turnCount = save.turnCount || 0;
-      galaxySimState = save.galaxySimState || {};
-      lastGalaxyEventDate = save.lastGalaxyEventDate || '';
-
-      // Re-render recent history — skip messages that are pure data blocks
-      for (const msg of recentHistory) {
-        if (!msg?.parts?.[0]?.text) continue;
-        const text = msg.parts[0].text;
-
-        if (msg.role === 'user') {
-          const clean = text
-            .replace(/\[DICE PRE-ROLLED[\s\S]*?\]/g,'')
-            .replace(/\[TURN \d+[\s\S]*?\]/g,'')
-            .trim();
-          if (clean) renderPlayerMessage(clean);
-        } else if (msg.role === 'model') {
-          // Strip data blocks from display
-          const display = text
-            .replace(/<<<CHANGES>>>[\s\S]*?<<<END_CHANGES>>>/g,'')
-            .replace(/<<<SHEET>>>[\s\S]*?<<<END_SHEET>>>/g,'')
-            .replace(/<<<WORLD>>>[\s\S]*?<<<END_WORLD>>>/g,'')
-            .replace(/<<<[\s\S]*/g,'')
-            .trim();
-          // Skip if nothing left but JSON/data
-          if (!display || display.startsWith('{') || display.startsWith('[{')) continue;
-          if (display.length > 10) renderGMMessage(display);
-        }
-      }
-      updateUI();
+      migrateStrainScale(save.characterSheet);
+      loadFromSave(save);
     } else {
       showWelcomePrompt();
     }
