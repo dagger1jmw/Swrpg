@@ -2150,9 +2150,9 @@ function buildContext(userContent) {
 ALIGNMENT: ${cs.alignment||0} (moves only from conscious moral choices — Force use alone = no change)
 DUELING TIER: ${duelingTier.name} (Tier ${duelingTier.num}) | FORCE TIER: ${forceTier.name} (Tier ${forceTier.num})
 HP: ${cs.hp||100}/${cs.maxHp||100}
-FORCE STRAIN: ${cs.forceStrain ?? cs.strain ?? 0}/${cs.maxForceStrain ?? cs.maxStrain ?? 12}
-PHYSICAL STRAIN: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||10}
-MENTAL STRAIN: ${cs.mentalStrain||0}/${cs.maxMentalStrain||10}
+FORCE STRAIN: ${cs.forceStrain ?? cs.strain ?? 0}/${cs.maxForceStrain ?? cs.maxStrain ?? 100}
+PHYSICAL STRAIN: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||100}
+MENTAL STRAIN: ${cs.mentalStrain||0}/${cs.maxMentalStrain||100}
 FORCE STATS (stat/tier/XP — READ ONLY, do not modify): ForceSense=${cs.forceStats?.forceSense||0}(${statToTier(cs.forceStats?.forceSense||0).name})[${(()=>{const x=cs.forceStatsXP?.forceSense;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] Meditation=${cs.forceStats?.meditation||0}(${statToTier(cs.forceStats?.meditation||0).name})[${(()=>{const x=cs.forceStatsXP?.meditation;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] ForceKnowledge=${cs.forceStats?.forceKnowledge||0}(${statToTier(cs.forceStats?.forceKnowledge||0).name})[${(()=>{const x=cs.forceStatsXP?.forceKnowledge;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] ForceControl=${cs.forceStats?.forceControl||0}(${statToTier(cs.forceStats?.forceControl||0).name})[${(()=>{const x=cs.forceStatsXP?.forceControl;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}]
 FORCE ABILITIES (stat/tier/XP — READ ONLY): ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||v.value||0):(v||0);const x=cs.forceAbilitiesXP?.[k];return `${k}:${s}(${statToTier(s).name})[${x?Math.round(x.current||0)+'/'+x.required+'XP':'0/?XP'}]`;}).join(', ')||'none'}
 LIGHTSABER FORMS (stat → tier → XP progress): ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||0):(v||0);const xp=cs.lightsaberFormsXP?.[k];return `${k}:${s}(${statToTier(s).name})[${xp?`${xp.current||0}/${xp.required||100}XP`:'0/?XP'}]`;}).join(', ')||'none'}
@@ -2491,9 +2491,9 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (isNaN(val)) continue;
         switch(key) {
           case 'HP':                characterSheet.hp = val; break;
-          case 'FORCE_STRAIN':      characterSheet.forceStrain = Math.max(0,Math.min(characterSheet.maxForceStrain||12,val)); break;
-          case 'PHYSICAL_STRAIN':   characterSheet.physicalStrain = Math.max(0,Math.min(characterSheet.maxPhysicalStrain||10,val)); break;
-          case 'MENTAL_STRAIN':     characterSheet.mentalStrain = Math.max(0,Math.min(characterSheet.maxMentalStrain||10,val)); break;
+          case 'FORCE_STRAIN':      characterSheet.forceStrain = Math.max(0,Math.min(characterSheet.maxForceStrain||100,val)); break;
+          case 'PHYSICAL_STRAIN':   characterSheet.physicalStrain = Math.max(0,Math.min(characterSheet.maxPhysicalStrain||100,val)); break;
+          case 'MENTAL_STRAIN':     characterSheet.mentalStrain = Math.max(0,Math.min(characterSheet.maxMentalStrain||100,val)); break;
           case 'FORCE_BARRIER':     characterSheet.forceBarrier = val; break;
           case 'ALIGNMENT':         characterSheet.alignment = val; break;
           case 'FORCE_SENSE':       if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceSense = val; break;
@@ -2522,7 +2522,7 @@ async function callGemini(playerMessage, retryCount = 0) {
     // ── Always parse strain and XP from narrative text ─────────────
     if (characterSheet) {
       const rt = rawText;
-      const maxFS = characterSheet.maxForceStrain || 12;
+      const maxFS = characterSheet.maxForceStrain || 100;
       const maxPS = characterSheet.maxPhysicalStrain || 10;
       const maxMS = characterSheet.maxMentalStrain || 10;
 
@@ -3309,11 +3309,11 @@ function updateCharacterSheet() {
 
   // Three strain bars
   const fStrain = s.forceStrain ?? s.strain ?? 0;
-  const fStrainMax = s.maxForceStrain ?? s.maxStrain ?? 12;
+  const fStrainMax = s.maxForceStrain ?? s.maxStrain ?? 100;
   const pStrain = s.physicalStrain ?? 0;
-  const pStrainMax = s.maxPhysicalStrain ?? 10;
+  const pStrainMax = s.maxPhysicalStrain ?? 100;
   const mStrain = s.mentalStrain ?? 0;
-  const mStrainMax = s.maxMentalStrain ?? 10;
+  const mStrainMax = s.maxMentalStrain ?? 100;
   const fStrainPct = Math.max(0, Math.min(100, (fStrain / fStrainMax) * 100));
   const pStrainPct = Math.max(0, Math.min(100, (pStrain / pStrainMax) * 100));
   const mStrainPct = Math.max(0, Math.min(100, (mStrain / mStrainMax) * 100));
@@ -3699,6 +3699,12 @@ function loadFromSave(save) {
   if (!save) return;
   turnCount = save.turnCount || 0;
   characterSheet = save.characterSheet || null;
+  // Migrate old saves that had wrong strain maxes (12 or 10 instead of 100)
+  if (characterSheet) {
+    if (!characterSheet.maxForceStrain    || characterSheet.maxForceStrain    < 100) characterSheet.maxForceStrain    = 100;
+    if (!characterSheet.maxPhysicalStrain || characterSheet.maxPhysicalStrain < 100) characterSheet.maxPhysicalStrain = 100;
+    if (!characterSheet.maxMentalStrain   || characterSheet.maxMentalStrain   < 100) characterSheet.maxMentalStrain   = 100;
+  }
   worldState = save.worldState || null;
   campaignSummary = save.campaignSummary || '';
   galaxySimState = save.galaxySimState || {};
@@ -4141,9 +4147,9 @@ PAUSE_FLAG: [reason if pause condition met | NONE]`;
   const estPhysStrain = hasIntensePhysical ? 4 : 2;
   const estMentalStrain = routineLower.includes('prolonged') || routineLower.includes('study') ? 3 : 1;
 
-  characterSheet.forceStrain = Math.min(estForceStrain, characterSheet.maxForceStrain||12);
-  characterSheet.physicalStrain = Math.min(estPhysStrain, characterSheet.maxPhysicalStrain||10);
-  characterSheet.mentalStrain = Math.min(estMentalStrain, characterSheet.maxMentalStrain||10);
+  characterSheet.forceStrain = Math.min(estForceStrain, characterSheet.maxForceStrain||100);
+  characterSheet.physicalStrain = Math.min(estPhysStrain, characterSheet.maxPhysicalStrain||100);
+  characterSheet.mentalStrain = Math.min(estMentalStrain, characterSheet.maxMentalStrain||100);
 
   const XP_PER_DAY = {LOW:1, MEDIUM:1.5, HIGH:2};
   const WEEKLY_XP_CAP = 8;
@@ -4579,8 +4585,8 @@ function applyMechanicalChangesFromText(text) {
 
 function buildSheetSummaryForSim(cs) {
   return `Name: ${cs.name||'?'} | Age: ${cs.age||'?'} | Force Tier: ${cs.forceTier||1}
-HP: ${cs.hp||100}/${cs.maxHp||100} | Force Strain: ${cs.forceStrain||0}/${cs.maxForceStrain||12}
-Physical Strain: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||10} | Mental Strain: ${cs.mentalStrain||0}/${cs.maxMentalStrain||10}
+HP: ${cs.hp||100}/${cs.maxHp||100} | Force Strain: ${cs.forceStrain||0}/${cs.maxForceStrain||100}
+Physical Strain: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||100} | Mental Strain: ${cs.mentalStrain||0}/${cs.maxMentalStrain||100}
 Force Stats: ForceSense=${cs.forceStats?.forceSense||0}(XP:${cs.forceStatsXP?.forceSense?.current||0}/${cs.forceStatsXP?.forceSense?.required||10}), Meditation=${cs.forceStats?.meditation||0}(XP:${cs.forceStatsXP?.meditation?.current||0}/${cs.forceStatsXP?.meditation?.required||10}), ForceKnowledge=${cs.forceStats?.forceKnowledge||0}(XP:${cs.forceStatsXP?.forceKnowledge?.current||0}/${cs.forceStatsXP?.forceKnowledge?.required||10}), ForceControl=${cs.forceStats?.forceControl||0}(XP:${cs.forceStatsXP?.forceControl?.current||0}/${cs.forceStatsXP?.forceControl?.required||10})
 Force Abilities: ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||0):v}(XP:${cs.forceAbilitiesXP?.[k]?.current||0}/${cs.forceAbilitiesXP?.[k]?.required||10})`).join(', ')||'none'}
 Lightsaber Forms: ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||0):v}(XP:${cs.lightsaberFormsXP?.[k]?.current||0}/${cs.lightsaberFormsXP?.[k]?.required||10})`).join(', ')||'none'}
