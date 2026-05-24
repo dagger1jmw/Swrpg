@@ -2313,6 +2313,9 @@ async function callGemini(playerMessage, retryCount = 0) {
       }
     }
 
+    // ── XP log for this turn — reset each turn, populated during CHANGES parsing ──────
+    turnXPLog = []; // reset module-level log for this turn
+
     // ── Parse CHANGES block — structured delta, always present ──────
     const changesMatch = rawText.match(/<<<CHANGES>>>\s*([\s\S]*?)\s*<<<END_CHANGES>>>/);
     if (changesMatch && characterSheet) {
@@ -2356,7 +2359,9 @@ async function callGemini(playerMessage, retryCount = 0) {
           const parts = trimmed.slice(9).split(',').map(s => s.trim());
           if (parts.length >= 5) {
             const xp = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4]);
-            applyXPToSheet(parts[0], xp);
+            const res = applyXPToSheet(parts[0], xp);
+            const label = parts[0].split('.')[1] || parts[0];
+            turnXPLog.push({ label, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'training' });
           }
           continue;
         }
@@ -2370,8 +2375,14 @@ async function callGemini(playerMessage, retryCount = 0) {
           const parts = mainPart.split(',').map(s => s.trim());
           if (parts.length >= 5) {
             const {primary, secondary} = calcCombatXP(parseInt(parts[1]), parseInt(parts[2]), parts[3], parts[4]);
-            applyXPToSheet(parts[0], primary);
-            if (secPath) applyXPToSheet(secPath, secondary);
+            const res = applyXPToSheet(parts[0], primary);
+            const label = parts[0].split('.')[1] || parts[0];
+            turnXPLog.push({ label, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'combat' });
+            if (secPath) {
+              const res2 = applyXPToSheet(secPath, secondary);
+              const label2 = secPath.split('.')[1] || secPath;
+              turnXPLog.push({ label: label2, xpAdded: res2.xpAdded, levelUps: res2.levelUps, newStat: res2.newStat, xpCurrent: res2.xpCurrent, xpRequired: res2.xpRequired, type: 'combat' });
+            }
           }
           continue;
         }
@@ -2552,7 +2563,9 @@ async function callGemini(playerMessage, retryCount = 0) {
             // Scale up the prose XP to match the new exponential system
             // Old system gave 1-3 XP, new system needs 100+ for low stats
             // Multiply by 50 as a conservative conversion factor
-            applyXPToSheet(path, xpRaw * 50);
+            const resP = applyXPToSheet(path, xpRaw * 50);
+            const labelP = path.split('.')[1] || path;
+            turnXPLog.push({ label: labelP, xpAdded: resP.xpAdded, levelUps: resP.levelUps, newStat: resP.newStat, xpCurrent: resP.xpCurrent, xpRequired: resP.xpRequired, type: 'training' });
           }
         }
       }
@@ -2769,6 +2782,38 @@ async function callGemini(playerMessage, retryCount = 0) {
       renderGMMessage(displayText);
     }
 
+    // ── XP Summary block ─────────────────────────────────────────────
+    if (turnXPLog.length > 0 && !isOverride) {
+      const feed = document.getElementById('story-feed');
+      const xpDiv = document.createElement('div');
+      xpDiv.className = 'msg';
+      xpDiv.style.cssText = 'margin: 4px 0 10px 0;';
+      let rows = '';
+      for (const e of turnXPLog) {
+        const barPct = Math.round((e.xpCurrent / e.xpRequired) * 100);
+        const levelTag = e.levelUps > 0
+          ? `<span style="color:#e8c84c;font-weight:bold;margin-left:6px">▲ LEVEL UP → ${e.newStat}</span>`
+          : '';
+        const icon = e.type === 'combat' ? '⚔' : '✦';
+        rows += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <span style="color:#88aabb;font-size:11px;min-width:9px">${icon}</span>
+          <span style="color:#c8b080;font-size:12px;min-width:120px;font-family:'Cinzel',serif;letter-spacing:0.5px">${e.label}</span>
+          <span style="color:#44aa66;font-size:12px;font-weight:bold;min-width:52px">+${e.xpAdded} XP</span>
+          <div style="flex:1;background:#1a1a1a;border-radius:2px;height:5px;min-width:60px;max-width:120px">
+            <div style="width:${barPct}%;height:100%;background:linear-gradient(90deg,#225533,#44aa66);border-radius:2px;transition:width 0.4s"></div>
+          </div>
+          <span style="color:#556655;font-size:10px;white-space:nowrap">${e.xpCurrent}/${e.xpRequired}</span>
+          ${levelTag}
+        </div>`;
+      }
+      xpDiv.innerHTML = `<div style="background:rgba(40,60,40,0.25);border:1px solid #2a3a2a;border-radius:4px;padding:8px 12px;font-size:12px">
+        <div style="color:#446644;font-size:10px;letter-spacing:2px;margin-bottom:7px;font-family:'Cinzel',serif">◆ EXPERIENCE GAINED</div>
+        ${rows}
+      </div>`;
+      feed.appendChild(xpDiv);
+      scrollFeed();
+    }
+
     updateUI();
     autoSave();
 
@@ -2966,6 +3011,7 @@ function updateUI() {
 //  COMBAT STATE — persists across turns during active combat
 // ═══════════════════════════════════════════════════════════════════
 let activeCombat = null; // null when not in combat
+let turnXPLog = []; // populated during each turn's CHANGES parsing, consumed by XP summary renderer
 
 function startCombat(opponent, intensity) {
   activeCombat = {
@@ -3004,8 +3050,14 @@ function endCombat(outcome, engagement) {
       activeCombat.opponentTier || 2
     );
     console.log('[endCombat] XP:', primary, 'to', activeCombat.primarySkill, '|', secondary, 'to', activeCombat.secondarySkill);
-    applyXPToSheet(activeCombat.primarySkill, primary);
-    if (activeCombat.secondarySkill) applyXPToSheet(activeCombat.secondarySkill, secondary);
+    const res1 = applyXPToSheet(activeCombat.primarySkill, primary);
+    const label1 = activeCombat.primarySkill.split('.')[1] || activeCombat.primarySkill;
+    turnXPLog.push({ label: label1, xpAdded: res1.xpAdded, levelUps: res1.levelUps, newStat: res1.newStat, xpCurrent: res1.xpCurrent, xpRequired: res1.xpRequired, type: 'combat' });
+    if (activeCombat.secondarySkill) {
+      const res2 = applyXPToSheet(activeCombat.secondarySkill, secondary);
+      const label2 = activeCombat.secondarySkill.split('.')[1] || activeCombat.secondarySkill;
+      turnXPLog.push({ label: label2, xpAdded: res2.xpAdded, levelUps: res2.levelUps, newStat: res2.newStat, xpCurrent: res2.xpCurrent, xpRequired: res2.xpRequired, type: 'combat' });
+    }
   } else {
     console.warn('[endCombat] no primarySkill — XP skipped');
   }
@@ -3145,10 +3197,10 @@ function calcCombatXP(rounds, tierGap, engagement, outcome, opponentTier) {
 
 // Apply XP to a stat path like "forceStats.forceSense" and level up if threshold crossed
 function applyXPToSheet(statPath, xpToAdd) {
-  if (!characterSheet || !xpToAdd || xpToAdd <= 0) return 0;
+  if (!characterSheet || !xpToAdd || xpToAdd <= 0) return { levelUps: 0, xpAdded: 0, newStat: 0, xpCurrent: 0, xpRequired: 0 };
   const parts = statPath.split('.');
   const category = parts[0], key = parts[1];
-  if (!category || !key) return 0;
+  if (!category || !key) return { levelUps: 0, xpAdded: 0, newStat: 0, xpCurrent: 0, xpRequired: 0 };
 
   const getSet = () => {
     if (category === 'forceStats') return {
@@ -3175,7 +3227,7 @@ function applyXPToSheet(statPath, xpToAdd) {
   };
 
   const accessor = getSet();
-  if (!accessor) return 0;
+  if (!accessor) return { levelUps: 0, xpAdded: 0, newStat: 0, xpCurrent: 0, xpRequired: 0 };
   const store = accessor.xpStore();
   let sv = accessor.get();
   if (!store[key]) store[key] = {current:0, required:xpRequired(sv)};
@@ -3190,7 +3242,7 @@ function applyXPToSheet(statPath, xpToAdd) {
     xpObj.required = xpRequired(sv);
     levelUps++;
   }
-  return levelUps;
+  return { levelUps, xpAdded: Math.round(xpToAdd), newStat: sv, xpCurrent: Math.round(xpObj.current), xpRequired: xpObj.required };
 }
 
 function updateCharacterSheet() {
