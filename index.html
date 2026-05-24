@@ -1098,7 +1098,7 @@ Every response you generate MUST end with both data blocks below. No exceptions.
 STEP 1: Write your narrative response and choices as normal.
 STEP 2: Immediately after, with no extra text, output the SHEET block:
 <<<SHEET>>>
-{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":12,"physicalStrain":0,"maxPhysicalStrain":10,"mentalStrain":0,"maxMentalStrain":10,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"aptitudes":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
+{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":100,"physicalStrain":0,"maxPhysicalStrain":100,"mentalStrain":0,"maxMentalStrain":100,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"aptitudes":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
 <<<END_SHEET>>>
 STEP 2: Output the CHANGES block — REQUIRED EVERY TURN:
 <<<CHANGES>>>
@@ -1586,22 +1586,29 @@ Form counter bonuses are defined in the ROLL SYSTEM section. They stack with tie
 ## THREE STRAIN BARS — TRACK ALL THREE SEPARATELY
 Every character has three independent strain pools. Track them separately in the SHEET block.
 
-FORCE STRAIN (forceStrain / maxForceStrain: 12):
-- Costs from using Force abilities (per existing strain cost rules)
-- Recovery: meditation, rest near Force nexus, time
-- At 9+: Force barrier weakens, rolls penalized
+FORCE STRAIN (forceStrain / maxForceStrain: 100):
+- Scaled to 100 for precision. Think of it as a percentage of capacity.
+- Light Force use: +2-5 | Moderate: +8-15 | Heavy sustained: +20-30
+- In combat: tracked via COMBAT_ROUND accumulation, applied at fight end
+- At 70+: rolls penalized, abilities harder to sustain. At 90+: dangerous.
+- Recovery: meditation restores 15-30 per session depending on depth
 
-PHYSICAL STRAIN (physicalStrain / maxPhysicalStrain: 10):
-- Costs from: combat, running, physical exertion, injury, hunger, exhaustion
-- Recovery: sleep, rest, food, medical treatment
-- At max: character collapses, risks injury
+PHYSICAL STRAIN (physicalStrain / maxPhysicalStrain: 100):
+- Light exertion: +2-5 | Intense training: +10-20 | Injury: +20-50
+- In combat: tracked via COMBAT_ROUND, applied at fight end. Endurance reduces per-round cost.
+- At 70+: movement impaired, combat penalties. At 90+: collapse risk.
+- Recovery: rest restores 10-20 per hour of sleep
 
-MENTAL STRAIN (mentalStrain / maxMentalStrain: 10):
-- Costs from: fear, grief, prolonged concentration, social stress, horror, mind attacks
-- Recovery: sleep, calm environment, comfort, meditation
-- At max: character freezes, panics, or breaks down temporarily
+MENTAL STRAIN (mentalStrain / maxMentalStrain: 100):
+- Mild stress: +2-5 | Intense focus: +8-15 | Fear/trauma: +20-40
+- At 70+: concentration broken, Force use impaired. At 90+: temporary breakdown.
+- Recovery: calm + sleep restores 15-25 per rest period
 
-When strain type is ambiguous, use best judgment. Reading for hours = +1 Mental. Combat = Physical + possibly Force. Seeing something horrific = Mental.
+ENDURANCE AND STRAIN MITIGATION:
+endurance_mitigation = compressedBonus(endurance) / 10
+Higher endurance reduces physical and force strain accumulation in combat.
+At END 48: mitigation ≈ 0.22 (22% less strain per round)
+At END 80: mitigation ≈ 0.30 (30% less strain per round)
 
 ## XP-BASED ABILITY PROGRESSION — STRICT RULES
 Stats no longer increase by GM discretion. They increase ONLY when XP threshold is met.
@@ -2715,7 +2722,24 @@ async function callGemini(playerMessage, retryCount = 0) {
       }
     }
 
-    turnCount++;
+    // Prose fallback for COMBAT_END — catches "**COMBAT END**" or "combat concluded" in narrative
+    if (activeCombat && characterSheet) {
+      const combatEndPhrases = /COMBAT END|combat (?:concluded|ended|finished|complete|over)|sparring (?:session )?(?:concluded|ended|complete)|fight (?:concluded|ended|over)/i;
+      if (combatEndPhrases.test(rawText)) {
+        // Apply accumulated strain
+        characterSheet.forceStrain = Math.min(characterSheet.maxForceStrain||100, (characterSheet.forceStrain||0) + activeCombat.accForce);
+        characterSheet.physicalStrain = Math.min(characterSheet.maxPhysicalStrain||100, (characterSheet.physicalStrain||0) + activeCombat.accPhysical);
+        characterSheet.mentalStrain = Math.min(characterSheet.maxMentalStrain||100, (characterSheet.mentalStrain||0) + activeCombat.accMental);
+        // Apply XP if we know the primary skill
+        if (activeCombat.primarySkill) {
+          const outcome = /win|victor|success/i.test(rawText) ? 'win' : /loss|lost|defeat/i.test(rawText) ? 'narrow_loss' : 'win';
+          const {primary, secondary} = calcCombatXP(activeCombat.round, activeCombat.tierGap||0, 'mixed', outcome);
+          applyXPToSheet(activeCombat.primarySkill, primary);
+          if (activeCombat.secondarySkill) applyXPToSheet(activeCombat.secondarySkill, secondary);
+        }
+        activeCombat = null;
+      }
+    }
 
     // ── Trigger summarization every N turns (background, non-blocking) ──
     if (turnCount % SUMMARIZE_EVERY === 0 && !isSummarizing) {
@@ -2972,19 +2996,40 @@ function updateCombatStrain(rounds, intensity) {
   if (!activeCombat || !characterSheet) return;
   const END = characterSheet.stats?.endurance || 30;
   const em = compressedBonus(END) / 10;
+  // Scaled to 100 — multiply base values by 10 vs old 10-scale system
   const base = {
-    'light': {p:0.4, f:0.3, m:0.2},
-    'sparring': {p:0.4, f:0.3, m:0.2},
-    'standard': {p:0.8, f:0.6, m:0.4},
-    'intense': {p:1.2, f:1.0, m:0.6},
-    'desperate': {p:2.0, f:1.5, m:1.0}
-  }[intensity || activeCombat.intensity] || {p:0.8, f:0.6, m:0.4};
+    'light':    {p:4,  f:3,  m:2},
+    'sparring': {p:4,  f:3,  m:2},
+    'standard': {p:8,  f:6,  m:4},
+    'intense':  {p:12, f:10, m:6},
+    'desperate':{p:20, f:15, m:10}
+  }[intensity || activeCombat.intensity] || {p:8, f:6, m:4};
 
   const r = rounds || 1;
   activeCombat.accPhysical += Math.round((base.p * (1 - em)) * r * 10) / 10;
   activeCombat.accForce    += Math.round((base.f * (1 - em * 0.5)) * r * 10) / 10;
   activeCombat.accMental   += Math.round((base.m * (1 - em * 0.3)) * r * 10) / 10;
   activeCombat.round += r;
+
+  // Show accumulated combat strain on bars in real-time
+  // Display as base strain + combat accumulation (capped at max)
+  const maxPS = characterSheet.maxPhysicalStrain || 100;
+  const maxFS = characterSheet.maxForceStrain || 100;
+  const maxMS = characterSheet.maxMentalStrain || 100;
+  const dispP = Math.min(maxPS, (characterSheet.physicalStrain||0) + activeCombat.accPhysical);
+  const dispF = Math.min(maxFS, (characterSheet.forceStrain||0) + activeCombat.accForce);
+  const dispM = Math.min(maxMS, (characterSheet.mentalStrain||0) + activeCombat.accMental);
+
+  // Update bar display without writing to characterSheet (combat hasn't ended)
+  const updateBar = (id, val, max) => {
+    const el = document.querySelector(`[data-stat="${id}"]`);
+    if (el) { el.style.width = `${Math.max(0, Math.min(100, val/max*100)).toFixed(1)}%`; }
+    const label = document.querySelector(`[data-stat-val="${id}"]`);
+    if (label) label.textContent = `${val.toFixed(1)}/${max}`;
+  };
+  updateBar('physicalStrain', dispP, maxPS);
+  updateBar('forceStrain', dispF, maxFS);
+  updateBar('mentalStrain', dispM, maxMS);
 }
 function compressedBonus(stat) {
   const s = stat || 0;
@@ -3167,16 +3212,16 @@ function updateCharacterSheet() {
       </div>
     </div>` : ''}
     <div class="bar-wrap">
-      <div class="bar-label"><span>Force Strain</span><span>${fStrain}/${fStrainMax}</span></div>
-      <div class="bar-track"><div class="bar-fill bar-force-strain" style="width:${fStrainPct}%"></div></div>
+      <div class="bar-label"><span>Force Strain</span><span data-stat-val="forceStrain">${fStrain}/${fStrainMax}</span></div>
+      <div class="bar-track"><div class="bar-fill bar-force-strain" data-stat="forceStrain" style="width:${fStrainPct}%"></div></div>
     </div>
     <div class="bar-wrap">
-      <div class="bar-label"><span>Physical Strain</span><span>${pStrain}/${pStrainMax}</span></div>
-      <div class="bar-track"><div class="bar-fill bar-phys-strain" style="width:${pStrainPct}%"></div></div>
+      <div class="bar-label"><span>Physical Strain</span><span data-stat-val="physicalStrain">${pStrain}/${pStrainMax}</span></div>
+      <div class="bar-track"><div class="bar-fill bar-phys-strain" data-stat="physicalStrain" style="width:${pStrainPct}%"></div></div>
     </div>
     <div class="bar-wrap">
-      <div class="bar-label"><span>Mental Strain</span><span>${mStrain}/${mStrainMax}</span></div>
-      <div class="bar-track"><div class="bar-fill bar-mental-strain" style="width:${mStrainPct}%"></div></div>
+      <div class="bar-label"><span>Mental Strain</span><span data-stat-val="mentalStrain">${mStrain}/${mStrainMax}</span></div>
+      <div class="bar-track"><div class="bar-fill bar-mental-strain" data-stat="mentalStrain" style="width:${mStrainPct}%"></div></div>
     </div>
 
     <div class="sheet-section">
@@ -3561,22 +3606,23 @@ function loadFromSave(save) {
 
 function manualStrainSync() {
   if (!characterSheet) return;
-  const fs = prompt(`Force Strain (0-${characterSheet.maxForceStrain||12}):`, characterSheet.forceStrain ?? 0);
+  const maxFS = characterSheet.maxForceStrain || 100;
+  const maxPS = characterSheet.maxPhysicalStrain || 100;
+  const maxMS = characterSheet.maxMentalStrain || 100;
+  const fs = prompt(`Force Strain (0-${maxFS}):`, characterSheet.forceStrain ?? 0);
   if (fs === null) return;
-  const ps = prompt(`Physical Strain (0-${characterSheet.maxPhysicalStrain||10}):`, characterSheet.physicalStrain ?? 0);
+  const ps = prompt(`Physical Strain (0-${maxPS}):`, characterSheet.physicalStrain ?? 0);
   if (ps === null) return;
-  const ms = prompt(`Mental Strain (0-${characterSheet.maxMentalStrain||10}):`, characterSheet.mentalStrain ?? 0);
+  const ms = prompt(`Mental Strain (0-${maxMS}):`, characterSheet.mentalStrain ?? 0);
   if (ms === null) return;
-  const fb = prompt(`Force Barrier (0-${characterSheet.maxForceBarrier||100}, or -1 if not developed):`, characterSheet.forceBarrier ?? 'null');
+  const fb = prompt(`Force Barrier (0-${characterSheet.maxForceBarrier||100}, or -1 if not active):`, characterSheet.forceBarrier ?? 0);
   if (fb === null) return;
-
-  characterSheet.forceStrain = Math.max(0, Math.min(characterSheet.maxForceStrain||12, parseInt(fs)||0));
-  characterSheet.physicalStrain = Math.max(0, Math.min(characterSheet.maxPhysicalStrain||10, parseInt(ps)||0));
-  characterSheet.mentalStrain = Math.max(0, Math.min(characterSheet.maxMentalStrain||10, parseInt(ms)||0));
+  characterSheet.forceStrain = Math.max(0, Math.min(maxFS, parseFloat(fs)||0));
+  characterSheet.physicalStrain = Math.max(0, Math.min(maxPS, parseFloat(ps)||0));
+  characterSheet.mentalStrain = Math.max(0, Math.min(maxMS, parseFloat(ms)||0));
   const fbVal = parseFloat(fb);
   if (!isNaN(fbVal) && fbVal >= 0) characterSheet.forceBarrier = Math.min(characterSheet.maxForceBarrier||100, fbVal);
-  else if (fbVal < 0) characterSheet.forceBarrier = null;
-
+  else if (fbVal < 0) characterSheet.forceBarrier = 0;
   updateCharacterSheet();
   autoSave();
 }
