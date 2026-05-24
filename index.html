@@ -1914,7 +1914,7 @@ function tryAutoLoad() {
     const save = JSON.parse(raw);
     if (save?.characterSheet?.name) {
       characterSheet = save.characterSheet;
-      migrateStrainScale(characterSheet); // fix old-scale saves
+      migrateStrainScale(characterSheet);
       worldState = save.worldState || {};
       fullHistory = save.fullHistory || [];
       recentHistory = save.recentHistory || [];
@@ -1922,14 +1922,39 @@ function tryAutoLoad() {
       turnCount = save.turnCount || 0;
       galaxySimState = save.galaxySimState || {};
       lastGalaxyEventDate = save.lastGalaxyEventDate || '';
-      // Re-render recent history
+
+      // Re-render recent history — skip messages that are pure data blocks
       for (const msg of recentHistory) {
-        if (msg.role === 'user') renderPlayerMessage(typeof msg.parts[0].text === 'string' ? msg.parts[0].text.replace(/\[DICE PRE-ROLLED[\s\S]*?\]/g,'').replace(/\[TURN \d+[\s\S]*?\]/g,'').trim() : '');
-        else if (msg.role === 'model') renderGMMessage(typeof msg.parts[0].text === 'string' ? msg.parts[0].text : '');
+        if (!msg?.parts?.[0]?.text) continue;
+        const text = msg.parts[0].text;
+
+        if (msg.role === 'user') {
+          const clean = text
+            .replace(/\[DICE PRE-ROLLED[\s\S]*?\]/g,'')
+            .replace(/\[TURN \d+[\s\S]*?\]/g,'')
+            .trim();
+          if (clean) renderPlayerMessage(clean);
+        } else if (msg.role === 'model') {
+          // Strip data blocks from display
+          const display = text
+            .replace(/<<<CHANGES>>>[\s\S]*?<<<END_CHANGES>>>/g,'')
+            .replace(/<<<SHEET>>>[\s\S]*?<<<END_SHEET>>>/g,'')
+            .replace(/<<<WORLD>>>[\s\S]*?<<<END_WORLD>>>/g,'')
+            .replace(/<<<[\s\S]*/g,'')
+            .trim();
+          // Skip if nothing left but JSON/data
+          if (!display || display.startsWith('{') || display.startsWith('[{')) continue;
+          if (display.length > 10) renderGMMessage(display);
+        }
       }
       updateUI();
+    } else {
+      showWelcomePrompt();
     }
-  } catch(e) { console.error('Auto-load failed:', e); }
+  } catch(e) {
+    console.error('Auto-load failed:', e);
+    showWelcomePrompt();
+  }
 }
 
 function showWelcomePrompt() {
@@ -2809,6 +2834,17 @@ function sendMessage(prefilledText) {
 //  RENDER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════
 function renderGMMessage(text) {
+  try {
+  // Safety: if text is raw JSON blocks, don't render
+  const stripped = text
+    .replace(/<<<CHANGES>>>[\s\S]*?<<<END_CHANGES>>>/g,'')
+    .replace(/<<<SHEET>>>[\s\S]*?<<<END_SHEET>>>/g,'')
+    .replace(/<<<WORLD>>>[\s\S]*?<<<END_WORLD>>>/g,'')
+    .replace(/<<<[\s\S]*/g,'')
+    .trim();
+  if (!stripped || stripped.startsWith('{') || stripped.startsWith('[{')) return;
+  text = stripped;
+
   const feed = document.getElementById('story-feed');
   const div = document.createElement('div');
   div.className = 'msg msg-gm';
@@ -2875,12 +2911,13 @@ function renderGMMessage(text) {
   feed.appendChild(div);
   trimFeedIfNeeded();
   scrollFeed();
+  } catch(e) {
+    console.error('renderGMMessage error:', e);
+  }
 }
 
 function renderPlayerMessage(text) {
   const feed = document.getElementById('story-feed');
-  const div = document.createElement('div');
-  div.className = 'msg msg-player';
   div.innerHTML = `<div class="player-bubble">❯ ${escapeHtml(text)}</div>`;
   feed.appendChild(div);
   trimFeedIfNeeded();
