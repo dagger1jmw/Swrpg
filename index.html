@@ -2338,11 +2338,15 @@ async function callGemini(playerMessage, retryCount = 0) {
         // COMBAT_END: primarySkillPath, secondarySkillPath|none, opponentTier, engagement, outcome
         if (trimmed.startsWith('COMBAT_END:')) {
           const parts = trimmed.slice(11).split(',').map(s => s.trim());
-          if (activeCombat) {
-            activeCombat.primarySkill = parts[0] || null;
-            activeCombat.secondarySkill = (parts[1] && parts[1] !== 'none') ? parts[1] : null;
-            activeCombat.opponentTier = parseInt(parts[2]) || 2;
+          console.log('[COMBAT_END parsed]', parts, 'activeCombat:', activeCombat);
+          if (!activeCombat) {
+            // Combat state was lost — reconstruct minimal state
+            activeCombat = { round:5, accPhysical:0, accForce:0, accMental:0, opponentTier:2 };
           }
+          activeCombat.primarySkill = parts[0] || null;
+          activeCombat.secondarySkill = (parts[1] && parts[1] !== 'none') ? parts[1] : null;
+          activeCombat.opponentTier = parseInt(parts[2]) || 2;
+          console.log('[COMBAT_END] calling endCombat with', parts[4], parts[3], 'opponentTier:', activeCombat.opponentTier);
           endCombat(parts[4], parts[3]);
           continue;
         }
@@ -2734,22 +2738,23 @@ async function callGemini(playerMessage, retryCount = 0) {
       }
     }
 
-    // Prose fallback for COMBAT_END — catches "**COMBAT END**" or "combat concluded" in narrative
+    // Prose fallback for COMBAT_END — only fires if CHANGES block didn't already handle it
     if (activeCombat && characterSheet) {
       const combatEndPhrases = /COMBAT END|combat (?:concluded|ended|finished|complete|over)|sparring (?:session )?(?:concluded|ended|complete)|fight (?:concluded|ended|over)/i;
       if (combatEndPhrases.test(rawText)) {
-        // Apply accumulated strain
-        characterSheet.forceStrain = Math.min(characterSheet.maxForceStrain||100, (characterSheet.forceStrain||0) + activeCombat.accForce);
-        characterSheet.physicalStrain = Math.min(characterSheet.maxPhysicalStrain||100, (characterSheet.physicalStrain||0) + activeCombat.accPhysical);
-        characterSheet.mentalStrain = Math.min(characterSheet.maxMentalStrain||100, (characterSheet.mentalStrain||0) + activeCombat.accMental);
-        // Apply XP if we know the primary skill
-        if (activeCombat.primarySkill) {
-          const outcome = /win|victor|success/i.test(rawText) ? 'win' : /loss|lost|defeat/i.test(rawText) ? 'narrow_loss' : 'win';
-          const {primary, secondary} = calcCombatXP(activeCombat.round, activeCombat.tierGap||0, 'mixed', outcome);
-          applyXPToSheet(activeCombat.primarySkill, primary);
-          if (activeCombat.secondarySkill) applyXPToSheet(activeCombat.secondarySkill, secondary);
+        console.log('[prose COMBAT_END fallback] activeCombat:', activeCombat);
+        const outcome = /win|victor|success/i.test(rawText) ? 'win' : /loss|lost|defeat/i.test(rawText) ? 'narrow_loss' : 'win';
+        // If primarySkill not yet set, try to detect from narrative
+        if (!activeCombat.primarySkill) {
+          const formKeys = Object.keys(characterSheet.lightsaberForms || {});
+          for (const k of formKeys) {
+            if (rawText.toLowerCase().includes(k.toLowerCase())) {
+              activeCombat.primarySkill = `lightsaberForms.${k}`;
+              break;
+            }
+          }
         }
-        activeCombat = null;
+        endCombat(outcome, 'mixed');
       }
     }
 
@@ -2979,30 +2984,35 @@ function startCombat(opponent, intensity) {
 }
 
 function endCombat(outcome, engagement) {
-  if (!activeCombat || !characterSheet) return;
-  // Apply accumulated strain to character sheet
-  const maxFS = characterSheet.maxForceStrain || 12;
-  const maxPS = characterSheet.maxPhysicalStrain || 10;
-  const maxMS = characterSheet.maxMentalStrain || 10;
-  characterSheet.forceStrain = Math.min(maxFS, (characterSheet.forceStrain||0) + activeCombat.accForce);
-  characterSheet.physicalStrain = Math.min(maxPS, (characterSheet.physicalStrain||0) + activeCombat.accPhysical);
-  characterSheet.mentalStrain = Math.min(maxMS, (characterSheet.mentalStrain||0) + activeCombat.accMental);
+  if (!characterSheet) return;
+  if (!activeCombat) { console.warn('[endCombat] called with null activeCombat'); return; }
+  console.log('[endCombat]', {outcome, engagement, skill: activeCombat.primarySkill, oppTier: activeCombat.opponentTier, rounds: activeCombat.round});
 
-  // Apply XP via COMBAT: line logic
+  const maxFS = characterSheet.maxForceStrain || 100;
+  const maxPS = characterSheet.maxPhysicalStrain || 100;
+  const maxMS = characterSheet.maxMentalStrain || 100;
+  characterSheet.forceStrain = Math.min(maxFS, (characterSheet.forceStrain||0) + (activeCombat.accForce||0));
+  characterSheet.physicalStrain = Math.min(maxPS, (characterSheet.physicalStrain||0) + (activeCombat.accPhysical||0));
+  characterSheet.mentalStrain = Math.min(maxMS, (characterSheet.mentalStrain||0) + (activeCombat.accMental||0));
+
   if (activeCombat.primarySkill) {
     const {primary, secondary} = calcCombatXP(
-      activeCombat.round,
+      activeCombat.round || 5,
       activeCombat.tierGap || 0,
       engagement || 'mixed',
       outcome || 'win',
       activeCombat.opponentTier || 2
     );
+    console.log('[endCombat] XP:', primary, 'to', activeCombat.primarySkill, '|', secondary, 'to', activeCombat.secondarySkill);
     applyXPToSheet(activeCombat.primarySkill, primary);
     if (activeCombat.secondarySkill) applyXPToSheet(activeCombat.secondarySkill, secondary);
+  } else {
+    console.warn('[endCombat] no primarySkill — XP skipped');
   }
 
   activeCombat = null;
   updateUI();
+  autoSave();
 }
 
 function updateCombatStrain(rounds, intensity) {
