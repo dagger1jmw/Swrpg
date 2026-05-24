@@ -2042,6 +2042,7 @@ function startNewGame() {
   worldState = null;
   turnCount = 0;
   trimmedTurns = 0;
+  masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} };
   document.getElementById('sheet-content').innerHTML = '<div style="color:var(--text-dim);font-size:13px;font-style:italic">Character not yet created.</div>';
   document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div>';
   document.getElementById('sim-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No galaxy events yet.</div>';
@@ -2294,15 +2295,6 @@ async function callGemini(playerMessage, retryCount = 0) {
     let worldParsed = false;
 
     if (sheetMatch) {
-      // Preserve XP stores before overwriting — the AI's SHEET JSON carries
-      // the XP values from BEFORE this turn's CHANGES block ran (stale).
-      // JS-tracked XP is authoritative; restore it after the sheet parse.
-      const savedXP = {
-        forceStatsXP:      characterSheet?.forceStatsXP      ? JSON.parse(JSON.stringify(characterSheet.forceStatsXP))      : null,
-        statsXP:           characterSheet?.statsXP            ? JSON.parse(JSON.stringify(characterSheet.statsXP))            : null,
-        forceAbilitiesXP:  characterSheet?.forceAbilitiesXP  ? JSON.parse(JSON.stringify(characterSheet.forceAbilitiesXP))  : null,
-        lightsaberFormsXP: characterSheet?.lightsaberFormsXP ? JSON.parse(JSON.stringify(characterSheet.lightsaberFormsXP)) : null,
-      };
       try {
         characterSheet = JSON.parse(sheetMatch[1].trim());
         sheetParsed = true;
@@ -2310,48 +2302,8 @@ async function callGemini(playerMessage, retryCount = 0) {
         const j = sheetMatch[1].match(/\{[\s\S]*\}/);
         if (j) { try { characterSheet = JSON.parse(j[0]); sheetParsed = true; } catch(e2) {} }
       }
-      // Restore JS-authoritative XP stores (never trust the AI's XP values)
-      if (sheetParsed && characterSheet) {
-        if (savedXP.forceStatsXP)      characterSheet.forceStatsXP      = savedXP.forceStatsXP;
-        if (savedXP.statsXP)           characterSheet.statsXP           = savedXP.statsXP;
-        if (savedXP.forceAbilitiesXP)  characterSheet.forceAbilitiesXP  = savedXP.forceAbilitiesXP;
-        if (savedXP.lightsaberFormsXP) characterSheet.lightsaberFormsXP = savedXP.lightsaberFormsXP;
-
-        // Also reconcile stat VALUES: the AI's SHEET JSON reports last-known stat levels
-        // and may not reflect level-ups that just happened in the CHANGES block.
-        // If our saved xpRequired implies a higher stat than the AI reported, trust JS.
-        const reconcileStat = (statObj, xpStore, setFn) => {
-          if (!xpStore || !statObj) return;
-          for (const [k, xpData] of Object.entries(xpStore)) {
-            // Work backwards: what stat level does this xpRequired correspond to?
-            // xpRequired(sv) = floor(100 * 1.07^sv), so sv = log(required/100)/log(1.07)
-            const impliedStat = Math.round(Math.log(xpData.required / 100) / Math.log(1.07));
-            const currentStat = statObj[k] || 0;
-            if (impliedStat > currentStat) {
-              setFn(k, impliedStat);
-            }
-          }
-        };
-        reconcileStat(characterSheet.forceStats,     characterSheet.forceStatsXP,     (k,v) => { characterSheet.forceStats[k] = v; });
-        reconcileStat(characterSheet.stats,          characterSheet.statsXP,          (k,v) => { characterSheet.stats[k] = v; });
-        // forceAbilities and lightsaberForms store values differently
-        if (characterSheet.forceAbilitiesXP && characterSheet.forceAbilities) {
-          for (const [k, xpData] of Object.entries(characterSheet.forceAbilitiesXP)) {
-            const impliedStat = Math.round(Math.log(xpData.required / 100) / Math.log(1.07));
-            const cur = typeof characterSheet.forceAbilities[k] === 'object'
-              ? (characterSheet.forceAbilities[k].level || 0) : (characterSheet.forceAbilities[k] || 0);
-            if (impliedStat > cur) characterSheet.forceAbilities[k] = impliedStat;
-          }
-        }
-        if (characterSheet.lightsaberFormsXP && characterSheet.lightsaberForms) {
-          for (const [k, xpData] of Object.entries(characterSheet.lightsaberFormsXP)) {
-            const impliedStat = Math.round(Math.log(xpData.required / 100) / Math.log(1.07));
-            const cur = typeof characterSheet.lightsaberForms[k] === 'object'
-              ? (characterSheet.lightsaberForms[k].level || 0) : (characterSheet.lightsaberForms[k] || 0);
-            if (impliedStat > cur) characterSheet.lightsaberForms[k] = impliedStat;
-          }
-        }
-      }
+      // masterXP is authoritative — overwrite anything the AI sent for stats/XP
+      if (sheetParsed && characterSheet) syncMasterXPToSheet();
     }
 
     if (worldMatch) {
@@ -3062,7 +3014,12 @@ function updateUI() {
 //  COMBAT STATE — persists across turns during active combat
 // ═══════════════════════════════════════════════════════════════════
 let activeCombat = null; // null when not in combat
-let turnXPLog = []; // populated during each turn's CHANGES parsing, consumed by XP summary renderer
+let turnXPLog = [];
+// masterXP is the single source of truth for all XP and stat levels.
+// It is ONLY written by applyXPToSheet. The AI's SHEET JSON never touches it.
+// Structure: { forceStats: {forceSense:{stat,current,required},...}, stats:{...},
+//              forceAbilities:{...}, lightsaberForms:{...} }
+let masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} }; // populated during each turn's CHANGES parsing, consumed by XP summary renderer
 
 function startCombat(opponent, intensity) {
   activeCombat = {
@@ -3246,54 +3203,77 @@ function calcCombatXP(rounds, tierGap, engagement, outcome, opponentTier) {
   return { primary, secondary: Math.round(primary * 0.4) };
 }
 
-// Apply XP to a stat path like "forceStats.forceSense" and level up if threshold crossed
+// Apply XP to a stat path like "forceStats.forceSense" and level up if threshold crossed.
+// masterXP is the single source of truth — the AI's SHEET JSON never touches it.
 function applyXPToSheet(statPath, xpToAdd) {
-  if (!characterSheet || !xpToAdd || xpToAdd <= 0) return { levelUps: 0, xpAdded: 0, newStat: 0, xpCurrent: 0, xpRequired: 0 };
+  if (!xpToAdd || xpToAdd <= 0) return { levelUps: 0, xpAdded: 0, newStat: 0, xpCurrent: 0, xpRequired: 0 };
   const parts = statPath.split('.');
   const category = parts[0], key = parts[1];
   if (!category || !key) return { levelUps: 0, xpAdded: 0, newStat: 0, xpCurrent: 0, xpRequired: 0 };
 
-  const getSet = () => {
-    if (category === 'forceStats') return {
-      get: () => characterSheet.forceStats?.[key] || 0,
-      set: (v) => { if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats[key]=v; },
-      xpStore: () => { if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP={}; return characterSheet.forceStatsXP; }
-    };
-    if (category === 'stats') return {
-      get: () => characterSheet.stats?.[key] || 0,
-      set: (v) => { if (!characterSheet.stats) characterSheet.stats={}; characterSheet.stats[key]=v; },
-      xpStore: () => { if (!characterSheet.statsXP) characterSheet.statsXP={}; return characterSheet.statsXP; }
-    };
-    if (category === 'forceAbilities') return {
-      get: () => typeof characterSheet.forceAbilities?.[key]==='object' ? (characterSheet.forceAbilities[key].level||0) : (characterSheet.forceAbilities?.[key]||0),
-      set: (v) => { if (!characterSheet.forceAbilities) characterSheet.forceAbilities={}; characterSheet.forceAbilities[key]=v; },
-      xpStore: () => { if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP={}; return characterSheet.forceAbilitiesXP; }
-    };
-    if (category === 'lightsaberForms') return {
-      get: () => typeof characterSheet.lightsaberForms?.[key]==='object' ? (characterSheet.lightsaberForms[key].level||0) : (characterSheet.lightsaberForms?.[key]||0),
-      set: (v) => { if (!characterSheet.lightsaberForms) characterSheet.lightsaberForms={}; characterSheet.lightsaberForms[key]=v; },
-      xpStore: () => { if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP={}; return characterSheet.lightsaberFormsXP; }
-    };
-    return null;
-  };
+  // Ensure masterXP category exists
+  if (!masterXP[category]) masterXP[category] = {};
 
-  const accessor = getSet();
-  if (!accessor) return { levelUps: 0, xpAdded: 0, newStat: 0, xpCurrent: 0, xpRequired: 0 };
-  const store = accessor.xpStore();
-  let sv = accessor.get();
-  if (!store[key]) store[key] = {current:0, required:xpRequired(sv)};
-  const xpObj = store[key];
-  xpObj.current = (xpObj.current||0) + xpToAdd;
-  xpObj.required = xpRequired(sv);
+  // Get current stat value from masterXP (authoritative), fall back to characterSheet for initial value
+  if (!masterXP[category][key]) {
+    // First time seeing this stat — seed from characterSheet
+    let seedVal = 0;
+    if (characterSheet) {
+      if (category === 'forceStats') seedVal = characterSheet.forceStats?.[key] || 0;
+      else if (category === 'stats') seedVal = characterSheet.stats?.[key] || 0;
+      else if (category === 'forceAbilities') seedVal = typeof characterSheet.forceAbilities?.[key]==='object' ? (characterSheet.forceAbilities[key].level||0) : (characterSheet.forceAbilities?.[key]||0);
+      else if (category === 'lightsaberForms') seedVal = typeof characterSheet.lightsaberForms?.[key]==='object' ? (characterSheet.lightsaberForms[key].level||0) : (characterSheet.lightsaberForms[key]||0);
+    }
+    masterXP[category][key] = { stat: seedVal, current: 0, required: xpRequired(seedVal) };
+  }
+
+  const entry = masterXP[category][key];
+  entry.current = (entry.current || 0) + xpToAdd;
+  entry.required = xpRequired(entry.stat);
   let levelUps = 0;
-  while (xpObj.current >= xpObj.required) {
-    xpObj.current -= xpObj.required;
-    sv++;
-    accessor.set(sv);
-    xpObj.required = xpRequired(sv);
+  while (entry.current >= entry.required) {
+    entry.current -= entry.required;
+    entry.stat++;
+    entry.required = xpRequired(entry.stat);
     levelUps++;
   }
-  return { levelUps, xpAdded: Math.round(xpToAdd), newStat: sv, xpCurrent: Math.round(xpObj.current), xpRequired: xpObj.required };
+
+  // Write authoritative stat value back to characterSheet so display and rolls use it
+  if (characterSheet) {
+    if (category === 'forceStats') { if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats[key] = entry.stat; }
+    else if (category === 'stats') { if (!characterSheet.stats) characterSheet.stats={}; characterSheet.stats[key] = entry.stat; }
+    else if (category === 'forceAbilities') { if (!characterSheet.forceAbilities) characterSheet.forceAbilities={}; characterSheet.forceAbilities[key] = entry.stat; }
+    else if (category === 'lightsaberForms') { if (!characterSheet.lightsaberForms) characterSheet.lightsaberForms={}; characterSheet.lightsaberForms[key] = entry.stat; }
+    // Also sync legacy XP store fields so the character sheet sidebar bars render correctly
+    syncMasterXPToSheet();
+  }
+
+  return { levelUps, xpAdded: Math.round(xpToAdd), newStat: entry.stat, xpCurrent: Math.round(entry.current), xpRequired: entry.required };
+}
+
+// Sync masterXP → characterSheet XP store fields (for sidebar progress bars)
+function syncMasterXPToSheet() {
+  if (!characterSheet) return;
+  if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
+  if (!characterSheet.statsXP) characterSheet.statsXP = {};
+  if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
+  if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
+  for (const [k, e] of Object.entries(masterXP.forceStats || {})) {
+    characterSheet.forceStatsXP[k] = { current: Math.round(e.current), required: e.required };
+    characterSheet.forceStats[k] = e.stat;
+  }
+  for (const [k, e] of Object.entries(masterXP.stats || {})) {
+    characterSheet.statsXP[k] = { current: Math.round(e.current), required: e.required };
+    characterSheet.stats[k] = e.stat;
+  }
+  for (const [k, e] of Object.entries(masterXP.forceAbilities || {})) {
+    characterSheet.forceAbilitiesXP[k] = { current: Math.round(e.current), required: e.required };
+    characterSheet.forceAbilities[k] = e.stat;
+  }
+  for (const [k, e] of Object.entries(masterXP.lightsaberForms || {})) {
+    characterSheet.lightsaberFormsXP[k] = { current: Math.round(e.current), required: e.required };
+    characterSheet.lightsaberForms[k] = e.stat;
+  }
 }
 
 function updateCharacterSheet() {
@@ -3684,6 +3664,7 @@ function buildSave(name, slot) {
     name,
     savedAt: new Date().toISOString(),
     turnCount,
+    masterXP,
     characterSheet,
     worldState,
     campaignSummary,
@@ -3705,6 +3686,33 @@ function loadFromSave(save) {
     if (!characterSheet.maxPhysicalStrain || characterSheet.maxPhysicalStrain < 100) characterSheet.maxPhysicalStrain = 100;
     if (!characterSheet.maxMentalStrain   || characterSheet.maxMentalStrain   < 100) characterSheet.maxMentalStrain   = 100;
   }
+  // Restore masterXP — if the save predates masterXP, migrate from characterSheet XP stores
+  if (save.masterXP) {
+    masterXP = save.masterXP;
+  } else if (characterSheet) {
+    // Migrate old save: build masterXP from characterSheet XP store fields
+    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} };
+    for (const [k, v] of Object.entries(characterSheet.forceStatsXP || {})) {
+      const sv = characterSheet.forceStats?.[k] || 0;
+      masterXP.forceStats[k] = { stat: sv, current: v.current || 0, required: v.required || xpRequired(sv) };
+    }
+    for (const [k, v] of Object.entries(characterSheet.statsXP || {})) {
+      const sv = characterSheet.stats?.[k] || 0;
+      masterXP.stats[k] = { stat: sv, current: v.current || 0, required: v.required || xpRequired(sv) };
+    }
+    for (const [k, v] of Object.entries(characterSheet.forceAbilitiesXP || {})) {
+      const sv = typeof characterSheet.forceAbilities?.[k]==='object' ? (characterSheet.forceAbilities[k].level||0) : (characterSheet.forceAbilities?.[k]||0);
+      masterXP.forceAbilities[k] = { stat: sv, current: v.current || 0, required: v.required || xpRequired(sv) };
+    }
+    for (const [k, v] of Object.entries(characterSheet.lightsaberFormsXP || {})) {
+      const sv = typeof characterSheet.lightsaberForms?.[k]==='object' ? (characterSheet.lightsaberForms[k].level||0) : (characterSheet.lightsaberForms?.[k]||0);
+      masterXP.lightsaberForms[k] = { stat: sv, current: v.current || 0, required: v.required || xpRequired(sv) };
+    }
+  } else {
+    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} };
+  }
+  // Ensure characterSheet reflects masterXP immediately after load
+  if (characterSheet) syncMasterXPToSheet();
   worldState = save.worldState || null;
   campaignSummary = save.campaignSummary || '';
   galaxySimState = save.galaxySimState || {};
