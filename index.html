@@ -1910,18 +1910,26 @@ window.addEventListener('load', () => {
 function tryAutoLoad() {
   try {
     const raw = localStorage.getItem('sw_rpg_autosave');
-    if (!raw) { showWelcomePrompt(); return; }
+    if (!raw) return;
     const save = JSON.parse(raw);
     if (save?.characterSheet?.name) {
-      migrateStrainScale(save.characterSheet);
-      loadFromSave(save);
-    } else {
-      showWelcomePrompt();
+      characterSheet = save.characterSheet;
+      migrateStrainScale(characterSheet); // fix old-scale saves
+      worldState = save.worldState || {};
+      fullHistory = save.fullHistory || [];
+      recentHistory = save.recentHistory || [];
+      campaignSummary = save.campaignSummary || '';
+      turnCount = save.turnCount || 0;
+      galaxySimState = save.galaxySimState || {};
+      lastGalaxyEventDate = save.lastGalaxyEventDate || '';
+      // Re-render recent history
+      for (const msg of recentHistory) {
+        if (msg.role === 'user') renderPlayerMessage(typeof msg.parts[0].text === 'string' ? msg.parts[0].text.replace(/\[DICE PRE-ROLLED[\s\S]*?\]/g,'').replace(/\[TURN \d+[\s\S]*?\]/g,'').trim() : '');
+        else if (msg.role === 'model') renderGMMessage(typeof msg.parts[0].text === 'string' ? msg.parts[0].text : '');
+      }
+      updateUI();
     }
-  } catch(e) {
-    console.error('Auto-load failed:', e);
-    showWelcomePrompt();
-  }
+  } catch(e) { console.error('Auto-load failed:', e); }
 }
 
 function showWelcomePrompt() {
@@ -2030,8 +2038,6 @@ function showGame() {
   document.getElementById('btn-sync').style.display = '';
   document.getElementById('btn-save').style.display = '';
   document.getElementById('btn-newgame').style.display = '';
-  gameActive = true;  // Always active once the game screen is shown
-  isThinking = false;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2729,11 +2735,11 @@ async function callGemini(playerMessage, retryCount = 0) {
     if (msg.includes('Failed to fetch') || msg.includes('Load failed') || msg.includes('NetworkError')) {
       msg = 'Could not reach the Gemini API. Check your internet connection.';
     }
-    try { renderSystemMessage(`⚠ ${msg}`); } catch(e2) {}
-  } finally {
-    isThinking = false;
-    setThinking(false);
+    renderSystemMessage(`⚠ ${msg}`);
   }
+
+  setThinking(false);
+  isThinking = false;
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -2873,6 +2879,8 @@ function renderGMMessage(text) {
 
 function renderPlayerMessage(text) {
   const feed = document.getElementById('story-feed');
+  const div = document.createElement('div');
+  div.className = 'msg msg-player';
   div.innerHTML = `<div class="player-bubble">❯ ${escapeHtml(text)}</div>`;
   feed.appendChild(div);
   trimFeedIfNeeded();
@@ -2890,13 +2898,8 @@ function renderSystemMessage(text) {
 
 function setThinking(show) {
   const el = document.getElementById('thinking');
-  if (el) el.classList.toggle('show', show);
-  const btn = document.getElementById('send-btn');
-  if (btn) {
-    btn.disabled = show;
-    btn.textContent = show ? '...' : 'ACT';
-    btn.style.opacity = show ? '0.5' : '1';
-  }
+  el.classList.toggle('show', show);
+  document.getElementById('send-btn').disabled = show;
   if (show) scrollFeed();
 }
 
@@ -3610,12 +3613,6 @@ function loadFromSave(save) {
 }
 
 function manualStrainSync() {
-  // Also reset stuck thinking state
-  if (isThinking) {
-    isThinking = false;
-    setThinking(false);
-    renderSystemMessage('State reset. You can now send messages.');
-  }
   if (!characterSheet) return;
   const maxFS = characterSheet.maxForceStrain || 100;
   const maxPS = characterSheet.maxPhysicalStrain || 100;
