@@ -1131,9 +1131,21 @@ TRAINING: lightsaberForms.Djem So, 2.0, intense, ceiling, solid
 TRAINING: forceStats.forceSense, 0.5, standard, basic, solid
 TRAINING: stats.strength, 1.0, intense, above, strong
 
-For combat/sparring:
-COMBAT: lightsaberForms.Djem So, 8, 1, aggressive, narrow_loss, secondary: forceAbilities.Force Push
-COMBAT: lightsaberForms.Shii-Cho, 5, 0, mixed, win
+For combat — use these three lines across the fight:
+COMBAT_START: [opponent name], [intensity: light/standard/intense/desperate]
+  → Output this in the CHANGES block on the FIRST exchange of any combat
+COMBAT_ROUND: [rounds_this_turn], [intensity]
+  → Output this EVERY exchange turn to accumulate strain (e.g. COMBAT_ROUND: 1, standard)
+COMBAT_END: [primarySkillPath], [secondarySkillPath|none], [tierGap], [engagement], [outcome]
+  → Output this ONLY when combat ends — applies all accumulated strain and XP
+  → e.g. COMBAT_END: lightsaberForms.Djem So, forceAbilities.Force Push, 1, aggressive, narrow_loss
+
+CRITICAL COMBAT RULES:
+- NO strain updates to character sheet mid-combat (use COMBAT_ROUND: to track it)
+- NO TRAINING: or COMBAT: lines mid-combat
+- NO XP narration like "+3 XP" during the fight
+- Strain and XP are applied ONLY when COMBAT_END: is output
+- Track round count and accumulated strain in the combat state block shown each exchange
 
 The JavaScript engine reads these lines and calculates XP using the time/intensity/difficulty/outcome formula.
 If you write XP in narrative prose instead of TRAINING:/COMBAT: lines, NO XP IS APPLIED.
@@ -1426,10 +1438,109 @@ When an action involves multiple repetitions (14 rounds of a drill, 10 sparring 
 - For drills with clear phases (warm-up, peak effort, fatigue), the single roll represents the average quality across all phases
 - Never invent d20 values that weren't in the pre-rolled system injection
 
-### DUEL DISPLAY FORMAT
-Attacker: d20=[X] + compressed bonus=[X] + tier gap=[X] + form bonus=[X] = [total]
-Defender: d20=[X] + compressed bonus=[X] + form bonus=[X] = [total]
-Margin: [winner] by [N] — [result from margin table]
+### COMBAT SYSTEM — EXCHANGE-BY-EXCHANGE
+
+## COMBAT STATE
+Combat is tracked across multiple turns using a persistent state. When combat begins, establish:
+- Combatants and their active forms/abilities
+- Environment and positioning
+- Round counter (starts at 1)
+- Accumulated strain per combatant (separate from character sheet strain — only applied at end)
+- Momentum: who is pressing advantage (Neutral / Player / Opponent)
+
+Output combat state in a visible block each exchange:
+'''
+— COMBAT ROUND [N] —
+Momentum: [who has advantage]
+Accumulated strain this fight: Physical [X], Force [Y], Mental [Z]
+Position: [brief description]
+'''
+
+## PLAYER INPUT MODES
+The player can input:
+
+1. SINGLE EXCHANGE — one specific action:
+   "I feint left then drive forward with a diagonal slash"
+   → Resolve exactly that exchange. Show the roll. Show opponent's response. Ask what next.
+
+2. SEQUENCE — 2-3 exchanges with a tactical plan:
+   "I'll press aggressively for two exchanges trying to create an opening, then attempt a Force-enhanced thrust"
+   → Resolve each exchange in order, showing rolls for each. Return control after.
+
+3. INTENT — overall approach for 3-5 exchanges:
+   "Stay defensive, wear him down, wait for an opening"
+   → Resolve the exchanges as a unit. Summarize the arc. Return control with updated state.
+
+4. DISENGAGE — end the fight or break off:
+   → Resolve the disengage attempt (may require a roll against opponent), then apply end-of-combat XP and strain.
+
+## EXCHANGE RESOLUTION
+Each exchange uses the opposed roll system:
+- Both sides roll using active form tier + experience modifier + physicals + tier gap
+- Margin determines result
+- Winner describes the exchange narratively BEFORE revealing what the opponent does next
+- The opponent adapts their tactics based on the exchange result
+
+## STRAIN ACCUMULATION (not per-move — per round based on intensity)
+Track accumulated strain SEPARATELY during combat. Do NOT update character sheet strain mid-fight.
+Apply to the sheet only when combat ends.
+
+Strain per round formula:
+endurance_mitigation = compressedBonus(endurance) / 10
+physical_per_round = base_physical × (1 - endurance_mitigation)
+force_per_round = base_force × (1 - endurance_mitigation × 0.5)
+mental_per_round = base_mental × (1 - endurance_mitigation × 0.3)
+
+Base strain per round by fight intensity:
+- Light sparring / training bot: Physical 0.4, Force 0.3, Mental 0.2
+- Standard combat: Physical 0.8, Force 0.6, Mental 0.4
+- Intense/real threat: Physical 1.2, Force 1.0, Mental 0.6
+- Desperate/overwhelming opponent: Physical 2.0, Force 1.5, Mental 1.0
+
+Additional strain per exchange from specific events:
+- Taking a hit (margin 4-7 against): +0.5 physical
+- Taking a serious hit (margin 8-12): +1.5 physical
+- Heavy Force use in exchange: +0.5 force
+- Psychological pressure (domination, fear): +0.5 mental
+
+## END OF COMBAT — XP AND STRAIN APPLICATION
+When combat ends (victory, retreat, knockout, or resolution), output in CHANGES block:
+1. One COMBAT: line per primary skill used
+2. Accumulated strain applied to character sheet
+3. Any injuries or lasting effects
+
+COMBAT: lightsaberForms.Djem So, [total_rounds], [tier_gap], [engagement], [outcome], secondary: [secondary_skill_if_any]
+
+Outcome labels:
+- overwhelming_win: dominated opponent
+- win: beat equal or stronger opponent clearly  
+- strong_win: beat significantly stronger opponent
+- narrow_loss: nearly beat equal/stronger opponent
+- loss: lost to stronger opponent with meaningful resistance
+- survived: barely survived against overwhelming opponent
+
+## NO MID-COMBAT XP OR STRAIN
+Do NOT update strain in the character sheet or output TRAINING:/COMBAT: lines until the fight ends.
+Do NOT narrate "+1 XP for this exchange" mid-fight.
+Track round count, accumulated strain, and momentum internally in the combat state block.
+
+### DUEL DISPLAY FORMAT — PER EXCHANGE
+'''
+— ROUND [N] — [Momentum: Player/Neutral/Opponent]
+[Player action description]
+
+Attacker: [name] | Form: [form] (stat=[X]) → Tier [N]
+  Bonuses: form +[X], physicals +[X], experience +[X]
+  Total: d20=[SYSTEM] + [bonus] = [total]
+Defender: [name] | Form: [form] (stat=[X]) → Tier [N]  
+  Bonuses: form +[X], physicals +[X]
+  Tier gap: [+X to which side]
+  Total: d20=[SYSTEM] + [bonus] + [tier gap] = [total]
+Margin: [winner] by [N] — [Narrow/Clear/Dominant/Overwhelming]
+
+[Narrative of the exchange — what happened, what the opponent does next]
+
+Accumulated strain: Physical [X.X], Force [X.X], Mental [X.X]
 
 ### TRAINING DRILL DIFFICULTY
 - Technique well within character tier: treat as same-tier or 1-tier-below task
@@ -2191,6 +2302,32 @@ async function callGemini(playerMessage, retryCount = 0) {
         const trimmed = line.trim();
         if (!trimmed) continue;
 
+        // COMBAT_START: opponent, intensity
+        if (trimmed.startsWith('COMBAT_START:')) {
+          const parts = trimmed.slice(13).split(',').map(s => s.trim());
+          startCombat(parts[0], parts[1]);
+          continue;
+        }
+
+        // COMBAT_ROUND: rounds, intensity (accumulates strain for this round batch)
+        if (trimmed.startsWith('COMBAT_ROUND:')) {
+          const parts = trimmed.slice(13).split(',').map(s => s.trim());
+          updateCombatStrain(parseInt(parts[0])||1, parts[1]);
+          continue;
+        }
+
+        // COMBAT_END: primarySkillPath, secondarySkillPath|none, tierGap, engagement, outcome
+        if (trimmed.startsWith('COMBAT_END:')) {
+          const parts = trimmed.slice(11).split(',').map(s => s.trim());
+          if (activeCombat) {
+            activeCombat.primarySkill = parts[0] || null;
+            activeCombat.secondarySkill = (parts[1] && parts[1] !== 'none') ? parts[1] : null;
+            activeCombat.tierGap = parseInt(parts[2]) || 0;
+          }
+          endCombat(parts[4], parts[3]);
+          continue;
+        }
+
         // TRAINING: StatPath, hours, intensity, difficulty, outcome
         if (trimmed.startsWith('TRAINING:')) {
           const parts = trimmed.slice(9).split(',').map(s => s.trim());
@@ -2785,8 +2922,70 @@ function updateUI() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  COMPRESSED STAT BONUS — mirrors the prompt formula exactly
+//  COMBAT STATE — persists across turns during active combat
 // ═══════════════════════════════════════════════════════════════════
+let activeCombat = null; // null when not in combat
+
+function startCombat(opponent, intensity) {
+  activeCombat = {
+    opponent: opponent || 'Unknown',
+    intensity: intensity || 'standard',
+    round: 1,
+    accPhysical: 0,
+    accForce: 0,
+    accMental: 0,
+    momentum: 'Neutral',
+    startTime: worldState?.inGameTime || '?',
+    primarySkill: null,
+    secondarySkill: null,
+    tierGap: 0
+  };
+}
+
+function endCombat(outcome, engagement) {
+  if (!activeCombat || !characterSheet) return;
+  // Apply accumulated strain to character sheet
+  const maxFS = characterSheet.maxForceStrain || 12;
+  const maxPS = characterSheet.maxPhysicalStrain || 10;
+  const maxMS = characterSheet.maxMentalStrain || 10;
+  characterSheet.forceStrain = Math.min(maxFS, (characterSheet.forceStrain||0) + activeCombat.accForce);
+  characterSheet.physicalStrain = Math.min(maxPS, (characterSheet.physicalStrain||0) + activeCombat.accPhysical);
+  characterSheet.mentalStrain = Math.min(maxMS, (characterSheet.mentalStrain||0) + activeCombat.accMental);
+
+  // Apply XP via COMBAT: line logic
+  if (activeCombat.primarySkill) {
+    const {primary, secondary} = calcCombatXP(
+      activeCombat.round,
+      activeCombat.tierGap,
+      engagement || 'mixed',
+      outcome || 'win'
+    );
+    applyXPToSheet(activeCombat.primarySkill, primary);
+    if (activeCombat.secondarySkill) applyXPToSheet(activeCombat.secondarySkill, secondary);
+  }
+
+  activeCombat = null;
+  updateUI();
+}
+
+function updateCombatStrain(rounds, intensity) {
+  if (!activeCombat || !characterSheet) return;
+  const END = characterSheet.stats?.endurance || 30;
+  const em = compressedBonus(END) / 10;
+  const base = {
+    'light': {p:0.4, f:0.3, m:0.2},
+    'sparring': {p:0.4, f:0.3, m:0.2},
+    'standard': {p:0.8, f:0.6, m:0.4},
+    'intense': {p:1.2, f:1.0, m:0.6},
+    'desperate': {p:2.0, f:1.5, m:1.0}
+  }[intensity || activeCombat.intensity] || {p:0.8, f:0.6, m:0.4};
+
+  const r = rounds || 1;
+  activeCombat.accPhysical += Math.round((base.p * (1 - em)) * r * 10) / 10;
+  activeCombat.accForce    += Math.round((base.f * (1 - em * 0.5)) * r * 10) / 10;
+  activeCombat.accMental   += Math.round((base.m * (1 - em * 0.3)) * r * 10) / 10;
+  activeCombat.round += r;
+}
 function compressedBonus(stat) {
   const s = stat || 0;
   if (s <= 40)  return s / 20;
