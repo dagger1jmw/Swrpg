@@ -1459,7 +1459,7 @@ Output combat state in a visible block each exchange:
 '''
 — COMBAT ROUND [N] —
 Momentum: [who has advantage]
-Accumulated strain this fight: Physical [X], Force [Y], Mental [Z]
+Accumulated strain this fight: Physical [XX], Force [YY], Mental [ZZ]  (0–100 scale)
 Position: [brief description]
 '''
 
@@ -1498,17 +1498,17 @@ physical_per_round = base_physical × (1 - endurance_mitigation)
 force_per_round = base_force × (1 - endurance_mitigation × 0.5)
 mental_per_round = base_mental × (1 - endurance_mitigation × 0.3)
 
-Base strain per round by fight intensity:
-- Light sparring / training bot: Physical 0.4, Force 0.3, Mental 0.2
-- Standard combat: Physical 0.8, Force 0.6, Mental 0.4
-- Intense/real threat: Physical 1.2, Force 1.0, Mental 0.6
-- Desperate/overwhelming opponent: Physical 2.0, Force 1.5, Mental 1.0
+Base strain per round by fight intensity (all values on 0–100 scale):
+- Light sparring / training bot: Physical 4, Force 3, Mental 2
+- Standard combat: Physical 8, Force 6, Mental 4
+- Intense/real threat: Physical 12, Force 10, Mental 6
+- Desperate/overwhelming opponent: Physical 20, Force 15, Mental 10
 
 Additional strain per exchange from specific events:
-- Taking a hit (margin 4-7 against): +0.5 physical
-- Taking a serious hit (margin 8-12): +1.5 physical
-- Heavy Force use in exchange: +0.5 force
-- Psychological pressure (domination, fear): +0.5 mental
+- Taking a hit (margin 4-7 against): +5 physical
+- Taking a serious hit (margin 8-12): +15 physical
+- Heavy Force use in exchange: +5 force
+- Psychological pressure (domination, fear): +5 mental
 
 ## END OF COMBAT — XP AND STRAIN APPLICATION
 When combat ends (victory, retreat, knockout, or resolution), output in CHANGES block:
@@ -1547,7 +1547,7 @@ Margin: [winner] by [N] — [Narrow/Clear/Dominant/Overwhelming]
 
 [Narrative of the exchange — what happened, what the opponent does next]
 
-Accumulated strain: Physical [X.X], Force [X.X], Mental [X.X]
+Accumulated strain: Physical [XX], Force [XX], Mental [XX]  (0–100 scale)
 
 ### TRAINING DRILL DIFFICULTY
 - Technique well within character tier: treat as same-tier or 1-tier-below task
@@ -1594,21 +1594,21 @@ Form counter bonuses are defined in the ROLL SYSTEM section. They stack with tie
 Every character has three independent strain pools. Track them separately in the SHEET block.
 
 FORCE STRAIN (forceStrain / maxForceStrain: 100):
-- Scaled to 100 for precision. Think of it as a percentage of capacity.
-- Light Force use: +2-5 | Moderate: +8-15 | Heavy sustained: +20-30
+- Scaled to 100. Think of it as a percentage of capacity.
+- Out-of-combat Force use: small act +5-10, moderate +8-15, heavy sustained +20-30
 - In combat: tracked via COMBAT_ROUND accumulation, applied at fight end
-- At 70+: rolls penalized, abilities harder to sustain. At 90+: dangerous.
+- Penalty thresholds: 0-20=none | 21-50=-1 to rolls | 51-80=-2 to rolls | 81+=-3 to rolls + barrier weakens
 - Recovery: meditation restores 15-30 per session depending on depth
 
 PHYSICAL STRAIN (physicalStrain / maxPhysicalStrain: 100):
 - Light exertion: +2-5 | Intense training: +10-20 | Injury: +20-50
 - In combat: tracked via COMBAT_ROUND, applied at fight end. Endurance reduces per-round cost.
-- At 70+: movement impaired, combat penalties. At 90+: collapse risk.
+- Penalty thresholds: 0-20=none | 21-50=-1 to rolls | 51-80=-2 to rolls | 81+=-3 to rolls + collapse risk
 - Recovery: rest restores 10-20 per hour of sleep
 
 MENTAL STRAIN (mentalStrain / maxMentalStrain: 100):
 - Mild stress: +2-5 | Intense focus: +8-15 | Fear/trauma: +20-40
-- At 70+: concentration broken, Force use impaired. At 90+: temporary breakdown.
+- Penalty thresholds: 0-20=none | 21-50=-1 to rolls | 51-80=-2 to rolls | 81+=-3 to rolls + breakdown risk
 - Recovery: calm + sleep restores 15-25 per rest period
 
 ENDURANCE AND STRAIN MITIGATION:
@@ -1703,12 +1703,12 @@ DARK SIDE ALIGNMENT LOSS REQUIRES:
 - Anger used to harm, cruelty, deception for selfish gain, abandoning someone in need
 - Using fear or domination as tools deliberately
 
-## STRAIN SYSTEM — BASE COSTS
-Force actions: small=0 Force Strain, single-target=+1, multi-target=+2, large-scale=+3, battlefield=+4
-Force Strain penalties: 0-2=none, 3-5=-1 rolls, 6-8=-2 rolls, 9+=-3 rolls + barrier weakens
-Dark Side path: +2 Force Strain baseline but +2-4 Force Output
-Light Side path: -1 Force Strain, +1 Control, +1.5 when acting selflessly
-Flow State: d20 minimum=10, +2 precision, -1 Force Strain, near-failures become partial successes
+## STRAIN SYSTEM — BASE COSTS (all values on 0–100 scale)
+Force actions: small=0 Force Strain, single-target=+5-10, multi-target=+15-20, large-scale=+25-35, battlefield=+40-50
+Force Strain penalties: 0-20=none, 21-50=-1 rolls, 51-80=-2 rolls, 81+=-3 rolls + barrier weakens
+Dark Side path: +15-20 Force Strain baseline but +2-4 Force Output bonus
+Light Side path: -5-10 Force Strain cost, +1 Control, +1.5 when acting selflessly
+Flow State: d20 minimum=10, +2 precision, -5 Force Strain cost, near-failures become partial successes
 
 ## PROGRESSION TIERS
 - Youngling (stat 0–20): Fast small XP gains. Basic raw instinct.
