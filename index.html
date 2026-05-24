@@ -2818,17 +2818,23 @@ function trimFeedIfNeeded() {
 // ═══════════════════════════════════════════════════════════════════
 function sendMessage(prefilledText) {
   const input = document.getElementById('player-input');
-  const text = prefilledText || input.value.trim();
-  if (!text || isThinking || !gameActive) return;
+  const text = prefilledText || input?.value?.trim();
+  if (!text) return;
 
-  if (!prefilledText) {
+  // Ensure game is active — recover from any stuck state
+  gameActive = true;
+  if (isThinking) {
+    // If stuck thinking for more than expected, force reset
+    isThinking = false;
+    setThinking(false);
+  }
+
+  if (!prefilledText && input) {
     input.value = '';
     input.style.height = '44px';
   }
 
-  // Show player bubble
   renderPlayerMessage(text);
-
   callGemini(text);
 }
 
@@ -2905,7 +2911,14 @@ function renderGMMessage(text) {
       const btn = document.createElement('button');
       btn.className = 'choice-btn';
       btn.textContent = seg.content;
-      btn.onclick = () => { renderPlayerMessage(seg.content); callGemini(seg.content); };
+      btn.onclick = () => {
+        // Force reset any stuck state — player explicitly clicked a choice
+        isThinking = false;
+        gameActive = true;
+        setThinking(false);
+        renderPlayerMessage(seg.content);
+        callGemini(seg.content);
+      };
       div.appendChild(btn);
     }
   }
