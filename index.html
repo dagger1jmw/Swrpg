@@ -3161,9 +3161,27 @@ function getCharForceTier() {
 // XP required to advance stat by 1 — true exponential, 7% harder per level
 // stat 0→1: 100 XP | stat 20→21: 387 XP | stat 40→41: 1,497 XP
 // stat 60→61: 5,793 XP | stat 80→81: 22,406 XP | stat 100→101: 86,717 XP
-function xpRequired(statVal) {
-  const v = Math.max(0, Math.floor(statVal || 0));
-  return Math.floor(100 * Math.pow(1.07, v));
+function xpRequired(level) {
+  // XP needed to advance FROM this level to the next
+  return Math.floor(100 * Math.pow(1.07, Math.max(0, Math.floor(level || 0))));
+}
+
+// Total cumulative XP needed to REACH a given level from level 0
+function xpToReachLevel(level) {
+  let total = 0;
+  for (let i = 0; i < level; i++) total += xpRequired(i);
+  return total;
+}
+
+// Given lifetime cumulative XP, derive { level, current (within level), required (for next level) }
+function deriveFromTotalXP(totalXP) {
+  let level = 0;
+  let remaining = Math.max(0, totalXP || 0);
+  while (remaining >= xpRequired(level)) {
+    remaining -= xpRequired(level);
+    level++;
+  }
+  return { level, current: Math.round(remaining), required: xpRequired(level) };
 }
 
 // Training XP: time(hours) × intensity × difficulty × outcome
@@ -3204,75 +3222,47 @@ function calcCombatXP(rounds, tierGap, engagement, outcome, opponentTier) {
   return { primary, secondary: Math.round(primary * 0.4) };
 }
 
-// Apply XP to a stat path like "forceStats.forceSense" and level up if threshold crossed.
-// masterXP is the single source of truth — the AI's SHEET JSON never touches it.
+// Apply XP to a stat path like "forceStats.forceSense".
+// masterXP stores LIFETIME CUMULATIVE XP only: { totalXP: number }
+// Level is always DERIVED via deriveFromTotalXP — never stored, never corrupted.
 function applyXPToSheet(statPath, xpToAdd) {
   if (!xpToAdd || xpToAdd <= 0) return { levelUps: 0, xpAdded: 0, newStat: 0, xpCurrent: 0, xpRequired: 0 };
   const parts = statPath.split('.');
   const category = parts[0], key = parts[1];
   if (!category || !key) return { levelUps: 0, xpAdded: 0, newStat: 0, xpCurrent: 0, xpRequired: 0 };
 
-  // Ensure masterXP category exists
   if (!masterXP[category]) masterXP[category] = {};
 
-  // Get current stat value from masterXP (authoritative), fall back to characterSheet for initial value
+  // Seed: first time we see this stat, convert current level + partial XP to totalXP
   if (!masterXP[category][key]) {
-    // First time seeing this stat — seed from characterSheet current value
-    // (which may already reflect a manual [OVERRIDE] correction)
-    let seedVal = 0;
+    let seedLevel = 0;
+    let partialXP = 0;
     if (characterSheet) {
-      if (category === 'forceStats') seedVal = characterSheet.forceStats?.[key] || 0;
-      else if (category === 'stats') seedVal = characterSheet.stats?.[key] || 0;
-      else if (category === 'forceAbilities') seedVal = typeof characterSheet.forceAbilities?.[key]==='object' ? (characterSheet.forceAbilities[key].level||0) : (characterSheet.forceAbilities?.[key]||0);
-      else if (category === 'lightsaberForms') seedVal = typeof characterSheet.lightsaberForms?.[key]==='object' ? (characterSheet.lightsaberForms[key].level||0) : (characterSheet.lightsaberForms[key]||0);
+      if (category === 'forceStats') {
+        seedLevel = characterSheet.forceStats?.[key] || 0;
+        partialXP = characterSheet.forceStatsXP?.[key]?.current || 0;
+      } else if (category === 'stats') {
+        seedLevel = characterSheet.stats?.[key] || 0;
+        partialXP = characterSheet.statsXP?.[key]?.current || 0;
+      } else if (category === 'forceAbilities') {
+        seedLevel = typeof characterSheet.forceAbilities?.[key]==='object' ? (characterSheet.forceAbilities[key].level||0) : (characterSheet.forceAbilities?.[key]||0);
+        partialXP = characterSheet.forceAbilitiesXP?.[key]?.current || 0;
+      } else if (category === 'lightsaberForms') {
+        seedLevel = typeof characterSheet.lightsaberForms?.[key]==='object' ? (characterSheet.lightsaberForms[key].level||0) : (characterSheet.lightsaberForms[key]||0);
+        partialXP = characterSheet.lightsaberFormsXP?.[key]?.current || 0;
+      }
     }
-    // Preserve any XP already accumulated in the legacy store
-    let existingCurrent = 0;
-    if (characterSheet) {
-      if (category === 'forceStats') existingCurrent = characterSheet.forceStatsXP?.[key]?.current || 0;
-      else if (category === 'stats') existingCurrent = characterSheet.statsXP?.[key]?.current || 0;
-      else if (category === 'forceAbilities') existingCurrent = characterSheet.forceAbilitiesXP?.[key]?.current || 0;
-      else if (category === 'lightsaberForms') existingCurrent = characterSheet.lightsaberFormsXP?.[key]?.current || 0;
-    }
-    masterXP[category][key] = { stat: seedVal, current: existingCurrent, required: xpRequired(seedVal) };
-  } else {
-    // Entry exists — but if characterSheet has a HIGHER stat value (from a manual correction
-    // that wrote to masterXP via arrowMatch), trust that over the stored stat
-    let csVal = 0;
-    if (characterSheet) {
-      if (category === 'forceStats') csVal = characterSheet.forceStats?.[key] || 0;
-      else if (category === 'stats') csVal = characterSheet.stats?.[key] || 0;
-      else if (category === 'forceAbilities') csVal = typeof characterSheet.forceAbilities?.[key]==='object' ? (characterSheet.forceAbilities[key].level||0) : (characterSheet.forceAbilities?.[key]||0);
-      else if (category === 'lightsaberForms') csVal = typeof characterSheet.lightsaberForms?.[key]==='object' ? (characterSheet.lightsaberForms[key].level||0) : (characterSheet.lightsaberForms[key]||0);
-    }
-    if (csVal > masterXP[category][key].stat) {
-      masterXP[category][key].stat = csVal;
-      masterXP[category][key].required = xpRequired(csVal);
-    }
+    masterXP[category][key] = { totalXP: xpToReachLevel(seedLevel) + partialXP };
   }
 
   const entry = masterXP[category][key];
-  entry.current = (entry.current || 0) + xpToAdd;
-  entry.required = xpRequired(entry.stat);
-  let levelUps = 0;
-  while (entry.current >= entry.required) {
-    entry.current -= entry.required;
-    entry.stat++;
-    entry.required = xpRequired(entry.stat);
-    levelUps++;
-  }
+  const before = deriveFromTotalXP(entry.totalXP);
+  entry.totalXP += xpToAdd;
+  const after = deriveFromTotalXP(entry.totalXP);
+  const levelUps = after.level - before.level;
 
-  // Write authoritative stat value back to characterSheet so display and rolls use it
-  if (characterSheet) {
-    if (category === 'forceStats') { if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats[key] = entry.stat; }
-    else if (category === 'stats') { if (!characterSheet.stats) characterSheet.stats={}; characterSheet.stats[key] = entry.stat; }
-    else if (category === 'forceAbilities') { if (!characterSheet.forceAbilities) characterSheet.forceAbilities={}; characterSheet.forceAbilities[key] = entry.stat; }
-    else if (category === 'lightsaberForms') { if (!characterSheet.lightsaberForms) characterSheet.lightsaberForms={}; characterSheet.lightsaberForms[key] = entry.stat; }
-    // Also sync legacy XP store fields so the character sheet sidebar bars render correctly
-    syncMasterXPToSheet();
-  }
-
-  return { levelUps, xpAdded: Math.round(xpToAdd), newStat: entry.stat, xpCurrent: Math.round(entry.current), xpRequired: entry.required };
+  syncMasterXPToSheet();
+  return { levelUps, xpAdded: Math.round(xpToAdd), newStat: after.level, xpCurrent: after.current, xpRequired: after.required };
 }
 
 // Sync masterXP → characterSheet XP store fields (for sidebar progress bars)
@@ -3282,22 +3272,18 @@ function syncMasterXPToSheet() {
   if (!characterSheet.statsXP) characterSheet.statsXP = {};
   if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
   if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
-  for (const [k, e] of Object.entries(masterXP.forceStats || {})) {
-    characterSheet.forceStatsXP[k] = { current: Math.round(e.current), required: e.required };
-    characterSheet.forceStats[k] = e.stat;
-  }
-  for (const [k, e] of Object.entries(masterXP.stats || {})) {
-    characterSheet.statsXP[k] = { current: Math.round(e.current), required: e.required };
-    characterSheet.stats[k] = e.stat;
-  }
-  for (const [k, e] of Object.entries(masterXP.forceAbilities || {})) {
-    characterSheet.forceAbilitiesXP[k] = { current: Math.round(e.current), required: e.required };
-    characterSheet.forceAbilities[k] = e.stat;
-  }
-  for (const [k, e] of Object.entries(masterXP.lightsaberForms || {})) {
-    characterSheet.lightsaberFormsXP[k] = { current: Math.round(e.current), required: e.required };
-    characterSheet.lightsaberForms[k] = e.stat;
-  }
+
+  const apply = (csStatObj, csXPObj, cat) => {
+    for (const [k, e] of Object.entries(masterXP[cat] || {})) {
+      const d = deriveFromTotalXP(e.totalXP || 0);
+      csXPObj[k] = { current: d.current, required: d.required, totalXP: Math.round(e.totalXP || 0) };
+      if (csStatObj) csStatObj[k] = d.level;
+    }
+  };
+  apply(characterSheet.forceStats,    characterSheet.forceStatsXP,    'forceStats');
+  apply(characterSheet.stats,         characterSheet.statsXP,         'stats');
+  apply(characterSheet.forceAbilities,characterSheet.forceAbilitiesXP,'forceAbilities');
+  apply(characterSheet.lightsaberForms,characterSheet.lightsaberFormsXP,'lightsaberForms');
 }
 
 function updateCharacterSheet() {
@@ -3712,26 +3698,36 @@ function loadFromSave(save) {
   }
   // Restore masterXP — if the save predates masterXP, migrate from characterSheet XP stores
   if (save.masterXP) {
-    masterXP = save.masterXP;
+    // Migrate any old {stat,current,required} entries to {totalXP}
+    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} };
+    for (const cat of ['forceStats','stats','forceAbilities','lightsaberForms']) {
+      for (const [k, e] of Object.entries(save.masterXP[cat] || {})) {
+        if (e.totalXP !== undefined) {
+          masterXP[cat][k] = { totalXP: e.totalXP };
+        } else {
+          // Old format: convert stat+current to totalXP
+          masterXP[cat][k] = { totalXP: xpToReachLevel(e.stat || 0) + (e.current || 0) };
+        }
+      }
+    }
   } else if (characterSheet) {
     // Migrate old save: build masterXP from characterSheet XP store fields
     masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} };
-    for (const [k, v] of Object.entries(characterSheet.forceStatsXP || {})) {
-      const sv = characterSheet.forceStats?.[k] || 0;
-      masterXP.forceStats[k] = { stat: sv, current: v.current || 0, required: v.required || xpRequired(sv) };
-    }
-    for (const [k, v] of Object.entries(characterSheet.statsXP || {})) {
-      const sv = characterSheet.stats?.[k] || 0;
-      masterXP.stats[k] = { stat: sv, current: v.current || 0, required: v.required || xpRequired(sv) };
-    }
-    for (const [k, v] of Object.entries(characterSheet.forceAbilitiesXP || {})) {
-      const sv = typeof characterSheet.forceAbilities?.[k]==='object' ? (characterSheet.forceAbilities[k].level||0) : (characterSheet.forceAbilities?.[k]||0);
-      masterXP.forceAbilities[k] = { stat: sv, current: v.current || 0, required: v.required || xpRequired(sv) };
-    }
-    for (const [k, v] of Object.entries(characterSheet.lightsaberFormsXP || {})) {
-      const sv = typeof characterSheet.lightsaberForms?.[k]==='object' ? (characterSheet.lightsaberForms[k].level||0) : (characterSheet.lightsaberForms?.[k]||0);
-      masterXP.lightsaberForms[k] = { stat: sv, current: v.current || 0, required: v.required || xpRequired(sv) };
-    }
+    const migrateXPStore = (xpStore, statObj, cat, isObj) => {
+      for (const [k, v] of Object.entries(xpStore || {})) {
+        // v may already be totalXP format, or old {stat,current,required} format
+        if (v.totalXP !== undefined) {
+          masterXP[cat][k] = { totalXP: v.totalXP };
+        } else {
+          const sv = isObj ? (typeof statObj?.[k]==='object' ? (statObj[k].level||0) : (statObj?.[k]||0)) : (statObj?.[k]||0);
+          masterXP[cat][k] = { totalXP: xpToReachLevel(sv) + (v.current || 0) };
+        }
+      }
+    };
+    migrateXPStore(characterSheet.forceStatsXP, characterSheet.forceStats, 'forceStats', false);
+    migrateXPStore(characterSheet.statsXP, characterSheet.stats, 'stats', false);
+    migrateXPStore(characterSheet.forceAbilitiesXP, characterSheet.forceAbilities, 'forceAbilities', true);
+    migrateXPStore(characterSheet.lightsaberFormsXP, characterSheet.lightsaberForms, 'lightsaberForms', true);
   } else {
     masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} };
   }
@@ -4554,8 +4550,10 @@ function applyMechanicalChangesFromText(text) {
         characterSheet.forceStatsXP[fk].required = xpRequired(newVal);
         // Sync to masterXP so XP gains next turn use the correct stat level
         if (!masterXP.forceStats) masterXP.forceStats = {};
-        if (!masterXP.forceStats[fk]) masterXP.forceStats[fk] = { stat: newVal, current: 0, required: xpRequired(newVal) };
-        else { masterXP.forceStats[fk].stat = newVal; masterXP.forceStats[fk].required = xpRequired(newVal); }
+        // Manual correction: set totalXP to the minimum needed to be at this level
+        const _cur1 = masterXP.forceStats[fk]?.totalXP || 0;
+        const _floor1 = xpToReachLevel(newVal);
+        masterXP.forceStats[fk] = { totalXP: Math.max(_cur1, _floor1) };
         count++;
       } else if (stMap[keyLower] || stMap[keySpaced]) {
         const sk = stMap[keyLower] || stMap[keySpaced];
@@ -4565,8 +4563,9 @@ function applyMechanicalChangesFromText(text) {
         if (!characterSheet.statsXP[sk]) characterSheet.statsXP[sk] = {current:0,required:xpRequired(newVal)};
         characterSheet.statsXP[sk].required = xpRequired(newVal);
         if (!masterXP.stats) masterXP.stats = {};
-        if (!masterXP.stats[sk]) masterXP.stats[sk] = { stat: newVal, current: 0, required: xpRequired(newVal) };
-        else { masterXP.stats[sk].stat = newVal; masterXP.stats[sk].required = xpRequired(newVal); }
+        const _cur2 = masterXP.stats[sk]?.totalXP || 0;
+        const _floor2 = xpToReachLevel(newVal);
+        masterXP.stats[sk] = { totalXP: Math.max(_cur2, _floor2) };
         count++;
       } else if (characterSheet.forceAbilities && rawName in characterSheet.forceAbilities) {
         characterSheet.forceAbilities[rawName] = newVal;
@@ -4574,8 +4573,9 @@ function applyMechanicalChangesFromText(text) {
         if (!characterSheet.forceAbilitiesXP[rawName]) characterSheet.forceAbilitiesXP[rawName] = {current:0,required:xpRequired(newVal)};
         characterSheet.forceAbilitiesXP[rawName].required = xpRequired(newVal);
         if (!masterXP.forceAbilities) masterXP.forceAbilities = {};
-        if (!masterXP.forceAbilities[rawName]) masterXP.forceAbilities[rawName] = { stat: newVal, current: 0, required: xpRequired(newVal) };
-        else { masterXP.forceAbilities[rawName].stat = newVal; masterXP.forceAbilities[rawName].required = xpRequired(newVal); }
+        const _cur3 = masterXP.forceAbilities[rawName]?.totalXP || 0;
+        const _floor3 = xpToReachLevel(newVal);
+        masterXP.forceAbilities[rawName] = { totalXP: Math.max(_cur3, _floor3) };
         count++;
       } else if (characterSheet.lightsaberForms && rawName in characterSheet.lightsaberForms) {
         characterSheet.lightsaberForms[rawName] = newVal;
@@ -4583,8 +4583,9 @@ function applyMechanicalChangesFromText(text) {
         if (!characterSheet.lightsaberFormsXP[rawName]) characterSheet.lightsaberFormsXP[rawName] = {current:0,required:xpRequired(newVal)};
         characterSheet.lightsaberFormsXP[rawName].required = xpRequired(newVal);
         if (!masterXP.lightsaberForms) masterXP.lightsaberForms = {};
-        if (!masterXP.lightsaberForms[rawName]) masterXP.lightsaberForms[rawName] = { stat: newVal, current: 0, required: xpRequired(newVal) };
-        else { masterXP.lightsaberForms[rawName].stat = newVal; masterXP.lightsaberForms[rawName].required = xpRequired(newVal); }
+        const _cur4 = masterXP.lightsaberForms[rawName]?.totalXP || 0;
+        const _floor4 = xpToReachLevel(newVal);
+        masterXP.lightsaberForms[rawName] = { totalXP: Math.max(_cur4, _floor4) };
         count++;
       }
       continue;
