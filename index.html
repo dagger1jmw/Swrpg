@@ -1226,7 +1226,7 @@ RULES FOR DATA BLOCKS:
 - trackedCharacters: array of NPCs the player has meaningful interaction with. Format: [{"name":"Master Shara","title":"Jedi Knight, Combat Instructor","relation":"Mentor","summary":"Jared's primary combat trainer. Noticed his exceptional Force Absorb aptitude. Stern but encouraging teaching style. Believes Jared has unusual potential.","lastSeen":"Day 28 Goldfall, Training Salle Gamma"}]. Relations: Mentor, Ally, Neutral, Hostile, Rival, Friend, Unknown. Update summary as relationship develops. Remove characters who are no longer relevant.
 - galaxyEvents: Format: [{"turn":1,"faction":"Jedi Order","event":"description"}]. Keep last 10.
 - forceAbilities: plain numbers only.
-- inGameDate: Galactic Standard Calendar format.
+- inGameDate: Galactic Standard Calendar format. EXACT FORMAT REQUIRED: "Weekday, Day N MonthName — YYYY ERA" e.g. "Primeday, Day 4 Coruscann — 3661 BBY". Weekdays: Primeday/Centaxday/Taungsday/Zhellday/Benduday/Restday/Endday. Months: Coruscann/Frostuary/Warming/Seedmonth/Bloomtide/Midyear/Heatmonth/Harvestide/Goldfall/Stormtide/Coldmonth/Yearend. Update every turn when time advances past midnight. NEVER write "Day X, Cycle Y" — that format is not parseable.
 - All fields must be present every response.
 
 ## ROLL SYSTEM — FULLY REDESIGNED
@@ -2215,7 +2215,7 @@ ${campaignSummary ? `CAMPAIGN HISTORY (turns 1–${Math.max(1, turnCount - recen
 
 CRITICAL RULES FOR THIS TURN:
 1. Use the EXACT stat values above as your starting point
-2. TIME IS NOW: ${ws.inGameTime||'unknown'} on ${ws.inGameDate||'unknown'}. Every action takes time. State how much time passes at the start of your response ("Time Elapsed: X minutes/hours"). Update inGameTime in the WORLD block to reflect the new time after this action. If time passes midnight, advance the date too.
+2. TIME IS NOW: ${ws.inGameTime||'unknown'} on ${ws.inGameDate||'unknown'}. Every action takes time. State how much time passes at the start of your response ("Time Elapsed: X minutes/hours"). Update inGameTime AND inGameDate in the WORLD block. If time passes midnight advance the date using exact format "Weekday, Day N MonthName — YYYY ERA" (e.g. "Centaxday, Day 5 Coruscann — 3661 BBY"). NEVER use "Day X, Cycle Y" format.
 3. Time period labels: Pre-Dawn 03:00-05:59, Dawn 06:00-06:59, Morning 07:00-11:59, Midday 12:00-13:59, Afternoon 14:00-17:59, Evening 18:00-20:59, Night 21:00-23:59, Late Night 00:00-02:59
 4. XP SYSTEM — CRITICAL: You NEVER directly increment stat values. You NEVER write "+3 XP" in prose. Stats only increase when JavaScript calculates enough XP from TRAINING: or COMBAT: lines. The XP progress shown above (e.g. "Djem So:3[45/114XP]") is authoritative — do not override it. Output TRAINING:/COMBAT: lines in the CHANGES block and JavaScript handles all math.
 5. If strain changed this turn, update in CHANGES block (FORCE_STRAIN=, PHYSICAL_STRAIN=, MENTAL_STRAIN=)
@@ -2338,12 +2338,26 @@ async function callGemini(playerMessage, retryCount = 0) {
     }
 
     if (worldMatch) {
+      // Preserve current date/time — the AI's WORLD JSON may have the previous turn's
+      // values. The CHANGES block and narrative parser update these authoritatively below.
+      const savedDate = worldState?.inGameDate || null;
+      const savedTime = worldState?.inGameTime || null;
       try {
         worldState = JSON.parse(worldMatch[1].trim());
         worldParsed = true;
       } catch(e) {
         const j = worldMatch[1].match(/\{[\s\S]*\}/);
         if (j) { try { worldState = JSON.parse(j[0]); worldParsed = true; } catch(e2) {} }
+      }
+      if (worldParsed && worldState) {
+        // Only keep AI date if it's ahead of (or equal to) what we already have
+        if (savedDate) {
+          const aiAbs = worldState.inGameDate ? dateToAbsoluteDays(worldState.inGameDate) : 0;
+          const curAbs = dateToAbsoluteDays(savedDate);
+          if (aiAbs < curAbs) worldState.inGameDate = savedDate;
+        }
+        // Always keep our tracked time unless AI has something different formatted
+        if (savedTime && !worldState.inGameTime) worldState.inGameTime = savedTime;
       }
     }
 
@@ -3536,6 +3550,15 @@ function updateWorldState() {
         worldState.inGameDate = newDate;
       }
     }
+    // If the stored date isn't in proper format, convert it now
+    const dispDate = worldState.inGameDate;
+    const needsConvert = dispDate && !GSC_MONTHS.some(m => dispDate.includes(m));
+    if (needsConvert) {
+      const reparsed = parseDateString(dispDate);
+      if (reparsed) {
+        worldState.inGameDate = dateToString(reparsed.year, reparsed.era, reparsed.dayOfYear);
+      }
+    }
     document.getElementById('date-display').textContent = worldState.inGameDate;
     updateCalendarContent(worldState.inGameDate);
   }
@@ -4483,27 +4506,40 @@ const GSC_MONTH_OFFSETS = GSC_DAYS_IN_MONTH.reduce((acc, d, i) => {
 
 function parseDateString(dateStr) {
   if (!dateStr) return null;
+
+  // Handle "Day X, Cycle Y" fallback (old/malformed AI output) — treat Cycle as month
+  const cycleMatch = dateStr.match(/Day\s*(\d+),?\s*Cycle\s*(\d+)/i);
+  if (cycleMatch) {
+    const dayOfMonth = parseInt(cycleMatch[1]);
+    const monthIndex = Math.max(0, parseInt(cycleMatch[2]) - 1) % GSC_MONTHS_PER_YEAR;
+    const yearMatch2 = dateStr.match(/(\d{3,4})\s*(BBY|ABY)/i);
+    const year = yearMatch2 ? parseInt(yearMatch2[1]) : 3661;
+    const era = yearMatch2 ? yearMatch2[2].toUpperCase() : 'BBY';
+    const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + Math.min(dayOfMonth, GSC_DAYS_IN_MONTH[monthIndex]);
+    return { year, era, dayOfYear: Math.max(1, dayOfYear) };
+  }
+
   const yearMatch = dateStr.match(/(\d{3,4})\s*(BBY|ABY)/i);
   if (!yearMatch) return null;
   const year = parseInt(yearMatch[1]);
   const era = yearMatch[2].toUpperCase();
 
-  // Try "Day X, MonthName" format
-  const fullMatch = dateStr.match(/Day\s*(\d+),?\s*([A-Za-z\-]+)/i);
+  // Try "Day X, MonthName" or "Day X MonthName" format
+  const fullMatch = dateStr.match(/Day\s*(\d+),?\s*([A-Za-z][a-z]+)/i);
   if (fullMatch) {
     const dayOfMonth = parseInt(fullMatch[1]);
     const monthName = fullMatch[2];
     const monthIndex = GSC_MONTHS.findIndex(m => m.toLowerCase() === monthName.toLowerCase());
     if (monthIndex >= 0) {
-      const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + dayOfMonth;
+      const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + Math.min(dayOfMonth, GSC_DAYS_IN_MONTH[monthIndex]);
       return { year, era, dayOfYear: Math.max(1, dayOfYear) };
     }
   }
 
-  // Fallback: raw day number
+  // Fallback: raw day number as day-of-year
   const dayMatch = dateStr.match(/Day\s*(\d+)/i);
   const dayOfYear = dayMatch ? parseInt(dayMatch[1]) : 1;
-  return { year, era, dayOfYear: Math.max(1, dayOfYear) };
+  return { year, era, dayOfYear: Math.max(1, Math.min(dayOfYear, GSC_DAYS_PER_YEAR)) };
 }
 
 function dayOfYearToMonthDay(dayOfYear) {
