@@ -883,6 +883,7 @@
       <button class="hbtn" id="btn-chars" onclick="togglePanel('chars')" style="display:none">People</button>
       <button class="hbtn" id="btn-simulate" onclick="openSimPanel()" style="display:none">Simulate</button>
       <button class="hbtn" id="btn-sync" onclick="manualStrainSync()" style="display:none" title="Manually update strain bars from current sheet">Sync</button>
+      <button class="hbtn" id="btn-xpinject" onclick="openXPInject()" style="display:none" title="Manually inject XP into a stat">XP</button>
       <button class="hbtn" id="btn-save" onclick="openSaveLoad('save')" style="display:none">Save</button>
       <button class="hbtn" id="btn-load" onclick="openSaveLoad('load')">Load</button>
       <button class="hbtn danger" id="btn-newgame" onclick="confirmNewGame()" style="display:none">New Game</button>
@@ -1012,6 +1013,34 @@
   </div>
 
   <!-- SAVE/LOAD MODAL -->
+  <!-- XP INJECT MODAL -->
+  <div id="xp-inject-overlay" onclick="closeXPInject(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:300;align-items:center;justify-content:center;">
+    <div onclick="event.stopPropagation()" style="background:var(--bg-panel);border:1px solid var(--border-bright);padding:32px;width:90%;max-width:420px;">
+      <h2 style="font-family:'Cinzel',serif;font-size:15px;color:var(--gold);letter-spacing:2px;margin-bottom:22px;text-transform:uppercase;">◆ Inject XP</h2>
+
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Stat / Ability</label>
+        <select id="xpi-stat" style="width:100%;background:var(--bg-deep);border:1px solid var(--border-bright);color:var(--text-bright);padding:8px 10px;font-size:13px;font-family:inherit;cursor:pointer;">
+          <option value="">— select a stat —</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:8px;">
+        <label style="display:block;font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">XP Amount</label>
+        <input id="xpi-amount" type="number" min="1" max="99999" placeholder="e.g. 100"
+          style="width:100%;box-sizing:border-box;background:var(--bg-deep);border:1px solid var(--border-bright);color:var(--text-bright);padding:8px 10px;font-size:14px;font-family:inherit;"
+          onkeydown="if(event.key==='Enter')confirmXPInject()" />
+      </div>
+
+      <div id="xpi-preview" style="min-height:38px;margin:12px 0 4px;font-size:12px;color:var(--text-dim);font-style:italic;"></div>
+
+      <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;">
+        <button class="modal-btn" onclick="closeXPInject()">Cancel</button>
+        <button class="modal-btn primary" onclick="confirmXPInject()">Inject XP</button>
+      </div>
+    </div>
+  </div>
+
   <div id="modal-overlay" onclick="closeModal(event)">
     <div class="modal" onclick="e=>e.stopPropagation()">
       <h2 id="modal-title">Save Game</h2>
@@ -2025,6 +2054,7 @@ function showGame() {
   document.getElementById('btn-chars').style.display = '';
   document.getElementById('btn-simulate').style.display = '';
   document.getElementById('btn-sync').style.display = '';
+  document.getElementById('btn-xpinject').style.display = '';
   document.getElementById('btn-save').style.display = '';
   document.getElementById('btn-newgame').style.display = '';
 }
@@ -3774,6 +3804,116 @@ function loadFromSave(save) {
     feed.appendChild(div);
     scrollFeed();
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  XP INJECT
+// ═══════════════════════════════════════════════════════════════════
+function openXPInject() {
+  if (!characterSheet) return;
+  const overlay = document.getElementById('xp-inject-overlay');
+  const sel = document.getElementById('xpi-stat');
+  const amt = document.getElementById('xpi-amount');
+  const preview = document.getElementById('xpi-preview');
+
+  // Build stat options from live characterSheet
+  sel.innerHTML = '<option value="">— select a stat —</option>';
+
+  const addGroup = (label, paths) => {
+    if (!paths.length) return;
+    const grp = document.createElement('optgroup');
+    grp.label = label;
+    paths.forEach(([path, display]) => {
+      const opt = document.createElement('option');
+      opt.value = path;
+      opt.textContent = display;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  };
+
+  // Force Stats
+  const fsPaths = Object.keys(characterSheet.forceStats || {}).map(k => [`forceStats.${k}`, k]);
+  addGroup('Force Stats', fsPaths);
+
+  // Core Stats
+  const stPaths = Object.keys(characterSheet.stats || {}).map(k => [`stats.${k}`, k]);
+  addGroup('Stats', stPaths);
+
+  // Force Abilities
+  const faPaths = Object.keys(characterSheet.forceAbilities || {}).map(k => [`forceAbilities.${k}`, k]);
+  addGroup('Force Abilities', faPaths);
+
+  // Lightsaber Forms
+  const lfPaths = Object.keys(characterSheet.lightsaberForms || {}).map(k => [`lightsaberForms.${k}`, k]);
+  addGroup('Lightsaber Forms', lfPaths);
+
+  amt.value = '';
+  preview.textContent = '';
+
+  // Live preview on change
+  const updatePreview = () => {
+    const path = sel.value;
+    const xp = parseInt(amt.value) || 0;
+    if (!path || xp <= 0) { preview.innerHTML = ''; return; }
+    const entry = masterXP[path.split('.')[0]]?.[path.split('.')[1]];
+    const currentTotal = entry?.totalXP || 0;
+    const before = deriveFromTotalXP(currentTotal);
+    const after = deriveFromTotalXP(currentTotal + xp);
+    const lvlTag = after.level > before.level
+      ? `<span style="color:#e8c84c;font-weight:bold"> ▲ Level ${before.level} → ${after.level}</span>`
+      : '';
+    preview.innerHTML = `<span style="color:#44aa66">+${xp} XP</span> to <span style="color:#c8b080">${path.split('.')[1]}</span> · 
+      <span style="color:#aaa">${before.current}/${before.required} → ${after.current}/${after.required}</span>${lvlTag}`;
+  };
+
+  sel.onchange = updatePreview;
+  amt.oninput = updatePreview;
+
+  overlay.style.display = 'flex';
+  setTimeout(() => amt.focus(), 50);
+}
+
+function confirmXPInject() {
+  const path = document.getElementById('xpi-stat').value;
+  const xp = parseInt(document.getElementById('xpi-amount').value) || 0;
+  if (!path) { alert('Please select a stat.'); return; }
+  if (xp <= 0) { alert('Enter a positive XP amount.'); return; }
+
+  const result = applyXPToSheet(path, xp);
+  updateUI();
+  autoSave();
+  closeXPInject();
+
+  // Show confirmation in feed
+  const feed = document.getElementById('story-feed');
+  const d = document.createElement('div');
+  d.className = 'msg';
+  d.style.cssText = 'margin:4px 0 10px 0;';
+  const lvlTag = result.levelUps > 0
+    ? `<span style="color:#e8c84c;font-weight:bold;margin-left:8px">▲ LEVEL UP → ${result.newStat}</span>`
+    : '';
+  const barPct = Math.round((result.xpCurrent / result.xpRequired) * 100);
+  d.innerHTML = `<div style="background:rgba(40,60,40,0.25);border:1px solid #2a3a2a;border-radius:4px;padding:8px 14px;font-size:12px;">
+    <div style="color:#446644;font-size:10px;letter-spacing:2px;margin-bottom:7px;font-family:'Cinzel',serif">◆ XP INJECTED</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="color:#c8b080;font-family:'Cinzel',serif;font-size:12px;min-width:130px">${path.split('.')[1]}</span>
+      <span style="color:#44aa66;font-weight:bold;min-width:56px">+${result.xpAdded} XP</span>
+      <div style="flex:1;background:#1a1a1a;border-radius:2px;height:5px;min-width:60px;max-width:120px">
+        <div style="width:${barPct}%;height:100%;background:linear-gradient(90deg,#225533,#44aa66);border-radius:2px"></div>
+      </div>
+      <span style="color:#556655;font-size:10px">${result.xpCurrent}/${result.xpRequired}</span>
+      ${lvlTag}
+    </div>
+  </div>`;
+  feed.appendChild(d);
+  const feedEl = document.getElementById('story-feed');
+  feedEl.scrollTop = feedEl.scrollHeight;
+}
+
+function closeXPInject(e) {
+  if (e && e.target !== document.getElementById('xp-inject-overlay')) return;
+  document.getElementById('xp-inject-overlay').style.display = 'none';
 }
 
 function manualStrainSync() {
