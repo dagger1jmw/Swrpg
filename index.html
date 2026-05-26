@@ -4602,7 +4602,7 @@ function simAddTrainingRow() {
 
   const actOpts = available.map(a => `<option value="${a.key}">${a.label}</option>`).join('');
   div.innerHTML = `
-    <select onchange="simRowChange('${rowId}','activity',this.value);simUpdateHoursTracker();simUpdateStrainPreview();simUpdateXPPreview()">
+    <select onchange="simRowChange('${rowId}','activityKey',this.value);simUpdateHoursTracker();simUpdateStrainPreview();simUpdateXPPreview()">
       <option value="">— select activity —</option>
       ${actOpts}
     </select>
@@ -4736,12 +4736,24 @@ function simUpdateXPPreview() {
 
 function simCalcDailyXP(cs) {
   const xpMap = {};
+  // Helper: get current stat value from characterSheet
+  const getStatVal = (path) => {
+    const [cat, key] = path.split('.');
+    if (!key) return 0;
+    if (cat==='forceStats') return cs.forceStats?.[key]||0;
+    if (cat==='stats') return cs.stats?.[key]||0;
+    if (cat==='forceAbilities') { const v=cs.forceAbilities?.[key]; return typeof v==='object'?(v.level||0):(v||0); }
+    if (cat==='lightsaberForms') { const v=cs.lightsaberForms?.[key]; return typeof v==='object'?(v.level||0):(v||0); }
+    return 0;
+  };
   const addXP = (weights, hours, intensity, difficulty) => {
-    const tierNum = statToTier(0).num; // simplified — use tier 1 for preview
-    const outcomeW = SIM_OUTCOME_WEIGHT[tierNum - 1] || 1.1;
     const strainPenalty = simGetStrainPenalty();
-    const baseXP = hours * (SIM_INTENSITY[intensity]||15) * (SIM_DIFFICULTY[difficulty]||1.0) * outcomeW * strainPenalty;
     (weights||[]).forEach(({p, w}) => {
+      // Use the primary stat's tier for outcome weight
+      const statVal = getStatVal(p);
+      const tierNum = Math.min(7, Math.max(1, statToTier(statVal).num));
+      const outcomeW = SIM_OUTCOME_WEIGHT[tierNum - 1] || 1.1;
+      const baseXP = hours * (SIM_INTENSITY[intensity]||15) * (SIM_DIFFICULTY[difficulty]||1.0) * outcomeW * strainPenalty;
       xpMap[p] = (xpMap[p]||0) + baseXP * w;
     });
   };
@@ -4814,8 +4826,42 @@ function simToggleTalent(key, isAbility) {
     if (idx >= 0) characterSheet.innateTalents.splice(idx, 1);
     else characterSheet.innateTalents.push(key);
   }
+
+  // Sync innateTalents to characterSheet.aptitudes so the traits section updates
+  // innateTalents drives the talent registry; aptitudes is what the character sheet displays
+  const allTalentKeys = characterSheet.innateTalents || [];
+  const allAbilityKeys = characterSheet.innateAbilities || [];
+  const talentLabels = allTalentKeys.map(k => {
+    const t = SIM_INNATE_TALENTS.find(t => t.key === k);
+    return t ? t.label : k;
+  });
+  const abilityLabels = allAbilityKeys.map(k => {
+    const a = SIM_INNATE_ABILITIES.find(a => a.key === k);
+    return a ? a.label : k;
+  });
+  // Preserve non-talent aptitudes (ones the AI added) and merge talent entries
+  const existingAptitudes = (characterSheet.aptitudes || []).filter(a =>
+    !SIM_INNATE_TALENTS.some(t => t.label === a) &&
+    !SIM_INNATE_ABILITIES.some(ab => ab.label === a)
+  );
+  characterSheet.aptitudes = [...existingAptitudes, ...talentLabels, ...abilityLabels];
+
+  // Apply passive effects from innate talents to the sheet
+  simApplyTalentEffects();
+
   autoSave();
   simBuildTalentGrid();
+  updateUI(); // refresh character sheet sidebar immediately
+}
+
+// Apply passive mechanical effects of active innate talents to characterSheet
+function simApplyTalentEffects() {
+  if (!characterSheet) return;
+  const talents = characterSheet.innateTalents || [];
+  // ForceReservoir: maxForceBarrier +20
+  if (talents.includes('ForceReservoir')) {
+    characterSheet.maxForceBarrier = Math.max(120, characterSheet.maxForceBarrier || 100);
+  }
 }
 
 // ── Story flags grid ──────────────────────────────────────────────
