@@ -782,62 +782,164 @@
     display: none;
   }
   .char-card.expanded .char-last-seen { display: block; }
+  /* ── SIMULATION PANEL ── */
   #sim-panel-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.82);
-    z-index: 300;
-    align-items: center;
-    justify-content: center;
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 300;
+    align-items: flex-start; justify-content: center; padding-top: 20px;
   }
   #sim-panel-overlay.show { display: flex; }
   #sim-panel {
-    background: var(--bg-panel);
-    border: 1px solid var(--border-bright);
-    width: min(680px, 95vw);
-    max-height: 88vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    background: var(--bg-panel); border: 1px solid var(--border-bright);
+    width: min(820px, 97vw); max-height: 92vh;
+    display: flex; flex-direction: column; overflow: hidden;
   }
   #sim-panel-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0; flex-shrink: 0;
+    background: linear-gradient(180deg, rgba(201,168,76,0.04) 0%, transparent 100%);
   }
-  #sim-panel-header h2 { font-family: 'Cinzel', serif; font-size: 14px; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; }
-  #sim-panel-body { flex: 1; overflow-y: auto; padding: 20px; }
-  .sim-section { margin-bottom: 20px; }
-  .sim-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; display: block; }
-  #sim-routine-input {
-    width: 100%; background: var(--bg-input); border: 1px solid var(--border-bright);
-    color: var(--text-bright); padding: 10px 12px; font-family: 'Crimson Text', serif;
-    font-size: 14px; resize: vertical; min-height: 140px; outline: none; line-height: 1.6;
+  #sim-panel-header h2 {
+    font-family: 'Cinzel', serif; font-size: 12px; color: var(--gold);
+    letter-spacing: 2px; text-transform: uppercase; margin-right: auto; padding-right: 12px;
   }
-  #sim-routine-input:focus { border-color: var(--gold); }
-  .sim-period-btns { display: flex; gap: 8px; }
+  /* Tab scrollbar in header */
+  #sim-tabs {
+    display: flex; gap: 4px; overflow-x: auto; flex: 1;
+    scrollbar-width: none; -ms-overflow-style: none; align-items: center;
+  }
+  #sim-tabs::-webkit-scrollbar { display: none; }
+  .sim-tab {
+    flex-shrink: 0; background: transparent; border: 1px solid transparent;
+    color: var(--text-dim); padding: 5px 12px; font-family: 'Cinzel', serif;
+    font-size: 10px; letter-spacing: 1px; cursor: pointer; text-transform: uppercase;
+    transition: all 0.2s; white-space: nowrap; border-radius: 2px;
+  }
+  .sim-tab:hover { border-color: var(--border-bright); color: var(--text-main); }
+  .sim-tab.active { background: rgba(201,168,76,0.1); border-color: var(--gold); color: var(--gold); }
+  #sim-panel-close { margin-left: 8px; flex-shrink: 0; }
+  #sim-panel-body { flex: 1; overflow-y: auto; }
+  /* Tab pages */
+  .sim-page { display: none; padding: 18px; }
+  .sim-page.active { display: block; }
+  .sim-section { margin-bottom: 18px; }
+  .sim-label {
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px;
+    color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; display: block;
+  }
+  /* Hours tracker */
+  #sim-hours-tracker {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    padding: 10px 14px; background: rgba(201,168,76,0.05); border: 1px solid var(--border);
+  }
+  #sim-hours-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  #sim-hours-bar { height: 100%; background: linear-gradient(90deg,#226622,var(--gold)); border-radius: 3px; transition: width 0.3s; }
+  #sim-hours-label { font-family: 'Cinzel', serif; font-size: 11px; color: var(--gold); white-space: nowrap; min-width: 52px; text-align: right; }
+  /* Training rows */
+  .sim-row {
+    display: grid; grid-template-columns: 1fr 90px 110px 28px;
+    gap: 6px; align-items: center; margin-bottom: 6px;
+  }
+  .sim-row-mandatory { grid-template-columns: 1fr 90px 110px; }
+  .sim-row select, .sim-row input[type=number] {
+    background: var(--bg-input); border: 1px solid var(--border-bright);
+    color: var(--text-bright); padding: 6px 8px; font-size: 12px;
+    font-family: 'Crimson Text', serif; width: 100%; outline: none;
+  }
+  .sim-row select:focus, .sim-row input:focus { border-color: var(--gold); }
+  .sim-row-label {
+    font-size: 11px; color: var(--gold-dim); font-family: 'Cinzel', serif;
+    letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;
+  }
+  .sim-row-label .lock-icon { font-size: 9px; opacity: 0.6; }
+  .sim-row-remove {
+    background: transparent; border: 1px solid #331111; color: #663333;
+    width: 26px; height: 26px; cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .sim-row-remove:hover { border-color: var(--red); color: var(--red); }
+  .sim-add-btn {
+    background: transparent; border: 1px dashed var(--border-bright);
+    color: var(--text-dim); padding: 6px 14px; font-size: 11px;
+    font-family: 'Cinzel', serif; letter-spacing: 1px; cursor: pointer;
+    text-transform: uppercase; transition: all 0.2s; width: 100%; margin-top: 4px;
+  }
+  .sim-add-btn:hover { border-color: var(--gold); color: var(--gold); }
+  /* Strain preview */
+  #sim-strain-preview { margin-top: 12px; padding: 10px 14px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); }
+  .sim-strain-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; }
+  .sim-strain-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .sim-strain-bar { height: 100%; border-radius: 2px; transition: width 0.4s; }
+  .sim-strain-label-left { color: var(--text-dim); font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1px; min-width: 70px; }
+  .sim-strain-label-right { color: var(--text-dim); font-size: 10px; min-width: 44px; text-align: right; }
+  .sim-strain-warn { color: #cc8833; font-size: 10px; font-style: italic; margin-top: 4px; }
+  /* Period and period buttons */
+  .sim-period-btns { display: flex; gap: 6px; flex-wrap: wrap; }
   .sim-period-btn {
-    flex: 1; background: transparent; border: 1px solid var(--border-bright);
-    color: var(--text-dim); padding: 8px; font-family: 'Cinzel', serif;
-    font-size: 11px; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; transition: all 0.2s;
+    background: transparent; border: 1px solid var(--border-bright);
+    color: var(--text-dim); padding: 6px 12px; font-family: 'Cinzel', serif;
+    font-size: 10px; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; transition: all 0.2s;
   }
   .sim-period-btn:hover { border-color: var(--gold); color: var(--gold); }
   .sim-period-btn.selected { background: rgba(201,168,76,0.1); border-color: var(--gold); color: var(--gold); }
+  /* Progress */
   #sim-progress { display: none; }
   #sim-progress.show { display: block; }
   .sim-progress-bar-wrap { height: 8px; background: var(--border); border-radius: 4px; margin: 10px 0; overflow: hidden; }
   #sim-progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
   #sim-status-text { font-size: 12px; color: var(--text-dim); font-style: italic; margin-bottom: 6px; }
-  #sim-chunk-log { max-height: 220px; overflow-y: auto; border: 1px solid var(--border); background: var(--bg-input); padding: 10px; font-size: 12px; color: var(--text-dim); line-height: 1.7; }
-  .sim-chunk-entry { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  #sim-chunk-log { max-height: 200px; overflow-y: auto; border: 1px solid var(--border); background: var(--bg-input); padding: 10px; font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+  .sim-chunk-entry { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
   .sim-chunk-entry:last-child { border-bottom: none; margin-bottom: 0; }
-  .sim-chunk-label { color: var(--gold); font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1px; margin-bottom: 3px; }
-  #sim-panel-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0; }
-  .sim-pause-note { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 8px; }
+  .sim-chunk-label { color: var(--gold); font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1px; margin-bottom: 2px; }
+  /* XP preview chips */
+  .sim-xp-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .sim-xp-chip {
+    background: rgba(40,60,40,0.4); border: 1px solid #2a3a2a;
+    padding: 3px 8px; font-size: 11px; color: #88cc88; font-family: 'Cinzel', serif;
+  }
+  /* Innate talents page */
+  .sim-talent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sim-talent-card {
+    background: var(--bg-input); border: 1px solid var(--border);
+    padding: 10px 12px; cursor: pointer; transition: all 0.2s; position: relative;
+  }
+  .sim-talent-card:hover { border-color: var(--border-bright); }
+  .sim-talent-card.active { border-color: var(--gold); background: rgba(201,168,76,0.06); }
+  .sim-talent-card.special { border-color: #334455; }
+  .sim-talent-card.special.active { border-color: #88aacc; background: rgba(100,150,200,0.08); }
+  .sim-talent-name { font-family: 'Cinzel', serif; font-size: 11px; color: var(--text-main); letter-spacing: 0.5px; margin-bottom: 3px; }
+  .sim-talent-effect { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+  .sim-talent-badge {
+    position: absolute; top: 6px; right: 8px;
+    font-size: 9px; font-family: 'Cinzel', serif; letter-spacing: 1px;
+    padding: 1px 5px; border-radius: 1px;
+  }
+  .sim-talent-badge.on { background: rgba(201,168,76,0.2); color: var(--gold); border: 1px solid var(--gold-dim); }
+  .sim-talent-badge.off { background: rgba(0,0,0,0.3); color: var(--text-dim); border: 1px solid var(--border); }
+  .sim-talent-badge.special-on { background: rgba(100,150,200,0.2); color: #88aacc; border: 1px solid #446688; }
+  /* Personal input */
+  #sim-personal-input {
+    width: 100%; background: var(--bg-input); border: 1px solid var(--border-bright);
+    color: var(--text-bright); padding: 10px 12px; font-family: 'Crimson Text', serif;
+    font-size: 13px; resize: vertical; min-height: 70px; outline: none; line-height: 1.6;
+  }
+  #sim-personal-input:focus { border-color: var(--gold); }
+  #sim-panel-footer {
+    padding: 12px 16px; border-top: 1px solid var(--border);
+    display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0;
+  }
+  .sim-pause-note { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 6px; }
+  /* Custom drills page */
+  .sim-drill-card {
+    background: var(--bg-input); border: 1px solid var(--border);
+    padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .sim-drill-card-info { flex: 1; }
+  .sim-drill-card-name { font-family: 'Cinzel', serif; font-size: 12px; color: var(--text-main); margin-bottom: 3px; }
+  .sim-drill-card-desc { font-size: 11px; color: var(--text-dim); }
+  .sim-drill-card-btns { display: flex; gap: 6px; flex-shrink: 0; }
 
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: var(--bg-deep); }
@@ -884,6 +986,7 @@
       <button class="hbtn" id="btn-simulate" onclick="openSimPanel()" style="display:none">Simulate</button>
       <button class="hbtn" id="btn-sync" onclick="manualStrainSync()" style="display:none" title="Manually update strain bars from current sheet">Sync</button>
       <button class="hbtn" id="btn-xpinject" onclick="openXPInject()" style="display:none" title="Manually inject XP into a stat">XP</button>
+      <button class="hbtn" id="btn-talents" onclick="openSimPanel();simShowTabByName('talents')" style="display:none" title="Manage innate talents and story flags">Talents</button>
       <button class="hbtn" id="btn-save" onclick="openSaveLoad('save')" style="display:none">Save</button>
       <button class="hbtn" id="btn-load" onclick="openSaveLoad('load')">Load</button>
       <button class="hbtn danger" id="btn-newgame" onclick="confirmNewGame()" style="display:none">New Game</button>
@@ -1052,59 +1155,201 @@
   </div>
 
   <!-- SIMULATION PANEL -->
+  <!-- ═══ SIMULATION PANEL ═══ -->
   <div id="sim-panel-overlay">
     <div id="sim-panel">
+
+      <!-- Header with title + scrolling tab bar + close -->
       <div id="sim-panel-header">
-        <h2>⏩ Time Simulation</h2>
-        <button class="modal-btn" onclick="closeSimPanel()" id="sim-close-btn">Close</button>
+        <h2>⏩ Simulate</h2>
+        <div id="sim-tabs">
+          <button class="sim-tab active" onclick="simShowTab('schedule',this)">Schedule</button>
+          <button class="sim-tab" onclick="simShowTab('period',this)">Period</button>
+          <button class="sim-tab" onclick="simShowTab('drills',this)">Drills</button>
+          <button class="sim-tab" onclick="simShowTab('talents',this)">Talents</button>
+          <button class="sim-tab" onclick="simShowTab('flags',this)">Flags</button>
+          <button class="sim-tab" onclick="simShowTab('progress',this)" id="sim-tab-progress" style="display:none">Progress</button>
+        </div>
+        <button class="modal-btn" onclick="closeSimPanel()" id="sim-panel-close" id="sim-close-btn">Close</button>
       </div>
+
       <div id="sim-panel-body">
 
-        <!-- Setup phase -->
-        <div id="sim-setup">
-          <div class="sim-section">
-            <span class="sim-label">Daily Routine</span>
-            <textarea id="sim-routine-input" placeholder="Describe your character's daily schedule in detail. The more specific you are, the more accurate the simulation. E.g.: Morning meditation, strength training, Force ability practice, study in the archives, training with a master, lightsaber practice, sparring at night..."></textarea>
-            <div class="sim-pause-note">💡 Tip: The simulation will automatically pause if something significant happens that needs your decision — a major galaxy event, an unexpected encounter, or a crisis.</div>
+        <!-- ── TAB: SCHEDULE ── -->
+        <div class="sim-page active" id="sim-page-schedule">
+
+          <!-- Hours tracker -->
+          <div id="sim-hours-tracker">
+            <span class="sim-label" style="margin:0;min-width:120px">Hours Used</span>
+            <div id="sim-hours-bar-wrap"><div id="sim-hours-bar" style="width:0%"></div></div>
+            <span id="sim-hours-label">0 / 24</span>
           </div>
 
+          <!-- Mandatory rows (populated by JS from lifeStage) -->
           <div class="sim-section">
-            <span class="sim-label">Simulation Period</span>
-            <div class="sim-period-btns">
-              <button class="sim-period-btn selected" onclick="selectPeriod('week', this)">1 Week</button>
-              <button class="sim-period-btn" onclick="selectPeriod('month', this)">1 Month</button>
-              <button class="sim-period-btn" onclick="selectPeriod('3month', this)">3 Months</button>
-              <button class="sim-period-btn" onclick="selectPeriod('6month', this)">6 Months</button>
-              <button class="sim-period-btn" onclick="selectPeriod('year', this)">1 Year</button>
+            <span class="sim-label">Mandatory Training</span>
+            <div id="sim-mandatory-rows"></div>
+          </div>
+
+          <!-- Training rows -->
+          <div class="sim-section">
+            <span class="sim-label">Training Blocks</span>
+            <div id="sim-training-rows"></div>
+            <button class="sim-add-btn" onclick="simAddTrainingRow()">+ Add Training Block</button>
+          </div>
+
+          <!-- Sleep -->
+          <div class="sim-section">
+            <span class="sim-label">Sleep</span>
+            <div class="sim-row sim-row-mandatory">
+              <div class="sim-row-label"><span class="lock-icon">🔒</span> Sleep (recovery)</div>
+              <input type="number" id="sim-sleep-hours" min="3" max="12" step="0.5" value="7"
+                style="text-align:center" onchange="simUpdateHoursTracker();simUpdateStrainPreview()">
+              <span style="font-size:11px;color:var(--text-dim);padding-left:4px">hours</span>
             </div>
           </div>
 
+          <!-- Personal input -->
           <div class="sim-section">
-            <span class="sim-label">Pause Conditions (optional)</span>
-            <textarea id="sim-pause-conditions" style="width:100%;background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:8px 12px;font-family:'Crimson Text',serif;font-size:13px;resize:vertical;min-height:60px;outline:none;line-height:1.5" placeholder="E.g.: Pause if a stat reaches 50, pause if a Jedi contacts me, pause if any major event affects my training..."></textarea>
+            <span class="sim-label">Personal Input <span style="color:var(--text-dim);font-size:9px;letter-spacing:1px">(AI interprets → JS applies XP)</span></span>
+            <textarea id="sim-personal-input" placeholder="Describe specific activities not in the dropdown above. E.g.: I practice the opening sequence of Makashi footwork focusing on the wrist mechanics. Or: I spend an hour in the archives reading about Force barrier techniques..."></textarea>
+          </div>
+
+          <!-- Strain preview -->
+          <div class="sim-section">
+            <span class="sim-label">Daily Strain Estimate</span>
+            <div id="sim-strain-preview">
+              <div class="sim-strain-row">
+                <span class="sim-strain-label-left">Force</span>
+                <div class="sim-strain-bar-wrap"><div class="sim-strain-bar" id="sp-force" style="width:0%;background:linear-gradient(90deg,#224488,#4488cc)"></div></div>
+                <span class="sim-strain-label-right" id="sp-force-val">0/100</span>
+              </div>
+              <div class="sim-strain-row">
+                <span class="sim-strain-label-left">Physical</span>
+                <div class="sim-strain-bar-wrap"><div class="sim-strain-bar" id="sp-phys" style="width:0%;background:linear-gradient(90deg,#664422,#cc8844)"></div></div>
+                <span class="sim-strain-label-right" id="sp-phys-val">0/100</span>
+              </div>
+              <div class="sim-strain-row">
+                <span class="sim-strain-label-left">Mental</span>
+                <div class="sim-strain-bar-wrap"><div class="sim-strain-bar" id="sp-ment" style="width:0%;background:linear-gradient(90deg,#442266,#884488)"></div></div>
+                <span class="sim-strain-label-right" id="sp-ment-val">0/100</span>
+              </div>
+              <div id="sp-warn" class="sim-strain-warn"></div>
+            </div>
+          </div>
+
+          <!-- XP preview -->
+          <div class="sim-section">
+            <span class="sim-label">Estimated XP / Day</span>
+            <div class="sim-xp-preview" id="sim-xp-preview"></div>
           </div>
         </div>
 
-        <!-- Progress phase -->
-        <div id="sim-progress">
-          <div id="sim-status-text">Preparing simulation...</div>
-          <div class="sim-progress-bar-wrap">
-            <div id="sim-progress-fill"></div>
+        <!-- ── TAB: PERIOD ── -->
+        <div class="sim-page" id="sim-page-period">
+          <div class="sim-section">
+            <span class="sim-label">Duration</span>
+            <div class="sim-period-btns">
+              <button class="sim-period-btn selected" onclick="selectPeriod('week',this)">1 Week</button>
+              <button class="sim-period-btn" onclick="selectPeriod('month',this)">1 Month</button>
+              <button class="sim-period-btn" onclick="selectPeriod('3month',this)">3 Months</button>
+              <button class="sim-period-btn" onclick="selectPeriod('6month',this)">6 Months</button>
+              <button class="sim-period-btn" onclick="selectPeriod('year',this)">1 Year</button>
+            </div>
           </div>
-          <div id="sim-progress-label" style="font-size:11px;color:var(--text-dim);margin-bottom:12px;font-family:'Cinzel',serif;letter-spacing:1px"></div>
-          <div id="sim-chunk-log"></div>
+          <div class="sim-section">
+            <span class="sim-label">Pause Conditions <span style="color:var(--text-dim);font-size:9px">(optional)</span></span>
+            <textarea id="sim-pause-conditions" style="width:100%;background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:8px 12px;font-family:'Crimson Text',serif;font-size:13px;resize:vertical;min-height:70px;outline:none;line-height:1.5" placeholder="Pause if a stat reaches 50, if a Jedi contacts me, if any major event affects training..."></textarea>
+          </div>
+          <div class="sim-section">
+            <span class="sim-label">Notes for AI Narrator</span>
+            <textarea id="sim-ai-notes" style="width:100%;background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:8px 12px;font-family:'Crimson Text',serif;font-size:13px;resize:vertical;min-height:70px;outline:none;line-height:1.5" placeholder="Story context for the AI to use when generating the narrative summary. E.g.: This training happens during the Republic transport journey to Coruscant. Master Lyra is available for guidance twice a week."></textarea>
+          </div>
         </div>
 
-      </div>
+        <!-- ── TAB: DRILLS ── -->
+        <div class="sim-page" id="sim-page-drills">
+          <div class="sim-section">
+            <span class="sim-label">Saved Custom Drills</span>
+            <div id="sim-drills-list">
+              <div style="color:var(--text-dim);font-size:12px;font-style:italic;padding:12px 0">No custom drills saved yet. Create one below.</div>
+            </div>
+          </div>
+          <div class="sim-section" style="border-top:1px solid var(--border);padding-top:16px">
+            <span class="sim-label">Create New Drill</span>
+            <div style="display:grid;gap:8px">
+              <input id="drill-name" placeholder="Drill name (e.g. Makashi Precision Footwork)" style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:7px 10px;font-size:13px;font-family:'Crimson Text',serif;outline:none;width:100%">
+              <textarea id="drill-desc" placeholder="Describe the drill in detail — skills used, movement patterns, focus areas..." style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:7px 10px;font-size:13px;font-family:'Crimson Text',serif;outline:none;width:100%;resize:vertical;min-height:60px;line-height:1.5"></textarea>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div>
+                  <span class="sim-label" style="margin-bottom:4px">Default Intensity</span>
+                  <select id="drill-intensity" style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:7px 8px;font-size:12px;font-family:inherit;width:100%">
+                    <option value="casual">Casual</option>
+                    <option value="standard" selected>Standard</option>
+                    <option value="intense">Intense</option>
+                    <option value="pushing">Pushing Limits</option>
+                    <option value="elite">Elite</option>
+                  </select>
+                </div>
+                <div>
+                  <span class="sim-label" style="margin-bottom:4px">Primary Stat</span>
+                  <select id="drill-primary" style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:7px 8px;font-size:12px;font-family:inherit;width:100%">
+                    <option value="">— select —</option>
+                  </select>
+                </div>
+              </div>
+              <button class="sim-add-btn" onclick="simSaveDrill()">Save Drill</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TAB: TALENTS ── -->
+        <div class="sim-page" id="sim-page-talents">
+          <div class="sim-section">
+            <span class="sim-label">Innate Talents <span style="color:var(--text-dim);font-size:9px;letter-spacing:0">(player override — AI cannot modify)</span></span>
+            <div class="sim-talent-grid" id="sim-talent-grid"></div>
+          </div>
+          <div class="sim-section" style="border-top:1px solid var(--border);padding-top:14px">
+            <span class="sim-label">Innate Abilities <span style="color:var(--text-dim);font-size:9px;letter-spacing:0">(born with — no XP track)</span></span>
+            <div class="sim-talent-grid" id="sim-ability-grid"></div>
+          </div>
+          <p style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:10px;line-height:1.6">
+            Tap to toggle. Changes take effect immediately and persist to save file. These are immune to AI modification — only you can change them.
+          </p>
+        </div>
+
+        <!-- ── TAB: FLAGS ── -->
+        <div class="sim-page" id="sim-page-flags">
+          <div class="sim-section">
+            <span class="sim-label">Story Flags <span style="color:var(--text-dim);font-size:9px">(gate era/faction-locked abilities)</span></span>
+            <div id="sim-flags-grid" style="display:grid;gap:6px"></div>
+          </div>
+          <p style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:10px;line-height:1.6">
+            Flags are normally set by the AI when story events occur. Override here if needed.
+          </p>
+        </div>
+
+        <!-- ── TAB: PROGRESS ── -->
+        <div class="sim-page" id="sim-page-progress">
+          <div id="sim-progress">
+            <div id="sim-status-text">Preparing simulation...</div>
+            <div class="sim-progress-bar-wrap"><div id="sim-progress-fill"></div></div>
+            <div id="sim-progress-label" style="font-size:11px;color:var(--text-dim);margin-bottom:10px;font-family:'Cinzel',serif;letter-spacing:1px"></div>
+            <div id="sim-chunk-log"></div>
+          </div>
+        </div>
+
+      </div><!-- /sim-panel-body -->
+
       <div id="sim-panel-footer">
         <button class="modal-btn" id="sim-pause-btn" onclick="pauseSimulation()" style="display:none">⏸ Pause</button>
         <button class="modal-btn" id="sim-resume-btn" onclick="resumeSimulation()" style="display:none">▶ Resume</button>
-        <button class="modal-btn danger" id="sim-abort-btn" onclick="abortSimulation()" style="display:none" style="border-color:#661111;color:#994444">✕ Abort</button>
-        <button class="modal-btn primary" id="sim-start-btn" onclick="startSimulation()">Run Simulation</button>
+        <button class="modal-btn danger" id="sim-abort-btn" onclick="abortSimulation()" style="display:none">✕ Abort</button>
+        <button class="modal-btn primary" id="sim-start-btn" onclick="startSimulation()">▶ Run Simulation</button>
         <button class="modal-btn" id="sim-done-btn" onclick="closeSimPanel()" style="display:none">Done</button>
       </div>
     </div>
-  </div>
+  </div><!-- /sim-panel-overlay -->
 
 </div>
 
@@ -1167,7 +1412,7 @@ COMBAT_ROUND: [rounds_this_turn], [intensity]
   → Output EVERY exchange turn (e.g. COMBAT_ROUND: 1, standard)
 COMBAT_END: [primarySkillPath], [secondarySkillPath|none], [opponentTier 1-7], [engagement], [outcome]
   → Output ONLY when combat ends — applies all accumulated strain and XP
-  → Opponent tier: 1=Untrained(0-20), 2=Apprentice(21-40), 3=Adept(41-60), 4=Master(61-80), 5=HighMaster(81-100), 6=Legendary(101-120), 7=Transcendent(121+)
+  → Opponent tier: 1=Untrained(0-20), 2=Apprentice(21-40), 3=Adept(41-60), 4=Master(61-80), 5=HighMaster(81-100), 6=Legendary(101-150), 7=Transcendent(151+)
   → e.g. COMBAT_END: lightsaberForms.Djem So, forceAbilities.Telekinesis, 2, aggressive, win
   → Training bot at Djem So 30 = Tier 2 opponent → COMBAT_END: lightsaberForms.Djem So, none, 2, aggressive, win
 
@@ -1262,8 +1507,8 @@ TIER THRESHOLDS (same for all stats):
 - Tier 3 Adept:        stat 41–60
 - Tier 4 Master:       stat 61–80
 - Tier 5 High Master:  stat 81–100
-- Tier 6 Legendary:    stat 101–120
-- Tier 7 Transcendent: stat 121–150
+- Tier 6 Legendary:    stat 101–150
+- Tier 7 Transcendent: stat 151+
 
 LIGHTSABER DUELS — TIER AND BONUS CALCULATION
 
@@ -1640,11 +1885,22 @@ MENTAL STRAIN (mentalStrain / maxMentalStrain: 100):
 - Penalty thresholds: 0-20=none | 21-50=-1 to rolls | 51-80=-2 to rolls | 81+=-3 to rolls + breakdown risk
 - Recovery: calm + sleep restores 15-25 per rest period
 
-ENDURANCE AND STRAIN MITIGATION:
+ENDURANCE AND STRAIN MITIGATION (applies to ALL strain — combat AND out-of-combat):
 endurance_mitigation = compressedBonus(endurance) / 10
-Higher endurance reduces physical and force strain accumulation in combat.
-At END 48: mitigation ≈ 0.22 (22% less strain per round)
-At END 80: mitigation ≈ 0.30 (30% less strain per round)
+Physical strain delta  × (1 - em)       — endurance fully mitigates physical exertion
+Force strain delta     × (1 - em × 0.5) — endurance partially mitigates Force drain
+Mental strain delta    × (1 - em × 0.3) — endurance slightly mitigates mental fatigue
+
+This mitigation is applied by the JavaScript engine automatically whenever you set
+FORCE_STRAIN=, PHYSICAL_STRAIN=, MENTAL_STRAIN= in the CHANGES block.
+You should still output realistic raw strain values — the engine handles mitigation.
+Do NOT pre-apply endurance mitigation yourself; the code does it.
+
+At END 30: em=1.5 → Physical -15%, Force -7.5%, Mental -4.5%
+At END 60: em=2.5 → Physical -25%, Force -12.5%, Mental -7.5%
+At END 80: em=3.0 → Physical -30%, Force -15%, Mental -9%
+At END 100: em=3.25 → Physical -32.5%, Force -16.25%, Mental -9.75%
+A character with END 100 and Force-rejuvenation abilities could sustain combat for extremely long periods.
 
 ## XP-BASED ABILITY PROGRESSION — STRICT RULES
 ABSOLUTE RULE: You NEVER directly set a stat to a higher value. You NEVER write "Djem So increased to 4". You NEVER write "+15 XP" in narrative prose. Stats are controlled ENTIRELY by JavaScript reading TRAINING: and COMBAT: lines from the CHANGES block.
@@ -1869,15 +2125,7 @@ let galaxySimState = {};       // persistent galaxy simulation state between tur
 let lastGalaxyEventDate = '';  // in-game date of last galaxy event, to throttle frequency
 
 // Simulation engine state
-let simActive = false;
-let simPaused = false;
-let simAborted = false;
-let simRoutine = '';
-let simPeriodType = 'month'; // 'week' | 'month' | 'year'
-let simChunksTotal = 0;
-let simChunksDone = 0;
-let simResults = [];          // accumulated chunk summaries
-let simPauseCallback = null;  // called when pause is hit
+// (sim state vars declared in simulation engine below)
 
 const SAVE_SLOTS = 5;
 const RECENT_TURNS = 6;        // how many raw turns to send each request
@@ -2055,6 +2303,7 @@ function showGame() {
   document.getElementById('btn-simulate').style.display = '';
   document.getElementById('btn-sync').style.display = '';
   document.getElementById('btn-xpinject').style.display = '';
+  document.getElementById('btn-talents').style.display = '';
   document.getElementById('btn-save').style.display = '';
   document.getElementById('btn-newgame').style.display = '';
 }
@@ -2488,9 +2737,34 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (isNaN(val)) continue;
         switch(key) {
           case 'HP':                characterSheet.hp = val; break;
-          case 'FORCE_STRAIN':      characterSheet.forceStrain = Math.max(0,Math.min(characterSheet.maxForceStrain||100,val)); break;
-          case 'PHYSICAL_STRAIN':   characterSheet.physicalStrain = Math.max(0,Math.min(characterSheet.maxPhysicalStrain||100,val)); break;
-          case 'MENTAL_STRAIN':     characterSheet.mentalStrain = Math.max(0,Math.min(characterSheet.maxMentalStrain||100,val)); break;
+          case 'FORCE_STRAIN': {
+            // Apply endurance mitigation to the strain DELTA (not absolute)
+            // Force strain: endurance mitigates at 50% rate (Force is more mental than physical)
+            const _em = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+            const _curF = characterSheet.forceStrain || 0;
+            const _rawDeltaF = val - _curF;
+            const _mitigatedDeltaF = _rawDeltaF > 0 ? _rawDeltaF * (1 - _em * 0.5) : _rawDeltaF;
+            characterSheet.forceStrain = Math.max(0, Math.min(characterSheet.maxForceStrain||100, _curF + _mitigatedDeltaF));
+            break;
+          }
+          case 'PHYSICAL_STRAIN': {
+            // Physical strain: endurance mitigates at full rate
+            const _em2 = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+            const _curP = characterSheet.physicalStrain || 0;
+            const _rawDeltaP = val - _curP;
+            const _mitigatedDeltaP = _rawDeltaP > 0 ? _rawDeltaP * (1 - _em2) : _rawDeltaP;
+            characterSheet.physicalStrain = Math.max(0, Math.min(characterSheet.maxPhysicalStrain||100, _curP + _mitigatedDeltaP));
+            break;
+          }
+          case 'MENTAL_STRAIN': {
+            // Mental strain: endurance mitigates at 30% rate (it's mostly willpower/focus)
+            const _em3 = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+            const _curM = characterSheet.mentalStrain || 0;
+            const _rawDeltaM = val - _curM;
+            const _mitigatedDeltaM = _rawDeltaM > 0 ? _rawDeltaM * (1 - _em3 * 0.3) : _rawDeltaM;
+            characterSheet.mentalStrain = Math.max(0, Math.min(characterSheet.maxMentalStrain||100, _curM + _mitigatedDeltaM));
+            break;
+          }
           case 'FORCE_BARRIER':     characterSheet.forceBarrier = val; break;
           case 'ALIGNMENT':         characterSheet.alignment = val; break;
           case 'FORCE_SENSE':       if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceSense = val; break;
@@ -2669,9 +2943,27 @@ async function callGemini(playerMessage, retryCount = 0) {
         const forceAbilities = extractMdJson('forceAbilities');
         const stats = extractMdJson('stats');
 
-        if (forceStrain !== null) characterSheet.forceStrain = parseInt(forceStrain) || 0;
-        if (physicalStrain !== null) characterSheet.physicalStrain = parseInt(physicalStrain) || 0;
-        if (mentalStrain !== null) characterSheet.mentalStrain = parseInt(mentalStrain) || 0;
+        if (forceStrain !== null) {
+          const _em_md = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+          const _newF = parseInt(forceStrain) || 0;
+          const _dF = _newF - (characterSheet.forceStrain || 0);
+          characterSheet.forceStrain = Math.max(0, Math.min(characterSheet.maxForceStrain||100,
+            (characterSheet.forceStrain||0) + (_dF > 0 ? _dF * (1 - _em_md * 0.5) : _dF)));
+        }
+        if (physicalStrain !== null) {
+          const _em_md2 = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+          const _newP = parseInt(physicalStrain) || 0;
+          const _dP = _newP - (characterSheet.physicalStrain || 0);
+          characterSheet.physicalStrain = Math.max(0, Math.min(characterSheet.maxPhysicalStrain||100,
+            (characterSheet.physicalStrain||0) + (_dP > 0 ? _dP * (1 - _em_md2) : _dP)));
+        }
+        if (mentalStrain !== null) {
+          const _em_md3 = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+          const _newM = parseInt(mentalStrain) || 0;
+          const _dM = _newM - (characterSheet.mentalStrain || 0);
+          characterSheet.mentalStrain = Math.max(0, Math.min(characterSheet.maxMentalStrain||100,
+            (characterSheet.mentalStrain||0) + (_dM > 0 ? _dM * (1 - _em_md3 * 0.3) : _dM)));
+        }
         if (hp !== null) characterSheet.hp = parseInt(hp) || characterSheet.hp;
         if (alignment !== null) characterSheet.alignment = parseInt(alignment) || characterSheet.alignment;
         if (forceStats) characterSheet.forceStats = forceStats;
@@ -3174,7 +3466,7 @@ function statToTier(stat) {
   if (s <= 60)  return { num: 3, name: 'Adept' };
   if (s <= 80)  return { num: 4, name: 'Master' };
   if (s <= 100) return { num: 5, name: 'High Master' };
-  if (s <= 120) return { num: 6, name: 'Legendary' };
+  if (s <= 150) return { num: 6, name: 'Legendary' };
   return { num: 7, name: 'Transcendent' };
 }
 
@@ -3995,29 +4287,515 @@ function clearAllSaves() {
 //  SIMULATION ENGINE
 // ═══════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════
+//  SIMULATION SYSTEM v2 — JS-driven, activity registry, full drain model
+// ═══════════════════════════════════════════════════════════════════
+
+// ── Activity Registry ────────────────────────────────────────────
+// Every entry: { label, weights:[{path,weight}], strainBias:{f,p,m},
+//               defaultIntensity, unlockCondition, mandatory, lifeStage }
+const SIM_ACTIVITIES = [
+  // LIGHTSABER FORMS — unlocked when stat key exists in masterXP
+  { key:'shiicho_basic',    label:'Shii-Cho Basics',          weights:[{p:'lightsaberForms.ShiiCho',w:1.0},{p:'stats.strength',w:0.4},{p:'stats.agility',w:0.3},{p:'stats.endurance',w:0.2},{p:'forceStats.forceControl',w:0.15}], strainBias:{f:0.5,p:1.5,m:0.4}, defaultIntensity:'standard', unlock:cs=>true },
+  { key:'shiicho_advanced', label:'Shii-Cho Advanced',        weights:[{p:'lightsaberForms.ShiiCho',w:1.0},{p:'stats.strength',w:0.5},{p:'stats.agility',w:0.4},{p:'stats.endurance',w:0.3},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:0.6,p:1.8,m:0.5}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.ShiiCho||0)>=21 },
+  { key:'makashi_basic',    label:'Makashi Basics',            weights:[{p:'lightsaberForms.Makashi',w:1.0},{p:'stats.agility',w:0.6},{p:'stats.willpower',w:0.3},{p:'forceStats.forceControl',w:0.3},{p:'stats.strength',w:0.1}], strainBias:{f:0.8,p:1.0,m:0.9}, defaultIntensity:'standard', unlock:cs=>'Makashi' in (cs.lightsaberForms||{}) },
+  { key:'makashi_footwork', label:'Makashi Precision Footwork',weights:[{p:'lightsaberForms.Makashi',w:1.0},{p:'stats.agility',w:0.7},{p:'stats.willpower',w:0.4},{p:'forceStats.forceControl',w:0.3}], strainBias:{f:0.7,p:1.2,m:1.2}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.Makashi||0)>=21 },
+  { key:'soresu_basic',     label:'Soresu Basics',             weights:[{p:'lightsaberForms.Soresu',w:1.0},{p:'stats.endurance',w:0.6},{p:'stats.willpower',w:0.4},{p:'forceStats.forceSense',w:0.3},{p:'forceStats.forceControl',w:0.25}], strainBias:{f:0.9,p:1.2,m:1.0}, defaultIntensity:'standard', unlock:cs=>'Soresu' in (cs.lightsaberForms||{}) },
+  { key:'soresu_deflect',   label:'Soresu Deflection Drills', weights:[{p:'lightsaberForms.Soresu',w:1.0},{p:'stats.endurance',w:0.5},{p:'forceStats.forceSense',w:0.5},{p:'stats.agility',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:1.2,p:1.3,m:0.9}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.Soresu||0)>=10 },
+  { key:'ataru_basic',      label:'Ataru Basics',              weights:[{p:'lightsaberForms.Ataru',w:1.0},{p:'stats.agility',w:0.7},{p:'stats.strength',w:0.3},{p:'forceStats.forceControl',w:0.3},{p:'stats.endurance',w:0.4}], strainBias:{f:0.8,p:2.0,m:0.5}, defaultIntensity:'intense', unlock:cs=>'Ataru' in (cs.lightsaberForms||{}) },
+  { key:'ataru_acrobatics', label:'Ataru Acrobatics',          weights:[{p:'lightsaberForms.Ataru',w:1.0},{p:'stats.agility',w:0.8},{p:'stats.endurance',w:0.5},{p:'forceStats.forceControl',w:0.3},{p:'stats.strength',w:0.25}], strainBias:{f:0.7,p:2.5,m:0.4}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.Ataru||0)>=21 },
+  { key:'sparring_live',    label:'Live Sparring',             weights:[{p:'stats.agility',w:0.5},{p:'stats.endurance',w:0.5},{p:'stats.strength',w:0.4},{p:'forceStats.forceSense',w:0.3}], strainBias:{f:1.0,p:1.8,m:0.8}, defaultIntensity:'intense', unlock:cs=>true },
+  // FORCE ABILITIES
+  { key:'telekinesis_basic',   label:'Telekinesis Practice',  weights:[{p:'forceAbilities.Telekinesis',w:1.0},{p:'forceStats.forceControl',w:0.6},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:1.8,p:0.2,m:1.0}, defaultIntensity:'standard', unlock:cs=>true },
+  { key:'force_sense_passive', label:'Force Sense Meditation', weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.meditation',w:0.5},{p:'stats.willpower',w:0.3},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.2,p:0.1,m:1.5}, defaultIntensity:'casual',   unlock:cs=>true },
+  { key:'force_sense_active',  label:'Force Sense (Active)',  weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.forceControl',w:0.5},{p:'stats.willpower',w:0.4},{p:'forceStats.forceKnowledge',w:0.2}], strainBias:{f:1.6,p:0.1,m:1.8}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.forceSense||0)>=10 },
+  { key:'meditation_basic',    label:'Meditation (Centering)',weights:[{p:'forceStats.meditation',w:1.0},{p:'stats.willpower',w:0.4},{p:'forceStats.forceSense',w:0.2},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.0,p:0.05,m:1.2}, defaultIntensity:'casual',   unlock:cs=>true },
+  { key:'meditation_deep',     label:'Deep Force Immersion',  weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceControl',w:0.4},{p:'forceStats.forceKnowledge',w:0.3},{p:'stats.willpower',w:0.5}], strainBias:{f:1.5,p:0.0,m:1.5}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.meditation||0)>=15 },
+  { key:'force_knowledge',     label:'Force Knowledge Study', weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'stats.willpower',w:0.3}], strainBias:{f:0.3,p:0.0,m:1.8}, defaultIntensity:'casual',   unlock:cs=>true },
+  { key:'force_control_drills',label:'Force Control Drills',  weights:[{p:'forceStats.forceControl',w:1.0},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.4}], strainBias:{f:1.8,p:0.2,m:1.2}, defaultIntensity:'standard', unlock:cs=>true },
+  // PHYSICAL
+  { key:'cardio',              label:'Cardio / Endurance',    weights:[{p:'stats.endurance',w:1.0},{p:'stats.strength',w:0.2},{p:'stats.agility',w:0.2}], strainBias:{f:0.1,p:2.0,m:0.3}, defaultIntensity:'standard', unlock:cs=>true },
+  { key:'strength_train',      label:'Strength Training',     weights:[{p:'stats.strength',w:1.0},{p:'stats.endurance',w:0.4}], strainBias:{f:0.1,p:2.2,m:0.2}, defaultIntensity:'standard', unlock:cs=>true },
+  { key:'agility_flex',        label:'Agility & Flexibility', weights:[{p:'stats.agility',w:1.0},{p:'stats.endurance',w:0.3},{p:'stats.strength',w:0.2}], strainBias:{f:0.2,p:1.6,m:0.3}, defaultIntensity:'standard', unlock:cs=>true },
+  { key:'force_athletics',     label:'Force-Enhanced Athletics',weights:[{p:'stats.agility',w:1.0},{p:'forceStats.forceControl',w:0.5},{p:'stats.endurance',w:0.3}], strainBias:{f:1.2,p:1.5,m:0.4}, defaultIntensity:'intense', unlock:cs=>Object.keys(cs.forceAbilities||{}).length>0||(cs.forceStats?.forceControl||0)>=21 },
+  // MANDATORY — handled separately via lifeStage
+];
+
+// Intensity multipliers (from calcTrainingXP)
+const SIM_INTENSITY = { casual:10, standard:15, intense:20, pushing:25, elite:30 };
+// Difficulty (tier-gap aware, computed per row)
+const SIM_DIFFICULTY = { easy:0.7, standard:1.0, ceiling:1.2, wall:1.5 };
+// Outcome weights by tier (from simulation rules doc, 50k roll averages)
+const SIM_OUTCOME_WEIGHT = [1.105,1.194,1.195,1.230,1.228,1.263,1.263]; // tier 1-7
+// Strain per hour at standard intensity by strain type
+const SIM_STRAIN_BASE = { f:2.4, p:3.2, m:1.6 }; // standard
+const SIM_INTENSITY_STRAIN_MULT = { casual:0.5, standard:1.0, intense:1.75, pushing:2.5, elite:3.3 };
+
+// Mandatory training by life stage
+const SIM_MANDATORY = {
+  youngling: [
+    { label:'Morning Forms Drills', defaultHours:1.5, min:0.5, max:2.0, weights:[{p:'lightsaberForms.ShiiCho',w:1.0},{p:'stats.agility',w:0.3},{p:'stats.strength',w:0.2},{p:'stats.endurance',w:0.2}], strainBias:{f:0.5,p:1.3,m:0.4}, intensity:'standard' },
+    { label:'Group Meditation',     defaultHours:1.0, min:0.5, max:1.5, weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceSense',w:0.4},{p:'stats.willpower',w:0.3}], strainBias:{f:1.2,p:0.0,m:1.0}, intensity:'casual' },
+    { label:'Force Fundamentals',   defaultHours:1.0, min:0.5, max:1.5, weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'forceStats.forceControl',w:0.3},{p:'forceStats.forceSense',w:0.2}], strainBias:{f:0.5,p:0.0,m:1.6}, intensity:'casual' },
+  ],
+  padawan: [
+    { label:'Training with Master', defaultHours:2.0, min:1.0, max:3.0, weights:[{p:'forceStats.forceControl',w:0.6},{p:'forceStats.forceSense',w:0.4},{p:'stats.willpower',w:0.3}], strainBias:{f:1.0,p:1.4,m:0.7}, intensity:'standard' },
+  ],
+  knight_with_padawan: [
+    { label:'Padawan Instruction',  defaultHours:1.5, min:0.5, max:2.5, weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'stats.willpower',w:0.3},{p:'stats.charisma',w:0.3}], strainBias:{f:0.4,p:0.1,m:1.5}, intensity:'casual' },
+  ],
+  master_with_padawan: [
+    { label:'Padawan Instruction',  defaultHours:1.5, min:0.5, max:2.5, weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'stats.willpower',w:0.3},{p:'stats.charisma',w:0.3}], strainBias:{f:0.4,p:0.1,m:1.5}, intensity:'casual' },
+  ],
+};
+
+// Innate talent registry
+const SIM_INNATE_TALENTS = [
+  { key:'NaturalTelekineticBurst', label:'Natural Telekinetic Burst', effect:'Telekinesis family Force Strain ×0.8', special:false },
+  { key:'IronMind',                label:'Iron Mind',                 effect:'Mental Strain accumulates ×0.8', special:false },
+  { key:'UnbreakableSpirit',       label:'Unbreakable Spirit',        effect:'At 90+ strain, XP penalty ×0.3 not ×0.1', special:false },
+  { key:'BladeIntuition',          label:'Blade Intuition',           effect:'First saber form starts +5 levels', special:false },
+  { key:'ForceReservoir',          label:'Force Reservoir',           effect:'maxForceBarrier +20', special:false },
+  { key:'CombatIntuition',         label:'Combat Intuition',          effect:'+1 to combat rolls when outnumbered', special:false },
+  { key:'ForceSensitiveHealer',    label:'Force-Sensitive Healer',    effect:'Healing ability XP gain ×1.3', special:false },
+  { key:'QuickStudy',              label:'Quick Study',               effect:'ForceKnowledge XP gains ×1.2', special:false },
+  { key:'DarkAffinity',            label:'Dark Affinity',             effect:'Dark Side ability Strain ×0.85; alignment drift accelerates', special:false },
+  { key:'LivingForceConnection',   label:'Living Force Connection',   effect:'Environmental Sense always active; Animal Bond strain-free', special:false },
+  { key:'PrecognitiveEdge',        label:'Precognitive Edge',         effect:'Precognitive Reflexes prerequisite one tier lower', special:false },
+  { key:'ShatterSense',            label:'Shatterpoint (Innate)',     effect:'Shatterpoint XP cost ×0.1, strain ×0.3, uncapped track, passive perception', special:true },
+  { key:'BattleMeditationAffinity',label:'Battle Meditation (Innate)',effect:'Battle Meditation XP ×0.3, Strain ×0.6', special:true },
+];
+
+// Innate abilities (not XP-tracked, born-with)
+const SIM_INNATE_ABILITIES = [
+  { key:'TelekineticBurstPassive', label:'Telekinetic Burst (Passive)', desc:'Involuntary Force burst under extreme emotional stress. Not a trained ability.' },
+];
+
+// Story flags
+const SIM_FLAGS = [
+  { key:'maceLiving',         label:'Mace Windu Alive',          desc:'Gates Vaapad (also requires maceTrustEstablished)' },
+  { key:'maceTrustEstablished',label:'Mace Windu Will Teach',    desc:'Mace has agreed to teach Vaapad' },
+  { key:'aingTiiContact',     label:'Aing-Tii Contact Made',     desc:'Peaceful contact with Aing-Tii monks' },
+  { key:'aingTiiApproved',    label:'Aing-Tii Approved Teaching',desc:'Aing-Tii agreed to teach Flow-walking & Fighting-Sight' },
+  { key:'fallanassiContact',  label:'Fallanassi Contact Made',   desc:'Contact with the Fallanassi (Phase, Fold Space)' },
+  { key:'jediArchiveAccess',  label:'Jedi Archive Access',       desc:'Access to Jedi Temple Archives for advanced theory' },
+  { key:'sithTextAccess',     label:'Sith Text Access',          desc:'Access to Sith holocron or scroll' },
+  { key:'jediCouncilPermission',label:'Council Permission',      desc:'Council has granted permission (Juyo, Vaapad)' },
+];
+
+// ── Simulation state ──────────────────────────────────────────────
+let simActive = false, simPaused = false, simAborted = false;
+let simPauseCallback = null;
+let simPeriodType = 'week';
+let simRoutine = '';
+let simPauseConditions = '';
+let simChunksTotal = 1, simChunksDone = 0;
+let simResults = [];
+let simCustomDrills = []; // loaded from localStorage
+let simTrainingRows = []; // {activityKey, hours, intensity, difficulty}
+
+// ── Tab navigation ────────────────────────────────────────────────
+function simShowTab(name, btn) {
+  document.querySelectorAll('.sim-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sim-tab').forEach(t => t.classList.remove('active'));
+  const page = document.getElementById('sim-page-' + name);
+  if (page) page.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+function simShowTabByName(name) {
+  const tabs = document.querySelectorAll('.sim-tab');
+  tabs.forEach(t => { if (t.getAttribute('onclick')?.includes("'"+name+"'")) { simShowTab(name, t); } });
+}
+
 function openSimPanel() {
   if (simActive && !simPaused) {
-    // Show running sim panel
     document.getElementById('sim-panel-overlay').classList.add('show');
     return;
   }
-  // Reset to setup view
-  document.getElementById('sim-setup').style.display = 'block';
-  document.getElementById('sim-progress').classList.remove('show');
+  simBuildMandatoryRows();
+  simBuildTalentGrid();
+  simBuildFlagsGrid();
+  simLoadDrills();
+  simBuildPrimaryDropdown();
+  if (!simTrainingRows.length) simAddTrainingRow();
+  simUpdateHoursTracker();
+  simUpdateStrainPreview();
+  simUpdateXPPreview();
+  document.getElementById('sim-panel-overlay').classList.add('show');
   document.getElementById('sim-start-btn').style.display = '';
   document.getElementById('sim-pause-btn').style.display = 'none';
   document.getElementById('sim-resume-btn').style.display = 'none';
   document.getElementById('sim-abort-btn').style.display = 'none';
   document.getElementById('sim-done-btn').style.display = 'none';
-  document.getElementById('sim-close-btn').style.display = '';
-  document.getElementById('sim-panel-overlay').classList.add('show');
 }
 
 function closeSimPanel() {
-  if (simActive && !simPaused) return; // don't close while running
+  if (simActive && !simPaused) return;
   document.getElementById('sim-panel-overlay').classList.remove('show');
 }
 
+// ── Build mandatory rows from life stage ──────────────────────────
+function simBuildMandatoryRows() {
+  const container = document.getElementById('sim-mandatory-rows');
+  if (!container) return;
+  const stage = characterSheet?.lifeStage || 'youngling';
+  const mandatories = SIM_MANDATORY[stage] || [];
+  if (!mandatories.length) {
+    container.innerHTML = '<div style="color:var(--text-dim);font-size:11px;font-style:italic">No mandatory training for current life stage.</div>';
+    return;
+  }
+  container.innerHTML = mandatories.map((m, i) => `
+    <div class="sim-row sim-row-mandatory" style="margin-bottom:6px">
+      <div class="sim-row-label"><span class="lock-icon">🔒</span> ${m.label}</div>
+      <input type="number" id="sim-mand-hours-${i}" min="${m.min}" max="${m.max}" step="0.5"
+        value="${m.defaultHours}" style="text-align:center"
+        onchange="simUpdateHoursTracker();simUpdateStrainPreview();simUpdateXPPreview()">
+      <span style="font-size:11px;color:var(--text-dim);padding-left:4px">hrs · ${m.intensity}</span>
+    </div>`).join('');
+}
+
+// ── Training rows (dynamic) ───────────────────────────────────────
+function simBuildActivityOptions(cs) {
+  const available = SIM_ACTIVITIES.filter(a => a.unlock(cs));
+  const customs = simCustomDrills.map(d => ({ key:'custom_'+d.id, label:'✦ '+d.name, _custom:d, unlock:()=>true }));
+  return [...available, ...customs];
+}
+
+function simAddTrainingRow() {
+  const cs = characterSheet || {};
+  const available = simBuildActivityOptions(cs);
+  const rowId = 'simrow_' + Date.now();
+  simTrainingRows.push({ id: rowId, activityKey:'', hours:1.0, intensity:'standard', difficulty:'standard' });
+
+  const container = document.getElementById('sim-training-rows');
+  const div = document.createElement('div');
+  div.className = 'sim-row';
+  div.id = rowId;
+
+  const actOpts = available.map(a => `<option value="${a.key}">${a.label}</option>`).join('');
+  div.innerHTML = `
+    <select onchange="simRowChange('${rowId}','activity',this.value);simUpdateHoursTracker();simUpdateStrainPreview();simUpdateXPPreview()">
+      <option value="">— select activity —</option>
+      ${actOpts}
+    </select>
+    <input type="number" min="0.5" max="24" step="0.5" value="1.0" style="text-align:center"
+      onchange="simRowChange('${rowId}','hours',parseFloat(this.value));simUpdateHoursTracker();simUpdateStrainPreview();simUpdateXPPreview()">
+    <select onchange="simRowChange('${rowId}','intensity',this.value);simUpdateStrainPreview();simUpdateXPPreview()">
+      <option value="casual">Casual</option>
+      <option value="standard" selected>Standard</option>
+      <option value="intense">Intense</option>
+      <option value="pushing">Pushing</option>
+      <option value="elite">Elite</option>
+    </select>
+    <button class="sim-row-remove" onclick="simRemoveRow('${rowId}')">✕</button>`;
+  container.appendChild(div);
+}
+
+function simRowChange(id, field, value) {
+  const row = simTrainingRows.find(r => r.id === id);
+  if (row) row[field] = value;
+}
+
+function simRemoveRow(id) {
+  simTrainingRows = simTrainingRows.filter(r => r.id !== id);
+  const el = document.getElementById(id);
+  if (el) el.remove();
+  simUpdateHoursTracker();
+  simUpdateStrainPreview();
+  simUpdateXPPreview();
+}
+
+// ── Hours tracker ─────────────────────────────────────────────────
+function simGetTotalHours() {
+  const cs = characterSheet || {};
+  const stage = cs.lifeStage || 'youngling';
+  const mandatories = SIM_MANDATORY[stage] || [];
+  let total = 0;
+  mandatories.forEach((_, i) => {
+    const el = document.getElementById('sim-mand-hours-' + i);
+    if (el) total += parseFloat(el.value) || 0;
+  });
+  simTrainingRows.forEach(r => { total += r.hours || 0; });
+  const sleep = parseFloat(document.getElementById('sim-sleep-hours')?.value) || 7;
+  total += sleep;
+  total += 1.5; // meals/hygiene
+  return total;
+}
+
+function simUpdateHoursTracker() {
+  const total = simGetTotalHours();
+  const pct = Math.min(100, (total / 24) * 100);
+  const bar = document.getElementById('sim-hours-bar');
+  const label = document.getElementById('sim-hours-label');
+  if (bar) {
+    bar.style.width = pct + '%';
+    bar.style.background = total > 24 ? 'linear-gradient(90deg,#883322,#cc4433)'
+      : total > 20 ? 'linear-gradient(90deg,#886622,var(--gold))'
+      : 'linear-gradient(90deg,#226622,#44aa66)';
+  }
+  if (label) label.textContent = total.toFixed(1) + ' / 24';
+}
+
+// ── Strain preview ────────────────────────────────────────────────
+function simCalcDailyStrain() {
+  const cs = characterSheet || {};
+  const em = compressedBonus(cs.stats?.endurance || 0) / 10;
+  const stage = cs.lifeStage || 'youngling';
+  const mandatories = SIM_MANDATORY[stage] || [];
+  let f=0, p=0, m=0;
+
+  const addStrain = (hours, intensity, bias) => {
+    const iMult = SIM_INTENSITY_STRAIN_MULT[intensity] || 1.0;
+    f += hours * SIM_STRAIN_BASE.f * iMult * (bias.f||1) * (1 - em * 0.5);
+    p += hours * SIM_STRAIN_BASE.p * iMult * (bias.p||1) * (1 - em);
+    m += hours * SIM_STRAIN_BASE.m * iMult * (bias.m||1) * (1 - em * 0.3);
+  };
+
+  mandatories.forEach((mand, i) => {
+    const hrs = parseFloat(document.getElementById('sim-mand-hours-' + i)?.value) || mand.defaultHours;
+    addStrain(hrs, mand.intensity, mand.strainBias);
+  });
+
+  simTrainingRows.forEach(r => {
+    if (!r.activityKey || !r.hours) return;
+    const act = SIM_ACTIVITIES.find(a => a.key === r.activityKey)
+              || simCustomDrills.find(d => 'custom_'+d.id === r.activityKey);
+    if (!act) return;
+    addStrain(r.hours, r.intensity || act.defaultIntensity, act.strainBias || {f:1,p:1,m:1});
+  });
+
+  // Sleep recovery
+  const sleepHrs = parseFloat(document.getElementById('sim-sleep-hours')?.value) || 7;
+  const sleepRecovery = sleepHrs >= 8 ? 1.0 : sleepHrs >= 7 ? 0.85 : sleepHrs >= 6 ? 0.65 : sleepHrs >= 5 ? 0.45 : sleepHrs >= 4 ? 0.25 : 0.10;
+  // Return end-of-day strain (starting from previous day residual = 0 for single day)
+  return { f: Math.round(f*10)/10, p: Math.round(p*10)/10, m: Math.round(m*10)/10, sleepRecovery };
+}
+
+function simUpdateStrainPreview() {
+  const s = simCalcDailyStrain();
+  const worst = Math.max(s.f, s.p, s.m);
+  const setBar = (id, val, valId) => {
+    const el = document.getElementById(id);
+    const vEl = document.getElementById(valId);
+    if (el) el.style.width = Math.min(100, val) + '%';
+    if (vEl) vEl.textContent = val.toFixed(1) + '/100';
+  };
+  setBar('sp-force', s.f, 'sp-force-val');
+  setBar('sp-phys',  s.p, 'sp-phys-val');
+  setBar('sp-ment',  s.m, 'sp-ment-val');
+  const warn = document.getElementById('sp-warn');
+  if (warn) {
+    if (worst > 90) warn.textContent = '⚠ Extreme overtraining — XP gains ×0.1, narrative consequence will fire';
+    else if (worst > 70) warn.textContent = '⚠ Overtrained — XP gains reduced to ×0.4';
+    else if (worst > 50) warn.textContent = '↓ Strained — XP gains ×0.7';
+    else if (worst > 20) warn.textContent = '⬤ Minor fatigue — no XP penalty';
+    else warn.textContent = '';
+  }
+}
+
+// ── XP preview chips ──────────────────────────────────────────────
+function simUpdateXPPreview() {
+  const cs = characterSheet || {};
+  const container = document.getElementById('sim-xp-preview');
+  if (!container) return;
+  const xpMap = simCalcDailyXP(cs);
+  if (!Object.keys(xpMap).length) { container.innerHTML = '<span style="color:var(--text-dim);font-size:11px;font-style:italic">Add training blocks to see XP estimates.</span>'; return; }
+  container.innerHTML = Object.entries(xpMap).map(([path, xp]) => {
+    const label = path.split('.')[1] || path;
+    return `<div class="sim-xp-chip">${label} <span style="color:#aaffaa">+${xp.toFixed(0)}</span></div>`;
+  }).join('');
+}
+
+function simCalcDailyXP(cs) {
+  const xpMap = {};
+  const addXP = (weights, hours, intensity, difficulty) => {
+    const tierNum = statToTier(0).num; // simplified — use tier 1 for preview
+    const outcomeW = SIM_OUTCOME_WEIGHT[tierNum - 1] || 1.1;
+    const strainPenalty = simGetStrainPenalty();
+    const baseXP = hours * (SIM_INTENSITY[intensity]||15) * (SIM_DIFFICULTY[difficulty]||1.0) * outcomeW * strainPenalty;
+    (weights||[]).forEach(({p, w}) => {
+      xpMap[p] = (xpMap[p]||0) + baseXP * w;
+    });
+  };
+  const stage = cs.lifeStage||'youngling';
+  (SIM_MANDATORY[stage]||[]).forEach((mand, i) => {
+    const hrs = parseFloat(document.getElementById('sim-mand-hours-'+i)?.value)||mand.defaultHours;
+    addXP(mand.weights, hrs, mand.intensity, 'standard');
+  });
+  simTrainingRows.forEach(r => {
+    if (!r.activityKey||!r.hours) return;
+    const act = SIM_ACTIVITIES.find(a=>a.key===r.activityKey);
+    if (!act) return;
+    addXP(act.weights, r.hours, r.intensity||act.defaultIntensity, r.difficulty||'standard');
+  });
+  // Round and filter tiny values
+  return Object.fromEntries(Object.entries(xpMap).filter(([,v])=>v>=0.5).map(([k,v])=>[k,Math.round(v*10)/10]));
+}
+
+function simGetStrainPenalty() {
+  const s = simCalcDailyStrain();
+  const w = Math.max(s.f, s.p, s.m);
+  if (w > 90) return 0.1;
+  if (w > 70) return 0.4;
+  if (w > 50) return 0.7;
+  if (w > 20) return 0.9;
+  return 1.0;
+}
+
+// ── Innate Talents grid ───────────────────────────────────────────
+function simBuildTalentGrid() {
+  const cs = characterSheet || {};
+  const talents = cs.innateTalents || [];
+  const abilities = cs.innateAbilities || [];
+
+  const tGrid = document.getElementById('sim-talent-grid');
+  const aGrid = document.getElementById('sim-ability-grid');
+  if (!tGrid || !aGrid) return;
+
+  tGrid.innerHTML = SIM_INNATE_TALENTS.map(t => {
+    const active = talents.includes(t.key);
+    return `<div class="sim-talent-card${t.special?' special':''}${active?(t.special?' special':'')+' active':''}"
+      onclick="simToggleTalent('${t.key}',false)">
+      <div class="sim-talent-name">${t.label}</div>
+      <div class="sim-talent-effect">${t.effect}</div>
+      <span class="sim-talent-badge ${active?(t.special?'special-on':'on'):'off'}">${active?'ON':'OFF'}</span>
+    </div>`;
+  }).join('');
+
+  aGrid.innerHTML = SIM_INNATE_ABILITIES.map(a => {
+    const active = abilities.includes(a.key);
+    return `<div class="sim-talent-card${active?' active':''}"
+      onclick="simToggleTalent('${a.key}',true)">
+      <div class="sim-talent-name">${a.label}</div>
+      <div class="sim-talent-effect">${a.desc}</div>
+      <span class="sim-talent-badge ${active?'on':'off'}">${active?'ACTIVE':'INACTIVE'}</span>
+    </div>`;
+  }).join('');
+}
+
+function simToggleTalent(key, isAbility) {
+  if (!characterSheet) return;
+  if (isAbility) {
+    if (!characterSheet.innateAbilities) characterSheet.innateAbilities = [];
+    const idx = characterSheet.innateAbilities.indexOf(key);
+    if (idx >= 0) characterSheet.innateAbilities.splice(idx, 1);
+    else characterSheet.innateAbilities.push(key);
+  } else {
+    if (!characterSheet.innateTalents) characterSheet.innateTalents = [];
+    const idx = characterSheet.innateTalents.indexOf(key);
+    if (idx >= 0) characterSheet.innateTalents.splice(idx, 1);
+    else characterSheet.innateTalents.push(key);
+  }
+  autoSave();
+  simBuildTalentGrid();
+}
+
+// ── Story flags grid ──────────────────────────────────────────────
+function simBuildFlagsGrid() {
+  const ws = worldState || {};
+  const flags = ws.storyFlags || {};
+  const grid = document.getElementById('sim-flags-grid');
+  if (!grid) return;
+  grid.innerHTML = SIM_FLAGS.map(f => {
+    const active = !!flags[f.key];
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-input);border:1px solid ${active?'var(--gold-dim)':'var(--border)'}">
+      <div style="flex:1">
+        <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text-main)">${f.label}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:2px">${f.desc}</div>
+      </div>
+      <button onclick="simToggleFlag('${f.key}')" style="background:${active?'rgba(201,168,76,0.1)':'transparent'};border:1px solid ${active?'var(--gold)':'var(--border-bright)'};color:${active?'var(--gold)':'var(--text-dim)'};padding:4px 10px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;cursor:pointer">
+        ${active?'ON':'OFF'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function simToggleFlag(key) {
+  if (!worldState) return;
+  if (!worldState.storyFlags) worldState.storyFlags = {};
+  worldState.storyFlags[key] = !worldState.storyFlags[key];
+  autoSave();
+  simBuildFlagsGrid();
+}
+
+// ── Custom drills ─────────────────────────────────────────────────
+function simLoadDrills() {
+  try {
+    const saved = localStorage.getItem('sw_rpg_custom_drills');
+    simCustomDrills = saved ? JSON.parse(saved) : [];
+  } catch(e) { simCustomDrills = []; }
+  simRenderDrills();
+}
+
+function simSaveDrill() {
+  const name = document.getElementById('drill-name')?.value.trim();
+  const desc = document.getElementById('drill-desc')?.value.trim();
+  const intensity = document.getElementById('drill-intensity')?.value || 'standard';
+  const primary = document.getElementById('drill-primary')?.value;
+  if (!name) { alert('Give the drill a name.'); return; }
+  const drill = { id: Date.now().toString(), name, desc, defaultIntensity: intensity,
+    weights: primary ? [{p: primary, w:1.0}] : [],
+    strainBias: {f:1.0,p:1.0,m:0.8} };
+  simCustomDrills.push(drill);
+  localStorage.setItem('sw_rpg_custom_drills', JSON.stringify(simCustomDrills));
+  simRenderDrills();
+  if (document.getElementById('drill-name')) document.getElementById('drill-name').value = '';
+  if (document.getElementById('drill-desc')) document.getElementById('drill-desc').value = '';
+}
+
+function simDeleteDrill(id) {
+  simCustomDrills = simCustomDrills.filter(d => d.id !== id);
+  localStorage.setItem('sw_rpg_custom_drills', JSON.stringify(simCustomDrills));
+  simRenderDrills();
+}
+
+function simRenderDrills() {
+  const container = document.getElementById('sim-drills-list');
+  if (!container) return;
+  if (!simCustomDrills.length) {
+    container.innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic;padding:8px 0">No custom drills saved yet.</div>';
+    return;
+  }
+  container.innerHTML = simCustomDrills.map(d => `
+    <div class="sim-drill-card">
+      <div class="sim-drill-card-info">
+        <div class="sim-drill-card-name">${d.name}</div>
+        <div class="sim-drill-card-desc">${d.desc||'—'} · <span style="color:var(--gold-dim)">${d.defaultIntensity}</span></div>
+      </div>
+      <div class="sim-drill-card-btns">
+        <button class="modal-btn" style="padding:3px 8px;font-size:10px" onclick="simAddDrillToSchedule('${d.id}')">Add</button>
+        <button class="modal-btn danger" style="padding:3px 8px;font-size:10px" onclick="simDeleteDrill('${d.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function simAddDrillToSchedule(drillId) {
+  // Switch to schedule tab and add a pre-filled row
+  simShowTabByName('schedule');
+  simAddTrainingRow();
+  // Select the custom drill in the new row's dropdown
+  const rows = document.querySelectorAll('#sim-training-rows .sim-row');
+  const lastRow = rows[rows.length - 1];
+  if (lastRow) {
+    const sel = lastRow.querySelector('select');
+    if (sel) { sel.value = 'custom_' + drillId; sel.dispatchEvent(new Event('change')); }
+  }
+}
+
+function simBuildPrimaryDropdown() {
+  const cs = characterSheet || {};
+  const sel = document.getElementById('drill-primary');
+  if (!sel) return;
+  const opts = [
+    ...Object.keys(cs.forceStats||{}).map(k=>`<option value="forceStats.${k}">${k} (Force Stat)</option>`),
+    ...Object.keys(cs.stats||{}).map(k=>`<option value="stats.${k}">${k} (Stat)</option>`),
+    ...Object.keys(cs.forceAbilities||{}).map(k=>`<option value="forceAbilities.${k}">${k} (Ability)</option>`),
+    ...Object.keys(cs.lightsaberForms||{}).map(k=>`<option value="lightsaberForms.${k}">${k} (Form)</option>`),
+  ];
+  sel.innerHTML = '<option value="">— select primary stat —</option>' + opts.join('');
+}
+
+// ── Period selection ──────────────────────────────────────────────
 function selectPeriod(period, btn) {
   simPeriodType = period;
   document.querySelectorAll('.sim-period-btn').forEach(b => b.classList.remove('selected'));
@@ -4025,879 +4803,256 @@ function selectPeriod(period, btn) {
 }
 
 function getChunksForPeriod(period) {
-  // Each chunk = 1 week of in-game time
   switch(period) {
-    case 'week':   return [{ label: 'Week 1', days: 7 }];
-    case 'month':  return [
-      { label: 'Week 1', days: 7 }, { label: 'Week 2', days: 7 },
-      { label: 'Week 3', days: 7 }, { label: 'Week 4', days: 7 }
-    ];
-    case '3month': return Array.from({length: 12}, (_, i) => ({ label: `Week ${i+1}`, days: 7 }));
-    case '6month': return Array.from({length: 26}, (_, i) => ({ label: `Week ${i+1}`, days: 7 }));
-    case 'year':   return Array.from({length: 52}, (_, i) => ({ label: `Week ${i+1}`, days: 7 }));
-    default:       return [{ label: 'Week 1', days: 7 }];
+    case 'week':   return [{label:'Week 1',days:7}];
+    case 'month':  return Array.from({length:4}, (_,i)=>({label:`Week ${i+1}`,days:7}));
+    case '3month': return Array.from({length:12},(_,i)=>({label:`Week ${i+1}`,days:7}));
+    case '6month': return Array.from({length:26},(_,i)=>({label:`Week ${i+1}`,days:7}));
+    case 'year':   return Array.from({length:52},(_,i)=>({label:`Week ${i+1}`,days:7}));
+    default:       return [{label:'Week 1',days:7}];
   }
 }
 
 function getPeriodLabel(period) {
-  switch(period) {
-    case 'week': return '1 Week';
-    case 'month': return '1 Month';
-    case '3month': return '3 Months';
-    case '6month': return '6 Months';
-    case 'year': return '1 Year';
-    default: return period;
-  }
+  return {week:'1 Week',month:'1 Month','3month':'3 Months','6month':'6 Months',year:'1 Year'}[period]||period;
 }
 
+// ── Core simulation run ───────────────────────────────────────────
 async function startSimulation() {
-  const routine = document.getElementById('sim-routine-input').value.trim();
-  if (!routine) { alert('Please describe your daily routine first.'); return; }
-
-  simRoutine = routine;
-  simPauseConditions = document.getElementById('sim-pause-conditions').value.trim();
-  simAborted = false;
-  simPaused = false;
-  simActive = true;
-  simResults = [];
-
+  simAborted = false; simPaused = false; simActive = true; simResults = [];
   const chunks = getChunksForPeriod(simPeriodType);
-  simChunksTotal = chunks.length;
-  simChunksDone = 0;
+  simChunksTotal = chunks.length; simChunksDone = 0;
+  simPauseConditions = document.getElementById('sim-pause-conditions')?.value.trim()||'';
 
-  // Switch to progress view
-  document.getElementById('sim-setup').style.display = 'none';
+  // Switch to progress tab
+  const progressTab = document.querySelector('.sim-tab[onclick*="progress"]');
+  document.getElementById('sim-tab-progress').style.display = '';
+  simShowTab('progress', progressTab);
   document.getElementById('sim-progress').classList.add('show');
   document.getElementById('sim-start-btn').style.display = 'none';
   document.getElementById('sim-pause-btn').style.display = '';
   document.getElementById('sim-abort-btn').style.display = '';
-  document.getElementById('sim-close-btn').style.display = 'none';
 
   updateSimProgress(0, `Starting ${getPeriodLabel(simPeriodType)} simulation...`);
-  addSimLog(`Simulation started: ${getPeriodLabel(simPeriodType)} · ${chunks.length} weeks · Routine saved`, 'start');
-
+  addSimLog(`▶ ${getPeriodLabel(simPeriodType)} · ${chunks.length} week(s) · JS-driven XP`, 'start');
   await runSimChunks(chunks);
 }
-
-let simPauseConditions = '';
 
 async function runSimChunks(chunks) {
   for (let i = simChunksDone; i < chunks.length; i++) {
     if (simAborted) break;
-
-    // Wait if paused
-    if (simPaused) {
-      await waitForResume();
-      if (simAborted) break;
-    }
-
+    if (simPaused) { await waitForResume(); if (simAborted) break; }
     const chunk = chunks[i];
-    const pct = Math.round((i / chunks.length) * 100);
-    updateSimProgress(pct, `Simulating ${chunk.label} of ${chunks.length}...`);
-    document.getElementById('sim-progress-label').textContent =
-      `${chunk.label} / Week ${chunks.length} · ${chunks.length - i - 1} remaining`;
-
+    updateSimProgress(Math.round((i/chunks.length)*100), `Simulating ${chunk.label}...`);
+    document.getElementById('sim-progress-label').textContent = `${chunk.label} · ${chunks.length-i-1} remaining`;
     try {
-      const result = await simChunk(chunk, i + 1, chunks.length);
-      simResults.push({ chunk: chunk.label, summary: result.summary, mechanical: result.mechanical });
-      simChunksDone = i + 1;
-
-      // Add to chunk log
+      const result = await simProcessDay(chunk, i+1, chunks.length);
+      simResults.push({chunk:chunk.label, summary:result.summary, xpGained:result.xpGained});
+      simChunksDone = i+1;
       addSimLog(result.summary, chunk.label);
-
-      // Check for pause triggers
-      const shouldPause = checkPauseTriggers(result);
-      if (shouldPause) {
+      if (simPauseConditions && result.shouldPause) {
         simPaused = true;
-        updateSimProgress(Math.round((simChunksDone / chunks.length) * 100),
-          `⏸ Paused — ${shouldPause}`);
-        showSimPausePrompt(shouldPause, result, chunks, i + 1);
-        return; // exit loop, user resumes
+        updateSimProgress(Math.round((simChunksDone/chunks.length)*100), `⏸ Paused — ${result.shouldPause}`);
+        alert(`⏸ SIMULATION PAUSED\n\n${result.shouldPause}\n\nReview progress, then Resume.`);
+        return;
       }
-
-      // Small delay between chunks to avoid rate limiting
-      if (i < chunks.length - 1) await sleep(1500);
-
+      if (i < chunks.length-1) await sleep(300);
     } catch(err) {
-      addSimLog(`⚠ Error on ${chunk.label}: ${err.message} — retrying in 30s...`, 'error');
-      await sleep(30000);
-      i--; // retry this chunk
-      simChunksDone = i + 1;
+      addSimLog(`⚠ Error on ${chunk.label}: ${err.message}`, 'error');
+      await sleep(5000); i--; simChunksDone=i+1;
     }
   }
+  if (!simAborted) await finishSimulation(chunks);
+}
 
-  if (!simAborted) {
-    await finishSimulation(chunks);
+// ── JS-driven day processor (no AI for XP) ───────────────────────
+async function simProcessDay(chunk, chunkNum, total) {
+  const cs = characterSheet || {};
+  const days = chunk.days || 7;
+  const strainData = simCalcDailyStrain();
+  const penalty = simGetStrainPenalty();
+  const xpGained = {};
+
+  const applyBlockXP = (weights, hours, intensity, difficulty) => {
+    const tier = statToTier(0); // will be overridden per stat below
+    const iMult = SIM_INTENSITY[intensity] || 15;
+    const dMult = SIM_DIFFICULTY[difficulty] || 1.0;
+    (weights||[]).forEach(({p, w}) => {
+      const parts = p.split('.');
+      const cat = parts[0], key = parts[1];
+      if (!key) return;
+      let statVal = 0;
+      if (cat==='forceStats') statVal = cs.forceStats?.[key]||0;
+      else if (cat==='stats') statVal = cs.stats?.[key]||0;
+      else if (cat==='forceAbilities') statVal = typeof cs.forceAbilities?.[key]==='object'?(cs.forceAbilities[key].level||0):(cs.forceAbilities?.[key]||0);
+      else if (cat==='lightsaberForms') statVal = typeof cs.lightsaberForms?.[key]==='object'?(cs.lightsaberForms[key].level||0):(cs.lightsaberForms?.[key]||0);
+      const tierNum = Math.min(7, statToTier(statVal).num);
+      const outW = SIM_OUTCOME_WEIGHT[tierNum-1] || 1.1;
+      const dailyXP = hours * iMult * dMult * outW * penalty * w;
+      const weekXP = dailyXP * days;
+      xpGained[p] = (xpGained[p]||0) + weekXP;
+    });
+  };
+
+  // Mandatory rows
+  const stage = cs.lifeStage||'youngling';
+  (SIM_MANDATORY[stage]||[]).forEach((mand, i) => {
+    const hrs = parseFloat(document.getElementById('sim-mand-hours-'+i)?.value)||mand.defaultHours;
+    applyBlockXP(mand.weights, hrs, mand.intensity, 'standard');
+  });
+
+  // Training rows
+  simTrainingRows.forEach(r => {
+    if (!r.activityKey||!r.hours) return;
+    const act = SIM_ACTIVITIES.find(a=>a.key===r.activityKey)
+              || simCustomDrills.find(d=>'custom_'+d.id===r.activityKey);
+    if (!act) return;
+    applyBlockXP(act.weights||[], r.hours, r.intensity||act.defaultIntensity||'standard', r.difficulty||'standard');
+  });
+
+  // Apply XP via masterXP system
+  const levelUps = [];
+  for (const [path, xp] of Object.entries(xpGained)) {
+    if (xp <= 0) continue;
+    const res = applyXPToSheet(path, xp);
+    if (res.levelUps > 0) levelUps.push(`${path.split('.')[1]} → Level ${res.newStat}`);
   }
+
+  // Strain for the period (rolling accumulation — sleep recovers each night)
+  const sleepHrs = parseFloat(document.getElementById('sim-sleep-hours')?.value)||7;
+  const recovery = strainData.sleepRecovery;
+  const endForce = Math.max(0, (cs.forceStrain||0) + strainData.f - strainData.f*recovery);
+  const endPhys  = Math.max(0, (cs.physicalStrain||0) + strainData.p - strainData.p*recovery);
+  const endMent  = Math.max(0, (cs.mentalStrain||0) + strainData.m - strainData.m*recovery);
+  characterSheet.forceStrain    = Math.min(cs.maxForceStrain||100,    Math.round(endForce*10)/10);
+  characterSheet.physicalStrain = Math.min(cs.maxPhysicalStrain||100, Math.round(endPhys*10)/10);
+  characterSheet.mentalStrain   = Math.min(cs.maxMentalStrain||100,   Math.round(endMent*10)/10);
+
+  // Advance calendar
+  if (worldState?.inGameDate) worldState.inGameDate = advanceInGameDate(worldState.inGameDate, days);
+
+  // Build summary — AI only for narrative, XP already applied
+  const xpSummary = Object.entries(xpGained).filter(([,v])=>v>1)
+    .map(([p,v])=>`${p.split('.')[1]}+${Math.round(v)}`).join(', ');
+  const strainNote = penalty < 1 ? ` Strain penalty active (×${penalty}).` : '';
+  const levelNote = levelUps.length ? ` Level ups: ${levelUps.join(', ')}.` : '';
+
+  let summary = `${chunk.label}: XP applied — ${xpSummary||'minimal gains'}.${strainNote}${levelNote}`;
+
+  // Narrative AI call (lightweight, optional)
+  const aiNotes = document.getElementById('sim-ai-notes')?.value.trim()||'';
+  try {
+    const personalInput = document.getElementById('sim-personal-input')?.value.trim()||'';
+    const narrativePrompt = `Write 1-2 sentences describing a week of training for ${cs.name||'the character'}. Location: ${worldState?.location||'unknown'}. XP gained this week: ${xpSummary}. ${aiNotes} ${personalInput ? 'Extra context: '+personalInput : ''} Tone: immersive, Star Wars in-universe. Nothing else.`;
+    const narrativeResult = await simApiCall('You are a brief Star Wars narrative writer.', narrativePrompt, 180);
+    if (narrativeResult.text) summary = narrativeResult.text.trim();
+  } catch(e) { /* narrative is optional — XP is already applied */ }
+
+  // Narrative consequences for overtraining — fires when daily strain >70 (overtrained → XP gains ×0.4)
+  if (penalty <= 0.4 && Math.max(strainData.f,strainData.p,strainData.m) > 70) {
+    try {
+      const consequencePrompt = `${cs.name||'The character'} is overtrained — daily strain is ${Math.round(Math.max(strainData.f,strainData.p,strainData.m))}/100. Write ONE sentence describing a physical or mental consequence they experience this week. Star Wars in-universe. Nothing else.`;
+      const consResult = await simApiCall('Star Wars narrative writer.', consequencePrompt, 100);
+      if (consResult.text) summary += ' ' + consResult.text.trim();
+    } catch(e) {}
+  }
+
+  updateUI();
+  autoSave();
+  return { summary, xpGained, shouldPause: levelUps.length > 3 ? `Multiple level-ups this week: ${levelUps.join(', ')}` : null };
 }
 
-function waitForResume() {
-  return new Promise(resolve => { simPauseCallback = resolve; });
-}
+function waitForResume() { return new Promise(r => { simPauseCallback = r; }); }
 
 function pauseSimulation() {
   if (!simActive) return;
   simPaused = true;
   document.getElementById('sim-pause-btn').style.display = 'none';
   document.getElementById('sim-resume-btn').style.display = '';
-  updateSimProgress(
-    Math.round((simChunksDone / simChunksTotal) * 100),
-    `⏸ Paused after ${simChunksDone} of ${simChunksTotal} weeks. Review progress above then resume or adjust your routine.`
-  );
-  addSimLog('Simulation paused by player.', 'pause');
+  updateSimProgress(Math.round((simChunksDone/simChunksTotal)*100), `⏸ Paused after ${simChunksDone}/${simChunksTotal} weeks.`);
 }
 
 function resumeSimulation() {
-  if (!simActive) return;
-
-  // If there's a pending callback (mid-chunk pause), resolve it
-  if (simPauseCallback) {
-    const cb = simPauseCallback;
-    simPauseCallback = null;
-    simPaused = false;
-    document.getElementById('sim-pause-btn').style.display = '';
-    document.getElementById('sim-resume-btn').style.display = 'none';
-    addSimLog('Simulation resumed.', 'resume');
-    updateSimProgress(
-      Math.round((simChunksDone / simChunksTotal) * 100),
-      `Resuming from week ${simChunksDone + 1}...`
-    );
-    cb();
-    return;
-  }
-
-  // Otherwise restart the loop from where we left off
   simPaused = false;
   document.getElementById('sim-pause-btn').style.display = '';
   document.getElementById('sim-resume-btn').style.display = 'none';
-  addSimLog('Simulation resumed.', 'resume');
-
-  const chunks = getChunksForPeriod(simPeriodType);
-  runSimChunks(chunks);
+  updateSimProgress(Math.round((simChunksDone/simChunksTotal)*100), `Resuming from Week ${simChunksDone+1}...`);
+  if (simPauseCallback) { simPauseCallback(); simPauseCallback = null; }
 }
 
 function abortSimulation() {
-  if (!confirm('Abort simulation? Progress so far will be kept and applied to your character.')) return;
-  simAborted = true;
-  simActive = false;
-  if (simPauseCallback) { simPauseCallback(); simPauseCallback = null; }
-  addSimLog('Simulation aborted by player.', 'abort');
-  updateSimProgress(
-    Math.round((simChunksDone / simChunksTotal) * 100),
-    `Simulation aborted. ${simChunksDone} of ${simChunksTotal} weeks completed.`
-  );
+  if (!confirm('Abort simulation? XP already applied will be kept.')) return;
+  simAborted = true; simActive = false; simPaused = false;
   document.getElementById('sim-pause-btn').style.display = 'none';
   document.getElementById('sim-resume-btn').style.display = 'none';
   document.getElementById('sim-abort-btn').style.display = 'none';
+  document.getElementById('sim-start-btn').style.display = '';
   document.getElementById('sim-done-btn').style.display = '';
-  document.getElementById('sim-close-btn').style.display = '';
-  applySimResultsToGame();
-}
-
-function showSimPausePrompt(reason, result, chunks, resumeFrom) {
-  document.getElementById('sim-pause-btn').style.display = 'none';
-  document.getElementById('sim-resume-btn').style.display = '';
-  document.getElementById('sim-abort-btn').style.display = '';
-
-  // Inject the event into the main story feed so player can react
-  closeSimPanel();
-  renderSystemMessage(
-    `⏸ SIMULATION PAUSED\n\nReason: ${reason}\n\nThis situation requires your attention. Review what happened, use the story feed to respond if needed, then open Simulate → Resume to continue the simulation from Week ${resumeFrom + 1}.`
-  );
-  // Also render the event as a GM message
-  renderGMMessage(result.event || result.summary);
-}
-
-function checkPauseTriggers(result) {
-  // Check custom pause conditions
-  if (simPauseConditions && result.pauseFlag) return result.pauseFlag;
-
-  // Auto-pause triggers
-  if (result.requiresDecision) return result.requiresDecision;
-
-  // Check if any stat crossed a tier threshold
-  if (characterSheet && result.statCrossed) return `Stat milestone: ${result.statCrossed}`;
-
-  return null;
-}
-
-async function simChunk(chunk, chunkNum, totalChunks) {
-  const cs = characterSheet || {};
-  const ws = worldState || {};
-
-  const simSystemPrompt = `You are a Star Wars Legends RPG simulation engine processing ${chunk.days} days of training.
-
-XP THRESHOLDS: stat 0-19:10XP | 20-39:25XP | 40-59:50XP | 60-79:100XP | 80-84:200XP | 85-94:500XP | 95-99:1000XP | 100+:5000XP
-XP PER DAY: lightsaber practice:1.5 | sparring:2 | force practice:1.5 | force under pressure:2 | morning meditation:1(ForceSense only) | physical training:1.5 | studying:0.5(ForceKnowledge only)
-WEEKLY CAP: max 15 XP per stat per week. Character age ${cs.age||8} — child prodigy but still a child.
-ALIGNMENT: only moves from conscious moral choices. Force use and meditation alone = no change.`;
-
-  // ── CALL 1: Narrative summary only ──────────────────────────────
-  const summaryPrompt = `Simulate ${chunk.days} days for this character following their routine. Write 2-3 sentences describing what happened and the mood of the week. Nothing else.
-
-CHARACTER: ${cs.name||'?'}, age ${cs.age||8}, Force Tier ${cs.forceTier||1}
-LOCATION: ${ws.location||'?'} | DATE: ${ws.inGameDate||'?'}
-THREATS: ${Object.entries(galaxySimState).map(([k,v])=>`${k}:${v}`).join('; ')||'none'}
-ROUTINE: ${simRoutine.slice(0,500)}
-${simPauseConditions ? `FLAG IF: ${simPauseConditions}` : ''}
-REQUIRES_DECISION: [YES: reason if something needs player input | NO]
-PAUSE_FLAG: [reason if pause condition met | NONE]`;
-
-  const call1 = await simApiCall(simSystemPrompt, summaryPrompt, 512);
-  const raw1 = call1.text || '';
-  const weekSummary = raw1.replace(/REQUIRES_DECISION:[\s\S]*/i, '').replace(/PAUSE_FLAG:[\s\S]*/i, '').trim();
-  const requiresDecision = (raw1.match(/REQUIRES_DECISION:\s*YES:\s*(.+)/i) || [])[1]?.trim() || null;
-  const pauseFlag = (raw1.match(/PAUSE_FLAG:\s*(?!NONE)(.+)/i) || [])[1]?.trim() || null;
-  const statCrossed = null;
-  const galaxyEvents = 'NONE';
-  const notableEvents = 'NONE';
-
-  // Small delay between calls
-  await sleep(800);
-
-  // ── Derive practice list from routine text — no AI needed ──────
-  // Parse the routine directly in JS — guaranteed to find everything
-  const routineLower = simRoutine.toLowerCase();
-
-  // Build intensity map from routine text
-  const practiceMap = {};
-
-  // Force stats — detect from routine keywords
-  const forceStatPatterns = {
-    forceSense:    ['force sense','forcesense','sensing','sense life','sense the force','meditation','meditat','force connection','living force'],
-    meditation:    ['meditation','meditat','restorative','deep focus','center','stillness'],
-    forceKnowledge:['archive','study','knowledge','research','theory','journal','book','datapad','lore','read'],
-    forceControl:  ['force control','force integration','fine control','precision','telekinesis','control the force','force into']
-  };
-  for (const [stat, patterns] of Object.entries(forceStatPatterns)) {
-    const matches = patterns.filter(p => routineLower.includes(p)).length;
-    if (matches >= 2) practiceMap[stat] = {type:'forceStats', intensity:'HIGH'};
-    else if (matches === 1) practiceMap[stat] = {type:'forceStats', intensity:'MEDIUM'};
-  }
-
-  // Physical stats
-  const physStatPatterns = {
-    strength:   ['strength','weight','physical training','conditioning','push','pull','intense physical'],
-    agility:    ['agility','agility room','agility training','acrobatic','footwork','speed','agility course','remote','deflect'],
-    endurance:  ['endurance','stamina','conditioning','sustained','long session','multiple'],
-    willpower:  ['willpower','mental','focus','concentration','discipline','will','meditation'],
-    charisma:   ['social','conversation','interact','charisma','persuade','group lesson','discussion']
-  };
-  for (const [stat, patterns] of Object.entries(physStatPatterns)) {
-    const matches = patterns.filter(p => routineLower.includes(p)).length;
-    if (matches >= 2) practiceMap[stat] = {type:'stats', intensity:'HIGH'};
-    else if (matches === 1) practiceMap[stat] = {type:'stats', intensity:'MEDIUM'};
-  }
-
-  // Force abilities — match by name in routine
-  for (const abilityName of Object.keys(cs.forceAbilities||{})) {
-    const nameLower = abilityName.toLowerCase();
-    const baseWord = nameLower.split(' ')[0]; // e.g. "force" from "force push"
-    const secondWord = nameLower.split(' ')[1]; // e.g. "push"
-    if (routineLower.includes(nameLower) ||
-        (secondWord && routineLower.includes(secondWord) && routineLower.includes('force')) ||
-        (nameLower.includes('push') && routineLower.includes('push')) ||
-        (nameLower.includes('speed') && routineLower.includes('force speed')) ||
-        (nameLower.includes('barrier') && routineLower.includes('barrier')) ||
-        (nameLower.includes('repulse') && routineLower.includes('repulse')) ||
-        (nameLower.includes('burst') && routineLower.includes('burst')) ||
-        (nameLower.includes('heal') && routineLower.includes('heal')) ||
-        (nameLower.includes('telekinesis') && (routineLower.includes('telekinesis') || routineLower.includes('telekinetic')))) {
-      const hasHighIntensity = routineLower.includes('intense') || routineLower.includes('high output') || routineLower.includes('spar');
-      practiceMap[abilityName] = {type:'forceAbilities', intensity: hasHighIntensity ? 'HIGH' : 'MEDIUM'};
-    }
-  }
-
-  // Lightsaber forms — match by name
-  for (const formName of Object.keys(cs.lightsaberForms||{})) {
-    const nameLower = formName.toLowerCase();
-    // Match form name, common abbreviations, and roman numerals
-    const formPatterns = [nameLower, 'lightsaber', 'saber', 'form i', 'shii-cho', 'shii cho',
-      'makashi','soresu','ataru','djem so','shien','niman','juyo','vaapad','lightsaber form'];
-    const hasForm = formPatterns.some(p => nameLower.includes(p.split(' ')[0]) ? routineLower.includes(p) : false) ||
-      routineLower.includes(nameLower) ||
-      (routineLower.includes('lightsaber') && routineLower.includes('form'));
-    if (hasForm) {
-      const isDeliberate = routineLower.includes('slow') || routineLower.includes('deliberate') || routineLower.includes('perfect');
-      const isSparring = routineLower.includes('spar') || routineLower.includes('partner');
-      practiceMap[formName] = {type:'lightsaberForms', intensity: isSparring ? 'HIGH' : isDeliberate ? 'MEDIUM' : 'MEDIUM'};
-    }
-  }
-
-  // Always include forceSense if any Force use mentioned
-  if (routineLower.includes('force') && !practiceMap['forceSense']) {
-    practiceMap['forceSense'] = {type:'forceStats', intensity:'LOW'};
-  }
-
-  addSimLog(`Wk${chunkNum} tracking ${Object.keys(practiceMap).length} stats: ${Object.keys(practiceMap).join(', ')}`, 'applied');
-
-  // Build strain estimates from routine intensity
-  const hasIntensePhysical = routineLower.includes('intense') || routineLower.includes('sparring') || routineLower.includes('agility course');
-  const hasIntenseForce = routineLower.includes('force output') || routineLower.includes('telekinesis') || routineLower.includes('high output');
-  const estForceStrain = hasIntenseForce ? 5 : 3;
-  const estPhysStrain = hasIntensePhysical ? 4 : 2;
-  const estMentalStrain = routineLower.includes('prolonged') || routineLower.includes('study') ? 3 : 1;
-
-  characterSheet.forceStrain = Math.min(estForceStrain, characterSheet.maxForceStrain||100);
-  characterSheet.physicalStrain = Math.min(estPhysStrain, characterSheet.maxPhysicalStrain||100);
-  characterSheet.mentalStrain = Math.min(estMentalStrain, characterSheet.maxMentalStrain||100);
-
-  const XP_PER_DAY = {LOW:1, MEDIUM:1.5, HIGH:2};
-  const WEEKLY_XP_CAP = 8;
-  let changesApplied = 0;
-  const mechanicalChangeLines = [];
-
-  const applyXPToStat = (statName, intensity, getVal, setVal, xpObj) => {
-    const weekXP = Math.min((XP_PER_DAY[intensity]||1) * chunk.days, WEEKLY_XP_CAP);
-    if (!xpObj) return;
-    xpObj.current = (xpObj.current||0) + weekXP;
-    while (xpObj.current >= xpObj.required) {
-      const oldVal = getVal();
-      setVal(oldVal + 1);
-      xpObj.current -= xpObj.required;
-      xpObj.required = xpRequired(oldVal + 1);
-      mechanicalChangeLines.push(`${statName}: ${oldVal}\u2192${oldVal+1}`);
-      changesApplied++;
-    }
-    mechanicalChangeLines.push(`${statName} XP: +${weekXP.toFixed(1)} (${(xpObj.current||0).toFixed(1)}/${xpObj.required})`);
-  };
-
-  // Snapshot starting values — simulation can never decrease a stat
-  const startSnapshot = {
-    forceStats: {...(characterSheet.forceStats||{})},
-    stats: {...(characterSheet.stats||{})},
-    forceAbilities: Object.fromEntries(Object.entries(characterSheet.forceAbilities||{}).map(([k,v])=>[k,typeof v==='object'?(v.level||0):(v||0)])),
-    lightsaberForms: Object.fromEntries(Object.entries(characterSheet.lightsaberForms||{}).map(([k,v])=>[k,typeof v==='object'?(v.level||0):(v||0)]))
-  };
-
-  // Apply XP from practice map
-  for (const [name, {type, intensity}] of Object.entries(practiceMap)) {
-    if (type === 'forceStats') {
-      if (!characterSheet.forceStats) characterSheet.forceStats = {};
-      if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
-      if (!characterSheet.forceStatsXP[name]) characterSheet.forceStatsXP[name] = {current:0, required:xpRequired(characterSheet.forceStats[name]||0)};
-      applyXPToStat(name, intensity, ()=>characterSheet.forceStats[name]||0, v=>{characterSheet.forceStats[name]=v;}, characterSheet.forceStatsXP[name]);
-    } else if (type === 'stats') {
-      if (!characterSheet.stats) characterSheet.stats = {};
-      if (!characterSheet.statsXP) characterSheet.statsXP = {};
-      if (!characterSheet.statsXP[name]) characterSheet.statsXP[name] = {current:0, required:xpRequired(characterSheet.stats[name]||0)};
-      applyXPToStat(name, intensity, ()=>characterSheet.stats[name]||0, v=>{characterSheet.stats[name]=v;}, characterSheet.statsXP[name]);
-    } else if (type === 'forceAbilities') {
-      if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
-      const getV = () => typeof characterSheet.forceAbilities[name]==='object'?(characterSheet.forceAbilities[name].level||0):(characterSheet.forceAbilities[name]||0);
-      if (!characterSheet.forceAbilitiesXP[name]) characterSheet.forceAbilitiesXP[name] = {current:0, required:xpRequired(getV())};
-      applyXPToStat(name, intensity, getV, v=>{characterSheet.forceAbilities[name]=v;}, characterSheet.forceAbilitiesXP[name]);
-    } else if (type === 'lightsaberForms') {
-      if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
-      const getV = () => typeof characterSheet.lightsaberForms[name]==='object'?(characterSheet.lightsaberForms[name].level||0):(characterSheet.lightsaberForms[name]||0);
-      if (!characterSheet.lightsaberFormsXP[name]) characterSheet.lightsaberFormsXP[name] = {current:0, required:xpRequired(getV())};
-      applyXPToStat(name, intensity, getV, v=>{characterSheet.lightsaberForms[name]=v;}, characterSheet.lightsaberFormsXP[name]);
-    }
-  }
-
-  // Safety: stats can never decrease
-  for (const [k,v] of Object.entries(startSnapshot.forceStats)) {
-    if ((characterSheet.forceStats[k]||0) < v) characterSheet.forceStats[k] = v;
-  }
-  for (const [k,v] of Object.entries(startSnapshot.stats)) {
-    if ((characterSheet.stats[k]||0) < v) characterSheet.stats[k] = v;
-  }
-  for (const [k,v] of Object.entries(startSnapshot.forceAbilities)) {
-    const cur = typeof characterSheet.forceAbilities[k]==='object'?(characterSheet.forceAbilities[k].level||0):(characterSheet.forceAbilities[k]||0);
-    if (cur < v) characterSheet.forceAbilities[k] = v;
-  }
-  for (const [k,v] of Object.entries(startSnapshot.lightsaberForms)) {
-    const cur = typeof characterSheet.lightsaberForms[k]==='object'?(characterSheet.lightsaberForms[k].level||0):(characterSheet.lightsaberForms[k]||0);
-    if (cur < v) characterSheet.lightsaberForms[k] = v;
-  }
-
-  const mechanicalChanges = mechanicalChangeLines.join('\n');  // Update world log directly
-  if (worldState) {
-    if (!worldState.worldLog) worldState.worldLog = [];
-    worldState.worldLog.push({
-      turn: turnCount,
-      event: (weekSummary || 'Week of training completed').slice(0, 120),
-      location: ws.location || ''
-    });
-    if (worldState.worldLog.length > 20) worldState.worldLog = worldState.worldLog.slice(-20);
-    // Also update merged log
-    if (!worldState._mergedLog) worldState._mergedLog = [];
-    worldState._mergedLog.unshift({
-      turn: turnCount,
-      event: (weekSummary || 'Week of training completed').slice(0, 120),
-      location: ws.location || ''
-    });
-    if (worldState._mergedLog.length > 50) worldState._mergedLog = worldState._mergedLog.slice(0, 50);
-  }
-
-  // Advance in-game date by 7 days
-  if (worldState?.inGameDate) {
-    worldState.inGameDate = advanceInGameDate(worldState.inGameDate, 7);
-  }
-
-  if (worldState?.galaxyEvents) {
-    for (const ev of worldState.galaxyEvents) {
-      if (ev?.faction && ev?.event) galaxySimState[ev.faction] = ev.event;
-    }
-  }
-
-  updateUI();
-  autoSave();
-
-  return {
-    summary: weekSummary + (mechanicalChanges ? '\n\n' + mechanicalChanges : ''),
-    mechanical: mechanicalChanges, galaxyEvents, notableEvents,
-    requiresDecision, pauseFlag, statCrossed,
-    event: notableEvents && notableEvents !== 'NONE' ? notableEvents : null
-  };
-}
-
-async function simApiCall(systemPrompt, userPrompt, maxTokens) {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-        generationConfig: { temperature: 0.6, maxOutputTokens: maxTokens, topP: 0.9 }
-      })
-    }
-  );
-  if (response.status === 429) throw new Error('Rate limit — will retry');
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `HTTP ${response.status}`);
-  }
-  const data = await response.json();
-  return {
-    text: data.candidates?.[0]?.content?.parts?.[0]?.text || '',
-    truncated: data.candidates?.[0]?.finishReason === 'MAX_TOKENS'
-  };
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  STAR WARS GALACTIC STANDARD CALENDAR — 12 month / 368 day
-//  Per Legends Essential Atlas & Leland Chee 2005 canon revision
-//  Based on Coruscant's orbital period
-//  12 months of 30-31 days, 7-day weeks
-//  Days of the week: Primeday, Centaxday, Taungsday, Zhellday, Benduday, Taungsday-2, Benduday-2
-//  Month names: unofficial but consistent with Legends fan reference material
-// ═══════════════════════════════════════════════════════════════════
-const GSC_MONTHS = [
-  'Coruscann', 'Frostuary', 'Warming',  'Seedmonth',
-  'Bloomtide', 'Midyear',   'Heatmonth','Harvestide',
-  'Goldfall',  'Stormtide', 'Coldmonth','Yearend'
-];
-// Days per month — 8 months of 31 days, 4 months of 30 days = 368 total
-// Months 6, 8, 12 have 30 days; month 2 has 30 days; rest have 31
-const GSC_DAYS_IN_MONTH = [31,30,31,31,31,30,31,30,31,31,31,30]; // sums to 368
-const GSC_DAYS_PER_WEEK = 7;
-const GSC_WEEK_DAYS = ['Primeday','Centaxday','Taungsday','Zhellday','Benduday','Restday','Endday'];
-const GSC_MONTHS_PER_YEAR = 12;
-const GSC_DAYS_PER_YEAR = 368;
-
-// Cumulative day offsets for each month
-const GSC_MONTH_OFFSETS = GSC_DAYS_IN_MONTH.reduce((acc, d, i) => {
-  acc.push(i === 0 ? 0 : acc[i-1] + GSC_DAYS_IN_MONTH[i-1]);
-  return acc;
-}, []);
-
-function parseDateString(dateStr) {
-  if (!dateStr) return null;
-
-  // Handle "Day X, Cycle Y" fallback (old/malformed AI output) — treat Cycle as month
-  const cycleMatch = dateStr.match(/Day\s*(\d+),?\s*Cycle\s*(\d+)/i);
-  if (cycleMatch) {
-    const dayOfMonth = parseInt(cycleMatch[1]);
-    const monthIndex = Math.max(0, parseInt(cycleMatch[2]) - 1) % GSC_MONTHS_PER_YEAR;
-    const yearMatch2 = dateStr.match(/(\d{3,4})\s*(BBY|ABY)/i);
-    const year = yearMatch2 ? parseInt(yearMatch2[1]) : 3661;
-    const era = yearMatch2 ? yearMatch2[2].toUpperCase() : 'BBY';
-    const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + Math.min(dayOfMonth, GSC_DAYS_IN_MONTH[monthIndex]);
-    return { year, era, dayOfYear: Math.max(1, dayOfYear) };
-  }
-
-  const yearMatch = dateStr.match(/(\d{3,4})\s*(BBY|ABY)/i);
-  if (!yearMatch) return null;
-  const year = parseInt(yearMatch[1]);
-  const era = yearMatch[2].toUpperCase();
-
-  // Try "Day X, MonthName" or "Day X MonthName" format
-  const fullMatch = dateStr.match(/Day\s*(\d+),?\s*([A-Za-z][a-z]+)/i);
-  if (fullMatch) {
-    const dayOfMonth = parseInt(fullMatch[1]);
-    const monthName = fullMatch[2];
-    const monthIndex = GSC_MONTHS.findIndex(m => m.toLowerCase() === monthName.toLowerCase());
-    if (monthIndex >= 0) {
-      const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + Math.min(dayOfMonth, GSC_DAYS_IN_MONTH[monthIndex]);
-      return { year, era, dayOfYear: Math.max(1, dayOfYear) };
-    }
-  }
-
-  // Fallback: raw day number as day-of-year
-  const dayMatch = dateStr.match(/Day\s*(\d+)/i);
-  const dayOfYear = dayMatch ? parseInt(dayMatch[1]) : 1;
-  return { year, era, dayOfYear: Math.max(1, Math.min(dayOfYear, GSC_DAYS_PER_YEAR)) };
-}
-
-function dayOfYearToMonthDay(dayOfYear) {
-  const clamped = ((dayOfYear - 1) % GSC_DAYS_PER_YEAR) + 1;
-  let monthIndex = 0;
-  let remaining = clamped;
-  for (let i = 0; i < GSC_MONTHS_PER_YEAR; i++) {
-    if (remaining <= GSC_DAYS_IN_MONTH[i]) {
-      monthIndex = i;
-      break;
-    }
-    remaining -= GSC_DAYS_IN_MONTH[i];
-    if (i === GSC_MONTHS_PER_YEAR - 1) { monthIndex = i; remaining = GSC_DAYS_IN_MONTH[i]; }
-  }
-  return { monthIndex, dayOfMonth: remaining };
-}
-
-function dateToString(year, era, dayOfYear) {
-  const { monthIndex, dayOfMonth } = dayOfYearToMonthDay(dayOfYear);
-  const monthName = GSC_MONTHS[monthIndex];
-  // Day of week
-  const absDay = (era === 'BBY' ? -year : year) * GSC_DAYS_PER_YEAR + dayOfYear;
-  const weekDay = GSC_WEEK_DAYS[((absDay % GSC_DAYS_PER_WEEK) + GSC_DAYS_PER_WEEK) % GSC_DAYS_PER_WEEK];
-  return `${weekDay}, Day ${dayOfMonth} ${monthName} — ${year} ${era}`;
-}
-
-function advanceInGameDate(dateStr, days) {
-  const parsed = parseDateString(dateStr);
-  if (!parsed) {
-    // Fallback: try to increment raw day number
-    const match = dateStr.match(/Day (\d+)/i);
-    if (match) {
-      const newDay = parseInt(match[1]) + days;
-      const yearMatch = dateStr.match(/(\d{3,4})\s*(BBY|ABY)/i);
-      if (yearMatch) {
-        const year = parseInt(yearMatch[1]);
-        const era = yearMatch[2].toUpperCase();
-        // Convert to proper format
-        return dateToString(year, era, newDay);
-      }
-      return dateStr.replace(/Day \d+/i, `Day ${newDay}`);
-    }
-    return dateStr;
-  }
-
-  let { year, era, dayOfYear } = parsed;
-  dayOfYear += days;
-
-  // Roll over years
-  while (dayOfYear > GSC_DAYS_PER_YEAR) {
-    dayOfYear -= GSC_DAYS_PER_YEAR;
-    // BBY counts down, ABY counts up
-    if (era === 'BBY') year -= 1;
-    else year += 1;
-    // Handle BBY→ABY transition
-    if (year === 0 && era === 'BBY') { year = 1; era = 'ABY'; }
-  }
-
-  return dateToString(year, era, dayOfYear);
-}
-
-// Parse a date string into total days elapsed from year 0 (for comparison/difference)
-function dateToAbsoluteDays(dateStr) {
-  const parsed = parseDateString(dateStr);
-  if (!parsed) return 0;
-  const { year, era, dayOfYear } = parsed;
-  const absYear = era === 'BBY' ? -year : year;
-  return absYear * GSC_DAYS_PER_YEAR + dayOfYear;
-}
-
-function daysBetweenDates(dateStr1, dateStr2) {
-  return Math.abs(dateToAbsoluteDays(dateStr2) - dateToAbsoluteDays(dateStr1));
-}
-
-let calendarOpen = false;
-function toggleCalendar() {
-  const popup = document.getElementById('calendar-popup');
-  calendarOpen = !calendarOpen;
-  popup.style.display = calendarOpen ? 'block' : 'none';
-  if (calendarOpen && worldState?.inGameDate) {
-    updateCalendarContent(worldState.inGameDate);
-  }
-}
-
-// Close calendar when clicking outside
-document.addEventListener('click', function(e) {
-  if (calendarOpen && !e.target.closest('#calendar-popup') && !e.target.closest('#date-text')) {
-    calendarOpen = false;
-    document.getElementById('calendar-popup').style.display = 'none';
-  }
-});
-
-function updateCalendarContent(dateStr) {
-  const el = document.getElementById('calendar-content');
-  if (!el || !dateStr) return;
-
-  const parsed = parseDateString(dateStr);
-  if (!parsed) { el.textContent = dateStr; return; }
-
-  const { year, era, dayOfYear } = parsed;
-  const { monthIndex, dayOfMonth } = dayOfYearToMonthDay(dayOfYear);
-  const monthName = GSC_MONTHS[monthIndex];
-  const daysInMonth = GSC_DAYS_IN_MONTH[monthIndex];
-  const daysIntoYear = GSC_MONTH_OFFSETS[monthIndex] + dayOfMonth;
-  const daysRemaining = GSC_DAYS_PER_YEAR - daysIntoYear;
-
-  // Day of week
-  const absDay = (era === 'BBY' ? -year : year) * GSC_DAYS_PER_YEAR + dayOfYear;
-  const weekDayIndex = ((absDay % GSC_DAYS_PER_WEEK) + GSC_DAYS_PER_WEEK) % GSC_DAYS_PER_WEEK;
-  const weekDayName = GSC_WEEK_DAYS[weekDayIndex];
-
-  // Build month grid — 7-day weeks
-  let monthGrid = `<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">${monthName} — ${daysInMonth} days</div>`;
-  monthGrid += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin:6px 0;font-size:10px;text-align:center">';
-  // Week day headers — abbreviated
-  ['Pr','Ce','Ta','Zh','Be','Re','En'].forEach(d => {
-    monthGrid += `<div style="color:var(--gold-dim);font-family:Cinzel,serif">${d}</div>`;
-  });
-  // Find what weekday month starts on
-  const monthStartAbsDay = (era === 'BBY' ? -year : year) * GSC_DAYS_PER_YEAR + GSC_MONTH_OFFSETS[monthIndex] + 1;
-  const monthStartWeekday = ((monthStartAbsDay % GSC_DAYS_PER_WEEK) + GSC_DAYS_PER_WEEK) % GSC_DAYS_PER_WEEK;
-  // Empty cells before first day
-  for (let i = 0; i < monthStartWeekday; i++) {
-    monthGrid += '<div></div>';
-  }
-  // Day cells
-  for (let d = 1; d <= daysInMonth; d++) {
-    const isToday = d === dayOfMonth;
-    monthGrid += `<div style="padding:1px 0;${isToday ? 'background:var(--gold);color:#000;border-radius:2px;font-weight:bold' : 'color:var(--text-dim)'}">${d}</div>`;
-  }
-  monthGrid += '</div>';
-
-  el.innerHTML = `
-    <div style="color:var(--gold);font-family:Cinzel,serif;font-size:13px;margin-bottom:4px">${year} ${era}</div>
-    <div style="color:var(--text-main);font-size:12px;margin-bottom:8px">${weekDayName}, Day ${dayOfMonth} of ${monthName}</div>
-    ${monthGrid}
-    <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:11px;color:var(--text-dim);line-height:1.8">
-      <div>Month: <span style="color:var(--text-main)">${monthIndex + 1} of ${GSC_MONTHS_PER_YEAR}</span></div>
-      <div>Day of year: <span style="color:var(--text-main)">${daysIntoYear} of ${GSC_DAYS_PER_YEAR}</span></div>
-      <div>Days remaining: <span style="color:var(--text-main)">${daysRemaining}</span></div>
-    </div>
-    <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:6px;font-size:10px;color:var(--text-dim)">
-      Pr=Primeday · Ce=Centaxday · Ta=Taungsday<br>Zh=Zhellday · Be=Benduday
-    </div>
-  `;
-}
-
-function applyMechanicalChangesFromText(text) {
-  if (!text || !characterSheet) return 0;
-  let count = 0;
-  const fsMap = {
-    'forcesense': 'forceSense', 'force sense': 'forceSense',
-    'meditation': 'meditation',
-    'forceknowledge': 'forceKnowledge', 'force knowledge': 'forceKnowledge',
-    'forcecontrol': 'forceControl', 'force control': 'forceControl'
-  };
-  const stMap = {
-    'strength': 'strength', 'str': 'strength',
-    'agility': 'agility', 'agi': 'agility',
-    'endurance': 'endurance', 'end': 'endurance',
-    'willpower': 'willpower', 'will': 'willpower',
-    'charisma': 'charisma', 'cha': 'charisma'
-  };
-
-  for (const line of text.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-
-    // Match "StatName: old→new" or "StatName: old->new"
-    const arrowMatch = trimmed.match(/^([A-Za-z][\w\s\-]+?):\s*(\d+(?:\.\d+)?)\s*(?:→|->)\s*(\d+(?:\.\d+)?)/);
-    if (arrowMatch) {
-      const rawName = arrowMatch[1].trim();
-      const newVal = parseFloat(arrowMatch[3]);
-      if (isNaN(newVal)) continue;
-      const keyLower = rawName.toLowerCase().replace(/\s+/g, '');
-      const keySpaced = rawName.toLowerCase();
-
-      if (fsMap[keyLower] || fsMap[keySpaced]) {
-        const fk = fsMap[keyLower] || fsMap[keySpaced];
-        if (!characterSheet.forceStats) characterSheet.forceStats = {};
-        characterSheet.forceStats[fk] = newVal;
-        if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
-        if (!characterSheet.forceStatsXP[fk]) characterSheet.forceStatsXP[fk] = {current:0,required:xpRequired(newVal)};
-        characterSheet.forceStatsXP[fk].required = xpRequired(newVal);
-        // Sync to masterXP so XP gains next turn use the correct stat level
-        if (!masterXP.forceStats) masterXP.forceStats = {};
-        // Manual correction: set totalXP to the minimum needed to be at this level
-        const _cur1 = masterXP.forceStats[fk]?.totalXP || 0;
-        const _floor1 = xpToReachLevel(newVal);
-        masterXP.forceStats[fk] = { totalXP: Math.max(_cur1, _floor1) };
-        count++;
-      } else if (stMap[keyLower] || stMap[keySpaced]) {
-        const sk = stMap[keyLower] || stMap[keySpaced];
-        if (!characterSheet.stats) characterSheet.stats = {};
-        characterSheet.stats[sk] = newVal;
-        if (!characterSheet.statsXP) characterSheet.statsXP = {};
-        if (!characterSheet.statsXP[sk]) characterSheet.statsXP[sk] = {current:0,required:xpRequired(newVal)};
-        characterSheet.statsXP[sk].required = xpRequired(newVal);
-        if (!masterXP.stats) masterXP.stats = {};
-        const _cur2 = masterXP.stats[sk]?.totalXP || 0;
-        const _floor2 = xpToReachLevel(newVal);
-        masterXP.stats[sk] = { totalXP: Math.max(_cur2, _floor2) };
-        count++;
-      } else if (characterSheet.forceAbilities && rawName in characterSheet.forceAbilities) {
-        characterSheet.forceAbilities[rawName] = newVal;
-        if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
-        if (!characterSheet.forceAbilitiesXP[rawName]) characterSheet.forceAbilitiesXP[rawName] = {current:0,required:xpRequired(newVal)};
-        characterSheet.forceAbilitiesXP[rawName].required = xpRequired(newVal);
-        if (!masterXP.forceAbilities) masterXP.forceAbilities = {};
-        const _cur3 = masterXP.forceAbilities[rawName]?.totalXP || 0;
-        const _floor3 = xpToReachLevel(newVal);
-        masterXP.forceAbilities[rawName] = { totalXP: Math.max(_cur3, _floor3) };
-        count++;
-      } else if (characterSheet.lightsaberForms && rawName in characterSheet.lightsaberForms) {
-        characterSheet.lightsaberForms[rawName] = newVal;
-        if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
-        if (!characterSheet.lightsaberFormsXP[rawName]) characterSheet.lightsaberFormsXP[rawName] = {current:0,required:xpRequired(newVal)};
-        characterSheet.lightsaberFormsXP[rawName].required = xpRequired(newVal);
-        if (!masterXP.lightsaberForms) masterXP.lightsaberForms = {};
-        const _cur4 = masterXP.lightsaberForms[rawName]?.totalXP || 0;
-        const _floor4 = xpToReachLevel(newVal);
-        masterXP.lightsaberForms[rawName] = { totalXP: Math.max(_cur4, _floor4) };
-        count++;
-      }
-      continue;
-    }
-
-    // Match strain line: Force=X/12 Phys=X/10 Mental=X/10
-    if (/strain/i.test(trimmed)) {
-      const fv = trimmed.match(/force\s*=\s*(\d+)/i);
-      const pv = trimmed.match(/phys(?:ical)?\s*=\s*(\d+)/i);
-      const mv = trimmed.match(/mental\s*=\s*(\d+)/i);
-      if (fv) { characterSheet.forceStrain = parseInt(fv[1]); count++; }
-      if (pv) { characterSheet.physicalStrain = parseInt(pv[1]); count++; }
-      if (mv) { characterSheet.mentalStrain = parseInt(mv[1]); count++; }
-    }
-
-    // Match XP accumulation: "ForceSense XP: +8"
-    const xpMatch = trimmed.match(/^([A-Za-z][\w\s]+?)\s+XP:\s*\+(\d+(?:\.\d+)?)/i);
-    if (xpMatch) {
-      const rawName = xpMatch[1].trim();
-      const xpGain = parseFloat(xpMatch[2]);
-      const keyLower = rawName.toLowerCase().replace(/\s+/g,'');
-      const keySpaced = rawName.toLowerCase();
-      let fk = fsMap[keyLower] || fsMap[keySpaced];
-      if (fk) {
-        if (!characterSheet.forceStatsXP) characterSheet.forceStatsXP = {};
-        const curVal = characterSheet.forceStats?.[fk] || 0;
-        if (!characterSheet.forceStatsXP[fk]) characterSheet.forceStatsXP[fk] = {current:0,required:xpRequired(curVal)};
-        characterSheet.forceStatsXP[fk].current = Math.min(
-          (characterSheet.forceStatsXP[fk].current||0) + xpGain,
-          characterSheet.forceStatsXP[fk].required - 0.01
-        );
-        count++;
-      }
-    }
-  }
-  return count;
-}
-
-
-function buildSheetSummaryForSim(cs) {
-  return `Name: ${cs.name||'?'} | Age: ${cs.age||'?'} | Force Tier: ${cs.forceTier||1}
-HP: ${cs.hp||100}/${cs.maxHp||100} | Force Strain: ${cs.forceStrain||0}/${cs.maxForceStrain||100}
-Physical Strain: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||100} | Mental Strain: ${cs.mentalStrain||0}/${cs.maxMentalStrain||100}
-Force Stats: ForceSense=${cs.forceStats?.forceSense||0}(XP:${cs.forceStatsXP?.forceSense?.current||0}/${cs.forceStatsXP?.forceSense?.required||10}), Meditation=${cs.forceStats?.meditation||0}(XP:${cs.forceStatsXP?.meditation?.current||0}/${cs.forceStatsXP?.meditation?.required||10}), ForceKnowledge=${cs.forceStats?.forceKnowledge||0}(XP:${cs.forceStatsXP?.forceKnowledge?.current||0}/${cs.forceStatsXP?.forceKnowledge?.required||10}), ForceControl=${cs.forceStats?.forceControl||0}(XP:${cs.forceStatsXP?.forceControl?.current||0}/${cs.forceStatsXP?.forceControl?.required||10})
-Force Abilities: ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||0):v}(XP:${cs.forceAbilitiesXP?.[k]?.current||0}/${cs.forceAbilitiesXP?.[k]?.required||10})`).join(', ')||'none'}
-Lightsaber Forms: ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||0):v}(XP:${cs.lightsaberFormsXP?.[k]?.current||0}/${cs.lightsaberFormsXP?.[k]?.required||10})`).join(', ')||'none'}
-Stats: STR=${cs.stats?.strength||0}(XP:${cs.statsXP?.strength?.current||0}/${cs.statsXP?.strength?.required||10}), AGI=${cs.stats?.agility||0}(XP:${cs.statsXP?.agility?.current||0}/${cs.statsXP?.agility?.required||10}), END=${cs.stats?.endurance||0}(XP:${cs.statsXP?.endurance?.current||0}/${cs.statsXP?.endurance?.required||10}), WILL=${cs.stats?.willpower||0}(XP:${cs.statsXP?.willpower?.current||0}/${cs.statsXP?.willpower?.required||10}), CHA=${cs.stats?.charisma||0}(XP:${cs.statsXP?.charisma?.current||0}/${cs.statsXP?.charisma?.required||10})
-Alignment: ${cs.alignment||0}`;
+  updateSimProgress(Math.round((simChunksDone/simChunksTotal)*100), `✕ Aborted — ${simChunksDone} week(s) applied.`);
 }
 
 async function finishSimulation(chunks) {
   simActive = false;
-  simPaused = false;
-
-  updateSimProgress(100, `✓ Simulation complete — ${getPeriodLabel(simPeriodType)} simulated`);
-  document.getElementById('sim-progress-label').textContent =
-    `${chunks.length} weeks completed · Character updated`;
   document.getElementById('sim-pause-btn').style.display = 'none';
-  document.getElementById('sim-resume-btn').style.display = 'none';
   document.getElementById('sim-abort-btn').style.display = 'none';
   document.getElementById('sim-done-btn').style.display = '';
-  document.getElementById('sim-close-btn').style.display = '';
+  updateSimProgress(100, `✓ ${getPeriodLabel(simPeriodType)} simulation complete`);
 
-  // Build and show final summary in the story feed
-  const finalSummary = buildFinalSimSummary();
-  closeSimPanel();
-  renderGMMessage(finalSummary);
-  autoSave();
-}
-
-function applySimResultsToGame() {
-  if (simResults.length === 0) return;
-  const summary = buildFinalSimSummary();
-  closeSimPanel();
-  renderGMMessage(summary);
-  autoSave();
-}
-
-function buildFinalSimSummary() {
-  const periodLabel = getPeriodLabel(simPeriodType);
-  let text = `◆ SIMULATION COMPLETE — ${periodLabel}\n\n`;
-
-  if (simResults.length === 0) {
-    text += 'No weeks were completed.';
-    return text;
+  // Log to world log
+  if (worldState) {
+    if (!worldState.worldLog) worldState.worldLog = [];
+    worldState.worldLog.push({ turn:turnCount, event:`Simulated ${getPeriodLabel(simPeriodType)} of training`, location:worldState.location||'' });
+    if (worldState.worldLog.length > 20) worldState.worldLog = worldState.worldLog.slice(-20);
   }
 
-  // Build week-by-week breakdown
-  simResults.forEach((r, i) => {
-    text += `── WEEK ${i + 1} ──\n${r.summary}\n\n`;
+  // Post to story feed
+  const feed = document.getElementById('story-feed');
+  const d = document.createElement('div');
+  d.className = 'msg';
+  const totalXPMap = {};
+  simResults.forEach(r => { Object.entries(r.xpGained||{}).forEach(([p,v])=>{ totalXPMap[p]=(totalXPMap[p]||0)+v; }); });
+  const totalRows = Object.entries(totalXPMap).filter(([,v])=>v>1)
+    .sort(([,a],[,b])=>b-a).slice(0,8)
+    .map(([p,v])=>`<div class="sim-xp-chip">${p.split('.')[1]} <span style="color:#aaffaa">+${Math.round(v)}</span></div>`).join('');
+  d.innerHTML = `<div style="background:rgba(30,40,50,0.35);border:1px solid #2a3a4a;border-radius:4px;padding:12px 16px">
+    <div style="color:#4488aa;font-size:10px;letter-spacing:2px;margin-bottom:8px;font-family:'Cinzel',serif">◆ SIMULATION COMPLETE — ${getPeriodLabel(simPeriodType).toUpperCase()}</div>
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">${simResults.length} week(s) simulated · Calendar advanced</div>
+    <div style="font-size:10px;color:var(--text-dim);letter-spacing:1px;font-family:'Cinzel',serif;margin-bottom:6px">TOTAL XP GAINED</div>
+    <div class="sim-xp-preview">${totalRows||'<span style="color:var(--text-dim);font-style:italic;font-size:11px">No significant gains</span>'}</div>
+  </div>`;
+  feed.appendChild(d);
+  feed.scrollTop = feed.scrollHeight;
+  updateUI();
+  autoSave();
+}
+
+async function simApiCall(systemPrompt, userPrompt, maxTokens) {
+  const key = document.getElementById('api-key-input')?.value.trim() || localStorage.getItem('sw_rpg_api_key') || '';
+  if (!key) return { text: '' };
+  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ system_instruction:{parts:[{text:systemPrompt}]}, contents:[{role:'user',parts:[{text:userPrompt}]}], generationConfig:{maxOutputTokens:maxTokens,temperature:0.7} })
   });
-
-  // Final character state
-  const cs = characterSheet;
-  if (cs) {
-    text += `── FINAL CHARACTER STATE ──\n`;
-    text += `HP: ${cs.hp||100}/${cs.maxHp||100} | Force Strain: ${cs.forceStrain||0} | Physical: ${cs.physicalStrain||0} | Mental: ${cs.mentalStrain||0}\n`;
-    text += `Force Stats: Sense ${cs.forceStats?.forceSense||0}, Meditation ${cs.forceStats?.meditation||0}, Knowledge ${cs.forceStats?.forceKnowledge||0}, Control ${cs.forceStats?.forceControl||0}\n`;
-    const abilities = Object.entries(cs.forceAbilities||{}).map(([k,v]) => `${k}: ${typeof v==='object'?(v.level||0):v}`).join(', ');
-    if (abilities) text += `Force Abilities: ${abilities}\n`;
-    const forms = Object.entries(cs.lightsaberForms||{}).map(([k,v]) => `${k}: ${typeof v==='object'?(v.level||0):v}`).join(', ');
-    if (forms) text += `Lightsaber Forms: ${forms}\n`;
-    text += `Stats: STR ${cs.stats?.strength||0}, AGI ${cs.stats?.agility||0}, END ${cs.stats?.endurance||0}, WILL ${cs.stats?.willpower||0}, CHA ${cs.stats?.charisma||0}\n`;
-    text += `Alignment: ${cs.alignment||0}`;
-  }
-
-  text += `\n\nThe simulation has ended. What would you like to do next?`;
-  return text;
+  const data = await resp.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return { text };
 }
 
 function updateSimProgress(pct, statusText) {
-  document.getElementById('sim-progress-fill').style.width = pct + '%';
-  document.getElementById('sim-status-text').textContent = statusText;
+  const fill = document.getElementById('sim-progress-fill');
+  const status = document.getElementById('sim-status-text');
+  if (fill) fill.style.width = pct + '%';
+  if (status) status.textContent = statusText || '';
 }
 
 function addSimLog(text, label) {
   const log = document.getElementById('sim-chunk-log');
+  if (!log) return;
   const entry = document.createElement('div');
   entry.className = 'sim-chunk-entry';
-  // Style debug entries smaller and dimmer
-  if (label === 'debug') {
-    entry.style.cssText = 'font-size:10px;color:#4a3a28;border-bottom:none;margin-bottom:2px;padding-bottom:2px;word-break:break-all';
-    entry.textContent = text;
-    log.appendChild(entry);
-    log.scrollTop = log.scrollHeight;
-    return;
-  }
-  const labelEl = document.createElement('div');
-  labelEl.className = 'sim-chunk-label';
-  labelEl.textContent = label || '';
-  const textEl = document.createElement('div');
-  textEl.textContent = text;
-  if (label) entry.appendChild(labelEl);
-  entry.appendChild(textEl);
-  log.appendChild(entry);
-  log.scrollTop = log.scrollHeight;
+  if (label) { const l = document.createElement('div'); l.className = 'sim-chunk-label'; l.textContent = label; entry.appendChild(l); }
+  const t = document.createElement('div'); t.textContent = text; entry.appendChild(t);
+  log.appendChild(entry); log.scrollTop = log.scrollHeight;
 }
 
 function openSaveLoad(mode) {
