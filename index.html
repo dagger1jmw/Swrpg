@@ -4313,31 +4313,26 @@ function toggleCalendar() {
   const popup   = document.getElementById('calendar-popup');
   const overlay = document.getElementById('calendar-popup-overlay');
   if (!popup) return;
-  const isOpen = popup.style.display === 'block';
+  const isOpen = popup.style.display === 'flex';
   if (!isOpen) {
+    // Reset to calendar tab on open
+    calSwitchTab('cal');
     refreshBirthdayDisplay();
     updateCalendarContent(worldState?.inGameDate || '');
     popup.style.display   = 'flex';
     if (overlay) overlay.style.display = 'block';
-    // iOS Safari: prevent touch events on popup from scrolling the page behind it
-    popup._touchHandler = (e) => e.stopPropagation();
-    popup.addEventListener('touchmove', popup._touchHandler, { passive: false });
   } else {
     popup.style.display   = 'none';
     if (overlay) overlay.style.display = 'none';
-    if (popup._touchHandler) {
-      popup.removeEventListener('touchmove', popup._touchHandler);
-      delete popup._touchHandler;
-    }
   }
 }
 
 // Populate the calendar popup with a month grid
 function updateCalendarContent(dateStr) {
-  const popup = document.getElementById('calendar-popup');
-  if (!popup) return;
+  const container = document.getElementById('calendar-content');
+  if (!container) return;
   const parsed = parseDateString(dateStr);
-  if (!parsed) { popup.innerHTML = '<div style="color:var(--text-dim);font-size:12px">No date set</div>'; return; }
+  if (!parsed) { container.innerHTML = '<div style="color:var(--text-dim);font-size:12px">No date set</div>'; return; }
 
   const { year, era, dayOfYear } = parsed;
   // Find current month
@@ -4420,11 +4415,11 @@ function updateCalendarContent(dateStr) {
   }
 
   html += `<div style="margin-top:6px;font-size:10px;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:1px">${dateStr}</div>`;
-  popup.innerHTML = html;
+  container.innerHTML = html;
 
   // After rendering, highlight birthday day in grid if same month
   if (bd?.day && bd?.month === (mIdx + 1)) {
-    const cells = popup.querySelectorAll('#calendar-content div[data-day]');
+    const cells = container.querySelectorAll('div[data-day]');
     cells.forEach(cell => {
       if (parseInt(cell.dataset.day) === bd.day) {
         cell.style.outline = '1px solid var(--gold-dim)';
