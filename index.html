@@ -1265,8 +1265,13 @@
             <textarea id="sim-pause-conditions" style="width:100%;background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:8px 12px;font-family:'Crimson Text',serif;font-size:13px;resize:vertical;min-height:70px;outline:none;line-height:1.5" placeholder="Pause if a stat reaches 50, if a Jedi contacts me, if any major event affects training..."></textarea>
           </div>
           <div class="sim-section">
+            <span class="sim-label">Training Location <span style="color:var(--text-dim);font-size:9px">(overrides saved location for transition scene)</span></span>
+            <input id="sim-location-override" type="text" placeholder="e.g. Jedi Temple, Coruscant — Training Salles"
+              style="width:100%;background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:8px 12px;font-family:'Crimson Text',serif;font-size:13px;outline:none;box-sizing:border-box">
+          </div>
+          <div class="sim-section">
             <span class="sim-label">Notes for AI Narrator</span>
-            <textarea id="sim-ai-notes" style="width:100%;background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:8px 12px;font-family:'Crimson Text',serif;font-size:13px;resize:vertical;min-height:70px;outline:none;line-height:1.5" placeholder="Story context for the AI to use when generating the narrative summary. E.g.: This training happens during the Republic transport journey to Coruscant. Master Lyra is available for guidance twice a week."></textarea>
+            <textarea id="sim-ai-notes" style="width:100%;background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:8px 12px;font-family:'Crimson Text',serif;font-size:13px;resize:vertical;min-height:70px;outline:none;line-height:1.5" placeholder="Story context for the AI to use when generating the narrative summary. E.g.: Jared has just arrived at the Jedi Temple. Master Lyra is available for guidance twice a week."></textarea>
           </div>
         </div>
 
@@ -5459,6 +5464,14 @@ async function finishSimulation(chunks) {
   document.getElementById('sim-done-btn').style.display = '';
   updateSimProgress(100, `✓ ${getPeriodLabel(simPeriodType)} simulation complete`);
 
+  // Update worldState location from override if provided
+  const locOverride = document.getElementById('sim-location-override')?.value.trim();
+  if (locOverride && worldState) {
+    worldState.location = locOverride;
+    const locEl = document.getElementById('loc-val');
+    if (locEl) locEl.textContent = locOverride;
+  }
+
   // Log to world log
   if (worldState) {
     if (!worldState.worldLog) worldState.worldLog = [];
@@ -5482,7 +5495,7 @@ async function finishSimulation(chunks) {
 Time skip: ${getPeriodLabel(simPeriodType)} of training simulated (${chunks.length} week(s)).
 Current in-game date: ${ws.inGameDate || 'unknown'}
 Current in-game time: ${ws.inGameTime || 'unknown'}
-Location: ${ws.location || 'unknown'}
+Location: ${document.getElementById('sim-location-override')?.value.trim() || ws.location || 'unknown'}
 Character: ${cs.name || 'unknown'}, Age ${cs.age || '—'}
 
 This time skip just concluded. The character has completed this training period.
@@ -5498,7 +5511,7 @@ Current strain: Force ${cs.forceStrain||0}, Physical ${cs.physicalStrain||0}, Me
   // Insert at START of recentHistory so it's the temporal anchor
   // Use a fake exchange so it reads as established context, not a new instruction
   const syncUserMsg  = { role:'user',  parts:[{text: syncBlock}] };
-  const syncModelMsg = { role:'model', parts:[{text: `Acknowledged. ${getPeriodLabel(simPeriodType)} of training complete. It is now ${ws.inGameDate||'unknown'}, ${ws.inGameTime||'unknown'} at ${ws.location||'the Temple'}. I will resume gameplay from this point with full awareness of the time that has passed.`}] };
+  const syncModelMsg = { role:'model', parts:[{text: `Acknowledged. ${getPeriodLabel(simPeriodType)} of training complete. It is now ${ws.inGameDate||'unknown'}, ${ws.inGameTime||'unknown'} at ${document.getElementById('sim-location-override')?.value.trim() || ws.location || 'the Temple'}. I will resume gameplay from this point with full awareness of the time that has passed.`}] };
   // Remove any previous sync blocks to avoid stacking
   recentHistory = recentHistory.filter(m => !m.parts?.[0]?.text?.startsWith('[SYSTEM STATE UPDATE'));
   recentHistory.unshift(syncModelMsg);
@@ -5565,7 +5578,7 @@ End with "What do you do?" on a new line.`;
 
 Current situation:
 - Date: ${ws.inGameDate||'unknown'}, Time: ${ws.inGameTime||'unknown'}  
-- Location: ${ws.location||'Jedi Temple, Coruscant'}
+- Location: ${document.getElementById('sim-location-override')?.value.trim() || ws.location || 'Jedi Temple, Coruscant'}
 - Character: ${cs.name||'the character'}, Age ${cs.age||'—'}, ${cs.species||'Human'} ${cs.faction||'Jedi'}
 - Recent training focus: ${topGains || 'Force abilities and lightsaber fundamentals'}
 - Current strain: Force ${cs.forceStrain||0}/100, Physical ${cs.physicalStrain||0}/100, Mental ${cs.mentalStrain||0}/100
@@ -5579,7 +5592,7 @@ The scene should:
 ${aiNotes ? `Additional context: ${aiNotes}` : ''}`;
 
   try {
-    const result = await simApiCall(systemPrompt, userPrompt, 500);
+    const result = await simApiCall(systemPrompt, userPrompt, 1500);
     const sceneText = result.text?.trim();
 
     if (!sceneText) {
