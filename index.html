@@ -1071,6 +1071,36 @@
           <span onclick="toggleCalendar()" style="cursor:pointer;color:var(--text-dim);font-size:14px">✕</span>
         </div>
         <div id="calendar-content" style="font-size:13px;line-height:1.9;color:var(--text-main)"></div>
+
+        <!-- Birthday section -->
+        <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">
+          <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px">◈ Character Birthday</div>
+          <div id="birthday-display" style="font-size:12px;color:var(--text-dim);font-style:italic;margin-bottom:8px">Not set</div>
+          <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:6px;align-items:center">
+            <input id="bday-day" type="number" min="1" max="31" placeholder="Day"
+              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:5px 7px;font-size:12px;font-family:inherit;text-align:center;outline:none;width:100%;box-sizing:border-box">
+            <select id="bday-month"
+              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:5px 7px;font-size:12px;font-family:inherit;outline:none;width:100%;box-sizing:border-box">
+              <option value="0">Month</option>
+            </select>
+            <input id="bday-year" type="number" min="1" max="9999" placeholder="Year"
+              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:5px 7px;font-size:12px;font-family:inherit;text-align:center;outline:none;width:100%;box-sizing:border-box">
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px;align-items:center">
+            <select id="bday-era"
+              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:5px 7px;font-size:12px;font-family:inherit;outline:none;flex:1;box-sizing:border-box">
+              <option value="BBY">BBY</option>
+              <option value="ABY">ABY</option>
+            </select>
+            <button onclick="saveBirthday()"
+              style="flex:2;background:transparent;border:1px solid var(--gold-dim);color:var(--gold);padding:5px 10px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;transition:all 0.2s"
+              onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,168,76,0.08)'"
+              onmouseout="this.style.borderColor='var(--gold-dim)';this.style.background='transparent'">
+              Set Birthday
+            </button>
+          </div>
+          <div id="age-auto-note" style="font-size:10px;color:#446644;margin-top:5px;font-style:italic;display:none">✓ Age calculated automatically from in-game date</div>
+        </div>
       </div>
 
       <div id="story-feed">
@@ -1380,7 +1410,7 @@ Every response you generate MUST end with both data blocks below. No exceptions.
 STEP 1: Write your narrative response and choices as normal.
 STEP 2: Immediately after, with no extra text, output the SHEET block:
 <<<SHEET>>>
-{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"darkPressure":0,"momentumWindow":{"active":false,"multiplier":1.0,"expiresDate":"","surrenderDiscount":0},"lastLightActs":{},"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":100,"physicalStrain":0,"maxPhysicalStrain":100,"mentalStrain":0,"maxMentalStrain":100,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"aptitudes":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
+{"name":"","species":"","homeworld":"","faction":"","age":0,"birthday":{"day":0,"month":0,"year":0,"era":"BBY"},"alignment":0,"darkPressure":0,"momentumWindow":{"active":false,"multiplier":1.0,"expiresDate":"","surrenderDiscount":0},"lastLightActs":{},"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":100,"physicalStrain":0,"maxPhysicalStrain":100,"mentalStrain":0,"maxMentalStrain":100,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"aptitudes":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
 <<<END_SHEET>>>
 STEP 2: Output the CHANGES block — REQUIRED EVERY TURN:
 <<<CHANGES>>>
@@ -1403,7 +1433,7 @@ AGILITY=[current]
 ENDURANCE=[current]
 WILLPOWER=[current]
 CHARISMA=[current]
-AGE=[current]
+AGE=[current] — NOTE: if birthday is set in the calendar, age is auto-computed from in-game date. Only set AGE= if birthday is not configured.
 [AbilityName]=[current value for each force ability]
 [FormName]=[current value for each lightsaber form]
 [TRAINING or COMBAT lines — see below]
@@ -4117,12 +4147,121 @@ function advanceInGameDate(dateStr, days) {
   return dateToString(year, era, dayOfYear);
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  BIRTHDAY & AUTO-AGE SYSTEM
+// ═══════════════════════════════════════════════════════════════════
+
+// Compute age from birthday and current in-game date
+// Returns { age, isBirthday, daysUntilBirthday } or null if birthday not set
+function computeAge(birthday, currentDateStr) {
+  if (!birthday || !birthday.day || !birthday.month || !birthday.year) return null;
+  const current = parseDateString(currentDateStr);
+  if (!current) return null;
+
+  // Convert both to absolute day counts for comparison
+  // Birthday day-of-year
+  const bdayDayOfYear = GSC_MONTH_OFFSETS[birthday.month - 1] + birthday.day;
+
+  // Age = difference in years, adjusted if birthday hasn't occurred yet this year
+  // For BBY: earlier year number = later in time (3661 BBY is before 3660 BBY)
+  let currentYearAbs, birthYearAbs;
+  if (current.era === 'BBY') currentYearAbs = -current.year;
+  else currentYearAbs = current.year;
+  if (birthday.era === 'BBY') birthYearAbs = -birthday.year;
+  else birthYearAbs = birthday.year;
+
+  let age = currentYearAbs - birthYearAbs;
+  // If this year's birthday hasn't happened yet, subtract 1
+  if (current.dayOfYear < bdayDayOfYear) age -= 1;
+
+  const isBirthday = current.dayOfYear === bdayDayOfYear;
+  // Days until next birthday
+  let daysUntil = bdayDayOfYear - current.dayOfYear;
+  if (daysUntil < 0) daysUntil += GSC_DAYS_PER_YEAR;
+  if (daysUntil === 0) daysUntil = 0;
+
+  return { age: Math.max(0, age), isBirthday, daysUntilBirthday: daysUntil, bdayDayOfYear };
+}
+
+// Save birthday from inputs and update character sheet
+function saveBirthday() {
+  if (!characterSheet) return;
+  const day   = parseInt(document.getElementById('bday-day')?.value) || 0;
+  const month = parseInt(document.getElementById('bday-month')?.value) || 0;
+  const year  = parseInt(document.getElementById('bday-year')?.value) || 0;
+  const era   = document.getElementById('bday-era')?.value || 'BBY';
+  if (!day || !month || !year) { alert('Please fill in day, month, and year.'); return; }
+  if (month < 1 || month > 12) { alert('Select a valid month.'); return; }
+  if (day < 1 || day > GSC_DAYS_IN_MONTH[month - 1]) {
+    alert(`${GSC_MONTHS[month-1]} only has ${GSC_DAYS_IN_MONTH[month-1]} days.`); return;
+  }
+  characterSheet.birthday = { day, month, year, era };
+  // Immediately compute and apply age
+  if (worldState?.inGameDate) {
+    const result = computeAge(characterSheet.birthday, worldState.inGameDate);
+    if (result !== null) {
+      characterSheet.age = result.age;
+      updateUI();
+    }
+  }
+  autoSave();
+  refreshBirthdayDisplay();
+  updateCalendarContent(worldState?.inGameDate || '');
+}
+
+// Populate birthday inputs from stored birthday and refresh display label
+function refreshBirthdayDisplay() {
+  const bd = characterSheet?.birthday;
+  const display = document.getElementById('birthday-display');
+  const note = document.getElementById('age-auto-note');
+
+  // Populate month dropdown
+  const sel = document.getElementById('bday-month');
+  if (sel && sel.options.length <= 1) {
+    GSC_MONTHS.forEach((m, i) => {
+      const opt = document.createElement('option');
+      opt.value = i + 1;
+      opt.textContent = m;
+      sel.appendChild(opt);
+    });
+  }
+
+  if (!bd || !bd.day || !bd.month || !bd.year) {
+    if (display) display.textContent = 'Not set';
+    if (note) note.style.display = 'none';
+    return;
+  }
+
+  // Fill inputs
+  const dayEl   = document.getElementById('bday-day');
+  const monEl   = document.getElementById('bday-month');
+  const yearEl  = document.getElementById('bday-year');
+  const eraEl   = document.getElementById('bday-era');
+  if (dayEl)  dayEl.value  = bd.day;
+  if (monEl)  monEl.value  = bd.month;
+  if (yearEl) yearEl.value = bd.year;
+  if (eraEl)  eraEl.value  = bd.era || 'BBY';
+
+  const monthName = GSC_MONTHS[bd.month - 1] || '?';
+  if (display) {
+    const ageInfo = worldState?.inGameDate ? computeAge(bd, worldState.inGameDate) : null;
+    if (ageInfo) {
+      const bdayTag = ageInfo.isBirthday ? ' 🎂 Today!' : ageInfo.daysUntilBirthday <= 30 ? ` (${ageInfo.daysUntilBirthday} days away)` : '';
+      display.innerHTML = `Day ${bd.day} ${monthName} — ${bd.year} ${bd.era || 'BBY'}<span style="color:var(--gold)"> · Age ${ageInfo.age}${bdayTag}</span>`;
+    } else {
+      display.textContent = `Day ${bd.day} ${monthName} — ${bd.year} ${bd.era || 'BBY'}`;
+    }
+  }
+  if (note) note.style.display = 'block';
+}
+
 // Toggle the calendar popup open/closed
 function toggleCalendar() {
   const popup = document.getElementById('calendar-popup');
   if (!popup) return;
   if (popup.style.display === 'none' || !popup.style.display) {
     const dateStr = worldState?.inGameDate || '';
+    refreshBirthdayDisplay();
     updateCalendarContent(dateStr);
     popup.style.display = 'block';
     // Close on outside click
@@ -4203,11 +4342,43 @@ function updateCalendarContent(dateStr) {
   for (let i = 0; i < startWeekDay; i++) html += '<div></div>';
   for (let d = 1; d <= daysInMonth; d++) {
     const isCurrent = d === dayInMonth;
-    html += `<div style="text-align:center;font-size:11px;padding:2px;${isCurrent?'background:rgba(201,168,76,0.2);color:var(--gold);font-weight:bold;border:1px solid var(--gold-dim)':'color:var(--text-dim)'}">${d}</div>`;
+    html += `<div data-day="${d}" style="text-align:center;font-size:11px;padding:2px;${isCurrent?'background:rgba(201,168,76,0.2);color:var(--gold);font-weight:bold;border:1px solid var(--gold-dim)':'color:var(--text-dim)'}">${d}</div>`;
   }
   html += '</div>';
-  html += `<div style="margin-top:10px;font-size:10px;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:1px">${dateStr}</div>`;
+
+  // Birthday info below grid
+  const bd = characterSheet?.birthday;
+  if (bd?.day && bd?.month && bd?.year) {
+    const ageResult = computeAge(bd, dateStr);
+    if (ageResult) {
+      const bdMonthName = GSC_MONTHS[bd.month - 1];
+      const isBdayMonth = bd.month === (mIdx + 1);
+      html += `<div style="margin-top:8px;font-size:10px;font-family:'Cinzel',serif;letter-spacing:1px;color:${ageResult.isBirthday ? 'var(--gold)' : 'var(--text-dim)'}">
+        ${ageResult.isBirthday
+          ? `🎂 Birthday today! Age ${ageResult.age}`
+          : isBdayMonth
+            ? `🎂 Birthday this month — Day ${bd.day} (${ageResult.daysUntilBirthday} days)`
+            : ageResult.daysUntilBirthday <= 30
+              ? `🎂 Birthday in ${ageResult.daysUntilBirthday} days — ${bdMonthName} ${bd.day}`
+              : `🎂 Birthday: ${bdMonthName} ${bd.day} · Age ${ageResult.age}`}
+      </div>`;
+    }
+  }
+
+  html += `<div style="margin-top:6px;font-size:10px;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:1px">${dateStr}</div>`;
   popup.innerHTML = html;
+
+  // After rendering, highlight birthday day in grid if same month
+  if (bd?.day && bd?.month === (mIdx + 1)) {
+    const cells = popup.querySelectorAll('#calendar-content div[data-day]');
+    cells.forEach(cell => {
+      if (parseInt(cell.dataset.day) === bd.day) {
+        cell.style.outline = '1px solid var(--gold-dim)';
+        cell.style.color = '#e8c84c';
+        cell.title = '🎂 Birthday';
+      }
+    });
+  }
 }
 
 function updateWorldState() {
@@ -4222,6 +4393,27 @@ function updateWorldState() {
     const timeEl = document.getElementById('time-val');
     if (timeEl) timeEl.textContent = w.inGameTime;
   }
+  // Auto-compute age from birthday when date changes
+  if (characterSheet?.birthday?.day && worldState?.inGameDate) {
+    const ageResult = computeAge(characterSheet.birthday, worldState.inGameDate);
+    if (ageResult !== null && characterSheet.age !== ageResult.age) {
+      characterSheet.age = ageResult.age;
+      // Birthday notification
+      if (ageResult.isBirthday) {
+        const feed = document.getElementById('story-feed');
+        if (feed && !document.querySelector('.birthday-notif')) {
+          const d = document.createElement('div');
+          d.className = 'msg birthday-notif';
+          d.innerHTML = `<div style="background:rgba(201,168,76,0.1);border:1px solid var(--gold-dim);border-radius:4px;padding:8px 14px;font-size:12px;text-align:center">
+            <span style="color:var(--gold);font-family:'Cinzel',serif;letter-spacing:1px">🎂 ${characterSheet.name || 'The character'} turns ${ageResult.age} today</span>
+          </div>`;
+          feed.appendChild(d);
+          feed.scrollTop = feed.scrollHeight;
+        }
+      }
+    }
+  }
+
   // Date — use worldState.inGameDate which may already be corrected by the narrative parser
   const currentDate = worldState.inGameDate || w.inGameDate;
   if (currentDate && currentDate.trim()) {
@@ -4437,6 +4629,7 @@ function loadFromSave(save) {
     if (characterSheet.darkPressure === undefined) characterSheet.darkPressure = 0;
     if (!characterSheet.momentumWindow) characterSheet.momentumWindow = {active:false,multiplier:1.0,expiresDate:'',surrenderDiscount:0};
     if (!characterSheet.lastLightActs) characterSheet.lastLightActs = {};
+    if (!characterSheet.birthday) characterSheet.birthday = {day:0,month:0,year:0,era:'BBY'};
   }
   // Restore masterXP — if the save predates masterXP, migrate from characterSheet XP stores
   if (save.masterXP) {
