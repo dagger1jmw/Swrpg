@@ -2601,8 +2601,8 @@ async function callGemini(playerMessage, retryCount = 0) {
       if (worldParsed && worldState) {
         // Only keep AI date if it's ahead of (or equal to) what we already have
         if (savedDate) {
-          const aiAbs = worldState.inGameDate ? dateToAbsoluteDays(worldState.inGameDate) : 0;
-          const curAbs = dateToAbsoluteDays(savedDate);
+          const aiAbs = (worldState.inGameDate && typeof dateToAbsoluteDays === 'function') ? dateToAbsoluteDays(worldState.inGameDate) : 0;
+          const curAbs = (typeof dateToAbsoluteDays === 'function') ? dateToAbsoluteDays(savedDate) : 0;
           if (aiAbs < curAbs) worldState.inGameDate = savedDate;
         }
         // Always keep our tracked time unless AI has something different formatted
@@ -3055,6 +3055,7 @@ async function callGemini(playerMessage, retryCount = 0) {
       }
 
       // Date — ONLY parse from "Time Elapsed" / "It is now" lines to avoid stale dates in JSON
+      if (typeof GSC_MONTHS === 'undefined') return;
       const monthNames = GSC_MONTHS.join('|');
       const timeLines = rt.split('\n').filter(l =>
         /time elapsed|it is now|it is currently/i.test(l)
@@ -3817,6 +3818,133 @@ function updateCharacterSheet() {
   document.getElementById('sheet-content').innerHTML = html;
 }
 
+
+// ═══════════════════════════════════════════════════════════════════
+//  GALACTIC STANDARD CALENDAR
+// ═══════════════════════════════════════════════════════════════════
+const GSC_MONTHS        = ['Coruscann','Frostuary','Warming','Seedmonth','Bloomtide','Midyear','Heatmonth','Harvestide','Goldfall','Stormtide','Coldmonth','Yearend'];
+const GSC_DAYS_IN_MONTH = [31,30,31,31,31,30,31,30,31,31,31,30];
+const GSC_DAYS_PER_WEEK  = 7;
+const GSC_WEEK_DAYS      = ['Primeday','Centaxday','Taungsday','Zhellday','Benduday','Restday','Endday'];
+const GSC_MONTHS_PER_YEAR = 12;
+const GSC_DAYS_PER_YEAR   = GSC_DAYS_IN_MONTH.reduce((a,b)=>a+b,0); // 368
+
+// Cumulative day offset for each month (day-of-year at which each month starts)
+const GSC_MONTH_OFFSETS = GSC_DAYS_IN_MONTH.reduce((acc,d,i)=>{
+  acc.push(i===0 ? 0 : acc[i-1]+GSC_DAYS_IN_MONTH[i-1]);
+  return acc;
+},[]);
+
+// Convert a parsed date to an absolute day count (for comparison)
+function dateToAbsoluteDays(dateStr) {
+  const p = parseDateString(dateStr);
+  if (!p) return 0;
+  const yearSign = p.era === 'BBY' ? -1 : 1;
+  return yearSign * p.year * GSC_DAYS_PER_YEAR + p.dayOfYear;
+}
+
+// Convert year/era/dayOfYear back to a display string
+function dateToString(year, era, dayOfYear) {
+  let rem = Math.max(1, dayOfYear), mIdx = 0;
+  for (let i = 0; i < GSC_MONTHS_PER_YEAR; i++) {
+    if (rem <= GSC_DAYS_IN_MONTH[i]) { mIdx = i; break; }
+    rem -= GSC_DAYS_IN_MONTH[i];
+  }
+  const absDay = (era==='BBY' ? -year : year) * GSC_DAYS_PER_YEAR + dayOfYear;
+  const weekDay = GSC_WEEK_DAYS[((absDay % GSC_DAYS_PER_WEEK) + GSC_DAYS_PER_WEEK) % GSC_DAYS_PER_WEEK];
+  return `${weekDay}, Day ${rem} ${GSC_MONTHS[mIdx]} — ${year} ${era}`;
+}
+
+// Parse a date string into { year, era, dayOfYear }
+function parseDateString(dateStr) {
+  if (!dateStr) return null;
+
+  // Handle "Day X, Cycle Y" fallback (old/malformed AI output)
+  const cycleMatch = dateStr.match(/Day\s*(\d+),?\s*Cycle\s*(\d+)/i);
+  if (cycleMatch) {
+    const dayOfMonth = parseInt(cycleMatch[1]);
+    const monthIndex = Math.max(0, parseInt(cycleMatch[2]) - 1) % GSC_MONTHS_PER_YEAR;
+    const yearMatch2 = dateStr.match(/(\d{3,4})\s*(BBY|ABY)/i);
+    const year = yearMatch2 ? parseInt(yearMatch2[1]) : 3661;
+    const era  = yearMatch2 ? yearMatch2[2].toUpperCase() : 'BBY';
+    const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + Math.min(dayOfMonth, GSC_DAYS_IN_MONTH[monthIndex]);
+    return { year, era, dayOfYear: Math.max(1, dayOfYear) };
+  }
+
+  const yearMatch = dateStr.match(/(\d{3,4})\s*(BBY|ABY)/i);
+  if (!yearMatch) return null;
+  const year = parseInt(yearMatch[1]);
+  const era  = yearMatch[2].toUpperCase();
+
+  // "Day X MonthName" or "Day X, MonthName"
+  const fullMatch = dateStr.match(/Day\s*(\d+),?\s*([A-Za-z][a-z]+)/i);
+  if (fullMatch) {
+    const dayOfMonth = parseInt(fullMatch[1]);
+    const monthName  = fullMatch[2];
+    const monthIndex = GSC_MONTHS.findIndex(m => m.toLowerCase() === monthName.toLowerCase());
+    if (monthIndex >= 0) {
+      const dayOfYear = GSC_MONTH_OFFSETS[monthIndex] + Math.min(dayOfMonth, GSC_DAYS_IN_MONTH[monthIndex]);
+      return { year, era, dayOfYear: Math.max(1, dayOfYear) };
+    }
+  }
+
+  // Fallback: raw day number as day-of-year
+  const dayMatch = dateStr.match(/Day\s*(\d+)/i);
+  return { year, era, dayOfYear: Math.max(1, Math.min(dayMatch ? parseInt(dayMatch[1]) : 1, GSC_DAYS_PER_YEAR)) };
+}
+
+// Advance a date string by N days
+function advanceInGameDate(dateStr, days) {
+  const parsed = parseDateString(dateStr);
+  if (!parsed) return dateStr;
+  let { year, era, dayOfYear } = parsed;
+  dayOfYear += days;
+  while (dayOfYear > GSC_DAYS_PER_YEAR) {
+    dayOfYear -= GSC_DAYS_PER_YEAR;
+    if (era === 'BBY') year--; else year++;
+  }
+  while (dayOfYear < 1) {
+    dayOfYear += GSC_DAYS_PER_YEAR;
+    if (era === 'BBY') year++; else year--;
+  }
+  return dateToString(year, era, dayOfYear);
+}
+
+// Populate the calendar popup with a month grid
+function updateCalendarContent(dateStr) {
+  const popup = document.getElementById('calendar-popup');
+  if (!popup) return;
+  const parsed = parseDateString(dateStr);
+  if (!parsed) { popup.innerHTML = '<div style="color:var(--text-dim);font-size:12px">No date set</div>'; return; }
+
+  const { year, era, dayOfYear } = parsed;
+  // Find current month
+  let rem = dayOfYear, mIdx = 0, dayInMonth = dayOfYear;
+  for (let i = 0; i < GSC_MONTHS_PER_YEAR; i++) {
+    if (rem <= GSC_DAYS_IN_MONTH[i]) { mIdx = i; dayInMonth = rem; break; }
+    rem -= GSC_DAYS_IN_MONTH[i];
+  }
+
+  const monthName   = GSC_MONTHS[mIdx];
+  const daysInMonth = GSC_DAYS_IN_MONTH[mIdx];
+  const monthStart  = GSC_MONTH_OFFSETS[mIdx] + 1;
+  const startAbs    = (era==='BBY'?-year:year)*GSC_DAYS_PER_YEAR + monthStart;
+  const startWeekDay= ((startAbs % GSC_DAYS_PER_WEEK) + GSC_DAYS_PER_WEEK) % GSC_DAYS_PER_WEEK;
+
+  let html = `<div style="font-family:'Cinzel',serif;font-size:11px;color:var(--gold);letter-spacing:2px;margin-bottom:10px;text-align:center">${monthName} ${year} ${era}</div>`;
+  html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px">';
+  GSC_WEEK_DAYS.forEach(d => { html += `<div style="font-size:9px;color:var(--text-dim);text-align:center;font-family:'Cinzel',serif">${d.slice(0,2)}</div>`; });
+  html += '</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">';
+  for (let i = 0; i < startWeekDay; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isCurrent = d === dayInMonth;
+    html += `<div style="text-align:center;font-size:11px;padding:2px;${isCurrent?'background:rgba(201,168,76,0.2);color:var(--gold);font-weight:bold;border:1px solid var(--gold-dim)':'color:var(--text-dim)'}">${d}</div>`;
+  }
+  html += '</div>';
+  html += `<div style="margin-top:10px;font-size:10px;color:var(--text-dim);font-family:'Cinzel',serif;letter-spacing:1px">${dateStr}</div>`;
+  popup.innerHTML = html;
+}
+
 function updateWorldState() {
   const w = worldState;
   if (!w) return;
@@ -3831,9 +3959,9 @@ function updateWorldState() {
   }
   // Date — use worldState.inGameDate which may already be corrected by the narrative parser
   const currentDate = worldState.inGameDate || w.inGameDate;
-  if (currentDate) {
+  if (currentDate && currentDate.trim()) {
     const raw = currentDate;
-    const hasPropFormat = GSC_MONTHS.some(m => raw.includes(m));
+    const hasPropFormat = GSC_MONTHS && GSC_MONTHS.some(m => raw.includes(m));
     if (!hasPropFormat) {
       const yearMatch = raw.match(/(\d{3,4})\s*(BBY|ABY)/i);
       const dayMatch = raw.match(/Day\s*(\d+)/i);
