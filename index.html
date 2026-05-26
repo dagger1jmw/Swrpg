@@ -4112,6 +4112,28 @@ function advanceInGameDate(dateStr, days) {
   return dateToString(year, era, dayOfYear);
 }
 
+// Toggle the calendar popup open/closed
+function toggleCalendar() {
+  const popup = document.getElementById('calendar-popup');
+  if (!popup) return;
+  if (popup.style.display === 'none' || !popup.style.display) {
+    const dateStr = worldState?.inGameDate || '';
+    updateCalendarContent(dateStr);
+    popup.style.display = 'block';
+    // Close on outside click
+    setTimeout(() => {
+      document.addEventListener('click', function closeCalendar(e) {
+        if (!popup.contains(e.target) && e.target.id !== 'date-text' && !document.getElementById('date-text')?.contains(e.target)) {
+          popup.style.display = 'none';
+          document.removeEventListener('click', closeCalendar);
+        }
+      });
+    }, 10);
+  } else {
+    popup.style.display = 'none';
+  }
+}
+
 // Populate the calendar popup with a month grid
 function updateCalendarContent(dateStr) {
   const popup = document.getElementById('calendar-popup');
@@ -5444,25 +5466,166 @@ async function finishSimulation(chunks) {
     if (worldState.worldLog.length > 20) worldState.worldLog = worldState.worldLog.slice(-20);
   }
 
-  // Post to story feed
+  // Build XP summary for sync block and display
+  const totalXPMap = {};
+  simResults.forEach(r => { Object.entries(r.xpGained||{}).forEach(([p,v])=>{ totalXPMap[p]=(totalXPMap[p]||0)+v; }); });
+  const xpSummaryText = Object.entries(totalXPMap)
+    .filter(([,v])=>v>1).sort(([,a],[,b])=>b-a)
+    .map(([p,v])=>`${p.split('.')[1]} +${Math.round(v)}`).join(', ') || 'minimal gains';
+
+  // ── OPTION 4: Inject state sync block into recentHistory ─────────
+  // This is always the first thing the AI reads next turn — overrides any
+  // temporal confusion from pre-simulation history turns.
+  const cs = characterSheet || {};
+  const ws = worldState || {};
+  const syncBlock = `[SYSTEM STATE UPDATE — TIME SKIP COMPLETE]
+Time skip: ${getPeriodLabel(simPeriodType)} of training simulated (${chunks.length} week(s)).
+Current in-game date: ${ws.inGameDate || 'unknown'}
+Current in-game time: ${ws.inGameTime || 'unknown'}
+Location: ${ws.location || 'unknown'}
+Character: ${cs.name || 'unknown'}, Age ${cs.age || '—'}
+
+This time skip just concluded. The character has completed this training period.
+Do NOT reference events from before this time skip as if they just happened.
+Resume gameplay from this point in time and location.
+
+Key developments during time skip:
+${xpSummaryText}
+Notable stat levels: ForceControl ${cs.forceStats?.forceControl||0}, ForceSense ${cs.forceStats?.forceSense||0}, Meditation ${cs.forceStats?.meditation||0}, ShiiCho ${cs.lightsaberForms?.ShiiCho||0}
+Current strain: Force ${cs.forceStrain||0}, Physical ${cs.physicalStrain||0}, Mental ${cs.mentalStrain||0}
+[END STATE UPDATE]`;
+
+  // Insert at START of recentHistory so it's the temporal anchor
+  // Use a fake exchange so it reads as established context, not a new instruction
+  const syncUserMsg  = { role:'user',  parts:[{text: syncBlock}] };
+  const syncModelMsg = { role:'model', parts:[{text: `Acknowledged. ${getPeriodLabel(simPeriodType)} of training complete. It is now ${ws.inGameDate||'unknown'}, ${ws.inGameTime||'unknown'} at ${ws.location||'the Temple'}. I will resume gameplay from this point with full awareness of the time that has passed.`}] };
+  // Remove any previous sync blocks to avoid stacking
+  recentHistory = recentHistory.filter(m => !m.parts?.[0]?.text?.startsWith('[SYSTEM STATE UPDATE'));
+  recentHistory.unshift(syncModelMsg);
+  recentHistory.unshift(syncUserMsg);
+  // Trim to prevent overflow
+  if (recentHistory.length > RECENT_TURNS * 2 + 2) {
+    recentHistory = [syncUserMsg, syncModelMsg, ...recentHistory.slice(2).slice(-(RECENT_TURNS * 2))];
+  }
+
+  // Post simulation complete card to story feed
   const feed = document.getElementById('story-feed');
   const d = document.createElement('div');
   d.className = 'msg';
-  const totalXPMap = {};
-  simResults.forEach(r => { Object.entries(r.xpGained||{}).forEach(([p,v])=>{ totalXPMap[p]=(totalXPMap[p]||0)+v; }); });
   const totalRows = Object.entries(totalXPMap).filter(([,v])=>v>1)
     .sort(([,a],[,b])=>b-a).slice(0,8)
     .map(([p,v])=>`<div class="sim-xp-chip">${p.split('.')[1]} <span style="color:#aaffaa">+${Math.round(v)}</span></div>`).join('');
   d.innerHTML = `<div style="background:rgba(30,40,50,0.35);border:1px solid #2a3a4a;border-radius:4px;padding:12px 16px">
     <div style="color:#4488aa;font-size:10px;letter-spacing:2px;margin-bottom:8px;font-family:'Cinzel',serif">◆ SIMULATION COMPLETE — ${getPeriodLabel(simPeriodType).toUpperCase()}</div>
-    <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">${simResults.length} week(s) simulated · Calendar advanced</div>
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">${simResults.length} week(s) simulated · Calendar advanced to ${ws.inGameDate||'unknown'}</div>
     <div style="font-size:10px;color:var(--text-dim);letter-spacing:1px;font-family:'Cinzel',serif;margin-bottom:6px">TOTAL XP GAINED</div>
-    <div class="sim-xp-preview">${totalRows||'<span style="color:var(--text-dim);font-style:italic;font-size:11px">No significant gains</span>'}</div>
+    <div class="sim-xp-preview" style="margin-bottom:12px">${totalRows||'<span style="color:var(--text-dim);font-style:italic;font-size:11px">No significant gains</span>'}</div>
+    <div style="font-size:11px;color:#446655;letter-spacing:1px;font-family:'Cinzel',serif;margin-bottom:8px">◈ CONTEXT SYNC ACTIVE — AI oriented to new date/time</div>
+    <button onclick="generateTransitionScene()" id="sim-transition-btn"
+      style="background:transparent;border:1px solid var(--gold-dim);color:var(--gold);padding:8px 18px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;width:100%"
+      onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,168,76,0.08)'"
+      onmouseout="this.style.borderColor='var(--gold-dim)';this.style.background='transparent'">
+      ✦ Generate Transition Scene
+    </button>
+    <div style="font-size:10px;color:var(--text-dim);margin-top:6px;font-style:italic">
+      Generates a narrative scene bridging the time skip — sets the stage for resuming gameplay.
+      Optional but recommended for clean story continuity.
+    </div>
   </div>`;
   feed.appendChild(d);
   feed.scrollTop = feed.scrollHeight;
   updateUI();
   autoSave();
+}
+
+// ── OPTION 3: Generate Transition Scene ──────────────────────────
+// One AI call that writes a proper narrative scene bridging the time skip.
+// The scene is injected into the feed AND into recentHistory as the "last turn",
+// so the AI treats it as the most recent story beat when you next act.
+async function generateTransitionScene() {
+  const btn = document.getElementById('sim-transition-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⋯ Generating…'; }
+
+  const cs = characterSheet || {};
+  const ws = worldState || {};
+  const totalXPMap = {};
+  simResults.forEach(r => { Object.entries(r.xpGained||{}).forEach(([p,v])=>{ totalXPMap[p]=(totalXPMap[p]||0)+v; }); });
+  const topGains = Object.entries(totalXPMap).filter(([,v])=>v>10)
+    .sort(([,a],[,b])=>b-a).slice(0,5)
+    .map(([p,v])=>`${p.split('.')[1]} (+${Math.round(v)} XP)`).join(', ');
+
+  const aiNotes = document.getElementById('sim-ai-notes')?.value.trim() || '';
+
+  const systemPrompt = `You are the Game Master for a Star Wars Legends tabletop RPG campaign. 
+Write atmospheric, immersive prose in the style of the game. Present tense. 
+Do not use bullet points or headers. Do not mention XP or game mechanics.
+End with "What do you do?" on a new line.`;
+
+  const userPrompt = `Write a short transition scene (2-3 paragraphs) that begins immediately after a ${getPeriodLabel(simPeriodType)} training period has concluded for ${cs.name||'the character'}.
+
+Current situation:
+- Date: ${ws.inGameDate||'unknown'}, Time: ${ws.inGameTime||'unknown'}  
+- Location: ${ws.location||'Jedi Temple, Coruscant'}
+- Character: ${cs.name||'the character'}, Age ${cs.age||'—'}, ${cs.species||'Human'} ${cs.faction||'Jedi'}
+- Recent training focus: ${topGains || 'Force abilities and lightsaber fundamentals'}
+- Current strain: Force ${cs.forceStrain||0}/100, Physical ${cs.physicalStrain||0}/100, Mental ${cs.mentalStrain||0}/100
+- Alignment: ${cs.alignment >= 26 ? 'Light Side, Attuned' : cs.alignment >= 1 ? 'Calm, Light-leaning' : cs.alignment >= -25 ? 'Balanced, Neutral' : 'Leaning toward the Dark Side'}
+
+The scene should:
+- Establish the character waking up or arriving at a natural break point after extended training
+- Reflect briefly on the growth felt — not mechanically, but as the character would experience it (stronger connection to the Force, body feels different, instincts sharper)
+- Set up the current environment vividly so the player knows where they are
+- Feel like a natural chapter opening, not a summary
+${aiNotes ? `Additional context: ${aiNotes}` : ''}`;
+
+  try {
+    const result = await simApiCall(systemPrompt, userPrompt, 500);
+    const sceneText = result.text?.trim();
+
+    if (!sceneText) {
+      if (btn) { btn.disabled = false; btn.textContent = '✦ Generate Transition Scene'; }
+      return;
+    }
+
+    // Render scene in feed like a normal GM turn
+    renderGMMessage(sceneText);
+
+    // ── Inject into recentHistory as the "last real turn" ──────────
+    // This replaces the sync block's model message position so that
+    // when the player next acts, this scene is the most recent narrative context.
+    const sceneUserMsg  = { role:'user',  parts:[{text:'[Transition scene — time skip complete. Resume gameplay from here.]'}] };
+    const sceneModelMsg = { role:'model', parts:[{text: sceneText}] };
+    // Keep the sync block at position 0-1 (temporal anchor), add scene after it
+    recentHistory = recentHistory.filter(m => m !== undefined);
+    const hasSyncBlock = recentHistory[0]?.parts?.[0]?.text?.startsWith('[SYSTEM STATE UPDATE');
+    if (hasSyncBlock) {
+      // Insert scene right after the sync block pair
+      recentHistory.splice(2, 0, sceneUserMsg, sceneModelMsg);
+    } else {
+      recentHistory.unshift(sceneModelMsg);
+      recentHistory.unshift(sceneUserMsg);
+    }
+    // Trim to keep history manageable
+    if (recentHistory.length > RECENT_TURNS * 2 + 4) {
+      const syncPair = hasSyncBlock ? recentHistory.slice(0,2) : [];
+      const rest = recentHistory.slice(syncPair.length).slice(-(RECENT_TURNS * 2 + 2));
+      recentHistory = [...syncPair, ...rest];
+    }
+    fullHistory.push(sceneUserMsg, sceneModelMsg);
+
+    // Hide the button — scene is generated
+    if (btn) {
+      btn.style.display = 'none';
+      const note = btn.nextElementSibling;
+      if (note) note.innerHTML = '<span style="color:#446655">✓ Transition scene generated — gameplay context set. Close this panel and continue.</span>';
+    }
+
+    autoSave();
+
+  } catch(err) {
+    if (btn) { btn.disabled = false; btn.textContent = '✦ Generate Transition Scene'; }
+    addSimLog('Error generating transition scene: ' + err.message, 'error');
+  }
 }
 
 async function simApiCall(systemPrompt, userPrompt, maxTokens) {
