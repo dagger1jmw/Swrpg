@@ -1065,7 +1065,7 @@
       </div>
 
       <!-- Calendar popup -->
-      <div id="calendar-popup" style="display:none;position:absolute;top:0;right:0;z-index:150;background:var(--bg-panel);border:1px solid var(--border-bright);padding:16px;width:290px;box-shadow:0 4px 20px rgba(0,0,0,0.7)">
+      <div id="calendar-popup" style="display:none;position:absolute;top:0;right:0;z-index:150;background:var(--bg-panel);border:1px solid var(--border-bright);padding:16px;width:300px;max-height:90vh;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,0.7)">
         <div style="font-family:Cinzel,serif;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:10px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center">
           <span>◈ Galactic Calendar</span>
           <span onclick="toggleCalendar()" style="cursor:pointer;color:var(--text-dim);font-size:14px">✕</span>
@@ -1421,6 +1421,7 @@ MENTAL_STRAIN=[current]
 FORCE_BARRIER=[current]
 ALIGNMENT=[current — only for light side gains and momentum-window direct hits]
 DARK_PRESSURE=[new total 0-100 — JS handles discharge at 100]
+LOCATION=[full location string] — use whenever location changes, e.g. LOCATION=Jedi Temple, Coruscant — Training Salles
 MOMENTUM_WINDOW=[multiplier],[days] — set after pressure discharge; 0,0 to close
 WILL_OF_FORCE=[gain amount],[brief description of what was surrendered]
 SURRENDER_DISCOUNT=[0.3] — optional, set when surrender warrants reduced next discharge
@@ -2699,6 +2700,8 @@ async function callGemini(playerMessage, retryCount = 0) {
       // values. The CHANGES block and narrative parser update these authoritatively below.
       const savedDate = worldState?.inGameDate || null;
       const savedTime = worldState?.inGameTime || null;
+      // Snapshot key fields before parse so we can restore them if AI blanks them
+      const savedPrevFields = worldState ? { location: worldState.location, era: worldState.era, lastEvent: worldState.lastEvent } : {};
       try {
         worldState = JSON.parse(worldMatch[1].trim());
         worldParsed = true;
@@ -2707,6 +2710,12 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (j) { try { worldState = JSON.parse(j[0]); worldParsed = true; } catch(e2) {} }
       }
       if (worldParsed && worldState) {
+        // Protect key fields from being blanked by empty AI values
+        // If AI sends an empty/missing value, restore from pre-parse snapshot
+        if (!worldState.location  && savedPrevFields.location)  worldState.location  = savedPrevFields.location;
+        if (!worldState.era       && savedPrevFields.era)        worldState.era       = savedPrevFields.era;
+        if (!worldState.lastEvent && savedPrevFields.lastEvent)  worldState.lastEvent = savedPrevFields.lastEvent;
+
         // Check if momentum window has expired based on in-game date
         if (characterSheet?.momentumWindow?.active && characterSheet.momentumWindow.expiresDate && worldState.inGameDate) {
           try {
@@ -2884,6 +2893,14 @@ async function callGemini(playerMessage, retryCount = 0) {
             break;
           }
           case 'FORCE_BARRIER':     characterSheet.forceBarrier = val; break;
+          case 'LOCATION':
+            if (worldState && trimmed.slice(9).trim()) {
+              worldState.location = trimmed.slice(9).trim();
+              const locEl = document.getElementById('loc-val');
+              if (locEl) locEl.textContent = worldState.location;
+            }
+            break;
+
           case 'ALIGNMENT': {
             // Direct alignment set — used for light side gains and momentum-window hits
             const newAlign = Math.max(-100, Math.min(100, val));
