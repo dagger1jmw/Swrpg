@@ -1223,16 +1223,19 @@
                 <span class="sim-strain-label-left">Force</span>
                 <div class="sim-strain-bar-wrap"><div class="sim-strain-bar" id="sp-force" style="width:0%;background:linear-gradient(90deg,#224488,#4488cc)"></div></div>
                 <span class="sim-strain-label-right" id="sp-force-val">0/100</span>
+                <span id="sp-force-rec" style="font-size:10px;min-width:90px;text-align:right"></span>
               </div>
               <div class="sim-strain-row">
                 <span class="sim-strain-label-left">Physical</span>
                 <div class="sim-strain-bar-wrap"><div class="sim-strain-bar" id="sp-phys" style="width:0%;background:linear-gradient(90deg,#664422,#cc8844)"></div></div>
                 <span class="sim-strain-label-right" id="sp-phys-val">0/100</span>
+                <span id="sp-phys-rec" style="font-size:10px;min-width:90px;text-align:right"></span>
               </div>
               <div class="sim-strain-row">
                 <span class="sim-strain-label-left">Mental</span>
                 <div class="sim-strain-bar-wrap"><div class="sim-strain-bar" id="sp-ment" style="width:0%;background:linear-gradient(90deg,#442266,#884488)"></div></div>
                 <span class="sim-strain-label-right" id="sp-ment-val">0/100</span>
+                <span id="sp-ment-rec" style="font-size:10px;min-width:90px;text-align:right"></span>
               </div>
               <div id="sp-warn" class="sim-strain-warn"></div>
             </div>
@@ -4435,10 +4438,10 @@ const SIM_ACTIVITIES = [
   { key:'sparring_live',    label:'Live Sparring',             weights:[{p:'stats.agility',w:0.5},{p:'stats.endurance',w:0.5},{p:'stats.strength',w:0.4},{p:'forceStats.forceSense',w:0.3}], strainBias:{f:1.0,p:1.8,m:0.8}, defaultIntensity:'intense', unlock:cs=>true },
   // FORCE ABILITIES
   { key:'telekinesis_basic',   label:'Telekinesis Practice',  weights:[{p:'forceAbilities.Telekinesis',w:1.0},{p:'forceStats.forceControl',w:0.6},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:1.8,p:0.2,m:1.0}, defaultIntensity:'standard', unlock:cs=>true },
-  { key:'force_sense_passive', label:'Force Sense Meditation', weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.meditation',w:0.5},{p:'stats.willpower',w:0.3},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.2,p:0.1,m:1.5}, defaultIntensity:'casual',   unlock:cs=>true },
+  { key:'force_sense_passive', label:'Force Sense Meditation', weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.meditation',w:0.5},{p:'stats.willpower',w:0.3},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.2,p:0.1,m:1.5}, defaultIntensity:'casual',   unlock:cs=>true, isRecovery:true },
   { key:'force_sense_active',  label:'Force Sense (Active)',  weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.forceControl',w:0.5},{p:'stats.willpower',w:0.4},{p:'forceStats.forceKnowledge',w:0.2}], strainBias:{f:1.6,p:0.1,m:1.8}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.forceSense||0)>=10 },
-  { key:'meditation_basic',    label:'Meditation (Centering)',weights:[{p:'forceStats.meditation',w:1.0},{p:'stats.willpower',w:0.4},{p:'forceStats.forceSense',w:0.2},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.0,p:0.05,m:1.2}, defaultIntensity:'casual',   unlock:cs=>true },
-  { key:'meditation_deep',     label:'Deep Force Immersion',  weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceControl',w:0.4},{p:'forceStats.forceKnowledge',w:0.3},{p:'stats.willpower',w:0.5}], strainBias:{f:1.5,p:0.0,m:1.5}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.meditation||0)>=15 },
+  { key:'meditation_basic',    label:'Meditation (Centering)',weights:[{p:'forceStats.meditation',w:1.0},{p:'stats.willpower',w:0.4},{p:'forceStats.forceSense',w:0.2},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.0,p:0.05,m:1.2}, defaultIntensity:'casual',   unlock:cs=>true, isRecovery:true },
+  { key:'meditation_deep',     label:'Deep Force Immersion',  weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceControl',w:0.4},{p:'forceStats.forceKnowledge',w:0.3},{p:'stats.willpower',w:0.5}], strainBias:{f:1.5,p:0.0,m:1.5}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.meditation||0)>=15, isRecovery:true },
   { key:'force_knowledge',     label:'Force Knowledge Study', weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'stats.willpower',w:0.3}], strainBias:{f:0.3,p:0.0,m:1.8}, defaultIntensity:'casual',   unlock:cs=>true },
   { key:'force_control_drills',label:'Force Control Drills',  weights:[{p:'forceStats.forceControl',w:1.0},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.4}], strainBias:{f:1.8,p:0.2,m:1.2}, defaultIntensity:'standard', unlock:cs=>true },
   // PHYSICAL
@@ -4463,7 +4466,7 @@ const SIM_INTENSITY_STRAIN_MULT = { casual:0.5, standard:1.0, intense:1.75, push
 const SIM_MANDATORY = {
   youngling: [
     { label:'Morning Forms Drills', defaultHours:1.5, min:0.5, max:2.0, weights:[{p:'lightsaberForms.ShiiCho',w:1.0},{p:'stats.agility',w:0.3},{p:'stats.strength',w:0.2},{p:'stats.endurance',w:0.2}], strainBias:{f:0.5,p:1.3,m:0.4}, intensity:'standard' },
-    { label:'Group Meditation',     defaultHours:1.0, min:0.5, max:1.5, weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceSense',w:0.4},{p:'stats.willpower',w:0.3}], strainBias:{f:1.2,p:0.0,m:1.0}, intensity:'casual' },
+    { label:'Group Meditation',     defaultHours:1.0, min:0.5, max:1.5, weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceSense',w:0.4},{p:'stats.willpower',w:0.3}], strainBias:{f:1.2,p:0.0,m:1.0}, intensity:'casual', isRecovery:true },
     { label:'Force Fundamentals',   defaultHours:1.0, min:0.5, max:1.5, weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'forceStats.forceControl',w:0.3},{p:'forceStats.forceSense',w:0.2}], strainBias:{f:0.5,p:0.0,m:1.6}, intensity:'casual' },
   ],
   padawan: [
@@ -4665,6 +4668,48 @@ function simUpdateHoursTracker() {
 }
 
 // ── Strain preview ────────────────────────────────────────────────
+function simCalcMeditationRecovery() {
+  // Calculate how much strain meditation activities recover per day
+  // Formula: basedRecovery * (1 + meditationStat/50) * hours
+  // Centering: ~10-20/hr Force + Mental recovery; Deep: ~15-30/hr
+  // Physical strain: meditation has minimal physical recovery (rest/sleep handles that)
+  const cs = characterSheet || {};
+  const medStat = cs.forceStats?.meditation || 0;
+  const medBonus = 1 + (medStat / 50); // +100% recovery at meditation stat 50
+  let rf=0, rp=0, rm=0;
+
+  const RECOVERY_RATES = {
+    meditation_basic:    { f:12, p:1,  m:10 }, // per hour
+    meditation_deep:     { f:20, p:1,  m:18 }, // per hour — more powerful
+    force_sense_passive: { f:8,  p:0,  m:8  }, // lighter — mostly calming
+  };
+
+  // Check mandatory meditation rows
+  const stage = cs.lifeStage || 'youngling';
+  (SIM_MANDATORY[stage] || []).forEach((mand, i) => {
+    if (!mand.isRecovery) return;
+    const hrs = parseFloat(document.getElementById('sim-mand-hours-'+i)?.value) || mand.defaultHours;
+    // Group Meditation: treat as meditation_basic rates
+    const rates = RECOVERY_RATES.meditation_basic;
+    rf += hrs * rates.f * medBonus;
+    rp += hrs * rates.p * medBonus;
+    rm += hrs * rates.m * medBonus;
+  });
+
+  // Check training rows
+  simTrainingRows.forEach(r => {
+    if (!r.activityKey || !r.hours) return;
+    const act = SIM_ACTIVITIES.find(a => a.key === r.activityKey);
+    if (!act || !act.isRecovery) return;
+    const rates = RECOVERY_RATES[r.activityKey] || RECOVERY_RATES.meditation_basic;
+    rf += r.hours * rates.f * medBonus;
+    rp += r.hours * rates.p * medBonus;
+    rm += r.hours * rates.m * medBonus;
+  });
+
+  return { rf: Math.round(rf*10)/10, rp: Math.round(rp*10)/10, rm: Math.round(rm*10)/10 };
+}
+
 function simCalcDailyStrain() {
   const cs = characterSheet || {};
   const em = compressedBonus(cs.stats?.endurance || 0) / 10;
@@ -4672,7 +4717,8 @@ function simCalcDailyStrain() {
   const mandatories = SIM_MANDATORY[stage] || [];
   let f=0, p=0, m=0;
 
-  const addStrain = (hours, intensity, bias) => {
+  const addStrain = (hours, intensity, bias, isRecovery) => {
+    if (isRecovery) return; // meditation handled separately in simCalcMeditationRecovery
     const iMult = SIM_INTENSITY_STRAIN_MULT[intensity] || 1.0;
     f += hours * SIM_STRAIN_BASE.f * iMult * (bias.f||1) * (1 - em * 0.5);
     p += hours * SIM_STRAIN_BASE.p * iMult * (bias.p||1) * (1 - em);
@@ -4681,7 +4727,7 @@ function simCalcDailyStrain() {
 
   mandatories.forEach((mand, i) => {
     const hrs = parseFloat(document.getElementById('sim-mand-hours-' + i)?.value) || mand.defaultHours;
-    addStrain(hrs, mand.intensity, mand.strainBias);
+    addStrain(hrs, mand.intensity, mand.strainBias, mand.isRecovery);
   });
 
   simTrainingRows.forEach(r => {
@@ -4689,34 +4735,50 @@ function simCalcDailyStrain() {
     const act = SIM_ACTIVITIES.find(a => a.key === r.activityKey)
               || simCustomDrills.find(d => 'custom_'+d.id === r.activityKey);
     if (!act) return;
-    addStrain(r.hours, r.intensity || act.defaultIntensity, act.strainBias || {f:1,p:1,m:1});
+    addStrain(r.hours, r.intensity || act.defaultIntensity, act.strainBias || {f:1,p:1,m:1}, act.isRecovery);
   });
+
+  // Meditation recovery (net negative strain)
+  const rec = simCalcMeditationRecovery();
+  f = Math.max(0, f - rec.rf);
+  p = Math.max(0, p - rec.rp);
+  m = Math.max(0, m - rec.rm);
 
   // Sleep recovery
   const sleepHrs = parseFloat(document.getElementById('sim-sleep-hours')?.value) || 7;
   const sleepRecovery = sleepHrs >= 8 ? 1.0 : sleepHrs >= 7 ? 0.85 : sleepHrs >= 6 ? 0.65 : sleepHrs >= 5 ? 0.45 : sleepHrs >= 4 ? 0.25 : 0.10;
-  // Return end-of-day strain (starting from previous day residual = 0 for single day)
-  return { f: Math.round(f*10)/10, p: Math.round(p*10)/10, m: Math.round(m*10)/10, sleepRecovery };
+  return { f: Math.round(f*10)/10, p: Math.round(p*10)/10, m: Math.round(m*10)/10, sleepRecovery, meditationRecovery: rec };
 }
 
 function simUpdateStrainPreview() {
   const s = simCalcDailyStrain();
+  const rec = s.meditationRecovery || {rf:0,rp:0,rm:0};
   const worst = Math.max(s.f, s.p, s.m);
-  const setBar = (id, val, valId) => {
+  const setBar = (id, val, valId, recoverId, recoverVal) => {
     const el = document.getElementById(id);
     const vEl = document.getElementById(valId);
+    const rEl = document.getElementById(recoverId);
     if (el) el.style.width = Math.min(100, val) + '%';
     if (vEl) vEl.textContent = val.toFixed(1) + '/100';
+    if (rEl) {
+      if (recoverVal > 0) {
+        rEl.textContent = '−' + recoverVal.toFixed(0) + ' meditation';
+        rEl.style.color = '#44aa66';
+      } else {
+        rEl.textContent = '';
+      }
+    }
   };
-  setBar('sp-force', s.f, 'sp-force-val');
-  setBar('sp-phys',  s.p, 'sp-phys-val');
-  setBar('sp-ment',  s.m, 'sp-ment-val');
+  setBar('sp-force', s.f, 'sp-force-val', 'sp-force-rec', rec.rf);
+  setBar('sp-phys',  s.p, 'sp-phys-val',  'sp-phys-rec',  rec.rp);
+  setBar('sp-ment',  s.m, 'sp-ment-val',  'sp-ment-rec',  rec.rm);
   const warn = document.getElementById('sp-warn');
   if (warn) {
     if (worst > 90) warn.textContent = '⚠ Extreme overtraining — XP gains ×0.1, narrative consequence will fire';
     else if (worst > 70) warn.textContent = '⚠ Overtrained — XP gains reduced to ×0.4';
     else if (worst > 50) warn.textContent = '↓ Strained — XP gains ×0.7';
     else if (worst > 20) warn.textContent = '⬤ Minor fatigue — no XP penalty';
+    else if (rec.rf > 0 || rec.rm > 0) warn.textContent = '✦ Meditation keeping strain in check';
     else warn.textContent = '';
   }
 }
@@ -5043,7 +5105,7 @@ async function runSimChunks(chunks) {
 async function simProcessDay(chunk, chunkNum, total) {
   const cs = characterSheet || {};
   const days = chunk.days || 7;
-  const strainData = simCalcDailyStrain();
+  const strainData = simCalcDailyStrain(); // net strain already accounts for meditation recovery
   const penalty = simGetStrainPenalty();
   const xpGained = {};
 
