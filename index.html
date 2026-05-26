@@ -1066,39 +1066,51 @@
 
       <!-- Calendar popup — fixed overlay so it works on mobile without clipping -->
       <div id="calendar-popup-overlay" onclick="toggleCalendar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:400"></div>
-      <div id="calendar-popup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:401;background:var(--bg-panel);border:1px solid var(--border-bright);padding:16px;width:min(320px,92vw);max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.8)">
-        <div style="font-family:Cinzel,serif;font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:10px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--bg-panel);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:12px">
-          <span>◈ Galactic Calendar</span>
-          <span onclick="toggleCalendar()" style="cursor:pointer;color:var(--text-dim);font-size:18px;line-height:1;padding:0 4px">✕</span>
+      <div id="calendar-popup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:401;background:var(--bg-panel);border:1px solid var(--border-bright);padding:16px;width:min(320px,92vw);max-height:82vh;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;box-shadow:0 8px 32px rgba(0,0,0,0.8)">
+        <!-- Header with tabs -->
+        <div style="position:sticky;top:0;background:var(--bg-panel);z-index:1;padding-bottom:0;margin-bottom:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-family:Cinzel,serif;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase">◈ Galactic Calendar</span>
+            <span onclick="toggleCalendar()" style="cursor:pointer;color:var(--text-dim);font-size:22px;line-height:1;padding:0 2px">✕</span>
+          </div>
+          <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:12px">
+            <button id="cal-tab-cal" onclick="calSwitchTab('cal')"
+              style="flex:1;background:transparent;border:none;border-bottom:2px solid var(--gold);color:var(--gold);padding:6px 0;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Calendar</button>
+            <button id="cal-tab-bday" onclick="calSwitchTab('bday')"
+              style="flex:1;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-dim);padding:6px 0;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Birthday</button>
+          </div>
         </div>
-        <div id="calendar-content" style="font-size:13px;line-height:1.9;color:var(--text-main)"></div>
 
-        <!-- Birthday section -->
-        <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
-          <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px">◈ Character Birthday</div>
-          <div id="birthday-display" style="font-size:12px;color:var(--text-dim);font-style:italic;margin-bottom:10px">Not set</div>
-          <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:6px;margin-bottom:6px">
+        <!-- Calendar tab -->
+        <div id="cal-page-cal">
+          <div id="calendar-content" style="font-size:13px;color:var(--text-main)"></div>
+        </div>
+
+        <!-- Birthday tab -->
+        <div id="cal-page-bday" style="display:none">
+          <div id="birthday-display" style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:14px">Not set</div>
+          <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:8px;margin-bottom:8px">
             <input id="bday-day" type="number" min="1" max="31" placeholder="Day"
-              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:7px;font-size:13px;font-family:inherit;text-align:center;outline:none;width:100%;box-sizing:border-box">
+              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:10px 6px;font-size:14px;font-family:inherit;text-align:center;outline:none;width:100%;box-sizing:border-box">
             <select id="bday-month"
-              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:7px;font-size:12px;font-family:inherit;outline:none;width:100%;box-sizing:border-box">
+              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:10px 6px;font-size:13px;font-family:inherit;outline:none;width:100%;box-sizing:border-box">
               <option value="0">Month</option>
             </select>
             <input id="bday-year" type="number" min="1" max="9999" placeholder="Year"
-              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:7px;font-size:13px;font-family:inherit;text-align:center;outline:none;width:100%;box-sizing:border-box">
+              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:10px 6px;font-size:14px;font-family:inherit;text-align:center;outline:none;width:100%;box-sizing:border-box">
           </div>
-          <div style="display:flex;gap:6px;align-items:center">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
             <select id="bday-era"
-              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:7px;font-size:13px;font-family:inherit;outline:none;flex:1;box-sizing:border-box">
+              style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:10px 8px;font-size:14px;font-family:inherit;outline:none;flex:1;box-sizing:border-box">
               <option value="BBY">BBY</option>
               <option value="ABY">ABY</option>
             </select>
             <button onclick="saveBirthday()"
-              style="flex:2;background:transparent;border:1px solid var(--gold-dim);color:var(--gold);padding:8px 10px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">
+              style="flex:2;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);padding:10px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">
               Set Birthday
             </button>
           </div>
-          <div id="age-auto-note" style="font-size:10px;color:#446644;margin-top:8px;font-style:italic;display:none">✓ Age calculated automatically from in-game date</div>
+          <div id="age-auto-note" style="font-size:11px;color:#446644;font-style:italic;display:none">✓ Age calculated automatically from in-game date</div>
         </div>
       </div>
 
@@ -4165,6 +4177,28 @@ function advanceInGameDate(dateStr, days) {
 
 // ═══════════════════════════════════════════════════════════════════
 //  BIRTHDAY & AUTO-AGE SYSTEM
+
+function calSwitchTab(tab) {
+  const calPage  = document.getElementById('cal-page-cal');
+  const bdayPage = document.getElementById('cal-page-bday');
+  const calBtn   = document.getElementById('cal-tab-cal');
+  const bdayBtn  = document.getElementById('cal-tab-bday');
+  if (!calPage || !bdayPage) return;
+  if (tab === 'cal') {
+    calPage.style.display  = '';
+    bdayPage.style.display = 'none';
+    if (calBtn)  { calBtn.style.borderBottomColor  = 'var(--gold)';   calBtn.style.color  = 'var(--gold)'; }
+    if (bdayBtn) { bdayBtn.style.borderBottomColor = 'transparent';   bdayBtn.style.color = 'var(--text-dim)'; }
+  } else {
+    calPage.style.display  = 'none';
+    bdayPage.style.display = '';
+    if (calBtn)  { calBtn.style.borderBottomColor  = 'transparent';   calBtn.style.color  = 'var(--text-dim)'; }
+    if (bdayBtn) { bdayBtn.style.borderBottomColor = 'var(--gold)';   bdayBtn.style.color = 'var(--gold)'; }
+    refreshBirthdayDisplay();
+  }
+}
+
+
 // ═══════════════════════════════════════════════════════════════════
 
 // Compute age from birthday and current in-game date
@@ -4282,9 +4316,16 @@ function toggleCalendar() {
     updateCalendarContent(worldState?.inGameDate || '');
     popup.style.display   = 'block';
     if (overlay) overlay.style.display = 'block';
+    // iOS Safari: prevent touch events on popup from scrolling the page behind it
+    popup._touchHandler = (e) => e.stopPropagation();
+    popup.addEventListener('touchmove', popup._touchHandler, { passive: false });
   } else {
     popup.style.display   = 'none';
     if (overlay) overlay.style.display = 'none';
+    if (popup._touchHandler) {
+      popup.removeEventListener('touchmove', popup._touchHandler);
+      delete popup._touchHandler;
+    }
   }
 }
 
