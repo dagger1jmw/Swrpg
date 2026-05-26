@@ -1375,7 +1375,7 @@ Every response you generate MUST end with both data blocks below. No exceptions.
 STEP 1: Write your narrative response and choices as normal.
 STEP 2: Immediately after, with no extra text, output the SHEET block:
 <<<SHEET>>>
-{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":100,"physicalStrain":0,"maxPhysicalStrain":100,"mentalStrain":0,"maxMentalStrain":100,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"aptitudes":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
+{"name":"","species":"","homeworld":"","faction":"","age":0,"alignment":0,"darkPressure":0,"momentumWindow":{"active":false,"multiplier":1.0,"expiresDate":"","surrenderDiscount":0},"lastLightActs":{},"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":100,"physicalStrain":0,"maxPhysicalStrain":100,"mentalStrain":0,"maxMentalStrain":100,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"aptitudes":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
 <<<END_SHEET>>>
 STEP 2: Output the CHANGES block — REQUIRED EVERY TURN:
 <<<CHANGES>>>
@@ -1384,7 +1384,11 @@ FORCE_STRAIN=[current]
 PHYSICAL_STRAIN=[current]
 MENTAL_STRAIN=[current]
 FORCE_BARRIER=[current]
-ALIGNMENT=[current]
+ALIGNMENT=[current — only for light side gains and momentum-window direct hits]
+DARK_PRESSURE=[new total 0-100 — JS handles discharge at 100]
+MOMENTUM_WINDOW=[multiplier],[days] — set after pressure discharge; 0,0 to close
+WILL_OF_FORCE=[gain amount],[brief description of what was surrendered]
+SURRENDER_DISCOUNT=[0.3] — optional, set when surrender warrants reduced next discharge
 FORCE_SENSE=[current]
 MEDITATION=[current]
 FORCE_KNOWLEDGE=[current]
@@ -1971,26 +1975,92 @@ REVIEW CHECKLIST each turn:
 4. Did the character demonstrate something exceptional that wasn't already captured?
 
 Always carry existing traits forward in the SHEET block. Never silently drop traits.
-Alignment range: -100 (pure Dark) to +100 (pure Light). Current value must be in SHEET block.
+## ALIGNMENT SYSTEM — PRESSURE, MOMENTUM, AND MORAL WEIGHT
 
-WHAT MOVES ALIGNMENT:
-- Minor decisions with moral weight: ±0.1 to ±0.5
-- Significant moral choices (choosing mercy vs. harm, honesty vs. deception): ±1 to ±3
-- Defining moments (killing in cold blood, saving a life at great cost, betrayal): ±5 to ±10
+Alignment range: -100 (pure Dark) to +100 (pure Light). 0 = Neutral.
+TIERS: Deep Light(76-100) · Light(26-75) · Leaning Light(1-25) · Neutral(-25 to 0) · Leaning Dark(-26 to -50) · Corrupted(-51 to -75) · Consumed(-76 to -100)
 
-WHAT DOES NOT MOVE ALIGNMENT:
-- Using Force powers (Force Push, Sense, etc.) — powers are tools, not moral choices
-- Standard meditation — maintaining existing connection, not moral growth
-- Combat in self-defense with no moral complexity
+CRITICAL: You NEVER set ALIGNMENT= directly for dark side events. Dark side works through DARK_PRESSURE=.
+The JavaScript engine handles discharge automatically when pressure hits 100.
+You only set ALIGNMENT= for light side gains and WILL_OF_FORCE= events.
 
-LIGHT SIDE ALIGNMENT GAIN REQUIRES:
-- A conscious choice toward compassion, sacrifice, honesty, or protection
-- Sustained meditation specifically reflecting on light side philosophy and principles (rare, +0.5 max)
-- Choosing the harder right over the easier wrong
+── DARK PRESSURE SYSTEM ──────────────────────────────────────────
+Use DARK_PRESSURE=[new total 0-100] in CHANGES block. Cap at 100 — JS handles discharge.
+Pressure accumulates from:
+  - Using anger as a weapon/decision driver: +5 to +15
+  - Using dark side abilities (Force Choke, Lightning, Fear, etc.): +10 to +20
+  - Deceiving someone for selfish gain: +5 to +10
+  - Abandoning someone who needed help: +10 to +20
+  - Killing helpless/unarmed person: +20 to +40
+  - Passive isolation from all anchor bonds (1 week): +3
+  - Losing an anchor (master killed, betrayal): +15 to +30 spike
 
-DARK SIDE ALIGNMENT LOSS REQUIRES:
-- Anger used to harm, cruelty, deception for selfish gain, abandoning someone in need
-- Using fear or domination as tools deliberately
+Pressure resistance (reduce additions by these amounts):
+  - Active anchor bonds: -5% per bond (max -20%)
+  - Recent deep meditation: -15%
+  - ForceKnowledge 21+: -10%
+  - Currently Light tier: -5%
+  - Currently Dark tier: INCREASE by +10% (darkness pulls deeper)
+
+── MOMENTUM WINDOW ───────────────────────────────────────────────
+When pressure discharges (hits 100), set MOMENTUM_WINDOW=[multiplier],[in-game days duration]
+Example: MOMENTUM_WINDOW=1.5,3 means dark acts hit alignment directly at ×1.5 for 3 in-game days.
+
+During active momentum window: any dark act hits ALIGNMENT= directly (not pressure).
+  - Minor dark act: -3 to -5 alignment direct
+  - Moderate dark act: -6 to -10 alignment direct
+  - Major dark act: -10 to -20 alignment direct
+Window closes if: enough time passes OR character makes any neutral/light moral choice OR meditates.
+To close window early: set MOMENTUM_WINDOW=0,0
+
+Multipliers by timing:
+  - Same scene as discharge: ×2.0
+  - Within 24 in-game hours: ×1.5
+  - 1-3 in-game days: ×1.25
+  - 3+ days without light act: ×1.0
+
+── LIGHT SIDE ALIGNMENT GAINS ────────────────────────────────────
+Use ALIGNMENT=[new value] in CHANGES block. Diminishing returns apply — same act type twice in 5 turns = half gain.
+
+  Mercy when anger is justified:             +1 to +2
+  Honest confession at personal cost:        +1 to +2
+  Protecting someone at genuine cost:        +2 to +4
+  Choosing peace when violence would work:   +1 to +2
+  Forgiving a genuine wrong:                 +2 to +4
+  Releasing attachment (grief/fear/desire):  +1 to +3
+  Genuine remorse confronting past dark acts:+2 to +5
+  Sacrifice for another (defining moments):  +5 to +10 (rare — story events only)
+  Maximum gain per turn from choices: +5 (defining sacrifice moments may exceed)
+
+WHAT DOES NOT GAIN ALIGNMENT:
+  - Routine virtue — being kind when there's no cost
+  - Force use (powers are tools)
+  - Standard meditation (reduces pressure accumulation, does NOT move alignment directly)
+  - Combat in self-defense with no moral complexity
+
+── SURRENDERING TO THE WILL OF THE FORCE ─────────────────────────
+The deepest light side act. Use WILL_OF_FORCE=[gain amount],[brief description] in CHANGES.
+Scales with what is surrendered:
+  - Following Force impulse in low-stakes moment: +1 to +2
+  - Abandoning a plan because Force says so (real cost): +3 to +5
+  - Accepting an outcome you wanted to control: +5 to +8
+  - Surrendering life/mission/relationship to Force's will: +10 to +15
+Secondary effect: also applies -30% to next pressure discharge amount (set via SURRENDER_DISCOUNT=[0.3])
+This is distinct from choosing good — it is releasing control entirely. Qui-Gon, Obi-Wan on Death Star, Yoda in exile.
+
+── REDEMPTION DIFFICULTY ─────────────────────────────────────────
+Returning from dark to light requires more than the same positive acts:
+  - From Leaning Dark: ×1.0 (normal)
+  - From Corrupted: ×3.0 (triple acts needed for same gain — shame, dependency)
+  - From Consumed: No mechanical path. Requires defining narrative sacrifice event.
+
+── TIER EFFECTS (apply to rolls/strain) ─────────────────────────
+  Deep Light: pressure accumulates at ×0.5 rate, dark abilities refuse to activate
+  Light: standard bonuses, healing -10% strain
+  Leaning Light/Neutral: no modifiers
+  Leaning Dark: anger +1 to rolls, light healing +10% strain cost, dark abilities available
+  Corrupted: dark abilities -15% strain, light abilities +20% strain, visible physical signs
+  Consumed: dark abilities fully empowered, light abilities inaccessible
 
 ## STRAIN SYSTEM — BASE COSTS (all values on 0–100 scale)
 Force actions: small=0 Force Strain, single-target=+5-10, multi-target=+15-20, large-scale=+25-35, battlefield=+40-50
@@ -2431,7 +2501,7 @@ function buildContext(userContent) {
   const forceTier = getCharForceTier();     // kept for reference only — actual tier per contest uses specific ability
 
   const sheetSummary = `NAME: ${cs.name||'?'} | SPECIES: ${cs.species||'?'} | AGE: ${cs.age||'?'} | FACTION: ${cs.faction||'?'}
-ALIGNMENT: ${cs.alignment||0} (moves only from conscious moral choices — Force use alone = no change)
+ALIGNMENT: ${(()=>{const a=cs.alignment||0;const p=cs.darkPressure||0;const m=cs.momentumWindow;const t=a>=76?'Luminous':a>=26?'Attuned':a>=1?'Calm':a>=-25?'Balanced':a>=-50?'Shadowed':a>=-75?'Corrupted':'Consumed';return `${t} (${a>=0?'+':''}${a}) | Dark Pressure: ${p}/100${m?.active?' | ⚡ MOMENTUM WINDOW ACTIVE (×'+m.multiplier+') expires '+m.expiresDate:''}`;})()}
 DUELING TIER: ${duelingTier.name} (Tier ${duelingTier.num}) | FORCE TIER: ${forceTier.name} (Tier ${forceTier.num})
 HP: ${cs.hp||100}/${cs.maxHp||100}
 FORCE STRAIN: ${cs.forceStrain ?? cs.strain ?? 0}/${cs.maxForceStrain ?? cs.maxStrain ?? 100}
@@ -2602,6 +2672,16 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (j) { try { worldState = JSON.parse(j[0]); worldParsed = true; } catch(e2) {} }
       }
       if (worldParsed && worldState) {
+        // Check if momentum window has expired based on in-game date
+        if (characterSheet?.momentumWindow?.active && characterSheet.momentumWindow.expiresDate && worldState.inGameDate) {
+          try {
+            const curAbs = dateToAbsoluteDays(worldState.inGameDate);
+            const expAbs = dateToAbsoluteDays(characterSheet.momentumWindow.expiresDate);
+            if (curAbs >= expAbs) {
+              characterSheet.momentumWindow.active = false;
+            }
+          } catch(e) {}
+        }
         // Only keep AI date if it's ahead of (or equal to) what we already have
         if (savedDate) {
           const aiAbs = (worldState.inGameDate && typeof dateToAbsoluteDays === 'function') ? dateToAbsoluteDays(worldState.inGameDate) : 0;
@@ -2769,7 +2849,93 @@ async function callGemini(playerMessage, retryCount = 0) {
             break;
           }
           case 'FORCE_BARRIER':     characterSheet.forceBarrier = val; break;
-          case 'ALIGNMENT':         characterSheet.alignment = val; break;
+          case 'ALIGNMENT': {
+            // Direct alignment set — used for light side gains and momentum-window hits
+            const newAlign = Math.max(-100, Math.min(100, val));
+            const oldAlign = characterSheet.alignment || 0;
+            characterSheet.alignment = newAlign;
+            // If gaining light side alignment, apply redemption difficulty multiplier
+            // (already factored by AI — just clamp and apply)
+            break;
+          }
+          case 'DARK_PRESSURE': {
+            if (!characterSheet.momentumWindow) characterSheet.momentumWindow = {active:false,multiplier:1.0,expiresDate:'',surrenderDiscount:0};
+            const newPressure = Math.max(0, Math.min(100, val));
+            const oldPressure = characterSheet.darkPressure || 0;
+            characterSheet.darkPressure = newPressure;
+            // Discharge check — fires when pressure hits 100
+            if (newPressure >= 100) {
+              characterSheet.darkPressure = 40; // never fully resets — dark side leaves a residue
+              // Calculate alignment loss based on current tier
+              const align = characterSheet.alignment || 0;
+              const discount = characterSheet.momentumWindow.surrenderDiscount || 0;
+              let baseLoss;
+              if (align >= 76)      baseLoss = 12; // Deep Light — dramatic fall
+              else if (align >= 26) baseLoss = 8;  // Light
+              else if (align >= 1)  baseLoss = 6;  // Leaning Light
+              else if (align >= -25)baseLoss = 4;  // Neutral
+              else                  baseLoss = 3;  // Already dark — diminishing structural damage
+              const actualLoss = Math.round(baseLoss * (1 - discount));
+              characterSheet.alignment = Math.max(-100, align - actualLoss);
+              characterSheet.momentumWindow.surrenderDiscount = 0; // consume the discount
+              // Log discharge to feed
+              const feedEl = document.getElementById('story-feed');
+              if (feedEl) {
+                const d = document.createElement('div');
+                d.className = 'msg';
+                d.innerHTML = `<div style="background:rgba(60,20,20,0.35);border:1px solid #4a1a1a;border-radius:4px;padding:8px 14px;font-size:12px;">
+                  <div style="color:#cc4444;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">◈ PRESSURE DISCHARGED</div>
+                  <div style="color:#cc8888;font-size:12px">The dark side breaks through — alignment ${characterSheet.alignment >= 0 ? '+':''}${Math.round(characterSheet.alignment)} (−${actualLoss})</div>
+                </div>`;
+                feedEl.appendChild(d);
+                feedEl.scrollTop = feedEl.scrollHeight;
+              }
+            }
+            break;
+          }
+          case 'MOMENTUM_WINDOW': {
+            // Format: multiplier,days e.g. "1.5,3"
+            if (!characterSheet.momentumWindow) characterSheet.momentumWindow = {active:false,multiplier:1.0,expiresDate:'',surrenderDiscount:0};
+            const parts = String(trimmed.slice(16)).split(',').map(s=>s.trim());
+            const mult = parseFloat(parts[0]) || 1.0;
+            const days = parseInt(parts[1]) || 0;
+            if (mult === 0 || days === 0) {
+              characterSheet.momentumWindow.active = false;
+            } else {
+              characterSheet.momentumWindow.active = true;
+              characterSheet.momentumWindow.multiplier = mult;
+              const expDate = worldState?.inGameDate ? advanceInGameDate(worldState.inGameDate, days) : '';
+              characterSheet.momentumWindow.expiresDate = expDate;
+            }
+            break;
+          }
+          case 'WILL_OF_FORCE': {
+            // Format: gain,description e.g. "5,Released attachment to mission outcome"
+            const wofParts = trimmed.slice(14).split(',');
+            const wofGain = parseFloat(wofParts[0]) || 0;
+            const wofDesc = wofParts.slice(1).join(',').trim() || 'Surrendered to the will of the Force';
+            if (wofGain > 0 && characterSheet) {
+              characterSheet.alignment = Math.min(100, (characterSheet.alignment||0) + wofGain);
+              const feedEl = document.getElementById('story-feed');
+              if (feedEl) {
+                const d = document.createElement('div');
+                d.className = 'msg';
+                d.innerHTML = `<div style="background:rgba(20,40,60,0.35);border:1px solid #1a3a5a;border-radius:4px;padding:8px 14px;font-size:12px;">
+                  <div style="color:#88aadd;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">✦ WILL OF THE FORCE</div>
+                  <div style="color:#aaccee;font-size:12px">${wofDesc}</div>
+                  <div style="color:#4488cc;font-size:11px;margin-top:4px">Alignment +${wofGain} → ${characterSheet.alignment >= 0 ? '+':''}${Math.round(characterSheet.alignment)}</div>
+                </div>`;
+                feedEl.appendChild(d);
+                feedEl.scrollTop = feedEl.scrollHeight;
+              }
+            }
+            break;
+          }
+          case 'SURRENDER_DISCOUNT': {
+            if (!characterSheet.momentumWindow) characterSheet.momentumWindow = {active:false,multiplier:1.0,expiresDate:'',surrenderDiscount:0};
+            characterSheet.momentumWindow.surrenderDiscount = Math.max(0, Math.min(0.5, val));
+            break;
+          }
           case 'FORCE_SENSE':       if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceSense = val; break;
           case 'MEDITATION':        if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.meditation = val; break;
           case 'FORCE_KNOWLEDGE':   if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceKnowledge = val; break;
@@ -3631,9 +3797,26 @@ function updateCharacterSheet() {
   if (!s || !s.name) return;
 
   const alignVal = s.alignment || 0;
-  const alignLabel = alignVal >= 50 ? 'Light' : alignVal <= -50 ? 'Dark' : 'Neutral';
-  const alignColor = alignVal >= 50 ? '#4488cc' : alignVal <= -50 ? '#cc3333' : '#aaaaaa';
-  const alignPct = ((alignVal + 100) / 200 * 100).toFixed(0);
+  const pressure = s.darkPressure || 0;
+  const momentum = s.momentumWindow?.active || false;
+  // 7-tier alignment system
+  const getAlignTier = (v) => {
+    if (v >= 76)  return { label:'Luminous',     color:'#c8e8ff', glow:'#88ccff', tier:'deep-light' };
+    if (v >= 26)  return { label:'Attuned',       color:'#88aadd', glow:'#4488cc', tier:'light' };
+    if (v >= 1)   return { label:'Calm',           color:'#8899bb', glow:'#446688', tier:'leaning-light' };
+    if (v >= -25) return { label:'Balanced',       color:'#aaaaaa', glow:'#666666', tier:'neutral' };
+    if (v >= -50) return { label:'Shadowed',       color:'#cc9944', glow:'#884422', tier:'leaning-dark' };
+    if (v >= -75) return { label:'Corrupted',      color:'#cc4444', glow:'#882222', tier:'dark' };
+    return         { label:'Consumed',       color:'#aa2222', glow:'#660000', tier:'deep-dark' };
+  };
+  const alignTier = getAlignTier(alignVal);
+  const alignLabel = alignTier.label;
+  const alignColor = alignTier.color;
+  const alignGlow  = alignTier.glow;
+  // Bar: left=Consumed(-100), center-left=Neutral(-25), center=0, center-right=Neutral(+25), right=Luminous(+100)
+  const alignPct = ((alignVal + 100) / 200 * 100).toFixed(1);
+  // Pressure bar: 0-100
+  const pressurePct = Math.min(100, pressure);
 
   const hpPct = Math.max(0, Math.min(100, ((s.hp||100) / (s.maxHp||100)) * 100));
 
@@ -3655,15 +3838,31 @@ function updateCharacterSheet() {
     <div class="sheet-name">${s.name}</div>
     <div class="sheet-sub">${s.species || '—'} · ${s.faction || '—'} · Age ${s.age || '—'}</div>
 
-    <div class="bar-wrap" style="margin-bottom:6px">
+    <div class="bar-wrap" style="margin-bottom:2px">
       <div class="bar-label">
-        <span style="color:${alignColor}">${alignLabel}</span>
+        <span style="color:${alignColor};font-weight:bold">${alignLabel}</span>
         <span style="color:${alignColor}">${alignVal > 0 ? '+' : ''}${alignVal}</span>
       </div>
-      <div class="bar-track" style="height:6px;background:linear-gradient(90deg,#224466,#333,#662222)">
-        <div style="width:${alignPct}%;height:100%;background:white;opacity:0.7;border-radius:2px;transition:width 0.4s;box-shadow:0 0 4px ${alignColor}"></div>
+      <!-- 7-tier gradient: deep-dark → corrupted → leaning-dark → neutral → leaning-light → light → deep-light -->
+      <div class="bar-track" style="height:7px;background:linear-gradient(90deg,#660000 0%,#882222 18%,#884422 30%,#333333 37%,#333333 63%,#224466 70%,#336699 82%,#88bbdd 100%);position:relative;border-radius:3px;overflow:visible">
+        <!-- Tier boundary markers -->
+        <div style="position:absolute;top:-3px;bottom:-3px;left:18%;width:1px;background:rgba(255,255,255,0.15)"></div>
+        <div style="position:absolute;top:-3px;bottom:-3px;left:30%;width:1px;background:rgba(255,255,255,0.15)"></div>
+        <div style="position:absolute;top:-3px;bottom:-3px;left:37%;width:1px;background:rgba(255,255,255,0.15)"></div>
+        <div style="position:absolute;top:-3px;bottom:-3px;left:63%;width:1px;background:rgba(255,255,255,0.15)"></div>
+        <div style="position:absolute;top:-3px;bottom:-3px;left:70%;width:1px;background:rgba(255,255,255,0.15)"></div>
+        <div style="position:absolute;top:-3px;bottom:-3px;left:82%;width:1px;background:rgba(255,255,255,0.15)"></div>
+        <!-- Marker dot -->
+        <div style="position:absolute;top:50%;transform:translate(-50%,-50%);left:${alignPct}%;width:10px;height:10px;border-radius:50%;background:${alignColor};box-shadow:0 0 6px ${alignGlow},0 0 12px ${alignGlow};transition:left 0.5s;z-index:2"></div>
       </div>
     </div>
+    <!-- Dark pressure bar -->
+    ${(()=>{ if(pressure<=0) return '<div style="margin-bottom:6px"></div>';
+      const pc=pressure>=80?'#cc4444':pressure>=50?'#cc8833':'#664433';
+      const bg=pressure>=80?'#cc2222':'#884422';
+      const glow=pressure>=80?'box-shadow:0 0 6px #cc2222':'';
+      return `<div class="bar-wrap" style="margin-bottom:6px"><div class="bar-label" style="font-size:10px"><span style="color:${pc}">Dark Pressure${momentum?' ⚡':''}</span><span style="color:${pc}">${Math.round(pressure)}/100</span></div><div class="bar-track" style="height:4px;background:#1a0a0a"><div style="width:${pressurePct}%;height:100%;border-radius:2px;background:linear-gradient(90deg,#441111,${bg});transition:width 0.4s;${glow}"></div></div></div>`;
+    })()}
 
     <div class="bar-wrap">
       <div class="bar-label"><span>HP</span><span>${s.hp||100}/${s.maxHp||100}</span></div>
@@ -4171,6 +4370,10 @@ function loadFromSave(save) {
     if (!characterSheet.maxForceStrain    || characterSheet.maxForceStrain    < 100) characterSheet.maxForceStrain    = 100;
     if (!characterSheet.maxPhysicalStrain || characterSheet.maxPhysicalStrain < 100) characterSheet.maxPhysicalStrain = 100;
     if (!characterSheet.maxMentalStrain   || characterSheet.maxMentalStrain   < 100) characterSheet.maxMentalStrain   = 100;
+    // Migrate old saves missing new alignment fields
+    if (characterSheet.darkPressure === undefined) characterSheet.darkPressure = 0;
+    if (!characterSheet.momentumWindow) characterSheet.momentumWindow = {active:false,multiplier:1.0,expiresDate:'',surrenderDiscount:0};
+    if (!characterSheet.lastLightActs) characterSheet.lastLightActs = {};
   }
   // Restore masterXP — if the save predates masterXP, migrate from characterSheet XP stores
   if (save.masterXP) {
