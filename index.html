@@ -1066,20 +1066,22 @@
 
       <!-- Calendar popup — fixed overlay so it works on mobile without clipping -->
       <div id="calendar-popup-overlay" onclick="toggleCalendar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:400"></div>
-      <div id="calendar-popup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:401;background:var(--bg-panel);border:1px solid var(--border-bright);padding:16px;width:min(320px,92vw);max-height:82vh;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;box-shadow:0 8px 32px rgba(0,0,0,0.8)">
-        <!-- Header with tabs -->
-        <div style="position:sticky;top:0;background:var(--bg-panel);z-index:1;padding-bottom:0;margin-bottom:0">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div id="calendar-popup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:401;background:var(--bg-panel);border:1px solid var(--border-bright);width:min(320px,92vw);max-height:82vh;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.8)">
+        <!-- Fixed header — never scrolls -->
+        <div style="flex-shrink:0;padding:14px 16px 0;background:var(--bg-panel);border-bottom:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <span style="font-family:Cinzel,serif;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase">◈ Galactic Calendar</span>
-            <span onclick="toggleCalendar()" style="cursor:pointer;color:var(--text-dim);font-size:22px;line-height:1;padding:0 2px">✕</span>
+            <span onclick="toggleCalendar()" style="cursor:pointer;color:var(--text-dim);font-size:24px;line-height:1;padding:0 4px">✕</span>
           </div>
-          <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:12px">
+          <div style="display:flex;gap:0">
             <button id="cal-tab-cal" onclick="calSwitchTab('cal')"
-              style="flex:1;background:transparent;border:none;border-bottom:2px solid var(--gold);color:var(--gold);padding:6px 0;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Calendar</button>
+              style="flex:1;background:transparent;border:none;border-bottom:2px solid var(--gold);color:var(--gold);padding:8px 0;font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Calendar</button>
             <button id="cal-tab-bday" onclick="calSwitchTab('bday')"
-              style="flex:1;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-dim);padding:6px 0;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Birthday</button>
+              style="flex:1;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-dim);padding:8px 0;font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Birthday</button>
           </div>
         </div>
+        <!-- Scrollable content area -->
+        <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:14px 16px">
 
         <!-- Calendar tab -->
         <div id="cal-page-cal">
@@ -1112,6 +1114,7 @@
           </div>
           <div id="age-auto-note" style="font-size:11px;color:#446644;font-style:italic;display:none">✓ Age calculated automatically from in-game date</div>
         </div>
+        </div><!-- /scrollable area -->
       </div>
 
       <div id="story-feed">
@@ -4314,7 +4317,7 @@ function toggleCalendar() {
   if (!isOpen) {
     refreshBirthdayDisplay();
     updateCalendarContent(worldState?.inGameDate || '');
-    popup.style.display   = 'block';
+    popup.style.display   = 'flex';
     if (overlay) overlay.style.display = 'block';
     // iOS Safari: prevent touch events on popup from scrolling the page behind it
     popup._touchHandler = (e) => e.stopPropagation();
