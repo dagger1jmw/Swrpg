@@ -4160,7 +4160,43 @@ function updateCalendarContent(dateStr) {
   const startAbs    = (era==='BBY'?-year:year)*GSC_DAYS_PER_YEAR + monthStart;
   const startWeekDay= ((startAbs % GSC_DAYS_PER_WEEK) + GSC_DAYS_PER_WEEK) % GSC_DAYS_PER_WEEK;
 
-  let html = `<div style="font-family:'Cinzel',serif;font-size:11px;color:var(--gold);letter-spacing:2px;margin-bottom:10px;text-align:center">${monthName} ${year} ${era}</div>`;
+  // Month position in year
+  const monthNum = mIdx + 1; // 1-based
+  const dayOfYearDisplay = dayOfYear;
+  const pct = Math.round((dayOfYear / GSC_DAYS_PER_YEAR) * 100);
+
+  let html = `<div style="font-family:'Cinzel',serif;font-size:12px;color:var(--gold);letter-spacing:2px;margin-bottom:4px;text-align:center">${monthName} ${year} ${era}</div>`;
+
+  // Month counter + year progress bar
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+    <span style="font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim);letter-spacing:1px">Month ${monthNum} of ${GSC_MONTHS_PER_YEAR}</span>
+    <span style="font-size:10px;color:var(--text-dim)">Day ${dayOfYearDisplay} of ${GSC_DAYS_PER_YEAR}</span>
+  </div>`;
+
+  // Year progress bar with month tick marks
+  html += `<div style="position:relative;height:6px;background:#1a1510;border-radius:3px;margin-bottom:10px;overflow:visible">`;
+  // Month tick marks
+  for (let i = 1; i < GSC_MONTHS_PER_YEAR; i++) {
+    const tickPct = (GSC_MONTH_OFFSETS[i] / GSC_DAYS_PER_YEAR * 100).toFixed(1);
+    html += `<div style="position:absolute;top:0;bottom:0;left:${tickPct}%;width:1px;background:rgba(255,255,255,0.12)"></div>`;
+  }
+  // Fill
+  html += `<div style="position:absolute;top:0;left:0;height:100%;width:${pct}%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:3px;transition:width 0.3s"></div>`;
+  // Current position dot
+  html += `<div style="position:absolute;top:50%;transform:translate(-50%,-50%);left:${pct}%;width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 5px var(--gold)"></div>`;
+  html += `</div>`;
+
+  // Month name row showing all 12 months, current highlighted
+  html += `<div style="display:grid;grid-template-columns:repeat(12,1fr);gap:1px;margin-bottom:10px">`;
+  GSC_MONTHS.forEach((m, i) => {
+    const isCurMon = i === mIdx;
+    html += `<div title="${m}" style="text-align:center;font-size:8px;padding:2px 0;font-family:'Cinzel',serif;
+      ${isCurMon
+        ? 'color:var(--gold);border-bottom:1px solid var(--gold);font-weight:bold'
+        : 'color:var(--text-dim)'}">${m.slice(0,3)}</div>`;
+  });
+  html += `</div>`;
+
   html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px">';
   GSC_WEEK_DAYS.forEach(d => { html += `<div style="font-size:9px;color:var(--text-dim);text-align:center;font-family:'Cinzel',serif">${d.slice(0,2)}</div>`; });
   html += '</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">';
