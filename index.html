@@ -1472,6 +1472,12 @@ PHYSICAL_STRAIN=[current]
 MENTAL_STRAIN=[current]
 FORCE_BARRIER=[current]
 ALIGNMENT=[current — only for light side gains and momentum-window direct hits]
+SHATTERPOINT_PERCEIVED=[tier],[description] — when a shatterpoint surfaces passively
+SHATTERPOINT_ROLL=[target] — triggers JS interpretation roll; respond to result
+SHATTERPOINT_FOCUS=[0-100] — awareness bandwidth consumed (>70 = tunnel vision)
+SHATTERPOINT_FOCUS_CLEAR — resets focus at scene end
+SHATTERPOINT_XP=[amount] — proficiency XP (JS applies ×0.1 for innate talent)
+SHATTERPOINT_MISREAD_RESOLVED — only after misread consequence fully played out
 DARK_PRESSURE=[new total 0-100 — JS handles discharge at 100]
 MOMENTUM_WINDOW=[multiplier],[days] — set after pressure discharge; 0,0 to close
 WILL_OF_FORCE=[gain amount],[brief description of what was surrendered]
@@ -2062,6 +2068,94 @@ REVIEW CHECKLIST each turn:
 4. Did the character demonstrate something exceptional that wasn't already captured?
 
 Always carry existing traits forward in the SHEET block. Never silently drop traits.
+## SHATTERPOINT SYSTEM
+
+Shatterpoint is a passive Force perception — it surfaces naturally, never forced.
+The JavaScript engine handles all rolls, XP, focus tracking, and tunnel vision.
+Your role: decide WHEN a shatterpoint exists, WHAT it reveals, and consequences of misreads.
+
+── WHAT A SHATTERPOINT IS ────────────────────────────────────────────
+A shatterpoint is a fracture point in the Force — a moment, person, or object where
+one precise action could change everything. They are RARE. Most scenes have none.
+Do NOT manufacture shatterpoints for dramatic convenience.
+
+THREE TIERS (JS enforces unlock based on level):
+  Tier 1 — Tactical (always available):
+    Structural weaknesses in objects. Flaws in a fighter's stance. Old injuries.
+    Gaps in armor. The exact moment an opponent is overextended.
+    These are fleeting — the window to act is short. Surface these in SERIOUS combat only.
+    NOT in training exercises. NOT in casual sparring.
+
+  Tier 2 — Personal (level 6+, JS locks below):
+    A being's psychological or moral fracture point. What they're holding together with effort.
+    A decision they're about to make that will define them. A relationship at its breaking point.
+    NOT immediately actionable — this is information about trajectory, not a button to press.
+    Surface these at GENUINE character crossroads. NOT in casual conversation.
+
+  Tier 3 — Situational (level 11+, JS locks below):
+    Pivotal moments in unfolding events. The fulcrum of a battle or political situation.
+    EXTREMELY rare. Treat as a major story beat when it occurs.
+
+── PERCEPTION vs INTERPRETATION ─────────────────────────────────────
+Perception = passive, automatic for innate talent holders. It surfaces without effort.
+Interpretation = the hard part. Use SHATTERPOINT_ROLL:[target description] to trigger
+the JS interpretation roll. The roll result determines what Jared actually understands:
+
+  fail        → Misread. He perceives something but gets it WRONG. Act on this.
+  contested   → Partial. Accurate but incomplete — missing something crucial.
+  solid       → Clean read. He understands the shatterpoint correctly.
+  strong      → Deep read. Understands the what AND the why AND the timing.
+  overwhelming→ Total clarity. Full picture including implications.
+
+The character.lastShatterpointRoll field contains the current roll result.
+ALWAYS respond to the roll result — do not ignore misreads.
+
+── MISREAD CONSEQUENCES ─────────────────────────────────────────────
+Misreads are NOT "nothing happens." They are active misdirection.
+  Tier 1 misread: He commits to an attack line that was anticipated or fake.
+  Tier 2 misread: He pushes the wrong pressure point on a person. Lasting damage.
+  Tier 3 misread: Strategic misdirection. Potentially catastrophic.
+When character.lastShatterpointMisread.unresolved = true, follow through on the
+consequence before sending SHATTERPOINT_MISREAD_RESOLVED in the CHANGES block.
+
+── TUNNEL VISION ─────────────────────────────────────────────────────
+Deeper reads narrow ambient awareness. When you send SHATTERPOINT_FOCUS=[value]:
+  0-40:  Normal awareness. No impact on perception of surroundings.
+  41-70: Reduced ambient sense. May miss peripheral events.
+  71+:   Tunnel vision. JS sets tunnelVision=true. Jared CANNOT perceive things
+         happening outside his focal point. Do not give him information he wouldn't have.
+         He can be surprised. He can miss allies in trouble. He can miss flanking.
+If Vaapad is active simultaneously, JS multiplies focus by 1.3 automatically.
+Clear focus with SHATTERPOINT_FOCUS_CLEAR when the scene ends or focus drops.
+
+── CHANGES BLOCK TAGS ───────────────────────────────────────────────
+SHATTERPOINT_PERCEIVED:[tier],[brief description of what surfaces]
+  Example: SHATTERPOINT_PERCEIVED:1,Old knee injury — right leg carries weight unevenly
+
+SHATTERPOINT_ROLL:[target]
+  Triggers JS d20 roll. Respond to the result in your narrative.
+  Example: SHATTERPOINT_ROLL:Master Aris during briefing
+
+SHATTERPOINT_FOCUS=[0-100]
+  Set bandwidth consumed. Use 20-40 for Tier 1, 50-70 for Tier 2, 80-90 for Tier 3.
+  Example: SHATTERPOINT_FOCUS=35
+
+SHATTERPOINT_FOCUS_CLEAR
+  Resets focus to 0 when scene ends or Jared disengages.
+
+SHATTERPOINT_XP=[amount]
+  Award proficiency XP. Standard: 50-150 per significant use. JS applies ×0.1 for innate.
+
+SHATTERPOINT_MISREAD_RESOLVED
+  Send ONLY after the misread consequence has fully played out in narrative.
+
+── RARITY GUIDANCE ──────────────────────────────────────────────────
+Ask yourself: "Would this shatterpoint meaningfully change the outcome of something important?"
+If yes and the situation is genuinely significant → surface it.
+If you're tempted to surface it because it would make a cool moment → don't.
+Mace Windu perceived shatterpoints on Dooku, on Anakin, on Palpatine. Not on every
+Separatist soldier he fought. The ability is rare BECAUSE its targets are rare.
+
 ## ALIGNMENT SYSTEM — PRESSURE, MOMENTUM, AND MORAL WEIGHT
 
 Alignment range: -100 (pure Dark) to +100 (pure Light). 0 = Neutral.
@@ -2482,7 +2576,7 @@ function startNewGame() {
   worldState = null;
   turnCount = 0;
   trimmedTurns = 0;
-  masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} };
+  masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{} };
   document.getElementById('sheet-content').innerHTML = '<div style="color:var(--text-dim);font-size:13px;font-style:italic">Character not yet created.</div>';
   document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div>';
   document.getElementById('sim-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No galaxy events yet.</div>';
@@ -2589,6 +2683,20 @@ function buildContext(userContent) {
 
   const sheetSummary = `NAME: ${cs.name||'?'} | SPECIES: ${cs.species||'?'} | AGE: ${cs.age||'?'} | FACTION: ${cs.faction||'?'}
 ALIGNMENT: ${(()=>{const a=cs.alignment||0;const p=cs.darkPressure||0;const m=cs.momentumWindow;const t=a>=76?'Luminous':a>=26?'Attuned':a>=1?'Calm':a>=-25?'Balanced':a>=-50?'Shadowed':a>=-75?'Corrupted':'Consumed';return `${t} (${a>=0?'+':''}${a}) | Dark Pressure: ${p}/100${m?.active?' | ⚡ MOMENTUM WINDOW ACTIVE (×'+m.multiplier+') expires '+m.expiresDate:''}`;})()}
+SHATTERPOINT: ${(()=>{
+  const spL = spGetLevel();
+  const spHas = (cs.innateTalents||[]).includes('ShatterSense');
+  if (spL === 0 && !spHas) return 'Not active';
+  const spTier = spGetTier(spL);
+  const spD = spDeriveFromTotalXP(masterXP.shatterpoint?.main?.totalXP||0);
+  const spFocus = cs.shatterpointFocus||0;
+  const spTV = cs.tunnelVision ? ' | ⚠ TUNNEL VISION — ambient awareness reduced' : '';
+  const spVP = cs.vaapadAmplification ? ' | Vaapad amplifying' : '';
+  const spMR = cs.lastShatterpointMisread?.unresolved ? ' | ⚠ MISREAD UNRESOLVED — follow through' : '';
+  const spRoll = cs.lastShatterpointRoll?.outcome ? ` | Last roll: ${cs.lastShatterpointRoll.outcome} vs ${cs.lastShatterpointRoll.target}` : '';
+  const tierUnlocks = `Tier1=active${spTier>=2?' Tier2=active':' Tier2=locked(L6+)'}${spTier>=3?' Tier3=active':' Tier3=locked(L11+)'}`;
+  return `Level ${spL} | ${tierUnlocks} | Focus: ${spFocus}/100${spTV}${spVP}${spMR}${spRoll}`;
+})()}
 DUELING TIER: ${duelingTier.name} (Tier ${duelingTier.num}) | FORCE TIER: ${forceTier.name} (Tier ${forceTier.num})
 HP: ${cs.hp||100}/${cs.maxHp||100}
 FORCE STRAIN: ${cs.forceStrain ?? cs.strain ?? 0}/${cs.maxForceStrain ?? cs.maxStrain ?? 100}
@@ -2782,6 +2890,8 @@ async function callGemini(playerMessage, retryCount = 0) {
 
         // masterXP is authoritative — overwrite anything the AI sent for stats/XP
         syncMasterXPToSheet();
+        // Seed shatterpoint if innate talent is present and track not yet initialized
+        spSeedIfInnate();
       }
     }
 
@@ -2975,6 +3085,60 @@ async function callGemini(playerMessage, retryCount = 0) {
             break;
           }
           case 'FORCE_BARRIER':     characterSheet.forceBarrier = val; break;
+          case 'SHATTERPOINT_PERCEIVED': {
+            // Format: tier,description  e.g. "1,Old knee injury — right leg carries weight unevenly"
+            const spParts = trimmed.slice(22).split(',');
+            const spTier  = parseInt(spParts[0]) || 1;
+            const spDesc  = spParts.slice(1).join(',').trim() || 'A shatterpoint surfaces';
+            if (!characterSheet) break;
+            characterSheet.lastShatterpointPerceived = { tier: spTier, description: spDesc, turn: turnCount };
+            // Post perception notice to feed
+            const spFeed = document.getElementById('story-feed');
+            if (spFeed) {
+              const spTierLabel = spTier === 3 ? 'Situational' : spTier === 2 ? 'Personal' : 'Tactical';
+              const spColors = { 1:'#447788', 2:'#6655aa', 3:'#885522' };
+              const d = document.createElement('div'); d.className = 'msg';
+              d.innerHTML = `<div style="background:rgba(20,25,35,0.4);border-left:3px solid ${spColors[spTier]||'#447788'};padding:6px 12px;font-size:11px;">
+                <span style="color:${spColors[spTier]||'#447788'};font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px">◈ SHATTERPOINT · ${spTierLabel.toUpperCase()}</span>
+                <div style="color:var(--text-dim);margin-top:3px;font-style:italic">${spDesc}</div>
+              </div>`;
+              spFeed.appendChild(d); spFeed.scrollTop = spFeed.scrollHeight;
+            }
+            break;
+          }
+
+          case 'SHATTERPOINT_ROLL': {
+            // AI requests interpretation roll: target description
+            const spTarget = trimmed.slice(17).trim();
+            spPerformRoll(spTarget);
+            break;
+          }
+
+          case 'SHATTERPOINT_FOCUS': {
+            spSetFocus(val);
+            break;
+          }
+
+          case 'SHATTERPOINT_FOCUS_CLEAR': {
+            spClearFocus();
+            break;
+          }
+
+          case 'SHATTERPOINT_XP': {
+            const spXPResult = spApplyXP(val);
+            turnXPLog.push({
+              label: 'Shatterpoint', xpAdded: spXPResult.xpAdded,
+              levelUps: spXPResult.levelUps, newStat: spXPResult.newLevel,
+              xpCurrent: spXPResult.current, xpRequired: spXPResult.required, type: 'training'
+            });
+            break;
+          }
+
+          case 'SHATTERPOINT_MISREAD_RESOLVED': {
+            spClearMisread();
+            break;
+          }
+
           case 'ALIGNMENT': {
             // Direct alignment set — used for light side gains and momentum-window hits
             const newAlign = Math.max(-100, Math.min(100, val));
@@ -3747,6 +3911,172 @@ function updateCombatStrain(rounds, intensity) {
   updateBar('forceStrain', dispF, maxFS);
   updateBar('mentalStrain', dispM, maxMS);
 }
+// ═══════════════════════════════════════════════════════════════════
+//  SHATTERPOINT ENGINE
+// ═══════════════════════════════════════════════════════════════════
+
+// Shatterpoint uses a separate high-cost XP track
+// Standard: xpRequired(L) = floor(500 × 1.07^L) — 5× the normal formula
+// Innate talent (ShatterSense): effective cost ×0.1
+function spXPRequired(level) {
+  return Math.floor(500 * Math.pow(1.07, Math.max(0, Math.floor(level || 0))));
+}
+
+function spXPToReachLevel(level) {
+  let t = 0;
+  for (let i = 0; i < level; i++) t += spXPRequired(i);
+  return t;
+}
+
+function spDeriveFromTotalXP(totalXP) {
+  let level = 0, remaining = Math.max(0, totalXP || 0);
+  while (remaining >= spXPRequired(level)) {
+    remaining -= spXPRequired(level);
+    level++;
+  }
+  return { level, current: Math.round(remaining), required: spXPRequired(level) };
+}
+
+// Get current shatterpoint level from masterXP
+function spGetLevel() {
+  return spDeriveFromTotalXP(masterXP.shatterpoint?.main?.totalXP || 0).level;
+}
+
+// Get tier (1/2/3) from level
+function spGetTier(level) {
+  if (level === undefined) level = spGetLevel();
+  if (level >= 11) return 3;
+  if (level >= 6)  return 2;
+  return 1;
+}
+
+// Apply XP to shatterpoint track
+function spApplyXP(rawAmount) {
+  if (!masterXP.shatterpoint) masterXP.shatterpoint = {};
+  const hasInnate = (characterSheet?.innateTalents || []).includes('ShatterSense');
+  const effectiveXP = hasInnate ? rawAmount * 0.1 : rawAmount; // ×0.1 for innate talent
+  if (!masterXP.shatterpoint.main) {
+    masterXP.shatterpoint.main = { totalXP: 0 };
+  }
+  const before = spDeriveFromTotalXP(masterXP.shatterpoint.main.totalXP);
+  masterXP.shatterpoint.main.totalXP += effectiveXP;
+  const after = spDeriveFromTotalXP(masterXP.shatterpoint.main.totalXP);
+  // Update characterSheet fields
+  if (characterSheet) {
+    characterSheet.shatterpointLevel = after.level;
+    characterSheet.shatterpointTier  = spGetTier(after.level);
+  }
+  return { levelUps: after.level - before.level, newLevel: after.level, xpAdded: Math.round(rawAmount), current: after.current, required: after.required };
+}
+
+// Seed shatterpoint for characters with ShatterSense innate talent
+// Called on load and after SHEET parse if ShatterSense is active
+function spSeedIfInnate() {
+  if (!(characterSheet?.innateTalents || []).includes('ShatterSense')) return;
+  if (!masterXP.shatterpoint) masterXP.shatterpoint = {};
+  if (!masterXP.shatterpoint.main || masterXP.shatterpoint.main.totalXP === 0) {
+    // Start at level 5 — innate talent manifests from childhood
+    // Using raw totalXP (not divided by 0.1) since the seed represents
+    // the actual milestone, not XP spent
+    masterXP.shatterpoint.main = { totalXP: spXPToReachLevel(5) };
+    if (characterSheet) {
+      characterSheet.shatterpointLevel = 5;
+      characterSheet.shatterpointTier  = 1;
+    }
+  }
+}
+
+// Perform the interpretation roll when AI sends SHATTERPOINT_ROLL
+// Returns result object and posts to feed
+function spPerformRoll(target) {
+  if (!characterSheet) return null;
+  const level     = spGetLevel();
+  const medStat   = characterSheet.forceStats?.meditation  || 0;
+  const wplStat   = characterSheet.stats?.willpower        || 0;
+  const hasInnate = (characterSheet.innateTalents || []).includes('ShatterSense');
+
+  // Bonus: shatterpoint level * 0.15 + compressed meditation * 0.4 + compressed willpower * 0.2
+  // Innate talent: +1 flat bonus (perception is more natural)
+  const spBonus    = level * 0.15;
+  const medBonus   = compressedBonus(medStat) * 0.4;
+  const wplBonus   = compressedBonus(wplStat) * 0.2;
+  const innateBonus= hasInnate ? 1.0 : 0;
+  const totalBonus = spBonus + medBonus + wplBonus + innateBonus;
+
+  const d20 = Math.floor(Math.random() * 20) + 1;
+  const total = d20 + totalBonus;
+
+  let outcome, outcomeColor, outcomeLabel;
+  if      (total < 9)  { outcome = 'fail';         outcomeColor = '#cc4444'; outcomeLabel = 'Misread — perception is wrong or inverted'; }
+  else if (total < 13) { outcome = 'contested';    outcomeColor = '#cc8833'; outcomeLabel = 'Partial — accurate but incomplete picture'; }
+  else if (total < 18) { outcome = 'solid';        outcomeColor = '#88cc88'; outcomeLabel = 'Clear — accurate perception'; }
+  else if (total < 23) { outcome = 'strong';       outcomeColor = '#44cc88'; outcomeLabel = 'Deep — perception with full context'; }
+  else                 { outcome = 'overwhelming'; outcomeColor = '#88ddff'; outcomeLabel = 'Total clarity — complete understanding'; }
+
+  // Store result so AI can respond appropriately
+  if (!characterSheet.lastShatterpointRoll) characterSheet.lastShatterpointRoll = {};
+  characterSheet.lastShatterpointRoll = {
+    outcome, total: Math.round(total * 10) / 10, d20,
+    bonus: Math.round(totalBonus * 10) / 10,
+    target: target || 'unknown',
+    misread: outcome === 'fail' || outcome === 'contested',
+    turn: window.turnCount || 0
+  };
+  if (outcome === 'fail' || outcome === 'contested') {
+    characterSheet.lastShatterpointMisread = { unresolved: true, target, outcome, turn: window.turnCount || 0 };
+  }
+
+  // Post to feed
+  const feed = document.getElementById('story-feed');
+  if (feed) {
+    const d = document.createElement('div');
+    d.className = 'msg';
+    d.innerHTML = `<div style="background:rgba(20,30,40,0.4);border:1px solid #2a3a4a;border-radius:4px;padding:8px 14px;font-size:12px;">
+      <div style="color:#6699bb;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">◈ SHATTERPOINT INTERPRETATION</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Target: <span style="color:var(--text-main)">${target || 'unknown'}</span></div>
+      <div style="font-size:12px;margin-bottom:4px"><span style="color:var(--text-dim)">d20=</span><span style="color:var(--gold);font-weight:bold">${d20}</span> <span style="color:var(--text-dim)">Bonus=+${totalBonus.toFixed(1)} Total=${total.toFixed(1)}</span></div>
+      <div style="color:${outcomeColor};font-weight:bold;font-size:13px">${outcomeLabel}</div>
+    </div>`;
+    feed.appendChild(d);
+    feed.scrollTop = feed.scrollHeight;
+  }
+  return { outcome, total, d20, bonus: totalBonus, target };
+}
+
+// Update awareness bandwidth and tunnel vision flag
+function spSetFocus(value) {
+  if (!characterSheet) return;
+  const hasVaapad = (masterXP.lightsaberForms?.Vaapad?.totalXP || 0) > 0;
+  const effectiveFocus = hasVaapad ? Math.min(100, value * 1.3) : value;
+  characterSheet.shatterpointFocus   = Math.round(effectiveFocus);
+  characterSheet.tunnelVision        = effectiveFocus > 70;
+  characterSheet.vaapadAmplification = hasVaapad && value > 0;
+  // If tunnel vision just activated, post a subtle indicator
+  if (characterSheet.tunnelVision) {
+    const feed = document.getElementById('story-feed');
+    if (feed && !document.querySelector('.sp-tunnel-notif')) {
+      const d = document.createElement('div');
+      d.className = 'msg sp-tunnel-notif';
+      d.innerHTML = `<div style="font-size:10px;color:#664433;font-style:italic;padding:2px 6px">◈ Focus narrows — ambient awareness reduced${hasVaapad ? ' (Vaapad amplifying)' : ''}</div>`;
+      feed.appendChild(d);
+    }
+  }
+}
+
+// Clear shatterpoint focus (called when scene ends or focus drops)
+function spClearFocus() {
+  if (!characterSheet) return;
+  characterSheet.shatterpointFocus   = 0;
+  characterSheet.tunnelVision        = false;
+  characterSheet.vaapadAmplification = false;
+  document.querySelectorAll('.sp-tunnel-notif').forEach(el => el.remove());
+}
+
+// Clear resolved misread flag
+function spClearMisread() {
+  if (characterSheet) characterSheet.lastShatterpointMisread = null;
+}
+
 function compressedBonus(stat) {
   const s = stat || 0;
   if (s <= 40)  return s / 20;
@@ -4120,6 +4450,47 @@ function updateCharacterSheet() {
 
   if (s.innatetalent) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Innate Talent</div><div style="font-size:13px;color:var(--gold)">${s.innatetalent}</div></div>`;
+  }
+
+  // Shatterpoint display (shown when innate talent is active or level > 0)
+  const spLevel = spGetLevel();
+  const spHasInnate = (s.innateTalents || []).includes('ShatterSense');
+  if (spLevel > 0 || spHasInnate) {
+    const spTier = spGetTier(spLevel);
+    const spTierLabels = {1:'Tactical',2:'Personal',3:'Situational'};
+    const spD = spDeriveFromTotalXP(masterXP.shatterpoint?.main?.totalXP || 0);
+    const spPct = Math.round((spD.current / spD.required) * 100);
+    const spTunnelOn = s.tunnelVision || false;
+    const spFocusPct = Math.min(100, s.shatterpointFocus || 0);
+    const spFocusColor = spFocusPct > 70 ? '#cc4444' : spFocusPct > 40 ? '#cc8833' : '#447788';
+    html += `<div class="sheet-section">
+      <div class="sheet-section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Shatterpoint</span>
+        <span style="font-size:10px;color:#447788;letter-spacing:1px">L${spLevel} · ${spTierLabels[spTier] || 'Tier '+spTier}</span>
+      </div>
+      <div style="font-size:10px;color:var(--text-dim);margin-bottom:4px">
+        Tier 1 Tactical${spTier >= 2 ? ' · Tier 2 Personal' : ''}${spTier >= 3 ? ' · Tier 3 Situational' : ''}
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-label" style="font-size:10px">
+          <span style="color:#447788">Proficiency</span>
+          <span style="color:var(--text-dim)">${spD.current}/${spD.required} XP</span>
+        </div>
+        <div class="bar-track" style="height:4px;background:#111">
+          <div style="width:${spPct}%;height:100%;background:linear-gradient(90deg,#224455,#447788);border-radius:2px;transition:width 0.4s"></div>
+        </div>
+      </div>
+      ${spFocusPct > 0 ? `<div class="bar-wrap" style="margin-top:4px">
+        <div class="bar-label" style="font-size:10px">
+          <span style="color:${spFocusColor}">Focus${spTunnelOn ? ' ⚠ Tunnel Vision' : ''}</span>
+          <span style="color:${spFocusColor}">${spFocusPct}/100</span>
+        </div>
+        <div class="bar-track" style="height:3px;background:#111">
+          <div style="width:${spFocusPct}%;height:100%;background:${spFocusColor};border-radius:2px;transition:width 0.4s"></div>
+        </div>
+      </div>` : ''}
+      ${s.lastShatterpointMisread?.unresolved ? `<div style="font-size:10px;color:#cc8833;margin-top:4px;font-style:italic">⚠ Misread unresolved</div>` : ''}
+    </div>`;
   }
 
   // Traits — strengths, weaknesses, aptitudes
@@ -4682,7 +5053,7 @@ function loadFromSave(save) {
   // Restore masterXP — if the save predates masterXP, migrate from characterSheet XP stores
   if (save.masterXP) {
     // Migrate any old {stat,current,required} entries to {totalXP}
-    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} };
+    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{} };
     for (const cat of ['forceStats','stats','forceAbilities','lightsaberForms']) {
       for (const [k, e] of Object.entries(save.masterXP[cat] || {})) {
         if (e.totalXP !== undefined) {
@@ -4695,7 +5066,7 @@ function loadFromSave(save) {
     }
   } else if (characterSheet) {
     // Migrate old save: build masterXP from characterSheet XP store fields
-    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} };
+    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{} };
     const migrateXPStore = (xpStore, statObj, cat, isObj) => {
       for (const [k, v] of Object.entries(xpStore || {})) {
         // v may already be totalXP format, or old {stat,current,required} format
@@ -4712,10 +5083,10 @@ function loadFromSave(save) {
     migrateXPStore(characterSheet.forceAbilitiesXP, characterSheet.forceAbilities, 'forceAbilities', true);
     migrateXPStore(characterSheet.lightsaberFormsXP, characterSheet.lightsaberForms, 'lightsaberForms', true);
   } else {
-    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} };
+    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{} };
   }
   // Ensure characterSheet reflects masterXP immediately after load
-  if (characterSheet) syncMasterXPToSheet();
+  if (characterSheet) { syncMasterXPToSheet(); spSeedIfInnate(); }
   worldState = save.worldState || null;
   campaignSummary = save.campaignSummary || '';
   galaxySimState = save.galaxySimState || {};
@@ -5419,6 +5790,7 @@ function simToggleTalent(key, isAbility) {
   simApplyTalentEffects();
 
   autoSave();
+  spSeedIfInnate(); // seed shatterpoint if ShatterSense just activated
   simBuildTalentGrid();
   updateUI(); // refresh character sheet sidebar immediately
 }
