@@ -1462,7 +1462,7 @@ Every response you generate MUST end with both data blocks below. No exceptions.
 STEP 1: Write your narrative response and choices as normal.
 STEP 2: Immediately after, with no extra text, output the SHEET block:
 <<<SHEET>>>
-{"name":"","species":"","homeworld":"","faction":"","age":0,"birthday":{"day":0,"month":0,"year":0,"era":"BBY"},"alignment":0,"darkPressure":0,"momentumWindow":{"active":false,"multiplier":1.0,"expiresDate":"","surrenderDiscount":0},"lastLightActs":{},"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":100,"physicalStrain":0,"maxPhysicalStrain":100,"mentalStrain":0,"maxMentalStrain":100,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"aptitudes":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innatetalent":"","knownSecrets":[],"activeBonds":[]}
+{"name":"","species":"","homeworld":"","faction":"","age":0,"birthday":{"day":0,"month":0,"year":0,"era":"BBY"},"alignment":0,"darkPressure":0,"momentumWindow":{"active":false,"multiplier":1.0,"expiresDate":"","surrenderDiscount":0},"lastLightActs":{},"hp":100,"maxHp":100,"forceBarrier":null,"maxForceBarrier":100,"forceStrain":0,"maxForceStrain":100,"physicalStrain":0,"maxPhysicalStrain":100,"mentalStrain":0,"maxMentalStrain":100,"forceTier":1,"forceStats":{"forceSense":0,"meditation":0,"forceKnowledge":0,"forceControl":0},"forceStatsXP":{"forceSense":{"current":0,"required":10},"meditation":{"current":0,"required":10},"forceKnowledge":{"current":0,"required":10},"forceControl":{"current":0,"required":10}},"forceAbilities":{},"forceAbilitiesXP":{},"lightsaberForms":{},"lightsaberFormsXP":{},"stats":{"strength":0,"agility":0,"endurance":0,"willpower":0,"charisma":0},"statsXP":{"strength":{"current":0,"required":10},"agility":{"current":0,"required":10},"endurance":{"current":0,"required":10},"willpower":{"current":0,"required":10},"charisma":{"current":0,"required":10}},"strengths":[],"weaknesses":[],"aptitudes":[],"inventory":[],"credits":0,"renown":{"jediOrder":0,"sith":0,"republic":0,"underworld":0,"mandalorians":0},"innateTalents":[],"innateAbilities":[],"knownSecrets":[],"activeBonds":[]}
 <<<END_SHEET>>>
 STEP 2: Output the CHANGES block — REQUIRED EVERY TURN:
 <<<CHANGES>>>
@@ -2735,6 +2735,19 @@ async function callGemini(playerMessage, retryCount = 0) {
     let worldParsed = false;
 
     if (sheetMatch) {
+      // Snapshot player-owned fields before AI overwrites characterSheet
+      // These are never in the AI's JSON so they'd be lost on every parse
+      const _savedInnateTalents  = characterSheet?.innateTalents  ? [...characterSheet.innateTalents]  : [];
+      const _savedInnateAbilities= characterSheet?.innateAbilities ? [...characterSheet.innateAbilities] : [];
+      const _savedBirthday       = characterSheet?.birthday        ? {...characterSheet.birthday}        : null;
+      const _savedLifeStage      = characterSheet?.lifeStage       || null;
+      const _savedStoryFlags     = characterSheet?.storyFlags      ? {...characterSheet.storyFlags}      : null;
+      // Preserve aptitudes that weren't talent-generated (AI-authored ones)
+      const _savedAptitudes      = (characterSheet?.aptitudes || []).filter(a =>
+        !SIM_INNATE_TALENTS.some(t => t.label === a) &&
+        !SIM_INNATE_ABILITIES.some(ab => ab.label === a)
+      );
+
       try {
         characterSheet = JSON.parse(sheetMatch[1].trim());
         sheetParsed = true;
@@ -2742,8 +2755,34 @@ async function callGemini(playerMessage, retryCount = 0) {
         const j = sheetMatch[1].match(/\{[\s\S]*\}/);
         if (j) { try { characterSheet = JSON.parse(j[0]); sheetParsed = true; } catch(e2) {} }
       }
-      // masterXP is authoritative — overwrite anything the AI sent for stats/XP
-      if (sheetParsed && characterSheet) syncMasterXPToSheet();
+
+      if (sheetParsed && characterSheet) {
+        // Restore player-owned fields — AI cannot change these
+        if (_savedInnateTalents.length)  characterSheet.innateTalents   = _savedInnateTalents;
+        if (_savedInnateAbilities.length) characterSheet.innateAbilities = _savedInnateAbilities;
+        if (_savedBirthday?.day)          characterSheet.birthday        = _savedBirthday;
+        if (_savedLifeStage)              characterSheet.lifeStage       = _savedLifeStage;
+        if (_savedStoryFlags)             characterSheet.storyFlags      = _savedStoryFlags;
+
+        // Rebuild aptitudes: AI-authored ones + talent labels
+        const talentLabels = _savedInnateTalents.map(k => {
+          const t = SIM_INNATE_TALENTS.find(t => t.key === k);
+          return t ? t.label : k;
+        });
+        const abilityLabels = _savedInnateAbilities.map(k => {
+          const a = SIM_INNATE_ABILITIES.find(a => a.key === k);
+          return a ? a.label : k;
+        });
+        // Merge: AI aptitudes from new sheet + talent labels (deduplicated)
+        const aiAptitudes = (characterSheet.aptitudes || []).filter(a =>
+          !SIM_INNATE_TALENTS.some(t => t.label === a) &&
+          !SIM_INNATE_ABILITIES.some(ab => ab.label === a)
+        );
+        characterSheet.aptitudes = [...new Set([..._savedAptitudes, ...aiAptitudes, ...talentLabels, ...abilityLabels])];
+
+        // masterXP is authoritative — overwrite anything the AI sent for stats/XP
+        syncMasterXPToSheet();
+      }
     }
 
     if (worldMatch) {
@@ -4637,6 +4676,8 @@ function loadFromSave(save) {
     if (!characterSheet.momentumWindow) characterSheet.momentumWindow = {active:false,multiplier:1.0,expiresDate:'',surrenderDiscount:0};
     if (!characterSheet.lastLightActs) characterSheet.lastLightActs = {};
     if (!characterSheet.birthday) characterSheet.birthday = {day:0,month:0,year:0,era:'BBY'};
+    if (!characterSheet.innateTalents)   characterSheet.innateTalents   = [];
+    if (!characterSheet.innateAbilities) characterSheet.innateAbilities = [];
   }
   // Restore masterXP — if the save predates masterXP, migrate from characterSheet XP stores
   if (save.masterXP) {
