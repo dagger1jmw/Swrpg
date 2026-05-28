@@ -3974,14 +3974,32 @@ function spApplyXP(rawAmount) {
 function spSeedIfInnate() {
   if (!(characterSheet?.innateTalents || []).includes('ShatterSense')) return;
   if (!masterXP.shatterpoint) masterXP.shatterpoint = {};
-  if (!masterXP.shatterpoint.main || masterXP.shatterpoint.main.totalXP === 0) {
-    // Start at level 5 — innate talent manifests from childhood
-    // Using raw totalXP (not divided by 0.1) since the seed represents
-    // the actual milestone, not XP spent
+
+  // Seed or correct: bring up to level 5 minimum if currently below
+  const currentLevel = spGetLevel();
+  if (currentLevel < 5) {
     masterXP.shatterpoint.main = { totalXP: spXPToReachLevel(5) };
     if (characterSheet) {
       characterSheet.shatterpointLevel = 5;
       characterSheet.shatterpointTier  = 1;
+    }
+  }
+
+  // Ensure Shatterpoint appears in forceAbilities on the character sheet
+  // so it shows up in the abilities section and in the AI prompt
+  if (characterSheet) {
+    if (!characterSheet.forceAbilities) characterSheet.forceAbilities = {};
+    // Only set if not already present at a higher value
+    const existingLevel = characterSheet.forceAbilities['Shatterpoint'];
+    const derivedLevel  = spGetLevel();
+    if (!existingLevel || existingLevel < derivedLevel) {
+      characterSheet.forceAbilities['Shatterpoint'] = derivedLevel;
+    }
+    // Also ensure masterXP tracks it so it stays in sync
+    if (!masterXP.forceAbilities) masterXP.forceAbilities = {};
+    if (!masterXP.forceAbilities['Shatterpoint']) {
+      // Sync from shatterpoint track — derive correct totalXP
+      masterXP.forceAbilities['Shatterpoint'] = { totalXP: masterXP.shatterpoint.main?.totalXP || spXPToReachLevel(5) };
     }
   }
 }
@@ -5557,9 +5575,12 @@ function simCalcMeditationRecovery() {
   let rf=0, rp=0, rm=0;
 
   const RECOVERY_RATES = {
-    meditation_basic:    { f:12, p:1,  m:10 }, // per hour
-    meditation_deep:     { f:20, p:1,  m:18 }, // per hour — more powerful
-    force_sense_passive: { f:8,  p:0,  m:8  }, // lighter — mostly calming
+    // Physical recovery reflects the Force channeled into bodily restoration
+    // In-game an overwhelming meditation can recover ~40 physical strain;
+    // simulation uses a sustained hourly rate that reflects that capability
+    meditation_basic:    { f:12, p:10, m:10 }, // per hour
+    meditation_deep:     { f:20, p:18, m:18 }, // per hour — deeper Force channeling = more physical recovery
+    force_sense_passive: { f:8,  p:4,  m:8  }, // lighter — some physical calming
   };
 
   // Check mandatory meditation rows
