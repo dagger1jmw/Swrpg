@@ -4243,6 +4243,22 @@ function applyXPToSheet(statPath, xpToAdd) {
         partialXP = characterSheet.lightsaberFormsXP?.[key]?.current || 0;
       }
     }
+    // Sanity check: if there's an unnormalized variant with more XP, use that instead
+    // e.g. 'Shii-Cho' may have been seeded earlier than 'ShiiCho' — take the max
+    if (category === 'lightsaberForms' && masterXP.lightsaberForms) {
+      for (const [k, v] of Object.entries(masterXP.lightsaberForms)) {
+        const normK = k.replace(/[^a-zA-Z0-9]/g,'').replace(/^(.)/,c=>c.toUpperCase());
+        if (normK === key && k !== key && v.totalXP > 0) {
+          // Found a variant with data — use its totalXP as seed, delete the variant
+          const variantLevel = deriveFromTotalXP(v.totalXP).level;
+          if (variantLevel > seedLevel) {
+            seedLevel = variantLevel;
+            partialXP = deriveFromTotalXP(v.totalXP).current;
+          }
+          delete masterXP.lightsaberForms[k]; // remove the unnormalized duplicate
+        }
+      }
+    }
     masterXP[category][key] = { totalXP: xpToReachLevel(seedLevel) + partialXP };
   }
 
@@ -4263,6 +4279,16 @@ function syncMasterXPToSheet() {
   if (!characterSheet.statsXP) characterSheet.statsXP = {};
   if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
   if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
+
+  // Pre-normalize masterXP.lightsaberForms before syncing — merge any variant keys (Shii-Cho → ShiiCho)
+  if (masterXP.lightsaberForms) {
+    const normForms = {};
+    for (const [k, v] of Object.entries(masterXP.lightsaberForms)) {
+      const nk = k.replace(/[^a-zA-Z0-9]/g,'').replace(/^(.)/,c=>c.toUpperCase());
+      if (!normForms[nk] || (v.totalXP||0) > (normForms[nk].totalXP||0)) normForms[nk] = v;
+    }
+    masterXP.lightsaberForms = normForms;
+  }
 
   const apply = (csStatObj, csXPObj, cat) => {
     for (const [k, e] of Object.entries(masterXP[cat] || {})) {
