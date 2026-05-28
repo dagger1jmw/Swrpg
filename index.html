@@ -1476,7 +1476,7 @@ SHATTERPOINT_PERCEIVED=[tier],[description] — when a shatterpoint surfaces pas
 SHATTERPOINT_ROLL=[target] — triggers JS interpretation roll; respond to result
 SHATTERPOINT_FOCUS=[0-100] — awareness bandwidth consumed (>70 = tunnel vision)
 SHATTERPOINT_FOCUS_CLEAR — resets focus at scene end
-SHATTERPOINT_XP=[amount] — proficiency XP (JS applies ×0.1 for innate talent)
+SHATTERPOINT_XP=[amount] — proficiency XP (routes to Shatterpoint or Shatterpoint (Innate) automatically)
 SHATTERPOINT_MISREAD_RESOLVED — only after misread consequence fully played out
 DARK_PRESSURE=[new total 0-100 — JS handles discharge at 100]
 MOMENTUM_WINDOW=[multiplier],[days] — set after pressure discharge; 0,0 to close
@@ -2128,6 +2128,21 @@ Deeper reads narrow ambient awareness. When you send SHATTERPOINT_FOCUS=[value]:
 If Vaapad is active simultaneously, JS multiplies focus by 1.3 automatically.
 Clear focus with SHATTERPOINT_FOCUS_CLEAR when the scene ends or focus drops.
 
+── TWO ABILITIES — INNATE VS TRAINED ────────────────────────────────
+Jared has 'Shatterpoint (Innate)' in his forceAbilities — NOT 'Shatterpoint'.
+These are two distinct abilities with different rules:
+
+  Shatterpoint (Innate) — passive, ambient, no active focus required.
+    Jared notices shatterpoints the way he notices someone entering a room.
+    XP: 200×1.07^L. Starts at Level 5. No cap. Strain is for interpretation, not perception.
+    Surface with SHATTERPOINT_PERCEIVED: even without player declaring focus.
+
+  Shatterpoint (trained) — requires deliberate concentration on a target.
+    User must actively focus before perceiving. Cade Skywalker template.
+    XP: 500×1.07^L. No cap. High Force Strain per use.
+
+Jared has the innate version. Always call it 'Shatterpoint (Innate)' in CHANGES.
+
 ── CHANGES BLOCK TAGS ───────────────────────────────────────────────
 SHATTERPOINT_PERCEIVED:[tier],[brief description of what surfaces]
   Example: SHATTERPOINT_PERCEIVED:1,Old knee injury — right leg carries weight unevenly
@@ -2684,18 +2699,19 @@ function buildContext(userContent) {
   const sheetSummary = `NAME: ${cs.name||'?'} | SPECIES: ${cs.species||'?'} | AGE: ${cs.age||'?'} | FACTION: ${cs.faction||'?'}
 ALIGNMENT: ${(()=>{const a=cs.alignment||0;const p=cs.darkPressure||0;const m=cs.momentumWindow;const t=a>=76?'Luminous':a>=26?'Attuned':a>=1?'Calm':a>=-25?'Balanced':a>=-50?'Shadowed':a>=-75?'Corrupted':'Consumed';return `${t} (${a>=0?'+':''}${a}) | Dark Pressure: ${p}/100${m?.active?' | ⚡ MOMENTUM WINDOW ACTIVE (×'+m.multiplier+') expires '+m.expiresDate:''}`;})()}
 SHATTERPOINT: ${(()=>{
-  const spL = spGetLevel();
   const spHas = (cs.innateTalents||[]).includes('ShatterSense');
-  if (spL === 0 && !spHas) return 'Not active';
+  const spKey = spHas ? 'Shatterpoint (Innate)' : 'Shatterpoint';
+  const spMXP = masterXP.forceAbilities?.[spKey];
+  const spL = spMXP ? deriveFromTotalXP(spMXP.totalXP||0).level : (cs.forceAbilities?.[spKey]||0);
   const spTier = spGetTier(spL);
-  const spD = spDeriveFromTotalXP(masterXP.shatterpoint?.main?.totalXP||0);
   const spFocus = cs.shatterpointFocus||0;
   const spTV = cs.tunnelVision ? ' | ⚠ TUNNEL VISION — ambient awareness reduced' : '';
   const spVP = cs.vaapadAmplification ? ' | Vaapad amplifying' : '';
   const spMR = cs.lastShatterpointMisread?.unresolved ? ' | ⚠ MISREAD UNRESOLVED — follow through' : '';
   const spRoll = cs.lastShatterpointRoll?.outcome ? ` | Last roll: ${cs.lastShatterpointRoll.outcome} vs ${cs.lastShatterpointRoll.target}` : '';
   const tierUnlocks = `Tier1=active${spTier>=2?' Tier2=active':' Tier2=locked(L6+)'}${spTier>=3?' Tier3=active':' Tier3=locked(L11+)'}`;
-  return `Level ${spL} | ${tierUnlocks} | Focus: ${spFocus}/100${spTV}${spVP}${spMR}${spRoll}`;
+  const abilityType = spHas ? 'Innate (passive perception)' : 'Trained (requires active focus)';
+  return `${spKey} Level ${spL} | ${abilityType} | ${tierUnlocks} | Focus: ${spFocus}/100${spTV}${spVP}${spMR}${spRoll}`;
 })()}
 DUELING TIER: ${duelingTier.name} (Tier ${duelingTier.num}) | FORCE TIER: ${forceTier.name} (Tier ${forceTier.num})
 HP: ${cs.hp||100}/${cs.maxHp||100}
@@ -3942,34 +3958,21 @@ function updateCombatStrain(rounds, intensity) {
 //  SHATTERPOINT ENGINE
 // ═══════════════════════════════════════════════════════════════════
 
-// Shatterpoint uses a separate high-cost XP track
-// Standard: xpRequired(L) = floor(500 × 1.07^L) — 5× the normal formula
-// Innate talent (ShatterSense): effective cost ×0.1
-function spXPRequired(level) {
-  return Math.floor(500 * Math.pow(1.07, Math.max(0, Math.floor(level || 0))));
+function spGetAbilityKey() {
+  // Which key this character uses — determined by innate talent
+  return (characterSheet?.innateTalents||[]).includes('ShatterSense')
+    ? 'Shatterpoint (Innate)'
+    : 'Shatterpoint';
 }
 
-function spXPToReachLevel(level) {
-  let t = 0;
-  for (let i = 0; i < level; i++) t += spXPRequired(i);
-  return t;
-}
-
-function spDeriveFromTotalXP(totalXP) {
-  let level = 0, remaining = Math.max(0, totalXP || 0);
-  while (remaining >= spXPRequired(level)) {
-    remaining -= spXPRequired(level);
-    level++;
-  }
-  return { level, current: Math.round(remaining), required: spXPRequired(level) };
-}
-
-// Get current shatterpoint level from masterXP
 function spGetLevel() {
-  return spDeriveFromTotalXP(masterXP.shatterpoint?.main?.totalXP || 0).level;
+  const key = spGetAbilityKey();
+  const mxp = masterXP.forceAbilities?.[key];
+  if (mxp) return deriveFromTotalXP(mxp.totalXP||0).level;
+  const cs = characterSheet?.forceAbilities?.[key];
+  return typeof cs === 'object' ? (cs.level||0) : (cs||0);
 }
 
-// Get tier (1/2/3) from level
 function spGetTier(level) {
   if (level === undefined) level = spGetLevel();
   if (level >= 11) return 3;
@@ -3977,69 +3980,56 @@ function spGetTier(level) {
   return 1;
 }
 
-// Apply XP to shatterpoint track
 function spApplyXP(rawAmount) {
-  if (!masterXP.shatterpoint) masterXP.shatterpoint = {};
-  const hasInnate = (characterSheet?.innateTalents || []).includes('ShatterSense');
-  const effectiveXP = hasInnate ? rawAmount * 0.1 : rawAmount; // ×0.1 for innate talent
-  if (!masterXP.shatterpoint.main) {
-    masterXP.shatterpoint.main = { totalXP: 0 };
-  }
-  const before = spDeriveFromTotalXP(masterXP.shatterpoint.main.totalXP);
-  masterXP.shatterpoint.main.totalXP += effectiveXP;
-  const after = spDeriveFromTotalXP(masterXP.shatterpoint.main.totalXP);
-  // Update characterSheet fields
-  if (characterSheet) {
-    characterSheet.shatterpointLevel = after.level;
-    characterSheet.shatterpointTier  = spGetTier(after.level);
-    // Keep Shatterpoint in forceAbilities for display — but sourced from SP track, not masterXP
-    if (!characterSheet.forceAbilities) characterSheet.forceAbilities = {};
-    characterSheet.forceAbilities['Shatterpoint'] = after.level;
-  }
-  // Never store in masterXP.forceAbilities — that would feed the wrong XP engine
-  if (masterXP.forceAbilities?.['Shatterpoint'] !== undefined)
-    delete masterXP.forceAbilities['Shatterpoint'];
-
-  return { levelUps: after.level - before.level, newLevel: after.level, xpAdded: Math.round(rawAmount), current: after.current, required: after.required };
+  // Route through standard applyXPToSheet — both keys are normal forceAbilities now
+  const key = spGetAbilityKey();
+  const path = 'forceAbilities.' + key;
+  return applyXPToSheet(path, rawAmount);
 }
 
-// Seed shatterpoint for characters with ShatterSense innate talent
-// Called on load and after SHEET parse if ShatterSense is active
 function spSeedIfInnate() {
-  if (!(characterSheet?.innateTalents || []).includes('ShatterSense')) return;
-  if (!masterXP.shatterpoint) masterXP.shatterpoint = {};
-
-  // Seed or correct: bring up to level 5 minimum if currently below
-  const currentLevel = spGetLevel();
-  if (currentLevel < 5) {
-    masterXP.shatterpoint.main = { totalXP: spXPToReachLevel(5) };
+  if (!(characterSheet?.innateTalents||[]).includes('ShatterSense')) return;
+  if (!masterXP.forceAbilities) masterXP.forceAbilities = {};
+  const key = 'Shatterpoint (Innate)';
+  // Ensure entry exists — seed at level 5 if below
+  if (!masterXP.forceAbilities[key]) {
+    // Seed using innate XP formula (200×1.07^L)
+    const innateXPToReach5 = (() => {
+      let t = 0;
+      for (let i = 0; i < 5; i++) t += Math.floor(200 * Math.pow(1.07, i));
+      return t;
+    })();
+    masterXP.forceAbilities[key] = { totalXP: innateXPToReach5 };
+  } else {
+    // Correct if below level 5
+    const current = deriveFromTotalXP(masterXP.forceAbilities[key].totalXP||0).level;
+    if (current < 5) {
+      const innateXPToReach5 = (() => {
+        let t = 0;
+        for (let i = 0; i < 5; i++) t += Math.floor(200 * Math.pow(1.07, i));
+        return t;
+      })();
+      masterXP.forceAbilities[key].totalXP = innateXPToReach5;
+    }
   }
-
-  // Update display fields — Shatterpoint shows in forceAbilities section for visibility
-  // but is NEVER in masterXP.forceAbilities (that would contaminate the XP engine)
   if (characterSheet) {
-    const lvl = spGetLevel();
-    characterSheet.shatterpointLevel = lvl;
-    characterSheet.shatterpointTier  = spGetTier(lvl);
     if (!characterSheet.forceAbilities) characterSheet.forceAbilities = {};
-    characterSheet.forceAbilities['Shatterpoint'] = lvl;
-  }
-  if (masterXP.forceAbilities?.['Shatterpoint'] !== undefined) {
-    delete masterXP.forceAbilities['Shatterpoint'];
+    const lvl = deriveFromTotalXP(masterXP.forceAbilities[key].totalXP||0).level;
+    characterSheet.forceAbilities[key] = lvl;
+    // Clean up old contamination from previous system
+    delete characterSheet.forceAbilities['Shatterpoint'];
+    if (masterXP.forceAbilities['Shatterpoint']) delete masterXP.forceAbilities['Shatterpoint'];
   }
 }
 
-// Perform the interpretation roll when AI sends SHATTERPOINT_ROLL
-// Returns result object and posts to feed
+// spPerformRoll — interpretation roll when AI sends SHATTERPOINT_ROLL
 function spPerformRoll(target) {
   if (!characterSheet) return null;
   const level     = spGetLevel();
   const medStat   = characterSheet.forceStats?.meditation  || 0;
   const wplStat   = characterSheet.stats?.willpower        || 0;
-  const hasInnate = (characterSheet.innateTalents || []).includes('ShatterSense');
+  const hasInnate = (characterSheet.innateTalents||[]).includes('ShatterSense');
 
-  // Bonus: shatterpoint level * 0.15 + compressed meditation * 0.4 + compressed willpower * 0.2
-  // Innate talent: +1 flat bonus (perception is more natural)
   const spBonus    = level * 0.15;
   const medBonus   = compressedBonus(medStat) * 0.4;
   const wplBonus   = compressedBonus(wplStat) * 0.2;
@@ -4050,74 +4040,64 @@ function spPerformRoll(target) {
   const total = d20 + totalBonus;
 
   let outcome, outcomeColor, outcomeLabel;
-  if      (total < 9)  { outcome = 'fail';         outcomeColor = '#cc4444'; outcomeLabel = 'Misread — perception is wrong or inverted'; }
-  else if (total < 13) { outcome = 'contested';    outcomeColor = '#cc8833'; outcomeLabel = 'Partial — accurate but incomplete picture'; }
-  else if (total < 18) { outcome = 'solid';        outcomeColor = '#88cc88'; outcomeLabel = 'Clear — accurate perception'; }
-  else if (total < 23) { outcome = 'strong';       outcomeColor = '#44cc88'; outcomeLabel = 'Deep — perception with full context'; }
-  else                 { outcome = 'overwhelming'; outcomeColor = '#88ddff'; outcomeLabel = 'Total clarity — complete understanding'; }
+  if      (total < 9)  { outcome='fail';         outcomeColor='#cc4444'; outcomeLabel='Misread — perception is wrong or inverted'; }
+  else if (total < 13) { outcome='contested';    outcomeColor='#cc8833'; outcomeLabel='Partial — accurate but incomplete'; }
+  else if (total < 18) { outcome='solid';        outcomeColor='#88cc88'; outcomeLabel='Clear — accurate perception'; }
+  else if (total < 23) { outcome='strong';       outcomeColor='#44cc88'; outcomeLabel='Deep — perception with full context'; }
+  else                 { outcome='overwhelming'; outcomeColor='#88ddff'; outcomeLabel='Total clarity — complete understanding'; }
 
-  // Store result so AI can respond appropriately
   if (!characterSheet.lastShatterpointRoll) characterSheet.lastShatterpointRoll = {};
   characterSheet.lastShatterpointRoll = {
-    outcome, total: Math.round(total * 10) / 10, d20,
-    bonus: Math.round(totalBonus * 10) / 10,
-    target: target || 'unknown',
-    misread: outcome === 'fail' || outcome === 'contested',
-    turn: window.turnCount || 0
+    outcome, total: Math.round(total*10)/10, d20,
+    bonus: Math.round(totalBonus*10)/10,
+    target: target||'unknown',
+    misread: outcome==='fail'||outcome==='contested',
+    turn: window.turnCount||0
   };
-  if (outcome === 'fail' || outcome === 'contested') {
-    characterSheet.lastShatterpointMisread = { unresolved: true, target, outcome, turn: window.turnCount || 0 };
+  if (outcome==='fail'||outcome==='contested') {
+    characterSheet.lastShatterpointMisread = { unresolved:true, target, outcome, turn:window.turnCount||0 };
   }
 
-  // Post to feed
   const feed = document.getElementById('story-feed');
   if (feed) {
     const d = document.createElement('div');
     d.className = 'msg';
     d.innerHTML = `<div style="background:rgba(20,30,40,0.4);border:1px solid #2a3a4a;border-radius:4px;padding:8px 14px;font-size:12px;">
       <div style="color:#6699bb;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">◈ SHATTERPOINT INTERPRETATION</div>
-      <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Target: <span style="color:var(--text-main)">${target || 'unknown'}</span></div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Target: <span style="color:var(--text-main)">${target||'unknown'}</span></div>
       <div style="font-size:12px;margin-bottom:4px"><span style="color:var(--text-dim)">d20=</span><span style="color:var(--gold);font-weight:bold">${d20}</span> <span style="color:var(--text-dim)">Bonus=+${totalBonus.toFixed(1)} Total=${total.toFixed(1)}</span></div>
       <div style="color:${outcomeColor};font-weight:bold;font-size:13px">${outcomeLabel}</div>
     </div>`;
     feed.appendChild(d);
     feed.scrollTop = feed.scrollHeight;
   }
-  return { outcome, total, d20, bonus: totalBonus, target };
+  return { outcome, total, d20, bonus:totalBonus, target };
 }
 
-// Update awareness bandwidth and tunnel vision flag
 function spSetFocus(value) {
   if (!characterSheet) return;
-  const hasVaapad = (masterXP.lightsaberForms?.Vaapad?.totalXP || 0) > 0;
-  const effectiveFocus = hasVaapad ? Math.min(100, value * 1.3) : value;
+  const hasVaapad = (masterXP.lightsaberForms?.Vaapad?.totalXP||0) > 0;
+  const effectiveFocus = hasVaapad ? Math.min(100, value*1.3) : value;
   characterSheet.shatterpointFocus   = Math.round(effectiveFocus);
   characterSheet.tunnelVision        = effectiveFocus > 70;
   characterSheet.vaapadAmplification = hasVaapad && value > 0;
-  // If tunnel vision just activated, post a subtle indicator
   if (characterSheet.tunnelVision) {
     const feed = document.getElementById('story-feed');
     if (feed && !document.querySelector('.sp-tunnel-notif')) {
       const d = document.createElement('div');
       d.className = 'msg sp-tunnel-notif';
-      d.innerHTML = `<div style="font-size:10px;color:#664433;font-style:italic;padding:2px 6px">◈ Focus narrows — ambient awareness reduced${hasVaapad ? ' (Vaapad amplifying)' : ''}</div>`;
+      d.innerHTML = `<div style="font-size:10px;color:#664433;font-style:italic;padding:2px 6px">◈ Focus narrows — ambient awareness reduced${hasVaapad?' (Vaapad amplifying)':''}</div>`;
       feed.appendChild(d);
     }
   }
 }
 
-// Clear shatterpoint focus (called when scene ends or focus drops)
 function spClearFocus() {
   if (!characterSheet) return;
   characterSheet.shatterpointFocus   = 0;
   characterSheet.tunnelVision        = false;
   characterSheet.vaapadAmplification = false;
   document.querySelectorAll('.sp-tunnel-notif').forEach(el => el.remove());
-}
-
-// Clear resolved misread flag
-function spClearMisread() {
-  if (characterSheet) characterSheet.lastShatterpointMisread = null;
 }
 
 function compressedBonus(stat) {
@@ -4290,18 +4270,12 @@ function syncMasterXPToSheet() {
   apply(characterSheet.forceAbilities,characterSheet.forceAbilitiesXP,'forceAbilities');
   apply(characterSheet.lightsaberForms,characterSheet.lightsaberFormsXP,'lightsaberForms');
 
-  // Sync shatterpoint from its dedicated track (not in forceAbilities)
-  if (masterXP.shatterpoint?.main?.totalXP > 0) {
-    const spD = spDeriveFromTotalXP(masterXP.shatterpoint.main.totalXP);
-    characterSheet.shatterpointLevel = spD.level;
-    characterSheet.shatterpointTier  = spGetTier(spD.level);
-    // Keep display entry in forceAbilities — sourced from SP track only
-    if (!characterSheet.forceAbilities) characterSheet.forceAbilities = {};
-    characterSheet.forceAbilities['Shatterpoint'] = spD.level;
-    // Never let masterXP.forceAbilities have a Shatterpoint entry
-    if (masterXP.forceAbilities?.['Shatterpoint'] !== undefined)
-      delete masterXP.forceAbilities['Shatterpoint'];
-  }
+  // Shatterpoint now in standard forceAbilities — synced by apply() above automatically
+  // Clean up any legacy contamination from old dedicated track
+  if (masterXP.forceAbilities?.['Shatterpoint'] !== undefined)
+    delete masterXP.forceAbilities['Shatterpoint'];
+  if (characterSheet.forceAbilities?.['Shatterpoint'] !== undefined)
+    delete characterSheet.forceAbilities['Shatterpoint'];
 }
 
 function updateCharacterSheet() {
@@ -5380,10 +5354,15 @@ const SIM_ACTIVITIES = [
   { key:'force_control_drills',label:'Force Control Drills',  weights:[{p:'forceStats.forceControl',w:1.0},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.4}], strainBias:{f:1.8,p:0.2,m:1.2}, defaultIntensity:'standard', unlock:cs=>true },
   // SHATTERPOINT — uses dedicated SP track via spApplyXP, not standard applyXPToSheet
   { key:'shatterpoint_practice', label:'Shatterpoint Practice',
-    weights:[], // XP applied via spApplyXP in simProcessDay, not the standard weight map
+    weights:[{p:"forceAbilities.Shatterpoint (Innate)",w:1.0},{p:"forceAbilities.Shatterpoint",w:1.0}],
     strainBias:{f:2.2,p:0.1,m:2.5}, defaultIntensity:'standard',
-    isShatterpoint:true, // flag so simProcessDay routes it correctly
-    unlock:cs => (cs.innateTalents||[]).includes('ShatterSense') || (cs.shatterpointLevel||0) > 0 },
+    isShatterpoint:true,
+    unlock:cs => {
+      const hasInnate = (cs.innateTalents||[]).includes('ShatterSense');
+      const innateLevel = cs.forceAbilities?.['Shatterpoint (Innate)']||0;
+      const trainedLevel = cs.forceAbilities?.['Shatterpoint']||0;
+      return hasInnate || innateLevel > 0 || trainedLevel > 0;
+    }},
   // PHYSICAL
   { key:'cardio',              label:'Cardio / Endurance',    weights:[{p:'stats.endurance',w:1.0},{p:'stats.strength',w:0.2},{p:'stats.agility',w:0.2}], strainBias:{f:0.1,p:2.0,m:0.3}, defaultIntensity:'standard', unlock:cs=>true },
   { key:'strength_train',      label:'Strength Training',     weights:[{p:'stats.strength',w:1.0},{p:'stats.endurance',w:0.4}], strainBias:{f:0.1,p:2.2,m:0.2}, defaultIntensity:'standard', unlock:cs=>true },
@@ -5774,7 +5753,8 @@ function simCalcDailyXP(cs) {
     if (act.isShatterpoint) {
       const iMult = SIM_INTENSITY[r.intensity||act.defaultIntensity||'standard'] || 15;
       const outW = SIM_OUTCOME_WEIGHT[Math.min(6, spGetLevel())] || 1.1;
-      xpMap['shatterpoint.Shatterpoint'] = (xpMap['shatterpoint.Shatterpoint']||0) + r.hours * iMult * outW * simGetStrainPenalty();
+      const spKey = 'forceAbilities.' + spGetAbilityKey();
+      xpMap[spKey] = (xpMap[spKey]||0) + r.hours * iMult * outW * simGetStrainPenalty();
     } else {
       addXP(act.weights, r.hours, r.intensity||act.defaultIntensity, r.difficulty||'standard');
     }
@@ -6095,7 +6075,7 @@ async function simProcessDay(chunk, chunkNum, total) {
               || simCustomDrills.find(d=>'custom_'+d.id===r.activityKey);
     if (!act) return;
     if (act.isShatterpoint) {
-      // Shatterpoint uses its own XP track — calculate raw XP same as standard
+      // Shatterpoint routes through spApplyXP → applyXPToSheet with correct key
       const iMult = SIM_INTENSITY[r.intensity||act.defaultIntensity||'standard'] || 15;
       const spLevel = spGetLevel();
       const outW = SIM_OUTCOME_WEIGHT[Math.min(6, spLevel)] || 1.1;
@@ -6116,7 +6096,7 @@ async function simProcessDay(chunk, chunkNum, total) {
   if (spXPGained > 0) {
     const spRes = spApplyXP(spXPGained);
     if (spRes.levelUps > 0) levelUps.push(`Shatterpoint → Level ${spRes.newLevel}`);
-    xpGained['shatterpoint.Shatterpoint'] = Math.round(spXPGained); // for summary display
+    xpGained['forceAbilities.' + spGetAbilityKey()] = Math.round(spXPGained); // for summary display
   }
 
   // Strain for the period (rolling accumulation — sleep recovers each night)
