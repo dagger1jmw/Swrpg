@@ -6219,11 +6219,12 @@ async function generateTransitionScene() {
   const aiNotes = document.getElementById('sim-ai-notes')?.value.trim() || '';
 
   const systemPrompt = `You are the Game Master for a Star Wars Legends tabletop RPG campaign. 
-Write atmospheric, immersive prose in the style of the game. Present tense. 
-Do not use bullet points or headers. Do not mention XP or game mechanics.
-End with "What do you do?" on a new line.`;
+Write atmospheric, immersive Star Wars prose. Present tense. 4-6 paragraphs.
+Do not use bullet points or headers. Do not mention XP, levels, or game mechanics.
+Capture the physical and emotional reality of emerging from an intense training period.
+End with 'What do you do?' on a new line.`;
 
-  const userPrompt = `Write a short transition scene (2-3 paragraphs) that begins immediately after a ${getPeriodLabel(simPeriodType)} training period has concluded for ${cs.name||'the character'}.
+  const userPrompt = `Write a rich transition scene (4-6 paragraphs) that begins immediately after a ${getPeriodLabel(simPeriodType)} training period has concluded for ${cs.name||'the character'}.
 
 Current situation:
 - Date: ${ws.inGameDate||'unknown'}, Time: ${ws.inGameTime||'unknown'}  
@@ -6241,7 +6242,7 @@ The scene should:
 ${aiNotes ? `Additional context: ${aiNotes}` : ''}`;
 
   try {
-    const result = await simApiCall(systemPrompt, userPrompt, 1500);
+    const result = await simApiCall(systemPrompt, userPrompt, 4000);
     const sceneText = result.text?.trim();
 
     if (!sceneText) {
