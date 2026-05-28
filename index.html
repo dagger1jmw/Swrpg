@@ -5365,6 +5365,12 @@ const SIM_ACTIVITIES = [
   { key:'meditation_deep',     label:'Deep Force Immersion',  weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceControl',w:0.4},{p:'forceStats.forceKnowledge',w:0.3},{p:'stats.willpower',w:0.5}], strainBias:{f:1.5,p:0.0,m:1.5}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.meditation||0)>=15, isRecovery:true },
   { key:'force_knowledge',     label:'Force Knowledge Study', weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'stats.willpower',w:0.3}], strainBias:{f:0.3,p:0.0,m:1.8}, defaultIntensity:'casual',   unlock:cs=>true },
   { key:'force_control_drills',label:'Force Control Drills',  weights:[{p:'forceStats.forceControl',w:1.0},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.4}], strainBias:{f:1.8,p:0.2,m:1.2}, defaultIntensity:'standard', unlock:cs=>true },
+  // SHATTERPOINT — uses dedicated SP track via spApplyXP, not standard applyXPToSheet
+  { key:'shatterpoint_practice', label:'Shatterpoint Practice',
+    weights:[], // XP applied via spApplyXP in simProcessDay, not the standard weight map
+    strainBias:{f:2.2,p:0.1,m:2.5}, defaultIntensity:'standard',
+    isShatterpoint:true, // flag so simProcessDay routes it correctly
+    unlock:cs => (cs.innateTalents||[]).includes('ShatterSense') || (cs.shatterpointLevel||0) > 0 },
   // PHYSICAL
   { key:'cardio',              label:'Cardio / Endurance',    weights:[{p:'stats.endurance',w:1.0},{p:'stats.strength',w:0.2},{p:'stats.agility',w:0.2}], strainBias:{f:0.1,p:2.0,m:0.3}, defaultIntensity:'standard', unlock:cs=>true },
   { key:'strength_train',      label:'Strength Training',     weights:[{p:'stats.strength',w:1.0},{p:'stats.endurance',w:0.4}], strainBias:{f:0.1,p:2.2,m:0.2}, defaultIntensity:'standard', unlock:cs=>true },
@@ -5752,7 +5758,13 @@ function simCalcDailyXP(cs) {
     if (!r.activityKey||!r.hours) return;
     const act = SIM_ACTIVITIES.find(a=>a.key===r.activityKey);
     if (!act) return;
-    addXP(act.weights, r.hours, r.intensity||act.defaultIntensity, r.difficulty||'standard');
+    if (act.isShatterpoint) {
+      const iMult = SIM_INTENSITY[r.intensity||act.defaultIntensity||'standard'] || 15;
+      const outW = SIM_OUTCOME_WEIGHT[Math.min(6, spGetLevel())] || 1.1;
+      xpMap['shatterpoint.Shatterpoint'] = (xpMap['shatterpoint.Shatterpoint']||0) + r.hours * iMult * outW * simGetStrainPenalty();
+    } else {
+      addXP(act.weights, r.hours, r.intensity||act.defaultIntensity, r.difficulty||'standard');
+    }
   });
   // Round and filter tiny values
   return Object.fromEntries(Object.entries(xpMap).filter(([,v])=>v>=0.5).map(([k,v])=>[k,Math.round(v*10)/10]));
@@ -6063,12 +6075,21 @@ async function simProcessDay(chunk, chunkNum, total) {
   });
 
   // Training rows
+  let spXPGained = 0; // accumulated separately via shatterpoint track
   simTrainingRows.forEach(r => {
     if (!r.activityKey||!r.hours) return;
     const act = SIM_ACTIVITIES.find(a=>a.key===r.activityKey)
               || simCustomDrills.find(d=>'custom_'+d.id===r.activityKey);
     if (!act) return;
-    applyBlockXP(act.weights||[], r.hours, r.intensity||act.defaultIntensity||'standard', r.difficulty||'standard');
+    if (act.isShatterpoint) {
+      // Shatterpoint uses its own XP track — calculate raw XP same as standard
+      const iMult = SIM_INTENSITY[r.intensity||act.defaultIntensity||'standard'] || 15;
+      const spLevel = spGetLevel();
+      const outW = SIM_OUTCOME_WEIGHT[Math.min(6, spLevel)] || 1.1;
+      spXPGained += r.hours * iMult * outW * simGetStrainPenalty() * days;
+    } else {
+      applyBlockXP(act.weights||[], r.hours, r.intensity||act.defaultIntensity||'standard', r.difficulty||'standard');
+    }
   });
 
   // Apply XP via masterXP system
@@ -6077,6 +6098,12 @@ async function simProcessDay(chunk, chunkNum, total) {
     if (xp <= 0) continue;
     const res = applyXPToSheet(path, xp);
     if (res.levelUps > 0) levelUps.push(`${path.split('.')[1]} → Level ${res.newStat}`);
+  }
+  // Apply shatterpoint XP via dedicated track
+  if (spXPGained > 0) {
+    const spRes = spApplyXP(spXPGained);
+    if (spRes.levelUps > 0) levelUps.push(`Shatterpoint → Level ${spRes.newLevel}`);
+    xpGained['shatterpoint.Shatterpoint'] = Math.round(spXPGained); // for summary display
   }
 
   // Strain for the period (rolling accumulation — sleep recovers each night)
