@@ -1501,7 +1501,7 @@ HOW TO REPORT XP — USE TRAINING: OR COMBAT: LINES, NEVER JUST PROSE:
 Do NOT write "Djem So: +3 XP" in narrative. Instead output in the CHANGES block:
 
 For training sessions:
-TRAINING: lightsaberForms.Djem So, 2.0, intense, ceiling, solid
+TRAINING: lightsaberForms.DjemSo, 2.0, intense, ceiling, solid
 TRAINING: forceStats.forceSense, 0.5, standard, basic, solid
 TRAINING: stats.strength, 1.0, intense, above, strong
 
@@ -1513,8 +1513,8 @@ COMBAT_ROUND: [rounds_this_turn], [intensity]
 COMBAT_END: [primarySkillPath], [secondarySkillPath|none], [opponentTier 1-7], [engagement], [outcome]
   → Output ONLY when combat ends — applies all accumulated strain and XP
   → Opponent tier: 1=Untrained(0-20), 2=Apprentice(21-40), 3=Adept(41-60), 4=Master(61-80), 5=HighMaster(81-100), 6=Legendary(101-150), 7=Transcendent(151+)
-  → e.g. COMBAT_END: lightsaberForms.Djem So, forceAbilities.Telekinesis, 2, aggressive, win
-  → Training bot at Djem So 30 = Tier 2 opponent → COMBAT_END: lightsaberForms.Djem So, none, 2, aggressive, win
+  → e.g. COMBAT_END: lightsaberForms.DjemSo, forceAbilities.Telekinesis, 2, aggressive, win
+  → Training bot at Djem So 30 = Tier 2 opponent → COMBAT_END: lightsaberForms.DjemSo, none, 2, aggressive, win
 
 XP FORMULA (for reference only — JavaScript calculates this, you do not):
 base_xp by opponent tier: T1=50, T2=120, T3=300, T4=750, T5=1800, T6=4500, T7=11000
@@ -1537,12 +1537,12 @@ RULES FOR CHANGES BLOCK:
 - Stat values: current level after this turn
 - XP lines for TRAINING sessions: TRAINING: category.StatName, hours, intensity, difficulty, outcome
   - category: forceStats / stats / forceAbilities / lightsaberForms
-  - StatName: exact key (e.g. forceSense, Shii-Cho, Force Push, strength)
+  - StatName: exact key (e.g. forceSense, ShiiCho, ForcePush, strength) — NO HYPHENS OR SPACES in form/ability keys
   - hours: decimal hours of actual practice (0.5, 1.0, 2.5, 3.0 etc)
   - intensity: casual / standard / intense / pushing / elite
   - difficulty: basic / ceiling / above / far (relative to current stat level)
   - outcome: failure / partial / solid / strong / overwhelming / breakthrough
-  - Example: TRAINING: lightsaberForms.Shii-Cho, 2.5, intense, ceiling, strong
+  - Example: TRAINING: lightsaberForms.ShiiCho, 2.5, intense, ceiling, strong
   - Example: TRAINING: forceStats.forceSense, 1.0, standard, basic, solid
 - XP lines for COMBAT: COMBAT: category.StatName, rounds, tierGap, engagement, outcome[, secondary: category.StatName2]
   - rounds: number of exchanges (3=brief, 8=extended, 15=prolonged)
@@ -1550,7 +1550,7 @@ RULES FOR CHANGES BLOCK:
   - engagement: passive / mixed / aggressive
   - outcome: overwhelming_win / win / strong_win / narrow_loss / loss / survived
   - secondary: optional second stat that was actively used (gets 40% of primary XP)
-  - Example: COMBAT: lightsaberForms.Djem So, 8, 1, aggressive, narrow_loss, secondary: forceAbilities.Force Push
+  - Example: COMBAT: lightsaberForms.DjemSo, 8, 1, aggressive, narrow_loss, secondary: forceAbilities.Force Push
 - Include one TRAINING or COMBAT line per skill that was meaningfully used this turn
 - Still include XP_ lines for accumulated XP without level-ups (for progress bar display)
 - This block is what updates the character sheet — if you skip it, nothing updates
@@ -1620,22 +1620,22 @@ Hybrid: "blending Djem So and Shii-Cho footwork" → both count
 STEP 2 — CALCULATE COMBAT TIER:
 Average the stat values of all active forms, then convert to tier.
 Single form (Djem So 2): average = 2 → Tier 1 Untrained
-Hybrid (Djem So 2 + Shii-Cho 55): average = 28.5 → Tier 2 Apprentice
-Pure Shii-Cho (55): average = 55 → Tier 3 Adept
+Hybrid (DjemSo 2 + ShiiCho 55): average = 28.5 → Tier 2 Apprentice
+Pure ShiiCho (55): average = 55 → Tier 3 Adept
 
 This is the ONLY number used for the tier gap calculation. Nothing else.
 
 STEP 3 — TIER GAP BONUS:
 Compare both fighters' combat tiers from Step 2. Apply the tier gap table.
 If Jared uses Djem So only (Tier 1) vs Bot Djem So (Tier 2): Bot is 1 tier above → +4 to Bot.
-If Jared uses Shii-Cho only (Tier 3) vs Bot Djem So (Tier 2): Jared is 1 tier above → +4 to Jared.
+If Jared uses ShiiCho only (Tier 3) vs Bot Djem So (Tier 2): Jared is 1 tier above → +4 to Jared.
 
 STEP 4 — EXPERIENCE MODIFIER (separate from tier):
 Take the fighter's HIGHEST owned form stat (regardless of active forms).
 Experience modifier = compressedBonus(highest form) × 0.4
 This is a flat bonus added to the roll. It represents general combat instinct, footwork, opponent reading.
 It does NOT affect tier. It does NOT affect tier gap.
-Jared: highest form = Shii-Cho 55 → compressedBonus(55) × 0.4 = 2.375 × 0.4 = +0.95
+Jared: highest form = ShiiCho 55 → compressedBonus(55) × 0.4 = 2.375 × 0.4 = +0.95
 
 STEP 5 — STAT BONUS:
 Add compressed bonuses for physical stats (Str, Agi, End) and the active form(s).
@@ -1656,14 +1656,14 @@ Jared uses Djem So only (stat=2):
   Experience: compressedBonus(55) × 0.4 = +0.95
   Tier gap vs Bot Djem So (25, Tier 2): Bot 1 above → +4 to Bot ← BOT HAS ADVANTAGE
 
-Jared uses hybrid Djem So + Shii-Cho:
-  Active forms: Djem So (2), Shii-Cho (55)
+Jared uses hybrid DjemSo + ShiiCho:
+  Active forms: DjemSo (2), ShiiCho (55)
   Combat tier: avg(2, 55) = 28.5 → Tier 2 Apprentice
   Experience: +0.95
   Tier gap vs Bot Djem So (25, Tier 2): Equal → no gap bonus ← EVEN FIGHT
 
-Jared switches to pure Shii-Cho:
-  Active forms: Shii-Cho (55)
+Jared switches to pure ShiiCho:
+  Active forms: ShiiCho (55)
   Combat tier: avg(55) = 55 → Tier 3 Adept
   Tier gap vs Bot Djem So (25, Tier 2): Jared 1 above → +4 to Jared ← JARED DOMINANT
 
@@ -1671,8 +1671,8 @@ EXPERIENCE MODIFIER — combat instincts carry over between forms:
 Formula: experience bonus = compressedBonus(highest owned form stat) × 0.4
 This represents footwork, opponent-reading, Force integration, and general combat instinct.
 It is a FLAT BONUS to the roll only — it does NOT change tier or affect the tier gap calculation.
-Example: Shii-Cho 55 → compressedBonus(55) = 2.375 → experience modifier = +0.95
-A fighter with Shii-Cho 55 learning Djem So (1) fights at Tier 1 technique but adds +0.95 from experience.
+Example: ShiiCho 55 → compressedBonus(55) = 2.375 → experience modifier = +0.95
+A fighter with ShiiCho 55 learning Djem So (1) fights at Tier 1 technique but adds +0.95 from experience.
 The bot with no experience has no modifier.
 Show experience modifier explicitly in the roll display.
 
@@ -1890,7 +1890,7 @@ When combat ends (victory, retreat, knockout, or resolution), output in CHANGES 
 2. Accumulated strain applied to character sheet
 3. Any injuries or lasting effects
 
-COMBAT: lightsaberForms.Djem So, [total_rounds], [tier_gap], [engagement], [outcome], secondary: [secondary_skill_if_any]
+COMBAT: lightsaberForms.DjemSo, [total_rounds], [tier_gap], [engagement], [outcome], secondary: [secondary_skill_if_any]
 
 Outcome labels:
 - overwhelming_win: dominated opponent
@@ -1937,7 +1937,7 @@ Accumulated strain: Physical [XX], Force [XX], Mental [XX]  (0–100 scale)
 
 ### LIGHTSABER FORMS — MODIFIERS STACK WITH TIER GAP
 Form counter bonuses apply ON TOP OF tier gap, not instead of it:
-- Makashi vs Shii-Cho: +2 to Makashi user's roll
+- Makashi vs ShiiCho: +2 to Makashi user's roll
 - Djem So vs Makashi: +2 to Djem So user's roll
 - Soresu vs Ataru: Ataru user +1 Physical Strain per round
 - Ataru in confined spaces: -3 to Ataru user's roll
@@ -2017,7 +2017,7 @@ Current XP progress is shown in the state injection (e.g. "Djem So:3[45/123XP]")
 SHEET block must include these additional XP tracking fields:
 - forceStatsXP: {"forceSense": {"current": 0, "required": 10}, ...} for each force stat
 - forceAbilitiesXP: {"Force Push": {"current": 0, "required": 10}, ...} for each ability
-- lightsaberFormsXP: {"Shii-Cho": {"current": 0, "required": 10}, ...} for each form
+- lightsaberFormsXP: {"ShiiCho": {"current": 0, "required": 10}, ...} for each form
 
 XP GAIN RULES (add to current XP each turn, never skip this):
 - Deliberately practicing an ability this turn: +2 XP to that ability
@@ -2778,7 +2778,7 @@ Third d20 (if needed) = ${preRollSecondary}
 
 These values were generated by a true random number generator before this prompt was sent. You are NOT permitted to choose different dice values. If this turn requires a roll, use ${preRoll} as the d20 result. For opposed rolls (duels, contested actions), the player uses ${preRoll} and the opponent uses ${preRollOpposed}. Apply compressed stat bonuses, tier gap bonuses, and tactical bonuses on top of these fixed values. Show the full roll display format with d20=${preRoll} as the die result.]`;
 
-  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State time elapsed. (2) Update inGameTime in WORLD block. (3) Output <<<CHANGES>>> block. CRITICAL FOR XP: use TRAINING: or COMBAT: lines in the CHANGES block for every skill used — NOT prose like "+3 XP". Format: TRAINING: lightsaberForms.Djem So, 2.0, intense, ceiling, solid OR COMBAT: lightsaberForms.Djem So, 8, 1, aggressive, narrow_loss. (4) Output <<<SHEET>>> and <<<WORLD>>> blocks.]`;
+  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State time elapsed. (2) Update inGameTime in WORLD block. (3) Output <<<CHANGES>>> block. CRITICAL FOR XP: use TRAINING: or COMBAT: lines in the CHANGES block for every skill used — NOT prose like "+3 XP". Format: TRAINING: lightsaberForms.DjemSo, 2.0, intense, ceiling, solid OR COMBAT: lightsaberForms.DjemSo, 8, 1, aggressive, narrow_loss. (4) Output <<<SHEET>>> and <<<WORLD>>> blocks.]`;
 
   messages.push({ role: 'user', parts: [{ text: userContent + diceInjection + reminder }] });
 
@@ -4213,7 +4213,13 @@ function calcCombatXP(rounds, tierGap, engagement, outcome, opponentTier) {
 function applyXPToSheet(statPath, xpToAdd) {
   if (!xpToAdd || xpToAdd <= 0) return { levelUps: 0, xpAdded: 0, newStat: 0, xpCurrent: 0, xpRequired: 0 };
   const parts = statPath.split('.');
-  const category = parts[0], key = parts[1];
+  const category = parts[0];
+  // Normalize key: remove non-alphanumeric, capitalize first letter
+  // This ensures 'Shii-Cho' and 'ShiiCho' always map to the same masterXP entry
+  let key = parts.slice(1).join('.');
+  if (category === 'lightsaberForms') {
+    key = key.replace(/[^a-zA-Z0-9]/g, '').replace(/^(.)/, c => c.toUpperCase());
+  }
   if (!category || !key) return { levelUps: 0, xpAdded: 0, newStat: 0, xpCurrent: 0, xpRequired: 0 };
 
   if (!masterXP[category]) masterXP[category] = {};
