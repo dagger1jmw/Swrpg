@@ -4488,14 +4488,16 @@ function updateCharacterSheet() {
   if (spLevel > 0 || spHasInnate) {
     const spTier = spGetTier(spLevel);
     const spTierLabels = {1:'Tactical',2:'Personal',3:'Situational'};
-    const spD = spDeriveFromTotalXP(masterXP.shatterpoint?.main?.totalXP || 0);
+    const spAbilityKey = spHasInnate ? 'Shatterpoint (Innate)' : 'Shatterpoint';
+    const spMXPEntry = masterXP.forceAbilities?.[spAbilityKey];
+    const spD = spMXPEntry ? deriveFromTotalXP(spMXPEntry.totalXP || 0) : { current: 0, required: 1 };
     const spPct = Math.round((spD.current / spD.required) * 100);
     const spTunnelOn = s.tunnelVision || false;
     const spFocusPct = Math.min(100, s.shatterpointFocus || 0);
     const spFocusColor = spFocusPct > 70 ? '#cc4444' : spFocusPct > 40 ? '#cc8833' : '#447788';
     html += `<div class="sheet-section">
       <div class="sheet-section-title" style="display:flex;justify-content:space-between;align-items:center">
-        <span>Shatterpoint</span>
+        <span>${spAbilityKey}</span>
         <span style="font-size:10px;color:#447788;letter-spacing:1px">L${spLevel} · ${spTierLabels[spTier] || 'Tier '+spTier}</span>
       </div>
       <div style="font-size:10px;color:var(--text-dim);margin-bottom:4px">
