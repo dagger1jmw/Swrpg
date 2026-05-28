@@ -2892,6 +2892,29 @@ async function callGemini(playerMessage, retryCount = 0) {
         syncMasterXPToSheet();
         // Seed shatterpoint if innate talent is present and track not yet initialized
         spSeedIfInnate();
+        // Normalize lightsaber form keys — AI sometimes uses "Shii-Cho" vs "ShiiCho"
+        // Canonical key is camelCase no hyphen; merge if duplicate found
+        if (characterSheet.lightsaberForms) {
+          const normalize = (key) => key.replace(/[^a-zA-Z0-9]/g,'').replace(/^(.)/, c=>c.toUpperCase());
+          const normalized = {};
+          for (const [k, v] of Object.entries(characterSheet.lightsaberForms)) {
+            const normKey = normalize(k);
+            // Keep the higher value if duplicate
+            normalized[normKey] = Math.max(normalized[normKey] || 0, v || 0);
+          }
+          characterSheet.lightsaberForms = normalized;
+          // Also normalize masterXP lightsaberForms
+          if (masterXP.lightsaberForms) {
+            const normMXP = {};
+            for (const [k, v] of Object.entries(masterXP.lightsaberForms)) {
+              const normKey = normalize(k);
+              if (!normMXP[normKey] || (v.totalXP || 0) > (normMXP[normKey].totalXP || 0)) {
+                normMXP[normKey] = v;
+              }
+            }
+            masterXP.lightsaberForms = normMXP;
+          }
+        }
       }
     }
 
@@ -3126,11 +3149,13 @@ async function callGemini(playerMessage, retryCount = 0) {
 
           case 'SHATTERPOINT_XP': {
             const spXPResult = spApplyXP(val);
-            turnXPLog.push({
-              label: 'Shatterpoint', xpAdded: spXPResult.xpAdded,
-              levelUps: spXPResult.levelUps, newStat: spXPResult.newLevel,
-              xpCurrent: spXPResult.current, xpRequired: spXPResult.required, type: 'training'
-            });
+            if (spXPResult.xpAdded > 0) {
+              turnXPLog.push({
+                label: 'Shatterpoint', xpAdded: spXPResult.xpAdded,
+                levelUps: spXPResult.levelUps, newStat: spXPResult.newLevel,
+                xpCurrent: spXPResult.current, xpRequired: spXPResult.required, type: 'training'
+              });
+            }
             break;
           }
 
@@ -3961,11 +3986,16 @@ function spApplyXP(rawAmount) {
   const before = spDeriveFromTotalXP(masterXP.shatterpoint.main.totalXP);
   masterXP.shatterpoint.main.totalXP += effectiveXP;
   const after = spDeriveFromTotalXP(masterXP.shatterpoint.main.totalXP);
-  // Update characterSheet fields
+  // Update characterSheet fields (never forceAbilities — shatterpoint has its own track)
   if (characterSheet) {
     characterSheet.shatterpointLevel = after.level;
     characterSheet.shatterpointTier  = spGetTier(after.level);
+    if (characterSheet.forceAbilities?.['Shatterpoint'] !== undefined)
+      delete characterSheet.forceAbilities['Shatterpoint'];
   }
+  if (masterXP.forceAbilities?.['Shatterpoint'] !== undefined)
+    delete masterXP.forceAbilities['Shatterpoint'];
+
   return { levelUps: after.level - before.level, newLevel: after.level, xpAdded: Math.round(rawAmount), current: after.current, required: after.required };
 }
 
@@ -3979,28 +4009,22 @@ function spSeedIfInnate() {
   const currentLevel = spGetLevel();
   if (currentLevel < 5) {
     masterXP.shatterpoint.main = { totalXP: spXPToReachLevel(5) };
-    if (characterSheet) {
-      characterSheet.shatterpointLevel = 5;
-      characterSheet.shatterpointTier  = 1;
-    }
   }
 
-  // Ensure Shatterpoint appears in forceAbilities on the character sheet
-  // so it shows up in the abilities section and in the AI prompt
+  // IMPORTANT: Shatterpoint is NOT stored in masterXP.forceAbilities or
+  // characterSheet.forceAbilities — it has its own dedicated track.
+  // We only update the display fields on characterSheet.
   if (characterSheet) {
-    if (!characterSheet.forceAbilities) characterSheet.forceAbilities = {};
-    // Only set if not already present at a higher value
-    const existingLevel = characterSheet.forceAbilities['Shatterpoint'];
-    const derivedLevel  = spGetLevel();
-    if (!existingLevel || existingLevel < derivedLevel) {
-      characterSheet.forceAbilities['Shatterpoint'] = derivedLevel;
+    const lvl = spGetLevel();
+    characterSheet.shatterpointLevel = lvl;
+    characterSheet.shatterpointTier  = spGetTier(lvl);
+    // Remove contamination if it was previously written there
+    if (characterSheet.forceAbilities?.['Shatterpoint'] !== undefined) {
+      delete characterSheet.forceAbilities['Shatterpoint'];
     }
-    // Also ensure masterXP tracks it so it stays in sync
-    if (!masterXP.forceAbilities) masterXP.forceAbilities = {};
-    if (!masterXP.forceAbilities['Shatterpoint']) {
-      // Sync from shatterpoint track — derive correct totalXP
-      masterXP.forceAbilities['Shatterpoint'] = { totalXP: masterXP.shatterpoint.main?.totalXP || spXPToReachLevel(5) };
-    }
+  }
+  if (masterXP.forceAbilities?.['Shatterpoint'] !== undefined) {
+    delete masterXP.forceAbilities['Shatterpoint'];
   }
 }
 
