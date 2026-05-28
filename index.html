@@ -4289,6 +4289,19 @@ function syncMasterXPToSheet() {
   apply(characterSheet.stats,         characterSheet.statsXP,         'stats');
   apply(characterSheet.forceAbilities,characterSheet.forceAbilitiesXP,'forceAbilities');
   apply(characterSheet.lightsaberForms,characterSheet.lightsaberFormsXP,'lightsaberForms');
+
+  // Sync shatterpoint from its dedicated track (not in forceAbilities)
+  if (masterXP.shatterpoint?.main?.totalXP > 0) {
+    const spD = spDeriveFromTotalXP(masterXP.shatterpoint.main.totalXP);
+    characterSheet.shatterpointLevel = spD.level;
+    characterSheet.shatterpointTier  = spGetTier(spD.level);
+    // Keep display entry in forceAbilities — sourced from SP track only
+    if (!characterSheet.forceAbilities) characterSheet.forceAbilities = {};
+    characterSheet.forceAbilities['Shatterpoint'] = spD.level;
+    // Never let masterXP.forceAbilities have a Shatterpoint entry
+    if (masterXP.forceAbilities?.['Shatterpoint'] !== undefined)
+      delete masterXP.forceAbilities['Shatterpoint'];
+  }
 }
 
 function updateCharacterSheet() {
@@ -6115,6 +6128,52 @@ async function simProcessDay(chunk, chunkNum, total) {
   characterSheet.forceStrain    = Math.min(cs.maxForceStrain||100,    Math.round(endForce*10)/10);
   characterSheet.physicalStrain = Math.min(cs.maxPhysicalStrain||100, Math.round(endPhys*10)/10);
   characterSheet.mentalStrain   = Math.min(cs.maxMentalStrain||100,   Math.round(endMent*10)/10);
+
+  // Meditation → Light Side alignment gain (diminishing returns)
+  // Only applies during simulation for Jedi characters using meditation activities
+  // Formula: gain = hoursPerDay × 0.003 × (1 - currentAlignment/100) × days × meditationBonus
+  // At alignment 0: ~0.021/week per hr/day. At alignment 50: ~0.0105/week. At alignment 90: ~0.0021/week.
+  // Takes years of consistent meditation to meaningfully shift alignment.
+  const isFactionJedi = (characterSheet.faction||'').toLowerCase().includes('jedi');
+  if (isFactionJedi) {
+    const currentAlign = characterSheet.alignment || 0;
+    // Only positive effect — meditation moves toward light, never past 0 if neutral, never hurts
+    if (currentAlign < 100) {
+      let medHoursPerDay = 0;
+      const stage = cs.lifeStage || 'youngling';
+      // Count mandatory meditation
+      (SIM_MANDATORY[stage]||[]).forEach((mand, i) => {
+        if (!mand.isRecovery) return;
+        const hrs = parseFloat(document.getElementById('sim-mand-hours-'+i)?.value) || mand.defaultHours;
+        // Group meditation counts at half rate (less focused)
+        medHoursPerDay += hrs * 0.5;
+      });
+      // Count training row meditation
+      simTrainingRows.forEach(r => {
+        if (!r.activityKey || !r.hours) return;
+        const act = SIM_ACTIVITIES.find(a => a.key === r.activityKey);
+        if (!act || !act.isRecovery) return;
+        // Deep Force Immersion is more spiritually potent than basic centering
+        const depthMult = r.activityKey === 'meditation_deep' ? 1.5 : r.activityKey === 'force_sense_passive' ? 0.5 : 1.0;
+        medHoursPerDay += r.hours * depthMult;
+      });
+
+      if (medHoursPerDay > 0) {
+        const medStat = cs.forceStats?.meditation || 0;
+        // medBonus: higher meditation = better at channeling Light through practice
+        const medStatBonus = 1 + (medStat / 150); // modest bonus — meditation 42 = ×1.28
+        // Diminishing returns: harder to gain the higher your alignment
+        // At 0: full rate. At 50 (Leaning Light): half rate. At 75 (Light): quarter rate. At 90: ~10% rate.
+        const diminish = Math.max(0, 1 - Math.pow(Math.max(0, currentAlign) / 100, 0.7));
+        // Base rate: 0.003 per hour per day
+        const weeklyGain = medHoursPerDay * 0.003 * diminish * medStatBonus * days;
+        if (weeklyGain > 0.001) {
+          const oldAlign = characterSheet.alignment || 0;
+          characterSheet.alignment = Math.min(100, oldAlign + weeklyGain);
+        }
+      }
+    }
+  }
 
   // Advance calendar
   if (worldState?.inGameDate) worldState.inGameDate = advanceInGameDate(worldState.inGameDate, days);
