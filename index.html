@@ -2893,27 +2893,29 @@ async function callGemini(playerMessage, retryCount = 0) {
         // Seed shatterpoint if innate talent is present and track not yet initialized
         spSeedIfInnate();
         // Normalize lightsaber form keys — AI sometimes uses "Shii-Cho" vs "ShiiCho"
-        // Canonical key is camelCase no hyphen; merge if duplicate found
+        // Canonical key is camelCase no hyphen; merge duplicates
         if (characterSheet.lightsaberForms) {
-          const normalize = (key) => key.replace(/[^a-zA-Z0-9]/g,'').replace(/^(.)/, c=>c.toUpperCase());
-          const normalized = {};
-          for (const [k, v] of Object.entries(characterSheet.lightsaberForms)) {
-            const normKey = normalize(k);
-            // Keep the higher value if duplicate
-            normalized[normKey] = Math.max(normalized[normKey] || 0, v || 0);
-          }
-          characterSheet.lightsaberForms = normalized;
-          // Also normalize masterXP lightsaberForms
+          const normalizeKey = (key) => key.replace(/[^a-zA-Z0-9]/g,'').replace(/^(.)/, c=>c.toUpperCase());
+          // First normalize masterXP keys (source of truth for stat levels)
           if (masterXP.lightsaberForms) {
             const normMXP = {};
             for (const [k, v] of Object.entries(masterXP.lightsaberForms)) {
-              const normKey = normalize(k);
-              if (!normMXP[normKey] || (v.totalXP || 0) > (normMXP[normKey].totalXP || 0)) {
-                normMXP[normKey] = v;
-              }
+              const nk = normalizeKey(k);
+              if (!normMXP[nk] || (v.totalXP || 0) > (normMXP[nk].totalXP || 0)) normMXP[nk] = v;
             }
             masterXP.lightsaberForms = normMXP;
           }
+          // Then normalize sheet keys, using masterXP derived level as authoritative
+          const normalized = {};
+          for (const [k, v] of Object.entries(characterSheet.lightsaberForms)) {
+            const nk = normalizeKey(k);
+            // Use masterXP derived level if available (avoids stale AI values)
+            const mxpEntry = masterXP.lightsaberForms?.[nk];
+            const mxpLevel = mxpEntry ? deriveFromTotalXP(mxpEntry.totalXP || 0).level : 0;
+            const sheetLevel = typeof v === 'object' ? (v.level || 0) : (v || 0);
+            normalized[nk] = Math.max(mxpLevel, sheetLevel);
+          }
+          characterSheet.lightsaberForms = normalized;
         }
       }
     }
@@ -3986,13 +3988,15 @@ function spApplyXP(rawAmount) {
   const before = spDeriveFromTotalXP(masterXP.shatterpoint.main.totalXP);
   masterXP.shatterpoint.main.totalXP += effectiveXP;
   const after = spDeriveFromTotalXP(masterXP.shatterpoint.main.totalXP);
-  // Update characterSheet fields (never forceAbilities — shatterpoint has its own track)
+  // Update characterSheet fields
   if (characterSheet) {
     characterSheet.shatterpointLevel = after.level;
     characterSheet.shatterpointTier  = spGetTier(after.level);
-    if (characterSheet.forceAbilities?.['Shatterpoint'] !== undefined)
-      delete characterSheet.forceAbilities['Shatterpoint'];
+    // Keep Shatterpoint in forceAbilities for display — but sourced from SP track, not masterXP
+    if (!characterSheet.forceAbilities) characterSheet.forceAbilities = {};
+    characterSheet.forceAbilities['Shatterpoint'] = after.level;
   }
+  // Never store in masterXP.forceAbilities — that would feed the wrong XP engine
   if (masterXP.forceAbilities?.['Shatterpoint'] !== undefined)
     delete masterXP.forceAbilities['Shatterpoint'];
 
@@ -4011,17 +4015,14 @@ function spSeedIfInnate() {
     masterXP.shatterpoint.main = { totalXP: spXPToReachLevel(5) };
   }
 
-  // IMPORTANT: Shatterpoint is NOT stored in masterXP.forceAbilities or
-  // characterSheet.forceAbilities — it has its own dedicated track.
-  // We only update the display fields on characterSheet.
+  // Update display fields — Shatterpoint shows in forceAbilities section for visibility
+  // but is NEVER in masterXP.forceAbilities (that would contaminate the XP engine)
   if (characterSheet) {
     const lvl = spGetLevel();
     characterSheet.shatterpointLevel = lvl;
     characterSheet.shatterpointTier  = spGetTier(lvl);
-    // Remove contamination if it was previously written there
-    if (characterSheet.forceAbilities?.['Shatterpoint'] !== undefined) {
-      delete characterSheet.forceAbilities['Shatterpoint'];
-    }
+    if (!characterSheet.forceAbilities) characterSheet.forceAbilities = {};
+    characterSheet.forceAbilities['Shatterpoint'] = lvl;
   }
   if (masterXP.forceAbilities?.['Shatterpoint'] !== undefined) {
     delete masterXP.forceAbilities['Shatterpoint'];
