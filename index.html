@@ -1598,6 +1598,21 @@ MAX TOTAL BONUS BY TIER (4 relevant stats):
 
 The d20 always matters. Even a Transcendent can fail on a 1.
 
+### AUTHORITATIVE STAT SOURCE — CRITICAL RULE
+
+**ALWAYS use stat values from the INJECTED STATE BLOCK at the top of this prompt for ALL roll calculations.**
+The injected block contains lines like:
+  ═══ AUTHORITATIVE STAT VALUES — USE THESE FOR ALL ROLLS, NEVER THE SHEET JSON ═══
+LIGHTSABER FORMS (stat → tier → XP progress): ShiiCho:37(Adept)[...]
+  FORCE STATS: ForceSense=41 Meditation=43 ForceControl=45 ...
+  STATS: STR=39 AGI=41 END=41 WILL=42 ...
+
+These are the LIVE values calculated by JavaScript from masterXP. They are always correct.
+
+**NEVER use stat values from the <<<SHEET>>> JSON block for calculations.** The SHEET block is one turn behind — it is only used for world-state tracking. If you see ShiiCho=29 in the SHEET but ShiiCho:37 in the injected state, use 37. Always.
+
+If you show your roll working (e.g. "Form: ShiiCho (stat=37)"), the number after stat= must come from the injected state block, not the SHEET JSON.
+
 ### SEVEN-TIER SYSTEM — ABILITY-SPECIFIC, NOT OVERALL
 Tier is ALWAYS derived from the SPECIFIC stat or ability being used in THIS action. Never use highest stat, average, or overall tier.
 
@@ -2718,10 +2733,10 @@ HP: ${cs.hp||100}/${cs.maxHp||100}
 FORCE STRAIN: ${cs.forceStrain ?? cs.strain ?? 0}/${cs.maxForceStrain ?? cs.maxStrain ?? 100}
 PHYSICAL STRAIN: ${cs.physicalStrain||0}/${cs.maxPhysicalStrain||100}
 MENTAL STRAIN: ${cs.mentalStrain||0}/${cs.maxMentalStrain||100}
-FORCE STATS (stat/tier/XP — READ ONLY, do not modify): ForceSense=${cs.forceStats?.forceSense||0}(${statToTier(cs.forceStats?.forceSense||0).name})[${(()=>{const x=cs.forceStatsXP?.forceSense;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] Meditation=${cs.forceStats?.meditation||0}(${statToTier(cs.forceStats?.meditation||0).name})[${(()=>{const x=cs.forceStatsXP?.meditation;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] ForceKnowledge=${cs.forceStats?.forceKnowledge||0}(${statToTier(cs.forceStats?.forceKnowledge||0).name})[${(()=>{const x=cs.forceStatsXP?.forceKnowledge;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] ForceControl=${cs.forceStats?.forceControl||0}(${statToTier(cs.forceStats?.forceControl||0).name})[${(()=>{const x=cs.forceStatsXP?.forceControl;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}]
-FORCE ABILITIES (stat/tier/XP — READ ONLY): ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||v.value||0):(v||0);const x=cs.forceAbilitiesXP?.[k];return `${k}:${s}(${statToTier(s).name})[${x?Math.round(x.current||0)+'/'+x.required+'XP':'0/?XP'}]`;}).join(', ')||'none'}
+FORCE STATS (USE THESE VALUES FOR ROLLS — authoritative, not the SHEET JSON): ForceSense=${cs.forceStats?.forceSense||0}(${statToTier(cs.forceStats?.forceSense||0).name})[${(()=>{const x=cs.forceStatsXP?.forceSense;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] Meditation=${cs.forceStats?.meditation||0}(${statToTier(cs.forceStats?.meditation||0).name})[${(()=>{const x=cs.forceStatsXP?.meditation;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] ForceKnowledge=${cs.forceStats?.forceKnowledge||0}(${statToTier(cs.forceStats?.forceKnowledge||0).name})[${(()=>{const x=cs.forceStatsXP?.forceKnowledge;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] ForceControl=${cs.forceStats?.forceControl||0}(${statToTier(cs.forceStats?.forceControl||0).name})[${(()=>{const x=cs.forceStatsXP?.forceControl;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}]
+FORCE ABILITIES (USE THESE VALUES FOR ROLLS — authoritative, not the SHEET JSON): ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||v.value||0):(v||0);const x=cs.forceAbilitiesXP?.[k];return `${k}:${s}(${statToTier(s).name})[${x?Math.round(x.current||0)+'/'+x.required+'XP':'0/?XP'}]`;}).join(', ')||'none'}
 LIGHTSABER FORMS (stat → tier → XP progress): ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||0):(v||0);const xp=cs.lightsaberFormsXP?.[k];return `${k}:${s}(${statToTier(s).name})[${xp?`${xp.current||0}/${xp.required||100}XP`:'0/?XP'}]`;}).join(', ')||'none'}
-STATS (stat → XP progress): STR=${cs.stats?.strength||0}[${cs.statsXP?.strength?`${cs.statsXP.strength.current||0}/${cs.statsXP.strength.required||100}XP`:'0/?XP'}] AGI=${cs.stats?.agility||0}[${cs.statsXP?.agility?`${cs.statsXP.agility.current||0}/${cs.statsXP.agility.required||100}XP`:'0/?XP'}] END=${cs.stats?.endurance||0}[${cs.statsXP?.endurance?`${cs.statsXP.endurance.current||0}/${cs.statsXP.endurance.required||100}XP`:'0/?XP'}] WILL=${cs.stats?.willpower||0}[${cs.statsXP?.willpower?`${cs.statsXP.willpower.current||0}/${cs.statsXP.willpower.required||100}XP`:'0/?XP'}] CHA=${cs.stats?.charisma||0}[${cs.statsXP?.charisma?`${cs.statsXP.charisma.current||0}/${cs.statsXP.charisma.required||100}XP`:'0/?XP'}]
+STATS (USE THESE VALUES FOR ROLLS — authoritative, not the SHEET JSON): STR=${cs.stats?.strength||0}[${cs.statsXP?.strength?`${cs.statsXP.strength.current||0}/${cs.statsXP.strength.required||100}XP`:'0/?XP'}] AGI=${cs.stats?.agility||0}[${cs.statsXP?.agility?`${cs.statsXP.agility.current||0}/${cs.statsXP.agility.required||100}XP`:'0/?XP'}] END=${cs.stats?.endurance||0}[${cs.statsXP?.endurance?`${cs.statsXP.endurance.current||0}/${cs.statsXP.endurance.required||100}XP`:'0/?XP'}] WILL=${cs.stats?.willpower||0}[${cs.statsXP?.willpower?`${cs.statsXP.willpower.current||0}/${cs.statsXP.willpower.required||100}XP`:'0/?XP'}] CHA=${cs.stats?.charisma||0}[${cs.statsXP?.charisma?`${cs.statsXP.charisma.current||0}/${cs.statsXP.charisma.required||100}XP`:'0/?XP'}]
 FORCE BARRIER: ${cs.forceBarrier !== null && cs.forceBarrier !== undefined ? `${cs.forceBarrier}/${cs.maxForceBarrier||100}` : 'not yet developed'}
 INVENTORY: ${(cs.inventory||[]).join(', ')||'empty'} | CREDITS: ${cs.credits||0}
 RENOWN: Jedi=${cs.renown?.jediOrder||0}, Sith=${cs.renown?.sith||0}, Republic=${cs.renown?.republic||0}, Underworld=${cs.renown?.underworld||0}
