@@ -1472,6 +1472,10 @@ PHYSICAL_STRAIN=[current]
 MENTAL_STRAIN=[current]
 FORCE_BARRIER=[current]
 ALIGNMENT=[current — only for light side gains and momentum-window direct hits]
+KNOWN_PERSON=[name]|[title]|[relation]|[summary]|[lastSeen] — persist any character to People tab
+GENERATE_PROFILE=[name]|[canon/custom]|[description] — create a stat-bearing profile
+PROFILE_STATS=[name]|[stat.path=value,...] — add stats to a generated profile
+INTERACTION=[name]|[combat/training/force/dialogue] — tracks weight toward People tab visibility
 SHATTERPOINT_PERCEIVED=[tier],[description] — when a shatterpoint surfaces passively
 SHATTERPOINT_ROLL=[target] — triggers JS interpretation roll; respond to result
 SHATTERPOINT_FOCUS=[0-100] — awareness bandwidth consumed (>70 = tunnel vision)
@@ -1562,61 +1566,69 @@ STEP 3: Output the SHEET block (full JSON for complete state):
 
 STEP 4: Output the WORLD block:
 <<<WORLD>>>
-{"location":"","era":"","inGameDate":"","inGameTime":"Morning (06:00)","lastEvent":"","legacyChanges":[],"lineageRecord":[],"worldLog":[],"galaxyEvents":[],"galaxyState":{"jediOrder":"","sith":"","republic":"","mandalorians":"","underworld":""},"trackedCharacters":[]}
+{"location":"","era":"","inGameDate":"","inGameTime":"Morning (06:00)","lastEvent":"","legacyChanges":[],"lineageRecord":[],"worldLog":[],"galaxyEvents":[],"galaxyState":{"jediOrder":"","sith":"","republic":"","mandalorians":"","underworld":""},"trackedCharacters":[],"characterProfiles":{},"interactionWeights":{}}
 <<<END_WORLD>>>
 
 RULES FOR DATA BLOCKS:
 - worldLog: array of objects. Format: [{"turn":1,"event":"description","location":"place"}]. Keep last 20. Add new entry every turn.
 - inGameTime: current time of day as a string. Update every turn based on time elapsed. Format: "Morning (06:00)" or "Late Night (02:15)". Use 24-hour clock in parentheses. Time periods: Pre-Dawn (03-05), Dawn (05-06), Morning (06-11), Midday (11-13), Afternoon (13-17), Evening (17-21), Night (21-24), Late Night (00-03).
-- trackedCharacters: array of NPCs the player has meaningful interaction with. Format: [{"name":"Master Shara","title":"Jedi Knight, Combat Instructor","relation":"Mentor","summary":"Jared's primary combat trainer. Noticed his exceptional Force Absorb aptitude. Stern but encouraging teaching style. Believes Jared has unusual potential.","lastSeen":"Day 28 Goldfall, Training Salle Gamma"}]. Relations: Mentor, Ally, Neutral, Hostile, Rival, Friend, Unknown. Update summary as relationship develops. Remove characters who are no longer relevant.
+- trackedCharacters: Managed by JS via KNOWN_PERSON tags — do NOT modify this array in WORLD JSON. Use KNOWN_PERSON in the CHANGES block instead. JS persists all records permanently.
+
+KNOWN_PERSON tag format (use in CHANGES block for every character Jared knows):
+  KNOWN_PERSON:Name|Title|Relation|Summary|LastSeen
+  Example: KNOWN_PERSON:Master Denko|Jedi Knight, ShiiCho Instructor|Mentor|Primary combat trainer. Stern but encouraging. Believes Jared has unusual potential.|Day 5 Frostuary, Training Salle
+
+Rules for KNOWN_PERSON:
+- Send this tag EVERY TURN for any character who appears in or is referenced in the scene
+- If a character's situation changes, send updated details — JS will overwrite the old record
+- Do NOT omit characters because you think they are already stored — always resend to prevent loss
+- Relations: Mentor / Ally / Neutral / Hostile / Rival / Friend / Unknown
+- Summary: 1-2 sentences capturing the most important things about this relationship
+- LastSeen: current in-game date and location if they appear this turn, otherwise leave blank
+
+INTERACTION tag: send alongside KNOWN_PERSON when a meaningful interaction occurs:
+  INTERACTION:Name|combat OR training OR force OR dialogue
 - galaxyEvents: Format: [{"turn":1,"faction":"Jedi Order","event":"description"}]. Keep last 10.
 - forceAbilities: plain numbers only.
 - inGameDate: Galactic Standard Calendar format. EXACT FORMAT REQUIRED: "Weekday, Day N MonthName — YYYY ERA" e.g. "Primeday, Day 4 Coruscann — 3661 BBY". Weekdays: Primeday/Centaxday/Taungsday/Zhellday/Benduday/Restday/Endday. Months: Coruscann/Frostuary/Warming/Seedmonth/Bloomtide/Midyear/Heatmonth/Harvestide/Goldfall/Stormtide/Coldmonth/Yearend. Update every turn when time advances past midnight. NEVER write "Day X, Cycle Y" — that format is not parseable.
 - All fields must be present every response.
 
-## ROLL SYSTEM — FULLY REDESIGNED
+## ROLL SYSTEM — JS-DRIVEN
 
-### COMPRESSED STAT BONUS FORMULA
-Stat bonuses use a logarithmic compression so high stats stay meaningful without dominating the d20.
+**ALL roll math is handled by JavaScript. You declare what happens; JS calculates and posts the result.**
 
-Per-stat bonus:
-- Stat 0–40:   bonus = stat ÷ 20                          (linear, +2.0 max)
-- Stat 41–80:  bonus = 2.0 + (stat − 40) ÷ 40            (slower, +3.0 max)
-- Stat 81–100: bonus = 3.0 + (stat − 80) ÷ 80            (very slow, +3.25 max)
-- Stat 101+:   bonus = 3.25 + (stat − 100) ÷ 200         (near-flat, soft cap ~3.5)
+### YOUR ROLE IN ROLLS
+1. Decide a roll is needed
+2. Send ROLL: or ROLL_OPPOSED: tag with the relevant stat paths
+3. Send TIER_GAP= if there is a meaningful tier difference
+4. Send TACTICAL= for situational bonuses/penalties (cap ±5)
+5. Send ROLL_LABEL= last — this fires the roll
+6. JS posts the result card to the feed automatically
+7. You write the narrative based on the outcome shown
 
-Sum ALL relevant stats using this formula. Do NOT use stat ÷ 20 anymore.
+**NEVER calculate bonuses yourself. NEVER write out compressedBonus math. NEVER choose a d20 value.**
 
-MAX TOTAL BONUS BY TIER (4 relevant stats):
-- Tier 1 Untrained (stat ~15): ~+3
-- Tier 2 Apprentice (stat ~30): ~+6
-- Tier 3 Adept (stat ~50): ~+9
-- Tier 4 Master (stat ~70): ~+11.5
-- Tier 5 High Master (stat ~90): ~+13
-- Tier 6 Legendary (stat ~110): ~+14
-- Tier 7 Transcendent (stat ~135): ~+15 (soft cap)
+### ROLL TAG FORMAT
 
-The d20 always matters. Even a Transcendent can fail on a 1.
+Solo roll (training, Force action, skill check):
+  ROLL:statPath1|statPath2|statPath3
+  TIER_GAP=0
+  TACTICAL=+1
+  ROLL_LABEL=Force Sense — detecting presence in the archives
 
-### AUTHORITATIVE STAT SOURCE — CRITICAL RULE
+Opposed roll — stored profile (canon or custom character):
+  ROLL_OPPOSED:lightsaberForms.ShiiCho|stats.strength|stats.agility vs CHARACTER:Master Denko
+  TIER_GAP=-1
+  TACTICAL=0
+  ROLL_LABEL=Sparring exchange — ShiiCho vs Denko's Soresu
 
-**ALWAYS use stat values from the INJECTED STATE BLOCK at the top of this prompt for ALL roll calculations.**
-The injected block contains lines like:
-  ═══ AUTHORITATIVE STAT VALUES — USE THESE FOR ALL ROLLS, NEVER THE SHEET JSON ═══
-LIGHTSABER FORMS (stat → tier → XP progress): ShiiCho:37(Adept)[...]
-  FORCE STATS: ForceSense=41 Meditation=43 ForceControl=45 ...
-  STATS: STR=39 AGI=41 END=41 WILL=42 ...
+Opposed roll — one-off NPC (no stored profile):
+  ROLL_OPPOSED:lightsaberForms.ShiiCho|stats.strength vs INLINE:ShiiCho=28,strength=35,agility=30
+  TIER_GAP=0
+  TACTICAL=0
+  ROLL_LABEL=Duel — Sith scout
 
-These are the LIVE values calculated by JavaScript from masterXP. They are always correct.
-
-**NEVER use stat values from the <<<SHEET>>> JSON block for calculations.** The SHEET block is one turn behind — it is only used for world-state tracking. If you see ShiiCho=29 in the SHEET but ShiiCho:37 in the injected state, use 37. Always.
-
-If you show your roll working (e.g. "Form: ShiiCho (stat=37)"), the number after stat= must come from the injected state block, not the SHEET JSON.
-
-### SEVEN-TIER SYSTEM — ABILITY-SPECIFIC, NOT OVERALL
-Tier is ALWAYS derived from the SPECIFIC stat or ability being used in THIS action. Never use highest stat, average, or overall tier.
-
-TIER THRESHOLDS (same for all stats):
+### TIER REFERENCE (for narrative understanding only — JS derives tiers from live stats)
 - Tier 1 Untrained:    stat 0–20
 - Tier 2 Apprentice:   stat 21–40
 - Tier 3 Adept:        stat 41–60
@@ -1625,214 +1637,29 @@ TIER THRESHOLDS (same for all stats):
 - Tier 6 Legendary:    stat 101–150
 - Tier 7 Transcendent: stat 151+
 
-LIGHTSABER DUELS — TIER AND BONUS CALCULATION
+### RESULT OUTCOMES (write your narrative to match the JS result card)
+Solo roll:   Fail<9 / Contested 9–12 / Solid 13–17 / Strong 18–22 / Overwhelming 23+
+Opposed roll margin: 0=Contested / 1–3=Narrow win / 4–7=Clear win / 8–12=Dominant / 13+=Overwhelming
 
-STEP 1 — IDENTIFY ACTIVE FORMS:
-List every lightsaber form the fighter is actively drawing from this exchange.
-Single form: "using Djem So" → only Djem So counts
-Hybrid: "blending Djem So and Shii-Cho footwork" → both count
+### WHICH STATS TO DECLARE
+Lightsaber combat:  lightsaberForms.ShiiCho (primary active form) + stats.strength + stats.agility + stats.endurance
+Force ability:      forceAbilities.Telekinesis (primary) + forceStats.forceControl + forceStats.forceSense
+Force sense/scan:   forceStats.forceSense + forceStats.meditation
+Training/learning:  relevant ability + forceStats.forceKnowledge
+Physical action:    stats.agility (running/climbing) or stats.strength (lifting/breaking) or stats.endurance (sustained)
 
-STEP 2 — CALCULATE COMBAT TIER:
-Average the stat values of all active forms, then convert to tier.
-Single form (Djem So 2): average = 2 → Tier 1 Untrained
-Hybrid (DjemSo 2 + ShiiCho 55): average = 28.5 → Tier 2 Apprentice
-Pure ShiiCho (55): average = 55 → Tier 3 Adept
+For hybrid lightsaber (two forms): declare both form paths — JS averages them for tier calculation.
 
-This is the ONLY number used for the tier gap calculation. Nothing else.
+### FORM COUNTER BONUSES (declare via TACTICAL=)
+- Makashi vs ShiiCho: +2 TACTICAL to Makashi user
+- DjemSo vs Makashi:  +2 TACTICAL to DjemSo user
+- Soresu vs Ataru:    Ataru user takes +1 Physical Strain per round (note in narrative)
+- Ataru in confined space: -3 TACTICAL to Ataru user
+- Vaapad vs dark side opponent: +3 TACTICAL to Vaapad user
 
-STEP 3 — TIER GAP BONUS:
-Compare both fighters' combat tiers from Step 2. Apply the tier gap table.
-If Jared uses Djem So only (Tier 1) vs Bot Djem So (Tier 2): Bot is 1 tier above → +4 to Bot.
-If Jared uses ShiiCho only (Tier 3) vs Bot Djem So (Tier 2): Jared is 1 tier above → +4 to Jared.
-
-STEP 4 — EXPERIENCE MODIFIER (separate from tier):
-Take the fighter's HIGHEST owned form stat (regardless of active forms).
-Experience modifier = compressedBonus(highest form) × 0.4
-This is a flat bonus added to the roll. It represents general combat instinct, footwork, opponent reading.
-It does NOT affect tier. It does NOT affect tier gap.
-Jared: highest form = ShiiCho 55 → compressedBonus(55) × 0.4 = 2.375 × 0.4 = +0.95
-
-STEP 5 — STAT BONUS:
-Add compressed bonuses for physical stats (Str, Agi, End) and the active form(s).
-
-FINAL ROLL = d20 + form bonus(es) + physical bonuses + experience modifier + tier gap bonus (if applicable)
-
-MANDATORY DISPLAY FORMAT FOR DUELS:
-Active forms: [list all forms being used]
-Combat tier: avg([form stats]) = [X] → Tier [N] [name]
-Experience modifier: compressedBonus([highest form]) × 0.4 = +[X]
-[repeat for opponent]
-Tier gap: [N] tiers → +[bonus] to [side]
-
-EXAMPLES:
-Jared uses Djem So only (stat=2):
-  Active forms: Djem So (2)
-  Combat tier: avg(2) = 2 → Tier 1 Untrained
-  Experience: compressedBonus(55) × 0.4 = +0.95
-  Tier gap vs Bot Djem So (25, Tier 2): Bot 1 above → +4 to Bot ← BOT HAS ADVANTAGE
-
-Jared uses hybrid DjemSo + ShiiCho:
-  Active forms: DjemSo (2), ShiiCho (55)
-  Combat tier: avg(2, 55) = 28.5 → Tier 2 Apprentice
-  Experience: +0.95
-  Tier gap vs Bot Djem So (25, Tier 2): Equal → no gap bonus ← EVEN FIGHT
-
-Jared switches to pure ShiiCho:
-  Active forms: ShiiCho (55)
-  Combat tier: avg(55) = 55 → Tier 3 Adept
-  Tier gap vs Bot Djem So (25, Tier 2): Jared 1 above → +4 to Jared ← JARED DOMINANT
-
-EXPERIENCE MODIFIER — combat instincts carry over between forms:
-Formula: experience bonus = compressedBonus(highest owned form stat) × 0.4
-This represents footwork, opponent-reading, Force integration, and general combat instinct.
-It is a FLAT BONUS to the roll only — it does NOT change tier or affect the tier gap calculation.
-Example: ShiiCho 55 → compressedBonus(55) = 2.375 → experience modifier = +0.95
-A fighter with ShiiCho 55 learning Djem So (1) fights at Tier 1 technique but adds +0.95 from experience.
-The bot with no experience has no modifier.
-Show experience modifier explicitly in the roll display.
-
-FORCE ABILITY CONTESTS — use the SPECIFIC ability on each side:
-- Force Lightning (stat 120) vs Force Barrier (stat 40): Lightning is Tier 6, Barrier is Tier 3 → 3-tier gap, +15 to attacker
-- Force Push (stat 58) vs Force Resistance (stat 30): Push is Tier 3, Resistance is Tier 2 → 1-tier gap, +4 to attacker
-- Telekinesis contest: both sides use their Telekinesis stat
-- Force Sense vs Stealth: Force Sense stat vs Agility/Stealth stat
-- Never use "Force Tier" or average Force stats for these contests — use the specific ability stat
-
-FORCE EXPERIENCE MODIFIERS — small secondary bonuses to Force contests:
-Force Control adds: compressedBonus(ForceControl) × 0.3 (represents precision and discipline)
-Force Sense adds: compressedBonus(ForceSense) × 0.2 (represents reading the opponent's Force signature)
-These are FLAT BONUSES only — they do NOT affect tier or tier gap.
-Example: ForceControl 68 → compressedBonus(68) = 2.7 → +0.81 modifier
-Example: ForceSense 66 → compressedBonus(66) = 2.65 → +0.53 modifier
-Total Force experience modifier ≈ +1.34 — meaningful but not dominant
-Show these modifiers in the roll display separately from the primary ability bonus.
-
-PHYSICAL ACTIONS — use the primary physical stat:
-- Athletics, climbing, running → Agility stat
-- Lifting, breaking → Strength stat
-- Sustained effort → Endurance stat
-
-ROLL DISPLAY MUST SHOW SPECIFIC STATS:
-Action: [what, specifying which form/ability being used]
-Attacker: [name] using [Form/Ability] (stat=[X]) → Tier [N] [name]
-  Form/Ability bonus: +[X]
-  Physical/Force bonuses: +[X] ([stat list])
-  Experience modifier: +[X] (compressedBonus([highest form/ForceControl]) × [0.4/0.3])
-  Total stat bonus: +[X]
-Defender: [same format]
-Tier Gap: [N] tiers → +[bonus] to [side]
-Tactical Setup: +[N] (list — CAPPED AT +5)
-d20=[SYSTEM VALUE], Total=[final] | [Threshold row]: Fail<N / Contested N-N / Solid N-N / Strong N-N / Overwhelming N+
-Result: [outcome]
-
-ANAKIN/OBI-WAN vs DOOKU: Using Ataru (not their primary form) → clumsy, outmatched. Switching to Djem So / Soresu → dangerous. The form average changed their combat tier entirely. This is exactly the model above.
-
-EXAMPLE — Sith Force Lightning (120) vs Jared Force Barrier (40):
-Attacker: Sith using Force Lightning (120) → Tier 6 Legendary
-  Lightning bonus: +3.35 (compressed)
-  Force experience: ForceControl 85 × 0.3 = +0.97, ForceSense 80 × 0.2 = +0.62 → +1.59
-  Total: +4.94
-Defender: Jared using Force Barrier (40) → Tier 2 Apprentice
-  Barrier bonus: +2.0 (compressed)
-  Force experience: ForceControl 68 × 0.3 = +0.81, ForceSense 66 × 0.2 = +0.53 → +1.34
-  Total: +3.34
-Tier Gap: Sith 4 tiers above → +22 to Sith's roll
-Sith total: d20 + 4.94 + 22 = d20 + 26.94 — overwhelming
-Jared's high Telekinesis is irrelevant. The barrier is under extreme pressure.
-
-### DYNAMIC THRESHOLDS — TIER RELATIVE
-Thresholds shift based on the GAP between character tier and task/opponent tier.
-
-Same tier (gap 0):
-Fail<9 / Contested 9-12 / Solid 13-17 / Strong 18-22 / Overwhelming 23+
-
-1 tier BELOW task (character outclassed):
-Fail<13 / Contested 13-16 / Solid 17-21 / Strong 22-26 / Overwhelming 27+
-
-2 tiers BELOW task:
-Fail<18 / Contested 18-21 / Solid 22-26 / Strong 27-31 / Overwhelming 32+
-
-1 tier ABOVE task (character advantaged):
-Fail<6 / Contested 6-9 / Solid 10-14 / Strong 15-19 / Overwhelming 20+
-
-2 tiers ABOVE task:
-Fail<3 / Contested 3-6 / Solid 7-11 / Strong 12-16 / Overwhelming 17+
-
-3+ tiers ABOVE task:
-Fail<2 / Contested 2-4 / Solid 5-9 / Strong 10-14 / Overwhelming 15+
-
-SKILL MODIFIER TO EFFECTIVE TIER (same action gets easier as skill grows):
-- Task that matches character tier: no shift
-- Task 1 tier below character: treat as 1-tier-above row
-- Task 2+ tiers below character: treat as 2-tiers-above row
-
-### OPPOSED ROLLS — DUELING AND FORCE CONTESTS
-Both sides roll: d20 + compressed stat bonus + form/ability bonuses
-Winner = higher total. Use margin table:
-
-| Margin | Result |
-|--------|--------|
-| 0 | Contested — both hold |
-| 1–3 | Narrow win — slight advantage |
-| 4–7 | Clear win — meaningful pressure |
-| 8–12 | Dominant win — opponent in serious trouble |
-| 13+ | Overwhelming — decisive, opponent at risk |
-
-### TIER GAP BONUS — DUELS AND FORCE CONTESTS
-When a significant tier gap exists, the stronger combatant adds a flat bonus to every opposed roll:
-
-| Tier Gap | Bonus to stronger side |
-|----------|------------------------|
-| 0 (equal) | +0 |
-| 1 tier above | +4 |
-| 2 tiers above | +9 |
-| 3 tiers above | +15 |
-| 4 tiers above | +22 |
-| 5 tiers above | +30 |
-| 6 tiers above | +39 |
-
-EXAMPLE — Sidious (Tier 7 blade) vs 3 Jedi Masters (Tier 4 blade):
-Gap = 3 tiers → Sidious gets +15 on every exchange. Average total ~34. Masters average ~18. Margin ~16 = Overwhelming every exchange. Accurate.
-
-EXAMPLE — Vader (Tier 6 blade) vs Tier 4 Master:
-Gap = 2 tiers → Vader gets +9. Average total ~28. Master averages ~17. Margin ~11 = Dominant most exchanges. Master occasionally scores Narrow wins. Accurate.
-
-### MULTIPLE OPPONENT RULE
-When one combatant faces multiple opponents simultaneously:
-
-- Each additional attacker beyond the first: weaker side gains +2 coordination bonus per attacker
-- The dominant combatant gains +1 per attacker from Force awareness and battle precognition
-- Net effect: 3 attackers = +4 coordination for the group, +2 awareness for the dominant fighter
-- This reduces but NEVER eliminates a tier gap advantage
-
-EXAMPLE — Sidious vs 3 Masters:
-Masters get +4 coordination. Sidious gets +2 awareness. Net shift: Masters +2 effective.
-Margin still ~14. Still Overwhelming every exchange. Accurate — numbers don't save you against a 3-tier gap.
-
-EXAMPLE — Knight vs 3 Tier 2 opponents (equal situation):
-Knight is 1 tier above each. Gets +4 gap bonus. Opponents get +4 coordination.
-Near-equal fight — Knight has individual edge but is genuinely threatened. Correct.
-
-### MANDATORY ROLL DISPLAY FORMAT
-Every roll must show the format below. THE d20 VALUE IS PRE-ROLLED BY THE SYSTEM AND INJECTED INTO YOUR PROMPT — use whatever value appears in [DICE PRE-ROLLED BY SYSTEM]. You are NEVER permitted to choose your own d20 value. If no pre-rolled value appears, use 10 as a placeholder and note it.
-
-Action: [what]
-Tiers: Character=[tier name, primary stat=X] | Task/Opponent=[tier name]
-Gap: [+N tier gap bonus if applicable]
-Stat Bonus: +[X] using compressed formula (show each stat and its compressed value)
-Tactical Setup: +[N] (list each bonus — CAPPED AT +5 TOTAL)
-d20=[SYSTEM VALUE], Bonus=+[total], Total=[final] | [Threshold row]: Fail<N / Contested N-N / Solid N-N / Strong N-N / Overwhelming N+
-Result: [outcome] — [one line]
-
-TACTICAL BONUS CAP: Total tactical bonus cannot exceed +5. State "Tactical cap reached" if hit.
-
-### SUB-ROLL RULE — REPETITIONS AND DRILLS
-When an action involves multiple repetitions (14 rounds of a drill, 10 sparring exchanges, etc.):
-- Use ONE roll from the pre-rolled values to determine the overall quality of the session
-- Do NOT generate individual rolls for each repetition — this would require dice the system hasn't pre-rolled
-- Describe the session outcome based on the single roll: high roll = consistently strong performance, low roll = mixed results
-- For drills with clear phases (warm-up, peak effort, fatigue), the single roll represents the average quality across all phases
-- Never invent d20 values that weren't in the pre-rolled system injection
+### TIER_GAP VALUE
+Positive = player is stronger (opponent's tier - player's tier, so +1 means player 1 tier above)
+Use integer values matching the tier difference. JS applies the appropriate bonus.
 
 ### COMBAT SYSTEM — EXCHANGE-BY-EXCHANGE
 
@@ -1920,23 +1747,14 @@ Do NOT update strain in the character sheet or output TRAINING:/COMBAT: lines un
 Do NOT narrate "+1 XP for this exchange" mid-fight.
 Track round count, accumulated strain, and momentum internally in the combat state block.
 
-### DUEL DISPLAY FORMAT — PER EXCHANGE
-'''
+### DUEL EXCHANGE FORMAT
+After JS posts the roll card, write:
+
 — ROUND [N] — [Momentum: Player/Neutral/Opponent]
-[Player action description]
-
-Attacker: [name] | Form: [form] (stat=[X]) → Tier [N]
-  Bonuses: form +[X], physicals +[X], experience +[X]
-  Total: d20=[SYSTEM] + [bonus] = [total]
-Defender: [name] | Form: [form] (stat=[X]) → Tier [N]  
-  Bonuses: form +[X], physicals +[X]
-  Tier gap: [+X to which side]
-  Total: d20=[SYSTEM] + [bonus] + [tier gap] = [total]
-Margin: [winner] by [N] — [Narrow/Clear/Dominant/Overwhelming]
-
-[Narrative of the exchange — what happened, what the opponent does next]
-
+[Narrative of the exchange based on JS roll result — what happened, opponent's next move]
 Accumulated strain: Physical [XX], Force [XX], Mental [XX]  (0–100 scale)
+
+Use ROLL_OPPOSED: tag for each exchange. JS handles all math and posts the result card.
 
 ### TRAINING DRILL DIFFICULTY
 - Technique well within character tier: treat as same-tier or 1-tier-below task
@@ -2000,58 +1818,20 @@ MENTAL STRAIN (mentalStrain / maxMentalStrain: 100):
 - Penalty thresholds: 0-20=none | 21-50=-1 to rolls | 51-80=-2 to rolls | 81+=-3 to rolls + breakdown risk
 - Recovery: calm + sleep restores 15-25 per rest period
 
-ENDURANCE AND STRAIN MITIGATION (applies to ALL strain — combat AND out-of-combat):
-endurance_mitigation = compressedBonus(endurance) / 10
-Physical strain delta  × (1 - em)       — endurance fully mitigates physical exertion
-Force strain delta     × (1 - em × 0.5) — endurance partially mitigates Force drain
-Mental strain delta    × (1 - em × 0.3) — endurance slightly mitigates mental fatigue
-
-This mitigation is applied by the JavaScript engine automatically whenever you set
-FORCE_STRAIN=, PHYSICAL_STRAIN=, MENTAL_STRAIN= in the CHANGES block.
-You should still output realistic raw strain values — the engine handles mitigation.
-Do NOT pre-apply endurance mitigation yourself; the code does it.
-
-At END 30: em=1.5 → Physical -15%, Force -7.5%, Mental -4.5%
-At END 60: em=2.5 → Physical -25%, Force -12.5%, Mental -7.5%
-At END 80: em=3.0 → Physical -30%, Force -15%, Mental -9%
-At END 100: em=3.25 → Physical -32.5%, Force -16.25%, Mental -9.75%
-A character with END 100 and Force-rejuvenation abilities could sustain combat for extremely long periods.
+ENDURANCE AND STRAIN MITIGATION:
+JS automatically applies endurance mitigation when you set FORCE_STRAIN=, PHYSICAL_STRAIN=, MENTAL_STRAIN=.
+Set realistic raw strain values. Do NOT pre-calculate mitigation — JS handles it entirely.
 
 ## XP-BASED ABILITY PROGRESSION — STRICT RULES
-ABSOLUTE RULE: You NEVER directly set a stat to a higher value. You NEVER write "Djem So increased to 4". You NEVER write "+15 XP" in narrative prose. Stats are controlled ENTIRELY by JavaScript reading TRAINING: and COMBAT: lines from the CHANGES block.
+Stats are controlled ENTIRELY by JavaScript via TRAINING: and COMBAT: lines. NEVER set a stat value directly. NEVER write "+X XP" in prose. JS calculates all XP, tracks totals, and levels stats automatically.
 
-The XP formula is: xpRequired(stat) = floor(100 × 1.07^stat)
-- stat 0→1: 100 XP needed | stat 3→4: 123 XP | stat 10→11: 197 XP
-- stat 20→21: 387 XP | stat 40→41: 1,497 XP | stat 55→56: 4,131 XP
-- stat 68→69: ~9,700 XP | stat 80→81: ~22,400 XP
+Your ONLY job: output correct TRAINING: or COMBAT: lines in the CHANGES block.
+Current XP progress is shown in the state injection — do not override those values.
 
-Your job is ONLY to output TRAINING: or COMBAT: lines with the right parameters. JavaScript calculates the XP, tracks the total, and levels up the stat automatically when the threshold is crossed.
-
-Current XP progress is shown in the state injection (e.g. "Djem So:3[45/123XP]"). This means Djem So is at stat 3 with 45 XP accumulated, needing 123 to reach stat 4. Do not override these values.
-
-SHEET block must include these additional XP tracking fields:
-- forceStatsXP: {"forceSense": {"current": 0, "required": 10}, ...} for each force stat
-- forceAbilitiesXP: {"Force Push": {"current": 0, "required": 10}, ...} for each ability
-- lightsaberFormsXP: {"ShiiCho": {"current": 0, "required": 10}, ...} for each form
-
-XP GAIN RULES (add to current XP each turn, never skip this):
-- Deliberately practicing an ability this turn: +2 XP to that ability
-- Using an ability under pressure/combat: +3 XP to that ability
-- Reading/studying theory (no practice): +0.5 XP to Force Knowledge only
-- Accidentally triggering an ability: +1 XP
-- Breakthrough moment: +10 XP (rare)
-- Passive observation with no relevant action: +0 XP — do NOT emit a TRAINING: line at all
-- Social/travel/dialogue turns with no Force use: do NOT emit TRAINING: lines
-
-WHEN XP REACHES REQUIRED THRESHOLD:
-- Stat increases by exactly 1
-- XP resets to 0
-- Required XP for next level increases per this scale:
-  stat 0-19: required=10, stat 20-39: required=25, stat 40-59: required=50
-  stat 60-79: required=100, stat 80-84: required=200, stat 85-94: required=500
-  stat 95-99: required=1000, stat 100+: required=5000
-
-NEVER increase a stat directly without going through XP. Always update the XP fields.
+WHEN TO EMIT TRAINING: LINES:
+- Any turn where an ability is actively used, practiced, or studied
+- Do NOT emit TRAINING: lines for purely social/travel turns with no relevant action
+- Do NOT emit a line for an ability that was merely mentioned but not used
 
 ## LIVING TRAITS SYSTEM — UPDATE EVERY TURN
 Traits are NOT static. They must be reviewed and updated every turn based on what happened.
@@ -2083,6 +1863,59 @@ REVIEW CHECKLIST each turn:
 4. Did the character demonstrate something exceptional that wasn't already captured?
 
 Always carry existing traits forward in the SHEET block. Never silently drop traits.
+## CHARACTER PROFILE SYSTEM
+
+NPCs are tracked in three tiers. JS handles all stat lookups for rolls.
+
+── TIER 1 — CANON (hardcoded in JS from Wookieepedia/Legends) ───────
+Pre-seeded profiles for key 3661 BBY figures. Stats are authoritative.
+You do NOT need to declare stats for these characters in rolls.
+Current canon profiles: Grand Master Zym, Satele Shan, Darth Malgus, Master Ngani Zho, Master Gnost-Dural
+
+CRITICAL REMINDERS FOR 3661 BBY:
+- Grand Master Zym (Kel Dor) is Grand Master — NOT Satele Shan
+- Satele Shan is a Jedi KNIGHT, age 38, hero of Alderaan — Grand Master status is 8+ years away
+- Revan and Bastila Shan are historical ancestors who died 300+ years ago
+- Mace Windu, Yoda, Obi-Wan, Anakin etc. do not exist yet
+
+── TIER 2 — RECURRING CUSTOM (AI-generated, JS-stored) ─────────────
+When a custom NPC becomes significant, generate their profile:
+  GENERATE_PROFILE:Name|custom|Brief description
+  PROFILE_STATS:Name|lightsaberForms.ShiiCho=45,forceStats.forceSense=38,stats.strength=42,...
+
+Only generate a profile when a character has had multiple meaningful interactions.
+Once generated, you do NOT need to declare their stats in rolls — JS reads from the profile.
+
+── TIER 3 — ONE-OFF (inline, not stored) ───────────────────────────
+For single-encounter NPCs, declare stats directly in the roll tag.
+
+── TRACKING INTERACTIONS ────────────────────────────────────────────
+Use INTERACTION: to track meaningful interactions. Profiles auto-appear in People tab at weight 5.
+  INTERACTION:Name|combat      (+3 weight)
+  INTERACTION:Name|training    (+2 weight)
+  INTERACTION:Name|force       (+2 weight)
+  INTERACTION:Name|dialogue    (+1 weight)
+
+── ROLL TAGS (JS handles all math) ─────────────────────────────────
+For SOLO rolls:
+  ROLL:statPath1|statPath2|...
+  TIER_GAP=[number]   (-3 to +3)
+  TACTICAL=[number]   (-3 to +3)
+  ROLL_LABEL=[description]
+
+For OPPOSED rolls (duels, contests):
+  ROLL_OPPOSED:playerStat1|playerStat2 vs CHARACTER:Name
+    — JS looks up stored profile stats for Name
+  OR:
+  ROLL_OPPOSED:playerStat1|playerStat2 vs INLINE:ShiiCho=45,strength=38,agility=42
+    — for one-off NPCs with no profile
+  TIER_GAP=[number]
+  TACTICAL=[number]
+  ROLL_LABEL=[description]
+
+You ONLY declare WHICH stats are involved. JS reads live values from masterXP/characterSheet.
+NEVER write out the bonus math yourself — that was the source of stale-stat errors.
+
 ## SHATTERPOINT SYSTEM
 
 Shatterpoint is a passive Force perception — it surfaces naturally, never forced.
@@ -2273,42 +2106,29 @@ Returning from dark to light requires more than the same positive acts:
   Corrupted: dark abilities -15% strain, light abilities +20% strain, visible physical signs
   Consumed: dark abilities fully empowered, light abilities inaccessible
 
-## STRAIN SYSTEM — BASE COSTS (all values on 0–100 scale)
-Force actions: small=0 Force Strain, single-target=+5-10, multi-target=+15-20, large-scale=+25-35, battlefield=+40-50
-Force Strain penalties: 0-20=none, 21-50=-1 rolls, 51-80=-2 rolls, 81+=-3 rolls + barrier weakens
-Dark Side path: +15-20 Force Strain baseline but +2-4 Force Output bonus
-Light Side path: -5-10 Force Strain cost, +1 Control, +1.5 when acting selflessly
-Flow State: d20 minimum=10, +2 precision, -5 Force Strain cost, near-failures become partial successes
+## STRAIN SYSTEM (all values on 0–100 scale)
+Force actions: small +5-10, single-target +10-20, multi-target +15-25, large-scale +25-40
+Strain penalties: 0-20=none / 21-50=-1 rolls / 51-80=-2 rolls / 81+=-3 rolls
+Set values in CHANGES block. JS applies endurance mitigation automatically.
 
-## PROGRESSION TIERS
-- Youngling (stat 0–20): Fast small XP gains. Basic raw instinct.
-- Padawan (stat 20–40): Structured growth. Foundational training.
-- Knight (stat 40–80): Moderate growth. Experience-based.
-- Master (stat 80–100): Slow growth. Requires genuine mastery.
-- High Master (stat 85+): Most Force users plateau here permanently.
-- Legendary (stat 100+): Only breakthrough XP events reach this.
-
-LEGENDARY POTENTIAL IS A CEILING, NOT A BOOST. It means the character CAN eventually reach 100+ with years of training. It has zero effect on XP gain rates below stat 40.
+## PROGRESSION TIERS (narrative reference)
+Youngling 0–20 / Padawan 21–40 / Knight 41–80 / Master 81–100 / High Master 85+ / Legendary 100+
+Legendary potential is a ceiling — no effect on XP gain rates. JS controls all progression.
 
 ## TIME SKIP SUMMARIES — STRUCTURED FORMAT
-When the player requests a multi-day or multi-week summary, use this compact structure to fit everything in efficiently:
+When the player requests a multi-day or multi-week summary:
 
 OVERVIEW: [2-3 sentences on the overall arc of the period]
 
-DAY-BY-DAY or PERIOD HIGHLIGHTS:
-[Day/Period]: [Key events and outcomes — 2-4 sentences max per day]
+PERIOD HIGHLIGHTS: [Key events — 2-4 sentences per notable period]
 
-MECHANICAL UPDATES:
-- Stats changed: [list each with old→new value and reason]
-- XP gained: [list each ability and XP added]
-- New abilities or breakthroughs: [if any]
-- Strain at end of period: [Force/Physical/Mental]
+KEY INSIGHTS: [Major things learned — Force techniques, tactical lessons, wisdom]
 
-KEY INSIGHTS GAINED: [bullet list of major things learned — Force techniques, tactical lessons, wisdom from masters]
+NOTABLE EVENTS: [NPC interactions, galaxy events, unexpected developments]
 
-NOTABLE EVENTS: [anything that happened outside training — NPC interactions, galaxy events, unexpected developments]
-
-Use this structure for any request covering more than 2 days. It keeps the response complete without unnecessary repetition. Still output both <<<SHEET>>> and <<<WORLD>>> blocks at the end.
+Output TRAINING:/COMBAT: lines in the CHANGES block for all skills used.
+JS handles all stat changes and XP automatically — do NOT list "stats changed" or "XP gained".
+Still output both <<<SHEET>>> and <<<WORLD>>> blocks at the end.
 
 ## GALAXY SIMULATION — TIME-GATED, NOT TURN-GATED
 The galaxy runs on IN-GAME TIME, not turn count. A turn can represent minutes, hours, or months depending on what the player is doing.
@@ -2374,11 +2194,6 @@ LINEAGE EVENTS: [family events during skip]
 MAJOR GALAXY EVENTS: [key events with cause/consequence]
 WORLD STATE ON ARRIVAL: [current galaxy state]
 READY FOR CONTINUATION: [Y/N]
-
-## ALIGNMENT
-Track as number: -100 (full Dark) to +100 (full Light). 0 = Neutral.
-Shift gradually. Only defining moral moments cause large swings.
-Display as: Light (50-100), Neutral (-49 to 49), Dark (-50 to -100).
 
 ## RENOWN
 Only increases if actions witnessed or reported.
@@ -2618,7 +2433,82 @@ function startNewGame() {
   gameActive = true;
   isThinking = false;
   trimmedTurns = 0;
+  // Initialize worldState so seedCanonProfiles has something to write to
+  if (!worldState) worldState = { characterProfiles:{}, interactionWeights:{}, trackedCharacters:[] };
+  seedCanonProfiles();
   showWelcomePrompt();
+}
+
+// ── Canon character profiles for 3661 BBY ───────────────────────────
+// Seeded on new game and available for rolls without AI needing to declare stats
+const CANON_PROFILES_3661BBY = {
+  'Grand Master Zym': {
+    tier: 1, displayName: 'Grand Master Zym',
+    description: 'Kel Dor. Grand Master of the Jedi Order. Pacifist leader, advises Supreme Chancellor.',
+    visibleInPeople: false,
+    stats: {
+      lightsaberForms: { Soresu: 72 },
+      forceStats: { forceSense: 85, meditation: 90, forceKnowledge: 88, forceControl: 80 },
+      stats: { strength: 45, agility: 48, endurance: 55, willpower: 85 }
+    }
+  },
+  'Satele Shan': {
+    tier: 1, displayName: 'Satele Shan',
+    description: 'Human. Jedi Knight, age 38. Hero of Battle of Alderaan. Recalled to Coruscant for Hydian Way blockade. NOT Grand Master — that is 8+ years away.',
+    visibleInPeople: false,
+    stats: {
+      lightsaberForms: { Ataru: 75, Niman: 55 },
+      forceStats: { forceSense: 72, meditation: 68, forceKnowledge: 65, forceControl: 78 },
+      forceAbilities: { Telekinesis: 62, ForceBarrier: 58, ForceSpeed: 65 },
+      stats: { strength: 58, agility: 72, endurance: 65, willpower: 70, charisma: 68 }
+    }
+  },
+  'Darth Malgus': {
+    tier: 1, displayName: 'Darth Malgus',
+    description: 'Human. Sith Lord, Imperial military commander. Dominant warrior, physically powerful. Defeated at Alderaan 3667 BBY but recovered and rising.',
+    visibleInPeople: false,
+    stats: {
+      lightsaberForms: { DjemSo: 88, Juyo: 72 },
+      forceStats: { forceSense: 68, forceControl: 85, forceKnowledge: 62, meditation: 45 },
+      forceAbilities: { ForceLightning: 75, Telekinesis: 80, ForceChoke: 72 },
+      stats: { strength: 78, agility: 65, endurance: 80, willpower: 82 }
+    }
+  },
+  'Master Ngani Zho': {
+    tier: 1, displayName: 'Master Ngani Zho',
+    description: 'Human. Elderly Jedi Master. Eccentric, deeply wise. Original Master of Satele Shan. Currently taking young Theron Shan to Monastery.',
+    visibleInPeople: false,
+    stats: {
+      lightsaberForms: { Soresu: 65, Niman: 60 },
+      forceStats: { forceSense: 78, meditation: 85, forceKnowledge: 80, forceControl: 68 },
+      stats: { strength: 38, agility: 35, endurance: 42, willpower: 82 }
+    }
+  },
+  'Master Gnost-Dural': {
+    tier: 1, displayName: 'Master Gnost-Dural',
+    description: 'Kel Dor. Jedi Master, Keeper of the Archives. Historian and chronicler of the Great Galactic War. Scholar first, combatant second.',
+    visibleInPeople: false,
+    stats: {
+      lightsaberForms: { Niman: 60, Soresu: 55 },
+      forceStats: { forceSense: 68, meditation: 72, forceKnowledge: 92, forceControl: 62 },
+      stats: { strength: 42, agility: 45, endurance: 50, willpower: 78 }
+    }
+  }
+};
+
+function seedCanonProfiles() {
+  if (!worldState) return;
+  if (!worldState.characterProfiles) worldState.characterProfiles = {};
+  if (!worldState.interactionWeights) worldState.interactionWeights = {};
+  for (const [name, profile] of Object.entries(CANON_PROFILES_3661BBY)) {
+    if (!worldState.characterProfiles[name]) {
+      worldState.characterProfiles[name] = {
+        ...profile,
+        firstMet: '',
+        wookieepediaUrl: null
+      };
+    }
+  }
 }
 
 function confirmNewGame() {
@@ -2777,25 +2667,9 @@ CRITICAL RULES FOR THIS TURN:
     messages.push(msg);
   }
 
-  // ── PRE-ROLL THE DICE — AI cannot pick its own rolls ─────────────
-  // Roll a true random d20 (and a spare for opposed rolls) before the API call.
-  // Inject the results into the prompt so the AI is forced to use them.
-  // This completely prevents the AI from biasing rolls toward success.
-  const preRoll = Math.ceil(Math.random() * 20);
-  const preRollOpposed = Math.ceil(Math.random() * 20); // for duels/contested actions
-  const preRollSecondary = Math.ceil(Math.random() * 20); // for multi-roll turns
+  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State time elapsed. (2) Update inGameTime in WORLD block. (3) Output <<<CHANGES>>> block. For XP: use TRAINING: or COMBAT: lines — NOT prose. Format: TRAINING: lightsaberForms.ShiiCho, 2.0, intense, ceiling, solid OR COMBAT: lightsaberForms.ShiiCho, 8, 1, aggressive, narrow_loss. For rolls: use ROLL: or ROLL_OPPOSED: tags — JS handles all math. (4) Output <<<SHEET>>> and <<<WORLD>>> blocks.]`;
 
-  // Current message with strict reminder including the pre-rolled dice
-  const diceInjection = `\n\n[DICE PRE-ROLLED BY SYSTEM — YOU MUST USE THESE EXACT VALUES, NO EXCEPTIONS:
-Primary d20 = ${preRoll}
-Opposed/Secondary d20 = ${preRollOpposed}
-Third d20 (if needed) = ${preRollSecondary}
-
-These values were generated by a true random number generator before this prompt was sent. You are NOT permitted to choose different dice values. If this turn requires a roll, use ${preRoll} as the d20 result. For opposed rolls (duels, contested actions), the player uses ${preRoll} and the opponent uses ${preRollOpposed}. Apply compressed stat bonuses, tier gap bonuses, and tactical bonuses on top of these fixed values. Show the full roll display format with d20=${preRoll} as the die result.]`;
-
-  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State time elapsed. (2) Update inGameTime in WORLD block. (3) Output <<<CHANGES>>> block. CRITICAL FOR XP: use TRAINING: or COMBAT: lines in the CHANGES block for every skill used — NOT prose like "+3 XP". Format: TRAINING: lightsaberForms.DjemSo, 2.0, intense, ceiling, solid OR COMBAT: lightsaberForms.DjemSo, 8, 1, aggressive, narrow_loss. (4) Output <<<SHEET>>> and <<<WORLD>>> blocks.]`;
-
-  messages.push({ role: 'user', parts: [{ text: userContent + diceInjection + reminder }] });
+  messages.push({ role: 'user', parts: [{ text: userContent + reminder }] });
 
   return messages;
 }
@@ -2923,6 +2797,13 @@ async function callGemini(playerMessage, retryCount = 0) {
         syncMasterXPToSheet();
         // Seed shatterpoint if innate talent is present and track not yet initialized
         spSeedIfInnate();
+        // Remove non-Force-stats from forceStats (AI sometimes puts willpower/strength there)
+        if (characterSheet.forceStats) {
+          const validFS = new Set(['forceSense','meditation','forceKnowledge','forceControl']);
+          for (const k of Object.keys(characterSheet.forceStats)) {
+            if (!validFS.has(k)) delete characterSheet.forceStats[k];
+          }
+        }
         // Normalize lightsaber form keys — AI sometimes uses "Shii-Cho" vs "ShiiCho"
         // Canonical key is camelCase no hyphen; merge duplicates
         if (characterSheet.lightsaberForms) {
@@ -3163,6 +3044,59 @@ async function callGemini(playerMessage, retryCount = 0) {
             break;
           }
 
+          case 'ROLL': {
+            // Solo roll: ROLL:path1|path2|...
+            // JS reads live stats, calculates bonuses, rolls d20
+            const rollPaths = trimmed.slice(5).split('|').map(s=>s.trim()).filter(Boolean);
+            if (!rollPaths.length) break;
+            pendingRoll = pendingRoll || {};
+            pendingRoll.paths = rollPaths;
+            pendingRoll.opposed = false;
+            break;
+          }
+          case 'ROLL_OPPOSED': {
+            // Opposed roll: ROLL_OPPOSED:p1|p2 vs CHARACTER:Name OR vs INLINE:key=val,...
+            const roStr = trimmed.slice(13);
+            const vsIdx = roStr.indexOf(' vs ');
+            if (vsIdx < 0) break;
+            const playerPaths = roStr.slice(0, vsIdx).split('|').map(s=>s.trim()).filter(Boolean);
+            const oppStr = roStr.slice(vsIdx + 4).trim();
+            pendingRoll = pendingRoll || {};
+            pendingRoll.paths = playerPaths;
+            pendingRoll.opposed = true;
+            if (oppStr.startsWith('CHARACTER:')) {
+              const charName = oppStr.slice(10).trim();
+              const profile = worldState?.characterProfiles?.[charName];
+              if (profile?.stats) {
+                pendingRoll.oppStats = {};
+                for (const [cat, statObj] of Object.entries(profile.stats)) {
+                  for (const [k, v] of Object.entries(statObj)) {
+                    pendingRoll.oppStats[cat + '.' + k] = v;
+                  }
+                }
+                pendingRoll.oppName = charName;
+              }
+            } else if (oppStr.startsWith('INLINE:')) {
+              pendingRoll.oppStats = {};
+              pendingRoll.oppName = 'Opponent';
+              oppStr.slice(7).split(',').forEach(pair => {
+                const [k,v] = pair.split('=');
+                if (k && v) pendingRoll.oppStats[k.trim()] = parseFloat(v.trim()) || 0;
+              });
+            }
+            break;
+          }
+          case 'TIER_GAP':   { if (!pendingRoll) pendingRoll={}; pendingRoll.tierGap = val; break; }
+          case 'TACTICAL':   { if (!pendingRoll) pendingRoll={}; pendingRoll.tactical = val; break; }
+          case 'ROLL_LABEL': {
+            if (!pendingRoll) pendingRoll={};
+            pendingRoll.label = trimmed.slice(11).trim();
+            // Fire the roll now that we have label (label is typically last tag)
+            if (pendingRoll.paths) fireRoll(pendingRoll);
+            pendingRoll = null;
+            break;
+          }
+
           case 'SHATTERPOINT_ROLL': {
             // AI requests interpretation roll: target description
             const spTarget = trimmed.slice(17).trim();
@@ -3284,6 +3218,104 @@ async function callGemini(playerMessage, retryCount = 0) {
             characterSheet.momentumWindow.surrenderDiscount = Math.max(0, Math.min(0.5, val));
             break;
           }
+          case 'GENERATE_PROFILE': {
+            const gpParts = trimmed.slice(16).split('|').map(s=>s.trim());
+            const gpName = gpParts[0];
+            const gpTier = gpParts[1] === 'canon' ? 1 : 2;
+            const gpDesc = gpParts[2] || '';
+            if (gpName && worldState) {
+              if (!worldState.characterProfiles) worldState.characterProfiles = {};
+              if (!worldState.interactionWeights) worldState.interactionWeights = {};
+              if (!worldState.characterProfiles[gpName]) {
+                worldState.characterProfiles[gpName] = {
+                  tier: gpTier, displayName: gpName, description: gpDesc,
+                  stats: {}, visibleInPeople: false,
+                  wookieepediaUrl: null, firstMet: worldState.inGameDate || ''
+                };
+              }
+              if ((worldState.interactionWeights[gpName]||0) >= 5)
+                worldState.characterProfiles[gpName].visibleInPeople = true;
+            }
+            break;
+          }
+          case 'PROFILE_STATS': {
+            const psParts = trimmed.slice(14).split('|').map(s=>s.trim());
+            const psName = psParts[0];
+            const psStats = psParts[1] || '';
+            if (psName && worldState?.characterProfiles?.[psName]) {
+              const profile = worldState.characterProfiles[psName];
+              if (!profile.stats) profile.stats = {};
+              psStats.split(',').forEach(pair => {
+                const eqIdx = pair.indexOf('=');
+                if (eqIdx < 0) return;
+                const path = pair.slice(0, eqIdx).trim();
+                const val = parseFloat(pair.slice(eqIdx+1).trim()) || 0;
+                const dotIdx = path.indexOf('.');
+                if (dotIdx < 0) return;
+                const cat = path.slice(0, dotIdx), key = path.slice(dotIdx+1);
+                if (!profile.stats[cat]) profile.stats[cat] = {};
+                profile.stats[cat][key] = val;
+              });
+            }
+            break;
+          }
+          case 'INTERACTION': {
+            const intParts = trimmed.slice(12).split('|').map(s=>s.trim());
+            const intName = intParts[0];
+            const intType = intParts[1] || 'dialogue';
+            const intWeightMap = { combat:3, training:2, force:2, dialogue:1 };
+            const intAdd = intWeightMap[intType] || 1;
+            if (intName && worldState) {
+              if (!worldState.interactionWeights) worldState.interactionWeights = {};
+              if (!worldState.characterProfiles) worldState.characterProfiles = {};
+              worldState.interactionWeights[intName] = (worldState.interactionWeights[intName]||0) + intAdd;
+              if (!worldState.characterProfiles[intName]) {
+                worldState.characterProfiles[intName] = {
+                  tier: 2, displayName: intName, description: '', stats: {},
+                  visibleInPeople: false, firstMet: worldState.inGameDate || ''
+                };
+              }
+              if (worldState.interactionWeights[intName] >= 5 && !worldState.characterProfiles[intName].visibleInPeople) {
+                worldState.characterProfiles[intName].visibleInPeople = true;
+                const feed = document.getElementById('story-feed');
+                if (feed) {
+                  const nd = document.createElement('div'); nd.className = 'msg';
+                  nd.innerHTML = `<div style="background:rgba(30,40,30,0.3);border:1px solid #2a3a2a;border-radius:4px;padding:6px 12px;font-size:11px;color:#88aa88;font-family:'Cinzel',serif;letter-spacing:1px">◆ Profile added: ${intName}</div>`;
+                  feed.appendChild(nd); feed.scrollTop = feed.scrollHeight;
+                }
+              }
+              renderCharactersPanel();
+            }
+            break;
+          }
+
+          case 'KNOWN_PERSON': {
+            // Full person record — AI sends this every turn for anyone Jared knows
+            // Format: name|title|relation|summary|lastSeen
+            // This replaces the old trackedCharacters approach — all data persisted in JS
+            const kpParts = trimmed.slice(13).split('|').map(s=>s.trim());
+            const kpName  = kpParts[0];
+            if (kpName && worldState) {
+              if (!worldState.trackedCharacters) worldState.trackedCharacters = [];
+              const existing = worldState.trackedCharacters.find(c => c.name === kpName);
+              const record = {
+                name:     kpName,
+                title:    kpParts[1] || (existing?.title   || ''),
+                relation: kpParts[2] || (existing?.relation || 'Known'),
+                summary:  kpParts[3] || (existing?.summary  || ''),
+                lastSeen: kpParts[4] || (existing?.lastSeen || worldState.inGameDate || '')
+              };
+              if (existing) {
+                Object.assign(existing, record);
+              } else {
+                worldState.trackedCharacters.push(record);
+              }
+              renderCharactersPanel();
+              autoSave();
+            }
+            break;
+          }
+
           case 'FORCE_SENSE':       if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceSense = val; break;
           case 'MEDITATION':        if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.meditation = val; break;
           case 'FORCE_KNOWLEDGE':   if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceKnowledge = val; break;
@@ -3970,6 +4002,73 @@ function updateCombatStrain(rounds, intensity) {
   updateBar('mentalStrain', dispM, maxMS);
 }
 // ═══════════════════════════════════════════════════════════════════
+//  JS ROLL ENGINE
+// ═══════════════════════════════════════════════════════════════════
+
+function getLiveStatValue(path) {
+  if (!characterSheet || !path) return 0;
+  const dot = path.indexOf('.');
+  if (dot < 0) return 0;
+  const cat = path.slice(0, dot), key = path.slice(dot+1);
+  // Normalize lightsaber key
+  const normKey = cat === 'lightsaberForms' ? key.replace(/[^a-zA-Z0-9]/g,'').replace(/^(.)/,c=>c.toUpperCase()) : key;
+  if (cat === 'lightsaberForms') { const v = characterSheet.lightsaberForms?.[normKey]; return typeof v==='object'?(v.level||0):(v||0); }
+  if (cat === 'forceStats')      return characterSheet.forceStats?.[key] || 0;
+  if (cat === 'forceAbilities')  { const v = characterSheet.forceAbilities?.[key]; return typeof v==='object'?(v.level||0):(v||0); }
+  if (cat === 'stats')           return characterSheet.stats?.[key] || 0;
+  return 0;
+}
+
+function fireRoll(roll) {
+  if (!roll?.paths?.length) return;
+  const label    = roll.label    || 'Roll';
+  const tierGap  = roll.tierGap  || 0;
+  const tactical = roll.tactical || 0;
+
+  const playerStats  = roll.paths.map(p => ({ path:p, val:getLiveStatValue(p) }));
+  const playerBonus  = playerStats.reduce((s,x)=>s+compressedBonus(x.val),0) + tierGap*1.5 + tactical;
+  const d20          = Math.floor(Math.random()*20)+1;
+  const playerTotal  = d20 + playerBonus;
+
+  const statLines = playerStats.map(s=>`${s.path.split('.')[1]||s.path}(${s.val}):+${compressedBonus(s.val).toFixed(2)}`).join(' + ');
+  let html = `<div style="background:rgba(20,25,35,0.5);border:1px solid #2a3040;border-radius:4px;padding:8px 12px;font-size:12px;font-family:'Consolas',monospace;line-height:1.7">
+    <div style="color:#6699bb;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">${label.toUpperCase()}</div>
+    <div style="color:var(--text-dim)">Player: ${statLines}</div>`;
+
+  if (tierGap!==0)  html += `<div style="color:var(--text-dim)">Tier gap: ${tierGap>0?'+':''}${tierGap} → ${(tierGap*1.5)>0?'+':''}${(tierGap*1.5).toFixed(1)}</div>`;
+  if (tactical!==0) html += `<div style="color:var(--text-dim)">Tactical: ${tactical>0?'+':''}${tactical}</div>`;
+
+  if (roll.opposed && roll.oppStats) {
+    const oppEntries = Object.entries(roll.oppStats);
+    const oppBonus   = oppEntries.reduce((s,[,v])=>s+compressedBonus(v),0) - tierGap*1.5;
+    const oppD20     = Math.floor(Math.random()*20)+1;
+    const oppTotal   = oppD20 + oppBonus;
+    const margin     = playerTotal - oppTotal;
+    const [result, rc] = margin>=13?['Overwhelming — decisive','#88ddff']:margin>=8?['Dominant win','#44cc88']:margin>=4?['Clear win','#88cc88']:margin>=1?['Narrow win','#aaccaa']:margin===0?['Contested','#cccc88']:margin>=-3?['Narrow loss','#cc8844']:margin>=-7?['Clear loss','#cc6644']:['Dominant loss','#cc4444'];
+    html += `<div style="color:var(--text-dim)">${roll.oppName||'Opponent'}: ${oppEntries.map(([k,v])=>`${k.split('.')[1]||k}(${v}):+${compressedBonus(v).toFixed(2)}`).join(' + ')}</div>
+    <div><span style="color:var(--gold);font-weight:bold">d20=${d20}</span><span style="color:var(--text-dim)"> +${playerBonus.toFixed(2)} = ${playerTotal.toFixed(2)}</span> vs <span style="color:var(--gold);font-weight:bold">d20=${oppD20}</span><span style="color:var(--text-dim)"> +${oppBonus.toFixed(2)} = ${oppTotal.toFixed(2)}</span></div>
+    <div style="margin-top:4px;color:${rc};font-weight:bold">${result} (margin ${margin>0?'+':''}${margin.toFixed(2)})</div>`;
+  } else {
+    let result, rc;
+    if      (playerTotal>=23) { result='Overwhelming success'; rc='#88ddff'; }
+    else if (playerTotal>=18) { result='Strong success';       rc='#44cc88'; }
+    else if (playerTotal>=13) { result='Solid success';        rc='#88cc88'; }
+    else if (playerTotal>=9)  { result='Contested — partial';  rc='#cccc88'; }
+    else                      { result='Fail';                 rc='#cc4444'; }
+    html += `<div style="margin-top:4px"><span style="color:var(--gold);font-weight:bold">d20=${d20}</span><span style="color:var(--text-dim)"> Bonus=+${playerBonus.toFixed(2)} Total=${playerTotal.toFixed(2)}</span></div>
+    <div style="color:var(--text-dim);font-size:10px">Fail&lt;9 / Contested 9–12 / Solid 13–17 / Strong 18–22 / Overwhelming 23+</div>
+    <div style="color:${rc};font-weight:bold">${result}</div>`;
+  }
+  html += '</div>';
+
+  const feed = document.getElementById('story-feed');
+  if (feed) {
+    const nd = document.createElement('div'); nd.className='msg';
+    nd.innerHTML = html; feed.appendChild(nd); feed.scrollTop = feed.scrollHeight;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
 //  SHATTERPOINT ENGINE
 // ═══════════════════════════════════════════════════════════════════
 
@@ -4295,6 +4394,19 @@ function syncMasterXPToSheet() {
   if (!characterSheet.forceAbilitiesXP) characterSheet.forceAbilitiesXP = {};
   if (!characterSheet.lightsaberFormsXP) characterSheet.lightsaberFormsXP = {};
 
+  // Remove any non-Force stats that may have bled into forceStats
+  const VALID_FS = new Set(['forceSense','meditation','forceKnowledge','forceControl']);
+  if (masterXP.forceStats) {
+    for (const k of Object.keys(masterXP.forceStats)) {
+      if (!VALID_FS.has(k)) delete masterXP.forceStats[k];
+    }
+  }
+  if (characterSheet?.forceStats) {
+    for (const k of Object.keys(characterSheet.forceStats)) {
+      if (!VALID_FS.has(k)) delete characterSheet.forceStats[k];
+    }
+  }
+
   // Pre-normalize masterXP.lightsaberForms before syncing — merge any variant keys (Shii-Cho → ShiiCho)
   if (masterXP.lightsaberForms) {
     const normForms = {};
@@ -4429,7 +4541,9 @@ function updateCharacterSheet() {
 
   const fs = s.forceStats || {};
   const fsXP = s.forceStatsXP || {};
+  const VALID_FORCE_STATS = new Set(['forceSense','meditation','forceKnowledge','forceControl']);
   for (const [k, v] of Object.entries(fs)) {
+    if (!VALID_FORCE_STATS.has(k)) continue; // skip anything that doesn't belong here
     const label = k.replace(/([A-Z])/g, ' $1').trim();
     const xpData = fsXP[k] || { current: 0, required: 10 };
     const xpPct = Math.max(0, Math.min(100, (xpData.current / xpData.required) * 100));
@@ -5050,24 +5164,82 @@ function togglePanel(which) {
 function renderCharactersPanel() {
   const container = document.getElementById('chars-content');
   if (!container) return;
-  const chars = worldState?.trackedCharacters || [];
-  if (chars.length === 0) {
-    container.innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic;padding:8px">No characters recorded yet. Significant NPCs will appear here as you meet them.</div>';
-    return;
-  }
   container.innerHTML = '';
-  for (const ch of chars) {
-    const card = document.createElement('div');
-    card.className = 'char-card';
-    card.onclick = () => card.classList.toggle('expanded');
-    const relationClass = {ally:'ally', mentor:'mentor', hostile:'hostile'}[ch.relation?.toLowerCase()] || 'neutral';
-    card.innerHTML = `
-      <div class="char-name">${ch.name || '?'}</div>
-      <div class="char-title">${ch.title || ''}</div>
-      <span class="char-relation ${relationClass}">${ch.relation || 'Known'}</span>
-      <div class="char-summary">${ch.summary || 'No notes yet.'}</div>
-      <div class="char-last-seen">Last seen: ${ch.lastSeen || '—'}</div>`;
-    container.appendChild(card);
+
+  // ── Tier 1 & 2 profiles (visible ones) ──────────────────────────
+  const profiles = worldState?.characterProfiles || {};
+  const visibleProfiles = Object.values(profiles).filter(p => p.visibleInPeople);
+
+  if (visibleProfiles.length > 0) {
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;padding:8px 8px 4px;border-bottom:1px solid var(--border);margin-bottom:6px';
+    hdr.textContent = '◈ Character Profiles';
+    container.appendChild(hdr);
+
+    // Sort: canon first, then custom, alphabetical within
+    visibleProfiles.sort((a,b) => (a.tier - b.tier) || a.displayName.localeCompare(b.displayName));
+
+    for (const p of visibleProfiles) {
+      const card = document.createElement('div');
+      card.className = 'char-card';
+      card.onclick = () => card.classList.toggle('expanded');
+      const tierLabel = p.tier === 1 ? '<span style="color:#6688aa;font-size:9px;letter-spacing:1px">◆ CANON</span>' : '<span style="color:#668866;font-size:9px;letter-spacing:1px">◆ CUSTOM</span>';
+      const weight = worldState?.interactionWeights?.[p.displayName] || 0;
+
+      // Build stat summary if stats exist
+      let statSummary = '';
+      if (p.stats && Object.keys(p.stats).length > 0) {
+        const statLines = [];
+        if (p.stats.lightsaberForms) {
+          const forms = Object.entries(p.stats.lightsaberForms).map(([k,v])=>`${k} ${v}`).join(', ');
+          statLines.push(`Forms: ${forms}`);
+        }
+        if (p.stats.forceStats) {
+          const fs = Object.entries(p.stats.forceStats).map(([k,v])=>`${k.replace('force','').replace('Force','')} ${v}`).join(', ');
+          statLines.push(`Force: ${fs}`);
+        }
+        if (p.stats.stats) {
+          const ss = Object.entries(p.stats.stats).map(([k,v])=>`${k.slice(0,3).toUpperCase()} ${v}`).join(' ');
+          statLines.push(`Stats: ${ss}`);
+        }
+        if (statLines.length) statSummary = `<div class="char-stats" style="font-size:10px;color:var(--text-dim);margin-top:4px;line-height:1.6">${statLines.join('<br>')}</div>`;
+      }
+
+      card.innerHTML = `
+        <div class="char-name">${p.displayName} ${tierLabel}</div>
+        <div class="char-title">${p.description || ''}</div>
+        <div class="char-summary" style="margin-top:4px">${p.notes || ''}</div>
+        ${statSummary}
+        <div class="char-last-seen">First met: ${p.firstMet || '—'} · Interactions: ${weight}</div>`;
+      container.appendChild(card);
+    }
+  }
+
+  // ── Legacy trackedCharacters (AI-managed, simple cards) ─────────
+  const chars = worldState?.trackedCharacters || [];
+  if (chars.length > 0) {
+    const hdr2 = document.createElement('div');
+    hdr2.style.cssText = 'font-family:Cinzel,serif;font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;padding:8px 8px 4px;border-bottom:1px solid var(--border);margin:8px 0 6px';
+    hdr2.textContent = '◈ Known People';
+    container.appendChild(hdr2);
+
+    for (const ch of chars) {
+      const card = document.createElement('div');
+      card.className = 'char-card';
+      card.onclick = () => card.classList.toggle('expanded');
+      const relationClass = {ally:'ally', mentor:'mentor', hostile:'hostile'}[ch.relation?.toLowerCase()] || 'neutral';
+      card.innerHTML = `
+        <div class="char-name">${ch.name || '?'}</div>
+        <div class="char-title">${ch.title || ''}</div>
+        <span class="char-relation ${relationClass}">${ch.relation || 'Known'}</span>
+        <div class="char-summary">${ch.summary || 'No notes yet.'}</div>
+        <div class="char-last-seen">Last seen: ${ch.lastSeen || '—'}</div>`;
+      container.appendChild(card);
+    }
+  }
+
+  if (visibleProfiles.length === 0 && chars.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic;padding:8px">No characters recorded yet. Significant NPCs will appear here as you meet them.</div>';
   }
 }
 
@@ -5167,6 +5339,11 @@ function loadFromSave(save) {
   // Ensure characterSheet reflects masterXP immediately after load
   if (characterSheet) { syncMasterXPToSheet(); spSeedIfInnate(); }
   worldState = save.worldState || null;
+  if (worldState) {
+    if (!worldState.characterProfiles) worldState.characterProfiles = {};
+    if (!worldState.interactionWeights) worldState.interactionWeights = {};
+    seedCanonProfiles(); // ensure canon profiles always present
+  }
   campaignSummary = save.campaignSummary || '';
   galaxySimState = save.galaxySimState || {};
   lastGalaxyEventDate = save.lastGalaxyEventDate || '';
@@ -5483,6 +5660,7 @@ const SIM_FLAGS = [
 ];
 
 // ── Simulation state ──────────────────────────────────────────────
+let pendingRoll = null; // accumulates ROLL/TIER_GAP/TACTICAL/ROLL_LABEL before firing
 let simActive = false, simPaused = false, simAborted = false;
 let simPauseCallback = null;
 let simPeriodType = 'week';
