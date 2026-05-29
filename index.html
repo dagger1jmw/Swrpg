@@ -1599,14 +1599,26 @@ INTERACTION tag: send alongside KNOWN_PERSON when a meaningful interaction occur
 
 ### YOUR ROLE IN ROLLS
 1. Decide a roll is needed
-2. Send ROLL: or ROLL_OPPOSED: tag with the relevant stat paths
-3. Send TIER_GAP= if there is a meaningful tier difference
-4. Send TACTICAL= for situational bonuses/penalties (cap ±5)
-5. Send ROLL_LABEL= last — this fires the roll
-6. JS posts the result card to the feed automatically
-7. You write the narrative based on the outcome shown
+2. At the natural point in the narrative where the action occurs, output the ROLL tags
+3. JS intercepts them, fires the roll, and posts the result card automatically
+4. Continue your narrative response based on the outcome (the result is stored in lastRoll)
 
 **NEVER calculate bonuses yourself. NEVER write out compressedBonus math. NEVER choose a d20 value.**
+
+ROLL tags can appear anywhere in your response (inside or outside the CHANGES block).
+JS scans the full text and strips them from the displayed narrative automatically.
+Preferred placement: inline in the narrative at the moment of the action, then continue writing.
+
+Example flow:
+  "Jared reaches out with the Force, feeling for any hidden presence..."
+  ROLL:forceStats.forceSense|forceStats.meditation
+  TIER_GAP=0
+  TACTICAL=0
+  ROLL_LABEL=Force Sense scan — detecting hidden presence
+  "...the result tells you whether he senses anything."
+
+The lastRoll.result value will be: overwhelming / strong / solid / contested / fail
+Write your narrative to match.
 
 ### ROLL TAG FORMAT
 
@@ -2603,6 +2615,7 @@ function buildContext(userContent) {
 
   const sheetSummary = `NAME: ${cs.name||'?'} | SPECIES: ${cs.species||'?'} | AGE: ${cs.age||'?'} | FACTION: ${cs.faction||'?'}
 ALIGNMENT: ${(()=>{const a=cs.alignment||0;const p=cs.darkPressure||0;const m=cs.momentumWindow;const t=a>=76?'Luminous':a>=26?'Attuned':a>=1?'Calm':a>=-25?'Balanced':a>=-50?'Shadowed':a>=-75?'Corrupted':'Consumed';return `${t} (${a>=0?'+':''}${a}) | Dark Pressure: ${p}/100${m?.active?' | ⚡ MOMENTUM WINDOW ACTIVE (×'+m.multiplier+') expires '+m.expiresDate:''}`;})()}
+LAST ROLL RESULT: ${characterSheet?.lastRoll ? `${characterSheet.lastRoll.label} — d20=${characterSheet.lastRoll.d20}, Total=${characterSheet.lastRoll.total}, Result=${characterSheet.lastRoll.result.toUpperCase()}` : 'none this session'}
 SHATTERPOINT: ${(()=>{
   const spHas = (cs.innateTalents||[]).includes('ShatterSense');
   const spKey = spHas ? 'Shatterpoint (Innate)' : 'Shatterpoint';
@@ -2868,6 +2881,55 @@ async function callGemini(playerMessage, retryCount = 0) {
 
     // ── XP log for this turn — reset each turn, populated during CHANGES parsing ──────
     turnXPLog = []; // reset module-level log for this turn
+
+    // ── Scan full response for ROLL tags (AI may put them outside CHANGES block) ──
+    // Process them before rendering and strip from display text
+    (function scanForRollTags() {
+      const lines = rawText.split('\n');
+      let scanPending = null;
+      for (const line of lines) {
+        const t = line.trim();
+        if (t.startsWith('ROLL:') && !t.startsWith('ROLL_OPPOSED:') && !t.startsWith('ROLL_LABEL:')) {
+          scanPending = { paths: t.slice(5).split('|').map(s=>s.trim()).filter(Boolean), opposed: false };
+        } else if (t.startsWith('ROLL_OPPOSED:')) {
+          const roStr = t.slice(13);
+          const vsIdx = roStr.indexOf(' vs ');
+          if (vsIdx >= 0) {
+            const playerPaths = roStr.slice(0, vsIdx).split('|').map(s=>s.trim()).filter(Boolean);
+            const oppStr = roStr.slice(vsIdx + 4).trim();
+            scanPending = { paths: playerPaths, opposed: true };
+            if (oppStr.startsWith('CHARACTER:')) {
+              const charName = oppStr.slice(10).trim();
+              const profile = worldState?.characterProfiles?.[charName];
+              if (profile?.stats) {
+                scanPending.oppStats = {};
+                scanPending.oppName = charName;
+                for (const [cat, statObj] of Object.entries(profile.stats))
+                  for (const [k, v] of Object.entries(statObj))
+                    scanPending.oppStats[cat + '.' + k] = v;
+              }
+            } else if (oppStr.startsWith('INLINE:')) {
+              scanPending.oppStats = {};
+              scanPending.oppName = 'Opponent';
+              oppStr.slice(7).split(',').forEach(pair => {
+                const [k,v] = pair.split('=');
+                if (k && v) scanPending.oppStats[k.trim()] = parseFloat(v.trim()) || 0;
+              });
+            }
+          }
+        } else if (t.startsWith('TIER_GAP=')) {
+          if (scanPending) scanPending.tierGap = parseFloat(t.slice(9)) || 0;
+        } else if (t.startsWith('TACTICAL=')) {
+          if (scanPending) scanPending.tactical = parseFloat(t.slice(9)) || 0;
+        } else if (t.startsWith('ROLL_LABEL=')) {
+          if (scanPending) {
+            scanPending.label = t.slice(11).trim();
+            fireRoll(scanPending);
+            scanPending = null;
+          }
+        }
+      }
+    })();
 
     // ── Parse CHANGES block — structured delta, always present ──────
     const changesMatch = rawText.match(/<<<CHANGES>>>\s*([\s\S]*?)\s*<<<END_CHANGES>>>/);
@@ -3801,6 +3863,9 @@ function renderGMMessage(text) {
 
   for (const line of lines) {
     const t = line.trim();
+    // Strip ROLL tags — they are processed by JS fireRoll(), not displayed as text
+    const isRollTag = /^(ROLL:|ROLL_OPPOSED:|TIER_GAP=|TACTICAL=|ROLL_LABEL=)/.test(t);
+    if (isRollTag) continue;
     const isChoice = /^[A-E]\)/.test(t) || /^[A-E]\s*[\.\-\)]/.test(t) || /^Custom:/.test(t);
     const isRollStart = /^(Action:|Difficulty:|Tactical Setup Bonuses:|Attacker:|Defender:)/.test(t);
     const isRollLine = /^(d20=|Result:|Margin:|\+\s.+:\s*[+-]|\- .+:\s*[+-]|Total setup bonus:)/.test(t);
@@ -4023,48 +4088,138 @@ function fireRoll(roll) {
   if (!roll?.paths?.length) return;
   const label    = roll.label    || 'Roll';
   const tierGap  = roll.tierGap  || 0;
-  const tactical = roll.tactical || 0;
+  const tactical = Math.max(-5, Math.min(5, roll.tactical || 0)); // cap ±5
 
-  const playerStats  = roll.paths.map(p => ({ path:p, val:getLiveStatValue(p) }));
-  const playerBonus  = playerStats.reduce((s,x)=>s+compressedBonus(x.val),0) + tierGap*1.5 + tactical;
-  const d20          = Math.floor(Math.random()*20)+1;
-  const playerTotal  = d20 + playerBonus;
+  // Read live stat values for each declared path
+  const playerStats = roll.paths.map(p => ({ path:p, val:getLiveStatValue(p) }));
 
-  const statLines = playerStats.map(s=>`${s.path.split('.')[1]||s.path}(${s.val}):+${compressedBonus(s.val).toFixed(2)}`).join(' + ');
-  let html = `<div style="background:rgba(20,25,35,0.5);border:1px solid #2a3040;border-radius:4px;padding:8px 12px;font-size:12px;font-family:'Consolas',monospace;line-height:1.7">
-    <div style="color:#6699bb;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">${label.toUpperCase()}</div>
-    <div style="color:var(--text-dim)">Player: ${statLines}</div>`;
+  // Detect roll type for experience modifier
+  const hasForm = roll.paths.some(p => p.startsWith('lightsaberForms.'));
+  const hasForce = roll.paths.some(p => p.startsWith('forceAbilities.') || p.startsWith('forceStats.'));
 
-  if (tierGap!==0)  html += `<div style="color:var(--text-dim)">Tier gap: ${tierGap>0?'+':''}${tierGap} → ${(tierGap*1.5)>0?'+':''}${(tierGap*1.5).toFixed(1)}</div>`;
-  if (tactical!==0) html += `<div style="color:var(--text-dim)">Tactical: ${tactical>0?'+':''}${tactical}</div>`;
+  // Experience modifier — combat instinct / Force attunement
+  // For lightsaber rolls: compressedBonus(highest owned form) × 0.4
+  // For Force rolls: ForceControl × 0.3 + ForceSense × 0.2
+  // Always added to the roll; represents accumulated skill beyond active form
+  let expBonus = 0;
+  let expLines = [];
+  if (hasForm && characterSheet?.lightsaberForms) {
+    const highestForm = Math.max(0, ...Object.values(characterSheet.lightsaberForms).map(v =>
+      typeof v === 'object' ? (v.level||0) : (v||0)));
+    const highestFormName = Object.entries(characterSheet.lightsaberForms)
+      .reduce((best,[k,v])=>{ const n=typeof v==='object'?(v.level||0):(v||0); return n>(best.val||0)?{k,val:n}:best; },{}).k || '';
+    const eb = compressedBonus(highestForm) * 0.4;
+    expBonus += eb;
+    expLines.push(`${highestFormName}(${highestForm})×0.4=+${eb.toFixed(3)}`);
+  }
+  const fcStat = characterSheet?.forceStats?.forceControl || 0;
+  const fsStat = characterSheet?.forceStats?.forceSense || 0;
+  if (hasForm || hasForce) {
+    const fcB = compressedBonus(fcStat) * 0.3;
+    const fsB = compressedBonus(fsStat) * 0.2;
+    expBonus += fcB + fsB;
+    expLines.push(`FC(${fcStat})×0.3=+${fcB.toFixed(3)}`);
+    expLines.push(`FS(${fsStat})×0.2=+${fsB.toFixed(3)}`);
+  }
+
+  // Tier gap flat bonus
+  const tierGapBonusTable = [0, 4, 9, 15, 22, 30, 39];
+  const tierGapBonus = tierGap !== 0 ? (tierGap > 0 ? 1 : -1) * (tierGapBonusTable[Math.min(6, Math.abs(tierGap))] || 0) : 0;
+
+  // Primary stat bonus
+  const statBonus = playerStats.reduce((s,x)=>s+compressedBonus(x.val),0);
+  const totalBonus = statBonus + expBonus + tierGapBonus + tactical;
+
+  const d20 = Math.floor(Math.random()*20)+1;
+  const playerTotal = d20 + totalBonus;
+
+  // Derive tier from primary stat
+  const primaryStat = playerStats[0]?.val || 0;
+  const tier = statToTier(primaryStat);
+
+  // Build HTML — matching the old detailed format
+  const statBonusStr = playerStats.map(s=>{
+    const name = s.path.split('.')[1] || s.path;
+    return `${name}(${s.val}):+${compressedBonus(s.val).toFixed(3)}`;
+  }).join(', ');
+
+  let html = `<div style="background:rgba(15,20,30,0.6);border:1px solid #2a3a4a;border-radius:4px;padding:10px 14px;font-size:12px;font-family:'Consolas',monospace;line-height:1.8;margin:4px 0">`;
+  html += `<div style="color:#5588aa;font-size:9px;letter-spacing:3px;margin-bottom:6px;font-family:'Cinzel',serif;text-transform:uppercase">${label}</div>`;
+  html += `<div style="color:var(--text-dim)">Tiers: Character=${tier.name} (${playerStats.map(s=>`${(s.path.split('.')[1]||s.path)}=${s.val}`).join(', ')}) → Tier ${tier.num}</div>`;
+
+  if (tierGap !== 0) {
+    const gapDir = tierGap > 0 ? 'player' : 'opponent';
+    html += `<div style="color:var(--text-dim)">Gap: ${Math.abs(tierGap)} tier(s) → ${tierGapBonus>0?'+':''}${tierGapBonus} to ${gapDir}</div>`;
+  }
+
+  html += `<div style="color:var(--text-dim)">Stat Bonus: +${statBonus.toFixed(3)} (${statBonusStr})</div>`;
+
+  if (expBonus > 0) {
+    html += `<div style="color:var(--text-dim)">Experience modifier: +${expBonus.toFixed(3)} (${expLines.join(', ')})</div>`;
+  }
+
+  if (tactical !== 0) {
+    html += `<div style="color:var(--text-dim)">Tactical Setup: ${tactical>0?'+':''}${tactical}</div>`;
+  }
 
   if (roll.opposed && roll.oppStats) {
+    // Opponent bonuses
     const oppEntries = Object.entries(roll.oppStats);
-    const oppBonus   = oppEntries.reduce((s,[,v])=>s+compressedBonus(v),0) - tierGap*1.5;
-    const oppD20     = Math.floor(Math.random()*20)+1;
-    const oppTotal   = oppD20 + oppBonus;
-    const margin     = playerTotal - oppTotal;
-    const [result, rc] = margin>=13?['Overwhelming — decisive','#88ddff']:margin>=8?['Dominant win','#44cc88']:margin>=4?['Clear win','#88cc88']:margin>=1?['Narrow win','#aaccaa']:margin===0?['Contested','#cccc88']:margin>=-3?['Narrow loss','#cc8844']:margin>=-7?['Clear loss','#cc6644']:['Dominant loss','#cc4444'];
-    html += `<div style="color:var(--text-dim)">${roll.oppName||'Opponent'}: ${oppEntries.map(([k,v])=>`${k.split('.')[1]||k}(${v}):+${compressedBonus(v).toFixed(2)}`).join(' + ')}</div>
-    <div><span style="color:var(--gold);font-weight:bold">d20=${d20}</span><span style="color:var(--text-dim)"> +${playerBonus.toFixed(2)} = ${playerTotal.toFixed(2)}</span> vs <span style="color:var(--gold);font-weight:bold">d20=${oppD20}</span><span style="color:var(--text-dim)"> +${oppBonus.toFixed(2)} = ${oppTotal.toFixed(2)}</span></div>
-    <div style="margin-top:4px;color:${rc};font-weight:bold">${result} (margin ${margin>0?'+':''}${margin.toFixed(2)})</div>`;
+    const oppStatBonus = oppEntries.reduce((s,[,v])=>s+compressedBonus(v),0);
+    const oppTierGapBonus = -tierGapBonus; // opponent gets opposite
+    const oppTotal_bonus = oppStatBonus + oppTierGapBonus;
+    const oppD20 = Math.floor(Math.random()*20)+1;
+    const oppTotal = oppD20 + oppTotal_bonus;
+    const margin = playerTotal - oppTotal;
+
+    const oppStatStr = oppEntries.map(([k,v])=>`${k.split('.')[1]||k}(${v}):+${compressedBonus(v).toFixed(3)}`).join(', ');
+    html += `<div style="color:var(--text-dim)">${roll.oppName||'Opponent'}: ${oppStatStr}</div>`;
+    html += `<div style="margin-top:4px"><span style="color:var(--text-dim)">Player: </span><span style="color:var(--gold);font-weight:bold">d20=${d20}</span><span style="color:var(--text-dim)">, Bonus=+${totalBonus.toFixed(2)}, Total=${playerTotal.toFixed(2)}</span></div>`;
+    html += `<div><span style="color:var(--text-dim)">${roll.oppName||'Opponent'}: </span><span style="color:var(--gold);font-weight:bold">d20=${oppD20}</span><span style="color:var(--text-dim)">, Bonus=+${oppTotal_bonus.toFixed(2)}, Total=${oppTotal.toFixed(2)}</span></div>`;
+
+    let result, rc;
+    if      (margin>=13) { result='Overwhelming — decisive';           rc='#88ddff'; }
+    else if (margin>=8)  { result='Dominant win — serious trouble';    rc='#44cc88'; }
+    else if (margin>=4)  { result='Clear win — meaningful pressure';   rc='#88cc88'; }
+    else if (margin>=1)  { result='Narrow win';                        rc='#aaccaa'; }
+    else if (margin===0) { result='Contested — both hold';             rc='#cccc88'; }
+    else if (margin>=-3) { result='Narrow loss';                       rc='#cc8844'; }
+    else if (margin>=-7) { result='Clear loss';                        rc='#cc6644'; }
+    else if (margin>=-12){ result='Dominant loss — in serious trouble'; rc='#cc4444'; }
+    else                 { result='Overwhelming loss';                  rc='#cc2222'; }
+
+    html += `<div style="margin-top:4px;color:${rc};font-weight:bold">Margin: ${roll.oppName||'Opponent'} ${margin>0?'by player':'by opponent'} ${Math.abs(margin).toFixed(2)} — ${result}</div>`;
+
   } else {
+    // Solo roll thresholds
+    html += `<div style="margin-top:4px"><span style="color:var(--gold);font-weight:bold">d20=${d20}</span><span style="color:var(--text-dim)">, Bonus=+${totalBonus.toFixed(2)}, Total=${playerTotal.toFixed(2)}</span></div>`;
+    html += `<div style="color:var(--text-dim);font-size:10px">Thresholds: Fail&lt;9 / Contested 9–12 / Solid 13–17 / Strong 18–22 / Overwhelming 23+</div>`;
+
     let result, rc;
     if      (playerTotal>=23) { result='Overwhelming success'; rc='#88ddff'; }
     else if (playerTotal>=18) { result='Strong success';       rc='#44cc88'; }
     else if (playerTotal>=13) { result='Solid success';        rc='#88cc88'; }
     else if (playerTotal>=9)  { result='Contested — partial';  rc='#cccc88'; }
     else                      { result='Fail';                 rc='#cc4444'; }
-    html += `<div style="margin-top:4px"><span style="color:var(--gold);font-weight:bold">d20=${d20}</span><span style="color:var(--text-dim)"> Bonus=+${playerBonus.toFixed(2)} Total=${playerTotal.toFixed(2)}</span></div>
-    <div style="color:var(--text-dim);font-size:10px">Fail&lt;9 / Contested 9–12 / Solid 13–17 / Strong 18–22 / Overwhelming 23+</div>
-    <div style="color:${rc};font-weight:bold">${result}</div>`;
+
+    html += `<div style="color:${rc};font-weight:bold">Result: ${result}</div>`;
   }
+
   html += '</div>';
 
   const feed = document.getElementById('story-feed');
   if (feed) {
     const nd = document.createElement('div'); nd.className='msg';
     nd.innerHTML = html; feed.appendChild(nd); feed.scrollTop = feed.scrollHeight;
+  }
+
+  // Store last roll result for AI to reference in narrative
+  if (characterSheet) {
+    characterSheet.lastRoll = {
+      label, d20, totalBonus: Math.round(totalBonus*100)/100,
+      total: Math.round(playerTotal*100)/100,
+      result: playerTotal>=23?'overwhelming':playerTotal>=18?'strong':playerTotal>=13?'solid':playerTotal>=9?'contested':'fail'
+    };
   }
 }
 
