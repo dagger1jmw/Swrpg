@@ -1473,6 +1473,12 @@ MENTAL_STRAIN=[current]
 FORCE_BARRIER=[current]
 ALIGNMENT=[current — only for light side gains and momentum-window direct hits]
 KNOWN_PERSON=[name]|[title]|[relation]|[summary]|[lastSeen] — persist any character to People tab
+PENDING_EVENT=[id]|[type]|[triggerDate]|[priority]|[summary]|[context]|[npcs] — create story thread
+NPC_AGENDA=[npcName]|[priority]|[summary]|[context] — add agenda item to NPC
+RESOLVE_EVENT=[id] — mark event fully resolved after narrative follow-through
+RESOLVE_NPC_AGENDA=[npcName]|[summary keyword] — clear specific NPC agenda item
+SCENE_NPCS=[Name1,Name2] — declare NPCs present (overrides location inference)
+GALAXY_EVENT=[summary]|[context] — background world event
 GENERATE_PROFILE=[name]|[canon/custom]|[description] — create a stat-bearing profile
 PROFILE_STATS=[name]|[stat.path=value,...] — add stats to a generated profile
 INTERACTION=[name]|[combat/training/force/dialogue] — tracks weight toward People tab visibility
@@ -1566,7 +1572,7 @@ STEP 3: Output the SHEET block (full JSON for complete state):
 
 STEP 4: Output the WORLD block:
 <<<WORLD>>>
-{"location":"","era":"","inGameDate":"","inGameTime":"Morning (06:00)","lastEvent":"","legacyChanges":[],"lineageRecord":[],"worldLog":[],"galaxyEvents":[],"galaxyState":{"jediOrder":"","sith":"","republic":"","mandalorians":"","underworld":""},"trackedCharacters":[],"characterProfiles":{},"interactionWeights":{}}
+{"location":"","era":"","inGameDate":"","inGameTime":"Morning (06:00)","lastEvent":"","legacyChanges":[],"lineageRecord":[],"worldLog":[],"galaxyEvents":[],"galaxyState":{"jediOrder":"","sith":"","republic":"","mandalorians":"","underworld":""},"trackedCharacters":[],"characterProfiles":{},"interactionWeights":{},"pendingEvents":[],"npcAgendas":{},"galaxyEventQueue":[],"lastMilestoneCheck":""}
 <<<END_WORLD>>>
 
 RULES FOR DATA BLOCKS:
@@ -1875,6 +1881,41 @@ REVIEW CHECKLIST each turn:
 4. Did the character demonstrate something exceptional that wasn't already captured?
 
 Always carry existing traits forward in the SHEET block. Never silently drop traits.
+## BACKGROUND EVENT & MILESTONE SYSTEM
+
+JS automatically tracks story threads, NPC agendas, and milestone events.
+When these appear in your prompt under ⚑ PENDING STORY THREADS or ⚑ NPC AGENDAS, you MUST address them.
+
+── PRIORITY LEVELS ──────────────────────────────────────────────────
+  CRITICAL + "MUST ADDRESS THIS TURN" → Surface this event in your response, no exceptions.
+  CRITICAL → Address within 1 turn.
+  HIGH → Address within 1-2 turns if the scene is relevant.
+  MEDIUM → Surface naturally when opportunity arises.
+
+── NPC AGENDAS ───────────────────────────────────────────────────────
+When a listed NPC appears in the scene, they have pending things to say/do.
+Surface their agenda items naturally in dialogue — don't dump everything at once.
+After an agenda item is addressed, send: RESOLVE_NPC_AGENDA:NpcName|summary keyword
+
+── CREATING NEW EVENTS ───────────────────────────────────────────────
+When a story thread is established (Council makes a decision, someone promises to do something,
+a plot develops that needs follow-through), create a pending event:
+  PENDING_EVENT:unique_id|scheduled|triggerDate|priority|summary|context|npc1,npc2
+  Example: PENDING_EVENT:denko_report_council_decision|scheduled|Day 14 Frostuary — 3660 BBY|high|Inform Jared of council decision|Grand Master Zym tasked Denko after the Day 8 council meeting|Master Denko
+
+When an NPC gains a specific agenda item:
+  NPC_AGENDA:Master Denko|high|Inform Jared of council decision|Tasked by Grand Master Zym on Day 8
+
+When a world event happens that should filter into temple life:
+  GALAXY_EVENT:summary|how it might affect Jared's immediate world
+
+When an event is fully resolved:
+  RESOLVE_EVENT:event_id
+
+── SCENE NPC DECLARATION (override location inference) ──────────────
+If the current scene involves specific NPCs not at their usual location:
+  SCENE_NPCS:Name1,Name2,...
+
 ## CHARACTER PROFILE SYSTEM
 
 NPCs are tracked in three tiers. JS handles all stat lookups for rolls.
@@ -2664,6 +2705,7 @@ ${galaxySummary}
 
 ${campaignSummary ? `CAMPAIGN HISTORY (turns 1–${Math.max(1, turnCount - recentHistory.length/2)}):\n${campaignSummary}` : 'Campaign is just beginning.'}
 
+${buildEventInjection()}
 CRITICAL RULES FOR THIS TURN:
 1. Use the EXACT stat values above as your starting point
 2. TIME IS NOW: ${ws.inGameTime||'unknown'} on ${ws.inGameDate||'unknown'}. Every action takes time. State how much time passes at the start of your response ("Time Elapsed: X minutes/hours"). Update inGameTime AND inGameDate in the WORLD block. If time passes midnight advance the date using exact format "Weekday, Day N MonthName — YYYY ERA" (e.g. "Centaxday, Day 5 Coruscann — 3661 BBY"). NEVER use "Day X, Cycle Y" format.
@@ -3378,6 +3420,86 @@ async function callGemini(playerMessage, retryCount = 0) {
             break;
           }
 
+          case 'PENDING_EVENT': {
+            // Format: id|type|triggerDate|priority|summary|context|npcsInvolved
+            // type: scheduled | conditional
+            // priority: critical | high | medium | low
+            const peParts = trimmed.slice(14).split('|').map(s=>s.trim());
+            if (peParts[0] && worldState) {
+              if (!worldState.pendingEvents) worldState.pendingEvents = [];
+              const peId = peParts[0];
+              const existing = worldState.pendingEvents.find(e=>e.id===peId);
+              if (!existing) {
+                worldState.pendingEvents.push({
+                  id: peId, type: peParts[1]||'scheduled',
+                  triggerDate: peParts[2]||'', priority: peParts[3]||'medium',
+                  summary: peParts[4]||'', context: peParts[5]||'',
+                  npcsInvolved: (peParts[6]||'').split(',').map(s=>s.trim()).filter(Boolean),
+                  createdDate: worldState.inGameDate||'', overdueBy: 0, resolved: false, mustFire: false
+                });
+              }
+            }
+            break;
+          }
+          case 'NPC_AGENDA': {
+            // Format: npcName|priority|summary|context
+            const naParts = trimmed.slice(11).split('|').map(s=>s.trim());
+            const naName = naParts[0];
+            if (naName && worldState) {
+              if (!worldState.npcAgendas) worldState.npcAgendas = {};
+              if (!worldState.npcAgendas[naName]) worldState.npcAgendas[naName] = [];
+              // Avoid duplicate summaries
+              const naSummary = naParts[2]||'';
+              if (!worldState.npcAgendas[naName].some(a=>a.summary===naSummary)) {
+                worldState.npcAgendas[naName].push({
+                  priority: naParts[1]||'medium',
+                  summary: naSummary,
+                  context: naParts[3]||'',
+                  createdDate: worldState.inGameDate||''
+                });
+              }
+            }
+            break;
+          }
+          case 'RESOLVE_EVENT': {
+            const reId = trimmed.slice(14).trim();
+            if (reId && worldState?.pendingEvents) {
+              const ev = worldState.pendingEvents.find(e=>e.id===reId);
+              if (ev) { ev.resolved = true; ev.resolvedDate = worldState.inGameDate||''; }
+            }
+            break;
+          }
+          case 'RESOLVE_NPC_AGENDA': {
+            // Format: npcName|summary (partial match)
+            const rnParts = trimmed.slice(19).split('|').map(s=>s.trim());
+            const rnName = rnParts[0];
+            const rnSummary = rnParts[1]||'';
+            if (rnName && worldState?.npcAgendas?.[rnName]) {
+              worldState.npcAgendas[rnName] = worldState.npcAgendas[rnName]
+                .filter(a=>!a.summary.toLowerCase().includes(rnSummary.toLowerCase()));
+            }
+            break;
+          }
+          case 'SCENE_NPCS': {
+            // Format: Name1,Name2,... — explicit NPC declaration for this scene
+            if (worldState) {
+              worldState.sceneNPCs = trimmed.slice(11).split(',').map(s=>s.trim()).filter(Boolean);
+            }
+            break;
+          }
+          case 'GALAXY_EVENT': {
+            // Format: summary|context
+            const geParts = trimmed.slice(13).split('|').map(s=>s.trim());
+            if (geParts[0] && worldState) {
+              if (!worldState.galaxyEventQueue) worldState.galaxyEventQueue = [];
+              worldState.galaxyEventQueue.push({
+                summary: geParts[0], context: geParts[1]||'',
+                date: worldState.inGameDate||'', surfaced: false
+              });
+            }
+            break;
+          }
+
           case 'FORCE_SENSE':       if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceSense = val; break;
           case 'MEDITATION':        if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.meditation = val; break;
           case 'FORCE_KNOWLEDGE':   if (!characterSheet.forceStats) characterSheet.forceStats={}; characterSheet.forceStats.forceKnowledge = val; break;
@@ -4066,6 +4188,321 @@ function updateCombatStrain(rounds, intensity) {
   updateBar('forceStrain', dispF, maxFS);
   updateBar('mentalStrain', dispM, maxMS);
 }
+// ═══════════════════════════════════════════════════════════════════
+//  BACKGROUND EVENT & MILESTONE SYSTEM
+// ═══════════════════════════════════════════════════════════════════
+
+// NPC home locations for automatic agenda injection when player visits
+const NPC_HOME_LOCATIONS = {
+  'Master Denko':         ['training salle','training hall','salle'],
+  'Grand Master Zym':     ['council','high council','council chamber'],
+  'Satele Shan':          ['temple','archives','council'],
+  'Master Ngani Zho':     ['temple','quarters','meditation'],
+  'Master Gnost-Dural':   ['archives','jedi archives','library'],
+  'Elara':                ['training salle','dormitory','quarters'],
+};
+
+// Get current force/combat/ability domain averages
+function getDomainAverages() {
+  if (!characterSheet) return { force:0, combat:0, ability:0 };
+
+  const fs = characterSheet.forceStats || {};
+  const forceVals = [fs.forceSense||0, fs.meditation||0, fs.forceKnowledge||0, fs.forceControl||0];
+  const forceAvg = forceVals.reduce((a,b)=>a+b,0) / forceVals.length;
+
+  const st = characterSheet.stats || {};
+  const lf = characterSheet.lightsaberForms || {};
+  const primaryForm = Math.max(0, ...Object.values(lf).map(v=>typeof v==='object'?(v.level||0):(v||0)));
+  const combatVals = [primaryForm, st.strength||0, st.agility||0, st.endurance||0, st.willpower||0];
+  const combatAvg = combatVals.reduce((a,b)=>a+b,0) / combatVals.length;
+
+  const fa = characterSheet.forceAbilities || {};
+  const abilityVals = Object.values(fa)
+    .filter(v=>{ const n=typeof v==='object'?(v.level||0):(v||0); return n>0; })
+    .map(v=>typeof v==='object'?(v.level||0):(v||0));
+  const abilityAvg = abilityVals.length ? abilityVals.reduce((a,b)=>a+b,0)/abilityVals.length : 0;
+
+  return { force: Math.round(forceAvg), combat: Math.round(combatAvg), ability: Math.round(abilityAvg) };
+}
+
+// Hardcoded milestone definitions — Jedi and Sith paths
+const JEDI_MILESTONES = [
+  {
+    id: 'jedi_youngling_noticed',
+    check: (age, d) => age <= 13 && d.force >= 30,
+    priority: 'medium',
+    summary: 'Youngling shows unusual Force potential',
+    context: 'A Master has noticed Force development significantly ahead of peers for this age. Worth monitoring.',
+    npcs: ['Master Denko'],
+    oneTime: true
+  },
+  {
+    id: 'jedi_youngling_exceptional',
+    check: (age, d) => age <= 13 && d.force >= 40,
+    priority: 'high',
+    summary: 'Exceptional youngling — Council attention warranted',
+    context: 'Force domain average of 40+ at youngling age is extraordinary. Masters are discussing what path is appropriate. Standard youngling track may no longer apply.',
+    npcs: ['Grand Master Zym', 'Master Denko'],
+    oneTime: true
+  },
+  {
+    id: 'jedi_youngling_prodigy',
+    check: (age, d) => age <= 13 && d.force >= 50,
+    priority: 'critical',
+    summary: 'Prodigy-level development — Council formal discussion required',
+    context: 'Force domain at Knight-equivalent levels during youngling stage. The Council must formally decide on an exceptional training path. No standard protocol exists for this.',
+    npcs: ['Grand Master Zym', 'Master Denko'],
+    oneTime: true
+  },
+  {
+    id: 'jedi_initiate_trials_window',
+    check: (age, d) => age >= 10 && age <= 13 && d.force >= 25 && d.combat >= 20,
+    priority: 'high',
+    summary: 'Standard Initiate Trials window — selection by Masters begins',
+    context: 'Age 10-13 is the standard window when Knights and Masters observe younglings for Padawan selection. The Initiate Trials should be administered. After age 13 without selection, Agri-Corps beckons.',
+    npcs: ['Grand Master Zym', 'Master Denko'],
+    oneTime: true
+  },
+  {
+    id: 'jedi_early_trials_exceptional',
+    check: (age, d) => age >= 9 && age < 10 && d.force >= 40,
+    priority: 'critical',
+    summary: 'Exceptional development triggers early trial consideration',
+    context: 'Character is below standard trial age but Force development is at an advanced level. The Council is being asked to consider accelerated Initiate Trials outside the normal window.',
+    npcs: ['Grand Master Zym', 'Master Denko'],
+    oneTime: true
+  },
+  {
+    id: 'jedi_padawan_selection_due',
+    check: (age, d) => age >= 12 && d.force >= 30 && d.combat >= 25,
+    priority: 'high',
+    summary: 'Padawan selection age — Masters should be choosing',
+    context: 'At age 12 the youngling is in the peak selection window. If no Master has expressed interest by now, the Council should be facilitating introductions.',
+    npcs: ['Grand Master Zym'],
+    oneTime: true
+  },
+  {
+    id: 'jedi_agri_corps_risk',
+    check: (age, d) => age >= 13 && d.force < 25,
+    priority: 'critical',
+    summary: 'Agri-Corps risk — no Master selection before deadline',
+    context: 'The youngling has reached the cutoff age without Padawan selection. In the Republic era this means reassignment to Agri-Corps. Council must intervene or accept the outcome.',
+    npcs: ['Grand Master Zym'],
+    oneTime: true
+  },
+  {
+    id: 'jedi_combat_domain_rising',
+    check: (age, d) => age <= 13 && d.combat >= 40,
+    priority: 'medium',
+    summary: 'Combat readiness at Padawan level despite youngling rank',
+    context: 'Combat domain has reached standard Padawan levels. Battle drills and sparring partners appropriate for this development level should be assigned.',
+    npcs: ['Master Denko'],
+    oneTime: true
+  },
+  {
+    id: 'jedi_knight_trials_eligible',
+    check: (age, d) => age >= 18 && d.force >= 50 && d.combat >= 50,
+    priority: 'high',
+    summary: 'Knight Trials eligibility — Padawan ready for assessment',
+    context: 'Development across domains indicates readiness for the Trials of Knighthood. Standard age has been reached. Master should initiate Council review.',
+    npcs: ['Grand Master Zym'],
+    oneTime: true
+  },
+  {
+    id: 'jedi_wartime_knighting',
+    check: (age, d) => age >= 16 && age < 20 && d.combat >= 55,
+    priority: 'medium',
+    summary: 'Wartime knighting consideration — battle readiness before standard age',
+    context: 'The Great Galactic War creates demand for Jedi Knights. The Order has precedent for accelerated knighting of exceptional Padawans under battlefield conditions. This is a discussion, not a decision.',
+    npcs: ['Grand Master Zym', 'Master Denko'],
+    oneTime: true
+  }
+];
+
+const SITH_MILESTONES = [
+  {
+    id: 'sith_acolyte_noticed',
+    check: (age, d) => d.force >= 35 || d.combat >= 35,
+    priority: 'high',
+    summary: 'Acolyte draws Overseer attention — advancement possible',
+    context: 'Performance in training has exceeded baseline. An Overseer has flagged this acolyte for potential advancement consideration by a visiting Sith Lord.',
+    npcs: [],
+    oneTime: true
+  },
+  {
+    id: 'sith_lord_interest',
+    check: (age, d) => d.force >= 45,
+    priority: 'critical',
+    summary: 'Sith Lord interest — apprentice evaluation possible',
+    context: 'Force development has reached a level that warrants direct evaluation by a Sith Lord for apprenticeship. This is both an opportunity and a threat — being noticed cuts both ways.',
+    npcs: [],
+    oneTime: true
+  },
+  {
+    id: 'sith_trials_eligible',
+    check: (age, d) => d.combat >= 40,
+    priority: 'high',
+    summary: 'Sith Trials available — prove worth or die',
+    context: 'Combat development has reached the threshold where the Sith Trials are appropriate. Survival is not guaranteed. Passing means apprenticeship. Failing means death.',
+    npcs: [],
+    oneTime: true
+  },
+  {
+    id: 'sith_warrior_proven',
+    check: (age, d) => d.combat >= 60,
+    priority: 'medium',
+    summary: 'Recognized as a Sith Warrior — the title means something here',
+    context: 'Combat dominance is undeniable. The rank of Sith Warrior is within reach — not granted, but demonstrated through action.',
+    npcs: [],
+    oneTime: true
+  }
+];
+
+// Check milestones and create pendingEvents for any newly triggered ones
+function checkMilestones() {
+  if (!worldState || !characterSheet) return;
+  if (!worldState.pendingEvents) worldState.pendingEvents = {};
+  if (!worldState.pendingEvents) worldState.pendingEvents = [];
+
+  const age = characterSheet.age || 0;
+  const domains = getDomainAverages();
+  const faction = (characterSheet.faction||'').toLowerCase();
+  const isSith = faction.includes('sith') || (characterSheet.alignment||0) < -50;
+  const milestones = isSith ? SITH_MILESTONES : JEDI_MILESTONES;
+
+  for (const m of milestones) {
+    // Skip if already created
+    if (worldState.pendingEvents.some(e=>e.id===m.id)) continue;
+    // Check trigger condition
+    if (!m.check(age, domains)) continue;
+    // Create the event
+    worldState.pendingEvents.push({
+      id: m.id, type: 'milestone', triggerDate: worldState.inGameDate||'',
+      priority: m.priority, summary: m.summary, context: m.context,
+      npcsInvolved: m.npcs, createdDate: worldState.inGameDate||'',
+      overdueBy: 0, resolved: false, mustFire: false, isHardcoded: true
+    });
+    // Also create NPC agenda items for involved NPCs
+    if (!worldState.npcAgendas) worldState.npcAgendas = {};
+    for (const npc of m.npcs) {
+      if (!worldState.npcAgendas[npc]) worldState.npcAgendas[npc] = [];
+      if (!worldState.npcAgendas[npc].some(a=>a.summary===m.summary)) {
+        worldState.npcAgendas[npc].push({
+          priority: m.priority,
+          summary: m.summary,
+          context: m.context,
+          createdDate: worldState.inGameDate||'',
+          linkedEventId: m.id
+        });
+      }
+    }
+  }
+}
+
+// Update overdueBy counters and escalate priority
+function updateEventPriority() {
+  if (!worldState?.pendingEvents) return;
+  const currentDays = dateToAbsoluteDays(worldState.inGameDate||'');
+  for (const ev of worldState.pendingEvents) {
+    if (ev.resolved) continue;
+    const triggerDays = ev.triggerDate ? dateToAbsoluteDays(ev.triggerDate) : currentDays;
+    ev.overdueBy = Math.max(0, currentDays - triggerDays);
+    // Escalate
+    if (ev.overdueBy >= 3 && ev.priority !== 'critical') ev.priority = 'critical';
+    else if (ev.overdueBy >= 1 && ev.priority === 'medium') ev.priority = 'high';
+    // MustFire if critical and overdue
+    ev.mustFire = ev.priority === 'critical' && ev.overdueBy >= 2;
+  }
+}
+
+// Detect which NPCs are likely present based on location
+function getSceneNPCs() {
+  if (!worldState) return [];
+  // Explicit override from SCENE_NPCS: tag
+  const explicit = worldState.sceneNPCs || [];
+  if (explicit.length > 0) return explicit;
+  // Location-based inference
+  const loc = (worldState.location||'').toLowerCase();
+  const present = [];
+  for (const [npc, locations] of Object.entries(NPC_HOME_LOCATIONS)) {
+    if (locations.some(l => loc.includes(l))) present.push(npc);
+  }
+  // Also include NPCs from trackedCharacters that have lastSeen matching current location
+  for (const tc of (worldState.trackedCharacters||[])) {
+    if (!present.includes(tc.name) && tc.lastSeen &&
+        (worldState.location||'').toLowerCase().includes((tc.lastSeen||'').toLowerCase().split(',')[0])) {
+      present.push(tc.name);
+    }
+  }
+  return present;
+}
+
+// Build the events/agenda injection block for the state block
+function buildEventInjection() {
+  if (!worldState) return '';
+  checkMilestones();
+  updateEventPriority();
+
+  const lines = [];
+  const sceneNPCs = getSceneNPCs();
+
+  // Active unresolved events, sorted by priority
+  const priorityOrder = { critical:0, high:1, medium:2, low:3 };
+  const activeEvents = (worldState.pendingEvents||[])
+    .filter(e => !e.resolved)
+    .sort((a,b) => (priorityOrder[a.priority]||3) - (priorityOrder[b.priority]||3));
+
+  // Cap: max 2 critical + 2 high injected per turn to avoid overwhelming AI
+  let critCount = 0, highCount = 0;
+  const injected = [];
+  for (const ev of activeEvents) {
+    if (ev.priority==='critical' && critCount < 2) { injected.push(ev); critCount++; }
+    else if (ev.priority==='high' && highCount < 2) { injected.push(ev); highCount++; }
+    else if (ev.priority==='medium' && injected.length < 5) injected.push(ev);
+  }
+
+  if (injected.length > 0) {
+    lines.push('⚑ PENDING STORY THREADS:');
+    for (const ev of injected) {
+      const flag = ev.mustFire ? ' ← MUST ADDRESS THIS TURN' : ev.overdueBy > 0 ? ` ← overdue ${ev.overdueBy} day(s)` : '';
+      lines.push(`  [${ev.priority.toUpperCase()}${flag}] ${ev.id}`);
+      lines.push(`  Summary: ${ev.summary}`);
+      lines.push(`  Context: ${ev.context}`);
+      if (ev.npcsInvolved?.length) lines.push(`  NPCs: ${ev.npcsInvolved.join(', ')}`);
+      lines.push('');
+    }
+  }
+
+  // NPC agendas for NPCs present in this scene
+  const agendaNPCs = sceneNPCs.filter(n => worldState.npcAgendas?.[n]?.length > 0);
+  if (agendaNPCs.length > 0) {
+    lines.push('⚑ NPC AGENDAS (present in scene):');
+    for (const npc of agendaNPCs) {
+      const items = worldState.npcAgendas[npc]
+        .sort((a,b)=>(priorityOrder[a.priority]||3)-(priorityOrder[b.priority]||3));
+      lines.push(`  ${npc}:`);
+      for (const item of items.slice(0,3)) { // max 3 per NPC
+        lines.push(`    [${item.priority.toUpperCase()}] ${item.summary}`);
+        if (item.context) lines.push(`    → ${item.context}`);
+      }
+    }
+    lines.push('');
+  }
+
+  // Recent unsurfaced galaxy events
+  const unsurfaced = (worldState.galaxyEventQueue||[]).filter(e=>!e.surfaced).slice(0,2);
+  if (unsurfaced.length > 0) {
+    lines.push('⚑ GALAXY CONTEXT:');
+    for (const ge of unsurfaced) {
+      lines.push(`  ${ge.summary}${ge.context ? ' — '+ge.context : ''}`);
+      ge.surfaced = true; // mark surfaced so it doesn't repeat
+    }
+    lines.push('');
+  }
+
+  return lines.length > 0 ? '\n' + lines.join('\n') : '';
+}
+
 // ═══════════════════════════════════════════════════════════════════
 //  JS ROLL ENGINE
 // ═══════════════════════════════════════════════════════════════════
@@ -5495,8 +5932,11 @@ function loadFromSave(save) {
   if (characterSheet) { syncMasterXPToSheet(); spSeedIfInnate(); }
   worldState = save.worldState || null;
   if (worldState) {
-    if (!worldState.characterProfiles) worldState.characterProfiles = {};
-    if (!worldState.interactionWeights) worldState.interactionWeights = {};
+    if (!worldState.characterProfiles)   worldState.characterProfiles = {};
+    if (!worldState.interactionWeights)  worldState.interactionWeights = {};
+    if (!worldState.pendingEvents)       worldState.pendingEvents = [];
+    if (!worldState.npcAgendas)          worldState.npcAgendas = {};
+    if (!worldState.galaxyEventQueue)    worldState.galaxyEventQueue = [];
     seedCanonProfiles(); // ensure canon profiles always present
   }
   campaignSummary = save.campaignSummary || '';
