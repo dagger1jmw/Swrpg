@@ -5681,6 +5681,22 @@ const FORCE_ABILITY_CATALOG = {
   Battlemind:             { fam:'Mental', label:'Battlemind',              par:null,          D:2.5,  align:'light',   anchors:['meditation'],                  prereqs:{meditation:21, willpower:20},             flags:[] },
   ForceValor:             { fam:'Mental', label:'Force Valor',             par:null,          D:2.5,  align:'light',   anchors:['meditation','charisma'],        prereqs:{Battlemind:15, charisma:15},              flags:[] },
 
+  // ── DEFENSE FAMILY ───────────────────────────────────────────────────────
+  // Three sub-app pairs: ForceBarrier→ProtectionBubble, Tutaminis→ForceAbsorb,
+  // ForceSuppression→ForceBreach. Remaining are standalone roots.
+  // lightSide prereqs: alignment >= +N (mirror of darkSide mechanic).
+  ForceBarrier:       { fam:'Defense', label:'Force Barrier',        par:null,               D:1.0,  align:'neutral', anchors:['forceControl','forceOutput'],   prereqs:{forceControl:10},                                              flags:[] },
+  ProtectionBubble:   { fam:'Defense', label:'Protection Bubble',    par:'ForceBarrier',     D:2.5,  align:'neutral', anchors:['forceControl','forceOutput'],   prereqs:{ForceBarrier:30, forceControl:25},                              flags:[] },
+  Tutaminis:          { fam:'Defense', label:'Tutaminis',            par:null,               D:4.0,  align:'light',   anchors:['meditation','forceControl'],    prereqs:{ForceBarrier:21, meditation:21, forceControl:21},               flags:[] },
+  ForceAbsorb:        { fam:'Defense', label:'Force Absorb',         par:'Tutaminis',        D:2.5,  align:'light',   anchors:['meditation','forceControl'],    prereqs:{Tutaminis:15, meditation:15},                                   flags:[] },
+  ForceResistance:    { fam:'Defense', label:'Force Resistance',     par:null,               D:1.5,  align:'neutral', anchors:['willpower','forceControl'],     prereqs:{ForceBarrier:15, willpower:20},                                 flags:[] },
+  WallOfLight:        { fam:'Defense', label:'Wall of Light',        par:null,               D:4.0,  align:'light',   anchors:['forceOutput','forceKnowledge'], prereqs:{Tutaminis:21, forceControl:41, forceKnowledge:41, lightSide:30}, flags:[] },
+  ForceSuppression:   { fam:'Defense', label:'Force Suppression',    par:null,               D:2.5,  align:'neutral', anchors:['forceControl','forceKnowledge'],prereqs:{forceControl:41, forceKnowledge:30},                            flags:[] },
+  ForceBreach:        { fam:'Defense', label:'Force Breach',         par:'ForceSuppression', D:2.5,  align:'neutral', anchors:['forceOutput','forceControl'],   prereqs:{ForceSuppression:15},                                          flags:[] },
+  SeverForce:         { fam:'Defense', label:'Sever Force',          par:null,               D:4.0,  align:'neutral', anchors:['forceControl','forceKnowledge'],prereqs:{forceControl:61, forceKnowledge:51, ForceSuppression:30},        flags:[] },
+  BattleMeditation:   { fam:'Defense', label:'Battle Meditation',    par:null,               D:4.0,  align:'light',   anchors:['meditation','forceOutput'],     prereqs:{meditation:61, forceControl:41, forceKnowledge:30},             flags:[] },
+  ElectricJudgment:   { fam:'Defense', label:'Electric Judgment',    par:null,               D:4.0,  align:'light',   anchors:['forceControl'],                prereqs:{forceControl:41, willpower:40, lightSide:40},                   flags:[] },
+
   // ── more families added below ─────────────────────────────────────────────
 
 };
