@@ -1553,6 +1553,15 @@ RULES FOR CHANGES BLOCK:
   - outcome: overwhelming_win / win / strong_win / narrow_loss / loss / survived
   - secondary: optional second stat that was actively used (gets 40% of primary XP)
   - Example: COMBAT: lightsaberForms.Djem So, 8, 1, aggressive, narrow_loss, secondary: forceAbilities.Force Push
+- XP lines for sub-ability proficiency: PROFICIENCY: AbilityKey.SubKey,xpAmount
+  - Awards proficiency XP to a specific sub-application of a Force ability
+  - AbilityKey must match the parent forceAbilities key exactly (e.g. ForceLightning, Telekinesis)
+  - SubKey is the sub-application name (e.g. ForceStorm, ForcePush, ForceChoke)
+  - xpAmount uses same scale as TRAINING: standard supervised session (1hr) ≈ 15 XP
+  - Use ONLY when the character specifically drills a sub-application, not just the base ability
+  - Example: PROFICIENCY: ForceLightning.ForceStorm,15
+  - Example: PROFICIENCY: Telekinesis.ForcePush,20
+  - JS applies discount factors automatically (base ability level + ForceControl reduce cost)
 - Include one TRAINING or COMBAT line per skill that was meaningfully used this turn
 - Still include XP_ lines for accumulated XP without level-ups (for progress bar display)
 - This block is what updates the character sheet — if you skip it, nothing updates
@@ -2578,7 +2587,7 @@ function startNewGame() {
   worldState = null;
   turnCount = 0;
   trimmedTurns = 0;
-  masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{} };
+  masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{}, forceAbilityProficiency:{} };
   document.getElementById('sheet-content').innerHTML = '<div style="color:var(--text-dim);font-size:13px;font-style:italic">Character not yet created.</div>';
   document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div>';
   document.getElementById('sim-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No galaxy events yet.</div>';
@@ -3025,6 +3034,28 @@ async function callGemini(playerMessage, retryCount = 0) {
               const res2 = applyXPToSheet(secPath, secondary);
               const label2 = secPath.split('.')[1] || secPath;
               if (res2.xpAdded > 0) turnXPLog.push({ label: label2, xpAdded: res2.xpAdded, levelUps: res2.levelUps, newStat: res2.newStat, xpCurrent: res2.xpCurrent, xpRequired: res2.xpRequired, type: 'combat' });
+            }
+          }
+          continue;
+        }
+
+        // PROFICIENCY: AbilityKey.SubKey,xpAmount
+        if (trimmed.startsWith('PROFICIENCY:')) {
+          const profParts = trimmed.slice(12).split(',').map(s => s.trim());
+          if (profParts.length >= 2) {
+            const compositeKey = profParts[0];
+            const dotIdx = compositeKey.indexOf('.');
+            if (dotIdx > 0) {
+              const abilKey = compositeKey.slice(0, dotIdx);
+              const subKey  = compositeKey.slice(dotIdx + 1);
+              const profXP  = parseFloat(profParts[1]) || 0;
+              if (profXP > 0) {
+                const res = applyProficiencyXP(abilKey, subKey, profXP);
+                if (res.pctGained > 0) {
+                  turnXPLog.push({ label: `${subKey} proficiency`, xpAdded: res.profAdded,
+                                   levelUps: 0, newStat: res.newPct, type: 'proficiency' });
+                }
+              }
             }
           }
           continue;
@@ -3847,7 +3878,7 @@ let turnXPLog = [];
 // It is ONLY written by applyXPToSheet. The AI's SHEET JSON never touches it.
 // Structure: { forceStats: {forceSense:{stat,current,required},...}, stats:{...},
 //              forceAbilities:{...}, lightsaberForms:{...} }
-let masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{} }; // populated during each turn's CHANGES parsing, consumed by XP summary renderer
+let masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, forceAbilityProficiency:{} }; // populated during each turn's CHANGES parsing, consumed by XP summary renderer
 
 function startCombat(opponent, intensity) {
   activeCombat = {
@@ -4270,6 +4301,7 @@ function applyXPToSheet(statPath, xpToAdd) {
   const after = deriveFromTotalXP(entry.totalXP);
   const levelUps = after.level - before.level;
 
+  if (category === 'forceAbilities') profTrickleFromBase(key, xpToAdd);
   syncMasterXPToSheet();
   return { levelUps, xpAdded: Math.round(xpToAdd), newStat: after.level, xpCurrent: after.current, xpRequired: after.required };
 }
@@ -4294,6 +4326,100 @@ function syncMasterXPToSheet() {
   apply(characterSheet.forceAbilities,characterSheet.forceAbilitiesXP,'forceAbilities');
   apply(characterSheet.lightsaberForms,characterSheet.lightsaberFormsXP,'lightsaberForms');
 }
+
+// ── PROFICIENCY SYSTEM (v3) ──────────────────────────────────────────────────
+// Cost to advance proficiency by 1% — same 1.07 exponential base as main XP
+function profCostPerPoint(pct, D) {
+  return Math.floor(D * 20 * Math.pow(1.07, pct * 0.8));
+}
+
+// Derive {percentage, current, required} from lifetime proficiency XP
+function deriveProficiency(totalProfXP, D) {
+  let pct = 0;
+  let remaining = Math.max(0, totalProfXP || 0);
+  while (pct < 100) {
+    const cost = profCostPerPoint(pct, D);
+    if (remaining < cost) break;
+    remaining -= cost;
+    pct++;
+  }
+  return { percentage: pct, current: Math.round(remaining),
+           required: pct < 100 ? profCostPerPoint(pct, D) : 0 };
+}
+
+// Base ability discount factor (stronger foundation = cheaper sub-ability learning)
+function profBaseAbilityFactor(baseLevel) {
+  if (baseLevel >= 80) return 0.50;
+  if (baseLevel >= 60) return 0.60;
+  if (baseLevel >= 40) return 0.75;
+  if (baseLevel >= 20) return 0.90;
+  return 1.00;
+}
+
+// ForceControl discount factor (refined control = faster proficiency learning)
+function profControlFactor(forceControl) {
+  if (forceControl >= 80) return 0.70;
+  if (forceControl >= 60) return 0.85;
+  if (forceControl >= 40) return 1.00;
+  if (forceControl >= 20) return 1.10;
+  return 1.25;
+}
+
+// Apply proficiency XP to a sub-ability — discount factors reduce effective cost
+function applyProficiencyXP(abilityKey, subKey, rawXP) {
+  if (!rawXP || rawXP <= 0) return { profAdded: 0, newPct: 0, pctGained: 0 };
+  const compositeKey = `${abilityKey}.${subKey}`;
+  if (!masterXP.forceAbilityProficiency) masterXP.forceAbilityProficiency = {};
+  if (!masterXP.forceAbilityProficiency[compositeKey]) {
+    const _cat = FORCE_ABILITY_CATALOG[subKey];
+    masterXP.forceAbilityProficiency[compositeKey] = { totalProfXP: 0, D: (_cat?.D ?? 1.0) };
+  }
+
+  const entry = masterXP.forceAbilityProficiency[compositeKey];
+  const baseLevel = characterSheet?.forceAbilities?.[abilityKey] || 0;
+  const fc = characterSheet?.forceStats?.forceControl || 0;
+  const discount = profBaseAbilityFactor(baseLevel) * profControlFactor(fc);
+  const effectiveXP = rawXP / discount;
+
+  const before = deriveProficiency(entry.totalProfXP, entry.D);
+  entry.totalProfXP += effectiveXP;
+  const after  = deriveProficiency(entry.totalProfXP, entry.D);
+  return { profAdded: Math.round(effectiveXP), newPct: after.percentage,
+           pctGained: after.percentage - before.percentage };
+}
+
+// Trickle: when base ability XP is gained, spread 5% to all unlocked sub-ability proficiencies
+function profTrickleFromBase(abilityKey, baseXPGained) {
+  if (!masterXP.forceAbilityProficiency) return;
+  const trickleXP = baseXPGained * 0.05;
+  for (const [compositeKey, entry] of Object.entries(masterXP.forceAbilityProficiency)) {
+    if (compositeKey.startsWith(abilityKey + '.') && entry.totalProfXP > 0) {
+      entry.totalProfXP += trickleXP;
+    }
+  }
+}
+
+// Get effective proficiency percentage (raw, capped by soft cap based on base ability level)
+function getEffectiveProficiency(abilityKey, subKey) {
+  const compositeKey = `${abilityKey}.${subKey}`;
+  const entry = masterXP.forceAbilityProficiency?.[compositeKey];
+  if (!entry) return 0;
+  const raw = deriveProficiency(entry.totalProfXP, entry.D || 1.0).percentage;
+  const baseLevel = characterSheet?.forceAbilities?.[abilityKey] || 0;
+  const softCap = baseLevel >= 80 ? 100 : baseLevel >= 60 ? 85 :
+                  baseLevel >= 40 ? 70  : baseLevel >= 20 ? 50 : 25;
+  return Math.min(raw, softCap);
+}
+
+// Proficiency tier label from effective percentage
+function profTierLabel(pct) {
+  if (pct >= 91) return 'Mastered';
+  if (pct >= 71) return 'Expert';
+  if (pct >= 51) return 'Proficient';
+  if (pct >= 26) return 'Developing';
+  return 'Novice';
+}
+// ── END PROFICIENCY SYSTEM ───────────────────────────────────────────────────
 
 function updateCharacterSheet() {
   const s = characterSheet;
@@ -4424,13 +4550,28 @@ function updateCharacterSheet() {
       const xpData = faXP[k] || { current: 0, required: xpRequired(statVal) };
       const xpPct = Math.max(0, Math.min(100, (xpData.current / xpData.required) * 100));
 
+      const profData = masterXP.forceAbilityProficiency || {};
+      const subEntries = Object.keys(profData).filter(pk => pk.startsWith(k + '.') && profData[pk].totalProfXP > 0);
+      let profHtml = '';
+      for (const compositeKey of subEntries) {
+        const subName = compositeKey.split('.')[1];
+        const eff = getEffectiveProficiency(k, subName);
+        const raw = deriveProficiency(profData[compositeKey].totalProfXP, profData[compositeKey].D || 1.0).percentage;
+        const tier = profTierLabel(eff);
+        const tierColor = eff >= 91 ? '#c9a84c' : eff >= 71 ? '#88aadd' : eff >= 51 ? '#44aa77' : eff >= 26 ? '#888888' : '#555555';
+        const cappedNote = raw > eff ? ` <span style="color:#666;font-size:10px">(${raw}% raw)</span>` : '';
+        profHtml += `<div style="padding:1px 0 1px 10px;font-size:11px">
+          <span style="color:var(--text-dim)">↳ ${subName}:</span> <span style="color:${tierColor}">${tier}</span> <span style="color:var(--text-dim)">(${eff}%)</span>${cappedNote}
+          <div class="ability-xp-track" style="height:3px;margin-top:1px"><div class="ability-xp-fill" style="width:${eff}%;background:${tierColor}"></div></div>
+        </div>`;
+      }
       html += `<div class="ability-tag">
         <div class="ability-tag-row">
           <span class="ability-name">${k}</span>
           <span class="ability-val">${statVal}</span>
         </div>
         <div class="ability-xp-track"><div class="ability-xp-fill" style="width:${xpPct}%" title="${xpData.current}/${xpData.required} XP to next level"></div></div>
-      </div>`;
+      </div>${profHtml}`;
     }
     html += `</div>`;
   }
@@ -5100,7 +5241,7 @@ function loadFromSave(save) {
   // Restore masterXP — if the save predates masterXP, migrate from characterSheet XP stores
   if (save.masterXP) {
     // Migrate any old {stat,current,required} entries to {totalXP}
-    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{} };
+    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{}, forceAbilityProficiency:{} };
     for (const cat of ['forceStats','stats','forceAbilities','lightsaberForms']) {
       for (const [k, e] of Object.entries(save.masterXP[cat] || {})) {
         if (e.totalXP !== undefined) {
@@ -5111,9 +5252,12 @@ function loadFromSave(save) {
         }
       }
     }
+    for (const [k, e] of Object.entries(save.masterXP.forceAbilityProficiency || {})) {
+      masterXP.forceAbilityProficiency[k] = { totalProfXP: e.totalProfXP || 0, D: e.D || 1.0 };
+    }
   } else if (characterSheet) {
     // Migrate old save: build masterXP from characterSheet XP store fields
-    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{} };
+    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{}, forceAbilityProficiency:{} };
     const migrateXPStore = (xpStore, statObj, cat, isObj) => {
       for (const [k, v] of Object.entries(xpStore || {})) {
         // v may already be totalXP format, or old {stat,current,required} format
@@ -5130,7 +5274,7 @@ function loadFromSave(save) {
     migrateXPStore(characterSheet.forceAbilitiesXP, characterSheet.forceAbilities, 'forceAbilities', true);
     migrateXPStore(characterSheet.lightsaberFormsXP, characterSheet.lightsaberForms, 'lightsaberForms', true);
   } else {
-    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{} };
+    masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{}, forceAbilityProficiency:{} };
   }
   // Ensure characterSheet reflects masterXP immediately after load
   if (characterSheet) { syncMasterXPToSheet(); spSeedIfInnate(); }
@@ -5447,6 +5591,44 @@ const SIM_FLAGS = [
   { key:'sithTextAccess',     label:'Sith Text Access',          desc:'Access to Sith holocron or scroll' },
   { key:'jediCouncilPermission',label:'Council Permission',      desc:'Council has granted permission (Juyo, Vaapad)' },
 ];
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  FORCE ABILITY CATALOG — canonical definitions for all learnable abilities
+//  par:     parent ability key (null = root); scopes proficiency composite keys
+//  D:       proficiency difficulty (null = root, 1.0/1.5/2.5/4.0 for sub-apps)
+//  align:   'neutral' | 'light' | 'dark'
+//  anchors: primary stat anchors (forceOutput | forceControl | forceSense …)
+//  prereqs: { abilityKey: minLevel, statKey: minLevel, anySaberForm: N, darkSide: N }
+//           anySaberForm = any lightsaber form at this level; darkSide = alignment ≤ −N
+//  flags:   required worldState.storyFlags[] entries
+// ═══════════════════════════════════════════════════════════════════════════
+const FORCE_ABILITY_CATALOG = {
+
+  // ── TELEKINESIS FAMILY ────────────────────────────────────────────────────
+  Telekinesis:                 { fam:'TK', label:'Telekinesis',               par:null,           D:null, align:'neutral', anchors:['forceOutput','forceControl'], prereqs:{forceControl:5},                  flags:[] },
+  ForcePush:                   { fam:'TK', label:'Force Push',                par:'Telekinesis',  D:1.0,  align:'neutral', anchors:['forceOutput','forceControl'], prereqs:{Telekinesis:10},                  flags:[] },
+  ForcePull:                   { fam:'TK', label:'Force Pull',                par:'Telekinesis',  D:1.0,  align:'neutral', anchors:['forceControl'],               prereqs:{Telekinesis:10},                  flags:[] },
+  ForceThrow:                  { fam:'TK', label:'Force Throw',               par:'Telekinesis',  D:1.5,  align:'neutral', anchors:['forceOutput','forceControl'], prereqs:{Telekinesis:15},                  flags:[] },
+  ForceLevitation:             { fam:'TK', label:'Force Levitation',          par:'Telekinesis',  D:1.5,  align:'neutral', anchors:['forceControl'],               prereqs:{Telekinesis:21},                  flags:[] },
+  ForceWave:                   { fam:'TK', label:'Force Wave',                par:'Telekinesis',  D:1.5,  align:'neutral', anchors:['forceOutput'],                prereqs:{Telekinesis:21, forceControl:15}, flags:[] },
+  ForceWhirlwind:              { fam:'TK', label:'Force Whirlwind',           par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceControl'],               prereqs:{Telekinesis:30, forceControl:20}, flags:[] },
+  SaberThrow:                  { fam:'TK', label:'Saber Throw',               par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceControl','forceSense'],  prereqs:{Telekinesis:15, anySaberForm:10}, flags:[] },
+  SaberBarrier:                { fam:'TK', label:'Saber Barrier',             par:'Telekinesis',  D:4.0,  align:'neutral', anchors:['forceControl'],               prereqs:{Telekinesis:30, anySaberForm:21}, flags:[] },
+  TelekineticLightsaberCombat: { fam:'TK', label:'TK Lightsaber Combat',      par:'Telekinesis',  D:4.0,  align:'neutral', anchors:['forceControl'],               prereqs:{Telekinesis:41, anySaberForm:30}, flags:[] },
+  TelekineticBarrage:          { fam:'TK', label:'Telekinetic Barrage',       par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceOutput','forceControl'], prereqs:{Telekinesis:41},                  flags:[] },
+  ForceRepulse:                { fam:'TK', label:'Force Repulse',             par:'Telekinesis',  D:4.0,  align:'neutral', anchors:['forceOutput'],                prereqs:{Telekinesis:61},                  flags:[] },
+  ForceWound:                  { fam:'TK', label:'Force Wound',               par:'Telekinesis',  D:1.5,  align:'dark',    anchors:['forceControl','forceOutput'], prereqs:{Telekinesis:21, darkSide:1},      flags:[] },
+  ForceChoke:                  { fam:'TK', label:'Force Choke',               par:'ForceWound',   D:2.5,  align:'dark',    anchors:['forceControl','forceOutput'], prereqs:{ForceWound:15},                   flags:[] },
+  ForceGrip:                   { fam:'TK', label:'Force Grip',                par:'ForceChoke',   D:2.5,  align:'dark',    anchors:['forceControl','forceOutput'], prereqs:{ForceChoke:15},                   flags:[] },
+  ForceCrush:                  { fam:'TK', label:'Force Crush',               par:'ForceGrip',    D:4.0,  align:'dark',    anchors:['forceControl','forceOutput'], prereqs:{ForceGrip:21, darkSide:40},       flags:[] },
+  ForceRend:                   { fam:'TK', label:'Force Rend',                par:'ForceCrush',   D:4.0,  align:'dark',    anchors:['forceControl','forceOutput'], prereqs:{ForceCrush:30, darkSide:60},      flags:[] },
+  Kinetite:                    { fam:'TK', label:'Kinetite',                  par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceOutput','forceControl'], prereqs:{Telekinesis:30, forceControl:25}, flags:[] },
+  ForceOrb:                    { fam:'TK', label:'Force Orb',                 par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceControl'],               prereqs:{Telekinesis:25, forceControl:20}, flags:[] },
+  ForceSphere:                 { fam:'TK', label:'Force Sphere',              par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceControl'],               prereqs:{Telekinesis:30, ForceBarrier:15}, flags:[] },
+
+  // ── more families added below ─────────────────────────────────────────────
+
+};
 
 // ── Simulation state ──────────────────────────────────────────────
 let simActive = false, simPaused = false, simAborted = false;
