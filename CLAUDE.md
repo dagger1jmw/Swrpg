@@ -1,0 +1,805 @@
+# CLAUDE.md — Star Wars Legends RPG
+## Persistent orientation document for every Claude Code session
+
+> **Read this entire file before touching any code or running any session.** It is the single source of truth for project architecture, game rules, and AI behavior. Update the "Current Character State" and "Session Log" sections at the end of every session.
+
+---
+
+## 1. PROJECT OVERVIEW
+
+A single-file browser-based Star Wars Legends text RPG deployed to GitHub Pages at `dagger1jmw.github.io`. The **entire game** — HTML, CSS, JavaScript, AI system prompt — lives in one `.html` file. There is no build system, no npm, no bundler, no external JS files. This is an intentional hard constraint.
+
+**AI Backend:** Gemini API (`gemini-2.5-flash`). The API key is stored in `localStorage` as `sw_rpg_gemini_key`. The AI acts as Game Master: narrating, resolving actions, and awarding XP. JS handles all math.
+
+**Primary device:** iPad Safari. All UI/CSS decisions must be mobile-first. iOS Safari has specific quirks documented in the dev notes section below.
+
+**The game:** Player controls Jared Wright, a Human Jedi padawan in 3661 BBY (Old Republic era, Great Galactic War year 20). The world is a living sandbox — persistent stats, real XP progression, canonical Legends lore. The Jedi Order and Sith Empire are at war. Coruscant is under blockade (recently broken by Hylo Visz).
+
+**Overall goal:** A long-running sandbox RPG with genuine stat growth, canonical lore fidelity, and mechanically grounded Force progression. The character will grow from padawan to potentially legendary power over many real-world sessions.
+
+---
+
+## 2. FILE STRUCTURE
+
+All paths relative to the project root (`C:\Users\dagge\OneDrive\Desktop\Swrpg\`).
+
+### Root
+| File | Contents | When to reference |
+|---|---|---|
+| `starwars_rpg_V110.html` | **The entire game.** HTML + CSS + JS (~6,500 lines). Contains the AI system prompt, all game logic, UI, XP engine, simulation panel, calendar, shatterpoint system, alignment system. | Always — this is the only file you run or edit. |
+
+**Versioning rule:** When making significant changes, save as a new version (V111, V112, etc.). Never overwrite the current version without creating a new one first.
+
+### Docs/
+| File | Contents | When to reference |
+|---|---|---|
+| `Docs/CLAUDE changelog.md` | Project changelog, architecture rules, global variable list, AI response format, alignment system, shatterpoint system, simulation system, calendar, innate talents, story flags, character state snapshot, known issues, dev notes. **This was the prior orientation document.** | For architecture details, engine behavior, changelog history. |
+| `Docs/SW_Sim_Rules_v1.md` | Simulation panel deep-dive: roll math, outcome weights by tier, XP formula, strain accumulation, tier-gap training, multi-stat weight maps, sleep recovery, endurance mitigation, mandatory training rows. | Whenever editing the simulation panel or calculating sim XP. |
+| `Docs/SW_Activity_Bank_v1.md` | Every training activity: primary skill, secondary weights, strain bias, unlock conditions, default intensity. Reference for simulation activity definitions. | When adding new sim activities or checking weight maps. |
+| `Docs/SW_Force_Abilities_Forms_v3_complete.md` | **Canonical reference for all learnable abilities.** All Force abilities (prereqs, anchor stats, alignment, difficulty D-values, sub-applications), all lightsaber forms (keys, descriptions, counter matrix), innate talents registry, innate abilities registry, worldState flags, life stage values, progression unlock triggers, JS implementation spec for v3. | Any time the AI or engine references an ability's prereqs, anchor stats, or proficiency details. |
+| `Docs/SWRPG_XP_System_Reference.md` | XP math reference: the 100×1.07^n curve, stat categories, tier definitions, roll bonus formula (compressedBonus), training XP formula with all multiplier tables, combat XP formula, simulation outcome weights, proficiency system (D-values, cost curve, discount factors, soft cap, trickle rates), masterXP architecture, CHANGES block XP tags, mandatory training by life stage. | For all XP calculations, calibration, and debugging. |
+| `Docs/SW_Legends_RPG_Master_Prompt_v7_1.md` | The master GM prompt (v7.1 FINAL): identity rules, era selection, character creation, alignment system overview, combat system, Force path system, strain system, leveling/progression, galaxy simulation, legacy system, player override system. | For GM behavior rules, combat resolution principles, override keywords. |
+| `Docs/SW Legends RPG Master Prompt v7.1 FINAL.docx` | Same content as above, `.docx` format. | Backup/offline reference only. |
+
+### Docs/SWRPG lore/
+**All lore files are on the galaxy-wide Legends scale (consistent across all eras).** Every character sheet includes: 6 core stats, 5 Force stats, lightsaber form ratings (0–150), Force ability base levels (0–150) + sub-ability proficiency %, unique techniques, and notes.
+
+| File | Era | Key Figures | When to reference |
+|---|---|---|---|
+| `SW_Characters_01_DawnOfTheJedi.md` | 36,453–25,783 BBY | Xesh, Shae Koda, Tasha Ryo, Rajivari, Je'daii Masters | Dawn of the Jedi era NPCs; Forcesaber combat (no formal forms yet) |
+| `SW_Characters_02_OldRepublicFounding.md` | ~28,000–5,100 BBY | King Adas, Ajunta Pall, Sorzus Syn, Jedi Order founders | First Dark Lord sheets; Sorzus Syn (top INT, Sith alchemy codifier) |
+| `SW_Characters_03_GoldenAgeSith_GreatHyperspaceWar.md` | 5,100–4,990 BBY | Marka Ragnos, Naga Sadow, Ludo Kressh, Odan-Urr, Memit Nadill | First galaxy-spanning war figures; battle meditation origins |
+| `SW_Characters_04-05_GreatSithWar.md` | ~4,400–3,996 BBY | Exar Kun, Ulic Qel-Droma (dual sheets), Nomi Sunrider, Master Arca Jeth, Freedon Nadd | Great Sith War; Exar Kun trained all 7 forms, Niman specialist |
+| `SW_Characters_06_MandalorianWars.md` | 3,976–3,960 BBY | Revan (Jedi sheet), Malak, Meetra Surik, Mandalore the Ultimate, Cassus Fett | Revan as strategic genius (legendary INT); war-tempered Jedi |
+| `SW_Characters_07_JediCivilWar.md` | 3,959–3,956 BBY | Darth Revan, Darth Malak, Bastila Shan, KOTOR companions, HK-47 | Jedi Civil War; Bastila battle meditation; Revan apex sheet |
+| `SW_Characters_08_DarkWars_SithTriumvirate.md` | 3,955–3,950 BBY | Darth Traya (Kreia), Darth Nihilus, Darth Sion, Meetra Surik | Nihilus as pure Output showcase (112 legendary); Traya as INT apex (102) |
+| `SW_Characters_09_GreatGalacticWar_ColdWar.md` | 3,681–3,636 BBY | **Vitiate (Sith Emperor)**, Darth Malgus, Satelel Shan, Grand Master Zym, Revan (freed) | **YOUR CURRENT ERA.** Contains the APEX CEILING reference. Vitiate ceiling ~134. Campaign year 20 of the Great Galactic War. |
+| `SW_Characters_09B_EternalEmpire_Alliance.md` | 3,637–3,620 BBY (Legends-adjacent) | Arcann, Vaylin, Valkorion, SCORPIO, Lana, Theron | Eternal Empire arc; Vaylin (ForceOutput ~108, broken INT); Legends-adjacent flag |
+| `SW_Characters_10_NewSithWars_DarthBane.md` | ~2,000–990 BBY | Darth Bane, Darth Zannah, Lord Kaan, General Hoth | Bane ceiling ~114 (orbalisk); top of standard legendary below Tier A |
+| `SW_Characters_11_RepublicEra_RiseOfEmpire.md` | ~990–22 BBY | Darth Plagueis, Darth Sidious, Darth Maul, Yoda, Mace Windu, Qui-Gon, young Obi-Wan, Dooku | Prequel era; apex-adjacent Sidious (~112 chancellor-era); Mace Windu (Vaapad master); prequel Jedi scale slightly lower than war-tempered |
+| `SW_Characters_12_CloneWars.md` | 22–19 BBY | Anakin Skywalker, Obi-Wan Kenobi, Yoda, Palpatine, Grievous, Ventress, Plo Koon | Clone Wars; Knightfall Anakin Output ~120 (still growing); Output/Control split showcase |
+| `SW_Characters_13_DarkTimes_GalacticCivilWar.md` | 19 BBY–4 ABY | Darth Vader, Emperor Palpatine (~130), Ben Kenobi, Yoda, Luke (early), Galen Marek | Original trilogy era; Palpatine ~130 (A-tier); Starkiller (Force Repulse signature) |
+| `SW_Characters_14_NewRepublic_NewJediOrder.md` | 4–25 ABY | Thrawn (INT 112), reborn Emperor, Luke (growing), Mara Jade, Kyp Durron (Output 110) | New Republic era; Thrawn legendary non-Force being; Luke ascending |
+| `SW_Characters_15_NewJediOrder_YuuzhanVongWar.md` | 25–29 ABY | Luke (~125/116), Jacen Solo, Jaina Solo, Anakin Solo, Yuuzhan Vong (✗ Force-invisible) | **YUUZHAN VONG MECHANIC:** ✗ = Force-invisible, NOT "—". Luke near-apex but not peak yet. |
+| `SW_Characters_16_LegacyOfTheForce.md` | ~40 ABY | Luke (near-apex ~134 Output), Jacen/Darth Caedus, Jaina Solo, Mara Jade, Boba Fett | Second Galactic Civil War; Luke at near-apex but holding back vs Caedus |
+| `SW_Characters_17_FateOfTheJedi.md` | ~43–44 ABY | **Peak Luke (~138)**, Abeloth (~185, TRANSCENDENT), Ben Skywalker, Darth Krayt (~132) | **APEX ERA.** Peak Luke — strongest realized mortal ever. Abeloth — only being above him. |
+| `SW_Characters_18_LegacyEra.md` | ~130–139 ABY | Darth Krayt (~132), Cade Skywalker, Emperor Roan Fel, Imperial Knights | Chronological end of Legends; Krayt last reserved apex-tier being |
+| `SW_Legends_Galaxy_Timeline.md` | All eras | Every major galaxy event with exact dates, key figures, downstream sensitivity, NPC deployment tags | Galaxy simulation events, NPC locations, legacy change framework, faction seeds for 3,660 BBY |
+
+---
+
+## 3. THE STAT SYSTEM (v3)
+
+### 3A. Core Stats — `characterSheet.stats`
+
+| Key | Display | Measures |
+|---|---|---|
+| `strength` | Strength | Physical power, melee force, carrying capacity |
+| `agility` | Agility | Speed, reflexes, coordination, acrobatics |
+| `endurance` | Endurance | Stamina, pain tolerance, strain resistance |
+| `willpower` | Willpower | Mental resolve, resistance to dark side, emotional fortitude |
+| `charisma` | Charisma | Social influence, presence, leadership |
+| `intelligence` | Intelligence | **[v3]** Reasoning, tactical acumen, learning speed, cunning. Distinct from Willpower (resolve), Charisma (social), and ForceKnowledge (Force lore). |
+
+### 3B. Force Stats — `characterSheet.forceStats`
+
+| Key | Display | Measures |
+|---|---|---|
+| `forceSense` | Force Sense | Perception through the Force — danger sense, life detection, empathy, precognition |
+| `meditation` | Meditation | Inner attunement — battle meditation, Force-trance, calm under pressure, healing trance |
+| `forceKnowledge` | Force Knowledge | Breadth and depth of Force technique lore — theory, history, esoteric arts |
+| `forceControl` | Force Control | Precision and finesse — how honed and refined the application of Force is |
+| `forceOutput` | Force Output | **[v3]** Raw power and magnitude — how much Force energy can be channeled or unleashed at once |
+
+### 3C. The Output vs. Control Distinction (Critical)
+
+> **ForceOutput** = raw power/magnitude. **ForceControl** = precision/finesse. These are trained independently and create genuinely different characters.
+
+- **Output-dominant abilities** (scale primarily with ForceOutput): Force Repulse, Force Lightning, Force Storm, Force Wave, Force Rage, Force Drain
+- **Control-dominant abilities** (scale primarily with ForceControl): Force Choke, Force Levitation, Force Stasis, precise telekinesis, Mind Trick, Mechu-deru
+- **Most abilities** use a weighted blend of both
+
+**Canonical examples of the split:**
+- Knightfall Anakin: Output ~120 (enormous, still growing), Control ~90 (raw, unhoned)
+- Suited Vader: lower Output (suit caps it), higher Control than his Knight self
+- Darth Nihilus: Output 112 (legendary planet-drain), minimal dueling ability, barely a mind
+- Vaylin: Output ~108 (tears apart fleets telekinetically), broken INT
+
+### 3D. Tier Bands
+
+| Level Range | Tier # | Name | Notes |
+|---|---|---|---|
+| 0–20 | 1 | Initiate / Youngling | Fast growth |
+| 21–40 | 2 | Padawan | Foundational training |
+| 41–60 | 3 | Knight | Reliable competence |
+| 61–80 | 4 | Master | Experienced, powerful |
+| 81–100 | 5 | Grandmaster | Near-ceiling for most |
+| 101–150 | 6 | Legendary | Far beyond normal mastery — per-stat, not blanket |
+| 151+ | 7 | Transcendent | **Off the scale.** Only Abeloth occupies this band. |
+
+**Dueling tier** is derived from the character's highest lightsaber form level.
+**Force tier** is derived from ForceControl specifically.
+
+### 3E. The Apex Ceiling — Fixed, Never Violated
+
+This hierarchy is permanent. No NPC's stats, no narrative event, and no player growth can place anyone above Abeloth without explicit acknowledgment that they are in a different category entirely.
+
+| Tier | Band | Figure | Notes |
+|---|---|---|---|
+| **TRANSCENDENT** | **~185** | **Abeloth** | In a tier of her own, far above every other being in Legends. ~12× peak Luke in the Force. Fed on the Font of Power + Pool of Knowledge for ~100,000 years. Required peak Luke + Darth Krayt *together* merely to exile her. Her diluted, galaxy-spread avatars each pushed apex Luke to his limit. Off the scale. |
+| **S — Realized mortal apex** | **~138** | **Peak Luke Skywalker** (Fate of the Jedi era, ~43–44 ABY) | Strongest realized mortal Force user in history. Nothing realized-mortal exceeds him. Only Abeloth is above him, by an enormous margin. George Lucas confirmed Luke shares Anakin's full Force potential. |
+| **A — Apex legendary** | **~134** | **Vitiate / Sith Emperor** (ceiling) | Apex *dark side specialist*, not apex being. His galaxy-scale life-drain (Force Drain ~145 as an ability) is the single most destructive ability in the timeline, but his overall stat profile stays below peak Luke. |
+| **A** | **~132** | **Darth Krayt** (Legacy Era, prime) | Last reserved apex-tier being in the timeline. |
+| **A** | **~130** | **Emperor Palpatine** (Dark Empire clone era higher) | Living chancellor-era self ~112; pre-Endor self ~128; Dark Empire clone form higher. |
+| — | **~120** | **Knightfall Anakin** (Clone Wars peak, still growing) | Observed pre-suit peak ForceOutput. Theoretical full potential ~138 (equal to what Luke realized) — never freely reached. Mortis briefly unlocked it. Vader (suited) is lower in raw Output than Knightfall Anakin. |
+| — | **~114** | **Darth Bane** (orbalisk-enhanced) | Top of standard legendary, just below the Tier A cluster. |
+| — | **~112** | **Chancellor-era Sidious** | Top of standard legendary. His full power still hidden at this point. |
+| — | **~112** | **Darth Nihilus** (ForceOutput) | Planet-devouring drain is legendary in one dimension only. |
+| — | **~108** | **Vaylin** (ForceOutput) | Legendary raw telekinetic power; broken psyche elsewhere. |
+
+**Note on Revan:** A genuine apex duelist-general of Legends, legendary across dueling, leadership, Intelligence, and Force breadth — but does not approach the Tier A cluster in raw Force magnitude.
+
+---
+
+## 4. XP & PROGRESSION MATH
+
+### 4A. The Core XP Curve
+
+Every stat — core, Force, Force abilities, lightsaber forms — uses the same exponential curve:
+
+```
+xpRequired(n) = floor(100 × 1.07^n)    // XP to go from level n to level n+1
+xpToReachLevel(N) = sum of xpRequired(0..N-1)
+```
+
+**Key milestones:**
+| Level | XP to next level | Cumulative XP to reach |
+|---|---|---|
+| 0 | 100 | 0 |
+| 10 | 197 | 1,381 |
+| 20 | 387 | 4,995 |
+| 40 | 1,497 | 31,440 |
+| 60 | 5,793 | 113,978 |
+| 80 | 22,406 | 331,988 |
+| 100 | 86,717 | 882,440 |
+
+Level is **always derived** from totalXP — it is never stored. `masterXP` is the sole source of truth.
+
+### 4B. Shatterpoint XP Track (separate)
+
+```
+spXPRequired(n) = floor(500 × 1.07^n)    // 5× the standard cost
+```
+
+Innate (`ShatterSense` talent): XP cost ×0.1 (90% cheaper), uncapped track, seeded at Level 5.
+Standard path (no innate): hard cap at Level 20, limited to Tier 1 and basic Tier 2.
+
+### 4C. Training XP Formula (AI CHANGES block)
+
+```
+Training XP = hours × intensity_mult × difficulty_mult × outcome_mult
+```
+
+**Intensity multipliers:**
+| Keyword | Multiplier |
+|---|---|
+| casual, slow, deliberate | 10 |
+| standard, normal, moderate | 15 |
+| intense, focused, hard | 20 |
+| pushing, limits, extreme | 25 |
+| elite, sparring, danger | 30 |
+
+**Difficulty multipliers (CHANGES block / real-play):**
+| Keyword | Multiplier |
+|---|---|
+| basic, easy, within, familiar | 1.0 |
+| ceiling, challenging, above | 1.3 |
+| difficult, far, wall | 1.6 |
+| impossible | 2.0 |
+
+**Outcome multipliers:**
+| Keyword | Multiplier |
+|---|---|
+| failure, struggle | 0.8 |
+| partial, contested | 1.0 |
+| solid, success | 1.2 |
+| strong, good | 1.5 |
+| overwhelming, exceptional | 2.0 |
+| breakthrough, insight | 3.0 |
+
+**Quick calibration (1 hour of training, approximate XP):**
+| Context | XP |
+|---|---|
+| Casual solo practice | 10 |
+| Standard supervised session | 15–18 |
+| Intense supervised, familiar material | 26–30 |
+| Breakthrough moment (genuine insight) | 40–60 |
+| Combat vs peer (wins) | ~360 |
+| Combat vs Master (survives) | ~2,400 |
+
+### 4D. Simulation XP Formula (JS-driven, different multipliers)
+
+The simulation panel uses slightly different difficulty values and tier-based outcome weights (not declared by AI):
+
+```
+sim XP = hours × intensity_mult × difficulty_mult × outcome_weight(tier) × strain_penalty × activity_weight × days
+```
+
+**Sim difficulty multipliers:**
+| Keyword | Multiplier |
+|---|---|
+| easy | 0.7 |
+| standard | 1.0 |
+| ceiling | 1.2 |
+| wall | 1.5 |
+
+**Sim outcome weights by stat tier (automatic, not declared):**
+| Tier | Weight |
+|---|---|
+| Initiate | 1.105 |
+| Padawan | 1.194 |
+| Knight | 1.195 |
+| Master | 1.230 |
+| Grandmaster | 1.228 |
+| Legendary | 1.263 |
+
+> ⚠️ **AMBIGUITY FLAG:** The difficulty multipliers for real-play CHANGES block training (basic=1.0, ceiling=1.3) differ from simulation panel multipliers (easy=0.7, standard=1.0, ceiling=1.2). These are intentionally separate systems. Do not conflate them.
+
+### 4E. Combat XP Formula
+
+```
+primary XP = baseTierXP[opponentTier] × durationFactor × engagementFactor × outcomeFactor
+secondary XP = primary × 0.4
+```
+
+**Base XP by opponent tier:**
+| Opponent Tier | Base XP |
+|---|---|
+| Initiate | 50 |
+| Padawan | 120 |
+| Knight | 300 |
+| Master | 750 |
+| Grandmaster | 1,800 |
+| Legendary | 4,500 |
+| Transcendent | 11,000 |
+
+### 4F. Sub-Ability Proficiency System (v3)
+
+Each Force ability family has a **base level** in `masterXP.forceAbilities`. Sub-applications (Force Push, Force Storm, etc.) have a separate **proficiency percentage** (0–100%) tracking deliberate practice of that specific application.
+
+Storage key: `masterXP.forceAbilityProficiency["ForceLightning.ForceStorm"]`
+
+**Cost curve:**
+```javascript
+profCostPerPoint(pct, D) = floor(D × 20 × 1.07^(pct × 0.8))
+```
+Where `pct` = current percentage (0–99), `D` = difficulty tier.
+
+**Difficulty tiers (D values):**
+| Tier | D | Total XP (0→100%) | Equivalent base-ability milestone |
+|---|---|---|---|
+| Basic | 1.0 | ~81,700 XP | Base level 60 |
+| Moderate | 1.5 | ~122,550 XP | Base level 67 |
+| Complex | 2.5 | ~204,250 XP | Base level 73 |
+| Advanced | 4.0 | ~326,800 XP | Base level 80 |
+
+**Proficiency tiers:**
+| Range | Tier | Meaning |
+|---|---|---|
+| 0–25% | Novice | Functional but rough; high Strain, imprecise |
+| 26–50% | Developing | Reliably functional; Strain normalizing |
+| 51–70% | Proficient | Solid combat utility; controlled execution |
+| 71–90% | Expert | Refined application; Strain significantly reduced |
+| 91–100% | Mastered | Signature technique; near-minimum Strain |
+
+**Two discount factors:**
+1. **Base Ability Factor** (stronger foundation = cheaper sub-ability learning):
+   - Base 0–19: ×1.00 | Base 20–39: ×0.90 | Base 40–59: ×0.75 | Base 60–79: ×0.60 | Base 80–100: ×0.50
+2. **ForceControl Factor** (refined control = faster learning):
+   - FC 0–19: ×1.25 | FC 20–39: ×1.10 | FC 40–59: ×1.00 | FC 60–79: ×0.85 | FC 80–100: ×0.70
+
+`effectiveXP = rawXP / (BaseAbilityFactor × ControlFactor)`
+
+**Soft cap** (proficiency can be trained above this but effectiveness is capped until base ability catches up):
+| Base Ability | Max Effective Proficiency |
+|---|---|
+| 0–20 | 25% |
+| 21–40 | 50% |
+| 41–60 | 70% |
+| 61–80 | 85% |
+| 81–100 | 100% |
+
+**Trickle rates (automatic):**
+- Training base ability → +5% of base XP earned trickles to all already-unlocked sub-ability proficiencies
+- Training a sub-ability → 20% of proficiency XP trickles back to the base ability as regular XP
+
+### 4G. compressedBonus Formula
+
+Used for combat rolls and some XP modifier calculations:
+```javascript
+compressedBonus(stat):
+  if stat ≤ 40:  bonus = stat / 20               → +0.0 to +2.0
+  if stat ≤ 80:  bonus = 2.0 + (stat - 40) / 40  → +2.0 to +3.0
+  if stat ≤ 100: bonus = 3.0 + (stat - 80) / 80  → +3.0 to +3.25
+  if stat > 100: bonus = 3.25 + (stat - 100) / 200
+```
+
+---
+
+## 5. THE CHANGES BLOCK FORMAT
+
+Every AI response **must** end with three blocks, in this order:
+
+```
+<<<CHANGES>>>
+[tags listed below]
+<<<END_CHANGES>>>
+
+<<<SHEET>>>
+{ ...full characterSheet JSON... }
+<<<END_SHEET>>>
+
+<<<WORLD>>>
+{ ...full worldState JSON... }
+<<<END_WORLD>>>
+```
+
+### 5A. All Valid CHANGES Tags
+
+**Combat/HP/Strain:**
+```
+HP=[current]
+FORCE_STRAIN=[current]
+PHYSICAL_STRAIN=[current]
+MENTAL_STRAIN=[current]
+FORCE_BARRIER=[current]
+```
+
+**Alignment system:**
+```
+ALIGNMENT=[value]                    // Light side gains and momentum-window hits ONLY
+                                     // NEVER use for dark side acts — use DARK_PRESSURE instead
+DARK_PRESSURE=[0-100]                // Dark side accumulation (new total, not delta)
+                                     // JS auto-discharges at 100 and sends notification
+MOMENTUM_WINDOW=[multiplier],[days]  // Opens after pressure discharge (e.g. MOMENTUM_WINDOW=1.5,3)
+WILL_OF_FORCE=[gain],[description]   // Surrendering to the will of the Force (light-side XP)
+SURRENDER_DISCOUNT=[0-0.5]           // Reduces next pressure discharge by this fraction
+```
+
+**World/location:**
+```
+LOCATION=[full location string]      // Only when location changes
+```
+
+**Life stage (story event only — never from raw JSON):**
+```
+LIFE_STAGE=[value]                   // Values: youngling|padawan|knight|knight_with_padawan|master|master_with_padawan|council_member
+```
+
+**Shatterpoint system:**
+```
+SHATTERPOINT_PERCEIVED:[tier],[description]   // Passive perception surfaces (colon, not equals)
+SHATTERPOINT_ROLL:[target]                    // Triggers JS interpretation roll
+SHATTERPOINT_FOCUS=[0-100]                    // Awareness bandwidth
+SHATTERPOINT_FOCUS_CLEAR                      // Resets focus at scene end (no value)
+SHATTERPOINT_XP=[amount]                      // Proficiency XP (JS applies ×0.1 for ShatterSense innate)
+SHATTERPOINT_MISREAD_RESOLVED                 // After misread consequence fully played out (no value)
+```
+
+**XP awards — ALWAYS use these structured formats, never prose XP:**
+```
+TRAINING: category.StatName, hours, intensity, difficulty, outcome
+  // intensity: casual|standard|intense|pushing|elite
+  // difficulty: basic|standard|ceiling|wall|above
+  // outcome: fail|contested|solid|strong|overwhelming
+  // Example: TRAINING: lightsaberForms.ShiiCho, 2.0, intense, ceiling, solid
+  // Example: TRAINING: forceStats.forceControl, 1.0, standard, standard, solid
+  // Example: TRAINING: forceAbilities.Telekinesis, 1.5, intense, ceiling, strong
+
+COMBAT: category.StatName, rounds, tierGap, engagement, outcome
+  // tierGap: 0=same tier, positive=attacker higher, negative=defender higher (attacker's perspective)
+  // engagement: light|standard|aggressive|desperate
+  // outcome: decisive_loss|narrow_loss|draw|narrow_win|decisive_win
+  // Example: COMBAT: lightsaberForms.ShiiCho, 8, -1, aggressive, narrow_win
+```
+
+**Proficiency XP (sub-ability specific):**
+```
+PROFICIENCY: AbilityKey.SubKey,xpAmount
+  // Example: PROFICIENCY: ForceLightning.ForceStorm,15
+  // Use when character specifically practices a sub-application
+  // xpAmount uses same scale: standard supervised session (1hr) ≈ 15 XP
+```
+
+**Momentum window:**
+```
+MOMENTUM_WINDOW: [multiplier],[days]   // e.g. MOMENTUM_WINDOW: 1.5,3
+```
+
+**Direct XP injection (legacy/alternative format — also valid):**
+```
+XP: category.StatKey,amount   // e.g. XP: forceAbilities.Telekinesis,150
+```
+
+**Rolls:**
+```
+ROLL: stat1.key|stat2.key     // Fires a d20 roll using listed stats
+```
+
+### 5B. Rules the AI Must Follow When Writing CHANGES Blocks
+
+1. **Every response requires all three blocks** (CHANGES, SHEET, WORLD) even if no stats changed.
+2. **Use TRAINING: and COMBAT: format for all XP** — never award XP in prose.
+3. **Never use ALIGNMENT= for dark side acts.** Use DARK_PRESSURE= with a new 0–100 total.
+4. **Never set age directly.** Age is computed automatically from `characterSheet.birthday` vs `worldState.inGameDate`.
+5. **Never set LIFE_STAGE: from raw JSON.** Only via the `LIFE_STAGE:` CHANGES tag.
+6. **Always include current location** in WORLD JSON — do not leave it empty.
+7. **Shatterpoints are rare.** Most scenes have none. Do not manufacture them for drama. Ask: is this moment genuinely at a fracture point where one action changes the larger trajectory?
+8. **Shatterpoint perception for `ShatterSense` holders is passive.** No roll needed to notice — only to interpret. `SHATTERPOINT_ROLL:` triggers interpretation quality, not detection.
+9. **TRAINING/COMBAT outcome keywords must exactly match** the listed options. No free-text outcomes.
+10. **Multiple XP awards in one block are fine** — list one TRAINING: or COMBAT: line per skill trained.
+11. **Innate talents in SHEET JSON are protected.** JS restores them from snapshot after every parse. The AI writing different values there has no effect on gameplay, but should match actual state.
+
+---
+
+## 6. LORE DOCUMENT INDEX
+
+### When to look up each file
+
+| Situation | File to check |
+|---|---|
+| Current era NPC stats / abilities | `SW_Characters_09_GreatGalacticWar_ColdWar.md` |
+| Any ability's prerequisites, anchor stats, or sub-abilities | `SW_Force_Abilities_Forms_v3_complete.md` |
+| Apex power-scaling question | Era 09 character sheet — APEX CEILING section |
+| Historical galaxy event (date, key figures, downstream sensitivity) | `SW_Legends_Galaxy_Timeline.md` |
+| Training activity weights for simulation | `SW_Activity_Bank_v1.md` |
+| XP calculation calibration | `SWRPG_XP_System_Reference.md` |
+| Simulation panel behavior | `SW_Sim_Rules_v1.md` |
+| GM behavior rules, Force paths, combat resolution | `SW_Legends_RPG_Master_Prompt_v7_1.md` |
+| Engine architecture, global variables, known bugs | `Docs/CLAUDE changelog.md` |
+| An NPC from the current era (3,661 BBY) | Era 09 doc — Grand Master Zym, Satelel Shan (Knight, not yet Grand Master), Darth Malgus (rising Sith Lord, not yet at Sacking-of-Coruscant peak), Vitiate (ruling unseen from Dromund Kaas) |
+
+### Era 09 — The Active Era
+
+**3,661 BBY = Year 20 of the Great Galactic War.** Key NPC states at campaign start:
+- **Grand Master Zym** — leads the Jedi Order (alive, will die at the Sacking of Coruscant, 3,653 BBY)
+- **Satelel Shan** — Jedi Knight and war hero, NOT yet Grand Master
+- **Darth Malgus** — rising Sith Lord, proven at Korriban and Alderaan, not yet at his Sacking-of-Coruscant peak
+- **Vitiate** — ruling unseen from Dromund Kaas; orchestrating the war; never directly appears
+- **Mandalore the Lesser** — Imperial-backed Mandalore; his blockade of the Hydian Way was just broken (3,660 BBY) by Hylo Visz
+- The Jedi Temple on Coruscant is on supply recovery after the blockade
+
+### Force Abilities Reference Notes
+
+The `SW_Force_Abilities_Forms_v3_complete.md` is the **canonical ability gatekeeper**. Key rules:
+- Prerequisites listed per ability are **hard gates** — the AI cannot grant abilities that have unmet prerequisites or locked story flags
+- Story-locked abilities (⚠️ flagged) require specific `worldState.storyFlags` entries
+- Faction-locked abilities (Aing-Tii Fighting-Sight, Flow-Walking, Phase, Fold Space) require story contact events plus flag approval
+- **Vaapad** is era-locked to Prequel Era, requires Mace Windu alive (`maceLiving`), and `maceTrustEstablished` — impossible in 3,661 BBY
+- **ForceStrength** when listed as a prerequisite for Force Rage refers to the *learnable body enhancement ability*, not any stat
+
+---
+
+## 7. HARD RULES — NEVER VIOLATE
+
+### 7A. The Apex Ceiling Is Fixed
+
+The tier hierarchy in Section 3E is permanent. **No being in 3,661 BBY approaches Tier A** (Vitiate is the most powerful being alive in this era and he sits at ~134 ceiling — far below peak Luke, far below Abeloth).
+
+### 7B. Abeloth Is in a Class of Her Own
+
+**Abeloth ≈ 185 (Transcendent, 151+ band).** She is not a "very powerful being" — she is cosmically beyond mortal measurement. In the game system she occupies the Transcendent tier (151+) alone. No mortal Force user reaches this tier regardless of training. The only reason to reference Abeloth at all in a 3,661 BBY campaign is historical lore context.
+
+### 7C. The Yuuzhan Vong Force Status
+
+**Notation:** `✗` = Force-invisible (Yuuzhan Vong). `—` = non-Force-sensitive (ordinary beings). **These are fundamentally different:**
+
+- `—` (Han Solo, stormtroopers): still *exists* in the Force. Jedi can sense, mind-trick, and telekinetically grab them.
+- `✗` (Yuuzhan Vong): **void in the Force.** Jedi cannot sense them, read their emotions, mind-trick them, or reliably touch them with telekinesis. Danger sense does not trigger against them. Precognition fails. To a Jedi's Force-senses they are a *hole in the universe.*
+
+**Only exception:** Onimi — the single Force-sensitive Yuuzhan Vong in all of Legends.
+
+### 7D. Innate Talent Rules
+
+**Innate Talents** (`characterSheet.innateTalents[]`) are player-protected:
+- **Player override** via the Talents panel in the UI — can add/remove at any time
+- **AI during character backstory/creation** — the AI MAY set innate talents during the initial character creation sequence, based on what makes narrative sense for the backstory (e.g., a character described as always having unusually strong telekinesis would logically have `NaturalTelekineticBurst`)
+- **AI during normal gameplay** — the AI **cannot** grant or remove innate talents through SHEET JSON or any other mechanism. The field is snapshotted by JS and restored after every SHEET parse.
+- Innate talents affect XP costs, strain rates, and unlock behavior — they are mechanical, not just narrative labels.
+
+**Innate Abilities** (`characterSheet.innateAbilities[]`) — same protection rules. These have no XP track whatsoever; they either exist or they don't.
+
+### 7E. Shatterpoint Cannot Be in masterXP.forceAbilities
+
+`masterXP.shatterpoint.main` is the **only valid location** for Shatterpoint XP. If `masterXP.forceAbilities['Shatterpoint']` ever appears, it must be deleted immediately — it will cause the XP engine to inflate the level to garbage values.
+
+### 7F. masterXP Is the Source of Truth
+
+The AI writes a `<<<SHEET>>>` block every turn. JS **overwrites** the displayed stats from `masterXP` after parsing — the AI's reported stat values for XP-tracked stats are ignored except for display reference. **Level is always derived, never stored.** Adding XP via `TRAINING:`, `COMBAT:`, `PROFICIENCY:`, or `XP:` tags is the only legitimate way to change XP-tracked stats.
+
+### 7G. Player-Protected Fields (JS snapshots before SHEET parse, restores after)
+
+The AI writing these fields in SHEET JSON has **no effect** — JS restores them from the pre-parse snapshot. The AI should write them correctly for display consistency but cannot change their values:
+
+| Field | Protection |
+|---|---|
+| `innateTalents[]` | Player/creation only |
+| `innateAbilities[]` | Player/creation only |
+| `birthday` | Set via calendar UI only |
+| `lifeStage` | Set via `LIFE_STAGE:` CHANGES tag only |
+| `storyFlags{}` | Set via AI narrative events or player override panel |
+| `aptitudes[]` | Merged (AI + talent labels), deduplicated by JS |
+
+### 7H. Lightsaber Form Key Normalization
+
+After every SHEET parse, JS normalizes form keys to camelCase no-hyphen:
+- `Shii-Cho` → `ShiiCho`
+- `Djem So` → `DjemSo`
+- `Shien/Djem So` → `ShienDjemSo`
+
+JS uses `masterXP` derived level as authoritative for the stat value — not whatever the AI reports. Duplicate/hyphenated keys are merged correctly.
+
+### 7I. Single-File Architecture
+
+**No exceptions.** One `.html` file contains everything. No npm, no bundler, no external JS files, no build step. The file is currently ~6,500 lines. This is intentional. Be concise when adding features; avoid duplicating logic.
+
+---
+
+## 8. STORY FLAGS
+
+Stored in `worldState.storyFlags{}`. Gate era/faction-locked abilities. AI sets via narrative events; player can override in Flags panel.
+
+| Key | Set When | Gates |
+|---|---|---|
+| `maceLiving` | Mace Windu is alive in current era | Vaapad teachable at all |
+| `maceTrustEstablished` | Mace Windu personally agreed to teach character | Vaapad learning begins |
+| `aingTiiContact` | Peaceful contact with Aing-Tii monks | Flow-walking, Fighting-Sight discoverable |
+| `aingTiiApproved` | Aing-Tii agreed to teach | Flow-walking, Fighting-Sight learnable |
+| `fallanassiContact` | Contact with Fallanassi | Phase, Fold Space discoverable |
+| `jediArchiveAccess` | Access to Jedi Temple Archives | Advanced theory abilities via research |
+| `sithTextAccess` | Access to Sith holocron or scroll | Sith-origin abilities (Summon Fear, etc.) discoverable |
+| `jediCouncilPermission` | Council granted permission | Juyo/Vaapad learnable |
+| `masterAssigned` | Formally assigned a Jedi Master | Padawan mandatory training rows active |
+| `padawanAssigned` | Assigned a Padawan | Knight instruction mandatory row active |
+
+**In the current era (3,661 BBY):** `maceLiving` = false (Mace Windu will not be born for ~3,590 years). Vaapad is permanently unavailable unless playing in a future era.
+
+---
+
+## 9. GAME ENGINE RULES
+
+### 9A. The Three Panels / Systems
+
+**1. Real-play turns (main game loop):** Player types action → AI narrates → AI writes CHANGES/SHEET/WORLD blocks → JS parses and applies XP/strain/alignment changes → UI updates. Each turn uses Gemini API with the last 6 turns + campaign summary in context.
+
+**2. Simulation panel (JS-driven):** Player schedules a day of activities → JS calculates XP, strain, time advancement deterministically. AI is only invoked for (a) interpreting free-text "Personal Input" rows into `{skill, hours, intensity, outcome}` JSON, and (b) optionally generating a narrative summary. The AI does **not** do XP math in simulation mode.
+
+**3. Calendar panel:** Tracks `worldState.inGameDate` using the Galactic Standard Calendar (12 months, 368 days/year, 7-day weeks). Age is computed automatically every turn from `characterSheet.birthday` vs `worldState.inGameDate` — the AI never sets age.
+
+### 9B. Simulation Panel Rules
+
+**JS handles (no AI tokens):** All XP calculations, strain accumulation/recovery, multi-stat weight distribution, daily hours budget, calendar advancement, sleep recovery math, XP penalty modifiers from overtraining.
+
+**Mandatory training rows** by life stage (cannot be deleted, hours adjustable):
+| Life Stage | Mandatory Row | Default Hours | Primary Skill |
+|---|---|---|---|
+| Youngling | Morning Forms Drills | 1.5 hrs | ShiiCho |
+| Youngling | Group Meditation | 1.0 hrs | Meditation (recovery) |
+| Youngling | Force Fundamentals Class | 1.0 hrs | ForceKnowledge |
+| Padawan | Training with Master | 2.0 hrs | Master's specialty |
+| Knight/Master with padawan | Padawan Instruction | 1.5 hrs | ForceKnowledge |
+| All | Sleep | 7.0 hrs | Recovery only |
+
+**Tier-gap training (attempting above your level):**
+| Gap | Difficulty | XP Mult | Strain Mult |
+|---|---|---|---|
+| Same tier (0) | Standard | 1.0× | 1.0× |
+| 1 tier above | Ceiling | 1.2× | 1.3× |
+| 2 tiers above | Wall | 1.5× | 1.7× |
+| 3+ tiers above | Impossible | 0.3× | 2.5× |
+| 1 tier below | Easy | 0.7× | 0.8× |
+
+### 9C. Strain System
+
+**Accumulation per hour by intensity (standard activity strain base rates):**
+| Intensity | Force/hr | Physical/hr | Mental/hr |
+|---|---|---|---|
+| Casual | 1.0 | 1.5 | 0.5 |
+| Standard | 2.4 | 3.2 | 1.6 |
+| Intense | 4.2 | 5.6 | 2.8 |
+| Pushing Limits | 6.0 | 8.0 | 4.0 |
+| Elite | 8.0 | 10.0 | 6.0 |
+
+**Activity strain bias multipliers:**
+- Saber forms: Physical ×1.5, Force ×0.8, Mental ×0.6
+- Force abilities: Force ×1.8, Mental ×1.0, Physical ×0.3
+- Meditation: Force ×1.5, Mental ×1.5, Physical ×0.1
+- Physical conditioning: Physical ×2.0, Force ×0.2, Mental ×0.5
+- Academic/Force Knowledge: Mental ×2.0, Force ×0.5, Physical ×0.1
+- Sparring (live): Physical ×1.8, Force ×1.0, Mental ×0.8
+
+**Endurance mitigation:** `em = compressedBonus(endurance) / 10`
+- Physical strain reduced by `em × 100%`
+- Force strain reduced by `em × 50%`
+- Mental strain reduced by `em × 30%`
+- **Already implemented in game code.** AI does NOT pre-apply it.
+
+**Strain thresholds and XP penalties (worst of Force/Physical/Mental):**
+| Strain Level | XP Penalty | Narrative Flag |
+|---|---|---|
+| 0–20 | ×1.0 | None |
+| 21–50 | ×0.9 | "Fatigued" |
+| 51–70 | ×0.7 | "Strained" |
+| 71–90 | ×0.4 | "Overtrained — narrative consequence fires" |
+| 91–100 | ×0.1 | "Exhausted — AI generates consequence" |
+
+**Sleep recovery:**
+| Sleep Hours | Strain Recovered |
+|---|---|
+| 8+ | 100% |
+| 7 | 85% |
+| 6 | 65% |
+| 5 | 45% |
+| 4 | 25% |
+| <4 | 10% |
+
+### 9D. Alignment System
+
+Scale: −100 (Consumed) to +100 (Luminous). Seven tiers:
+| Range | Tier | Label |
+|---|---|---|
+| 76–100 | Deep Light | Luminous |
+| 26–75 | Light | Attuned |
+| 1–25 | Leaning Light | Calm |
+| −25–0 | Neutral | Balanced |
+| −26–−50 | Leaning Dark | Shadowed |
+| −51–−75 | Dark | Corrupted |
+| −76–−100 | Deep Dark | Consumed |
+
+**Dark side mechanics:** AI sends `DARK_PRESSURE=` with a new 0–100 total. When pressure hits 100, JS automatically discharges: alignment drops by tier-dependent amount, pressure resets to 40, red `◈ PRESSURE DISCHARGED` notification appears. AI never directly sets alignment for dark acts.
+
+**Momentum window:** After discharge, AI sends `MOMENTUM_WINDOW=[multiplier],[days]`. During window, dark acts hit `ALIGNMENT=` directly (not pressure).
+
+**Light side:** AI sends `ALIGNMENT=[new value]` directly for positive moral choices. `WILL_OF_FORCE=[gain],[description]` for surrendering to the Force.
+
+### 9E. Shatterpoint System
+
+**Three tiers (unlocked by level):**
+- **Tier 1 (Tactical, always active):** Structural weaknesses, combat stance flaws, injuries, objects near breaking point
+- **Tier 2 (Personal, Level 6+):** Psychological fractures, defining decisions, relationships at breaking point
+- **Tier 3 (Situational, Level 11+):** Battle/event fulcrums, strategic pivots — extremely rare
+
+**Perception vs. interpretation:** For `ShatterSense` holders, shatterpoints surface passively (no roll to notice). `SHATTERPOINT_ROLL:[target]` triggers an *interpretation* roll to determine quality of understanding.
+
+**Roll formula:** `level × 0.15 + compressedBonus(meditation) × 0.4 + compressedBonus(willpower) × 0.2 + 1.0 (innate bonus)`
+
+**Tunnel vision:** Focus above 70 → `tunnelVision: true` → AI treats character as having reduced ambient awareness.
+
+**Vaapad amplification:** When Vaapad is simultaneously active, multiply focus bandwidth cost by ×1.3.
+
+### 9F. What the AI Cannot Do Autonomously
+
+- Set age (computed by JS from birthday)
+- Modify `masterXP` directly (only via CHANGES block tags)
+- Change `innateTalents[]` or `innateAbilities[]` (player-protected)
+- Change `lifeStage` except via `LIFE_STAGE:` tag
+- Grant abilities whose prerequisites are unmet or whose story flags are not set
+- Grant abilities that are era-locked (Vaapad in 3,661 BBY), faction-locked (Aing-Tii without contact), or person-locked (requires a specific teacher who doesn't exist in the era)
+- Create shatterpoints for dramatic effect — they must be genuine fracture points
+
+### 9G. iOS Safari / iPad Dev Notes
+
+- Fixed-position overlays: use `position:fixed` not `position:absolute` inside overflow containers
+- Scrollable modals: `overflow-y:scroll` with `-webkit-overflow-scrolling:touch` set; `overflow-y:auto` on fixed elements does not work
+- `position:sticky` does not work inside `overflow:scroll` containers on iOS
+- Use `display:flex; flex-direction:column` with a fixed header div and a scrollable body div for any modal with a persistent header
+- Always run a mental or actual syntax check after JS edits — large template literals and unclosed brackets cause silent failures in Safari
+
+### 9H. Common Bug Watch List
+
+1. **Shatterpoint contamination:** If shatterpoint level spikes, check that `masterXP.forceAbilities['Shatterpoint']` doesn't exist. Delete it if found.
+2. **Duplicate form keys:** AI sometimes uses `Shii-Cho` vs `ShiiCho`. Normalization runs after every SHEET parse — masterXP derived level is authoritative.
+3. **Player fields wiped:** If innate talents or birthday disappear after a turn, check the SHEET parse snapshot/restore block.
+4. **Calendar popup not scrolling on iOS:** Must use `overflow-y:scroll` with a flex-column structure.
+5. **simApiCall using wrong key:** Uses `apiKey` variable (loaded from `localStorage.getItem('sw_rpg_gemini_key')`). Never use `sw_rpg_api_key`.
+6. **Location reset:** AI should always include current location in WORLD JSON — empty string will cause location to appear reset.
+
+---
+
+## 10. SESSION WORKFLOW
+
+### Starting a Session
+
+1. **Read this CLAUDE.md in full** — do not skip sections
+2. **Check the Current Character State section below** — note life stage, current stats, active story flags
+3. **Confirm the in-game date** from the worldState in the save file (format: Galactic Standard Calendar)
+4. **For lore lookups** mid-session: check the Lore Document Index (Section 6) for the correct file before inventing NPC stats or ability details
+5. **For ability questions** (can Jared learn X?): always check `SW_Force_Abilities_Forms_v3_complete.md` for prerequisites and flags before the AI grants anything
+
+### During a Session
+
+- All XP must be awarded via CHANGES block tags — never in prose
+- All three blocks (CHANGES, SHEET, WORLD) must appear in every response
+- The AI's real job is narration and XP calibration — the JS handles all math
+- If the player uses an **[OVERRIDE]**, **[LORE CHECK]**, **[SYSTEM EXPAND]**, **[WORLD ADJUST]**, **[CORRECTION]**, or **[AUTHOR NOTE]** keyword: immediately exit narrative voice and respond plainly in plain language (see Master Prompt Part XIX)
+
+### Ending a Session
+
+Update the **Current Character State** and **Session Log** sections of this file with:
+1. New stat levels (any that changed by 3+ points)
+2. New abilities unlocked
+3. Story events that changed flags
+4. What the character is doing next / where the story left off
+5. Any ambiguities that came up that need resolution
+
+### Handling Mid-Session Lore Conflicts
+
+If you find a conflict between what the AI produced and the lore files:
+1. Flag it immediately with `[LORE CHECK]` — do not ignore it
+2. Check the relevant character sheet or timeline file
+3. Canon accuracy is a shared responsibility — if genuinely ambiguous, note the preferred interpretation for the campaign going forward
+
+---
+
+## 11. CURRENT CHARACTER STATE
+
+*(Update this section at the end of every session)*
+
+**Character:** Jared Wright
+**Species:** Human
+**Faction:** Jedi Order
+**Life Stage:** Padawan
+**In-Game Date:** Year 20 of the Great Galactic War (~3,661 BBY)
+**Location:** Jedi Temple, Coruscant
+
+**Innate Talents (player-set, protected):**
+- `NaturalTelekineticBurst` — All Telekinesis family Force Strain ×0.8
+- `ShatterSense` — Shatterpoint: ×0.1 XP cost, seeded at L5, passive perception, uncapped track
+
+**Approximate Stats (last known):**
+| Stat | ~Value |
+|---|---|
+| ForceSense | ~34 |
+| Meditation | ~35 |
+| ForceControl | ~38 |
+| ForceKnowledge | unknown |
+| ForceOutput | unknown (new v3 stat) |
+| ShiiCho | ~32 |
+| Telekinesis | ~28 |
+| Shatterpoint | Level 5, Tier 1 (Tactical) |
+
+**Active Story Flags:**
+- `maceLiving` = false (era: 3,661 BBY — Mace not yet born)
+- (All other flags: check worldState in save file)
+
+**Notes for next session:**
+- Jared is a padawan in Year 20 of the Great Galactic War. The Hydian Way blockade was just broken. The Jedi Temple is recovering from supply disruption. The Sith Empire holds most of the Outer Rim.
+- ForceOutput and Intelligence were added in v3 — these stats may not be initialized in older saves. If missing, initialize to 0 or to an appropriate starting value for a padawan.
+
+---
+
+## 12. KNOWN AMBIGUITIES
+
+*(Document unresolved contradictions here so they can be explicitly resolved)*
+
+1. **Difficulty multiplier discrepancy:** The XP Reference doc lists CHANGES block training difficulty multipliers as `basic=1.0, ceiling=1.3, wall≈1.6, impossible=2.0`. The Sim Rules doc lists simulation panel multipliers as `easy=0.7, standard=1.0, ceiling=1.2, wall=1.5, impossible=0.3`. These are different tables for different systems, which is correct, but the CHANGES block TRAINING tag format uses the keywords `basic|standard|ceiling|wall|above` — it's unclear whether `wall` in the CHANGES block uses 1.3 or 1.6 as its multiplier. **Resolution needed.**
+
+2. **XP format duality:** The CHANGES block supports both `TRAINING: ...` (structured, from changelog/V110) and `XP: stat.key,amount` (direct injection, from XP Reference). Both appear valid. The `TRAINING:` format is preferred as it gives the engine more information. The `XP:` format should be used when a precise XP amount from a non-training context needs to be awarded (e.g., story breakthrough, ceremony). **No conflict, but clarify for the AI which to default to.**
+
+3. **ForceOutput and Intelligence initialization:** These are v3 stats added after V97. The XP Reference doc says "Derived directly from starwars_rpg_V97.html" — the current version is V110. The v3 implementation spec in `SW_Force_Abilities_Forms_v3_complete.md` lists specific JS changes required but it's unclear whether these are already applied in V110 or still pending. **Verify which v3 stats are live in V110.**
+
+4. **TRAINING difficulty keyword `above`:** The CHANGES block docs list `above` as a valid difficulty keyword but the multiplier tables don't have an entry for it. Likely synonymous with `ceiling` (1.3). **Confirm.**
+
+---
+
+## 13. SESSION LOG
+
+*(Append a line per session: date, summary of what happened, what changed)*
+
+| Session Date | Summary | Key Changes |
+|---|---|---|
+| (none yet recorded) | — | — |
+
+---
+
+*End of CLAUDE.md — Last updated: session initialization*
