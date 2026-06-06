@@ -5942,6 +5942,384 @@ const LORE_DATABASE = {
       force:{ fS:94, med:90, fK:98, fC:100, fOut:92 },
       forms:{ Niman:100, Ataru:95, DjemSo:94, Soresu:90, Makashi:90, Juyo:88, ShiiCho:90 },
       note:'Stats shown are freed/recovered state (~3,640 BBY). Current imprisoned state is significantly degraded. His influence is legend only in 3,661 BBY.'
+    },
+
+    // ─── Historical Eras (01-08) ───────────────────────────────────
+    // Canonical reference entries for historical Force users.
+    // 'era' = source era number. No statusIn3661 — not in active campaign.
+    // getEraLore() will not return these; access via LORE_DATABASE.characters directly.
+    // Bladework: used for eras before formal lightsaber forms existed (01-03).
+
+    // ═══ ERA 01 — Dawn of the Jedi (36,453–25,783 BBY) ═══
+    Era01_Rajivari: {
+      name:'Rajivari', era:1, faction:'jeDaii', tier:'Legendary (Force/wisdom/leadership)', alignment:-20,
+      context:'Founding Je\'daii Master. Co-founded the Jedi Order then broke away, believing the Force should rule. Persisted as a Force ghost for millennia guarding the Fount of Rajivari.',
+      core:{str:70,agi:78,end:72,wil:108,cha:95,int:95},
+      force:{fS:95,med:100,fK:102,fC:100,fOut:100},
+      bladework:80,
+      keyAbilities:{Telekinesis:90,BattleMeditation:90,ForceSense:95,MindTrick:82,ForceBarrier:85}
+    },
+    Era01_Xesh: {
+      name:'Xesh (Tau)', era:1, faction:'jeDaii', tier:'Legendary (dueling/combat)', alignment:0,
+      context:'Finest Force Hound of the Rakatan Infinite Empire; triggered the invasion of Tython. Rejected the dark side and joined the Je\'daii. Invented or mastered the Forcesaber.',
+      core:{str:95,agi:105,end:96,wil:100,cha:55,int:64},
+      force:{fS:90,med:64,fK:78,fC:104,fOut:102},
+      bladework:104,
+      keyAbilities:{ForceLightning:88,ForceBarrier:90,Telekinesis:95,ForceSense:90,ForceBody:80},
+      note:'Only being of his era able to both hurl and absorb Force lightning. Born to the dark; chose Balance.'
+    },
+    Era01_SkalNas: {
+      name:'Predor Skal\'nas', era:1, faction:'infiniteEmpire', tier:'Legendary (dark-side power/warlord)', alignment:-100,
+      context:'Supreme Rakatan commander who sought the Kwa Infinity Gate on Tython. Killed by Xesh at the Prime Gate, ending the invasion.',
+      core:{str:80,agi:78,end:85,wil:100,cha:75,int:95},
+      force:{fS:90,med:68,fK:95,fC:102,fOut:100},
+      bladework:80,
+      keyAbilities:{ForceLightning:102,Telekinesis:95,MindProbe:88,SithAlchemy:80,ForceSense:90}
+    },
+    Era01_DaegenLok: {
+      name:'Daegen Lok', era:1, faction:'jeDaii', tier:'Legendary (dark-side Force/mind techniques)', alignment:-40,
+      context:'The "Sword of Tython." Assassinated Despot Queen Hadiya; shared a prophetic Chasm vision; built the first Forcesabers. Led the Je\'daii as war general after his vision came true.',
+      core:{str:72,agi:75,end:74,wil:98,cha:82,int:90},
+      force:{fS:85,med:76,fK:88,fC:92,fOut:88},
+      bladework:85,
+      keyAbilities:{MindTrick:88,ForceSense:85,Telekinesis:80,ForceBody:60},
+      note:'Signature: Mind Twist — draws out a victim\'s deepest fear and makes it physically real.'
+    },
+    Era01_Ketu: {
+      name:'Ketu', era:1, faction:'jeDaii', tier:'High Master (Force/leadership)', alignment:10,
+      context:'Temple Master of Akar Kesh; leader of the Je\'daii Council. Voice of Balance. Ordered the group meditation that quelled a planet-wide Force storm. Carried no weapon.',
+      core:{str:58,agi:60,end:62,wil:92,cha:88,int:90},
+      force:{fS:88,med:94,fK:90,fC:82,fOut:76},
+      bladework:0,
+      keyAbilities:{BattleMeditation:95,ForceSense:88,Telekinesis:50,ForceBarrier:80}
+    },
+    Era01_TashaRyo: {
+      name:'Tasha Ryo', era:1, faction:'jeDaii', tier:'Veteran with rare Seer specialization', alignment:20,
+      context:'Twi\'lek Je\'daii Journeyer and Seer. Unlocked the Kwa Holocron. Sacrificed her mortal body to weaponize the Tho Yor against the Rakatan fleet.',
+      core:{str:52,agi:62,end:56,wil:82,cha:70,int:76},
+      force:{fS:92,med:80,fK:78,fC:84,fOut:74},
+      bladework:0,
+      keyAbilities:{ForceSense:92,Telekinesis:84,ForceBarrier:55},
+      note:'ForceSense 92 with Precognition 95% proficiency — among the finest precognitive Seers of her era.'
+    },
+
+    // ═══ ERA 02 — Old Republic Founding (≈28,000–5,100 BBY) ═══
+    Era02_KingAdas: {
+      name:'King Adas', era:2, faction:'sithKingdom', tier:'Legendary (physical/Sith sorcery/longevity)', alignment:-90,
+      context:'The original Sith\'ari. United Korriban ~28,000 BBY; reigned ~300 years. Repelled the Rakatan Infinite Empire; died in the effort. His memory spawned the Sith\'ari prophecy.',
+      core:{str:100,agi:78,end:102,wil:100,cha:92,int:88},
+      force:{fS:82,med:80,fK:95,fC:92,fOut:95},
+      bladework:95,
+      keyAbilities:{SithAlchemy:85,ForceLightning:80,Telekinesis:88,ForceBody:90,MindProbe:70}
+    },
+    Era02_SorzusSyn: {
+      name:'Sorzus Syn', era:2, faction:'sithExiles', tier:'Legendary (alchemy/Force-knowledge/Intelligence)', alignment:-90,
+      context:'Intellectual architect of the entire Sith tradition. Guided Exiles to Korriban; codified Sith alchemy; forged the three Great Amulets; authored a holocron studied by Darth Bane millennia later.',
+      core:{str:58,agi:62,end:62,wil:92,cha:78,int:102},
+      force:{fS:84,med:82,fK:102,fC:95,fOut:78},
+      bladework:0,
+      keyAbilities:{SithAlchemy:105,SithSorcery:85,Telekinesis:50,ForceSense:84},
+      note:'INT 102 — highest Intelligence of the era. Sith Alchemy 105 with Midi-chlorian Manipulation 95%.'
+    },
+    Era02_AjuntaPall: {
+      name:'Ajunta Pall', era:2, faction:'sithExiles', tier:'Legendary (founder-tier dark Force/leadership)', alignment:-95,
+      context:'First Dark Lord of the Sith. Led the Hundred-Year Darkness; slew 12+ Jedi at Corbos; beheaded Sith King Hakagram Graush; founded the Sith Empire ~6,900 BBY. Spirit redeemed by Revan ~3,956 BBY.',
+      core:{str:82,agi:80,end:84,wil:98,cha:90,int:88},
+      force:{fS:84,med:78,fK:92,fC:95,fOut:92},
+      bladework:88,
+      keyAbilities:{ForceLightning:85,Telekinesis:88,MindProbe:85,ForceBody:85,ForceSense:84}
+    },
+    Era02_KarnessMuur: {
+      name:'Karness Muur', era:2, faction:'sithExiles', tier:'Legendary (dark-side life manipulation)', alignment:-90,
+      context:'Founding Sith Lord. Engineered Sithspawn and leviathans; bound his consciousness into the Muur Talisman, which could enslave populations into rakghoul-like servants. Menaced the galaxy as late as the Legacy era.',
+      core:{str:64,agi:66,end:68,wil:95,cha:72,int:90},
+      force:{fS:82,med:80,fK:96,fC:96,fOut:82},
+      bladework:40,
+      keyAbilities:{SithAlchemy:102,ForceHealSelf:85,MindProbe:85,ForceSense:82,Telekinesis:55},
+      note:'Muur Talisman: can transform populations into rakghoul servants. Consciousness persisted across millennia.'
+    },
+    Era02_XoXaan: {
+      name:'XoXaan', era:2, faction:'sithExiles', tier:'Legendary (dark-side healing/Force-knowledge)', alignment:-90,
+      context:'Founding Sith Lord; Commander of the Black Legions. Greatest Sith healer of her age — lore so enduring that Darth Krayt called her his "first and greatest Sith teacher" 4,000 years later.',
+      core:{str:62,agi:66,end:66,wil:92,cha:78,int:88},
+      force:{fS:84,med:84,fK:95,fC:94,fOut:78},
+      bladework:45,
+      keyAbilities:{ForceHealSelf:105,BattleMeditation:85,SithAlchemy:80,Telekinesis:55,ForceSense:84}
+    },
+    Era02_RemulusDreypa: {
+      name:'Remulus Dreypa', era:2, faction:'sithExiles', tier:'High Master–Legendary (dark-side/Sith philosophy)', alignment:-90,
+      context:'Sole surviving Exile fleet admiral. Co-founded Sith philosophy; created oubliettes (stasis prisons of aware living death); survived in stasis into the Lost Tribe era.',
+      core:{str:70,agi:70,end:74,wil:90,cha:80,int:86},
+      force:{fS:80,med:72,fK:90,fC:92,fOut:92},
+      bladework:72,
+      keyAbilities:{ForceLightning:100,SithAlchemy:85,Telekinesis:80,ForceBody:60,ForceSense:80}
+    },
+    Era02_ArdenLyn: {
+      name:'Arden Lyn', era:2, faction:'legionsOfLettow', tier:'Elite–Legendary (Teräs Käsi martial combat)', alignment:-80,
+      context:'Xendor\'s right hand; supreme master of Teräs Käsi — a Force-assisted martial art capable of killing Force-users barehanded. Sent into a ~24,500-year preserving trance; reawakened in 4 BBY.',
+      core:{str:76,agi:92,end:82,wil:90,cha:70,int:74},
+      force:{fS:74,med:68,fK:72,fC:80,fOut:76},
+      bladework:92,
+      keyAbilities:{Battlemind:85,ForceBody:85,ForceSense:74,Telekinesis:65},
+      note:'Bladework 92 represents unarmed Teräs Käsi. AGI 92 — finest melee combatant of her era.'
+    },
+
+    // ═══ ERA 03 — Golden Age of the Sith & Great Hyperspace War (≈5,100–4,990 BBY) ═══
+    Era03_MarkaRagnos: {
+      name:'Marka Ragnos', era:3, faction:'sithEmpire', tier:'Legendary (Sith sorcery/will/longevity)', alignment:-95,
+      context:'Dark Lord of the Golden Age; century-long iron rule. His death triggered the Sadow-Kressh succession crisis. Spirit persisted ~1,000 years; crowned Exar Kun as Dark Lord (3,997 BBY).',
+      core:{str:84,agi:78,end:86,wil:105,cha:95,int:92},
+      force:{fS:90,med:95,fK:100,fC:100,fOut:98},
+      bladework:85,
+      keyAbilities:{SithSorcery:100,ForceLightning:88,Telekinesis:88,MindProbe:85,ForceSense:90}
+    },
+    Era03_NagaSadow: {
+      name:'Naga Sadow', era:3, faction:'sithEmpire', tier:'Legendary (Sith sorcery/alchemy/battle-magic)', alignment:-90,
+      context:'Master Sith alchemist who launched the Great Hyperspace War (5,000 BBY). Used meditation-sphere battle-magic to direct entire fleets. Fled to Yavin 4; his Massassi worshipped him there.',
+      core:{str:74,agi:72,end:78,wil:100,cha:90,int:95},
+      force:{fS:92,med:100,fK:104,fC:102,fOut:100},
+      bladework:72,
+      keyAbilities:{SithAlchemy:104,BattleMeditation:104,MindTrick:92,ForceLightning:85,Telekinesis:85},
+      note:'Battle Meditation 104 used via meditation sphere to control simultaneous multi-world invasions. Sith Alchemy 104.'
+    },
+    Era03_Tenebrae: {
+      name:'Tenebrae / Vitiate (origin)', era:3, faction:'sithEmpire', tier:'Legendary at origin — far below his eventual apex', alignment:-100,
+      context:'Born ~5,113 BBY; killed his father at age 10+; summoned surviving Sith Lords, mentally enslaved them all, and drained an entire planet (Nathema) to gain immortality. Founded the reconstituted Sith Empire. NOTE: These are his ~5,000 BBY ORIGIN stats. His ~3,661 BBY apex (130–134) is in Era09 LORE_DATABASE entry.',
+      core:{str:70,agi:74,end:78,wil:105,cha:92,int:98},
+      force:{fS:95,med:92,fK:100,fC:102,fOut:100},
+      bladework:70,
+      keyAbilities:{MindProbe:102,SithAlchemy:100,SithSorcery:85,ForceLightning:85,Telekinesis:82}
+    },
+    Era03_OdanUrr: {
+      name:'Odan-Urr', era:3, faction:'jediOrder', tier:'High Master (Force knowledge/battle meditation)', alignment:85,
+      context:'Draethos Jedi loremaster. Foresaw the Sith invasion; helped win the Battle of Kirrek via battle meditation. Founded the Great Jedi Library. Lived ~600 years; slain by Exar Kun ~3,996 BBY.',
+      core:{str:54,agi:58,end:64,wil:88,cha:76,int:95},
+      force:{fS:88,med:92,fK:96,fC:78,fOut:72},
+      bladework:55,
+      keyAbilities:{BattleMeditation:90,ForceSense:88,Telekinesis:60}
+    },
+    Era03_LudoKressh: {
+      name:'Ludo Kressh', era:3, faction:'sithEmpire', tier:'High Master (Sith warrior/sorcerer)', alignment:-85,
+      context:'Sadow\'s chief rival for the Dark Lordship. Conservative, isolationist. Faked his own death to expose Sadow — his schemes failed and Sadow killed him.',
+      core:{str:78,agi:74,end:80,wil:92,cha:80,int:82},
+      force:{fS:84,med:82,fK:90,fC:90,fOut:84},
+      bladework:78,
+      keyAbilities:{Battlemind:82,ForceBody:80,SithAlchemy:65,ForceLightning:60,Telekinesis:80}
+    },
+
+    // ═══ ERA 04/05 — Great Sith War (≈4,400–3,996 BBY) ═══
+    Era05_ExarKunJedi: {
+      name:'Exar Kun (Jedi)', era:5, faction:'jediOrder', tier:'Elite — high-Master dueling on cusp of legendary', alignment:-10,
+      context:'Baas\'s most gifted student. Arrogant, consumed by curiosity. Stole the Tedryn Holocron; stole away against master\'s orders. Already trained across all seven forms before his fall. Pre-fall snapshot.',
+      core:{str:78,agi:86,end:80,wil:88,cha:84,int:88},
+      force:{fS:82,med:72,fK:84,fC:86,fOut:84},
+      forms:{ShiiCho:80,Makashi:78,Soresu:70,Ataru:84,ShienDjemSo:76,Niman:86,Juyo:72},
+      keyAbilities:{Telekinesis:82,ForceBody:80,ForceSense:82,MindTrick:55}
+    },
+    Era05_ExarKunDarkLord: {
+      name:'Exar Kun (Dark Lord)', era:5, faction:'sithEmpire', tier:'Legendary (dueling/Sith sorcery/will)', alignment:-100,
+      context:'Inventor of the double-bladed lightsaber. Anointed Dark Lord by Ragnos\'s ghost; founded the Brotherhood of the Sith; killed his old master; engineered the Cron Supernova; bound his spirit to Yavin 4 for ~4,000 years. Master of all 7 forms — only person other than Revan to make Niman genuinely lethal.',
+      core:{str:88,agi:100,end:92,wil:105,cha:95,int:92},
+      force:{fS:92,med:88,fK:100,fC:102,fOut:102},
+      forms:{ShiiCho:98,Makashi:100,Soresu:96,Ataru:102,ShienDjemSo:100,Niman:110,Juyo:98},
+      keyAbilities:{SithAlchemy:105,Telekinesis:98,ForceLightning:88,ForceBody:95,MindProbe:85,ForceSense:92},
+      note:'Niman 110 — the highest Niman rating in the timeline. AGI 100, FCtrl 102, FOut 102. Spirit survives bodily death; menaced Luke\'s students ~11 ABY.'
+    },
+    Era05_NomiSunrider: {
+      name:'Nomi Sunrider', era:5, faction:'jediOrder', tier:'Legendary (battle meditation/Force Light/Force-severing)', alignment:90,
+      context:'Greatest battle-meditation user of her age. Battle Med 105. Uniquely able to sever another being\'s connection to the Force entirely — did so to Ulic Qel-Droma. Command of Force Light ranked alongside Yoda\'s and Thon\'s.',
+      core:{str:58,agi:70,end:64,wil:98,cha:82,int:84},
+      force:{fS:90,med:96,fK:88,fC:95,fOut:88},
+      forms:{ShiiCho:60,Makashi:48,Soresu:56},
+      keyAbilities:{BattleMeditation:105,ForceSense:90,Telekinesis:85,ForceBarrier:80},
+      note:'Unique: Force-severing — severed Ulic Qel-Droma\'s Force connection entirely. Not a standard registry ability.'
+    },
+    Era05_UlicJedi: {
+      name:'Ulic Qel-Droma (Jedi)', era:5, faction:'jediOrder', tier:'Elite (Jedi Knight/duelist/leader)', alignment:75,
+      context:'Arca Jeth\'s finest student. Natural leader and formidable duelist. Ended the Beast Wars; fought the Freedon Nadd Uprising. Pre-fall snapshot.',
+      core:{str:76,agi:82,end:78,wil:84,cha:86,int:80},
+      force:{fS:82,med:76,fK:80,fC:84,fOut:82},
+      forms:{ShiiCho:78,Makashi:70,Ataru:74,ShienDjemSo:78},
+      keyAbilities:{Telekinesis:80,ForceBody:80,ForceSense:82,BattleMeditation:60}
+    },
+    Era05_UlicDarkLord: {
+      name:'Ulic Qel-Droma (Dark Lord)', era:5, faction:'sithEmpire', tier:'Legendary-adjacent (dark-side war-juggernaut)', alignment:-80,
+      context:'Dark-side amplification vastly boosted his physical power. Subjugated the Mandalorians in single combat; led the assault on Coruscant. Killed his brother Cay at Ossus — beginning his redemption. Force-stripped by Nomi Sunrider afterward; guided the Jedi to defeat Kun. POST-OSSUS: all Force stats and abilities = 0.',
+      core:{str:86,agi:90,end:88,wil:92,cha:88,int:80},
+      force:{fS:88,med:80,fK:86,fC:94,fOut:92},
+      forms:{ShiiCho:88,Makashi:80,Ataru:84,ShienDjemSo:92,Juyo:82},
+      keyAbilities:{ForceBody:100,Telekinesis:90,ForceLightning:82,ForceRage:85,BattleMeditation:78}
+    },
+    Era05_FreedonNadd: {
+      name:'Freedon Nadd', era:5, faction:'sithOnderon', tier:'High Master–Legendary (Sith sorcery/spirit-persistence)', alignment:-90,
+      context:'Fallen Jedi who became a Sith Lord and conquered Onderon. Spirit persisted for centuries, manipulating events — seeded the Krath, foretold Ulic\'s fall, tried to use Exar Kun before Kun destroyed him.',
+      core:{str:74,agi:76,end:76,wil:94,cha:84,int:90},
+      force:{fS:86,med:82,fK:92,fC:92,fOut:90},
+      forms:{ShiiCho:76,Makashi:78,ShienDjemSo:70},
+      keyAbilities:{SithAlchemy:85,MindProbe:84,ForceLightning:82,Telekinesis:80,ForceSense:86}
+    },
+    Era05_MasterThon: {
+      name:'Master Thon', era:5, faction:'jediOrder', tier:'High Master–Legendary (Force Light/raw Force depth)', alignment:90,
+      context:'Ancient Jedi Master in a beastlike Tchuukthai form. Trained Nomi Sunrider. Command of Force Light ranked with Yoda\'s. Fights through the Force, not a blade.',
+      core:{str:82,agi:58,end:88,wil:94,cha:74,int:86},
+      force:{fS:90,med:94,fK:90,fC:92,fOut:90},
+      forms:null,
+      keyAbilities:{Telekinesis:92,ForceSense:90,ForceBarrier:88,BattleMeditation:78}
+    },
+    Era05_VodoBaas: {
+      name:'Vodo-Siosk Baas', era:5, faction:'jediOrder', tier:'High Master (Force/wisdom)', alignment:85,
+      context:'Krevaaki Jedi Master who trained Exar Kun and many others. Confronted his fallen student in the Senate Hall and was killed by Kun\'s double-blade. His returning spirit helped destroy Kun on Yavin 4.',
+      core:{str:72,agi:70,end:76,wil:92,cha:80,int:88},
+      force:{fS:86,med:90,fK:92,fC:88,fOut:80},
+      forms:{ShiiCho:75,Soresu:70,Makashi:58},
+      keyAbilities:{BattleMeditation:75,Telekinesis:82,ForceSense:86,ForceBarrier:78}
+    },
+    Era05_ArcaJeth: {
+      name:'Arca Jeth', era:5, faction:'jediOrder', tier:'High Master (Force/battle meditation)', alignment:88,
+      context:'Arkanian Jedi Master; Watchman of Onderon. Trained the Qel-Droma brothers. Ended the Beast Wars with battle meditation; banished Freedon Nadd\'s spirit. Murdered by the Krath before the war.',
+      core:{str:64,agi:66,end:68,wil:90,cha:82,int:86},
+      force:{fS:88,med:94,fK:88,fC:86,fOut:80},
+      forms:{ShiiCho:66,Soresu:64,Makashi:50},
+      keyAbilities:{BattleMeditation:90,ForceSense:88,Telekinesis:80,ForceBarrier:78,ForceStasis:60}
+    },
+
+    // ═══ ERA 06 — Mandalorian Wars (≈3,976–3,960 BBY) ═══
+    Era06_RevanRevanchist: {
+      name:'Revan (Revanchist)', era:6, faction:'jediRepublic', tier:'Legendary (dueling/leadership/Intelligence/Force breadth)', alignment:70,
+      context:'Supreme Commander of the Republic in the Mandalorian Wars. Defied the Jedi Council; rallied 1/3 of the Jedi. Legendary strategic genius (INT 100). Slew Mandalore the Ultimate in single combat at Malachor V. Violet blade. Pre-fall snapshot.',
+      core:{str:84,agi:95,end:86,wil:100,cha:98,int:100},
+      force:{fS:92,med:90,fK:96,fC:98,fOut:88},
+      forms:{Niman:100,ShiiCho:90,Makashi:90,Soresu:90,Ataru:95,ShienDjemSo:94,Juyo:85},
+      keyAbilities:{BattleMeditation:95,ForceSense:92,Telekinesis:92,ForceBody:85,MindTrick:85,ForceBarrier:82},
+      note:'Primary form: Niman (100). Echani close-combat trained. Jar\'Kai dual-blade (90). Will fall to dark side after discovering the hidden Sith Empire.'
+    },
+    Era06_MeetraSurikWartime: {
+      name:'Meetra Surik (wartime)', era:6, faction:'jediRepublic', tier:'Elite–Master (dueling/Force-bond/leadership)', alignment:72,
+      context:'Jedi General under Revan. Activated the Mass Shadow Generator at Malachor V; severed her own Force connection in the psychic backlash. Force-severed ~3,960–3,951 BBY. Reawakened sheet: see Era08_MeetraSurik.',
+      core:{str:70,agi:82,end:74,wil:96,cha:84,int:86},
+      force:{fS:84,med:88,fK:82,fC:86,fOut:78},
+      forms:{ShiiCho:80,Soresu:84,Niman:82,Makashi:76,Ataru:74},
+      keyAbilities:{BattleMeditation:86,ForceSense:84,Telekinesis:80,ForceBody:78,ForceBarrier:70}
+    },
+    Era06_MandaloreUltimate: {
+      name:'Mandalore the Ultimate', era:6, faction:'mandalorians', tier:'Legendary-tier mortal warrior-leader (no Force)', alignment:0,
+      context:'Last great Taung Mandalore. Reforged the clans into the Neo-Crusaders. Launched the Mandalorian Wars on advice of Cassus Fett (secretly manipulated by the Sith Emperor). Slain by Revan in single combat.',
+      core:{str:92,agi:82,end:95,wil:92,cha:88,int:84},
+      force:null, forms:null, meleeCombat:92,
+      note:'Not Force-sensitive. Entire Mandalorian fleet and armor system is his weapon. Death passed the Mask to Canderous Ordo.'
+    },
+    Era06_CassusFett: {
+      name:'Cassus Fett', era:6, faction:'mandalorians', tier:'Elite (non-Force warrior-strategist)', alignment:-10,
+      context:'Architect of the Neo-Crusader doctrine; Mandalore\'s primary strategist. Won at Jaga\'s Cluster. Ordered the nuclear bombardments of Serroco and Jebble. Ancestor of the Fett bloodline.',
+      core:{str:84,agi:84,end:84,wil:86,cha:80,int:88},
+      force:null, forms:null, meleeCombat:84
+    },
+    Era06_Kavar: {
+      name:'Kavar', era:6, faction:'jediOrder', tier:'Master (dueling/Force)', alignment:80,
+      context:'Jedi Master and Council member; among the finest blades on the Council. Survived two wars; informal mentor to Meetra Surik. Hunted and killed by the Sith Triumvirate during the First Jedi Purge.',
+      core:{str:70,agi:84,end:72,wil:86,cha:80,int:80},
+      force:{fS:86,med:84,fK:84,fC:86,fOut:80},
+      forms:{Makashi:86,Ataru:84,Soresu:82,ShiiCho:78,Niman:74},
+      keyAbilities:{ForceBody:82,ForceSense:86,Telekinesis:80,BattleMeditation:70,ForceBarrier:72}
+    },
+    Era06_BastilaShak: {
+      name:'Bastila Shan', era:6, faction:'jediOrder', tier:'Legendary (battle meditation) / Veteran duelist', alignment:82,
+      context:'Battle-meditation prodigy; at a young age her gift alone was considered decisive to winning the Jedi Civil War. Ancestor of Satelel and Theron Shan. Full sheet: Era 07. Also note: dark-side variant (Malak\'s captive) is same stats, dark alignment.',
+      core:{str:62,agi:78,end:66,wil:90,cha:84,int:80},
+      force:{fS:88,med:96,fK:82,fC:86,fOut:76},
+      forms:{Ataru:76,Niman:74,ShiiCho:70},
+      keyAbilities:{BattleMeditation:100,ForceSense:88,Telekinesis:78,ForceBarrier:75},
+      note:'Battle Meditation 100 with Force Valor 95% proficiency — could decide a galactic fleet engagement by thought alone.'
+    },
+
+    // ═══ ERA 07 — Jedi Civil War (≈3,959–3,956 BBY) ═══
+    Era07_DarthRevan: {
+      name:'Darth Revan', era:7, faction:'sithEmpire', tier:'Legendary (dueling/leadership/Intelligence/Force breadth)', alignment:-80,
+      context:'Dark Lord of the Sith; wielded the Star Forge. Added Force lightning and life-drain to peerless arsenal. Lateral shift from the Revanchist — already legendary, dark techniques raised ForceOutput. Crimson blade.',
+      core:{str:86,agi:96,end:88,wil:102,cha:98,int:100},
+      force:{fS:94,med:92,fK:100,fC:102,fOut:96},
+      forms:{Niman:100,Juyo:92,Ataru:95,ShienDjemSo:96,Makashi:90,Soresu:90,ShiiCho:90},
+      keyAbilities:{ForceLightning:90,BattleMeditation:95,Telekinesis:92,ForceSense:94,ForceDrain:82,ForceBody:85,MindProbe:85},
+      note:'WIL 102, FCtrl 102, INT 100. One of the few beings to operate at apex level in both light and dark techniques.'
+    },
+    Era07_ProdigalKnight: {
+      name:'Revan (Prodigal Knight)', era:7, faction:'jediOrder', tier:'Legendary (dueling/leadership/Intelligence/Force breadth)', alignment:75,
+      context:'Amnesiac-rebuilt Jedi who destroyed his own Sith Empire. Chose the light when confronted with the truth of who he was. Redeemed Bastila; killed Darth Malak; destroyed the Star Forge. Blue/green blade.',
+      core:{str:84,agi:95,end:86,wil:102,cha:98,int:100},
+      force:{fS:94,med:92,fK:98,fC:100,fOut:92},
+      forms:{Niman:100,Ataru:95,ShienDjemSo:94,Makashi:90,Soresu:92,ShiiCho:90,Juyo:85},
+      keyAbilities:{BattleMeditation:95,ForceSense:94,Telekinesis:92,ForceBody:85,ForceHealSelf:80,MindTrick:88,ForceBarrier:85},
+      note:'Retains working knowledge of dark techniques (lightning, drain) but channels everything through Jedi discipline.'
+    },
+    Era07_DarthMalak: {
+      name:'Darth Malak', era:7, faction:'sithEmpire', tier:'Legendary (dark-side dueling/power)', alignment:-90,
+      context:'Betrayed Revan to seize the Dark Lordship. Jaw replaced with metal vocabulator. Savage power-duelist who drained captive Jedi mid-combat to replenish power. Killed by Revan at the Star Forge.',
+      core:{str:92,agi:86,end:92,wil:88,cha:80,int:76},
+      force:{fS:84,med:74,fK:82,fC:94,fOut:92},
+      forms:{ShienDjemSo:92,Juyo:82,ShiiCho:84,Ataru:78,Soresu:76},
+      keyAbilities:{ForceBody:90,ForceDrain:88,ForceLightning:82,Telekinesis:84,ForceSense:80},
+      note:'Signature: life-drain in battle — siphons Jedi life-force to replenish power mid-combat. A tier below Revan in finesse.'
+    },
+    Era07_JoleeBindo: {
+      name:'Jolee Bindo', era:7, faction:'grayJedi', tier:'Master (Force wisdom)', alignment:30,
+      context:'Gray Jedi who walked away from the Order. Veteran of the Great Sith War. Decades-long hermit in Kashyyyk\'s Shadowlands. Joined Revan\'s quest; offered balanced, pragmatic Force wisdom.',
+      core:{str:56,agi:60,end:62,wil:88,cha:80,int:84},
+      force:{fS:82,med:84,fK:86,fC:82,fOut:78},
+      forms:{Soresu:72,ShiiCho:70,Ataru:62},
+      keyAbilities:{ForceHealSelf:84,ForceSense:82,Telekinesis:78,MindTrick:76,ForceBarrier:72}
+    },
+    Era07_HK47: {
+      name:'HK-47', era:7, faction:'revan', tier:'Elite (non-Force assassination droid)', alignment:-60,
+      context:'Purpose-built assassin droid created by Darth Revan to eliminate Force-users. Survived and operated across centuries; reactivated as late as the SWTOR era. "Jedi hunter" protocols.',
+      core:{str:78,agi:82,end:82,wil:76,cha:50,int:88},
+      force:null, forms:null, rangedCombat:88,
+      note:'INT 88 for lethal tactical cunning. Not Force-sensitive. Contemptuous of organic "meatbags."'
+    },
+
+    // ═══ ERA 08 — Dark Wars & Sith Triumvirate (≈3,955–3,950 BBY) ═══
+    Era08_DarthNihilus: {
+      name:'Darth Nihilus', era:8, faction:'sithTriumvirate', tier:'Legendary (Force drain/raw ForceOutput — 112); near-mindless', alignment:-100,
+      context:'Lord of Hunger. A living wound in the Force with an insatiable hunger to consume Force energy. Consumed the entire population of Katarr in one act. His presence alone drained his own crew. Barely a person — pure hunger. Destroyed at the Battle of Telos IV.',
+      core:{str:78,agi:82,end:88,wil:96,cha:60,int:40},
+      force:{fS:96,med:70,fK:80,fC:108,fOut:112},
+      forms:{ShiiCho:72,ShienDjemSo:70,Juyo:68},
+      keyAbilities:{ForceDrain:115,Telekinesis:95,ForceSense:96,ForceBody:80},
+      note:'INT 40 — barely a mind. FOut 112 is the raw-power canonical showcase for that stat. Force Drain 115 — highest in the timeline. Vulnerable to Force-severed beings (Surik) immune to his hunger.'
+    },
+    Era08_DarthSion: {
+      name:'Darth Sion', era:8, faction:'sithTriumvirate', tier:'Legendary (endurance/pain-immortality)', alignment:-100,
+      context:'Lord of Pain. Body literally held together by hatred and pain channeled through the dark side. Essentially unkillable by physical means — only defeated by breaking his will to keep suffering. Brutal power-duelist.',
+      core:{str:90,agi:78,end:105,wil:102,cha:58,int:64},
+      force:{fS:80,med:64,fK:78,fC:88,fOut:92},
+      forms:{ShienDjemSo:90,Juyo:84,ShiiCho:80,Ataru:72},
+      keyAbilities:{ForceBody:105,ForceRage:92,Telekinesis:80,ForceLightning:60},
+      note:'END 105, WIL 102. Force Body 105 with pain-fueled self-resurrection at 95% proficiency. Can only be defeated by convincing him to stop.'
+    },
+    Era08_DarthTraya: {
+      name:'Darth Traya (Kreia)', era:8, faction:'sithTriumvirate', tier:'Legendary (Force-knowledge/manipulation/Intelligence)', alignment:-80,
+      context:'Lord of Betrayal. Former Jedi Master and one of Revan\'s teachers. Sought to destroy the Force itself. Master manipulator who guided and tested Meetra Surik even while opposing her. Fought with three lightsabers wielded telekinetically.',
+      core:{str:56,agi:64,end:60,wil:100,cha:96,int:102},
+      force:{fS:95,med:92,fK:105,fC:90,fOut:80},
+      forms:{Niman:78,Makashi:76,Soresu:74,ShiiCho:70},
+      keyAbilities:{Telekinesis:92,ForceSense:95,MindProbe:90,MindTrick:90,ForceDrain:82},
+      note:'INT 102, FKnow 105. Signature: telekinetic three-saber style. True weapons are knowledge, prophecy, and betrayal — not combat. "Kreia" and "Darth Traya" are the same being.'
+    },
+    Era08_MeetraSurik: {
+      name:'Meetra Surik (reawakened)', era:8, faction:'jediOrder', tier:'Legendary (Force-bond/empowerment specialist)', alignment:88,
+      context:'The Jedi Exile reawakened. Reconnected to the Force after 9 years severed. Immune to Force-drain (her wound-in-the-Force nature). Destroyed all three Triumvirate members. Killed at Dromund Kaas 3,950 BBY stabbing the Sith Emperor\'s back; endured as a Force ghost sustaining the imprisoned Revan for ~300 years.',
+      core:{str:72,agi:84,end:76,wil:100,cha:90,int:88},
+      force:{fS:88,med:92,fK:86,fC:90,fOut:80},
+      forms:{Soresu:84,ShiiCho:80,Niman:82,Makashi:78,Ataru:78},
+      keyAbilities:{BattleMeditation:88,ForceSense:88,Telekinesis:84,ForceBody:78,ForceHealSelf:80},
+      note:'Signature: Force-bond mastery — forges deep Force connections, empowers allies, awakens latent Force-sensitives. Immune to Force-drain. Wartime sheet in Era06_MeetraSurikWartime.'
+    },
+    Era08_Atris: {
+      name:'Atris', era:8, faction:'jediOrder', tier:'Master (Force scholarship)', alignment:30,
+      context:'Jedi Master and historian who survived the First Jedi Purge. Hid a secret archive of Jedi knowledge on Telos IV — and a cache of Sith holocrons that slowly corrupted her. Turned back from the brink by Surik.',
+      core:{str:56,agi:66,end:60,wil:80,cha:74,int:86},
+      force:{fS:84,med:86,fK:88,fC:80,fOut:76},
+      forms:{Soresu:70,ShiiCho:66,Makashi:64},
+      keyAbilities:{ForceSense:84,Telekinesis:76,BattleMeditation:70,ForceBarrier:72}
     }
   },
 
