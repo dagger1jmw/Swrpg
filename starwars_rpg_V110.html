@@ -5697,6 +5697,40 @@ const FORCE_ABILITY_CATALOG = {
   BattleMeditation:   { fam:'Defense', label:'Battle Meditation',    par:null,               D:4.0,  align:'light',   anchors:['meditation','forceOutput'],     prereqs:{meditation:61, forceControl:41, forceKnowledge:30},             flags:[] },
   ElectricJudgment:   { fam:'Defense', label:'Electric Judgment',    par:null,               D:4.0,  align:'light',   anchors:['forceControl'],                prereqs:{forceControl:41, willpower:40, lightSide:40},                   flags:[] },
 
+  // ── HEALING FAMILY ───────────────────────────────────────────────────────
+  ForceHealOthers:    { fam:'Healing', label:'Force Heal (Others)', par:null, D:2.5,  align:'light',   anchors:['meditation','forceControl'],               prereqs:{ForceHealSelf:21, lightSide:10},                           flags:[] },
+  Revitalize:         { fam:'Healing', label:'Revitalize',          par:null, D:2.5,  align:'light',   anchors:['meditation','forceControl'],               prereqs:{ForceHealOthers:21, meditation:20},                        flags:[] },
+  TransferForce:      { fam:'Healing', label:'Transfer Force',      par:null, D:2.5,  align:'light',   anchors:['meditation','forceOutput'],                prereqs:{ForceHealOthers:30, ForceBarrier:15},                      flags:[] },
+  DetoxifyPoison:     { fam:'Healing', label:'Detoxify Poison',     par:null, D:1.5,  align:'neutral', anchors:['meditation','forceControl'],               prereqs:{meditation:15, ForceHealSelf:10},                          flags:[] },
+  CureDisease:        { fam:'Healing', label:'Cure Disease',        par:null, D:1.5,  align:'neutral', anchors:['meditation','forceControl'],               prereqs:{ForceHealSelf:15},                                         flags:[] },
+  DarkTransfer:       { fam:'Healing', label:'Dark Transfer',       par:null, D:4.0,  align:'dark',    anchors:['forceKnowledge','meditation','forceControl'],prereqs:{ForceHealOthers:61, MidiChlorianManipulation:30},         flags:[] },
+
+  // ── LIGHT SIDE FAMILY ────────────────────────────────────────────────────
+  ForceLight:         { fam:'Light', label:'Force Light',           par:null, D:2.5,  align:'light',   anchors:['forceOutput','forceKnowledge'],            prereqs:{ForceBarrier:30, forceKnowledge:30, lightSide:30},         flags:[] },
+  ForceEnlightenment: { fam:'Light', label:'Force Enlightenment',   par:null, D:4.0,  align:'light',   anchors:['meditation','forceControl'],               prereqs:{meditation:61, forceControl:51},                           flags:[] },
+  AuraOfSerenity:     { fam:'Light', label:'Aura of Serenity',      par:null, D:2.5,  align:'light',   anchors:['meditation','charisma'],                   prereqs:{meditation:41, willpower:30},                             flags:[] },
+  Malacia:            { fam:'Light', label:'Malacia',               par:null, D:2.5,  align:'light',   anchors:['forceControl','forceSense'],               prereqs:{forceControl:41, MindTrick:21},                           flags:[] },
+  FloatingMeditation: { fam:'Light', label:'Floating Meditation',   par:null, D:1.5,  align:'neutral', anchors:['meditation'],                              prereqs:{meditation:41, Telekinesis:21},                           flags:[] },
+  Revelation:         { fam:'Light', label:'Revelation',            par:null, D:2.5,  align:'light',   anchors:['forceSense','forceKnowledge'],             prereqs:{forceSense:41, forceKnowledge:30, lightSide:20},           flags:[] },
+
+  // ── DARK SIDE FAMILY ─────────────────────────────────────────────────────
+  // ForceLightning tree: ForceShock, ChainLightning, ForceStorm are sub-apps.
+  ForceLightning:     { fam:'Dark', label:'Force Lightning',        par:null,              D:null, align:'dark', anchors:['forceOutput','forceControl'],    prereqs:{forceControl:41, darkSide:20},                            flags:[] },
+  ForceShock:         { fam:'Dark', label:'Force Shock',            par:'ForceLightning',  D:1.0,  align:'dark', anchors:['forceOutput'],                   prereqs:{ForceLightning:10},                                       flags:[] },
+  ChainLightning:     { fam:'Dark', label:'Chain Lightning',        par:'ForceLightning',  D:2.5,  align:'dark', anchors:['forceOutput'],                   prereqs:{ForceLightning:30, darkSide:30},                          flags:[] },
+  ForceStorm:         { fam:'Dark', label:'Force Storm (Lightning)', par:'ForceLightning', D:4.0,  align:'dark', anchors:['forceOutput'],                   prereqs:{ForceLightning:61, darkSide:60},                          flags:[] },
+  ForceDrain:         { fam:'Dark', label:'Force Drain',            par:null,              D:2.5,  align:'dark', anchors:['forceOutput','forceControl'],    prereqs:{forceControl:30, darkSide:25},                            flags:[] },
+  ForceRage:          { fam:'Dark', label:'Force Rage',             par:null,              D:1.5,  align:'dark', anchors:['forceOutput'],                   prereqs:{ForceStrength:15, darkSide:20},                           flags:[] },
+  ForceScream:        { fam:'Dark', label:'Force Scream',           par:null,              D:2.5,  align:'dark', anchors:['forceOutput'],                   prereqs:{darkSide:40, willpower:40},                               flags:[] },
+  WavesOfDarkness:    { fam:'Dark', label:'Waves of Darkness',      par:null,              D:2.5,  align:'dark', anchors:['forceOutput'],                   prereqs:{darkSide:50, forceControl:41},                            flags:[] },
+  Darksight:          { fam:'Dark', label:'Darksight',              par:null,              D:1.5,  align:'dark', anchors:['forceSense'],                    prereqs:{forceSense:21, darkSide:15},                              flags:[] },
+  DarkEnergyTrap:     { fam:'Dark', label:'Dark Energy Trap',       par:null,              D:2.5,  align:'dark', anchors:['forceControl','forceKnowledge'], prereqs:{forceControl:41, darkSide:30},                            flags:[] },
+  DeadlySight:        { fam:'Dark', label:'Deadly Sight',           par:null,              D:4.0,  align:'dark', anchors:['forceOutput','forceControl'],    prereqs:{darkSide:70, forceControl:71},                            flags:[] },
+  ForceSubjugate:     { fam:'Dark', label:'Force Subjugate',        par:null,              D:4.0,  align:'dark', anchors:['forceControl','forceSense'],     prereqs:{MindControl:21, darkSide:30},                             flags:[] },
+  SuttaChwituskak:    { fam:'Dark', label:'Sutta Chwituskak',       par:null,              D:4.0,  align:'dark', anchors:['forceKnowledge','forceControl'], prereqs:{forceKnowledge:61, darkSide:60},                          flags:[] },
+  FieryEnergy:        { fam:'Dark', label:'Fiery Energy',           par:null,              D:1.5,  align:'dark', anchors:['forceOutput'],                   prereqs:{darkSide:30, Telekinesis:21},                             flags:[] },
+  SpearOfMidnightBlack:{ fam:'Dark', label:'Spear of Midnight Black',par:null,             D:4.0,  align:'dark', anchors:['forceOutput','forceControl'],    prereqs:{darkSide:60, forceControl:61},                            flags:[] },
+
   // ── more families added below ─────────────────────────────────────────────
 
 };
