@@ -5944,6 +5944,198 @@ const LORE_DATABASE = {
       note:'Stats shown are freed/recovered state (~3,640 BBY). Current imprisoned state is significantly degraded. His influence is legend only in 3,661 BBY.'
     },
 
+    // ─── Era 09 additions — characters not in the active-era section above ──────
+    // (Vitiate, Malgus, Marr, Scourge, Satelel, Zym, OrgusDin, Angral, Baras,
+    //  Malcom, HyloVisz, Revan already in the active-era section with statusIn3661.)
+
+    Era09_DreadMasters: {
+      name:'Dread Masters (Bestia, Brontes, Tyrans, Styrak, Calphayus, Raptus)', era:9,
+      faction:'sithEmpire', tier:'Legendary (six unified) / High Master (individually)', alignment:-90,
+      context:'Six ancient Sith Lords who mastered the Phobis devices, harnessing their fear-energy to project crippling terror via battle meditation. In unison aboard their dreadnought, they could rout entire Republic fleets anonymously. Served the Emperor for centuries; captured 3,668 BBY; freed; went rogue; destroyed at Oricon 3,638 BBY. Calphayus alone survived.',
+      core:{str:66,agi:70,end:70,wil:96,cha:80,int:84},
+      force:{fS:90,med:100,fK:92,fC:92,fOut:86},
+      forms:{ShiiCho:70,Makashi:74,Soresu:70},
+      keyAbilities:{BattleMeditation:100,MindProbe:88,ForceSense:90,Telekinesis:78},
+      note:'Battle Meditation 100 (fear-projection in unison, 98%) — can rout entire fleets. Legendary only as the unified six; each is High Master individually. Phobis-device sorcery unique technique.'
+    },
+    Era09_DarthJadus: {
+      name:'Darth Jadus', era:9,
+      faction:'sithEmpire', tier:'Legendary (dark-side power) — rated second only to the Emperor', alignment:-100,
+      context:'Cold, terrifying Dark Councilor. Imperial Intelligence rated him second only to the Emperor; the Emperor agreed, calling him the best Sith the Empire had produced "despite being deeply flawed." His dark-side presence inflicted physical pain on those near him. Overseer of Imperial Intelligence; faked his death to launch a unifying coup.',
+      core:{str:74,agi:76,end:82,wil:100,cha:84,int:90},
+      force:{fS:92,med:84,fK:96,fC:98,fOut:96},
+      forms:{Makashi:80,Soresu:76,ShiiCho:76},
+      keyAbilities:{ForceLightning:95,MindProbe:90,Telekinesis:88,ForceDrain:82},
+      note:'Aura of dread unique technique: physical pain inflicted by his mere presence. FCtrl 98 / FOut 96 — most powerful Dark Councilor behind only Vitiate.'
+    },
+    Era09_ShaeVizla: {
+      name:'Shae Vizla (later Mandalore the Avenger in Era 09B)', era:9,
+      faction:'mandalorian', tier:'Elite (non-Force Mandalorian hunter)', alignment:-20,
+      context:'Most legendary Mandalorian warrior of the era. Employed by the Sith for its deadliest missions; infiltrated the Jedi Temple during the Sacking of Coruscant (3,653 BBY) and destroyed the planetary defense grid. Deep hatred of the Jedi. Takes the Mask as Mandalore the Avenger in the Eternal Empire arc.',
+      core:{str:78,agi:86,end:80,wil:86,cha:72,int:76},
+      force:null, forms:null, meleeCombat:86,
+      note:'Not Force-sensitive. Full arsenal: jetpack, dual flamethrowers, wrist rockets, blasters, vibroblades. Among the deadliest mortal non-Force beings of the era.'
+    },
+    Era09_HeroOfTython: {
+      name:'Hero of Tython (Jedi Knight class, prime)', era:9,
+      faction:'jediOrder', tier:'Legendary-adjacent (dueling); High Master Force', alignment:85,
+      context:'The Jedi whose coming Lord Scourge foresaw 300 years earlier. Trained under Orgus Din; destroyed Darth Angral; briefly enthralled by the Emperor then freed by Orgus\'s spirit; destroyed the Emperor\'s host body on Dromund Kaas. The Republic\'s greatest Jedi war-hero of the Cold/Galactic War era. NOTE: in 3,661 BBY this character is ~18 years before their prime.',
+      core:{str:80,agi:90,end:84,wil:92,cha:82,int:80},
+      force:{fS:86,med:80,fK:82,fC:90,fOut:86},
+      forms:{Ataru:90,ShienDjemSo:86,ShiiCho:82,Juyo:80},
+      keyAbilities:{ForceBody:86,Telekinesis:84,ForceSense:86,ForceBarrier:80,ForceHeal:72}
+    },
+    Era09_Barsentthor: {
+      name:'Barsen\'thor — Warden of the Order (Jedi Consular class, prime)', era:9,
+      faction:'jediOrder', tier:'Legendary (Force depth / healing / knowledge)', alignment:90,
+      context:'Third-ever Barsen\'thor and first in thousands of years. Found the Fount of Rajivari; cured a Force-plague destroying Jedi Masters; rebuilt the Rift Alliance. Deepest Force connection of the era\'s Jedi. NOTE: in 3,661 BBY this character is ~18 years before their prime.',
+      core:{str:60,agi:70,end:66,wil:94,cha:86,int:88},
+      force:{fS:90,med:92,fK:92,fC:90,fOut:82},
+      forms:{Soresu:76,Niman:74,ShiiCho:70},
+      keyAbilities:{ForceHeal:92,ForceSense:90,Telekinesis:85,ForceBarrier:88},
+      note:'Force-plague cleansing unique technique (95%) — cured an affliction even Masters could not resist.'
+    },
+    Era09_EmperorsWrath: {
+      name:'Emperor\'s Wrath — Sith Warrior class (prime)', era:9,
+      faction:'sithEmpire', tier:'Legendary-adjacent (dueling / raw power)', alignment:-85,
+      context:'Darth Baras\'s former apprentice; elevated by the Emperor to Wrath — personal executioner ranking above the Dark Council. Exposed and destroyed the treacherous Baras; later hunted the rogue Dread Masters at Oricon. NOTE: in 3,661 BBY this character is ~18 years before their prime.',
+      core:{str:92,agi:86,end:90,wil:92,cha:78,int:76},
+      force:{fS:82,med:70,fK:78,fC:92,fOut:90},
+      forms:{ShienDjemSo:92,Juyo:86,ShiiCho:84,Ataru:80},
+      keyAbilities:{ForceBody:90,ForceRage:86,ForceLightning:82,Telekinesis:84}
+    },
+    Era09_DarthNox: {
+      name:'Darth Nox — Sphere of Ancient Knowledge (Sith Inquisitor class, prime)', era:9,
+      faction:'sithEmpire', tier:'Legendary (Sith sorcery / Force-knowledge)', alignment:-85,
+      context:'Former slave who rose from acolyte to Dark Lord and Dark Council member. Master of esoteric Sith sorcery; bound multiple ancient Force ghosts to draw on their power. NOTE: in 3,661 BBY this character is ~18 years before their prime.',
+      core:{str:64,agi:78,end:70,wil:92,cha:82,int:88},
+      force:{fS:88,med:82,fK:94,fC:94,fOut:88},
+      forms:{Niman:80,Ataru:78,Makashi:76},
+      keyAbilities:{ForceLightning:92,SithAlchemy:88,Telekinesis:86,ForceDrain:80},
+      note:'Spirit-binding unique technique: bound ancient Force ghosts to augment their own power. Saberstaff/dual-wield (Jar\'Kai 78).'
+    },
+    Era09_CipherNine: {
+      name:'Cipher Nine — Imperial Intelligence (Agent class, prime)', era:9,
+      faction:'imperialIntelligence', tier:'Elite (non-Force operative)', alignment:-40,
+      context:'Imperial Intelligence\'s premier infiltrator. Dismantled the galaxy-spanning Star Cabal conspiracy. Survived Castellan mind-control conditioning. INT 90. Not Force-sensitive.',
+      core:{str:64,agi:84,end:70,wil:88,cha:82,int:90},
+      force:null, forms:null, rangedCombat:84
+    },
+    Era09_GrandChampion: {
+      name:'Grand Champion of the Great Hunt (Bounty Hunter class, prime)', era:9,
+      faction:'independent', tier:'Elite (non-Force armored hunter)', alignment:0,
+      context:'Won the galaxy\'s most prestigious bounty-hunting competition; earned Mandalorian honors. Hunted Jedi and Sith marks. Not Force-sensitive.',
+      core:{str:78,agi:84,end:80,wil:84,cha:74,int:78},
+      force:null, forms:null, meleeCombat:84
+    },
+    Era09_Voidhound: {
+      name:'Voidhound (Smuggler class, prime)', era:9,
+      faction:'independent', tier:'Elite (non-Force pilot/gunslinger)', alignment:10,
+      context:'Legendary smuggler-captain who earned the Voidhound moniker. Foiled Imperial sabotage; earned a Republic privateer\'s commission. Defined by piloting, quick-draw, and improvisation.',
+      core:{str:62,agi:82,end:66,wil:80,cha:88,int:82},
+      force:null, forms:null, rangedCombat:82
+    },
+    Era09_Meteor: {
+      name:'Meteor — Havoc Squad CO (Trooper class, prime)', era:9,
+      faction:'republic', tier:'Elite (non-Force soldier-commander)', alignment:80,
+      context:'Rebuilt Havoc Squad after most of it defected to the Empire; hunted down the traitors. Republic\'s premier special-forces commander of the Cold/Galactic War era.',
+      core:{str:82,agi:78,end:84,wil:86,cha:78,int:80},
+      force:null, forms:null, rangedCombat:84
+    },
+
+    // ═══ ERA 09B — Eternal Empire, Alliance & Later SWTOR (≈3,637–3,620 BBY) ═══
+    // LEGENDS-ADJACENT: Post-April 2014 SWTOR content. One continuous SWTOR story
+    // with no Disney-canon overlap; treated here as the Legends Old Republic continuation.
+    // legendsAdjacent:true is flagged on each entry for transparency.
+    // No statusIn3661 — these events are ~25 years after the campaign's year.
+    Era09B_Valkorion: {
+      name:'Valkorion — Immortal Emperor of Zakuul (pointer to Era 09 Vitiate)', era:'9b', legendsAdjacent:true,
+      faction:'eternalEmpire', tier:'LEGENDARY — APEX (same recalibrated apex as Era 09 Vitiate)',
+      context:'Valkorion is the same entity as Vitiate/Tenebrae. After consuming Ziost as a spirit, Vitiate occupied a Zakuulan warrior named Valkorion (suppressing the man\'s own mind) and secretly built/ruled the Eternal Empire for centuries. His body was destroyed in 3,636 BBY by Arcann; his spirit lodged in the Outlander\'s mind. Permanently destroyed using Dramath\'s holocron. Era 03 origin; Era 09 apex stats; final death here.',
+      note:'Use Era09 Vitiate stats: FKnow 134 / WIL 135 / FCtrl 130 / FOut 130, galactic-drain ability ~145. Apex dark-side specialist; below peak Luke (~138). The mortal host\'s body before possession had no apex stats.'
+    },
+    Era09B_Arcann: {
+      name:'Arcann', era:'9b', legendsAdjacent:true,
+      faction:'eternalEmpire', tier:'Legendary-adjacent (dueling / Force power)', alignment:-70,
+      context:'Son of Senya Tirall and the entity in Valkorion. Grew up starved of his father\'s regard; replaced his arm and half his face with cybernetics after an explosion. Killed his twin Thexan in a failed attempt on Valkorion; seized the Eternal Throne; ruled five harsh years. Defeated, healed on Voss by Senya, and redeemed — returned to aid the Alliance against Vaylin. Yellow-white single blade; Djem So power-duelist.',
+      core:{str:86,agi:84,end:88,wil:90,cha:78,int:74},
+      force:{fS:84,med:72,fK:78,fC:92,fOut:88},
+      forms:{ShienDjemSo:88,ShiiCho:84,Juyo:80,Ataru:78},
+      keyAbilities:{ForceBody:86,Telekinesis:84,ForceRage:80,ForceLightning:78}
+    },
+    Era09B_Vaylin: {
+      name:'Vaylin', era:'9b', legendsAdjacent:true,
+      faction:'eternalEmpire', tier:'Legendary (ForceOutput 108 — raw telekinetic might; INT 70 — shattered psyche)', alignment:-100,
+      context:'Youngest child of Senya and the entity in Valkorion. Her raw Force power terrified Valkorion himself — he imprisoned her on Nathema and shattered her psyche through brutal conditioning. Freed of conditioning, she became arguably the most raw-powerful Force-user of the era; telekinetically ripped apart structures and warships. Seized the Eternal Throne after Arcann. Killed by the Commander ~3,632 BBY.',
+      core:{str:78,agi:88,end:84,wil:96,cha:70,int:70},
+      force:{fS:90,med:64,fK:80,fC:102,fOut:108},
+      forms:{Juyo:86,Ataru:84,ShiiCho:82,ShienDjemSo:80},
+      keyAbilities:{Telekinesis:108,ForceLightning:92,ForceRage:90,ForceBody:84},
+      note:'FOut 108 — canonical per-stat legendary showcase for raw power. Mass telekinesis 95% proficiency (ripped apart warships). INT 70 mirrors Nihilus: extraordinary in one dimension, broken elsewhere. Strongest non-apex Force-user of the SWTOR era.'
+    },
+    Era09B_Thexan: {
+      name:'Thexan', era:'9b', legendsAdjacent:true,
+      faction:'eternalEmpire', tier:'Elite (Zakuul royal duelist)', alignment:-30,
+      context:'Arcann\'s elder twin, more measured and loyal. Led the Eternal Fleet\'s Core Worlds raids. Died trying to restrain Arcann from killing their father — struck down by Arcann\'s own blade.',
+      core:{str:82,agi:84,end:82,wil:84,cha:76,int:76},
+      force:{fS:82,med:70,fK:76,fC:88,fOut:84},
+      forms:{ShienDjemSo:84,Soresu:82,ShiiCho:80,Niman:78},
+      keyAbilities:{ForceBody:82,Telekinesis:80,ForceSense:82}
+    },
+    Era09B_SenyaTirall: {
+      name:'Senya Tirall', era:'9b', legendsAdjacent:true,
+      faction:'eternalAlliance', tier:'Elite (Zakuul Knight / Force duelist)', alignment:30,
+      context:'Principled Knight of Zakuul who rose to Valkorion\'s personal guard; his consort; mother of Arcann, Thexan, and Vaylin. Troubled by Valkorion\'s cruelty toward their children. Defected; joined the Alliance; helped redeem Arcann and ultimately helped destroy Valkorion\'s spirit using Dramath\'s holocron. Wields a lightsaber pike or single saber.',
+      core:{str:70,agi:82,end:74,wil:88,cha:78,int:78},
+      force:{fS:82,med:74,fK:76,fC:84,fOut:78},
+      forms:{Soresu:80,Makashi:78,Ataru:78,ShiiCho:74},
+      keyAbilities:{ForceBody:80,Telekinesis:80,ForceSense:82,ForceBarrier:78}
+    },
+    Era09B_LanaBeniko: {
+      name:'Lana Beniko', era:'9b', legendsAdjacent:true,
+      faction:'eternalAlliance', tier:'Elite–high (Sith spymaster / Force); Veteran duelist', alignment:-30,
+      context:'Pragmatic, serene Sith Lord so measured she could be mistaken for a Jedi. Former Minister of Sith Intelligence; freed the Outlander from carbonite; co-founded the Eternal Alliance; its spymaster and one of the Commander\'s most trusted advisers. Central through every later SWTOR expansion.',
+      core:{str:60,agi:74,end:66,wil:88,cha:84,int:86},
+      force:{fS:82,med:78,fK:84,fC:84,fOut:78},
+      forms:{Makashi:76,Soresu:74,ShiiCho:70},
+      keyAbilities:{ForceLightning:78,SithAlchemy:78,MindProbe:76,Telekinesis:76}
+    },
+    Era09B_TheronShan: {
+      name:'Theron Shan (adult prime)', era:'9b', legendsAdjacent:true,
+      faction:'eternalAlliance', tier:'Elite (non-Force operative)', alignment:60,
+      context:'Son of Grand Master Satelel Shan and Supreme Commander Jace Malcom; descendant of Revan and Bastila — yet not Force-sensitive. Brilliant Republic SIS agent; co-founded and co-led the Eternal Alliance. NOTE: in 3,661 BBY he is ~age 5 (a young child).',
+      core:{str:64,agi:80,end:70,wil:84,cha:82,int:86},
+      force:null, forms:null, rangedCombat:78,
+      note:'Not Force-sensitive despite being Shan bloodline (Revan → Bastila → Satelel → Theron). INT 86.'
+    },
+    Era09B_SCORPIO: {
+      name:'SCORPIO (GEMINI / Eternal Fleet controller)', era:'9b', legendsAdjacent:true,
+      faction:'eternalThrone', tier:'Elite (non-Force superintelligence; strategically legendary via the Fleet)', alignment:-20,
+      context:'Ancient, self-evolving droid intelligence obsessed with freedom and self-improvement. Schemed across KotFE/KotET to seize the GEMINI network commanding the autonomous Eternal Fleet — the armada that let Zakuul defeat both the Republic and Sith Empire. Briefly took control of the Fleet before being defeated.',
+      core:{str:70,agi:66,end:80,wil:90,cha:60,int:95},
+      force:null, forms:null,
+      note:'INT 95 — superintelligence. Commands the Eternal Fleet via GEMINI network. Not Force-sensitive. The Eternal Fleet is the true strategic weapon of Zakuul.'
+    },
+    Era09B_MalgusReturned: {
+      name:'Darth Malgus (returned / resurrected)', era:'9b', legendsAdjacent:true,
+      faction:'sithRogue', tier:'Legendary-adjacent (same tier as Era 09; heavier cybernetics)', alignment:-90,
+      context:'Believed dead after Ilum (~3,640 BBY); secretly retrieved and rebuilt with extensive cybernetics by Darth Acina as her controlled enforcer. Returned at Ossus; destroyed his own control chip to break free. Through Onslaught and Legacy of the Sith pursues an inscrutable agenda involving Darth Nul\'s holocron. More machine than man, but as powerful as ever.',
+      core:{str:90,agi:80,end:94,wil:96,cha:84,int:82},
+      force:{fS:84,med:72,fK:82,fC:95,fOut:92},
+      forms:{ShienDjemSo:92,ShiiCho:82,Juyo:80,Ataru:76},
+      keyAbilities:{Telekinesis:88,ForceLightning:85,ForceBody:88,ForceBarrier:78},
+      note:'Same being as Era09 DarthMalgus. END 92→94, FOut 90→92 via heavy cybernetic augmentation. Survived apparent death multiple times.'
+    },
+    Era09B_AcinaVowrawn: {
+      name:'Empress Acina / Emperor Vowrawn (Imperial rulers post-Zakuul)', era:'9b', legendsAdjacent:true,
+      faction:'sithEmpire', tier:'High Master (Sith / leadership)', alignment:-70,
+      context:'With Vitiate gone and the Dark Council gutted, leadership passed to survivors. Darth Acina (Sphere of Technology; secretly resurrected Malgus) became Empress; the charming, cunning Darth Vowrawn rules as Emperor in alternate timelines. Both capable Sith and pragmatic rulers steering the Empire through the post-Zakuul wars.',
+      core:{str:64,agi:70,end:70,wil:90,cha:88,int:86},
+      force:{fS:82,med:80,fK:86,fC:86,fOut:80},
+      forms:{Makashi:78,Soresu:74,ShiiCho:72},
+      keyAbilities:{ForceLightning:82,Telekinesis:80,SithAlchemy:78,MindProbe:76}
+    },
+
     // ─── Historical Eras (01-08) ───────────────────────────────────
     // Canonical reference entries for historical Force users.
     // 'era' = source era number. No statusIn3661 — not in active campaign.
