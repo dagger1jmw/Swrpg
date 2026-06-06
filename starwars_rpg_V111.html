@@ -6512,6 +6512,432 @@ const LORE_DATABASE = {
       force:{fS:84,med:86,fK:88,fC:80,fOut:76},
       forms:{Soresu:70,ShiiCho:66,Makashi:64},
       keyAbilities:{ForceSense:84,Telekinesis:76,BattleMeditation:70,ForceBarrier:72}
+    },
+
+    // ═══ ERA 10 — New Sith Wars / Rise of Darth Bane (≈2,000–990 BBY) ═══
+    Era10_DarthBane: {
+      name:'Darth Bane', era:10, faction:'sith', tier:'Legendary (~114) — top of standard legendary, just below Tier A', alignment:-100,
+      context:'Destroyer of the Brotherhood of Darkness and architect of the Rule of Two. Survived Ruusan through the thought bomb by shielding in orbalisk armor — then purged the Brotherhood and rebuilt Sith philosophy entirely. The most powerful Sith between the ancient Dark Lords and the Plagueis-Sidious lineage.',
+      core:{str:96,agi:92,end:104,wil:114,cha:90,int:100},
+      force:{fS:94,med:88,fK:106,fC:110,fOut:112},
+      forms:{ShienDjemSo:104,Juyo:94,Soresu:92,ShiiCho:90,Ataru:90,Makashi:88,Niman:88},
+      keyAbilities:{ForceLightning:110,ForceBody:108,Telekinesis:105,SithAlchemy:100,MindProbe:90},
+      note:'Orbalisk armor unique technique. Top of standard legendary (~114), just below Tier A apex cluster (Vitiate 134, Krayt 132, Palpatine 130).'
+    },
+    Era10_DarthZannah: {
+      name:'Darth Zannah', era:10, faction:'sith', tier:'Legendary-adjacent (sorcery/mind-attack specialist)', alignment:-90,
+      context:'Bane\'s chosen apprentice, selected on Ruusan for her exceptional Force connection. Mastered Sith sorcery and mind-attack techniques unique to herself — implanting madness, terror, and illusions at expert level. Ultimately defeated Bane in combat to claim the mantle of Dark Lord.',
+      core:{str:60,agi:76,end:66,wil:94,cha:80,int:92},
+      force:{fS:88,med:80,fK:96,fC:96,fOut:92},
+      forms:{Soresu:86,Niman:76,Ataru:74,ShiiCho:72},
+      keyAbilities:{MindProbe:105,MindTrick:100,ForceLightning:90,Telekinesis:85},
+      note:'Unique: mind-attack sorcery (MindProbe 105 — implants madness, terror, illusions at expert proficiency).'
+    },
+    Era10_DarthCognus: {
+      name:'Darth Cognus', era:10, faction:'sith', tier:'Master (Force precognition)', alignment:-85,
+      context:'Iktotchi Sith apprentice selected by Zannah to carry the Rule of Two forward. Her species\' innate precognition fused with Sith training to give her exceptional Force Sense. Became Darth Millennial\'s master and continued the lineage toward Plagueis.',
+      core:{str:66,agi:84,end:72,wil:84,cha:64,int:78},
+      force:{fS:88,med:70,fK:78,fC:82,fOut:78},
+      forms:{Ataru:82,ShiiCho:76,Juyo:74},
+      keyAbilities:{ForceSense:88,Telekinesis:74},
+      note:'Iktotchi species innate precognition (ForceSense 88, Precognition proficiency 90%). The Rule of Two\'s continuator.'
+    },
+    Era10_LordKaan: {
+      name:'Lord Kaan', era:10, faction:'sith', tier:'Master (Battle Meditation)', alignment:-85,
+      context:'Leader of the Brotherhood of Darkness — the last of the old Sith order. Charismatic and powerful, he commanded the Sith armies at Ruusan through battle meditation. Descended into madness in the final stages and detonated the thought bomb that killed both armies, destroying the Brotherhood.',
+      core:{str:70,agi:74,end:72,wil:84,cha:92,int:80},
+      force:{fS:84,med:86,fK:86,fC:88,fOut:82},
+      forms:{Soresu:76,ShiiCho:72,Makashi:70},
+      keyAbilities:{BattleMeditation:90,Telekinesis:80,ForceLightning:76},
+      note:'Thought bomb unique technique. Descended into madness at Ruusan end; self-destructed the Brotherhood.'
+    },
+    Era10_Kasim: {
+      name:'Kasim (Blademaster)', era:10, faction:'sith', tier:'Legendary (pure bladework technician)', alignment:-70,
+      context:'The finest pure lightsaber technician of the New Sith Wars era — a master of all seven forms simultaneously with Jar\'Kai added. Not the most powerful Force-user but arguably the most complete duelist of his time.',
+      core:{str:78,agi:94,end:78,wil:82,cha:70,int:76},
+      force:{fS:82,med:70,fK:72,fC:82,fOut:78},
+      forms:{JarKai:100,Niman:98,Ataru:98,Makashi:96,Soresu:94,Juyo:94,ShiiCho:92,ShienDjemSo:92},
+      keyAbilities:{ForceSense:82,Telekinesis:76}
+    },
+    Era10_Githany: {
+      name:'Githany', era:10, faction:'sith', tier:'Master (seduction/lightwhip)', alignment:-80,
+      context:'Sith agent who defected from the Jedi Order, trained under Lord Kaan. Specialized in the lightwhip, poison, and seduction techniques. Attempted to corrupt Zannah and manipulate Bane — ultimately outmaneuvered.',
+      core:{str:58,agi:74,end:62,wil:80,cha:86,int:80},
+      force:{fS:78,med:70,fK:80,fC:80,fOut:74},
+      forms:{Makashi:68},
+      keyAbilities:{MindTrick:82,Telekinesis:72},
+      note:'Lightwhip 74 (exotic weapon). Poison and seduction specialist.'
+    },
+    Era10_LordHoth: {
+      name:'Lord Hoth', era:10, faction:'jediOrder', tier:'Master (Army of Light commander)', alignment:80,
+      context:'Supreme commander of the Army of Light — the Jedi force that fought the Brotherhood of Darkness at Ruusan. A warrior-Jedi of great power and exceptional leadership who led seven brutal campaigns on Ruusan before the thought bomb ended the war.',
+      core:{str:76,agi:76,end:78,wil:92,cha:88,int:84},
+      force:{fS:86,med:88,fK:84,fC:88,fOut:82},
+      forms:{ShienDjemSo:82,ShiiCho:80,Soresu:78,Ataru:76},
+      keyAbilities:{BattleMeditation:88,Telekinesis:82,ForceSense:86}
+    },
+    Era10_Farfalla: {
+      name:'Lord Farfalla', era:10, faction:'jediOrder', tier:'Master', alignment:75,
+      context:'Jedi Master and cavalry commander of the Army of Light. A flamboyant, skilled duelist who commanded a private starfleet and answered Hoth\'s call to Ruusan after initially hesitating. A central figure in the final Ruusan battles.',
+      core:{str:70,agi:82,end:72,wil:86,cha:86,int:84},
+      force:{fS:84,med:82,fK:82,fC:84,fOut:78},
+      forms:{Ataru:82,Makashi:80,ShiiCho:76,Soresu:76},
+      keyAbilities:{ForceSense:84,Telekinesis:78,BattleMeditation:74}
+    },
+    Era10_JohunOthone: {
+      name:'Johun Othone', era:10, faction:'jediOrder', tier:'Knight', alignment:80,
+      context:'Padawan of Lord Hoth who survived the thought bomb. Witnessed the destruction of the Brotherhood and the death of his master. Became a Knight who devoted himself to cataloguing Ruusan for the Jedi Archives.',
+      core:{str:60,agi:72,end:64,wil:84,cha:76,int:74},
+      force:{fS:78,med:72,fK:72,fC:76,fOut:72},
+      forms:{ShiiCho:72,Soresu:70,Ataru:70},
+      keyAbilities:{ForceSense:78,Telekinesis:70}
+    },
+
+    // ═══ ERA 11 — Republic Era / Rise of Empire (≈990–22 BBY) ═══
+    Era11_DarthPlagueis: {
+      name:'Darth Plagueis', era:11, faction:'sith', tier:'Legendary (midi-chlorian manipulation)', alignment:-95,
+      context:'Darth Bane\'s successor at the end of the Rule of Two lineage — Palpatine\'s master. A Muun financier and Sith scholar who pioneered midi-chlorian manipulation to create and sustain life. The architect of Palpatine\'s rise. Killed in his sleep by his own apprentice.',
+      core:{str:64,agi:78,end:70,wil:96,cha:88,int:100},
+      force:{fS:90,med:86,fK:102,fC:96,fOut:92},
+      forms:{Makashi:80,Ataru:78},
+      keyAbilities:{ForceKnowledge:102,Telekinesis:88,ForceLightning:82,MindProbe:80},
+      note:'Midi-chlorian manipulation unique technique (proficiency ~98%). Legendary ForceKnowledge (102) and Intelligence (100).'
+    },
+    Era11_DarthSidious: {
+      name:'Darth Sidious (Chancellor-era)', era:11, faction:'sith', tier:'Legendary (~112) — apex-adjacent; rises to Tier A (~130) in Dark Times era', alignment:-100,
+      context:'Senator Palpatine of Naboo; Darth Plagueis\'s apprentice and murderer. Orchestrated the fall of the Republic from within over decades. His full power still hidden in this era (~112); rises to ~130 by the Empire era (Era13) and ~135 as the reborn Dark Empire clone (Era14).',
+      core:{str:70,agi:84,end:80,wil:112,cha:108,int:100},
+      force:{fS:100,med:96,fK:108,fC:110,fOut:108},
+      forms:{Juyo:100,Makashi:96,Soresu:95,Ataru:95,Niman:94,ShienDjemSo:94,ShiiCho:92},
+      keyAbilities:{ForceLightning:112,Telekinesis:100,MindDomination:96,SithAlchemy:90},
+      note:'Chancellor-era power ~112. Same being as Era13 Palpatine (~130) and Era14 reborn Palpatine (~135). Full power hidden in this era.'
+    },
+    Era11_DarthMaul: {
+      name:'Darth Maul', era:11, faction:'sith', tier:'Master (combat specialist)', alignment:-95,
+      context:'Darth Sidious\'s first apprentice, taken as a child and trained from birth as a living weapon. A terrifying combat machine with minimal personality beyond the mission. Bisected by Obi-Wan Kenobi at Naboo. INT 64 is a canonical per-stat counterpoint to other legendary Force users.',
+      core:{str:80,agi:96,end:84,wil:88,cha:60,int:64},
+      force:{fS:80,med:64,fK:70,fC:82,fOut:82},
+      forms:{Juyo:92,Ataru:88,ShiiCho:82},
+      keyAbilities:{ForceBody:88,Telekinesis:78,ForceSense:80},
+      note:'Saberstaff 94 (double-bladed specialist). Dies at Naboo in core Legends (bisected by Obi-Wan). INT 64 is a canonical per-stat extreme counterpoint.'
+    },
+    Era11_Yoda: {
+      name:'Yoda (Prequel-era)', era:11, faction:'jediOrder', tier:'Grandmaster', alignment:95,
+      context:'Grand Master of the Jedi Order for most of the Republic era. At ~900 years of age, the most experienced living Jedi. His mastery of Ataru at his size and age is legendary. Meditation and ForceKnowledge at Grandmaster-peak. Absorbed Sidious\'s lightning via ForceBarrier.',
+      core:{str:60,agi:92,end:80,wil:104,cha:90,int:96},
+      force:{fS:100,med:102,fK:102,fC:100,fOut:95},
+      forms:{Ataru:100,ShiiCho:90,Soresu:88,Makashi:88,Niman:86},
+      keyAbilities:{Telekinesis:102,ForceBarrier:92,BattleMeditation:88,ForceSense:100},
+      note:'Absorbed Palpatine\'s Force Lightning with ForceBarrier (Force Absorb 92). ~900 years old in this era.'
+    },
+    Era11_MaceWindu: {
+      name:'Mace Windu', era:11, faction:'jediOrder', tier:'Grandmaster (Vaapad creator)', alignment:70,
+      context:'Member of the Jedi High Council and one of the greatest duelists of the Republic era. Creator and only true master of Vaapad — which channels dark side fury without succumbing to it. His Shatterpoint ability lets him perceive weak points in situations and beings. Near-defeated Palpatine in direct combat.',
+      core:{str:78,agi:88,end:80,wil:94,cha:84,int:86},
+      force:{fS:88,med:84,fK:86,fC:92,fOut:88},
+      forms:{Vaapad:98,ShiiCho:88,Soresu:86,Ataru:84},
+      keyAbilities:{Telekinesis:86,ForceSense:88,ForceBody:82},
+      note:'ERA-LOCKED: Vaapad requires maceLiving flag — impossible in 3,661 BBY era. Vaapad 98 (sole true master). Shatterpoint unique technique (92%). Killed by Palpatine/Windu confrontation in Legends.'
+    },
+    Era11_QuiGonJinn: {
+      name:'Qui-Gon Jinn', era:11, faction:'jediOrder', tier:'Master (Living Force)', alignment:85,
+      context:'Jedi Master who discovered Anakin Skywalker on Tatooine and believed him to be the Chosen One. A maverick who defied the Council when the Living Force demanded it. Pioneered Force-spirit transcendence — passing the knowledge to Yoda and eventually Obi-Wan. Killed by Darth Maul at Naboo.',
+      core:{str:76,agi:80,end:76,wil:88,cha:82,int:84},
+      force:{fS:86,med:84,fK:84,fC:84,fOut:80},
+      forms:{Ataru:86,ShiiCho:80,Soresu:78},
+      keyAbilities:{ForceSense:86,Meditation:84,Telekinesis:80,ForceHeal:76},
+      note:'Living Force and Force-spirit transcendence unique technique. First Jedi to master the path that became standard after the Clone Wars.'
+    },
+    Era11_ObiWanPadawan: {
+      name:'Obi-Wan Kenobi (Padawan)', era:11, faction:'jediOrder', tier:'Knight (developing)', alignment:80,
+      context:'Qui-Gon Jinn\'s padawan during the Naboo crisis. A capable, determined student who became one of the greatest Jedi of all time. Became the first Jedi to kill a Sith Lord in approximately 1,000 years when he bisected Darth Maul at Naboo.',
+      core:{str:64,agi:78,end:68,wil:80,cha:74,int:76},
+      force:{fS:76,med:68,fK:68,fC:74,fOut:72},
+      forms:{Ataru:76,ShiiCho:72,Soresu:60},
+      keyAbilities:{ForceSense:76,Telekinesis:70,ForceBody:68},
+      note:'First Jedi to kill a Sith in ~1,000 years (Darth Maul at Naboo). Develops into definitive Soresu master by Clone Wars era (Era12).'
+    },
+    Era11_DookuJedi: {
+      name:'Count Dooku (Jedi)', era:11, faction:'jediOrder', tier:'Master (Makashi master)', alignment:40,
+      context:'Jedi Master and former Padawan of Yoda. The finest Makashi practitioner of the era — his dueling style refined to near-perfection. Left the Jedi Order over philosophical disagreements, was seduced by Palpatine, and became Darth Tyranus (Era 12).',
+      core:{str:72,agi:90,end:74,wil:92,cha:88,int:88},
+      force:{fS:86,med:82,fK:88,fC:88,fOut:82},
+      forms:{Makashi:96,Ataru:86,Soresu:84,ShiiCho:84,Niman:82},
+      keyAbilities:{Telekinesis:86,ForceLightning:70,ForceSense:86,ForceBody:78},
+      note:'Makashi 96 — definitive Makashi master of the era. Falls to the dark side and becomes Darth Tyranus in Era 12.'
+    },
+
+    // ═══ ERA 12 — Clone Wars (22–19 BBY) ═══
+    Era12_AnakinJediKnight: {
+      name:'Anakin Skywalker (Jedi Knight)', era:12, faction:'jediOrder', tier:'Legendary (restrained — Output 100, Control 92)', alignment:55,
+      context:'The Chosen One in the early Clone Wars — enormous Force potential partially walled off by Jedi conditioning and emotional restraint. Assigned Ahsoka Tano as his Padawan. This sheet represents him before his war-hardened peak.',
+      core:{str:88,agi:92,end:88,wil:90,cha:86,int:84},
+      force:{fS:92,med:78,fK:86,fC:92,fOut:100},
+      forms:{ShienDjemSo:94,Ataru:88,ShiiCho:86,Niman:84,Soresu:80,Juyo:80},
+      keyAbilities:{Telekinesis:95,ForceBody:88,ForceSense:92,ForceChoke:80},
+      note:'Output 100 in restrained state. Full theoretical potential ~138 (equal to what Luke eventually realized — never freely reached). The Output/Control split reference: Output 100 vs Control 92 here.'
+    },
+    Era12_AnakinKnightfall: {
+      name:'Anakin Skywalker (Knightfall — Clone Wars peak)', era:12, faction:'jediOrder', tier:'Legendary (Output 120 — highest OBSERVED, still growing)', alignment:20,
+      context:'The apex Clone Wars Anakin — war-hardened, emotionally raw, tapping the dark side edge. Output climbs to an observed 120; Control lags at 90. Still growing. This is the canonical Output vs Control split reference point for the entire game system.',
+      core:{str:96,agi:98,end:94,wil:72,cha:80,int:84},
+      force:{fS:98,med:72,fK:86,fC:90,fOut:120},
+      forms:{ShienDjemSo:98,Ataru:92,ShiiCho:90,Niman:88,Juyo:86},
+      keyAbilities:{ForceRage:100,ForceChoke:95,Telekinesis:110,ForceSense:98},
+      note:'Output 120 observed (highest Anakin pre-suit). Control 90 (raw, unhoned). Theoretical ceiling ~138 — never freely reached (Mortis briefly unlocked it). Suit later capped Output but raised Control.'
+    },
+    Era12_ObiWanCloneWars: {
+      name:'Obi-Wan Kenobi (Clone Wars)', era:12, faction:'jediOrder', tier:'Grandmaster (Soresu master)', alignment:88,
+      context:'Jedi Master and general during the Clone Wars — the definitive Soresu practitioner. His style is the inverse of Knightfall Anakin: Output 80 vs Control 92. A supremely calm, precise duelist who neutralized opponents far stronger in raw power through superior technique.',
+      core:{str:74,agi:84,end:80,wil:92,cha:86,int:88},
+      force:{fS:88,med:86,fK:86,fC:92,fOut:80},
+      forms:{Soresu:96,Ataru:84,ShiiCho:84,ShienDjemSo:80,Makashi:80,Niman:80},
+      keyAbilities:{ForceSense:88,Telekinesis:82,ForceBody:80,ForceBarrier:78},
+      note:'Soresu 96 — definitive Soresu master. The inverse of Knightfall Anakin: Output 80 vs Control 92. Technique-over-power archetype.'
+    },
+    Era12_CountDookuTyranus: {
+      name:'Count Dooku / Darth Tyranus', era:12, faction:'sith', tier:'Grandmaster (Makashi master, dark side)', alignment:-75,
+      context:'The Separatist leader and Darth Sidious\'s apprentice. His dueling stats are a lateral shift from his Jedi self (Era 11) — the dark side added Force Lightning but his physical style is unchanged. The most technically refined duelist in the Separatist cause.',
+      core:{str:72,agi:92,end:74,wil:94,cha:90,int:90},
+      force:{fS:88,med:84,fK:92,fC:94,fOut:86},
+      forms:{Makashi:96,Ataru:86,Soresu:84,ShiiCho:84,Niman:82},
+      keyAbilities:{ForceLightning:90,Telekinesis:88,ForceSense:88,MindTrick:78},
+      note:'Force Lightning 90 added as Sith. Makashi 96 unchanged from Jedi self — lateral shift, not significant power growth.'
+    },
+    Era12_GeneralGrievous: {
+      name:'General Grievous', era:12, faction:'separatist', tier:'Legendary (non-Force duelist)', alignment:-70,
+      context:'Supreme Commander of the Separatist Droid Army — dangerous despite almost no Force sensitivity. A Kaleesh cyborg who trained obsessively with captured Jedi lightsabers, mastering all seven classic forms. His four arms allow simultaneous use of four sabers.',
+      core:{str:88,agi:92,end:86,wil:80,cha:58,int:76},
+      force:null,
+      forms:{Makashi:88,Ataru:86,Soresu:84,ShiiCho:84,Niman:84,ShienDjemSo:84},
+      keyAbilities:null,
+      note:'Four-saber combat rating 92. Non-Force — canonical showcase that bladework mastery does not require Force sensitivity.'
+    },
+    Era12_Ventress: {
+      name:'Asajj Ventress', era:12, faction:'separatist', tier:'Master', alignment:-65,
+      context:'Count Dooku\'s assassin and dark side apprentice. A Dathomiri Nightsister trained in aggressive dual-blade combat. Skilled and dangerous — but Dooku considered her expendable and abandoned her.',
+      core:{str:66,agi:88,end:72,wil:82,cha:70,int:76},
+      force:{fS:80,med:66,fK:72,fC:82,fOut:76},
+      forms:{JarKai:86,Ataru:84,Niman:80,ShiiCho:78},
+      keyAbilities:{ForceSense:80,Telekinesis:76,ForceBody:74,ForceLightning:68}
+    },
+    Era12_AhsokaTano: {
+      name:'Ahsoka Tano', era:12, faction:'jediOrder', tier:'Knight (developing)', alignment:78,
+      context:'Anakin Skywalker\'s Padawan — a Togrutan with natural combat instincts who developed rapidly under Anakin\'s unconventional tutelage. Her reverse-grip Shien and aggressive Jar\'Kai became her signature. Left the Jedi Order after being falsely accused of bombing the Temple.',
+      core:{str:60,agi:86,end:68,wil:82,cha:78,int:78},
+      force:{fS:80,med:68,fK:68,fC:80,fOut:72},
+      forms:{Shien:82,JarKai:80,Ataru:80,ShiiCho:74},
+      keyAbilities:{ForceSense:80,Telekinesis:72,ForceBody:70}
+    },
+    Era12_MortisOnes: {
+      name:'The Mortis Ones (Father / Son / Daughter)', era:12, faction:'mortis', tier:'Omega — Mortis-bound, off the standard scale', alignment:0,
+      context:'Three godlike Force-wielders bound to the Mortis monolith — Father (balance, WIL 145 / fOut 144), Son (dark avatar, WIL 140 / fOut 140), Daughter (light avatar, WIL 138 / fOut 136). Cosmic entities in a separate tier. The Son and Daughter together approached peak-Luke level as combatants per the APEX CEILING ruling, despite raw Force stats that exceed that.',
+      core:{str:0,agi:0,end:0,wil:145,cha:0,int:0},
+      force:{fS:145,med:144,fK:142,fC:142,fOut:144},
+      forms:null,
+      keyAbilities:null,
+      note:'Composite reference entry. Stats shown are Father\'s values (highest). Mortis-bound — cannot leave without destabilizing the galaxy. Combat effectiveness bounded at peak-Luke level per APEX CEILING ruling regardless of raw Force stats.'
+    },
+
+    // ═══ ERA 13 — Dark Times / Galactic Civil War (19 BBY – 4 ABY) ═══
+    Era13_EmperorPalpatine: {
+      name:'Emperor Palpatine (Empire-era)', era:13, faction:'galacticEmpire', tier:'LEGENDARY — Tier A (~130)', alignment:-100,
+      context:'Darth Sidious at the height of his public power — the Emperor of the Galactic Empire, full strength now approaching its apex. Killed by Vader at the second Death Star but cheats death via prepared clone bodies (Era 14). Same being as Era11 Chancellor (~112) and Era14 reborn form (~135).',
+      core:{str:66,agi:78,end:76,wil:128,cha:108,int:100},
+      force:{fS:110,med:108,fK:120,fC:128,fOut:130},
+      forms:{Juyo:100,Makashi:96,Soresu:95,Ataru:95,Niman:94,ShienDjemSo:94,ShiiCho:92},
+      keyAbilities:{ForceLightning:130,Telekinesis:118,SithAlchemy:110,MindDomination:108},
+      note:'Tier A apex (~130). Full power finally unmasked in this era. Same being as Era11 (~112) and Era14 reborn (~135).'
+    },
+    Era13_DarthVaderANH: {
+      name:'Darth Vader (A New Hope-era)', era:13, faction:'galacticEmpire', tier:'Legendary (suit-capped Output)', alignment:-80,
+      context:'Vader during the original trilogy\'s early phase. The life-support suit permanently caps his Force Output below his Knightfall Anakin potential, but his Control climbs far beyond his pre-suit self. A frightening combination of blademaster and Force-specialist.',
+      core:{str:95,agi:68,end:98,wil:88,cha:78,int:88},
+      force:{fS:90,med:74,fK:88,fC:107,fOut:90},
+      forms:{ShienDjemSo:100,ShiiCho:86,Soresu:84,Makashi:82},
+      keyAbilities:{ForceChoke:100,Telekinesis:100,ForceLightning:80,ForceSense:90},
+      note:'Output 90 (suit-capped from Knightfall 120). Control 107 (exceeds pre-suit self). The suit tradeoff: lower Output but far higher Control than Knightfall Anakin.'
+    },
+    Era13_DarthVaderRotJ: {
+      name:'Darth Vader (Return of the Jedi)', era:13, faction:'galacticEmpire', tier:'Legendary (most disciplined form)', alignment:-60,
+      context:'Vader at his most disciplined — the peak of what the suit allows. Control continues climbing above the ANH sheet. Still capped below Knightfall Anakin\'s Output. Redeemed at Endor by sacrificing himself to destroy Palpatine, restoring his light side connection as Anakin Skywalker in his final moments.',
+      core:{str:100,agi:78,end:99,wil:102,cha:80,int:92},
+      force:{fS:92,med:78,fK:90,fC:116,fOut:105},
+      forms:{ShienDjemSo:104,ShiiCho:88,Soresu:90,Makashi:92},
+      keyAbilities:{ForceChoke:102,Telekinesis:102,ForceSense:92,ForceBody:88},
+      note:'Control 116 — highest of any Vader sheet. The suit-compensated apex. Redeemed at Endor; Anakin restored in final act.'
+    },
+    Era13_GalenMarekStarkiller: {
+      name:'Galen Marek / Starkiller', era:13, faction:'galacticEmpire', tier:'Legendary (near-apex raw Output)', alignment:-20,
+      context:'Vader\'s secret apprentice, trained from childhood in isolation. Staggering raw Force Output — famously pulled a Star Destroyer from orbit. Near-apex Output (116) with lagging Control (94). Ultimately sacrificed himself to trigger the Rebellion\'s founding.',
+      core:{str:78,agi:88,end:80,wil:88,cha:70,int:74},
+      force:{fS:86,med:64,fK:70,fC:94,fOut:116},
+      forms:{Shien:86,JarKai:84,Ataru:82,Juyo:80},
+      keyAbilities:{Telekinesis:118,ForceLightning:100,ForceRepulse:104,ForceSense:86},
+      note:'Telekinesis 118 (Star Destroyer pull). Near-apex Output (116) with lagging Control (94). Force Repulse signature technique.'
+    },
+    Era13_ArdenLynReawakened: {
+      name:'Arden Lyn (reawakened)', era:13, faction:'galacticEmpire', tier:'Master (Teräs Käsi)', alignment:-50,
+      context:'A 25,000-year-old warrior reawakened by the Emperor. A practitioner of Teräs Käsi — a martial art developed specifically to counter Jedi. Her Force connection is diminished by millennia of hibernation, but her unarmed combat skills remain at pre-stasis peak.',
+      core:{str:74,agi:88,end:80,wil:90,cha:66,int:76},
+      force:{fS:74,med:68,fK:72,fC:80,fOut:76},
+      forms:null,
+      keyAbilities:{ForceBody:80,ForceSense:74},
+      note:'Unarmed combat 92 (Teräs Käsi). 25,000-year-old reawakened warrior. Force-connection diminished by long hibernation.'
+    },
+    Era13_MaraJadeHand: {
+      name:"Mara Jade (Emperor's Hand)", era:13, faction:'galacticEmpire', tier:'Master', alignment:-30,
+      context:'The Emperor\'s personal assassin — trained since childhood to be his most lethal agent. A highly skilled duelist and Force-user who operated as Palpatine\'s hidden Hand throughout the Empire era. Carries his dying command to kill Luke Skywalker. Redeemed in Era 14.',
+      core:{str:62,agi:84,end:70,wil:86,cha:78,int:84},
+      force:{fS:78,med:66,fK:66,fC:78,fOut:72},
+      forms:{Ataru:76,ShiiCho:72,JarKai:74},
+      keyAbilities:{ForceSense:78,Telekinesis:72,ForceBody:74,MindTrick:68},
+      note:"Emperor's Hand. Carries Palpatine's dying compulsion to kill Luke. Redeemed in Era 14 and becomes Jedi Master."
+    },
+    Era13_BenKenobi: {
+      name:'Obi-Wan Kenobi (Ben — Tatooine exile)', era:13, faction:'jediOrder', tier:'Grandmaster (diminished/exile form)', alignment:90,
+      context:'The exiled Obi-Wan after nearly twenty years on Tatooine. His Force connection remains extraordinary — especially Force Sense and Meditation — but physical capabilities and raw Output have diminished sharply from his Clone Wars peak. Chose to merge with the Force rather than die physically when Vader cut him down on the Death Star.',
+      core:{str:58,agi:64,end:60,wil:94,cha:84,int:90},
+      force:{fS:92,med:92,fK:90,fC:90,fOut:76},
+      forms:{Soresu:88,ShiiCho:76,Ataru:70},
+      keyAbilities:{MindTrick:92,ForceSense:92,Meditation:92,Telekinesis:80},
+      note:'Force spirit transcendence unique technique. Aged from Clone Wars peak (Soresu 96 → 88; Output 80 → 76). Force Sense and Meditation remain at Grandmaster peak.'
+    },
+    Era13_YodaDagobah: {
+      name:'Yoda (Dagobah exile)', era:13, faction:'jediOrder', tier:'Grandmaster (exile — physical decline, spiritual peak)', alignment:96,
+      context:'Yoda in exile on Dagobah — physically aged and weakened but spiritually at his most refined. No active dueling (too aged to fight meaningfully); Force stats remain essentially at Republic-era peak. Dies peacefully and merges with the Force.',
+      core:{str:40,agi:54,end:56,wil:104,cha:88,int:96},
+      force:{fS:100,med:102,fK:102,fC:100,fOut:92},
+      forms:null,
+      keyAbilities:{Telekinesis:102,ForceHeal:88,BattleMeditation:86,ForceSense:100},
+      note:'No dueling — physically too aged. Force spirit transcendence unique technique. Spiritually equivalent to Era11 Yoda despite physical decline.'
+    },
+    Era13_LukeSkywalkerRising: {
+      name:'Luke Skywalker (Original Trilogy)', era:13, faction:'rebelAlliance', tier:'Legendary (ascending — NOT his prime)', alignment:88,
+      context:'Luke from A New Hope through Return of the Jedi — rapidly growing, self-taught. A natural Jedi who grows under Ben Kenobi and Yoda. Output climbs to ~92 by RotJ. This is NOT his prime — apex (~138, strongest realized mortal) reserved for Era 17.',
+      core:{str:70,agi:78,end:74,wil:92,cha:84,int:84},
+      force:{fS:86,med:74,fK:68,fC:82,fOut:92},
+      forms:{ShienDjemSo:82,ShiiCho:76,Ataru:74},
+      keyAbilities:{Telekinesis:86,ForceSense:86,ForceBody:76,ForceHeal:70},
+      note:'NOT his prime. Output ~74 at ANH, ~92 by RotJ. Apex (~138) peaks in Era 17 (Fate of the Jedi). Cross-era ascending reference point.'
+    },
+    Era13_HanSolo: {
+      name:'Han Solo', era:13, faction:'rebelAlliance', tier:'Elite (non-Force)', alignment:65,
+      context:'The galaxy\'s most capable smuggler turned Rebellion general. Not Force-sensitive — but an exceptional pilot and gunfighter. A canonical reference for what non-Force humans can achieve at the elite tier.',
+      core:{str:66,agi:78,end:70,wil:80,cha:86,int:84},
+      force:null,
+      forms:null,
+      keyAbilities:null,
+      note:'Ranged combat 82. Non-Force (exists in the Force — Jedi CAN sense, mind-trick, and TK-grab him, unlike ✗ Yuuzhan Vong).'
+    },
+    Era13_LeiaOrgana: {
+      name:'Leia Organa', era:13, faction:'rebelAlliance', tier:'Elite leader (latent Force, untrained)', alignment:80,
+      context:'Alderaanian princess, Rebellion leader, and secret daughter of Darth Vader. Enormous latent Force potential (Skywalker line) but essentially untrained in this era. Her twin bond with Luke manifests unconsciously. Begins formal Jedi training in Era 14.',
+      core:{str:50,agi:68,end:60,wil:92,cha:90,int:90},
+      force:{fS:60,med:40,fK:30,fC:44,fOut:70},
+      forms:null,
+      keyAbilities:{ForceSense:60},
+      note:'Force stats are LATENT — essentially untrained. Twin-bond with Luke manifests passively. Begins formal training in Era 14. Skywalker-line potential.'
+    },
+    Era13_BobaFett: {
+      name:'Boba Fett', era:13, faction:'bountyHunter', tier:'Elite (non-Force)', alignment:-20,
+      context:'The galaxy\'s most feared bounty hunter — Jango Fett\'s clone and sole unaltered Mandalorian clone. Not Force-sensitive, but a supreme combat specialist and tracker whose record across the galaxy is unmatched.',
+      core:{str:72,agi:80,end:78,wil:84,cha:64,int:82},
+      force:null,
+      forms:null,
+      keyAbilities:null,
+      note:'Melee combat 84. Non-Force. Mandalorian armor and equipment specialist.'
+    },
+
+    // ═══ ERA 14 — New Republic / New Jedi Order (4–25 ABY) ═══
+    Era14_LukeSkywalkerNR: {
+      name:'Luke Skywalker (New Republic — founder)', era:14, faction:'newJediOrder', tier:'Legendary — near-apex (ascending; apex ~138 in Era 17)', alignment:90,
+      context:'Luke at his New Republic prime — the most powerful Jedi alive, founder of the New Jedi Order on Yavin 4. Rebuilt the Order from fragments, trained the first generation, survived Exar Kun\'s spirit attack, briefly fell to the Dark Empire then turned back. Output 118 / Control 108 — but still below the reborn Emperor (~135) and far below his Era 17 apex (~138).',
+      core:{str:82,agi:90,end:84,wil:100,cha:88,int:86},
+      force:{fS:96,med:92,fK:92,fC:108,fOut:118},
+      forms:{ShienDjemSo:96,Soresu:96,Ataru:92,Makashi:92,Niman:92,ShiiCho:92,Juyo:90,JarKai:92},
+      keyAbilities:{Telekinesis:110,ForceHeal:95,ForceSense:96,ForceBarrier:92,MindTrick:90},
+      note:'NOT his apex (~138, Era17). Still BELOW the reborn Emperor (~135) in this era — which is why he briefly fell and needed Empatojayos Brand\'s sacrifice to end the Dark Empire.'
+    },
+    Era14_MaraJadeJedi: {
+      name:'Mara Jade Skywalker (Jedi Master)', era:14, faction:'newJediOrder', tier:'Master → legendary-adjacent', alignment:75,
+      context:'Former Emperor\'s Hand, redeemed — trained as a Jedi under Luke and became his partner and wife. Her Imperial-honed combat skills fused with Jedi discipline make her a formidable, versatile warrior. Sharp and fiercely independent.',
+      core:{str:64,agi:84,end:72,wil:90,cha:80,int:84},
+      force:{fS:86,med:78,fK:80,fC:90,fOut:84},
+      forms:{Ataru:86,ShiiCho:80,JarKai:82},
+      keyAbilities:{ForceSense:86,ForceBody:82,Telekinesis:82,MindTrick:76},
+      note:"Dark-to-light arc completed. Emperor's Hand (Era13) → Jedi Master (Era14) → NJO cornerstone (Era15)."
+    },
+    Era14_KypDurron: {
+      name:'Kyp Durron', era:14, faction:'newJediOrder', tier:'Legendary (raw Output 110) / high-Master Control — prodigy', alignment:55,
+      context:'The New Order\'s strongest student in raw Force potential — testing threw Luke across the room. Fell under Exar Kun\'s influence and destroyed the Carida system (millions dead, including his own brother) before being freed and redeemed. The defining Output-dominant character of the New Republic era.',
+      core:{str:66,agi:80,end:72,wil:84,cha:74,int:74},
+      force:{fS:86,med:70,fK:72,fC:88,fOut:110},
+      forms:{ShienDjemSo:86,Ataru:82,ShiiCho:80},
+      keyAbilities:{Telekinesis:112,ForceLightning:95,ForceBody:84},
+      note:'Output 110 >> Control 88 — the Output-dominant poster child. Telekinesis 112 (flew a starship out of a gas giant\'s crushing depths). Raw-power prodigy unique technique.'
+    },
+    Era14_KyleKatarn: {
+      name:'Kyle Katarn', era:14, faction:'newJediOrder', tier:'Legendary-adjacent (combat Jedi)', alignment:72,
+      context:'Ex-Imperial-Academy mercenary and New Republic agent who stole the first Death Star plans and discovered his Force heritage. Destroyed Jerec and the Seven Dark Jedi at the Valley of the Jedi, resisting its corrupting power. Battle-hardened, pragmatic Jedi Master.',
+      core:{str:76,agi:78,end:78,wil:86,cha:78,int:78},
+      force:{fS:82,med:72,fK:74,fC:88,fOut:92},
+      forms:{ShienDjemSo:86,ShiiCho:80,Ataru:80},
+      keyAbilities:{Telekinesis:88,ForceBody:86,ForceSense:82}
+    },
+    Era14_CorranHorn: {
+      name:'Corran Horn', era:14, faction:'newJediOrder', tier:'Master (mind-influence & energy absorption specialist)', alignment:80,
+      context:'CorSec investigator, Rogue Squadron ace, and grandson of Jedi Master Nejaa Halcyon. The Halcyon/Horn Force profile: weak raw telekinesis (60) but exceptionally strong in mind tricks and illusions (MindTrick 90) and Tutaminis energy absorption (88). Unique: absorbs energy and converts it into temporary telekinetic bursts.',
+      core:{str:66,agi:78,end:70,wil:86,cha:78,int:84},
+      force:{fS:82,med:76,fK:74,fC:86,fOut:70},
+      forms:{Ataru:82,ShiiCho:78,Soresu:76},
+      keyAbilities:{MindTrick:90,Tutaminis:88,Telekinesis:60,ForceSense:82},
+      note:'Halcyon-line profile: TK weakness (60) offset by mind-illusion (90) and energy absorption (88). Unique: absorb-into-telekinesis conversion. INT 84 (investigator\'s mind).'
+    },
+    Era14_PalpatineReborn: {
+      name:'Emperor Palpatine (reborn — Dark Empire)', era:14, faction:'darkEmpire', tier:'LEGENDARY — top of Tier A (~135)', alignment:-100,
+      context:'The resurrected Emperor in cloned bodies on Byss — his most unleashed form, channeling planet-scale Force storms. At the TOP of the Tier A apex cluster (~135): above his living self (~130, Era13) but below peak Luke (~138). Briefly turned Luke, sought a Solo child as a host. Destroyed permanently by Empatojayos Brand\'s self-sacrifice.',
+      core:{str:64,agi:74,end:72,wil:130,cha:106,int:108},
+      force:{fS:112,med:110,fK:120,fC:130,fOut:135},
+      forms:{Juyo:98,Makashi:94,Soresu:92,Ataru:92,Niman:90,ShienDjemSo:90,ShiiCho:88},
+      keyAbilities:{ForceStorm:138,ForceLightning:132,SithAlchemy:122,MindDomination:118,Telekinesis:118},
+      note:'APEX CEILING: ~135 — above his living self (~130, Era13), below peak Luke (~138). Force Storm 138 (planet/fleet-scale specialist ability). Permanently destroyed in this era (end of the Bane-lineage Sith).'
+    },
+    Era14_Thrawn: {
+      name:'Grand Admiral Thrawn', era:14, faction:'imperialRemnant', tier:'Legendary (non-Force — Intelligence 112)', alignment:-30,
+      context:'The blue-skinned Chiss strategic genius who nearly reversed the Galactic Civil War through pure intellect. Not Force-sensitive — but "legendary" through INT 112 and command. Used ysalamiri to nullify enemy Jedi. The flagship example of the Intelligence axis. Assassinated by his own bodyguard Rukh at Bilbringi.',
+      core:{str:56,agi:60,end:62,wil:92,cha:88,int:112},
+      force:null,
+      forms:null,
+      keyAbilities:null,
+      note:'Non-Force. Naval command 90. Art-of-war analysis unique technique. INT 112 — the flagship Intelligence-axis reference for the entire game system.'
+    },
+    Era14_JoruusCBaoth: {
+      name:"Joruus C'baoth", era:14, faction:'imperialRemnant', tier:"Legendary-adjacent (battle meditation / raw power, destabilized by madness)", alignment:-80,
+      context:"The insane clone of Jedi Master Jorus C'baoth, created by rushed Spaarti cloning (which drove him mad). Guardian of Mount Tantiss; lent battle meditation to Thrawn's campaign in exchange for the Solo twins and Luke. Could dominate and rewrite minds. Killed in the Thrawn campaign's collapse.",
+      core:{str:56,agi:62,end:62,wil:90,cha:80,int:82},
+      force:{fS:88,med:94,fK:84,fC:86,fOut:96},
+      forms:null,
+      keyAbilities:{BattleMeditation:94,MindProbe:90,ForceLightning:88,Telekinesis:82},
+      note:'Battle Meditation 94 (fleet coordination 90%). Mind-rewriting unique technique (overwrites sections of a victim\'s mind). Madness destabilizes otherwise formidable power.'
+    },
+    Era14_Lumiya: {
+      name:'Lumiya (Shira Brie)', era:14, faction:'sith', tier:'Master (dark side, Sith successor)', alignment:-80,
+      context:"Vader's secret apprentice and survivor of a near-fatal mission that left her rebuilt as a cyborg. Trained as a Sith Lady, wielding a unique lightwhip. A dark-side survivor who persists through the New Republic era into the Legacy of the Force era (Era 16) as a central antagonist.",
+      core:{str:64,agi:80,end:70,wil:84,cha:78,int:84},
+      force:{fS:80,med:70,fK:78,fC:82,fOut:80},
+      forms:{Makashi:76},
+      keyAbilities:{ForceLightning:78,Telekinesis:76,ForceSense:80},
+      note:'Lightwhip 84 (exotic weapon). Carry-forward: central Sith antagonist in Era 16 (Legacy of the Force).'
+    },
+    Era14_GiladPellaeon: {
+      name:'Gilad Pellaeon', era:14, faction:'imperialRemnant', tier:'Elite (non-Force commander)', alignment:-10,
+      context:'Captain, then Admiral, then Supreme Commander of the Imperial Remnant. Thrawn\'s most capable subordinate who led the Empire\'s remnants to a stable peace under the Bastion Accords (19 ABY). An honorable military professional who outlasts all the other Imperial leadership. Appears through the NJO era and beyond.',
+      core:{str:54,agi:56,end:62,wil:84,cha:82,int:84},
+      force:null,
+      forms:null,
+      keyAbilities:null,
+      note:'Naval command 84. Non-Force. Signs the Bastion Accords (19 ABY); carries the Imperial Remnant into Era 15 and beyond.'
     }
   },
 
