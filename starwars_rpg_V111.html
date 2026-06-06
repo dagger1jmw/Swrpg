@@ -6938,6 +6938,316 @@ const LORE_DATABASE = {
       forms:null,
       keyAbilities:null,
       note:'Naval command 84. Non-Force. Signs the Bastion Accords (19 ABY); carries the Imperial Remnant into Era 15 and beyond.'
+    },
+
+    // ═══ ERA 15 — New Jedi Order / Yuuzhan Vong War (25–29 ABY) ═══
+    // ★ ERA MECHANIC: Yuuzhan Vong are ✗ FORCE-INVISIBLE — void in the Force; cannot be sensed, mind-tricked, or reliably TK-grabbed.
+    // Distinct from "—" (ordinary non-Force-sensitive). Only Onimi is the exception (only Force-sensitive Vong in existence).
+    Era15_LukeSkywalkerNJO: {
+      name:'Luke Skywalker (NJO Grand Master)', era:15, faction:'newJediOrder', tier:'Legendary — near-apex (ascending; apex ~138 in Era 17)', alignment:92,
+      context:'Grand Master leading the Jedi through the worst war in galactic history — against an enemy his Force-senses cannot perceive. Held the Order together through political persecution and staggering losses. Killed Supreme Overlord Shimrra in single combat. Still ascending toward his Era 17 apex.',
+      core:{str:88,agi:98,end:90,wil:104,cha:88,int:88},
+      force:{fS:98,med:94,fK:96,fC:120,fOut:128},
+      forms:{ShienDjemSo:100,Soresu:100,Ataru:98,Makashi:96,Niman:96,ShiiCho:96,Juyo:94,JarKai:96},
+      keyAbilities:{Telekinesis:124,ForceHeal:98,ForceBarrier:96,ForceSense:98,MindTrick:90},
+      note:'Unarmed/martial 92 (multiple disciplines). Bypassed Vong Force-invisibility by hurling ground/objects around them rather than the Vong directly. NOT yet apex — output/control apex (~138) in Era 17.'
+    },
+    Era15_JacenSolo: {
+      name:'Jacen Solo (NJO)', era:15, faction:'newJediOrder', tier:'Legendary (Oneness with the Force)', alignment:80,
+      context:'The elder Solo twin — a philosopher-Jedi transformed by Vergere\'s teachings and the Embrace of Pain into one of the most enlightened Jedi of his age. Learned to perceive the Vong indirectly via the unifying Force. Achieved Oneness with the Force at the war\'s climax; killed Onimi. His heroic self here makes his eventual fall (Darth Caedus, Era 16) all the more tragic.',
+      core:{str:72,agi:84,end:78,wil:96,cha:82,int:86},
+      force:{fS:96,med:92,fK:92,fC:104,fOut:112},
+      forms:{ShienDjemSo:94,Ataru:92,Soresu:90,Niman:90,JarKai:84},
+      keyAbilities:{UnifyingForcePerception:100,Telekinesis:100,ForceSense:96,ForceHeal:88},
+      note:'Oneness with the Force unique technique (achieved at war\'s climax). Unifying-Force perception (100) — the era\'s key technique to sense the Force-invisible Vong. Heroic NJO self; becomes Darth Caedus in Era 16.'
+    },
+    Era15_JainaSolo: {
+      name:'Jaina Solo (Sword of the Jedi)', era:15, faction:'newJediOrder', tier:'Legendary-adjacent (warrior-pilot)', alignment:75,
+      context:'The younger Solo twin — hardened by war and her brother Anakin\'s death into the Order\'s fiercest Jedi blade. Named Sword of the Jedi. The Vong came to fear her as the avatar of the goddess Yun-Harla. Helped kill Warmaster Tsavong Lah at Ebaq 9. Kills Darth Caedus (her own twin) in Era 16.',
+      core:{str:64,agi:88,end:74,wil:90,cha:80,int:82},
+      force:{fS:86,med:74,fK:76,fC:92,fOut:92},
+      forms:{ShienDjemSo:88,Ataru:86,JarKai:86,ShiiCho:80},
+      keyAbilities:{ForceBody:86,ForceSense:86,BattleMeld:85,Telekinesis:84}
+    },
+    Era15_AnakinSolo: {
+      name:'Anakin Solo (NJO — dies at Myrkr)', era:15, faction:'newJediOrder', tier:'Legendary-adjacent (prodigy, killed young)', alignment:88,
+      context:'The youngest Solo child — by many accounts the most naturally gifted. Led the volunteer strike team to Myrkr to destroy the voxyn queen. Mortally wounded, he fought a rearguard action so his team could escape and in his final moments became a blinding pillar of Force-light. His death devastated the Order and forced Jacen into leadership.',
+      core:{str:74,agi:86,end:78,wil:94,cha:80,int:84},
+      force:{fS:90,med:80,fK:82,fC:96,fOut:108},
+      forms:{ShienDjemSo:90,Ataru:86,ShiiCho:84,Niman:82},
+      keyAbilities:{Telekinesis:100,ForceBody:88,ForceSense:90},
+      note:'Force-light pillar unique technique (unleashed his entire being as a blinding pillar of light in his final act, annihilating the voxyn tissue and enemies around him). Killed at Myrkr ~27 ABY, age ~17.'
+    },
+    Era15_MaraJadeNJO: {
+      name:'Mara Jade Skywalker (NJO)', era:15, faction:'newJediOrder', tier:'Master → legendary-adjacent', alignment:78,
+      context:'Luke\'s wife and one of the Order\'s strongest Masters, who fought much of the war while battling a Vong-engineered disease (coomb spores) via iron Force-willed control — holding it at bay until she bore their son Ben Skywalker. Murdered by Darth Caedus in Era 16.',
+      core:{str:62,agi:82,end:70,wil:94,cha:80,int:84},
+      force:{fS:86,med:82,fK:82,fC:92,fOut:86},
+      forms:{Ataru:88,ShiiCho:82,JarKai:84},
+      keyAbilities:{ForceSense:86,ForceBody:84,Telekinesis:84},
+      note:'Iron control unique technique (suppressed Vong-engineered disease via Force-willed bodily control for months while pregnant and fighting). Murdered by Darth Caedus (Era 16).'
+    },
+    Era15_Vergere: {
+      name:'Vergere', era:15, faction:'exJedi', tier:'Legendary (Force knowledge / subtlety)', alignment:0,
+      context:'A Fosh ex-Jedi who lived 50+ years among the Yuuzhan Vong and emerged as the enigmatic teacher of Jacen Solo. Dismantled his black-and-white view of the Force, teaching the unifying Force philosophy. Her ambiguous allegiance — serving Vong priestesses while sabotaging the Alpha Red bioweapon — made her one of the most mysterious figures in Jedi history. Sacrificed herself at Ebaq 9.',
+      core:{str:48,agi:72,end:60,wil:96,cha:84,int:92},
+      force:{fS:92,med:92,fK:100,fC:96,fOut:78},
+      forms:null,
+      keyAbilities:{ForceHeal:96,ForceConcealment:90,MindManipulation:88},
+      note:'Healing tears unique technique (tears restore grievous wounds and sight). Taught the unifying-Force philosophy that transformed Jacen. Lived 50+ years among the Vong undetected. Not a duelist — power is subtlety, knowledge, and manipulation.'
+    },
+    Era15_Onimi: {
+      name:'Onimi (the hidden mastermind)', era:15, faction:'yuuzhanVong', tier:'Legendary-adjacent (Force power + mastermind intellect)', alignment:-95,
+      context:'THE EXCEPTION TO THE FORCE-INVISIBLE RULE — the only Force-sensitive Yuuzhan Vong in existence. A former Master Shaper who accidentally restored Force-sensitivity by grafting yammosk tissue into his brain. Branded a Shamed One, he hid his powers and secretly mentally dominated Supreme Overlord Shimrra, ruling the entire Vong empire from the shadows as a court jester. The war\'s true hidden mastermind. Killed by Jacen Solo at the moment of Oneness.',
+      core:{str:50,agi:64,end:60,wil:100,cha:78,int:100},
+      force:{fS:92,med:84,fK:94,fC:96,fOut:100},
+      forms:null,
+      keyAbilities:{MindDomination:100,ForceDarkSide:96,Telekinesis:90,ForceSense:92},
+      note:'THE LONE FORCE-SENSITIVE VONG — Force-VISIBLE (opposite of all other Vong). Restored Force-sensitivity via yammosk self-experimentation. Mentally dominated Shimrra for decades (MindDomination 100, 92% proficiency). INT 100 — the war\'s true mastermind.'
+    },
+    Era15_SupremeOverlordShimrra: {
+      name:'Supreme Overlord Shimrra Jamaane', era:15, faction:'yuuzhanVong', tier:'Elite–Legendary (✗ Force-invisible martial titan)', alignment:-90,
+      context:'The public leader of the Yuuzhan Vong holy war — physically the most powerful warrior of his race, but secretly a puppet mentally dominated by Onimi. Enormous, covered in living regalia. Killed by Luke Skywalker in single combat during the final battle for Coruscant.',
+      core:{str:92,agi:78,end:90,wil:88,cha:84,int:82},
+      force:null,
+      forms:null,
+      keyAbilities:null,
+      note:'✗ FORCE-INVISIBLE — cannot be sensed, mind-tricked, or TK-grabbed. Melee combat 90 (amphistaff, scepter, vonduun crab armor). Puppet of Onimi. Killed by Luke Skywalker.'
+    },
+    Era15_WarmasterTsavongLah: {
+      name:'Warmaster Tsavong Lah', era:15, faction:'yuuzhanVong', tier:'Legendary (✗ Force-invisible strategist/warrior)', alignment:-90,
+      context:'The supreme military commander of the Vong invasion — a brilliant, brutal, fanatically devout strategist who conquered world after world. Developed a personal obsession with the Jedi and the Solo twins. Grafted creature-limbs onto his body as religious offerings. Lured into a trap at Ebaq 9 and killed by Jaina Solo.',
+      core:{str:88,agi:82,end:86,wil:90,cha:80,int:88},
+      force:null,
+      forms:null,
+      keyAbilities:null,
+      note:'✗ FORCE-INVISIBLE — cannot be sensed, mind-tricked, or TK-grabbed. Amphistaff combat 90. Non-Force — lethal to Jedi precisely because they cannot sense him. Killed by Jaina Solo at Ebaq 9.'
+    },
+    Era15_NomAnor: {
+      name:'Nom Anor', era:15, faction:'yuuzhanVong', tier:'Elite (✗ Force-invisible spy/schemer)', alignment:-70,
+      context:'The Vong\'s premier spy and agent provocateur — spent years infiltrating the galaxy before the invasion, sowing discord and founding front-cults. Served as executor throughout, leading a cynical double life, eventually heading the Shamed One heresy when it suited him. Died in the war\'s final battle.',
+      core:{str:60,agi:72,end:66,wil:84,cha:82,int:92},
+      force:null,
+      forms:null,
+      keyAbilities:null,
+      note:'✗ FORCE-INVISIBLE. Stealth/deception 84; concealed plaeryin bol bio-weapon eye and hidden blades. Master infiltrator/schemer; INT 92. Not a frontline warrior.'
+    },
+    Era15_SabaSebatyne: {
+      name:'Saba Sebatyne', era:15, faction:'newJediOrder', tier:'Master (fierce hunter-Jedi)', alignment:78,
+      context:'A Barabel Jedi Master — a fierce reptilian warrior and natural hunter whose predatory instincts make her one of the Order\'s deadliest combat Masters. Trains Leia in combat in later eras. Eventually acts as Grand Master during Luke\'s exile (Era 17).',
+      core:{str:84,agi:82,end:84,wil:86,cha:70,int:76},
+      force:{fS:82,med:76,fK:78,fC:84,fOut:84},
+      forms:{Shien:86,Juyo:80,ShiiCho:76},
+      keyAbilities:{ForceBody:84,Telekinesis:80,ForceSense:82},
+      note:'Barabel species predatory instincts fused with Jedi training. Acts as Order\'s Grand Master during Luke\'s exile in Era 17.'
+    },
+    Era15_GannerRhysode: {
+      name:'Ganner Rhysode', era:15, faction:'newJediOrder', tier:'Master (legendary last stand)', alignment:80,
+      context:'Jedi Knight whose heroic sacrifice became one of the most legendary moments of the war. Held a doorway at the Well of the World Brain against thousands of Yuuzhan Vong warriors single-handedly, giving Jacen time to reach the World Brain. Died a legend — his name becoming mythology among the Vong.',
+      core:{str:80,agi:78,end:80,wil:84,cha:74,int:74},
+      force:{fS:80,med:70,fK:70,fC:82,fOut:84},
+      forms:{ShienDjemSo:84,Soresu:80,ShiiCho:74},
+      keyAbilities:{ForceBody:84,Telekinesis:78,ForceSense:80},
+      note:'"None shall pass" — held the Well of the World Brain doorway against thousands. His sacrifice became Vong mythology. Died a legend.'
+    },
+
+    // ═══ ERA 16 — Legacy of the Force / Second Galactic Civil War (≈40 ABY) ═══
+    Era16_LukeSkywalkerLegacy: {
+      name:'Luke Skywalker (Legacy era — near-apex)', era:16, faction:'newJediOrder', tier:'LEGENDARY — near-apex (~134); true apex (~138) in Era 17', alignment:90,
+      context:'Luke near the summit of his lifelong ascent — the most powerful Jedi of his age. Struck personally by the war: his nephew Jacen falls and murders Mara. Luke kills Lumiya in grief, which clouds his vision of the future — which is why he did not face Caedus to the end himself and entrusted that duty to Jaina. NOT yet his absolute apex: the Luke who battles Abeloth (Era 17) is stronger.',
+      core:{str:90,agi:100,end:92,wil:106,cha:88,int:90},
+      force:{fS:100,med:96,fK:100,fC:126,fOut:134},
+      forms:{ShienDjemSo:102,Soresu:102,Ataru:100,Makashi:98,Niman:98,ShiiCho:98,Juyo:96,JarKai:98},
+      keyAbilities:{Telekinesis:128,ForceHeal:100,ForceBarrier:98,ForceSense:100,MindTrick:92},
+      note:'Unarmed/martial 94. Near-apex (~134) but NOT his true peak — clouded foresight (after killing Lumiya) shaped his approach to Caedus. True apex (~138) arrives in Era 17 against Abeloth.'
+    },
+    Era16_DarthCaedus: {
+      name:'Darth Caedus (Jacen Solo, fallen)', era:16, faction:'sith', tier:'Legendary — near-apex Sith (surpasses Vader; ~120)', alignment:-100,
+      context:'The fall of the New Jedi Order\'s greatest young hero. Manipulated by Lumiya into becoming a Sith Lord — murdered Mara Jade Skywalker, seized dictatorial control of the Galactic Alliance, and took Tahiri Veila as his Sith apprentice. His Force command surpassed even Darth Vader\'s. Pressed even a holding-back Luke and landed real hits — but was killed by his twin Jaina. Returned to the light as Jacen in his final moment to save his daughter Allana.',
+      core:{str:76,agi:88,end:82,wil:100,cha:84,int:88},
+      force:{fS:96,med:94,fK:94,fC:110,fOut:120},
+      forms:{ShienDjemSo:96,Ataru:92,Soresu:90,Niman:90,Juyo:88},
+      keyAbilities:{Telekinesis:116,ForceLightning:100,BattleMeditation:96,ForceSense:96},
+      note:'Flow-walking unique technique (perceiving/walking through past and future). Carried his Jacen-era "second only to Luke" dueling into the dark side. Output 120 surpasses Vader. Killed by Jaina; redeemed in death.'
+    },
+    Era16_JainaSoloCaedusSlayer: {
+      name:'Jaina Solo (Caedus-slayer)', era:16, faction:'newJediOrder', tier:'Legendary-adjacent (warrior-pilot; the Caedus-slayer)', alignment:80,
+      context:'The Sword of the Jedi fulfilling her destiny — hunting and killing her own brother. Sought Mandalorian training from Boba Fett to gain the edge she needed over a more raw-powerful Sith. In the final confrontation she defeated and killed Darth Caedus — who returned to the light as Jacen in his final moment.',
+      core:{str:66,agi:88,end:76,wil:94,cha:80,int:84},
+      force:{fS:88,med:78,fK:80,fC:96,fOut:96},
+      forms:{ShienDjemSo:90,Ataru:88,JarKai:88,ShiiCho:82},
+      keyAbilities:{ForceBody:88,ForceSense:88,BattleMeld:86,Telekinesis:86},
+      note:'Mandalorian training (tactics/ranged 84) layered onto Jedi skills — the edge that overcame a Sith with higher raw Output. Killed Darth Caedus; named to Jedi High Council.'
+    },
+    Era16_BenSkywalker: {
+      name:'Ben Skywalker', era:16, faction:'newJediOrder', tier:'Elite → rising (Master potential)', alignment:68,
+      context:'Luke and Mara\'s son, grown from an infant (Era 15) into a troubled teen. Idolized Jacen and became his apprentice — only to be drawn into Caedus\'s darkness, then discover that Caedus had murdered his mother. Broke from Caedus, helped expose him, and stood with the Jedi. Rapidly maturing into a formidable young Jedi.',
+      core:{str:64,agi:82,end:72,wil:86,cha:78,int:82},
+      force:{fS:84,med:72,fK:74,fC:84,fOut:88},
+      forms:{ShienDjemSo:82,Ataru:80,ShiiCho:76},
+      keyAbilities:{ForceSense:84,Telekinesis:80,ForceBody:80}
+    },
+    Era16_LeiaJediMaster: {
+      name:'Leia Organa Solo (Jedi Master)', era:16, faction:'newJediOrder', tier:'Master (Jedi) / legendary as a leader', alignment:85,
+      context:'Anakin Skywalker\'s daughter — now a fully trained Jedi Knight/Master and the galaxy\'s most experienced stateswoman. In this war she endures the unthinkable: her son Jacen becomes a Sith Lord. She and Han fought against their own fallen child. Trained partly with Saba Sebatyne.',
+      core:{str:54,agi:72,end:64,wil:96,cha:92,int:90},
+      force:{fS:84,med:76,fK:78,fC:88,fOut:84},
+      forms:{Ataru:80,ShiiCho:76,Soresu:74},
+      keyAbilities:{ForceSense:84,Telekinesis:82,MindTrick:80,ForceBody:78},
+      note:'CHA 92 / INT 90 — unmatched as a statesperson. Skywalker-line Force potential realized late. Fought her own fallen son alongside Han.'
+    },
+    Era16_LumiyaDarkLady: {
+      name:'Lumiya — Dark Lady of the Sith', era:16, faction:'sith', tier:'High Master (manipulation / lightwhip duelist)', alignment:-90,
+      context:'Once Shira Brie, Vader\'s secret trainee — rebuilt as a cyborg after a near-fatal mission, who took up the mantle of Dark Lady of the Sith for decades. Her masterstroke: engineering Jacen Solo\'s fall to destroy the Jedi from within. When Jacen murdered Mara, Lumiya took the blame to Luke\'s face to buy her apprentice time; Luke pursued and decapitated her.',
+      core:{str:62,agi:78,end:70,wil:88,cha:80,int:88},
+      force:{fS:84,med:76,fK:86,fC:86,fOut:82},
+      forms:{Makashi:78,ShiiCho:72},
+      keyAbilities:{SithAlchemy:82,MindProbe:84,ForceLightning:78,Telekinesis:76},
+      note:'Lightwhip mastery 84 (exotic multi-tendril energy whip). Same being as Era14 Lumiya. Killed by Luke after Mara\'s death.'
+    },
+    Era16_TahiriVeila: {
+      name:'Tahiri Veila (Caedus\'s apprentice)', era:16, faction:'sith', tier:'Elite (Dark Jedi apprentice)', alignment:-60,
+      context:'Anakin Solo\'s childhood love, shaped with a Vong persona during the war (Era 15), who never recovered from Anakin\'s death. Caedus exploited that wound — using flow-walking to dangle visions of revisiting Anakin\'s past — to seduce her to the dark side as his Sith apprentice. Later redeemed after Caedus\'s fall.',
+      core:{str:62,agi:84,end:70,wil:80,cha:76,int:78},
+      force:{fS:82,med:70,fK:74,fC:82,fOut:82},
+      forms:{Ataru:82,ShiiCho:76,JarKai:76},
+      keyAbilities:{ForceBody:80,Telekinesis:76,ForceSense:80},
+      note:'Vong-shaped (Riina persona from Era 15 captivity). Grief for Anakin Solo was the lever Caedus used. Later redeemed; put on trial for Pellaeon\'s death.'
+    },
+    Era16_BobaFettMandalore: {
+      name:'Boba Fett (Mandalore)', era:16, faction:'mandalorians', tier:'Elite–Legendary (non-Force warrior/leader)', alignment:0,
+      context:'The legendary bounty hunter, now the Mand\'alor — supreme leader of the Mandalorians — fighting a private battle against a degenerative clone illness. When Jaina Solo sought training to defeat her brother, Fett and the Mandalorians taught her the tactics and combat edge to beat a Force-user. Led the Mandalorians against Caedus.',
+      core:{str:70,agi:76,end:76,wil:88,cha:70,int:86},
+      force:null,
+      forms:null,
+      keyAbilities:null,
+      note:'Melee/Ranged combat 84. Mand\'alor (Mandalorian leader). Trained Jaina Solo to kill a Sith. Non-Force — knows how to kill Force-users; taught Jaina the same.'
+    },
+
+    // ═══ ERA 17 — Fate of the Jedi (≈43–44 ABY) ═══
+    // ★ ERA APEX: Abeloth is OFF THE SCALE (Transcendent 151+ / ~185). Luke reaches his absolute mortal apex (~138).
+    Era17_Abeloth: {
+      name:'Abeloth — the Bringer of Chaos', era:17, faction:'theOnes', tier:'TRANSCENDENT (151+) — OFF THE SCALE; the apex of all Legends', alignment:-100,
+      context:'The single most powerful Force entity in galactic history — the apex of the entire timeline, in a category no other being approaches. Once the mortal caretaker of the Ones\' household, she drank from the Font of Power and bathed in the Pool of Knowledge, warping into an immortal monster. Fed on both for ~100,000 years of captivity. Stated to be roughly a dozen times stronger than Luke in raw Force power. Each of her diluted, galaxy-spread avatars individually pushed apex Luke to his absolute limit. A shapeshifter who inflicts galaxy-wide Force psychosis, possesses hosts, and operates through many avatars at once. Required Luke AND Darth Krayt — two apex Force-users — combined, working in the Realm Beyond Shadows with her avatars destroyed simultaneously, merely to exile her. Even then, not destroyed — only driven back.',
+      core:{str:95,agi:95,end:150,wil:170,cha:110,int:132},
+      force:{fS:175,med:168,fK:180,fC:172,fOut:185},
+      forms:null,
+      keyAbilities:{ForceOutput:185,Multipresence:175,ForcePsychosis:170,Possession:165,ForceDrain:168},
+      note:'TRANSCENDENT (151+) — off the scale. ~185 FOut is a NOMINAL FLOOR, not a ceiling (she is "a dozen times" peak Luke in raw power). No single being can defeat her. Font of Power + Pool of Knowledge for ~100,000 years. APEX CEILING anchor: the one being above peak Luke (~138). Exiled, not destroyed, at era\'s end.'
+    },
+    Era17_LukeSkywalkerApex: {
+      name:'Luke Skywalker (ABSOLUTE APEX — exiled)', era:17, faction:'jediOrder', tier:'LEGENDARY — ABSOLUTE MORTAL APEX (~138); strongest realized mortal, 2nd only to Abeloth', alignment:92,
+      context:'Luke at his absolute apex — the culmination of his entire arc (rising farmboy → founder → wartime Grand Master → near-apex → now fully realized). The strongest realized mortal Force-user in galactic history, second only to Abeloth. Exiled by Chief of State Daala, he turned exile into a quest to uncover Abeloth. Confronted her diluted avatars repeatedly — each one taxing him to his absolute limit. Could not defeat the whole Abeloth alone; allied with Darth Krayt to drive her back. His raw power and wisdom are unmatched among all mortals.',
+      core:{str:92,agi:102,end:94,wil:108,cha:90,int:92},
+      force:{fS:102,med:98,fK:102,fC:138,fOut:138},
+      forms:{ShienDjemSo:104,Soresu:104,Ataru:102,Makashi:100,Niman:100,ShiiCho:100,Juyo:98,JarKai:100},
+      keyAbilities:{Telekinesis:132,ForceHeal:102,ForceBarrier:100,ForceSense:102,MindWalking:100},
+      note:'Unarmed/martial 96 (multiple disciplines). The APEX CEILING calibration point: FOut 138 / FCtrl 138 — the ceiling of all mortal Force use. Mind-Walking unique technique (Realm Beyond Shadows vs Abeloth). Could only barely hold Abeloth\'s throat-crush with everything he had.'
+    },
+    Era17_BenSkywalkerFotJ: {
+      name:'Ben Skywalker (Fate of the Jedi)', era:17, faction:'jediOrder', tier:'High Knight (Master potential)', alignment:78,
+      context:'Luke and Mara\'s son, grown from the troubled teen of Era 16 into a capable Jedi Knight who accompanies his father throughout the Abeloth crisis. Fell into a genuine conflicted bond with Lost Tribe Sith apprentice Vestara Khai — a relationship central to Abeloth\'s scheme.',
+      core:{str:68,agi:84,end:74,wil:88,cha:80,int:84},
+      force:{fS:86,med:76,fK:78,fC:88,fOut:90},
+      forms:{ShienDjemSo:84,Ataru:82,ShiiCho:78},
+      keyAbilities:{ForceSense:86,Telekinesis:82,ForceBody:82}
+    },
+    Era17_VesteraKhai: {
+      name:'Vestara Khai', era:17, faction:'lostTribeSith', tier:'Elite (young Sith, rising)', alignment:-50,
+      context:'A gifted young Sith of the Lost Tribe of Kesh, trained from childhood as an assassin. Sole survivor of the strike team against Luke. Fell into a conflicted bond with Ben Skywalker while in the Skywalkers\' custody as part of the Sith-Jedi alliance against Abeloth. Her allegiance torn between her Tribe and the light. Abeloth schemed to use her and Ben to recreate the family of the Ones.',
+      core:{str:58,agi:84,end:66,wil:82,cha:78,int:80},
+      force:{fS:80,med:68,fK:74,fC:82,fOut:78},
+      forms:{Ataru:82,ShiiCho:76,JarKai:74},
+      keyAbilities:{ForceBody:78,Telekinesis:74,ForceSense:80}
+    },
+    Era17_SarasuTaalon: {
+      name:'High Lord Sarasu Taalon', era:17, faction:'lostTribeSith', tier:'High Master (rising/unstable)', alignment:-85,
+      context:'Keshiri High Lord of the Lost Tribe who proposed the feigned alliance with Luke against Abeloth — intending to betray the Jedi and force Abeloth to serve the Sith. After submerging in the Pool of Knowledge, he began transforming into an Abeloth-like entity, gaining unstable power before being killed.',
+      core:{str:70,agi:76,end:74,wil:88,cha:82,int:86},
+      force:{fS:84,med:78,fK:86,fC:88,fOut:90},
+      forms:{Makashi:84,ShienDjemSo:80,ShiiCho:76},
+      keyAbilities:{ForceLightning:86,Telekinesis:82,SithAlchemy:80},
+      note:'Pool of Knowledge transformation unique technique (began mutating toward Abeloth-like entity). Killed before the transformation completed.'
+    },
+    Era17_NatasiDaala: {
+      name:'Natasi Daala', era:17, faction:'galacticAlliance', tier:'Elite (non-Force leader)', alignment:-20,
+      context:'Former Imperial warlord who improbably rose to Chief of State of the Galactic Alliance. Authoritarian and distrustful of the Jedi — exiled Luke Skywalker and waged legal war on the Order (freezing psychosis-afflicted Knights in carbonite). The era\'s chief political antagonist, as Abeloth was the cosmic one. Deposed in a Jedi-backed coup.',
+      core:{str:48,agi:52,end:56,wil:86,cha:78,int:82},
+      force:null,
+      forms:null,
+      keyAbilities:null,
+      note:'Non-Force. Command rating 70. Exiled Luke Skywalker; prosecuted and imprisoned Jedi. Deposed by Jedi-backed coup.'
+    },
+
+    // ═══ ERA 18 — Legacy Era (≈130–139 ABY) — chronological end-point of Legends ═══
+    Era18_DarthKrayt: {
+      name:'Darth Krayt (A\'Sharad Hett)', era:18, faction:'oneSith', tier:'LEGENDARY — Tier A apex (~132); last reserved apex being', alignment:-100,
+      context:'Once A\'Sharad Hett — Tusken-raised Jedi of the Old Republic, Clone Wars Jedi Master who survived Order 66, later tortured and implanted by the Yuuzhan Vong. Fell to the dark side, founded the One Sith (many Sith, abandoning Bane\'s Rule of Two) over a century in hiding. Engineered the Sith-Imperial War, the Massacre at Ossus, and seized the galactic throne. ~200 years old via Force/Vong implants/stasis. The most powerful Force-user alive in his age — the last apex-tier being in the timeline. Allied with Luke Skywalker to drive off Abeloth (Era 17). His Vong implants are killing him, driving him to hunt Cade Skywalker\'s healing power. Killed for the last time by Cade.',
+      core:{str:90,agi:86,end:88,wil:110,cha:90,int:96},
+      force:{fS:110,med:100,fK:116,fC:130,fOut:132},
+      forms:{ShienDjemSo:102,Makashi:100,Soresu:100,Ataru:98,Niman:98,Juyo:98,ShiiCho:96,JarKai:98},
+      keyAbilities:{Telekinesis:118,ForceLightning:120,SithAlchemy:116,MindDomination:110,ForceSense:110},
+      note:'Force/Vong/stasis life-extension unique technique (~200-year lifespan; survives death repeatedly). APEX CEILING: ~132 — Tier A, near-equal of peak Luke (138); below him, dwarfed by Abeloth (~185). END 88 (failing Vong-implanted body — the plot-driving weakness). Best swordsman of his age. Same being as the "Dark Man" pointer (Eras 16-17) and A\'Sharad Hett (pre-fall). APEX ROSTER COMPLETE with this entry.'
+    },
+    Era18_DarthWyyrlok: {
+      name:'Darth Wyyrlok (III)', era:18, faction:'oneSith', tier:'High Master / Legendary (Sith sorcery / lore)', alignment:-90,
+      context:'Krayt\'s chief adviser, lore-keeper, and regent — the "Voice" who ruled the Sith Empire in Krayt\'s name during his stasis. A Chagrian master of Sith sorcery, alchemy, and ancient XoXaan lore. The administrative and arcane backbone of the One Sith. Struck Krayt down himself when he believed the failing Emperor endangered the Sith\'s reign — only for Krayt to return.',
+      core:{str:66,agi:70,end:72,wil:92,cha:84,int:94},
+      force:{fS:88,med:88,fK:100,fC:94,fOut:92},
+      forms:{Makashi:84,ShiiCho:78},
+      keyAbilities:{SithAlchemy:100,ForceLightning:90,MindProbe:88,Telekinesis:84},
+      note:'Sith alchemy and ancient lore unique technique (XoXaan\'s lore, 92% proficiency). The One Sith\'s arcane backbone. Temporarily struck down Krayt — but Krayt returned.'
+    },
+    Era18_DarthTalon: {
+      name:'Darth Talon', era:18, faction:'oneSith', tier:'Elite (Sith Hand/assassin)', alignment:-90,
+      context:'A red-skinned Lethan Twi\'lek covered in black Sith tattoos, raised from infancy as a weapon of the One Sith — one of Krayt\'s elite Hands. Tasked with seducing Cade Skywalker to the dark side; the two developed a genuine dangerous attraction. Beheaded a Jedi Master on Krayt\'s order. Cade repeatedly wounded and nearly killed her.',
+      core:{str:60,agi:90,end:70,wil:84,cha:80,int:78},
+      force:{fS:82,med:70,fK:74,fC:86,fOut:84},
+      forms:{Ataru:88,JarKai:82,ShiiCho:78},
+      keyAbilities:{ForceBody:84,Telekinesis:80,ForceSense:82}
+    },
+    Era18_DarthNihl: {
+      name:'Darth Nihl', era:18, faction:'oneSith', tier:'Elite–High (Sith warrior/enforcer)', alignment:-90,
+      context:'A towering Nagai Sith and one of Krayt\'s deadliest warriors — brutal, proud, and a superb duelist who led much of the Massacre at Ossus. Lost an arm to Cade Skywalker (replaced with a Yuuzhan Vong graft) and remained a relentless hunter throughout the era.',
+      core:{str:84,agi:82,end:82,wil:86,cha:70,int:78},
+      force:{fS:80,med:70,fK:74,fC:86,fOut:88},
+      forms:{ShienDjemSo:88,Juyo:84,ShiiCho:80},
+      keyAbilities:{ForceBody:86,ForceRage:84,Telekinesis:82},
+      note:'Lost an arm to Cade Skywalker; Vong-graft replacement. Led the Massacre at Ossus.'
+    },
+    Era18_CadeSkywalker: {
+      name:'Cade Skywalker', era:18, faction:'jediOrder', tier:'Legendary-adjacent (apex potential unrealized; unique healing gift)', alignment:30,
+      context:'A descendant of Luke Skywalker — a Jedi youngling who survived the Massacre at Ossus (where his father Kol was killed), then abandoned the Order and became a spice-addicted bounty hunter running from his name. Carries immense latent Skywalker potential and a unique Force gift: healing and resurrection. Darth Krayt hunted him to cure his own failing body. Conflicted and self-destructive, he ultimately resisted Krayt, refused to be his healer-slave, and killed the Sith Emperor. Apex potential never fully realized — his refusal to embrace the Force caps him below his bloodline\'s ceiling.',
+      core:{str:72,agi:82,end:74,wil:86,cha:78,int:76},
+      force:{fS:88,med:72,fK:70,fC:90,fOut:104},
+      forms:{ShienDjemSo:90,Ataru:84,ShiiCho:82},
+      keyAbilities:{ForceHealingResurrection:110,Telekinesis:100,ForceLightning:90,ForceBody:86},
+      note:'Force Healing/Resurrection 110 unique signature (mends mortal wounds; pulls back the dying and recently dead — the power Krayt hunted him for). Blaster/bounty-hunter pragmatism (80) layered onto Jedi training. Guided by Luke\'s Force ghost. Killed Darth Krayt.'
+    },
+    Era18_EmperorRoanFel: {
+      name:'Emperor Roan Fel', era:18, faction:'felEmpire', tier:'High (Imperial Knight duelist / leader)', alignment:40,
+      context:'The hereditary Emperor of the Fel Empire, who allied with Krayt\'s Sith to defeat the Galactic Alliance — only to be betrayed and deposed when Krayt seized the throne. Led the loyalist Imperial faction and the Imperial Knights in a three-way war. Unusually for an emperor, he is himself a superb duelist trained in the Imperial Knight tradition.',
+      core:{str:72,agi:84,end:74,wil:88,cha:86,int:84},
+      force:{fS:80,med:72,fK:74,fC:88,fOut:82},
+      forms:{ShienDjemSo:86,Makashi:82,Soresu:82},
+      keyAbilities:{ForceBody:82,Telekinesis:78,ForceSense:80}
+    },
+    Era18_WolfSazen: {
+      name:'Wolf Sazen', era:18, faction:'jediOrder', tier:'Master (Jedi)', alignment:85,
+      context:'A towering Zabrak Jedi Master, Kol Skywalker\'s former Padawan and Cade\'s mentor, who survived the Massacre at Ossus (losing an arm). Spent years trying to bring the wayward Cade back to the Jedi. Was mortally wounded and then resurrected by Cade\'s healing power — a pivotal moment in Cade\'s arc.',
+      core:{str:80,agi:76,end:80,wil:88,cha:76,int:80},
+      force:{fS:84,med:80,fK:80,fC:88,fOut:86},
+      forms:{ShienDjemSo:88,Soresu:84,ShiiCho:80},
+      keyAbilities:{ForceBody:84,Telekinesis:84,ForceSense:84}
+    },
+    Era18_KolSkywalker: {
+      name:'Kol Skywalker (killed at Ossus)', era:18, faction:'jediOrder', tier:'Master+ (Jedi; Cade\'s father)', alignment:88,
+      context:'Cade\'s father — a powerful Jedi Master who led what remained of the New Jedi Order and died at the Massacre at Ossus when Krayt\'s Sith betrayed the alliance. His death and Cade\'s survival as the last Skywalker shaped the entire Legacy-era arc. Carried significant Skywalker-line Force potential (FOut 96 — close to legendary threshold).',
+      core:{str:78,agi:80,end:76,wil:90,cha:82,int:82},
+      force:{fS:90,med:80,fK:82,fC:92,fOut:96},
+      forms:{ShienDjemSo:92,Soresu:86,ShiiCho:80},
+      keyAbilities:{Telekinesis:94,ForceHeal:86,ForceSense:90},
+      note:'Killed at the Massacre at Ossus. FOut 96 — on the threshold of legendary. Skywalker-line Force potential. His death is the inciting event of the Legacy arc.'
     }
   },
 
