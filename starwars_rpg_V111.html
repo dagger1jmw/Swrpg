@@ -2738,7 +2738,7 @@ ${sheetSummary}
 
 WORLD & GALAXY:
 ${galaxySummary}
-
+${buildLoreContext()}
 ${campaignSummary ? `CAMPAIGN HISTORY (turns 1–${Math.max(1, turnCount - recentHistory.length/2)}):\n${campaignSummary}` : 'Campaign is just beginning.'}
 
 CRITICAL RULES FOR THIS TURN:
@@ -7326,6 +7326,145 @@ function getEraLore(dateBBY) {
       ).map(([k,c]) => [k, { name:c.name, faction:c.faction, tier:c.tier, status:c.statusIn3661 }])
     )
   };
+}
+
+// ─── Force Ability Rules — compact lookup for dynamic lore injection ───────────
+// Used by buildLoreContext() to tell the AI: anchor stats, unlock prereqs,
+// available sub-applications, and proficiency soft-cap for each active ability.
+// Covers padawan→knight range; add entries as the player unlocks new families.
+const FORCE_ABILITY_RULES = {
+  Telekinesis:      { anchor:'ForceControl+ForceOutput', prereq:'ForceControl>=5',
+    subs:['ForcePull(TK>=10)','ForcePush(TK>=10)','ForceWave(TK>=10)','SaberThrow(TK>=15+form>=10)','TelekineticBurst(TK>=21)','ForceLevitation(TK>=30+FC>=20)','ForceSurge(TK>=30+FB>=15)','ForceWound-dark(TK>=21+darkDrift)'],
+    dark:false },
+  ForceSense:       { anchor:'ForceSense(stat)', prereq:'built-in — always active',
+    subs:['BattlePrecognition(FS>=10)','BattleForesight(FS>=21)','DangerSense(FS>=21+FC>=10)','ForceEmpathy(FS>=30)','ForceVision(FS>=41)','CombatPrecognition(FS>=61+FC>=41)'],
+    dark:false },
+  ForceBody:        { anchor:'ForceControl', prereq:'ForceControl>=5',
+    subs:['ForceStrength(FC>=10)','ForceCamouflage(FC>=15)','ForceDefense(FC>=41)'],
+    dark:false },
+  ForceEndurance:   { anchor:'ForceControl+Endurance', prereq:'ForceControl>=10+Endurance>=10', subs:[], dark:false },
+  ForceBarrier:     { anchor:'ForceControl', prereq:'ForceControl>=10',
+    subs:['Tutaminis(FB>=21+Med>=21+FC>=21)','ForceAbsorb(FB>=30+FC>=25)','ForceSuppression(FB>=15+Will>=20)'],
+    dark:false },
+  MindTrick:        { anchor:'ForceControl+Willpower', prereq:'ForceControl>=15+Willpower>=10',
+    subs:['Persuade(MT>=21+Cha>=15)','ForceConfusion(MT>=21+FC>=25)','Dominate-dark(MT>=30+FC>=30)','ForceFear-dark(MT>=21+dark>=10)'],
+    dark:false },
+  ForceHeal:        { anchor:'Meditation+ForceControl', prereq:'Meditation>=15 (self only)',
+    subs:['HealOthers(FH>=21+LightSide>=10)','WoundClosure(HO>=21+Med>=20)','Malacia(Med>=15+FH>=10)','ForceRevitalize(FH>=30+FB>=15)'],
+    dark:false },
+  BattleMeditation: { anchor:'Meditation+ForceSense', prereq:'Meditation>=21+Willpower>=20',
+    subs:['DarkBattleMeditation-dark(BM>=15+Cha>=15)'],
+    dark:false },
+  BattleForesight:  { anchor:'ForceSense+Meditation', prereq:'ForceSense>=21', subs:[], dark:false },
+  ForceKnowledge:   { anchor:'ForceKnowledge(stat)+Meditation', prereq:'ForceKnowledge>=15+Meditation>=10',
+    subs:['ForceHistory(FK>=21+FS>=15)','ForceWisdom(FK>=30+FS>=30)'],
+    dark:false },
+  Meditation:       { anchor:'Meditation(stat)', prereq:'built-in',
+    subs:['HealingTrance(Med>=15+End>=10)','ForceTrance(Med>=21+End>=10)','MindShield(Med>=21+Will>=20)','AlignedMeditation(Med>=41+FC>=30+FK>=21)'],
+    dark:false },
+  ForceLightning:   { anchor:'ForceOutput+ForceControl', prereq:'ForceControl>=41+dark>=20 — DARK SIDE GATE',
+    subs:['ChainLightning(FL>=10)','LightningBurst(FL>=30+dark>=30)','ForceStorm(FL>=61+dark>=60)'],
+    dark:true },
+  ForceRage:        { anchor:'ForceOutput+Willpower', prereq:'ForceStrength>=15+dark>=20', subs:[], dark:true },
+  ForceDrain:       { anchor:'ForceOutput+ForceControl', prereq:'dark>=30+Telekinesis>=21',
+    subs:['LifeDrain(FD>=21+dark>=30)'], dark:true },
+  SithAlchemy:      { anchor:'ForceKnowledge+ForceControl', prereq:'ForceKnowledge>=61+dark>=60 — requires sithTextAccess flag',
+    subs:[], dark:true }
+};
+
+// Builds a compact lore block injected into the state message each turn.
+// Covers era situation, faction states, active NPCs with tier/power reference,
+// immutable apex ceiling, and unlock rules for the player's known Force abilities.
+// Always returns '' before worldState exists or if anything throws.
+function buildLoreContext() {
+  try {
+    if (!worldState) return '';
+    const dateStr = worldState.inGameDate || '';
+    const bbyMatch = dateStr.match(/(\d{3,5})\s*BBY/);
+    const currentBBY = bbyMatch ? parseInt(bbyMatch[1]) : (LORE_DATABASE.currentEra.dateBBY || 3661);
+    const lore = getEraLore(currentBBY);
+    const cs = characterSheet || {};
+    const out = [];
+
+    // ── 1. Situation, factions, temple ─────────────────────────────
+    out.push('LORE CONTEXT — ' + currentBBY + ' BBY:');
+    if (lore.situationNow) out.push('SITUATION: ' + lore.situationNow);
+    if (lore.factionStates) {
+      const fs = lore.factionStates;
+      const fp = [];
+      if (fs.jediOrder)    fp.push('JediOrder(pwr:' + fs.jediOrder.power + ' mor:' + fs.jediOrder.morale + ')');
+      if (fs.sithEmpire)   fp.push('SithEmpire(pwr:' + fs.sithEmpire.power + ' mor:' + fs.sithEmpire.morale + ')');
+      if (fs.republic)     fp.push('Republic(pwr:' + fs.republic.power + ' mor:' + fs.republic.morale + ')');
+      if (fs.mandalorians) fp.push('Mandalorians(pwr:' + fs.mandalorians.power + (fs.mandalorians.blockadeActive ? ' blockade:ACTIVE' : '') + ')');
+      if (fp.length) out.push('FACTIONS: ' + fp.join(' | '));
+    }
+    if (lore.temple) out.push('TEMPLE: supply:' + lore.temple.supplyLevel + '/100 training:' + lore.temple.trainingQuality + '/100 — ' + lore.temple.focus);
+
+    // ── 2. Timeline context ─────────────────────────────────────────
+    if (lore.recentPast && lore.recentPast.length) {
+      out.push('KNOWN RECENT EVENTS:');
+      lore.recentPast.slice(0, 5).forEach(function(e) {
+        out.push('  ' + e.date + 'BBY: ' + e.label + (e.desc ? ' — ' + e.desc.slice(0, 90) : ''));
+      });
+    }
+    if (lore.upcomingEvents && lore.upcomingEvents.length) {
+      out.push('FUTURE EVENTS (GM-only — do NOT reveal to player; use to simulate galaxy):');
+      lore.upcomingEvents.slice(0, 4).forEach(function(e) {
+        out.push('  ' + e.date + 'BBY: ' + e.label + (e.downstream ? ' [' + e.downstream + ']' : ''));
+      });
+    }
+
+    // ── 3. Active era NPCs ──────────────────────────────────────────
+    var npcs = lore.activeNPCs || {};
+    if (Object.keys(npcs).length) {
+      out.push('ACTIVE ERA NPCs (power reference — tier determines difficulty of any confrontation):');
+      for (var key in npcs) {
+        var n = npcs[key];
+        var full = LORE_DATABASE.characters[key] || {};
+        var f = full.force;
+        var fStr = f ? 'FC:' + f.fC + ' FOut:' + f.fOut : 'non-Force';
+        out.push('  ' + n.name + ' [' + n.tier + '] ' + fStr + ' — ' + (n.status || '').slice(0, 115));
+      }
+    }
+
+    // ── 4. Apex ceiling — immutable, never violate ──────────────────
+    var ac = LORE_DATABASE.apexCeiling;
+    out.push('POWER CEILING (immutable — never violate):');
+    out.push('  TRANSCENDENT: ' + ac.TRANSCENDENT.map(function(x){return x.name+'~'+x.approxLevel;}).join(', ') + ' — cosmic; no mortal approaches this level');
+    out.push('  S-tier: ' + ac.S.map(function(x){return x.name+'~'+x.approxLevel+' ('+x.era+')';}).join(', '));
+    out.push('  A-tier: ' + ac.A.map(function(x){return x.name+'~'+x.approxLevel;}).join(', '));
+    out.push('  RULE: ' + ac.rule);
+
+    // ── 5. Player Force ability rules ───────────────────────────────
+    var abilityKeys = Object.keys(cs.forceAbilities || {});
+    var hasShatterSense = (cs.innateTalents || []).indexOf('ShatterSense') >= 0;
+    var spLvl = (typeof spGetLevel === 'function') ? spGetLevel() : 0;
+    if (abilityKeys.length || hasShatterSense || spLvl > 0) {
+      out.push('PLAYER FORCE ABILITY RULES (anchors, prereqs, sub-applications, proficiency soft-cap):');
+      abilityKeys.forEach(function(key) {
+        var raw = cs.forceAbilities[key];
+        var lvl = (typeof raw === 'object') ? (raw.level || raw.value || 0) : (raw || 0);
+        var tierName = statToTier(lvl).name;
+        var cap = lvl<=20?25 : lvl<=40?50 : lvl<=60?70 : lvl<=80?85 : 100;
+        var rules = FORCE_ABILITY_RULES[key];
+        if (rules) {
+          var subStr = rules.subs.length ? ' | subs: ' + rules.subs.join(', ') : '';
+          out.push('  ' + key + '(L' + lvl + ' ' + tierName + '): anchor=' + rules.anchor + ' | prereq:' + rules.prereq + subStr + ' | profCap:' + cap + '%' + (rules.dark ? ' [DARK SIDE GATE]' : ''));
+        } else {
+          out.push('  ' + key + '(L' + lvl + ' ' + tierName + '): [check SW_Force_Abilities_Forms_v3_complete.md for prereqs and anchor stats]');
+        }
+      });
+      if (hasShatterSense || spLvl > 0) {
+        var spTiers = spLvl < 6 ? 'Tier1 only' : spLvl < 11 ? 'Tier1+Tier2' : 'Tier1+Tier2+Tier3';
+        var spCap = spLvl<=20?25 : spLvl<=40?50 : 70;
+        out.push('  Shatterpoint(L' + spLvl + ' innate x0.1 XP cost): anchor=Meditation+Willpower+ForceSense | passive perception — no roll to detect; SHATTERPOINT_ROLL triggers interpretation quality | ' + spTiers + ' active | profCap:' + spCap + '% | surface ONLY genuine fracture points, not for dramatic effect');
+      }
+    }
+
+    return out.length ? '\n' + out.join('\n') + '\n' : '';
+  } catch(e) {
+    return ''; // silent fail — never break the game loop
+  }
 }
 
 // ── Simulation state ──────────────────────────────────────────────
