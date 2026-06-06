@@ -5659,6 +5659,28 @@ const FORCE_ABILITY_CATALOG = {
   ForceBody:               { fam:'Body', label:'Force Body',               par:null,              D:4.0,  align:'neutral', anchors:['forceOutput','forceControl'], prereqs:{ForceEndurance:30, forceControl:30},       flags:[] },
   ResistAging:             { fam:'Body', label:'Resist Aging',             par:null,              D:4.0,  align:'neutral', anchors:['meditation'],                 prereqs:{meditation:41, forceControl:30, forceKnowledge:21}, flags:[] },
 
+  // ── MENTAL & SOCIAL FAMILY ───────────────────────────────────────────────
+  // MindTrick tree: ForcePersuasion/MindControl/ForceProjection/ForceFear are sub-apps.
+  // ForceFear → ForceHorror → ForceInsanity form a nested dark chain.
+  // MindProbe and below are standalone root abilities.
+  MindTrick:              { fam:'Mental', label:'Mind Trick',              par:null,          D:1.0,  align:'neutral', anchors:['forceControl','forceSense'],   prereqs:{forceControl:15, willpower:10},            flags:[] },
+  ForcePersuasion:        { fam:'Mental', label:'Force Persuasion',        par:'MindTrick',   D:2.5,  align:'neutral', anchors:['forceControl','forceSense'],   prereqs:{MindTrick:21, charisma:15},               flags:[] },
+  MindControl:            { fam:'Mental', label:'Mind Control',            par:'MindTrick',   D:4.0,  align:'dark',    anchors:['forceControl'],                prereqs:{MindTrick:30, forceControl:30, darkSide:15}, flags:[] },
+  ForceProjection:        { fam:'Mental', label:'Force Projection',        par:'MindTrick',   D:2.5,  align:'neutral', anchors:['forceControl','forceOutput'],  prereqs:{MindTrick:21, forceControl:25},            flags:[] },
+  ForceFear:              { fam:'Mental', label:'Force Fear',              par:'MindTrick',   D:2.5,  align:'dark',    anchors:['forceControl','forceSense'],   prereqs:{MindTrick:21, darkSide:10},               flags:[] },
+  ForceHorror:            { fam:'Mental', label:'Force Horror',            par:'ForceFear',   D:4.0,  align:'dark',    anchors:['forceControl','forceSense'],   prereqs:{ForceFear:21, darkSide:30},               flags:[] },
+  ForceInsanity:          { fam:'Mental', label:'Force Insanity',          par:'ForceHorror', D:4.0,  align:'dark',    anchors:['forceControl'],                prereqs:{ForceHorror:21, darkSide:50},             flags:[] },
+  MindProbe:              { fam:'Mental', label:'Mind Probe',              par:null,          D:4.0,  align:'dark',    anchors:['forceControl','forceSense'],   prereqs:{forceControl:41, forceSense:30},           flags:[] },
+  DrainKnowledge:         { fam:'Mental', label:'Drain Knowledge',         par:null,          D:2.5,  align:'dark',    anchors:['forceControl','forceSense'],   prereqs:{MindProbe:21, darkSide:20},               flags:[] },
+  MemoryWalk:             { fam:'Mental', label:'Memory Walk',             par:null,          D:2.5,  align:'dark',    anchors:['forceControl','forceSense'],   prereqs:{MindProbe:30, darkSide:25},               flags:[] },
+  MindShard:              { fam:'Mental', label:'Mind Shard',              par:null,          D:2.5,  align:'dark',    anchors:['forceControl','forceSense'],   prereqs:{MindProbe:21, darkSide:20},               flags:[] },
+  ForceInsight:           { fam:'Mental', label:'Force Insight',           par:null,          D:1.5,  align:'neutral', anchors:['forceKnowledge','meditation'], prereqs:{forceKnowledge:21, meditation:15},         flags:[] },
+  ForceComprehension:     { fam:'Mental', label:'Force Comprehension',     par:null,          D:1.5,  align:'neutral', anchors:['forceKnowledge','meditation'], prereqs:{forceKnowledge:15, meditation:10},         flags:[] },
+  ComprehendSpeech:       { fam:'Mental', label:'Comprehend Speech',       par:null,          D:1.0,  align:'neutral', anchors:['forceSense','forceKnowledge'], prereqs:{forceKnowledge:21, forceSense:15},         flags:[] },
+  ForceListening:         { fam:'Mental', label:'Force Listening',         par:null,          D:4.0,  align:'neutral', anchors:['meditation','forceSense'],      prereqs:{meditation:41, forceSense:30},             flags:[] },
+  Battlemind:             { fam:'Mental', label:'Battlemind',              par:null,          D:2.5,  align:'light',   anchors:['meditation'],                  prereqs:{meditation:21, willpower:20},             flags:[] },
+  ForceValor:             { fam:'Mental', label:'Force Valor',             par:null,          D:2.5,  align:'light',   anchors:['meditation','charisma'],        prereqs:{Battlemind:15, charisma:15},              flags:[] },
+
   // ── more families added below ─────────────────────────────────────────────
 
 };
