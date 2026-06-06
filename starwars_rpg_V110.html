@@ -5642,6 +5642,23 @@ const FORCE_ABILITY_CATALOG = {
   Postcognition:           { fam:'Sensory', label:'Postcognition',             par:null, D:2.5,  align:'neutral', anchors:['forceSense','forceKnowledge'],  prereqs:{forceSense:30, forceKnowledge:15},                              flags:[] },
   AingTiiFightingSight:    { fam:'Sensory', label:'Aing-Tii Fighting-Sight',   par:null, D:4.0,  align:'neutral', anchors:['forceSense','forceControl'],    prereqs:{forceSense:41, forceControl:30},                                flags:['aingTiiContact','aingTiiApproved'] },
 
+  // ── BODY ENHANCEMENT FAMILY ──────────────────────────────────────────────
+  // ForceCloak is the only sub-application (par:'ForceCamouflage'). All others are root.
+  ForceJump:               { fam:'Body', label:'Force Jump',               par:null,              D:1.0,  align:'neutral', anchors:['forceOutput'],               prereqs:{forceControl:5},                          flags:[] },
+  ForceSpeed:              { fam:'Body', label:'Force Speed',              par:null,              D:1.5,  align:'neutral', anchors:['forceOutput','forceControl'], prereqs:{forceControl:10},                         flags:[] },
+  ForceStrength:           { fam:'Body', label:'Force Strength',           par:null,              D:1.0,  align:'neutral', anchors:['forceOutput'],               prereqs:{forceControl:15},                         flags:[] },
+  ForceEndurance:          { fam:'Body', label:'Force Endurance',          par:null,              D:1.5,  align:'neutral', anchors:['meditation','forceControl'],  prereqs:{forceControl:10, endurance:10},            flags:[] },
+  ForceEnhancedReflexes:   { fam:'Body', label:'Force-Enhanced Reflexes',  par:null,              D:2.5,  align:'neutral', anchors:['forceSense','forceControl'],  prereqs:{forceSense:15, forceControl:10},           flags:[] },
+  ForceHealSelf:           { fam:'Body', label:'Force Heal (Self)',         par:null,              D:2.5,  align:'light',   anchors:['meditation','forceControl'],  prereqs:{meditation:21, forceControl:15},           flags:[] },
+  ForceCamouflage:         { fam:'Body', label:'Force Camouflage',         par:null,              D:4.0,  align:'neutral', anchors:['forceControl'],               prereqs:{forceControl:41},                         flags:[] },
+  ForceCloak:              { fam:'Body', label:'Force Cloak',              par:'ForceCamouflage', D:4.0,  align:'neutral', anchors:['forceControl'],               prereqs:{ForceCamouflage:30},                      flags:[] },
+  BreathControl:           { fam:'Body', label:'Breath Control',           par:null,              D:1.5,  align:'neutral', anchors:['meditation'],                 prereqs:{meditation:15, endurance:10},             flags:[] },
+  Tapas:                   { fam:'Body', label:'Tapas',                    par:null,              D:1.5,  align:'neutral', anchors:['meditation'],                 prereqs:{meditation:21, endurance:10},             flags:[] },
+  HibernationTrance:       { fam:'Body', label:'Hibernation Trance',       par:null,              D:2.5,  align:'neutral', anchors:['meditation'],                 prereqs:{meditation:30, BreathControl:15},         flags:[] },
+  Alchaka:                 { fam:'Body', label:'Alchaka',                  par:null,              D:1.5,  align:'neutral', anchors:['meditation'],                 prereqs:{meditation:15, anySaberForm:10},           flags:[] },
+  ForceBody:               { fam:'Body', label:'Force Body',               par:null,              D:4.0,  align:'neutral', anchors:['forceOutput','forceControl'], prereqs:{ForceEndurance:30, forceControl:30},       flags:[] },
+  ResistAging:             { fam:'Body', label:'Resist Aging',             par:null,              D:4.0,  align:'neutral', anchors:['meditation'],                 prereqs:{meditation:41, forceControl:30, forceKnowledge:21}, flags:[] },
+
   // ── more families added below ─────────────────────────────────────────────
 
 };
