@@ -5626,6 +5626,22 @@ const FORCE_ABILITY_CATALOG = {
   ForceOrb:                    { fam:'TK', label:'Force Orb',                 par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceControl'],               prereqs:{Telekinesis:25, forceControl:20}, flags:[] },
   ForceSphere:                 { fam:'TK', label:'Force Sphere',              par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceControl'],               prereqs:{Telekinesis:30, ForceBarrier:15}, flags:[] },
 
+  // ── SENSORY FAMILY ───────────────────────────────────────────────────────
+  // Sensory abilities are standalone root abilities (not sub-apps of ForceSense).
+  // D values are learning-difficulty metadata; proficiency composite keys not used
+  // for these unless explicitly practiced as sub-applications under ForceSense.
+  ForceSense:              { fam:'Sensory', label:'Force Sense',               par:null, D:null, align:'neutral', anchors:['forceSense'],                  prereqs:{},                                                              flags:[] },
+  ForceEmpathy:            { fam:'Sensory', label:'Force Empathy',             par:null, D:1.0,  align:'neutral', anchors:['forceSense'],                  prereqs:{forceSense:10},                                                 flags:[] },
+  ForceSight:              { fam:'Sensory', label:'Force Sight',               par:null, D:1.5,  align:'neutral', anchors:['forceSense'],                  prereqs:{forceSense:21},                                                 flags:[] },
+  PrecognitiveReflexes:    { fam:'Sensory', label:'Precognitive Reflexes',     par:null, D:2.5,  align:'neutral', anchors:['forceSense','forceControl'],    prereqs:{forceSense:21, forceControl:10},                                flags:[] },
+  EnvironmentalForceSense: { fam:'Sensory', label:'Environmental Force Sense', par:null, D:2.5,  align:'neutral', anchors:['forceSense','meditation'],      prereqs:{forceSense:30},                                                 flags:[] },
+  ForceVision:             { fam:'Sensory', label:'Force Vision',              par:null, D:4.0,  align:'neutral', anchors:['forceSense'],                  prereqs:{forceSense:41},                                                 flags:[] },
+  BattleForesight:         { fam:'Sensory', label:'Battle Foresight',          par:null, D:4.0,  align:'neutral', anchors:['forceSense','forceControl'],    prereqs:{forceSense:61, forceControl:41},                                flags:[] },
+  Shatterpoint:            { fam:'Sensory', label:'Shatterpoint',              par:null, D:null, align:'neutral', anchors:['forceSense','meditation'],      prereqs:{forceSense:61, forceKnowledge:51, BattleForesight:41, meditation:41}, flags:[], special:'shatterpoint_unique_track' },
+  Farsight:                { fam:'Sensory', label:'Farsight',                  par:null, D:2.5,  align:'neutral', anchors:['forceSense','meditation'],      prereqs:{forceSense:30, meditation:20},                                  flags:[] },
+  Postcognition:           { fam:'Sensory', label:'Postcognition',             par:null, D:2.5,  align:'neutral', anchors:['forceSense','forceKnowledge'],  prereqs:{forceSense:30, forceKnowledge:15},                              flags:[] },
+  AingTiiFightingSight:    { fam:'Sensory', label:'Aing-Tii Fighting-Sight',   par:null, D:4.0,  align:'neutral', anchors:['forceSense','forceControl'],    prereqs:{forceSense:41, forceControl:30},                                flags:['aingTiiContact','aingTiiApproved'] },
+
   // ── more families added below ─────────────────────────────────────────────
 
 };
