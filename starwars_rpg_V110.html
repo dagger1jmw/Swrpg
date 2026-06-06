@@ -5731,7 +5731,47 @@ const FORCE_ABILITY_CATALOG = {
   FieryEnergy:        { fam:'Dark', label:'Fiery Energy',           par:null,              D:1.5,  align:'dark', anchors:['forceOutput'],                   prereqs:{darkSide:30, Telekinesis:21},                             flags:[] },
   SpearOfMidnightBlack:{ fam:'Dark', label:'Spear of Midnight Black',par:null,             D:4.0,  align:'dark', anchors:['forceOutput','forceControl'],    prereqs:{darkSide:60, forceControl:61},                            flags:[] },
 
-  // ── more families added below ─────────────────────────────────────────────
+  // ── TELEPORTATION & SPACE/TIME FAMILY ────────────────────────────────────
+  FlowWalking:          { fam:'SpaceTime', label:'Flow-Walking',                par:null, D:4.0,  align:'neutral', anchors:['forceSense','meditation'],       prereqs:{forceSense:61, forceControl:51},                              flags:['aingTiiContact','aingTiiApproved'] },
+  Teleportation:        { fam:'SpaceTime', label:'Teleportation',               par:null, D:4.0,  align:'neutral', anchors:['forceControl','forceSense'],      prereqs:{forceControl:81, forceSense:61},                              flags:[] },
+  Phase:                { fam:'SpaceTime', label:'Phase',                        par:null, D:4.0,  align:'neutral', anchors:['meditation','forceControl'],      prereqs:{meditation:51, forceControl:41},                              flags:['fallanassiContact'] },
+  FoldSpace:            { fam:'SpaceTime', label:'Fold Space',                  par:null, D:4.0,  align:'neutral', anchors:['meditation','forceControl'],      prereqs:{meditation:51, forceControl:51},                              flags:['fallanassiContact'] },
+  ArtOfTheSmall:        { fam:'SpaceTime', label:'Art of the Small',            par:null, D:4.0,  align:'neutral', anchors:['meditation','forceControl'],      prereqs:{meditation:51, forceControl:41},                              flags:[] },
+  DimensionShift:       { fam:'SpaceTime', label:'Dimension Shift',             par:null, D:4.0,  align:'neutral', anchors:['forceControl','forceSense'],      prereqs:{forceControl:61, Teleportation:15},                           flags:[] },
+  ForceStormWormhole:   { fam:'SpaceTime', label:'Force Storm (Wormhole)',      par:null, D:4.0,  align:'dark',    anchors:['forceOutput'],                   prereqs:{darkSide:90, forceControl:91, ForceStorm:41},                 flags:[] },
+
+  // ── NATURE & ENVIRONMENT FAMILY ──────────────────────────────────────────
+  AnimalBond:           { fam:'Nature', label:'Animal Bond',           par:null, D:1.0,  align:'neutral', anchors:['forceSense'],                    prereqs:{forceSense:21},                          flags:[] },
+  PlantSurge:           { fam:'Nature', label:'Plant Surge',           par:null, D:1.5,  align:'light',   anchors:['forceSense','meditation'],        prereqs:{forceSense:21, meditation:15},            flags:[] },
+  Pyrokinesis:          { fam:'Nature', label:'Pyrokinesis',           par:null, D:1.5,  align:'neutral', anchors:['forceControl'],                   prereqs:{Telekinesis:25, forceControl:20},         flags:[] },
+  AlterEnvironment:     { fam:'Nature', label:'Alter Environment',     par:null, D:2.5,  align:'neutral', anchors:['forceSense','forceControl'],      prereqs:{forceSense:30, forceControl:30},          flags:[] },
+
+  // ── KNOWLEDGE & ARCANE FAMILY ─────────────────────────────────────────────
+  ForceEcho:            { fam:'Arcane', label:'Force Memory / Force Echo', par:null, D:2.5,  align:'neutral', anchors:['forceKnowledge','meditation'], prereqs:{forceKnowledge:41, meditation:30},        flags:[] },
+  ForceBond:            { fam:'Arcane', label:'Force Bond',             par:null, D:2.5,  align:'neutral', anchors:['forceSense','forceControl'],      prereqs:{forceSense:30, forceControl:20},          flags:[] },
+  KyberResonance:       { fam:'Arcane', label:'Kyber Resonance',        par:null, D:1.5,  align:'neutral', anchors:['forceKnowledge','forceSense'],    prereqs:{forceKnowledge:30},                       flags:[] },
+  ForcePhantom:         { fam:'Arcane', label:'Force Phantom',          par:null, D:4.0,  align:'neutral', anchors:['forceControl','forceOutput'],     prereqs:{ForceSight:41, forceControl:41},          flags:[] },
+  MechuDeru:            { fam:'Arcane', label:'Mechu-deru',             par:null, D:2.5,  align:'dark',    anchors:['forceKnowledge','forceControl'],  prereqs:{forceKnowledge:30, forceControl:25},      flags:[] },
+  ForceScribe:          { fam:'Arcane', label:'Force Scribe',           par:null, D:1.0,  align:'neutral', anchors:['forceControl'],                   prereqs:{forceControl:15},                         flags:[] },
+
+  // ── SITH ALCHEMY & FORBIDDEN ARTS ────────────────────────────────────────
+  // Per lore doc: no sub-ability proficiency tracks. D listed where present in source.
+  SithAlchemy:               { fam:'SithAlchemy', label:'Sith Alchemy',                par:null, D:null, align:'dark', anchors:['forceKnowledge','forceOutput'],              prereqs:{forceKnowledge:81, darkSide:80},                              flags:['sithTextAccess'] },
+  MidiChlorianManipulation:  { fam:'SithAlchemy', label:'Midi-chlorian Manipulation',  par:null, D:null, align:'dark', anchors:['forceKnowledge','forceControl'],             prereqs:{SithAlchemy:30, forceKnowledge:91, darkSide:90},              flags:['sithTextAccess'] },
+  TransferEssence:           { fam:'SithAlchemy', label:'Transfer Essence',            par:null, D:null, align:'dark', anchors:['forceKnowledge','meditation'],               prereqs:{darkSide:80, forceKnowledge:71, meditation:51},               flags:['sithTextAccess'] },
+  ThoughtBomb:               { fam:'SithAlchemy', label:'Thought Bomb',                par:null, D:null, align:'dark', anchors:['forceOutput','forceKnowledge'],              prereqs:{darkSide:95, forceControl:91, SithAlchemy:41},                flags:['sithTextAccess'] },
+  Shadowstrike:              { fam:'SithAlchemy', label:'Shadowstrike',                par:null, D:2.5,  align:'dark', anchors:['forceOutput','forceControl'],                prereqs:{darkSide:50, anySaberForm:61, forceControl:41},               flags:['sithTextAccess'] },
+  SummonFear:                { fam:'SithAlchemy', label:'Summon Fear',                 par:null, D:4.0,  align:'dark', anchors:['forceKnowledge'],                            prereqs:{forceKnowledge:51, darkSide:40},                              flags:['sithTextAccess'] },
+
+  // ── MISCELLANEOUS ─────────────────────────────────────────────────────────
+  // ForceStasis tree: ForceSlow, ForceStasisField, ForceAffliction are sub-apps.
+  ForceWhisper:     { fam:'Misc', label:'Force Whisper',       par:null,          D:1.0,  align:'neutral', anchors:['forceControl','forceSense'], prereqs:{forceSense:20, forceControl:15},             flags:[] },
+  ForceStasis:      { fam:'Misc', label:'Force Stasis',        par:null,          D:null, align:'neutral', anchors:['forceControl'],              prereqs:{forceControl:25, willpower:20},              flags:[] },
+  ForceSlow:        { fam:'Misc', label:'Force Slow',          par:'ForceStasis', D:1.0,  align:'neutral', anchors:['forceControl'],              prereqs:{forceControl:15},                           flags:[] },
+  ForceStasisField: { fam:'Misc', label:'Force Stasis Field',  par:'ForceStasis', D:2.5,  align:'light',   anchors:['forceControl','forceOutput'],prereqs:{ForceStasis:30, forceControl:35},           flags:[] },
+  ForceAffliction:  { fam:'Misc', label:'Force Affliction',    par:'ForceStasis', D:2.5,  align:'dark',    anchors:['forceControl'],              prereqs:{ForceSlow:20, darkSide:25},                 flags:[] },
+  ForceWeapon:      { fam:'Misc', label:'Force Weapon',        par:null,          D:1.5,  align:'neutral', anchors:['forceControl'],              prereqs:{forceControl:21, Telekinesis:15},           flags:[] },
+  ForceBellow:      { fam:'Misc', label:'Force Bellow',        par:null,          D:1.0,  align:'neutral', anchors:['forceOutput','charisma'],    prereqs:{forceControl:10, charisma:10},              flags:[] },
 
 };
 
