@@ -244,3 +244,113 @@ channeling large Force energy) → TRAINING: forceStats.forceOutput. Do NOT igno
 - `starwars_rpg_V112.html` (new version — Fix B, C, D applied; Fix A not needed as V112 had no VALID_FS guard)
 
 ---
+
+## V114 — 2026-06-08
+
+**Roll trigger system — AI was auto-succeeding training and skipping rolls for most non-combat actions**
+
+### Root Cause Analysis
+
+The roll system was already well-built for two scenarios: combat (exchange-by-exchange with full tier/gap math) and shatterpoint interpretation (`SHATTERPOINT_ROLL:`). Three d20 values are pre-rolled and injected into every prompt. However, the GM prompt contained **no explicit guidance on when to trigger a roll outside of combat**. With no mandate to use the pre-rolled dice, the AI defaulted to picking `solid` or `strong` as the TRAINING: outcome on every turn — effectively auto-succeeding every training session regardless of difficulty.
+
+Secondary problem: the existing outcome field in `TRAINING:` tags (`failure / partial / solid / strong / overwhelming / breakthrough`) was never linked to any roll formula. The AI was free to pick any outcome by preference, and it consistently chose favorable ones. This removed meaningful variance from training progression and undermined the realism of the system — a padawan attempting ceiling-difficulty Force exercises should fail or struggle a meaningful percentage of the time, not succeed by default.
+
+There was also no guidance for:
+- Training at different difficulty levels having different risk profiles (routine drilling vs. pushing your limit vs. attempting something genuinely beyond you)
+- NPC social interactions requiring a roll when the outcome has stakes
+- Reading/studying having a roll-derived quality-of-comprehension outcome
+
+### The Fix
+
+Added a `### WHEN TO ROLL — MANDATORY TRIGGERS` section to the GM prompt in V114, inserted between the `SUB-ROLL RULE` block and `COMBAT SYSTEM` (lines ~1833–1907 in V114). The section contains:
+
+**1. Mandatory trigger list**
+
+The AI must roll (using pre-rolled d20 values) whenever:
+- A training session occurs at any difficulty
+- An active Force ability is used with an uncertain outcome
+- Jared attempts persuasion, deception, intimidation, or charm in an NPC interaction
+- A physical challenge with real consequences is attempted
+- Any action is explicitly opposed by another character
+
+The AI must NOT roll for passive narration, zero-stakes dialogue, or guaranteed outcomes.
+
+**2. Training roll procedure**
+
+Four steps:
+1. Check raw d20 for Natural 20 first (always Breakthrough, skip all other steps)
+2. Compute total = d20 + compressedBonus(primary stat being trained)
+3. Select the table matching the difficulty keyword
+4. Read outcome from table — AI cannot override the result with narrative preference
+
+The `compressedBonus` formula is the same used in combat (stat ÷ 20 up to stat 40, logarithmic compression above). At Jared's current stat level (~30), the bonus is roughly +1.5, meaning the d20 dominates and variance is genuine.
+
+**3. Three outcome tables with mathematically derived thresholds**
+
+Thresholds were derived by computing the probability distribution at representative stat levels (30, 60, 80) and tuning for realistic feel:
+
+**SUCCESS TABLE** — `basic` difficulty, material at or below current tier (no failure)
+
+| Total | Outcome | XP ×mult |
+|-------|---------|----------|
+| < 12  | solid   | ×1.2 |
+| 12–17 | strong  | ×1.5 |
+| ≥ 18  | overwhelming | ×2.0 |
+| d20=20 | breakthrough | ×3.0 |
+
+Probability at stat 30 (+1.5): **solid 50% / strong 30% / overwhelming 15% / breakthrough 5%**
+Probability at stat 60 (+2.5): **solid 45% / strong 30% / overwhelming 20% / breakthrough 5%**
+Probability at stat 80 (+3.0): **solid 40% / strong 30% / overwhelming 25% / breakthrough 5%**
+
+The failure band is absent by design. Even a poor drilling session is a productive session — the player just had an average day (volleyball analogy: you can be off and still play). As skill grows, the bonus shifts outcomes slightly toward strong/overwhelming, representing a more experienced practitioner having better baseline sessions.
+
+**CEILING TABLE** — `ceiling` difficulty, genuinely pushing the skill limit
+
+| Total | Outcome | XP ×mult |
+|-------|---------|----------|
+| < 8   | failure  | ×0.8 |
+| 8–11  | partial  | ×1.0 |
+| 12–16 | solid    | ×1.2 |
+| 17–20 | strong   | ×1.5 |
+| ≥ 21  | overwhelming | ×2.0 |
+| d20=20 | breakthrough | ×3.0 |
+
+Probability at stat 30: **failure 30% / partial 20% / solid 25% / strong 20% / breakthrough 5%**
+Probability at stat 60: **failure 25% / partial 20% / solid 25% / strong 20% / overwhelming 5% / breakthrough 5%**
+
+Failing 30% of the time at your skill ceiling is realistic. Overwhelming is effectively unreachable at low stats (requires total ≥ 21, which demands d20=20 at stat 30 — but nat 20 = Breakthrough). As stat grows into the 60–80 range, overwhelming becomes possible on very high rolls (d20 19 + 2.5 bonus = 21.5). This models the experienced practitioner occasionally transcending what should still be their ceiling.
+
+**WALL TABLE** — `above` / `far` / `wall` difficulty, 2+ tiers above current level
+
+| Total | Outcome | XP ×mult |
+|-------|---------|----------|
+| < 12  | failure  | ×0.8 |
+| 12–15 | partial  | ×1.0 |
+| 16–20 | solid    | ×1.2 |
+| ≥ 21  | strong   | ×1.5 |
+| d20=20 | breakthrough | ×3.0 |
+
+Probability at stat 30: **failure 50% / partial 20% / solid 25% / breakthrough 5%**
+Probability at stat 60: **failure 40% / partial 20% / solid 30% / strong 5% / breakthrough 5%**
+
+Half the sessions fail at stat 30 because the material is genuinely inaccessible at that level. Breakthrough on a nat 20 represents a flash of insight even when fundamentally outmatched — the character glimpsed something they can't yet reliably reproduce.
+
+**4. Natural 20 = Breakthrough rule**
+
+Checked on the raw d20 before adding any bonus, applies to all three tables and all roll types (training, social, Force use). This uses the existing `breakthrough: 3.0` multiplier already in `calcTrainingXP()` — no JS changes required.
+
+**5. Reading/Studying roll formula**
+
+Roll: d20 + compressedBonus(Intelligence) + compressedBonus(ForceKnowledge) × 0.5 for Force texts; pure compressedBonus(Intelligence) for non-Force material. Uses SUCCESS TABLE (no failure). The dual-stat contribution means a knowledgeable Force scholar has a meaningfully higher floor on comprehension quality than a raw beginner even before the d20 is rolled.
+
+### Design Notes
+
+- The `breakthrough` keyword was already a valid `calcTrainingXP()` outcome (×3.0, line 4330 in V113/V114). No JS changes were required — only the GM prompt needed updating.
+- The difficulty map in `calcTrainingXP()` uses keywords `basic`, `ceiling`, `above`, `far` (not `wall`). The new section maps AI difficulty language to these: "ceiling" → `ceiling`, "above/far/wall" → `above` or `far`. This is consistent with the existing JS parser.
+- The compressedBonus range across the full stat spectrum (+0.5 at stat 10 to +3.25 at stat 100) is intentionally narrow relative to d20 (1–20). The d20 provides the session-to-session variance; the stat bonus provides the slight but real edge that skill gives. This is the same design philosophy as the combat system.
+
+### Files Changed
+- `starwars_rpg_V114.html` (new version — GM prompt only, no JS changes)
+- `CLAUDE.md` (session log entry added)
+
+---
