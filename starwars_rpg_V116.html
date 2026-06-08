@@ -4214,24 +4214,62 @@ async function callGemini(playerMessage, retryCount = 0) {
     if (worldState) {
       const rt = rawText.replace(/\*\*/g, ''); // strip all bold markdown first
 
-      // Time — match "It is now Pre-Dawn (06:00)" or "Evening (20:00)" anywhere
-      const timePatterns = [
-        /it is now ((?:Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\(\d{2}:\d{2}\))/i,
-        /it is (?:currently\s+)?((?:Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\(\d{2}:\d{2}\))/i,
-        /((?:Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\(\d{2}:\d{2}\))/i,
-      ];
-      for (const re of timePatterns) {
-        const allMatches = [...rt.matchAll(new RegExp(re.source, 'gi'))];
+      // Time — advance clock by the declared "Time Elapsed: X" value rather than
+      // trusting any time string in the narrative (which may mention future times like
+      // "by Evening (19:00)" and accidentally advance the clock by hours).
+      // Strategy: parse "Time Elapsed: N minutes/hours" and add it to the previous time.
+      // Fall back to "it is now/currently TIME" lines only if no elapsed declaration found.
+      (function advanceClock() {
+        const prevTime = worldState.inGameTime || 'Morning (07:00)';
+        // Parse previous HH:MM from stored time string
+        const prevMatch = prevTime.match(/\((\d{2}):(\d{2})\)/);
+        if (!prevMatch) return;
+        let prevMinutes = parseInt(prevMatch[1]) * 60 + parseInt(prevMatch[2]);
+
+        // Look for "Time Elapsed: ..." on its own line
+        const elapsedLine = rt.split('\n').find(l => /time elapsed/i.test(l));
+        let deltaMinutes = 0;
+        if (elapsedLine) {
+          // e.g. "Time Elapsed: 5 minutes" / "Time Elapsed: 1 hour 30 minutes" / "Time Elapsed: 2 hours"
+          const hrMatch  = elapsedLine.match(/(\d+(?:\.\d+)?)\s*hour/i);
+          const minMatch = elapsedLine.match(/(\d+)\s*min/i);
+          if (hrMatch)  deltaMinutes += Math.round(parseFloat(hrMatch[1])  * 60);
+          if (minMatch) deltaMinutes += parseInt(minMatch[1]);
+        }
+
+        if (deltaMinutes > 0) {
+          // Compute new time from old + delta
+          const newTotalMinutes = (prevMinutes + deltaMinutes) % (24 * 60);
+          const newH = Math.floor(newTotalMinutes / 60);
+          const newM = newTotalMinutes % 60;
+          const hh = String(newH).padStart(2, '0');
+          const mm = String(newM).padStart(2, '0');
+          const periods = [
+            [3,6,'Pre-Dawn'],[6,7,'Dawn'],[7,12,'Morning'],[12,14,'Midday'],
+            [14,18,'Afternoon'],[18,21,'Evening'],[21,24,'Night'],[0,3,'Late Night'],
+          ];
+          const label = (periods.find(([s,e]) => newH >= s && newH < e) || ['','','Morning'])[2];
+          const newTimeStr = `${label} (${hh}:${mm})`;
+          worldState.inGameTime = newTimeStr;
+          const timeEl = document.getElementById('time-val');
+          if (timeEl) timeEl.textContent = newTimeStr;
+          return;
+        }
+
+        // No elapsed declaration — fall back to "it is now/currently TIME" lines only
+        const timeLines = rt.split('\n').filter(l => /it is now|it is currently/i.test(l)).join(' ');
+        if (!timeLines) return;
+        const timeRe = /((?:Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\(\d{2}:\d{2}\))/gi;
+        const allMatches = [...timeLines.matchAll(timeRe)];
         if (allMatches.length > 0) {
           const timeStr = allMatches[allMatches.length - 1][1].trim();
           if (timeStr) {
             worldState.inGameTime = timeStr;
             const timeEl = document.getElementById('time-val');
             if (timeEl) timeEl.textContent = timeStr;
-            break;
           }
         }
-      }
+      })();
 
       // Date — ONLY parse from "Time Elapsed" / "It is now" lines to avoid stale dates in JSON
       if (typeof GSC_MONTHS !== 'undefined') {
