@@ -4,6 +4,80 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V116 — 2026-06-08
+
+**NPC tracking, milestone system, JS-driven roll engine, and canon NPC profiles merged from V120 branch**
+
+### Summary
+
+V116 is the result of merging V120 (an independently developed branch from V110) into V115. V115 had the engine fixes (lore injection, v3 stats, training roll tables, save detection) and V120 had the NPC/event tracking systems and JS-driven roll engine. This merge brings all features into one file.
+
+### New Systems Added
+
+**1. JS-Driven Roll Engine (replacing AI-calculated rolls)**
+
+Previously: AI pre-calculated bonus math and chose d20 values from pre-injected dice.  
+Now: AI outputs `ROLL:` tag with stat paths; JS reads live masterXP-derived values and fires the roll.
+
+New tags (scan entire response text, not just CHANGES block):
+- `ROLL:stat.path|stat.path2` — solo roll using live stat values
+- `ROLL_OPPOSED:player.path vs CHARACTER:Name` or `vs INLINE:stat=val,...` — opposed roll
+- `TIER_GAP=N` — tier difference (positive = player stronger)
+- `TACTICAL=N` — situational bonus (capped ±5 by JS)
+- `ROLL_LABEL=description` — fires the roll with this label
+
+Implementation: `scanForRollTags` IIFE added before CHANGES block parse. Calls `fireRoll()` when ROLL_LABEL is encountered.
+
+`getLiveStatValue(path)` — reads live masterXP-derived level for any `category.key` path. `fireRoll(roll)` — calculates d20 + statBonus + expBonus + tierGapBonus + tactical, posts HTML result card to feed, stores `characterSheet.lastRoll`.
+
+ROLL tag lines now stripped from `displayText` via `/^(ROLL:|ROLL_OPPOSED:|TIER_GAP=|TACTICAL=|ROLL_LABEL=).*/gm` regex.
+
+GM prompt ROLL SYSTEM section replaced: "FULLY REDESIGNED" → "JS-DRIVEN" with tag format documentation.
+
+**2. NPC Tracking System (KNOWN_PERSON + INTERACTION tags)**
+
+New worldState fields: `characterProfiles{}`, `interactionWeights{}`.
+
+- `KNOWN_PERSON=name|title|relation|summary|lastSeen` — upserts a record in `worldState.trackedCharacters[]`, renders People panel, autosaves
+- `INTERACTION=name|type` — increments `interactionWeights[name]`; at weight ≥5 marks `characterProfiles[name].visibleInPeople = true` and shows "◆ Profile added" notification
+- `GENERATE_PROFILE=name|canon/custom|desc` — creates a `characterProfiles` entry with tier, stats, firstMet
+- `PROFILE_STATS=name|stat.path=val,...` — adds mechanically useful stats to a profile (used by ROLL_OPPOSED CHARACTER: lookup)
+- `SCENE_NPCS=Name1,Name2` — explicit override for which NPCs are present this scene
+
+**3. Story Event / Milestone System**
+
+New worldState fields: `pendingEvents[]`, `npcAgendas{}`, `galaxyEventQueue[]`, `sceneNPCs[]`.
+
+New tags:
+- `PENDING_EVENT=id|type|triggerDate|priority|summary|context|npcs` — creates a story thread
+- `NPC_AGENDA=npcName|priority|summary|context` — adds an agenda item to an NPC
+- `RESOLVE_EVENT=id` — marks event resolved with timestamp
+- `RESOLVE_NPC_AGENDA=npcName|summary` — removes matching agenda items
+- `GALAXY_EVENT=summary|context` — queues a background world event
+
+`buildEventInjection()` — called each turn in stateBlock. Runs `checkMilestones()` + `updateEventPriority()`, then injects active story threads (⚑ PENDING STORY THREADS), NPC agendas for NPCs present in the scene (⚑ NPC AGENDAS), and unsurfaced galaxy events (⚑ GALAXY CONTEXT).
+
+`checkMilestones()` — checks `JEDI_MILESTONES` / `SITH_MILESTONES` constants against current age + domain averages (`getDomainAverages()`). Creates pendingEvents + NPC agenda items automatically when thresholds trigger.
+
+`updateEventPriority()` — increments `overdueBy` counters using `dateToAbsoluteDays()`; escalates priority (medium→high at 1 day overdue, anything→critical at 3 days); sets `mustFire=true` for critical events overdue ≥2 days.
+
+`getSceneNPCs()` — returns explicit `sceneNPCs` if set, otherwise infers from `NPC_HOME_LOCATIONS` constant and `trackedCharacters.lastSeen`.
+
+**4. Canon NPC Profiles**
+
+`CANON_PROFILES_3661BBY` const — stat blocks for Grand Master Zym, Satele Shan, Darth Malgus, Master Ngani Zho, Master Gnost-Dural. These are seeded into `worldState.characterProfiles` on every new game and save load, making them available for `ROLL_OPPOSED CHARACTER:` lookups without requiring the AI to declare stats.
+
+`seedCanonProfiles()` — called in `startNewGame()` (after worldState init) and `loadFromSave()` (after worldState migration guards).
+
+**5. loadFromSave migration guards**
+
+New worldState fields initialized on load if absent:
+```
+characterProfiles, interactionWeights, pendingEvents, npcAgendas, galaxyEventQueue, sceneNPCs
+```
+
+---
+
 ## V113 — 2026-06-08
 
 **Turn-2 stuck-loading fix — game locked after exactly one turn per page load**
