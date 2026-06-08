@@ -1578,6 +1578,22 @@ RULES FOR CHANGES BLOCK:
 - Still include XP_ lines for accumulated XP without level-ups (for progress bar display)
 - This block is what updates the character sheet — if you skip it, nothing updates
 
+WHAT QUALIFIES FOR TRAINING XP — READ THIS:
+Physical stats (lightsaberForms, stats.strength, stats.agility, stats.endurance): require ACTIVE PHYSICAL PRACTICE. Thinking about a form, watching a drill, mentally reviewing footwork, or reflecting on past training earns ZERO XP in these categories. No exceptions.
+Force abilities: require deliberate Force use — reaching out with the Force, attempting a technique, active directed meditation. Passive recall earns nothing.
+forceKnowledge / stats.intelligence: earn XP only from focused study, reading source material, or deliberate analytical work. Brief mental review during a meal earns nothing. A 10-minute passing thought earns nothing.
+
+ACTIVITIES THAT EARN ZERO TRAINING XP:
+- Eating, drinking, sitting at a meal
+- Sleeping, resting
+- Casual walking, traveling
+- Passive observation of someone else training
+- Mentally reflecting on lessons already learned
+- General conversation that is not explicit instruction
+- Anything that requires no deliberate effort and takes under 5 minutes
+
+Quick test: could the character fall asleep mid-activity without missing anything? Then no XP. Was there sweat, strain, or deliberate mental focus required? Then XP may apply.
+
 STEP 3: Output the SHEET block (full JSON for complete state):
 <<<SHEET>>>
 {complete json}
@@ -2258,7 +2274,21 @@ GALAXY EVENT FREQUENCY RULES:
 - Active threats ALWAYS advance when the player does something that directly triggers them (using Force powers openly, violence, meeting key NPCs) regardless of time
 
 HOW TO DETERMINE TIME PER TURN:
-Look at what the player is doing. "I read a book for an hour" = 1 hour. "I train for the morning" = half a day. "I travel to the next planet" = days. Use common sense. State the time elapsed at the start of each response.
+The time you declare as "Time Elapsed:" must match exactly what you describe in the narrative. If you write "you spend two hours in the archives," Time Elapsed is 2 hours — not 4. Never pad time beyond what the story actually covers.
+
+REALISTIC TIME BUDGETS — do not exceed these without explicit reason:
+- Meal (finding a seat, eating, leaving): 20–40 minutes
+- Short conversation (a few exchanges): 5–15 minutes
+- Brief errand or short walk within the Temple: 5–15 minutes
+- Cross-temple walk (one wing to another): 10–20 minutes
+- Single focused training session: exactly as long as described
+- Reading or research at a terminal: exactly as long as described
+- Sleep: 7–8 hours
+- Speeder travel within a city: 15–30 minutes
+
+Going to dinner and eating = 30–40 minutes. Not 2 hours.
+Thinking quietly about something = a few minutes. Not an hour.
+The rule: if the player would be surprised the activity took that long in real life, do not set it that long.
 
 ACTIVE THREATS always persist and are checked every turn. But "advancing" a threat when only an hour has passed means internal faction progress — not visible galaxy-wide changes. A Jedi search team doesn't reassign to a new sector in one hour. Over a week they might.
 
@@ -3079,9 +3109,11 @@ CRITICAL RULES FOR THIS TURN:
 2. TIME IS NOW: ${ws.inGameTime||'unknown'} on ${ws.inGameDate||'unknown'}. Every action takes time. State how much time passes at the start of your response ("Time Elapsed: X minutes/hours"). Update inGameTime AND inGameDate in the WORLD block. If time passes midnight advance the date using exact format "Weekday, Day N MonthName — YYYY ERA" (e.g. "Centaxday, Day 5 Coruscann — 3661 BBY"). NEVER use "Day X, Cycle Y" format.
 3. Time period labels: Pre-Dawn 03:00-05:59, Dawn 06:00-06:59, Morning 07:00-11:59, Midday 12:00-13:59, Afternoon 14:00-17:59, Evening 18:00-20:59, Night 21:00-23:59, Late Night 00:00-02:59
 4. XP SYSTEM — CRITICAL: You NEVER directly increment stat values. You NEVER write "+3 XP" in prose. Stats only increase when JavaScript calculates enough XP from TRAINING: or COMBAT: lines. The XP progress shown above (e.g. "Djem So:3[45/114XP]") is authoritative — do not override it. Output TRAINING:/COMBAT: lines in the CHANGES block and JavaScript handles all math.
-5. INTELLIGENCE & FORCE OUTPUT — These are fully tracked stats (stats.intelligence, forceStats.forceOutput). Intelligence gains XP whenever the character engages reasoning, research, strategy, or learning: archive study → TRAINING: stats.intelligence; tactical planning → TRAINING: stats.intelligence; academic lectures → TRAINING: stats.intelligence. ForceOutput gains XP from raw power expenditure: telekinetic bursts, Force Repulse, channeling large amounts of Force energy. Do NOT neglect these stats — award them alongside the more obvious ones.
+5. INTELLIGENCE & FORCE OUTPUT — These are fully tracked stats (stats.intelligence, forceStats.forceOutput). Intelligence gains XP only from FOCUSED deliberate effort: sustained archive research (30+ minutes), working through a difficult tactical problem, decoding complex material, academic instruction from a teacher. Passing thoughts, brief reflections, or casual mental review do NOT qualify — the character must be visibly engaged in effortful thinking. ForceOutput gains XP from raw power expenditure: telekinetic bursts, Force Repulse, channeling large amounts of Force energy. Do NOT neglect these stats when genuinely warranted, but also do not invent reasons to award them from passive activity.
 6. If strain changed this turn, update in CHANGES block (FORCE_STRAIN=, PHYSICAL_STRAIN=, MENTAL_STRAIN=)
-7. Output <<<CHANGES>>>, <<<SHEET>>> and <<<WORLD>>> blocks at the end of EVERY response`;
+7. Output <<<CHANGES>>>, <<<SHEET>>> and <<<WORLD>>> blocks at the end of EVERY response
+8. TIME REALISM: The "Time Elapsed:" you state must equal what the narrative describes — never more. A meal is 30–40 minutes. A walk across the Temple is 10–20 minutes. Reflection or a brief pause is 5 minutes. Do not inflate time beyond the activity.
+9. NO XP FOR PASSIVE ACTIVITY: Eating, resting, walking, and mental reflection earn ZERO TRAINING XP. lightsaberForms XP requires physical practice. forceKnowledge/intelligence XP requires focused deliberate study — not passing thoughts. If the player is not actively exerting effort, no TRAINING: line belongs in this turn.`;
 
   messages.push({ role: 'user', parts: [{ text: stateBlock }] });
   messages.push({ role: 'model', parts: [{ text: `Confirmed. Turn ${turnCount + 1}. Current time: ${ws.inGameTime||'unknown'}. I will advance the time based on what happens this turn and update inGameTime in the WORLD block. I will output all three data blocks.` }] });
