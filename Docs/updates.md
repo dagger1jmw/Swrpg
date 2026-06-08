@@ -78,6 +78,57 @@ characterProfiles, interactionWeights, pendingEvents, npcAgendas, galaxyEventQue
 
 ---
 
+## V115 — 2026-06-08
+
+**Save detection on title screen — iOS Safari ITP wipes localStorage silently**
+
+### Root Cause Analysis
+
+On iOS Safari, Intelligent Tracking Prevention (ITP) periodically clears `localStorage` for sites that haven't been visited recently (7-day and 30-day windows depending on settings). This meant a player returning to the game after a few days could find their save gone — with no warning. The title screen always showed the API key input form with no indication that a save had existed, so the player had no way to know the save was lost until they entered a key and started playing.
+
+A secondary bug: if an autosave _was_ present but its JSON was corrupted (truncated write, storage limit error, etc.), `tryAutoLoad()` had a bare `catch(e) {}` — it swallowed the error silently and fell through to the welcome prompt as if no save existed.
+
+### The Fix
+
+**1. Save detection display on the API key screen**
+
+Added `<div id="save-found-msg">` inside the API key screen panel. On `window.onload`, after the autosave check runs, the `else` branch (no key stored) now inspects `localStorage.getItem('sw_rpg_autosave')`:
+
+```javascript
+const raw = localStorage.getItem('sw_rpg_autosave');
+if (raw) {
+  try {
+    const s = JSON.parse(raw);
+    const msg = document.getElementById('save-found-msg');
+    if (msg) {
+      msg.textContent = `Save detected — Turn ${s.turnCount||0}, saved ${s.savedAt||'(unknown time)'}`;
+      msg.style.display = 'block';
+    }
+  } catch(e) {}
+}
+```
+
+This shows a green status line under the key input ("Save detected — Turn 42, saved 6/8/2026, 3:15:22 PM") so the player knows their save survived before they commit to entering a key and starting.
+
+**2. Silent parse failure converted to visible error**
+
+`tryAutoLoad()` previously: `catch(e) {}` — the error was swallowed and execution fell through to `showWelcomePrompt()` as if nothing happened.
+
+Fixed to:
+```javascript
+} catch(e) {
+  renderSystemMessage('⚠ Auto-save found but could not be loaded. It may be corrupted. Start a new game or check console for details.');
+}
+```
+
+This surfaces the failure visibly instead of silently dropping the player into a new game with no explanation.
+
+### Files Changed
+- `starwars_rpg_V115.html` (new version — HTML + window.onload JS changes only, no game logic changes)
+- `CLAUDE.md` (session log entry added)
+
+---
+
 ## V113 — 2026-06-08
 
 **Turn-2 stuck-loading fix — game locked after exactly one turn per page load**
