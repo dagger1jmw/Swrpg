@@ -26,7 +26,7 @@ All paths relative to the project root (`C:\Users\dagge\OneDrive\Desktop\Swrpg\`
 ### Root
 | File | Contents | When to reference |
 |---|---|---|
-| `starwars_rpg_V111.html` | **The entire game.** HTML + CSS + JS (~8,000 lines). Contains the AI system prompt, all game logic, UI, XP engine, simulation panel, calendar, shatterpoint system, alignment system, FORCE_ABILITY_CATALOG, LORE_DATABASE, FORCE_ABILITY_RULES, `getEraLore()`, `buildLoreContext()`. | Always — this is the only file you run or edit. |
+| `starwars_rpg_V113.html` | **The entire game.** HTML + CSS + JS (~8,000 lines). Contains the AI system prompt, all game logic, UI, XP engine, simulation panel, calendar, shatterpoint system, alignment system, FORCE_ABILITY_CATALOG, LORE_DATABASE, FORCE_ABILITY_RULES, `getEraLore()`, `buildLoreContext()`. | Always — this is the only file you run or edit. |
 
 **Versioning rule:** When making significant changes, save as a new version (V112, V113, etc.). Never overwrite the current version without creating a new one first.
 
@@ -843,6 +843,7 @@ If you find a conflict between what the AI produced and the lore files:
 |---|---|---|
 | 2026-06-05 | **Pure engine session — no gameplay.** Added 157-character LORE_DATABASE (Eras 01–18 + Era09B), FORCE_ABILITY_CATALOG, FORCE_ABILITY_RULES, getEraLore(), buildLoreContext() (per-turn lore injection). Fixed 5 CHANGES parser bugs. Auto-seeded ForceOutput and Intelligence. | V110 → V111. See `Docs/updates.md` for details. |
 | 2026-06-08 | **Quota + save failure fixes.** History now stores displayText (blocks stripped) instead of rawText — ~70% fewer API tokens per turn and proportional save size reduction. Also: summarize catch trims fullHistory to prevent unbounded growth; autoSave catches localStorage errors with visible warning; feedHtml capped to last 50 messages. | V111 → V112. See `Docs/updates.md` for full root cause analysis. |
+| 2026-06-08 | **Turn-2 stuck-loading fix.** `buildContext()` and `JSON.stringify(body)` moved inside the try block so any throw resets `isThinking`. Bare `return` inside `if (worldState)` (GSC_MONTHS guard) converted to block-skip. Empty model history messages now use `'[Turn completed.]'` fallback. `Array.isArray` guards added to all `.join()` calls in `buildContext` to prevent TypeError on non-array AI fields. | V112 → V113. See `Docs/updates.md`. |
 
 ---
 

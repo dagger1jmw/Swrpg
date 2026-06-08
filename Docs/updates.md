@@ -4,6 +4,106 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V113 — 2026-06-08
+
+**Turn-2 stuck-loading fix — game locked after exactly one turn per page load**
+
+### Root Cause Analysis
+
+Four independent failure modes, all resulting in `isThinking` staying `true` after turn 1 completes (locking the send button and thinking indicator permanently):
+
+**Root cause 1 — `buildContext()` called outside the try block (critical)**
+
+```javascript
+// Before (lines ~2812–2824):
+const messages = buildContext(userContent);  // OUTSIDE try — any throw escapes
+const body = { ... };
+try {
+  const resp = await fetch(...);
+```
+
+`buildContext()` and `JSON.stringify(body)` were executed before the `try` block. If either threw for any reason (e.g., a non-array field from the AI's SHEET response causing `.join()` to fail on a string), the exception escaped the function entirely. Since `setThinking(false)` and `isThinking = false` are after the try-catch, they never ran. `isThinking` stayed `true`, the thinking spinner stayed visible, and the send button stayed disabled — exactly the "stuck loading" symptom.
+
+This is why it happened on **every** turn 2: the AI's SHEET response is parsed into `characterSheet` on turn 1, potentially producing fields (like `aptitudes`, `inventory`, `strengths`, etc.) as strings rather than arrays. On turn 2, `buildContext()` called `.join()` on those fields, throwing a TypeError — outside the try block.
+
+**Root cause 2 — bare `return` inside `if (worldState)` bypasses `isThinking` reset**
+
+```javascript
+// Before (inside try block, inside if (worldState)):
+if (typeof GSC_MONTHS === 'undefined') return;  // exits callGemini entirely!
+```
+
+This bare `return` exits the entire `callGemini` async function, skipping the `setThinking(false); isThinking = false;` lines at the end. GSC_MONTHS is normally always defined, but if any initialization error had occurred (or if the check fired for any other reason), the game would lock.
+
+**Root cause 3 — non-array AI fields crashing `buildContext` (enabler of root cause 1)**
+
+Fields like `cs.aptitudes||[]` only produce `[]` when the field is falsy (null, undefined, 0, ''). If the AI sends `"aptitudes": "Force Sensitivity, ..."` (a non-empty string), then `cs.aptitudes||[]` = the string (truthy). Calling `.join(', ')` on a string throws `TypeError: cs.aptitudes.join is not a function`.
+
+**Root cause 4 — empty model history message (secondary)**
+
+When `displayText` was empty (e.g., AI put all content inside blocks with no preceding narrative), the stored model message `{role:'model', parts:[{text:''}]}` would be invalid for the Gemini API on the next turn, potentially causing a 400 error or unexpected behavior.
+
+### The 4 Fixes
+
+**Fix 1 — Move `buildContext()` and body construction inside the try block** (critical)
+
+```javascript
+// After:
+try {
+  const messages = buildContext(userContent);  // now inside try
+  const body = { ... };
+  const resp = await fetch(...);
+```
+
+Any exception from `buildContext()` or `JSON.stringify(body)` is now caught. `setThinking(false)` always runs, game never locks.
+
+**Fix 2 — Change bare `return` to block-level skip**
+
+```javascript
+// Before:
+if (typeof GSC_MONTHS === 'undefined') return;
+const monthNames = GSC_MONTHS.join('|');
+// ... date parsing ...
+
+// After:
+if (typeof GSC_MONTHS !== 'undefined') {
+  const monthNames = GSC_MONTHS.join('|');
+  // ... date parsing ...
+} // end if
+```
+
+Skips date parsing if GSC_MONTHS is absent instead of exiting the function.
+
+**Fix 3 — Array.isArray guards on all .join() calls in buildContext**
+
+```javascript
+// Before:
+APTITUDES: ${(cs.aptitudes||[]).join(', ')||'none'}
+
+// After:
+APTITUDES: ${(Array.isArray(cs.aptitudes) ? cs.aptitudes : []).join(', ')||'none'}
+```
+
+Applied to `inventory`, `strengths`, `weaknesses`, `aptitudes`, `knownSecrets`. A string from the AI is now treated as missing rather than causing a TypeError.
+
+**Fix 4 — Non-empty fallback for model history messages**
+
+```javascript
+// Before:
+const modelMsg = { role: 'model', parts: [{ text: displayText }] };
+
+// After:
+const modelMsg = { role: 'model', parts: [{ text: displayText || '[Turn completed.]' }] };
+```
+
+Prevents sending empty `parts[0].text` to Gemini when the AI response had no displayable content.
+
+### Files Changed
+- `starwars_rpg_V113.html` (new version)
+- `index.html` (deployed version, same changes)
+
+---
+
 ## V112 — 2026-06-08
 
 **Quota exhaustion + localStorage save failure fixes**
