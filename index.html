@@ -4372,8 +4372,7 @@ const SITH_MILESTONES = [
 // Check milestones and create pendingEvents for any newly triggered ones
 function checkMilestones() {
   if (!worldState || !characterSheet) return;
-  if (!worldState.pendingEvents) worldState.pendingEvents = {};
-  if (!worldState.pendingEvents) worldState.pendingEvents = [];
+  if (!Array.isArray(worldState.pendingEvents)) worldState.pendingEvents = [];
 
   const age = characterSheet.age || 0;
   const domains = getDomainAverages();
