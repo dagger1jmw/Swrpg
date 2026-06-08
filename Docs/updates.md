@@ -4,6 +4,88 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V116 addendum B — 2026-06-08
+
+**Time inflation and passive-reflection XP fixes**
+
+### Problems Fixed
+
+**1. Time going too fast**
+
+The AI was declaring wildly inflated "Time Elapsed" values — going to the refectory for dinner was logging as 2 hours 10 minutes, and a trip to the archives where the narrative said "two hours" logged as 4 hours 44 minutes. The root cause was the "HOW TO DETERMINE TIME PER TURN" section only saying "Use common sense," giving the AI no anchor for realistic durations.
+
+Additionally, the stated elapsed time and the narrative description were allowed to diverge — the AI could write "you spend two hours researching" then declare "Time Elapsed: 4h 44m" with no contradiction.
+
+**2. XP awarded for passive reflection**
+
+The AI was issuing TRAINING: lines for sitting at dinner and mentally reviewing the day:
+- ShiiCho: +47 XP (a lightsaber form — requires physical practice)
+- Intelligence: +36 XP
+- ForceKnowledge: +36 XP
+- ForceControl: +27 XP
+
+The existing XP rules said "every skill used meaningfully this turn needs its own TRAINING: line" which the AI was interpreting as "thinking about Shii-Cho footwork = using Shii-Cho." The Intelligence critical rule said to award it "whenever the character engages reasoning" which was too broad.
+
+### Fixes
+
+**Time section** (`HOW TO DETERMINE TIME PER TURN`, line ~2260 of prompt):
+
+Replaced the vague "use common sense" with a concrete activity time table:
+- Meal (eating, getting food, sitting): 20–40 minutes
+- Short conversation: 5–15 minutes
+- Brief task or short walk within the Temple: 5–15 minutes
+- Cross-temple walk: 10–20 minutes
+- Speeder travel within a city: 15–30 minutes
+- Single training session / reading session: exactly as long as described
+
+Added a hard rule: "The time you declare as 'Time Elapsed:' must match exactly what you describe in the narrative."
+
+**XP qualification rules** (after the TRAINING: format block, line ~1577 of prompt):
+
+Added an explicit "WHAT QUALIFIES FOR TRAINING XP" block:
+- Physical stats (lightsaberForms, strength, agility, endurance): require active physical practice. Thinking, watching, or reflecting earns ZERO XP. No exceptions.
+- Force abilities: require deliberate Force use — not passive recall.
+- forceKnowledge / intelligence: require focused study or deliberate analytical work. Brief mental review during a meal earns nothing.
+
+Listed specific zero-XP activities: eating, sleeping, walking, passive observation, mentally reflecting on past training, general conversation, anything requiring no deliberate effort.
+
+Added a quick test: "Could the character fall asleep mid-activity without missing anything? Then no XP."
+
+**Intelligence critical rule tightened** (Critical Rule 5):
+
+Changed "Intelligence gains XP whenever the character engages reasoning" → "Intelligence gains XP only from FOCUSED deliberate effort: sustained archive research (30+ minutes), working through a difficult tactical problem, decoding complex material, academic instruction." Passing thoughts and brief reflections explicitly excluded.
+
+**Per-turn enforcement** (Critical Rules 8 and 9, injected every turn):
+
+Rule 8: Time Elapsed must equal what the narrative describes. Specific examples (meal = 30–40 min, temple walk = 10–20 min).
+Rule 9: Passive activity earns zero TRAINING XP. lightsaberForms requires physical practice. forceKnowledge/intelligence requires focused deliberate study.
+
+---
+
+## V116 addendum A — 2026-06-08
+
+**Hotfix: unescaped backticks in MASTER_PROMPT template literal**
+
+### Problem
+
+Buttons on the title screen were dead — HTML rendered but no JavaScript executed. Root cause: four lines in the `MASTER_PROMPT` template literal used markdown inline-code backtick formatting (`` `breakthrough` ``, `` `basic` ``, `` `ceiling` ``, `` `above`/`far`/`wall` ``) added in the V114 training roll section. Each unescaped backtick terminates the template literal early. JavaScript throws a syntax error, the entire script block fails to parse, and no event handlers are ever attached.
+
+This was the root cause of the recurring "stuck on title screen after large updates" bug that had occurred 10+ times.
+
+### Fix
+
+Replaced the four offending lines (html lines 1730–1737) with single-quote formatting:
+- `` `breakthrough` `` → `'breakthrough'`
+- `` `basic` `` → `'basic'`
+- `` `ceiling` `` → `'ceiling'`
+- `` `above` / `far` / `wall` `` → `'above' / 'far' / 'wall'`
+
+### Prevention
+
+Never use backtick characters inside the `MASTER_PROMPT` template literal. Use single quotes for inline-code formatting in the GM prompt. After any large edit, run: `node -e "const fs=require('fs');const m=fs.readFileSync('index.html','utf8').match(/<script[^>]*>([\S\s]*?)<\/script>/);try{new Function(m[1]);console.log('OK')}catch(e){console.log(e.message)}"`
+
+---
+
 ## V116 — 2026-06-08
 
 **NPC tracking, milestone system, JS-driven roll engine, and canon NPC profiles merged from V120 branch**
