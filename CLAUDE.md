@@ -26,45 +26,36 @@ All paths relative to the project root (`C:\Users\dagge\OneDrive\Desktop\Swrpg\`
 ### Root
 | File | Contents | When to reference |
 |---|---|---|
-| `starwars_rpg_V110.html` | **The entire game.** HTML + CSS + JS (~6,500 lines). Contains the AI system prompt, all game logic, UI, XP engine, simulation panel, calendar, shatterpoint system, alignment system. | Always — this is the only file you run or edit. |
+| `starwars_rpg_V111.html` | **The entire game.** HTML + CSS + JS (~8,000 lines). Contains the AI system prompt, all game logic, UI, XP engine, simulation panel, calendar, shatterpoint system, alignment system, FORCE_ABILITY_CATALOG, LORE_DATABASE, FORCE_ABILITY_RULES, `getEraLore()`, `buildLoreContext()`. | Always — this is the only file you run or edit. |
 
-**Versioning rule:** When making significant changes, save as a new version (V111, V112, etc.). Never overwrite the current version without creating a new one first.
+**Versioning rule:** When making significant changes, save as a new version (V112, V113, etc.). Never overwrite the current version without creating a new one first.
+
+**Key code structures added in V111** (all embedded in the single HTML file):
+| Structure | Approx Line | Purpose |
+|---|---|---|
+| `FORCE_ABILITY_CATALOG` | ~5605 | Canonical lookup for every learnable ability: family, parent/child, D-value, alignment, anchor stats, prereqs, story flags |
+| `LORE_DATABASE` | ~5781 | 157 NPC character sheets (Eras 01–18 + Era09B), `currentEra` faction state, `apexCeiling` hierarchy, `timeline` events |
+| `getEraLore(dateBBY)` | ~7310 | Filters LORE_DATABASE to active NPCs + nearby timeline events; returns structured object for AI injection |
+| `FORCE_ABILITY_RULES` | ~7335 | Compact lookup (anchor stats, prereq summary, sub-application list) for abilities the player currently knows — injected into AI context |
+| `buildLoreContext()` | ~7379 | Assembles the per-turn lore block: situation, factions, temple state, timeline events, active NPCs with power stats, apex ceiling, player ability rules. Injected into `stateBlock` in `buildContext()` every turn. |
 
 ### Docs/
 | File | Contents | When to reference |
 |---|---|---|
 | `Docs/CLAUDE changelog.md` | Project changelog, architecture rules, global variable list, AI response format, alignment system, shatterpoint system, simulation system, calendar, innate talents, story flags, character state snapshot, known issues, dev notes. **This was the prior orientation document.** | For architecture details, engine behavior, changelog history. |
+| `Docs/updates.md` | Detailed per-version engine change log with root cause analysis, code locations, and before/after diffs for each fix. | When reviewing what changed in a specific version or debugging a regression. |
 | `Docs/SW_Sim_Rules_v1.md` | Simulation panel deep-dive: roll math, outcome weights by tier, XP formula, strain accumulation, tier-gap training, multi-stat weight maps, sleep recovery, endurance mitigation, mandatory training rows. | Whenever editing the simulation panel or calculating sim XP. |
 | `Docs/SW_Activity_Bank_v1.md` | Every training activity: primary skill, secondary weights, strain bias, unlock conditions, default intensity. Reference for simulation activity definitions. | When adding new sim activities or checking weight maps. |
-| `Docs/SW_Force_Abilities_Forms_v3_complete.md` | **Canonical reference for all learnable abilities.** All Force abilities (prereqs, anchor stats, alignment, difficulty D-values, sub-applications), all lightsaber forms (keys, descriptions, counter matrix), innate talents registry, innate abilities registry, worldState flags, life stage values, progression unlock triggers, JS implementation spec for v3. | Any time the AI or engine references an ability's prereqs, anchor stats, or proficiency details. |
 | `Docs/SWRPG_XP_System_Reference.md` | XP math reference: the 100×1.07^n curve, stat categories, tier definitions, roll bonus formula (compressedBonus), training XP formula with all multiplier tables, combat XP formula, simulation outcome weights, proficiency system (D-values, cost curve, discount factors, soft cap, trickle rates), masterXP architecture, CHANGES block XP tags, mandatory training by life stage. | For all XP calculations, calibration, and debugging. |
 | `Docs/SW_Legends_RPG_Master_Prompt_v7_1.md` | The master GM prompt (v7.1 FINAL): identity rules, era selection, character creation, alignment system overview, combat system, Force path system, strain system, leveling/progression, galaxy simulation, legacy system, player override system. | For GM behavior rules, combat resolution principles, override keywords. |
 | `Docs/SW Legends RPG Master Prompt v7.1 FINAL.docx` | Same content as above, `.docx` format. | Backup/offline reference only. |
 
 ### Docs/SWRPG lore/
-**All lore files are on the galaxy-wide Legends scale (consistent across all eras).** Every character sheet includes: 6 core stats, 5 Force stats, lightsaber form ratings (0–150), Force ability base levels (0–150) + sub-ability proficiency %, unique techniques, and notes.
 
-| File | Era | Key Figures | When to reference |
-|---|---|---|---|
-| `SW_Characters_01_DawnOfTheJedi.md` | 36,453–25,783 BBY | Xesh, Shae Koda, Tasha Ryo, Rajivari, Je'daii Masters | Dawn of the Jedi era NPCs; Forcesaber combat (no formal forms yet) |
-| `SW_Characters_02_OldRepublicFounding.md` | ~28,000–5,100 BBY | King Adas, Ajunta Pall, Sorzus Syn, Jedi Order founders | First Dark Lord sheets; Sorzus Syn (top INT, Sith alchemy codifier) |
-| `SW_Characters_03_GoldenAgeSith_GreatHyperspaceWar.md` | 5,100–4,990 BBY | Marka Ragnos, Naga Sadow, Ludo Kressh, Odan-Urr, Memit Nadill | First galaxy-spanning war figures; battle meditation origins |
-| `SW_Characters_04-05_GreatSithWar.md` | ~4,400–3,996 BBY | Exar Kun, Ulic Qel-Droma (dual sheets), Nomi Sunrider, Master Arca Jeth, Freedon Nadd | Great Sith War; Exar Kun trained all 7 forms, Niman specialist |
-| `SW_Characters_06_MandalorianWars.md` | 3,976–3,960 BBY | Revan (Jedi sheet), Malak, Meetra Surik, Mandalore the Ultimate, Cassus Fett | Revan as strategic genius (legendary INT); war-tempered Jedi |
-| `SW_Characters_07_JediCivilWar.md` | 3,959–3,956 BBY | Darth Revan, Darth Malak, Bastila Shan, KOTOR companions, HK-47 | Jedi Civil War; Bastila battle meditation; Revan apex sheet |
-| `SW_Characters_08_DarkWars_SithTriumvirate.md` | 3,955–3,950 BBY | Darth Traya (Kreia), Darth Nihilus, Darth Sion, Meetra Surik | Nihilus as pure Output showcase (112 legendary); Traya as INT apex (102) |
-| `SW_Characters_09_GreatGalacticWar_ColdWar.md` | 3,681–3,636 BBY | **Vitiate (Sith Emperor)**, Darth Malgus, Satelel Shan, Grand Master Zym, Revan (freed) | **YOUR CURRENT ERA.** Contains the APEX CEILING reference. Vitiate ceiling ~134. Campaign year 20 of the Great Galactic War. |
-| `SW_Characters_09B_EternalEmpire_Alliance.md` | 3,637–3,620 BBY (Legends-adjacent) | Arcann, Vaylin, Valkorion, SCORPIO, Lana, Theron | Eternal Empire arc; Vaylin (ForceOutput ~108, broken INT); Legends-adjacent flag |
-| `SW_Characters_10_NewSithWars_DarthBane.md` | ~2,000–990 BBY | Darth Bane, Darth Zannah, Lord Kaan, General Hoth | Bane ceiling ~114 (orbalisk); top of standard legendary below Tier A |
-| `SW_Characters_11_RepublicEra_RiseOfEmpire.md` | ~990–22 BBY | Darth Plagueis, Darth Sidious, Darth Maul, Yoda, Mace Windu, Qui-Gon, young Obi-Wan, Dooku | Prequel era; apex-adjacent Sidious (~112 chancellor-era); Mace Windu (Vaapad master); prequel Jedi scale slightly lower than war-tempered |
-| `SW_Characters_12_CloneWars.md` | 22–19 BBY | Anakin Skywalker, Obi-Wan Kenobi, Yoda, Palpatine, Grievous, Ventress, Plo Koon | Clone Wars; Knightfall Anakin Output ~120 (still growing); Output/Control split showcase |
-| `SW_Characters_13_DarkTimes_GalacticCivilWar.md` | 19 BBY–4 ABY | Darth Vader, Emperor Palpatine (~130), Ben Kenobi, Yoda, Luke (early), Galen Marek | Original trilogy era; Palpatine ~130 (A-tier); Starkiller (Force Repulse signature) |
-| `SW_Characters_14_NewRepublic_NewJediOrder.md` | 4–25 ABY | Thrawn (INT 112), reborn Emperor, Luke (growing), Mara Jade, Kyp Durron (Output 110) | New Republic era; Thrawn legendary non-Force being; Luke ascending |
-| `SW_Characters_15_NewJediOrder_YuuzhanVongWar.md` | 25–29 ABY | Luke (~125/116), Jacen Solo, Jaina Solo, Anakin Solo, Yuuzhan Vong (✗ Force-invisible) | **YUUZHAN VONG MECHANIC:** ✗ = Force-invisible, NOT "—". Luke near-apex but not peak yet. |
-| `SW_Characters_16_LegacyOfTheForce.md` | ~40 ABY | Luke (near-apex ~134 Output), Jacen/Darth Caedus, Jaina Solo, Mara Jade, Boba Fett | Second Galactic Civil War; Luke at near-apex but holding back vs Caedus |
-| `SW_Characters_17_FateOfTheJedi.md` | ~43–44 ABY | **Peak Luke (~138)**, Abeloth (~185, TRANSCENDENT), Ben Skywalker, Darth Krayt (~132) | **APEX ERA.** Peak Luke — strongest realized mortal ever. Abeloth — only being above him. |
-| `SW_Characters_18_LegacyEra.md` | ~130–139 ABY | Darth Krayt (~132), Cade Skywalker, Emperor Roan Fel, Imperial Knights | Chronological end of Legends; Krayt last reserved apex-tier being |
-| `SW_Legends_Galaxy_Timeline.md` | All eras | Every major galaxy event with exact dates, key figures, downstream sensitivity, NPC deployment tags | Galaxy simulation events, NPC locations, legacy change framework, faction seeds for 3,660 BBY |
+See `Docs/SWRPG lore/` for all canonical lore. Files are named explicitly by content:
+- `SW_Legends_Galaxy_Timeline.md` — galaxy timeline: dates, key figures, downstream sensitivity ratings
+- `SW_Force_Abilities_Forms_v3_complete.md` — all learnable abilities: prereqs, anchor stats, forms, D-values, era/faction/person locks
+- `SW_Characters_NN_EraName.md` (Eras 01–18 + 09B) — character sheets per era; current campaign: `SW_Characters_09_GreatGalacticWar_ColdWar.md`
 
 ---
 
@@ -99,12 +90,6 @@ All paths relative to the project root (`C:\Users\dagge\OneDrive\Desktop\Swrpg\`
 - **Control-dominant abilities** (scale primarily with ForceControl): Force Choke, Force Levitation, Force Stasis, precise telekinesis, Mind Trick, Mechu-deru
 - **Most abilities** use a weighted blend of both
 
-**Canonical examples of the split:**
-- Knightfall Anakin: Output ~120 (enormous, still growing), Control ~90 (raw, unhoned)
-- Suited Vader: lower Output (suit caps it), higher Control than his Knight self
-- Darth Nihilus: Output 112 (legendary planet-drain), minimal dueling ability, barely a mind
-- Vaylin: Output ~108 (tears apart fleets telekinetically), broken INT
-
 ### 3D. Tier Bands
 
 | Level Range | Tier # | Name | Notes |
@@ -122,22 +107,7 @@ All paths relative to the project root (`C:\Users\dagge\OneDrive\Desktop\Swrpg\`
 
 ### 3E. The Apex Ceiling — Fixed, Never Violated
 
-This hierarchy is permanent. No NPC's stats, no narrative event, and no player growth can place anyone above Abeloth without explicit acknowledgment that they are in a different category entirely.
-
-| Tier | Band | Figure | Notes |
-|---|---|---|---|
-| **TRANSCENDENT** | **~185** | **Abeloth** | In a tier of her own, far above every other being in Legends. ~12× peak Luke in the Force. Fed on the Font of Power + Pool of Knowledge for ~100,000 years. Required peak Luke + Darth Krayt *together* merely to exile her. Her diluted, galaxy-spread avatars each pushed apex Luke to his limit. Off the scale. |
-| **S — Realized mortal apex** | **~138** | **Peak Luke Skywalker** (Fate of the Jedi era, ~43–44 ABY) | Strongest realized mortal Force user in history. Nothing realized-mortal exceeds him. Only Abeloth is above him, by an enormous margin. George Lucas confirmed Luke shares Anakin's full Force potential. |
-| **A — Apex legendary** | **~134** | **Vitiate / Sith Emperor** (ceiling) | Apex *dark side specialist*, not apex being. His galaxy-scale life-drain (Force Drain ~145 as an ability) is the single most destructive ability in the timeline, but his overall stat profile stays below peak Luke. |
-| **A** | **~132** | **Darth Krayt** (Legacy Era, prime) | Last reserved apex-tier being in the timeline. |
-| **A** | **~130** | **Emperor Palpatine** (Dark Empire clone era higher) | Living chancellor-era self ~112; pre-Endor self ~128; Dark Empire clone form higher. |
-| — | **~120** | **Knightfall Anakin** (Clone Wars peak, still growing) | Observed pre-suit peak ForceOutput. Theoretical full potential ~138 (equal to what Luke realized) — never freely reached. Mortis briefly unlocked it. Vader (suited) is lower in raw Output than Knightfall Anakin. |
-| — | **~114** | **Darth Bane** (orbalisk-enhanced) | Top of standard legendary, just below the Tier A cluster. |
-| — | **~112** | **Chancellor-era Sidious** | Top of standard legendary. His full power still hidden at this point. |
-| — | **~112** | **Darth Nihilus** (ForceOutput) | Planet-devouring drain is legendary in one dimension only. |
-| — | **~108** | **Vaylin** (ForceOutput) | Legendary raw telekinetic power; broken psyche elsewhere. |
-
-**Note on Revan:** A genuine apex duelist-general of Legends, legendary across dueling, leadership, Intelligence, and Force breadth — but does not approach the Tier A cluster in raw Force magnitude.
+This hierarchy is permanent. No NPC's stats, no narrative event, and no player growth can place anyone above Abeloth. Key tier anchors: Abeloth ~185 (Transcendent — tier of her own), Peak Luke ~138 (S — highest realized mortal), Vitiate ~134 / Krayt ~132 / Palpatine ~130 (A — apex legendary). **Nothing in 3,661 BBY approaches Tier A.** Full NPC power levels are in `LORE_DATABASE.apexCeiling` (auto-injected each turn via `buildLoreContext()`) and `Docs/SWRPG lore/SW_Characters_09_GreatGalacticWar_ColdWar.md`.
 
 ---
 
@@ -263,7 +233,7 @@ secondary XP = primary × 0.4
 | Legendary | 4,500 |
 | Transcendent | 11,000 |
 
-### 4F. Sub-Ability Proficiency System (v3)
+### 4F. Sub-Ability Proficiency System (v3) — **LIVE IN V111**
 
 Each Force ability family has a **base level** in `masterXP.forceAbilities`. Sub-applications (Force Push, Force Storm, etc.) have a separate **proficiency percentage** (0–100%) tracking deliberate practice of that specific application.
 
@@ -363,23 +333,23 @@ DARK_PRESSURE=[0-100]                // Dark side accumulation (new total, not d
                                      // JS auto-discharges at 100 and sends notification
 MOMENTUM_WINDOW=[multiplier],[days]  // Opens after pressure discharge (e.g. MOMENTUM_WINDOW=1.5,3)
 WILL_OF_FORCE=[gain],[description]   // Surrendering to the will of the Force (light-side XP)
+                                     // e.g. WILL_OF_FORCE=5,Released attachment to mission outcome
 SURRENDER_DISCOUNT=[0-0.5]           // Reduces next pressure discharge by this fraction
 ```
 
 **World/location:**
-```
-LOCATION=[full location string]      // Only when location changes
-```
+Location is set via the `worldState.location` field in the `<<<WORLD>>>` JSON block — not via a CHANGES tag. Always keep `location` current in the WORLD JSON.
 
 **Life stage (story event only — never from raw JSON):**
 ```
-LIFE_STAGE=[value]                   // Values: youngling|padawan|knight|knight_with_padawan|master|master_with_padawan|council_member
+LIFE_STAGE=[value]   // Values: youngling|padawan|knight|knight_with_padawan|master|master_with_padawan|council_member
 ```
+> The parser pre-scans the CHANGES block for this tag before the SHEET snapshot runs, so the new value survives the snapshot/restore cycle. Do not rely on SHEET JSON — it is always overwritten.
 
 **Shatterpoint system:**
 ```
-SHATTERPOINT_PERCEIVED:[tier],[description]   // Passive perception surfaces (colon, not equals)
-SHATTERPOINT_ROLL:[target]                    // Triggers JS interpretation roll
+SHATTERPOINT_PERCEIVED=[tier],[description]   // Passive perception surfaces
+SHATTERPOINT_ROLL=[target]                    // Triggers JS interpretation roll
 SHATTERPOINT_FOCUS=[0-100]                    // Awareness bandwidth
 SHATTERPOINT_FOCUS_CLEAR                      // Resets focus at scene end (no value)
 SHATTERPOINT_XP=[amount]                      // Proficiency XP (JS applies ×0.1 for ShatterSense innate)
@@ -411,15 +381,11 @@ PROFICIENCY: AbilityKey.SubKey,xpAmount
   // xpAmount uses same scale: standard supervised session (1hr) ≈ 15 XP
 ```
 
-**Momentum window:**
-```
-MOMENTUM_WINDOW: [multiplier],[days]   // e.g. MOMENTUM_WINDOW: 1.5,3
-```
-
-**Direct XP injection (legacy/alternative format — also valid):**
+**Direct XP injection (for non-training contexts — story breakthroughs, ceremonies):**
 ```
 XP: category.StatKey,amount   // e.g. XP: forceAbilities.Telekinesis,150
 ```
+Prefer `TRAINING:` for anything that involved practice time — reserve `XP:` for instantaneous story events.
 
 **Rolls:**
 ```
@@ -442,41 +408,36 @@ ROLL: stat1.key|stat2.key     // Fires a d20 roll using listed stats
 
 ---
 
-## 6. LORE DOCUMENT INDEX
+## 6. LORE REFERENCE
 
-### When to look up each file
+All canonical lore is in `Docs/SWRPG lore/` — see Section 2 for the file list. Current era NPC stats, faction states, apex ceiling, and timeline events are also auto-injected into the AI context each turn by `buildLoreContext()` — see Section 9G.
 
-| Situation | File to check |
-|---|---|
-| Current era NPC stats / abilities | `SW_Characters_09_GreatGalacticWar_ColdWar.md` |
-| Any ability's prerequisites, anchor stats, or sub-abilities | `SW_Force_Abilities_Forms_v3_complete.md` |
-| Apex power-scaling question | Era 09 character sheet — APEX CEILING section |
-| Historical galaxy event (date, key figures, downstream sensitivity) | `SW_Legends_Galaxy_Timeline.md` |
-| Training activity weights for simulation | `SW_Activity_Bank_v1.md` |
-| XP calculation calibration | `SWRPG_XP_System_Reference.md` |
-| Simulation panel behavior | `SW_Sim_Rules_v1.md` |
-| GM behavior rules, Force paths, combat resolution | `SW_Legends_RPG_Master_Prompt_v7_1.md` |
-| Engine architecture, global variables, known bugs | `Docs/CLAUDE changelog.md` |
-| An NPC from the current era (3,661 BBY) | Era 09 doc — Grand Master Zym, Satelel Shan (Knight, not yet Grand Master), Darth Malgus (rising Sith Lord, not yet at Sacking-of-Coruscant peak), Vitiate (ruling unseen from Dromund Kaas) |
+### FORCE_ABILITY_CATALOG (live in V111)
 
-### Era 09 — The Active Era
+The in-code `FORCE_ABILITY_CATALOG` is a JS const at ~line 5605. It is the **runtime authority** for every ability's mechanical data. The lore doc (`SW_Force_Abilities_Forms_v3_complete.md`) remains the narrative/design source of truth; the catalog is its engine-side implementation.
 
-**3,661 BBY = Year 20 of the Great Galactic War.** Key NPC states at campaign start:
-- **Grand Master Zym** — leads the Jedi Order (alive, will die at the Sacking of Coruscant, 3,653 BBY)
-- **Satelel Shan** — Jedi Knight and war hero, NOT yet Grand Master
-- **Darth Malgus** — rising Sith Lord, proven at Korriban and Alderaan, not yet at his Sacking-of-Coruscant peak
-- **Vitiate** — ruling unseen from Dromund Kaas; orchestrating the war; never directly appears
-- **Mandalore the Lesser** — Imperial-backed Mandalore; his blockade of the Hydian Way was just broken (3,660 BBY) by Hylo Visz
-- The Jedi Temple on Coruscant is on supply recovery after the blockade
+**Structure of each entry:**
+```javascript
+AbilityKey: {
+  fam:      'TK|Sensory|Body|Mental|Defense|Healing|Light|Dark|SpaceTime|Nature|Arcane|SithAlchemy|Misc',
+  label:    'Display name',
+  par:      null | 'ParentAbilityKey',   // null = root ability; string = sub-application
+  D:        null | 1.0 | 1.5 | 2.5 | 4.0, // proficiency difficulty tier (null = no proficiency track)
+  align:    'neutral' | 'light' | 'dark',
+  anchors:  ['forceControl', 'forceOutput', ...],  // primary stat anchors
+  prereqs:  { statKey: minLevel, AbilityKey: minLevel, darkSide: N, lightSide: N, anySaberForm: N },
+  flags:    ['storyFlagRequired', ...]  // empty array = no story flag gate
+}
+```
 
-### Force Abilities Reference Notes
-
-The `SW_Force_Abilities_Forms_v3_complete.md` is the **canonical ability gatekeeper**. Key rules:
-- Prerequisites listed per ability are **hard gates** — the AI cannot grant abilities that have unmet prerequisites or locked story flags
-- Story-locked abilities (⚠️ flagged) require specific `worldState.storyFlags` entries
-- Faction-locked abilities (Aing-Tii Fighting-Sight, Flow-Walking, Phase, Fold Space) require story contact events plus flag approval
-- **Vaapad** is era-locked to Prequel Era, requires Mace Windu alive (`maceLiving`), and `maceTrustEstablished` — impossible in 3,661 BBY
-- **ForceStrength** when listed as a prerequisite for Force Rage refers to the *learnable body enhancement ability*, not any stat
+**Key hierarchy facts confirmed in catalog:**
+- `Tutaminis` → `par:null` (root); `ForceAbsorb` → `par:'Tutaminis'` ✓
+- `ForceFear` → `par:'MindTrick'`; `ForceHorror` → `par:'ForceFear'`; `ForceInsanity` → `par:'ForceHorror'` ✓
+- `SummonFear` → `flags:['sithTextAccess']` only — no era lock ✓
+- `ForceLightning` → `prereqs:{forceControl:41, darkSide:20}` — hard dark-side gate ✓
+- `SithAlchemy`, `MidiChlorianManipulation`, `TransferEssence`, `ThoughtBomb`, `SummonFear` → all require `sithTextAccess` flag ✓
+- `FlowWalking`, `AingTiiFightingSight` → require `aingTiiContact` + `aingTiiApproved` ✓
+- `Phase`, `FoldSpace` → require `fallanassiContact` ✓
 
 ---
 
@@ -484,7 +445,7 @@ The `SW_Force_Abilities_Forms_v3_complete.md` is the **canonical ability gatekee
 
 ### 7A. The Apex Ceiling Is Fixed
 
-The tier hierarchy in Section 3E is permanent. **No being in 3,661 BBY approaches Tier A** (Vitiate is the most powerful being alive in this era and he sits at ~134 ceiling — far below peak Luke, far below Abeloth).
+The apex tier hierarchy (Section 3E) is permanent. **No being in 3,661 BBY approaches Tier A** (Vitiate is the most powerful being alive in this era at ~134 — far below peak Luke, far below Abeloth).
 
 ### 7B. Abeloth Is in a Class of Her Own
 
@@ -541,7 +502,7 @@ JS uses `masterXP` derived level as authoritative for the stat value — not wha
 
 ### 7I. Single-File Architecture
 
-**No exceptions.** One `.html` file contains everything. No npm, no bundler, no external JS files, no build step. The file is currently ~6,500 lines. This is intentional. Be concise when adding features; avoid duplicating logic.
+**No exceptions.** One `.html` file contains everything. No npm, no bundler, no external JS files, no build step. The file is currently ~8,000 lines (V111). This is intentional. Be concise when adding features; avoid duplicating logic.
 
 ---
 
@@ -687,7 +648,92 @@ Scale: −100 (Consumed) to +100 (Luminous). Seven tiers:
 - Grant abilities that are era-locked (Vaapad in 3,661 BBY), faction-locked (Aing-Tii without contact), or person-locked (requires a specific teacher who doesn't exist in the era)
 - Create shatterpoints for dramatic effect — they must be genuine fracture points
 
-### 9G. iOS Safari / iPad Dev Notes
+**Additionally, the following are engine responsibilities — AI must not simulate or pre-apply these:**
+- **Endurance mitigation on strain** — already computed in the FORCE_STRAIN/PHYSICAL_STRAIN/MENTAL_STRAIN handlers
+- **Proficiency discount factors** — `applyProficiencyXP()` applies base-ability and ForceControl discounts automatically
+- **Trickle XP** — `profTrickleFromBase()` fires automatically when base abilities are trained; AI does not add trickle manually
+
+### 9G. LORE DATABASE AND DYNAMIC INJECTION SYSTEM
+
+#### LORE_DATABASE structure (in-code const, ~line 5781)
+
+```javascript
+LORE_DATABASE = {
+  currentEra: {
+    label, dateBBY,
+    factionStates: { jediOrder, sithEmpire, republic, mandalorians },
+    temple: { supplyLevel, trainingQuality, focus },
+    situationNow: 'Current situation string'
+  },
+  apexCeiling: {
+    TRANSCENDENT: [{ name, approxLevel, note }],  // Abeloth ~185
+    S:            [{ name, approxLevel, era }],    // Peak Luke ~138
+    A:            [{ name, approxLevel, era }],    // Vitiate ~134, Krayt ~132, Palpatine ~130
+    notable:      [{ name, approxLevel, stat? }],  // Anakin ~120, Bane ~114, Nihilus ~112, etc.
+    rule: 'No being in 3,661 BBY approaches Tier A...'
+  },
+  characters: {
+    KeyName: {
+      name, faction, tier, lifespan,
+      stats: { str, agi, end, wil, cha, int },
+      force: { fS, med, fK, fC, fOut },      // null for non-Force beings; force:null + vongForceInvisible:true for Yuuzhan Vong
+      forms: { ShiiCho, Makashi, ... },
+      abilities: { Telekinesis, ForceLightning, ... },
+      statusIn3661: 'Status string or null',  // null or absent = not active in 3,661 BBY
+      note: 'Sheet notes'
+    }, ...
+  },
+  timeline: {
+    events: [
+      { date: BBY_number, label, desc, keyFigures:[], location, downstream:'LOW|MODERATE|HIGH|CRITICAL' },
+      ...
+    ]
+  }
+}
+```
+
+**Total characters:** 157 across Eras 01–18 + Era09B (Eternal Empire).
+
+**Yuuzhan Vong Force status** — stored as `force:null` with `note` containing `vongForceInvisible:true`. Only Onimi has full Force stats (the single Force-sensitive Vong in Legends).
+
+#### getEraLore(dateBBY) — what it returns
+
+```javascript
+{
+  era:           'label from currentEra',
+  factionStates: { ... } or null,          // null if outside war period (3681–3636 BBY)
+  temple:        { ... } or null,
+  situationNow:  'string' or null,
+  recentPast:    [ up to 8 events with date >= dateBBY, sorted descending ],
+  upcomingEvents:[ up to 5 events within 30 years future, sorted descending ],
+  apexRule:      'immutable rule string',
+  activeNPCs:    { KeyName: { name, faction, tier, status } }
+  // activeNPCs = characters where statusIn3661 is set and does not start with 'NOT ACCESSIBLE'
+}
+```
+
+**Note on BBY sorting:** Higher BBY number = further in the past. `recentPast` uses `e.date >= dateBBY` (higher numbers = older events). `upcomingEvents` uses `e.date < dateBBY && e.date >= dateBBY - 30` (lower numbers = future events). Both sort descending by date number.
+
+#### buildLoreContext() — what gets injected each turn
+
+Called inside `buildContext()` every turn. Adds ~4,000–5,000 characters (~1,100 tokens) to the AI context. Returns `''` on any error (try-catch) — never breaks the game loop.
+
+Sections in order:
+1. **LORE CONTEXT header** — current BBY
+2. **SITUATION** — `currentEra.situationNow`
+3. **FACTIONS** — power/morale for JediOrder, SithEmpire, Republic, Mandalorians
+4. **TEMPLE** — supply level, training quality, current focus
+5. **KNOWN RECENT EVENTS** — up to 5 past events with 90-char truncated descriptions
+6. **FUTURE EVENTS (GM-only)** — up to 4 upcoming events; labeled "do NOT reveal to player"
+7. **ACTIVE ERA NPCs** — each: `Name [Tier] FC:N FOut:N — status (115-char truncated)`
+8. **POWER CEILING** — TRANSCENDENT/S/A tiers with names and levels + the immutable rule
+9. **PLAYER FORCE ABILITY RULES** — for each ability the player has: anchor stats, prereqs, sub-applications, proficiency soft-cap; plus Shatterpoint info if applicable
+
+#### FORCE_ABILITY_RULES compact table (line ~7335)
+
+A second, smaller lookup (`FORCE_ABILITY_RULES`) covers padawan-range abilities with human-readable summaries injected into the AI context. Unlike `FORCE_ABILITY_CATALOG` (exhaustive machine-readable data), this table is tuned for concise AI consumption. Add entries as the player unlocks new ability families.
+
+### 9H. iOS Safari / iPad Dev Notes
 
 - Fixed-position overlays: use `position:fixed` not `position:absolute` inside overflow containers
 - Scrollable modals: `overflow-y:scroll` with `-webkit-overflow-scrolling:touch` set; `overflow-y:auto` on fixed elements does not work
@@ -695,7 +741,7 @@ Scale: −100 (Consumed) to +100 (Luminous). Seven tiers:
 - Use `display:flex; flex-direction:column` with a fixed header div and a scrollable body div for any modal with a persistent header
 - Always run a mental or actual syntax check after JS edits — large template literals and unclosed brackets cause silent failures in Safari
 
-### 9H. Common Bug Watch List
+### 9I. Common Bug Watch List
 
 1. **Shatterpoint contamination:** If shatterpoint level spikes, check that `masterXP.forceAbilities['Shatterpoint']` doesn't exist. Delete it if found.
 2. **Duplicate form keys:** AI sometimes uses `Shii-Cho` vs `ShiiCho`. Normalization runs after every SHEET parse — masterXP derived level is authoritative.
@@ -703,6 +749,7 @@ Scale: −100 (Consumed) to +100 (Luminous). Seven tiers:
 4. **Calendar popup not scrolling on iOS:** Must use `overflow-y:scroll` with a flex-column structure.
 5. **simApiCall using wrong key:** Uses `apiKey` variable (loaded from `localStorage.getItem('sw_rpg_gemini_key')`). Never use `sw_rpg_api_key`.
 6. **Location reset:** AI should always include current location in WORLD JSON — empty string will cause location to appear reset.
+7. **Compound-value CHANGES tags silently dropped (V111 fix):** Tags like `MOMENTUM_WINDOW=1.5,3` or `WILL_OF_FORCE=5,desc` were previously skipped by the `if (isNaN(val)) continue` guard before the switch block. Fixed in V111 — all compound-value tags now have `startsWith()` handlers that run before the guard. If a new tag appears to do nothing and its value contains a comma or text, it needs a `startsWith()` handler, not a switch case.
 
 ---
 
@@ -713,8 +760,8 @@ Scale: −100 (Consumed) to +100 (Luminous). Seven tiers:
 1. **Read this CLAUDE.md in full** — do not skip sections
 2. **Check the Current Character State section below** — note life stage, current stats, active story flags
 3. **Confirm the in-game date** from the worldState in the save file (format: Galactic Standard Calendar)
-4. **For lore lookups** mid-session: check the Lore Document Index (Section 6) for the correct file before inventing NPC stats or ability details
-5. **For ability questions** (can Jared learn X?): always check `SW_Force_Abilities_Forms_v3_complete.md` for prerequisites and flags before the AI grants anything
+4. **For lore lookups** mid-session: check `Docs/SWRPG lore/` (see Section 2) before inventing NPC stats or ability details; current era lore is also auto-injected via `buildLoreContext()`
+5. **For ability questions** (can Jared learn X?): always check `Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md` for prerequisites and flags before the AI grants anything
 
 ### During a Session
 
@@ -774,7 +821,7 @@ If you find a conflict between what the AI produced and the lore files:
 
 **Notes for next session:**
 - Jared is a padawan in Year 20 of the Great Galactic War. The Hydian Way blockade was just broken. The Jedi Temple is recovering from supply disruption. The Sith Empire holds most of the Outer Rim.
-- ForceOutput and Intelligence were added in v3 — these stats may not be initialized in older saves. If missing, initialize to 0 or to an appropriate starting value for a padawan.
+- ForceOutput and Intelligence are now auto-seeded to 0 on save load if missing — no manual initialization needed.
 
 ---
 
@@ -784,11 +831,7 @@ If you find a conflict between what the AI produced and the lore files:
 
 1. **Difficulty multiplier discrepancy:** The XP Reference doc lists CHANGES block training difficulty multipliers as `basic=1.0, ceiling=1.3, wall≈1.6, impossible=2.0`. The Sim Rules doc lists simulation panel multipliers as `easy=0.7, standard=1.0, ceiling=1.2, wall=1.5, impossible=0.3`. These are different tables for different systems, which is correct, but the CHANGES block TRAINING tag format uses the keywords `basic|standard|ceiling|wall|above` — it's unclear whether `wall` in the CHANGES block uses 1.3 or 1.6 as its multiplier. **Resolution needed.**
 
-2. **XP format duality:** The CHANGES block supports both `TRAINING: ...` (structured, from changelog/V110) and `XP: stat.key,amount` (direct injection, from XP Reference). Both appear valid. The `TRAINING:` format is preferred as it gives the engine more information. The `XP:` format should be used when a precise XP amount from a non-training context needs to be awarded (e.g., story breakthrough, ceremony). **No conflict, but clarify for the AI which to default to.**
-
-3. **ForceOutput and Intelligence initialization:** These are v3 stats added after V97. The XP Reference doc says "Derived directly from starwars_rpg_V97.html" — the current version is V110. The v3 implementation spec in `SW_Force_Abilities_Forms_v3_complete.md` lists specific JS changes required but it's unclear whether these are already applied in V110 or still pending. **Verify which v3 stats are live in V110.**
-
-4. **TRAINING difficulty keyword `above`:** The CHANGES block docs list `above` as a valid difficulty keyword but the multiplier tables don't have an entry for it. Likely synonymous with `ceiling` (1.3). **Confirm.**
+2. **TRAINING difficulty keyword `above`:** The CHANGES block docs list `above` as a valid difficulty keyword but the multiplier tables don't have an entry for it. Likely synonymous with `ceiling` (1.3). **Unresolved — treat `above` as `ceiling` until clarified.**
 
 ---
 
@@ -798,8 +841,9 @@ If you find a conflict between what the AI produced and the lore files:
 
 | Session Date | Summary | Key Changes |
 |---|---|---|
-| (none yet recorded) | — | — |
+| 2026-06-05 | **Pure engine session — no gameplay.** Added 157-character LORE_DATABASE (Eras 01–18 + Era09B), FORCE_ABILITY_CATALOG, FORCE_ABILITY_RULES, getEraLore(), buildLoreContext() (per-turn lore injection). Fixed 5 CHANGES parser bugs. Auto-seeded ForceOutput and Intelligence. | V110 → V111. See `Docs/updates.md` for details. |
+| 2026-06-08 | **Quota + save failure fixes.** History now stores displayText (blocks stripped) instead of rawText — ~70% fewer API tokens per turn and proportional save size reduction. Also: summarize catch trims fullHistory to prevent unbounded growth; autoSave catches localStorage errors with visible warning; feedHtml capped to last 50 messages. | V111 → V112. See `Docs/updates.md` for full root cause analysis. |
 
 ---
 
-*End of CLAUDE.md — Last updated: session initialization*
+*End of CLAUDE.md — Last updated: 2026-06-05 (V111 engine session)*

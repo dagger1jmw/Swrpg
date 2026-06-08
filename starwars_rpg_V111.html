@@ -2859,7 +2859,20 @@ async function callGemini(playerMessage, retryCount = 0) {
       const _savedInnateTalents  = characterSheet?.innateTalents  ? [...characterSheet.innateTalents]  : [];
       const _savedInnateAbilities= characterSheet?.innateAbilities ? [...characterSheet.innateAbilities] : [];
       const _savedBirthday       = characterSheet?.birthday        ? {...characterSheet.birthday}        : null;
-      const _savedLifeStage      = characterSheet?.lifeStage       || null;
+      // LIFE_STAGE tag in CHANGES block overrides the snapshot — pre-scan changesText here
+      // (CHANGES loop runs AFTER this snapshot, so we must look ahead to avoid overwrite)
+      let _savedLifeStage = characterSheet?.lifeStage || null;
+      {
+        const _lsMatch = rawText.match(/<<<CHANGES>>>([\s\S]*?)<<<END_CHANGES>>>/);
+        if (_lsMatch) {
+          const _lsLine = _lsMatch[1].split('\n').find(l => /^LIFE_STAGE[=:]/i.test(l.trim()));
+          if (_lsLine) {
+            const _lsv = _lsLine.trim().slice(11).trim().toLowerCase();
+            const _validLS = ['youngling','padawan','knight','knight_with_padawan','master','master_with_padawan','council_member'];
+            if (_validLS.includes(_lsv)) _savedLifeStage = _lsv;
+          }
+        }
+      }
       const _savedStoryFlags     = characterSheet?.storyFlags      ? {...characterSheet.storyFlags}      : null;
       // Preserve aptitudes that weren't talent-generated (AI-authored ones)
       const _savedAptitudes      = (characterSheet?.aptitudes || []).filter(a =>
@@ -3056,6 +3069,81 @@ async function callGemini(playerMessage, retryCount = 0) {
                                    levelUps: 0, newStat: res.newPct, type: 'proficiency' });
                 }
               }
+            }
+          }
+          continue;
+        }
+
+        // LOCATION= is a no-op in the CHANGES block — location is set via WORLD JSON only.
+        if (trimmed.startsWith('LOCATION=') || trimmed.startsWith('LOCATION:')) continue;
+
+        // XP: category.StatKey,amount  e.g. "XP: forceAbilities.Telekinesis,150"
+        // Direct XP injection — for non-training contexts (story breakthroughs, ceremonies).
+        if (trimmed.startsWith('XP:')) {
+          const xpParts = trimmed.slice(3).split(',').map(s => s.trim());
+          if (xpParts.length >= 2) {
+            const xpPath = xpParts[0];
+            const xpAmt  = parseFloat(xpParts[1]) || 0;
+            if (xpAmt > 0 && xpPath.includes('.')) {
+              const res = applyXPToSheet(xpPath, xpAmt);
+              const lbl = xpPath.split('.')[1] || xpPath;
+              if (res.xpAdded > 0) turnXPLog.push({ label: lbl, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'training' });
+            }
+          }
+          continue;
+        }
+
+        // LIFE_STAGE: value  e.g. "LIFE_STAGE=padawan" or "LIFE_STAGE:knight"
+        // lifeStage is snapshot-protected from SHEET JSON — must be set via this explicit tag.
+        if (trimmed.startsWith('LIFE_STAGE=') || trimmed.startsWith('LIFE_STAGE:')) {
+          const lsVal = trimmed.slice(11).trim().toLowerCase();
+          const validStages = ['youngling','padawan','knight','knight_with_padawan','master','master_with_padawan','council_member'];
+          if (validStages.includes(lsVal) && characterSheet) {
+            characterSheet.lifeStage = lsVal;
+          }
+          continue;
+        }
+
+        // MOMENTUM_WINDOW: multiplier,days  e.g. "MOMENTUM_WINDOW=1.5,3"
+        // Must be handled before regex block — rawVal '1.5,3' fails isNaN and gets skipped.
+        if (trimmed.startsWith('MOMENTUM_WINDOW=') || trimmed.startsWith('MOMENTUM_WINDOW:')) {
+          if (!characterSheet.momentumWindow) characterSheet.momentumWindow = {active:false,multiplier:1.0,expiresDate:'',surrenderDiscount:0};
+          // 'MOMENTUM_WINDOW' = 15 chars; separator at index 15; value starts at 16
+          const mwParts = trimmed.slice(16).split(',').map(s => s.trim());
+          const mwMult = parseFloat(mwParts[0]) || 0;
+          const mwDays = parseInt(mwParts[1]) || 0;
+          if (mwMult === 0 || mwDays === 0) {
+            characterSheet.momentumWindow.active = false;
+          } else {
+            characterSheet.momentumWindow.active = true;
+            characterSheet.momentumWindow.multiplier = mwMult;
+            const expDate = worldState?.inGameDate ? advanceInGameDate(worldState.inGameDate, mwDays) : '';
+            characterSheet.momentumWindow.expiresDate = expDate;
+          }
+          continue;
+        }
+
+        // WILL_OF_FORCE: gain,description  e.g. "WILL_OF_FORCE=5,Released attachment"
+        // Must be handled before regex block — rawVal '5,desc' fails isNaN and gets skipped.
+        if (trimmed.startsWith('WILL_OF_FORCE=') || trimmed.startsWith('WILL_OF_FORCE:')) {
+          // 'WILL_OF_FORCE' = 13 chars; separator at 13; value starts at 14
+          const wofStr = trimmed.slice(14);
+          const wofComma = wofStr.indexOf(',');
+          const wofGain = parseFloat(wofComma >= 0 ? wofStr.slice(0, wofComma) : wofStr) || 0;
+          const wofDesc = wofComma >= 0 ? wofStr.slice(wofComma + 1).trim() : 'Surrendered to the will of the Force';
+          if (wofGain > 0 && characterSheet) {
+            characterSheet.alignment = Math.min(100, (characterSheet.alignment || 0) + wofGain);
+            const feedEl = document.getElementById('story-feed');
+            if (feedEl) {
+              const d = document.createElement('div');
+              d.className = 'msg';
+              d.innerHTML = `<div style="background:rgba(20,40,60,0.35);border:1px solid #1a3a5a;border-radius:4px;padding:8px 14px;font-size:12px;">
+                <div style="color:#88aadd;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">✦ WILL OF THE FORCE</div>
+                <div style="color:#aaccee;font-size:12px">${wofDesc}</div>
+                <div style="color:#4488cc;font-size:11px;margin-top:4px">Alignment +${wofGain} → ${characterSheet.alignment >= 0 ? '+' : ''}${Math.round(characterSheet.alignment)}</div>
+              </div>`;
+              feedEl.appendChild(d);
+              feedEl.scrollTop = feedEl.scrollHeight;
             }
           }
           continue;
@@ -5237,6 +5325,11 @@ function loadFromSave(save) {
     if (!characterSheet.birthday) characterSheet.birthday = {day:0,month:0,year:0,era:'BBY'};
     if (!characterSheet.innateTalents)   characterSheet.innateTalents   = [];
     if (!characterSheet.innateAbilities) characterSheet.innateAbilities = [];
+    // v3 stats — seed to 0 if absent so they appear in the sheet immediately
+    if (!characterSheet.forceStats) characterSheet.forceStats = {};
+    if (characterSheet.forceStats.forceOutput === undefined) characterSheet.forceStats.forceOutput = 0;
+    if (!characterSheet.stats) characterSheet.stats = {};
+    if (characterSheet.stats.intelligence === undefined) characterSheet.stats.intelligence = 0;
   }
   // Restore masterXP — if the save predates masterXP, migrate from characterSheet XP stores
   if (save.masterXP) {
