@@ -4,6 +4,37 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V116 addendum C — 2026-06-08
+
+**Talent rework: BladeIntuition and ForceReservoir changed to XP multipliers**
+
+### What Changed
+
+**BladeIntuition** (was: "First saber form starts +5 levels")
+- New effect: lightsaberForms XP ×1.3 for all lightsaber form training
+- Rationale: a flat +5 seed is a one-time gift that vanishes into the progression curve. An XP multiplier compounds over the entire growth arc, rewarding sustained investment rather than just the starting gift.
+
+**ForceReservoir** (was: "maxForceBarrier +20")
+- New effect: forceStats.forceOutput XP ×1.3
+- Rationale: the talent represents a deep natural well of Force energy. That makes raw power *more accessible to develop*, not just a higher ceiling on one shield stat. An output XP multiplier means the character's raw power grows faster across every ability that draws on it.
+
+### Code Changes
+
+**New function `applyTalentXPMultiplier(statPath, baseXP)`** (inserted after `calcTrainingXP`, line ~4907):
+- Reads `characterSheet.innateTalents` 
+- BladeIntuition check: `statPath.startsWith('lightsaberForms.')` → ×1.3
+- ForceReservoir check: `statPath === 'forceStats.forceOutput'` → ×1.3
+
+**TRAINING: parser** (line ~3420): now calls `applyTalentXPMultiplier(parts[0], rawXP)` between `calcTrainingXP` and `applyXPToSheet`.
+
+**Sim XP loop** (line ~8958): `applyXPToSheet(path, applyTalentXPMultiplier(path, xp))` — sim gets the same multipliers.
+
+**`simApplyTalentEffects()`**: maxForceBarrier logic removed (ForceReservoir is now XP-based, not a passive stat boost). Function body replaced with comment pointing to `applyTalentXPMultiplier`.
+
+**`SIM_INNATE_TALENTS` registry**: updated both effect strings to describe the new behavior.
+
+---
+
 ## V116 addendum B — 2026-06-08
 
 **Time inflation and passive-reflection XP fixes**

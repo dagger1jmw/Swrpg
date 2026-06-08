@@ -3420,7 +3420,8 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (trimmed.startsWith('TRAINING:')) {
           const parts = trimmed.slice(9).split(',').map(s => s.trim());
           if (parts.length >= 5) {
-            const xp = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4]);
+            const rawXP = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4]);
+            const xp = applyTalentXPMultiplier(parts[0], rawXP);
             const res = applyXPToSheet(parts[0], xp);
             const label = parts[0].split('.')[1] || parts[0];
             if (res.xpAdded > 0) turnXPLog.push({ label, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'training' });
@@ -4893,6 +4894,21 @@ function calcTrainingXP(hours, intensity, difficulty, outcome) {
   return Math.round((hours||1) * i * d * o);
 }
 
+// Apply innate talent XP multipliers for a given stat path.
+// BladeIntuition: lightsaberForms XP ×1.3
+// ForceReservoir: forceStats.forceOutput XP ×1.3
+function applyTalentXPMultiplier(statPath, baseXP) {
+  const talents = (characterSheet && characterSheet.innateTalents) || [];
+  let xp = baseXP;
+  if (talents.includes('BladeIntuition') && statPath.startsWith('lightsaberForms.')) {
+    xp = Math.round(xp * 1.3);
+  }
+  if (talents.includes('ForceReservoir') && statPath === 'forceStats.forceOutput') {
+    xp = Math.round(xp * 1.3);
+  }
+  return xp;
+}
+
 // Combat XP: base_opponent_xp × duration × engagement × outcome
 // Base XP reflects the opponent's tier — who you fought matters more than how long
 function calcCombatXP(rounds, tierGap, engagement, outcome, opponentTier) {
@@ -6272,8 +6288,8 @@ const SIM_INNATE_TALENTS = [
   { key:'NaturalTelekineticBurst', label:'Natural Telekinetic Burst', effect:'Telekinesis family Force Strain ×0.8', special:false },
   { key:'IronMind',                label:'Iron Mind',                 effect:'Mental Strain accumulates ×0.8', special:false },
   { key:'UnbreakableSpirit',       label:'Unbreakable Spirit',        effect:'At 90+ strain, XP penalty ×0.3 not ×0.1', special:false },
-  { key:'BladeIntuition',          label:'Blade Intuition',           effect:'First saber form starts +5 levels', special:false },
-  { key:'ForceReservoir',          label:'Force Reservoir',           effect:'maxForceBarrier +20', special:false },
+  { key:'BladeIntuition',          label:'Blade Intuition',           effect:'lightsaberForms XP ×1.3 — natural affinity accelerates all blade skill growth', special:false },
+  { key:'ForceReservoir',          label:'Force Reservoir',           effect:'forceOutput XP ×1.3 — deep reservoir makes raw power more accessible', special:false },
   { key:'CombatIntuition',         label:'Combat Intuition',          effect:'+1 to combat rolls when outnumbered', special:false },
   { key:'ForceSensitiveHealer',    label:'Force-Sensitive Healer',    effect:'Healing ability XP gain ×1.3', special:false },
   { key:'QuickStudy',              label:'Quick Study',               effect:'ForceKnowledge XP gains ×1.2', special:false },
@@ -8715,11 +8731,8 @@ function simToggleTalent(key, isAbility) {
 // Apply passive mechanical effects of active innate talents to characterSheet
 function simApplyTalentEffects() {
   if (!characterSheet) return;
-  const talents = characterSheet.innateTalents || [];
-  // ForceReservoir: maxForceBarrier +20
-  if (talents.includes('ForceReservoir')) {
-    characterSheet.maxForceBarrier = Math.max(120, characterSheet.maxForceBarrier || 100);
-  }
+  // XP-multiplier talents (BladeIntuition, ForceReservoir) are handled in applyTalentXPMultiplier.
+  // Add any non-XP passive effects here as new talents are designed.
 }
 
 // ── Story flags grid ──────────────────────────────────────────────
@@ -8955,7 +8968,7 @@ async function simProcessDay(chunk, chunkNum, total) {
   const levelUps = [];
   for (const [path, xp] of Object.entries(xpGained)) {
     if (xp <= 0) continue;
-    const res = applyXPToSheet(path, xp);
+    const res = applyXPToSheet(path, applyTalentXPMultiplier(path, xp));
     if (res.levelUps > 0) levelUps.push(`${path.split('.')[1]} → Level ${res.newStat}`);
   }
   // Apply shatterpoint XP via dedicated track
