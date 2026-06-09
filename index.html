@@ -2986,8 +2986,25 @@ function getSceneNPCs() {
   return present;
 }
 
+function normalizeWorldState() {
+  if (!worldState) return;
+  if (!Array.isArray(worldState.trackedCharacters))  worldState.trackedCharacters  = [];
+  if (!Array.isArray(worldState.pendingEvents))      worldState.pendingEvents      = [];
+  if (!Array.isArray(worldState.sceneNPCs))          worldState.sceneNPCs          = [];
+  if (!Array.isArray(worldState.galaxyEventQueue))   worldState.galaxyEventQueue   = [];
+  if (!Array.isArray(worldState.legacyChanges))      worldState.legacyChanges      = [];
+  if (!Array.isArray(worldState.lineageRecord))      worldState.lineageRecord      = [];
+  if (!Array.isArray(worldState.worldLog))           worldState.worldLog           = [];
+  if (!Array.isArray(worldState.galaxyEvents))       worldState.galaxyEvents       = [];
+  if (typeof worldState.characterProfiles  !== 'object' || Array.isArray(worldState.characterProfiles))  worldState.characterProfiles  = {};
+  if (typeof worldState.interactionWeights !== 'object' || Array.isArray(worldState.interactionWeights)) worldState.interactionWeights = {};
+  if (typeof worldState.npcAgendas         !== 'object' || Array.isArray(worldState.npcAgendas))         worldState.npcAgendas         = {};
+  if (typeof worldState.galaxyState        !== 'object' || Array.isArray(worldState.galaxyState))        worldState.galaxyState        = {};
+}
+
 function buildEventInjection() {
   if (!worldState) return '';
+  normalizeWorldState();
   checkMilestones();
   updateEventPriority();
   const lines = [];
@@ -3308,19 +3325,7 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (j) { try { worldState = JSON.parse(j[0]); worldParsed = true; } catch(e2) {} }
       }
       if (worldParsed && worldState) {
-        // Normalize fields that must be arrays — AI sometimes sends {} instead of []
-        if (!Array.isArray(worldState.trackedCharacters))  worldState.trackedCharacters  = [];
-        if (!Array.isArray(worldState.pendingEvents))      worldState.pendingEvents      = [];
-        if (!Array.isArray(worldState.sceneNPCs))          worldState.sceneNPCs          = [];
-        if (!Array.isArray(worldState.galaxyEventQueue))   worldState.galaxyEventQueue   = [];
-        if (!Array.isArray(worldState.legacyChanges))      worldState.legacyChanges      = [];
-        if (!Array.isArray(worldState.lineageRecord))      worldState.lineageRecord      = [];
-        if (!Array.isArray(worldState.worldLog))           worldState.worldLog           = [];
-        if (!Array.isArray(worldState.galaxyEvents))       worldState.galaxyEvents       = [];
-        if (typeof worldState.characterProfiles  !== 'object' || Array.isArray(worldState.characterProfiles))  worldState.characterProfiles  = {};
-        if (typeof worldState.interactionWeights !== 'object' || Array.isArray(worldState.interactionWeights)) worldState.interactionWeights = {};
-        if (typeof worldState.npcAgendas         !== 'object' || Array.isArray(worldState.npcAgendas))         worldState.npcAgendas         = {};
-        if (typeof worldState.galaxyState        !== 'object' || Array.isArray(worldState.galaxyState))        worldState.galaxyState        = {};
+        normalizeWorldState();
         // Check if momentum window has expired based on in-game date
         if (characterSheet?.momentumWindow?.active && characterSheet.momentumWindow.expiresDate && worldState.inGameDate) {
           try {
@@ -6047,12 +6052,7 @@ function loadFromSave(save) {
   if (characterSheet) { syncMasterXPToSheet(); spSeedIfInnate(); }
   worldState = save.worldState || null;
   if (worldState) {
-    if (!worldState.characterProfiles)  worldState.characterProfiles = {};
-    if (!worldState.interactionWeights) worldState.interactionWeights = {};
-    if (!worldState.pendingEvents)      worldState.pendingEvents = [];
-    if (!worldState.npcAgendas)         worldState.npcAgendas = {};
-    if (!worldState.galaxyEventQueue)   worldState.galaxyEventQueue = [];
-    if (!worldState.sceneNPCs)          worldState.sceneNPCs = [];
+    normalizeWorldState();
     seedCanonProfiles();
   }
   campaignSummary = save.campaignSummary || '';
