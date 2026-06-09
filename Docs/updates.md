@@ -4,6 +4,30 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V116 addendum H — 2026-06-08
+
+**Fix: JS owns the clock entirely — AI inGameTime field fully ignored**
+
+### Root Cause
+
+`advanceClock()` read `worldState.inGameTime` as its base time, but the WORLD JSON parse had already overwritten that field with the AI's value before `advanceClock()` ran. So "Time Elapsed: 10 minutes" was adding 10 minutes to the AI's wrong base (e.g. `18:04`) instead of the real previous time (`16:42`), producing a jump of 82 minutes instead of 10.
+
+The `savedTime` variable (captured before the WORLD parse at line ~3319) was only restored to `worldState.inGameTime` when the AI omitted the field entirely — i.e. `if (savedTime && !worldState.inGameTime)`. Since the AI always includes `inGameTime`, the restore never fired.
+
+### Fixes
+
+**1. `savedTime` always restored after WORLD parse:**
+Changed `if (savedTime && !worldState.inGameTime) worldState.inGameTime = savedTime` → `if (savedTime) worldState.inGameTime = savedTime`. The AI's `inGameTime` value is now unconditionally discarded and replaced with the JS-tracked value. `advanceClock()` then advances from the correct base.
+
+**2. "It is now/currently" fallback removed:**
+The fallback path that scanned for `"it is now"` / `"it is currently"` time strings in the response is gone. The AI has zero influence over the clock value — only `"Time Elapsed: X"` is read.
+
+**3. GM prompt and per-turn injection updated:**
+- `inGameTime` rule in WORLD block docs changed to: `DO NOT SET THIS FIELD. JavaScript owns the clock entirely.`
+- Critical Rule 2, confirmed turn message, and turn reminder all updated to tell the AI not to set `inGameTime` and to rely on `"Time Elapsed:"` only.
+
+---
+
 ## V116 addendum G — 2026-06-08
 
 **Diagnostic: stack trace in error bubbles + recentHistory/fullHistory array guards**
