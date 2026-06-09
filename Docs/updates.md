@@ -4,6 +4,44 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V116 addendum E — 2026-06-08
+
+**Fix: "it is not iterable" system error**
+
+### Problem
+
+After any AI turn, the WORLD JSON block completely replaces `worldState` via `JSON.parse()`. No type guards were applied after this parse. If the AI sent any array field as a plain object (e.g. `"trackedCharacters":{}` instead of `"trackedCharacters":[]`), downstream code that iterates over those fields — specifically `getSceneNPCs()` which runs `for (const tc of worldState.trackedCharacters)` — would throw `TypeError: {} is not iterable`. This surfaced in the UI as a red `⚠ it is not iterable` SYSTEM bubble.
+
+### Fix
+
+Added `Array.isArray` and `typeof` normalization guards immediately after the per-turn `JSON.parse(worldMatch[1])` call in the WORLD block handler (line ~3310). Mirrors the same guards that `loadFromSave()` already had. Fields normalized:
+
+- Arrays: `trackedCharacters`, `pendingEvents`, `sceneNPCs`, `galaxyEventQueue`, `legacyChanges`, `lineageRecord`, `worldLog`, `galaxyEvents`
+- Objects: `characterProfiles`, `interactionWeights`, `npcAgendas`, `galaxyState`
+
+---
+
+## V116 addendum D — 2026-06-08
+
+**Fix: game clock jumping ahead from narrative time mentions**
+
+### Problem
+
+The time display was advancing by an hour or more on turns where only 5 minutes elapsed. Root cause: the time parser scanned the **entire** AI response for any `Period (HH:MM)` pattern (e.g. `Morning (07:30)`) and used the **last** match as the new clock value. If the AI wrote something like "by Evening (19:00) you should be ready" anywhere in its narrative, the clock jumped to 19:00 regardless of what "Time Elapsed" declared.
+
+### Fix
+
+Replaced the full-text regex scan with JS-side arithmetic time advancement:
+
+1. Parse `"Time Elapsed: X minutes/hours"` from the response text
+2. Parse the current `worldState.inGameTime` HH:MM value
+3. Add the delta and compute the new time string entirely in JS
+4. Update `worldState.inGameTime` from this computed value — ignoring both the WORLD JSON and any narrative time mentions
+
+Falls back to scanning `"it is now / it is currently"` lines only (never full text) when no "Time Elapsed" declaration is found. The old catch-all third regex pattern that grabbed any time mention anywhere in the response has been removed.
+
+---
+
 ## V116 addendum C — 2026-06-08
 
 **Talent rework: BladeIntuition and ForceReservoir changed to XP multipliers**
