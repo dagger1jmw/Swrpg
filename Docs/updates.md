@@ -4,6 +4,43 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V117 — 2026-06-09
+
+**Fix: Duplicate XP on the turn after training**
+
+### Problem
+
+XP was being awarded twice for a training session: once in the training turn (correct), and again in the immediately following turn (e.g. walking to breakfast). The user reported seeing "+8 XP" to ForceSense, ForceControl, and Telekinesis on a turn where the player only walked to the refectory.
+
+### Root Cause (multi-factor)
+
+**1. Stale prompt text (line 1730):** The prompt said "The system pre-rolls 3 d20 values every turn" but pre-roll injection was removed in V116. The AI was told to expect pre-rolled d20 values that were never provided. Without finding them in the current stateBlock, the AI may have been leaning on previous-turn roll context to justify applying training XP on the next turn.
+
+**2. Ambiguous CHANGES block rule (line 1550):** "Include ALL stat values AND XP lines every turn" — the AI read "XP lines every turn" as mandatory and found something to fill them with, even when the current turn involved no training.
+
+**3. No prohibition on cross-turn TRAINING: carry-over:** The AI doesn't see the previous turn's CHANGES block (it's stripped from displayText stored in history). Without an explicit rule, it could include TRAINING: tags to "complete accounting" for the previous turn's training session, not knowing those tags were already processed by JS.
+
+**4. Narrative XP fallback parser (lines 4066-4095):** This legacy parser searched rawText for "StatName: +N XP" patterns and applied XP×50 as a fallback. If both the CHANGES-block TRAINING: tags AND the narrative parser fired in the same turn, XP could be double-applied.
+
+### Fixes
+
+**1. Prompt — CHANGES block rule (line 1550):**  
+Changed "Include ALL stat values AND XP lines every turn" to "Include TRAINING:/COMBAT: XP lines ONLY if XP was earned in THIS turn. If no training or combat occurred, write NO TRAINING: or COMBAT: lines."
+
+**2. Prompt — pre-roll language (line 1730):**  
+Replaced "The system pre-rolls 3 d20 values every turn. Use them whenever any of the following apply." with "JavaScript rolls dice via your ROLL:/ROLL_LABEL= tags — no pre-rolled values are injected into this prompt."
+
+**3. Prompt — "do not fabricate d20 values" clarification (line 1742):**  
+Replaced reference to "pre-rolled injection" with plain rule: "Do NOT write d20 values, bonuses, or roll math in narrative text."
+
+**4. Prompt — Rule 9 in stateBlock CRITICAL RULES (line 3134):**  
+Appended: "CRITICAL: TRAINING: tags must correspond ONLY to training that visibly occurs in THIS turn's narrative. Never include TRAINING: tags to account for a previous turn's session — those CHANGES blocks were already processed by JavaScript."
+
+**5. JS — Narrative XP fallback parser gated by `trainingTagFound` flag:**  
+Added `let trainingTagFound = false` before the CHANGES parsing loop. Set to `true` in the `TRAINING:` case and the `COMBAT:` case. Changed the narrative XP parser condition from `if (characterSheet)` to `if (characterSheet && !trainingTagFound)`. This prevents the fallback from ever running when the AI used proper structured tags, eliminating the double-application path entirely.
+
+---
+
 ## V116 addendum I — 2026-06-09
 
 **Fix: Alignment decimal display + JS-only ownership**

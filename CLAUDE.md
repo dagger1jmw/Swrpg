@@ -847,7 +847,8 @@ If you find a conflict between what the AI produced and the lore files:
 | 2026-06-08 | **Roll trigger system.** Added `WHEN TO ROLL — MANDATORY TRIGGERS` section to GM prompt. Three outcome tables (SUCCESS/CEILING/WALL) with specific thresholds derived from compressedBonus math. Nat 20 always = breakthrough (×3.0). Reading/studying roll formula. AI must now roll for every training session, NPC social interactions, uncertain Force use, and physical challenges. | V113 → V114. |
 | 2026-06-08 | **Save detection on title screen.** `<div id="save-found-msg">` added to API screen showing turn count + timestamp if autosave exists. `tryAutoLoad` silent catch replaced with visible error message. | V114 → V115. |
 | 2026-06-08 | **NPC tracking + milestone system + JS roll engine + canon profiles merged from V120 branch.** JS-driven ROLL:/ROLL_LABEL= tags replace AI-calculated rolls. `KNOWN_PERSON`/`INTERACTION`/`GENERATE_PROFILE`/`PROFILE_STATS`/`PENDING_EVENT`/`NPC_AGENDA`/`RESOLVE_EVENT`/`SCENE_NPCS`/`GALAXY_EVENT` parser cases added. `buildEventInjection()` injects story threads + NPC agendas per turn. `checkMilestones()` auto-creates pendingEvents from JEDI/SITH_MILESTONES. Canon NPC stat blocks seeded at game start (Zym, Satele, Malgus, Ngani Zho, Gnost-Dural). | V115 → V116. See `Docs/updates.md`. |
+| 2026-06-09 | **Duplicate XP bug fix.** AI was awarding TRAINING: XP on the turn after training (e.g. walking to breakfast). Three prompt fixes: removed stale "pre-rolls 3 d20 values" language, clarified TRAINING: tags are ONLY for current-turn activity, and added explicit rule against carry-over from previous turns. JS fix: `trainingTagFound` flag gates the narrative-XP fallback parser so it can't double-apply XP when proper TRAINING:/COMBAT: tags are present. | V116 → V117. See `Docs/updates.md`. |
 
 ---
 
-*End of CLAUDE.md — Last updated: 2026-06-05 (V111 engine session)*
+*End of CLAUDE.md — Last updated: 2026-06-09 (V117 duplicate-XP fix)*
