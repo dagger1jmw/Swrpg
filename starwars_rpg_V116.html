@@ -3136,7 +3136,7 @@ CRITICAL RULES FOR THIS TURN:
   messages.push({ role: 'model', parts: [{ text: `Confirmed. Turn ${turnCount + 1}. Current time: ${ws.inGameTime||'unknown'}. I will advance the time based on what happens this turn and update inGameTime in the WORLD block. I will output all three data blocks.` }] });
 
   // Recent raw turns for narrative continuity
-  for (const msg of recentHistory) {
+  for (const msg of (Array.isArray(recentHistory) ? recentHistory : [])) {
     messages.push(msg);
   }
 
@@ -4399,7 +4399,8 @@ async function callGemini(playerMessage, retryCount = 0) {
     if (msg.includes('Failed to fetch') || msg.includes('Load failed') || msg.includes('NetworkError')) {
       msg = 'Could not reach the Gemini API. Check your internet connection.';
     }
-    renderSystemMessage(`⚠ ${msg}`);
+    const stackLine = err.stack ? '\n' + err.stack.split('\n').slice(1,3).join('\n') : '';
+    renderSystemMessage(`⚠ ${msg}${stackLine}`);
   }
 
   setThinking(false);
@@ -6058,8 +6059,10 @@ function loadFromSave(save) {
   campaignSummary = save.campaignSummary || '';
   galaxySimState = save.galaxySimState || {};
   lastGalaxyEventDate = save.lastGalaxyEventDate || '';
-  recentHistory = save.recentHistory || save.conversationHistory?.slice(-12) || [];
-  fullHistory = save.fullHistory || save.conversationHistory || [];
+  recentHistory = Array.isArray(save.recentHistory) ? save.recentHistory :
+                  (Array.isArray(save.conversationHistory) ? save.conversationHistory.slice(-12) : []);
+  fullHistory = Array.isArray(save.fullHistory) ? save.fullHistory :
+                (Array.isArray(save.conversationHistory) ? save.conversationHistory : []);
   trimmedTurns = 0;
 
   if (save.feedHtml) {
