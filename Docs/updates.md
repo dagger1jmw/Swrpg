@@ -4,6 +4,26 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V119 — 2026-06-09
+
+**Fix: Complete applyTalentXPMultiplier — all XP-effect talents JS-driven**
+
+### Problem
+
+`applyTalentXPMultiplier` only handled `BladeIntuition` and `ForceReservoir`. Two other XP-modifying talents declared in `SIM_INNATE_TALENTS` — `QuickStudy` (ForceKnowledge ×1.2) and `ForceSensitiveHealer` (Healing-family ×1.3) — were missing. If a character ever activates these talents, the multiplier would silently do nothing, leaving the effect dependent on the AI manually calculating bonuses.
+
+### Fix
+
+Added two new checks to `applyTalentXPMultiplier`:
+- `QuickStudy` → if stat path is `forceStats.forceKnowledge`, multiply by 1.2
+- `ForceSensitiveHealer` → if stat path is a `forceAbilities.*` whose FORCE_ABILITY_CATALOG entry has `fam:'Healing'` or key is `ForceHealSelf`, multiply by 1.3
+
+All four XP-multiplier talents (`BladeIntuition`, `ForceReservoir`, `QuickStudy`, `ForceSensitiveHealer`) are now fully JS-driven through a single function. The AI never needs to account for these bonuses. Updated stale comment in `simApplyTalentEffects` to reflect the complete list.
+
+Note: `BattleMeditationAffinity` (×0.3 cost, ×0.6 strain) uses a cost-reduction model (like `ShatterSense`) and requires its own dedicated XP track handler — deferred to a future session when that talent is relevant.
+
+---
+
 ## V118 — 2026-06-09
 
 **Fix: Shatterpoint-as-aptitude + BladeIntuition XP multiplier not firing**
