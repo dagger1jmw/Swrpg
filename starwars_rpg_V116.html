@@ -1606,7 +1606,7 @@ STEP 4: Output the WORLD block:
 
 RULES FOR DATA BLOCKS:
 - worldLog: array of objects. Format: [{"turn":1,"event":"description","location":"place"}]. Keep last 20. Add new entry every turn.
-- inGameTime: current time of day as a string. Update every turn based on time elapsed. Format: "Morning (06:00)" or "Late Night (02:15)". Use 24-hour clock in parentheses. Time periods: Pre-Dawn (03-05), Dawn (05-06), Morning (06-11), Midday (11-13), Afternoon (13-17), Evening (17-21), Night (21-24), Late Night (00-03).
+- inGameTime: DO NOT SET THIS FIELD. JavaScript owns the clock entirely and will ignore whatever you write here. Time is tracked by JS using your "Time Elapsed:" declaration only.
 - trackedCharacters: Managed by JS via KNOWN_PERSON tags — do NOT modify this array in WORLD JSON. Use KNOWN_PERSON in the CHANGES block instead. JS persists all records permanently.
 - galaxyEvents: Format: [{"turn":1,"faction":"Jedi Order","event":"description"}]. Keep last 10.
 
@@ -3123,8 +3123,8 @@ ${campaignSummary ? `CAMPAIGN HISTORY (turns 1–${Math.max(1, turnCount - recen
 
 CRITICAL RULES FOR THIS TURN:
 1. Use the EXACT stat values above as your starting point
-2. TIME IS NOW: ${ws.inGameTime||'unknown'} on ${ws.inGameDate||'unknown'}. Every action takes time. State how much time passes at the start of your response ("Time Elapsed: X minutes/hours"). Update inGameTime AND inGameDate in the WORLD block. If time passes midnight advance the date using exact format "Weekday, Day N MonthName — YYYY ERA" (e.g. "Centaxday, Day 5 Coruscann — 3661 BBY"). NEVER use "Day X, Cycle Y" format.
-3. Time period labels: Pre-Dawn 03:00-05:59, Dawn 06:00-06:59, Morning 07:00-11:59, Midday 12:00-13:59, Afternoon 14:00-17:59, Evening 18:00-20:59, Night 21:00-23:59, Late Night 00:00-02:59
+2. TIME IS NOW: ${ws.inGameTime||'unknown'} on ${ws.inGameDate||'unknown'}. Every action takes time. State how much time passes at the start of your response ("Time Elapsed: X minutes/hours") — JavaScript reads this and advances the clock automatically. Do NOT set inGameTime in the WORLD block; JS ignores it. If the date advances past midnight, update inGameDate in the WORLD block using exact format "Weekday, Day N MonthName — YYYY ERA" (e.g. "Centaxday, Day 5 Coruscann — 3661 BBY"). NEVER use "Day X, Cycle Y" format.
+3. Time period labels (for your narrative only): Pre-Dawn 03:00-05:59, Dawn 06:00-06:59, Morning 07:00-11:59, Midday 12:00-13:59, Afternoon 14:00-17:59, Evening 18:00-20:59, Night 21:00-23:59, Late Night 00:00-02:59
 4. XP SYSTEM — CRITICAL: You NEVER directly increment stat values. You NEVER write "+3 XP" in prose. Stats only increase when JavaScript calculates enough XP from TRAINING: or COMBAT: lines. The XP progress shown above (e.g. "Djem So:3[45/114XP]") is authoritative — do not override it. Output TRAINING:/COMBAT: lines in the CHANGES block and JavaScript handles all math.
 5. INTELLIGENCE & FORCE OUTPUT — These are fully tracked stats (stats.intelligence, forceStats.forceOutput). Intelligence gains XP only from FOCUSED deliberate effort: sustained archive research (30+ minutes), working through a difficult tactical problem, decoding complex material, academic instruction from a teacher. Passing thoughts, brief reflections, or casual mental review do NOT qualify — the character must be visibly engaged in effortful thinking. ForceOutput gains XP from raw power expenditure: telekinetic bursts, Force Repulse, channeling large amounts of Force energy. Do NOT neglect these stats when genuinely warranted, but also do not invent reasons to award them from passive activity.
 6. If strain changed this turn, update in CHANGES block (FORCE_STRAIN=, PHYSICAL_STRAIN=, MENTAL_STRAIN=)
@@ -3133,7 +3133,7 @@ CRITICAL RULES FOR THIS TURN:
 9. NO XP FOR PASSIVE ACTIVITY: Eating, resting, walking, and mental reflection earn ZERO TRAINING XP. lightsaberForms XP requires physical practice. forceKnowledge/intelligence XP requires focused deliberate study — not passing thoughts. If the player is not actively exerting effort, no TRAINING: line belongs in this turn.`;
 
   messages.push({ role: 'user', parts: [{ text: stateBlock }] });
-  messages.push({ role: 'model', parts: [{ text: `Confirmed. Turn ${turnCount + 1}. Current time: ${ws.inGameTime||'unknown'}. I will advance the time based on what happens this turn and update inGameTime in the WORLD block. I will output all three data blocks.` }] });
+  messages.push({ role: 'model', parts: [{ text: `Confirmed. Turn ${turnCount + 1}. Current time: ${ws.inGameTime||'unknown'}. I will state "Time Elapsed: X" at the start of my response — JavaScript will advance the clock from that. I will NOT set inGameTime in the WORLD block. I will output all three data blocks.` }] });
 
   // Recent raw turns for narrative continuity
   for (const msg of (Array.isArray(recentHistory) ? recentHistory : [])) {
@@ -3141,7 +3141,7 @@ CRITICAL RULES FOR THIS TURN:
   }
 
   // Rolls are now JS-driven via ROLL:/ROLL_LABEL= tags — no pre-roll injection needed.
-  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State time elapsed. (2) Update inGameTime in WORLD block. (3) Output <<<CHANGES>>> block. For XP: use TRAINING: or COMBAT: lines — NOT prose. For rolls: output ROLL:statPath1|statPath2, TIER_GAP=N, TACTICAL=N, ROLL_LABEL=description tags at the point of the action — JS handles all math. (4) Output <<<SHEET>>> and <<<WORLD>>> blocks.]`;
+  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State "Time Elapsed: X minutes/hours" — JS advances the clock automatically, do NOT set inGameTime in WORLD. (2) Output <<<CHANGES>>> block. For XP: use TRAINING: or COMBAT: lines — NOT prose. For rolls: output ROLL:statPath1|statPath2, TIER_GAP=N, TACTICAL=N, ROLL_LABEL=description tags. (3) Output <<<SHEET>>> and <<<WORLD>>> blocks.]`;
 
   messages.push({ role: 'user', parts: [{ text: userContent + reminder }] });
 
@@ -3342,8 +3342,10 @@ async function callGemini(playerMessage, retryCount = 0) {
           const curAbs = (typeof dateToAbsoluteDays === 'function') ? dateToAbsoluteDays(savedDate) : 0;
           if (aiAbs < curAbs) worldState.inGameDate = savedDate;
         }
-        // Always keep our tracked time unless AI has something different formatted
-        if (savedTime && !worldState.inGameTime) worldState.inGameTime = savedTime;
+        // Always restore the JS-tracked time — advanceClock() will advance it
+        // by the declared "Time Elapsed" value. The AI's inGameTime from WORLD JSON
+        // is discarded; it's often wrong (future times in narrative, stale values, etc.)
+        if (savedTime) worldState.inGameTime = savedTime;
       }
     }
 
@@ -4232,61 +4234,39 @@ async function callGemini(playerMessage, retryCount = 0) {
     if (worldState) {
       const rt = rawText.replace(/\*\*/g, ''); // strip all bold markdown first
 
-      // Time — advance clock by the declared "Time Elapsed: X" value rather than
-      // trusting any time string in the narrative (which may mention future times like
-      // "by Evening (19:00)" and accidentally advance the clock by hours).
-      // Strategy: parse "Time Elapsed: N minutes/hours" and add it to the previous time.
-      // Fall back to "it is now/currently TIME" lines only if no elapsed declaration found.
+      // Time — JS owns the clock entirely. AI only declares "Time Elapsed: X".
+      // The WORLD JSON inGameTime is always discarded (restored to savedTime above).
+      // Only "Time Elapsed:" lines are read; all other AI time references are ignored.
       (function advanceClock() {
         const prevTime = worldState.inGameTime || 'Morning (07:00)';
-        // Parse previous HH:MM from stored time string
         const prevMatch = prevTime.match(/\((\d{2}):(\d{2})\)/);
         if (!prevMatch) return;
-        let prevMinutes = parseInt(prevMatch[1]) * 60 + parseInt(prevMatch[2]);
+        const prevMinutes = parseInt(prevMatch[1]) * 60 + parseInt(prevMatch[2]);
 
-        // Look for "Time Elapsed: ..." on its own line
+        // Parse "Time Elapsed: N minutes/hours" — only source JS respects
         const elapsedLine = rt.split('\n').find(l => /time elapsed/i.test(l));
+        if (!elapsedLine) return; // no declaration — leave clock unchanged
         let deltaMinutes = 0;
-        if (elapsedLine) {
-          // e.g. "Time Elapsed: 5 minutes" / "Time Elapsed: 1 hour 30 minutes" / "Time Elapsed: 2 hours"
-          const hrMatch  = elapsedLine.match(/(\d+(?:\.\d+)?)\s*hour/i);
-          const minMatch = elapsedLine.match(/(\d+)\s*min/i);
-          if (hrMatch)  deltaMinutes += Math.round(parseFloat(hrMatch[1])  * 60);
-          if (minMatch) deltaMinutes += parseInt(minMatch[1]);
-        }
+        const hrMatch  = elapsedLine.match(/(\d+(?:\.\d+)?)\s*hour/i);
+        const minMatch = elapsedLine.match(/(\d+)\s*min/i);
+        if (hrMatch)  deltaMinutes += Math.round(parseFloat(hrMatch[1]) * 60);
+        if (minMatch) deltaMinutes += parseInt(minMatch[1]);
+        if (deltaMinutes <= 0) return;
 
-        if (deltaMinutes > 0) {
-          // Compute new time from old + delta
-          const newTotalMinutes = (prevMinutes + deltaMinutes) % (24 * 60);
-          const newH = Math.floor(newTotalMinutes / 60);
-          const newM = newTotalMinutes % 60;
-          const hh = String(newH).padStart(2, '0');
-          const mm = String(newM).padStart(2, '0');
-          const periods = [
-            [3,6,'Pre-Dawn'],[6,7,'Dawn'],[7,12,'Morning'],[12,14,'Midday'],
-            [14,18,'Afternoon'],[18,21,'Evening'],[21,24,'Night'],[0,3,'Late Night'],
-          ];
-          const label = (periods.find(([s,e]) => newH >= s && newH < e) || ['','','Morning'])[2];
-          const newTimeStr = `${label} (${hh}:${mm})`;
-          worldState.inGameTime = newTimeStr;
-          const timeEl = document.getElementById('time-val');
-          if (timeEl) timeEl.textContent = newTimeStr;
-          return;
-        }
-
-        // No elapsed declaration — fall back to "it is now/currently TIME" lines only
-        const timeLines = rt.split('\n').filter(l => /it is now|it is currently/i.test(l)).join(' ');
-        if (!timeLines) return;
-        const timeRe = /((?:Pre-Dawn|Dawn|Morning|Midday|Afternoon|Evening|Night|Late Night)\s*\(\d{2}:\d{2}\))/gi;
-        const allMatches = [...timeLines.matchAll(timeRe)];
-        if (allMatches.length > 0) {
-          const timeStr = allMatches[allMatches.length - 1][1].trim();
-          if (timeStr) {
-            worldState.inGameTime = timeStr;
-            const timeEl = document.getElementById('time-val');
-            if (timeEl) timeEl.textContent = timeStr;
-          }
-        }
+        const newTotalMinutes = (prevMinutes + deltaMinutes) % (24 * 60);
+        const newH = Math.floor(newTotalMinutes / 60);
+        const newM = newTotalMinutes % 60;
+        const hh = String(newH).padStart(2, '0');
+        const mm = String(newM).padStart(2, '0');
+        const periods = [
+          [3,6,'Pre-Dawn'],[6,7,'Dawn'],[7,12,'Morning'],[12,14,'Midday'],
+          [14,18,'Afternoon'],[18,21,'Evening'],[21,24,'Night'],[0,3,'Late Night'],
+        ];
+        const label = (periods.find(([s,e]) => newH >= s && newH < e) || ['','','Morning'])[2];
+        const newTimeStr = `${label} (${hh}:${mm})`;
+        worldState.inGameTime = newTimeStr;
+        const timeEl = document.getElementById('time-val');
+        if (timeEl) timeEl.textContent = newTimeStr;
       })();
 
       // Date — ONLY parse from "Time Elapsed" / "It is now" lines to avoid stale dates in JSON
