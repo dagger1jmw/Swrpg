@@ -4,6 +4,37 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V118 — 2026-06-09
+
+**Fix: Shatterpoint-as-aptitude + BladeIntuition XP multiplier not firing**
+
+### Problems
+
+**1. "Shatterpoint" showing as a raw aptitude entry** (separate from "Shatterpoint (Innate)"):  
+The character had "Shatterpoint" in `innateAbilities[]` — a Force ability name, not a valid innate ability. Since `SIM_INNATE_ABILITIES` only has `TelekineticBurstPassive`, the `abilityLabels` map fell through to the raw key string, displaying "Shatterpoint" as a character trait alongside the correct "Shatterpoint (Innate)" label from `ShatterSense` in `innateTalents`.
+
+**2. BladeIntuition ×1.3 multiplier not applying to lightsaber XP**:  
+"Blade Intuition" was present in `aptitudes[]` as an AI-written string, but `BladeIntuition` was absent from `innateTalents[]`. `applyTalentXPMultiplier()` reads `innateTalents` — if the key isn't there, the multiplier silently does nothing. All three stats (ShiiCho, Agility, Strength) received identical XP confirming the multiplier was not applied.
+
+### Root cause
+
+Both issues stem from the same gap: talent data can enter `aptitudes[]` as text strings (via AI SHEET JSON) without the corresponding functional key entering `innateTalents[]`. The existing filters only deduplicate labels but don't enforce the link between aptitude labels and mechanic keys. Additionally, Force ability names (e.g. "Shatterpoint") can appear in `innateAbilities[]` or `aptitudes[]` when the AI mistakenly categorizes learned abilities as innate traits.
+
+### Fixes
+
+**1. `repairTalentConsistency()` function** (added after `applyTalentXPMultiplier`):  
+- Strips any key from `innateAbilities[]` not present in `SIM_INNATE_ABILITIES` (removes Force ability names that don't belong there)  
+- Scans `aptitudes[]` for strings that match a `SIM_INNATE_TALENTS` label; if found and the key is missing from `innateTalents[]`, promotes it (fixes BladeIntuition, ShatterSense, etc.)  
+- Strips raw FORCE_ABILITY_CATALOG keys from `aptitudes[]` (prevents Force ability names from displaying as character traits)
+
+**2. Called in `loadFromSave()`** after `syncMasterXPToSheet()` and `spSeedIfInnate()` — runs once on every game load to self-heal any corrupted talent state from old saves.
+
+**3. SHEET parse `aiAptitudes` filter updated**: Added `!_forceAbilityKeys.has(a)` guard so AI-written Force ability names are stripped from aptitudes during every SHEET parse, not just on load.
+
+**4. `simToggleTalent` `existingAptitudes` filter updated**: Same Force-ability-key guard added so the toggle sync also stays clean.
+
+---
+
 ## V117 — 2026-06-09
 
 **Fix: Duplicate XP on the turn after training**
