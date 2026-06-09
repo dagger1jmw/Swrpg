@@ -4,6 +4,30 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V116 addendum F — 2026-06-08
+
+**Fix: "it is not iterable" — centralised worldState normalization**
+
+### Why V116e wasn't enough
+
+V116e added `Array.isArray` guards after the per-turn WORLD block parse, but had two holes:
+
+1. **Guards only ran when `worldParsed = true`.** If the AI omitted the WORLD block or the JSON failed to parse, the stale worldState from the previous turn (or from the save file) was never normalized. The next turn's `buildContext()` → `buildEventInjection()` → `getSceneNPCs()` would then iterate the still-broken field and throw.
+
+2. **`loadFromSave()` used `if (!x)` checks**, which don't catch `{}` (an empty object is truthy). So a save that had `trackedCharacters: {}` was loaded as-is, survived normalization, and blew up on the first turn. Also, `trackedCharacters` had no guard at all in `loadFromSave`.
+
+### Fix
+
+Extracted a single `normalizeWorldState()` function that uses `Array.isArray` for all array fields and `typeof !== 'object'` for all object fields. Called in three places:
+
+1. **`buildEventInjection()`** — top of the function, before any iteration. Runs every turn unconditionally.
+2. **`loadFromSave()`** — replaces the old `if (!x)` guards.
+3. **Per-turn WORLD parse handler** — after every successful `JSON.parse`, replacing the V116e inline guards.
+
+Fields normalized: `trackedCharacters`, `pendingEvents`, `sceneNPCs`, `galaxyEventQueue`, `legacyChanges`, `lineageRecord`, `worldLog`, `galaxyEvents` (→ `[]`); `characterProfiles`, `interactionWeights`, `npcAgendas`, `galaxyState` (→ `{}`).
+
+---
+
 ## V116 addendum E — 2026-06-08
 
 **Fix: "it is not iterable" system error**
