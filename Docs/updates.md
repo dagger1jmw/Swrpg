@@ -4,6 +4,66 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V121 — 2026-06-09
+
+**Feature: Character Creation Screen**
+
+### Overview
+
+Replaced the AI-driven intro Q&A with a full character creation screen that appears when clicking "Begin Campaign". The screen provides structured inputs for all character identity fields, a point-pool stat allocation system, backstory/discovery text fields, an opening scene prompt, and innate talent selection.
+
+### Screen Layout
+
+Three-column layout (stacked on mobile):
+- **Left column**: Identity fields (Era, Year, Name, Species, Age, Faction, Rank, Discovery Age) + Innate Talent checkboxes (max 2)
+- **Middle column**: Starting Stats — pool tracker + per-stat +/− allocation controls
+- **Right column**: Backstory & Discovery textarea (saved permanently) + Opening Scene textarea (becomes first AI turn prompt)
+
+### Point-Pool System
+
+Each rank defines fixed point budgets:
+- **Core pool** — total levels to allocate across Strength / Agility / Endurance / Willpower / Charisma / Intelligence
+- **Force pool** — total levels for Force Sense / Meditation / Knowledge / Control / Output (0 for non-Force factions)
+- **Saber** — fixed ShiiCho starting level (displayed as a read-only bar)
+- **Per-stat cap** — prevents dumping all points into one stat
+
+Example pools (Jedi):
+| Rank | Core | Force | Saber |
+|---|---|---|---|
+| Youngling | 55 | 45 | 5 |
+| Initiate | 78 | 60 | 12 |
+| Padawan | 115 | 105 | 40 |
+| Knight | 168 | 155 | 80 |
+| Master | 220 | 205 | 110 |
+
+Changing faction or rank auto-redistributes via `ccAutoDistribute()`. "Re-roll" button randomly redistributes within pools. +/− buttons on each stat allow manual fine-tuning, enforcing both the per-stat cap and the group pool total.
+
+### Backstory Injection
+
+`characterSheet.backstory` is now populated from the creation screen and injected into the AI's state block every turn via `buildContext()`:
+```
+CHARACTER BACKSTORY (permanent record — reference this for narrative consistency):
+[user's backstory text]
+```
+
+### `finalizeCreation()`
+
+1. Validates name + opening scene required
+2. Reads `_ccAlloc` stat allocations
+3. Resets all game state (history, XP, worldState)
+4. Seeds `masterXP` from allocations using `xpToReachLevel(lvl)` for each stat
+5. Builds complete `characterSheet` with all fields including `lifeStage`, `backstory`, `discoveryAge`, `innateTalents`
+6. Builds `worldState` with correct era date (`Primeday, Day 1 Coruscann — YEAR BBY`)
+7. Calls `syncMasterXPToSheet()`, `spSeedIfInnate()` (if ShatterSense selected), `seedCanonProfiles()`
+8. Fires first AI turn: `callGemini("CHARACTER CREATED — BEGIN THE STORY NOW.\n\nOpening scene: [text]")`
+
+### `beginCampaign()` change
+
+Was: `callGemini("BEGIN_GAME")`
+Now: `showCreationScreen()` — shows creation screen overlay instead of immediately firing API
+
+---
+
 ## V120 — 2026-06-09
 
 **Fix 1: `_savedAptitudes` Force-key filter**
