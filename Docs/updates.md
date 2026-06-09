@@ -4,6 +4,41 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V116 addendum I — 2026-06-09
+
+**Fix: Alignment decimal display + JS-only ownership**
+
+### Problem
+
+Alignment was displayed as an integer (e.g. `+0`) even though small fractional shifts happen each turn (e.g. +0.25 for a light-side choice). The user couldn't see progression between whole numbers.
+
+Additionally, `alignment`, `darkPressure`, and `momentumWindow` were being double-tracked: the AI writes these into the `<<<SHEET>>>` JSON block, which was being applied first, then the CHANGES block tags re-applied them. This matched the correct final value but created a risk that AI SHEET JSON could overwrite JS-computed values if the CHANGES block failed to parse.
+
+### Fixes
+
+**1. SHEET parse snapshot/restore for alignment fields:**
+Three snapshot vars added before the SHEET parse (alongside the existing `_savedStoryFlags` snapshot):
+```javascript
+const _savedAlignment      = characterSheet ? (characterSheet.alignment      ?? null) : null;
+const _savedDarkPressure   = characterSheet ? (characterSheet.darkPressure   ?? null) : null;
+const _savedMomentumWindow = characterSheet?.momentumWindow ? {...characterSheet.momentumWindow} : null;
+```
+Restore code added after the other player-protected field restores:
+```javascript
+if (_savedAlignment      !== null) characterSheet.alignment      = _savedAlignment;
+if (_savedDarkPressure   !== null) characterSheet.darkPressure   = _savedDarkPressure;
+if (_savedMomentumWindow)          characterSheet.momentumWindow  = _savedMomentumWindow;
+```
+The AI's SHEET JSON values for these three fields are now fully ignored — only the CHANGES block tags (`ALIGNMENT=`, `DARK_PRESSURE=`, `MOMENTUM_WINDOW=`) can update them.
+
+**2. Alignment display shows 2 decimal places:**
+Changed `${alignVal > 0 ? '+' : ''}${alignVal}` → `${alignVal > 0 ? '+' : ''}${alignVal.toFixed(2)}` in `updateCharacterSheet()`.
+
+**3. WILL_OF_FORCE and PRESSURE DISCHARGED notification cards:**
+All three occurrences of `Math.round(characterSheet.alignment)` in notification cards replaced with `characterSheet.alignment.toFixed(2)`, so the pop-up cards also show exact values.
+
+---
+
 ## V116 addendum H — 2026-06-08
 
 **Fix: JS owns the clock entirely — AI inGameTime field fully ignored**

@@ -3242,6 +3242,10 @@ async function callGemini(playerMessage, retryCount = 0) {
         }
       }
       const _savedStoryFlags     = characterSheet?.storyFlags      ? {...characterSheet.storyFlags}      : null;
+      // Alignment/pressure are JS-owned — snapshot so AI's SHEET JSON can't overwrite them
+      const _savedAlignment      = characterSheet ? (characterSheet.alignment      ?? null) : null;
+      const _savedDarkPressure   = characterSheet ? (characterSheet.darkPressure   ?? null) : null;
+      const _savedMomentumWindow = characterSheet?.momentumWindow ? {...characterSheet.momentumWindow} : null;
       // Preserve aptitudes that weren't talent-generated (AI-authored ones)
       const _savedAptitudes      = (characterSheet?.aptitudes || []).filter(a =>
         !SIM_INNATE_TALENTS.some(t => t.label === a) &&
@@ -3263,6 +3267,10 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (_savedBirthday?.day)          characterSheet.birthday        = _savedBirthday;
         if (_savedLifeStage)              characterSheet.lifeStage       = _savedLifeStage;
         if (_savedStoryFlags)             characterSheet.storyFlags      = _savedStoryFlags;
+        // Alignment/pressure are JS-owned — restore so AI SHEET JSON can't overwrite them
+        if (_savedAlignment      !== null) characterSheet.alignment      = _savedAlignment;
+        if (_savedDarkPressure   !== null) characterSheet.darkPressure   = _savedDarkPressure;
+        if (_savedMomentumWindow)          characterSheet.momentumWindow  = _savedMomentumWindow;
 
         // Rebuild aptitudes: AI-authored ones + talent labels
         const talentLabels = _savedInnateTalents.map(k => {
@@ -3558,7 +3566,7 @@ async function callGemini(playerMessage, retryCount = 0) {
               d.innerHTML = `<div style="background:rgba(20,40,60,0.35);border:1px solid #1a3a5a;border-radius:4px;padding:8px 14px;font-size:12px;">
                 <div style="color:#88aadd;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">✦ WILL OF THE FORCE</div>
                 <div style="color:#aaccee;font-size:12px">${wofDesc}</div>
-                <div style="color:#4488cc;font-size:11px;margin-top:4px">Alignment +${wofGain} → ${characterSheet.alignment >= 0 ? '+' : ''}${Math.round(characterSheet.alignment)}</div>
+                <div style="color:#4488cc;font-size:11px;margin-top:4px">Alignment +${wofGain} → ${characterSheet.alignment >= 0 ? '+' : ''}${characterSheet.alignment.toFixed(2)}</div>
               </div>`;
               feedEl.appendChild(d);
               feedEl.scrollTop = feedEl.scrollHeight;
@@ -3908,7 +3916,7 @@ async function callGemini(playerMessage, retryCount = 0) {
                 d.className = 'msg';
                 d.innerHTML = `<div style="background:rgba(60,20,20,0.35);border:1px solid #4a1a1a;border-radius:4px;padding:8px 14px;font-size:12px;">
                   <div style="color:#cc4444;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">◈ PRESSURE DISCHARGED</div>
-                  <div style="color:#cc8888;font-size:12px">The dark side breaks through — alignment ${characterSheet.alignment >= 0 ? '+':''}${Math.round(characterSheet.alignment)} (−${actualLoss})</div>
+                  <div style="color:#cc8888;font-size:12px">The dark side breaks through — alignment ${characterSheet.alignment >= 0 ? '+':''}${characterSheet.alignment.toFixed(2)} (−${actualLoss})</div>
                 </div>`;
                 feedEl.appendChild(d);
                 feedEl.scrollTop = feedEl.scrollHeight;
@@ -3946,7 +3954,7 @@ async function callGemini(playerMessage, retryCount = 0) {
                 d.innerHTML = `<div style="background:rgba(20,40,60,0.35);border:1px solid #1a3a5a;border-radius:4px;padding:8px 14px;font-size:12px;">
                   <div style="color:#88aadd;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">✦ WILL OF THE FORCE</div>
                   <div style="color:#aaccee;font-size:12px">${wofDesc}</div>
-                  <div style="color:#4488cc;font-size:11px;margin-top:4px">Alignment +${wofGain} → ${characterSheet.alignment >= 0 ? '+':''}${Math.round(characterSheet.alignment)}</div>
+                  <div style="color:#4488cc;font-size:11px;margin-top:4px">Alignment +${wofGain} → ${characterSheet.alignment >= 0 ? '+':''}${characterSheet.alignment.toFixed(2)}</div>
                 </div>`;
                 feedEl.appendChild(d);
                 feedEl.scrollTop = feedEl.scrollHeight;
@@ -5198,7 +5206,7 @@ function updateCharacterSheet() {
     <div class="bar-wrap" style="margin-bottom:2px">
       <div class="bar-label">
         <span style="color:${alignColor};font-weight:bold">${alignLabel}</span>
-        <span style="color:${alignColor}">${alignVal > 0 ? '+' : ''}${alignVal}</span>
+        <span style="color:${alignColor}">${alignVal > 0 ? '+' : ''}${alignVal.toFixed(2)}</span>
       </div>
       <!-- 7-tier gradient: deep-dark → corrupted → leaning-dark → neutral → leaning-light → light → deep-light -->
       <div class="bar-track" style="height:7px;background:linear-gradient(90deg,#660000 0%,#882222 18%,#884422 30%,#333333 37%,#333333 63%,#224466 70%,#336699 82%,#88bbdd 100%);position:relative;border-radius:3px;overflow:visible">
