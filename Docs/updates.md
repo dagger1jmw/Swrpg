@@ -4,6 +4,73 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V120 — 2026-06-09
+
+**Fix 1: `_savedAptitudes` Force-key filter**
+**Fix 2: TRAINING: time-elapsed validation**
+**Fix 3: ShatterSense / Shatterpoint exclusivity**
+
+### Problem 1 — "Shatterpoint" re-entering aptitudes after every turn
+
+`_savedAptitudes` (the snapshot taken just before SHEET parse) was missing the Force ability catalog key filter. `repairTalentConsistency()` stripped "Shatterpoint" on load, but the _savedAptitudes snapshot captured it before the repair ran on the first parse, and the SHEET parser then merged it back. Net result: "Shatterpoint" re-appeared in aptitudes on every turn after the first.
+
+### Fix 1
+
+Moved `_forceAbilityKeys` definition before `_savedAptitudes` and added it to the filter:
+```javascript
+const _forceAbilityKeys = typeof FORCE_ABILITY_CATALOG !== 'undefined' ? new Set(Object.keys(FORCE_ABILITY_CATALOG)) : new Set();
+const _savedAptitudes = (characterSheet?.aptitudes || []).filter(a =>
+  !SIM_INNATE_TALENTS.some(t => t.label === a) &&
+  !SIM_INNATE_ABILITIES.some(ab => ab.label === a) &&
+  !_forceAbilityKeys.has(a)
+);
+```
+
+### Problem 2 — XP jumps on non-training turns
+
+The AI was emitting TRAINING: tags with multi-hour XP on turns where only 5 minutes elapsed (e.g., walking to breakfast, sitting down at a table). V117 prompt fixes reduced frequency but didn't stop it entirely. The JS parser had no cross-check against actual elapsed time.
+
+### Fix 2
+
+Pre-parse the AI's "Time Elapsed: X minutes/hours" declaration from rawText before the CHANGES loop runs. In the TRAINING: parser, reject any tag where claimed hours exceed `Math.max(0.05, turnElapsedHours × 2.0)`. The ×2.0 headroom allows for a training session that ends mid-turn (e.g., 1h remaining from a 2h session), but blocks phantom 2h blocks on a 5-minute walk turn.
+
+```javascript
+// Before CHANGES loop:
+let turnElapsedHours = null;
+{
+  const _elapsedLine = rawText.split('\n').find(l => /time elapsed/i.test(l));
+  if (_elapsedLine) {
+    let _mins = 0;
+    const _hr = _elapsedLine.match(/(\d+(?:\.\d+)?)\s*hour/i);
+    const _mn = _elapsedLine.match(/(\d+)\s*min/i);
+    if (_hr) _mins += parseFloat(_hr[1]) * 60;
+    if (_mn) _mins += parseInt(_mn[1]);
+    if (_mins > 0) turnElapsedHours = _mins / 60;
+  }
+}
+
+// In TRAINING: case:
+if (parts.length >= 2 && turnElapsedHours !== null) {
+  const claimedHours = parseFloat(parts[1]) || 0;
+  if (claimedHours > Math.max(0.05, turnElapsedHours * 2.0)) {
+    console.log('[TRAINING guard] Rejected...');
+    continue;
+  }
+}
+```
+
+### Problem 3 — ShatterSense / Shatterpoint not mutually exclusive
+
+With the ShatterSense innate talent active, the AI could still emit `TRAINING: forceAbilities.Shatterpoint` or `XP: forceAbilities.Shatterpoint` tags, awarding XP to the regular learned Shatterpoint track. The innate version (ShatterSense) is strictly stronger — the learned version should be permanently unavailable once the innate talent is active. Additionally, `buildLoreContext()` was not telling the AI this constraint, so it could generate the tag without realizing it was wrong.
+
+### Fix 3
+
+- TRAINING: parser: if `parts[0] === 'forceAbilities.Shatterpoint'` and `ShatterSense` is in `innateTalents`, `continue` (reject).
+- XP: parser: same guard wraps the `applyXPToSheet` call in an else branch.
+- `buildLoreContext()`: when `hasShatterSense` is true, appends: `"!! ShatterSense innate is active — regular learned Shatterpoint ability is PERMANENTLY UNAVAILABLE. Never emit TRAINING:/XP: tags for forceAbilities.Shatterpoint."` directly after the Shatterpoint ability rules line.
+
+---
+
 ## V119 — 2026-06-09
 
 **Fix: Complete applyTalentXPMultiplier — all XP-effect talents JS-driven**
