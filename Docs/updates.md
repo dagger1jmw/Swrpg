@@ -4,6 +4,18 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V116 addendum G — 2026-06-08
+
+**Diagnostic: stack trace in error bubbles + recentHistory/fullHistory array guards**
+
+### Changes
+
+**Stack trace in error bubble** — The catch block in `callGemini` now appends the first 2 lines of `err.stack` to the SYSTEM error message. This makes the next occurrence of "is not iterable" self-identifying: the bubble will show which function and line number threw.
+
+**`recentHistory` and `fullHistory` guards** — `loadFromSave` was using `save.recentHistory || []` which doesn't catch a corrupted `{}` value (object is truthy, so `||` returns the object). Replaced with `Array.isArray(save.recentHistory) ? ... : []` for both fields. Same guard added at the `for (const msg of recentHistory)` iteration site in `buildContext`.
+
+---
+
 ## V116 addendum F — 2026-06-08
 
 **Fix: "it is not iterable" — centralised worldState normalization**
