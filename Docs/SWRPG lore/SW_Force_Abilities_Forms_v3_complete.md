@@ -448,17 +448,21 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 ---
 
-#### Shatterpoint ⚪
+#### Shatterpoint ⚪ — Two Distinct Abilities
+
+> **These are two separate named abilities in-game:**
+> - **Shatterpoint** — the learned path. Displayed on the sheet only for Path A characters (no ShatterSense talent).
+> - **Shatterpoint (Innate)** — the born-with path. Displayed on the sheet for `ShatterSense` talent holders. Never appears alongside regular Shatterpoint.
 
 **Summary:** The perception of fracture points — places, moments, objects, or people that are at a critical breaking point where the right action causes the greatest change. More perception than power: not what *is*, but what *could be* and where the lever is.
 
-**Prerequisites (Path A):** ForceSense 61+, ForceKnowledge 51+, Battle Foresight 41+, Meditation 41+
-**Prerequisites (Path B — innate):** `ShatterSense` talent flag active (see Innate Talents)
+**Prerequisites (Path A — Shatterpoint):** ForceSense 61+, ForceKnowledge 51+, Battle Foresight 41+, Meditation 41+
+**Prerequisites (Path B — Shatterpoint Innate):** `ShatterSense` talent flag active (see Innate Talents)
 
 **MECHANICAL TIER: Unique — separate XP track with dual-path mechanics.**
-Shatterpoint uses a completely separate proficiency track from all other abilities. It is never stored in `masterXP.forceAbilities`. It has its own track at `masterXP.shatterpoint.main`. The standard XP engine must never process it.
+Shatterpoint uses a completely separate XP track from all other abilities. It is **never** stored in `masterXP.forceAbilities`. It has its own track at `masterXP.shatterpoint.main`. The standard XP engine must never process it. The CHANGES block tag `SHATTERPOINT_XP=` routes to `spApplyXP()` which applies the ×0.1 multiplier automatically for `ShatterSense` holders — the AI never pre-applies this reduction.
 
-##### Path A — Standard Learning (no innate talent)
+##### Path A — Shatterpoint (Standard Learning, no innate talent)
 Learnable through decades of dedicated training. Per the *Shatterpoint* novel, Mace Windu describes Jedi Masters who spent entire lifetimes working toward a level of perception he possessed naturally at age 7.
 
 - **XP Formula:** `xpRequired(level) = floor(500 × 1.07^level)` — ×5 the standard formula. Level 1 costs ~2,500 XP. Level 5 costs ~15,000 XP total.
@@ -466,7 +470,7 @@ Learnable through decades of dedicated training. Per the *Shatterpoint* novel, M
 - **Proficiency ceiling:** Hard cap at **level 20** (~57,000 lifetime XP). Limited to Tier 1 and basic Tier 2. Tier 3 permanently beyond reach without innate talent.
 - **Reliability:** Below level 10, perception itself is unreliable — must roll even to notice a shatterpoint exists. Above level 10, reliable for Tier 1; Tier 2 perception still requires interpretation roll.
 
-##### Path B — Innate Talent (`ShatterSense` flag)
+##### Path B — Shatterpoint (Innate) (`ShatterSense` talent)
 Born with the perception. Training does not create the ability; it refines and deepens what is already present.
 
 - **Prerequisites:** None — present at birth, seeded at **Level 5** when `ShatterSense` talent is active.

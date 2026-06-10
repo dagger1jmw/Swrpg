@@ -4054,6 +4054,13 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (_savedDarkPressure         !== null) characterSheet.darkPressure          = _savedDarkPressure;
         if (_savedMomentumWindow)                characterSheet.momentumWindow         = _savedMomentumWindow;
 
+        // Guard: Shatterpoint belongs to the dedicated SP track, not forceAbilities —
+        // remove any AI-written value so it never appears in the Force Abilities section
+        if (characterSheet.innateTalents?.includes('ShatterSense')) {
+          if (characterSheet.forceAbilities)    delete characterSheet.forceAbilities.Shatterpoint;
+          if (characterSheet.forceAbilitiesXP)  delete characterSheet.forceAbilitiesXP.Shatterpoint;
+        }
+
         // Rebuild aptitudes: AI-authored ones + talent labels
         const talentLabels = _savedInnateTalents.map(k => {
           const t = SIM_INNATE_TALENTS.find(t => t.key === k);
@@ -5847,6 +5854,11 @@ function repairTalentConsistency() {
     if (characterSheet.aptitudes.length < before)
       console.log('[repairTalentConsistency] removed Force ability key(s) from aptitudes');
   }
+  // Guard: Shatterpoint lives on the dedicated SP track — remove from forceAbilities for ShatterSense holders
+  if ((characterSheet.innateTalents || []).includes('ShatterSense')) {
+    if (characterSheet.forceAbilities)   delete characterSheet.forceAbilities.Shatterpoint;
+    if (characterSheet.forceAbilitiesXP) delete characterSheet.forceAbilitiesXP.Shatterpoint;
+  }
 }
 
 // Combat XP: base_opponent_xp × duration × engagement × outcome
@@ -6177,6 +6189,8 @@ function updateCharacterSheet() {
   if (Object.keys(fa).length > 0) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Force Abilities</div>`;
     for (const [k, v] of Object.entries(fa)) {
+      // Shatterpoint (Innate) has its own dedicated section — don't show it here too
+      if (k === 'Shatterpoint' && (s.innateTalents || []).includes('ShatterSense')) continue;
       let statVal;
       if (v === null || v === undefined) statVal = 0;
       else if (typeof v === 'object') statVal = v.level ?? v.value ?? v.rank ?? 0;
@@ -6290,7 +6304,7 @@ function updateCharacterSheet() {
     const spFocusColor = spFocusPct > 70 ? '#cc4444' : spFocusPct > 40 ? '#cc8833' : '#447788';
     html += `<div class="sheet-section">
       <div class="sheet-section-title" style="display:flex;justify-content:space-between;align-items:center">
-        <span>Shatterpoint</span>
+        <span>Shatterpoint${spHasInnate ? ' (Innate)' : ''}</span>
         <span style="font-size:10px;color:#447788;letter-spacing:1px">L${spLevel} · ${spTierLabels[spTier] || 'Tier '+spTier}</span>
       </div>
       <div style="font-size:10px;color:var(--text-dim);margin-bottom:4px">
@@ -6298,7 +6312,7 @@ function updateCharacterSheet() {
       </div>
       <div class="bar-wrap">
         <div class="bar-label" style="font-size:10px">
-          <span style="color:#447788">Proficiency</span>
+          <span style="color:#447788">Level Progress</span>
           <span style="color:var(--text-dim)">${spD.current}/${spD.required} XP</span>
         </div>
         <div class="bar-track" style="height:4px;background:#111">
@@ -9918,7 +9932,7 @@ async function simProcessDay(chunk, chunkNum, total) {
   if (spXPGained > 0) {
     const spRes = spApplyXP(spXPGained);
     if (spRes.levelUps > 0) levelUps.push(`Shatterpoint → Level ${spRes.newLevel}`);
-    xpGained['shatterpoint.Shatterpoint'] = Math.round(spXPGained); // for summary display
+    xpGained['shatterpoint.Shatterpoint'] = Math.round(spRes.xpAdded); // actual XP applied (after ×0.1 innate reduction)
   }
 
   // Strain for the period (rolling accumulation — sleep recovers each night)
