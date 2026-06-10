@@ -205,6 +205,77 @@
     font-style: italic;
   }
 
+  /* ── CHARACTER CREATION SCREEN ── */
+  #creation-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-deep);
+    z-index: 500;
+    display: none;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cc-wrap { max-width: 1120px; margin: 0 auto; padding: 28px 18px 60px; }
+  .cc-header { text-align: center; padding: 24px 0 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .cc-header h1 { font-family: 'Cinzel', serif; font-size: 19px; color: var(--gold); letter-spacing: 4px; margin-bottom: 5px; }
+  .cc-header-sub { color: var(--text-dim); font-size: 12px; letter-spacing: 1px; }
+  .cc-body { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 18px; align-items: start; }
+  @media (max-width: 860px) { .cc-body { grid-template-columns: 1fr; } }
+  .cc-col { display: flex; flex-direction: column; gap: 16px; }
+  .cc-section { border: 1px solid var(--border); background: var(--bg-panel); padding: 16px; }
+  .cc-section-title { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+  .cc-field { margin-bottom: 11px; }
+  .cc-field label { display: block; font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; }
+  .cc-field input[type='text'], .cc-field input[type='number'], .cc-field select {
+    width: 100%; background: var(--bg-input); border: 1px solid var(--border-bright);
+    color: var(--text-bright); padding: 7px 10px; font-family: 'Crimson Text', serif; font-size: 15px; outline: none;
+  }
+  .cc-field input:focus, .cc-field select:focus { border-color: var(--gold); }
+  .cc-field select option { background: var(--bg-panel); }
+  .cc-stat-group-label { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin: 10px 0 5px; opacity: 0.7; }
+  .cc-stat-row { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+  .cc-stat-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; width: 88px; flex-shrink: 0; }
+  .cc-stat-bar-wrap { flex: 1; height: 5px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
+  .cc-stat-bar { height: 100%; background: var(--gold-dim); transition: width 0.3s; }
+  .cc-stat-bar.force { background: #3a5c9e; }
+  .cc-stat-bar.saber { background: #3a8a5a; }
+  .cc-stat-val { font-family: 'Cinzel', serif; font-size: 11px; color: var(--gold); width: 24px; text-align: right; flex-shrink: 0; }
+  .cc-stats-note { font-size: 12px; color: var(--text-dim); margin-bottom: 10px; font-style: italic; }
+  .cc-reroll-btn { background: transparent; border: 1px solid var(--border-bright); color: var(--text-dim); padding: 2px 9px; font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; }
+  .cc-reroll-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .cc-talent-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 7px; cursor: pointer; padding: 5px 7px; border: 1px solid transparent; transition: border-color 0.15s; }
+  .cc-talent-row:hover { border-color: var(--border-bright); }
+  .cc-talent-row.selected { border-color: var(--gold-dim); background: rgba(201,168,76,0.05); }
+  .cc-talent-row input[type='checkbox'] { margin-top: 3px; flex-shrink: 0; accent-color: var(--gold); }
+  .cc-talent-name { font-family: 'Cinzel', serif; font-size: 10px; color: var(--text-main); letter-spacing: 0.5px; }
+  .cc-talent-name.special { color: #a07838; }
+  .cc-talent-effect { font-size: 12px; color: var(--text-dim); margin-top: 2px; line-height: 1.4; }
+  .cc-textarea { width: 100%; background: var(--bg-input); border: 1px solid var(--border-bright); color: var(--text-bright); padding: 9px 11px; font-family: 'Crimson Text', serif; font-size: 15px; resize: vertical; outline: none; line-height: 1.6; }
+  .cc-textarea:focus { border-color: var(--gold); }
+  .cc-textarea.tall { height: 190px; }
+  .cc-textarea.medium { height: 120px; }
+  .cc-field-note { font-size: 12px; color: var(--text-dim); margin-bottom: 7px; font-style: italic; line-height: 1.5; }
+  .cc-footer { text-align: center; margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--border); }
+  .cc-begin-btn { background: var(--gold); border: none; color: #080604; padding: 14px 56px; font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 3px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+  .cc-begin-btn:hover { background: var(--gold-bright); }
+  .cc-err-msg { color: #cc6666; font-size: 13px; margin-bottom: 12px; padding: 8px 12px; background: rgba(180,40,40,0.1); border: 1px solid rgba(180,40,40,0.3); display: none; }
+  .cc-pool-tracker { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 6px 8px; background: rgba(201,168,76,0.06); border: 1px solid var(--border); }
+  .cc-pool-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; }
+  .cc-pool-remaining { font-family: 'Cinzel', serif; font-size: 12px; color: var(--gold); }
+  .cc-pool-remaining.over { color: var(--red); }
+  .cc-adj-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+  .cc-adj-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; width: 88px; flex-shrink: 0; }
+  .cc-adj-bar-wrap { flex: 1; height: 5px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
+  .cc-adj-bar { height: 100%; transition: width 0.15s; }
+  .cc-adj-bar.core  { background: var(--gold-dim); }
+  .cc-adj-bar.force { background: #3a5c9e; }
+  .cc-adj-bar.saber { background: #3a8a5a; }
+  .cc-adj-val { font-family: 'Cinzel', serif; font-size: 11px; color: var(--gold); width: 24px; text-align: center; flex-shrink: 0; }
+  .cc-adj-btns { display: flex; gap: 2px; flex-shrink: 0; }
+  .cc-adj-btn { width: 22px; height: 22px; background: transparent; border: 1px solid var(--border-bright); color: var(--text-dim); font-size: 14px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; font-family: monospace; -webkit-tap-highlight-color: transparent; }
+  .cc-adj-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .cc-adj-btn:active { background: rgba(201,168,76,0.1); }
+
   .btn-primary {
     margin-top: 24px;
     width: 100%;
@@ -1084,6 +1155,132 @@
     </div>
   </div>
 
+  <!-- CHARACTER CREATION SCREEN -->
+  <div id="creation-screen">
+    <div class="cc-wrap">
+      <div class="cc-header">
+        <h1>CREATE YOUR CHARACTER</h1>
+        <div class="cc-header-sub">Your legend begins here</div>
+      </div>
+
+      <div class="cc-body">
+        <!-- LEFT: Identity + Innate Talents -->
+        <div class="cc-col">
+          <div class="cc-section">
+            <div class="cc-section-title">Identity</div>
+
+            <div class="cc-field">
+              <label>Era</label>
+              <select id="cc-era" onchange="ccEraChanged()">
+                <option value="3661">Great Galactic War (3681–3653 BBY)</option>
+                <option value="3640">Cold War / Galactic War (3653–3636 BBY)</option>
+                <option value="3970">Mandalorian Wars (3976–3960 BBY)</option>
+                <option value="3958">Jedi Civil War (3959–3956 BBY)</option>
+                <option value="3750">Old Sith Wars / Interwar (3800–3700 BBY)</option>
+                <option value="22">Clone Wars (22–19 BBY)</option>
+                <option value="1">Galactic Civil War (1 BBY – 4 ABY)</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+
+            <div class="cc-field">
+              <label>Campaign Start Year (BBY)</label>
+              <input type="number" id="cc-year" value="3661" min="-200" max="12000">
+            </div>
+
+            <div class="cc-field">
+              <label>Character Name</label>
+              <input type="text" id="cc-name" placeholder="Full name">
+            </div>
+
+            <div class="cc-field">
+              <label>Species</label>
+              <select id="cc-species">
+                <option>Human</option>
+                <option>Twi'lek</option>
+                <option>Mirialan</option>
+                <option>Togruta</option>
+                <option>Zabrak</option>
+                <option>Kel Dor</option>
+                <option>Nautolan</option>
+                <option>Chiss</option>
+                <option>Miraluka</option>
+                <option>Cathar</option>
+                <option>Kaleesh</option>
+                <option>Other (specify in backstory)</option>
+              </select>
+            </div>
+
+            <div class="cc-field">
+              <label>Current Age</label>
+              <input type="number" id="cc-age" value="16" min="3" max="120">
+            </div>
+
+            <div class="cc-field">
+              <label>Faction</label>
+              <select id="cc-faction" onchange="ccFactionChanged()">
+                <option value="jedi">Jedi Order</option>
+                <option value="sith">Sith / Dark Side</option>
+                <option value="republic">Republic Military</option>
+                <option value="mandalorian">Mandalorian Clans</option>
+                <option value="bounty_hunter">Bounty Hunter / Mercenary</option>
+                <option value="force_sensitive">Unaffiliated Force Sensitive</option>
+              </select>
+            </div>
+
+            <div class="cc-field">
+              <label>Rank / Life Stage</label>
+              <select id="cc-rank" onchange="ccAutoDistribute();ccRenderStats()"></select>
+            </div>
+
+            <div class="cc-field" id="cc-discovery-wrap">
+              <label>Age When Force Training Began</label>
+              <input type="number" id="cc-discovery-age" value="5" min="0" max="80">
+            </div>
+          </div>
+
+          <!-- Innate Talents -->
+          <div class="cc-section">
+            <div class="cc-section-title">Innate Talents <span style="font-family:'Crimson Text',serif;font-size:12px;color:var(--text-dim);letter-spacing:0;text-transform:none;font-weight:400">(select up to 2)</span></div>
+            <div id="cc-talents-list"></div>
+          </div>
+        </div>
+
+        <!-- MIDDLE: Starting Stats -->
+        <div class="cc-col">
+          <div class="cc-section">
+            <div class="cc-section-title">
+              Starting Stats
+              <button class="cc-reroll-btn" onclick="ccReroll()">&#8635; Re-roll</button>
+            </div>
+            <div class="cc-stats-note">Estimated from rank, age &amp; training history. Re-roll for variation.</div>
+            <div id="cc-stats-display"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Story -->
+        <div class="cc-col">
+          <div class="cc-section" style="flex:1">
+            <div class="cc-section-title">Backstory &amp; Discovery</div>
+            <div class="cc-field-note">Saved permanently to your character sheet — the AI references this every turn to keep your history consistent.</div>
+            <textarea id="cc-backstory" class="cc-textarea tall" placeholder="Describe your character's history: where they grew up, how they were discovered or came to their path, key people who shaped them, formative experiences. The richer this is, the more the AI can weave it into the story."></textarea>
+          </div>
+
+          <div class="cc-section">
+            <div class="cc-section-title">Opening Scene</div>
+            <div class="cc-field-note">Where does your story begin? The AI picks up exactly from this moment.</div>
+            <textarea id="cc-story-start" class="cc-textarea medium" placeholder="You are standing at the edge of the training hall in the Jedi Temple on Coruscant, the morning sun cutting long beams through the high windows..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="cc-footer">
+        <div id="cc-err-msg" class="cc-err-msg"></div>
+        <button class="cc-begin-btn" onclick="finalizeCreation()">BEGIN ADVENTURE</button>
+      </div>
+    </div>
+  </div>
+
   <!-- GAME LAYOUT -->
   <div id="game-layout">
 
@@ -1547,7 +1744,8 @@ If you write XP in narrative prose instead of TRAINING:/COMBAT: lines, NO XP IS 
 Every skill used meaningfully this turn needs its own TRAINING: or COMBAT: line.
 
 RULES FOR CHANGES BLOCK:
-- Include ALL stat values AND XP lines every turn
+- Include ALL stat values every turn
+- Include TRAINING:/COMBAT: XP lines ONLY if XP was earned in THIS turn. If no training or combat occurred, write NO TRAINING: or COMBAT: lines — an empty CHANGES block (with only stat/strain updates) is correct for turns with no skill use.
 - Stat values: current level after this turn
 - XP lines for TRAINING sessions: TRAINING: category.StatName, hours, intensity, difficulty, outcome
   - category: forceStats / stats / forceAbilities / lightsaberForms
@@ -1727,7 +1925,7 @@ TACTICAL BONUS CAP: Total tactical cannot exceed +5. JS enforces this.
 
 ### WHEN TO ROLL — MANDATORY TRIGGERS
 
-The system pre-rolls 3 d20 values every turn. Use them whenever any of the following apply. If none apply, do NOT fabricate a roll.
+JavaScript rolls dice via your ROLL:/ROLL_LABEL= tags — no pre-rolled values are injected into this prompt. Output ROLL: tags when a roll is warranted (see below); JS handles the dice and posts the result card. If no roll is warranted, do NOT output any ROLL: tags.
 
 **ALWAYS ROLL:**
 - Any training session, at any difficulty level — use the table matching the difficulty
@@ -1739,7 +1937,7 @@ The system pre-rolls 3 d20 values every turn. Use them whenever any of the follo
 **NEVER ROLL:**
 - Purely passive narration, observation, or dialogue with no outcome stakes
 - Actions where the outcome has no meaningful variance (e.g. waking up from sleep, walking to a location)
-- Do NOT fabricate d20 values not provided in the pre-rolled injection
+- Do NOT write d20 values, bonuses, or roll math in narrative text — all of that is handled by the JS roll card rendered from your ROLL: tag
 
 ### TRAINING ROLL PROCEDURE
 
@@ -2499,12 +2697,376 @@ function showWelcomePrompt() {
   gameActive = true;
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  CHARACTER CREATION SCREEN
+// ═══════════════════════════════════════════════════════════════════
+
+// Point pools per rank. core/force = total levels to assign across all stats in that group.
+// coreMax/forceMax = max any single stat can receive. saber = ShiiCho starting level.
+const CC_POOLS = {
+  jedi:{
+    youngling:  { core:55,  force:45,  saber:5,   coreMax:18, forceMax:15 },
+    initiate:   { core:78,  force:60,  saber:12,  coreMax:22, forceMax:18 },
+    padawan:    { core:115, force:105, saber:40,  coreMax:30, forceMax:28 },
+    knight:     { core:168, force:155, saber:80,  coreMax:42, forceMax:40 },
+    master:     { core:220, force:205, saber:110, coreMax:55, forceMax:52 },
+  },
+  sith:{
+    acolyte:    { core:60,  force:50,  saber:5,   coreMax:20, forceMax:16 },
+    apprentice: { core:120, force:110, saber:42,  coreMax:32, forceMax:30 },
+    sith_lord:  { core:172, force:160, saber:82,  coreMax:44, forceMax:42 },
+    dark_lord:  { core:225, force:210, saber:112, coreMax:56, forceMax:54 },
+  },
+  republic:{
+    conscript:  { core:65,  force:0, saber:0, coreMax:20, forceMax:0 },
+    soldier:    { core:105, force:0, saber:0, coreMax:30, forceMax:0 },
+    sergeant:   { core:140, force:0, saber:0, coreMax:38, forceMax:0 },
+    lieutenant: { core:170, force:0, saber:0, coreMax:45, forceMax:0 },
+    captain:    { core:200, force:0, saber:0, coreMax:52, forceMax:0 },
+  },
+  mandalorian:{
+    foundling:  { core:65,  force:0, saber:0, coreMax:20, forceMax:0 },
+    warrior:    { core:105, force:0, saber:0, coreMax:30, forceMax:0 },
+    veteran:    { core:140, force:0, saber:0, coreMax:38, forceMax:0 },
+    champion:   { core:175, force:0, saber:0, coreMax:46, forceMax:0 },
+  },
+  bounty_hunter:{
+    rookie:  { core:70,  force:0, saber:0, coreMax:22, forceMax:0 },
+    veteran: { core:110, force:0, saber:0, coreMax:32, forceMax:0 },
+    elite:   { core:148, force:0, saber:0, coreMax:42, forceMax:0 },
+  },
+  force_sensitive:{
+    untrained:       { core:60,  force:25,  saber:0,  coreMax:18, forceMax:10 },
+    self_taught:     { core:85,  force:55,  saber:5,  coreMax:25, forceMax:18 },
+    wandering_adept: { core:110, force:100, saber:15, coreMax:32, forceMax:28 },
+  },
+};
+
+const CC_RANKS = {
+  jedi:           [
+    { value:'youngling', label:'Youngling (ages 3–7, earliest training)' },
+    { value:'initiate',  label:'Initiate (ages 7–12, intermediate)' },
+    { value:'padawan',   label:'Padawan (ages 13+, assigned a Master)' },
+    { value:'knight',    label:'Knight (trials passed, independent)' },
+    { value:'master',    label:'Master (experienced, possibly on Council)' },
+  ],
+  sith:           [
+    { value:'acolyte',   label:'Acolyte (early training, academy)' },
+    { value:'apprentice',label:'Apprentice (bound to a Sith Lord)' },
+    { value:'sith_lord', label:'Sith Lord (training complete, independent)' },
+    { value:'dark_lord', label:'Dark Lord (veteran, significant power)' },
+  ],
+  republic:       [
+    { value:'conscript', label:'Conscript (newly enlisted)' },
+    { value:'soldier',   label:'Soldier (enlisted veteran)' },
+    { value:'sergeant',  label:'Sergeant (NCO, small unit leader)' },
+    { value:'lieutenant',label:'Lieutenant (junior officer)' },
+    { value:'captain',   label:'Captain (company commander)' },
+  ],
+  mandalorian:    [
+    { value:'foundling', label:'Foundling (in training)' },
+    { value:'warrior',   label:'Warrior (vode — full Mandalorian)' },
+    { value:'veteran',   label:'Veteran (seasoned fighter)' },
+    { value:'champion',  label:'Champion (renowned warrior)' },
+  ],
+  bounty_hunter:  [
+    { value:'rookie',  label:'Rookie (new to the trade)' },
+    { value:'veteran', label:'Veteran Hunter (established rep)' },
+    { value:'elite',   label:'Elite (feared across the galaxy)' },
+  ],
+  force_sensitive:[
+    { value:'untrained',       label:'Untrained (just discovered abilities)' },
+    { value:'self_taught',     label:'Self-Taught (fragments of technique)' },
+    { value:'wandering_adept', label:'Wandering Adept (significant self-training)' },
+  ],
+};
+
+// Current stat allocations — mutated by +/- buttons
+let _ccAlloc = { str:0, agi:0, end:0, wil:0, cha:0, int:0, fS:0, med:0, fK:0, fC:0, fOut:0, shii:0 };
+
+// Get the active pool definition for current faction/rank
+function ccGetPool() {
+  const faction = document.getElementById('cc-faction')?.value || 'jedi';
+  const rank    = document.getElementById('cc-rank')?.value || 'padawan';
+  const factionPools = CC_POOLS[faction] || CC_POOLS.jedi;
+  return factionPools[rank] || Object.values(factionPools)[0];
+}
+
+// Randomly distribute all pool points across stats (called by Re-roll and on init)
+function ccAutoDistribute() {
+  const pool = ccGetPool();
+  const coreKeys  = ['str','agi','end','wil','cha','int'];
+  const forceKeys = ['fS','med','fK','fC','fOut'];
+
+  function distribute(keys, total, maxPerStat) {
+    const vals = {};
+    keys.forEach(k => vals[k] = 0);
+    let remaining = total;
+    // Distribute in random passes until empty
+    let safety = 500;
+    while (remaining > 0 && safety-- > 0) {
+      const k = keys[Math.floor(Math.random() * keys.length)];
+      if (vals[k] < maxPerStat) { vals[k]++; remaining--; }
+    }
+    return vals;
+  }
+
+  const coreVals  = distribute(coreKeys,  pool.core,  pool.coreMax);
+  const forceVals = pool.force > 0 ? distribute(forceKeys, pool.force, pool.forceMax) : { fS:0, med:0, fK:0, fC:0, fOut:0 };
+
+  _ccAlloc = {
+    str: coreVals.str, agi: coreVals.agi, end: coreVals.end,
+    wil: coreVals.wil, cha: coreVals.cha, int: coreVals.int,
+    fS: forceVals.fS, med: forceVals.med, fK: forceVals.fK, fC: forceVals.fC, fOut: forceVals.fOut,
+    shii: pool.saber,
+  };
+}
+
+function ccReroll() { ccAutoDistribute(); ccRenderStats(); }
+
+// +/- button handler
+function ccAdj(statKey, delta) {
+  const pool = ccGetPool();
+  const coreKeys  = ['str','agi','end','wil','cha','int'];
+  const forceKeys = ['fS','med','fK','fC','fOut'];
+
+  const isCore  = coreKeys.includes(statKey);
+  const isForce = forceKeys.includes(statKey);
+  const isSaber = statKey === 'shii';
+
+  const currentVal = _ccAlloc[statKey] || 0;
+  const newVal = currentVal + delta;
+  if (newVal < 0) return;
+
+  // Check per-stat cap
+  if (isCore  && newVal > pool.coreMax) return;
+  if (isForce && newVal > pool.forceMax) return;
+  if (isSaber && newVal > pool.saber) return; // saber pool IS the max
+
+  // Check group pool total
+  if (delta > 0) {
+    if (isCore) {
+      const usedCore = coreKeys.reduce((s, k) => s + (_ccAlloc[k]||0), 0);
+      if (usedCore >= pool.core) return;
+    }
+    if (isForce) {
+      const usedForce = forceKeys.reduce((s, k) => s + (_ccAlloc[k]||0), 0);
+      if (usedForce >= pool.force) return;
+    }
+  }
+
+  _ccAlloc[statKey] = newVal;
+  ccRenderStats();
+}
+
+function ccRenderStats() {
+  const pool = ccGetPool();
+  const display = document.getElementById('cc-stats-display');
+  if (!display) return;
+  const discWrap = document.getElementById('cc-discovery-wrap');
+  if (discWrap) discWrap.style.display = pool.force > 0 ? '' : 'none';
+
+  const coreKeys  = ['str','agi','end','wil','cha','int'];
+  const forceKeys = ['fS','med','fK','fC','fOut'];
+  const coreLabels  = { str:'Strength', agi:'Agility', end:'Endurance', wil:'Willpower', cha:'Charisma', int:'Intelligence' };
+  const forceLabels = { fS:'Sense', med:'Meditation', fK:'Knowledge', fC:'Control', fOut:'Output' };
+
+  const usedCore  = coreKeys.reduce((s,k) => s + (_ccAlloc[k]||0), 0);
+  const usedForce = forceKeys.reduce((s,k) => s + (_ccAlloc[k]||0), 0);
+  const remCore   = pool.core  - usedCore;
+  const remForce  = pool.force - usedForce;
+  const MAX_BAR   = Math.max(pool.coreMax, 30);
+
+  function adjRow(key, label, val, barCls, poolMax) {
+    const pct = Math.min(100, (val / Math.max(poolMax, 1)) * 100).toFixed(1);
+    return `<div class="cc-adj-row">
+      <div class="cc-adj-label">${label}</div>
+      <div class="cc-adj-bar-wrap"><div class="cc-adj-bar ${barCls}" style="width:${pct}%"></div></div>
+      <div class="cc-adj-val">${val}</div>
+      <div class="cc-adj-btns">
+        <button class="cc-adj-btn" onclick="ccAdj('${key}',-1)" ontouchstart="event.preventDefault();ccAdj('${key}',-1);ccRenderStats()">&#8722;</button>
+        <button class="cc-adj-btn" onclick="ccAdj('${key}',1)"  ontouchstart="event.preventDefault();ccAdj('${key}',1);ccRenderStats()">&#43;</button>
+      </div>
+    </div>`;
+  }
+
+  let h = `<div class="cc-pool-tracker">
+    <span class="cc-pool-label">Core Points</span>
+    <span class="cc-pool-remaining${remCore < 0?' over':''}">${remCore} / ${pool.core} remaining</span>
+  </div>`;
+  coreKeys.forEach(k => { h += adjRow(k, coreLabels[k], _ccAlloc[k]||0, 'core', pool.coreMax); });
+
+  if (pool.force > 0) {
+    h += `<div class="cc-pool-tracker" style="margin-top:10px">
+      <span class="cc-pool-label">Force Points</span>
+      <span class="cc-pool-remaining${remForce < 0?' over':''}">${remForce} / ${pool.force} remaining</span>
+    </div>`;
+    forceKeys.forEach(k => { h += adjRow(k, forceLabels[k], _ccAlloc[k]||0, 'force', pool.forceMax); });
+  }
+
+  if (pool.saber > 0) {
+    const saberPct = Math.min(100, ((_ccAlloc.shii||0) / pool.saber) * 100).toFixed(1);
+    h += `<div class="cc-pool-tracker" style="margin-top:10px">
+      <span class="cc-pool-label">Shii-Cho (fixed)</span>
+      <span class="cc-pool-remaining">${pool.saber} pts</span>
+    </div>
+    <div class="cc-adj-row">
+      <div class="cc-adj-label">Shii-Cho</div>
+      <div class="cc-adj-bar-wrap"><div class="cc-adj-bar saber" style="width:${saberPct}%"></div></div>
+      <div class="cc-adj-val">${_ccAlloc.shii||0}</div>
+      <div class="cc-adj-btns" style="visibility:hidden"><button class="cc-adj-btn">−</button><button class="cc-adj-btn">+</button></div>
+    </div>`;
+  }
+
+  display.innerHTML = h;
+}
+
+function ccUpdateStats() { ccRenderStats(); }
+
+function ccEraChanged() {
+  const val = document.getElementById('cc-era').value;
+  const yr = document.getElementById('cc-year');
+  if (val !== 'custom' && yr) yr.value = val;
+}
+
+function ccFactionChanged() {
+  const faction = document.getElementById('cc-faction').value;
+  const rankSel = document.getElementById('cc-rank');
+  const ranks = CC_RANKS[faction] || CC_RANKS.jedi;
+  rankSel.innerHTML = ranks.map(r => `<option value="${r.value}">${r.label}</option>`).join('');
+  const defs = { jedi:'padawan', sith:'apprentice', republic:'soldier', mandalorian:'warrior', bounty_hunter:'veteran', force_sensitive:'self_taught' };
+  rankSel.value = defs[faction] || ranks[0].value;
+  ccAutoDistribute();
+  ccRenderStats();
+}
+
+function ccBuildTalents() {
+  const list = document.getElementById('cc-talents-list');
+  if (!list || typeof SIM_INNATE_TALENTS === 'undefined') return;
+  list.innerHTML = SIM_INNATE_TALENTS.map(t =>
+    `<label class="cc-talent-row" id="cc-tlbl-${t.key}">
+      <input type="checkbox" value="${t.key}" onchange="ccTalentCheck(this)">
+      <div>
+        <div class="cc-talent-name${t.special?' special':''}">${t.label}</div>
+        <div class="cc-talent-effect">${t.effect}</div>
+      </div>
+    </label>`
+  ).join('');
+}
+
+function ccTalentCheck(el) {
+  const all = document.querySelectorAll('#cc-talents-list input[type="checkbox"]');
+  const checked = Array.from(all).filter(c => c.checked);
+  if (checked.length > 2 && el.checked) { el.checked = false; return; }
+  all.forEach(c => { const lbl = document.getElementById('cc-tlbl-' + c.value); if (lbl) lbl.classList.toggle('selected', c.checked); });
+}
+
+function showCreationScreen() {
+  ccFactionChanged();
+  ccEraChanged();
+  ccBuildTalents();
+  ccAutoDistribute();
+  ccRenderStats();
+  document.getElementById('creation-screen').style.display = 'block';
+}
+
+function hideCreationScreen() {
+  document.getElementById('creation-screen').style.display = 'none';
+}
+
+function finalizeCreation() {
+  const name = (document.getElementById('cc-name')?.value || '').trim();
+  const openingScene = (document.getElementById('cc-story-start')?.value || '').trim();
+  const errEl = document.getElementById('cc-err-msg');
+  if (!name) { errEl.textContent = 'Please enter a character name.'; errEl.style.display = 'block'; return; }
+  if (!openingScene) { errEl.textContent = 'Please describe the opening scene where your story begins.'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+
+  const faction   = document.getElementById('cc-faction')?.value || 'jedi';
+  const rank      = document.getElementById('cc-rank')?.value || 'padawan';
+  const age       = parseInt(document.getElementById('cc-age')?.value) || 16;
+  const discAge   = parseInt(document.getElementById('cc-discovery-age')?.value) || 5;
+  const species   = document.getElementById('cc-species')?.value || 'Human';
+  const year      = parseInt(document.getElementById('cc-year')?.value) || 3661;
+  const backstory = (document.getElementById('cc-backstory')?.value || '').trim();
+  const s         = _ccAlloc;
+  const pool      = ccGetPool();
+
+  const selectedTalents = Array.from(document.querySelectorAll('#cc-talents-list input[type="checkbox"]:checked')).map(c => c.value);
+
+  const factionNames = { jedi:'Jedi Order', sith:'Sith', republic:'Galactic Republic Military', mandalorian:'Mandalorian Clans', bounty_hunter:'Independent', force_sensitive:'Unaffiliated' };
+  const lifeStageMap = { youngling:'youngling', initiate:'youngling', padawan:'padawan', knight:'knight', master:'master', acolyte:'youngling', apprentice:'padawan', sith_lord:'knight', dark_lord:'master', conscript:'youngling', soldier:'padawan', sergeant:'knight', lieutenant:'knight', captain:'master', foundling:'youngling', warrior:'padawan', veteran:'knight', champion:'master', rookie:'padawan', elite:'knight', untrained:'youngling', self_taught:'padawan', wandering_adept:'knight' };
+
+  const birthYear = year + age;
+
+  // Reset state
+  recentHistory = []; fullHistory = []; campaignSummary = ''; isSummarizing = false;
+  galaxySimState = {}; lastGalaxyEventDate = ''; turnCount = 0; trimmedTurns = 0;
+
+  masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{}, forceAbilityProficiency:{} };
+
+  const seeds = [
+    ['stats','strength',s.str],['stats','agility',s.agi],['stats','endurance',s.end],
+    ['stats','willpower',s.wil],['stats','charisma',s.cha],['stats','intelligence',s.int],
+    ['forceStats','forceSense',s.fS],['forceStats','meditation',s.med],['forceStats','forceKnowledge',s.fK],
+    ['forceStats','forceControl',s.fC],['forceStats','forceOutput',s.fOut],
+  ];
+  for (const [cat, key, lvl] of seeds) { if (lvl > 0) masterXP[cat][key] = { totalXP: xpToReachLevel(lvl) }; }
+  if (s.shii > 0) masterXP.lightsaberForms['ShiiCho'] = { totalXP: xpToReachLevel(s.shii) };
+  if (selectedTalents.includes('ShatterSense')) masterXP.shatterpoint.main = { totalXP: xpToReachLevel(5) };
+
+  characterSheet = {
+    name, species, homeworld:'', faction: factionNames[faction]||faction, age,
+    birthday:{ day:1, month:6, year:birthYear, era:'BBY' },
+    alignment:0, darkPressure:0, momentumWindow:{ active:false, multiplier:1.0, expiresDate:'', surrenderDiscount:0 },
+    lastLightActs:{}, hp:100, maxHp:100, forceBarrier:null, maxForceBarrier:100,
+    forceStrain:0, maxForceStrain:100, physicalStrain:0, maxPhysicalStrain:100, mentalStrain:0, maxMentalStrain:100,
+    forceTier:1,
+    forceStats:{ forceSense:s.fS, meditation:s.med, forceKnowledge:s.fK, forceControl:s.fC, forceOutput:s.fOut },
+    forceStatsXP:{}, forceAbilities:{}, forceAbilitiesXP:{},
+    lightsaberForms: s.shii > 0 ? { ShiiCho: s.shii } : {},
+    lightsaberFormsXP:{},
+    stats:{ strength:s.str, agility:s.agi, endurance:s.end, willpower:s.wil, charisma:s.cha, intelligence:s.int },
+    statsXP:{}, strengths:[], weaknesses:[], aptitudes:[], inventory:[], credits:0,
+    renown:{ jediOrder:0, sith:0, republic:0, underworld:0, mandalorians:0 },
+    innateTalents: selectedTalents, innateAbilities:[], storyFlags:{},
+    knownSecrets:[], activeBonds:[],
+    lifeStage: lifeStageMap[rank] || 'padawan',
+    backstory,
+    discoveryAge: discAge,
+  };
+
+  worldState = {
+    location:'', era: year + ' BBY',
+    inGameDate: `Primeday, Day 1 Coruscann — ${year} BBY`,
+    inGameTime:'Morning (07:00)', lastEvent:'', legacyChanges:[], lineageRecord:[], worldLog:[], galaxyEvents:[],
+    galaxyState:{ jediOrder:'', sith:'', republic:'', mandalorians:'', underworld:'' },
+    trackedCharacters:[], characterProfiles:{}, interactionWeights:{}, pendingEvents:[], npcAgendas:{},
+    galaxyEventQueue:[], sceneNPCs:[], lastMilestoneCheck:'', storyFlags:{}
+  };
+
+  syncMasterXPToSheet();
+  if (selectedTalents.includes('ShatterSense')) spSeedIfInnate();
+  seedCanonProfiles();
+
+  document.getElementById('sheet-content').innerHTML = '<div style="color:var(--text-dim);font-size:13px;font-style:italic">Character created. Loading first scene...</div>';
+  document.getElementById('log-content').innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic">No events yet.</div>';
+  document.getElementById('loc-val').textContent = '—';
+  document.getElementById('date-display').textContent = '—';
+  document.getElementById('save-indicator').textContent = '—';
+  gameActive = true; isThinking = false;
+  document.getElementById('story-feed').innerHTML = '';
+  hideCreationScreen();
+
+  const prompt = `CHARACTER CREATED — BEGIN THE STORY NOW.\n\nOpening scene: ${openingScene}\n\nStart the narrative directly from this moment. Do not ask clarifying questions — the character sheet above is fully populated with real starting stats. Launch immediately into the scene with vivid description and action.`;
+  callGemini(prompt);
+}
+
 function beginCampaign() {
-  // Reset any stuck state
   isThinking = false;
   setThinking(false);
   document.getElementById('story-feed').innerHTML = '';
-  callGemini("BEGIN_GAME");
+  showCreationScreen();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -3101,7 +3663,8 @@ INVENTORY: ${(Array.isArray(cs.inventory) ? cs.inventory : []).join(', ')||'empt
 RENOWN: Jedi=${cs.renown?.jediOrder||0}, Sith=${cs.renown?.sith||0}, Republic=${cs.renown?.republic||0}, Underworld=${cs.renown?.underworld||0}
 STRENGTHS: ${(Array.isArray(cs.strengths) ? cs.strengths : []).join(', ')||'none'} | WEAKNESSES: ${(Array.isArray(cs.weaknesses) ? cs.weaknesses : []).join(', ')||'none'}
 APTITUDES: ${(Array.isArray(cs.aptitudes) ? cs.aptitudes : []).join(', ')||'none'}
-INNATE TALENT: ${cs.innatetalent||'none'} | KNOWN SECRETS: ${(Array.isArray(cs.knownSecrets) ? cs.knownSecrets : []).join(', ')||'none'}`;
+INNATE TALENT: ${cs.innatetalent||'none'} | KNOWN SECRETS: ${(Array.isArray(cs.knownSecrets) ? cs.knownSecrets : []).join(', ')||'none'}
+${cs.backstory ? `CHARACTER BACKSTORY (permanent record — reference this for narrative consistency):\n${cs.backstory}` : ''}`;
 
   const galaxySummary = `LOCATION: ${ws.location||'?'} | DATE: ${ws.inGameDate||'?'} | TIME: ${ws.inGameTime||'?'} | ERA: ${ws.era||'?'}
 GALAXY STATE: Jedi=${ws.galaxyState?.jediOrder||'?'}, Sith=${ws.galaxyState?.sith||'?'}, Republic=${ws.galaxyState?.republic||'?'}
@@ -3130,7 +3693,7 @@ CRITICAL RULES FOR THIS TURN:
 6. If strain changed this turn, update in CHANGES block (FORCE_STRAIN=, PHYSICAL_STRAIN=, MENTAL_STRAIN=)
 7. Output <<<CHANGES>>>, <<<SHEET>>> and <<<WORLD>>> blocks at the end of EVERY response
 8. TIME REALISM: The "Time Elapsed:" you state must equal what the narrative describes — never more. A meal is 30–40 minutes. A walk across the Temple is 10–20 minutes. Reflection or a brief pause is 5 minutes. Do not inflate time beyond the activity.
-9. NO XP FOR PASSIVE ACTIVITY: Eating, resting, walking, and mental reflection earn ZERO TRAINING XP. lightsaberForms XP requires physical practice. forceKnowledge/intelligence XP requires focused deliberate study — not passing thoughts. If the player is not actively exerting effort, no TRAINING: line belongs in this turn.`;
+9. NO XP FOR PASSIVE ACTIVITY: Eating, resting, walking, and mental reflection earn ZERO TRAINING XP. lightsaberForms XP requires physical practice. forceKnowledge/intelligence XP requires focused deliberate study — not passing thoughts. If the player is not actively exerting effort, no TRAINING: line belongs in this turn. CRITICAL: TRAINING: tags must correspond ONLY to training that visibly occurs in THIS turn's narrative. Never include TRAINING: tags to account for a previous turn's session — those CHANGES blocks were already processed by JavaScript. If the previous turn involved training and this turn does not, write ZERO TRAINING: lines.`;
 
   messages.push({ role: 'user', parts: [{ text: stateBlock }] });
   messages.push({ role: 'model', parts: [{ text: `Confirmed. Turn ${turnCount + 1}. Current time: ${ws.inGameTime||'unknown'}. I will state "Time Elapsed: X" at the start of my response — JavaScript will advance the clock from that. I will NOT set inGameTime in the WORLD block. I will output all three data blocks.` }] });
@@ -3246,10 +3809,13 @@ async function callGemini(playerMessage, retryCount = 0) {
       const _savedAlignment      = characterSheet ? (characterSheet.alignment      ?? null) : null;
       const _savedDarkPressure   = characterSheet ? (characterSheet.darkPressure   ?? null) : null;
       const _savedMomentumWindow = characterSheet?.momentumWindow ? {...characterSheet.momentumWindow} : null;
-      // Preserve aptitudes that weren't talent-generated (AI-authored ones)
+      // Force ability catalog keys — defined here so both _savedAptitudes and aiAptitudes can use it
+      const _forceAbilityKeys = typeof FORCE_ABILITY_CATALOG !== 'undefined' ? new Set(Object.keys(FORCE_ABILITY_CATALOG)) : new Set();
+      // Preserve aptitudes that weren't talent-generated or force-ability names
       const _savedAptitudes      = (characterSheet?.aptitudes || []).filter(a =>
         !SIM_INNATE_TALENTS.some(t => t.label === a) &&
-        !SIM_INNATE_ABILITIES.some(ab => ab.label === a)
+        !SIM_INNATE_ABILITIES.some(ab => ab.label === a) &&
+        !_forceAbilityKeys.has(a)
       );
 
       try {
@@ -3282,9 +3848,13 @@ async function callGemini(playerMessage, retryCount = 0) {
           return a ? a.label : k;
         });
         // Merge: AI aptitudes from new sheet + talent labels (deduplicated)
+        // Exclude: talent/ability labels (those come from the registry, not AI prose)
+        // Exclude: raw Force ability catalog keys (those are forceAbilities, not character traits)
+        const _forceAbilityKeys = typeof FORCE_ABILITY_CATALOG !== 'undefined' ? new Set(Object.keys(FORCE_ABILITY_CATALOG)) : new Set();
         const aiAptitudes = (characterSheet.aptitudes || []).filter(a =>
           !SIM_INNATE_TALENTS.some(t => t.label === a) &&
-          !SIM_INNATE_ABILITIES.some(ab => ab.label === a)
+          !SIM_INNATE_ABILITIES.some(ab => ab.label === a) &&
+          !_forceAbilityKeys.has(a)
         );
         characterSheet.aptitudes = [...new Set([..._savedAptitudes, ...aiAptitudes, ...talentLabels, ...abilityLabels])];
 
@@ -3406,7 +3976,22 @@ async function callGemini(playerMessage, retryCount = 0) {
       }
     })();
 
+    // Pre-parse "Time Elapsed" declared by AI — used to validate TRAINING: claimed hours
+    let turnElapsedHours = null;
+    {
+      const _elapsedLine = rawText.split('\n').find(l => /time elapsed/i.test(l));
+      if (_elapsedLine) {
+        let _mins = 0;
+        const _hr = _elapsedLine.match(/(\d+(?:\.\d+)?)\s*hour/i);
+        const _mn = _elapsedLine.match(/(\d+)\s*min/i);
+        if (_hr) _mins += parseFloat(_hr[1]) * 60;
+        if (_mn) _mins += parseInt(_mn[1]);
+        if (_mins > 0) turnElapsedHours = _mins / 60;
+      }
+    }
+
     // ── Parse CHANGES block — structured delta, always present ──────
+    let trainingTagFound = false; // gate for narrative XP fallback parser
     const changesMatch = rawText.match(/<<<CHANGES>>>\s*([\s\S]*?)\s*<<<END_CHANGES>>>/);
     if (changesMatch && characterSheet) {
       const changesText = changesMatch[1];
@@ -3446,7 +4031,21 @@ async function callGemini(playerMessage, retryCount = 0) {
 
         // TRAINING: StatPath, hours, intensity, difficulty, outcome
         if (trimmed.startsWith('TRAINING:')) {
+          trainingTagFound = true;
           const parts = trimmed.slice(9).split(',').map(s => s.trim());
+          // Guard: reject if claimed hours far exceed actual elapsed time this turn
+          if (parts.length >= 2 && turnElapsedHours !== null) {
+            const claimedHours = parseFloat(parts[1]) || 0;
+            if (claimedHours > Math.max(0.05, turnElapsedHours * 2.0)) {
+              console.log('[TRAINING guard] Rejected ' + parts[0] + ': claimed ' + claimedHours + 'h but only ' + turnElapsedHours.toFixed(2) + 'h elapsed this turn');
+              continue;
+            }
+          }
+          // Guard: ShatterSense innate supersedes learned Shatterpoint — block XP to forceAbilities.Shatterpoint
+          if (parts[0] === 'forceAbilities.Shatterpoint' && characterSheet.innateTalents && characterSheet.innateTalents.includes('ShatterSense')) {
+            console.log('[SHATTERPOINT guard] Rejected TRAINING: Shatterpoint — ShatterSense innate supersedes learned version');
+            continue;
+          }
           if (parts.length >= 5) {
             const rawXP = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4]);
             const xp = applyTalentXPMultiplier(parts[0], rawXP);
@@ -3459,6 +4058,7 @@ async function callGemini(playerMessage, retryCount = 0) {
 
         // COMBAT: StatPath, rounds, tierGap, engagement, outcome[, secondary: StatPath2]
         if (trimmed.startsWith('COMBAT:')) {
+          trainingTagFound = true;
           const rest = trimmed.slice(7);
           const secIdx = rest.toLowerCase().indexOf(', secondary:');
           const mainPart = secIdx >= 0 ? rest.slice(0, secIdx) : rest;
@@ -3511,9 +4111,14 @@ async function callGemini(playerMessage, retryCount = 0) {
             const xpPath = xpParts[0];
             const xpAmt  = parseFloat(xpParts[1]) || 0;
             if (xpAmt > 0 && xpPath.includes('.')) {
-              const res = applyXPToSheet(xpPath, xpAmt);
-              const lbl = xpPath.split('.')[1] || xpPath;
-              if (res.xpAdded > 0) turnXPLog.push({ label: lbl, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'training' });
+              // Guard: ShatterSense innate supersedes learned Shatterpoint
+              if (xpPath === 'forceAbilities.Shatterpoint' && characterSheet.innateTalents && characterSheet.innateTalents.includes('ShatterSense')) {
+                console.log('[SHATTERPOINT guard] Rejected XP: Shatterpoint — ShatterSense innate active');
+              } else {
+                const res = applyXPToSheet(xpPath, xpAmt);
+                const lbl = xpPath.split('.')[1] || xpPath;
+                if (res.xpAdded > 0) turnXPLog.push({ label: lbl, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'training' });
+              }
             }
           }
           continue;
@@ -4063,9 +4668,10 @@ async function callGemini(playerMessage, retryCount = 0) {
       characterSheet.physicalStrain = Math.max(0, Math.min(maxPS, characterSheet.physicalStrain || 0));
       characterSheet.mentalStrain = Math.max(0, Math.min(maxMS, characterSheet.mentalStrain || 0));
 
-      // Fallback: parse narrative XP lines like "Djem So: +3 XP (combat)" if TRAINING/COMBAT lines missing
-      // Uses conservative defaults since we can't determine time/intensity from prose alone
-      if (characterSheet) {
+      // Fallback: parse narrative XP lines like "Djem So: +3 XP (combat)" if TRAINING/COMBAT lines missing.
+      // Gated: only runs when no TRAINING:/COMBAT: tags were found in the CHANGES block this turn.
+      // This prevents double-application when the AI uses proper structured tags.
+      if (characterSheet && !trainingTagFound) {
         const xpNarrRe = /\*?\s*([A-Za-z][A-Za-z\s\-]+?):\s*\+(\d+(?:\.\d+)?)\s*XP/gi;
         const fsMap2 = {forcesense:'forceStats.forceSense',meditation:'forceStats.meditation',forceknowledge:'forceStats.forceKnowledge',forcecontrol:'forceStats.forceControl',forceoutput:'forceStats.forceOutput'};
         const stMap2 = {strength:'stats.strength',agility:'stats.agility',endurance:'stats.endurance',willpower:'stats.willpower',charisma:'stats.charisma',intelligence:'stats.intelligence'};
@@ -4940,18 +5546,70 @@ function calcTrainingXP(hours, intensity, difficulty, outcome) {
 }
 
 // Apply innate talent XP multipliers for a given stat path.
-// BladeIntuition: lightsaberForms XP ×1.3
-// ForceReservoir: forceStats.forceOutput XP ×1.3
+// Applies innate-talent XP multipliers for a given stat path.
+// All XP-modifying talent effects are centralised here — JS handles every multiplier,
+// the AI never needs to account for these bonuses.
+//   BladeIntuition        lightsaberForms XP ×1.3
+//   ForceReservoir        forceStats.forceOutput XP ×1.3
+//   QuickStudy            forceStats.forceKnowledge XP ×1.2
+//   ForceSensitiveHealer  forceAbilities with fam:'Healing' (or ForceHealSelf) XP ×1.3
 function applyTalentXPMultiplier(statPath, baseXP) {
   const talents = (characterSheet && characterSheet.innateTalents) || [];
   let xp = baseXP;
+
   if (talents.includes('BladeIntuition') && statPath.startsWith('lightsaberForms.')) {
     xp = Math.round(xp * 1.3);
   }
   if (talents.includes('ForceReservoir') && statPath === 'forceStats.forceOutput') {
     xp = Math.round(xp * 1.3);
   }
+  if (talents.includes('QuickStudy') && statPath === 'forceStats.forceKnowledge') {
+    xp = Math.round(xp * 1.2);
+  }
+  if (talents.includes('ForceSensitiveHealer') && statPath.startsWith('forceAbilities.')) {
+    const abilKey = statPath.slice('forceAbilities.'.length);
+    const cat = typeof FORCE_ABILITY_CATALOG !== 'undefined' ? FORCE_ABILITY_CATALOG : {};
+    const entry = cat[abilKey];
+    if (entry && (entry.fam === 'Healing' || abilKey === 'ForceHealSelf')) {
+      xp = Math.round(xp * 1.3);
+    }
+  }
+
   return xp;
+}
+
+// One-time repair for two known data-integrity issues:
+// 1. Force ability names (e.g. 'Shatterpoint') in innateAbilities[] — they belong in forceAbilities, not here.
+// 2. Talent labels in aptitudes[] (e.g. 'Blade Intuition') that were written by AI instead of toggled via
+//    the talent panel, leaving the functional key absent from innateTalents[]. Promotes the key so the
+//    XP multiplier and other mechanics actually fire.
+// 3. Force ability catalog keys in aptitudes[] — remove them so they don't appear as character traits.
+function repairTalentConsistency() {
+  if (!characterSheet) return;
+  // Strip invalid keys from innateAbilities (only SIM_INNATE_ABILITIES keys belong there)
+  if (characterSheet.innateAbilities) {
+    const validKeys = new Set(SIM_INNATE_ABILITIES.map(a => a.key));
+    characterSheet.innateAbilities = characterSheet.innateAbilities.filter(k => validKeys.has(k));
+  }
+  // Promote aptitude labels to innateTalents keys so mechanics apply
+  if (characterSheet.aptitudes) {
+    if (!characterSheet.innateTalents) characterSheet.innateTalents = [];
+    for (const apt of characterSheet.aptitudes) {
+      const match = SIM_INNATE_TALENTS.find(t => t.label === apt);
+      if (match && !characterSheet.innateTalents.includes(match.key)) {
+        characterSheet.innateTalents.push(match.key);
+        console.log('[repairTalentConsistency] promoted aptitude "' + apt + '" → innateTalents key "' + match.key + '"');
+      }
+    }
+  }
+  // Remove Force ability catalog keys from aptitudes (they're not character trait labels)
+  if (characterSheet.aptitudes && typeof FORCE_ABILITY_CATALOG !== 'undefined') {
+    const forceKeys = new Set(Object.keys(FORCE_ABILITY_CATALOG));
+    const before = characterSheet.aptitudes.length;
+    characterSheet.aptitudes = characterSheet.aptitudes.filter(a => !forceKeys.has(a));
+    if (characterSheet.aptitudes.length < before)
+      console.log('[repairTalentConsistency] removed Force ability key(s) from aptitudes');
+  }
 }
 
 // Combat XP: base_opponent_xp × duration × engagement × outcome
@@ -6038,7 +6696,7 @@ function loadFromSave(save) {
     masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{}, forceAbilityProficiency:{} };
   }
   // Ensure characterSheet reflects masterXP immediately after load
-  if (characterSheet) { syncMasterXPToSheet(); spSeedIfInnate(); }
+  if (characterSheet) { syncMasterXPToSheet(); spSeedIfInnate(); repairTalentConsistency(); }
   worldState = save.worldState || null;
   if (worldState) {
     normalizeWorldState();
@@ -8349,6 +9007,9 @@ function buildLoreContext() {
         var spTiers = spLvl < 6 ? 'Tier1 only' : spLvl < 11 ? 'Tier1+Tier2' : 'Tier1+Tier2+Tier3';
         var spCap = spLvl<=20?25 : spLvl<=40?50 : 70;
         out.push('  Shatterpoint(L' + spLvl + ' innate x0.1 XP cost): anchor=Meditation+Willpower+ForceSense | passive perception — no roll to detect; SHATTERPOINT_ROLL triggers interpretation quality | ' + spTiers + ' active | profCap:' + spCap + '% | surface ONLY genuine fracture points, not for dramatic effect');
+        if (hasShatterSense) {
+          out.push('  !! ShatterSense innate is active — regular learned Shatterpoint ability is PERMANENTLY UNAVAILABLE. Never emit TRAINING:/XP: tags for forceAbilities.Shatterpoint. Use SHATTERPOINT_XP= for shatterpoint progression only.');
+        }
       }
     }
 
@@ -8754,10 +9415,13 @@ function simToggleTalent(key, isAbility) {
     const a = SIM_INNATE_ABILITIES.find(a => a.key === k);
     return a ? a.label : k;
   });
-  // Preserve non-talent aptitudes (ones the AI added) and merge talent entries
+  // Preserve non-talent aptitudes (ones the AI added) and merge talent entries.
+  // Strip raw Force ability catalog keys — those are tracked in forceAbilities, not character traits.
+  const _togForceKeys = typeof FORCE_ABILITY_CATALOG !== 'undefined' ? new Set(Object.keys(FORCE_ABILITY_CATALOG)) : new Set();
   const existingAptitudes = (characterSheet.aptitudes || []).filter(a =>
     !SIM_INNATE_TALENTS.some(t => t.label === a) &&
-    !SIM_INNATE_ABILITIES.some(ab => ab.label === a)
+    !SIM_INNATE_ABILITIES.some(ab => ab.label === a) &&
+    !_togForceKeys.has(a)
   );
   characterSheet.aptitudes = [...existingAptitudes, ...talentLabels, ...abilityLabels];
 
@@ -8773,8 +9437,8 @@ function simToggleTalent(key, isAbility) {
 // Apply passive mechanical effects of active innate talents to characterSheet
 function simApplyTalentEffects() {
   if (!characterSheet) return;
-  // XP-multiplier talents (BladeIntuition, ForceReservoir) are handled in applyTalentXPMultiplier.
-  // Add any non-XP passive effects here as new talents are designed.
+  // XP-multiplier talents are all handled in applyTalentXPMultiplier — nothing to apply here.
+  // Add non-XP passive effects (strain modifiers, roll bonuses) here as new talents are designed.
 }
 
 // ── Story flags grid ──────────────────────────────────────────────
