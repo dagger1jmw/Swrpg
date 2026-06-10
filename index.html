@@ -1747,7 +1747,8 @@ RULES FOR CHANGES BLOCK:
 - Include TRAINING:/COMBAT: XP lines ONLY if XP was earned in THIS turn. If no training or combat occurred, write NO TRAINING: or COMBAT: lines — an empty CHANGES block (with only HP/strain updates) is correct for turns with no skill use.
 - XP lines for TRAINING sessions: TRAINING: category.StatName, hours, intensity, difficulty, outcome
   - category: forceStats / stats / forceAbilities / lightsaberForms
-  - StatName: exact canonical key (e.g. forceSense, ShiiCho, ForcePush, strength)
+  - StatName: exact canonical key (e.g. forceSense, ShiiCho, Telekinesis, strength)
+  - Sub-abilities (ForcePush, ForceWave, ForceChoke, etc.) are NOT valid TRAINING: targets — use PROFICIENCY: instead
   - hours: decimal hours of actual practice (0.5, 1.0, 2.5, 3.0 etc)
   - intensity: casual / standard / intense / pushing / elite
   - difficulty: basic / ceiling / above / far (relative to current stat level)
@@ -1759,7 +1760,9 @@ RULES FOR CHANGES BLOCK:
   - AbilityKey must match the parent forceAbilities key exactly (e.g. ForceLightning, Telekinesis)
   - SubKey is the sub-application name (e.g. ForceStorm, ForcePush, ForceChoke)
   - xpAmount uses same scale as TRAINING: standard supervised session (1hr) ≈ 15 XP
-  - Use ONLY when the character specifically drills a sub-application, not just the base ability
+  - MANDATORY: whenever the character specifically uses or drills a sub-application, ALWAYS include BOTH:
+      TRAINING: forceAbilities.ParentAbility, ...   (for base ability growth)
+      PROFICIENCY: ParentAbility.SubAbility, X      (for sub-ability proficiency)
   - Example: PROFICIENCY: ForceLightning.ForceStorm,15
   - Example: PROFICIENCY: Telekinesis.ForcePush,20
   - JS applies discount factors automatically (base ability level + ForceControl reduce cost)
@@ -6937,6 +6940,17 @@ function openXPInject() {
     addGroup('Shatterpoint', [['shatterpoint.main', 'Shatterpoint']]);
   }
 
+  // Sub-ability proficiency tracks
+  const profPaths = [];
+  if (typeof FORCE_ABILITY_CATALOG !== 'undefined') {
+    for (const [subKey, cat] of Object.entries(FORCE_ABILITY_CATALOG)) {
+      if (!cat.par) continue;
+      if (!(cat.par in (characterSheet.forceAbilities || {}))) continue;
+      profPaths.push([`proficiency.${cat.par}.${subKey}`, `${cat.label || subKey} (${cat.par})`]);
+    }
+  }
+  if (profPaths.length) addGroup('Sub-Ability Proficiency', profPaths);
+
   amt.value = '';
   preview.textContent = '';
 
@@ -6945,21 +6959,43 @@ function openXPInject() {
     const path = sel.value;
     const xp = parseInt(amt.value) || 0;
     if (!path || xp <= 0) { preview.innerHTML = ''; return; }
-    let before, after;
+    let before, after, label, extraTag = '';
     if (path === 'shatterpoint.main') {
       const currentTotal = masterXP.shatterpoint?.main?.totalXP || 0;
       before = spDeriveFromTotalXP(currentTotal);
       after  = spDeriveFromTotalXP(currentTotal + xp);
+      label = 'Shatterpoint';
+    } else if (path.startsWith('proficiency.')) {
+      const compositeKey = path.slice(12);
+      const dotIdx = compositeKey.indexOf('.');
+      const parentKey = compositeKey.slice(0, dotIdx);
+      const subKey    = compositeKey.slice(dotIdx + 1);
+      const entry = masterXP.forceAbilityProficiency?.[compositeKey] || { totalProfXP: 0, D: FORCE_ABILITY_CATALOG?.[subKey]?.D || 1.0 };
+      const baseLevel = characterSheet?.forceAbilities?.[parentKey] || 0;
+      const fc = characterSheet?.forceStats?.forceControl || 0;
+      const discount = profBaseAbilityFactor(baseLevel) * profControlFactor(fc);
+      const effectiveXP = xp / discount;
+      const beforePct = deriveProficiency(entry.totalProfXP, entry.D).percentage;
+      const afterPct  = deriveProficiency(entry.totalProfXP + effectiveXP, entry.D).percentage;
+      label = subKey;
+      const tierBefore = profTierLabel(beforePct), tierAfter = profTierLabel(afterPct);
+      extraTag = tierBefore !== tierAfter
+        ? `<span style="color:#e8c84c;font-weight:bold"> ▲ ${tierBefore} → ${tierAfter}</span>`
+        : `<span style="color:#aaa"> ${afterPct}%</span>`;
+      preview.innerHTML = `<span style="color:#44aa66">+${Math.round(effectiveXP)} eff. XP</span> to <span style="color:#c8b080">${label}</span> ·
+        <span style="color:#aaa">${beforePct}% → ${afterPct}%</span>${extraTag}`;
+      return;
     } else {
       const entry = masterXP[path.split('.')[0]]?.[path.split('.')[1]];
       const currentTotal = entry?.totalXP || 0;
       before = deriveFromTotalXP(currentTotal);
       after  = deriveFromTotalXP(currentTotal + xp);
+      label = path.split('.')[1];
     }
     const lvlTag = after.level > before.level
       ? `<span style="color:#e8c84c;font-weight:bold"> ▲ Level ${before.level} → ${after.level}</span>`
       : '';
-    preview.innerHTML = `<span style="color:#44aa66">+${xp} XP</span> to <span style="color:#c8b080">${path.split('.')[1]}</span> ·
+    preview.innerHTML = `<span style="color:#44aa66">+${xp} XP</span> to <span style="color:#c8b080">${label}</span> ·
       <span style="color:#aaa">${before.current}/${before.required} → ${after.current}/${after.required}</span>${lvlTag}`;
   };
 
@@ -6980,6 +7016,11 @@ function confirmXPInject() {
   if (path === 'shatterpoint.main') {
     const sp = spApplyXP(xp);
     result = { levelUps: sp.levelUps, xpAdded: sp.xpAdded, newStat: sp.newLevel, xpCurrent: sp.current, xpRequired: sp.required };
+  } else if (path.startsWith('proficiency.')) {
+    const compositeKey = path.slice(12);
+    const dotIdx = compositeKey.indexOf('.');
+    const res = applyProficiencyXP(compositeKey.slice(0, dotIdx), compositeKey.slice(dotIdx + 1), xp);
+    result = { levelUps: 0, xpAdded: res.profAdded, newStat: res.newPct, xpCurrent: res.newPct, xpRequired: 100 };
   } else {
     result = applyXPToSheet(path, xp);
   }
@@ -6992,7 +7033,9 @@ function confirmXPInject() {
   const d = document.createElement('div');
   d.className = 'msg';
   d.style.cssText = 'margin:4px 0 10px 0;';
-  const statLabel = path === 'shatterpoint.main' ? 'Shatterpoint' : path.split('.')[1];
+  const statLabel = path === 'shatterpoint.main' ? 'Shatterpoint'
+    : path.startsWith('proficiency.') ? path.slice(path.lastIndexOf('.') + 1)
+    : path.split('.')[1];
   const lvlTag = result.levelUps > 0
     ? `<span style="color:#e8c84c;font-weight:bold;margin-left:8px">▲ LEVEL UP → ${result.newStat}</span>`
     : '';
@@ -9257,7 +9300,29 @@ function simBuildMandatoryRows() {
 function simBuildActivityOptions(cs) {
   const available = SIM_ACTIVITIES.filter(a => a.unlock(cs));
   const customs = simCustomDrills.map(d => ({ key:'custom_'+d.id, label:'✦ '+d.name, _custom:d, unlock:()=>true }));
-  return [...available, ...customs];
+
+  // Dynamically generate proficiency activities for unlocked sub-abilities
+  const profActs = [];
+  if (typeof FORCE_ABILITY_CATALOG !== 'undefined') {
+    for (const [subKey, cat] of Object.entries(FORCE_ABILITY_CATALOG)) {
+      if (!cat.par) continue;
+      if (!(cat.par in (cs.forceAbilities || {}))) continue;
+      profActs.push({
+        key: 'prof_' + cat.par + '.' + subKey,
+        label: (cat.label || subKey) + ' (Proficiency)',
+        isProficiency: true,
+        profKey: cat.par + '.' + subKey,
+        parentKey: cat.par,
+        subKey,
+        D: cat.D || 1.0,
+        strainBias: {f:1.6, p:0.3, m:0.8},
+        defaultIntensity: 'standard',
+        unlock: () => true
+      });
+    }
+  }
+
+  return [...available, ...customs, ...profActs];
 }
 
 function simAddTrainingRow() {
@@ -9816,18 +9881,25 @@ async function simProcessDay(chunk, chunkNum, total) {
   });
 
   // Training rows
-  let spXPGained = 0; // accumulated separately via shatterpoint track
+  let spXPGained = 0;
+  const profXPGained = {}; // { 'Telekinesis.ForcePush': rawXP }
+  const allActs = simBuildActivityOptions(cs);
   simTrainingRows.forEach(r => {
     if (!r.activityKey||!r.hours) return;
-    const act = SIM_ACTIVITIES.find(a=>a.key===r.activityKey)
-              || simCustomDrills.find(d=>'custom_'+d.id===r.activityKey);
+    const act = allActs.find(a=>a.key===r.activityKey);
     if (!act) return;
     if (act.isShatterpoint) {
-      // Shatterpoint uses its own XP track — calculate raw XP same as standard
       const iMult = SIM_INTENSITY[r.intensity||act.defaultIntensity||'standard'] || 15;
       const spLevel = spGetLevel();
       const outW = SIM_OUTCOME_WEIGHT[Math.min(6, spLevel)] || 1.1;
       spXPGained += r.hours * iMult * outW * simGetStrainPenalty() * days;
+    } else if (act.isProficiency) {
+      const iMult = SIM_INTENSITY[r.intensity||act.defaultIntensity||'standard'] || 15;
+      const profPct = getEffectiveProficiency(act.parentKey, act.subKey);
+      const tierNum = Math.max(1, Math.min(5, Math.floor(profPct / 20) + 1));
+      const outW = SIM_OUTCOME_WEIGHT[tierNum-1] || 1.1;
+      const weekXP = r.hours * iMult * outW * simGetStrainPenalty() * days;
+      profXPGained[act.profKey] = (profXPGained[act.profKey]||0) + weekXP;
     } else {
       applyBlockXP(act.weights||[], r.hours, r.intensity||act.defaultIntensity||'standard', r.difficulty||'standard');
     }
@@ -9845,6 +9917,20 @@ async function simProcessDay(chunk, chunkNum, total) {
     const spRes = spApplyXP(spXPGained);
     if (spRes.levelUps > 0) levelUps.push(`Shatterpoint → Level ${spRes.newLevel}`);
     xpGained['shatterpoint.Shatterpoint'] = Math.round(spRes.xpAdded);
+  }
+  // Apply sub-ability proficiency XP
+  for (const [compositeKey, rawXP] of Object.entries(profXPGained)) {
+    if (rawXP <= 0) continue;
+    const dotIdx = compositeKey.indexOf('.');
+    const parentKey = compositeKey.slice(0, dotIdx);
+    const subKey    = compositeKey.slice(dotIdx + 1);
+    const res = applyProficiencyXP(parentKey, subKey, rawXP);
+    if (res.profAdded > 0) xpGained['proficiency.' + compositeKey] = Math.round(res.profAdded);
+    if (res.pctGained > 0) {
+      const tier = profTierLabel(res.newPct);
+      const prevTier = profTierLabel(res.newPct - res.pctGained);
+      if (tier !== prevTier) levelUps.push(`${subKey} proficiency → ${tier}`);
+    }
   }
 
   // Strain for the period (rolling accumulation — sleep recovers each night)
@@ -9990,6 +10076,31 @@ Current strain: Force ${cs.forceStrain||0}, Physical ${cs.physicalStrain||0}, Me
   d.className = 'msg';
   let totalRows = '';
   for (const [p, xpGained] of Object.entries(totalXPMap).filter(([,v])=>v>1).sort(([,a],[,b])=>b-a)) {
+    // Sub-ability proficiency entries
+    if (p.startsWith('proficiency.')) {
+      const compositeKey = p.slice(12);
+      const subKey = compositeKey.slice(compositeKey.indexOf('.') + 1);
+      const entry = masterXP.forceAbilityProficiency?.[compositeKey];
+      const D = entry?.D || 1.0;
+      const curTotal = entry?.totalProfXP || 0;
+      const afterPct  = deriveProficiency(curTotal, D).percentage;
+      const beforePct = deriveProficiency(Math.max(0, curTotal - xpGained), D).percentage;
+      const pctGained = Math.round(afterPct - beforePct);
+      const tierTag = pctGained > 0
+        ? `<span style="color:#e8c84c;font-weight:bold;margin-left:6px">+${pctGained}% → ${profTierLabel(afterPct)}</span>`
+        : '';
+      totalRows += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        <span style="color:#4488aa;font-size:11px;min-width:9px">↳</span>
+        <span style="color:#c8b080;font-size:12px;min-width:120px;font-family:'Cinzel',serif;letter-spacing:0.5px">${subKey}</span>
+        <span style="color:#44aa66;font-size:12px;font-weight:bold;min-width:52px">+${Math.round(xpGained)} XP</span>
+        <div style="flex:1;background:#1a1a1a;border-radius:2px;height:5px;min-width:60px;max-width:120px">
+          <div style="width:${afterPct}%;height:100%;background:linear-gradient(90deg,#332244,#8844aa);border-radius:2px"></div>
+        </div>
+        <span style="color:#556655;font-size:10px;white-space:nowrap">${afterPct}%</span>
+        ${tierTag}
+      </div>`;
+      continue;
+    }
     const [category, statKey] = p.split('.');
     const label = statKey || p;
     let beforeState, afterState;
