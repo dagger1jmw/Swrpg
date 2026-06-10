@@ -2195,29 +2195,34 @@ Your job is ONLY to output TRAINING: or COMBAT: lines with the right parameters.
 
 Current XP progress is shown in the state injection (e.g. "Djem So:3[45/123XP]"). This means Djem So is at stat 3 with 45 XP accumulated, needing 123 to reach stat 4. Do not override these values.
 
-SHEET block must include these additional XP tracking fields:
-- forceStatsXP: {"forceSense": {"current": 0, "required": 10}, ...} for each force stat
-- forceAbilitiesXP: {"Force Push": {"current": 0, "required": 10}, ...} for each ability
-- lightsaberFormsXP: {"Shii-Cho": {"current": 0, "required": 10}, ...} for each form
+DO NOT add forceStatsXP, forceAbilitiesXP, or lightsaberFormsXP fields to the SHEET block — JavaScript manages these internally. The XP progress shown in the state injection (e.g. "forceSense:14[45/123XP]") is the authoritative source; do not try to reproduce it in SHEET JSON.
 
-XP GAIN RULES (add to current XP each turn, never skip this):
-- Deliberately practicing an ability this turn: +2 XP to that ability
-- Using an ability under pressure/combat: +3 XP to that ability
-- Reading/studying theory (no practice): +0.5 XP to Force Knowledge only
-- Accidentally triggering an ability: +1 XP
-- Breakthrough moment: +10 XP (rare)
-- Passive observation with no relevant action: +0 XP — do NOT emit a TRAINING: line at all
-- Social/travel/dialogue turns with no Force use: do NOT emit TRAINING: lines
+IN-PLAY FORCE USE EARNS TRAINING XP — THIS IS MANDATORY:
+Any turn where the character deliberately reaches out with the Force, attempts a Force ability, or actively directs Force perception MUST include a TRAINING: line in the CHANGES block — even if the use lasts only a few minutes. This is not optional. Skipping the TRAINING: line means zero XP, zero progression.
 
-WHEN XP REACHES REQUIRED THRESHOLD:
-- Stat increases by exactly 1
-- XP resets to 0
-- Required XP for next level increases per this scale:
-  stat 0-19: required=10, stat 20-39: required=25, stat 40-59: required=50
-  stat 60-79: required=100, stat 80-84: required=200, stat 85-94: required=500
-  stat 95-99: required=1000, stat 100+: required=5000
+Use the actual time the Force use occupied (in hours). Brief attempts are fine — 5 minutes = 0.083 hours.
 
-NEVER increase a stat directly without going through XP. Always update the XP fields.
+EXAMPLES of in-play Force use that REQUIRE a TRAINING: line:
+- Character reaches out to sense nearby presences: TRAINING: forceStats.forceSense, 0.083, standard, ceiling, strong
+- Character attempts to read an NPC's surface emotions: TRAINING: forceStats.forceSense, 0.083, intense, ceiling, solid
+- Character holds a Force-assisted balance pose for 15 minutes: TRAINING: forceStats.forceControl, 0.25, standard, basic, solid
+- Character accidentally senses someone's pain spike: TRAINING: forceStats.forceSense, 0.017, casual, basic, partial
+
+Intensity for unguided in-play use:
+- casual: passive, almost reflexive effort
+- standard: deliberate but not straining (most narrative Force use)
+- intense: actively pushing beyond comfort, notable effort
+- pushing: near limit of current ability, high strain cost
+
+Difficulty for in-play use is relative to current stat level — not absolute:
+- basic: well within current ability (routine)
+- ceiling: at the edge of current ability (where most first attempts land)
+- above/far: meaningfully beyond current ability (rare, high strain)
+
+ZERO XP situations (do NOT emit TRAINING: lines):
+- Purely passive observation with no Force direction
+- Social/travel/dialogue turns with no Force use
+- Sleeping, eating, resting
 
 ## LIVING TRAITS SYSTEM — UPDATE EVERY TURN
 Traits are NOT static. They must be reviewed and updated every turn based on what happened.
