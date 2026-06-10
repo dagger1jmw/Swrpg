@@ -3015,7 +3015,7 @@ function finalizeCreation() {
   ];
   for (const [cat, key, lvl] of seeds) { if (lvl > 0) masterXP[cat][key] = { totalXP: xpToReachLevel(lvl) }; }
   if (s.shii > 0) masterXP.lightsaberForms['ShiiCho'] = { totalXP: xpToReachLevel(s.shii) };
-  if (selectedTalents.includes('ShatterSense')) masterXP.shatterpoint.main = { totalXP: xpToReachLevel(5) };
+  if (selectedTalents.includes('ShatterSense')) masterXP.shatterpoint.main = { totalXP: spXPToReachLevel(5) };
 
   characterSheet = {
     name, species, homeworld:'', faction: factionNames[faction]||faction, age,
@@ -5581,15 +5581,12 @@ function spApplyXP(rawAmount) {
   if (characterSheet) {
     characterSheet.shatterpointLevel = after.level;
     characterSheet.shatterpointTier  = spGetTier(after.level);
-    // Keep Shatterpoint in forceAbilities for display — but sourced from SP track, not masterXP
-    if (!characterSheet.forceAbilities) characterSheet.forceAbilities = {};
-    characterSheet.forceAbilities['Shatterpoint'] = after.level;
   }
   // Never store in masterXP.forceAbilities — that would feed the wrong XP engine
   if (masterXP.forceAbilities?.['Shatterpoint'] !== undefined)
     delete masterXP.forceAbilities['Shatterpoint'];
 
-  return { levelUps: after.level - before.level, newLevel: after.level, xpAdded: Math.round(rawAmount), current: after.current, required: after.required };
+  return { levelUps: after.level - before.level, newLevel: after.level, xpAdded: Math.round(effectiveXP), current: after.current, required: after.required };
 }
 
 // Seed shatterpoint for characters with ShatterSense innate talent
@@ -5604,14 +5601,11 @@ function spSeedIfInnate() {
     masterXP.shatterpoint.main = { totalXP: spXPToReachLevel(5) };
   }
 
-  // Update display fields — Shatterpoint shows in forceAbilities section for visibility
-  // but is NEVER in masterXP.forceAbilities (that would contaminate the XP engine)
+  // Update display fields
   if (characterSheet) {
     const lvl = spGetLevel();
     characterSheet.shatterpointLevel = lvl;
     characterSheet.shatterpointTier  = spGetTier(lvl);
-    if (!characterSheet.forceAbilities) characterSheet.forceAbilities = {};
-    characterSheet.forceAbilities['Shatterpoint'] = lvl;
   }
   if (masterXP.forceAbilities?.['Shatterpoint'] !== undefined) {
     delete masterXP.forceAbilities['Shatterpoint'];
@@ -6921,6 +6915,10 @@ function loadFromSave(save) {
           masterXP[cat][k] = { totalXP: xpToReachLevel(e.stat || 0) + (e.current || 0) };
         }
       }
+    }
+    // Restore shatterpoint track — this was missing from the loop above and caused L5 resets on every load
+    if (save.masterXP.shatterpoint?.main?.totalXP !== undefined) {
+      masterXP.shatterpoint.main = { totalXP: save.masterXP.shatterpoint.main.totalXP };
     }
     for (const [k, e] of Object.entries(save.masterXP.forceAbilityProficiency || {})) {
       masterXP.forceAbilityProficiency[k] = { totalProfXP: e.totalProfXP || 0, D: e.D || 1.0 };
