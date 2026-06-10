@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Star Wars Legends RPG v2.5</title>
+<title>Star Wars Legends RPG</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1684,7 +1684,7 @@ FORCE_STRAIN=[current]
 PHYSICAL_STRAIN=[current]
 MENTAL_STRAIN=[current]
 FORCE_BARRIER=[current]
-ALIGNMENT=[current — only for light side gains and momentum-window direct hits]
+ALIGNMENT_XP=[amount] — positive for light side gains, negative for dark side acts; momentum-window direct hits use this too
 SHATTERPOINT_PERCEIVED=[tier],[description] — when a shatterpoint surfaces passively
 SHATTERPOINT_ROLL=[target] — triggers JS interpretation roll; respond to result
 SHATTERPOINT_FOCUS=[0-100] — awareness bandwidth consumed (>70 = tunnel vision)
@@ -1705,20 +1705,6 @@ DARK_PRESSURE=[new total 0-100 — JS handles discharge at 100]
 MOMENTUM_WINDOW=[multiplier],[days] — set after pressure discharge; 0,0 to close
 WILL_OF_FORCE=[gain amount],[brief description of what was surrendered]
 SURRENDER_DISCOUNT=[0.3] — optional, set when surrender warrants reduced next discharge
-FORCE_SENSE=[current]
-MEDITATION=[current]
-FORCE_KNOWLEDGE=[current]
-FORCE_CONTROL=[current]
-FORCE_OUTPUT=[current]
-STRENGTH=[current]
-AGILITY=[current]
-ENDURANCE=[current]
-WILLPOWER=[current]
-CHARISMA=[current]
-INTELLIGENCE=[current]
-AGE=[current]
-[AbilityName]=[current value for each force ability]
-[FormName]=[current value for each lightsaber form]
 [TRAINING or COMBAT lines — see below]
 <<<END_CHANGES>>>
 
@@ -1726,7 +1712,7 @@ HOW TO REPORT XP — USE TRAINING: OR COMBAT: LINES, NEVER JUST PROSE:
 Do NOT write "Djem So: +3 XP" in narrative. Instead output in the CHANGES block:
 
 For training sessions:
-TRAINING: lightsaberForms.Djem So, 2.0, intense, ceiling, solid
+TRAINING: lightsaberForms.DjemSo, 2.0, intense, ceiling, solid
 TRAINING: forceStats.forceSense, 0.5, standard, basic, solid
 TRAINING: stats.strength, 1.0, intense, above, strong
 
@@ -1737,9 +1723,9 @@ COMBAT_ROUND: [rounds_this_turn], [intensity]
   → Output EVERY exchange turn (e.g. COMBAT_ROUND: 1, standard)
 COMBAT_END: [primarySkillPath], [secondarySkillPath|none], [opponentTier 1-7], [engagement], [outcome]
   → Output ONLY when combat ends — applies all accumulated strain and XP
-  → Opponent tier: 1=Untrained(0-20), 2=Apprentice(21-40), 3=Adept(41-60), 4=Master(61-80), 5=HighMaster(81-100), 6=Legendary(101-150), 7=Transcendent(151+)
-  → e.g. COMBAT_END: lightsaberForms.Djem So, forceAbilities.Telekinesis, 2, aggressive, win
-  → Training bot at Djem So 30 = Tier 2 opponent → COMBAT_END: lightsaberForms.Djem So, none, 2, aggressive, win
+  → Opponent tier: 1=Initiate(0-20), 2=Padawan(21-40), 3=Knight(41-60), 4=Master(61-80), 5=Grandmaster(81-100), 6=Legendary(101-150), 7=Transcendent(151+)
+  → e.g. COMBAT_END: lightsaberForms.DjemSo, forceAbilities.Telekinesis, 2, aggressive, win
+  → Training bot at DjemSo 30 = Tier 2 opponent → COMBAT_END: lightsaberForms.DjemSo, none, 2, aggressive, win
 
 XP FORMULA (for reference only — JavaScript calculates this, you do not):
 base_xp by opponent tier: T1=50, T2=120, T3=300, T4=750, T5=1800, T6=4500, T7=11000
@@ -1758,25 +1744,16 @@ If you write XP in narrative prose instead of TRAINING:/COMBAT: lines, NO XP IS 
 Every skill used meaningfully this turn needs its own TRAINING: or COMBAT: line.
 
 RULES FOR CHANGES BLOCK:
-- Include ALL stat values every turn
-- Include TRAINING:/COMBAT: XP lines ONLY if XP was earned in THIS turn. If no training or combat occurred, write NO TRAINING: or COMBAT: lines — an empty CHANGES block (with only stat/strain updates) is correct for turns with no skill use.
-- Stat values: current level after this turn
+- Include TRAINING:/COMBAT: XP lines ONLY if XP was earned in THIS turn. If no training or combat occurred, write NO TRAINING: or COMBAT: lines — an empty CHANGES block (with only HP/strain updates) is correct for turns with no skill use.
 - XP lines for TRAINING sessions: TRAINING: category.StatName, hours, intensity, difficulty, outcome
   - category: forceStats / stats / forceAbilities / lightsaberForms
-  - StatName: exact key (e.g. forceSense, Shii-Cho, Force Push, strength)
+  - StatName: exact canonical key (e.g. forceSense, ShiiCho, ForcePush, strength)
   - hours: decimal hours of actual practice (0.5, 1.0, 2.5, 3.0 etc)
   - intensity: casual / standard / intense / pushing / elite
   - difficulty: basic / ceiling / above / far (relative to current stat level)
   - outcome: failure / partial / solid / strong / overwhelming / breakthrough
-  - Example: TRAINING: lightsaberForms.Shii-Cho, 2.5, intense, ceiling, strong
+  - Example: TRAINING: lightsaberForms.ShiiCho, 2.5, intense, ceiling, strong
   - Example: TRAINING: forceStats.forceSense, 1.0, standard, basic, solid
-- XP lines for COMBAT: COMBAT: category.StatName, rounds, tierGap, engagement, outcome[, secondary: category.StatName2]
-  - rounds: number of exchanges (3=brief, 8=extended, 15=prolonged)
-  - tierGap: opponent tier MINUS your tier in that specific skill (-1=fighting below, 0=equal, 1=one above, 2=two above)
-  - engagement: passive / mixed / aggressive
-  - outcome: overwhelming_win / win / strong_win / narrow_loss / loss / survived
-  - secondary: optional second stat that was actively used (gets 40% of primary XP)
-  - Example: COMBAT: lightsaberForms.Djem So, 8, 1, aggressive, narrow_loss, secondary: forceAbilities.Force Push
 - XP lines for sub-ability proficiency: PROFICIENCY: AbilityKey.SubKey,xpAmount
   - Awards proficiency XP to a specific sub-application of a Force ability
   - AbilityKey must match the parent forceAbilities key exactly (e.g. ForceLightning, Telekinesis)
@@ -1786,8 +1763,7 @@ RULES FOR CHANGES BLOCK:
   - Example: PROFICIENCY: ForceLightning.ForceStorm,15
   - Example: PROFICIENCY: Telekinesis.ForcePush,20
   - JS applies discount factors automatically (base ability level + ForceControl reduce cost)
-- Include one TRAINING or COMBAT line per skill that was meaningfully used this turn
-- Still include XP_ lines for accumulated XP without level-ups (for progress bar display)
+- Include one TRAINING line per skill that was meaningfully used this turn
 - This block is what updates the character sheet — if you skip it, nothing updates
 
 WHAT QUALIFIES FOR TRAINING XP — READ THIS:
@@ -1886,13 +1862,13 @@ Opposed roll — one-off NPC (no stored profile):
   ROLL_LABEL=Duel — Sith scout
 
 ### TIER REFERENCE (for narrative understanding only — JS derives tiers from live stats)
-- Tier 1 Untrained:    stat 0–20
-- Tier 2 Apprentice:   stat 21–40
-- Tier 3 Adept:        stat 41–60
-- Tier 4 Master:       stat 61–80
-- Tier 5 High Master:  stat 81–100
-- Tier 6 Legendary:    stat 101–150
-- Tier 7 Transcendent: stat 151+
+- Tier 1 Initiate/Youngling: stat 0–20
+- Tier 2 Padawan:            stat 21–40
+- Tier 3 Knight:             stat 41–60
+- Tier 4 Master:             stat 61–80
+- Tier 5 Grandmaster:        stat 81–100
+- Tier 6 Legendary:          stat 101–150
+- Tier 7 Transcendent:       stat 151+
 
 ### RESULT OUTCOMES (write your narrative to match the JS result card)
 Solo roll:   Fail<9 / Contested 9–12 / Solid 13–17 / Strong 18–22 / Overwhelming 23+
@@ -1953,20 +1929,16 @@ JavaScript rolls dice via your ROLL:/ROLL_LABEL= tags — no pre-rolled values a
 - Actions where the outcome has no meaningful variance (e.g. waking up from sleep, walking to a location)
 - Do NOT write d20 values, bonuses, or roll math in narrative text — all of that is handled by the JS roll card rendered from your ROLL: tag
 
-### TRAINING ROLL PROCEDURE
+### TRAINING OUTCOME SELECTION
 
-**Step 1 — Natural 20 check:** Before adding any bonus, check if the raw d20 = 20. If yes → outcome is always 'breakthrough' regardless of difficulty or table. Stop here.
+For each TRAINING: tag, choose an outcome keyword based on the difficulty level. JS fires the actual roll via your ROLL:/ROLL_LABEL= tags and posts the result card automatically — do not calculate or display roll math yourself.
 
-**Step 2 — Calculate total:** total = d20 + compressedBonus(primary stat being trained)
+**Select the table** matching the difficulty keyword in your TRAINING: tag:
+- 'basic' — material clearly at or below current tier → SUCCESS TABLE (no failure)
+- 'ceiling' — at skill limit, pushing into new territory → CEILING TABLE
+- 'above' / 'far' — genuinely beyond current level → WALL TABLE
 
-**Step 3 — Select table** based on difficulty keyword in the TRAINING tag:
-- 'basic' or material clearly below current tier → SUCCESS TABLE (no failure)
-- 'ceiling' (at skill limit, pushing into new territory) → CEILING TABLE
-- 'above' / 'far' / 'wall' (genuinely beyond current level) → WALL TABLE
-
-**Step 4 — Read outcome** from table and use that keyword in the TRAINING: CHANGES tag. You cannot override the table result with narrative preference.
-
-**Step 5 — Display the roll** in the mandatory format before narrating the session outcome.
+**Pick an outcome** that fits the narrative context. Use 'breakthrough' for genuine moments of insight regardless of table.
 
 ### TRAINING OUTCOME TABLES
 
@@ -2059,13 +2031,7 @@ Each exchange uses the opposed roll system:
 
 ## STRAIN ACCUMULATION (not per-move — per round based on intensity)
 Track accumulated strain SEPARATELY during combat. Do NOT update character sheet strain mid-fight.
-Apply to the sheet only when combat ends.
-
-Strain per round formula:
-endurance_mitigation = compressedBonus(endurance) / 10
-physical_per_round = base_physical × (1 - endurance_mitigation)
-force_per_round = base_force × (1 - endurance_mitigation × 0.5)
-mental_per_round = base_mental × (1 - endurance_mitigation × 0.3)
+Apply to the sheet only when combat ends. JS applies endurance mitigation to COMBAT_ROUND: automatically — use the base values below for the combat state display block.
 
 Base strain per round by fight intensity (all values on 0–100 scale):
 - Light sparring / training bot: Physical 4, Force 3, Mental 2
@@ -2080,12 +2046,7 @@ Additional strain per exchange from specific events:
 - Psychological pressure (domination, fear): +5 mental
 
 ## END OF COMBAT — XP AND STRAIN APPLICATION
-When combat ends (victory, retreat, knockout, or resolution), output in CHANGES block:
-1. One COMBAT: line per primary skill used
-2. Accumulated strain applied to character sheet
-3. Any injuries or lasting effects
-
-COMBAT: lightsaberForms.Djem So, [total_rounds], [tier_gap], [engagement], [outcome], secondary: [secondary_skill_if_any]
+When combat ends (victory, retreat, knockout, or resolution), output COMBAT_END: in the CHANGES block. JS automatically applies accumulated COMBAT_ROUND: strain and calculates XP. Note any injuries or lasting effects in narrative.
 
 Outcome labels:
 - overwhelming_win: dominated opponent
@@ -2433,12 +2394,13 @@ Light Side path: -5-10 Force Strain cost, +1 Control, +1.5 when acting selflessl
 Flow State: d20 minimum=10, +2 precision, -5 Force Strain cost, near-failures become partial successes
 
 ## PROGRESSION TIERS
-- Youngling (stat 0–20): Fast small XP gains. Basic raw instinct.
-- Padawan (stat 20–40): Structured growth. Foundational training.
-- Knight (stat 40–80): Moderate growth. Experience-based.
-- Master (stat 80–100): Slow growth. Requires genuine mastery.
-- High Master (stat 85+): Most Force users plateau here permanently.
-- Legendary (stat 100+): Only breakthrough XP events reach this.
+- Tier 1 Initiate/Youngling (stat 0–20): Fast small XP gains. Basic raw instinct.
+- Tier 2 Padawan (stat 21–40): Structured growth. Foundational training.
+- Tier 3 Knight (stat 41–60): Moderate growth. Experience-based competence.
+- Tier 4 Master (stat 61–80): Slow growth. Requires genuine mastery.
+- Tier 5 Grandmaster (stat 81–100): Most Force users plateau here permanently.
+- Tier 6 Legendary (stat 101–150): Only sustained breakthrough training reaches this.
+- Tier 7 Transcendent (stat 151+): Abeloth alone occupies this band. No mortal reaches it.
 
 LEGENDARY POTENTIAL IS A CEILING, NOT A BOOST. It means the character CAN eventually reach 100+ with years of training. It has zero effect on XP gain rates below stat 40.
 
@@ -2533,14 +2495,6 @@ If player message begins with [OVERRIDE], [LORE CHECK], [SYSTEM EXPAND], [WORLD 
 - Never print the character sheet as a markdown list with **field:** format — the UI cannot read it. Only the JSON blocks update the sidebar.
 - Ask "Ready to resume?" when done
 
-## SIMULATION OUTPUT FORMAT (for time skips)
-TIME SKIP: [Start] → [End] | [X years]
-LEGACY CHANGE STATUS: [each change and status]
-LINEAGE EVENTS: [family events during skip]
-MAJOR GALAXY EVENTS: [key events with cause/consequence]
-WORLD STATE ON ARRIVAL: [current galaxy state]
-READY FOR CONTINUATION: [Y/N]
-
 ## RENOWN
 Only increases if actions witnessed or reported.
 0-20 Unknown, 21-40 Noticed, 41-60 Known, 61-80 Renowned, 81-100 Legendary.
@@ -2568,9 +2522,6 @@ let campaignSummary = '';      // compressed narrative memory — rebuilt every 
 let isSummarizing = false;     // prevent double summarize calls
 let galaxySimState = {};       // persistent galaxy simulation state between turns
 let lastGalaxyEventDate = '';  // in-game date of last galaxy event, to throttle frequency
-
-// Simulation engine state
-// (sim state vars declared in simulation engine below)
 
 const SAVE_SLOTS = 5;
 const RECENT_TURNS = 6;        // how many raw turns to send each request
@@ -3972,7 +3923,6 @@ async function callGemini(playerMessage, retryCount = 0) {
             const contText = contData.candidates?.[0]?.content?.parts?.[0]?.text || '';
             if (contText.length > 50) {
               rawText = rawText + contText;
-              console.log('[callGemini] Continuation merged (' + contText.length + ' chars).');
             }
           }
         } catch(contErr) {
@@ -4239,7 +4189,6 @@ async function callGemini(playerMessage, retryCount = 0) {
         // COMBAT_END: primarySkillPath, secondarySkillPath|none, opponentTier, engagement, outcome
         if (trimmed.startsWith('COMBAT_END:')) {
           const parts = trimmed.slice(11).split(',').map(s => s.trim());
-          console.log('[COMBAT_END parsed]', parts, 'activeCombat:', activeCombat);
           if (!activeCombat) {
             // Combat state was lost — reconstruct minimal state
             activeCombat = { round:5, accPhysical:0, accForce:0, accMental:0, opponentTier:2 };
@@ -4247,7 +4196,6 @@ async function callGemini(playerMessage, retryCount = 0) {
           activeCombat.primarySkill = parts[0] || null;
           activeCombat.secondarySkill = (parts[1] && parts[1] !== 'none') ? parts[1] : null;
           activeCombat.opponentTier = parseInt(parts[2]) || 2;
-          console.log('[COMBAT_END] calling endCombat with', parts[4], parts[3], 'opponentTier:', activeCombat.opponentTier);
           endCombat(parts[4], parts[3]);
           continue;
         }
@@ -4260,13 +4208,11 @@ async function callGemini(playerMessage, retryCount = 0) {
           if (parts.length >= 2 && turnElapsedHours !== null) {
             const claimedHours = parseFloat(parts[1]) || 0;
             if (claimedHours > Math.max(0.05, turnElapsedHours * 2.0)) {
-              console.log('[TRAINING guard] Rejected ' + parts[0] + ': claimed ' + claimedHours + 'h but only ' + turnElapsedHours.toFixed(2) + 'h elapsed this turn');
               continue;
             }
           }
           // Guard: ShatterSense innate supersedes learned Shatterpoint — block XP to forceAbilities.Shatterpoint
           if (parts[0] === 'forceAbilities.Shatterpoint' && characterSheet.innateTalents && characterSheet.innateTalents.includes('ShatterSense')) {
-            console.log('[SHATTERPOINT guard] Rejected TRAINING: Shatterpoint — ShatterSense innate supersedes learned version');
             continue;
           }
           if (parts.length >= 5) {
@@ -4336,7 +4282,6 @@ async function callGemini(playerMessage, retryCount = 0) {
             if (xpAmt > 0 && xpPath.includes('.')) {
               // Guard: ShatterSense innate supersedes learned Shatterpoint
               if (xpPath === 'forceAbilities.Shatterpoint' && characterSheet.innateTalents && characterSheet.innateTalents.includes('ShatterSense')) {
-                console.log('[SHATTERPOINT guard] Rejected XP: Shatterpoint — ShatterSense innate active');
               } else {
                 const res = applyXPToSheet(xpPath, xpAmt);
                 const lbl = xpPath.split('.')[1] || xpPath;
@@ -4761,50 +4706,6 @@ async function callGemini(playerMessage, retryCount = 0) {
             }
             break;
           }
-          case 'MOMENTUM_WINDOW': {
-            // Format: multiplier,days e.g. "1.5,3"
-            if (!characterSheet.momentumWindow) characterSheet.momentumWindow = {active:false,multiplier:1.0,expiresDate:'',surrenderDiscount:0};
-            const parts = String(trimmed.slice(16)).split(',').map(s=>s.trim());
-            const mult = parseFloat(parts[0]) || 1.0;
-            const days = parseInt(parts[1]) || 0;
-            if (mult === 0 || days === 0) {
-              characterSheet.momentumWindow.active = false;
-            } else {
-              characterSheet.momentumWindow.active = true;
-              characterSheet.momentumWindow.multiplier = mult;
-              const expDate = worldState?.inGameDate ? advanceInGameDate(worldState.inGameDate, days) : '';
-              characterSheet.momentumWindow.expiresDate = expDate;
-            }
-            break;
-          }
-          case 'WILL_OF_FORCE': {
-            // Format: gain,description e.g. "5,Released attachment to mission outcome"
-            const wofParts = trimmed.slice(14).split(',');
-            const wofGain = parseFloat(wofParts[0]) || 0;
-            const wofDesc = wofParts.slice(1).join(',').trim() || 'Surrendered to the will of the Force';
-            if (wofGain > 0 && characterSheet) {
-              // Feed equilibrium (large amount — surrender IS the mechanism for upper-range growth)
-              addEquilibriumXP(wofGain * 8);
-              // Also spike current alignment above equilibrium (temporary immersion effect)
-              const spike = wofGain * 0.6;
-              characterSheet.alignment = parseFloat(Math.min(100, (characterSheet.alignment||0) + spike).toFixed(2));
-              updateAlignmentPeak();
-              const newEqWof = characterSheet.alignmentEquilibrium ?? 0;
-              const feedEl = document.getElementById('story-feed');
-              if (feedEl) {
-                const d = document.createElement('div');
-                d.className = 'msg';
-                d.innerHTML = `<div style="background:rgba(20,40,60,0.35);border:1px solid #1a3a5a;border-radius:4px;padding:8px 14px;font-size:12px;">
-                  <div style="color:#88aadd;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">✦ WILL OF THE FORCE</div>
-                  <div style="color:#aaccee;font-size:12px">${wofDesc}</div>
-                  <div style="color:#4488cc;font-size:11px;margin-top:4px">Current alignment +${wofGain.toFixed(1)} spike | Equilibrium: ${newEqWof >= 0 ? '+':''}${newEqWof}</div>
-                </div>`;
-                feedEl.appendChild(d);
-                feedEl.scrollTop = feedEl.scrollHeight;
-              }
-            }
-            break;
-          }
           case 'SURRENDER_DISCOUNT': {
             if (!characterSheet.momentumWindow) characterSheet.momentumWindow = {active:false,multiplier:1.0,expiresDate:'',surrenderDiscount:0};
             characterSheet.momentumWindow.surrenderDiscount = Math.max(0, Math.min(0.5, val));
@@ -5170,7 +5071,6 @@ async function callGemini(playerMessage, retryCount = 0) {
     if (activeCombat && characterSheet) {
       const combatEndPhrases = /COMBAT END|combat (?:concluded|ended|finished|complete|over)|sparring (?:session )?(?:concluded|ended|complete)|fight (?:concluded|ended|over)/i;
       if (combatEndPhrases.test(rawText)) {
-        console.log('[prose COMBAT_END fallback] activeCombat:', activeCombat);
         const outcome = /win|victor|success/i.test(rawText) ? 'win' : /loss|lost|defeat/i.test(rawText) ? 'narrow_loss' : 'win';
         // If primarySkill not yet set, try to detect from narrative
         if (!activeCombat.primarySkill) {
@@ -5453,7 +5353,6 @@ function startCombat(opponent, intensity) {
 function endCombat(outcome, engagement) {
   if (!characterSheet) return;
   if (!activeCombat) { console.warn('[endCombat] called with null activeCombat'); return; }
-  console.log('[endCombat]', {outcome, engagement, skill: activeCombat.primarySkill, oppTier: activeCombat.opponentTier, rounds: activeCombat.round});
 
   const maxFS = characterSheet.maxForceStrain || 100;
   const maxPS = characterSheet.maxPhysicalStrain || 100;
@@ -5470,7 +5369,6 @@ function endCombat(outcome, engagement) {
       outcome || 'win',
       activeCombat.opponentTier || 2
     );
-    console.log('[endCombat] XP:', primary, 'to', activeCombat.primarySkill, '|', secondary, 'to', activeCombat.secondarySkill);
     const res1 = applyXPToSheet(activeCombat.primarySkill, primary);
     const label1 = activeCombat.primarySkill.split('.')[1] || activeCombat.primarySkill;
     if (res1.xpAdded > 0) turnXPLog.push({ label: label1, xpAdded: res1.xpAdded, levelUps: res1.levelUps, newStat: res1.newStat, xpCurrent: res1.xpCurrent, xpRequired: res1.xpRequired, type: 'combat' });
@@ -5783,7 +5681,6 @@ function calcTrainingXP(hours, intensity, difficulty, outcome) {
   return Math.round((hours||1) * i * d * o);
 }
 
-// Apply innate talent XP multipliers for a given stat path.
 // Applies innate-talent XP multipliers for a given stat path.
 // All XP-modifying talent effects are centralised here — JS handles every multiplier,
 // the AI never needs to account for these bonuses.
@@ -5836,7 +5733,6 @@ function repairTalentConsistency() {
       const match = SIM_INNATE_TALENTS.find(t => t.label === apt);
       if (match && !characterSheet.innateTalents.includes(match.key)) {
         characterSheet.innateTalents.push(match.key);
-        console.log('[repairTalentConsistency] promoted aptitude "' + apt + '" → innateTalents key "' + match.key + '"');
       }
     }
   }
@@ -5846,7 +5742,6 @@ function repairTalentConsistency() {
     const before = characterSheet.aptitudes.length;
     characterSheet.aptitudes = characterSheet.aptitudes.filter(a => !forceKeys.has(a));
     if (characterSheet.aptitudes.length < before)
-      console.log('[repairTalentConsistency] removed Force ability key(s) from aptitudes');
   }
   // Guard: Shatterpoint lives on the dedicated SP track — remove from forceAbilities for ShatterSense holders
   if ((characterSheet.innateTalents || []).includes('ShatterSense')) {

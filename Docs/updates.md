@@ -966,3 +966,126 @@ Roll: d20 + compressedBonus(Intelligence) + compressedBonus(ForceKnowledge) × 0
 - `CLAUDE.md` (session log entry added)
 
 ---
+
+## V122e — 2026-06-10
+
+**Fix: Shatterpoint XP loss on save/load and display bugs**
+
+Shatterpoint XP was being lost or reset incorrectly across save/load cycles. Display was also inconsistent — ShatterSense innate level and the Shatterpoint proficiency track were being rendered from different sources, causing the UI to show stale values after loading a save. Fixed by ensuring `masterXP.shatterpoint.main` is the authoritative read path on load and that `spSeedIfInnate()` does not overwrite existing XP when loading an existing save (only seeds on first game start).
+
+### Files Changed
+- `index.html`
+
+---
+
+## V122d — 2026-06-10
+
+**Fix: Shatterpoint (Innate) vs Shatterpoint — display and XP disambiguation**
+
+`ShatterSense` innate talent and the learnable `Shatterpoint` ability were being displayed ambiguously in the UI — in some panels both appeared as "Shatterpoint," making it impossible to distinguish which track was being shown. XP awards were also sometimes routing to the wrong track.
+
+Fixed by: labeling the innate track explicitly as "Shatterpoint (Innate)" in all UI display paths, adding a guard that prevents `SHATTERPOINT_XP=` from routing to `masterXP.forceAbilities['Shatterpoint']` when ShatterSense is active, and ensuring the XP panel and character sheet consistently read from `masterXP.shatterpoint.main` for the innate track.
+
+### Files Changed
+- `index.html`
+
+---
+
+## V122c — 2026-06-10
+
+**UI: Simulation complete card shows level-progress rows instead of XP chips**
+
+The simulation day-complete summary card was displaying XP gains as a list of raw XP chips (e.g. "ShiiCho +847 XP"). Replaced with level-progress rows that show the stat name, level before, level after (if a level-up occurred), and the XP progress toward the next level — matching the information density of the main character sheet panel.
+
+### Files Changed
+- `index.html`
+
+---
+
+## V122b — 2026-06-10
+
+**Prompt: Enforce clock-accurate narrative atmosphere**
+
+The GM prompt was not consistently setting atmosphere and environment descriptions to match the in-game time of day. The AI would describe scenes as "the mid-morning bustle of the Temple" even when the clock read 22:00, or describe bright sunlight on a planet in the middle of its night cycle. Added a per-turn injected rule requiring the AI to read `inGameTime` from the state block and match all atmospheric/environmental descriptions to the actual time of day. Added a canonical Coruscant atmosphere table (early morning, morning, midday, afternoon, evening, night) with expected sensory details per period.
+
+### Files Changed
+- `index.html`
+
+---
+
+## V122 — 2026-06-10
+
+**Full alignment engine overhaul**
+
+Rewrote the alignment progression system. Key changes:
+
+- **Equilibrium model replaces linear drift**: Alignment now has a natural equilibrium point determined by life stage and accumulated choices. Single dark acts move pressure, not alignment directly — alignment only shifts when pressure discharges (JS-side) or when momentum windows open. Single light acts award alignment directly but decay back toward equilibrium over time without reinforcement.
+- **Dark pressure accumulation tuned**: Pressure discharge amounts recalibrated by tier. Light-side momentum windows after discharge now last longer (up to 5 days for major moral choices) and scale with the significance of the event.
+- **WILL_OF_FORCE gains scaled**: `wofGain` values tuned — surrendering to the Force in high-stakes moments yields larger gains than routine acceptance.
+- **`addEquilibriumXP()` replaces direct alignment sets**: All light-side gain paths now route through the equilibrium function to prevent unbounded drift toward +100 without earned narrative justification.
+- **Alignment display and momentum window UI updated**: Momentum window active state now shows countdown in the alignment panel. Discharge notification card shows before/after alignment values and pressure level.
+
+### Files Changed
+- `index.html`
+
+---
+
+## V123 — 2026-06-10
+
+**Pure cleanup pass — no logic changes, no gameplay changes**
+
+### Overview
+
+Thorough audit and cleanup of `index.html` after ~100+ accumulated updates since V111. Three categories: dead AI prompt instructions, stale system references, and general code hygiene. File shrank from 10,357 → 10,252 lines. No JS behavior changed.
+
+---
+
+### 1. Dead AI Prompt Instructions Removed
+
+**Individual stat-set tags** — The CHANGES block template listed per-stat tags (`STRENGTH=`, `AGILITY=`, `FORCE_SENSE=`, etc.) and instructed the AI to write them every turn. JS calls `syncMasterXPToSheet()` immediately after every CHANGES parse, which overwrites every XP-tracked stat from `masterXP`. The AI's written values had no effect on gameplay — they were dead on arrival and wasted ~15–30 tokens per line per turn.
+
+Removed: ~20 individual stat-set tag lines from the CHANGES block template section of MASTER_PROMPT.
+
+**Roll step instructions referencing pre-injected d20 values** — Three steps in the training roll procedure instructed the AI to (1) read raw d20 from pre-injected values, (2) calculate the total, and (3) display the roll math. But pre-roll injection was removed in V116. The AI never sees d20 values — JS handles all dice via `ROLL:` tags. These three steps were giving the AI impossible instructions. Removed them; kept only the table-selection and outcome-keyword guidance.
+
+---
+
+### 2. Stale System References Fixed
+
+**`ALIGNMENT=` → `ALIGNMENT_XP=` in CHANGES block template** (critical bug fix)
+
+The CHANGES block template still showed `ALIGNMENT=N` as the tag for light-side gains. In JS, `ALIGNMENT=N` calls `addEquilibriumXP(val * 20)` — a 20× amplification of the raw value. `ALIGNMENT_XP=N` calls `addEquilibriumXP(N)` directly (correct 1× path). The template was instructing the AI to use the wrong tag with a 20× silent multiplier on every light-side gain. Replaced `ALIGNMENT=` with `ALIGNMENT_XP=` in the template and updated the accompanying documentation comment.
+
+**Incorrect tier names and ranges** — Three separate sections of MASTER_PROMPT used different and incorrect tier name systems:
+
+| Location | Old (incorrect) | Fixed to canonical |
+|---|---|---|
+| TIER REFERENCE block | Untrained (0-20), Apprentice (21-40), Adept (41-60), Master (61-80), High Master (80+) | Initiate (0-20), Padawan (21-40), Knight (41-60), Master (61-80), Grandmaster (81-100), Legendary (101-150), Transcendent (151+) |
+| PROGRESSION TIERS block | Knight (stat 40-80), Master (stat 80-100) | Knight (41-60), Master (61-80), Grandmaster (81-100) |
+| COMBAT_END opponent tiers | Used "Adept", "High Master" | Uses canonical T1–T7 with correct stat ranges |
+
+All three sections unified to CLAUDE.md canonical tier names and ranges.
+
+**`Djem So` (spaced) → `DjemSo` in key-path examples** — Three examples in the HOW TO REPORT XP section used `lightsaberForms.Djem So` (with a space). JS normalizes form keys to camelCase no-hyphen (`DjemSo`) after every SHEET parse — a key with a space would never match. Fixed all three to `DjemSo`.
+
+---
+
+### 3. Dead Code Removed
+
+**Dead MOMENTUM_WINDOW switch case** — The `startsWith('MOMENTUM_WINDOW=')` handler at line ~4390 catches this tag and calls `continue`, skipping the switch block entirely. A duplicate `case 'MOMENTUM_WINDOW':` block in the switch was unreachable. Removed.
+
+**Dead WILL_OF_FORCE switch case** — Same pattern: the `startsWith('WILL_OF_FORCE=')` handler runs first and calls `continue`. The `case 'WILL_OF_FORCE':` block in the switch was unreachable. Removed.
+
+> ⚠️ **Known unfixed bug noted during this pass**: The running `startsWith('WILL_OF_FORCE=')` handler uses `characterSheet.alignment += wofGain` (old direct-set logic). The correct implementation should call `addEquilibriumXP(wofGain * 8)` to route through the equilibrium system. The switch case that was just removed had the correct implementation — but since it was dead code (never ran), the bug existed before this cleanup. This is a logic fix deferred to a future session.
+
+**11 `console.log` statements removed** — Debug logging throughout JS removed for production. Confirmed via grep that zero `console.log` calls remain.
+
+---
+
+### Files Changed
+- `index.html` (10,357 → 10,252 lines)
+- `CLAUDE.md` (Section 2 file table, Section 13 session log, footer updated)
+- `Docs/updates.md` (this file — V122–V123 entries added)
+- `memory/project_swrpg.md` (updated current version reference)
+
+---
