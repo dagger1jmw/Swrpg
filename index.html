@@ -6932,6 +6932,11 @@ function openXPInject() {
   const lfPaths = Object.keys(characterSheet.lightsaberForms || {}).map(k => [`lightsaberForms.${k}`, k]);
   addGroup('Lightsaber Forms', lfPaths);
 
+  // Shatterpoint (dedicated SP track)
+  if (masterXP.shatterpoint?.main !== undefined) {
+    addGroup('Shatterpoint', [['shatterpoint.main', 'Shatterpoint']]);
+  }
+
   amt.value = '';
   preview.textContent = '';
 
@@ -6940,14 +6945,21 @@ function openXPInject() {
     const path = sel.value;
     const xp = parseInt(amt.value) || 0;
     if (!path || xp <= 0) { preview.innerHTML = ''; return; }
-    const entry = masterXP[path.split('.')[0]]?.[path.split('.')[1]];
-    const currentTotal = entry?.totalXP || 0;
-    const before = deriveFromTotalXP(currentTotal);
-    const after = deriveFromTotalXP(currentTotal + xp);
+    let before, after;
+    if (path === 'shatterpoint.main') {
+      const currentTotal = masterXP.shatterpoint?.main?.totalXP || 0;
+      before = spDeriveFromTotalXP(currentTotal);
+      after  = spDeriveFromTotalXP(currentTotal + xp);
+    } else {
+      const entry = masterXP[path.split('.')[0]]?.[path.split('.')[1]];
+      const currentTotal = entry?.totalXP || 0;
+      before = deriveFromTotalXP(currentTotal);
+      after  = deriveFromTotalXP(currentTotal + xp);
+    }
     const lvlTag = after.level > before.level
       ? `<span style="color:#e8c84c;font-weight:bold"> ▲ Level ${before.level} → ${after.level}</span>`
       : '';
-    preview.innerHTML = `<span style="color:#44aa66">+${xp} XP</span> to <span style="color:#c8b080">${path.split('.')[1]}</span> · 
+    preview.innerHTML = `<span style="color:#44aa66">+${xp} XP</span> to <span style="color:#c8b080">${path.split('.')[1]}</span> ·
       <span style="color:#aaa">${before.current}/${before.required} → ${after.current}/${after.required}</span>${lvlTag}`;
   };
 
@@ -6964,7 +6976,13 @@ function confirmXPInject() {
   if (!path) { alert('Please select a stat.'); return; }
   if (xp <= 0) { alert('Enter a positive XP amount.'); return; }
 
-  const result = applyXPToSheet(path, xp);
+  let result;
+  if (path === 'shatterpoint.main') {
+    const sp = spApplyXP(xp);
+    result = { levelUps: sp.levelUps, xpAdded: sp.xpAdded, newStat: sp.newLevel, xpCurrent: sp.current, xpRequired: sp.required };
+  } else {
+    result = applyXPToSheet(path, xp);
+  }
   updateUI();
   autoSave();
   closeXPInject();
@@ -6974,6 +6992,7 @@ function confirmXPInject() {
   const d = document.createElement('div');
   d.className = 'msg';
   d.style.cssText = 'margin:4px 0 10px 0;';
+  const statLabel = path === 'shatterpoint.main' ? 'Shatterpoint' : path.split('.')[1];
   const lvlTag = result.levelUps > 0
     ? `<span style="color:#e8c84c;font-weight:bold;margin-left:8px">▲ LEVEL UP → ${result.newStat}</span>`
     : '';
@@ -6981,7 +7000,7 @@ function confirmXPInject() {
   d.innerHTML = `<div style="background:rgba(40,60,40,0.25);border:1px solid #2a3a2a;border-radius:4px;padding:8px 14px;font-size:12px;">
     <div style="color:#446644;font-size:10px;letter-spacing:2px;margin-bottom:7px;font-family:'Cinzel',serif">◆ XP INJECTED</div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <span style="color:#c8b080;font-family:'Cinzel',serif;font-size:12px;min-width:130px">${path.split('.')[1]}</span>
+      <span style="color:#c8b080;font-family:'Cinzel',serif;font-size:12px;min-width:130px">${statLabel}</span>
       <span style="color:#44aa66;font-weight:bold;min-width:56px">+${result.xpAdded} XP</span>
       <div style="flex:1;background:#1a1a1a;border-radius:2px;height:5px;min-width:60px;max-width:120px">
         <div style="width:${barPct}%;height:100%;background:linear-gradient(90deg,#225533,#44aa66);border-radius:2px"></div>
