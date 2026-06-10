@@ -4,6 +4,32 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V121b — 2026-06-09
+
+**Fix: Truncated AI responses (missing CHANGES/SHEET/WORLD blocks)**
+
+### Root Cause
+
+`maxOutputTokens` was set to 8192. A full turn response — narrative (~800–1200 tokens) + CHANGES block (~300 tokens) + full SHEET JSON (~1500–2000 tokens) + WORLD JSON (~600 tokens) — can easily exceed 8192 tokens. When hit, Gemini silently cuts off output, dropping the `<<<SHEET>>>` and `<<<WORLD>>>` blocks so no stats update.
+
+### Fixes Applied
+
+**1. Increased `maxOutputTokens` to 32768** (`callGemini`, `generationConfig`)
+- Gemini 2.5 Flash supports up to 65536 output tokens; 32768 gives 4× more headroom than before
+- Prevents truncation in all normal cases
+
+**2. Auto-continuation on truncation** (new block after `rawText` is set)
+- Detects truncation via `finishReason === 'MAX_TOKENS'` OR missing `<<<END_WORLD>>>` in response
+- Automatically sends a second API call with the partial response as model context, asking only for the continuation from where it stopped + the missing blocks
+- Merges continuation text into `rawText` before the block-parsing step
+- If the continuation call itself fails, shows an amber warning banner in the story feed (non-blocking)
+
+### Code Location
+
+Lines ~3775–3815 in `starwars_rpg_V121.html` / `index.html`.
+
+---
+
 ## V121 — 2026-06-09
 
 **Feature: Character Creation Screen**

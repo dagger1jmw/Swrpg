@@ -3742,7 +3742,7 @@ async function callGemini(playerMessage, retryCount = 0) {
       contents: messages,
       generationConfig: {
         temperature: 0.85,
-        maxOutputTokens: 8192,
+        maxOutputTokens: 32768,
         topP: 0.95
       }
     };
@@ -3773,7 +3773,41 @@ async function callGemini(playerMessage, retryCount = 0) {
     }
 
     const data = await resp.json();
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    // ── Truncation detection & auto-continuation ───────────────────
+    {
+      const finishReason = data.candidates?.[0]?.finishReason || '';
+      const wasTruncated = finishReason === 'MAX_TOKENS' ||
+        (rawText.length > 200 && !rawText.includes('<<<END_WORLD>>>'));
+      if (wasTruncated) {
+        console.warn('[callGemini] Response truncated (finishReason=' + finishReason + '). Requesting continuation...');
+        try {
+          const contMessages = [
+            ...buildContext(userContent),
+            { role: 'model', parts: [{ text: rawText }] },
+            { role: 'user', parts: [{ text: '[SYSTEM: Your previous response was cut off by the token limit. Output ONLY the continuation — pick up mid-word if needed — then complete the <<<CHANGES>>>, <<<SHEET>>>, and <<<WORLD>>> blocks. Do NOT re-narrate anything already written.]' }] }
+          ];
+          const contResp = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ system_instruction: { parts: [{ text: MASTER_PROMPT }] }, contents: contMessages, generationConfig: { temperature: 0.5, maxOutputTokens: 32768, topP: 0.95 } }) }
+          );
+          if (contResp.ok) {
+            const contData = await contResp.json();
+            const contText = contData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (contText.length > 50) {
+              rawText = rawText + contText;
+              console.log('[callGemini] Continuation merged (' + contText.length + ' chars).');
+            }
+          }
+        } catch(contErr) {
+          console.warn('[callGemini] Continuation request failed:', contErr.message);
+          // Show a non-blocking warning in the feed
+          feedHtml('<div style="background:#3a1a00;border:1px solid #cc6600;border-radius:6px;padding:8px 12px;margin:8px 0;font-size:0.85em;color:#ffaa55;">⚠ Response was cut off — some stat changes may be missing. Try sending your next action normally.</div>');
+        }
+      }
+    }
 
     // ── Parse data blocks ──────────────────────────────────────────
     const sheetMatch = rawText.match(/<<<SHEET>>>\s*([\s\S]*?)\s*<<<END_SHEET>>>/) ||
