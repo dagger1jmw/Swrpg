@@ -1689,7 +1689,7 @@ SHATTERPOINT_PERCEIVED=[tier],[description] — when a shatterpoint surfaces pas
 SHATTERPOINT_ROLL=[target] — triggers JS interpretation roll; respond to result
 SHATTERPOINT_FOCUS=[0-100] — awareness bandwidth consumed (>70 = tunnel vision)
 SHATTERPOINT_FOCUS_CLEAR — resets focus at scene end
-SHATTERPOINT_XP=[amount] — proficiency XP (JS applies ×0.1 for innate talent)
+SHATTERPOINT_XP=[amount] — proficiency XP (applied directly to SP track; ShatterSense = uncapped track + passive perception)
 SHATTERPOINT_MISREAD_RESOLVED — only after misread consequence fully played out
 KNOWN_PERSON=[name]|[title]|[relation]|[summary]|[lastSeen] — persist character to People tab; send every turn for anyone Jared knows
 INTERACTION=[name]|[combat/training/force/dialogue] — weights interaction (combat=3, training/force=2, dialogue=1); profile visible in People at ≥5 weight
@@ -2305,7 +2305,7 @@ SHATTERPOINT_FOCUS_CLEAR
   Resets focus to 0 when scene ends or Jared disengages.
 
 SHATTERPOINT_XP=[amount]
-  Award proficiency XP. Standard: 50-150 per significant use. JS applies ×0.1 for innate.
+  Award proficiency XP. Standard: 50-150 per significant use.
 
 SHATTERPOINT_MISREAD_RESOLVED
   Send ONLY after the misread consequence has fully played out in narrative.
@@ -5433,8 +5433,7 @@ function updateCombatStrain(rounds, intensity) {
 // ═══════════════════════════════════════════════════════════════════
 
 // Shatterpoint uses a separate high-cost XP track
-// Standard: xpRequired(L) = floor(500 × 1.07^L) — 5× the normal formula
-// Innate talent (ShatterSense): effective cost ×0.1
+// xpRequired(L) = floor(500 × 1.07^L) — 5× the normal formula, same cost for all
 function spXPRequired(level) {
   return Math.floor(500 * Math.pow(1.07, Math.max(0, Math.floor(level || 0))));
 }
@@ -5470,8 +5469,7 @@ function spGetTier(level) {
 // Apply XP to shatterpoint track
 function spApplyXP(rawAmount) {
   if (!masterXP.shatterpoint) masterXP.shatterpoint = {};
-  const hasInnate = (characterSheet?.innateTalents || []).includes('ShatterSense');
-  const effectiveXP = hasInnate ? rawAmount * 0.1 : rawAmount; // ×0.1 for innate talent
+  const effectiveXP = rawAmount; // full cost — 5× formula applies to all
   if (!masterXP.shatterpoint.main) {
     masterXP.shatterpoint.main = { totalXP: 0 };
   }
@@ -7142,7 +7140,7 @@ const SIM_INNATE_TALENTS = [
   { key:'DarkAffinity',            label:'Dark Affinity',             effect:'Dark Side ability Strain ×0.85; alignment drift accelerates', special:false },
   { key:'LivingForceConnection',   label:'Living Force Connection',   effect:'Environmental Sense always active; Animal Bond strain-free', special:false },
   { key:'PrecognitiveEdge',        label:'Precognitive Edge',         effect:'Precognitive Reflexes prerequisite one tier lower', special:false },
-  { key:'ShatterSense',            label:'Shatterpoint (Innate)',     effect:'Shatterpoint XP cost ×0.1, strain ×0.3, uncapped track, passive perception', special:true },
+  { key:'ShatterSense',            label:'Shatterpoint (Innate)',     effect:'Shatterpoint: uncapped track, passive perception, strain ×0.3, seeded at L5', special:true },
   { key:'BattleMeditationAffinity',label:'Battle Meditation (Innate)',effect:'Battle Meditation XP ×0.3, Strain ×0.6', special:true },
 ];
 
@@ -9152,7 +9150,7 @@ function buildLoreContext() {
       if (hasShatterSense || spLvl > 0) {
         var spTiers = spLvl < 6 ? 'Tier1 only' : spLvl < 11 ? 'Tier1+Tier2' : 'Tier1+Tier2+Tier3';
         var spCap = spLvl<=20?25 : spLvl<=40?50 : 70;
-        out.push('  Shatterpoint(L' + spLvl + ' innate x0.1 XP cost): anchor=Meditation+Willpower+ForceSense | passive perception — no roll to detect; SHATTERPOINT_ROLL triggers interpretation quality | ' + spTiers + ' active | profCap:' + spCap + '% | surface ONLY genuine fracture points, not for dramatic effect');
+        out.push('  Shatterpoint(L' + spLvl + ' innate — uncapped track, passive perception): anchor=Meditation+Willpower+ForceSense | no roll to detect; SHATTERPOINT_ROLL triggers interpretation quality | ' + spTiers + ' active | profCap:' + spCap + '% | surface ONLY genuine fracture points, not for dramatic effect');
         if (hasShatterSense) {
           out.push('  !! ShatterSense innate is active — regular learned Shatterpoint ability is PERMANENTLY UNAVAILABLE. Never emit TRAINING:/XP: tags for forceAbilities.Shatterpoint. Use SHATTERPOINT_XP= for shatterpoint progression only.');
         }
@@ -9827,7 +9825,7 @@ async function simProcessDay(chunk, chunkNum, total) {
   if (spXPGained > 0) {
     const spRes = spApplyXP(spXPGained);
     if (spRes.levelUps > 0) levelUps.push(`Shatterpoint → Level ${spRes.newLevel}`);
-    xpGained['shatterpoint.Shatterpoint'] = Math.round(spRes.xpAdded); // actual XP applied (after ×0.1 innate reduction)
+    xpGained['shatterpoint.Shatterpoint'] = Math.round(spRes.xpAdded);
   }
 
   // Strain for the period (rolling accumulation — sleep recovers each night)
