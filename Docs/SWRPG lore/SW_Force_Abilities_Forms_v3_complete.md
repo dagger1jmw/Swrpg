@@ -613,6 +613,19 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
+#### Force Valor 🔵
+**Anchor Stats:** ForceOutput (physical acceleration and amplification) + Meditation (sustained attunement and ally projection)
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** A comprehensive Force-enhanced amplification of the user's own physical and mental performance — accelerating speed, reflexes, and striking power while sharpening accuracy and resolve. At higher levels, the resonant clarity radiates outward passively, extending a measure of the same enhancement to nearby allies.
+**Alignment:** Light Side
+**Prerequisites:** Battlemind 15+, ForceOutput 15+
+**Notes:** Distinct from its three closest relatives: **Battlemind** (internal mental focus only, no physical component, no ally effect), **Force Rage** (dark side counterpart — amplifies through anger at the cost of control and sanity), and **Battle Meditation** (strategic-scale perception shift affecting an entire battle rather than individual performance). Force Valor is the complete self-amplification package — physical and mental, self and allies.
+- Self-enhancement: the body moves and reacts faster, leaps farther and higher, strikes more powerfully, and fights with sharper accuracy.
+- Ally aura: at higher proficiency levels, the resonant clarity field extends passively to nearby Force-sensitives and non-sensitives alike — boosting their resolve and reaction time without requiring them to channel the Force themselves.
+- Yoda relied on Force Valor to compensate for the physical limitations of extreme old age, maintaining the speed and power requirements of Form IV (Ataru) in combat. Without it, the demands of that form would have been physically impossible for a being of his age.
+
+---
+
 #### Force Camouflage ⚪
 **Anchor Stat:** ForceControl (maintaining the bend in both visual and Force perception simultaneously)
 **Difficulty Tier: D=4.0 (Advanced)**
@@ -845,16 +858,6 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Light Side
 **Prerequisites:** Meditation 21+, Willpower 20+
 **Notes:** Different from Force Rage (which amplifies anger) — Battlemind amplifies calm clarity. Used by Jedi to maintain composure in overwhelming situations.
-
----
-
-#### Force Valor 🔵
-**Anchor Stats:** Meditation + Charisma
-**Difficulty Tier: D=2.5 (Complex)**
-**Summary:** Projecting confidence, courage, and clarity through the Force to nearby allies — boosting their resolve, reaction time, and performance in combat or crisis.
-**Alignment:** Light Side
-**Prerequisites:** Battlemind 15+, Charisma 15+
-**Notes:** Aura-effect ability. Affects nearby allies passively when active. Distinct from Battle Meditation (which is strategic) — Force Valor is personal morale amplification.
 
 ---
 

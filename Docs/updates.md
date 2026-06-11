@@ -1089,3 +1089,401 @@ All three sections unified to CLAUDE.md canonical tier names and ranges.
 - `memory/project_swrpg.md` (updated current version reference)
 
 ---
+
+## V123b — 2026-06-10
+
+**Fix: Orphaned `if`-statement syntax error + 429 retry-after parsing**
+
+### Problem 1 — Syntax error kills entire script block after console.log removal
+
+#### Root Cause
+
+During the V123 cleanup pass, 11 `console.log` statements were removed. One of them was the sole body of an `if` statement:
+
+```javascript
+if (characterSheet.aptitudes.length < before) {
+    console.log('repairTalentConsistency stripped', before - characterSheet.aptitudes.length, 'Force-ability keys from aptitudes');
+}
+```
+
+After removing the `console.log` line, the `if` block was left with an empty body:
+
+```javascript
+if (characterSheet.aptitudes.length < before) {
+}
+```
+
+This is valid JavaScript. However, inspection revealed the actual remaining code was a bare `if (condition)` with no braces at all — the exact form that causes `SyntaxError: Unexpected token '}'` on the closing `}` of the outer enclosing block. The JS engine chokes before executing a single line, so no event handlers attach: the page renders but every button is dead.
+
+**Symptom:** Game loads on the API key / title screen. No button responds. Looks like a localStorage or save detection problem but is a parse error.
+
+**Diagnosis method:**
+```bash
+# Extract the script block to a temp file
+node -e "const fs=require('fs'); const m=fs.readFileSync('index.html','utf8').match(/<script[^>]*>([\s\S]*?)<\/script>/); fs.writeFileSync('_check.js','export {};\n'+m[1])"
+node --input-type=module < _check.js
+```
+
+Error returned: `SyntaxError: Unexpected token '}' (line 4090 of extracted JS = line ~5747 of index.html)`.
+
+#### Fix Applied
+
+Removed the orphaned `if` line entirely. The condition had no side effects and the body was empty — the whole block was dead after the log was removed.
+
+**Before:**
+```javascript
+if (characterSheet.aptitudes.length < before) {
+}
+```
+
+**After:** (line deleted)
+
+### Problem 2 — Rate-limit 429 retries all failing inside the retry window
+
+#### Root Cause
+
+`callGemini` had a retry loop (up to 3 attempts) with fixed waits of 20 s, 40 s, and 60 s. The Gemini free-tier API responds to a rate-limit 429 with an error message like:
+
+```
+Quota exceeded for quota metric 'generate_content_free_tier_input_token_count_per_minute_per_project_per_model'
+...
+retry the request in 56s
+```
+
+The fixed 20 s / 40 s waits fire well before the 56 s window expires — all three retries hit the same rate-limit block. After the third failure the function throws a permanent error that the player cannot dismiss without changing their API key (because `isThinking` stays `true` and the UI never unlocks the send button properly).
+
+#### Fix Applied
+
+Parse the actual retry-after duration from the API error message, add a 3-second buffer, and use that as the wait time. Fall back to `(retryCount + 1) × 25` seconds only when the regex does not match.
+
+**Before:**
+```javascript
+if (resp.status === 429) {
+  const waitMs = (retryCount + 1) * 20000;
+  if (retryCount < 3) {
+    showRetryMessage(waitMs / 1000, retryCount + 1);
+    await sleep(waitMs);
+    return callGemini(playerMessage, retryCount + 1);
+  }
+  throw new Error('Rate limit reached. Please wait and try again.');
+}
+```
+
+**After:**
+```javascript
+if (resp.status === 429) {
+  const err429 = await resp.json().catch(() => ({}));
+  const retryMsg = err429?.error?.message || '';
+  const retryMatch = retryMsg.match(/retry in ([\d.]+)s/i);
+  const waitSecs = retryMatch
+    ? Math.ceil(parseFloat(retryMatch[1])) + 3
+    : (retryCount + 1) * 25;
+  if (retryCount < 3) {
+    showRetryMessage(waitSecs, retryCount + 1);
+    await sleep(waitSecs * 1000);
+    return callGemini(playerMessage, retryCount + 1);
+  } else {
+    throw new Error(`Rate limit — API requests retry in ${waitSecs}s. Wait and try again.`);
+  }
+}
+```
+
+### Code Location
+
+- Orphaned `if` removal: `repairTalentConsistency()`, line ~5747 in `index.html` (JS line ~4090)
+- 429 retry handler: `callGemini()`, lines ~3884–3893 in `index.html`
+
+### Files Changed
+- `index.html`
+- `memory/feedback_backtick_bug.md` (added Cause 2: orphaned if-statement after console.log removal)
+
+---
+
+## V123c — 2026-06-10
+
+**Fix: Remove ShatterSense ×0.1 XP discount from `spApplyXP`**
+
+### Root Cause
+
+The `ShatterSense` innate talent was originally designed with a 90% XP cost discount (×0.1 multiplier) on all Shatterpoint XP — this predated the 5× cost formula (`spXPRequired(L) = floor(500 × 1.07^L)` vs the standard `xpRequired(L) = floor(100 × 1.07^L)`).
+
+When the 5× cost formula was introduced as the primary cost differentiation, the ×0.1 discount was not removed from `spApplyXP`. The two mechanisms stacked:
+
+- Standard Shatterpoint XP cost: 5× normal
+- With `ShatterSense`: 5× normal × 0.1 = 0.5× normal — cheaper than any regular stat
+
+This meant ShatterSense holders were leveling Shatterpoint at half the cost of a standard skill, which was far below design intent. The talent's documented advantage is passive perception (no roll to detect shatterpoints) and an uncapped track — not a cost discount.
+
+The multiplier code:
+```javascript
+// before fix — spApplyXP()
+const hasInnate = characterSheet.innateTalents?.includes('ShatterSense');
+const effectiveXP = hasInnate ? rawAmount * 0.1 : rawAmount;
+```
+
+### Fix Applied
+
+Removed the `hasInnate` check and the `* 0.1` branch. All Shatterpoint XP now applies at the full raw amount (discounted only by the 5× cost curve already baked into `spXPRequired`).
+
+**Before:**
+```javascript
+function spApplyXP(rawAmount) {
+  const hasInnate = characterSheet.innateTalents?.includes('ShatterSense');
+  const effectiveXP = hasInnate ? rawAmount * 0.1 : rawAmount;
+  masterXP.shatterpoint.main.totalXP = (masterXP.shatterpoint.main.totalXP || 0) + effectiveXP;
+  spSyncFromTotalXP();
+}
+```
+
+**After:**
+```javascript
+function spApplyXP(rawAmount) {
+  masterXP.shatterpoint.main.totalXP = (masterXP.shatterpoint.main.totalXP || 0) + rawAmount;
+  spSyncFromTotalXP();
+}
+```
+
+Updated three other locations that referenced the old discount behavior:
+- `SIM_INNATE_TALENTS` effect description for `ShatterSense` (removed "XP cost ×0.1" line)
+- `buildLoreContext()` AI injection note (~line 9155) — updated to "5× XP cost (no discount)"
+- `MASTER_PROMPT` `SHATTERPOINT_XP=` doc comment — removed ×0.1 note
+
+Also updated `CLAUDE.md` Section 4B to reflect the change: "No cost discount — same 5× formula applies."
+
+### Code Location
+
+- `spApplyXP()`: line ~5474 in `index.html`
+- `SIM_INNATE_TALENTS` ShatterSense entry: line ~5437
+- `buildLoreContext()` AI note: line ~9155
+
+### Files Changed
+- `index.html`
+- `CLAUDE.md` (Section 4B ShatterSense description)
+
+---
+
+## V123d — 2026-06-10
+
+**Feature: Shatterpoint added to XP Injector modal**
+
+### Root Cause / Missing Feature
+
+The XP Injector modal (`openXPInject()`) iterated only over `characterSheet.forceStats`, `characterSheet.stats`, `characterSheet.forceAbilities`, and `characterSheet.lightsaberForms` to build the stat dropdown. Shatterpoint XP lives in `masterXP.shatterpoint.main.totalXP` — a completely separate track not accessible through any of those four object paths. Players had no way to manually inject XP into the Shatterpoint track through the UI.
+
+### Fixes Applied
+
+**1. Added `shatterpoint.main` entry to the injector dropdown**
+
+In `openXPInject()`, after the Force Abilities section, added:
+```javascript
+if (masterXP.shatterpoint?.main !== undefined) {
+  addGroup('Shatterpoint', [['shatterpoint.main', 'Shatterpoint']]);
+}
+```
+
+**2. Extended `updatePreview()` to handle `shatterpoint.main` path**
+
+The preview function shows current level and projected XP gain. Added a branch that calls `spDeriveFromTotalXP(currentTotal)` and `spDeriveFromTotalXP(currentTotal + amount)` to display Shatterpoint tier and level in the same format as other stats:
+
+```javascript
+} else if (selectedPath === 'shatterpoint.main') {
+  const cur = masterXP.shatterpoint?.main?.totalXP || 0;
+  const before = spDeriveFromTotalXP(cur);
+  const after  = spDeriveFromTotalXP(cur + amount);
+  preview.textContent = `Shatterpoint: Level ${before.level} → ${after.level}  (${cur} → ${cur + amount} XP)`;
+}
+```
+
+**3. Extended `confirmXPInject()` to apply via `spApplyXP`**
+
+```javascript
+} else if (selectedPath === 'shatterpoint.main') {
+  spApplyXP(amount);
+  statLabel = 'Shatterpoint';
+}
+```
+
+**4. Fixed `statLabel` display** — the confirm function used `selectedPath.split('.').pop()` to derive a display name. Added a `statLabel` variable initialized before the branch block and used in the success toast, so all three path types (standard, shatterpoint, proficiency) show human-readable names.
+
+### Code Location
+
+- `openXPInject()`: line ~6935 in `index.html`
+- `updatePreview()` / `confirmXPInject()`: lines ~6960, ~6985
+
+### Files Changed
+- `index.html`
+
+---
+
+## V123e — 2026-06-10
+
+**Fix + Feature: Sub-ability proficiency system fully wired (XP injector, simulation, prompt)**
+
+### Root Cause
+
+The sub-ability proficiency system (`masterXP.forceAbilityProficiency`) was added in V111 along with `applyProficiencyXP()`, `deriveProficiency()`, and `FORCE_ABILITY_CATALOG` entries with `par` (parent) pointers. However three consumers were never updated to use it:
+
+1. **XP Injector** — had no entries for sub-ability proficiency paths at all
+2. **Simulation panel** — `simBuildActivityOptions()` returned only static `SIM_ACTIVITIES`; proficiency sub-abilities never appeared as trainable activities; `simProcessDay()` used `SIM_ACTIVITIES.find()` directly, missing any dynamically-generated entries
+3. **AI Prompt** — `TRAINING:` examples listed `TRAINING: forceAbilities.ForcePush` implying sub-abilities had base-ability entries in `masterXP.forceAbilities`. This caused the AI to write `TRAINING: forceAbilities.ForcePush`, which created a phantom `masterXP.forceAbilities.ForcePush` entry that `syncMasterXPToSheet()` then treated as a real ability — inflating displayed Force ability count and wasting XP in the wrong track.
+
+**Result:** Players training Force Push received Telekinesis base XP (correct, via trickle) but zero proficiency progression. ForcePush showed `Novice (0%)` indefinitely regardless of training.
+
+### Fixes Applied
+
+**1. XP Injector: sub-ability proficiency section**
+
+In `openXPInject()`, after the Shatterpoint section, added a dynamic section that iterates `FORCE_ABILITY_CATALOG` to find sub-abilities (`cat.par !== null`) whose parent exists in `characterSheet.forceAbilities`, and exposes them as `proficiency.ParentKey.SubKey` paths:
+
+```javascript
+const profPaths = [];
+if (typeof FORCE_ABILITY_CATALOG !== 'undefined') {
+  for (const [subKey, cat] of Object.entries(FORCE_ABILITY_CATALOG)) {
+    if (!cat.par) continue;
+    if (!(cat.par in (characterSheet.forceAbilities || {}))) continue;
+    profPaths.push([
+      `proficiency.${cat.par}.${subKey}`,
+      `${cat.label || subKey} (${cat.par})`
+    ]);
+  }
+}
+if (profPaths.length) addGroup('Sub-Ability Proficiency', profPaths);
+```
+
+**2. XP Injector: `updatePreview()` proficiency branch**
+
+Added a branch for paths starting with `proficiency.` that computes the discount-adjusted effective XP, derives current and projected percentage via `deriveProficiency()`, and displays the proficiency tier and any tier transition:
+
+```javascript
+} else if (selectedPath.startsWith('proficiency.')) {
+  const compositeKey = selectedPath.slice(12);           // "Telekinesis.ForcePush"
+  const parentKey = compositeKey.split('.')[0];
+  const subKey    = compositeKey.split('.')[1];
+  const entry     = masterXP.forceAbilityProficiency?.[compositeKey];
+  const D         = entry?.D || (FORCE_ABILITY_CATALOG[subKey]?.D ?? 1.0);
+  const curProfXP = entry?.totalProfXP || 0;
+  const baseLevel = deriveLevel(masterXP.forceAbilities?.[parentKey]?.totalXP || 0);
+  const fc        = deriveLevel(masterXP.forceStats?.forceControl?.totalXP || 0);
+  const discount  = profBaseAbilityFactor(baseLevel) * profControlFactor(fc);
+  const effAdded  = amount / discount;
+  const before    = deriveProficiency(curProfXP, D);
+  const after     = deriveProficiency(curProfXP + effAdded, D);
+  preview.textContent =
+    `${subKey}: ${before.tier} (${Math.round(before.percentage)}%) → ` +
+    `${after.tier} (${Math.round(after.percentage)}%)  [discount ×${discount.toFixed(2)}]`;
+}
+```
+
+**3. XP Injector: `confirmXPInject()` proficiency branch**
+
+```javascript
+} else if (selectedPath.startsWith('proficiency.')) {
+  const compositeKey = selectedPath.slice(12);
+  const parentKey = compositeKey.split('.')[0];
+  const subKey    = compositeKey.split('.')[1];
+  applyProficiencyXP(parentKey, subKey, amount);
+  statLabel = `${subKey} proficiency`;
+}
+```
+
+**4. Simulation panel: dynamic proficiency activity generation**
+
+In `simBuildActivityOptions(cs)`, after building the static activity list, appended one entry per sub-ability whose parent is in `cs.forceAbilities`:
+
+```javascript
+// Dynamic proficiency activities
+if (typeof FORCE_ABILITY_CATALOG !== 'undefined') {
+  for (const [subKey, cat] of Object.entries(FORCE_ABILITY_CATALOG)) {
+    if (!cat.par) continue;
+    if (!(cat.par in (cs.forceAbilities || {}))) continue;
+    allActivities.push({
+      id: `prof_${cat.par}_${subKey}`,
+      label: `${cat.label || subKey} Practice`,
+      category: 'proficiency',
+      isProficiency: true,
+      profKey: `${cat.par}.${subKey}`,
+      parentKey: cat.par,
+      subKey: subKey,
+      D: cat.D ?? 1.0,
+      weights: [{ stat: `forceAbilities.${cat.par}`, w: 0.6 }, { stat: `forceStats.forceControl`, w: 0.4 }],
+      strainBias: { force: 1.8, mental: 1.0, physical: 0.3 },
+      unlock: () => true
+    });
+  }
+}
+```
+
+**5. Simulation panel: `simProcessDay()` activity lookup fix**
+
+Was: `SIM_ACTIVITIES.find(a => a.id === actId) || simCustomDrills.find(...)` — missed the dynamically-generated proficiency entries.
+
+Changed to: `simBuildActivityOptions(cs).find(a => a.id === actId)` so all three activity sources (static, custom drills, proficiency) are searched.
+
+Added a `profXPGained = {}` accumulator. Added `isProficiency` branch in the per-hour loop:
+
+```javascript
+if (act.isProficiency) {
+  const rawXP = baseXP * actWeight * strainPenalty;
+  profXPGained[act.profKey] = (profXPGained[act.profKey] || 0) + rawXP;
+}
+```
+
+After the hours loop, applied accumulated proficiency XP:
+```javascript
+for (const [compositeKey, rawXP] of Object.entries(profXPGained)) {
+  const [parentKey, subKey] = compositeKey.split('.');
+  applyProficiencyXP(parentKey, subKey, rawXP);
+}
+```
+
+**6. Simulation complete card: proficiency progress display**
+
+In `finishSimulation()`, added a `proficiency.*` special case before the standard `category.key` split. Renders a purple progress bar row showing percentage gained and proficiency tier, with a tier-transition tag if the tier changed:
+
+```javascript
+if (p.startsWith('proficiency.')) {
+  const compositeKey = p.slice(12);
+  const subKey = compositeKey.slice(compositeKey.indexOf('.') + 1);
+  const entry  = masterXP.forceAbilityProficiency?.[compositeKey];
+  const D      = entry?.D || 1.0;
+  const curTotal   = entry?.totalProfXP || 0;
+  const afterPct   = deriveProficiency(curTotal, D).percentage;
+  const afterTier  = deriveProficiency(curTotal, D).tier;
+  const beforePct  = deriveProficiency(Math.max(0, curTotal - xpGained), D).percentage;
+  const beforeTier = deriveProficiency(Math.max(0, curTotal - xpGained), D).tier;
+  const pctGained  = Math.round(afterPct - beforePct);
+  const tierTag    = (beforeTier !== afterTier)
+    ? `<span class="sim-tier-tag">${afterTier}</span>` : '';
+  // ... renders purple bar row with % display and tier tag
+  continue;
+}
+```
+
+**7. AI Prompt fix: sub-abilities removed from `TRAINING:` examples**
+
+Removed `ForcePush` from the `TRAINING:` format example section. Added explicit rules:
+
+```
+Sub-abilities (ForcePush, ForceStorm, etc.) are NOT valid TRAINING: targets.
+Use PROFICIENCY: ParentAbility.SubAbility,xpAmount instead.
+When narrating sub-ability training, include BOTH:
+  TRAINING: forceAbilities.Telekinesis, hours, intensity, difficulty, outcome
+  PROFICIENCY: Telekinesis.ForcePush, xpAmount
+```
+
+This prevents phantom `masterXP.forceAbilities.ForcePush` entries being created.
+
+### Code Location
+
+- `openXPInject()` proficiency section: line ~6940 in `index.html`
+- `updatePreview()` proficiency branch: line ~6965
+- `confirmXPInject()` proficiency branch: line ~6990
+- `simBuildActivityOptions()` dynamic section: line ~9257
+- `simProcessDay()` activity lookup + proficiency branch: line ~9843
+- `finishSimulation()` proficiency card section: line ~9992
+- Prompt `TRAINING:` sub-ability rules: MASTER_PROMPT section ~line 1750
+
+### Files Changed
+- `index.html`
+
+---

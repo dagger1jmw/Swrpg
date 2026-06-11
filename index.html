@@ -7281,6 +7281,7 @@ const FORCE_ABILITY_CATALOG = {
   ForceEndurance:          { fam:'Body', label:'Force Endurance',          par:null,              D:1.5,  align:'neutral', anchors:['meditation','forceControl'],  prereqs:{forceControl:10, endurance:10},            flags:[] },
   ForceEnhancedReflexes:   { fam:'Body', label:'Force-Enhanced Reflexes',  par:null,              D:2.5,  align:'neutral', anchors:['forceSense','forceControl'],  prereqs:{forceSense:15, forceControl:10},           flags:[] },
   ForceHealSelf:           { fam:'Body', label:'Force Heal (Self)',         par:null,              D:2.5,  align:'light',   anchors:['meditation','forceControl'],  prereqs:{meditation:21, forceControl:15},           flags:[] },
+  ForceValor:              { fam:'Body', label:'Force Valor',              par:null,              D:2.5,  align:'light',   anchors:['forceOutput','meditation'],    prereqs:{Battlemind:15, forceOutput:15},            flags:[] },
   ForceCamouflage:         { fam:'Body', label:'Force Camouflage',         par:null,              D:4.0,  align:'neutral', anchors:['forceControl'],               prereqs:{forceControl:41},                         flags:[] },
   ForceCloak:              { fam:'Body', label:'Force Cloak',              par:'ForceCamouflage', D:4.0,  align:'neutral', anchors:['forceControl'],               prereqs:{ForceCamouflage:30},                      flags:[] },
   BreathControl:           { fam:'Body', label:'Breath Control',           par:null,              D:1.5,  align:'neutral', anchors:['meditation'],                 prereqs:{meditation:15, endurance:10},             flags:[] },
@@ -7310,7 +7311,6 @@ const FORCE_ABILITY_CATALOG = {
   ComprehendSpeech:       { fam:'Mental', label:'Comprehend Speech',       par:null,          D:1.0,  align:'neutral', anchors:['forceSense','forceKnowledge'], prereqs:{forceKnowledge:21, forceSense:15},         flags:[] },
   ForceListening:         { fam:'Mental', label:'Force Listening',         par:null,          D:4.0,  align:'neutral', anchors:['meditation','forceSense'],      prereqs:{meditation:41, forceSense:30},             flags:[] },
   Battlemind:             { fam:'Mental', label:'Battlemind',              par:null,          D:2.5,  align:'light',   anchors:['meditation'],                  prereqs:{meditation:21, willpower:20},             flags:[] },
-  ForceValor:             { fam:'Mental', label:'Force Valor',             par:null,          D:2.5,  align:'light',   anchors:['meditation','charisma'],        prereqs:{Battlemind:15, charisma:15},              flags:[] },
 
   // ── DEFENSE FAMILY ───────────────────────────────────────────────────────
   // Three sub-app pairs: ForceBarrier→ProtectionBubble, Tutaminis→ForceAbsorb,

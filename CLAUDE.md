@@ -141,7 +141,7 @@ Level is **always derived** from totalXP — it is never stored. `masterXP` is t
 spXPRequired(n) = floor(500 × 1.07^n)    // 5× the standard cost
 ```
 
-Innate (`ShatterSense` talent): XP cost ×0.1 (90% cheaper), uncapped track, seeded at Level 5.
+Innate (`ShatterSense` talent): uncapped track, passive perception, strain ×0.3, seeded at Level 5. **No cost discount** — same 5× formula applies.
 Standard path (no innate): hard cap at Level 20, limited to Tier 1 and basic Tier 2.
 
 ### 4C. Training XP Formula (AI CHANGES block)
