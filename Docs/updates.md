@@ -4,6 +4,117 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V123f — 2026-06-11
+
+**Fix: NPC People panel — characters never appeared despite interactions**
+
+### Root Cause
+
+**Root Cause 1 — `isNaN(val) continue` guard killed all string-valued CHANGES tags.**
+
+At line 4430 (pre-fix), immediately before the `switch(key)` block, the parser ran:
+
+```javascript
+if (isNaN(val)) continue;
+```
+
+`val` was set at line 4384 as:
+```javascript
+const val = isNaN(rawVal) ? rawVal : parseFloat(rawVal);
+```
+
+So for a tag like `KNOWN_PERSON=Ngani Zho|Jedi Master|Mentor|...`, `rawVal = "Ngani Zho|Jedi Master|..."`, `val = "Ngani Zho|..."` (the string), `isNaN(string) = true` → `continue` → the switch was entirely skipped. Every string-valued switch case was dead code:
+
+- `KNOWN_PERSON` — never ran
+- `INTERACTION` — never ran
+- `GENERATE_PROFILE` — never ran
+- `PROFILE_STATS` — never ran
+- `PENDING_EVENT` — never ran
+- `NPC_AGENDA` — never ran
+- `RESOLVE_EVENT` — never ran
+- `RESOLVE_NPC_AGENDA` — never ran
+- `SCENE_NPCS` — never ran
+- `GALAXY_EVENT` — never ran
+- `SHATTERPOINT_PERCEIVED` — never ran
+- `SHATTERPOINT_ROLL` — never ran
+- `SHATTERPOINT_FOCUS_CLEAR` — never ran
+- `SHATTERPOINT_MISREAD_RESOLVED` — never ran
+
+**Root Cause 2 — `INTERACTION` threshold reached but `trackedCharacters` never seeded.**
+
+Even if the INTERACTION tag had run, the People panel `renderCharactersPanel()` only reads `worldState.trackedCharacters`. The `INTERACTION` case wrote to `worldState.characterProfiles[name].visibleInPeople = true` but never added a corresponding entry to `trackedCharacters`. The two systems were disconnected.
+
+### Fixes Applied
+
+**Fix 1 — Removed the blanket `isNaN(val) continue` guard; added per-case numeric guards.**
+
+Removed:
+```javascript
+// Regular stat fields
+if (isNaN(val)) continue;
+switch(key) {
+  case 'HP': characterSheet.hp = val; break;
+  ...
+```
+
+Replaced with per-case `if (isNaN(val)) break;` guards in all numeric-only cases: `HP`, `FORCE_STRAIN`, `PHYSICAL_STRAIN`, `MENTAL_STRAIN`, `FORCE_BARRIER`, `SHATTERPOINT_FOCUS`, `SHATTERPOINT_XP`, `DARK_PRESSURE`, `SURRENDER_DISCOUNT`. String-valued cases already use `trimmed.slice(N)` and are unaffected.
+
+**Fix 2 — Bridged INTERACTION → `trackedCharacters` when weight threshold is hit.**
+
+In the `INTERACTION` case, when `interactionWeights[name] >= 5` and `visibleInPeople` is set to true, immediately push a `trackedCharacters` entry:
+
+```javascript
+if (!worldState.trackedCharacters) worldState.trackedCharacters = [];
+if (!worldState.trackedCharacters.find(c => c.name === intName)) {
+  const _prof = worldState.characterProfiles[intName];
+  worldState.trackedCharacters.push({
+    name: intName,
+    title: _prof.description || '',
+    relation: 'Known',
+    summary: _prof.description || 'Met through repeated interactions.',
+    lastSeen: worldState.inGameDate || ''
+  });
+}
+```
+
+**Fix 3 — Added `repairCharacterProfiles()` migration for existing saves.**
+
+On load, after `normalizeWorldState()` and `seedCanonProfiles()`, the new function scans `worldState.characterProfiles` for all entries with `visibleInPeople = true` that lack a corresponding `trackedCharacters` entry, and creates the missing entries. This retroactively repairs saves where characters had accumulated enough interaction weight before the fix.
+
+```javascript
+function repairCharacterProfiles() {
+  if (!worldState) return;
+  const profiles = worldState.characterProfiles;
+  if (!profiles) return;
+  if (!worldState.trackedCharacters) worldState.trackedCharacters = [];
+  for (const [name, prof] of Object.entries(profiles)) {
+    if (!prof.visibleInPeople) continue;
+    if (worldState.trackedCharacters.find(c => c.name === name)) continue;
+    worldState.trackedCharacters.push({
+      name: name,
+      title: prof.description || '',
+      relation: 'Known',
+      summary: prof.description || 'Met through repeated interactions.',
+      lastSeen: prof.firstMet || worldState.inGameDate || ''
+    });
+  }
+}
+```
+
+### Code Location
+
+- `isNaN` guard removal: `index.html` ~line 4430 (CHANGES parser switch)
+- `INTERACTION` bridge: `index.html` ~line 4575 (INTERACTION case)
+- `repairCharacterProfiles()`: `index.html` ~line 5763 (before `repairTalentConsistency`)
+- Load call: `index.html` ~line 6887 (`if (worldState) { ... repairCharacterProfiles(); }`)
+
+### Files Changed
+
+- `index.html`
+- `Docs/updates.md`
+
+---
+
 ## V121b — 2026-06-09
 
 **Fix: Truncated AI responses (missing CHANGES/SHEET/WORLD blocks)**

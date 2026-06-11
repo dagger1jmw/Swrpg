@@ -4426,13 +4426,11 @@ async function callGemini(playerMessage, retryCount = 0) {
           continue;
         }
 
-        // Regular stat fields
-        if (isNaN(val)) continue;
+        // Regular stat fields — numeric guard is per-case below; string-valued cases use trimmed.slice(N)
         switch(key) {
-          case 'HP':                characterSheet.hp = val; break;
+          case 'HP':                if (isNaN(val)) break; characterSheet.hp = val; break;
           case 'FORCE_STRAIN': {
-            // Apply endurance mitigation to the strain DELTA (not absolute)
-            // Force strain: endurance mitigates at 50% rate (Force is more mental than physical)
+            if (isNaN(val)) break;
             const _em = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
             const _curF = characterSheet.forceStrain || 0;
             const _rawDeltaF = val - _curF;
@@ -4441,7 +4439,7 @@ async function callGemini(playerMessage, retryCount = 0) {
             break;
           }
           case 'PHYSICAL_STRAIN': {
-            // Physical strain: endurance mitigates at full rate
+            if (isNaN(val)) break;
             const _em2 = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
             const _curP = characterSheet.physicalStrain || 0;
             const _rawDeltaP = val - _curP;
@@ -4450,7 +4448,7 @@ async function callGemini(playerMessage, retryCount = 0) {
             break;
           }
           case 'MENTAL_STRAIN': {
-            // Mental strain: endurance mitigates at 30% rate (it's mostly willpower/focus)
+            if (isNaN(val)) break;
             const _em3 = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
             const _curM = characterSheet.mentalStrain || 0;
             const _rawDeltaM = val - _curM;
@@ -4458,7 +4456,7 @@ async function callGemini(playerMessage, retryCount = 0) {
             characterSheet.mentalStrain = Math.max(0, Math.min(characterSheet.maxMentalStrain||100, _curM + _mitigatedDeltaM));
             break;
           }
-          case 'FORCE_BARRIER':     characterSheet.forceBarrier = val; break;
+          case 'FORCE_BARRIER':     if (isNaN(val)) break; characterSheet.forceBarrier = val; break;
           case 'SHATTERPOINT_PERCEIVED': {
             // Format: tier,description  e.g. "1,Old knee injury — right leg carries weight unevenly"
             const spParts = trimmed.slice(22).split(',');
@@ -4489,6 +4487,7 @@ async function callGemini(playerMessage, retryCount = 0) {
           }
 
           case 'SHATTERPOINT_FOCUS': {
+            if (isNaN(val)) break;
             spSetFocus(val);
             break;
           }
@@ -4499,6 +4498,7 @@ async function callGemini(playerMessage, retryCount = 0) {
           }
 
           case 'SHATTERPOINT_XP': {
+            if (isNaN(val)) break;
             const spXPResult = spApplyXP(val);
             if (spXPResult.xpAdded > 0) {
               turnXPLog.push({
@@ -4574,6 +4574,18 @@ async function callGemini(playerMessage, retryCount = 0) {
               }
               if (worldState.interactionWeights[intName] >= 5 && !worldState.characterProfiles[intName].visibleInPeople) {
                 worldState.characterProfiles[intName].visibleInPeople = true;
+                // Bridge to trackedCharacters so the People panel shows this character
+                if (!worldState.trackedCharacters) worldState.trackedCharacters = [];
+                if (!worldState.trackedCharacters.find(c => c.name === intName)) {
+                  const _prof = worldState.characterProfiles[intName];
+                  worldState.trackedCharacters.push({
+                    name: intName,
+                    title: _prof.description || '',
+                    relation: 'Known',
+                    summary: _prof.description || 'Met through repeated interactions.',
+                    lastSeen: worldState.inGameDate || ''
+                  });
+                }
                 const feed = document.getElementById('story-feed');
                 if (feed) {
                   const nd = document.createElement('div'); nd.className = 'msg';
@@ -4695,6 +4707,7 @@ async function callGemini(playerMessage, retryCount = 0) {
             break;
           }
           case 'DARK_PRESSURE': {
+            if (isNaN(val)) break;
             if (!characterSheet.momentumWindow) characterSheet.momentumWindow = {active:false,multiplier:1.0,expiresDate:'',surrenderDiscount:0};
             const newPressure = Math.max(0, Math.min(100, val));
             const oldPressure = characterSheet.darkPressure || 0;
@@ -4736,6 +4749,7 @@ async function callGemini(playerMessage, retryCount = 0) {
             break;
           }
           case 'SURRENDER_DISCOUNT': {
+            if (isNaN(val)) break;
             if (!characterSheet.momentumWindow) characterSheet.momentumWindow = {active:false,multiplier:1.0,expiresDate:'',surrenderDiscount:0};
             characterSheet.momentumWindow.surrenderDiscount = Math.max(0, Math.min(0.5, val));
             break;
@@ -5746,6 +5760,26 @@ function applyTalentXPMultiplier(statPath, baseXP) {
 //    the talent panel, leaving the functional key absent from innateTalents[]. Promotes the key so the
 //    XP multiplier and other mechanics actually fire.
 // 3. Force ability catalog keys in aptitudes[] — remove them so they don't appear as character traits.
+// Migrate characterProfiles.visibleInPeople=true entries into trackedCharacters.
+// Runs on load to repair saves from before the INTERACTION→trackedCharacters bridge.
+function repairCharacterProfiles() {
+  if (!worldState) return;
+  const profiles = worldState.characterProfiles;
+  if (!profiles) return;
+  if (!worldState.trackedCharacters) worldState.trackedCharacters = [];
+  for (const [name, prof] of Object.entries(profiles)) {
+    if (!prof.visibleInPeople) continue;
+    if (worldState.trackedCharacters.find(c => c.name === name)) continue;
+    worldState.trackedCharacters.push({
+      name: name,
+      title: prof.description || '',
+      relation: 'Known',
+      summary: prof.description || 'Met through repeated interactions.',
+      lastSeen: prof.firstMet || worldState.inGameDate || ''
+    });
+  }
+}
+
 function repairTalentConsistency() {
   if (!characterSheet) return;
   // Strip invalid keys from innateAbilities (only SIM_INNATE_ABILITIES keys belong there)
@@ -6871,6 +6905,7 @@ function loadFromSave(save) {
   if (worldState) {
     normalizeWorldState();
     seedCanonProfiles();
+    repairCharacterProfiles();
   }
   campaignSummary = save.campaignSummary || '';
   galaxySimState = save.galaxySimState || {};
