@@ -10014,7 +10014,7 @@ function simAddSecondaryRow(statVal='', weightVal='0.5') {
   const empty = document.getElementById('drill-secondaries-empty');
   if (empty) empty.style.display = 'none';
   const cs = characterSheet || {};
-  const hasShatterpoint = (cs.innateTalents||[]).includes('ShatterSense') || (cs.shatterpointLevel||0) > 0;
+  const hasShatterpoint = masterXP?.shatterpoint?.main !== undefined;
   const opts = ['<option value="">— select stat —</option>',
     ...Object.keys(cs.forceStats||{}).map(k=>`<option value="forceStats.${k}">${k} (Force Stat)</option>`),
     ...Object.keys(cs.stats||{}).map(k=>`<option value="stats.${k}">${k} (Stat)</option>`),
@@ -10087,7 +10087,7 @@ function simBuildPrimaryDropdown() {
   const cs = characterSheet || {};
   const sel = document.getElementById('drill-primary');
   if (!sel) return;
-  const hasShatterpoint = (cs.innateTalents||[]).includes('ShatterSense') || (cs.shatterpointLevel||0) > 0;
+  const hasShatterpoint = masterXP?.shatterpoint?.main !== undefined;
   const opts = [
     ...Object.keys(cs.forceStats||{}).map(k=>`<option value="forceStats.${k}">${k} (Force Stat)</option>`),
     ...Object.keys(cs.stats||{}).map(k=>`<option value="stats.${k}">${k} (Stat)</option>`),
