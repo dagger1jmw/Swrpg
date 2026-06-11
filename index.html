@@ -10013,15 +10013,7 @@ function simEditDrill(id) {
 function simAddSecondaryRow(statVal='', weightVal='0.5') {
   const empty = document.getElementById('drill-secondaries-empty');
   if (empty) empty.style.display = 'none';
-  const cs = characterSheet || {};
-  const hasShatterpoint = masterXP?.shatterpoint?.main !== undefined;
-  const opts = ['<option value="">— select stat —</option>',
-    ...Object.keys(cs.forceStats||{}).map(k=>`<option value="forceStats.${k}">${k} (Force Stat)</option>`),
-    ...Object.keys(cs.stats||{}).map(k=>`<option value="stats.${k}">${k} (Stat)</option>`),
-    ...Object.keys(cs.forceAbilities||{}).map(k=>`<option value="forceAbilities.${k}">${k} (Ability)</option>`),
-    ...Object.keys(cs.lightsaberForms||{}).map(k=>`<option value="lightsaberForms.${k}">${k} (Form)</option>`),
-    ...(hasShatterpoint ? ['<option value="shatterpoint.main">Shatterpoint (Special)</option>'] : []),
-  ].join('');
+  const opts = simBuildStatOptgroupsHTML('— select stat —');
   const row = document.createElement('div');
   row.className = 'drill-sec-row';
   row.style.cssText = 'display:grid;grid-template-columns:1fr 110px auto;gap:6px;align-items:center';
@@ -10083,19 +10075,35 @@ function simAddDrillToSchedule(drillId) {
   }
 }
 
-function simBuildPrimaryDropdown() {
+function simBuildStatOptgroupsHTML(placeholder) {
   const cs = characterSheet || {};
+  const hasShatterpoint = masterXP?.shatterpoint?.main !== undefined;
+  let html = `<option value="">${placeholder || '— select stat —'}</option>`;
+  const fsKeys = Object.keys(cs.forceStats||{});
+  if (fsKeys.length) html += `<optgroup label="Force Stats">${fsKeys.map(k=>`<option value="forceStats.${k}">${k}</option>`).join('')}</optgroup>`;
+  const stKeys = Object.keys(cs.stats||{});
+  if (stKeys.length) html += `<optgroup label="Core Stats">${stKeys.map(k=>`<option value="stats.${k}">${k}</option>`).join('')}</optgroup>`;
+  const lfKeys = Object.keys(cs.lightsaberForms||{});
+  if (lfKeys.length) html += `<optgroup label="Lightsaber Forms">${lfKeys.map(k=>`<option value="lightsaberForms.${k}">${k}</option>`).join('')}</optgroup>`;
+  const faKeys = Object.keys(cs.forceAbilities||{});
+  if (faKeys.length) html += `<optgroup label="Force Abilities">${faKeys.map(k=>`<option value="forceAbilities.${k}">${k}</option>`).join('')}</optgroup>`;
+  if (hasShatterpoint) html += `<optgroup label="Shatterpoint"><option value="shatterpoint.main">Shatterpoint</option></optgroup>`;
+  if (typeof FORCE_ABILITY_CATALOG !== 'undefined') {
+    const profOpts = [];
+    for (const [subKey, cat] of Object.entries(FORCE_ABILITY_CATALOG)) {
+      if (!cat.par) continue;
+      if (!(cat.par in (cs.forceAbilities||{}))) continue;
+      profOpts.push(`<option value="proficiency.${cat.par}.${subKey}">${cat.label||subKey} (${cat.par})</option>`);
+    }
+    if (profOpts.length) html += `<optgroup label="Sub-Ability Proficiency">${profOpts.join('')}</optgroup>`;
+  }
+  return html;
+}
+
+function simBuildPrimaryDropdown() {
   const sel = document.getElementById('drill-primary');
   if (!sel) return;
-  const hasShatterpoint = masterXP?.shatterpoint?.main !== undefined;
-  const opts = [
-    ...Object.keys(cs.forceStats||{}).map(k=>`<option value="forceStats.${k}">${k} (Force Stat)</option>`),
-    ...Object.keys(cs.stats||{}).map(k=>`<option value="stats.${k}">${k} (Stat)</option>`),
-    ...Object.keys(cs.forceAbilities||{}).map(k=>`<option value="forceAbilities.${k}">${k} (Ability)</option>`),
-    ...Object.keys(cs.lightsaberForms||{}).map(k=>`<option value="lightsaberForms.${k}">${k} (Form)</option>`),
-    ...(hasShatterpoint ? ['<option value="shatterpoint.main">Shatterpoint (Special)</option>'] : []),
-  ];
-  sel.innerHTML = '<option value="">— select primary stat —</option>' + opts.join('');
+  sel.innerHTML = simBuildStatOptgroupsHTML('— select primary stat —');
 }
 
 // ── Period selection ──────────────────────────────────────────────
@@ -10234,6 +10242,7 @@ async function simProcessDay(chunk, chunkNum, total) {
   for (const [path, xp] of Object.entries(xpGained)) {
     if (xp <= 0) continue;
     if (path === 'shatterpoint.main') { spXPGained += xp; continue; } // route to spApplyXP below
+    if (path.startsWith('proficiency.')) { const ck = path.slice(12); profXPGained[ck] = (profXPGained[ck]||0) + xp; continue; }
     const res = applyXPToSheet(path, applyTalentXPMultiplier(path, xp));
     if (res.levelUps > 0) levelUps.push(`${path.split('.')[1]} → Level ${res.newStat}`);
   }
