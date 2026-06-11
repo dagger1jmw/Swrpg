@@ -2180,6 +2180,9 @@ Any turn where the character deliberately reaches out with the Force, attempts a
 
 Use the actual time the Force use occupied (in hours). Brief attempts are fine — 5 minutes = 0.083 hours.
 
+FIRST-TIME ABILITY PRACTICE — NO SEPARATE UNLOCK STEP:
+There is no "discover" or "unlock" mechanic. The first TRAINING: forceAbilities.AbilityName tag IS the unlock — it seeds the ability on the character sheet immediately. Do NOT treat first-time practice as a purely narrative event. If the character studies texts on Battlemind and attempts to apply it, write TRAINING: forceAbilities.Battlemind even if it's the very first session. The ability will appear on the sheet at Level 0 and accumulate XP normally from there. Withholding the TRAINING: tag because the ability is "new" means it never persists — the character loses all progress the moment the next SHEET block is parsed.
+
 EXAMPLES of in-play Force use that REQUIRE a TRAINING: line:
 - Character reaches out to sense nearby presences: TRAINING: forceStats.forceSense, 0.083, standard, ceiling, strong
 - Character attempts to read an NPC's surface emotions: TRAINING: forceStats.forceSense, 0.083, intense, ceiling, solid
