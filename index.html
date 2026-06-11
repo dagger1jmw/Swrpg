@@ -2036,6 +2036,12 @@ Each exchange uses the opposed roll system. **ONE ROLL_OPPOSED tag per exchange 
 - Winner describes the exchange narratively BEFORE revealing what the opponent does next
 - The opponent adapts their tactics based on the exchange result
 
+**ALWAYS use ROLL_OPPOSED for combat — never plain ROLL:**
+Any exchange against an opponent requires ROLL_OPPOSED so JS generates both sides of the roll and shows the margin. Never use ROLL: for a combat exchange — that produces only the player's roll with no opponent and no margin result.
+- If the opponent has a stored profile: ROLL_OPPOSED:lightsaberForms.ShiiCho|stats.strength vs CHARACTER:Lyra
+- If the opponent has no stored profile (NPC, droid, one-off): ROLL_OPPOSED:lightsaberForms.ShiiCho|stats.strength vs INLINE:ShiiCho=30,strength=35,agility=32
+- Always include TIER_GAP= and ROLL_LABEL= after the ROLL_OPPOSED line.
+
 Do NOT emit TRAINING: lines during a combat sequence. All XP comes from COMBAT_END. Training rolls (ROLL: tags for individual stats) are only for dedicated non-combat practice sessions.
 
 ## STRAIN ACCUMULATION (not per-move — per round based on intensity)
@@ -4135,13 +4141,17 @@ async function callGemini(playerMessage, retryCount = 0) {
             scanPending = { paths: playerPaths, opposed: true };
             if (oppStr.startsWith('CHARACTER:')) {
               const charName = oppStr.slice(10).trim();
+              scanPending.oppName = charName;
               const profile = worldState?.characterProfiles?.[charName];
-              if (profile?.stats) {
+              const profileStats = profile?.stats && Object.keys(profile.stats).length > 0 ? profile.stats : null;
+              if (profileStats) {
                 scanPending.oppStats = {};
-                scanPending.oppName = charName;
-                for (const [cat, statObj] of Object.entries(profile.stats))
+                for (const [cat, statObj] of Object.entries(profileStats))
                   for (const [k, v] of Object.entries(statObj))
                     scanPending.oppStats[cat + '.' + k] = v;
+              } else {
+                // Profile exists but no stats registered — flag for tier-based fallback in fireRoll
+                scanPending.oppStatsFallback = true;
               }
             } else if (oppStr.startsWith('INLINE:')) {
               scanPending.oppStats = {};
@@ -4150,6 +4160,10 @@ async function callGemini(playerMessage, retryCount = 0) {
                 const eqIdx = pair.indexOf('=');
                 if (eqIdx >= 0) scanPending.oppStats[pair.slice(0,eqIdx).trim()] = parseFloat(pair.slice(eqIdx+1).trim()) || 0;
               });
+            } else {
+              // No vs clause resolved — still flag as opposed so fireRoll shows both sides
+              scanPending.oppName = oppStr.replace(/^(CHARACTER:|INLINE:)/,'').trim() || 'Opponent';
+              scanPending.oppStatsFallback = true;
             }
           }
         } else if (t.startsWith('TIER_GAP=') && scanPending) {
@@ -9086,15 +9100,22 @@ function fireRoll(roll) {
   if (expBonus > 0) html += `<div style="color:var(--text-dim)">Experience modifier: +${expBonus.toFixed(3)} (${expLines.join(', ')})</div>`;
   if (tactical !== 0) html += `<div style="color:var(--text-dim)">Tactical Setup: ${tactical>0?'+':''}${tactical}</div>`;
 
-  if (roll.opposed && roll.oppStats) {
-    const oppEntries = Object.entries(roll.oppStats);
-    const oppStatBonus = oppEntries.reduce((s,[,v])=>s+compressedBonus(v),0);
+  if (roll.opposed && (roll.oppStats || roll.oppStatsFallback)) {
+    let oppStatBonus, oppStatStr;
+    if (roll.oppStats && Object.keys(roll.oppStats).length > 0) {
+      const oppEntries = Object.entries(roll.oppStats);
+      oppStatBonus = oppEntries.reduce((s,[,v])=>s+compressedBonus(v),0);
+      oppStatStr = oppEntries.map(([k,v])=>`${k.split('.')[1]||k}(${v}):+${compressedBonus(v).toFixed(3)}`).join(', ');
+    } else {
+      // No registered stats — estimate from player's stat level, adjusted for tier gap
+      oppStatBonus = statBonus - tierGapBonus;
+      oppStatStr = 'tier estimate (no PROFILE_STATS registered)';
+    }
     const oppTierGapBonus = -tierGapBonus;
     const oppTotal_bonus = oppStatBonus + oppTierGapBonus;
     const oppD20 = Math.floor(Math.random()*20)+1;
     const oppTotal = oppD20 + oppTotal_bonus;
     const margin = playerTotal - oppTotal;
-    const oppStatStr = oppEntries.map(([k,v])=>`${k.split('.')[1]||k}(${v}):+${compressedBonus(v).toFixed(3)}`).join(', ');
     html += `<div style="color:var(--text-dim)">${roll.oppName||'Opponent'}: ${oppStatStr}</div>`;
     html += `<div style="margin-top:4px"><span style="color:var(--text-dim)">Player: </span><span style="color:var(--gold);font-weight:bold">d20=${d20}</span><span style="color:var(--text-dim)">, Bonus=+${totalBonus.toFixed(2)}, Total=${playerTotal.toFixed(2)}</span></div>`;
     html += `<div><span style="color:var(--text-dim)">${roll.oppName||'Opponent'}: </span><span style="color:var(--gold);font-weight:bold">d20=${oppD20}</span><span style="color:var(--text-dim)">, Bonus=+${oppTotal_bonus.toFixed(2)}, Total=${oppTotal.toFixed(2)}</span></div>`;
