@@ -4385,7 +4385,10 @@ async function callGemini(playerMessage, retryCount = 0) {
           const wofGain = parseFloat(wofComma >= 0 ? wofStr.slice(0, wofComma) : wofStr) || 0;
           const wofDesc = wofComma >= 0 ? wofStr.slice(wofComma + 1).trim() : 'Surrendered to the will of the Force';
           if (wofGain > 0 && characterSheet) {
+            // Spike current alignment (temporary — drifts back toward equilibrium)
             characterSheet.alignment = Math.min(100, (characterSheet.alignment || 0) + wofGain);
+            // Feed equilibrium XP (permanent — this is the actual alignment growth)
+            addEquilibriumXP(wofGain * 8);
             const feedEl = document.getElementById('story-feed');
             if (feedEl) {
               const d = document.createElement('div');
@@ -4393,7 +4396,7 @@ async function callGemini(playerMessage, retryCount = 0) {
               d.innerHTML = `<div style="background:rgba(20,40,60,0.35);border:1px solid #1a3a5a;border-radius:4px;padding:8px 14px;font-size:12px;">
                 <div style="color:#88aadd;font-size:10px;letter-spacing:2px;margin-bottom:5px;font-family:'Cinzel',serif">✦ WILL OF THE FORCE</div>
                 <div style="color:#aaccee;font-size:12px">${wofDesc}</div>
-                <div style="color:#4488cc;font-size:11px;margin-top:4px">Alignment +${wofGain} → ${characterSheet.alignment >= 0 ? '+' : ''}${characterSheet.alignment.toFixed(2)}</div>
+                <div style="color:#4488cc;font-size:11px;margin-top:4px">Alignment +${wofGain} → ${characterSheet.alignment >= 0 ? '+' : ''}${characterSheet.alignment.toFixed(2)} · Equilibrium XP +${wofGain * 8}</div>
               </div>`;
               feedEl.appendChild(d);
               feedEl.scrollTop = feedEl.scrollHeight;
@@ -7261,10 +7264,10 @@ const SIM_ACTIVITIES = [
   { cat:'saber', key:'ataru_acrobatics', label:'Ataru Acrobatics',             weights:[{p:'lightsaberForms.Ataru',w:1.0},{p:'stats.agility',w:0.8},{p:'stats.endurance',w:0.5},{p:'forceStats.forceControl',w:0.3},{p:'stats.strength',w:0.25}], strainBias:{f:0.7,p:2.5,m:0.4}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.Ataru||0)>=21 },
   { cat:'saber', key:'sparring_live',    label:'Live Sparring',                weights:[{p:'stats.agility',w:0.5},{p:'stats.endurance',w:0.5},{p:'stats.strength',w:0.4},{p:'forceStats.forceSense',w:0.3}], strainBias:{f:1.0,p:1.8,m:0.8}, defaultIntensity:'intense', unlock:cs=>true },
   // ── FORCE STATS ───────────────────────────────────────────────────
-  { cat:'force_stat', key:'force_sense_passive', label:'Force Sense Meditation',    weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.meditation',w:0.5},{p:'stats.willpower',w:0.3},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.2,p:0.1,m:1.5}, defaultIntensity:'casual',   unlock:cs=>true, isRecovery:true },
+  { cat:'force_stat', key:'force_sense_passive', label:'Force Sense Meditation',    weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.meditation',w:0.5},{p:'stats.willpower',w:0.3},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.2,p:0.1,m:1.5}, defaultIntensity:'casual',   unlock:cs=>true, isRecovery:true, alignmentXPPerHour:3 },
   { cat:'force_stat', key:'force_sense_active',  label:'Force Sense (Active)',      weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.forceControl',w:0.5},{p:'stats.willpower',w:0.4},{p:'forceStats.forceKnowledge',w:0.2}], strainBias:{f:1.6,p:0.1,m:1.8}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.forceSense||0)>=10 },
-  { cat:'force_stat', key:'meditation_basic',    label:'Meditation (Centering)',    weights:[{p:'forceStats.meditation',w:1.0},{p:'stats.willpower',w:0.4},{p:'forceStats.forceSense',w:0.2},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.0,p:0.05,m:1.2}, defaultIntensity:'casual',   unlock:cs=>true, isRecovery:true },
-  { cat:'force_stat', key:'meditation_deep',     label:'Deep Force Immersion',      weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceControl',w:0.4},{p:'forceStats.forceKnowledge',w:0.3},{p:'stats.willpower',w:0.5}], strainBias:{f:1.5,p:0.0,m:1.5}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.meditation||0)>=15, isRecovery:true },
+  { cat:'force_stat', key:'meditation_basic',    label:'Meditation (Centering)',    weights:[{p:'forceStats.meditation',w:1.0},{p:'stats.willpower',w:0.4},{p:'forceStats.forceSense',w:0.2},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.0,p:0.05,m:1.2}, defaultIntensity:'casual',   unlock:cs=>true, isRecovery:true, alignmentXPPerHour:5 },
+  { cat:'force_stat', key:'meditation_deep',     label:'Deep Force Immersion',      weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceControl',w:0.4},{p:'forceStats.forceKnowledge',w:0.3},{p:'stats.willpower',w:0.5}], strainBias:{f:1.5,p:0.0,m:1.5}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.meditation||0)>=15, isRecovery:true, alignmentXPPerHour:8 },
   { cat:'force_stat', key:'force_knowledge',     label:'Force Knowledge Study',     weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'stats.willpower',w:0.3}], strainBias:{f:0.3,p:0.0,m:1.8}, defaultIntensity:'casual',   unlock:cs=>true },
   { cat:'force_stat', key:'force_control_drills',label:'Force Control Drills',      weights:[{p:'forceStats.forceControl',w:1.0},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.4}], strainBias:{f:1.8,p:0.2,m:1.2}, defaultIntensity:'standard', unlock:cs=>true },
   { cat:'force_stat', key:'force_output_drills', label:'Raw Force Output Training', weights:[{p:'forceStats.forceOutput',w:1.0},{p:'forceStats.forceControl',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:2.2,p:0.3,m:0.8}, defaultIntensity:'intense', unlock:cs=>(cs.forceStats?.forceOutput||0)>=1||(cs.forceAbilities?.Telekinesis||0)>=20 },
@@ -7326,7 +7329,7 @@ const SIM_INTENSITY_STRAIN_MULT = { casual:0.5, standard:1.0, intense:1.75, push
 const SIM_MANDATORY = {
   youngling: [
     { label:'Morning Forms Drills', defaultHours:1.5, min:0.5, max:2.0, weights:[{p:'lightsaberForms.ShiiCho',w:1.0},{p:'stats.agility',w:0.3},{p:'stats.strength',w:0.2},{p:'stats.endurance',w:0.2}], strainBias:{f:0.5,p:1.3,m:0.4}, intensity:'standard' },
-    { label:'Group Meditation',     defaultHours:1.0, min:0.5, max:1.5, weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceSense',w:0.4},{p:'stats.willpower',w:0.3}], strainBias:{f:1.2,p:0.0,m:1.0}, intensity:'casual', isRecovery:true },
+    { label:'Group Meditation',     defaultHours:1.0, min:0.5, max:1.5, weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceSense',w:0.4},{p:'stats.willpower',w:0.3}], strainBias:{f:1.2,p:0.0,m:1.0}, intensity:'casual', isRecovery:true, alignmentXPPerHour:5 },
     { label:'Force Fundamentals',   defaultHours:1.0, min:0.5, max:1.5, weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'forceStats.forceControl',w:0.3},{p:'forceStats.forceSense',w:0.2}], strainBias:{f:0.5,p:0.0,m:1.6}, intensity:'casual' },
   ],
   padawan: [
@@ -10180,6 +10183,7 @@ async function runSimChunks(chunks) {
 async function simProcessDay(chunk, chunkNum, total) {
   const cs = characterSheet || {};
   const days = chunk.days || 7;
+  const eqBefore = typeof cs.alignmentEquilibrium === 'number' ? cs.alignmentEquilibrium : 0;
   const strainData = simCalcDailyStrain(); // net strain already accounts for meditation recovery
   const penalty = simGetStrainPenalty();
   const xpGained = {};
@@ -10265,6 +10269,28 @@ async function simProcessDay(chunk, chunkNum, total) {
       const prevTier = profTierLabel(res.newPct - res.pctGained);
       if (tier !== prevTier) levelUps.push(`${subKey} proficiency → ${tier}`);
     }
+  }
+
+  // Alignment: meditative activities grant equilibrium XP; tick fires passive drift + drift-back
+  let alignXPGained = 0;
+  (SIM_MANDATORY[stage]||[]).forEach((mand, i) => {
+    if (!mand.alignmentXPPerHour) return;
+    const hrs = parseFloat(document.getElementById('sim-mand-hours-'+i)?.value)||mand.defaultHours;
+    alignXPGained += mand.alignmentXPPerHour * hrs * days;
+  });
+  const allActsAlign = simBuildActivityOptions(cs);
+  simTrainingRows.forEach(r => {
+    if (!r.activityKey || !r.hours) return;
+    const act = allActsAlign.find(a => a.key === r.activityKey);
+    if (!act || !act.alignmentXPPerHour) return;
+    alignXPGained += act.alignmentXPPerHour * r.hours * days;
+  });
+  if (alignXPGained > 0) addEquilibriumXP(alignXPGained);
+  processAlignmentTick(days * 24); // passive drift + current-alignment drift toward equilibrium
+  const eqAfter = characterSheet?.alignmentEquilibrium ?? 0;
+  if (Math.round(eqAfter) !== Math.round(eqBefore)) {
+    const sign = eqAfter >= 0 ? '+' : '';
+    levelUps.push(`Alignment equilibrium ${sign}${Math.round(eqBefore)} → ${sign}${Math.round(eqAfter)}`);
   }
 
   // Strain for the period (rolling accumulation — sleep recovers each night)
