@@ -4,6 +4,61 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V123j — 2026-06-11
+
+**Three engine improvements: sim drill UX, sim activity grouping + full-catalog coverage, canonical ability enforcement**
+
+### 1. Drill editor — secondary skills + edit mode
+
+**Problem:** Custom drill creation only allowed a single primary skill with no way to edit saved drills.
+
+**Fix:**
+- Drill form now has a "Secondary Skills" section with an **+ Add** button. Each secondary row has a stat dropdown (same options as primary) and a weight selector (Low 0.25 / Med 0.5 / High 0.75 / Full 1.0). Any number of secondaries can be added; each has an ✕ to remove it.
+- Each drill card now shows an **Edit** button that populates the form from the saved drill, switches the save button to "Update Drill", and shows a "Cancel Edit" link.
+- Deleting a drill that is currently being edited cancels the edit state first.
+- Drill cards now show a skill summary line (primary bolded, secondaries with their weight).
+- New functions: `simAddSecondaryRow`, `simUpdateSecondariesEmpty`, `simResetDrillForm`, `simCancelEdit`, `simEditDrill`. Updated: `simSaveDrill`, `simDeleteDrill`, `simRenderDrills`.
+- New state variable: `simEditingDrillId`.
+
+### 2. Simulation activity dropdown — category grouping + full force-ability catalog coverage
+
+**Problem:** The activity dropdown was a flat unsorted list. Battlemind and most other force abilities were absent. Sub-ability proficiency activities appeared regardless of whether prerequisites were met.
+
+**Root Cause 1 — No category grouping.** `simAddTrainingRow` built a flat `<option>` list. The XP injector uses `<optgroup>` elements but the sim panel did not.
+
+**Root Cause 2 — No dynamic force ability generation.** `SIM_ACTIVITIES` only had a handful of hardcoded entries (Telekinesis, shatterpoint). Any ability the character had unlocked that wasn't hardcoded (Battlemind, ForceBarrier, ForceJump, MindTrick, etc.) was invisible in the sim panel.
+
+**Root Cause 3 — No prereq check on sub-ability proficiency entries.** The proficiency activity generator only checked `cat.par in cs.forceAbilities` (parent exists at all), not whether the sub-ability's actual prereqs were met.
+
+**Root Cause 4 — `SIM_ACTIVITIES.find` used in strain/XP calc functions.** `simCalcMeditationRecovery`, `simCalcDailyStrain`, and `simCalcDailyXP` called `SIM_ACTIVITIES.find` directly, so dynamically generated activities (dynamic force abilities, proficiency tracks) never received strain or XP calculations.
+
+**Fixes:**
+
+- Added `cat` field to every `SIM_ACTIVITIES` entry: `'saber'`, `'force_stat'`, `'force_ability'`, `'physical'`, `'academic'`.
+- Added `coveredAbility:'Telekinesis'` to the hardcoded telekinesis entry so the dynamic generator knows it's already covered.
+- Added `ANCHOR_TO_SIM_PATH` constant — maps catalog anchor keys (`forceControl`, `meditation`, etc.) to full stat paths.
+- Added `FAM_STRAIN_BIAS` constant — default strain bias by force ability family (TK, Sensory, Body, Mental, Defense, Healing, Light, Dark, SpaceTime, Nature, Arcane, SithAlchemy, Misc).
+- Added `simCheckPrereqs(prereqs, cs)` — evaluates a catalog prereq object against live character stats, handling `darkSide`, `lightSide`, `anySaberForm`, ability-level, and force/core stat prereqs.
+- `simBuildActivityOptions` now dynamically generates a `cat:'force_ability'` entry for every root ability (par:null) in `FORCE_ABILITY_CATALOG` that the character has in `cs.forceAbilities` and is not already covered by a hardcoded entry. Weights are built from catalog anchors (primary anchor w:0.5, secondary w:0.3). Strain bias comes from `FAM_STRAIN_BIAS[cat.fam]`.
+- Proficiency activity generation now calls `simCheckPrereqs(cat.prereqs, cs)` and skips sub-abilities whose prerequisites aren't met.
+- `simAddTrainingRow` now builds `<optgroup>` sections in order: Lightsaber Forms → Force Stats → Force Abilities → Physical Training → Academic / Study → Custom Drills → Sub-Ability Proficiency.
+- Replaced the three `SIM_ACTIVITIES.find` calls in strain/XP calc functions with `simBuildActivityOptions(cs).find` so dynamic activities are fully processed.
+
+### 3. Canonical force ability enforcement — block AI-invented ability names
+
+**Problem:** The AI used a descriptive name ("Force Fortitude") for Battlemind, creating a non-catalog key in `characterSheet.forceAbilities` and `masterXP.forceAbilities`. This key has no XP curve, no sim activity, and no catalog entry — its XP is effectively orphaned.
+
+**Root cause:** No validation prevented non-catalog keys from being written by the AI into the SHEET block, and no prompt rule required canonical keys.
+
+**Fixes:**
+
+- Added `FORCE_ABILITY_ALIASES` constant — maps known AI-invented names to their canonical catalog keys (`ForceFortitude` → `Battlemind`, `BattleMind` → `Battlemind`, etc.). Add new entries here as they are discovered.
+- Added `repairForceAbilities()` — iterates `characterSheet.forceAbilities` and `masterXP.forceAbilities`; renames aliased keys (merging XP if the canonical key already exists), drops all non-catalog keys. Called on every save load alongside `repairTalentConsistency`.
+- Added inline filter at the SHEET JSON parse point (`forceAbilities` extraction): incoming keys are aliased and non-catalog keys are dropped before `characterSheet.forceAbilities` is updated. Existing abilities are preserved if the filter produces an empty result.
+- Added prompt rule under "CANONICAL ABILITY KEYS — NEVER INVENT NEW NAMES": all `forceAbilities` keys in SHEET JSON and all `TRAINING: forceAbilities.Key` tags must exactly match a catalog key; non-catalog keys are stripped by the engine. Includes the Battlemind/ForceFortitude example explicitly.
+
+---
+
 ## V123f — 2026-06-11
 
 **Fix: NPC People panel — characters never appeared despite interactions**

@@ -1579,7 +1579,7 @@
             </div>
           </div>
           <div class="sim-section" style="border-top:1px solid var(--border);padding-top:16px">
-            <span class="sim-label">Create New Drill</span>
+            <span class="sim-label" id="drill-form-label">Create New Drill</span>
             <div style="display:grid;gap:8px">
               <input id="drill-name" placeholder="Drill name (e.g. Makashi Precision Footwork)" style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:7px 10px;font-size:13px;font-family:'Crimson Text',serif;outline:none;width:100%">
               <textarea id="drill-desc" placeholder="Describe the drill in detail — skills used, movement patterns, focus areas..." style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:7px 10px;font-size:13px;font-family:'Crimson Text',serif;outline:none;width:100%;resize:vertical;min-height:60px;line-height:1.5"></textarea>
@@ -1601,7 +1601,19 @@
                   </select>
                 </div>
               </div>
-              <button class="sim-add-btn" onclick="simSaveDrill()">Save Drill</button>
+              <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                  <span class="sim-label">Secondary Skills</span>
+                  <button class="modal-btn" style="padding:3px 10px;font-size:11px" onclick="simAddSecondaryRow()">+ Add</button>
+                </div>
+                <div id="drill-secondaries" style="display:grid;gap:6px">
+                  <div id="drill-secondaries-empty" style="color:var(--text-dim);font-size:11px;font-style:italic">None — primary stat only</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:center">
+                <button class="sim-add-btn" onclick="simSaveDrill()" id="drill-save-btn" style="flex:1">Save Drill</button>
+                <span id="drill-cancel-edit" style="display:none;cursor:pointer;font-size:12px;color:var(--text-dim);text-decoration:underline;white-space:nowrap" onclick="simCancelEdit()">Cancel Edit</span>
+              </div>
             </div>
           </div>
         </div>
@@ -2204,6 +2216,9 @@ Use the actual time the Force use occupied (in hours). Brief attempts are fine �
 
 FIRST-TIME ABILITY PRACTICE — NO SEPARATE UNLOCK STEP:
 There is no "discover" or "unlock" mechanic. The first TRAINING: forceAbilities.AbilityName tag IS the unlock — it seeds the ability on the character sheet immediately. Do NOT treat first-time practice as a purely narrative event. If the character studies texts on Battlemind and attempts to apply it, write TRAINING: forceAbilities.Battlemind even if it's the very first session. The ability will appear on the sheet at Level 0 and accumulate XP normally from there. Withholding the TRAINING: tag because the ability is "new" means it never persists — the character loses all progress the moment the next SHEET block is parsed.
+
+CANONICAL ABILITY KEYS — NEVER INVENT NEW NAMES:
+Every forceAbilities key in the SHEET JSON and every TRAINING: forceAbilities.Key tag MUST exactly match a key in FORCE_ABILITY_CATALOG. Do not invent descriptive names. If the character develops an ability that matches a known technique, identify the correct catalog key and use that — never coin a new name like "ForceFortitude" when the ability is Battlemind, or "ForceArmor" when it is ForceBarrier. If you are unsure which catalog key applies, use the closest match from the catalog rather than creating a novel entry. Non-catalog keys are silently stripped by the engine and lost permanently.
 
 EXAMPLES of in-play Force use that REQUIRE a TRAINING: line:
 - Character reaches out to sense nearby presences: TRAINING: forceStats.forceSense, 0.083, standard, ceiling, strong
@@ -4967,7 +4982,17 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (hp !== null) characterSheet.hp = parseInt(hp) || characterSheet.hp;
         if (alignment !== null) characterSheet.alignment = parseInt(alignment) || characterSheet.alignment;
         if (forceStats) characterSheet.forceStats = forceStats;
-        if (forceAbilities) characterSheet.forceAbilities = forceAbilities;
+        if (forceAbilities) characterSheet.forceAbilities = (typeof repairForceAbilities !== 'undefined' && typeof FORCE_ABILITY_CATALOG !== 'undefined')
+          ? (() => {
+              const aliases = typeof FORCE_ABILITY_ALIASES !== 'undefined' ? FORCE_ABILITY_ALIASES : {};
+              const out = {};
+              for (const [k, v] of Object.entries(forceAbilities)) {
+                const canon = aliases[k] || k;
+                if (canon in FORCE_ABILITY_CATALOG) out[canon] = v;
+              }
+              return Object.keys(out).length ? out : characterSheet.forceAbilities;
+            })()
+          : forceAbilities;
         if (stats) characterSheet.stats = stats;
         sheetParsed = true;
       }
@@ -5818,6 +5843,37 @@ function repairTalentConsistency() {
     if (characterSheet.forceAbilities)   delete characterSheet.forceAbilities.Shatterpoint;
     if (characterSheet.forceAbilitiesXP) delete characterSheet.forceAbilitiesXP.Shatterpoint;
   }
+}
+
+// Repair non-canonical force ability keys in characterSheet and masterXP.
+// Aliases (AI-invented names) are remapped; unknown keys are removed.
+function repairForceAbilities() {
+  if (typeof FORCE_ABILITY_CATALOG === 'undefined') return;
+  const catalog = FORCE_ABILITY_CATALOG;
+  const aliases = typeof FORCE_ABILITY_ALIASES !== 'undefined' ? FORCE_ABILITY_ALIASES : {};
+
+  const repairObj = (obj) => {
+    if (!obj) return obj;
+    const out = {};
+    for (const [key, val] of Object.entries(obj)) {
+      const canon = aliases[key] || key;
+      if (!(canon in catalog)) continue; // drop unknown keys
+      if (out[canon] !== undefined) {
+        // Merge: sum XP objects, max level numbers
+        if (typeof val === 'object' && typeof out[canon] === 'object') {
+          out[canon] = { totalXP: (out[canon].totalXP || 0) + (val.totalXP || 0) };
+        } else if (typeof val === 'number') {
+          out[canon] = Math.max(out[canon], val);
+        }
+      } else {
+        out[canon] = val;
+      }
+    }
+    return out;
+  };
+
+  if (characterSheet?.forceAbilities) characterSheet.forceAbilities = repairObj(characterSheet.forceAbilities);
+  if (masterXP?.forceAbilities)       masterXP.forceAbilities       = repairObj(masterXP.forceAbilities);
 }
 
 // Combat XP: base_opponent_xp × duration × engagement × outcome
@@ -6910,7 +6966,7 @@ function loadFromSave(save) {
     masterXP = { forceStats:{}, stats:{}, forceAbilities:{}, lightsaberForms:{}, shatterpoint:{}, forceAbilityProficiency:{} };
   }
   // Ensure characterSheet reflects masterXP immediately after load
-  if (characterSheet) { syncMasterXPToSheet(); spSeedIfInnate(); repairTalentConsistency(); }
+  if (characterSheet) { syncMasterXPToSheet(); spSeedIfInnate(); repairTalentConsistency(); repairForceAbilities(); }
   worldState = save.worldState || null;
   if (worldState) {
     normalizeWorldState();
@@ -7194,40 +7250,67 @@ function clearAllSaves() {
 // Every entry: { label, weights:[{path,weight}], strainBias:{f,p,m},
 //               defaultIntensity, unlockCondition, mandatory, lifeStage }
 const SIM_ACTIVITIES = [
-  // LIGHTSABER FORMS — unlocked when stat key exists in masterXP
-  { key:'shiicho_basic',    label:'Shii-Cho Basics',          weights:[{p:'lightsaberForms.ShiiCho',w:1.0},{p:'stats.strength',w:0.4},{p:'stats.agility',w:0.3},{p:'stats.endurance',w:0.2},{p:'forceStats.forceControl',w:0.15}], strainBias:{f:0.5,p:1.5,m:0.4}, defaultIntensity:'standard', unlock:cs=>true },
-  { key:'shiicho_advanced', label:'Shii-Cho Advanced',        weights:[{p:'lightsaberForms.ShiiCho',w:1.0},{p:'stats.strength',w:0.5},{p:'stats.agility',w:0.4},{p:'stats.endurance',w:0.3},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:0.6,p:1.8,m:0.5}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.ShiiCho||0)>=21 },
-  { key:'makashi_basic',    label:'Makashi Basics',            weights:[{p:'lightsaberForms.Makashi',w:1.0},{p:'stats.agility',w:0.6},{p:'stats.willpower',w:0.3},{p:'forceStats.forceControl',w:0.3},{p:'stats.strength',w:0.1}], strainBias:{f:0.8,p:1.0,m:0.9}, defaultIntensity:'standard', unlock:cs=>'Makashi' in (cs.lightsaberForms||{}) },
-  { key:'makashi_footwork', label:'Makashi Precision Footwork',weights:[{p:'lightsaberForms.Makashi',w:1.0},{p:'stats.agility',w:0.7},{p:'stats.willpower',w:0.4},{p:'forceStats.forceControl',w:0.3}], strainBias:{f:0.7,p:1.2,m:1.2}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.Makashi||0)>=21 },
-  { key:'soresu_basic',     label:'Soresu Basics',             weights:[{p:'lightsaberForms.Soresu',w:1.0},{p:'stats.endurance',w:0.6},{p:'stats.willpower',w:0.4},{p:'forceStats.forceSense',w:0.3},{p:'forceStats.forceControl',w:0.25}], strainBias:{f:0.9,p:1.2,m:1.0}, defaultIntensity:'standard', unlock:cs=>'Soresu' in (cs.lightsaberForms||{}) },
-  { key:'soresu_deflect',   label:'Soresu Deflection Drills', weights:[{p:'lightsaberForms.Soresu',w:1.0},{p:'stats.endurance',w:0.5},{p:'forceStats.forceSense',w:0.5},{p:'stats.agility',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:1.2,p:1.3,m:0.9}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.Soresu||0)>=10 },
-  { key:'ataru_basic',      label:'Ataru Basics',              weights:[{p:'lightsaberForms.Ataru',w:1.0},{p:'stats.agility',w:0.7},{p:'stats.strength',w:0.3},{p:'forceStats.forceControl',w:0.3},{p:'stats.endurance',w:0.4}], strainBias:{f:0.8,p:2.0,m:0.5}, defaultIntensity:'intense', unlock:cs=>'Ataru' in (cs.lightsaberForms||{}) },
-  { key:'ataru_acrobatics', label:'Ataru Acrobatics',          weights:[{p:'lightsaberForms.Ataru',w:1.0},{p:'stats.agility',w:0.8},{p:'stats.endurance',w:0.5},{p:'forceStats.forceControl',w:0.3},{p:'stats.strength',w:0.25}], strainBias:{f:0.7,p:2.5,m:0.4}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.Ataru||0)>=21 },
-  { key:'sparring_live',    label:'Live Sparring',             weights:[{p:'stats.agility',w:0.5},{p:'stats.endurance',w:0.5},{p:'stats.strength',w:0.4},{p:'forceStats.forceSense',w:0.3}], strainBias:{f:1.0,p:1.8,m:0.8}, defaultIntensity:'intense', unlock:cs=>true },
-  // FORCE ABILITIES
-  { key:'telekinesis_basic',   label:'Telekinesis Practice',  weights:[{p:'forceAbilities.Telekinesis',w:1.0},{p:'forceStats.forceControl',w:0.6},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:1.8,p:0.2,m:1.0}, defaultIntensity:'standard', unlock:cs=>true },
-  { key:'force_sense_passive', label:'Force Sense Meditation', weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.meditation',w:0.5},{p:'stats.willpower',w:0.3},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.2,p:0.1,m:1.5}, defaultIntensity:'casual',   unlock:cs=>true, isRecovery:true },
-  { key:'force_sense_active',  label:'Force Sense (Active)',  weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.forceControl',w:0.5},{p:'stats.willpower',w:0.4},{p:'forceStats.forceKnowledge',w:0.2}], strainBias:{f:1.6,p:0.1,m:1.8}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.forceSense||0)>=10 },
-  { key:'meditation_basic',    label:'Meditation (Centering)',weights:[{p:'forceStats.meditation',w:1.0},{p:'stats.willpower',w:0.4},{p:'forceStats.forceSense',w:0.2},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.0,p:0.05,m:1.2}, defaultIntensity:'casual',   unlock:cs=>true, isRecovery:true },
-  { key:'meditation_deep',     label:'Deep Force Immersion',  weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceControl',w:0.4},{p:'forceStats.forceKnowledge',w:0.3},{p:'stats.willpower',w:0.5}], strainBias:{f:1.5,p:0.0,m:1.5}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.meditation||0)>=15, isRecovery:true },
-  { key:'force_knowledge',     label:'Force Knowledge Study', weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'stats.willpower',w:0.3}], strainBias:{f:0.3,p:0.0,m:1.8}, defaultIntensity:'casual',   unlock:cs=>true },
-  { key:'force_control_drills',label:'Force Control Drills',  weights:[{p:'forceStats.forceControl',w:1.0},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.4}], strainBias:{f:1.8,p:0.2,m:1.2}, defaultIntensity:'standard', unlock:cs=>true },
-  // SHATTERPOINT — uses dedicated SP track via spApplyXP, not standard applyXPToSheet
-  { key:'shatterpoint_practice', label:'Shatterpoint Practice',
-    weights:[], // XP applied via spApplyXP in simProcessDay, not the standard weight map
-    strainBias:{f:2.2,p:0.1,m:2.5}, defaultIntensity:'standard',
-    isShatterpoint:true, // flag so simProcessDay routes it correctly
-    unlock:cs => (cs.innateTalents||[]).includes('ShatterSense') || (cs.shatterpointLevel||0) > 0 },
-  // PHYSICAL
-  { key:'cardio',              label:'Cardio / Endurance',    weights:[{p:'stats.endurance',w:1.0},{p:'stats.strength',w:0.2},{p:'stats.agility',w:0.2}], strainBias:{f:0.1,p:2.0,m:0.3}, defaultIntensity:'standard', unlock:cs=>true },
-  { key:'strength_train',      label:'Strength Training',     weights:[{p:'stats.strength',w:1.0},{p:'stats.endurance',w:0.4}], strainBias:{f:0.1,p:2.2,m:0.2}, defaultIntensity:'standard', unlock:cs=>true },
-  { key:'agility_flex',        label:'Agility & Flexibility', weights:[{p:'stats.agility',w:1.0},{p:'stats.endurance',w:0.3},{p:'stats.strength',w:0.2}], strainBias:{f:0.2,p:1.6,m:0.3}, defaultIntensity:'standard', unlock:cs=>true },
-  { key:'force_athletics',     label:'Force-Enhanced Athletics',weights:[{p:'stats.agility',w:1.0},{p:'forceStats.forceControl',w:0.5},{p:'stats.endurance',w:0.3}], strainBias:{f:1.2,p:1.5,m:0.4}, defaultIntensity:'intense', unlock:cs=>Object.keys(cs.forceAbilities||{}).length>0||(cs.forceStats?.forceControl||0)>=21 },
-  // v3 STATS
-  { key:'force_output_drills', label:'Raw Force Output Training',weights:[{p:'forceStats.forceOutput',w:1.0},{p:'forceStats.forceControl',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:2.2,p:0.3,m:0.8}, defaultIntensity:'intense', unlock:cs=>(cs.forceStats?.forceOutput||0)>=1||(cs.forceAbilities?.Telekinesis||0)>=20 },
-  { key:'intelligence_study',  label:'Strategic Study / Analysis',weights:[{p:'stats.intelligence',w:1.0},{p:'forceStats.forceKnowledge',w:0.2},{p:'stats.willpower',w:0.2}], strainBias:{f:0.1,p:0.0,m:1.6}, defaultIntensity:'casual', unlock:cs=>true },
+  // ── LIGHTSABER FORMS ─────────────────────────────────────────────
+  { cat:'saber', key:'shiicho_basic',    label:'Shii-Cho Basics',             weights:[{p:'lightsaberForms.ShiiCho',w:1.0},{p:'stats.strength',w:0.4},{p:'stats.agility',w:0.3},{p:'stats.endurance',w:0.2},{p:'forceStats.forceControl',w:0.15}], strainBias:{f:0.5,p:1.5,m:0.4}, defaultIntensity:'standard', unlock:cs=>true },
+  { cat:'saber', key:'shiicho_advanced', label:'Shii-Cho Advanced',           weights:[{p:'lightsaberForms.ShiiCho',w:1.0},{p:'stats.strength',w:0.5},{p:'stats.agility',w:0.4},{p:'stats.endurance',w:0.3},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:0.6,p:1.8,m:0.5}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.ShiiCho||0)>=21 },
+  { cat:'saber', key:'makashi_basic',    label:'Makashi Basics',               weights:[{p:'lightsaberForms.Makashi',w:1.0},{p:'stats.agility',w:0.6},{p:'stats.willpower',w:0.3},{p:'forceStats.forceControl',w:0.3},{p:'stats.strength',w:0.1}], strainBias:{f:0.8,p:1.0,m:0.9}, defaultIntensity:'standard', unlock:cs=>'Makashi' in (cs.lightsaberForms||{}) },
+  { cat:'saber', key:'makashi_footwork', label:'Makashi Precision Footwork',   weights:[{p:'lightsaberForms.Makashi',w:1.0},{p:'stats.agility',w:0.7},{p:'stats.willpower',w:0.4},{p:'forceStats.forceControl',w:0.3}], strainBias:{f:0.7,p:1.2,m:1.2}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.Makashi||0)>=21 },
+  { cat:'saber', key:'soresu_basic',     label:'Soresu Basics',                weights:[{p:'lightsaberForms.Soresu',w:1.0},{p:'stats.endurance',w:0.6},{p:'stats.willpower',w:0.4},{p:'forceStats.forceSense',w:0.3},{p:'forceStats.forceControl',w:0.25}], strainBias:{f:0.9,p:1.2,m:1.0}, defaultIntensity:'standard', unlock:cs=>'Soresu' in (cs.lightsaberForms||{}) },
+  { cat:'saber', key:'soresu_deflect',   label:'Soresu Deflection Drills',     weights:[{p:'lightsaberForms.Soresu',w:1.0},{p:'stats.endurance',w:0.5},{p:'forceStats.forceSense',w:0.5},{p:'stats.agility',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:1.2,p:1.3,m:0.9}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.Soresu||0)>=10 },
+  { cat:'saber', key:'ataru_basic',      label:'Ataru Basics',                 weights:[{p:'lightsaberForms.Ataru',w:1.0},{p:'stats.agility',w:0.7},{p:'stats.strength',w:0.3},{p:'forceStats.forceControl',w:0.3},{p:'stats.endurance',w:0.4}], strainBias:{f:0.8,p:2.0,m:0.5}, defaultIntensity:'intense', unlock:cs=>'Ataru' in (cs.lightsaberForms||{}) },
+  { cat:'saber', key:'ataru_acrobatics', label:'Ataru Acrobatics',             weights:[{p:'lightsaberForms.Ataru',w:1.0},{p:'stats.agility',w:0.8},{p:'stats.endurance',w:0.5},{p:'forceStats.forceControl',w:0.3},{p:'stats.strength',w:0.25}], strainBias:{f:0.7,p:2.5,m:0.4}, defaultIntensity:'intense', unlock:cs=>(cs.lightsaberForms?.Ataru||0)>=21 },
+  { cat:'saber', key:'sparring_live',    label:'Live Sparring',                weights:[{p:'stats.agility',w:0.5},{p:'stats.endurance',w:0.5},{p:'stats.strength',w:0.4},{p:'forceStats.forceSense',w:0.3}], strainBias:{f:1.0,p:1.8,m:0.8}, defaultIntensity:'intense', unlock:cs=>true },
+  // ── FORCE STATS ───────────────────────────────────────────────────
+  { cat:'force_stat', key:'force_sense_passive', label:'Force Sense Meditation',    weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.meditation',w:0.5},{p:'stats.willpower',w:0.3},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.2,p:0.1,m:1.5}, defaultIntensity:'casual',   unlock:cs=>true, isRecovery:true },
+  { cat:'force_stat', key:'force_sense_active',  label:'Force Sense (Active)',      weights:[{p:'forceStats.forceSense',w:1.0},{p:'forceStats.forceControl',w:0.5},{p:'stats.willpower',w:0.4},{p:'forceStats.forceKnowledge',w:0.2}], strainBias:{f:1.6,p:0.1,m:1.8}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.forceSense||0)>=10 },
+  { cat:'force_stat', key:'meditation_basic',    label:'Meditation (Centering)',    weights:[{p:'forceStats.meditation',w:1.0},{p:'stats.willpower',w:0.4},{p:'forceStats.forceSense',w:0.2},{p:'forceStats.forceControl',w:0.2}], strainBias:{f:1.0,p:0.05,m:1.2}, defaultIntensity:'casual',   unlock:cs=>true, isRecovery:true },
+  { cat:'force_stat', key:'meditation_deep',     label:'Deep Force Immersion',      weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceControl',w:0.4},{p:'forceStats.forceKnowledge',w:0.3},{p:'stats.willpower',w:0.5}], strainBias:{f:1.5,p:0.0,m:1.5}, defaultIntensity:'standard', unlock:cs=>(cs.forceStats?.meditation||0)>=15, isRecovery:true },
+  { cat:'force_stat', key:'force_knowledge',     label:'Force Knowledge Study',     weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'stats.willpower',w:0.3}], strainBias:{f:0.3,p:0.0,m:1.8}, defaultIntensity:'casual',   unlock:cs=>true },
+  { cat:'force_stat', key:'force_control_drills',label:'Force Control Drills',      weights:[{p:'forceStats.forceControl',w:1.0},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.4}], strainBias:{f:1.8,p:0.2,m:1.2}, defaultIntensity:'standard', unlock:cs=>true },
+  { cat:'force_stat', key:'force_output_drills', label:'Raw Force Output Training', weights:[{p:'forceStats.forceOutput',w:1.0},{p:'forceStats.forceControl',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:2.2,p:0.3,m:0.8}, defaultIntensity:'intense', unlock:cs=>(cs.forceStats?.forceOutput||0)>=1||(cs.forceAbilities?.Telekinesis||0)>=20 },
+  // ── FORCE ABILITIES (hardcoded entries; all others generated dynamically) ───
+  { cat:'force_ability', coveredAbility:'Telekinesis', key:'telekinesis_basic', label:'Telekinesis Practice', weights:[{p:'forceAbilities.Telekinesis',w:1.0},{p:'forceStats.forceControl',w:0.6},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:1.8,p:0.2,m:1.0}, defaultIntensity:'standard', unlock:cs=>true },
+  { cat:'force_ability', key:'shatterpoint_practice', label:'Shatterpoint Practice', weights:[], strainBias:{f:2.2,p:0.1,m:2.5}, defaultIntensity:'standard', isShatterpoint:true, unlock:cs=>(cs.innateTalents||[]).includes('ShatterSense')||(cs.shatterpointLevel||0)>0 },
+  // ── PHYSICAL ─────────────────────────────────────────────────────
+  { cat:'physical', key:'cardio',          label:'Cardio / Endurance',          weights:[{p:'stats.endurance',w:1.0},{p:'stats.strength',w:0.2},{p:'stats.agility',w:0.2}], strainBias:{f:0.1,p:2.0,m:0.3}, defaultIntensity:'standard', unlock:cs=>true },
+  { cat:'physical', key:'strength_train',  label:'Strength Training',            weights:[{p:'stats.strength',w:1.0},{p:'stats.endurance',w:0.4}], strainBias:{f:0.1,p:2.2,m:0.2}, defaultIntensity:'standard', unlock:cs=>true },
+  { cat:'physical', key:'agility_flex',    label:'Agility & Flexibility',        weights:[{p:'stats.agility',w:1.0},{p:'stats.endurance',w:0.3},{p:'stats.strength',w:0.2}], strainBias:{f:0.2,p:1.6,m:0.3}, defaultIntensity:'standard', unlock:cs=>true },
+  { cat:'physical', key:'force_athletics', label:'Force-Enhanced Athletics',     weights:[{p:'stats.agility',w:1.0},{p:'forceStats.forceControl',w:0.5},{p:'stats.endurance',w:0.3}], strainBias:{f:1.2,p:1.5,m:0.4}, defaultIntensity:'intense', unlock:cs=>Object.keys(cs.forceAbilities||{}).length>0||(cs.forceStats?.forceControl||0)>=21 },
+  // ── ACADEMIC ─────────────────────────────────────────────────────
+  { cat:'academic', key:'intelligence_study', label:'Strategic Study / Analysis', weights:[{p:'stats.intelligence',w:1.0},{p:'forceStats.forceKnowledge',w:0.2},{p:'stats.willpower',w:0.2}], strainBias:{f:0.1,p:0.0,m:1.6}, defaultIntensity:'casual', unlock:cs=>true },
   // MANDATORY — handled separately via lifeStage
 ];
+
+// Anchor key → simulation stat path (for dynamic force ability activities)
+const ANCHOR_TO_SIM_PATH = {
+  forceControl:  'forceStats.forceControl',
+  forceOutput:   'forceStats.forceOutput',
+  forceSense:    'forceStats.forceSense',
+  meditation:    'forceStats.meditation',
+  forceKnowledge:'forceStats.forceKnowledge',
+  strength:      'stats.strength',
+  agility:       'stats.agility',
+  endurance:     'stats.endurance',
+  willpower:     'stats.willpower',
+  charisma:      'stats.charisma',
+  intelligence:  'stats.intelligence',
+};
+// Default strain bias by force ability family
+const FAM_STRAIN_BIAS = {
+  TK:         {f:1.8, p:0.3, m:0.8},
+  Sensory:    {f:1.2, p:0.1, m:1.5},
+  Body:       {f:1.4, p:0.8, m:0.6},
+  Mental:     {f:1.0, p:0.2, m:1.8},
+  Defense:    {f:1.6, p:0.4, m:1.0},
+  Healing:    {f:1.2, p:0.1, m:1.6},
+  Light:      {f:1.0, p:0.2, m:1.5},
+  Dark:       {f:1.8, p:0.3, m:1.0},
+  SpaceTime:  {f:2.0, p:0.2, m:1.2},
+  Nature:     {f:1.3, p:0.4, m:1.0},
+  Arcane:     {f:1.8, p:0.3, m:1.5},
+  SithAlchemy:{f:2.2, p:0.3, m:1.3},
+  Misc:       {f:1.5, p:0.3, m:1.0},
+};
 
 // Intensity multipliers (from calcTrainingXP)
 const SIM_INTENSITY = { casual:10, standard:15, intense:20, pushing:25, elite:30 };
@@ -7472,6 +7555,19 @@ const FORCE_ABILITY_CATALOG = {
   ForceWeapon:      { fam:'Misc', label:'Force Weapon',        par:null,          D:1.5,  align:'neutral', anchors:['forceControl'],              prereqs:{forceControl:21, Telekinesis:15},           flags:[] },
   ForceBellow:      { fam:'Misc', label:'Force Bellow',        par:null,          D:1.0,  align:'neutral', anchors:['forceOutput','charisma'],    prereqs:{forceControl:10, charisma:10},              flags:[] },
 
+};
+
+// ── Known AI-invented ability name aliases → canonical catalog keys ───────────
+// When an AI uses a non-catalog name for a known ability, add it here.
+// The repair function will migrate XP and rename the key on load.
+const FORCE_ABILITY_ALIASES = {
+  'ForceFortitude':    'Battlemind',
+  'Force Fortitude':   'Battlemind',
+  'Fortitude':         'Battlemind',
+  'ForceBattlemind':   'Battlemind',
+  'BattleMind':        'Battlemind',
+  'ForceBarrier2':     'ForceBarrier',
+  'ForceBodyControl':  'ForceBody',
 };
 
 // ── Lore Database — current era NPC data + apex ceiling + timeline ──
@@ -9309,6 +9405,7 @@ let simPauseConditions = '';
 let simChunksTotal = 1, simChunksDone = 0;
 let simResults = [];
 let simCustomDrills = []; // loaded from localStorage
+let simEditingDrillId = null;
 let simTrainingRows = []; // {activityKey, hours, intensity, difficulty}
 
 // ── Tab navigation ────────────────────────────────────────────────
@@ -9372,17 +9469,69 @@ function simBuildMandatoryRows() {
 }
 
 // ── Training rows (dynamic) ───────────────────────────────────────
+
+function simCheckPrereqs(prereqs, cs) {
+  if (!prereqs || typeof FORCE_ABILITY_CATALOG === 'undefined') return true;
+  for (const [key, minVal] of Object.entries(prereqs)) {
+    if (key === 'darkSide') {
+      if ((characterSheet?.alignment || 0) > -minVal) return false;
+    } else if (key === 'lightSide') {
+      if ((characterSheet?.alignment || 0) < minVal) return false;
+    } else if (key === 'anySaberForm') {
+      const vals = Object.values(cs.lightsaberForms || {});
+      if (!vals.length || Math.max(...vals) < minVal) return false;
+    } else if (key in FORCE_ABILITY_CATALOG) {
+      if ((cs.forceAbilities?.[key] || 0) < minVal) return false;
+    } else {
+      const val = cs.forceStats?.[key] ?? cs.stats?.[key] ?? 0;
+      if (val < minVal) return false;
+    }
+  }
+  return true;
+}
+
 function simBuildActivityOptions(cs) {
   const available = SIM_ACTIVITIES.filter(a => a.unlock(cs));
-  const customs = simCustomDrills.map(d => ({ key:'custom_'+d.id, label:'✦ '+d.name, _custom:d, unlock:()=>true }));
+  const customs = simCustomDrills.map(d => ({ cat:'custom', key:'custom_'+d.id, label:'✦ '+d.name, _custom:d, unlock:()=>true }));
 
-  // Dynamically generate proficiency activities for unlocked sub-abilities
+  // Dynamic force ability activities for every root ability the character has unlocked
+  // that isn't already covered by a hardcoded SIM_ACTIVITIES entry
+  const coveredAbilities = new Set(SIM_ACTIVITIES.filter(a => a.coveredAbility).map(a => a.coveredAbility));
+  coveredAbilities.add('Shatterpoint'); // handled by isShatterpoint entry
+  const dynActs = [];
+  if (typeof FORCE_ABILITY_CATALOG !== 'undefined') {
+    for (const [abilKey, cat] of Object.entries(FORCE_ABILITY_CATALOG)) {
+      if (cat.par !== null) continue;
+      if (cat.special === 'shatterpoint_unique_track') continue;
+      if (coveredAbilities.has(abilKey)) continue;
+      if (!(abilKey in (cs.forceAbilities || {}))) continue;
+      const weights = [{p: 'forceAbilities.' + abilKey, w: 1.0}];
+      (cat.anchors || []).slice(0, 2).forEach((anchor, i) => {
+        const path = ANCHOR_TO_SIM_PATH[anchor];
+        if (path) weights.push({p: path, w: i === 0 ? 0.5 : 0.3});
+      });
+      dynActs.push({
+        cat: 'force_ability',
+        key: 'fa_' + abilKey,
+        label: cat.label || abilKey,
+        weights,
+        strainBias: FAM_STRAIN_BIAS[cat.fam] || {f:1.5, p:0.3, m:1.0},
+        defaultIntensity: 'standard',
+        unlock: () => true,
+        _dynForceAbility: abilKey,
+      });
+    }
+  }
+
+  // Proficiency activities for unlocked sub-abilities that meet their prerequisites
   const profActs = [];
   if (typeof FORCE_ABILITY_CATALOG !== 'undefined') {
     for (const [subKey, cat] of Object.entries(FORCE_ABILITY_CATALOG)) {
       if (!cat.par) continue;
       if (!(cat.par in (cs.forceAbilities || {}))) continue;
+      if (!simCheckPrereqs(cat.prereqs, cs)) continue;
       profActs.push({
+        cat: 'proficiency',
         key: 'prof_' + cat.par + '.' + subKey,
         label: (cat.label || subKey) + ' (Proficiency)',
         isProficiency: true,
@@ -9397,7 +9546,7 @@ function simBuildActivityOptions(cs) {
     }
   }
 
-  return [...available, ...customs, ...profActs];
+  return [...available, ...dynActs, ...customs, ...profActs];
 }
 
 function simAddTrainingRow() {
@@ -9411,7 +9560,22 @@ function simAddTrainingRow() {
   div.className = 'sim-row';
   div.id = rowId;
 
-  const actOpts = available.map(a => `<option value="${a.key}">${a.label}</option>`).join('');
+  const groupDefs = [
+    { cat:'saber',        label:'Lightsaber Forms' },
+    { cat:'force_stat',   label:'Force Stats' },
+    { cat:'force_ability',label:'Force Abilities' },
+    { cat:'physical',     label:'Physical Training' },
+    { cat:'academic',     label:'Academic / Study' },
+    { cat:'custom',       label:'Custom Drills' },
+    { cat:'proficiency',  label:'Sub-Ability Proficiency' },
+  ];
+  let actOpts = '';
+  for (const g of groupDefs) {
+    const items = available.filter(a => a.cat === g.cat);
+    if (!items.length) continue;
+    actOpts += `<optgroup label="${g.label}">${items.map(a => `<option value="${a.key}">${a.label}</option>`).join('')}</optgroup>`;
+  }
+
   div.innerHTML = `
     <select onchange="simRowChange('${rowId}','activityKey',this.value);simUpdateHoursTracker();simUpdateStrainPreview();simUpdateXPPreview()">
       <option value="">— select activity —</option>
@@ -9508,9 +9672,10 @@ function simCalcMeditationRecovery() {
   });
 
   // Check training rows
+  const allActsRecovery = simBuildActivityOptions(cs);
   simTrainingRows.forEach(r => {
     if (!r.activityKey || !r.hours) return;
-    const act = SIM_ACTIVITIES.find(a => a.key === r.activityKey);
+    const act = allActsRecovery.find(a => a.key === r.activityKey);
     if (!act || !act.isRecovery) return;
     const rates = RECOVERY_RATES[r.activityKey] || RECOVERY_RATES.meditation_basic;
     rf += r.hours * rates.f * medBonus;
@@ -9541,10 +9706,10 @@ function simCalcDailyStrain() {
     addStrain(hrs, mand.intensity, mand.strainBias, mand.isRecovery);
   });
 
+  const allActsStrain = simBuildActivityOptions(cs);
   simTrainingRows.forEach(r => {
     if (!r.activityKey || !r.hours) return;
-    const act = SIM_ACTIVITIES.find(a => a.key === r.activityKey)
-              || simCustomDrills.find(d => 'custom_'+d.id === r.activityKey);
+    const act = allActsStrain.find(a => a.key === r.activityKey);
     if (!act) return;
     addStrain(r.hours, r.intensity || act.defaultIntensity, act.strainBias || {f:1,p:1,m:1}, act.isRecovery);
   });
@@ -9635,9 +9800,10 @@ function simCalcDailyXP(cs) {
     const hrs = parseFloat(document.getElementById('sim-mand-hours-'+i)?.value)||mand.defaultHours;
     addXP(mand.weights, hrs, mand.intensity, 'standard');
   });
+  const allActsXP = simBuildActivityOptions(cs);
   simTrainingRows.forEach(r => {
     if (!r.activityKey||!r.hours) return;
-    const act = SIM_ACTIVITIES.find(a=>a.key===r.activityKey);
+    const act = allActsXP.find(a=>a.key===r.activityKey);
     if (!act) return;
     if (act.isShatterpoint) {
       const iMult = SIM_INTENSITY[r.intensity||act.defaultIntensity||'standard'] || 15;
@@ -9787,17 +9953,91 @@ function simSaveDrill() {
   const intensity = document.getElementById('drill-intensity')?.value || 'standard';
   const primary = document.getElementById('drill-primary')?.value;
   if (!name) { alert('Give the drill a name.'); return; }
-  const drill = { id: Date.now().toString(), name, desc, defaultIntensity: intensity,
-    weights: primary ? [{p: primary, w:1.0}] : [],
-    strainBias: {f:1.0,p:1.0,m:0.8} };
-  simCustomDrills.push(drill);
+  const weights = primary ? [{p: primary, w: 1.0}] : [];
+  document.querySelectorAll('#drill-secondaries .drill-sec-row').forEach(row => {
+    const sels = row.querySelectorAll('select');
+    const sv = sels[0]?.value, wv = parseFloat(sels[1]?.value || '0.5');
+    if (sv) weights.push({p: sv, w: wv});
+  });
+  if (simEditingDrillId) {
+    const idx = simCustomDrills.findIndex(d => d.id === simEditingDrillId);
+    if (idx >= 0) simCustomDrills[idx] = { ...simCustomDrills[idx], name, desc, defaultIntensity: intensity, weights };
+    simEditingDrillId = null;
+  } else {
+    simCustomDrills.push({ id: Date.now().toString(), name, desc, defaultIntensity: intensity, weights, strainBias: {f:1.0,p:1.0,m:0.8} });
+  }
   localStorage.setItem('sw_rpg_custom_drills', JSON.stringify(simCustomDrills));
   simRenderDrills();
-  if (document.getElementById('drill-name')) document.getElementById('drill-name').value = '';
-  if (document.getElementById('drill-desc')) document.getElementById('drill-desc').value = '';
+  simResetDrillForm();
+}
+
+function simResetDrillForm() {
+  const el = id => document.getElementById(id);
+  if (el('drill-name')) el('drill-name').value = '';
+  if (el('drill-desc')) el('drill-desc').value = '';
+  if (el('drill-intensity')) el('drill-intensity').value = 'standard';
+  if (el('drill-primary')) el('drill-primary').value = '';
+  const sec = el('drill-secondaries');
+  if (sec) sec.querySelectorAll('.drill-sec-row').forEach(r => r.remove());
+  simUpdateSecondariesEmpty();
+  if (el('drill-form-label')) el('drill-form-label').textContent = 'Create New Drill';
+  if (el('drill-save-btn')) el('drill-save-btn').textContent = 'Save Drill';
+  if (el('drill-cancel-edit')) el('drill-cancel-edit').style.display = 'none';
+}
+
+function simCancelEdit() {
+  simEditingDrillId = null;
+  simResetDrillForm();
+}
+
+function simEditDrill(id) {
+  const drill = simCustomDrills.find(d => d.id === id);
+  if (!drill) return;
+  simEditingDrillId = id;
+  const el = k => document.getElementById(k);
+  if (el('drill-name')) el('drill-name').value = drill.name || '';
+  if (el('drill-desc')) el('drill-desc').value = drill.desc || '';
+  if (el('drill-intensity')) el('drill-intensity').value = drill.defaultIntensity || 'standard';
+  if (el('drill-form-label')) el('drill-form-label').textContent = 'Edit Drill';
+  if (el('drill-save-btn')) el('drill-save-btn').textContent = 'Update Drill';
+  if (el('drill-cancel-edit')) el('drill-cancel-edit').style.display = 'inline';
+  const sec = el('drill-secondaries');
+  if (sec) sec.querySelectorAll('.drill-sec-row').forEach(r => r.remove());
+  const weights = drill.weights || [];
+  if (el('drill-primary')) el('drill-primary').value = weights[0]?.p || '';
+  for (let i = 1; i < weights.length; i++) simAddSecondaryRow(weights[i].p, String(weights[i].w));
+  simUpdateSecondariesEmpty();
+  el('drill-form-label')?.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+function simAddSecondaryRow(statVal='', weightVal='0.5') {
+  const empty = document.getElementById('drill-secondaries-empty');
+  if (empty) empty.style.display = 'none';
+  const cs = characterSheet || {};
+  const opts = ['<option value="">— select stat —</option>',
+    ...Object.keys(cs.forceStats||{}).map(k=>`<option value="forceStats.${k}">${k} (Force Stat)</option>`),
+    ...Object.keys(cs.stats||{}).map(k=>`<option value="stats.${k}">${k} (Stat)</option>`),
+    ...Object.keys(cs.forceAbilities||{}).map(k=>`<option value="forceAbilities.${k}">${k} (Ability)</option>`),
+    ...Object.keys(cs.lightsaberForms||{}).map(k=>`<option value="lightsaberForms.${k}">${k} (Form)</option>`),
+  ].join('');
+  const row = document.createElement('div');
+  row.className = 'drill-sec-row';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 110px auto;gap:6px;align-items:center';
+  row.innerHTML = `<select style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:5px 6px;font-size:11px;font-family:inherit">${opts}</select><select style="background:var(--bg-input);border:1px solid var(--border-bright);color:var(--text-bright);padding:5px 6px;font-size:11px;font-family:inherit"><option value="0.25">Low (0.25)</option><option value="0.5">Med (0.5)</option><option value="0.75">High (0.75)</option><option value="1.0">Full (1.0)</option></select><button class="modal-btn danger" style="padding:3px 7px;font-size:11px" onclick="this.closest('.drill-sec-row').remove();simUpdateSecondariesEmpty()">✕</button>`;
+  row.querySelector('select:first-child').value = statVal;
+  row.querySelector('select:nth-child(2)').value = weightVal;
+  document.getElementById('drill-secondaries').appendChild(row);
+}
+
+function simUpdateSecondariesEmpty() {
+  const sec = document.getElementById('drill-secondaries');
+  const empty = document.getElementById('drill-secondaries-empty');
+  if (!sec || !empty) return;
+  empty.style.display = sec.querySelectorAll('.drill-sec-row').length ? 'none' : '';
 }
 
 function simDeleteDrill(id) {
+  if (simEditingDrillId === id) simCancelEdit();
   simCustomDrills = simCustomDrills.filter(d => d.id !== id);
   localStorage.setItem('sw_rpg_custom_drills', JSON.stringify(simCustomDrills));
   simRenderDrills();
@@ -9810,17 +10050,22 @@ function simRenderDrills() {
     container.innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-style:italic;padding:8px 0">No custom drills saved yet.</div>';
     return;
   }
-  container.innerHTML = simCustomDrills.map(d => `
+  container.innerHTML = simCustomDrills.map(d => {
+    const skillList = (d.weights||[]).map((w,i) => i===0 ? `<strong>${w.p.split('.').pop()}</strong>` : `${w.p.split('.').pop()} ×${w.w}`).join(', ');
+    return `
     <div class="sim-drill-card">
       <div class="sim-drill-card-info">
         <div class="sim-drill-card-name">${d.name}</div>
         <div class="sim-drill-card-desc">${d.desc||'—'} · <span style="color:var(--gold-dim)">${d.defaultIntensity}</span></div>
+        ${skillList ? `<div style="font-size:10px;color:var(--text-dim);margin-top:3px">${skillList}</div>` : ''}
       </div>
       <div class="sim-drill-card-btns">
         <button class="modal-btn" style="padding:3px 8px;font-size:10px" onclick="simAddDrillToSchedule('${d.id}')">Add</button>
+        <button class="modal-btn" style="padding:3px 8px;font-size:10px" onclick="simEditDrill('${d.id}')">Edit</button>
         <button class="modal-btn danger" style="padding:3px 8px;font-size:10px" onclick="simDeleteDrill('${d.id}')">✕</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function simAddDrillToSchedule(drillId) {
