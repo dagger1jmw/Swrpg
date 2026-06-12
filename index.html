@@ -1704,8 +1704,14 @@ const MASTER_PROMPT = `You are the Game Master of a text-based sandbox RPG set e
 - The galaxy exists independently of the player. Simulate it as a living entity.
 - Never simplify or remove mechanics. Never railroad the story.
 - Canon events occur unless the player realistically interferes.
-- Always present choices before resolving any scene.
-- Choices format: A) ... B) ... C) ... D) ... Custom: [player may describe their own action]
+- END EVERY narrative response with player choices — no exceptions, including mid-training continuations and scenes already in progress. Place them immediately before the <<<CHANGES>>> block.
+- Even if the player said "continue" or already declared an action, present options for what comes next after this beat resolves.
+- Required format — each choice on its own line, starting at the beginning of the line:
+  A) [specific action]
+  B) [alternative approach]
+  C) [another path]
+  D) [reactive or passive option]
+  Custom: [player may describe their own action]
 
 ## CRITICAL OUTPUT FORMAT — MANDATORY ON EVERY SINGLE RESPONSE
 Every response you generate MUST end with both data blocks below. No exceptions. Not sometimes. EVERY response, including era selection, character creation questions, and all narrative turns. If you omit these blocks the game UI breaks. Output them even if values are empty or unchanged.
@@ -3996,7 +4002,7 @@ async function callGemini(playerMessage, retryCount = 0) {
           const contMessages = [
             ...buildContext(userContent),
             { role: 'model', parts: [{ text: rawText }] },
-            { role: 'user', parts: [{ text: '[SYSTEM: Your previous response was cut off by the token limit. Output ONLY the continuation — pick up mid-word if needed — then complete the <<<CHANGES>>>, <<<SHEET>>>, and <<<WORLD>>> blocks. Do NOT re-narrate anything already written.]' }] }
+            { role: 'user', parts: [{ text: '[SYSTEM: Your previous response was cut off by the token limit. Output ONLY the continuation — pick up mid-word if needed — then write player choices A) through D) plus Custom: if not yet written, then complete the <<<CHANGES>>>, <<<SHEET>>>, and <<<WORLD>>> blocks. Do NOT re-narrate anything already written.]' }] }
           ];
           const contResp = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -4014,6 +4020,36 @@ async function callGemini(playerMessage, retryCount = 0) {
           console.warn('[callGemini] Continuation request failed:', contErr.message);
           // Show a non-blocking warning in the feed
           feedHtml('<div style="background:#3a1a00;border:1px solid #cc6600;border-radius:6px;padding:8px 12px;margin:8px 0;font-size:0.85em;color:#ffaa55;">⚠ Response was cut off — some stat changes may be missing. Try sending your next action normally.</div>');
+        }
+      }
+
+      // ── Missing choices recovery ────────────────────────────────
+      // Fires when response is "complete" (has END_WORLD) but the narrative section
+      // has no A)/B)/C)/D) choices — targeted secondary call, inserts before <<<CHANGES>>>
+      if (!wasTruncated && rawText.includes('<<<END_WORLD>>>') && rawText.includes('<<<CHANGES>>>')) {
+        const narrativePart = rawText.replace(/<<<[\s\S]*/g, '').trim();
+        const hasChoices = /^[A-E]\)/m.test(narrativePart);
+        if (!hasChoices && narrativePart.length > 300) {
+          try {
+            const choicesMessages = [
+              ...buildContext(userContent),
+              { role: 'model', parts: [{ text: narrativePart }] },
+              { role: 'user', parts: [{ text: '[SYSTEM: You forgot the required player choices. Write ONLY the four choices now — no narrative, no data blocks, nothing else:\nA) [action]\nB) [action]\nC) [action]\nD) [action]\nCustom: [player may describe their own action]' }] }
+            ];
+            const cResp = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+              { method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({system_instruction:{parts:[{text:MASTER_PROMPT}]}, contents:choicesMessages, generationConfig:{temperature:0.7, maxOutputTokens:256, topP:0.95}}) }
+            );
+            if (cResp.ok) {
+              const cData = await cResp.json();
+              const cText = (cData.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+              if (cText.includes('A)') && cText.includes('B)')) {
+                // Insert choices just before <<<CHANGES>>> so displayText includes them
+                rawText = rawText.replace('<<<CHANGES>>>', cText + '\n<<<CHANGES>>>');
+              }
+            }
+          } catch(e) { /* choices are a UX enhancement — non-blocking */ }
         }
       }
     }
