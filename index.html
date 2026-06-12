@@ -1798,6 +1798,13 @@ ACTIVITIES THAT EARN ZERO TRAINING XP:
 
 Quick test: could the character fall asleep mid-activity without missing anything? Then no XP. Was there sweat, strain, or deliberate mental focus required? Then XP may apply.
 
+DO NOT INVENT UNREQUESTED TRAINING — CRITICAL RULE:
+Generate TRAINING: tags, PROFICIENCY: tags, and drill roll cards (ROLL_LABEL=) ONLY when the player's declared action explicitly involves practicing, drilling, sparring, or deliberate Force use.
+- If the player says "join them for breakfast", "walk to the archives", "talk to Master X", "meditate on the lesson" — that is the entire action. Do NOT prepend a morning forms drill, a quick saber session, or any other training the player never asked for.
+- Mandatory daily routines (morning forms, group meditation) are NOT automatically inserted. If the player wants them, they will say so.
+- The previous turn's training is already fully credited. Do NOT award delayed XP for anything that happened last turn — it is gone.
+- If no training or combat occurred this turn: CHANGES block has zero TRAINING:, COMBAT:, or PROFICIENCY: lines. Zero roll cards. This is correct.
+
 STEP 3: Output the SHEET block (full JSON for complete state):
 <<<SHEET>>>
 {complete json}
@@ -1947,6 +1954,10 @@ JavaScript rolls dice via your ROLL:/ROLL_LABEL= tags — no pre-rolled values a
 
 **ONE ROLL PER ACTION — NEVER DECOMPOSE:**
 A single player action produces ONE roll card. Do not fire multiple ROLL: tags for the same action by breaking it into per-stat components. If Battlemind is active during a saber exchange, that is ONE ROLL_OPPOSED with the primary form and physicals — not separate cards for "Battlemind ForceControl," "Battlemind ForceSense," etc. Those stats contribute bonuses to the single roll, not separate rolls. The same rule applies to Force use, training sessions, and social checks. ONE action = ONE ROLL: tag.
+
+ONE ROLL PER TRAINING SESSION — not one per drill within the session:
+"30 minutes of Force Push isolation practice" = ONE roll card + ONE TRAINING: + ONE PROFICIENCY: line.
+Do NOT decompose a single training session into "Force Push Drill (First)", "Force Push Drill (Second)", "Integration Drill" etc. That is one session. One roll. The narrative can describe multiple exercises — the mechanics track the session, not each repetition.
 
 ### TRAINING OUTCOME SELECTION
 
