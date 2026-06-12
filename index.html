@@ -5881,6 +5881,10 @@ function applyTalentXPMultiplier(statPath, baseXP) {
       xp = Math.round(xp * 1.3);
     }
   }
+  // BattleMeditationAffinity: 70% cost reduction — equivalent to ×(1/0.3) XP multiplier
+  if (talents.includes('BattleMeditationAffinity') && statPath === 'forceAbilities.BattleMeditation') {
+    xp = Math.round(xp / 0.3);
+  }
 
   return xp;
 }
@@ -7370,7 +7374,7 @@ const SIM_ACTIVITIES = [
   { cat:'force_stat', key:'force_control_drills',label:'Force Control Drills',      weights:[{p:'forceStats.forceControl',w:1.0},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.4}], strainBias:{f:1.8,p:0.2,m:1.2}, defaultIntensity:'standard', unlock:cs=>true },
   { cat:'force_stat', key:'force_output_drills', label:'Raw Force Output Training', weights:[{p:'forceStats.forceOutput',w:1.0},{p:'forceStats.forceControl',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:2.2,p:0.3,m:0.8}, defaultIntensity:'intense', unlock:cs=>(cs.forceStats?.forceOutput||0)>=1||(cs.forceAbilities?.Telekinesis||0)>=20 },
   // ── FORCE ABILITIES (hardcoded entries; all others generated dynamically) ───
-  { cat:'force_ability', coveredAbility:'Telekinesis', key:'telekinesis_basic', label:'Telekinesis Practice', weights:[{p:'forceAbilities.Telekinesis',w:1.0},{p:'forceStats.forceControl',w:0.6},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:1.8,p:0.2,m:1.0}, defaultIntensity:'standard', unlock:cs=>true },
+  { cat:'force_ability', coveredAbility:'Telekinesis', key:'telekinesis_basic', label:'Telekinesis Practice', weights:[{p:'forceAbilities.Telekinesis',w:1.0},{p:'forceStats.forceControl',w:0.6},{p:'forceStats.forceSense',w:0.3},{p:'stats.willpower',w:0.3}], strainBias:{f:1.8,p:0.2,m:1.0}, defaultIntensity:'standard', forceFam:'TK', unlock:cs=>true },
   { cat:'force_ability', key:'shatterpoint_practice', label:'Shatterpoint Practice', weights:[], strainBias:{f:2.2,p:0.1,m:2.5}, defaultIntensity:'standard', isShatterpoint:true, unlock:cs=>(cs.innateTalents||[]).includes('ShatterSense')||(cs.shatterpointLevel||0)>0 },
   // ── PHYSICAL ─────────────────────────────────────────────────────
   { cat:'physical', key:'cardio',          label:'Cardio / Endurance',          weights:[{p:'stats.endurance',w:1.0},{p:'stats.strength',w:0.2},{p:'stats.agility',w:0.2}], strainBias:{f:0.1,p:2.0,m:0.3}, defaultIntensity:'standard', unlock:cs=>true },
@@ -9617,6 +9621,7 @@ function simBuildActivityOptions(cs) {
         label: cat.label || abilKey,
         weights,
         strainBias: FAM_STRAIN_BIAS[cat.fam] || {f:1.5, p:0.3, m:1.0},
+        forceFam: cat.fam,
         defaultIntensity: 'standard',
         unlock: () => true,
         _dynForceAbility: abilKey,
@@ -9794,12 +9799,16 @@ function simCalcDailyStrain() {
   const mandatories = SIM_MANDATORY[stage] || [];
   let f=0, p=0, m=0;
 
-  const addStrain = (hours, intensity, bias, isRecovery) => {
+  const addStrain = (hours, intensity, bias, isRecovery, forceFam, abilKey) => {
     if (isRecovery) return; // meditation handled separately in simCalcMeditationRecovery
+    const talents = characterSheet?.innateTalents || [];
     const iMult = SIM_INTENSITY_STRAIN_MULT[intensity] || 1.0;
-    f += hours * SIM_STRAIN_BASE.f * iMult * (bias.f||1) * (1 - em * 0.5);
+    const fFamMult = (forceFam === 'TK' && talents.includes('NaturalTelekineticBurst')) ? 0.8 : 1.0;
+    const bmMult   = (abilKey  === 'BattleMeditation' && talents.includes('BattleMeditationAffinity')) ? 0.6 : 1.0;
+    const mMult    = talents.includes('IronMind') ? 0.8 : 1.0;
+    f += hours * SIM_STRAIN_BASE.f * iMult * (bias.f||1) * (1 - em * 0.5) * fFamMult * bmMult;
     p += hours * SIM_STRAIN_BASE.p * iMult * (bias.p||1) * (1 - em);
-    m += hours * SIM_STRAIN_BASE.m * iMult * (bias.m||1) * (1 - em * 0.3);
+    m += hours * SIM_STRAIN_BASE.m * iMult * (bias.m||1) * (1 - em * 0.3) * mMult;
   };
 
   mandatories.forEach((mand, i) => {
@@ -9812,7 +9821,7 @@ function simCalcDailyStrain() {
     if (!r.activityKey || !r.hours) return;
     const act = allActsStrain.find(a => a.key === r.activityKey);
     if (!act) return;
-    addStrain(r.hours, r.intensity || act.defaultIntensity, act.strainBias || {f:1,p:1,m:1}, act.isRecovery);
+    addStrain(r.hours, r.intensity || act.defaultIntensity, act.strainBias || {f:1,p:1,m:1}, act.isRecovery, act.forceFam, act._dynForceAbility || act.coveredAbility || '');
   });
 
   // Meditation recovery (net negative strain)
@@ -9921,7 +9930,8 @@ function simCalcDailyXP(cs) {
 function simGetStrainPenalty() {
   const s = simCalcDailyStrain();
   const w = Math.max(s.f, s.p, s.m);
-  if (w > 90) return 0.1;
+  const talents = characterSheet?.innateTalents || [];
+  if (w > 90) return talents.includes('UnbreakableSpirit') ? 0.3 : 0.1;
   if (w > 70) return 0.4;
   if (w > 50) return 0.7;
   if (w > 20) return 0.9;
