@@ -1760,25 +1760,24 @@ RULES FOR CHANGES BLOCK:
 - XP lines for TRAINING sessions: TRAINING: category.StatName, hours, intensity, difficulty, outcome
   - category: forceStats / stats / forceAbilities / lightsaberForms
   - StatName: exact canonical key (e.g. forceSense, ShiiCho, Telekinesis, strength)
-  - Sub-abilities (ForcePush, ForcePull, ForceWave, ForceChoke, etc.) are NOT valid TRAINING: targets
+  - Sub-abilities (ForcePush, ForceWave, ForceChoke, etc.) are NOT valid TRAINING: targets — use PROFICIENCY: instead
   - hours: decimal hours of actual practice (0.5, 1.0, 2.5, 3.0 etc)
   - intensity: casual / standard / intense / pushing / elite
   - difficulty: basic / ceiling / above / far (relative to current stat level)
   - outcome: failure / partial / solid / strong / overwhelming / breakthrough
   - Example: TRAINING: lightsaberForms.ShiiCho, 2.5, intense, ceiling, strong
   - Example: TRAINING: forceStats.forceSense, 1.0, standard, basic, solid
-- XP for sub-ability proficiency — REQUIRED whenever drilling a specific technique:
-  PROFICIENCY: AbilityKey.SubKey, xpAmount
-  - AbilityKey = parent forceAbilities key (e.g. Telekinesis, MindTrick, ForceLightning)
-  - SubKey = specific technique (e.g. ForcePush, ForcePull, ForceWave, ForceChoke, ForceStorm)
-  - xpAmount scale: 0.5hr casual=8, 0.5hr standard=10, 0.5hr intense=13, 1hr standard=15, 1hr intense=20, 1hr overwhelming=30
-  - EVERY session drilling a sub-ability requires BOTH lines — missing PROFICIENCY: means ZERO sub-ability XP:
-      TRAINING: forceAbilities.Telekinesis, 0.5, intense, basic, solid    (base ability XP)
-      PROFICIENCY: Telekinesis.ForcePush, 13                               (sub-ability proficiency XP)
-  - Other examples:
-      TRAINING: forceAbilities.Telekinesis, 1.0, standard, basic, solid
-      PROFICIENCY: Telekinesis.ForcePull, 15
-  - JS applies discount factors automatically — write the raw xpAmount, never pre-calculate discounts
+- XP lines for sub-ability proficiency: PROFICIENCY: AbilityKey.SubKey,xpAmount
+  - Awards proficiency XP to a specific sub-application of a Force ability
+  - AbilityKey must match the parent forceAbilities key exactly (e.g. ForceLightning, Telekinesis)
+  - SubKey is the sub-application name (e.g. ForceStorm, ForcePush, ForceChoke)
+  - xpAmount uses same scale as TRAINING: standard supervised session (1hr) ≈ 15 XP
+  - MANDATORY: whenever the character specifically uses or drills a sub-application, ALWAYS include BOTH:
+      TRAINING: forceAbilities.ParentAbility, ...   (for base ability growth)
+      PROFICIENCY: ParentAbility.SubAbility, X      (for sub-ability proficiency)
+  - Example: PROFICIENCY: ForceLightning.ForceStorm,15
+  - Example: PROFICIENCY: Telekinesis.ForcePush,20
+  - JS applies discount factors automatically (base ability level + ForceControl reduce cost)
 - Include one TRAINING line per skill that was meaningfully used this turn
 - This block is what updates the character sheet — if you skip it, nothing updates
 
@@ -4270,21 +4269,6 @@ async function callGemini(playerMessage, retryCount = 0) {
           if (parts[0] === 'forceAbilities.Shatterpoint' && characterSheet.innateTalents && characterSheet.innateTalents.includes('ShatterSense')) {
             continue;
           }
-          // Guard: if AI uses TRAINING: on a sub-ability key (par !== null), redirect to proficiency system
-          if (parts[0].startsWith('forceAbilities.') && typeof FORCE_ABILITY_CATALOG !== 'undefined') {
-            const subKey = parts[0].split('.')[1];
-            const catEntry = FORCE_ABILITY_CATALOG[subKey];
-            if (catEntry && catEntry.par) {
-              if (parts.length >= 5) {
-                const rawXP = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4]);
-                const res = applyProficiencyXP(catEntry.par, subKey, rawXP);
-                if (res.pctGained > 0) {
-                  turnXPLog.push({ label: `${subKey} proficiency`, xpAdded: res.profAdded, levelUps: 0, newStat: res.newPct, type: 'proficiency' });
-                }
-              }
-              continue;
-            }
-          }
           if (parts.length >= 5) {
             const rawXP = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4]);
             const xp = applyTalentXPMultiplier(parts[0], rawXP);
@@ -5007,7 +4991,7 @@ async function callGemini(playerMessage, retryCount = 0) {
               const out = {};
               for (const [k, v] of Object.entries(forceAbilities)) {
                 const canon = aliases[k] || k;
-                if (canon in FORCE_ABILITY_CATALOG && FORCE_ABILITY_CATALOG[canon].par === null) out[canon] = v;
+                if (canon in FORCE_ABILITY_CATALOG) out[canon] = v;
               }
               return Object.keys(out).length ? out : characterSheet.forceAbilities;
             })()
