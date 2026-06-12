@@ -4111,10 +4111,24 @@ async function callGemini(playerMessage, retryCount = 0) {
     }
 
     if (worldMatch) {
-      // Preserve current date/time — the AI's WORLD JSON may have the previous turn's
-      // values. The CHANGES block and narrative parser update these authoritatively below.
-      const savedDate = worldState?.inGameDate || null;
-      const savedTime = worldState?.inGameTime || null;
+      // Snapshot JS-managed state before overwriting worldState with the AI's JSON.
+      // The AI only controls narrative fields (location, scene, etc.) — it does NOT
+      // manage People/NPCs, story threads, world log, or galaxy events. Those are
+      // set exclusively via CHANGES block tags and JS, and must survive every parse.
+      const savedDate             = worldState?.inGameDate        || null;
+      const savedTime             = worldState?.inGameTime        || null;
+      const savedTracked          = worldState?.trackedCharacters  ? [...worldState.trackedCharacters]  : [];
+      const savedProfiles         = worldState?.characterProfiles  ? {...worldState.characterProfiles}  : {};
+      const savedInteractions     = worldState?.interactionWeights ? {...worldState.interactionWeights} : {};
+      const savedNpcAgendas       = worldState?.npcAgendas         ? {...worldState.npcAgendas}         : {};
+      const savedPendingEvents    = worldState?.pendingEvents      ? [...worldState.pendingEvents]      : [];
+      const savedWorldLog         = worldState?.worldLog           ? [...worldState.worldLog]           : [];
+      const savedGalaxyQueue      = worldState?.galaxyEventQueue   ? [...worldState.galaxyEventQueue]   : [];
+      const savedGalaxyEvents     = worldState?.galaxyEvents       ? [...worldState.galaxyEvents]       : [];
+      const savedLegacyChanges    = worldState?.legacyChanges      ? [...worldState.legacyChanges]      : [];
+      const savedLineageRecord    = worldState?.lineageRecord      ? [...worldState.lineageRecord]      : [];
+      const savedStoryFlags       = worldState?.storyFlags         ? {...worldState.storyFlags}         : {};
+      const savedGalaxyState      = worldState?.galaxyState        ? {...worldState.galaxyState}        : {};
       try {
         worldState = JSON.parse(worldMatch[1].trim());
         worldParsed = true;
@@ -4123,6 +4137,19 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (j) { try { worldState = JSON.parse(j[0]); worldParsed = true; } catch(e2) {} }
       }
       if (worldParsed && worldState) {
+        // Restore all JS-managed fields — AI WORLD JSON cannot overwrite these
+        worldState.trackedCharacters  = savedTracked;
+        worldState.characterProfiles  = savedProfiles;
+        worldState.interactionWeights = savedInteractions;
+        worldState.npcAgendas         = savedNpcAgendas;
+        worldState.pendingEvents       = savedPendingEvents;
+        worldState.worldLog           = savedWorldLog;
+        worldState.galaxyEventQueue   = savedGalaxyQueue;
+        worldState.galaxyEvents       = savedGalaxyEvents;
+        worldState.legacyChanges      = savedLegacyChanges;
+        worldState.lineageRecord      = savedLineageRecord;
+        worldState.storyFlags         = savedStoryFlags;
+        worldState.galaxyState        = savedGalaxyState;
         normalizeWorldState();
         // Check if momentum window has expired based on in-game date
         if (characterSheet?.momentumWindow?.active && characterSheet.momentumWindow.expiresDate && worldState.inGameDate) {
