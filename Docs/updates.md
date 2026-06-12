@@ -4,6 +4,61 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V127 — 2026-06-11
+
+**Feature: Tier-based XP scaling + roll threshold recalibration**
+
+### Tier-based XP scaling
+
+**Problem:** Training XP was flat regardless of skill level. Throwing boulders as a master awarded the same base XP as a youngling doing basic Force Push at the same intensity/difficulty/outcome. This made sense mechanically (the XP curve is exponential) but felt wrong narratively.
+
+**Fix:** Added `statLevelToTierMult(level)` returning a multiplier by tier band:
+
+| Tier | Level | Multiplier |
+|---|---|---|
+| Initiate | 0–20 | ×1.0 |
+| Padawan | 21–40 | ×1.2 |
+| Knight | 41–60 | ×1.5 |
+| Master | 61–80 | ×2.0 |
+| Grandmaster | 81–100 | ×2.7 |
+| Legendary | 101+ | ×3.5 |
+
+Added `getStatLevelForPath(statPath)` that prefers `masterXP` (authoritative) over raw `characterSheet` values for level derivation. Both `calcTrainingXP()` calls in the TRAINING: handler now pass the relevant stat level as the 5th argument. Sub-ability redirects use the parent ability's level (not the sub-ability's, which has no base-XP track).
+
+This does NOT fully offset the exponential XP curve — progression still gets meaningfully harder at higher tiers. It just reflects that harder actions inherently yield more raw XP.
+
+### Roll threshold recalibration
+
+**Problem:** The solo roll thresholds in `fireRoll()` (Fail<9 / Contested 9-12 / Solid 13-17 / Strong 18-22 / Overwhelming 23+) were miscalibrated relative to both the training outcome tables and the master prompt's roll interpretation scale.
+
+**Fix:** Updated to: Fail<8 / Contested 8-11 / Solid 12-16 / Strong 17-20 / Overwhelming 21+
+
+These align with:
+- The CEILING training outcome table (Fail<8, Partial 8-11, Solid 12-16, Strong 17-20, Overwhelming 21+) — confirmed correct reference distributions at stat ~30 and ~60
+- The master prompt's margin-based scale (≤1 Contested / 2-3 Solid / 4-6 Strong / 7+ Overwhelming) applied against a DC of ~10
+
+Updated in three places: threshold display string, result if-else chain, `lastRoll.result` ternary. Prompt reference line updated to match.
+
+---
+
+## V126 — 2026-06-11
+
+**Fix: Phantom training XP in social/narrative turns + multiple roll cards per session**
+
+### Root Cause 1 — Phantom training XP appearing in non-training turns
+
+The AI was inserting TRAINING: tags in turns where the player did nothing related to training (e.g., "joining friends for breakfast"). The prompt did not clearly forbid carry-over XP from the previous session into the current turn.
+
+Added explicit rule: TRAINING: tags represent work done **in the current turn only**. If the player spent the previous turn training and this turn is purely social/narrative, write zero TRAINING: tags.
+
+### Root Cause 2 — Session decomposition (multiple roll cards per session)
+
+For a single training session like "30 minutes of Force Push isolation practice", the AI was generating multiple ROLL:/ROLL_LABEL= pairs (Force Push Drill First, Force Push Drill Second, Integration Drill, etc.), creating 3-4 roll cards for what is one activity.
+
+Added explicit rule with example: ONE ROLL PER TRAINING SESSION. The narrative can describe multiple exercises — the mechanics track the session as a unit. Added the example "30 minutes of Force Push isolation practice = ONE roll card + ONE TRAINING: + ONE PROFICIENCY: line."
+
+---
+
 ## V125 — 2026-06-11
 
 **Fix: People tab NPCs wiped on every AI response**

@@ -1894,7 +1894,7 @@ Opposed roll — one-off NPC (no stored profile):
 - Tier 7 Transcendent:       stat 151+
 
 ### RESULT OUTCOMES (write your narrative to match the JS result card)
-Solo roll:   Fail<9 / Contested 9–12 / Solid 13–17 / Strong 18–22 / Overwhelming 23+
+Solo roll:   Fail<8 / Contested 8–11 / Solid 12–16 / Strong 17–20 / Overwhelming 21+
 Opposed roll margin: 0=Contested / 1–3=Narrow win / 4–7=Clear win / 8–12=Dominant / 13+=Overwhelming
 
 ### WHICH STATS TO DECLARE
@@ -4314,7 +4314,8 @@ async function callGemini(playerMessage, retryCount = 0) {
             const catEntry = FORCE_ABILITY_CATALOG[subKey];
             if (catEntry && catEntry.par) {
               if (parts.length >= 5) {
-                const rawXP = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4]);
+                const parentLevel = getStatLevelForPath('forceAbilities.' + catEntry.par);
+                const rawXP = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4], parentLevel);
                 const res = applyProficiencyXP(catEntry.par, subKey, rawXP);
                 if (res.pctGained > 0) {
                   turnXPLog.push({ label: `${subKey} proficiency`, xpAdded: res.profAdded, levelUps: 0, newStat: res.newPct, type: 'proficiency' });
@@ -4324,7 +4325,8 @@ async function callGemini(playerMessage, retryCount = 0) {
             }
           }
           if (parts.length >= 5) {
-            const rawXP = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4]);
+            const statLevel = getStatLevelForPath(parts[0]);
+            const rawXP = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4], statLevel);
             const xp = applyTalentXPMultiplier(parts[0], rawXP);
             const res = applyXPToSheet(parts[0], xp);
             const label = parts[0].split('.')[1] || parts[0];
@@ -5804,14 +5806,43 @@ function deriveFromTotalXP(totalXP) {
 }
 
 // Training XP: time(hours) × intensity × difficulty × outcome
-function calcTrainingXP(hours, intensity, difficulty, outcome) {
+// Tier multiplier: scales XP by the absolute difficulty of the action.
+// A master throwing boulders earns more raw XP than a youngling doing basic Force Push,
+// even at the same intensity/difficulty/outcome. Does NOT fully offset the exponential
+// XP curve — progression still gets meaningfully harder at higher tiers.
+function statLevelToTierMult(level) {
+  if (level >= 101) return 3.5;
+  if (level >=  81) return 2.7;
+  if (level >=  61) return 2.0;
+  if (level >=  41) return 1.5;
+  if (level >=  21) return 1.2;
+  return 1.0;
+}
+
+// Get the current derived level for a stat path (e.g. 'forceAbilities.Telekinesis').
+// Prefers masterXP (authoritative) over raw characterSheet values.
+function getStatLevelForPath(statPath) {
+  const parts = (statPath || '').split('.');
+  const category = parts[0], key = parts[1];
+  if (!category || !key || !characterSheet) return 0;
+  const mxpEntry = masterXP?.[category]?.[key];
+  if (mxpEntry?.totalXP !== undefined) return deriveFromTotalXP(mxpEntry.totalXP).level;
+  if (category === 'forceStats')      return characterSheet.forceStats?.[key] || 0;
+  if (category === 'stats')           return characterSheet.stats?.[key] || 0;
+  if (category === 'forceAbilities')  { const v = characterSheet.forceAbilities?.[key]; return typeof v === 'object' ? (v.level||0) : (v||0); }
+  if (category === 'lightsaberForms') { const v = characterSheet.lightsaberForms?.[key]; return typeof v === 'object' ? (v.level||0) : (v||0); }
+  return 0;
+}
+
+function calcTrainingXP(hours, intensity, difficulty, outcome, statLevel) {
   const iMap = {casual:10,slow:10,deliberate:10,standard:15,normal:15,moderate:15,intense:20,focused:20,hard:20,pushing:25,limits:25,extreme:25,elite:30,sparring:30,danger:30};
   const dMap = {basic:1.0,easy:1.0,within:1.0,familiar:1.0,ceiling:1.3,challenging:1.3,above:1.6,difficult:1.6,far:2.0,impossible:2.0};
   const oMap = {failure:0.8,struggle:0.8,partial:1.0,contested:1.0,solid:1.2,success:1.2,strong:1.5,good:1.5,overwhelming:2.0,exceptional:2.0,breakthrough:3.0,insight:3.0};
   const i = iMap[(intensity||'').toLowerCase()] || 15;
   const d = dMap[(difficulty||'').toLowerCase()] || 1.0;
   const o = oMap[(outcome||'').toLowerCase()] || 1.0;
-  return Math.round((hours||1) * i * d * o);
+  const t = statLevelToTierMult(statLevel || 0);
+  return Math.round((hours||1) * i * d * o * t);
 }
 
 // Applies innate-talent XP multipliers for a given stat path.
@@ -9330,12 +9361,12 @@ function fireRoll(roll) {
     html += `<div style="margin-top:4px;color:${rc};font-weight:bold">Margin: ${margin>0?'Player':'Opponent'} by ${Math.abs(margin).toFixed(2)} — ${result}</div>`;
   } else {
     html += `<div style="margin-top:4px"><span style="color:var(--gold);font-weight:bold">d20=${d20}</span><span style="color:var(--text-dim)">, Bonus=+${totalBonus.toFixed(2)}, Total=${playerTotal.toFixed(2)}</span></div>`;
-    html += `<div style="color:var(--text-dim);font-size:10px">Thresholds: Fail&lt;9 / Contested 9–12 / Solid 13–17 / Strong 18–22 / Overwhelming 23+</div>`;
+    html += `<div style="color:var(--text-dim);font-size:10px">Thresholds: Fail&lt;8 / Contested 8–11 / Solid 12–16 / Strong 17–20 / Overwhelming 21+</div>`;
     let result, rc;
-    if      (playerTotal>=23) { result='Overwhelming success'; rc='#88ddff'; }
-    else if (playerTotal>=18) { result='Strong success';       rc='#44cc88'; }
-    else if (playerTotal>=13) { result='Solid success';        rc='#88cc88'; }
-    else if (playerTotal>=9)  { result='Contested — partial';  rc='#cccc88'; }
+    if      (playerTotal>=21) { result='Overwhelming success'; rc='#88ddff'; }
+    else if (playerTotal>=17) { result='Strong success';       rc='#44cc88'; }
+    else if (playerTotal>=12) { result='Solid success';        rc='#88cc88'; }
+    else if (playerTotal>=8)  { result='Contested — partial';  rc='#cccc88'; }
     else                      { result='Fail';                 rc='#cc4444'; }
     html += `<div style="color:${rc};font-weight:bold">Result: ${result}</div>`;
   }
@@ -9350,7 +9381,7 @@ function fireRoll(roll) {
     characterSheet.lastRoll = {
       label, d20, totalBonus: Math.round(totalBonus*100)/100,
       total: Math.round(playerTotal*100)/100,
-      result: playerTotal>=23?'overwhelming':playerTotal>=18?'strong':playerTotal>=13?'solid':playerTotal>=9?'contested':'fail'
+      result: playerTotal>=21?'overwhelming':playerTotal>=17?'strong':playerTotal>=12?'solid':playerTotal>=8?'contested':'fail'
     };
   }
 }
