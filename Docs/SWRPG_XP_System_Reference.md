@@ -331,7 +331,8 @@ These are set at character creation (or via player override). They modify XP cos
 | **Unbreakable Spirit** | At 90+ strain, XP penalty is ×0.3 instead of ×0.1 |
 | **ShatterSense** | Shatterpoint XP cost ×0.1 (90% cheaper); uncapped track; passive perception |
 | **Battle Meditation Affinity** | Battle Meditation XP ×0.3 (70% cheaper); Force Strain ×0.6 |
-| **BladeIntuition** | First lightsaber form starts with 5 bonus levels at character creation |
+| **BladeIntuition** | All lightsaber form XP ×1.3 — natural affinity accelerates all blade skill growth |
+| **ForceReservoir** | forceStats.forceOutput XP ×1.3 — deep reservoir makes raw power more accessible |
 | **Iron Mind** | Mental Strain accumulates at ×0.8 rate (helps maintain XP rates mentally) |
 | **Living Force Connection** | Environmental Force Sense always active; Animal Bond strain-free |
 

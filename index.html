@@ -4315,7 +4315,7 @@ async function callGemini(playerMessage, retryCount = 0) {
             if (catEntry && catEntry.par) {
               if (parts.length >= 5) {
                 const parentLevel = getStatLevelForPath('forceAbilities.' + catEntry.par);
-                const rawXP = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4], parentLevel);
+                const rawXP = applyMomentumToXP(calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4], parentLevel));
                 const res = applyProficiencyXP(catEntry.par, subKey, rawXP);
                 if (res.pctGained > 0) {
                   turnXPLog.push({ label: `${subKey} proficiency`, xpAdded: res.profAdded, levelUps: 0, newStat: res.newPct, type: 'proficiency' });
@@ -4326,7 +4326,7 @@ async function callGemini(playerMessage, retryCount = 0) {
           }
           if (parts.length >= 5) {
             const statLevel = getStatLevelForPath(parts[0]);
-            const rawXP = calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4], statLevel);
+            const rawXP = applyMomentumToXP(calcTrainingXP(parseFloat(parts[1]), parts[2], parts[3], parts[4], statLevel));
             const xp = applyTalentXPMultiplier(parts[0], rawXP);
             const res = applyXPToSheet(parts[0], xp);
             const label = parts[0].split('.')[1] || parts[0];
@@ -4344,7 +4344,8 @@ async function callGemini(playerMessage, retryCount = 0) {
           const secPath = secIdx >= 0 ? rest.slice(secIdx + 12).trim() : null;
           const parts = mainPart.split(',').map(s => s.trim());
           if (parts.length >= 5) {
-            const {primary, secondary} = calcCombatXP(parseInt(parts[1]), parseInt(parts[2]), parts[3], parts[4]);
+            const {primary: _cp, secondary: _cs} = calcCombatXP(parseInt(parts[1]), parseInt(parts[2]), parts[3], parts[4]);
+            const primary = applyMomentumToXP(_cp), secondary = applyMomentumToXP(_cs);
             const res = applyXPToSheet(parts[0], primary);
             const label = parts[0].split('.')[1] || parts[0];
             if (res.xpAdded > 0) turnXPLog.push({ label, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'combat' });
@@ -4366,7 +4367,7 @@ async function callGemini(playerMessage, retryCount = 0) {
             if (dotIdx > 0) {
               const abilKey = compositeKey.slice(0, dotIdx);
               const subKey  = compositeKey.slice(dotIdx + 1);
-              const profXP  = parseFloat(profParts[1]) || 0;
+              const profXP  = applyMomentumToXP(parseFloat(profParts[1]) || 0);
               if (profXP > 0) {
                 const res = applyProficiencyXP(abilKey, subKey, profXP);
                 if (res.pctGained > 0) {
@@ -4393,7 +4394,7 @@ async function callGemini(playerMessage, retryCount = 0) {
               // Guard: ShatterSense innate supersedes learned Shatterpoint
               if (xpPath === 'forceAbilities.Shatterpoint' && characterSheet.innateTalents && characterSheet.innateTalents.includes('ShatterSense')) {
               } else {
-                const res = applyXPToSheet(xpPath, xpAmt);
+                const res = applyXPToSheet(xpPath, applyMomentumToXP(xpAmt));
                 const lbl = xpPath.split('.')[1] || xpPath;
                 if (res.xpAdded > 0) turnXPLog.push({ label: lbl, xpAdded: res.xpAdded, levelUps: res.levelUps, newStat: res.newStat, xpCurrent: res.xpCurrent, xpRequired: res.xpRequired, type: 'training' });
               }
@@ -5506,11 +5507,11 @@ function endCombat(outcome, engagement) {
       outcome || 'win',
       activeCombat.opponentTier || 2
     );
-    const res1 = applyXPToSheet(activeCombat.primarySkill, primary);
+    const res1 = applyXPToSheet(activeCombat.primarySkill, applyMomentumToXP(primary));
     const label1 = activeCombat.primarySkill.split('.')[1] || activeCombat.primarySkill;
     if (res1.xpAdded > 0) turnXPLog.push({ label: label1, xpAdded: res1.xpAdded, levelUps: res1.levelUps, newStat: res1.newStat, xpCurrent: res1.xpCurrent, xpRequired: res1.xpRequired, type: 'combat' });
     if (activeCombat.secondarySkill) {
-      const res2 = applyXPToSheet(activeCombat.secondarySkill, secondary);
+      const res2 = applyXPToSheet(activeCombat.secondarySkill, applyMomentumToXP(secondary));
       const label2 = activeCombat.secondarySkill.split('.')[1] || activeCombat.secondarySkill;
       if (res2.xpAdded > 0) turnXPLog.push({ label: label2, xpAdded: res2.xpAdded, levelUps: res2.levelUps, newStat: res2.newStat, xpCurrent: res2.xpCurrent, xpRequired: res2.xpRequired, type: 'combat' });
     }
@@ -5845,6 +5846,13 @@ function calcTrainingXP(hours, intensity, difficulty, outcome, statLevel) {
   return Math.round((hours||1) * i * d * o * t);
 }
 
+// Apply momentum window multiplier to an XP value (real-turn only — sim bypasses this).
+// Returns the scaled amount, or the original if no window is active.
+function applyMomentumToXP(xp) {
+  if (!characterSheet?.momentumWindow?.active) return xp;
+  return Math.round(xp * (characterSheet.momentumWindow.multiplier || 1.0));
+}
+
 // Applies innate-talent XP multipliers for a given stat path.
 // All XP-modifying talent effects are centralised here — JS handles every multiplier,
 // the AI never needs to account for these bonuses.
@@ -6130,6 +6138,11 @@ function applyProficiencyXP(abilityKey, subKey, rawXP) {
   const before = deriveProficiency(entry.totalProfXP, entry.D);
   entry.totalProfXP += effectiveXP;
   const after  = deriveProficiency(entry.totalProfXP, entry.D);
+
+  // 20% trickle-back from sub-ability training to base ability
+  const trickleBack = Math.round(rawXP * 0.20);
+  if (trickleBack > 0) applyXPToSheet('forceAbilities.' + abilityKey, trickleBack);
+
   return { profAdded: Math.round(effectiveXP), newPct: after.percentage,
            pctGained: after.percentage - before.percentage };
 }
