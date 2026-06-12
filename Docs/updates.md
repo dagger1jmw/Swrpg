@@ -4,6 +4,105 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V129 — 2026-06-12
+
+**Feature: Four innate talent effects in sim — UnbreakableSpirit, IronMind, NaturalTelekineticBurst, BattleMeditationAffinity**
+
+### Problem
+
+Four innate talents listed in the talent grid and XP reference had no mechanical effect in the simulation panel. `simGetStrainPenalty()` and `addStrain()` were talent-blind; `applyTalentXPMultiplier()` had no BattleMeditationAffinity case.
+
+### Fixes
+
+**1. UnbreakableSpirit (`simGetStrainPenalty`)**
+
+At the `w > 90` threshold, check `talents.includes('UnbreakableSpirit')`:
+- Without talent: return 0.1 (existing behaviour)
+- With talent: return 0.3 (penalty floor raised — spirit pushes through extreme strain)
+
+**2. IronMind + NaturalTelekineticBurst + BattleMeditationAffinity (`addStrain`)**
+
+Extended `addStrain` signature from `(hours, intensity, bias, isRecovery)` to `(hours, intensity, bias, isRecovery, forceFam, abilKey)`:
+
+```javascript
+const addStrain = (hours, intensity, bias, isRecovery, forceFam, abilKey) => {
+  if (isRecovery) return;
+  const talents = characterSheet?.innateTalents || [];
+  const iMult = SIM_INTENSITY_STRAIN_MULT[intensity] || 1.0;
+  const fFamMult = (forceFam === 'TK' && talents.includes('NaturalTelekineticBurst')) ? 0.8 : 1.0;
+  const bmMult   = (abilKey  === 'BattleMeditation' && talents.includes('BattleMeditationAffinity')) ? 0.6 : 1.0;
+  const mMult    = talents.includes('IronMind') ? 0.8 : 1.0;
+  f += hours * SIM_STRAIN_BASE.f * iMult * (bias.f||1) * (1 - em * 0.5) * fFamMult * bmMult;
+  p += hours * SIM_STRAIN_BASE.p * iMult * (bias.p||1) * (1 - em);
+  m += hours * SIM_STRAIN_BASE.m * iMult * (bias.m||1) * (1 - em * 0.3) * mMult;
+};
+```
+
+The training-rows call site passes `act.forceFam` and `act._dynForceAbility || act.coveredAbility || ''`. The mandatory-rows call site is left without these args (mandatories are saber/meditation/knowledge — none are TK or BattleMeditation).
+
+`telekinesis_basic` (hardcoded activity) gained `forceFam: 'TK'` so NaturalTelekineticBurst fires on it.
+
+Dynamic force-ability activities (`dynActs.push`) gained `forceFam: cat.fam` so every dynamically-generated activity carries its catalog family.
+
+**3. BattleMeditationAffinity XP (`applyTalentXPMultiplier`)**
+
+Battle Meditation Affinity gives 70% cost reduction. In our system XP is added as earned (not as cost), so we convert: `xp = Math.round(xp / 0.3)` (equivalent to ×3.33 multiplier). Added as a new case after ForceSensitiveHealer.
+
+---
+
+## V128 — 2026-06-12
+
+**Feature: Momentum window XP application + proficiency trickle-back**
+
+### Problem 1 — Momentum window stored but never applied
+
+`characterSheet.momentumWindow` was parsed and stored correctly (via the `MOMENTUM_WINDOW=` startsWith handler added in V111) and expired day-by-day in `advanceDay()`. But nowhere was the multiplier actually applied to XP. Every TRAINING:, COMBAT:, PROFICIENCY:, XP: call, and `endCombat()` went through `applyXPToSheet` / `applyProficiencyXP` which had no momentum awareness.
+
+### Fix 1
+
+Added `applyMomentumToXP(xp)` helper:
+
+```javascript
+function applyMomentumToXP(xp) {
+  if (!characterSheet?.momentumWindow?.active) return xp;
+  return Math.round(xp * (characterSheet.momentumWindow.multiplier || 1.0));
+}
+```
+
+Applied at exactly six real-turn XP call sites:
+1. TRAINING: sub-ability branch
+2. TRAINING: main branch
+3. COMBAT: primary and secondary (via `_cp`/`_cs` rename to avoid collision)
+4. PROFICIENCY: branch
+5. XP: branch
+6. `endCombat()` primary + secondary
+
+The simulation panel calls `applyXPToSheet` and `applyProficiencyXP` directly — bypasses `applyMomentumToXP`, which is correct (sim XP should not be momentum-amplified).
+
+### Problem 2 — Proficiency trickle-back missing
+
+The forward direction (base ability training → +5% trickle to each unlocked sub-ability proficiency) was already implemented via `profTrickleFromBase()`. The reverse direction (sub-ability proficiency training → 20% trickle back to base ability) was completely absent.
+
+### Fix 2
+
+Added one line at the end of `applyProficiencyXP()`, after `deriveProficiency()` computes the new state:
+
+```javascript
+// 20% trickle-back to base ability
+const trickleBack = Math.round(rawXP * 0.20);
+if (trickleBack > 0) applyXPToSheet('forceAbilities.' + abilityKey, trickleBack);
+```
+
+Cascade check: `applyXPToSheet` calls `profTrickleFromBase` which writes directly to `entry.totalProfXP` — not through `applyProficiencyXP`. So the cascade is: sub → base (20%) → sub (5% of 20% = 1%) — negligible and non-recursive.
+
+### Docs update
+
+`Docs/SWRPG_XP_System_Reference.md` §11 Innate Talents:
+- BladeIntuition: changed from "5 bonus levels at creation" → "All lightsaber form XP ×1.3"
+- ForceReservoir: new row added — "forceStats.forceOutput XP ×1.3"
+
+---
+
 ## V127 — 2026-06-11
 
 **Feature: Tier-based XP scaling + roll threshold recalibration**
