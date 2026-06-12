@@ -4,6 +4,89 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V125 — 2026-06-11
+
+**Fix: People tab NPCs wiped on every AI response**
+
+### Root Cause
+
+`handleResponse()` parsed the AI's `<<<WORLD>>>` block with a full overwrite:
+
+```javascript
+worldState = JSON.parse(worldMatch[1].trim());
+```
+
+The AI's WORLD JSON only contains narrative fields (`location`, `inGameDate`, `currentScene`, `sceneNPCs`). It never includes `trackedCharacters`, `characterProfiles`, `npcAgendas`, `pendingEvents`, `storyFlags`, `worldLog`, or any of the other JS-managed arrays. After the overwrite those fields are `undefined`; `normalizeWorldState()` then re-initialises them as empty arrays/objects, silently discarding all accumulated data.
+
+This happened on **every single AI turn**, including the turns immediately after simulation completes. The People tab appeared to clear "after simulating" because that's when the user noticed, but the bug fired on every response.
+
+### Fix
+
+Snapshot all JS-managed fields before the parse and restore them unconditionally after (lines ~4114–4153):
+
+```javascript
+const savedTracked       = worldState?.trackedCharacters  ? [...worldState.trackedCharacters]  : [];
+const savedProfiles      = worldState?.characterProfiles  ? {...worldState.characterProfiles}  : {};
+const savedInteractions  = worldState?.interactionWeights ? {...worldState.interactionWeights} : {};
+const savedNpcAgendas    = worldState?.npcAgendas         ? {...worldState.npcAgendas}         : {};
+const savedPendingEvents = worldState?.pendingEvents      ? [...worldState.pendingEvents]      : [];
+const savedWorldLog      = worldState?.worldLog           ? [...worldState.worldLog]           : [];
+const savedGalaxyQueue   = worldState?.galaxyEventQueue   ? [...worldState.galaxyEventQueue]   : [];
+const savedGalaxyEvents  = worldState?.galaxyEvents       ? [...worldState.galaxyEvents]       : [];
+const savedLegacyChanges = worldState?.legacyChanges      ? [...worldState.legacyChanges]      : [];
+const savedLineageRecord = worldState?.lineageRecord      ? [...worldState.lineageRecord]      : [];
+const savedStoryFlags    = worldState?.storyFlags         ? {...worldState.storyFlags}         : {};
+const savedGalaxyState   = worldState?.galaxyState        ? {...worldState.galaxyState}        : {};
+// ... parse ...
+worldState.trackedCharacters = savedTracked;
+// ... restore all 12 fields ...
+```
+
+The AI WORLD JSON now only controls what it legitimately owns: `location`, `inGameDate`, `inGameTime`, `currentScene`, `sceneNPCs`, and other narrative state. None of the JS-managed state can be affected by what the AI writes or omits.
+
+---
+
+## V124 — 2026-06-11
+
+**Fix: Sub-ability proficiency XP not registering (Force Push training showing 0 XP)**
+
+### Root Cause
+
+Three separate gaps in the sub-ability proficiency system:
+
+**Root Cause 1 — Sub-abilities stored in `forceAbilities` as level-0 entries.**
+The SHEET JSON parse filter at line ~5010 accepted any key present in `FORCE_ABILITY_CATALOG`:
+```javascript
+if (canon in FORCE_ABILITY_CATALOG) out[canon] = v;
+```
+Sub-abilities (`par !== null`, e.g. ForcePush, ForcePull, ForceWave) are catalog entries but should never be stored in `forceAbilities` — they are tracked exclusively in `forceAbilityProficiency`. The AI writes them into SHEET JSON as `"ForcePush": 0`, which created spurious level-0 entries in the sidebar.
+
+**Root Cause 2 — TRAINING: on sub-ability key was a silent no-op or worse.**
+If the AI wrote `TRAINING: forceAbilities.ForcePush, ...`, `applyXPToSheet` would seed and increment `masterXP.forceAbilities.ForcePush` — a phantom XP track that has no effect on proficiency and produces no visible result.
+
+**Root Cause 3 — AI consistently omits the PROFICIENCY: tag.**
+The prompt said the PROFICIENCY: tag was "MANDATORY" but buried the instruction as a sub-bullet. The 5% trickle from base ability training (~1 XP/session) is too small to matter (moving from 20% to 21% costs ~59 XP at D=1.0), so without an explicit PROFICIENCY: tag the player sees effectively zero progress on sub-abilities.
+
+### Fixes
+
+**Fix 1 — SHEET parse filters sub-abilities (line ~5010):**
+```javascript
+// before
+if (canon in FORCE_ABILITY_CATALOG) out[canon] = v;
+// after
+if (canon in FORCE_ABILITY_CATALOG && FORCE_ABILITY_CATALOG[canon].par === null) out[canon] = v;
+```
+
+**Fix 2 — TRAINING: handler redirects sub-ability keys to proficiency (lines ~4273–4287):**
+Added a guard before the normal `applyXPToSheet` path. If `parts[0]` is `forceAbilities.X` and `FORCE_ABILITY_CATALOG[X].par` is set, the XP is routed to `applyProficiencyXP(parentKey, subKey, rawXP)` instead.
+
+**Fix 3 — Prompt PROFICIENCY: rule rewritten (lines ~1770–1781):**
+- Added a concrete xpAmount scale (0.5hr casual=8, 0.5hr intense=13, 1hr standard=15, 1hr intense=20, 1hr overwhelming=30)
+- Mandatory paired-lines pattern shown with a ForcePush example directly inline
+- Explicit statement: "missing PROFICIENCY: means ZERO sub-ability XP"
+
+---
+
 ## V123j — 2026-06-11
 
 **Three engine improvements: sim drill UX, sim activity grouping + full-catalog coverage, canonical ability enforcement**
