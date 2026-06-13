@@ -4,6 +4,92 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V132 — 2026-06-13
+
+**Fix: Combat outcome narration must match the roll margin**
+
+### Problem
+
+The AI was narrating combat exchanges as player successes regardless of the `ROLL_OPPOSED` margin result. Screenshots showed "Margin: Opponent by 4.19 — Clear loss," "Opponent by 23.99 — Overwhelming loss," and "Opponent by 10.86 — Dominant loss" while the narrative described the player cornering the droid, executing Pressure Steps effectively, and receiving approving nods from Master Denko.
+
+Root cause: the rule "Never ignore the roll result in your prose" (line ~2014) existed only in the training/outcome section (`NARRATIVE RULES FOR OUTCOME FRAMING`). The combat `EXCHANGE RESOLUTION` section had no equivalent binding rule — it said "Winner describes the exchange narratively" but never defined what the narrative must look like when the player *loses*.
+
+### Fix (prompt-only)
+
+Added `THE MARGIN IS ABSOLUTE GROUND TRUTH — THE NARRATIVE MUST MATCH, NO EXCEPTIONS` block to the `EXCHANGE RESOLUTION` section:
+
+- Positive margin → player's action succeeded, narrate accordingly
+- Zero → contested, neither side gained
+- Negative margin → **THE PLAYER LOST THIS EXCHANGE** — explicit NEVER rules: never show the player's strike landing, never show the opponent being cornered or forced back on a negative margin
+- Per-tier loss narrative requirements: Narrow (1–3) / Clear (4–7) / Dominant (8–12) / Overwhelming (13+), each with concrete narrative description
+- Force abilities mid-combat: Battlemind being active increases the roll bonus but does not guarantee a win — if margin is still negative, narrate as active but insufficient
+
+Also hardened `FAILURE CONSEQUENCES`: now requires showing the loss in the narrative before listing the mechanical consequence. Previous version listed strain/injury consequences without mandating the loss be depicted first.
+
+---
+
+## V133 — 2026-06-13
+
+**Fix: ROLL_OPPOSED mandatory for every combat exchange without exception**
+
+### Problem
+
+The AI skipped the `ROLL_OPPOSED` tag entirely for a combat exchange when the narrative context appeared to make the outcome obvious (opponent cornered, player pressing advantage). The text showed the player attacking and the droid being overwhelmed with no roll card at all.
+
+The existing `ALWAYS ROLL` list in `WHEN TO ROLL — MANDATORY TRIGGERS` included "Any action explicitly opposed by another character" but this was vague enough that the AI treated apparent narrative momentum as a reason to narrate without rolling.
+
+### Fix (prompt-only)
+
+Added explicit bullet to `ALWAYS ROLL`:
+
+> **EVERY combat exchange, no exceptions.** Even if the opponent appears cornered, outmatched, or on the defensive — the roll still happens. The narrative never makes a roll unnecessary. Skipping a combat roll and narrating the outcome directly is always wrong.
+
+---
+
+## V134 — 2026-06-13
+
+**Feature: Situational tactical modifiers table for combat rolls**
+
+### Problem
+
+When a player had a genuine positional advantage (opponent cornered, surprise attack, sustained momentum), the AI had two wrong responses: (a) narrate the advantage as a guaranteed win without rolling, or (b) roll with `TACTICAL=0` and then ignore a negative margin. There was no guidance on encoding positional advantages into the roll mathematics.
+
+### Fix (prompt-only)
+
+Added `SITUATIONAL TACTICAL MODIFIERS` section after the form counter bonuses table. Key principle stated explicitly:
+
+> Positional/situational advantages encode into TACTICAL= — they are never a reason to skip a roll or override the result. A cornered opponent doesn't mean the player automatically wins. It means the player rolls with a bonus. The dice still decide.
+
+**Player advantage table (positive TACTICAL):**
+
+| Situation | TACTICAL |
+|-----------|----------|
+| Opponent cornered / back to wall | +2 |
+| Opponent cornered + restricted movement | +3 |
+| Surprise attack / blindside | +3 |
+| Ambush / full initiative | +4 |
+| Sustained momentum (3+ consecutive wins) | +1 |
+| Opponent visibly injured / impaired | +2 |
+| Opponent high strain | +1 |
+| Environmental high ground / terrain advantage | +1 |
+
+**Player disadvantage table (negative TACTICAL):**
+
+| Situation | TACTICAL |
+|-----------|----------|
+| Player off-balance / mid-motion | -2 |
+| Recovering from hit last exchange | -2 |
+| High strain (60+) | -1 |
+| Critical strain (80+) | -3 |
+| Patterns read by opponent | -1 |
+| Outnumbered / split attention | -2 |
+| Environmental hazard affecting player | -1 to -2 |
+| Technique at/above tier ceiling mid-combat | -2 |
+
+Stacking rule: sum all situational modifiers + form counter bonuses, declare combined value in `TACTICAL=`. JS hard-cap of ±5 remains enforced.
+
+---
+
 ## V129 — 2026-06-12
 
 **Feature: Four innate talent effects in sim — UnbreakableSpirit, IronMind, NaturalTelekineticBurst, BattleMeditationAffinity**
