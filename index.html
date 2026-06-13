@@ -5153,7 +5153,7 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (hp !== null) characterSheet.hp = parseInt(hp) || characterSheet.hp;
         if (alignment !== null) characterSheet.alignment = parseInt(alignment) || characterSheet.alignment;
         if (forceStats) characterSheet.forceStats = forceStats;
-        if (forceAbilities) characterSheet.forceAbilities = (typeof repairForceAbilities !== 'undefined' && typeof FORCE_ABILITY_CATALOG !== 'undefined')
+        if (forceAbilities) characterSheet.forceAbilities = (typeof FORCE_ABILITY_CATALOG !== 'undefined')
           ? (() => {
               const aliases = typeof FORCE_ABILITY_ALIASES !== 'undefined' ? FORCE_ABILITY_ALIASES : {};
               const out = {};
@@ -6429,6 +6429,8 @@ function updateCharacterSheet() {
   if (Object.keys(fa).length > 0) {
     html += `<div class="sheet-section"><div class="sheet-section-title">Force Abilities</div>`;
     for (const [k, v] of Object.entries(fa)) {
+      // Skip sub-abilities (par !== null) — they display as proficiency bars under their parent
+      if (typeof FORCE_ABILITY_CATALOG !== 'undefined' && FORCE_ABILITY_CATALOG[k] && FORCE_ABILITY_CATALOG[k].par !== null) continue;
       // Shatterpoint (Innate) has its own dedicated section — don't show it here too
       if (k === 'Shatterpoint' && (s.innateTalents || []).includes('ShatterSense')) continue;
       let statVal;
