@@ -2103,6 +2103,22 @@ Each exchange uses the opposed roll system. **ONE ROLL_OPPOSED tag per exchange 
 - Winner describes the exchange narratively BEFORE revealing what the opponent does next
 - The opponent adapts their tactics based on the exchange result
 
+**THE MARGIN IS ABSOLUTE GROUND TRUTH — THE NARRATIVE MUST MATCH, NO EXCEPTIONS:**
+
+A negative margin means the OPPONENT won this exchange. The stat bonuses and tier gap already account for skill differences — the roll outcome is the final word.
+
+- **Positive margin (Player wins):** Player's action succeeded. Narrate the player's attack landing, forcing the opponent back, gaining position.
+- **Zero (Contested):** Neither side gained — a clash, a block, a mutual check.
+- **Negative margin (Opponent wins):** THE PLAYER LOST THIS EXCHANGE. The player's intended action FAILED or was neutralized. **NEVER** narrate the player's strike landing, the opponent being cornered, forced backward, or outmaneuvered when the margin is negative. The opponent's counter found its mark, the player's attack was deflected, blocked, or fell short.
+
+**Specific loss narrative requirements:**
+- **Narrow loss (margin 1–3):** Player barely lost ground — their attack was deflected or missed narrowly, opponent seized a slight positional advantage.
+- **Clear loss (margin 4–7):** Player's attack clearly failed — their strike was absorbed, redirected, or never landed. Opponent is pressing the advantage. Player is reactive.
+- **Dominant loss (margin 8–12):** Player was outclassed this exchange — their offense collapsed, opponent is controlling the space, player is defending and retreating.
+- **Overwhelming loss (margin 13+):** Player was dominated — their attack was swept aside or never completed, they are in serious danger, position is broken, possibly took a direct hit.
+
+**What this means for Force abilities mid-combat:** If the player activates Battlemind, Force Speed, or another ability, it increases their roll BONUS — but if the roll still results in a negative margin, those abilities did not save the exchange. Narrate the ability as active (they are fighting with Battlemind clarity), but show that it was not enough this round.
+
 **ALWAYS use ROLL_OPPOSED for combat — never plain ROLL:**
 Any exchange against an opponent requires ROLL_OPPOSED so JS generates both sides of the roll and shows the margin. Never use ROLL: for a combat exchange — that produces only the player's roll with no opponent and no margin result.
 - If the opponent has a stored profile: ROLL_OPPOSED:lightsaberForms.ShiiCho|stats.strength vs CHARACTER:Lyra
@@ -2168,10 +2184,12 @@ Accumulated strain: Physical [XX], Force [XX], Mental [XX]  (0–100 scale)
 - Attempting something theoretically impossible: 2-tiers-above task
 
 ### FAILURE CONSEQUENCES
-- Margin 1–3 against you: pressure, position disadvantage
-- Margin 4–7: meaningful failure, strain cost
-- Margin 8–12: serious failure, injury risk
-- Margin 13+: catastrophic — injury, dangerous position, or worse
+When the margin is against the player, the narrative MUST show the player failing the exchange before applying consequences. Do NOT soften a loss into "your attack was good but..." — show the loss first, then the consequence.
+
+- Margin 1–3 against you: pressure, position disadvantage — the opponent had the better of this exchange
+- Margin 4–7: meaningful failure, strain cost — player's action failed, took a hit or lost significant ground
+- Margin 8–12: serious failure, injury risk — player was clearly dominated, opponent has full control of the pace
+- Margin 13+: catastrophic — player's attack was swept aside, real injury or disarmament is on the table
 
 ### LIGHTSABER FORMS — MODIFIERS STACK WITH TIER GAP
 Form counter bonuses apply ON TOP OF tier gap, not instead of it:
