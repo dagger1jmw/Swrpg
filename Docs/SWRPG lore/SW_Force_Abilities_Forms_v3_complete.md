@@ -331,18 +331,26 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 ---
 
-#### ↳ Force Wound → Force Choke → Force Grip → Force Crush → Force Rend 🔴
-**Anchor Stat:** ForceControl (precision of grip on specific anatomy) + ForceOutput (can the target break free?)
-**Difficulty Tier:** Wound D=1.5 · Choke D=2.5 · Grip D=2.5 · Crush D=4.0 · Rend D=4.0
+#### ↳ Force Wound → Force Rend 🔴  *(dark line — harmful intent)*
+**Anchor Stat:** ForceControl + ForceOutput
+**Difficulty Tier:** Wound D=1.5 · Rend D=4.0
 **Summary:**
-- *Force Wound:* Telekinetically constricts the target's internal organs or muscles, causing immediate pain and debilitation without physical contact. Entry-level aggressive application.
-- *Force Choke:* The iconic stranglehold — telekinetic constriction of the throat. Non-lethal in short bursts, lethal if sustained.
-- *Force Grip:* A more powerful, precise version of Choke — full-body telekinetic immobilization rather than just the throat. The target cannot move at all.
-- *Force Crush:* Extends Grip into catastrophic compression — literally crushing the target. Lethal. Almost exclusively Sith.
-- *Force Rend:* Telekinetically tears apart a target or object at the molecular level. Exceedingly rare, Sith-only.
-**Alignment:** 🔴 Dark Side — all variations. Each step deepens Dark Side alignment.
-**Prerequisites:** Force Wound: Telekinesis 21+, Dark Side drift · Force Choke: Force Wound 15+ · Force Grip: Force Choke 15+ · Force Crush: Force Grip 21+, Dark Side 40+ · Force Rend: Force Crush 30+, Dark Side 60+
-**Notes:** Using Force Choke on a living being causes Dark Side drift regardless of intent. The Jedi Order explicitly forbids this chain. A character who begins using Wound risks accelerating down this path.
+- *Force Wound:* Telekinetically constricts a target's internal organs or musculature, causing immediate pain and debilitation without contact. The intent is specifically to harm living tissue — this is what makes it dark side.
+- *Force Rend:* Telekinetically tears a target or object apart at near-molecular level. Exceedingly rare, Sith-only. The lethal endpoint of the dark wound line.
+**Alignment:** 🔴 Dark Side. The defining quality is intent to damage living tissue — not the technique itself, but the purpose.
+**Prerequisites:** Force Wound: Telekinesis 21+, Dark Side 1+ · Force Rend: Force Wound 30+, Dark Side 60+
+**Notes:** The Jedi Order forbids Force Wound and everything on this line. A character who begins using Wound risks accelerating down this path.
+
+#### ↳ Force Choke → Force Grip → Force Crush ⬜  *(neutral line — telekinetic grip)*
+**Anchor Stat:** ForceControl (precision) + ForceOutput (holding power)
+**Difficulty Tier:** Choke D=2.5 · Grip D=2.5 · Crush D=4.0
+**Summary:**
+- *Force Choke:* Telekinetic constriction of the throat or airway. Non-lethal in short bursts, lethal if sustained. Used by both Jedi and Sith — the technique draws on the same precision as any fine telekinetic manipulation; the moral weight comes from context and intent, not the ability itself.
+- *Force Grip:* Full-body telekinetic immobilization — more powerful and precise than Choke, locking the target completely rather than targeting just the throat. Useful for restraint, disarming, or holding targets without physical contact.
+- *Force Crush:* Catastrophic compression via the Force. Primarily applied to droids, machinery, armor, and objects. Can be lethal against living targets; sustained lethal use against living beings generates dark side pressure through the alignment system.
+**Alignment:** ⬜ Neutral — morally determined by application. Crushing a droid is different from crushing a person. The Force does not inherently taint these abilities.
+**Prerequisites:** Force Choke: Telekinesis 21+, ForceControl 10+ · Force Grip: Force Choke 15+ · Force Crush: Force Grip 21+
+**Notes:** Jedi have used Force Choke and Force Crush throughout Legends canon (Anakin, Luke, and others in contested circumstances). The Order discourages aggressive use against living beings but does not categorically forbid the technique. Force Wound is a separate, darker branch — knowing Choke does not lead there automatically.
 
 ---
 

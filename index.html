@@ -7688,10 +7688,10 @@ const FORCE_ABILITY_CATALOG = {
   TelekineticBarrage:          { fam:'TK', label:'Telekinetic Barrage',       par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceOutput','forceControl'], prereqs:{Telekinesis:41},                  flags:[] },
   ForceRepulse:                { fam:'TK', label:'Force Repulse',             par:'Telekinesis',  D:4.0,  align:'neutral', anchors:['forceOutput'],                prereqs:{Telekinesis:61},                  flags:[] },
   ForceWound:                  { fam:'TK', label:'Force Wound',               par:'Telekinesis',  D:1.5,  align:'dark',    anchors:['forceControl','forceOutput'], prereqs:{Telekinesis:21, darkSide:1},      flags:[] },
-  ForceChoke:                  { fam:'TK', label:'Force Choke',               par:'ForceWound',   D:2.5,  align:'dark',    anchors:['forceControl','forceOutput'], prereqs:{ForceWound:15},                   flags:[] },
-  ForceGrip:                   { fam:'TK', label:'Force Grip',                par:'ForceChoke',   D:2.5,  align:'dark',    anchors:['forceControl','forceOutput'], prereqs:{ForceChoke:15},                   flags:[] },
-  ForceCrush:                  { fam:'TK', label:'Force Crush',               par:'ForceGrip',    D:4.0,  align:'dark',    anchors:['forceControl','forceOutput'], prereqs:{ForceGrip:21, darkSide:40},       flags:[] },
-  ForceRend:                   { fam:'TK', label:'Force Rend',                par:'ForceCrush',   D:4.0,  align:'dark',    anchors:['forceControl','forceOutput'], prereqs:{ForceCrush:30, darkSide:60},      flags:[] },
+  ForceRend:                   { fam:'TK', label:'Force Rend',                par:'ForceWound',   D:4.0,  align:'dark',    anchors:['forceControl','forceOutput'], prereqs:{ForceWound:30, darkSide:60},      flags:[] },
+  ForceChoke:                  { fam:'TK', label:'Force Choke',               par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceControl','forceOutput'], prereqs:{Telekinesis:21, forceControl:10}, flags:[] },
+  ForceGrip:                   { fam:'TK', label:'Force Grip',                par:'ForceChoke',   D:2.5,  align:'neutral', anchors:['forceControl','forceOutput'], prereqs:{ForceChoke:15},                   flags:[] },
+  ForceCrush:                  { fam:'TK', label:'Force Crush',               par:'ForceGrip',    D:4.0,  align:'neutral', anchors:['forceControl','forceOutput'], prereqs:{ForceGrip:21},                    flags:[] },
   Kinetite:                    { fam:'TK', label:'Kinetite',                  par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceOutput','forceControl'], prereqs:{Telekinesis:30, forceControl:25}, flags:[] },
   ForceOrb:                    { fam:'TK', label:'Force Orb',                 par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceControl'],               prereqs:{Telekinesis:25, forceControl:20}, flags:[] },
   ForceSphere:                 { fam:'TK', label:'Force Sphere',              par:'Telekinesis',  D:2.5,  align:'neutral', anchors:['forceControl'],               prereqs:{Telekinesis:30, ForceBarrier:15}, flags:[] },
@@ -9417,7 +9417,7 @@ function getEraLore(dateBBY) {
 // Covers padawan→knight range; add entries as the player unlocks new families.
 const FORCE_ABILITY_RULES = {
   Telekinesis:      { anchor:'ForceControl+ForceOutput', prereq:'ForceControl>=5',
-    subs:['ForcePull(TK>=10)','ForcePush(TK>=10)','ForceWave(TK>=10)','SaberThrow(TK>=15+form>=10)','TelekineticBurst(TK>=21)','ForceLevitation(TK>=30+FC>=20)','ForceSurge(TK>=30+FB>=15)','ForceWound-dark(TK>=21+darkDrift)'],
+    subs:['ForcePull(TK>=10)','ForcePush(TK>=10)','ForceWave(TK>=10)','SaberThrow(TK>=15+form>=10)','TelekineticBurst(TK>=21)','ForceLevitation(TK>=30+FC>=20)','ForceSurge(TK>=30+FB>=15)','ForceChoke-neutral(TK>=21+FC>=10)','ForceWound-dark(TK>=21+darkSide>=1)'],
     dark:false },
   ForceSense:       { anchor:'ForceSense(stat)', prereq:'built-in — always active',
     subs:['BattlePrecognition(FS>=10)','BattleForesight(FS>=21)','DangerSense(FS>=21+FC>=10)','ForceEmpathy(FS>=30)','ForceVision(FS>=41)','CombatPrecognition(FS>=61+FC>=41)'],
