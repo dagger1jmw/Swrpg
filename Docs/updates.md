@@ -4,6 +4,38 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V135 — 2026-06-13
+
+**Design: Force Choke line split into neutral grip branch and dark wound branch**
+
+### Change
+
+The single linear dark-side chain `ForceWound → ForceChoke → ForceGrip → ForceCrush → ForceRend` has been split into two separate branches off Telekinesis.
+
+**Dark line (intent to harm living tissue):**
+- `ForceWound` (dark, Telekinesis:21, darkSide:1) → `ForceRend` (dark, ForceWound:30, darkSide:60)
+- ForceRend re-parented from ForceCrush to ForceWound — it is the lethal endpoint of harmful intent, not the crushing-machinery endpoint.
+
+**Neutral line (telekinetic grip):**
+- `ForceChoke` (neutral, Telekinesis:21, ForceControl:10) → `ForceGrip` (neutral, ForceChoke:15) → `ForceCrush` (neutral, ForceGrip:21)
+- No dark side prereqs anywhere in this chain.
+
+### Rationale
+
+Force Choke, Force Grip, and Force Crush are telekinetic grip techniques documented in Legends canon as used by both Jedi and Sith. Anakin, Luke, and others have applied them without it being categorized as an inherently dark-side act. The moral weight comes from application and intent, not the ability itself.
+
+Force Wound and Force Rend remain dark side — Force Wound is specifically the application of telekinesis to damage living tissue, and Force Rend is lethal destruction. No Jedi in canon are documented using these.
+
+### Alignment system note
+
+The neutral classification removes the hard prerequisite gate (no longer requires dark side alignment to learn). It does not remove alignment consequences from *use* — the AI's alignment system still generates `DARK_PRESSURE` from choking a prisoner; it just no longer does so for choking a droid or using Force Crush on machinery.
+
+### Files changed
+- `index.html` — FORCE_ABILITY_CATALOG entries for ForceWound, ForceChoke, ForceGrip, ForceCrush, ForceRend; FORCE_ABILITY_RULES Telekinesis subs list updated to show both branches
+- `Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md` — section rewritten to document the two branches separately with updated prerequisites and alignment notes
+
+---
+
 ## V132 — 2026-06-13
 
 **Fix: Combat outcome narration must match the roll margin**
