@@ -7,6 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Star Wars Legends RPG</title>
+<!-- V139: Combat Injury & Pain System -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1728,6 +1729,18 @@ FORCE_STRAIN=[current]
 PHYSICAL_STRAIN=[current]
 MENTAL_STRAIN=[current]
 FORCE_BARRIER=[current]
+INJURY_ADD=bodyPart,severity,description[,permanent]  — player injury (bodyPart: rightArm|leftArm|rightHand|leftHand|rightLeg|leftLeg|torso|head; severity: minor|moderate|severe|critical; add ',permanent' for amputations/life-support injuries)
+INJURY_HEAL=bodyPart                                  — clear non-permanent injury at that body part
+INJURY_HEAL_ALL                                       — clear all non-permanent injuries (bacta recovery, sleep, etc.)
+STORY_HEAL=bodyPart                                   — clear permanent injury after qualifying story event (prosthetic fitting, Force healing)
+OPP_INJURY_ADD=bodyPart,severity,description          — opponent injury this combat (affects their roll penalty)
+OPP_INJURY_HEAL=bodyPart
+OPP_INJURY_HEAL_ALL
+OPP_INJURY_PERMANENT=bodyPart,description             — logs major story-level wound to opponent's profile (Malgus-standard)
+DOMINANT_HAND=right|left                              — set once at creation or after surgery
+FIGHTING_HAND=right|left                              — declare which hand holds saber (triggers off-hand penalty if not dominant)
+PAIN_CHANNEL=active|inactive                          — dark side pain channeling (alignment ≤ −25 only; re-declare each turn)
+COMBAT_END_CRASH                                      — declare when Battlemind/Valor drops while injured; JS applies physical strain surge
 ALIGNMENT_XP=[amount] — positive for light side gains, negative for dark side acts; momentum-window direct hits use this too
 SHATTERPOINT_PERCEIVED=[tier],[description] — when a shatterpoint surfaces passively
 SHATTERPOINT_ROLL=[target] — triggers JS interpretation roll; respond to result
@@ -3118,6 +3131,10 @@ function finalizeCreation() {
     darkPressure:0, momentumWindow:{ active:false, multiplier:1.0, expiresDate:'', surrenderDiscount:0 },
     lastLightActs:{}, hp:100, maxHp:100, forceBarrier:null, maxForceBarrier:100,
     forceStrain:0, maxForceStrain:100, physicalStrain:0, maxPhysicalStrain:100, mentalStrain:0, maxMentalStrain:100,
+    injuries: [],           // active injury objects
+    dominantHand: 'right',  // right|left — protected field
+    fightingWith: 'right',  // right|left — mirrors dominantHand, switches when dominant unusable
+    painChannelActive: false, // dark side pain channeling state
     forceTier:1,
     forceStats:{ forceSense:s.fS, meditation:s.med, forceKnowledge:s.fK, forceControl:s.fC, forceOutput:s.fOut },
     forceStatsXP:{}, forceAbilities:{}, forceAbilitiesXP:{},
@@ -3765,6 +3782,25 @@ FORCE ABILITIES (stat/tier/XP — READ ONLY): ${Object.entries(cs.forceAbilities
 LIGHTSABER FORMS (stat → tier → XP progress): ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||0):(v||0);const xp=cs.lightsaberFormsXP?.[k];return `${k}:${s}(${statToTier(s).name})[${xp?`${xp.current||0}/${xp.required||100}XP`:'0/?XP'}]`;}).join(', ')||'none'}
 STATS (stat → XP progress): STR=${cs.stats?.strength||0}[${cs.statsXP?.strength?`${cs.statsXP.strength.current||0}/${cs.statsXP.strength.required||100}XP`:'0/?XP'}] AGI=${cs.stats?.agility||0}[${cs.statsXP?.agility?`${cs.statsXP.agility.current||0}/${cs.statsXP.agility.required||100}XP`:'0/?XP'}] END=${cs.stats?.endurance||0}[${cs.statsXP?.endurance?`${cs.statsXP.endurance.current||0}/${cs.statsXP.endurance.required||100}XP`:'0/?XP'}] WILL=${cs.stats?.willpower||0}[${cs.statsXP?.willpower?`${cs.statsXP.willpower.current||0}/${cs.statsXP.willpower.required||100}XP`:'0/?XP'}] CHA=${cs.stats?.charisma||0}[${cs.statsXP?.charisma?`${cs.statsXP.charisma.current||0}/${cs.statsXP.charisma.required||100}XP`:'0/?XP'}] INT=${cs.stats?.intelligence||0}[${cs.statsXP?.intelligence?`${cs.statsXP.intelligence.current||0}/${cs.statsXP.intelligence.required||100}XP`:'0/?XP'}]
 FORCE BARRIER: ${cs.forceBarrier !== null && cs.forceBarrier !== undefined ? `${cs.forceBarrier}/${cs.maxForceBarrier||100}` : 'not yet developed'}
+INJURY STATE: ${(()=>{
+  const injs = cs.injuries || [];
+  if (!injs.length) return 'None. No active roll penalties from injuries.';
+  const sevW = { minor:1, moderate:2, severe:3, critical:5 };
+  const hp = cs.hp || 100;
+  const rawHP = hp>=76?0:hp>=51?1:hp>=26?2:hp>=11?3:5;
+  const hpLabel = rawHP===0?'Fine':rawHP===1?'Hurt':rawHP===2?'Wounded':rawHP===3?'Critical':'Near Death';
+  const injLines = injs.map(i=>`  [${i.bodyPart}] ${i.severity}${i.permanent?' [PERMANENT]':''} — ${i.label} (penalty weight: ${sevW[i.severity]||0})`).join('\n');
+  const totalSev = injs.reduce((s,i)=>s+(sevW[i.severity]||0),0);
+  const cpLevel = cs.forceAbilities?.ControlPain;
+  const cpLvl = typeof cpLevel==='object'?(cpLevel.level||0):(cpLevel||0);
+  const cpNote = cpLvl > 0 ? `\n  Control Pain lv${cpLvl}: ${Math.min(cpLvl,100)}% mitigation active` : '';
+  return `HP: ${hp} → ${hpLabel} (−${rawHP} to all rolls)\n${injLines}\n  Total injury severity sum: ${totalSev}${cpNote}\n  Dominant hand: ${cs.dominantHand||'right'} | Fighting with: ${cs.fightingWith||cs.dominantHand||'right'}\n  Pain Channel: ${cs.painChannelActive?'ACTIVE (dark side — injury penalty→bonus for strength/output)':'inactive'}`;
+})()}
+ACTIVE OPPONENT INJURIES: ${(()=>{
+  const oi = activeCombat?.oppInjuries || [];
+  if (!oi.length) return 'none';
+  return oi.map(i=>`${i.bodyPart}:${i.severity} — ${i.label}`).join('; ');
+})()}
 INVENTORY: ${(Array.isArray(cs.inventory) ? cs.inventory : []).join(', ')||'empty'} | CREDITS: ${cs.credits||0}
 RENOWN: Jedi=${cs.renown?.jediOrder||0}, Sith=${cs.renown?.sith||0}, Republic=${cs.renown?.republic||0}, Underworld=${cs.renown?.underworld||0}
 STRENGTHS: ${(Array.isArray(cs.strengths) ? cs.strengths : []).join(', ')||'none'} | WEAKNESSES: ${(Array.isArray(cs.weaknesses) ? cs.weaknesses : []).join(', ')||'none'}
@@ -3799,7 +3835,8 @@ CRITICAL RULES FOR THIS TURN:
 6. STRAIN RULES — FORCE_STRAIN=, PHYSICAL_STRAIN=, MENTAL_STRAIN= in the CHANGES block: if no training, combat, or Force ability use occurred THIS turn, copy the exact current values from the context above — do NOT increment them. Strain NEVER accumulates passively between turns. It only changes when an activity happens in the current turn's narrative. Carry-over from a previous turn's training is ALREADY PROCESSED — writing a higher value this turn will double-apply it. If strain is unchanged, write the same number as last turn.
 7. Output <<<CHANGES>>>, <<<SHEET>>> and <<<WORLD>>> blocks at the end of EVERY response
 8. TIME REALISM: The "Time Elapsed:" you state must equal what the narrative describes — never more. A meal is 30–40 minutes. A walk across the Temple is 10–20 minutes. Reflection or a brief pause is 5 minutes. Do not inflate time beyond the activity.
-9. NO XP FOR PASSIVE ACTIVITY: Eating, resting, walking, and mental reflection earn ZERO TRAINING XP. lightsaberForms XP requires physical practice. forceKnowledge/intelligence XP requires focused deliberate study — not passing thoughts. If the player is not actively exerting effort, no TRAINING: line belongs in this turn. CRITICAL: TRAINING: tags must correspond ONLY to training that visibly occurs in THIS turn's narrative. Never include TRAINING: tags to account for a previous turn's session — those CHANGES blocks were already processed by JavaScript. If the previous turn involved training and this turn does not, write ZERO TRAINING: lines.`;
+9. NO XP FOR PASSIVE ACTIVITY: Eating, resting, walking, and mental reflection earn ZERO TRAINING XP. lightsaberForms XP requires physical practice. forceKnowledge/intelligence XP requires focused deliberate study — not passing thoughts. If the player is not actively exerting effort, no TRAINING: line belongs in this turn. CRITICAL: TRAINING: tags must correspond ONLY to training that visibly occurs in THIS turn's narrative. Never include TRAINING: tags to account for a previous turn's session — those CHANGES blocks were already processed by JavaScript. If the previous turn involved training and this turn does not, write ZERO TRAINING: lines.
+10. INJURY SYSTEM — Use INJURY_ADD= when a specific body part is meaningfully struck in combat or story. Minor injuries auto-clear on full sleep (7+ hrs); moderate/severe require bacta/medical; permanent injuries (amputations, life-support damage) require STORY_HEAL= to remove. HP threshold penalties (−1 to −5) are applied automatically by JS — do not calculate them yourself. Use PAIN_CHANNEL=active only for dark side characters (alignment ≤ −25) who consciously embrace pain as fuel. Control Pain ability level directly equals % mitigation of injury penalties — JS calculates and displays this on roll cards.`;
 
   messages.push({ role: 'user', parts: [{ text: stateBlock }] });
   messages.push({ role: 'model', parts: [{ text: `Confirmed. Turn ${turnCount + 1}. Current time: ${ws.inGameTime||'unknown'} — I will write narrative atmosphere that matches this exactly. I will state "Time Elapsed: X" at the start of my response. I will NOT set inGameTime or advance inGameDate in the WORLD block — I will echo back the date as-is. I will output all three data blocks.` }] });
@@ -4120,6 +4157,10 @@ async function callGemini(playerMessage, retryCount = 0) {
       const _savedInnateTalents  = characterSheet?.innateTalents  ? [...characterSheet.innateTalents]  : [];
       const _savedInnateAbilities= characterSheet?.innateAbilities ? [...characterSheet.innateAbilities] : [];
       const _savedBirthday       = characterSheet?.birthday        ? {...characterSheet.birthday}        : null;
+      const _savedInjuries      = characterSheet?.injuries     ? JSON.parse(JSON.stringify(characterSheet.injuries)) : [];
+      const _savedDominantHand  = characterSheet?.dominantHand ?? 'right';
+      const _savedFightingWith  = characterSheet?.fightingWith  ?? 'right';
+      const _savedPainChannel   = characterSheet?.painChannelActive ?? false;
       // LIFE_STAGE tag in CHANGES block overrides the snapshot — pre-scan changesText here
       // (CHANGES loop runs AFTER this snapshot, so we must look ahead to avoid overwrite)
       let _savedLifeStage = characterSheet?.lifeStage || null;
@@ -4175,6 +4216,11 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (_savedPhilosophy           !== null) characterSheet.philosophy            = _savedPhilosophy;
         if (_savedDarkPressure         !== null) characterSheet.darkPressure          = _savedDarkPressure;
         if (_savedMomentumWindow)                characterSheet.momentumWindow         = _savedMomentumWindow;
+        // Injury/hand/pain — JS-owned, restored after every SHEET parse
+        characterSheet.injuries        = _savedInjuries;
+        characterSheet.dominantHand    = _savedDominantHand;
+        characterSheet.fightingWith    = _savedFightingWith;
+        characterSheet.painChannelActive = _savedPainChannel;
 
         // Guard: Shatterpoint belongs to the dedicated SP track, not forceAbilities —
         // remove any AI-written value so it never appears in the Force Abilities section
@@ -4395,6 +4441,11 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (_mn) _mins += parseInt(_mn[1]);
         if (_mins > 0) turnElapsedHours = _mins / 60;
       }
+    }
+
+    // Auto-clear minor injuries on full sleep (7+ hours)
+    if (turnElapsedHours && turnElapsedHours >= 7 && characterSheet?.injuries?.length) {
+      characterSheet.injuries = characterSheet.injuries.filter(i => i.severity !== 'minor');
     }
 
     // ── Parse CHANGES block — structured delta, always present ──────
@@ -4651,6 +4702,122 @@ async function callGemini(playerMessage, retryCount = 0) {
               characterSheet.lightsaberFormsXP[formKey].current = xpVal;
               characterSheet.lightsaberFormsXP[formKey].required = xpRequired(curStat);
             }
+          }
+          continue;
+        }
+
+        // ── INJURY & PAIN SYSTEM — CHANGES parsers ─────────────────────────────
+        // INJURY_ADD=bodyPart,severity,description[,permanent]
+        if (trimmed.startsWith('INJURY_ADD=')) {
+          const parts = trimmed.slice(11).split(',').map(s => s.trim());
+          if (parts.length >= 3) {
+            const bodyPart = parts[0], severity = parts[1], label = parts[2];
+            const permanent = parts[3] === 'permanent';
+            const sevWeights = { minor:1, moderate:2, severe:3, critical:5 };
+            if (sevWeights[severity] !== undefined) {
+              if (!characterSheet.injuries) characterSheet.injuries = [];
+              characterSheet.injuries = characterSheet.injuries.filter(i => i.bodyPart !== bodyPart);
+              characterSheet.injuries.push({ bodyPart, severity, label, permanent, turnAdded: turnCount });
+            }
+          }
+          continue;
+        }
+        // INJURY_HEAL=bodyPart — clears non-permanent injury at that zone
+        if (trimmed.startsWith('INJURY_HEAL=')) {
+          const part = trimmed.slice(12).trim();
+          if (characterSheet.injuries) {
+            characterSheet.injuries = characterSheet.injuries.filter(i => i.bodyPart !== part || i.permanent);
+          }
+          continue;
+        }
+        // INJURY_HEAL_ALL — clears all non-permanent injuries
+        if (trimmed.startsWith('INJURY_HEAL_ALL')) {
+          if (characterSheet.injuries) {
+            characterSheet.injuries = characterSheet.injuries.filter(i => i.permanent);
+          }
+          continue;
+        }
+        // STORY_HEAL=bodyPart — clears permanent injury (story event required)
+        if (trimmed.startsWith('STORY_HEAL=')) {
+          const part = trimmed.slice(11).trim();
+          if (characterSheet.injuries) {
+            characterSheet.injuries = characterSheet.injuries.filter(i => i.bodyPart !== part);
+          }
+          continue;
+        }
+        // OPP_INJURY_ADD=bodyPart,severity,description
+        if (trimmed.startsWith('OPP_INJURY_ADD=')) {
+          if (activeCombat) {
+            const parts = trimmed.slice(15).split(',').map(s => s.trim());
+            if (parts.length >= 3) {
+              if (!activeCombat.oppInjuries) activeCombat.oppInjuries = [];
+              activeCombat.oppInjuries = activeCombat.oppInjuries.filter(i => i.bodyPart !== parts[0]);
+              activeCombat.oppInjuries.push({ bodyPart: parts[0], severity: parts[1], label: parts[2] });
+            }
+          }
+          continue;
+        }
+        // OPP_INJURY_HEAL=bodyPart
+        if (trimmed.startsWith('OPP_INJURY_HEAL=')) {
+          const part = trimmed.slice(16).trim();
+          if (activeCombat?.oppInjuries) {
+            activeCombat.oppInjuries = activeCombat.oppInjuries.filter(i => i.bodyPart !== part);
+          }
+          continue;
+        }
+        // OPP_INJURY_HEAL_ALL
+        if (trimmed.startsWith('OPP_INJURY_HEAL_ALL')) {
+          if (activeCombat) activeCombat.oppInjuries = [];
+          continue;
+        }
+        // OPP_INJURY_PERMANENT=bodyPart,description — logs permanent story change to opponent profile
+        if (trimmed.startsWith('OPP_INJURY_PERMANENT=')) {
+          const parts = trimmed.slice(21).split(',').map(s => s.trim());
+          if (parts.length >= 2 && activeCombat?.opponent && worldState) {
+            const oppName = activeCombat.opponent;
+            if (!worldState.characterProfiles) worldState.characterProfiles = {};
+            if (!worldState.characterProfiles[oppName]) worldState.characterProfiles[oppName] = { name: oppName, stats: {} };
+            if (!worldState.characterProfiles[oppName].permanentInjuries) worldState.characterProfiles[oppName].permanentInjuries = [];
+            worldState.characterProfiles[oppName].permanentInjuries.push({
+              bodyPart: parts[0], label: parts.slice(1).join(','), turnAdded: turnCount
+            });
+          }
+          continue;
+        }
+        // DOMINANT_HAND=right|left
+        if (trimmed.startsWith('DOMINANT_HAND=')) {
+          const h = trimmed.slice(14).trim().toLowerCase();
+          if (h === 'right' || h === 'left') {
+            characterSheet.dominantHand = h;
+            if (!characterSheet.fightingWith) characterSheet.fightingWith = h;
+          }
+          continue;
+        }
+        // FIGHTING_HAND=right|left
+        if (trimmed.startsWith('FIGHTING_HAND=')) {
+          const h = trimmed.slice(14).trim().toLowerCase();
+          if (h === 'right' || h === 'left') characterSheet.fightingWith = h;
+          continue;
+        }
+        // PAIN_CHANNEL=active|inactive
+        if (trimmed.startsWith('PAIN_CHANNEL=')) {
+          const state = trimmed.slice(13).trim().toLowerCase();
+          characterSheet.painChannelActive = (state === 'active');
+          continue;
+        }
+        // COMBAT_END_CRASH — Battlemind/Valor drop while injured: physical strain surge
+        if (trimmed.startsWith('COMBAT_END_CRASH')) {
+          const hp = characterSheet.hp || 100;
+          let surge = 0;
+          if (hp >= 51) surge = 5;
+          else if (hp >= 26) surge = 10;
+          else if (hp >= 11) surge = 15;
+          else if (hp >= 1)  surge = 20;
+          if (surge > 0) {
+            characterSheet.physicalStrain = Math.min(
+              characterSheet.maxPhysicalStrain || 100,
+              (characterSheet.physicalStrain || 0) + surge
+            );
           }
           continue;
         }
@@ -5645,7 +5812,8 @@ function startCombat(opponent, intensity) {
     startTime: worldState?.inGameTime || '?',
     primarySkill: null,
     secondarySkill: null,
-    tierGap: 0
+    tierGap: 0,
+    oppInjuries: []
   };
 }
 
@@ -5703,6 +5871,20 @@ function updateCombatStrain(rounds, intensity) {
   activeCombat.accForce    += Math.round((base.f * (1 - em * 0.5)) * r * 10) / 10;
   activeCombat.accMental   += Math.round((base.m * (1 - em * 0.3)) * r * 10) / 10;
   activeCombat.round += r;
+
+  // Control Pain: apply FS cost per round while active injuries are being suppressed
+  const _cpLevel = getLiveStatValue('forceAbilities.ControlPain');
+  if (_cpLevel > 0 && characterSheet?.injuries?.length) {
+    const _sevSum = (characterSheet.injuries || []).reduce((s, inj) =>
+      s + ({ minor:1, moderate:2, severe:3, critical:5 }[inj.severity] || 0), 0);
+    const _cpMit = Math.min(_cpLevel, 100) / 100;
+    const _cpWork = _sevSum * _cpMit * 3.0;
+    const _cpEff = Math.max(0.10, 1.0 - (_cpLevel / 100) * 0.80);
+    const _cpCost = Math.floor(_cpWork * _cpEff) * r;
+    if (_cpCost > 0) {
+      activeCombat.accForce = Math.round((activeCombat.accForce + _cpCost) * 10) / 10;
+    }
+  }
 
   // Show accumulated combat strain on bars in real-time
   // Display as base strain + combat accumulation (capped at max)
@@ -6443,7 +6625,33 @@ function updateCharacterSheet() {
       <div class="bar-label"><span>Mental Strain</span><span data-stat-val="mentalStrain">${mStrain}/${mStrainMax}</span></div>
       <div class="bar-track"><div class="bar-fill bar-mental-strain" data-stat="mentalStrain" style="width:${mStrainPct}%"></div></div>
     </div>
-
+  `;
+  // Injury section — only show if injuries exist
+  const activeInjuries = s.injuries || [];
+  if (activeInjuries.length > 0) {
+    const sevColors = { minor:'#888844', moderate:'#cc8833', severe:'#cc4422', critical:'#cc2222' };
+    html += `<div class="sheet-section">
+      <div class="sheet-section-title" style="color:#cc6633">⚕ Active Injuries</div>`;
+    for (const inj of activeInjuries) {
+      const sc = sevColors[inj.severity] || '#888888';
+      html += `<div style="margin-bottom:4px;font-size:11px">
+        <span style="color:${sc};font-weight:bold">[${inj.bodyPart}] ${inj.severity}${inj.permanent?' ★':''}</span><br>
+        <span style="color:var(--text-dim)">${inj.label}</span>
+      </div>`;
+    }
+    // Show HP threshold state
+    const hp = s.hp || 100;
+    const hpPen = hp>=76?0:hp>=51?1:hp>=26?2:hp>=11?3:5;
+    if (hpPen > 0) {
+      const hpLabel = hpPen===1?'Hurt':hpPen===2?'Wounded':hpPen===3?'Critical':'Near Death';
+      html += `<div style="font-size:10px;color:#cc8833;margin-top:2px">HP: ${hpLabel} (−${hpPen} to rolls)</div>`;
+    }
+    if (s.painChannelActive) {
+      html += `<div style="font-size:10px;color:#cc3333;margin-top:2px">⚡ Pain Channeling Active</div>`;
+    }
+    html += `</div>`;
+  }
+  html += `
     <div class="sheet-section">
       <div class="sheet-section-title">Force · ${tierName}</div>`;
 
@@ -7757,6 +7965,7 @@ const FORCE_ABILITY_CATALOG = {
 
   // ── BODY ENHANCEMENT FAMILY ──────────────────────────────────────────────
   // ForceCloak is the only sub-application (par:'ForceCamouflage'). All others are root.
+  ControlPain:             { fam:'Body', label:'Control Pain',             par:null,              D:null, align:'neutral', anchors:['forceControl','meditation'],  prereqs:{forceControl:20, meditation:15},           flags:[] },
   ForceJump:               { fam:'Body', label:'Force Jump',               par:null,              D:1.0,  align:'neutral', anchors:['forceOutput'],               prereqs:{forceControl:5},                          flags:[] },
   ForceSpeed:              { fam:'Body', label:'Force Speed',              par:null,              D:1.5,  align:'neutral', anchors:['forceOutput','forceControl'], prereqs:{forceControl:10},                         flags:[] },
   ForceStrength:           { fam:'Body', label:'Force Strength',           par:null,              D:1.0,  align:'neutral', anchors:['forceOutput'],               prereqs:{forceControl:15},                         flags:[] },
@@ -9515,6 +9724,113 @@ function getLiveStatValue(path) {
   return 0;
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  INJURY & PAIN SYSTEM — helpers
+// ═══════════════════════════════════════════════════════════════════
+
+function getSeverityWeight(severity) {
+  return { minor:1, moderate:2, severe:3, critical:5 }[severity] || 0;
+}
+
+function getHPThresholdPenalty(hp) {
+  if (hp >= 76) return 0;
+  if (hp >= 51) return 1;
+  if (hp >= 26) return 2;
+  if (hp >= 11) return 3;
+  if (hp >= 1)  return 5;
+  return 0;
+}
+
+// Returns suppression factor (0–1.0) from Battlemind or ForceValor
+function getBattlemindSuppressionFactor(cs) {
+  const _getLevel = (key) => {
+    const v = cs?.forceAbilities?.[key];
+    return typeof v === 'object' ? (v.level || 0) : (v || 0);
+  };
+  const lvl = Math.max(_getLevel('Battlemind'), _getLevel('ForceValor'));
+  if (lvl <= 30) return 0;
+  if (lvl <= 60) return 0.5;
+  if (lvl <= 80) return 0.75;
+  return 1.0;
+}
+
+// Willpower passive resistance (0–0.35)
+function getWillpowerResistance(willpower) {
+  if (willpower >= 81) return 0.35;
+  if (willpower >= 61) return 0.30;
+  if (willpower >= 41) return 0.20;
+  if (willpower >= 21) return 0.10;
+  return 0;
+}
+
+// Injury roll penalty for a given roll (targeted by body part vs roll type)
+// Returns { rawPenalty, effectivePenalty, breakdown[] }
+function calcInjuryPenalties(cs, rollPaths) {
+  const injuries = cs?.injuries || [];
+  if (!injuries.length) return { rawPenalty:0, effectivePenalty:0, breakdown:[], cpLevel:0 };
+
+  const isArmRoll  = rollPaths.some(p => p.startsWith('lightsaberForms.') || p === 'stats.strength');
+  const isLegRoll  = rollPaths.some(p => p === 'stats.agility');
+  const isForceRoll= rollPaths.some(p => p.startsWith('forceStats.') || p.startsWith('forceAbilities.'));
+
+  let rawPenalty = 0;
+  const breakdown = [];
+  for (const inj of injuries) {
+    const w = getSeverityWeight(inj.severity);
+    if (!w) continue;
+    const isArm    = ['rightArm','leftArm','rightHand','leftHand'].includes(inj.bodyPart);
+    const isLeg    = ['rightLeg','leftLeg'].includes(inj.bodyPart);
+    const isTorso  = inj.bodyPart === 'torso';
+    const isHead   = inj.bodyPart === 'head';
+    // Targeting: arm→saber/strength; leg→agility; head→force+mental; torso→all
+    const applies = isTorso || isHead ||
+      (isArm && isArmRoll) || (isLeg && isLegRoll) ||
+      (!isArmRoll && !isLegRoll && !isForceRoll); // generic roll: apply all
+    if (applies) { rawPenalty += w; breakdown.push(inj); }
+  }
+
+  const willRes  = getWillpowerResistance(cs?.stats?.willpower || 0);
+  const cpLevel  = getLiveStatValue('forceAbilities.ControlPain');
+  const cpMit    = cpLevel > 0 ? Math.min(cpLevel, 100) / 100 : 0;
+  const effectivePenalty = Math.ceil(rawPenalty * (1 - willRes) * (1 - cpMit));
+  return { rawPenalty, effectivePenalty, breakdown, willRes, cpLevel, cpMit };
+}
+
+// Full roll penalty summary for player rolls
+function calcRollPenalties(cs, rollPaths) {
+  if (!cs) return { totalPenalty:0, hpPenalty:0, injuryPenalty:0, offHandPenalty:0, painChannelBonus:0 };
+  const hp            = cs.hp || 100;
+  const rawHPPenalty  = getHPThresholdPenalty(hp);
+  const bmFactor      = getBattlemindSuppressionFactor(cs);
+  const hpPenalty     = Math.ceil(rawHPPenalty * (1 - bmFactor));
+  const injCalc       = calcInjuryPenalties(cs, rollPaths);
+  let injuryPenalty   = injCalc.effectivePenalty;
+  let painChannelBonus = 0;
+  if (cs.painChannelActive && (cs.alignment || 0) <= -25) {
+    const isPowerRoll = rollPaths.some(p => p === 'stats.strength' || p === 'forceStats.forceOutput');
+    if (isPowerRoll) { painChannelBonus = injCalc.rawPenalty; injuryPenalty = 0; }
+  }
+  const isSaberRoll   = rollPaths.some(p => p.startsWith('lightsaberForms.'));
+  let offHandPenalty  = 0;
+  if (isSaberRoll && cs.dominantHand && cs.fightingWith && cs.fightingWith !== cs.dominantHand) {
+    const jk = getLiveStatValue('lightsaberForms.JarKai');
+    offHandPenalty = jk <= 0 ? 3 : jk <= 30 ? 2 : jk <= 60 ? 1 : 0;
+  }
+  return {
+    totalPenalty: hpPenalty + injuryPenalty + offHandPenalty - painChannelBonus,
+    hpPenalty, rawHPPenalty, bmFactor,
+    injuryPenalty, injCalc,
+    offHandPenalty, painChannelBonus,
+  };
+}
+
+// Opponent injury bonus (opponent injured → player benefits)
+function calcOppInjuryBonus() {
+  if (!activeCombat?.oppInjuries?.length) return { bonus:0, breakdown:[] };
+  const bonus = activeCombat.oppInjuries.reduce((s, inj) => s + getSeverityWeight(inj.severity), 0);
+  return { bonus, breakdown: activeCombat.oppInjuries };
+}
+
 function fireRoll(roll) {
   if (!roll?.paths?.length) return;
   const label    = roll.label    || 'Roll';
@@ -9549,7 +9865,11 @@ function fireRoll(roll) {
   const tierGapBonusTable = [0, 4, 9, 15, 22, 30, 39];
   const tierGapBonus = tierGap !== 0 ? (tierGap > 0 ? 1 : -1) * (tierGapBonusTable[Math.min(6, Math.abs(tierGap))] || 0) : 0;
   const statBonus = playerStats.reduce((s,x)=>s+compressedBonus(x.val),0);
-  const totalBonus = statBonus + expBonus + tierGapBonus + tactical;
+
+  // Injury/HP penalty system
+  const penCalc = calcRollPenalties(characterSheet, roll.paths);
+  const penaltyTotal = penCalc.totalPenalty;
+  const totalBonus = statBonus + expBonus + tierGapBonus + tactical - penaltyTotal;
 
   const d20 = Math.floor(Math.random()*20)+1;
   const playerTotal = d20 + totalBonus;
@@ -9571,6 +9891,25 @@ function fireRoll(roll) {
   html += `<div style="color:var(--text-dim)">Stat Bonus: +${statBonus.toFixed(3)} (${statBonusStr})</div>`;
   if (expBonus > 0) html += `<div style="color:var(--text-dim)">Experience modifier: +${expBonus.toFixed(3)} (${expLines.join(', ')})</div>`;
   if (tactical !== 0) html += `<div style="color:var(--text-dim)">Tactical Setup: ${tactical>0?'+':''}${tactical}</div>`;
+  // Show penalty breakdown
+  if (penCalc.hpPenalty > 0) {
+    const hpState = penCalc.rawHPPenalty===1?'Hurt':penCalc.rawHPPenalty===2?'Wounded':penCalc.rawHPPenalty===3?'Critical':'Near Death';
+    const bmNote = penCalc.bmFactor > 0 ? ` — ${Math.round(penCalc.bmFactor*100)}% suppressed by Battlemind/Valor` : '';
+    html += `<div style="color:#cc8844">HP Penalty: −${penCalc.hpPenalty} (${hpState}, ${characterSheet?.hp||100} HP${bmNote})</div>`;
+  }
+  if (penCalc.injuryPenalty > 0) {
+    const injList = penCalc.injCalc.breakdown.map(i=>`${i.bodyPart}:${i.severity}`).join(', ');
+    let injNote = `Injuries: −${penCalc.injuryPenalty}`;
+    if (penCalc.injCalc.cpLevel > 0) injNote += ` (${Math.round(penCalc.injCalc.cpMit*100)}% mitigated by Control Pain lv${penCalc.injCalc.cpLevel})`;
+    if (penCalc.injCalc.willRes > 0) injNote += ` (+${Math.round(penCalc.injCalc.willRes*100)}% willpower resistance)`;
+    html += `<div style="color:#cc8844">${injNote} [${injList}]</div>`;
+  }
+  if (penCalc.offHandPenalty > 0) {
+    html += `<div style="color:#cc8844">Off-hand penalty: −${penCalc.offHandPenalty} (${characterSheet?.fightingWith} hand, not dominant)</div>`;
+  }
+  if (penCalc.painChannelBonus > 0) {
+    html += `<div style="color:#cc4444">Pain Channel: +${penCalc.painChannelBonus} (rage fuels power — dark side)</div>`;
+  }
 
   if (roll.opposed && (roll.oppStats || roll.oppStatsFallback)) {
     let oppStatBonus, oppStatStr;
@@ -9583,12 +9922,18 @@ function fireRoll(roll) {
       oppStatBonus = statBonus - tierGapBonus;
       oppStatStr = 'tier estimate (no PROFILE_STATS registered)';
     }
+    const oppInjCalc = calcOppInjuryBonus();
+    const oppInjBonus = oppInjCalc.bonus;
     const oppTierGapBonus = -tierGapBonus;
-    const oppTotal_bonus = oppStatBonus + oppTierGapBonus;
+    const oppTotal_bonus = oppStatBonus + oppTierGapBonus - oppInjBonus; // injured opp is less effective
     const oppD20 = Math.floor(Math.random()*20)+1;
     const oppTotal = oppD20 + oppTotal_bonus;
     const margin = playerTotal - oppTotal;
     html += `<div style="color:var(--text-dim)">${roll.oppName||'Opponent'}: ${oppStatStr}</div>`;
+    if (oppInjBonus > 0) {
+      const oppInjList = oppInjCalc.breakdown.map(i=>`${i.bodyPart}:${i.severity}`).join(', ');
+      html += `<div style="color:#8844cc">Opponent injuries: −${oppInjBonus} to their roll [${oppInjList}]</div>`;
+    }
     html += `<div style="margin-top:4px"><span style="color:var(--text-dim)">Player: </span><span style="color:var(--gold);font-weight:bold">d20=${d20}</span><span style="color:var(--text-dim)">, Bonus=+${totalBonus.toFixed(2)}, Total=${playerTotal.toFixed(2)}</span></div>`;
     html += `<div><span style="color:var(--text-dim)">${roll.oppName||'Opponent'}: </span><span style="color:var(--gold);font-weight:bold">d20=${oppD20}</span><span style="color:var(--text-dim)">, Bonus=+${oppTotal_bonus.toFixed(2)}, Total=${oppTotal.toFixed(2)}</span></div>`;
     let result, rc;

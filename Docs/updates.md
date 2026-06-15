@@ -4,6 +4,85 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V139 — 2026-06-15
+
+**Feature: Combat Injury & Pain System**
+
+### Overview
+
+Full injury tracking system for player and opponents. Injuries generate roll penalties, enable Control Pain mitigation, support dark-side pain channeling, and persist across turns. Lost limbs and major organ damage are permanent; minor/moderate wounds auto-clear after 7+ hours.
+
+### Character sheet additions
+
+- `characterSheet.injuries` — array of injury objects: `{id, body, severity, permanent, description, turn}`
+- `characterSheet.dominantHand` — `'right'` | `'left'` | `'ambidextrous'` (default: `'right'`)
+- `characterSheet.fightingWith` — `'right'` | `'left'` | `'both'` (default matches dominant)
+- `characterSheet.painChannelActive` — boolean; dark-side pain-to-power conversion toggle
+- `activeCombat.oppInjuries` — combat-local injury array for current opponent (cleared on COMBAT_END)
+
+### Helper functions (before `fireRoll`)
+
+Seven helpers calculate penalties from injury state each roll:
+
+- `getSeverityWeight(severity)` — maps `minor:0.2 / moderate:0.5 / severe:1.0 / critical:1.5 / permanent:1.2`
+- `getHPThresholdPenalty(hp)` — flat penalty from HP level: 76+=0, 51-75=−1, 26-50=−2, 11-25=−3, 1-10=−5
+- `getBattlemindSuppressionFactor(abilities)` — returns 0.0–1.0 suppression; 0.0 means no penalty, 1.0 = full penalty
+- `getWillpowerResistance(wp)` — `max(0, 1.0 − compressedBonus(wp)/5)` (mental fortitude vs pain)
+- `calcInjuryPenalties(injuries, statPaths, dominantHand, fightingWith)` — sums severity-weighted penalties per injury matching relevant body parts for the roll; applies off-hand penalty when `fightingWith !== dominantHand` (halved by 50% if Jar'Kai known)
+- `calcRollPenalties(characterSheet, statPaths)` — assembles full penalty: HP threshold + injury penalty (reduced by Battlemind suppression and willpower resistance) + pain channel activation flag
+- `calcOppInjuryBonus(oppInjuries)` — returns opponent's total injury encumbrance as a positive bonus to player's roll
+
+### `fireRoll` integration
+
+`penCalc = calcRollPenalties(characterSheet, roll.paths)` called each roll. `totalBonus = statBonus + expBonus + tierGapBonus + tactical − penaltyTotal`. Roll card shows HP penalty, injury penalty, off-hand penalty, and pain channel bonus as separate labelled lines when non-zero. Opponent roll reduced by `calcOppInjuryBonus(activeCombat.oppInjuries)`.
+
+### CHANGES block parsers (12 new tags)
+
+| Tag | Effect |
+|---|---|
+| `INJURY_ADD=body,severity,permanent,description` | Adds player injury; `permanent=true\|false` |
+| `INJURY_HEAL=id` | Removes player injury by ID |
+| `INJURY_HEAL_ALL` | Clears all non-permanent player injuries |
+| `STORY_HEAL=id` | Removes permanent injury (surgery/Force healing story event only) |
+| `OPP_INJURY_ADD=body,severity,permanent,description` | Adds injury to activeCombat.oppInjuries |
+| `OPP_INJURY_HEAL=id` | Heals opponent combat-local injury |
+| `OPP_INJURY_HEAL_ALL` | Clears all opponent injuries |
+| `OPP_INJURY_PERMANENT=id` | Promotes opponent injury to permanent (goes to their profile on combat end) |
+| `DOMINANT_HAND=right\|left\|ambidextrous` | Sets character dominant hand |
+| `FIGHTING_HAND=right\|left\|both` | Sets active fighting hand |
+| `PAIN_CHANNEL=true\|false` | Toggles dark-side pain channeling |
+| `COMBAT_END_CRASH` | Fires Battlemind/ForceValor crash: drops HP by 30% of suppressed damage, spikes physical strain |
+
+### Control Pain FS cost (in `updateCombatStrain`)
+
+Each active-combat round with injuries: `floor(severitySum × mitigationPct × 3.0 × max(0.10, 1.0 − (level/100) × 0.80))` where `mitigationPct = min(1.0, controlPainLevel / 100)` and `severitySum` = sum of `getSeverityWeight` for each active injury.
+
+### Auto-clear minor injuries
+
+When SHEET parse detects `turnElapsedHours >= 7`, all non-permanent `minor` and `moderate` severity injuries are removed automatically (bacta/rest healing).
+
+### Protected fields
+
+Snapshot before SHEET parse / restore after: `_savedInjuries`, `_savedDominantHand`, `_savedFightingWith`, `_savedPainChannel` (same pattern as `_savedInnateTalents`).
+
+### Context injection
+
+`sheetSummary` in `buildContext()` now includes two new lines after FORCE BARRIER:
+- `INJURY STATE: [count] injuries | dominant: right | fighting: right | pain-channel: off`
+- `ACTIVE OPPONENT INJURIES: [list or 'none']`
+
+`updateCharacterSheet()` shows injury cards with severity-color coding and HP threshold label.
+
+### ControlPain in FORCE_ABILITY_CATALOG
+
+Added as `Body` family, `par:null`, `D:2.5`, `align:'neutral'`, anchors `['forceControl','meditation']`, prereqs `{forceControl:25, meditation:20}`.
+
+### Files changed
+- `index.html` — all implementation above
+- `Docs/SW_Injury_System_v1.md` — design reference doc (committed in prior version)
+
+---
+
 ## V138 — 2026-06-15
 
 **Fix: Opponent stats changing mid-combat when AI re-generates INLINE values**
