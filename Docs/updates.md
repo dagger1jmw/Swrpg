@@ -4,6 +4,47 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V137 — 2026-06-15
+
+**Fix: Phantom strain accumulation on non-training turns**
+
+### Problem
+
+Force strain (and physical/mental strain) kept increasing on turns with no training or combat — e.g., walking to breakfast, eating a meal, or having a conversation. A character at 88 force strain would reach 90+ on the next narrative turn and 100 the turn after, solely from carry-over.
+
+Three separate code paths were contributing:
+
+1. **CHANGES block handlers** — `FORCE_STRAIN=`, `PHYSICAL_STRAIN=`, `MENTAL_STRAIN=` use a delta-based calculation against the current value. The AI, still "thinking about" the previous turn's training session, writes a slightly higher value (e.g., `FORCE_STRAIN=92` when current is 88). Delta = 4, endurance-mitigated to ~3.2, applied. Next turn same thing. Strain snowballed toward 100 over 2–3 turns.
+
+2. **Narrative parsers running on full rawText** — The arrow-format regex (`Force Strain: X → Y`) and triple-format regex ran on `rawText` which includes the SHEET and WORLD JSON blocks. Any matching pattern in those blocks could re-apply strain values.
+
+3. **Wrong maxPS/maxMS defaults** — `characterSheet.maxPhysicalStrain || 10` and `characterSheet.maxMentalStrain || 10` in the narrative parsers (should be 100). Values above 10 would fail the `val <= max` guard and not update, but values ≤ 10 could incorrectly set strain to very low numbers.
+
+### Fix
+
+**`_hasStrainActivity` pre-scan (primary fix):**
+Added pre-scan of the CHANGES block immediately after `changesMatch` is extracted. Sets `_hasStrainActivity = true` if any of `TRAINING:`, `COMBAT:`, `COMBAT_ROUND:`, or `COMBAT_START:` appear in the block. The pre-scan uses the already-extracted `changesMatch[1]` so no extra regex on rawText.
+
+In all three strain handlers (`FORCE_STRAIN`, `PHYSICAL_STRAIN`, `MENTAL_STRAIN`): if `_rawDelta > 0 && !_hasStrainActivity`, the handler breaks immediately without applying the increase. Recovery (negative delta) still works normally on rest/sleep turns.
+
+**Narrative parsers restricted to narrative text:**
+Changed `const rt = rawText` to extract only text before `<<<CHANGES>>>`:
+```javascript
+const _narrativeEnd = rawText.indexOf('<<<CHANGES>>>');
+const rt = _narrativeEnd > 0 ? rawText.slice(0, _narrativeEnd) : rawText;
+```
+
+**Fixed wrong defaults:**
+`maxPhysicalStrain || 10` → `|| 100`, `maxMentalStrain || 10` → `|| 100`.
+
+**Prompt rule (rule 6 rewrite):**
+Replaced the vague "if strain changed this turn, update it" rule with an explicit prohibition: strain values must be copied exactly from context on turns with no training/combat/Force use. Warns that carry-over from a previous turn is already processed by JS and writing a higher value double-applies it.
+
+### Files changed
+- `index.html` — `_hasStrainActivity` pre-scan + guard in all three strain CHANGES handlers; narrative parser `rt` scoped to pre-CHANGES text; `maxPS`/`maxMS` defaults fixed to 100; prompt rule 6 rewritten
+
+---
+
 ## V135 — 2026-06-13
 
 **Design: Force Choke line split into neutral grip branch and dark wound branch**
