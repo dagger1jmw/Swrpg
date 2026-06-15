@@ -4,6 +4,34 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V138 — 2026-06-15
+
+**Fix: Opponent stats changing mid-combat when AI re-generates INLINE values**
+
+### Problem
+
+In a multi-turn combat, the Mark IV training droid had `ShiiCho(45)/strength(40)/agility(50)` on the first exchange and then dropped to `ShiiCho(30)/strength(35)/agility(32)` the very next turn. The AI had narrated the droid as "damaged" after a Force Push and then re-generated lower INLINE stats to reflect that — causing the roll card to show a fundamentally different opponent.
+
+Root cause: `ROLL_OPPOSED ... vs INLINE:ShiiCho=45,...` passes stats directly in the tag. The AI re-writes this line every turn with whatever values it thinks are appropriate. There was no mechanism to lock the opponent's stat block once established. JS just parsed whatever INLINE values it saw on each turn independently.
+
+### Fix
+
+**INLINE: stats are now auto-registered to `worldState.characterProfiles` on first use in an active combat:**
+
+When JS processes `ROLL_OPPOSED ... vs INLINE:` and `activeCombat` is active with a named opponent:
+1. `scanPending.oppName` is set to `activeCombat.opponent` (the name from `COMBAT_START:`) instead of the generic `'Opponent'`
+2. If `worldState.characterProfiles[opponentName]` already has stats, those stored stats are used — the AI's new INLINE values are completely ignored
+3. If no profile stats exist yet (first roll), the INLINE stats are parsed AND immediately saved to the profile for future rounds
+
+This means: the first ROLL_OPPOSED in an encounter locks the opponent's stats. Every subsequent INLINE: line for the same combatant is silently replaced with the locked values. Damage and fatigue are narrative — the stat block is immutable for the duration of the combat.
+
+**Prompt rule added:** "OPPONENT STAT CONSISTENCY: Once you write INLINE: stats for an opponent, JavaScript locks those values for the entire combat — do NOT change INLINE values in later rounds to reflect 'damaged' or 'fatigued' state."
+
+### Files changed
+- `index.html` — INLINE: handler in `scanForRollTags()` rewritten to use `activeCombat.opponent` as name, check/write profile stats; prompt rule added under ROLL_OPPOSED instructions
+
+---
+
 ## V137 — 2026-06-15
 
 **Fix: Phantom strain accumulation on non-training turns**

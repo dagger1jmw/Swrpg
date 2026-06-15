@@ -2156,6 +2156,7 @@ Any exchange against an opponent requires ROLL_OPPOSED so JS generates both side
 - If the opponent has a stored profile: ROLL_OPPOSED:lightsaberForms.ShiiCho|stats.strength vs CHARACTER:Lyra
 - If the opponent has no stored profile (NPC, droid, one-off): ROLL_OPPOSED:lightsaberForms.ShiiCho|stats.strength vs INLINE:ShiiCho=30,strength=35,agility=32
 - Always include TIER_GAP= and ROLL_LABEL= after the ROLL_OPPOSED line.
+- OPPONENT STAT CONSISTENCY: Once you write INLINE: stats for an opponent, JavaScript locks those values for the entire combat — do NOT change INLINE values in later rounds to reflect "damaged" or "fatigued" state. Damage and fatigue are narrated; the stat block is fixed. JS ignores any new INLINE values after the first roll against a named combatant.
 
 Do NOT emit TRAINING: lines during a combat sequence. All XP comes from COMBAT_END. Training rolls (ROLL: tags for individual stats) are only for dedicated non-combat practice sessions.
 
@@ -4329,12 +4330,41 @@ async function callGemini(playerMessage, retryCount = 0) {
                 scanPending.oppStatsFallback = true;
               }
             } else if (oppStr.startsWith('INLINE:')) {
-              scanPending.oppStats = {};
-              scanPending.oppName = 'Opponent';
-              oppStr.slice(7).split(',').forEach(pair => {
-                const eqIdx = pair.indexOf('=');
-                if (eqIdx >= 0) scanPending.oppStats[pair.slice(0,eqIdx).trim()] = parseFloat(pair.slice(eqIdx+1).trim()) || 0;
-              });
+              // Use the active combat opponent name so stats persist across rounds
+              const _inlineName = (activeCombat?.opponent && activeCombat.opponent !== 'Unknown')
+                ? activeCombat.opponent : 'Opponent';
+              scanPending.oppName = _inlineName;
+              // If we already have stats for this opponent (from a prior roll this combat), use them —
+              // this prevents the AI from changing stats mid-fight due to "damaged" narration
+              const _existingProf = worldState?.characterProfiles?.[_inlineName];
+              const _existingStats = _existingProf?.stats && Object.keys(_existingProf.stats).length > 0 ? _existingProf.stats : null;
+              if (_existingStats) {
+                scanPending.oppStats = {};
+                for (const [cat, statObj] of Object.entries(_existingStats))
+                  for (const [k, v] of Object.entries(statObj))
+                    scanPending.oppStats[cat + '.' + k] = v;
+              } else {
+                // First roll against this opponent — parse INLINE stats and auto-register to profile
+                scanPending.oppStats = {};
+                oppStr.slice(7).split(',').forEach(pair => {
+                  const eqIdx = pair.indexOf('=');
+                  if (eqIdx >= 0) scanPending.oppStats[pair.slice(0,eqIdx).trim()] = parseFloat(pair.slice(eqIdx+1).trim()) || 0;
+                });
+                // Save to profile so subsequent ROLL_OPPOSED calls use the same stats
+                if (_inlineName !== 'Opponent' && worldState) {
+                  if (!worldState.characterProfiles) worldState.characterProfiles = {};
+                  if (!worldState.characterProfiles[_inlineName]) worldState.characterProfiles[_inlineName] = { name: _inlineName, stats: {} };
+                  for (const [flatKey, v] of Object.entries(scanPending.oppStats)) {
+                    const dotIdx = flatKey.indexOf('.');
+                    if (dotIdx >= 0) {
+                      const cat = flatKey.slice(0, dotIdx);
+                      const sk  = flatKey.slice(dotIdx + 1);
+                      if (!worldState.characterProfiles[_inlineName].stats[cat]) worldState.characterProfiles[_inlineName].stats[cat] = {};
+                      worldState.characterProfiles[_inlineName].stats[cat][sk] = v;
+                    }
+                  }
+                }
+              }
             } else {
               // No vs clause resolved — still flag as opposed so fireRoll shows both sides
               scanPending.oppName = oppStr.replace(/^(CHARACTER:|INLINE:)/,'').trim() || 'Opponent';
