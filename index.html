@@ -2178,10 +2178,10 @@ Any exchange against an opponent requires ROLL_OPPOSED so JS generates both side
 
 **FORM SELECTION IS MANDATORY — use the form that matches this specific exchange:**
 The lightsaber form in the ROLL_OPPOSED path MUST match the technique the character is actually executing this exchange. Do NOT default to ShiiCho or the highest-level form.
-- If the player says "Djem So attack/counter/thrust" → use `lightsaberForms.DjemSo`
-- If the player says "Makashi flourish" → use `lightsaberForms.Makashi`
-- If the narrative describes a Soresu defensive posture → use `lightsaberForms.Soresu`
-- If you label the roll "Djem So Counter Attack" in ROLL_LABEL= → the path MUST be `lightsaberForms.DjemSo`
+- If the player says "Djem So attack/counter/thrust" → use 'lightsaberForms.DjemSo'
+- If the player says "Makashi flourish" → use 'lightsaberForms.Makashi'
+- If the narrative describes a Soresu defensive posture → use 'lightsaberForms.Soresu'
+- If you label the roll "Djem So Counter Attack" in ROLL_LABEL= → the path MUST be 'lightsaberForms.DjemSo'
 The ROLL_LABEL and the form path must always match. Mismatching them (e.g. labeling it "Djem So" but sending ShiiCho) is a hard error.
 
 Do NOT emit TRAINING: lines during a combat sequence. All XP comes from COMBAT_END. Training rolls (ROLL: tags for individual stats) are only for dedicated non-combat practice sessions.
