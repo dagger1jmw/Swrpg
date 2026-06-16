@@ -4,6 +4,121 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V141 — 2026-06-16
+
+**Fix: Deferred combat roll result injection + Roll card improvements + DjemSo normalization + ForceBarrier sub-ability guard**
+
+Six independent fixes covering combat narration accuracy, roll card display, form key normalization, and catalog integrity.
+
+---
+
+### Fix 1 — Combat round counter (V140 work, now committed)
+
+**Problem:** `activeCombat.round` is JS-tracked but was never sent to the AI. The AI counted rounds from unreliable conversation history, causing the `— COMBAT ROUND [N] —` display to drift (sometimes staying at the same round for 3 player turns, sometimes jumping).
+
+**Fix:** Added `ACTIVE COMBAT STATE` injection block to `stateBlock` in `buildContext()`:
+```
+ACTIVE COMBAT STATE — JS-TRACKED (authoritative, override your own count):
+  Opponent: X | Intensity: Y
+  Current Round: N ← use this exact number in the "— COMBAT ROUND [N] —" header this turn
+  Accumulated strain so far: Physical X, Force Y, Mental Z
+```
+Added CRITICAL RULE #11: AI must use the injected round number exactly; do not count from history.
+
+---
+
+### Fix 2 — Roll card: opponent tier, gap direction, math breakdown
+
+**Problem (three sub-issues):**
+- Roll card showed "Gap: -4 to opponent" when the effect was actually +4 to opponent / -4 to player — direction was backwards and confusing.
+- The `tierGapBonus` was applied in the total bonus calculation but never shown as a separate line, making the displayed components not sum to the shown total (e.g. 5.025 + 2.138 + 3 ≠ 6.16).
+- Only the player's tier was shown. Opponent tier was invisible.
+
+**Fix in `fireRoll()`:**
+- Computed `oppTierNum = Math.max(1, Math.min(7, tier.num - tierGap))` and added opponent tier to the Tiers display line.
+- Fixed gap direction text: `tierGap > 0` → "+N to player / −N to opponent"; `tierGap < 0` → "+N to opponent / −N to player".
+- Added explicit "Tier gap (player): −N" breakdown line (amber when negative, green when positive) so the math always visibly adds up.
+
+---
+
+### Fix 3 — Form selection: mandatory rule + DjemSo examples in prompt
+
+**Problem:** Both `ROLL_OPPOSED` prompt examples hardcoded `lightsaberForms.ShiiCho`. When the player declared a Djem So attack, the AI copied the example form and sent `ShiiCho` in the tag despite labeling the roll "Djem So Counter Attack" — a direct mismatch.
+
+**Fix (prompt only):** Changed both examples to `lightsaberForms.DjemSo`. Added `FORM SELECTION IS MANDATORY` rule block:
+> "The lightsaber form in the ROLL_OPPOSED path MUST match the technique the character is actually executing this exchange. If the ROLL_LABEL says 'Djem So Counter Attack', the path MUST be `lightsaberForms.DjemSo`. Mismatching them is a hard error."
+
+---
+
+### Fix 4 — DjemSo normalization: canonical lookup + overwrite bug
+
+**Problem (two sub-issues):**
+- Two DjemSo entries appeared in the sidebar. Root cause: `normalizeKey()` only applied `charAt(0).toUpperCase() + slice(1)`, so `"Djem so"` became `"Djem so"` (already starts with uppercase) or `"Djemso"` (after stripping non-alpha) — neither matched the canonical `"DjemSo"`.
+- When two variants (`"DjemSo"` and `"Djemso"`) both existed, the second overwrote the first with `normalized[nk] = Math.max(mxpLevel, sheetLevel)`, losing the higher-XP value.
+
+**Fix in SHEET parse (form normalization block):**
+- Replaced free-form `normalizeKey` with a `_FORM_CANON` lookup table (lowercased stripped key → canonical): `djemso → DjemSo`, `shiicho → ShiiCho`, `shiendjem → ShienDjemSo`, `kii → KiiShikk`, etc.
+- Applied same normalization to `masterXP.lightsaberForms` keys (not just characterSheet keys) so the XP source is also deduplicated.
+- Fixed overwrite bug: `const prevLevel = normalized[nk] || 0; normalized[nk] = Math.max(mxpLevel, sheetLevel, prevLevel)` so multiple colliding entries merge to the highest level rather than last-write-wins.
+
+---
+
+### Fix 5 — ForceBarrier fake sub-ability guard
+
+**Problem:** The AI invented sub-abilities `SelfShield` and `BasicProjection` for `ForceBarrier` and wrote `PROFICIENCY: ForceBarrier.SelfShield` tags. These were stored in `masterXP.forceAbilityProficiency` and displayed in the sidebar even though neither key exists in `FORCE_ABILITY_CATALOG`.
+
+**Fix A — Sidebar display filter** (`updateCharacterSheet()`, force abilities section):
+`subEntries` filter now validates that each `pk` has a catalog entry where `FORCE_ABILITY_CATALOG[subKey].par === k`. Entries failing this check are silently excluded from display. Existing invalid proficiency XP in save data is effectively hidden without needing to purge it.
+
+**Fix B — PROFICIENCY: parser guard** (CHANGES block parser):
+Before calling `applyProficiencyXP(abilKey, subKey, profXP)`, validates `FORCE_ABILITY_CATALOG[subKey]?.par === abilKey`. If the sub-key is not a catalog-registered child of the parent ability, the tag is silently dropped with `continue`. AI-invented sub-abilities can no longer accumulate XP.
+
+---
+
+### Fix 6 — Deferred combat roll result injection
+
+**Problem (root cause):** The AI generates its full response text (narrative + CHANGES block) in one shot. JS fires `ROLL_OPPOSED` only after parsing the CHANGES block at the end of the response. The AI's narrative was therefore always written blind to the roll result. The AI had no access to the margin, so it defaulted to narrating player victories regardless of the actual outcome — losses were consistently written as wins.
+
+The existing "THE MARGIN IS ABSOLUTE GROUND TRUTH" prompt rules were structurally incapable of fixing this: the AI cannot comply with rules about a number it has not seen.
+
+**Fix (three parts):**
+
+**Part A — `fireRoll()`: store result on `activeCombat`**
+
+After computing the margin and result label for `ROLL_OPPOSED`, stores:
+```javascript
+activeCombat.lastRollResult = {
+  label,                          // roll label string
+  margin: round(margin, 2),       // signed float
+  winner: 'player'|'opponent'|'contested',
+  marginLabel: result             // e.g. "Dominant loss — in serious trouble"
+};
+```
+Persists on `activeCombat` for the duration of combat; updated each exchange.
+
+**Part B — `buildContext()` stateBlock injection**
+
+`ACTIVE COMBAT STATE` block now appends `⚠ LAST EXCHANGE RESULT` when `activeCombat.lastRollResult` exists:
+```
+⚠ LAST EXCHANGE RESULT (JS-computed after previous response — OPEN THIS RESPONSE by resolving this):
+    Roll: "Exploiting Opening — Djem So Thrust" | Dominant loss — in serious trouble (margin: -10.09)
+    → PLAYER LOST — narrate the player being outmaneuvered: attack was deflected/missed/failed, the
+      opponent controlled the space. DO NOT write the player striking successfully or gaining position.
+```
+The AI now has the exact result with unambiguous direction at the top of every combat turn.
+
+**Part C — Prompt restructure**
+
+`YOUR ROLE IN ROLLS` section rewritten to describe the deferred model:
+> "ROLL tags go in the CHANGES block. JS fires the roll AFTER your response is complete. You cannot know the result when writing the current turn's narrative. Write setup narrative up to the moment of commitment ('Jared drives the thrust—'), fire the roll, end there. The next turn's ACTIVE COMBAT STATE shows LAST EXCHANGE RESULT — open that turn by resolving the previous exchange before addressing the new player action."
+
+`EXCHANGE RESOLUTION` section restructured to reference `LAST EXCHANGE RESULT` from context rather than claiming the AI can observe the margin in real time.
+
+### Files changed
+- `index.html` — all 6 fixes above
+
+---
+
 ## V139 — 2026-06-15
 
 **Feature: Combat Injury & Pain System**

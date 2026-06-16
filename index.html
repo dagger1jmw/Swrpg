@@ -1887,28 +1887,31 @@ INTERACTION tag — send alongside KNOWN_PERSON when a meaningful interaction oc
 
 **ALL roll math is handled by JavaScript. You declare what happens; JS calculates and posts the result.**
 
-### YOUR ROLE IN ROLLS
-1. Decide a roll is needed
-2. At the natural point in the narrative where the action occurs, output the ROLL tags
-3. JS intercepts them, fires the roll, and posts the result card automatically
-4. Continue your narrative response based on the outcome (the result is stored in lastRoll)
+### YOUR ROLE IN ROLLS — DEFERRED RESULT MODEL
+
+**Critical: ROLL tags go in the CHANGES block at the END of your response. JS fires the roll AFTER your full response is complete. You cannot know the result when writing the current turn's narrative.**
+
+The roll result from Turn N appears in Turn N+1's context as "LAST EXCHANGE RESULT" inside ACTIVE COMBAT STATE (for combat) or as narrative context (for training/skill rolls).
+
+**Combat roll flow (ROLL_OPPOSED):**
+- Turn N (you declare attack): Write setup narrative up to the moment of commitment ("Jared drives forward with the Djem So thrust—"), fire ROLL_OPPOSED in CHANGES block. Do NOT write the outcome — you do not know the result yet.
+- Turn N+1 (player acts again): ACTIVE COMBAT STATE shows "LAST EXCHANGE RESULT". OPEN your narrative by resolving that exchange exactly per the outcome, then address the player's new action.
+
+**Training/skill roll flow (ROLL:):**
+- Write the training or action narrative. Fire ROLL: at the end (in CHANGES block). On the next turn, the stateBlock shows updated XP from any TRAINING: tags — use that to confirm the result.
 
 **NEVER calculate bonuses yourself. NEVER write out compressedBonus math. NEVER choose a d20 value.**
 
-ROLL tags can appear anywhere in your response (inside or outside the CHANGES block).
-JS scans the full text and strips them from the displayed narrative automatically.
-Preferred placement: inline in the narrative at the moment of the action, then continue writing.
+ROLL tags go in the CHANGES block. JS strips them automatically from the displayed narrative.
 
-Example flow:
-  "Jared reaches out with the Force, feeling for any hidden presence..."
-  ROLL:forceStats.forceSense|forceStats.meditation
-  TIER_GAP=0
-  TACTICAL=0
-  ROLL_LABEL=Force Sense scan — detecting hidden presence
-  "...the result tells you whether he senses anything."
+Example (combat — Turn N):
+  "Jared pivots and drives a Djem So thrust toward the droid's photoreceptor—"
+  [CHANGES block includes ROLL_OPPOSED]
+  [Narrative ENDS HERE — do not resolve the outcome this turn]
 
-The lastRoll.result value will be: overwhelming / strong / solid / contested / fail
-Write your narrative to match.
+Example (combat — Turn N+1, context shows "PLAYER LOST — Dominant loss"):
+  "The baton intercepts cleanly — your thrust deflects wide and the Mark IV steps through your guard, driving an elbow into your forearm. You're forced back three paces, weight redistributing to defense..."
+  [Then: address the player's new declared action]
 
 ### ROLL TAG FORMAT
 
@@ -2121,6 +2124,8 @@ Momentum: [who has advantage]
 Accumulated strain this fight: Physical [XX], Force [YY], Mental [ZZ]  (0–100 scale)
 Position: [brief description]
 '''
+[N] = the "Current Round" value from ACTIVE COMBAT STATE in your context (injected by JS, authoritative). Use it exactly — do NOT count from history.
+[XX]/[YY]/[ZZ] = "Accumulated strain so far" values from ACTIVE COMBAT STATE, plus any strain from THIS turn's exchanges.
 
 ## PLAYER INPUT MODES
 The player can input:
@@ -2148,28 +2153,36 @@ Each exchange uses the opposed roll system. **ONE ROLL_OPPOSED tag per exchange 
 - Winner describes the exchange narratively BEFORE revealing what the opponent does next
 - The opponent adapts their tactics based on the exchange result
 
-**THE MARGIN IS ABSOLUTE GROUND TRUTH — THE NARRATIVE MUST MATCH, NO EXCEPTIONS:**
+**THE MARGIN IS ABSOLUTE GROUND TRUTH — AND IS AVAILABLE IN YOUR CONTEXT:**
 
-A negative margin means the OPPONENT won this exchange. The stat bonuses and tier gap already account for skill differences — the roll outcome is the final word.
+The ROLL_OPPOSED fires AFTER your response completes. The result appears in the NEXT turn's ACTIVE COMBAT STATE as "LAST EXCHANGE RESULT". You MUST open that turn's narrative by resolving the previous exchange per the result before addressing the player's new action.
 
-- **Positive margin (Player wins):** Player's action succeeded. Narrate the player's attack landing, forcing the opponent back, gaining position.
-- **Zero (Contested):** Neither side gained — a clash, a block, a mutual check.
-- **Negative margin (Opponent wins):** THE PLAYER LOST THIS EXCHANGE. The player's intended action FAILED or was neutralized. **NEVER** narrate the player's strike landing, the opponent being cornered, forced backward, or outmaneuvered when the margin is negative. The opponent's counter found its mark, the player's attack was deflected, blocked, or fell short.
+**LAST EXCHANGE RESULT → narrative requirement:**
+- **Player won (positive margin):** Player's attack succeeded — narrate landing the blow, opponent forced back, gaining position.
+- **Contested (zero):** Neither side gained — a clash, a block, a mutual check.
+- **Narrow loss (margin −1 to −3):** Player barely lost ground — attack deflected or missed narrowly, opponent seized slight positional advantage.
+- **Clear loss (margin −4 to −7):** Player's attack clearly failed — absorbed, redirected, or never landed. Opponent pressing advantage. Player reactive.
+- **Dominant loss (margin −8 to −12):** Player outclassed — offense collapsed, opponent controlling the space, player defending and retreating.
+- **Overwhelming loss (margin −13+):** Player dominated — attack swept aside, serious danger, position broken, likely took a direct hit.
 
-**Specific loss narrative requirements:**
-- **Narrow loss (margin 1–3):** Player barely lost ground — their attack was deflected or missed narrowly, opponent seized a slight positional advantage.
-- **Clear loss (margin 4–7):** Player's attack clearly failed — their strike was absorbed, redirected, or never landed. Opponent is pressing the advantage. Player is reactive.
-- **Dominant loss (margin 8–12):** Player was outclassed this exchange — their offense collapsed, opponent is controlling the space, player is defending and retreating.
-- **Overwhelming loss (margin 13+):** Player was dominated — their attack was swept aside or never completed, they are in serious danger, position is broken, possibly took a direct hit.
+**NEVER write the player striking successfully when LAST EXCHANGE RESULT shows PLAYER LOST. The player's declared action describes their intent — the margin determines whether it worked.**
 
-**What this means for Force abilities mid-combat:** If the player activates Battlemind, Force Speed, or another ability, it increases their roll BONUS — but if the roll still results in a negative margin, those abilities did not save the exchange. Narrate the ability as active (they are fighting with Battlemind clarity), but show that it was not enough this round.
+**What this means for Force abilities mid-combat:** An ability increases the roll BONUS. If the margin is still negative, the ability was not enough. Narrate it as active ("he fights with Battlemind clarity") but show it did not save the exchange.
 
 **ALWAYS use ROLL_OPPOSED for combat — never plain ROLL:**
 Any exchange against an opponent requires ROLL_OPPOSED so JS generates both sides of the roll and shows the margin. Never use ROLL: for a combat exchange — that produces only the player's roll with no opponent and no margin result.
-- If the opponent has a stored profile: ROLL_OPPOSED:lightsaberForms.ShiiCho|stats.strength vs CHARACTER:Lyra
-- If the opponent has no stored profile (NPC, droid, one-off): ROLL_OPPOSED:lightsaberForms.ShiiCho|stats.strength vs INLINE:ShiiCho=30,strength=35,agility=32
+- If the opponent has a stored profile: ROLL_OPPOSED:lightsaberForms.DjemSo|stats.strength vs CHARACTER:Lyra
+- If the opponent has no stored profile (NPC, droid, one-off): ROLL_OPPOSED:lightsaberForms.DjemSo|stats.strength vs INLINE:DjemSo=30,strength=35,agility=32
 - Always include TIER_GAP= and ROLL_LABEL= after the ROLL_OPPOSED line.
 - OPPONENT STAT CONSISTENCY: Once you write INLINE: stats for an opponent, JavaScript locks those values for the entire combat — do NOT change INLINE values in later rounds to reflect "damaged" or "fatigued" state. Damage and fatigue are narrated; the stat block is fixed. JS ignores any new INLINE values after the first roll against a named combatant.
+
+**FORM SELECTION IS MANDATORY — use the form that matches this specific exchange:**
+The lightsaber form in the ROLL_OPPOSED path MUST match the technique the character is actually executing this exchange. Do NOT default to ShiiCho or the highest-level form.
+- If the player says "Djem So attack/counter/thrust" → use `lightsaberForms.DjemSo`
+- If the player says "Makashi flourish" → use `lightsaberForms.Makashi`
+- If the narrative describes a Soresu defensive posture → use `lightsaberForms.Soresu`
+- If you label the roll "Djem So Counter Attack" in ROLL_LABEL= → the path MUST be `lightsaberForms.DjemSo`
+The ROLL_LABEL and the form path must always match. Mismatching them (e.g. labeling it "Djem So" but sending ShiiCho) is a hard error.
 
 Do NOT emit TRAINING: lines during a combat sequence. All XP comes from COMBAT_END. Training rolls (ROLL: tags for individual stats) are only for dedicated non-combat practice sessions.
 
@@ -3825,7 +3838,15 @@ ${galaxySummary}
 ${buildLoreContext()}
 ${buildEventInjection()}
 ${campaignSummary ? `CAMPAIGN HISTORY (turns 1–${Math.max(1, turnCount - recentHistory.length/2)}):\n${campaignSummary}` : 'Campaign is just beginning.'}
-
+${activeCombat ? `
+ACTIVE COMBAT STATE — JS-TRACKED (authoritative, override your own count):
+  Opponent: ${activeCombat.opponent} | Intensity: ${activeCombat.intensity}
+  Current Round: ${activeCombat.round} ← use this exact number in the "— COMBAT ROUND [N] —" header this turn
+  Accumulated strain so far (NOT yet applied to sheet): Physical ${activeCombat.accPhysical.toFixed(1)}, Force ${activeCombat.accForce.toFixed(1)}, Mental ${activeCombat.accMental.toFixed(1)}
+${activeCombat.lastRollResult ? `  ⚠ LAST EXCHANGE RESULT — JS-computed after your previous response. OPEN THIS RESPONSE by resolving this outcome before addressing the new player action:
+    Roll: "${activeCombat.lastRollResult.label}" | ${activeCombat.lastRollResult.marginLabel} (margin: ${activeCombat.lastRollResult.margin > 0 ? '+' : ''}${activeCombat.lastRollResult.margin.toFixed(2)})
+    ${activeCombat.lastRollResult.winner === 'player' ? '→ PLAYER WON — narrate the player pressing the advantage, opponent forced back or taking damage.' : activeCombat.lastRollResult.winner === 'opponent' ? '→ PLAYER LOST — narrate the player being outmaneuvered: their attack was deflected/missed/failed, the opponent controlled the space. DO NOT write the player striking successfully or the opponent cornered. Show retreat, defense, or injury.' : '→ CONTESTED — blades clashed or action was neutralized; neither side gained clear advantage.'}` : '  No previous exchange to resolve — this is the opening action of combat.'}
+` : ''}
 CRITICAL RULES FOR THIS TURN:
 1. Use the EXACT stat values above as your starting point
 2. TIME IS NOW: ${ws.inGameTime||'unknown'} on ${ws.inGameDate||'unknown'}. Every action takes time. State how much time passes at the start of your response ("Time Elapsed: X minutes/hours") — JavaScript reads this and advances the clock automatically. Do NOT set inGameTime in the WORLD block (JS ignores it). Do NOT change inGameDate in the WORLD block — echo back the date you were given. JS auto-advances the date at midnight from "Time Elapsed". You NEVER skip days or advance the calendar yourself.
@@ -3836,7 +3857,8 @@ CRITICAL RULES FOR THIS TURN:
 7. Output <<<CHANGES>>>, <<<SHEET>>> and <<<WORLD>>> blocks at the end of EVERY response
 8. TIME REALISM: The "Time Elapsed:" you state must equal what the narrative describes — never more. A meal is 30–40 minutes. A walk across the Temple is 10–20 minutes. Reflection or a brief pause is 5 minutes. Do not inflate time beyond the activity.
 9. NO XP FOR PASSIVE ACTIVITY: Eating, resting, walking, and mental reflection earn ZERO TRAINING XP. lightsaberForms XP requires physical practice. forceKnowledge/intelligence XP requires focused deliberate study — not passing thoughts. If the player is not actively exerting effort, no TRAINING: line belongs in this turn. CRITICAL: TRAINING: tags must correspond ONLY to training that visibly occurs in THIS turn's narrative. Never include TRAINING: tags to account for a previous turn's session — those CHANGES blocks were already processed by JavaScript. If the previous turn involved training and this turn does not, write ZERO TRAINING: lines.
-10. INJURY SYSTEM — Use INJURY_ADD= when a specific body part is meaningfully struck in combat or story. Minor injuries auto-clear on full sleep (7+ hrs); moderate/severe require bacta/medical; permanent injuries (amputations, life-support damage) require STORY_HEAL= to remove. HP threshold penalties (−1 to −5) are applied automatically by JS — do not calculate them yourself. Use PAIN_CHANNEL=active only for dark side characters (alignment ≤ −25) who consciously embrace pain as fuel. Control Pain ability level directly equals % mitigation of injury penalties — JS calculates and displays this on roll cards.`;
+10. INJURY SYSTEM — Use INJURY_ADD= when a specific body part is meaningfully struck in combat or story. Minor injuries auto-clear on full sleep (7+ hrs); moderate/severe require bacta/medical; permanent injuries (amputations, life-support damage) require STORY_HEAL= to remove. HP threshold penalties (−1 to −5) are applied automatically by JS — do not calculate them yourself. Use PAIN_CHANNEL=active only for dark side characters (alignment ≤ −25) who consciously embrace pain as fuel. Control Pain ability level directly equals % mitigation of injury penalties — JS calculates and displays this on roll cards.
+11. COMBAT ROUND NUMBER — When in active combat, "ACTIVE COMBAT STATE: Current Round: N" above is the authoritative round counter maintained by JavaScript. Write "— COMBAT ROUND [N] —" in your narrative using that exact number. Do NOT count rounds yourself from conversation history — history is unreliable. If you resolve multiple exchanges this turn (SEQUENCE or INTENT mode), show "ROUND N" for the first exchange and "ROUND N+1", "ROUND N+2" etc. for subsequent ones. The number in your COMBAT_ROUND: tag is how many exchanges you resolved THIS turn (always 1 unless resolving a sequence), not the running total.`;
 
   messages.push({ role: 'user', parts: [{ text: stateBlock }] });
   messages.push({ role: 'model', parts: [{ text: `Confirmed. Turn ${turnCount + 1}. Current time: ${ws.inGameTime||'unknown'} — I will write narrative atmosphere that matches this exactly. I will state "Time Elapsed: X" at the start of my response. I will NOT set inGameTime or advance inGameDate in the WORLD block — I will echo back the date as-is. I will output all three data blocks.` }] });
@@ -4253,10 +4275,19 @@ async function callGemini(playerMessage, retryCount = 0) {
         syncMasterXPToSheet();
         // Seed shatterpoint if innate talent is present and track not yet initialized
         spSeedIfInnate();
-        // Normalize lightsaber form keys — AI sometimes uses "Shii-Cho" vs "ShiiCho"
-        // Canonical key is camelCase no hyphen; merge duplicates
+        // Normalize lightsaber form keys — AI sometimes uses "Shii-Cho", "Djem so", etc.
+        // Canonical key is camelCase no hyphen; merge duplicates keeping highest XP.
         if (characterSheet.lightsaberForms) {
-          const normalizeKey = (key) => key.replace(/[^a-zA-Z0-9]/g,'').replace(/^(.)/, c=>c.toUpperCase());
+          const _FORM_CANON = {
+            'shiicho':'ShiiCho','makashi':'Makashi','soresu':'Soresu','ataru':'Ataru',
+            'shien':'Shien','djemso':'DjemSo','shiendjemso':'ShienDjemSo','shiendjem':'ShienDjemSo',
+            'niman':'Niman','juyo':'Juyo','vaapad':'Vaapad','jarkai':'JarKai','jar':'JarKai',
+            'kii-shikk':'KiiShikk','kii':'KiiShikk'
+          };
+          const normalizeKey = (key) => {
+            const stripped = key.replace(/[^a-zA-Z0-9]/g,'').toLowerCase();
+            return _FORM_CANON[stripped] || (stripped.charAt(0).toUpperCase() + stripped.slice(1));
+          };
           // First normalize masterXP keys (source of truth for stat levels)
           if (masterXP.lightsaberForms) {
             const normMXP = {};
@@ -4267,14 +4298,15 @@ async function callGemini(playerMessage, retryCount = 0) {
             masterXP.lightsaberForms = normMXP;
           }
           // Then normalize sheet keys, using masterXP derived level as authoritative
+          // Take the max of all colliding entries (don't overwrite with a lower value)
           const normalized = {};
           for (const [k, v] of Object.entries(characterSheet.lightsaberForms)) {
             const nk = normalizeKey(k);
-            // Use masterXP derived level if available (avoids stale AI values)
             const mxpEntry = masterXP.lightsaberForms?.[nk];
             const mxpLevel = mxpEntry ? deriveFromTotalXP(mxpEntry.totalXP || 0).level : 0;
             const sheetLevel = typeof v === 'object' ? (v.level || 0) : (v || 0);
-            normalized[nk] = Math.max(mxpLevel, sheetLevel);
+            const prevLevel = normalized[nk] || 0;
+            normalized[nk] = Math.max(mxpLevel, sheetLevel, prevLevel);
           }
           characterSheet.lightsaberForms = normalized;
         }
@@ -4562,6 +4594,11 @@ async function callGemini(playerMessage, retryCount = 0) {
             if (dotIdx > 0) {
               const abilKey = compositeKey.slice(0, dotIdx);
               const subKey  = compositeKey.slice(dotIdx + 1);
+              // Reject sub-keys that aren't in the catalog as children of abilKey
+              if (typeof FORCE_ABILITY_CATALOG !== 'undefined') {
+                const catEntry = FORCE_ABILITY_CATALOG[subKey];
+                if (!catEntry || catEntry.par !== abilKey) continue;
+              }
               const profXP  = applyMomentumToXP(parseFloat(profParts[1]) || 0);
               if (profXP > 0) {
                 const res = applyProficiencyXP(abilKey, subKey, profXP);
@@ -6691,7 +6728,17 @@ function updateCharacterSheet() {
       const xpPct = Math.max(0, Math.min(100, (xpData.current / xpData.required) * 100));
 
       const profData = masterXP.forceAbilityProficiency || {};
-      const subEntries = Object.keys(profData).filter(pk => pk.startsWith(k + '.') && profData[pk].totalProfXP > 0);
+      const subEntries = Object.keys(profData).filter(pk => {
+        if (!pk.startsWith(k + '.')) return false;
+        const sub = profData[pk];
+        if (!sub || !sub.totalProfXP) return false;
+        if (typeof FORCE_ABILITY_CATALOG !== 'undefined') {
+          const subKey = pk.split('.')[1];
+          const catEntry = FORCE_ABILITY_CATALOG[subKey];
+          if (!catEntry || catEntry.par !== k) return false;
+        }
+        return true;
+      });
       let profHtml = '';
       for (const compositeKey of subEntries) {
         const subName = compositeKey.split('.')[1];
@@ -9881,16 +9928,27 @@ function fireRoll(roll) {
     return `${name}(${s.val}):+${compressedBonus(s.val).toFixed(3)}`;
   }).join(', ');
 
+  // Opponent tier for display (computed from player tier + tier gap)
+  const _tNames = ['','Untrained','Apprentice','Adept','Master','High Master','Legendary','Transcendent'];
+  const oppTierNum = tierGap !== 0 ? Math.max(1, Math.min(7, tier.num - tierGap)) : null;
+  const oppTierLabel = oppTierNum ? (_tNames[oppTierNum] || `Tier ${oppTierNum}`) : null;
+
   let html = `<div style="background:rgba(15,20,30,0.6);border:1px solid #2a3a4a;border-radius:4px;padding:10px 14px;font-size:12px;font-family:'Consolas',monospace;line-height:1.8;margin:4px 0">`;
   html += `<div style="color:#5588aa;font-size:9px;letter-spacing:3px;margin-bottom:6px;font-family:'Cinzel',serif;text-transform:uppercase">${label}</div>`;
-  html += `<div style="color:var(--text-dim)">Tiers: Character=${tier.name} (${playerStats.map(s=>`${(s.path.split('.')[1]||s.path)}=${s.val}`).join(', ')}) → Tier ${tier.num}</div>`;
+  html += `<div style="color:var(--text-dim)">Tiers: Player=${tier.name} (Tier ${tier.num})${oppTierLabel ? ` | Opponent=${oppTierLabel} (Tier ${oppTierNum})` : ''}</div>`;
+  html += `<div style="color:var(--text-dim);padding-left:8px">(${playerStats.map(s=>`${(s.path.split('.')[1]||s.path)}=${s.val}`).join(', ')})</div>`;
   if (tierGap !== 0) {
-    const gapDir = tierGap > 0 ? 'player' : 'opponent';
-    html += `<div style="color:var(--text-dim)">Gap: ${Math.abs(tierGap)} tier(s) → ${tierGapBonus>0?'+':''}${tierGapBonus} to ${gapDir}</div>`;
+    const absGB = Math.abs(tierGapBonus);
+    if (tierGap > 0) {
+      html += `<div style="color:var(--text-dim)">Gap: ${Math.abs(tierGap)} tier(s) → +${absGB} to player / −${absGB} to opponent</div>`;
+    } else {
+      html += `<div style="color:var(--text-dim)">Gap: ${Math.abs(tierGap)} tier(s) → +${absGB} to opponent / −${absGB} to player</div>`;
+    }
   }
   html += `<div style="color:var(--text-dim)">Stat Bonus: +${statBonus.toFixed(3)} (${statBonusStr})</div>`;
   if (expBonus > 0) html += `<div style="color:var(--text-dim)">Experience modifier: +${expBonus.toFixed(3)} (${expLines.join(', ')})</div>`;
   if (tactical !== 0) html += `<div style="color:var(--text-dim)">Tactical Setup: ${tactical>0?'+':''}${tactical}</div>`;
+  if (tierGapBonus !== 0) html += `<div style="color:${tierGapBonus<0?'#cc8844':'#88cc88'}">Tier gap (player): ${tierGapBonus>0?'+':''}${tierGapBonus}</div>`;
   // Show penalty breakdown
   if (penCalc.hpPenalty > 0) {
     const hpState = penCalc.rawHPPenalty===1?'Hurt':penCalc.rawHPPenalty===2?'Wounded':penCalc.rawHPPenalty===3?'Critical':'Near Death';
@@ -9947,6 +10005,15 @@ function fireRoll(roll) {
     else if (margin>=-12){ result='Dominant loss — in serious trouble'; rc='#cc4444'; }
     else                 { result='Overwhelming loss';                  rc='#cc2222'; }
     html += `<div style="margin-top:4px;color:${rc};font-weight:bold">Margin: ${margin>0?'Player':'Opponent'} by ${Math.abs(margin).toFixed(2)} — ${result}</div>`;
+    // Store result on activeCombat so next turn's stateBlock can inject it
+    if (activeCombat) {
+      activeCombat.lastRollResult = {
+        label,
+        margin: Math.round(margin * 100) / 100,
+        winner: margin > 0 ? 'player' : margin < 0 ? 'opponent' : 'contested',
+        marginLabel: result
+      };
+    }
   } else {
     html += `<div style="margin-top:4px"><span style="color:var(--gold);font-weight:bold">d20=${d20}</span><span style="color:var(--text-dim)">, Bonus=+${totalBonus.toFixed(2)}, Total=${playerTotal.toFixed(2)}</span></div>`;
     html += `<div style="color:var(--text-dim);font-size:10px">Thresholds: Fail&lt;8 / Contested 8–11 / Solid 12–16 / Strong 17–20 / Overwhelming 21+</div>`;
