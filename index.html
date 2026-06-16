@@ -3869,7 +3869,10 @@ CRITICAL RULES FOR THIS TURN:
   }
 
   // Rolls are now JS-driven via ROLL:/ROLL_LABEL= tags — no pre-roll injection needed.
-  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State "Time Elapsed: X minutes/hours" — JS advances clock and date automatically, do NOT set inGameTime or change inGameDate in WORLD (echo date back as-is). (2) Output <<<CHANGES>>> block. For XP: use TRAINING: or COMBAT: lines — NOT prose. For rolls: output ROLL:statPath1|statPath2, TIER_GAP=N, TACTICAL=N, ROLL_LABEL=description tags. (3) Output <<<SHEET>>> and <<<WORLD>>> blocks.]`;
+  const lastRollReminder = (activeCombat?.lastRollResult)
+    ? `\n\n⚠ MANDATORY COMBAT RESOLUTION — LAST EXCHANGE RESULT (JS-computed, cannot be ignored):\n  "${activeCombat.lastRollResult.label}" → ${activeCombat.lastRollResult.marginLabel} (margin: ${activeCombat.lastRollResult.margin > 0 ? '+' : ''}${activeCombat.lastRollResult.margin.toFixed(2)})\n  ${activeCombat.lastRollResult.winner === 'opponent' ? 'PLAYER LOST. Your response MUST open with the player being outmaneuvered — their attack deflected, missed, or failed. The opponent controlled the exchange. DO NOT write the player striking successfully, the opponent stumbling back, or any positive outcome for the player.' : activeCombat.lastRollResult.winner === 'player' ? 'PLAYER WON. Narrate the player pressing the advantage, the opponent forced back or taking damage.' : 'CONTESTED. Neither side gained clear advantage — blades locked, a mutual check.'}`
+    : '';
+  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State "Time Elapsed: X minutes/hours" — JS advances clock and date automatically, do NOT set inGameTime or change inGameDate in WORLD (echo date back as-is). (2) Output <<<CHANGES>>> block. For XP: use TRAINING: or COMBAT: lines — NOT prose. For rolls: output ROLL:statPath1|statPath2, TIER_GAP=N, TACTICAL=N, ROLL_LABEL=description tags. (3) Output <<<SHEET>>> and <<<WORLD>>> blocks.]${lastRollReminder}`;
 
   messages.push({ role: 'user', parts: [{ text: userContent + reminder }] });
 
@@ -9938,12 +9941,8 @@ function fireRoll(roll) {
   html += `<div style="color:var(--text-dim)">Tiers: Player=${tier.name} (Tier ${tier.num})${oppTierLabel ? ` | Opponent=${oppTierLabel} (Tier ${oppTierNum})` : ''}</div>`;
   html += `<div style="color:var(--text-dim);padding-left:8px">(${playerStats.map(s=>`${(s.path.split('.')[1]||s.path)}=${s.val}`).join(', ')})</div>`;
   if (tierGap !== 0) {
-    const absGB = Math.abs(tierGapBonus);
-    if (tierGap > 0) {
-      html += `<div style="color:var(--text-dim)">Gap: ${Math.abs(tierGap)} tier(s) → +${absGB} to player / −${absGB} to opponent</div>`;
-    } else {
-      html += `<div style="color:var(--text-dim)">Gap: ${Math.abs(tierGap)} tier(s) → +${absGB} to opponent / −${absGB} to player</div>`;
-    }
+    const sign = tierGapBonus >= 0 ? '+' : '';
+    html += `<div style="color:var(--text-dim)">Gap: ${Math.abs(tierGap)} tier(s) → ${sign}${tierGapBonus} to player</div>`;
   }
   html += `<div style="color:var(--text-dim)">Stat Bonus: +${statBonus.toFixed(3)} (${statBonusStr})</div>`;
   if (expBonus > 0) html += `<div style="color:var(--text-dim)">Experience modifier: +${expBonus.toFixed(3)} (${expLines.join(', ')})</div>`;
@@ -9982,8 +9981,8 @@ function fireRoll(roll) {
     }
     const oppInjCalc = calcOppInjuryBonus();
     const oppInjBonus = oppInjCalc.bonus;
-    const oppTierGapBonus = -tierGapBonus;
-    const oppTotal_bonus = oppStatBonus + oppTierGapBonus - oppInjBonus; // injured opp is less effective
+    // Tier gap applies only to player — opponent stats already reflect their skill level
+    const oppTotal_bonus = oppStatBonus - oppInjBonus;
     const oppD20 = Math.floor(Math.random()*20)+1;
     const oppTotal = oppD20 + oppTotal_bonus;
     const margin = playerTotal - oppTotal;
