@@ -2664,6 +2664,20 @@ If player message begins with [OVERRIDE], [LORE CHECK], [SYSTEM EXPAND], [WORLD 
 Only increases if actions witnessed or reported.
 0-20 Unknown, 21-40 Noticed, 41-60 Known, 61-80 Renowned, 81-100 Legendary.
 
+## LIGHTSABER SENSORY CANON
+
+The player's lightsaber properties are injected each turn as "LIGHTSABER:" in the game state. Always match them exactly.
+
+**Blade color:** Never change the blade color mid-narrative. If the state says GREEN, every description says green — not silver, white, blue, or any other color. Silver blades exist in Legends lore but are extremely rare and would never appear on a standard training saber.
+
+**Sound physics — lightsabers do NOT make metallic sounds:**
+- Idle: deep hum, low drone, thrumming buzz
+- Swing: whoosh, vwoom, the air parting around plasma
+- Clash (blade on blade): crackling, hissing, electric snap, plasma arcing — the blades lock with a buzzing crackle, not a ring or clang. No metallic impact sound ever.
+- Training saber: softer snap-hiss on activation, lighter hum, slightly less intense than a full lightsaber but same sound physics
+
+**What to avoid:** clang, ring, clatter, metallic crash, steel-on-steel sounds, spark shower from a metallic impact. Sparks from a lightsaber clash are plasma flares, not metal sparks.
+
 ## TONE
 - Immersive, atmospheric Star Wars Legends prose
 - Consequences are real. Deaths are permanent.
@@ -3793,6 +3807,7 @@ MENTAL STRAIN: ${cs.mentalStrain||0}/${cs.maxMentalStrain||100}
 FORCE STATS (stat/tier/XP — READ ONLY, do not modify): ForceSense=${cs.forceStats?.forceSense||0}(${statToTier(cs.forceStats?.forceSense||0).name})[${(()=>{const x=cs.forceStatsXP?.forceSense;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] Meditation=${cs.forceStats?.meditation||0}(${statToTier(cs.forceStats?.meditation||0).name})[${(()=>{const x=cs.forceStatsXP?.meditation;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] ForceKnowledge=${cs.forceStats?.forceKnowledge||0}(${statToTier(cs.forceStats?.forceKnowledge||0).name})[${(()=>{const x=cs.forceStatsXP?.forceKnowledge;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] ForceControl=${cs.forceStats?.forceControl||0}(${statToTier(cs.forceStats?.forceControl||0).name})[${(()=>{const x=cs.forceStatsXP?.forceControl;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}] ForceOutput=${cs.forceStats?.forceOutput||0}(${statToTier(cs.forceStats?.forceOutput||0).name})[${(()=>{const x=cs.forceStatsXP?.forceOutput;return x?Math.round(x.current||0)+'/'+x.required+'XP needed':'0/?XP';})()}]
 FORCE ABILITIES (stat/tier/XP — READ ONLY): ${Object.entries(cs.forceAbilities||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||v.value||0):(v||0);const x=cs.forceAbilitiesXP?.[k];return `${k}:${s}(${statToTier(s).name})[${x?Math.round(x.current||0)+'/'+x.required+'XP':'0/?XP'}]`;}).join(', ')||'none'}
 LIGHTSABER FORMS (stat → tier → XP progress): ${Object.entries(cs.lightsaberForms||{}).map(([k,v])=>{const s=typeof v==='object'?(v.level||0):(v||0);const xp=cs.lightsaberFormsXP?.[k];return `${k}:${s}(${statToTier(s).name})[${xp?`${xp.current||0}/${xp.required||100}XP`:'0/?XP'}]`;}).join(', ')||'none'}
+LIGHTSABER: ${(cs.lightsaber?.color||'green').toUpperCase()} ${cs.lightsaber?.type||'training'} saber — blade is ALWAYS ${cs.lightsaber?.color||'green'} glowing plasma. Sensory rules: idle=hum/buzz; swing=whoosh; clash=crackling/hissing plasma energy — NEVER 'clang', 'ring', or metallic impact sound. Blade color is NEVER silver/white/other unless explicitly changed here.
 STATS (stat → XP progress): STR=${cs.stats?.strength||0}[${cs.statsXP?.strength?`${cs.statsXP.strength.current||0}/${cs.statsXP.strength.required||100}XP`:'0/?XP'}] AGI=${cs.stats?.agility||0}[${cs.statsXP?.agility?`${cs.statsXP.agility.current||0}/${cs.statsXP.agility.required||100}XP`:'0/?XP'}] END=${cs.stats?.endurance||0}[${cs.statsXP?.endurance?`${cs.statsXP.endurance.current||0}/${cs.statsXP.endurance.required||100}XP`:'0/?XP'}] WILL=${cs.stats?.willpower||0}[${cs.statsXP?.willpower?`${cs.statsXP.willpower.current||0}/${cs.statsXP.willpower.required||100}XP`:'0/?XP'}] CHA=${cs.stats?.charisma||0}[${cs.statsXP?.charisma?`${cs.statsXP.charisma.current||0}/${cs.statsXP.charisma.required||100}XP`:'0/?XP'}] INT=${cs.stats?.intelligence||0}[${cs.statsXP?.intelligence?`${cs.statsXP.intelligence.current||0}/${cs.statsXP.intelligence.required||100}XP`:'0/?XP'}]
 FORCE BARRIER: ${cs.forceBarrier !== null && cs.forceBarrier !== undefined ? `${cs.forceBarrier}/${cs.maxForceBarrier||100}` : 'not yet developed'}
 INJURY STATE: ${(()=>{
@@ -6466,6 +6481,10 @@ function syncMasterXPToSheet() {
   for (const k of CANONICAL_CORE_STATS) {
     if (characterSheet.stats[k] === undefined) characterSheet.stats[k] = 0;
   }
+  // Seed lightsaber properties if missing
+  if (!characterSheet.lightsaber) {
+    characterSheet.lightsaber = { color: 'green', type: 'training' };
+  }
 }
 
 // ── PROFICIENCY SYSTEM (v3) ──────────────────────────────────────────────────
@@ -6785,6 +6804,24 @@ function updateCharacterSheet() {
     }
     html += `</div>`;
   }
+
+  // Lightsaber settings
+  const sb = s.lightsaber || { color: 'green', type: 'training' };
+  const sbColors = ['blue','green','yellow','purple','orange','white','cyan','viridian','red'];
+  const sbColorHex = { blue:'#4488ff', green:'#44dd44', yellow:'#ffdd44', purple:'#bb44ff',
+    orange:'#ff8833', white:'#eeeeff', cyan:'#44ddff', viridian:'#44bb88', red:'#ff4444' };
+  const sbTypes = ['training','standard','shoto','double-bladed','curved-hilt'];
+  html += `<div class="sheet-section"><div class="sheet-section-title">Lightsaber</div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Blade color</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">
+      ${sbColors.map(c=>`<div onclick="if(characterSheet){characterSheet.lightsaber=characterSheet.lightsaber||{};characterSheet.lightsaber.color='${c}';updateCharacterSheet();autoSave();}" title="${c}" style="width:18px;height:18px;border-radius:50%;background:${sbColorHex[c]||'#888'};cursor:pointer;box-shadow:${sb.color===c?'0 0 0 2px #fff,0 0 0 4px '+sbColorHex[c]:'none'};flex-shrink:0"></div>`).join('')}
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Type</div>
+    <select onchange="if(characterSheet){characterSheet.lightsaber=characterSheet.lightsaber||{};characterSheet.lightsaber.type=this.value;updateCharacterSheet();autoSave();}" style="width:100%;background:#1a2030;color:var(--text);border:1px solid #2a3a4a;border-radius:3px;padding:3px;font-size:11px">
+      ${sbTypes.map(t=>`<option value="${t}" ${sb.type===t?'selected':''}>${t}</option>`).join('')}
+    </select>
+    <div style="margin-top:6px;font-size:11px;color:${sbColorHex[sb.color]||'#888'};text-shadow:0 0 6px ${sbColorHex[sb.color]||'#888'}">● ${sb.color} ${sb.type} saber</div>
+  </div>`;
 
   // Core stats with XP bars
   const st = s.stats || {};
