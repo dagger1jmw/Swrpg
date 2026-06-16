@@ -601,6 +601,17 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
+#### Control Pain ⚪
+**Anchor Stats:** ForceControl (precision suppression) + Meditation (sustained inner attunement)
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Channeling the Force inward to suppress the neural signals of pain — allowing the user to continue functioning at full capacity despite injury. Does not heal wounds; it separates the mind from the body's distress signals.
+**Alignment:** Neutral
+**Prerequisites:** ForceControl 25+, Meditation 20+
+**Notes:** In the game engine, Control Pain level directly equals percentage mitigation of injury roll penalties (level 40 = 40% penalty reduction, level 100 = full suppression). Costs Force Strain per combat round whenever active with unhealed injuries present. Distinct from Force Heal — it does not close wounds or accelerate recovery, only prevents injury from degrading performance. Can be used in conjunction with dark-side Pain Channeling, but the two represent opposite philosophies: Control Pain maintains Jedi clarity by transcending the pain; Pain Channeling embraces it as fuel.
+> ⚠️ **Engine note:** The `ControlPain` key in FORCE_ABILITY_CATALOG and CHANGES block tags is the JS identifier. Display name is "Control Pain" (two words).
+
+---
+
 #### Force-Enhanced Reflexes ⚪
 **Anchor Stats:** ForceSense (reading incoming threats) + ForceControl (response precision)
 **Difficulty Tier: D=2.5 (Complex)**
