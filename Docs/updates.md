@@ -4,6 +4,82 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V143 — 2026-06-16
+
+**Feature: Hardcoded lightsaber properties — blade color, type, sensory canon**
+
+### Problem
+
+The AI inconsistently described the lightsaber: correct green plasma one turn, then "silver" the next, or used metallic "clang" sounds when blades clashed. The AI had no authoritative reference for the saber's appearance or sound physics, so it drifted to generic fantasy sword descriptions.
+
+### `characterSheet.lightsaber`
+
+New field: `{ color: 'green', type: 'training' }`. Auto-seeded in `syncMasterXPToSheet()` if missing on load. Persists in the save file and is player-editable from the sidebar.
+
+Supported colors: blue, green, yellow, purple, orange, white, cyan, viridian, red.
+Supported types: training, standard, shoto, double-bladed, curved-hilt.
+
+### sheetSummary injection
+
+Added to `buildContext()` after the LIGHTSABER FORMS line — injected every turn:
+```
+LIGHTSABER: GREEN training saber — blade is ALWAYS green glowing plasma.
+Sensory rules: idle=hum/buzz; swing=whoosh; clash=crackling/hissing plasma energy —
+NEVER 'clang', 'ring', or metallic impact. Color is NEVER silver/white/other unless changed here.
+```
+
+### MASTER_PROMPT: LIGHTSABER SENSORY CANON section
+
+Added before the TONE section. Covers:
+- Blade color consistency — must match the injected color every description, no drift
+- Sound physics: idle = hum/drone; swing = whoosh/vwoom; clash = crackling/hissing/electric snap, plasma arcing — never metallic
+- Training saber specifics: softer snap-hiss, lighter hum, same plasma physics
+- Explicit banned sounds: clang, ring, clatter, metallic crash, steel-on-steel, metallic spark shower
+
+### Sidebar: Lightsaber settings panel
+
+Added in `updateCharacterSheet()` after the Lightsaber Forms section. Includes:
+- Color swatches (9 colored dots, each with correct hex glow color)
+- Type dropdown
+- Active color indicator with CSS glow effect
+- Inline `onclick`/`onchange` saves to `characterSheet.lightsaber` and calls `autoSave()`
+
+### Files changed
+- `index.html` — all above
+
+---
+
+## V142 — 2026-06-16
+
+**Fix: Tier gap player-only + mandatory combat resolution reminder**
+
+### Fix 1 — Tier gap applies only to player
+
+**Problem:** The tier gap bonus was applied symmetrically: if the player was 1 tier below the opponent, the player got −4 and the opponent got +4 (an 8-point swing). This double-penalized the player — the opponent's stats already reflect their skill level; adding a bonus on top compounded it artificially.
+
+**Fix in `fireRoll()`:** Removed `const oppTierGapBonus = -tierGapBonus` and the `oppTierGapBonus` term from `oppTotal_bonus`. The opponent's roll is now purely `oppStatBonus - oppInjBonus`. The tier gap penalty/bonus now affects only the player's roll.
+
+Gap display line simplified from "→ +4 to opponent / −4 to player" to "→ −4 to player" since it no longer affects the opponent.
+
+### Fix 2 — Mandatory combat resolution in per-turn reminder
+
+**Problem:** The LAST EXCHANGE RESULT was injected into the middle of the stateBlock (inside ACTIVE COMBAT STATE) but the AI consistently ignored it and wrote win narrative on loss exchanges.
+
+**Fix:** Added `lastRollReminder` variable appended to the per-turn `reminder` string — the very last text the AI reads before generating its response. Format:
+```
+⚠ MANDATORY COMBAT RESOLUTION — LAST EXCHANGE RESULT (JS-computed, cannot be ignored):
+  "Exploiting Opening — Djem So Thrust" → Dominant loss (margin: -10.09)
+  PLAYER LOST. Your response MUST open with the player being outmaneuvered —
+  their attack deflected, missed, or failed. DO NOT write the player striking
+  successfully, the opponent stumbling back, or any positive outcome.
+```
+The reminder only appears when `activeCombat.lastRollResult` exists (i.e., when in active combat after at least one exchange).
+
+### Files changed
+- `index.html` — both fixes above
+
+---
+
 ## V141 — 2026-06-16
 
 **Fix: Deferred combat roll result injection + Roll card improvements + DjemSo normalization + ForceBarrier sub-ability guard**
