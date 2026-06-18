@@ -4,6 +4,116 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V146 — 2026-06-18
+
+**Feature: NPC lifecycle states + RECURRING_RETURN — step 2 of the opponent-lifecycle system**
+
+### Problem
+
+V145 added JS-rolled opponent stats but every generated profile lived forever in `worldState.characterProfiles` with no concept of disposability, and there was no mechanism for a defeated-but-escaped NPC to come back later, stronger, with a grudge (the motivating example discussed was Malgus disappearing after the Sacking of Coruscant and resurfacing later). Blanket time-based purging was explicitly rejected — it would make exactly that kind of returning-character story impossible.
+
+### Lifecycle states on `characterProfiles[name].lifecycleState`
+
+Four states, documented at the `npcApplyFate()` definition (~line 3039):
+- `disposable` — one-off opponent, default for `NPC_ROLL` with no `recurring` flag. Purged automatically at `COMBAT_END:` unless escalated first.
+- `active` — currently relevant (recurring NPCs while present, canon NPCs, anyone tracked via `INTERACTION`/`GENERATE_PROFILE` — both now default new profiles to `active` instead of leaving the field unset).
+- `dormant` — survived/escaped, narratively absent for now, kept indefinitely. Never auto-purged by elapsed time.
+- `deceased` — permanent, set only by an explicit in-fiction death. No further lifecycle changes are possible once set (`npcApplyFate()` and the `NPC_LIFECYCLE=` handler both refuse to move a profile out of it).
+
+Default `lifecycleState` was also added to the two other profile auto-creation fallbacks: the INLINE-stat auto-register in `scanForRollTags()` (`disposable`) and the `OPP_INJURY_PERMANENT=` fallback creator (`active` — a permanent-injury log already implies story significance).
+
+### `npcApplyFate(name, fate)` (~line 3039)
+
+Called from the `COMBAT_END:` handler with the opponent name captured before `endCombat()` nulls `activeCombat`. `fate` is an optional 6th field on `COMBAT_END:` (default `disposed` if omitted — fully backward compatible with every existing `COMBAT_END:` call the AI already makes):
+- `disposed` (default) — only deletes the profile if it's still `disposable`; anything already promoted is left alone.
+- `killed` → `deceased`.
+- `fled` / `captured` / `recurring` → `dormant`.
+
+### New tag `NPC_LIFECYCLE=name,state` (~line 5037 startsWith handler)
+
+For lifecycle changes outside combat resolution (an NPC confirmed dead off-screen, or one who exits a non-combat scene). `state`: `active|dormant|deceased`.
+
+### New tag `RECURRING_RETURN=name,tierBump` (~line 5052 startsWith handler)
+
+Re-rolls a dormant, archetype-generated NPC's stats via `npcGenerateStats(profile.archetypeKey, profile.tier + tierBump, {prodigy: profile.prodigy})`, sets `lifecycleState` back to `active`, increments `returnCount`. The tier-bump is capped at tier 6 (Legendary) for free — `npcGenerateStats()` already clamps its tier argument to 1-6, which is the structural enforcement of the CLAUDE.md §3E apex-ceiling rule (nothing below Transcendent/Abeloth should be generated above Legendary). Only applies to profiles with an `archetypeKey` (i.e. created via `NPC_ROLL=`) — hand-authored canon NPCs (`PROFILE_STATS=`) are never auto-rerolled by this.
+
+### `NPC_ROLL=` flags extended
+
+Fourth field is now a comma-separated flag list instead of a single `prodigy` check — supports `prodigy`, `recurring`, or both (e.g. `NPC_ROLL=Acolyte Thresh|SithInquisitor|3|prodigy,recurring`). `recurring` at generation time starts the profile at `active` instead of `disposable`, for opponents the AI already knows matter beyond one fight.
+
+### Files changed
+- `index.html` — `npcApplyFate()`, `NPC_LIFECYCLE=`/`RECURRING_RETURN=` handlers, `COMBAT_END:` fate field, lifecycle defaults on all profile-creation sites, prompt documentation
+
+---
+
+## V145 — 2026-06-17
+
+**Feature: NPC archetype/weighted-stat opponent generation (`NPC_ROLL=` tag)**
+
+### Problem
+
+The AI had to invent every opponent's exact stat numbers by hand via `PROFILE_STATS=`/`INLINE:`, for both one-off mooks and named opponents. This is the first reported source of "AI self-reporting drift" (see V144) and also caused the minor known issue of training droids occasionally getting nonzero Force stats — there was no structural reason they couldn't.
+
+This is step 1 of the larger opponent-lifecycle system discussed but not yet built (temporary vs. recurring NPC sheets, dormant/deceased states, stronger comeback returns capped at the era's apex ceiling). This step only covers stat *generation* — lifecycle state and recurring-return tier bumps are a follow-up.
+
+### `NPC_POOLS` and `NPC_ARCHETYPES` (new consts, ~line 2922)
+
+`NPC_POOLS` mirrors `CC_POOLS`'s shape (`core`/`force`/`saber`/`coreMax`/`forceMax`) but is keyed 1-6 directly on the dueling-tier scale `statToTier()` already uses (1=Untrained...6=Legendary), so a requested tier always lands the generated stats in the tier the combat UI will display. Tier 7 (Transcendent) is intentionally absent — reserved for Abeloth alone per CLAUDE.md §3E.
+
+`NPC_ARCHETYPES` defines nine templates, each a `forceCapable` flag plus relative per-stat weight multipliers (default 1.0 if omitted): `TrainingDroid`, `Mook`, `Soldier`, `Officer`, `TacticalLeader`, `BattleIntel` (all `forceCapable:false` — structurally impossible for these to roll Force stats, fixing the droid-leakage bug at the source instead of patching around it), and `Guardian`/`JediConsular`/`SithInquisitor` (`forceCapable:true`, with core-vs-Force weight tradeoffs matching the examples discussed: Inquisitor/Consular weighted into Force stats at the cost of physical stats, Guardian the reverse, Officer weighted hard into intelligence over physical).
+
+### `npcWeightedDistribute()` and `npcGenerateStats()` (~line 2961)
+
+`npcWeightedDistribute(keys, total, maxPerStat, weights)` is the same random-walk-to-cap shape as `ccAutoDistribute()`'s internal `distribute()`, but each pick is weighted toward higher-weight keys instead of uniform — so an archetype's bias shows up statistically without making every NPC of that archetype/tier an identical clone.
+
+`npcGenerateStats(archetypeKey, tier, opts)` looks up the archetype + tier's pool, distributes core/force/saber points, and returns stats pre-shaped as `{ cat:{key:val} }` — the exact shape `characterProfiles[name].stats` already uses, so a generated profile is immediately usable by `ROLL_OPPOSED ... vs CHARACTER:Name` with no translation step.
+
+**Prodigy flag:** `opts.prodigy` rolls the stat *budget* from one tier higher (clamped at 6) while the returned `tier` field stays at the originally requested value. Callers use `tier` for the narrative rank label; the actual rolled stats (and therefore the tier shown in the combat roll card, which is derived from real stats per V144) come out a tier higher. This represents a talented individual whose formal rank hasn't caught up to their actual capability, as a mechanism separate from and additive to archetype weighting.
+
+### New CHANGES tag: `NPC_ROLL=[name]|[archetype]|[tier 1-6][|prodigy]` (~line 5108 case handler)
+
+Generates the stat block via `npcGenerateStats()` and writes it into `worldState.characterProfiles[name]`. Documented in the prompt alongside `GENERATE_PROFILE=`/`PROFILE_STATS=`, with explicit guidance: use `PROFILE_STATS=` only for canon NPCs with established stats (Malgus, Satele Shan, etc.); use `NPC_ROLL=` for any generic/template opponent so the AI never invents numbers for those.
+
+### Files changed
+- `index.html` — `NPC_POOLS`, `NPC_ARCHETYPES`, `npcWeightedDistribute()`, `npcGenerateStats()`, `NPC_ROLL=` case handler, prompt documentation
+
+---
+
+## V144 — 2026-06-17
+
+**Fixes: tier gap consistency, combat round drift, blade color drift — all moved off AI self-reporting onto JS-derived ground truth**
+
+### Problem
+
+Three related combat-display bugs all traced to the same root cause: JS was trusting AI-self-reported numbers instead of deriving them from data JS already has.
+
+1. **Tier gap inconsistency.** `TIER_GAP=` is an AI-declared tag, completely independent of the `oppStats`/`PROFILE_STATS`/`INLINE` block the AI also declares for the same opponent. The two drifted out of sync — roll cards showed "Player=Untrained (Tier 1) | Opponent=Untrained (Tier 1)" alongside "Gap: 1 tier(s) → +4 to player" (contradictory), and on other turns showed no opponent tier at all (`oppTierNum` was `null` whenever the AI happened to send `TIER_GAP=0`, even though real opponent stats were registered).
+2. **Combat round drift ("AI one turn behind").** `activeCombat.round` only ever advanced via the AI's `COMBAT_ROUND: rounds` tag. If the AI miscounted or omitted the tag for a turn, the round counter silently froze or skipped, and the "Current Round: N" reminder fed back into context went stale.
+3. **Blade color drift ("silver saber").** V143 added the `LIGHTSABER:` canon-color injection to the prompt every turn, but narrative prose still drifted onto other colors ("your silver blade...") after enough turns despite the injected reminder.
+
+### Fix 1 — Tier gap derived from real opponent stats (`fireRoll()`, ~line 9932)
+
+New helper `getOppPrimaryStatValue(oppStats, primaryPath)` looks up the opponent's value for the player's primary roll stat (tries the full dotted path first, then the bare key, to handle both `PROFILE_STATS` and `INLINE` formats).
+
+When `roll.oppStats` has real registered values (`hasOppData`), `tierGap` is now computed as `tier.num - statToTier(oppPrimaryVal).num` — derived straight from the same numbers already shown on the card, so the tiers line and the gap line can never contradict each other again. The AI's `TIER_GAP=` tag (renamed `aiTierGap` internally) is now only used as a fallback for the rare case where no opponent stat block was registered at all (pure-narrative duel).
+
+Opponent tier display (`oppTierNum`/`oppTierLabel`) is now shown whenever real opponent stats exist, even when the gap is 0 — previously it was suppressed any time `tierGap === 0`.
+
+### Fix 2 — Combat round count derived from rolls actually fired (~line 4396, 4474, 4527)
+
+New turn-scoped counter `combatRollsThisTurn`, incremented once per `ROLL_LABEL=` that resolves an opposed roll while `activeCombat` is active (i.e., once per real exchange JS actually processed). The `COMBAT_ROUND:` handler now uses `combatRollsThisTurn` instead of the AI's claimed rounds count whenever it's nonzero.
+
+Added a fallback safety net after CHANGES/SHEET parsing finishes: if `combatRollsThisTurn > 0` but `activeCombat.round` never changed (the AI omitted `COMBAT_ROUND:` entirely), JS calls `updateCombatStrain()` itself so the round counter can't silently freeze.
+
+### Fix 3 — Blade color narrative scrub (`scrubBladeColor()`, ~line 6157)
+
+New regex-based safety net applied to `displayText` right before it's shown to the player and stored into history. Matches `<off-canon color> blade/saber/lightsaber/plasma/edge/glow` (e.g. "silver blade") and replaces just the color word with `characterSheet.lightsaber.color`. Applied to the stored history text too, so a corrected turn doesn't reinforce the wrong color in the AI's own context on subsequent turns.
+
+### Files changed
+- `index.html` — all three fixes above
+
+---
+
 ## V143 — 2026-06-16
 
 **Feature: Hardcoded lightsaber properties — blade color, type, sensory canon**

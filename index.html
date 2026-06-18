@@ -1757,7 +1757,16 @@ RESOLVE_NPC_AGENDA=[npcName]|[summary keyword] — remove specific NPC agenda it
 SCENE_NPCS=[Name1,Name2] — explicitly declare which NPCs are present this scene (overrides location inference)
 GALAXY_EVENT=[summary]|[context] — queue a background world event to surface later
 GENERATE_PROFILE=[name]|[canon/custom]|[description] — create a stat-bearing NPC profile
-PROFILE_STATS=[name]|[stat.path=value,...] — add stats to a generated profile for opposed rolls (e.g. lightsaberForms.ShiiCho=45,forceStats.forceSense=38)
+PROFILE_STATS=[name]|[stat.path=value,...] — manually set exact stats on a profile (use ONLY for canon NPCs with established Wookieepedia-sourced stats, e.g. Malgus, Satele Shan — never invent numbers for a generic/template opponent)
+NPC_ROLL=[name]|[archetype]|[tier 1-6][|flags] — JS rolls a full stat block for a generic/template opponent (training droid, mook, soldier, unnamed Force user, etc.) — use this INSTEAD of PROFILE_STATS whenever the opponent isn't an established canon character with known stats. You choose archetype + tier; JS picks the actual numbers, so you never invent them.
+  archetype: TrainingDroid | Mook | Soldier | Officer | TacticalLeader | BattleIntel | Guardian | JediConsular | SithInquisitor
+  tier (1-6, matches the dueling tier shown in combat): 1=Untrained 2=Apprentice 3=Adept 4=Master 5=High Master 6=Legendary
+  flags (comma-separated, optional): "prodigy" rolls stats one tier above what the NPC's rank/title would suggest — for a talented individual still held back by formal rank (narrative rank label stays as written; only the rolled stats/combat tier come out higher). "recurring" marks this NPC as story-significant up front so it survives combat even on a plain "disposed" fate — use only when you already know this opponent matters beyond this one fight.
+  Example: NPC_ROLL=Sergeant Vek|Soldier|2 — a standard Apprentice-tier soldier, disposable by default
+  Example: NPC_ROLL=Acolyte Thresh|SithInquisitor|3|prodigy,recurring — narratively an Acolyte but rolls Master-tier Force stats, and is flagged to survive/return
+  After this tag, use ROLL_OPPOSED ... vs CHARACTER:[name] — the rolled stats are already registered, no INLINE needed.
+NPC_LIFECYCLE=[name],[state] — explicit lifecycle change outside combat (state: active|dormant|deceased). Use "deceased" the moment an NPC's death is confirmed in-fiction — this is the ONLY way a character becomes permanently unable to return. Use "dormant" when an NPC exits the story for now but could plausibly resurface later.
+RECURRING_RETURN=[name],[tierBump] — a dormant, archetype-generated NPC resurfaces stronger (e.g. defeated-but-escaped, returning with a grudge). Re-rolls their stats at tier+tierBump using the same archetype. JS clamps the result to tier 6 (Legendary) — the apex ceiling for this era (CLAUDE.md §3E) — so this can never approach Transcendent. Only works on NPCs created via NPC_ROLL; canon NPCs are never auto-rerolled.
 DARK_PRESSURE=[new total 0-100 — JS handles discharge at 100]
 MOMENTUM_WINDOW=[multiplier],[days] — set after pressure discharge; 0,0 to close
 WILL_OF_FORCE=[gain amount],[brief description of what was surrendered]
@@ -1778,11 +1787,18 @@ COMBAT_START: [opponent name], [intensity: light/standard/intense/desperate]
   → Output on the FIRST exchange of any combat
 COMBAT_ROUND: [rounds_this_turn], [intensity]
   → Output EVERY exchange turn (e.g. COMBAT_ROUND: 1, standard)
-COMBAT_END: [primarySkillPath], [secondarySkillPath|none], [opponentTier 1-7], [engagement], [outcome]
+COMBAT_END: [primarySkillPath], [secondarySkillPath|none], [opponentTier 1-7], [engagement], [outcome][, fate]
   → Output ONLY when combat ends — applies all accumulated strain and XP
   → Opponent tier: 1=Initiate(0-20), 2=Padawan(21-40), 3=Knight(41-60), 4=Master(61-80), 5=Grandmaster(81-100), 6=Legendary(101-150), 7=Transcendent(151+)
   → e.g. COMBAT_END: lightsaberForms.DjemSo, forceAbilities.Telekinesis, 2, aggressive, win
   → Training bot at DjemSo 30 = Tier 2 opponent → COMBAT_END: lightsaberForms.DjemSo, none, 2, aggressive, win
+  → Optional 6th field, fate, controls what happens to the opponent's profile (default if omitted: disposed):
+     disposed = nothing narratively special — a disposable one-off (droid/mook) is deleted now that the fight is over; anything already recurring/canon is untouched
+     killed = opponent's profile is marked permanently deceased — they can never return (use ONLY on a confirmed in-fiction kill)
+     fled / captured = opponent survives and exits the scene; profile goes dormant so they can resurface later (see RECURRING_RETURN=)
+     recurring = same as fled/captured but for when the opponent is defeated yet still narratively significant going forward
+  → e.g. a one-off training droid destroyed in the fight needs no fate field at all — it's deleted automatically
+  → e.g. a named mook who slips away: COMBAT_END: lightsaberForms.ShiiCho, none, 2, standard, narrow_loss, fled
 
 XP FORMULA (for reference only — JavaScript calculates this, you do not):
 base_xp by opponent tier: T1=50, T2=120, T3=300, T4=750, T5=1800, T6=4500, T7=11000
@@ -2906,6 +2922,141 @@ const CC_RANKS = {
     { value:'wandering_adept', label:'Wandering Adept (significant self-training)' },
   ],
 };
+
+// ── NPC opponent generation (temporary/disposable stat sheets) ──
+// Pools keyed by the same 1-7 dueling-tier scale used by statToTier()/fireRoll(), so a
+// requested tier always lands the generated stats in the tier the combat UI will display.
+// Tier 7 (Transcendent) is reserved for Abeloth alone (CLAUDE.md 3E) and is intentionally absent —
+// generation callers must clamp to 1-6.
+const NPC_POOLS = {
+  1: { core:60,  force:40,  saber:8,   coreMax:20,  forceMax:18  }, // Untrained   (stat ≤20)
+  2: { core:110, force:95,  saber:30,  coreMax:38,  forceMax:35  }, // Apprentice  (≤40)
+  3: { core:170, force:150, saber:60,  coreMax:58,  forceMax:55  }, // Adept       (≤60)
+  4: { core:230, force:205, saber:90,  coreMax:78,  forceMax:75  }, // Master      (≤80)
+  5: { core:290, force:260, saber:120, coreMax:98,  forceMax:95  }, // High Master (≤100)
+  6: { core:380, force:340, saber:170, coreMax:145, forceMax:140 }, // Legendary   (≤150)
+};
+
+// Archetype = a weighting profile applied on top of an NPC_POOLS budget. Weights are relative
+// multipliers (default 1.0 if a stat key is omitted) — they bias the weighted random distribution,
+// they do not directly set values, so two NPCs of the same archetype/tier still vary.
+const NPC_ARCHETYPES = {
+  TrainingDroid:  { forceCapable:false, primaryForm:null,
+    core:{ str:1.1, agi:1.3, end:1.4, wil:0.2, cha:0.1, int:0.7 } },
+  Mook:           { forceCapable:false, primaryForm:null,
+    core:{ str:1.0, agi:1.0, end:1.0, wil:0.8, cha:0.6, int:0.7 } },
+  Soldier:        { forceCapable:false, primaryForm:null,
+    core:{ str:1.1, agi:1.1, end:1.2, wil:0.9, cha:0.7, int:0.8 } },
+  Officer:        { forceCapable:false, primaryForm:null,
+    core:{ str:0.6, agi:0.7, end:0.8, wil:1.0, cha:1.1, int:1.5 } },
+  TacticalLeader: { forceCapable:false, primaryForm:null,
+    core:{ str:0.7, agi:0.8, end:0.9, wil:1.0, cha:1.4, int:1.3 } },
+  BattleIntel:    { forceCapable:false, primaryForm:null,
+    core:{ str:1.3, agi:0.9, end:1.0, wil:0.9, cha:0.7, int:1.3 } },
+  Guardian:       { forceCapable:true, primaryForm:'ShiiCho',
+    core:{ str:1.3, agi:1.2, end:1.3, wil:1.0, cha:0.7, int:0.7 },
+    force:{ fS:0.8, med:0.7, fK:0.7, fC:0.9, fOut:0.9 } },
+  JediConsular:   { forceCapable:true, primaryForm:'Makashi',
+    core:{ str:0.7, agi:0.8, end:0.8, wil:1.2, cha:1.0, int:1.1 },
+    force:{ fS:1.3, med:1.3, fK:1.2, fC:1.2, fOut:1.0 } },
+  SithInquisitor: { forceCapable:true, primaryForm:'Makashi',
+    core:{ str:0.7, agi:0.8, end:0.8, wil:1.1, cha:0.9, int:1.0 },
+    force:{ fS:1.2, med:1.1, fK:1.2, fC:1.3, fOut:1.3 } },
+};
+
+// Weighted variant of ccAutoDistribute()'s distribute() — same random-walk-to-cap shape, but each
+// pick is weighted toward higher-weight keys instead of uniform, so archetypes bias their points
+// without becoming deterministic clones of each other.
+function npcWeightedDistribute(keys, total, maxPerStat, weights) {
+  const vals = {};
+  keys.forEach(k => vals[k] = 0);
+  let remaining = total;
+  let safety = 3000;
+  while (remaining > 0 && safety-- > 0) {
+    const open = keys.filter(k => vals[k] < maxPerStat);
+    if (open.length === 0) break;
+    const totalW = open.reduce((s,k) => s + (weights?.[k] ?? 1.0), 0);
+    let r = Math.random() * totalW;
+    let chosen = open[open.length - 1];
+    for (const k of open) {
+      const w = weights?.[k] ?? 1.0;
+      if (r < w) { chosen = k; break; }
+      r -= w;
+    }
+    vals[chosen]++; remaining--;
+  }
+  return vals;
+}
+
+// Generates a full opponent stat block for a given archetype + tier (1-6, the statToTier scale).
+// opts.prodigy bumps the budget pool by one tier (clamped at 6) while leaving the returned `tier`
+// field at the originally requested value — callers use `tier` for the narrative/rank label and the
+// actual rolled stats (which land a tier higher) for everything mechanical, including combat display.
+// Returns stats pre-shaped as { cat:{key:val} } — the same shape characterProfiles.stats already uses,
+// so a generated profile is immediately usable by ROLL_OPPOSED ... vs CHARACTER:Name with no translation.
+function npcGenerateStats(archetypeKey, tier, opts) {
+  opts = opts || {};
+  const arch = NPC_ARCHETYPES[archetypeKey] || NPC_ARCHETYPES.Mook;
+  const reqTier = Math.max(1, Math.min(6, parseInt(tier) || 3));
+  const budgetTier = opts.prodigy ? Math.min(6, reqTier + 1) : reqTier;
+  const pool = NPC_POOLS[budgetTier];
+
+  const coreKeys  = ['str','agi','end','wil','cha','int'];
+  const forceKeys = ['fS','med','fK','fC','fOut'];
+
+  const coreVals = npcWeightedDistribute(coreKeys, pool.core, pool.coreMax, arch.core);
+  const forceVals = (arch.forceCapable && pool.force > 0)
+    ? npcWeightedDistribute(forceKeys, pool.force, pool.forceMax, arch.force)
+    : { fS:0, med:0, fK:0, fC:0, fOut:0 };
+
+  const stats = {
+    stats: { strength:coreVals.str, agility:coreVals.agi, endurance:coreVals.end,
+             willpower:coreVals.wil, charisma:coreVals.cha, intelligence:coreVals.int },
+  };
+  if (arch.forceCapable) {
+    stats.forceStats = { forceSense:forceVals.fS, meditation:forceVals.med, forceKnowledge:forceVals.fK,
+                          forceControl:forceVals.fC, forceOutput:forceVals.fOut };
+  }
+  if (arch.primaryForm && pool.saber > 0) {
+    stats.lightsaberForms = { [arch.primaryForm]: pool.saber };
+  }
+
+  return { archetypeKey, tier: reqTier, budgetTier, prodigy: !!opts.prodigy, stats };
+}
+
+// Lifecycle states for worldState.characterProfiles entries:
+//   disposable — one-off opponent (default for NPC_ROLL with no recurring flag); purged at
+//                COMBAT_END unless escalated before the fight ends
+//   active     — currently relevant to the story (recurring NPCs, canon NPCs, anyone tracked
+//                via INTERACTION/GENERATE_PROFILE)
+//   dormant    — recurring NPC who survived/escaped and is narratively absent for now; kept
+//                indefinitely so they can come back later (e.g. stronger, with a grudge) — never
+//                auto-purged by time alone
+//   deceased   — permanent; only set by an explicit in-fiction death. No further state changes,
+//                no RECURRING_RETURN.
+// Applies the narrative outcome of a fight to an opponent's profile lifecycle.
+// fate: 'killed' | 'fled' | 'captured' | 'recurring' | 'disposed' (default)
+function npcApplyFate(name, fate) {
+  const profile = worldState?.characterProfiles?.[name];
+  if (!profile) return;
+  if (profile.lifecycleState === 'deceased') return; // permanent, no further changes
+  switch (fate) {
+    case 'killed':
+      profile.lifecycleState = 'deceased';
+      break;
+    case 'fled':
+    case 'captured':
+    case 'recurring':
+      profile.lifecycleState = 'dormant';
+      break;
+    case 'disposed':
+    default:
+      // Only ever deletes profiles that were never escalated off the disposable default —
+      // anything already promoted to active/dormant survives a plain "disposed" outcome.
+      if (profile.lifecycleState === 'disposable') delete worldState.characterProfiles[name];
+      break;
+  }
+}
 
 // Current stat allocations — mutated by +/- buttons
 let _ccAlloc = { str:0, agi:0, end:0, wil:0, cha:0, int:0, fS:0, med:0, fK:0, fC:0, fOut:0, shii:0 };
@@ -4396,6 +4547,13 @@ async function callGemini(playerMessage, retryCount = 0) {
     // ── XP log for this turn — reset each turn, populated during CHANGES parsing ──────
     turnXPLog = []; // reset module-level log for this turn
 
+    // Counts actual opposed-combat exchanges resolved this turn via fireRoll. Used to
+    // override the AI's self-reported COMBAT_ROUND: count, which has drifted from the
+    // real number of exchanges when the AI miscounts — JS knows the true number because
+    // it's the one firing the rolls.
+    let combatRollsThisTurn = 0;
+    const _combatRoundBefore = activeCombat?.round;
+
     // ── Scan full response for ROLL/ROLL_OPPOSED tags (may appear outside CHANGES block) ──
     (function scanForRollTags() {
       const lines = rawText.split('\n');
@@ -4449,7 +4607,7 @@ async function callGemini(playerMessage, retryCount = 0) {
                 // Save to profile so subsequent ROLL_OPPOSED calls use the same stats
                 if (_inlineName !== 'Opponent' && worldState) {
                   if (!worldState.characterProfiles) worldState.characterProfiles = {};
-                  if (!worldState.characterProfiles[_inlineName]) worldState.characterProfiles[_inlineName] = { name: _inlineName, stats: {} };
+                  if (!worldState.characterProfiles[_inlineName]) worldState.characterProfiles[_inlineName] = { name: _inlineName, stats: {}, lifecycleState: 'disposable' };
                   for (const [flatKey, v] of Object.entries(scanPending.oppStats)) {
                     const dotIdx = flatKey.indexOf('.');
                     if (dotIdx >= 0) {
@@ -4473,6 +4631,7 @@ async function callGemini(playerMessage, retryCount = 0) {
           scanPending.tactical = parseFloat(t.slice(9)) || 0;
         } else if (t.startsWith('ROLL_LABEL=') && scanPending) {
           scanPending.label = t.slice(11).trim();
+          if (scanPending.opposed && activeCombat) combatRollsThisTurn++;
           fireRoll(scanPending);
           scanPending = null;
         }
@@ -4520,21 +4679,28 @@ async function callGemini(playerMessage, retryCount = 0) {
         // COMBAT_ROUND: rounds, intensity (accumulates strain for this round batch)
         if (trimmed.startsWith('COMBAT_ROUND:')) {
           const parts = trimmed.slice(13).split(',').map(s => s.trim());
-          updateCombatStrain(parseInt(parts[0])||1, parts[1]);
+          // JS-counted exchanges (from ROLL_LABEL= firings) override the AI's claimed
+          // count whenever at least one exchange actually resolved this turn — this is
+          // the real ground truth for "how many rounds happened," not a guess.
+          const rounds = combatRollsThisTurn > 0 ? combatRollsThisTurn : (parseInt(parts[0])||1);
+          updateCombatStrain(rounds, parts[1]);
           continue;
         }
 
-        // COMBAT_END: primarySkillPath, secondarySkillPath|none, opponentTier, engagement, outcome
+        // COMBAT_END: primarySkillPath, secondarySkillPath|none, opponentTier, engagement, outcome[, fate]
+        // fate (optional, 6th field): killed|fled|captured|recurring|disposed (default) — see npcApplyFate()
         if (trimmed.startsWith('COMBAT_END:')) {
           const parts = trimmed.slice(11).split(',').map(s => s.trim());
           if (!activeCombat) {
             // Combat state was lost — reconstruct minimal state
             activeCombat = { round:5, accPhysical:0, accForce:0, accMental:0, opponentTier:2 };
           }
+          const _combatOpponentName = activeCombat.opponent;
           activeCombat.primarySkill = parts[0] || null;
           activeCombat.secondarySkill = (parts[1] && parts[1] !== 'none') ? parts[1] : null;
           activeCombat.opponentTier = parseInt(parts[2]) || 2;
           endCombat(parts[4], parts[3]);
+          if (_combatOpponentName) npcApplyFate(_combatOpponentName, (parts[5]||'disposed').toLowerCase());
           continue;
         }
 
@@ -4831,7 +4997,7 @@ async function callGemini(playerMessage, retryCount = 0) {
           if (parts.length >= 2 && activeCombat?.opponent && worldState) {
             const oppName = activeCombat.opponent;
             if (!worldState.characterProfiles) worldState.characterProfiles = {};
-            if (!worldState.characterProfiles[oppName]) worldState.characterProfiles[oppName] = { name: oppName, stats: {} };
+            if (!worldState.characterProfiles[oppName]) worldState.characterProfiles[oppName] = { name: oppName, stats: {}, lifecycleState: 'active' };
             if (!worldState.characterProfiles[oppName].permanentInjuries) worldState.characterProfiles[oppName].permanentInjuries = [];
             worldState.characterProfiles[oppName].permanentInjuries.push({
               bodyPart: parts[0], label: parts.slice(1).join(','), turnAdded: turnCount
@@ -4873,6 +5039,42 @@ async function callGemini(playerMessage, retryCount = 0) {
               characterSheet.maxPhysicalStrain || 100,
               (characterSheet.physicalStrain || 0) + surge
             );
+          }
+          continue;
+        }
+
+        // NPC_LIFECYCLE=name,state — explicit narrative-driven lifecycle change outside combat
+        // (e.g. an NPC confirmed dead off-screen, or one who visibly flees a non-combat scene).
+        // state: active|dormant|deceased. deceased is permanent — npcApplyFate()/this handler
+        // both refuse to move a profile out of it once set.
+        if (trimmed.startsWith('NPC_LIFECYCLE=')) {
+          const parts = trimmed.slice(14).split(',').map(s => s.trim());
+          const lcName = parts[0];
+          const lcState = (parts[1]||'').toLowerCase();
+          const lcProfile = worldState?.characterProfiles?.[lcName];
+          if (lcProfile && lcProfile.lifecycleState !== 'deceased' && ['active','dormant','deceased'].includes(lcState)) {
+            lcProfile.lifecycleState = lcState;
+          }
+          continue;
+        }
+
+        // RECURRING_RETURN=name,tierBump — a dormant NPC resurfaces stronger. Re-rolls stats from
+        // the same archetype at tier+tierBump; npcGenerateStats() clamps the result to tier 6
+        // (Legendary), which is the structural apex-ceiling cap from CLAUDE.md §3E — nothing below
+        // Transcendent (Abeloth alone) should be generated above it. Only applies to archetype-
+        // generated profiles (archetypeKey set via NPC_ROLL) — hand-authored canon NPCs are never
+        // auto-rerolled here.
+        if (trimmed.startsWith('RECURRING_RETURN=')) {
+          const parts = trimmed.slice(18).split(',').map(s => s.trim());
+          const rrName = parts[0];
+          const rrBump = parseInt(parts[1]) || 1;
+          const rrProfile = worldState?.characterProfiles?.[rrName];
+          if (rrProfile && rrProfile.lifecycleState !== 'deceased' && rrProfile.archetypeKey) {
+            const generated = npcGenerateStats(rrProfile.archetypeKey, (rrProfile.tier||1) + rrBump, { prodigy: rrProfile.prodigy });
+            rrProfile.tier = generated.tier;
+            rrProfile.stats = generated.stats;
+            rrProfile.lifecycleState = 'active';
+            rrProfile.returnCount = (rrProfile.returnCount || 0) + 1;
           }
           continue;
         }
@@ -4983,7 +5185,7 @@ async function callGemini(playerMessage, retryCount = 0) {
               if (!worldState.characterProfiles[gpName]) {
                 worldState.characterProfiles[gpName] = {
                   tier: gpTier, displayName: gpName, description: gpDesc,
-                  stats: {}, visibleInPeople: false,
+                  stats: {}, visibleInPeople: false, lifecycleState: 'active',
                   wookieepediaUrl: null, firstMet: worldState.inGameDate || ''
                 };
               }
@@ -5013,6 +5215,38 @@ async function callGemini(playerMessage, retryCount = 0) {
             }
             break;
           }
+          case 'NPC_ROLL': {
+            // NPC_ROLL=name|archetype|tier[|flags] — JS rolls a full stat block from
+            // NPC_ARCHETYPES/NPC_POOLS instead of the AI inventing numbers (see npcGenerateStats()).
+            // Profile.stats lands in the same {cat:{key:val}} shape PROFILE_STATS already uses, so
+            // ROLL_OPPOSED ... vs CHARACTER:name works immediately with no extra wiring.
+            // flags is a comma-separated list, e.g. "prodigy" or "prodigy,recurring".
+            const nrParts = trimmed.slice(9).split('|').map(s=>s.trim());
+            const nrName = nrParts[0];
+            const nrArchetype = nrParts[1];
+            const nrTier = nrParts[2];
+            const nrFlags = (nrParts[3]||'').toLowerCase().split(',').map(s=>s.trim());
+            const nrProdigy = nrFlags.includes('prodigy');
+            const nrRecurring = nrFlags.includes('recurring');
+            if (nrName && nrArchetype && worldState) {
+              if (!worldState.characterProfiles) worldState.characterProfiles = {};
+              const generated = npcGenerateStats(nrArchetype, nrTier, { prodigy: nrProdigy });
+              const existing = worldState.characterProfiles[nrName] || {};
+              worldState.characterProfiles[nrName] = {
+                ...existing,
+                name: nrName, displayName: nrName,
+                archetypeKey: generated.archetypeKey, tier: generated.tier,
+                prodigy: generated.prodigy, stats: generated.stats,
+                visibleInPeople: existing.visibleInPeople || false,
+                // A one-off mook/droid defaults to disposable (auto-deleted at COMBAT_END unless
+                // tagged recurring); the AI can flag a generated NPC recurring up front if it
+                // already knows this fight matters for later — see RECURRING_RETURN=.
+                lifecycleState: existing.lifecycleState || (nrRecurring ? 'active' : 'disposable'),
+                firstMet: existing.firstMet || worldState.inGameDate || ''
+              };
+            }
+            break;
+          }
           case 'INTERACTION': {
             const intParts = trimmed.slice(12).split('|').map(s=>s.trim());
             const intName = intParts[0];
@@ -5026,7 +5260,7 @@ async function callGemini(playerMessage, retryCount = 0) {
               if (!worldState.characterProfiles[intName]) {
                 worldState.characterProfiles[intName] = {
                   tier: 2, displayName: intName, description: '', stats: {},
-                  visibleInPeople: false, firstMet: worldState.inGameDate || ''
+                  visibleInPeople: false, lifecycleState: 'active', firstMet: worldState.inGameDate || ''
                 };
               }
               if (worldState.interactionWeights[intName] >= 5 && !worldState.characterProfiles[intName].visibleInPeople) {
@@ -5431,6 +5665,14 @@ async function callGemini(playerMessage, retryCount = 0) {
         sheetParsed = true;
       }
 
+    // Safety net: if exchanges were actually resolved this turn (combatRollsThisTurn > 0)
+    // but the round counter never advanced — meaning the AI omitted COMBAT_ROUND: entirely —
+    // advance it anyway. Without this the round number silently freezes and the AI's later
+    // "Current Round: N" reminder goes stale, producing the "one turn behind" drift.
+    if (activeCombat && combatRollsThisTurn > 0 && activeCombat.round === _combatRoundBefore) {
+      updateCombatStrain(combatRollsThisTurn, activeCombat.intensity);
+    }
+
     // ── Status indicator ───────────────────────────────────────────
     const ind = document.getElementById('save-indicator');
     if (!sheetParsed && !worldParsed) {
@@ -5455,6 +5697,7 @@ async function callGemini(playerMessage, retryCount = 0) {
       .replace(/\*\*Revised Character Sheet[^*]*\*\*[\s\S]*?(?=\n\n[A-Z*]|\n\nReady|$)/gi, '[Character sheet updated in sidebar.]')
       .replace(/\*\*Character Sheet[^*]*\*\*[\s\S]*?(?=\n\n[A-Z*]|\n\nReady|$)/gi, '[Character sheet updated in sidebar.]')
       .trim();
+    displayText = scrubBladeColor(displayText, characterSheet?.lightsaber?.color || 'green');
 
     // ── Update history ─────────────────────────────────────────────
     // Store displayText (blocks stripped) not rawText — the CHANGES/SHEET/WORLD JSON
@@ -6152,6 +6395,19 @@ function statToTier(stat) {
   if (s <= 100) return { num: 5, name: 'High Master' };
   if (s <= 150) return { num: 6, name: 'Legendary' };
   return { num: 7, name: 'Transcendent' };
+}
+
+// Safety net for blade-color drift: the AI is told the canon color every turn (see
+// buildContext's LIGHTSABER line) but narrative prose has drifted onto other colors
+// anyway after enough turns. Catches "<wrong color> blade/saber/lightsaber/plasma/edge/glow"
+// and corrects just the color word, leaving the rest of the sentence untouched.
+function scrubBladeColor(text, canonColor) {
+  if (!text || !canonColor) return text;
+  const canon = canonColor.toLowerCase();
+  const offCanon = ['silver','white','black','pink','gold','golden','chrome','steel','steel-colored','metallic',
+    'green','blue','red','purple','violet','yellow','orange','cyan'].filter(c => c !== canon);
+  const re = new RegExp(`\\b(${offCanon.join('|')})((?:[ -](?:hued|colored|coloured|tinted|glowing))?[ -](?:blade[sd]?|saber|lightsaber|plasma))`, 'gi');
+  return text.replace(re, (m, colorWord, rest) => canon + rest);
 }
 
 function tierGapBonus(higherTier, lowerTier) {
@@ -9918,11 +10174,29 @@ function calcOppInjuryBonus() {
   return { bonus, breakdown: activeCombat.oppInjuries };
 }
 
+// Looks up the opponent's value for the player's primary roll stat, trying the
+// full dotted path first (PROFILE_STATS format) then the bare key (INLINE format).
+function getOppPrimaryStatValue(oppStats, primaryPath) {
+  if (!oppStats) return null;
+  if (primaryPath in oppStats) return oppStats[primaryPath];
+  const suffix = primaryPath.split('.').pop();
+  if (suffix in oppStats) return oppStats[suffix];
+  const vals = Object.values(oppStats);
+  return vals.length ? vals[0] : null;
+}
+
 function fireRoll(roll) {
   if (!roll?.paths?.length) return;
   const label    = roll.label    || 'Roll';
-  const tierGap  = roll.tierGap  || 0;
+  const aiTierGap = roll.tierGap  || 0;
   const tactical = Math.max(-5, Math.min(5, roll.tactical || 0));
+
+  // Tier gap is ground truth when real opponent stats are registered — derive it from
+  // the actual numbers instead of trusting the AI's separately-declared TIER_GAP= tag,
+  // which has drifted out of sync with the opponent stat block it should match.
+  const hasOppData = !!(roll.opposed && roll.oppStats && Object.keys(roll.oppStats).length > 0);
+  let oppPrimaryVal = null;
+  if (hasOppData) oppPrimaryVal = getOppPrimaryStatValue(roll.oppStats, roll.paths[0]);
 
   const playerStats = roll.paths.map(p => ({ path:p, val:getLiveStatValue(p) }));
   const hasForm  = roll.paths.some(p => p.startsWith('lightsaberForms.'));
@@ -9949,9 +10223,26 @@ function fireRoll(roll) {
     expLines.push(`FS(${fsStat})×0.2=+${fsB.toFixed(3)}`);
   }
 
+  const statBonus = playerStats.reduce((s,x)=>s+compressedBonus(x.val),0);
+  const primaryStat = playerStats[0]?.val || 0;
+  const tier = statToTier(primaryStat);
+
+  // Opponent tier — derived from real registered stats when available (always consistent
+  // with the displayed numbers); falls back to the AI's TIER_GAP= tag only when no
+  // opponent stat block was registered (e.g. a pure-narrative duel with no PROFILE_STATS/INLINE).
+  const _tNames = ['','Untrained','Apprentice','Adept','Master','High Master','Legendary','Transcendent'];
+  let oppTierNum = null, oppTierLabel = null, tierGap = aiTierGap;
+  if (hasOppData && oppPrimaryVal !== null) {
+    const oppT = statToTier(oppPrimaryVal);
+    oppTierNum = oppT.num; oppTierLabel = oppT.name;
+    tierGap = tier.num - oppTierNum;
+  } else if (aiTierGap !== 0) {
+    oppTierNum = Math.max(1, Math.min(7, tier.num - aiTierGap));
+    oppTierLabel = _tNames[oppTierNum] || `Tier ${oppTierNum}`;
+  }
+
   const tierGapBonusTable = [0, 4, 9, 15, 22, 30, 39];
   const tierGapBonus = tierGap !== 0 ? (tierGap > 0 ? 1 : -1) * (tierGapBonusTable[Math.min(6, Math.abs(tierGap))] || 0) : 0;
-  const statBonus = playerStats.reduce((s,x)=>s+compressedBonus(x.val),0);
 
   // Injury/HP penalty system
   const penCalc = calcRollPenalties(characterSheet, roll.paths);
@@ -9960,18 +10251,11 @@ function fireRoll(roll) {
 
   const d20 = Math.floor(Math.random()*20)+1;
   const playerTotal = d20 + totalBonus;
-  const primaryStat = playerStats[0]?.val || 0;
-  const tier = statToTier(primaryStat);
 
   const statBonusStr = playerStats.map(s=>{
     const name = s.path.split('.')[1] || s.path;
     return `${name}(${s.val}):+${compressedBonus(s.val).toFixed(3)}`;
   }).join(', ');
-
-  // Opponent tier for display (computed from player tier + tier gap)
-  const _tNames = ['','Untrained','Apprentice','Adept','Master','High Master','Legendary','Transcendent'];
-  const oppTierNum = tierGap !== 0 ? Math.max(1, Math.min(7, tier.num - tierGap)) : null;
-  const oppTierLabel = oppTierNum ? (_tNames[oppTierNum] || `Tier ${oppTierNum}`) : null;
 
   let html = `<div style="background:rgba(15,20,30,0.6);border:1px solid #2a3a4a;border-radius:4px;padding:10px 14px;font-size:12px;font-family:'Consolas',monospace;line-height:1.8;margin:4px 0">`;
   html += `<div style="color:#5588aa;font-size:9px;letter-spacing:3px;margin-bottom:6px;font-family:'Cinzel',serif;text-transform:uppercase">${label}</div>`;
