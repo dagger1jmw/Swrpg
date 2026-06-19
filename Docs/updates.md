@@ -4,6 +4,25 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V147 — 2026-06-19
+
+**Fix: sparring was routing through the no-fail TRAINING SUCCESS TABLE instead of the combat system**
+
+### Problem
+Player reported never being able to fail at activities at or below their tier, and correctly suspected combat/sparring should override that. Root cause was a direct contradiction in the master prompt: the "DO NOT INVENT UNREQUESTED TRAINING" rule (~line 1863) listed "sparring" as a trigger word for generating `TRAINING:` tags, alongside genuinely solo activities like drilling and deliberate Force use. Once a sparring session is logged as `TRAINING:` with difficulty `basic` (partner at or below the player's tier), it falls onto the SUCCESS TABLE, which is explicitly "no failure possible" by design — that table exists for solo practice, not opposed exchanges. Meanwhile the actual combat system (`COMBAT_START:`/`ROLL_OPPOSED`/`COMBAT_END:`) already supported real opposed-roll failure for sparring (it even has a "Light sparring / training bot" intensity row in the strain table) and already said "Any exchange against an opponent requires ROLL_OPPOSED" — but nothing told the AI that sparring must use that path instead of the training-table path, so it was inconsistently picking the no-fail one.
+
+### Fix (prompt-only, three reinforcing edits in `index.html`)
+1. **DO NOT INVENT UNREQUESTED TRAINING rule (~line 1863):** removed "sparring" from the TRAINING: trigger list; added an explicit line: sparring is never `TRAINING:` — it's always `COMBAT_START:`/`ROLL_OPPOSED`/`COMBAT_END:`, regardless of the partner's tier relative to the player.
+2. **TRAINING OUTCOME SELECTION (~line 2064):** added an explicit carve-out that the SUCCESS/CEILING/WALL tables apply only to solo, unopposed practice — the instant an opponent (partner, droid, NPC) is on the other side of an exchange, the whole table-selection section doesn't apply; use the combat system instead.
+3. **WHEN TO ROLL — MANDATORY TRIGGERS (~line 2046):** added a line under "EVERY combat exchange, no exceptions" explicitly naming sparring partners/training droids as opponents requiring ROLL_OPPOSED, with "losing a sparring match must be a real possibility every time."
+
+No JS/engine logic changed — `fireRoll()`'s opposed-roll margin system already supported real failure for either side; this was purely an AI prompt-compliance gap in which system the AI chose to invoke.
+
+### Files changed
+- `index.html` — three prompt edits, no JS changes
+
+---
+
 ## V146 — 2026-06-18
 
 **Feature: NPC lifecycle states + RECURRING_RETURN — step 2 of the opponent-lifecycle system**

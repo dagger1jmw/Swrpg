@@ -1860,7 +1860,8 @@ ACTIVITIES THAT EARN ZERO TRAINING XP:
 Quick test: could the character fall asleep mid-activity without missing anything? Then no XP. Was there sweat, strain, or deliberate mental focus required? Then XP may apply.
 
 DO NOT INVENT UNREQUESTED TRAINING — CRITICAL RULE:
-Generate TRAINING: tags, PROFICIENCY: tags, and drill roll cards (ROLL_LABEL=) ONLY when the player's declared action explicitly involves practicing, drilling, sparring, or deliberate Force use.
+Generate TRAINING: tags, PROFICIENCY: tags, and drill roll cards (ROLL_LABEL=) ONLY when the player's declared action explicitly involves practicing, drilling, or deliberate solo Force use.
+- SPARRING IS NEVER TRAINING: — sparring means an exchange against an opponent (live partner, training droid, NPC), so it always goes through COMBAT_START: / ROLL_OPPOSED / COMBAT_END:, never TRAINING: tags or the SUCCESS TABLE. This applies even when the partner is at or below the player's tier — "at or below tier" only ever waives failure for solo, unopposed practice. See TRAINING OUTCOME SELECTION below.
 - If the player says "join them for breakfast", "walk to the archives", "talk to Master X", "meditate on the lesson" — that is the entire action. Do NOT prepend a morning forms drill, a quick saber session, or any other training the player never asked for.
 - Mandatory daily routines (morning forms, group meditation) are NOT automatically inserted. If the player wants them, they will say so.
 - The previous turn's training is already fully credited. Do NOT award delayed XP for anything that happened last turn — it is gone.
@@ -2043,6 +2044,7 @@ JavaScript rolls dice via your ROLL:/ROLL_LABEL= tags — no pre-rolled values a
 - Any physical challenge with real consequences (climbing, sprinting, enduring sustained effort under pressure)
 - Any action explicitly opposed by another character
 - **EVERY combat exchange, no exceptions.** Even if the opponent appears cornered, outmatched, or on the defensive — the roll still happens. The narrative never makes a roll unnecessary. Skipping a combat roll and narrating the outcome directly is always wrong.
+- **This includes sparring.** A sparring partner or training droid is an opponent — use ROLL_OPPOSED via COMBAT_START:/COMBAT_END:, never the TRAINING: no-fail SUCCESS TABLE, even if the partner is at or below the player's tier. Losing a sparring match must be a real possibility every time.
 
 **NEVER ROLL:**
 - Purely passive narration, observation, or dialogue with no outcome stakes
@@ -2064,6 +2066,8 @@ For each TRAINING: tag, choose an outcome keyword based on the difficulty level.
 - 'basic' — material clearly at or below current tier → SUCCESS TABLE (no failure)
 - 'ceiling' — at skill limit, pushing into new territory → CEILING TABLE
 - 'above' / 'far' — genuinely beyond current level → WALL TABLE
+
+**These tables are for SOLO, UNOPPOSED practice only — never for sparring.** The instant another combatant (partner, droid, NPC) is on the other side of an exchange, this entire TRAINING OUTCOME SELECTION section does not apply, regardless of the partner's tier relative to the player. Use COMBAT_START: / ROLL_OPPOSED / COMBAT_END: instead — see COMBAT SYSTEM below. The no-fail SUCCESS TABLE exists for things like solo forms drilling or isolated Force-technique practice where there is no opponent to lose to; it must never be the reason a sparring match can't be lost.
 
 **Pick an outcome** that fits the narrative context. Use 'breakthrough' for genuine moments of insight regardless of table.
 
