@@ -4,6 +4,29 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V149 — 2026-06-19
+
+**Fix: combat strain double-counting + endurance mitigation strengthened**
+
+### Problem
+Player reported gaining "over 100 strain in every stat" after just 8 rounds of combat — far more than the per-round combat strain constants alone (`updateCombatStrain()`'s base table, e.g. `standard: {p:8,f:6,m:4}` per round) could plausibly produce even unmitigated.
+
+Root cause: combat strain is tracked exclusively via `updateCombatStrain()`'s `activeCombat.accForce/accPhysical/accMental` accumulators during the fight, and is only ever written to the persisted `characterSheet.forceStrain/physicalStrain/mentalStrain` fields once, in full, by `endCombat()`. The master prompt already instructed the AI not to send `FORCE_STRAIN=`/`PHYSICAL_STRAIN=`/`MENTAL_STRAIN=` mid-combat (line ~1809: "NO strain updates to character sheet mid-combat — use COMBAT_ROUND: to track it"), but nothing in the code enforced this. The CHANGES-tag switch-case handlers for those three tags applied any positive value the AI reported as a real delta to the persisted field whenever `_hasStrainActivity` was true — and that flag is true for the AI's *entire* turn output any time a `COMBAT_ROUND:`/`COMBAT_START:` line is present, i.e. every turn of an active fight. The per-turn stateBlock also prominently displays the growing "Accumulated strain so far (NOT yet applied to sheet)" total during combat (line ~4015) — if the AI echoed that running total back through the strain tags (plausible behavior for an LLM, and the same class of prompt-compliance gap that caused the V147 sparring bug), the persisted fields would absorb the accumulating total turn-by-turn AND then get the same full accumulated total added again at `endCombat()`, roughly doubling true strain gain by the end of a multi-round fight. A legacy markdown-fallback sheet parser (for when the AI writes a markdown-style sheet instead of JSON) had the identical unguarded pattern with no `_hasStrainActivity` check at all.
+
+Separately, the player asked for Endurance's mitigation of strain gain to be made more meaningful. The existing curve, `em = compressedBonus(endurance) / 10`, capped out at only 32.5% physical / 16.25% force / 9.75% mental reduction even at a maxed Endurance of 100 — weak for a stat explicitly defined (CLAUDE.md §3A) as "stamina, pain tolerance, strain resistance."
+
+### Fix
+1. **Structural guard closing the double-count (both strain-tag parsers, `index.html`):** the `FORCE_STRAIN=`/`PHYSICAL_STRAIN=`/`MENTAL_STRAIN=` switch cases (~line 5094) now block any positive delta whenever `activeCombat` is truthy, not just when `_hasStrainActivity` is false: `if (_rawDeltaF > 0 && (!_hasStrainActivity || activeCombat)) break;` (and the Physical/Mental equivalents). The legacy markdown-fallback duplicate (~line 5640) got the same guard wrapped around its three blocks (`if (!(_dF > 0 && activeCombat)) { ...apply... }`). Combat strain can now only ever be written to the persisted sheet by `endCombat()`, eliminating the double-count regardless of what the AI sends mid-fight. Negative deltas (e.g. narrative strain relief) still pass through during combat, since they aren't part of the bug.
+2. **Stronger endurance mitigation curve:** divisor changed from `/10` to `/6` at all 8 sites using the formula for consistency — the two strain-tag parsers (now ×3, ×3, ×3 → ×1 set + fallback set), `updateCombatStrain()` (~line 6161), and the simulation panel's `simCalcDailyStrain()` (~line 10801). New ceiling at END 100: 54% physical / 27% force / 16.25% mental reduction (up from 32.5%/16.25%/9.75%). At a typical Padawan-tier Endurance of ~30, physical mitigation roughly doubled (15%→25%).
+3. Prompt's ENDURANCE AND STRAIN MITIGATION reference block (~line 2323) updated with the new formula, corrected em values at each END milestone, and an explicit note that the engine now hard-blocks strain-tag increases during combat so echoing the displayed running total is pointless.
+4. Verified via the standard Node `<script>`-block extraction + `new Function()` syntax check — no errors.
+
+### Files changed
+- `index.html` — `FORCE_STRAIN`/`PHYSICAL_STRAIN`/`MENTAL_STRAIN` CHANGES switch cases, markdown-fallback duplicate parser, `updateCombatStrain()`, `simCalcDailyStrain()`, ENDURANCE AND STRAIN MITIGATION prompt block
+- `CLAUDE.md` — §9C endurance mitigation formula/values + double-count fix note, Session Log row, footer version bump
+
+---
+
 ## V148 — 2026-06-19
 
 **Fix: learned lightsaber forms beyond the four hardcoded ones never appeared as trainable in the simulation panel**

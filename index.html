@@ -2321,7 +2321,7 @@ MENTAL STRAIN (mentalStrain / maxMentalStrain: 100):
 - Recovery: calm + sleep restores 15-25 per rest period
 
 ENDURANCE AND STRAIN MITIGATION (applies to ALL strain — combat AND out-of-combat):
-endurance_mitigation = compressedBonus(endurance) / 10
+endurance_mitigation (em) = compressedBonus(endurance) / 6
 Physical strain delta  × (1 - em)       — endurance fully mitigates physical exertion
 Force strain delta     × (1 - em × 0.5) — endurance partially mitigates Force drain
 Mental strain delta    × (1 - em × 0.3) — endurance slightly mitigates mental fatigue
@@ -2331,11 +2331,16 @@ FORCE_STRAIN=, PHYSICAL_STRAIN=, MENTAL_STRAIN= in the CHANGES block.
 You should still output realistic raw strain values — the engine handles mitigation.
 Do NOT pre-apply endurance mitigation yourself; the code does it.
 
-At END 30: em=1.5 → Physical -15%, Force -7.5%, Mental -4.5%
-At END 60: em=2.5 → Physical -25%, Force -12.5%, Mental -7.5%
-At END 80: em=3.0 → Physical -30%, Force -15%, Mental -9%
-At END 100: em=3.25 → Physical -32.5%, Force -16.25%, Mental -9.75%
+At END 30: em=0.25 → Physical -25%, Force -12.5%, Mental -7.5%
+At END 60: em=0.42 → Physical -42%, Force -21%, Mental -12.5%
+At END 80: em=0.50 → Physical -50%, Force -25%, Mental -15%
+At END 100: em=0.54 → Physical -54%, Force -27%, Mental -16.25%
 A character with END 100 and Force-rejuvenation abilities could sustain combat for extremely long periods.
+
+NEVER output FORCE_STRAIN=/PHYSICAL_STRAIN=/MENTAL_STRAIN= while combat is active (see CRITICAL COMBAT RULES
+above) — the engine hard-blocks tag-driven strain increases during combat and tracks it exclusively via
+COMBAT_ROUND:, applying the full total once at COMBAT_END:. Echoing the displayed running combat-strain total
+back through these tags mid-fight does nothing useful and risks being read as a contradictory instruction.
 
 ## XP-BASED ABILITY PROGRESSION — STRICT RULES
 ABSOLUTE RULE: You NEVER directly set a stat to a higher value. You NEVER write "Djem So increased to 4". You NEVER write "+15 XP" in narrative prose. Stats are controlled ENTIRELY by JavaScript reading TRAINING: and COMBAT: lines from the CHANGES block.
@@ -5088,33 +5093,35 @@ async function callGemini(playerMessage, retryCount = 0) {
           case 'HP':                if (isNaN(val)) break; characterSheet.hp = val; break;
           case 'FORCE_STRAIN': {
             if (isNaN(val)) break;
-            const _em = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+            const _em = compressedBonus(characterSheet.stats?.endurance || 0) / 6;
             const _curF = characterSheet.forceStrain || 0;
             const _rawDeltaF = val - _curF;
-            // Block phantom strain carry-over: increases only allowed when training/combat occurred this turn
-            if (_rawDeltaF > 0 && !_hasStrainActivity) break;
+            // Block phantom strain carry-over: increases only allowed when training/combat occurred this turn.
+            // Combat strain is tracked exclusively via updateCombatStrain()/endCombat() — block tag-driven
+            // increases entirely during activeCombat so the AI echoing the displayed running total can't double it.
+            if (_rawDeltaF > 0 && (!_hasStrainActivity || activeCombat)) break;
             const _mitigatedDeltaF = _rawDeltaF > 0 ? _rawDeltaF * (1 - _em * 0.5) : _rawDeltaF;
             characterSheet.forceStrain = Math.max(0, Math.min(characterSheet.maxForceStrain||100, _curF + _mitigatedDeltaF));
             break;
           }
           case 'PHYSICAL_STRAIN': {
             if (isNaN(val)) break;
-            const _em2 = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+            const _em2 = compressedBonus(characterSheet.stats?.endurance || 0) / 6;
             const _curP = characterSheet.physicalStrain || 0;
             const _rawDeltaP = val - _curP;
-            // Block phantom strain carry-over: increases only allowed when training/combat occurred this turn
-            if (_rawDeltaP > 0 && !_hasStrainActivity) break;
+            // Block phantom strain carry-over (see FORCE_STRAIN comment above — same activeCombat guard).
+            if (_rawDeltaP > 0 && (!_hasStrainActivity || activeCombat)) break;
             const _mitigatedDeltaP = _rawDeltaP > 0 ? _rawDeltaP * (1 - _em2) : _rawDeltaP;
             characterSheet.physicalStrain = Math.max(0, Math.min(characterSheet.maxPhysicalStrain||100, _curP + _mitigatedDeltaP));
             break;
           }
           case 'MENTAL_STRAIN': {
             if (isNaN(val)) break;
-            const _em3 = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+            const _em3 = compressedBonus(characterSheet.stats?.endurance || 0) / 6;
             const _curM = characterSheet.mentalStrain || 0;
             const _rawDeltaM = val - _curM;
-            // Block phantom strain carry-over: increases only allowed when training/combat occurred this turn
-            if (_rawDeltaM > 0 && !_hasStrainActivity) break;
+            // Block phantom strain carry-over (see FORCE_STRAIN comment above — same activeCombat guard).
+            if (_rawDeltaM > 0 && (!_hasStrainActivity || activeCombat)) break;
             const _mitigatedDeltaM = _rawDeltaM > 0 ? _rawDeltaM * (1 - _em3 * 0.3) : _rawDeltaM;
             characterSheet.mentalStrain = Math.max(0, Math.min(characterSheet.maxMentalStrain||100, _curM + _mitigatedDeltaM));
             break;
@@ -5631,25 +5638,32 @@ async function callGemini(playerMessage, retryCount = 0) {
         const stats = extractMdJson('stats');
 
         if (forceStrain !== null) {
-          const _em_md = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+          const _em_md = compressedBonus(characterSheet.stats?.endurance || 0) / 6;
           const _newF = parseInt(forceStrain) || 0;
           const _dF = _newF - (characterSheet.forceStrain || 0);
-          characterSheet.forceStrain = Math.max(0, Math.min(characterSheet.maxForceStrain||100,
-            (characterSheet.forceStrain||0) + (_dF > 0 ? _dF * (1 - _em_md * 0.5) : _dF)));
+          // Same activeCombat guard as the FORCE_STRAIN CHANGES case — block tag-driven increases mid-combat.
+          if (!(_dF > 0 && activeCombat)) {
+            characterSheet.forceStrain = Math.max(0, Math.min(characterSheet.maxForceStrain||100,
+              (characterSheet.forceStrain||0) + (_dF > 0 ? _dF * (1 - _em_md * 0.5) : _dF)));
+          }
         }
         if (physicalStrain !== null) {
-          const _em_md2 = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+          const _em_md2 = compressedBonus(characterSheet.stats?.endurance || 0) / 6;
           const _newP = parseInt(physicalStrain) || 0;
           const _dP = _newP - (characterSheet.physicalStrain || 0);
-          characterSheet.physicalStrain = Math.max(0, Math.min(characterSheet.maxPhysicalStrain||100,
-            (characterSheet.physicalStrain||0) + (_dP > 0 ? _dP * (1 - _em_md2) : _dP)));
+          if (!(_dP > 0 && activeCombat)) {
+            characterSheet.physicalStrain = Math.max(0, Math.min(characterSheet.maxPhysicalStrain||100,
+              (characterSheet.physicalStrain||0) + (_dP > 0 ? _dP * (1 - _em_md2) : _dP)));
+          }
         }
         if (mentalStrain !== null) {
-          const _em_md3 = compressedBonus(characterSheet.stats?.endurance || 0) / 10;
+          const _em_md3 = compressedBonus(characterSheet.stats?.endurance || 0) / 6;
           const _newM = parseInt(mentalStrain) || 0;
           const _dM = _newM - (characterSheet.mentalStrain || 0);
-          characterSheet.mentalStrain = Math.max(0, Math.min(characterSheet.maxMentalStrain||100,
-            (characterSheet.mentalStrain||0) + (_dM > 0 ? _dM * (1 - _em_md3 * 0.3) : _dM)));
+          if (!(_dM > 0 && activeCombat)) {
+            characterSheet.mentalStrain = Math.max(0, Math.min(characterSheet.maxMentalStrain||100,
+              (characterSheet.mentalStrain||0) + (_dM > 0 ? _dM * (1 - _em_md3 * 0.3) : _dM)));
+          }
         }
         if (hp !== null) characterSheet.hp = parseInt(hp) || characterSheet.hp;
         if (alignment !== null) characterSheet.alignment = parseInt(alignment) || characterSheet.alignment;
@@ -6158,7 +6172,7 @@ function endCombat(outcome, engagement) {
 function updateCombatStrain(rounds, intensity) {
   if (!activeCombat || !characterSheet) return;
   const END = characterSheet.stats?.endurance || 30;
-  const em = compressedBonus(END) / 10;
+  const em = compressedBonus(END) / 6;
   // Scaled to 100 — multiply base values by 10 vs old 10-scale system
   const base = {
     'light':    {p:4,  f:3,  m:2},
@@ -10798,7 +10812,7 @@ function simCalcMeditationRecovery() {
 
 function simCalcDailyStrain() {
   const cs = characterSheet || {};
-  const em = compressedBonus(cs.stats?.endurance || 0) / 10;
+  const em = compressedBonus(cs.stats?.endurance || 0) / 6;
   const stage = cs.lifeStage || 'youngling';
   const mandatories = SIM_MANDATORY[stage] || [];
   let f=0, p=0, m=0;
