@@ -4,6 +4,25 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V148 — 2026-06-19
+
+**Fix: learned lightsaber forms beyond the four hardcoded ones never appeared as trainable in the simulation panel**
+
+### Problem
+Player reported DjemSo not appearing as a trainable activity in the simulation panel despite having learned it in-game. Root cause: `SIM_ACTIVITIES` (~line 8138) only has hardcoded saber entries for ShiiCho, Makashi, Soresu, and Ataru. Shien, DjemSo, ShienDjemSo, Niman, Juyo, Vaapad, JarKai, and KiiShikk have no entry at all, so `simBuildActivityOptions()` never offered them regardless of `characterSheet.lightsaberForms` contents — this affects every form outside the original four, not just DjemSo.
+
+Force abilities already solved this exact class of problem (~line 10583, comment "all others generated dynamically") by generating an activity for every unlocked ability not covered by a hardcoded entry. Lightsaber forms had no equivalent.
+
+### Fix
+1. New `FORM_WEIGHT_PROFILES` table (next to `SIM_ACTIVITIES`) gives canon-flavored stat weights for Shien, DjemSo, ShienDjemSo, Niman, Juyo, Vaapad, JarKai, KiiShikk (e.g. DjemSo leans strength/endurance, Juyo/Vaapad lean agility/willpower). `FORM_DEFAULT_WEIGHTS` covers any future form key with no profile. `FORM_DISPLAY_LABELS` supplies proper display names (Djem So, Shien/Djem So, Jar'Kai, Kii-Shikk).
+2. `simBuildActivityOptions()` now computes `coveredForms` (every form key already referenced by a hardcoded `SIM_ACTIVITIES` saber entry) and generates a `form_<Key>` practice activity for every other key present in `cs.lightsaberForms` — mirroring the existing dynamic-force-ability pattern exactly. Any form learned in-game is immediately trainable in the simulation panel with no hardcoded entry required, present or future.
+3. Verified via a Node smoke test extracting `SIM_ACTIVITIES`/`FORM_WEIGHT_PROFILES`/`simBuildActivityOptions` and calling it directly with a mock sheet containing `{ShiiCho, DjemSo, Juyo}` — confirmed ShiiCho still resolves to its hardcoded entries (no duplication) while DjemSo and Juyo each produced a new dynamic `form_*` activity.
+
+### Files changed
+- `index.html` — `FORM_WEIGHT_PROFILES`/`FORM_DEFAULT_WEIGHTS`/`FORM_DISPLAY_LABELS` consts, `simBuildActivityOptions()` dynamic form generation block, return statement updated to include `dynFormActs`
+
+---
+
 ## V147 — 2026-06-19
 
 **Fix: sparring was routing through the no-fail TRAINING SUCCESS TABLE instead of the combat system**

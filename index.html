@@ -8167,6 +8167,25 @@ const SIM_ACTIVITIES = [
   // MANDATORY — handled separately via lifeStage
 ];
 
+// Weight profiles for lightsaber forms with no hardcoded SIM_ACTIVITIES saber entry above.
+// simBuildActivityOptions() generates a practice activity for any form the character has
+// learned in-game that isn't covered here, so every form becomes trainable in the
+// simulation panel the moment it appears in lightsaberForms — never needs a hardcoded entry.
+const FORM_WEIGHT_PROFILES = {
+  Shien:       [{p:'stats.agility',w:0.6},{p:'stats.strength',w:0.3},{p:'forceStats.forceControl',w:0.2}],
+  DjemSo:      [{p:'stats.strength',w:0.6},{p:'stats.endurance',w:0.4},{p:'forceStats.forceControl',w:0.2}],
+  ShienDjemSo: [{p:'stats.strength',w:0.5},{p:'stats.agility',w:0.4},{p:'stats.endurance',w:0.3}],
+  Niman:       [{p:'stats.agility',w:0.4},{p:'forceStats.forceControl',w:0.4},{p:'stats.willpower',w:0.3}],
+  Juyo:        [{p:'stats.agility',w:0.5},{p:'stats.willpower',w:0.5},{p:'stats.strength',w:0.3}],
+  Vaapad:      [{p:'stats.agility',w:0.5},{p:'stats.willpower',w:0.6},{p:'forceStats.forceControl',w:0.3}],
+  JarKai:      [{p:'stats.agility',w:0.7},{p:'stats.strength',w:0.3},{p:'stats.endurance',w:0.3}],
+  KiiShikk:    [{p:'stats.agility',w:0.6},{p:'stats.strength',w:0.3},{p:'stats.endurance',w:0.3}],
+};
+const FORM_DEFAULT_WEIGHTS = [{p:'stats.strength',w:0.4},{p:'stats.agility',w:0.4},{p:'stats.endurance',w:0.3},{p:'forceStats.forceControl',w:0.2}];
+const FORM_DISPLAY_LABELS = {
+  ShiiCho:'Shii-Cho', DjemSo:'Djem So', ShienDjemSo:'Shien/Djem So', JarKai:"Jar'Kai", KiiShikk:'Kii-Shikk',
+};
+
 // Anchor key → simulation stat path (for dynamic force ability activities)
 const ANCHOR_TO_SIM_PATH = {
   forceControl:  'forceStats.forceControl',
@@ -10561,6 +10580,29 @@ function simBuildActivityOptions(cs) {
   const available = SIM_ACTIVITIES.filter(a => a.unlock(cs));
   const customs = simCustomDrills.map(d => ({ cat:'custom', key:'custom_'+d.id, label:'✦ '+d.name, _custom:d, unlock:()=>true }));
 
+  // Dynamic lightsaber form activities for every form the character has learned in-game
+  // that isn't already covered by a hardcoded SIM_ACTIVITIES saber entry — fixes forms
+  // (DjemSo, Juyo, Vaapad, etc.) not appearing as trainable once learned.
+  const coveredForms = new Set();
+  SIM_ACTIVITIES.forEach(a => {
+    if (a.cat === 'saber') (a.weights || []).forEach(w => {
+      if (w.p && w.p.startsWith('lightsaberForms.')) coveredForms.add(w.p.split('.')[1]);
+    });
+  });
+  const dynFormActs = [];
+  for (const formKey of Object.keys(cs.lightsaberForms || {})) {
+    if (coveredForms.has(formKey)) continue;
+    dynFormActs.push({
+      cat: 'saber',
+      key: 'form_' + formKey,
+      label: (FORM_DISPLAY_LABELS[formKey] || formKey) + ' Practice',
+      weights: [{p:'lightsaberForms.'+formKey, w:1.0}, ...(FORM_WEIGHT_PROFILES[formKey] || FORM_DEFAULT_WEIGHTS)],
+      strainBias: {f:0.7, p:1.6, m:0.6},
+      defaultIntensity: 'standard',
+      unlock: () => true,
+    });
+  }
+
   // Dynamic force ability activities for every root ability the character has unlocked
   // that isn't already covered by a hardcoded SIM_ACTIVITIES entry
   const coveredAbilities = new Set(SIM_ACTIVITIES.filter(a => a.coveredAbility).map(a => a.coveredAbility));
@@ -10614,7 +10656,7 @@ function simBuildActivityOptions(cs) {
     }
   }
 
-  return [...available, ...dynActs, ...customs, ...profActs];
+  return [...available, ...dynFormActs, ...dynActs, ...customs, ...profActs];
 }
 
 function simAddTrainingRow() {
