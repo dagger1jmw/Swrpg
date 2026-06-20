@@ -11302,7 +11302,10 @@ async function runSimChunks(chunks) {
       await sleep(5000); i--; simChunksDone=i+1;
     }
   }
-  if (!simAborted) await finishSimulation(chunks);
+  // Inject the time-skip sync block for whatever portion actually ran, even on abort —
+  // otherwise an aborted sim leaves XP/strain/date changes applied with zero notice to
+  // the AI, so the next turn has no idea time passed at all (worse than the V150 bug).
+  if (simChunksDone > 0) await finishSimulation(chunks.slice(0, simChunksDone));
 }
 
 // ── JS-driven day processor (no AI for XP) ───────────────────────
@@ -11497,7 +11500,11 @@ async function finishSimulation(chunks) {
   document.getElementById('sim-pause-btn').style.display = 'none';
   document.getElementById('sim-abort-btn').style.display = 'none';
   document.getElementById('sim-done-btn').style.display = '';
-  updateSimProgress(100, `✓ ${getPeriodLabel(simPeriodType)} simulation complete`);
+  if (simAborted) {
+    updateSimProgress(Math.round((chunks.length/simChunksTotal)*100), `✕ Aborted — ${chunks.length} week(s) applied, time skip synced`);
+  } else {
+    updateSimProgress(100, `✓ ${getPeriodLabel(simPeriodType)} simulation complete`);
+  }
 
   // Update worldState location from override if provided
   const locOverride = document.getElementById('sim-location-override')?.value.trim();
@@ -11527,7 +11534,7 @@ async function finishSimulation(chunks) {
   const cs = characterSheet || {};
   const ws = worldState || {};
   const syncBlock = `[SYSTEM STATE UPDATE — TIME SKIP COMPLETE]
-Time skip: ${getPeriodLabel(simPeriodType)} of training simulated (${chunks.length} week(s)).
+Time skip: ${simAborted ? `${chunks.length} week(s) of training simulated (stopped early, out of a planned ${getPeriodLabel(simPeriodType)})` : `${getPeriodLabel(simPeriodType)} of training simulated (${chunks.length} week(s))`}.
 Current in-game date: ${ws.inGameDate || 'unknown'}
 Current in-game time: ${ws.inGameTime || 'unknown'}
 Location: ${document.getElementById('sim-location-override')?.value.trim() || ws.location || 'unknown'}
@@ -11620,7 +11627,7 @@ Current strain: Force ${cs.forceStrain||0}, Physical ${cs.physicalStrain||0}, Me
     </div>`;
   }
   d.innerHTML = `<div style="background:rgba(30,40,50,0.35);border:1px solid #2a3a4a;border-radius:4px;padding:12px 16px">
-    <div style="color:#4488aa;font-size:10px;letter-spacing:2px;margin-bottom:8px;font-family:'Cinzel',serif">◆ SIMULATION COMPLETE — ${getPeriodLabel(simPeriodType).toUpperCase()}</div>
+    <div style="color:#4488aa;font-size:10px;letter-spacing:2px;margin-bottom:8px;font-family:'Cinzel',serif">◆ SIMULATION ${simAborted ? 'PARTIAL (ABORTED)' : 'COMPLETE'} — ${getPeriodLabel(simPeriodType).toUpperCase()}</div>
     <div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">${simResults.length} week(s) simulated · Calendar advanced to ${ws.inGameDate||'unknown'}</div>
     <div style="font-size:10px;color:var(--text-dim);letter-spacing:1px;font-family:'Cinzel',serif;margin-bottom:6px">TOTAL XP GAINED</div>
     <div style="margin-bottom:12px;font-size:12px">${totalRows||'<span style="color:var(--text-dim);font-style:italic;font-size:11px">No significant gains</span>'}</div>

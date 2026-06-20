@@ -4,6 +4,21 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V151 — 2026-06-19
+
+**Fix: aborted simulations left the AI with zero time-skip awareness**
+
+### Problem
+Player reported: "The AI doesn't actually recognize a time skip from simulation. It take the events of before the simulation as having just happened and doesn't actually take into account the simulation time." V150 (same day) had already fixed the ordering bug for sims that run to natural completion, but a second, separate gap remained: `runSimChunks()` only called `finishSimulation(chunks)` — the function that builds and injects the `[SYSTEM STATE UPDATE — TIME SKIP COMPLETE]` sync block into `recentHistory` — when `!simAborted` (line ~11305). If the player clicked "Abort" partway through a simulation, any chunks already processed had their XP/strain/date changes applied for real, but `finishSimulation()` never ran, so the sync block was never created at all. The very next real turn had nothing telling the AI that any time had passed — not even the (already-fixed) tail-recency mechanism from V150, because there was no sync block to place correctly in the first place. This is a strictly worse version of the V150 symptom: instead of the AI eventually reverting after some turns, it never knew about the skip to begin with.
+
+### Fix
+`runSimChunks()` now calls `finishSimulation(chunks.slice(0, simChunksDone))` whenever at least one chunk completed, regardless of `simAborted` — so a partial/aborted run gets the same sync-block treatment as a full one, scoped to what actually ran. `finishSimulation()` itself now branches on `simAborted` in three places to keep the messaging accurate instead of always claiming "complete": the progress bar text, the story-feed completion card header (`SIMULATION PARTIAL (ABORTED)` vs `SIMULATION COMPLETE`), and the sync block's own "Time skip:" line (reports actual weeks simulated against the originally planned period when aborted, instead of claiming the full planned period happened). The "Generate Transition Scene" button now also becomes available after an aborted sim, same as a completed one.
+
+### Files changed
+- `index.html` — `runSimChunks()` (~line 11305), `finishSimulation()` (~line 11498-11540, ~line 11630)
+
+---
+
 ## V150 — 2026-06-19
 
 **Fix: post-simulation turns reverted to pre-heal/pre-time-skip state — recentHistory ordering bug**
