@@ -11543,17 +11543,21 @@ Notable stat levels: ForceControl ${cs.forceStats?.forceControl||0}, ForceSense 
 Current strain: Force ${cs.forceStrain||0}, Physical ${cs.physicalStrain||0}, Mental ${cs.mentalStrain||0}
 [END STATE UPDATE]`;
 
-  // Insert at START of recentHistory so it's the temporal anchor
+  // Append at END of recentHistory so it reads as the most recent exchange.
+  // recentHistory is chronological oldest-first (the normal turn loop uses push() + slice(-N)
+  // to trim), so unshifting to the front actually makes this look like the OLDEST entry —
+  // the model then anchors on whatever leftover pre-simulation turns are still at the tail,
+  // ignoring this update entirely (V150 fix — this was the root cause of post-sim turns
+  // reverting to pre-heal/pre-skip state).
   // Use a fake exchange so it reads as established context, not a new instruction
   const syncUserMsg  = { role:'user',  parts:[{text: syncBlock}] };
   const syncModelMsg = { role:'model', parts:[{text: `Acknowledged. ${getPeriodLabel(simPeriodType)} of training complete. It is now ${ws.inGameDate||'unknown'}, ${ws.inGameTime||'unknown'} at ${document.getElementById('sim-location-override')?.value.trim() || ws.location || 'the Temple'}. I will resume gameplay from this point with full awareness of the time that has passed.`}] };
   // Remove any previous sync blocks to avoid stacking
   recentHistory = recentHistory.filter(m => !m.parts?.[0]?.text?.startsWith('[SYSTEM STATE UPDATE'));
-  recentHistory.unshift(syncModelMsg);
-  recentHistory.unshift(syncUserMsg);
-  // Trim to prevent overflow
-  if (recentHistory.length > RECENT_TURNS * 2 + 2) {
-    recentHistory = [syncUserMsg, syncModelMsg, ...recentHistory.slice(2).slice(-(RECENT_TURNS * 2))];
+  recentHistory.push(syncUserMsg, syncModelMsg);
+  // Trim to prevent overflow — keep only the most recent turns (sync pair is now last, so it survives)
+  if (recentHistory.length > RECENT_TURNS * 2) {
+    recentHistory = recentHistory.slice(-(RECENT_TURNS * 2));
   }
 
   // Post simulation complete card to story feed
@@ -11692,25 +11696,17 @@ ${aiNotes ? `Additional context: ${aiNotes}` : ''}`;
     renderGMMessage(sceneText);
 
     // ── Inject into recentHistory as the "last real turn" ──────────
-    // This replaces the sync block's model message position so that
-    // when the player next acts, this scene is the most recent narrative context.
+    // Append at the END so this scene reads as the most recent narrative context.
+    // recentHistory is chronological oldest-first — inserting near the front (as this used
+    // to do, via splice(2,...)/unshift) puts it BEFORE leftover pre-simulation turns that
+    // remained at the tail, so the model anchored on those stale turns instead (V150 fix).
     const sceneUserMsg  = { role:'user',  parts:[{text:'[Transition scene — time skip complete. Resume gameplay from here.]'}] };
     const sceneModelMsg = { role:'model', parts:[{text: sceneText}] };
-    // Keep the sync block at position 0-1 (temporal anchor), add scene after it
     recentHistory = recentHistory.filter(m => m !== undefined);
-    const hasSyncBlock = recentHistory[0]?.parts?.[0]?.text?.startsWith('[SYSTEM STATE UPDATE');
-    if (hasSyncBlock) {
-      // Insert scene right after the sync block pair
-      recentHistory.splice(2, 0, sceneUserMsg, sceneModelMsg);
-    } else {
-      recentHistory.unshift(sceneModelMsg);
-      recentHistory.unshift(sceneUserMsg);
-    }
-    // Trim to keep history manageable
-    if (recentHistory.length > RECENT_TURNS * 2 + 4) {
-      const syncPair = hasSyncBlock ? recentHistory.slice(0,2) : [];
-      const rest = recentHistory.slice(syncPair.length).slice(-(RECENT_TURNS * 2 + 2));
-      recentHistory = [...syncPair, ...rest];
+    recentHistory.push(sceneUserMsg, sceneModelMsg);
+    // Trim to keep history manageable — keep only the most recent turns
+    if (recentHistory.length > RECENT_TURNS * 2) {
+      recentHistory = recentHistory.slice(-(RECENT_TURNS * 2));
     }
     fullHistory.push(sceneUserMsg, sceneModelMsg);
 

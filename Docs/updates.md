@@ -4,6 +4,25 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V150 — 2026-06-19
+
+**Fix: post-simulation turns reverted to pre-heal/pre-time-skip state — recentHistory ordering bug**
+
+### Problem
+Player healed an injured arm, then ran a multi-month simulation immediately after, then clicked "Generate Transition Scene" — no visible issue at that point. But on the player's very next real prompt, the AI brought the arm injury back ("you ignore the throbbing pain in your arm..."), as if the heal and the time skip had never happened. Player correctly identified the pattern as "the game forgets the last turn but keeps the story context."
+
+Root cause: `recentHistory` is a chronological, oldest-first array — confirmed by the normal turn loop (`recentHistory.push(userMsg, modelMsg)` then `.slice(-(RECENT_TURNS*2))` to trim) and by `buildContext()` (~line 4042), which iterates it in array order to build the actual conversation sent to the model. Whatever sits at the *tail* of this array is what the model reads as "just happened."
+
+Both `finishSimulation()`'s auto-injected "[SYSTEM STATE UPDATE — TIME SKIP COMPLETE]" sync block and `generateTransitionScene()`'s narrative scene were inserted near the *front* instead — `recentHistory.unshift(syncUserMsg, syncModelMsg)` and `recentHistory.splice(2, 0, sceneUserMsg, sceneModelMsg)` respectively, both under the explicit (but backwards) assumption in their own comments that "the start of the array is the temporal anchor" / "most recent narrative context." Since these inserts land near the front, all the genuine pre-simulation turns already in `recentHistory` (including the healing turn) stay at the tail, in their original relative order — meaning the *leftover pre-heal conversation*, not the sync block or transition scene, is what the model actually reads as most recent. The model then continued the story from that stale anchor, re-narrating the unhealed injury.
+
+### Fix
+Both insertions now `.push()` onto the end of `recentHistory` (and trim with the same `.slice(-(RECENT_TURNS*2))` pattern used by the normal turn loop) instead of unshifting/splicing near the front. Removed the now-pointless `hasSyncBlock` position-pinning branch in `generateTransitionScene()` — the sync block and transition scene now naturally age out of the recency window over time exactly like any other turn, which is the correct behavior for a recency-ordered chat history. Verified via the standard Node `<script>`-block extraction + `new Function()` syntax check — no errors.
+
+### Files changed
+- `index.html` — `finishSimulation()` sync-block injection block, `generateTransitionScene()` scene injection block
+
+---
+
 ## V149 — 2026-06-19
 
 **Fix: combat strain double-counting + endurance mitigation strengthened**
