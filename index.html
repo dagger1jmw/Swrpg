@@ -2485,8 +2485,16 @@ roll result determines what Jared actually understands:
   strong      → Deep read. Understands the what AND the why AND the timing.
   overwhelming→ Total clarity. Full picture including implications.
 
-The character.lastShatterpointRoll field contains the current roll result.
-ALWAYS respond to the roll result — do not ignore misreads.
+SHATTERPOINT_ROLL fires AFTER your response text is generated — exactly like ROLL_OPPOSED
+in combat. This means the turn that REQUESTS the roll cannot know its outcome yet, and
+must not pre-empt or guess the content. The NEXT turn is where you actually deliver it:
+the state block will show a "SHATTERPOINT INTERPRETATION PENDING" notice with the
+resolved outcome — open that response by narrating the SPECIFIC, CONCRETE content Jared
+perceives (the fracture point itself, what it is, where the lever is — or, on a misread,
+the specific false impression). A bare result label like "he succeeded" or "the reading
+was clear" is never sufficient on its own — the player is owed the actual content, not
+just confirmation that a roll happened. ALWAYS respond to the roll result — do not ignore
+misreads, and do not leave a successful read without ever stating what was perceived.
 
 ── MISREAD CONSEQUENCES ─────────────────────────────────────────────
 Misreads are NOT "nothing happens." They are active misdirection.
@@ -4041,6 +4049,20 @@ ACTIVE THREATS & ONGOING SITUATIONS:
 ${Object.entries(galaxySimState).map(([k,v])=>`- ${k}: ${v}`).join('\n')||'- None tracked yet'}
 LEGACY CHANGES: ${JSON.stringify(ws.legacyChanges||[])}`;
 
+  // A SHATTERPOINT_ROLL fires AFTER the AI's text is generated (same deferred-roll pattern
+  // as ROLL_OPPOSED) — so the turn that requests it cannot narrate the actual content
+  // perceived, only the NEXT turn can. Without an explicit mandatory reminder, the AI tends
+  // to acknowledge the outcome label ("success") without ever describing what was perceived.
+  const spPendingRoll = (characterSheet.lastShatterpointRoll && characterSheet.lastShatterpointRoll.resolved === false)
+    ? characterSheet.lastShatterpointRoll : null;
+  const spOutcomeDirective = spPendingRoll ? ({
+    fail:         'MISREAD. Narrate what Jared believes he perceives, presented with confidence as if true — the false impression IS the content of this response. Do not write "he failed to read it" or just "success/failure" — show the specific wrong belief.',
+    contested:    'PARTIAL. Narrate what he accurately senses, in specific concrete detail, then make clear something crucial is still missing or unclear. Do not resolve the gap for him.',
+    solid:        'CLEAR READ. Narrate the specific fracture point itself — what it is and exactly where the lever is — in concrete detail. A one-word "success" does not satisfy this.',
+    strong:       'DEEP READ. Narrate the fracture point, AND why it exists, AND its timing — concrete specific content, not a summary label.',
+    overwhelming: 'TOTAL CLARITY. Narrate the fracture point, its cause, its timing, and its broader implication, in full concrete detail.'
+  }[spPendingRoll.outcome] || '') : '';
+
   const stateBlock = `AUTHORITATIVE GAME STATE FOR TURN ${turnCount + 1} — these values are ground truth, override anything in history:
 
 CHARACTER SHEET:
@@ -4059,6 +4081,11 @@ ACTIVE COMBAT STATE — JS-TRACKED (authoritative, override your own count):
 ${activeCombat.lastRollResult ? `  ⚠ LAST EXCHANGE RESULT — JS-computed after your previous response. OPEN THIS RESPONSE by resolving this outcome before addressing the new player action:
     Roll: "${activeCombat.lastRollResult.label}" | ${activeCombat.lastRollResult.marginLabel} (margin: ${activeCombat.lastRollResult.margin > 0 ? '+' : ''}${activeCombat.lastRollResult.margin.toFixed(2)})
     ${activeCombat.lastRollResult.winner === 'player' ? '→ PLAYER WON — narrate the player pressing the advantage, opponent forced back or taking damage.' : activeCombat.lastRollResult.winner === 'opponent' ? '→ PLAYER LOST — narrate the player being outmaneuvered: their attack was deflected/missed/failed, the opponent controlled the space. DO NOT write the player striking successfully or the opponent cornered. Show retreat, defense, or injury.' : '→ CONTESTED — blades clashed or action was neutralized; neither side gained clear advantage.'}` : '  No previous exchange to resolve — this is the opening action of combat.'}
+` : ''}
+${spPendingRoll ? `
+SHATTERPOINT INTERPRETATION PENDING — JS-computed after your previous response. OPEN THIS RESPONSE by narrating the actual content Jared perceives — never just the outcome label:
+  Target: "${spPendingRoll.target}" | Outcome: ${spPendingRoll.outcome}
+  ${spOutcomeDirective}
 ` : ''}
 CRITICAL RULES FOR THIS TURN:
 1. Use the EXACT stat values above as your starting point
@@ -4085,7 +4112,13 @@ CRITICAL RULES FOR THIS TURN:
   const lastRollReminder = (activeCombat?.lastRollResult)
     ? `\n\n⚠ MANDATORY COMBAT RESOLUTION — LAST EXCHANGE RESULT (JS-computed, cannot be ignored):\n  "${activeCombat.lastRollResult.label}" → ${activeCombat.lastRollResult.marginLabel} (margin: ${activeCombat.lastRollResult.margin > 0 ? '+' : ''}${activeCombat.lastRollResult.margin.toFixed(2)})\n  ${activeCombat.lastRollResult.winner === 'opponent' ? 'PLAYER LOST. Your response MUST open with the player being outmaneuvered — their attack deflected, missed, or failed. The opponent controlled the exchange. DO NOT write the player striking successfully, the opponent stumbling back, or any positive outcome for the player.' : activeCombat.lastRollResult.winner === 'player' ? 'PLAYER WON. Narrate the player pressing the advantage, the opponent forced back or taking damage.' : 'CONTESTED. Neither side gained clear advantage — blades locked, a mutual check.'}`
     : '';
-  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State "Time Elapsed: X seconds/minutes/hours" — JS advances clock and date automatically, do NOT set inGameTime or change inGameDate in WORLD (echo date back as-is).${activeCombat ? ' IN COMBAT: one exchange = 3-10 SECONDS, not minutes.' : ''} (2) Output <<<CHANGES>>> block. For XP: use TRAINING: or COMBAT: lines — NOT prose. For rolls: output ROLL:statPath1|statPath2, TIER_GAP=N, TACTICAL=N, ROLL_LABEL=description tags. (3) Output <<<SHEET>>> and <<<WORLD>>> blocks.]${lastRollReminder}`;
+  const spRollReminder = spPendingRoll
+    ? `\n\n⚠ MANDATORY SHATTERPOINT RESOLUTION — interpretation roll resolved (JS-computed, cannot be ignored):\n  Target: "${spPendingRoll.target}" | Outcome: ${spPendingRoll.outcome}\n  ${spOutcomeDirective}\n  Stating "success," "he understood it," or any other result label WITHOUT describing the specific content perceived does not satisfy this — the concrete content is the entire point of the response.`
+    : '';
+  // This pending roll has now been surfaced to the AI for this turn's prompt — mark it
+  // resolved so the reminder doesn't keep firing on subsequent turns once addressed.
+  if (spPendingRoll) spPendingRoll.resolved = true;
+  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State "Time Elapsed: X seconds/minutes/hours" — JS advances clock and date automatically, do NOT set inGameTime or change inGameDate in WORLD (echo date back as-is).${activeCombat ? ' IN COMBAT: one exchange = 3-10 SECONDS, not minutes.' : ''} (2) Output <<<CHANGES>>> block. For XP: use TRAINING: or COMBAT: lines — NOT prose. For rolls: output ROLL:statPath1|statPath2, TIER_GAP=N, TACTICAL=N, ROLL_LABEL=description tags. (3) Output <<<SHEET>>> and <<<WORLD>>> blocks.]${lastRollReminder}${spRollReminder}`;
 
   messages.push({ role: 'user', parts: [{ text: userContent + reminder }] });
 
@@ -6431,7 +6464,8 @@ function spPerformRoll(target) {
     bonus: Math.round(totalBonus * 10) / 10,
     target: target || 'unknown',
     misread: outcome === 'fail' || outcome === 'contested',
-    turn: window.turnCount || 0
+    turn: window.turnCount || 0,
+    resolved: false
   };
   if (outcome === 'fail' || outcome === 'contested') {
     characterSheet.lastShatterpointMisread = { unresolved: true, target, outcome, turn: window.turnCount || 0 };

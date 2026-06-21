@@ -4,6 +4,30 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V158 — 2026-06-21
+
+**Fix: AI confirmed a Shatterpoint interpretation roll "succeeded" but never narrated what was actually perceived — required an extra player turn to extract the content**
+
+### Problem
+Player reported that after a Shatterpoint interpretation roll, the AI's response declared success but never described the actual content perceived — the player had to spend an additional real turn explicitly asking what was seen.
+
+Root cause: `SHATTERPOINT_ROLL:` fires via `spPerformRoll()` inside the CHANGES-block parser, which runs strictly AFTER the AI's narrative text for that turn has already been generated — structurally identical to the `ROLL_OPPOSED` deferred-roll problem that drove V132 through V156. The turn that *requests* the roll cannot know the outcome yet, so it cannot narrate the actual perceived content in that same response; the follow-up has to happen the NEXT turn. Unlike combat, this "next turn must deliver the actual content" half had no enforcement at all: the only signal exposed to the AI was a single buried phrase in the character sheet summary ("Last roll: solid vs Master Aris") with no flag marking it pending, and the one general prompt instruction ("ALWAYS respond to the roll result") gave no concrete definition of what "responding" requires — so the model treated restating the outcome label ("he succeeded") as sufficient compliance.
+
+### Fix
+Mirrored the combat `lastRollReminder`/`ACTIVE COMBAT STATE` ground-truth pattern, applied to Shatterpoint interpretation rolls:
+1. `spPerformRoll()` now stamps `resolved: false` onto `characterSheet.lastShatterpointRoll` when a roll fires.
+2. `buildContext()` computes `spPendingRoll` (the roll if still unresolved) and an outcome-specific `spOutcomeDirective` (concrete, per-outcome narration requirement for fail/contested/solid/strong/overwhelming — explicitly rejecting a bare "success"/"failure" label).
+3. A new "SHATTERPOINT INTERPRETATION PENDING" block is injected into the per-turn state block (alongside the existing combat ACTIVE COMBAT STATE block), and a parallel "⚠ MANDATORY SHATTERPOINT RESOLUTION" line is appended to the per-turn reminder text — both telling the AI explicitly to open its next response with the concrete content perceived, not a result label.
+4. `spPendingRoll.resolved` is set to `true` immediately after being surfaced in `buildContext()` so the reminder fires exactly once, the turn right after the roll, rather than repeating indefinitely.
+5. Sharpened the static SHATTERPOINT SYSTEM prompt section to explicitly name the deferred-roll timing (same mechanism as `ROLL_OPPOSED`) and state that a bare result label is never sufficient.
+
+### Files changed
+`index.html`: `spPerformRoll()` (~line 6462, added `resolved: false`); `buildContext()` (~line 4055-4090 new `spPendingRoll`/`spOutcomeDirective` block + state-block injection; ~line 4115-4120 new `spRollReminder` + resolved-marking); SHATTERPOINT SYSTEM prompt section (~line 2488).
+
+**Why this matters for future debugging:** this is the same deferred-roll family as the V132-V156 combat chain, just for a different roll type (`SHATTERPOINT_ROLL` instead of `ROLL_OPPOSED`) and a different failure mode (omission of required content, not contradiction of a ground-truth number). When a new CHANGES tag fires a JS-computed roll synchronously after the AI's text is generated, assume the same "AI can't know the outcome this turn" structural gap exists, and check whether the NEXT turn has an explicit, concrete, mandatory reminder — a generic instruction like "always respond to the result" has repeatedly proven too vague to reliably produce the actual expected content.
+
+---
+
 ## V157 — 2026-06-21
 
 **Fix: Shatterpoint (Innate) narrated as hard to sustain through combat — prompt never distinguished the Path A (learned) vs Path B (ShatterSense innate) cost difference**
