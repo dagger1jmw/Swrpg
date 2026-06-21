@@ -4,6 +4,23 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V153 — 2026-06-20
+
+**Fix: AI still narrating wins on overwhelming-loss exchanges — contradictory leftover instruction**
+
+### Problem
+Player reported the AI still narrating positive outcomes ("smoothly redirect... narrowly turned its attack aside, creating a fleeting moment of advantage") on an exchange whose roll card showed "Margin: Opponent by 15.45 — Overwhelming loss" in the very same message — less frequent than before V132/V142, but still happening. Screenshot confirmed: the V152 time-per-exchange fix was working correctly ("Time Elapsed: 5 seconds"), narrowing the search to the narration-vs-margin mismatch specifically.
+
+Root cause: the EXCHANGE RESOLUTION section still carried a leftover bullet from before the V141 deferred-roll restructuring: "Winner describes the exchange narratively BEFORE revealing what the opponent does next." This directly contradicts the "MARGIN IS ABSOLUTE GROUND TRUTH" block two paragraphs below it, which establishes that ROLL_OPPOSED fires AFTER the response completes — meaning the AI cannot know the margin for the exchange it is requesting THIS turn. The old bullet told the AI to confidently describe who won an exchange whose dice hadn't been rolled yet, so it defaulted to writing a flattering, success-leaning narrative for its own just-requested roll — which then landed in the same chat bubble as a JS-computed margin that frequently disagreed with it, since the AI's guess and the actual dice are uncorrelated.
+
+### Fix
+Removed the contradictory bullet. Replaced with an explicit instruction in the same section: the AI does not know the margin for the exchange it just requested, so it must narrate that specific exchange NEUTRALLY — describing the attempt/action unfolding (blades meeting, the attack being thrown) without declaring a winner — with concrete examples of acceptable neutral phrasing vs. the kind of premature-victory phrasing to avoid. The existing "resolve the PREVIOUS exchange via LAST EXCHANGE RESULT at the start of your next response" instruction (V132/V142, still correct) is preserved and now has no contradicting rule competing with it.
+
+### Files changed
+- `index.html` — EXCHANGE RESOLUTION section (~line 2171-2178)
+
+---
+
 ## V152 — 2026-06-20
 
 **Fix: in-game clock advancing too fast during combat**
