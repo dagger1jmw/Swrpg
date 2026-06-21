@@ -4,6 +4,27 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V160 — 2026-06-21
+
+**Fix: combat strain accumulating far too fast for the real time elapsed, with no sensitivity to tier gap**
+
+### Problem
+Player reported gaining a large amount of strain (close to the V149 strain bands that trigger narrative penalties) from just 9 rounds of a Djem So duel — under a minute of real time per the V152 per-exchange time budget (3-10 seconds/round) — despite having 58 Endurance and a one-tier advantage over the opponent: "Strain should not build that high that fast. Especially considering each round of combat is 5 seconds... This was combat against someone I had a tier over. Same tier combat could last a long time."
+
+Root cause: `updateCombatStrain()`'s per-round base rates (`light/sparring: p4/f3/m2`, `standard: p8/f6/m4`, `intense: p12/f10/m6`, `desperate: p20/f15/m10`) were never recalibrated after V152 redefined what a combat "round" represents. Before V152, a "round" implicitly covered a longer, unspecified chunk of a fight; V141/V144/V152 moved the engine to one resolved `ROLL_OPPOSED` exchange per round, at ~5-10 real seconds each — but the strain cost per round stayed at the old, coarser-grained magnitude, so a short multi-exchange duel now accumulated strain far faster than the real time elapsed justified. Separately, strain accumulation had no tier-gap awareness at all — beating up a clearly weaker opponent cost exactly as much exertion as an even, evenly-matched duel, contradicting the player's (correct) expectation that overpowering a lower-tier opponent should be comparatively easy.
+
+### Fix
+1. Reduced the `updateCombatStrain()` per-round base-rate table by roughly 3x across all four intensity bands (e.g. `standard` physical 8 → 2.5) to match the real per-exchange timescale established by V152.
+2. Added `activeCombat.tierGap`, persisted every exchange by `fireRoll()` from the same ground-truth (stat-derived when available, falling back to the AI's `TIER_GAP=` tag) value used for the player's to-hit `tierGapBonus` — previously this field existed on `activeCombat` but was never updated past its initial `0` from `startCombat()`.
+3. `updateCombatStrain()` now derives a `tierStrainFactor` from that gap: fighting a lower-tier opponent scales strain down to as low as ×0.4 (one tier ahead → ×0.85, capped lower bound at ×0.4), fighting up a tier scales it up to as high as ×1.8, even-tier fights are unaffected (×1.0) — multiplied into all three strain accumulators alongside the existing endurance-mitigation terms (`em = compressedBonus(endurance)/6`, unchanged from V149).
+
+### Files changed
+`index.html`: `updateCombatStrain()` (~line 6362-6391, rewritten base-rate table + new `tierStrainFactor`); `fireRoll()` (~line 10505-10510, new `activeCombat.tierGap` assignment right after `tierGapBonus` is computed).
+
+**Why this matters for future debugging:** this is a balance/calibration bug, not a logic bug — the code did exactly what it was told, but the per-round numbers were authored against an earlier mental model of how much real time a "round" covers, and one full version (V152) changed that model without anyone revisiting the strain table that depended on it. Whenever a future change redefines the real-world duration or granularity of a recurring game unit (a "round," a "turn," a "tick"), audit every other formula that has a per-unit cost baked in against that same unit — those costs don't automatically rescale themselves.
+
+---
+
 ## V159 — 2026-06-21
 
 **Fix: opponent stat profile orphaned under a generic placeholder name — next roll finds "no profile," later roll fabricates a completely unrelated stat block under the real name**

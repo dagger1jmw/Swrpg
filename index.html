@@ -6363,19 +6363,31 @@ function updateCombatStrain(rounds, intensity) {
   if (!activeCombat || !characterSheet) return;
   const END = characterSheet.stats?.endurance || 30;
   const em = compressedBonus(END) / 6;
-  // Scaled to 100 — multiply base values by 10 vs old 10-scale system
+  // Per-exchange base rates (one "round" = one resolved ROLL_OPPOSED exchange, ~5-10
+  // real seconds per the V152 time-budget fix). Recalibrated down from the pre-V152 table
+  // (which was ~3x these values) — that table was carried over from when a "round" still
+  // implicitly meant a longer chunk of a fight, not a single exchange, so a short multi-
+  // exchange duel was accumulating strain far faster than the real time elapsed justified.
   const base = {
-    'light':    {p:4,  f:3,  m:2},
-    'sparring': {p:4,  f:3,  m:2},
-    'standard': {p:8,  f:6,  m:4},
-    'intense':  {p:12, f:10, m:6},
-    'desperate':{p:20, f:15, m:10}
-  }[intensity || activeCombat.intensity] || {p:8, f:6, m:4};
+    'light':    {p:1.3, f:1.0, m:0.7},
+    'sparring': {p:1.3, f:1.0, m:0.7},
+    'standard': {p:2.5, f:2.0, m:1.3},
+    'intense':  {p:4.0, f:3.3, m:2.0},
+    'desperate':{p:6.5, f:5.0, m:3.3}
+  }[intensity || activeCombat.intensity] || {p:2.5, f:2.0, m:1.3};
+
+  // Overpowering a lower-tier opponent is less exhausting than an even match; fighting up a
+  // tier costs more. Derived from activeCombat.tierGap, set by fireRoll() from the real
+  // (stat-derived when available) tier gap each exchange — positive = player ahead.
+  const gap = activeCombat.tierGap || 0;
+  const tierStrainFactor = gap > 0 ? Math.max(0.4, 1 - gap * 0.15)
+                          : gap < 0 ? Math.min(1.8, 1 + Math.abs(gap) * 0.2)
+                          : 1;
 
   const r = rounds || 1;
-  activeCombat.accPhysical += Math.round((base.p * (1 - em)) * r * 10) / 10;
-  activeCombat.accForce    += Math.round((base.f * (1 - em * 0.5)) * r * 10) / 10;
-  activeCombat.accMental   += Math.round((base.m * (1 - em * 0.3)) * r * 10) / 10;
+  activeCombat.accPhysical += Math.round((base.p * tierStrainFactor * (1 - em)) * r * 10) / 10;
+  activeCombat.accForce    += Math.round((base.f * tierStrainFactor * (1 - em * 0.5)) * r * 10) / 10;
+  activeCombat.accMental   += Math.round((base.m * tierStrainFactor * (1 - em * 0.3)) * r * 10) / 10;
   activeCombat.round += r;
 
   // Control Pain: apply FS cost per round while active injuries are being suppressed
@@ -10491,6 +10503,11 @@ function fireRoll(roll) {
 
   const tierGapBonusTable = [0, 4, 9, 15, 22, 30, 39];
   const tierGapBonus = tierGap !== 0 ? (tierGap > 0 ? 1 : -1) * (tierGapBonusTable[Math.min(6, Math.abs(tierGap))] || 0) : 0;
+
+  // Record the real (ground-truth, stat-derived when available) tier gap onto activeCombat so
+  // updateCombatStrain() can scale per-round strain by how lopsided the fight actually is —
+  // overpowering a lower-tier opponent should cost less exertion than an even match.
+  if (activeCombat) activeCombat.tierGap = tierGap;
 
   // Injury/HP penalty system
   const penCalc = calcRollPenalties(characterSheet, roll.paths);
