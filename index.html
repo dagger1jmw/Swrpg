@@ -2153,7 +2153,7 @@ Accumulated strain this fight: Physical [XX], Force [YY], Mental [ZZ]  (0–100 
 Position: [brief description]
 '''
 [N] = the "Current Round" value from ACTIVE COMBAT STATE in your context (injected by JS, authoritative). Use it exactly — do NOT count from history.
-[XX]/[YY]/[ZZ] = "Accumulated strain so far" values from ACTIVE COMBAT STATE, plus any strain from THIS turn's exchanges.
+[XX]/[YY]/[ZZ] = copy the "Accumulated strain so far" values from ACTIVE COMBAT STATE VERBATIM. Do NOT add your own estimate for this turn's not-yet-resolved exchange — JS computes the real amount after your response and it will appear in next turn's context, exactly like LAST EXCHANGE RESULT. Inventing your own per-round addition here is what previously made displayed strain rise far faster than the real (correctly low) engine value.
 
 ## PLAYER INPUT MODES
 The player can input:
@@ -2221,19 +2221,14 @@ Do NOT emit TRAINING: lines during a combat sequence. All XP comes from COMBAT_E
 
 ## STRAIN ACCUMULATION (not per-move — per round based on intensity)
 Track accumulated strain SEPARATELY during combat. Do NOT update character sheet strain mid-fight.
-Apply to the sheet only when combat ends. JS applies endurance mitigation to COMBAT_ROUND: automatically — use the base values below for the combat state display block.
+Apply to the sheet only when combat ends. JS computes the real per-round strain automatically (factoring intensity, endurance mitigation, and tier gap) — you do NOT calculate or add it yourself. The table below is reference only, so your narrative tone matches how taxing a round actually is; it has no effect on the real number.
 
-Base strain per round by fight intensity (all values on 0–100 scale):
-- Light sparring / training bot: Physical 4, Force 3, Mental 2
-- Standard combat: Physical 8, Force 6, Mental 4
-- Intense/real threat: Physical 12, Force 10, Mental 6
-- Desperate/overwhelming opponent: Physical 20, Force 15, Mental 10
-
-Additional strain per exchange from specific events:
-- Taking a hit (margin 4-7 against): +5 physical
-- Taking a serious hit (margin 8-12): +15 physical
-- Heavy Force use in exchange: +5 force
-- Psychological pressure (domination, fear): +5 mental
+Reference: approximate strain per round by fight intensity (0–100 scale, JS-computed, already include endurance mitigation and tier-gap scaling — these are NOT yours to add):
+- Light sparring / training bot: Physical ~1.3, Force ~1.0, Mental ~0.7
+- Standard combat: Physical ~2.5, Force ~2.0, Mental ~1.3
+- Intense/real threat: Physical ~4.0, Force ~3.3, Mental ~2.0
+- Desperate/overwhelming opponent: Physical ~6.5, Force ~5.0, Mental ~3.3
+Fighting a lower-tier opponent reduces these further (down to ×0.4); fighting above your tier increases them (up to ×1.8) — JS already applies this, you never need to.
 
 ## END OF COMBAT — XP AND STRAIN APPLICATION
 When combat ends (victory, retreat, knockout, or resolution), output COMBAT_END: in the CHANGES block. JS automatically applies accumulated COMBAT_ROUND: strain and calculates XP. Note any injuries or lasting effects in narrative.

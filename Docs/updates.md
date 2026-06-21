@@ -4,6 +4,25 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V161 — 2026-06-21
+
+**Fix: displayed "Accumulated strain this fight" still looked just as inflated after V160's engine fix — because the AI was narrating it from a stale prompt table, not the real (already-fixed) engine value**
+
+### Problem
+Same session, same evening as V160. Player sent a new screenshot: 4 combat rounds showing "Accumulated strain this fight: Physical 46.0, Force 26.0, Mental 15.0" and reported "This is a ridiculous amount for 4 games... that is so ridiculously fast for gaining strain," fighting one tier below the opponent (a tier disadvantage, which correctly should scale strain *up*, not down).
+
+V160 reduced the JS engine's `updateCombatStrain()` base rates ~3x and added tier-gap scaling — and that part was working correctly; the real, persisted strain committed to the sheet at `COMBAT_END` was already fixed. But the per-turn "Accumulated strain this fight" line shown in the combat round display block is *narrated by the AI*, not rendered by JS. The prompt's "STRAIN ACCUMULATION" section (added pre-V160) explicitly told the AI to "use the base values below for the combat state display block" and listed a hardcoded table — `Light: P4/F3/M2`, `Standard: P8/F6/M4`, `Intense: P12/F10/M6`, `Desperate: P20/F15/M10` — that I never updated when I rewrote the JS table for V160. So while the real engine-side number injected into context each turn (`ACTIVE COMBAT STATE`'s "Accumulated strain so far") was correctly small, the AI was still adding its own per-round estimate from the old, ~3x-too-high table on top of that correct base every turn before displaying it — reproducing the exact "too fast" symptom the player had just reported fixed, this time from the prompt side instead of the engine side.
+
+### Fix
+Removed the AI's estimation step entirely rather than re-syncing two duplicate tables a second time (the same lesson as the rest of this session: prompt-tracked derived numbers drift, JS ground truth doesn't). The combat-round display instruction (`## COMBAT STATE` section) now tells the AI to copy the `ACTIVE COMBAT STATE` "Accumulated strain so far" values verbatim, with no added estimate for the turn's not-yet-resolved exchange — mirroring the existing deferred-result pattern already used for `LAST EXCHANGE RESULT` (the AI doesn't know this round's contribution yet, so it shouldn't display one). The old per-round table in the `STRAIN ACCUMULATION` section was updated to the correct V160 numbers anyway (for narrative-tone reference only) and explicitly marked "JS-computed... NOT yours to add," with a note that tier-gap scaling is already baked in.
+
+### Files changed
+`index.html`: `## COMBAT STATE` section combat-round-block instructions (~line 2156); `## STRAIN ACCUMULATION` section base-rate reference table and per-event flat bonuses (~line 2222-2236).
+
+**Why this matters for future debugging:** an engine-side fix can be completely correct and still look unfixed to the player if a *display* value is computed by a second, independent path (here, AI narrative estimation from a static prompt table) that nobody re-synced. Whenever a JS calculation constant changes, grep the prompt for any duplicate hardcoded copy of the same numbers used for AI-side display/narration — and prefer eliminating the duplicate entirely (have the AI echo the JS-computed ground truth, as established throughout this session for tier gap, round count, roll margins, and now strain) over keeping two tables in sync by hand.
+
+---
+
 ## V160 — 2026-06-21
 
 **Fix: combat strain accumulating far too fast for the real time elapsed, with no sensitivity to tier gap**
