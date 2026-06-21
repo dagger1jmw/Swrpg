@@ -4,6 +4,26 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V152 — 2026-06-20
+
+**Fix: in-game clock advancing too fast during combat**
+
+### Problem
+Player reported: "Now time in combat is passing really fast." Root cause: the deferred-roll combat model (V141+) resolves one exchange per AI turn, so a single duel now produces one separate "Time Elapsed:" declaration per round instead of one cumulative declaration for the whole fight. Nothing in the prompt told the AI how much real time a single combat exchange should take — the REALISTIC TIME BUDGETS list covered meals, walks, and conversations, but had no entry for combat at all. Left to guess, the AI defaulted to minutes-scale per-exchange estimates (consistent with how it scopes other narrated beats), so an 8-10 round duel — which should be well under a couple of minutes of real blade-to-blade time — was racking up tens of minutes to hours of in-game clock advancement.
+
+Separately, the clock-advance parser (`advanceClock()`, ~line 5769) and the duplicate pre-parse used for training-hour validation (~line 4653) only recognized "hour" and "min" units — there was no "second" unit support, so even if the AI had tried to declare sub-minute time it would have silently failed to advance the clock at all (a different failure mode, not the one reported, but worth closing at the same time).
+
+### Fix
+- Added an explicit REALISTIC TIME BUDGETS entry: a single combat exchange/round is 3-10 seconds, with guidance that a full multi-round duel without narrative pauses should still total well under a couple of minutes.
+- Added a parallel rule directly in the EXCHANGE RESOLUTION combat section instructing "Time Elapsed: X seconds" per exchange instead of minutes.
+- `advanceClock()` (~line 5769) now also matches a `sec` unit and converts to fractional minutes (rounded to the nearest whole minute) — most single-exchange declarations in seconds correctly round down to 0 added minutes, which is the realistic outcome for a few-second blade clash; multiple exchanges with longer pauses still accumulate normally.
+- `stateBlock` rule 2 and rule 8, the per-turn `reminder` string, and the "REQUIRED" turn instructions now mention seconds and inject an explicit "IN COMBAT: one exchange = 3-10 SECONDS, not minutes" line whenever `activeCombat` is truthy, so the instruction is reinforced every turn a fight is active, not just in the static prompt body.
+
+### Files changed
+- `index.html` — REALISTIC TIME BUDGETS list, EXCHANGE RESOLUTION section, `buildContext()` stateBlock rules 2/8 and `reminder` string, `advanceClock()` unit parsing.
+
+---
+
 ## V151 — 2026-06-19
 
 **Fix: aborted simulations left the AI with zero time-skip awareness**

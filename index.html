@@ -2189,6 +2189,8 @@ The ROLL_OPPOSED fires AFTER your response completes. The result appears in the 
 
 **What this means for Force abilities mid-combat:** An ability increases the roll BONUS. If the margin is still negative, the ability was not enough. Narrate it as active ("he fights with Battlemind clarity") but show it did not save the exchange.
 
+**TIME PER EXCHANGE — declare in seconds, not minutes:** A single ROLL_OPPOSED exchange is 3–10 real-world seconds of blade contact. Write "Time Elapsed: X seconds" for it. Do NOT write "Time Elapsed: 2 minutes" for one clash — that makes a 10-round duel "take" 20+ minutes of real time, which is wrong for continuous combat. Only use minutes mid-fight if the narrative shows an actual pause (repositioning, banter, catching breath).
+
 **ALWAYS use ROLL_OPPOSED for combat — never plain ROLL:**
 Any exchange against an opponent requires ROLL_OPPOSED so JS generates both sides of the roll and shows the margin. Never use ROLL: for a combat exchange — that produces only the player's roll with no opponent and no margin result.
 - If the opponent has a stored profile: ROLL_OPPOSED:lightsaberForms.DjemSo|stats.strength vs CHARACTER:Lyra
@@ -2636,6 +2638,7 @@ REALISTIC TIME BUDGETS — do not exceed these without explicit reason:
 - Reading or research at a terminal: exactly as long as described
 - Sleep: 7–8 hours
 - Speeder travel within a city: 15–30 minutes
+- **Single combat exchange/round (one ROLL_OPPOSED): 3–10 seconds.** A lightsaber clash, a parry, a thrust — this is sub-minute real time. Declare "Time Elapsed: X seconds" for a single exchange, NOT minutes. An entire multi-round duel of 8-10 exchanges resolved back-to-back without pauses still only totals well under a minute or two of real time — do not let per-round time creep into "2-3 minutes" each, since that compounds into a fight "lasting" an hour, which is not realistic for continuous blade-to-blade combat. Only add minutes for actual pauses inside a fight — repositioning across a room, a verbal exchange between exchanges, catching breath after a hard exertion.
 
 Going to dinner and eating = 30–40 minutes. Not 2 hours.
 Thinking quietly about something = a few minutes. Not an hour.
@@ -4024,13 +4027,13 @@ ${activeCombat.lastRollResult ? `  ⚠ LAST EXCHANGE RESULT — JS-computed afte
 ` : ''}
 CRITICAL RULES FOR THIS TURN:
 1. Use the EXACT stat values above as your starting point
-2. TIME IS NOW: ${ws.inGameTime||'unknown'} on ${ws.inGameDate||'unknown'}. Every action takes time. State how much time passes at the start of your response ("Time Elapsed: X minutes/hours") — JavaScript reads this and advances the clock automatically. Do NOT set inGameTime in the WORLD block (JS ignores it). Do NOT change inGameDate in the WORLD block — echo back the date you were given. JS auto-advances the date at midnight from "Time Elapsed". You NEVER skip days or advance the calendar yourself.
+2. TIME IS NOW: ${ws.inGameTime||'unknown'} on ${ws.inGameDate||'unknown'}. Every action takes time. State how much time passes at the start of your response ("Time Elapsed: X seconds/minutes/hours") — JavaScript reads this and advances the clock automatically. Do NOT set inGameTime in the WORLD block (JS ignores it). Do NOT change inGameDate in the WORLD block — echo back the date you were given. JS auto-advances the date at midnight from "Time Elapsed". You NEVER skip days or advance the calendar yourself.${activeCombat ? ' COMBAT: a single exchange is 3–10 SECONDS of real time, not minutes — write "Time Elapsed: X seconds" per exchange. A whole multi-round duel should rarely exceed a minute or two total unless the narrative shows an actual pause.' : ''}
 3. NARRATIVE MUST MATCH THE CLOCK EXACTLY. Current time is shown above in rule 2. Use ONLY conditions appropriate to that exact time. Time period labels: Pre-Dawn 03:00-05:59, Dawn 06:00-06:59, Morning 07:00-11:59, Midday 12:00-13:59, Afternoon 14:00-17:59, Evening 18:00-20:59, Night 21:00-23:59, Late Night 00:00-02:59. If the clock says Afternoon (15:53), do NOT write "getting late", "darkening", "sun setting", or any evening/night atmosphere. If it says Morning (09:00), do NOT describe dim light or fatigue from a long day. The in-game clock is authoritative — never invent time-of-day atmosphere that contradicts it.
 4. XP SYSTEM — CRITICAL: You NEVER directly increment stat values. You NEVER write "+3 XP" in prose. Stats only increase when JavaScript calculates enough XP from TRAINING: or COMBAT: lines. The XP progress shown above (e.g. "Djem So:3[45/114XP]") is authoritative — do not override it. Output TRAINING:/COMBAT: lines in the CHANGES block and JavaScript handles all math.
 5. INTELLIGENCE & FORCE OUTPUT — These are fully tracked stats (stats.intelligence, forceStats.forceOutput). Intelligence gains XP only from FOCUSED deliberate effort: sustained archive research (30+ minutes), working through a difficult tactical problem, decoding complex material, academic instruction from a teacher. Passing thoughts, brief reflections, or casual mental review do NOT qualify — the character must be visibly engaged in effortful thinking. ForceOutput gains XP from raw power expenditure: telekinetic bursts, Force Repulse, channeling large amounts of Force energy. Do NOT neglect these stats when genuinely warranted, but also do not invent reasons to award them from passive activity.
 6. STRAIN RULES — FORCE_STRAIN=, PHYSICAL_STRAIN=, MENTAL_STRAIN= in the CHANGES block: if no training, combat, or Force ability use occurred THIS turn, copy the exact current values from the context above — do NOT increment them. Strain NEVER accumulates passively between turns. It only changes when an activity happens in the current turn's narrative. Carry-over from a previous turn's training is ALREADY PROCESSED — writing a higher value this turn will double-apply it. If strain is unchanged, write the same number as last turn.
 7. Output <<<CHANGES>>>, <<<SHEET>>> and <<<WORLD>>> blocks at the end of EVERY response
-8. TIME REALISM: The "Time Elapsed:" you state must equal what the narrative describes — never more. A meal is 30–40 minutes. A walk across the Temple is 10–20 minutes. Reflection or a brief pause is 5 minutes. Do not inflate time beyond the activity.
+8. TIME REALISM: The "Time Elapsed:" you state must equal what the narrative describes — never more. A meal is 30–40 minutes. A walk across the Temple is 10–20 minutes. Reflection or a brief pause is 5 minutes. A single combat exchange is 3–10 seconds — never minutes. Do not inflate time beyond the activity.
 9. NO XP FOR PASSIVE ACTIVITY: Eating, resting, walking, and mental reflection earn ZERO TRAINING XP. lightsaberForms XP requires physical practice. forceKnowledge/intelligence XP requires focused deliberate study — not passing thoughts. If the player is not actively exerting effort, no TRAINING: line belongs in this turn. CRITICAL: TRAINING: tags must correspond ONLY to training that visibly occurs in THIS turn's narrative. Never include TRAINING: tags to account for a previous turn's session — those CHANGES blocks were already processed by JavaScript. If the previous turn involved training and this turn does not, write ZERO TRAINING: lines.
 10. INJURY SYSTEM — Use INJURY_ADD= when a specific body part is meaningfully struck in combat or story. Minor injuries auto-clear on full sleep (7+ hrs); moderate/severe require bacta/medical; permanent injuries (amputations, life-support damage) require STORY_HEAL= to remove. HP threshold penalties (−1 to −5) are applied automatically by JS — do not calculate them yourself. Use PAIN_CHANNEL=active only for dark side characters (alignment ≤ −25) who consciously embrace pain as fuel. Control Pain ability level directly equals % mitigation of injury penalties — JS calculates and displays this on roll cards.
 11. COMBAT ROUND NUMBER — When in active combat, "ACTIVE COMBAT STATE: Current Round: N" above is the authoritative round counter maintained by JavaScript. Write "— COMBAT ROUND [N] —" in your narrative using that exact number. Do NOT count rounds yourself from conversation history — history is unreliable. If you resolve multiple exchanges this turn (SEQUENCE or INTENT mode), show "ROUND N" for the first exchange and "ROUND N+1", "ROUND N+2" etc. for subsequent ones. The number in your COMBAT_ROUND: tag is how many exchanges you resolved THIS turn (always 1 unless resolving a sequence), not the running total.`;
@@ -4047,7 +4050,7 @@ CRITICAL RULES FOR THIS TURN:
   const lastRollReminder = (activeCombat?.lastRollResult)
     ? `\n\n⚠ MANDATORY COMBAT RESOLUTION — LAST EXCHANGE RESULT (JS-computed, cannot be ignored):\n  "${activeCombat.lastRollResult.label}" → ${activeCombat.lastRollResult.marginLabel} (margin: ${activeCombat.lastRollResult.margin > 0 ? '+' : ''}${activeCombat.lastRollResult.margin.toFixed(2)})\n  ${activeCombat.lastRollResult.winner === 'opponent' ? 'PLAYER LOST. Your response MUST open with the player being outmaneuvered — their attack deflected, missed, or failed. The opponent controlled the exchange. DO NOT write the player striking successfully, the opponent stumbling back, or any positive outcome for the player.' : activeCombat.lastRollResult.winner === 'player' ? 'PLAYER WON. Narrate the player pressing the advantage, the opponent forced back or taking damage.' : 'CONTESTED. Neither side gained clear advantage — blades locked, a mutual check.'}`
     : '';
-  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State "Time Elapsed: X minutes/hours" — JS advances clock and date automatically, do NOT set inGameTime or change inGameDate in WORLD (echo date back as-is). (2) Output <<<CHANGES>>> block. For XP: use TRAINING: or COMBAT: lines — NOT prose. For rolls: output ROLL:statPath1|statPath2, TIER_GAP=N, TACTICAL=N, ROLL_LABEL=description tags. (3) Output <<<SHEET>>> and <<<WORLD>>> blocks.]${lastRollReminder}`;
+  const reminder = `\n\n[TURN ${turnCount + 1} — REQUIRED: (1) State "Time Elapsed: X seconds/minutes/hours" — JS advances clock and date automatically, do NOT set inGameTime or change inGameDate in WORLD (echo date back as-is).${activeCombat ? ' IN COMBAT: one exchange = 3-10 SECONDS, not minutes.' : ''} (2) Output <<<CHANGES>>> block. For XP: use TRAINING: or COMBAT: lines — NOT prose. For rolls: output ROLL:statPath1|statPath2, TIER_GAP=N, TACTICAL=N, ROLL_LABEL=description tags. (3) Output <<<SHEET>>> and <<<WORLD>>> blocks.]${lastRollReminder}`;
 
   messages.push({ role: 'user', parts: [{ text: userContent + reminder }] });
 
@@ -5769,14 +5772,17 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (!prevMatch) return;
         const prevMinutes = parseInt(prevMatch[1]) * 60 + parseInt(prevMatch[2]);
 
-        // Parse "Time Elapsed: N minutes/hours" — only source JS respects
+        // Parse "Time Elapsed: N hours/minutes/seconds" — only source JS respects
         const elapsedLine = rt.split('\n').find(l => /time elapsed/i.test(l));
         if (!elapsedLine) return; // no declaration — leave clock unchanged
         let deltaMinutes = 0;
         const hrMatch  = elapsedLine.match(/(\d+(?:\.\d+)?)\s*hour/i);
-        const minMatch = elapsedLine.match(/(\d+)\s*min/i);
+        const minMatch = elapsedLine.match(/(\d+(?:\.\d+)?)\s*min/i);
+        const secMatch = elapsedLine.match(/(\d+(?:\.\d+)?)\s*sec/i);
         if (hrMatch)  deltaMinutes += Math.round(parseFloat(hrMatch[1]) * 60);
-        if (minMatch) deltaMinutes += parseInt(minMatch[1]);
+        if (minMatch) deltaMinutes += parseFloat(minMatch[1]);
+        if (secMatch) deltaMinutes += parseFloat(secMatch[1]) / 60;
+        deltaMinutes = Math.round(deltaMinutes);
         if (deltaMinutes <= 0) return;
 
         const totalNew     = prevMinutes + deltaMinutes;
