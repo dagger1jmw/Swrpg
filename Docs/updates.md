@@ -4,6 +4,29 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V155 — 2026-06-20
+
+**Fix: AI repeating the exact same narration sentence across unrelated rolls — root cause was a literal example baked into the prompt, not a margin-narration bias**
+
+### Problem
+Player sent four more screenshots reporting "It keeps using that same response at the beginning now. It also still isn't showing losses." The recurring sentence — "Your green blade hisses as it intercepts the Mark IV's baton... you narrowly turn its attack aside, creating a fleeting moment of advantage" — appeared near-verbatim across FOUR different rolls: a solo Force Sense check ("Overwhelming success"), and an opposed Djem So counter-attack roll ("Narrow win," margin +1.83). Since the phrase recurred on a *solo, non-combat* roll with a *winning* result, the "AI overrides loss margins with a positive training-montage prior" theory from V132/V142/V153/V154 cannot explain it — this is a different bug.
+
+Root cause, found by grepping the prompt text itself for "baton"/"photoreceptor": the ROLL SYSTEM section's worked example (index.html ~line 1925-1930) used a hardcoded example narration naming the opponent **"Mark IV"** and describing it intercepting a strike with a **"baton"** near the **"photoreceptor."** Because the player's actual training opponent is also a Mark IV-style droid, the model was directly copying this illustrative template's exact nouns and phrasing into real play, turn after turn, regardless of roll type or outcome — it wasn't narrating margins badly, it was echoing a prompt-embedded example almost verbatim. Compounding this, V153's negative example in the EXCHANGE RESOLUTION section (line ~2179) *quoted the literal bad phrase* ("you narrowly turn his attack aside," "creating a fleeting moment of advantage") as a "don't write this" example — but putting a literal phrase in context, even framed as prohibited, increases the odds a model echoes it anyway since the wording is sitting right there to draw from.
+
+Note: all four screenshots are timestamped 21:25-21:27, which predates the V152 (21:39), V153 (21:46), and V154 (22:21) commits on the same date — this user session may have been running cached pre-V152 code this whole time. The prompt-contamination fix below is a genuine defect independent of that, so it shipped regardless; the player should hard-refresh to pick up V152-155 together.
+
+### Fix
+1. Rewrote the ROLL SYSTEM worked example to drop the "Mark IV"/"baton"/"photoreceptor" specifics in favor of generic placeholder language, with an explicit preceding instruction: "The examples below show STRUCTURE and TIMING only. Never reuse their exact wording, opponent names, or props in your own narration."
+2. Rewrote the V153 negative example in EXCHANGE RESOLUTION to drop the literal quoted bad phrase entirely, replacing it with an abstract description of the prohibition ("describe the clash itself... not its result") plus an explicit "write fresh wording every time — do not settle into a stock phrase" instruction.
+3. Added a general anti-repetition rule to IDENTITY & CORE RULES (applies to all narration, not just combat): never reuse a sentence/phrase from an earlier turn or copy wording from this prompt's own instructional examples; deliberately vary word choice precisely when a scene resembles an earlier one.
+
+### Files changed
+`index.html`: ROLL SYSTEM example block (~line 1924), EXCHANGE RESOLUTION negative example (~line 2179), IDENTITY & CORE RULES (~line 1706).
+
+**Why this matters for future debugging:** a recurring identical phrase across unrelated roll types and outcomes is a strong signal of *prompt template contamination* (the model echoing the developer's own example text) rather than a narrative-judgment bias — check the static prompt text itself for matching nouns/phrasing before assuming it's a model-compliance problem. Quoting a literal "don't write this" phrase as a negative example is itself risky; describe prohibitions abstractly instead of spelling out the exact words to avoid.
+
+---
+
 ## V154 — 2026-06-20
 
 **Fix: AI combat narration still contradicting loss margins — moved outcome resolution off AI prose onto a JS ground-truth banner**
