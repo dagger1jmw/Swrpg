@@ -2179,6 +2179,8 @@ Each exchange uses the opposed roll system. **ONE ROLL_OPPOSED tag per exchange 
 
 The ROLL_OPPOSED fires AFTER your response completes — you do NOT know the margin for the exchange you are requesting THIS turn. **Do not narrate this turn's just-requested exchange as already won, landed, or advantageous.** Describe the player's action and the opponent's action unfolding — blades meeting, the attempt being made — WITHOUT declaring who came out ahead or implying any degree of success. Stay genuinely neutral on outcome: describe the clash itself (contact, motion, commitment to the strike), not its result. The result appears in the NEXT turn's ACTIVE COMBAT STATE as "LAST EXCHANGE RESULT". You MUST open that turn's narrative by resolving THAT previous exchange per the result before addressing the player's new action. Write fresh wording every time — do not settle into a stock phrase you repeat across exchanges regardless of the actual roll outcome.
 
+**The exact numeric margin for the roll you are about to fire will be displayed to the player directly underneath your own narrative, in the same message, before your next response.** If you write so much as one clause implying the player's action succeeded, landed cleanly, gained an advantage, or maintained a "perfect"/"unbroken"/"meditative" defense for the exchange you are requesting right now, the player will read that sentence and then immediately read a contradicting margin one line below it. Before finalizing any combat response, re-read your own last sentence before the ROLL_OPPOSED tag and check it for words like "successfully," "narrowly turned aside," "didn't just block," "advantage," "unbroken," "perfect," or any verb of completed impact — if present, cut the sentence back to end at the moment of commitment (contact, not result).
+
 **LAST EXCHANGE RESULT → narrative requirement:**
 - **Player won (positive margin):** Player's attack succeeded — narrate landing the blow, opponent forced back, gaining position.
 - **Contested (zero):** Neither side gained — a clash, a block, a mutual check.
@@ -4676,6 +4678,27 @@ async function callGemini(playerMessage, retryCount = 0) {
         }
       }
     })();
+
+    // ── Same-turn pending-resolution notice ──────────────────────────────────────────
+    // A ROLL_OPPOSED that just fired THIS turn has a real, final margin (visible in the
+    // detailed card fireRoll() rendered above) — but the AI's narrative in this same message
+    // was generated before that margin existed, so it structurally cannot reflect it, and
+    // four straight prompt-only attempts (V132/V142/V153/V155) at getting the AI to stay
+    // neutral there have not reliably held. Rather than trying a fifth wording, tell the
+    // player directly and deterministically, every time, not to trust this turn's narrative
+    // for the exchange whose card just appeared — the real resolution lands next turn via
+    // the "Last Exchange — Resolved" banner above.
+    const _newRollResult = (activeCombat && activeCombat.lastRollResult && activeCombat.lastRollResult !== _prevRollResult)
+      ? activeCombat.lastRollResult : null;
+    if (_newRollResult) {
+      const _feedEl2 = document.getElementById('story-feed');
+      if (_feedEl2) {
+        const _nd2 = document.createElement('div'); _nd2.className = 'msg';
+        _nd2.innerHTML = `<div style="background:rgba(15,20,30,0.4);border:1px solid #3a2a1a;border-left:3px solid #cc8844;border-radius:4px;padding:6px 14px;font-size:11px;font-family:'Consolas',monospace;margin:4px 0;color:var(--text-dim)">`
+          + `⏳ Dice are final for the exchange above. The narrative that follows was written before that result existed and may not match it — the true outcome is addressed at the start of your next turn.</div>`;
+        _feedEl2.appendChild(_nd2); _feedEl2.scrollTop = _feedEl2.scrollHeight;
+      }
+    }
 
     // Clear the previous result now that it's been banner-rendered above — but only if
     // nothing in THIS turn's scan replaced it with a fresh roll (reference check: fireRoll

@@ -4,6 +4,23 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V156 — 2026-06-21
+
+**Fix: AI still narrating success on the just-fired (not-yet-resolved) combat roll — fifth recurrence, moved to a deterministic same-turn disclaimer**
+
+### Problem
+Two new screenshots: roll card read "SORESU DEFENSE AGAINST MARK IV REMOTE — Margin: Opponent by 6.20 — Clear loss," directly followed by narrative claiming the player "narrowly turned its attack aside, creating a fleeting moment of advantage" and, in the next paragraph, "Each deflection is precise... You are a living shield... this perfect, unbroken defense" — describing sustained successful defense against a roll the card shows the player clearly losing. This is the *same* failure class as V132/V142/V153, but for the exchange that fires THIS turn (not the deferred previous one V154's banner already covers) — the AI is supposed to stay neutral on an exchange it can't know the result of yet, and has now failed to do so across four straight prompt-only attempts (V132, V142, V153, V155).
+
+### Fix
+Rather than a fifth wording attempt alone, added a deterministic JS disclaimer (same pattern as V154's "Last Exchange — Resolved" banner) that fires unconditionally whenever a NEW `ROLL_OPPOSED` resolves mid-turn: a small dim note appended directly under that turn's fresh roll card reading "Dice are final for the exchange above. The narrative that follows was written before that result existed and may not match it — the true outcome is addressed at the start of your next turn." This guarantees the player is told, every single time, not to trust this turn's prose for the roll whose card they're looking at — independent of whether the AI's narrative happens to comply. Also sharpened the EXCHANGE RESOLUTION prompt rule with a concrete framing (the exact margin will appear directly under the AI's own narrative on the player's screen) and a self-check list of the specific offending words/phrases seen recurring across all five reports so far ("successfully," "narrowly turned aside," "didn't just block," "advantage," "unbroken," "perfect").
+
+### Files changed
+`index.html`: new same-turn disclaimer block in `callGemini()` right after `scanForRollTags()` (~line 4680, alongside the existing `_prevRollResult` banner logic); EXCHANGE RESOLUTION prompt section (~line 2178).
+
+**Why this matters for future debugging:** this is now the *fifth* occurrence of "AI claims success on a combat roll it shouldn't know the outcome of," split across two distinct sub-cases — V154 already solved it for the *previous* turn's deferred result (banner), but the *current* turn's freshly-fired roll had no equivalent ground-truth safeguard and kept failing prompt-only fixes. The lesson from [[project_combat_resolution_groundtruth_banner]] generalizes: any AI self-report of a JS-computable fact needs its own deterministic display, not just the first instance of the pattern you find.
+
+---
+
 ## V155 — 2026-06-20
 
 **Fix: AI repeating the exact same narration sentence across unrelated rolls — root cause was a literal example baked into the prompt, not a margin-narration bias**
