@@ -1786,6 +1786,11 @@ TRAINING: stats.strength, 1.0, intense, above, strong
 For combat — use these three lines across the fight:
 COMBAT_START: [opponent name], [intensity: light/standard/intense/desperate]
   → Output on the FIRST exchange of any combat
+  → Use the opponent's real name immediately if known. If genuinely unnamed at this point (use
+    a placeholder like "the apprentice"), switch every later ROLL_OPPOSED CHARACTER:/INTERACTION:
+    reference to the exact same name the moment it's revealed — JS reconciles a name change but
+    only matches on an exact string, so a different name for the same NPC still risks a fresh,
+    unrelated stat block being generated.
 COMBAT_ROUND: [rounds_this_turn], [intensity]
   → Output EVERY exchange turn (e.g. COMBAT_ROUND: 1, standard)
 COMBAT_END: [primarySkillPath], [secondarySkillPath|none], [opponentTier 1-7], [engagement], [outcome][, fate]
@@ -4640,6 +4645,27 @@ async function callGemini(playerMessage, retryCount = 0) {
     let combatRollsThisTurn = 0;
     const _combatRoundBefore = activeCombat?.round;
 
+    // ── Pre-apply COMBAT_START: before the ROLL_OPPOSED scan below ─────────────────────
+    // scanForRollTags() (next block) registers the opponent's stats keyed by
+    // activeCombat.opponent — but COMBAT_START: normally isn't applied until the main
+    // CHANGES-tag loop runs, which happens AFTER this scan. When a turn both starts combat
+    // and fires the first exchange (the common "engage and immediately attack" case),
+    // activeCombat was still null/stale at scan time, so the real stats got silently
+    // discarded under a generic 'Opponent' placeholder instead of the real name. Applying
+    // COMBAT_START: here first means activeCombat.opponent is already correct by the time
+    // the scan runs; _combatStartedThisTurn tells the main loop's COMBAT_START: handler
+    // (below) to skip re-running startCombat(), which would otherwise wipe out
+    // lastRollResult that fireRoll() is about to set during this same scan.
+    let _combatStartedThisTurn = false;
+    if (!activeCombat) {
+      const _csMatch = rawText.match(/^\s*COMBAT_START:\s*(.+)$/m);
+      if (_csMatch) {
+        const _csParts = _csMatch[1].split(',').map(s => s.trim());
+        startCombat(_csParts[0], _csParts[1]);
+        _combatStartedThisTurn = true;
+      }
+    }
+
     // ── Ground-truth resolution banner for the PREVIOUS exchange ───────────────────────
     // Renders a deterministic, JS-computed readout of the last exchange's actual result,
     // independent of whatever the AI's prose says. The player should never have to rely
@@ -4675,6 +4701,10 @@ async function callGemini(playerMessage, retryCount = 0) {
             if (oppStr.startsWith('CHARACTER:')) {
               const charName = oppStr.slice(10).trim();
               scanPending.oppName = charName;
+              // If combat is still keyed under an earlier placeholder name, reconcile it to
+              // this (presumably now-real) name first so the lookup below can find stats
+              // that were registered before the opponent had a name.
+              if (activeCombat && charName !== activeCombat.opponent) syncCombatOpponentName(charName);
               const profile = worldState?.characterProfiles?.[charName];
               const profileStats = profile?.stats && Object.keys(profile.stats).length > 0 ? profile.stats : null;
               if (profileStats) {
@@ -4802,6 +4832,10 @@ async function callGemini(playerMessage, retryCount = 0) {
 
         // COMBAT_START: opponent, intensity
         if (trimmed.startsWith('COMBAT_START:')) {
+          // Already applied by the pre-scan above (before the ROLL_OPPOSED scan ran) —
+          // re-running startCombat() here would wipe out lastRollResult that fireRoll()
+          // may have just set for this turn's first exchange.
+          if (_combatStartedThisTurn) { continue; }
           const parts = trimmed.slice(13).split(',').map(s => s.trim());
           startCombat(parts[0], parts[1]);
           continue;
@@ -5389,6 +5423,12 @@ async function callGemini(playerMessage, retryCount = 0) {
             if (intName && worldState) {
               if (!worldState.interactionWeights) worldState.interactionWeights = {};
               if (!worldState.characterProfiles) worldState.characterProfiles = {};
+              // If this INTERACTION is naming the current combat opponent for the first time
+              // (e.g. a fight that started against an unnamed "apprentice" just had the name
+              // "Padawan Velan" revealed), reconcile activeCombat's stat registration to this
+              // name BEFORE the empty-stats stub below could get created under it — otherwise
+              // the real registered stats stay orphaned under the old placeholder forever.
+              if (activeCombat && intName !== activeCombat.opponent) syncCombatOpponentName(intName);
               worldState.interactionWeights[intName] = (worldState.interactionWeights[intName]||0) + intAdd;
               if (!worldState.characterProfiles[intName]) {
                 worldState.characterProfiles[intName] = {
@@ -6256,6 +6296,31 @@ function startCombat(opponent, intensity) {
     tierGap: 0,
     oppInjuries: []
   };
+}
+
+// Reconciles activeCombat.opponent with a real name surfacing mid-combat (via a
+// CHARACTER: roll target or an INTERACTION: tag) when combat was started under a generic
+// placeholder name (e.g. "the apprentice") before the opponent was identified. Without this,
+// stats registered under the placeholder stay orphaned forever — every later lookup by the
+// real name finds nothing, and the AI ends up inventing a brand new unrelated stat block.
+function syncCombatOpponentName(newName) {
+  if (!activeCombat || !newName || !worldState) return;
+  const oldName = activeCombat.opponent;
+  if (!oldName || oldName === newName) { activeCombat.opponent = newName; return; }
+  if (!worldState.characterProfiles) worldState.characterProfiles = {};
+  const oldProf = worldState.characterProfiles[oldName];
+  const newProf = worldState.characterProfiles[newName];
+  const oldHasStats = !!(oldProf?.stats && Object.keys(oldProf.stats).length > 0);
+  const newHasStats = !!(newProf?.stats && Object.keys(newProf.stats).length > 0);
+  if (oldHasStats && !newHasStats) {
+    if (!worldState.characterProfiles[newName]) {
+      worldState.characterProfiles[newName] = { ...oldProf, name: newName };
+    } else {
+      worldState.characterProfiles[newName].stats = oldProf.stats;
+    }
+    if (oldName !== 'Unknown' && oldName !== 'Opponent') delete worldState.characterProfiles[oldName];
+  }
+  activeCombat.opponent = newName;
 }
 
 function endCombat(outcome, engagement) {

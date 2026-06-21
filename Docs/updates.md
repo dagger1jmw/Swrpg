@@ -4,6 +4,30 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V159 — 2026-06-21
+
+**Fix: opponent stat profile orphaned under a generic placeholder name — next roll finds "no profile," later roll fabricates a completely unrelated stat block under the real name**
+
+### Problem
+Player sent four screenshots from a single Djem So sparring sequence: roll 1 ("Djem So Stance vs Apprentice's Shii-Cho-Soresu") registers real opponent stats and a "◆ Profile added: Padawan Velan" notice fires; roll 2 ("Djem So Overhead Strike vs Padawan Velan") shows "Padawan Velan: tier estimate (no PROFILE_STATS registered)" — the just-registered stats are gone; roll 3 ("Djem So Assault — Horizontal Slash") shows a full opponent stat block for "Padawan Velan" again, but with completely different numbers (str 21/agi 21/ShiiCho 30 vs. roll 1's str 38/agi 42/ShiiCho 35) — an unrelated, freshly-invented profile under the same name. Player's framing: "Padawan Velans profile gets added, then the next roll registers no profile, and then a completely new profile gets used with no relation to the registered profile... the Shii Cho stats don't align... that djem so assault doesn't even get rolled against the opponents stats."
+
+Two compounding root causes in `index.html`'s opponent-profile system:
+
+1. **Execution-order bug.** `scanForRollTags()` (which auto-registers `ROLL_OPPOSED ... vs INLINE:` stats to `worldState.characterProfiles`, keyed by `activeCombat.opponent`) runs on `rawText` *before* the main CHANGES-tag loop processes `COMBAT_START:` (which is what actually sets `activeCombat.opponent`). On the very common turn that both starts combat and fires the first exchange in the same response (e.g. "take up a stance" + an immediate attack), `activeCombat` was still null at scan time, so the opponent name fell back to the literal placeholder `'Opponent'` — and the registration save is explicitly skipped whenever the name is that placeholder (to avoid polluting profiles with a generic key). The real, correct stats from the first roll were silently discarded, never reaching `characterProfiles` at all.
+2. **Independent, uncoordinated profile-creation paths.** The `INTERACTION:` tag handler (used for the People-panel social-weight tracking) creates a `characterProfiles[name]` entry with `stats: {}` the first time an NPC is mentioned — including when the AI introduces the opponent's actual name ("Padawan Velan") mid-fight, independent of and unaware of whatever combat-stat registration may already exist under `activeCombat.opponent`. If that combat name differs at all from the `INTERACTION:` name (which it does whenever combat started under a placeholder, or even just a slightly different phrasing), later `CHARACTER:` lookups by the real name find this stats-less stub instead of the real numbers — and the AI, seeing no usable profile, falls back to `INLINE:` again with brand new invented numbers, which the existing "first roll against this opponent" auto-register logic then saves under the real name as if it were a fresh NPC, with no relation to the original.
+
+### Fix
+1. Added a pre-scan in `callGemini()` (before `scanForRollTags()` runs) that detects `COMBAT_START:` in `rawText` and calls `startCombat()` immediately if `activeCombat` is still null — so `activeCombat.opponent` is already correct by the time the same turn's `ROLL_OPPOSED`/`INLINE:` registration runs. A `_combatStartedThisTurn` flag tells the main loop's `COMBAT_START:` case to skip re-applying it (re-running `startCombat()` a second time would wipe out `lastRollResult` that `fireRoll()` may have just set during the scan).
+2. Added `syncCombatOpponentName(newName)`: when a `CHARACTER:` roll target or an `INTERACTION:` tag names the opponent under a different string than the current `activeCombat.opponent`, it migrates any already-registered stats from the old key to the new one (only when the old key has real stats and the new one doesn't), deletes the now-redundant old placeholder entry, and updates `activeCombat.opponent` to the new name — called from both the `CHARACTER:` branch of `scanForRollTags()` and the `INTERACTION:` case, before either does its own profile lookup/creation.
+3. Added a clarifying line to the `COMBAT_START:` prompt reference instructing the AI to use the opponent's real name immediately if known, and to switch every later reference to the exact same string the moment a placeholder name is replaced by a real one.
+
+### Files changed
+`index.html`: `callGemini()` turn-setup block (~line 4640-4659, new pre-scan + `_combatStartedThisTurn`); `scanForRollTags()` CHARACTER: branch (~line 4696-4702, sync call); main CHANGES-tag loop `COMBAT_START:` case (~line 4825-4833, skip-if-already-applied guard); `INTERACTION:` case (~line 5412-5425, sync call); new `syncCombatOpponentName()` function next to `startCombat()` (~line 6286-6308); COMBAT_START: prompt reference (~line 1787-1792).
+
+**Why this matters for future debugging:** unlike the V132-V158 deferred-roll family (AI has the right information but doesn't narrate it correctly), this was a genuine state-management bug — two different code paths writing to the same `characterProfiles` dictionary under names that weren't guaranteed to match, plus an execution-order assumption (`scanForRollTags()` before `COMBAT_START:` is applied) that happened to silently drop data on the single most common combat-opening turn. When multiple CHANGES tags can each independently create or look up an entry in the same shared dictionary keyed by AI-supplied strings, check whether all paths are guaranteed to agree on the exact key string, and whether any one of them runs before its dependency has been applied for that same turn — name-matching bugs and ordering bugs both fail silently with no error, only a wrong/missing card on screen.
+
+---
+
 ## V158 — 2026-06-21
 
 **Fix: AI confirmed a Shatterpoint interpretation roll "succeeded" but never narrated what was actually perceived — required an extra player turn to extract the content**
