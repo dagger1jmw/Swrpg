@@ -4,6 +4,25 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V154 — 2026-06-20
+
+**Fix: AI combat narration still contradicting loss margins — moved outcome resolution off AI prose onto a JS ground-truth banner**
+
+### Problem
+Player sent three screenshots (timestamped 20:43, 21:04, 21:07 — all predating the V153 commit at 21:46:59, meaning these were further evidence of the original pre-V153 bug, not a new post-fix regression) showing the AI narrating a training-droid sparring exchange as a clean defensive success ("you narrowly turned its attack aside, creating a fleeting moment of advantage... you are not just deflecting; you are learning, adapting") while the JS roll card directly above showed, respectively, "Overwhelming loss" (margin 15.45), "Clear loss" (margin 3.70), and "Overwhelming loss" (margin 18.20). All three screenshots contain byte-for-byte identical narrative prose despite three different real dice rolls — strong evidence that for this kind of low-stakes "youngling training drill" framing, the model's positive-coded training-montage prior reliably overrides the numeric margin, independent of which specific loss tier actually occurred.
+
+This is the third prompt-only attempt at this exact failure class (V132 added the per-margin narrative table; V142 added the mandatory `lastRollReminder`; V153 removed a contradictory legacy instruction). Each made the instructions clearer, but none reliably stopped the model from defaulting to upbeat "successful parry" language when the surrounding scene reads as a routine training exercise rather than a life-or-death duel.
+
+### Fix
+Rather than a fourth prompt-wording attempt, moved the outcome statement itself off AI prose onto JS-computed ground truth — the same pattern already used for tier gap and round-count in V144. In `callGemini()`, the value of `activeCombat.lastRollResult` is snapshotted (`_prevRollResult`) immediately after `buildContext()` is called, before this turn's `scanForRollTags()`/`fireRoll()` can overwrite it with a fresh roll for the newly-requested exchange. If a previous result exists, a small color-coded "Last Exchange — Resolved" banner is appended directly to the story feed (red border/text for an opponent win, green for a player win, yellow for contested) stating the exact label, margin, and a deterministic one-line consequence from the new `resolutionLineFor()` lookup (keyed off the same marginLabel strings `fireRoll()` already produces, e.g. `'Overwhelming loss' → 'You were dominated in that exchange — serious danger, likely took a direct hit.'`). `activeCombat.lastRollResult` is then nulled via reference-identity check (only if `fireRoll()` didn't already replace it with a new roll object this same turn) so the banner doesn't repeat on a later turn where no new roll fires.
+
+This guarantees the player always sees a mechanically correct outcome regardless of what the AI's narrative says. The prompt's EXCHANGE RESOLUTION section also gained a line telling the AI this banner now exists and that its prose must match it rather than soften it — a reinforcement, not a replacement, for the structural fix.
+
+### Files changed
+- `index.html` — `callGemini()`: added `_prevRollResult` snapshot after `buildContext()` call; added ground-truth banner DOM-append block before `scanForRollTags()`; added stale-result clear after `scanForRollTags()`. New `resolutionLineFor(r)` helper function (near `fireRoll`). EXCHANGE RESOLUTION prompt section: added banner-awareness reminder line.
+
+---
+
 ## V153 — 2026-06-20
 
 **Fix: AI still narrating wins on overwhelming-loss exchanges — contradictory leftover instruction**

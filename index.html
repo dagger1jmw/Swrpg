@@ -2186,6 +2186,8 @@ The ROLL_OPPOSED fires AFTER your response completes — you do NOT know the mar
 
 **NEVER write the player striking successfully when LAST EXCHANGE RESULT shows PLAYER LOST. The player's declared action describes their intent — the margin determines whether it worked.**
 
+**The player ALSO sees a JS-generated "Last Exchange — Resolved" line stating the exact margin and outcome, separate from your prose, every turn a previous result exists.** Your narrative must match that line, not soften or contradict it — if it shows a loss, your prose describing "the same exchange" must read as a loss too, regardless of how the training/sparring framing might otherwise pull toward a positive tone.
+
 **What this means for Force abilities mid-combat:** An ability increases the roll BONUS. If the margin is still negative, the ability was not enough. Narrate it as active ("he fights with Battlemind clarity") but show it did not save the exchange.
 
 **TIME PER EXCHANGE — declare in seconds, not minutes:** A single ROLL_OPPOSED exchange is 3–10 real-world seconds of blade contact. Write "Time Elapsed: X seconds" for it. Do NOT write "Time Elapsed: 2 minutes" for one clash — that makes a 10-round duel "take" 20+ minutes of real time, which is wrong for continuous combat. Only use minutes mid-fight if the narrative shows an actual pause (repositioning, banter, catching breath).
@@ -4239,6 +4241,12 @@ async function callGemini(playerMessage, retryCount = 0) {
 
   try {
     const messages = buildContext(userContent);
+    // Snapshot the previous exchange's result BEFORE this turn's scanForRollTags() overwrites
+    // activeCombat.lastRollResult with a fresh roll. Used to render a JS ground-truth resolution
+    // banner — AI prose compliance on "narrate the loss accurately" has proven unreliable across
+    // three prompt-only fix attempts (V132/V142/V153), so the correct outcome must be guaranteed
+    // independent of what the AI actually writes.
+    const _prevRollResult = activeCombat?.lastRollResult || null;
 
     const body = {
       system_instruction: { parts: [{ text: MASTER_PROMPT }] },
@@ -4565,6 +4573,23 @@ async function callGemini(playerMessage, retryCount = 0) {
     let combatRollsThisTurn = 0;
     const _combatRoundBefore = activeCombat?.round;
 
+    // ── Ground-truth resolution banner for the PREVIOUS exchange ───────────────────────
+    // Renders a deterministic, JS-computed readout of the last exchange's actual result,
+    // independent of whatever the AI's prose says. The player should never have to rely
+    // solely on the AI correctly narrating a loss — see resolutionLineFor().
+    if (_prevRollResult) {
+      const _feedEl = document.getElementById('story-feed');
+      if (_feedEl) {
+        const _rc = _prevRollResult.winner === 'player' ? '#88cc88' : _prevRollResult.winner === 'opponent' ? '#cc4444' : '#cccc88';
+        const _rd = document.createElement('div'); _rd.className = 'msg';
+        _rd.innerHTML = `<div style="background:rgba(15,20,30,0.6);border:1px solid #2a3a4a;border-left:3px solid ${_rc};border-radius:4px;padding:8px 14px;font-size:12px;font-family:'Consolas',monospace;margin:4px 0">`
+          + `<div style="color:#5588aa;font-size:9px;letter-spacing:2px;margin-bottom:4px;font-family:'Cinzel',serif;text-transform:uppercase">Last Exchange — Resolved</div>`
+          + `<div style="color:${_rc};font-weight:bold">"${_prevRollResult.label}" — ${_prevRollResult.marginLabel} (margin ${_prevRollResult.margin>0?'+':''}${_prevRollResult.margin.toFixed(2)})</div>`
+          + `<div style="color:var(--text-dim);margin-top:2px">${resolutionLineFor(_prevRollResult)}</div></div>`;
+        _feedEl.appendChild(_rd); _feedEl.scrollTop = _feedEl.scrollHeight;
+      }
+    }
+
     // ── Scan full response for ROLL/ROLL_OPPOSED tags (may appear outside CHANGES block) ──
     (function scanForRollTags() {
       const lines = rawText.split('\n');
@@ -4648,6 +4673,13 @@ async function callGemini(playerMessage, retryCount = 0) {
         }
       }
     })();
+
+    // Clear the previous result now that it's been banner-rendered above — but only if
+    // nothing in THIS turn's scan replaced it with a fresh roll (reference check: fireRoll
+    // always creates a brand-new object, so identity differs whenever a new roll fired).
+    if (activeCombat && activeCombat.lastRollResult === _prevRollResult && _prevRollResult) {
+      activeCombat.lastRollResult = null;
+    }
 
     // Pre-parse "Time Elapsed" declared by AI — used to validate TRAINING: claimed hours
     let turnElapsedHours = null;
@@ -10225,6 +10257,26 @@ function getOppPrimaryStatValue(oppStats, primaryPath) {
   if (suffix in oppStats) return oppStats[suffix];
   const vals = Object.values(oppStats);
   return vals.length ? vals[0] : null;
+}
+
+// Deterministic one-line consequence text for a JS-computed opposed-roll result, keyed off
+// the exact marginLabel strings fireRoll() produces. Used by the ground-truth resolution
+// banner (callGemini) so the player always sees a correct outcome even if the AI's own
+// narrative prose drifts toward a "successful defense" framing regardless of the margin —
+// a recurring failure mode prompt-only fixes (V132/V142/V153) did not fully eliminate.
+function resolutionLineFor(r) {
+  const map = {
+    'Overwhelming — decisive':            'Your attack overwhelmed the opponent\'s defense completely.',
+    'Dominant win — serious trouble':     'Your attack landed hard — the opponent is in serious trouble.',
+    'Clear win — meaningful pressure':    'Your attack connected clearly, pressing the opponent back.',
+    'Narrow win':                         'Your attack just barely got through.',
+    'Contested — both hold':              'Neither side gained ground — a mutual clash.',
+    'Narrow loss':                        'You barely lost that exchange — pushed back slightly.',
+    'Clear loss':                         'Your attack failed to connect — the opponent is pressing the advantage.',
+    'Dominant loss — in serious trouble': 'You were outclassed in that exchange — now on the defensive.',
+    'Overwhelming loss':                  'You were dominated in that exchange — serious danger, likely took a direct hit.'
+  };
+  return map[r?.marginLabel] || (r?.winner === 'player' ? 'You came out ahead.' : r?.winner === 'opponent' ? 'You came out behind.' : 'An even exchange.');
 }
 
 function fireRoll(roll) {
