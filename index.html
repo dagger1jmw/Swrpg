@@ -2455,10 +2455,29 @@ THREE TIERS (JS enforces unlock based on level):
     Pivotal moments in unfolding events. The fulcrum of a battle or political situation.
     EXTREMELY rare. Treat as a major story beat when it occurs.
 
+── PATH A (learned) vs PATH B (ShatterSense innate) ─────────────────
+These are mechanically different and must be narrated differently:
+  Path A (no ShatterSense): perception itself takes effort below level 10 — must roll
+    even to notice a shatterpoint exists. Force Strain for interpretation: 20-40 per
+    attempt. Sustaining a deep read is genuinely taxing — fatigue and strain are real
+    and should show in the narrative.
+  Path B (ShatterSense innate talent active): perception is passive and automatic —
+    it surfaces like Force Sense surfaces a presence, no roll, no effort. Force Strain
+    for interpretation is only ×0.3 of Path A's (≈6-12 per attempt) — at higher
+    proficiency a Tier 1 read is essentially strain-free. Holding Tier 1 combat
+    awareness through an ENTIRE fight is the baseline, ordinary mode of operation for
+    this talent, not a strain on it. Do NOT narrate Shatterpoint (Innate) as tiring,
+    hard to maintain, or something that lapses from fatigue — that is the Path A
+    experience, not Path B's. If the player chooses to keep it active through combat,
+    it stays active for the whole engagement with no narrative friction, unless focus
+    is deliberately pushed past Tier 1 into a Tier 2/3 read (see bandwidth table below)
+    or Tunnel Vision (71+) is reached.
+
 ── PERCEPTION vs INTERPRETATION ─────────────────────────────────────
 Perception = passive, automatic for innate talent holders. It surfaces without effort.
-Interpretation = the hard part. Use SHATTERPOINT_ROLL:[target description] to trigger
-the JS interpretation roll. The roll result determines what Jared actually understands:
+Interpretation = the hard part for Path A; trivial for Path B at Tier 1. Use
+SHATTERPOINT_ROLL:[target description] to trigger the JS interpretation roll. The
+roll result determines what Jared actually understands:
 
   fail        → Misread. He perceives something but gets it WRONG. Act on this.
   contested   → Partial. Accurate but incomplete — missing something crucial.
@@ -2487,6 +2506,14 @@ Deeper reads narrow ambient awareness. When you send SHATTERPOINT_FOCUS=[value]:
 If Vaapad is active simultaneously, JS multiplies focus by 1.3 automatically.
 Clear focus with SHATTERPOINT_FOCUS_CLEAR when the scene ends or focus drops.
 
+Tier 1 has two distinct bandwidth costs — use the one that matches the actual moment:
+  20-40: a brief tactical read — a single flash of insight on one stance flaw or opening.
+  35-50: sustained combat focus — Shatterpoint held active and informing every exchange
+         for an entire fight. This is the normal mode for a ShatterSense holder choosing
+         to fight "with the Force open" and sits comfortably under the 71+ Tunnel Vision
+         line — send a value in this range once at the start of the engagement and leave
+         it there for the duration, rather than re-rolling or escalating it turn by turn.
+
 ── CHANGES BLOCK TAGS ───────────────────────────────────────────────
 SHATTERPOINT_PERCEIVED:[tier],[brief description of what surfaces]
   Example: SHATTERPOINT_PERCEIVED:1,Old knee injury — right leg carries weight unevenly
@@ -2496,7 +2523,9 @@ SHATTERPOINT_ROLL:[target]
   Example: SHATTERPOINT_ROLL:Master Aris during briefing
 
 SHATTERPOINT_FOCUS=[0-100]
-  Set bandwidth consumed. Use 20-40 for Tier 1, 50-70 for Tier 2, 80-90 for Tier 3.
+  Set bandwidth consumed. Use 20-40 for a brief Tier 1 tactical read, 35-50 for
+  sustained Tier 1 combat focus held through a whole fight, 50-70 for Tier 2,
+  80-90 for Tier 3.
   Example: SHATTERPOINT_FOCUS=35
 
 SHATTERPOINT_FOCUS_CLEAR

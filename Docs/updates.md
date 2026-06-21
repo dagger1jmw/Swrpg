@@ -4,6 +4,28 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V157 — 2026-06-21
+
+**Fix: Shatterpoint (Innate) narrated as hard to sustain through combat — prompt never distinguished the Path A (learned) vs Path B (ShatterSense innate) cost difference**
+
+### Problem
+Player reported: "Shatterpoint innate should be active all through combat if I choose to use it. Also earlier on it was described as being hard to maintain focus but the innate talent should not be that way. The V3 abilities document should have the exact usage for it and it should be coded into the game. I think something in our changes is blocking this." Per `SW_Force_Abilities_Forms_v3_complete.md`, Shatterpoint (Innate) (`ShatterSense` talent, Path B) is supposed to be passive/automatic perception with Force Strain at only ×0.3 of the learned path (≈6-12 per attempt, "essentially strain-free" at higher proficiency), and the awareness-bandwidth table has a dedicated "Tier 1 — sustained combat focus" cost of 35-50 — comfortably under the 71+ Tunnel Vision threshold, meaning an innate-talent character should be able to keep Tier 1 Shatterpoint perception running for an entire fight without narrative friction.
+
+Investigation of `index.html`'s actual mechanics (`spSetFocus()`, `spClearFocus()`, the per-turn SHATTERPOINT state-block line, the focus-cost CHANGES tag handler) found no code bug — focus is set once by the AI's `SHATTERPOINT_FOCUS=` value and persists turn over turn exactly as the player would expect; nothing auto-decays it, nothing forces it to reset mid-combat, and Tunnel Vision only triggers above 70 as documented. The root cause was a prompt gap, not an engine bug: the SHATTERPOINT SYSTEM section told the AI that "perception = passive, automatic for innate talent holders" but never told it that Path B's *interpretation strain* is heavily discounted (×0.3) or that "sustained combat focus" is its own bandwidth-cost category distinct from a "brief tactical read" — both Path A and Path B were left under one undifferentiated 20-40-for-Tier-1 instruction. With no information distinguishing the innate talent's actual cheapness, the model defaulted to its natural dramatic prior (effort/fatigue framing for "maintaining focus"), the same kind of narrative-prior override seen in the V154 combat-margin bug class, just for a different mechanic.
+
+### Fix
+Prompt-only (no engine code changed — the mechanics were already correct). In the SHATTERPOINT SYSTEM section of `MASTER_PROMPT`:
+1. Added a new "PATH A (learned) vs PATH B (ShatterSense innate)" block spelling out the mechanical difference explicitly: Path A perception/interpretation is genuinely effortful and strain-heavy (20-40/attempt); Path B perception is automatic and interpretation strain is ≈6-12/attempt, "essentially strain-free" at higher proficiency, and holding Tier 1 combat awareness through an entire fight is Path B's *ordinary* mode of operation — with an explicit instruction not to narrate it as tiring or hard to maintain.
+2. Added the missing "sustained combat focus" bandwidth-cost row (35-50) to the Tunnel Vision section, distinct from "brief tactical read" (20-40), with guidance to set it once at the start of an engagement and leave it there for the duration rather than re-rolling/escalating per round.
+3. Updated the `SHATTERPOINT_FOCUS=` CHANGES tag reference line to mention both Tier 1 sub-costs.
+
+### Files changed
+`index.html`: SHATTERPOINT SYSTEM prompt section (~line 2458-2505, three edits — Path A/B block, Tunnel Vision bandwidth table, CHANGES tag reference line).
+
+**Why this matters for future debugging:** like V147 (sparring no-fail) and V152 (combat time inflation), this was a missing-information gap rather than a numeric ground-truth contradiction, so a prompt-only fix is the appropriate tool here — no JS-rendered banner was needed because there's no JS-computed value the AI's prose was contradicting, just an absent distinction the model had no way to know to apply. Contrast with V154/V156, where the AI had the right information available (the margin) and still didn't comply, forcing a deterministic display instead. When a behavior gap traces to "the prompt never told the model this fact" rather than "the model ignored a fact it had," prompt-only is sufficient; reserve the JS ground-truth pattern for cases where prompt-only has already failed repeatedly on the same fact.
+
+---
+
 ## V156 — 2026-06-21
 
 **Fix: AI still narrating success on the just-fired (not-yet-resolved) combat roll — fifth recurrence, moved to a deterministic same-turn disclaimer**
