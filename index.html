@@ -1910,13 +1910,19 @@ INTERACTION tag — send alongside KNOWN_PERSON when a meaningful interaction oc
 
 **ALL roll math is handled by JavaScript. You declare what happens; JS calculates and posts the result.**
 
-### YOUR ROLE IN ROLLS — DEFERRED RESULT MODEL
+### YOUR ROLE IN ROLLS — PRE-ROLLED COMBAT, DEFERRED EVERYTHING ELSE
 
-**Critical: ROLL tags go in the CHANGES block at the END of your response. JS fires the roll AFTER your full response is complete. You cannot know the result when writing the current turn's narrative.**
+**Combat exchanges (ROLL_OPPOSED) are normally PRE-ROLLED — check ACTIVE COMBAT STATE first, every combat turn:**
+- If it shows "✅ THIS EXCHANGE — ALREADY RESOLVED": JS already fired the real roll for the action you're about to write, BEFORE you wrote anything. Narrate this exchange directly and consistently with that result — win, loss, or contested, exactly as stated. Do NOT declare another ROLL_OPPOSED:/ROLL_LABEL= for it; the dice already fell. Still output COMBAT_ROUND: normally for round/strain bookkeeping.
+- If it instead shows "⚠ LAST EXCHANGE RESULT" or "No previous exchange to resolve": the pre-roll didn't fire this turn (rare — e.g. the turn that first declares COMBAT_START:). Fall back to the deferred model below: write setup narrative up to the moment of commitment, declare ROLL_OPPOSED in your CHANGES block without resolving the outcome, and resolve it next turn when the result appears.
 
-The roll result from Turn N appears in Turn N+1's context as "LAST EXCHANGE RESULT" inside ACTIVE COMBAT STATE (for combat) or as narrative context (for training/skill rolls).
+**Training/skill rolls (ROLL:) remain fully deferred — JS fires them after your response, same as always:**
 
-**Combat roll flow (ROLL_OPPOSED):**
+**Critical: ROLL: tags go in the CHANGES block at the END of your response. JS fires the roll AFTER your full response is complete. You cannot know the result when writing the current turn's narrative.**
+
+The roll result from Turn N appears in Turn N+1's context as "LAST EXCHANGE RESULT" inside ACTIVE COMBAT STATE (for the rare deferred-combat fallback above) or as narrative context (for training/skill rolls).
+
+**Deferred combat roll flow (ROLL_OPPOSED) — fallback only, when pre-roll didn't fire:**
 - Turn N (you declare attack): Write setup narrative up to the moment of commitment ("Jared drives forward with the Djem So thrust—"), fire ROLL_OPPOSED in CHANGES block. Do NOT write the outcome — you do not know the result yet.
 - Turn N+1 (player acts again): ACTIVE COMBAT STATE shows "LAST EXCHANGE RESULT". OPEN your narrative by resolving that exchange exactly per the outcome, then address the player's new action.
 
@@ -2180,11 +2186,13 @@ Each exchange uses the opposed roll system. **ONE ROLL_OPPOSED tag per exchange 
 - Margin determines result
 - The opponent adapts their tactics based on the exchange result
 
-**THE MARGIN IS ABSOLUTE GROUND TRUTH — AND IS AVAILABLE IN YOUR CONTEXT:**
+**THE MARGIN IS ABSOLUTE GROUND TRUTH — AND IS USUALLY ALREADY KNOWN TO YOU:**
 
-The ROLL_OPPOSED fires AFTER your response completes — you do NOT know the margin for the exchange you are requesting THIS turn. **Do not narrate this turn's just-requested exchange as already won, landed, or advantageous.** Describe the player's action and the opponent's action unfolding — blades meeting, the attempt being made — WITHOUT declaring who came out ahead or implying any degree of success. Stay genuinely neutral on outcome: describe the clash itself (contact, motion, commitment to the strike), not its result. The result appears in the NEXT turn's ACTIVE COMBAT STATE as "LAST EXCHANGE RESULT". You MUST open that turn's narrative by resolving THAT previous exchange per the result before addressing the player's new action. Write fresh wording every time — do not settle into a stock phrase you repeat across exchanges regardless of the actual roll outcome.
+**Check ACTIVE COMBAT STATE before writing this exchange.** Most combat turns now show "✅ THIS EXCHANGE — ALREADY RESOLVED" — JS pre-rolled the real margin for the action you're about to narrate BEFORE you wrote a word of it. In that case, narrate the exchange DIRECTLY per that result: if the player won, show the attack landing or gaining ground; if the player lost, show it failing exactly as described below; if contested, show a mutual check. Do NOT stay neutral or vague when the result is already known to you — write it as the true outcome, because it is. Do NOT declare another ROLL_OPPOSED/ROLL_LABEL= for this exchange.
 
-**The exact numeric margin for the roll you are about to fire will be displayed to the player directly underneath your own narrative, in the same message, before your next response.** If you write so much as one clause implying the player's action succeeded, landed cleanly, gained an advantage, or maintained a "perfect"/"unbroken"/"meditative" defense for the exchange you are requesting right now, the player will read that sentence and then immediately read a contradicting margin one line below it. Before finalizing any combat response, re-read your own last sentence before the ROLL_OPPOSED tag and check it for words like "successfully," "narrowly turned aside," "didn't just block," "advantage," "unbroken," "perfect," or any verb of completed impact — if present, cut the sentence back to end at the moment of commitment (contact, not result).
+**Fallback only — if ACTIVE COMBAT STATE shows no pre-resolved exchange (rare, e.g. the turn combat starts):** the ROLL_OPPOSED you fire fires AFTER your response completes — you do NOT know the margin for the exchange you are requesting THIS turn. **Do not narrate this turn's just-requested exchange as already won, landed, or advantageous.** Describe the player's action and the opponent's action unfolding — blades meeting, the attempt being made — WITHOUT declaring who came out ahead or implying any degree of success. Stay genuinely neutral on outcome: describe the clash itself (contact, motion, commitment to the strike), not its result. The result appears in the NEXT turn's ACTIVE COMBAT STATE as "LAST EXCHANGE RESULT". You MUST open that turn's narrative by resolving THAT previous exchange per the result before addressing the player's new action. Write fresh wording every time — do not settle into a stock phrase you repeat across exchanges regardless of the actual roll outcome.
+
+**In the fallback case only, the exact numeric margin for the roll you are about to fire will be displayed to the player directly underneath your own narrative, in the same message, before your next response.** If you write so much as one clause implying the player's action succeeded, landed cleanly, gained an advantage, or maintained a "perfect"/"unbroken"/"meditative" defense for the exchange you are requesting right now, the player will read that sentence and then immediately read a contradicting margin one line below it. Before finalizing any such fallback response, re-read your own last sentence before the ROLL_OPPOSED tag and check it for words like "successfully," "narrowly turned aside," "didn't just block," "advantage," "unbroken," "perfect," or any verb of completed impact — if present, cut the sentence back to end at the moment of commitment (contact, not result).
 
 **LAST EXCHANGE RESULT → narrative requirement:**
 - **Player won (positive margin):** Player's attack succeeded — narrate landing the blow, opponent forced back, gaining position.
@@ -4078,9 +4086,12 @@ ACTIVE COMBAT STATE — JS-TRACKED (authoritative, override your own count):
   Opponent: ${activeCombat.opponent} | Intensity: ${activeCombat.intensity}
   Current Round: ${activeCombat.round} ← use this exact number in the "— COMBAT ROUND [N] —" header this turn
   Accumulated strain so far (NOT yet applied to sheet): Physical ${activeCombat.accPhysical.toFixed(1)}, Force ${activeCombat.accForce.toFixed(1)}, Mental ${activeCombat.accMental.toFixed(1)}
-${activeCombat.lastRollResult ? `  ⚠ LAST EXCHANGE RESULT — JS-computed after your previous response. OPEN THIS RESPONSE by resolving this outcome before addressing the new player action:
+${activeCombat.lastRollResult ? (activeCombat.lastRollResult.preRolledForCurrentTurn ? `  ✅ THIS EXCHANGE — ALREADY RESOLVED. JS rolled the result for the player's action you are about to narrate BEFORE you wrote anything — this is not a past turn, it is the exchange you are narrating right now:
     Roll: "${activeCombat.lastRollResult.label}" | ${activeCombat.lastRollResult.marginLabel} (margin: ${activeCombat.lastRollResult.margin > 0 ? '+' : ''}${activeCombat.lastRollResult.margin.toFixed(2)})
-    ${activeCombat.lastRollResult.winner === 'player' ? '→ PLAYER WON — narrate the player pressing the advantage, opponent forced back or taking damage.' : activeCombat.lastRollResult.winner === 'opponent' ? '→ PLAYER LOST — narrate the player being outmaneuvered: their attack was deflected/missed/failed, the opponent controlled the space. DO NOT write the player striking successfully or the opponent cornered. Show retreat, defense, or injury.' : '→ CONTESTED — blades clashed or action was neutralized; neither side gained clear advantage.'}` : '  No previous exchange to resolve — this is the opening action of combat.'}
+    ${activeCombat.lastRollResult.winner === 'player' ? '→ PLAYER WINS this exchange — narrate the player pressing the advantage, opponent forced back or taking damage.' : activeCombat.lastRollResult.winner === 'opponent' ? '→ PLAYER LOSES this exchange — narrate the player being outmaneuvered: their attack was deflected/missed/failed, the opponent controlled the space. DO NOT write the player striking successfully or the opponent cornered. Show retreat, defense, or injury.' : '→ CONTESTED — blades clashed or the action was neutralized; neither side gained clear advantage.'}
+    Do NOT output another ROLL_OPPOSED: or ROLL_LABEL= tag for this exchange — the dice already fell, you are only narrating the result above. Still output COMBAT_ROUND: as normal for round/strain bookkeeping.` : `  ⚠ LAST EXCHANGE RESULT — JS-computed after your previous response. OPEN THIS RESPONSE by resolving this outcome before addressing the new player action:
+    Roll: "${activeCombat.lastRollResult.label}" | ${activeCombat.lastRollResult.marginLabel} (margin: ${activeCombat.lastRollResult.margin > 0 ? '+' : ''}${activeCombat.lastRollResult.margin.toFixed(2)})
+    ${activeCombat.lastRollResult.winner === 'player' ? '→ PLAYER WON — narrate the player pressing the advantage, opponent forced back or taking damage.' : activeCombat.lastRollResult.winner === 'opponent' ? '→ PLAYER LOST — narrate the player being outmaneuvered: their attack was deflected/missed/failed, the opponent controlled the space. DO NOT write the player striking successfully or the opponent cornered. Show retreat, defense, or injury.' : '→ CONTESTED — blades clashed or action was neutralized; neither side gained clear advantage.'}`) : '  No previous exchange to resolve — this is the opening action of combat.'}
 ` : ''}
 ${spPendingRoll ? `
 SHATTERPOINT INTERPRETATION PENDING — JS-computed after your previous response. OPEN THIS RESPONSE by narrating the actual content Jared perceives — never just the outcome label:
@@ -4110,7 +4121,9 @@ CRITICAL RULES FOR THIS TURN:
 
   // Rolls are now JS-driven via ROLL:/ROLL_LABEL= tags — no pre-roll injection needed.
   const lastRollReminder = (activeCombat?.lastRollResult)
-    ? `\n\n⚠ MANDATORY COMBAT RESOLUTION — LAST EXCHANGE RESULT (JS-computed, cannot be ignored):\n  "${activeCombat.lastRollResult.label}" → ${activeCombat.lastRollResult.marginLabel} (margin: ${activeCombat.lastRollResult.margin > 0 ? '+' : ''}${activeCombat.lastRollResult.margin.toFixed(2)})\n  ${activeCombat.lastRollResult.winner === 'opponent' ? 'PLAYER LOST. Your response MUST open with the player being outmaneuvered — their attack deflected, missed, or failed. The opponent controlled the exchange. DO NOT write the player striking successfully, the opponent stumbling back, or any positive outcome for the player.' : activeCombat.lastRollResult.winner === 'player' ? 'PLAYER WON. Narrate the player pressing the advantage, the opponent forced back or taking damage.' : 'CONTESTED. Neither side gained clear advantage — blades locked, a mutual check.'}`
+    ? (activeCombat.lastRollResult.preRolledForCurrentTurn
+      ? `\n\n⚠ MANDATORY COMBAT RESOLUTION — THIS EXCHANGE WAS ALREADY ROLLED (JS-computed before you wrote anything, cannot be ignored):\n  "${activeCombat.lastRollResult.label}" → ${activeCombat.lastRollResult.marginLabel} (margin: ${activeCombat.lastRollResult.margin > 0 ? '+' : ''}${activeCombat.lastRollResult.margin.toFixed(2)})\n  ${activeCombat.lastRollResult.winner === 'opponent' ? 'PLAYER LOSES this exchange. Narrate the player being outmaneuvered — their attack deflected, missed, or failed. The opponent controlled the exchange. DO NOT write the player striking successfully, the opponent stumbling back, or any positive outcome for the player.' : activeCombat.lastRollResult.winner === 'player' ? 'PLAYER WINS this exchange. Narrate the player pressing the advantage, the opponent forced back or taking damage.' : 'CONTESTED. Neither side gained clear advantage — blades locked, a mutual check.'}\n  Do NOT emit ROLL_OPPOSED:/ROLL_LABEL= again for this exchange — the roll already happened. Still emit COMBAT_ROUND: normally.`
+      : `\n\n⚠ MANDATORY COMBAT RESOLUTION — LAST EXCHANGE RESULT (JS-computed, cannot be ignored):\n  "${activeCombat.lastRollResult.label}" → ${activeCombat.lastRollResult.marginLabel} (margin: ${activeCombat.lastRollResult.margin > 0 ? '+' : ''}${activeCombat.lastRollResult.margin.toFixed(2)})\n  ${activeCombat.lastRollResult.winner === 'opponent' ? 'PLAYER LOST. Your response MUST open with the player being outmaneuvered — their attack deflected, missed, or failed. The opponent controlled the exchange. DO NOT write the player striking successfully, the opponent stumbling back, or any positive outcome for the player.' : activeCombat.lastRollResult.winner === 'player' ? 'PLAYER WON. Narrate the player pressing the advantage, the opponent forced back or taking damage.' : 'CONTESTED. Neither side gained clear advantage — blades locked, a mutual check.'}`)
     : '';
   const spRollReminder = spPendingRoll
     ? `\n\n⚠ MANDATORY SHATTERPOINT RESOLUTION — interpretation roll resolved (JS-computed, cannot be ignored):\n  Target: "${spPendingRoll.target}" | Outcome: ${spPendingRoll.outcome}\n  ${spOutcomeDirective}\n  Stating "success," "he understood it," or any other result label WITHOUT describing the specific content perceived does not satisfy this — the concrete content is the entire point of the response.`
@@ -4286,6 +4299,165 @@ function processAlignmentTick(hoursElapsed) {
 // ═══════════════════════════════════════════════════════════════════
 //  GEMINI API CALL
 // ═══════════════════════════════════════════════════════════════════
+
+// Scans arbitrary text for ROLL:/ROLL_OPPOSED:/TIER_GAP=/TACTICAL=/ROLL_LABEL= tags and fires
+// each one via fireRoll() as encountered. Shared by the main per-turn scan (on the AI's full
+// response) and preRollCombatExchange() below (on a small secondary call's response) — V162
+// factored this out of an inline IIFE so both call sites resolve tags identically. Returns the
+// number of opposed (combat) rolls fired during this call.
+function scanAndFireRollTags(text) {
+  let opposedFired = 0;
+  const lines = text.split('\n');
+  let scanPending = null;
+  for (const line of lines) {
+    const t = line.trim();
+    if (t.startsWith('ROLL:') && !t.startsWith('ROLL_OPPOSED:') && !t.startsWith('ROLL_LABEL')) {
+      scanPending = { paths: t.slice(5).split('|').map(s=>s.trim()).filter(Boolean), opposed: false };
+    } else if (t.startsWith('ROLL_OPPOSED:')) {
+      const roStr = t.slice(13);
+      const vsIdx = roStr.indexOf(' vs ');
+      if (vsIdx >= 0) {
+        const playerPaths = roStr.slice(0, vsIdx).split('|').map(s=>s.trim()).filter(Boolean);
+        const oppStr = roStr.slice(vsIdx + 4).trim();
+        scanPending = { paths: playerPaths, opposed: true };
+        if (oppStr.startsWith('CHARACTER:')) {
+          const charName = oppStr.slice(10).trim();
+          scanPending.oppName = charName;
+          // If combat is still keyed under an earlier placeholder name, reconcile it to
+          // this (presumably now-real) name first so the lookup below can find stats
+          // that were registered before the opponent had a name.
+          if (activeCombat && charName !== activeCombat.opponent) syncCombatOpponentName(charName);
+          const profile = worldState?.characterProfiles?.[charName];
+          const profileStats = profile?.stats && Object.keys(profile.stats).length > 0 ? profile.stats : null;
+          if (profileStats) {
+            scanPending.oppStats = {};
+            for (const [cat, statObj] of Object.entries(profileStats))
+              for (const [k, v] of Object.entries(statObj))
+                scanPending.oppStats[cat + '.' + k] = v;
+          } else {
+            // Profile exists but no stats registered — flag for tier-based fallback in fireRoll
+            scanPending.oppStatsFallback = true;
+          }
+        } else if (oppStr.startsWith('INLINE:')) {
+          // Use the active combat opponent name so stats persist across rounds
+          const _inlineName = (activeCombat?.opponent && activeCombat.opponent !== 'Unknown')
+            ? activeCombat.opponent : 'Opponent';
+          scanPending.oppName = _inlineName;
+          // If we already have stats for this opponent (from a prior roll this combat), use them —
+          // this prevents the AI from changing stats mid-fight due to "damaged" narration
+          const _existingProf = worldState?.characterProfiles?.[_inlineName];
+          const _existingStats = _existingProf?.stats && Object.keys(_existingProf.stats).length > 0 ? _existingProf.stats : null;
+          if (_existingStats) {
+            scanPending.oppStats = {};
+            for (const [cat, statObj] of Object.entries(_existingStats))
+              for (const [k, v] of Object.entries(statObj))
+                scanPending.oppStats[cat + '.' + k] = v;
+          } else {
+            // First roll against this opponent — parse INLINE stats and auto-register to profile
+            scanPending.oppStats = {};
+            oppStr.slice(7).split(',').forEach(pair => {
+              const eqIdx = pair.indexOf('=');
+              if (eqIdx >= 0) scanPending.oppStats[pair.slice(0,eqIdx).trim()] = parseFloat(pair.slice(eqIdx+1).trim()) || 0;
+            });
+            // Save to profile so subsequent ROLL_OPPOSED calls use the same stats
+            if (_inlineName !== 'Opponent' && worldState) {
+              if (!worldState.characterProfiles) worldState.characterProfiles = {};
+              if (!worldState.characterProfiles[_inlineName]) worldState.characterProfiles[_inlineName] = { name: _inlineName, stats: {}, lifecycleState: 'disposable' };
+              for (const [flatKey, v] of Object.entries(scanPending.oppStats)) {
+                const dotIdx = flatKey.indexOf('.');
+                if (dotIdx >= 0) {
+                  const cat = flatKey.slice(0, dotIdx);
+                  const sk  = flatKey.slice(dotIdx + 1);
+                  if (!worldState.characterProfiles[_inlineName].stats[cat]) worldState.characterProfiles[_inlineName].stats[cat] = {};
+                  worldState.characterProfiles[_inlineName].stats[cat][sk] = v;
+                }
+              }
+            }
+          }
+        } else {
+          // No vs clause resolved — still flag as opposed so fireRoll shows both sides
+          scanPending.oppName = oppStr.replace(/^(CHARACTER:|INLINE:)/,'').trim() || 'Opponent';
+          scanPending.oppStatsFallback = true;
+        }
+      }
+    } else if (t.startsWith('TIER_GAP=') && scanPending) {
+      scanPending.tierGap = parseFloat(t.slice(9)) || 0;
+    } else if (t.startsWith('TACTICAL=') && scanPending) {
+      scanPending.tactical = parseFloat(t.slice(9)) || 0;
+    } else if (t.startsWith('ROLL_LABEL=') && scanPending) {
+      scanPending.label = t.slice(11).trim();
+      if (scanPending.opposed && activeCombat) opposedFired++;
+      fireRoll(scanPending);
+      scanPending = null;
+    }
+  }
+  return opposedFired;
+}
+
+// V162 — fires the combat roll for this exchange BEFORE the main narrative call, so the AI's
+// prose can be written consistent with a result it already knows, replacing the deferred model
+// (V132-V161) where the roll fired only after narrative was generated and a same-turn disclaimer
+// was needed because five straight prompt-only attempts at "stay neutral until you know" never
+// reliably held. Makes a small, cheap secondary API call whose ONLY job is to decide which
+// form/stat/target this exchange uses; JS then fires the real roll from that decision immediately,
+// before the main call is even sent. Returns true if a roll was fired (activeCombat.lastRollResult
+// now holds this exchange's real, true, already-known result). Returns false on any failure, or
+// when this turn's action doesn't call for a roll — in both cases the caller falls back to the
+// pre-V162 deferred system unchanged, so a flaky secondary call can never break combat.
+async function preRollCombatExchange(playerMessage) {
+  if (!activeCombat || !characterSheet) return false;
+  try {
+    const oppName = activeCombat.opponent;
+    const profile = worldState?.characterProfiles?.[oppName];
+    const oppStatsStr = (profile?.stats && Object.keys(profile.stats).length)
+      ? JSON.stringify(profile.stats)
+      : `unregistered — invent a reasonable INLINE stat block for a ${activeCombat.opponentTier ? 'tier ' + activeCombat.opponentTier : 'roughly even-tier'} opponent`;
+    const formsStr = Object.entries(characterSheet.lightsaberForms || {}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||0):(v||0)}`).join(', ') || 'none';
+    const lastModelTurn = [...(Array.isArray(recentHistory)?recentHistory:[])].reverse().find(m => m.role === 'model');
+    const recentSnippet = lastModelTurn ? (lastModelTurn.parts?.[0]?.text || '').slice(-400) : '';
+
+    const prompt = `You are resolving ONLY the dice-roll declaration for a combat exchange — no narrative, no other text.
+
+COMBAT STATE: opponent="${oppName}", intensity=${activeCombat.intensity}, round=${activeCombat.round}.
+OPPONENT STATS: ${oppStatsStr}
+PLAYER'S LIGHTSABER FORMS (level): ${formsStr}
+RECENT CONTEXT (last narrative beat, for continuity only): ${recentSnippet || '(combat opening)'}
+PLAYER'S ACTION THIS TURN: "${playerMessage}"
+
+If this action calls for a combat exchange roll, output EXACTLY these lines and nothing else (no markdown, no commentary):
+ROLL_OPPOSED:category.StatOrFormPath|stats.statKey vs CHARACTER:${oppName}
+ROLL_LABEL=Short label for the move
+(Optionally also add TIER_GAP=N or TACTICAL=N on their own line if relevant.)
+Use "vs INLINE:statKey=val,statKey=val,..." instead of "vs CHARACTER:" ONLY if OPPONENT STATS above says unregistered.
+Pick the path that best matches the player's described action, using their highest-relevant known form or stat. If the player's action this turn does NOT call for a combat exchange (retreating, talking, fleeing, ending the fight), output exactly: NO_ROLL_NEEDED`;
+
+    const body = {
+      system_instruction: { parts: [{ text: 'You are a precise game-mechanics resolver for a combat system. Output ONLY the requested tag lines or NO_ROLL_NEEDED. Never write narrative, never write CHANGES/SHEET/WORLD blocks.' }] },
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.4, maxOutputTokens: 150, topP: 0.9 }
+    };
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    if (!resp.ok) return false;
+    const data = await resp.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    if (!text || text.includes('NO_ROLL_NEEDED')) return false;
+
+    const before = activeCombat.lastRollResult;
+    const fired = scanAndFireRollTags(text);
+    if (fired > 0 && activeCombat.lastRollResult && activeCombat.lastRollResult !== before) {
+      activeCombat.lastRollResult.preRolledForCurrentTurn = true;
+      return true;
+    }
+    return false;
+  } catch(e) {
+    console.warn('[preRollCombatExchange] failed, falling back to deferred roll model:', e.message);
+    return false;
+  }
+}
+
 async function callGemini(playerMessage, retryCount = 0) {
   if (isThinking && retryCount === 0) return;
   if (retryCount === 0) {
@@ -4307,13 +4479,24 @@ async function callGemini(playerMessage, retryCount = 0) {
     : playerMessage;
 
   try {
-    const messages = buildContext(userContent);
-    // Snapshot the previous exchange's result BEFORE this turn's scanForRollTags() overwrites
-    // activeCombat.lastRollResult with a fresh roll. Used to render a JS ground-truth resolution
-    // banner — AI prose compliance on "narrate the loss accurately" has proven unreliable across
-    // three prompt-only fix attempts (V132/V142/V153), so the correct outcome must be guaranteed
-    // independent of what the AI actually writes.
+    // Snapshot the previous exchange's result BEFORE the pre-roll (below) or this turn's
+    // scanAndFireRollTags() overwrites activeCombat.lastRollResult with a fresh roll. Used to
+    // render a JS ground-truth resolution banner for any roll STILL deferred from a prior turn
+    // (the fallback path below) — AI prose compliance on "narrate the loss accurately" proved
+    // unreliable across three prompt-only fix attempts (V132/V142/V153).
     const _prevRollResult = activeCombat?.lastRollResult || null;
+
+    // V162 — try to resolve THIS turn's combat exchange (if any) BEFORE the main narrative
+    // call. If it succeeds, buildContext() below sees the true result already and the main
+    // call narrates it directly with no disclaimer. If it fails or no roll applies this turn
+    // (e.g. the turn that starts combat, before activeCombat exists), falls back to the
+    // pre-V162 deferred model unchanged.
+    let _preRolledThisTurn = false;
+    if (activeCombat && !isOverride) {
+      _preRolledThisTurn = await preRollCombatExchange(userContent);
+    }
+
+    const messages = buildContext(userContent);
 
     const body = {
       system_instruction: { parts: [{ text: MASTER_PROMPT }] },
@@ -4679,92 +4862,15 @@ async function callGemini(playerMessage, retryCount = 0) {
     }
 
     // ── Scan full response for ROLL/ROLL_OPPOSED tags (may appear outside CHANGES block) ──
-    (function scanForRollTags() {
-      const lines = rawText.split('\n');
-      let scanPending = null;
-      for (const line of lines) {
-        const t = line.trim();
-        if (t.startsWith('ROLL:') && !t.startsWith('ROLL_OPPOSED:') && !t.startsWith('ROLL_LABEL')) {
-          scanPending = { paths: t.slice(5).split('|').map(s=>s.trim()).filter(Boolean), opposed: false };
-        } else if (t.startsWith('ROLL_OPPOSED:')) {
-          const roStr = t.slice(13);
-          const vsIdx = roStr.indexOf(' vs ');
-          if (vsIdx >= 0) {
-            const playerPaths = roStr.slice(0, vsIdx).split('|').map(s=>s.trim()).filter(Boolean);
-            const oppStr = roStr.slice(vsIdx + 4).trim();
-            scanPending = { paths: playerPaths, opposed: true };
-            if (oppStr.startsWith('CHARACTER:')) {
-              const charName = oppStr.slice(10).trim();
-              scanPending.oppName = charName;
-              // If combat is still keyed under an earlier placeholder name, reconcile it to
-              // this (presumably now-real) name first so the lookup below can find stats
-              // that were registered before the opponent had a name.
-              if (activeCombat && charName !== activeCombat.opponent) syncCombatOpponentName(charName);
-              const profile = worldState?.characterProfiles?.[charName];
-              const profileStats = profile?.stats && Object.keys(profile.stats).length > 0 ? profile.stats : null;
-              if (profileStats) {
-                scanPending.oppStats = {};
-                for (const [cat, statObj] of Object.entries(profileStats))
-                  for (const [k, v] of Object.entries(statObj))
-                    scanPending.oppStats[cat + '.' + k] = v;
-              } else {
-                // Profile exists but no stats registered — flag for tier-based fallback in fireRoll
-                scanPending.oppStatsFallback = true;
-              }
-            } else if (oppStr.startsWith('INLINE:')) {
-              // Use the active combat opponent name so stats persist across rounds
-              const _inlineName = (activeCombat?.opponent && activeCombat.opponent !== 'Unknown')
-                ? activeCombat.opponent : 'Opponent';
-              scanPending.oppName = _inlineName;
-              // If we already have stats for this opponent (from a prior roll this combat), use them —
-              // this prevents the AI from changing stats mid-fight due to "damaged" narration
-              const _existingProf = worldState?.characterProfiles?.[_inlineName];
-              const _existingStats = _existingProf?.stats && Object.keys(_existingProf.stats).length > 0 ? _existingProf.stats : null;
-              if (_existingStats) {
-                scanPending.oppStats = {};
-                for (const [cat, statObj] of Object.entries(_existingStats))
-                  for (const [k, v] of Object.entries(statObj))
-                    scanPending.oppStats[cat + '.' + k] = v;
-              } else {
-                // First roll against this opponent — parse INLINE stats and auto-register to profile
-                scanPending.oppStats = {};
-                oppStr.slice(7).split(',').forEach(pair => {
-                  const eqIdx = pair.indexOf('=');
-                  if (eqIdx >= 0) scanPending.oppStats[pair.slice(0,eqIdx).trim()] = parseFloat(pair.slice(eqIdx+1).trim()) || 0;
-                });
-                // Save to profile so subsequent ROLL_OPPOSED calls use the same stats
-                if (_inlineName !== 'Opponent' && worldState) {
-                  if (!worldState.characterProfiles) worldState.characterProfiles = {};
-                  if (!worldState.characterProfiles[_inlineName]) worldState.characterProfiles[_inlineName] = { name: _inlineName, stats: {}, lifecycleState: 'disposable' };
-                  for (const [flatKey, v] of Object.entries(scanPending.oppStats)) {
-                    const dotIdx = flatKey.indexOf('.');
-                    if (dotIdx >= 0) {
-                      const cat = flatKey.slice(0, dotIdx);
-                      const sk  = flatKey.slice(dotIdx + 1);
-                      if (!worldState.characterProfiles[_inlineName].stats[cat]) worldState.characterProfiles[_inlineName].stats[cat] = {};
-                      worldState.characterProfiles[_inlineName].stats[cat][sk] = v;
-                    }
-                  }
-                }
-              }
-            } else {
-              // No vs clause resolved — still flag as opposed so fireRoll shows both sides
-              scanPending.oppName = oppStr.replace(/^(CHARACTER:|INLINE:)/,'').trim() || 'Opponent';
-              scanPending.oppStatsFallback = true;
-            }
-          }
-        } else if (t.startsWith('TIER_GAP=') && scanPending) {
-          scanPending.tierGap = parseFloat(t.slice(9)) || 0;
-        } else if (t.startsWith('TACTICAL=') && scanPending) {
-          scanPending.tactical = parseFloat(t.slice(9)) || 0;
-        } else if (t.startsWith('ROLL_LABEL=') && scanPending) {
-          scanPending.label = t.slice(11).trim();
-          if (scanPending.opposed && activeCombat) combatRollsThisTurn++;
-          fireRoll(scanPending);
-          scanPending = null;
-        }
-      }
-    })();
+    // V162: skipped when preRollCombatExchange() already resolved this turn's exchange above —
+    // the AI was told not to declare another ROLL_OPPOSED for it, and firing both would
+    // double-count rounds/strain. scanAndFireRollTags() is the shared helper (defined above
+    // callGemini) also used by preRollCombatExchange() itself.
+    if (!_preRolledThisTurn) {
+      combatRollsThisTurn += scanAndFireRollTags(rawText);
+    } else {
+      combatRollsThisTurn = Math.max(combatRollsThisTurn, 1);
+    }
 
     // ── Same-turn pending-resolution notice ──────────────────────────────────────────
     // A ROLL_OPPOSED that just fired THIS turn has a real, final margin (visible in the
@@ -4775,7 +4881,10 @@ async function callGemini(playerMessage, retryCount = 0) {
     // player directly and deterministically, every time, not to trust this turn's narrative
     // for the exchange whose card just appeared — the real resolution lands next turn via
     // the "Last Exchange — Resolved" banner above.
-    const _newRollResult = (activeCombat && activeCombat.lastRollResult && activeCombat.lastRollResult !== _prevRollResult)
+    // V162: this disclaimer only applies to the OLD deferred path — if preRollCombatExchange()
+    // already resolved this turn's exchange before the main call, the roll card and the
+    // narrative both reflect the same true result, so no "may not match" warning is needed.
+    const _newRollResult = (activeCombat && activeCombat.lastRollResult && activeCombat.lastRollResult !== _prevRollResult && !_preRolledThisTurn)
       ? activeCombat.lastRollResult : null;
     if (_newRollResult) {
       const _feedEl2 = document.getElementById('story-feed');
@@ -4791,6 +4900,13 @@ async function callGemini(playerMessage, retryCount = 0) {
     // nothing in THIS turn's scan replaced it with a fresh roll (reference check: fireRoll
     // always creates a brand-new object, so identity differs whenever a new roll fired).
     if (activeCombat && activeCombat.lastRollResult === _prevRollResult && _prevRollResult) {
+      activeCombat.lastRollResult = null;
+    }
+
+    // V162 — a pre-rolled result was already narrated directly in THIS turn's response (no
+    // deferral, no disclaimer needed) — clear it now so next turn doesn't redundantly re-show
+    // it via the "Last Exchange — Resolved" banner for an exchange the player already saw.
+    if (activeCombat && activeCombat.lastRollResult?.preRolledForCurrentTurn) {
       activeCombat.lastRollResult = null;
     }
 

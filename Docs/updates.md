@@ -4,6 +4,28 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V162 — 2026-06-22
+
+**Fix: roll card and narrative contradicting each other for the SAME exchange — narrative was written before the dice fired; added a pre-roll API call so the roll resolves first**
+
+### Problem
+Player sent a screenshot showing a roll card reading "Margin: Player by 9.73 — Dominant win - serious trouble" directly followed by narrative describing the player's own defense being "shattered" — for the exchange that had JUST fired, not a stale previous one. This is the sixth occurrence of the deferred-roll narration problem in this session (V132/V142/V153/V154/V155/V156), all previously addressed with prompt wording, ground-truth banners, or same-turn disclaimers layered on top of the existing architecture: the AI declares `ROLL_OPPOSED:` in its own CHANGES block, but JS only fires the actual roll (`fireRoll()`) AFTER the AI's narrative text for that turn is already fully generated — there is no way for the model to know the true margin while writing the prose for the same exchange it just requested. The disclaimer/banner approach (V154/V156) correctly labeled the contradiction as "may not match, dice are final" but never eliminated it — the player explicitly said: "Roll should be first then narrative should be determined based on the roll."
+
+### Fix
+Implemented the player's explicitly requested architecture (selected from three options: two-call turns / lock-form-per-exchange / harden-compliance-further): split combat turns into two API calls.
+1. New `preRollCombatExchange(playerMessage)` — runs BEFORE `buildContext()`/the main fetch, only when `activeCombat` is truthy and the message isn't an override keyword. Makes a small, cheap secondary Gemini call (`temperature:0.4, maxOutputTokens:150`) whose system instruction restricts output to ONLY a `ROLL_OPPOSED:`/`ROLL_LABEL=` tag pair (with registered opponent stats, the player's lightsaber form levels, and a short context snippet) or the literal string `NO_ROLL_NEEDED`.
+2. New `scanAndFireRollTags(text)` — the old inline `scanForRollTags()` IIFE refactored into a parameterized, reusable top-level function (returns the fired-roll count instead of mutating a closure variable) so both the pre-roll call and the main per-turn response scan share identical tag-parsing/opponent-stat-resolution logic.
+3. `activeCombat.lastRollResult.preRolledForCurrentTurn` — new flag distinguishing "this result was computed before narration started, for the exchange being narrated right now" from the old deferred semantics. `buildContext()`'s `ACTIVE COMBAT STATE` block and `lastRollReminder` both branch on this flag: pre-rolled turns get a "✅ THIS EXCHANGE — ALREADY RESOLVED" block with the true margin and an explicit "do not roll again" instruction; everything else falls back to the original "⚠ LAST EXCHANGE RESULT" deferred wording unchanged.
+4. The main per-turn response scan (`scanAndFireRollTags(rawText)`) is now skipped when `_preRolledThisTurn` is true (so a compliant AI not re-declaring the roll doesn't get scanned twice), and the V156 same-turn disclaimer is suppressed for pre-rolled turns since there's nothing to disclaim.
+5. This is strictly additive: the old deferred system (banner, disclaimer, all of V132-V161's combat-narration logic) is untouched and automatically used as fallback whenever pre-roll doesn't apply — the turn combat starts (before `activeCombat` exists), override-keyword turns, or any failure in the secondary API call (network error, malformed response, `NO_ROLL_NEEDED`). Existing combat flow cannot break even if the new mechanism misbehaves; it can only fail open to the prior behavior.
+
+### Files changed
+`index.html`: two new top-level functions inserted immediately before `callGemini()` (`scanAndFireRollTags()`, `preRollCombatExchange()`); `callGemini()` try-block restructured to call `preRollCombatExchange()` before `buildContext()` and capture `_preRolledThisTurn`/`_prevRollResult`; `buildContext()`'s `ACTIVE COMBAT STATE` block and `lastRollReminder` construction (both branch on `preRolledForCurrentTurn`); post-fetch roll-scan call site (guarded by `_preRolledThisTurn`); same-turn disclaimer condition (added `&& !_preRolledThisTurn`); post-turn cleanup (nulls a consumed pre-rolled result so it can't re-surface as a banner); MASTER_PROMPT `YOUR ROLE IN ROLLS` and `EXCHANGE RESOLUTION` sections updated to describe the pre-rolled path first, with the original deferred-flow text preserved as explicit fallback instructions.
+
+**Why this matters for future debugging:** this is an architecture change, not a wording fix — five straight prompt-only/ground-truth-banner attempts (V132, V142, V153, V154, V155, V156) all reduced but never eliminated the contradiction, because the structural cause (narrative written before the roll exists) was never addressed, only papered over with increasingly explicit disclaimers. The fix costs ~2x API calls and added latency per combat exchange, a tradeoff the player explicitly accepted when choosing this option over the cheaper alternatives. If pre-roll ever needs revisiting, check `preRollCombatExchange()`'s fallback path first — any combat turn missing a roll where one was expected should fail open to the old deferred system, not silently do nothing.
+
+---
+
 ## V161 — 2026-06-21
 
 **Fix: displayed "Accumulated strain this fight" still looked just as inflated after V160's engine fix — because the AI was narrating it from a stale prompt table, not the real (already-fixed) engine value**
