@@ -4,6 +4,25 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V163 — 2026-06-22
+
+**Fix: opponent's opposed-roll bonus summed their ENTIRE registered stat profile (every core + Force stat) instead of only the stats relevant to the exchange**
+
+### Problem
+Player sent a screenshot of a sparring roll, "Soresu Parry vs Lyra's Shii-Cho Offense," where the player's stat bonus correctly used 3 relevant paths (Soresu, agility, endurance) but Lyra's breakdown line listed and summed SEVEN stats: strength, agility, endurance, forceControl, willpower, charisma, intelligence — including stats with zero relevance to a lightsaber exchange (charisma, intelligence, willpower). Player's diagnosis: "The game seems to be using a character's core stats as bonuses and not their relevant stats for the NPCs."
+
+Root cause, in `fireRoll()`: the player's `statBonus` is correctly computed by mapping `roll.paths` (the specific 2-3 stat paths the AI declared for this roll, e.g. `lightsaberForms.Soresu|stats.agility|stats.endurance`) through `compressedBonus()`. But the opponent side (`oppStatBonus`, ~line 10670) just did `Object.entries(roll.oppStats).reduce(...)` over the FULL `oppStats` object — and for any opponent with a fully registered `characterProfiles` entry (built by `CHARACTER:` lookup, which flattens every category in `profile.stats` into dotted keys), that object contains every core and Force stat ever recorded for them, not just the ones relevant to this roll. An NPC with a richer registered profile got a structurally larger bonus for the exact same roll, regardless of whether those extra stats had anything to do with a saber parry.
+
+### Fix
+Added `getOppRelevantStats(oppStats, playerPaths)`: for dotted-path profiles (the `CHARACTER:` case — bare-key `INLINE:` blocks are already AI-curated per-roll and left untouched), filters the opponent's stats down to only the categories the player's own roll paths cover. `lightsaberForms.*` paths map to the opponent's own highest registered form (their move doesn't have to share the player's form name — Lyra's ShiiCho stands in for the player's Soresu); every other category+key (`stats.agility`, `forceStats.forceControl`, etc.) maps directly to the same key on the opponent. Falls back to the full stat set only if literally no category overlap is found, so this can't zero out an opponent's roll. Also hardened `getOppPrimaryStatValue()` (used for opponent tier-band display) with the same lightsaberForms fallback — it previously defaulted to whatever stat happened to be first in the object when no exact/suffix key match existed, which could understate or overstate an opponent's displayed tier.
+
+### Files changed
+`index.html`: new `getOppRelevantStats()` helper (~line 10530, next to `getOppPrimaryStatValue()`); `getOppPrimaryStatValue()` gained a lightsaberForms-specific fallback; opponent bonus calculation in `fireRoll()` (~line 10670) now calls `getOppRelevantStats()` before summing.
+
+**Why this matters for future debugging:** this bug only manifests for NPCs with a *richer* registered stat block than a roll calls for — a freshly-INLINE'd disposable opponent with 2-3 declared stats looked fine, which is likely why this went unnoticed through V145-V162's NPC-generation and lifecycle work. Whenever a player-side and opponent-side calculation are supposed to be symmetric (same roll, same kind of bonus), check that both sides are filtering to the same *set* of stats, not just using whatever data happens to be available on each side.
+
+---
+
 ## V162 — 2026-06-22
 
 **Fix: roll card and narrative contradicting each other for the SAME exchange — narrative was written before the dice fired; added a pre-roll API call so the roll resolves first**

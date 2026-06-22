@@ -10532,8 +10532,50 @@ function getOppPrimaryStatValue(oppStats, primaryPath) {
   if (primaryPath in oppStats) return oppStats[primaryPath];
   const suffix = primaryPath.split('.').pop();
   if (suffix in oppStats) return oppStats[suffix];
+  // Form rolls: opponent's own highest registered form is the relevant tier anchor —
+  // they don't need to know the player's specific named form to have a comparable one.
+  if (primaryPath.startsWith('lightsaberForms.')) {
+    let best = null;
+    for (const [k,v] of Object.entries(oppStats)) {
+      if (k.startsWith('lightsaberForms.') && (best===null || v>best)) best = v;
+    }
+    if (best !== null) return best;
+  }
   const vals = Object.values(oppStats);
   return vals.length ? vals[0] : null;
+}
+
+// Filters a fully-registered opponent profile (dotted-path keys, e.g. "stats.agility",
+// "lightsaberForms.ShiiCho") down to only the stats relevant to THIS roll, mirroring the
+// player's roll.paths — instead of summing every stat in the opponent's entire profile
+// (core + Force + every form), which silently inflated opponent bonuses for any NPC with a
+// richer registered stat block than the roll actually called for. Lightsaber form paths map
+// to the opponent's own highest registered form (their move doesn't have to share the
+// player's form name); every other category/key maps directly (stats.agility -> stats.agility).
+// Bare-key INLINE stat blocks (no dots — the AI already hand-picked them for this roll) are
+// left untouched. Returns null when no relevant match is found, signaling the caller to fall
+// back to the full set rather than silently zeroing the opponent's roll.
+function getOppRelevantStats(oppStats, playerPaths) {
+  if (!oppStats || !playerPaths?.length) return null;
+  const entries = Object.entries(oppStats);
+  if (!entries.length || !entries[0][0].includes('.')) return null;
+
+  const relevant = {};
+  for (const p of playerPaths) {
+    const dot = p.indexOf('.');
+    const cat = dot >= 0 ? p.slice(0, dot) : '';
+    if (cat === 'lightsaberForms') {
+      let best = null;
+      for (const [k, v] of entries) {
+        if (k.startsWith('lightsaberForms.') && (!best || v > best[1])) best = [k, v];
+      }
+      if (best) relevant[best[0]] = best[1];
+    } else {
+      const match = entries.find(([k]) => k === p);
+      if (match) relevant[match[0]] = match[1];
+    }
+  }
+  return Object.keys(relevant).length ? relevant : null;
 }
 
 // Deterministic one-line consequence text for a JS-computed opposed-roll result, keyed off
@@ -10668,7 +10710,8 @@ function fireRoll(roll) {
   if (roll.opposed && (roll.oppStats || roll.oppStatsFallback)) {
     let oppStatBonus, oppStatStr;
     if (roll.oppStats && Object.keys(roll.oppStats).length > 0) {
-      const oppEntries = Object.entries(roll.oppStats);
+      const oppRelevant = getOppRelevantStats(roll.oppStats, roll.paths) || roll.oppStats;
+      const oppEntries = Object.entries(oppRelevant);
       oppStatBonus = oppEntries.reduce((s,[,v])=>s+compressedBonus(v),0);
       oppStatStr = oppEntries.map(([k,v])=>`${k.split('.')[1]||k}(${v}):+${compressedBonus(v).toFixed(3)}`).join(', ');
     } else {
