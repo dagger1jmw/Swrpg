@@ -4695,6 +4695,8 @@ async function callGemini(playerMessage, retryCount = 0) {
       const _savedPhilosophy          = characterSheet?.philosophy    ?? null;
       const _savedDarkPressure        = characterSheet ? (characterSheet.darkPressure         ?? null) : null;
       const _savedMomentumWindow      = characterSheet?.momentumWindow ? {...characterSheet.momentumWindow} : null;
+      // Lightsaber properties are player-set — AI cannot override color/type via SHEET JSON
+      const _savedLightsaber          = characterSheet?.lightsaber ? {...characterSheet.lightsaber} : null;
       // Force ability catalog keys — defined here so both _savedAptitudes and aiAptitudes can use it
       const _forceAbilityKeys = typeof FORCE_ABILITY_CATALOG !== 'undefined' ? new Set(Object.keys(FORCE_ABILITY_CATALOG)) : new Set();
       // Preserve aptitudes that weren't talent-generated or force-ability names
@@ -4728,6 +4730,7 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (_savedPhilosophy           !== null) characterSheet.philosophy            = _savedPhilosophy;
         if (_savedDarkPressure         !== null) characterSheet.darkPressure          = _savedDarkPressure;
         if (_savedMomentumWindow)                characterSheet.momentumWindow         = _savedMomentumWindow;
+        if (_savedLightsaber)                    characterSheet.lightsaber             = _savedLightsaber;
         // Injury/hand/pain — JS-owned, restored after every SHEET parse
         characterSheet.injuries        = _savedInjuries;
         characterSheet.dominantHand    = _savedDominantHand;
