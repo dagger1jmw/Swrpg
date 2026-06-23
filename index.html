@@ -1214,7 +1214,7 @@
 
             <div class="cc-field">
               <label>Current Age</label>
-              <input type="number" id="cc-age" value="16" min="3" max="120">
+              <input type="number" id="cc-age" value="16" min="3" max="120" oninput="ccAgeChanged()">
             </div>
 
             <div class="cc-field">
@@ -1768,6 +1768,11 @@ NPC_ROLL=[name]|[archetype]|[tier 1-6][|flags] — JS rolls a full stat block fo
   After this tag, use ROLL_OPPOSED ... vs CHARACTER:[name] — the rolled stats are already registered, no INLINE needed.
 NPC_LIFECYCLE=[name],[state] — explicit lifecycle change outside combat (state: active|dormant|deceased). Use "deceased" the moment an NPC's death is confirmed in-fiction — this is the ONLY way a character becomes permanently unable to return. Use "dormant" when an NPC exits the story for now but could plausibly resurface later.
 RECURRING_RETURN=[name],[tierBump] — a dormant, archetype-generated NPC resurfaces stronger (e.g. defeated-but-escaped, returning with a grudge). Re-rolls their stats at tier+tierBump using the same archetype. JS clamps the result to tier 6 (Legendary) — the apex ceiling for this era (CLAUDE.md §3E) — so this can never approach Transcendent. Only works on NPCs created via NPC_ROLL; canon NPCs are never auto-rerolled.
+RANK=[value] — declare a rank promotion the moment it's earned in-fiction (Trials passed, Council confirmation, field promotion, etc.). JS derives lifeStage and all lifeStage-driven systems (mandatory training rows, etc.) from this automatically — you only ever declare the new rank, never lifeStage directly.
+  Jedi: youngling|initiate|padawan|knight|master   Sith: acolyte|apprentice|sith_lord|dark_lord
+  Republic military: conscript|soldier|sergeant|lieutenant|captain   Mandalorian: foundling|warrior|veteran|champion
+  Bounty hunter: rookie|veteran|elite   Unaffiliated Force-sensitive: untrained|self_taught|wandering_adept
+  Only send this tag on the turn the promotion actually happens — do not repeat it every turn once set.
 DARK_PRESSURE=[new total 0-100 — JS handles discharge at 100]
 MOMENTUM_WINDOW=[multiplier],[days] — set after pressure discharge; 0,0 to close
 WILL_OF_FORCE=[gain amount],[brief description of what was surrendered]
@@ -2986,6 +2991,12 @@ const CC_RANKS = {
   ],
 };
 
+// Derives lifeStage from a rank value (used at creation AND whenever the AI promotes
+// rank mid-story via RANK= — JS owns lifeStage derivation from that point forward).
+const RANK_LIFESTAGE_MAP = { youngling:'youngling', initiate:'youngling', padawan:'padawan', knight:'knight', master:'master', acolyte:'youngling', apprentice:'padawan', sith_lord:'knight', dark_lord:'master', conscript:'youngling', soldier:'padawan', sergeant:'knight', lieutenant:'knight', captain:'master', foundling:'youngling', warrior:'padawan', veteran:'knight', champion:'master', rookie:'padawan', elite:'knight', untrained:'youngling', self_taught:'padawan', wandering_adept:'knight' };
+// Flat set of every valid rank value across all factions, for RANK= tag validation.
+const RANK_VALID_VALUES = new Set(Object.values(CC_RANKS).flat().map(r => r.value));
+
 // ── NPC opponent generation (temporary/disposable stat sheets) ──
 // Pools keyed by the same 1-7 dueling-tier scale used by statToTier()/fireRoll(), so a
 // requested tier always lands the generated stats in the tier the combat UI will display.
@@ -3283,6 +3294,18 @@ function ccEraChanged() {
   if (val !== 'custom' && yr) yr.value = val;
 }
 
+function ccAgeChanged() {
+  // Jedi rank labels carry explicit age brackets (Youngling 3-7, Initiate 7-12, Padawan 13+);
+  // nudge the rank dropdown to match as age changes — only within that band, since Knight/Master
+  // are earned via Trials, not age alone, and other factions have no age-bracketed ranks to match.
+  const faction = document.getElementById('cc-faction')?.value;
+  if (faction !== 'jedi') return;
+  const rankSel = document.getElementById('cc-rank');
+  if (!rankSel || !['youngling','initiate','padawan'].includes(rankSel.value)) return;
+  const age = parseInt(document.getElementById('cc-age')?.value) || 16;
+  rankSel.value = age < 7 ? 'youngling' : age < 13 ? 'initiate' : 'padawan';
+}
+
 function ccFactionChanged() {
   const faction = document.getElementById('cc-faction').value;
   const rankSel = document.getElementById('cc-rank');
@@ -3355,7 +3378,6 @@ function finalizeCreation() {
   const selectedTalents = Array.from(document.querySelectorAll('#cc-talents-list input[type="checkbox"]:checked')).map(c => c.value);
 
   const factionNames = { jedi:'Jedi Order', sith:'Sith', republic:'Galactic Republic Military', mandalorian:'Mandalorian Clans', bounty_hunter:'Independent', force_sensitive:'Unaffiliated' };
-  const lifeStageMap = { youngling:'youngling', initiate:'youngling', padawan:'padawan', knight:'knight', master:'master', acolyte:'youngling', apprentice:'padawan', sith_lord:'knight', dark_lord:'master', conscript:'youngling', soldier:'padawan', sergeant:'knight', lieutenant:'knight', captain:'master', foundling:'youngling', warrior:'padawan', veteran:'knight', champion:'master', rookie:'padawan', elite:'knight', untrained:'youngling', self_taught:'padawan', wandering_adept:'knight' };
 
   const birthYear = year + age;
 
@@ -3400,7 +3422,8 @@ function finalizeCreation() {
     renown:{ jediOrder:0, sith:0, republic:0, underworld:0, mandalorians:0 },
     innateTalents: selectedTalents, innateAbilities:[], storyFlags:{},
     knownSecrets:[], activeBonds:[],
-    lifeStage: lifeStageMap[rank] || 'padawan',
+    rank,
+    lifeStage: RANK_LIFESTAGE_MAP[rank] || 'padawan',
     backstory,
     discoveryAge: discAge,
   };
@@ -4002,7 +4025,7 @@ function buildContext(userContent) {
   const duelingTier = getCharDuelingTier(); // kept for reference only — actual tier per exchange uses active form
   const forceTier = getCharForceTier();     // kept for reference only — actual tier per contest uses specific ability
 
-  const sheetSummary = `NAME: ${cs.name||'?'} | SPECIES: ${cs.species||'?'} | AGE: ${cs.age||'?'} | FACTION: ${cs.faction||'?'}
+  const sheetSummary = `NAME: ${cs.name||'?'} | SPECIES: ${cs.species||'?'} | AGE: ${cs.age||'?'} | FACTION: ${cs.faction||'?'} | RANK: ${cs.rank||'?'} (${cs.lifeStage||'?'})
 ALIGNMENT: ${(()=>{
   const a=cs.alignment||0; const eq=cs.alignmentEquilibrium??a; const eqXP=cs.equilibriumXP??0;
   const p=cs.darkPressure||0; const m=cs.momentumWindow; const phil=cs.philosophy||'doctrineJedi';
@@ -4641,6 +4664,9 @@ async function callGemini(playerMessage, retryCount = 0) {
       // LIFE_STAGE tag in CHANGES block overrides the snapshot — pre-scan changesText here
       // (CHANGES loop runs AFTER this snapshot, so we must look ahead to avoid overwrite)
       let _savedLifeStage = characterSheet?.lifeStage || null;
+      // RANK tag in CHANGES block overrides the snapshot — same pre-scan pattern as LIFE_STAGE.
+      // RANK= also drives lifeStage via RANK_LIFESTAGE_MAP, so a promotion mid-story stays in sync.
+      let _savedRank = characterSheet?.rank || null;
       {
         const _lsMatch = rawText.match(/<<<CHANGES>>>([\s\S]*?)<<<END_CHANGES>>>/);
         if (_lsMatch) {
@@ -4649,6 +4675,14 @@ async function callGemini(playerMessage, retryCount = 0) {
             const _lsv = _lsLine.trim().slice(11).trim().toLowerCase();
             const _validLS = ['youngling','padawan','knight','knight_with_padawan','master','master_with_padawan','council_member'];
             if (_validLS.includes(_lsv)) _savedLifeStage = _lsv;
+          }
+          const _rkLine = _lsMatch[1].split('\n').find(l => /^RANK[=:]/i.test(l.trim()));
+          if (_rkLine) {
+            const _rkv = _rkLine.trim().slice(5).trim().toLowerCase();
+            if (RANK_VALID_VALUES.has(_rkv)) {
+              _savedRank = _rkv;
+              _savedLifeStage = RANK_LIFESTAGE_MAP[_rkv] || _savedLifeStage;
+            }
           }
         }
       }
@@ -4684,6 +4718,7 @@ async function callGemini(playerMessage, retryCount = 0) {
         if (_savedInnateAbilities.length) characterSheet.innateAbilities = _savedInnateAbilities;
         if (_savedBirthday?.day)          characterSheet.birthday        = _savedBirthday;
         if (_savedLifeStage)              characterSheet.lifeStage       = _savedLifeStage;
+        if (_savedRank)                   characterSheet.rank            = _savedRank;
         if (_savedStoryFlags)             characterSheet.storyFlags      = _savedStoryFlags;
         // Alignment/pressure are JS-owned — restore so AI SHEET JSON can't overwrite them
         if (_savedAlignment            !== null) characterSheet.alignment            = _savedAlignment;
@@ -5119,6 +5154,20 @@ async function callGemini(playerMessage, retryCount = 0) {
           const validStages = ['youngling','padawan','knight','knight_with_padawan','master','master_with_padawan','council_member'];
           if (validStages.includes(lsVal) && characterSheet) {
             characterSheet.lifeStage = lsVal;
+          }
+          continue;
+        }
+
+        // RANK: value  e.g. "RANK=knight" or "RANK:sith_lord"
+        // The AI declares a rank promotion narratively; JS owns everything downstream of that —
+        // rank is snapshot-protected from SHEET JSON (mirrors LIFE_STAGE=), and lifeStage is
+        // auto-derived from the new rank via RANK_LIFESTAGE_MAP so mandatory training rows and
+        // every other lifeStage-driven system stay in sync without the AI touching them directly.
+        if (trimmed.startsWith('RANK=') || trimmed.startsWith('RANK:')) {
+          const rkVal = trimmed.slice(5).trim().toLowerCase();
+          if (RANK_VALID_VALUES.has(rkVal) && characterSheet) {
+            characterSheet.rank = rkVal;
+            characterSheet.lifeStage = RANK_LIFESTAGE_MAP[rkVal] || characterSheet.lifeStage;
           }
           continue;
         }
@@ -7233,9 +7282,10 @@ function updateCharacterSheet() {
   const tierNames = ['', 'Untrained', 'Padawan', 'Knight', 'Master', 'Legendary'];
   const tierName = tierNames[s.forceTier] || 'Unknown';
 
+  const rankLabel = Object.values(CC_RANKS).flat().find(r => r.value === s.rank)?.label.split(' (')[0] || s.rank || '—';
   let html = `
     <div class="sheet-name">${s.name}</div>
-    <div class="sheet-sub">${s.species || '—'} · ${s.faction || '—'} · Age ${s.age || '—'}</div>
+    <div class="sheet-sub">${s.species || '—'} · ${s.faction || '—'} · ${rankLabel} · Age ${s.age || '—'}</div>
 
     <div class="bar-wrap" style="margin-bottom:2px">
       <div class="bar-label">
@@ -8153,6 +8203,11 @@ function loadFromSave(save) {
     if (characterSheet.forceStats.forceOutput === undefined) characterSheet.forceStats.forceOutput = 0;
     if (!characterSheet.stats) characterSheet.stats = {};
     if (characterSheet.stats.intelligence === undefined) characterSheet.stats.intelligence = 0;
+    // Migrate old saves that predate rank tracking — derive a sensible default from lifeStage
+    if (!characterSheet.rank) {
+      const _lifeStageToRank = { youngling:'youngling', padawan:'padawan', knight:'knight', knight_with_padawan:'knight', master:'master', master_with_padawan:'master', council_member:'master' };
+      characterSheet.rank = _lifeStageToRank[characterSheet.lifeStage] || 'padawan';
+    }
   }
   // Restore masterXP — if the save predates masterXP, migrate from characterSheet XP stores
   if (save.masterXP) {
@@ -8531,6 +8586,20 @@ const FORM_DISPLAY_LABELS = {
   ShiiCho:'Shii-Cho', DjemSo:'Djem So', ShienDjemSo:'Shien/Djem So', JarKai:"Jar'Kai", KiiShikk:'Kii-Shikk',
 };
 
+// Resolves a mandatory row's weights to the character's own current highest-level form
+// instead of a hardcoded one — a padawan training "with their master" is drilling whatever
+// form they're actually on, not necessarily Shii-Cho (which only youngling drills assume).
+// Mirrors the same FORM_WEIGHT_PROFILES/FORM_DEFAULT_WEIGHTS lookup simBuildActivityOptions()
+// already uses for dynamic form-practice activities.
+function simResolvePrimaryFormWeights(cs) {
+  const forms = cs?.lightsaberForms || {};
+  const entries = Object.entries(forms).map(([k, v]) => [k, typeof v === 'object' ? (v.level || 0) : (v || 0)]);
+  if (!entries.length) return [{p:'lightsaberForms.ShiiCho', w:1.0}];
+  entries.sort((a, b) => b[1] - a[1]);
+  const formKey = entries[0][0];
+  return [{p:'lightsaberForms.' + formKey, w:1.0}, ...(FORM_WEIGHT_PROFILES[formKey] || FORM_DEFAULT_WEIGHTS)];
+}
+
 // Anchor key → simulation stat path (for dynamic force ability activities)
 const ANCHOR_TO_SIM_PATH = {
   forceControl:  'forceStats.forceControl',
@@ -8580,7 +8649,9 @@ const SIM_MANDATORY = {
     { label:'Force Fundamentals',   defaultHours:1.0, min:0.5, max:1.5, weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'forceStats.forceControl',w:0.3},{p:'forceStats.forceSense',w:0.2}], strainBias:{f:0.5,p:0.0,m:1.6}, intensity:'casual' },
   ],
   padawan: [
-    { label:'Training with Master', defaultHours:2.0, min:1.0, max:3.0, weights:[{p:'forceStats.forceControl',w:0.6},{p:'forceStats.forceSense',w:0.4},{p:'stats.willpower',w:0.3}], strainBias:{f:1.0,p:1.4,m:0.7}, intensity:'standard', alignmentXPPerHour:3 },
+    { label:'Lightsaber Practice (with Master)', defaultHours:1.0, min:0.5, max:2.0, weights:'PRIMARY_FORM', strainBias:{f:0.4,p:1.5,m:0.4}, intensity:'standard' },
+    { label:'Meditation (with Master)',          defaultHours:1.0, min:0.5, max:2.0, weights:[{p:'forceStats.meditation',w:1.0},{p:'forceStats.forceSense',w:0.4},{p:'stats.willpower',w:0.3}], strainBias:{f:1.2,p:0.0,m:1.0}, intensity:'casual', isRecovery:true, alignmentXPPerHour:3 },
+    { label:'Archive Study (with Master)',       defaultHours:1.0, min:0.5, max:2.0, weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'forceStats.forceControl',w:0.3},{p:'stats.intelligence',w:0.3}], strainBias:{f:0.4,p:0.0,m:1.5}, intensity:'casual' },
   ],
   knight_with_padawan: [
     { label:'Padawan Instruction',  defaultHours:1.5, min:0.5, max:2.5, weights:[{p:'forceStats.forceKnowledge',w:1.0},{p:'stats.willpower',w:0.3},{p:'stats.charisma',w:0.3}], strainBias:{f:0.4,p:0.1,m:1.5}, intensity:'casual' },
@@ -11221,7 +11292,7 @@ function simGetTotalHours() {
     const el = document.getElementById('sim-mand-hours-' + i);
     if (el) total += parseFloat(el.value) || 0;
   });
-  simTrainingRows.forEach(r => { total += r.hours || 0; });
+  simTrainingRows.forEach(r => { if (r.activityKey && r.hours) total += r.hours; });
   const sleep = parseFloat(document.getElementById('sim-sleep-hours')?.value) || 7;
   total += sleep;
   total += 1.5; // meals/hygiene
@@ -11405,7 +11476,8 @@ function simCalcDailyXP(cs) {
   const stage = cs.lifeStage||'youngling';
   (SIM_MANDATORY[stage]||[]).forEach((mand, i) => {
     const hrs = parseFloat(document.getElementById('sim-mand-hours-'+i)?.value)||mand.defaultHours;
-    addXP(mand.weights, hrs, mand.intensity, 'standard');
+    const weights = mand.weights === 'PRIMARY_FORM' ? simResolvePrimaryFormWeights(cs) : mand.weights;
+    addXP(weights, hrs, mand.intensity, 'standard');
   });
   const allActsXP = simBuildActivityOptions(cs);
   simTrainingRows.forEach(r => {
@@ -11821,7 +11893,8 @@ async function simProcessDay(chunk, chunkNum, total) {
   const stage = cs.lifeStage||'youngling';
   (SIM_MANDATORY[stage]||[]).forEach((mand, i) => {
     const hrs = parseFloat(document.getElementById('sim-mand-hours-'+i)?.value)||mand.defaultHours;
-    applyBlockXP(mand.weights, hrs, mand.intensity, 'standard');
+    const weights = mand.weights === 'PRIMARY_FORM' ? simResolvePrimaryFormWeights(cs) : mand.weights;
+    applyBlockXP(weights, hrs, mand.intensity, 'standard');
   });
 
   // Training rows

@@ -4,6 +4,44 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V165 — 2026-06-23
+
+**Three fixes: simulation "Hours Used" counting blank rows, rank-tiered mandatory training that disappears at Knighthood, and a new persistent `rank` field with an AI-promotes/JS-owns CHANGES tag**
+
+### Problem 1 — phantom locked-in hours
+Player reported: "Hours are locked in despite there being nothing there." `simAddTrainingRow()` creates a new training row with `hours:1.0` but no `activityKey` selected, and `openSimPanel()` auto-adds one such blank row whenever the panel opens empty. Every other sim hour-total function (`simBuildMandatoryRows`, `simCalcDailyXP`, `simProcessDay`) already guards on `r.activityKey` before counting a row's hours, but `simGetTotalHours()` (the function that drives the displayed "Hours Used" tracker) summed `r.hours` unconditionally — so a freshly-opened panel with zero actual activity selected still showed locked-in hours.
+
+### Fix 1
+`simGetTotalHours()`: `simTrainingRows.forEach(r => { total += r.hours || 0; })` → `simTrainingRows.forEach(r => { if (r.activityKey && r.hours) total += r.hours; })`, matching the guard every other sim hour function already used.
+
+### Problem 2 — mandatory training didn't reflect "with your master," and disappearing at Knighthood needed confirmation
+Player: "the mandatory drills should change by rank, and disappear once you reach knighthood. So maybe as an apprentice it is just lightsaber practice with your master, meditation with your master, and archives with your master. An hour each." The existing `SIM_MANDATORY.padawan` entry was a single generic 2-hour "Training with Master" row hardcoded to ShiiCho weighting. Separately, confirmed by reading `SIM_MANDATORY` that bare `knight`/`master` life stages already have no entries at all — mandatory training disappearing at Knighthood was already correct, no code change needed there.
+
+### Fix 2
+Replaced the single `padawan` mandatory row with three 1-hour rows — Lightsaber Practice (with Master), Meditation (with Master), Archive Study (with Master) — each with its own strain bias and intensity. The lightsaber row uses a new `'PRIMARY_FORM'` weight marker instead of hardcoding ShiiCho, resolved at calc-time by new `simResolvePrimaryFormWeights(cs)`: looks up the character's own highest-leveled registered form and the matching `FORM_WEIGHT_PROFILES` entry (the same V148 dynamic-form-weighting table `simBuildActivityOptions()` already uses) — a padawan training "with their master" drills whatever form they're actually on, not necessarily Shii-Cho, mirroring CLAUDE.md's existing combat rule against defaulting to ShiiCho. Both `simCalcDailyXP()` and `simProcessDay()`'s mandatory-row loops now resolve the `'PRIMARY_FORM'` marker before calling `addXP`/`applyBlockXP`.
+
+### Problem 3 — rank had no persistent home
+Player: "make sure the character sheet tracks your rank. Make it so the AI increases rank but then JS handles it after that. Keep the rank by your age, affiliation, and species." Investigation found the engine already has a full per-faction rank ladder (`CC_RANKS`: Jedi youngling→initiate→padawan→knight→master, Sith acolyte→apprentice→sith_lord→dark_lord, Republic conscript→...→captain, Mandalorian foundling→...→champion, bounty hunter rookie→...→elite, unaffiliated untrained→...→wandering_adept) — but `finalizeCreation()` read the chosen rank only to derive `lifeStage` via an inline `lifeStageMap`, then discarded it. `characterSheet.rank` never existed as a stored field, and the AI had no tag to advance it mid-story.
+
+### Fix 3
+- Hoisted the inline `lifeStageMap` out of `finalizeCreation()` into a module-level `RANK_LIFESTAGE_MAP` const (next to `CC_RANKS`), plus a `RANK_VALID_VALUES` set (`new Set(Object.values(CC_RANKS).flat().map(r => r.value))`) for tag validation.
+- `finalizeCreation()` now persists `rank` directly on `characterSheet` alongside the existing `lifeStage: RANK_LIFESTAGE_MAP[rank] || 'padawan'` derivation.
+- New `RANK=` CHANGES tag, implemented as an exact mirror of the existing `LIFE_STAGE=` pattern (CLAUDE.md §5A/§7D): pre-scanned in the SHEET-parse snapshot block (so a same-turn `RANK=` survives the AI's SHEET JSON overwrite) and handled in the main CHANGES switch. Setting `RANK=` also auto-derives `lifeStage` via `RANK_LIFESTAGE_MAP` in the same step — the AI declares only the new rank; JS owns lifeStage and everything lifeStage drives (mandatory training rows, etc.) from that point on, exactly the "AI increases rank, JS handles it after that" split the player asked for. `rank` added to the protected-field snapshot/restore list so raw SHEET JSON can't silently overwrite it.
+- Documented `RANK=` in `MASTER_PROMPT` itself (it sits next to `NPC_LIFECYCLE=`/`RECURRING_RETURN=`) with the full set of valid per-faction values and a reminder to send it only on the turn the promotion happens — `LIFE_STAGE=` was found to have no equivalent in-prompt documentation at all (CLAUDE.md documents it, but the AI itself was never told the tag exists), so `RANK=` was given what `LIFE_STAGE=` was missing rather than copying that gap forward.
+- Affiliation: already fully expressed by `CC_RANKS` being faction-keyed — no further change needed. Age: Jedi rank labels carry explicit age brackets (Youngling 3-7, Initiate 7-12, Padawan 13+) that were purely descriptive text with nothing enforcing them; added `ccAgeChanged()`, wired to the age input's `oninput`, which nudges the rank dropdown to match the bracket — but only while the current selection is still within the youngling/initiate/padawan band, so it never fights a deliberate Knight/Master choice (those are earned via Trials, not age). Species: confirmed via codebase search that species has no mechanical hook anywhere in the engine (purely descriptive/display, same as faction labels elsewhere) — no new species-based rank gating was invented, since nothing in CLAUDE.md or the lore docs ties species to rank progression, and `species` and `rank` are already stored and displayed together on the same character record.
+- Migration: old saves predating this field get `characterSheet.rank` backfilled from their existing `lifeStage` on load (reverse of `RANK_LIFESTAGE_MAP`), same pattern as the existing ForceOutput/Intelligence v3-stat migration block.
+- Display: `rank` added to the per-turn `sheetSummary` line the AI receives, and to the character sheet panel's name/species/faction/age sub-header (via a `CC_RANKS`-derived label lookup).
+
+### Files changed
+- `index.html` — `simGetTotalHours()`; `SIM_MANDATORY.padawan`; new `simResolvePrimaryFormWeights()`; `simCalcDailyXP()` and `simProcessDay()` mandatory-row loops; `CC_RANKS` section gained `RANK_LIFESTAGE_MAP`/`RANK_VALID_VALUES`; `finalizeCreation()`; SHEET-parse snapshot/restore block; CHANGES-tag switch (`RANK=` handler); `MASTER_PROMPT` tag documentation; `ccAgeChanged()` + `cc-age` input wiring; save-load migration block; `sheetSummary`; `updateCharacterSheet()`.
+
+### Why this matters for future debugging
+The rank/lifeStage split is intentional, not redundant: `lifeStage` is the mechanical key every other system already keys off of (`SIM_MANDATORY`, mandatory row generation, etc.), while `rank` is the richer, faction-specific narrative value — collapsing them into one field would have lost the Sith/Republic/Mandalorian/bounty-hunter ladders entirely, since those don't map cleanly onto the five Jedi-shaped lifeStage buckets. Also: this is the second time a tag turned out to be documented in CLAUDE.md but never actually told to the AI in `MASTER_PROMPT` (the AI only ever sees `MASTER_PROMPT` plus per-turn context, never CLAUDE.md) — worth grep-checking any future CLAUDE.md-documented CHANGES tag against the live prompt text before assuming the AI knows about it.
+
+See [[project_swrpg]] for project orientation, `Docs/updates.md` V164 entry for the immediately preceding session's work in this file.
+
+---
+
 ## V164 — 2026-06-22
 
 **Fix: opponent stat profiles were frequently incomplete (missing relevant stat categories entirely, and Force-capable archetypes never got Force abilities at all) — adds a structural backfill plus root-level NPC Force ability seeding**

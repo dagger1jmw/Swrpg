@@ -346,6 +346,17 @@ LIFE_STAGE=[value]   // Values: youngling|padawan|knight|knight_with_padawan|mas
 ```
 > The parser pre-scans the CHANGES block for this tag before the SHEET snapshot runs, so the new value survives the snapshot/restore cycle. Do not rely on SHEET JSON — it is always overwritten.
 
+**Rank (V165 — AI declares the promotion, JS owns everything downstream):**
+```
+RANK=[value]   // Jedi: youngling|initiate|padawan|knight|master
+               // Sith: acolyte|apprentice|sith_lord|dark_lord
+               // Republic military: conscript|soldier|sergeant|lieutenant|captain
+               // Mandalorian: foundling|warrior|veteran|champion
+               // Bounty hunter: rookie|veteran|elite
+               // Unaffiliated Force-sensitive: untrained|self_taught|wandering_adept
+```
+> Same pre-scan/protection pattern as `LIFE_STAGE=`. Setting `RANK=` also auto-derives `lifeStage` via `RANK_LIFESTAGE_MAP` in the same step — never set `lifeStage` directly when promoting rank; `RANK=` already does it. Send this tag only on the turn the promotion actually happens, not every turn once set.
+
 **Shatterpoint system:**
 ```
 SHATTERPOINT_PERCEIVED=[tier],[description]   // Passive perception surfaces
@@ -487,7 +498,8 @@ The AI writing these fields in SHEET JSON has **no effect** — JS restores them
 | `innateTalents[]` | Player/creation only |
 | `innateAbilities[]` | Player/creation only |
 | `birthday` | Set via calendar UI only |
-| `lifeStage` | Set via `LIFE_STAGE:` CHANGES tag only |
+| `lifeStage` | Set via `LIFE_STAGE:` CHANGES tag only (or auto-derived by `RANK=`) |
+| `rank` | Set via `RANK:` CHANGES tag only (V165) |
 | `storyFlags{}` | Set via AI narrative events or player override panel |
 | `aptitudes[]` | Merged (AI + talent labels), deduplicated by JS |
 
@@ -541,13 +553,15 @@ Stored in `worldState.storyFlags{}`. Gate era/faction-locked abilities. AI sets 
 
 **JS handles (no AI tokens):** All XP calculations, strain accumulation/recovery, multi-stat weight distribution, daily hours budget, calendar advancement, sleep recovery math, XP penalty modifiers from overtraining.
 
-**Mandatory training rows** by life stage (cannot be deleted, hours adjustable):
+**Mandatory training rows** by life stage (cannot be deleted, hours adjustable). Bare `knight`/`master` life stages have no mandatory rows at all — mandatory training disappears entirely at Knighthood:
 | Life Stage | Mandatory Row | Default Hours | Primary Skill |
 |---|---|---|---|
 | Youngling | Morning Forms Drills | 1.5 hrs | ShiiCho |
 | Youngling | Group Meditation | 1.0 hrs | Meditation (recovery) |
 | Youngling | Force Fundamentals Class | 1.0 hrs | ForceKnowledge |
-| Padawan | Training with Master | 2.0 hrs | Master's specialty |
+| Padawan | Lightsaber Practice (with Master) | 1.0 hr | Character's own highest-leveled form (`PRIMARY_FORM`, V165 — never hardcoded ShiiCho) |
+| Padawan | Meditation (with Master) | 1.0 hr | Meditation (recovery) |
+| Padawan | Archive Study (with Master) | 1.0 hr | ForceKnowledge |
 | Knight/Master with padawan | Padawan Instruction | 1.5 hrs | ForceKnowledge |
 | All | Sleep | 7.0 hrs | Recovery only |
 
@@ -890,7 +904,8 @@ If you find a conflict between what the AI produced and the lore files:
 | 2026-06-22 | **Two-call pre-roll combat architecture — roll now fires before narrative for most exchanges (V162).** Player sent a screenshot of a roll card ("Dominant win") directly contradicted by narrative ("your defense shattered") for the same exchange, and explicitly requested "roll should be first, then narrative determined based on the roll" — selecting a two-call combat-turn architecture over a sixth attempt at hardening prompt compliance (V132/V142/V153/V154/V155/V156 had all tried wording/banners and never eliminated the contradiction). New `preRollCombatExchange()` fires a small secondary Gemini call to resolve the dice BEFORE the main narrative call when `activeCombat` is active; new `scanAndFireRollTags()` (refactored from the old inline scan) is shared by both calls. The old deferred-roll/banner/disclaimer system is preserved untouched as an automatic fallback for combat-start turns, override turns, and any pre-roll failure. | V161 → V162. See `Docs/updates.md`. |
 | 2026-06-22 | **Opponent opposed-roll bonus summed their ENTIRE registered stat profile instead of relevant stats only (V163).** Player spotted Lyra's roll breakdown listing and summing seven stats (strength, agility, endurance, forceControl, willpower, charisma, intelligence) for a lightsaber exchange, while the player's own bonus correctly used only 3 relevant paths — "the game seems to be using a character's core stats as bonuses and not their relevant stats for the NPCs." Root cause: `fireRoll()`'s opponent bonus summed every key in `roll.oppStats` (the opponent's full flattened `characterProfiles` entry) instead of filtering to the categories the player's own roll paths covered, so any NPC with a richer registered profile got a structurally inflated bonus unrelated to the actual roll. Fix: new `getOppRelevantStats()` maps the player's roll paths onto the opponent's matching stats (lightsaberForms paths use the opponent's own highest form; everything else matches by category+key), falling back to the full set only if no category overlaps at all. | V162 → V163. See `Docs/updates.md`. |
 | 2026-06-22 | **Opponent profiles often missing entire stat categories outright — structural backfill + NPC Force ability archetype seeding (V164).** Follow-up to V163: Lyra's now-correctly-filtered bonus exposed that she had no `lightsaberForms` entry at all, so her "Shii-Cho Offense" contributed zero. Player: "the game just isnt building out each characters combat stats... it breaks the system," and proposed root-only Force abilities for NPCs (no per-sub-ability tracking) given the catalog's size. Fix: new `backfillOppStats()` fills any roll-relevant category an opponent is missing — forms detected from the roll label text, other stats estimated from the opponent's own average — and persists the fill so it's stable across rounds. Separately, the three Force-capable `NPC_ARCHETYPES` (Guardian/JediConsular/SithInquisitor) gained a small `abilities:[]` list of root Force ability keys mirroring the canon NPC `{AbilityKey:level}` pattern; `npcGenerateStats()` seeds those levels from the archetype's own forceControl/forceOutput average — no proficiency tracking, AI improvises sub-applications narratively, roll resolves off the root level. | V163 → V164. See `Docs/updates.md`. |
+| 2026-06-23 | **Sim "Hours Used" counted blank rows; rank-tiered "with your master" mandatory training; new persistent `rank` field with AI-promotes/JS-owns CHANGES tag (V165).** Three player-requested fixes in one session. (1) `simGetTotalHours()` was the one sim hour-total function missing the `r.activityKey` guard every sibling function already had, so an empty just-opened panel showed locked-in hours. (2) Padawan's single generic "Training with Master" mandatory row replaced with three 1-hour rows (lightsaber/meditation/archives, all "with your master") per the player's spec; the lightsaber row resolves to the character's own actual highest-leveled form via new `simResolvePrimaryFormWeights()` instead of hardcoding ShiiCho. Confirmed bare knight/master life stages already have zero mandatory rows — disappearing at Knighthood needed no fix. (3) Found the engine already had a full per-faction `CC_RANKS` ladder used only to derive `lifeStage` at creation, then discarded — added persistent `characterSheet.rank`, a `RANK=` CHANGES tag mirroring `LIFE_STAGE=`'s exact AI-declares/JS-protects pattern (auto-deriving lifeStage too), `ccAgeChanged()` to keep the Jedi age-bracketed ranks honest during creation, and old-save migration. Species confirmed to have no mechanical hook anywhere in the codebase — left as display-only, same as before. | V164 → V165. See `Docs/updates.md`. |
 
 ---
 
-*End of CLAUDE.md — Last updated: 2026-06-22 (V164)*
+*End of CLAUDE.md — Last updated: 2026-06-23 (V165)*
