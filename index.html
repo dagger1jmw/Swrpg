@@ -3016,13 +3016,13 @@ const NPC_ARCHETYPES = {
     core:{ str:0.7, agi:0.8, end:0.9, wil:1.0, cha:1.4, int:1.3 } },
   BattleIntel:    { forceCapable:false, primaryForm:null,
     core:{ str:1.3, agi:0.9, end:1.0, wil:0.9, cha:0.7, int:1.3 } },
-  Guardian:       { forceCapable:true, primaryForm:'ShiiCho',
+  Guardian:       { forceCapable:true, primaryForm:'ShiiCho', abilities:['Telekinesis','ForceSpeed'],
     core:{ str:1.3, agi:1.2, end:1.3, wil:1.0, cha:0.7, int:0.7 },
     force:{ fS:0.8, med:0.7, fK:0.7, fC:0.9, fOut:0.9 } },
-  JediConsular:   { forceCapable:true, primaryForm:'Makashi',
+  JediConsular:   { forceCapable:true, primaryForm:'Makashi', abilities:['Telekinesis','MindTrick','ForceBarrier'],
     core:{ str:0.7, agi:0.8, end:0.8, wil:1.2, cha:1.0, int:1.1 },
     force:{ fS:1.3, med:1.3, fK:1.2, fC:1.2, fOut:1.0 } },
-  SithInquisitor: { forceCapable:true, primaryForm:'Makashi',
+  SithInquisitor: { forceCapable:true, primaryForm:'Makashi', abilities:['Telekinesis','ForceLightning'],
     core:{ str:0.7, agi:0.8, end:0.8, wil:1.1, cha:0.9, int:1.0 },
     force:{ fS:1.2, med:1.1, fK:1.2, fC:1.3, fOut:1.3 } },
 };
@@ -3082,6 +3082,20 @@ function npcGenerateStats(archetypeKey, tier, opts) {
   }
   if (arch.primaryForm && pool.saber > 0) {
     stats.lightsaberForms = { [arch.primaryForm]: pool.saber };
+  }
+  // Root Force abilities only — no per-sub-ability proficiency tracking for NPCs (that's a
+  // player-progression-only mechanic). Levels are pinned to the archetype's own forceControl/
+  // forceOutput average (same range canon NPCs use, e.g. Satele Telekinesis:62 vs forceControl:78)
+  // with mild per-ability variance so two NPCs of the same archetype aren't identical clones.
+  // The AI narrates whichever sub-application fits the moment/tier; the roll always resolves off
+  // this root level, exactly like lightsaber forms already work.
+  if (arch.forceCapable && arch.abilities?.length && pool.force > 0) {
+    const abilityBase = (forceVals.fC + forceVals.fOut) / 2;
+    stats.forceAbilities = {};
+    arch.abilities.forEach(key => {
+      const variance = 0.85 + Math.random() * 0.3;
+      stats.forceAbilities[key] = Math.max(1, Math.min(pool.forceMax, Math.round(abilityBase * variance)));
+    });
   }
 
   return { archetypeKey, tier: reqTier, budgetTier, prodigy: !!opts.prodigy, stats };
@@ -4386,6 +4400,9 @@ function scanAndFireRollTags(text) {
       scanPending.tactical = parseFloat(t.slice(9)) || 0;
     } else if (t.startsWith('ROLL_LABEL=') && scanPending) {
       scanPending.label = t.slice(11).trim();
+      if (scanPending.opposed && scanPending.oppStats && Object.keys(scanPending.oppStats).length > 0) {
+        backfillOppStats(scanPending.oppName, scanPending.oppStats, scanPending.paths, scanPending.label);
+      }
       if (scanPending.opposed && activeCombat) opposedFired++;
       fireRoll(scanPending);
       scanPending = null;
@@ -10576,6 +10593,86 @@ function getOppRelevantStats(oppStats, playerPaths) {
     }
   }
   return Object.keys(relevant).length ? relevant : null;
+}
+
+// Canonical lightsaber form keys (post-V143 normalization) — used to detect which form an
+// opponent is using from free-text roll labels, e.g. "Soresu Parry vs Lyra's Shii-Cho Offense".
+const CANON_FORM_KEYS = ['ShiiCho','Makashi','Soresu','Ataru','Shien','DjemSo','ShienDjemSo','Niman','Juyo','Vaapad','JarKai','KiiShikk'];
+
+// Scans a roll label for a canonical form name belonging to the OPPONENT (i.e. not the
+// player's own form, passed as excludeForm) so a backfilled form entry matches whatever the
+// AI already narratively established for them, instead of defaulting blindly every time.
+function extractOppFormFromLabel(label, excludeForm) {
+  if (!label) return null;
+  const norm = s => (s || '').toLowerCase().replace(/[^a-z]/g, '');
+  const excludeNorm = norm(excludeForm);
+  const labelNorm = norm(label);
+  for (const form of CANON_FORM_KEYS) {
+    const formNorm = norm(form);
+    if (formNorm === excludeNorm) continue;
+    if (labelNorm.includes(formNorm)) return form;
+  }
+  return null;
+}
+
+// Backfilled values shouldn't be arbitrary — average whatever real numbers the opponent
+// already has on file so a freshly-filled gap lands in the same rough range as the rest of
+// their established profile, falling back to a flat default only when nothing exists yet.
+function estimateOppMagnitude(oppStats, fallback) {
+  const vals = Object.values(oppStats || {}).filter(v => typeof v === 'number' && v > 0);
+  if (!vals.length) return fallback;
+  return Math.round(vals.reduce((s, v) => s + v, 0) / vals.length);
+}
+
+// Persists a single backfilled stat into the opponent's registered profile so it stays stable
+// across subsequent rounds instead of being silently re-estimated (or re-rolled by the AI)
+// every exchange. Mirrors the existing INLINE auto-registration shape used elsewhere.
+function persistOppStatBackfill(oppName, cat, key, val) {
+  if (!oppName || oppName === 'Opponent' || !worldState) return;
+  if (!worldState.characterProfiles) worldState.characterProfiles = {};
+  if (!worldState.characterProfiles[oppName]) {
+    worldState.characterProfiles[oppName] = { name: oppName, stats: {}, lifecycleState: 'disposable' };
+  }
+  const profile = worldState.characterProfiles[oppName];
+  if (!profile.stats) profile.stats = {};
+  if (!profile.stats[cat]) profile.stats[cat] = {};
+  profile.stats[cat][key] = val;
+}
+
+// An opponent profile can be PARTIALLY populated — real stats exist, but not the specific
+// category THIS roll needs (e.g. Lyra has agility/endurance on file but no lightsaberForms
+// entry at all, so her "Shii-Cho Offense" contributed zero even after V163's relevance filter
+// correctly excluded her unrelated stats). Distinct from the fully-empty case (oppStatsFallback
+// in scanAndFireRollTags), which fireRoll() already estimates sensibly via a tier-matched
+// fallback — this only fills the specific gaps within an otherwise-real profile, and persists
+// them so a gap isn't silently re-estimated differently every round. Mutates oppStats in place
+// so the roll about to fire benefits immediately.
+function backfillOppStats(oppName, oppStats, playerPaths, label) {
+  if (!oppStats || !playerPaths?.length) return;
+  const dotted = Object.keys(oppStats).some(k => k.includes('.'));
+  for (const p of playerPaths) {
+    const dot = p.indexOf('.');
+    const cat = dot >= 0 ? p.slice(0, dot) : p;
+    const key = dot >= 0 ? p.slice(dot + 1) : p;
+    if (cat === 'lightsaberForms') {
+      const hasForm = dotted
+        ? Object.keys(oppStats).some(k => k.startsWith('lightsaberForms.'))
+        : CANON_FORM_KEYS.some(f => f in oppStats);
+      if (hasForm) continue;
+      const oppForm = extractOppFormFromLabel(label, key) || 'ShiiCho';
+      const val = estimateOppMagnitude(oppStats, 20);
+      if (dotted) oppStats['lightsaberForms.' + oppForm] = val;
+      else oppStats[oppForm] = val;
+      persistOppStatBackfill(oppName, 'lightsaberForms', oppForm, val);
+    } else {
+      const has = dotted ? (p in oppStats) : (key in oppStats);
+      if (has) continue;
+      const val = estimateOppMagnitude(oppStats, 20);
+      if (dotted) oppStats[p] = val;
+      else oppStats[key] = val;
+      persistOppStatBackfill(oppName, cat, key, val);
+    }
+  }
 }
 
 // Deterministic one-line consequence text for a JS-computed opposed-roll result, keyed off

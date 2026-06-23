@@ -4,6 +4,34 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V164 — 2026-06-22
+
+**Fix: opponent stat profiles were frequently incomplete (missing relevant stat categories entirely, and Force-capable archetypes never got Force abilities at all) — adds a structural backfill plus root-level NPC Force ability seeding**
+
+### Problem
+A follow-up screenshot to V163 showed the fix working correctly — Lyra's roll breakdown now showed only `agility(20):+1.000, endurance(20):+1.000`, filtered to relevant stats as intended — but exposed a deeper issue: Lyra has no `lightsaberForms` entry at all, so her actual "Shii-Cho Offense" contributed zero to her own roll. Player's diagnosis: "It seems like the game just isnt building out each characters combat stats. They need to be built out fully so that the bonuses can be properly applied or else it breaks the system." Player also proposed a fix for Force abilities specifically, given how many exist in the catalog: give NPCs a handful of root Force abilities and let the AI improvise which sub-application fits a given exchange narratively, rather than generating (or requiring) the full sub-ability tree per NPC.
+
+Root cause: three different opponent-profile-creation paths have wildly inconsistent completeness guarantees. `NPC_ROLL=` → `npcGenerateStats()` builds a full `stats`/`forceStats`/single-`lightsaberForms`-entry block from archetype weights, but never generated `forceAbilities` at all. `GENERATE_PROFILE=` creates an empty `stats:{}`, relying entirely on the AI manually typing exact numbers via a later `PROFILE_STATS=` tag. A first `ROLL_OPPOSED ... vs INLINE:` declares whatever bare stats the AI feels like for that one roll, auto-registered as-is with no completeness guarantee — almost certainly how Lyra ended up with only `agility`/`endurance` and no form. V163's relevance filter was correct, but it can only filter stats that exist — it can't invent a category the opponent never had.
+
+### Fix
+**Part 1 — structural backfill (`index.html`, ~line 10580):** new `backfillOppStats(oppName, oppStats, playerPaths, label)`, called from `scanAndFireRollTags()`'s `ROLL_LABEL=` branch immediately before `fireRoll()` fires. For each of the player's roll paths, checks whether the opponent has ANY value for that category (handling both dotted `CHARACTER:`-profile keys and bare `INLINE:` keys). If missing:
+- **Form paths** — `extractOppFormFromLabel()` scans the roll's free-text label (e.g. "Soresu Parry vs Lyra's Shii-Cho Offense") for a canonical form name belonging to the opponent, via normalized substring match against a new `CANON_FORM_KEYS` list, so the backfilled form matches whatever the AI already narratively established. Falls back to `ShiiCho` (universal default) if the label doesn't name one.
+- **Everything else** — `estimateOppMagnitude()` averages whatever positive numeric values already exist in the opponent's profile (falling back to 20 if none), so a backfilled value lands in the same rough range as the rest of their established stats instead of being arbitrary.
+
+Mutates `oppStats` in place (so the roll firing immediately benefits) and persists via new `persistOppStatBackfill()` into `worldState.characterProfiles[oppName].stats[cat][key]` (auto-creating nested objects, guarded against the literal `'Opponent'` placeholder per the V159 fix) so the gap doesn't get silently re-estimated differently every round. Deliberately left the existing `oppStatsFallback` case (a profile with ZERO stats registered) untouched — `fireRoll()` already has a sensible tier-matched estimate for that case; this only targets *partially*-populated profiles, which is the case the backfill needed to cover.
+
+**Part 2 — NPC Force ability archetype seeding (`index.html`, ~line 3019, ~3079):** extended the three `forceCapable:true` entries in `NPC_ARCHETYPES` with a small `abilities:[]` list of root Force ability keys — `Guardian: ['Telekinesis','ForceSpeed']`, `JediConsular: ['Telekinesis','MindTrick','ForceBarrier']`, `SithInquisitor: ['Telekinesis','ForceLightning']` — mirroring the flat `{AbilityKey: level}` structure `CANON_PROFILES_3661BBY` already uses for canon NPCs (e.g. Satele Shan: `{Telekinesis:62, ForceBarrier:58, ForceSpeed:65}`). `npcGenerateStats()` now populates `stats.forceAbilities` for any archetype with an `abilities` list, pinning each ability's level to the archetype's own rolled forceControl/forceOutput average with ±15% per-ability variance (so two NPCs of the same archetype aren't identical), clamped to the tier's `forceMax`. Deliberately no per-sub-ability proficiency tracking for NPCs — that mechanic (`forceAbilityProficiency`, soft caps, discount factors) is player-progression-only; the AI narrates whichever sub-application of a root ability fits the moment and tier, and the roll always resolves off the root level, exactly like lightsaber forms already work.
+
+### Files changed
+- `index.html` — `NPC_ARCHETYPES` (added `abilities:[]` to 3 force-capable archetypes), `npcGenerateStats()` (added `forceAbilities` generation block), new `CANON_FORM_KEYS`, `extractOppFormFromLabel()`, `estimateOppMagnitude()`, `persistOppStatBackfill()`, `backfillOppStats()`, and the new call site in `scanAndFireRollTags()`.
+
+### Why this matters for future debugging
+V163 and this fix are two halves of the same underlying lesson: a "sum only relevant stats" filter and a "the opponent actually has that stat" guarantee are separate problems, and fixing the first can expose the second cleanly for the first time (a fully-summed bonus masks a missing category by accident; a correctly-filtered bonus reveals it as a hard zero). Whenever an entity's mechanical bonus depends on a sparse, multi-path-creation data store (here, three structurally different profile-creation tags), prefer a backfill-and-persist pattern over either (a) trusting every creation path to be complete, or (b) re-estimating from scratch every time a gap is hit — the latter would make an opponent's missing stat flicker to a different value every round.
+
+See [[project_swrpg]] for project orientation, [[project_opponent_full_profile_bonus_inflation]] for the immediately preceding fix in the same area, [[project_opponent_profile_name_orphan]] for the related prior opponent-profile state-management bug.
+
+---
+
 ## V163 — 2026-06-22
 
 **Fix: opponent's opposed-roll bonus summed their ENTIRE registered stat profile (every core + Force stat) instead of only the stats relevant to the exchange**
