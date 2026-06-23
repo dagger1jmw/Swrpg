@@ -11295,7 +11295,6 @@ function simGetTotalHours() {
   simTrainingRows.forEach(r => { if (r.activityKey && r.hours) total += r.hours; });
   const sleep = parseFloat(document.getElementById('sim-sleep-hours')?.value) || 7;
   total += sleep;
-  total += 1.5; // meals/hygiene
   return total;
 }
 

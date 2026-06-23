@@ -4,6 +4,26 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V166 — 2026-06-23
+
+**Fix: V165's "Hours Used" fix didn't catch a second, separate source of phantom hours — a hardcoded +1.5 constant with no corresponding UI row at all**
+
+### Problem
+Player reported the exact same symptom after V165 shipped: "I still have that 8.5 hours locked in despite there being nothing there in the simulation section." V165 fixed `simGetTotalHours()` only counting `simTrainingRows` entries that have an `activityKey` selected — correct, but not the actual cause of this report. `simGetTotalHours()` unconditionally added `total += 1.5; // meals/hygiene` with zero corresponding row, slider, or any other UI element anywhere in the sim panel — the player could never see, edit, or account for it. With no mandatory rows for the current life stage (Knight/Master have none, confirmed correct in V165) and no Training Blocks added, the displayed total was Sleep's default 7.0 (a real, visible, listed row) plus this invisible 1.5 = 8.5 — exactly the number reported.
+
+### Fix
+Removed the `total += 1.5;` line entirely from `simGetTotalHours()`. Confirmed via grep that this function is the *only* caller of the value (feeds just the "Hours Used" bar/label), so the removal is fully isolated — no other strain/XP calculation depended on the same constant.
+
+### Files changed
+- `index.html` — `simGetTotalHours()`.
+
+### Why this matters for future debugging
+The player's wording on both reports ("hours locked in despite nothing there") was identical, which made it tempting to treat the second report as the first fix simply not having shipped/cached — it hadn't; it was a second, independently-introduced source of the same *symptom*. When a fixed bug's exact symptom recurs, re-derive the number from scratch (here, working backward from 8.5 = 7.0 sleep + 1.5 unknown) rather than assuming the original fix was incomplete or didn't take — the underlying cause was a completely different line of code. Also a reminder to grep any hardcoded numeric addition in a UI-total function for a matching visible control before trusting it belongs there — `1.5 // meals/hygiene` had no UI element to point to anywhere in the file.
+
+See [[project_swrpg]] for project orientation, `Docs/updates.md` V165 entry for the immediately preceding (incomplete) fix to this same symptom.
+
+---
+
 ## V165 — 2026-06-23
 
 **Three fixes: simulation "Hours Used" counting blank rows, rank-tiered mandatory training that disappears at Knighthood, and a new persistent `rank` field with an AI-promotes/JS-owns CHANGES tag**
