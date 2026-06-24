@@ -4,6 +4,43 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V170 — 2026-06-24
+
+**Fix: combat-opening turns still used the deferred roll model — action narrated on the wrong turn**
+
+### Problem
+
+Player reported: "I put in a prompt, it didn't fire that turn, and then the next turn it fired." Screenshots showed: Turn 1 had a roll card ("Clear win") plus the V156 same-turn disclaimer ("narrative was written before that result existed — the true outcome is addressed at the start of your next turn"). Turn 2 opened with the "LAST EXCHANGE — RESOLVED" banner followed by the actual outcome narrative.
+
+Root cause: `preRollCombatExchange()` guarded on `if (!activeCombat) return false`, and the caller also gated it with `if (activeCombat && !isOverride)`. On any turn where the player's action first engages an opponent — `activeCombat` is null going into that turn — the pre-roll was unconditionally skipped and the system fell back to the deferred model (V132-V161 architecture). V162's comment even documented this as an acknowledged gap: *"e.g. the turn that starts combat, before activeCombat exists"*. The player had not triggered this specific case until now.
+
+### Fix
+
+Three coordinated changes:
+
+**1. `preRollCombatExchange()` — new-combat branch**
+
+Removed the `!activeCombat` early return. Added an `isNewCombat = !activeCombat` flag and a second prompt branch for that case. The new-combat prompt asks the pre-roll AI to output `COMBAT_START: [opponent], [intensity]` followed by `ROLL_OPPOSED:` + `ROLL_LABEL=` if the player's action starts a fight — or `NO_ROLL_NEEDED` otherwise. After the API call, if the response contains `COMBAT_START:`, the function calls `startCombat()` immediately (before `scanAndFireRollTags` runs, so the opponent name is registered when the ROLL_OPPOSED lookup executes), sets `activeCombat.startedByPreRoll = true`, then calls `scanAndFireRollTags`. If a roll fires, `preRolledForCurrentTurn = true` is set and the function returns `true`. If no roll fires (non-combat action), the premature `startCombat()` is undone (`activeCombat = null`) and the function returns `false`.
+
+maxOutputTokens raised from 150 → 200 to accommodate the extra `COMBAT_START:` line.
+
+**2. Caller in `callGemini`**
+
+Changed `if (activeCombat && !isOverride)` → `if (!isOverride)` so the pre-roll runs even when no combat is active. Override turns ([CORRECTION] etc.) still bypass it.
+
+**3. Main CHANGES loop COMBAT_START: handler**
+
+When the main AI's response includes `COMBAT_START:` (which it will, since it doesn't know the pre-roll already started combat), the existing `_combatStartedThisTurn` guard already blocked re-running `startCombat()` for the pre-scan case. A new `activeCombat?.startedByPreRoll` guard handles the V170 case: instead of calling `startCombat()` again (which would wipe `lastRollResult`), it only reconciles the opponent name if the pre-roll guessed it differently from what the main AI declared, then continues.
+
+### Outcome
+
+Combat-opening turns now follow the same pre-rolled flow as mid-fight turns: the roll fires before the main narrative call, the main AI sees "✅ THIS EXCHANGE — ALREADY RESOLVED" in the stateblock, and the outcome is narrated correctly on the same turn the player submitted their action. The deferred model (+ disclaimer + next-turn resolution) is now only a fallback for pre-roll API failures, not a structural gap for a common case.
+
+### Files changed
+- `index.html` — `preRollCombatExchange()` (new-combat branch + COMBAT_START: parsing + rollback on no-fire), caller condition in `callGemini`, COMBAT_START: handler in main CHANGES loop.
+
+---
+
 ## V169 — 2026-06-24
 
 **Three fixes: training remote routed to COMBAT (should be TRAINING), Satelé Shan replacing Training Remote as combat opponent mid-fight, and form switching mid-combat without player declaration**

@@ -4467,23 +4467,47 @@ function scanAndFireRollTags(text) {
 // when this turn's action doesn't call for a roll — in both cases the caller falls back to the
 // pre-V162 deferred system unchanged, so a flaky secondary call can never break combat.
 async function preRollCombatExchange(playerMessage) {
-  if (!activeCombat || !characterSheet) return false;
+  if (!characterSheet) return false;
   try {
-    const oppName = activeCombat.opponent;
-    const profile = worldState?.characterProfiles?.[oppName];
+    const isNewCombat = !activeCombat;
+    const oppName = activeCombat?.opponent;
+    const profile = oppName ? worldState?.characterProfiles?.[oppName] : null;
     const oppStatsStr = (profile?.stats && Object.keys(profile.stats).length)
       ? JSON.stringify(profile.stats)
-      : `unregistered — invent a reasonable INLINE stat block for a ${activeCombat.opponentTier ? 'tier ' + activeCombat.opponentTier : 'roughly even-tier'} opponent`;
+      : oppName
+        ? `unregistered — invent a reasonable INLINE stat block for a ${activeCombat.opponentTier ? 'tier ' + activeCombat.opponentTier : 'roughly even-tier'} opponent`
+        : 'unknown';
     const formsStr = Object.entries(characterSheet.lightsaberForms || {}).map(([k,v])=>`${k}:${typeof v==='object'?(v.level||0):(v||0)}`).join(', ') || 'none';
     const lastModelTurn = [...(Array.isArray(recentHistory)?recentHistory:[])].reverse().find(m => m.role === 'model');
     const recentSnippet = lastModelTurn ? (lastModelTurn.parts?.[0]?.text || '').slice(-400) : '';
+    const lockedFormNote = activeCombat?.lockedForm
+      ? `\nLOCKED FORM THIS COMBAT: ${activeCombat.lockedForm.split('.')[1]} — use this form in ROLL_OPPOSED, do NOT switch to a different form unless the player's action explicitly names one`
+      : '';
+    const sceneNPCList = (worldState?.sceneNPCs || []).join(', ') || 'none declared';
 
-    const prompt = `You are resolving ONLY the dice-roll declaration for a combat exchange — no narrative, no other text.
+    // Two prompt branches: one for new-combat (no activeCombat yet) that asks the pre-roll
+    // AI to also declare COMBAT_START: so the roll can fire before the main narrative call,
+    // and the original in-combat branch (unchanged behavior for ongoing fights).
+    const prompt = isNewCombat
+      ? `You are resolving ONLY the dice-roll declaration for a potential combat opening — no narrative, no other text.
+
+NO ACTIVE COMBAT YET.
+NPCs IN CURRENT SCENE: ${sceneNPCList}
+PLAYER'S LIGHTSABER FORMS (level): ${formsStr}
+RECENT CONTEXT: ${recentSnippet || '(start of scene)'}
+PLAYER'S ACTION THIS TURN: "${playerMessage}"
+
+If this action STARTS combat AND makes an immediate first exchange (the player attacks, lunges, or engages an opponent in a fight), output EXACTLY these lines and nothing else:
+COMBAT_START: [opponent name], [light/standard/intense/desperate]
+ROLL_OPPOSED:category.StatOrFormPath|stats.statKey vs CHARACTER:[opponent name]
+ROLL_LABEL=Short label for the move
+Use "vs INLINE:statKey=val,..." instead of "vs CHARACTER:" only if the opponent has no known registered stats.
+If this action does NOT start combat (dialogue, movement, observation, a TRAINING: drill, etc.), output exactly: NO_ROLL_NEEDED`
+      : `You are resolving ONLY the dice-roll declaration for a combat exchange — no narrative, no other text.
 
 COMBAT STATE: opponent="${oppName}", intensity=${activeCombat.intensity}, round=${activeCombat.round}.
 OPPONENT STATS: ${oppStatsStr}
-PLAYER'S LIGHTSABER FORMS (level): ${formsStr}
-LOCKED FORM THIS COMBAT: ${activeCombat.lockedForm ? activeCombat.lockedForm.split('.')[1] + ' — use this form in ROLL_OPPOSED, do NOT switch to a different form unless the player\'s action this turn explicitly names a different form' : 'not yet locked — pick the highest-relevant form for this opening exchange'}
+PLAYER'S LIGHTSABER FORMS (level): ${formsStr}${lockedFormNote}
 RECENT CONTEXT (last narrative beat, for continuity only): ${recentSnippet || '(combat opening)'}
 PLAYER'S ACTION THIS TURN: "${playerMessage}"
 
@@ -4497,7 +4521,7 @@ Pick the path that best matches the player's described action, using their highe
     const body = {
       system_instruction: { parts: [{ text: 'You are a precise game-mechanics resolver for a combat system. Output ONLY the requested tag lines or NO_ROLL_NEEDED. Never write narrative, never write CHANGES/SHEET/WORLD blocks.' }] },
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.4, maxOutputTokens: 150, topP: 0.9 }
+      generationConfig: { temperature: 0.4, maxOutputTokens: 200, topP: 0.9 }
     };
     const resp = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -4508,15 +4532,31 @@ Pick the path that best matches the player's described action, using their highe
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     if (!text || text.includes('NO_ROLL_NEEDED')) return false;
 
-    const before = activeCombat.lastRollResult;
+    // New-combat: parse COMBAT_START: from the pre-roll response and apply it BEFORE
+    // scanAndFireRollTags runs, so the opponent name is registered when ROLL_OPPOSED fires.
+    // startedByPreRoll prevents the main CHANGES loop from calling startCombat() again
+    // (which would wipe lastRollResult that fireRoll() is about to set).
+    if (isNewCombat) {
+      const csMatch = text.match(/^COMBAT_START:\s*(.+)$/m);
+      if (!csMatch) return false; // new-combat pre-roll must declare an opponent to be valid
+      const csParts = csMatch[1].split(',').map(s => s.trim());
+      startCombat(csParts[0], csParts[1]);
+      activeCombat.startedByPreRoll = true;
+    }
+
+    const before = activeCombat?.lastRollResult;
     const fired = scanAndFireRollTags(text);
-    if (fired > 0 && activeCombat.lastRollResult && activeCombat.lastRollResult !== before) {
+    if (fired > 0 && activeCombat?.lastRollResult && activeCombat.lastRollResult !== before) {
       activeCombat.lastRollResult.preRolledForCurrentTurn = true;
       return true;
     }
+    // Pre-roll declared a new combat but fired no roll (e.g. action was non-combat after all) —
+    // undo the premature startCombat() so the main AI can start it correctly on its own terms.
+    if (isNewCombat && activeCombat?.startedByPreRoll) activeCombat = null;
     return false;
   } catch(e) {
     console.warn('[preRollCombatExchange] failed, falling back to deferred roll model:', e.message);
+    if (!activeCombat?.lastRollResult) activeCombat = null; // clean up any partial state
     return false;
   }
 }
@@ -4555,7 +4595,9 @@ async function callGemini(playerMessage, retryCount = 0) {
     // (e.g. the turn that starts combat, before activeCombat exists), falls back to the
     // pre-V162 deferred model unchanged.
     let _preRolledThisTurn = false;
-    if (activeCombat && !isOverride) {
+    if (!isOverride) {
+      // V170: pre-roll now runs even when activeCombat is null — handles combat-opening turns
+      // where the previous gap required a full deferred round before the outcome was narrated.
       _preRolledThisTurn = await preRollCombatExchange(userContent);
     }
 
@@ -5021,11 +5063,16 @@ async function callGemini(playerMessage, retryCount = 0) {
 
         // COMBAT_START: opponent, intensity
         if (trimmed.startsWith('COMBAT_START:')) {
-          // Already applied by the pre-scan above (before the ROLL_OPPOSED scan ran) —
-          // re-running startCombat() here would wipe out lastRollResult that fireRoll()
-          // may have just set for this turn's first exchange.
+          // Guard 1: already applied by the pre-scan above (before the ROLL_OPPOSED scan ran).
+          // Guard 2 (V170): pre-roll already called startCombat() and fired the opening roll —
+          // re-running startCombat() here would wipe lastRollResult. Only reconcile the opponent
+          // name in case the pre-roll guessed it differently from what the main AI declared.
           if (_combatStartedThisTurn) { continue; }
           const parts = trimmed.slice(13).split(',').map(s => s.trim());
+          if (activeCombat?.startedByPreRoll) {
+            if (parts[0] && parts[0] !== activeCombat.opponent) activeCombat.opponent = parts[0];
+            continue;
+          }
           startCombat(parts[0], parts[1]);
           continue;
         }

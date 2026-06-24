@@ -913,4 +913,8 @@ If you find a conflict between what the AI produced and the lore files:
 
 ---
 
-*End of CLAUDE.md — Last updated: 2026-06-24 (V169)*
+| 2026-06-24 | **Combat-opening pre-roll gap fix (V170).** Player: "I put in a prompt, it didn't fire that turn, and then the next turn it fired." Root cause: `preRollCombatExchange()` returned false immediately when `activeCombat` was null — V162 documented this as a known gap for combat-start turns. Fix: pre-roll now runs even with null `activeCombat`; new-combat prompt asks AI to emit `COMBAT_START:` + `ROLL_OPPOSED:` together; JS applies `startCombat()` before `scanAndFireRollTags` so the roll fires pre-narrative; `startedByPreRoll` flag prevents the main CHANGES loop from wiping `lastRollResult` when it sees the AI's own `COMBAT_START:` tag. | V169 → V170 (index.html). See `Docs/updates.md`. |
+
+---
+
+*End of CLAUDE.md — Last updated: 2026-06-24 (V170)*
