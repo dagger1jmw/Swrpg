@@ -6057,7 +6057,7 @@ async function callGemini(playerMessage, retryCount = 0) {
       .replace(/\*\*Revised Character Sheet[^*]*\*\*[\s\S]*?(?=\n\n[A-Z*]|\n\nReady|$)/gi, '[Character sheet updated in sidebar.]')
       .replace(/\*\*Character Sheet[^*]*\*\*[\s\S]*?(?=\n\n[A-Z*]|\n\nReady|$)/gi, '[Character sheet updated in sidebar.]')
       .trim();
-    displayText = scrubBladeColor(displayText, characterSheet?.lightsaber?.color || 'green');
+
 
     // ── Update history ─────────────────────────────────────────────
     // Store displayText (blocks stripped) not rawText — the CHANGES/SHEET/WORLD JSON
@@ -6798,18 +6798,6 @@ function statToTier(stat) {
   return { num: 7, name: 'Transcendent' };
 }
 
-// Safety net for blade-color drift: the AI is told the canon color every turn (see
-// buildContext's LIGHTSABER line) but narrative prose has drifted onto other colors
-// anyway after enough turns. Catches "<wrong color> blade/saber/lightsaber/plasma/edge/glow"
-// and corrects just the color word, leaving the rest of the sentence untouched.
-function scrubBladeColor(text, canonColor) {
-  if (!text || !canonColor) return text;
-  const canon = canonColor.toLowerCase();
-  const offCanon = ['silver','white','black','pink','gold','golden','chrome','steel','steel-colored','metallic',
-    'green','blue','red','purple','violet','yellow','orange','cyan'].filter(c => c !== canon);
-  const re = new RegExp(`\\b(${offCanon.join('|')})((?:[ -](?:hued|colored|coloured|tinted|glowing))?[ -](?:blade[sd]?|saber|lightsaber|plasma))`, 'gi');
-  return text.replace(re, (m, colorWord, rest) => canon + rest);
-}
 
 function tierGapBonus(higherTier, lowerTier) {
   const gap = higherTier - lowerTier;
