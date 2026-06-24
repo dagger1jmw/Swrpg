@@ -4,6 +4,58 @@ Detailed change log for each version. CLAUDE.md session log references this file
 
 ---
 
+## V169 — 2026-06-24
+
+**Three fixes: training remote routed to COMBAT (should be TRAINING), Satelé Shan replacing Training Remote as combat opponent mid-fight, and form switching mid-combat without player declaration**
+
+### Problem 1 — training remote was being routed through COMBAT_START/ROLL_OPPOSED
+
+Player reported: "A training remote shouldn't be a combat roll. That should just be regular training." The prompt's SPARRING rule said training droids always go through `COMBAT_START:`, and training remotes (small floating spheres that fire blaster bolts to deflect) were being treated as opponents with an opponent tier (Tier 1 Untrained) in the roll card. A training remote is a passive drill device — it fires in fixed patterns and cannot contest, reposition, or win.
+
+### Fix 1 (prompt)
+
+Added an explicit exception block to the SPARRING IS NEVER TRAINING rule: training remotes (floating spheres) are passive drill devices, not combat opponents. They get `TRAINING:` + `ROLL:/ROLL_LABEL=` (success/ceiling/wall table applies), never `COMBAT_START:/COMBAT_END:`. Also updated the EVERY ROLL MANDATORY section's "this includes sparring" bullet to reference the carve-out.
+
+### Problem 2 — Satelé Shan replaced Training Remote as the combat opponent mid-fight
+
+Player's screenshots showed two roll cards taken within one turn of each other: the first against "Training Remote (Tier 1 Untrained)", the second against "Satelé Shan (Tier 4 Master)". Root cause: `syncCombatOpponentName()` was called unconditionally from the `INTERACTION:` CHANGES handler for **any** NPC named during active combat. If the AI wrote `INTERACTION: Satelé Shan|training` (tracking her as present while supervising the drill), the handler immediately set `activeCombat.opponent = 'Satelé Shan'` and migrated Training Remote's profile stats under her name. The next `ROLL_OPPOSED` then looked up Satelé Shan's (now-enriched) profile and ran the roll as if the fight was against a Jedi Master.
+
+The same unconditional call existed in the `CHARACTER:` handler inside `scanAndFireRollTags`, which could also silently swap targets when the AI named a bystander as a ROLL_OPPOSED target.
+
+### Fix 2 (JS)
+
+Added a placeholder check before every `syncCombatOpponentName()` call:
+
+```javascript
+const _isPlaceholder = !activeCombat?.opponent ||
+  ['Unknown', 'Opponent', ''].includes(activeCombat.opponent) ||
+  /^(the |a |an )/i.test(activeCombat.opponent);
+```
+
+- **INTERACTION: handler**: Only sync when `_isPlaceholder` is true — a bystander NPC mentioned in the scene can no longer hijack the combat opponent name.
+- **CHARACTER: in scanAndFireRollTags**: Same placeholder check; if the current opponent is already a real named entity and the AI writes a different `CHARACTER:` name in the ROLL_OPPOSED, the character name is overridden back to `activeCombat.opponent` for both the roll and the profile lookup, so the roll always resolves against the actual combat opponent.
+
+### Problem 3 — form switching mid-combat without player declaration
+
+The first roll card used `Soresu(23)` as the primary path; the second (once Bug 2 also changed the combat context) used `ShiiCho`. Even without Bug 2, the pre-roll AI (`preRollCombatExchange`) picks the form afresh each exchange with no memory of what was used previously, allowing it to freely drift between forms across rounds.
+
+### Fix 3 (JS + prompt)
+
+Added `activeCombat.lockedForm = null` to `startCombat()`. In `scanAndFireRollTags`, when parsing a `ROLL_OPPOSED` playerPaths block: if `lockedForm` is null and a `lightsaberForms.*` path is present, it is stored as the lock; if `lockedForm` is already set and the AI picks a different form path, the form path in `playerPaths` is overridden to the locked form before `fireRoll()` runs. The locked form is also injected into:
+
+- **ACTIVE COMBAT STATE stateblock** (labeled "Locked Form: X ← JS-enforced"): tells the main narrative AI which form is in use this fight.
+- **preRollCombatExchange prompt** ("LOCKED FORM THIS COMBAT: X — use this form in ROLL_OPPOSED"): tells the pre-roll resolver to use the same form every exchange unless the player's action explicitly names a different one.
+
+The lock resets on every new `startCombat()` call (each new fight starts fresh). If the player explicitly switches forms mid-fight, the AI should pick the new form on the first exchange that names it, and the JS lock updates to that new form for the remainder of the fight.
+
+### Files changed
+- `index.html` — prompt (SPARRING exception + EVERY ROLL bullet), `scanAndFireRollTags()` (CHARACTER: placeholder guard + form lock enforcement), INTERACTION: CHANGES handler (placeholder guard), `startCombat()` (lockedForm field), ACTIVE COMBAT STATE stateblock (locked form injection), `preRollCombatExchange()` (locked form prompt line).
+
+### Why this matters for future debugging
+The INTERACTION: tag is a social-tracking mechanism for the People panel — it fires whenever any NPC is worth logging for the session. It was never intended to have combat side-effects, but the V159 fix for "orphaned opponent name" wired it to `syncCombatOpponentName()` without a guard. The guard pattern now used (`_isPlaceholder` check) should be applied to any future code path that calls `syncCombatOpponentName()` — the function is safe only when the current opponent is genuinely unnamed/generic. A named opponent (even "Training Remote") is a real entity that should not be swapped out by incidental NPC mentions in the scene.
+
+---
+
 ## V166 — 2026-06-23
 
 **Fix: V165's "Hours Used" fix didn't catch a second, separate source of phantom hours — a hardcoded +1.5 constant with no corresponding UI row at all**

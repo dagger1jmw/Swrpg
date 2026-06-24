@@ -1872,7 +1872,8 @@ Quick test: could the character fall asleep mid-activity without missing anythin
 
 DO NOT INVENT UNREQUESTED TRAINING — CRITICAL RULE:
 Generate TRAINING: tags, PROFICIENCY: tags, and drill roll cards (ROLL_LABEL=) ONLY when the player's declared action explicitly involves practicing, drilling, or deliberate solo Force use.
-- SPARRING IS NEVER TRAINING: — sparring means an exchange against an opponent (live partner, training droid, NPC), so it always goes through COMBAT_START: / ROLL_OPPOSED / COMBAT_END:, never TRAINING: tags or the SUCCESS TABLE. This applies even when the partner is at or below the player's tier — "at or below tier" only ever waives failure for solo, unopposed practice. See TRAINING OUTCOME SELECTION below.
+- SPARRING IS NEVER TRAINING: — sparring means a two-way combat exchange against a live opponent who contests and fights back (live partner, training droid, NPC), so it always goes through COMBAT_START: / ROLL_OPPOSED / COMBAT_END:, never TRAINING: tags or the SUCCESS TABLE. This applies even when the partner is at or below the player's tier — "at or below tier" only ever waives failure for solo, unopposed practice. See TRAINING OUTCOME SELECTION below.
+  **EXCEPTION — training remotes:** A training remote (floating sphere that fires blaster bolts to deflect) is a passive drill device, NOT a combat opponent. It fires predictable patterns; it cannot reposition, press an advantage, or contest. Treat all training-remote deflection drills as solo TRAINING: with ROLL:/ROLL_LABEL= (SUCCESS/CEILING/WALL TABLE applies). NEVER use COMBAT_START:/COMBAT_END: for a training remote — there is no opponent, no life-stakes, and no possibility of the remote "winning."
 - If the player says "join them for breakfast", "walk to the archives", "talk to Master X", "meditate on the lesson" — that is the entire action. Do NOT prepend a morning forms drill, a quick saber session, or any other training the player never asked for.
 - Mandatory daily routines (morning forms, group meditation) are NOT automatically inserted. If the player wants them, they will say so.
 - The previous turn's training is already fully credited. Do NOT award delayed XP for anything that happened last turn — it is gone.
@@ -2063,7 +2064,7 @@ JavaScript rolls dice via your ROLL:/ROLL_LABEL= tags — no pre-rolled values a
 - Any physical challenge with real consequences (climbing, sprinting, enduring sustained effort under pressure)
 - Any action explicitly opposed by another character
 - **EVERY combat exchange, no exceptions.** Even if the opponent appears cornered, outmatched, or on the defensive — the roll still happens. The narrative never makes a roll unnecessary. Skipping a combat roll and narrating the outcome directly is always wrong.
-- **This includes sparring.** A sparring partner or training droid is an opponent — use ROLL_OPPOSED via COMBAT_START:/COMBAT_END:, never the TRAINING: no-fail SUCCESS TABLE, even if the partner is at or below the player's tier. Losing a sparring match must be a real possibility every time.
+- **This includes sparring.** A sparring partner or training droid (humanoid automaton that contests back) is an opponent — use ROLL_OPPOSED via COMBAT_START:/COMBAT_END:, never the TRAINING: no-fail SUCCESS TABLE, even if the partner is at or below the player's tier. Losing a sparring match must be a real possibility every time. **Training remotes (floating spheres) are NOT sparring opponents — see TRAINING section above.**
 
 **NEVER ROLL:**
 - Purely passive narration, observation, or dialogue with no outcome stakes
@@ -4122,6 +4123,7 @@ ${activeCombat ? `
 ACTIVE COMBAT STATE — JS-TRACKED (authoritative, override your own count):
   Opponent: ${activeCombat.opponent} | Intensity: ${activeCombat.intensity}
   Current Round: ${activeCombat.round} ← use this exact number in the "— COMBAT ROUND [N] —" header this turn
+  ${activeCombat.lockedForm ? `Locked Form: ${activeCombat.lockedForm.split('.')[1]} ← JS-enforced, use this exact form in ROLL_OPPOSED every exchange — do NOT switch forms mid-combat unless the player explicitly declares a form change` : 'Form: not yet locked — pick highest-relevant form for the opening exchange'}
   Accumulated strain so far (NOT yet applied to sheet): Physical ${activeCombat.accPhysical.toFixed(1)}, Force ${activeCombat.accForce.toFixed(1)}, Mental ${activeCombat.accMental.toFixed(1)}
 ${activeCombat.lastRollResult ? (activeCombat.lastRollResult.preRolledForCurrentTurn ? `  ✅ THIS EXCHANGE — ALREADY RESOLVED. JS rolled the result for the player's action you are about to narrate BEFORE you wrote anything — this is not a past turn, it is the exchange you are narrating right now:
     Roll: "${activeCombat.lastRollResult.label}" | ${activeCombat.lastRollResult.marginLabel} (margin: ${activeCombat.lastRollResult.margin > 0 ? '+' : ''}${activeCombat.lastRollResult.margin.toFixed(2)})
@@ -4355,15 +4357,35 @@ function scanAndFireRollTags(text) {
       const vsIdx = roStr.indexOf(' vs ');
       if (vsIdx >= 0) {
         const playerPaths = roStr.slice(0, vsIdx).split('|').map(s=>s.trim()).filter(Boolean);
+        // Lock the lightsaber form to the first exchange of this combat — form switching
+        // mid-fight without an explicit player declaration is an AI drift error. If the AI
+        // picks a different form on a later round, override it with the locked form.
+        if (activeCombat) {
+          const formPath = playerPaths.find(p => p.startsWith('lightsaberForms.'));
+          if (formPath && !activeCombat.lockedForm) {
+            activeCombat.lockedForm = formPath;
+          } else if (activeCombat.lockedForm && formPath && formPath !== activeCombat.lockedForm) {
+            const fi = playerPaths.indexOf(formPath);
+            if (fi >= 0) playerPaths[fi] = activeCombat.lockedForm;
+          }
+        }
         const oppStr = roStr.slice(vsIdx + 4).trim();
         scanPending = { paths: playerPaths, opposed: true };
         if (oppStr.startsWith('CHARACTER:')) {
-          const charName = oppStr.slice(10).trim();
+          let charName = oppStr.slice(10).trim();
+          // Only reconcile the opponent name if the current one is a generic placeholder
+          // (e.g. 'the apprentice' being revealed as 'Padawan Velan'). If the active combat
+          // already has a real named opponent, the AI cannot switch targets by writing a
+          // different CHARACTER: name — override back to the actual combat opponent.
+          const _charOppIsPlaceholder = !activeCombat?.opponent ||
+            ['Unknown', 'Opponent', ''].includes(activeCombat.opponent) ||
+            /^(the |a |an )/i.test(activeCombat.opponent);
+          if (activeCombat && _charOppIsPlaceholder && charName !== activeCombat.opponent) {
+            syncCombatOpponentName(charName);
+          } else if (activeCombat && !_charOppIsPlaceholder && charName !== activeCombat.opponent) {
+            charName = activeCombat.opponent; // use actual combat opponent, not bystander
+          }
           scanPending.oppName = charName;
-          // If combat is still keyed under an earlier placeholder name, reconcile it to
-          // this (presumably now-real) name first so the lookup below can find stats
-          // that were registered before the opponent had a name.
-          if (activeCombat && charName !== activeCombat.opponent) syncCombatOpponentName(charName);
           const profile = worldState?.characterProfiles?.[charName];
           const profileStats = profile?.stats && Object.keys(profile.stats).length > 0 ? profile.stats : null;
           if (profileStats) {
@@ -4461,6 +4483,7 @@ async function preRollCombatExchange(playerMessage) {
 COMBAT STATE: opponent="${oppName}", intensity=${activeCombat.intensity}, round=${activeCombat.round}.
 OPPONENT STATS: ${oppStatsStr}
 PLAYER'S LIGHTSABER FORMS (level): ${formsStr}
+LOCKED FORM THIS COMBAT: ${activeCombat.lockedForm ? activeCombat.lockedForm.split('.')[1] + ' — use this form in ROLL_OPPOSED, do NOT switch to a different form unless the player\'s action this turn explicitly names a different form' : 'not yet locked — pick the highest-relevant form for this opening exchange'}
 RECENT CONTEXT (last narrative beat, for continuity only): ${recentSnippet || '(combat opening)'}
 PLAYER'S ACTION THIS TURN: "${playerMessage}"
 
@@ -5605,10 +5628,14 @@ async function callGemini(playerMessage, retryCount = 0) {
               if (!worldState.characterProfiles) worldState.characterProfiles = {};
               // If this INTERACTION is naming the current combat opponent for the first time
               // (e.g. a fight that started against an unnamed "apprentice" just had the name
-              // "Padawan Velan" revealed), reconcile activeCombat's stat registration to this
-              // name BEFORE the empty-stats stub below could get created under it — otherwise
-              // the real registered stats stay orphaned under the old placeholder forever.
-              if (activeCombat && intName !== activeCombat.opponent) syncCombatOpponentName(intName);
+              // "Padawan Velan" revealed), reconcile activeCombat's stat registration.
+              // BUT only sync when the current opponent is a generic placeholder — never
+              // replace a real named opponent (e.g. "Training Remote") with a bystander NPC
+              // who happens to be mentioned in the scene (e.g. Satelé Shan watching the drill).
+              const _intOppIsPlaceholder = !activeCombat?.opponent ||
+                ['Unknown', 'Opponent', ''].includes(activeCombat.opponent) ||
+                /^(the |a |an )/i.test(activeCombat.opponent);
+              if (activeCombat && _intOppIsPlaceholder && intName !== activeCombat.opponent) syncCombatOpponentName(intName);
               worldState.interactionWeights[intName] = (worldState.interactionWeights[intName]||0) + intAdd;
               if (!worldState.characterProfiles[intName]) {
                 worldState.characterProfiles[intName] = {
@@ -6474,7 +6501,8 @@ function startCombat(opponent, intensity) {
     primarySkill: null,
     secondarySkill: null,
     tierGap: 0,
-    oppInjuries: []
+    oppInjuries: [],
+    lockedForm: null  // set on first ROLL_OPPOSED exchange; enforced for the rest of this combat
   };
 }
 

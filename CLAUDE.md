@@ -909,4 +909,8 @@ If you find a conflict between what the AI produced and the lore files:
 
 ---
 
-*End of CLAUDE.md — Last updated: 2026-06-23 (V166)*
+| 2026-06-24 | **Training remote, opponent swap, and form lock fixes (V169).** Three bugs from screenshots: (1) Training remotes were routed through COMBAT_START/ROLL_OPPOSED — prompt now carves out an explicit exception: floating spheres = TRAINING:, humanoid droids = COMBAT_START:. (2) Satelé Shan replaced Training Remote as the combat opponent mid-fight — root cause: `syncCombatOpponentName()` in INTERACTION: handler fired for ANY NPC mentioned while combat was active; fixed by adding a placeholder check (only syncs when current opponent is a generic like "the apprentice"). Same placeholder guard added to CHARACTER: handler in scanAndFireRollTags, which also overrides AI's target back to the actual opponent if it tries to switch. (3) Form switching mid-combat — `activeCombat.lockedForm` set on first ROLL_OPPOSED, enforced by scanAndFireRollTags (overrides drift to different form), injected into both the ACTIVE COMBAT STATE stateblock and preRollCombatExchange prompt. | V166 → V169 (index.html). See `Docs/updates.md`. |
+
+---
+
+*End of CLAUDE.md — Last updated: 2026-06-24 (V169)*
