@@ -14,6 +14,11 @@ Reference tables (simulated with the health model, 8,000-10,000 duels per case):
 | 10 levels weaker, holding decisive high ground (+2)                   | 68%                 |
 | Same, against a reckless, enraged opponent (attack +1, defense -2)    | 81%                 |
 
+Build order (D-34): sections 1, 2 and 7 (basic roll, checks, seeded RNG and roll card) are
+built in M1 as pure engine, with the M1 stubs named in architecture §15. Duels (sections 3-6)
+stay in M5. Whether a check is required is decided by the engine from the intent, never by
+the AI (D-37).
+
 ## 1. Basic roll
 Total = d20 + effective level / 10 + modifiers
   Natural 20: +5 extra. Natural 1: -5 extra.
@@ -54,6 +59,8 @@ Player beats (Moment pacing): the player does not act every exchange. The engine
   exchanges between beats, and the player chooses a stance or tactic at each beat:
   every strike, whenever advantage reaches +/-2, after any maneuver, and at least every 5
   exchanges. The AI narrates the beats from the engine's exchange log.
+  Form change (Q32, copied by D-63): changing lightsaber form is allowed at a player beat and
+  costs 1 advantage step (the track moves 1 toward the opponent).
 Time: the clock advances 5-10 seconds per exchange (rolled).
 
 Duration targets: equal Force users median 30-40 exchanges (about 3-6 minutes);
@@ -93,6 +100,9 @@ Duration targets: equal Force users median 30-40 exchanges (about 3-6 minutes);
   Shatterpoint (ShatterSense talent only): contest d20 + Shatterpoint level/10 vs 15; on
     success, advantage jumps to 3 (an immediate strike), once per fight.
   The AI cannot grant either; code rolls them.
+  Non-combat Shatterpoint reads (perceiving a person, a relationship, a situation or an
+  event) are a check against a DC set by the D-06 band, defined in force-catalog.md
+  (D-63).
 
 ## 7. Randomness and display
   All rolls use the seeded RNG. The roll card shows both d20s, bonuses, each modifier with its
@@ -106,7 +116,8 @@ Duration targets: equal Force users median 30-40 exchanges (about 3-6 minutes);
  3. Jedi (70, Force Sense 70) vs trooper (15): Jedi wins 99%+ with median 4 or fewer exchanges.
  4. Natural 20 and natural 1 each occur 5% (+/-0.5%) over 100,000 rolls.
  5. No code path adds a tier-gap bonus; one level of difference never changes duel odds by
-    more than 1.5 points.
+    more than 2.5 points (amended by D-50; the reference table itself has 2.0 points per
+    level between gaps 0 and 5).
  6. Precognitive defense never applies to a surprise strike or above Force meter 1.0.
  7. The player gets a beat at every strike, at advantage +/-2, and at least every 5 exchanges.
  8. Same seed gives identical duels.

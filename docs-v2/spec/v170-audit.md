@@ -39,7 +39,7 @@ Three more paths also let AI text change state:
 
 Each path has guards (an "activity happened this turn" check, an "in combat" check, a READ ONLY label in the prompt) added after bugs, which is why fixes kept creating new bugs.
 
-**In v2:** the AI returns events only, checked by a schema. State has one owner per field (code), and nothing parses story text. This is already in Phases 2 and 5.
+**In v2:** the AI returns events only, checked by a schema. State has one owner per field (code), and nothing parses story text. This is already in Phases 2 and 5. *(Amended by D-28: the prompt pack's Phases 3-8 are replaced by milestones M1-M9 in architecture.md §15; the AI contract is architecture.md §3.)*
 
 ## Health, Force and strain
 
@@ -116,10 +116,10 @@ The rebuild discards V170's code, but not its design work. These carry over, as 
 
 ## Decisions needed
 
-- [x] **Health model:** decided. Fatigue meters (with a Force meter) + Vitality + Wounds; only wounds can incapacitate or kill. Spec is in the prompt pack's Health section.
-- [x] **Roll model:** decided. A visible d20 + level ÷ 4 with no tier cliffs, margin-based hit quality and maneuvers, and strong earned circumstances (surprise, openings, position, state of mind). Spec is in the prompt pack's Rolls section.
-- [x] **Calendar:** decided. The 12-month / 368-day Legends calendar (Essential Atlas version), with no invented month or weekday names.
+- [x] **Health model:** decided. Fatigue meters (with a Force meter) + Vitality + Wounds; only wounds can incapacitate or kill. Spec is in the prompt pack's Health section. *(Now docs-v2/spec/health.md; amended by D-59.)*
+- [x] **Roll model:** decided. A visible d20 + level ÷ 4 *(amended by D-22: d20 + effective level / 10, rolls.md)* with no tier cliffs, margin-based hit quality and maneuvers, and strong earned circumstances (surprise, openings, position, state of mind). Spec is in the prompt pack's Rolls section. *(Now docs-v2/spec/rolls.md; amended by D-59.)*
+- [x] **Calendar:** decided. The 12-month / 368-day Legends calendar (Essential Atlas version), with no invented month or weekday names. *(Amended by D-38: numbered months, 1-8 have 31 days and 9-12 have 30, year 0, continuous 7-day weeks; architecture.md §10.)*
 - [x] **Shatterpoint:** decided. A rare ability on the main curve (ShatterSense talent only, XP cost ×3).
 - [x] **V170 saves:** decided. Not imported; v2 starts a new campaign.
 
-This audit should be read alongside the Phase 1 feature audit in the prompt pack. Claude Code's audit will confirm these findings in more detail and add line-level bug lists.
+This audit should be read alongside the Phase 1 feature audit in the prompt pack (not in the repo; the Phase 1 audit is docs-v2/spec/01-24 and bugs.md, amended by D-59). Claude Code's audit will confirm these findings in more detail and add line-level bug lists.

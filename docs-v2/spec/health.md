@@ -16,13 +16,18 @@ Force meter (replaces Force strain):
     combat integration factor = (1 + 0.015 * G), max 2.0 (progression spec section 8)
   Example base loads (tunable; every ability in the catalog declares one):
     Force Push 0.15/use | Force Lightning 0.30/use | Saber throw 0.20/use |
-    Force Sense (active) 0.05/min | Force healing 0.25/min | Battle Meditation 0.50/min
+    Force Sense (active) 0.05/min | Force healing 0.25/min | Battle Meditation 0.50/min |
+    Shatterpoint read 0.3/use (Q21, copied by D-63; combat and non-combat reads)
   Force drills add Force load 0.6/hour in addition to their physical/mental load.
   Efficiency of Force abilities uses the same e(f) curve as the other meters.
   Over 1.0 (backlash): +0.5 mental load per extra Force load point; 5% chance per use of
     collapse (Incapacitated for 1-3 hours, no wound). Channeling anger lets the meter go to
     1.3 without backlash, adding +2 dark pressure per load point above 1.0.
   Recovery: rest -1.0/hour, meditation -2.0/hour, sleep 7h+ full reset.
+  Rest and sleep (D-52): elapsed time not covered by an activity is rest for every meter and
+    for Vitality (section 3), in story turns and in jumps. Sleep is an intent action
+    (actionType sleep) or a routine block, resolved by the engine; only sleep of 7h+ gives
+    the full resets here and in section 3 and heals minor wounds overnight (section 7).
 
 ## 3. Vitality (short-term buffer)
   Max Vitality = 20 + 0.6 * Endurance + 0.3 * Strength + 0.2 * Force body-ability level
@@ -85,6 +90,11 @@ Force meter (replaces Force strain):
   Battlemind / Force Valor: removes min(50%, level/160); Force load 0.15/min.
   Dark-side pain channeling: removes up to 80%; +1 dark pressure per minute active.
   Suppression never changes status, Dying timers or healing.
+  Passive Willpower resistance (Q40, copied by D-63): Willpower removes Willpower / 400 of
+    wound penalties (max 25%), always on, no Force load, on top of the abilities above.
+  Suppression crash (Q41, copied by D-63): when Battlemind or Force Valor ends while the
+    character is wounded, the suppressed penalties return at once and the character takes
+    +0.5 mental load.
 
 ## 9. Opponents
   Named NPCs use this full model. Minions (mooks) use a simplified rule: a moderate or
@@ -105,3 +115,8 @@ Force meter (replaces Force strain):
     only above 1.0 (1.3 when channeling anger).
  9. Pain suppression changes penalties only, never status or timers.
 10. Minions leave the fight on a moderate wound.
+11. Willpower 60 removes 15% of wound penalties; Willpower 100+ removes 25% (cap) (Q40).
+12. Ending Battlemind or Force Valor while wounded restores the penalties and adds +0.5
+    mental load (Q41).
+13. A turn with no activity recovers meters at the rest rates; only sleep of 7h+ resets
+    them (D-52).

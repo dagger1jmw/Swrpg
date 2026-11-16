@@ -16,8 +16,14 @@ Reference scenarios (simulated):
   philosophy: livingForce | unifyingForce | jediOrthodox | jediSentinel | gray | warrior |
     sithPassion | sithInquisitor
   turned: false until the character willingly embraces the dark side
-  Tiers (from Q): Luminous 76+ | Attuned 26..75 | Calm 1..25 | Balanced -25..0 |
-    Shadowed -50..-26 | Corrupted -75..-51 | Consumed -76 and below
+  Tiers (from continuous Q; half-open intervals, amended by D-65):
+    Luminous 75 < Q <= 100 | Attuned 25 < Q <= 75 | Calm 0 < Q <= 25 |
+    Balanced -25 <= Q <= 0 | Shadowed -50 <= Q < -25 | Corrupted -75 <= Q < -50 |
+    Consumed -100 <= Q < -75
+    (Same tiers as before for integer Q; every real Q now has exactly one tier.)
+  Starting alignment (Q11, copied by D-63): by path (character-creation.md §2) plus a
+    philosophy offset: livingForce +5, unifyingForce +3, jediOrthodox +3, jediSentinel 0,
+    gray 0, warrior 0, sithPassion -5, sithInquisitor -5.
 
 ## 2. Daily drift (runs in onTimeAdvanced)
   Dark drift: if D > 20, Q -= 0.01 * (D - 20) / 10 per day
@@ -28,8 +34,9 @@ Reference scenarios (simulated):
     p by philosophy: livingForce 0.025 | unifyingForce 0.02 | jediOrthodox 0.02 |
       jediSentinel 0.015 | gray: drift toward 0 at 0.01 | warrior 0 |
       sithPassion -0.025 | sithInquisitor -0.02 (Sith teachings pull dark even when calm)
-  r(Q) = redemption multiplier, linear between: Q >= -25: 1.0 | -50: 0.6 | -75: 0.3 |
-    -76 and below: 0 (Consumed: normal play cannot raise Q)
+  r(Q) = redemption multiplier, linear between: Q >= -25: 1.0 | -50: 0.6 | -75: 0.3;
+    Q < -75 (Consumed): 0, so normal play cannot raise Q (amended by D-65 to match the
+    half-open Consumed tier and section 7)
   Once turned: dark drift x2.
 
 ## 3. Dark pressure sources (all from engine events)
@@ -38,8 +45,15 @@ Reference scenarios (simulated):
   Dark-tagged Force ability: +1 per use * effort
   moralChoice dark, weight w (1-3): D += 5w and Q -= 2w immediately
   emotionalEvent anger, fear, hatred or despair, intensity i (1-3): D += 3i
-  Unresolved grief: D cannot fall below 10 * intensity while grief is active
+  Unresolved grief: D cannot fall below 10 * intensity while grief is active. Grief is a
+    lingering condition (progression-numbers §17): the floor holds even while anger, calm or
+    any other state of mind is active. The floor is derived from progression's grief via a
+    selector, not stored in this slice (amended by D-46).
   Sustained war or captivity: +0.2 per day
+
+  Breaking point (Q45, copied by D-63): when D reaches 90, the engine sets the flag
+    breakingPoint (flag-registry.md §4) for the AI to build a story scene around. There is
+    no mechanical discharge; nothing resets automatically.
 
 ## 4. Dark pressure relief
   Base decay: -0.5 per day (halved while D > 50: the pull holds on)
@@ -68,7 +82,8 @@ Reference scenarios (simulated):
   that also meets at least one of:
     sacrifice of something vital (life, power, freedom) for another
     an act for someone with a strong-bond relationship, against the character's dark interest
-    a Force vision or confrontation flagged by the story as a turning point
+    a Force vision or confrontation marked as a turning point by the engine-or-player flag
+      redemptionTurningPoint (flag-registry.md §2; the AI cannot set it, amended by D-33)
   Effect: Q += 30 (to at least -45), D halved, turned = false. Code validates the
   conditions; the AI can only propose the moralChoice. At most once per in-game year.
 
@@ -101,3 +116,7 @@ Reference scenarios (simulated):
  8. Concealment: passive raises the sensing DC; active switches to a contest and costs Force
     load; hidden physical signs show when the ability level is below 20 + |Q|/2 or a stress
     roll fails.
+ 9. Tier boundaries: Q 25.5 is Attuned, Q 25 is Calm, Q -25 is Balanced, Q -25.01 is
+    Shadowed, Q -75.5 is Consumed (half-open intervals, D-65).
+10. The grief floor holds while anger or centered is active (D-46).
+11. D reaching 90 sets breakingPoint and changes nothing else (Q45).

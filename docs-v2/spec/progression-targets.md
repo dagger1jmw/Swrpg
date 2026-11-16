@@ -59,12 +59,23 @@ These match progression-numbers.md sec 12 (which lists the same profiles with on
 Starting points from progression-numbers.md sec 12, to be tuned so the targets hold with the
 fatigue model:
 
-| Profile | Training days/year | Main-skill hours/day | Talent | Teacher | Combat |
+Amended by D-40, D-41, D-42: every profile now runs the same schedule structure (the Order
+requirements for its rank from ranks.md §1a, filled up to the D-25 budget by archetype shares;
+the main specialty takes 0.5 of the fill from Knight on) and changes only effort (hours),
+talents, teachers, rank ages and combat events. Full inputs and the computed Average result
+are in progression-numbers.md sec 12.
+
+| Profile | Training days/year | Effort (hours) | Talent | Teacher | Combat |
 |---|---|---|---|---|---|
-| Average | 300 | 3 standard | none | Temple instructors, then a master of average level | sparring only until first missions; peacetime missions |
-| Obi-Wan | 315 | 5 | none | master strong in his form | sparring, missions; wartime from year 25 |
-| Anakin | 315 | 6 | prodigy in combat and Force | master who is not a specialist in his form | war years 19+ (combat 25-35% of yearly main-form XP) |
-| Luke | 280 | 3.5, broad focus | Force prodigy | sparse teachers, holocrons | wartime (combat-xp.md sec 5) |
+| Average | 300 | standard (Order requirements + budget) | none | Temple instructors x1.05, master x1.15 | sparring only until first missions; peacetime missions |
+| Obi-Wan | 315 | push | none | master strong in his form | sparring, missions; wartime from year 25 |
+| Anakin | 315 | push | prodigy in combat and Force | master who is not a specialist in his form | war years 19+ (combat 25-35% of yearly main-form XP) |
+| Luke | 280 | standard, broad focus (main share 0.4), outsider (no Order requirements) | Force prodigy | sparse teachers, holocrons | wartime (combat-xp.md sec 5) |
+
+Computed so far (docs-v2/calc/): Average meets every section 2 target within +/-20% with
+K = 14.69 (41 at 16.0, 61 at 34.3, 81 at 57.5, 101 at 86.5 years). The other three are only a
+peacetime baseline without combat events and miss their targets; they are tuned in the M4
+lifetime test together with open item D-67.
 
 Each profile also needs: birth date, starting Endurance and Willpower, state-of-mind events,
 schedules and drill difficulty. The war factor of 1.25 that earlier figures included is gone;
@@ -84,10 +95,11 @@ wartime pace comes from combat XP, E and CI (combat-xp.md sec 4).
 
 ## 6. Required tests
 
-1. Lifetime test: the four profiles run 70 in-game years through the real engine and the
-   montage advance loop. Every milestone in section 2 is within +/-20%.
+1. Lifetime test: the Average profile runs 95 in-game years and the other three 70 (amended
+   by D-49, so Average's Legendary target at 77.5 years is inside the run), through the real
+   engine and the montage advance loop. Every milestone in section 2 is within +/-20%.
 2. No profile beats the max (Anakin) profile's pace at any tier; no input combination
-   exceeds 4.0x the Average pace (banked releases excluded).
+   exceeds 4.0x the Average pace (banked releases excluded); the D-48 clamp enforces it.
 3. Luke: still gaining Force levels after 40 years of training; Force and effective physical
    peaks at ages 58-68.
 4. Average profile: K solves to the 16.0-year Adept target within 0.1 year.

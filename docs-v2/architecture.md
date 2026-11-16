@@ -3,7 +3,10 @@
 Phase 2, 2026-11-16. This is the design every milestone builds against. Specs in
 `docs-v2/spec/` define the targets and tests; this file defines where the code lives, who owns
 which state, how the AI talks to the engine, and the build order. Deviations from the Phase 2
-prompt pack and from earlier specs are logged in `decisions.md` (D-11 onward).
+prompt pack and from earlier specs are logged in `decisions.md` (D-11 onward). The prompt
+pack is not in the repo; its pacing section now lives in §8 and its story-memory section in
+§7 (amended by D-59). The Fable review fixes (`fable-review.md`, `review-fixes.md`) are
+D-29 to D-67.
 
 The root cause behind most V170 bugs (bugs.md R1–R8) is that the AI wrote game state and code
 tried to guard, restore or re-parse it afterward. Every rule here exists to make that
@@ -93,7 +96,13 @@ feature named by the slice). **Source** says where the value comes from:
 - **engine**: computed by code from rules and events.
 - **player**: set by a player action (creation, routine editor, settings-like choices).
 - **AI text**: prose or labels the AI supplies inside an event; the owning feature stores it
-  verbatim after validation. The AI never supplies a number, and code never rewrites AI text.
+  verbatim after validation. Code never rewrites AI text.
+- **AI amounts**: the AI supplies only bounded enums and clamped amounts. The full list:
+  timeElapsed seconds (clamped to the pacing range), relationship delta -3..+3, moral weight
+  1-3, emotional intensity 1-3, severityHint 1-3, ageApprox (at npcIntroduced), and a
+  check's proposed difficulty (intent only, clamped per action type). Anything else numeric
+  comes from the engine. Durations and intensities of activities come from the player's
+  intent (clamped by pacing) or the routine, never from the AI. (Amended by D-29.)
 
 No field is written by both code computation and AI text.
 
@@ -117,9 +126,9 @@ test 2 generalized).
 **clock** (owner: clock; the only writer of in-game time)
 | Field | Type / range | Source |
 |---|---|---|
-| now.day | int, absolute GSC day; day 0 = first day of 1 ABY, BBY days negative | engine |
-| now.minute | 0-1439 | engine |
-| lastAdvance | {minutes >= 0, reason, requested?, clampedFrom?} | engine |
+| now.day | int, absolute GSC day; day 0 = first day of 1 ABY; year 0 (0 BBY/ABY) is days -368..-1, BBY days negative | engine |
+| now.second | 0-86399 (amended by D-30; was now.minute) | engine |
+| lastAdvance | {seconds >= 0, reason, source: turnDraft / timeElapsed, requested?, clampedFrom?} | engine |
 
 **pacing** (owner: pacing)
 | Field | Type / range | Source |
@@ -127,7 +136,7 @@ test 2 generalized).
 | level | moment / scene / montage / timeSkip | engine (player requests via intent) |
 | settlingIn | {active, sinceDay, reason: location / lifeStage, keyNpcIds[]} | engine |
 | lastNoveltyDay | absolute day of the last new NPC, thread or location | engine |
-| scene.locationId | location id | AI ref, validated |
+| scene.locationId | not stored: selector over locations.currentId (amended by D-46) | derived |
 | scene.presentNpcIds | npc id[] | AI refs, validated |
 | scene.moodTags | string[] (max 5, 30 chars each) | AI text |
 
@@ -139,7 +148,7 @@ test 2 generalized).
 | speciesId | species table id | player |
 | birthDay | absolute day | player |
 | path | jedi / sith / outsider / career | player |
-| archetype, focusWeights | archetype id; weights summing to the archetype total | player |
+| archetype, focusWeights | archetype id; shares summing to 1 (amended by D-44) | player |
 | trainingStartAge | within the path range | player |
 | talents | {domain: none / gifted / prodigy / exceptional}, special talents as unlock ids; 3 points | player |
 | homeworldId, background flags | ids | player |
@@ -155,7 +164,11 @@ test 2 generalized).
 | skills[id].CI | 0-100, combat Force abilities only | engine |
 | skills[id].bank | >= 0, capped at 15 levels of XP | engine |
 | bankReleaseUntil | absolute day or null | engine |
-| stateOfMind | {kind: centered / neutral / distracted / grief / anger..., intensity 1-3, sinceDay, easesByDay} | engine (AI proposes emotionalEvent) |
+| stateOfMind | {kind: StateOfMind enum (progression-numbers §17), intensity 1-3, sinceDay, easesByDay} | engine (AI proposes emotionalEvent; D-54) |
+| grief | {intensity 1-3, sinceDay, easesByDay} or null; lingers under any stateOfMind (D-46) | engine |
+| fightsToday | per skill count, reset by the day hook (moved from combat, D-47) | engine |
+| combatXpToday | per skill XP before M, for the 12 XP daily cap, reset by the day hook (D-47) | engine |
+| paceWindow | per skill ring of daily credited XP (365 days) for the 4.0x clamp (D-48) | engine |
 | overtrainStreak | int >= 0 | engine |
 | willpowerToday | 0-3.0 | engine |
 | reviewBuffUntil | day or null (recording review, sec 19) | engine |
@@ -184,7 +197,6 @@ test 2 generalized).
 | formBySide | form ids | player / engine |
 | beatDue | bool + reason | engine |
 | log[] | exchange records (rolls, margins, hits, time) | engine |
-| fightsToday | per skill count (combat-xp sec 2) | engine |
 
 **alignment** (owner: alignment)
 | Field | Type / range | Source |
@@ -196,7 +208,9 @@ test 2 generalized).
 | turned | bool | engine after explicit player confirmation |
 | q90 | ring of daily Q samples (90) | engine |
 | lastRedemptionDay | day or null | engine |
-| griefFloor | 0-30 | engine |
+
+The grief floor on D is derived (10 x progression grief intensity via a selector), not stored
+(amended by D-46; griefFloor removed).
 
 **npcs** (owner: npcs)
 | Field | Type / range | Source |
@@ -207,10 +221,10 @@ test 2 generalized).
 | birthDay | absolute day (from ageApprox at intro) | engine |
 | archetype, talents, seed, startAge, warYears | generation inputs (npc-generation sec 4) | engine |
 | canonId | canon table id or null | engine (matched by exact alias) |
-| status | active / dormant / departed / deceased | engine (AI proposes npcStatusChanged) |
+| status | active / dormant / departed / deceased; the only store of NPC death (D-46) | engine (AI proposes npcStatusChanged for active / dormant / departed; deceased only from the health model, a player choice at incapacitation, or a code-run timeline event, D-33) |
 | description | <= 400 chars | AI text |
 | firstMetDay, lastSeenDay, lastLocationId | | engine |
-| health | named NPCs: same shape as health slice; minions: none | engine |
+| health | named NPCs: same shape as health slice; minions: none. A Dead result emits npcStatusChanged{deceased} (engine source); health never stores death itself | engine |
 
 **relationships** (owner: relationships)
 | Field | Type / range | Source |
@@ -232,7 +246,7 @@ test 2 generalized).
 **flags** (owner: flags)
 | Field | Type / range | Source |
 |---|---|---|
-| set | FlagId[] from the registered list | engine |
+| set | FlagId[] from the registered list (spec/flag-registry.md); each flag names its allowed sources (D-33) | engine / player / ai per flag |
 
 **items** (owner: items)
 | Field | Type / range | Source |
@@ -266,7 +280,8 @@ test 2 generalized).
 **memory** (owner: memory)
 | Field | Type / range | Source |
 |---|---|---|
-| facts[] | {id, aboutRef, text <= 300, turn, importance minor/major, pinned} | text AI; pinned engine/player |
+| facts[] | {id, aboutRef, text <= 300, turn, importance minor/major} | text AI |
+| playerPins[] | fact ids the player pinned. Engine pins (master, apprentices, open promises and debts, lasting injuries) are derived by a selector, never stored (D-46) | player |
 | chapters[] | {id, turnRange, dayRange, locationIds, entityIds, threadIds, summary, status open / closed / summaryPending} | summary AI text; everything else engine |
 | arc | {text <= ~1000 tokens, atChapter} | AI text |
 | current | {startTurn, startDay, signals[]} | engine |
@@ -298,62 +313,97 @@ This keeps schema tokens down and stays within Gemini's schema-complexity limits
 generates every variant and checks its size against a config cap.
 
 ### Intent call schema
+This section is the single source for the AI schemas; `spec/ai-events.md` is superseded
+history (D-31).
+
+Every action that rolls dice or computes an outcome (training, Force use, tactics, healing,
+hazards caused by the player's action, fights) enters ONLY through the intent and is
+resolved in step b. One entry point per action (D-29).
 ```
 intent: {
   actionType: dialogue | move | travel | train | study | fight | forceUse | investigate |
-              rest | other,
+              heal | rest | sleep | other,
   targets: id[], references: id[], unknownNames: string[],
-  checks: [{ kind: check | contest | perception, skillId | abilityId, targetRef?,
-             difficulty: trivial | easy | moderate | hard | extreme }],
-             // engine maps difficulty to rating 10 / 30 / 50 / 70 / 90
+  skillId?: id,                          // the skill or ability the action uses
+  proposedDifficulty?: trivial | easy | moderate | hard | extreme,
+             // engine maps it to rating 10 / 30 / 50 / 70 / 90, clamped per action type
   requestedPacing?: moment | scene | montage | timeSkip, requestedSpan?: {amount, unit},
+             // duration of the action; clamped to the pacing range by the engine
+  activity?: { activityId, intensity?: casual | standard | intense | extreme,
+               partnerRef?, teacherRef? },        // train / study (skills-and-activities.md)
   tactic?: feint | taunt | takePosition | disengage | surrender | useEnvironment,
-  forceAbility?: id, effort?: light | standard | heavy | allOut
+  forceAbility?: id, effort?: light | standard | heavy | allOut,
+  healing?: { source: medical | bacta | forceHealer, healerRef? },
+  risk?: { type: fall | fire | explosion | crash | poison | exposure, severityHint: 1-3 }
+             // a hazard the player's own action causes; resolved in step b
 }
 ```
+- **Checks are engine-decided (D-37).** The engine decides whether a check, contest or
+  perception roll is required from actionType, targets, skillId and state (a config table
+  per action type), never from the AI. The AI may only propose a difficulty; the engine
+  clamps it to the allowed range for that action type (config, e.g. dialogue
+  trivial..hard, fight none: duels use rolls.md §3). A missing proposal uses the action
+  type's default.
+- Durations come from `requestedSpan` or the routine, clamped by pacing; intensity defaults
+  to the activity's default. Neither is ever taken from the narrative reply (D-29).
+- Sleep is an intent action (`actionType: sleep`, span from the intent) or part of a
+  routine; the engine resolves it with the health and progression sleep rules (D-52).
 
 ### Narrative response schema
 ```
 narrative: string       // may quote only numbers present in the resolved block
-choices: [{ label, intent (same shape as above), pacingHint?, threadRef? }]  // 2-5
+choices: [{ label, intent: { actionType, targetRef?, skillId? }, pacingHint?, threadRef? }]
+                        // 2-5; compact intent (D-58), the engine fills the rest when clicked
 scene: { locationRef, presentNpcRefs[], moodTags[] }
 events: Event[]         // discriminated union on "type", filtered per turn
 ```
+- A clicked choice's compact intent is expanded by the engine (default activity, span from
+  pacingHint, default difficulty for the action type) and validated before step b (D-14 as
+  amended by D-58).
+- **Output budget (D-58).** The per-level output cap (§8) is the narrative length budget.
+  JSON overhead (choices, scene, events, keys) is budgeted separately in config
+  (`jsonOverheadTokens`, starting at 300) and added to `maxOutputTokens`, so structure
+  never eats into the narrative.
 
-### Event catalog (AI-sourced), by owning feature
+### Event catalog (AI-sourced, narrative reply), by owning feature
+The narrative reply carries only events with no dice, plus two deferred events (D-29).
+Removed from the narrative schema (D-29): activityPerformed, forceUseRequested,
+tacticDeclared and healingReceived. They are intent fields now (above).
+
 | Event | Owner | Engine validation |
 |---|---|---|
-| timeElapsed {minutes, reason} | clock | clamped to the pacing range; clamp logged |
+| timeElapsed {seconds, reason} | clock | only in the schema when the TurnDraft did not advance time; clamped to the pacing range; clamp logged (D-30) |
 | sceneEnded {reason} | memory | hint for chapter close only |
 | pacingSuggested {level, reason} | pacing | applied only if level = moment; else shown as a choice |
-| locationChanged {locationRef \| newLocation{name, kind, region}} | locations | ref exists or new entry created |
-| npcIntroduced {name, species, faction, role, ageApprox, description} | npcs | enums registered; exact alias match to existing/canon first |
-| npcStatusChanged {npcRef, state, witnessed} | npcs | deceased needs witnessed or a resolved fight; deceased is one-way |
-| relationshipChanged {npcRef, delta -3..+3, reason} | relationships | npc exists |
-| factLearned {aboutRef, fact, importance} | memory | ref exists |
-| threadOpened {title, stakes, deadlineHint?, entityRefs[]} | threads | refs exist |
+| locationChanged {locationRef \| newLocation{key?, name, kind, region}} | locations | ref exists or new entry created |
+| npcIntroduced {key?, name, species, faction, role, ageApprox, description} | npcs | enums registered; exact alias match to existing/canon first |
+| npcStatusChanged {npcRef, state: active / dormant / departed} | npcs | the AI may not set deceased; deceased comes only from the health model (a resolved fight or hazard), a player choice at incapacitation, or a code-run Legends timeline event (engine source); deceased is one-way; `witnessed` removed (D-33); active added (D-65) |
+| relationshipChanged {npcRef, delta -3..+3, reason} | relationships | npc exists; cap 1 per NPC per turn |
+| factLearned {aboutRef, fact, importance} | memory | ref exists; cap 5 per turn |
+| threadOpened {key?, title, stakes, deadlineHint?, entityRefs[]} | threads | refs exist |
 | threadProgressed {threadRef, note} | threads | open thread |
 | threadResolved {threadRef, outcome} | threads | open thread |
-| flagSet {flag} | flags | registered and allowed from this source |
-| itemGained / itemLost {itemRef \| newItem{name, kind}} | items | kind registered |
-| activityPerformed {activityId, minutes, intensity, partnerRef?, teacherRef?} | progression | sum of minutes <= elapsed minutes this turn |
-| routineRequested {priorities[], effort, spanHint} | routines | skills exist |
-| combatStarted {opponentRefs[], stakes, terrainTags[], ambushClaim?} | combat | opponents exist (npcIntroduced first); ambush becomes a perception contest |
-| tacticDeclared {tactic, details} | combat | combat active |
+| flagSet {flag} | flags | registered, and `ai` is an allowed source for that flag (spec/flag-registry.md); rank-gating flags never are (D-33) |
+| itemGained / itemLost {itemRef \| newItem{key?, name, kind}} | items | kind registered |
+| routineRequested {priorities[], effort, spanHint} | routines | skills exist; applies to future time only, never to this turn |
+| combatStarted {opponentRefs[], stakes, terrainTags[], ambushClaim?} | combat | DEFERRED: applied at the start of the next turn's step b and narrated then; opponents exist (npcIntroduced or a tmp key first); ambush becomes a perception contest |
 | combatEnded {reason: fled / surrendered / interrupted / truce} | combat | wounds end fights on their own |
-| forceUseRequested {abilityId, effort, targetRef?} | force | known ability, prerequisites, gates (e.g. pain channel at Q <= -25) |
 | forceVision {description} | force | narrative; may open a thread |
-| hazardOccurred {type, severityHint 1-3} | health | damage by health rules |
-| healingReceived {source, healerRef?} | health | source available |
-| emotionalEvent {type, intensity 1-3, cause} | progression (state of mind) + alignment via selector-driven engine event | |
-| moralChoice {direction, weight 1-3, description} | alignment | weight 3 dark + explicit player confirmation for a turn |
+| hazardOccurred {type, severityHint 1-3} | health | DEFERRED like combatStarted: a hazard the player did not cause; damage by health rules at the start of the next turn's step b. Hazards the player causes enter as intent.risk |
+| emotionalEvent {type: grief / fear / anger / hatred / calm / pride / despair, intensity 1-3, cause} | progression (state of mind, mapping in progression-numbers §17) + alignment via selector-driven engine event | cap 1 per turn (D-36, D-54) |
+| moralChoice {direction, weight 1-3, description} | alignment | cap 1 per turn; weight 3 dark + explicit player confirmation for a turn |
 | promotionProposed {rank, grantedByRef, occasion} | ranks | requirements checked; rejected and logged if unmet |
 | milestoneBeatAcknowledged {beatId} | progression | beat pending |
 
+Summary-call event (source: summary call, D-57): chapterSummarized {chapterId,
+chapterSummary, arcSummary}, owner memory. It is applied through applyEvents in its own
+commit after the turn commit; if the call fails, the chapter stays summaryPending.
+
 Player-sourced events (UI): stance/tactic at a beat, spare/capture/kill at incapacitation,
 turn confirmation, routine edits, pins, review-queue resolution. Engine-sourced events
-(emitted by handlers): woundInflicted, levelCrossed, threadEscalated, galaxyEventFired, etc.
-They share the same `applyEvents` path.
+(emitted by handlers): woundInflicted, levelCrossed, threadEscalated, galaxyEventFired,
+npcStatusChanged{deceased}, flagSet for engine-only flags, etc. They share the same
+`applyEvents` path.
 
 ### Rules
 - Events say what happened in the story. They never carry XP, levels, stat values, Vitality,
@@ -364,24 +414,40 @@ They share the same `applyEvents` path.
   match. If that fails the event is dropped and the name is added to `memory.review`.
 - Validation is two steps: Zod, then engine validation. Failures are logged with the reason
   in the transcript and debug console, and dropped. Code never repairs or guesses.
-- Narrative events that START something whose outcome needs dice (combatStarted, ambush) are
-  resolved after the turn and narrated on the next one. The prompt tells the AI to end the
-  narrative at the moment of engagement.
+- Narrative events that START something whose outcome needs dice (combatStarted, ambush,
+  hazardOccurred) are DEFERRED: applied at the start of the next turn's step b and narrated
+  then. The prompt tells the AI to end the narrative at the moment of engagement (D-29).
+- **One entry point per action (D-29).** If the narrative events include an action the
+  TurnDraft already resolved (same type and target), the event is rejected and logged.
+- **Same-turn temp refs (D-32).** A creation event (npcIntroduced, newLocation, newItem,
+  threadOpened) may carry a local key `tmp:1`, `tmp:2`, ...; later events in the same reply
+  (and `scene.presentNpcRefs`) may use it. applyEvents maps each temp key to the ID it
+  mints. A temp key used before its creation event, or never created, is rejected.
+- **Apply order (D-32).** (1) entity creation events, (2) time (timeElapsed, when allowed),
+  (3) everything else in reply order. Deferred events from the previous turn are applied in
+  step b, before the intent's own resolution.
+- **Per-turn caps (D-36, config `eventCaps`).** moralChoice 1 per turn; emotionalEvent 1 per
+  turn; relationshipChanged 1 per NPC per turn; factLearned 5 per turn. Duplicates of the
+  same type and target in one reply are merged first (first one kept, deltas not summed);
+  events past a cap are rejected and logged.
+- **One time writer per turn (D-30).** If the TurnDraft advanced time (duel exchanges,
+  montage, skip, activity duration, sleep), timeElapsed is left out of that turn's schema.
+  Otherwise the AI's timeElapsed applies, clamped to the pacing range.
 
 ### Legacy tag mapping (ai-contract-legacy.md)
 | Legacy tag / scan | v2 | Note |
 |---|---|---|
 | SHEET JSON | dropped | code owns the character |
 | WORLD JSON | dropped; location -> locationChanged, sceneNPCs -> scene | |
-| Choices A-E / Custom | `choices[]` with pre-classified intents | free text stays the normal input |
+| Choices A-E / Custom | `choices[]` with compact intents (D-58) | free text stays the normal input |
 | Pre-roll reply, NO_ROLL_NEEDED | intent call `checks` | |
 | ROLL:, ROLL_OPPOSED:, ROLL_LABEL= | intent `checks`, engine rolls | |
 | TIER_GAP= | dropped | rolls.md has no tier gap |
-| TACTICAL= | tacticDeclared / intent.tactic | |
+| TACTICAL= | intent.tactic (or a player beat action) | tacticDeclared removed (D-29) |
 | COMBAT_START: | combatStarted | |
 | COMBAT_ROUND: | dropped | engine counts exchanges |
 | COMBAT_END: | combatEnded (non-wound endings); fate chosen by player at incapacitation | |
-| TRAINING: | activityPerformed | XP by computeXp |
+| TRAINING: | intent.activity (train / study), resolved in step b | XP by computeXp; activityPerformed removed (D-29) |
 | COMBAT: | dropped | combat XP from the duel log |
 | PROFICIENCY: | dropped | sub-abilities are skills with synergy |
 | LOCATION= | locationChanged | |
@@ -389,17 +455,17 @@ They share the same `applyEvents` path.
 | LIFE_STAGE=, RANK= | promotionProposed | life stage derived |
 | MOMENTUM_WINDOW= | dropped | state of mind replaces it |
 | WILL_OF_FORCE= | dropped (Q43) | moralChoice light |
-| INJURY_ADD= | dropped | wounds from resolution or hazardOccurred |
-| INJURY_HEAL=, INJURY_HEAL_ALL, STORY_HEAL= | healingReceived | healing over time by health |
+| INJURY_ADD= | dropped | wounds from resolution, intent.risk or deferred hazardOccurred |
+| INJURY_HEAL=, INJURY_HEAL_ALL, STORY_HEAL= | intent.healing (actionType heal) | healing over time by health; healingReceived removed (D-29) |
 | OPP_INJURY_ADD / HEAL / HEAL_ALL / PERMANENT | dropped | NPC health is engine-owned |
 | DOMINANT_HAND= | character creation; engine switch on hand loss | |
 | FIGHTING_HAND= | player beat action | |
-| PAIN_CHANNEL= | forceUseRequested(painChannel) | gate checked |
+| PAIN_CHANNEL= | intent.forceAbility = painChannel | gate checked; forceUseRequested removed (D-29) |
 | COMBAT_END_CRASH | engine rule (Q41) | |
-| NPC_LIFECYCLE= | npcStatusChanged | |
+| NPC_LIFECYCLE= | npcStatusChanged (active / dormant / departed); deceased engine-only | D-33 |
 | RECURRING_RETURN= | dropped | NPC growth from elapsed time |
 | HP=, FORCE/PHYSICAL/MENTAL_STRAIN=, FORCE_BARRIER= | dropped | health engine |
-| SHATTERPOINT_PERCEIVED / ROLL / FOCUS / FOCUS_CLEAR / XP / MISREAD_RESOLVED | forceUseRequested(shatterpoint); misread from a negative margin | focus/tunnel vision dropped (Q21) |
+| SHATTERPOINT_PERCEIVED / ROLL / FOCUS / FOCUS_CLEAR / XP / MISREAD_RESOLVED | intent.forceAbility = shatterpoint; misread from a negative margin | focus/tunnel vision dropped (Q21); non-combat reads per force-catalog.md (D-63) |
 | GENERATE_PROFILE=, PROFILE_STATS=, NPC_ROLL= | npcIntroduced | stats by npc-generation |
 | INTERACTION= | relationshipChanged + scene presence | |
 | KNOWN_PERSON= | npcIntroduced / factLearned | |
@@ -411,7 +477,7 @@ They share the same `applyEvents` path.
 | ALIGNMENT_XP=, ALIGNMENT=, DARK_PRESSURE=, SURRENDER_DISCOUNT= | moralChoice / emotionalEvent | values dropped |
 | AGE= | dropped | age derived |
 | CREDITS= | deferred to the equipment spec | no credit events before it (D-27) |
-| "Time Elapsed:" prose, "It is now Day N" | timeElapsed | clock clamps |
+| "Time Elapsed:" prose, "It is now Day N" | timeElapsed {seconds} | clock clamps; omitted when the TurnDraft advanced time (D-30) |
 | All 16 prose regex scans (strain, barrier, XP, dates, combat end, markdown sheet) | dropped | no narrative parsing |
 | [OVERRIDE], [LORE CHECK], [SYSTEM EXPAND], [WORLD ADJUST], [CORRECTION], [AUTHOR NOTE] | OOC call: read-only, no events in its schema (Q58) | corrections via debug console only |
 | BEGIN_GAME | opening turn type | |
@@ -429,15 +495,22 @@ intent is already known:
 ```
 player input
   ├─ typed text ──────────────> a. INTENT call (light model, small schema)
-  ├─ clicked choice ──────────> intent already attached to the choice (validated when the
-  │                              choice was received) -> skip a.
+  ├─ clicked choice ──────────> compact intent attached to the choice, expanded by the
+  │                              engine and validated -> skip a.
   └─ combat beat button ──────> structured player event -> skip a.
-b. RESOLVE (engine): rolls, contests, duel exchanges up to the next beat, montage / skip day
-   loop. Output: a frozen TurnDraft {intent, resolved results, rng state after, report}.
-c. NARRATE call (Flash): prompt sections + context + TurnDraft -> full response schema.
+b. RESOLVE (engine): first the previous turn's deferred events (combatStarted, ambush,
+   hazardOccurred), then every action in the intent: checks the engine requires, contests,
+   activities (fatigue and XP for the requested span), Force use, tactics, healing,
+   intent.risk hazards, sleep, duel exchanges up to the next beat, montage / skip day loop.
+   Output: a frozen TurnDraft {intent, resolved results, timeAdvanced?, rng state after,
+   report}.
+c. NARRATE call (Flash): prompt sections + context + TurnDraft -> response schema (without
+   timeElapsed when the TurnDraft advanced time).
 d. VALIDATE events -> applyEvents -> COMMIT (state + transcript entry in one IndexedDB
    transaction) -> RENDER.
-   After commit: if the chapter closed, run the summary call (light model).
+e. After commit, if the chapter closed: the summary call (light model) returns
+   chapterSummarized, applied through applyEvents and committed in its own transaction
+   (D-57).
 ```
 
 - Context building is pure and runs once per call; it never mutates state (fixes R4).
@@ -544,7 +617,9 @@ existing entity or create one). Nothing is created silently.
 Close when any of: the location changes to a different major location; a skip of 7+ days;
 an AI `sceneEnded` hint with at least 8 turns in the chapter; 30 turns (config). Montages and
 skips are always their own chapter (Q56). After commit, one light-model call returns
-`{chapterSummary, arcSummary}`. If it fails, the chapter is `summaryPending` and is retried at
+`{chapterSummary, arcSummary}` as a `chapterSummarized` event (source: summary call), applied
+through applyEvents and committed in its own transaction, never written outside applyEvents
+(amended by D-57). If it fails, the chapter is `summaryPending` and is retried at
 the next close; its raw turns stay in the transcript. Boundaries are turn IDs, not array
 slices, so turns played meanwhile are never lost (legacy story-memory bug 1).
 
@@ -552,7 +627,8 @@ slices, so turns played meanwhile are never lost (legacy story-memory bug 1).
 - Inputs: scene NPCs, current location, entities referenced in the intent, open threads.
 - Score = tag overlap (weighted per kind) + recency decay + open-thread bonus.
 - Each section fills up to its cap in score order. Pinned facts are always included: the
-  character's master and apprentices, open promises and debts, lasting injuries, player pins.
+  character's master and apprentices, open promises and debts, lasting injuries (engine pins,
+  derived by a selector), and player pins (the only stored pins, D-46).
 - The scorer is an interface, `Scorer { score(item, query): number }`, combined by a
   `CompositeScorer`. An embedding scorer can be added later without changing callers.
 
@@ -589,17 +665,24 @@ Four levels, stored in `pacing.level`. Per level (config):
   it (D-18). Suggest only; never auto-skip.
 - Automatic switches only go to moment (combat, ambush, Dying, urgent interruption).
 - The intent call reports the requested pacing level and time span.
+- Settling-in and staleness are evaluated by the pacing day hook (§10, step 9).
+- This section holds the prompt pack's pacing spec ("the pacing spec" in older text; D-59).
 
 ---
 
 ## 9. Advancing time
 
 - Montage and timeSkip advance day by day through the engine (`state/advanceTime`).
-- Each day: run the routine's blocks in 30-minute steps (fatigue and XP via progression and
-  health) -> run onTimeAdvanced hooks (section 10 order) -> advance threads (deadlines,
-  rumors, rival progress) -> roll weighted events (location, threads, NPCs, galaxy).
+- Each day runs the single ordered hook list in §10 (routine blocks first, interruption check
+  last). There is no other per-day sequence (amended by D-35).
 - A significant event interrupts: the loop stops at that day, pacing switches to moment, and
   the partial report is returned.
+- A skip ends in the morning (the routine's wake time) unless the story sets a time (Q48,
+  copied by D-63).
+- **Rest and sleep (D-52).** Elapsed time not covered by an activity is rest (recovery rates
+  from progression-numbers §3 and health §2-3), in story turns as well as in jumps. Sleep is
+  an intent action (or a routine block) resolved by the engine; 7 h+ of sleep resets the
+  meters and Vitality per the specs, 5-7 h and under 5 h carry fatigue over.
 - Relationship drift continues during jumps (training partners and teachers gain from shared
   sessions; others drift slowly toward neutral).
 - The AI receives the report (training-routines sec 8) and narrates it; it invents no stat
@@ -611,25 +694,49 @@ Four levels, stored in `pacing.level`. Per level (config):
 ## 10. Clock
 
 - One clock feature is the only writer of `clock.now`. Dates are integers (absolute day +
-  minute), never strings (D-23). Display formats BBY/ABY with the 12-month / 368-day calendar.
-- `timeElapsed` events are checked against the current pacing level's range and clamped with
-  a logged reason.
-- Every time-based feature registers `onTimeAdvanced(slice, days, ctx)`. The clock calls the
-  hooks in this fixed order (registry order, documented and tested):
-  1. health (healing, meter recovery, dying timer)
-  2. progression (rust, bank release, state-of-mind easing, willpower reset)
-  3. alignment (drift, pressure decay, notice rolls)
-  4. npcs and relationships (drift; NPC levels are derived from date, so aging is free)
-  5. threads (deadlines, escalation)
-  6. ranks (selection rolls, trial eligibility, milestones)
-  7. world (scheduled timeline events, faction state)
-  8. weighted event rolls -> interruption check
-- Sub-day advances (moment and scene) call the minute-level hooks (meters, Vitality, dying
-  timer); midnight crossings run the day hooks.
+  second of day, 0..86399), never strings (D-23, amended by D-30: seconds, not minutes).
+  Display formats BBY/ABY with the calendar below.
+- One time writer per turn (D-30): the TurnDraft's advance, or else the AI's `timeElapsed`
+  {seconds}, checked against the current pacing level's range and clamped with a logged
+  reason. Never both.
+
+### Calendar (D-38; design choices, logged as such)
+Legends gives 12 months and 368 days (D-03). The rest is a design choice:
+| Rule | Value |
+|---|---|
+| Months | numbered 1-12; months 1-8 have 31 days, months 9-12 have 30 (248 + 120 = 368) |
+| Years | signed: BBY negative, ABY positive; year 0 exists, as in the lore timeline (0 BBY = 0 ABY, the year of the Battle of Yavin, Timeline :722-725), shown as "0 BBY/ABY" |
+| Absolute day | day 0 = day 1 of month 1 of 1 ABY; year y starts at day 368 * (y - 1) (so year 0 is days -368..-1 and 1 BBY, y = -1, is days -736..-369) |
+| Weeks | 7-day weeks run continuously across years; absolute day 0 is weekday 1, weekday = ((day mod 7) + 7) mod 7 + 1 |
+| Labels | numbered months and weekdays (Q47); time-of-day labels derived from now.second |
+
+### Day loop: one ordered hook list (D-35)
+Every time-based feature registers `onTimeAdvanced(slice, step: TimeStep, ctx)`, the same
+signature as §11, where `TimeStep` = {kind: subDay / day, fromAbs, toAbs (day + second),
+seconds}. advanceTime calls the hooks in this fixed order (registry order, documented and
+tested), once per day for day steps:
+  1. routines: the routine's blocks in 30-minute steps (fatigue and XP via progression and
+     health); in story turns, the TurnDraft's resolved activities take this slot
+  2. health (healing, meter recovery, rest and sleep, dying timer)
+  3. progression (rust, bank release, state-of-mind easing, grief, willpower reset,
+     fightsToday and daily combat XP reset)
+  4. alignment (drift, pressure decay, notice rolls)
+  5. npcs and relationships (drift; NPC levels are derived from date, so aging is free)
+  6. threads (deadlines, escalation, rumors, rival progress)
+  7. ranks (selection rolls, trial eligibility, Council bypass check, milestones)
+  8. world (owns the weighted event rolls and the scheduled Legends timeline events, faction
+     state)
+  9. pacing (settling-in, staleness)
+ 10. interruption check (stops the loop on a significant event)
+- Sub-day steps (moment and scene) call the same hooks with `kind: subDay`; hooks that only
+  act per day ignore them. Midnight crossings split the step and run the day hooks.
+- §9 (advancing time) and §11 (module contract) refer to this list; there is no other.
 - Required tests: multi-month skips; month and year rollover in the 368-day calendar,
-  including 1 BBY -> 1 ABY; a birthday during a skip (age derived, notice in the report); an
-  interruption mid-skip (state equals the state at the interruption day); the hook order is
-  fixed.
+  including 1 BBY -> 0 BBY/ABY -> 1 ABY and the 31/30-day month boundary (month 8 -> 9); the
+  weekday continuing across a year boundary (day 0 is weekday 1); a birthday during a skip
+  (age derived, notice in the report); an interruption mid-skip (state equals the state at
+  the interruption day); the hook order is fixed; a 34-exchange duel advances the clock by
+  the sum of its rolled 5-10 s exchanges, to the second.
 
 ---
 
@@ -654,7 +761,10 @@ interface FeatureModule<S> {
   migrations?: Record<number, (old: unknown) => unknown>;
 }
 ```
-- One registry (`src/state/registry.ts`) lists all features in hook order.
+- One registry (`src/state/registry.ts`) lists all features in the §10 hook order;
+  `onTimeAdvanced` uses the §10 `TimeStep` signature everywhere (D-35).
+- applyEvents implements the §3 rules: temp refs, apply order, per-turn caps and
+  de-duplication, and rejection of narrative events the TurnDraft already resolved.
 - `applyEvents(state, events, ctx) -> { state, applied[], rejected[{event, reason}] }` routes
   each event to its single owning feature, then runs emitted events (max depth 4; deeper is a
   bug and throws in tests). It is pure: `ctx` carries the RNG and clock.
@@ -677,6 +787,12 @@ This section is the architecture.
   derived from XP. K is solved by running the Average profile through the real day loop
   (fatigue, age factor, rust) so it reaches 41 in 16.0 years. All constants live in
   `src/data/progression.config.ts`, each commented with the target it serves.
+- **Average profile schedule (D-40).** The Average profile is a Jedi Guardian on the
+  standard routine: the Order requirements for its rank (ranks.md §1a) as fixed
+  commitments, filled up to the D-25 training budget by archetype shares, 300 training days
+  per 368-day year. From Knight on, the main specialty takes a 0.5 share (D-41). K solves
+  to 14.69 with it (docs-v2/calc/progression-sim.mjs). Obi-Wan, Anakin and Luke use the same
+  structure and change only effort (hours), talents, teachers, rank ages and combat events.
 - **XP unit** = effective practice hours. Fatigue, challenge factor, drill ceiling, combat
   integration and willpower follow progression-numbers.md exactly.
 - **Activity weights** are normalized to sum to 1 and split XP (0.75 main / 0.25 secondary
@@ -685,11 +801,18 @@ This section is the architecture.
   instruction (0.90-1.23: solo 0.90, partner 0.95-1.00, teacher factor up to 1.15 plus
   aptitude +/-0.05 and bond +0.03) x age (0.75-1.25 by category) x state of mind (0.80-1.30)
   x alignment (0.6-1.3 by ability side), capped at 2.8. Focus comes from hours and weights,
-  not M. Combat experience comes from combat XP, E and CI, not M. Total pace is capped at
-  4.0x the Average profile (banked releases excluded) and checked by test.
+  not M. Combat experience comes from combat XP, E and CI, not M.
+- **4.0x pace clamp (D-48).** A mechanism, not only a test: per skill, over a rolling 365-day
+  window, credited XP cannot exceed 4.0 x the Average profile's yearly main-skill XP at the
+  character's age x (the character's share for that skill / the Average main share). The
+  excess is discarded and logged. Banked drill XP released after combat is excluded.
+  Tests 2 and 24 of progression-numbers check it (progression-numbers §5).
 - **One function**, `computeXp(session)`, serves every source: story turn activities,
-  montage and skip days, missions, combat (combat-xp.md through the same function). Outcomes
-  are rolled by code (mean 1.0). Breakthroughs are the 4% x1.75 outcome, logged.
+  montage and skip days, missions, combat. Training sessions use hours, intensity, challenge,
+  weights, M and a code-rolled outcome (mean 1.0); breakthroughs are the 4% x1.75 outcome,
+  logged. Combat sessions take the combat branch (D-55): exchanges from the duel log,
+  combat-xp.md §1 exactly, and the fight outcome (won / lost / fled / truce) instead of the
+  rolled session outcome.
 - **No skill-tier gates** (D-20). Lightsaber forms are gated by the drill ceiling (25 + E),
   combat Force abilities by combat integration, and teaching by the teacher factor. Physical
   stats and non-combat Force abilities have no gates. Crossing 21, 41, 61, 81 or 101 adds a
@@ -701,9 +824,11 @@ This section is the architecture.
   (grows with Force Control and body abilities). The boost offsets decline so effective
   performance can peak in the 60s, but age wins eventually. Force, knowledge and technique
   skills are not age-capped.
-- **Lifetime test**: the four profiles run 70 in-game years through `advanceTime` with real
-  routines and scripted combat events. Fails if any milestone is outside +/-20% of its
-  target, if any profile beats the max (Anakin) profile's pace, or if any pace exceeds 4.0x.
+- **Lifetime test**: the Average profile runs 95 in-game years (so its Legendary target at
+  77.5 years is inside the run) and the other three profiles run 70, through `advanceTime`
+  with real routines and scripted combat events (amended by D-49). Fails if any milestone is
+  outside +/-20% of its target, if any profile beats the max (Anakin) profile's pace, or if
+  any pace exceeds 4.0x.
 
 ### Legacy features this changes
 | Legacy | v2 |
@@ -761,25 +886,45 @@ This section is the architecture.
 
 ## 15. Build order
 
-These milestones replace the prompt pack's Phases 3-8 (D-28). Each milestone is its own
-session: plan mode first, then build. The pack prompts and the specs are checklists for the
-matching milestone. Each milestone ends **playable locally (`npm run dev`), tested and
-committed** on the `rebuild` branch. Nothing deploys to GitHub Pages until the Phase 9
-cutover; the deploy workflow keeps its main-only trigger.
+These milestones replace the prompt pack's Phases 3-8 (D-28; the table is amended by D-34 and
+D-56). Each milestone is its own session: plan mode first, then build. The specs (and the
+pack prompts, where a section is not yet in this file) are checklists for the matching
+milestone. Each milestone ends **playable locally (`npm run dev`), tested and committed** on
+the `rebuild` branch. Nothing deploys to GitHub Pages until the Phase 9 cutover; the deploy
+workflow keeps its main-only trigger.
 
 The clock and the module contract come first, before any feature.
 
 | # | Milestone | Contents | Playable as |
 |---|---|---|---|
-| M1 | Core and talk to the GM | Scaffold (Vite, TS strict, Vitest, Zod, ESLint); rng; calendar math; FeatureModule, registry, applyEvents; clock and advanceTime (hook order, tests); pacing (moment, scene); provider, gemini and fixture adapters; settings and API key; minimal character (name, birth date, start date); two-step pipeline with the choice fast path; transcript and autosave; usage meter | Free story with a working clock |
-| M2 | Memory and lore | npcs (identity), locations, threads, facts, relationships; People tab and review queue; chapters and arc; context builder with caps and report; lore index and retrieval; export/import | Long campaigns that remember |
-| M3 | Progression and creation | Skills, curve, fatigue meters, computeXp, synergy, rust, state of mind, activityPerformed, computed character creation, sheet UI, tier beats | Train in story and grow |
+| M1 | Core and talk to the GM | Scaffold (Vite, TS strict, Vitest, Zod, ESLint); rng; calendar math; basic roll and checks as pure engine (rolls.md §1, §2, §7; D-34); FeatureModule, registry, applyEvents (temp refs, apply order, caps); clock in seconds and advanceTime (hook order, tests); pacing (moment, scene); provider, gemini and fixture adapters; settings and API key; minimal character (name, birth date, start date); two-step pipeline with the choice fast path and engine-decided checks; transcript and autosave; usage meter | Free story with a working clock and real dice |
+| M2 | Memory and lore | npcs (identity), locations, threads, facts, relationships; People tab and review queue; chapters and arc (chapterSummarized); context builder with caps and report; lore index and retrieval; export/import | Long campaigns that remember |
+| M3 | Progression and creation | Skills and activities (spec/skills-and-activities.md), curve, fatigue meters, computeXp, synergy, rust, state of mind, intent-driven activities (train / study / sleep), rest, the 4.0x clamp, NPC closed form and the Human body-cap table (moved from M5/M8, D-56), computed character creation, sheet UI, tier beats | Train in story and grow |
 | M4 | Time advance | Montage and timeSkip, routine scheduler, settling-in and staleness, thread deadlines, weighted events, interruptions, lifetime test (scripted combat via combat-xp.md math) | Skip months and years |
-| M5 | Combat and health | Rolls, duels and beats, Vitality, wounds, healing, NPC generation (closed form), minions, combat XP from the duel log; lifetime test re-run | Fight |
+| M5 | Combat and health | Duels and beats, Vitality, wounds, healing, NPC generation (talents, variance, minions), combat XP from the duel log; lifetime test re-run | Fight |
 | M6 | Force and alignment | Catalog data, Force meter, Force use, combat integration, Shatterpoint, alignment, dark pressure, concealment | Use the Force |
-| M7 | Ranks and milestones | Ladders, trials, standing, Order requirements, Council of Reassignment | Advance in the Order |
+| M7 | Ranks and milestones | Ladders, trials, standing, Order requirements, Council of Reassignment, Council bypass, flag registry sources for rank flags | Advance in the Order |
 | M8 | World | Timeline events, factions, renown, equipment spec and items/credits, species table | A living galaxy |
 | M9 | Polish | Save slots UI, migrations hardening, responsive layout (iPad first), debug console | Release candidate (Phase 9 cutover) |
+
+### Stubs each milestone uses (D-56)
+A milestone may only depend on a later one through a named stub, replaced when that
+milestone is built. Each stub is a function in `src/data/stubs.ts` with a test that its value
+holds until replaced.
+| Stub | Value until replaced | Used by | Replaced in |
+|---|---|---|---|
+| Effective level modifiers in rolls (wound penalty, Vitality spent) | 0 / false | M1 checks | M5 |
+| Effective level modifiers in rolls (rust, fatigue) | 0 / e(f) = 1 | M1-M2 checks | M3 |
+| Skill levels for M1-M2 checks | from the minimal character's computed creation: none in M1, so checks use level 0 plus the circumstance modifiers | M1-M2 | M3 |
+| Teacher levels | the Average profile's closed-form level at the teacher's age (no per-NPC variance) | M3-M4 | M5 (NPC generation) |
+| Order requirements | the ranks.md §1a table as static data, rank fixed at creation | M3-M4 lifetime test, routines | M7 |
+| Alignment multiplier in M | 1.0 | M3-M5 | M6 |
+| State-of-mind effects of alignment (dark pressure > 50) | D = 0 | M3-M5 | M6 |
+| Species body caps | Human table only (progression-numbers §11) | M3-M7 | M8 |
+| Combat events in the lifetime test | scripted per combat-xp.md math | M4 | M5 (real duel log) |
+
+Planned specs (not yet written; named "planned" wherever cited): the species spec (M8; Human
+body cap is in progression-numbers §11) and the equipment spec (M8; D-27).
 
 ---
 
@@ -796,5 +941,11 @@ Answered by Jared on 2026-11-16 (logged in decisions.md):
 
 Still open (to settle in the named milestone):
 - M1: the current recommended Gemini Flash and Flash-Lite model names and free-tier limits.
-- M3: species body-cap tables beyond Human (species spec).
-- M8: the equipment spec (prices, credits economy, lightsaber properties).
+- M8: species body-cap tables beyond Human (species spec, planned; Human is used until then, D-56).
+- M8: the equipment spec (planned: prices, credits economy, lightsaber properties).
+- M3/M4 (D-67, open): the Average profile's trained Endurance stays near 5 to age 20 (its
+  physical hours are trimmed first by the tiredness limit), which keeps fatigue capacity near
+  3.2 and leaves the Knight minimum Force Sense >= 30 unmet at 20-21 (28.2). Proposed
+  direction: an untrained natural baseline that grows with age (Endurance about half the
+  body cap, Willpower rising with age) and a conditioning hour in the Initiate and Padawan
+  Order requirements. Decide and tune both in the M3/M4 lifetime-test session, then re-solve K.

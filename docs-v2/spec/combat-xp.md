@@ -5,15 +5,31 @@ XP per exchange to the skill used = 0.25 * challenge(gap) * stakes * outcome * M
   Exchanges are counted from the duel log, by the skill used in each (main form for melee,
   blaster skill for ranged, or the Force ability).
   gap = opponent's effective level in the opposed skill - own effective level
-  challenge = progression spec section 4 curve, except 0 when gap is below -30
+  challenge = progression spec section 4 curve for gap >= -25; from gap -25 down to -35 it
+    ramps linearly from that curve's value (0.3) to 0, and it is 0 below -35 (amended by
+    D-65: no step at -30)
   stakes: spar 0.5 | skirmish 1.0 | serious 1.5 | lethal 2.0
   outcome: won 1.0 | lost and survived 1.2 | fled or interrupted 0.8 | truce 1.0
   Split: 0.75 to the skill used, 0.25 to physical stats by that form's activity weights.
 Force abilities used in the fight: 0.1 XP per use * challenge * stakes * M (no split).
 
+Session shape for computeXp (D-55): combat is a branch of the one computeXp function, with
+  session = { source: combat, fightId, stakes, outcome: won / lost / fled / truce
+              (interrupted counts as fled), exchanges: [{skillId, gap}] from the duel log,
+              forceUses: [{abilityId, gap}], day }
+  The branch applies section 1 exactly: per exchange 0.25 * challenge(gap) * stakes *
+  outcome * M; no hours, no intensity, no fatigue efficiency, and the fight outcome above
+  replaces the rolled session outcome (there is no outcome roll for combat). Section 2 caps,
+  section 3 E/CI, the drill-ceiling rule for sparring (progression spec section 7, D-45)
+  and the 4.0x clamp (D-48) are applied by the same function.
+
 ## 2. Limits
   Daily cap: 12 XP per skill before M (about 4 days of standard training).
   The third and later fights in one day: x0.5.
+  Storage (D-47): fightsToday and the per-skill combat XP totals for the day live in the
+  progression slice (combat is null outside a fight) and are reset by the progression day
+  hook (architecture §10).
+  Sparring XP to a lightsaber form is ceiling-limited like drill XP (D-45).
   Combat XP counts toward the 4.0x pace limit (progression spec section 5).
 
 ## 3. Applied experience (E) and combat integration (CI)
@@ -38,12 +54,17 @@ Force abilities used in the fight: 0.1 XP per use * challenge * stakes * M (no s
   Even spar, 34 exchanges: 4.25
   Lethal duel, opponent 12 levels stronger, lost but survived:
     34 * 0.25 * 1.25 * 2.0 * 1.2 = 25.5 -> capped at 12
-  Jedi (70) vs trooper (15): 0 (gap below -30)
+  Jedi (70) vs trooper (15): 0 (gap -55, below -35)
 
 ## 7. Required tests
  1. Reference values in section 6 reproduce exactly.
  2. Daily cap and the third-fight halving apply per skill.
- 3. No XP from opponents more than 30 levels weaker.
+ 3. No XP from opponents more than 35 levels weaker; between 25 and 35 levels weaker the
+    factor falls linearly from 0.3 to 0, with no step (D-65).
  4. Combat XP is included in the 4.0x pace check.
  5. Lifetime test meets the section 5 combat shares.
  6. M has no experience factor anywhere in code.
+ 7. The combat branch of computeXp reproduces section 6 exactly and never rolls a session
+    outcome (D-55).
+ 8. fightsToday and the daily totals survive the end of a fight and reset at the day hook
+    (D-47).

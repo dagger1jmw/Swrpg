@@ -9,8 +9,12 @@ Total XP to reach level L:  XP(L) = K * L^1.75
 Level from total XP:        L = floor((XP / K)^(1/1.75))
 K is solved so the Average profile reaches level 41 in exactly 16.0 training years:
   K = 16 * (Average profile yearly main-skill XP) / 41^1.75     (expected ~14.5)
-Reference (with K = 13.55, before the fatigue model): XP(21)=2,791  XP(41)=9,000
-  XP(61)=18,038  XP(81)=29,629  XP(101)=43,595  XP(151)=88,121
+Amended by D-40: K re-solved with the Average schedule (Order requirements + D-25 budget +
+  shares, through the day model) = 14.69, computed by docs-v2/calc/progression-sim.mjs.
+  Provisional: it is re-solved again when D-67 (Endurance baseline) is decided in M3/M4.
+Reference (K = 14.69): XP(21)=3,027  XP(41)=9,760  XP(61)=19,562  XP(81)=32,131
+  XP(101)=47,276  XP(151)=95,563
+  (Old reference, K = 13.55 before the fatigue model: XP(41)=9,000.)
 
 ## 3. Fatigue model (replaces fixed effective-hour tables)
 Two meters, physical and mental, updated every 30 minutes.
@@ -40,6 +44,10 @@ Efficiency of each 30 minutes:
 
 Recovery: rest/meal -0.75 physical and -1.0 mental per hour. Sleep 7h+: full reset;
   5-7h: 30% carries over; under 5h: 60% carries over.
+  Amended by D-52: elapsed time not covered by an activity is rest at these rates, in story
+  turns and in jumps alike. Sleep is an intent action (actionType sleep) or a routine block,
+  resolved by the engine; only sleep gives the 7h+ reset.
+  Every activity's loads are listed in spec/skills-and-activities.md (D-53).
 
 ## 4. Challenge factor
 gap = activity difficulty rating - skill level
@@ -57,14 +65,27 @@ XP = effective hours * intensity XP mult * challenge * weight * M * outcome
   Main skill weight 0.75; secondary skills share 0.25 by their weights (never additive).
 
 Speed multiplier M = talent * cross-talent * instruction (sec 15, 19) * age (sec 16)
-  * state of mind (sec 17), capped at 2.8
+  * state of mind (sec 17) * alignment (alignment.md sec 8), capped at 2.8
+  (alignment added by D-64, matching D-21 and alignment.md)
   Talent (per domain): none 1.0 | gifted 1.25 | prodigy 1.5 | exceptional 1.8
   Cross-talent: Force prodigy on combat skills 1.1
   Instruction: per-skill teacher and training-partner factor, sections 15 and 19
     (replaces the old fixed teacher factor)
   Experience: no multiplier. Wartime growth comes from combat XP, E and CI
     (docs/spec/combat-xp.md).
-  Absolute maximum overall pace: 4.0x the Average profile.
+  Absolute maximum overall pace: 4.0x the Average profile, enforced by a clamp (D-48):
+    per skill, over a rolling 365-day window, credited XP (training, combat and synergy)
+    cannot exceed
+      cap = 4.0 * Y_avg(age) * (character's share for that skill / Average main share)
+    where Y_avg(age) is the Average profile's main-skill XP for the 365 days starting at that
+    age (table below, interpolated), the character's share comes from their focus weights
+    (shares summing to 1), and the Average main share is 0.5 at every age (the Knight+
+    default main-specialty share, D-41). The excess is discarded and logged. Banked drill
+    XP released after combat is excluded (it does not count toward the window).
+    Y_avg(age), K = 14.69 (computed by docs-v2/calc/progression-sim.mjs, per 365 days;
+    provisional until D-67):
+      age 4: 574 | 8: 538 | 12: 677 | 16: 645 | 20: 637 | 24: 502 | 30: 520 | 40: 567 |
+      50: 526 | 60: 563 | 70: 512 | 80: 515 | 90: 476 | 98: 319
 
 Outcome roll per session (code rolls it, mean ~1.0):
   failure 15% x0.7 | partial 25% x0.9 | solid 38% x1.0 | strong 18% x1.2 |
@@ -90,6 +111,13 @@ Applied experience E (0-100) per lightsaber form group.
   Bank cap: the XP needed for 15 levels above the current level.
   After real combat: for 60 days, release 10% of the remaining bank per day, up to the new
     ceiling. Banked XP does not count toward the 4.0x pace cap.
+  Amended by D-45:
+    Sparring XP IS ceiling-limited: sparring sessions (and their combat XP to the form) count
+      as drill XP for the ceiling and the bank. Real fights (skirmish or higher) are not
+      ceiling-limited.
+    After day 60, whatever is left in the bank stays banked for the next real fight (it is
+      not lost and not released further). A later skirmish or higher starts a new 60-day
+      release.
   Reference scenario (Obi-Wan pace, E 12, first life-or-death fight at training year 12):
     year 11: level 40.4, bank 400 | year 12: 40.9, bank 1,022 | E -> 23.8, ceiling 48.8 |
     +1 week 42.3 | +2 weeks 43.0 | +1 month 43.6 | year 13: 45.5
@@ -110,6 +138,10 @@ Each 30 minutes, f = max(f_phys, f_mental).
   Willpower XP per hour = 1.5 * g(f)
   g(f) = 0 if f < 0.6 | linear 0.25 -> 1.0 for 0.6..1.0 | 1.5 if f > 1.0
   Daily cap: 3.0 willpower XP. Applies to any activity done while tired.
+  Amended by D-51: Willpower is also trained directly. Willpower meditation, the endurance
+    ordeal drill, and every activity with a Willpower secondary weight
+    (skills-and-activities.md) credit it like any other skill. The 3.0/day cap applies to
+    fatigue Willpower XP only. Every archetype has a Willpower weight (npc-generation §3).
   Reference: 3h drills End 30 -> 0.0 | 6h drills End 90 -> 1.42 |
     4h drills + 3h study End 60 Will 40 -> 2.88 | 8h drills End 60 -> 3.0 (cap)
 
@@ -137,7 +169,33 @@ Years of training to reach each tier (+/-20%), age in brackets:
   Obi-Wan (start 3):   3.4 (6)   10.8 (14)  21.7 (25)  35.6 (39)  52.4 (55)
   Anakin (start 9):    1.3 (10)  4.1 (13)   8.2 (17)   13.5 (22.5) 19.9 (29)
   Luke (start 19):     2.1 (21)  6.9 (26)   13.9 (33)  22.8 (42)  33.6 (53); Force ~116 at 62
-Reference inputs before the fatigue model (tunable):
+Profile schedule structure (amended by D-40, D-41, D-42; supersedes the inputs below):
+  Every profile runs the same structure: the Order requirements for its rank (ranks.md
+  §1a) as fixed commitments, filled up to the D-25 training budget (training-routines §2)
+  by its archetype shares; the main specialty takes a 0.5 share of the fill from Knight on.
+  Profiles change only effort (hours), talents, teachers, rank ages and combat events.
+    Average: Jedi Guardian, start 4, standard effort, 300 training days of 368, Padawan at
+      12, Knight at 20.5, Temple instructors x1.05, master x1.15, solo x0.90, fill x1.00,
+      no talent, peacetime (1 real skirmish per year keeps the drill ceiling above the
+      main form; it never binds).
+    Obi-Wan: start 3, push effort, 315 days, Padawan at 13, Knight at 25, master strong in
+      his form (x1.20).
+    Anakin: start 9, push effort, 315 days, Padawan at 9, Knight at 20, prodigy in combat
+      and Force (x1.5, x1.1 cross-talent on forms), master not a specialist in his form
+      (x1.05), war years 19+.
+    Luke: start 19, outsider (no Order requirements), standard effort, 280 days, Force
+      prodigy (x1.5 on Force skills), solo and holocrons (x0.90), broad focus (main share
+      0.4).
+  Average result (docs-v2/calc/progression-sim.mjs, K = 14.69):
+    21: 5.4 y | 41: 16.0 y | 61: 34.3 y | 81: 57.5 y | 101: 86.5 y (all within +/-20%)
+    At age 20.5: main form 41.9, Force Control 30.5, Force Sense 28.2, Willpower 48.4,
+      Endurance 5.3 (see D-67).
+  Peacetime baseline of the other three (no combat events; docs-v2/calc/profiles.mjs):
+    Obi-Wan 41 at 13.3 y, 61 at 26.2 y (targets 10.8, 21.7) | Anakin 41 at 7.9 y (target 4.1)
+    | Luke main form 41 at 22.2 y (his targets are Force skills, tuned in M4). These miss
+    because combat XP and the D-67 Endurance baseline are not in the run yet; they are
+    tuned in the M4 lifetime test, not here.
+Reference inputs before the fatigue model (history, superseded by the structure above):
   Average 300 days, 3h standard drills, M 1.0 | Obi-Wan 315 days, 5h, M 1.10 |
   Anakin 315 days, 6h, M 2.72 | Luke 280 days, 3.5h, M 2.25
   (Anakin's and Luke's M above included a war factor of 1.25. That factor is gone, and their
@@ -212,17 +270,41 @@ diff = teacher's level in THAT skill - student's level in THAT skill
   Long-lived species map these bands onto their own life stages.
 
 ## 17. State of mind
-Set by code from story events and alignment (the AI may propose emotional events; code
-validates them). One state at a time, the strongest wins.
-  Centered (meditated 30+ min today, no distress): x1.05
-  Neutral: x1.00
-  Distracted or anxious: x0.90
-  Grief or severe distress: x0.80, easing back to x1.00 over 14-30 days depending on the event
-  Anger, fear or hatred: light-side techniques and Meditation x0.80. Channeling it into
-    Force Output, dark-tagged abilities, or aggressive forms (Djem So, Juyo, Vaapad) gives
-    x1.20, rising to x1.30 when dark pressure is above 50, and adds +0.5 dark pressure per
-    effective hour channeled. This is the dark side's shortcut and its trap.
-  The state of mind multiplier counts inside the 2.8 cap.
+Amended by D-46 and D-54: one enum and one mapping table, owned by progression. The age
+row and categories of each skill come from skills-and-activities.md.
+
+StateOfMind (one at a time, the strongest wins) =
+  centered | neutral | distracted | fear | anger | hatred | pride | despair
+Grief is NOT in this enum: it is a separate lingering condition (progression.grief) that
+runs alongside whatever state is active (D-46).
+
+| State | XP multiplier | Source |
+|---|---|---|
+| centered | x1.05 | engine: meditated 30+ min today; or emotionalEvent calm |
+| neutral | x1.00 | default |
+| distracted | x0.90 | engine rules only: an unresolved thread with a deadline within 3 days, or an overtraining streak of 2+ days |
+| fear, anger, hatred | light-side techniques and Meditation x0.80. Channeling into Force Output, dark-tagged abilities or aggressive forms (Djem So, Juyo, Vaapad) x1.20, x1.30 when dark pressure > 50, +0.5 dark pressure per effective hour channeled (the dark side's shortcut and its trap) | emotionalEvent fear / anger / hatred |
+| pride | x1.00 (its effect is combat: defense -1 vs someone believed weaker, rolls.md §5) | emotionalEvent pride |
+| despair | x0.80, easing back to x1.00 over 14-30 days like grief, but not lingering under other states | emotionalEvent despair |
+
+| Lingering condition | XP multiplier | Rule |
+|---|---|---|
+| grief | x0.80, easing back to x1.00 over 14-30 days depending on the event | emotionalEvent grief; keeps its x0.80 and its dark-pressure floor (alignment.md §3) even while anger, calm or any other state is active; multiplies with the active state (e.g. centered with grief: x1.05 x 0.80) |
+
+emotionalEvent mapping (the AI proposes; the engine validates and applies one per turn):
+| emotionalEvent.type | Result |
+|---|---|
+| grief | grief (lingering condition) |
+| fear | fear |
+| anger | anger |
+| hatred | hatred (added to emotionalEvent by D-54) |
+| calm | centered |
+| pride | pride |
+| despair | despair |
+"Distracted" never comes from an event. Centered no longer requires "no distress": it
+stacks with grief. Strength order for "strongest wins": hatred > anger > fear > despair >
+pride > distracted > centered > neutral. The state of mind and grief multipliers count
+inside the 2.8 cap.
 
 ## 18. Lasting injuries and adaptation
 A lasting injury sets a base penalty P on the skills and stats it affects. Adaptation A
@@ -248,25 +330,33 @@ A lasting injury sets a base penalty P on the skills and stats it affects. Adapt
     once per 7 days.
 
 ## 20. Required tests
- 1. Lifetime test: all four profiles hit section 12 within +/-20%.
- 2. No input combination exceeds 4.0x Average pace (banked releases excluded).
+ 1. Lifetime test: all four profiles hit section 12 within +/-20%; the Average profile runs
+    95 years, the others 70 (D-49).
+ 2. No input combination exceeds 4.0x Average pace (banked releases excluded): the D-48 clamp
+    discards credited XP above the cap in any rolling 365-day window, per skill, and logs it.
  3. Luke's physical peak falls at ages 58-68 and his Force level is still rising at 60.
- 4. Fatigue reference days (section 3 and 9 references) within +/-0.05:
-    End 30 3h drills 2.68 | End 30 6h 3.40 | End 90 6h 4.51 | End 90 8h 4.87 |
-    End 90 6h easy (gap -25) 1.35 | study 2h then drills 3h (End/Will 50): 2.00 / 2.57 |
-    drills 3h then study 2h: 2.75 / 1.87 | drills 3h then study 3h: 2.75 / 2.26
+ 4. Fatigue reference days (section 3 and 9 references) within +/-0.05. Amended by D-39: the
+    single-stat cases use Willpower 30 (the original values came from a simplified run that
+    did not state it); values recomputed from the full section 3 rules by
+    docs-v2/calc/fatigue-reference.mjs:
+    End 30 3h drills 2.67 | End 30 6h 3.39 | End 90 6h 4.52 | End 90 8h 4.88 |
+    End 90 6h easy (gap -25) 1.36 | study 2h then drills 3h (End/Will 50): 1.99 / 2.57 |
+    drills 3h then study 2h: 2.76 / 1.87 | drills 3h then study 3h: 2.76 / 2.26
  5. End 90: 8h gives < 10% more XP than 6h and ends with f_phys > 1.0.
  6. Challenge factor is continuous: gap -25 or lower x0.3, gap -20 x0.45, peak x1.25 over
     +12..+18, and no change larger than 0.08 per point of gap.
  7. Post-workout: first mental hour x1.25; third hour lower than the same hour done fresh.
- 8. Sparring only: a lightsaber form cannot pass 40 within 30 years.
- 9. Plateau scenario (section 7) gains >= 2 levels within 30 days of combat; bank empty
-    within 60.
+ 8. With sparring only (E <= 15, ceiling 40), a form gains at most 25% of normal XP above 40
+    (D-45; sparring XP is ceiling-limited).
+ 9. Plateau scenario (section 7) gains >= 2 levels within 30 days of combat; after day 60
+    the release stops and whatever is left stays banked for the next real fight (not lost),
+    and the next skirmish or higher starts a new release (D-45).
 10. Physical stats and non-combat abilities reach 100+ with no combat events.
 11. Combat integration reference table (section 8) reproduces exactly; no penalty outside
     combat.
-12. Willpower XP never exceeds 3.0/day; a 7-day pushing streak earns less willpower than
-    alternating push and recovery days.
+12. Fatigue Willpower XP never exceeds 3.0/day (direct Willpower training is outside this
+    cap, D-51); a 7-day pushing streak earns less fatigue willpower than alternating push and
+    recovery days.
 13. Outcome roll mean over 10,000 seeded sessions = 1.0 +/- 0.02.
 14. Activity XP to all skills combined = effective hours * mults (secondaries never additive;
     synergy spillover is the only extra XP, and never exceeds 25% of the session).
@@ -283,5 +373,10 @@ A lasting injury sets a base penalty P on the skills and stats it affects. Adapt
     hour; ineligible (light-side) skills get x0.80.
 23. Injury reference (section 18): quality cybernetic reaches full adaptation in 30-40 days
     at 3h/day; a basic prosthetic leaves 8% (40% * 0.2).
-24. All multipliers in M (talent, instruction, age, state of mind) still respect
-    the 2.8 cap and the 4.0x pace limit.
+24. All multipliers in M (talent, cross-talent, instruction, age, state of mind, grief,
+    alignment) still respect the 2.8 cap, and the D-48 clamp holds the 4.0x pace limit with
+    every multiplier at its maximum (D-48, D-64).
+25. Grief lingers: with grief active, entering anger or centered keeps grief's x0.80 and the
+    dark-pressure floor (D-46).
+26. emotionalEvent maps to the state of mind by the section 17 table; distracted never
+    comes from an event (D-54).

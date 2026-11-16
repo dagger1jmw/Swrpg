@@ -5,15 +5,26 @@
   Effort preference: easy | standard | push
   Training days per week: default 6 (at least 1 rest day; the overtraining rules still apply)
   Teacher / partner per skill (optional; affects the teacher and training-mode factors)
-  Fixed commitments: Order requirements for the rank, classes, missions, duties
+  Fixed commitments: Order requirements for the rank (ranks.md §1a, the single table; D-42),
+    classes, missions, duties
+  Default template: the archetype shares (npc-generation §3); from Knight on, the main
+    specialty takes 0.5 of the fill (D-41). The player's own routine always decides.
   Locked blocks: anything the player placed by hand is never moved by the scheduler
 
 ## 2. Daily training budget (hours, before fixed commitments)
+  Amended by D-25: the rows below are anchors at ages 10, 15 and 20 with linear
+  interpolation between them and flat outside (no step on a birthday). "Before fixed
+  commitments" is read as: the budget includes them; they are placed first and the rest is
+  filled by priority (D-40). The calculations
+  use this reading (docs-v2/calc/progression-sim.mjs).
   Effort:            easy  standard  push
   Age 12 and under:  3     4         5
   Age 13-17:         4     6         7
   Age 18+:           4     6         8
   The budget is a maximum. The scheduler trims it to stay under the tiredness limit.
+  Fixed commitments are never trimmed, even when they exceed the budget or the limit: the
+  Padawan requirements (5 h) exceed the 4.8 h standard budget at age 12, and with today's
+  low Endurance they push the Average profile to a day-end f of 1.08 (open item D-67).
 
 ## 3. Allocation
   Hours per priority = budget * weight / total weight, rounded to 0.5 h, minimum 0.5 h.

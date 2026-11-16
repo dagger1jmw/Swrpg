@@ -32,6 +32,27 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
   state-of-mind notes (e.g. Juyo/Vaapad and anger channeling)
   availability and era notes
 
+## Shatterpoint reads (D-63; Q20, Q21, D-06)
+  Shatterpoint is ShatterSense-only (Q20), on the main curve with an XP cost x3.
+  Combat reads: rolls.md §6 (contest d20 + level/10 vs 15, advantage jumps to 3, once per
+    fight).
+  Non-combat reads (a person, a relationship, a situation, an event): a check (rolls.md §2)
+    against a DC set by the D-06 perception band of what is being read:
+      | Band (D-06) | Minimum Shatterpoint level | DC = 10 + band start / 10 |
+      |---|---|---|
+      | physical weaknesses | 1 | 10 |
+      | combat | 21 | 12 |
+      | personal | 41 | 14 |
+      | relational | 61 | 16 |
+      | situational | 81 | 18 |
+      | event | 101 | 20 |
+    A read is possible only when the character's Shatterpoint level is at least the band's
+    start. Success reveals the shatterpoint (narrated from the engine's result). A negative
+    margin is a misread: the engine records wrong guidance and the AI narrates it as if
+    true (Q21). Each read costs 0.3 Force load (health §2). Focus and tunnel-vision states
+    are dropped (Q21, D-05). Reads enter only through the intent (intent.forceAbility =
+    shatterpoint, D-29).
+
 ## Required checks
   Every ability and form has every field, or an entry in force-catalog-questions.md.
   Every synergy relation and matchup cites lore.
@@ -39,3 +60,5 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
     "Force Fortitude", "Fortitude" and "ForceBodyControl" (decisions.md, 2026-11-16), which
     are rejected as unknown names.
   Unknown ability names are always rejected; they never fall back to a nearby ability.
+  Non-combat Shatterpoint reads use the D-06 band table above: level below the band start
+    cannot attempt; a negative margin is a misread (D-63).
