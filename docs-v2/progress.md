@@ -1,1 +1,2 @@
 - 2026-11-16 — Phase 0: rebuild branch, V170 moved to legacy/, old V1xx HTML removed, docs-v2/ scaffold, new root CLAUDE.md. Verified.
+- 2026-11-16 — Phase 1: legacy V170 feature audit. 24 feature files (docs-v2/spec/01-24), ai-contract-legacy.md, bugs.md (35 high-severity bugs, v170-audit verified), 00-index.md with 65 open questions. Renamed audit to v170-audit.md. Read-only; no code changed.
