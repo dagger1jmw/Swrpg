@@ -2,7 +2,7 @@
 
 ## 1. Choices
   Path: Jedi | Sith | Force-sensitive outsider | non-Force career
-  Species (species spec), birth date, and era (default 3,661 BBY, Cold War)
+  Species (species spec), birth date, and era (default 3,661 BBY, Great Galactic War year 20; start year is a creation choice)
   Rank: any rank the path allows at that age (ranks spec); the UI shows which ranks fit
   Training start age: path default (Jedi 2-5, Sith academy 8-16, careers per archetype),
     adjustable within the path's range (a late start like Luke's is allowed for outsiders

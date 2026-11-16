@@ -10,12 +10,12 @@ Answers to the 65 open questions in 00-index.md. Labels:
 
 ## Legends-only rule (applies to every question and every lore check)
 "Canon" in this project always means Star Wars Legends. Disney-era canon (2014 onward) is
-never authoritative. The Old Republic (SWTOR) material, including the Cold War of
-3,661 BBY, is Legends. If a lore file in Docs/SWRPG lore/ contains a Disney-era idea,
+never authoritative. The Old Republic (SWTOR) material, including the Great Galactic War
+(year 20) of 3,661 BBY, is Legends. If a lore file in Docs/SWRPG lore/ contains a Disney-era idea,
 record it as a conflict with Legends and follow Legends.
 
 ## Scope and setting
-1. DEFAULT: 3,661 BBY (Cold War) ships first. The engine and calendar are era-agnostic and
+1. DEFAULT: 3,661 BBY (Great Galactic War, year 20) ships first. The engine and calendar are era-agnostic and
    support BBY and ABY dates, so other eras can be added later.
 2. JARED: the start date is a character-creation choice. The galaxy state follows the
    Legends timeline from that date (before or after the Hydian Way blockade breaks).

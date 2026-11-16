@@ -34,6 +34,26 @@ Results for every LORE CHECK item in phase1-answers.md, plus the answers that de
 | L-17 | Q47 week length | Your answer says 7-day weeks; the Legends sources in v170-audit.md give 5-day weeks | FLAG |
 | L-18 | Q20/Q21 vs the lore's Shatterpoint rules | v2 drops Path A, focus and tunnel vision, which the lore file defines | FLAG |
 
+## Resolutions (Jared, 2026-11-16)
+
+Every flag above is resolved. Each decision is logged with its reason in decisions.md (2026-11-16, D-01 to D-10). The details below are kept as the research record.
+
+| ID | Resolution | Decision |
+|---|---|---|
+| L-01, L-02, L-07, L-10 | Answered by the lore; no decision needed | — |
+| L-03 | Starts before 3,653 BBY use the Coruscant Temple under Grand Master Zym; Tython only for starts from 3,653. ranks.md notes that its age and trial rules are a design choice based on prequel-era practice | D-02 |
+| L-04 | Titles exist as the lore says (Scourge holds Emperor's Wrath in 3,661); no holder named for Battlemaster | — |
+| L-05 | Shatterpoint perception bands re-anchored to v2 tiers: physical 1+, combat 21+, personal 41+, relational 61+, situational 81+, events 101+ | D-06 |
+| L-06 | Kii-Shikk dropped (no Legends source) | — |
+| L-08, L-09 | Aliases "ForceFortitude", "Force Fortitude", "Fortitude" and "ForceBodyControl" removed; unknown names are rejected | D-07 |
+| L-11 | Satele Shan uses a **blue double-bladed lightsaber** in 3,661 BBY (Legends: double-bladed during the Great Galactic War; a single green blade only later in the Cold War) | D-04 |
+| L-12 | Renown tracks: Republic, Sith Empire, Jedi Order, Sith, Mandalorians, Underworld. Chiss count as Empire | D-08 |
+| L-13, L-18 | Golden Rule 3 amended: story facts in the lore are authoritative; game-mechanics sections are inputs that specs may override, with every override logged. All four talents kept, translated to v2 terms | D-05 |
+| L-14 | Crystal "bleeding" replaced with the Legends version in the two lore lines (one-time Docs/ exception) | D-10 |
+| L-15 | Dominate Mind is a catalog candidate; Battle Meld is era-gated (not in 3,661); UnifyingForcePerception dropped; five unsourced names listed in force-catalog-questions.md | D-09 |
+| L-16 | "Cold War" replaced with "Great Galactic War (year 20)" for 3,661 BBY in phase1-answers.md and character-creation.md; default start stays 3,661 BBY | D-01 |
+| L-17 | 7-day weeks and 12 months are Legends-sourced (HoloNet News and *The Essential Atlas*, per Wookieepedia "Standard week/Legends") | D-03 |
+
 ## Details
 
 ### L-01 — Hydian Way blockade (Q2)

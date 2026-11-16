@@ -1431,7 +1431,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** Communicating with and deepening attunement to one's kyber crystal — understanding its nature, influencing its properties, and maintaining the bond between Jedi and saber.
 **Alignment:** Neutral
 **Prerequisites:** ForceKnowledge 30+
-**Notes:** A uniquely Jedi practice. A crystal attuned to its owner functions better and can warn of danger. A Sith bleeds their crystal through a similar but dark-side process.
+**Notes:** A uniquely Jedi practice. A crystal attuned to its owner functions better and can warn of danger. Sith do not attune natural crystals this way; they use synthetic red crystals.
 
 ---
 

@@ -5,6 +5,14 @@ one at the typical age. Every promotion is a story event the player plays; code 
 requirements, rolls the checks, and applies the result. The AI can only propose
 (promotionProposed) and narrate.
 
+Era notes (decisions.md, 2026-11-16, L-03):
+  Temple: starts before 3,653 BBY use the Jedi Temple on Coruscant under Grand Master Zym.
+    Tython is used only for starts from 3,653 BBY (after the Sacking and the Treaty of
+    Coruscant).
+  The age and trial rules below (Initiate Trials, Padawan selection by 13, Council of
+    Reassignment, the five Knight Trials) are a design choice based on prequel-era Legends
+    practice (about 32 BBY). They are not attested for the Old Republic Order of 3,661 BBY.
+
 ## 1. Jedi path
 Initiate (youngling)
   From the training start age. Clan training, Order routine requirements (routines spec).

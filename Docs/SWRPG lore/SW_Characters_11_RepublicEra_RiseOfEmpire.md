@@ -266,7 +266,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Alignment:** Light side → falling (becomes Darth Tyranus, Era 12).
 - **Tier:** **Legendary** (Makashi dueling); high-Master Force.
 
-> **Cross-era note:** His Sith incarnation **Darth Tyranus** (Era 12) adds Force lightning and a bled red blade and shifts alignment, but his core capability stays roughly constant — a lateral/alignment shift, not a power jump (like Revan/Dooku parallels).
+> **Cross-era note:** His Sith incarnation **Darth Tyranus** (Era 12) adds Force lightning and a red blade powered by a synthetic crystal and shifts alignment, but his core capability stays roughly constant — a lateral/alignment shift, not a power jump (like Revan/Dooku parallels).
 
 ---
 

@@ -35,4 +35,7 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
 ## Required checks
   Every ability and form has every field, or an entry in force-catalog-questions.md.
   Every synergy relation and matchup cites lore.
-  Legacy aliases all resolve to a v2 id.
+  Legacy aliases all resolve to a v2 id, except the removed aliases "ForceFortitude",
+    "Force Fortitude", "Fortitude" and "ForceBodyControl" (decisions.md, 2026-11-16), which
+    are rejected as unknown names.
+  Unknown ability names are always rejected; they never fall back to a nearby ability.
