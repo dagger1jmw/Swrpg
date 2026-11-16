@@ -1,0 +1,1 @@
+Use `docs-v2/` for new rebuild documentation. Windows treats `Docs/` and `docs/` as the same folder, but Git and GitHub's servers do not; separating the new docs avoids a local casing collision while preserving `Docs/` as the existing reference folder.

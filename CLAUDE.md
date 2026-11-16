@@ -2,6 +2,7 @@
 
 ## Project
 - Star Wars Legends text RPG. Gemini writes the story; game code owns all rules and state.
+- Folder mapping: in all prompts and specs, `docs/` means `docs-v2/` (e.g. `docs/spec/` = `docs-v2/spec/`, `docs/architecture.md` = `docs-v2/architecture.md`). `Docs/` (capital D) is the old reference folder: lore in `Docs/SWRPG lore/` is still the canon source of truth and is read from there. Never write new files into `Docs/`.
 
 ## Stack
 - Vite + TypeScript (`strict`), Vitest, and Zod. Deployed to GitHub Pages.
