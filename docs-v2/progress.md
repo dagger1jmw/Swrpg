@@ -1,0 +1,1 @@
+- 2026-11-16 — Phase 0: rebuild branch, V170 moved to legacy/, old V1xx HTML removed, docs-v2/ scaffold, new root CLAUDE.md. Verified.
