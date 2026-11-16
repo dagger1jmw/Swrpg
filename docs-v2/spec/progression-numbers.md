@@ -1,0 +1,287 @@
+# Progression numbers (v1)
+
+## 1. Tiers
+0-20 Untrained | 21-40 Apprentice | 41-60 Adept | 61-80 Master | 81-100 High Master |
+101-150 Legendary | 151+ Transcendent
+
+## 2. Curve (XP = effective training hours)
+Total XP to reach level L:  XP(L) = K * L^1.75
+Level from total XP:        L = floor((XP / K)^(1/1.75))
+K is solved so the Average profile reaches level 41 in exactly 16.0 training years:
+  K = 16 * (Average profile yearly main-skill XP) / 41^1.75     (expected ~14.5)
+Reference (with K = 13.55, before the fatigue model): XP(21)=2,791  XP(41)=9,000
+  XP(61)=18,038  XP(81)=29,629  XP(101)=43,595  XP(151)=88,121
+
+## 3. Fatigue model (replaces fixed effective-hour tables)
+Two meters, physical and mental, updated every 30 minutes.
+
+Load per hour (physical, mental):
+  Lightsaber drills 1.0, 0.4 | Strength/cardio 1.2, 0.2 | Force drills 0.4, 0.8
+  Study/reading 0.05, 1.0    | Meditation 0.05, -0.5 (restores mental)
+  Every activity in the catalog must declare its (physical, mental) load.
+Intensity (load mult, XP mult): casual 0.6, 0.7 | standard 1.0, 1.0 | intense 1.4, 1.2 |
+  extreme 1.8, 1.35
+
+Capacity (load-hours):
+  Physical = 3 + 4 * min(Endurance,100)/100 + max(0, min(Endurance,150) - 100)/50
+  Mental   = 3 + 4 * min(Willpower,100)/100 + max(0, min(Willpower,150) - 100)/50
+  (stat 30 -> 4.2, 90 -> 6.6, 150 -> 8.0)
+
+f = meter / capacity. Base efficiency e(f):
+  f <= 0.4: 1.0 | 0.4 < f <= 1.0: linear 1.0 -> 0.3 | f > 1.0: 0.1, strain gain x2,
+  2% injury risk per hour of physical activity (see streak rules)
+
+Efficiency of each 30 minutes:
+  Physical activity: e(f_phys) * (1 - 0.15 * min(1, f_mental))
+  Mental activity:   e(f_mental) * (1 - 0.5 * min(1, f_phys))
+  Post-workout window: the first 1.0 hour of mental activity right after physical activity
+    (physical load >= 0.8) counts 1.25 * e(f_mental) and ignores the physical penalty.
+  Same activity: each hour beyond 2 of the same activity in one day x0.85.
+
+Recovery: rest/meal -0.75 physical and -1.0 mental per hour. Sleep 7h+: full reset;
+  5-7h: 30% carries over; under 5h: 60% carries over.
+
+## 4. Challenge factor
+gap = activity difficulty rating - skill level
+  Continuous: interpolate linearly between these anchor points (flat outside them):
+  gap -25: x0.3 | -15: x0.6 | -10: x1.0 | +5: x1.0 | +12: x1.25 | +18: x1.25 | +25: x0.8 |
+  +35: x0.3
+  Push side effects ramp linearly too: strain up to x1.3 and failure chance up to +10%
+  (over gap +5..+12), injury risk starting over gap +18..+25.
+  No step tables: one point of gap never changes the factor by more than 0.08.
+Drill ratings: Basic 10, Intermediate 30, Advanced 50, Master 70, Legendary 90.
+Unlocked by teacher and level.
+
+## 5. XP per session
+XP = effective hours * intensity XP mult * challenge * weight * M * outcome
+  Main skill weight 0.75; secondary skills share 0.25 by their weights (never additive).
+
+Speed multiplier M = talent * cross-talent * instruction (sec 15, 19) * age (sec 16)
+  * state of mind (sec 17), capped at 2.8
+  Talent (per domain): none 1.0 | gifted 1.25 | prodigy 1.5 | exceptional 1.8
+  Cross-talent: Force prodigy on combat skills 1.1
+  Instruction: per-skill teacher and training-partner factor, sections 15 and 19
+    (replaces the old fixed teacher factor)
+  Experience: no multiplier. Wartime growth comes from combat XP, E and CI
+    (docs/spec/combat-xp.md).
+  Absolute maximum overall pace: 4.0x the Average profile.
+
+Outcome roll per session (code rolls it, mean ~1.0):
+  failure 15% x0.7 | partial 25% x0.9 | solid 38% x1.0 | strong 18% x1.2 |
+  breakthrough 4% x1.75
+
+## 6. Which skills have which limits
+  Lightsaber forms: drill ceiling + bank (section 7)
+  Physical stats: no ceiling
+  Non-combat Force abilities: no ceiling
+  Combat Force abilities: no ceiling; combat integration penalty in combat (section 8)
+  Every Force ability is tagged combat, non-combat, or both.
+  Shatterpoint: a rare Force ability (tagged both) on the main curve, unlocked only by the
+    ShatterSense talent, with an XP cost multiplier of x3 (tunable). No separate XP track.
+
+## 7. Lightsaber drill ceiling and bank
+Applied experience E (0-100) per lightsaber form group.
+  Drill ceiling = 25 + E
+  E gains, each scaled by (1 - E/120):
+    sparring with peers +0.2/session | sparring with master +0.4/session
+    (E from all sparring capped at 15) | real skirmish +3 | serious duel +6 |
+    life-or-death vs a stronger opponent +10
+  Above the ceiling: 25% of drill XP applies; 75% is banked.
+  Bank cap: the XP needed for 15 levels above the current level.
+  After real combat: for 60 days, release 10% of the remaining bank per day, up to the new
+    ceiling. Banked XP does not count toward the 4.0x pace cap.
+  Reference scenario (Obi-Wan pace, E 12, first life-or-death fight at training year 12):
+    year 11: level 40.4, bank 400 | year 12: 40.9, bank 1,022 | E -> 23.8, ceiling 48.8 |
+    +1 week 42.3 | +2 weeks 43.0 | +1 month 43.6 | year 13: 45.5
+
+## 8. Combat integration (combat Force abilities)
+CI (0-100) per ability. Integration line = 25 + CI. G = level - line (no penalty if G <= 0).
+  In combat only: effective level = line + 0.5 * G
+                  Force strain cost x (1 + 0.015 * G), max x2.0
+                  misfire chance 0.3% * G, max 15%
+  CI gains per use, scaled by (1 - CI/120): sparring +0.1 (CI from sparring capped at 20) |
+    real skirmish +0.5 | serious duel +1 | life-or-death +2
+  Reference (Force Push level 70, CI 10): effective 52.5, strain x1.52, misfire 10.5%.
+    After 20 skirmish uses: CI 18.8, 56.9, x1.39, 7.9%. After 10 life-or-death uses: CI 27.0,
+    61.0, x1.27, 5.4%. After 60 serious-duel uses: CI 53.4, 70, x1.00, 0%.
+
+## 9. Willpower from fatigue
+Each 30 minutes, f = max(f_phys, f_mental).
+  Willpower XP per hour = 1.5 * g(f)
+  g(f) = 0 if f < 0.6 | linear 0.25 -> 1.0 for 0.6..1.0 | 1.5 if f > 1.0
+  Daily cap: 3.0 willpower XP. Applies to any activity done while tired.
+  Reference: 3h drills End 30 -> 0.0 | 6h drills End 90 -> 1.42 |
+    4h drills + 3h study End 60 Will 40 -> 2.88 | 8h drills End 60 -> 3.0 (cap)
+
+## 10. Overtraining streak
+A day ending with either meter > 1.0 is an overtrained day. For each consecutive one:
+  next-day capacities -10% per day (max -50%)
+  injury risk per hour above 1.0 = 2% * (1 + 0.5 * streak days)
+  willpower XP from f > 1.0 is halved from the 3rd consecutive day
+The streak resets after a rest day or a day ending below 0.6.
+Reference: ~3 hours past the limit daily for 5 days -> 46% chance of an injury.
+
+## 11. Physical performance
+Physical = min(trained level, body cap for age) + Force boost
+Force boost = min(45, 0.3 * max(0, ForceControl - 40) + 0.2 * Force body-ability level)
+Human body cap by age (straight-line between points):
+  5:15 | 9:25 | 12:35 | 15:50 | 18:65 | 22-35:80 | 45:78 | 55:74 | 65:68 | 75:58 |
+  85:45 | 100:25
+Other species get their own tables.
+Reference (Luke, 1h/day body ability): age 30: 89.7 | 40: 98.7 | 50: 103.6 |
+  62: 105.6 (peak band 60-66) | 70: 103.6 | 80: 96.5. Average Jedi peaks ~87 near age 45.
+
+## 12. Calibration profiles and targets
+Years of training to reach each tier (+/-20%), age in brackets:
+  Average (start 4):   21: 5.0 (9)   41: 16.0 (20)  61: 32.1 (36)  81: 52.7 (57)  101: 77.5 (82)
+  Obi-Wan (start 3):   3.4 (6)   10.8 (14)  21.7 (25)  35.6 (39)  52.4 (55)
+  Anakin (start 9):    1.3 (10)  4.1 (13)   8.2 (17)   13.5 (22.5) 19.9 (29)
+  Luke (start 19):     2.1 (21)  6.9 (26)   13.9 (33)  22.8 (42)  33.6 (53); Force ~116 at 62
+Reference inputs before the fatigue model (tunable):
+  Average 300 days, 3h standard drills, M 1.0 | Obi-Wan 315 days, 5h, M 1.10 |
+  Anakin 315 days, 6h, M 2.72 | Luke 280 days, 3.5h, M 2.25
+  (Anakin's and Luke's M above included a war factor of 1.25. That factor is gone, and their
+  wartime pace must now come from combat XP; see combat-xp.md section 5.)
+With the fatigue model and sections 13-19, profiles also need ages (for learning speed),
+teachers per skill (Anakin's saber teacher is not a Djem So master), training partners,
+state-of-mind events, starting Endurance/Willpower, schedules, drill
+difficulty, and combat events (Average/Obi-Wan sparring only until first missions;
+Anakin and Luke wartime).
+
+## 13. Rust (skills unused for a while)
+Rust R is a temporary penalty; XP is never lost. Effective level = level * (1 - R).
+  Grace period: 30 days without practice before rust starts.
+  Technique skills and Force abilities: +1.0% per 30 days unused, max 15%.
+    Deeper skills rust slower: rate and cap scale linearly from level 40 (1.0% per 30 days,
+    max 15%) to level 80+ (0.5% per 30 days, max 10%).
+  Physical stats (detraining): starts after 14 days, +1.0% per 30 days, max 20%.
+  Knowledge stats (Force Knowledge, Intelligence): +0.25% per 30 days, max 5%.
+  Removal: each effective hour of practice (or real use in combat) removes 0.5 percentage
+    points of rust, on top of normal XP.
+  Reference: level 30 unused 6 months -> 5.0%, 12 months -> 11.0%, 36 months -> 15% (cap);
+    level 70 unused 12 months -> 6.9%, 36 months -> 11.25% (cap);
+    level 80+ unused 12 months -> 5.5%, 36 months -> 10% (cap); 15% rust clears in 30
+    effective hours (~10 days of 3h practice).
+
+## 14. Synergy (related skills share XP)
+Spillover XP to a related skill = credited XP of the source session * coefficient.
+It is the only XP added beyond a session's own split, and it stops once the target reaches
+its ceiling (a fraction of the source skill's level).
+Because of the curve, a spillover fraction s alone lifts the target to about s^(1/1.75) of
+the source's level. That is the main tuning lever.
+  Relation type                         coefficient  ~level ratio  ceiling (x source level)
+  Variant forms (Shien <-> Djem So,
+    Juyo <-> Vaapad)                    0.25         0.45          0.60
+  Parent form -> derived form
+    (Soresu -> Shien, Juyo -> Vaapad)   0.10         0.27          0.50
+  Foundation (Shii-Cho -> all forms;
+    forms I-V -> Niman)                 0.05         0.18          0.40
+  Parent ability -> sub-ability
+    (Telekinesis -> Force Push)         0.10         0.27          0.50
+  Sub-ability -> parent ability         0.15         0.34          0.80
+  Force Control -> all Force abilities  0.03         0.14          0.30
+  Force Sense -> sensory abilities      0.05         0.18          0.40
+  Strength <-> Endurance <-> Agility    0.05         0.18          0.80
+  Build the relationship map as data from Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md;
+  flag any relation the lore does not support. Coefficients are tunable within +/-0.05.
+  Total spillover from one session may not exceed 25% of its credited XP.
+
+## 15. Teacher factor (per individual skill)
+diff = teacher's level in THAT skill - student's level in THAT skill
+  factor = 1 + 0.005 * diff, for diff from -10 to +30 (x0.95 to x1.15, capped at x1.15)
+  below -10: no teaching benefit (counts as training solo or with a partner, section 19)
+  Teaching aptitude of the teacher (from Charisma/Willpower or a trait): +/-0.05 on top.
+  Holocrons and archive records act as teachers with a fixed level for the skills they
+  cover, at x0.9 effectiveness for physical techniques and x1.0 for Force and knowledge.
+  A master is only a great teacher in what they are great at: a Soresu master teaching
+  Djem So uses their Djem So level.
+
+## 16. Age and learning speed
+  The table gives anchor values at ages 6, 10, 15, 24, 40 and 60 (the middle of each band).
+  Interpolate linearly between anchors and hold flat outside them; no jumps on birthdays.
+  Age:                     <=8    9-12   13-17  18-30  31-50  51+
+  Technique and Force
+    fundamentals (forms,
+    Force abilities, Force
+    Control/Sense):        1.25   1.15   1.05   1.00   0.95   0.90
+  Wisdom skills (Meditation,
+    Force Knowledge):      0.85   0.90   0.95   1.00   1.10   1.20
+  Physical training
+    response:              0.80   0.90   1.10   1.00   0.90   0.75
+  Academic (Intelligence): 1.00 at all ages
+  Long-lived species map these bands onto their own life stages.
+
+## 17. State of mind
+Set by code from story events and alignment (the AI may propose emotional events; code
+validates them). One state at a time, the strongest wins.
+  Centered (meditated 30+ min today, no distress): x1.05
+  Neutral: x1.00
+  Distracted or anxious: x0.90
+  Grief or severe distress: x0.80, easing back to x1.00 over 14-30 days depending on the event
+  Anger, fear or hatred: light-side techniques and Meditation x0.80. Channeling it into
+    Force Output, dark-tagged abilities, or aggressive forms (Djem So, Juyo, Vaapad) gives
+    x1.20, rising to x1.30 when dark pressure is above 50, and adds +0.5 dark pressure per
+    effective hour channeled. This is the dark side's shortcut and its trap.
+  The state of mind multiplier counts inside the 2.8 cap.
+
+## 18. Lasting injuries and adaptation
+A lasting injury sets a base penalty P on the skills and stats it affects. Adaptation A
+(0-100%) reduces it: effective penalty = P * (1 - A).
+  Examples (tunable; map to Docs/SW_Injury_System_v1.md):
+    Lost dominant hand: lightsaber forms P 40%, hand-based Strength tasks P 20%
+    Lost limb (leg): Agility P 35%, Endurance P 15%
+    Severe joint or muscle wound: affected stat P 15%
+    Major burns or lung damage: Endurance P 40%, Force Output P 10%
+  Adaptation: +1% per effective hour of training the affected skills (at most 3% per day).
+  Maximum adaptation: basic prosthetic 80% | quality cybernetic 100% | scar tissue 70% |
+    off-hand retraining 90% (switching to the other hand)
+  Reference: lost hand with a quality cybernetic, 3h/day of forms -> full adaptation
+    in ~34 days; with a basic prosthetic, a permanent 8% penalty remains.
+
+## 19. Training mode and feedback
+  Solo: x0.90
+  With a partner (within +/-15 levels in that skill): x1.00; partner weaker by >15: x0.95
+  With an instructor: use the teacher factor (section 15)
+  Partner or teacher the character has a strong bond with (relationship friend or closer): +0.03
+  Sparring counts as partner training and also gives E/CI (sections 7, 8).
+  Reviewing a recording of your own fight: +5% XP to that skill for the next 3 days, at most
+    once per 7 days.
+
+## 20. Required tests
+ 1. Lifetime test: all four profiles hit section 12 within +/-20%.
+ 2. No input combination exceeds 4.0x Average pace (banked releases excluded).
+ 3. Luke's physical peak falls at ages 58-68 and his Force level is still rising at 60.
+ 4. Fatigue reference days (section 3 and 9 references) within +/-0.05:
+    End 30 3h drills 2.68 | End 30 6h 3.40 | End 90 6h 4.51 | End 90 8h 4.87 |
+    End 90 6h easy (gap -25) 1.35 | study 2h then drills 3h (End/Will 50): 2.00 / 2.57 |
+    drills 3h then study 2h: 2.75 / 1.87 | drills 3h then study 3h: 2.75 / 2.26
+ 5. End 90: 8h gives < 10% more XP than 6h and ends with f_phys > 1.0.
+ 6. Challenge factor is continuous: gap -25 or lower x0.3, gap -20 x0.45, peak x1.25 over
+    +12..+18, and no change larger than 0.08 per point of gap.
+ 7. Post-workout: first mental hour x1.25; third hour lower than the same hour done fresh.
+ 8. Sparring only: a lightsaber form cannot pass 40 within 30 years.
+ 9. Plateau scenario (section 7) gains >= 2 levels within 30 days of combat; bank empty
+    within 60.
+10. Physical stats and non-combat abilities reach 100+ with no combat events.
+11. Combat integration reference table (section 8) reproduces exactly; no penalty outside
+    combat.
+12. Willpower XP never exceeds 3.0/day; a 7-day pushing streak earns less willpower than
+    alternating push and recovery days.
+13. Outcome roll mean over 10,000 seeded sessions = 1.0 +/- 0.02.
+14. Activity XP to all skills combined = effective hours * mults (secondaries never additive;
+    synergy spillover is the only extra XP, and never exceeds 25% of the session).
+15. Rust reference values (section 13) reproduce exactly; rust never reduces stored XP.
+16. 30 effective hours of practice clear 15% rust.
+17. Spillover alone never lifts a skill past its ceiling; with only a 0.25 coefficient, a
+    target settles near 0.45x the source level (+/-0.05).
+18. Teacher factor uses the teacher's level in that specific skill (a Soresu master
+    teaching Djem So at a lower level gives the lower factor).
+19. A student who passes their teacher in a skill stops getting a teaching bonus in it.
+20. Age bands apply per skill category; Luke's profile (start 19) gets no child bonus.
+21. Grief reduces XP to x0.80 and returns to x1.00 within its stated window.
+22. Channeling anger gives x1.20 to eligible skills and adds 0.5 dark pressure per effective
+    hour; ineligible (light-side) skills get x0.80.
+23. Injury reference (section 18): quality cybernetic reaches full adaptation in 30-40 days
+    at 3h/day; a basic prosthetic leaves 8% (40% * 0.2).
+24. All multipliers in M (talent, instruction, age, state of mind) still respect
+    the 2.8 cap and the 4.0x pace limit.
