@@ -51,7 +51,7 @@ There are no crystal, hilt, armor, blaster or weapon-damage fields anywhere in t
 
 - **Docs/SW_Legends_RPG_Master_Prompt_v7_1.md "Kyber Crystal Bond"** (lines 595-597): a bonded crystal gives "a small but consistent bonus to lightsaber combat rolls". V170 has no crystal and no bonus.
 - **Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md, Form Notes.** The saberstaff "Requires separate weapon … Requires DoubleBlade ≥ 10 before the second blade can be activated"; Jar'Kai "Requires two forms each at Apprentice (21+)". V170 has no `DoubleBlade` form key (10737) and no gating on the type dropdown.
-- **Same lore file, "Kyber Resonance"**: "A Sith bleeds their crystal through a similar but dark-side process." (Note for Jared: crystal "bleeding" is from current Disney canon. Legends Sith mostly used synthetic red crystals. Recorded only; the lore file is the stated canon source.)
+- **Same lore file, "Kyber Resonance"**: "A Sith bleeds their crystal through a similar but dark-side process." **Conflict with Legends (Legends-only rule, CLAUDE.md):** crystal "bleeding" is a Disney-era idea and is not authoritative. Follow Legends: Jedi attune a crystal through meditation during construction; Sith mostly use synthetic red crystals. Do not use "bleeding" (phase1-answers.md Q61; lore-checks.md L-14). The same idea appears in SW_Characters_11_RepublicEra_RiseOfEmpire.md:269 ("a bled red blade" for Darth Tyranus).
 - **Form key lists differ.** The lore form table has `ShienDjemSo` as one form plus `Trakat`, `Sokan`, `DunMoch`, `ZeroGravity`, `DoubleBlade`. The code has separate `Shien`, `DjemSo` and `ShienDjemSo` plus `KiiShikk` (10737, 4840-4843). KiiShikk is not in the lore form table.
 - **Prompt claim** (2756): "Silver blades … would never appear on a standard training saber". There is no lore source for this. The color list includes viridian, cyan and white, and no lore file defines a blade-color list.
 - **Master Prompt v7.1 Part III** lists "Inventory and known secrets" as tracked character data (line 112). V170 tracks inventory only as AI free text.
@@ -64,7 +64,7 @@ There are no crystal, hilt, armor, blaster or weapon-damage fields anywhere in t
 ## Open questions for Jared
 
 1. Should lightsaber properties (color, crystal, hilt, single/shoto/staff/dual) have any mechanical effect in v2 (rolls, forms gating), or stay cosmetic plus a prompt reminder?
-2. Should the Master Prompt's "Kyber Crystal Bond" roll bonus be a v2 rule, and does the lore's "Sith bleed their crystal" line stand, or should Legends synthetic crystals be used?
+2. Should the Master Prompt's "Kyber Crystal Bond" roll bonus be a v2 rule? (The crystal question is answered: follow Legends synthetic crystals, not "bleeding"; phase1-answers.md Q61.)
 3. Should v2 track credits as a real economy (income, prices), or as narrative only?
 4. Do you want armor and blasters with stats in v2 (needed for non-Force factions like Republic, Mandalorian and Bounty Hunter), or is the game Jedi-focused enough to skip them?
 5. Should the saberstaff and Jar'Kai keep the lore gating (DoubleBlade ≥ 10; two forms at 21+)?
