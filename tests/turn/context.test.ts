@@ -109,6 +109,8 @@ describe('response schema size with every M2 event legal', () => {
     const json = toGeminiSchema(composeNarrativeSchema(REGISTRY, s, { timeAdvancedByDraft: false }).wire);
     for (const k of keywordsUsed(json)) expect(SUPPORTED_KEYWORDS.has(k), k).toBe(true);
     expect(JSON.stringify(json).length).toBeLessThan(SCHEMA_SIZE_CAP_CHARS);
+    // D-90: maxItems on the event-union array made Gemini refuse the schema as too complex.
+    expect((json['properties'] as Record<string, Record<string, unknown>>)['events']!['maxItems']).toBeUndefined();
   });
 });
 

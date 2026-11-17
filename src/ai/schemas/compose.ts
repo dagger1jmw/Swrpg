@@ -66,7 +66,9 @@ export function composeNarrativeSchema<S extends BaseState>(registry: Registry<S
   };
   return {
     // With no legal events the array must be empty.
-    wire: z.object({ ...base, events: eventSchema ? z.array(eventSchema).max(20) : z.array(z.never()).max(0) }),
+    // No maxItems on the events array (D-90): with M2's event union, maxItems 20 made Gemini refuse
+    // the schema ("too many states for serving", live 2026-11-17). The parse schema keeps the limit.
+    wire: z.object({ ...base, events: eventSchema ? z.array(eventSchema) : z.array(z.never()).max(0) }),
     // A reply without presentNpcRefs means nobody is tracked as present.
     parse: z.object({ ...base, scene: sceneSchema.extend({ presentNpcRefs: sceneSchema.shape.presentNpcRefs.default([]) }), events: z.array(looseEventSchema).max(20) }) as unknown as ZodType<NarrativeReply>,
   };
