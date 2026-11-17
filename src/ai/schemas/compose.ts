@@ -13,7 +13,9 @@ export const compactIntentSchema = z.object({
 });
 
 export const choiceSchema = z.object({
-  label: z.string().min(1).max(100),
+  // Gemini strips maxLength (D-68), so the parse limit is generous; one long label must not fail
+  // the whole reply (D-92, live 2026-11-17: a 100+ character label did).
+  label: z.string().min(1).max(200).describe('What the player would do, under 80 characters'),
   intent: compactIntentSchema,
   pacingHint: z.enum(M1_PACING_LEVELS).optional(),
 });
