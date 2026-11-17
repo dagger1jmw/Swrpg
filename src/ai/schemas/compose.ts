@@ -41,18 +41,31 @@ export function narrativeEventTypes<S extends BaseState>(registry: Registry<S>, 
   return types;
 }
 
-export function composeNarrativeSchema<S extends BaseState>(registry: Registry<S>, state: S, turn: NarrativeTurnInfo): ZodType<NarrativeReply> {
+export interface NarrativeSchemas {
+  /** Strict: sent to the model as the response JSON Schema (only this turn's legal events). */
+  wire: ZodType;
+  /** Parses the reply. Events stay loose objects here; applyEvents validates each one and drops
+   * only the invalid ones (Zod, then engine), so one bad event never discards the whole reply. */
+  parse: ZodType<NarrativeReply>;
+}
+
+const looseEventSchema = z.looseObject({ type: z.string() });
+
+export function composeNarrativeSchema<S extends BaseState>(registry: Registry<S>, state: S, turn: NarrativeTurnInfo): NarrativeSchemas {
   const eventSchemas: ZodType[] = [];
   for (const f of registry) {
     for (const def of Object.values(f.events)) if (def.narrative?.(state, turn)) eventSchemas.push(def.schema);
   }
   const [first, second, ...rest] = eventSchemas;
   const eventSchema: ZodType | null = first === undefined ? null : second === undefined ? first : z.union([first, second, ...rest]);
-  return z.object({
+  const base = {
     narrative: z.string().min(1),
     choices: z.array(choiceSchema).min(2).max(5),
     scene: sceneSchema,
+  };
+  return {
     // With no legal events the array must be empty.
-    events: eventSchema ? z.array(eventSchema).max(20) : z.array(z.never()).max(0),
-  }) as unknown as ZodType<NarrativeReply>;
+    wire: z.object({ ...base, events: eventSchema ? z.array(eventSchema).max(20) : z.array(z.never()).max(0) }),
+    parse: z.object({ ...base, events: z.array(looseEventSchema).max(20) }) as unknown as ZodType<NarrativeReply>,
+  };
 }

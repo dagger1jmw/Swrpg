@@ -21,6 +21,8 @@ export interface CallOptions {
   maxOutputTokens: number;
   temperature: number;
   thinking?: ThinkingSetting;
+  /** The schema sent to the model when it differs from the parse schema (see compose.ts). */
+  wireSchema?: ZodType;
 }
 
 export interface Usage {

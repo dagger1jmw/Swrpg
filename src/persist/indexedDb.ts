@@ -52,6 +52,11 @@ export function createIndexedDbStorage(db: IDBDatabase): Storage {
       const v = await promisify(tx.objectStore('snapshots').get(slot));
       return v ?? null;
     },
+    async loadCampaign(campaignId) {
+      const tx = db.transaction('campaigns', 'readonly');
+      const v = (await promisify(tx.objectStore('campaigns').get(campaignId))) as CampaignRecord | undefined;
+      return v ?? null;
+    },
     async readTranscript(campaignId, branchId, fromTurn = 0) {
       const tx = db.transaction('transcript', 'readonly');
       const range = IDBKeyRange.bound([campaignId, branchId, fromTurn], [campaignId, branchId, Number.MAX_SAFE_INTEGER]);

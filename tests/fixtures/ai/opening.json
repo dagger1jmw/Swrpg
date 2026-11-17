@@ -1,0 +1,10 @@
+{
+  "narrative": "Morning light spills through the tall windows of the Jedi Temple's eastern training hall. Kael Varn kneels on the cool stone among a dozen other younglings, the hum of distant speeder traffic a faint murmur beyond the walls.\n\nAt the front of the hall, Master Orsen paces slowly, hands folded into the sleeves of his brown robe. 'The Force does not reward haste,' he says. His gaze settles on you.",
+  "choices": [
+    { "label": "Meet his gaze and wait for him to speak", "intent": { "actionType": "dialogue" } },
+    { "label": "Close your eyes and reach out with your feelings", "intent": { "actionType": "forceUse" } },
+    { "label": "Study the hall and the other younglings", "intent": { "actionType": "investigate" } }
+  ],
+  "scene": { "moodTags": ["calm", "expectant"] },
+  "events": [{ "type": "timeElapsed", "seconds": 30, "reason": "the lesson begins" }]
+}

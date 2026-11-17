@@ -19,8 +19,8 @@ const state = createInitialState<GameState>(REGISTRY, {
 
 const variants = [
   { name: 'intent', schema: intentSchema },
-  { name: 'narrative (AI time)', schema: composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: false }) },
-  { name: 'narrative (draft time)', schema: composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: true }) },
+  { name: 'narrative (AI time)', schema: composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: false }).wire },
+  { name: 'narrative (draft time)', schema: composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: true }).wire },
 ];
 
 describe('response schemas (architecture §3, D-15, D-68)', () => {
@@ -42,7 +42,7 @@ describe('response schemas (architecture §3, D-15, D-68)', () => {
   it('leaves timeElapsed out when the TurnDraft advanced time (D-30)', () => {
     expect(narrativeEventTypes(REGISTRY, state, { timeAdvancedByDraft: false })).toEqual(['timeElapsed', 'pacingSuggested']);
     expect(narrativeEventTypes(REGISTRY, state, { timeAdvancedByDraft: true })).toEqual(['pacingSuggested']);
-    const withDraft = composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: true });
+    const withDraft = composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: true }).wire;
     const reply = {
       narrative: 'x',
       choices: [
@@ -53,7 +53,9 @@ describe('response schemas (architecture §3, D-15, D-68)', () => {
       events: [{ type: 'timeElapsed', seconds: 60, reason: 'r' }],
     };
     expect(withDraft.safeParse(reply).success).toBe(false);
-    expect(composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: false }).safeParse(reply).success).toBe(true);
+    expect(composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: false }).wire.safeParse(reply).success).toBe(true);
+    // The parse schema keeps the reply and leaves per-event validation to applyEvents.
+    expect(composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: true }).parse.safeParse(reply).success).toBe(true);
   });
 
   it('engine- and pipeline-only events never reach the AI schema', () => {
@@ -63,7 +65,7 @@ describe('response schemas (architecture §3, D-15, D-68)', () => {
   });
 
   it('Zod still enforces limits Gemini strips (2-5 choices, string lengths)', () => {
-    const s = composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: false });
+    const s = composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: false }).parse;
     const one = { narrative: 'x', choices: [{ label: 'a', intent: { actionType: 'move' } }], scene: { moodTags: [] }, events: [] };
     expect(s.safeParse(one).success).toBe(false);
   });

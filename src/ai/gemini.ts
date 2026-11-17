@@ -48,7 +48,7 @@ export function buildGeminiRequest(schema: ZodType, messages: readonly Message[]
       temperature: opts.temperature,
       maxOutputTokens: opts.maxOutputTokens,
       responseMimeType: 'application/json',
-      responseJsonSchema: toGeminiSchema(schema),
+      responseJsonSchema: toGeminiSchema(opts.wireSchema ?? schema),
       ...(thinkingConfig ? { thinkingConfig } : {}),
     },
   };

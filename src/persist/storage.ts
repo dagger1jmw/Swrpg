@@ -25,6 +25,7 @@ export interface Storage {
   commitTurn(envelope: SaveEnvelope, campaign: CampaignRecord, entry: TranscriptEntry | null): Promise<void>;
   /** The raw autosave envelope, unvalidated (load it with loadEnvelope). */
   loadSnapshot(slot: string): Promise<unknown>;
+  loadCampaign(campaignId: string): Promise<CampaignRecord | null>;
   /** Transcript entries of one branch from `fromTurn` (inclusive), in turn order. */
   readTranscript(campaignId: string, branchId: string, fromTurn?: number): Promise<TranscriptEntry[]>;
 }
@@ -52,6 +53,10 @@ export function createMemoryStorage(opts: { failNextCommit?: boolean } = {}): St
       snapshots.set(AUTOSAVE_SLOT, env);
       campaigns.set(rec.campaignId, rec);
       if (ent) transcript.push(ent);
+    },
+    async loadCampaign(campaignId) {
+      const c = campaigns.get(campaignId);
+      return c ? structuredClone(c) : null;
     },
     async loadSnapshot(slot) {
       const v = snapshots.get(slot);

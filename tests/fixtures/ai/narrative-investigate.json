@@ -1,0 +1,13 @@
+{
+  "narrative": "You let your eyes drift across the hall, cataloguing faces and the worn grooves in the floor where generations of students have knelt. Nothing stands out, and when you look back, Master Orsen is watching you with mild disapproval.",
+  "choices": [
+    { "label": "Apologize for the distraction", "intent": { "actionType": "dialogue" } },
+    { "label": "Return to meditation", "intent": { "actionType": "rest" }, "pacingHint": "moment" }
+  ],
+  "scene": { "moodTags": ["awkward"] },
+  "events": [
+    { "type": "timeElapsed", "seconds": 120, "reason": "a careful look around" },
+    { "type": "pacingSuggested", "level": "scene", "reason": "the lesson could be summarized" },
+    { "type": "flagSet", "flag": "masterApproval" }
+  ]
+}
