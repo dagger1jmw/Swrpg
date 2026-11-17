@@ -25,3 +25,11 @@ export const SUMMARY_INPUT_CAP_TOKENS = 16_000;
 
 /** Full request texts kept in memory for the debug view (not saved, D-87). */
 export const DEBUG_REQUESTS_KEPT = 10;
+
+/**
+ * Caps for a montage or time-skip narration (architecture §5: jumps shrink recentTurns to 4,000 and raise
+ * memory). The report itself goes in the uncapped resolved block, clipped to JUMP_REPORT_MAX_EVENTS.
+ */
+export const JUMP_CAPS: Record<SectionName, number> = { ...CONTEXT_CAPS, recentTurns: 4000, memory: 6000 };
+export const JUMP_REPORT_MAX_EVENTS = 20;
+export const JUMP_REPORT_MAX_SKILLS = 12;

@@ -25,14 +25,21 @@ export const locationIntroducedSchema = z.object({
 function moveTo(slice: LocationsSlice, id: string, day: number): LocationsSlice {
   const loc = slice.byId[id]!;
   const visited = loc.firstVisitDay === null ? { ...loc, firstVisitDay: day } : loc;
-  return { byId: { ...slice.byId, [id]: visited }, currentId: id };
+  return { byId: { ...slice.byId, [id]: visited }, currentId: id, currentSinceDay: day };
 }
 
 export const locationsFeature: FeatureModule<LocationsSlice, GameState> = {
   id: 'locations',
-  version: 1,
-  initialState: () => ({ byId: {}, currentId: null }),
-  emptyState: () => ({ byId: {}, currentId: null }),
+  version: 2,
+  initialState: () => ({ byId: {}, currentId: null, currentSinceDay: null }),
+  emptyState: () => ({ byId: {}, currentId: null, currentSinceDay: null }),
+  // v2 (M4): the arrival day at the current place; unknown for older saves (staleness counts from the first visit).
+  migrations: {
+    2: (old) => {
+      const o = old as { byId: Record<string, { firstVisitDay: number | null }>; currentId: string | null };
+      return { ...o, currentSinceDay: o.currentId ? (o.byId[o.currentId]?.firstVisitDay ?? null) : null };
+    },
+  },
   stateSchema: locationsSliceSchema,
   refKind: 'loc',
   resolveRef: resolveLocationRef,

@@ -1,16 +1,11 @@
-// Pacing feature (architecture §8). M1: moment and scene only.
+// Pacing feature (architecture §8). Moment and scene are story turns; montage and timeSkip run the
+// routine day loop (M4). Settling-in and staleness are derived by selectors (D-138).
 import { z } from 'zod';
-import { DEFAULT_PACING, M1_PACING_LEVELS, PACING_LEVELS, type PacingLevel } from '../../data/pacing.config';
+import { DEFAULT_PACING, PACING_LEVELS, type PacingLevel } from '../../data/pacing.config';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule } from '../../state/types';
 import { moodTagsSchema, pacingSliceSchema, type PacingSlice } from './pacing';
-import { selectMoodTags, selectPacingLevel, selectPresentNpcIds } from './selectors';
-
-/** Until M4, montage and timeSkip requests fall back to scene (logged). */
-export function playableLevel(requested: PacingLevel): { level: PacingLevel; note?: string } {
-  if ((M1_PACING_LEVELS as readonly string[]).includes(requested)) return { level: requested };
-  return { level: 'scene', note: `pacing ${requested} is not available until M4; using scene` };
-}
+import { selectMoodTags, selectPacingLevel, selectPresentNpcIds, selectSettlingIn, selectStaleness } from './selectors';
 
 export const pacingFeature: FeatureModule<PacingSlice, GameState> = {
   id: 'pacing',
@@ -39,10 +34,7 @@ export const pacingFeature: FeatureModule<PacingSlice, GameState> = {
     pacingSet: {
       schema: z.object({ type: z.literal('pacingSet'), level: z.enum(PACING_LEVELS) }),
       sources: ['engine', 'player'],
-      handle: (slice, e) => {
-        const p = playableLevel(e['level'] as PacingLevel);
-        return { slice: { ...slice, level: p.level }, ...(p.note ? { notes: [p.note] } : {}) };
-      },
+      handle: (slice, e) => ({ slice: { ...slice, level: e['level'] as PacingLevel } }),
     },
     // Built by the turn pipeline from the narrative reply's `scene` object (AI text and refs).
     // Unknown present refs are dropped (and queued for review); everyone present is marked seen.
@@ -60,5 +52,5 @@ export const pacingFeature: FeatureModule<PacingSlice, GameState> = {
       },
     },
   },
-  selectors: { level: selectPacingLevel, moodTags: selectMoodTags, presentNpcIds: selectPresentNpcIds },
+  selectors: { level: selectPacingLevel, moodTags: selectMoodTags, presentNpcIds: selectPresentNpcIds, settlingIn: selectSettlingIn, staleness: selectStaleness },
 };

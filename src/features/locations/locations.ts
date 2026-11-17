@@ -18,6 +18,8 @@ export const locationSchema = z.object({
 export const locationsSliceSchema = z.object({
   byId: z.record(z.string(), locationSchema),
   currentId: z.string().nullable(),
+  /** Day the character arrived at the current place (staleness, architecture §8; M4, v2). */
+  currentSinceDay: z.number().int().nullable(),
 });
 
 export type Location = z.infer<typeof locationSchema>;

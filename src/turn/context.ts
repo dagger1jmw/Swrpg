@@ -1,7 +1,9 @@
 // Context building (architecture §5, M2): prompt sections + state + recent raw turns + memory +
 // lore + arc, each section held to its token cap (src/ai/context.config.ts), with a per-section
 // report for the debug view. Pure; never mutates state. Replaces the minimal M1 builder (D-74).
-import { CONTEXT_CAPS, MAX_RAW_TURNS, SUMMARY_INPUT_CAP_TOKENS, type SectionName } from '../ai/context.config';
+import { CONTEXT_CAPS, JUMP_CAPS, JUMP_REPORT_MAX_EVENTS, JUMP_REPORT_MAX_SKILLS, MAX_RAW_TURNS, SUMMARY_INPUT_CAP_TOKENS, type SectionName } from '../ai/context.config';
+import type { MontageReport } from '../state/montageReport';
+import { selectUntoldWorldEvents } from '../features/world/selectors';
 import { PROMPTS } from '../ai/prompts';
 import type { CallType, Message } from '../ai/provider';
 import { makeEstimator } from '../ai/tokenRatio';
@@ -21,7 +23,8 @@ import { selectCurrentLocationId, selectLocationChain, selectLocations } from '.
 
 import { selectArc, type Chapter } from '../features/memory/selectors';
 import { selectNpcs } from '../features/npcs/selectors';
-import { selectMoodTags, selectPacingLevel, selectPresentNpcIds } from '../features/pacing/selectors';
+import { selectMoodTags, selectPacingLevel, selectPresentNpcIds, selectSettlingIn, selectStaleness } from '../features/pacing/selectors';
+import type { PacingLevel } from '../data/pacing.config';
 import { selectOpenThreads } from '../features/threads/selectors';
 import { LORE_INDEX } from '../lore';
 import type { LoreIndex } from '../lore/parse';
@@ -189,6 +192,7 @@ export function stateBlock(
     `Location: ${chain.length ? chain.map((l) => `${l.name} (${l.id})`).join(', in ') : 'not recorded yet (introduce it with locationIntroduced)'}`,
     `Present: ${present.length ? present.join(', ') : 'nobody recorded'}`,
     `Pacing: ${selectPacingLevel(state)}`,
+    ...storyFlowLines(state),
     `Scene mood: ${mood.length ? mood.join(', ') : 'not set'}`,
     `VALID SKILLS: ${SKILL_IDS.join(', ')}`,
     'VALID IDS (use only these, or temp keys you create in this reply):',
@@ -247,7 +251,46 @@ export function historyMessages(records: readonly TurnRecord[], capTokens = CONT
   return historyWindow(records, capTokens, est).messages;
 }
 
+/**
+ * Story flow for the narrator (architecture §8): settling-in, staleness (the choices must then include a
+ * forward jump tied to a story hook, D-18), thread deadlines (D-135) and world events to tell (D-136).
+ */
+function storyFlowLines(state: GameState): string[] {
+  const lines: string[] = [];
+  const settling = selectSettlingIn(state);
+  const stale = selectStaleness(state);
+  if (settling.active) lines.push(`Settling in: ${settling.daysLeft} more days at this new place. Favor moment pacing; do not suggest skipping ahead.`);
+  else if (stale.stale) lines.push(`STALE: ${stale.days} days here with nothing new. The choices must include at least one forward jump (pacingHint montage or timeSkip) tied to a story hook.`);
+  const due = selectOpenThreads(state).filter((t) => t.escalation > 0);
+  for (const t of due) lines.push(`Deadline: "${t.title}" (${t.id}) ${t.escalation === 3 ? 'is overdue' : t.escalation === 2 ? 'is due today' : 'is due soon'}.`);
+  const untold = selectUntoldWorldEvents(state);
+  if (untold.length) {
+    const list = untold.map((e) => `${e.significant ? '[significant] ' : ''}${e.summary}${e.refs.length ? ` (${e.refs.join(', ')})` : ''}`).join('; ');
+    lines.push(`World events to tell (engine-rolled; narrate them, invent no outcome beyond them): ${list}`);
+  }
+  return lines;
+}
+
 // ---------------------------------------------------------------- resolved block
+
+/** The montage / time-skip report as ground truth for the narration (training-routines §8). */
+export function describeJump(r: MontageReport): string[] {
+  const name = r.level === 'montage' ? 'MONTAGE REPORT' : 'TIME SKIP REPORT';
+  const lines = [
+    `${name}: ${r.fromLabel} to ${r.toLabel}, ${r.daysCompleted} of ${r.requestedDays} days (${r.trainingDays} training days, ${r.restDays} rest or recovery days, ${r.hoursTrained} hours of training).`,
+  ];
+  if (r.interrupted) lines.push(`Interrupted on ${r.interrupted.label}: ${r.interrupted.reason}. End the narration at the moment this begins.`);
+  const skills = r.skills.slice(0, JUMP_REPORT_MAX_SKILLS).map((s) => `${s.name} ${s.levelBefore === s.levelAfter ? `${s.levelAfter} (progress)` : `${s.levelBefore} -> ${s.levelAfter}`}`);
+  if (skills.length) lines.push(`Growth: ${skills.join(', ')}.`);
+  if (r.breakthroughs) lines.push(`Breakthrough sessions: ${r.breakthroughs}.`);
+  if (r.rust.gained.length) lines.push(`Getting rusty: ${r.rust.gained.map((x) => SKILL_BY_ID.get(x.skillId)?.name ?? x.skillId).join(', ')}.`);
+  if (r.relationships.length) lines.push(`Relationships: ${r.relationships.map((x) => `${x.name} (${x.npcId}) ${x.to > x.from ? 'closer' : 'more distant'}`).join(', ')}.`);
+  const events = r.events.slice(0, JUMP_REPORT_MAX_EVENTS);
+  if (events.length) lines.push(`Events: ${events.map((e) => `${e.label}: ${e.text}${e.significant ? ' [significant]' : ''}`).join('; ')}.`);
+  if (r.adjustments.length) lines.push(`Routine adjustments: ${r.adjustments.slice(0, 5).map((a) => `${a.note} (${a.days} days)`).join('; ')}.`);
+  return lines;
+}
+
 
 const fmt = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
@@ -262,6 +305,7 @@ export function describeCheck(c: CheckCard): string {
 }
 
 function formatSpan(seconds: number): string {
+  if (seconds >= 2 * 86_400) return `${Math.round(seconds / 86_400)} days`;
   if (seconds < 60) return `${seconds} seconds`;
   if (seconds < 3600) return `${Math.round(seconds / 60)} minutes`;
   const h = seconds / 3600;
@@ -287,6 +331,7 @@ export function resolvedBlock(draft: TurnDraft): string {
   if (draft.checks.length === 0) lines.push('Checks: none required. Do not invent a success or failure that would need a roll.');
   for (const c of draft.checks) lines.push(describeCheck(c));
   if (draft.training) lines.push(...describeTraining(draft.training));
+  if (draft.jump) lines.push(...describeJump(draft.jump.report));
   if (draft.timeAdvanced) {
     lines.push(`Time already advanced by the engine: ${formatSpan(draft.timeAdvanced.seconds)} (${draft.timeAdvanced.reason}). Narrate that stretch; do not add more time.`);
   }
@@ -308,18 +353,25 @@ const clipTo = (text: string, capTokens: number, est: Estimate): string => {
   return `${text.slice(0, lo)}…`;
 };
 
-function memorySection(state: GameState, referencedIds: readonly string[], playerText: string, rawFromTurn: number | null, est: Estimate): { text: string; report: SectionReport } {
+function memorySection(
+  state: GameState,
+  referencedIds: readonly string[],
+  playerText: string,
+  rawFromTurn: number | null,
+  est: Estimate,
+  cap: number = CONTEXT_CAPS.memory,
+): { text: string; report: SectionReport } {
   const header = 'MEMORY (established in this campaign)';
-  const sel = retrieveMemory(state, { referencedIds, playerText, rawFromTurn }, CONTEXT_CAPS.memory - est(header), est);
+  const sel = retrieveMemory(state, { referencedIds, playerText, rawFromTurn }, cap - est(header), est);
   const item = (s: (typeof sel.included)[number]): ContextItem => ({
     id: s.item.id,
     tokens: s.tokens,
     score: Math.round(s.score * 10) / 10,
     note: [s.pinned ? 'pinned' : '', s.matched.length ? `matches ${s.matched.join(', ')}` : ''].filter(Boolean).join('; ') || 'recent',
   });
-  if (sel.included.length === 0) return { text: '', report: section('memory', CONTEXT_CAPS.memory, '', est, [], sel.dropped.map(item)) };
+  if (sel.included.length === 0) return { text: '', report: section('memory', cap, '', est, [], sel.dropped.map(item)) };
   const text = [header, ...sel.included.map((s) => `- ${s.pinned ? '[pinned] ' : ''}${s.item.text}`)].join('\n');
-  return { text, report: section('memory', CONTEXT_CAPS.memory, text, est, sel.included.map(item), sel.dropped.map(item)) };
+  return { text, report: section('memory', cap, text, est, sel.included.map(item), sel.dropped.map(item)) };
 }
 
 function loreSection(
@@ -362,9 +414,8 @@ function arcSection(state: GameState, est: Estimate): { text: string; report: Se
 
 // ---------------------------------------------------------------- requests
 
-export function narrativeSystemPrompt(state: GameState, opening: boolean): string {
-  const level = selectPacingLevel(state);
-  const pacing = level === 'scene' ? PROMPTS.pacing.scene : PROMPTS.pacing.moment;
+export function narrativeSystemPrompt(state: GameState, opening: boolean, level: PacingLevel = selectPacingLevel(state)): string {
+  const pacing = PROMPTS.pacing[level];
   return [PROMPTS.coreGm, PROMPTS.contract, pacing, ...(opening ? [PROMPTS.opening] : [])].join('\n\n');
 }
 
@@ -375,14 +426,15 @@ export function playerTextOf(input: TurnInput): string {
 
 export function buildNarrativeRequest(state: GameState, draft: TurnDraft, input: TurnInput, history: readonly TurnRecord[], opts: BuildOptions): BuiltRequest {
   const est = makeEstimator(opts.ratio);
-  const system = narrativeSystemPrompt(state, input.kind === 'opening');
+  const system = narrativeSystemPrompt(state, input.kind === 'opening', draft.pacingLevel);
+  const caps = draft.jump ? JUMP_CAPS : CONTEXT_CAPS;
   const referenced = draft.intent ? [...draft.intent.targets, ...draft.intent.references] : [];
   const playerText = playerTextOf(input);
 
-  const recent = historyWindow(history, CONTEXT_CAPS.recentTurns, est);
-  const st = stateBlock(state, est, CONTEXT_CAPS.state, focusIds(state, referenced, playerText));
+  const recent = historyWindow(history, caps.recentTurns, est);
+  const st = stateBlock(state, est, caps.state, focusIds(state, referenced, playerText));
   const arc = arcSection(state, est);
-  const mem = memorySection(state, referenced, playerText, recent.fromTurn, est);
+  const mem = memorySection(state, referenced, playerText, recent.fromTurn, est, caps.memory);
   const lore = loreSection(state, referenced, playerText, est, opts.lore ?? LORE_INDEX);
   const resolved = resolvedBlock(draft);
   const playerLine = input.kind === 'opening' ? `OPENING${input.premise ? `\nPlayer premise: ${input.premise}` : ''}` : `PLAYER ACTION: ${describeInput(input)}`;

@@ -31,6 +31,8 @@ export function expandChoice(choice: Choice, resolve: RefResolver): { intent: In
     if (activityId) activity = { activityId };
     else notes.push(`choice skillId ${skill} is not a valid skill; no activity`);
   }
+  // A forward jump (montage / time skip, M4): its span in days; the routine runs, so no single activity.
+  const jump = choice.pacingHint === 'montage' || choice.pacingHint === 'timeSkip';
   const intent = intentSchema.parse({
     actionType,
     targets,
@@ -38,7 +40,8 @@ export function expandChoice(choice: Choice, resolve: RefResolver): { intent: In
     unknownNames,
     ...(skill !== undefined ? { skillId: skill } : {}),
     ...(choice.pacingHint !== undefined ? { requestedPacing: choice.pacingHint } : {}),
-    ...(activity ? { activity, requestedSpan: { amount: DEFAULT_TRAINING_HOURS, unit: 'hours' } } : {}),
+    ...(jump && choice.spanDays !== undefined ? { requestedSpan: { amount: choice.spanDays, unit: 'days' } } : {}),
+    ...(activity && !jump ? { activity, requestedSpan: { amount: DEFAULT_TRAINING_HOURS, unit: 'hours' } } : {}),
   });
   return { intent, notes };
 }

@@ -3,7 +3,7 @@
 // (D-12); this file only composes them.
 import { z, type ZodType } from 'zod';
 import { ACTION_TYPES } from '../../data/checks.config';
-import { M1_PACING_LEVELS } from '../../data/pacing.config';
+import { PACING_LEVELS } from '../../data/pacing.config';
 import type { BaseState, GameEvent, NarrativeTurnInfo, Registry } from '../../state/types';
 
 export const compactIntentSchema = z.object({
@@ -17,7 +17,8 @@ export const choiceSchema = z.object({
   // the whole reply (D-92, live 2026-11-17: a 100+ character label did).
   label: z.string().min(1).max(200).describe('What the player would do, under 80 characters'),
   intent: compactIntentSchema,
-  pacingHint: z.enum(M1_PACING_LEVELS).optional(),
+  pacingHint: z.enum(PACING_LEVELS).optional(),
+  spanDays: z.number().int().min(1).max(3680).optional().describe('Only for a forward jump (pacingHint montage or timeSkip): how many days'),
 });
 
 export const sceneSchema = z.object({

@@ -35,7 +35,7 @@ export function chapterTurnCount(state: GameState, turn: number): number {
  * so the new place or the jump starts the next chapter (montages and skips are their own chapter,
  * Q56). A sceneEnded hint with 8+ turns, or 30 turns, ends it WITH this turn.
  */
-export function decideChapterClose(before: GameState, after: GameState, timeAdvancedSeconds: number): CloseDecision | null {
+export function decideChapterClose(before: GameState, after: GameState, timeAdvancedSeconds: number, opts: { jump?: boolean } = {}): CloseDecision | null {
   const turn = after.meta.turn;
   const start = Math.max(1, selectCurrentChapter(after).startTurn);
   const previous = turn - 1;
@@ -45,6 +45,8 @@ export function decideChapterClose(before: GameState, after: GameState, timeAdva
   if (fromMajor !== null && toMajor !== null && fromMajor !== toMajor && previous >= start) {
     return { reason: `major location changed (${fromMajor} -> ${toMajor})`, lastTurn: previous };
   }
+  // A montage or time skip always starts its own chapter (Q56, D-139), whatever its length.
+  if (opts.jump && previous >= start) return { reason: `jump of ${Math.floor(timeAdvancedSeconds / 86_400)} days (montage or time skip)`, lastTurn: previous };
   if (timeAdvancedSeconds >= CHAPTER_CLOSE.skipDays * 86_400 && previous >= start) {
     return { reason: `time jump of ${Math.floor(timeAdvancedSeconds / 86_400)} days`, lastTurn: previous };
   }

@@ -37,6 +37,8 @@ import { expandChoice } from './expandChoice';
 import type { CallRecord, TurnInput, TurnRecord } from './record';
 import { refResolver, resolveIntentRefs } from './refs';
 import { resolveTurn, type Resolution } from './resolve';
+import { skipAheadChoice } from './skipAhead';
+import { selectUntoldWorldEvents } from '../features/world/selectors';
 
 export interface TurnDeps {
   registry: Registry<GameState>;
@@ -314,6 +316,25 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   }
   state = { ...state, meta: { ...state.meta, turn: state.meta.turn + 1 } };
 
+  // World events this narration was given are now told (D-136).
+  const told = selectUntoldWorldEvents(resolved).map((e) => e.id);
+  if (told.length) {
+    const w = applyEvents(deps.registry, state, [{ type: 'worldEventsTold', ids: told, turn: state.meta.turn }], { source: 'engine' });
+    state = w.state;
+    appliedAll.push(...w.applied);
+    rejected.push(...w.rejected);
+  }
+
+  // Staleness (architecture §8, D-18): if the story is stale and no choice jumps forward, code appends a
+  // deterministic "Skip ahead" choice and logs it. Suggest only; never auto-skip.
+  const choices = [...reply.choices];
+  const skip = skipAheadChoice(state, choices);
+  const skipNotes: string[] = [];
+  if (skip) {
+    choices.push(skip);
+    skipNotes.push(`staleness: appended "${skip.label}" (${skip.spanDays} days; D-18)`);
+  }
+
   const record: TurnRecord = {
     turn: state.meta.turn,
     input: pending.input,
@@ -322,15 +343,16 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
       checks: draft.checks,
       training: draft.training,
       timeAdvanced: draft.timeAdvanced,
+      jump: draft.jump,
       pacingLevel: draft.pacingLevel,
       notices: [...draft.notices, ...result.notices],
-      report: [...pending.intentNotes, ...draft.report, ...modelNotes],
+      report: [...pending.intentNotes, ...draft.report, ...modelNotes, ...skipNotes],
       resolvedActions: draft.resolvedActions,
       applied: [...draft.applied],
       rejected: [...draft.rejected],
     },
     narrative: reply.narrative,
-    choices: reply.choices,
+    choices,
     moodTags: reply.scene.moodTags,
     applied: appliedAll,
     rejected,
@@ -340,7 +362,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   };
 
   // Chapter close (D-17): decided by code, applied in this same commit.
-  const decision = decideChapterClose(session.state, state, draft.timeAdvanced?.seconds ?? 0);
+  const decision = decideChapterClose(session.state, state, draft.timeAdvanced?.seconds ?? 0, { jump: draft.jump !== null });
   if (decision) {
     const closeEvent = buildChapterClosed(state, decision, chapterTurns([...session.history, record]));
     const c = applyEvents(deps.registry, state, [closeEvent], { source: 'engine' });

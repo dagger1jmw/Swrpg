@@ -5,7 +5,7 @@ import { INTENSITIES } from '../../data/activities';
 import { ACTION_TYPES, DIFFICULTIES } from '../../data/checks.config';
 import { PACING_LEVELS } from '../../data/pacing.config';
 
-export const SPAN_UNITS = ['seconds', 'minutes', 'hours', 'days'] as const;
+export const SPAN_UNITS = ['seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'] as const;
 
 export const requestedSpanSchema = z.object({
   amount: z.number().positive().describe('How long the action takes, in the given unit'),
@@ -36,7 +36,8 @@ export type Intent = z.infer<typeof intentSchema>;
 export type RequestedSpan = z.infer<typeof requestedSpanSchema>;
 export type ActivityIntent = z.infer<typeof activityIntentSchema>;
 
-const UNIT_SECONDS: Record<(typeof SPAN_UNITS)[number], number> = { seconds: 1, minutes: 60, hours: 3600, days: 86_400 };
+// A month is a twelfth of the 368-day year (D-38), a year 368 days (M4: montage and time-skip spans).
+const UNIT_SECONDS: Record<(typeof SPAN_UNITS)[number], number> = { seconds: 1, minutes: 60, hours: 3600, days: 86_400, weeks: 7 * 86_400, months: (368 / 12) * 86_400, years: 368 * 86_400 };
 
 export function spanToSeconds(span: RequestedSpan): number {
   return Math.round(span.amount * UNIT_SECONDS[span.unit]);

@@ -1,7 +1,7 @@
 // Step b of the turn (architecture §4): RESOLVE. Pure. Produces the frozen TurnDraft once; every
 // retry of the narration reuses it, so dice are never re-rolled.
 import { CHECK_RULES, type ActionType } from '../data/checks.config';
-import { M1_PACING_LEVELS, PACING_RANGES, type PacingLevel } from '../data/pacing.config';
+import { JUMP_LEVELS, PACING_LEVELS, PACING_RANGES, type JumpLevel, type PacingLevel } from '../data/pacing.config';
 import { stubVitalitySpent, stubWoundPenalty } from '../data/stubs';
 import { DEFAULT_ACTIVITY } from '../data/activities';
 import { isSkillId } from '../data/skills';
@@ -15,6 +15,8 @@ import { selectPerformance, selectRust } from '../features/progression/selectors
 import { resolveTraining, type TrainingCard, type TrainingRequest } from '../features/progression/selectors';
 import { DEFAULT_TRAINING_HOURS } from './expandChoice';
 import { advanceTime } from '../state/advanceTime';
+import { advanceByRoutine } from '../state/advanceRoutine';
+import { buildMontageReport, type MontageReport } from '../state/montageReport';
 import { applyEvents, type AppliedEvent, type RejectedEvent } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
 import type { Registry, ResolvedAction } from '../state/types';
@@ -39,6 +41,9 @@ export interface TurnDraft {
   /** The train / study session resolved by computeXp (M3); null when the turn trained nothing. */
   readonly training: TrainingOutcome | null;
   readonly timeAdvanced: TimeAdvanced | null;
+  /** A montage or time skip run by the routine day loop (M4), with its report; null otherwise. */
+  readonly jump: { level: JumpLevel; report: MontageReport } | null;
+  /** The level the narration is written at (the jump's level for a jump). */
   readonly pacingLevel: PacingLevel;
   readonly notices: readonly string[];
   /** Engine notes for the transcript (clamps, stubs, dropped refs). */
@@ -70,17 +75,37 @@ const ACTION_LABELS: Record<ActionType, string> = {
   other: 'Act',
 };
 
-/** The smallest M1 pacing level whose range holds the span; longer spans clamp to scene (D-72). */
-export function pacingForSpan(seconds: number): { level: PacingLevel; seconds: number; clampedFrom?: number } {
-  for (const level of M1_PACING_LEVELS) {
+/** Default spans when a jump is requested without one (D-139). */
+export const DEFAULT_JUMP_DAYS: Record<JumpLevel, number> = { montage: 30, timeSkip: 90 };
+
+export const isJumpLevel = (l: PacingLevel | undefined): l is JumpLevel => l !== undefined && (JUMP_LEVELS as readonly string[]).includes(l);
+
+/**
+ * The pacing level for a span (D-72, extended in M4): the requested level when the span fits its range,
+ * else the smallest level whose range holds it; spans past 10 years clamp to the time-skip maximum.
+ */
+export function pacingForSpan(seconds: number, requested?: PacingLevel): { level: PacingLevel; seconds: number; clampedFrom?: number } {
+  const fit = (level: PacingLevel) => {
     const r = PACING_RANGES[level];
-    if (seconds <= r.max) {
-      const s = Math.max(r.min, seconds);
-      return s === seconds ? { level, seconds } : { level, seconds: s, clampedFrom: seconds };
-    }
-  }
-  const max = PACING_RANGES.scene.max;
-  return { level: 'scene', seconds: max, clampedFrom: seconds };
+    const s = Math.min(r.max, Math.max(r.min, seconds));
+    return s === seconds ? { level, seconds } : { level, seconds: s, clampedFrom: seconds };
+  };
+  if (requested && seconds >= PACING_RANGES[requested].min && seconds <= PACING_RANGES[requested].max) return { level: requested, seconds };
+  if (isJumpLevel(requested) && seconds < PACING_RANGES[requested].min) return fit(requested);
+  // Between 12 h and a day without a jump request: a long scene, clamped to 12 h (not a 1-day montage).
+  if (seconds > PACING_RANGES.scene.max && seconds < PACING_RANGES.montage.min) return fit('scene');
+  for (const level of PACING_LEVELS) if (seconds <= PACING_RANGES[level].max) return fit(level);
+  return fit('timeSkip');
+}
+
+/** A montage or time skip: the routine day loop to the morning `days` days on (Q48), and its report. */
+export function resolveJump(registry: Registry<GameState>, initial: GameState, level: JumpLevel, seconds: number, reason: string) {
+  const days = Math.max(1, Math.round(seconds / 86_400));
+  const wake = initial.routines.active.wakeSecond;
+  const untilAbs = (initial.clock.now.day + days) * 86_400 + wake;
+  const run = advanceByRoutine(registry, initial, { untilAbs, reason });
+  const report = buildMontageReport(initial, run, { level, requestedDays: days });
+  return { run, report, days };
 }
 
 /** The session a train / study intent asks for: its activity, or the default activity of its skill. */
@@ -107,6 +132,26 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   const checks: CheckCard[] = [];
   let training: TrainingOutcome | null = null;
   let timeAdvanced: TimeAdvanced | null = null;
+  let jump: TurnDraft['jump'] = null;
+  let narrationLevel: PacingLevel | null = null;
+
+  const finish = (): Resolution => {
+    const draft: TurnDraft = Object.freeze({
+      intent,
+      checks: Object.freeze(checks),
+      training,
+      timeAdvanced,
+      jump,
+      pacingLevel: narrationLevel ?? selectPacingLevel(state),
+      notices: Object.freeze(notices),
+      report: Object.freeze(report),
+      resolvedActions: Object.freeze([]),
+      rngAfter: state.meta.rngState,
+      applied: Object.freeze(applied),
+      rejected: Object.freeze(rejected),
+    });
+    return { draft, state };
+  };
 
   const apply = (events: unknown[]): void => {
     const r = applyEvents(registry, state, events, { source: 'engine' });
@@ -127,6 +172,34 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     if (intent.requestedSpan) spanSeconds = spanToSeconds(intent.requestedSpan);
     else if (intent.actionType === 'sleep') spanSeconds = DEFAULT_SLEEP_SECONDS;
     else if (trainingReq) spanSeconds = DEFAULT_TRAINING_HOURS * 3600;
+    if (spanSeconds === null && isJumpLevel(intent.requestedPacing)) spanSeconds = DEFAULT_JUMP_DAYS[intent.requestedPacing] * 86_400;
+
+    // Montage and time skip (M4): the routine runs day by day to the target morning; checks and a
+    // single training session do not apply (the routine is the training, D-139).
+    const jumpSpan = spanSeconds !== null ? pacingForSpan(spanSeconds, intent.requestedPacing) : null;
+    if (jumpSpan && isJumpLevel(jumpSpan.level)) {
+      const level = jumpSpan.level;
+      if (jumpSpan.clampedFrom !== undefined) report.push(`requested span ${jumpSpan.clampedFrom}s clamped to ${jumpSpan.seconds}s (${level})`);
+      const reason = intent.requestedSpan ? `${level} for ${intent.requestedSpan.amount} ${intent.requestedSpan.unit}` : level;
+      const j = resolveJump(registry, state, level, jumpSpan.seconds, reason);
+      state = j.run.state;
+      applied.push(...j.run.applied);
+      rejected.push(...j.run.rejected);
+      jump = { level, report: j.report };
+      narrationLevel = level;
+      timeAdvanced = {
+        seconds: j.run.secondsAdvanced,
+        requested: spanSeconds!,
+        reason,
+        ...(jumpSpan.clampedFrom !== undefined ? { clampedFrom: jumpSpan.clampedFrom } : {}),
+        ...(j.run.interrupted ? { interrupted: j.run.interrupted.reason } : {}),
+      };
+      // After a jump the story resumes in the morning: at moment on an interruption (architecture §9),
+      // else at scene, so the next turn's time is not read in jump-sized units.
+      apply([{ type: 'pacingSet', level: j.run.interrupted ? 'moment' : 'scene' }]);
+      if (j.run.interrupted) report.push(`${level} interrupted on day ${j.report.daysCompleted} of ${j.days}: ${j.run.interrupted.reason}`);
+      return finish();
+    }
 
     // The training session is planned before the pacing decision: a refused activity changes
     // nothing (no pacing switch, no time from the draft; the AI's timeElapsed applies instead).
@@ -216,19 +289,5 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     // intent.unknownNames go to the review queue after the narrative is applied, and only if the
     // reply did not introduce them (pipeline, D-94).
   }
-
-  const draft: TurnDraft = Object.freeze({
-    intent,
-    checks: Object.freeze(checks),
-    training,
-    timeAdvanced,
-    pacingLevel: selectPacingLevel(state),
-    notices: Object.freeze(notices),
-    report: Object.freeze(report),
-    resolvedActions: Object.freeze([]),
-    rngAfter: state.meta.rngState,
-    applied: Object.freeze(applied),
-    rejected: Object.freeze(rejected),
-  });
-  return { draft, state };
+  return finish();
 }

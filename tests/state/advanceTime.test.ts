@@ -153,10 +153,10 @@ describe('clock and pacing events (D-30, architecture §8)', () => {
     expect(r.state.clock.lastAdvance?.seconds).toBe(900);
   });
 
-  it('the AI may not set pacing except to moment; montage falls back to scene until M4', () => {
-    const scene = applyEvents(REGISTRY, game(), [{ type: 'pacingSet', level: 'montage' }], { source: 'engine' });
-    expect(scene.state.pacing.level).toBe('scene');
-    expect(scene.applied[0]?.notes[0]).toMatch(/not available until M4/);
+  it('the AI may not set pacing except to moment; the engine may set any level (montage and timeSkip from M4)', () => {
+    const montage = applyEvents(REGISTRY, game(), [{ type: 'pacingSet', level: 'montage' }], { source: 'engine' });
+    expect(montage.state.pacing.level).toBe('montage');
+    const scene = applyEvents(REGISTRY, game(), [{ type: 'pacingSet', level: 'scene' }], { source: 'engine' });
     const toScene = applyEvents(REGISTRY, scene.state, [{ type: 'pacingSuggested', level: 'scene', reason: 'r' }], { source: 'ai' });
     expect(toScene.rejected[0]?.reason).toMatch(/only moment/);
     const toMoment = applyEvents(REGISTRY, scene.state, [{ type: 'pacingSuggested', level: 'moment', reason: 'r' }], { source: 'ai' });

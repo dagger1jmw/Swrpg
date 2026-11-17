@@ -18,11 +18,17 @@ const state = createInitialState<GameState>(REGISTRY, {
 const base = { targets: [], references: [], unknownNames: [] };
 
 describe('resolve (architecture §4 step b)', () => {
-  it('picks the pacing level from the span and clamps beyond 12 h until M4 (D-72)', () => {
+  it('picks the pacing level from the span (D-72, extended in M4: montage to 120 days, time skip beyond)', () => {
     expect(pacingForSpan(60)).toEqual({ level: 'moment', seconds: 60 });
     expect(pacingForSpan(2)).toEqual({ level: 'moment', seconds: 5, clampedFrom: 2 });
     expect(pacingForSpan(3 * 3600)).toEqual({ level: 'scene', seconds: 3 * 3600 });
-    expect(pacingForSpan(3 * 86_400)).toEqual({ level: 'scene', seconds: 12 * 3600, clampedFrom: 3 * 86_400 });
+    expect(pacingForSpan(18 * 3600)).toEqual({ level: 'scene', seconds: 12 * 3600, clampedFrom: 18 * 3600 });
+    expect(pacingForSpan(3 * 86_400)).toEqual({ level: 'montage', seconds: 3 * 86_400 });
+    expect(pacingForSpan(200 * 86_400)).toEqual({ level: 'timeSkip', seconds: 200 * 86_400 });
+    expect(pacingForSpan(30 * 86_400, 'timeSkip')).toEqual({ level: 'timeSkip', seconds: 30 * 86_400 });
+    expect(pacingForSpan(2 * 86_400, 'timeSkip')).toEqual({ level: 'timeSkip', seconds: 7 * 86_400, clampedFrom: 2 * 86_400 });
+    expect(pacingForSpan(20 * 368 * 86_400).level).toBe('timeSkip');
+    expect(pacingForSpan(20 * 368 * 86_400).seconds).toBe(10 * 368 * 86_400);
   });
 
   it('sleep without a span advances 8 h, crossing midnight through the day hooks', () => {

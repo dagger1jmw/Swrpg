@@ -24,8 +24,13 @@ export interface TurnRecord {
   /** The committed turn number (M2; older records have none). */
   turn?: number;
   input: TurnInput;
-  /** `training` is absent on records from before M3. */
-  draft: Omit<TurnDraft, 'rngAfter' | 'applied' | 'rejected' | 'training'> & { applied: AppliedEvent[]; rejected: RejectedEvent[]; training?: TrainingOutcome | null };
+  /** `training` is absent on records from before M3, `jump` before M4. */
+  draft: Omit<TurnDraft, 'rngAfter' | 'applied' | 'rejected' | 'training' | 'jump'> & {
+    applied: AppliedEvent[];
+    rejected: RejectedEvent[];
+    training?: TrainingOutcome | null;
+    jump?: TurnDraft['jump'];
+  };
   narrative: string;
   choices: Choice[];
   moodTags: string[];
