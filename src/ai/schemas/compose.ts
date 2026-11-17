@@ -20,6 +20,7 @@ export const choiceSchema = z.object({
 
 export const sceneSchema = z.object({
   moodTags: z.array(z.string().max(30)).max(5),
+  presentNpcRefs: z.array(z.string().max(80)).max(12).describe('IDs (or temp keys) of the non-player characters present at the end of this reply'),
 });
 
 export type Choice = z.infer<typeof choiceSchema>;
@@ -28,7 +29,7 @@ export type CompactIntent = z.infer<typeof compactIntentSchema>;
 export interface NarrativeReply {
   narrative: string;
   choices: Choice[];
-  scene: { moodTags: string[] };
+  scene: { moodTags: string[]; presentNpcRefs: string[] };
   events: GameEvent[];
 }
 
@@ -66,6 +67,7 @@ export function composeNarrativeSchema<S extends BaseState>(registry: Registry<S
   return {
     // With no legal events the array must be empty.
     wire: z.object({ ...base, events: eventSchema ? z.array(eventSchema).max(20) : z.array(z.never()).max(0) }),
-    parse: z.object({ ...base, events: z.array(looseEventSchema).max(20) }) as unknown as ZodType<NarrativeReply>,
+    // A reply without presentNpcRefs means nobody is tracked as present.
+    parse: z.object({ ...base, scene: sceneSchema.extend({ presentNpcRefs: sceneSchema.shape.presentNpcRefs.default([]) }), events: z.array(looseEventSchema).max(20) }) as unknown as ZodType<NarrativeReply>,
   };
 }

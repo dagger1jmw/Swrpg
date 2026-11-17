@@ -197,7 +197,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     notLegal.push({ event: e, reason: `event type ${e.type} is not allowed this turn` });
     return false;
   });
-  const events: unknown[] = [...replyEvents, { type: 'sceneUpdated', moodTags: reply.scene.moodTags }];
+  const events: unknown[] = [...replyEvents, { type: 'sceneUpdated', moodTags: reply.scene.moodTags, presentNpcRefs: reply.scene.presentNpcRefs }];
   const applied = applyEvents(deps.registry, resolved, events, { source: 'ai', resolved: draft.resolvedActions });
   const result = { ...applied, rejected: [...notLegal, ...applied.rejected] };
   const state: GameState = { ...result.state, meta: { ...result.state.meta, turn: result.state.meta.turn + 1 } };

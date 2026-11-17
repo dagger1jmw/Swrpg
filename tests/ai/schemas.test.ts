@@ -51,7 +51,7 @@ describe('response schemas (architecture §3, D-15, D-68)', () => {
         { label: 'a', intent: { actionType: 'move' } },
         { label: 'b', intent: { actionType: 'rest' } },
       ],
-      scene: { moodTags: [] },
+      scene: { moodTags: [], presentNpcRefs: [] },
       events: [{ type: 'timeElapsed', seconds: 60, reason: 'r' }],
     };
     expect(withDraft.safeParse(reply).success).toBe(false);

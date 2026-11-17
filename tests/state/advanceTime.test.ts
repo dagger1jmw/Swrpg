@@ -157,9 +157,9 @@ describe('clock and pacing events (D-30, architecture §8)', () => {
   });
 
   it('sceneUpdated stores mood tags verbatim within limits', () => {
-    const r = applyEvents(REGISTRY, game(), [{ type: 'sceneUpdated', moodTags: ['tense', 'quiet'] }], { source: 'ai' });
+    const r = applyEvents(REGISTRY, game(), [{ type: 'sceneUpdated', moodTags: ['tense', 'quiet'], presentNpcRefs: [] }], { source: 'ai' });
     expect(r.state.pacing.scene.moodTags).toEqual(['tense', 'quiet']);
-    const bad = applyEvents(REGISTRY, game(), [{ type: 'sceneUpdated', moodTags: ['a', 'b', 'c', 'd', 'e', 'f'] }], { source: 'ai' });
+    const bad = applyEvents(REGISTRY, game(), [{ type: 'sceneUpdated', moodTags: ['a', 'b', 'c', 'd', 'e', 'f'], presentNpcRefs: [] }], { source: 'ai' });
     expect(bad.rejected).toHaveLength(1);
   });
 });

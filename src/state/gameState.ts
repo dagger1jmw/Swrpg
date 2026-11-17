@@ -2,6 +2,7 @@
 import type { CharacterSlice } from '../features/character/character';
 import type { ClockSlice } from '../features/clock/clock';
 import type { LocationsSlice } from '../features/locations/locations';
+import type { MemorySlice } from '../features/memory/memory';
 import type { NpcsSlice } from '../features/npcs/npcs';
 import type { PacingSlice } from '../features/pacing/pacing';
 import type { RelationshipsSlice } from '../features/relationships/relationships';
@@ -13,6 +14,7 @@ export type GameState = {
   clock: ClockSlice;
   character: CharacterSlice;
   locations: LocationsSlice;
+  memory: MemorySlice;
   npcs: NpcsSlice;
   relationships: RelationshipsSlice;
   threads: ThreadsSlice;

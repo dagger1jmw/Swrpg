@@ -7,6 +7,7 @@
 import { characterFeature } from '../features/character';
 import { clockFeature } from '../features/clock';
 import { locationsFeature } from '../features/locations';
+import { memoryFeature } from '../features/memory';
 import { npcsFeature } from '../features/npcs';
 import { pacingFeature } from '../features/pacing';
 import { relationshipsFeature } from '../features/relationships';
@@ -18,6 +19,7 @@ export const REGISTRY: Registry<GameState> = [
   clockFeature,
   characterFeature,
   locationsFeature,
+  memoryFeature,
   npcsFeature,
   relationshipsFeature,
   threadsFeature,

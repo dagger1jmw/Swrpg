@@ -55,7 +55,7 @@ export function loadEnvelope<S extends BaseState>(
     let from = stored[f.id];
     if (from === undefined && !(f.id in state) && f.emptyState) {
       // A feature added after this save was made: start it empty (M2 entities on an M1 save).
-      migrated[f.id] = f.emptyState();
+      migrated[f.id] = f.emptyState(migrated);
       from = f.version;
     }
     if (typeof from !== 'number') return { ok: false, error: `The save has no version for feature ${f.id}.` };

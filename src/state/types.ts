@@ -122,8 +122,11 @@ export interface FeatureModule<Slice = unknown, S extends BaseState = BaseState>
   id: string;
   version: number;
   initialState(ctx: InitCtx): Slice;
-  /** The slice for a save made before this feature existed (load fills it in); absent = such saves are refused. */
-  emptyState?(): Slice;
+  /**
+   * The slice for a save made before this feature existed; `raw` is the save's state so far.
+   * Absent = such saves are refused.
+   */
+  emptyState?(raw: Record<string, unknown>): Slice;
   stateSchema: ZodType<Slice>;
   events: Record<string, EventDef<Slice, S>>;
   onTimeAdvanced?(slice: Slice, step: TimeStep, ctx: ApplyCtx<S>): HookResult<Slice>;
