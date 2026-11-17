@@ -257,7 +257,7 @@ export function runProfile(p: Profile, years: number, opts: { k?: number; crossL
           meters: m,
           caps: c,
           day: d,
-          halveOverLimitWillpower: false,
+          halveFatigueWillpower: false,
           willpowerToday: willToday,
           m: (s) => {
             const def = SKILL_BY_ID.get(s);

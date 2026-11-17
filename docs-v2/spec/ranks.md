@@ -58,15 +58,20 @@ Padawan
   Missions with the master; the master is the main teacher (progression spec sec 15).
 Knight Trials (five playable trials)
   Eligible: at least 6 years as a Padawan, age 18+, the master's approval (engine flag
-    masterApproval, flag-registry.md), and main form >= 38, Force Control >= 30, Force Sense
->= 26, Willpower >= 48 (Willpower amended by D-51: recomputed so the Average profile
-    meets it at age 20.3; Force Sense amended by D-102, below). Computed Average ages with
+    masterApproval, flag-registry.md), and main form >= 39, Force Control >= 30, Force Sense
+    >= 26, Willpower >= 48 (Willpower amended by D-51: recomputed so the Average profile
+    meets it at age 20.3; Force Sense amended by D-102, below; main form amended by D-111,
+    below). Computed Average ages with
     D-67 decided (docs-v2/calc/progression-sim.mjs, K = 15.18): main form 38 at 18.3, Force
     Control 30 at 20.6, Willpower 48 at 19.6, Force Sense 26 at 19.6 (26.8 at 20.3).
     Force Sense (D-102, decides D-67): the Average reaches 30 only at age 26.9, so the
     minimum is recomputed by the D-51 / D-66 rule (a minimum stays while the Average meets it
     within +/-2 years of its stated age, test 1; otherwise it becomes the Average's level at
     that age, rounded down): 26. The other minimums stay by the same rule.
+    Main form (D-111, Jared): 38 -> 39. Through the src engine (M3 lifetime test, which adds
+    synergy spillover) the Average met 38 at 18.24-18.30 depending on the outcome-roll seed,
+    2.0-2.06 years before 20.3, at the edge of test 1. It meets 39 at 18.9 (1.4 years early).
+    The Sith Lord row mirrors it.
   Each trial is a scene with its own checks (rolls spec, DC = 10 + rating/10):
     Skill: a duel or droid gauntlet; win a duel against a rating-45 opponent, or pass
       3 of 4 checks of main form at rating 45.

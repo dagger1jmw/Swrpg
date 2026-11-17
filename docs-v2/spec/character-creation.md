@@ -51,7 +51,7 @@
 
 ## 6. Required tests
  1. A 24-year-old Average Jedi Knight (start 4) gets main form 46.6 +/-1 (D-105 phase
-    closed form; 46.0 under D-43, 47 before) and meets Knight minimums (Force Sense 26,
+    closed form; 46.0 under D-43, 47 before) and meets Knight minimums (main form 39, D-111; Force Sense 26,
     D-102).
  2. A 9-year-old Initiate (start 4) gets main form 20.1 +/-1 (D-105; 22.2 under D-43) and
     matches the Average profile at 5 years within +/-1 (day loop 19.8).

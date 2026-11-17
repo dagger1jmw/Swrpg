@@ -19,8 +19,8 @@ Every species reuses the Human tables, rescaled. No separate curve per species.
 ## 2. Launch species (3,661 BBY Great Galactic War era)
   id          lifespan  maturity  bodyScale  traits
   human       100       18        1.00       none (baseline)
-  twilek      100       18        1.00       lekku: +5 Charisma cap; dance/agility culture: Agility cap +5
-  zabrak      100       18        1.00       resilience: +5 Willpower cap, pain penalties x0.9
+  twilek      100       18        1.00       lekku: Charisma learning x1.05 (D-113); dance/agility culture: Agility cap +5
+  zabrak      100       18        1.00       resilience: Willpower learning x1.05 (D-113), pain penalties x0.9
   mirialan    100       18        1.00       Force-attuned culture: Force Control learning x1.05
   togruta     95        18        1.00       echolocation (montrals): +10% vs surprise contests
   miraluka    100       18        1.00       Force sight: no eyes; perception uses Force Sense; Force Sense learning x1.1; blinded if cut off from the Force
@@ -30,6 +30,8 @@ Every species reuses the Human tables, rescaled. No separate curve per species.
   rattataki   100       18        1.00       pain tolerance: pain penalties x0.85
   mon_calamari 100      18        0.95       amphibious; Intelligence learning x1.05
   wookiee     400       60        1.25       great strength: Strength cap +20; rage: anger state of mind triggers more easily
+  Amended by D-113 (Jared): only physical stats have caps in v2, so the Twi'lek Charisma cap and
+  the Zabrak Willpower cap became learning factors (x1.05, inside the 0.9-1.1 trait limit).
   All lifespans: LORE CHECK. Traits are design numbers in v2 terms (lore L-13 rule: lore
   defines the flavor, v2 specs define the mechanics), each logged.
 

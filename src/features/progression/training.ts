@@ -276,7 +276,7 @@ export function resolveTraining(s: GameState, req: TrainingRequest): TrainingPla
     meters: selectMeters(s),
     caps,
     day: { hoursByActivity: s.progression.today.hoursByActivity, postWindow: s.progression.today.postWindow, lastPhysicalHeavy: s.progression.today.lastPhysicalHeavy },
-    halveOverLimitWillpower: s.progression.overtrainStreak >= 2,
+    halveFatigueWillpower: s.progression.overtrainStreak >= 2,
     willpowerToday: s.progression.willpowerToday,
     m,
     levelOf: (id) => selectLevelExact(s, id),

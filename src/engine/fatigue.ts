@@ -103,11 +103,8 @@ export interface BlockResult {
   peakF: number;
 }
 
-/**
- * One training block in 30-minute steps. `halveOverLimitWillpower` applies the §10 rule (from the
- * 3rd consecutive overtrained day, Willpower XP from f > 1.0 is halved).
- */
-export function stepBlock(meters: Meters, caps: Capacities, dayIn: DayTraining, block: BlockInput, halveOverLimitWillpower = false): BlockResult {
+/** One training block in 30-minute steps. The §10 halving of fatigue Willpower is applied per day by computeXp (D-110). */
+export function stepBlock(meters: Meters, caps: Capacities, dayIn: DayTraining, block: BlockInput): BlockResult {
   const inten = INTENSITY[block.intensity];
   let { p, m, f } = meters;
   const day: DayTraining = { hoursByActivity: { ...dayIn.hoursByActivity }, postWindow: dayIn.postWindow, lastPhysicalHeavy: dayIn.lastPhysicalHeavy };
@@ -131,9 +128,7 @@ export function stepBlock(meters: Meters, caps: Capacities, dayIn: DayTraining, 
     eff += e * STEP_HOURS;
     day.hoursByActivity[block.activityId] = done + STEP_HOURS;
     const fMax = Math.max(fp, fm);
-    let w = FATIGUE_WILLPOWER.perHour * fatigueWillpowerRate(fMax) * STEP_HOURS;
-    if (halveOverLimitWillpower && fMax > 1.0) w *= 0.5;
-    will += w;
+    will += FATIGUE_WILLPOWER.perHour * fatigueWillpowerRate(fMax) * STEP_HOURS;
     p = Math.max(0, p + block.load.p * inten.load * STEP_HOURS);
     m = Math.max(0, m + block.load.m * inten.load * STEP_HOURS);
     f = block.meditation ? Math.max(0, f - MEDITATION_FORCE_RECOVERY * STEP_HOURS) : Math.max(0, f + block.load.f * inten.load * STEP_HOURS);

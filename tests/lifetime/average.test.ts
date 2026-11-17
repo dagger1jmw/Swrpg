@@ -16,7 +16,7 @@ const TARGETS: Record<number, number> = { 21: 5.0, 41: 16.0, 61: 32.1, 81: 52.7,
 
 let avg: RunResult;
 beforeAll(() => {
-  avg = runProfile(AVERAGE, 95, { crossLevels: { shiiCho: [24, 38, 58], forceControl: [14, 30], forceSense: [26], willpower: [48] } });
+  avg = runProfile(AVERAGE, 95, { crossLevels: { shiiCho: [24, 39, 58], forceControl: [14, 30], forceSense: [26], willpower: [48] } });
 }, 120_000);
 
 const closedMain = (startAge: number, age: number): number => {
@@ -61,14 +61,10 @@ describe('Average lifetime (95 years through the src engine)', () => {
     const at = (key: string): number => avg.cross[key]!;
     // Initiate Trials (age 10): main form 24, Force Control 14.
     for (const k of ['shiiCho>=24', 'forceControl>=14']) expect(Math.abs(at(k) - 10), k).toBeLessThanOrEqual(2);
-    // Knight (stated age 20.3, D-51 / D-102): main form 38, Force Control 30, Force Sense 26, Willpower 48.
+    // Knight (stated age 20.3, D-51 / D-102): main form 39 (D-111), Force Control 30, Force Sense 26, Willpower 48.
     const knight = RANK_BY_ID.get('knight')!;
-    expect(knight.minimums).toEqual({ $mainForm: 38, forceControl: 30, forceSense: 26, willpower: 48 });
-    for (const k of ['forceControl>=30', 'forceSense>=26', 'willpower>=48']) expect(Math.abs(at(k) - 20.3), k).toBeLessThanOrEqual(2);
-    // Main form 38 is met early: 18.24 in the src engine (the calc, without synergy, had 18.3, exactly
-    // 2.0). Never late; the 0.06-year excess over +/-2 is logged for Jared (D-111), not tuned here.
-    expect(at('shiiCho>=38')).toBeLessThanOrEqual(20.3 + 2);
-    expect(20.3 - at('shiiCho>=38')).toBeLessThan(2.1);
+    expect(knight.minimums).toEqual({ $mainForm: 39, forceControl: 30, forceSense: 26, willpower: 48 });
+    for (const k of ['shiiCho>=39', 'forceControl>=30', 'forceSense>=26', 'willpower>=48']) expect(Math.abs(at(k) - 20.3), k).toBeLessThanOrEqual(2);
     // Master (about 35): main specialty 58.
     expect(Math.abs(at('shiiCho>=58') - 35)).toBeLessThanOrEqual(2);
   });

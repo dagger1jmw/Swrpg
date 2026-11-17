@@ -42,9 +42,9 @@ export const SPECIES: readonly SpeciesDef[] = [
     maturity: 18,
     bodyScale: 1.0,
     capBonus: { agility: 5 },
-    learning: [],
-    // Charisma has no cap in v2 (only physical stats are capped), so "+5 Charisma cap" stays story flavor (D-108).
-    notes: ['Lekku: expressive in social scenes (story; Charisma has no cap)', 'Dance and agility culture: Agility cap +5'],
+    // D-113 (Jared): the old "+5 Charisma cap" becomes Charisma learning x1.05 (only physical stats have caps).
+    learning: [{ target: { kind: 'skill', skill: 'charisma' }, factor: 1.05 }],
+    notes: ['Lekku: expressive in social scenes; Charisma learning x1.05', 'Dance and agility culture: Agility cap +5'],
     source: DESIGN,
   },
   {
@@ -54,8 +54,9 @@ export const SPECIES: readonly SpeciesDef[] = [
     maturity: 18,
     bodyScale: 1.0,
     capBonus: {},
-    learning: [],
-    notes: ['Resilience: hard to break (story; Willpower has no cap)', 'Pain penalties x0.9 (applies with wounds, M5)'],
+    // D-113 (Jared): the old "+5 Willpower cap" becomes Willpower learning x1.05.
+    learning: [{ target: { kind: 'skill', skill: 'willpower' }, factor: 1.05 }],
+    notes: ['Resilience: Willpower learning x1.05', 'Pain penalties x0.9 (applies with wounds, M5)'],
     source: DESIGN,
   },
   {

@@ -53,13 +53,17 @@ describe('species (species.md §5)', () => {
   });
 
   it('test 5: no trait pushes a learning factor outside 0.9..1.1 (the clamp applies on top)', () => {
-    for (const s of SPECIES) for (const skill of ['forceControl', 'forceSense', 'tactics', 'intelligence', 'forceLightning', 'shiiCho']) {
+    for (const s of SPECIES) for (const skill of ['forceControl', 'forceSense', 'tactics', 'intelligence', 'forceLightning', 'shiiCho', 'charisma', 'willpower']) {
       const f = speciesLearning(s.id, skill);
       expect(f).toBeGreaterThanOrEqual(0.9);
       expect(f).toBeLessThanOrEqual(1.1);
     }
     expect(speciesLearning('sith_pureblood', 'forceLightning')).toBe(1.05);
     expect(speciesLearning('sith_pureblood', 'forceHealOthers')).toBe(1);
+    // D-113: Twi'lek Charisma and Zabrak Willpower learning x1.05 (they replace cap bonuses on uncapped stats).
+    expect(speciesLearning('twilek', 'charisma')).toBe(1.05);
+    expect(speciesLearning('zabrak', 'willpower')).toBe(1.05);
+    expect(speciesLearning('human', 'charisma')).toBe(1);
   });
 
   it('natural baseline (progression-numbers §11a)', () => {

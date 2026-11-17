@@ -52,7 +52,7 @@ export const SLEEP = { fullHours: 7, partialHours: 5, partialCarry: 0.3, shortCa
 /** Willpower from fatigue (§9): 1.5 * g(f) per hour, g 0 below 0.6, 0.25 -> 1.0 over 0.6..1.0, 1.5 above. */
 export const FATIGUE_WILLPOWER = { perHour: 1.5, startF: 0.6, g0: 0.25, g1: 1.0, gOver: 1.5, dailyCap: 3.0 } as const;
 /** Overtraining streak (§10). */
-export const OVERTRAINING = { capacityPerDay: 0.1, maxCapacityCut: 0.5, halveWillpowerFromDay: 3, resetBelowF: 0.6 } as const;
+export const OVERTRAINING = { capacityPerDay: 0.1, maxCapacityCut: 0.5, /** From this consecutive overtrained day the whole day's fatigue Willpower is halved (D-110). */ halveWillpowerFromDay: 3, resetBelowF: 0.6 } as const;
 /** Day-end tiredness limits by effort (training-routines §4 rule 6). */
 export const TIREDNESS_LIMIT = { easy: 0.7, standard: 0.9, push: 1.0 } as const;
 /** Meter labels for the sheet and the prompt (f = meter / capacity). */

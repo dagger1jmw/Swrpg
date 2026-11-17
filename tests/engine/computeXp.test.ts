@@ -4,7 +4,7 @@ import { LOADS } from '../../src/data/activities';
 import { M_CAP } from '../../src/data/progression.config';
 import { computeTrainingXp, splitShares, type TrainingInput } from '../../src/engine/computeXp';
 import { levelExact } from '../../src/engine/curve';
-import { EMPTY_DAY, ZERO_METERS, capacities, stepBlock } from '../../src/engine/fatigue';
+import { EMPTY_DAY, ZERO_METERS, capacities } from '../../src/engine/fatigue';
 import { clampCredit, clampShare, inWindow, paceCap, type WindowEntry } from '../../src/engine/paceClamp';
 import { seedRng, type RngState } from '../../src/engine/rng';
 
@@ -22,7 +22,7 @@ function baseInput(over: Partial<TrainingInput> = {}): TrainingInput {
     meters: ZERO_METERS,
     caps: capacities(30, 30, 10),
     day: EMPTY_DAY,
-    halveOverLimitWillpower: false,
+    halveFatigueWillpower: false,
     willpowerToday: 0,
     m: () => 1,
     levelOf: () => 0,
@@ -91,16 +91,58 @@ describe('computeXp (training branch)', () => {
     expect(direct.fatigueWillpower).toBe(0);
   });
 
-  it('test 12 (second half) as the rules stand: halving from the 3rd overtrained day applies to Willpower from f > 1.0', () => {
-    // The spec claims a 7-day pushing streak earns less fatigue Willpower than alternating push and
-    // recovery days. Under §9-§10 as written it never does (the capacity cut raises f and the 3.0 cap
-    // saturates); logged for Jared in decisions.md (D-110). This checks the rule itself.
-    const caps = capacities(30, 30, 0, 2);
-    const block = { activityId: 'd', load: LOADS.saberDrill, physical: true, meditation: false, hours: 6, intensity: 'standard' as const };
-    const full = stepBlock(ZERO_METERS, caps, EMPTY_DAY, block, false);
-    const halved = stepBlock(ZERO_METERS, caps, EMPTY_DAY, block, true);
-    expect(halved.fatigueWillpower).toBeLessThan(full.fatigueWillpower);
-    expect(full.fatigueWillpower - halved.fatigueWillpower).toBeCloseTo(0.5 * 1.5 * 1.5 * (6 - 0.5 * Math.ceil(caps.p / 0.5)), 1);
+  it('test 12 (second half): a 7-day pushing streak earns less fatigue Willpower than alternating push and recovery days (D-110)', () => {
+    // §10: an overtrained day (ending above 1.0) extends the streak, a rest day resets it, capacity
+    // falls 10% per streak day, and from the 3rd consecutive overtrained day the whole day's fatigue
+    // Willpower is halved. Same number of push days (7) in both schedules; End 30, Will 30, 6 h drills.
+    const run = (pattern: boolean[]): { total: number; perDay: number[] } => {
+      let streak = 0;
+      let rng: RngState = seedRng('t12b');
+      const perDay: number[] = [];
+      for (const push of pattern) {
+        if (!push) {
+          streak = 0;
+          continue;
+        }
+        const caps = capacities(30, 30, 0, streak);
+        let meters = ZERO_METERS;
+        let day = EMPTY_DAY;
+        let will = 0;
+        for (let i = 0; i < 3; i++) {
+          const r = computeTrainingXp(baseInput({ rng, caps, meters, day, hours: 2, willpowerToday: will, halveFatigueWillpower: streak >= 2 }));
+          rng = r.rng;
+          meters = r.meters;
+          day = r.day;
+          will += r.fatigueWillpower;
+        }
+        perDay.push(will);
+        streak = Math.max(meters.p / caps.p, meters.m / caps.m) > 1 ? streak + 1 : 0;
+      }
+      return { total: perDay.reduce((a, b) => a + b, 0), perDay };
+    };
+    const streak = run(Array(7).fill(true));
+    const alternating = run(Array.from({ length: 14 }, (_, i) => i % 2 === 0));
+    expect(streak.perDay.slice(0, 2).every((w) => w > 1.5)).toBe(true);
+    for (const w of streak.perDay.slice(2)) expect(w).toBeLessThanOrEqual(1.5 + 1e-9);
+    expect(streak.total).toBeLessThan(alternating.total);
+  });
+
+  it('a halving day credits half of min(3.0, raw) fatigue Willpower', () => {
+    const caps = capacities(20, 20, 0);
+    const go = (halve: boolean) => {
+      let meters = ZERO_METERS;
+      let day = EMPTY_DAY;
+      let will = 0;
+      for (let i = 0; i < 4; i++) {
+        const r = computeTrainingXp(baseInput({ caps, meters, day, hours: 2, willpowerToday: will, halveFatigueWillpower: halve }));
+        meters = r.meters;
+        day = r.day;
+        will += r.fatigueWillpower;
+      }
+      return will;
+    };
+    expect(go(false)).toBeCloseTo(3, 9);
+    expect(go(true)).toBeCloseTo(1.5, 9);
   });
 
   it('test 2: no input combination exceeds 4.0x the Average pace (rolling 365-day window, per skill)', () => {

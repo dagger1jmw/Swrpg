@@ -22,17 +22,17 @@ export interface RankDef {
 
 /**
  * Jedi ladder. Padawan: passed the Initiate Trials (age 10+, main form 24, Force Control 14).
- * Knight: Knight Trials (age 18+, 6 years as a Padawan, main form 38, Force Control 30, Force
+ * Knight: Knight Trials (age 18+, 6 years as a Padawan, main form 39 (D-111), Force Control 30, Force
  * Sense 26, Willpower 48). Master: main specialty 58. The Sith ladder mirrors it (ranks.md §2).
  */
 export const RANKS: readonly RankDef[] = [
   { id: 'initiate', name: 'Initiate', path: 'jedi', order: 0, minAge: 0, maxAge: 13, minimums: {} },
   { id: 'padawan', name: 'Padawan', path: 'jedi', order: 1, minAge: 10, minimums: { $mainForm: 24, forceControl: 14 }, typicalAge: 12 },
-  { id: 'knight', name: 'Knight', path: 'jedi', order: 2, minAge: 18, minimums: { $mainForm: 38, forceControl: 30, forceSense: 26, willpower: 48 }, typicalAge: 20.5 },
-  { id: 'master', name: 'Master', path: 'jedi', order: 3, minAge: 31, minimums: { $main: 58, $mainForm: 38, forceControl: 30, forceSense: 26, willpower: 48 }, typicalAge: 35 },
+  { id: 'knight', name: 'Knight', path: 'jedi', order: 2, minAge: 18, minimums: { $mainForm: 39, forceControl: 30, forceSense: 26, willpower: 48 }, typicalAge: 20.5 },
+  { id: 'master', name: 'Master', path: 'jedi', order: 3, minAge: 31, minimums: { $main: 58, $mainForm: 39, forceControl: 30, forceSense: 26, willpower: 48 }, typicalAge: 35 },
   { id: 'acolyte', name: 'Academy acolyte', path: 'sith', order: 0, minAge: 0, minimums: {} },
   { id: 'apprentice', name: 'Apprentice', path: 'sith', order: 1, minAge: 10, minimums: { $mainForm: 24, forceControl: 14 }, typicalAge: 12 },
-  { id: 'lord', name: 'Sith Lord', path: 'sith', order: 2, minAge: 18, minimums: { $mainForm: 38, forceControl: 30, forceSense: 26, willpower: 48 }, typicalAge: 20.5 },
+  { id: 'lord', name: 'Sith Lord', path: 'sith', order: 2, minAge: 18, minimums: { $mainForm: 39, forceControl: 30, forceSense: 26, willpower: 48 }, typicalAge: 20.5 },
   { id: 'none', name: 'No rank', path: 'outsider', order: 0, minAge: 0, minimums: {} },
   { id: 'career', name: 'Career', path: 'career', order: 0, minAge: 0, minimums: {} },
 ];

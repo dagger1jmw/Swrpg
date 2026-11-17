@@ -154,7 +154,9 @@ Each 30 minutes, f = max(f_phys, f_mental).
 A day ending with either meter > 1.0 is an overtrained day. For each consecutive one:
   next-day capacities -10% per day (max -50%)
   injury risk per hour above 1.0 = 2% * (1 + 0.5 * streak days)
-  willpower XP from f > 1.0 is halved from the 3rd consecutive day
+  from the 3rd consecutive overtrained day, the whole day's fatigue willpower XP is halved
+    (amended by D-110: the day credits half of min(3.0, raw); halving only the XP earned above
+    f 1.0 never made a pushing streak earn less, since the capacity cut raises f and the cap fills)
 The streak resets after a rest day or a day ending below 0.6.
 Reference: ~3 hours past the limit daily for 5 days -> 46% chance of an injury.
 
@@ -377,7 +379,7 @@ A lasting injury sets a base penalty P on the skills and stats it affects. Adapt
     combat.
 12. Fatigue Willpower XP never exceeds 3.0/day (direct Willpower training is outside this
     cap, D-51); a 7-day pushing streak earns less fatigue willpower than alternating push and
-    recovery days.
+    recovery days (the same number of push days; D-110).
 13. Outcome roll mean over 10,000 seeded sessions = 1.0 +/- 0.02.
 14. Activity XP to all skills combined = effective hours * mults (secondaries never additive;
     synergy spillover is the only extra XP, and never exceeds 25% of the session).

@@ -44,7 +44,8 @@ export interface TrainingInput {
   meters: Meters;
   caps: Capacities;
   day: DayTraining;
-  halveOverLimitWillpower: boolean;
+  /** From the 3rd consecutive overtrained day the whole day's fatigue Willpower is halved (§10, D-110). */
+  halveFatigueWillpower: boolean;
   /** Fatigue Willpower already credited today (cap 3.0). */
   willpowerToday: number;
   /** Speed multiplier M per skill (already capped at 2.8). */
@@ -94,7 +95,6 @@ export function computeTrainingXp(input: TrainingInput): TrainingResult {
     input.caps,
     input.day,
     { activityId: input.activityId, load: input.load, physical: input.physical, meditation: input.meditation, hours: input.hours, intensity: input.intensity },
-    input.halveOverLimitWillpower,
   );
   const [outcome, rng] = rollOutcome(input.rng);
   const challenge = challengeFactor(input.drillRating - input.challengeLevel);
@@ -141,8 +141,11 @@ export function computeTrainingXp(input: TrainingInput): TrainingResult {
   for (const [skill, xp] of Object.entries(spill)) add(synergy, skill, credit(skill, xp, fractionOf(xp)));
 
   // Fatigue Willpower: 3.0/day cap (direct Willpower training is outside the cap, D-51).
-  const room = Math.max(0, FATIGUE_WILLPOWER.dailyCap - input.willpowerToday);
-  const fatigueWanted = Math.min(room, block.fatigueWillpower);
+  // D-110: on a halving day both the block's amount and the daily cap are halved, so the day's total
+  // is half of min(3.0, raw).
+  const halve = input.halveFatigueWillpower ? 0.5 : 1;
+  const room = Math.max(0, FATIGUE_WILLPOWER.dailyCap * halve - input.willpowerToday);
+  const fatigueWanted = Math.min(room, block.fatigueWillpower * halve);
   const fatigueWillpower = fatigueWanted > 0 ? credit('willpower', fatigueWanted, fractionOf(fatigueWanted)) : 0;
 
   const practiceHours: Record<string, number> = {};
