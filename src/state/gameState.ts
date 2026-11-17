@@ -9,6 +9,7 @@ import type { PacingSlice } from '../features/pacing/pacing';
 import type { ProgressionSlice } from '../features/progression/progression';
 import type { RanksSlice } from '../features/ranks/ranks';
 import type { RelationshipsSlice } from '../features/relationships/relationships';
+import type { RoutinesSlice } from '../features/routines/routines';
 import type { ThreadsSlice } from '../features/threads/threads';
 import type { Meta } from './types';
 
@@ -18,6 +19,7 @@ export type GameState = {
   character: CharacterSlice;
   locations: LocationsSlice;
   memory: MemorySlice;
+  routines: RoutinesSlice;
   health: HealthSlice;
   progression: ProgressionSlice;
   npcs: NpcsSlice;

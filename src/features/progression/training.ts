@@ -74,6 +74,8 @@ export interface TrainingRequest {
   partnerId?: string | null | undefined;
   /** Overrides teacherId / partnerId when present (routines, the Train panel). */
   source?: TrainingSource | undefined;
+  /** The routine's effort picks the drill band (training-routines §3); default from the intensity. */
+  drillEffort?: Effort | undefined;
 }
 
 export interface TrainingCard {
@@ -368,7 +370,7 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   // Drill rating (training-routines §3): Basic always; higher with a teacher at that rating or own level >= rating - 10.
   const available = DRILL_RATINGS.filter((r) => r === DRILL_RATINGS[0] || (tLevel !== null && tLevel >= r) || studentLevel >= r - 10);
   const challengeLevel = selectPerformance(s, primary) * (1 - selectRust(s, primary));
-  let drillRating = pickDrillRating(challengeLevel, effortFor(intensity), available);
+  let drillRating = pickDrillRating(challengeLevel, req.drillEffort ?? effortFor(intensity), available);
   // Self-study (D-126): a self-taught form trained without teaching drills one rating lower.
   const selfTaught = !teaching && Object.keys(prim).some((id) => selfStudyStart.includes(id) || s.progression.selfTaught.includes(id));
   if (selfTaught) {

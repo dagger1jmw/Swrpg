@@ -170,7 +170,7 @@ describe('health meters (health §2, D-52)', () => {
 describe('saves', () => {
   it('migration fixture: an M2 save loads as a Human outsider with no training', () => {
     const s = fresh();
-    const { health: _h, progression: _p, ranks: _r, ...rest } = s;
+    const { health: _h, progression: _p, ranks: _r, routines: _ro, ...rest } = s;
     const m2State = { ...rest, character: { id: s.character.id, name: 'Kael', birthDay: s.character.birthDay } };
     const raw = {
       format: 'swrpg-v2',

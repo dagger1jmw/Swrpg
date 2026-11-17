@@ -14,6 +14,7 @@ import { pacingFeature } from '../features/pacing';
 import { progressionFeature } from '../features/progression';
 import { ranksFeature } from '../features/ranks';
 import { relationshipsFeature } from '../features/relationships';
+import { routinesFeature } from '../features/routines';
 import { threadsFeature } from '../features/threads';
 import type { GameState } from './gameState';
 import type { Registry } from './types';
@@ -23,6 +24,7 @@ export const REGISTRY: Registry<GameState> = [
   characterFeature,
   locationsFeature,
   memoryFeature,
+  routinesFeature,
   healthFeature,
   progressionFeature,
   npcsFeature,
