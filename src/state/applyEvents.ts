@@ -2,6 +2,7 @@
 // Validation is Zod then the handler; failures are rejected with a reason, never repaired.
 // Pure: no I/O, randomness only through meta.rngState.
 import { EVENT_CAPS, MAX_EMIT_DEPTH, TEMP_KEY_PATTERN, type EventCap } from '../data/events.config';
+import { advanceTime } from './advanceTime';
 import type { AnyFeature, BaseState, EventDef, EventSource, GameEvent, Registry, ResolvedAction } from './types';
 
 export interface AppliedEvent {
@@ -21,6 +22,10 @@ export interface ApplyResult<S extends BaseState> {
   rejected: RejectedEvent[];
   /** Same-turn temp key -> minted ID (D-32), for scene refs and later lookups. */
   tempMap: Record<string, string>;
+  /** Notices from time advances (birthdays, ...), for the report. */
+  notices: string[];
+  /** Set when a time advance was stopped by an interruption. */
+  interrupted?: string;
 }
 
 export interface ApplyOptions {
@@ -73,6 +78,8 @@ export function applyEvents<S extends BaseState>(
   const applied: AppliedEvent[] = [];
   const rejected: RejectedEvent[] = [];
   const tempMap: Record<string, string> = {};
+  const notices: string[] = [];
+  let interrupted: string | undefined;
   let state = initial;
 
   // 1. Shape, owner, source and Zod validation.
@@ -171,6 +178,15 @@ export function applyEvents<S extends BaseState>(
     state = { ...state, [feature.id]: result.slice };
     if (result.rng) state = { ...state, meta: { ...state.meta, rngState: result.rng } };
     applied.push({ event: e, source, notes: result.notes ?? [] });
+    if (result.advance) {
+      if (def.phase !== 'time') throw new Error(`${event.type} requested a time advance but is not a time-phase event`);
+      const adv = advanceTime(registry, state, result.advance);
+      state = adv.state;
+      applied.push(...adv.applied);
+      rejected.push(...adv.rejected);
+      notices.push(...adv.notices);
+      if (adv.interrupted !== undefined) interrupted ??= adv.interrupted;
+    }
     const key = event['key'];
     if (def.phase === 'create' && typeof key === 'string' && result.mintedId) tempMap[key] = result.mintedId;
 
@@ -185,7 +201,7 @@ export function applyEvents<S extends BaseState>(
   };
 
   for (const p of ordered) applyOne(p.event, opts.source, 0, p.index);
-  return { state, applied, rejected, tempMap };
+  return { state, applied, rejected, tempMap, notices, ...(interrupted !== undefined ? { interrupted } : {}) };
 }
 
 function validate<S extends BaseState>(

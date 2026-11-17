@@ -51,10 +51,21 @@ export interface ApplyCtx<S extends BaseState = BaseState> {
   readonly source: EventSource;
 }
 
+/** A request to advance the clock, executed by applyEvents through advanceTime in the time phase. */
+export interface TimeAdvance {
+  seconds: number;
+  reason: string;
+  source: 'turnDraft' | 'timeElapsed';
+  requested?: number;
+  clampedFrom?: number;
+}
+
 export type HandleResult<Slice> =
   | {
       slice: Slice;
       emit?: GameEvent[];
+      /** Only time-phase events may request this (the clock's timeElapsed). */
+      advance?: TimeAdvance;
       /** Creation events return the stable ID they minted, for temp-key mapping (D-32). */
       mintedId?: string;
       /** Log notes (e.g. a clamp), kept in the transcript. */

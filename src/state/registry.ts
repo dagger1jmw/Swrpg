@@ -1,0 +1,28 @@
+// The one feature registry (architecture §11), in the §10 hook order. Features without a
+// day-loop role in §10 come first: clock (the time writer, no hook) and character (its hook only
+// reports birthdays). Then the §10 list: routines, health, progression, alignment, npcs and
+// relationships, threads, ranks, world, pacing; the interruption check is advanceTime itself.
+// M1 has clock, character and pacing; later milestones insert their features at their §10 slot.
+import { characterFeature } from '../features/character';
+import { clockFeature } from '../features/clock';
+import { pacingFeature } from '../features/pacing';
+import type { GameState } from './gameState';
+import type { Registry } from './types';
+
+export const REGISTRY: Registry<GameState> = [clockFeature, characterFeature, pacingFeature];
+
+/** The documented hook order; tests assert REGISTRY follows it. */
+export const HOOK_ORDER: readonly string[] = [
+  'clock',
+  'character',
+  'routines',
+  'health',
+  'progression',
+  'alignment',
+  'npcs',
+  'relationships',
+  'threads',
+  'ranks',
+  'world',
+  'pacing',
+];
