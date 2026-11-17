@@ -1,74 +1,81 @@
-// People/World drawer (architecture §7 People tab and review queue; M2 debug view). Rendering
-// and player actions only: reads state through selectors, sends player events back to the app.
+// Side panel (D-100): tabs Character, People (with the review queue, architecture §7), Places,
+// Threads, Memory, Debug (M2 debug view). Rendering and player actions only: reads state through
+// selectors, sends player events back to the app.
 import type { ContextReport, SectionReport } from '../turn/context';
 import type { DebugRequest, SummaryOutcome } from '../turn/pipeline';
 import type { TurnRecord } from '../turn/record';
-import { formatDate } from '../engine/calendar';
-import { selectCurrentLocationId, selectLocations } from '../features/locations/selectors';
-import { selectArc, selectChapters, selectFacts, selectOpenReview, selectPlayerPins } from '../features/memory/selectors';
+import { formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
+import { selectAge, selectBirthDay, selectCharacterName } from '../features/character/selectors';
+import { selectNow } from '../features/clock/selectors';
+import { selectCurrentLocationId, selectLocationChain, selectLocations } from '../features/locations/selectors';
+import { selectArc, selectChapters, selectCurrentChapter, selectFacts, selectOpenReview, selectPlayerPins } from '../features/memory/selectors';
 import { selectNpcAge, selectNpcs } from '../features/npcs/selectors';
-import { selectPresentNpcIds } from '../features/pacing/selectors';
+import { selectPacingLevel, selectPresentNpcIds } from '../features/pacing/selectors';
 import { selectRelationship, selectRelationshipLabel } from '../features/relationships/selectors';
-import { selectThreads } from '../features/threads/selectors';
+import { selectOpenThreads, selectThreads } from '../features/threads/selectors';
 import type { GameState } from '../state/gameState';
 import type { GameEvent } from '../state/types';
 import { el } from './dom';
 
-export type WorldTab = 'people' | 'places' | 'threads' | 'memory' | 'review' | 'debug';
+export type PanelTab = 'character' | 'people' | 'places' | 'threads' | 'memory' | 'debug';
 
-export interface WorldPanelProps {
+export interface SidePanelProps {
   state: GameState;
+  campaignName: string;
   history: readonly TurnRecord[];
-  tab: WorldTab;
+  tab: PanelTab;
   busy: boolean;
   debugRequests: readonly DebugRequest[];
   summaryLog: readonly SummaryOutcome[];
   error: string | null;
-  setTab(tab: WorldTab): void;
+  setTab(tab: PanelTab): void;
+  /** Collapses the docked panel or closes the drawer. */
   close(): void;
   /** Applies player events and commits them (pins, review resolutions). */
   playerEvents(events: GameEvent[]): void;
   retrySummaries(): void;
 }
 
-const TAB_LABELS: Record<WorldTab, string> = { people: 'People', places: 'Places', threads: 'Threads', memory: 'Memory', review: 'Review', debug: 'Debug' };
+export const PANEL_TABS: Record<PanelTab, string> = { character: 'Character', people: 'People', places: 'Places', threads: 'Threads', memory: 'Memory', debug: 'Debug' };
 
 const nameOf = (s: GameState, id: string): string =>
   id === 'pc' ? s.character.name : (s.npcs.byId[id]?.name ?? s.locations.byId[id]?.name ?? s.threads.byId[id]?.title ?? id);
 
 const kv = (label: string, value: string | null | undefined): HTMLElement | null => (value ? el('div', { class: 'kv' }, [el('span', { class: 'k', text: `${label}: ` }), value]) : null);
 
-export function renderWorldPanel(p: WorldPanelProps): HTMLElement {
+export function renderSidePanel(p: SidePanelProps): HTMLElement {
   const reviewCount = selectOpenReview(p.state).length;
   const tabs = el(
     'div',
     { class: 'tabs', attrs: { role: 'tablist' } },
-    (Object.keys(TAB_LABELS) as WorldTab[]).map((t) =>
+    (Object.keys(PANEL_TABS) as PanelTab[]).map((t) =>
       el('button', {
         class: t === p.tab ? 'tab active' : 'tab',
-        text: t === 'review' && reviewCount ? `${TAB_LABELS[t]} (${reviewCount})` : TAB_LABELS[t],
+        text: t === 'people' && reviewCount ? `${PANEL_TABS[t]} (${reviewCount})` : PANEL_TABS[t],
         attrs: { role: 'tab', 'aria-selected': String(t === p.tab) },
         on: { click: () => p.setTab(t) },
       }),
     ),
   );
   const body =
-    p.tab === 'people'
-      ? people(p)
-      : p.tab === 'places'
-        ? places(p)
-        : p.tab === 'threads'
-          ? threads(p)
-          : p.tab === 'memory'
-            ? memory(p)
-            : p.tab === 'review'
-              ? review(p)
+    p.tab === 'character'
+      ? character(p)
+      : p.tab === 'people'
+        ? [...(reviewCount ? [el('h3', { text: `Needs review (${reviewCount})` }), ...review(p), el('h3', { text: 'People' })] : []), ...people(p)]
+        : p.tab === 'places'
+          ? places(p)
+          : p.tab === 'threads'
+            ? threads(p)
+            : p.tab === 'memory'
+              ? memory(p)
               : debug(p);
-  return el('aside', { class: 'world', attrs: { 'aria-label': 'People and world' } }, [
-    el('div', { class: 'world-head' }, [el('strong', { text: 'People & World' }), el('button', { class: 'secondary', text: 'Close', on: { click: p.close } })]),
-    tabs,
-    p.error ? el('div', { class: 'error', text: p.error }) : null,
-    el('div', { class: 'world-body' }, body),
+  return el('aside', { class: 'box side', attrs: { 'aria-label': 'Side panel' } }, [
+    el('div', { class: 'box-head side-head' }, [
+      tabs,
+      el('button', { class: 'icon', text: '×', attrs: { 'aria-label': 'Close panel', title: 'Close panel' }, on: { click: p.close } }),
+    ]),
+    p.error ? el('div', { class: 'error side-error', text: p.error }) : null,
+    el('div', { class: 'box-body', attrs: { 'data-scroll': `panel-${p.tab}` } }, body),
   ]);
 }
 
@@ -76,7 +83,32 @@ function empty(text: string): HTMLElement[] {
   return [el('p', { class: 'hint', text })];
 }
 
-function people(p: WorldPanelProps): HTMLElement[] {
+/** Character tab: who and where (the M3 sheet goes here). */
+function character(p: SidePanelProps): HTMLElement[] {
+  const s = p.state;
+  const now = selectNow(s);
+  const chain = selectLocationChain(s, selectCurrentLocationId(s));
+  const present = selectPresentNpcIds(s).map((id) => nameOf(s, id));
+  return [
+    el('div', { class: 'card' }, [
+      el('div', { class: 'card-title' }, [el('strong', { text: selectCharacterName(s) }), el('span', { class: 'rel', text: `age ${selectAge(s)}` })]),
+      kv('Born', formatDate(selectBirthDay(s))),
+      kv('Now', `${formatDate(now.day)}, ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`),
+      kv('Where', chain.length ? chain.map((l) => l.name).join(', in ') : 'not recorded yet'),
+      kv('With', present.length ? present.join(', ') : 'nobody'),
+      kv('Pacing', selectPacingLevel(s)),
+      kv('Open threads', selectOpenThreads(s).map((t) => t.title).join('; ') || 'none'),
+    ]),
+    el('div', { class: 'card' }, [
+      kv('Campaign', p.campaignName),
+      kv('Turn', String(s.meta.turn)),
+      kv('Chapter', `${selectChapters(s).length + 1} (since turn ${Math.max(1, selectCurrentChapter(s).startTurn)})`),
+    ]),
+    el('p', { class: 'hint', text: 'Skills, health and training arrive with the character sheet (M3).' }),
+  ];
+}
+
+function people(p: SidePanelProps): HTMLElement[] {
   const s = p.state;
   const present = new Set(selectPresentNpcIds(s));
   const npcs = [...selectNpcs(s)].sort((a, b) => Number(present.has(b.id)) - Number(present.has(a.id)) || b.lastSeenDay - a.lastSeenDay || a.name.localeCompare(b.name));
@@ -102,7 +134,7 @@ function people(p: WorldPanelProps): HTMLElement[] {
   });
 }
 
-function places(p: WorldPanelProps): HTMLElement[] {
+function places(p: SidePanelProps): HTMLElement[] {
   const s = p.state;
   const locs = selectLocations(s);
   if (!locs.length) return empty('No places yet.');
@@ -125,7 +157,7 @@ function places(p: WorldPanelProps): HTMLElement[] {
   return [el('ul', { class: 'tree' }, children(null))];
 }
 
-function threads(p: WorldPanelProps): HTMLElement[] {
+function threads(p: SidePanelProps): HTMLElement[] {
   const s = p.state;
   const list = [...selectThreads(s)].sort((a, b) => Number(b.status === 'open') - Number(a.status === 'open') || b.lastTurn - a.lastTurn);
   if (!list.length) return empty('No story threads yet.');
@@ -140,7 +172,7 @@ function threads(p: WorldPanelProps): HTMLElement[] {
   );
 }
 
-function memory(p: WorldPanelProps): HTMLElement[] {
+function memory(p: SidePanelProps): HTMLElement[] {
   const s = p.state;
   const arc = selectArc(s);
   const chapters = selectChapters(s);
@@ -181,7 +213,7 @@ function memory(p: WorldPanelProps): HTMLElement[] {
   return out;
 }
 
-function review(p: WorldPanelProps): HTMLElement[] {
+function review(p: SidePanelProps): HTMLElement[] {
   const s = p.state;
   const items = selectOpenReview(s);
   if (!items.length) return empty('Nothing to review. Names the GM or you use that match nobody known appear here.');
@@ -256,7 +288,7 @@ function reportBlock(title: string, r: ContextReport): HTMLElement {
   ]);
 }
 
-function debug(p: WorldPanelProps): HTMLElement[] {
+function debug(p: SidePanelProps): HTMLElement[] {
   const out: HTMLElement[] = [];
   const withReports = p.history.filter((h) => h.context?.narrative || h.context?.intent).slice(-5).reverse();
   out.push(el('h3', { text: 'What was sent (newest turns)' }));

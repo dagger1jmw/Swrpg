@@ -209,3 +209,18 @@ D-81 to D-89 are the eight plan choices Jared approved for M2, plus the "major p
   - **Side effect:** undated sentences after a dated one wait for that date, which errs toward hiding. Docs/ is unchanged.
   - **Not covered:** character entries are still whole-life texts (D-93: sent only when that person is in play, plus the prompt rule).
 - **D-99 Dev server pinned to port 5173 (strictPort).** localStorage is per origin, port included, so the API key, settings and usage meter reset whenever the port changed.
+
+## 2026-11-17 — UI layout (Jared)
+
+- **D-100 Fixed app shell layout.** Replaces the scrolling-document UI of M1/M2. Plain CSS in src/ui/styles.css; no framework.
+  - **Shell:** html and body are overflow hidden. #app is a CSS grid of exactly 100dvh, padded by the 10px gap plus the iPad safe-area insets (viewport-fit=cover). Every grid child has min-height 0, so nothing can grow the page.
+  - **Regions:**
+    - **Top bar:** fixed 52px, one line, no wrapping; items truncate, and the place and turn hide below 600px. It holds the time and time-of-day label, date, place, pacing chip, turn, story-model picker, a usage meter (today's requests for the story model in use; a "!" badge with the details in its tooltip when there is a fallback or a usage warning), the side-panel toggle and the menu button.
+    - **Main column:** the story feed (fills the height and scrolls; roll cards inline; follows new turns only while scrolled to the bottom; the scroll position is kept across re-renders), a choices box (at most 30% of the column, scrolls, hidden when empty; also holds the interrupted-opening prompt), and a fixed 116px input box (a status line with the pending action, the error with Retry / Dismiss, or summary progress; then the textarea and Send).
+    - **Side panel:** fixed 360px, tabs Character / People / Places / Threads / Memory / Debug in a 3 x 2 grid so all six stay visible. Each tab scrolls inside the box and keeps its position. A close button and the top-bar toggle collapse it, and the feed then takes the full width.
+  - **Below 900px wide** (iPad portrait, phone), the side panel is a fixed slide-over drawer with a backdrop, opened from the top bar. It starts closed there and open on wide screens.
+  - **Modal:** Settings and Campaign (current campaign, export / import, new character) open as one modal from the menu button. Its body scrolls inside the box. It is required (cannot be closed) while there is no API key (Settings) or no campaign (Campaign); otherwise Escape, the close button or the backdrop closes it.
+  - **Review and Character tabs:** Review is folded into the People tab as a "Needs review (n)" section at the top (Jared's tab list has no Review tab). The Character tab shows who and where (name, age, birth date, now, place chain, who is present, pacing, open threads, campaign, turn, chapter) until the M3 sheet.
+  - **Style tokens:** one set of CSS variables: colors (dark datapad: bg, box, box-2/3, line, text, muted, cyan accent, good, bad, warn), gap 10px (8px on phones), padding 12px, radius 10px for boxes and 7px for inner cards, buttons and inputs, a 1px border, font sizes 12/13/15/17px, and 44px touch targets.
+  - **Boxes:** every region is a .box: a 1px border on all sides, rounded corners, overflow hidden so scrolled content is clipped inside the rounded outline, an optional .box-head strip, and a .box-body that scrolls.
+  - **Measured** in exact-size frames at 1180x820, 820x1180 and 390x844: no page scrollbar, no overlapping regions, everything inside the viewport, a one-line 52px top bar. The feed, side-panel tabs and modal body each scroll on their own.

@@ -1,15 +1,20 @@
 // UI: rendering and player actions only (architecture §1). Reads state through selectors and
-// calls the turn pipeline; no game rules here.
+// calls the turn pipeline; no game rules here. Layout (D-100): one fixed app shell (top bar, main
+// column with feed / choices / input, side panel), settings and campaigns in a modal; nothing
+// scrolls the page, each region scrolls inside its own box.
+import { DEBUG_REQUESTS_KEPT } from '../ai/context.config';
 import { createModelRouter, type ModelRouter, type QuotaState } from '../ai/fallback';
 import { FALLBACK_NARRATIVE_MODEL, KNOWN_MODELS } from '../ai/models.config';
 import type { CallType, ModelProvider, Usage } from '../ai/provider';
 import {
   loadQuota,
   loadSettings,
+  loadTokenRatios,
   loadUsage,
   primaryModel,
   saveQuota,
   saveSettings,
+  saveTokenRatios,
   saveUsage,
   validateApiKey,
   withModelList,
@@ -17,30 +22,24 @@ import {
   type KeyValueStore,
   type Settings,
 } from '../ai/settings';
-import { recordRequest, summarizeUsage, type UsageLog } from '../ai/usage';
-import { DEBUG_REQUESTS_KEPT } from '../ai/context.config';
 import { calibrate, type TokenRatios } from '../ai/tokenRatio';
-import { loadTokenRatios, saveTokenRatios } from '../ai/settings';
+import { recordRequest, summarizeUsage, type UsageLog } from '../ai/usage';
+import { absDayFromDate, ageInYears, formatClock, formatDate, isValidDate, timeOfDayLabel, type CalendarDate } from '../engine/calendar';
+import type { CheckCard } from '../engine/rolls';
+import { selectNow } from '../features/clock/selectors';
 import { selectCurrentLocation } from '../features/locations/selectors';
-import { selectOpenReview } from '../features/memory/selectors';
+import { selectPacingLevel } from '../features/pacing/selectors';
 import { makeEnvelope } from '../persist/envelope';
 import { exportCampaign, importCampaign } from '../persist/exportImport';
-import { applyEvents } from '../state/applyEvents';
-import type { GameEvent } from '../state/types';
-import { summarizeChapters, type DebugRequest, type SummaryOutcome } from '../turn/pipeline';
-import { renderWorldPanel, type WorldTab } from './worldPanel';
-import { ageInYears, absDayFromDate, formatClock, formatDate, isValidDate, timeOfDayLabel, type CalendarDate } from '../engine/calendar';
-import type { CheckCard } from '../engine/rolls';
-import { selectAge, selectCharacterName } from '../features/character/selectors';
-import { selectNow } from '../features/clock/selectors';
-import { selectPacingLevel } from '../features/pacing/selectors';
 import type { Storage } from '../persist/storage';
+import { applyEvents } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
-import type { Registry } from '../state/types';
+import type { GameEvent, Registry } from '../state/types';
 import { createCampaign, DEFAULT_START, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
-import { narrateTurn, prepareTurn, TurnError, type PendingTurn, type Session, type TurnDeps } from '../turn/pipeline';
+import { narrateTurn, prepareTurn, summarizeChapters, TurnError, type DebugRequest, type PendingTurn, type Session, type SummaryOutcome, type TurnDeps } from '../turn/pipeline';
 import { describeInput, type TurnInput, type TurnRecord } from '../turn/record';
 import { clear, el, input, paragraphs } from './dom';
+import { renderSidePanel, type PanelTab } from './sidePanel';
 
 export interface AppDeps {
   root: HTMLElement;
@@ -52,7 +51,7 @@ export interface AppDeps {
   now: () => number;
 }
 
-type Screen = 'settings' | 'create' | 'game';
+type Modal = 'settings' | 'campaign';
 
 interface FailedTurn {
   input: TurnInput;
@@ -61,29 +60,38 @@ interface FailedTurn {
   pending: PendingTurn | undefined;
 }
 
+/** Below this width the side panel is a slide-over drawer (D-100). */
+const DRAWER_QUERY = '(max-width: 899px)';
+
 export class App {
   private settings: Settings;
   private usage: UsageLog;
   private session: Session | null = null;
-  private screen: Screen = 'create';
   private busy = false;
-  /** The action being resolved, shown in the feed while the GM replies. */
+  /** The action being resolved, shown in the feed and the input box while the GM replies. */
   private inFlight: TurnInput | null = null;
   private failed: FailedTurn | null = null;
   private loadError: string | null = null;
-  private confirmNew = false;
   private readonly provider: ModelProvider;
   private quota: QuotaState;
   private readonly router: ModelRouter;
   private tokenRatios: TokenRatios;
-  private panelOpen = false;
-  private panelTab: WorldTab = 'people';
+  private modal: Modal | null = null;
+  /** Docked panel shown (wide) or drawer open (narrow). */
+  private panelOpen: boolean;
+  private panelTab: PanelTab = 'character';
   private panelError: string | null = null;
   /** Full request texts, this session only (D-87). */
   private debugRequests: DebugRequest[] = [];
   private summaryLog: SummaryOutcome[] = [];
   private summarizing = false;
   private settingsNote: string | null = null;
+  /** The unsent text in the action box, kept across re-renders. */
+  private draft = '';
+  /** The feed follows new turns only while the player is at the bottom. */
+  private feedStick = true;
+  /** Scroll positions of the inner scrollers, by data-scroll key. */
+  private scrolls = new Map<string, number>();
 
   constructor(private readonly d: AppDeps) {
     this.tokenRatios = loadTokenRatios(d.kv);
@@ -102,6 +110,7 @@ export class App {
       },
       now: () => this.d.now(),
     });
+    this.panelOpen = !window.matchMedia(DRAWER_QUERY).matches;
   }
 
   async start(): Promise<void> {
@@ -112,8 +121,25 @@ export class App {
     } catch (e) {
       this.loadError = `Storage error: ${e instanceof Error ? e.message : String(e)}`;
     }
-    this.screen = !this.settings.apiKey ? 'settings' : this.session ? 'game' : 'create';
+    this.modal = this.requiredModal();
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.modal && !this.requiredModal()) {
+        this.modal = null;
+        this.render();
+      }
+    });
+    window.matchMedia(DRAWER_QUERY).addEventListener('change', (e) => {
+      this.panelOpen = !e.matches;
+      this.render();
+    });
     this.render();
+  }
+
+  /** The modal that cannot be closed yet: no API key, or no campaign. */
+  private requiredModal(): Modal | null {
+    if (!this.settings.apiKey) return 'settings';
+    if (!this.session) return 'campaign';
+    return null;
   }
 
   // ---- Turn plumbing ----
@@ -210,6 +236,7 @@ export class App {
       } else {
         const resumed = await resumeCampaign(this.d.registry, this.d.storage);
         if (resumed && 'session' in resumed) this.session = resumed.session;
+        this.feedStick = true;
         this.settingsNote = `Imported ${this.session?.campaign.name ?? 'the campaign'}${r.rebranched ? ' (on a new branch, since this campaign already exists here)' : ''}.`;
       }
     } catch (e) {
@@ -223,6 +250,8 @@ export class App {
     this.busy = true;
     this.inFlight = turnInput;
     this.failed = null;
+    this.feedStick = true;
+    if (turnInput.kind === 'typed') this.draft = '';
     this.render();
     const deps = this.turnDeps();
     let closed = false;
@@ -251,17 +280,206 @@ export class App {
 
   render(): void {
     const root = this.d.root;
-    // Keep the drawer's scroll position across re-renders.
-    const drawerScroll = root.querySelector('.world-body')?.scrollTop ?? 0;
+    for (const n of root.querySelectorAll<HTMLElement>('[data-scroll]')) this.scrolls.set(n.dataset['scroll']!, n.scrollTop);
     clear(root);
-    if (this.screen === 'settings') root.append(this.renderSettings());
-    else if (this.screen === 'create') root.append(this.renderCreate());
-    else root.append(this.renderGame());
-    const body = root.querySelector('.world-body');
-    if (body) body.scrollTop = drawerScroll;
+    root.className = `shell${this.panelOpen ? ' panel-open' : ''}`;
+    root.append(this.renderTopBar(), this.renderMain());
+    if (this.session && this.panelOpen) {
+      root.append(el('div', { class: 'backdrop', on: { click: () => ((this.panelOpen = false), this.render()) } }));
+      root.append(this.renderPanel(this.session));
+    }
+    if (this.modal) root.append(this.renderModal(this.modal));
+    // Restore inner scroll positions; the feed follows new turns only while stuck to the bottom.
+    for (const n of root.querySelectorAll<HTMLElement>('[data-scroll]')) {
+      const key = n.dataset['scroll']!;
+      if (key === 'feed') {
+        n.scrollTop = this.feedStick ? n.scrollHeight : (this.scrolls.get(key) ?? n.scrollHeight);
+        n.addEventListener('scroll', () => {
+          this.feedStick = n.scrollHeight - n.scrollTop - n.clientHeight < 24;
+        });
+      } else n.scrollTop = this.scrolls.get(key) ?? 0;
+    }
   }
 
-  private renderSettings(): HTMLElement {
+  private openModal(m: Modal): void {
+    this.modal = m;
+    this.settingsNote = null;
+    this.render();
+  }
+
+  private renderTopBar(): HTMLElement {
+    const state = this.session?.state;
+    const ms = this.d.now();
+    const narrativeModel = primaryModel(this.settings, 'narrative');
+    const models = [...new Set([...KNOWN_MODELS, narrativeModel])];
+    const remainingLabel = (m: string): string => {
+      const s = summarizeUsage(this.usage, m, this.settings.limits[m] ?? {}, ms);
+      const count = s.remainingToday !== null ? `${s.remainingToday} left` : `${s.requestsToday} used`;
+      return `${m}${m === FALLBACK_NARRATIVE_MODEL ? ' (fallback)' : ''} · ${count}`;
+    };
+    const picker = el(
+      'select',
+      {
+        class: 'tb-model',
+        attrs: { 'aria-label': 'Story model', title: 'Story model' },
+        on: {
+          change: (e) => {
+            this.settings = withPrimaryModel(this.settings, 'narrative', (e.target as HTMLSelectElement).value);
+            saveSettings(this.d.kv, this.settings);
+            this.render();
+          },
+        },
+      },
+      models.map((m) => el('option', { text: remainingLabel(m), attrs: { value: m } })),
+    );
+    picker.value = narrativeModel;
+
+    // Usage meter: the story model actually in use today, with a badge for warnings or fallback.
+    const inUse = this.router.choose('narrative').model;
+    const use = summarizeUsage(this.usage, inUse, this.settings.limits[inUse] ?? {}, ms);
+    const allModels = [...new Set((['narrative', 'intent', 'summary', 'ooc'] as CallType[]).map((ct) => this.router.choose(ct).model))];
+    const warnings = [...this.router.notices(), ...allModels.flatMap((m) => summarizeUsage(this.usage, m, this.settings.limits[m] ?? {}, ms).warnings)];
+    const meterText = use.limits.rpd !== undefined ? `${use.requestsToday}/${use.limits.rpd}` : `${use.requestsToday} today`;
+    const meter = el('span', { class: `tb-meter${warnings.length ? ' warn' : ''}`, attrs: { title: [`${inUse}: ${meterText} requests today`, ...warnings].join('\n') } }, [
+      warnings.length ? el('span', { class: 'badge', text: '!' }) : null,
+      meterText,
+    ]);
+
+    const left: (HTMLElement | null)[] = state
+      ? (() => {
+          const now = selectNow(state);
+          const loc = selectCurrentLocation(state);
+          return [
+            el('strong', { class: 'tb-time', text: `${formatClock(now.second)} ${timeOfDayLabel(now.second)}` }),
+            el('span', { class: 'tb-date', text: formatDate(now.day) }),
+            loc ? el('span', { class: 'tb-opt tb-place', text: loc.name }) : null,
+            el('span', { class: 'tb-chip', text: selectPacingLevel(state) }),
+            el('span', { class: 'tb-opt tb-turn', text: `turn ${state.meta.turn}` }),
+          ];
+        })()
+      : [el('strong', { text: 'Star Wars Legends RPG' })];
+
+    return el('header', { class: 'box topbar' }, [
+      el('div', { class: 'tb-left' }, left),
+      el('div', { class: 'tb-right' }, [
+        picker,
+        meter,
+        this.session
+          ? el('button', {
+              class: `icon${this.panelOpen ? ' active' : ''}`,
+              text: '▤',
+              attrs: { 'aria-label': 'Toggle side panel', title: 'Character, people, places', 'aria-expanded': String(this.panelOpen) },
+              on: { click: () => ((this.panelOpen = !this.panelOpen), this.render()) },
+            })
+          : null,
+        el('button', { class: 'icon', text: '☰', attrs: { 'aria-label': 'Menu', title: 'Settings and campaigns' }, on: { click: () => this.openModal('settings') } }),
+      ]),
+    ]);
+  }
+
+  private renderMain(): HTMLElement {
+    const session = this.session;
+    const turns = session ? session.history.map((r) => this.renderTurn(r)) : [];
+    const pendingLine = this.busy && this.inFlight && this.inFlight.kind !== 'opening' ? el('div', { class: 'turn pending' }, [el('div', { class: 'player', text: describeInput(this.inFlight) })]) : null;
+    const failedLine = !this.busy && this.failed && this.failed.input.kind !== 'opening' ? el('div', { class: 'turn pending' }, [el('div', { class: 'player', text: describeInput(this.failed.input) })]) : null;
+    const emptyFeed = session && !session.history.length && !this.busy ? el('p', { class: 'hint center', text: 'The story begins here.' }) : null;
+    const feed = el('section', { class: 'box feed' }, [
+      el('div', { class: 'box-body feed-body', attrs: { 'data-scroll': 'feed', 'aria-live': 'polite' } }, [...turns, pendingLine, failedLine, emptyFeed]),
+    ]);
+
+    // Choices box: the last turn's choices, or the interrupted-opening prompt (D-97).
+    const last = session?.history[session.history.length - 1];
+    let choiceItems: HTMLElement[] = [];
+    if (session && openingPending(session) && !this.busy && !this.failed) {
+      choiceItems = [
+        el('p', { class: 'hint', text: 'The opening scene was not written (the page was reloaded before it finished).' }),
+        el('button', { class: 'choice', text: 'Write the opening', on: { click: () => void this.runTurn({ kind: 'opening', premise: session.campaign.premise ?? '' }) } }),
+        el('button', { class: 'choice secondary', text: 'Discard and create a new character', on: { click: () => this.openModal('campaign') } }),
+      ];
+    } else if (last && !this.busy && !this.failed) {
+      choiceItems = last.choices.map((c) => el('button', { class: 'choice', text: c.label, on: { click: () => void this.runTurn({ kind: 'choice', choice: c }) } }));
+    }
+    const choices = choiceItems.length ? el('section', { class: 'box choices' }, [el('div', { class: 'box-body', attrs: { 'data-scroll': 'choices' } }, choiceItems)]) : null;
+
+    return el('main', { class: 'main' }, [feed, choices, this.renderInput()]);
+  }
+
+  private renderInput(): HTMLElement {
+    const text = el('textarea', { attrs: { placeholder: this.session ? 'What do you do?' : 'Create a character to begin.', rows: '2', 'aria-label': 'Your action' } });
+    text.value = this.draft;
+    text.addEventListener('input', () => (this.draft = text.value));
+    const send = (): void => {
+      const t = text.value.trim();
+      if (t) void this.runTurn({ kind: 'typed', text: t });
+    };
+    text.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    });
+    const sendBtn = el('button', { class: 'send', text: 'Send', on: { click: send } });
+    if (this.busy || !this.session) {
+      text.disabled = true;
+      sendBtn.disabled = true;
+    }
+
+    let status: HTMLElement;
+    if (this.failed) {
+      const f = this.failed;
+      const what = f.stage === 'intent' ? 'Could not read your action' : f.stage === 'commit' ? 'Could not save the turn' : 'The GM reply failed';
+      status = el('div', { class: 'status error' }, [
+        el('span', { class: 'status-text', text: `${what}: ${f.message}`, attrs: { title: f.message } }),
+        el('button', { class: 'small', text: 'Retry', on: { click: () => void this.runTurn(f.input, f.pending) } }),
+        el('button', { class: 'small secondary', text: 'Dismiss', on: { click: () => ((this.failed = null), this.render()) } }),
+      ]);
+    } else if (this.busy) {
+      const label = this.summarizing ? 'A chapter closed. Writing its summary…' : this.inFlight && this.inFlight.kind !== 'opening' ? `Resolving: ${describeInput(this.inFlight)}` : 'Writing the opening scene…';
+      status = el('div', { class: 'status busy' }, [el('span', { class: 'spinner', attrs: { 'aria-hidden': 'true' } }), el('span', { class: 'status-text', text: label, attrs: { title: label } })]);
+    } else {
+      status = el('div', { class: 'status' }, [el('span', { class: 'status-text hint', text: this.session ? 'Type an action, or pick a choice above.' : '' })]);
+    }
+    return el('section', { class: 'box input' }, [status, el('div', { class: 'composer' }, [text, sendBtn])]);
+  }
+
+  private renderPanel(session: Session): HTMLElement {
+    return renderSidePanel({
+      state: session.state,
+      campaignName: session.campaign.name,
+      history: session.history,
+      tab: this.panelTab,
+      busy: this.busy,
+      debugRequests: this.debugRequests,
+      summaryLog: this.summaryLog,
+      error: this.panelError,
+      setTab: (t) => ((this.panelTab = t), this.render()),
+      close: () => ((this.panelOpen = false), this.render()),
+      playerEvents: (events) => void this.playerEvents(events),
+      retrySummaries: () => void this.runSummaries(),
+    });
+  }
+
+  private renderModal(m: Modal): HTMLElement {
+    const required = this.requiredModal();
+    const close = (): void => {
+      if (this.requiredModal()) return;
+      this.modal = null;
+      this.render();
+    };
+    const tab = (id: Modal, label: string): HTMLButtonElement =>
+      el('button', { class: id === m ? 'tab active' : 'tab', text: label, attrs: { role: 'tab', 'aria-selected': String(id === m) }, on: { click: () => this.openModal(id) } });
+    const body = m === 'settings' ? this.renderSettingsBody() : this.renderCampaignBody();
+    const dialog = el('div', { class: 'box modal', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': m === 'settings' ? 'Settings' : 'Campaign' } }, [
+      el('div', { class: 'box-head' }, [
+        el('div', { class: 'tabs' }, [tab('settings', 'Settings'), ...(this.settings.apiKey ? [tab('campaign', 'Campaign')] : [])]),
+        required ? null : el('button', { class: 'icon', text: '×', attrs: { 'aria-label': 'Close' }, on: { click: close } }),
+      ]),
+      el('div', { class: 'box-body modal-body', attrs: { 'data-scroll': `modal-${m}` } }, body),
+    ]);
+    return el('div', { class: 'modal-layer', on: { click: (e) => e.target === e.currentTarget && close() } }, [dialog]);
+  }
+
+  private renderSettingsBody(): HTMLElement[] {
     const s = this.settings;
     const keyInput = input({ type: 'password', autocomplete: 'off', placeholder: 'AIza...', value: s.apiKey ?? '' });
     const err = el('div', { class: 'error' });
@@ -306,62 +524,71 @@ export class App {
       next = { ...next, limits };
       saveSettings(this.d.kv, next);
       this.settings = next;
-      this.screen = this.session ? 'game' : 'create';
+      this.modal = this.session ? null : 'campaign';
       this.render();
     };
 
-    return el('div', {}, [
-      el('h1', { text: 'Settings' }),
-      el('div', { class: 'panel' }, [
-        el('div', { class: 'field' }, [el('label', { text: 'Gemini API key' }), keyInput]),
-        el('p', {
-          class: 'hint',
-          text: 'Stored only in this browser (localStorage), sent only to Google in a request header, never saved in game files. Get a key at aistudio.google.com.',
-        }),
-        el('h2', { text: 'Models' }),
-        el('datalist', { attrs: { id: 'known-models' } }, KNOWN_MODELS.map((m) => el('option', { attrs: { value: m } }))),
-        ...modelFields.map((f) => f.node),
-        el('h2', { text: 'Free-tier limits (per model)' }),
-        el('p', {
-          class: 'hint',
-          text: 'Defaults are unverified third-party figures. Check your real limits on the AI Studio rate-limit page and enter them here. Daily counts reset at midnight Pacific time.',
-        }),
+    return [
+      el('div', { class: 'field' }, [el('label', { text: 'Gemini API key' }), keyInput]),
+      el('p', {
+        class: 'hint',
+        text: 'Stored only in this browser (localStorage), sent only to Google in a request header, never saved in game files. Get a key at aistudio.google.com.',
+      }),
+      el('h3', { text: 'Models' }),
+      ...modelFields.map((f) => f.node),
+      el('h3', { text: 'Free-tier limits (per model)' }),
+      el('p', {
+        class: 'hint',
+        text: 'Defaults are unverified third-party figures. Check your real limits on the AI Studio rate-limit page and enter them here. Daily counts reset at midnight Pacific time.',
+      }),
+      el('div', { class: 'table-wrap' }, [
         el('table', { class: 'limits' }, [
           el('tr', {}, [el('th', { text: 'Model' }), el('th', { text: 'RPM' }), el('th', { text: 'Input TPM' }), el('th', { text: 'RPD' })]),
           ...limitRows.map((r) => r.node),
         ]),
-        el('h2', { text: 'Behavior' }),
-        el('label', { class: 'field' }, [
-          el('span', {}, [autoRetry, ' Retry once automatically when a reply is cut off (uses one extra request)']),
-        ]),
-        err,
-        el('h2', { text: 'Campaign file' }),
-        el('p', { class: 'hint', text: 'Export the current campaign (state, people, places, threads, chapter summaries and the full transcript) as one JSON file, or import one. The API key is never included.' }),
-        el('div', { class: 'row' }, [
-          el('button', { class: 'secondary', text: 'Export campaign', on: { click: () => void this.exportFile() } }),
-          el('label', { class: 'filebtn' }, [
-            'Import campaign',
-            el('input', {
-              attrs: { type: 'file', accept: 'application/json,.json' },
-              on: {
-                change: (e) => {
-                  const f = (e.target as HTMLInputElement).files?.[0];
-                  if (f) void this.importFile(f);
-                },
-              },
-            }),
-          ]),
-        ]),
-        this.settingsNote ? el('p', { class: 'hint', text: this.settingsNote }) : null,
-        el('div', { class: 'row' }, [
-          el('button', { text: 'Save', on: { click: save } }),
-          this.settings.apiKey ? el('button', { class: 'secondary', text: 'Cancel', on: { click: () => this.go(this.session ? 'game' : 'create') } }) : null,
-        ]),
       ]),
-    ]);
+      el('h3', { text: 'Behavior' }),
+      el('label', { class: 'check' }, [autoRetry, ' Retry once automatically when a reply is cut off (uses one extra request)']),
+      err,
+      el('div', { class: 'row actions' }, [el('button', { text: 'Save', on: { click: save } })]),
+    ];
   }
 
-  private renderCreate(): HTMLElement {
+  private renderCampaignBody(): HTMLElement[] {
+    const out: HTMLElement[] = [];
+    if (this.loadError) out.push(el('p', { class: 'error', text: this.loadError }));
+    if (this.session) {
+      out.push(
+        el('h3', { text: 'Current campaign' }),
+        el('p', { text: `${this.session.campaign.name} · turn ${this.session.state.meta.turn}` }),
+      );
+    }
+    out.push(
+      el('h3', { text: 'Campaign file' }),
+      el('p', { class: 'hint', text: 'Export the current campaign (state, people, places, threads, chapter summaries and the full transcript) as one JSON file, or import one. The API key is never included.' }),
+      el('div', { class: 'row' }, [
+        el('button', { class: 'secondary', text: 'Export campaign', on: { click: () => void this.exportFile() } }),
+        el('label', { class: 'filebtn' }, [
+          'Import campaign',
+          el('input', {
+            attrs: { type: 'file', accept: 'application/json,.json' },
+            on: {
+              change: (e) => {
+                const f = (e.target as HTMLInputElement).files?.[0];
+                if (f) void this.importFile(f);
+              },
+            },
+          }),
+        ]),
+      ]),
+      this.settingsNote ? el('p', { class: 'hint', text: this.settingsNote }) : el('span'),
+      el('h3', { text: 'New character' }),
+      ...this.renderCreateForm(),
+    );
+    return out;
+  }
+
+  private renderCreateForm(): HTMLElement[] {
     const name = input({ maxlength: '60', placeholder: 'Character name' });
     const dateInputs = (d: CalendarDate) => {
       const year = input({ type: 'number', min: '0', value: String(Math.abs(d.year)) });
@@ -414,194 +641,27 @@ export class App {
         err.textContent = e instanceof Error ? e.message : String(e);
         return;
       }
-      this.screen = 'game';
+      this.modal = null;
+      this.failed = null;
+      this.feedStick = true;
       await this.runTurn({ kind: 'opening', premise: premise.value.trim() });
     };
 
-    return el('div', {}, [
-      el('h1', { text: 'New character' }),
-      this.loadError ? el('p', { class: 'error', text: this.loadError }) : null,
-      el('div', { class: 'panel' }, [
-        el('div', { class: 'field' }, [el('label', { text: 'Name' }), name]),
-        el('h2', { text: 'Birth date' }),
-        birth.fields,
-        el('h2', { text: 'Start date and time' }),
-        el('p', { class: 'hint', text: 'Default: 3,661 BBY, the Great Galactic War. 12 months; months 1-8 have 31 days, 9-12 have 30.' }),
-        startD.fields,
-        el('div', { class: 'field' }, [el('label', { text: 'Time of day' }), time]),
-        ageLine,
-        el('h2', { text: 'Premise' }),
-        premise,
-        err,
-        el('div', { class: 'row' }, [
-          el('button', { text: 'Begin', on: { click: () => void begin() } }),
-          el('button', { class: 'secondary', text: 'Settings', on: { click: () => this.go('settings') } }),
-          this.session ? el('button', { class: 'secondary', text: 'Back to game', on: { click: () => this.go('game') } }) : null,
-        ]),
+    return [
+      el('div', { class: 'field' }, [el('label', { text: 'Name' }), name]),
+      el('div', { class: 'field-label', text: 'Birth date' }),
+      birth.fields,
+      el('div', { class: 'field-label', text: 'Start date and time' }),
+      el('p', { class: 'hint', text: 'Default: 3,661 BBY, the Great Galactic War. 12 months; months 1-8 have 31 days, 9-12 have 30.' }),
+      startD.fields,
+      el('div', { class: 'field' }, [el('label', { text: 'Time of day' }), time]),
+      ageLine,
+      el('div', { class: 'field' }, [el('label', { text: 'Premise' }), premise]),
+      err,
+      el('div', { class: 'row actions' }, [
+        el('button', { text: this.session ? 'Begin (replaces the current campaign)' : 'Begin', on: { click: () => void begin() } }),
       ]),
-    ]);
-  }
-
-  private renderGame(): HTMLElement {
-    const session = this.session;
-    if (!session) return el('div', {}, [el('p', { text: 'No campaign.' })]);
-    const state = session.state;
-    const last = session.history[session.history.length - 1];
-
-    const feed = el(
-      'div',
-      { class: 'feed' },
-      session.history.map((r) => this.renderTurn(r)),
-    );
-
-    // The opening never committed (a reload mid-call): rerun it with the stored premise, or discard.
-    const openingBox =
-      openingPending(session) && !this.busy && !this.failed
-        ? el('div', { class: 'banner' }, [
-            el('span', { text: 'The opening scene was not written (the page was reloaded before it finished).' }),
-            el('div', { class: 'row' }, [
-              el('button', { text: 'Write the opening', on: { click: () => void this.runTurn({ kind: 'opening', premise: session.campaign.premise ?? '' }) } }),
-              el('button', { class: 'secondary', text: 'Discard and create a new character', on: { click: () => this.go('create') } }),
-            ]),
-          ])
-        : null;
-
-    const choices =
-      last && !this.busy && !this.failed
-        ? el(
-            'div',
-            { class: 'choices' },
-            last.choices.map((c) => el('button', { text: c.label, on: { click: () => void this.runTurn({ kind: 'choice', choice: c }) } })),
-          )
-        : null;
-
-    const text = el('textarea', { attrs: { placeholder: 'What do you do?', rows: '2' } });
-    const send = (): void => {
-      const t = text.value.trim();
-      if (t) void this.runTurn({ kind: 'typed', text: t });
-    };
-    text.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        send();
-      }
-    });
-    const sendBtn = el('button', { text: 'Send', on: { click: send } });
-    if (this.busy) {
-      text.disabled = true;
-      sendBtn.disabled = true;
-    }
-
-    const banner = this.failed
-      ? el('div', { class: 'banner' }, [
-          el('span', { text: `${this.failed.stage === 'intent' ? 'Could not read your action' : this.failed.stage === 'commit' ? 'Could not save the turn' : 'The GM reply failed'}: ${this.failed.message}` }),
-          el('div', { class: 'row' }, [
-            el('button', {
-              text: 'Retry',
-              on: { click: () => this.failed && void this.runTurn(this.failed.input, this.failed.pending) },
-            }),
-            el('button', { class: 'secondary', text: 'Dismiss', on: { click: () => ((this.failed = null), this.render()) } }),
-          ]),
-        ])
-      : null;
-
-    const view = el('div', {}, [
-      this.renderHeader(state),
-      feed,
-      this.busy && this.inFlight && this.inFlight.kind !== 'opening' ? el('div', { class: 'feed' }, [el('div', { class: 'player', text: describeInput(this.inFlight) })]) : null,
-      this.busy ? el('div', { class: 'busy', text: this.summarizing ? 'A chapter closed. Writing its summary...' : 'The GM is thinking...' }) : null,
-      !this.busy && this.failed && this.failed.input.kind !== 'opening' ? el('div', { class: 'feed' }, [el('div', { class: 'player', text: describeInput(this.failed.input) })]) : null,
-      banner,
-      openingBox,
-      choices,
-      el('div', { class: 'composer' }, [text, sendBtn]),
-      this.panelOpen
-        ? renderWorldPanel({
-            state,
-            history: session.history,
-            tab: this.panelTab,
-            busy: this.busy,
-            debugRequests: this.debugRequests,
-            summaryLog: this.summaryLog,
-            error: this.panelError,
-            setTab: (t) => ((this.panelTab = t), this.render()),
-            close: () => ((this.panelOpen = false), this.render()),
-            playerEvents: (events) => void this.playerEvents(events),
-            retrySummaries: () => void this.runSummaries(),
-          })
-        : null,
-    ]);
-    // Keep the newest turn in view.
-    queueMicrotask(() => window.scrollTo({ top: document.body.scrollHeight }));
-    return view;
-  }
-
-  private renderHeader(state: GameState): HTMLElement {
-    const now = selectNow(state);
-    const narrativeModel = primaryModel(this.settings, 'narrative');
-    const ms = this.d.now();
-    const models = [...new Set([...KNOWN_MODELS, narrativeModel])];
-    const remainingLabel = (m: string): string => {
-      const s = summarizeUsage(this.usage, m, this.settings.limits[m] ?? {}, ms);
-      const count = s.remainingToday !== null ? `${s.remainingToday} left today` : `${s.requestsToday} used today`;
-      return `${m}${m === FALLBACK_NARRATIVE_MODEL ? ' · fallback' : ''} (${count})`;
-    };
-    const picker = el(
-      'select',
-      {
-        attrs: { 'aria-label': 'Story model' },
-        on: {
-          change: (e) => {
-            this.settings = withPrimaryModel(this.settings, 'narrative', (e.target as HTMLSelectElement).value);
-            saveSettings(this.d.kv, this.settings);
-            this.render();
-          },
-        },
-      },
-      models.map((m) => el('option', { text: remainingLabel(m), attrs: { value: m } })),
-    );
-    picker.value = narrativeModel;
-
-    const inUse = (['narrative', 'intent', 'summary', 'ooc'] as CallType[]).map((ct) => this.router.choose(ct).model);
-    const warnings = [...new Set(inUse)].flatMap((m) => summarizeUsage(this.usage, m, this.settings.limits[m] ?? {}, ms).warnings);
-    const fallbackNotices = this.router.notices();
-    const intentModel = this.router.choose('intent').model;
-    const intentUse = summarizeUsage(this.usage, intentModel, this.settings.limits[intentModel] ?? {}, ms);
-
-    const newBtn = this.confirmNew
-      ? el('span', {}, [
-          el('button', { class: 'danger', text: 'Start over?', on: { click: () => ((this.confirmNew = false), this.go('create')) } }),
-          ' ',
-          el('button', { class: 'secondary', text: 'Keep playing', on: { click: () => ((this.confirmNew = false), this.render()) } }),
-        ])
-      : el('button', { class: 'secondary', text: 'New campaign', on: { click: () => ((this.confirmNew = true), this.render()) } });
-
-    return el('header', { class: 'game' }, [
-      el('div', { class: 'bar' }, [
-        el('div', { class: 'when' }, [
-          el('strong', { text: `${formatClock(now.second)} ${timeOfDayLabel(now.second)}` }),
-          ` · ${formatDate(now.day)}${selectCurrentLocation(state) ? ` · ${selectCurrentLocation(state)!.name}` : ''} · ${selectCharacterName(state)}, ${selectAge(state)} · turn ${state.meta.turn} · ${selectPacingLevel(state)}`,
-        ]),
-      ]),
-      el('div', { class: 'bar' }, [
-        el('label', {}, ['Story model: ', picker]),
-        el('span', { class: 'hint', text: `Intent: ${intentUse.model} (${intentUse.requestsToday} today)` }),
-        el('span', {}, [
-          el('button', {
-            class: 'secondary',
-            text: `People & World${selectOpenReview(state).length ? ` (${selectOpenReview(state).length} to review)` : ''}`,
-            attrs: { 'aria-expanded': String(this.panelOpen) },
-            on: { click: () => ((this.panelOpen = !this.panelOpen), this.render()) },
-          }),
-          ' ',
-          el('button', { class: 'secondary', text: 'Settings', on: { click: () => this.go('settings') } }),
-          ' ',
-          newBtn,
-        ]),
-      ]),
-      fallbackNotices.length ? el('div', { class: 'fallback', text: fallbackNotices.join(' · ') }) : null,
-      warnings.length ? el('div', { class: 'warnings', text: warnings.join(' · ') }) : null,
-    ]);
+    ];
   }
 
   private renderTurn(r: TurnRecord): HTMLElement {
@@ -611,11 +671,12 @@ export class App {
       ...[...r.draft.rejected, ...r.rejected].map((x) => `rejected: ${x.reason}`),
       ...r.calls.map((c) => `call ${c.callType} ${c.model}: ${c.outcome}${c.usage ? `, ${c.usage.inputTokens} in / ${c.usage.outputTokens} out` : ''}`),
     ];
-    return el('div', { class: 'turn' }, [
+    return el('article', { class: 'turn' }, [
       r.input.kind === 'opening' && !r.input.premise ? null : el('div', { class: 'player', text: describeInput(r.input) }),
       ...r.draft.checks.map((c) => this.renderRoll(c)),
       ...r.draft.notices.map((n) => el('div', { class: 'notice', text: n })),
       ...paragraphs(r.narrative),
+      r.chapterClosed ? el('div', { class: 'notice', text: `Chapter closed (${r.chapterClosed.reason}).` }) : null,
       log.length ? el('details', { class: 'log' }, [el('summary', { text: 'Engine log' }), el('pre', { text: log.join('\n') })]) : null,
     ]);
   }
@@ -633,10 +694,5 @@ export class App {
       el('div', {}, [`Margin ${c.margin >= 0 ? '+' : ''}${f(c.margin)} · `, el('span', { class: 'outcome', text: c.grade })]),
       ...c.notes.map((n) => el('div', { class: 'hint', text: n })),
     ]);
-  }
-
-  private go(screen: Screen): void {
-    this.screen = screen;
-    this.render();
   }
 }
