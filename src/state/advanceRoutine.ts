@@ -27,6 +27,9 @@ export interface SessionLog {
   credited: Record<string, number>;
   outcome: string;
   refused?: string;
+  /** The challenge factor of the drill (a gap below -20 is an easy drill, training-routines §5). */
+  challenge?: number;
+  notes?: string[];
 }
 
 export interface DayLog {
@@ -68,7 +71,8 @@ const absOf = (s: GameState): number => s.clock.now.day * DAY + s.clock.now.seco
  * Runs the routine until `untilAbs` (normally a wake time), or until a hook interrupts. `untilAbs` is
  * clamped so the loop always ends at a wake time.
  */
-export function advanceByRoutine(registry: Registry<GameState>, initial: GameState, opts: { untilAbs: number; reason: string }): RoutineAdvanceResult {
+export function advanceByRoutine(registry: Registry<GameState>, initial: GameState, opts: { untilAbs: number; reason: string; jump?: boolean }): RoutineAdvanceResult {
+  const jump = opts.jump ?? true;
   let state = initial;
   const applied: AppliedEvent[] = [];
   const rejected: RejectedEvent[] = [];
@@ -93,7 +97,7 @@ export function advanceByRoutine(registry: Registry<GameState>, initial: GameSta
   const pass = (seconds: number, occupation: Occupation, why: string): boolean => {
     const secs = Math.round(seconds);
     if (secs <= 0) return true;
-    const r = advanceTime(registry, state, { seconds: secs, reason: why, source: 'turnDraft', occupation, jump: true });
+    const r = advanceTime(registry, state, { seconds: secs, reason: why, source: 'turnDraft', occupation, jump });
     state = r.state;
     applied.push(...r.applied);
     rejected.push(...r.rejected);
@@ -126,7 +130,7 @@ export function advanceByRoutine(registry: Registry<GameState>, initial: GameSta
     // Teachers and partners grow closer through shared sessions (architecture §9, D-137).
     const npc = plan.card.instruction.teacherId ?? plan.card.instruction.partnerId;
     if (npc) apply([{ type: 'sharedTraining', npcId: npc, hours: plan.hours }]);
-    log.sessions.push({ activityId: b.activityId, skillId: b.skillId, hours: plan.hours, credited: plan.card.credited, outcome: plan.card.outcome });
+    log.sessions.push({ activityId: b.activityId, skillId: b.skillId, hours: plan.hours, credited: plan.card.credited, outcome: plan.card.outcome, challenge: plan.card.challenge, notes: plan.card.notes });
     log.hoursTrained += plan.hours;
     return pass(plan.hours * 3600, 'activity', `routine: ${plan.card.activityName}`);
   };
