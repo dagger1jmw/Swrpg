@@ -18,3 +18,6 @@ Thumbs.db
 
 # Build output
 dist/
+
+# Generated lore index (scripts/build-lore.ts)
+src/lore/generated/

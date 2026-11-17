@@ -5,11 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev": "npm run lore",
     "build": "tsc --noEmit && vite build",
+    "prebuild": "npm run lore",
     "preview": "vite preview",
     "test": "vitest run",
+    "pretest": "npm run lore",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "pretypecheck": "npm run lore",
+    "lint": "eslint .",
+    "lore": "node scripts/build-lore.ts"
   },
   "dependencies": {
     "zod": "^4.6.7"
