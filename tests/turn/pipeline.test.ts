@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { createModelRouter, type QuotaState } from '../../src/ai/fallback';
 import { createFixtureProvider, type FixtureStep } from '../../src/ai/fixtureProvider';
+import { EMPTY_USAGE_LOG, recordRequest, type UsageLog } from '../../src/ai/usage';
 import { choiceSchema } from '../../src/ai/schemas/compose';
 import { defaultSettings, type Settings } from '../../src/ai/settings';
 import { loadEnvelope } from '../../src/persist/envelope';
@@ -14,23 +16,37 @@ import opening from '../fixtures/ai/opening.json';
 
 const START_SECOND = DEFAULT_START.second;
 
-function setup(steps: FixtureStep[], settings: Partial<Settings> = {}) {
+function setup(steps: FixtureStep[], settings: Partial<Settings> = {}, startMs = Date.UTC(2026, 10, 16, 20, 0)) {
   const provider = createFixtureProvider(steps);
   const storage = createMemoryStorage();
   const counted: string[] = [];
-  let ms = Date.UTC(2026, 10, 16, 20, 0);
+  const clock = { ms: startMs };
+  const store = { quota: {} as QuotaState, usage: EMPTY_USAGE_LOG as UsageLog };
+  const getSettings = (): Settings => ({ ...defaultSettings(), apiKey: 'k'.repeat(30), ...settings });
+  const router = createModelRouter({
+    getLists: () => getSettings().modelLists,
+    getLimits: () => getSettings().limits,
+    getUsage: () => store.usage,
+    getQuota: () => store.quota,
+    setQuota: (q) => (store.quota = q),
+    now: () => clock.ms,
+  });
   const deps: TurnDeps = {
     registry: REGISTRY,
     provider,
+    router,
     storage,
-    getSettings: () => ({ ...defaultSettings(), apiKey: 'k'.repeat(30), ...settings }),
+    getSettings,
     wallClock: () => {
-      ms += 1000;
-      return { ms, iso: new Date(ms).toISOString() };
+      clock.ms += 1000;
+      return { ms: clock.ms, iso: new Date(clock.ms).toISOString() };
     },
-    recordCall: (model) => counted.push(model),
+    recordCall: (model, usage) => {
+      counted.push(model);
+      store.usage = recordRequest(store.usage, model, usage?.inputTokens ?? 0, clock.ms);
+    },
   };
-  return { provider, storage, deps, counted };
+  return { provider, storage, deps, counted, clock, store, router };
 }
 
 async function newSession(deps: TurnDeps, campaignId = 'camp-1'): Promise<Session> {
@@ -218,5 +234,104 @@ describe('turn pipeline (architecture §4, §14)', () => {
     expect(resumed && 'session' in resumed && resumed.session.state).toEqual(s1.state);
     expect(resumed && 'session' in resumed && resumed.session.history.map((h) => h.narrative)).toEqual([opening.narrative]);
     expect(resumed && 'session' in resumed && resumed.session.campaign.createdAt).toBe('2026-11-16T00:00:00.000Z');
+  });
+});
+
+describe('daily-quota model fallback (D-80)', () => {
+  const daily = { kind: 'rateLimit' as const, status: 429, quotaScope: 'day' as const, message: 'Quota exceeded: GenerateRequestsPerDay' };
+  const perMinute = { kind: 'rateLimit' as const, status: 429, quotaScope: 'minute' as const, retryAfterSeconds: 20 };
+
+  it('a daily 429 on Flash switches to Flash-Lite in the same turn, with the same dice, and stays there until reset', async () => {
+    const { deps, provider, router, clock, store } = setup([
+      { callType: 'narrative', model: 'gemini-3.8-flash', data: opening },
+      { callType: 'narrative', model: 'gemini-3.8-flash', error: daily },
+      { callType: 'narrative', model: 'gemini-3.5-flash-lite', data: plainNarrative() },
+      { callType: 'narrative', model: 'gemini-3.5-flash-lite', data: plainNarrative() },
+    ]);
+    const s1 = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
+    const pending = await prepareTurn(deps, s1, { kind: 'choice', choice: choiceInvestigate });
+    const { session: s2, record } = await narrateTurn(deps, s1, pending);
+    expect(provider.calls.map((c) => c.opts.model)).toEqual(['gemini-3.8-flash', 'gemini-3.8-flash', 'gemini-3.5-flash-lite']);
+    expect(record.calls.map((c) => c.outcome)).toEqual(['rateLimit:day', 'ok']);
+    expect(record.draft.checks).toEqual(pending.resolution.draft.checks);
+    expect(record.draft.report.some((r) => r.includes('using fallback gemini-3.5-flash-lite'))).toBe(true);
+    expect(router.notices()).toEqual(['Flash daily limit reached; using Flash-Lite until reset']);
+    expect(Object.keys(store.quota)).toEqual(['gemini-3.8-flash']);
+
+    // The next turn goes straight to Flash-Lite: no wasted call on Flash.
+    await playTurn(deps, s2, { kind: 'choice', choice: choiceInvestigate });
+    expect(provider.calls.at(-1)?.opts.model).toBe('gemini-3.5-flash-lite');
+    expect(provider.calls).toHaveLength(4);
+
+    // After the Pacific midnight reset (08:00 UTC in November) the first model is used again.
+    clock.ms = Date.UTC(2026, 10, 17, 8, 1);
+    expect(router.choose('narrative').model).toBe('gemini-3.8-flash');
+    expect(router.notices()).toEqual([]);
+  });
+
+  it('a per-minute 429 does not fall back: no automatic call, normal Retry, quota untouched', async () => {
+    const { deps, provider, store, router } = setup([
+      { callType: 'narrative', data: opening },
+      { callType: 'narrative', model: 'gemini-3.8-flash', error: perMinute },
+      { callType: 'narrative', model: 'gemini-3.8-flash', data: plainNarrative() },
+    ]);
+    const s1 = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
+    const err = (await playTurn(deps, s1, { kind: 'choice', choice: choiceInvestigate }).catch((e: unknown) => e)) as TurnError;
+    expect(err).toBeInstanceOf(TurnError);
+    expect(err.stage).toBe('narrate');
+    expect(provider.calls).toHaveLength(2);
+    expect(store.quota).toEqual({});
+    expect(router.notices()).toEqual([]);
+    // Retry stays on Flash.
+    await narrateTurn(deps, s1, err.pending!);
+    expect(provider.calls.at(-1)?.opts.model).toBe('gemini-3.8-flash');
+  });
+
+  it('a 429 that does not say which quota is treated like a per-minute one (no fallback)', async () => {
+    const { deps, provider, store } = setup([
+      { callType: 'narrative', data: opening },
+      { callType: 'narrative', error: { kind: 'rateLimit', status: 429, quotaScope: 'unknown' } },
+    ]);
+    const s1 = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
+    await expect(playTurn(deps, s1, { kind: 'choice', choice: choiceInvestigate })).rejects.toBeInstanceOf(TurnError);
+    expect(provider.calls).toHaveLength(2);
+    expect(store.quota).toEqual({});
+  });
+
+  it('the usage meter reaching the RPD limit switches before any call is wasted', async () => {
+    const { deps, provider, router } = setup(
+      [
+        { callType: 'narrative', model: 'gemini-3.8-flash', data: opening },
+        { callType: 'narrative', model: 'gemini-3.5-flash-lite', data: plainNarrative() },
+      ],
+      { limits: { 'gemini-3.8-flash': { rpd: 1 }, 'gemini-3.5-flash-lite': { rpd: 500 } } },
+    );
+    const s1 = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
+    expect(router.choose('narrative')).toMatchObject({ model: 'gemini-3.5-flash-lite', skipped: [{ model: 'gemini-3.8-flash', reason: 'rpdReached' }] });
+    await playTurn(deps, s1, { kind: 'choice', choice: choiceInvestigate });
+    expect(provider.calls.map((c) => c.opts.model)).toEqual(['gemini-3.8-flash', 'gemini-3.5-flash-lite']);
+  });
+
+  it('with no model left the daily 429 surfaces as an error; each model is tried once', async () => {
+    const { deps, provider, router } = setup([
+      { callType: 'narrative', data: opening },
+      { callType: 'narrative', model: 'gemini-3.8-flash', error: daily },
+      { callType: 'narrative', model: 'gemini-3.5-flash-lite', error: daily },
+      { callType: 'intent', model: 'gemini-3.5-flash-lite', error: daily },
+    ]);
+    const s1 = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
+    const err = (await playTurn(deps, s1, { kind: 'choice', choice: choiceInvestigate }).catch((e: unknown) => e)) as TurnError;
+    expect(err.stage).toBe('narrate');
+    expect(provider.calls).toHaveLength(3);
+    expect(router.notices()).toEqual([
+      'Flash daily limit reached and no fallback left; requests may fail until reset',
+      'Intent: Flash-Lite daily limit reached and no fallback left; requests may fail until reset',
+      'Summary: Flash-Lite daily limit reached and no fallback left; requests may fail until reset',
+      'OOC: Flash-Lite daily limit reached and no fallback left; requests may fail until reset',
+    ]);
+    // A single-model list (intent) makes one call and errors; there is only one API key.
+    const e2 = (await playTurn(deps, s1, { kind: 'typed', text: 'hi' }).catch((e: unknown) => e)) as TurnError;
+    expect(e2.stage).toBe('intent');
+    expect(provider.calls).toHaveLength(4);
   });
 });

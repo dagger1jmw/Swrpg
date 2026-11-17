@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { defaultSettings, loadSettings, saveSettings, validateApiKey, withModel, type KeyValueStore } from '../../src/ai/settings';
+import { defaultSettings, loadSettings, primaryModel, saveSettings, validateApiKey, withModelList, withPrimaryModel, type KeyValueStore } from '../../src/ai/settings';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { loadEnvelope, makeEnvelope } from '../../src/persist/envelope';
 import { AUTOSAVE_SLOT, createMemoryStorage } from '../../src/persist/storage';
@@ -84,13 +84,38 @@ describe('settings (D-24)', () => {
   it('defaults to the D-68 models and round-trips', () => {
     const store = memStore();
     const s = loadSettings(store);
-    expect(s.models.narrative).toBe('gemini-3.8-flash');
-    expect(s.models.intent).toBe('gemini-3.5-flash-lite');
+    expect(s.modelLists.narrative).toEqual(['gemini-3.8-flash', 'gemini-3.5-flash-lite']);
+    expect(s.modelLists.intent).toEqual(['gemini-3.5-flash-lite']);
     expect(s.limits['gemini-3.6-flash']).toEqual({ rpm: 5, tpm: 250_000, rpd: 20 });
-    saveSettings(store, withModel({ ...s, apiKey: 'AIzaXXXXXXXXXXXXXXXXXXXX' }, 'narrative', 'gemini-3.8-flash'));
+    saveSettings(store, withPrimaryModel({ ...s, apiKey: 'AIzaXXXXXXXXXXXXXXXXXXXX' }, 'narrative', 'gemini-3.5-flash-lite'));
     const back = loadSettings(store);
-    expect(back.models.narrative).toBe('gemini-3.8-flash');
+    expect(back.modelLists.narrative).toEqual(['gemini-3.5-flash-lite', 'gemini-3.8-flash']);
+    expect(primaryModel(back, 'narrative')).toBe('gemini-3.5-flash-lite');
     expect(back.apiKey).toBe('AIzaXXXXXXXXXXXXXXXXXXXX');
+  });
+
+  it('migrates pre-D-80 settings: an untouched old default becomes the new list, a chosen model stays first', () => {
+    const store = memStore();
+    const legacy = (narrative: string) =>
+      JSON.stringify({
+        apiKey: 'AIzaXXXXXXXXXXXXXXXXXXXX',
+        models: { narrative, intent: 'gemini-3.5-flash-lite', summary: 'gemini-3.5-flash-lite', ooc: 'gemini-3.5-flash-lite' },
+        limits: {},
+        autoRetry: false,
+      });
+    store.setItem('swrpg-v2:settings', legacy('gemini-3.6-flash'));
+    const a = loadSettings(store);
+    expect(a.modelLists.narrative).toEqual(['gemini-3.8-flash', 'gemini-3.5-flash-lite']);
+    expect(a.apiKey).toBe('AIzaXXXXXXXXXXXXXXXXXXXX');
+    expect(a.autoRetry).toBe(false);
+    store.setItem('swrpg-v2:settings', legacy('gemini-4-hydrogen'));
+    expect(loadSettings(store).modelLists.narrative).toEqual(['gemini-4-hydrogen', 'gemini-3.8-flash', 'gemini-3.5-flash-lite']);
+  });
+
+  it('model lists are trimmed, de-duplicated and never empty', () => {
+    const s = defaultSettings();
+    expect(withModelList(s, 'narrative', [' gemini-3.8-flash', 'gemini-3.8-flash', '', 'x ']).modelLists.narrative).toEqual(['gemini-3.8-flash', 'x']);
+    expect(withModelList(s, 'narrative', ['', ' ']).modelLists.narrative).toEqual(s.modelLists.narrative);
   });
 
   it('falls back to defaults on corrupt data', () => {

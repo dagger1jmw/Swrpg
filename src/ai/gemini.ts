@@ -12,6 +12,7 @@ import {
   type FinishReason,
   type Message,
   type ModelProvider,
+  type QuotaScope,
   type StructuredResult,
   type Usage,
 } from './provider';
@@ -82,6 +83,19 @@ function retryAfter(body: unknown): number | undefined {
   return undefined;
 }
 
+/**
+ * Reads the quota window from a 429 body. Gemini returns a google.rpc.QuotaFailure whose
+ * violations name the quota, e.g. quotaId "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+ * or "GenerateContentInputTokensPerModelPerMinute-FreeTier". Per-day wins if both appear.
+ */
+export function quotaScopeOf(body: unknown): QuotaScope {
+  const details = (body as { error?: { details?: { violations?: { quotaId?: string; quotaMetric?: string }[] }[] } })?.error?.details ?? [];
+  const ids = details.flatMap((d) => d.violations ?? []).map((v) => `${v.quotaId ?? ''} ${v.quotaMetric ?? ''}`);
+  if (ids.some((id) => /per\s*day|perday|daily/i.test(id))) return 'day';
+  if (ids.some((id) => /per\s*minute|perminute/i.test(id))) return 'minute';
+  return 'unknown';
+}
+
 export function createGeminiProvider(deps: GeminiDeps): ModelProvider {
   const base = deps.baseUrl ?? GEMINI_BASE_URL;
   return {
@@ -121,7 +135,13 @@ export function createGeminiProvider(deps: GeminiDeps): ModelProvider {
         const msg = (body as { error?: { message?: string } })?.error?.message ?? res.statusText;
         if (res.status === 429) {
           const ra = retryAfter(body);
-          throw new AiError('rateLimit', `Rate limit reached for ${opts.model}: ${msg}`, { status: 429, ...(ra !== undefined ? { retryAfterSeconds: ra } : {}) });
+          const quotaScope = quotaScopeOf(body);
+          const what = quotaScope === 'day' ? 'Daily limit' : quotaScope === 'minute' ? 'Per-minute limit' : 'Rate limit';
+          throw new AiError('rateLimit', `${what} reached for ${opts.model}: ${msg}`, {
+            status: 429,
+            quotaScope,
+            ...(ra !== undefined ? { retryAfterSeconds: ra } : {}),
+          });
         }
         throw new AiError('http', `Gemini error ${res.status}: ${msg}`, { status: res.status });
       }

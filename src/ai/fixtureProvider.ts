@@ -5,6 +5,7 @@ import {
   AiError,
   parseStructured,
   type AiErrorKind,
+  type QuotaScope,
   type CallOptions,
   type Message,
   type ModelProvider,
@@ -13,9 +14,15 @@ import {
 } from './provider';
 
 export type FixtureStep =
-  | { callType?: CallOptions['callType']; data: unknown; usage?: Partial<Usage> }
-  | { callType?: CallOptions['callType']; rawText: string; usage?: Partial<Usage> }
-  | { callType?: CallOptions['callType']; error: { kind: AiErrorKind; message?: string; status?: number; retryAfterSeconds?: number }; usage?: Partial<Usage> };
+  | { callType?: CallOptions['callType']; model?: string; data: unknown; usage?: Partial<Usage> }
+  | { callType?: CallOptions['callType']; model?: string; rawText: string; usage?: Partial<Usage> }
+  | {
+      callType?: CallOptions['callType'];
+      /** Expected model, checked when set (fallback tests). */
+      model?: string;
+      error: { kind: AiErrorKind; message?: string; status?: number; retryAfterSeconds?: number; quotaScope?: QuotaScope };
+      usage?: Partial<Usage>;
+    };
 
 export interface RecordedCall {
   opts: CallOptions;
@@ -47,13 +54,17 @@ export function createFixtureProvider(steps: readonly FixtureStep[]): FixturePro
       if (step.callType && step.callType !== opts.callType) {
         throw new Error(`Fixture provider: expected a ${step.callType} call, got ${opts.callType}`);
       }
+      if (step.model && step.model !== opts.model) {
+        throw new Error(`Fixture provider: expected model ${step.model}, got ${opts.model}`);
+      }
       const usage = usageOf(step.usage);
       if ('error' in step) {
-        const { kind, message, status, retryAfterSeconds } = step.error;
+        const { kind, message, status, retryAfterSeconds, quotaScope } = step.error;
         const reached = kind === 'truncated' || kind === 'invalidJson' || kind === 'schema';
         throw new AiError(kind, message ?? kind, {
           ...(status !== undefined ? { status } : {}),
           ...(retryAfterSeconds !== undefined ? { retryAfterSeconds } : {}),
+          ...(quotaScope !== undefined ? { quotaScope } : {}),
           ...(reached ? { usage } : {}),
         });
       }

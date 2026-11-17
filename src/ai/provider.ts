@@ -47,20 +47,29 @@ export interface ModelProvider {
 
 export type AiErrorKind = 'truncated' | 'rateLimit' | 'timeout' | 'network' | 'http' | 'invalidJson' | 'schema' | 'empty' | 'blocked' | 'noKey';
 
+/** Which quota window a 429 hit: per day (fallback, D-80), per minute (Retry), or not stated. */
+export type QuotaScope = 'day' | 'minute' | 'unknown';
+
 /** Every provider failure. `usage` is set when the request reached the model (it still counts). */
 export class AiError extends Error {
   readonly kind: AiErrorKind;
   readonly status: number | undefined;
   readonly retryAfterSeconds: number | undefined;
   readonly usage: Usage | undefined;
+  readonly quotaScope: QuotaScope | undefined;
 
-  constructor(kind: AiErrorKind, message: string, extra: { status?: number; retryAfterSeconds?: number; usage?: Usage } = {}) {
+  constructor(
+    kind: AiErrorKind,
+    message: string,
+    extra: { status?: number; retryAfterSeconds?: number; usage?: Usage; quotaScope?: QuotaScope } = {},
+  ) {
     super(message);
     this.name = 'AiError';
     this.kind = kind;
     this.status = extra.status;
     this.retryAfterSeconds = extra.retryAfterSeconds;
     this.usage = extra.usage;
+    this.quotaScope = extra.quotaScope;
   }
 }
 

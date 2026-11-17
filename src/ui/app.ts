@@ -1,14 +1,19 @@
 // UI: rendering and player actions only (architecture §1). Reads state through selectors and
 // calls the turn pipeline; no game rules here.
+import { createModelRouter, type ModelRouter, type QuotaState } from '../ai/fallback';
 import { FALLBACK_NARRATIVE_MODEL, KNOWN_MODELS } from '../ai/models.config';
 import type { CallType, ModelProvider, Usage } from '../ai/provider';
 import {
+  loadQuota,
   loadSettings,
   loadUsage,
+  primaryModel,
+  saveQuota,
   saveSettings,
   saveUsage,
   validateApiKey,
-  withModel,
+  withModelList,
+  withPrimaryModel,
   type KeyValueStore,
   type Settings,
 } from '../ai/settings';
@@ -57,11 +62,25 @@ export class App {
   private loadError: string | null = null;
   private confirmNew = false;
   private readonly provider: ModelProvider;
+  private quota: QuotaState;
+  private readonly router: ModelRouter;
 
   constructor(private readonly d: AppDeps) {
     this.settings = loadSettings(d.kv);
     this.usage = loadUsage(d.kv);
+    this.quota = loadQuota(d.kv);
     this.provider = d.makeProvider(() => this.settings.apiKey);
+    this.router = createModelRouter({
+      getLists: () => this.settings.modelLists,
+      getLimits: () => this.settings.limits,
+      getUsage: () => this.usage,
+      getQuota: () => this.quota,
+      setQuota: (q) => {
+        this.quota = q;
+        saveQuota(this.d.kv, q);
+      },
+      now: () => this.d.now(),
+    });
   }
 
   async start(): Promise<void> {
@@ -82,6 +101,7 @@ export class App {
     return {
       registry: this.d.registry,
       provider: this.provider,
+      router: this.router,
       storage: this.d.storage,
       getSettings: () => this.settings,
       wallClock: () => {
@@ -137,11 +157,11 @@ export class App {
     const err = el('div', { class: 'error' });
 
     const modelFields = (['narrative', 'intent', 'summary', 'ooc'] as CallType[]).map((ct) => {
-      const inp = input({ list: 'known-models', value: s.models[ct] });
-      return { ct, inp, node: el('div', { class: 'field' }, [el('label', { text: `${ct} model` }), inp]) };
+      const inp = input({ value: s.modelLists[ct].join(', ') });
+      return { ct, inp, node: el('div', { class: 'field' }, [el('label', { text: `${ct} models (in order; later ones are used when a daily limit is reached)` }), inp]) };
     });
 
-    const models = [...new Set([...KNOWN_MODELS, ...Object.values(s.models), ...Object.keys(s.limits)])];
+    const models = [...new Set([...KNOWN_MODELS, ...Object.values(s.modelLists).flat(), ...Object.keys(s.limits)])];
     const limitRows = models.map((m) => {
       const l = s.limits[m] ?? {};
       const cell = (v: number | undefined) => input({ type: 'number', min: '1', value: v !== undefined ? String(v) : '' });
@@ -161,7 +181,7 @@ export class App {
         return;
       }
       let next: Settings = { ...this.settings, apiKey: k.key, autoRetry: autoRetry.checked };
-      for (const f of modelFields) if (f.inp.value.trim()) next = withModel(next, f.ct, f.inp.value.trim());
+      for (const f of modelFields) next = withModelList(next, f.ct, f.inp.value.split(','));
       const num = (i: HTMLInputElement): number | undefined => {
         const n = Number(i.value);
         return i.value.trim() && Number.isInteger(n) && n > 0 ? n : undefined;
@@ -362,7 +382,7 @@ export class App {
 
   private renderHeader(state: GameState): HTMLElement {
     const now = selectNow(state);
-    const narrativeModel = this.settings.models.narrative;
+    const narrativeModel = primaryModel(this.settings, 'narrative');
     const ms = this.d.now();
     const models = [...new Set([...KNOWN_MODELS, narrativeModel])];
     const remainingLabel = (m: string): string => {
@@ -376,7 +396,7 @@ export class App {
         attrs: { 'aria-label': 'Story model' },
         on: {
           change: (e) => {
-            this.settings = withModel(this.settings, 'narrative', (e.target as HTMLSelectElement).value);
+            this.settings = withPrimaryModel(this.settings, 'narrative', (e.target as HTMLSelectElement).value);
             saveSettings(this.d.kv, this.settings);
             this.render();
           },
@@ -386,9 +406,11 @@ export class App {
     );
     picker.value = narrativeModel;
 
-    const usedModels = [...new Set(Object.values(this.settings.models))];
-    const warnings = usedModels.flatMap((m) => summarizeUsage(this.usage, m, this.settings.limits[m] ?? {}, ms).warnings);
-    const intentUse = summarizeUsage(this.usage, this.settings.models.intent, this.settings.limits[this.settings.models.intent] ?? {}, ms);
+    const inUse = (['narrative', 'intent', 'summary', 'ooc'] as CallType[]).map((ct) => this.router.choose(ct).model);
+    const warnings = [...new Set(inUse)].flatMap((m) => summarizeUsage(this.usage, m, this.settings.limits[m] ?? {}, ms).warnings);
+    const fallbackNotices = this.router.notices();
+    const intentModel = this.router.choose('intent').model;
+    const intentUse = summarizeUsage(this.usage, intentModel, this.settings.limits[intentModel] ?? {}, ms);
 
     const newBtn = this.confirmNew
       ? el('span', {}, [
@@ -410,6 +432,7 @@ export class App {
         el('span', { class: 'hint', text: `Intent: ${intentUse.model} (${intentUse.requestsToday} today)` }),
         el('span', {}, [el('button', { class: 'secondary', text: 'Settings', on: { click: () => this.go('settings') } }), ' ', newBtn]),
       ]),
+      fallbackNotices.length ? el('div', { class: 'fallback', text: fallbackNotices.join(' · ') }) : null,
       warnings.length ? el('div', { class: 'warnings', text: warnings.join(' · ') }) : null,
     ]);
   }

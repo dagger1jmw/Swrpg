@@ -1,11 +1,14 @@
 // The turn pipeline (architecture §4): intent -> resolve -> narrate -> validate -> apply -> commit.
 // prepareTurn does a (intent call, typed input only) and b (resolve, once). narrateTurn does c-d
 // and can be retried with the same PendingTurn: the TurnDraft and its dice are never recomputed.
-// Failure policy (D-16): one automatic fresh call only when the narrative is truncated and
-// autoRetry is on; every other failure surfaces as a TurnError for a Retry button.
+// Failure policy (D-16 as amended by D-80): one automatic fresh call when the narrative is
+// truncated and autoRetry is on, and one automatic call on the next model in the call type's list
+// when the API reports the daily quota exhausted. Every other failure (including per-minute 429s)
+// surfaces as a TurnError for a Retry button.
+import { isDailyQuotaError, type ModelRouter } from '../ai/fallback';
 import { CALL_SETTINGS, JSON_OVERHEAD_TOKENS, THINKING_HEADROOM_TOKENS, TRUNCATION_RETRY_FACTOR } from '../ai/models.config';
 import { PROMPTS } from '../ai/prompts';
-import { AiError, type CallOptions, type CallType, type ModelProvider, type Usage } from '../ai/provider';
+import { AiError, type CallOptions, type CallType, type ModelProvider, type StructuredResult, type Usage } from '../ai/provider';
 import { composeNarrativeSchema, narrativeEventTypes, type NarrativeReply } from '../ai/schemas/compose';
 import { intentSchema, normalizeIntent, type Intent } from '../ai/schemas/intent';
 import type { Settings } from '../ai/settings';
@@ -24,6 +27,8 @@ import { resolveTurn, type Resolution } from './resolve';
 export interface TurnDeps {
   registry: Registry<GameState>;
   provider: ModelProvider;
+  /** Picks the model per call type from its ordered list and records exhausted daily quotas (D-80). */
+  router: ModelRouter;
   storage: Storage;
   getSettings(): Settings;
   /** Wall-clock time for savedAt and the usage meter (not game time). */
@@ -66,11 +71,12 @@ export class TurnError extends Error {
   }
 }
 
-function callOptions(settings: Settings, callType: CallType, system: string, maxOutputTokens: number): CallOptions {
+type BaseOptions = Omit<CallOptions, 'model'>;
+
+function callOptions(callType: CallType, system: string, maxOutputTokens: number): BaseOptions {
   const cfg = CALL_SETTINGS[callType];
   return {
     callType,
-    model: settings.models[callType],
     system,
     maxOutputTokens,
     temperature: cfg.temperature,
@@ -89,25 +95,58 @@ async function tracked<T>(deps: TurnDeps, calls: CallRecord[], opts: CallOptions
     return r.data;
   } catch (e) {
     const usage = e instanceof AiError ? (e.usage ?? null) : null;
-    calls.push({ callType: opts.callType, model: opts.model, usage, outcome: e instanceof AiError ? e.kind : 'error' });
+    const outcome = e instanceof AiError ? (e.kind === 'rateLimit' ? `rateLimit:${e.quotaScope ?? 'unknown'}` : e.kind) : 'error';
+    calls.push({ callType: opts.callType, model: opts.model, usage, outcome });
     if (reachedApi(e)) deps.recordCall?.(opts.model, usage);
     throw e;
+  }
+}
+
+/**
+ * One logical model call with daily-quota fallback (D-80): use the router's model; if the API
+ * says that model's daily quota is exhausted, mark it and call the next model in the list. Each
+ * model is tried at most once; a per-minute or unidentified 429 is rethrown (Retry button).
+ */
+async function callModel<T>(
+  deps: TurnDeps,
+  calls: CallRecord[],
+  notes: string[],
+  base: BaseOptions,
+  run: (opts: CallOptions) => Promise<StructuredResult<T>>,
+): Promise<T> {
+  const tried = new Set<string>();
+  let lastDaily: unknown = null;
+  for (;;) {
+    const choice = deps.router.choose(base.callType);
+    if (tried.has(choice.model)) throw lastDaily;
+    tried.add(choice.model);
+    if (choice.model !== choice.primary) {
+      const why = choice.skipped.map((s) => `${s.model} ${s.reason === 'dailyQuota' ? 'daily quota exhausted' : 'requests-per-day limit reached'}`).join(', ');
+      const note = `${base.callType}: using fallback ${choice.model} (${why})`;
+      if (!notes.includes(note)) notes.push(note);
+    }
+    const opts: CallOptions = { ...base, model: choice.model };
+    try {
+      return await tracked(deps, calls, opts, () => run(opts));
+    } catch (e) {
+      if (!isDailyQuotaError(e)) throw e;
+      deps.router.markExhausted(choice.model);
+      lastDaily = e;
+    }
   }
 }
 
 /** a + b: intent (typed input only) and engine resolution. Rolls dice exactly once. */
 export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnInput): Promise<PendingTurn> {
   const calls: CallRecord[] = [];
-  const settings = deps.getSettings();
   let intent: Intent | null = null;
   const intentNotes: string[] = [];
 
   if (input.kind === 'typed') {
-    const opts = callOptions(settings, 'intent', PROMPTS.intent, CALL_SETTINGS.intent.maxOutputTokens + THINKING_HEADROOM_TOKENS);
+    const base = callOptions('intent', PROMPTS.intent, CALL_SETTINGS.intent.maxOutputTokens + THINKING_HEADROOM_TOKENS);
+    const messages = intentMessages(session.state, input.text, session.history);
     try {
-      intent = normalizeIntent(
-        await tracked(deps, calls, opts, () => deps.provider.generateStructured(intentSchema, intentMessages(session.state, input.text, session.history), opts)),
-      );
+      intent = normalizeIntent(await callModel(deps, calls, intentNotes, base, (opts) => deps.provider.generateStructured(intentSchema, messages, opts)));
     } catch (e) {
       throw new TurnError('intent', e, calls);
     }
@@ -127,20 +166,22 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   const settings = deps.getSettings();
   const { draft, state: resolved } = pending.resolution;
   let reply = pending.reply;
+  const modelNotes: string[] = [];
 
   if (!reply) {
     const schemas = composeNarrativeSchema(deps.registry, resolved, { timeAdvancedByDraft: draft.timeAdvanced !== null });
     const system = narrativeSystemPrompt(resolved, pending.input.kind === 'opening');
     const messages = narrativeMessages(resolved, draft, pending.input, session.history);
     const budget = PACING_OUTPUT_CAPS[draft.pacingLevel] + JSON_OVERHEAD_TOKENS + THINKING_HEADROOM_TOKENS;
-    const first: CallOptions = { ...callOptions(settings, 'narrative', system, budget), wireSchema: schemas.wire };
+    const first: BaseOptions = { ...callOptions('narrative', system, budget), wireSchema: schemas.wire };
+    const narrate = (opts: CallOptions) => deps.provider.generateStructured(schemas.parse, messages, opts);
     try {
       try {
-        reply = await tracked(deps, calls, first, () => deps.provider.generateStructured(schemas.parse, messages, first));
+        reply = await callModel(deps, calls, modelNotes, first, narrate);
       } catch (e) {
         if (!(e instanceof AiError && e.kind === 'truncated' && settings.autoRetry)) throw e;
         const second = { ...first, maxOutputTokens: Math.ceil(budget * TRUNCATION_RETRY_FACTOR) };
-        reply = await tracked(deps, calls, second, () => deps.provider.generateStructured(schemas.parse, messages, second));
+        reply = await callModel(deps, calls, modelNotes, second, narrate);
       }
     } catch (e) {
       throw new TurnError('narrate', e, calls, { ...pending, calls });
@@ -169,7 +210,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
       timeAdvanced: draft.timeAdvanced,
       pacingLevel: draft.pacingLevel,
       notices: [...draft.notices, ...result.notices],
-      report: [...pending.intentNotes, ...draft.report],
+      report: [...pending.intentNotes, ...draft.report, ...modelNotes],
       resolvedActions: draft.resolvedActions,
       applied: [...draft.applied],
       rejected: [...draft.rejected],

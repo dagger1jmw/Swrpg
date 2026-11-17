@@ -86,6 +86,7 @@ header.game .bar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: c
 header.game select { min-height: 34px; padding: 4px 8px; }
 header.game button { min-height: 34px; padding: 6px 12px; }
 .warnings { color: var(--warn); font-size: 13px; }
+.fallback { color: var(--bg); background: var(--warn); border-radius: 4px; padding: 2px 8px; margin-top: 4px; font-size: 13px; font-weight: 600; display: inline-block; }
 
 .feed .turn { margin-bottom: 20px; }
 .feed .player { color: var(--accent-2); font-style: italic; margin-bottom: 6px; }

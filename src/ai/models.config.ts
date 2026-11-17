@@ -1,13 +1,17 @@
 // Model and call configuration (architecture §6, §7; D-68). All values are Settings defaults.
 import type { CallType, ThinkingSetting } from './provider';
 
-export const DEFAULT_MODELS: Record<CallType, string> = {
-  // D-79: 3.8-flash gave the best prose and was faster than 3.6-flash in the D-78 live test.
-  narrative: 'gemini-3.8-flash',
-  intent: 'gemini-3.5-flash-lite',
-  summary: 'gemini-3.5-flash-lite',
-  ooc: 'gemini-3.5-flash-lite',
-};
+/**
+ * Ordered model list per call type (D-80). The first is used; on an exhausted daily quota the
+ * call moves to the next one until the Pacific midnight reset.
+ * Narrative: 3.8-flash (D-79), then 3.5-flash-lite, the fastest model with its own daily quota.
+ */
+export const DEFAULT_MODEL_LISTS: Record<CallType, readonly string[]> = {
+  narrative: ['gemini-3.8-flash', 'gemini-3.5-flash-lite'],
+  intent: ['gemini-3.5-flash-lite'],
+  summary: ['gemini-3.5-flash-lite'],
+  ooc: ['gemini-3.5-flash-lite'],
+}
 
 /** Suggested in the header picker when the Flash daily quota runs low (fastest; thinner prose, D-78). */
 export const FALLBACK_NARRATIVE_MODEL = 'gemini-3.5-flash-lite';
