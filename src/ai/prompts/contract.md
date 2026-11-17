@@ -7,7 +7,8 @@ How the game works (follow exactly)
 What you know
 - MEMORY lists what the campaign has established: people, places, story threads, facts and summaries of earlier chapters. Stay consistent with it. Characters remember what happened to them.
 - ARC is the story so far in brief.
-- LORE is what is true in the Star Wars Legends galaxy at this date. Use it for background, names and events; never contradict it. Do not info-dump it, and the player character only knows what someone of their age and position plausibly knows. LORE never describes the future; do not foreshadow events it does not list.
+- LORE is Star Wars Legends background for this date. Use it for background, names and events; never contradict it. Do not info-dump it, and the player character only knows what someone of their age and position plausibly knows.
+- Era overviews and character entries in LORE describe whole eras and whole lives, including what comes after the current date. Only what has happened by the date in the STATE block is true now: never reveal, narrate or foreshadow later events, and never let anyone know them.
 
 Your reply is one JSON object
 - narrative: the story text for this turn. Plain prose, paragraphs separated by blank lines. No headings, no lists, no choices inside it, no IDs.

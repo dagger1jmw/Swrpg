@@ -56,7 +56,9 @@ export function scoreChunk(c: LoreChunk, q: LoreQuery): { score: number; why: st
     if (q.names.includes(n)) add(LORE_SCORES.nameMatch, `names ${n}`);
     else if (q.playerText && isScannableAlias(n) && textMentions(q.playerText, n)) add(LORE_SCORES.textMention, `player mentions ${n}`);
   }
-  for (const l of c.locations) if (q.locationNames.includes(l)) add(LORE_SCORES.locationMatch, `place ${l}`);
+  // A person's entry describes their whole life, later events included, so it is sent only when
+  // that person is in play (canon, name or the player's words), never for a shared place (D-93).
+  if (c.kind !== 'character' && c.kind !== 'bench') for (const l of c.locations) if (q.locationNames.includes(l)) add(LORE_SCORES.locationMatch, `place ${l}`);
   return { score, why };
 }
 

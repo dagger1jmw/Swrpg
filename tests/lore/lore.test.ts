@@ -101,6 +101,10 @@ describe('lore retrieval', () => {
     const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661, playerText: normalizeText('I ask about Satele Shan') }, 3000, est);
     expect(sel.included.some((s) => s.chunk.canonId === 'lore:satele-shan')).toBe(true);
   });
+  it('a shared place alone never pulls in a person (their entry spans their whole life, D-93)', () => {
+    const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661, locationNames: ['coruscant', 'jedi temple'] }, 3000, est);
+    expect(sel.included.some((s) => s.chunk.kind === 'character' || s.chunk.kind === 'bench')).toBe(false);
+  });
   it('respects the cap', () => {
     const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661 }, 400, est);
     expect(sel.tokens).toBeLessThanOrEqual(400);
