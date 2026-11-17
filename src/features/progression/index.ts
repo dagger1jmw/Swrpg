@@ -4,7 +4,11 @@
 // and milestoneBeatAcknowledged and never sets a number.
 import { z } from 'zod';
 import { DISTRACTED, OVERTRAINING, PACE_WINDOW_DAYS, PASSION_DAYS, STATE_STRENGTH, CENTERED_MEDITATION_HOURS, EMOTION_TO_STATE, FATIGUE_WILLPOWER, type StateOfMind } from '../../data/progression.config';
-import { SKILL_BY_ID, CATEGORY_RULES } from '../../data/skills';
+import { SKILL_BY_ID, CATEGORY_RULES, PHYSICAL_STATS } from '../../data/skills';
+import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY } from '../../data/activities';
+import { COMBAT_OUTCOMES, COMBAT_STAKES } from '../../data/progression.config';
+import { computeCombatXp, type CombatSession } from '../../engine/combatXp';
+import { clampFor, speedFor } from './training';
 import { fromAbsSecond } from '../../engine/calendar';
 import { levelWithNatural, thresholdsCrossed, tierOf } from '../../engine/curve';
 import { removeRust, rustAfterDay } from '../../engine/rust';
@@ -13,7 +17,7 @@ import type { FeatureModule, GameEvent } from '../../state/types';
 import { selectNow } from '../clock/selectors';
 import { selectMaxFraction } from '../health/selectors';
 import { selectOpenThreads } from '../threads/selectors';
-import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressionV1, progressionSliceSchema, type ProgressionSlice, type StateOfMindRecord } from './progression';
+import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressionV1, migrateProgressionV2, progressionSliceSchema, type ProgressionSlice, type StateOfMindRecord } from './progression';
 import { selectCapacities, selectLevelExact, selectNatural, selectSkillViews, selectStateOfMind, selectTierBeats } from './selectors';
 
 const EMOTIONS = ['grief', 'fear', 'anger', 'hatred', 'calm', 'pride', 'despair'] as const;
@@ -28,10 +32,73 @@ function setState(cur: StateOfMindRecord, next: StateOfMindRecord, day: number, 
 
 const PASSIONS: readonly StateOfMind[] = ['fear', 'anger', 'hatred', 'pride'];
 
+/** One duel exchange is 5-10 s (architecture §10); 7.5 s on average. */
+const EXCHANGE_HOURS = 7.5 / 3600;
+
+/** combat-xp §1: the 0.25 goes to the physical stats by the skill's own activity weights. */
+function combatPhysicalWeights(skill: string): Record<string, number> {
+  const act = ACTIVITY_BY_ID.get(DEFAULT_ACTIVITY[skill] ?? '');
+  if (!act || SKILL_BY_ID.get(skill)?.kind === 'forceAbility') return {};
+  return Object.fromEntries(Object.entries(act.secondaries).filter(([k]) => (PHYSICAL_STATS as readonly string[]).includes(k) && k !== skill));
+}
+
+/**
+ * Credits XP to skills (tier beats, rust removal, the pace window): shared by training sessions and
+ * fights, so every source lands the same way.
+ */
+function creditXp(
+  slice: ProgressionSlice,
+  s: GameState,
+  credited: Record<string, number>,
+  practice: Record<string, number>,
+  windowHours: Record<string, number>,
+  day: number,
+): { slice: ProgressionSlice; emit: GameEvent[]; notes: string[] } {
+  const skills = { ...slice.skills };
+  const beats = [...slice.tierBeatsPending];
+  let seq = slice.nextSeq;
+  const emit: GameEvent[] = [];
+  const notes: string[] = [];
+  for (const [id, xp] of Object.entries(credited)) {
+    if (xp <= 0) continue;
+    const prev = skills[id] ?? { xp: 0, rust: 0, lastPracticedDay: null };
+    const natural = selectNatural(s, id);
+    const before = levelWithNatural(prev.xp, natural);
+    const after = levelWithNatural(prev.xp + xp, natural);
+    skills[id] = { ...prev, xp: prev.xp + xp };
+    // Crossing 21 / 41 / 61 / 81 / 101 / 151: one non-blocking beat each (architecture §12).
+    for (const t of thresholdsCrossed(before, after)) {
+      const beat = { id: `beat:${seq}`, skillId: id, tier: t, day };
+      seq += 1;
+      beats.push(beat);
+      const name = SKILL_BY_ID.get(id)!.name;
+      notes.push(`${name} reached ${t} (${tierOf(t)})`);
+      emit.push({ type: 'factLearned', aboutRef: 'pc', fact: `Reached ${tierOf(t)} level (${t}) in ${name}.`, importance: t >= 41 ? 'major' : 'minor' });
+    }
+  }
+  for (const [id, h] of Object.entries(practice)) {
+    const prev = skills[id] ?? { xp: 0, rust: 0, lastPracticedDay: null };
+    skills[id] = { ...prev, rust: removeRust(prev.rust, h), lastPracticedDay: day };
+  }
+  // Pace window (D-48, D-104): today's credited XP and training hours per skill (hours by XP share, D-109).
+  const paceWindow = { ...slice.paceWindow };
+  const touch = new Set([...Object.keys(credited), ...Object.keys(windowHours)]);
+  for (const id of touch) {
+    const entries = (paceWindow[id] ?? []).filter((w) => w.day > day - PACE_WINDOW_DAYS);
+    const last = entries[entries.length - 1];
+    const addXp = credited[id] ?? 0;
+    const addHours = windowHours[id] ?? 0;
+    if (last && last.day === day) entries[entries.length - 1] = { day, xp: last.xp + addXp, hours: last.hours + addHours };
+    else entries.push({ day, xp: addXp, hours: addHours });
+    paceWindow[id] = entries;
+  }
+  return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow }, emit, notes };
+}
+
 export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
   id: 'progression',
-  version: 2,
-  migrations: { 2: migrateProgressionV1 },
+  version: 3,
+  migrations: { 2: migrateProgressionV1, 3: migrateProgressionV2 },
   initialState: (ctx) => emptyProgression(ctx.start.day, ctx.startingXp ?? {}),
   // Saves from M1/M2: no training (natural baselines only).
   emptyState: (raw) => {
@@ -54,6 +121,10 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         practiceHours: record,
         /** Fundamentals transfer to forms started by this session (D-119): outside the pace window. */
         transfer: record.optional(),
+        /** Forms this session started by self-study (D-126). */
+        selfTaughtStarted: z.array(z.string()).optional(),
+        /** Self-taught forms this session trained with teaching (no longer self-taught). */
+        taught: z.array(z.string()).optional(),
         fatigueWillpower: z.number().min(0),
         meditation: z.boolean(),
         day: z.object({ hoursByActivity: record, postWindow: z.number().min(0), lastPhysicalHeavy: z.boolean() }),
@@ -67,8 +138,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         const windowHours = e['windowHours'] as Record<string, number>;
         for (const id of [...Object.keys(credited), ...Object.keys(practice)]) if (!SKILL_BY_ID.has(id)) return { reject: `unknown skill ${id}` };
 
-        const skills = { ...slice.skills };
-        const beats = [...slice.tierBeatsPending];
+        let skills = { ...slice.skills };
         // D-119: the transfer lands first, once per form, and never enters the pace window.
         const transfer = (e['transfer'] as Record<string, number> | undefined) ?? {};
         const formsStarted = [...slice.formsStarted];
@@ -80,42 +150,13 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           formsStarted.push(id);
         }
         for (const id of e['primaries'] as string[]) if (SKILL_BY_ID.get(id)?.kind === 'form' && !formsStarted.includes(id)) formsStarted.push(id);
-        let seq = slice.nextSeq;
-        const emit: GameEvent[] = [];
-        const notes: string[] = [];
-        for (const [id, xp] of Object.entries(credited)) {
-          if (xp <= 0) continue;
-          const prev = skills[id] ?? { xp: 0, rust: 0, lastPracticedDay: null };
-          const natural = selectNatural(ctx.state, id);
-          const before = levelWithNatural(prev.xp, natural);
-          const after = levelWithNatural(prev.xp + xp, natural);
-          skills[id] = { ...prev, xp: prev.xp + xp };
-          // Crossing 21 / 41 / 61 / 81 / 101 / 151: one non-blocking beat each (architecture §12).
-          for (const t of thresholdsCrossed(before, after)) {
-            const beat = { id: `beat:${seq}`, skillId: id, tier: t, day };
-            seq += 1;
-            beats.push(beat);
-            const name = SKILL_BY_ID.get(id)!.name;
-            notes.push(`${name} reached ${t} (${tierOf(t)})`);
-            emit.push({ type: 'factLearned', aboutRef: 'pc', fact: `Reached ${tierOf(t)} level (${t}) in ${name}.`, importance: t >= 41 ? 'major' : 'minor' });
-          }
-        }
-        for (const [id, h] of Object.entries(practice)) {
-          const prev = skills[id] ?? { xp: 0, rust: 0, lastPracticedDay: null };
-          skills[id] = { ...prev, rust: removeRust(prev.rust, h), lastPracticedDay: day };
-        }
-        // Pace window (D-48, D-104): today's credited XP and training hours per skill (hours by XP share, D-109).
-        const paceWindow = { ...slice.paceWindow };
-        const touch = new Set([...Object.keys(credited), ...Object.keys(windowHours)]);
-        for (const id of touch) {
-          const entries = (paceWindow[id] ?? []).filter((w) => w.day > day - PACE_WINDOW_DAYS);
-          const last = entries[entries.length - 1];
-          const addXp = credited[id] ?? 0;
-          const addHours = windowHours[id] ?? 0;
-          if (last && last.day === day) entries[entries.length - 1] = { day, xp: last.xp + addXp, hours: last.hours + addHours };
-          else entries.push({ day, xp: addXp, hours: addHours });
-          paceWindow[id] = entries;
-        }
+        const cr = creditXp({ ...slice, skills }, ctx.state, credited, practice, windowHours, day);
+        skills = cr.slice.skills;
+        const { emit, notes } = cr;
+        const { tierBeatsPending: beats, nextSeq: seq, paceWindow } = cr.slice;
+        // Self-study (D-126): forms started without teaching are self-taught until a taught session.
+        const taught = new Set((e['taught'] as string[] | undefined) ?? []);
+        const selfTaught = [...new Set([...slice.selfTaught.filter((id) => !taught.has(id)), ...((e['selfTaughtStarted'] as string[] | undefined) ?? [])])];
         const d = e['day'] as { hoursByActivity: Record<string, number>; postWindow: number; lastPhysicalHeavy: boolean };
         const meditationHours = slice.today.meditationHours + (e['meditation'] === true ? hours : 0);
         const today = { ...d, meditationHours, trainingHours: slice.today.trainingHours + hours };
@@ -124,7 +165,51 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           stateOfMind = setState(stateOfMind, { kind: 'centered', intensity: 1, sinceDay: day, untilDay: day + 1 }, day);
         }
         const willpowerToday = Math.min(FATIGUE_WILLPOWER.dailyCap, slice.willpowerToday + Number(e['fatigueWillpower']));
-        return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow, today, stateOfMind, willpowerToday, formsStarted }, emit, notes };
+        return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow, today, stateOfMind, willpowerToday, formsStarted, selfTaught }, emit, notes };
+      },
+    },
+    /**
+     * A resolved fight (combat-xp §1-2, D-55): the combat branch of computeXp. Until duels (M5) only the
+     * scripted lifetime fights emit it (stub STUB_SCRIPTED_COMBAT); M5's duel log will.
+     */
+    fightResolved: {
+      schema: z.object({
+        type: z.literal('fightResolved'),
+        stakes: z.enum(COMBAT_STAKES),
+        outcome: z.enum(COMBAT_OUTCOMES),
+        exchanges: z.array(z.object({ skillId: z.string(), gap: z.number() })).max(500),
+        forceUses: z.array(z.object({ abilityId: z.string(), gap: z.number() })).max(200),
+      }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        const day = selectNow(ctx.state).day;
+        const session = e as unknown as CombatSession;
+        const used = new Set([...session.exchanges.map((v) => v.skillId), ...session.forceUses.map((v) => v.abilityId)]);
+        for (const x of used) if (!SKILL_BY_ID.has(x)) return { reject: `unknown skill ${x}` };
+        // Real use in combat clears rust like practice (§13), and its time counts as the fight's hours for
+        // the D-104 clamp share (D-127): one exchange is about 7.5 s; stats split get a quarter of it.
+        const practice: Record<string, number> = {};
+        for (const ex of session.exchanges) practice[ex.skillId] = (practice[ex.skillId] ?? 0) + EXCHANGE_HOURS;
+        for (const u of session.forceUses) practice[u.abilityId] = (practice[u.abilityId] ?? 0) + EXCHANGE_HOURS;
+        const fightHours = (session.exchanges.length + session.forceUses.length) * EXCHANGE_HOURS;
+        const clamp = clampFor(ctx.state, fightHours);
+        const hoursFor = (k: string): number => practice[k] ?? fightHours * 0.25;
+        const r = computeCombatXp({
+          session,
+          m: speedFor(ctx.state, 1),
+          physicalWeights: combatPhysicalWeights,
+          todayBeforeM: (k) => slice.combatXpToday[k] ?? 0,
+          fightsToday: (k) => slice.fightsToday[k] ?? 0,
+          clamp: (k, wanted) => clamp(k, wanted, hoursFor(k)),
+        });
+        const fightsToday = { ...slice.fightsToday };
+        for (const k of used) fightsToday[k] = (fightsToday[k] ?? 0) + 1;
+        const combatXpToday = { ...slice.combatXpToday };
+        for (const [k, v] of Object.entries(r.beforeM)) combatXpToday[k] = (combatXpToday[k] ?? 0) + v;
+        const windowHours = Object.fromEntries(Object.keys(r.credited).map((k) => [k, hoursFor(k)]));
+        const cr = creditXp(slice, ctx.state, r.credited, practice, windowHours, day);
+        const total = Object.values(r.credited).reduce((a, b) => a + b, 0);
+        return { slice: { ...cr.slice, fightsToday, combatXpToday }, emit: cr.emit, notes: [`combat XP ${total.toFixed(2)} (${session.stakes}, ${session.outcome})`, ...r.notes, ...cr.notes] };
       },
     },
     emotionalEvent: {
@@ -205,7 +290,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
     if (next.grief && !grief) notices.push('Grief has eased.');
 
     return {
-      slice: { ...next, skills, overtrainStreak: streak, stateOfMind, grief, willpowerToday: 0, today: EMPTY_TODAY },
+      slice: { ...next, skills, overtrainStreak: streak, stateOfMind, grief, willpowerToday: 0, today: EMPTY_TODAY, fightsToday: {}, combatXpToday: {} },
       ...(notices.length ? { notices } : {}),
     };
   },

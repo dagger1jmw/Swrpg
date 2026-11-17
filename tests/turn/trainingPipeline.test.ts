@@ -91,10 +91,21 @@ describe('training turns', () => {
     expect(provider.calls[0]!.messages.at(-1)!.text).toContain('Training refused by the engine');
   });
 
-  it('a locked activity is refused: a form never trained needs a teacher to start it (D-119)', async () => {
+  it('a form never trained can be started by self-study: solo, a lower drill rating, self-taught (D-126)', async () => {
     const { deps } = setup([{ callType: 'narrative', data: narrative() }]);
-    const { record } = await playTurn(deps, session(), action({ actionType: 'train', activity: { activityId: 'ataruBasics' } }));
-    expect(record.draft.training).toMatchObject({ ok: false, reason: 'Ataru basics is locked: Ataru is not known yet (a teacher can start it)' });
+    const { session: s1, record } = await playTurn(deps, session(), action({ actionType: 'train', activity: { activityId: 'ataruBasics' } }));
+    const t = record.draft.training;
+    expect(t?.ok).toBe(true);
+    if (!t?.ok) return;
+    expect(t.card.instruction.mode).toBe('solo');
+    expect(t.card.notes.some((n) => n.startsWith('self-study'))).toBe(true);
+    expect(s1.state.progression.selfTaught).toEqual(['ataru']);
+  });
+
+  it('a locked activity is still refused (Juyo is not known and has no self-study)', async () => {
+    const { deps } = setup([{ callType: 'narrative', data: narrative() }]);
+    const { record } = await playTurn(deps, session(), action({ actionType: 'train', activity: { activityId: 'juyoVaapadBasics' } }));
+    expect(record.draft.training).toMatchObject({ ok: false });
   });
 
   it('sleep: 8 hours resets the meters; rest recovers at the rest rates', async () => {

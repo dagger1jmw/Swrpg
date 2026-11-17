@@ -30,3 +30,17 @@ export const STUB_ALIGNMENT_MULT = 1.0;
 
 /** Dark pressure for state-of-mind effects (D-56: D = 0). Replaced in M6. */
 export const STUB_DARK_PRESSURE = 0;
+
+/**
+ * Order instruction without a named NPC (D-124; architecture §15). Temple instructors teach as a
+ * teacher this many levels ahead of the student in that skill (teacher factor x1.05, the D-40
+ * calibration value); a Padawan's master with no NPC named in the routine teaches 30 levels ahead
+ * (x1.15). Temple peers are an even partner (x1.00, the D-40 "fill"). Teacher aptitude is 0. Replaced
+ * by NPC generation (M5) and masters (M7).
+ */
+export const STUB_INSTRUCTOR_LEAD = 10;
+export const STUB_MASTER_LEAD = 30;
+export const STUB_TEACHER_APTITUDE = 0;
+
+/** Combat in the lifetime test (architecture §15): scripted fights through computeCombatXp until duels (M5). */
+export const STUB_SCRIPTED_COMBAT = true;

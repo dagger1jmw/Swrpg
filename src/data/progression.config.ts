@@ -280,3 +280,26 @@ export const NATURAL_WILLPOWER: readonly (readonly [number, number])[] = [
 // ---- Closed form (npc-generation §1, D-43, D-105) ----
 /** A_ref = A(technique, 4, 20): the Average reaches 41 in 16 years from age 4. */
 export const CLOSED_FORM = { referenceLevel: 41, refStart: 4, refEnd: 20, warFactor: 0.3 } as const;
+
+// ---- Combat XP (combat-xp.md §1-2, D-55; built in M4 for the scripted lifetime fights, D-127) ----
+export const COMBAT_STAKES = ['spar', 'skirmish', 'serious', 'lethal'] as const;
+export type CombatStakes = (typeof COMBAT_STAKES)[number];
+export const COMBAT_OUTCOMES = ['won', 'lost', 'fled', 'truce'] as const;
+export type CombatOutcome = (typeof COMBAT_OUTCOMES)[number];
+export const COMBAT_XP = {
+  /** XP per exchange before challenge, stakes, outcome and M (tunable, §5). */
+  perExchange: 0.25,
+  /** XP per Force use before challenge, stakes and M. */
+  perForceUse: 0.1,
+  stakes: { spar: 0.5, skirmish: 1.0, serious: 1.5, lethal: 2.0 } as Record<CombatStakes, number>,
+  /** lost = lost and survived; interrupted counts as fled. */
+  outcome: { won: 1.0, lost: 1.2, fled: 0.8, truce: 1.0 } as Record<CombatOutcome, number>,
+  /** Daily cap per skill, before M. */
+  dailyCap: 12,
+  /** The third and later fights in one day. */
+  laterFightFactor: 0.5,
+  laterFightFrom: 3,
+  /** Challenge ramps linearly from the §4 curve's value at gap -25 to 0 at gap -35 (D-65). */
+  rampFrom: -25,
+  zeroAt: -35,
+} as const;

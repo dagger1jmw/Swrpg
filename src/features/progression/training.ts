@@ -6,7 +6,16 @@ import { ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, 
 import { archetypeDef } from '../../data/archetypes';
 import { FORM_TRANSFER_SHARE, K, PASSION_DARK_PRESSURE_PER_HOUR, STEP_HOURS } from '../../data/progression.config';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../data/skills';
-import { STUB_ALIGNMENT_MULT, STUB_DARK_PRESSURE, STUB_TEACHER_ARCHETYPE, STUB_TEACHER_START_AGE } from '../../data/stubs';
+import {
+  STUB_ALIGNMENT_MULT,
+  STUB_DARK_PRESSURE,
+  STUB_INSTRUCTOR_LEAD,
+  STUB_MASTER_LEAD,
+  STUB_TEACHER_APTITUDE,
+  STUB_TEACHER_ARCHETYPE,
+  STUB_TEACHER_START_AGE,
+} from '../../data/stubs';
+import { TRAINING_RECORD_BY_ID } from '../../data/trainingRecords';
 import { ageFactor } from '../../engine/ageFactor';
 import { pickDrillRating, type Effort } from '../../engine/challenge';
 import { closedFormLevel, formXps, phasesFor } from '../../engine/closedForm';
@@ -40,6 +49,21 @@ import {
   selectStateOfMind,
 } from './selectors';
 
+/**
+ * Who teaches a session (D-124, D-125). `npc` / `partner` are NPC refs; `record` an archive record or
+ * holocron; `instructor` (Temple instructors), `master` (a master with no NPC named) and `peers`
+ * (Temple peers, an even partner) are the Order stubs; `solo` trains alone (self-study when the form is
+ * new, D-126).
+ */
+export type TrainingSource =
+  | { kind: 'npc'; id: string }
+  | { kind: 'partner'; id: string }
+  | { kind: 'record'; id: string }
+  | { kind: 'instructor' }
+  | { kind: 'master' }
+  | { kind: 'peers' }
+  | { kind: 'solo' };
+
 export interface TrainingRequest {
   activityId: string;
   intensity?: Intensity | undefined;
@@ -48,6 +72,8 @@ export interface TrainingRequest {
   hours: number;
   teacherId?: string | null | undefined;
   partnerId?: string | null | undefined;
+  /** Overrides teacherId / partnerId when present (routines, the Train panel). */
+  source?: TrainingSource | undefined;
 }
 
 export interface TrainingCard {
@@ -203,6 +229,47 @@ function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
   }
 }
 
+/** M per skill (progression-numbers §5): talent x cross-talent x instruction x age x state x alignment x species, capped at 2.8. */
+export function speedFor(s: GameState, instruction: number): (skill: string) => number {
+  const c = selectCharacter(s);
+  const h = selectHumanAge(s);
+  const state = selectStateOfMind(s);
+  const grief = selectGriefMult(s);
+  const despair = selectDespairMult(s);
+  return (skill: string): number => {
+    const def = SKILL_BY_ID.get(skill);
+    if (!def) return 1;
+    return speedM({
+      talent: talentMult(c.talents, skill),
+      crossTalent: crossTalentMult(c.talents, skill),
+      instruction,
+      age: ageFactor(CATEGORY_RULES[def.category].ageRow, h),
+      state: stateMult(state, skill, { grief, despair, darkPressure: STUB_DARK_PRESSURE }),
+      alignment: STUB_ALIGNMENT_MULT,
+      species: speciesLearning(c.speciesId, skill),
+    }).m;
+  };
+}
+
+/**
+ * The D-48 clamp (D-104): share = max(focus share, the skill's share of training hours in the window);
+ * a skill's hours are its share of each session's XP (D-109), this session's `hours` included.
+ */
+export function clampFor(s: GameState, hours: number): (skill: string, wanted: number, sessionHours: number) => { credited: number; discarded: number } {
+  const c = selectCharacter(s);
+  const today = selectNow(s).day;
+  const win = s.progression.paceWindow;
+  const hoursIn = (id: string): number => inWindow(win[id] ?? [], today).reduce((x, e) => x + e.hours, 0);
+  const totalHours = Object.keys(win).reduce((x, id) => x + hoursIn(id), 0) + hours;
+  const windowAge = humanEquivalentAge(speciesDef(c.speciesId), selectExactAge(s) - 365 / 368);
+  return (skill, wanted, sessionHours) => {
+    const skillHours = hoursIn(skill) + sessionHours;
+    const share = clampShare(c.focusWeights[skill] ?? 0, skillHours, totalHours);
+    const used = inWindow(win[skill] ?? [], today).reduce((x, e) => x + e.xp, 0);
+    return clampCredit(wanted, used, paceCap(windowAge, share));
+  };
+}
+
 /** The intensity and effort for a session (training-routines §3: push picks gap +10..+20). */
 const effortFor = (i: Intensity): Effort => (i === 'intense' || i === 'extreme' ? 'push' : 'standard');
 
@@ -214,11 +281,28 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   if (typeof prim === 'string') return { ok: false, reason: `${a.name}: ${prim}` };
   for (const id of Object.keys(prim)) if (!SKILL_BY_ID.has(id)) return { ok: false, reason: `${a.name}: unknown skill ${id}` };
   const primary = Object.keys(prim)[0]!;
-  const teacherId = req.teacherId ?? null;
-  const partnerId = req.partnerId ?? null;
-  const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teacherId !== null, partner: partnerId !== null };
+  const source: TrainingSource | null =
+    req.source ?? (req.teacherId ? { kind: 'npc', id: req.teacherId } : req.partnerId ? { kind: 'partner', id: req.partnerId } : null);
+  const teacherId = source?.kind === 'npc' ? source.id : null;
+  const partnerId = source?.kind === 'partner' ? source.id : req.source === undefined ? (req.partnerId ?? null) : null;
+  const record = source?.kind === 'record' ? TRAINING_RECORD_BY_ID.get(source.id) : undefined;
+  if (source?.kind === 'record') {
+    if (!record) return { ok: false, reason: `unknown training record ${source.id}` };
+    if (record.kind === 'archive' && !record.paths.includes(selectPath(s))) return { ok: false, reason: `${record.name} is not open to the ${selectPath(s)} path` };
+    if (record.levels[primary] === undefined) return { ok: false, reason: `${record.name} does not cover ${SKILL_BY_ID.get(primary)?.name ?? primary}` };
+  }
+  const teaching = teacherId !== null || record !== undefined || source?.kind === 'instructor' || source?.kind === 'master';
+  const partnered = partnerId !== null || source?.kind === 'peers';
+  const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teaching, partner: partnered };
+  const selfStudyStart: string[] = [];
   for (const u of a.unlock) {
     const fail = unlockFails(u, ctx);
+    // Self-study (D-126): an unknown form's basics drill opens without a teacher; slow (solo x0.90 and
+    // a drill rating one step lower while the form stays self-taught).
+    if (fail && u.kind === 'knownOrTeacher' && SKILL_BY_ID.get(primary)?.kind === 'form') {
+      selfStudyStart.push(primary);
+      continue;
+    }
     if (fail) return { ok: false, reason: `${a.name} is locked: ${fail}` };
   }
   const secondaries = resolveSecondaries(s, a, prim);
@@ -258,54 +342,44 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     return age === null ? null : stubTeacherLevel(primary, age);
   };
   const bond = (id: string | null): boolean => (id ? (selectRelationship(s, id)?.value ?? 0) >= 20 : false);
-  const tLevel = levelAt(teacherId);
-  const pLevel = levelAt(partnerId);
-  if (teacherId && tLevel === null) notes.push(`teacher ${selectNpc(s, teacherId)?.name ?? teacherId} has no known age: counted as a partner`);
+  const npcTeacherLevel = levelAt(teacherId);
+  const pLevel = source?.kind === 'peers' ? studentLevel : levelAt(partnerId);
+  if (teacherId && npcTeacherLevel === null) notes.push(`teacher ${selectNpc(s, teacherId)?.name ?? teacherId} has no known age: counted as a partner`);
+  // Order stubs (D-124): instructors and an unnamed master teach a fixed number of levels ahead.
+  const tLevel =
+    npcTeacherLevel ??
+    (record ? record.levels[primary]! : source?.kind === 'instructor' ? studentLevel + STUB_INSTRUCTOR_LEAD : source?.kind === 'master' ? studentLevel + STUB_MASTER_LEAD : null);
+  if (source?.kind === 'instructor') notes.push('Temple instructors (stub teacher, D-124)');
+  if (source?.kind === 'master') notes.push('master (stub teacher until masters exist, D-124)');
+  if (record) notes.push(`${record.name} (teaches at level ${tLevel})${record.kind === 'holocron' ? '; possession is trusted until items exist (M8)' : ''}`);
   const instr = instructionFactor({
     studentLevel,
-    ...(tLevel !== null && teacherId ? { teacher: { level: tLevel, bond: bond(teacherId) } } : {}),
-    ...(partnerId && pLevel !== null ? { partner: { level: pLevel, bond: bond(partnerId) } } : teacherId && tLevel === null ? { partner: { level: studentLevel, bond: bond(teacherId) } } : {}),
+    ...(tLevel !== null && (teacherId || record || source?.kind === 'instructor' || source?.kind === 'master')
+      ? { teacher: { level: tLevel, bond: bond(teacherId), aptitude: STUB_TEACHER_APTITUDE, ...(record ? { holocron: true, physical: SKILL_BY_ID.get(primary)?.category === 'technique' } : {}) } }
+      : {}),
+    ...((partnerId || source?.kind === 'peers') && pLevel !== null
+      ? { partner: { level: pLevel, bond: bond(partnerId) } }
+      : teacherId && npcTeacherLevel === null
+        ? { partner: { level: studentLevel, bond: bond(teacherId) } }
+        : {}),
   });
   if (instr.note) notes.push(instr.note);
 
   // Drill rating (training-routines §3): Basic always; higher with a teacher at that rating or own level >= rating - 10.
   const available = DRILL_RATINGS.filter((r) => r === DRILL_RATINGS[0] || (tLevel !== null && tLevel >= r) || studentLevel >= r - 10);
   const challengeLevel = selectPerformance(s, primary) * (1 - selectRust(s, primary));
-  const drillRating = pickDrillRating(challengeLevel, effortFor(intensity), available);
+  let drillRating = pickDrillRating(challengeLevel, effortFor(intensity), available);
+  // Self-study (D-126): a self-taught form trained without teaching drills one rating lower.
+  const selfTaught = !teaching && Object.keys(prim).some((id) => selfStudyStart.includes(id) || s.progression.selfTaught.includes(id));
+  if (selfTaught) {
+    const lower = [...available].filter((r) => r < drillRating).pop();
+    if (lower !== undefined) drillRating = lower;
+    notes.push(`self-study: no teacher, drilled at a lower rating (${DRILL_RATING_NAMES[drillRating] ?? drillRating})`);
+  }
 
-  // M per skill (progression-numbers §5): talent x cross-talent x instruction x age x state x alignment x species, capped at 2.8.
-  const c = selectCharacter(s);
-  const h = selectHumanAge(s);
   const state = selectStateOfMind(s);
-  const grief = selectGriefMult(s);
-  const despair = selectDespairMult(s);
-  const m = (skill: string): number => {
-    const def = SKILL_BY_ID.get(skill);
-    if (!def) return 1;
-    return speedM({
-      talent: talentMult(c.talents, skill),
-      crossTalent: crossTalentMult(c.talents, skill),
-      instruction: instr.factor,
-      age: ageFactor(CATEGORY_RULES[def.category].ageRow, h),
-      state: stateMult(state, skill, { grief, despair, darkPressure: STUB_DARK_PRESSURE }),
-      alignment: STUB_ALIGNMENT_MULT,
-      species: speciesLearning(c.speciesId, skill),
-    }).m;
-  };
-
-  // The D-48 clamp (D-104): share = max(focus share, the skill's share of training hours in the window).
-  const today = selectNow(s).day;
-  const win = s.progression.paceWindow;
-  const hoursIn = (id: string): number => inWindow(win[id] ?? [], today).reduce((x, e) => x + e.hours, 0);
-  const totalHours = Object.keys(win).reduce((x, id) => x + hoursIn(id), 0) + hours;
-  // D-104 share; a skill's hours are its share of each session's XP (D-109), this session included.
-  const windowAge = humanEquivalentAge(speciesDef(c.speciesId), selectExactAge(s) - 365 / 368);
-  const clamp = (skill: string, wanted: number, sessionHours: number) => {
-    const skillHours = hoursIn(skill) + sessionHours;
-    const share = clampShare(c.focusWeights[skill] ?? 0, skillHours, totalHours);
-    const used = inWindow(win[skill] ?? [], today).reduce((x, e) => x + e.xp, 0);
-    return clampCredit(wanted, used, paceCap(windowAge, share));
-  };
+  const m = speedFor(s, instr.factor);
+  const clamp = clampFor(s, hours);
 
   const caps = selectCapacities(s);
   const before: Record<string, number> = Object.fromEntries(Object.keys(prim).map((id) => [id, Math.floor(selectLevelExact(s, id) + 1e-9)]));
@@ -378,6 +452,9 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
       credited: r.credited,
       practiceHours: r.practiceHours,
       ...(Object.keys(transfer).length ? { transfer } : {}),
+      // D-126: forms started by self-study become self-taught; a taught session ends that.
+      ...(selfStudyStart.length ? { selfTaughtStarted: selfStudyStart } : {}),
+      ...(teaching ? { taught: Object.keys(prim).filter((id) => s.progression.selfTaught.includes(id)) } : {}),
       fatigueWillpower: r.fatigueWillpower,
       meditation: a.group === 'meditation',
       day: r.day,

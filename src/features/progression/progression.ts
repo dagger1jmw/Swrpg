@@ -55,6 +55,12 @@ export const progressionSliceSchema = z.object({
   nextSeq: z.number().int().min(1),
   /** Lightsaber forms whose fundamentals transfer has happened (once per form, D-119). */
   formsStarted: z.array(z.string()),
+  /** Forms started by self-study and not yet taught (D-126): their solo sessions drill one rating lower. */
+  selfTaught: z.array(z.string()),
+  /** Fights each skill was used in today (D-47; the third and later are halved). Reset at midnight. */
+  fightsToday: z.record(z.string(), z.number().int().min(0)),
+  /** Combat XP before M credited today per skill, for the 12 XP daily cap (D-47). Reset at midnight. */
+  combatXpToday: z.record(z.string(), z.number().min(0)),
 });
 export type ProgressionSlice = z.infer<typeof progressionSliceSchema>;
 
@@ -75,12 +81,20 @@ export function emptyProgression(day: number, startingXp: Readonly<Record<string
     nextSeq: 1,
     // Every form a created character starts with has had its transfer (creation applies it, D-119).
     formsStarted: Object.keys(skills).filter((id) => FORM_IDS.includes(id)),
+    selfTaught: [],
+    fightsToday: {},
+    combatXpToday: {},
   };
 }
 
+/** v2 -> v3 (M4): self-taught forms (D-126) and the daily combat counters (D-47). */
+export function migrateProgressionV2(old: unknown): ProgressionSlice {
+  return { ...(old as Omit<ProgressionSlice, 'selfTaught' | 'fightsToday' | 'combatXpToday'>), selfTaught: [], fightsToday: {}, combatXpToday: {} };
+}
+
 /** v1 -> v2 (D-119): forms already holding XP count as started (no transfer later). */
-export function migrateProgressionV1(old: unknown): ProgressionSlice {
-  const o = old as Omit<ProgressionSlice, 'formsStarted'>;
+export function migrateProgressionV1(old: unknown): Omit<ProgressionSlice, 'selfTaught' | 'fightsToday' | 'combatXpToday'> {
+  const o = old as Omit<ProgressionSlice, 'formsStarted' | 'selfTaught' | 'fightsToday' | 'combatXpToday'>;
   return { ...o, formsStarted: Object.entries(o.skills).filter(([id, st]) => FORM_IDS.includes(id) && st.xp > 0).map(([id]) => id) };
 }
 
