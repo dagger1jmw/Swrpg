@@ -117,7 +117,7 @@ describe('turn pipeline (architecture §4, §14)', () => {
     const reasons = record.rejected.map((r) => r.reason);
     expect(reasons).toContain('event type flagSet is not allowed this turn');
     expect(reasons.some((r) => r.includes('only moment applies'))).toBe(true);
-    expect(record.applied.map((a) => a.event.type)).toEqual(['timeElapsed', 'sceneUpdated']);
+    expect(record.applied.map((a) => a.event.type)).toEqual(['timeElapsed', 'sceneUpdated', 'reviewQueued']);
     expect(session.state.clock.now.second).toBe(START_SECOND + 30 + 120);
   });
 

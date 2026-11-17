@@ -22,7 +22,7 @@ import { PACING_OUTPUT_CAPS } from '../data/pacing.config';
 import { normalizeAlias } from '../engine/aliases';
 import { dateFromAbsDay } from '../engine/calendar';
 import { selectNow } from '../features/clock/selectors';
-import { selectPendingChapters } from '../features/memory/selectors';
+import { selectOpenReview, selectPendingChapters } from '../features/memory/selectors';
 import { selectNpcs } from '../features/npcs/selectors';
 import { LORE_INDEX } from '../lore';
 import { findCanonEntity } from '../lore/retrieve';
@@ -212,9 +212,22 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
   return { input, intent, resolution, calls, intentNotes, ...(intentReport ? { intentReport } : {}) };
 }
 
-/** Unknown refs become review-queue entries (architecture §7: nothing is created silently). */
-function reviewEvents(unknown: readonly UnknownRef[]): GameEvent[] {
-  return unknown.map((u) => ({ type: 'reviewQueued', name: u.name.slice(0, 80), context: `${u.eventType}.${u.field}` }));
+/**
+ * Review queue after the reply is applied (architecture §7, D-94): unknown event refs, plus the
+ * intent's unknown names that the reply did not introduce. Open items whose name now matches an
+ * entity exactly are resolved by the engine (mapped), so a name introduced later leaves the queue.
+ */
+function reviewFollowUps(registry: Registry<GameState>, state: GameState, unknown: readonly UnknownRef[], intent: Intent | null): GameEvent[] {
+  const resolve = refResolver(registry, state);
+  const out: GameEvent[] = unknown.map((u) => ({ type: 'reviewQueued', name: u.name.slice(0, 80), context: `${u.eventType}.${u.field}` }));
+  for (const name of intent?.unknownNames ?? []) {
+    if (resolve(name) === null) out.push({ type: 'reviewQueued', name: name.slice(0, 80), context: `player input (${intent!.actionType})` });
+  }
+  for (const r of selectOpenReview(state)) {
+    const id = resolve(r.name);
+    if (id !== null) out.push({ type: 'reviewResolved', reviewId: r.id, resolution: 'mapped', entityRef: id });
+  }
+  return out;
 }
 
 /** New NPCs whose exact name matches an in-era lore person get their canon ID (D-81). */
@@ -284,7 +297,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   const appliedAll: AppliedEvent[] = [...result.applied];
 
   // Engine follow-ups: unknown names to the review queue, canon links for new NPCs.
-  const followUps = [...reviewEvents(result.unknownRefs), ...canonEvents(resolved, result.state)];
+  const followUps = [...reviewFollowUps(deps.registry, result.state, result.unknownRefs, draft.intent), ...canonEvents(resolved, result.state)];
   let state: GameState = result.state;
   if (followUps.length) {
     const f = applyEvents(deps.registry, state, followUps, { source: 'engine' });

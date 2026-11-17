@@ -149,8 +149,8 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       };
     }
 
-    // Names the player used that match nothing go to the review queue (architecture §7).
-    if (intent.unknownNames.length) apply(intent.unknownNames.map((name) => ({ type: 'reviewQueued', name, context: `player input (${intent.actionType})` })));
+    // intent.unknownNames go to the review queue after the narrative is applied, and only if the
+    // reply did not introduce them (pipeline, D-94).
   }
 
   const draft: TurnDraft = Object.freeze({

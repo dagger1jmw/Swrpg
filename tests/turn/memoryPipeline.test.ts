@@ -78,6 +78,21 @@ describe('M2 pipeline: memory and lore', () => {
     expect(record.turn).toBe(1);
   });
 
+  it('an intent name the reply introduces never reaches review; an open name that later matches is resolved (D-94)', async () => {
+    const { deps } = setup([
+      { callType: 'narrative', data: { ...quiet(), scene: { moodTags: [], presentNpcRefs: [] } } },
+      { callType: 'intent', data: { actionType: 'travel', targets: [], references: [], unknownNames: ['Dantooine', 'Tarsk'] } },
+      { callType: 'narrative', data: { ...quiet([{ type: 'locationIntroduced', key: 'tmp:d', name: 'Dantooine', kind: 'planet', region: 'Outer Rim', description: '', moveHere: true }]), scene: { moodTags: [], presentNpcRefs: [] } } },
+      { callType: 'intent', data: { actionType: 'dialogue', targets: [], references: [], unknownNames: [] } },
+      { callType: 'narrative', data: { ...quiet([{ type: 'npcIntroduced', key: 'tmp:t', name: 'Tarsk', species: 'human', faction: 'civilian', role: 'merchant', description: '' }]), scene: { moodTags: [], presentNpcRefs: [] } } },
+    ]);
+    let s = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
+    s = (await playTurn(deps, s, { kind: 'typed', text: 'We fly to Dantooine to find Tarsk' })).session;
+    expect(s.state.memory.review.map((r) => [r.name, r.status])).toEqual([['Tarsk', 'open']]);
+    s = (await playTurn(deps, s, { kind: 'typed', text: 'I look around' })).session;
+    expect(s.state.memory.review[0]).toMatchObject({ name: 'Tarsk', status: 'mapped', entityId: 'npc:tarsk' });
+  });
+
   it('lore for the current era reaches the GM, with a per-section token report', async () => {
     const { deps, requests } = setup([{ callType: 'narrative', data: openingM2 }]);
     const { record } = await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' });

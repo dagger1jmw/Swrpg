@@ -89,7 +89,7 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
         return { slice: { ...slice, review: [...slice.review, item], nextSeq: slice.nextSeq + 1 } };
       },
     },
-    // Player: the review item was mapped to an entity, created as one, or dismissed.
+    // Player (or engine, exact match only): the review item was mapped to an entity, created as one, or dismissed.
     reviewResolved: {
       schema: z.object({
         type: z.literal('reviewResolved'),
@@ -97,7 +97,8 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
         resolution: z.enum(['mapped', 'created', 'dismissed']),
         entityRef: z.string().optional(),
       }),
-      sources: ['player'],
+      // Engine: an open name that now matches an entity exactly (D-94).
+      sources: ['player', 'engine'],
       refFields: ['entityRef'],
       handle: (slice, e) => {
         const id = String(e['reviewId']);
