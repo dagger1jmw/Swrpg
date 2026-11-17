@@ -26,6 +26,8 @@ export const LOADS: Record<LoadCategory, Load> = {
   meditation: { p: 0.05, m: -0.5, f: 0 },
 };
 const PHYSICAL_FORCE: Load = { p: 1.2, m: 0.2, f: 0.6 };
+/** Niman drills (D-121): the saber drill with physical load 0.8. */
+const NIMAN_LOAD: Load = { p: 0.8, m: 0.4, f: 0 };
 
 /** progression-numbers §4. */
 export const DRILL_RATINGS = [10, 30, 50, 70, 90] as const;
@@ -131,7 +133,8 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   act('ataruBasics', 'Ataru basics', 'forms', S, 'intense', fixed('ataru'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [learnable()]),
   act('ataruAcrobatics', 'Ataru acrobatic sequences', 'forms', S, 'intense', fixed('ataru'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [level(21)]),
   act('shienDjemSoBasics', 'Shien / Djem So basics', 'forms', S, 'intense', options('shien', 'djemSo'), { strength: 0.7, endurance: 0.4, forceControl: 0.25, agility: 0.2 }, [learnable()]),
-  act('nimanBasics', 'Niman basics', 'forms', S, 'standard', fixed('niman'), { forceControl: 0.5, willpower: 0.4, agility: 0.3, strength: 0.2 }, [learnable()]),
+  // Niman drills are lighter: physical load 0.8 instead of 1.0 (D-121).
+  act('nimanBasics', 'Niman basics', 'forms', NIMAN_LOAD, 'standard', fixed('niman'), { forceControl: 0.5, willpower: 0.4, agility: 0.3, strength: 0.2 }, [learnable()]),
   act('juyoVaapadBasics', 'Juyo / Vaapad basics', 'forms', S, 'intense', options('juyo', 'vaapad'), { willpower: 0.6, agility: 0.5, strength: 0.4, forceControl: 0.3 }, [
     known(),
     { kind: 'notRank', ranks: ['initiate', 'acolyte'] },

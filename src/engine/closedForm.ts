@@ -3,6 +3,7 @@
 import { CLOSED_FORM, CURVE_EXP, PACE_CAP } from '../data/progression.config';
 import type { AgeRow } from '../data/skills';
 import { ageFactor, ageIntegral } from './ageFactor';
+import { transferXp } from './forms';
 
 export const A_REF = ageIntegral('technique', CLOSED_FORM.refStart, CLOSED_FORM.refEnd);
 
@@ -118,13 +119,14 @@ export function formXps(i: FormLevelsInput): Record<string, number> {
   const R = referenceRate(i.k);
   const xp: Record<string, number> = {};
   const started = new Set<string>();
-  const best = (): number => Math.max(0, ...Object.values(xp));
   const start = (forms: string[]): void => {
-    const t = i.transferShare * best();
+    // Every form of the phase transfers from the XP as it stands at the phase start (Niman: the
+    // average of Forms I, III, IV and V, D-121).
+    const snapshot = { ...xp };
     for (const f of forms) {
       if (started.has(f)) continue;
       started.add(f);
-      xp[f] = Math.max(xp[f] ?? 0, t);
+      xp[f] = (snapshot[f] ?? 0) + transferXp(f, (x) => snapshot[x] ?? 0, i.transferShare, i.k);
     }
   };
   const add = (f: string, pace: number, a: number, b: number): number => {

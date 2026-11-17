@@ -82,7 +82,7 @@ skill. Unlock is from the bank unless noted.
 | Ataru basics | Ataru | Agility 0.7, Endurance 0.4, Strength 0.3, Force Control 0.3 | intense | form known |
 | Ataru acrobatic sequences | Ataru | Agility 0.7, Endurance 0.4, Strength 0.3, Force Control 0.3 | intense | Ataru 21 |
 | Shien / Djem So basics | Shien or Djem So | Strength 0.7, Endurance 0.4, Force Control 0.25, Agility 0.2 | intense | form known |
-| Niman basics | Niman | Force Control 0.5, Willpower 0.4, Agility 0.3, Strength 0.2 | standard | form known |
+| Niman basics (physical load 0.8, D-121) | Niman | Force Control 0.5, Willpower 0.4, Agility 0.3, Strength 0.2 | standard | form known, or a teacher (D-119) |
 | Juyo / Vaapad basics | Juyo or Vaapad | Willpower 0.6, Agility 0.5, Strength 0.4, Force Control 0.3 | intense | form known; not for Initiates |
 | Dual saber practice | highest form | second form 0.6, Agility 0.5, Strength 0.3 | standard | two forms known |
 | Form combination drills | form A and form B (0.375 each of the 0.75) | Agility 0.4, Force Control 0.3 | standard | both forms 21+ |

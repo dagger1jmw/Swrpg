@@ -148,6 +148,9 @@ Fundamentals transfer: a lightsaber form's first session (as the session's prima
   never trained can be started with a teacher present (its basics drill unlocks for "known or with a
   teacher"). Character creation applies the same transfer for every form in the Padawan and Knight+
   plans, at the start of that phase.
+Niman (Form VI, D-121): its transfer is measured against the AVERAGE of the Form I, III, IV and V
+  levels (Shii-Cho, Soresu, Ataru, and Form V = the higher of Shien and Djem So; an untrained form
+  counts as 0), not the highest form; the 0.75 share applies to that average's XP.
 Why: a new form started from zero, so with the targets on the highest form the Average's Soresu
   (from 12) could not reach 41 in 16 years: K fell to 6.8 and Shii-Cho reached 41 at 12 (D-118).
   Calibration with the transfer (docs-v2/calc): 0.5 put milestone 21 at -29%; 0.70-0.90 put every
@@ -287,8 +290,11 @@ the source's level. That is the main tuning lever.
     Juyo <-> Vaapad)                    0.25         0.45          0.60
   Parent form -> derived form
     (Soresu -> Shien, Juyo -> Vaapad)   0.10         0.27          0.50
-  Foundation (Shii-Cho -> all forms;
-    forms I-V -> Niman)                 0.05         0.18          0.40
+  Foundation (Shii-Cho -> all forms
+    except Niman)                       0.05         0.18          0.40
+  Niman foundation (Forms I, III, IV,
+    V -> Niman; D-121, replaces the
+    0.05 forms I-V -> Niman)            0.10         0.27          0.60
   Parent ability -> sub-ability
     (Telekinesis -> Force Push)         0.10         0.27          0.50
   Sub-ability -> parent ability         0.15         0.34          0.80

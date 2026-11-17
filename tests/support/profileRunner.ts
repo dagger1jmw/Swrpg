@@ -17,6 +17,7 @@ import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../src/data/skills';
 import { ageFactor } from '../../src/engine/ageFactor';
 import { pickDrillRating } from '../../src/engine/challenge';
 import { computeTrainingXp } from '../../src/engine/computeXp';
+import { transferXp } from '../../src/engine/forms';
 import { levelExact, levelWithNatural } from '../../src/engine/curve';
 import { EMPTY_DAY, ZERO_METERS, capacities, stepBlock, type DayTraining, type Meters } from '../../src/engine/fatigue';
 import { interp } from '../../src/engine/interp';
@@ -274,7 +275,7 @@ export function runProfile(p: Profile, years: number, opts: { k?: number; crossL
         // Fundamentals transfer (D-119): a form's first session starts it at 0.75 x the highest form.
         if (isForm(o.primary) && !started.has(o.primary)) {
           started.add(o.primary);
-          const t = FORM_TRANSFER_SHARE * Math.max(0, ...FORM_IDS.map(formXp)) - formXp(o.primary);
+          const t = transferXp(o.primary, formXp, FORM_TRANSFER_SHARE, k);
           if (t > 0) {
             xp[o.primary] = formXp(o.primary) + t;
             transfers[o.primary] = { age, xp: t };

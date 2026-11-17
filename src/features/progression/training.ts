@@ -10,6 +10,7 @@ import { STUB_ALIGNMENT_MULT, STUB_DARK_PRESSURE, STUB_TEACHER_ARCHETYPE, STUB_T
 import { ageFactor } from '../../engine/ageFactor';
 import { pickDrillRating, type Effort } from '../../engine/challenge';
 import { closedFormLevel, formXps, phasesFor } from '../../engine/closedForm';
+import { transferXp } from '../../engine/forms';
 import { computeTrainingXp, type SessionSplit, type TrainingResult } from '../../engine/computeXp';
 import { levelExact, tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { tirednessLabel } from '../../engine/fatigue';
@@ -226,14 +227,14 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   // the highest form's XP, once per form, outside the 4.0x clamp. The session then runs on top of it.
   const transfer: Record<string, number> = {};
   const formXp = (id: string): number => s.progression.skills[id]?.xp ?? 0;
-  const highest = Math.max(0, ...FORM_IDS.map(formXp));
   for (const id of Object.keys(prim)) {
     if (SKILL_BY_ID.get(id)?.kind !== 'form' || s.progression.formsStarted.includes(id)) continue;
-    const t = FORM_TRANSFER_SHARE * highest - formXp(id);
+    const t = transferXp(id, formXp);
     if (t > 0) transfer[id] = t;
   }
   const transferNotes = Object.entries(transfer).map(
-    ([id, x]) => `fundamentals transfer: ${SKILL_BY_ID.get(id)?.name ?? id} starts at ${Math.round(FORM_TRANSFER_SHARE * 100)}% of the highest form (+${x.toFixed(1)} XP, outside the pace limit)`,
+    ([id, x]) =>
+      `fundamentals transfer: ${SKILL_BY_ID.get(id)?.name ?? id} starts at ${Math.round(FORM_TRANSFER_SHARE * 100)}% of ${id === 'niman' ? 'the average of Forms I, III, IV and V' : 'the highest form'} (+${x.toFixed(1)} XP, outside the pace limit)`,
   );
   if (Object.keys(transfer).length) {
     const skills = { ...s.progression.skills };

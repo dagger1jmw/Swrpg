@@ -23,7 +23,10 @@ function buildLinks(): SynergyLink[] {
   };
   const forms = SKILLS.filter((s) => s.kind === 'form').map((s) => s.id);
   for (const f of forms) add('shiiCho', f, 'foundation');
-  for (const f of ['shiiCho', 'makashi', 'soresu', 'ataru', 'shien', 'djemSo']) add(f, 'niman', 'foundation');
+  // Niman (Form VI) draws on Forms I, III, IV and V at 0.10 (ceiling 0.6), replacing the 0.05
+  // foundation into Niman; Makashi (Form II) no longer feeds it (D-121).
+  links.delete('shiiCho>niman');
+  for (const f of ['shiiCho', 'soresu', 'ataru', 'shien', 'djemSo']) add(f, 'niman', 'nimanFoundation');
   add('soresu', 'shien', 'parentForm');
   add('juyo', 'vaapad', 'parentForm');
   for (const [a, b] of [

@@ -155,11 +155,13 @@ export const RUST: Record<RustRow, RustRule> = {
 export const RUST_REMOVAL_PER_HOUR = 0.005;
 
 // ---- Synergy (§14) ----
-export type SynergyRelation = 'variant' | 'parentForm' | 'foundation' | 'parentAbility' | 'subAbility' | 'forceControl' | 'forceSense' | 'physical';
+export type SynergyRelation = 'variant' | 'parentForm' | 'foundation' | 'nimanFoundation' | 'parentAbility' | 'subAbility' | 'forceControl' | 'forceSense' | 'physical';
 export const SYNERGY: Record<SynergyRelation, { coef: number; ceiling: number }> = {
   variant: { coef: 0.25, ceiling: 0.6 },
   parentForm: { coef: 0.1, ceiling: 0.5 },
   foundation: { coef: 0.05, ceiling: 0.4 },
+  /** Forms I, III, IV, V -> Niman (D-121; replaces the 0.05 foundation into Niman). */
+  nimanFoundation: { coef: 0.1, ceiling: 0.6 },
   parentAbility: { coef: 0.1, ceiling: 0.5 },
   subAbility: { coef: 0.15, ceiling: 0.8 },
   forceControl: { coef: 0.03, ceiling: 0.3 },
@@ -172,6 +174,11 @@ export const SYNERGY: Record<SynergyRelation, { coef: number; ceiling: number }>
  * Lightsaber forms only, never Force abilities.
  */
 export const FORM_TRANSFER_SHARE = 0.75;
+/**
+ * Niman (Form VI) transfers from the AVERAGE of the Form I, III, IV and V levels, not the highest form
+ * (D-121). Each entry is one form; Form V is the higher of its variants Shien and Djem So.
+ */
+export const NIMAN_TRANSFER_FORMS: readonly (readonly string[])[] = [['shiiCho'], ['soresu'], ['ataru'], ['shien', 'djemSo']];
 
 /** Total spillover from one session may not exceed 25% of its credited XP. */
 export const SYNERGY_SESSION_CAP = 0.25;

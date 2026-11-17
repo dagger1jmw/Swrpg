@@ -938,6 +938,14 @@ The clock and the module contract come first, before any feature.
 | M8 | World | Timeline events, factions, renown, equipment spec and items/credits, species table | A living galaxy |
 | M9 | Polish | Save slots UI, migrations hardening, responsive layout (iPad first), debug console | Release candidate (Phase 9 cutover) |
 
+### Recorded for M5 (D-122, Jared)
+- **Niman (Form VI) in combat:** matchups 0 in every situation (rolls.md §5). Force abilities used
+  while fighting in Niman get half the combat-integration penalty (progression-numbers §8: the
+  G-based effective-level loss, strain multiplier and misfire chance are halved).
+- **Jar'Kai:** dual blades (needs the equipment, M8 equipment spec) and Niman 30+. Jar'Kai and
+  Niman are linked by 0.25 variant synergy (both ways, progression-numbers §14).
+- The progression-side Niman rules are built in M3 (D-121).
+
 ### Stubs each milestone uses (D-56)
 A milestone may only depend on a later one through a named stub, replaced when that
 milestone is built. Each stub is a function in `src/data/stubs.ts` with a test that its value
