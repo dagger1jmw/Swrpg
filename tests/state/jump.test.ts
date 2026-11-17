@@ -140,15 +140,16 @@ describe('the montage report (training-routines §8, test 8)', () => {
   it('a 90-day montage produces story events and a complete report', () => {
     const { s, npc } = withPartner(knight('report'));
     const run = advanceByRoutine(REGISTRY, s, { untilAbs: wakeAfter(s, 91), reason: 'montage' });
-    const rep = buildMontageReport(s, run, { level: 'montage', requestedDays: 90 });
+    const rep = buildMontageReport(s, run, { level: 'montage', requestedDays: 91 });
     expect(rep.daysCompleted).toBeGreaterThan(0);
-    expect(rep.trainingDays + rep.restDays).toBe(rep.daysCompleted);
+    // Started at 09:00: 91 calendar days pass and the routine plans 90 mornings (D-142).
+    expect(rep.trainingDays + rep.restDays).toBe(rep.days.length);
     expect(rep.skills.find((x) => x.skillId === 'soresu')!.xp).toBeGreaterThan(0);
     expect(rep.relationships.find((x) => x.npcId === npc)!.to).toBeGreaterThan(0);
-    expect(rep.days).toHaveLength(rep.daysCompleted);
+    expect(rep.days).toHaveLength(rep.daysCompleted - 1);
     expect(rep.hoursTrained).toBeGreaterThan(0);
     if (run.interrupted) expect(rep.interrupted?.reason).toBe(run.interrupted.reason);
-    else expect(rep.daysCompleted).toBe(90);
+    else expect(rep.daysCompleted).toBe(91);
   });
 
   it('a birthday during a skip appears as a notice in the report (age is derived)', () => {

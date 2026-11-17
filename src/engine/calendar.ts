@@ -57,6 +57,19 @@ export function dateFromAbsDay(absDay: number): CalendarDate {
   return { year, month, day: dayOfYear - (MONTH_STARTS[month - 1] ?? 0) + 1 };
 }
 
+/**
+ * The same day of the month `months` calendar months later (or earlier), clamped to the month's last
+ * day (month 8 day 31 + 1 month = month 9 day 30). Years carry through year 0, which exists (D-38).
+ */
+export function addCalendarMonths(absDay: number, months: number): number {
+  if (!Number.isInteger(months)) throw new RangeError(`Months must be an integer: ${months}`);
+  const d = dateFromAbsDay(absDay);
+  const index = d.month - 1 + months;
+  const year = d.year + Math.floor(index / 12);
+  const month = mod(index, 12) + 1;
+  return absDayFromDate({ year, month, day: Math.min(d.day, MONTH_LENGTHS[month - 1]!) });
+}
+
 /** 0-based day of the year. */
 export function dayOfYear(absDay: number): number {
   return mod(absDay, DAYS_PER_YEAR);

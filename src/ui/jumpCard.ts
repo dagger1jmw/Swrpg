@@ -21,10 +21,11 @@ export function renderJumpPlayback(r: MontageReport, shown: number): HTMLElement
   const n = Math.min(shown, r.days.length);
   const cur = r.days[Math.max(0, n - 1)];
   const done = n >= r.days.length;
+  const elapsed = done ? r.daysCompleted : cur ? cur.day - r.fromDay : 0;
   const tail = dayLines(r, n).slice(-6);
   return el('div', { class: 'roll jump live' }, [
-    el('div', { class: 'card-title' }, [el('strong', { text: `${title(r)}: day ${n} of ${r.requestedDays}` }), el('span', { class: 'rel', text: cur?.label ?? r.fromLabel })]),
-    el('div', { class: 'progress' }, [el('span', { class: 'fill', attrs: { style: `width:${Math.round((100 * n) / Math.max(1, r.requestedDays))}%` } })]),
+    el('div', { class: 'card-title' }, [el('strong', { text: `${title(r)}: day ${elapsed} of ${r.requestedDays}` }), el('span', { class: 'rel', text: cur?.label ?? r.fromLabel })]),
+    el('div', { class: 'progress' }, [el('span', { class: 'fill', attrs: { style: `width:${Math.round((100 * elapsed) / Math.max(1, r.requestedDays))}%` } })]),
     ...tail,
     done && r.interrupted ? el('div', { class: 'outcome interrupt', text: `Stopped on ${r.interrupted.label}: ${r.interrupted.reason}` }) : null,
     done ? el('div', { class: 'hint', text: 'The GM is writing the narration…' }) : null,

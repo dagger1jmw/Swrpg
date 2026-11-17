@@ -70,7 +70,8 @@ describe('montage turns', () => {
     expect(provider.calls.map((c) => c.opts.callType)).toEqual(['narrative']);
     const jump = record.draft.jump!;
     expect(jump.level).toBe('montage');
-    expect(jump.report.days.length).toBe(jump.report.daysCompleted);
+    // A jump started at 09:00 plans one morning fewer than the calendar days that pass (D-142).
+    expect(jump.report.days.length).toBe(jump.report.daysCompleted - 1);
     expect(s1.state.progression.skills['soresu']!.xp).toBeGreaterThan(0);
     expect(s1.state.clock.now.second).toBe(s0.state.routines.active.wakeSecond);
     if (!jump.report.interrupted) expect(s1.state.clock.now.day).toBe(s0.state.clock.now.day + 92);

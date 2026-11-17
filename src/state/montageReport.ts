@@ -25,6 +25,7 @@ export interface MontageReport {
   fromLabel: string;
   toLabel: string;
   requestedDays: number;
+  /** Calendar days that passed; `days` has one entry per morning the routine was planned. */
   daysCompleted: number;
   trainingDays: number;
   restDays: number;
@@ -111,7 +112,8 @@ export function buildMontageReport(before: GameState, run: RoutineAdvanceResult,
     fromLabel: formatDate(before.clock.now.day),
     toLabel: formatDate(after.clock.now.day),
     requestedDays: opts.requestedDays,
-    daysCompleted: run.days.length,
+    // Calendar days that passed (the start day to the day the jump ended), not mornings planned (D-142).
+    daysCompleted: after.clock.now.day - before.clock.now.day,
     trainingDays: run.days.filter((d) => d.trainingDay && !d.recovery).length,
     restDays: run.days.filter((d) => !d.trainingDay || d.recovery).length,
     hoursTrained: round(run.days.reduce((a, d) => a + d.hoursTrained, 0), 1),

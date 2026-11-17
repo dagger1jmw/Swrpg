@@ -5,7 +5,8 @@ import { JUMP_LEVELS, PACING_LEVELS, PACING_RANGES, type JumpLevel, type PacingL
 import { stubVitalitySpent, stubWoundPenalty } from '../data/stubs';
 import { DEFAULT_ACTIVITY } from '../data/activities';
 import { isSkillId } from '../data/skills';
-import { spanToSeconds, type Intent } from '../ai/schemas/intent';
+import { spanToSeconds, type Intent, type RequestedSpan } from '../ai/schemas/intent';
+import { addCalendarMonths } from '../engine/calendar';
 import { efficiency } from '../engine/fatigue';
 import { check, clampDifficulty, isCheckRequired, type CheckCard } from '../engine/rolls';
 import type { RngState } from '../engine/rng';
@@ -99,8 +100,21 @@ export function pacingForSpan(seconds: number, requested?: PacingLevel): { level
 }
 
 /** A montage or time skip: the routine day loop to the morning `days` days on (Q48), and its report. */
-export function resolveJump(registry: Registry<GameState>, initial: GameState, level: JumpLevel, seconds: number, reason: string) {
-  const days = Math.max(1, Math.round(seconds / 86_400));
+/**
+ * The day a jump ends on (its wake time is the end, Q48). Whole calendar months and years land on the
+ * same day of the month that many months later, clamped to the month's length (31-day months 1-8,
+ * 30-day months 9-12; D-142); days and weeks are counted in days. A clamped span uses its seconds.
+ */
+export function jumpTargetDay(fromDay: number, seconds: number, span?: RequestedSpan, clamped = false): number {
+  if (span && !clamped && (span.unit === 'months' || span.unit === 'years')) {
+    const months = span.amount * (span.unit === 'years' ? 12 : 1);
+    if (Number.isInteger(months) && months > 0) return addCalendarMonths(fromDay, months);
+  }
+  return fromDay + Math.max(1, Math.round(seconds / 86_400));
+}
+
+export function resolveJump(registry: Registry<GameState>, initial: GameState, level: JumpLevel, targetDay: number, reason: string) {
+  const days = Math.max(1, targetDay - initial.clock.now.day);
   const wake = initial.routines.active.wakeSecond;
   const untilAbs = (initial.clock.now.day + days) * 86_400 + wake;
   const run = advanceByRoutine(registry, initial, { untilAbs, reason });
@@ -181,7 +195,8 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       const level = jumpSpan.level;
       if (jumpSpan.clampedFrom !== undefined) report.push(`requested span ${jumpSpan.clampedFrom}s clamped to ${jumpSpan.seconds}s (${level})`);
       const reason = intent.requestedSpan ? `${level} for ${intent.requestedSpan.amount} ${intent.requestedSpan.unit}` : level;
-      const j = resolveJump(registry, state, level, jumpSpan.seconds, reason);
+      const target = jumpTargetDay(state.clock.now.day, jumpSpan.seconds, intent.requestedSpan, jumpSpan.clampedFrom !== undefined);
+      const j = resolveJump(registry, state, level, target, reason);
       state = j.run.state;
       applied.push(...j.run.applied);
       rejected.push(...j.run.rejected);

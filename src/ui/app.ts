@@ -44,7 +44,8 @@ import { creationForm } from './creationForm';
 import { clear, el, input, paragraphs } from './dom';
 import { renderSidePanel, type PanelTab } from './sidePanel';
 import { renderJumpPlayback, renderJumpReport } from './jumpCard';
-import { renderRoutineEditor } from './routineEditor';
+import { renderRoutineEditor, type JumpSpan } from './routineEditor';
+import { spanToSeconds } from '../ai/schemas/intent';
 import type { Routine } from '../features/routines/selectors';
 import type { MontageReport } from '../state/montageReport';
 import { previewRoutine, type RoutinePreview } from '../state/routinePreview';
@@ -324,19 +325,21 @@ export class App {
     this.render();
   }
 
-  private async startJump(days: number): Promise<void> {
+  private async startJump(span: JumpSpan): Promise<void> {
     if (!this.session || !this.routineDraft) return;
     if (JSON.stringify(this.routineDraft) !== JSON.stringify(this.session.state.routines.active)) {
       await this.playerEvents([{ type: 'routineSet', routine: this.routineDraft }]);
       if (this.panelError) return;
     }
-    const level = days > 120 ? 'timeSkip' : 'montage';
+    // Over 120 days is a time skip (architecture §8); the engine ends it on the calendar date (D-142).
+    const level = spanToSeconds(span) > 120 * 86_400 ? 'timeSkip' : 'montage';
+    const words = `${span.amount} ${span.amount === 1 ? span.unit.slice(0, -1) : span.unit}`;
     this.modal = null;
-    const label = `${level === 'montage' ? 'Montage' : 'Time skip'}: ${days} days on the routine`;
+    const label = `${level === 'montage' ? 'Montage' : 'Time skip'}: ${words} on the routine`;
     void this.runTurn({
       kind: 'action',
       label,
-      intent: { actionType: 'train', targets: [], references: [], unknownNames: [], requestedPacing: level, requestedSpan: { amount: days, unit: 'days' } },
+      intent: { actionType: 'train', targets: [], references: [], unknownNames: [], requestedPacing: level, requestedSpan: span },
     });
   }
 
@@ -360,7 +363,7 @@ export class App {
         loadTemplate: (id) => void this.routineEvents([{ type: 'routineTemplateLoaded', templateId: id }], true),
         deleteTemplate: (id) => void this.routineEvents([{ type: 'routineTemplateDeleted', templateId: id }], false),
         resolveSuggestion: (accept) => void this.routineEvents([{ type: 'routineSuggestionResolved', accept }], true),
-        startJump: (days) => void this.startJump(days),
+        startJump: (span) => void this.startJump(span),
       }),
     ];
   }

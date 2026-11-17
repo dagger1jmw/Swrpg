@@ -26,7 +26,7 @@ export interface RoutineEditorProps {
   deleteTemplate(id: string): void;
   resolveSuggestion(accept: boolean): void;
   /** Saves the draft (if changed) and starts a montage or time skip of `days`. */
-  startJump(days: number): void;
+  startJump(span: JumpSpan): void;
 }
 
 const WEIGHTS: [number, string][] = [
@@ -34,12 +34,17 @@ const WEIGHTS: [number, string][] = [
   [2, 'regular'],
   [1, 'light'],
 ];
-const JUMPS: [number, string][] = [
-  [7, '1 week'],
-  [31, '1 month'],
-  [92, '3 months'],
-  [184, '6 months'],
-  [368, '1 year'],
+/** A jump's length: calendar months and years land on the same day of the month (D-142). */
+export interface JumpSpan {
+  amount: number;
+  unit: 'days' | 'weeks' | 'months' | 'years';
+}
+const JUMPS: [JumpSpan, string][] = [
+  [{ amount: 1, unit: 'weeks' }, '1 week'],
+  [{ amount: 1, unit: 'months' }, '1 month'],
+  [{ amount: 3, unit: 'months' }, '3 months'],
+  [{ amount: 6, unit: 'months' }, '6 months'],
+  [{ amount: 1, unit: 'years' }, '1 year'],
 ];
 const hh = (sec: number): string => `${String(Math.floor(sec / 3600)).padStart(2, '0')}:${String(Math.floor((sec % 3600) / 60)).padStart(2, '0')}`;
 
@@ -232,9 +237,9 @@ export function renderRoutineEditor(p: RoutineEditorProps): HTMLElement[] {
     el(
       'div',
       { class: 'train-row' },
-      JUMPS.map(([d, label]) => el('button', { class: 'small', text: label, on: { click: () => p.startJump(d) } })),
+      JUMPS.map(([span, label]) => el('button', { class: 'small', text: label, on: { click: () => p.startJump(span) } })),
     ),
-    el('div', { class: 'train-row' }, [custom, el('span', { text: 'days' }), el('button', { class: 'small', text: 'Start', on: { click: () => p.startJump(Math.max(1, Math.min(3680, Math.round(Number(custom.value) || 1)))) } })]),
+    el('div', { class: 'train-row' }, [custom, el('span', { text: 'days' }), el('button', { class: 'small', text: 'Start', on: { click: () => p.startJump({ amount: Math.max(1, Math.min(3680, Math.round(Number(custom.value) || 1))), unit: 'days' }) } })]),
     el('p', { class: 'hint', text: 'Up to 120 days is a montage; longer is a time skip. The days run one by one; a significant event stops the jump early and the story picks up at that moment.' }),
   ]);
   for (const b of actions.querySelectorAll('button')) b.disabled = p.busy;
