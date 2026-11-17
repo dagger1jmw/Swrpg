@@ -1,7 +1,7 @@
 // Computed creation: character-creation.md §6 tests 1-6 (M3 step 7), plus the campaign wiring.
 import { describe, expect, it } from 'vitest';
 import { absDayFromDate } from '../../src/engine/calendar';
-import { computeCreation, defaultFocus, ranksFor, type CreationInput } from '../../src/features/character/creation';
+import { computeCreation, defaultFocus, fillFactor, ranksFor, type CreationInput } from '../../src/features/character/creation';
 import { ARCHETYPE_BY_ID } from '../../src/data/archetypes';
 import { selectLevelExact } from '../../src/features/progression/selectors';
 import { createMemoryStorage } from '../../src/persist/storage';
@@ -105,6 +105,56 @@ describe('computed creation (character-creation §6)', () => {
   });
 });
 
+/** Focus shares with one key moved to `v`, the others renormalized (as the creation sliders do). */
+function toward(key: string, v: number): Record<string, number> {
+  const def = defaultFocus(ARCHETYPE_BY_ID.get('jediGuardian')!);
+  const rest = Object.entries(def).filter(([k]) => k !== key);
+  const t = rest.reduce((a, [, x]) => a + x, 0);
+  return { ...Object.fromEntries(rest.map(([k, x]) => [k, (x / t) * (1 - v)])), [key]: v };
+}
+
+describe('focus sliders reach the closed form (play-test fix, D-115)', () => {
+  it('moving focus toward a skill raises its starting level, for a Padawan and for a Knight', () => {
+    for (const [age, rank] of [
+      [14, 'padawan'],
+      [16, 'padawan'],
+      [24, 'knight'],
+    ] as const) {
+      const base = computeCreation(jedi(age, rank));
+      const moved = computeCreation(jedi(age, rank, { focus: toward('forceSense', 0.5) }));
+      expect(moved.errors).toEqual([]);
+      expect(moved.levels['forceSense']!, `${rank} ${age}`).toBeGreaterThan(base.levels['forceSense']! + 0.3);
+      expect(moved.levels['shiiCho']!, `${rank} ${age}`).toBeLessThan(base.levels['shiiCho']!);
+      expect(moved.focusWeights['forceSense']).toBeCloseTo(0.5, 9);
+    }
+  });
+
+  it('the Order-fixed phases move only by their fill hours (budget minus Order hours, over the 6 h Knight day)', () => {
+    expect(fillFactor('initiate', 4, 9)).toBe(0);
+    expect(fillFactor('padawan', 12, 20.5)).toBeGreaterThan(0.1);
+    expect(fillFactor('padawan', 12, 20.5)).toBeLessThan(0.2);
+    expect(fillFactor('knight', 20.5, 24)).toBe(1);
+    // The default focus changes nothing (test 1 values hold).
+    near(computeCreation(jedi(24, 'knight', { focus: toward('$mainForm', 0.5) })).levels['shiiCho']!, 46.6);
+  });
+});
+
+describe('talent point bypass (D-116)', () => {
+  const all = { combat: 'exceptional', force: 'exceptional', physical: 'exceptional', mind: 'exceptional' } as const;
+  it('without the toggle, the 3-point limit holds', () => {
+    expect(computeCreation(jedi(24, 'knight', { talents: all })).errors.join()).toMatch(/limit is 3/);
+  });
+  it('with it, any number of talents is accepted, flagged unbalanced, still capped at 4.0x pace', () => {
+    const c = computeCreation(jedi(24, 'knight', { talents: all, ignoreTalentLimit: true, focus: toward('$mainForm', 1) }));
+    expect(c.errors).toEqual([]);
+    expect(c.unbalanced).toBe(true);
+    expect(c.maxPace).toBeLessThanOrEqual(4);
+    expect(c.levels['shiiCho']!).toBeGreaterThan(computeCreation(jedi(24, 'knight')).levels['shiiCho']!);
+    // Within 3 points the toggle changes nothing and the campaign is not flagged.
+    expect(computeCreation(jedi(24, 'knight', { talents: { combat: 'gifted' }, ignoreTalentLimit: true })).unbalanced).toBe(false);
+  });
+});
+
 describe('campaign creation (M3)', () => {
   it('a created campaign starts with the computed XP, rank, character fields and backstory facts', async () => {
     const input = {
@@ -121,6 +171,32 @@ describe('campaign creation (M3)', () => {
     near(selectLevelExact(s.state, 'shiiCho'), 46.6);
     expect(s.state.memory.facts.some((f) => f.text.includes('Jedi Temple on Coruscant'))).toBe(true);
     expect(s.state.character.focusWeights['shiiCho']).toBe(0.5);
+    expect(s.state.character.unbalanced).toBe(false);
+  });
+
+  it('an unbalanced campaign carries the flag on the character', async () => {
+    const input = {
+      name: 'Kael',
+      birthDate: { year: -3685, month: 1, day: 1 },
+      startDate: DEFAULT_START.date,
+      startSecond: DEFAULT_START.second,
+      creation: {
+        speciesId: 'human',
+        path: 'jedi' as const,
+        archetype: 'jediGuardian',
+        rank: 'knight',
+        trainingStartAge: 4,
+        mainFormId: 'shiiCho',
+        secondFormId: 'soresu',
+        talents: { combat: 'exceptional' as const, force: 'prodigy' as const },
+        dominantHand: 'right' as const,
+        ignoreTalentLimit: true,
+      },
+    };
+    expect(validateNewCampaign(input)).toEqual([]);
+    const s = await createCampaign(REGISTRY, createMemoryStorage(), input, { campaignId: 'c', branchId: 'b' }, 'x');
+    expect(s.state.character.unbalanced).toBe(true);
+    expect(s.state.character.talents).toEqual({ combat: 'exceptional', force: 'prodigy' });
   });
 
   it('an unreachable rank blocks the campaign with the four options', () => {

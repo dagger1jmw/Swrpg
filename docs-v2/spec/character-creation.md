@@ -10,7 +10,9 @@
   Specialty and focus: an archetype (NPC spec section 3) plus optional sliders that shift
     the skill shares (the shares always sum to 1; amended by D-44)
   Talents: 3 talent points: gifted costs 1, prodigy 2, exceptional 3, per domain; or roll
-    with the NPC talent distribution
+    with the NPC talent distribution. A confirmed "Ignore talent point limit" toggle (D-116)
+    allows any number (each domain still at most exceptional; the 2.8 M cap and 4.0x pace limit
+    still apply) and flags the campaign unbalanced on the character sheet.
   Background flags: war years experienced, notable deeds, master or teacher (generated or
     chosen from canon NPCs where the lore allows), home world, family
 

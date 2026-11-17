@@ -46,6 +46,10 @@ export function creationForm(): CreationForm {
   const hand = el('select', {}, [option('right', 'Right'), option('left', 'Left')]);
   const war = input({ type: 'number', min: '0', max: '30', value: '0' });
   const exception = input({ type: 'checkbox' });
+  // Talent bypass (D-116): off by default; turning it on needs an explicit confirmation.
+  const ignoreLimit = input({ type: 'checkbox' });
+  let bypassConfirmed = false;
+  const bypassBox = el('div', { class: 'bypass' });
   const talentSel = Object.fromEntries(
     TALENT_DOMAINS.map((d) => [d, el('select', {}, TALENT_LEVELS.map((l) => option(l, `${l}${TALENT_COST[l] ? ` (${TALENT_COST[l]})` : ''}`)))]),
   ) as Record<TalentDomain, HTMLSelectElement>;
@@ -75,6 +79,7 @@ export function creationForm(): CreationForm {
     warYears: Math.max(0, Math.trunc(Number(war.value) || 0)),
     dominantHand: hand.value as 'left' | 'right',
     storyException: exception.checked,
+    ignoreTalentLimit: bypassConfirmed,
   });
 
   const renderFocus = (): void => {
@@ -85,18 +90,25 @@ export function creationForm(): CreationForm {
       focus = defaultFocus(a);
       focusArch = a.id;
     }
+    const rows = new Map<string, { slider: HTMLInputElement; label: HTMLElement }>();
     for (const [k, share] of Object.entries(focus)) {
       const slider = input({ type: 'range', min: '0', max: '100', step: '1', value: String(Math.round(share * 100)) });
       const label = el('span', { class: 'focus-share', text: `${Math.round(share * 100)}%` });
-      slider.addEventListener('change', () => {
+      rows.set(k, { slider, label });
+      // 'input' fires while the slider moves, so the preview follows the drag. The other sliders are
+      // updated in place (rebuilding them would end the drag).
+      slider.addEventListener('input', () => {
         // Renormalize: the moved share is set, the others scale to fill the rest (shares sum to 1, D-44).
         const v = Math.min(1, Math.max(0, Number(slider.value) / 100));
         const others = Object.entries(focus).filter(([o]) => o !== k);
-        const otherTotal = others.reduce((x, [, s]) => x + s, 0);
+        const otherTotal = others.reduce((x, [, sh]) => x + sh, 0);
         const next: Record<string, number> = { [k]: v };
-        for (const [o, s] of others) next[o] = otherTotal > 0 ? (s / otherTotal) * (1 - v) : (1 - v) / others.length;
+        for (const [o, sh] of others) next[o] = otherTotal > 0 ? (sh / otherTotal) * (1 - v) : (1 - v) / others.length;
         focus = Object.fromEntries(Object.keys(focus).map((o) => [o, next[o]!]));
-        renderFocus();
+        for (const [o, r] of rows) {
+          if (o !== k) r.slider.value = String(Math.round(focus[o]! * 100));
+          r.label.textContent = `${Math.round(focus[o]! * 100)}%`;
+        }
         refresh();
       });
       focusBox.append(el('div', { class: 'focus-row' }, [el('label', { text: keyName(k, mainForm.value, secondForm.value) }), slider, label]));
@@ -140,7 +152,8 @@ export function creationForm(): CreationForm {
   const refresh = (): void => {
     const used = talentCost(talents());
     talentsLine.textContent = `Talent points: ${used} of ${TALENT_POINTS} used (gifted 1, prodigy 2, exceptional 3).`;
-    talentsLine.className = used > TALENT_POINTS ? 'error' : 'hint';
+    talentsLine.className = used > TALENT_POINTS && !bypassConfirmed ? 'error' : 'hint';
+    if (bypassConfirmed) talentsLine.textContent = `Talent points: ${used} used. The limit of ${TALENT_POINTS} is ignored (unbalanced campaign).`;
     preview.replaceChildren();
     if (last.birthDay === null || last.startDay === null) {
       preview.append(el('p', { class: 'hint', text: 'Enter valid dates to see the starting levels.' }));
@@ -159,9 +172,13 @@ export function creationForm(): CreationForm {
       el(
         'div',
         { class: 'preview-grid' },
-        show.map((id) => el('div', { class: 'kv' }, [el('span', { class: 'k', text: `${SKILL_BY_ID.get(id)?.name ?? id}: ` }), String(Math.floor((c.levels[id] ?? 0) + 1e-9))])),
+        show.map((id) => el('div', { class: 'kv' }, [el('span', { class: 'k', text: `${SKILL_BY_ID.get(id)?.name ?? id}: ` }), (c.levels[id] ?? 0).toFixed(1)])),
       ),
     );
+    const r = rank.value;
+    if (r === 'initiate' || r === 'padawan' || r === 'acolyte' || r === 'apprentice') {
+      preview.append(el('p', { class: 'hint', text: 'Before Knighthood the Order requirements fill most of the training day, so focus moves these levels only a little; from Knight on it decides the day (D-115).' }));
+    }
     if (c.unmet.length) {
       preview.append(
         el('div', { class: c.storyException ? 'hint' : 'error', text: `Rank minimums not met: ${c.unmet.map((u) => `${SKILL_BY_ID.get(u.skillId)?.name ?? u.skillId} ${u.have} of ${u.need}`).join(', ')}.` }),
@@ -187,6 +204,30 @@ export function creationForm(): CreationForm {
   for (const n of [rank, start, hand, war, exception, ...Object.values(talentSel)]) n.addEventListener('change', refresh);
   for (const n of [mainForm, secondForm]) n.addEventListener('change', () => (renderFocus(), refresh()));
 
+  const renderBypass = (): void => {
+    bypassBox.replaceChildren();
+    if (!ignoreLimit.checked) return;
+    if (bypassConfirmed) {
+      bypassBox.append(el('p', { class: 'warn-text', text: 'Talent limit ignored: this campaign is flagged unbalanced. Each talent still maxes at exceptional; the 2.8 speed cap and the 4.0x pace limit still apply.' }));
+      return;
+    }
+    bypassBox.append(
+      el('div', { class: 'warn-box' }, [
+        el('strong', { text: 'This creates a very powerful character; gameplay will not be balanced.' }),
+        el('p', { text: 'Any number of talents can be chosen (each up to exceptional). The 2.8 speed cap and the 4.0x pace limit still apply. The campaign is flagged unbalanced on the character sheet.' }),
+        el('div', { class: 'row' }, [
+          el('button', { text: 'I understand, ignore the limit', attrs: { type: 'button' }, on: { click: () => ((bypassConfirmed = true), renderBypass(), refresh()) } }),
+          el('button', { class: 'secondary', text: 'Cancel', attrs: { type: 'button' }, on: { click: () => ((ignoreLimit.checked = false), renderBypass(), refresh()) } }),
+        ]),
+      ]),
+    );
+  };
+  ignoreLimit.addEventListener('change', () => {
+    bypassConfirmed = false;
+    renderBypass();
+    refresh();
+  });
+
   fillArchetypes();
   renderFocus();
 
@@ -201,6 +242,8 @@ export function creationForm(): CreationForm {
     el('div', { class: 'field-label', text: 'Talents' }),
     el('div', { class: 'row' }, TALENT_DOMAINS.map((d) => field(DOMAIN_LABEL[d], talentSel[d]))),
     talentsLine,
+    el('label', { class: 'check' }, [ignoreLimit, ' Ignore talent point limit']),
+    bypassBox,
     el('label', { class: 'check' }, [exception, ' Keep an unreachable rank as a story exception (e.g. a battlefield promotion)']),
     preview,
   ];

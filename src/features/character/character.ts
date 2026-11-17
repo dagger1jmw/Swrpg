@@ -21,13 +21,20 @@ export const characterSliceSchema = z.object({
   trainingStartAge: z.number().min(0).nullable(),
   talents: z.partialRecord(z.enum(TALENT_DOMAINS), z.enum(TALENT_LEVELS)),
   dominantHand: z.enum(['left', 'right']),
+  /** Created with the talent limit ignored (D-116): shown on the sheet; balance is not promised. */
+  unbalanced: z.boolean(),
 });
 
 export type CharacterSlice = z.infer<typeof characterSliceSchema>;
 export type CharacterPathId = (typeof PATHS)[number];
 
+/** v2 -> v3: the unbalanced flag (D-116), false for every earlier character. */
+export function migrateCharacterV2(old: unknown): CharacterSlice {
+  return { ...(old as Omit<CharacterSlice, 'unbalanced'>), unbalanced: false };
+}
+
 /** v1 (M1/M2) -> v2: a Human outsider with no training (M3 plan; D-107). */
-export function migrateCharacterV1(old: unknown): CharacterSlice {
+export function migrateCharacterV1(old: unknown): Omit<CharacterSlice, 'unbalanced'> {
   const o = old as { id: string; name: string; birthDay: number };
   return {
     id: o.id,

@@ -102,21 +102,24 @@ const CATEGORY_LABEL: Record<string, string> = {
   academic: 'Academic and social',
 };
 const ORDER = ['physical', 'wisdom', 'force', 'technique', 'knowledge', 'academic'];
-const pct = (x: number): string => `${Math.round(x * 100)}%`;
+
+const num = (x: number): string => x.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 function meter(label: string, f: number, cap: number, word: string): HTMLElement {
   const bar = el('div', { class: 'meter' }, [el('div', { class: `meter-fill${f > 1 ? ' over' : f > 0.8 ? ' high' : ''}`, attrs: { style: `width:${Math.min(100, Math.round(f * 100))}%` } })]);
-  return el('div', { class: 'meter-row' }, [el('span', { class: 'k', text: label }), bar, el('span', { class: 'meter-text', text: `${pct(f)} of ${cap.toFixed(1)} · ${word}` })]);
+  return el('div', { class: 'meter-row' }, [el('span', { class: 'k', text: label }), bar, el('span', { class: 'meter-text', text: `${num(f * cap)} / ${num(cap)} · ${word}` })]);
 }
 
 function skillRow(v: SkillView): HTMLElement {
-  const progress = v.levelExact - v.level;
-  const perf = v.category === 'physical' && Math.abs(v.performance - v.levelExact) > 0.05 ? ` (performance ${v.performance.toFixed(1)})` : '';
+  // Real numbers: level, total XP / XP the next level needs, rust (the bar shows the same progress).
+  const span = Math.max(1e-9, v.nextXp - v.levelXp);
+  const progress = Math.min(1, Math.max(0, (v.xpTotal - v.levelXp) / span));
+  const perf = v.category === 'physical' && Math.abs(v.performance - v.levelExact) > 0.05 ? ` · performance ${v.performance.toFixed(1)}` : '';
   return el('div', { class: 'skill-row' }, [
     el('span', { class: 'skill-name', text: v.name }),
     el('span', { class: 'skill-level', text: String(v.level) }),
-    el('div', { class: 'meter thin', attrs: { title: `${pct(progress)} to ${v.level + 1}` } }, [el('div', { class: 'meter-fill', attrs: { style: `width:${Math.round(progress * 100)}%` } })]),
-    el('span', { class: 'skill-tier hint', text: `${v.tier}${v.rust > 0.0005 ? ` · rust ${(v.rust * 100).toFixed(1)}%` : ''}${perf}` }),
+    el('div', { class: 'meter thin', attrs: { title: `${num(v.xpTotal)} / ${num(v.nextXp)} XP` } }, [el('div', { class: 'meter-fill', attrs: { style: `width:${Math.round(progress * 100)}%` } })]),
+    el('span', { class: 'skill-tier hint', text: `XP ${num(v.xpTotal)} / ${num(v.nextXp)} · ${v.tier} · rust ${(v.rust * 100).toFixed(1)}%${perf}` }),
   ]);
 }
 
@@ -214,6 +217,7 @@ function character(p: SidePanelProps): HTMLElement[] {
       kv('Forms', [c.mainFormId, c.secondFormId].filter((x): x is string => !!x).map((x) => SKILL_BY_ID.get(x)?.name ?? x).join(', ') || 'none'),
       kv('Talents', talents.join(', ') || 'none'),
       kv('Dominant hand', c.dominantHand),
+      c.unbalanced ? el('div', { class: 'unbalanced', text: 'Unbalanced campaign: created with the talent point limit ignored.' }) : null,
     ]),
     el('div', { class: 'card' }, [
       el('div', { class: 'card-title' }, [el('strong', { text: 'Condition' }), el('span', { class: 'rel', text: `${selectStateOfMind(s)}${grief < 1 ? ` · grief x${grief.toFixed(2)}` : ''}` })]),

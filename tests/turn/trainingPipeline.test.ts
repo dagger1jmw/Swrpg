@@ -10,7 +10,8 @@ import { defaultSettings, type Settings } from '../../src/ai/settings';
 import { EMPTY_USAGE_LOG, type UsageLog } from '../../src/ai/usage';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { xpForLevel } from '../../src/engine/curve';
-import { createMemoryStorage } from '../../src/persist/storage';
+import { loadEnvelope } from '../../src/persist/envelope';
+import { AUTOSAVE_SLOT, createMemoryStorage } from '../../src/persist/storage';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
@@ -36,7 +37,7 @@ function setup(steps: FixtureStep[]) {
   });
   let ms = Date.UTC(2026, 10, 17);
   const deps: TurnDeps = { registry: REGISTRY, provider, router, storage, getSettings, wallClock: () => ({ ms: (ms += 1000), iso: new Date(ms).toISOString() }) };
-  return { provider, deps };
+  return { provider, deps, storage };
 }
 
 function session(overrides: Partial<GameState> = {}): Session {
@@ -123,6 +124,27 @@ describe('training turns', () => {
     const { deps, provider } = setup([]);
     await expect(playTurn(deps, session(), { kind: 'action', label: 'x', intent: { actionType: 'dance' } as never })).rejects.toThrow(/invalid action/);
     expect(provider.calls).toHaveLength(0);
+  });
+});
+
+describe('a 2 h Shii-Cho session reaches the save (play-test fix)', () => {
+  it('adds the card XP to the saved progression and the card shows the new totals', async () => {
+    const { deps, storage } = setup([{ callType: 'narrative', data: narrative() }]);
+    const s0 = session();
+    const before = s0.state.progression.skills['shiiCho']!.xp;
+    const { record } = await playTurn(deps, s0, action({ actionType: 'train', skillId: 'shiiCho', activity: { activityId: 'shiiChoBasics' }, requestedSpan: { amount: 2, unit: 'hours' } }));
+    const saved = loadEnvelope<GameState>(REGISTRY, await storage.loadSnapshot(AUTOSAVE_SLOT));
+    expect(saved.ok).toBe(true);
+    if (!saved.ok || !record.draft.training?.ok) throw new Error('no save or no training');
+    const card = record.draft.training.card;
+    const added = saved.state.progression.skills['shiiCho']!.xp - before;
+    // Reported in the play-test notes: the amount this seeded session adds.
+    console.info(`2 h Shii-Cho basics: +${added.toFixed(2)} XP to Shii-Cho (card ${card.credited['shiiCho']}), total ${card.totals['shiiCho']?.xp} / ${card.totals['shiiCho']?.nextXp}`);
+    expect(added).toBeGreaterThan(1);
+    expect(added).toBeCloseTo(card.credited['shiiCho']!, 2);
+    expect(card.totals['shiiCho']!.level).toBe(30);
+    expect(card.totals['shiiCho']!.nextXp).toBeGreaterThan(card.totals['shiiCho']!.xp);
+    for (const sk of ['strength', 'agility', 'endurance']) expect(saved.state.progression.skills[sk]!.xp).toBeGreaterThan(0);
   });
 });
 

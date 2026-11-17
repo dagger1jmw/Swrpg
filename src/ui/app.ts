@@ -695,16 +695,21 @@ export class App {
     if (!t.ok) return el('div', { class: 'roll training failure' }, [el('div', { text: `Training refused: ${t.reason}` })]);
     const c = t.card;
     const name = (id: string): string => SKILL_BY_ID.get(id)?.name ?? id;
-    const xp = Object.entries(c.credited)
-      .filter(([, v]) => v >= 0.01)
+    // XP gained this session per skill (one decimal) and each skill's new total.
+    const one = (x: number): string => x.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const gained = Object.entries(c.credited)
+      .filter(([, v]) => v >= 0.05)
       .sort((a, b) => b[1] - a[1])
-      .map(([k, v]) => `${name(k)} +${v.toFixed(2)}`);
+      .map(([k, v]) => {
+        const t = c.totals?.[k];
+        return el('div', { text: `${name(k)} +${one(v)} XP${t ? ` → ${one(t.xp)} / ${one(t.nextXp)} (level ${t.level})` : ''}` });
+      });
     return el('div', { class: `roll training${c.outcome === 'breakthrough' ? ' success' : ''}` }, [
       el('div', { text: `${c.activityName} · ${c.hours} h ${c.intensity} · ${c.drillName} drill (${c.drillRating})` }),
       el('div', { text: `${c.effectiveHours} effective h × challenge ${c.challenge} × outcome ${c.outcomeMult} · ${c.instruction.mode} x${c.instruction.factor}` }),
       el('div', {}, ['Outcome: ', el('span', { class: 'outcome', text: c.outcome })]),
-      el('div', { text: `XP: ${xp.join(', ') || 'none'}` }),
-      ...c.levels.map((l) => el('div', { text: `${name(l.skillId)} ${l.before}${l.after !== l.before ? ` → ${l.after}` : ''} (${l.tier})` })),
+      ...(gained.length ? gained : [el('div', { text: 'XP: none' })]),
+      ...c.levels.filter((l) => l.after !== l.before).map((l) => el('div', { class: 'outcome', text: `${name(l.skillId)} level ${l.before} → ${l.after} (${l.tier})` })),
       el('div', { class: 'hint', text: `Tiredness: physical ${c.tiredness.p}, mental ${c.tiredness.m}, Force ${c.tiredness.f}` }),
       ...c.notes.map((n) => el('div', { class: 'hint', text: n })),
     ]);

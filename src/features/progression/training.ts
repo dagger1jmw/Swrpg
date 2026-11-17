@@ -11,7 +11,7 @@ import { ageFactor } from '../../engine/ageFactor';
 import { pickDrillRating, type Effort } from '../../engine/challenge';
 import { closedFormLevel, phasesFor } from '../../engine/closedForm';
 import { computeTrainingXp, type SessionSplit, type TrainingResult } from '../../engine/computeXp';
-import { tierOf, levelWithNatural } from '../../engine/curve';
+import { tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { tirednessLabel } from '../../engine/fatigue';
 import { instructionFactor } from '../../engine/instruction';
 import { clampCredit, clampShare, inWindow, paceCap } from '../../engine/paceClamp';
@@ -64,6 +64,11 @@ export interface TrainingCard {
   instruction: { mode: string; factor: number; teacherId?: string; partnerId?: string };
   /** XP credited per skill (rounded to 0.01). */
   credited: Record<string, number>;
+  /**
+   * After the session, per credited skill: total XP (natural baseline included, so it lines up with
+   * the curve XP(L) = K * L^1.75), the displayed level, and the total XP the next level needs.
+   */
+  totals: Record<string, { xp: number; level: number; nextXp: number }>;
   discarded: Record<string, number>;
   /** Levels of the primaries before and after (displayed, natural baseline included). */
   levels: { skillId: string; before: number; after: number; tier: string }[];
@@ -295,6 +300,13 @@ export function resolveTraining(s: GameState, req: TrainingRequest): TrainingPla
     const after = Math.floor(levelWithNatural(selectSkillXp(s, id) + (r.credited[id] ?? 0), selectNatural(s, id)) + 1e-9);
     return { skillId: id, before: before[id]!, after, tier: tierOf(after) };
   });
+  const totals: TrainingCard['totals'] = {};
+  for (const [id, v] of Object.entries(r.credited)) {
+    if (v < 0.05) continue;
+    const total = xpForLevel(selectNatural(s, id)) + selectSkillXp(s, id) + v;
+    const level = Math.floor(levelWithNatural(selectSkillXp(s, id) + v, selectNatural(s, id)) + 1e-9);
+    totals[id] = { xp: Math.round(total * 10) / 10, level, nextXp: Math.round(xpForLevel(level + 1) * 10) / 10 };
+  }
   const card: TrainingCard = {
     activityId: a.id,
     activityName: a.name,
@@ -309,6 +321,7 @@ export function resolveTraining(s: GameState, req: TrainingRequest): TrainingPla
     outcomeMult: r.outcome.mult,
     instruction: { mode: instr.mode, factor: Math.round(instr.factor * 1000) / 1000, ...(teacherId ? { teacherId } : {}), ...(partnerId ? { partnerId } : {}) },
     credited: round(r.credited),
+    totals,
     discarded: round(r.discarded),
     levels,
     tiredness: { p: tirednessLabel(r.meters.p / caps.p), m: tirednessLabel(r.meters.m / caps.m), f: tirednessLabel(r.meters.f / caps.f) },

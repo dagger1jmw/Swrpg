@@ -150,6 +150,9 @@ button.tab.active { background: var(--accent-soft); border-color: var(--accent);
 .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: var(--pad); }
 .field label, .field-label { color: var(--muted); font-size: var(--fs-s); }
 .field-label { margin: var(--pad) 0 4px; }
+.warn-box { border: 1px solid var(--warn); border-radius: var(--r-inner); padding: var(--pad-s); margin: var(--pad-s) 0; }
+.warn-box p { margin: 6px 0; font-size: var(--fs-s); }
+.warn-text, .unbalanced { color: var(--warn); font-size: var(--fs-s); }
 label.check { display: flex; gap: 10px; align-items: center; min-height: var(--touch); }
 h3 { font-size: var(--fs-s); text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin: 16px 0 8px; }
 h3:first-child { margin-top: 0; }

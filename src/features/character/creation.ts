@@ -4,7 +4,9 @@
 // and war years, read on the Human-equivalent age; the natural baseline is added on top by the
 // progression selectors. Variance is off for player characters.
 import { ARCHETYPE_BY_ID, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
-import { TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
+import { BUDGET, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
+import { ORDER_REQUIREMENTS } from '../../data/orderRequirements';
+import { interp } from '../../engine/interp';
 import { AVERAGE_RANK_AGES, RANK_BY_ID, RANK_PHASE, type RankDef } from '../../data/rankMinimums';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID, SKILL_IDS, type TalentDomain } from '../../data/skills';
 import { SPECIES_BY_ID, speciesDef } from '../../data/species';
@@ -36,6 +38,11 @@ export interface CreationInput {
   dominantHand: 'left' | 'right';
   /** Keep an unreachable rank as a logged story exception (a battlefield promotion). */
   storyException?: boolean;
+  /**
+   * Ignore the 3-point talent limit (D-116): any number of talents, each still at most exceptional;
+   * the 2.8 M cap and the 4.0x pace limit still apply. The campaign is flagged unbalanced.
+   */
+  ignoreTalentLimit?: boolean;
 }
 
 export interface UnmetMinimum {
@@ -59,6 +66,8 @@ export interface CreationResult {
   /** Shown when `unmet` is not empty and no story exception was chosen. */
   options: readonly string[];
   storyException: boolean;
+  /** True when the talent limit was ignored (D-116). */
+  unbalanced: boolean;
   /** Starting trained XP per skill (the natural baseline is not included). */
   startingXp: Record<string, number>;
   /** Preview: total levels (natural baseline included) for every skill above 0. */
@@ -99,6 +108,27 @@ export function phaseAges(rank: string, path: CharacterPath, startAge: number, a
   return { padawanAge: Math.max(startAge, Math.min(AVERAGE_RANK_AGES.padawan, knightAge - 6)), knightAge, onePhase: false };
 }
 
+/** The Knight+ standard day (budget 6 h, no Order hours) that the focus formula is measured on. */
+const REFERENCE_FILL_HOURS = BUDGET.standard[BUDGET.standard.length - 1]![1];
+const ORDER_HOURS: Record<Phase, number> = {
+  initiate: ORDER_REQUIREMENTS['initiate']!.reduce((a, b) => a + b.hours, 0),
+  padawan: ORDER_REQUIREMENTS['padawan']!.reduce((a, b) => a + b.hours, 0),
+  knight: 0,
+};
+
+/** Mean fill hours (standard budget minus Order hours, never below 0) over [from, to], over the reference day. */
+export function fillFactor(phase: Phase, from: number, to: number): number {
+  if (!(to > from) || !Number.isFinite(from)) return phase === 'knight' ? 1 : 0;
+  const end = Number.isFinite(to) ? to : from + 1;
+  const steps = Math.max(1, Math.ceil((end - from) / 0.1));
+  let sum = 0;
+  for (let i = 0; i < steps; i++) {
+    const x = from + ((i + 0.5) * (end - from)) / steps;
+    sum += Math.max(0, interp(BUDGET.standard, x) - ORDER_HOURS[phase]);
+  }
+  return sum / steps / REFERENCE_FILL_HOURS;
+}
+
 /** Default focus shares for an archetype (main 0.5 of the Knight+ / career fill, D-41). */
 export function defaultFocus(a: ArchetypeDef): Record<string, number> {
   return focusShares(a.weights, a.main, 0.5);
@@ -122,7 +152,7 @@ export function computeCreation(input: CreationInput): CreationResult {
   const [lo, hi] = PATH_START_RANGE[input.path];
   if (!(hStartIn >= lo - 1e-9 && hStartIn <= hi + 1e-9)) errors.push(`Training start age must be ${lo}-${hi} (Human-equivalent) for this path.`);
   if (input.trainingStartAge > age) errors.push('Training cannot start after the campaign start.');
-  if (talentCost(input.talents) > TALENT_POINTS) errors.push(`Talents cost ${talentCost(input.talents)} points; the limit is ${TALENT_POINTS}.`);
+  if (!input.ignoreTalentLimit && talentCost(input.talents) > TALENT_POINTS) errors.push(`Talents cost ${talentCost(input.talents)} points; the limit is ${TALENT_POINTS}.`);
   for (const f of [input.mainFormId, input.secondFormId]) if (f !== null && !FORM_IDS.includes(f)) errors.push(`${f} is not a lightsaber form.`);
   if (input.mainFormId !== null && input.mainFormId === input.secondFormId) errors.push('The second form must differ from the main form.');
   const usesMainForm = a ? Object.keys(a.weights).includes('$mainForm') || input.path === 'jedi' || input.path === 'sith' : false;
@@ -133,7 +163,8 @@ export function computeCreation(input: CreationInput): CreationResult {
     if (Math.abs(total - 1) > 1e-6) errors.push('Focus shares must sum to 1.');
     if (a) for (const k of Object.keys(focusIn)) if (!(k in a.weights)) errors.push(`Focus key ${k} is not in the archetype.`);
   }
-  const empty: CreationResult = { ok: false, errors, unmet: [], options: [], storyException: false, startingXp: {}, levels: {}, maxPace: 0, focusWeights: {}, facts: [] };
+  const unbalanced = input.ignoreTalentLimit === true && talentCost(input.talents) > TALENT_POINTS;
+  const empty: CreationResult = { ok: false, errors, unmet: [], options: [], storyException: false, unbalanced, startingXp: {}, levels: {}, maxPace: 0, focusWeights: {}, facts: [] };
   if (errors.length || !a || !species || !rankDef) return empty;
 
   const def = defaultFocus(a);
@@ -158,14 +189,22 @@ export function computeCreation(input: CreationInput): CreationResult {
     if (skill && SKILL_BY_ID.has(skill) && !keysBySkill.has(skill)) keysBySkill.set(skill, key);
   }
 
+  // How much of each phase's day is player-directed fill (budget minus Order hours), relative to the
+  // Knight+ day the focus formula is measured on (D-115). Initiates and Padawans fill only a little.
+  const fill = {
+    initiate: fillFactor('initiate', hStart, Math.min(h, hAges.padawanAge)),
+    padawan: fillFactor('padawan', Math.max(hStart, hAges.padawanAge), Math.min(h, hAges.knightAge)),
+    knight: fillFactor('knight', ages.onePhase ? hStart : Math.max(hStart, hAges.knightAge), h),
+  };
   const startingXp: Record<string, number> = {};
   const levels: Record<string, number> = {};
   let maxPace = 0;
   for (const [skill, key] of keysBySkill) {
     const pace = (ph: Phase): number => {
       let p = a.paces[ph]?.[key] ?? 0;
-      // Focus sliders change the Knight+ / career pace by Delta share x 2 x the main Knight+ pace (D-105).
-      if (ph === 'knight') p = Math.max(0, p + ((focus[key] ?? 0) - (def[key] ?? 0)) * 2 * mainKnight);
+      // Focus sliders move a phase's pace by Delta share x 2 x the main Knight+ pace (D-105), scaled by the
+      // phase's share of fill hours (D-115: the Order-fixed phases move by their fill only).
+      p = Math.max(0, p + ((focus[key] ?? 0) - (def[key] ?? 0)) * 2 * mainKnight * fill[ph]);
       return p;
     };
     const mult = talentMult(talents, skill) * crossTalentMult(talents, skill) * speciesLearning(species.id, skill);
@@ -202,6 +241,7 @@ export function computeCreation(input: CreationInput): CreationResult {
     unmet,
     options: unmet.length && !storyException ? VALIDATION_OPTIONS : [],
     storyException,
+    unbalanced,
     startingXp,
     levels,
     maxPace,

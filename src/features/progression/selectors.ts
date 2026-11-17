@@ -1,7 +1,7 @@
 // Progression selectors: every level, tier, capacity and effective level is derived here, never
 // stored (architecture §2 "Derived, never stored").
 import { SKILLS, SKILL_BY_ID, type PhysicalStat } from '../../data/skills';
-import { levelWithNatural, tierOf } from '../../engine/curve';
+import { levelWithNatural, tierOf, xpForLevel } from '../../engine/curve';
 import { capacities, type Capacities } from '../../engine/fatigue';
 import { bodyCap, forceBoost, naturalLevel } from '../../engine/species';
 import type { StateOfMind, TierName } from '../../data/progression.config';
@@ -61,7 +61,14 @@ export interface SkillView {
   name: string;
   category: string;
   kind: string;
+  /** Trained XP only. */
   xp: number;
+  /** Total XP on the curve (natural baseline included): level = floor((xpTotal / K)^(1/1.75)). */
+  xpTotal: number;
+  /** Total XP where the current displayed level starts. */
+  levelXp: number;
+  /** Total XP the next level needs. */
+  nextXp: number;
   level: number;
   levelExact: number;
   natural: number;
@@ -79,7 +86,8 @@ export function selectSkillViews(s: GameState): SkillView[] {
     if (xp <= 0 && natural <= 0) continue;
     const exact = levelWithNatural(xp, natural);
     const level = Math.floor(exact + 1e-9);
-    out.push({ id: sk.id, name: sk.name, category: sk.category, kind: sk.kind, xp, level, levelExact: exact, natural, performance: selectPerformance(s, sk.id), rust: selectRust(s, sk.id), tier: tierOf(level) });
+    const xpTotal = xpForLevel(natural) + xp;
+    out.push({ id: sk.id, name: sk.name, category: sk.category, kind: sk.kind, xp, xpTotal, levelXp: xpForLevel(level), nextXp: xpForLevel(level + 1), level, levelExact: exact, natural, performance: selectPerformance(s, sk.id), rust: selectRust(s, sk.id), tier: tierOf(level) });
   }
   return out;
 }

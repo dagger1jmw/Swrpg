@@ -87,6 +87,7 @@ export async function createCampaign(
             trainingStartAge: cr.trainingStartAge,
             talents: cr.talents,
             dominantHand: cr.dominantHand,
+            unbalanced: c.unbalanced,
           }
         : {}),
     },

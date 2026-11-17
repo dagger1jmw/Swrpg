@@ -95,10 +95,12 @@ main skill and summed to far more training than a day holds (Jedi Guardian 3.9x,
   | Strength / Agility / Endurance (trained part) | 0.110 / 0.083 / 0.056 | 0.034 / 0.026 / 0.018 | 0.296 / 0.237 / 0.233 |
 
   The full table for every archetype is the script's output and src/data/archetypes.ts.
-  Custom focus (character creation sliders): in the Knight+ and career phases, a change of
-  share Delta moves the skill's pace by Delta * 2 * (that archetype's main Knight+ pace); the
-  Order-fixed phases are unchanged (D-105, an approximation; reachability test 7 checks the
-  default shares).
+  Custom focus (character creation sliders): a change of share Delta moves the skill's pace by
+  Delta * 2 * (that archetype's main Knight+ pace) * fill, where fill is the phase's mean fill
+  hours (standard budget minus Order hours, never below 0) over the 6 h Knight+ day: 1 for
+  Knight+ and careers from 15, about 0.14 for Padawans, 0 for Initiates under 10 (D-105, amended
+  by D-115: before, the Order-fixed phases were unchanged, so the sliders did nothing below
+  Knight). An approximation; reachability test 7 checks the default shares.
 - History (before D-105): the secondary paces before Knight were ratios to the main form
   (skill XP / main-form XP):
 

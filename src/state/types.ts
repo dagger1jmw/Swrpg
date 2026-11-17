@@ -132,6 +132,8 @@ export interface InitCtx {
     trainingStartAge?: number | null;
     talents?: Readonly<Partial<Record<'combat' | 'force' | 'physical' | 'mind', 'none' | 'gifted' | 'prodigy' | 'exceptional'>>>;
     dominantHand?: 'left' | 'right';
+    /** The talent limit was ignored at creation (D-116). */
+    unbalanced?: boolean;
   };
   /** Starting trained XP per skill from computed creation (character-creation §2). */
   startingXp?: Readonly<Record<string, number>>;
