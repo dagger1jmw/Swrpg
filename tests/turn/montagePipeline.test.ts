@@ -133,6 +133,39 @@ describe('staleness and the Skip-ahead choice (D-18)', () => {
     expect(intent.requestedSpan).toEqual({ amount: 14, unit: 'days' });
   });
 
+  it('after a real montage: the code appends only when the GM offers no forward jump (D-18, D-138)', async () => {
+    // A thread with no deadline (so nothing stops the montage) opened before it; the montage narration
+    // introduces nothing, so 92 days at the same place leave the story stale.
+    const prepared = (seed: string): Session => {
+      const s = session(seed);
+      const st = applyEvents(REGISTRY, s.state, [{ type: 'threadOpened', key: 'tmp:t', title: 'The envoy', stakes: 'peace', entityRefs: [] }], { source: 'ai' }).state;
+      return { ...s, state: st };
+    };
+    const gmJump = { label: 'Skip ahead a month', intent: { actionType: 'train' }, pacingHint: 'montage', spanDays: 31 };
+    let checked = 0;
+    for (let i = 0; i < 20 && checked === 0; i++) {
+      // (b) The GM's choices have no forward jump: the code appends "Skip ahead: <top open thread>".
+      const b = setup([{ callType: 'narrative', data: narrative() }]);
+      const rb = await playTurn(b.deps, prepared(`after${i}`), montage(92));
+      if (rb.record.draft.jump!.report.interrupted) continue; // a significant event: this seed is not stale
+      const skip = rb.record.choices.at(-1)!;
+      expect(skip.label).toBe('Skip ahead: The envoy');
+      expect(skip.pacingHint).toBe('montage');
+      expect(skip.spanDays).toBe(14);
+      expect(rb.record.draft.report.some((n) => n.startsWith('staleness: appended'))).toBe(true);
+      expect(rb.record.choices.filter((c) => c.label.startsWith('Skip ahead:'))).toHaveLength(1);
+
+      // (a) Same seed, the GM's choices include a forward jump: the code appends nothing.
+      const a = setup([{ callType: 'narrative', data: narrative([], [...narrativeInvestigate.choices, gmJump] as never) }]);
+      const ra = await playTurn(a.deps, prepared(`after${i}`), montage(92));
+      expect(ra.record.draft.jump!.report.interrupted).toBeNull();
+      expect(ra.record.choices.map((c) => c.label)).toEqual([...narrativeInvestigate.choices.map((c) => c.label), 'Skip ahead a month']);
+      expect(ra.record.draft.report.some((n) => n.startsWith('staleness'))).toBe(false);
+      checked += 1;
+    }
+    expect(checked).toBe(1);
+  });
+
   it('no Skip-ahead while settling in, or when a choice already jumps', async () => {
     const { deps } = setup([
       { callType: 'narrative', data: narrative() },
