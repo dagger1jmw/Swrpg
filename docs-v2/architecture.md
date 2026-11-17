@@ -235,7 +235,7 @@ The grief floor on D is derived (10 x progression grief intensity via a selector
 **locations** (owner: locations)
 | Field | Type / range | Source |
 |---|---|---|
-| byId | {id `loc:<slug>`, name, aliases, kind, region, parentId?, major: bool, description, firstVisitDay} | name/kind/region/description AI text; major and ids engine |
+| byId | {id `loc:<slug>`, name, aliases, kind, region, parentId?, description, firstVisitDay, introducedTurn} | name/kind/region/description AI text; ids engine. "major" is derived from kind by `CHAPTER_PLACE_KINDS`, not stored (amended by D-84) |
 | currentId | location id | engine (from locationChanged) |
 
 **threads** (owner: threads)
@@ -280,12 +280,13 @@ The grief floor on D is derived (10 x progression grief intensity via a selector
 **memory** (owner: memory)
 | Field | Type / range | Source |
 |---|---|---|
-| facts[] | {id, aboutRef, text <= 300, turn, importance minor/major} | text AI |
+| facts[] | {id, aboutRef (entity ID or "pc"), text <= 300, turn, day, importance minor/major} | text AI |
 | playerPins[] | fact ids the player pinned. Engine pins (master, apprentices, open promises and debts, lasting injuries) are derived by a selector, never stored (D-46) | player |
 | chapters[] | {id, turnRange, dayRange, locationIds, entityIds, threadIds, summary, status open / closed / summaryPending} | summary AI text; everything else engine |
 | arc | {text <= ~1000 tokens, atChapter} | AI text |
 | current | {startTurn, startDay, signals[]} | engine |
-| review[] | {name, turn, context, resolved?} unknown names awaiting the player | engine |
+| review[] | {id, name, turn, context, status open / mapped / created / dismissed, entityId} unknown names awaiting the player | engine; resolved by the player, or by the engine on an exact match (D-94) |
+| nextSeq | shared counter for fact / review / chapter IDs | engine |
 
 ### Outside GameState
 - **Transcript**: IndexedDB, append-only, keyed by {campaignId, branchId, turn}. Each entry:
@@ -354,7 +355,7 @@ intent: {
 narrative: string       // may quote only numbers present in the resolved block
 choices: [{ label, intent: { actionType, targetRef?, skillId? }, pacingHint?, threadRef? }]
                         // 2-5; compact intent (D-58), the engine fills the rest when clicked
-scene: { locationRef, presentNpcRefs[], moodTags[] }
+scene: { presentNpcRefs[], moodTags[] }   // locationRef dropped: locationChanged is the only writer (D-84)
 events: Event[]         // discriminated union on "type", filtered per turn
 ```
 - A clicked choice's compact intent is expanded by the engine (default activity, span from
@@ -375,7 +376,8 @@ tacticDeclared and healingReceived. They are intent fields now (above).
 | timeElapsed {seconds, reason} | clock | only in the schema when the TurnDraft did not advance time; clamped to the pacing range; clamp logged (D-30) |
 | sceneEnded {reason} | memory | hint for chapter close only |
 | pacingSuggested {level, reason} | pacing | applied only if level = moment; else shown as a choice |
-| locationChanged {locationRef \| newLocation{key?, name, kind, region}} | locations | ref exists or new entry created |
+| locationIntroduced {key?, name, kind, region, parentRef?, description, moveHere} | locations | creation event; exact alias match to an existing place first; parent must exist (D-84) |
+| locationChanged {locationRef} | locations | place exists; the only writer of currentId (D-84) |
 | npcIntroduced {key?, name, species, faction, role, ageApprox, description} | npcs | enums registered; exact alias match to existing/canon first |
 | npcStatusChanged {npcRef, state: active / dormant / departed} | npcs | the AI may not set deceased; deceased comes only from the health model (a resolved fight or hazard), a player choice at incapacitation, or a code-run Legends timeline event (engine source); deceased is one-way; `witnessed` removed (D-33); active added (D-65) |
 | relationshipChanged {npcRef, delta -3..+3, reason} | relationships | npc exists; cap 1 per NPC per turn |
@@ -572,6 +574,11 @@ memory; output caps per level are in section 8.
   with scene NPC canon IDs, the current location and the intent's references; fill to the
   3,000 cap. Upcoming timeline events are included only when code decides they are relevant
   to the scene (Q49), never as a future list.
+- As built in M2 (D-81, D-93, D-95): character and timeline files only (Force file in M6);
+  stats and game-meta sentences stripped; timeline rows up to the current year (10 years
+  back); a person's entry only when that person is in play (canon ID, name, or the player's
+  words), never for a shared place, since entries span whole lives. The builder is
+  `src/turn/context.ts`; the caps are in `src/ai/context.config.ts`.
 
 ---
 
@@ -624,6 +631,7 @@ the next close; its raw turns stay in the transcript. Boundaries are turn IDs, n
 slices, so turns played meanwhile are never lost (legacy story-memory bug 1).
 
 ### Retrieval (`src/memory/`)
+Weights, the recency rule for unrelated items and the name-mention signal are in D-83 and D-85.
 - Inputs: scene NPCs, current location, entities referenced in the intent, open threads.
 - Score = tag overlap (weighted per kind) + recency decay + open-thread bonus.
 - Each section fills up to its cap in score order. Pinned facts are always included: the
