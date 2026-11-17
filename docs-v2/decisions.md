@@ -130,3 +130,5 @@ D-67 record conflicts found while computing; Jared chose D-41, D-42 and the D-67
     | gemini-4-hydrogen | not found | not found | not found |
 
     These are the editable Settings defaults (Flash-Lite uses the lower 10 RPM). Consequence: about 20 narrated turns a day on free Flash; the intent call runs on Flash-Lite.
+- **D-69 Check grades (design interpretation of rolls.md §2).** rolls.md §2 says check margins "grade the result like section 3". Successes reuse the §3 strike bands: narrow 0-3, clear 4-7, strong 8-11, decisive 12-15, exceptional 16+. Failures mirror them on the shortfall: narrow -1 to -3, clear -4 to -7, bad -8 or worse. Config in `src/data/checks.config.ts`.
+- **D-70 Fight intents resolve as one check until M5 (new stub).** Until duels exist (rolls.md §3, M5), a `fight` intent is one engine check against the clamped difficulty (easy..extreme, default moderate), with a note on the roll card. Named stub `STUB_FIGHT_AS_SINGLE_CHECK` in `src/data/stubs.ts`; added to the architecture §15 stubs table. *Reason:* otherwise fight turns have no engine outcome for four milestones and the AI would decide them, which D-29 and D-37 forbid.
