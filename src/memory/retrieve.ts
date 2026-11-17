@@ -13,7 +13,7 @@ import { selectRelationship, selectRelationshipLabel } from '../features/relatio
 import { selectOpenThreads, selectThreads } from '../features/threads/selectors';
 import { selectTurnInPlay } from '../features/clock/selectors';
 import type { GameState } from '../state/gameState';
-import { addTag, DEFAULT_SCORER, type MemoryItem, type MemoryQuery, type QuerySource, type Scorer } from './scorer';
+import { addTag, DEFAULT_SCORER, recencyScorer, type MemoryItem, type MemoryQuery, type QuerySource, type Scorer } from './scorer';
 
 export interface RetrievalInput {
   /** IDs the intent targets or references (already validated). */
@@ -157,7 +157,8 @@ export function retrieveMemory(
       pinned: pins.has(item.id),
       matched: item.tags.filter((t) => query.tags.has(t)),
     }))
-    .filter((s) => s.pinned || s.matched.length > 0 || s.score >= MEMORY_SCORES.minScoreWithoutOverlap);
+    // Without a shared tag, only recent items go in (importance does not rescue an unrelated old record).
+    .filter((s) => s.pinned || s.matched.length > 0 || recencyScorer.score(s.item, query) >= MEMORY_SCORES.minRecencyWithoutOverlap);
   scored.sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.score - a.score || (a.item.id < b.item.id ? -1 : 1));
   const included: ScoredItem[] = [];
   const dropped: ScoredItem[] = [];

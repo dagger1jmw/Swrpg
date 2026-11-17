@@ -57,7 +57,7 @@ describe('resolve (architecture §4 step b)', () => {
   });
 
   it('expands a compact choice intent; unknown target refs are dropped', () => {
-    const { intent, notes } = expandChoice({ label: 'Talk', intent: { actionType: 'dialogue', targetRef: 'npc:ghost' }, pacingHint: 'scene' }, new Set());
+    const { intent, notes } = expandChoice({ label: 'Talk', intent: { actionType: 'dialogue', targetRef: 'npc:ghost' }, pacingHint: 'scene' }, () => null);
     expect(intent).toMatchObject({ actionType: 'dialogue', targets: [], unknownNames: ['npc:ghost'], requestedPacing: 'scene' });
     expect(notes[0]).toMatch(/not a valid ID/);
   });

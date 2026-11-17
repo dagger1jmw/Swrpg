@@ -63,7 +63,7 @@ export async function resumeCampaign(registry: Registry<GameState>, storage: Sto
   if (!loaded.ok) return { error: loaded.error };
   const { state } = loaded;
   const entries = await storage.readTranscript(state.meta.campaignId, state.meta.branchId);
-  const history = entries.filter((e) => e.turn <= state.meta.turn).map((e) => e.data as TurnRecord);
+  const history = entries.filter((e) => e.turn <= state.meta.turn).map((e) => ({ ...(e.data as TurnRecord), turn: e.turn }));
   const campaign: CampaignRecord = (await storage.loadCampaign(state.meta.campaignId)) ?? {
     campaignId: state.meta.campaignId,
     name: state.character.name,

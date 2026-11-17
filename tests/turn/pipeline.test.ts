@@ -79,7 +79,7 @@ describe('turn pipeline (architecture §4, §14)', () => {
     expect(saved.ok && saved.state).toEqual(session.state);
     // The prompt carries the Legends rule, the generic character name and the opening section.
     expect(provider.calls[0]?.opts.system).toContain('Star Wars Legends only');
-    expect(provider.calls[0]?.messages.at(-1)?.text).toContain('Kael Varn, age 13');
+    expect(provider.calls[0]?.messages.at(-1)?.text).toContain('Kael Varn (pc), age 13');
   });
 
   it('typed input makes two calls (intent on Flash-Lite, then narrative); the engine decides and rolls the check', async () => {
@@ -101,7 +101,7 @@ describe('turn pipeline (architecture §4, §14)', () => {
     expect(card.total).toBe(card.d20 + card.naturalBonus);
     // The resolved block given to the narrator states the outcome.
     expect(provider.calls[2]?.messages.at(-1)?.text).toContain(card.grade.toUpperCase());
-    expect(record.draft.report.some((r) => r.includes('Master Orsen'))).toBe(true);
+    expect(session.state.memory.review.map((r) => r.name)).toEqual(['Master Orsen']);
     expect(session.state.meta.turn).toBe(2);
     expect(session.state.meta.rngState).not.toEqual(s1.state.meta.rngState);
   });

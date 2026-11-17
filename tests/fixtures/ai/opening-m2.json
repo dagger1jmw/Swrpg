@@ -1,0 +1,17 @@
+{
+  "narrative": "Morning light spills through the tall windows of the Jedi Temple's eastern training hall. Master Orren Vash paces slowly before the younglings, while Grand Master Zym watches from the gallery.\n\n'The Force does not reward haste,' Orren says. His gaze settles on you.",
+  "choices": [
+    { "label": "Meet his gaze and wait", "intent": { "actionType": "dialogue", "targetRef": "npc:orren-vash" } },
+    { "label": "Study the hall", "intent": { "actionType": "investigate" } }
+  ],
+  "scene": { "moodTags": ["calm"], "presentNpcRefs": ["tmp:3", "tmp:4", "Tarsk the stranger"] },
+  "events": [
+    { "type": "locationIntroduced", "key": "tmp:1", "name": "Coruscant", "kind": "planet", "region": "Core Worlds", "description": "The city-planet.", "moveHere": false },
+    { "type": "locationIntroduced", "key": "tmp:2", "name": "Jedi Temple", "kind": "building", "region": "Coruscant", "parentRef": "tmp:1", "description": "Ancient spires.", "moveHere": true },
+    { "type": "npcIntroduced", "key": "tmp:3", "name": "Master Orren Vash", "species": "human", "faction": "jediOrder", "role": "jediMaster", "ageApprox": 52, "description": "Grey-bearded and patient." },
+    { "type": "npcIntroduced", "key": "tmp:4", "name": "Grand Master Zym", "species": "human", "faction": "jediOrder", "role": "jediMaster", "description": "Leader of the Order." },
+    { "type": "factLearned", "aboutRef": "tmp:3", "fact": "Orren lost his first apprentice at the Battle of Alderaan.", "importance": "major" },
+    { "type": "threadOpened", "key": "tmp:5", "title": "The missing holocron", "stakes": "The trust of the Archives", "entityRefs": ["tmp:3", "tmp:2"] },
+    { "type": "timeElapsed", "seconds": 30, "reason": "the lesson begins" }
+  ]
+}

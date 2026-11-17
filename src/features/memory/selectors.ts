@@ -16,3 +16,4 @@ export const selectReview = (s: GameState): ReviewItem[] => s.memory.review;
  * so this is empty until they do.
  */
 export const selectEnginePinnedFactIds = (_s: GameState): string[] => [];
+export type { Chapter, Fact, ReviewItem } from './memory';

@@ -149,7 +149,8 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       };
     }
 
-    if (intent.unknownNames.length) report.push(`unknown names (review queue arrives in M2): ${intent.unknownNames.join(', ')}`);
+    // Names the player used that match nothing go to the review queue (architecture §7).
+    if (intent.unknownNames.length) apply(intent.unknownNames.map((name) => ({ type: 'reviewQueued', name, context: `player input (${intent.actionType})` })));
   }
 
   const draft: TurnDraft = Object.freeze({

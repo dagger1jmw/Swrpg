@@ -3,13 +3,17 @@
 import type { Choice } from '../ai/schemas/compose';
 import { intentSchema, type Intent } from '../ai/schemas/intent';
 
-export function expandChoice(choice: Choice, validIds: ReadonlySet<string>): { intent: Intent; notes: string[] } {
+/** Resolves a ref to a stable ID (own ID or exact alias), or null. */
+export type RefResolver = (ref: string) => string | null;
+
+export function expandChoice(choice: Choice, resolve: RefResolver): { intent: Intent; notes: string[] } {
   const notes: string[] = [];
   const { actionType, targetRef, skillId } = choice.intent;
   const targets: string[] = [];
   const unknownNames: string[] = [];
-  if (targetRef !== undefined) {
-    if (validIds.has(targetRef)) targets.push(targetRef);
+  if (targetRef !== undefined && targetRef.trim()) {
+    const id = resolve(targetRef);
+    if (id !== null) targets.push(id);
     else {
       unknownNames.push(targetRef);
       notes.push(`choice targetRef ${targetRef} is not a valid ID; dropped`);
@@ -20,7 +24,7 @@ export function expandChoice(choice: Choice, validIds: ReadonlySet<string>): { i
     targets,
     references: [],
     unknownNames,
-    ...(skillId !== undefined ? { skillId } : {}),
+    ...(skillId !== undefined && skillId.trim() ? { skillId } : {}),
     ...(choice.pacingHint !== undefined ? { requestedPacing: choice.pacingHint } : {}),
   });
   return { intent, notes };
