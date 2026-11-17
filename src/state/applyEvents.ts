@@ -56,7 +56,7 @@ function isEventLike(e: unknown): e is GameEvent {
   return typeof e === 'object' && e !== null && typeof (e as { type?: unknown }).type === 'string';
 }
 
-function targetOf(def: EventDef<unknown, BaseState>, e: GameEvent): string | undefined {
+function targetOf(def: { targetField?: string | undefined }, e: GameEvent): string | undefined {
   if (!def.targetField) return undefined;
   const v = e[def.targetField];
   return typeof v === 'string' ? v : undefined;
@@ -222,7 +222,7 @@ function validate<S extends BaseState>(
 }
 
 function substituteTempRefs(
-  def: EventDef<unknown, BaseState>,
+  def: { refFields?: readonly string[] | undefined },
   event: GameEvent,
   index: number,
   createdAt: Map<string, number>,

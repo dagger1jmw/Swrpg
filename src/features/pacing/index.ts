@@ -22,6 +22,7 @@ export const pacingFeature: FeatureModule<PacingSlice, GameState> = {
     pacingSuggested: {
       schema: z.object({ type: z.literal('pacingSuggested'), level: z.enum(PACING_LEVELS), reason: z.string().max(200) }),
       sources: ['ai'],
+      narrative: () => true,
       handle: (slice, e) => {
         if (e['level'] !== 'moment') return { reject: `pacingSuggested ${String(e['level'])}: only moment applies automatically` };
         return { slice: { ...slice, level: 'moment' } };

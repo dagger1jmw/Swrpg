@@ -5,16 +5,17 @@ import globals from 'globals';
 
 const LAYERS = ['engine', 'data', 'features', 'state', 'memory', 'lore', 'ai', 'turn', 'persist', 'ui'];
 
-/** Regex for a relative import that reaches the given layers from `depth` folders below src/. */
+/**
+ * Regex for a relative import that reaches the given layers. `depth` is the minimum number of
+ * `../` needed to reach src/ from the layer's top folder; deeper files need more, so it is a minimum.
+ */
 function layerRegex(depth, layers) {
-  const up = '\\.\\./'.repeat(depth);
-  return `^${up}(${layers.join('|')})(/|$)`;
+  return `^(\\.\\./){${depth},}(${layers.join('|')})(/|$)`;
 }
 
 /** Feature internals: another feature's files other than selectors.ts. */
 function featureInternalsRegex(depth) {
-  const up = '\\.\\./'.repeat(depth);
-  return `^${up}features/[^/]+/(?!selectors$)[^/]+`;
+  return `^(\\.\\./){${depth},}features/[^/]+/(?!selectors$)[^/]+`;
 }
 
 function restrict(patterns) {

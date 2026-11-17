@@ -29,6 +29,8 @@ export const clockFeature: FeatureModule<ClockSlice, GameState> = {
       schema: timeElapsedSchema,
       sources: ['ai'],
       phase: 'time',
+      // One time writer per turn: absent when the TurnDraft advanced time (D-30).
+      narrative: (_state, turn) => !turn.timeAdvancedByDraft,
       handle: (slice, e, ctx) => {
         const requested = Number(e['seconds']);
         const level = selectPacingLevel(ctx.state);

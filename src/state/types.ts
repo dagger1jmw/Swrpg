@@ -77,9 +77,17 @@ export type HandleResult<Slice> =
 /** Apply-order class (D-32): creation first, then time, then everything else in reply order. */
 export type EventPhase = 'create' | 'time' | 'other';
 
+/** What the schema composer knows about the turn being narrated (D-15). */
+export interface NarrativeTurnInfo {
+  /** The TurnDraft advanced time, so timeElapsed is left out of the schema (D-30). */
+  timeAdvancedByDraft: boolean;
+}
+
 export interface EventDef<Slice, S extends BaseState = BaseState> {
   schema: ZodType;
   sources: readonly EventSource[];
+  /** Present when the AI may send this event in the narrative reply; true = legal this turn. */
+  narrative?: (state: S, turn: NarrativeTurnInfo) => boolean;
   phase?: EventPhase;
   /** Field holding the event's target, for de-duplication, per-target caps and resolved-action checks. */
   targetField?: string;
