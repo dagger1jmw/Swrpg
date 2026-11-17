@@ -52,3 +52,5 @@ export const TRUNCATION_RETRY_FACTOR = 1.5;
 export const SCHEMA_SIZE_CAP_CHARS = 12_000;
 /** The usage meter warns at this fraction of a limit (architecture §7). */
 export const USAGE_WARN_FRACTION = 0.8;
+/** A model request with no reply after this long is aborted and shown as an error with Retry. */
+export const REQUEST_TIMEOUT_MS = 90_000;

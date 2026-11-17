@@ -45,7 +45,7 @@ export interface ModelProvider {
   generateStructured<T>(schema: ZodType<T>, messages: readonly Message[], opts: CallOptions): Promise<StructuredResult<T>>;
 }
 
-export type AiErrorKind = 'truncated' | 'rateLimit' | 'network' | 'http' | 'invalidJson' | 'schema' | 'empty' | 'blocked' | 'noKey';
+export type AiErrorKind = 'truncated' | 'rateLimit' | 'timeout' | 'network' | 'http' | 'invalidJson' | 'schema' | 'empty' | 'blocked' | 'noKey';
 
 /** Every provider failure. `usage` is set when the request reached the model (it still counts). */
 export class AiError extends Error {

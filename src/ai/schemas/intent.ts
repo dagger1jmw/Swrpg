@@ -30,3 +30,20 @@ const UNIT_SECONDS: Record<(typeof SPAN_UNITS)[number], number> = { seconds: 1, 
 export function spanToSeconds(span: RequestedSpan): number {
   return Math.round(span.amount * UNIT_SECONDS[span.unit]);
 }
+
+/**
+ * Models sometimes fill optional string fields with "" instead of leaving them out (seen live with
+ * gemini-3.5-flash-lite: skillId ""). An empty optional value means absent; drop it and blank
+ * list entries so "" never reaches the resolver as an ID.
+ */
+export function normalizeIntent(intent: Intent): Intent {
+  const clean = (xs: string[]): string[] => xs.map((x) => x.trim()).filter(Boolean);
+  const { skillId, ...rest } = intent;
+  return {
+    ...rest,
+    targets: clean(intent.targets),
+    references: clean(intent.references),
+    unknownNames: clean(intent.unknownNames),
+    ...(skillId !== undefined && skillId.trim() ? { skillId: skillId.trim() } : {}),
+  };
+}

@@ -7,7 +7,7 @@ import { CALL_SETTINGS, JSON_OVERHEAD_TOKENS, THINKING_HEADROOM_TOKENS, TRUNCATI
 import { PROMPTS } from '../ai/prompts';
 import { AiError, type CallOptions, type CallType, type ModelProvider, type Usage } from '../ai/provider';
 import { composeNarrativeSchema, narrativeEventTypes, type NarrativeReply } from '../ai/schemas/compose';
-import { intentSchema, type Intent } from '../ai/schemas/intent';
+import { intentSchema, normalizeIntent, type Intent } from '../ai/schemas/intent';
 import type { Settings } from '../ai/settings';
 import { PACING_OUTPUT_CAPS } from '../data/pacing.config';
 import { selectNow } from '../features/clock/selectors';
@@ -105,7 +105,9 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
   if (input.kind === 'typed') {
     const opts = callOptions(settings, 'intent', PROMPTS.intent, CALL_SETTINGS.intent.maxOutputTokens + THINKING_HEADROOM_TOKENS);
     try {
-      intent = await tracked(deps, calls, opts, () => deps.provider.generateStructured(intentSchema, intentMessages(session.state, input.text, session.history), opts));
+      intent = normalizeIntent(
+        await tracked(deps, calls, opts, () => deps.provider.generateStructured(intentSchema, intentMessages(session.state, input.text, session.history), opts)),
+      );
     } catch (e) {
       throw new TurnError('intent', e, calls);
     }

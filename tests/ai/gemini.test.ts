@@ -87,6 +87,17 @@ describe('gemini adapter (D-68)', () => {
     expect((await failWith(new TypeError('Failed to fetch'))).kind).toBe('network');
   });
 
+  it('aborts a stalled request after the timeout and reports it (no hang)', async () => {
+    const fetch = vi.fn(
+      (_url: string, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+        }),
+    );
+    const p = createGeminiProvider({ getApiKey: () => KEY, fetch: fetch as unknown as typeof globalThis.fetch, timeoutMs: 20 });
+    await expect(p.generateStructured(schema, [], opts)).rejects.toMatchObject({ kind: 'timeout' });
+  });
+
   it('refuses to call without a key', async () => {
     const fetch = vi.fn();
     await expect(createGeminiProvider({ getApiKey: () => null, fetch }).generateStructured(schema, [], opts)).rejects.toMatchObject({ kind: 'noKey' });

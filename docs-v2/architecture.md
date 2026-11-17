@@ -922,6 +922,7 @@ holds until replaced.
 | State-of-mind effects of alignment (dark pressure > 50) | D = 0 | M3-M5 | M6 |
 | Species body caps | Human table only (progression-numbers §11) | M3-M7 | M8 |
 | Combat events in the lifetime test | scripted per combat-xp.md math | M4 | M5 (real duel log) |
+| Fight intents (D-70) | one engine check against the clamped difficulty (`STUB_FIGHT_AS_SINGLE_CHECK`) | M1-M4 | M5 (duels, rolls.md §3) |
 
 Planned specs (not yet written; named "planned" wherever cited): the species spec (M8; Human
 body cap is in progression-numbers §11) and the equipment spec (M8; D-27).
@@ -939,8 +940,9 @@ Answered by Jared on 2026-11-16 (logged in decisions.md):
 5. Interpolated training budget by age: approved (D-25).
 6. No credit events before the equipment spec: yes (D-27).
 
+Answered in M1 (2026-11-16): the Gemini models, transport and free-tier limits (D-68; limits unverified until Jared checks AI Studio).
+
 Still open (to settle in the named milestone):
-- M1: the current recommended Gemini Flash and Flash-Lite model names and free-tier limits.
 - M8: species body-cap tables beyond Human (species spec, planned; Human is used until then, D-56).
 - M8: the equipment spec (planned: prices, credits economy, lightsaber properties).
 - M3/M4 (D-67, open): the Average profile's trained Endurance stays near 5 to age 20 (its

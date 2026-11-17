@@ -3,6 +3,7 @@
 // changes outside src/ai/. The API key goes in the x-goog-api-key header, never the URL.
 import type { ZodType } from 'zod';
 import { toGeminiSchema } from './jsonSchema';
+import { REQUEST_TIMEOUT_MS } from './models.config';
 import {
   AiError,
   parseStructured,
@@ -21,6 +22,8 @@ export interface GeminiDeps {
   getApiKey: () => string | null;
   fetch: typeof fetch;
   baseUrl?: string;
+  /** Request timeout; defaults to REQUEST_TIMEOUT_MS. */
+  timeoutMs?: number;
 }
 
 interface GeminiPart {
@@ -86,21 +89,33 @@ export function createGeminiProvider(deps: GeminiDeps): ModelProvider {
       const key = deps.getApiKey();
       if (!key) throw new AiError('noKey', 'No Gemini API key is set. Add one in Settings.');
       const url = `${base}/models/${encodeURIComponent(opts.model)}:generateContent`;
+      // A stalled request must not leave the game waiting forever: abort after the timeout and
+      // surface it as an error with a Retry button (no automatic call, D-16).
+      const timeoutMs = deps.timeoutMs ?? REQUEST_TIMEOUT_MS;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
       let res: Response;
+      let body: unknown;
       try {
         res = await deps.fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
           body: JSON.stringify(buildGeminiRequest(schema, messages, opts)),
+          signal: controller.signal,
         });
+        try {
+          body = await res.json();
+        } catch (e) {
+          if (controller.signal.aborted) throw e;
+          body = null;
+        }
       } catch (e) {
+        if (controller.signal.aborted) {
+          throw new AiError('timeout', `No reply from ${opts.model} within ${Math.round(timeoutMs / 1000)} s.`);
+        }
         throw new AiError('network', `Network error: ${e instanceof Error ? e.message : String(e)}`);
-      }
-      let body: unknown;
-      try {
-        body = await res.json();
-      } catch {
-        body = null;
+      } finally {
+        clearTimeout(timer);
       }
       if (!res.ok) {
         const msg = (body as { error?: { message?: string } })?.error?.message ?? res.statusText;

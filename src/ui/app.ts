@@ -51,6 +51,8 @@ export class App {
   private session: Session | null = null;
   private screen: Screen = 'create';
   private busy = false;
+  /** The action being resolved, shown in the feed while the GM replies. */
+  private inFlight: TurnInput | null = null;
   private failed: FailedTurn | null = null;
   private loadError: string | null = null;
   private confirmNew = false;
@@ -96,6 +98,7 @@ export class App {
   private async runTurn(turnInput: TurnInput, pending?: PendingTurn): Promise<void> {
     if (!this.session || this.busy) return;
     this.busy = true;
+    this.inFlight = turnInput;
     this.failed = null;
     this.render();
     const deps = this.turnDeps();
@@ -113,6 +116,7 @@ export class App {
       };
     } finally {
       this.busy = false;
+      this.inFlight = null;
       this.render();
     }
   }
@@ -344,7 +348,9 @@ export class App {
     const view = el('div', {}, [
       this.renderHeader(state),
       feed,
+      this.busy && this.inFlight && this.inFlight.kind !== 'opening' ? el('div', { class: 'feed' }, [el('div', { class: 'player', text: describeInput(this.inFlight) })]) : null,
       this.busy ? el('div', { class: 'busy', text: 'The GM is thinking...' }) : null,
+      !this.busy && this.failed && this.failed.input.kind !== 'opening' ? el('div', { class: 'feed' }, [el('div', { class: 'player', text: describeInput(this.failed.input) })]) : null,
       banner,
       choices,
       el('div', { class: 'composer' }, [text, sendBtn]),

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { keywordsUsed, SUPPORTED_KEYWORDS, toGeminiSchema } from '../../src/ai/jsonSchema';
 import { SCHEMA_SIZE_CAP_CHARS } from '../../src/ai/models.config';
 import { composeNarrativeSchema, narrativeEventTypes } from '../../src/ai/schemas/compose';
-import { intentSchema, spanToSeconds } from '../../src/ai/schemas/intent';
+import { intentSchema, normalizeIntent, spanToSeconds } from '../../src/ai/schemas/intent';
 import { absDayFromDate } from '../../src/engine/calendar';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
@@ -68,6 +68,12 @@ describe('response schemas (architecture §3, D-15, D-68)', () => {
     const s = composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: false }).parse;
     const one = { narrative: 'x', choices: [{ label: 'a', intent: { actionType: 'move' } }], scene: { moodTags: [] }, events: [] };
     expect(s.safeParse(one).success).toBe(false);
+  });
+
+  it('normalizes empty optional strings from the model (live finding: skillId "")', () => {
+    const i = normalizeIntent(intentSchema.parse({ actionType: 'investigate', targets: [' '], references: [], unknownNames: ['', 'Orsen'], skillId: '' }));
+    expect(i).toEqual({ actionType: 'investigate', targets: [], references: [], unknownNames: ['Orsen'] });
+    expect('skillId' in i).toBe(false);
   });
 
   it('converts requested spans to seconds', () => {
