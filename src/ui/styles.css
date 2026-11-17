@@ -294,6 +294,33 @@ table.limits input { min-height: 36px; padding: 4px 6px; }
 
 /* ---------------------------------------------------------------- narrow: drawer (< 900px) */
 
+
+/* ---- M3: character sheet, training card, creation form ---- */
+.roll.training { border-left-color: var(--accent); }
+.meter { flex: 1 1 auto; height: 8px; min-width: 60px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.meter.thin { height: 4px; }
+.meter-fill { height: 100%; background: var(--accent); }
+.meter-fill.high { background: var(--warn); }
+.meter-fill.over { background: var(--bad); }
+.meter-row { display: flex; align-items: center; gap: var(--pad-s); margin: 4px 0; font-size: var(--fs-s); }
+.meter-row .k { width: 64px; color: var(--muted); }
+.meter-text { white-space: nowrap; color: var(--muted); font-size: var(--fs-xs); }
+.skill-row { display: grid; grid-template-columns: minmax(0, 1fr) 2.5em 60px; grid-template-areas: 'name level bar' 'tier tier tier'; column-gap: var(--pad-s); align-items: center; padding: 3px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-s); }
+.skill-row:last-child { border-bottom: none; }
+.skill-name { grid-area: name; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.skill-level { grid-area: level; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.skill-row .meter { grid-area: bar; }
+.skill-tier { grid-area: tier; font-size: var(--fs-xs); }
+.train-row { display: flex; gap: var(--pad-s); flex-wrap: wrap; margin: 6px 0; }
+.train-row select { flex: 1 1 120px; min-width: 0; }
+.focus { display: flex; flex-direction: column; gap: 4px; }
+.focus-row { display: grid; grid-template-columns: minmax(0, 11em) minmax(0, 1fr) 3.5em; gap: var(--pad-s); align-items: center; font-size: var(--fs-s); }
+.focus-row label { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.focus-share { text-align: right; font-variant-numeric: tabular-nums; }
+.preview { margin-top: var(--pad); }
+.preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 2px var(--pad); }
+label.check { display: flex; gap: var(--pad-s); align-items: center; margin: var(--pad-s) 0; color: var(--muted); font-size: var(--fs-s); }
+
 @media (max-width: 899px) {
   #app.shell.panel-open { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'top' 'main'; }
   .backdrop { display: block; position: fixed; inset: 0; z-index: 30; background: rgba(2, 5, 10, 0.6); }

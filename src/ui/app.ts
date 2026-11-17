@@ -38,6 +38,9 @@ import type { GameEvent, Registry } from '../state/types';
 import { createCampaign, DEFAULT_START, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
 import { narrateTurn, prepareTurn, summarizeChapters, TurnError, type DebugRequest, type PendingTurn, type Session, type SummaryOutcome, type TurnDeps } from '../turn/pipeline';
 import { describeInput, type TurnInput, type TurnRecord } from '../turn/record';
+import type { TrainingOutcome } from '../turn/resolve';
+import { SKILL_BY_ID } from '../data/skills';
+import { creationForm } from './creationForm';
 import { clear, el, input, paragraphs } from './dom';
 import { renderSidePanel, type PanelTab } from './sidePanel';
 
@@ -456,6 +459,7 @@ export class App {
       close: () => ((this.panelOpen = false), this.render()),
       playerEvents: (events) => void this.playerEvents(events),
       retrySummaries: () => void this.runSummaries(),
+      act: (input) => void this.runTurn(input),
     });
   }
 
@@ -615,6 +619,7 @@ export class App {
     const premise = el('textarea', { attrs: { placeholder: 'Optional: who you are or how the story should begin (e.g. a Padawan at the Coruscant Temple).' } });
     const ageLine = el('p', { class: 'hint' });
     const err = el('div', { class: 'error' });
+    const cf = creationForm();
 
     const readTime = (): number => {
       const [h, m] = time.value.split(':').map(Number);
@@ -623,13 +628,15 @@ export class App {
     const updateAge = (): void => {
       const b = birth.read();
       const s = startD.read();
-      ageLine.textContent = isValidDate(b) && isValidDate(s) ? `Age at the start: ${ageInYears(absDayFromDate(b), absDayFromDate(s))}` : '';
+      const ok = isValidDate(b) && isValidDate(s);
+      ageLine.textContent = ok ? `Age at the start: ${ageInYears(absDayFromDate(b), absDayFromDate(s))}` : '';
+      cf.update(ok ? absDayFromDate(b) : null, ok ? absDayFromDate(s) : null, name.value);
     };
-    for (const i of [...birth.all, ...startD.all]) i.addEventListener('input', updateAge);
+    for (const i of [...birth.all, ...startD.all, name]) i.addEventListener('input', updateAge);
     updateAge();
 
     const begin = async (): Promise<void> => {
-      const req = { name: name.value, birthDate: birth.read(), startDate: startD.read(), startSecond: readTime(), premise: premise.value };
+      const req = { name: name.value, birthDate: birth.read(), startDate: startD.read(), startSecond: readTime(), premise: premise.value, creation: cf.read() };
       const errors = validateNewCampaign(req);
       if (errors.length) {
         err.textContent = errors.join(' ');
@@ -656,6 +663,7 @@ export class App {
       startD.fields,
       el('div', { class: 'field' }, [el('label', { text: 'Time of day' }), time]),
       ageLine,
+      ...cf.fields,
       el('div', { class: 'field' }, [el('label', { text: 'Premise' }), premise]),
       err,
       el('div', { class: 'row actions' }, [
@@ -674,10 +682,31 @@ export class App {
     return el('article', { class: 'turn' }, [
       r.input.kind === 'opening' && !r.input.premise ? null : el('div', { class: 'player', text: describeInput(r.input) }),
       ...r.draft.checks.map((c) => this.renderRoll(c)),
+      r.draft.training ? this.renderTraining(r.draft.training) : null,
       ...r.draft.notices.map((n) => el('div', { class: 'notice', text: n })),
       ...paragraphs(r.narrative),
       r.chapterClosed ? el('div', { class: 'notice', text: `Chapter closed (${r.chapterClosed.reason}).` }) : null,
       log.length ? el('details', { class: 'log' }, [el('summary', { text: 'Engine log' }), el('pre', { text: log.join('\n') })]) : null,
+    ]);
+  }
+
+  /** Training card (M3): the computeXp session, its outcome, XP per skill and the tiredness it left. */
+  private renderTraining(t: TrainingOutcome): HTMLElement {
+    if (!t.ok) return el('div', { class: 'roll training failure' }, [el('div', { text: `Training refused: ${t.reason}` })]);
+    const c = t.card;
+    const name = (id: string): string => SKILL_BY_ID.get(id)?.name ?? id;
+    const xp = Object.entries(c.credited)
+      .filter(([, v]) => v >= 0.01)
+      .sort((a, b) => b[1] - a[1])
+      .map(([k, v]) => `${name(k)} +${v.toFixed(2)}`);
+    return el('div', { class: `roll training${c.outcome === 'breakthrough' ? ' success' : ''}` }, [
+      el('div', { text: `${c.activityName} · ${c.hours} h ${c.intensity} · ${c.drillName} drill (${c.drillRating})` }),
+      el('div', { text: `${c.effectiveHours} effective h × challenge ${c.challenge} × outcome ${c.outcomeMult} · ${c.instruction.mode} x${c.instruction.factor}` }),
+      el('div', {}, ['Outcome: ', el('span', { class: 'outcome', text: c.outcome })]),
+      el('div', { text: `XP: ${xp.join(', ') || 'none'}` }),
+      ...c.levels.map((l) => el('div', { text: `${name(l.skillId)} ${l.before}${l.after !== l.before ? ` → ${l.after}` : ''} (${l.tier})` })),
+      el('div', { class: 'hint', text: `Tiredness: physical ${c.tiredness.p}, mental ${c.tiredness.m}, Force ${c.tiredness.f}` }),
+      ...c.notes.map((n) => el('div', { class: 'hint', text: n })),
     ]);
   }
 

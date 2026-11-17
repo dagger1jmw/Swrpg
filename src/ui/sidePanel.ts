@@ -3,7 +3,15 @@
 // selectors, sends player events back to the app.
 import type { ContextReport, SectionReport } from '../turn/context';
 import type { DebugRequest, SummaryOutcome } from '../turn/pipeline';
-import type { TurnRecord } from '../turn/record';
+import type { TurnInput, TurnRecord } from '../turn/record';
+import { ACTIVITIES, ACTIVITY_BY_ID, INTENSITIES, type ActivityDef } from '../data/activities';
+import { archetypeDef } from '../data/archetypes';
+import { FORM_IDS, SKILLS, SKILL_BY_ID } from '../data/skills';
+import { speciesDef } from '../data/species';
+import { selectCharacter } from '../features/character/selectors';
+import { selectFatigue } from '../features/health/selectors';
+import { selectGriefMult, selectSkillViews, selectStateOfMind, selectTierBeats, type SkillView } from '../features/progression/selectors';
+import { selectRankName } from '../features/ranks/selectors';
 import { formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { selectAge, selectBirthDay, selectCharacterName } from '../features/character/selectors';
 import { selectNow } from '../features/clock/selectors';
@@ -34,6 +42,8 @@ export interface SidePanelProps {
   /** Applies player events and commits them (pins, review resolutions). */
   playerEvents(events: GameEvent[]): void;
   retrySummaries(): void;
+  /** Plays a turn from a UI-built intent (the sheet's Train button, M3). */
+  act(input: TurnInput): void;
 }
 
 export const PANEL_TABS: Record<PanelTab, string> = { character: 'Character', people: 'People', places: 'Places', threads: 'Threads', memory: 'Memory', debug: 'Debug' };
@@ -83,15 +93,139 @@ function empty(text: string): HTMLElement[] {
   return [el('p', { class: 'hint', text })];
 }
 
-/** Character tab: who and where (the M3 sheet goes here). */
+const CATEGORY_LABEL: Record<string, string> = {
+  physical: 'Body',
+  wisdom: 'Will and meditation',
+  force: 'Force',
+  technique: 'Combat and technique',
+  knowledge: 'Knowledge',
+  academic: 'Academic and social',
+};
+const ORDER = ['physical', 'wisdom', 'force', 'technique', 'knowledge', 'academic'];
+const pct = (x: number): string => `${Math.round(x * 100)}%`;
+
+function meter(label: string, f: number, cap: number, word: string): HTMLElement {
+  const bar = el('div', { class: 'meter' }, [el('div', { class: `meter-fill${f > 1 ? ' over' : f > 0.8 ? ' high' : ''}`, attrs: { style: `width:${Math.min(100, Math.round(f * 100))}%` } })]);
+  return el('div', { class: 'meter-row' }, [el('span', { class: 'k', text: label }), bar, el('span', { class: 'meter-text', text: `${pct(f)} of ${cap.toFixed(1)} · ${word}` })]);
+}
+
+function skillRow(v: SkillView): HTMLElement {
+  const progress = v.levelExact - v.level;
+  const perf = v.category === 'physical' && Math.abs(v.performance - v.levelExact) > 0.05 ? ` (performance ${v.performance.toFixed(1)})` : '';
+  return el('div', { class: 'skill-row' }, [
+    el('span', { class: 'skill-name', text: v.name }),
+    el('span', { class: 'skill-level', text: String(v.level) }),
+    el('div', { class: 'meter thin', attrs: { title: `${pct(progress)} to ${v.level + 1}` } }, [el('div', { class: 'meter-fill', attrs: { style: `width:${Math.round(progress * 100)}%` } })]),
+    el('span', { class: 'skill-tier hint', text: `${v.tier}${v.rust > 0.0005 ? ` · rust ${(v.rust * 100).toFixed(1)}%` : ''}${perf}` }),
+  ]);
+}
+
+/** Primary choices an activity offers (null = fixed primary). */
+function primaryChoices(a: ActivityDef, known: (id: string) => boolean): string[] | null {
+  switch (a.primary.kind) {
+    case 'skill':
+      return null;
+    case 'options':
+      return [...a.primary.options];
+    case 'anyForm':
+    case 'formPair':
+      return FORM_IDS.filter(known);
+    case 'anyAbility':
+      return SKILLS.filter((x) => x.kind === 'forceAbility' && known(x.id)).map((x) => x.id);
+  }
+}
+
+/** The Train panel: activity, primary (when the activity offers a choice), hours and intensity. */
+function trainPanel(p: SidePanelProps): HTMLElement {
+  const s = p.state;
+  const views = new Map(selectSkillViews(s).map((v) => [v.id, v]));
+  const known = (id: string): boolean => (views.get(id)?.level ?? 0) >= 1;
+  const groups = ['forms', 'force', 'meditation', 'physical', 'study', 'career'] as const;
+  const groupLabel: Record<string, string> = { forms: 'Lightsaber forms', force: 'Force', meditation: 'Meditation', physical: 'Physical', study: 'Study', career: 'Careers' };
+  const activity = el(
+    'select',
+    { attrs: { 'aria-label': 'Activity' } },
+    groups.map((g) => el('optgroup', { attrs: { label: groupLabel[g]! } }, ACTIVITIES.filter((a) => a.group === g).map((a) => el('option', { text: a.name, attrs: { value: a.id } })))),
+  );
+  const c = selectCharacter(s);
+  activity.value = c.mainFormId && c.mainFormId === 'shiiCho' ? 'shiiChoBasics' : (ACTIVITIES.find((a) => a.primary.kind === 'skill' && a.primary.skill === c.mainFormId)?.id ?? 'shiiChoBasics');
+  const primary = el('select', { attrs: { 'aria-label': 'Skill' } });
+  const hours = el('select', { attrs: { 'aria-label': 'Hours' } }, [0.5, 1, 1.5, 2, 3, 4].map((h) => el('option', { text: `${h} h`, attrs: { value: String(h) } })));
+  hours.value = '1';
+  const intensity = el('select', { attrs: { 'aria-label': 'Intensity' } }, [el('option', { text: 'default intensity', attrs: { value: '' } }), ...INTENSITIES.map((i) => el('option', { text: i, attrs: { value: i } }))]);
+  const fillPrimary = (): void => {
+    const a = ACTIVITY_BY_ID.get(activity.value)!;
+    const choices = primaryChoices(a, known);
+    primary.replaceChildren(...(choices ?? []).map((id) => el('option', { text: SKILL_BY_ID.get(id)?.name ?? id, attrs: { value: id } })));
+    primary.hidden = !choices || choices.length === 0;
+    if (c.mainFormId && choices?.includes(c.mainFormId)) primary.value = c.mainFormId;
+  };
+  activity.addEventListener('change', fillPrimary);
+  fillPrimary();
+  const go = (): void => {
+    const a = ACTIVITY_BY_ID.get(activity.value)!;
+    const skillId = !primary.hidden && primary.value ? primary.value : a.primary.kind === 'skill' ? a.primary.skill : undefined;
+    const h = Number(hours.value);
+    const actionType = a.group === 'study' ? 'study' : 'train';
+    p.act({
+      kind: 'action',
+      label: `Train: ${a.name}${skillId && a.primary.kind !== 'skill' ? ` (${SKILL_BY_ID.get(skillId)?.name})` : ''}, ${h} h${intensity.value ? `, ${intensity.value}` : ''}`,
+      intent: {
+        actionType,
+        targets: [],
+        references: [],
+        unknownNames: [],
+        ...(skillId ? { skillId } : {}),
+        requestedSpan: { amount: h, unit: 'hours' },
+        activity: { activityId: a.id, ...(intensity.value ? { intensity: intensity.value as (typeof INTENSITIES)[number] } : {}) },
+      },
+    });
+  };
+  const btn = el('button', { text: 'Train', on: { click: go } });
+  btn.disabled = p.busy;
+  return el('div', { class: 'card train' }, [
+    el('div', { class: 'card-title' }, [el('strong', { text: 'Train' })]),
+    el('div', { class: 'train-row' }, [activity, primary]),
+    el('div', { class: 'train-row' }, [hours, intensity, btn]),
+    el('p', { class: 'hint', text: 'The engine resolves the session (fatigue, XP, outcome) and the GM narrates it. Locked activities are refused with the reason.' }),
+  ]);
+}
+
+/** Character tab: the M3 sheet (identity, condition, skills, Train) plus who and where. */
 function character(p: SidePanelProps): HTMLElement[] {
   const s = p.state;
   const now = selectNow(s);
   const chain = selectLocationChain(s, selectCurrentLocationId(s));
   const present = selectPresentNpcIds(s).map((id) => nameOf(s, id));
+  const c = selectCharacter(s);
+  const f = selectFatigue(s);
+  const grief = selectGriefMult(s);
+  const beats = selectTierBeats(s);
+  const talents = Object.entries(c.talents).filter(([, l]) => l && l !== 'none').map(([d, l]) => `${l} (${d})`);
+  const views = selectSkillViews(s);
+  const byCat = ORDER.map((cat) => ({ cat, rows: views.filter((v) => v.category === cat && v.levelExact >= 0.5).sort((a, b) => b.levelExact - a.levelExact) })).filter((g) => g.rows.length);
   return [
     el('div', { class: 'card' }, [
       el('div', { class: 'card-title' }, [el('strong', { text: selectCharacterName(s) }), el('span', { class: 'rel', text: `age ${selectAge(s)}` })]),
+      kv('Species', speciesDef(c.speciesId).name),
+      kv('Path', `${c.path}, ${archetypeDef(c.archetype).name}`),
+      kv('Rank', selectRankName(s)),
+      kv('Training', c.trainingStartAge === null ? 'untrained' : `since age ${c.trainingStartAge}`),
+      kv('Forms', [c.mainFormId, c.secondFormId].filter((x): x is string => !!x).map((x) => SKILL_BY_ID.get(x)?.name ?? x).join(', ') || 'none'),
+      kv('Talents', talents.join(', ') || 'none'),
+      kv('Dominant hand', c.dominantHand),
+    ]),
+    el('div', { class: 'card' }, [
+      el('div', { class: 'card-title' }, [el('strong', { text: 'Condition' }), el('span', { class: 'rel', text: `${selectStateOfMind(s)}${grief < 1 ? ` · grief x${grief.toFixed(2)}` : ''}` })]),
+      meter('Physical', f.p, f.capacity.p, f.labels.p),
+      meter('Mental', f.m, f.capacity.m, f.labels.m),
+      meter('Force', f.f, f.capacity.f, f.labels.f),
+      s.progression.overtrainStreak ? kv('Overtrained', `${s.progression.overtrainStreak} day(s) in a row`) : null,
+      beats.length ? kv('Pending beats', beats.map((b) => `${SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId} reached ${b.tier}`).join('; ')) : null,
+    ]),
+    trainPanel(p),
+    ...byCat.map((g) => el('div', { class: 'card skills' }, [el('div', { class: 'card-title' }, [el('strong', { text: CATEGORY_LABEL[g.cat] ?? g.cat })]), ...g.rows.map(skillRow)])),
+    el('div', { class: 'card' }, [
       kv('Born', formatDate(selectBirthDay(s))),
       kv('Now', `${formatDate(now.day)}, ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`),
       kv('Where', chain.length ? chain.map((l) => l.name).join(', in ') : 'not recorded yet'),
@@ -104,7 +238,6 @@ function character(p: SidePanelProps): HTMLElement[] {
       kv('Turn', String(s.meta.turn)),
       kv('Chapter', `${selectChapters(s).length + 1} (since turn ${Math.max(1, selectCurrentChapter(s).startTurn)})`),
     ]),
-    el('p', { class: 'hint', text: 'Skills, health and training arrive with the character sheet (M3).' }),
   ];
 }
 
