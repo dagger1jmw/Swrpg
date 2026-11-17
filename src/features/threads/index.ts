@@ -5,7 +5,7 @@ import { DEADLINE_DAYS, DEADLINE_HINTS, LIMITS, THREAD_OUTCOMES, type DeadlineHi
 import { mintId } from '../../engine/aliases';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule } from '../../state/types';
-import { selectNow } from '../clock/selectors';
+import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { threadsSliceSchema, type Thread, type ThreadsSlice } from './threads';
 import { resolveThreadRef, selectOpenThreads, selectThreads } from './selectors';
 
@@ -57,9 +57,9 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
           notes: [],
           entityRefs: [...(e['entityRefs'] as string[])],
           openedDay: day,
-          openedTurn: ctx.state.meta.turn,
+          openedTurn: selectTurnInPlay(ctx.state),
           closedDay: null,
-          lastTurn: ctx.state.meta.turn,
+          lastTurn: selectTurnInPlay(ctx.state),
         };
         return { slice: { byId: { ...slice.byId, [id]: t } }, mintedId: id };
       },
@@ -72,7 +72,7 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
       refKinds: threadRefKinds,
       narrative: (s) => selectOpenThreads(s).length > 0,
       handle: (slice, e, ctx) => {
-        const r = openThread(slice, String(e['threadRef']), String(e['note']), ctx.state.meta.turn);
+        const r = openThread(slice, String(e['threadRef']), String(e['note']), selectTurnInPlay(ctx.state));
         return 'reject' in r ? r : { slice: r };
       },
     },
@@ -90,7 +90,7 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
       narrative: (s) => selectOpenThreads(s).length > 0,
       handle: (slice, e, ctx) => {
         const id = String(e['threadRef']);
-        const r = openThread(slice, id, String(e['note']), ctx.state.meta.turn);
+        const r = openThread(slice, id, String(e['note']), selectTurnInPlay(ctx.state));
         if ('reject' in r) return r;
         const t = r.byId[id]!;
         return { slice: { byId: { ...r.byId, [id]: { ...t, status: e['outcome'] as Thread['status'], closedDay: selectNow(ctx.state).day } } } };

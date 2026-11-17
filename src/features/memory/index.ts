@@ -5,7 +5,7 @@ import { MEMORY_LIMITS } from '../../data/memory.config';
 import { normalizeAlias } from '../../engine/aliases';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule } from '../../state/types';
-import { selectNow } from '../clock/selectors';
+import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { memorySliceSchema, type Chapter, type MemorySlice, type ReviewItem } from './memory';
 import { selectFacts, selectOpenReview } from './selectors';
 
@@ -52,7 +52,7 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
           id: `fact:${slice.nextSeq}`,
           aboutRef,
           text,
-          turn: ctx.state.meta.turn,
+          turn: selectTurnInPlay(ctx.state),
           day: selectNow(ctx.state).day,
           importance: e['importance'] as 'minor' | 'major',
         };
@@ -75,7 +75,7 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
       sources: ['ai'],
       narrative: () => true,
       handle: (slice, e, ctx) => ({
-        slice: { ...slice, current: { ...slice.current, signals: [...slice.current.signals, { kind: 'sceneEnded' as const, turn: ctx.state.meta.turn, reason: String(e['reason']) }] } },
+        slice: { ...slice, current: { ...slice.current, signals: [...slice.current.signals, { kind: 'sceneEnded' as const, turn: selectTurnInPlay(ctx.state), reason: String(e['reason']) }] } },
       }),
     },
     // Engine: an unknown name the player resolves in the People tab (architecture §7).
@@ -85,7 +85,7 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
       handle: (slice, e, ctx) => {
         const name = String(e['name']).trim();
         if (slice.review.some((r) => r.status === 'open' && normalizeAlias(r.name) === normalizeAlias(name))) return { slice, notes: [`"${name}" is already awaiting review`] };
-        const item: ReviewItem = { id: `review:${slice.nextSeq}`, name, turn: ctx.state.meta.turn, context: String(e['context']), status: 'open', entityId: null };
+        const item: ReviewItem = { id: `review:${slice.nextSeq}`, name, turn: selectTurnInPlay(ctx.state), context: String(e['context']), status: 'open', entityId: null };
         return { slice: { ...slice, review: [...slice.review, item], nextSeq: slice.nextSeq + 1 } };
       },
     },

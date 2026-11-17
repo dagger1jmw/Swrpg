@@ -7,7 +7,7 @@ import { LIMITS, LOCATION_KINDS } from '../../data/entities.config';
 import { mintId, uniqueAliasMatch } from '../../engine/aliases';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule } from '../../state/types';
-import { selectNow } from '../clock/selectors';
+import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { locationsSliceSchema, type Location, type LocationsSlice } from './locations';
 import { resolveLocationRef, selectCurrentLocationId, selectLocations } from './selectors';
 
@@ -64,7 +64,7 @@ export const locationsFeature: FeatureModule<LocationsSlice, GameState> = {
           parentId: parent,
           description: String(e['description']),
           firstVisitDay: null,
-          introducedTurn: ctx.state.meta.turn,
+          introducedTurn: selectTurnInPlay(ctx.state),
         };
         const created: LocationsSlice = { ...slice, byId: { ...slice.byId, [id]: loc } };
         return { slice: e['moveHere'] === true ? moveTo(created, id, day) : created, mintedId: id };
@@ -93,7 +93,7 @@ export const locationsFeature: FeatureModule<LocationsSlice, GameState> = {
         const name = String(e['name']).trim();
         if (resolveLocationRef(ctx.state, name)) return { reject: `${name} already exists` };
         const id = mintId('loc', name, (x) => x in slice.byId);
-        const loc: Location = { id, name, aliases: [], kind: 'other', region: '', parentId: null, description: '', firstVisitDay: null, introducedTurn: ctx.state.meta.turn };
+        const loc: Location = { id, name, aliases: [], kind: 'other', region: '', parentId: null, description: '', firstVisitDay: null, introducedTurn: selectTurnInPlay(ctx.state) };
         return { slice: { ...slice, byId: { ...slice.byId, [id]: loc } }, mintedId: id };
       },
     },

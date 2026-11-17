@@ -6,7 +6,7 @@ import { mintId, normalizeAlias, uniqueAliasMatch } from '../../engine/aliases';
 import { DAYS_PER_YEAR } from '../../engine/calendar';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent } from '../../state/types';
-import { selectNow } from '../clock/selectors';
+import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { selectCurrentLocationId } from '../locations/selectors';
 import { npcsSliceSchema, type Npc, type NpcsSlice } from './npcs';
 import { resolveNpcRef, selectNpcs } from './selectors';
@@ -45,7 +45,7 @@ function introduce(slice: NpcsSlice, e: GameEvent, state: GameState): { slice: N
     firstMetDay: today,
     lastSeenDay: today,
     lastLocationId: selectCurrentLocationId(state),
-    introducedTurn: state.meta.turn,
+    introducedTurn: selectTurnInPlay(state),
   };
   return { slice: { byId: { ...slice.byId, [id]: npc } }, id, existing: false };
 }

@@ -36,4 +36,9 @@ export const MEMORY_SCORES = {
   openThreadBonus: 10,
   /** Major facts weigh more than minor ones. */
   majorFactBonus: 10,
+  /**
+   * An item that shares no tag with the query is sent only when its score reaches this (about
+   * the last 30 turns with recency alone), so old unrelated records stay out (D-83).
+   */
+  minScoreWithoutOverlap: 5,
 } as const;
