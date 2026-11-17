@@ -8,7 +8,7 @@ import { RANKS } from '../../src/data/rankMinimums';
 import { CATEGORY_RULES, SKILLS, SKILL_BY_ID, isSkillId, skillDef } from '../../src/data/skills';
 import { SPECIES, TRAIT_LIMITS } from '../../src/data/species';
 
-const TOKENS = new Set(['$mainForm', '$secondForm', '$knownForms', '$pairedStat', '$primary', '$main']);
+const TOKENS = new Set(['$mainForm', '$secondForm', '$knownForms', '$pairedStat', '$primary', '$main', '$highestForm', '$planMaster', '$planSolo']);
 const known = (id: string): boolean => TOKENS.has(id) || isSkillId(id);
 
 describe('skills and activities (spec §6)', () => {
@@ -92,7 +92,7 @@ describe('skills and activities (spec §6)', () => {
 
   it('order requirement rows use known activities', () => {
     for (const blocks of Object.values(ORDER_REQUIREMENTS)) {
-      for (const b of blocks) expect(b.activityId === '$mainFormBasics' || isActivityId(b.activityId), b.activityId).toBe(true);
+      for (const b of blocks) expect(b.activityId === '$formBasics' || isActivityId(b.activityId), b.activityId).toBe(true);
     }
     for (const row of Object.values(REQUIREMENT_ROW)) expect(ORDER_REQUIREMENTS[row]).toBeDefined();
   });

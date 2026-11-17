@@ -1,16 +1,15 @@
 // species.md §5 tests 1-5 and npc-generation §7 tests 1 and 8 (M3 step 3).
 import { describe, expect, it } from 'vitest';
 import { ARCHETYPE_BY_ID } from '../../src/data/archetypes';
-import { PACE_CAP } from '../../src/data/progression.config';
+import { FORM_TRANSFER_SHARE, K, PACE_CAP } from '../../src/data/progression.config';
 import { SPECIES, speciesDef } from '../../src/data/species';
 import { ageIntegral } from '../../src/engine/ageFactor';
-import { A_REF, closedFormLevel, phasesFor } from '../../src/engine/closedForm';
+import { A_REF, closedFormLevel, formXps, phasesFor } from '../../src/engine/closedForm';
+import { levelExact } from '../../src/engine/curve';
 import { bodyCap, humanBodyCap, humanEquivalentAge, naturalLevel, resistAgingStep, speciesLearning } from '../../src/engine/species';
 
-const G = ARCHETYPE_BY_ID.get('jediGuardian')!.paces;
 const S = ARCHETYPE_BY_ID.get('soldier')!.paces;
-const W = ARCHETYPE_BY_ID.get('sithWarrior')!.paces;
-const main = (paces: typeof G, key: string, ages = { padawanAge: 12, knightAge: 20.5 }, one = false) =>
+const main = (paces: typeof S, key: string, ages = { padawanAge: 12, knightAge: 20.5 }, one = false) =>
   phasesFor({ initiate: paces.initiate?.[key], padawan: paces.padawan?.[key], knight: paces.knight?.[key] }, ages, one);
 
 describe('species (species.md §5)', () => {
@@ -83,23 +82,34 @@ describe('closed form (npc-generation §7)', () => {
     expect(ageIntegral('academic', 3, 50)).toBeCloseTo(47, 9);
   });
 
-  it('test 1: the reference table reproduces within +/-1 level (variance off)', () => {
-    const near = (a: number, b: number) => expect(Math.abs(a - b)).toBeLessThanOrEqual(1);
-    const g = main(G, '$mainForm');
-    near(closedFormLevel({ row: 'technique', startAge: 4, age: 16, phases: g }), 34.2);
-    near(closedFormLevel({ row: 'technique', startAge: 4, age: 30, phases: g }), 53.9);
-    near(closedFormLevel({ row: 'technique', startAge: 4, age: 45, phases: g }), 69.1);
-    near(closedFormLevel({ row: 'technique', startAge: 4, age: 70, phases: g }), 89.0);
-    near(closedFormLevel({ row: 'technique', startAge: 3, age: 39, mult: 1.48, phases: main(G, '$mainForm', { padawanAge: 13, knightAge: 25 }) }), 80.5);
-    near(closedFormLevel({ row: 'technique', startAge: 9, age: 22.5, mult: 3.89, phases: main(G, '$mainForm', { padawanAge: 9, knightAge: 20 }) }), 79.7);
-    near(closedFormLevel({ row: 'technique', startAge: 17, age: 35, warYears: 5, phases: main(S, 'blaster', undefined, true) }), 45.3);
-    near(closedFormLevel({ row: 'technique', startAge: 8, age: 35, mult: 1.5 * 1.15, warYears: 10, phases: main(W, '$mainForm') }), 79.4);
+  it('test 1: the reference table reproduces within +/-1 level (variance off; D-118 / D-119 values)', () => {
+    const near = (x: number, y: number) => expect(Math.abs(x - y), `${x} vs ${y}`).toBeLessThanOrEqual(1);
+    const PLAN = { soresu: 2, ataru: 1 };
+    const g = ARCHETYPE_BY_ID.get('jediGuardian')!.formPaces;
+    const w = ARCHETYPE_BY_ID.get('sithWarrior')!.formPaces;
+    const forms = (paces: typeof g, startAge: number, age: number, extra: Partial<Parameters<typeof formXps>[0]> = {}): number =>
+      levelExact(
+        Math.max(
+          0,
+          ...Object.values(
+            formXps({ formPaces: paces, k: K, startAge, age, padawanAge: 12, knightAge: 20.5, onePhase: false, padawanPlan: PLAN, knightPlan: PLAN, mult: () => 1, transferShare: FORM_TRANSFER_SHARE, ...extra }),
+          ),
+        ),
+      );
+    near(forms(g, 4, 16), 34.2);
+    near(forms(g, 4, 30), 53.3);
+    near(forms(g, 4, 45), 67.7);
+    near(forms(g, 4, 70), 86.7);
+    near(forms(g, 3, 39, { padawanAge: 13, knightAge: 25, mult: () => 1.48 }), 79.6);
+    near(forms(g, 9, 22.5, { padawanAge: 9, knightAge: 20, mult: () => 3.89 }), 79.7);
+    near(closedFormLevel({ row: 'technique', startAge: 17, age: 35, warYears: 5, phases: main(S, 'blaster', undefined, true) }), 49.8);
+    near(forms(w, 8, 35, { mult: () => 1.5 * 1.15, warYears: 10 }), 74.8);
   });
 
   it('each phase pace is capped at 4.0', () => {
-    const phases = main(G, '$mainForm');
-    const capped = closedFormLevel({ row: 'technique', startAge: 4, age: 30, mult: 100, phases });
-    const atCap = closedFormLevel({ row: 'technique', startAge: 4, age: 30, phases: phases.map((p) => ({ ...p, pace: PACE_CAP })) });
+    const phases = main(S, 'blaster', undefined, true);
+    const capped = closedFormLevel({ row: 'technique', startAge: 17, age: 30, mult: 100, phases });
+    const atCap = closedFormLevel({ row: 'technique', startAge: 17, age: 30, phases: phases.map((p) => ({ ...p, pace: PACE_CAP })) });
     expect(capped).toBeCloseTo(atCap, 9);
   });
 });

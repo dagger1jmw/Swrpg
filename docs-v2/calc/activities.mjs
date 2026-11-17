@@ -3,7 +3,9 @@
 
 // Skill -> category (skills-and-activities.md §1)
 export const SKILLS = {
-  mainForm: 'technique', secondForm: 'technique',
+  // Shii-Cho is its own skill (the Initiate forms block); mainForm / secondForm are the Padawan+
+  // form plan (the Average: main Soresu 2 h with the master, second Ataru 1 h solo).
+  shiiCho: 'technique', mainForm: 'technique', secondForm: 'technique',
   ForceControl: 'force', ForceSense: 'force', ForceOutput: 'force',
   Strength: 'physical', Agility: 'physical', Endurance: 'physical',
   Willpower: 'wisdom', Meditation: 'wisdom', ForceKnowledge: 'knowledge',
@@ -22,10 +24,15 @@ const STUDY = { p: 0.05, m: 1.0 };
 const MEDIT = { p: 0.05, m: -0.5 };
 
 export const ACT = {
+  // Shii-Cho basics (the Initiate Order forms block).
+  shiiChoDrill: { id: 'shiiChoDrill', load: SABER, primary: 'shiiCho',
+    secondaries: { Strength: 0.4, Agility: 0.3, Endurance: 0.2, ForceControl: 0.15 } },
+  // The Average's main form: Soresu basics.
   formDrill: { id: 'formDrill', load: SABER, primary: 'mainForm',
-    secondaries: { Strength: 0.4, Agility: 0.3, Endurance: 0.2, ForceControl: 0.15 } },
+    secondaries: { Endurance: 0.6, Willpower: 0.4, ForceSense: 0.3, ForceControl: 0.25 } },
+  // The Average's second form: Ataru basics.
   secondFormDrill: { id: 'secondFormDrill', load: SABER, primary: 'secondForm',
-    secondaries: { Strength: 0.4, Agility: 0.3, Endurance: 0.2, ForceControl: 0.15 } },
+    secondaries: { Agility: 0.7, Endurance: 0.4, Strength: 0.3, ForceControl: 0.3 } },
   masterTraining: { id: 'masterTraining', load: SABER, primary: 'mainForm',
     secondaries: { ForceControl: 0.4, Willpower: 0.3 } },
   forceDrill: { id: 'forceDrill', load: FORCE, primary: 'ForceControl',
@@ -63,7 +70,7 @@ export const ACT = {
 
 // Which activity trains a skill when the scheduler fills hours by archetype share.
 export const TRAINS = {
-  mainForm: 'formDrill', secondForm: 'secondFormDrill', ForceControl: 'forceDrill',
+  shiiCho: 'shiiChoDrill', mainForm: 'formDrill', secondForm: 'secondFormDrill', ForceControl: 'forceDrill',
   ForceSense: 'senseDrill', Strength: 'strength', Agility: 'agility', Endurance: 'cardio',
   Willpower: 'willpowerMeditation', Meditation: 'meditation', ForceKnowledge: 'study',
   ForceOutput: 'outputDrill', healing: 'healingDrill', darkAbilities: 'darkDrill',

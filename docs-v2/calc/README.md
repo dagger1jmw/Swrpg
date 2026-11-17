@@ -29,3 +29,7 @@ Known simplifications, stated so the numbers can be judged:
 - D-67 was decided in M3 (D-102): levels include the natural baseline (model.mjs NATURAL,
   progression-numbers §11a). variants.mjs is the pre-D-67 history record and turns it off.
   Every script was re-run then; K = 15.181.
+- D-118 / D-119 / D-120 (form plans, fundamentals transfer 0.75, proportional fill trimming): Shii-Cho
+  is its own skill; the Average trains Shii-Cho as an Initiate, then main Soresu 2 h + second Ataru
+  1 h from Padawan; targets and Y_avg read the highest form; archetype-paces.mjs reports form paces
+  per phase and source, with R = K * 41^1.75 / A_ref; npc-closed-form.mjs has formLevels(). K = 11.683.

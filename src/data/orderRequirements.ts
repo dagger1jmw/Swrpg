@@ -9,7 +9,7 @@ export interface RequirementBlock {
   activityId: string;
   hours: number;
   instructor: Instructor;
-  /** '$mainForm' = the character's main form (the Initiate row uses Shii-Cho). */
+  /** '$planMaster' / '$planSolo': forms of the Padawan form plan (D-118). The Initiate row is always Shii-Cho. */
   primary?: string;
   intensity?: 'standard';
 }
@@ -21,9 +21,11 @@ export const ORDER_REQUIREMENTS: Readonly<Record<string, readonly RequirementBlo
     { activityId: 'senseAwareness', hours: 0.5, instructor: 'instructor', intensity: 'standard' },
     { activityId: 'forceLore', hours: 1, instructor: 'instructor' },
   ],
+  // D-118: the master session and the solo hour train the forms of the Padawan form plan
+  // ('$planMaster': the plan's forms by hours, largest first, for 2 h; '$planSolo': the next 1 h).
   padawan: [
-    { activityId: 'padawanTraining', hours: 2, instructor: 'master', primary: '$mainForm' },
-    { activityId: '$mainFormBasics', hours: 1, instructor: 'solo' },
+    { activityId: 'padawanTraining', hours: 2, instructor: 'master', primary: '$planMaster' },
+    { activityId: '$formBasics', hours: 1, instructor: 'solo', primary: '$planSolo' },
     { activityId: 'forceControlDrill', hours: 1, instructor: 'master', primary: 'forceControl' },
     { activityId: 'senseAwareness', hours: 1, instructor: 'master', intensity: 'standard' },
   ],

@@ -13,8 +13,16 @@ import { archetypePaces } from './archetype-paces.mjs';
 // Initiate-phase paces of the Jedi Guardian (archetype-paces.mjs; D-67 decision, M3), on the
 // R scale of the phase closed form. Before M3 these were ratios to the main form.
 const K = solveK(AVERAGE);
-const INITIATE_PACE = Object.fromEntries(['mainForm', 'ForceControl', 'ForceSense'].map((s) => [s, archetypePaces('jediGuardian', K).paces.initiate[s]]));
-const TRIAL_AGE = 11.1;       // Average meets both Initiate Trial minimums (main 24 at 10.9, FC 14 at 11.1; M3 re-run)
+// D-118: the Initiate's forms are Shii-Cho (Order block + fill, form paces by source).
+const G = archetypePaces('jediGuardian', K);
+const INITIATE_PACE = {
+  shiiCho: (G.formPaces.initiate.order ?? 0) + (G.formPaces.initiate.fill ?? 0),
+  ForceControl: G.paces.initiate.ForceControl,
+  ForceSense: G.paces.initiate.ForceSense,
+};
+// The Average meets both Initiate Trial minimums before 10 (form 24 at 9.2, FC 14 at 9.3; D-118 re-run),
+// so the window opens at the Trials' minimum age.
+const TRIAL_AGE = 10.0;
 const LAST_AGE = 13.0;
 const MONTHS_PER_YEAR = 12;
 
@@ -23,14 +31,14 @@ function talent(rng) {
   return r < 0.70 ? 1.0 : r < 0.92 ? 1.25 : r < 0.99 ? 1.5 : 1.8; // Force-trained orders
 }
 function composite(levels) {
-  return (levels.mainForm + levels.ForceControl + levels.ForceSense) / 3;
+  return (levels.shiiCho + levels.ForceControl + levels.ForceSense) / 3;
 }
 function initiateLevels(age, rng) {
   const combat = rng ? talent(rng) : 1;
   const force = rng ? talent(rng) : 1;
   const out = {};
   for (const [s, p] of Object.entries(INITIATE_PACE)) {
-    const t = s === 'mainForm' ? combat : force;
+    const t = s === 'shiiCho' ? combat : force;
     const v = rng ? Math.exp(0.12 * gaussian(rng)) : 1;
     const startAge = rng ? 2 + Math.floor(rng() * 4) : 4; // Jedi start ages 2-5
     out[s] = closedFormPhased({ startAge, age, phases: [{ from: -Infinity, to: Infinity, pace: Math.min(4.0, p * t * v) }] });

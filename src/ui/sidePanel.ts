@@ -215,6 +215,15 @@ function character(p: SidePanelProps): HTMLElement[] {
       kv('Rank', selectRankName(s)),
       kv('Training', c.trainingStartAge === null ? 'untrained' : `since age ${c.trainingStartAge}`),
       kv('Forms', [c.mainFormId, c.secondFormId].filter((x): x is string => !!x).map((x) => SKILL_BY_ID.get(x)?.name ?? x).join(', ') || 'none'),
+      c.formPlan
+        ? kv(
+            'Form plan',
+            Object.entries(c.formPlan.knight)
+              .sort((x, y) => y[1] - x[1])
+              .map(([f, h]) => `${SKILL_BY_ID.get(f)?.name ?? f} ${Math.round(h * 100) / 100} h`)
+              .join(', '),
+          )
+        : null,
       kv('Talents', talents.join(', ') || 'none'),
       kv('Dominant hand', c.dominantHand),
       c.unbalanced ? el('div', { class: 'unbalanced', text: 'Unbalanced campaign: created with the talent point limit ignored.' }) : null,

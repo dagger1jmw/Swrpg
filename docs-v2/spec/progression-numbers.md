@@ -13,7 +13,13 @@ Amended by D-40: K re-solved with the Average schedule (Order requirements + D-2
   shares, through the day model) = 14.69, computed by docs-v2/calc/progression-sim.mjs.
 Amended by D-102 (D-67 decided in M3: natural baseline, sec 11a): K re-solved = 15.18
   (15.181, docs-v2/calc/progression-sim.mjs). No longer provisional.
-Reference (K = 15.18): XP(21)=3,127  XP(41)=10,085  XP(61)=20,213  XP(81)=33,201
+Amended by D-118 / D-119 (form plans and the fundamentals transfer): the targets apply to the
+  highest lightsaber form; the Average trains Shii-Cho as an Initiate, then main Soresu 2 h + second
+  Ataru 1 h from Padawan, and a new form starts at 0.75 x the highest form (sec 7a). K re-solved =
+  11.683 (docs-v2/calc/progression-sim.mjs).
+Reference (K = 11.683): XP(21)=2,407  XP(41)=7,761  XP(61)=15,555  XP(81)=25,551
+  XP(101)=37,594  XP(151)=75,991
+Before D-118 (K = 15.18): XP(21)=3,127  XP(41)=10,085  XP(61)=20,213  XP(81)=33,201
   XP(101)=48,850  XP(151)=98,744
   (K = 14.69 before D-67: XP(41)=9,760.)
   (Old reference, K = 13.55 before the fatigue model: XP(41)=9,000.)
@@ -84,10 +90,12 @@ Speed multiplier M = talent * cross-talent * instruction (sec 15, 19) * age (sec
     (shares summing to 1), and the Average main share is 0.5 at every age (the Knight+
     default main-specialty share, D-41). The excess is discarded and logged. Banked drill
     XP released after combat is excluded (it does not count toward the window).
-    Y_avg(age), K = 15.18 (computed by docs-v2/calc/progression-sim.mjs, per 365 days;
-    recomputed by D-102):
-      age 4: 582 | 8: 544 | 12: 691 | 16: 670 | 20: 720 | 24: 595 | 30: 585 | 40: 572 |
-      50: 556 | 60: 599 | 70: 544 | 80: 544 | 90: 425 | 98: 304
+    Y_avg(age), K = 11.683 (computed by docs-v2/calc/progression-sim.mjs, per 365 days; the
+    most-trained form's XP; recomputed by D-118 / D-119 / D-120):
+      age 4: 583 | 8: 608 | 12: 561 | 16: 532 | 20: 526 | 24: 434 | 30: 399 | 40: 458 |
+      50: 434 | 60: 487 | 70: 431 | 80: 423 | 90: 322 | 98: 202
+    (D-102 values, K = 15.18: 582 | 544 | 691 | 670 | 720 | 595 | 585 | 572 | 556 | 599 |
+      544 | 544 | 425 | 304.)
     The character's share (amended by D-104): max(the focus-weight share, the skill's share of
       the character's training hours in the same 365-day window). A skill outside the focus
       weights would otherwise have share 0 and a cap of 0, and the player's routine decides.
@@ -126,6 +134,24 @@ Applied experience E (0-100) per lightsaber form group.
   Reference scenario (Obi-Wan pace, E 12, first life-or-death fight at training year 12):
     year 11: level 40.4, bank 400 | year 12: 40.9, bank 1,022 | E -> 23.8, ceiling 48.8 |
     +1 week 42.3 | +2 weeks 43.0 | +1 month 43.6 | year 13: 45.5
+
+## 7a. Form plans and the fundamentals transfer (added by D-118, D-119)
+Initiates train only Shii-Cho basics (the Order forms block, ranks.md §1a). From Padawan on, a form
+  plan splits the 2 h master session and the 1 h solo hour among any number of forms (the largest
+  share trains with the master first; the forms part of the fill follows the plan's proportions);
+  an optional Knight+ plan (default: the Padawan plan). Shii-Cho may stay in a plan or be dropped:
+  a form that is no longer trained keeps its XP and rusts (sec 13); its foundation synergy still
+  applies while it is trained.
+Fundamentals transfer: a lightsaber form's first session (as the session's primary) sets its XP to
+  0.75 x the character's highest form XP at that moment (tunable, FORM_TRANSFER_SHARE). Once per
+  form; outside the 4.0x clamp, like banked XP; lightsaber forms only, never Force abilities. A form
+  never trained can be started with a teacher present (its basics drill unlocks for "known or with a
+  teacher"). Character creation applies the same transfer for every form in the Padawan and Knight+
+  plans, at the start of that phase.
+Why: a new form started from zero, so with the targets on the highest form the Average's Soresu
+  (from 12) could not reach 41 in 16 years: K fell to 6.8 and Shii-Cho reached 41 at 12 (D-118).
+  Calibration with the transfer (docs-v2/calc): 0.5 put milestone 21 at -29%; 0.70-0.90 put every
+  milestone within +/-20%; 0.75 is the most centred.
 
 ## 8. Combat integration (combat Force abilities)
 CI (0-100) per ability. Integration line = 25 + CI. G = level - line (no penalty if G <= 0).
@@ -209,7 +235,13 @@ Profile schedule structure (amended by D-40, D-41, D-42; supersedes the inputs b
     Luke: start 19, outsider (no Order requirements), standard effort, 280 days, Force
       prodigy (x1.5 on Force skills), solo and holocrons (x0.90), broad focus (main share
       0.4).
-  Average result (docs-v2/calc/progression-sim.mjs, K = 15.18, natural baseline sec 11a):
+  Average result (docs-v2/calc/progression-sim.mjs, K = 11.683, form plans and transfer sec 7a,
+    D-118 / D-119 / D-120; highest form):
+    21: 4.2 y (-16%) | 41: 16.0 y | 61: 34.1 y (+6%) | 81: 56.7 y (+8%) | 101: 84.8 y (+9%)
+    Age 16: Shii-Cho 30.1, Soresu 34.2, Ataru 28.0. At age 20.3: highest form 41.5, Force Control
+      34.5, Force Sense 31.2, Willpower 53.9. At age 35: highest form 57.8.
+    Fill hours are trimmed in proportion to their planned hours (D-120, training-routines §4).
+  Before D-118 (K = 15.18, natural baseline sec 11a):
     21: 5.5 y | 41: 16.0 y | 61: 32.6 y | 81: 55.2 y | 101: 83.5 y (all within +/-20%)
     At age 20.3: main form 41.5, Force Control 29.7, Force Sense 26.8, Willpower 49.3,
       Endurance 37.6. At 30: Force Control 34.8, Force Sense 31.3, Endurance 43.8.

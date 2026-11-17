@@ -41,6 +41,9 @@
   4. Meditation goes after the hardest block or at the end of the day (it restores mental).
   5. Insert 0.5 h rest between physical blocks whenever projected f_phys would pass 0.7.
   6. Projected tiredness limit at day end: easy f <= 0.7 | standard f <= 0.9 | push f <= 1.0.
+     Fill hours are trimmed in proportion (D-120): each 0.5 h comes off the fill block with the
+     largest remaining fraction of its planned hours, so the shares (and a form plan's split)
+     hold. Trimming whichever block came last skewed the forms 71 : 29 instead of 2 : 1.
      Push never schedules past 1.0 by default; the player may lock blocks past it, with a warning.
   The scheduler is deterministic: the same inputs always give the same schedule. Among
   schedules that satisfy all the rules, it picks the one with the highest priority-weighted XP.

@@ -13,7 +13,7 @@ import type { FeatureModule, GameEvent } from '../../state/types';
 import { selectNow } from '../clock/selectors';
 import { selectMaxFraction } from '../health/selectors';
 import { selectOpenThreads } from '../threads/selectors';
-import { EMPTY_TODAY, activeState, easeDays, emptyProgression, progressionSliceSchema, type ProgressionSlice, type StateOfMindRecord } from './progression';
+import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressionV1, progressionSliceSchema, type ProgressionSlice, type StateOfMindRecord } from './progression';
 import { selectCapacities, selectLevelExact, selectNatural, selectSkillViews, selectStateOfMind, selectTierBeats } from './selectors';
 
 const EMOTIONS = ['grief', 'fear', 'anger', 'hatred', 'calm', 'pride', 'despair'] as const;
@@ -30,7 +30,8 @@ const PASSIONS: readonly StateOfMind[] = ['fear', 'anger', 'hatred', 'pride'];
 
 export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
   id: 'progression',
-  version: 1,
+  version: 2,
+  migrations: { 2: migrateProgressionV1 },
   initialState: (ctx) => emptyProgression(ctx.start.day, ctx.startingXp ?? {}),
   // Saves from M1/M2: no training (natural baselines only).
   emptyState: (raw) => {
@@ -51,6 +52,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         windowHours: record,
         credited: record,
         practiceHours: record,
+        /** Fundamentals transfer to forms started by this session (D-119): outside the pace window. */
+        transfer: record.optional(),
         fatigueWillpower: z.number().min(0),
         meditation: z.boolean(),
         day: z.object({ hoursByActivity: record, postWindow: z.number().min(0), lastPhysicalHeavy: z.boolean() }),
@@ -66,6 +69,17 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
 
         const skills = { ...slice.skills };
         const beats = [...slice.tierBeatsPending];
+        // D-119: the transfer lands first, once per form, and never enters the pace window.
+        const transfer = (e['transfer'] as Record<string, number> | undefined) ?? {};
+        const formsStarted = [...slice.formsStarted];
+        for (const [id, x] of Object.entries(transfer)) {
+          if (SKILL_BY_ID.get(id)?.kind !== 'form') return { reject: `transfer to ${id}: lightsaber forms only` };
+          if (formsStarted.includes(id)) return { reject: `transfer to ${id}: already started` };
+          const prev = skills[id] ?? { xp: 0, rust: 0, lastPracticedDay: null };
+          skills[id] = { ...prev, xp: prev.xp + x };
+          formsStarted.push(id);
+        }
+        for (const id of e['primaries'] as string[]) if (SKILL_BY_ID.get(id)?.kind === 'form' && !formsStarted.includes(id)) formsStarted.push(id);
         let seq = slice.nextSeq;
         const emit: GameEvent[] = [];
         const notes: string[] = [];
@@ -110,7 +124,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           stateOfMind = setState(stateOfMind, { kind: 'centered', intensity: 1, sinceDay: day, untilDay: day + 1 }, day);
         }
         const willpowerToday = Math.min(FATIGUE_WILLPOWER.dailyCap, slice.willpowerToday + Number(e['fatigueWillpower']));
-        return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow, today, stateOfMind, willpowerToday }, emit, notes };
+        return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow, today, stateOfMind, willpowerToday, formsStarted }, emit, notes };
       },
     },
     emotionalEvent: {

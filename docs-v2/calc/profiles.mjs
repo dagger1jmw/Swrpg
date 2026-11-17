@@ -16,7 +16,7 @@ const PROFILES = {
   },
   'Anakin (start 9, push, prodigy combat+Force, x1.1 cross on combat)': {
     ...AVERAGE, startAge: 9, effort: 'push', trainingDays: 315, padawanAge: 9, knightAge: 20,
-    talent: { ...techForce(1.5), mainForm: 1.5 * 1.1, secondForm: 1.5 * 1.1 },
+    talent: { ...techForce(1.5), shiiCho: 1.5 * 1.1, mainForm: 1.5 * 1.1, secondForm: 1.5 * 1.1 },
     instruction: { ...AVERAGE.instruction, master: 1.05 }, // master not a specialist in his form
   },
   'Luke (start 19, outsider, standard, Force prodigy, solo/holocron)': {

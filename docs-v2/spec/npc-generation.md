@@ -3,6 +3,12 @@
 Reference NPCs (variance off). Amended by D-43 and D-44, then by D-105 (M3): recomputed with
 the phase-pace closed form below (docs-v2/calc/npc-closed-form.mjs, K = 15.18). Older values
 are kept for history.
+Amended by D-118 / D-119 / D-120 (form plans, fundamentals transfer, K = 11.683): the level in the
+main skill is the highest form for form archetypes (the Average plan: Shii-Cho as an Initiate,
+Soresu 2 h + Ataru 1 h from Padawan). New values (docs-v2/calc/npc-closed-form.mjs): Padawan 16:
+34.2 | Knight 30: 53.3 | Master 45: 67.7 | Elder 70: 86.7 | Obi-Wan check 79.6 | Anakin check 79.7
+| trooper sergeant 49.8 (blaster) | Sith warrior 74.8. Test 2 (highest form vs the day loop):
+5 y 0.0 | 10 y 0.0 | 30 y +0.6 | 60 y -1.2.
 
 | NPC                                                                   | Old | D-43 | Level in main skill |
 | --------------------------------------------------------------------- | --- | ---- | ------------------- |
@@ -95,6 +101,14 @@ main skill and summed to far more training than a day holds (Jedi Guardian 3.9x,
   | Strength / Agility / Endurance (trained part) | 0.110 / 0.083 / 0.056 | 0.034 / 0.026 / 0.018 | 0.296 / 0.237 / 0.233 |
 
   The full table for every archetype is the script's output and src/data/archetypes.ts.
+  Amended by D-118 / D-119: lightsaber forms are a pool. `formPaces` gives the pace of all form XP
+  per phase and source (Initiate: the Order Shii-Cho block and fill; Padawan: the master session,
+  the solo hour and fill; Knight+: fill). Each form's pace is the sources shared out by the form plan
+  (the master session to the plan's forms by hours, largest first, for 2 h; the solo hour to the
+  next 1 h; fill by plan share), and a form's first phase starts it at 0.75 x the highest form's XP
+  then (progression-numbers sec 7a). R is now defined as K * 41^1.75 / A_ref (it was measured from
+  the Average), so pace and level agree exactly. Jedi Guardian (K = 11.683): forms Initiate order
+  1.091, fill 0.007 | Padawan master 1.203, solo 0.318, fill 0.012 | Knight+ fill 1.543.
   Custom focus (character creation sliders): a change of share Delta moves the skill's pace by
   Delta * 2 * (that archetype's main Knight+ pace) * fill, where fill is the phase's mean fill
   hours (standard budget minus Order hours, never below 0) over the 6 h Knight+ day: 1 for

@@ -59,6 +59,8 @@ export type Unlock =
   | { kind: 'level'; skill: string; min: number }
   /** Known = level 1 or more. */
   | { kind: 'known'; skill: string }
+  /** Known, or a teacher present: how a new form is learned (D-119; its first session gets the transfer). */
+  | { kind: 'knownOrTeacher'; skill: string }
   | { kind: 'formsKnown'; min: number }
   | { kind: 'pairMin'; min: number }
   | { kind: 'anyAbilityLevel'; min: number }
@@ -93,6 +95,7 @@ const fixed = (skill: string): PrimarySpec => ({ kind: 'skill', skill });
 const options = (...o: string[]): PrimarySpec => ({ kind: 'options', options: o });
 const ALWAYS: readonly Unlock[] = [{ kind: 'always' }];
 const known = (skill = '$primary'): Unlock => ({ kind: 'known', skill });
+const learnable = (skill = '$primary'): Unlock => ({ kind: 'knownOrTeacher', skill });
 const level = (min: number, skill = '$primary'): Unlock => ({ kind: 'level', skill, min });
 
 function act(
@@ -121,14 +124,14 @@ export const ACTIVITIES: readonly ActivityDef[] = [
     { kind: 'supervisedOrLevel', skill: 'shiiCho', min: 15 },
   ]),
   act('shiiChoAdvanced', 'Shii-Cho advanced sequences', 'forms', S, 'intense', fixed('shiiCho'), { strength: 0.5, agility: 0.4, endurance: 0.3, forceControl: 0.2 }, [level(21)]),
-  act('makashiBasics', 'Makashi basics', 'forms', S, 'standard', fixed('makashi'), { agility: 0.6, willpower: 0.3, forceControl: 0.3, strength: 0.1 }, [known()]),
+  act('makashiBasics', 'Makashi basics', 'forms', S, 'standard', fixed('makashi'), { agility: 0.6, willpower: 0.3, forceControl: 0.3, strength: 0.1 }, [learnable()]),
   act('makashiFootwork', 'Makashi precision footwork', 'forms', S, 'standard', fixed('makashi'), { agility: 0.7, willpower: 0.4, forceControl: 0.3 }, [level(21)]),
-  act('soresuBasics', 'Soresu basics', 'forms', S, 'standard', fixed('soresu'), { endurance: 0.6, willpower: 0.4, forceSense: 0.3, forceControl: 0.25 }, [known()]),
+  act('soresuBasics', 'Soresu basics', 'forms', S, 'standard', fixed('soresu'), { endurance: 0.6, willpower: 0.4, forceSense: 0.3, forceControl: 0.25 }, [learnable()]),
   act('soresuDeflection', 'Soresu deflection drills', 'forms', S, 'standard', fixed('soresu'), { endurance: 0.5, forceSense: 0.5, agility: 0.3, willpower: 0.3 }, [level(10)]),
-  act('ataruBasics', 'Ataru basics', 'forms', S, 'intense', fixed('ataru'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [known()]),
+  act('ataruBasics', 'Ataru basics', 'forms', S, 'intense', fixed('ataru'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [learnable()]),
   act('ataruAcrobatics', 'Ataru acrobatic sequences', 'forms', S, 'intense', fixed('ataru'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [level(21)]),
-  act('shienDjemSoBasics', 'Shien / Djem So basics', 'forms', S, 'intense', options('shien', 'djemSo'), { strength: 0.7, endurance: 0.4, forceControl: 0.25, agility: 0.2 }, [known()]),
-  act('nimanBasics', 'Niman basics', 'forms', S, 'standard', fixed('niman'), { forceControl: 0.5, willpower: 0.4, agility: 0.3, strength: 0.2 }, [known()]),
+  act('shienDjemSoBasics', 'Shien / Djem So basics', 'forms', S, 'intense', options('shien', 'djemSo'), { strength: 0.7, endurance: 0.4, forceControl: 0.25, agility: 0.2 }, [learnable()]),
+  act('nimanBasics', 'Niman basics', 'forms', S, 'standard', fixed('niman'), { forceControl: 0.5, willpower: 0.4, agility: 0.3, strength: 0.2 }, [learnable()]),
   act('juyoVaapadBasics', 'Juyo / Vaapad basics', 'forms', S, 'intense', options('juyo', 'vaapad'), { willpower: 0.6, agility: 0.5, strength: 0.4, forceControl: 0.3 }, [
     known(),
     { kind: 'notRank', ranks: ['initiate', 'acolyte'] },
@@ -142,12 +145,12 @@ export const ACTIVITIES: readonly ActivityDef[] = [
     { kind: 'rank', ranks: ['padawan', 'apprentice'] },
   ]),
   // Forms with no bank entry use the basics pattern of their nearest form (§4 note; D-108).
-  act('trakataBasics', 'Tràkata basics', 'forms', S, 'standard', fixed('trakata'), { agility: 0.6, willpower: 0.3, forceControl: 0.3, strength: 0.1 }, [known()]),
-  act('jarKaiBasics', "Jar'Kai basics", 'forms', S, 'standard', fixed('jarKai'), { $secondForm: 0.6, agility: 0.5, strength: 0.3 }, [known()]),
-  act('sokanBasics', 'Sokan basics', 'forms', S, 'intense', fixed('sokan'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [known()]),
-  act('dunMochBasics', 'Dun Möch basics', 'forms', S, 'standard', fixed('dunMoch'), { agility: 0.6, willpower: 0.3, forceControl: 0.3, strength: 0.1, charisma: 0.3 }, [known()]),
-  act('zeroGBasics', 'Zero-G combat basics', 'forms', S, 'intense', fixed('zeroG'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [known()]),
-  act('saberstaffBasics', 'Saberstaff basics', 'forms', S, 'standard', fixed('saberstaff'), { strength: 0.4, agility: 0.3, endurance: 0.2, forceControl: 0.15 }, [known()]),
+  act('trakataBasics', 'Tràkata basics', 'forms', S, 'standard', fixed('trakata'), { agility: 0.6, willpower: 0.3, forceControl: 0.3, strength: 0.1 }, [learnable()]),
+  act('jarKaiBasics', "Jar'Kai basics", 'forms', S, 'standard', fixed('jarKai'), { $secondForm: 0.6, agility: 0.5, strength: 0.3 }, [learnable()]),
+  act('sokanBasics', 'Sokan basics', 'forms', S, 'intense', fixed('sokan'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [learnable()]),
+  act('dunMochBasics', 'Dun Möch basics', 'forms', S, 'standard', fixed('dunMoch'), { agility: 0.6, willpower: 0.3, forceControl: 0.3, strength: 0.1, charisma: 0.3 }, [learnable()]),
+  act('zeroGBasics', 'Zero-G combat basics', 'forms', S, 'intense', fixed('zeroG'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [learnable()]),
+  act('saberstaffBasics', 'Saberstaff basics', 'forms', S, 'standard', fixed('saberstaff'), { strength: 0.4, agility: 0.3, endurance: 0.2, forceControl: 0.15 }, [learnable()]),
 
   // Force disciplines (Force drill 0.4 / 0.8 + 0.6 Force)
   act('forceControlDrill', 'Force Control drill (levitation practice)', 'force', F, 'standard', options('telekinesis', 'forceControl'), { forceControl: 0.6, forceSense: 0.3, willpower: 0.3 }, ALWAYS),

@@ -1,15 +1,19 @@
 // Character creation fields (character-creation.md §1, §3; M3 plan step 8): path, species, rank
 // filtered by path and age, training start age, archetype with focus sliders that renormalize, 3
 // talent points, dominant hand, war years, and a live preview of the computed levels with the rank
-// check. Rendering only: the numbers come from computeCreation.
+// check, and the form plans (D-118): Initiates train Shii-Cho only; from Padawan a plan splits the
+// 2 h master session and the 1 h solo hour among any forms; an optional Knight+ plan. Rendering only:
+// the numbers come from computeCreation.
 import { ARCHETYPE_BY_ID, PATH_ARCHETYPES, PATH_START_RANGE, type CharacterPath } from '../data/archetypes';
 import { TALENT_COST, TALENT_LEVELS, TALENT_POINTS, type TalentLevel } from '../data/progression.config';
 import { FORM_IDS, SKILL_BY_ID, TALENT_DOMAINS, type TalentDomain } from '../data/skills';
+import { RANK_PHASE } from '../data/rankMinimums';
 import { SPECIES } from '../data/species';
 import { speciesDef } from '../data/species';
 import { humanEquivalentAge, speciesAgeFromHuman } from '../engine/species';
-import { computeCreation, defaultFocus, ranksFor, talentCost, type CreationInput } from '../features/character/selectors';
+import { computeCreation, defaultFocus, DEFAULT_FORM_PLAN, PADAWAN_PLAN_HOURS, ranksFor, talentCost, type CreationInput } from '../features/character/selectors';
 import { el, input } from './dom';
+import { formPlanEditor } from './formPlanEditor';
 
 export type CreationChoices = Omit<CreationInput, 'name' | 'birthDay' | 'startDay'>;
 
@@ -23,8 +27,7 @@ const DOMAIN_LABEL: Record<TalentDomain, string> = { combat: 'Combat', force: 'F
 const PREVIEW_SKILLS = ['forceControl', 'forceSense', 'willpower', 'endurance', 'strength', 'agility'];
 
 const option = (value: string, text: string): HTMLOptionElement => el('option', { text, attrs: { value } });
-const keyName = (k: string, main: string | null, second: string | null): string =>
-  k === '$mainForm' ? `Main form${main ? ` (${SKILL_BY_ID.get(main)?.name})` : ''}` : k === '$secondForm' ? `Second form${second ? ` (${SKILL_BY_ID.get(second)?.name})` : ''}` : (SKILL_BY_ID.get(k)?.name ?? k);
+const keyName = (k: string): string => (k === '$forms' ? 'Lightsaber forms (all)' : (SKILL_BY_ID.get(k)?.name ?? k));
 
 export interface CreationForm {
   fields: HTMLElement[];
@@ -40,9 +43,11 @@ export function creationForm(): CreationForm {
   const rank = el('select');
   const archetype = el('select');
   const start = input({ type: 'number', min: '2', max: '40', step: '0.5', value: '4' });
-  const mainForm = el('select', {}, FORM_IDS.map((f) => option(f, SKILL_BY_ID.get(f)!.name)));
-  const secondForm = el('select', {}, [option('', 'none'), ...FORM_IDS.map((f) => option(f, SKILL_BY_ID.get(f)!.name))]);
-  secondForm.value = 'soresu';
+  // Form plans (D-118). `refresh` is defined below; the editors call it on every change.
+  const padawanPlan = formPlanEditor(PADAWAN_PLAN_HOURS, DEFAULT_FORM_PLAN, () => refresh());
+  const knightPlan = formPlanEditor(PADAWAN_PLAN_HOURS, DEFAULT_FORM_PLAN, () => refresh());
+  const separateKnight = input({ type: 'checkbox' });
+  const plansBox = el('div');
   const hand = el('select', {}, [option('right', 'Right'), option('left', 'Left')]);
   const war = input({ type: 'number', min: '0', max: '30', value: '0' });
   const exception = input({ type: 'checkbox' });
@@ -72,8 +77,8 @@ export function creationForm(): CreationForm {
     archetype: archetype.value,
     rank: rank.value,
     trainingStartAge: Number(start.value),
-    mainFormId: mainForm.value || null,
-    secondFormId: secondForm.value && secondForm.value !== mainForm.value ? secondForm.value : null,
+    padawanPlan: padawanPlan.read(),
+    ...(separateKnight.checked ? { knightPlan: knightPlan.read() } : {}),
     ...(Object.keys(focus).length ? { focus } : {}),
     talents: talents(),
     warYears: Math.max(0, Math.trunc(Number(war.value) || 0)),
@@ -111,7 +116,7 @@ export function creationForm(): CreationForm {
         }
         refresh();
       });
-      focusBox.append(el('div', { class: 'focus-row' }, [el('label', { text: keyName(k, mainForm.value, secondForm.value) }), slider, label]));
+      focusBox.append(el('div', { class: 'focus-row' }, [el('label', { text: keyName(k) }), slider, label]));
     }
     focusBox.append(
       el('button', { class: 'small secondary', text: 'Reset focus', attrs: { type: 'button' }, on: { click: () => ((focusArch = ''), renderFocus(), refresh()) } }),
@@ -166,13 +171,20 @@ export function creationForm(): CreationForm {
       return;
     }
     const a = ARCHETYPE_BY_ID.get(archetype.value)!;
-    const main = a.main === '$mainForm' ? mainForm.value : a.main;
-    const show = [...new Set([main, ...(mainForm.value && main !== mainForm.value && a.weights['$mainForm'] ? [mainForm.value] : []), ...PREVIEW_SKILLS])];
+    // Every form with a level, highest first (D-118), then the archetype's main skill and the key stats.
+    const forms = FORM_IDS.filter((f) => (c.levels[f] ?? 0) >= 0.05).sort((x, y) => (c.levels[y] ?? 0) - (c.levels[x] ?? 0));
+    const main = a.main.startsWith('$') ? [] : [a.main];
+    const show = [...new Set([...forms, ...main, ...PREVIEW_SKILLS])];
     preview.append(
       el(
         'div',
         { class: 'preview-grid' },
-        show.map((id) => el('div', { class: 'kv' }, [el('span', { class: 'k', text: `${SKILL_BY_ID.get(id)?.name ?? id}: ` }), (c.levels[id] ?? 0).toFixed(1)])),
+        show.map((id) =>
+          el('div', { class: 'kv' }, [
+            el('span', { class: 'k', text: `${SKILL_BY_ID.get(id)?.name ?? id}${c.highestForm?.id === id ? ' (highest form)' : ''}: ` }),
+            (c.levels[id] ?? 0).toFixed(1),
+          ]),
+        ),
       ),
     );
     const r = rank.value;
@@ -202,7 +214,37 @@ export function creationForm(): CreationForm {
     refresh();
   });
   for (const n of [rank, start, hand, war, exception, ...Object.values(talentSel)]) n.addEventListener('change', refresh);
-  for (const n of [mainForm, secondForm]) n.addEventListener('change', () => (renderFocus(), refresh()));
+  // Form plans: shown by path and rank (D-118). Initiates train Shii-Cho only.
+  const renderPlans = (): void => {
+    plansBox.replaceChildren();
+    const a = ARCHETYPE_BY_ID.get(archetype.value);
+    const order = path.value === 'jedi' || path.value === 'sith';
+    const hasForms = order || Object.keys(a?.weights ?? {}).some((k) => k === '$mainForm' || k === '$secondForm');
+    if (!hasForms) return;
+    const phase = order ? (RANK_PHASE[rank.value] ?? 'initiate') : 'knight';
+    if (phase === 'initiate') {
+      plansBox.append(el('p', { class: 'hint', text: 'Initiates train Shii-Cho only (the Order forms block). Form plans open at Padawan.' }));
+      return;
+    }
+    if (order) {
+      plansBox.append(
+        el('div', { class: 'field-label', text: 'Padawan form plan (3 h a day: 2 h with the master, 1 h solo; the largest share trains with the master)' }),
+        padawanPlan.node,
+        el('p', { class: 'hint', text: 'Shii-Cho can stay in the plan or be dropped (its XP stays and rusts). A new form starts at 75% of your highest form (fundamentals transfer).' }),
+      );
+    }
+    if (phase === 'knight') {
+      const label = order ? ' Different form plan from Knight on' : ' Own form plan (otherwise the default: Soresu 2 h, Ataru 1 h)';
+      plansBox.append(el('label', { class: 'check' }, [separateKnight, label]));
+      if (separateKnight.checked) plansBox.append(el('div', { class: 'field-label', text: 'Knight+ form plan (only the proportions count)' }), knightPlan.node);
+    }
+  };
+  separateKnight.addEventListener('change', () => {
+    if (separateKnight.checked) knightPlan.set(path.value === 'jedi' || path.value === 'sith' ? padawanPlan.read() : DEFAULT_FORM_PLAN);
+    renderPlans();
+    refresh();
+  });
+  for (const n of [rank, path, archetype]) n.addEventListener('change', renderPlans);
 
   const renderBypass = (): void => {
     bypassBox.replaceChildren();
@@ -230,13 +272,15 @@ export function creationForm(): CreationForm {
 
   fillArchetypes();
   renderFocus();
+  renderPlans();
 
   const field = (label: string, node: HTMLElement): HTMLElement => el('div', { class: 'field' }, [el('label', { text: label }), node]);
   const fields: HTMLElement[] = [
     el('div', { class: 'field-label', text: 'Character' }),
     el('div', { class: 'row' }, [field('Path', path), field('Species', species), field('Rank', rank)]),
     el('div', { class: 'row' }, [field('Archetype', archetype), field('Training start age (species years)', start), field('War years', war)]),
-    el('div', { class: 'row' }, [field('Main form', mainForm), field('Second form', secondForm), field('Dominant hand', hand)]),
+    el('div', { class: 'row' }, [field('Dominant hand', hand)]),
+    plansBox,
     el('div', { class: 'field-label', text: 'Focus (shares of the training day; they always sum to 100%)' }),
     focusBox,
     el('div', { class: 'field-label', text: 'Talents' }),
@@ -254,6 +298,7 @@ export function creationForm(): CreationForm {
     update: (birthDay, startDay, name) => {
       last = { birthDay, startDay, name };
       fillRanks();
+      renderPlans();
       refresh();
     },
   };

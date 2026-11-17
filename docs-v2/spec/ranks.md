@@ -28,7 +28,8 @@ by the archetype shares (npc-generation §3). Activities: skills-and-activities.
 Initiate (youngling)
   From the training start age. Clan training, Order requirements (section 1a).
 Initiate Trials (eligibility to be chosen)
-  Eligible from age 10 with main form >= 24 and Force Control >= 14 (amended by D-66,
+  Eligible from age 10 with highest form >= 24 (Shii-Cho for an Initiate; D-118: every "main
+  form" minimum reads the highest form) and Force Control >= 14 (amended by D-66,
   recomputed: the Average profile meets both at age 10.8, docs-v2/calc/progression-sim.mjs;
   the old 18 / 15 were met at 8.1 / 11.7). Re-run with D-67 decided (D-102): main form 24 at
   10.9 and Force Control 14 at 11.1, so the minimums stay. Played as a scene; checks at DC
@@ -44,8 +45,11 @@ Padawan selection (playable window)
     For reference, the Average profile sits at about the 16th percentile (NPC talent only
     adds speed and NPC start ages average 3.5), computed by docs-v2/calc/padawan-selection.mjs
     (re-run with D-102: 15.7th percentile at 11.1).
-  Each month: chance a Knight or Master chooses you = S / 610 (amended by D-66, recomputed by
-    D-102 with the same rule). An average-standing Initiate (S 50) has 8.20% per month; over
+  Each month: chance a Knight or Master chooses you = S / 940 (amended by D-66, recomputed by
+    D-102 and again by D-120 with the same rule: the Initiate Trial minimums are now met at
+    9.2 / 9.3, so the window opens at the Trials' minimum age 10 and runs 36 monthly rolls to 13;
+    5.32% a month at S 50, 13.98% never chosen, seeded 14.11%; the Average sits at the 15th-17th
+    percentile). Before D-120: S / 610 over 23 rolls. An average-standing Initiate (S 50) has 8.20% per month; over
     the real window (Initiate Trials at 11.1 to age 13 = 23 monthly rolls) 14.0% are never
     chosen (seeded 10,000 runs: 14.05%). D-66's divisor 685 assumed the window opened at 10.8
     (26 rolls); the old divisor 800 gives 22.7% over the new window. Tournaments, demonstrations and
@@ -58,10 +62,10 @@ Padawan
   Missions with the master; the master is the main teacher (progression spec sec 15).
 Knight Trials (five playable trials)
   Eligible: at least 6 years as a Padawan, age 18+, the master's approval (engine flag
-    masterApproval, flag-registry.md), and main form >= 39, Force Control >= 30, Force Sense
-    >= 26, Willpower >= 48 (Willpower amended by D-51: recomputed so the Average profile
+    masterApproval, flag-registry.md), and highest form >= 39, Force Control >= 34, Force Sense
+    >= 31, Willpower >= 53 (Willpower amended by D-51: recomputed so the Average profile
     meets it at age 20.3; Force Sense amended by D-102, below; main form amended by D-111,
-    below). Computed Average ages with
+    below; Force Control, Force Sense and Willpower reset by D-120, below). Computed Average ages with
     D-67 decided (docs-v2/calc/progression-sim.mjs, K = 15.18): main form 38 at 18.3, Force
     Control 30 at 20.6, Willpower 48 at 19.6, Force Sense 26 at 19.6 (26.8 at 20.3).
     Force Sense (D-102, decides D-67): the Average reaches 30 only at age 26.9, so the
@@ -72,6 +76,11 @@ Knight Trials (five playable trials)
     synergy spillover) the Average met 38 at 18.24-18.30 depending on the outcome-roll seed,
     2.0-2.06 years before 20.3, at the edge of test 1. It meets 39 at 18.9 (1.4 years early).
     The Sith Lord row mirrors it.
+    D-120 (after D-118 / D-119, K = 11.683): the Average now meets Force Control 30 at 17.7, Force
+    Sense 26 at 16.8 and Willpower 48 at 17.7, more than 2 years before 20.3. By the D-51 rule
+    they become the Average's levels at 20.3, rounded down: Force Control 34 (34.45), Force Sense
+    31 (31.21), Willpower 53 (53.94). Highest form 39 (met at about 19.0), the Initiate Trials 24 /
+    14 (9.2 / 9.3) and Master 58 (35.2) stay.
   Each trial is a scene with its own checks (rolls spec, DC = 10 + rating/10):
     Skill: a duel or droid gauntlet; win a duel against a rating-45 opponent, or pass
       3 of 4 checks of main form at rating 45.
@@ -128,7 +137,7 @@ Grand Master: story only.
 ## 5. Required tests
  1. The Average profile meets each rank's skill minimums within +/-2 years of the stated age.
  2. About 14% (+/-3) of average-standing Initiates (S 50) are not chosen by 13 (seeded,
-    10,000 runs, divisor 610 over the 23-roll window; D-66, recomputed by D-102).
+    10,000 runs, divisor 940 over the 36-roll window; D-66, recomputed by D-102 and D-120).
  3. Not chosen by 13 always triggers the Council of Reassignment event.
  4. Each Knight Trial uses its stated checks; retakes wait 1 year; a third failure gives the
     three choices.

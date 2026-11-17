@@ -91,10 +91,10 @@ describe('training turns', () => {
     expect(provider.calls[0]!.messages.at(-1)!.text).toContain('Training refused by the engine');
   });
 
-  it('a locked activity is refused (Shii-Cho advanced sequences need Shii-Cho 21... Ataru needs the form known)', async () => {
+  it('a locked activity is refused: a form never trained needs a teacher to start it (D-119)', async () => {
     const { deps } = setup([{ callType: 'narrative', data: narrative() }]);
     const { record } = await playTurn(deps, session(), action({ actionType: 'train', activity: { activityId: 'ataruBasics' } }));
-    expect(record.draft.training).toMatchObject({ ok: false, reason: 'Ataru basics is locked: Ataru is not known yet' });
+    expect(record.draft.training).toMatchObject({ ok: false, reason: 'Ataru basics is locked: Ataru is not known yet (a teacher can start it)' });
   });
 
   it('sleep: 8 hours resets the meters; rest recovers at the rest rates', async () => {

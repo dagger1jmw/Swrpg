@@ -3,6 +3,7 @@
 // bank, combat counters and the review buff arrive with combat (M5).
 import { z } from 'zod';
 import { EASE_DAYS, GRIEF_MULT, STATES_OF_MIND, STATE_MULT, type StateOfMind } from '../../data/progression.config';
+import { FORM_IDS } from '../../data/skills';
 
 export const skillStateSchema = z.object({
   /** Trained XP (effective practice hours); the natural baseline is added by selectors. */
@@ -52,6 +53,8 @@ export const progressionSliceSchema = z.object({
   today: dayTrainingSchema,
   tierBeatsPending: z.array(tierBeatSchema),
   nextSeq: z.number().int().min(1),
+  /** Lightsaber forms whose fundamentals transfer has happened (once per form, D-119). */
+  formsStarted: z.array(z.string()),
 });
 export type ProgressionSlice = z.infer<typeof progressionSliceSchema>;
 
@@ -70,7 +73,15 @@ export function emptyProgression(day: number, startingXp: Readonly<Record<string
     today: EMPTY_TODAY,
     tierBeatsPending: [],
     nextSeq: 1,
+    // Every form a created character starts with has had its transfer (creation applies it, D-119).
+    formsStarted: Object.keys(skills).filter((id) => FORM_IDS.includes(id)),
   };
+}
+
+/** v1 -> v2 (D-119): forms already holding XP count as started (no transfer later). */
+export function migrateProgressionV1(old: unknown): ProgressionSlice {
+  const o = old as Omit<ProgressionSlice, 'formsStarted'>;
+  return { ...o, formsStarted: Object.entries(o.skills).filter(([id, st]) => FORM_IDS.includes(id) && st.xp > 0).map(([id]) => id) };
 }
 
 /** Grief eases linearly from x0.80 back to x1.00 by easesByDay (progression-numbers §17). */

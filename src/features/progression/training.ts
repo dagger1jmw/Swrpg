@@ -4,14 +4,14 @@
 // nearby one (D-07, skills-and-activities.md §2).
 import { ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, type ActivityDef, type Intensity, type Unlock } from '../../data/activities';
 import { archetypeDef } from '../../data/archetypes';
-import { PASSION_DARK_PRESSURE_PER_HOUR, STEP_HOURS } from '../../data/progression.config';
+import { FORM_TRANSFER_SHARE, K, PASSION_DARK_PRESSURE_PER_HOUR, STEP_HOURS } from '../../data/progression.config';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../data/skills';
 import { STUB_ALIGNMENT_MULT, STUB_DARK_PRESSURE, STUB_TEACHER_ARCHETYPE, STUB_TEACHER_START_AGE } from '../../data/stubs';
 import { ageFactor } from '../../engine/ageFactor';
 import { pickDrillRating, type Effort } from '../../engine/challenge';
-import { closedFormLevel, phasesFor } from '../../engine/closedForm';
+import { closedFormLevel, formXps, phasesFor } from '../../engine/closedForm';
 import { computeTrainingXp, type SessionSplit, type TrainingResult } from '../../engine/computeXp';
-import { tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
+import { levelExact, tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { tirednessLabel } from '../../engine/fatigue';
 import { instructionFactor } from '../../engine/instruction';
 import { clampCredit, clampShare, inWindow, paceCap } from '../../engine/paceClamp';
@@ -85,8 +85,26 @@ export function stubTeacherLevel(skillId: string, age: number): number {
   const a = archetypeDef(STUB_TEACHER_ARCHETYPE);
   const def = SKILL_BY_ID.get(skillId);
   if (!def) return 0;
-  const key = def.kind === 'form' ? '$mainForm' : skillId;
-  const pace = { initiate: a.paces.initiate?.[key], padawan: a.paces.padawan?.[key], knight: a.paces.knight?.[key] };
+  if (def.kind === 'form') {
+    // A teacher of a form is assumed to specialize in it: the Average's form plan with that form as
+    // the main form (Shii-Cho teachers keep Shii-Cho as main), D-118 / D-119.
+    const other = skillId === 'ataru' ? 'soresu' : 'ataru';
+    const xp = formXps({
+      formPaces: a.formPaces,
+      k: K,
+      startAge: STUB_TEACHER_START_AGE,
+      age,
+      padawanAge: 12,
+      knightAge: 20.5,
+      onePhase: false,
+      padawanPlan: { [skillId]: 2, [other]: 1 },
+      knightPlan: { [skillId]: 2, [other]: 1 },
+      mult: () => 1,
+      transferShare: FORM_TRANSFER_SHARE,
+    });
+    return levelExact(Math.max(0, ...Object.values(xp)));
+  }
+  const pace = { initiate: a.paces.initiate?.[skillId], padawan: a.paces.padawan?.[skillId], knight: a.paces.knight?.[skillId] };
   const row = CATEGORY_RULES[def.category].ageRow;
   const trained = closedFormLevel({ row, startAge: STUB_TEACHER_START_AGE, age, phases: phasesFor(pace, { padawanAge: 12, knightAge: 20.5 }, false) });
   const n = naturalLevel(skillId, 'human', age);
@@ -163,6 +181,8 @@ function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
       return selectLevelExact(s, skill(u.skill)) >= u.min ? null : `needs ${name(skill(u.skill))} ${u.min}`;
     case 'known':
       return known(s, skill(u.skill)) ? null : `${name(skill(u.skill))} is not known yet`;
+    case 'knownOrTeacher':
+      return known(s, skill(u.skill)) || ctx.teacher ? null : `${name(skill(u.skill))} is not known yet (a teacher can start it)`;
     case 'formsKnown':
       return FORM_IDS.filter((f) => known(s, f)).length >= u.min ? null : `needs ${u.min} known forms`;
     case 'pairMin':
@@ -185,7 +205,8 @@ function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
 /** The intensity and effort for a session (training-routines §3: push picks gap +10..+20). */
 const effortFor = (i: Intensity): Effort => (i === 'intense' || i === 'extreme' ? 'push' : 'standard');
 
-export function resolveTraining(s: GameState, req: TrainingRequest): TrainingPlan {
+export function resolveTraining(initial: GameState, req: TrainingRequest): TrainingPlan {
+  let s = initial;
   const a = ACTIVITY_BY_ID.get(req.activityId);
   if (!a) return { ok: false, reason: `unknown activity "${req.activityId}" (no nearby activity is used)` };
   const prim = resolvePrimaries(s, a, req.skillId);
@@ -200,6 +221,25 @@ export function resolveTraining(s: GameState, req: TrainingRequest): TrainingPla
     if (fail) return { ok: false, reason: `${a.name} is locked: ${fail}` };
   }
   const secondaries = resolveSecondaries(s, a, prim);
+
+  // Fundamentals transfer (D-119): a lightsaber form's first session as the primary starts it at 0.75 x
+  // the highest form's XP, once per form, outside the 4.0x clamp. The session then runs on top of it.
+  const transfer: Record<string, number> = {};
+  const formXp = (id: string): number => s.progression.skills[id]?.xp ?? 0;
+  const highest = Math.max(0, ...FORM_IDS.map(formXp));
+  for (const id of Object.keys(prim)) {
+    if (SKILL_BY_ID.get(id)?.kind !== 'form' || s.progression.formsStarted.includes(id)) continue;
+    const t = FORM_TRANSFER_SHARE * highest - formXp(id);
+    if (t > 0) transfer[id] = t;
+  }
+  const transferNotes = Object.entries(transfer).map(
+    ([id, x]) => `fundamentals transfer: ${SKILL_BY_ID.get(id)?.name ?? id} starts at ${Math.round(FORM_TRANSFER_SHARE * 100)}% of the highest form (+${x.toFixed(1)} XP, outside the pace limit)`,
+  );
+  if (Object.keys(transfer).length) {
+    const skills = { ...s.progression.skills };
+    for (const [id, x] of Object.entries(transfer)) skills[id] = { ...(skills[id] ?? { xp: 0, rust: 0, lastPracticedDay: null }), xp: formXp(id) + x };
+    s = { ...s, progression: { ...s.progression, skills } };
+  }
   const split: SessionSplit = { primaries: prim, secondaries };
 
   const notes: string[] = [];
@@ -290,7 +330,7 @@ export function resolveTraining(s: GameState, req: TrainingRequest): TrainingPla
     clamp,
     rng: s.meta.rngState,
   });
-  notes.push(...r.notes);
+  notes.push(...transferNotes, ...r.notes);
   if ((state === 'fear' || state === 'anger' || state === 'hatred') && Object.keys(prim).some(isChannelEligible)) {
     notes.push(`channeling ${state}: +${(PASSION_DARK_PRESSURE_PER_HOUR * r.effectiveHours).toFixed(1)} dark pressure (recorded with alignment in M6)`);
   }
@@ -336,6 +376,7 @@ export function resolveTraining(s: GameState, req: TrainingRequest): TrainingPla
       windowHours: r.windowHours,
       credited: r.credited,
       practiceHours: r.practiceHours,
+      ...(Object.keys(transfer).length ? { transfer } : {}),
       fatigueWillpower: r.fatigueWillpower,
       meditation: a.group === 'meditation',
       day: r.day,

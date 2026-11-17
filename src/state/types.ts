@@ -134,6 +134,8 @@ export interface InitCtx {
     dominantHand?: 'left' | 'right';
     /** The talent limit was ignored at creation (D-116). */
     unbalanced?: boolean;
+    /** Form plans (D-118). */
+    formPlan?: { padawan: Readonly<Record<string, number>>; knight: Readonly<Record<string, number>> } | null;
   };
   /** Starting trained XP per skill from computed creation (character-creation §2). */
   startingXp?: Readonly<Record<string, number>>;

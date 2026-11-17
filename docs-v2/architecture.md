@@ -846,6 +846,11 @@ This section is the architecture.
   (progression-numbers §11a). Levels stay derived.
 - **Closed form (D-105).** NPC and created-character levels use measured phase paces per
   archetype (npc-generation §1, §3), so they match the day loop within +/-0.3 level.
+- **Form plans and the fundamentals transfer (D-118, D-119).** Initiates train Shii-Cho; from
+  Padawan a form plan splits the master session and the solo hour among any forms, with an
+  optional Knight+ plan. A form's first session starts it at 0.75 x the highest form (outside the
+  clamp). The calibration targets apply to the highest form; K = 11.683 (D-120 rank-minimum reset
+  and proportional fill trimming).
 - **Physical performance** = min(trained level, species body cap for age) + Force boost
   (grows with Force Control and body abilities). The boost offsets decline so effective
   performance can peak in the 60s, but age wins eventually. Force, knowledge and technique

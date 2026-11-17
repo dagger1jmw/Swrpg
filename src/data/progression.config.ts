@@ -5,8 +5,12 @@ import type { Intensity } from './activities';
 import type { AgeRow, RustRow } from './skills';
 
 // ---- Curve (progression-numbers §2) ----
-/** Solved so the Average profile reaches 41 in exactly 16.0 years (D-102; docs-v2/calc/progression-sim.mjs: 15.181). */
-export const K = 15.181;
+/**
+ * Solved so the Average profile's highest form reaches 41 in exactly 16.0 years (D-118 / D-119:
+ * Shii-Cho as an Initiate, then the main form 2 h + second form 1 h from Padawan, with the 0.75
+ * fundamentals transfer; docs-v2/calc/progression-sim.mjs: 11.683; it was 15.181 under D-102).
+ */
+export const K = 11.683;
 export const CURVE_EXP = 1.75;
 
 /** progression-numbers §1. [min level, name]. */
@@ -104,24 +108,24 @@ export const PACE_CAP = 4.0;
 export const AVERAGE_MAIN_SHARE = 0.5;
 export const PACE_WINDOW_DAYS = 365;
 /**
- * Y_avg(age): the Average profile's main-skill XP for the 365 days starting at that age
- * (progression-numbers §5, recomputed by D-102, K = 15.18).
+ * Y_avg(age): the Average profile's most-trained form XP for the 365 days starting at that age
+ * (progression-numbers §5, recomputed by D-118 / D-119, K = 11.683).
  */
 export const Y_AVG: readonly (readonly [number, number])[] = [
-  [4, 582],
-  [8, 544],
-  [12, 691],
-  [16, 670],
-  [20, 720],
-  [24, 595],
-  [30, 585],
-  [40, 572],
-  [50, 556],
-  [60, 599],
-  [70, 544],
-  [80, 544],
-  [90, 425],
-  [98, 304],
+  [4, 583],
+  [8, 608],
+  [12, 561],
+  [16, 532],
+  [20, 526],
+  [24, 434],
+  [30, 399],
+  [40, 458],
+  [50, 434],
+  [60, 487],
+  [70, 431],
+  [80, 423],
+  [90, 322],
+  [98, 202],
 ];
 
 // ---- Age and learning speed (§16) ----
@@ -162,6 +166,13 @@ export const SYNERGY: Record<SynergyRelation, { coef: number; ceiling: number }>
   forceSense: { coef: 0.05, ceiling: 0.4 },
   physical: { coef: 0.05, ceiling: 0.8 },
 };
+/**
+ * Fundamentals transfer (D-119): a lightsaber form's first session starts it at this share of the
+ * character's highest form XP at that moment. Once per form; outside the 4.0x clamp, like banked XP.
+ * Lightsaber forms only, never Force abilities.
+ */
+export const FORM_TRANSFER_SHARE = 0.75;
+
 /** Total spillover from one session may not exceed 25% of its credited XP. */
 export const SYNERGY_SESSION_CAP = 0.25;
 

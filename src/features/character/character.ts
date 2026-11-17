@@ -23,18 +23,32 @@ export const characterSliceSchema = z.object({
   dominantHand: z.enum(['left', 'right']),
   /** Created with the talent limit ignored (D-116): shown on the sheet; balance is not promised. */
   unbalanced: z.boolean(),
+  /**
+   * Form plans (D-118): Padawan (hours of the 2 h master session + 1 h solo) and Knight+ (proportions).
+   * Null for characters without lightsaber training. mainFormId / secondFormId are the plan in force.
+   */
+  formPlan: z.object({ padawan: z.record(z.string(), z.number().min(0)), knight: z.record(z.string(), z.number().min(0)) }).nullable(),
 });
 
 export type CharacterSlice = z.infer<typeof characterSliceSchema>;
 export type CharacterPathId = (typeof PATHS)[number];
 
+/** v3 -> v4: the form plan (D-118), from the old main / second form (main 2 h, second 1 h). */
+export function migrateCharacterV3(old: unknown): CharacterSlice {
+  const o = old as Omit<CharacterSlice, 'formPlan'>;
+  const plan: Record<string, number> = {};
+  if (o.mainFormId) plan[o.mainFormId] = o.secondFormId ? 2 : 3;
+  if (o.secondFormId) plan[o.secondFormId] = 1;
+  return { ...o, formPlan: o.mainFormId ? { padawan: plan, knight: { ...plan } } : null };
+}
+
 /** v2 -> v3: the unbalanced flag (D-116), false for every earlier character. */
-export function migrateCharacterV2(old: unknown): CharacterSlice {
-  return { ...(old as Omit<CharacterSlice, 'unbalanced'>), unbalanced: false };
+export function migrateCharacterV2(old: unknown): Omit<CharacterSlice, 'formPlan'> {
+  return { ...(old as Omit<CharacterSlice, 'unbalanced' | 'formPlan'>), unbalanced: false };
 }
 
 /** v1 (M1/M2) -> v2: a Human outsider with no training (M3 plan; D-107). */
-export function migrateCharacterV1(old: unknown): Omit<CharacterSlice, 'unbalanced'> {
+export function migrateCharacterV1(old: unknown): Omit<CharacterSlice, 'unbalanced' | 'formPlan'> {
   const o = old as { id: string; name: string; birthDay: number };
   return {
     id: o.id,

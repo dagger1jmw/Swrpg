@@ -8,7 +8,13 @@
     adjustable within the path's range (a late start like Luke's is allowed for outsiders
     found later)
   Specialty and focus: an archetype (NPC spec section 3) plus optional sliders that shift
-    the skill shares (the shares always sum to 1; amended by D-44)
+    the skill shares (the shares always sum to 1; amended by D-44). All lightsaber forms share
+    one focus slider (the forms pool, D-118).
+  Form plans (D-118): Initiates train Shii-Cho only. From Padawan, a form plan splits the 2 h
+    master session and the 1 h solo hour among any forms (default Soresu 2 h, Ataru 1 h);
+    optionally a separate Knight+ plan. Each form a plan starts begins at 0.75 x the highest form
+    (the fundamentals transfer, progression-numbers sec 7a). The main and second form are the
+    plan's two largest entries.
   Talents: 3 talent points: gifted costs 1, prodigy 2, exceptional 3, per domain; or roll
     with the NPC talent distribution. A confirmed "Ignore talent point limit" toggle (D-116)
     allows any number (each domain still at most exceptional; the 2.8 M cap and 4.0x pace limit
@@ -52,10 +58,16 @@
     template (training-routines §1).
 
 ## 6. Required tests
- 1. A 24-year-old Average Jedi Knight (start 4) gets main form 46.6 +/-1 (D-105 phase
+ 1. Amended by D-118 / D-119: a 24-year-old Average Jedi Knight (start 4, default plan) gets
+    highest form 46.4 +/-1 (Soresu; Shii-Cho 30.1, Ataru 33.4) and meets the Knight minimums
+    (highest form 39, Force Control 34, Force Sense 31, Willpower 53; D-120).
+    Before: a 24-year-old Average Jedi Knight (start 4) gets main form 46.6 +/-1 (D-105 phase
     closed form; 46.0 under D-43, 47 before) and meets Knight minimums (main form 39, D-111; Force Sense 26,
     D-102).
- 2. A 9-year-old Initiate (start 4) gets main form 20.1 +/-1 (D-105; 22.2 under D-43) and
+ 2. Amended by D-118 / D-119: a 9-year-old Initiate (start 4) trains Shii-Cho only: 23.4 +/-1,
+    the day loop at 5 years (23.4). A 16-year-old Padawan has Shii-Cho 30.1, Soresu 34.2 and
+    Ataru 28.0; a 3-form plan splits the hours as set; dropping Shii-Cho never removes its XP.
+    Before: a 9-year-old Initiate (start 4) gets main form 20.1 +/-1 (D-105; 22.2 under D-43) and
     matches the Average profile at 5 years within +/-1 (day loop 19.8).
  3. A Luke-style outsider (start 19, Force prodigy) at 24 gets Force skills consistent
     with the progression spec's Luke profile at 5 years.

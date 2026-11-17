@@ -89,6 +89,9 @@ skill. Unlock is from the bank unless noted.
 | Combat sparring (partner) | form used | Agility 0.5, Endurance 0.5, Strength 0.4, Force Sense 0.3 | intense | always; also gives E (progression-numbers §7) and is ceiling-limited (D-45) |
 | Padawan training with master | master's specialty (default main form) | Force Control 0.4, Willpower 0.3 | standard | Padawan; instruction = teacher factor |
 
+A form's basics drill opens when the form is known (level 1+) or a teacher is present (D-119): that
+is how a new form is started, and its first session gets the fundamentals transfer
+(progression-numbers sec 7a).
 Forms with no bank entry (Tràkata, Jar'Kai, Sokan, Dun Möch, Zero-G, Saberstaff) use the
 "basics" pattern of their nearest form until M3 data entry: Tràkata and Makashi, Jar'Kai and
 Dual saber, Sokan and Ataru, Dun Möch and Makashi (plus Charisma 0.3), Zero-G and Ataru,
@@ -157,11 +160,11 @@ civilian archetypes need.
 ## 5. Order requirements map to activities (ranks.md §1a)
 | Requirement | Activity |
 |---|---|
-| Initiate 2 h forms | Shii-Cho basics (or the clan's taught form), instructor |
+| Initiate 2 h forms | Shii-Cho basics, instructor (D-118: Initiates train Shii-Cho only) |
 | Initiate 1 h Force (0.5 h Force Control + 0.5 h Force Sense) | Force Control drill + Force Sense passive awareness at standard intensity, instructor |
 | Initiate 1 h study | Force history and lore, instructor |
-| Padawan 2 h with master | Padawan training with master |
-| Padawan 1 h solo | main form basics, solo |
+| Padawan 2 h with master | Padawan training with master, on the form plan's forms (largest first; D-118) |
+| Padawan 1 h solo | the form plan's next forms' basics, solo (the default plan: the second form; D-118) |
 | Padawan 1 h Force Control + 1 h Force Sense with master | Force Control drill + Force Sense passive awareness at standard intensity, teacher factor (active scanning once Force Sense 10+ is equally valid; the calculations use passive) |
 
 ## 6. Required tests

@@ -20,7 +20,25 @@ export const AVERAGE = {
   talent: {},                 // per skill multiplier (none)
   instruction: { initiateClass: 1.05, master: 1.15, solo: 0.9, fill: 1.0 },
   knightMainShare: 0.5,       // D-41: from Knight on, the main specialty takes 0.5 of the fill
+  // Form plan (proposal): from Padawan on the forms hours split main 2 h : second 1 h (the master
+  // session trains the main form, the solo hour the second form); Initiates train only Shii-Cho.
+  formPlan: { mainForm: 2 / 3, secondForm: 1 / 3 },
+  // Fundamentals transfer (proposal): a form's first session sets its XP to this share of the
+  // highest form's XP at that moment (once per form; outside the 4.0x clamp).
+  transferShare: 0.75,
 };
+
+export const FORMS = ['shiiCho', 'mainForm', 'secondForm'];
+/** The form pool of a share table: Initiates put it all on Shii-Cho; later phases split it by the plan. */
+export function formPool(sh, rank, plan) {
+  const pool = (sh.mainForm ?? 0) + (sh.secondForm ?? 0) + (sh.shiiCho ?? 0);
+  const out = { ...sh };
+  delete out.mainForm; delete out.secondForm; delete out.shiiCho;
+  if (pool <= 0) return out;
+  if (rank === 'initiate') out.shiiCho = pool;
+  else for (const [f, w] of Object.entries(plan)) out[f] = (out[f] ?? 0) + pool * w;
+  return out;
+}
 
 // Archetype shares with the main specialty fixed at mainShare and the rest in proportion.
 export function focusShares(weights, mainKey, mainShare) {
@@ -33,9 +51,11 @@ AVERAGE.knightShares = focusShares(ARCHETYPES.jediGuardian, 'mainForm', AVERAGE.
 // ranks.md §1a Order requirements (row 28 / D-42): Initiate 2 h forms + 1 h Force (split
 // Force Control / Force Sense) + 1 h study; Padawan 2 h with master + 1 h solo + 1 h Force
 // Control and 1 h Force Sense with the master; Knight and above none.
+// Proposal: the Initiate forms block is Shii-Cho basics; the Padawan's 2 h master session trains
+// the main form and the 1 h solo block the second form. The 4th field tags the source of form XP.
 export const ORDER_REQS = {
-  initiate: [['formDrill', 2, 'initiateClass'], ['forceDrill', 0.5, 'initiateClass'], ['senseDrill', 0.5, 'initiateClass'], ['study', 1, 'initiateClass']],
-  padawan: [['masterTraining', 2, 'master'], ['formDrill', 1, 'solo'], ['forceDrill', 1, 'master'], ['senseDrill', 1, 'master']],
+  initiate: [['shiiChoDrill', 2, 'initiateClass', 'order'], ['forceDrill', 0.5, 'initiateClass'], ['senseDrill', 0.5, 'initiateClass'], ['study', 1, 'initiateClass']],
+  padawan: [['masterTraining', 2, 'master', 'master'], ['secondFormDrill', 1, 'solo', 'solo'], ['forceDrill', 1, 'master'], ['senseDrill', 1, 'master']],
   knight: [],
 };
 
@@ -50,14 +70,15 @@ function buildDay(p, age, credit) {
   const B = budget(p.effort, age);
   const blocks = [];
   let used = 0;
-  for (const [act, h, instr] of (p.orderReqs ?? ORDER_REQS)[rank]) {
-    blocks.push({ act: ACT[act], hours: h, instruction: p.instruction[instr] });
+  for (const [act, h, instr, source] of (p.orderReqs ?? ORDER_REQS)[rank]) {
+    blocks.push({ act: ACT[act], hours: h, instruction: p.instruction[instr], source: source ?? 'order' });
     used += h;
   }
   // Fill the rest of the budget by shares, in 0.5 h units, using a running credit so
   // long-run hours match the shares exactly.
   const remaining = Math.max(0, B - used);
-  const sh = p.shareFn ? p.shareFn(age, rank) : (rank === 'knight' && p.knightShares ? p.knightShares : p.shares);
+  const base = p.shareFn ? p.shareFn(age, rank) : (rank === 'knight' && p.knightShares ? p.knightShares : p.shares);
+  const sh = formPool(base, rank, (rank === 'knight' ? p.knightFormPlan : null) ?? p.formPlan ?? AVERAGE.formPlan);
   for (const [skill, s] of Object.entries(sh)) credit[skill] = (credit[skill] ?? 0) + remaining * s;
   let left = Math.floor(remaining / 0.5 + 1e-9) * 0.5;
   const fill = {};
@@ -68,7 +89,7 @@ function buildDay(p, age, credit) {
     left -= 0.5;
   }
   for (const [skill, h] of Object.entries(fill)) {
-    blocks.push({ act: ACT[TRAINS[skill]], hours: h, instruction: p.instruction.fill, fill: true });
+    blocks.push({ act: ACT[TRAINS[skill]], hours: h, planned: h, instruction: p.instruction.fill, fill: true, source: 'fill' });
   }
   return blocks;
 }
@@ -99,7 +120,10 @@ export function runProfile(p, K, years, onYear) {
   for (const s of Object.keys(SKILLS)) xp[s] = 0;
   const credit = {};
   const yearMain = [];
-  let mainThisYear = 0;
+  // The calibration targets apply to the highest form; yearly XP is the most-trained form's.
+  let formYear = {};
+  const started = {};
+  const transfers = {};
   let maxDayEndF = 0;
   let trimmedHours = 0;
   const totalDays = Math.round(years * DAYS_PER_YEAR);
@@ -124,7 +148,12 @@ export function runProfile(p, K, years, onYear) {
       const raw = buildDay(p, age, credit);
       let res = simulateDay(orderBlocks(raw), { End, Will });
       while (Math.max(res.fP, res.fM) > limit) {
-        const i = raw.map((b) => b.fill && b.hours > 0).lastIndexOf(true);
+        // Trim the fill in proportion (D-120): each 0.5 h comes off the fill block with the largest
+        // remaining fraction of its planned hours, so shares (and the form plan's split) are kept
+        // instead of the cut always landing on whichever block happens to be last.
+        let i = -1;
+        const frac = (b) => b.hours / b.planned;
+        raw.forEach((b, j) => { if (b.fill && b.hours > 0 && (i < 0 || frac(b) > frac(raw[i]) || (frac(b) === frac(raw[i]) && b.hours > raw[i].hours))) i = j; });
         if (i < 0) break;
         raw[i] = { ...raw[i], hours: raw[i].hours - 0.5 };
         res = simulateDay(orderBlocks(raw.filter((b) => b.hours > 0)), { End, Will });
@@ -133,6 +162,13 @@ export function runProfile(p, K, years, onYear) {
       maxDayEndF = Math.max(maxDayEndF, res.fP, res.fM);
       for (const blk of res.blocks) {
         const a = blk.act;
+        // Fundamentals transfer: a form's first session starts it at a share of the highest form's XP.
+        if (FORMS.includes(a.primary) && !started[a.primary]) {
+          started[a.primary] = true;
+          const best = Math.max(...FORMS.map((f) => xp[f] ?? 0));
+          const t = (p.transferShare ?? 0) * best;
+          if (t > xp[a.primary]) { transfers[a.primary] = { age, xp: t - xp[a.primary] }; xp[a.primary] = t; }
+        }
         const base = blk.effHours * INTENSITY[blk.intensity].xp * bestChallenge(L(a.primary), p.effort) * OUTCOME_MEAN;
         const M = (skill) => Math.min(2.8, (p.talent[skill] ?? 1) * blk.instruction * ageFactor(CATEGORY_AGE_ROW[SKILLS[skill]], age));
         const secTot = Object.values(a.secondaries).reduce((x, y) => x + y, 0);
@@ -140,40 +176,49 @@ export function runProfile(p, K, years, onYear) {
         xp[a.primary] += gainMain;
         const ph = phaseXp[rankAt(p, age)];
         ph[a.primary] = (ph[a.primary] ?? 0) + gainMain;
-        if (a.primary === 'mainForm') mainThisYear += gainMain;
+        if (FORMS.includes(a.primary)) {
+          formYear[a.primary] = (formYear[a.primary] ?? 0) + gainMain;
+          const key = 'src:' + (blk.source ?? 'fill');
+          ph[key] = (ph[key] ?? 0) + gainMain;
+        }
         for (const [s, w] of Object.entries(a.secondaries)) {
           const gsec = base * 0.25 * (w / secTot) * M(s);
           xp[s] += gsec;
           ph[s] = (ph[s] ?? 0) + gsec;
-          if (s === 'mainForm') mainThisYear += gsec;
+          if (FORMS.includes(s)) formYear[s] = (formYear[s] ?? 0) + gsec;
         }
       }
       xp.Willpower += res.willXp;
       const ph2 = phaseXp[rankAt(p, age)]; ph2.WillpowerFatigue = (ph2.WillpowerFatigue ?? 0) + res.willXp;
     }
     const ageEnd = p.startAge + (d + 1) / DAYS_PER_YEAR;
-    for (const sk of ['mainForm', 'ForceControl', 'ForceSense', 'Willpower']) {
-      const l = p.natural === false ? levelFromXp(xp[sk], K) : skillLevel(xp[sk], sk, ageEnd, K);
+    for (const sk of ['highestForm', 'shiiCho', 'mainForm', 'secondForm', 'ForceControl', 'ForceSense', 'Willpower']) {
+      const l = sk === 'highestForm' ? highestForm(xp, K) : p.natural === false ? levelFromXp(xp[sk], K) : skillLevel(xp[sk], sk, ageEnd, K);
       for (const t of [10, 12, 13, 14, 15, 16, 18, 20, 22, 24, 25, 26, 27, 28, 29, 30, 35, 38, 40, 45, 48, 50, 58, 70]) { const key = sk + '>=' + t; if (cross[key] === undefined && l >= t) cross[key] = age; }
     }
-    const lvl = levelFromXp(xp.mainForm, K);
+    const lvl = highestForm(xp, K);
     for (const m of [21, 41, 61, 81, 101]) if (milestones[m] === undefined && lvl >= m) milestones[m] = (d + 1) / DAYS_PER_YEAR;
     if ((d + 1) % DAYS_PER_YEAR === 0) {
-      yearMain.push(mainThisYear);
-      mainThisYear = 0;
+      yearMain.push(Math.max(0, ...Object.values(formYear)));
+      formYear = {};
       if (onYear) onYear((d + 1) / DAYS_PER_YEAR, p.startAge + (d + 1) / DAYS_PER_YEAR, xp);
     }
   }
-  return { xp, milestones, yearMain, maxDayEndF, trimmedHours, cross, phaseXp };
+  return { xp, milestones, yearMain, maxDayEndF, trimmedHours, cross, phaseXp, transfers };
 }
 
-// Solve K so the profile's main form reaches 41 after exactly 16.0 years.
+/** The highest form's level (the calibration targets apply to it). */
+export function highestForm(xp, K) {
+  return Math.max(...FORMS.map((f) => levelFromXp(xp[f] ?? 0, K)));
+}
+
+// Solve K so the profile's highest form reaches 41 after exactly 16.0 years.
 export function solveK(p) {
   let lo = 1, hi = 100;
   for (let i = 0; i < 40; i++) {
     const K = (lo + hi) / 2;
     const { xp } = runProfile(p, K, 16);
-    if (levelFromXp(xp.mainForm, K) > 41) lo = K; else hi = K;
+    if (highestForm(xp, K) > 41) lo = K; else hi = K;
   }
   return (lo + hi) / 2;
 }

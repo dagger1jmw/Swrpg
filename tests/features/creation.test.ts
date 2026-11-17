@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { computeCreation, defaultFocus, fillFactor, ranksFor, type CreationInput } from '../../src/features/character/creation';
+import { planSplit } from '../../src/engine/closedForm';
 import { ARCHETYPE_BY_ID } from '../../src/data/archetypes';
 import { selectLevelExact } from '../../src/features/progression/selectors';
 import { createMemoryStorage } from '../../src/persist/storage';
@@ -19,45 +20,52 @@ const jedi = (age: number, rank: string, over: Partial<CreationInput> = {}): Cre
   archetype: 'jediGuardian',
   rank,
   trainingStartAge: 4,
-  mainFormId: 'shiiCho',
-  secondFormId: 'soresu',
   talents: {},
   dominantHand: 'right',
   ...over,
 });
+/** The highest form level of a creation (every "main form" target reads it, D-118). */
+const top = (c: ReturnType<typeof computeCreation>): number => c.highestForm?.level ?? 0;
 const near = (a: number, b: number, tol = 1) => expect(Math.abs(a - b), `${a} vs ${b}`).toBeLessThanOrEqual(tol);
 
 describe('computed creation (character-creation §6)', () => {
-  it('test 1: a 24-year-old Average Jedi Knight (start 4) gets main form 46.6 +/-1 and meets the Knight minimums', () => {
+  it('test 1: a 24-year-old Average Jedi Knight (start 4) gets highest form 46.4 +/-1 (Soresu) and meets the Knight minimums', () => {
     const c = computeCreation(jedi(24, 'knight'));
     expect(c.errors).toEqual([]);
-    near(c.levels['shiiCho']!, 46.6);
+    expect(c.highestForm?.id).toBe('soresu');
+    near(top(c), 46.4);
     expect(c.unmet).toEqual([]);
     expect(c.ok).toBe(true);
-    expect(c.levels['forceSense']!).toBeGreaterThanOrEqual(26);
-    expect(c.levels['forceControl']!).toBeGreaterThanOrEqual(30);
-    expect(c.levels['willpower']!).toBeGreaterThanOrEqual(48);
+    expect(c.levels['forceSense']!).toBeGreaterThanOrEqual(31);
+    expect(c.levels['forceControl']!).toBeGreaterThanOrEqual(34);
+    expect(c.levels['willpower']!).toBeGreaterThanOrEqual(53);
+    // docs-v2/calc: Shii-Cho 30.1, Soresu 46.4, Ataru 33.4.
+    near(c.levels['shiiCho']!, 30.1);
+    near(c.levels['ataru']!, 33.4);
   });
 
-  it('test 2: a 9-year-old Initiate (start 4) gets main form 20.1 +/-1, within +/-1 of the day loop at 5 years (19.8)', () => {
+  it('test 2: a 9-year-old Initiate (start 4) trains Shii-Cho only: 23.4 +/-1, the day loop at 5 years', () => {
     const c = computeCreation(jedi(9, 'initiate'));
     expect(c.errors).toEqual([]);
-    near(c.levels['shiiCho']!, 20.1);
-    near(c.levels['shiiCho']!, 19.8);
+    near(c.levels['shiiCho']!, 23.4);
+    expect(Object.keys(c.startingXp).filter((k) => ['soresu', 'ataru', 'makashi'].includes(k))).toEqual([]);
+    expect(c.mainFormId).toBe('shiiCho');
+    expect(c.secondFormId).toBeNull();
   });
 
   it('test 3: a Luke-style outsider (start 19, Force prodigy) at 24 matches the Luke profile at 5 years', () => {
-    // docs-v2/calc Luke run (outsider, standard, Force prodigy, main share 0.4) at 5 years:
-    // main form 18.6, Force Control 14.1, Force Sense 13.8.
-    const a = ARCHETYPE_BY_ID.get('jediGuardian')!;
-    const def = defaultFocus(a);
-    const rest = 1 - def['$mainForm']!;
-    const focus = Object.fromEntries(Object.entries(def).map(([k, v]) => [k, k === '$mainForm' ? 0.4 : (v / rest) * 0.6]));
+    // docs-v2/calc Luke-style run (outsider: no Order rows, one Knight+-style phase from 19, Force
+    // prodigy, main share 0.4 of the fill, 300 days) at 5 years: main form 17.5, second form 11.5,
+    // Force Control 17.2, Force Sense 16.4.
+    const def = defaultFocus(ARCHETYPE_BY_ID.get('jediGuardian')!);
+    const mainShare = 0.5 / def['$forms']!; // the main form's part of the forms pool
+    const focus = toward('$forms', 0.4 / mainShare);
     const c = computeCreation(jedi(24, 'none', { path: 'outsider', trainingStartAge: 19, talents: { force: 'prodigy' }, focus }));
     expect(c.errors).toEqual([]);
-    near(c.levels['forceControl']!, 14.1, 2);
-    near(c.levels['forceSense']!, 13.8, 2);
-    near(c.levels['shiiCho']!, 18.6, 3);
+    near(c.levels['forceControl']!, 17.2, 2);
+    near(c.levels['forceSense']!, 16.4, 2);
+    near(c.levels['soresu']!, 17.5, 3);
+    expect(c.levels['shiiCho'] ?? 0).toBe(0);
   });
 
   it('test 4: an unreachable rank always triggers the validation options', () => {
@@ -70,13 +78,13 @@ describe('computed creation (character-creation §6)', () => {
     expect(kept.options).toEqual([]);
     expect(kept.facts.some((f) => f.includes('story exception'))).toBe(true);
     const master = computeCreation(jedi(31, 'master'));
-    expect(master.unmet.map((u) => u.skillId)).toContain('shiiCho');
+    expect(master.unmet.map((u) => u.skillId)).toContain('soresu');
   });
 
   it('test 5: talent point costs and caps hold; no combination exceeds 4.0x pace', () => {
     expect(computeCreation(jedi(24, 'knight', { talents: { combat: 'exceptional', force: 'gifted' } })).errors.join()).toMatch(/limit is 3/);
     expect(computeCreation(jedi(24, 'knight', { talents: { combat: 'gifted', force: 'prodigy' } })).errors).toEqual([]);
-    const focusAll = { $mainForm: 1, $secondForm: 0, forceControl: 0, forceSense: 0, strength: 0, agility: 0, endurance: 0, willpower: 0 };
+    const focusAll = { $forms: 1, forceControl: 0, forceSense: 0, strength: 0, agility: 0, endurance: 0, willpower: 0 };
     for (const talents of [{ combat: 'exceptional' as const }, { combat: 'prodigy' as const, force: 'gifted' as const }, { force: 'exceptional' as const }]) {
       for (const species of ['human', 'miraluka', 'mirialan', 'wookiee']) {
         const c = computeCreation(jedi(species === 'wookiee' ? 120 : 30, 'knight', { talents, speciesId: species, focus: focusAll, storyException: true, trainingStartAge: species === 'wookiee' ? 40 / 3 : 4 }));
@@ -105,6 +113,58 @@ describe('computed creation (character-creation §6)', () => {
   });
 });
 
+describe('form plans and the fundamentals transfer (D-118, D-119)', () => {
+  it('a 16-year-old Padawan has Shii-Cho, a main form and a second form all above 0', () => {
+    const c = computeCreation(jedi(16, 'padawan'));
+    expect(c.errors).toEqual([]);
+    // docs-v2/calc: Shii-Cho 30.1, Soresu 34.2, Ataru 28.0.
+    near(c.levels['shiiCho']!, 30.1);
+    near(c.levels['soresu']!, 34.2);
+    near(c.levels['ataru']!, 28.0);
+    expect(c.mainFormId).toBe('soresu');
+    expect(c.secondFormId).toBe('ataru');
+    expect(c.highestForm?.id).toBe('soresu');
+  });
+
+  it('a 3-form plan splits the hours as set: the master session goes largest first, then the solo hour', () => {
+    expect(planSplit({ soresu: 1.5, ataru: 1, makashi: 0.5 })).toEqual({
+      soresu: { master: 0.75, solo: 0, fill: 0.5 },
+      ataru: { master: 0.25, solo: 0.5, fill: 1 / 3 },
+      makashi: { master: 0, solo: 0.5, fill: 1 / 6 },
+    });
+    const c = computeCreation(jedi(16, 'padawan', { padawanPlan: { soresu: 1.5, ataru: 1, makashi: 0.5 } }));
+    expect(c.errors).toEqual([]);
+    expect(c.levels['soresu']!).toBeGreaterThan(c.levels['ataru']!);
+    expect(c.levels['ataru']!).toBeGreaterThan(c.levels['makashi']!);
+    expect(c.levels['makashi']!).toBeGreaterThan(0);
+    expect(computeCreation(jedi(16, 'padawan', { padawanPlan: { soresu: 2, ataru: 0.5 } })).errors.join()).toMatch(/total 3 h/);
+  });
+
+  it('every form a Padawan plan starts begins at 0.75 x the highest form at that moment (Shii-Cho at 12)', () => {
+    // At 12.0 exactly the new forms have had no training yet: transfer only.
+    const c = computeCreation(jedi(12.01, 'padawan', { padawanPlan: { soresu: 2, makashi: 1 } }));
+    expect(c.startingXp['soresu']!).toBeGreaterThan(0.74 * c.startingXp['shiiCho']!);
+    expect(c.startingXp['makashi']!).toBeGreaterThan(0.74 * c.startingXp['shiiCho']!);
+  });
+
+  it('dropping Shii-Cho from the plan never removes its XP; keeping it trains it', () => {
+    const dropped = computeCreation(jedi(16, 'padawan'));
+    const initiate12 = computeCreation(jedi(12, 'initiate'));
+    near(dropped.levels['shiiCho']!, initiate12.levels['shiiCho']!, 0.05);
+    const kept = computeCreation(jedi(16, 'padawan', { padawanPlan: { soresu: 2, shiiCho: 1 } }));
+    expect(kept.levels['shiiCho']!).toBeGreaterThan(dropped.levels['shiiCho']!);
+  });
+
+  it('a separate Knight+ plan changes only the Knight+ years', () => {
+    const same = computeCreation(jedi(30, 'knight'));
+    const changed = computeCreation(jedi(30, 'knight', { knightPlan: { makashi: 3 } }));
+    expect(changed.levels['makashi']!).toBeGreaterThan(0.74 * 0); // started at Knight with the transfer
+    expect(changed.levels['makashi']!).toBeGreaterThan(same.levels['makashi'] ?? 0);
+    near(changed.levels['shiiCho']!, same.levels['shiiCho']!, 0.01);
+    expect(changed.levels['soresu']!).toBeLessThan(same.levels['soresu']!);
+  });
+});
+
 /** Focus shares with one key moved to `v`, the others renormalized (as the creation sliders do). */
 function toward(key: string, v: number): Record<string, number> {
   const def = defaultFocus(ARCHETYPE_BY_ID.get('jediGuardian')!);
@@ -124,7 +184,7 @@ describe('focus sliders reach the closed form (play-test fix, D-115)', () => {
       const moved = computeCreation(jedi(age, rank, { focus: toward('forceSense', 0.5) }));
       expect(moved.errors).toEqual([]);
       expect(moved.levels['forceSense']!, `${rank} ${age}`).toBeGreaterThan(base.levels['forceSense']! + 0.3);
-      expect(moved.levels['shiiCho']!, `${rank} ${age}`).toBeLessThan(base.levels['shiiCho']!);
+      expect(top(moved), `${rank} ${age}`).toBeLessThanOrEqual(top(base) + 1e-9);
       expect(moved.focusWeights['forceSense']).toBeCloseTo(0.5, 9);
     }
   });
@@ -135,7 +195,7 @@ describe('focus sliders reach the closed form (play-test fix, D-115)', () => {
     expect(fillFactor('padawan', 12, 20.5)).toBeLessThan(0.2);
     expect(fillFactor('knight', 20.5, 24)).toBe(1);
     // The default focus changes nothing (test 1 values hold).
-    near(computeCreation(jedi(24, 'knight', { focus: toward('$mainForm', 0.5) })).levels['shiiCho']!, 46.6);
+    near(top(computeCreation(jedi(24, 'knight', { focus: toward('$forms', defaultFocus(ARCHETYPE_BY_ID.get('jediGuardian')!)['$forms']!) }))), 46.4);
   });
 });
 
@@ -145,11 +205,11 @@ describe('talent point bypass (D-116)', () => {
     expect(computeCreation(jedi(24, 'knight', { talents: all })).errors.join()).toMatch(/limit is 3/);
   });
   it('with it, any number of talents is accepted, flagged unbalanced, still capped at 4.0x pace', () => {
-    const c = computeCreation(jedi(24, 'knight', { talents: all, ignoreTalentLimit: true, focus: toward('$mainForm', 1) }));
+    const c = computeCreation(jedi(24, 'knight', { talents: all, ignoreTalentLimit: true, focus: toward('$forms', 1) }));
     expect(c.errors).toEqual([]);
     expect(c.unbalanced).toBe(true);
     expect(c.maxPace).toBeLessThanOrEqual(4);
-    expect(c.levels['shiiCho']!).toBeGreaterThan(computeCreation(jedi(24, 'knight')).levels['shiiCho']!);
+    expect(top(c)).toBeGreaterThan(top(computeCreation(jedi(24, 'knight'))));
     // Within 3 points the toggle changes nothing and the campaign is not flagged.
     expect(computeCreation(jedi(24, 'knight', { talents: { combat: 'gifted' }, ignoreTalentLimit: true })).unbalanced).toBe(false);
   });
@@ -162,15 +222,18 @@ describe('campaign creation (M3)', () => {
       birthDate: { year: -3685, month: 1, day: 1 },
       startDate: DEFAULT_START.date,
       startSecond: DEFAULT_START.second,
-      creation: { speciesId: 'human', path: 'jedi' as const, archetype: 'jediGuardian', rank: 'knight', trainingStartAge: 4, mainFormId: 'shiiCho', secondFormId: 'soresu', talents: {}, dominantHand: 'right' as const },
+      creation: { speciesId: 'human', path: 'jedi' as const, archetype: 'jediGuardian', rank: 'knight', trainingStartAge: 4, talents: {}, dominantHand: 'right' as const },
     };
     expect(validateNewCampaign(input)).toEqual([]);
     const s = await createCampaign(REGISTRY, createMemoryStorage(), input, { campaignId: 'c', branchId: 'b' }, 'x');
-    expect(s.state.character).toMatchObject({ path: 'jedi', archetype: 'jediGuardian', mainFormId: 'shiiCho', trainingStartAge: 4 });
+    expect(s.state.character).toMatchObject({ path: 'jedi', archetype: 'jediGuardian', mainFormId: 'soresu', secondFormId: 'ataru', trainingStartAge: 4 });
+    expect(s.state.character.formPlan).toEqual({ padawan: { soresu: 2, ataru: 1 }, knight: { soresu: 2, ataru: 1 } });
     expect(s.state.ranks.rank).toBe('knight');
-    near(selectLevelExact(s.state, 'shiiCho'), 46.6);
+    near(selectLevelExact(s.state, 'soresu'), 46.4);
+    expect(s.state.progression.formsStarted.sort()).toEqual(['ataru', 'shiiCho', 'soresu']);
     expect(s.state.memory.facts.some((f) => f.text.includes('Jedi Temple on Coruscant'))).toBe(true);
-    expect(s.state.character.focusWeights['shiiCho']).toBe(0.5);
+    // The forms pool (0.545) is shared out by the Knight plan's hours: Soresu 2/3, Ataru 1/3.
+    expect(s.state.character.focusWeights['soresu']! + s.state.character.focusWeights['ataru']!).toBeCloseTo(defaultFocus(ARCHETYPE_BY_ID.get('jediGuardian')!)['$forms']!, 9);
     expect(s.state.character.unbalanced).toBe(false);
   });
 
@@ -186,8 +249,6 @@ describe('campaign creation (M3)', () => {
         archetype: 'jediGuardian',
         rank: 'knight',
         trainingStartAge: 4,
-        mainFormId: 'shiiCho',
-        secondFormId: 'soresu',
         talents: { combat: 'exceptional' as const, force: 'prodigy' as const },
         dominantHand: 'right' as const,
         ignoreTalentLimit: true,
@@ -205,7 +266,7 @@ describe('campaign creation (M3)', () => {
       birthDate: { year: -3680, month: 1, day: 1 },
       startDate: DEFAULT_START.date,
       startSecond: DEFAULT_START.second,
-      creation: { speciesId: 'human', path: 'jedi', archetype: 'jediGuardian', rank: 'knight', trainingStartAge: 4, mainFormId: 'shiiCho', secondFormId: null, talents: {}, dominantHand: 'right' },
+      creation: { speciesId: 'human', path: 'jedi', archetype: 'jediGuardian', rank: 'knight', trainingStartAge: 4, talents: {}, dominantHand: 'right' },
     });
     expect(errors.join(' ')).toMatch(/story exception/);
   });

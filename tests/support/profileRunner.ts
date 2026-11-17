@@ -4,13 +4,16 @@
 // (training-routines §3-4), every session credited by computeTrainingXp (fatigue stepper, challenge,
 // split, M, rolled outcome, synergy, fatigue Willpower). Mirrors docs-v2/calc/progression-sim.mjs;
 // the M4 routine scheduler and advanceTime replace it.
+// Forms (D-118, D-119): Initiates train Shii-Cho; from Padawan the 2 h master session trains the main
+// form and the 1 h solo hour the second form, the forms part of the fill splits 2:1, and a form's first
+// session starts it at 0.75 x the highest form. Fill is trimmed largest block first (D-120).
 // Simplifications (as in the calc): no rust (every skill is trained continuously), no clamp (the
 // Average never nears 4.0x), every block at standard intensity, one instruction factor per block.
 import { ACTIVITY_BY_ID, isPhysicalActivity, type ActivityDef } from '../../src/data/activities';
 import { focusShares, sharesFromWeights, type ArchetypeDef } from '../../src/data/archetypes';
 import { AVERAGE_INSTRUCTION, type Instructor } from '../../src/data/orderRequirements';
-import { BUDGET, TIREDNESS_LIMIT, K as CONFIG_K } from '../../src/data/progression.config';
-import { CATEGORY_RULES, SKILL_BY_ID } from '../../src/data/skills';
+import { BUDGET, FORM_TRANSFER_SHARE, TIREDNESS_LIMIT, K as CONFIG_K } from '../../src/data/progression.config';
+import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../src/data/skills';
 import { ageFactor } from '../../src/engine/ageFactor';
 import { pickDrillRating } from '../../src/engine/challenge';
 import { computeTrainingXp } from '../../src/engine/computeXp';
@@ -41,6 +44,8 @@ interface Block {
   activity: ActivityDef;
   primary: string;
   hours: number;
+  /** Hours before trimming (fill blocks are trimmed in proportion, D-120). */
+  planned: number;
   instruction: number;
   fill: boolean;
 }
@@ -48,14 +53,14 @@ interface Block {
 /** ranks.md §1a with the skills-and-activities.md §5 activities (Average instruction factors). */
 const ORDER: Record<Rank, [string, number, Instructor, string?][]> = {
   initiate: [
-    ['shiiChoBasics', 2, 'instructor', '$mainForm'],
+    ['shiiChoBasics', 2, 'instructor', 'shiiCho'],
     ['forceControlDrill', 0.5, 'instructor', 'forceControl'],
     ['senseAwareness', 0.5, 'instructor'],
     ['forceLore', 1, 'instructor'],
   ],
   padawan: [
     ['padawanTraining', 2, 'master', '$mainForm'],
-    ['$mainFormBasics', 1, 'solo', '$mainForm'],
+    ['$secondFormBasics', 1, 'solo', '$secondForm'],
     ['forceControlDrill', 1, 'master', 'forceControl'],
     ['senseAwareness', 1, 'master'],
   ],
@@ -86,18 +91,20 @@ const TRAINS: Record<string, string> = {
   profession: 'professionWork',
   charisma: 'socialPractice',
 };
-const FORM_BASICS: Record<string, string> = { shiiCho: 'shiiChoBasics', soresu: 'soresuBasics', makashi: 'makashiBasics', ataru: 'ataruBasics' };
+const FORM_BASICS: Record<string, string> = { shiiCho: 'shiiChoBasics', soresu: 'soresuBasics', makashi: 'makashiBasics', ataru: 'ataruBasics', niman: 'nimanBasics' };
 
 export interface RunResult {
   xp: Record<string, number>;
-  /** Years of training when the main specialty's trained level first reached each tier. */
+  /** Years of training when the main specialty (the highest form for form archetypes) first reached each tier. */
   milestones: Record<number, number>;
-  /** Main-specialty XP per 368-day year. */
+  /** Main-specialty XP per 368-day year (the most-trained form's, for form archetypes). */
   yearMain: number[];
   /** Age when a skill first reaches a level (natural baseline included). */
   cross: Record<string, number>;
-  /** Main-specialty trained level at each whole year of training. */
+  /** Main-specialty trained level at each whole year of training (the highest form for form archetypes). */
   mainByYear: number[];
+  /** Fundamentals transfers: form -> {age, xp}. */
+  transfers: Record<string, { age: number; xp: number }>;
   maxDayEndF: number;
 }
 
@@ -105,30 +112,51 @@ export function runProfile(p: Profile, years: number, opts: { k?: number; crossL
   const k = opts.k ?? CONFIG_K;
   const a = p.archetype;
   const resolveKey = (key: string): string => (key === '$mainForm' ? p.mainForm : key === '$secondForm' ? p.secondForm : key);
+  const formMain = a.main === '$mainForm';
   const mainSkill = resolveKey(a.main);
-  const toSkills = (sh: Record<string, number>): Record<string, number> => Object.fromEntries(Object.entries(sh).map(([key, v]) => [resolveKey(key), v]));
-  const sharesEarly = toSkills(sharesFromWeights(a.weights));
-  const sharesKnight = toSkills(focusShares(a.weights, a.main, 0.5));
+  const isForm = (skill: string): boolean => SKILL_BY_ID.get(skill)?.kind === 'form';
+  // The forms pool of the fill: Initiates put it on Shii-Cho; later it splits main 2 : second 1 (D-118).
+  const pooled = (sh: Record<string, number>, rank: Rank): Record<string, number> => {
+    const out: Record<string, number> = {};
+    let pool = 0;
+    for (const [key, v] of Object.entries(sh)) {
+      if (key === '$mainForm' || key === '$secondForm') pool += v;
+      else out[key] = (out[key] ?? 0) + v;
+    }
+    if (pool > 0 && rank === 'initiate') out['shiiCho'] = (out['shiiCho'] ?? 0) + pool;
+    else if (pool > 0) {
+      out[p.mainForm] = (out[p.mainForm] ?? 0) + (pool * 2) / 3;
+      out[p.secondForm] = (out[p.secondForm] ?? 0) + pool / 3;
+    }
+    return out;
+  };
+  const sharesEarly = sharesFromWeights(a.weights);
+  const sharesKnight = focusShares(a.weights, a.main, 0.5);
+  const started = new Set<string>();
+  const transfers: Record<string, { age: number; xp: number }> = {};
+  const formXp = (f: string): number => xp[f] ?? 0;
+  const highestFormLevel = (): number => Math.max(0, ...FORM_IDS.map((f) => levelExact(formXp(f), k)));
+  const mainLevel = (): number => (formMain ? highestFormLevel() : levelExact(xp[mainSkill] ?? 0, k));
+  let formYear: Record<string, number> = {};
   const xp: Record<string, number> = {};
   const credit: Record<string, number> = {};
   const milestones: Record<number, number> = {};
   const cross: Record<string, number> = {};
   const yearMain: number[] = [];
   const mainByYear: number[] = [];
-  let mainThisYear = 0;
   let maxDayEndF = 0;
   let rng: RngState = seedRng(p.seed);
   const total = Math.round(years * DAYS);
   const rankAt = (age: number): Rank => (!p.order ? 'knight' : age < p.padawanAge ? 'initiate' : age < p.knightAge ? 'padawan' : 'knight');
-  const level = (s: string, age: number): number => levelWithNatural(xp[s] ?? 0, naturalLevel(s, 'human', age), k);
+  const level = (s: string, age: number): number => (s === 'highestForm' ? highestFormLevel() : levelWithNatural(xp[s] ?? 0, naturalLevel(s, 'human', age), k));
 
   const activity = (id: string): ActivityDef => {
-    const act = ACTIVITY_BY_ID.get(id === '$mainFormBasics' ? (FORM_BASICS[p.mainForm] ?? 'shiiChoBasics') : id);
+    const act = ACTIVITY_BY_ID.get(id === '$secondFormBasics' ? (FORM_BASICS[p.secondForm] ?? 'shiiChoBasics') : id);
     if (!act) throw new Error(`runner: unknown activity ${id}`);
     return act;
   };
   const trainsFor = (skill: string): [ActivityDef, string] => {
-    if (skill === p.mainForm || skill === p.secondForm) return [activity(FORM_BASICS[skill] ?? 'shiiChoBasics'), skill];
+    if (isForm(skill)) return [activity(FORM_BASICS[skill] ?? 'shiiChoBasics'), skill];
     const id = TRAINS[skill];
     if (!id) throw new Error(`runner: nothing trains ${skill}`);
     return [activity(id), skill];
@@ -142,12 +170,12 @@ export function runProfile(p: Profile, years: number, opts: { k?: number; crossL
     let used = 0;
     for (const [id, hours, who, prim] of ORDER[rank]) {
       const act = activity(id);
-      const primary = prim === '$mainForm' ? p.mainForm : (prim ?? (act.primary.kind === 'skill' ? act.primary.skill : p.mainForm));
-      blocks.push({ activity: act, primary, hours, instruction: AVERAGE_INSTRUCTION[who], fill: false });
+      const primary = prim === '$mainForm' ? p.mainForm : prim === '$secondForm' ? p.secondForm : (prim ?? (act.primary.kind === 'skill' ? act.primary.skill : p.mainForm));
+      blocks.push({ activity: act, primary, hours, planned: hours, instruction: AVERAGE_INSTRUCTION[who], fill: false });
       used += hours;
     }
     const remaining = Math.max(0, budget - used);
-    const sh = rank === 'knight' ? sharesKnight : sharesEarly;
+    const sh = pooled(rank === 'knight' ? sharesKnight : sharesEarly, rank);
     for (const [skill, s] of Object.entries(sh)) credit[skill] = (credit[skill] ?? 0) + remaining * s;
     let left = Math.floor(remaining / 0.5 + 1e-9) * 0.5;
     const fill: Record<string, number> = {};
@@ -159,7 +187,7 @@ export function runProfile(p: Profile, years: number, opts: { k?: number; crossL
     }
     for (const [skill, hours] of Object.entries(fill)) {
       const [act, primary] = trainsFor(skill);
-      blocks.push({ activity: act, primary, hours, instruction: AVERAGE_INSTRUCTION.fill, fill: true });
+      blocks.push({ activity: act, primary, hours, planned: hours, instruction: AVERAGE_INSTRUCTION.fill, fill: true });
     }
     return blocks;
   };
@@ -216,7 +244,12 @@ export function runProfile(p: Profile, years: number, opts: { k?: number; crossL
       const raw = buildDay(age);
       let ordered = order(raw);
       while (dryRun(ordered, age) > TIREDNESS_LIMIT.standard) {
-        const i = raw.map((b) => b.fill && b.hours > 0).lastIndexOf(true);
+        // Trim the fill in proportion (D-120): the block with the largest remaining fraction of its plan.
+        let i = -1;
+        const frac = (b: Block): number => b.hours / b.planned;
+        raw.forEach((b, j) => {
+          if (b.fill && b.hours > 0 && (i < 0 || frac(b) > frac(raw[i]!) || (frac(b) === frac(raw[i]!) && b.hours > raw[i]!.hours))) i = j;
+        });
         if (i < 0) break;
         raw[i] = { ...raw[i]!, hours: raw[i]!.hours - 0.5 };
         ordered = order(raw.filter((b) => b.hours > 0));
@@ -238,6 +271,16 @@ export function runProfile(p: Profile, years: number, opts: { k?: number; crossL
           continue;
         }
         const act = o.activity;
+        // Fundamentals transfer (D-119): a form's first session starts it at 0.75 x the highest form.
+        if (isForm(o.primary) && !started.has(o.primary)) {
+          started.add(o.primary);
+          const t = FORM_TRANSFER_SHARE * Math.max(0, ...FORM_IDS.map(formXp)) - formXp(o.primary);
+          if (t > 0) {
+            xp[o.primary] = formXp(o.primary) + t;
+            transfers[o.primary] = { age, xp: t };
+            levels.delete(o.primary);
+          }
+        }
         const secondaries: Record<string, number> = {};
         for (const [key, w] of Object.entries(act.secondaries)) {
           const s = key === '$secondForm' ? p.secondForm : key;
@@ -276,23 +319,23 @@ export function runProfile(p: Profile, years: number, opts: { k?: number; crossL
         willToday += r.fatigueWillpower;
         for (const [s, v] of Object.entries(r.credited)) {
           xp[s] = (xp[s] ?? 0) + v;
-          if (s === mainSkill) mainThisYear += v;
+          if (formMain ? isForm(s) : s === mainSkill) formYear[s] = (formYear[s] ?? 0) + v;
         }
       }
       maxDayEndF = Math.max(maxDayEndF, m.p / c.p, m.m / c.m);
     }
     const ageEnd = p.startAge + (day + 1) / DAYS;
-    const lvl = levelExact(xp[mainSkill] ?? 0, k);
+    const lvl = mainLevel();
     for (const t of [21, 41, 61, 81, 101]) if (milestones[t] === undefined && lvl >= t) milestones[t] = (day + 1) / DAYS;
     for (const [s, ts] of Object.entries(crossLevels)) {
       const l = level(s, ageEnd);
       for (const t of ts) if (cross[`${s}>=${t}`] === undefined && l >= t) cross[`${s}>=${t}`] = ageEnd;
     }
     if ((day + 1) % DAYS === 0) {
-      yearMain.push(mainThisYear);
-      mainThisYear = 0;
+      yearMain.push(Math.max(0, ...Object.values(formYear)));
+      formYear = {};
       mainByYear.push(lvl);
     }
   }
-  return { xp, milestones, yearMain, cross, mainByYear, maxDayEndF };
+  return { xp, milestones, yearMain, cross, mainByYear, maxDayEndF, transfers };
 }
