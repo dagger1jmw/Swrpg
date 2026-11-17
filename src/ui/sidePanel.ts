@@ -44,6 +44,8 @@ export interface SidePanelProps {
   retrySummaries(): void;
   /** Plays a turn from a UI-built intent (the sheet's Train button, M3). */
   act(input: TurnInput): void;
+  /** Opens the routine editor (M4). */
+  openRoutine(): void;
 }
 
 export const PANEL_TABS: Record<PanelTab, string> = { character: 'Character', people: 'People', places: 'Places', threads: 'Threads', memory: 'Memory', debug: 'Debug' };
@@ -194,6 +196,20 @@ function trainPanel(p: SidePanelProps): HTMLElement {
   ]);
 }
 
+/** The routine in force and the button to edit it or skip ahead with it (M4). */
+function routineCard(p: SidePanelProps): HTMLElement {
+  const r = p.state.routines.active;
+  const prios = r.priorities ? r.priorities.map((x) => `${SKILL_BY_ID.get(x.skillId)?.name ?? x.skillId} ${x.weight === 3 ? 'focus' : x.weight === 2 ? 'regular' : 'light'}`).join(', ') : 'archetype default';
+  const btn = el('button', { text: 'Routine and montage…', on: { click: () => p.openRoutine() } });
+  btn.disabled = p.busy;
+  return el('div', { class: 'card train' }, [
+    el('div', { class: 'card-title' }, [el('strong', { text: 'Routine' }), el('span', { class: 'rel', text: `${r.effort}, ${Math.round(r.daysPerWeek * 10) / 10} days a week` })]),
+    el('div', { class: 'hint', text: prios }),
+    p.state.routines.suggested ? el('div', { class: 'warn-line', text: 'The story suggested a routine: open the editor to accept or dismiss it.' }) : null,
+    el('div', { class: 'train-row' }, [btn]),
+  ]);
+}
+
 /** Character tab: the M3 sheet (identity, condition, skills, Train) plus who and where. */
 function character(p: SidePanelProps): HTMLElement[] {
   const s = p.state;
@@ -236,6 +252,7 @@ function character(p: SidePanelProps): HTMLElement[] {
       s.progression.overtrainStreak ? kv('Overtrained', `${s.progression.overtrainStreak} day(s) in a row`) : null,
       beats.length ? kv('Pending beats', beats.map((b) => `${SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId} reached ${b.tier}`).join('; ')) : null,
     ]),
+    routineCard(p),
     trainPanel(p),
     ...byCat.map((g) => el('div', { class: 'card skills' }, [el('div', { class: 'card-title' }, [el('strong', { text: CATEGORY_LABEL[g.cat] ?? g.cat })]), ...g.rows.map(skillRow)])),
     el('div', { class: 'card' }, [

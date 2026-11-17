@@ -43,6 +43,11 @@ import { SKILL_BY_ID } from '../data/skills';
 import { creationForm } from './creationForm';
 import { clear, el, input, paragraphs } from './dom';
 import { renderSidePanel, type PanelTab } from './sidePanel';
+import { renderJumpPlayback, renderJumpReport } from './jumpCard';
+import { renderRoutineEditor } from './routineEditor';
+import type { Routine } from '../features/routines/selectors';
+import type { MontageReport } from '../state/montageReport';
+import { previewRoutine, type RoutinePreview } from '../state/routinePreview';
 
 export interface AppDeps {
   root: HTMLElement;
@@ -54,7 +59,7 @@ export interface AppDeps {
   now: () => number;
 }
 
-type Modal = 'settings' | 'campaign';
+type Modal = 'settings' | 'campaign' | 'routine';
 
 interface FailedTurn {
   input: TurnInput;
@@ -95,6 +100,11 @@ export class App {
   private feedStick = true;
   /** Scroll positions of the inner scrollers, by data-scroll key. */
   private scrolls = new Map<string, number>();
+  /** The routine being edited in the routine modal (M4), and its cached preview. */
+  private routineDraft: Routine | null = null;
+  private routinePreview: { key: string; preview: RoutinePreview } | null = null;
+  /** Day-by-day playback of a jump while the narration call runs (M4). */
+  private playback: { report: MontageReport; shown: number; timer: ReturnType<typeof setTimeout> | null } | null = null;
 
   constructor(private readonly d: AppDeps) {
     this.tokenRatios = loadTokenRatios(d.kv);
@@ -260,6 +270,7 @@ export class App {
     let closed = false;
     try {
       const p = pending ?? (await prepareTurn(deps, this.session, turnInput));
+      if (p.resolution.draft.jump) this.startPlayback(p.resolution.draft.jump.report);
       const { session, record } = await narrateTurn(deps, this.session, p);
       this.session = session;
       closed = record.chapterClosed !== undefined;
@@ -272,11 +283,86 @@ export class App {
         pending: te?.pending,
       };
     } finally {
+      this.stopPlayback();
       this.busy = false;
       this.inFlight = null;
       this.render();
     }
     if (closed) await this.runSummaries();
+  }
+
+  /** Shows the jump's days ticking by (about 4 seconds for any length) while the GM writes. */
+  private startPlayback(report: MontageReport): void {
+    this.stopPlayback();
+    const step = Math.max(1, Math.ceil(report.days.length / 100));
+    this.playback = { report, shown: 0, timer: null };
+    const tick = (): void => {
+      if (!this.playback) return;
+      this.playback.shown = Math.min(report.days.length, this.playback.shown + step);
+      this.render();
+      if (this.playback.shown < report.days.length) this.playback.timer = setTimeout(tick, 40);
+    };
+    tick();
+  }
+
+  private stopPlayback(): void {
+    if (this.playback?.timer) clearTimeout(this.playback.timer);
+    this.playback = null;
+  }
+
+  // ---- Routine (M4) ----
+
+  private openRoutine(): void {
+    if (!this.session) return;
+    this.routineDraft = structuredClone(this.session.state.routines.active);
+    this.openModal('routine');
+  }
+
+  private async routineEvents(events: GameEvent[], resetDraft: boolean): Promise<void> {
+    await this.playerEvents(events);
+    if (resetDraft && this.session) this.routineDraft = structuredClone(this.session.state.routines.active);
+    this.render();
+  }
+
+  private async startJump(days: number): Promise<void> {
+    if (!this.session || !this.routineDraft) return;
+    if (JSON.stringify(this.routineDraft) !== JSON.stringify(this.session.state.routines.active)) {
+      await this.playerEvents([{ type: 'routineSet', routine: this.routineDraft }]);
+      if (this.panelError) return;
+    }
+    const level = days > 120 ? 'timeSkip' : 'montage';
+    this.modal = null;
+    const label = `${level === 'montage' ? 'Montage' : 'Time skip'}: ${days} days on the routine`;
+    void this.runTurn({
+      kind: 'action',
+      label,
+      intent: { actionType: 'train', targets: [], references: [], unknownNames: [], requestedPacing: level, requestedSpan: { amount: days, unit: 'days' } },
+    });
+  }
+
+  private renderRoutineBody(): HTMLElement[] {
+    const session = this.session;
+    if (!session) return [el('p', { class: 'hint', text: 'No campaign.' })];
+    const draft = this.routineDraft ?? session.state.routines.active;
+    const key = `${session.state.meta.turn}|${JSON.stringify(draft)}|${JSON.stringify(session.state.routines.active)}`;
+    if (this.routinePreview?.key !== key) this.routinePreview = { key, preview: previewRoutine(this.d.registry, session.state, draft) };
+    return [
+      ...(this.panelError ? [el('div', { class: 'error', text: this.panelError })] : []),
+      ...renderRoutineEditor({
+        state: session.state,
+        draft,
+        preview: this.routinePreview.preview,
+        busy: this.busy,
+        dirty: JSON.stringify(draft) !== JSON.stringify(session.state.routines.active),
+        setDraft: (r) => ((this.routineDraft = r), this.render()),
+        save: (r) => void this.routineEvents([{ type: 'routineSet', routine: r }], true),
+        saveTemplate: (name) => void this.routineEvents([{ type: 'routineTemplateSaved', name }], false),
+        loadTemplate: (id) => void this.routineEvents([{ type: 'routineTemplateLoaded', templateId: id }], true),
+        deleteTemplate: (id) => void this.routineEvents([{ type: 'routineTemplateDeleted', templateId: id }], false),
+        resolveSuggestion: (accept) => void this.routineEvents([{ type: 'routineSuggestionResolved', accept }], true),
+        startJump: (days) => void this.startJump(days),
+      }),
+    ];
   }
 
   // ---- Rendering ----
@@ -383,7 +469,10 @@ export class App {
   private renderMain(): HTMLElement {
     const session = this.session;
     const turns = session ? session.history.map((r) => this.renderTurn(r)) : [];
-    const pendingLine = this.busy && this.inFlight && this.inFlight.kind !== 'opening' ? el('div', { class: 'turn pending' }, [el('div', { class: 'player', text: describeInput(this.inFlight) })]) : null;
+    const pendingLine =
+      this.busy && this.inFlight && this.inFlight.kind !== 'opening'
+        ? el('div', { class: 'turn pending' }, [el('div', { class: 'player', text: describeInput(this.inFlight) }), this.playback ? renderJumpPlayback(this.playback.report, this.playback.shown) : null])
+        : null;
     const failedLine = !this.busy && this.failed && this.failed.input.kind !== 'opening' ? el('div', { class: 'turn pending' }, [el('div', { class: 'player', text: describeInput(this.failed.input) })]) : null;
     const emptyFeed = session && !session.history.length && !this.busy ? el('p', { class: 'hint center', text: 'The story begins here.' }) : null;
     const feed = el('section', { class: 'box feed' }, [
@@ -460,6 +549,7 @@ export class App {
       playerEvents: (events) => void this.playerEvents(events),
       retrySummaries: () => void this.runSummaries(),
       act: (input) => void this.runTurn(input),
+      openRoutine: () => this.openRoutine(),
     });
   }
 
@@ -472,6 +562,13 @@ export class App {
     };
     const tab = (id: Modal, label: string): HTMLButtonElement =>
       el('button', { class: id === m ? 'tab active' : 'tab', text: label, attrs: { role: 'tab', 'aria-selected': String(id === m) }, on: { click: () => this.openModal(id) } });
+    if (m === 'routine') {
+      const dialog = el('div', { class: 'box modal', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Training routine' } }, [
+        el('div', { class: 'box-head' }, [el('strong', { text: 'Training routine' }), el('button', { class: 'icon', text: '×', attrs: { 'aria-label': 'Close' }, on: { click: close } })]),
+        el('div', { class: 'box-body modal-body', attrs: { 'data-scroll': 'modal-routine' } }, this.renderRoutineBody()),
+      ]);
+      return el('div', { class: 'modal-layer', on: { click: (e) => e.target === e.currentTarget && close() } }, [dialog]);
+    }
     const body = m === 'settings' ? this.renderSettingsBody() : this.renderCampaignBody();
     const dialog = el('div', { class: 'box modal', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': m === 'settings' ? 'Settings' : 'Campaign' } }, [
       el('div', { class: 'box-head' }, [
@@ -683,6 +780,7 @@ export class App {
       r.input.kind === 'opening' && !r.input.premise ? null : el('div', { class: 'player', text: describeInput(r.input) }),
       ...r.draft.checks.map((c) => this.renderRoll(c)),
       r.draft.training ? this.renderTraining(r.draft.training) : null,
+      r.draft.jump ? renderJumpReport(r.draft.jump.report) : null,
       ...r.draft.notices.map((n) => el('div', { class: 'notice', text: n })),
       ...paragraphs(r.narrative),
       r.chapterClosed ? el('div', { class: 'notice', text: `Chapter closed (${r.chapterClosed.reason}).` }) : null,

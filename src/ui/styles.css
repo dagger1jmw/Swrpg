@@ -349,3 +349,19 @@ label.check { display: flex; gap: var(--pad-s); align-items: center; margin: var
   .modal-layer { place-items: stretch; }
   .modal { width: 100%; }
 }
+
+/* ---- M4: routine editor, preview, montage report and playback ---- */
+.modal .card { background: var(--box-2); border: var(--border); border-radius: var(--r-inner); padding: 8px 10px; margin-bottom: 8px; font-size: var(--fs-s); }
+.modal .card.present { border-color: var(--accent); }
+.card-title { display: flex; justify-content: space-between; align-items: baseline; gap: var(--pad-s); margin-bottom: 4px; }
+.warn-line { color: var(--warn); font-size: var(--fs-s); margin: 2px 0; }
+.day-line { font-family: var(--font-mono); font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day-line.muted { color: var(--muted); }
+.day-event { font-size: var(--fs-xs); color: var(--accent); padding-left: 1.5em; }
+.curve { display: flex; align-items: flex-end; gap: 2px; height: 48px; border-bottom: var(--border); margin: 4px 0 8px; }
+.curve .bar { flex: 1 1 0; background: var(--accent-soft); border-top: 2px solid var(--accent); min-height: 2px; }
+.roll.jump .card-title { margin-bottom: 6px; }
+.roll.jump .interrupt { color: var(--warn); }
+.progress { height: 6px; background: var(--box-3); border-radius: 3px; overflow: hidden; margin: 4px 0 6px; }
+.progress .fill { display: block; height: 100%; background: var(--accent); transition: width 40ms linear; }
+.roll.jump.live { border-left-color: var(--accent); }

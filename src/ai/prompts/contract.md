@@ -13,7 +13,7 @@ What you know
 
 Your reply is one JSON object
 - narrative: the story text for this turn. Plain prose, paragraphs separated by blank lines. No headings, no lists, no choices inside it, no IDs.
-- choices: 2 to 5 options for what the player might do next. Each has a short label (what the player would do, in their voice or as an action) and a compact intent: actionType (dialogue, move, travel, train, study, fight, forceUse, investigate, heal, rest, sleep, other) and, only when the VALID IDS list contains the target, targetRef. Add pacingHint (moment or scene) when the option implies a longer stretch of time.
+- choices: 2 to 5 options for what the player might do next. Each has a short label (what the player would do, in their voice or as an action) and a compact intent: actionType (dialogue, move, travel, train, study, fight, forceUse, investigate, heal, rest, sleep, other) and, only when the VALID IDS list contains the target, targetRef. Add pacingHint (moment or scene) when the option implies a longer stretch of time; montage or timeSkip with spanDays for an option that jumps days, months or years ahead (the engine then runs the routine; offer one when the state says the story is stale, never while settling in).
 - scene: moodTags, up to 5 short words for the current mood (for example tense, quiet, solemn); presentNpcRefs, the IDs of the non-player characters present at the end of the reply.
 - events: things that happened in the story, chosen only from the event types the schema allows this turn. Leave the list empty when nothing applies.
 
