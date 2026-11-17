@@ -33,3 +33,6 @@ Known simplifications, stated so the numbers can be judged:
   is its own skill; the Average trains Shii-Cho as an Initiate, then main Soresu 2 h + second Ataru
   1 h from Padawan; targets and Y_avg read the highest form; archetype-paces.mjs reports form paces
   per phase and source, with R = K * 41^1.75 / A_ref; npc-closed-form.mjs has formLevels(). K = 11.683.
+- D-133 (M4): the profile runner applies the centered state (x1.05 after 30+ minutes of meditation,
+  through the next day), as the game does; archetype-paces.mjs measures at the decided K = 11.683
+  (CALC_K=solve re-solves it: 11.694 with centered). No other state of mind is modeled.

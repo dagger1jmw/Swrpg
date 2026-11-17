@@ -134,8 +134,8 @@ test 2 generalized).
 | Field | Type / range | Source |
 |---|---|---|
 | level | moment / scene / montage / timeSkip | engine (player requests via intent) |
-| settlingIn | {active, sinceDay, reason: location / lifeStage, keyNpcIds[]} | engine |
-| lastNoveltyDay | absolute day of the last new NPC, thread or location | engine |
+| settlingIn | not stored: derived by selectSettlingIn (first 14 days after the first arrival at a major place; amended by D-138) | derived |
+| lastNoveltyDay | not stored: derived from npcs.firstMetDay, threads.openedDay, locations.firstVisitDay (D-138) | derived |
 | scene.locationId | not stored: selector over locations.currentId (amended by D-46) | derived |
 | scene.presentNpcIds | npc id[] | AI refs, validated |
 | scene.moodTags | string[] (max 5, 30 chars each) | AI text |
@@ -242,6 +242,7 @@ The grief floor on D is derived (10 x progression grief intensity via a selector
 |---|---|---|
 | byId | {id `loc:<slug>`, name, aliases, kind, region, parentId?, description, firstVisitDay, introducedTurn} | name/kind/region/description AI text; ids engine. "major" is derived from kind by `CHAPTER_PLACE_KINDS`, not stored (amended by D-84) |
 | currentId | location id | engine (from locationChanged) |
+| currentSinceDay | day of arrival at the current place (staleness; M4, D-138) | engine (from locationChanged) |
 
 **threads** (owner: threads)
 | Field | Type / range | Source |
@@ -276,6 +277,8 @@ M3 builds `rank` only, chosen at creation and fixed until M7 (D-56 stub, D-107).
 | templates[] | saved routine templates (custom drills, Q63) | player |
 | lockedBlocks[] | player-placed blocks | player |
 
+As built in M4 (D-128, D-129): `active` = {priorities (null = archetype default), effort, daysPerWeek, wakeSecond, sleepHours, lockedBlocks, masterRef, fillSource}; `templates`; `suggested` (the AI's routineRequested, applied only when the player accepts); `fillCredit` (the fill's 0.5 h rounding carried across days, engine via routineDayPlanned).
+
 **world** (owner: world)
 | Field | Type / range | Source |
 |---|---|---|
@@ -283,6 +286,8 @@ M3 builds `rank` only, chosen at creation and fixed until M7 (D-56 stub, D-107).
 | factionState | per faction {control, morale} | engine |
 | renown | per faction (D-08 list) -100..+100 | engine |
 | notices[] | pending galaxy news for the AI | engine |
+
+M4 builds `log` only: the rolled world events (last 50), each marked told once a narration carried it (D-136). Timeline events, factions and renown arrive in M8.
 
 **memory** (owner: memory)
 | Field | Type / range | Source |
@@ -708,6 +713,13 @@ Four levels, stored in `pacing.level`. Per level (config):
 - The AI receives the report (training-routines sec 8) and narrates it; it invents no stat
   outcomes.
 - The legacy training simulator is the montage activity type; routines feed it.
+- **As built in M4 (D-130, D-139).** `src/state/advanceRoutine.ts` runs a jump one day at a time as
+  real timed segments through advanceTime: free time (rest) to bedtime, sleep to the wake time,
+  sleepCompleted, then the scheduler's sessions (resolveTraining, the story turn's code path) with
+  occupation activity and the conditional rests. The sessions are §10 slot 1; midnight falls in the
+  night, so every day-end hook runs after them. A span of more than 12 hours picks montage (up to
+  120 days) or time skip (to 10 years); the jump ends at the wake time; the report
+  (`src/state/montageReport.ts`) is narrated; afterwards pacing is moment if interrupted, else scene.
 
 ---
 
@@ -733,7 +745,7 @@ Legends gives 12 months and 368 days (D-03). The rest is a design choice:
 ### Day loop: one ordered hook list (D-35)
 Every time-based feature registers `onTimeAdvanced(slice, step: TimeStep, ctx)`, the same
 signature as §11, where `TimeStep` = {kind: subDay / day, fromAbs, toAbs (day + second),
-seconds, occupation: rest / activity / sleep (M3, D-107; default rest)}. advanceTime calls the hooks in this fixed order (registry order, documented and
+seconds, occupation: rest / activity / sleep (M3, D-107; default rest), jump: montage or time skip (M4, D-134: only jumps roll world events and stop on an interruption)}. advanceTime calls the hooks in this fixed order (registry order, documented and
 tested), once per day for day steps:
   1. routines: the routine's blocks in 30-minute steps (fatigue and XP via progression and
      health); in story turns, the TurnDraft's resolved activities take this slot
@@ -956,11 +968,12 @@ holds until replaced.
 | Effective level modifiers in rolls (rust, fatigue) | 0 / e(f) = 1 | M1-M2 checks | M3 (replaced: progression rust, health e(f_phys)) |
 | Skill levels for M1-M2 checks | from the minimal character's computed creation: none in M1, so checks use level 0 plus the circumstance modifiers | M1-M2 | M3 (replaced: progression performance levels) |
 | Teacher levels | the Average profile's closed-form level at the teacher's age (no per-NPC variance) | M3-M4 | M5 (NPC generation) |
-| Order requirements | the ranks.md §1a table as static data, rank fixed at creation | M3-M4 lifetime test, routines | M7 |
+| Order requirements | the ranks.md §1a table as static data, rank fixed at creation; the lifetime test changes rank with the engine-only rankSet (D-131) | M3-M4 lifetime test, routines | M7 |
+| Order instruction (D-124) | Temple instructors = a teacher 10 levels ahead (x1.05), an unnamed master 30 ahead (x1.15), Temple peers an even partner (x1.00), teacher aptitude 0 | M4 routines, lifetime test | M5 (NPC generation), M7 (masters) |
 | Alignment multiplier in M | 1.0 | M3-M5 | M6 |
 | State-of-mind effects of alignment (dark pressure > 50) | D = 0 | M3-M5 | M6 |
 | Species body caps | Human table only (progression-numbers §11); replaced early by species.md in M3 (D-103) | M3 | M3 |
-| Combat events in the lifetime test | scripted per combat-xp.md math | M4 | M5 (real duel log) |
+| Combat events in the lifetime test | scripted fightResolved events through the built combat branch of computeXp (D-127; STUB_SCRIPTED_COMBAT) | M4 | M5 (real duel log) |
 | Fight intents (D-70) | one engine check against the clamped difficulty (`STUB_FIGHT_AS_SINGLE_CHECK`) | M1-M4 | M5 (duels, rolls.md §3) |
 
 The species spec is written (spec/species.md) and built in M3 (D-103). Planned specs (not yet written; named "planned" wherever cited): formerly the species spec (M8; Human

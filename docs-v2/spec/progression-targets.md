@@ -72,6 +72,11 @@ are in progression-numbers.md sec 12.
 | Anakin | 315 | push | prodigy in combat and Force | master who is not a specialist in his form | war years 19+ (combat 25-35% of yearly main-form XP) |
 | Luke | 280 | standard, broad focus (main share 0.4), outsider (no Order requirements) | Force prodigy | sparse teachers, holocrons | wartime (combat-xp.md sec 5) |
 
+M4 result (D-132, the four-profile lifetime test through the real routine and day loop; years of
+training, highest form or Luke's Force Control): Average 4.17 / 15.94 / 32.95 / 54.23 / 80.9 | Obi-Wan
+3.23 / 10.39 / 22.88 / 36.95 / 57.04 | Anakin 1.48 / 4.24 / 8.34 / 13.73 / 21.17 | Luke 1.77 / 5.81 /
+12.30 / 21.28 / 32.39. All within +/-20%; combat shares met; the inputs are in tests/lifetime/profiles.ts.
+
 Computed so far (docs-v2/calc/): Average meets every section 2 target within +/-20% with
 K = 15.18 after D-67 was decided (D-102, natural baseline): 41 at 16.0, 61 at 32.6, 81 at
 55.2, 101 at 83.5 years (K = 14.69 before: 34.3 / 57.5 / 86.5). The M3 Average lifetime test

@@ -1,5 +1,10 @@
 # Training routines (v1)
 
+Built in M4: the scheduler (src/features/routines/scheduler.ts), the day loop (src/state/advanceRoutine.ts),
+the preview (src/state/routinePreview.ts) and the report (src/state/montageReport.ts). Choices made while
+building: D-128 (defaults), D-129 (AI suggestions), D-130 (timed day segments), D-137 (relationships), D-140
+(preview). Injury adjustments and the drill-ceiling warning wait for M5.
+
 ## 1. Inputs
   Priorities: list of (skill or activity, weight). focus 3 | regular 2 | light 1
   Effort preference: easy | standard | push
