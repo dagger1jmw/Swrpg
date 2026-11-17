@@ -11,9 +11,11 @@ K is solved so the Average profile reaches level 41 in exactly 16.0 training yea
   K = 16 * (Average profile yearly main-skill XP) / 41^1.75     (expected ~14.5)
 Amended by D-40: K re-solved with the Average schedule (Order requirements + D-25 budget +
   shares, through the day model) = 14.69, computed by docs-v2/calc/progression-sim.mjs.
-  Provisional: it is re-solved again when D-67 (Endurance baseline) is decided in M3/M4.
-Reference (K = 14.69): XP(21)=3,027  XP(41)=9,760  XP(61)=19,562  XP(81)=32,131
-  XP(101)=47,276  XP(151)=95,563
+Amended by D-102 (D-67 decided in M3: natural baseline, sec 11a): K re-solved = 15.18
+  (15.181, docs-v2/calc/progression-sim.mjs). No longer provisional.
+Reference (K = 15.18): XP(21)=3,127  XP(41)=10,085  XP(61)=20,213  XP(81)=33,201
+  XP(101)=48,850  XP(151)=98,744
+  (K = 14.69 before D-67: XP(41)=9,760.)
   (Old reference, K = 13.55 before the fatigue model: XP(41)=9,000.)
 
 ## 3. Fatigue model (replaces fixed effective-hour tables)
@@ -82,10 +84,13 @@ Speed multiplier M = talent * cross-talent * instruction (sec 15, 19) * age (sec
     (shares summing to 1), and the Average main share is 0.5 at every age (the Knight+
     default main-specialty share, D-41). The excess is discarded and logged. Banked drill
     XP released after combat is excluded (it does not count toward the window).
-    Y_avg(age), K = 14.69 (computed by docs-v2/calc/progression-sim.mjs, per 365 days;
-    provisional until D-67):
-      age 4: 574 | 8: 538 | 12: 677 | 16: 645 | 20: 637 | 24: 502 | 30: 520 | 40: 567 |
-      50: 526 | 60: 563 | 70: 512 | 80: 515 | 90: 476 | 98: 319
+    Y_avg(age), K = 15.18 (computed by docs-v2/calc/progression-sim.mjs, per 365 days;
+    recomputed by D-102):
+      age 4: 582 | 8: 544 | 12: 691 | 16: 670 | 20: 720 | 24: 595 | 30: 585 | 40: 572 |
+      50: 556 | 60: 599 | 70: 544 | 80: 544 | 90: 425 | 98: 304
+    The character's share (amended by D-104): max(the focus-weight share, the skill's share of
+      the character's training hours in the same 365-day window). A skill outside the focus
+      weights would otherwise have share 0 and a cap of 0, and the player's routine decides.
 
 Outcome roll per session (code rolls it, mean ~1.0):
   failure 15% x0.7 | partial 25% x0.9 | solid 38% x1.0 | strong 18% x1.2 |
@@ -159,7 +164,23 @@ Force boost = min(45, 0.3 * max(0, ForceControl - 40) + 0.2 * Force body-ability
 Human body cap by age (straight-line between points):
   5:15 | 9:25 | 12:35 | 15:50 | 18:65 | 22-35:80 | 45:78 | 55:74 | 65:68 | 75:58 |
   85:45 | 100:25
-Other species get their own tables.
+Other species get their own tables (species.md: the Human table rescaled by age mapping and
+  bodyScale, D-103).
+
+## 11a. Natural baseline (added by D-102; decides D-67)
+Untrained characters are not at 0 in body and will. Natural level N by Human-equivalent age h
+(species.md sec 1):
+  Strength, Agility, Endurance: N = 0.5 * body cap(h) for the species (sec 11)
+  Willpower: N = 4: 10 | 10: 18 | 16: 25 | 20: 30 | 30: 35 | 60: 40 (straight lines, flat outside)
+  Every other skill: N = 0
+Training adds on top in XP terms: level = floor(((K * N^1.75 + trained XP) / K)^(1/1.75)).
+  Every hour of training counts, nothing steps, and levels stay derived. Physical stats then
+  apply min(level, body cap) + Force boost (sec 11). Fatigue capacity (sec 3) reads these levels.
+Why: without it the Average profile's Endurance stayed near 5 to age 20, capacity near 3.2, and
+  the tiredness limit trimmed 2.3 h of the fill each training day (D-67). With it: 0.30 h
+  trimmed, max day-end f 1.02. A conditioning hour in the Order requirements was computed and
+  not taken: it raised the max day-end f to 1.19 (fixed commitments are never trimmed), so
+  Initiates would be overtrained daily, and it did not raise Force Sense.
 Reference (Luke, 1h/day body ability): age 30: 89.7 | 40: 98.7 | 50: 103.6 |
   62: 105.6 (peak band 60-66) | 70: 103.6 | 80: 96.5. Average Jedi peaks ~87 near age 45.
 
@@ -186,15 +207,15 @@ Profile schedule structure (amended by D-40, D-41, D-42; supersedes the inputs b
     Luke: start 19, outsider (no Order requirements), standard effort, 280 days, Force
       prodigy (x1.5 on Force skills), solo and holocrons (x0.90), broad focus (main share
       0.4).
-  Average result (docs-v2/calc/progression-sim.mjs, K = 14.69):
-    21: 5.4 y | 41: 16.0 y | 61: 34.3 y | 81: 57.5 y | 101: 86.5 y (all within +/-20%)
-    At age 20.5: main form 41.9, Force Control 30.5, Force Sense 28.2, Willpower 48.4,
-      Endurance 5.3 (see D-67).
+  Average result (docs-v2/calc/progression-sim.mjs, K = 15.18, natural baseline sec 11a):
+    21: 5.5 y | 41: 16.0 y | 61: 32.6 y | 81: 55.2 y | 101: 83.5 y (all within +/-20%)
+    At age 20.3: main form 41.5, Force Control 29.7, Force Sense 26.8, Willpower 49.3,
+      Endurance 37.6. At 30: Force Control 34.8, Force Sense 31.3, Endurance 43.8.
+    (Before D-102, K = 14.69: 5.4 / 16.0 / 34.3 / 57.5 / 86.5 y; Endurance 5.3 at 20.5.)
   Peacetime baseline of the other three (no combat events; docs-v2/calc/profiles.mjs):
-    Obi-Wan 41 at 13.3 y, 61 at 26.2 y (targets 10.8, 21.7) | Anakin 41 at 7.9 y (target 4.1)
-    | Luke main form 41 at 22.2 y (his targets are Force skills, tuned in M4). These miss
-    because combat XP and the D-67 Endurance baseline are not in the run yet; they are
-    tuned in the M4 lifetime test, not here.
+    Obi-Wan 41 at 13.3 y, 61 at 24.6 y (targets 10.8, 21.7) | Anakin 41 at 7.7 y (target 4.1)
+    | Luke main form 41 at 20.3 y (his targets are Force skills, tuned in M4). These miss
+    because combat XP is not in the run yet; they are tuned in the M4 lifetime test.
 Reference inputs before the fatigue model (history, superseded by the structure above):
   Average 300 days, 3h standard drills, M 1.0 | Obi-Wan 315 days, 5h, M 1.10 |
   Anakin 315 days, 6h, M 2.72 | Luke 280 days, 3.5h, M 2.25

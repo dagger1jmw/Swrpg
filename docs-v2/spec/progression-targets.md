@@ -73,9 +73,10 @@ are in progression-numbers.md sec 12.
 | Luke | 280 | standard, broad focus (main share 0.4), outsider (no Order requirements) | Force prodigy | sparse teachers, holocrons | wartime (combat-xp.md sec 5) |
 
 Computed so far (docs-v2/calc/): Average meets every section 2 target within +/-20% with
-K = 14.69 (41 at 16.0, 61 at 34.3, 81 at 57.5, 101 at 86.5 years). The other three are only a
-peacetime baseline without combat events and miss their targets; they are tuned in the M4
-lifetime test together with open item D-67.
+K = 15.18 after D-67 was decided (D-102, natural baseline): 41 at 16.0, 61 at 32.6, 81 at
+55.2, 101 at 83.5 years (K = 14.69 before: 34.3 / 57.5 / 86.5). The M3 Average lifetime test
+runs these through the src engine. The other three are only a peacetime baseline without
+combat events and miss their targets; they are tuned in the M4 lifetime test.
 
 Each profile also needs: birth date, starting Endurance and Willpower, state-of-mind events,
 schedules and drill difficulty. The war factor of 1.25 that earlier figures included is gone;

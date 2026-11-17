@@ -14,7 +14,8 @@ const ROW28 = {
   padawan: [['masterTraining', 2, 'master'], ['formDrill', 1, 'solo']],
   knight: [],
 };
-const BASE = { ...AVERAGE, orderReqs: ROW28, knightShares: null };
+// History record (before D-67): natural baseline off.
+const BASE = { ...AVERAGE, orderReqs: ROW28, knightShares: null, natural: false };
 const SPLIT = {
   initiate: [['formDrill', 2, 'initiateClass'], ['forceDrill', 0.5, 'initiateClass'], ['senseDrill', 0.5, 'initiateClass'], ['study', 1, 'initiateClass']],
   padawan: [['masterTraining', 2, 'master'], ['formDrill', 1, 'solo']],
@@ -42,5 +43,5 @@ for (const [name, p] of Object.entries(V)) {
   const m = (k) => (r.milestones[k] ?? NaN).toFixed(1);
   console.log(`| ${name} | ${K.toFixed(2)} | ${m(21)} | ${m(41)} | ${m(61)} | ${m(81)} | ${m(101)} | ${L('ForceControl')} | ${L('ForceSense')} | ${L('Willpower')} | ${L('Endurance')} |`);
 }
-console.log('| Chosen (D-41 + D-42) = V7 = the AVERAGE profile in progression-sim.mjs | | | | | | | | | | |');
+console.log('| Chosen (D-41 + D-42) = V7; since D-102 the AVERAGE profile adds the natural baseline (progression-sim.mjs) | | | | | | | | | | |');
 console.log('| Target (progression-targets §2, +/-20%) | | 5.0 | 16.0 | 32.1 | 52.7 | 77.5 | Knight min 30 | 30 | 35 | |');

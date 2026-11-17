@@ -4,7 +4,7 @@
 //   node docs-v2/calc/progression-sim.mjs
 import {
   DAYS_PER_YEAR, levelFromXp, bestChallenge, OUTCOME_MEAN, ageFactor, CATEGORY_AGE_ROW,
-  bodyCap, budget, INTENSITY,
+  bodyCap, budget, INTENSITY, skillLevel,
 } from './model.mjs';
 import { simulateDay } from './day.mjs';
 import { ACT, TRAINS, SKILLS, ARCHETYPES, shares } from './activities.mjs';
@@ -110,10 +110,12 @@ export function runProfile(p, K, years, onYear) {
     const age = p.startAge + d / DAYS_PER_YEAR;
     const trains = Math.floor(((d + 1) * p.trainingDays) / DAYS_PER_YEAR) !== Math.floor((d * p.trainingDays) / DAYS_PER_YEAR);
     if (trains) {
-      const L = (s) => levelFromXp(xp[s], K);
+      // D-67: levels include the natural baseline (progression-numbers §11a) unless a history
+      // variant turns it off (p.natural === false; variants.mjs reproduces the old record).
+      const L = (s) => (p.natural === false ? levelFromXp(xp[s], K) : skillLevel(xp[s], s, age, K));
       const fc = L('ForceControl');
       const boost = Math.min(45, 0.3 * Math.max(0, fc - 40));
-      // p.baseStats: untrained baseline used for fatigue capacity only (profile input, §12)
+      // p.baseStats: the pre-D-67 history variants' flat baseline for fatigue capacity only.
       const End = Math.max(p.baseStats?.Endurance ?? 0, Math.min(L('Endurance'), bodyCap(age)) + boost);
       const Will = Math.max(p.baseStats?.Willpower ?? 0, L('Willpower'));
       // training-routines §4 rule 6: trim fill hours (never fixed commitments) until the
@@ -149,9 +151,10 @@ export function runProfile(p, K, years, onYear) {
       xp.Willpower += res.willXp;
       const ph2 = phaseXp[rankAt(p, age)]; ph2.WillpowerFatigue = (ph2.WillpowerFatigue ?? 0) + res.willXp;
     }
+    const ageEnd = p.startAge + (d + 1) / DAYS_PER_YEAR;
     for (const sk of ['mainForm', 'ForceControl', 'ForceSense', 'Willpower']) {
-      const l = levelFromXp(xp[sk], K);
-      for (const t of [10, 12, 14, 15, 16, 18, 20, 22, 25, 28, 30, 35, 38, 40, 45, 48, 50, 58, 70]) { const key = sk + '>=' + t; if (cross[key] === undefined && l >= t) cross[key] = age; }
+      const l = p.natural === false ? levelFromXp(xp[sk], K) : skillLevel(xp[sk], sk, ageEnd, K);
+      for (const t of [10, 12, 13, 14, 15, 16, 18, 20, 22, 24, 25, 26, 27, 28, 29, 30, 35, 38, 40, 45, 48, 50, 58, 70]) { const key = sk + '>=' + t; if (cross[key] === undefined && l >= t) cross[key] = age; }
     }
     const lvl = levelFromXp(xp.mainForm, K);
     for (const m of [21, 41, 61, 81, 101]) if (milestones[m] === undefined && lvl >= m) milestones[m] = (d + 1) / DAYS_PER_YEAR;
@@ -181,9 +184,9 @@ if (process.argv[1]?.endsWith('progression-sim.mjs')) {
   const rows = [];
   const res = runProfile(AVERAGE, K, 95, (t, age, xp) => {
     if ([2, 4, 5, 6, 6.5, 7, 8, 10, 12, 14, 16, 16.5, 17, 20, 22, 26, 30, 32, 41, 50, 60, 66, 70, 80, 90, 95].some((y) => Math.abs(y - t) < 1e-6))
-      rows.push([t, age, ...['mainForm', 'secondForm', 'ForceControl', 'ForceSense', 'Willpower', 'Endurance', 'Strength', 'Meditation', 'ForceKnowledge'].map((s) => levelFromXp(xp[s], K).toFixed(1))]);
+      rows.push([t, age, ...['mainForm', 'secondForm', 'ForceControl', 'ForceSense', 'Willpower', 'Endurance', 'Strength', 'Meditation', 'ForceKnowledge'].map((s) => skillLevel(xp[s], s, age, K).toFixed(1))]);
   });
-  console.log('\n| Years | Age | Main form | Second form | Force Control | Force Sense | Willpower | Endurance (trained) | Strength | Meditation | Force Knowledge |');
+  console.log('\n| Years | Age | Main form | Second form | Force Control | Force Sense | Willpower | Endurance | Strength | Meditation | Force Knowledge |');
   console.log('|---|---|---|---|---|---|---|---|---|---|---|');
   for (const r of rows) console.log(`| ${r[0]} | ${r[1]} | ${r.slice(2).join(' | ')} |`);
   console.log('\nMilestones (years of training):', Object.fromEntries(Object.entries(res.milestones).map(([k, v]) => [k, v.toFixed(1)])));

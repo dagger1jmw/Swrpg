@@ -6,12 +6,15 @@
 // 3. A 10,000-run seeded check of the result (ranks.md test 2: 14% +/- 3).
 // Run: node docs-v2/calc/padawan-selection.mjs
 import { sfc32, gaussian } from './model.mjs';
-import { closedForm } from './npc-closed-form.mjs';
+import { closedFormPhased } from './npc-closed-form.mjs';
+import { solveK, AVERAGE } from './progression-sim.mjs';
+import { archetypePaces } from './archetype-paces.mjs';
 
-// Initiate-phase paces relative to the main form, measured from the Average profile
-// (npc-closed-form.mjs, "secondary paces by phase").
-const INITIATE_PACE = { mainForm: 1.0, ForceControl: 0.389, ForceSense: 0.373 };
-const TRIAL_AGE = 10.8;       // Average meets the recomputed Initiate Trial minimums (D-66)
+// Initiate-phase paces of the Jedi Guardian (archetype-paces.mjs; D-67 decision, M3), on the
+// R scale of the phase closed form. Before M3 these were ratios to the main form.
+const K = solveK(AVERAGE);
+const INITIATE_PACE = Object.fromEntries(['mainForm', 'ForceControl', 'ForceSense'].map((s) => [s, archetypePaces('jediGuardian', K).paces.initiate[s]]));
+const TRIAL_AGE = 11.1;       // Average meets both Initiate Trial minimums (main 24 at 10.9, FC 14 at 11.1; M3 re-run)
 const LAST_AGE = 13.0;
 const MONTHS_PER_YEAR = 12;
 
@@ -30,14 +33,14 @@ function initiateLevels(age, rng) {
     const t = s === 'mainForm' ? combat : force;
     const v = rng ? Math.exp(0.12 * gaussian(rng)) : 1;
     const startAge = rng ? 2 + Math.floor(rng() * 4) : 4; // Jedi start ages 2-5
-    out[s] = closedForm({ startAge, age, pace: Math.min(4.0, p * t * v) });
+    out[s] = closedFormPhased({ startAge, age, phases: [{ from: -Infinity, to: Infinity, pace: Math.min(4.0, p * t * v) }] });
   }
   return out;
 }
 
 const rng = sfc32(0x5eed, 0xa11, 0x7e57, 0x1);
 console.log('| Age | Average composite | Average percentile among 1,000 NPC Initiates |\n|---|---|---|');
-for (const age of [10, 10.8, 11, 12, 13]) {
+for (const age of [10, 11, 11.1, 12, 13]) {
   const pop = Array.from({ length: 1000 }, () => composite(initiateLevels(age, rng))).sort((a, b) => a - b);
   const avg = composite(initiateLevels(age, null));
   const below = pop.filter((x) => x < avg).length;

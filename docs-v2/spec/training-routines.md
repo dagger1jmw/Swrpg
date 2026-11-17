@@ -23,8 +23,9 @@
   Age 18+:           4     6         8
   The budget is a maximum. The scheduler trims it to stay under the tiredness limit.
   Fixed commitments are never trimmed, even when they exceed the budget or the limit: the
-  Padawan requirements (5 h) exceed the 4.8 h standard budget at age 12, and with today's
-  low Endurance they push the Average profile to a day-end f of 1.08 (open item D-67).
+  Padawan requirements (5 h) exceed the 4.8 h standard budget at age 12. With the natural
+  baseline (progression-numbers sec 11a, D-102) the Average profile's highest day-end f is
+  1.02 (it was 1.08 before D-67 was decided).
 
 ## 3. Allocation
   Hours per priority = budget * weight / total weight, rounded to 0.5 h, minimum 0.5 h.

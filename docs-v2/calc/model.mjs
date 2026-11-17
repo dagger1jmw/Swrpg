@@ -99,6 +99,16 @@ export const AGE_ROWS = {
 export function ageFactor(row, age) {
   return interp(AGE_X.map((x, i) => [x, AGE_ROWS[row][i]]), age);
 }
+// Exact integral of a piecewise-linear function between a and b (trapezoids on the breakpoints).
+export function integrate(fn, breakpoints, a, b) {
+  if (b <= a) return 0;
+  const pts = [a, ...breakpoints.filter((x) => x > a && x < b), b];
+  let s = 0;
+  for (let i = 1; i < pts.length; i++) s += ((fn(pts[i - 1]) + fn(pts[i])) / 2) * (pts[i] - pts[i - 1]);
+  return s;
+}
+/** Age-weighted years: the integral of the age factor of a row from age a to b (D-43). */
+export const A = (row, a, b) => integrate((x) => ageFactor(row, x), AGE_X, a, b);
 // Skill category (skills-and-activities.md §1) -> age row
 export const CATEGORY_AGE_ROW = {
   technique: 'technique', force: 'technique', wisdom: 'wisdom', knowledge: 'wisdom',
@@ -108,6 +118,26 @@ export const CATEGORY_AGE_ROW = {
 // ---------- body cap (progression-numbers §11, Human) ----------
 export const HUMAN_BODY_CAP = [[5, 15], [9, 25], [12, 35], [15, 50], [18, 65], [22, 80], [35, 80], [45, 78], [55, 74], [65, 68], [75, 58], [85, 45], [100, 25]];
 export const bodyCap = (age) => interp(HUMAN_BODY_CAP, age);
+
+// ---------- natural baseline (D-67 decision, progression-numbers §11a) ----------
+// Untrained level that grows with age. Training adds on top in XP terms:
+// level = levelFromXp(xpForLevel(natural(age)) + trained XP).
+export const WILLPOWER_NATURAL = [[4, 10], [10, 18], [16, 25], [20, 30], [30, 35], [60, 40]];
+export const NATURAL = {
+  Strength: (age) => 0.5 * bodyCap(age),
+  Agility: (age) => 0.5 * bodyCap(age),
+  Endurance: (age) => 0.5 * bodyCap(age),
+  Willpower: (age) => interp(WILLPOWER_NATURAL, age),
+};
+export function naturalXp(skill, age, K) {
+  const f = NATURAL[skill];
+  return f ? xpForLevel(f(age), K) : 0;
+}
+/** Level of a skill from trained XP plus the natural baseline for the age. */
+export const skillLevel = (xp, skill, age, K) => levelFromXp(xp + naturalXp(skill, age, K), K);
+/** Total level from a trained-only level and the natural level (K-free). */
+export const withNatural = (trainedLevel, naturalLevel) =>
+  Math.pow(Math.pow(Math.max(0, trainedLevel), EXP) + Math.pow(Math.max(0, naturalLevel), EXP), 1 / EXP);
 
 // ---------- training budget (training-routines §2, D-25 interpolation) ----------
 export const BUDGET = {

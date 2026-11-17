@@ -1,24 +1,40 @@
 # NPC generation (v1)
 
-Reference NPCs (variance off). Amended by D-43 and D-44: recomputed with the age-factor
-closed form below, main specialty at pace 1.0 (docs-v2/calc/npc-closed-form.mjs). The old
-values (no age factor) are kept for history.
+Reference NPCs (variance off). Amended by D-43 and D-44, then by D-105 (M3): recomputed with
+the phase-pace closed form below (docs-v2/calc/npc-closed-form.mjs, K = 15.18). Older values
+are kept for history.
 
-| NPC                                                                   | Old | Level in main skill |
-| --------------------------------------------------------------------- | --- | ------------------- |
-| Padawan, age 16 (trained since 4)                                     | 35  | 35.3                |
-| Average Jedi Knight, age 30                                           | 54  | 52.8                |
-| Average Jedi Master, age 45                                           | 70  | 66.9                |
-| Elder Master, age 70                                                  | 92  | 85.5                |
-| Obi-Wan check: 1.48x pace, age 39 (start 3)                           | 81.5 | 78.6               |
-| Anakin check: 3.89x pace, 13.5 years (start 9)                        | 81  | 78.4                |
-| Republic trooper sergeant, 35, start 17, 5 war years                  | 46  | 42.8 (blaster)      |
-| Sith warrior, 35, start 8, prodigy, angry (x1.15), 10 war years       | 80  | 76.1                |
+| NPC                                                                   | Old | D-43 | Level in main skill |
+| --------------------------------------------------------------------- | --- | ---- | ------------------- |
+| Padawan, age 16 (trained since 4)                                     | 35  | 35.3 | 34.2                |
+| Average Jedi Knight, age 30                                           | 54  | 52.8 | 53.9                |
+| Average Jedi Master, age 45                                           | 70  | 66.9 | 69.1                |
+| Elder Master, age 70                                                  | 92  | 85.5 | 89.0                |
+| Obi-Wan check: x1.48, age 39 (start 3, Padawan 13, Knight 25)         | 81.5 | 78.6 | 80.5               |
+| Anakin check: x3.89 (each phase capped at 4.0), 13.5 years (start 9, Padawan 9, Knight 20) | 81 | 78.4 | 79.7 |
+| Republic trooper sergeant, 35, start 17, 5 war years                  | 46  | 42.8 | 45.3 (blaster)      |
+| Sith warrior, 35, start 8, prodigy, angry (x1.15), 10 war years       | 80  | 76.1 | 79.4                |
 
 ## 1. Closed-form skill level
 Amended by D-43 (row 9): the age learning factor is included as an exact piecewise-linear
 integral, so the closed form follows the same age bands as the day loop.
+Amended by D-105 (M3, with D-67 decided): every skill, the main one included, uses a measured
+pace per rank phase (Initiate / Padawan / Knight+ for the Jedi and Sith paths; one phase for
+careers and outsiders), because the day loop's main-skill rate differs by phase (Initiate 2 h of
+forms, Padawan 3 h+, Knight+ half of a full budget). With the D-43 form and D-67 decided, the
+day loop and the closed form differed by +2.3 at 5 years and -3.5 at 60 years.
 
+  level(skill) = 41 * (A_eff / A_ref) ^ (1/1.75)
+    A_eff = sum over phases of pace(skill, phase) * A(row, phase start, phase end), clipped
+            to [start age, current age], + 0.3 * war years * pace(skill, current phase)
+            * a(row, current age)
+    pace(skill, phase) = archetype phase pace (section 3) * talent * state modifiers *
+            variance, each phase capped at 4.0
+    Natural baseline (progression-numbers sec 11a) on top: level = (L^1.75 + N(h)^1.75)^(1/1.75)
+  Check against the day-by-day Average profile (test 2, computed by npc-closed-form.mjs):
+    5 years 20.1 vs 19.8 (+0.3) | 10 years 30.4 vs 30.3 (+0.1) | 30 years 58.3 vs 58.2 (+0.1) |
+    60 years 84.6 vs 84.9 (-0.3).
+  D-43 form (history):
   level(skill) = 41 * (pace * A_eff / A_ref) ^ (1/1.75)
     A_eff = A(row, start age, current age) + 0.3 * war years * a(row, current age)
     A(row, x0, x1) = integral from x0 to x1 of a(row, age) d(age)
@@ -61,9 +77,30 @@ main skill and summed to far more training than a day holds (Jedi Guardian 3.9x,
   created-character level is reachable in play with the same routine (test 7).
 - Closed-form pace of skill s = share(s) / 0.5 (the Average main share), times talent,
   state and variance. The main specialty has pace 1.0.
-- Jedi and Sith before Knight / Lord: the Order requirements set the hours instead, so the
-  secondary paces in those phases are measured from the Average profile
-  (docs-v2/calc/npc-closed-form.mjs; skill XP / main-form XP):
+- Amended by D-105: the closed-form paces of every archetype, per phase and per skill, are
+  measured by running the archetype's own default routine through the day model
+  (docs-v2/calc/archetype-paces.mjs; Order requirements with Padawan / apprentice at 12 and
+  Knight / Lord at 20.5 for Jedi and Sith, the Sith on the Jedi rows until M7; careers fill the
+  whole budget by shares). A pace is the skill's credited XP per age-weighted year of its own
+  age row, divided by R, the Average's mean main-form rate over ages 4-20, so A_ref stays
+  17.98. Jedi Guardian (K = 15.18):
+
+  | Skill | Initiate | Padawan | Knight+ |
+  |---|---|---|---|
+  | main form | 0.844 | 1.177 | 1.099 |
+  | Force Control | 0.322 | 0.812 | 0.340 |
+  | Force Sense | 0.308 | 0.637 | 0.265 |
+  | Willpower (direct + fatigue) | 0.728 | 1.158 | 0.874 |
+  | Force Knowledge | 0.257 | 0 | 0 |
+  | Strength / Agility / Endurance (trained part) | 0.110 / 0.083 / 0.056 | 0.034 / 0.026 / 0.018 | 0.296 / 0.237 / 0.233 |
+
+  The full table for every archetype is the script's output and src/data/archetypes.ts.
+  Custom focus (character creation sliders): in the Knight+ and career phases, a change of
+  share Delta moves the skill's pace by Delta * 2 * (that archetype's main Knight+ pace); the
+  Order-fixed phases are unchanged (D-105, an approximation; reachability test 7 checks the
+  default shares).
+- History (before D-105): the secondary paces before Knight were ratios to the main form
+  (skill XP / main-form XP):
 
   | Skill | Initiate | Padawan |
   |---|---|---|
@@ -73,9 +110,7 @@ main skill and summed to far more training than a day holds (Jedi Guardian 3.9x,
   | Force Knowledge | 0.20 | 0 |
   | Strength / Agility / Endurance | 0.09 / 0.07 / 0.05 | 0.03 / 0.02 / 0.01 |
 
-  For the closed form, these phase paces are applied piecewise (the integral is split at
-  the rank ages). Knight+ uses the nominal share paces below; the simulated Knight+ secondary
-  hours are currently trimmed by the tiredness limit (open item D-67) and are not used.
+  (These ratios and the nominal Knight+ share paces are replaced by the measured table above.)
 
 | Archetype | Main specialty share | Other shares (old weight in brackets) | Old total |
 |---|---|---|---|
@@ -120,7 +155,8 @@ main skill and summed to far more training than a day holds (Jedi Guardian 3.9x,
 ## 7. Required tests
  1. Reference table above reproduces within +/-1 level (variance off).
  2. With the same inputs, the closed form matches a day-by-day simulation of the Average
-    profile within +/-2 levels at 10, 30 and 60 years (computed: +1.7, +0.2, -1.6; D-43).
+    profile within +/-2 levels at 10, 30 and 60 years (computed with D-105: +0.1, +0.1, -0.3;
+    D-43 had +1.7, +0.2, -1.6 before D-67).
  3. No generated NPC exceeds 4.0x pace; canon exceptions carry a justification.
  4. An NPC met again N years later has levels recomputed for the new age (growth, rust,
     body cap).

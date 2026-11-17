@@ -148,8 +148,11 @@ Saberstaff and Shii-Cho. Flag any the lore contradicts.
 | Investigation casework | study (0.05, 1.0) | Investigation | Intelligence 0.5, Charisma 0.2 |
 | Medical training | study (0.05, 1.0) | Medicine | Intelligence 0.4 |
 | Profession work | study or physical by kind | Profession:<kind> | Intelligence 0.2 |
+| Social practice (negotiation, performance, persuasion drills) | study (0.05, 1.0) | Charisma | Intelligence 0.3, Willpower 0.2 |
 
 These career activities have no bank entry; their weights are a design choice (D-53).
+Social practice was added in M3 (D-106): no activity trained Charisma, which the smuggler and
+civilian archetypes need.
 
 ## 5. Order requirements map to activities (ranks.md §1a)
 | Requirement | Activity |

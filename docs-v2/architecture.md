@@ -799,7 +799,8 @@ This section is the architecture.
   standard routine: the Order requirements for its rank (ranks.md §1a) as fixed
   commitments, filled up to the D-25 training budget by archetype shares, 300 training days
   per 368-day year. From Knight on, the main specialty takes a 0.5 share (D-41). K solves
-  to 14.69 with it (docs-v2/calc/progression-sim.mjs). Obi-Wan, Anakin and Luke use the same
+  to 14.69 with it, and to 15.18 once D-67 was decided with the natural baseline (D-102;
+  docs-v2/calc/progression-sim.mjs). Obi-Wan, Anakin and Luke use the same
   structure and change only effort (hours), talents, teachers, rank ages and combat events.
 - **XP unit** = effective practice hours. Fatigue, challenge factor, drill ceiling, combat
   integration and willpower follow progression-numbers.md exactly.
@@ -828,6 +829,11 @@ This section is the architecture.
   reputation) and a fact record is written. It never holds back XP or levels.
 - **Ranks** (Knight, Master, Council) are story-granted with skill minimums (ranks.md); the AI
   can only propose.
+- **Natural baseline (D-102).** Strength, Agility and Endurance start at half the body cap
+  for the age and species, Willpower at an age curve; training adds on top in XP terms
+  (progression-numbers §11a). Levels stay derived.
+- **Closed form (D-105).** NPC and created-character levels use measured phase paces per
+  archetype (npc-generation §1, §3), so they match the day loop within +/-0.3 level.
 - **Physical performance** = min(trained level, species body cap for age) + Force boost
   (grows with Force Control and body abilities). The boost offsets decline so effective
   performance can peak in the 60s, but age wins eventually. Force, knowledge and technique
@@ -907,7 +913,7 @@ The clock and the module contract come first, before any feature.
 |---|---|---|---|
 | M1 | Core and talk to the GM | Scaffold (Vite, TS strict, Vitest, Zod, ESLint); rng; calendar math; basic roll and checks as pure engine (rolls.md §1, §2, §7; D-34); FeatureModule, registry, applyEvents (temp refs, apply order, caps); clock in seconds and advanceTime (hook order, tests); pacing (moment, scene); provider, gemini and fixture adapters; settings and API key; minimal character (name, birth date, start date); two-step pipeline with the choice fast path and engine-decided checks; transcript and autosave; usage meter | Free story with a working clock and real dice |
 | M2 | Memory and lore | npcs (identity), locations, threads, facts, relationships; People tab and review queue; chapters and arc (chapterSummarized); context builder with caps and report; lore index and retrieval; export/import | Long campaigns that remember |
-| M3 | Progression and creation | Skills and activities (spec/skills-and-activities.md), curve, fatigue meters, computeXp, synergy, rust, state of mind, intent-driven activities (train / study / sleep), rest, the 4.0x clamp, NPC closed form and the Human body-cap table (moved from M5/M8, D-56), computed character creation, sheet UI, tier beats | Train in story and grow |
+| M3 | Progression and creation | Skills and activities (spec/skills-and-activities.md), curve, fatigue meters, computeXp, synergy, rust, state of mind, intent-driven activities (train / study / sleep), rest, the 4.0x clamp, NPC closed form and the Human body-cap table (moved from M5/M8, D-56), the species table and natural baseline (D-102, D-103), computed character creation, sheet UI, tier beats | Train in story and grow |
 | M4 | Time advance | Montage and timeSkip, routine scheduler, settling-in and staleness, thread deadlines, weighted events, interruptions, lifetime test (scripted combat via combat-xp.md math) | Skip months and years |
 | M5 | Combat and health | Duels and beats, Vitality, wounds, healing, NPC generation (talents, variance, minions), combat XP from the duel log; lifetime test re-run | Fight |
 | M6 | Force and alignment | Catalog data, Force meter, Force use, combat integration, Shatterpoint, alignment, dark pressure, concealment | Use the Force |
@@ -928,11 +934,11 @@ holds until replaced.
 | Order requirements | the ranks.md §1a table as static data, rank fixed at creation | M3-M4 lifetime test, routines | M7 |
 | Alignment multiplier in M | 1.0 | M3-M5 | M6 |
 | State-of-mind effects of alignment (dark pressure > 50) | D = 0 | M3-M5 | M6 |
-| Species body caps | Human table only (progression-numbers §11) | M3-M7 | M8 |
+| Species body caps | Human table only (progression-numbers §11); replaced early by species.md in M3 (D-103) | M3 | M3 |
 | Combat events in the lifetime test | scripted per combat-xp.md math | M4 | M5 (real duel log) |
 | Fight intents (D-70) | one engine check against the clamped difficulty (`STUB_FIGHT_AS_SINGLE_CHECK`) | M1-M4 | M5 (duels, rolls.md §3) |
 
-Planned specs (not yet written; named "planned" wherever cited): the species spec (M8; Human
+The species spec is written (spec/species.md) and built in M3 (D-103). Planned specs (not yet written; named "planned" wherever cited): formerly the species spec (M8; Human
 body cap is in progression-numbers §11) and the equipment spec (M8; D-27).
 
 ---
@@ -951,11 +957,7 @@ Answered by Jared on 2026-11-16 (logged in decisions.md):
 Answered in M1 (2026-11-16): the Gemini models, transport and free-tier limits (D-68; limits unverified until Jared checks AI Studio).
 
 Still open (to settle in the named milestone):
-- M8: species body-cap tables beyond Human (species spec, planned; Human is used until then, D-56).
+- M8: species LORE CHECKs (lifespans and traits in spec/species.md are design defaults; the table itself is built in M3, D-103).
 - M8: the equipment spec (planned: prices, credits economy, lightsaber properties).
-- M3/M4 (D-67, open): the Average profile's trained Endurance stays near 5 to age 20 (its
-  physical hours are trimmed first by the tiredness limit), which keeps fatigue capacity near
-  3.2 and leaves the Knight minimum Force Sense >= 30 unmet at 20-21 (28.2). Proposed
-  direction: an untrained natural baseline that grows with age (Endurance about half the
-  body cap, Willpower rising with age) and a conditioning hour in the Initiate and Padawan
-  Order requirements. Decide and tune both in the M3/M4 lifetime-test session, then re-solve K.
+- D-67 is decided (M3, D-102): natural baseline, no conditioning hour, Knight Force Sense
+  minimum 26, K = 15.18, and the phase-pace closed form (D-105).
