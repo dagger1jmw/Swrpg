@@ -48,6 +48,7 @@ export function parseImport<S extends BaseState>(registry: Registry<S>, raw: unk
     name: c['name'],
     createdAt: typeof c['createdAt'] === 'string' ? c['createdAt'] : '',
     lastPlayedAt: typeof c['lastPlayedAt'] === 'string' ? c['lastPlayedAt'] : '',
+    ...(typeof c['premise'] === 'string' && c['premise'] ? { premise: c['premise'] } : {}),
   };
   const t = raw['transcript'];
   if (!Array.isArray(t)) return { ok: false, error: 'The export has no transcript.' };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chooseModel, fallbackNotices, friendlyModelName, isDailyQuotaError, markExhausted } from '../../src/ai/fallback';
+import { chooseModel, fallbackNotices, isDailyQuotaError, markExhausted } from '../../src/ai/fallback';
 import { quotaScopeOf } from '../../src/ai/gemini';
 import { AiError } from '../../src/ai/provider';
 import { EMPTY_USAGE_LOG, recordRequest } from '../../src/ai/usage';
@@ -42,12 +42,14 @@ describe('model fallback (D-80)', () => {
     expect(chooseModel(LIST, q, EMPTY_USAGE_LOG, {}, NOV16_NOON_PT)).toMatchObject({ model: 'gemini-3.8-flash', allExhausted: true });
   });
 
-  it('header notices use friendly names and the requested wording', () => {
+  it('header notices name the real models (D-96: "Flash" named both 3.6 and 3.8)', () => {
     const lists = { narrative: LIST, intent: ['gemini-3.5-flash-lite'], summary: ['gemini-3.5-flash-lite'], ooc: ['gemini-3.5-flash-lite'] };
     const q = markExhausted({}, 'gemini-3.8-flash', NOV16_NOON_PT);
-    expect(fallbackNotices(lists, q, EMPTY_USAGE_LOG, {}, NOV16_NOON_PT)).toEqual(['Flash daily limit reached; using Flash-Lite until reset']);
+    expect(fallbackNotices(lists, q, EMPTY_USAGE_LOG, {}, NOV16_NOON_PT)).toEqual(['gemini-3.8-flash daily limit reached; using gemini-3.5-flash-lite until reset']);
     expect(fallbackNotices(lists, {}, EMPTY_USAGE_LOG, {}, NOV16_NOON_PT)).toEqual([]);
-    expect(friendlyModelName('gemini-4-hydrogen')).toBe('gemini-4-hydrogen');
+    const two = { ...lists, narrative: ['gemini-3.6-flash', 'gemini-3.8-flash', 'gemini-3.5-flash-lite'] };
+    const q2 = markExhausted(q, 'gemini-3.6-flash', NOV16_NOON_PT);
+    expect(fallbackNotices(two, q2, EMPTY_USAGE_LOG, {}, NOV16_NOON_PT)).toEqual(['gemini-3.6-flash, gemini-3.8-flash daily limit reached; using gemini-3.5-flash-lite until reset']);
   });
 
   it('only a daily-scope 429 counts as an exhausted quota', () => {

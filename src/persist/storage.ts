@@ -16,6 +16,8 @@ export interface CampaignRecord {
   name: string;
   createdAt: string;
   lastPlayedAt: string;
+  /** The player's opening premise, kept so an opening interrupted by a reload can be rerun. */
+  premise?: string;
 }
 
 export const AUTOSAVE_SLOT = 'autosave';

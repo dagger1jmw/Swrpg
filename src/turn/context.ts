@@ -286,7 +286,7 @@ function loreSection(
   );
   const item = (s: (typeof sel.included)[number]): ContextItem => ({ id: s.chunk.id, tokens: s.tokens, score: s.score, note: s.why.join('; ') });
   if (sel.included.length === 0) return { text: '', report: section('lore', CONTEXT_CAPS.lore, '', est, [], sel.dropped.map(item)) };
-  const text = [header, ...sel.included.map((s) => s.chunk.text)].join('\n\n');
+  const text = [header, ...sel.included.map((s) => s.text)].join('\n\n');
   return { text, report: section('lore', CONTEXT_CAPS.lore, text, est, sel.included.map(item), sel.dropped.map(item)) };
 }
 

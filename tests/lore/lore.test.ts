@@ -109,6 +109,16 @@ describe('lore retrieval', () => {
     const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661, playerText: normalizeText('Did Grand Master Zym send us?') }, 3000, est);
     expect(sel.included.map((s) => s.chunk.canonId)).toContain('lore:grand-master-zym');
   });
+  it('era overviews send only sentences up to the current year (D-98)', () => {
+    const at = (year: number, id: string) => retrieveLore(LORE_INDEX, { ...base, year }, 3000, est).included.find((s) => s.chunk.id === id)!.text;
+    const ggw = at(-3661, 'tl:great-galactic-war:overview');
+    expect(ggw).toContain('Mandalorian Blockade in year 20');
+    expect(ggw).not.toContain('Sacking of Coruscant');
+    expect(at(-3653, 'tl:great-galactic-war:overview')).toContain('Sacking of Coruscant');
+    expect(at(-3675, 'tl:great-galactic-war:overview')).not.toContain('Bothawui');
+    expect(at(-22, 'tl:clone-wars:overview')).not.toContain('Order 66');
+    expect(at(-3650, 'tl:cold-war:overview')).not.toMatch(/Grand Master|proxy conflicts/);
+  });
   it('respects the cap', () => {
     const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661 }, 400, est);
     expect(sel.tokens).toBeLessThanOrEqual(400);

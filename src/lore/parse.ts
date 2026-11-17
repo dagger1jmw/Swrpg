@@ -23,6 +23,11 @@ export interface LoreChunk {
   /** Normalized location names the chunk mentions. */
   locations: string[];
   text: string;
+  /**
+   * Era overviews only: the text split into dated sentences, so retrieval sends only what has
+   * happened by the current year (D-98). `text` is the whole overview, for reference.
+   */
+  parts?: { year: number; text: string }[];
 }
 
 export interface LoreEntity {
@@ -172,22 +177,15 @@ function parseTimeline(fileKey: string, content: string, out: LoreChunk[], vocab
   let overview: string[] | null = null;
   const groups = new Map<string, { from: number; to: number; era: Era; rows: string[]; names: Set<string>; places: Set<string> }>();
   const order: string[] = [];
+  // For dating overview sentences (D-98): named events and "Year N" headings per era.
+  const overviews: { era: Era; text: string }[] = [];
+  const eventsByEra = new Map<string, { name: string; year: number }[]>();
+  const yearNByEra = new Map<string, Map<number, number>>();
 
   const flushOverview = (): void => {
     if (era && overview) {
       const text = proseLines(overview);
-      if (text) {
-        out.push({
-          id: `${fileKey}:${era.slug}:overview`,
-          kind: 'overview',
-          title: `${era.title} (overview)`,
-          fromYear: era.from,
-          toYear: era.to,
-          names: [],
-          locations: [],
-          text: `${era.title}, ${formatRange(era.from, era.to)}. ${text}`,
-        });
-      }
+      if (text) overviews.push({ era, text });
     }
     overview = null;
   };
@@ -211,6 +209,16 @@ function parseTimeline(fileKey: string, content: string, out: LoreChunk[], vocab
     if (/^#{3,}\s/.test(line)) {
       flushOverview();
       eraJustOpened = false;
+      // "#### 3,661 BBY — Year 20" / "#### 3,659–3,654 BBY — Years 22-27": map war years to years.
+      const yh = /^####\s+(.*?)\s+[—–-]\s+Years?\s+(\d+)(?:\s*[-–]\s*(\d+))?/i.exec(line);
+      const yr = yh ? parseYearRange(yh[1]!) : null;
+      if (era && yh && yr) {
+        const map = yearNByEra.get(era.slug) ?? new Map<number, number>();
+        const n0 = Number(yh[2]);
+        const n1 = yh[3] ? Number(yh[3]) : n0;
+        for (let n = n0; n <= n1; n++) map.set(n, Math.min(yr.to, yr.from + (n - n0)));
+        yearNByEra.set(era.slug, map);
+      }
       if (/^###\s+Overview/i.test(line)) overview = [];
       continue;
     }
@@ -222,6 +230,12 @@ function parseTimeline(fileKey: string, content: string, out: LoreChunk[], vocab
       if (isSeparatorRow(cs) || /^date$/i.test(cs[0] ?? '')) continue;
       const [date = '', event = '', figures = '', location = ''] = cs;
       const range = parseYearRange(date) ?? { from: era.from, to: era.to };
+      const bold = /\|[^|]*\|\s*\*\*([^*]+)\*\*/.exec(line);
+      if (bold && parseYearRange(date)) {
+        const list = eventsByEra.get(era.slug) ?? [];
+        list.push({ name: bold[1]!.trim(), year: range.to });
+        eventsByEra.set(era.slug, list);
+      }
       const key = `${era.slug}:${range.from}_${range.to}`;
       let g = groups.get(key);
       if (!g) {
@@ -241,6 +255,22 @@ function parseTimeline(fileKey: string, content: string, out: LoreChunk[], vocab
   }
   flushOverview();
 
+  for (const o of overviews) {
+    const head = `${o.era.title}, ${formatRange(o.era.from, o.era.to)}.`;
+    const parts = [{ year: o.era.from, text: head }, ...dateOverview(o.text, o.era, eventsByEra.get(o.era.slug) ?? [], yearNByEra.get(o.era.slug) ?? new Map())];
+    out.push({
+      id: `${fileKey}:${o.era.slug}:overview`,
+      kind: 'overview',
+      title: `${o.era.title} (overview)`,
+      fromYear: o.era.from,
+      toYear: o.era.to,
+      names: [],
+      locations: [],
+      text: `${head} ${o.text}`,
+      parts,
+    });
+  }
+
   for (const key of order) {
     const g = groups.get(key)!;
     out.push({
@@ -254,6 +284,63 @@ function parseTimeline(fileKey: string, content: string, out: LoreChunk[], vocab
       text: `${g.era.title}, events of ${formatRange(g.from, g.to)}:\n${g.rows.join('\n')}`,
     });
   }
+}
+
+/** Words that put a sentence at the end of its era ("The war ends ...", "eventually", "later"). */
+const ERA_END = /\b(ends?|ended|ending|concludes?|eventually|later|finally|ultimately)\b/i;
+const EVENT_PREFIX = /^(?:(?:the|first|second|third|final)\s+)*(?:battle|siege|sacking|fall|destruction|invasion|assault|liberation|treaty|blockade|massacre)\s+(?:of|on|at)\s+(?:the\s+)?/;
+
+/**
+ * Splits an overview into sentences (list lines stay whole) and dates each one (D-98): the latest
+ * explicit BBY/ABY year, "year N" of the war (from the timeline's year headings), or a named
+ * timeline event of the era it mentions; era-end words date it to the era's last year. Overviews
+ * run in order, so a sentence is never dated before the one above it.
+ */
+export function dateOverview(
+  text: string,
+  era: { from: number; to: number },
+  events: readonly { name: string; year: number }[],
+  yearN: ReadonlyMap<number, number>,
+): { year: number; text: string }[] {
+  const keys: { key: string; year: number }[] = [];
+  const stripped = new Map<string, Set<number>>();
+  for (const e of events) {
+    const full = normalizeText(e.name);
+    keys.push({ key: full, year: e.year });
+    const short = full.replace(EVENT_PREFIX, '');
+    if (short !== full && short.length >= 5) stripped.set(short, (stripped.get(short) ?? new Set()).add(e.year));
+  }
+  // A stripped key ("bothawui") counts only when it names one year's events ("coruscant" does not).
+  for (const [key, years] of stripped) if (years.size === 1) keys.push({ key, year: [...years][0]! });
+
+  const own = (s: string): number | null => {
+    const years: number[] = [];
+    for (const m of s.matchAll(/([\d,]+)\s*(BBY|ABY)\b/gi)) {
+      const r = parseYearRange(m[0]);
+      if (r) years.push(r.to);
+    }
+    for (const m of s.matchAll(/\byears?\s+(\d+)\b/gi)) {
+      const y = yearN.get(Number(m[1]));
+      if (y !== undefined) years.push(y);
+    }
+    const norm = normalizeText(s);
+    for (const k of keys) if (textMentions(norm, k.key)) years.push(k.year);
+    if (ERA_END.test(s)) years.push(era.to);
+    return years.length ? Math.max(...years) : null;
+  };
+
+  const out: { year: number; text: string }[] = [];
+  let running = era.from;
+  for (const line of text.split('\n')) {
+    const pieces = /^\s*-\s/.test(line) || !line.trim() ? [line] : (line.match(/[^.!?]+[.!?]+["')\]]*|[^.!?]+$/g) ?? [line]);
+    pieces.forEach((piece, i) => {
+      const y = own(piece);
+      running = Math.max(running, y ?? running);
+      const last = i === pieces.length - 1;
+      out.push({ year: running, text: `${piece.trim()}${last ? '\n' : ' '}` });
+    });
+  }
+  return out.filter((p) => p.text.trim());
 }
 
 function titleCase(s: string): string {

@@ -197,3 +197,15 @@ D-81 to D-89 are the eight plan choices Jared approved for M2, plus the "major p
   - **Fallback banner:** the header said "Flash daily limit reached; using Flash until reset" because both models are named "Flash" (friendlyModelName, M1). It should name the models.
   - **Lost opening:** a reload before the opening commits leaves an empty turn-0 campaign with no way to start the opening except New campaign (M1).
   - **Unlinked player NPCs:** an NPC the player creates from the review queue never gets a canon link (canon matching runs only on narrative turns).
+
+## 2026-11-17 — M2 rough edges (Jared)
+
+- **D-97 Fallback banner and interrupted openings.**
+  - **Banner:** the fallback banner names the real model IDs ("gemini-3.6-flash daily limit reached; using gemini-3.5-flash-lite until reset") instead of "Flash" for both. friendlyModelName is removed.
+  - **Interrupted opening:** the opening premise is stored on the campaign record. A campaign whose opening never committed (turn 0, no transcript) shows "Write the opening" (reruns it with the stored premise) or "Discard and create a new character" instead of an empty game. Fixes the D-96 items.
+- **D-98 Era overviews split by date (Jared; amends D-93's known limit).**
+  - **How sentences are dated:** the lore build splits each era overview into sentences (list lines whole). Each sentence gets the latest year it names, from three sources: an explicit BBY/ABY year; "Year N" of the war, through the timeline's own "#### 3,661 BBY — Year 20" headings; or a named timeline event of that era. A stripped event key such as "Bothawui" counts only when it names one year's events, so "Coruscant" never does. Era-end words ("ends", "eventually", "later", "finally") date a sentence to the era's last year. Overviews run in order, so a sentence is never dated before the one above it.
+  - **What is sent:** retrieval sends only the sentences dated up to the current year. At 3,661 BBY the Great Galactic War overview stops at the Mandalorian Blockade of year 20; the Sacking (3,653) appears only from 3,653. Order 66 is hidden in the Clone Wars overview before 19 BBY.
+  - **Side effect:** undated sentences after a dated one wait for that date, which errs toward hiding. Docs/ is unchanged.
+  - **Not covered:** character entries are still whole-life texts (D-93: sent only when that person is in play, plus the prompt rule).
+- **D-99 Dev server pinned to port 5173 (strictPort).** localStorage is per origin, port included, so the API key, settings and usage meter reset whenever the port changed.

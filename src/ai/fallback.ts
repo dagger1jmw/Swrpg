@@ -63,13 +63,6 @@ export function isDailyQuotaError(e: unknown): boolean {
   return e instanceof AiError && e.kind === 'rateLimit' && e.quotaScope === 'day';
 }
 
-/** "gemini-3.8-flash" -> "Flash", "gemini-3.5-flash-lite" -> "Flash-Lite"; other IDs unchanged. */
-export function friendlyModelName(model: string): string {
-  if (/flash-lite/i.test(model)) return 'Flash-Lite';
-  if (/flash/i.test(model)) return 'Flash';
-  return model;
-}
-
 const CALL_LABELS: Record<CallType, string> = { narrative: '', intent: 'Intent: ', summary: 'Summary: ', ooc: 'OOC: ' };
 
 /** Header notices, one per call type that is currently on a fallback model. */
@@ -87,9 +80,10 @@ export function fallbackNotices(
     const c = chooseModel(list, quota, usage, limits, nowMs);
     const prefix = CALL_LABELS[callType];
     if (c.allExhausted && list.length > 0 && c.skipped.length > 0) {
-      out.push(`${prefix}${friendlyModelName(c.primary)} daily limit reached and no fallback left; requests may fail until reset`);
+      out.push(`${prefix}${c.skipped.map((s) => s.model).join(', ')} daily limit reached and no fallback left; requests may fail until reset`);
     } else if (c.model !== c.primary) {
-      out.push(`${prefix}${friendlyModelName(c.primary)} daily limit reached; using ${friendlyModelName(c.model)} until reset`);
+      // Real model IDs: "Flash" named both 3.6-flash and 3.8-flash (D-96).
+      out.push(`${prefix}${c.skipped.map((s) => s.model).join(', ')} daily limit reached; using ${c.model} until reset`);
     }
   }
   return out;

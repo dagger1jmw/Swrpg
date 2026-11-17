@@ -23,6 +23,8 @@ export interface LoreQuery {
 
 export interface ScoredChunk {
   chunk: LoreChunk;
+  /** The text sent: for an overview, only its sentences dated up to the current year (D-98). */
+  text: string;
   score: number;
   tokens: number;
   why: string[];
@@ -65,13 +67,24 @@ export function scoreChunk(c: LoreChunk, q: LoreQuery): { score: number; why: st
   return { score, why };
 }
 
+/** A chunk's text as of `year`: overviews drop sentences about later events (D-98). */
+export function chunkTextAt(c: LoreChunk, year: number): string {
+  if (!c.parts) return c.text;
+  return c.parts
+    .filter((p) => p.year <= year)
+    .map((p) => p.text)
+    .join('')
+    .trim();
+}
+
 export function retrieveLore(index: LoreIndex, q: LoreQuery, capTokens: number, estimate: (text: string) => number): LoreSelection {
   const scored: ScoredChunk[] = [];
   for (const chunk of index.chunks) {
     if (!isEligible(chunk, q.year)) continue;
     const { score, why } = scoreChunk(chunk, q);
     if (score <= 0) continue;
-    scored.push({ chunk, score, why, tokens: estimate(chunk.text) });
+    const text = chunkTextAt(chunk, q.year);
+    scored.push({ chunk, text, score, why, tokens: estimate(text) });
   }
   scored.sort((a, b) => b.score - a.score || (a.chunk.id < b.chunk.id ? -1 : a.chunk.id > b.chunk.id ? 1 : 0));
   const included: ScoredChunk[] = [];

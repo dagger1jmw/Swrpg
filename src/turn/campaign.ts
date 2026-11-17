@@ -15,6 +15,8 @@ export interface NewCampaignInput {
   startDate: CalendarDate;
   /** Second of the start day. */
   startSecond: number;
+  /** Optional opening premise (stored on the campaign record). */
+  premise?: string;
 }
 
 /** Character creation default start (character-creation.md §1: 3,661 BBY, D-01), 07:00. */
@@ -34,6 +36,11 @@ export function validateNewCampaign(input: NewCampaignInput): string[] {
   return errors;
 }
 
+/** True when the campaign was created but its opening turn never committed (e.g. a reload mid-call). */
+export function openingPending(session: Session): boolean {
+  return session.state.meta.turn === 0 && session.history.length === 0;
+}
+
 export async function createCampaign(
   registry: Registry<GameState>,
   storage: Storage,
@@ -50,7 +57,8 @@ export async function createCampaign(
     start: { day: absDayFromDate(input.startDate), second: input.startSecond },
     character: { name: input.name.trim(), birthDay: absDayFromDate(input.birthDate) },
   });
-  const campaign: CampaignRecord = { campaignId: ids.campaignId, name: input.name.trim(), createdAt: wallIso, lastPlayedAt: wallIso };
+  const premise = input.premise?.trim() ?? '';
+  const campaign: CampaignRecord = { campaignId: ids.campaignId, name: input.name.trim(), createdAt: wallIso, lastPlayedAt: wallIso, ...(premise ? { premise } : {}) };
   await storage.commitTurn(makeEnvelope(registry, state, wallIso), campaign, null);
   return { state, history: [], campaign };
 }

@@ -8,7 +8,7 @@ import { loadEnvelope } from '../../src/persist/envelope';
 import { AUTOSAVE_SLOT, createMemoryStorage } from '../../src/persist/storage';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
-import { createCampaign, DEFAULT_START } from '../../src/turn/campaign';
+import { createCampaign, DEFAULT_START, openingPending, resumeCampaign } from '../../src/turn/campaign';
 import { playTurn, summarizeChapters, type DebugRequest, type Session, type TurnDeps } from '../../src/turn/pipeline';
 import openingM2 from '../fixtures/ai/opening-m2.json';
 
@@ -62,6 +62,16 @@ const quiet = (events: unknown[] = []) => ({
   events: [{ type: 'timeElapsed', seconds: 60, reason: 'a moment' }, ...events],
 });
 const restChoice = { label: 'Wait', intent: { actionType: 'rest' as const } };
+
+describe('interrupted opening (D-97)', () => {
+  it('a campaign whose opening never committed is detected and keeps its premise', async () => {
+    const { deps } = setup([]);
+    await createCampaign(deps.registry, deps.storage, { name: 'Kael', birthDate: { year: -3675, month: 3, day: 4 }, startDate: DEFAULT_START.date, startSecond: DEFAULT_START.second, premise: ' A Padawan. ' }, { campaignId: 'c-open', branchId: 'b' }, 'now');
+    const resumed = await resumeCampaign(deps.registry, deps.storage);
+    expect(resumed && 'session' in resumed && openingPending(resumed.session)).toBe(true);
+    expect(resumed && 'session' in resumed && resumed.session.campaign.premise).toBe('A Padawan.');
+  });
+});
 
 describe('M2 pipeline: memory and lore', () => {
   it('the GM introduces people, places and threads; unknown names go to review; canon NPCs are linked', async () => {

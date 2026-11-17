@@ -37,7 +37,7 @@ import { selectPacingLevel } from '../features/pacing/selectors';
 import type { Storage } from '../persist/storage';
 import type { GameState } from '../state/gameState';
 import type { Registry } from '../state/types';
-import { createCampaign, DEFAULT_START, resumeCampaign, validateNewCampaign } from '../turn/campaign';
+import { createCampaign, DEFAULT_START, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
 import { narrateTurn, prepareTurn, TurnError, type PendingTurn, type Session, type TurnDeps } from '../turn/pipeline';
 import { describeInput, type TurnInput, type TurnRecord } from '../turn/record';
 import { clear, el, input, paragraphs } from './dom';
@@ -402,7 +402,7 @@ export class App {
     updateAge();
 
     const begin = async (): Promise<void> => {
-      const req = { name: name.value, birthDate: birth.read(), startDate: startD.read(), startSecond: readTime() };
+      const req = { name: name.value, birthDate: birth.read(), startDate: startD.read(), startSecond: readTime(), premise: premise.value };
       const errors = validateNewCampaign(req);
       if (errors.length) {
         err.textContent = errors.join(' ');
@@ -454,6 +454,18 @@ export class App {
       session.history.map((r) => this.renderTurn(r)),
     );
 
+    // The opening never committed (a reload mid-call): rerun it with the stored premise, or discard.
+    const openingBox =
+      openingPending(session) && !this.busy && !this.failed
+        ? el('div', { class: 'banner' }, [
+            el('span', { text: 'The opening scene was not written (the page was reloaded before it finished).' }),
+            el('div', { class: 'row' }, [
+              el('button', { text: 'Write the opening', on: { click: () => void this.runTurn({ kind: 'opening', premise: session.campaign.premise ?? '' }) } }),
+              el('button', { class: 'secondary', text: 'Discard and create a new character', on: { click: () => this.go('create') } }),
+            ]),
+          ])
+        : null;
+
     const choices =
       last && !this.busy && !this.failed
         ? el(
@@ -500,6 +512,7 @@ export class App {
       this.busy ? el('div', { class: 'busy', text: this.summarizing ? 'A chapter closed. Writing its summary...' : 'The GM is thinking...' }) : null,
       !this.busy && this.failed && this.failed.input.kind !== 'opening' ? el('div', { class: 'feed' }, [el('div', { class: 'player', text: describeInput(this.failed.input) })]) : null,
       banner,
+      openingBox,
       choices,
       el('div', { class: 'composer' }, [text, sendBtn]),
       this.panelOpen

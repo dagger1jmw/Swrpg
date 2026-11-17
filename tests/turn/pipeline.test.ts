@@ -255,7 +255,7 @@ describe('daily-quota model fallback (D-80)', () => {
     expect(record.calls.map((c) => c.outcome)).toEqual(['rateLimit:day', 'ok']);
     expect(record.draft.checks).toEqual(pending.resolution.draft.checks);
     expect(record.draft.report.some((r) => r.includes('using fallback gemini-3.5-flash-lite'))).toBe(true);
-    expect(router.notices()).toEqual(['Flash daily limit reached; using Flash-Lite until reset']);
+    expect(router.notices()).toEqual(['gemini-3.8-flash daily limit reached; using gemini-3.5-flash-lite until reset']);
     expect(Object.keys(store.quota)).toEqual(['gemini-3.8-flash']);
 
     // The next turn goes straight to Flash-Lite: no wasted call on Flash.
@@ -324,10 +324,10 @@ describe('daily-quota model fallback (D-80)', () => {
     expect(err.stage).toBe('narrate');
     expect(provider.calls).toHaveLength(3);
     expect(router.notices()).toEqual([
-      'Flash daily limit reached and no fallback left; requests may fail until reset',
-      'Intent: Flash-Lite daily limit reached and no fallback left; requests may fail until reset',
-      'Summary: Flash-Lite daily limit reached and no fallback left; requests may fail until reset',
-      'OOC: Flash-Lite daily limit reached and no fallback left; requests may fail until reset',
+      'gemini-3.8-flash, gemini-3.5-flash-lite daily limit reached and no fallback left; requests may fail until reset',
+      'Intent: gemini-3.5-flash-lite daily limit reached and no fallback left; requests may fail until reset',
+      'Summary: gemini-3.5-flash-lite daily limit reached and no fallback left; requests may fail until reset',
+      'OOC: gemini-3.5-flash-lite daily limit reached and no fallback left; requests may fail until reset',
     ]);
     // A single-model list (intent) makes one call and errors; there is only one API key.
     const e2 = (await playTurn(deps, s1, { kind: 'typed', text: 'hi' }).catch((e: unknown) => e)) as TurnError;
