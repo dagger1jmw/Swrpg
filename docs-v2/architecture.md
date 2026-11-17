@@ -922,7 +922,7 @@ This section is the architecture.
   and every tag in ai-contract-legacy.md appears in the mapping table; every composed response
   schema stays under the size cap.
 - **Determinism**: same seed and inputs give identical state (duels, montages, NPCs).
-- **Lifetime test** (section 12) runs in `npm test`.
+- **Lifetime test** (section 12) runs in `npm run test:lifetime` and `npm run test:all`, not in `npm test` (CLAUDE.md golden rule 6): test:all at the end of each milestone and before any change to progression numbers.
 - `npm test`, `npm run typecheck` and `npm run lint` must pass before any task is done.
 
 ---
