@@ -91,8 +91,14 @@ export interface EventDef<Slice, S extends BaseState = BaseState> {
   phase?: EventPhase;
   /** Field holding the event's target, for de-duplication, per-target caps and resolved-action checks. */
   targetField?: string;
-  /** Fields that may hold a reference (a stable ID or a same-turn temp key). Arrays allowed. */
+  /**
+   * Fields that may hold a reference (a stable ID, an exact alias, or a same-turn temp key).
+   * A scalar field with an unknown ref rejects the event; unknown items of an array field are
+   * dropped with a note. Either way the name goes to `unknownRefs` (the review queue, D-13).
+   */
   refFields?: readonly string[];
+  /** Entity kinds a ref field may resolve to (feature `refKind`s). Absent = any kind. */
+  refKinds?: Readonly<Record<string, readonly string[]>>;
   handle(slice: Slice, event: GameEvent, ctx: ApplyCtx<S>): HandleResult<Slice>;
 }
 
@@ -116,10 +122,19 @@ export interface FeatureModule<Slice = unknown, S extends BaseState = BaseState>
   id: string;
   version: number;
   initialState(ctx: InitCtx): Slice;
+  /** The slice for a save made before this feature existed (load fills it in); absent = such saves are refused. */
+  emptyState?(): Slice;
   stateSchema: ZodType<Slice>;
   events: Record<string, EventDef<Slice, S>>;
   onTimeAdvanced?(slice: Slice, step: TimeStep, ctx: ApplyCtx<S>): HookResult<Slice>;
   selectors: Record<string, (state: S) => unknown>;
+  /** The entity kind this feature owns ('npc', 'loc', 'thread'); used with EventDef.refKinds. */
+  refKind?: string;
+  /**
+   * Resolves a ref to one of this feature's entities: its own stable ID if it exists, or an
+   * exact normalized alias (architecture §3, D-13). Null when it is not this feature's entity.
+   */
+  resolveRef?(state: S, ref: string): string | null;
   promptSection?(state: S): string | null;
   migrations?: Record<number, (old: unknown) => unknown>;
 }

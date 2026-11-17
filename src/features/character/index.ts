@@ -3,7 +3,7 @@ import { ageInYears, fromAbsSecond } from '../../engine/calendar';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule } from '../../state/types';
 import { characterSliceSchema, type CharacterSlice } from './character';
-import { selectAge, selectBirthDay, selectCharacterName } from './selectors';
+import { PC_REF, selectAge, selectBirthDay, selectCharacterName } from './selectors';
 
 export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
   id: 'character',
@@ -11,6 +11,9 @@ export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
   initialState: (ctx) => ({ id: `character:${ctx.campaignId}`, name: ctx.character.name, birthDay: ctx.character.birthDay }),
   stateSchema: characterSliceSchema,
   events: {},
+  // The player character is referenced as "pc" (e.g. factLearned about the character, M2).
+  refKind: 'pc',
+  resolveRef: (_state, ref) => (ref === PC_REF ? PC_REF : null),
   onTimeAdvanced: (slice, step) => {
     if (!step.endsDay) return { slice };
     // The day that starts at the end of this step.

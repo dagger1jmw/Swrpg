@@ -76,3 +76,19 @@ export function isScannableAlias(alias: string): boolean {
 export function slugify(text: string): string {
   return normalizeText(text).replace(/'/g, '').replace(/[\s-]+/g, '-').replace(/^-|-$/g, '') || 'unnamed';
 }
+
+/** A stable `<prefix>:<slug>` ID, suffixed -2, -3... when taken. */
+export function mintId(prefix: string, name: string, taken: (id: string) => boolean): string {
+  const base = `${prefix}:${slugify(name)}`;
+  let id = base;
+  for (let n = 2; taken(id); n++) id = `${base}-${n}`;
+  return id;
+}
+
+/** The one entity whose names match `ref` exactly after normalization; null when none or ambiguous. */
+export function uniqueAliasMatch<T>(entities: readonly T[], names: (e: T) => readonly string[], ref: string): T | null {
+  const alias = normalizeAlias(ref);
+  if (!alias) return null;
+  const hits = entities.filter((e) => names(e).some((n) => normalizeAlias(n) === alias));
+  return hits.length === 1 ? hits[0]! : null;
+}

@@ -16,6 +16,13 @@ export interface RejectedEvent {
   reason: string;
 }
 
+/** A reference no feature could resolve (no ID, no exact alias): it goes to the review queue. */
+export interface UnknownRef {
+  name: string;
+  eventType: string;
+  field: string;
+}
+
 export interface ApplyResult<S extends BaseState> {
   state: S;
   applied: AppliedEvent[];
@@ -24,6 +31,8 @@ export interface ApplyResult<S extends BaseState> {
   tempMap: Record<string, string>;
   /** Notices from time advances (birthdays, ...), for the report. */
   notices: string[];
+  /** Refs that matched no entity (D-13); the pipeline queues them for player review. */
+  unknownRefs: UnknownRef[];
   /** Set when a time advance was stopped by an interruption. */
   interrupted?: string;
 }
@@ -79,8 +88,10 @@ export function applyEvents<S extends BaseState>(
   const rejected: RejectedEvent[] = [];
   const tempMap: Record<string, string> = {};
   const notices: string[] = [];
+  const unknownRefs: UnknownRef[] = [];
   let interrupted: string | undefined;
   let state = initial;
+  const resolvers = registry.filter((f) => f.resolveRef);
 
   // 1. Shape, owner, source and Zod validation.
   const valid: Pending[] = [];
@@ -164,7 +175,17 @@ export function applyEvents<S extends BaseState>(
     if (depth > MAX_EMIT_DEPTH) throw new Error(`Emitted events deeper than ${MAX_EMIT_DEPTH} (at ${event.type}): a handler loop`);
     const { feature, def } = owners.get(event.type)!;
 
-    const substituted = substituteTempRefs(def, event, index, createdAt, tempMap);
+    const substituted = substituteRefs(def, event, index, createdAt, tempMap, (ref, field) => {
+      if (resolvers.length === 0) return ref; // no entity features: refs pass through unchanged
+      const kinds = def.refKinds?.[field];
+      for (const f of resolvers) {
+        if (kinds && (!f.refKind || !kinds.includes(f.refKind))) continue;
+        const id = f.resolveRef!(state, ref);
+        if (id !== null) return id;
+      }
+      return null;
+    });
+    unknownRefs.push(...substituted.unknown.map((u) => ({ ...u, eventType: event.type })));
     if ('reason' in substituted) {
       rejected.push({ event, reason: substituted.reason });
       return;
@@ -177,7 +198,7 @@ export function applyEvents<S extends BaseState>(
     }
     state = { ...state, [feature.id]: result.slice };
     if (result.rng) state = { ...state, meta: { ...state.meta, rngState: result.rng } };
-    applied.push({ event: e, source, notes: result.notes ?? [] });
+    applied.push({ event: e, source, notes: [...substituted.notes, ...(result.notes ?? [])] });
     if (result.advance) {
       if (def.phase !== 'time') throw new Error(`${event.type} requested a time advance but is not a time-phase event`);
       const adv = advanceTime(registry, state, result.advance);
@@ -185,6 +206,7 @@ export function applyEvents<S extends BaseState>(
       applied.push(...adv.applied);
       rejected.push(...adv.rejected);
       notices.push(...adv.notices);
+      unknownRefs.push(...adv.unknownRefs);
       if (adv.interrupted !== undefined) interrupted ??= adv.interrupted;
     }
     const key = event['key'];
@@ -201,7 +223,7 @@ export function applyEvents<S extends BaseState>(
   };
 
   for (const p of ordered) applyOne(p.event, opts.source, 0, p.index);
-  return { state, applied, rejected, tempMap, notices, ...(interrupted !== undefined ? { interrupted } : {}) };
+  return { state, applied, rejected, tempMap, notices, unknownRefs, ...(interrupted !== undefined ? { interrupted } : {}) };
 }
 
 function validate<S extends BaseState>(
@@ -221,30 +243,57 @@ function validate<S extends BaseState>(
   return { event: parsed.data as GameEvent };
 }
 
-function substituteTempRefs(
+type Substituted =
+  | { event: GameEvent; notes: string[]; unknown: Omit<UnknownRef, 'eventType'>[] }
+  | { reason: string; unknown: Omit<UnknownRef, 'eventType'>[] };
+
+/**
+ * Maps temp keys to minted IDs (D-32) and resolves other refs through the entity features
+ * (IDs or exact aliases, D-13). Unknown scalar refs reject the event; unknown array items are
+ * dropped with a note.
+ */
+function substituteRefs(
   def: { refFields?: readonly string[] | undefined },
   event: GameEvent,
   index: number,
   createdAt: Map<string, number>,
   tempMap: Record<string, string>,
-): { event: GameEvent } | { reason: string } {
-  if (!def.refFields?.length) return { event };
+  resolve: (ref: string, field: string) => string | null,
+): Substituted {
+  const unknown: Omit<UnknownRef, 'eventType'>[] = [];
+  const notes: string[] = [];
+  if (!def.refFields?.length) return { event, notes, unknown };
   const out: Record<string, unknown> = { ...event };
   for (const field of def.refFields) {
     const v = out[field];
     if (v === undefined) continue;
-    const values = Array.isArray(v) ? v : [v];
+    const isArray = Array.isArray(v);
+    const values: unknown[] = isArray ? v : [v];
     const mapped: unknown[] = [];
     for (const ref of values) {
-      if (typeof ref === 'string' && TEMP_KEY_PATTERN.test(ref)) {
+      if (typeof ref !== 'string') {
+        mapped.push(ref);
+        continue;
+      }
+      if (TEMP_KEY_PATTERN.test(ref)) {
         const r = resolveTempRef(ref, index, createdAt, tempMap);
-        if ('reason' in r) return r;
+        if ('reason' in r) return { reason: r.reason, unknown };
         mapped.push(r.id);
-      } else mapped.push(ref);
+        continue;
+      }
+      const id = resolve(ref, field);
+      if (id !== null) {
+        if (id !== ref) notes.push(`${field} "${ref}" matched ${id} by exact alias`);
+        if (!mapped.includes(id)) mapped.push(id);
+        continue;
+      }
+      unknown.push({ name: ref, field });
+      if (!isArray) return { reason: `unknown reference ${field} "${ref}" (sent to the review queue)`, unknown };
+      notes.push(`${field}: unknown reference "${ref}" dropped (sent to the review queue)`);
     }
-    out[field] = Array.isArray(v) ? mapped : mapped[0];
+    out[field] = isArray ? mapped : mapped[0];
   }
-  return { event: out as GameEvent };
+  return { event: out as GameEvent, notes, unknown };
 }
 
 /** Resolves a temp key used at reply position `index`. */

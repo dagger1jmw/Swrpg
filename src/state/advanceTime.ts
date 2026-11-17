@@ -3,7 +3,7 @@
 // stops after that step and the state equals the state at the interruption. Pure.
 import { splitAtMidnights } from '../engine/calendar';
 import { setClockNow, setLastAdvance, type ClockSlice, type LastAdvance } from '../features/clock/clock';
-import { applyEvents, type AppliedEvent, type RejectedEvent } from './applyEvents';
+import { applyEvents, type AppliedEvent, type RejectedEvent, type UnknownRef } from './applyEvents';
 import type { BaseState, Registry, TimeAdvance, TimeStep } from './types';
 
 type ClockedState = BaseState & { clock: ClockSlice };
@@ -13,6 +13,7 @@ export interface AdvanceResult<S> {
   applied: AppliedEvent[];
   rejected: RejectedEvent[];
   notices: string[];
+  unknownRefs: UnknownRef[];
   secondsAdvanced: number;
   interrupted?: string;
 }
@@ -23,6 +24,7 @@ export function advanceTime<S extends BaseState>(registry: Registry<S>, initial:
   const applied: AppliedEvent[] = [];
   const rejected: RejectedEvent[] = [];
   const notices: string[] = [];
+  const unknownRefs: UnknownRef[] = [];
   let elapsed = 0;
   let interrupted: string | undefined;
 
@@ -48,6 +50,7 @@ export function advanceTime<S extends BaseState>(registry: Registry<S>, initial:
         applied.push(...r.applied);
         rejected.push(...r.rejected);
         notices.push(...r.notices);
+        unknownRefs.push(...r.unknownRefs);
       }
       if (res.interrupt !== undefined && interrupted === undefined) interrupted = res.interrupt;
     }
@@ -63,5 +66,5 @@ export function advanceTime<S extends BaseState>(registry: Registry<S>, initial:
     ...(interrupted !== undefined ? { interruptedBy: interrupted } : {}),
   };
   state = { ...state, clock: setLastAdvance(state.clock, last) };
-  return { state, applied, rejected, notices, secondsAdvanced: elapsed, ...(interrupted !== undefined ? { interrupted } : {}) };
+  return { state, applied, rejected, notices, unknownRefs, secondsAdvanced: elapsed, ...(interrupted !== undefined ? { interrupted } : {}) };
 }

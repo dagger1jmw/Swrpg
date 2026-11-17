@@ -220,3 +220,54 @@ describe('registry tools', () => {
     expect(schema.safeParse({ ...s, meta: { ...s.meta, turn: -1 } }).success).toBe(false);
   });
 });
+
+describe('applyEvents ref resolution (D-13)', () => {
+  // A feature that owns `thing:` IDs and resolves exact names.
+  const owning: FeatureModule<Things, TState> = {
+    ...things,
+    refKind: 'thing',
+    resolveRef: (s, ref) => {
+      if (s.things.byId[ref]) return ref;
+      const hit = Object.entries(s.things.byId).find(([, t]) => t.name.toLowerCase() === ref.toLowerCase());
+      return hit ? hit[0] : null;
+    },
+    events: {
+      ...things.events,
+      thingsGrouped: {
+        schema: z.object({ type: z.literal('thingsGrouped'), refs: z.array(z.string()) }),
+        sources: ['ai'],
+        refFields: ['refs'],
+        handle: (slice, e) => ({ slice: { ...slice, log: [...slice.log, `group ${(e['refs'] as string[]).join(',')}`] } }),
+      },
+      thingsLinked: { ...things.events['thingsLinked']!, refKinds: { a: ['thing'], b: ['thing'] } },
+    },
+  };
+  const reg = [owning, mood] as const;
+  const start = (): TState => applyEvents(reg, createInitialState<TState>(reg, ctx), [{ type: 'thingIntroduced', name: 'Ilum' }], { source: 'ai' }).state;
+
+  it('an exact alias resolves to the stable ID, with a note', () => {
+    const r = applyEvents(reg, start(), [{ type: 'thingIntroduced', name: 'Kyber' }, { type: 'thingsLinked', a: 'ILUM', b: 'thing:kyber' }], { source: 'ai' });
+    expect(r.rejected).toEqual([]);
+    expect(r.state.things.links).toEqual([['thing:ilum', 'thing:kyber']]);
+    expect(r.applied[1]!.notes[0]).toMatch(/matched thing:ilum by exact alias/);
+  });
+
+  it('an unknown scalar ref rejects the event and reports the name', () => {
+    const r = applyEvents(reg, start(), [{ type: 'thingsLinked', a: 'thing:ilum', b: 'Dantooine' }], { source: 'ai' });
+    expect(r.rejected[0]!.reason).toMatch(/unknown reference b "Dantooine"/);
+    expect(r.unknownRefs).toEqual([{ name: 'Dantooine', field: 'b', eventType: 'thingsLinked' }]);
+  });
+
+  it('unknown array items are dropped, the event still applies', () => {
+    const r = applyEvents(reg, start(), [{ type: 'thingsGrouped', refs: ['Ilum', 'Hoth'] }], { source: 'ai' });
+    expect(r.rejected).toEqual([]);
+    expect(r.state.things.log.at(-1)).toBe('group thing:ilum');
+    expect(r.unknownRefs.map((u) => u.name)).toEqual(['Hoth']);
+  });
+
+  it('refKinds limit which features may resolve a field', () => {
+    const r = applyEvents(reg, start(), [{ type: 'relationshipChanged', npcRef: 'Ilum', delta: 1 }], { source: 'ai' });
+    // relationshipChanged has no refKinds, so any resolver may answer
+    expect(r.state.mood.rel).toEqual({ 'thing:ilum': 1 });
+  });
+});

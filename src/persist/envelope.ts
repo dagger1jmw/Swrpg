@@ -52,7 +52,12 @@ export function loadEnvelope<S extends BaseState>(
   if (!isRecord(stored) || !isRecord(state)) return { ok: false, error: 'The save is missing its state or feature versions.' };
   const migrated: Record<string, unknown> = { ...state };
   for (const f of registry) {
-    const from = stored[f.id];
+    let from = stored[f.id];
+    if (from === undefined && !(f.id in state) && f.emptyState) {
+      // A feature added after this save was made: start it empty (M2 entities on an M1 save).
+      migrated[f.id] = f.emptyState();
+      from = f.version;
+    }
     if (typeof from !== 'number') return { ok: false, error: `The save has no version for feature ${f.id}.` };
     if (from > f.version) return { ok: false, error: `Feature ${f.id} is from a newer version (${from} > ${f.version}).` };
     try {

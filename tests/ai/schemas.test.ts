@@ -40,8 +40,10 @@ describe('response schemas (architecture §3, D-15, D-68)', () => {
   });
 
   it('leaves timeElapsed out when the TurnDraft advanced time (D-30)', () => {
-    expect(narrativeEventTypes(REGISTRY, state, { timeAdvancedByDraft: false })).toEqual(['timeElapsed', 'pacingSuggested']);
-    expect(narrativeEventTypes(REGISTRY, state, { timeAdvancedByDraft: true })).toEqual(['pacingSuggested']);
+    const withTime = narrativeEventTypes(REGISTRY, state, { timeAdvancedByDraft: false });
+    expect(withTime).toContain('timeElapsed');
+    expect(withTime).toContain('pacingSuggested');
+    expect(narrativeEventTypes(REGISTRY, state, { timeAdvancedByDraft: true })).not.toContain('timeElapsed');
     const withDraft = composeNarrativeSchema(REGISTRY, state, { timeAdvancedByDraft: true }).wire;
     const reply = {
       narrative: 'x',
