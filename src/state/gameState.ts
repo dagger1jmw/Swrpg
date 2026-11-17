@@ -11,6 +11,7 @@ import type { RanksSlice } from '../features/ranks/ranks';
 import type { RelationshipsSlice } from '../features/relationships/relationships';
 import type { RoutinesSlice } from '../features/routines/routines';
 import type { ThreadsSlice } from '../features/threads/threads';
+import type { WorldSlice } from '../features/world/world';
 import type { Meta } from './types';
 
 export type GameState = {
@@ -26,5 +27,6 @@ export type GameState = {
   relationships: RelationshipsSlice;
   threads: ThreadsSlice;
   ranks: RanksSlice;
+  world: WorldSlice;
   pacing: PacingSlice;
 };

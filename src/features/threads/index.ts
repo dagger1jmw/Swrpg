@@ -1,7 +1,9 @@
 // threads feature (architecture §2): story threads with stakes, notes and an engine-mapped
-// deadline. Escalation and deadline consequences come with the thread day hook in M4.
+// deadline. The day hook raises escalation from the deadline (M4, D-135).
 import { z } from 'zod';
-import { DEADLINE_DAYS, DEADLINE_HINTS, LIMITS, THREAD_OUTCOMES, type DeadlineHint } from '../../data/entities.config';
+import { DEADLINE_DAYS, DEADLINE_HINTS, LIMITS, THREAD_ESCALATION, THREAD_OUTCOMES, type DeadlineHint } from '../../data/entities.config';
+import { fromAbsSecond } from '../../engine/calendar';
+import type { GameEvent } from '../../state/types';
 import { mintId } from '../../engine/aliases';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule } from '../../state/types';
@@ -96,6 +98,40 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
         return { slice: { byId: { ...r.byId, [id]: { ...t, status: e['outcome'] as Thread['status'], closedDay: selectNow(ctx.state).day } } } };
       },
     },
+    /** The engine raised a thread's escalation from its deadline (D-60, D-135). */
+    threadEscalated: {
+      schema: z.object({ type: z.literal('threadEscalated'), threadRef: z.string(), level: z.number().int().min(1).max(3) }),
+      sources: ['engine'],
+      targetField: 'threadRef',
+      handle: (slice, e) => {
+        const id = String(e['threadRef']);
+        const t = slice.byId[id];
+        if (!t || t.status !== 'open') return { reject: `no open thread ${id}` };
+        const level = Number(e['level']);
+        if (level <= t.escalation) return { reject: `thread ${id} is already at escalation ${t.escalation}` };
+        return { slice: { byId: { ...slice.byId, [id]: { ...t, escalation: level } } } };
+      },
+    },
+  },
+  // Deadlines (architecture §10 slot 6, D-135): once per day, raise the escalation of open threads whose
+  // deadline is near, here or past; the deadline day and being overdue interrupt a jump.
+  onTimeAdvanced: (slice, step) => {
+    if (!step.endsDay) return { slice };
+    const day = fromAbsSecond(step.toAbs).day;
+    const emit: GameEvent[] = [];
+    const notices: string[] = [];
+    let interrupt: string | undefined;
+    for (const t of Object.values(slice.byId)) {
+      if (t.status !== 'open' || t.deadlineDay === null) continue;
+      const left = t.deadlineDay - day;
+      const level = left <= -THREAD_ESCALATION.overdueDays ? 3 : left <= 0 ? 2 : left <= THREAD_ESCALATION.soonDays ? 1 : 0;
+      if (level <= t.escalation) continue;
+      emit.push({ type: 'threadEscalated', threadRef: t.id, level });
+      const what = level === 3 ? `is ${-left} days overdue` : level === 2 ? 'has reached its deadline' : `is due in ${left} days`;
+      notices.push(`"${t.title}" ${what}.`);
+      if (level >= 2 && interrupt === undefined) interrupt = `"${t.title}" ${what}`;
+    }
+    return { slice, ...(emit.length ? { emit } : {}), ...(notices.length ? { notices } : {}), ...(interrupt ? { interrupt } : {}) };
   },
   selectors: { all: selectThreads, open: selectOpenThreads },
 };

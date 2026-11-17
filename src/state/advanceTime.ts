@@ -36,6 +36,7 @@ export function advanceTime<S extends BaseState>(registry: Registry<S>, initial:
       seconds: seg.seconds,
       endsDay: seg.endsAtMidnight,
       occupation: adv.occupation ?? 'rest',
+      jump: adv.jump === true,
     };
     state = { ...state, clock: setClockNow(state.clock, seg.to) };
     elapsed += seg.seconds;
@@ -43,7 +44,7 @@ export function advanceTime<S extends BaseState>(registry: Registry<S>, initial:
     for (const feature of registry) {
       if (!feature.onTimeAdvanced) continue;
       const res = feature.onTimeAdvanced(state[feature.id], step, { state, source: 'engine' });
-      state = { ...state, [feature.id]: res.slice };
+      state = { ...state, [feature.id]: res.slice, ...(res.rng ? { meta: { ...state.meta, rngState: res.rng } } : {}) };
       notices.push(...(res.notices ?? []));
       if (res.emit?.length) {
         const r = applyEvents(registry, state as S, res.emit, { source: 'engine' });
@@ -53,7 +54,8 @@ export function advanceTime<S extends BaseState>(registry: Registry<S>, initial:
         notices.push(...r.notices);
         unknownRefs.push(...r.unknownRefs);
       }
-      if (res.interrupt !== undefined && interrupted === undefined) interrupted = res.interrupt;
+      // Only a jump stops on an interruption (D-134); in a story turn the hook's notice is enough.
+      if (res.interrupt !== undefined && interrupted === undefined && step.jump) interrupted = res.interrupt;
     }
     if (interrupted !== undefined) break;
   }

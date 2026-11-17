@@ -39,6 +39,8 @@ export interface TimeStep {
   endsDay: boolean;
   /** What the time is spent on (M3; default rest). */
   occupation: Occupation;
+  /** Part of a montage or time skip (M4): world events roll and significant events interrupt (D-134). */
+  jump: boolean;
 }
 
 /** An action the TurnDraft already resolved; narrative events of the same type and target are rejected (D-29). */
@@ -62,6 +64,8 @@ export interface TimeAdvance {
   clampedFrom?: number;
   /** What the span is spent on (M3; default rest, D-52). */
   occupation?: Occupation;
+  /** A montage or time skip (M4, D-134): only jumps roll world events and stop on an interruption. */
+  jump?: boolean;
 }
 
 export type HandleResult<Slice> =
@@ -109,9 +113,11 @@ export interface EventDef<Slice, S extends BaseState = BaseState> {
 export interface HookResult<Slice> {
   slice: Slice;
   emit?: GameEvent[];
-  /** A significant event: advanceTime stops after this step (architecture §9). */
+  /** A significant event: advanceTime stops after this step in a jump (architecture §9, D-134). */
   interrupt?: string;
   notices?: string[];
+  /** The RNG state after the hook's rolls (world events). */
+  rng?: RngState;
 }
 
 export interface InitCtx {

@@ -73,3 +73,28 @@ export const LIMITS = {
   reason: 200,
   region: 60,
 } as const;
+
+/**
+ * Thread escalation from the deadline (D-135; replaces the legacy "every thread is critical after 3 days",
+ * 14-world-state bug 4). 1 = the deadline is within `soonDays`; 2 = the deadline day has come; 3 = overdue
+ * by `overdueDays`. Levels 2 and 3 interrupt a jump once each. Threads without a deadline never escalate.
+ * Code never resolves or fails a thread: the story does (threadResolved).
+ */
+export const THREAD_ESCALATION = { soonDays: 7, overdueDays: 3 } as const;
+
+/**
+ * Relationship drift during time advance (architecture §9, D-82, D-137; design values). Teachers and
+ * training partners gain from shared routine sessions; everyone else drifts toward neutral when there
+ * has been no contact for a month, and never past the edge of the neutral band.
+ */
+export const RELATIONSHIP_DRIFT = {
+  /** Points per hour of a shared routine session, up to `sharedCap`. */
+  perSharedHour: 0.2,
+  sharedCap: 60,
+  /** Days without contact before drift starts, then one point per `everyDays`. */
+  graceDays: 30,
+  everyDays: 30,
+  points: 1,
+  /** Drift stops at this distance from 0 (the neutral band is -19..19). */
+  floor: 20,
+} as const;

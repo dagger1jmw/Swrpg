@@ -102,13 +102,21 @@ describe('advanceTime (architecture §9, §10)', () => {
     const interruptDay = START + 10;
     const reg = [clockFeature, recorder('rec', [], interruptDay)] as unknown as readonly FeatureModule<unknown, BaseState>[];
     const s0 = createInitialState<BaseState>(reg, ctx({ start: { day: START, second: 0 } }));
-    const r = advanceTime(reg, s0, adv(60 * SECONDS_PER_DAY));
+    const r = advanceTime(reg, s0, { ...adv(60 * SECONDS_PER_DAY), jump: true });
     expect(r.interrupted).toBe('ambush');
     expect(r.secondsAdvanced).toBe(11 * SECONDS_PER_DAY);
     const direct = advanceTime([clockFeature, recorder('rec', [])] as unknown as typeof reg, s0, adv(11 * SECONDS_PER_DAY));
     expect(r.state['rec']).toEqual(direct.state['rec']);
     expect((r.state['clock'] as GameState['clock']).now).toEqual((direct.state['clock'] as GameState['clock']).now);
     expect((r.state['clock'] as GameState['clock']).lastAdvance?.interruptedBy).toBe('ambush');
+  });
+
+  it('a story-turn span is not interrupted; only jumps stop (D-134)', () => {
+    const reg = [clockFeature, recorder('rec', [], START + 1)] as unknown as readonly FeatureModule<unknown, BaseState>[];
+    const s0 = createInitialState<BaseState>(reg, ctx({ start: { day: START, second: 0 } }));
+    const r = advanceTime(reg, s0, adv(3 * SECONDS_PER_DAY));
+    expect(r.interrupted).toBeUndefined();
+    expect(r.secondsAdvanced).toBe(3 * SECONDS_PER_DAY);
   });
 
   it('a birthday during a skip gives a notice; age is derived', () => {

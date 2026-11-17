@@ -93,7 +93,7 @@ export function advanceByRoutine(registry: Registry<GameState>, initial: GameSta
   const pass = (seconds: number, occupation: Occupation, why: string): boolean => {
     const secs = Math.round(seconds);
     if (secs <= 0) return true;
-    const r = advanceTime(registry, state, { seconds: secs, reason: why, source: 'turnDraft', occupation });
+    const r = advanceTime(registry, state, { seconds: secs, reason: why, source: 'turnDraft', occupation, jump: true });
     state = r.state;
     applied.push(...r.applied);
     rejected.push(...r.rejected);
@@ -123,6 +123,9 @@ export function advanceByRoutine(registry: Registry<GameState>, initial: GameSta
     }
     state = { ...state, meta: { ...state.meta, rngState: plan.rng } };
     apply(plan.events);
+    // Teachers and partners grow closer through shared sessions (architecture §9, D-137).
+    const npc = plan.card.instruction.teacherId ?? plan.card.instruction.partnerId;
+    if (npc) apply([{ type: 'sharedTraining', npcId: npc, hours: plan.hours }]);
     log.sessions.push({ activityId: b.activityId, skillId: b.skillId, hours: plan.hours, credited: plan.card.credited, outcome: plan.card.outcome });
     log.hoursTrained += plan.hours;
     return pass(plan.hours * 3600, 'activity', `routine: ${plan.card.activityName}`);
@@ -147,8 +150,7 @@ export function advanceByRoutine(registry: Registry<GameState>, initial: GameSta
     }
     if (now >= opts.untilAbs) break;
 
-    // Morning: the day's plan.
-    dayNotices = [];
+    // Morning: the day's plan. Notices from the night (midnight hooks) belong to this day.
     const plan = planDay(state, routine, selectFillCredit(state));
     const log: DayLog = { day: state.clock.now.day, label: formatDate(state.clock.now.day), trainingDay: plan.trainingDay, recovery: plan.recovery, sessions: [], hoursTrained: 0, notes: [...plan.notes], notices: dayNotices, endF: 0 };
     days.push(log);
@@ -165,6 +167,8 @@ export function advanceByRoutine(registry: Registry<GameState>, initial: GameSta
       if (!runBlock(item, routine.effort, log)) break;
     }
     log.endF = Math.round(selectMaxFraction(state) * 100) / 100;
+    // The evening and the night collect the next day's notices.
+    dayNotices = [];
     if (interrupted) break;
     // Next: free time and the night (loop top). Guard: a plan that ends past the next wake time moves on.
     if (absOf(state) === now) pass(1, 'rest', 'routine: free time');
