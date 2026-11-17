@@ -79,7 +79,9 @@ export function archetypePaces(id, K, R = referenceRate(K)) {
 }
 
 if (process.argv[1]?.endsWith('archetype-paces.mjs')) {
-  const K = solveK(AVERAGE);
+  // D-133: K stays at the decided 11.683 (the src day loop meets the 16.0-year Adept with it); set
+  // CALC_K to measure at another K, or CALC_K=solve to re-solve it here.
+  const K = process.env.CALC_K === 'solve' ? solveK(AVERAGE) : Number(process.env.CALC_K ?? 11.683);
   const R = referenceRate(K);
   console.log(`K = ${K.toFixed(3)}, R (XP per age-weighted year at pace 1 = K * 41^1.75 / A_ref) = ${R.toFixed(1)}\n`);
   const all = {};

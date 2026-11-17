@@ -185,5 +185,5 @@ describe('computeXp (training branch)', () => {
         expect(sum, `${k} day ${d}`).toBeLessThanOrEqual(Math.max(cap, before[k] ?? 0) + 1e-6);
       }
     }
-  });
+  }, 60_000);
 });

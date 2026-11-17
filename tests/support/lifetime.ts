@@ -7,7 +7,7 @@
 import { FORM_IDS } from '../../src/data/skills';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { levelExact } from '../../src/engine/curve';
-import { selectLevelExact } from '../../src/features/progression/selectors';
+import { selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
 import type { Priority } from '../../src/features/routines/selectors';
 import { advanceByRoutine, nextWakeAbs } from '../../src/state/advanceRoutine';
 import { applyEvents } from '../../src/state/applyEvents';
@@ -33,7 +33,7 @@ export interface Fight {
 
 export interface LifeProfile {
   archetype: string;
-  path: 'jedi' | 'outsider';
+  path: 'jedi' | 'sith' | 'outsider' | 'career';
   /** '$highestForm' or a skill id: the milestones' main specialty. */
   main: string;
   startAge: number;
@@ -42,10 +42,15 @@ export interface LifeProfile {
   daysPerYear: number;
   effort: 'easy' | 'standard' | 'push';
   talents?: Talents;
+  /** Trained XP at the start (e.g. a known Force ability). */
+  startingXp?: Record<string, number>;
+  /** Focus shares (clamp share and the Knight+ default fill); empty = the archetype template. */
+  focusWeights?: Record<string, number>;
   mainForm: string;
   secondForm: string;
   formPlan?: { padawan: Record<string, number>; knight: Record<string, number> };
-  priorities?: Priority[] | null;
+  /** The routine's priorities per rank row (null / absent = the archetype default template). */
+  priorities?: Partial<Record<'initiate' | 'padawan' | 'knight', Priority[] | null>>;
   fillSource?: { kind: 'peers' } | { kind: 'solo' } | null;
   seed: string;
   /** Scripted fights for a training day (age = years since birth). */
@@ -73,8 +78,8 @@ const START_DAY = absDayFromDate({ year: -3700, month: 1, day: 1 });
 
 export function profileState(p: LifeProfile): GameState {
   const plan = p.formPlan ?? { padawan: { [p.mainForm]: 2, [p.secondForm]: 1 }, knight: { [p.mainForm]: 2, [p.secondForm]: 1 } };
-  const rank = p.path !== 'jedi' ? 'none' : p.startAge >= p.knightAge ? 'knight' : p.startAge >= p.padawanAge ? 'padawan' : 'initiate';
-  let s = createInitialState<GameState>(REGISTRY, {
+  const rank = rankFor(p, p.startAge);
+  const s = createInitialState<GameState>(REGISTRY, {
     campaignId: `life-${p.seed}`,
     branchId: 'b',
     seed: p.seed,
@@ -89,19 +94,35 @@ export function profileState(p: LifeProfile): GameState {
       formPlan: plan,
       trainingStartAge: p.startAge,
       ...(p.talents ? { talents: p.talents } : {}),
+      ...(p.focusWeights ? { focusWeights: p.focusWeights } : {}),
     },
     rank,
+    ...(p.startingXp ? { startingXp: p.startingXp } : {}),
   });
-  const routine = { ...s.routines.active, effort: p.effort, daysPerWeek: (7 * p.daysPerYear) / DAYS, priorities: p.priorities ?? null, fillSource: p.fillSource ?? null, wakeSecond: WAKE };
-  s = applyEvents(REGISTRY, s, [{ type: 'routineSet', routine }], { source: 'player' }).state;
-  return s;
+  return setRoutine(p, s, rank);
+}
+
+const LADDER = { jedi: ['initiate', 'padawan', 'knight'], sith: ['acolyte', 'apprentice', 'lord'] } as const;
+
+/** The rank at an age: the Jedi or Sith ladder at the profile's rank ages; others have none. */
+function rankFor(p: LifeProfile, age: number): string {
+  if (p.path !== 'jedi' && p.path !== 'sith') return 'none';
+  const l = LADDER[p.path];
+  return age >= p.knightAge ? l[2] : age >= p.padawanAge ? l[1] : l[0];
+}
+
+/** The profile's routine for a rank (the player sets it; a rank change is a new routine). */
+function setRoutine(p: LifeProfile, s: GameState, rank: string): GameState {
+  const row = rank === 'initiate' || rank === 'acolyte' ? 'initiate' : rank === 'padawan' || rank === 'apprentice' ? 'padawan' : 'knight';
+  const routine = { ...s.routines.active, effort: p.effort, daysPerWeek: (7 * p.daysPerYear) / DAYS, priorities: p.priorities?.[row] ?? null, fillSource: p.fillSource ?? null, wakeSecond: WAKE };
+  return applyEvents(REGISTRY, s, [{ type: 'routineSet', routine }], { source: 'player' }).state;
 }
 
 export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?: Record<string, number[]>; track?: string[] } = {}): LifeResult {
   let s = profileState(p);
   const total = Math.round(years * DAYS);
   const isFormMain = p.main === '$highestForm';
-  const mainLevel = (st: GameState): number => (isFormMain ? Math.max(0, ...FORM_IDS.map((f) => levelExact(st.progression.skills[f]?.xp ?? 0))) : selectLevelExact(st, p.main));
+  const mainLevel = (st: GameState): number => (isFormMain ? Math.max(0, ...FORM_IDS.map((f) => levelExact(st.progression.skills[f]?.xp ?? 0))) : levelExact(st.progression.skills[p.main]?.xp ?? 0));
   const milestones: Record<number, number> = {};
   const cross: Record<string, number> = {};
   const yearMain: number[] = [];
@@ -115,15 +136,16 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
   let yearFightXp: Record<string, number> = {};
   const track = opts.track ?? [];
   const crossLevels = opts.crossLevels ?? {};
-  const levelOf = (st: GameState, k: string): number => (k === 'highestForm' ? Math.max(0, ...FORM_IDS.map((f) => selectLevelExact(st, f))) : selectLevelExact(st, k));
+  const levelOf = (st: GameState, k: string): number =>
+    k === 'highestForm' ? Math.max(0, ...FORM_IDS.map((f) => selectLevelExact(st, f))) : k.startsWith('perf:') ? selectPerformance(st, k.slice(5)) : selectLevelExact(st, k);
   const mainKeys = (): string[] => (isFormMain ? [...FORM_IDS] : [p.main]);
 
   for (let day = 0; day < total; day++) {
     const age = p.startAge + day / DAYS;
     // Rank ages (D-131 rankSet; ranks are story-granted from M7).
-    if (p.path === 'jedi') {
-      const want = age >= p.knightAge ? 'knight' : age >= p.padawanAge ? 'padawan' : 'initiate';
-      if (s.ranks.rank !== want) s = applyEvents(REGISTRY, s, [{ type: 'rankSet', rank: want }], { source: 'engine' }).state;
+    {
+      const want = rankFor(p, age);
+      if (s.ranks.rank !== want) s = setRoutine(p, applyEvents(REGISTRY, s, [{ type: 'rankSet', rank: want }], { source: 'engine' }).state, want);
     }
     const before = { ...s.progression.skills };
     // Scripted fights in the morning, before the day's routine (combat-xp.md, D-127).

@@ -109,23 +109,23 @@ export const AVERAGE_MAIN_SHARE = 0.5;
 export const PACE_WINDOW_DAYS = 365;
 /**
  * Y_avg(age): the Average profile's most-trained form XP for the 365 days starting at that age
- * (progression-numbers §5, recomputed by D-118 / D-119, K = 11.683).
+ * (progression-numbers §5, K = 11.683), re-measured on the routine day loop in M4 (D-132).
  */
 export const Y_AVG: readonly (readonly [number, number])[] = [
-  [4, 583],
+  [4, 580],
   [8, 608],
-  [12, 561],
-  [16, 532],
-  [20, 526],
-  [24, 434],
-  [30, 399],
-  [40, 458],
-  [50, 434],
-  [60, 487],
-  [70, 431],
-  [80, 423],
-  [90, 322],
-  [98, 202],
+  [12, 545],
+  [16, 538],
+  [20, 562],
+  [24, 449],
+  [30, 407],
+  [40, 474],
+  [50, 463],
+  [60, 484],
+  [70, 444],
+  [80, 453],
+  [90, 254],
+  [98, 206],
 ];
 
 // ---- Age and learning speed (§16) ----

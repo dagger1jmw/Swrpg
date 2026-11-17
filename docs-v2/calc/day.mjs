@@ -62,7 +62,7 @@ export function simulateDay(blocks, stats, opts = {}) {
       P = Math.max(0, P + act.load.p * inten.load * STEP);
       M = Math.max(0, M + act.load.m * inten.load * STEP);
     }
-    out.push({ act, effHours, instruction: b.instruction ?? 1, intensity: b.intensity ?? 'standard', source: b.source });
+    out.push({ act, hours: b.hours, effHours, instruction: b.instruction ?? 1, intensity: b.intensity ?? 'standard', source: b.source });
     lastPhysicalHeavy = phys && act.load.p >= 0.8;
   }
   const willCapped = Math.min(3.0, willXp);

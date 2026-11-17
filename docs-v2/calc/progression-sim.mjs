@@ -7,6 +7,9 @@ import {
   bodyCap, budget, INTENSITY, skillLevel,
 } from './model.mjs';
 import { simulateDay } from './day.mjs';
+
+/** State of mind "centered" (progression-numbers §17: x1.05; D-133). */
+export const CENTERED_MULT = 1.05;
 import { ACT, TRAINS, SKILLS, ARCHETYPES, shares } from './activities.mjs';
 
 export const AVERAGE = {
@@ -130,6 +133,9 @@ export function runProfile(p, K, years, onYear) {
   const milestones = {};
   const cross = {};
   const phaseXp = { initiate: {}, padawan: {}, knight: {} };
+  // Centered (progression-numbers §17, D-108): 30+ minutes of meditation in a day makes the character
+  // centered (x1.05) for the rest of that day and all of the next (D-133; the src game applies it).
+  let centeredThrough = -1;
   for (let d = 0; d < totalDays; d++) {
     const age = p.startAge + d / DAYS_PER_YEAR;
     const trains = Math.floor(((d + 1) * p.trainingDays) / DAYS_PER_YEAR) !== Math.floor((d * p.trainingDays) / DAYS_PER_YEAR);
@@ -160,8 +166,10 @@ export function runProfile(p, K, years, onYear) {
         trimmedHours += 0.5;
       }
       maxDayEndF = Math.max(maxDayEndF, res.fP, res.fM);
+      let meditated = 0;
       for (const blk of res.blocks) {
         const a = blk.act;
+        const state = p.noCentered || d > centeredThrough ? 1 : CENTERED_MULT;
         // Fundamentals transfer: a form's first session starts it at a share of the highest form's XP.
         if (FORMS.includes(a.primary) && !started[a.primary]) {
           started[a.primary] = true;
@@ -170,7 +178,11 @@ export function runProfile(p, K, years, onYear) {
           if (t > xp[a.primary]) { transfers[a.primary] = { age, xp: t - xp[a.primary] }; xp[a.primary] = t; }
         }
         const base = blk.effHours * INTENSITY[blk.intensity].xp * bestChallenge(L(a.primary), p.effort) * OUTCOME_MEAN;
-        const M = (skill) => Math.min(2.8, (p.talent[skill] ?? 1) * blk.instruction * ageFactor(CATEGORY_AGE_ROW[SKILLS[skill]], age));
+        const M = (skill) => Math.min(2.8, (p.talent[skill] ?? 1) * blk.instruction * ageFactor(CATEGORY_AGE_ROW[SKILLS[skill]], age) * state);
+        if (a.load.m < 0) {
+          meditated += blk.hours ?? 0;
+          if (meditated >= 0.5 - 1e-9) centeredThrough = Math.max(centeredThrough, d + 1);
+        }
         const secTot = Object.values(a.secondaries).reduce((x, y) => x + y, 0);
         const gainMain = base * 0.75 * M(a.primary);
         xp[a.primary] += gainMain;

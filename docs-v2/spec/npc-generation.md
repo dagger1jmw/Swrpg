@@ -9,6 +9,11 @@ Soresu 2 h + Ataru 1 h from Padawan). New values (docs-v2/calc/npc-closed-form.m
 34.2 | Knight 30: 53.3 | Master 45: 67.7 | Elder 70: 86.7 | Obi-Wan check 79.6 | Anakin check 79.7
 | trooper sergeant 49.8 (blaster) | Sith warrior 74.8. Test 2 (highest form vs the day loop):
 5 y 0.0 | 10 y 0.0 | 30 y +0.6 | 60 y -1.2.
+Amended by D-133 (M4): the calc now applies the centered state (x1.05 after 30+ minutes of
+meditation, as the game does) and the phase paces were re-measured at K = 11.683. New values:
+Padawan 16: 34.2 | Knight 30: 53.6 | Master 45: 68.4 | Elder 70: 87.8 | Obi-Wan check 80.2 | Anakin
+check 79.7 | trooper sergeant 50.3 (blaster) | Sith warrior 75.5. Test 2 is now checked against the
+src routine day loop (tests/lifetime/average.test.ts).
 
 | NPC                                                                   | Old | D-43 | Level in main skill |
 | --------------------------------------------------------------------- | --- | ---- | ------------------- |
