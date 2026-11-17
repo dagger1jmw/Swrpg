@@ -12,9 +12,9 @@ export const DEFAULT_MODELS: Record<CallType, string> = {
 export const KNOWN_MODELS: readonly string[] = ['gemini-3.6-flash', 'gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-4-hydrogen'];
 
 export interface ModelLimits {
-  rpm?: number;
-  tpm?: number;
-  rpd?: number;
+  rpm?: number | undefined;
+  tpm?: number | undefined;
+  rpd?: number | undefined;
 }
 
 /**
