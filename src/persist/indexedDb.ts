@@ -47,6 +47,15 @@ export function createIndexedDbStorage(db: IDBDatabase): Storage {
       if (entry) tx.objectStore('transcript').add(entry);
       await done;
     },
+    async importCampaign(envelope, campaign, entries) {
+      const tx = db.transaction(['snapshots', 'campaigns', 'transcript'], 'readwrite');
+      const done = txDone(tx);
+      tx.objectStore('snapshots').put(envelope, AUTOSAVE_SLOT);
+      tx.objectStore('campaigns').put(campaign);
+      const store = tx.objectStore('transcript');
+      for (const e of entries) store.add(e);
+      await done;
+    },
     async loadSnapshot(slot) {
       const tx = db.transaction('snapshots', 'readonly');
       const v = await promisify(tx.objectStore('snapshots').get(slot));

@@ -28,6 +28,8 @@ export interface Storage {
   loadCampaign(campaignId: string): Promise<CampaignRecord | null>;
   /** Transcript entries of one branch from `fromTurn` (inclusive), in turn order. */
   readTranscript(campaignId: string, branchId: string, fromTurn?: number): Promise<TranscriptEntry[]>;
+  /** Import (architecture §13): autosave, campaign and transcript entries in one transaction; an existing entry aborts it. */
+  importCampaign(envelope: SaveEnvelope, campaign: CampaignRecord, entries: readonly TranscriptEntry[]): Promise<void>;
 }
 
 /** In-memory storage for tests. Values are cloned to mimic serialization; commits are all-or-nothing. */
@@ -53,6 +55,17 @@ export function createMemoryStorage(opts: { failNextCommit?: boolean } = {}): St
       snapshots.set(AUTOSAVE_SLOT, env);
       campaigns.set(rec.campaignId, rec);
       if (ent) transcript.push(ent);
+    },
+    async importCampaign(envelope, campaign, entries) {
+      const ents = entries.map((e) => structuredClone(e));
+      for (const ent of ents) {
+        if (transcript.some((t) => t.campaignId === ent.campaignId && t.branchId === ent.branchId && t.turn === ent.turn)) {
+          throw new Error(`Transcript entry ${ent.campaignId}/${ent.branchId}/${ent.turn} already exists`);
+        }
+      }
+      snapshots.set(AUTOSAVE_SLOT, structuredClone(envelope));
+      campaigns.set(campaign.campaignId, structuredClone(campaign));
+      transcript.push(...ents);
     },
     async loadCampaign(campaignId) {
       const c = campaigns.get(campaignId);
