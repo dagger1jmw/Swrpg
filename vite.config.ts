@@ -5,7 +5,9 @@ export default defineConfig({
   base: './',
   // One fixed dev origin: settings, the API key and the usage meter live in localStorage, which is
   // per origin (port included), so a changed port looks like a fresh install (D-99).
-  server: { port: 5173, strictPort: true },
+  // host: true exposes the dev server on the local network so the iPad can test it (dev only;
+  // `server` options do not affect the production build).
+  server: { port: 5173, strictPort: true, host: true },
   test: {
     include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
     environment: 'node',

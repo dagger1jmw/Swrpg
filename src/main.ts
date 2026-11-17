@@ -3,6 +3,7 @@ import { createGeminiProvider } from './ai/gemini';
 import { createIndexedDbStorage, openDatabase } from './persist/indexedDb';
 import { REGISTRY } from './state/registry';
 import { App } from './ui/app';
+import { newId } from './ui/ids';
 import './ui/styles.css';
 
 async function main(): Promise<void> {
@@ -16,7 +17,7 @@ async function main(): Promise<void> {
       storage: createIndexedDbStorage(db),
       kv: window.localStorage,
       makeProvider: (getApiKey) => createGeminiProvider({ getApiKey, fetch: window.fetch.bind(window) }),
-      newId: () => crypto.randomUUID(),
+      newId: () => newId(),
       now: () => Date.now(),
     });
     await app.start();
