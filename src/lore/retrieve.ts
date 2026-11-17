@@ -2,7 +2,10 @@
 // canon NPCs, the current location and what the player referenced, fill up to the cap. Timeline
 // events are never sent ahead of the current year (Q49, D-81). Pure.
 import { LORE_SCORES } from '../data/lore.config';
-import { isScannableAlias, textMentions } from '../engine/aliases';
+import { textMentions } from '../engine/aliases';
+
+/** Canon names are proper names, so 3 letters is enough to scan for ("Zym"; live finding, D-95). */
+export const MIN_LORE_SCAN_LENGTH = 3;
 import type { LoreChunk, LoreEntity, LoreIndex } from './parse';
 
 export interface LoreQuery {
@@ -54,7 +57,7 @@ export function scoreChunk(c: LoreChunk, q: LoreQuery): { score: number; why: st
   if (c.canonId && q.canonIds.includes(c.canonId)) add(LORE_SCORES.canonMatch, `canon ${c.canonId}`);
   for (const n of c.names) {
     if (q.names.includes(n)) add(LORE_SCORES.nameMatch, `names ${n}`);
-    else if (q.playerText && isScannableAlias(n) && textMentions(q.playerText, n)) add(LORE_SCORES.textMention, `player mentions ${n}`);
+    else if (q.playerText && n.length >= MIN_LORE_SCAN_LENGTH && textMentions(q.playerText, n)) add(LORE_SCORES.textMention, `player mentions ${n}`);
   }
   // A person's entry describes their whole life, later events included, so it is sent only when
   // that person is in play (canon, name or the player's words), never for a shared place (D-93).

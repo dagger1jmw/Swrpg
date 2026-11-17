@@ -105,6 +105,10 @@ describe('lore retrieval', () => {
     const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661, locationNames: ['coruscant', 'jedi temple'] }, 3000, est);
     expect(sel.included.some((s) => s.chunk.kind === 'character' || s.chunk.kind === 'bench')).toBe(false);
   });
+  it('a three-letter canon name in the player text counts (Zym, D-95)', () => {
+    const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661, playerText: normalizeText('Did Grand Master Zym send us?') }, 3000, est);
+    expect(sel.included.map((s) => s.chunk.canonId)).toContain('lore:grand-master-zym');
+  });
   it('respects the cap', () => {
     const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661 }, 400, est);
     expect(sel.tokens).toBeLessThanOrEqual(400);
