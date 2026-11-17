@@ -35,6 +35,7 @@ export function advanceTime<S extends BaseState>(registry: Registry<S>, initial:
       toAbs: seg.to.day * 86_400 + seg.to.second,
       seconds: seg.seconds,
       endsDay: seg.endsAtMidnight,
+      occupation: adv.occupation ?? 'rest',
     };
     state = { ...state, clock: setClockNow(state.clock, seg.to) };
     elapsed += seg.seconds;

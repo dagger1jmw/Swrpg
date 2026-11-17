@@ -41,7 +41,8 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
         fact: z.string().min(1).max(MEMORY_LIMITS.fact).describe('One lasting fact worth remembering, in one sentence'),
         importance: z.enum(['minor', 'major']),
       }),
-      sources: ['ai'],
+      // engine: tier-beat facts from progression (M3).
+      sources: ['ai', 'engine'],
       refFields: ['aboutRef'],
       narrative: () => true,
       handle: (slice, e, ctx) => {

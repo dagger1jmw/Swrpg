@@ -274,13 +274,13 @@ describe('M and the pace clamp (§5, test 24)', () => {
   });
 
   it('state of mind: grief x0.80 multiplies; anger channels x1.20 into eligible skills and x0.80 on light skills', () => {
-    expect(stateMult('neutral', 'shiiCho', true)).toBeCloseTo(0.8, 9);
-    expect(stateMult('centered', 'shiiCho', true)).toBeCloseTo(1.05 * 0.8, 9);
-    expect(stateMult('anger', 'djemSo', false)).toBe(1.2);
-    expect(stateMult('anger', 'forceOutput', false)).toBe(1.2);
-    expect(stateMult('anger', 'meditation', false)).toBe(0.8);
-    expect(stateMult('anger', 'forceHealOthers', false)).toBe(0.8);
-    expect(stateMult('anger', 'shiiCho', false)).toBe(1);
-    expect(stateMult('hatred', 'forceLightning', false, 60)).toBe(1.3);
+    expect(stateMult('neutral', 'shiiCho', { grief: 0.8 })).toBeCloseTo(0.8, 9);
+    expect(stateMult('centered', 'shiiCho', { grief: 0.8 })).toBeCloseTo(1.05 * 0.8, 9);
+    expect(stateMult('anger', 'djemSo')).toBe(1.2);
+    expect(stateMult('anger', 'forceOutput')).toBe(1.2);
+    expect(stateMult('anger', 'meditation')).toBe(0.8);
+    expect(stateMult('anger', 'forceHealOthers')).toBe(0.8);
+    expect(stateMult('anger', 'shiiCho')).toBe(1);
+    expect(stateMult('hatred', 'forceLightning', { darkPressure: 60 })).toBe(1.3);
   });
 });

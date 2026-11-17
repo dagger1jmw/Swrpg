@@ -28,8 +28,18 @@ export function isLightSkill(skillId: string): boolean {
   return skillId === 'meditation' || SKILL_BY_ID.get(skillId)?.side === 'light';
 }
 
-/** State-of-mind multiplier for a skill (dark pressure stubbed at 0 until M6, D-56). Grief multiplies on top. */
-export function stateMult(state: StateOfMind, skillId: string, grief: boolean, darkPressure = 0): number {
+export interface StateMultOptions {
+  /** Current grief multiplier (x0.80 easing to x1.00); 1 = no grief. */
+  grief?: number;
+  /** Current despair multiplier while despair is active (x0.80 easing to x1.00). */
+  despair?: number;
+  /** Dark pressure (stub 0 until M6, D-56). */
+  darkPressure?: number;
+}
+
+/** State-of-mind multiplier for a skill. Grief lingers and multiplies on top of any state (D-46). */
+export function stateMult(state: StateOfMind, skillId: string, opts: StateMultOptions = {}): number {
+  const darkPressure = opts.darkPressure ?? 0;
   let m: number;
   switch (state) {
     case 'fear':
@@ -43,11 +53,17 @@ export function stateMult(state: StateOfMind, skillId: string, grief: boolean, d
           ? STATE_MULT.passionLight
           : 1;
       break;
+    case 'despair':
+      m = opts.despair ?? STATE_MULT.despair;
+      break;
     default:
       m = STATE_MULT[state];
   }
-  return m * (grief ? GRIEF_MULT : 1);
+  return m * (opts.grief ?? 1);
 }
+
+/** The full grief multiplier at onset (for tests and labels). */
+export const GRIEF_ONSET = GRIEF_MULT;
 
 export interface SpeedInput {
   talent: number;

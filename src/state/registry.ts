@@ -6,10 +6,13 @@
 // insert their features at their §10 slot.
 import { characterFeature } from '../features/character';
 import { clockFeature } from '../features/clock';
+import { healthFeature } from '../features/health';
 import { locationsFeature } from '../features/locations';
 import { memoryFeature } from '../features/memory';
 import { npcsFeature } from '../features/npcs';
 import { pacingFeature } from '../features/pacing';
+import { progressionFeature } from '../features/progression';
+import { ranksFeature } from '../features/ranks';
 import { relationshipsFeature } from '../features/relationships';
 import { threadsFeature } from '../features/threads';
 import type { GameState } from './gameState';
@@ -20,9 +23,12 @@ export const REGISTRY: Registry<GameState> = [
   characterFeature,
   locationsFeature,
   memoryFeature,
+  healthFeature,
+  progressionFeature,
   npcsFeature,
   relationshipsFeature,
   threadsFeature,
+  ranksFeature,
   pacingFeature,
 ];
 

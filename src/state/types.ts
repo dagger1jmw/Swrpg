@@ -37,6 +37,8 @@ export interface TimeStep {
   toAbs: number;
   seconds: number;
   endsDay: boolean;
+  /** What the time is spent on (M3; default rest). */
+  occupation: Occupation;
 }
 
 /** An action the TurnDraft already resolved; narrative events of the same type and target are rejected (D-29). */
@@ -58,6 +60,8 @@ export interface TimeAdvance {
   source: 'turnDraft' | 'timeElapsed';
   requested?: number;
   clampedFrom?: number;
+  /** What the span is spent on (M3; default rest, D-52). */
+  occupation?: Occupation;
 }
 
 export type HandleResult<Slice> =
@@ -115,8 +119,28 @@ export interface InitCtx {
   branchId: string;
   seed: string;
   start: { day: number; second: number };
-  character: { name: string; birthDay: number };
+  /** Computed creation (M3) fills the optional fields; absent ones take the feature defaults. */
+  character: {
+    name: string;
+    birthDay: number;
+    speciesId?: string;
+    path?: 'jedi' | 'sith' | 'outsider' | 'career';
+    archetype?: string;
+    focusWeights?: Readonly<Record<string, number>>;
+    mainFormId?: string | null;
+    secondFormId?: string | null;
+    trainingStartAge?: number | null;
+    talents?: Readonly<Partial<Record<'combat' | 'force' | 'physical' | 'mind', 'none' | 'gifted' | 'prodigy' | 'exceptional'>>>;
+    dominantHand?: 'left' | 'right';
+  };
+  /** Starting trained XP per skill from computed creation (character-creation §2). */
+  startingXp?: Readonly<Record<string, number>>;
+  /** The rank chosen at creation (ranks stub until M7). */
+  rank?: string;
 }
+
+/** What a span of time is spent on (M3): health recovers meters only on rest steps (D-52). */
+export type Occupation = 'rest' | 'activity' | 'sleep';
 
 export interface FeatureModule<Slice = unknown, S extends BaseState = BaseState> {
   id: string;

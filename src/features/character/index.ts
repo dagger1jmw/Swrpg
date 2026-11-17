@@ -1,15 +1,31 @@
-// Character feature (minimal for M1). Its day hook only reports birthdays; it changes no state.
+// Character feature. v2 (M3): computed creation sets every field at the start; the day hook only
+// reports birthdays and changes no state.
 import { ageInYears, fromAbsSecond } from '../../engine/calendar';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule } from '../../state/types';
-import { characterSliceSchema, type CharacterSlice } from './character';
-import { PC_REF, selectAge, selectBirthDay, selectCharacterName } from './selectors';
+import { characterSliceSchema, migrateCharacterV1, type CharacterSlice } from './character';
+import { PC_REF, selectAge, selectBirthDay, selectCharacterName, selectExactAge, selectHumanAge, selectSpeciesId } from './selectors';
 
 export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
   id: 'character',
-  version: 1,
-  initialState: (ctx) => ({ id: `character:${ctx.campaignId}`, name: ctx.character.name, birthDay: ctx.character.birthDay }),
+  version: 2,
+  initialState: (ctx) => {
+    const c = ctx.character;
+    return {
+      ...migrateCharacterV1({ id: `character:${ctx.campaignId}`, name: c.name, birthDay: c.birthDay }),
+      ...(c.speciesId !== undefined ? { speciesId: c.speciesId } : {}),
+      ...(c.path !== undefined ? { path: c.path } : {}),
+      ...(c.archetype !== undefined ? { archetype: c.archetype } : {}),
+      ...(c.focusWeights !== undefined ? { focusWeights: { ...c.focusWeights } } : {}),
+      ...(c.mainFormId !== undefined ? { mainFormId: c.mainFormId } : {}),
+      ...(c.secondFormId !== undefined ? { secondFormId: c.secondFormId } : {}),
+      ...(c.trainingStartAge !== undefined ? { trainingStartAge: c.trainingStartAge } : {}),
+      ...(c.talents !== undefined ? { talents: { ...c.talents } } : {}),
+      ...(c.dominantHand !== undefined ? { dominantHand: c.dominantHand } : {}),
+    };
+  },
   stateSchema: characterSliceSchema,
+  migrations: { 2: migrateCharacterV1 },
   events: {},
   // The player character is referenced as "pc" (e.g. factLearned about the character, M2).
   refKind: 'pc',
@@ -22,5 +38,5 @@ export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
     const after = ageInYears(slice.birthDay, newDay);
     return after > before ? { slice, notices: [`${slice.name} turns ${after}.`] } : { slice };
   },
-  selectors: { name: selectCharacterName, birthDay: selectBirthDay, age: selectAge },
+  selectors: { name: selectCharacterName, birthDay: selectBirthDay, age: selectAge, exactAge: selectExactAge, humanAge: selectHumanAge, species: selectSpeciesId },
 };
