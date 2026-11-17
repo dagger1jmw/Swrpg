@@ -83,3 +83,7 @@ export function selectSkillViews(s: GameState): SkillView[] {
   }
   return out;
 }
+
+// Training resolution is a pure read of the state plus a request (it returns events; it changes
+// nothing), so it is part of the feature's public selector surface for the turn layer.
+export { resolveTraining, stubTeacherLevel, type TrainingCard, type TrainingPlan, type TrainingRequest } from './training';

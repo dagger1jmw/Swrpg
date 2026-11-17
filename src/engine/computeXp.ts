@@ -54,8 +54,11 @@ export interface TrainingInput {
   /** Trained XP of a skill before the session. */
   xpOf(skill: string): number;
   naturalOf(skill: string): number;
-  /** The D-48 clamp: how much of `wanted` may be credited to the skill now. */
-  clamp(skill: string, wanted: number): { credited: number; discarded: number };
+  /**
+   * The D-48 clamp: how much of `wanted` (this session's total for the skill) may be credited now.
+   * `sessionHours` is the skill's share of this session's hours (D-109), for the D-104 share.
+   */
+  clamp(skill: string, wanted: number, sessionHours: number): { credited: number; discarded: number };
   rng: RngState;
 }
 
@@ -78,6 +81,8 @@ export interface TrainingResult {
   discarded: Record<string, number>;
   /** Effective hours of practice per skill, for rust removal (primaries full, secondaries by share). */
   practiceHours: Record<string, number>;
+  /** The session's hours per skill by its share of the session's XP (D-109), for the pace window. */
+  windowHours: Record<string, number>;
   rng: RngState;
   notes: string[];
 }
@@ -102,8 +107,10 @@ export function computeTrainingXp(input: TrainingInput): TrainingResult {
   const add = (rec: Record<string, number>, k: string, v: number): void => {
     if (v > 0) rec[k] = (rec[k] ?? 0) + v;
   };
-  const credit = (skill: string, wanted: number): number => {
-    const c = input.clamp(skill, wanted + (credited[skill] ?? 0));
+  const windowHours: Record<string, number> = {};
+  const credit = (skill: string, wanted: number, fraction: number): number => {
+    add(windowHours, skill, block.hours * fraction);
+    const c = input.clamp(skill, wanted + (credited[skill] ?? 0), windowHours[skill] ?? 0);
     const already = credited[skill] ?? 0;
     const got = Math.max(0, c.credited - already);
     add(credited, skill, got);
@@ -118,8 +125,10 @@ export function computeTrainingXp(input: TrainingInput): TrainingResult {
   for (const [skill, share] of Object.entries(shares)) {
     const xp = base * share * input.m(skill);
     raw[skill] = xp;
-    credit(skill, xp);
+    credit(skill, xp, share);
   }
+  const rawTotal = Object.values(raw).reduce((a, b) => a + b, 0);
+  const fractionOf = (xp: number): number => (rawTotal > 0 ? xp / rawTotal : 0);
 
   // Synergy from the session's credited XP (never past the ceiling; 25% cap), then clamped too.
   const spill = spillover({
@@ -129,12 +138,12 @@ export function computeTrainingXp(input: TrainingInput): TrainingResult {
     naturalOf: input.naturalOf,
   });
   const synergy: Record<string, number> = {};
-  for (const [skill, xp] of Object.entries(spill)) add(synergy, skill, credit(skill, xp));
+  for (const [skill, xp] of Object.entries(spill)) add(synergy, skill, credit(skill, xp, fractionOf(xp)));
 
   // Fatigue Willpower: 3.0/day cap (direct Willpower training is outside the cap, D-51).
   const room = Math.max(0, FATIGUE_WILLPOWER.dailyCap - input.willpowerToday);
   const fatigueWanted = Math.min(room, block.fatigueWillpower);
-  const fatigueWillpower = fatigueWanted > 0 ? credit('willpower', fatigueWanted) : 0;
+  const fatigueWillpower = fatigueWanted > 0 ? credit('willpower', fatigueWanted, fractionOf(fatigueWanted)) : 0;
 
   const practiceHours: Record<string, number> = {};
   for (const [skill, share] of Object.entries(shares)) {
@@ -156,6 +165,7 @@ export function computeTrainingXp(input: TrainingInput): TrainingResult {
     fatigueWillpower,
     discarded,
     practiceHours,
+    windowHours,
     rng,
     notes,
   };

@@ -2,11 +2,18 @@
 // retry of the narration reuses it, so dice are never re-rolled.
 import { CHECK_RULES, type ActionType } from '../data/checks.config';
 import { M1_PACING_LEVELS, PACING_RANGES, type PacingLevel } from '../data/pacing.config';
-import { stubFatigueEfficiency, stubRust, stubSkillLevel, stubVitalitySpent, stubWoundPenalty } from '../data/stubs';
+import { stubVitalitySpent, stubWoundPenalty } from '../data/stubs';
+import { DEFAULT_ACTIVITY } from '../data/activities';
+import { isSkillId } from '../data/skills';
 import { spanToSeconds, type Intent } from '../ai/schemas/intent';
+import { efficiency } from '../engine/fatigue';
 import { check, clampDifficulty, isCheckRequired, type CheckCard } from '../engine/rolls';
 import type { RngState } from '../engine/rng';
+import { selectFatigue } from '../features/health/selectors';
 import { selectPacingLevel } from '../features/pacing/selectors';
+import { selectPerformance, selectRust } from '../features/progression/selectors';
+import { resolveTraining, type TrainingCard, type TrainingRequest } from '../features/progression/selectors';
+import { DEFAULT_TRAINING_HOURS } from './expandChoice';
 import { advanceTime } from '../state/advanceTime';
 import { applyEvents, type AppliedEvent, type RejectedEvent } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
@@ -23,9 +30,14 @@ export interface TimeAdvanced {
   interrupted?: string;
 }
 
+/** A resolved training session, or why the requested activity was refused (M3). */
+export type TrainingOutcome = { ok: true; card: TrainingCard } | { ok: false; activityId: string; reason: string };
+
 export interface TurnDraft {
   readonly intent: Intent | null;
   readonly checks: readonly CheckCard[];
+  /** The train / study session resolved by computeXp (M3); null when the turn trained nothing. */
+  readonly training: TrainingOutcome | null;
   readonly timeAdvanced: TimeAdvanced | null;
   readonly pacingLevel: PacingLevel;
   readonly notices: readonly string[];
@@ -71,6 +83,21 @@ export function pacingForSpan(seconds: number): { level: PacingLevel; seconds: n
   return { level: 'scene', seconds: max, clampedFrom: seconds };
 }
 
+/** The session a train / study intent asks for: its activity, or the default activity of its skill. */
+export function trainingRequest(intent: Intent): Omit<TrainingRequest, 'hours'> | null {
+  if (intent.actionType !== 'train' && intent.actionType !== 'study') return null;
+  const skill = intent.skillId;
+  const activityId = intent.activity?.activityId ?? (skill !== undefined && isSkillId(skill) ? DEFAULT_ACTIVITY[skill] : undefined);
+  if (!activityId) return null;
+  return {
+    activityId,
+    ...(intent.activity?.intensity ? { intensity: intent.activity.intensity } : {}),
+    ...(skill !== undefined ? { skillId: skill } : {}),
+    teacherId: intent.activity?.teacherRef ?? null,
+    partnerId: intent.activity?.partnerRef ?? null,
+  };
+}
+
 export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null): Resolution {
   let state = initial;
   const report: string[] = [];
@@ -78,6 +105,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   const rejected: RejectedEvent[] = [];
   const notices: string[] = [];
   const checks: CheckCard[] = [];
+  let training: TrainingOutcome | null = null;
   let timeAdvanced: TimeAdvanced | null = null;
 
   const apply = (events: unknown[]): void => {
@@ -90,10 +118,27 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   };
 
   if (intent) {
+    // A train / study intent with an activity (or a skill with a default activity) is a session (M3).
+    const trainingReq = trainingRequest(intent);
+    if ((intent.actionType === 'train' || intent.actionType === 'study') && !trainingReq) report.push('no activity or skill named: nothing trained');
+
     // Duration first: it decides the pacing level (D-72).
     let spanSeconds: number | null = null;
     if (intent.requestedSpan) spanSeconds = spanToSeconds(intent.requestedSpan);
     else if (intent.actionType === 'sleep') spanSeconds = DEFAULT_SLEEP_SECONDS;
+    else if (trainingReq) spanSeconds = DEFAULT_TRAINING_HOURS * 3600;
+
+    // The training session is planned before the pacing decision: a refused activity changes
+    // nothing (no pacing switch, no time from the draft; the AI's timeElapsed applies instead).
+    let plan: ReturnType<typeof resolveTraining> | null = null;
+    if (trainingReq && spanSeconds !== null) {
+      plan = resolveTraining(state, { ...trainingReq, hours: pacingForSpan(spanSeconds).seconds / 3600 });
+      if (!plan.ok) {
+        training = { ok: false, activityId: trainingReq.activityId, reason: plan.reason };
+        report.push(plan.reason);
+        spanSeconds = null;
+      }
+    }
 
     const span = spanSeconds !== null ? pacingForSpan(spanSeconds) : null;
     const wantedLevel = span?.level ?? intent.requestedPacing;
@@ -107,15 +152,18 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       const ruleNote = CHECK_RULES[intent.actionType].note;
       if (ruleNote) notes.push(ruleNote);
       const skillId = intent.skillId ?? null;
+      // M3: real skill levels, rust and e(f_phys) (the D-56 stubs are gone); an unknown skill rolls at level 0.
+      const validSkill = skillId !== null && isSkillId(skillId);
+      if (skillId !== null && !validSkill) notes.push(`unknown skill ${skillId}: level 0`);
       const [card, next] = check(state.meta.rngState, {
         label: ACTION_LABELS[intent.actionType],
         skillId,
         levelInputs: {
-          level: stubSkillLevel(intent.skillId),
+          level: validSkill ? selectPerformance(state, skillId) : 0,
           woundPenalty: stubWoundPenalty(),
-          rust: stubRust(intent.skillId),
+          rust: validSkill ? selectRust(state, skillId) : 0,
           vitalitySpent: stubVitalitySpent(),
-          fatigueEfficiency: stubFatigueEfficiency(),
+          fatigueEfficiency: efficiency(selectFatigue(state).p),
         },
         modifiers: [],
         difficulty,
@@ -126,14 +174,28 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       state = { ...state, meta: { ...state.meta, rngState: next } };
     }
 
-    if (span) {
+    // Training: one computeXp session, applied through engine events before its time passes (M3).
+    let advanceSeconds = span?.seconds ?? null;
+    let occupation: 'rest' | 'activity' | 'sleep' = intent.actionType === 'sleep' ? 'sleep' : 'rest';
+    if (plan?.ok) {
+      // Train / study actions roll no checks, so the planned session's dice follow the current RNG state.
+      state = { ...state, meta: { ...state.meta, rngState: plan.rng } };
+      apply(plan.events);
+      training = { ok: true, card: plan.card };
+      report.push(...plan.card.notes);
+      advanceSeconds = Math.round(plan.hours * 3600);
+      occupation = 'activity';
+    }
+
+    if (span && advanceSeconds !== null) {
       if (span.clampedFrom !== undefined) report.push(`requested span ${span.clampedFrom}s clamped to ${span.seconds}s (${span.level})`);
       const reason = intent.requestedSpan ? `${intent.actionType} for ${intent.requestedSpan.amount} ${intent.requestedSpan.unit}` : intent.actionType;
       const adv = advanceTime(registry, state, {
-        seconds: span.seconds,
+        seconds: advanceSeconds,
         reason,
         source: 'turnDraft',
         requested: spanSeconds ?? span.seconds,
+        occupation,
         ...(span.clampedFrom !== undefined ? { clampedFrom: span.clampedFrom } : {}),
       });
       state = adv.state;
@@ -147,6 +209,8 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
         ...(span.clampedFrom !== undefined ? { clampedFrom: span.clampedFrom } : {}),
         ...(adv.interrupted !== undefined ? { interrupted: adv.interrupted } : {}),
       };
+      // Sleep resolves at its end with the health sleep rules (D-52): 7 h+ resets the meters.
+      if (occupation === 'sleep') apply([{ type: 'sleepCompleted', hours: Math.round((adv.secondsAdvanced / 3600) * 100) / 100 }]);
     }
 
     // intent.unknownNames go to the review queue after the narrative is applied, and only if the
@@ -156,6 +220,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   const draft: TurnDraft = Object.freeze({
     intent,
     checks: Object.freeze(checks),
+    training,
     timeAdvanced,
     pacingLevel: selectPacingLevel(state),
     notices: Object.freeze(notices),

@@ -125,7 +125,7 @@ describe('computeXp (training branch)', () => {
             challengeLevel: 2,
             drillRating: 14,
             caps: { p: 1e6, m: 1e6, f: 1e6 },
-            clamp: (skill, wanted) => clampCredit(wanted, (window[skill] ?? []).reduce((a, e) => a + e.xp, 0), cap),
+            clamp: (skill, wanted, _h) => clampCredit(wanted, (window[skill] ?? []).reduce((a, e) => a + e.xp, 0), cap),
             xpOf: (sk) => totals[sk] ?? 0,
             levelOf: (sk) => levelExact(totals[sk] ?? 0),
           }),

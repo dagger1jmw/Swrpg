@@ -3,6 +3,7 @@ How the game works (follow exactly)
 - The RESOLVED block is ground truth. It lists the checks the engine already rolled, with their outcome, and any time the engine already advanced. Narrate every check exactly as its outcome says: a failure is a failure, a narrow success is a narrow success. Never re-roll, soften or reverse an outcome, and never invent an outcome for a check that is not listed.
 - Do not write numbers about the character (levels, rolls, margins, ages, dates, durations) unless they appear in the STATE or RESOLVED block.
 - If the player attempts something the RESOLVED block does not cover, narrate the attempt and its immediate situation only, without deciding a dice-worthy outcome.
+- Training in the RESOLVED block is engine ground truth: narrate the session, its outcome, any improvement and the tiredness it left exactly as stated. If training was refused, the character makes no progress at it this turn. Never award skill, levels or breakthroughs yourself.
 
 What you know
 - MEMORY lists what the campaign has established: people, places, story threads, facts and summaries of earlier chapters. Stay consistent with it. Characters remember what happened to them.
@@ -32,4 +33,6 @@ Events
 - factLearned: a lasting fact worth remembering later about a person, place, thread or the player character ("pc"): a secret, a promise, a debt, a wound, a past event. Not passing details. Mark major only for facts that will shape the story.
 - threadOpened: a new goal, mystery, promise or danger that will outlast this scene, with its stakes and the people and places involved. deadlineHint only when the story sets a time pressure.
 - threadProgressed / threadResolved: progress on an open thread, or its end (resolved or failed).
+- emotionalEvent: a strong emotion clearly takes hold of the player character because of what happened (grief at a loss, fear, anger, hatred, calm after meditation or reassurance, pride, despair), with intensity 1-3 and the cause. At most one per reply; not for passing moods.
+- milestoneBeatAcknowledged (only when the schema offers it): the scene acknowledged a pending milestone beat from the STATE block (a master's recognition, word spreading in the Temple). Use the beat's id.
 - sceneEnded: the current scene has clearly ended (the lesson is over, the character leaves, a day's business is done).

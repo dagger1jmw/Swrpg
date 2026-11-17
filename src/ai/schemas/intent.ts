@@ -1,6 +1,7 @@
-// Intent call schema (architecture §3). M1 fields only (D-71): activity, tactic, forceAbility,
-// healing and risk are added by their features' milestones.
+// Intent call schema (architecture §3). M1 fields plus `activity` (M3): tactic, forceAbility,
+// healing and risk are added by their features' milestones (D-71).
 import { z } from 'zod';
+import { INTENSITIES } from '../../data/activities';
 import { ACTION_TYPES, DIFFICULTIES } from '../../data/checks.config';
 import { PACING_LEVELS } from '../../data/pacing.config';
 
@@ -9,6 +10,14 @@ export const SPAN_UNITS = ['seconds', 'minutes', 'hours', 'days'] as const;
 export const requestedSpanSchema = z.object({
   amount: z.number().positive().describe('How long the action takes, in the given unit'),
   unit: z.enum(SPAN_UNITS),
+});
+
+/** train / study: the activity from the VALID ACTIVITIES list (skills-and-activities.md). */
+export const activityIntentSchema = z.object({
+  activityId: z.string().max(60).describe('An id from the VALID ACTIVITIES list'),
+  intensity: z.enum(INTENSITIES).optional().describe('Only when the player states how hard they push'),
+  partnerRef: z.string().max(80).optional().describe('ID of a training partner who is present'),
+  teacherRef: z.string().max(80).optional().describe('ID of a teacher or master who is instructing'),
 });
 
 export const intentSchema = z.object({
@@ -20,10 +29,12 @@ export const intentSchema = z.object({
   proposedDifficulty: z.enum(DIFFICULTIES).optional(),
   requestedPacing: z.enum(PACING_LEVELS).optional(),
   requestedSpan: requestedSpanSchema.optional().describe('Only when the player states or clearly implies a duration'),
+  activity: activityIntentSchema.optional().describe('Only for train or study'),
 });
 
 export type Intent = z.infer<typeof intentSchema>;
 export type RequestedSpan = z.infer<typeof requestedSpanSchema>;
+export type ActivityIntent = z.infer<typeof activityIntentSchema>;
 
 const UNIT_SECONDS: Record<(typeof SPAN_UNITS)[number], number> = { seconds: 1, minutes: 60, hours: 3600, days: 86_400 };
 
@@ -38,12 +49,23 @@ export function spanToSeconds(span: RequestedSpan): number {
  */
 export function normalizeIntent(intent: Intent): Intent {
   const clean = (xs: string[]): string[] => xs.map((x) => x.trim()).filter(Boolean);
-  const { skillId, ...rest } = intent;
+  const { skillId, activity, ...rest } = intent;
+  const opt = (k: string, v: string | undefined): Record<string, string> => (v !== undefined && v.trim() ? { [k]: v.trim() } : {});
+  const act: ActivityIntent | null =
+    activity && activity.activityId.trim()
+      ? {
+          activityId: activity.activityId.trim(),
+          ...(activity.intensity ? { intensity: activity.intensity } : {}),
+          ...opt('partnerRef', activity.partnerRef),
+          ...opt('teacherRef', activity.teacherRef),
+        }
+      : null;
   return {
     ...rest,
     targets: clean(intent.targets),
     references: clean(intent.references),
     unknownNames: clean(intent.unknownNames),
-    ...(skillId !== undefined && skillId.trim() ? { skillId: skillId.trim() } : {}),
+    ...opt('skillId', skillId),
+    ...(act ? { activity: act } : {}),
   };
 }

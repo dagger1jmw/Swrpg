@@ -34,6 +34,7 @@ const session = (credited: Record<string, number>, extra: Record<string, unknown
   activityId: 'shiiChoBasics',
   primaries: ['shiiCho'],
   hours: 2,
+  windowHours: { shiiCho: 1.5, strength: 0.5 },
   credited,
   practiceHours: { shiiCho: 1.8 },
   fatigueWillpower: 0,
@@ -121,8 +122,8 @@ describe('XP and tier beats', () => {
     s = engine(s, [session({ shiiCho: 10, strength: 1 })]).state;
     expect(s.progression.skills['shiiCho']!.rust).toBeCloseTo(0.05 - 0.005 * 1.8, 9);
     expect(s.progression.skills['shiiCho']!.lastPracticedDay).toBe(START);
-    expect(s.progression.paceWindow['shiiCho']).toEqual([{ day: START, xp: 10, hours: 2 }]);
-    expect(s.progression.paceWindow['strength']).toEqual([{ day: START, xp: 1, hours: 0 }]);
+    expect(s.progression.paceWindow['shiiCho']).toEqual([{ day: START, xp: 10, hours: 1.5 }]);
+    expect(s.progression.paceWindow['strength']).toEqual([{ day: START, xp: 1, hours: 0.5 }]);
   });
 
   it('only the engine credits XP; the AI cannot', () => {

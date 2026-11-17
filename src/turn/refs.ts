@@ -43,6 +43,21 @@ export function resolveIntentRefs(intent: Intent, resolve: RefResolver): { inten
   };
   const targets = map(intent.targets, 'target');
   const references = [...new Set([...map(intent.references, 'reference'), ...known])].filter((id) => !targets.includes(id));
+  // activity.partnerRef / teacherRef must be NPCs (M3); anything else is dropped with a note.
+  let activity = intent.activity;
+  if (activity) {
+    const person = (field: 'partnerRef' | 'teacherRef'): Record<string, string> => {
+      const r = activity![field];
+      if (r === undefined) return {};
+      const id = resolve(r);
+      if (id !== null && id.startsWith('npc:')) return { [field]: id };
+      if (id === null) unknown.push(r);
+      notes.push(`intent activity.${field} "${r}" is not a known person; dropped`);
+      return {};
+    };
+    const { partnerRef: _p, teacherRef: _t, ...base } = activity;
+    activity = { ...base, ...person('partnerRef'), ...person('teacherRef') };
+  }
   const unknownNames = [...new Set(unknown)];
-  return { intent: { ...intent, targets, references, unknownNames }, notes };
+  return { intent: { ...intent, targets, references, unknownNames, ...(activity ? { activity } : {}) }, notes };
 }

@@ -206,6 +206,13 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
     const expanded = expandChoice(input.choice, resolve);
     intent = expanded.intent;
     intentNotes.push(...expanded.notes);
+  } else if (input.kind === 'action') {
+    // A full intent from the UI (the sheet's Train button): validated like any intent, no call.
+    const parsed = intentSchema.safeParse(input.intent);
+    if (!parsed.success) throw new TurnError('intent', new Error(`invalid action: ${parsed.error.issues[0]?.message ?? 'schema'}`), calls);
+    const checked = resolveIntentRefs(normalizeIntent(parsed.data), resolve);
+    intent = checked.intent;
+    intentNotes.push(...checked.notes);
   }
 
   const resolution = resolveTurn(deps.registry, session.state, intent);
@@ -313,6 +320,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     draft: {
       intent: draft.intent,
       checks: draft.checks,
+      training: draft.training,
       timeAdvanced: draft.timeAdvanced,
       pacingLevel: draft.pacingLevel,
       notices: [...draft.notices, ...result.notices],

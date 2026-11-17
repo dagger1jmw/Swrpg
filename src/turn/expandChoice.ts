@@ -2,6 +2,11 @@
 // the engine and validated, so the turn makes no intent call.
 import type { Choice } from '../ai/schemas/compose';
 import { intentSchema, type Intent } from '../ai/schemas/intent';
+import { DEFAULT_ACTIVITY } from '../data/activities';
+import { isSkillId } from '../data/skills';
+
+/** A train / study choice runs its skill's default activity for 1 hour (M3 plan). */
+export const DEFAULT_TRAINING_HOURS = 1;
 
 /** Resolves a ref to a stable ID (own ID or exact alias), or null. */
 export type RefResolver = (ref: string) => string | null;
@@ -19,13 +24,21 @@ export function expandChoice(choice: Choice, resolve: RefResolver): { intent: In
       notes.push(`choice targetRef ${targetRef} is not a valid ID; dropped`);
     }
   }
+  const skill = skillId !== undefined && skillId.trim() ? skillId.trim() : undefined;
+  let activity: { activityId: string } | undefined;
+  if ((actionType === 'train' || actionType === 'study') && skill !== undefined) {
+    const activityId = isSkillId(skill) ? DEFAULT_ACTIVITY[skill] : undefined;
+    if (activityId) activity = { activityId };
+    else notes.push(`choice skillId ${skill} is not a valid skill; no activity`);
+  }
   const intent = intentSchema.parse({
     actionType,
     targets,
     references: [],
     unknownNames,
-    ...(skillId !== undefined && skillId.trim() ? { skillId } : {}),
+    ...(skill !== undefined ? { skillId: skill } : {}),
     ...(choice.pacingHint !== undefined ? { requestedPacing: choice.pacingHint } : {}),
+    ...(activity ? { activity, requestedSpan: { amount: DEFAULT_TRAINING_HOURS, unit: 'hours' } } : {}),
   });
   return { intent, notes };
 }

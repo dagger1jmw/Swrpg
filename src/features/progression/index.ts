@@ -47,6 +47,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         activityId: z.string(),
         primaries: z.array(z.string()).min(1),
         hours: z.number().min(0),
+        /** The session's hours per skill by its share of the session's XP (D-109). */
+        windowHours: record,
         credited: record,
         practiceHours: record,
         fatigueWillpower: z.number().min(0),
@@ -58,8 +60,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         const day = selectNow(ctx.state).day;
         const credited = e['credited'] as Record<string, number>;
         const practice = e['practiceHours'] as Record<string, number>;
-        const primaries = e['primaries'] as string[];
         const hours = Number(e['hours']);
+        const windowHours = e['windowHours'] as Record<string, number>;
         for (const id of [...Object.keys(credited), ...Object.keys(practice)]) if (!SKILL_BY_ID.has(id)) return { reject: `unknown skill ${id}` };
 
         const skills = { ...slice.skills };
@@ -88,14 +90,14 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           const prev = skills[id] ?? { xp: 0, rust: 0, lastPracticedDay: null };
           skills[id] = { ...prev, rust: removeRust(prev.rust, h), lastPracticedDay: day };
         }
-        // Pace window (D-48, D-104): today's credited XP per skill; training hours go to the primaries.
+        // Pace window (D-48, D-104): today's credited XP and training hours per skill (hours by XP share, D-109).
         const paceWindow = { ...slice.paceWindow };
-        const touch = new Set([...Object.keys(credited), ...primaries]);
+        const touch = new Set([...Object.keys(credited), ...Object.keys(windowHours)]);
         for (const id of touch) {
           const entries = (paceWindow[id] ?? []).filter((w) => w.day > day - PACE_WINDOW_DAYS);
           const last = entries[entries.length - 1];
           const addXp = credited[id] ?? 0;
-          const addHours = primaries.includes(id) ? hours / primaries.length : 0;
+          const addHours = windowHours[id] ?? 0;
           if (last && last.day === day) entries[entries.length - 1] = { day, xp: last.xp + addXp, hours: last.hours + addHours };
           else entries.push({ day, xp: addXp, hours: addHours });
           paceWindow[id] = entries;

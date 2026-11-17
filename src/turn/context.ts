@@ -8,7 +8,14 @@ import { makeEstimator } from '../ai/tokenRatio';
 import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import type { CheckCard } from '../engine/rolls';
-import { PC_REF, selectAge, selectCharacterName } from '../features/character/selectors';
+import { ACTIVITIES } from '../data/activities';
+import { archetypeDef } from '../data/archetypes';
+import { SKILL_BY_ID, SKILL_IDS } from '../data/skills';
+import { speciesDef } from '../data/species';
+import { PC_REF, selectAge, selectCharacter, selectCharacterName } from '../features/character/selectors';
+import { selectFatigue } from '../features/health/selectors';
+import { selectGriefMult, selectSkillViews, selectStateOfMind, selectTierBeats } from '../features/progression/selectors';
+import { selectRankName } from '../features/ranks/selectors';
 import { selectNow } from '../features/clock/selectors';
 import { selectCurrentLocationId, selectLocationChain, selectLocations } from '../features/locations/selectors';
 
@@ -122,6 +129,45 @@ function idLines(state: GameState, focus: readonly string[]): Map<string, string
   return lines;
 }
 
+const PATH_LABEL: Record<string, string> = { jedi: 'Jedi', sith: 'Sith', outsider: 'Force-sensitive outsider', career: 'non-Force career' };
+
+function characterLine(state: GameState): string {
+  const c = selectCharacter(state);
+  const trained = c.trainingStartAge === null ? 'untrained' : `${archetypeDef(c.archetype).name}, trained since age ${Math.round(c.trainingStartAge)}`;
+  return `${speciesDef(c.speciesId).name}, ${PATH_LABEL[c.path] ?? c.path}, rank ${selectRankName(state)}, ${trained}`;
+}
+
+/** Tiredness labels and the state of mind (labels only; numbers stay in the engine). */
+function conditionLine(state: GameState): string {
+  const f = selectFatigue(state);
+  const grief = selectGriefMult(state) < 1 ? ', grieving' : '';
+  return `Condition: physical ${f.labels.p}, mental ${f.labels.m}, Force ${f.labels.f}; state of mind ${selectStateOfMind(state)}${grief}`;
+}
+
+/** The character's skills by tier, strongest first (tiers only; the RESOLVED block carries any numbers). */
+function skillsLine(state: GameState): string {
+  const views = selectSkillViews(state)
+    .filter((v) => v.level >= 1)
+    .sort((a, b) => b.levelExact - a.levelExact)
+    .slice(0, 14);
+  return `Skills by tier: ${views.length ? views.map((v) => `${v.name} ${v.tier}`).join(', ') : 'none trained'}`;
+}
+
+function beatsLines(state: GameState): string[] {
+  const beats = selectTierBeats(state);
+  if (!beats.length) return [];
+  return [
+    `Pending milestone beats (let the scene acknowledge one, e.g. a master's recognition, then send milestoneBeatAcknowledged): ${beats
+      .map((b) => `${b.id} = ${SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId} reached ${b.tier}`)
+      .join('; ')}`,
+  ];
+}
+
+/** Activity ids for the intent call (skills-and-activities.md §4); the engine checks unlocks. */
+export function activitiesLine(): string {
+  return `VALID ACTIVITIES (for train or study; id = name): ${ACTIVITIES.map((a) => `${a.id} = ${a.name}`).join('; ')}`;
+}
+
 export function stateBlock(
   state: GameState,
   est: Estimate,
@@ -134,14 +180,17 @@ export function stateBlock(
   const mood = selectMoodTags(state);
   const base = [
     'STATE',
-    `Character: ${selectCharacterName(state)} (${PC_REF}), age ${selectAge(state)}`,
+    `Character: ${selectCharacterName(state)} (${PC_REF}), age ${selectAge(state)}, ${characterLine(state)}`,
+    conditionLine(state),
+    skillsLine(state),
+    ...beatsLines(state),
     `Date: ${formatDate(now.day)}`,
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,
     `Location: ${chain.length ? chain.map((l) => `${l.name} (${l.id})`).join(', in ') : 'not recorded yet (introduce it with locationIntroduced)'}`,
     `Present: ${present.length ? present.join(', ') : 'nobody recorded'}`,
     `Pacing: ${selectPacingLevel(state)}`,
     `Scene mood: ${mood.length ? mood.join(', ') : 'not set'}`,
-    'VALID SKILLS: none yet (leave skillId empty).',
+    `VALID SKILLS: ${SKILL_IDS.join(', ')}`,
     'VALID IDS (use only these, or temp keys you create in this reply):',
     `${PC_REF} = ${selectCharacterName(state)} (the player character)`,
   ];
@@ -219,11 +268,25 @@ function formatSpan(seconds: number): string {
   return `${Number.isInteger(h) ? h : h.toFixed(1)} hours`;
 }
 
+export function describeTraining(t: NonNullable<TurnDraft['training']>): string[] {
+  if (!t.ok) return [`Training refused by the engine: ${t.reason}. The character makes no progress at it this turn; narrate why it does not happen (or what they do instead).`];
+  const c = t.card;
+  const name = (id: string): string => SKILL_BY_ID.get(id)?.name ?? id;
+  const lines = [
+    `Training: ${c.activityName}, ${formatSpan(Math.round(c.hours * 3600))} at ${c.intensity} intensity, ${c.drillName} drills. Session outcome: ${c.outcome}${c.outcome === 'breakthrough' ? ' (a real breakthrough)' : ''}.`,
+    `Progress: ${c.levels.map((l) => (l.after > l.before ? `${name(l.skillId)} improved to ${l.after} (${l.tier})` : `${name(l.skillId)} steady at ${l.after} (${l.tier})`)).join('; ')}.`,
+    `Tiredness afterwards: physical ${c.tiredness.p}, mental ${c.tiredness.m}.`,
+  ];
+  for (const l of c.levels) for (const t2 of [21, 41, 61, 81, 101, 151]) if (l.before < t2 && l.after >= t2) lines.push(`Milestone: ${name(l.skillId)} crossed into a new tier (${l.tier}).`);
+  return lines;
+}
+
 export function resolvedBlock(draft: TurnDraft): string {
   const lines = ['RESOLVED (ground truth; narrate consistently with it)'];
   if (draft.intent) lines.push(`Player action type: ${draft.intent.actionType}`);
   if (draft.checks.length === 0) lines.push('Checks: none required. Do not invent a success or failure that would need a roll.');
   for (const c of draft.checks) lines.push(describeCheck(c));
+  if (draft.training) lines.push(...describeTraining(draft.training));
   if (draft.timeAdvanced) {
     lines.push(`Time already advanced by the engine: ${formatSpan(draft.timeAdvanced.seconds)} (${draft.timeAdvanced.reason}). Narrate that stretch; do not add more time.`);
   }
@@ -307,7 +370,7 @@ export function narrativeSystemPrompt(state: GameState, opening: boolean): strin
 
 /** The player's own words for this turn (scanned for names; D-85). */
 export function playerTextOf(input: TurnInput): string {
-  return input.kind === 'typed' ? input.text : input.kind === 'choice' ? input.choice.label : input.premise;
+  return input.kind === 'typed' ? input.text : input.kind === 'choice' ? input.choice.label : input.kind === 'action' ? input.label : input.premise;
 }
 
 export function buildNarrativeRequest(state: GameState, draft: TurnDraft, input: TurnInput, history: readonly TurnRecord[], opts: BuildOptions): BuiltRequest {
@@ -346,10 +409,12 @@ export function buildIntentRequest(state: GameState, text: string, history: read
   const last = history[history.length - 1];
   const lastNarrative = `LAST NARRATION (for context):\n${last ? last.narrative.slice(-1500) : '(no previous turn)'}`;
   const input = `PLAYER INPUT:\n${text}`;
-  const messages: Message[] = [{ role: 'user', text: [st.text, lastNarrative, input].join('\n\n') }];
+  const activities = activitiesLine();
+  const messages: Message[] = [{ role: 'user', text: [st.text, activities, lastNarrative, input].join('\n\n') }];
   const sections: SectionReport[] = [
     section('gmRules', CONTEXT_CAPS.gmRules, system, est, [{ id: 'intent', tokens: est(system) }]),
     st.report,
+    section('state', null, activities, est, [{ id: 'valid activities', tokens: est(activities) }]),
     section('recentTurns', CONTEXT_CAPS.recentTurns, lastNarrative, est, last ? [{ id: `turn ${turnOf(last, history.length - 1)} (last 1500 chars)`, tokens: est(lastNarrative) }] : []),
     section('input', null, input, est),
   ];
