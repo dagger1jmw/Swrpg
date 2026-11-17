@@ -137,6 +137,8 @@ export interface InitCtx {
   startingXp?: Readonly<Record<string, number>>;
   /** The rank chosen at creation (ranks stub until M7). */
   rank?: string;
+  /** Backstory facts from computed creation (character-creation §4), recorded as memory facts about pc. */
+  backstoryFacts?: readonly string[];
 }
 
 /** What a span of time is spent on (M3): health recovers meters only on rest steps (D-52). */

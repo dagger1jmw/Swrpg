@@ -65,3 +65,9 @@ export function speciesLearning(speciesId: string, skillId: string): number {
   }
   return f;
 }
+
+/** The inverse of humanEquivalentAge: the species age at which h is reached. */
+export function speciesAgeFromHuman(species: SpeciesDef, h: number): number {
+  if (h < HUMAN_MATURITY) return (h * species.maturity) / HUMAN_MATURITY;
+  return species.maturity + ((h - HUMAN_MATURITY) * (species.lifespan - species.maturity)) / HUMAN_SPAN;
+}

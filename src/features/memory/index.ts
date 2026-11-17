@@ -25,7 +25,12 @@ const ids = z.array(z.string());
 export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
   id: 'memory',
   version: 1,
-  initialState: (ctx) => emptyMemory(0, ctx.start.day),
+  // Computed creation's backstory facts become the first facts about the character (M3).
+  initialState: (ctx) => {
+    const m = emptyMemory(0, ctx.start.day);
+    const facts = (ctx.backstoryFacts ?? []).map((text, i) => ({ id: `fact:${i + 1}`, aboutRef: 'pc', text: text.slice(0, MEMORY_LIMITS.fact), turn: 0, day: ctx.start.day, importance: 'major' as const }));
+    return { ...m, facts, nextSeq: facts.length + 1 };
+  },
   // A save from before M2: the first chapter starts at that save's turn and day.
   emptyState: (raw) => {
     const meta = raw['meta'] as { turn?: unknown } | undefined;

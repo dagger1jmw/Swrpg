@@ -22,3 +22,6 @@ export const selectMainForm = (s: GameState): string | null => s.character.mainF
 
 /** The ref the AI uses for the player character (resolved by the character feature). */
 export const PC_REF = 'pc';
+
+// Computed creation is a pure function of its inputs; exported here for the turn and UI layers.
+export { computeCreation, defaultFocus, ranksFor, talentCost, ageAt, VALIDATION_OPTIONS, type CreationInput, type CreationResult, type UnmetMinimum } from './creation';

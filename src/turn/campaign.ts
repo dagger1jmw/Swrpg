@@ -1,6 +1,7 @@
 // New campaign and resume. A new campaign commits its turn-0 state immediately, so the autosave
 // always holds the current campaign (legacy save bug 4: New Game undone by a reload).
 import { absDayFromDate, isValidDate, type CalendarDate } from '../engine/calendar';
+import { computeCreation, type CreationInput, type CreationResult } from '../features/character/selectors';
 import { loadEnvelope, makeEnvelope } from '../persist/envelope';
 import { AUTOSAVE_SLOT, type CampaignRecord, type Storage } from '../persist/storage';
 import type { GameState } from '../state/gameState';
@@ -17,6 +18,14 @@ export interface NewCampaignInput {
   startSecond: number;
   /** Optional opening premise (stored on the campaign record). */
   premise?: string;
+  /** Computed creation choices (M3). Absent = an untrained Human outsider (natural baselines only). */
+  creation?: Omit<CreationInput, 'name' | 'birthDay' | 'startDay'>;
+}
+
+/** Runs computed creation for a new campaign's inputs (null when no creation choices were made). */
+export function creationFor(input: NewCampaignInput): CreationResult | null {
+  if (!input.creation || !isValidDate(input.birthDate) || !isValidDate(input.startDate)) return null;
+  return computeCreation({ ...input.creation, name: input.name.trim() || 'The character', birthDay: absDayFromDate(input.birthDate), startDay: absDayFromDate(input.startDate) });
 }
 
 /** Character creation default start (character-creation.md §1: 3,661 BBY, D-01), 07:00. */
@@ -32,6 +41,13 @@ export function validateNewCampaign(input: NewCampaignInput): string[] {
   if (!Number.isInteger(input.startSecond) || input.startSecond < 0 || input.startSecond > 86_399) errors.push('The start time is not valid.');
   if (errors.length === 0 && absDayFromDate(input.birthDate) >= absDayFromDate(input.startDate)) {
     errors.push('The character must be born before the start date.');
+  }
+  if (errors.length === 0) {
+    const c = creationFor(input);
+    if (c) {
+      errors.push(...c.errors);
+      if (!c.ok && c.unmet.length) errors.push(`The rank's skill minimums are not met (${c.unmet.map((u) => `${u.skillId} ${u.have}/${u.need}`).join(', ')}): ${c.options.join('; ')}.`);
+    }
   }
   return errors;
 }
@@ -50,12 +66,31 @@ export async function createCampaign(
 ): Promise<Session> {
   const errors = validateNewCampaign(input);
   if (errors.length) throw new Error(errors.join(' '));
+  const c = creationFor(input);
+  const cr = input.creation;
   const state = createInitialState<GameState>(registry, {
     campaignId: ids.campaignId,
     branchId: ids.branchId,
     seed: ids.campaignId,
     start: { day: absDayFromDate(input.startDate), second: input.startSecond },
-    character: { name: input.name.trim(), birthDay: absDayFromDate(input.birthDate) },
+    character: {
+      name: input.name.trim(),
+      birthDay: absDayFromDate(input.birthDate),
+      ...(cr && c
+        ? {
+            speciesId: cr.speciesId,
+            path: cr.path,
+            archetype: cr.archetype,
+            focusWeights: c.focusWeights,
+            mainFormId: cr.mainFormId,
+            secondFormId: cr.secondFormId,
+            trainingStartAge: cr.trainingStartAge,
+            talents: cr.talents,
+            dominantHand: cr.dominantHand,
+          }
+        : {}),
+    },
+    ...(c ? { startingXp: c.startingXp, rank: cr!.rank, backstoryFacts: c.facts } : {}),
   });
   const premise = input.premise?.trim() ?? '';
   const campaign: CampaignRecord = { campaignId: ids.campaignId, name: input.name.trim(), createdAt: wallIso, lastPlayedAt: wallIso, ...(premise ? { premise } : {}) };
