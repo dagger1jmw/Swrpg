@@ -1,5 +1,6 @@
 // Settings and usage storage (architecture §2 "Outside GameState", D-24): device-local, never in
 // saves or exports. Backed by any localStorage-like store, injected for tests.
+import { parseRatios, type TokenRatios } from './tokenRatio';
 import { z } from 'zod';
 import type { QuotaState } from './fallback';
 import { DEFAULT_LIMITS, DEFAULT_MODEL_LISTS } from './models.config';
@@ -152,4 +153,19 @@ export function loadQuota(store: KeyValueStore): QuotaState {
 
 export function saveQuota(store: KeyValueStore, quota: QuotaState): void {
   store.setItem(QUOTA_KEY, JSON.stringify(quota));
+}
+
+const RATIOS_KEY = 'swrpg-v2:tokenRatios';
+
+/** Calibrated characters-per-token per model (D-86); device data, outside saves like usage. */
+export function loadTokenRatios(store: KeyValueStore): TokenRatios {
+  try {
+    return parseRatios(store.getItem(RATIOS_KEY));
+  } catch {
+    return {};
+  }
+}
+
+export function saveTokenRatios(store: KeyValueStore, ratios: TokenRatios): void {
+  store.setItem(RATIOS_KEY, JSON.stringify(ratios));
 }

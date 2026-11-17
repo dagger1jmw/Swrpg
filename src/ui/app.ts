@@ -18,6 +18,17 @@ import {
   type Settings,
 } from '../ai/settings';
 import { recordRequest, summarizeUsage, type UsageLog } from '../ai/usage';
+import { DEBUG_REQUESTS_KEPT } from '../ai/context.config';
+import { calibrate, type TokenRatios } from '../ai/tokenRatio';
+import { loadTokenRatios, saveTokenRatios } from '../ai/settings';
+import { selectCurrentLocation } from '../features/locations/selectors';
+import { selectOpenReview } from '../features/memory/selectors';
+import { makeEnvelope } from '../persist/envelope';
+import { exportCampaign, importCampaign } from '../persist/exportImport';
+import { applyEvents } from '../state/applyEvents';
+import type { GameEvent } from '../state/types';
+import { summarizeChapters, type DebugRequest, type SummaryOutcome } from '../turn/pipeline';
+import { renderWorldPanel, type WorldTab } from './worldPanel';
 import { ageInYears, absDayFromDate, formatClock, formatDate, isValidDate, timeOfDayLabel, type CalendarDate } from '../engine/calendar';
 import type { CheckCard } from '../engine/rolls';
 import { selectAge, selectCharacterName } from '../features/character/selectors';
@@ -64,8 +75,18 @@ export class App {
   private readonly provider: ModelProvider;
   private quota: QuotaState;
   private readonly router: ModelRouter;
+  private tokenRatios: TokenRatios;
+  private panelOpen = false;
+  private panelTab: WorldTab = 'people';
+  private panelError: string | null = null;
+  /** Full request texts, this session only (D-87). */
+  private debugRequests: DebugRequest[] = [];
+  private summaryLog: SummaryOutcome[] = [];
+  private summarizing = false;
+  private settingsNote: string | null = null;
 
   constructor(private readonly d: AppDeps) {
+    this.tokenRatios = loadTokenRatios(d.kv);
     this.settings = loadSettings(d.kv);
     this.usage = loadUsage(d.kv);
     this.quota = loadQuota(d.kv);
@@ -112,7 +133,89 @@ export class App {
         this.usage = recordRequest(this.usage, model, usage?.inputTokens ?? 0, this.d.now());
         saveUsage(this.d.kv, this.usage);
       },
+      getTokenRatios: () => this.tokenRatios,
+      recordTokenRatio: (model, chars, promptTokens) => {
+        this.tokenRatios = calibrate(this.tokenRatios, model, chars, promptTokens);
+        saveTokenRatios(this.d.kv, this.tokenRatios);
+      },
+      onRequest: (r) => {
+        this.debugRequests = [...this.debugRequests, r].slice(-DEBUG_REQUESTS_KEPT);
+      },
     };
+  }
+
+  /** The chapter summary call after a close (D-57); input waits so no turn races its commit. */
+  private async runSummaries(): Promise<void> {
+    if (!this.session) return;
+    this.busy = true;
+    this.summarizing = true;
+    this.render();
+    try {
+      const r = await summarizeChapters(this.turnDeps(), this.session);
+      this.session = r.session;
+      this.summaryLog = [...this.summaryLog, ...r.outcomes].slice(-20);
+    } catch (e) {
+      this.panelError = `Summary failed: ${e instanceof Error ? e.message : String(e)}`;
+    } finally {
+      this.busy = false;
+      this.summarizing = false;
+      this.render();
+    }
+  }
+
+  /** Player events (pins, review resolutions): applied through applyEvents and committed. */
+  private async playerEvents(events: GameEvent[]): Promise<void> {
+    if (!this.session || this.busy) return;
+    const r = applyEvents(this.d.registry, this.session.state, events, { source: 'player' });
+    if (r.rejected.length) {
+      this.panelError = r.rejected.map((x) => x.reason).join('; ');
+      this.render();
+      return;
+    }
+    const iso = new Date(this.d.now()).toISOString();
+    const campaign = { ...this.session.campaign, lastPlayedAt: iso };
+    try {
+      await this.d.storage.commitTurn(makeEnvelope(this.d.registry, r.state, iso), campaign, null);
+      this.session = { ...this.session, state: r.state, campaign };
+      this.panelError = null;
+    } catch (e) {
+      this.panelError = `Could not save: ${e instanceof Error ? e.message : String(e)}`;
+    }
+    this.render();
+  }
+
+  private async exportFile(): Promise<void> {
+    const file = await exportCampaign(this.d.registry, this.d.storage, new Date(this.d.now()).toISOString());
+    if (!file || 'error' in file) {
+      this.settingsNote = file ? `Export failed: ${file.error}` : 'There is no saved campaign to export.';
+      this.render();
+      return;
+    }
+    const blob = new Blob([JSON.stringify(file)], { type: 'application/json' });
+    const a = el('a', { attrs: { href: URL.createObjectURL(blob), download: `swrpg-${file.campaign.name.replace(/[^\w-]+/g, '_')}-turn${file.transcript.length}.json` } });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    this.settingsNote = `Exported ${file.campaign.name} (${file.transcript.length} turns).`;
+    this.render();
+  }
+
+  private async importFile(f: File): Promise<void> {
+    try {
+      const raw = JSON.parse(await f.text()) as unknown;
+      const r = await importCampaign(this.d.registry, this.d.storage, raw, this.d.newId, new Date(this.d.now()).toISOString());
+      if (!r.ok) {
+        this.settingsNote = `Import refused: ${r.error}`;
+      } else {
+        const resumed = await resumeCampaign(this.d.registry, this.d.storage);
+        if (resumed && 'session' in resumed) this.session = resumed.session;
+        this.settingsNote = `Imported ${this.session?.campaign.name ?? 'the campaign'}${r.rebranched ? ' (on a new branch, since this campaign already exists here)' : ''}.`;
+      }
+    } catch (e) {
+      this.settingsNote = `Import failed: ${e instanceof Error ? e.message : String(e)}`;
+    }
+    this.render();
   }
 
   private async runTurn(turnInput: TurnInput, pending?: PendingTurn): Promise<void> {
@@ -122,10 +225,12 @@ export class App {
     this.failed = null;
     this.render();
     const deps = this.turnDeps();
+    let closed = false;
     try {
       const p = pending ?? (await prepareTurn(deps, this.session, turnInput));
-      const { session } = await narrateTurn(deps, this.session, p);
+      const { session, record } = await narrateTurn(deps, this.session, p);
       this.session = session;
+      closed = record.chapterClosed !== undefined;
     } catch (e) {
       const te = e instanceof TurnError ? e : null;
       this.failed = {
@@ -139,16 +244,21 @@ export class App {
       this.inFlight = null;
       this.render();
     }
+    if (closed) await this.runSummaries();
   }
 
   // ---- Rendering ----
 
   render(): void {
     const root = this.d.root;
+    // Keep the drawer's scroll position across re-renders.
+    const drawerScroll = root.querySelector('.world-body')?.scrollTop ?? 0;
     clear(root);
     if (this.screen === 'settings') root.append(this.renderSettings());
     else if (this.screen === 'create') root.append(this.renderCreate());
     else root.append(this.renderGame());
+    const body = root.querySelector('.world-body');
+    if (body) body.scrollTop = drawerScroll;
   }
 
   private renderSettings(): HTMLElement {
@@ -225,6 +335,24 @@ export class App {
           el('span', {}, [autoRetry, ' Retry once automatically when a reply is cut off (uses one extra request)']),
         ]),
         err,
+        el('h2', { text: 'Campaign file' }),
+        el('p', { class: 'hint', text: 'Export the current campaign (state, people, places, threads, chapter summaries and the full transcript) as one JSON file, or import one. The API key is never included.' }),
+        el('div', { class: 'row' }, [
+          el('button', { class: 'secondary', text: 'Export campaign', on: { click: () => void this.exportFile() } }),
+          el('label', { class: 'filebtn' }, [
+            'Import campaign',
+            el('input', {
+              attrs: { type: 'file', accept: 'application/json,.json' },
+              on: {
+                change: (e) => {
+                  const f = (e.target as HTMLInputElement).files?.[0];
+                  if (f) void this.importFile(f);
+                },
+              },
+            }),
+          ]),
+        ]),
+        this.settingsNote ? el('p', { class: 'hint', text: this.settingsNote }) : null,
         el('div', { class: 'row' }, [
           el('button', { text: 'Save', on: { click: save } }),
           this.settings.apiKey ? el('button', { class: 'secondary', text: 'Cancel', on: { click: () => this.go(this.session ? 'game' : 'create') } }) : null,
@@ -369,11 +497,26 @@ export class App {
       this.renderHeader(state),
       feed,
       this.busy && this.inFlight && this.inFlight.kind !== 'opening' ? el('div', { class: 'feed' }, [el('div', { class: 'player', text: describeInput(this.inFlight) })]) : null,
-      this.busy ? el('div', { class: 'busy', text: 'The GM is thinking...' }) : null,
+      this.busy ? el('div', { class: 'busy', text: this.summarizing ? 'A chapter closed. Writing its summary...' : 'The GM is thinking...' }) : null,
       !this.busy && this.failed && this.failed.input.kind !== 'opening' ? el('div', { class: 'feed' }, [el('div', { class: 'player', text: describeInput(this.failed.input) })]) : null,
       banner,
       choices,
       el('div', { class: 'composer' }, [text, sendBtn]),
+      this.panelOpen
+        ? renderWorldPanel({
+            state,
+            history: session.history,
+            tab: this.panelTab,
+            busy: this.busy,
+            debugRequests: this.debugRequests,
+            summaryLog: this.summaryLog,
+            error: this.panelError,
+            setTab: (t) => ((this.panelTab = t), this.render()),
+            close: () => ((this.panelOpen = false), this.render()),
+            playerEvents: (events) => void this.playerEvents(events),
+            retrySummaries: () => void this.runSummaries(),
+          })
+        : null,
     ]);
     // Keep the newest turn in view.
     queueMicrotask(() => window.scrollTo({ top: document.body.scrollHeight }));
@@ -424,13 +567,24 @@ export class App {
       el('div', { class: 'bar' }, [
         el('div', { class: 'when' }, [
           el('strong', { text: `${formatClock(now.second)} ${timeOfDayLabel(now.second)}` }),
-          ` · ${formatDate(now.day)} · ${selectCharacterName(state)}, ${selectAge(state)} · turn ${state.meta.turn} · ${selectPacingLevel(state)}`,
+          ` · ${formatDate(now.day)}${selectCurrentLocation(state) ? ` · ${selectCurrentLocation(state)!.name}` : ''} · ${selectCharacterName(state)}, ${selectAge(state)} · turn ${state.meta.turn} · ${selectPacingLevel(state)}`,
         ]),
       ]),
       el('div', { class: 'bar' }, [
         el('label', {}, ['Story model: ', picker]),
         el('span', { class: 'hint', text: `Intent: ${intentUse.model} (${intentUse.requestsToday} today)` }),
-        el('span', {}, [el('button', { class: 'secondary', text: 'Settings', on: { click: () => this.go('settings') } }), ' ', newBtn]),
+        el('span', {}, [
+          el('button', {
+            class: 'secondary',
+            text: `People & World${selectOpenReview(state).length ? ` (${selectOpenReview(state).length} to review)` : ''}`,
+            attrs: { 'aria-expanded': String(this.panelOpen) },
+            on: { click: () => ((this.panelOpen = !this.panelOpen), this.render()) },
+          }),
+          ' ',
+          el('button', { class: 'secondary', text: 'Settings', on: { click: () => this.go('settings') } }),
+          ' ',
+          newBtn,
+        ]),
       ]),
       fallbackNotices.length ? el('div', { class: 'fallback', text: fallbackNotices.join(' · ') }) : null,
       warnings.length ? el('div', { class: 'warnings', text: warnings.join(' · ') }) : null,
