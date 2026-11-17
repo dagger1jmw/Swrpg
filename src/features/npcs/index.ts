@@ -14,7 +14,7 @@ import { resolveNpcRef, selectNpcs } from './selectors';
 export const npcIntroducedSchema = z.object({
   type: z.literal('npcIntroduced'),
   key: z.string().optional().describe('Same-turn temp key like tmp:1, so later events in this reply can refer to this NPC'),
-  name: z.string().min(1).max(LIMITS.name).describe('The name the character is known by, with any title (e.g. "Master Orren Vash")'),
+  name: z.string().min(1).max(LIMITS.name).describe('The name the character is known by, with any title'),
   species: z.enum(SPECIES),
   faction: z.enum(FACTIONS),
   role: z.enum(NPC_ROLES),

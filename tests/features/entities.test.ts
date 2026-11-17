@@ -98,6 +98,11 @@ describe('locations', () => {
     const s = ai(fresh(), [coruscant, temple]).state;
     expect(selectMajorLocationId(s, 'loc:jedi-temple')).toBe('loc:coruscant');
   });
+  it('accepts word temp keys like the model writes them (D-91)', () => {
+    const r = ai(fresh(), [{ ...coruscant, key: 'tmp:loc1' }, { ...temple, key: 'tmp:loc2', parentRef: 'tmp:loc1' }]);
+    expect(r.rejected).toEqual([]);
+    expect(r.state.locations.byId['loc:jedi-temple']!.parentId).toBe('loc:coruscant');
+  });
   it('locationChanged needs a known place', () => {
     const s = ai(fresh(), [coruscant, temple]).state;
     expect(ai(s, [{ type: 'locationChanged', locationRef: 'Coruscant' }]).state.locations.currentId).toBe('loc:coruscant');

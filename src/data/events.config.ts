@@ -19,5 +19,8 @@ export const EVENT_CAPS: Readonly<Record<string, EventCap>> = {
 /** Emitted events may chain at most this deep; deeper is a bug and throws (architecture §11). */
 export const MAX_EMIT_DEPTH = 4;
 
-/** Same-turn temp key format (D-32). */
-export const TEMP_KEY_PATTERN = /^tmp:\d+$/;
+/**
+ * Same-turn temp key format (D-32): "tmp:" plus up to 24 letters, digits, _ or -. Widened from
+ * digits only (D-91): live, the model wrote tmp:loc1 and tmp:thread1, and every place was lost.
+ */
+export const TEMP_KEY_PATTERN = /^tmp:[A-Za-z0-9_-]{1,24}$/;
