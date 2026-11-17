@@ -168,17 +168,22 @@ test 2 generalized).
 | grief | {intensity 1-3, sinceDay, easesByDay} or null; lingers under any stateOfMind (D-46) | engine |
 | fightsToday | per skill count, reset by the day hook (moved from combat, D-47) | engine |
 | combatXpToday | per skill XP before M, for the 12 XP daily cap, reset by the day hook (D-47) | engine |
-| paceWindow | per skill ring of daily credited XP (365 days) for the 4.0x clamp (D-48) | engine |
+| paceWindow | per skill ring of daily credited XP and training hours (365 days) for the 4.0x clamp (D-48; hours by XP share, D-104 / D-109) | engine |
+| today | the day's training state: hours per activity, post-workout window, meditation and training hours (reset at midnight; M3, D-107) | engine |
 | overtrainStreak | int >= 0 | engine |
 | willpowerToday | 0-3.0 | engine |
 | reviewBuffUntil | day or null (recording review, sec 19) | engine |
-| tierBeatsPending | [{skillId, tier, day}] | engine |
+| tierBeatsPending | [{id, skillId, tier, day}] | engine |
+
+M3 builds skills[id].{xp, rust, lastPracticedDay}, stateOfMind, grief, paceWindow, today, overtrainStreak, willpowerToday and tierBeatsPending (D-107). E, CI, bank, fightsToday, combatXpToday and reviewBuffUntil arrive with combat (M5).
 
 **health** (owner: health)
 | Field | Type / range | Source |
 |---|---|---|
 | meters.physical, .mental, .force | load >= 0 (fraction is derived from capacity) | engine |
 | sleepCarry | 0-0.6 | engine |
+
+M3 builds the meters and sleepCarry only (minimal health slice, D-107); the rest arrives in M5.
 | vitality | 0..max (max derived) | engine |
 | wounds[] | {id, part, severity, W >= 0, stabilized, healProgress 0-1, day, source} | engine |
 | lasting[] | {id, part, affects[], P 0-1, adaptation 0-1, aidCap 0-1} | engine |
@@ -261,6 +266,8 @@ The grief floor on D is derived (10 x progression grief intensity via a selector
 | trials[] | {id, attempts 0-3, passedDay?, lastAttemptDay?} | engine |
 | standing | 0-100 | engine |
 | masterId, apprentices[] | npc ids | engine |
+
+M3 builds `rank` only, chosen at creation and fixed until M7 (D-56 stub, D-107).
 
 **routines** (owner: routines)
 | Field | Type / range | Source |
@@ -349,6 +356,11 @@ intent: {
   to the activity's default. Neither is ever taken from the narrative reply (D-29).
 - Sleep is an intent action (`actionType: sleep`, span from the intent) or part of a
   routine; the engine resolves it with the health and progression sleep rules (D-52).
+- **Built in M3 (D-107):** train / study resolve `activity` (or the skill's default activity) through
+  progression's resolveTraining and computeXp; the time passes with `occupation: activity`. An
+  unknown or locked activity is refused with a reason and changes nothing. Sleep advances with
+  `occupation: sleep` and ends with `sleepCompleted`. A UI-built intent enters as the `action` turn
+  input (the sheet's Train button) and skips the intent call, like a choice.
 
 ### Narrative response schema
 ```
@@ -721,7 +733,7 @@ Legends gives 12 months and 368 days (D-03). The rest is a design choice:
 ### Day loop: one ordered hook list (D-35)
 Every time-based feature registers `onTimeAdvanced(slice, step: TimeStep, ctx)`, the same
 signature as §11, where `TimeStep` = {kind: subDay / day, fromAbs, toAbs (day + second),
-seconds}. advanceTime calls the hooks in this fixed order (registry order, documented and
+seconds, occupation: rest / activity / sleep (M3, D-107; default rest)}. advanceTime calls the hooks in this fixed order (registry order, documented and
 tested), once per day for day steps:
   1. routines: the routine's blocks in 30-minute steps (fatigue and XP via progression and
      health); in story turns, the TurnDraft's resolved activities take this slot
@@ -928,8 +940,8 @@ holds until replaced.
 | Stub | Value until replaced | Used by | Replaced in |
 |---|---|---|---|
 | Effective level modifiers in rolls (wound penalty, Vitality spent) | 0 / false | M1 checks | M5 |
-| Effective level modifiers in rolls (rust, fatigue) | 0 / e(f) = 1 | M1-M2 checks | M3 |
-| Skill levels for M1-M2 checks | from the minimal character's computed creation: none in M1, so checks use level 0 plus the circumstance modifiers | M1-M2 | M3 |
+| Effective level modifiers in rolls (rust, fatigue) | 0 / e(f) = 1 | M1-M2 checks | M3 (replaced: progression rust, health e(f_phys)) |
+| Skill levels for M1-M2 checks | from the minimal character's computed creation: none in M1, so checks use level 0 plus the circumstance modifiers | M1-M2 | M3 (replaced: progression performance levels) |
 | Teacher levels | the Average profile's closed-form level at the teacher's age (no per-NPC variance) | M3-M4 | M5 (NPC generation) |
 | Order requirements | the ranks.md §1a table as static data, rank fixed at creation | M3-M4 lifetime test, routines | M7 |
 | Alignment multiplier in M | 1.0 | M3-M5 | M6 |

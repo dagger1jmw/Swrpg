@@ -123,7 +123,7 @@ export const SKILLS: readonly SkillDef[] = [
   career('investigation', 'Investigation', 'academic'),
   career('tactics', 'Tactics', 'academic'),
   career('medicine', 'Medicine', 'academic'),
-  // Profession:<kind> (civilian archetype) is one skill in M3; kinds are story flavor (D-107).
+  // Profession:<kind> (civilian archetype) is one skill in M3; kinds are story flavor (D-108).
   career('profession', 'Profession', 'technique'),
 ];
 

@@ -66,7 +66,7 @@ describe('Average lifetime (95 years through the src engine)', () => {
     expect(knight.minimums).toEqual({ $mainForm: 38, forceControl: 30, forceSense: 26, willpower: 48 });
     for (const k of ['forceControl>=30', 'forceSense>=26', 'willpower>=48']) expect(Math.abs(at(k) - 20.3), k).toBeLessThanOrEqual(2);
     // Main form 38 is met early: 18.24 in the src engine (the calc, without synergy, had 18.3, exactly
-    // 2.0). Never late; the 0.06-year excess over +/-2 is logged for Jared (D-110), not tuned here.
+    // 2.0). Never late; the 0.06-year excess over +/-2 is logged for Jared (D-111), not tuned here.
     expect(at('shiiCho>=38')).toBeLessThanOrEqual(20.3 + 2);
     expect(20.3 - at('shiiCho>=38')).toBeLessThan(2.1);
     // Master (about 35): main specialty 58.

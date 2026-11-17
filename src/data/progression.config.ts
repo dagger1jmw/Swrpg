@@ -210,7 +210,7 @@ export const STATE_MULT = {
 /** +0.5 dark pressure per effective hour channeled (alignment, M6: logged only in M3). */
 export const PASSION_DARK_PRESSURE_PER_HOUR = 0.5;
 export const GRIEF_MULT = 0.8;
-/** Grief and despair ease back to x1.00 over 14-30 days by intensity 1-3 (design, D-107). */
+/** Grief and despair ease back to x1.00 over 14-30 days by intensity 1-3 (design, D-108). */
 export const EASE_DAYS: Record<1 | 2 | 3, number> = { 1: 14, 2: 21, 3: 30 };
 /** emotionalEvent.type -> state (§17 table). Grief is the lingering condition, not a state. */
 export const EMOTION_TO_STATE: Record<string, StateOfMind | 'grief'> = {
@@ -222,7 +222,7 @@ export const EMOTION_TO_STATE: Record<string, StateOfMind | 'grief'> = {
   pride: 'pride',
   despair: 'despair',
 };
-/** Passion states (fear, anger, hatred) last until calm or this many days (design, D-107). */
+/** Passion states (fear, anger, hatred) last until calm or this many days (design, D-108). */
 export const PASSION_DAYS = 3;
 /** Centered from meditation: 30+ minutes of meditation today (§17). */
 export const CENTERED_MEDITATION_HOURS = 0.5;

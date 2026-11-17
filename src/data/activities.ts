@@ -141,7 +141,7 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   act('padawanTraining', 'Padawan training with master', 'forms', S, 'standard', { kind: 'anyForm' }, { forceControl: 0.4, willpower: 0.3 }, [
     { kind: 'rank', ranks: ['padawan', 'apprentice'] },
   ]),
-  // Forms with no bank entry use the basics pattern of their nearest form (§4 note; D-107).
+  // Forms with no bank entry use the basics pattern of their nearest form (§4 note; D-108).
   act('trakataBasics', 'Tràkata basics', 'forms', S, 'standard', fixed('trakata'), { agility: 0.6, willpower: 0.3, forceControl: 0.3, strength: 0.1 }, [known()]),
   act('jarKaiBasics', "Jar'Kai basics", 'forms', S, 'standard', fixed('jarKai'), { $secondForm: 0.6, agility: 0.5, strength: 0.3 }, [known()]),
   act('sokanBasics', 'Sokan basics', 'forms', S, 'intense', fixed('sokan'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [known()]),

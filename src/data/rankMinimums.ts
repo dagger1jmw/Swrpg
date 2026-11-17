@@ -10,7 +10,7 @@ export interface RankDef {
   path: CharacterPath;
   /** Order in the ladder (0 = first). */
   order: number;
-  /** Youngest age the rank fits (creation filter; design ages, D-107). */
+  /** Youngest age the rank fits (creation filter; design ages, D-108). */
   minAge: number;
   /** Oldest age the rank fits, if any (Initiates not chosen by 13 go to the Service Corps). */
   maxAge?: number;

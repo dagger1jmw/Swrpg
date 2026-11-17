@@ -94,7 +94,7 @@ describe('computeXp (training branch)', () => {
   it('test 12 (second half) as the rules stand: halving from the 3rd overtrained day applies to Willpower from f > 1.0', () => {
     // The spec claims a 7-day pushing streak earns less fatigue Willpower than alternating push and
     // recovery days. Under §9-§10 as written it never does (the capacity cut raises f and the 3.0 cap
-    // saturates); logged for Jared in decisions.md (D-108). This checks the rule itself.
+    // saturates); logged for Jared in decisions.md (D-110). This checks the rule itself.
     const caps = capacities(30, 30, 0, 2);
     const block = { activityId: 'd', load: LOADS.saberDrill, physical: true, meditation: false, hours: 6, intensity: 'standard' as const };
     const full = stepBlock(ZERO_METERS, caps, EMPTY_DAY, block, false);

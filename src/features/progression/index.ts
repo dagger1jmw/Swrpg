@@ -135,7 +135,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         }
         const untilDay = mapped === 'centered' ? day + 1 : mapped === 'despair' ? day + easeDays(intensity) : day + PASSION_DAYS;
         const next: StateOfMindRecord = { kind: mapped, intensity, sinceDay: day, untilDay };
-        // Calm ends fear, anger, hatred and pride (it is the event of calming down); despair eases on its own (D-107).
+        // Calm ends fear, anger, hatred and pride (it is the event of calming down); despair eases on its own (D-108).
         const force = mapped === 'centered' && PASSIONS.includes(activeState(slice.stateOfMind, day));
         const stateOfMind = setState(slice.stateOfMind, next, day, force);
         const notes = stateOfMind === slice.stateOfMind ? [`${mapped} is weaker than the active ${activeState(slice.stateOfMind, day)}; not applied`] : [];

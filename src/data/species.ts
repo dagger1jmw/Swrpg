@@ -43,7 +43,7 @@ export const SPECIES: readonly SpeciesDef[] = [
     bodyScale: 1.0,
     capBonus: { agility: 5 },
     learning: [],
-    // Charisma has no cap in v2 (only physical stats are capped), so "+5 Charisma cap" stays story flavor (D-107).
+    // Charisma has no cap in v2 (only physical stats are capped), so "+5 Charisma cap" stays story flavor (D-108).
     notes: ['Lekku: expressive in social scenes (story; Charisma has no cap)', 'Dance and agility culture: Agility cap +5'],
     source: DESIGN,
   },
