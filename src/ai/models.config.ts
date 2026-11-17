@@ -2,11 +2,15 @@
 import type { CallType, ThinkingSetting } from './provider';
 
 export const DEFAULT_MODELS: Record<CallType, string> = {
-  narrative: 'gemini-3.6-flash',
+  // D-79: 3.8-flash gave the best prose and was faster than 3.6-flash in the D-78 live test.
+  narrative: 'gemini-3.8-flash',
   intent: 'gemini-3.5-flash-lite',
   summary: 'gemini-3.5-flash-lite',
   ooc: 'gemini-3.5-flash-lite',
 };
+
+/** Suggested in the header picker when the Flash daily quota runs low (fastest; thinner prose, D-78). */
+export const FALLBACK_NARRATIVE_MODEL = 'gemini-3.5-flash-lite';
 
 /** Offered in the model pickers; any other model ID can be typed in Settings. */
 export const KNOWN_MODELS: readonly string[] = ['gemini-3.6-flash', 'gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-4-hydrogen'];

@@ -84,7 +84,7 @@ describe('settings (D-24)', () => {
   it('defaults to the D-68 models and round-trips', () => {
     const store = memStore();
     const s = loadSettings(store);
-    expect(s.models.narrative).toBe('gemini-3.6-flash');
+    expect(s.models.narrative).toBe('gemini-3.8-flash');
     expect(s.models.intent).toBe('gemini-3.5-flash-lite');
     expect(s.limits['gemini-3.6-flash']).toEqual({ rpm: 5, tpm: 250_000, rpd: 20 });
     saveSettings(store, withModel({ ...s, apiKey: 'AIzaXXXXXXXXXXXXXXXXXXXX' }, 'narrative', 'gemini-3.8-flash'));

@@ -52,8 +52,8 @@ describe('turn pipeline (architecture §4, §14)', () => {
     const s0 = await newSession(deps);
     const { session, record } = await playTurn(deps, s0, { kind: 'opening', premise: '' });
     expect(provider.calls.map((c) => c.opts.callType)).toEqual(['narrative']);
-    expect(provider.calls[0]?.opts.model).toBe('gemini-3.6-flash');
-    expect(counted).toEqual(['gemini-3.6-flash']);
+    expect(provider.calls[0]?.opts.model).toBe('gemini-3.8-flash');
+    expect(counted).toEqual(['gemini-3.8-flash']);
     expect(session.state.meta.turn).toBe(1);
     expect(session.state.clock.now.second).toBe(START_SECOND + 30);
     expect(session.state.pacing.scene.moodTags).toEqual(['calm', 'expectant']);
@@ -75,9 +75,9 @@ describe('turn pipeline (architecture §4, §14)', () => {
     const s1 = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
     const { session, record } = await playTurn(deps, s1, { kind: 'typed', text: 'I study the hall for anything unusual' });
     expect(provider.calls.map((c) => [c.opts.callType, c.opts.model])).toEqual([
-      ['narrative', 'gemini-3.6-flash'],
+      ['narrative', 'gemini-3.8-flash'],
       ['intent', 'gemini-3.5-flash-lite'],
-      ['narrative', 'gemini-3.6-flash'],
+      ['narrative', 'gemini-3.8-flash'],
     ]);
     expect(record.draft.checks).toHaveLength(1);
     const card = record.draft.checks[0]!;

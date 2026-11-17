@@ -1,6 +1,6 @@
 // UI: rendering and player actions only (architecture §1). Reads state through selectors and
 // calls the turn pipeline; no game rules here.
-import { KNOWN_MODELS } from '../ai/models.config';
+import { FALLBACK_NARRATIVE_MODEL, KNOWN_MODELS } from '../ai/models.config';
 import type { CallType, ModelProvider, Usage } from '../ai/provider';
 import {
   loadSettings,
@@ -367,7 +367,8 @@ export class App {
     const models = [...new Set([...KNOWN_MODELS, narrativeModel])];
     const remainingLabel = (m: string): string => {
       const s = summarizeUsage(this.usage, m, this.settings.limits[m] ?? {}, ms);
-      return s.remainingToday !== null ? `${m} (${s.remainingToday} left today)` : `${m} (${s.requestsToday} used today)`;
+      const count = s.remainingToday !== null ? `${s.remainingToday} left today` : `${s.requestsToday} used today`;
+      return `${m}${m === FALLBACK_NARRATIVE_MODEL ? ' · fallback' : ''} (${count})`;
     };
     const picker = el(
       'select',
