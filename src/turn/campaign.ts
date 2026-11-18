@@ -95,7 +95,7 @@ export async function createCampaign(
           }
         : {}),
     },
-    ...(c ? { startingXp: c.startingXp, rank: cr!.rank, backstoryFacts: c.facts } : {}),
+    ...(c ? { startingXp: c.startingXp, startingE: c.startingE, startingCI: c.startingCI, rank: cr!.rank, backstoryFacts: c.facts } : {}),
   });
   const premise = input.premise?.trim() ?? '';
   const campaign: CampaignRecord = { campaignId: ids.campaignId, name: input.name.trim(), createdAt: wallIso, lastPlayedAt: wallIso, ...(premise ? { premise } : {}) };

@@ -49,6 +49,8 @@ function session(overrides: Partial<GameState> = {}): Session {
     start: { day: START, second: 8 * 3600 },
     character: { name: 'Kael', birthDay: START - 16 * 368, path: 'jedi', archetype: 'jediGuardian', mainFormId: 'shiiCho', secondFormId: 'soresu', trainingStartAge: 4, focusWeights: { shiiCho: 0.5, forceControl: 0.1 } },
     startingXp: { shiiCho: xpForLevel(30), forceControl: xpForLevel(22), forceSense: xpForLevel(20) },
+    // A Padawan's starting E from Order sparring (character-creation §2): ceiling 40.
+    startingE: { shiiCho: { E: 15, eSpar: 15 } },
     rank: 'padawan',
   });
   return { state: { ...state, ...overrides }, history: [], campaign: { campaignId: 'c1', name: 'Kael', createdAt: 'x', lastPlayedAt: 'x' } };

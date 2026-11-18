@@ -2,6 +2,8 @@
 // session and the engine events that apply it. Feature rule code: pure, reads other features
 // through selectors. An unknown or locked activity is rejected with a reason and never mapped to a
 // nearby one (D-07, skills-and-activities.md §2).
+import { ORDER_CLASS_SPARRING, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
+import { splitDrillXp } from '../../engine/appliedExperience';
 import { ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, type ActivityDef, type Intensity, type Unlock } from '../../data/activities';
 import { archetypeDef } from '../../data/archetypes';
 import { FORM_TRANSFER_SHARE, K, PASSION_DARK_PRESSURE_PER_HOUR, STEP_HOURS } from '../../data/progression.config';
@@ -38,8 +40,11 @@ import { selectNpc, selectNpcAge } from '../npcs/selectors';
 import { selectRank } from '../ranks/selectors';
 import { selectRelationship } from '../relationships/selectors';
 import {
+  selectBank,
   selectCapacities,
   selectDespairMult,
+  selectDrillCeiling,
+  selectE,
   selectGriefMult,
   selectLevelExact,
   selectNatural,
@@ -249,8 +254,14 @@ export function speedFor(s: GameState, instruction: number): (skill: string) => 
       state: stateMult(state, skill, { grief, despair, darkPressure: STUB_DARK_PRESSURE }),
       alignment: STUB_ALIGNMENT_MULT,
       species: speciesLearning(c.speciesId, skill),
-    }).m;
+    }).m * reviewBuff(s, skill);
   };
+}
+
+/** Reviewing a recording of one's own fight: +5% XP to that skill for 3 days (progression-numbers §19, D-154). */
+function reviewBuff(s: GameState, skill: string): number {
+  const b = s.progression.reviewBuff;
+  return b && b.skillId === skill && selectNow(s).day <= b.untilDay ? 1 + RECORDING_REVIEW_BONUS : 1;
 }
 
 /**
@@ -412,13 +423,27 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     notes.push(`channeling ${state}: +${(PASSION_DARK_PRESSURE_PER_HOUR * r.effectiveHours).toFixed(1)} dark pressure (recorded with alignment in M6)`);
   }
 
+  // The drill ceiling on lightsaber forms (progression-numbers §7; D-45): below 25 + E the XP applies in full; past it
+  // 25% applies and 75% is banked (cap 15 levels). Applied here so the card, the event and the save agree.
+  const credited: Record<string, number> = { ...r.credited };
+  const banked: Record<string, number> = {};
+  for (const [id, x] of Object.entries(r.credited)) {
+    if (SKILL_BY_ID.get(id)?.kind !== 'form' || x <= 0) continue;
+    const split = splitDrillXp(selectSkillXp(s, id) + (transfer[id] ?? 0), x, selectE(s, id), selectBank(s, id));
+    credited[id] = split.applied;
+    if (split.banked > 0) banked[id] = split.banked;
+    if (split.banked > 0 || split.overflow > 0) {
+      const lost = split.overflow > 0 ? `, ${split.overflow.toFixed(2)} lost (bank full)` : '';
+      notes.push(`${SKILL_BY_ID.get(id)!.name}: drill ceiling ${selectDrillCeiling(s, id).toFixed(1)}: ${split.applied.toFixed(2)} XP applied, ${split.banked.toFixed(2)} banked${lost}`);
+    }
+  }
   const round = (rec: Record<string, number>): Record<string, number> => Object.fromEntries(Object.entries(rec).map(([k, v]) => [k, Math.round(v * 100) / 100]));
   const levels = Object.keys(prim).map((id) => {
-    const after = Math.floor(levelWithNatural(selectSkillXp(s, id) + (r.credited[id] ?? 0), selectNatural(s, id)) + 1e-9);
+    const after = Math.floor(levelWithNatural(selectSkillXp(s, id) + (credited[id] ?? 0), selectNatural(s, id)) + 1e-9);
     return { skillId: id, before: before[id]!, after, tier: tierOf(after) };
   });
   const totals: TrainingCard['totals'] = {};
-  for (const [id, v] of Object.entries(r.credited)) {
+  for (const [id, v] of Object.entries(credited)) {
     if (v < 0.05) continue;
     const total = xpForLevel(selectNatural(s, id)) + selectSkillXp(s, id) + v;
     const level = Math.floor(levelWithNatural(selectSkillXp(s, id) + v, selectNatural(s, id)) + 1e-9);
@@ -437,13 +462,21 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     outcome: r.outcome.name,
     outcomeMult: r.outcome.mult,
     instruction: { mode: instr.mode, factor: Math.round(instr.factor * 1000) / 1000, ...(teacherId ? { teacherId } : {}), ...(partnerId ? { partnerId } : {}) },
-    credited: round(r.credited),
+    credited: round(credited),
     totals,
     discarded: round(r.discarded),
     levels,
     tiredness: { p: tirednessLabel(r.meters.p / caps.p), m: tirednessLabel(r.meters.m / caps.m), f: tirednessLabel(r.meters.f / caps.f) },
     notes,
   };
+  const orderClass = ORDER_CLASS_SPARRING[a.id];
+  const sparKind: 'sparPeer' | 'sparMaster' | undefined = a.sparring
+    ? source?.kind === 'master' || teacherId
+      ? 'sparMaster'
+      : 'sparPeer'
+    : orderClass && (source?.kind === 'instructor' || source?.kind === 'master' || teacherId)
+      ? orderClass
+      : undefined;
   const events: GameEvent[] = [
     {
       type: 'activityResolved',
@@ -451,7 +484,8 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
       primaries: Object.keys(prim),
       hours: r.hours,
       windowHours: r.windowHours,
-      credited: r.credited,
+      credited,
+      ...(Object.keys(banked).length ? { banked } : {}),
       practiceHours: r.practiceHours,
       ...(Object.keys(transfer).length ? { transfer } : {}),
       // D-126: forms started by self-study become self-taught; a taught session ends that.
@@ -459,6 +493,9 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
       ...(teaching ? { taught: Object.keys(prim).filter((id) => s.progression.selfTaught.includes(id)) } : {}),
       fatigueWillpower: r.fatigueWillpower,
       meditation: a.group === 'meditation',
+      // Sparring for applied experience E (progression-numbers §7): partner sparring, and the Order classes that count
+      // as sparring when taught (D-143 A: the Initiate forms class with instructors, the Padawan master session).
+      ...(sparKind ? { sparring: sparKind } : {}),
       day: r.day,
     },
     { type: 'activityLoad', activityId: a.id, meters: r.meters },

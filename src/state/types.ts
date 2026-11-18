@@ -145,6 +145,9 @@ export interface InitCtx {
   };
   /** Starting trained XP per skill from computed creation (character-creation §2). */
   startingXp?: Readonly<Record<string, number>>;
+  /** Starting applied experience and combat integration (character-creation §2; M5). */
+  startingE?: Readonly<Record<string, { E: number; eSpar: number }>>;
+  startingCI?: Readonly<Record<string, { CI: number; ciSpar: number }>>;
   /** The rank chosen at creation (ranks stub until M7). */
   rank?: string;
   /** Backstory facts from computed creation (character-creation §4), recorded as memory facts about pc. */

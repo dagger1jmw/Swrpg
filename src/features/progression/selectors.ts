@@ -2,6 +2,7 @@
 // stored (architecture §2 "Derived, never stored").
 import { SKILLS, SKILL_BY_ID, type PhysicalStat } from '../../data/skills';
 import { levelWithNatural, tierOf, xpForLevel } from '../../engine/curve';
+import { drillCeiling } from '../../engine/appliedExperience';
 import { capacities, type Capacities } from '../../engine/fatigue';
 import { bodyCap, forceBoost, naturalLevel } from '../../engine/species';
 import type { StateOfMind, TierName } from '../../data/progression.config';
@@ -95,3 +96,13 @@ export function selectSkillViews(s: GameState): SkillView[] {
 // Training resolution is a pure read of the state plus a request (it returns events; it changes
 // nothing), so it is part of the feature's public selector surface for the turn layer.
 export { resolveTraining, stubTeacherLevel, type TrainingCard, type TrainingPlan, type TrainingRequest, type TrainingSource } from './training';
+
+// ---- Applied experience, combat integration, the drill ceiling (progression-numbers §7-8; M5) ----
+const groupOf = (id: string): string => SKILL_BY_ID.get(id)?.formGroup ?? id;
+/** E of a lightsaber form's group. */
+export const selectE = (s: GameState, formId: string): number => s.progression.E[groupOf(formId)]?.E ?? 0;
+/** CI of a combat Force ability. */
+export const selectCI = (s: GameState, abilityId: string): number => s.progression.CI[abilityId]?.CI ?? 0;
+/** Drill ceiling = 25 + E. */
+export const selectDrillCeiling = (s: GameState, formId: string): number => drillCeiling(selectE(s, formId));
+export const selectBank = (s: GameState, formId: string): number => s.progression.bank[formId] ?? 0;

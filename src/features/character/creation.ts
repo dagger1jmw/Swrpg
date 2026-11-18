@@ -6,6 +6,8 @@
 // Padawan the plan splits the 2 h master session and the 1 h solo hour among any forms, and each form's
 // first phase starts it at 0.75 x the highest form (the fundamentals transfer). Variance is off.
 import { orderSeatAt } from '../../data/orderSeats';
+import { SPAR_E_CAP } from '../../data/progression.config';
+import { gainE } from '../../engine/appliedExperience';
 import { ARCHETYPE_BY_ID, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
 import { BUDGET, FORM_TRANSFER_SHARE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
 import { ORDER_REQUIREMENTS } from '../../data/orderRequirements';
@@ -78,6 +80,9 @@ export interface CreationResult {
   unbalanced: boolean;
   /** Starting trained XP per skill (the natural baseline is not included). */
   startingXp: Record<string, number>;
+  /** Starting applied experience per form group and combat integration per combat Force ability (character-creation §2; M5). */
+  startingE: Record<string, { E: number; eSpar: number }>;
+  startingCI: Record<string, { CI: number; ciSpar: number }>;
   /** Preview: total levels (natural baseline included) for every skill above 0. */
   levels: Record<string, number>;
   /** Highest phase pace x multiplier used (must stay <= 4.0). */
@@ -217,6 +222,8 @@ export function computeCreation(input: CreationInput): CreationResult {
     storyException: false,
     unbalanced,
     startingXp: {},
+    startingE: {},
+    startingCI: {},
     levels: {},
     maxPace: 0,
     focusWeights: {},
@@ -328,6 +335,7 @@ export function computeCreation(input: CreationInput): CreationResult {
     } else if (SKILL_BY_ID.has(key)) focusWeights[key] = (focusWeights[key] ?? 0) + share;
   }
   const facts = backstory(input, a, rankDef, h, storyException, unmet, { padawanPlan, knightPlan, mainFormId, hasForms });
+  const applied = startingApplied({ input, path: input.path, startAge: hStart, age: h, ages, warYears, startingXp });
   return {
     ok: unmet.length === 0 || storyException,
     errors,
@@ -336,6 +344,8 @@ export function computeCreation(input: CreationInput): CreationResult {
     storyException,
     unbalanced,
     startingXp,
+    startingE: applied.E,
+    startingCI: applied.CI,
     levels,
     maxPace,
     focusWeights,
@@ -346,6 +356,60 @@ export function computeCreation(input: CreationInput): CreationResult {
     facts,
   };
 }
+
+/**
+ * Starting E and CI (character-creation §2; D-143 A): Order classes count as sparring (the Initiate forms class +0.2 a
+ * session, the Padawan master session +0.4; sparring E capped at 15), each war year adds E +3 and CI +1 on the
+ * combat Force abilities the character knows (scaled as usual), and Knights and above add E +1 per year of missions
+ * (at most +15). E applies to every form group the character has trained.
+ */
+function startingApplied(i: {
+  input: CreationInput;
+  path: CharacterPath;
+  startAge: number;
+  age: number;
+  ages: { padawanAge: number; knightAge: number; onePhase: boolean };
+  warYears: number;
+  startingXp: Record<string, number>;
+}): { E: Record<string, { E: number; eSpar: number }>; CI: Record<string, { CI: number; ciSpar: number }> } {
+  let e = { E: 0, eSpar: 0 };
+  const order = (i.path === 'jedi' || i.path === 'sith') && !i.ages.onePhase;
+  if (order) {
+    const initYears = Math.max(0, Math.min(i.age, i.ages.padawanAge) - i.startAge);
+    const padYears = Math.max(0, Math.min(i.age, i.ages.knightAge) - Math.max(i.startAge, i.ages.padawanAge));
+    const sessions = (years: number): number => Math.min(2000, Math.round(years * ORDER_SESSIONS_PER_YEAR));
+    for (let k = 0; k < sessions(initYears) && e.eSpar < SPAR_E_CAP - 1e-6; k++) e = gainE(e, 'sparPeer');
+    for (let k = 0; k < sessions(padYears) && e.eSpar < SPAR_E_CAP - 1e-6; k++) e = gainE(e, 'sparMaster');
+    const missionYears = Math.max(0, i.age - Math.max(i.startAge, i.ages.knightAge));
+    let added = 0;
+    for (let k = 0; k < Math.floor(missionYears) && added < MISSION_E_MAX; k++) {
+      const g = Math.min(MISSION_E_MAX - added, 1 * Math.max(0, 1 - e.E / 120));
+      e = { ...e, E: e.E + g };
+      added += g;
+    }
+  }
+  for (let k = 0; k < Math.floor(i.warYears); k++) e = gainE(e, 'skirmish');
+  const E: Record<string, { E: number; eSpar: number }> = {};
+  if (e.E > 0) for (const id of Object.keys(i.startingXp)) {
+    const def = SKILL_BY_ID.get(id);
+    if (def?.kind === 'form') E[def.formGroup ?? id] = { ...e };
+  }
+  const CI: Record<string, { CI: number; ciSpar: number }> = {};
+  if (i.warYears > 0) for (const id of Object.keys(i.startingXp)) {
+    const def = SKILL_BY_ID.get(id);
+    if (def?.kind !== 'forceAbility' || def.forceUse === 'nonCombat') continue;
+    let c = 0;
+    for (let k = 0; k < Math.floor(i.warYears); k++) c += 1 * Math.max(0, 1 - c / 120);
+    CI[id] = { CI: c, ciSpar: 0 };
+  }
+  void i.input;
+  return { E, CI };
+}
+
+/** Order training sessions a year counted for starting E (the Average's 300 training days). */
+const ORDER_SESSIONS_PER_YEAR = 300;
+/** Knights and above: E +1 per year of missions, at most +15 (character-creation §2). */
+const MISSION_E_MAX = 15;
 
 /** The Order's seat by start date (src/data/orderSeats.ts; L-03, D-155: every era). */
 function templeFor(year: number): string {

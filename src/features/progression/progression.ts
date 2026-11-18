@@ -61,6 +61,17 @@ export const progressionSliceSchema = z.object({
   fightsToday: z.record(z.string(), z.number().int().min(0)),
   /** Combat XP before M credited today per skill, for the 12 XP daily cap (D-47). Reset at midnight. */
   combatXpToday: z.record(z.string(), z.number().min(0)),
+  /** Applied experience E per lightsaber form group, with its sparring part (progression-numbers §7; M5). */
+  E: z.record(z.string(), z.object({ E: z.number().min(0).max(100), eSpar: z.number().min(0) })),
+  /** Combat integration CI per combat Force ability, with its sparring part (§8; M5). */
+  CI: z.record(z.string(), z.object({ CI: z.number().min(0).max(100), ciSpar: z.number().min(0) })),
+  /** Banked drill XP per lightsaber form (§7; capped at 15 levels of XP). */
+  bank: z.record(z.string(), z.number().min(0)),
+  /** The last day of the current 60-day bank release, or null (D-45). */
+  bankReleaseUntil: z.number().int().nullable(),
+  /** Recording review (§19): +5% XP to one skill until untilDay; at most once per 7 days. */
+  reviewBuff: z.object({ skillId: z.string(), untilDay: z.number().int() }).nullable(),
+  lastReviewDay: z.number().int().nullable(),
 });
 export type ProgressionSlice = z.infer<typeof progressionSliceSchema>;
 
@@ -84,17 +95,30 @@ export function emptyProgression(day: number, startingXp: Readonly<Record<string
     selfTaught: [],
     fightsToday: {},
     combatXpToday: {},
+    E: {},
+    CI: {},
+    bank: {},
+    bankReleaseUntil: null,
+    reviewBuff: null,
+    lastReviewDay: null,
   };
 }
 
+export type M5Fields = 'E' | 'CI' | 'bank' | 'bankReleaseUntil' | 'reviewBuff' | 'lastReviewDay';
+
+/** v3 -> v4 (M5): applied experience, combat integration, the bank and the review buff start empty. */
+export function migrateProgressionV3(old: unknown): ProgressionSlice {
+  return { ...(old as Omit<ProgressionSlice, M5Fields>), E: {}, CI: {}, bank: {}, bankReleaseUntil: null, reviewBuff: null, lastReviewDay: null };
+}
+
 /** v2 -> v3 (M4): self-taught forms (D-126) and the daily combat counters (D-47). */
-export function migrateProgressionV2(old: unknown): ProgressionSlice {
-  return { ...(old as Omit<ProgressionSlice, 'selfTaught' | 'fightsToday' | 'combatXpToday'>), selfTaught: [], fightsToday: {}, combatXpToday: {} };
+export function migrateProgressionV2(old: unknown): Omit<ProgressionSlice, M5Fields> {
+  return { ...(old as Omit<ProgressionSlice, 'selfTaught' | 'fightsToday' | 'combatXpToday' | M5Fields>), selfTaught: [], fightsToday: {}, combatXpToday: {} };
 }
 
 /** v1 -> v2 (D-119): forms already holding XP count as started (no transfer later). */
-export function migrateProgressionV1(old: unknown): Omit<ProgressionSlice, 'selfTaught' | 'fightsToday' | 'combatXpToday'> {
-  const o = old as Omit<ProgressionSlice, 'formsStarted' | 'selfTaught' | 'fightsToday' | 'combatXpToday'>;
+export function migrateProgressionV1(old: unknown): Omit<ProgressionSlice, 'selfTaught' | 'fightsToday' | 'combatXpToday' | M5Fields> {
+  const o = old as Omit<ProgressionSlice, 'formsStarted' | 'selfTaught' | 'fightsToday' | 'combatXpToday' | M5Fields>;
   return { ...o, formsStarted: Object.entries(o.skills).filter(([id, st]) => FORM_IDS.includes(id) && st.xp > 0).map(([id]) => id) };
 }
 

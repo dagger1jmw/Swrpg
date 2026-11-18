@@ -8,6 +8,8 @@ import { SKILL_BY_ID, CATEGORY_RULES, PHYSICAL_STATS } from '../../data/skills';
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY } from '../../data/activities';
 import { COMBAT_OUTCOMES, COMBAT_STAKES } from '../../data/progression.config';
 import { computeCombatXp, type CombatSession } from '../../engine/combatXp';
+import { eSourceFor, gainCI, gainE, releaseBank, releaseUntil, splitDrillXp } from '../../engine/appliedExperience';
+import { RECORDING_REVIEW } from '../../data/combat.config';
 import { clampFor, speedFor } from './training';
 import { fromAbsSecond } from '../../engine/calendar';
 import { levelWithNatural, thresholdsCrossed, tierOf } from '../../engine/curve';
@@ -17,7 +19,7 @@ import type { FeatureModule, GameEvent } from '../../state/types';
 import { selectNow } from '../clock/selectors';
 import { selectMaxFraction } from '../health/selectors';
 import { selectOpenThreads } from '../threads/selectors';
-import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressionV1, migrateProgressionV2, progressionSliceSchema, type ProgressionSlice, type StateOfMindRecord } from './progression';
+import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressionV1, migrateProgressionV2, migrateProgressionV3, progressionSliceSchema, type ProgressionSlice, type StateOfMindRecord } from './progression';
 import { selectCapacities, selectLevelExact, selectNatural, selectSkillViews, selectStateOfMind, selectTierBeats } from './selectors';
 
 const EMOTIONS = ['grief', 'fear', 'anger', 'hatred', 'calm', 'pride', 'despair'] as const;
@@ -95,11 +97,46 @@ function creditXp(
   return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow }, emit, notes };
 }
 
+const formGroup = (id: string): string | null => {
+  const d = SKILL_BY_ID.get(id);
+  return d?.kind === 'form' ? (d.formGroup ?? id) : null;
+};
+const groupE = (slice: ProgressionSlice, form: string): number => slice.E[formGroup(form) ?? form]?.E ?? 0;
+
+/**
+ * The drill ceiling on lightsaber-form XP (progression-numbers §7; D-45): below 25 + E it applies in full; past it
+ * 25% applies and 75% is banked (bank cap 15 levels). Returns the credited map with forms reduced, and the new bank.
+ */
+function applyCeiling(slice: ProgressionSlice, credited: Record<string, number>): { credited: Record<string, number>; bank: Record<string, number>; notes: string[] } {
+  const out = { ...credited };
+  const bank = { ...slice.bank };
+  const notes: string[] = [];
+  for (const [id, x] of Object.entries(credited)) {
+    if (formGroup(id) === null || x <= 0) continue;
+    const split = splitDrillXp(slice.skills[id]?.xp ?? 0, x, groupE(slice, id), bank[id] ?? 0);
+    out[id] = split.applied;
+    if (split.banked > 0) bank[id] = (bank[id] ?? 0) + split.banked;
+    if (split.banked > 0 || split.overflow > 0) {
+      const name = SKILL_BY_ID.get(id)!.name;
+      const lost = split.overflow > 0 ? `, ${split.overflow.toFixed(2)} lost (bank full)` : '';
+      notes.push(`${name}: drill ceiling ${(25 + groupE(slice, id)).toFixed(1)}: ${split.applied.toFixed(2)} XP applied, ${split.banked.toFixed(2)} banked${lost}`);
+    }
+  }
+  return { credited: out, bank, notes };
+}
+
+/** One E gain for each form group among `forms` (each group once per session or fight). */
+function gainForGroups(E: ProgressionSlice['E'], forms: readonly string[], source: Parameters<typeof gainE>[1]): ProgressionSlice['E'] {
+  const next = { ...E };
+  for (const g of new Set(forms.map(formGroup).filter((x): x is string => x !== null))) next[g] = gainE(next[g] ?? { E: 0, eSpar: 0 }, source);
+  return next;
+}
+
 export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
   id: 'progression',
-  version: 3,
-  migrations: { 2: migrateProgressionV1, 3: migrateProgressionV2 },
-  initialState: (ctx) => emptyProgression(ctx.start.day, ctx.startingXp ?? {}),
+  version: 4,
+  migrations: { 2: migrateProgressionV1, 3: migrateProgressionV2, 4: migrateProgressionV3 },
+  initialState: (ctx) => ({ ...emptyProgression(ctx.start.day, ctx.startingXp ?? {}), E: { ...(ctx.startingE ?? {}) }, CI: { ...(ctx.startingCI ?? {}) } }),
   // Saves from M1/M2: no training (natural baselines only).
   emptyState: (raw) => {
     const clock = raw['clock'] as { now?: { day?: unknown } } | undefined;
@@ -128,11 +165,21 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         fatigueWillpower: z.number().min(0),
         meditation: z.boolean(),
         day: z.object({ hoursByActivity: record, postWindow: z.number().min(0), lastPhysicalHeavy: z.boolean() }),
+        /** Drill XP over the ceiling, banked (progression-numbers §7). */
+        banked: record.optional(),
+        /** Sparring for E (partner sparring, or a taught Order class, D-143 A). */
+        sparring: z.enum(['sparPeer', 'sparMaster']).optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
         const day = selectNow(ctx.state).day;
+        // The drill ceiling was applied when the session was resolved (training.ts); the banked part arrives here.
         const credited = e['credited'] as Record<string, number>;
+        const bank = { ...slice.bank };
+        for (const [id, x] of Object.entries((e['banked'] as Record<string, number> | undefined) ?? {})) {
+          if (SKILL_BY_ID.get(id)?.kind !== 'form') return { reject: `banked XP to ${id}: lightsaber forms only` };
+          bank[id] = (bank[id] ?? 0) + x;
+        }
         const practice = e['practiceHours'] as Record<string, number>;
         const hours = Number(e['hours']);
         const windowHours = e['windowHours'] as Record<string, number>;
@@ -152,7 +199,10 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         for (const id of e['primaries'] as string[]) if (SKILL_BY_ID.get(id)?.kind === 'form' && !formsStarted.includes(id)) formsStarted.push(id);
         const cr = creditXp({ ...slice, skills }, ctx.state, credited, practice, windowHours, day);
         skills = cr.slice.skills;
-        const { emit, notes } = cr;
+        const { emit } = cr;
+        const notes = [...cr.notes];
+        const spar = e['sparring'] as 'sparPeer' | 'sparMaster' | undefined;
+        const E = spar ? gainForGroups(slice.E, e['primaries'] as string[], spar) : slice.E;
         const { tierBeatsPending: beats, nextSeq: seq, paceWindow } = cr.slice;
         // Self-study (D-126): forms started without teaching are self-taught until a taught session.
         const taught = new Set((e['taught'] as string[] | undefined) ?? []);
@@ -165,7 +215,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           stateOfMind = setState(stateOfMind, { kind: 'centered', intensity: 1, sinceDay: day, untilDay: day + 1 }, day);
         }
         const willpowerToday = Math.min(FATIGUE_WILLPOWER.dailyCap, slice.willpowerToday + Number(e['fatigueWillpower']));
-        return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow, today, stateOfMind, willpowerToday, formsStarted, selfTaught }, emit, notes };
+        return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow, today, stateOfMind, willpowerToday, formsStarted, selfTaught, bank, E }, emit, notes };
       },
     },
     /**
@@ -177,8 +227,12 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         type: z.literal('fightResolved'),
         stakes: z.enum(COMBAT_STAKES),
         outcome: z.enum(COMBAT_OUTCOMES),
-        exchanges: z.array(z.object({ skillId: z.string(), gap: z.number() })).max(500),
-        forceUses: z.array(z.object({ abilityId: z.string(), gap: z.number() })).max(200),
+        exchanges: z.array(z.object({ skillId: z.string(), gap: z.number() })).max(2000),
+        forceUses: z.array(z.object({ abilityId: z.string(), gap: z.number() })).max(500),
+        /** The opponent's largest level advantage in the opposed skill (E: life-or-death vs 5+ stronger, combat-xp §3). */
+        opponentGap: z.number().optional(),
+        /** A spar with the character's master (E +0.4 instead of +0.2). */
+        master: z.boolean().optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
@@ -206,10 +260,38 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         for (const k of used) fightsToday[k] = (fightsToday[k] ?? 0) + 1;
         const combatXpToday = { ...slice.combatXpToday };
         for (const [k, v] of Object.entries(r.beforeM)) combatXpToday[k] = (combatXpToday[k] ?? 0) + v;
-        const windowHours = Object.fromEntries(Object.keys(r.credited).map((k) => [k, hoursFor(k)]));
-        const cr = creditXp(slice, ctx.state, r.credited, practice, windowHours, day);
-        const total = Object.values(r.credited).reduce((a, b) => a + b, 0);
-        return { slice: { ...cr.slice, fightsToday, combatXpToday }, emit: cr.emit, notes: [`combat XP ${total.toFixed(2)} (${session.stakes}, ${session.outcome})`, ...r.notes, ...cr.notes] };
+        // Sparring XP to a form is ceiling-limited like drill XP; real fights are not (D-45).
+        const spar = session.stakes === 'spar';
+        const ceiling = spar ? applyCeiling(slice, r.credited) : { credited: r.credited, bank: slice.bank, notes: [] as string[] };
+        const windowHours = Object.fromEntries(Object.keys(ceiling.credited).map((k) => [k, hoursFor(k)]));
+        const cr = creditXp({ ...slice, bank: ceiling.bank }, ctx.state, ceiling.credited, practice, windowHours, day);
+        const total = Object.values(ceiling.credited).reduce((a, b) => a + b, 0);
+        // E for the form groups fought with, CI per Force ability use (combat-xp §3); a skirmish or higher opens a new
+        // 60-day bank release (D-45).
+        const forms = session.exchanges.map((x) => x.skillId);
+        const E = gainForGroups(slice.E, forms, eSourceFor(session.stakes, { opponentGap: Number(e['opponentGap'] ?? 0), master: e['master'] === true }));
+        const CI = { ...slice.CI };
+        for (const u of session.forceUses) CI[u.abilityId] = gainCI(CI[u.abilityId] ?? { CI: 0, ciSpar: 0 }, session.stakes);
+        const bankReleaseUntil = spar ? slice.bankReleaseUntil : releaseUntil(day);
+        const releaseNote = spar ? [] : [`bank release open until day ${bankReleaseUntil}`];
+        return {
+          slice: { ...cr.slice, fightsToday, combatXpToday, E, CI, bankReleaseUntil },
+          emit: cr.emit,
+          notes: [`combat XP ${total.toFixed(2)} (${session.stakes}, ${session.outcome})`, ...r.notes, ...ceiling.notes, ...cr.notes, ...releaseNote],
+        };
+      },
+    },
+    /** Reviewing a recording of one's own fight (progression-numbers §19): +5% XP to that skill for 3 days, once per 7. */
+    recordingReviewed: {
+      schema: z.object({ type: z.literal('recordingReviewed'), skillId: z.string() }),
+      sources: ['player', 'engine'],
+      handle: (slice, e, ctx) => {
+        const day = selectNow(ctx.state).day;
+        const skillId = String(e['skillId']);
+        if (!SKILL_BY_ID.has(skillId)) return { reject: `unknown skill ${skillId}` };
+        if (slice.lastReviewDay !== null && day - slice.lastReviewDay < RECORDING_REVIEW.everyDays) return { reject: `a recording was reviewed on day ${slice.lastReviewDay}; once per ${RECORDING_REVIEW.everyDays} days` };
+        const name = SKILL_BY_ID.get(skillId)!.name;
+        return { slice: { ...slice, reviewBuff: { skillId, untilDay: day + RECORDING_REVIEW.days - 1 }, lastReviewDay: day }, notes: [`recording reviewed: +5% XP to ${name} for ${RECORDING_REVIEW.days} days`] };
       },
     },
     emotionalEvent: {
@@ -289,8 +371,22 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
     const grief = next.grief && newDay > next.grief.easesByDay ? null : next.grief;
     if (next.grief && !grief) notices.push('Grief has eased.');
 
+    // Bank release (progression-numbers §7, D-45): while the window is open, 10% of each form's remaining bank per day,
+    // up to the new ceiling; outside the 4.0x clamp and the pace window. After the window the bank is kept.
+    const bank = { ...next.bank };
+    if (next.bankReleaseUntil !== null && newDay <= next.bankReleaseUntil) {
+      for (const [id, b] of Object.entries(bank)) {
+        const st = skills[id];
+        if (!st || b <= 0) continue;
+        const r = releaseBank(st.xp, b, groupE(next, id));
+        if (r <= 0) continue;
+        skills[id] = { ...st, xp: st.xp + r };
+        bank[id] = b - r;
+      }
+    }
+
     return {
-      slice: { ...next, skills, overtrainStreak: streak, stateOfMind, grief, willpowerToday: 0, today: EMPTY_TODAY, fightsToday: {}, combatXpToday: {} },
+      slice: { ...next, skills, bank, overtrainStreak: streak, stateOfMind, grief, willpowerToday: 0, today: EMPTY_TODAY, fightsToday: {}, combatXpToday: {} },
       ...(notices.length ? { notices } : {}),
     };
   },
