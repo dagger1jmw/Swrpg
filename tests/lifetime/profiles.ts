@@ -142,7 +142,7 @@ export const ANAKIN: LifeProfile = {
   // Clone Wars; after it, group spars with three partners (the Order's best duelists) and a few missions and duels.
   fights: schedule([
     { from: 9, to: 10, perYear: 55, stakes: 'spar', gap: 15 },
-    { from: 10, to: 19, perYear: 155, stakes: 'spar', gap: 15 },
+    { from: 10, to: 19, perYear: 150, stakes: 'spar', gap: 15 },
     { from: 10, to: 19, perYear: 15, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
     { from: 10, to: 19, perYear: 4, stakes: 'serious', gap: -5 },
     // The Clone Wars (19-22): droid armies, elite squads and duels; the first year heaviest.
@@ -152,7 +152,7 @@ export const ANAKIN: LifeProfile = {
     { from: 19, to: 22, perYear: 8, stakes: 'serious', gap: 0 },
     { from: 19, to: 20, perYear: 6, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
     { from: 19, to: 20, perYear: 2, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
-    { from: 22, to: 200, perYear: 240, stakes: 'spar', gap: 0, partners: 3 },
+    { from: 22, to: 200, perYear: 280, stakes: 'spar', gap: 0, partners: 3 },
     { from: 22, to: 200, perYear: 10, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
     { from: 22, to: 200, perYear: 2, stakes: 'serious', gap: 0 },
   ]),

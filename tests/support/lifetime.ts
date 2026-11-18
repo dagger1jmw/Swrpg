@@ -47,6 +47,8 @@ export interface Fight {
   count?: number;
   /** A spar against this many partners at once, each at the gap (D-163 group sparring; default 1). */
   partners?: number;
+  /** A spar's mode instead of the rank default (e.g. 'academy': Sith live blades and real wounds, D-144). */
+  sparringMode?: 'trainingSaber' | 'controlled' | 'academy';
   /** The form fought with ('$main' or absent = the profile's main form). */
   skillId?: string;
 }
@@ -220,7 +222,7 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
     f.opponent && f.opponent !== 'duelist'
       ? Array.from({ length: f.count ?? 3 }, (_, i) => minionFighter(f.opponent!, `m${n}-${i}`, level, i % 5 < 3))
       : Array.from({ length: f.stakes === 'spar' ? (f.partners ?? 1) : 1 }, (_, i) => duelistFighter(`d${n}-${i}`, level, player.maxVitality));
-  const sparring = f.stakes === 'spar' ? (SPARRING_DEFAULT_BY_RANK[s.ranks.rank] ?? 'trainingSaber') : null;
+  const sparring = f.stakes === 'spar' ? (f.sparringMode ?? SPARRING_DEFAULT_BY_RANK[s.ranks.rank] ?? 'trainingSaber') : null;
   if (sparring === 'trainingSaber') player = { ...player, weapon: 'trainingSaber' };
   const ctx: DuelContext = { sparring, situations: [], footing: 0, dyingRiskStakes: f.stakes === 'lethal' || f.stakes === 'serious' };
   const start = startDuel(player, sparring === 'trainingSaber' ? opponents.map((o) => (o.weapon === 'lightsaber' ? { ...o, weapon: 'trainingSaber' as const } : o)) : opponents, s.meta.rngState);
