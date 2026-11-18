@@ -220,7 +220,7 @@ function layout(ordered: readonly (PlannedBlock | { rest: number })[], locked: r
 }
 
 /** The day's plan for the character (the morning after the night's sleep). */
-export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Record<string, number>>): DayPlan {
+export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Record<string, number>>, opts: { fromSleep?: boolean } = {}): DayPlan {
   const notes: string[] = [];
   const day = s.clock.now.day;
   const age = selectHumanAge(s);
@@ -342,7 +342,10 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
 
   // 3-4. Order, then trim the fill in proportion to the effort's tiredness limit (D-120).
   const caps = selectCapacities(s);
-  const start = afterSleep(selectMeters(s), routine.sleepHours);
+  // The projection starts from the actual meters now (D-165): the day loop plans at wake, after the night's sleep has
+  // already been applied, and anything earlier in the day (a fight at dawn) is not slept off. Only a look ahead (the
+  // routine preview's typical day) starts from a night's sleep.
+  const start = opts.fromSleep ? afterSleep(selectMeters(s), routine.sleepHours) : selectMeters(s);
   const limit = TIREDNESS_LIMIT[routine.effort];
   let ordered = orderBlocks(blocks);
   let projected = projectDay([...ordered, ...locked], start, caps).endF;

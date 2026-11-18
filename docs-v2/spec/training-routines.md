@@ -84,6 +84,9 @@ building: D-128 (defaults), D-129 (AI suggestions), D-130 (timed day segments), 
  3. No session longer than 2 h unless locked by the player.
  4. A mental block follows a physical block whenever both exist that day.
  5. Projected day-end tiredness never passes the effort limit unless the player locked it.
+    The projection starts from the actual meters at planning time (D-165): the day loop plans
+    at wake, after the night's sleep, so exertion earlier that day (a fight at dawn) counts;
+    only a look ahead (the routine preview) starts from a night's sleep.
  6. Locked blocks are never moved.
  7. An injury removes affected skills from the routine within the same day.
  8. A 90-day montage produces story events (thread progress or relationship change) and a

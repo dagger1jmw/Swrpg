@@ -57,6 +57,10 @@ Force meter (replaces Force strain):
     left/right leg 25% | head 10% | hands 5%
   Limb rule: a lightsaber wound of 35+ to a limb or hand severs it (a lasting injury,
     progression spec section 18) instead of becoming critical or mortal.
+  Lost and prosthetic limbs (D-164): a limb severed earlier in the same fight cannot be hit
+    again (it leaves the location roll; a lost arm takes its hand). A limb lost before the fight
+    carries its prosthetic: a hit there costs Vitality only (no wound, no sever) until M8 makes
+    it equipment damage. A limb is never severed twice.
   Wounds of the same body part do not merge; each heals on its own.
   Location penalties follow Docs/SW_Injury_System_v1.md targeting (arm -> saber and
     strength, leg -> agility, head -> Force and mental, torso -> all), as percentages.

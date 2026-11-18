@@ -31,6 +31,29 @@ export function lastingKindFor(w: Wound): LastingKind {
   return LASTING_FROM_PART[w.part];
 }
 
+/** A lost arm takes its hand with it. */
+const LIMB_WITH: Partial<Record<BodyPart, BodyPart>> = { leftArm: 'leftHand', rightArm: 'rightHand' };
+const LOST_KINDS: readonly LastingKind[] = ['lostHand', 'lostArm', 'lostLeg'];
+
+/**
+ * Limb state for hit location (health §5, D-164): limbs severed earlier in this fight are gone (they cannot be hit or
+ * severed again); limbs lost before it carry a prosthetic (their aid), which a hit damages instead of the body
+ * (equipment damage arrives with M8; until then such a hit costs Vitality only).
+ */
+export function limbState(wounds: readonly Wound[], lasting: readonly LastingInjury[]): { gone: Set<BodyPart>; prosthetic: Set<BodyPart> } {
+  const add = (set: Set<BodyPart>, part: BodyPart): void => {
+    set.add(part);
+    const with_ = LIMB_WITH[part];
+    if (with_) set.add(with_);
+  };
+  const gone = new Set<BodyPart>();
+  const prosthetic = new Set<BodyPart>();
+  for (const w of wounds) if (w.severed) add(gone, w.part);
+  for (const l of lasting) if (LOST_KINDS.includes(l.kind)) add(prosthetic, l.part);
+  for (const p of gone) prosthetic.delete(p);
+  return { gone, prosthetic };
+}
+
 /** Effective penalty of one injury on a skill: the largest matching P x (1 - A). */
 export function lastingPenaltyOf(l: LastingInjury, skillId: string): number {
   const targets = skillTargets(skillId);

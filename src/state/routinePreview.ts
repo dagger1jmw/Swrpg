@@ -52,7 +52,7 @@ export function previewRoutine(registry: Registry<GameState>, initial: GameState
   const routine = parsed.data;
 
   // The typical day: today's plan as if it were a training day (the week below shows the real pattern).
-  const typical = planDay(s, { ...routine, daysPerWeek: 7 }, s.routines.fillCredit);
+  const typical = planDay(s, { ...routine, daysPerWeek: 7 }, s.routines.fillCredit, { fromSleep: true });
   const items: PreviewItem[] = typical.items.map((it) =>
     it.kind === 'rest'
       ? { start: formatClock(it.startSecond), kind: 'rest', label: 'Rest (if tired)', hours: it.hours }

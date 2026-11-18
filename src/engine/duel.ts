@@ -36,7 +36,7 @@ import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, SPENT_LEVEL_FACTOR, type Arm
 import { RANGED_WEAPONS } from '../data/weapons';
 import { applyDamage, bypassFraction, damageOf, rollLocation, severityOf, severs } from './damage';
 import { efficiency } from './fatigue';
-import { lastingPenalty, type LastingInjury } from './lasting';
+import { lastingPenalty, limbState, type LastingInjury } from './lasting';
 import { basicRoll, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
 import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, woundPenalty, type Wound } from './wounds';
@@ -254,6 +254,11 @@ function qualityOf(margin: number): HitQuality | null {
   return null;
 }
 
+/** The location weights with the given parts removed. */
+function withoutParts(w: Readonly<Record<BodyPart, number>>, parts: ReadonlySet<BodyPart>): Record<BodyPart, number> {
+  return Object.fromEntries(Object.entries(w).map(([k, v]) => [k, parts.has(k as BodyPart) ? 0 : v])) as Record<BodyPart, number>;
+}
+
 /** Applies a hit's damage to a fighter (health §4-6; minions out on moderate, D-144 sparring modes). */
 function damageFighter(
   f: Fighter,
@@ -266,8 +271,11 @@ function damageFighter(
   vitalityOnly: boolean,
 ): { f: Fighter; hit: Omit<Hit, 'by' | 'avoided'>; rng: RngState } {
   const D = damageOf({ weapon, quality, armor: f.armor, saberResistant: f.saberResistant });
-  const [part, r1] = rollLocation(rng, LOCATION_WEIGHTS);
-  const dmg = applyDamage(f.vitality, D, bypassFraction(weapon, quality), vitalityOnly);
+  // A limb severed earlier in the fight cannot be hit again; a prosthetic takes the hit instead of the body: Vitality
+  // only, no wound, no sever (equipment damage arrives with M8; D-164).
+  const limbs = limbState(f.wounds, f.lasting);
+  const [part, r1] = rollLocation(rng, limbs.gone.size ? withoutParts(LOCATION_WEIGHTS, limbs.gone) : LOCATION_WEIGHTS);
+  const dmg = applyDamage(f.vitality, D, bypassFraction(weapon, quality), vitalityOnly || limbs.prosthetic.has(part));
   let W = dmg.W;
   let severity = severityOf(W);
   const severed = severity !== null && severs(weapon, part, W);

@@ -970,6 +970,8 @@ The clock and the module contract come first, before any feature.
 - **Character traits (D-143 M, end of production):** first entry Tactical Fighter, +1 to the sequence cap.
 - **M8 equipment (D-158):** saber-resistant armor and weapons for anyone but Mandalorians (cortosis weave, personal
   beskar, phrik); until then STUB_WEAPONS gives saber resistance only through the Mandalorian beskar-by-era rule.
+- **M8 prosthetic damage (D-164):** a hit to a prosthetic limb becomes equipment damage to the prosthetic (repair,
+  malfunction, loss). Until then such a hit costs Vitality only: no wound and no sever.
 - **Cleave (D-158):** keeping the advantage after taking a minion out; a candidate Shii-Cho / Sokan form trait
   against groups (M6 or later).
 

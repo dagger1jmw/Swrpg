@@ -278,3 +278,37 @@ describe('sequences (D-146)', () => {
     expect(runSequence(seq('same'), REAL, 0, steps, 3, {}, force)).toEqual(runSequence(seq('same'), REAL, 0, steps, 3, {}, force));
   });
 });
+
+describe('lost and prosthetic limbs (health §5, D-164)', () => {
+  const lost = (part: 'leftArm' | 'rightLeg') => ({ id: `l-${part}`, kind: part === 'leftArm' ? ('lostArm' as const) : ('lostLeg' as const), part, adaptation: 1, aid: 'qualityCybernetic' as const, adaptedToday: 0, adaptDay: 0, day: 0 });
+  it('a limb severed earlier in the fight is never hit again, and a prosthetic is never wounded or severed', () => {
+    let rng = seedRng('limbs');
+    let prostheticHits = 0;
+    for (let i = 0; i < 400; i++) {
+      // The defender already lost the left arm (cybernetic) and the right leg (cybernetic); a far stronger attacker.
+      const b = forceUser('B', 40, { lasting: [lost('leftArm'), lost('rightLeg')] });
+      const s = runUntilBeat(startDuel(forceUser('A', 80), [b], rng), REAL, 0, 'toEnd').state;
+      rng = s.rng;
+      const severedThisFight = new Set<string>();
+      for (const x of s.log) {
+        const h = x.hit;
+        if (!h || h.by !== 'A' || h.avoided || h.point) continue;
+        // A part severed earlier in this fight (and its hand) is gone.
+        expect(severedThisFight.has(h.part), `hit on a severed ${h.part}`).toBe(false);
+        if (['leftArm', 'leftHand', 'rightLeg'].includes(h.part)) {
+          prostheticHits++;
+          expect(h.severity, `prosthetic ${h.part}`).toBeNull();
+          expect(h.severed).toBe(false);
+        }
+        if (h.severed) {
+          severedThisFight.add(h.part);
+          if (h.part === 'rightArm') severedThisFight.add('rightHand');
+        }
+      }
+      // No limb is ever severed twice.
+      const severed = s.opponents[0]!.wounds.filter((w) => w.severed).map((w) => w.part);
+      expect(new Set(severed).size).toBe(severed.length);
+    }
+    expect(prostheticHits).toBeGreaterThan(0);
+  });
+});

@@ -85,6 +85,19 @@ describe('scheduler (training-routines §9)', () => {
     expect(locked.notes.join(' ')).toMatch(/over the easy limit/);
   });
 
+  it('test 5 after a fight at dawn: the projection starts from the actual meters, not a night of sleep (D-165)', () => {
+    const fresh = knight();
+    const fought = applyEvents(REGISTRY, fresh, [{ type: 'healthSynced', vitalityLost: 0, addWounds: [], meters: { p: 2, f: 0 }, cause: 'a dawn fight' }], { source: 'engine' }).state;
+    const r = daily(fought, { priorities: PRIOS, effort: 'standard' });
+    const p = planDay(fought, r, {});
+    expect(p.projectedEndF).toBeLessThanOrEqual(TIREDNESS_LIMIT.standard + 1e-9);
+    // The fight's exertion is not slept off: the fill is trimmed below the fresh day's.
+    const hours = (x: ReturnType<typeof planDay>) => trains(x.items).reduce((a, b) => a + b.hours, 0);
+    expect(hours(p)).toBeLessThan(hours(planDay(fresh, daily(fresh, { priorities: PRIOS, effort: 'standard' }), {})));
+    // A look ahead (the preview's typical day) still starts from a night's sleep.
+    expect(planDay(fought, r, {}, { fromSleep: true }).projectedEndF).toBeLessThan(p.projectedEndF + 1e-9);
+  });
+
   it('test 6: locked blocks are never moved', () => {
     const s = knight();
     const lb = { activityId: 'basicCentering', startSecond: 13 * 3600, hours: 1 };
