@@ -45,7 +45,8 @@ export const AVERAGE: LifeProfile = {
   mainForm: 'soresu',
   secondForm: 'ataru',
   seed: 'average',
-  fights: schedule([{ from: 20.5, to: 200, perYear: 1, stakes: 'skirmish', outcome: 'won', exchanges: 30, gap: 5 }]),
+  // Peacetime: one real mission a year from Padawan on (D-143 A), against a squad of line troopers.
+  fights: schedule([{ from: 12, to: 200, perYear: 1, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 }]),
 };
 
 /**
@@ -84,9 +85,14 @@ export const OBIWAN: LifeProfile = {
   },
   seed: 'obiwan',
   fights: schedule([
-    { from: 6, to: 13, perYear: 22, stakes: 'spar', outcome: 'won', exchanges: 30, gap: 5, skillId: 'shiiCho' },
-    { from: 13, to: 35, perYear: 20, stakes: 'spar', outcome: 'won', exchanges: 30, gap: 5 },
-    { from: 35, to: 38, perYear: 24, stakes: 'serious', outcome: 'won', exchanges: 34, gap: 0 },
+    { from: 6, to: 13, perYear: 22, stakes: 'spar', gap: 5, skillId: 'shiiCho' },
+    { from: 13, to: 35, perYear: 20, stakes: 'spar', gap: 5 },
+    // Padawan and Knight missions (Legends: Melida/Daan and the years with Qui-Gon).
+    { from: 13, to: 35, perYear: 3, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
+    // The Clone Wars (ages 35-38): mostly droid armies, some line troopers, a few duels.
+    { from: 35, to: 38, perYear: 30, stakes: 'serious', gap: -30, opponent: 'battleDroid', count: 10 },
+    { from: 35, to: 38, perYear: 10, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
+    { from: 35, to: 38, perYear: 4, stakes: 'serious', gap: 0 },
   ]),
 };
 
@@ -123,9 +129,14 @@ export const ANAKIN: LifeProfile = {
   },
   seed: 'anakin',
   fights: schedule([
-    { from: 10, to: 19, perYear: 50, stakes: 'skirmish', outcome: 'won', exchanges: 30, gap: 5 },
-    { from: 19, to: 22, perYear: 40, stakes: 'serious', outcome: 'won', exchanges: 34, gap: 5 },
-    { from: 22, to: 200, perYear: 50, stakes: 'skirmish', outcome: 'won', exchanges: 30, gap: 5 },
+    // Padawan missions from 10, the Clone Wars from 19 to 22 (mostly droids, some troopers, occasional elites and duels).
+    { from: 10, to: 19, perYear: 25, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
+    { from: 10, to: 19, perYear: 4, stakes: 'serious', gap: 0 },
+    { from: 19, to: 22, perYear: 40, stakes: 'serious', gap: -30, opponent: 'battleDroid', count: 10 },
+    { from: 19, to: 22, perYear: 12, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
+    { from: 19, to: 22, perYear: 3, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
+    { from: 19, to: 22, perYear: 6, stakes: 'serious', gap: 5 },
+    { from: 22, to: 200, perYear: 25, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
   ]),
 };
 
@@ -161,7 +172,9 @@ export const LUKE: LifeProfile = {
   },
   seed: 'luke',
   fights: schedule([
-    { from: 19, to: 24, perYear: 30, stakes: 'skirmish', outcome: 'won', exchanges: 30, gap: 5 },
-    { from: 44, to: 50, perYear: 20, stakes: 'serious', outcome: 'won', exchanges: 34, gap: 0 },
+    // The Galactic Civil War (stormtroopers), then the Yuuzhan Vong War (warriors and duels).
+    { from: 19, to: 24, perYear: 30, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
+    { from: 44, to: 50, perYear: 14, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 4 },
+    { from: 44, to: 50, perYear: 6, stakes: 'serious', gap: 0 },
   ]),
 };

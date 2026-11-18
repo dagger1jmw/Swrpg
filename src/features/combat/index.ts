@@ -4,7 +4,8 @@
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { z } from 'zod';
 import { FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, STANCES, TACTICS, FORM_CHANGE_COST, type FateKind, type NpcFate } from '../../data/combat.config';
-import { MINION_COUNT, MINION_KIND_IDS } from '../../data/npcGen.config';
+import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
+import { dateFromAbsDay } from '../../engine/calendar';
 import { COMBAT_STAKES, type CombatOutcome, type CombatStakes } from '../../data/progression.config';
 import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.config';
 import { FORM_IDS } from '../../data/skills';
@@ -49,7 +50,14 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
     for (let i = 0; i < g.count; i++) {
       let grade: number;
       [grade, rng] = rollMinionGrade(rng, kind);
-      const f = buildMinionFighter(s, kind, grade, opponents.length, fightId);
+      // Mandalorians roll beskar one by one, by era (D-158).
+      let beskar = false;
+      if (MINION_KINDS.find((k) => k.id === kind)?.saberResistant === 'byEra') {
+        let u: number;
+        [u, rng] = nextFloat(rng);
+        beskar = u < beskarChanceAt(dateFromAbsDay(s.clock.now.day).year);
+      }
+      const f = buildMinionFighter(s, kind, grade, opponents.length, fightId, beskar);
       opponents.push(f);
       meta[f.id] = { npcId: null, minionKind: kind, rank: null };
     }

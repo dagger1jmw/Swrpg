@@ -1,7 +1,8 @@
 // Building duel fighters from the game state (rolls.md §1: effective levels from the real skill levels, wounds,
 // rust, Spent and fatigue). Pure; reads other features only through their selectors.
 import { SITH_ACADEMIES, SPARRING_DEFAULT_BY_RANK, type SparringMode } from '../../data/combat.config';
-import { MINION_KINDS } from '../../data/npcGen.config';
+import { MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
+import { nextFloat, seedRng } from '../../engine/rng';
 import { CANON_BY_ID } from '../../data/canonNpcs';
 import { FORM_IDS } from '../../data/skills';
 import { stubLightPhilosophy, STUB_PLAYER_SHATTERSENSE } from '../../data/stubs';
@@ -132,7 +133,12 @@ export function buildNpcFighter(s: GameState, npcId: string): { fighter: Fighter
   const levels = selectNpcLevels(s, npcId);
   const canon = npc.canonId ? CANON_BY_ID.get(npc.canonId) : undefined;
   const archetype = canon?.archetype ?? gen.archetype;
-  const loadout = loadoutFor(archetype, gen.rank);
+  let loadout = loadoutFor(archetype, gen.rank);
+  // Mandalorian armor (D-158): canon armor, else a beskar roll by era, seeded per NPC.
+  if (archetype === 'mandalorian') {
+    const beskar = canon?.armor ? canon.armor === 'beskar' : nextFloat(seedRng(`${gen.seed}:beskar`))[0] < beskarChanceAt(dateFromAbsDay(s.clock.now.day).year);
+    loadout = { ...loadout, saberResistant: beskar };
+  }
   const fighter = fighterFromLevels(npcId, npc.name, levels, loadout, {
     minion: false,
     vitalityLost: npc.health?.vitalityLost ?? 0,
@@ -144,12 +150,14 @@ export function buildNpcFighter(s: GameState, npcId: string): { fighter: Fighter
   return { fighter, rank: gen.rank };
 }
 
-export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string): Fighter {
+export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false): Fighter {
   const kind = MINION_KINDS.find((k) => k.id === kindId) ?? MINION_KINDS[0]!;
   const inputs = minionInputs(kindId, grade, `${fightId}:${kindId}:${index}`);
   const levels = npcLevelsFor(inputs, 'human', inputs.age, s.clock.now.day);
-  const loadout: Loadout = { weapon: kind.weapon, armor: kind.armor, saberResistant: false };
-  return fighterFromLevels(`${fightId}:${kindId}:${index}`, `${kind.label} ${index + 1}`, levels, loadout, { minion: true, vitalityLost: 0, wounds: [], lasting: [], shatterpoint: 0, lightSide: false });
+  const loadout: Loadout = { weapon: kind.weapon, armor: kind.armor, saberResistant: kind.saberResistant === true || (kind.saberResistant === 'byEra' && beskar) };
+  const f = fighterFromLevels(`${fightId}:${kindId}:${index}`, `${kind.label} ${index + 1}`, levels, loadout, { minion: true, vitalityLost: 0, wounds: [], lasting: [], shatterpoint: 0, lightSide: false });
+  const v = f.maxVitality * kind.vitalityMult;
+  return { ...f, vitality: v, maxVitality: v, coordination: kind.coordination };
 }
 
 /** The duel context from the terrain tags and stakes (rolls §5, D-144). */

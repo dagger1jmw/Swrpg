@@ -9,6 +9,7 @@ import { CATEGORY_RULES, SKILL_BY_ID } from '../../src/data/skills';
 import { closedFormLevel, formXps, phasesFor } from '../../src/engine/closedForm';
 import { levelExact } from '../../src/engine/curve';
 import { runLifetime } from '../support/lifetime';
+import { schedule } from './profiles';
 
 const PLAN = { soresu: 2, ataru: 1 };
 const YEARS = 25;
@@ -47,6 +48,9 @@ export function archetypeCase(id: string): void {
         mainForm: 'soresu',
         secondForm: 'ataru',
         seed: a.id,
+        // Jedi and Sith archetypes keep the Average's one real mission a year from Padawan (D-143 A, D-159): without real
+        // fights the drill ceiling holds every form at 40.
+        ...(order ? { fights: schedule([{ from: 12, to: 200, perYear: 1, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 }]) } : {}),
       },
       YEARS,
     );

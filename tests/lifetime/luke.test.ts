@@ -8,6 +8,7 @@ let r: LifeResult;
 const PHYS = ['perf:strength', 'perf:agility', 'perf:endurance'];
 beforeAll(() => {
   r = runLifetime(LUKE, 70, { track: ['forceControl', ...PHYS] });
+  console.info(`[report ${'luke'}] milestones ${JSON.stringify(r.milestones)} E@41/61 ${JSON.stringify(r.eAtMilestone)} bank share ${(r.bankShare * 100).toFixed(1)}% wounded days by age ${JSON.stringify(r.woundedDaysByAge)} combat share by year ${JSON.stringify(r.yearCombat.map((c, i) => Math.round((c / Math.max(1, r.yearMain[i]!)) * 100)))}`);
 }, 600_000);
 
 /** Age at the end of training year i (Luke starts at 19). */

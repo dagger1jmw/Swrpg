@@ -21,6 +21,12 @@ export const STRIKE_QUALITY: readonly (readonly [number, HitQuality])[] = [
 ];
 export const STRIKE_MIN_MARGIN = 4;
 /**
+ * Cut-down (Jared, D-158): against a minion, a build-up exchange won by this margin (or more) is already a hit (quality
+ * by the margin), unless the minion wears saber-resistant armor. Cleave (keeping the advantage after taking a minion
+ * out) is recorded for later as a candidate Shii-Cho / Sokan form trait, not built.
+ */
+export const CUT_DOWN_MARGIN = 6;
+/**
  * A strike that misses or is blocked (precognitive defense, a recovery) keeps the pressure: the track moves this
  * many steps toward 0 instead of resetting (D-156, Jared; rolls §3 amended). A landed hit or maneuver still resets.
  */
@@ -94,7 +100,8 @@ export const BEAT_TRACK = 2;
  * beats call the narrator once for every exchange since the last narrated beat.
  */
 /** strikeAbsorbed: a hit that only takes Vitality (no wound) is quiet too. */
-export const QUIET_BEATS = ['trackSwing', 'periodic', 'strikeMissed', 'strikeAbsorbed'] as const;
+/** minionDown: a hit on a minion (cut-down or strike) is quiet; wounds to the player or a named opponent are narrated. */
+export const QUIET_BEATS = ['trackSwing', 'periodic', 'strikeMissed', 'strikeAbsorbed', 'minionDown'] as const;
 export const NARRATED_BEATS = ['woundingHit', 'maneuverLanded', 'spent', 'forceAction', 'sequence', 'incapacitated', 'fightEnded', 'playerNarrate'] as const;
 export type BeatReason = (typeof QUIET_BEATS)[number] | (typeof NARRATED_BEATS)[number];
 export const isNarratedBeat = (r: BeatReason): boolean => (NARRATED_BEATS as readonly string[]).includes(r);

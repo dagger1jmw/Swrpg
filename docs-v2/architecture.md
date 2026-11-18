@@ -968,6 +968,10 @@ The clock and the module contract come first, before any feature.
 - **A full ally side in duels (D-143 E):** allies fight their own engagements; until then they are story-only and
   opponents can be marked engagedElsewhere.
 - **Character traits (D-143 M, end of production):** first entry Tactical Fighter, +1 to the sequence cap.
+- **M8 equipment (D-158):** saber-resistant armor and weapons for anyone but Mandalorians (cortosis weave, personal
+  beskar, phrik); until then STUB_WEAPONS gives saber resistance only through the Mandalorian beskar-by-era rule.
+- **Cleave (D-158):** keeping the advantage after taking a minion out; a candidate Shii-Cho / Sokan form trait
+  against groups (M6 or later).
 
 ### Stubs each milestone uses (D-56)
 A milestone may only depend on a later one through a named stub, replaced when that

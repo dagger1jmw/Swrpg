@@ -121,19 +121,51 @@ export interface MinionKind {
   archetype: string;
   weapon: WeaponKind;
   armor: ArmorKind;
+  /** 'byEra': each one rolls beskar (saber-resistant) by the era's chance (BESKAR_BY_ERA, D-158). */
+  saberResistant?: boolean | 'byEra';
   /** Chances of grades 1-5. */
   grades: readonly [number, number, number, number, number];
+  /**
+   * Coordination (Jared, D-158): the numbers bonus is +1 per extra attacker engaged x coordination, rounded down, max +3.
+   * 0 = mass without teamwork (B1 droids, militia, thugs); 0.5 line troopers; 1.0 elite squads and Mandalorians.
+   */
+  coordination: number;
+  /** Vitality multiplier on the stat-derived Vitality (droids are flimsy, beasts are tough). */
+  vitalityMult: number;
+  /** Lore note (a design default for Jared to check where marked). */
+  note: string;
 }
 /** Years trained by grade at pace 1.0 (npc-generation §6). */
 export const MINION_YEARS: readonly [number, number, number, number, number] = [2, 5, 10, 15, 20];
 export const MINION_KINDS: readonly MinionKind[] = [
-  { id: 'battleDroid', label: 'battle droid', archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.4, 0.35, 0.2, 0.05, 0] },
-  { id: 'trooper', label: 'trooper', archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.1, 0.4, 0.35, 0.13, 0.02] },
-  { id: 'eliteTrooper', label: 'elite trooper', archetype: 'soldier', weapon: 'blasterRifle', armor: 'heavy', grades: [0, 0.1, 0.4, 0.4, 0.1] },
-  { id: 'thug', label: 'thug', archetype: 'bountyHunter', weapon: 'blasterPistol', armor: 'none', grades: [0.5, 0.35, 0.15, 0, 0] },
-  { id: 'brawler', label: 'brawler', archetype: 'civilian', weapon: 'melee', armor: 'none', grades: [0.5, 0.4, 0.1, 0, 0] },
-  { id: 'sithAcolyte', label: 'Sith acolyte', archetype: 'sithWarrior', weapon: 'lightsaber', armor: 'light', grades: [0.3, 0.4, 0.25, 0.05, 0] },
+  { id: 'battleDroid', label: 'B1 battle droid', archetype: 'soldier', weapon: 'blasterRifle', armor: 'light', grades: [0.6, 0.35, 0.05, 0, 0], coordination: 0, vitalityMult: 0.6, note: 'B1: mass-produced, poorly coordinated; a Knight cutting through dozens is lore-accurate (Jared)' },
+  { id: 'militia', label: 'militia fighter', archetype: 'civilian', weapon: 'blasterPistol', armor: 'none', grades: [0.6, 0.35, 0.05, 0, 0], coordination: 0, vitalityMult: 1, note: 'untrained locals with blasters (Jared)' },
+  { id: 'thug', label: 'thug', archetype: 'bountyHunter', weapon: 'blasterPistol', armor: 'none', grades: [0.5, 0.35, 0.15, 0, 0], coordination: 0, vitalityMult: 1, note: 'gangsters and enforcers (Jared: 0)' },
+  { id: 'brawler', label: 'brawler', archetype: 'civilian', weapon: 'melee', armor: 'none', grades: [0.5, 0.4, 0.1, 0, 0], coordination: 0, vitalityMult: 1, note: 'design default: street fighters, no teamwork' },
+  { id: 'trooper', label: 'line trooper', archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.1, 0.4, 0.35, 0.13, 0.02], coordination: 0.5, vitalityMult: 1, note: 'clones, Republic troopers, Imperial stormtroopers (Jared: 0.5)' },
+  { id: 'eliteTrooper', label: 'elite trooper', archetype: 'soldier', weapon: 'blasterRifle', armor: 'heavy', grades: [0, 0.1, 0.4, 0.4, 0.1], coordination: 1, vitalityMult: 1, note: 'ARC troopers, commandos, Imperial special forces, Havoc Squad-type units (Jared: 1.0)' },
+  { id: 'mandalorian', label: 'Mandalorian warrior', archetype: 'mandalorian', weapon: 'blasterPistol', armor: 'heavy', saberResistant: 'byEra', grades: [0, 0.05, 0.3, 0.45, 0.2], coordination: 1, vitalityMult: 1, note: 'heavy armor (beskar by era, else durasteel or duraplast) and the highest grades: the most dangerous minion kind (Jared: 1.0)' },
+  { id: 'superBattleDroid', label: 'B2 super battle droid', archetype: 'soldier', weapon: 'heavy', armor: 'heavy', grades: [0.3, 0.5, 0.2, 0, 0], coordination: 0, vitalityMult: 1.2, note: 'design default for Jared: B2s are tougher and better armed than B1s but still droid-brained (0)' },
+  { id: 'droideka', label: 'droideka', archetype: 'soldier', weapon: 'heavy', armor: 'heavy', grades: [0.1, 0.4, 0.4, 0.1, 0], coordination: 0.5, vitalityMult: 1.5, note: 'design default for Jared: shielded rollers that work in pairs (0.5); no deflector shield model yet' },
+  { id: 'beast', label: 'beast', archetype: 'civilian', weapon: 'melee', armor: 'light', grades: [0.3, 0.4, 0.2, 0.1, 0], coordination: 0, vitalityMult: 1.8, note: 'design default for Jared: predators and war beasts, no teamwork (0), tough hides' },
+  { id: 'sithAcolyte', label: 'Sith acolyte', archetype: 'sithWarrior', weapon: 'lightsaber', armor: 'light', grades: [0.3, 0.4, 0.25, 0.05, 0], coordination: 0, vitalityMult: 1, note: 'design default for Jared: rivals who will not cover each other (0)' },
 ];
+/**
+ * Beskar by era (Jared, D-158; Legends, Mandalorian armor). The curve is lore: beskar was a crucial part of the armor for
+ * millennia until just before the Clone Wars; rare and expensive, so many (Jango and Boba Fett among them) wore durasteel
+ * or duraplast; the Empire mined most of it off Mandalore; Yuuzhan Vong bombardment later opened new mines. The rates are
+ * design defaults. `toYear` is exclusive (calendar years; negative = BBY). Old Republic years after the Great Galactic
+ * War and before the New Sith Wars keep the Old Republic rate.
+ */
+export const BESKAR_BY_ERA: readonly { toYear: number; chance: number; label: string }[] = [
+  { toYear: -2000, chance: 0.6, label: 'Old Republic eras through the Great Galactic War' },
+  { toYear: -1000, chance: 0.45, label: 'New Sith Wars' },
+  { toYear: -19, chance: 0.15, label: 'the late Republic up to and through the Clone Wars' },
+  { toYear: 29, chance: 0.05, label: 'the Galactic Empire through the Yuuzhan Vong War' },
+  { toYear: Infinity, chance: 0.35, label: 'after the Vong war (new mines, Legacy era)' },
+];
+export const beskarChanceAt = (year: number): number => (BESKAR_BY_ERA.find((e) => year < e.toYear) ?? BESKAR_BY_ERA[BESKAR_BY_ERA.length - 1]!).chance;
+
 export const MINION_KIND_IDS: readonly string[] = MINION_KINDS.map((k) => k.id);
 /** Minion count per group in combatStarted: a clamped AI amount (D-143 amends architecture §2). */
 export const MINION_COUNT = { min: 1, max: 12 } as const;

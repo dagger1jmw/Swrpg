@@ -171,7 +171,10 @@ main skill and summed to far more training than a day holds (Jedi Guardian 3.9x,
 ## 6. Minions
   Minions (troopers, droids, thugs) get a stat block from archetype and a 1-5 quality grade
   with no per-skill rolls: grade sets years trained (2, 5, 10, 15, 20) at pace 1.0.
-  They use the simplified health rule (out on a moderate wound).
+  They use the simplified health rule (out on a moderate wound, or when Spent, D-157).
+  Amended by D-158: each minion kind has a coordination value (numbers bonus = +1 per extra attacker x
+  coordination, rounded down, max +3: B1 droids, militia, thugs 0; line troopers 0.5; elite squads and
+  Mandalorians 1.0), a Vitality multiplier, and its weapon and armor; Mandalorians roll beskar by era.
 
 ## 7. Required tests
  1. Reference table above reproduces within +/-1 level (variance off).

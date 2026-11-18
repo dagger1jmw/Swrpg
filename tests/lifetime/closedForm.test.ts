@@ -15,8 +15,10 @@ const GUARDIAN = ARCHETYPE_BY_ID.get('jediGuardian')!;
 
 let r: LifeResult;
 beforeAll(() => {
-  const { fights: _fights, ...training } = AVERAGE;
-  r = runLifetime(training, 60);
+  // M5 (D-143 A, D-159): the Average keeps its one real mission a year. Without real fights the drill ceiling (25 + E,
+  // sparring E capped at 15) holds every form at 40, which the closed form (training paces only) does not model; the
+  // mission's own combat XP is small (about 1% of the yearly main-form XP).
+  r = runLifetime(AVERAGE, 60);
 }, 600_000);
 
 describe('npc test 2: closed form vs the routine day loop', () => {

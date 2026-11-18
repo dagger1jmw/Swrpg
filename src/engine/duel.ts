@@ -9,6 +9,7 @@ import {
   BUILD_UP,
   CIRCUMSTANCE,
   CONTROLLED_ACCIDENT,
+  CUT_DOWN_MARGIN,
   DEFLECT_REDIRECT_MARGIN,
   EXCHANGE_SECONDS,
   EXERTION_PER_EXCHANGE,
@@ -86,6 +87,8 @@ export interface Fighter {
   dead: boolean;
   /** The maneuver to take at this fighter's next strike instead of a hit (player choice at a beat). */
   pendingManeuver: Maneuver | null;
+  /** Teamwork for the numbers bonus (D-158): minion kinds set it; named fighters count 1. */
+  coordination?: number;
 }
 
 export interface DuelContext {
@@ -352,7 +355,9 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   const A = s.a;
   const B = currentTarget(s)!;
   const nEngaged = engaged(s).length;
-  const numbersOnA = Math.min(CIRCUMSTANCE.maxNumbers, Math.max(0, nEngaged - 1) * CIRCUMSTANCE.perExtraAttacker);
+  // Numbers (rolls §5 as amended by D-158): +1 per extra attacker engaged x its coordination, rounded down, max +3.
+  const extra = engaged(s).filter((o) => o.id !== B.id).reduce((sum, o) => sum + CIRCUMSTANCE.perExtraAttacker * (o.coordination ?? 1), 0);
+  const numbersOnA = Math.min(CIRCUMSTANCE.maxNumbers, Math.floor(extra + 1e-9));
   const baseA = sideMods(A, B, ctx, 0, nEngaged);
   const baseB = sideMods(B, A, ctx, numbersOnA, 1);
   const modsA: Mods = { attack: [...baseA.attack, ...(extras.a ?? [])], defense: baseA.defense };
@@ -409,6 +414,16 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     } else if (rollA.natural === 'nat1' && rollB.natural !== 'nat1') {
       advAfter = clampTrack(advAfter - CIRCUMSTANCE.openingAdvantage);
       notes.push(`${A.name} rolled a natural 1: opening for ${B.name}`);
+    }
+    // Cut-down (D-158): against a minion, a build-up margin of 6+ is already a hit, unless the minion wears
+    // saber-resistant armor. Minion groups are mass, not duelists.
+    if (B.minion && !B.saberResistant && band(margin) >= CUT_DOWN_MARGIN) {
+      const q = qualityOf(band(margin)) ?? 'graze';
+      const d = damageFighter(B, q, A.weapon, ctx, rng, day, B.wounds.length + 1, ctx.sparring === 'trainingSaber' || A.weapon === 'trainingSaber');
+      rng = d.rng;
+      bOut = d.f;
+      hit = { by: 'A', ...d.hit, avoided: false };
+      notes.push(`${A.name} cuts down ${B.name}`);
     }
   } else {
     const atkF = striker === 'A' ? A : B;
@@ -562,6 +577,8 @@ export function beatAfter(s: DuelState): BeatReason | null {
   if (!rec) return null;
   if (s.end) return s.end.reason === 'incapacitated' || s.end.reason === 'dying' || s.end.reason === 'dead' ? 'incapacitated' : 'fightEnded';
   if (rec.kind === 'force') return 'forceAction';
+  const target = s.opponents.find((o) => o.id === rec.targetId);
+  if (rec.hit && !rec.hit.avoided && rec.hit.by === 'A' && target?.minion) return 'minionDown';
   if (rec.hit && !rec.hit.avoided && rec.hit.severity) return 'woundingHit';
   if (rec.maneuver) return 'maneuverLanded';
   if (s.spentNow) return 'spent';

@@ -29,6 +29,8 @@ export interface CanonNpc {
   /** Present = the levels do not scale with age; the justification (npc-generation §5). */
   fixed?: string;
   specialTalents?: readonly string[];
+  /** Canon armor for Mandalorians (D-158): beskar is saber-resistant; durasteel and duraplast are not. Absent = rolled by era. */
+  armor?: 'beskar' | 'durasteel' | 'duraplast';
   unmapped?: readonly string[];
   note?: string;
 }

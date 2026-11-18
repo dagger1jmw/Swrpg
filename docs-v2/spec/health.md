@@ -102,6 +102,9 @@ Force meter (replaces Force strain):
   Spent (Vitality 0). Minion groups from combatStarted only; named NPCs and the player keep the
   normal rule. How a folded minion goes down is the narration's; whether it counts as dead follows
   the fight's stakes (amended by D-157).
+  Cut-down (D-158): against a minion, a build-up margin of 6+ is already a hit (quality by the margin),
+  unless the minion wears saber-resistant armor. Mandalorian beskar is rolled per Mandalorian by era
+  (npcGen.config BESKAR_BY_ERA); other saber-resistant gear waits for the M8 equipment spec.
 
 ## 10. Required tests
  1. Vitality at 0 never changes status by itself.

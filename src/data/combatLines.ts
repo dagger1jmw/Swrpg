@@ -30,6 +30,11 @@ export const QUIET_LINES: Readonly<Partial<Record<BeatReason, Readonly<Record<Li
     down: ['{opp} strikes, but {pc} gets the blade up in time.', "{pc} slips {opp}'s attack by a hair."],
     even: ['A strike, a parry; nothing lands.'],
   },
+  minionDown: {
+    up: ['{pc} cuts through {opp}.', "{opp} goes down under {pc}'s blade.", '{pc} drops {opp} and turns to the next.'],
+    down: ['{pc} cuts through {opp}.'],
+    even: ['{opp} goes down.'],
+  },
   strikeAbsorbed: {
     up: ["{pc}'s blow lands, but {opp} rides it out and stays in the fight.", '{pc} scores a glancing hit; {opp} shrugs it off.'],
     down: ["{opp}'s blow lands; {pc} staggers but keeps the guard up.", '{opp} scores a glancing hit on {pc}.'],

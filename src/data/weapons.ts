@@ -19,7 +19,8 @@ export const LOADOUT_BY_ARCHETYPE: Readonly<Record<string, Loadout>> = {
   sithWarrior: { weapon: 'lightsaber', armor: 'light', saberResistant: false },
   sithInquisitor: { weapon: 'lightsaber', armor: 'none', saberResistant: false },
   soldier: { weapon: 'blasterRifle', armor: 'medium', saberResistant: false },
-  mandalorian: { weapon: 'blasterPistol', armor: 'heavy', saberResistant: true },
+  // Beskar is rolled per Mandalorian by era (D-158; npcGen.config BESKAR_BY_ERA) or set by canon armor; heavy armor either way.
+  mandalorian: { weapon: 'blasterPistol', armor: 'heavy', saberResistant: false },
   smuggler: { weapon: 'blasterPistol', armor: 'none', saberResistant: false },
   bountyHunter: { weapon: 'blasterPistol', armor: 'light', saberResistant: false },
   civilian: NONE,

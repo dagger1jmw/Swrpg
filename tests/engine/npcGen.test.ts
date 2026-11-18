@@ -2,6 +2,7 @@
 // (§6), war years and canon scaling (D-152, D-155).
 import { describe, expect, it } from 'vitest';
 import { CANON_NPCS } from '../../src/data/canonNpcs';
+import { MINION_KINDS } from '../../src/data/npcGen.config';
 import { canonScale, minionInputs, npcSeed, npcVariance, rollMinionGrade, rollNpcInputs, warYearsFor } from '../../src/engine/npcGen';
 import { seedRng } from '../../src/engine/rng';
 
@@ -80,7 +81,7 @@ describe('minions (npc-generation §6)', () => {
       c[g - 1]!++;
     }
     expect(c[4]).toBe(0);
-    expect(Math.abs(c[0]! / 20_000 - 0.4)).toBeLessThan(0.02);
+    expect(Math.abs(c[0]! / 20_000 - MINION_KINDS.find((k) => k.id === 'battleDroid')!.grades[0])).toBeLessThan(0.02);
   });
 });
 

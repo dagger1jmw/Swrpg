@@ -7,6 +7,7 @@ import { OBIWAN, TARGETS } from './profiles';
 let r: LifeResult;
 beforeAll(() => {
   r = runLifetime(OBIWAN, 70);
+  console.info(`[report ${'obiwan'}] milestones ${JSON.stringify(r.milestones)} E@41/61 ${JSON.stringify(r.eAtMilestone)} bank share ${(r.bankShare * 100).toFixed(1)}% wounded days by age ${JSON.stringify(r.woundedDaysByAge)} combat share by year ${JSON.stringify(r.yearCombat.map((c, i) => Math.round((c / Math.max(1, r.yearMain[i]!)) * 100)))}`);
 }, 600_000);
 
 describe('Obi-Wan lifetime (70 years)', () => {
