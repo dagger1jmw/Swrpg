@@ -23,6 +23,7 @@ import {
   STATE_OF_MIND_COMBAT,
   STRIKE_AT,
   STRIKE_MIN_MARGIN,
+  AIMED_STRIKE,
   STRIKE_QUALITY,
   isNarratedBeat,
   type BeatReason,
@@ -88,6 +89,8 @@ export interface Fighter {
   dead: boolean;
   /** The maneuver to take at this fighter's next strike instead of a hit (player choice at a beat). */
   pendingManeuver: Maneuver | null;
+  /** The next strike aims at this body part (D-171): -2 to that strike, and the location roll is replaced. */
+  aim?: BodyPart | null;
   /** Teamwork for the numbers bonus (D-158): minion kinds set it; named fighters count 1. */
   coordination?: number;
   /** A minion kind's accuracy on its attack rolls (D-161: B1 droids shoot poorly); named fighters have none. */
@@ -275,12 +278,14 @@ function damageFighter(
   day: number,
   woundSeq: number,
   vitalityOnly: boolean,
+  /** The striker's aimed location (D-171); a part already gone falls back to the roll. */
+  aim: BodyPart | null = null,
 ): { f: Fighter; hit: Omit<Hit, 'by' | 'avoided'>; rng: RngState } {
   const D = damageOf({ weapon, quality, armor: f.armor, saberResistant: f.saberResistant });
   // A limb severed earlier in the fight cannot be hit again; a prosthetic takes the hit instead of the body: Vitality
   // only, no wound, no sever (equipment damage arrives with M8; D-164).
   const limbs = limbState(f.wounds, f.lasting);
-  const [part, r1] = rollLocation(rng, limbs.gone.size ? withoutParts(LOCATION_WEIGHTS, limbs.gone) : LOCATION_WEIGHTS);
+  const [part, r1] = aim && !limbs.gone.has(aim) ? [aim, rng] : rollLocation(rng, limbs.gone.size ? withoutParts(LOCATION_WEIGHTS, limbs.gone) : LOCATION_WEIGHTS);
   const dmg = applyDamage(f.vitality, D, bypassFraction(weapon, quality, margin), vitalityOnly || limbs.prosthetic.has(part), !isSaber(weapon));
   let W = dmg.W;
   let severity = severityOf(W);
@@ -371,7 +376,8 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   const nEngaged = engaged(s).length;
   // Numbers (rolls §5 as amended by D-158): +1 per extra attacker engaged x its coordination, rounded down, max +3.
   const extra = engaged(s).filter((o) => o.id !== B.id).reduce((sum, o) => sum + CIRCUMSTANCE.perExtraAttacker * (o.coordination ?? 1), 0);
-  const numbersOnA = Math.min(CIRCUMSTANCE.maxNumbers, Math.floor(extra + 1e-9));
+  // A defender caught by surprise gets no numbers modifier for that strike (D-170): the others cannot cover them.
+  const numbersOnA = s.surprise === 'A' ? 0 : Math.min(CIRCUMSTANCE.maxNumbers, Math.floor(extra + 1e-9));
   const baseA = sideMods(A, B, ctx, 0, nEngaged);
   const baseB = sideMods(B, A, ctx, numbersOnA, 1);
   const modsA: Mods = { attack: [...baseA.attack, ...(extras.a ?? [])], defense: baseA.defense };
@@ -391,7 +397,9 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     [rollB, rng] = basicRoll(rng, effB, netMods(baseB, extras.bDefense ?? []));
     margin = rollA.total - rollB.total;
   } else {
-    const atk = striker === 'A' ? modsA.attack : modsB.attack;
+    // An aimed strike costs AIMED_STRIKE.attackPenalty on the strike roll (D-171).
+    const aiming = (striker === 'A' ? A : B).aim;
+    const atk = [...(striker === 'A' ? modsA.attack : modsB.attack), ...(aiming ? [{ source: `aimed at the ${aiming}`, value: AIMED_STRIKE.attackPenalty }] : [])];
     const def = striker === 'A' ? modsB.defense : modsA.defense;
     // Build-up rolls use attack AND defense (net); a strike uses attack vs defense.
     if (striker === 'A') {
@@ -465,7 +473,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
         const vitalityOnly = ctx.sparring === 'trainingSaber' || atkF.weapon === 'trainingSaber';
         const woundSeq = defF.wounds.length + 1;
         // An accident lands as a graze: the lowest strike margin.
-        const d = damageFighter(defF, q, accident ? STRIKE_MIN_MARGIN : band(margin), atkF.weapon, ctx, rng, day, woundSeq, vitalityOnly);
+        const d = damageFighter(defF, q, accident ? STRIKE_MIN_MARGIN : band(margin), atkF.weapon, ctx, rng, day, woundSeq, vitalityOnly, accident ? null : (atkF.aim ?? null));
         rng = d.rng;
         defF = d.f;
         hit = { by: striker, ...d.hit, avoided: false };
@@ -501,6 +509,9 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       if (striker === 'A') aOut = { ...aOut, pendingManeuver: null };
       else bOut = { ...bOut, pendingManeuver: null };
     }
+    // The aim is spent on this strike (D-171).
+    if (striker === 'A' && aOut.aim) aOut = { ...aOut, aim: null };
+    else if (striker === 'B' && bOut.aim) bOut = { ...bOut, aim: null };
   }
 
   // Exertion for both (rolls §3), by the form's stamina multiplier (D-147).

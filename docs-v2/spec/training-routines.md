@@ -58,7 +58,8 @@ building: D-128 (defaults), D-129 (AI suggestions), D-130 (timed day segments), 
   overtraining risk (any day projected above 1.0), skills that will start rusting (unused
   past the grace period), a lightsaber form at its drill ceiling (suggest sparring or a
   mission), teacher no longer ahead in a skill (suggest a new teacher or holocron), and
-  easy drills (gap below -20).
+  easy drills (gap below -20), and (D-174) a form in the form plan that the priorities give no
+  hours (it never starts or grows: add it to the priorities or take it out of the plan).
 
 ## 6. Automatic adjustments during a montage
   Injury: affected skills are swapped for adaptation training or rest, until cleared.

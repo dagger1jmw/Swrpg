@@ -20,7 +20,7 @@ import { ageFactor } from '../../engine/ageFactor';
 import { pickDrillRating, type Effort } from '../../engine/challenge';
 import { transferXp } from '../../engine/forms';
 import { computeTrainingXp, type SessionSplit, type TrainingResult } from '../../engine/computeXp';
-import { tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
+import { levelExact, tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { tirednessLabel } from '../../engine/fatigue';
 import { instructionFactor } from '../../engine/instruction';
 import { clampCredit, clampShare, inWindow, paceCap } from '../../engine/paceClamp';
@@ -166,6 +166,14 @@ interface UnlockCtx {
   primaries: Record<string, number>;
   teacher: boolean;
   partner: boolean;
+  /** The fundamentals transfer this session would give (D-119): level gates read the level after it (D-173). */
+  transfer: Readonly<Record<string, number>>;
+}
+
+/** A skill's level with this session's fundamentals transfer, if any (D-173). */
+function levelAfterTransfer(ctx: UnlockCtx, id: string): number {
+  const t = ctx.transfer[id] ?? 0;
+  return t > 0 ? levelExact((ctx.state.progression.skills[id]?.xp ?? 0) + t) : selectLevelExact(ctx.state, id);
 }
 
 function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
@@ -176,9 +184,9 @@ function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
     case 'always':
       return null;
     case 'supervisedOrLevel':
-      return ctx.teacher || selectLevelExact(s, u.skill) >= u.min ? null : `needs a teacher present until ${name(u.skill)} reaches ${u.min}`;
+      return ctx.teacher || levelAfterTransfer(ctx, u.skill) >= u.min ? null : `needs a teacher present until ${name(u.skill)} reaches ${u.min}`;
     case 'level':
-      return selectLevelExact(s, skill(u.skill)) >= u.min ? null : `needs ${name(skill(u.skill))} ${u.min}`;
+      return levelAfterTransfer(ctx, skill(u.skill)) >= u.min ? null : `needs ${name(skill(u.skill))} ${u.min}`;
     case 'known':
       return known(s, skill(u.skill)) ? null : `${name(skill(u.skill))} is not known yet`;
     case 'knownOrTeacher':
@@ -272,7 +280,17 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   }
   const teaching = teacherId !== null || record !== undefined || source?.kind === 'instructor' || source?.kind === 'master';
   const partnered = partnerId !== null || source?.kind === 'peers';
-  const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teaching, partner: partnered };
+  // Fundamentals transfer (D-119): a lightsaber form's first session as the primary starts it at 0.75 x
+  // the highest form's XP, once per form, outside the 4.0x clamp. The session then runs on top of it. Worked out
+  // before the unlock checks, so a level gate reads the level after the transfer (D-173: Shii-Cho's teacher gate).
+  const transfer: Record<string, number> = {};
+  const formXp = (id: string): number => s.progression.skills[id]?.xp ?? 0;
+  for (const id of Object.keys(prim)) {
+    if (SKILL_BY_ID.get(id)?.kind !== 'form' || s.progression.formsStarted.includes(id)) continue;
+    const t = transferXp(id, formXp);
+    if (t > 0) transfer[id] = t;
+  }
+  const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teaching, partner: partnered, transfer };
   const selfStudyStart: string[] = [];
   for (const u of a.unlock) {
     const fail = unlockFails(u, ctx);
@@ -286,15 +304,6 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   }
   const secondaries = resolveSecondaries(s, a, prim);
 
-  // Fundamentals transfer (D-119): a lightsaber form's first session as the primary starts it at 0.75 x
-  // the highest form's XP, once per form, outside the 4.0x clamp. The session then runs on top of it.
-  const transfer: Record<string, number> = {};
-  const formXp = (id: string): number => s.progression.skills[id]?.xp ?? 0;
-  for (const id of Object.keys(prim)) {
-    if (SKILL_BY_ID.get(id)?.kind !== 'form' || s.progression.formsStarted.includes(id)) continue;
-    const t = transferXp(id, formXp);
-    if (t > 0) transfer[id] = t;
-  }
   const transferNotes = Object.entries(transfer).map(
     ([id, x]) =>
       `fundamentals transfer: ${SKILL_BY_ID.get(id)?.name ?? id} starts at ${Math.round(FORM_TRANSFER_SHARE * 100)}% of ${id === 'niman' ? 'the average of Forms I, III, IV and V' : 'the highest form'} (+${x.toFixed(1)} XP, outside the pace limit)`,

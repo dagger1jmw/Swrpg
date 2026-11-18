@@ -5,7 +5,7 @@ import { INTENSITIES } from '../../data/activities';
 import { ACTION_TYPES, DIFFICULTIES } from '../../data/checks.config';
 import { PACING_LEVELS } from '../../data/pacing.config';
 import { MANEUVERS, STANCES, TACTICS } from '../../data/combat.config';
-import { HAZARD_TYPES } from '../../data/health.config';
+import { BODY_PARTS, HAZARD_TYPES } from '../../data/health.config';
 import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.config';
 
 /** One step of a typed combat sequence (D-146): a stance, a feint or taunt, a maneuver, a Force action, or a strike. */
@@ -16,6 +16,7 @@ export const sequenceStepSchema = z.object({
   maneuver: z.enum(MANEUVERS).optional(),
   action: z.enum(['push', 'choke', 'lightning', 'throw']).optional().describe('forceAction: push, choke, lightning, or throw an object'),
   objectTag: z.string().max(40).optional().describe('throw: a terrain tag holding throwable objects (loose rock, debris, crates, machinery)'),
+  aim: z.enum(BODY_PARTS).optional().describe('strike: only when the player names where the strike goes (head, torso, an arm, a leg, a hand)'),
 });
 
 export const SPAN_UNITS = ['seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'] as const;
@@ -49,6 +50,7 @@ export const intentSchema = z.object({
   healing: z.object({ source: z.enum(['medical', 'bacta', 'forceHealer']), healerRef: z.string().max(80).optional() }).optional().describe('Only for heal'),
   risk: z.object({ type: z.enum(HAZARD_TYPES), severityHint: z.number().int().min(1).max(3) }).optional().describe('A hazard the player\'s own action causes'),
   sequence: z.array(sequenceStepSchema).max(SEQUENCE_SCHEMA_MAX).optional().describe('Combat only: the steps the player chains in order (at most 5)'),
+  aim: z.enum(BODY_PARTS).optional().describe('Combat only: the body part the player says the next strike goes for ("go for his head": head)'),
 });
 
 export type Intent = z.infer<typeof intentSchema>;

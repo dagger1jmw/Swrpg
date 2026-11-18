@@ -4,8 +4,9 @@
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
-import { FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type NpcFate } from '../../data/combat.config';
+import { FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
+import { BODY_PARTS, type BodyPart } from '../../data/health.config';
 import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
 import { dateFromAbsDay } from '../../engine/calendar';
 import { COMBAT_STAKES, type CombatOutcome, type CombatStakes } from '../../data/progression.config';
@@ -21,6 +22,7 @@ import { runSequence, sequenceCap, type SequenceStep } from '../../engine/sequen
 import { isDying, isIncapacitated, type Wound } from '../../engine/wounds';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent } from '../../state/types';
+import { selectPath } from '../character/selectors';
 import { selectNow } from '../clock/selectors';
 import { selectFatigue, selectMaxVitality } from '../health/selectors';
 import { selectNpc, selectNpcGen, selectNpcLevels } from '../npcs/selectors';
@@ -64,7 +66,10 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
       meta[f.id] = { npcId: null, minionKind: kind, rank: null };
     }
   }
-  const sparring = spec.stakes === 'spar' ? sparringModeFor(s) : null;
+  // A spar's stakes: the session's story-event choice (D-172; academy stakes only on the Sith path), else the default.
+  const asked = spec.sparringMode ?? null;
+  if (asked === 'academy' && selectPath(s) !== 'sith') notes.push('academy stakes are Sith only: controlled live blades instead');
+  const sparring = spec.stakes === 'spar' ? (asked === 'academy' && selectPath(s) !== 'sith' ? 'controlled' : (asked ?? sparringModeFor(s))) : null;
   const ctx = buildContext(s, spec.terrainTags, spec.stakes, sparring);
   let player = buildPlayerFighter(s);
   if (sparring === 'trainingSaber' && (player.weapon === 'lightsaber' || player.weapon === 'trainingSaber')) player = { ...player, weapon: 'trainingSaber' };
@@ -259,6 +264,7 @@ const stepSchema = z.object({
   maneuver: z.enum(MANEUVERS).optional(),
   action: z.enum(['push', 'choke', 'lightning', 'throw']).optional(),
   objectTag: z.string().optional(),
+  aim: z.enum(BODY_PARTS).optional(),
 });
 
 /** A step from the intent / beat schema to the engine's step (invalid combinations are dropped). */
@@ -267,7 +273,7 @@ function toStep(x: z.infer<typeof stepSchema>): SequenceStep | null {
   if (x.kind === 'tactic' && x.tactic) return { kind: 'tactic', tactic: x.tactic };
   if (x.kind === 'maneuver' && x.maneuver) return { kind: 'maneuver', maneuver: x.maneuver };
   if (x.kind === 'forceAction' && x.action) return { kind: 'forceAction', action: x.action, ...(x.objectTag ? { objectTag: x.objectTag } : {}) };
-  if (x.kind === 'strike') return { kind: 'strike' };
+  if (x.kind === 'strike') return x.aim ? { kind: 'strike', aim: x.aim } : { kind: 'strike' };
   return null;
 }
 
@@ -291,6 +297,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         terrainTags: z.array(z.enum(TERRAIN_IDS as [string, ...string[]])).max(5),
         ambushClaim: z.boolean().optional().describe('The opponents attack from hiding'),
         engagedElsewhereRefs: z.array(z.string()).max(6).optional().describe('Opponents fighting an ally, not the player'),
+        sparringMode: z.enum(SPARRING_MODES).optional().describe('Spar only, a story event: the master calls harsher stakes for this session (academy: Sith live blades and real wounds)'),
       }),
       sources: ['ai', 'engine'],
       narrative: (s) => s.combat.active === null && s.combat.pending === null,
@@ -313,6 +320,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           terrainTags: e['terrainTags'],
           ambushClaim: e['ambushClaim'] === true,
           engagedElsewhere: (e['engagedElsewhereRefs'] as string[] | undefined) ?? [],
+          sparringMode: e['stakes'] === 'spar' ? ((e['sparringMode'] as PendingFight['sparringMode'] | undefined) ?? null) : null,
         });
         return { slice: { ...slice, pending }, notes: [...notes, 'fight deferred to the next turn (D-29)'] };
       },
@@ -331,7 +339,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         if (slice.active) return { reject: 'a fight is already in progress' };
         const spec: PendingFight | null = e['fromPending']
           ? slice.pending
-          : { opponentRefs: (e['opponentRefs'] as string[]) ?? [], minionGroups: [], stakes: (e['stakes'] as CombatStakes) ?? 'serious', terrainTags: ((e['terrainTags'] as string[]) ?? []).filter((t) => TERRAIN_IDS.includes(t)), ambushClaim: false, engagedElsewhere: [] };
+          : { opponentRefs: (e['opponentRefs'] as string[]) ?? [], minionGroups: [], stakes: (e['stakes'] as CombatStakes) ?? 'serious', terrainTags: ((e['terrainTags'] as string[]) ?? []).filter((t) => TERRAIN_IDS.includes(t)), ambushClaim: false, engagedElsewhere: [], sparringMode: null };
         if (!spec) return { reject: 'no pending fight' };
         const id = `fight-${slice.seq}`;
         const r = startFight(ctx.state, spec, id);
@@ -347,7 +355,9 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
       schema: z.object({
         type: z.literal('combatAction'),
         // playBout / stopSession: a sparring session's bout played out beat by beat, or the session ended (D-168).
-        action: z.enum(['stance', 'tactic', 'maneuver', 'formChange', 'force', 'target', 'shatterpoint', 'sequence', 'fightOn', 'narrate', 'resolve', 'continue', 'playBout', 'stopSession']),
+        action: z.enum(['stance', 'tactic', 'maneuver', 'aim', 'formChange', 'force', 'target', 'shatterpoint', 'sequence', 'fightOn', 'narrate', 'resolve', 'continue', 'playBout', 'stopSession']),
+        /** aim: the body part the next strike goes for (D-171). */
+        part: z.enum(BODY_PARTS).optional(),
         stance: z.enum(STANCES).optional(),
         tactic: z.enum(TACTICS).optional(),
         maneuver: z.enum(MANEUVERS).optional(),
@@ -389,6 +399,10 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         let beat: string | null = null;
         if (action === 'stance') duel = { ...duel, a: { ...duel.a, stance: e['stance'] as Fighter['stance'] } };
         else if (action === 'maneuver') duel = { ...duel, a: { ...duel.a, pendingManeuver: e['maneuver'] as Fighter['pendingManeuver'] } };
+        else if (action === 'aim') {
+          if (!e['part']) return { reject: 'aim needs a body part' };
+          duel = { ...duel, a: { ...duel.a, aim: e['part'] as BodyPart } };
+        }
         else if (action === 'formChange') {
           const form = String(e['form'] ?? '');
           if (!FORM_IDS.includes(form) || selectLevelExact(s, form) < 1) return { reject: `cannot fight in ${form}` };

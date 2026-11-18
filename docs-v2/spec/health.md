@@ -66,7 +66,8 @@ Force meter (replaces Force strain):
 ## 5. Wounds
   Wound damage W -> severity: 1-9 minor | 10-19 moderate | 20-34 severe |
     35-49 critical | 50+ mortal
-  Hit location (if not chosen by the attack): torso 35% | left/right arm 25% |
+  Hit location (if not chosen by the attack; an aimed strike chooses it, rolls section 5 and
+    D-171): torso 35% | left/right arm 25% |
     left/right leg 25% | head 10% | hands 5%
   Limb rule: a lightsaber wound of 35+ to a limb or hand severs it (a lasting injury,
     progression spec section 18) instead of becoming critical or mortal.

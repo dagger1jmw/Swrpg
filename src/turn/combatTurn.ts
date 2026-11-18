@@ -49,6 +49,8 @@ export function combatActionFromIntent(intent: Intent | null): Record<string, un
   if (intent?.sequence?.length) return { action: 'sequence', steps: intent.sequence };
   if (intent?.forceAbility && FORCE_KINDS[intent.forceAbility]) return { action: 'force', force: { kind: FORCE_KINDS[intent.forceAbility], ...(intent.effort ? { effort: intent.effort } : {}) } };
   if (intent?.tactic) return { action: 'tactic', tactic: intent.tactic };
+  // "Go for his head": the next strike is aimed (D-171).
+  if (intent?.aim) return { action: 'aim', part: intent.aim };
   return { action: 'continue' };
 }
 

@@ -100,6 +100,13 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
   Surprise: the fight starts with the attacker at advantage 3 (the first exchange is a strike),
     and the defender cannot use precognitive defense on it. Triggered when a perception contest
     fails: defender d20 + Force Sense/10 (or awareness) vs attacker d20 + stealth/10.
+    Amended by D-170: a defender caught by a surprise strike gets no numbers modifier for that
+    strike (the others cannot cover them); the numbers modifier applies again from the next
+    exchange. The section 8 tables have no surprise and are unchanged.
+  Aimed strike (D-171): a strike, or a sequence strike step, can aim at the head, the torso or a
+    limb. The strike roll takes -2 (combat.config AIMED_STRIKE) and the chosen part replaces the
+    location roll (health section 5); a part already lost falls back to the roll. The aim is spent
+    on the next strike. The intent call maps typed input such as "go for his head".
   Opening: +2 advantage. Created by winning a feint, taunt or trick contest
     (d20 + Charisma, Intelligence or form level / 10 vs d20 + Willpower or Force Sense / 10),
     or by an opponent's natural 1 in a build-up exchange.

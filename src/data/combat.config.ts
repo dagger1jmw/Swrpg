@@ -20,6 +20,8 @@ export const STRIKE_QUALITY: readonly (readonly [number, HitQuality])[] = [
   [4, 'graze'],
 ];
 export const STRIKE_MIN_MARGIN = 4;
+/** An aimed strike (Jared, D-171): the strike roll takes this, and the chosen body part replaces the location roll. */
+export const AIMED_STRIKE = { attackPenalty: -2 } as const;
 /**
  * Cut-down (Jared, D-158): against a minion, a build-up exchange won by this margin (or more) is already a hit (quality
  * by the margin), unless the minion wears saber-resistant armor. Cleave (keeping the advantage after taking a minion
@@ -117,7 +119,10 @@ export const DISENGAGE = { advantagePenaltyPerStep: 1 } as const;
 /** A defender margin this high redirects a bolt (Soresu / Shien per the lore). */
 export const DEFLECT_REDIRECT_MARGIN = 8;
 
-// ---- Sparring modes (Jared, D-143) ----
+// ---- Sparring modes (Jared, D-143; D-144; D-172) ----
+// Routine sparring uses the rank default below (Sith master and apprentice: controlled live blades). Sith-academy stakes
+// (live blades, real wounds) apply to spars at an academy (SITH_ACADEMIES) and to trials; a master can call them for
+// one session as a story event (combatStarted sparringMode; Sith path only).
 export const SPARRING_MODES = ['trainingSaber', 'controlled', 'academy'] as const;
 export type SparringMode = (typeof SPARRING_MODES)[number];
 /** Controlled live blades: a would-be strike lands for real as a graze when the margin is this high AND a natural 1 was rolled. */

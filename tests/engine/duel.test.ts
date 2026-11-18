@@ -312,3 +312,33 @@ describe('lost and prosthetic limbs (health §5, D-164)', () => {
     expect(prostheticHits).toBeGreaterThan(0);
   });
 });
+
+describe('surprise strikes and aimed strikes (D-170, D-171)', () => {
+  const group = () => [forceUser('B1', 50), forceUser('B2', 50), forceUser('B3', 50)];
+  it('a defender caught by surprise gets no numbers modifier for that strike; afterwards the group does', () => {
+    const s = startDuel(forceUser('A', 60), group(), seedRng('surp'), 'A');
+    const first = runUntilBeat(s, REAL, 0, 'beat', 1).state.log[0]!;
+    expect(first.surprise).toBe(true);
+    expect(first.rollB!.modifiers.some((m) => m.source.startsWith('numbers'))).toBe(false);
+    const later = runUntilBeat({ ...s, surprise: null }, REAL, 0, 'beat', 1).state.log[0]!;
+    expect(later.rollB!.modifiers.some((m) => m.source.startsWith('numbers'))).toBe(true);
+  });
+  it('an aimed strike takes -2 on the strike roll, lands where aimed, and the aim is spent', () => {
+    let rng = seedRng('aim');
+    let landed = 0;
+    for (let i = 0; i < 200; i++) {
+      // Surprise makes the first exchange a strike by A.
+      const s = startDuel({ ...forceUser('A', 80), aim: 'head' }, [forceUser('B', 40)], rng, 'A');
+      const d = runUntilBeat(s, REAL, 0, 'beat', 1).state;
+      rng = d.rng;
+      const r = d.log[0]!;
+      expect(r.rollA!.modifiers.some((m) => m.source === 'aimed at the head' && m.value === -2)).toBe(true);
+      if (r.hit && !r.hit.avoided && r.hit.D > 0) {
+        landed++;
+        expect(r.hit.part).toBe('head');
+      }
+      expect(d.a.aim ?? null).toBeNull();
+    }
+    expect(landed).toBeGreaterThan(0);
+  });
+});

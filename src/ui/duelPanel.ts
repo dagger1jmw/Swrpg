@@ -153,6 +153,11 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
         el('span', { class: 'hint', text: 'Next strike' }),
         ...MANEUVERS.map((m) => beat(m, { action: 'maneuver', maneuver: m }, `small${d.a.pendingManeuver === m ? ' active' : ''}`)),
       ]),
+      // Aimed strike (D-171): -2 to the strike, and it lands where aimed.
+      el('div', { class: 'beat-row' }, [
+        el('span', { class: 'hint', text: 'Aim (-2)' }),
+        ...(['head', 'torso', 'rightArm', 'leftArm', 'rightLeg', 'leftLeg'] as const).map((p) => beat(p, { action: 'aim', part: p }, `small${d.a.aim === p ? ' active' : ''}`)),
+      ]),
       forceActs.length || d.a.shatterpoint > 0
         ? el('div', { class: 'beat-row' }, [
             el('span', { class: 'hint', text: 'Force' }),

@@ -5,7 +5,7 @@
 // remaining steps are dropped, not refunded. A natural 1 always fails a step.
 import { CIRCUMSTANCE, STRIKE_AT, type Maneuver, type Stance, type Tactic } from '../data/combat.config';
 import { SEQUENCE_ADAPTATION, SEQUENCE_CAP, SEQUENCE_CHAIN } from '../data/sequence.config';
-import type { ForceEffort } from '../data/health.config';
+import type { BodyPart, ForceEffort } from '../data/health.config';
 import type { ObjectSize } from '../data/terrain';
 import { resolveForceAction, type ForceActionKind } from './combatForce';
 import { resolveExchange, settleEnd, type DuelContext, type DuelState } from './duel';
@@ -17,7 +17,7 @@ export type SequenceStep =
   | { kind: 'tactic'; tactic: Extract<Tactic, 'feint' | 'taunt'> }
   | { kind: 'maneuver'; maneuver: Maneuver }
   | { kind: 'forceAction'; action: ForceActionKind; effort?: ForceEffort; objectTag?: string }
-  | { kind: 'strike' };
+  | { kind: 'strike'; aim?: BodyPart };
 
 export interface CapInputs {
   rank: string;
@@ -161,6 +161,8 @@ export function runSequence(
       note = `${step.action}: ${r.record.misfire ? 'misfire' : success ? 'success' : 'resisted'}`;
     } else {
       if (step.kind === 'maneuver') st = { ...st, duel: { ...duel, a: { ...duel.a, pendingManeuver: step.maneuver } } };
+      // An aimed strike step (D-171).
+      if (step.kind === 'strike' && step.aim) st = { ...st, duel: { ...st.duel, a: { ...st.duel.a, aim: step.aim } } };
       const before = st.duel;
       const after = resolveExchange(before, ctx, day, { a: bonus, bDefense: defense, step: i });
       const rec = after.log[after.log.length - 1]!;

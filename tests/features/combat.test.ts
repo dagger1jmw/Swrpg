@@ -138,3 +138,31 @@ describe('beats and conclusion', () => {
     expect(r.combat.last!.outcome).toBe('lost');
   });
 });
+
+describe('sparring stakes (D-144 as amended by D-172)', () => {
+  const sith = (): GameState =>
+    createInitialState<GameState>(REGISTRY, {
+      campaignId: 'c1',
+      branchId: 'b1',
+      seed: 'sith',
+      start: { day: START, second: 9 * 3600 },
+      character: { name: 'Vex', birthDay: START - 22 * 368, path: 'sith', archetype: 'sithWarrior', mainFormId: 'juyo', trainingStartAge: 8 },
+      startingXp: { juyo: xpForLevel(40), forceSense: xpForLevel(40), endurance: xpForLevel(40), willpower: xpForLevel(40) },
+      rank: 'apprentice',
+    });
+  const spar = (s0: GameState, mode?: string) => {
+    const { s, id } = withNpc(s0, 'Darth Kain', 'sithLord', 60);
+    const p = ai(s, [{ type: 'combatStarted', opponentRefs: [id], stakes: 'spar', terrainTags: ['flatFloor'], ...(mode ? { sparringMode: mode } : {}) }]);
+    expect(p.rejected).toEqual([]);
+    return engine(p.state, [{ type: 'fightBegun', fromPending: true }]);
+  };
+  it('master-apprentice sparring defaults to controlled live blades outside an academy', () => {
+    expect(spar(sith()).state.combat.active?.sparring).toBe('controlled');
+  });
+  it('the master can call academy stakes for one session as a story event (Sith only)', () => {
+    expect(spar(sith(), 'academy').state.combat.active?.sparring).toBe('academy');
+    const jedi = spar(fresh('padawan'), 'academy');
+    expect(jedi.state.combat.active?.sparring).toBe('controlled');
+    expect(jedi.applied.flatMap((a) => a.notes).join(' ')).toMatch(/Sith only/);
+  });
+});

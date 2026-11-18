@@ -970,6 +970,21 @@ The clock and the module contract come first, before any feature.
 - **Character traits (D-143 M, end of production):** first entry Tactical Fighter, +1 to the sequence cap.
 - **M8 equipment (D-158):** saber-resistant armor and weapons for anyone but Mandalorians (cortosis weave, personal
   beskar, phrik); until then STUB_WEAPONS gives saber resistance only through the Mandalorian beskar-by-era rule.
+- **M6 secondary-form growth (Jared, 2026-11-18):** fighting experience should partly carry over between forms. Design
+  default to evaluate: a secondary form's drill ceiling uses its own E plus a share of the main form's E, and fighting
+  in a secondary form earns E for that form. Measured stall (step 9): second forms reach about 40-53 and then gain about
+  3 levels in 20 years (Average Ataru 41.5 at 40, 44.8 at 60; Obi-Wan Ataru 51.0 / 52.9; the swordmaster 40.4 / 43.6),
+  because E grows only in the form group fought with and peer sparring E stops at 15.
+- **M6 free form switch (Jared):** a form change costs 0 advantage when both forms are at 61+ (Master tier), with the
+  secondary-form growth above and cleave.
+- **M6 / M7 peacetime Sith Force growth (Jared):** the lifetime harness profile needs Force use in its trials so CI can
+  grow (the harness duels log no Force uses), the dark-side bonuses come in M6 and the Sith Order schedule in M7. Re-run
+  the Sidious-like report (D-175) after M6.
+- **M6 weapon hand lost (Jared; measured in D-175, not adopted):** losing the weapon hand or arm disarms the fighter and
+  takes them out of the saber fight (they can still flee, surrender, use the Force, or draw with the off hand at the
+  off-hand penalty).
+- **Canon Clone Wars masters:** canon levels for Agen Kolar, Saesee Tiin, Kit Fisto and Mace Windu (with his
+  ShatterSense) come with the Clone Wars era roster; the D-175 4v1 used estimates.
 - **M7 Order schedule (D-165, Jared):** a 13-year-old Padawan's fixed Order day alone ends near f 0.97 against the
   standard tiredness limit 0.9 even when fresh; the Order schedule is revisited with the Order requirements in M7.
 - **M7 teaching (D-163):** characters with the instructor role get a higher share of drill XP above the ceiling

@@ -187,4 +187,13 @@ describe('preview (training-routines §5)', () => {
     expect(p.warnings.join(' ')).toMatch(/Overtraining risk/);
     expect(p.warnings.join(' ')).toMatch(/rust.*Makashi/);
   });
+
+  it('warns when a form in the plan gets no hours from the priorities (D-174)', () => {
+    const s = knight();
+    // The Knight plan holds Soresu and Ataru; these priorities give Ataru nothing.
+    const p = previewRoutine(REGISTRY, s, daily(s, { priorities: PRIOS }));
+    expect(p.warnings.join(' ')).toMatch(/In your form plan but given no hours by your priorities: Ataru/);
+    const plain = previewRoutine(REGISTRY, s, daily(s));
+    expect(plain.warnings.join(' ')).not.toMatch(/In your form plan/);
+  });
 });

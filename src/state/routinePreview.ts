@@ -7,7 +7,7 @@ import { CATEGORY_RULES, SKILL_BY_ID } from '../data/skills';
 import { formatClock } from '../engine/calendar';
 import { challengeFactor } from '../engine/challenge';
 import { selectCapacities, selectSkillXp } from '../features/progression/selectors';
-import { orderBlocks, planDay, projectDay, routineSchema, type PlannedBlock, type Routine } from '../features/routines/selectors';
+import { orderBlocks, planDay, projectDay, routineSchema, selectPlanForms, type PlannedBlock, type Routine } from '../features/routines/selectors';
 import { selectMeters } from '../features/health/selectors';
 import { afterSleep } from '../engine/fatigue';
 import { advanceByRoutine } from './advanceRoutine';
@@ -105,6 +105,11 @@ export function previewRoutine(registry: Registry<GameState>, initial: GameState
   for (const n of new Set(run.days.flatMap((d) => d.notes))) if (/unavailable|trimmed/.test(n)) warnings.push(n);
   // The drill ceiling (25 + E, M5) and the injury adjustments (training-routines §5-6), from the typical day and the week.
   for (const n of new Set([...typical.notes, ...run.days.flatMap((d) => d.notes)])) if (/drill ceiling|injury/.test(n)) warnings.push(n);
+  // A form in the plan that gets no hours this week (D-174): the priorities leave it out, so it never starts or grows.
+  const unused = Object.entries(selectPlanForms(s))
+    .filter(([f, h]) => h > 0 && !practiced.has(f))
+    .map(([f]) => SKILL_BY_ID.get(f)?.name ?? f);
+  if (unused.length) warnings.push(`In your form plan but given no hours by your priorities: ${unused.join(', ')}. Add ${unused.length > 1 ? 'them' : 'it'} to the priorities or take ${unused.length > 1 ? 'them' : 'it'} out of the plan.`);
 
   return {
     ok: true,

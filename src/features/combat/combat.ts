@@ -14,6 +14,8 @@ export const pendingFightSchema = z.object({
   terrainTags: z.array(z.enum(TERRAIN_IDS as [string, ...string[]])),
   ambushClaim: z.boolean(),
   engagedElsewhere: z.array(z.string()),
+  /** A spar's stakes chosen for this session as a story event (D-172), else the default by rank and place. */
+  sparringMode: z.enum(SPARRING_MODES).nullable().default(null),
 });
 export type PendingFight = z.infer<typeof pendingFightSchema>;
 

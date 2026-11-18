@@ -79,6 +79,9 @@ export function requirementRow(s: GameState): 'initiate' | 'padawan' | 'knight' 
   return row === 'initiate' || row === 'padawan' ? row : 'knight';
 }
 
+/** The form plan in force for the character's rank (D-118): exported for the preview's unused-form warning (D-174). */
+export const selectPlanForms = (s: GameState): Record<string, number> => planFor(s, requirementRow(s));
+
 /** The form plan in force: hours by form (Padawan plan before Knight, Knight+ plan after; D-118). */
 function planFor(s: GameState, row: 'initiate' | 'padawan' | 'knight'): Record<string, number> {
   const c = selectCharacter(s);

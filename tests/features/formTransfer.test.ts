@@ -76,3 +76,33 @@ describe('fundamentals transfer at run time (D-119)', () => {
     expect(s.progression.skills['shiiCho']!.rust).toBeGreaterThan(0);
   });
 });
+
+describe('Shii-Cho gets the transfer like any other form (D-173)', () => {
+  it('a Knight who never trained Shii-Cho can start it with peers: the teacher gate reads the level after the transfer', () => {
+    const s0 = createInitialState<GameState>(REGISTRY, {
+      campaignId: 'c',
+      branchId: 'b',
+      seed: 'shii',
+      start: { day: START, second: 8 * 3600 },
+      character: { name: 'Vex', birthDay: START - 40 * 368, path: 'sith', archetype: 'sithWarrior', mainFormId: 'juyo', trainingStartAge: 17 },
+      startingXp: { juyo: xpForLevel(90) },
+      rank: 'lord',
+    });
+    expect(s0.progression.formsStarted).not.toContain('shiiCho');
+    const plan = resolveTraining(s0, { activityId: 'shiiChoBasics', hours: 1, source: { kind: 'peers' } });
+    expect(plan.ok, plan.ok ? '' : plan.reason).toBe(true);
+    const transfer = ((plan.ok ? plan.events[0] : {}) as Record<string, unknown>)['transfer'] as Record<string, number>;
+    expect(transfer['shiiCho']).toBeCloseTo(FORM_TRANSFER_SHARE * xpForLevel(90), 6);
+    // Without a teacher and without a transfer to lift it (a fresh student), Shii-Cho basics stays gated.
+    const fresh = createInitialState<GameState>(REGISTRY, {
+      campaignId: 'c',
+      branchId: 'b',
+      seed: 'shii2',
+      start: { day: START, second: 8 * 3600 },
+      character: { name: 'Kid', birthDay: START - 6 * 368, path: 'jedi', archetype: 'jediGuardian', mainFormId: 'shiiCho', trainingStartAge: 4 },
+      rank: 'initiate',
+    });
+    const gated = resolveTraining(fresh, { activityId: 'shiiChoBasics', hours: 1, source: { kind: 'peers' } });
+    expect(gated.ok).toBe(false);
+  });
+});
