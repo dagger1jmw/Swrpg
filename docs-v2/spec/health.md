@@ -98,7 +98,10 @@ Force meter (replaces Force strain):
 
 ## 9. Opponents
   Named NPCs use this full model. Minions (mooks) use a simplified rule: a moderate or
-  worse wound takes them out of the fight; Vitality works the same.
+  worse wound takes them out of the fight; Vitality works the same, and a minion also folds when
+  Spent (Vitality 0). Minion groups from combatStarted only; named NPCs and the player keep the
+  normal rule. How a folded minion goes down is the narration's; whether it counts as dead follows
+  the fight's stakes (amended by D-157).
 
 ## 10. Required tests
  1. Vitality at 0 never changes status by itself.
@@ -114,7 +117,7 @@ Force meter (replaces Force strain):
  8. Force meter capacity and loads match section 2; backlash and collapse rules trigger
     only above 1.0 (1.3 when channeling anger).
  9. Pain suppression changes penalties only, never status or timers.
-10. Minions leave the fight on a moderate wound.
+10. Minions leave the fight on a moderate wound, or when Spent (D-157).
 11. Willpower 60 removes 15% of wound penalties; Willpower 100+ removes 25% (cap) (Q40).
 12. Ending Battlemind or Force Valor while wounded restores the penalties and adds +0.5
     mental load (Q41).

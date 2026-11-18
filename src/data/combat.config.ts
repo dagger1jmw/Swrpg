@@ -20,6 +20,11 @@ export const STRIKE_QUALITY: readonly (readonly [number, HitQuality])[] = [
   [4, 'graze'],
 ];
 export const STRIKE_MIN_MARGIN = 4;
+/**
+ * A strike that misses or is blocked (precognitive defense, a recovery) keeps the pressure: the track moves this
+ * many steps toward 0 instead of resetting (D-156, Jared; rolls §3 amended). A landed hit or maneuver still resets.
+ */
+export const MISSED_STRIKE_STEP = 1;
 
 export const MANEUVERS = ['position', 'knockdown', 'disarm'] as const;
 export type Maneuver = (typeof MANEUVERS)[number];
@@ -34,7 +39,11 @@ export const EXCHANGE_SECONDS = { min: 5, max: 10 } as const;
 export const EXERTION_PER_EXCHANGE = 0.08;
 
 // ---- Precognitive defense, Force insight, shatterpoint (rolls §3, §6) ----
-export const PRECOG = { load: 0.4, maxChance: 0.5, perForceSense: 1 / 200, centeredBonus: 0.1, maxForceMeter: 1.0 } as const;
+/**
+ * Precognitive defense (rolls §3 as amended by D-156, Jared): chance min(0.25, Force Sense / 400), +0.10 centered.
+ * Was min(0.5, FS / 200); halved so duels reach the rolls.md duration targets.
+ */
+export const PRECOG = { load: 0.4, maxChance: 0.25, perForceSense: 1 / 400, centeredBonus: 0.1, maxForceMeter: 1.0 } as const;
 export const FORCE_INSIGHT = { minForceSense: 60, gapAtLeast: 15, perForceSense: 1 / 200, lightBonus: 0.1, advantage: 2 } as const;
 export const SHATTERPOINT_COMBAT = { dc: 15, advantage: 3, forceLoad: 0.3 } as const;
 
@@ -84,7 +93,8 @@ export const BEAT_TRACK = 2;
  * Beat classes (Jared, D-143). Quiet beats make no AI call (code template lines and roll cards); narrated
  * beats call the narrator once for every exchange since the last narrated beat.
  */
-export const QUIET_BEATS = ['trackSwing', 'periodic', 'strikeMissed'] as const;
+/** strikeAbsorbed: a hit that only takes Vitality (no wound) is quiet too. */
+export const QUIET_BEATS = ['trackSwing', 'periodic', 'strikeMissed', 'strikeAbsorbed'] as const;
 export const NARRATED_BEATS = ['woundingHit', 'maneuverLanded', 'spent', 'forceAction', 'sequence', 'incapacitated', 'fightEnded', 'playerNarrate'] as const;
 export type BeatReason = (typeof QUIET_BEATS)[number] | (typeof NARRATED_BEATS)[number];
 export const isNarratedBeat = (r: BeatReason): boolean => (NARRATED_BEATS as readonly string[]).includes(r);

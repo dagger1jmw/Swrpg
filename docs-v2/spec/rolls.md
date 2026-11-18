@@ -14,6 +14,9 @@ Reference tables (simulated with the health model, 8,000-10,000 duels per case):
 | 10 levels weaker, holding decisive high ground (+2)                   | 68%                 |
 | Same, against a reckless, enraged opponent (attack +1, defense -2)    | 81%                 |
 
+"Then an opening" in the surprise scenario: the attacker holds at least +2 after the surprise strike; under the
+D-156 pressure rule a missed surprise strike already leaves +2, so no second opening is added (D-156).
+
 Build order (D-34): sections 1, 2 and 7 (basic roll, checks, seeded RNG and roll card) are
 built in M1 as pure engine, with the M1 stubs named in architecture §15. Duels (sections 3-6)
 stay in M5. Whether a check is required is decided by the engine from the intent, never by
@@ -46,10 +49,15 @@ Strike exchange (a side has advantage >= 3; that side is the striker):
   below 4: defender recovers, no hit
   4-7 graze | 8-11 solid | 12-15 clean | 16+ critical  (hit quality for health spec sec 4)
   Instead of a hit, the striker may take a maneuver: gain position 2+ | knockdown 4+ | disarm 8+
-  After any strike exchange, advantage resets to 0.
+  After a strike that lands (a hit or a maneuver), advantage resets to 0. A strike that misses or is blocked
+    (recovery, precognitive defense) keeps the pressure: the track moves 1 step toward 0 (amended by D-156).
+  Bands (build-up steps, hit quality, maneuver thresholds) read the margin rounded to the nearest whole point, so a
+    fraction of a level never tips a band edge (D-156). Circumstances on a side's total (matchups, position, footing,
+    numbers) count on both its attack and defense rolls; stance and state of mind split as listed (D-156).
 
 Precognitive defense: when struck, a defender with Force Sense may spend 0.4 Force load to
-  avoid the strike, with chance min(0.5, Force Sense / 200), +0.10 when centered. Not usable
+  avoid the strike, with chance min(0.25, Force Sense / 400), +0.10 when centered (amended by D-156;
+  was min(0.5, Force Sense / 200)). Not usable
   against a surprise strike or while the Force meter is above 1.0.
 Exertion: each exchange adds 0.08 physical load (tunable). Fatigue lowers effective level
   (section 1), so very long duels are also decided by stamina.
@@ -110,10 +118,12 @@ Duration targets: equal Force users median 30-40 exchanges (about 3-6 minutes);
 
 ## 8. Required tests
  1. With the health spec, seeded simulation of 10,000 duels per gap between equal-Vitality
-    Force users reproduces the upset and median-exchange table above (+/-3 points, +/-5
-    exchanges).
+    Force users reproduces the upset and median-exchange table above (+/-3 points; medians
+    within the §3 band of 30-40 exchanges for gaps 0-10 and +/-5 exchanges for gaps 20+;
+    amended by D-156).
  2. Scenario table above reproduces within +/-5 points.
- 3. Jedi (70, Force Sense 70) vs trooper (15): Jedi wins 99%+ with median 4 or fewer exchanges.
+ 3. Jedi (70, Force Sense 70) vs trooper (15): Jedi wins 99%+ with median 5 or fewer exchanges
+    (amended by D-157: measured 100%, median 5).
  4. Natural 20 and natural 1 each occur 5% (+/-0.5%) over 100,000 rolls.
  5. No code path adds a tier-gap bonus; one level of difference never changes duel odds by
     more than 2.5 points (amended by D-50; the reference table itself has 2.0 points per

@@ -209,5 +209,11 @@ export const HAZARD_SEVERITY_MULT: Record<1 | 2 | 3, number> = { 1: 0.5, 2: 1, 3
 export const HAZARD_BYPASS: Record<1 | 2 | 3, number> = { 1: 0.5, 2: 0.75, 3: 1.0 };
 
 // ---- Minions (health §9) ----
+/**
+ * A wound of this severity or worse takes a minion out of the fight; so does being Spent (Vitality 0; D-157, Jared:
+ * minion groups from combatStarted only, named NPCs and the player keep the normal rule). How a folded minion goes
+ * down (knocked out, disarmed, flees, killed) is the narration's; whether it counts as dead follows the stakes.
+ */
+export const MINION_FOLDS_WHEN_SPENT = true;
 /** A wound of this severity or worse takes a minion out of the fight. */
 export const MINION_OUT_AT: Severity = 'moderate';

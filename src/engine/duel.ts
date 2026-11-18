@@ -1,0 +1,621 @@
+// Duels: exchanges and the advantage track (rolls.md §3-6; D-143..D-154). Pure; randomness from the seeded RNG.
+// Side A is the player (or the first fighter in tests); B is the current target among A's opponents. Other engaged
+// opponents add the numbers modifier (rolls §5) and never attack separately; opponents engaged elsewhere (fighting an
+// ally, D-143 E) neither attack nor count. The engine never asks the AI anything: every roll, hit and wound is here.
+import {
+  ADVANTAGE_MAX,
+  BEAT_EVERY,
+  BEAT_TRACK,
+  BUILD_UP,
+  CIRCUMSTANCE,
+  CONTROLLED_ACCIDENT,
+  DEFLECT_REDIRECT_MARGIN,
+  EXCHANGE_SECONDS,
+  EXERTION_PER_EXCHANGE,
+  FORCE_INSIGHT,
+  MANEUVER_EFFECT,
+  MANEUVER_MIN,
+  MISSED_STRIKE_STEP,
+  PRECOG,
+  SHATTERPOINT_COMBAT,
+  STANCE_MODS,
+  STATE_OF_MIND_COMBAT,
+  STRIKE_AT,
+  STRIKE_MIN_MARGIN,
+  STRIKE_QUALITY,
+  isNarratedBeat,
+  type BeatReason,
+  type HitQuality,
+  type Maneuver,
+  type SparringMode,
+  type Stance,
+} from '../data/combat.config';
+import { FORM_MATCHUPS, FORM_STAMINA, type MatchupSituation } from '../data/formMatchups';
+import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, SPENT_LEVEL_FACTOR, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
+import { RANGED_WEAPONS } from '../data/weapons';
+import { applyDamage, bypassFraction, damageOf, rollLocation, severityOf, severs } from './damage';
+import { efficiency } from './fatigue';
+import { lastingPenalty, type LastingInjury } from './lasting';
+import { basicRoll, type BasicRoll, type Modifier } from './rolls';
+import { nextFloat, nextInt, type RngState } from './rng';
+import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, woundPenalty, type Wound } from './wounds';
+import type { ForceActionRecord } from './combatForce';
+
+export type SideId = 'A' | 'B';
+
+export interface Fighter {
+  id: string;
+  name: string;
+  /** The skill fought with: a form for sabers, blaster for ranged, melee, or agility unarmed. */
+  skillId: string;
+  /** Performance level in that skill (before wounds, rust, Spent and fatigue). */
+  level: number;
+  rust: number;
+  /** The lightsaber form in use, or null. */
+  form: string | null;
+  weapon: WeaponKind;
+  armor: ArmorKind;
+  saberResistant: boolean;
+  forceSense: number;
+  willpower: number;
+  agility: number;
+  endurance: number;
+  /** Shatterpoint level when the fighter has ShatterSense; 0 otherwise. */
+  shatterpoint: number;
+  /** Light-side philosophy for Force insight's +0.10 (stubLightPhilosophy until M6). */
+  lightSide: boolean;
+  minion: boolean;
+  stateOfMind: string | null;
+  stance: Stance;
+  vitality: number;
+  maxVitality: number;
+  wounds: readonly Wound[];
+  lasting: readonly LastingInjury[];
+  /** Physical and Force meter loads and their capacities. */
+  meters: { p: number; f: number };
+  caps: { p: number; f: number };
+  /** Position held: 0 none, 1 held, 2 decisive. */
+  position: 0 | 1 | 2;
+  disarmedFor: number;
+  insightUsed: boolean;
+  shatterpointUsed: boolean;
+  /** Out of the fight (minion taken out, incapacitated, dead, fled). */
+  out: boolean;
+  /** Fighting an ally: does not attack the player and does not count for numbers (D-143 E). */
+  engagedElsewhere: boolean;
+  dead: boolean;
+  /** The maneuver to take at this fighter's next strike instead of a hit (player choice at a beat). */
+  pendingManeuver: Maneuver | null;
+}
+
+export interface DuelContext {
+  /** Sparring mode, or null for a real fight. */
+  sparring: SparringMode | null;
+  situations: readonly MatchupSituation[];
+  /** Footing modifier for both sides (unstable ground -1). */
+  footing: number;
+  /** The side the pride state of mind looks down on is the weaker by level. */
+  dyingRiskStakes: boolean;
+}
+
+export interface Hit {
+  by: SideId;
+  quality: HitQuality;
+  D: number;
+  part: BodyPart;
+  W: number;
+  severity: Severity | null;
+  vitalityLost: number;
+  severed: boolean;
+  /** The defender's precognitive defense avoided it (no damage). */
+  avoided: boolean;
+  /** Controlled live blades: the bout ended on a point instead (D-144). */
+  point?: boolean;
+  /** A deflected blaster bolt sent back at the shooter. */
+  redirected?: boolean;
+}
+
+export interface ExchangeRecord {
+  n: number;
+  kind: 'buildUp' | 'strike' | 'force';
+  targetId: string;
+  /** Null when the side did not roll (a Force action that misfired). */
+  rollA: BasicRoll | null;
+  rollB: BasicRoll | null;
+  margin: number;
+  advBefore: number;
+  advAfter: number;
+  striker: SideId | null;
+  hit: Hit | null;
+  maneuver: { by: SideId; kind: Maneuver } | null;
+  /** Effective levels this exchange (combat XP gaps, combat-xp §1). */
+  effA: number;
+  effB: number;
+  seconds: number;
+  notes: string[];
+  surprise: boolean;
+  /** A Force action exchange (combatForce.ts). */
+  force?: ForceActionRecord;
+  /** Part of a typed sequence: the step index (sequence.ts). */
+  step?: number;
+}
+
+export type DuelEnd =
+  | { winner: SideId; reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'spent' | 'point' }
+  | { winner: null; reason: 'stopped' };
+
+export interface DuelState {
+  a: Fighter;
+  opponents: readonly Fighter[];
+  /** Index of the current target among opponents. */
+  target: number;
+  /** -5..+5, positive favours A. */
+  advantage: number;
+  exchange: number;
+  seconds: number;
+  /** The next exchange is a surprise strike by this side (rolls §5). */
+  surprise: SideId | null;
+  /** Exchanges since the last beat of any kind, and the advantage at that beat. */
+  sinceBeat: number;
+  advAtBeat: number;
+  /** A side became Spent this exchange (for the narrated Spent beat). */
+  spentNow: SideId | null;
+  end: DuelEnd | null;
+  log: readonly ExchangeRecord[];
+  rng: RngState;
+}
+
+const clampTrack = (v: number): number => Math.max(-ADVANTAGE_MAX, Math.min(ADVANTAGE_MAX, v));
+const other = (s: SideId): SideId => (s === 'A' ? 'B' : 'A');
+
+/** Effective level (rolls §1) with wounds, lasting injuries, rust, Spent and fatigue. */
+export function fighterEffectiveLevel(f: Fighter): number {
+  const wound = woundPenalty(f.wounds, f.skillId, { willpower: f.willpower });
+  const lasting = lastingPenalty(f.lasting, f.skillId);
+  const fat = efficiency(f.caps.p > 0 ? f.meters.p / f.caps.p : 0);
+  return f.level * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * (1 - 0.25 * (1 - fat));
+}
+
+export const engaged = (s: DuelState): Fighter[] => s.opponents.filter((o) => !o.out && !o.engagedElsewhere);
+export const currentTarget = (s: DuelState): Fighter | null => {
+  const t = s.opponents[s.target];
+  return t && !t.out && !t.engagedElsewhere ? t : engaged(s)[0] ?? null;
+};
+
+const isRanged = (f: Fighter): boolean => RANGED_WEAPONS.includes(f.weapon);
+const hasSaber = (f: Fighter): boolean => f.weapon === 'lightsaber' || f.weapon === 'trainingSaber';
+
+/** The form matchup for `f` against `opp` in this context (rolls §5; Niman 0, D-122). */
+export function matchupFor(f: Fighter, opp: Fighter, ctx: DuelContext, opponentsEngaged: number): Modifier[] {
+  if (!f.form) return [];
+  const situations = new Set<MatchupSituation>(ctx.situations);
+  if (isRanged(opp)) situations.add('vsBlasters');
+  if (hasSaber(opp) && opponentsEngaged <= 1) situations.add('saberDuel');
+  if (opponentsEngaged > 1) situations.add('severalOpponents');
+  const out: Modifier[] = [];
+  for (const m of FORM_MATCHUPS[f.form] ?? []) {
+    if (m.when === 'vsForm' ? m.form === opp.form : situations.has(m.when)) out.push({ source: `${f.form} matchup (${m.when === 'vsForm' ? `vs ${m.form}` : m.when})`, value: m.value });
+  }
+  return out;
+}
+
+interface Mods {
+  attack: Modifier[];
+  defense: Modifier[];
+}
+
+/**
+ * A side's modifiers (rolls §5). Stance and state of mind split into attack and defense; circumstances that are
+ * "on the side's total" (matchups, position, footing, numbers) count on both attack and defense rolls; a disarmed
+ * fighter's penalty is attack only.
+ */
+function sideMods(f: Fighter, opp: Fighter, ctx: DuelContext, numbersBonus: number, opponentsEngaged: number): Mods {
+  const attack: Modifier[] = [];
+  const defense: Modifier[] = [];
+  const both: Modifier[] = [];
+  const st = STANCE_MODS[f.stance];
+  if (st.attack) attack.push({ source: `${f.stance} stance`, value: st.attack });
+  if (st.defense) defense.push({ source: `${f.stance} stance`, value: st.defense });
+  const som = f.stateOfMind ? STATE_OF_MIND_COMBAT[f.stateOfMind] : undefined;
+  if (som && (f.stateOfMind !== 'pride' || opp.level < f.level)) {
+    if (som.attack) attack.push({ source: `state of mind: ${f.stateOfMind}`, value: som.attack });
+    if (som.defense) defense.push({ source: `state of mind: ${f.stateOfMind}`, value: som.defense });
+  }
+  for (const m of matchupFor(f, opp, ctx, opponentsEngaged)) both.push(m);
+  if (f.position) both.push({ source: f.position === 2 ? 'decisive position' : 'position', value: f.position === 2 ? CIRCUMSTANCE.decisivePosition : CIRCUMSTANCE.position });
+  if (ctx.footing) both.push({ source: 'footing', value: ctx.footing });
+  if (numbersBonus) both.push({ source: `numbers (+${numbersBonus})`, value: numbersBonus });
+  if (f.disarmedFor > 0) attack.push({ source: 'disarmed', value: MANEUVER_EFFECT.disarmedAttack });
+  return { attack: [...attack, ...both], defense: [...defense, ...both] };
+}
+
+/**
+ * Band lookups (build-up steps, strike quality, maneuver thresholds) use the margin rounded to the nearest whole
+ * point, so a fraction of a level never tips a band edge (rolls test 5; D-156). The record keeps the exact margin.
+ */
+const band = (m: number): number => Math.round(m);
+
+/** Build-up modifiers: each side's attack and defense modifiers (net), counting the shared ones once. */
+function netMods(m: Mods, extra: readonly Modifier[]): Modifier[] {
+  const seen = new Set<Modifier>();
+  const out: Modifier[] = [];
+  for (const x of [...m.attack, ...m.defense]) if (!seen.has(x)) {
+    seen.add(x);
+    out.push(x);
+  }
+  return [...out, ...extra];
+}
+
+function qualityOf(margin: number): HitQuality | null {
+  for (const [min, q] of STRIKE_QUALITY) if (margin >= min) return q;
+  return null;
+}
+
+/** Applies a hit's damage to a fighter (health §4-6; minions out on moderate, D-144 sparring modes). */
+function damageFighter(
+  f: Fighter,
+  quality: HitQuality,
+  weapon: WeaponKind,
+  ctx: DuelContext,
+  rng: RngState,
+  day: number,
+  woundSeq: number,
+  vitalityOnly: boolean,
+): { f: Fighter; hit: Omit<Hit, 'by' | 'avoided'>; rng: RngState } {
+  const D = damageOf({ weapon, quality, armor: f.armor, saberResistant: f.saberResistant });
+  const [part, r1] = rollLocation(rng, LOCATION_WEIGHTS);
+  const dmg = applyDamage(f.vitality, D, bypassFraction(weapon, quality), vitalityOnly);
+  let W = dmg.W;
+  let severity = severityOf(W);
+  const severed = severity !== null && severs(weapon, part, W);
+  if (severed) {
+    W = Math.min(W, 34);
+    severity = 'severe';
+  }
+  // Minions (combatStarted groups) fold when Spent as well as on a moderate wound (health §9 as amended by D-157).
+  let next: Fighter = { ...f, vitality: dmg.vitality, out: f.out || (f.minion && MINION_FOLDS_WHEN_SPENT && dmg.vitality <= 0) };
+  if (severity) {
+    const wound: Wound = { id: `${f.id}:w${woundSeq}`, part, severity, W, stabilized: false, healProgress: 0, day, source: 'combat', ...(severed ? { severed: true } : {}) };
+    const dies = killsWhileDying(f.wounds, wound);
+    next = { ...next, wounds: [...f.wounds, wound], dead: next.dead || dies };
+    if (f.minion && takesMinionOut(severity)) next = { ...next, out: true };
+  }
+  void ctx;
+  return { f: next, hit: { quality, D, part, W, severity, vitalityLost: dmg.vitalityLost, severed }, rng: r1 };
+}
+
+function withSide(s: DuelState, side: SideId, f: Fighter): DuelState {
+  if (side === 'A') return { ...s, a: f };
+  const idx = s.opponents.findIndex((o) => o.id === f.id);
+  return { ...s, opponents: s.opponents.map((o, i) => (i === idx ? f : o)) };
+}
+
+/** Start-of-exchange chances: Force insight (once per fight, rolls §6). */
+function insightCheck(s: DuelState, side: SideId, f: Fighter, opp: Fighter, ctx: DuelContext): { s: DuelState; note: string | null } {
+  if (f.insightUsed || f.forceSense < FORCE_INSIGHT.minForceSense) return { s, note: null };
+  const facing = opp.level - f.level >= FORCE_INSIGHT.gapAtLeast || (ctx.dyingRiskStakes && f.vitality <= 0);
+  if (!facing) return { s, note: null };
+  const [u, r] = nextFloat(s.rng);
+  const chance = f.forceSense * FORCE_INSIGHT.perForceSense + (f.lightSide ? FORCE_INSIGHT.lightBonus : 0);
+  let next = { ...s, rng: r };
+  if (u < chance) {
+    next = withSide(next, side, { ...f, insightUsed: true });
+    next = { ...next, advantage: clampTrack(next.advantage + (side === 'A' ? 1 : -1) * FORCE_INSIGHT.advantage) };
+    return { s: next, note: `${f.name}: Force insight (+${FORCE_INSIGHT.advantage} advantage)` };
+  }
+  return { s: next, note: null };
+}
+
+/** Shatterpoint (ShatterSense only, once per fight, rolls §6): d20 + level/10 vs 15; success jumps to advantage 3. */
+export function tryShatterpoint(s: DuelState, side: SideId): { s: DuelState; roll: BasicRoll | null; success: boolean } {
+  const f = side === 'A' ? s.a : currentTarget(s);
+  if (!f || f.shatterpoint <= 0 || f.shatterpointUsed) return { s, roll: null, success: false };
+  const [roll, r] = basicRoll(s.rng, f.shatterpoint, []);
+  const success = roll.total >= SHATTERPOINT_COMBAT.dc;
+  let next = withSide({ ...s, rng: r }, side, { ...f, shatterpointUsed: true, meters: { ...f.meters, f: f.meters.f + SHATTERPOINT_COMBAT.forceLoad } });
+  if (success) next = { ...next, advantage: side === 'A' ? SHATTERPOINT_COMBAT.advantage : -SHATTERPOINT_COMBAT.advantage };
+  return { s: next, roll, success };
+}
+
+/** Precognitive defense (rolls §3): chance min(0.5, FS/200) +0.10 centered; 0.4 Force load; never vs surprise or above meter 1.0. */
+function precog(f: Fighter, surprise: boolean, rng: RngState): { used: boolean; avoided: boolean; rng: RngState } {
+  if (f.forceSense <= 0 || surprise) return { used: false, avoided: false, rng };
+  if (f.caps.f <= 0 || f.meters.f / f.caps.f > PRECOG.maxForceMeter) return { used: false, avoided: false, rng };
+  const chance = Math.min(PRECOG.maxChance, f.forceSense * PRECOG.perForceSense) + (f.stateOfMind === 'centered' ? PRECOG.centeredBonus : 0);
+  const [u, r] = nextFloat(rng);
+  return { used: true, avoided: u < chance, rng: r };
+}
+
+/** Resolves one exchange between A and the current target (rolls §3-5). `day` stamps new wounds. */
+export interface ExchangeExtras {
+  /** Extra modifiers on A's roll (sequence chain bonuses). */
+  a?: readonly Modifier[];
+  /** Extra defense for the target (sequence adaptation). */
+  bDefense?: readonly Modifier[];
+  step?: number;
+}
+
+export function resolveExchange(initial: DuelState, ctx: DuelContext, day: number, extras: ExchangeExtras = {}): DuelState {
+  if (initial.end) return initial;
+  let s = initial;
+  const targetNow = currentTarget(s);
+  if (!targetNow) return { ...s, end: { winner: 'A', reason: 'allOut' } };
+  const notes: string[] = [];
+  // Start of exchange: Force insight for either side.
+  for (const side of ['A', 'B'] as const) {
+    const f = side === 'A' ? s.a : currentTarget(s)!;
+    const o = side === 'A' ? currentTarget(s)! : s.a;
+    const r = insightCheck(s, side, f, o, ctx);
+    s = r.s;
+    if (r.note) notes.push(r.note);
+  }
+  const A = s.a;
+  const B = currentTarget(s)!;
+  const nEngaged = engaged(s).length;
+  const numbersOnA = Math.min(CIRCUMSTANCE.maxNumbers, Math.max(0, nEngaged - 1) * CIRCUMSTANCE.perExtraAttacker);
+  const baseA = sideMods(A, B, ctx, 0, nEngaged);
+  const baseB = sideMods(B, A, ctx, numbersOnA, 1);
+  const modsA: Mods = { attack: [...baseA.attack, ...(extras.a ?? [])], defense: baseA.defense };
+  const modsB: Mods = { attack: baseB.attack, defense: [...baseB.defense, ...(extras.bDefense ?? [])] };
+  const effA = fighterEffectiveLevel(A);
+  const effB = fighterEffectiveLevel(B);
+  const advBefore = s.advantage;
+  const surprise = s.surprise !== null;
+  const striker: SideId | null = surprise ? s.surprise : advBefore >= STRIKE_AT ? 'A' : advBefore <= -STRIKE_AT ? 'B' : null;
+
+  let rng = s.rng;
+  let rollA: BasicRoll;
+  let rollB: BasicRoll;
+  let margin: number;
+  if (striker === null) {
+    [rollA, rng] = basicRoll(rng, effA, netMods(baseA, extras.a ?? []));
+    [rollB, rng] = basicRoll(rng, effB, netMods(baseB, extras.bDefense ?? []));
+    margin = rollA.total - rollB.total;
+  } else {
+    const atk = striker === 'A' ? modsA.attack : modsB.attack;
+    const def = striker === 'A' ? modsB.defense : modsA.defense;
+    // Build-up rolls use attack AND defense (net); a strike uses attack vs defense.
+    if (striker === 'A') {
+      [rollA, rng] = basicRoll(rng, effA, atk);
+      [rollB, rng] = basicRoll(rng, effB, def);
+    } else {
+      [rollA, rng] = basicRoll(rng, effA, def);
+      [rollB, rng] = basicRoll(rng, effB, atk);
+    }
+    margin = striker === 'A' ? rollA.total - rollB.total : rollB.total - rollA.total;
+  }
+  const [secs, r2] = nextInt(rng, EXCHANGE_SECONDS.min, EXCHANGE_SECONDS.max);
+  rng = r2;
+
+  let advAfter: number;
+  let hit: Hit | null = null;
+  let maneuver: { by: SideId; kind: Maneuver } | null = null;
+  let aOut = A;
+  let bOut = B;
+  let end: DuelEnd | null = null;
+
+  if (striker === null) {
+    // Build-up exchange.
+    const m = Math.abs(band(margin));
+    if (m <= BUILD_UP.tieWithin) advAfter = advBefore > 0 ? advBefore - 1 : advBefore < 0 ? advBefore + 1 : 0;
+    else {
+      const step = BUILD_UP.steps.find(([min]) => m >= min)?.[1] ?? 0;
+      advAfter = clampTrack(advBefore + (band(margin) > 0 ? step : -step));
+    }
+    // An opponent's natural 1 creates an opening (+2 advantage) for the other side.
+    if (rollB.natural === 'nat1' && rollA.natural !== 'nat1') {
+      advAfter = clampTrack(advAfter + CIRCUMSTANCE.openingAdvantage);
+      notes.push(`${B.name} rolled a natural 1: opening for ${A.name}`);
+    } else if (rollA.natural === 'nat1' && rollB.natural !== 'nat1') {
+      advAfter = clampTrack(advAfter - CIRCUMSTANCE.openingAdvantage);
+      notes.push(`${A.name} rolled a natural 1: opening for ${B.name}`);
+    }
+  } else {
+    const atkF = striker === 'A' ? A : B;
+    let defF = striker === 'A' ? B : A;
+    const natural1 = rollA.natural === 'nat1' || rollB.natural === 'nat1';
+    const pm = atkF.pendingManeuver;
+    if (pm && band(margin) >= MANEUVER_MIN[pm]) {
+      maneuver = { by: striker, kind: pm };
+      notes.push(`${atkF.name}: ${pm}`);
+    } else if (band(margin) >= STRIKE_MIN_MARGIN) {
+      const quality = qualityOf(band(margin))!;
+      const pc = precog(defF, surprise, rng);
+      rng = pc.rng;
+      if (pc.used) defF = { ...defF, meters: { ...defF.meters, f: defF.meters.f + PRECOG.load } };
+      if (pc.avoided) {
+        hit = { by: striker, quality, D: 0, part: 'torso', W: 0, severity: null, vitalityLost: 0, severed: false, avoided: true };
+        notes.push(`${defF.name}: precognitive defense`);
+      } else if (ctx.sparring === 'controlled' && !(band(margin) >= CONTROLLED_ACCIDENT.minMargin && natural1)) {
+        hit = { by: striker, quality, D: 0, part: 'torso', W: 0, severity: null, vitalityLost: 0, severed: false, avoided: false, point: true };
+        end = { winner: striker, reason: 'point' };
+      } else {
+        const accident = ctx.sparring === 'controlled';
+        const q = accident ? CONTROLLED_ACCIDENT.quality : quality;
+        if (accident) notes.push('accident: a controlled strike lands for real');
+        const vitalityOnly = ctx.sparring === 'trainingSaber' || atkF.weapon === 'trainingSaber';
+        const woundSeq = defF.wounds.length + 1;
+        const d = damageFighter(defF, q, atkF.weapon, ctx, rng, day, woundSeq, vitalityOnly);
+        rng = d.rng;
+        defF = d.f;
+        hit = { by: striker, ...d.hit, avoided: false };
+      }
+    } else if (isRanged(atkF) && hasSaber(defF) && -band(margin) >= DEFLECT_REDIRECT_MARGIN && (defF.form === 'soresu' || defF.form === 'shien')) {
+      // A deflected bolt sent back at the shooter (rolls §4): graze at 8-11, solid at 12+.
+      const quality: HitQuality = -band(margin) >= 12 ? 'solid' : 'graze';
+      const shooter = atkF;
+      const d = damageFighter(shooter, quality, shooter.weapon, ctx, rng, day, shooter.wounds.length + 1, false);
+      rng = d.rng;
+      hit = { by: other(striker), ...d.hit, avoided: false, redirected: true };
+      if (striker === 'A') aOut = d.f;
+      else bOut = d.f;
+      notes.push(`${defF.name} redirects the bolt`);
+    }
+    if (striker === 'A') bOut = defF;
+    else aOut = defF;
+    // A landed hit or maneuver resets the track; a knockdown starts the next at +2 for the striker; a strike that
+    // misses or is blocked keeps the pressure, one step toward 0 (D-156).
+    const missed = !maneuver && (!hit || hit.avoided);
+    if (maneuver?.kind === 'knockdown') advAfter = striker === 'A' ? MANEUVER_EFFECT.knockdownAdvantage : -MANEUVER_EFFECT.knockdownAdvantage;
+    else if (missed) advAfter = advBefore - Math.sign(advBefore) * Math.min(Math.abs(advBefore), MISSED_STRIKE_STEP);
+    else advAfter = 0;
+    if (maneuver?.kind === 'position') {
+      if (striker === 'A') aOut = { ...aOut, position: Math.max(aOut.position, MANEUVER_EFFECT.positionBonus) as 0 | 1 | 2 };
+      else bOut = { ...bOut, position: Math.max(bOut.position, MANEUVER_EFFECT.positionBonus) as 0 | 1 | 2 };
+    }
+    if (maneuver?.kind === 'disarm') {
+      if (striker === 'A') bOut = { ...bOut, disarmedFor: 2 };
+      else aOut = { ...aOut, disarmedFor: 2 };
+    }
+    if (maneuver) {
+      if (striker === 'A') aOut = { ...aOut, pendingManeuver: null };
+      else bOut = { ...bOut, pendingManeuver: null };
+    }
+  }
+
+  // Exertion for both (rolls §3), by the form's stamina multiplier (D-147).
+  const exert = (f: Fighter): Fighter => ({
+    ...f,
+    meters: { ...f.meters, p: f.meters.p + EXERTION_PER_EXCHANGE * (f.form ? FORM_STAMINA[f.form] ?? 1 : 1) },
+    disarmedFor: Math.max(0, f.disarmedFor - (f.disarmedFor > 0 && maneuver?.kind !== 'disarm' ? 1 : 0)),
+  });
+  aOut = exert(aOut);
+  bOut = exert(bOut);
+
+  const spentNow: SideId | null = A.vitality > 0 && aOut.vitality <= 0 ? 'A' : B.vitality > 0 && bOut.vitality <= 0 ? 'B' : null;
+  // End conditions.
+  const status = (f: Fighter): 'dead' | 'dying' | 'allOut' | 'incapacitated' | null => (f.dead ? 'dead' : isDying(f.wounds) ? 'dying' : f.out ? 'allOut' : isIncapacitated(f.wounds) ? 'incapacitated' : null);
+  if (!end && ctx.sparring === 'trainingSaber') {
+    if (aOut.vitality <= 0) end = { winner: 'B', reason: 'spent' };
+    else if (bOut.vitality <= 0) end = { winner: 'A', reason: 'spent' };
+  }
+  if (!end) {
+    const ra = status(aOut);
+    if (ra) {
+      aOut = { ...aOut, out: true };
+      end = { winner: 'B', reason: ra === 'allOut' ? 'incapacitated' : ra };
+    }
+  }
+  let next: DuelState = { ...s, a: aOut, rng };
+  next = withSide(next, 'B', bOut);
+  if (!end) {
+    const rb = status(bOut);
+    if (rb) {
+      next = withSide(next, 'B', { ...bOut, out: true });
+      if (engaged(next).length === 0) end = { winner: 'A', reason: rb === 'allOut' ? 'allOut' : rb };
+      else {
+        notes.push(`${bOut.name} is out of the fight`);
+        advAfter = 0;
+      }
+    }
+  }
+
+  const rec: ExchangeRecord = {
+    n: s.exchange + 1,
+    kind: striker === null ? 'buildUp' : 'strike',
+    targetId: B.id,
+    rollA,
+    rollB,
+    margin,
+    advBefore,
+    advAfter,
+    striker,
+    hit,
+    maneuver,
+    effA,
+    effB,
+    seconds: secs,
+    notes,
+    surprise,
+    ...(extras.step !== undefined ? { step: extras.step } : {}),
+  };
+  return {
+    ...next,
+    advantage: advAfter,
+    exchange: s.exchange + 1,
+    seconds: s.seconds + secs,
+    surprise: null,
+    spentNow,
+    end,
+    log: [...s.log, rec],
+    target: Math.max(0, next.opponents.findIndex((o) => o.id === (currentTarget(next)?.id ?? ''))),
+  };
+}
+
+/** Settles the end of the fight after an out-of-band exchange (Force action, sequence step). */
+export function settleEnd(s: DuelState): DuelState {
+  if (s.end) return s;
+  const a = s.a;
+  if (a.dead || isDying(a.wounds) || isIncapacitated(a.wounds) || a.out) {
+    const reason = a.dead ? 'dead' : isDying(a.wounds) ? 'dying' : 'incapacitated';
+    return { ...s, a: { ...a, out: true }, end: { winner: 'B', reason } };
+  }
+  const opps = s.opponents.map((o) => (!o.out && (o.dead || isDying(o.wounds) || isIncapacitated(o.wounds)) ? { ...o, out: true } : o));
+  const next = { ...s, opponents: opps };
+  if (engaged(next).length === 0) return { ...next, end: { winner: 'A', reason: 'allOut' } };
+  return { ...next, target: Math.max(0, opps.findIndex((o) => o.id === (currentTarget(next)?.id ?? ''))) };
+}
+
+/** The beat (if any) the last exchange produced (rolls §3 as amended by D-145). */
+export function beatAfter(s: DuelState): BeatReason | null {
+  const rec = s.log[s.log.length - 1];
+  if (!rec) return null;
+  if (s.end) return s.end.reason === 'incapacitated' || s.end.reason === 'dying' || s.end.reason === 'dead' ? 'incapacitated' : 'fightEnded';
+  if (rec.kind === 'force') return 'forceAction';
+  if (rec.hit && !rec.hit.avoided && rec.hit.severity) return 'woundingHit';
+  if (rec.maneuver) return 'maneuverLanded';
+  if (s.spentNow) return 'spent';
+  if (rec.kind === 'strike') return rec.hit && !rec.hit.avoided && rec.hit.vitalityLost > 0 ? 'strikeAbsorbed' : 'strikeMissed';
+  if (Math.abs(s.advantage - s.advAtBeat) >= BEAT_TRACK && Math.abs(s.advantage) >= BEAT_TRACK) return 'trackSwing';
+  if (s.sinceBeat + 1 >= BEAT_EVERY) return 'periodic';
+  return null;
+}
+
+export type RunMode = 'beat' | 'fightOn' | 'toEnd';
+
+export interface RunResult {
+  state: DuelState;
+  records: ExchangeRecord[];
+  beat: BeatReason | null;
+  /** Every beat passed on the way (quiet beats skipped by Fight on / Resolve to end). */
+  beats: BeatReason[];
+}
+
+/**
+ * Resolves exchanges until the next beat: any beat ('beat'), the next narrated beat ('fightOn', D-145), or the end
+ * of the fight ('toEnd'). `maxExchanges` is a safety stop.
+ */
+export function runUntilBeat(initial: DuelState, ctx: DuelContext, day: number, mode: RunMode, maxExchanges = 400): RunResult {
+  let s = initial;
+  const records: ExchangeRecord[] = [];
+  const beats: BeatReason[] = [];
+  for (let i = 0; i < maxExchanges && !s.end; i++) {
+    s = resolveExchange(s, ctx, day);
+    records.push(s.log[s.log.length - 1]!);
+    const beat = beatAfter(s);
+    if (beat) {
+      beats.push(beat);
+      s = { ...s, sinceBeat: 0, advAtBeat: s.advantage };
+      if (mode === 'beat' || (mode === 'fightOn' && isNarratedBeat(beat)) || s.end) return { state: s, records, beat, beats };
+    } else s = { ...s, sinceBeat: s.sinceBeat + 1 };
+  }
+  return { state: s, records, beat: s.end ? beatAfter(s) : null, beats };
+}
+
+export function startDuel(a: Fighter, opponents: readonly Fighter[], rng: RngState, surprise: SideId | null = null): DuelState {
+  return {
+    a,
+    opponents,
+    target: 0,
+    advantage: surprise === 'A' ? CIRCUMSTANCE.surpriseAdvantage : surprise === 'B' ? -CIRCUMSTANCE.surpriseAdvantage : 0,
+    exchange: 0,
+    seconds: 0,
+    surprise,
+    sinceBeat: 0,
+    advAtBeat: 0,
+    spentNow: null,
+    end: null,
+    log: [],
+    rng,
+  };
+}
