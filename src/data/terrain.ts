@@ -20,8 +20,11 @@ export interface TerrainTag {
   situation?: MatchupSituation;
   /** Both sides' footing (rolls §5: unstable footing -1). */
   footing?: number;
-  /** Sparring and fall hazard per bout: chance and severity (Jared, D-143: unconventional ground). */
-  hazard?: { chance: number; severity: 1 | 2 | 3; type: HazardType };
+  /**
+   * Accident per bout (per 10 exchanges in a real fight): chance and severity (Jared, D-143, D-144). note: what
+   * happens, for the narration; minorOnly: the wound stays in the minor band (D-185).
+   */
+  hazard?: { chance: number; severity: 1 | 2 | 3; type: HazardType; note?: string; minorOnly?: boolean };
   /** Position available to take with a maneuver: +1 held, +2 decisive (rolls §5). */
   position?: 1 | 2;
   /** Throwable objects: size and the supply range per fight. */
@@ -31,7 +34,8 @@ export interface TerrainTag {
 }
 
 export const TERRAIN_TAGS: readonly TerrainTag[] = [
-  { id: 'flatFloor', label: 'flat floor' },
+  // About 1 in 200 bouts a minor injury even on good ground (Jared, D-144, D-185).
+  { id: 'flatFloor', label: 'flat floor', hazard: { chance: 0.005, severity: 1, type: 'fall', note: 'turns an ankle, pulls a muscle or takes a bruise', minorOnly: true } },
   { id: 'confined', label: 'confined space', situation: 'confined' },
   { id: 'open', label: 'open ground', situation: 'openTerrain' },
   { id: 'unevenGround', label: 'uneven ground', footing: -1, hazard: { chance: 0.03, severity: 1, type: 'fall' } },

@@ -44,8 +44,10 @@ export const activeFightSchema = z.object({
     footing: z.number(),
     dyingRiskStakes: z.boolean(),
     /** Bout-start terrain accidents (D-144, D-184); older saves have none. */
-    hazards: z.array(z.object({ chance: z.number().min(0).max(1), severity: z.union([z.literal(1), z.literal(2), z.literal(3)]), type: z.enum(HAZARD_TYPES), label: z.string() })).default([]),
+    hazards: z.array(z.object({ chance: z.number().min(0).max(1), severity: z.union([z.literal(1), z.literal(2), z.literal(3)]), type: z.enum(HAZARD_TYPES), label: z.string(), note: z.string().optional(), minorOnly: z.boolean().optional() })).default([]),
     positionAttempt: z.number().default(0),
+    /** A real fight rolls the terrain every this many exchanges (D-185); null for a sparring bout and older saves. */
+    hazardEvery: z.number().int().min(1).nullable().default(null),
   }),
   duel: z.any(),
   /** Sequence state: pattern uses and the remaining throwable objects (D-146). */

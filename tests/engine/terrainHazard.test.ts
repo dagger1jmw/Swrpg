@@ -2,7 +2,8 @@
 // ground's fall roll each bout and -1 to take-position attempts, the ice place words, and the health sync.
 import { describe, expect, it } from 'vitest';
 import { TERRAIN_BY_ID } from '../../src/data/terrain';
-import { resolveExchange, startDuel } from '../../src/engine/duel';
+import { resolveExchange, runUntilBeat, startDuel } from '../../src/engine/duel';
+import { TERRAIN_HAZARD_EVERY } from '../../src/data/combat.config';
 import { seedRng } from '../../src/engine/rng';
 import { rollBoutHazards, type TerrainHazard } from '../../src/engine/terrainHazard';
 import { selectWounds } from '../../src/features/health/selectors';
@@ -16,7 +17,7 @@ import { testStartInput } from '../../src/turn/testStart';
 import { createMemoryStorage } from '../../src/persist/storage';
 import { TEST_START_DATE } from '../support/dates';
 import { REAL, forceUser } from '../support/duelSim';
-import type { DuelState } from '../../src/engine/duel';
+import type { DuelContext, DuelState } from '../../src/engine/duel';
 import type { CombatDraft } from '../../src/turn/combatTurn';
 
 const knight = async (): Promise<GameState> =>
@@ -99,3 +100,71 @@ describe('ice terrain (D-184)', () => {
     expect(lines).toContain('Terrain accident: Tess falls on the slippery surface (minor leftLeg).');
   });
 });
+
+describe('flat-floor accidents and hazard rolls in long fights (D-185)', () => {
+  const flat = (): TerrainHazard => ({ ...TERRAIN_BY_ID.get('flatFloor')!.hazard!, label: 'flat floor' });
+  it('the flat floor: about 1 in 200 per bout, always a minor injury (the minor band), named for the narration', () => {
+    expect(TERRAIN_BY_ID.get('flatFloor')!.hazard).toMatchObject({ chance: 0.005, severity: 1, minorOnly: true });
+    let hits = 0;
+    const n = 4000;
+    for (let i = 0; i < n; i++) {
+      const d = startDuel(forceUser('A', 50), [forceUser('B', 50)], seedRng(`flat${i}`));
+      const r = rollBoutHazards(d, [flat()], 0);
+      for (const f of [r.duel.a, ...r.duel.opponents]) if (f.wounds.length) {
+        hits++;
+        expect(f.wounds[0]!.severity).toBe('minor');
+      }
+      if (r.notes.length) expect(r.notes[0]).toMatch(/turns an ankle, pulls a muscle or takes a bruise on the flat floor \(minor /);
+    }
+    // 8000 fighter-rolls at 0.005: about 40.
+    expect(hits).toBeGreaterThan(15);
+    expect(hits).toBeLessThan(75);
+    // Minor even when the fighter is already Spent (no Vitality left to soak it).
+    const spent = startDuel(forceUser('A', 50, { vitality: 0 }), [forceUser('B', 50)], seedRng('spent'));
+    const sure = rollBoutHazards(spent, [{ ...flat(), chance: 1 }], 0).duel.a;
+    expect(sure.wounds.map((w) => w.severity)).toEqual(['minor']);
+  });
+  it('the flat floor applies to sparring bouts and real fights alike', async () => {
+    const s = await knight();
+    for (const c of ['/spar at 0 terrain flatFloor', '/fight 1 duelist terrain flatFloor', '/fight 3 trooper terrain hangar']) {
+      const o = runDevCommand(REGISTRY, s, c);
+      expect(o.ok, c).toBe(true);
+      expect(o.state.combat.active!.ctx.hazards.map((h) => h.label), c).toContain('flat floor');
+    }
+  });
+  it(`a real fight rolls its terrain once per ${TERRAIN_HAZARD_EVERY} exchanges: a 60-exchange fight on ice rolls 6 times`, async () => {
+    const ice = runDevCommand(REGISTRY, await knight(), '/fight 1 duelist terrain ice').state.combat.active!.ctx as unknown as DuelContext;
+    expect(ice.hazardEvery).toBe(TERRAIN_HAZARD_EVERY);
+    let found = 0;
+    for (let i = 0; i < 300 && found < 3; i++) {
+      const start = startDuel(forceUser('A', 80), [forceUser('B', 80)], seedRng(`long${i}`));
+      const d0 = rollBoutHazards(start, ice.hazards ?? [], 0).duel;
+      // Every segment size: the rolls do not depend on how the fight is played (beats, Fight on, Resolve to end).
+      let d = d0;
+      while (!d.end && d.exchange < 60) d = runUntilBeat(d, ice, 0, 'beat', 60 - d.exchange).state;
+      const whole = runUntilBeat(d0, ice, 0, 'toEnd', 60).state;
+      if (d.end || d.exchange !== 60) continue;
+      found++;
+      expect(d.hazardRolls).toBe(6);
+      expect(whole.exchange === 60 && !whole.end ? whole.hazardRolls : 6).toBe(6);
+    }
+    expect(found).toBeGreaterThan(0);
+  });
+  it('a sparring bout rolls once, however long it runs', async () => {
+    const ctx = runDevCommand(REGISTRY, await knight(), '/spar at 0 terrain ice').state.combat.active!.ctx as unknown as DuelContext;
+    expect(ctx.hazardEvery).toBeNull();
+    const d0 = rollBoutHazards(startDuel(forceUser('A', 80), [forceUser('B', 80)], seedRng('bout')), ctx.hazards ?? [], 0).duel;
+    expect(runUntilBeat(d0, ctx, 0, 'toEnd', 60).state.hazardRolls).toBe(1);
+  });
+  it('a context with no terrain (as the lifetime runs use) rolls nothing: the same dice as before D-184 and D-185', () => {
+    // tests/support/lifetime.ts builds { sparring, situations: [], footing: 0, dyingRiskStakes } like REAL here.
+    for (let i = 0; i < 20; i++) {
+      const d = startDuel(forceUser('A', 60), [forceUser('B', 50)], seedRng(`none${i}`));
+      const plain = runUntilBeat(d, REAL, 0, 'toEnd').state;
+      const withEvery = runUntilBeat(d, { ...REAL, hazardEvery: TERRAIN_HAZARD_EVERY, hazards: [] }, 0, 'toEnd').state;
+      expect(withEvery).toEqual(plain);
+      expect(plain.hazardRolls).toBeUndefined();
+    }
+  });
+});
+

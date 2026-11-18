@@ -43,7 +43,7 @@ import { basicRoll, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
 import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, woundPenalty, type Wound } from './wounds';
 import type { ForceActionRecord } from './combatForce';
-import type { TerrainHazard } from './terrainHazard';
+import { rollBoutHazards, type TerrainHazard } from './terrainHazard';
 
 export type SideId = 'A' | 'B';
 
@@ -110,6 +110,8 @@ export interface DuelContext {
   hazards?: TerrainHazard[];
   /** Modifier to take-position attempts from the terrain (slippery -1, D-184); absent = 0. */
   positionAttempt?: number;
+  /** A real fight rolls the terrain again every this many exchanges (D-185); null or absent for a sparring bout. */
+  hazardEvery?: number | null;
 }
 
 export interface Hit {
@@ -159,6 +161,9 @@ export type DuelEnd =
   | { winner: null; reason: 'stopped' };
 
 export interface DuelState {
+  /** Terrain accident rolls so far and the exchange of the last (D-185); absent on older duels. */
+  hazardRolls?: number;
+  lastHazardAt?: number;
   a: Fighter;
   opponents: readonly Fighter[];
   /** Index of the current target among opponents. */
@@ -628,6 +633,8 @@ export interface RunResult {
   beat: BeatReason | null;
   /** Every beat passed on the way (quiet beats skipped by Fight on / Resolve to end). */
   beats: BeatReason[];
+  /** Terrain accidents rolled on the way (D-185). */
+  notes: string[];
 }
 
 /**
@@ -638,17 +645,27 @@ export function runUntilBeat(initial: DuelState, ctx: DuelContext, day: number, 
   let s = initial;
   const records: ExchangeRecord[] = [];
   const beats: BeatReason[] = [];
+  const notes: string[] = [];
   for (let i = 0; i < maxExchanges && !s.end; i++) {
+    // A real fight rolls its terrain again at the start of each block of exchanges (D-185): exchanges 10, 20, ...;
+    // a block entered inside a sequence or a Force action rolls at the next exchange run here.
+    const every = ctx.hazardEvery ?? 0;
+    if (every > 0 && ctx.hazards?.length && Math.floor(s.exchange / every) > Math.floor((s.lastHazardAt ?? 0) / every)) {
+      const hz = rollBoutHazards(s, ctx.hazards, day);
+      notes.push(...hz.notes);
+      s = settleEnd(hz.duel);
+      if (s.end) return { state: s, records, beat: beatAfter(s), beats, notes };
+    }
     s = resolveExchange(s, ctx, day);
     records.push(s.log[s.log.length - 1]!);
     const beat = beatAfter(s);
     if (beat) {
       beats.push(beat);
       s = { ...s, sinceBeat: 0, advAtBeat: s.advantage };
-      if (mode === 'beat' || (mode === 'fightOn' && isNarratedBeat(beat)) || s.end) return { state: s, records, beat, beats };
+      if (mode === 'beat' || (mode === 'fightOn' && isNarratedBeat(beat)) || s.end) return { state: s, records, beat, beats, notes };
     } else s = { ...s, sinceBeat: s.sinceBeat + 1 };
   }
-  return { state: s, records, beat: s.end ? beatAfter(s) : null, beats };
+  return { state: s, records, beat: s.end ? beatAfter(s) : null, beats, notes };
 }
 
 export function startDuel(a: Fighter, opponents: readonly Fighter[], rng: RngState, surprise: SideId | null = null): DuelState {

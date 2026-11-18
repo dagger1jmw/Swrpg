@@ -7,6 +7,7 @@ import { CANON_BY_ID } from '../../data/canonNpcs';
 import { FORM_IDS } from '../../data/skills';
 import { stubLightPhilosophy, STUB_PLAYER_SHATTERSENSE } from '../../data/stubs';
 import { TERRAIN_BY_ID } from '../../data/terrain';
+import { TERRAIN_HAZARD_EVERY } from '../../data/combat.config';
 import type { TerrainHazard } from '../../engine/terrainHazard';
 import { loadoutFor, weaponSkillKind, type Loadout } from '../../data/weapons';
 import type { MatchupSituation } from '../../data/formMatchups';
@@ -175,7 +176,8 @@ export function buildContext(_s: GameState, terrainTags: readonly string[], stak
     if (tag.positionAttempt) positionAttempt = Math.min(positionAttempt, tag.positionAttempt);
     if (tag.hazard) hazards.push({ ...tag.hazard, label: tag.label });
   }
-  return { sparring, situations: [...situations], footing, dyingRiskStakes: stakes === 'lethal' || stakes === 'serious', hazards, positionAttempt };
+  // A sparring bout rolls its terrain once; a real fight every TERRAIN_HAZARD_EVERY exchanges (D-185).
+  return { sparring, situations: [...situations], footing, dyingRiskStakes: stakes === 'lethal' || stakes === 'serious', hazards, positionAttempt, hazardEvery: stakes === 'spar' ? null : TERRAIN_HAZARD_EVERY };
 }
 
 /** Sparring mode (D-144): the rank's default, or the academy mode for the Sith at an academy in its years. */

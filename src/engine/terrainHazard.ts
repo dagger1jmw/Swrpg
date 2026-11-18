@@ -8,18 +8,26 @@ import type { DuelState, Fighter } from './duel';
 import { nextFloat, type RngState } from './rng';
 import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, type Wound } from './wounds';
 
+/** The top of the minor band (W 1-9, health §5). */
+const MINOR_MAX_W = 9;
+
 export interface TerrainHazard {
   chance: number;
   severity: 1 | 2 | 3;
   type: HazardType;
   /** The tag's label, for the note. */
   label: string;
+  /** What happens, for the narration (default: a fall or a catch on the label). */
+  note?: string | undefined;
+  /** The wound stays in the minor band (flat floor: a turned ankle, D-185). */
+  minorOnly?: boolean | undefined;
 }
 
 function hurtBy(f: Fighter, h: TerrainHazard, rng: RngState, day: number): { f: Fighter; rng: RngState; note: string } {
   const { D, bypass } = hazardDamage(h.type, h.severity);
   const [part, r] = rollLocation(rng, h.type === 'fall' ? FALL_LOCATION_WEIGHTS : LOCATION_WEIGHTS);
-  const dmg = applyDamage(f.vitality, D, bypass);
+  const raw = applyDamage(f.vitality, D, bypass);
+  const dmg = h.minorOnly ? { ...raw, W: Math.min(MINOR_MAX_W, Math.max(1, raw.W)) } : raw;
   const sev = severityOf(dmg.W);
   let out: Fighter = { ...f, vitality: dmg.vitality, out: f.out || (f.minion && dmg.vitality <= 0) };
   if (sev) {
@@ -27,12 +35,15 @@ function hurtBy(f: Fighter, h: TerrainHazard, rng: RngState, day: number): { f: 
     out = { ...out, wounds: [...f.wounds, w], dead: f.dead || killsWhileDying(f.wounds, w), out: out.out || (f.minion && takesMinionOut(sev)) };
   }
   if (isDying(out.wounds) || isIncapacitated(out.wounds)) out = { ...out, out: true };
-  return { f: out, rng: r, note: `terrain: ${f.name} ${h.type === 'fall' ? 'falls' : 'is caught'} on the ${h.label}${sev ? ` (${sev} ${part})` : ' (only stamina lost)'}` };
+  const what = h.note ? `${h.note} on the ${h.label}` : `${h.type === 'fall' ? 'falls' : 'is caught'} on the ${h.label}`;
+  return { f: out, rng: r, note: `terrain: ${f.name} ${what}${sev ? ` (${sev} ${part})` : ' (only stamina lost)'}` };
 }
 
 /** The bout-start hazard rolls; the duel's RNG advances. Notes name each accident. */
 export function rollBoutHazards(d: DuelState, hazards: readonly TerrainHazard[], day: number): { duel: DuelState; notes: string[] } {
   if (!hazards.length) return { duel: d, notes: [] };
+  // Counted for the tests and the log: one roll of the terrain per bout or per block of exchanges (D-185).
+  d = { ...d, hazardRolls: (d.hazardRolls ?? 0) + 1, lastHazardAt: d.exchange };
   let rng = d.rng;
   const notes: string[] = [];
   const roll = (f: Fighter): Fighter => {

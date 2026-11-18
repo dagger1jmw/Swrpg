@@ -124,6 +124,8 @@ export const DEFLECT_REDIRECT_MARGIN = 8;
 // Routine sparring uses the rank default below (Sith master and apprentice: controlled live blades). Sith-academy stakes
 // (live blades, real wounds) apply to spars at an academy (SITH_ACADEMIES) and to trials; a master can call them for
 // one session as a story event (combatStarted sparringMode; Sith path only).
+/** A real fight rolls its terrain accidents once per this many exchanges (D-185); a sparring bout rolls once. */
+export const TERRAIN_HAZARD_EVERY = 10;
 export const SPARRING_MODES = ['trainingSaber', 'controlled', 'academy'] as const;
 export type SparringMode = (typeof SPARRING_MODES)[number];
 /** Controlled live blades: a would-be strike lands for real as a graze when the margin is this high AND a natural 1 was rolled. */

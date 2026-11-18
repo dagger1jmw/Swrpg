@@ -110,7 +110,7 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
     stakes: spec.stakes,
     sparring,
     terrainTags: spec.terrainTags,
-    ctx: { ...ctx, situations: [...ctx.situations], hazards: ctx.hazards ?? [], positionAttempt: ctx.positionAttempt ?? 0 },
+    ctx: { ...ctx, situations: [...ctx.situations], hazards: ctx.hazards ?? [], positionAttempt: ctx.positionAttempt ?? 0, hazardEvery: ctx.hazardEvery ?? null },
     duel,
     patternUses: {},
     objects,
@@ -536,6 +536,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         if (mode) {
           const r = runUntilBeat(duel, ctxD, day, mode);
           duel = r.state;
+          notes.push(...r.notes);
           beat = r.beat;
           narrated = beat !== null && isNarratedBeat(beat as BeatReason);
         }
