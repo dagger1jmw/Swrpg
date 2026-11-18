@@ -6,6 +6,7 @@
 // insert their features at their §10 slot.
 import { characterFeature } from '../features/character';
 import { clockFeature } from '../features/clock';
+import { combatFeature } from '../features/combat';
 import { flagsFeature } from '../features/flags';
 import { healthFeature } from '../features/health';
 import { locationsFeature } from '../features/locations';
@@ -29,6 +30,7 @@ export const REGISTRY: Registry<GameState> = [
   flagsFeature,
   routinesFeature,
   healthFeature,
+  combatFeature,
   progressionFeature,
   npcsFeature,
   relationshipsFeature,
@@ -47,6 +49,7 @@ export const HOOK_ORDER: readonly string[] = [
   'flags',
   'routines',
   'health',
+  'combat',
   'progression',
   'alignment',
   'npcs',

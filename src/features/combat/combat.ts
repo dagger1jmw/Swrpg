@@ -1,0 +1,75 @@
+// Combat slice (architecture §2 "combat"; rolls.md §3-6; D-143..D-157). Null outside a fight except for a deferred
+// combatStarted waiting for the next turn's step b, the fates the player still has to choose, and a summary of the
+// last fight for narration and the UI. fightsToday and the day's combat XP stay in progression (D-47).
+import { z } from 'zod';
+import { NPC_FATES, SPARRING_MODES } from '../../data/combat.config';
+import { MINION_KIND_IDS } from '../../data/npcGen.config';
+import { COMBAT_OUTCOMES, COMBAT_STAKES } from '../../data/progression.config';
+import { TERRAIN_IDS } from '../../data/terrain';
+
+export const pendingFightSchema = z.object({
+  opponentRefs: z.array(z.string()),
+  minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(12) })),
+  stakes: z.enum(COMBAT_STAKES),
+  terrainTags: z.array(z.enum(TERRAIN_IDS as [string, ...string[]])),
+  ambushClaim: z.boolean(),
+  engagedElsewhere: z.array(z.string()),
+});
+export type PendingFight = z.infer<typeof pendingFightSchema>;
+
+/** Who each fighter is outside the duel: a named NPC or a minion of a group. */
+export const fighterMetaSchema = z.object({ npcId: z.string().nullable(), minionKind: z.string().nullable(), rank: z.string().nullable() });
+
+export const activeFightSchema = z.object({
+  id: z.string(),
+  startedAbs: z.number(),
+  stakes: z.enum(COMBAT_STAKES),
+  sparring: z.enum(SPARRING_MODES).nullable(),
+  terrainTags: z.array(z.string()),
+  /** The duel context and state (src/engine/duel.ts): engine-made, JSON-serializable, never written by the AI. */
+  ctx: z.object({ sparring: z.enum(SPARRING_MODES).nullable(), situations: z.array(z.string()), footing: z.number(), dyingRiskStakes: z.boolean() }),
+  duel: z.any(),
+  /** Sequence state: pattern uses and the remaining throwable objects (D-146). */
+  patternUses: z.record(z.string(), z.number().int().min(0)),
+  objects: z.record(z.string(), z.number().int().min(0)),
+  objectSizes: z.record(z.string(), z.enum(['small', 'medium', 'large'])),
+  meta: z.record(z.string(), fighterMetaSchema),
+  /** The player's fighting skill at each exchange (combat XP by skill used, combat-xp §1). */
+  exchangeSkills: z.array(z.string()),
+  /** The exchange count at the last narrated beat (D-145: one narration covers everything since). */
+  lastNarrated: z.number().int().min(0),
+  /** The exchange count when the current turn's segment began. */
+  segmentStart: z.number().int().min(0),
+  beat: z.string().nullable(),
+  /** Started by a won perception contest or surprise: +1 to the sequence cap (D-146). */
+  hidden: z.boolean(),
+});
+export type ActiveFight = z.infer<typeof activeFightSchema>;
+
+export const fightSummarySchema = z.object({
+  id: z.string(),
+  stakes: z.enum(COMBAT_STAKES),
+  outcome: z.enum(COMBAT_OUTCOMES),
+  reason: z.string(),
+  exchanges: z.number().int().min(0),
+  seconds: z.number().min(0),
+  /** What the opponent did when the player was incapacitated (D-154). */
+  playerFate: z.enum(['spared', 'captured', 'left', 'killingStrike']).nullable(),
+  recorded: z.boolean(),
+  /** The form fought with (recording review). */
+  skillId: z.string(),
+  day: z.number().int(),
+});
+export type FightSummary = z.infer<typeof fightSummarySchema>;
+
+export const combatSliceSchema = z.object({
+  pending: pendingFightSchema.nullable(),
+  active: activeFightSchema.nullable(),
+  /** Incapacitated named NPCs whose fate the player chooses (spare, capture, kill). */
+  fates: z.array(z.object({ npcId: z.string(), fightId: z.string(), options: z.array(z.enum(NPC_FATES)) })),
+  last: fightSummarySchema.nullable(),
+  seq: z.number().int().min(1),
+});
+export type CombatSlice = z.infer<typeof combatSliceSchema>;
+
+export const emptyCombat = (): CombatSlice => ({ pending: null, active: null, fates: [], last: null, seq: 1 });
