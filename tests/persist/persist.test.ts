@@ -45,7 +45,13 @@ describe('save envelope and storage (architecture §13)', () => {
     expect(loadEnvelope(REGISTRY, { format: 'v170' }).ok).toBe(false);
     expect(loadEnvelope(REGISTRY, { ...env, envelopeVersion: 99 }).ok).toBe(false);
     expect(loadEnvelope(REGISTRY, { ...env, featureVersions: { ...env.featureVersions, clock: 9 } }).ok).toBe(false);
-    const bad = loadEnvelope(REGISTRY, { ...env, state: { ...state, clock: { ...state.clock, now: { day: 1, second: 99_999 } } } });
+    // D-176: an out-of-range number is clamped with a warning, not refused.
+    const clamped = loadEnvelope(REGISTRY, { ...env, state: { ...state, clock: { ...state.clock, now: { day: 1, second: 99_999 } } } });
+    expect(clamped.ok).toBe(true);
+    expect(clamped.ok && clamped.state.clock.now.second).toBe(86_399);
+    expect(clamped.ok && clamped.warnings.join(' ')).toMatch(/clock\.now\.second/);
+    // A wrong type is structural: refused.
+    const bad = loadEnvelope(REGISTRY, { ...env, state: { ...state, clock: { ...state.clock, now: { day: 1, second: 'noon' } } } });
     expect(bad.ok).toBe(false);
     expect(!bad.ok && bad.error).toMatch(/clock\.now\.second/);
     expect(loadEnvelope(REGISTRY, { ...env, state: { ...state, junk: 1 } }).ok).toBe(false);

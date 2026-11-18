@@ -40,6 +40,7 @@ export function parseImport<S extends BaseState>(registry: Registry<S>, raw: unk
   if (typeof raw['version'] !== 'number' || raw['version'] > EXPORT_VERSION) return { ok: false, error: 'The export is from a newer version.' };
   const loaded = loadEnvelope(registry, raw['envelope']);
   if (!loaded.ok) return { ok: false, error: loaded.error };
+  for (const w of loaded.warnings) console.warn(`import loaded with a clamped value: ${w}`);
   const { campaignId, branchId, turn } = loaded.state.meta;
   const c = raw['campaign'];
   if (!isRecord(c) || c['campaignId'] !== campaignId || typeof c['name'] !== 'string') return { ok: false, error: 'The campaign record does not match the save.' };

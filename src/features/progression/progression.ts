@@ -62,9 +62,9 @@ export const progressionSliceSchema = z.object({
   /** Combat XP before M credited today per skill, for the 12 XP daily cap (D-47). Reset at midnight. */
   combatXpToday: z.record(z.string(), z.number().min(0)),
   /** Applied experience E per lightsaber form group, with its sparring part (progression-numbers §7; M5). */
-  E: z.record(z.string(), z.object({ E: z.number().min(0).max(100), eSpar: z.number().min(0) })),
+  E: z.record(z.string(), z.object({ E: z.number().min(0).max(120), eSpar: z.number().min(0) })),
   /** Combat integration CI per combat Force ability, with its sparring part (§8; M5). */
-  CI: z.record(z.string(), z.object({ CI: z.number().min(0).max(100), ciSpar: z.number().min(0) })),
+  CI: z.record(z.string(), z.object({ CI: z.number().min(0).max(120), ciSpar: z.number().min(0) })),
   /** Banked drill XP per lightsaber form (§7; capped at 15 levels of XP). */
   bank: z.record(z.string(), z.number().min(0)),
   /** The last day of the current 60-day bank release, or null (D-45). */

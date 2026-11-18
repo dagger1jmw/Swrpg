@@ -114,7 +114,7 @@ Outcome roll per session (code rolls it, mean ~1.0):
     ShatterSense talent, with an XP cost multiplier of x3 (tunable). No separate XP track.
 
 ## 7. Lightsaber drill ceiling and bank
-Applied experience E (0-100) per lightsaber form group.
+Applied experience E (0-120; amended by D-176: the gains scale by (1 - E/120), so 120 is their limit) per lightsaber form group.
   Drill ceiling = 25 + E
   E gains, each scaled by (1 - E/120):
     sparring with peers +0.2/session | sparring with master +0.4/session
@@ -161,7 +161,7 @@ Why: a new form started from zero, so with the targets on the highest form the A
   milestone within +/-20%; 0.75 is the most centred.
 
 ## 8. Combat integration (combat Force abilities)
-CI (0-100) per ability. Integration line = 25 + CI. G = level - line (no penalty if G <= 0).
+CI (0-120; D-176, the limit of the (1 - CI/120) gains) per ability. Integration line = 25 + CI. G = level - line (no penalty if G <= 0).
   In combat only: effective level = line + 0.5 * G
                   Force strain cost x (1 + 0.015 * G), max x2.0
                   misfire chance 0.3% * G, max 15%

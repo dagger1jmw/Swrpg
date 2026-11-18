@@ -22,7 +22,8 @@ export function makeEnvelope<S extends BaseState>(registry: Registry<S>, state: 
   return { format: SAVE_FORMAT, envelopeVersion: ENVELOPE_VERSION, featureVersions: featureVersions(registry), savedAt, state };
 }
 
-export type LoadResult<S> = { ok: true; state: S; envelope: SaveEnvelope<S> } | { ok: false; error: string };
+/** warnings: out-of-range numbers clamped on load (D-176); empty for a clean save. */
+export type LoadResult<S> = { ok: true; state: S; envelope: SaveEnvelope<S>; warnings: string[] } | { ok: false; error: string };
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
@@ -71,7 +72,16 @@ export function loadEnvelope<S extends BaseState>(
     }
   }
 
-  const parsed = buildStateSchema(registry).safeParse(migrated);
+  // A number outside its schema range is clamped to the range with a warning; only a structurally broken save is
+  // rejected (D-176).
+  const schema = buildStateSchema(registry);
+  const warnings: string[] = [];
+  let parsed = schema.safeParse(migrated);
+  for (let pass = 0; pass < 20 && !parsed.success; pass++) {
+    const fixed = clampRangeIssues(migrated, parsed.error.issues, warnings);
+    if (!fixed) break;
+    parsed = schema.safeParse(migrated);
+  }
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     return { ok: false, error: `The save failed validation (${issue ? `${issue.path.join('.')}: ${issue.message}` : 'invalid'}).` };
@@ -83,5 +93,40 @@ export function loadEnvelope<S extends BaseState>(
     savedAt: typeof env['savedAt'] === 'string' ? env['savedAt'] : '',
     state: parsed.data,
   };
-  return { ok: true, state: parsed.data, envelope };
+  return { ok: true, state: parsed.data, envelope, warnings };
+}
+
+interface RangeIssue {
+  code: string;
+  path: readonly PropertyKey[];
+  origin?: string;
+  minimum?: number | bigint;
+  maximum?: number | bigint;
+}
+
+/**
+ * Clamps every out-of-range number the issues name to its bound, in place (D-176). Returns false when any issue is not
+ * a numeric range issue (the save is then structurally broken) or nothing could be fixed.
+ */
+function clampRangeIssues(root: Record<string, unknown>, issues: readonly RangeIssue[], warnings: string[]): boolean {
+  if (!issues.length) return false;
+  for (const i of issues) {
+    const range = (i.code === 'too_big' || i.code === 'too_small') && i.origin === 'number';
+    if (!range) return false;
+  }
+  let fixed = false;
+  for (const i of issues) {
+    const parent = i.path.slice(0, -1).reduce<unknown>((o, k) => (o && typeof o === 'object' ? (o as Record<PropertyKey, unknown>)[k] : undefined), root);
+    const key = i.path[i.path.length - 1];
+    if (!parent || typeof parent !== 'object' || key === undefined) return false;
+    const obj = parent as Record<PropertyKey, unknown>;
+    const value = obj[key];
+    if (typeof value !== 'number' || Number.isNaN(value)) return false;
+    const bound = Number(i.code === 'too_big' ? i.maximum : i.minimum);
+    if (!Number.isFinite(bound)) return false;
+    obj[key] = bound;
+    warnings.push(`${i.path.map(String).join('.')}: ${value} was outside its range and is clamped to ${bound}`);
+    fixed = true;
+  }
+  return fixed;
 }

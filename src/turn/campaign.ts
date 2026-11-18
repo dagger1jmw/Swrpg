@@ -119,6 +119,8 @@ export async function resumeCampaign(registry: Registry<GameState>, storage: Sto
   if (raw === null || raw === undefined) return null;
   const loaded = loadEnvelope(registry, raw);
   if (!loaded.ok) return { error: loaded.error };
+  // Out-of-range numbers were clamped on load (D-176): warn and continue.
+  for (const w of loaded.warnings) console.warn(`save loaded with a clamped value: ${w}`);
   const { state } = loaded;
   const entries = await storage.readTranscript(state.meta.campaignId, state.meta.branchId);
   const history = entries.filter((e) => e.turn <= state.meta.turn).map((e) => ({ ...(e.data as TurnRecord), turn: e.turn }));

@@ -160,7 +160,7 @@ test 2 generalized).
 | skills[id].xp | >= 0 (effective practice hours) | engine |
 | skills[id].rust | 0-0.20 (cap by category) | engine |
 | skills[id].lastPracticedDay | absolute day | engine |
-| E[formGroup] | {E, eSpar}: applied experience and its sparring part (progression-numbers §7; D-163); schema 0-100 (see the D-176 open question) | engine |
+| E[formGroup] | {E, eSpar}: applied experience and its sparring part (progression-numbers §7; D-163); 0-120, the gains' limit (D-176) | engine |
 | CI[abilityId] | {CI, ciSpar}: combat integration, combat Force abilities only (§8) | engine |
 | bank[formId] | >= 0, drill XP over the ceiling, capped at 15 levels of XP | engine |
 | bankReleaseUntil | absolute day or null (60-day release after a skirmish or higher, D-45) | engine |
@@ -906,8 +906,10 @@ This section is the architecture.
   entry is ever deleted.
 - **Envelope**: `{format: "swrpg-v2", envelopeVersion, featureVersions: {id: n}, savedAt,
   state}`. Load runs envelope migrations, then each feature's migrations from its stored
-  version, then validates the whole state with Zod. If anything fails, the load is refused
-  with a message; there is no partial load. Each migration ships with a fixture test.
+  version, then validates the whole state with Zod. A number outside its schema range is
+  clamped to the range with a logged warning and the load goes on (D-176); a structurally
+  broken save (wrong types, missing or unknown fields, a failed migration, a newer version)
+  is refused with a message; there is no partial load. Each migration ships with a fixture test.
 - **Export / import**: one JSON file with the envelope (state includes fact records, chapter
   summaries and arc summary) plus the transcript.
 - **V170 saves are not imported**; v2 starts a new campaign.
