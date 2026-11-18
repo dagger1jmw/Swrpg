@@ -1,5 +1,6 @@
 // Character feature. v2 (M3): computed creation sets every field at the start; the day hook only
 // reports birthdays and changes no state.
+import { z } from 'zod';
 import { ageInYears, fromAbsSecond } from '../../engine/calendar';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule } from '../../state/types';
@@ -28,7 +29,14 @@ export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
   },
   stateSchema: characterSliceSchema,
   migrations: { 2: migrateCharacterV1, 3: migrateCharacterV2, 4: migrateCharacterV3 },
-  events: {},
+  events: {
+    /** Losing the dominant hand or arm switches the hand (Q39; health §5). Engine only. */
+    dominantHandSwitched: {
+      schema: z.object({ type: z.literal('dominantHandSwitched'), reason: z.string().max(120) }),
+      sources: ['engine'],
+      handle: (slice, e) => ({ slice: { ...slice, dominantHand: slice.dominantHand === 'right' ? 'left' : 'right' }, notes: [`dominant hand switched (${String(e['reason'])})`] }),
+    },
+  },
   // The player character is referenced as "pc" (e.g. factLearned about the character, M2).
   refKind: 'pc',
   resolveRef: (_state, ref) => (ref === PC_REF ? PC_REF : null),

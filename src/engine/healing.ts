@@ -32,7 +32,8 @@ export function progressHealing(w: Wound, days: number, mult: number): Wound {
   return { ...w, healProgress: Math.min(1, w.healProgress + (Math.max(0, days) * mult) / baseHealDays(w)) };
 }
 
-export const isHealed = (w: Wound): boolean => w.healProgress >= 1;
+/** Healed at 1 (with a small tolerance: seven days of 1/7 must heal a 7-day wound). */
+export const isHealed = (w: Wound): boolean => w.healProgress >= 1 - 1e-9;
 
 /** Minor wounds heal overnight on 7h+ sleep. */
 export const healsOvernight = (w: Wound, sleptHours: number): boolean => effectiveSeverity(w) === 'minor' && sleptHours >= VITALITY_RECOVERY.fullSleepHours;

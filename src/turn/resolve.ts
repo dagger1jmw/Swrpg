@@ -2,7 +2,6 @@
 // retry of the narration reuses it, so dice are never re-rolled.
 import { CHECK_RULES, type ActionType } from '../data/checks.config';
 import { JUMP_LEVELS, PACING_LEVELS, PACING_RANGES, type JumpLevel, type PacingLevel } from '../data/pacing.config';
-import { stubVitalitySpent, stubWoundPenalty } from '../data/stubs';
 import { DEFAULT_ACTIVITY } from '../data/activities';
 import { isSkillId } from '../data/skills';
 import { spanToSeconds, type Intent, type RequestedSpan } from '../ai/schemas/intent';
@@ -10,7 +9,7 @@ import { addCalendarMonths } from '../engine/calendar';
 import { efficiency } from '../engine/fatigue';
 import { check, clampDifficulty, isCheckRequired, type CheckCard } from '../engine/rolls';
 import type { RngState } from '../engine/rng';
-import { selectFatigue } from '../features/health/selectors';
+import { selectFatigue, selectIsSpent, selectLastingPenalty, selectWoundPenalty } from '../features/health/selectors';
 import { selectPacingLevel } from '../features/pacing/selectors';
 import { selectPerformance, selectRust } from '../features/progression/selectors';
 import { resolveTraining, type TrainingCard, type TrainingRequest } from '../features/progression/selectors';
@@ -248,9 +247,10 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
         skillId,
         levelInputs: {
           level: validSkill ? selectPerformance(state, skillId) : 0,
-          woundPenalty: stubWoundPenalty(),
+          // M5: wounds (status + location, less Willpower) and lasting injuries combine multiplicatively (rolls §1).
+          woundPenalty: validSkill ? 1 - (1 - selectWoundPenalty(state, skillId)) * (1 - selectLastingPenalty(state, skillId)) : 0,
           rust: validSkill ? selectRust(state, skillId) : 0,
-          vitalitySpent: stubVitalitySpent(),
+          vitalitySpent: selectIsSpent(state),
           fatigueEfficiency: efficiency(selectFatigue(state).p),
         },
         modifiers: [],

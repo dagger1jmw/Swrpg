@@ -17,6 +17,7 @@ export const selectSpeciesId = (s: GameState): string => s.character.speciesId;
 export const selectCharacter = (s: GameState): CharacterSlice => s.character;
 export const selectTalents = (s: GameState): Talents => s.character.talents;
 export const selectPath = (s: GameState): CharacterSlice['path'] => s.character.path;
+export const selectArchetype = (s: GameState): string => s.character.archetype;
 export const selectFocusWeights = (s: GameState): Readonly<Record<string, number>> => s.character.focusWeights;
 export const selectMainForm = (s: GameState): string | null => s.character.mainFormId;
 

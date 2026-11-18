@@ -17,7 +17,7 @@ import { removeRust, rustAfterDay } from '../../engine/rust';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent } from '../../state/types';
 import { selectNow } from '../clock/selectors';
-import { selectMaxFraction } from '../health/selectors';
+import { selectLasting, selectMaxFraction } from '../health/selectors';
 import { selectOpenThreads } from '../threads/selectors';
 import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressionV1, migrateProgressionV2, migrateProgressionV3, progressionSliceSchema, type ProgressionSlice, type StateOfMindRecord } from './progression';
 import { selectCapacities, selectLevelExact, selectNatural, selectSkillViews, selectStateOfMind, selectTierBeats } from './selectors';
@@ -199,7 +199,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         for (const id of e['primaries'] as string[]) if (SKILL_BY_ID.get(id)?.kind === 'form' && !formsStarted.includes(id)) formsStarted.push(id);
         const cr = creditXp({ ...slice, skills }, ctx.state, credited, practice, windowHours, day);
         skills = cr.slice.skills;
-        const { emit } = cr;
+        // Training the skills a lasting injury affects adapts it (progression-numbers §18): health owns adaptation.
+        const emit = selectLasting(ctx.state).length ? [...cr.emit, { type: 'adaptationTrained', hours: practice }] : cr.emit;
         const notes = [...cr.notes];
         const spar = e['sparring'] as 'sparPeer' | 'sparMaster' | undefined;
         const E = spar ? gainForGroups(slice.E, e['primaries'] as string[], spar) : slice.E;

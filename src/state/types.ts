@@ -155,7 +155,8 @@ export interface InitCtx {
 }
 
 /** What a span of time is spent on (M3): health recovers meters only on rest steps (D-52). */
-export type Occupation = 'rest' | 'activity' | 'sleep';
+/** combat (M5): fighting; no Vitality or meter recovery (health §3). */
+export type Occupation = 'rest' | 'activity' | 'sleep' | 'combat';
 
 export interface FeatureModule<Slice = unknown, S extends BaseState = BaseState> {
   id: string;

@@ -5,17 +5,11 @@ import {
   STUB_DARK_PRESSURE,
   STUB_TEACHER_ARCHETYPE,
   STUB_TEACHER_START_AGE,
-  stubVitalitySpent,
-  stubWoundPenalty,
 } from '../../src/data/stubs';
 
 // architecture §15: each stub's value holds until the named milestone replaces it.
 describe('stubs (D-56, D-70)', () => {
-  it('wound penalty 0 and Vitality not spent until M5', () => {
-    expect(stubWoundPenalty()).toBe(0);
-    expect(stubVitalitySpent()).toBe(false);
-  });
-  // Rust, e(f) and skill levels were replaced in M3 by progression and health selectors.
+  // Rust, e(f) and skill levels were replaced in M3, wound penalty and Spent in M5, by progression and health selectors.
   it('teacher levels use the Average Jedi Guardian from age 4 until M5', () => {
     expect(STUB_TEACHER_ARCHETYPE).toBe('jediGuardian');
     expect(STUB_TEACHER_START_AGE).toBe(4);
