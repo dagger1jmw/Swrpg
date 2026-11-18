@@ -103,7 +103,8 @@ export function previewRoutine(registry: Registry<GameState>, initial: GameState
   const refused = [...new Set(run.days.flatMap((d) => d.sessions.filter((x) => x.refused).map((x) => x.refused!)))];
   for (const r of refused) warnings.push(`Refused: ${r}`);
   for (const n of new Set(run.days.flatMap((d) => d.notes))) if (/unavailable|trimmed/.test(n)) warnings.push(n);
-  // The drill ceiling (25 + E) arrives with combat experience in M5; no warning before then.
+  // The drill ceiling (25 + E, M5) and the injury adjustments (training-routines §5-6), from the typical day and the week.
+  for (const n of new Set([...typical.notes, ...run.days.flatMap((d) => d.notes)])) if (/drill ceiling|injury/.test(n)) warnings.push(n);
 
   return {
     ok: true,

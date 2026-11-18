@@ -18,9 +18,9 @@ import { EMPTY_DAY, afterSleep, stepBlock, type Capacities, type DayTraining, ty
 import { interp } from '../../engine/interp';
 import type { GameState } from '../../state/gameState';
 import { selectCharacter, selectHumanAge, selectPath } from '../character/selectors';
-import { selectMeters } from '../health/selectors';
+import { selectInjuredSkills, selectMeters } from '../health/selectors';
 import { selectNpc } from '../npcs/selectors';
-import { selectCapacities, selectOvertrainStreak, type TrainingSource } from '../progression/selectors';
+import { selectCapacities, selectDrillCeiling, selectLevelExact, selectOvertrainStreak, type TrainingSource } from '../progression/selectors';
 import { selectRank } from '../ranks/selectors';
 import type { Routine } from './routines';
 
@@ -307,6 +307,37 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
     }
     const source = availableSource(p?.source ?? baseFill, s, notes, act.name);
     add({ activityId: act.id, skillId: skill, hours, source, intensity: p?.intensity ?? 'standard', fixed: false, locked: false, fill: true });
+  }
+
+  // Automatic adjustments (training-routines §6; M5), each logged. An injury takes the skills a moderate-or-worse
+  // wound penalizes out of the day (rest until healed; test 7: within the same day); skills a lasting injury affects keep
+  // training as adaptation training. A form at its drill ceiling shifts its fill hours to sparring with peers, which
+  // also builds E (progression-numbers §7); without peers the hours stay and the preview warns.
+  const injured = selectInjuredSkills(s);
+  const restNames = new Set<string>();
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    if (!injured.rest.includes(blocks[i]!.skillId)) continue;
+    restNames.add(SKILL_BY_ID.get(blocks[i]!.skillId)?.name ?? blocks[i]!.skillId);
+    blocks.splice(i, 1);
+  }
+  for (let i = locked.length - 1; i >= 0; i--) {
+    if (!injured.rest.includes(locked[i]!.skillId)) continue;
+    restNames.add(SKILL_BY_ID.get(locked[i]!.skillId)?.name ?? locked[i]!.skillId);
+    locked.splice(i, 1);
+  }
+  if (restNames.size) notes.push(`injury: ${[...restNames].join(', ')} rest until the wound heals (training-routines §6)`);
+  const adapting = [...new Set(blocks.filter((b) => injured.adapt.includes(b.skillId)).map((b) => SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId))];
+  if (adapting.length) notes.push(`injury: ${adapting.join(', ')} trained as adaptation training (training-routines §6)`);
+  const orderPath = selectPath(s) === 'jedi' || selectPath(s) === 'sith';
+  for (let i = 0; i < blocks.length; i++) {
+    const b = blocks[i]!;
+    if (!b.fill || !isFormSkill(b.skillId) || b.activityId === 'sparring') continue;
+    if (selectLevelExact(s, b.skillId) < selectDrillCeiling(s, b.skillId)) continue;
+    const name = SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId;
+    if (orderPath || b.source.kind === 'partner' || b.source.kind === 'peers') {
+      blocks[i] = { ...b, activityId: 'sparring', source: b.source.kind === 'partner' ? b.source : { kind: 'peers' }, intensity: 'standard' };
+      notes.push(`drill ceiling reached in ${name}: ${b.hours} h shift to sparring (training-routines §6)`);
+    } else notes.push(`drill ceiling reached in ${name}: no sparring partner, drills bank most of their XP (training-routines §6)`);
   }
 
   // 3-4. Order, then trim the fill in proportion to the effort's tiredness limit (D-120).
