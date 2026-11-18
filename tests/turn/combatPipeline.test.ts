@@ -208,3 +208,32 @@ describe('sparring sessions (D-168)', () => {
     expect(['stopped', 'exchanges', 'injury', 'spent']).toContain(s.state.combat.last?.session?.ended);
   });
 });
+
+describe('typed input in a sparring session (D-177)', () => {
+  const sparPending = (s: Session): Session => ({ ...s, state: applyEvents(REGISTRY, s.state, [{ type: 'combatStarted', opponentRefs: [vek(s)], stakes: 'spar', terrainTags: ['flatFloor'] }], { source: 'ai' }).state });
+  const intent = (data: Record<string, unknown>): FixtureStep => ({ callType: 'intent', data: { targets: [], references: [], unknownNames: [], ...data } });
+  it('a typed specific action ("parry the strike using Shii-Cho fundamentals") opens the duel panel and does not auto-resolve', async () => {
+    const { deps, provider } = setup([intent({ actionType: 'fight' }), ...many(2)]);
+    const before = provider.calls.length;
+    const t = await playTurn(deps, sparPending(session()), { kind: 'typed', text: 'parry the strike using Shii-Cho fundamentals' });
+    const active = t.session.state.combat.active;
+    expect(active).not.toBeNull();
+    expect(active!.session?.playing).toBe(true);
+    expect(t.record.draft.combat?.ended).toBeNull();
+    expect(t.record.draft.combat?.started).toBe(true);
+    // The intent call and at most one narration for the fight's start: no session summary was resolved.
+    expect(provider.calls.slice(before).map((c) => c.opts.callType)[0]).toBe('intent');
+    expect((active!.duel as DuelState).exchange).toBeLessThan(34);
+  });
+  it('sparring asked for as an activity resolves like a montage, and "Play the next bout" steps back in', async () => {
+    const { deps } = setup([intent({ actionType: 'train', activity: { activityId: 'sparring' } }), ...many(4)]);
+    const t = await playTurn(deps, sparPending(session()), { kind: 'typed', text: 'spar with him for an hour' });
+    expect(t.session.state.combat.active).toBeNull();
+    const last = t.session.state.combat.last!;
+    expect(last.session?.ended).not.toBeNull();
+    expect(last.rematch?.opponentRefs).toEqual([vek(t.session)]);
+    const next = await playTurn(deps, t.session, beat('playNextBout'));
+    expect(next.session.state.combat.active?.stakes).toBe('spar');
+    expect(next.session.state.combat.active?.session?.playing).toBe(true);
+  });
+});

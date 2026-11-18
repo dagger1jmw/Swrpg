@@ -98,6 +98,8 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
     }
     const canReview = last && last.recorded && s.clock.now.day - last.day <= 7 && (s.progression.lastReviewDay === null || s.clock.now.day - s.progression.lastReviewDay >= 7);
     if (canReview) items.push(beat(`Review the recording (${SKILL_BY_ID.get(last.skillId)?.name ?? last.skillId})`, { action: 'review', skillId: last.skillId }));
+    // After an auto-resolved spar the player can always step in (D-177).
+    if (last?.stakes === 'spar' && last.rematch && last.day === s.clock.now.day) items.push(beat('Play the next bout', { action: 'playNextBout' }));
     return items.length ? el('section', { class: 'box duel' }, [el('div', { class: 'box-body duel-body' }, items)]) : null;
   }
 

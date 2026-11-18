@@ -75,6 +75,8 @@ export const fightSummarySchema = z.object({
   duel: z.any().optional(),
   /** A sparring session's bouts and how it ended (D-168). */
   session: sparSessionSchema.nullable().optional(),
+  /** After an auto-resolved session: the partners for "Play the next bout" when one can go on (D-177). */
+  rematch: z.object({ opponentRefs: z.array(z.string()), sparringMode: z.enum(SPARRING_MODES).nullable() }).nullable().optional(),
 });
 export type FightSummary = z.infer<typeof fightSummarySchema>;
 

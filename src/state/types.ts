@@ -140,6 +140,8 @@ export interface InitCtx {
     dominantHand?: 'left' | 'right';
     /** The talent limit was ignored at creation (D-116). */
     unbalanced?: boolean;
+    /** A dev-only test start (D-178): marked in the save. */
+    testCharacter?: boolean;
     /** Form plans (D-118). */
     formPlan?: { padawan: Readonly<Record<string, number>>; knight: Readonly<Record<string, number>> } | null;
   };

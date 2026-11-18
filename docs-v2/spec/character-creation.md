@@ -4,6 +4,8 @@
   Path: Jedi | Sith | Force-sensitive outsider | non-Force career
   Species (species.md; moved into M3 by D-103), birth date, and era (no default year, D-155: the player picks an era, which fills its first year, or types any date)
   Rank: any rank the path allows at that age (ranks spec); the UI shows which ranks fit
+  Dev test start (D-178; ?dev=1 only, not part of creation): rank (Initiate, Padawan, Knight,
+    Master) and age for an Average Human Jedi Guardian; marked testCharacter in the save.
   Training start age: path default (Jedi 2-5, Sith academy 8-16, careers per archetype),
     adjustable within the path's range (a late start like Luke's is allowed for outsiders
     found later)

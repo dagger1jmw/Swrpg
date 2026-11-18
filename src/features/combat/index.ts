@@ -229,7 +229,12 @@ function resolveSessionRest(slice: CombatSlice, s: GameState, active: ActiveFigh
   const r = runSession(duel, session, active.ctx as ActiveFight['ctx'] & { situations: never[] }, day);
   const nextActive: ActiveFight = { ...active, duel: r.duel, session: r.session, exchangeSkills: withSkills(active, before, r.duel), beat: null };
   const c = conclude(slice, s, nextActive, sessionOutcome(r.session), `sparring session (${r.session.ended})`);
-  return { ...c, emit: [...syncEmits(s, before, r.duel, active.meta), ...c.emit], notes: [...notes, ...c.notes] };
+  // The player can always step in (D-177): the next bout with the same named partners, unless someone was really hurt.
+  const partners = Object.values(active.meta).map((m) => m.npcId).filter((id): id is string => id !== null && selectNpc(s, id)?.status === 'active');
+  const hurt = isIncapacitated(r.duel.a.wounds as Wound[]) || isDying(r.duel.a.wounds as Wound[]) || r.session.ended === 'injury';
+  const rematch = partners.length && !hurt ? { opponentRefs: partners, sparringMode: active.sparring } : null;
+  const sliceOut = c.slice.last ? { ...c.slice, last: { ...c.slice.last, rematch } } : c.slice;
+  return { ...c, slice: sliceOut, emit: [...syncEmits(s, before, r.duel, active.meta), ...c.emit], notes: [...notes, ...c.notes] };
 }
 
 /** Applies a segment's result: health sync, skills, beat, and the conclusion when the duel ended. */
@@ -333,13 +338,15 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         opponentRefs: z.array(z.string()).optional(),
         stakes: z.enum(COMBAT_STAKES).optional(),
         terrainTags: z.array(z.string()).optional(),
+        /** The next bout after an auto-resolved spar keeps its mode (D-177). */
+        sparringMode: z.enum(SPARRING_MODES).optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
         if (slice.active) return { reject: 'a fight is already in progress' };
         const spec: PendingFight | null = e['fromPending']
           ? slice.pending
-          : { opponentRefs: (e['opponentRefs'] as string[]) ?? [], minionGroups: [], stakes: (e['stakes'] as CombatStakes) ?? 'serious', terrainTags: ((e['terrainTags'] as string[]) ?? []).filter((t) => TERRAIN_IDS.includes(t)), ambushClaim: false, engagedElsewhere: [], sparringMode: null };
+          : { opponentRefs: (e['opponentRefs'] as string[]) ?? [], minionGroups: [], stakes: (e['stakes'] as CombatStakes) ?? 'serious', terrainTags: ((e['terrainTags'] as string[]) ?? []).filter((t) => TERRAIN_IDS.includes(t)), ambushClaim: false, engagedElsewhere: [], sparringMode: (e['sparringMode'] as PendingFight['sparringMode'] | undefined) ?? null };
         if (!spec) return { reject: 'no pending fight' };
         const id = `fight-${slice.seq}`;
         const r = startFight(ctx.state, spec, id);

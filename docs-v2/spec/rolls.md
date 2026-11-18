@@ -87,6 +87,13 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
   player can choose Play this bout to play the current bout out with the normal beats (any
   tactical action does the same); after it the next bout waits for the same choice. Stop
   sparring ends the session with the bouts so far.
+  Amended by D-177: input that describes a specific combat action (a parry, a strike, a feint, a
+  form technique, any sequence; a fight choice) plays the bout out with the beats, also when it
+  is the input that starts the session. Only sparring asked for as an activity ("spar with the
+  other Initiates for an hour") resolves like a montage, as do the routine and Order sparring
+  blocks (training sessions, not fights). After a session resolves like a montage, Play the next
+  bout starts the next bout with the same named partners in play-out mode, unless someone was
+  really hurt.
 
 ## 4. Ranged and Force
   Blaster vs saber deflection: shooter d20 + blaster skill/10 vs defender d20 + form

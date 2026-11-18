@@ -2,7 +2,7 @@
 // retry of the narration reuses it, so dice are never re-rolled.
 import { CHECK_RULES, type ActionType } from '../data/checks.config';
 import { JUMP_LEVELS, PACING_LEVELS, PACING_RANGES, type JumpLevel, type PacingLevel } from '../data/pacing.config';
-import { DEFAULT_ACTIVITY } from '../data/activities';
+import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY } from '../data/activities';
 import { isSkillId } from '../data/skills';
 import { spanToSeconds, type Intent, type RequestedSpan } from '../ai/schemas/intent';
 import { addCalendarMonths } from '../engine/calendar';
@@ -143,6 +143,12 @@ export function trainingRequest(intent: Intent): Omit<TrainingRequest, 'hours'> 
   };
 }
 
+/** The intent asks for sparring as an activity ("spar with the other Initiates for an hour"), D-177. */
+function isSparringActivityIntent(intent: Intent | null): boolean {
+  const id = intent?.activity?.activityId;
+  return id !== undefined && ACTIVITY_BY_ID.get(id)?.sparring === true;
+}
+
 export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput } = {}): Resolution {
   let state = initial;
   const report: string[] = [];
@@ -198,6 +204,12 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     apply([{ type: 'fightBegun', fromPending: false, opponentRefs: npcTargets, stakes: 'serious' }]);
     started = state.combat.active !== null;
   }
+  // "Play the next bout" after an auto-resolved spar (D-177): the same partners, played out with the beats.
+  const rematch = state.combat.last?.rematch;
+  if (opts.beat?.action === 'playNextBout' && !state.combat.active && rematch) {
+    apply([{ type: 'fightBegun', fromPending: false, opponentRefs: rematch.opponentRefs, stakes: 'spar', ...(rematch.sparringMode ? { sparringMode: rematch.sparringMode } : {}) }]);
+    started = state.combat.active !== null;
+  }
   if (opts.beat && (opts.beat.action === 'fate' || opts.beat.action === 'review')) {
     // Out-of-fight choices from the combat card: an NPC's fate, or reviewing a recording (progression-numbers §19).
     const b = opts.beat;
@@ -209,7 +221,12 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     const before = state;
     const secondsBefore = (before.combat.active!.duel as { seconds: number }).seconds;
     const fightId = before.combat.active!.id;
-    const payload = opts.beat ? combatActionFromBeat(opts.beat) : combatActionFromIntent(intent);
+    let payload = opts.beat?.action === 'playNextBout' ? { action: 'playBout' } : opts.beat ? combatActionFromBeat(opts.beat) : combatActionFromIntent(intent);
+    // A sparring session (D-168, D-177): input that describes a specific combat action (a parry, a strike, a feint, a
+    // form technique, a sequence: anything but a request to spar as an activity) plays the bout out with the beats;
+    // only sparring asked for as an activity resolves like a montage.
+    const sess = before.combat.active!.session;
+    if (!opts.beat && sess && !sess.ended && !sess.playing && payload['action'] === 'continue' && !isSparringActivityIntent(intent)) payload = { action: 'playBout' };
     const done = apply([{ type: 'combatAction', ...payload }], 'player');
     const notes = done.flatMap((a) => a.notes);
     const after = state;

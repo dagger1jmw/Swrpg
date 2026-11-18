@@ -20,6 +20,15 @@ export interface NewCampaignInput {
   premise?: string;
   /** Computed creation choices (M3). Absent = an untrained Human outsider (natural baselines only). */
   creation?: Omit<CreationInput, 'name' | 'birthDay' | 'startDay'>;
+  /** A dev-only test start (D-178): CI for the known combat Force abilities, and the testCharacter mark. */
+  test?: { ci: number; abilities: readonly string[] };
+}
+
+/** A test start's CI (D-178): the rank's sparring-level CI on every combat Force ability the character knows. */
+function testCI(base: Readonly<Record<string, { CI: number; ciSpar: number }>>, xp: Readonly<Record<string, number>>, t: { ci: number; abilities: readonly string[] }): Record<string, { CI: number; ciSpar: number }> {
+  const out: Record<string, { CI: number; ciSpar: number }> = { ...base };
+  for (const id of t.abilities) if ((xp[id] ?? 0) > 0 && t.ci > 0) out[id] = { CI: Math.max(out[id]?.CI ?? 0, t.ci), ciSpar: Math.max(out[id]?.ciSpar ?? 0, Math.min(20, t.ci)) };
+  return out;
 }
 
 /** Runs computed creation for a new campaign's inputs (null when no creation choices were made). */
@@ -94,11 +103,12 @@ export async function createCampaign(
             unbalanced: c.unbalanced,
           }
         : {}),
+      ...(input.test ? { testCharacter: true } : {}),
     },
-    ...(c ? { startingXp: c.startingXp, startingE: c.startingE, startingCI: c.startingCI, rank: cr!.rank, backstoryFacts: c.facts } : {}),
+    ...(c ? { startingXp: c.startingXp, startingE: c.startingE, startingCI: input.test ? testCI(c.startingCI, c.startingXp, input.test) : c.startingCI, rank: cr!.rank, backstoryFacts: c.facts } : {}),
   });
   const premise = input.premise?.trim() ?? '';
-  const campaign: CampaignRecord = { campaignId: ids.campaignId, name: input.name.trim(), createdAt: wallIso, lastPlayedAt: wallIso, ...(premise ? { premise } : {}) };
+  const campaign: CampaignRecord = { campaignId: ids.campaignId, name: `${input.test ? '[TEST] ' : ''}${input.name.trim()}`, createdAt: wallIso, lastPlayedAt: wallIso, ...(premise ? { premise } : {}) };
   await storage.commitTurn(makeEnvelope(registry, state, wallIso), campaign, null);
   return { state, history: [], campaign };
 }

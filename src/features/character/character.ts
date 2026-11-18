@@ -28,14 +28,21 @@ export const characterSliceSchema = z.object({
    * Null for characters without lightsaber training. mainFormId / secondFormId are the plan in force.
    */
   formPlan: z.object({ padawan: z.record(z.string(), z.number().min(0)), knight: z.record(z.string(), z.number().min(0)) }).nullable(),
+  /** A dev-only test start (D-178): rank and age chosen, levels from the closed form. Never set by normal creation. */
+  testCharacter: z.boolean(),
 });
 
 export type CharacterSlice = z.infer<typeof characterSliceSchema>;
 export type CharacterPathId = (typeof PATHS)[number];
 
+/** v4 -> v5: the test-character mark (D-178), false for every earlier character. */
+export function migrateCharacterV4(old: unknown): CharacterSlice {
+  return { ...(old as Omit<CharacterSlice, 'testCharacter'>), testCharacter: false };
+}
+
 /** v3 -> v4: the form plan (D-118), from the old main / second form (main 2 h, second 1 h). */
-export function migrateCharacterV3(old: unknown): CharacterSlice {
-  const o = old as Omit<CharacterSlice, 'formPlan'>;
+export function migrateCharacterV3(old: unknown): Omit<CharacterSlice, 'testCharacter'> {
+  const o = old as Omit<CharacterSlice, 'formPlan' | 'testCharacter'>;
   const plan: Record<string, number> = {};
   if (o.mainFormId) plan[o.mainFormId] = o.secondFormId ? 2 : 3;
   if (o.secondFormId) plan[o.secondFormId] = 1;
@@ -43,12 +50,12 @@ export function migrateCharacterV3(old: unknown): CharacterSlice {
 }
 
 /** v2 -> v3: the unbalanced flag (D-116), false for every earlier character. */
-export function migrateCharacterV2(old: unknown): Omit<CharacterSlice, 'formPlan'> {
-  return { ...(old as Omit<CharacterSlice, 'unbalanced' | 'formPlan'>), unbalanced: false };
+export function migrateCharacterV2(old: unknown): Omit<CharacterSlice, 'formPlan' | 'testCharacter'> {
+  return { ...(old as Omit<CharacterSlice, 'unbalanced' | 'formPlan' | 'testCharacter'>), unbalanced: false };
 }
 
 /** v1 (M1/M2) -> v2: a Human outsider with no training (M3 plan; D-107). */
-export function migrateCharacterV1(old: unknown): Omit<CharacterSlice, 'unbalanced' | 'formPlan'> {
+export function migrateCharacterV1(old: unknown): Omit<CharacterSlice, 'unbalanced' | 'formPlan' | 'testCharacter'> {
   const o = old as { id: string; name: string; birthDay: number };
   return {
     id: o.id,

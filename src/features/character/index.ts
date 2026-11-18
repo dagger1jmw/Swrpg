@@ -4,16 +4,16 @@ import { z } from 'zod';
 import { ageInYears, fromAbsSecond } from '../../engine/calendar';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule } from '../../state/types';
-import { characterSliceSchema, migrateCharacterV1, migrateCharacterV2, migrateCharacterV3, type CharacterSlice } from './character';
+import { characterSliceSchema, migrateCharacterV1, migrateCharacterV2, migrateCharacterV3, migrateCharacterV4, type CharacterSlice } from './character';
 import { PC_REF, selectAge, selectBirthDay, selectCharacterName, selectExactAge, selectHumanAge, selectSpeciesId } from './selectors';
 
 export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
   id: 'character',
-  version: 4,
+  version: 5,
   initialState: (ctx) => {
     const c = ctx.character;
     return {
-      ...migrateCharacterV3(migrateCharacterV2(migrateCharacterV1({ id: `character:${ctx.campaignId}`, name: c.name, birthDay: c.birthDay }))),
+      ...migrateCharacterV4(migrateCharacterV3(migrateCharacterV2(migrateCharacterV1({ id: `character:${ctx.campaignId}`, name: c.name, birthDay: c.birthDay })))),
       ...(c.speciesId !== undefined ? { speciesId: c.speciesId } : {}),
       ...(c.path !== undefined ? { path: c.path } : {}),
       ...(c.archetype !== undefined ? { archetype: c.archetype } : {}),
@@ -24,11 +24,12 @@ export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
       ...(c.talents !== undefined ? { talents: { ...c.talents } } : {}),
       ...(c.dominantHand !== undefined ? { dominantHand: c.dominantHand } : {}),
       ...(c.unbalanced !== undefined ? { unbalanced: c.unbalanced } : {}),
+      testCharacter: c.testCharacter === true,
       ...(c.formPlan !== undefined ? { formPlan: c.formPlan === null ? null : { padawan: { ...c.formPlan.padawan }, knight: { ...c.formPlan.knight } } } : {}),
     };
   },
   stateSchema: characterSliceSchema,
-  migrations: { 2: migrateCharacterV1, 3: migrateCharacterV2, 4: migrateCharacterV3 },
+  migrations: { 2: migrateCharacterV1, 3: migrateCharacterV2, 4: migrateCharacterV3, 5: migrateCharacterV4 },
   events: {
     /** Losing the dominant hand or arm switches the hand (Q39; health §5). Engine only. */
     dominantHandSwitched: {
