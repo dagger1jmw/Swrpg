@@ -7,6 +7,7 @@ import { CANON_BY_ID } from '../../data/canonNpcs';
 import { FORM_IDS } from '../../data/skills';
 import { stubLightPhilosophy, STUB_PLAYER_SHATTERSENSE } from '../../data/stubs';
 import { TERRAIN_BY_ID } from '../../data/terrain';
+import type { TerrainHazard } from '../../engine/terrainHazard';
 import { loadoutFor, weaponSkillKind, type Loadout } from '../../data/weapons';
 import type { MatchupSituation } from '../../data/formMatchups';
 import { dateFromAbsDay } from '../../engine/calendar';
@@ -164,13 +165,17 @@ export function buildMinionFighter(s: GameState, kindId: string, grade: number, 
 export function buildContext(_s: GameState, terrainTags: readonly string[], stakes: string, sparring: SparringMode | null): DuelContext {
   const situations = new Set<MatchupSituation>();
   let footing = 0;
+  let positionAttempt = 0;
+  const hazards: TerrainHazard[] = [];
   for (const t of terrainTags) {
     const tag = TERRAIN_BY_ID.get(t);
     if (!tag) continue;
     if (tag.situation) situations.add(tag.situation);
     if (tag.footing) footing = Math.min(footing, tag.footing);
+    if (tag.positionAttempt) positionAttempt = Math.min(positionAttempt, tag.positionAttempt);
+    if (tag.hazard) hazards.push({ ...tag.hazard, label: tag.label });
   }
-  return { sparring, situations: [...situations], footing, dyingRiskStakes: stakes === 'lethal' || stakes === 'serious' };
+  return { sparring, situations: [...situations], footing, dyingRiskStakes: stakes === 'lethal' || stakes === 'serious', hazards, positionAttempt };
 }
 
 /** Sparring mode (D-144): the rank's default, or the academy mode for the Sith at an academy in its years. */

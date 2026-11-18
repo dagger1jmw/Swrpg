@@ -139,7 +139,14 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
     or by an opponent's natural 1 in a build-up exchange.
   Position: +1 while held (cover, better footing); decisive position (high ground over a fall,
     a choke point) +2. Taken with a maneuver, or set by the scene.
-  Terrain: unstable footing -1 | confined space: Ataru and Jar'Kai -1
+  Terrain: unstable footing -1 | confined space: Ataru and Jar'Kai -1 | slippery ground: -1 to
+    take-position attempts (on the maneuver's margin, D-184)
+  Terrain accidents (D-144, built in D-184): at the start of each bout (a real fight is one bout)
+    every fighter still in it rolls each hazardous tag (src/data/terrain.ts chance, severity and
+    type: slippery 5% and uneven ground 3% a minor fall, ledges 4% moderate, floating platforms 6%
+    severe, loose rock 2% minor, fire 3% moderate); a hit is a hazard by the health rules (a fall
+    lands by the fall location weights), synced to health like duel damage and narrated as ground
+    truth. In every sparring mode, training sabers included.
   Numbers: +1 per extra attacker engaged on the same target (max +3).
   Form matchups: +/-1 (e.g. Soresu vs blasters, Makashi in one-on-one saber duels; Makashi vs
     several opponents -1). Build the full table from Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md.

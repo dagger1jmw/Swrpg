@@ -7,6 +7,7 @@
 import { SPAR_SESSION } from '../data/combat.config';
 import { runUntilBeat, startDuel, type DuelContext, type DuelState, type Fighter, type SideId } from './duel';
 import { isDying, isIncapacitated } from './wounds';
+import { rollBoutHazards } from './terrainHazard';
 
 export interface BoutRecord {
   /** Null: the session's exchange count ran out mid-bout. */
@@ -64,17 +65,21 @@ export function afterBout(session: SparSessionState, d: DuelState): { session: S
 }
 
 /** Resolves the rest of the session in code (the montage default): every remaining bout to its end. */
-export function runSession(d0: DuelState, session0: SparSessionState, ctx: DuelContext, day: number): { duel: DuelState; session: SparSessionState } {
+export function runSession(d0: DuelState, session0: SparSessionState, ctx: DuelContext, day: number): { duel: DuelState; session: SparSessionState; notes: string[] } {
   let d = d0;
   let session = session0;
+  const notes: string[] = [];
   for (let guard = 0; guard < 200 && !session.ended; guard++) {
     if (!d.end && sessionBudget(d) > 0) d = runUntilBeat(d, ctx, day, 'toEnd', sessionBudget(d)).state;
     const r = afterBout(session, d);
     session = r.session;
     if (!r.next) break;
-    d = r.next;
+    // Each new bout rolls the terrain's accidents (D-144, D-184).
+    const hz = rollBoutHazards(r.next, ctx.hazards ?? [], day);
+    notes.push(...hz.notes);
+    d = hz.duel;
   }
-  return { duel: d, session };
+  return { duel: d, session, notes };
 }
 
 /** The session's outcome for combat XP (combat-xp §1): more bouts won than lost is won, fewer lost, equal a truce. */

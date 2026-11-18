@@ -43,6 +43,7 @@ import { basicRoll, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
 import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, woundPenalty, type Wound } from './wounds';
 import type { ForceActionRecord } from './combatForce';
+import type { TerrainHazard } from './terrainHazard';
 
 export type SideId = 'A' | 'B';
 
@@ -105,6 +106,10 @@ export interface DuelContext {
   footing: number;
   /** The side the pride state of mind looks down on is the weaker by level. */
   dyingRiskStakes: boolean;
+  /** Bout-start terrain accidents (D-144, built in D-184); absent = none. */
+  hazards?: TerrainHazard[];
+  /** Modifier to take-position attempts from the terrain (slippery -1, D-184); absent = 0. */
+  positionAttempt?: number;
 }
 
 export interface Hit {
@@ -452,7 +457,8 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     let defF = striker === 'A' ? B : A;
     const natural1 = rollA.natural === 'nat1' || rollB.natural === 'nat1';
     const pm = atkF.pendingManeuver;
-    if (pm && band(margin) >= MANEUVER_MIN[pm]) {
+    // Taking position on bad ground is harder (slippery -1 on the attempt, D-184).
+    if (pm && band(margin + (pm === 'position' ? (ctx.positionAttempt ?? 0) : 0)) >= MANEUVER_MIN[pm]) {
       maneuver = { by: striker, kind: pm };
       notes.push(`${atkF.name}: ${pm}`);
     } else if (band(margin) >= STRIKE_MIN_MARGIN) {

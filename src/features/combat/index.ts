@@ -6,6 +6,7 @@ import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
 import { FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
+import { rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, type BodyPart } from '../../data/health.config';
 import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
 import { dateFromAbsDay } from '../../engine/calendar';
@@ -97,14 +98,19 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
     objects[t] = n;
     objectSizes[t] = tag.objects.size;
   }
-  const duel = startDuel(player, sparOpps, rng, surprise);
+  const duel0 = startDuel(player, sparOpps, rng, surprise);
+  // The first bout's terrain accidents (D-144, D-184); a real fight is one bout. Health syncs like any duel damage.
+  const hz = rollBoutHazards(duel0, ctx.hazards ?? [], selectNow(s).day);
+  const duel = hz.duel;
+  notes.push(...hz.notes);
+  emit.push(...syncEmits(s, duel0, duel, meta));
   const active: ActiveFight = {
     id: fightId,
     startedAbs: absNow(s),
     stakes: spec.stakes,
     sparring,
     terrainTags: spec.terrainTags,
-    ctx: { ...ctx, situations: [...ctx.situations] },
+    ctx: { ...ctx, situations: [...ctx.situations], hazards: ctx.hazards ?? [], positionAttempt: ctx.positionAttempt ?? 0 },
     duel,
     patternUses: {},
     objects,
@@ -230,6 +236,7 @@ function resolveSessionRest(slice: CombatSlice, s: GameState, active: ActiveFigh
   const r = runSession(duel, session, active.ctx as ActiveFight['ctx'] & { situations: never[] }, day);
   const nextActive: ActiveFight = { ...active, duel: r.duel, session: r.session, exchangeSkills: withSkills(active, before, r.duel), beat: null };
   const c = conclude(slice, s, nextActive, sessionOutcome(r.session), `sparring session (${r.session.ended})`);
+  notes.push(...r.notes);
   // The player can always step in (D-177): the next bout with the same named partners, unless someone was really hurt.
   const partners = Object.values(active.meta).map((m) => m.npcId).filter((id): id is string => id !== null && selectNpc(s, id)?.status === 'active');
   const hurt = isIncapacitated(r.duel.a.wounds as Wound[]) || isDying(r.duel.a.wounds as Wound[]) || r.session.ended === 'injury';
@@ -252,7 +259,11 @@ function settle(slice: CombatSlice, s: GameState, active: ActiveFight, before: D
     // A sparring bout ended (D-168): the next bout after the recovery, or the end of the session.
     const r = afterBout(nextActive.session, after);
     const boutNote = `bout ${r.session.bouts.length}: ${r.session.bouts[r.session.bouts.length - 1]!.winner === 'A' ? 'won' : r.session.bouts[r.session.bouts.length - 1]!.winner === 'B' ? 'lost' : 'unfinished'}`;
-    if (r.next) return { slice: { ...slice, active: { ...nextActive, duel: r.next, session: r.session, beat: 'boutEnded', lastNarrated: after.exchange } }, emit, notes: [...extraNotes, boutNote] };
+    if (r.next) {
+      // The next bout's terrain accidents (D-144, D-184).
+      const hz = rollBoutHazards(r.next, active.ctx.hazards ?? [], selectNow(s).day);
+      return { slice: { ...slice, active: { ...nextActive, duel: hz.duel, session: r.session, beat: 'boutEnded', lastNarrated: after.exchange } }, emit: [...emit, ...syncEmits(s, r.next, hz.duel, active.meta)], notes: [...extraNotes, boutNote, ...hz.notes] };
+    }
     const c = conclude(slice, s, { ...nextActive, session: r.session }, sessionOutcome(r.session), `sparring session (${r.session.ended})`);
     return { ...c, emit: [...emit, ...c.emit], notes: [...extraNotes, boutNote, ...c.notes] };
   }

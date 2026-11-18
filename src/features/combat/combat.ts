@@ -3,6 +3,7 @@
 // last fight for narration and the UI. fightsToday and the day's combat XP stay in progression (D-47).
 import { z } from 'zod';
 import { NPC_FATES, SPARRING_MODES } from '../../data/combat.config';
+import { HAZARD_TYPES } from '../../data/health.config';
 import { MINION_KIND_IDS } from '../../data/npcGen.config';
 import { COMBAT_OUTCOMES, COMBAT_STAKES } from '../../data/progression.config';
 import { TERRAIN_IDS } from '../../data/terrain';
@@ -37,7 +38,15 @@ export const activeFightSchema = z.object({
   sparring: z.enum(SPARRING_MODES).nullable(),
   terrainTags: z.array(z.string()),
   /** The duel context and state (src/engine/duel.ts): engine-made, JSON-serializable, never written by the AI. */
-  ctx: z.object({ sparring: z.enum(SPARRING_MODES).nullable(), situations: z.array(z.string()), footing: z.number(), dyingRiskStakes: z.boolean() }),
+  ctx: z.object({
+    sparring: z.enum(SPARRING_MODES).nullable(),
+    situations: z.array(z.string()),
+    footing: z.number(),
+    dyingRiskStakes: z.boolean(),
+    /** Bout-start terrain accidents (D-144, D-184); older saves have none. */
+    hazards: z.array(z.object({ chance: z.number().min(0).max(1), severity: z.union([z.literal(1), z.literal(2), z.literal(3)]), type: z.enum(HAZARD_TYPES), label: z.string() })).default([]),
+    positionAttempt: z.number().default(0),
+  }),
   duel: z.any(),
   /** Sequence state: pattern uses and the remaining throwable objects (D-146). */
   patternUses: z.record(z.string(), z.number().int().min(0)),

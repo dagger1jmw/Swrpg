@@ -26,6 +26,8 @@ export interface TerrainTag {
   position?: 1 | 2;
   /** Throwable objects: size and the supply range per fight. */
   objects?: { size: ObjectSize; supply: readonly [number, number] };
+  /** Modifier to take-position attempts (the position maneuver's margin): slippery ground -1 (Jared, D-184). */
+  positionAttempt?: number;
 }
 
 export const TERRAIN_TAGS: readonly TerrainTag[] = [
@@ -33,7 +35,7 @@ export const TERRAIN_TAGS: readonly TerrainTag[] = [
   { id: 'confined', label: 'confined space', situation: 'confined' },
   { id: 'open', label: 'open ground', situation: 'openTerrain' },
   { id: 'unevenGround', label: 'uneven ground', footing: -1, hazard: { chance: 0.03, severity: 1, type: 'fall' } },
-  { id: 'slippery', label: 'slippery surface', footing: -1, hazard: { chance: 0.05, severity: 1, type: 'fall' } },
+  { id: 'slippery', label: 'slippery surface', footing: -1, hazard: { chance: 0.05, severity: 1, type: 'fall' }, positionAttempt: -1 },
   { id: 'ledge', label: 'ledges and drops', position: 2, hazard: { chance: 0.04, severity: 2, type: 'fall' } },
   { id: 'floatingPlatforms', label: 'floating platforms', footing: -1, position: 2, hazard: { chance: 0.06, severity: 3, type: 'fall' } },
   { id: 'highGround', label: 'high ground', position: 2 },
@@ -42,6 +44,8 @@ export const TERRAIN_TAGS: readonly TerrainTag[] = [
   { id: 'looseRock', label: 'loose rock', objects: { size: 'small', supply: [3, 6] }, hazard: { chance: 0.02, severity: 1, type: 'fall' } },
   { id: 'debris', label: 'debris', objects: { size: 'medium', supply: [2, 4] } },
   /** Forests, jungles, swamps (Jared, D-180 follow-up): logs and heavy branches to throw; supply like debris. */
+  /** Ice fields, glaciers, Ilum's caves, Hoth (Jared, D-184): chunks of ice to throw. */
+  { id: 'iceChunks', label: 'chunks of ice', objects: { size: 'medium', supply: [2, 5] } },
   { id: 'fallenTimber', label: 'fallen branches and logs', objects: { size: 'medium', supply: [2, 4] } },
   { id: 'crates', label: 'crates and containers', objects: { size: 'medium', supply: [2, 5] }, position: 1 },
   { id: 'machinery', label: 'heavy machinery', objects: { size: 'large', supply: [1, 2] } },

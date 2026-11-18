@@ -201,20 +201,22 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   // Deferred events from the previous turn come first (architecture §3, D-29): hazards, then a pending fight.
   for (const h of state.health.pendingHazards) apply([{ type: 'hazardResolved', hazard: h.hazard, severity: h.severity, cause: h.cause, fromPending: true }]);
   let started = false;
+  // The fight's start notes (terrain accidents of the first bout, D-184) reach the narration with the exchanges.
+  const startNotes: string[] = [];
   if (state.combat.pending && !state.combat.active) {
-    apply([{ type: 'fightBegun', fromPending: true }]);
+    startNotes.push(...apply([{ type: 'fightBegun', fromPending: true }]).flatMap((a) => a.notes));
     started = state.combat.active !== null;
   }
   // A fight intent starts a duel directly: its single entry point (D-29); fights are duels, not a check (M5).
   const npcTargets = intent ? intent.targets.filter((t) => selectNpc(state, t) !== null) : [];
   if (!state.combat.active && intent?.actionType === 'fight' && npcTargets.length) {
-    apply([{ type: 'fightBegun', fromPending: false, opponentRefs: npcTargets, stakes: 'serious' }]);
+    startNotes.push(...apply([{ type: 'fightBegun', fromPending: false, opponentRefs: npcTargets, stakes: 'serious' }]).flatMap((a) => a.notes));
     started = state.combat.active !== null;
   }
   // "Play the next bout" after an auto-resolved spar (D-177): the same partners, played out with the beats.
   const rematch = state.combat.last?.rematch;
   if (opts.beat?.action === 'playNextBout' && !state.combat.active && rematch) {
-    apply([{ type: 'fightBegun', fromPending: false, opponentRefs: rematch.opponentRefs, stakes: 'spar', ...(rematch.sparringMode ? { sparringMode: rematch.sparringMode } : {}) }]);
+    startNotes.push(...apply([{ type: 'fightBegun', fromPending: false, opponentRefs: rematch.opponentRefs, stakes: 'spar', ...(rematch.sparringMode ? { sparringMode: rematch.sparringMode } : {}) }]).flatMap((a) => a.notes));
     started = state.combat.active !== null;
   }
   if (opts.beat && (opts.beat.action === 'fate' || opts.beat.action === 'review')) {
@@ -244,7 +246,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     const after = state;
     const secondsAfter = after.combat.active ? (after.combat.active.duel as { seconds: number }).seconds : after.combat.last?.id === fightId ? ((after.combat.last.duel as { seconds: number } | undefined)?.seconds ?? secondsBefore) : secondsBefore;
     const seconds = Math.max(0, secondsAfter - secondsBefore);
-    combat = combatDraft(before, after, started, notes);
+    combat = combatDraft(before, after, started, [...startNotes, ...notes]);
     if (seconds > 0) {
       const adv = advanceTime(registry, state, { seconds, reason: 'combat', source: 'turnDraft', requested: seconds, occupation: 'combat' });
       state = adv.state;

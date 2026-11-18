@@ -73,7 +73,11 @@ export const TERRAIN_ALIASES: Readonly<Record<string, readonly string[]>> = {
   hangar: ['flatFloor', 'crates', 'machinery'],
   corridor: ['confined', 'flatFloor'],
   temple: ['flatFloor'],
-  ice: ['slippery', 'open'],
+  // Ice (Jared, D-184): chunks to throw, slippery footing (the fall roll, -1 to take position), uneven ground.
+  ice: ['iceChunks', 'slippery', 'unevenGround'],
+  glacier: ['iceChunks', 'slippery', 'unevenGround'],
+  'ilum caves': ['iceChunks', 'slippery', 'unevenGround'],
+  hoth: ['iceChunks', 'slippery', 'unevenGround'],
 };
 
 const squash = (x: string): string => x.toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -196,7 +200,14 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
           gap = Number(args[i++]);
           if (!Number.isFinite(gap)) return fail('at takes a level gap, e.g. at -10');
         } else if (k === 'terrain') {
-          while (i < args.length && !kw.has(args[i]!.toLowerCase())) terrain.push(...args[i++]!.split(',').filter(Boolean));
+          while (i < args.length && !kw.has(args[i]!.toLowerCase())) {
+            // Two-word place names ("Ilum caves") first.
+            const two = `${args[i]!} ${args[i + 1] ?? ''}`.toLowerCase().replace(/,/g, '');
+            if (TERRAIN_ALIASES[two]) {
+              terrain.push(two);
+              i += 2;
+            } else terrain.push(...args[i++]!.split(',').filter(Boolean));
+          }
         } else if (k === 'stakes') {
           stakes = (args[i++] ?? '').toLowerCase();
           if (!(COMBAT_STAKES as readonly string[]).includes(stakes)) return fail(`stakes: ${COMBAT_STAKES.join(', ')}`);

@@ -389,6 +389,8 @@ export function describeCombat(c: CombatDraft): string[] {
   for (const r of c.narrate) lines.push(describeExchange(r, names));
   lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}`).join('; ')}.`);
   for (const n of c.notes.filter((x) => /sequence|step|not attempted|dropped/.test(x))) lines.push(`Sequence: ${n}`);
+  // Terrain accidents (D-144, D-184): ground truth like the exchanges.
+  for (const n of c.notes.filter((x) => x.startsWith('terrain: '))) lines.push(`Terrain accident: ${n.slice(9)}.`);
   if (c.session) {
     const s = c.session;
     lines.push(`Sparring session: ${s.won + s.lost + s.unfinished} bouts so far, ${s.won} won, ${s.lost} lost${s.unfinished ? `, ${s.unfinished} unfinished` : ''}${s.ended ? `; the session ended (${s.ended === 'exchanges' ? 'time' : s.ended})` : ''}. ${c.ended ? 'Summarize the whole session from the highlights above: bouts won and lost, the telling moments' : c.beat === 'boutEnded' ? `Narrate the bout that just ended. The session goes on (D-181): after a short breather bout ${s.won + s.lost + s.unfinished + 1} begins. Do not send combatEnded` : `Bout ${s.won + s.lost + s.unfinished + 1} is in progress`}${s.injuries.length ? `, and the accident: ${s.injuries.join('; ')}` : ''}.`);
