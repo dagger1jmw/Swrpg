@@ -102,7 +102,8 @@ export const BEAT_TRACK = 2;
 /** strikeAbsorbed: a hit that only takes Vitality (no wound) is quiet too. */
 /** minionDown: a hit on a minion (cut-down or strike) is quiet; wounds to the player or a named opponent are narrated. */
 export const QUIET_BEATS = ['trackSwing', 'periodic', 'strikeMissed', 'strikeAbsorbed', 'minionDown'] as const;
-export const NARRATED_BEATS = ['woundingHit', 'maneuverLanded', 'spent', 'forceAction', 'sequence', 'incapacitated', 'fightEnded', 'playerNarrate'] as const;
+/** boutEnded: a sparring bout the player played out ended and the session goes on (D-168). */
+export const NARRATED_BEATS = ['woundingHit', 'maneuverLanded', 'spent', 'forceAction', 'sequence', 'incapacitated', 'fightEnded', 'playerNarrate', 'boutEnded'] as const;
 export type BeatReason = (typeof QUIET_BEATS)[number] | (typeof NARRATED_BEATS)[number];
 export const isNarratedBeat = (r: BeatReason): boolean => (NARRATED_BEATS as readonly string[]).includes(r);
 /** Budget target: a 150-exchange duel with default play stays at or under this many calls. */
@@ -133,6 +134,12 @@ export const SPARRING_DEFAULT_BY_RANK: Readonly<Record<string, SparringMode>> = 
   none: 'trainingSaber',
   career: 'trainingSaber',
 };
+/**
+ * A sparring session (Jared, D-168; combat-xp §6's 34-exchange spar): bouts until this many exchanges in total, each bout
+ * ending by its mode's rule (a point, or Spent). Between bouts each side gets back this share of its maximum Vitality
+ * (design default); a side still Spent after that, or a real injury (an accident, an academy wound), ends the session.
+ */
+export const SPAR_SESSION = { exchanges: 34, recoverBetweenBouts: 0.5 } as const;
 
 /**
  * Sith academies with live-blade sparring (Jared, D-143; checked against Docs/SWRPG lore). Years are BBY

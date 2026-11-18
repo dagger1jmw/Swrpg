@@ -64,6 +64,8 @@ Session shape for computeXp (D-55): combat is a branch of the one computeXp func
 ## 6. Reference values (M 1.0)
   Even serious duel, 34 exchanges: 34 * 0.25 * 1.0 * 1.5 * 1.0 = 12.75 -> capped at 12
   Even spar, 34 exchanges: 4.25
+    (D-168: a spar is a session of bouts up to 34 exchanges in total, rolls section 3; one bout
+    alone is about 5-10 exchanges.)
   Lethal duel, opponent 12 levels stronger, lost but survived:
     34 * 0.25 * 1.25 * 2.0 * 1.2 = 25.5 -> capped at 12
   Jedi (70) vs trooper (15): 0 (gap -55, below -35)

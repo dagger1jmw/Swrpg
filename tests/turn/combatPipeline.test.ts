@@ -164,3 +164,47 @@ describe('dice and rules in the pipeline', () => {
     expect(t.record.rejected.some((r) => r.reason.includes('combatStarted'))).toBe(true);
   });
 });
+
+describe('sparring sessions (D-168)', () => {
+  const sparPending = (s: Session): Session => ({ ...s, state: applyEvents(REGISTRY, s.state, [{ type: 'combatStarted', opponentRefs: [vek(s)], stakes: 'spar', terrainTags: ['flatFloor'] }], { source: 'ai' }).state });
+  it('a default sparring session resolves in code with one narration call for the whole session', async () => {
+    const { deps, provider } = setup(many(3));
+    const s = sparPending(session());
+    const before = provider.calls.length;
+    const t = await playTurn(deps, s, beat('continue'));
+    expect(provider.calls.slice(before).map((c) => c.opts.callType)).toEqual(['narrative']);
+    expect(t.session.state.combat.active).toBeNull();
+    const last = t.session.state.combat.last!;
+    expect(last.stakes).toBe('spar');
+    expect(last.session?.ended).not.toBeNull();
+    expect(last.session!.bouts.length).toBeGreaterThan(0);
+    expect(last.exchanges).toBeLessThanOrEqual(34);
+    expect(t.record.draft.combat?.session).not.toBeNull();
+    expect(t.record.draft.combat?.ended).not.toBeNull();
+    // The narration gets the highlights only (hits, points, maneuvers), not every exchange.
+    expect(t.record.draft.combat!.narrate.every((r) => r.hit !== null || r.maneuver !== null)).toBe(true);
+  });
+  it('a bout can be played out beat by beat; afterwards the rest of the session resolves at once', async () => {
+    const { deps } = setup(many(60));
+    let s = (await playTurn(deps, sparPending(session(70, 'bout')), beat('playBout'))).session;
+    const active = s.state.combat.active;
+    if (active) {
+      expect(active.session?.playing).toBe(true);
+      // Beats until the bout ends (the next bout starts with play-out off) or the session ends.
+      for (let i = 0; i < 40 && s.state.combat.active?.session?.playing; i++) s = (await playTurn(deps, s, beat('continue'))).session;
+      if (s.state.combat.active) {
+        expect(s.state.combat.active.session?.bouts.length).toBeGreaterThan(0);
+        s = (await playTurn(deps, s, beat('continue'))).session;
+      }
+    }
+    expect(s.state.combat.active).toBeNull();
+    expect(s.state.combat.last?.session?.ended).not.toBeNull();
+  });
+  it('Stop sparring ends the session with the bouts so far', async () => {
+    const { deps } = setup(many(4));
+    let s = (await playTurn(deps, sparPending(session(70, 'stop')), beat('playBout'))).session;
+    if (s.state.combat.active) s = (await playTurn(deps, s, beat('stopSession'))).session;
+    expect(s.state.combat.active).toBeNull();
+    expect(['stopped', 'exchanges', 'injury', 'spent']).toContain(s.state.combat.last?.session?.ended);
+  });
+});

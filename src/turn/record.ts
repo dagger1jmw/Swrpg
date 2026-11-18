@@ -17,7 +17,7 @@ export type TurnInput =
 
 /** The combat action a beat button sends (the combat feature's combatAction event, without its type). */
 export interface CombatActionInput {
-  action: 'stance' | 'tactic' | 'maneuver' | 'formChange' | 'force' | 'target' | 'shatterpoint' | 'sequence' | 'fightOn' | 'narrate' | 'resolve' | 'continue' | 'fate' | 'review';
+  action: 'stance' | 'tactic' | 'maneuver' | 'formChange' | 'force' | 'target' | 'shatterpoint' | 'sequence' | 'fightOn' | 'narrate' | 'resolve' | 'continue' | 'playBout' | 'stopSession' | 'fate' | 'review';
   stance?: string;
   tactic?: string;
   maneuver?: string;

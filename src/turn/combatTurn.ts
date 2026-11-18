@@ -35,6 +35,8 @@ export interface CombatDraft {
   quiet: boolean;
   quietLine: string | null;
   ended: { outcome: string; reason: string; playerFate: string | null } | null;
+  /** A sparring session (D-168): bouts won, lost and unfinished, how it ended, and any real injury. */
+  session: { won: number; lost: number; unfinished: number; ended: string | null; injuries: string[] } | null;
   advantage: number;
   fighters: CombatFighterView[];
   notes: string[];
@@ -93,7 +95,11 @@ export function combatDraft(before: GameState, after: GameState, started: boolea
   const fromNarrated = prev && prevDuel ? prev.lastNarrated : 0;
   const records = duel.log.slice(fromLog);
   const narrateFrom = duel.log.findIndex((r) => r.n > fromNarrated);
-  const narrate = narrateFrom < 0 ? [] : duel.log.slice(narrateFrom);
+  const sess = (active?.session ?? (endedNow ? last!.session : null)) ?? null;
+  // A sparring session resolved in code is narrated once from its highlights: hits, points and maneuvers (D-168).
+  const all = narrateFrom < 0 ? [] : duel.log.slice(narrateFrom);
+  const narrate = sess && endedNow ? all.filter((r) => r.hit !== null || r.maneuver !== null) : all;
+  const injuries = sess ? duel.log.filter((r) => r.hit?.severity && r.n > fromNarrated).map((r) => `${r.hit!.severity} wound to the ${r.hit!.part}`) : [];
   const beat = active?.beat ?? (endedNow ? 'fightEnded' : null);
   const narrated = endedNow || started || (beat !== null && isNarratedBeat(beat as BeatReason));
   return {
@@ -105,6 +111,9 @@ export function combatDraft(before: GameState, after: GameState, started: boolea
     quiet: !narrated,
     quietLine: narrated ? null : quietLineFor(beat, duel, records),
     ended: endedNow ? { outcome: last!.outcome, reason: last!.reason, playerFate: last!.playerFate } : null,
+    session: sess
+      ? { won: sess.bouts.filter((b) => b.winner === 'A').length, lost: sess.bouts.filter((b) => b.winner === 'B').length, unfinished: sess.bouts.filter((b) => b.winner === null).length, ended: sess.ended, injuries }
+      : null,
     advantage: duel.advantage,
     fighters: [view(duel.a), ...duel.opponents.map(view)],
     notes: [...notes],

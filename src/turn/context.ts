@@ -386,6 +386,10 @@ export function describeCombat(c: CombatDraft): string[] {
   for (const r of c.narrate) lines.push(describeExchange(r, names));
   lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}`).join('; ')}.`);
   for (const n of c.notes.filter((x) => /sequence|step|not attempted|dropped/.test(x))) lines.push(`Sequence: ${n}`);
+  if (c.session) {
+    const s = c.session;
+    lines.push(`Sparring session: ${s.won + s.lost + s.unfinished} bouts so far, ${s.won} won, ${s.lost} lost${s.unfinished ? `, ${s.unfinished} unfinished` : ''}${s.ended ? `; the session ended (${s.ended === 'exchanges' ? 'time' : s.ended})` : ''}. ${c.ended ? 'Summarize the whole session from the highlights above: bouts won and lost, the telling moments' : 'Narrate the bout that just ended'}${s.injuries.length ? `, and the accident: ${s.injuries.join('; ')}` : ''}.`);
+  }
   if (c.ended) lines.push(`The fight is over: ${c.ended.outcome} (${c.ended.reason})${c.ended.playerFate ? `; the opponent's choice: ${c.ended.playerFate}` : ''}.`);
   else lines.push('The fight goes on: end at the last exchange, at the moment the player chooses again.');
   return lines;

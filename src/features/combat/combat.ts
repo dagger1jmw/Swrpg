@@ -17,6 +17,14 @@ export const pendingFightSchema = z.object({
 });
 export type PendingFight = z.infer<typeof pendingFightSchema>;
 
+/** A sparring session (D-168): the bouts so far, where the current bout began, how it ended, and play-out mode. */
+export const sparSessionSchema = z.object({
+  bouts: z.array(z.object({ winner: z.enum(['A', 'B']).nullable(), reason: z.string(), exchanges: z.number().int().min(0) })),
+  boutStart: z.number().int().min(0),
+  ended: z.enum(['exchanges', 'spent', 'injury', 'stopped']).nullable(),
+  playing: z.boolean(),
+});
+
 /** Who each fighter is outside the duel: a named NPC or a minion of a group. */
 export const fighterMetaSchema = z.object({ npcId: z.string().nullable(), minionKind: z.string().nullable(), rank: z.string().nullable() });
 
@@ -43,6 +51,8 @@ export const activeFightSchema = z.object({
   beat: z.string().nullable(),
   /** Started by a won perception contest or surprise: +1 to the sequence cap (D-146). */
   hidden: z.boolean(),
+  /** A spar's session of bouts (D-168); null for a real fight. */
+  session: sparSessionSchema.nullable().default(null),
 });
 export type ActiveFight = z.infer<typeof activeFightSchema>;
 
@@ -61,6 +71,8 @@ export const fightSummarySchema = z.object({
   day: z.number().int(),
   /** The final duel state (the last turn's roll cards and narration). Engine-made. */
   duel: z.any().optional(),
+  /** A sparring session's bouts and how it ended (D-168). */
+  session: sparSessionSchema.nullable().optional(),
 });
 export type FightSummary = z.infer<typeof fightSummarySchema>;
 

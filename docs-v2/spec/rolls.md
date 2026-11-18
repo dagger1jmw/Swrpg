@@ -74,6 +74,20 @@ Time: the clock advances 5-10 seconds per exchange (rolled).
 Duration targets: equal Force users median 30-40 exchanges (about 3-6 minutes);
   20-level gap about 25-30; 60-level gap about 10-15; Jedi (70) vs trooper (15) 4 or fewer.
 
+Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchanges in total
+  (combat.config SPAR_SESSION). Each bout ends by its sparring mode's rule (controlled live
+  blades: a point; training sabers: the first side Spent; Sith academy: wounds). Between bouts
+  each side gets back 50% of its maximum Vitality (design default); fatigue and wounds carry.
+  The session ends at the exchange count, or early when a side is still Spent after the
+  recovery, when someone is really hurt (an accident, an academy wound), or when the player
+  stops. Exchange numbering and the log run on across bouts; the session's outcome is the bout
+  tally (more won: won; more lost: lost; equal: truce).
+  Live play: by default the session resolves in code like a montage, with one narration call
+  for the whole session (bouts won and lost, the highlights, any accident or injury). The
+  player can choose Play this bout to play the current bout out with the normal beats (any
+  tactical action does the same); after it the next bout waits for the same choice. Stop
+  sparring ends the session with the bouts so far.
+
 ## 4. Ranged and Force
   Blaster vs saber deflection: shooter d20 + blaster skill/10 vs defender d20 + form
     level/10 + form vs-blaster modifier; a defender margin of 8+ can redirect the bolt

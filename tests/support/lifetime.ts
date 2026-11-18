@@ -30,6 +30,7 @@ import { runUntilBeat, startDuel, type DuelContext, type Fighter } from '../../s
 import { capacity } from '../../src/engine/fatigue';
 import { forceCapacity } from '../../src/engine/forceMeter';
 import { buildPlayerFighter } from '../../src/features/combat/build';
+import { newSession, runSession, sessionOutcome } from '../../src/engine/sparSession';
 
 export const DAYS = 368;
 const WAKE = 6 * 3600;
@@ -222,10 +223,12 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
   const sparring = f.stakes === 'spar' ? (SPARRING_DEFAULT_BY_RANK[s.ranks.rank] ?? 'trainingSaber') : null;
   if (sparring === 'trainingSaber') player = { ...player, weapon: 'trainingSaber' };
   const ctx: DuelContext = { sparring, situations: [], footing: 0, dyingRiskStakes: f.stakes === 'lethal' || f.stakes === 'serious' };
-  const r = runUntilBeat(startDuel(player, sparring === 'trainingSaber' ? opponents.map((o) => (o.weapon === 'lightsaber' ? { ...o, weapon: 'trainingSaber' as const } : o)) : opponents, s.meta.rngState), ctx, s.clock.now.day, 'toEnd', 3000);
-  const d = r.state;
+  const start = startDuel(player, sparring === 'trainingSaber' ? opponents.map((o) => (o.weapon === 'lightsaber' ? { ...o, weapon: 'trainingSaber' as const } : o)) : opponents, s.meta.rngState);
+  // A spar is a session of bouts up to 34 exchanges (D-168); a real fight runs to its end.
+  const sess = sparring ? runSession(start, newSession(), ctx, s.clock.now.day) : null;
+  const d = sess ? sess.duel : runUntilBeat(start, ctx, s.clock.now.day, 'toEnd', 3000).state;
   s = { ...s, meta: { ...s.meta, rngState: d.rng } };
-  const outcome = d.end?.winner === 'A' ? 'won' : d.end?.winner === 'B' ? 'lost' : 'fled';
+  const outcome = sess ? sessionOutcome(sess.session) : d.end?.winner === 'A' ? 'won' : d.end?.winner === 'B' ? 'lost' : 'fled';
   if (outcome === 'won') fightStats.won += 1;
   else fightStats.lost += 1;
   const newWounds = d.a.wounds.slice(player.wounds.length);

@@ -161,8 +161,16 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
           ])
         : null,
       formSelect || targetSelect ? el('div', { class: 'beat-row' }, [formSelect, targetSelect]) : null,
+      // A sparring session (D-168): the rest resolves at once by default; a bout can be played out beat by beat.
+      active.session && !active.session.ended
+        ? el('div', { class: 'beat-row' }, [
+            el('span', { class: 'hint', text: `Sparring: bout ${active.session.bouts.length + 1}, ${active.session.bouts.filter((b) => b.winner === 'A').length} won, ${active.session.bouts.filter((b) => b.winner === 'B').length} lost` }),
+            active.session.playing ? null : beat('Play this bout', { action: 'playBout' }, 'small'),
+            beat('Stop sparring', { action: 'stopSession' }, 'small secondary'),
+          ])
+        : null,
       el('div', { class: 'beat-row main-actions' }, [
-        beat('Continue', { action: 'continue' }, 'small'),
+        beat(active.session && !active.session.playing ? 'Spar it out' : 'Continue', { action: 'continue' }, 'small'),
         beat('Fight on', { action: 'fightOn' }, 'small'),
         beat('Narrate', { action: 'narrate' }, 'small secondary'),
         beat('Resolve to end', { action: 'resolve' }, 'small secondary'),

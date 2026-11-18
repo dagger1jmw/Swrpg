@@ -4,7 +4,8 @@
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
-import { FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, STANCES, TACTICS, FORM_CHANGE_COST, type FateKind, type NpcFate } from '../../data/combat.config';
+import { FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type NpcFate } from '../../data/combat.config';
+import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
 import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
 import { dateFromAbsDay } from '../../engine/calendar';
 import { COMBAT_STAKES, type CombatOutcome, type CombatStakes } from '../../data/progression.config';
@@ -109,6 +110,8 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
     segmentStart: 0,
     beat: null,
     hidden: false,
+    // A spar is a session of bouts up to 34 exchanges (D-168).
+    session: spec.stakes === 'spar' ? newSession() : null,
   };
   notes.push(`fight ${fightId}: ${spec.stakes}${sparring ? ` (${sparring})` : ''} against ${opponents.map((o) => o.name).join(', ') || 'nobody'}`);
   return { active, rng: duel.rng, notes, emit: [...emit, { type: 'pacingSet', level: 'moment' }] };
@@ -205,12 +208,24 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     skillId: duel.a.skillId,
     day: selectNow(s).day,
     duel,
+    session: active.session ?? null,
   };
   return { slice: { ...slice, active: null, fates, last }, emit, notes, ...(rng ? { rng } : {}) };
 }
 
 /** Outcome of a duel end for side A. */
 const outcomeOf = (d: DuelState): CombatOutcome => (d.end?.winner === 'A' ? 'won' : d.end?.winner === 'B' ? 'lost' : 'fled');
+
+/**
+ * The rest of a sparring session resolved in code, like a montage (D-168): every remaining bout to its end, then the
+ * conclusion; the turn narrates the whole session once.
+ */
+function resolveSessionRest(slice: CombatSlice, s: GameState, active: ActiveFight, session: SparSessionState, before: DuelState, duel: DuelState, day: number, notes: string[]): ReturnType<typeof conclude> {
+  const r = runSession(duel, session, active.ctx as ActiveFight['ctx'] & { situations: never[] }, day);
+  const nextActive: ActiveFight = { ...active, duel: r.duel, session: r.session, exchangeSkills: withSkills(active, before, r.duel), beat: null };
+  const c = conclude(slice, s, nextActive, sessionOutcome(r.session), `sparring session (${r.session.ended})`);
+  return { ...c, emit: [...syncEmits(s, before, r.duel, active.meta), ...c.emit], notes: [...notes, ...c.notes] };
+}
 
 /** Applies a segment's result: health sync, skills, beat, and the conclusion when the duel ended. */
 function settle(slice: CombatSlice, s: GameState, active: ActiveFight, before: DuelState, after: DuelState, beat: string | null, narrated: boolean, extraNotes: string[] = []): ReturnType<typeof conclude> {
@@ -222,6 +237,14 @@ function settle(slice: CombatSlice, s: GameState, active: ActiveFight, before: D
     beat,
     lastNarrated: narrated ? after.exchange : active.lastNarrated,
   };
+  if (after.end && nextActive.session) {
+    // A sparring bout ended (D-168): the next bout after the recovery, or the end of the session.
+    const r = afterBout(nextActive.session, after);
+    const boutNote = `bout ${r.session.bouts.length}: ${r.session.bouts[r.session.bouts.length - 1]!.winner === 'A' ? 'won' : r.session.bouts[r.session.bouts.length - 1]!.winner === 'B' ? 'lost' : 'unfinished'}`;
+    if (r.next) return { slice: { ...slice, active: { ...nextActive, duel: r.next, session: r.session, beat: 'boutEnded', lastNarrated: after.exchange } }, emit, notes: [...extraNotes, boutNote] };
+    const c = conclude(slice, s, { ...nextActive, session: r.session }, sessionOutcome(r.session), `sparring session (${r.session.ended})`);
+    return { ...c, emit: [...emit, ...c.emit], notes: [...extraNotes, boutNote, ...c.notes] };
+  }
   if (after.end) {
     const c = conclude(slice, s, nextActive, outcomeOf(after), after.end.reason);
     return { ...c, emit: [...emit, ...c.emit], notes: [...extraNotes, ...c.notes] };
@@ -323,7 +346,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
     combatAction: {
       schema: z.object({
         type: z.literal('combatAction'),
-        action: z.enum(['stance', 'tactic', 'maneuver', 'formChange', 'force', 'target', 'shatterpoint', 'sequence', 'fightOn', 'narrate', 'resolve', 'continue']),
+        // playBout / stopSession: a sparring session's bout played out beat by beat, or the session ended (D-168).
+        action: z.enum(['stance', 'tactic', 'maneuver', 'formChange', 'force', 'target', 'shatterpoint', 'sequence', 'fightOn', 'narrate', 'resolve', 'continue', 'playBout', 'stopSession']),
         stance: z.enum(STANCES).optional(),
         tactic: z.enum(TACTICS).optional(),
         maneuver: z.enum(MANEUVERS).optional(),
@@ -334,15 +358,32 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
       }),
       sources: ['player', 'engine'],
       handle: (slice, e, ctx) => {
-        const active = slice.active;
+        let active = slice.active;
         if (!active) return { reject: 'no fight in progress' };
         const s = ctx.state;
         const day = selectNow(s).day;
         const before = active.duel as DuelState;
         const ctxD = active.ctx as ActiveFight['ctx'] & { situations: never[] };
         let duel: DuelState = { ...before, a: { ...before.a } };
-        const action = String(e['action']);
+        let action = String(e['action']);
         const notes: string[] = [];
+        // A sparring session (D-168): by default the rest resolves in code with one narration; Play this bout plays the
+        // current bout out with the normal beats (any tactical action does too); Stop ends the session.
+        const session = active.session;
+        if (session && !session.ended) {
+          if (action === 'stopSession') {
+            const stopped: SparSessionState = { ...session, bouts: duel.exchange > session.boutStart ? [...session.bouts, { winner: null, reason: 'stopped', exchanges: duel.exchange - session.boutStart }] : session.bouts, ended: 'stopped', playing: false };
+            const c = conclude(slice, s, { ...active, session: stopped }, sessionOutcome(stopped), 'sparring session (stopped)');
+            return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
+          }
+          const passive = ['continue', 'fightOn', 'resolve', 'narrate'].includes(action);
+          if (!session.playing && passive) {
+            const c = resolveSessionRest(slice, s, active, session, before, duel, day, notes);
+            return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
+          }
+          if (!session.playing) active = { ...active, session: { ...session, playing: true } };
+          if (action === 'playBout') action = 'continue';
+        } else if (action === 'playBout' || action === 'stopSession') return { reject: 'not in a sparring session' };
         let mode: RunMode | null = 'beat';
         let narrated = false;
         let beat: string | null = null;
@@ -426,7 +467,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           const r = runUntilBeat(duel, ctxD, day, mode);
           duel = r.state;
           beat = r.beat;
-          narrated = beat !== null && ['woundingHit', 'maneuverLanded', 'spent', 'forceAction', 'sequence', 'incapacitated', 'fightEnded', 'playerNarrate'].includes(beat);
+          narrated = beat !== null && isNarratedBeat(beat as BeatReason);
         }
         const settled = settle(slice, s, active, before, duel, beat, narrated, notes);
         return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
