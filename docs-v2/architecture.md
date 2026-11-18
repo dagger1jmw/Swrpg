@@ -160,10 +160,11 @@ test 2 generalized).
 | skills[id].xp | >= 0 (effective practice hours) | engine |
 | skills[id].rust | 0-0.20 (cap by category) | engine |
 | skills[id].lastPracticedDay | absolute day | engine |
-| skills[id].E | 0-100, lightsaber form groups only | engine |
-| skills[id].CI | 0-100, combat Force abilities only | engine |
-| skills[id].bank | >= 0, capped at 15 levels of XP | engine |
-| bankReleaseUntil | absolute day or null | engine |
+| E[formGroup] | {E, eSpar}: applied experience and its sparring part (progression-numbers §7; D-163); schema 0-100 (see the D-176 open question) | engine |
+| CI[abilityId] | {CI, ciSpar}: combat integration, combat Force abilities only (§8) | engine |
+| bank[formId] | >= 0, drill XP over the ceiling, capped at 15 levels of XP | engine |
+| bankReleaseUntil | absolute day or null (60-day release after a skirmish or higher, D-45) | engine |
+| formsStarted, selfTaught | form ids (the fundamentals transfer once per form, D-119; self-study D-126) | engine |
 | stateOfMind | {kind: StateOfMind enum (progression-numbers §17), intensity 1-3, sinceDay, easesByDay} | engine (AI proposes emotionalEvent; D-54) |
 | grief | {intensity 1-3, sinceDay, easesByDay} or null; lingers under any stateOfMind (D-46) | engine |
 | fightsToday | per skill count, reset by the day hook (moved from combat, D-47) | engine |
@@ -172,36 +173,36 @@ test 2 generalized).
 | today | the day's training state: hours per activity, post-workout window, meditation and training hours (reset at midnight; M3, D-107) | engine |
 | overtrainStreak | int >= 0 | engine |
 | willpowerToday | 0-3.0 | engine |
-| reviewBuffUntil | day or null (recording review, sec 19) | engine |
+| reviewBuff, lastReviewDay | {skillId, untilDay} or null; day or null (recording review, sec 19) | engine |
 | tierBeatsPending | [{id, skillId, tier, day}] | engine |
 
-M3 builds skills[id].{xp, rust, lastPracticedDay}, stateOfMind, grief, paceWindow, today, overtrainStreak, willpowerToday and tierBeatsPending (D-107). E, CI, bank, fightsToday, combatXpToday and reviewBuffUntil arrive with combat (M5).
+M3 builds skills[id].{xp, rust, lastPracticedDay}, stateOfMind, grief, paceWindow, today, overtrainStreak, willpowerToday and tierBeatsPending (D-107). M5 (progression v4) adds E, CI, bank, bankReleaseUntil, fightsToday, combatXpToday, reviewBuff and lastReviewDay.
 
 **health** (owner: health)
 | Field | Type / range | Source |
 |---|---|---|
-| meters.physical, .mental, .force | load >= 0 (fraction is derived from capacity) | engine |
+| meters.p, .m, .f | load >= 0 (the fraction is derived from capacity; the Force meter goes through src/engine/forceMeter.ts, D-167) | engine |
 | sleepCarry | 0-0.6 | engine |
+| vitalityLost | >= 0, Vitality below the derived maximum (health §3) | engine |
+| wounds[] | {id, part, severity, W >= 0, stabilized, healProgress 0-1, day, source, severed?} | engine |
+| lasting[] | {id, kind, part, adaptation 0-1, aid, adaptedToday, adaptDay, day} (a severed limb at once, with its prosthetic, D-149 / D-164) | engine |
+| dying | {sinceAbs, untilAbs} or null | engine |
+| death | {atAbs, cause} or null; set once by the engine (D-149) | engine |
+| care | {kind: medical, untilAbs} or null (x2 healing; bacta and Force healing apply per session, D-150) | engine |
+| suppression[] | {abilityId, sinceAbs} (M6 abilities) | engine |
+| woundSeq | int >= 1 | engine |
+| pendingHazards[] | deferred hazardOccurred {hazard, severity, cause} (D-29) | engine |
 
-M3 builds the meters and sleepCarry only (minimal health slice, D-107); the rest arrives in M5.
-| vitality | 0..max (max derived) | engine |
-| wounds[] | {id, part, severity, W >= 0, stabilized, healProgress 0-1, day, source} | engine |
-| lasting[] | {id, part, affects[], P 0-1, adaptation 0-1, aidCap 0-1} | engine |
-| dying | {untilMinuteAbs} or null | engine |
-| suppression[] | {abilityId, since} | engine |
+M3 built the meters and sleepCarry (D-107); M5 (health v2) built the rest.
 
-**combat** (owner: combat; null outside a fight)
+**combat** (owner: combat; as built in M5)
 | Field | Type / range | Source |
 |---|---|---|
-| id, startedAt | uuid, absolute minute | engine |
-| sides | player side + opponent npc ids | AI refs at combatStarted, validated |
-| stakes | spar / skirmish / serious / lethal | AI enum, validated |
-| terrainTags | registered tag ids | AI enum |
-| advantage | -5..+5 | engine |
-| exchange | int >= 0 | engine |
-| formBySide | form ids | player / engine |
-| beatDue | bool + reason | engine |
-| log[] | exchange records (rolls, margins, hits, time) | engine |
+| pending | a deferred combatStarted {opponentRefs, minionGroups, stakes, terrainTags, ambushClaim, engagedElsewhere, sparringMode} or null (D-29, D-172) | AI refs and enums, validated |
+| active | the fight: {id, startedAbs, stakes, sparring mode, terrainTags, ctx, duel (the engine DuelState: fighters, advantage -5..+5, exchange, seconds, surprise, log of exchange records), patternUses, objects, meta per fighter, exchangeSkills, lastNarrated, segmentStart, beat, hidden, session (a spar's bouts, D-168)} or null | engine (player beat actions) |
+| fates[] | incapacitated named NPCs whose fate the player chooses | engine |
+| last | the last fight's summary {id, stakes, outcome, reason, exchanges, seconds, playerFate, recorded, skillId, day, duel, session} or null | engine |
+| seq | int >= 1 | engine |
 
 **alignment** (owner: alignment)
 | Field | Type / range | Source |
@@ -349,6 +350,10 @@ intent: {
   healing?: { source: medical | bacta | forceHealer, healerRef? },
   risk?: { type: fall | fire | explosion | crash | poison | exposure, severityHint: 1-3 }
              // a hazard the player's own action causes; resolved in step b
+  sequence?: [ { kind: stance | tactic | maneuver | forceAction | strike, ..., aim? } ],
+             // combat only: chained moves in the player's order, at most 5 (D-146; aim D-171)
+  aim?: head | torso | leftArm | rightArm | leftLeg | rightLeg | leftHand | rightHand
+             // combat only: "go for his head" aims the next strike (-2, chosen location; D-171)
 }
 ```
 - **Checks are engine-decided (D-37).** The engine decides whether a check, contest or
@@ -405,10 +410,11 @@ tacticDeclared and healingReceived. They are intent fields now (above).
 | flagSet {flag} | flags | registered, and `ai` is an allowed source for that flag (spec/flag-registry.md); rank-gating flags never are (D-33) |
 | itemGained / itemLost {itemRef \| newItem{key?, name, kind}} | items | kind registered |
 | routineRequested {priorities[], effort, spanHint} | routines | skills exist; applies to future time only, never to this turn |
-| combatStarted {opponentRefs[], stakes, terrainTags[], ambushClaim?} | combat | DEFERRED: applied at the start of the next turn's step b and narrated then; opponents exist (npcIntroduced or a tmp key first); ambush becomes a perception contest |
+| combatStarted {opponentRefs[], minionGroups[]?, stakes, terrainTags[], ambushClaim?, engagedElsewhereRefs[]?, sparringMode?} | combat | DEFERRED: applied at the start of the next turn's step b and narrated then; opponents exist (npcIntroduced or a tmp key first); ambush becomes a perception contest; minion groups by kind (D-157, D-158); sparringMode: a master's harsher stakes for one spar session, academy on the Sith path only (D-172); a spar is a session of bouts resolved like a montage (D-168) |
+| opponentEngagement {opponentRef, engagedElsewhere} | combat | an opponent turns to fight an ally, or back (D-143 E); engine-checked against the fight |
 | combatEnded {reason: fled / surrendered / interrupted / truce} | combat | wounds end fights on their own |
 | forceVision {description} | force | narrative; may open a thread |
-| hazardOccurred {type, severityHint 1-3} | health | DEFERRED like combatStarted: a hazard the player did not cause; damage by health rules at the start of the next turn's step b. Hazards the player causes enter as intent.risk |
+| hazardOccurred {hazard, severityHint 1-3, cause} | health | DEFERRED like combatStarted: a hazard the player did not cause; damage by health rules at the start of the next turn's step b. Hazards the player causes enter as intent.risk |
 | emotionalEvent {type: grief / fear / anger / hatred / calm / pride / despair, intensity 1-3, cause} | progression (state of mind, mapping in progression-numbers §17) + alignment via selector-driven engine event | cap 1 per turn (D-36, D-54) |
 | moralChoice {direction, weight 1-3, description} | alignment | cap 1 per turn; weight 3 dark + explicit player confirmation for a turn |
 | promotionProposed {rank, grantedByRef, occasion} | ranks | requirements checked; rejected and logged if unmet |
@@ -944,7 +950,7 @@ The clock and the module contract come first, before any feature.
 | M2 | Memory and lore | npcs (identity), locations, threads, facts, relationships; People tab and review queue; chapters and arc (chapterSummarized); context builder with caps and report; lore index and retrieval; export/import | Long campaigns that remember |
 | M3 | Progression and creation | Skills and activities (spec/skills-and-activities.md), curve, fatigue meters, computeXp, synergy, rust, state of mind, intent-driven activities (train / study / sleep), rest, the 4.0x clamp, NPC closed form and the Human body-cap table (moved from M5/M8, D-56), the species table and natural baseline (D-102, D-103), computed character creation, sheet UI, tier beats | Train in story and grow |
 | M4 | Time advance | Montage and timeSkip, routine scheduler, settling-in and staleness, thread deadlines, weighted events, interruptions, lifetime test (scripted combat via combat-xp.md math) | Skip months and years |
-| M5 | Combat and health | Duels and beats, Vitality, wounds, healing, NPC generation (talents, variance, minions), combat XP from the duel log; lifetime test re-run | Fight |
+| M5 | Combat and health (built, D-143..D-175) | Duels and beats (sequences, Force actions, sparring sessions, aimed strikes), Vitality, wounds by weapon and margin, healing (medical, bacta, Force healing), lasting injuries and prosthetics, NPC generation (talents, variance, minions by kind, canon era rosters), combat XP, E and CI from the duel log, the drill ceiling and bank, the Force meter module; lifetime test re-run with real duels on 6 seeds | Fight |
 | M6 | Force and alignment | Catalog data, Force meter, Force use, combat integration, Shatterpoint, alignment, dark pressure, concealment | Use the Force |
 | M7 | Ranks and milestones | Ladders, trials, standing, Order requirements, Council of Reassignment, Council bypass, flag registry sources for rank flags | Advance in the Order |
 | M8 | World | Timeline events, factions, renown, equipment spec and items/credits, species table | A living galaxy |
@@ -983,6 +989,15 @@ The clock and the module contract come first, before any feature.
 - **M6 weapon hand lost (Jared; measured in D-175, not adopted):** losing the weapon hand or arm disarms the fighter and
   takes them out of the saber fight (they can still flee, surrender, use the Force, or draw with the off hand at the
   off-hand penalty).
+- **M6 Force reserve redesign: tests to re-measure (D-167).** Everything that reads Force-meter values goes through
+  src/engine/forceMeter.ts. Tests that depend on those values: tests/engine/forceMeter.test.ts (the interface and the
+  isolation check); tests/engine/health.test.ts test 8 (capacity, loads, backlash and collapse); tests/engine/duel.test.ts
+  (precognitive defense: the 1.0 limit and the 0.4 load; Force actions: load and Lightning; sequences: the exhausted cap);
+  tests/features/health.test.ts and tests/features/progression.test.ts (meter recovery, meditation, training load);
+  tests/features/routines.test.ts and tests/turn/trainingPipeline.test.ts (day projection and tiredness, which include f);
+  tests/turn/combatPipeline.test.ts (the duel call budget, which precog lengthens); tests/lifetime/duelTables.test.ts (the
+  rolls §8 tables: precog and Force Sense in every duel); and every lifetime profile (tests/lifetime/*: fighters' Force
+  capacity, precog in the real duels, training f load), whose fight schedules are tuned against today's values.
 - **Canon Clone Wars masters:** canon levels for Agen Kolar, Saesee Tiin, Kit Fisto and Mace Windu (with his
   ShatterSense) come with the Clone Wars era roster; the D-175 4v1 used estimates.
 - **M7 Order schedule (D-165, Jared):** a 13-year-old Padawan's fixed Order day alone ends near f 0.97 against the
