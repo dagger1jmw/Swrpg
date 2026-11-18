@@ -970,6 +970,8 @@ The clock and the module contract come first, before any feature.
 - **Character traits (D-143 M, end of production):** first entry Tactical Fighter, +1 to the sequence cap.
 - **M8 equipment (D-158):** saber-resistant armor and weapons for anyone but Mandalorians (cortosis weave, personal
   beskar, phrik); until then STUB_WEAPONS gives saber resistance only through the Mandalorian beskar-by-era rule.
+- **M7 Order schedule (D-165, Jared):** a 13-year-old Padawan's fixed Order day alone ends near f 0.97 against the
+  standard tiredness limit 0.9 even when fresh; the Order schedule is revisited with the Order requirements in M7.
 - **M7 teaching (D-163):** characters with the instructor role get a higher share of drill XP above the ceiling
   (design default 25% -> 35%) for the forms they teach.
 - **M8 prosthetic damage (D-164):** a hit to a prosthetic limb becomes equipment damage to the prosthetic (repair,
