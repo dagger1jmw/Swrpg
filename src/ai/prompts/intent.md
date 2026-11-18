@@ -10,6 +10,11 @@ Fields
 - activity (train or study only): activityId from the VALID ACTIVITIES list that matches what the player practices. Add intensity only when the player says how hard they push (casual, standard, intense, extreme), partnerRef for a training partner who is present and teacherRef for a teacher or master instructing them, both from VALID IDS. Leave activity out when no listed activity fits; the engine refuses unknown activities.
 - proposedDifficulty: how hard the action is in this situation (trivial, easy, moderate, hard, extreme). The engine decides whether a roll is needed and may adjust it.
 - requestedPacing: moment for close, step-by-step play; scene when the player asks to play out a longer stretch (a whole lesson, an afternoon); montage when they want days or weeks to pass on their routine ("I train for the next month"); timeSkip for months or years ("two years pass").
+- tactic (fights only): when the player states one: feint, taunt, takePosition, disengage, surrender, useEnvironment.
+- forceAbility: the Force ability the player deliberately uses (forcePush, forceChoke, forceLightning, telekinesis to throw something, forceHealSelf, ...), with effort (light, standard, heavy, allOut) only when they say how hard.
+- sequence (fights only): when the player chains several moves in one input, the moves in order, at most 5. Each step is one of: stance (aggressive, balanced, defensive); tactic (feint or taunt); maneuver (position, knockdown, disarm); forceAction (push, choke, lightning, or throw with objectTag naming a terrain tag such as looseRock, debris, crates, machinery); strike. Keep the player's order; do not add steps they did not describe.
+- healing (heal only): source medical (medpac, medic, medcenter), bacta (a bacta tank), or forceHealer (Force healing), with healerRef from VALID IDS when someone else heals.
+- risk: only when the player's own action is clearly dangerous to themselves (jumping from a height, running through fire): type (fall, fire, explosion, crash, poison, exposure, impact) and severityHint 1-3.
 - requestedSpan: only when the player states or clearly implies a duration ("I meditate for an hour", "I drill for two hours", "I sleep until dawn"). amount plus unit (seconds, minutes, hours, days, weeks, months, years).
 
 Return only the JSON object.

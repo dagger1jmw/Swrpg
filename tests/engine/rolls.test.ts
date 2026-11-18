@@ -98,7 +98,8 @@ describe('rolls.md §2 checks', () => {
 describe('engine-decided checks (D-37)', () => {
   it('requirement comes from the action type and targets only', () => {
     expect(isCheckRequired('investigate', 0)).toBe(true);
-    expect(isCheckRequired('fight', 0)).toBe(true);
+    // M5: fights are duels, not a check (the D-70 stub is gone).
+    expect(isCheckRequired('fight', 0)).toBe(false);
     expect(isCheckRequired('dialogue', 0)).toBe(false);
     expect(isCheckRequired('dialogue', 1)).toBe(true);
     expect(isCheckRequired('sleep', 3)).toBe(false);

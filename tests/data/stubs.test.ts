@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  STUB_FIGHT_AS_SINGLE_CHECK,
   STUB_ALIGNMENT_MULT,
   STUB_DARK_PRESSURE,
 } from '../../src/data/stubs';
@@ -11,8 +10,5 @@ describe('stubs (D-56, D-70)', () => {
   it('alignment multiplier 1.0 and dark pressure 0 until M6', () => {
     expect(STUB_ALIGNMENT_MULT).toBe(1);
     expect(STUB_DARK_PRESSURE).toBe(0);
-  });
-  it('fight resolves as a single check until M5', () => {
-    expect(STUB_FIGHT_AS_SINGLE_CHECK).toBe(true);
   });
 });

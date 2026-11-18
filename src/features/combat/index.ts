@@ -194,6 +194,7 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     recorded: active.sparring !== null,
     skillId: duel.a.skillId,
     day: selectNow(s).day,
+    duel,
   };
   return { slice: { ...slice, active: null, fates, last }, emit, notes, ...(rng ? { rng } : {}) };
 }

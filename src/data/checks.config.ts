@@ -51,8 +51,8 @@ export const CHECK_RULES: Record<ActionType, CheckRule> = {
   // Activities resolve through computeXp in M3, not a check.
   train: { required: 'never', min: 'trivial', max: 'extreme', default: 'moderate' },
   study: { required: 'never', min: 'trivial', max: 'extreme', default: 'moderate' },
-  // D-70 stub: a single check until duels (M5).
-  fight: { required: 'always', min: 'easy', max: 'extreme', default: 'moderate', note: 'Fight resolved as a single check until duels (M5)' },
+  // M5: fights are duels (rolls.md §3), not a check; the D-70 single-check stub is gone.
+  fight: { required: 'never', min: 'easy', max: 'extreme', default: 'moderate' },
   forceUse: { required: 'always', min: 'easy', max: 'extreme', default: 'moderate' },
   investigate: { required: 'always', min: 'trivial', max: 'extreme', default: 'moderate' },
   // Healing resolves with the health rules in M5.

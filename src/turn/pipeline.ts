@@ -217,7 +217,8 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
     intentNotes.push(...checked.notes);
   }
 
-  const resolution = resolveTurn(deps.registry, session.state, intent);
+  // A combat beat button (M5, D-145) skips the intent call; its action resolves in step b.
+  const resolution = resolveTurn(deps.registry, session.state, intent, input.kind === 'beat' ? { beat: input.action } : {});
   return { input, intent, resolution, calls, intentNotes, ...(intentReport ? { intentReport } : {}) };
 }
 
@@ -269,6 +270,10 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   let narrativeReport = pending.narrativeReport;
   const modelNotes: string[] = [];
 
+  // A quiet beat (D-145): no AI call. The feed shows the roll cards and one code-template line; no events, no choices
+  // (the beat buttons are the choices).
+  const quiet = draft.combat?.quiet === true;
+  if (!reply && quiet) reply = { narrative: draft.combat!.quietLine ?? '', choices: [], scene: { moodTags: [], presentNpcRefs: [] }, events: [] };
   if (!reply) {
     const turnInfo = { timeAdvancedByDraft: draft.timeAdvanced !== null };
     const schemas = composeNarrativeSchema(deps.registry, resolved, turnInfo);
@@ -300,7 +305,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     notLegal.push({ event: e, reason: `event type ${e.type} is not allowed this turn` });
     return false;
   });
-  const events: unknown[] = [...replyEvents, { type: 'sceneUpdated', moodTags: reply.scene.moodTags, presentNpcRefs: reply.scene.presentNpcRefs }];
+  const events: unknown[] = quiet ? [] : [...replyEvents, { type: 'sceneUpdated', moodTags: reply.scene.moodTags, presentNpcRefs: reply.scene.presentNpcRefs }];
   const result = applyEvents(deps.registry, resolved, events, { source: 'ai', resolved: draft.resolvedActions });
   const rejected: RejectedEvent[] = [...notLegal, ...result.rejected];
   const appliedAll: AppliedEvent[] = [...result.applied];
@@ -344,6 +349,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
       training: draft.training,
       timeAdvanced: draft.timeAdvanced,
       jump: draft.jump,
+      combat: draft.combat,
       pacingLevel: draft.pacingLevel,
       notices: [...draft.notices, ...result.notices],
       report: [...pending.intentNotes, ...draft.report, ...modelNotes, ...skipNotes],
@@ -353,7 +359,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     },
     narrative: reply.narrative,
     choices,
-    moodTags: reply.scene.moodTags,
+    moodTags: quiet ? (session.history[session.history.length - 1]?.moodTags ?? []) : reply.scene.moodTags,
     applied: appliedAll,
     rejected,
     calls,

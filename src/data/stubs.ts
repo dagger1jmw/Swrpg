@@ -1,12 +1,6 @@
 // Named stubs (architecture §15, D-56). Each holds a fixed value until the named milestone
 // replaces it. tests/data/stubs.test.ts asserts each value until then.
 
-/**
- * D-70: until duels exist (M5), a fight intent resolves as one engine check against the
- * clamped difficulty. Replaced in M5 by rolls.md §3 duels.
- */
-export const STUB_FIGHT_AS_SINGLE_CHECK = true;
-
 /** Alignment multiplier in M (D-56). Replaced in M6. */
 export const STUB_ALIGNMENT_MULT = 1.0;
 

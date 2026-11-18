@@ -10,6 +10,9 @@ import { makeEstimator } from '../ai/tokenRatio';
 import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { orderSeatAt } from '../data/orderSeats';
+import type { ExchangeRecord } from '../engine/duel';
+import { selectIsDying, selectIsSpent, selectLasting, selectStatusLabel, selectWounds } from '../features/health/selectors';
+import type { CombatDraft } from './combatTurn';
 import type { CheckCard } from '../engine/rolls';
 import { ACTIVITIES } from '../data/activities';
 import { archetypeDef } from '../data/archetypes';
@@ -148,6 +151,26 @@ function conditionLine(state: GameState): string {
   return `Condition: physical ${f.labels.p}, mental ${f.labels.m}, Force ${f.labels.f}; state of mind ${selectStateOfMind(state)}${grief}`;
 }
 
+/** Health (health §6): the derived status, wounds and lasting injuries, dying or dead. No numbers but the status label. */
+function healthLine(state: GameState): string {
+  if (state.health.death) return `Health: DEAD (${state.health.death.cause}). The story of this character has ended.`;
+  const wounds = selectWounds(state);
+  const parts = wounds.map((w) => `${w.stabilized && w.severity === 'mortal' ? 'stabilized critical' : w.severity} ${w.part}`);
+  const lasting = selectLasting(state).map((l) => `${l.kind} (${Math.round(l.adaptation * 100)}% adapted)`);
+  const dying = selectIsDying(state) ? '; DYING unless stabilized' : '';
+  return `Health: ${selectStatusLabel(state)}${selectIsSpent(state) ? ', spent' : ''}${parts.length ? `; wounds: ${parts.join(', ')}` : ''}${lasting.length ? `; lasting injuries: ${lasting.join(', ')}` : ''}${dying}`;
+}
+
+/** A fight in progress (rolls §3): who is fighting whom, their status and the advantage. */
+function combatLine(state: GameState): string | null {
+  const a = state.combat.active;
+  if (!a) return state.combat.pending ? 'COMBAT: a fight is about to begin (the engine resolves it this turn).' : null;
+  const d = a.duel as { a: { name: string }; opponents: { name: string; out: boolean; engagedElsewhere: boolean }[]; advantage: number; exchange: number };
+  const opp = d.opponents.map((o) => `${o.name}${o.out ? ' (out)' : o.engagedElsewhere ? ' (fighting an ally)' : ''}`).join(', ');
+  const track = d.advantage > 0 ? 'the player character has the upper hand' : d.advantage < 0 ? 'the opponent has the upper hand' : 'even';
+  return `COMBAT (${a.stakes}${a.sparring ? `, ${a.sparring} sparring` : ''}): ${d.a.name} against ${opp}; ${d.exchange} exchanges so far; ${track}.`;
+}
+
 /** The character's skills by tier, strongest first (tiers only; the RESOLVED block carries any numbers). */
 function skillsLine(state: GameState): string {
   const views = selectSkillViews(state)
@@ -186,6 +209,8 @@ export function stateBlock(
     'STATE',
     `Character: ${selectCharacterName(state)} (${PC_REF}), age ${selectAge(state)}, ${characterLine(state)}`,
     conditionLine(state),
+    healthLine(state),
+    ...(combatLine(state) ? [combatLine(state)!] : []),
     skillsLine(state),
     ...beatsLines(state),
     `Date: ${formatDate(now.day)}`,
@@ -327,8 +352,48 @@ export function describeTraining(t: NonNullable<TurnDraft['training']>): string[
   return lines;
 }
 
+/** One exchange as a line for the narrator (the margins and hits are ground truth; D-145). */
+function describeExchange(r: ExchangeRecord, names: Record<string, string>): string {
+  const t = names[r.targetId] ?? r.targetId;
+  const pc = names['pc'] ?? 'the player character';
+  const by = (side: 'A' | 'B'): string => (side === 'A' ? pc : t);
+  if (r.kind === 'force' && r.force) {
+    const f = r.force;
+    const out = f.misfire ? 'misfires' : f.collapse ? 'collapses from backlash' : f.success ? 'succeeds' : 'is resisted';
+    return `#${r.n} ${by(f.side)} uses ${f.abilityId}: ${out}${f.damage ? `, ${f.damage.severity ?? 'no'} wound to the ${f.damage.part}` : ''}.`;
+  }
+  if (r.kind === 'buildUp') {
+    const lead = r.advAfter > r.advBefore ? `${pc} gains ground` : r.advAfter < r.advBefore ? `${t} gains ground` : 'neither gains ground';
+    return `#${r.n} exchange: ${lead} (margin ${fmt(r.margin)}).${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`;
+  }
+  const striker = by(r.striker ?? 'A');
+  const defender = r.striker === 'A' ? t : pc;
+  let what: string;
+  if (r.maneuver) what = `${striker} lands a ${r.maneuver.kind} maneuver`;
+  else if (!r.hit) what = `${striker} strikes; ${defender} recovers (margin ${fmt(r.margin)})`;
+  else if (r.hit.avoided) what = `${striker} strikes; ${defender} avoids it with precognition`;
+  else if (r.hit.point) what = `${striker} lands a touch: the bout ends on a point`;
+  else {
+    const who = r.hit.redirected ? `${by(r.hit.by)} redirects the bolt into the shooter` : `${striker} lands a ${r.hit.quality} hit on ${defender}`;
+    what = `${who}: ${r.hit.severed ? `the ${r.hit.part} is severed` : r.hit.severity ? `${r.hit.severity} wound to the ${r.hit.part}` : 'no wound, only stamina lost'}`;
+  }
+  return `#${r.n}${r.surprise ? ' (surprise)' : ''}${r.step !== undefined ? ` (sequence step ${r.step + 1})` : ''} ${what}.${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`;
+}
+
+export function describeCombat(c: CombatDraft): string[] {
+  const names = Object.fromEntries(c.fighters.map((f) => [f.id, f.name]));
+  const lines = [`COMBAT ${c.fightId}${c.started ? ' (the fight begins now)' : ''}: narrate these exchanges in order, nothing more.`];
+  for (const r of c.narrate) lines.push(describeExchange(r, names));
+  lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}`).join('; ')}.`);
+  for (const n of c.notes.filter((x) => /sequence|step|not attempted|dropped/.test(x))) lines.push(`Sequence: ${n}`);
+  if (c.ended) lines.push(`The fight is over: ${c.ended.outcome} (${c.ended.reason})${c.ended.playerFate ? `; the opponent's choice: ${c.ended.playerFate}` : ''}.`);
+  else lines.push('The fight goes on: end at the last exchange, at the moment the player chooses again.');
+  return lines;
+}
+
 export function resolvedBlock(draft: TurnDraft): string {
   const lines = ['RESOLVED (ground truth; narrate consistently with it)'];
+  if (draft.combat) lines.push(...describeCombat(draft.combat));
   if (draft.intent) lines.push(`Player action type: ${draft.intent.actionType}`);
   if (draft.checks.length === 0) lines.push('Checks: none required. Do not invent a success or failure that would need a roll.');
   for (const c of draft.checks) lines.push(describeCheck(c));
@@ -416,19 +481,19 @@ function arcSection(state: GameState, est: Estimate): { text: string; report: Se
 
 // ---------------------------------------------------------------- requests
 
-export function narrativeSystemPrompt(state: GameState, opening: boolean, level: PacingLevel = selectPacingLevel(state)): string {
+export function narrativeSystemPrompt(state: GameState, opening: boolean, level: PacingLevel = selectPacingLevel(state), combat = false): string {
   const pacing = PROMPTS.pacing[level];
-  return [PROMPTS.coreGm, PROMPTS.contract, pacing, ...(opening ? [PROMPTS.opening] : [])].join('\n\n');
+  return [PROMPTS.coreGm, PROMPTS.contract, pacing, ...(combat ? [PROMPTS.combatNarration] : []), ...(opening ? [PROMPTS.opening] : [])].join('\n\n');
 }
 
 /** The player's own words for this turn (scanned for names; D-85). */
 export function playerTextOf(input: TurnInput): string {
-  return input.kind === 'typed' ? input.text : input.kind === 'choice' ? input.choice.label : input.kind === 'action' ? input.label : input.premise;
+  return input.kind === 'typed' ? input.text : input.kind === 'choice' ? input.choice.label : input.kind === 'action' || input.kind === 'beat' ? input.label : input.premise;
 }
 
 export function buildNarrativeRequest(state: GameState, draft: TurnDraft, input: TurnInput, history: readonly TurnRecord[], opts: BuildOptions): BuiltRequest {
   const est = makeEstimator(opts.ratio);
-  const system = narrativeSystemPrompt(state, input.kind === 'opening', draft.pacingLevel);
+  const system = narrativeSystemPrompt(state, input.kind === 'opening', draft.pacingLevel, draft.combat !== null || state.combat.active !== null);
   const caps = draft.jump ? JUMP_CAPS : CONTEXT_CAPS;
   const referenced = draft.intent ? [...draft.intent.targets, ...draft.intent.references] : [];
   const playerText = playerTextOf(input);

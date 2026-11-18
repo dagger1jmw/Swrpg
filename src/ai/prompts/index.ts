@@ -1,5 +1,6 @@
 // Prompt sections (architecture §5). Plain .md files imported as text; no engine constants inside.
 import chapterSummary from './chapter-summary.md?raw';
+import combatNarration from './combat-narration.md?raw';
 import contract from './contract.md?raw';
 import coreGm from './core-gm.md?raw';
 import intent from './intent.md?raw';
@@ -11,6 +12,7 @@ import pacingTimeSkip from './pacing-timeskip.md?raw';
 
 export const PROMPTS = {
   chapterSummary,
+  combatNarration,
   coreGm,
   contract,
   intent,

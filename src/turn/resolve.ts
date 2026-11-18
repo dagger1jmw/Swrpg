@@ -9,7 +9,12 @@ import { addCalendarMonths } from '../engine/calendar';
 import { efficiency } from '../engine/fatigue';
 import { check, clampDifficulty, isCheckRequired, type CheckCard } from '../engine/rolls';
 import type { RngState } from '../engine/rng';
-import { selectFatigue, selectIsSpent, selectLastingPenalty, selectWoundPenalty } from '../features/health/selectors';
+import { selectFatigue, selectIsDying, selectIsSpent, selectLastingPenalty, selectWoundPenalty } from '../features/health/selectors';
+import { selectNpc, selectNpcLevel } from '../features/npcs/selectors';
+import { selectLevelExact } from '../features/progression/selectors';
+import { STABILIZE_DIFFICULTY } from '../data/health.config';
+import { combatActionFromBeat, combatActionFromIntent, combatDraft, type CombatDraft } from './combatTurn';
+import type { CombatActionInput } from './record';
 import { selectPacingLevel } from '../features/pacing/selectors';
 import { selectPerformance, selectRust } from '../features/progression/selectors';
 import { resolveTraining, type TrainingCard, type TrainingRequest } from '../features/progression/selectors';
@@ -43,6 +48,8 @@ export interface TurnDraft {
   readonly timeAdvanced: TimeAdvanced | null;
   /** A montage or time skip run by the routine day loop (M4), with its report; null otherwise. */
   readonly jump: { level: JumpLevel; report: MontageReport } | null;
+  /** A duel segment this turn (M5): the exchanges, the beat, quiet or narrated, the end; null outside combat. */
+  readonly combat: CombatDraft | null;
   /** The level the narration is written at (the jump's level for a jump). */
   readonly pacingLevel: PacingLevel;
   readonly notices: readonly string[];
@@ -136,7 +143,7 @@ export function trainingRequest(intent: Intent): Omit<TrainingRequest, 'hours'> 
   };
 }
 
-export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null): Resolution {
+export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput } = {}): Resolution {
   let state = initial;
   const report: string[] = [];
   const applied: AppliedEvent[] = [];
@@ -146,6 +153,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   let training: TrainingOutcome | null = null;
   let timeAdvanced: TimeAdvanced | null = null;
   let jump: TurnDraft['jump'] = null;
+  let combat: CombatDraft | null = null;
   let narrationLevel: PacingLevel | null = null;
 
   const finish = (): Resolution => {
@@ -155,6 +163,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       training,
       timeAdvanced,
       jump,
+      combat,
       pacingLevel: narrationLevel ?? selectPacingLevel(state),
       notices: Object.freeze(notices),
       report: Object.freeze(report),
@@ -166,14 +175,58 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     return { draft, state };
   };
 
-  const apply = (events: unknown[]): void => {
-    const r = applyEvents(registry, state, events, { source: 'engine' });
+  const apply = (events: unknown[], source: 'engine' | 'player' = 'engine'): AppliedEvent[] => {
+    const r = applyEvents(registry, state, events, { source });
     state = r.state;
     applied.push(...r.applied);
     rejected.push(...r.rejected);
     notices.push(...r.notices);
     for (const a of r.applied) report.push(...a.notes);
+    return r.applied;
   };
+
+  // Deferred events from the previous turn come first (architecture §3, D-29): hazards, then a pending fight.
+  for (const h of state.health.pendingHazards) apply([{ type: 'hazardResolved', hazard: h.hazard, severity: h.severity, cause: h.cause, fromPending: true }]);
+  let started = false;
+  if (state.combat.pending && !state.combat.active) {
+    apply([{ type: 'fightBegun', fromPending: true }]);
+    started = state.combat.active !== null;
+  }
+  // A fight intent starts a duel directly: its single entry point (D-29); fights are duels, not a check (M5).
+  const npcTargets = intent ? intent.targets.filter((t) => selectNpc(state, t) !== null) : [];
+  if (!state.combat.active && intent?.actionType === 'fight' && npcTargets.length) {
+    apply([{ type: 'fightBegun', fromPending: false, opponentRefs: npcTargets, stakes: 'serious' }]);
+    started = state.combat.active !== null;
+  }
+  if (opts.beat && (opts.beat.action === 'fate' || opts.beat.action === 'review')) {
+    // Out-of-fight choices from the combat card: an NPC's fate, or reviewing a recording (progression-numbers §19).
+    const b = opts.beat;
+    apply([b.action === 'fate' ? { type: 'fateChosen', npcRef: b.npcRef, fate: b.fate } : { type: 'recordingReviewed', skillId: b.skillId }], 'player');
+    return finish();
+  }
+  // In a fight: one combat action per turn (rolls §3, D-145); the clock advances by the exchanges' seconds (D-30).
+  if (state.combat.active) {
+    const before = state;
+    const secondsBefore = (before.combat.active!.duel as { seconds: number }).seconds;
+    const fightId = before.combat.active!.id;
+    const payload = opts.beat ? combatActionFromBeat(opts.beat) : combatActionFromIntent(intent);
+    const done = apply([{ type: 'combatAction', ...payload }], 'player');
+    const notes = done.flatMap((a) => a.notes);
+    const after = state;
+    const secondsAfter = after.combat.active ? (after.combat.active.duel as { seconds: number }).seconds : after.combat.last?.id === fightId ? ((after.combat.last.duel as { seconds: number } | undefined)?.seconds ?? secondsBefore) : secondsBefore;
+    const seconds = Math.max(0, secondsAfter - secondsBefore);
+    combat = combatDraft(before, after, started, notes);
+    if (seconds > 0) {
+      const adv = advanceTime(registry, state, { seconds, reason: 'combat', source: 'turnDraft', requested: seconds, occupation: 'combat' });
+      state = adv.state;
+      applied.push(...adv.applied);
+      rejected.push(...adv.rejected);
+      notices.push(...adv.notices);
+      timeAdvanced = { seconds: adv.secondsAdvanced, requested: seconds, reason: 'combat' };
+    }
+    narrationLevel = 'moment';
+    return finish();
+  }
 
   if (intent) {
     // A train / study intent with an activity (or a skill with a default activity) is a session (M3).
@@ -230,6 +283,34 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     const span = spanSeconds !== null ? pacingForSpan(spanSeconds) : null;
     const wantedLevel = span?.level ?? intent.requestedPacing;
     if (wantedLevel && wantedLevel !== selectPacingLevel(state)) apply([{ type: 'pacingSet', level: wantedLevel }]);
+
+    // A hazard the player's own action causes (intent.risk): damage by the health rules (D-149).
+    if (intent.risk) apply([{ type: 'hazardResolved', hazard: intent.risk.type, severity: intent.risk.severityHint, cause: `the player's action (${intent.actionType})` }]);
+    // Healing (health §7, D-150): stabilizing a mortal wound is a check; care and healers apply through health events.
+    if (intent.actionType === 'heal' || intent.forceAbility === 'forceHealSelf') {
+      const healer = intent.healing?.healerRef && selectNpc(state, intent.healing.healerRef) ? intent.healing.healerRef : null;
+      const selfForce = intent.forceAbility === 'forceHealSelf' && selectLevelExact(state, 'forceHealSelf') >= 1;
+      const source = intent.healing?.source ?? (selfForce ? 'forceHealer' : 'medical');
+      const hours = spanSeconds !== null ? spanSeconds / 3600 : source === 'medical' ? 7 * 24 : source === 'bacta' ? 6 : 1;
+      if (selectIsDying(state)) {
+        const skill = healer ? (source === 'forceHealer' ? 'forceHealOthers' : 'medicine') : selfForce ? 'forceHealSelf' : 'medicine';
+        const level = healer ? selectNpcLevel(state, healer, skill) : selectPerformance(state, skill);
+        const [card, next] = check(state.meta.rngState, {
+          label: 'Stabilize',
+          skillId: skill,
+          levelInputs: { level, woundPenalty: healer ? 0 : selectWoundPenalty(state, skill), rust: 0, vitalitySpent: healer ? false : selectIsSpent(state), fatigueEfficiency: 1 },
+          modifiers: [],
+          difficulty: STABILIZE_DIFFICULTY,
+          notes: [healer ? `by ${selectNpc(state, healer)!.name}` : 'by the character'],
+        });
+        checks.push(card);
+        state = { ...state, meta: { ...state.meta, rngState: next } };
+        if (card.success) apply([{ type: 'woundsStabilized', by: healer ? selectNpc(state, healer)!.name : skill === 'forceHealSelf' ? 'Force healing' : 'a medpac' }]);
+      } else {
+        const healerLevel = source === 'forceHealer' ? (healer ? selectNpcLevel(state, healer, 'forceHealOthers') : selectLevelExact(state, 'forceHealSelf')) : undefined;
+        apply([{ type: 'careStarted', kind: source, hours, ...(healerLevel !== undefined ? { healerLevel } : {}) }]);
+      }
+    }
 
     // Engine-decided checks (D-37). M1: level 0 plus circumstance modifiers (none yet), stubs per §15.
     if (isCheckRequired(intent.actionType, intent.targets.length)) {

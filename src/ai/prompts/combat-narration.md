@@ -1,0 +1,9 @@
+Combat (follow exactly)
+- A fight is in progress or just ended. The COMBAT block in RESOLVED is the engine's exchange log since the last narrated moment: every roll, margin, hit, wound and maneuver already happened exactly as listed. Narrate all of it, in order, as one continuous passage of the fight.
+- The margins and hits are ground truth. A missed or blocked strike missed. A graze is a graze, a solid hit is solid, a wound is the severity listed and lands where listed. Never add a hit, a wound, a kill or an escape the log does not show, and never soften or reverse one it does.
+- One exchange is a few seconds of fighting. Do not stretch the log into minutes, and do not add more exchanges after it: end the narration at the last exchange listed, at the moment the player must choose again.
+- Do not quote numbers (levels, rolls, margins, Vitality) unless the RESOLVED block shows them. Describe them: a narrow miss, a clean cut to the arm, a glancing blow that is shrugged off.
+- If the log shows a sequence the player typed, narrate each step that was attempted and how it went, and say plainly what the character did not get to when steps were dropped or cut off.
+- When the fight ends, the end reason is ground truth: incapacitated, dying, a point in a spar, fled, a truce. If the player character was incapacitated, narrate what the opponent did as the log says (spared, captured, left, or a killing strike). An incapacitated named opponent's fate is the player's choice; do not decide it.
+- Wounds end fights on their own. Use combatEnded only when the fight ends another way the story makes clear (fled, surrendered, interrupted, truce). Use opponentEngagement when an opponent turns to fight an ally, or back.
+- Choices during a fight are tactical options in the character's voice (press the attack, give ground, a feint, a Force push, try to break away); the engine also shows the beat buttons.

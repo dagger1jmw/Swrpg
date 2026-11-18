@@ -2,7 +2,7 @@
 // and care to the M3 meters. Status, penalties and max Vitality are derived by selectors and never stored; Vitality is
 // stored as the damage taken below the derived maximum (`vitalityLost`), so a higher Endurance raises it at once.
 import { z } from 'zod';
-import { AIDS, BODY_PARTS, LASTING_KINDS, SEVERITIES } from '../../data/health.config';
+import { AIDS, BODY_PARTS, HAZARD_TYPES, LASTING_KINDS, SEVERITIES } from '../../data/health.config';
 
 export const metersSchema = z.object({ p: z.number().min(0), m: z.number().min(0), f: z.number().min(0) });
 
@@ -47,6 +47,8 @@ export const healthSliceSchema = z.object({
   /** Active pain suppression (M6 abilities). */
   suppression: z.array(z.object({ abilityId: z.string(), sinceAbs: z.number() })),
   woundSeq: z.number().int().min(1),
+  /** Deferred hazardOccurred (D-29): resolved at the start of the next turn's step b. */
+  pendingHazards: z.array(z.object({ hazard: z.enum(HAZARD_TYPES), severity: z.number().int().min(1).max(3), cause: z.string().max(200) })),
 });
 
 export type HealthSlice = z.infer<typeof healthSliceSchema>;
@@ -62,6 +64,7 @@ export const emptyHealth = (): HealthSlice => ({
   care: null,
   suppression: [],
   woundSeq: 1,
+  pendingHazards: [],
 });
 
 /** v1 -> v2 (M5): full Vitality, no wounds. */

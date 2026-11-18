@@ -47,12 +47,13 @@ describe('resolve (architecture §4 step b)', () => {
     expect(after).toEqual(state);
   });
 
-  it('fight resolves as one check with the stub note (D-70); clamps are reported', () => {
+  it('a fight intent rolls no check (M5: fights are duels); with no opponent it starts nothing; clamps are reported for checks', () => {
     const { draft } = resolveTurn(REGISTRY, state, { ...base, actionType: 'fight', proposedDifficulty: 'trivial' });
-    expect(draft.checks[0]?.difficulty).toBe('easy');
-    expect(draft.report).toContain('difficulty trivial clamped to easy for fight');
-    expect(draft.checks[0]?.notes.some((n) => n.includes('until duels (M5)'))).toBe(true);
+    expect(draft.checks).toEqual([]);
+    expect(draft.combat).toBeNull();
     expect(Object.isFrozen(draft)).toBe(true);
+    const inv = resolveTurn(REGISTRY, state, { ...base, actionType: 'dialogue', targets: [], proposedDifficulty: 'extreme' }).draft;
+    expect(inv.checks).toEqual([]);
   });
 
   it('the resolved block states each check outcome and the engine time', () => {

@@ -109,9 +109,22 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
         return { slice: r.slice, emit: r.emit, notes: r.notes };
       },
     },
+    /**
+     * AI, DEFERRED (D-29): a hazard the player did not cause. Stored now; the damage is resolved by health rules at the
+     * start of the next turn's step b. Hazards the player causes enter as intent.risk.
+     */
+    hazardOccurred: {
+      schema: z.object({ type: z.literal('hazardOccurred'), hazard: z.enum(HAZARD_TYPES), severityHint: z.number().int().min(1).max(3), cause: z.string().min(1).max(200) }),
+      sources: ['ai'],
+      narrative: (s) => s.health.death === null,
+      handle: (slice, e) => {
+        if (slice.pendingHazards.length >= 3) return { reject: 'too many pending hazards' };
+        return { slice: { ...slice, pendingHazards: [...slice.pendingHazards, { hazard: e['hazard'] as (typeof HAZARD_TYPES)[number], severity: Number(e['severityHint']), cause: String(e['cause']) }] }, notes: ['hazard deferred to the next turn (D-29)'] };
+      },
+    },
     /** A hazard the character's action caused, or a deferred hazardOccurred, or a sparring accident (D-149). */
     hazardResolved: {
-      schema: z.object({ type: z.literal('hazardResolved'), hazard: z.enum(HAZARD_TYPES), severity: z.number().int().min(1).max(3), cause: z.string().max(80) }),
+      schema: z.object({ type: z.literal('hazardResolved'), hazard: z.enum(HAZARD_TYPES), severity: z.number().int().min(1).max(3), cause: z.string().max(200), fromPending: z.boolean().optional() }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
         if (slice.death) return { reject: 'the character is dead' };
@@ -124,7 +137,8 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
         const sevName = severityOf(d.W);
         const lost = Math.min(selectMaxVitality(ctx.state), slice.vitalityLost + d.vitalityLost);
         const wounds: Wound[] = sevName ? [{ id: 'new', part: part as BodyPart, severity: sevName, W: d.W, stabilized: false, healProgress: 0, day: selectNow(ctx.state).day, source: `hazard:${type}` }] : [];
-        const r = addWounds({ ...slice, vitalityLost: lost }, ctx.state, wounds, String(e['cause']));
+        const pendingHazards = e['fromPending'] ? slice.pendingHazards.slice(1) : slice.pendingHazards;
+        const r = addWounds({ ...slice, vitalityLost: lost, pendingHazards }, ctx.state, wounds, String(e['cause']));
         return { slice: r.slice, emit: r.emit, notes: [`${type} (severity ${sev}): D ${h.D.toFixed(1)}${sevName ? '' : ', no wound'}`, ...r.notes], rng };
       },
     },

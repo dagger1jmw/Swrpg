@@ -59,6 +59,8 @@ export const fightSummarySchema = z.object({
   /** The form fought with (recording review). */
   skillId: z.string(),
   day: z.number().int(),
+  /** The final duel state (the last turn's roll cards and narration). Engine-made. */
+  duel: z.any().optional(),
 });
 export type FightSummary = z.infer<typeof fightSummarySchema>;
 
