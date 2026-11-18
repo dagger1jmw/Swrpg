@@ -23,6 +23,7 @@ import { selectRelationship, selectRelationshipLabel } from '../features/relatio
 import { selectOpenThreads, selectThreads } from '../features/threads/selectors';
 import type { GameState } from '../state/gameState';
 import type { GameEvent } from '../state/types';
+import { renderHealthCard } from './healthCard';
 import { el } from './dom';
 
 export type PanelTab = 'character' | 'people' | 'places' | 'threads' | 'memory' | 'debug';
@@ -252,6 +253,7 @@ function character(p: SidePanelProps): HTMLElement[] {
       s.progression.overtrainStreak ? kv('Overtrained', `${s.progression.overtrainStreak} day(s) in a row`) : null,
       beats.length ? kv('Pending beats', beats.map((b) => `${SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId} reached ${b.tier}`).join('; ')) : null,
     ]),
+    renderHealthCard(s),
     routineCard(p),
     trainPanel(p),
     ...byCat.map((g) => el('div', { class: 'card skills' }, [el('div', { class: 'card-title' }, [el('strong', { text: CATEGORY_LABEL[g.cat] ?? g.cat })]), ...g.rows.map(skillRow)])),

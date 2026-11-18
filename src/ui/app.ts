@@ -44,6 +44,7 @@ import { SKILL_BY_ID } from '../data/skills';
 import { creationForm } from './creationForm';
 import { clear, el, input, paragraphs } from './dom';
 import { renderSidePanel, type PanelTab } from './sidePanel';
+import { renderCombatDraft, renderDuelPanel } from './duelPanel';
 import { renderJumpPlayback, renderJumpReport } from './jumpCard';
 import { renderRoutineEditor, type JumpSpan } from './routineEditor';
 import { spanToSeconds } from '../ai/schemas/intent';
@@ -495,9 +496,21 @@ export class App {
     } else if (last && !this.busy && !this.failed) {
       choiceItems = last.choices.map((c) => el('button', { class: 'choice', text: c.label, on: { click: () => void this.runTurn({ kind: 'choice', choice: c }) } }));
     }
+    // Death ends the campaign (D-154): an ending card instead of choices; loading an older save starts a new branch.
+    if (session?.state.health.death) {
+      const ending = el('section', { class: 'box choices ending' }, [
+        el('div', { class: 'box-body' }, [
+          el('strong', { text: `${session.state.character.name} is dead.` }),
+          el('p', { class: 'hint', text: `${session.state.health.death.cause}. Load an older save from the campaign menu to play on from there (a new branch), or create a new character.` }),
+          el('button', { class: 'choice secondary', text: 'Campaign menu', on: { click: () => this.openModal('campaign') } }),
+        ]),
+      ]);
+      return el('main', { class: 'main' }, [feed, ending]);
+    }
+    const duel = session ? renderDuelPanel({ state: session.state, busy: this.busy, act: (input) => void this.runTurn(input) }) : null;
     const choices = choiceItems.length ? el('section', { class: 'box choices' }, [el('div', { class: 'box-body', attrs: { 'data-scroll': 'choices' } }, choiceItems)]) : null;
 
-    return el('main', { class: 'main' }, [feed, choices, this.renderInput()]);
+    return el('main', { class: 'main' }, [feed, duel, choices, this.renderInput()]);
   }
 
   private renderInput(): HTMLElement {
@@ -804,6 +817,7 @@ export class App {
       ...r.draft.checks.map((c) => this.renderRoll(c)),
       r.draft.training ? this.renderTraining(r.draft.training) : null,
       r.draft.jump ? renderJumpReport(r.draft.jump.report) : null,
+      r.draft.combat ? renderCombatDraft(r.draft.combat) : null,
       ...r.draft.notices.map((n) => el('div', { class: 'notice', text: n })),
       ...paragraphs(r.narrative),
       r.chapterClosed ? el('div', { class: 'notice', text: `Chapter closed (${r.chapterClosed.reason}).` }) : null,

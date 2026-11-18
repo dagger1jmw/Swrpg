@@ -365,3 +365,41 @@ label.check { display: flex; gap: var(--pad-s); align-items: center; margin: var
 .progress { height: 6px; background: var(--box-3); border-radius: 3px; overflow: hidden; margin: 4px 0 6px; }
 .progress .fill { display: block; height: 100%; background: var(--accent); transition: width 40ms linear; }
 .roll.jump.live { border-left-color: var(--accent); }
+
+/* ---- Duel panel and health card (M5; D-143 K: fixed boxes, the log scrolls inside its own box) ---- */
+.duel { flex: 0 1 auto; max-height: 46%; }
+.duel .box-head { padding: var(--pad-s) var(--pad); }
+.duel-body { display: flex; flex-direction: column; gap: 6px; padding: var(--pad-s); }
+.track { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 2px; }
+.track .cell { height: 10px; border-radius: 3px; background: var(--line); }
+.track .cell.zero { background: var(--line-strong); }
+.track .cell.strike-a { box-shadow: inset 0 -2px 0 var(--accent-soft); }
+.track .cell.strike-b { box-shadow: inset 0 -2px 0 rgba(255, 107, 107, 0.25); }
+.track .cell.on { background: var(--accent); }
+.fighter { display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr) auto; gap: var(--pad-s); align-items: center; font-size: var(--fs-s, 0.9rem); }
+.fighter.out { opacity: 0.5; }
+.fname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vbar { display: block; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.vfill { display: block; height: 100%; background: var(--accent); }
+.fstatus { color: var(--muted); white-space: nowrap; }
+.beat-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.beat-row .hint { min-width: 5.5rem; }
+.beat-row button.small { min-height: 34px; text-transform: capitalize; }
+.beat-row button.active { border-color: var(--accent); color: var(--accent); }
+.beat-row.main-actions button { flex: 1 1 0; }
+.duel-log { max-height: 9rem; overflow: auto; -webkit-overflow-scrolling: touch; }
+.exchange { border-left: 2px solid var(--line); padding-left: 6px; margin: 2px 0; font-size: 0.85rem; }
+.exchange.up { border-left-color: var(--accent); }
+.exchange.down { border-left-color: var(--bad); }
+.exchange .roll-line { color: var(--muted); }
+.roll.combat.quiet { opacity: 0.85; }
+.dying { border: 1px solid var(--bad); color: var(--bad); border-radius: var(--r-inner); padding: 4px 8px; }
+.fate { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.card.health .wound { font-size: 0.9rem; }
+.card.health .wound.lasting { color: var(--warn); }
+.card.health.dead { border-color: var(--bad); }
+.ending .box-body { display: flex; flex-direction: column; gap: var(--pad-s); }
+@media (max-width: 700px) {
+  .duel { max-height: 55%; }
+  .fighter { grid-template-columns: minmax(0, 6rem) minmax(0, 1fr) auto; }
+}
