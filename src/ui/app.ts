@@ -46,6 +46,7 @@ import { creationForm } from './creationForm';
 import { clear, el, input, paragraphs } from './dom';
 import { renderSidePanel, type PanelTab } from './sidePanel';
 import { renderCombatDraft, renderDuelPanel } from './duelPanel';
+import { fightView } from '../turn/fightChoices';
 import { renderJumpPlayback, renderJumpReport } from './jumpCard';
 import { renderRoutineEditor, type JumpSpan } from './routineEditor';
 import { spanToSeconds } from '../ai/schemas/intent';
@@ -93,6 +94,8 @@ export class App {
   private panelOpen: boolean;
   private panelTab: PanelTab = 'character';
   private panelError: string | null = null;
+  /** The ended fight whose result summary the player closed (D-181; view state only). */
+  private closedFight: string | null = null;
   /** Full request texts, this session only (D-87). */
   private debugRequests: DebugRequest[] = [];
   private summaryLog: SummaryOutcome[] = [];
@@ -494,8 +497,11 @@ export class App {
         el('button', { class: 'choice', text: 'Write the opening', on: { click: () => void this.runTurn({ kind: 'opening', premise: session.campaign.premise ?? '' }) } }),
         el('button', { class: 'choice secondary', text: 'Discard and create a new character', on: { click: () => this.openModal('campaign') } }),
       ];
-    } else if (last && !this.busy && !this.failed) {
-      choiceItems = last.choices.map((c) => el('button', { class: 'choice', text: c.label, on: { click: () => void this.runTurn({ kind: 'choice', choice: c }) } }));
+    }
+    // One source of truth (D-181): the combat slice. While a fight is active the duel panel holds the choices.
+    const view = session ? fightView(session.state, last ?? null, this.closedFight) : null;
+    if (view && last && !openingPending(session!) && !this.busy && !this.failed) {
+      choiceItems = view.storyChoices.map((c) => el('button', { class: 'choice', text: c.label, on: { click: () => void this.runTurn({ kind: 'choice', choice: c }) } }));
     }
     // Death ends the campaign (D-154): an ending card instead of choices; loading an older save starts a new branch.
     if (session?.state.health.death) {
@@ -508,7 +514,18 @@ export class App {
       ]);
       return el('main', { class: 'main' }, [feed, ending]);
     }
-    const duel = session ? renderDuelPanel({ state: session.state, busy: this.busy, act: (input) => void this.runTurn(input) }) : null;
+    const duel = session
+      ? renderDuelPanel({
+          state: session.state,
+          busy: this.busy,
+          act: (input) => void this.runTurn(input),
+          setStance: (stance) => void this.playerEvents([{ type: 'stanceSet', stance }]),
+          suggestions: view && !this.busy && !this.failed ? view.suggestions : [],
+          pick: (choice) => void this.runTurn({ kind: 'choice', choice }),
+          summary: view?.summary ?? null,
+          closeSummary: () => ((this.closedFight = view?.summary?.fightId ?? null), this.render()),
+        })
+      : null;
     const choices = choiceItems.length ? el('section', { class: 'box choices' }, [el('div', { class: 'box-body', attrs: { 'data-scroll': 'choices' } }, choiceItems)]) : null;
 
     return el('main', { class: 'main' }, [feed, duel, choices, this.renderInput()]);

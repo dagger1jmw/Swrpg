@@ -38,6 +38,7 @@ import type { CallRecord, TurnInput, TurnRecord } from './record';
 import { refResolver, resolveIntentRefs } from './refs';
 import { resolveTurn, type Resolution } from './resolve';
 import { skipAheadChoice } from './skipAhead';
+import { choicesAfterTurn } from './fightChoices';
 import { selectUntoldWorldEvents } from '../features/world/selectors';
 
 export interface TurnDeps {
@@ -334,9 +335,11 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
 
   // Staleness (architecture §8, D-18): if the story is stale and no choice jumps forward, code appends a
   // deterministic "Skip ahead" choice and logs it. Suggest only; never auto-skip.
-  const choices = [...reply.choices];
+  // D-181: a finished fight offers story choices only (the combat slice decides, not the narration).
+  const fc = choicesAfterTurn(state, draft.combat !== null, reply.choices);
+  const choices = fc.choices;
   const skip = skipAheadChoice(state, choices);
-  const skipNotes: string[] = [];
+  const skipNotes: string[] = fc.dropped ? [`fight over: ${fc.dropped} tactical choice(s) dropped (D-181)`] : [];
   if (skip) {
     choices.push(skip);
     skipNotes.push(`staleness: appended "${skip.label}" (${skip.spanDays} days; D-18)`);

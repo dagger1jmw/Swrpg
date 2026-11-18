@@ -262,6 +262,12 @@ function settle(slice: CombatSlice, s: GameState, active: ActiveFight, before: D
   return { slice: { ...slice, active: nextActive }, emit, notes: extraNotes };
 }
 
+/** Ends a sparring session before its exchange count: the bout in progress is unfinished (Stop sparring, or the story). */
+function stopSession(slice: CombatSlice, s: GameState, active: ActiveFight, duel: DuelState, session: SparSessionState, why: 'stopped' | 'interrupted'): ReturnType<typeof conclude> {
+  const stopped: SparSessionState = { ...session, bouts: duel.exchange > session.boutStart ? [...session.bouts, { winner: null, reason: why, exchanges: duel.exchange - session.boutStart }] : session.bouts, ended: 'stopped', playing: false };
+  return conclude(slice, s, { ...active, duel, session: stopped }, sessionOutcome(stopped), `sparring session (${why})`);
+}
+
 const stepSchema = z.object({
   kind: z.enum(SEQUENCE_STEP_KINDS),
   stance: z.enum(STANCES).optional(),
@@ -363,7 +369,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         type: z.literal('combatAction'),
         // playBout / stopSession: a sparring session's bout played out beat by beat, or the session ended (D-168).
         // posture / clarify: natural combat words read from the player's text, or a question back when none (D-179).
-        action: z.enum(['stance', 'tactic', 'maneuver', 'aim', 'formChange', 'posture', 'clarify', 'force', 'target', 'shatterpoint', 'sequence', 'fightOn', 'narrate', 'resolve', 'continue', 'playBout', 'stopSession']),
+        // A stance is a setting, not an action (D-182): stanceSet, outside the turn.
+        action: z.enum(['tactic', 'maneuver', 'aim', 'formChange', 'posture', 'clarify', 'force', 'target', 'shatterpoint', 'sequence', 'fightOn', 'narrate', 'resolve', 'continue', 'playBout', 'stopSession']),
         /** posture: a take-position attempt (D-179). */
         position: z.boolean().optional(),
         /** aim: the body part the next strike goes for (D-171). */
@@ -392,8 +399,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         const session = active.session;
         if (session && !session.ended) {
           if (action === 'stopSession') {
-            const stopped: SparSessionState = { ...session, bouts: duel.exchange > session.boutStart ? [...session.bouts, { winner: null, reason: 'stopped', exchanges: duel.exchange - session.boutStart }] : session.bouts, ended: 'stopped', playing: false };
-            const c = conclude(slice, s, { ...active, session: stopped }, sessionOutcome(stopped), 'sparring session (stopped)');
+            const c = stopSession(slice, s, active, duel, session, 'stopped');
             return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
           }
           const passive = ['continue', 'fightOn', 'resolve', 'narrate'].includes(action);
@@ -401,14 +407,14 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
             const c = resolveSessionRest(slice, s, active, session, before, duel, day, notes);
             return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
           }
-          if (!session.playing) active = { ...active, session: { ...session, playing: true } };
+          // A question back (clarify) is not an action: it leaves the session as it was (D-182).
+          if (!session.playing && action !== 'clarify') active = { ...active, session: { ...session, playing: true } };
           if (action === 'playBout') action = 'continue';
         } else if (action === 'playBout' || action === 'stopSession') return { reject: 'not in a sparring session' };
         let mode: RunMode | null = 'beat';
         let narrated = false;
         let beat: string | null = null;
-        if (action === 'stance') duel = { ...duel, a: { ...duel.a, stance: e['stance'] as Fighter['stance'] } };
-        else if (action === 'maneuver') duel = { ...duel, a: { ...duel.a, pendingManeuver: e['maneuver'] as Fighter['pendingManeuver'] } };
+        if (action === 'maneuver') duel = { ...duel, a: { ...duel.a, pendingManeuver: e['maneuver'] as Fighter['pendingManeuver'] } };
         else if (action === 'posture') {
           // Natural combat words (D-179): a form to switch to (at the usual cost), a stance, a take-position attempt.
           const form = e['form'] as string | undefined;
@@ -514,6 +520,22 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
       },
     },
+    /**
+     * Player: the stance (D-182). A setting, not an action: no exchange, no AI call, no time. It stays until changed,
+     * across a sparring session's bouts; exchanges resolve only from an action.
+     */
+    stanceSet: {
+      schema: z.object({ type: z.literal('stanceSet'), stance: z.enum(STANCES) }),
+      sources: ['player'],
+      handle: (slice, e) => {
+        const active = slice.active;
+        if (!active) return { reject: 'no fight in progress' };
+        const duel = active.duel as DuelState;
+        const stance = e['stance'] as Fighter['stance'];
+        if (duel.a.stance === stance) return { slice };
+        return { slice: { ...slice, active: { ...active, duel: { ...duel, a: { ...duel.a, stance } } } }, notes: [`stance: ${stance}`] };
+      },
+    },
     /** AI: a fight ends without wounds deciding it (fled, surrendered, interrupted, truce); wounds end fights on their own. */
     combatEnded: {
       schema: z.object({ type: z.literal('combatEnded'), reason: z.enum(['fled', 'surrendered', 'interrupted', 'truce']) }),
@@ -522,6 +544,14 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
       handle: (slice, e, ctx) => {
         if (!slice.active) return { reject: 'no fight in progress' };
         const reason = String(e['reason']);
+        // A sparring session ends by its bouts or when the player stops (D-181): a bout's point is not the end of the
+        // session. Only the story stopping it (interrupted) ends it from the narration, with the bouts so far.
+        const session = slice.active.session;
+        if (session && !session.ended) {
+          if (reason !== 'interrupted') return { reject: 'a sparring session ends by its bouts or when the player stops; a bout ending is not the end of the session' };
+          const c = stopSession(slice, ctx.state, slice.active, slice.active.duel as DuelState, session, 'interrupted');
+          return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
+        }
         const outcome: CombatOutcome = reason === 'truce' ? 'truce' : reason === 'surrendered' ? 'lost' : 'fled';
         const c = conclude(slice, ctx.state, slice.active, outcome, reason);
         return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };

@@ -388,9 +388,9 @@ export function describeCombat(c: CombatDraft): string[] {
   for (const n of c.notes.filter((x) => /sequence|step|not attempted|dropped/.test(x))) lines.push(`Sequence: ${n}`);
   if (c.session) {
     const s = c.session;
-    lines.push(`Sparring session: ${s.won + s.lost + s.unfinished} bouts so far, ${s.won} won, ${s.lost} lost${s.unfinished ? `, ${s.unfinished} unfinished` : ''}${s.ended ? `; the session ended (${s.ended === 'exchanges' ? 'time' : s.ended})` : ''}. ${c.ended ? 'Summarize the whole session from the highlights above: bouts won and lost, the telling moments' : 'Narrate the bout that just ended'}${s.injuries.length ? `, and the accident: ${s.injuries.join('; ')}` : ''}.`);
+    lines.push(`Sparring session: ${s.won + s.lost + s.unfinished} bouts so far, ${s.won} won, ${s.lost} lost${s.unfinished ? `, ${s.unfinished} unfinished` : ''}${s.ended ? `; the session ended (${s.ended === 'exchanges' ? 'time' : s.ended})` : ''}. ${c.ended ? 'Summarize the whole session from the highlights above: bouts won and lost, the telling moments' : c.beat === 'boutEnded' ? `Narrate the bout that just ended. The session goes on (D-181): after a short breather bout ${s.won + s.lost + s.unfinished + 1} begins. Do not send combatEnded` : `Bout ${s.won + s.lost + s.unfinished + 1} is in progress`}${s.injuries.length ? `, and the accident: ${s.injuries.join('; ')}` : ''}.`);
   }
-  if (c.ended) lines.push(`The fight is over: ${c.ended.outcome} (${c.ended.reason})${c.ended.playerFate ? `; the opponent's choice: ${c.ended.playerFate}` : ''}.`);
+  if (c.ended) lines.push(`The fight is over: ${c.ended.outcome} (${c.ended.reason})${c.ended.playerFate ? `; the opponent's choice: ${c.ended.playerFate}` : ''}. The choices are story choices again (what the character does next), not tactical moves.`);
   else lines.push('The fight goes on: end at the last exchange, at the moment the player chooses again.');
   return lines;
 }

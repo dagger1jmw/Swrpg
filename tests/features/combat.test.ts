@@ -76,15 +76,32 @@ describe('beats and conclusion', () => {
     expect((fr!.event['exchanges'] as unknown[]).length).toBeGreaterThan(0);
     expect(done.progression.fightsToday['soresu']).toBe(1);
   });
-  it('a stance choice resolves to the next beat (at most 5 exchanges)', () => {
+  it('a stance is a setting (D-182): stanceSet changes the stance only (no exchange, no dice, no time)', () => {
     const { s, id } = withNpc(fresh());
     const f = begin(s, [id]);
-    const r = player(f, [{ type: 'combatAction', action: 'stance', stance: 'aggressive' }]).state;
-    const d = r.combat.active?.duel as DuelState | undefined;
-    if (d) {
-      expect(d.a.stance).toBe('aggressive');
-      expect(d.exchange).toBeLessThanOrEqual(5);
-    }
+    const r = player(f, [{ type: 'stanceSet', stance: 'aggressive' }]);
+    expect(r.rejected).toEqual([]);
+    const d = r.state.combat.active!.duel as DuelState;
+    const d0 = f.combat.active!.duel as DuelState;
+    expect(d.a.stance).toBe('aggressive');
+    expect(d.exchange).toBe(d0.exchange);
+    expect(d.log).toHaveLength(d0.log.length);
+    expect(d.rng).toEqual(d0.rng);
+    expect(r.state.meta.rngState).toEqual(f.meta.rngState);
+    expect(r.state.clock.now).toEqual(f.clock.now);
+    // The stance is no longer a combat action, and only the player sets it; outside a fight there is none to set.
+    expect(player(f, [{ type: 'combatAction', action: 'stance', stance: 'defensive' }]).rejected).toHaveLength(1);
+    expect(ai(f, [{ type: 'stanceSet', stance: 'defensive' }]).rejected).toHaveLength(1);
+    expect(player(fresh(), [{ type: 'stanceSet', stance: 'defensive' }]).rejected).toHaveLength(1);
+  });
+  it('the stance stays until changed: the next action fights in it (D-182)', () => {
+    const { s, id } = withNpc(fresh());
+    const f = player(begin(s, [id]), [{ type: 'stanceSet', stance: 'defensive' }]).state;
+    const r = player(f, [{ type: 'combatAction', action: 'continue' }]).state;
+    const d = (r.combat.active?.duel ?? (r.combat.last as unknown as { duel: DuelState }).duel) as DuelState;
+    expect(d.a.stance).toBe('defensive');
+    expect(d.log.length).toBeGreaterThan(0);
+    expect(d.log.some((x) => [...(x.rollA?.modifiers ?? []), ...(x.rollB?.modifiers ?? [])].some((m) => m.source === 'defensive stance'))).toBe(true);
   });
   it('Fight on stops only at a narrated beat; Narrate makes one without exchanges', () => {
     const { s, id } = withNpc(fresh());

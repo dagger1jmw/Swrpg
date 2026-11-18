@@ -64,9 +64,14 @@ Exertion: each exchange adds 0.08 physical load (tunable). Fatigue lowers effect
 Non-Force fighters have no precognitive defense, so their fights are much shorter.
 
 Player beats (Moment pacing): the player does not act every exchange. The engine resolves
-  exchanges between beats, and the player chooses a stance or tactic at each beat:
+  exchanges between beats, and the player chooses an action at each beat:
   every strike, whenever advantage reaches +/-2, after any maneuver, and at least every 5
   exchanges. The AI narrates the beats from the engine's exchange log.
+  Amended by D-182: the stance is a setting, not an action. Setting it (the stance buttons)
+  changes the stance only: no exchange, no AI call, no time, no turn. It stays until changed,
+  across a sparring session's bouts. Exchanges resolve only from an action: Continue, Fight on,
+  a tactic, a maneuver, a Force action, an aimed strike, a form change, Narrate, Resolve to end,
+  or typed input (typed words can still name a stance, D-179, and then resolve to the next beat).
   Natural combat words (D-179): typed input (or a choice) read for moves when the intent names
   none (src/data/combatWords.ts): parry, block, defend, hold, guard -> defensive stance; press,
   attack, push forward, overwhelm -> aggressive stance; dodge, evade, sidestep, roll -> defensive
@@ -91,7 +96,7 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
   Live play: by default the session resolves in code like a montage, with one narration call
   for the whole session (bouts won and lost, the highlights, any accident or injury). The
   player can choose Play this bout to play the current bout out with the normal beats (any
-  tactical action does the same); after it the next bout waits for the same choice. Stop
+  tactical action does the same; setting the stance does not, D-182); after it the next bout waits for the same choice. Stop
   sparring ends the session with the bouts so far.
   Amended by D-177: input that describes a specific combat action (a parry, a strike, a feint, a
   form technique, any sequence; a fight choice) plays the bout out with the beats, also when it
@@ -100,6 +105,9 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
   blocks (training sessions, not fights). After a session resolves like a montage, Play the next
   bout starts the next bout with the same named partners in play-out mode, unless someone was
   really hurt.
+  Amended by D-181: a bout's end is not the session's end. The fight stays active (the duel panel
+  shows the bout's result and the next bout); the narration cannot end a session with
+  combatEnded except as interrupted (the story stops it), which ends it with the bouts so far.
 
 ## 4. Ranged and Force
   Blaster vs saber deflection: shooter d20 + blaster skill/10 vs defender d20 + form

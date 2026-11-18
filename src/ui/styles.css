@@ -385,7 +385,15 @@ label.check { display: flex; gap: var(--pad-s); align-items: center; margin: var
 .beat-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .beat-row .hint { min-width: 5.5rem; }
 .beat-row button.small { min-height: 34px; text-transform: capitalize; }
-.beat-row button.active { border-color: var(--accent); color: var(--accent); }
+/* Toggles (D-183): a setting or a pending choice. Unselected reads as outlined; selected keeps the text color on a
+   tinted ground with an inset accent outline, a check and a bold label: never a solid fill, so the label never takes
+   the fill's color. The same tokens hold in every theme. */
+.beat-row button.toggle { background: var(--box-2); color: var(--text); border: 1px solid var(--line-strong); font-weight: 500; }
+.beat-row button.toggle.selected { background: var(--accent-soft); color: var(--text); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); font-weight: 700; }
+.beat-row.suggestions button.small { text-transform: none; }
+.bout-result { font-size: var(--fs-s); border-left: 3px solid var(--line-strong); padding-left: 8px; }
+.bout-result.fresh { border-left-color: var(--accent); }
+.fight-summary { display: flex; flex-direction: column; gap: 4px; border-left: 3px solid var(--accent); padding-left: 8px; }
 .beat-row.main-actions button { flex: 1 1 0; }
 .duel-log { max-height: 9rem; overflow: auto; -webkit-overflow-scrolling: touch; }
 .exchange { border-left: 2px solid var(--line); padding-left: 6px; margin: 2px 0; font-size: 0.85rem; }

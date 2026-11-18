@@ -1,6 +1,7 @@
 // The duel panel and the exchange roll cards (rolls.md §7; D-145 beat buttons; D-143 K iPad layout: the panel is a
 // fixed box and its log scrolls inside its own box). Rendering and player actions only; no rules here.
-import { MANEUVERS, STANCES } from '../data/combat.config';
+import type { Choice } from '../ai/schemas/compose';
+import { MANEUVERS, STANCES, type Stance } from '../data/combat.config';
 import { FORM_IDS, SKILL_BY_ID } from '../data/skills';
 import type { BasicRoll } from '../engine/rolls';
 import type { DuelState, ExchangeRecord } from '../engine/duel';
@@ -79,6 +80,41 @@ export interface DuelPanelProps {
   state: GameState;
   busy: boolean;
   act(input: TurnInput): void;
+  /** The stance is a setting (D-182): no turn, no exchange, no AI call, no time. */
+  setStance(stance: Stance): void;
+  /** While a fight is on, the narrator's tactical suggestions from the last turn live in the panel (D-181). */
+  suggestions: readonly Choice[];
+  pick(choice: Choice): void;
+  /** The fight that ended on the last turn, until the player closes its summary (D-181). */
+  summary: CombatDraft | null;
+  closeSummary(): void;
+}
+
+const BOUT_RESULT: Readonly<Record<string, string>> = { A: 'won', B: 'lost' };
+const PART_LABEL: Readonly<Record<string, string>> = { head: 'head', torso: 'torso', rightArm: 'right arm', leftArm: 'left arm', rightLeg: 'right leg', leftLeg: 'left leg' };
+
+/** A toggle button: selected shows an accent outline, a check and a bold label, never a solid fill (D-183). */
+function toggle(label: string, selected: boolean, busy: boolean, onClick: () => void): HTMLElement {
+  return el('button', {
+    class: `small toggle${selected ? ' selected' : ''}`,
+    text: selected ? `✓ ${label}` : label,
+    attrs: { 'aria-pressed': String(selected), ...(busy ? { disabled: 'true' } : {}) },
+    on: { click: onClick },
+  });
+}
+
+/** The result of a fight or sparring session that ended on the last turn, with a Close button (D-181). */
+function renderSummary(c: CombatDraft, close: () => void): HTMLElement {
+  const e = c.ended!;
+  const rows: (HTMLElement | null)[] = [];
+  if (c.session) {
+    const s = c.session;
+    rows.push(el('div', { text: `Sparring session over (${s.ended === 'exchanges' ? 'time' : s.ended ?? e.reason}): ${s.won} won, ${s.lost} lost${s.unfinished ? `, ${s.unfinished} unfinished` : ''}.` }));
+    if (s.injuries.length) rows.push(el('div', { class: 'hint', text: `Injuries: ${s.injuries.join('; ')}` }));
+  } else rows.push(el('div', { text: `Fight over: ${e.outcome} (${e.reason}).` }));
+  if (e.playerFate) rows.push(el('div', { class: 'hint', text: `The opponent's choice: ${e.playerFate}` }));
+  rows.push(el('div', { class: 'hint', text: c.fighters.map((f) => `${f.name}: ${f.status}`).join(' · ') }));
+  return el('div', { class: 'fight-summary' }, [...rows, el('div', { class: 'beat-row' }, [el('button', { class: 'small secondary', text: 'Close', on: { click: close } })])]);
 }
 
 /** The duel panel while a fight is on; afterwards the fate choices and the recording review. Null when nothing applies. */
@@ -92,6 +128,7 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
 
   if (!active) {
     const items: HTMLElement[] = [];
+    if (p.summary?.ended) items.push(renderSummary(p.summary, p.closeSummary));
     for (const f of fates) {
       const name = selectNpc(s, f.npcId)?.name ?? f.npcId;
       items.push(el('div', { class: 'fate' }, [el('span', { text: `${name} is down. ` }), ...f.options.map((o) => beat(`${o[0]!.toUpperCase()}${o.slice(1)} ${name}`, { action: 'fate', npcRef: f.npcId, fate: o }))]));
@@ -104,6 +141,7 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
   }
 
   const d = active.duel as DuelState;
+  const lastBout = active.session?.bouts[active.session.bouts.length - 1] ?? null;
   const names = Object.fromEntries([['pc', d.a.name], ...d.opponents.map((o) => [o.id, o.name] as const)]);
   const engaged = d.opponents.filter((o) => !o.out && !o.engagedElsewhere);
   const forms = FORM_IDS.filter((f) => f !== 'jarKai' && selectLevelExact(s, f) >= 1 && f !== d.a.form);
@@ -139,9 +177,17 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
       trackBar(d.advantage),
       vitalityRow(d.a.name, d.a.vitality, d.a.maxVitality, d.a.out ? 'out' : 'fighting', d.a.out),
       ...d.opponents.map((o) => vitalityRow(o.name, o.vitality, o.maxVitality, o.out ? 'out' : o.engagedElsewhere ? 'fighting an ally' : o.minion ? 'minion' : 'fighting', o.out)),
+      // Bout result while the session goes on (D-181): the panel stays open between bouts.
+      lastBout
+        ? el('div', { class: `bout-result${active.beat === 'boutEnded' ? ' fresh' : ''}` }, [
+            el('strong', { text: `Bout ${active.session!.bouts.length}: ${BOUT_RESULT[lastBout.winner ?? ''] ?? 'unfinished'}${lastBout.reason ? ` (${lastBout.reason})` : ''}.` }),
+            el('span', { text: active.beat === 'boutEnded' ? ` Bout ${active.session!.bouts.length + 1} begins after a breather.` : ` Bout ${active.session!.bouts.length + 1} in progress.` }),
+          ])
+        : null,
+      // A stance is a setting (D-182): it stays selected until changed and resolves nothing.
       el('div', { class: 'beat-row' }, [
         el('span', { class: 'hint', text: 'Stance' }),
-        ...STANCES.map((st) => beat(st, { action: 'stance', stance: st }, `small${d.a.stance === st ? ' active' : ''}`)),
+        ...STANCES.map((st) => toggle(st, d.a.stance === st, p.busy, () => d.a.stance !== st && p.setStance(st))),
       ]),
       el('div', { class: 'beat-row' }, [
         el('span', { class: 'hint', text: 'Tactic' }),
@@ -153,12 +199,12 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
       ]),
       el('div', { class: 'beat-row' }, [
         el('span', { class: 'hint', text: 'Next strike' }),
-        ...MANEUVERS.map((m) => beat(m, { action: 'maneuver', maneuver: m }, `small${d.a.pendingManeuver === m ? ' active' : ''}`)),
+        ...MANEUVERS.map((m) => toggle(m, d.a.pendingManeuver === m, p.busy, () => p.act({ kind: 'beat', label: m, action: { action: 'maneuver', maneuver: m } as never }))),
       ]),
       // Aimed strike (D-171): -2 to the strike, and it lands where aimed.
       el('div', { class: 'beat-row' }, [
         el('span', { class: 'hint', text: 'Aim (-2)' }),
-        ...(['head', 'torso', 'rightArm', 'leftArm', 'rightLeg', 'leftLeg'] as const).map((p) => beat(p, { action: 'aim', part: p }, `small${d.a.aim === p ? ' active' : ''}`)),
+        ...(['head', 'torso', 'rightArm', 'leftArm', 'rightLeg', 'leftLeg'] as const).map((part) => toggle(PART_LABEL[part]!, d.a.aim === part, p.busy, () => p.act({ kind: 'beat', label: `Aim: ${PART_LABEL[part]}`, action: { action: 'aim', part } as never }))),
       ]),
       forceActs.length || d.a.shatterpoint > 0
         ? el('div', { class: 'beat-row' }, [
@@ -182,6 +228,12 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
         beat('Narrate', { action: 'narrate' }, 'small secondary'),
         beat('Resolve to end', { action: 'resolve' }, 'small secondary'),
       ]),
+      p.suggestions.length
+        ? el('div', { class: 'beat-row suggestions' }, [
+            el('span', { class: 'hint', text: 'Or' }),
+            ...p.suggestions.map((c) => el('button', { class: 'small secondary', text: c.label, attrs: p.busy ? { disabled: 'true' } : {}, on: { click: () => p.pick(c) } })),
+          ])
+        : null,
       el('details', { class: 'log duel-log-wrap' }, [el('summary', { text: `Duel log (${d.log.length})` }), log]),
     ]),
   ]);
