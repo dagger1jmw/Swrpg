@@ -46,6 +46,33 @@ export const DEFAULT_AGE_BY_ROLE: Readonly<Record<string, number>> = {
   officer: 38,
 };
 export const DEFAULT_AGE = 35;
+/**
+ * Youngest age at which a figure can hold a role (D-155 design defaults; ranks.md minimum ages for the Jedi and
+ * Sith ladders). A canon figure is present at a date only when old enough for the role held then.
+ */
+export const ROLE_MIN_AGE: Readonly<Record<string, number>> = {
+  initiate: 4,
+  padawan: 10,
+  jediKnight: 18,
+  jediMaster: 31,
+  sithAcolyte: 8,
+  sithLord: 18,
+  soldier: 18,
+  officer: 22,
+  pilot: 18,
+  politician: 25,
+  official: 20,
+  merchant: 18,
+  smuggler: 18,
+  criminal: 16,
+  bountyHunter: 18,
+  scholar: 20,
+  healer: 20,
+  servant: 14,
+  civilian: 0,
+  droid: 0,
+  other: 0,
+};
 /** Rank ages for the closed-form phases (D-105: Sith on the Jedi ages until M7). */
 export const RANK_AGES = { padawanAge: 12, knightAge: 20.5 } as const;
 

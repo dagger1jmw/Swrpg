@@ -1,3 +1,4 @@
+import { LORE_TEST_DATE as TEST_START_DATE, LORE_TEST_YEAR as TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { createModelRouter, type QuotaState } from '../../src/ai/fallback';
 import { createFixtureProvider, type FixtureStep } from '../../src/ai/fixtureProvider';
@@ -8,7 +9,7 @@ import { loadEnvelope } from '../../src/persist/envelope';
 import { AUTOSAVE_SLOT, createMemoryStorage } from '../../src/persist/storage';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
-import { createCampaign, DEFAULT_START, openingPending, resumeCampaign } from '../../src/turn/campaign';
+import { createCampaign, DEFAULT_START_SECOND, openingPending, resumeCampaign } from '../../src/turn/campaign';
 import { playTurn, summarizeChapters, type DebugRequest, type Session, type TurnDeps } from '../../src/turn/pipeline';
 import openingM2 from '../fixtures/ai/opening-m2.json';
 
@@ -47,7 +48,7 @@ const newSession = (deps: TurnDeps): Promise<Session> =>
   createCampaign(
     deps.registry,
     deps.storage,
-    { name: 'Kael Varn', birthDate: { year: -3675, month: 3, day: 4 }, startDate: DEFAULT_START.date, startSecond: DEFAULT_START.second },
+    { name: 'Kael Varn', birthDate: { year: TEST_YEAR - 14, month: 3, day: 4 }, startDate: TEST_START_DATE, startSecond: DEFAULT_START_SECOND },
     { campaignId: 'camp-m2', branchId: 'branch-1' },
     '2026-11-16T00:00:00.000Z',
   );
@@ -66,7 +67,7 @@ const restChoice = { label: 'Wait', intent: { actionType: 'rest' as const } };
 describe('interrupted opening (D-97)', () => {
   it('a campaign whose opening never committed is detected and keeps its premise', async () => {
     const { deps } = setup([]);
-    await createCampaign(deps.registry, deps.storage, { name: 'Kael', birthDate: { year: -3675, month: 3, day: 4 }, startDate: DEFAULT_START.date, startSecond: DEFAULT_START.second, premise: ' A Padawan. ' }, { campaignId: 'c-open', branchId: 'b' }, 'now');
+    await createCampaign(deps.registry, deps.storage, { name: 'Kael', birthDate: { year: TEST_YEAR - 14, month: 3, day: 4 }, startDate: TEST_START_DATE, startSecond: DEFAULT_START_SECOND, premise: ' A Padawan. ' }, { campaignId: 'c-open', branchId: 'b' }, 'now');
     const resumed = await resumeCampaign(deps.registry, deps.storage);
     expect(resumed && 'session' in resumed && openingPending(resumed.session)).toBe(true);
     expect(resumed && 'session' in resumed && resumed.session.campaign.premise).toBe('A Padawan.');

@@ -4,6 +4,7 @@
 // Rank changes at the profile's ages use the engine rankSet event (D-131, until M7); combat comes from
 // scripted fights through fightResolved (combat-xp.md, stub STUB_SCRIPTED_COMBAT until M5).
 // Replaces the M3 test-only profile runner.
+import { TEST_YEAR } from './dates';
 import { FORM_IDS } from '../../src/data/skills';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { levelExact } from '../../src/engine/curve';
@@ -74,7 +75,7 @@ export interface LifeResult {
   state: GameState;
 }
 
-const START_DAY = absDayFromDate({ year: -3700, month: 1, day: 1 });
+const START_DAY = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 
 export function profileState(p: LifeProfile): GameState {
   const plan = p.formPlan ?? { padawan: { [p.mainForm]: 2, [p.secondForm]: 1 }, knight: { [p.mainForm]: 2, [p.secondForm]: 1 } };

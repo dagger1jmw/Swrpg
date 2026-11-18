@@ -1,4 +1,5 @@
 // Computed creation: character-creation.md §6 tests 1-6 (M3 step 7), plus the campaign wiring.
+import { TEST_START_DATE, TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { computeCreation, defaultFocus, fillFactor, ranksFor, type CreationInput } from '../../src/features/character/creation';
@@ -7,9 +8,9 @@ import { ARCHETYPE_BY_ID } from '../../src/data/archetypes';
 import { selectLevelExact } from '../../src/features/progression/selectors';
 import { createMemoryStorage } from '../../src/persist/storage';
 import { REGISTRY } from '../../src/state/registry';
-import { createCampaign, DEFAULT_START, validateNewCampaign } from '../../src/turn/campaign';
+import { createCampaign, DEFAULT_START_SECOND, validateNewCampaign } from '../../src/turn/campaign';
 
-const START = absDayFromDate(DEFAULT_START.date);
+const START = absDayFromDate(TEST_START_DATE);
 const born = (age: number) => START - Math.round(age * 368);
 const jedi = (age: number, rank: string, over: Partial<CreationInput> = {}): CreationInput => ({
   name: 'Kael',
@@ -219,9 +220,9 @@ describe('campaign creation (M3)', () => {
   it('a created campaign starts with the computed XP, rank, character fields and backstory facts', async () => {
     const input = {
       name: 'Kael',
-      birthDate: { year: -3685, month: 1, day: 1 },
-      startDate: DEFAULT_START.date,
-      startSecond: DEFAULT_START.second,
+      birthDate: { year: TEST_YEAR - 24, month: 1, day: 1 },
+      startDate: TEST_START_DATE,
+      startSecond: DEFAULT_START_SECOND,
       creation: { speciesId: 'human', path: 'jedi' as const, archetype: 'jediGuardian', rank: 'knight', trainingStartAge: 4, talents: {}, dominantHand: 'right' as const },
     };
     expect(validateNewCampaign(input)).toEqual([]);
@@ -240,9 +241,9 @@ describe('campaign creation (M3)', () => {
   it('an unbalanced campaign carries the flag on the character', async () => {
     const input = {
       name: 'Kael',
-      birthDate: { year: -3685, month: 1, day: 1 },
-      startDate: DEFAULT_START.date,
-      startSecond: DEFAULT_START.second,
+      birthDate: { year: TEST_YEAR - 24, month: 1, day: 1 },
+      startDate: TEST_START_DATE,
+      startSecond: DEFAULT_START_SECOND,
       creation: {
         speciesId: 'human',
         path: 'jedi' as const,
@@ -263,9 +264,9 @@ describe('campaign creation (M3)', () => {
   it('an unreachable rank blocks the campaign with the four options', () => {
     const errors = validateNewCampaign({
       name: 'Kael',
-      birthDate: { year: -3680, month: 1, day: 1 },
-      startDate: DEFAULT_START.date,
-      startSecond: DEFAULT_START.second,
+      birthDate: { year: TEST_YEAR - 19, month: 1, day: 1 },
+      startDate: TEST_START_DATE,
+      startSecond: DEFAULT_START_SECOND,
       creation: { speciesId: 'human', path: 'jedi', archetype: 'jediGuardian', rank: 'knight', trainingStartAge: 4, talents: {}, dominantHand: 'right' },
     });
     expect(errors.join(' ')).toMatch(/story exception/);

@@ -1,3 +1,4 @@
+import { TEST_START_DATE, TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { createModelRouter, type QuotaState } from '../../src/ai/fallback';
 import { createFixtureProvider, type FixtureStep } from '../../src/ai/fixtureProvider';
@@ -8,13 +9,13 @@ import { loadEnvelope } from '../../src/persist/envelope';
 import { AUTOSAVE_SLOT, createMemoryStorage } from '../../src/persist/storage';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
-import { createCampaign, resumeCampaign, DEFAULT_START } from '../../src/turn/campaign';
+import { createCampaign, resumeCampaign, DEFAULT_START_SECOND } from '../../src/turn/campaign';
 import { narrateTurn, playTurn, prepareTurn, TurnError, type Session, type TurnDeps } from '../../src/turn/pipeline';
 import intentInvestigate from '../fixtures/ai/intent-investigate.json';
 import narrativeInvestigate from '../fixtures/ai/narrative-investigate.json';
 import opening from '../fixtures/ai/opening.json';
 
-const START_SECOND = DEFAULT_START.second;
+const START_SECOND = DEFAULT_START_SECOND;
 
 function setup(steps: FixtureStep[], settings: Partial<Settings> = {}, startMs = Date.UTC(2026, 10, 16, 20, 0)) {
   const provider = createFixtureProvider(steps);
@@ -53,7 +54,7 @@ async function newSession(deps: TurnDeps, campaignId = 'camp-1'): Promise<Sessio
   return createCampaign(
     deps.registry,
     deps.storage,
-    { name: 'Kael Varn', birthDate: { year: -3675, month: 3, day: 4 }, startDate: DEFAULT_START.date, startSecond: START_SECOND },
+    { name: 'Kael Varn', birthDate: { year: TEST_YEAR - 14, month: 3, day: 4 }, startDate: TEST_START_DATE, startSecond: START_SECOND },
     { campaignId, branchId: 'branch-1' },
     '2026-11-16T00:00:00.000Z',
   );

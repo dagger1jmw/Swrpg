@@ -28,8 +28,11 @@ export function creationFor(input: NewCampaignInput): CreationResult | null {
   return computeCreation({ ...input.creation, name: input.name.trim() || 'The character', birthDay: absDayFromDate(input.birthDate), startDay: absDayFromDate(input.startDate) });
 }
 
-/** Character creation default start (character-creation.md §1: 3,661 BBY, D-01), 07:00. */
-export const DEFAULT_START: { date: CalendarDate; second: number } = { date: { year: -3661, month: 1, day: 1 }, second: 7 * 3600 };
+/**
+ * Default start time of day (07:00). There is no default start year: the player picks the era and date
+ * (D-155; character-creation.md §1). Nothing in the game favours a year.
+ */
+export const DEFAULT_START_SECOND = 7 * 3600;
 
 export function validateNewCampaign(input: NewCampaignInput): string[] {
   const errors: string[] = [];

@@ -1,3 +1,4 @@
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { absDayFromDate, DAYS_PER_YEAR } from '../../src/engine/calendar';
 import { makeEnvelope } from '../../src/persist/envelope';
@@ -8,7 +9,7 @@ import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 
-const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 
 async function saved() {
   const storage = createMemoryStorage();

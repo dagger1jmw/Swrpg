@@ -1,3 +1,4 @@
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { keywordsUsed, SUPPORTED_KEYWORDS, toGeminiSchema } from '../../src/ai/jsonSchema';
@@ -13,8 +14,8 @@ const state = createInitialState<GameState>(REGISTRY, {
   campaignId: 'c',
   branchId: 'b',
   seed: 's',
-  start: { day: absDayFromDate({ year: -3661, month: 1, day: 1 }), second: 25_200 },
-  character: { name: 'Kael', birthDay: absDayFromDate({ year: -3675, month: 1, day: 1 }) },
+  start: { day: absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 }), second: 25_200 },
+  character: { name: 'Kael', birthDay: absDayFromDate({ year: TEST_YEAR - 14, month: 1, day: 1 }) },
 });
 
 const variants = [

@@ -1,6 +1,7 @@
 // Jumps (M4): thread deadlines and escalation (D-135), weighted world events and interruptions (D-136),
 // relationship drift and shared training (D-137), the montage report (training-routines §8, test 8),
 // a birthday during a skip and the interruption state (architecture §10 required tests).
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { WORLD_EVENT_CHANCE } from '../../src/data/worldEvents.config';
 import { absDayFromDate } from '../../src/engine/calendar';
@@ -14,7 +15,7 @@ import { buildMontageReport } from '../../src/state/montageReport';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 
-const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 const knight = (seed = 'j', birthOffsetDays = 0): GameState =>
   createInitialState<GameState>(REGISTRY, {
     campaignId: 'c1',
@@ -153,7 +154,7 @@ describe('the montage report (training-routines §8, test 8)', () => {
   });
 
   it('a birthday during a skip appears as a notice in the report (age is derived)', () => {
-    const s = knight('bday', 10);
+    const s = knight('bday', 2);
     const run = advanceByRoutine(REGISTRY, s, { untilAbs: wakeAfter(s, 30), reason: 'skip' });
     const rep = buildMontageReport(s, run, { level: 'timeSkip', requestedDays: 30 });
     expect(rep.events.some((e) => /birthday|turns/i.test(e.text))).toBe(true);

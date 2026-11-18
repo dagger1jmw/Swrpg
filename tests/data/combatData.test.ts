@@ -1,7 +1,7 @@
 // M5 step 1: integrity of the combat, health, NPC-generation, canon and flag data (D-143).
 import { describe, expect, it } from 'vitest';
 import { ARCHETYPE_BY_ID } from '../../src/data/archetypes';
-import { CANON_NPCS } from '../../src/data/canonNpcs';
+import { CANON_ERAS, CANON_NPCS } from '../../src/data/canonNpcs';
 import { FATE_ROLL, SITH_ACADEMIES, SPARRING_DEFAULT_BY_RANK, STRIKE_QUALITY, isNarratedBeat } from '../../src/data/combat.config';
 import { QUIET_LINES, fillLine } from '../../src/data/combatLines';
 import { FACTIONS, NPC_ROLES, SPECIES } from '../../src/data/entities.config';
@@ -28,6 +28,7 @@ import { STUB_DUAL_BLADES, STUB_PLAYER_SHATTERSENSE, STUB_WEAPONS, stubLightPhil
 import { TERRAIN_TAGS } from '../../src/data/terrain';
 import { LOADOUT_BY_ARCHETYPE, loadoutFor } from '../../src/data/weapons';
 import { slugify } from '../../src/engine/aliases';
+import { canonAbsence, canonPresentAt, canonRoleAt } from '../../src/engine/canonRoster';
 
 const sum = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0);
 const RANK_IDS = RANKS.map((r) => r.id);
@@ -153,24 +154,71 @@ describe('NPC generation config (npc-generation §2-6)', () => {
   });
 });
 
-describe('canon NPCs (npc-generation §5)', () => {
+describe('canon NPCs (npc-generation §5, D-155)', () => {
   it('canon IDs match the lore index slugs and are unique', () => {
     const ids = CANON_NPCS.map((c) => c.canonId);
     expect(new Set(ids).size).toBe(ids.length);
     for (const c of CANON_NPCS) expect(c.canonId).toBe(`lore:${slugify(c.name)}`);
   });
-  it('fields are registered: species, faction, role, archetype, skills', () => {
+  it('fields are registered: species, faction, roles, archetype, skills', () => {
     for (const c of CANON_NPCS) {
       expect(SPECIES).toContain(c.speciesId);
       expect(FACTIONS).toContain(c.faction);
-      expect(NPC_ROLES).toContain(c.role);
+      for (const r of [c.role, ...(c.earlierRoles ?? []).map((e) => e.role)]) expect(NPC_ROLES).toContain(r);
       expect(ARCHETYPE_BY_ID.has(c.archetype), c.name).toBe(true);
       for (const k of Object.keys(c.levels)) expect(isSkillId(k), `${c.name}: ${k}`).toBe(true);
       for (const v of Object.values(c.levels)) expect(v).toBeGreaterThanOrEqual(0);
     }
   });
-  it('a sheet is never dated before its figure was born', () => {
-    for (const c of CANON_NPCS) expect(c.birthBby, c.name).toBeGreaterThan(c.snapshotBby);
+  it('dates are ordered: born before the sheet and before death; every year is marked lore or estimate', () => {
+    for (const c of CANON_NPCS) {
+      expect(c.birthBby, c.name).toBeGreaterThan(c.snapshotBby);
+      expect(['lore', 'estimate']).toContain(c.birthSource);
+      if (c.deathBby !== undefined) {
+        expect(c.birthBby).toBeGreaterThan(c.deathBby);
+        expect(['lore', 'estimate']).toContain(c.deathSource);
+      }
+    }
+  });
+  it('each era roster lies inside its span and matches a lore file', () => {
+    for (const era of CANON_ERAS) {
+      expect(era.fromBby).toBeGreaterThan(era.toBby);
+      expect(era.loreFile).toMatch(/^Docs\/SWRPG lore\/SW_Characters_/);
+    }
+  });
+});
+
+describe('canon roster by campaign date (D-155)', () => {
+  const names = (bby: number): string[] => canonPresentAt(bby).map((c) => c.name);
+  const why = (name: string, bby: number) => canonAbsence(CANON_NPCS.find((c) => c.name === name)!, bby);
+  it('3,681 BBY, before Korriban falls: Kao Cen Darach, Padawan Satele, apprentice Malgus and Vindican; no Theron or Hero of Tython', () => {
+    const at = names(3681);
+    for (const n of ['Kao Cen Darach', 'Satele Shan', 'Darth Malgus', 'Darth Vindican', 'Grand Master Zym', 'Jace Malcom']) expect(at, n).toContain(n);
+    expect(canonRoleAt(CANON_NPCS.find((c) => c.name === 'Satele Shan')!, 3681)).toBe('padawan');
+    expect(canonRoleAt(CANON_NPCS.find((c) => c.name === 'Darth Malgus')!, 3681)).toBe('sithAcolyte');
+    expect(why('Theron Shan', 3681)).toBe('unborn');
+    expect(why('The Hero of Tython', 3681)).toBe('unborn');
+    expect(why('Aric Jorgan', 3681)).toBe('unborn');
+    expect(why('Revan', 3681)).toBe('unavailable');
+  });
+  it('3,653 BBY, the Sacking: Zym and Ven Zallow (their death year), Malgus; Kao Cen and Vindican dead, Dread Masters imprisoned, Theron too young', () => {
+    const at = names(3653);
+    for (const n of ['Grand Master Zym', 'Ven Zallow', 'Darth Malgus', 'Satele Shan', 'Shae Vizla']) expect(at, n).toContain(n);
+    expect(why('Kao Cen Darach', 3653)).toBe('dead');
+    expect(why('Darth Vindican', 3653)).toBe('dead');
+    expect(why('The Dread Masters', 3653)).toBe('unavailable');
+    expect(why('Theron Shan', 3653)).toBe('tooYoung');
+  });
+  it('3,640 BBY, the Galactic War: Hero of Tython, Theron, Marr and Revan; Zym and Ngani Zho dead', () => {
+    const at = names(3640);
+    for (const n of ['The Hero of Tython', 'Theron Shan', 'Darth Marr', 'Revan', 'Satele Shan']) expect(at, n).toContain(n);
+    expect(why('Grand Master Zym', 3640)).toBe('dead');
+    expect(why('Master Ngani Zho', 3640)).toBe('dead');
+    expect(why('Darth Baras', 3640)).toBe('dead');
+  });
+  it('Aric Jorgan (born ~3,675) is never an active soldier before 3,657', () => {
+    expect(why('Aric Jorgan', 3658)).toBe('tooYoung');
+    expect(why('Aric Jorgan', 3657)).toBeNull();
   });
 });
 

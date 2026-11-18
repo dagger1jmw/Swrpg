@@ -24,7 +24,8 @@ import {
 } from '../ai/settings';
 import { calibrate, type TokenRatios } from '../ai/tokenRatio';
 import { recordRequest, summarizeUsage, type UsageLog } from '../ai/usage';
-import { absDayFromDate, ageInYears, formatClock, formatDate, isValidDate, timeOfDayLabel, type CalendarDate } from '../engine/calendar';
+import { LORE_INDEX } from '../lore';
+import { absDayFromDate, ageInYears, formatClock, formatDate, formatYear, isValidDate, timeOfDayLabel, type CalendarDate } from '../engine/calendar';
 import type { CheckCard } from '../engine/rolls';
 import { selectNow } from '../features/clock/selectors';
 import { selectCurrentLocation } from '../features/locations/selectors';
@@ -35,7 +36,7 @@ import type { Storage } from '../persist/storage';
 import { applyEvents } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
 import type { GameEvent, Registry } from '../state/types';
-import { createCampaign, DEFAULT_START, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
+import { createCampaign, DEFAULT_START_SECOND, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
 import { narrateTurn, prepareTurn, summarizeChapters, TurnError, type DebugRequest, type PendingTurn, type Session, type SummaryOutcome, type TurnDeps } from '../turn/pipeline';
 import { describeInput, type TurnInput, type TurnRecord } from '../turn/record';
 import type { TrainingOutcome } from '../turn/resolve';
@@ -694,12 +695,18 @@ export class App {
 
   private renderCreateForm(): HTMLElement[] {
     const name = input({ maxlength: '60', placeholder: 'Character name' });
-    const dateInputs = (d: CalendarDate) => {
-      const year = input({ type: 'number', min: '0', value: String(Math.abs(d.year)) });
+    const dateInputs = (d: CalendarDate | null) => {
+      const year = input({ type: 'number', min: '0', value: d ? String(Math.abs(d.year)) : '' });
       const era = el('select', {}, [el('option', { text: 'BBY', attrs: { value: 'BBY' } }), el('option', { text: 'ABY', attrs: { value: 'ABY' } })]);
-      era.value = d.year > 0 ? 'ABY' : 'BBY';
-      const month = input({ type: 'number', min: '1', max: '12', value: String(d.month) });
-      const day = input({ type: 'number', min: '1', max: '31', value: String(d.day) });
+      era.value = d && d.year > 0 ? 'ABY' : 'BBY';
+      const month = input({ type: 'number', min: '1', max: '12', value: String(d?.month ?? 1) });
+      const day = input({ type: 'number', min: '1', max: '31', value: String(d?.day ?? 1) });
+      const set = (v: CalendarDate): void => {
+        year.value = String(Math.abs(v.year));
+        era.value = v.year > 0 ? 'ABY' : 'BBY';
+        month.value = String(v.month);
+        day.value = String(v.day);
+      };
       const read = (): CalendarDate => {
         const y = Math.trunc(Number(year.value));
         return { year: era.value === 'BBY' ? -y : y, month: Math.trunc(Number(month.value)), day: Math.trunc(Number(day.value)) };
@@ -710,12 +717,24 @@ export class App {
         el('div', { class: 'field' }, [el('label', { text: 'Month (1-12)' }), month]),
         el('div', { class: 'field' }, [el('label', { text: 'Day' }), day]),
       ]);
-      return { fields, read, all: [year, era, month, day] };
+      return { fields, read, set, all: [year, era, month, day] };
     };
-    const start = DEFAULT_START.date;
-    const birth = dateInputs({ year: start.year - 14, month: 1, day: 1 });
-    const startD = dateInputs(start);
-    const time = input({ type: 'time', value: formatClock(DEFAULT_START.second) });
+    // No default year (D-155): the player picks an era (its first year fills the start date) or types a date.
+    const eras = LORE_INDEX.chunks.filter((c) => c.id.endsWith(':overview')).sort((a, b) => a.fromYear - b.fromYear);
+    const eraPick = el('select', {}, [
+      el('option', { text: 'Choose an era...', attrs: { value: '' } }),
+      ...eras.map((c) => el('option', { text: `${c.title.replace(/ \(overview\)$/, '')} (${formatYear(c.fromYear)} to ${formatYear(c.toYear)})`, attrs: { value: c.id } })),
+    ]);
+    const birth = dateInputs(null);
+    const startD = dateInputs(null);
+    eraPick.addEventListener('change', () => {
+      const c = eras.find((x) => x.id === eraPick.value);
+      if (!c) return;
+      startD.set({ year: c.fromYear, month: 1, day: 1 });
+      if (!isValidDate(birth.read())) birth.set({ year: c.fromYear - 14, month: 1, day: 1 });
+      updateAge();
+    });
+    const time = input({ type: 'time', value: formatClock(DEFAULT_START_SECOND) });
     const premise = el('textarea', { attrs: { placeholder: 'Optional: who you are or how the story should begin (e.g. a Padawan at the Coruscant Temple).' } });
     const ageLine = el('p', { class: 'hint' });
     const err = el('div', { class: 'error' });
@@ -759,7 +778,8 @@ export class App {
       el('div', { class: 'field-label', text: 'Birth date' }),
       birth.fields,
       el('div', { class: 'field-label', text: 'Start date and time' }),
-      el('p', { class: 'hint', text: 'Default: 3,661 BBY, the Great Galactic War. 12 months; months 1-8 have 31 days, 9-12 have 30.' }),
+      el('div', { class: 'field' }, [el('label', { text: 'Era' }), eraPick]),
+      el('p', { class: 'hint', text: 'Pick an era to fill the start date, or type any date. 12 months; months 1-8 have 31 days, 9-12 have 30.' }),
       startD.fields,
       el('div', { class: 'field' }, [el('label', { text: 'Time of day' }), time]),
       ageLine,

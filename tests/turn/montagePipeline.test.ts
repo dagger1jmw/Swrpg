@@ -1,6 +1,7 @@
 // M4: montage and time-skip turns through the pipeline (the routine day loop, the report narrated, one
 // time writer, pacing after the jump, the jump's own chapter), staleness and the code-appended Skip-ahead
 // choice (D-18), jump choices, and world events marked told.
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { createModelRouter, type QuotaState } from '../../src/ai/fallback';
 import { createFixtureProvider, type FixtureStep } from '../../src/ai/fixtureProvider';
@@ -17,7 +18,7 @@ import { playTurn, type Session, type TurnDeps } from '../../src/turn/pipeline';
 import type { TurnInput } from '../../src/turn/record';
 import narrativeInvestigate from '../fixtures/ai/narrative-investigate.json';
 
-const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 const narrative = (events: unknown[] = [], choices = narrativeInvestigate.choices) => ({ ...narrativeInvestigate, choices, events });
 
 function setup(steps: FixtureStep[]) {

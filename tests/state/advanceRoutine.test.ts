@@ -1,4 +1,5 @@
 // The routine day loop (M4; architecture §9-10, training-routines §6-9).
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { planDay } from '../../src/features/routines/selectors';
@@ -8,7 +9,7 @@ import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 
-const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 const initiate = (seed = 's'): GameState =>
   createInitialState<GameState>(REGISTRY, {
     campaignId: 'c1',

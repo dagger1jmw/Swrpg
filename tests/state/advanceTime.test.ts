@@ -1,3 +1,4 @@
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { absDayFromDate, dateFromAbsDay, SECONDS_PER_DAY } from '../../src/engine/calendar';
@@ -10,13 +11,13 @@ import { HOOK_ORDER, REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 import type { BaseState, FeatureModule, InitCtx, TimeStep } from '../../src/state/types';
 
-const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 const ctx = (over: Partial<InitCtx> = {}): InitCtx => ({
   campaignId: 'c1',
   branchId: 'b1',
   seed: 'seed',
   start: { day: START, second: 7 * 3600 },
-  character: { name: 'Kael', birthDay: absDayFromDate({ year: -3675, month: 2, day: 10 }) },
+  character: { name: 'Kael', birthDay: absDayFromDate({ year: TEST_YEAR - 14, month: 2, day: 10 }) },
   ...over,
 });
 const game = (over?: Partial<InitCtx>): GameState => createInitialState<GameState>(REGISTRY, ctx(over));
@@ -66,7 +67,7 @@ describe('advanceTime (architecture §9, §10)', () => {
     expect(r.secondsAdvanced).toBe(span);
     const clock = r.state['clock'] as GameState['clock'];
     expect(clock.now).toEqual({ day: START + 100, second: 7 * 3600 });
-    expect(dateFromAbsDay(clock.now.day)).toEqual({ year: -3661, month: 4, day: 8 });
+    expect(dateFromAbsDay(clock.now.day)).toEqual({ year: TEST_YEAR, month: 4, day: 8 });
   });
 
   it('a midnight crossing splits the step and ends the day once', () => {

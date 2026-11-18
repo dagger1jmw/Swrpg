@@ -1,5 +1,6 @@
 // M4 step 2: fightResolved (combat-xp §1-2, tests 2 and 8: counters survive the fight and reset at the
 // day hook, D-47), training records (progression-numbers §15, D-125) and self-study (D-126).
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { xpForLevel } from '../../src/engine/curve';
@@ -10,7 +11,7 @@ import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 
-const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 const fresh = (path: 'jedi' | 'outsider' = 'jedi', startingXp: Record<string, number> = { soresu: xpForLevel(30) }): GameState =>
   createInitialState<GameState>(REGISTRY, {
     campaignId: 'c1',

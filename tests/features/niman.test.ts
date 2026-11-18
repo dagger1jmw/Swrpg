@@ -1,6 +1,7 @@
 // Niman (Form VI) rules, D-121: the fundamentals transfer uses the average of Forms I, III, IV and V;
 // synergy into Niman from each of them at 0.10 (ceiling 0.6) replaces the 0.05 foundation; Niman
 // drills have physical load 0.8.
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { ACTIVITY_BY_ID } from '../../src/data/activities';
 import { FORM_TRANSFER_SHARE } from '../../src/data/progression.config';
@@ -40,7 +41,7 @@ describe('Niman (D-121)', () => {
   });
 
   it('in play, a first Niman session transfers from the Forms I, III, IV, V average', () => {
-    const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+    const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
     const s = createInitialState<GameState>(REGISTRY, {
       campaignId: 'c',
       branchId: 'b',

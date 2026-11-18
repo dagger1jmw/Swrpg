@@ -1,5 +1,6 @@
 // M3 step 6: train / sleep / rest turns through the pipeline (one time writer, XP and meters), an
 // unknown activity, the choice fast path for training, the action input, and the schema size cap.
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { createModelRouter, type QuotaState } from '../../src/ai/fallback';
 import { createFixtureProvider, type FixtureStep } from '../../src/ai/fixtureProvider';
@@ -19,7 +20,7 @@ import { playTurn, type Session, type TurnDeps } from '../../src/turn/pipeline';
 import type { TurnInput } from '../../src/turn/record';
 import narrativeInvestigate from '../fixtures/ai/narrative-investigate.json';
 
-const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 const narrative = (events: unknown[] = []) => ({ ...narrativeInvestigate, events });
 
 function setup(steps: FixtureStep[]) {

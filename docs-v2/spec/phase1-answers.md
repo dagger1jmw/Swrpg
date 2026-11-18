@@ -15,7 +15,7 @@ never authoritative. The Old Republic (SWTOR) material, including the Great Gala
 record it as a conflict with Legends and follow Legends.
 
 ## Scope and setting
-1. DEFAULT: 3,661 BBY (Great Galactic War, year 20) ships first. The engine and calendar are era-agnostic and
+1. DEFAULT: 3,661 BBY (Great Galactic War, year 20) ships first. (Superseded by D-155: there is no default year; every era is treated equally.) The engine and calendar are era-agnostic and
    support BBY and ABY dates, so other eras can be added later.
 2. JARED: the start date is a character-creation choice. The galaxy state follows the
    Legends timeline from that date (before or after the Hydian Way blockade breaks).

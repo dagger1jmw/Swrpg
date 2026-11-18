@@ -1,5 +1,6 @@
 // Progression, health, ranks and character v2 (M3 step 5): progression-numbers §20 tests 21, 22, 25,
 // 26; progression-targets test 6; health test 13; the M1/M2 migration fixture and a save round trip.
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { xpForLevel } from '../../src/engine/curve';
@@ -13,7 +14,7 @@ import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 
-const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 const fresh = (startingXp: Record<string, number> = {}): GameState =>
   createInitialState<GameState>(REGISTRY, {
     campaignId: 'c1',

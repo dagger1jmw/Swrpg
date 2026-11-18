@@ -1,4 +1,5 @@
 // training-routines.md §9 required tests (the scheduler, M4), the routine events, and the preview (§5).
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { ACTIVITY_BY_ID } from '../../src/data/activities';
 import { TIREDNESS_LIMIT, Y_AVG } from '../../src/data/progression.config';
@@ -12,7 +13,7 @@ import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 import { previewRoutine } from '../../src/state/routinePreview';
 
-const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 const knight = (age = 25): GameState =>
   createInitialState<GameState>(REGISTRY, {
     campaignId: 'c1',

@@ -1,5 +1,6 @@
 // Fundamentals transfer at run time (D-119): a lightsaber form's first session as the primary starts it
 // at 0.75 x the highest form's XP, once per form, outside the 4.0x clamp; never for Force abilities.
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { FORM_TRANSFER_SHARE } from '../../src/data/progression.config';
 import { absDayFromDate } from '../../src/engine/calendar';
@@ -11,7 +12,7 @@ import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 
-const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 const padawan = (): GameState =>
   createInitialState<GameState>(REGISTRY, {
     campaignId: 'c',

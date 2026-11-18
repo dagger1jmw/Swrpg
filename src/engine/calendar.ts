@@ -163,7 +163,7 @@ export function formatYear(year: number): string {
   return year < 0 ? `${withThousands(-year)} BBY` : `${withThousands(year)} ABY`;
 }
 
-/** e.g. "Day 1 of Month 1, 3,661 BBY (weekday 3)" */
+/** e.g. "Day 1 of Month 1, 1,032 BBY (weekday 3)" */
 export function formatDate(absDay: number): string {
   const d = dateFromAbsDay(absDay);
   return `Day ${d.day} of Month ${d.month}, ${formatYear(d.year)} (weekday ${weekday(absDay)})`;

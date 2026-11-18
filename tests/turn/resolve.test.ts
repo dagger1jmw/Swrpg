@@ -1,3 +1,4 @@
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { absDayFromDate } from '../../src/engine/calendar';
 import type { GameState } from '../../src/state/gameState';
@@ -12,8 +13,8 @@ const state = createInitialState<GameState>(REGISTRY, {
   campaignId: 'c',
   branchId: 'b',
   seed: 'resolve',
-  start: { day: absDayFromDate({ year: -3661, month: 1, day: 1 }), second: 22 * 3600 },
-  character: { name: 'Kael', birthDay: absDayFromDate({ year: -3675, month: 1, day: 2 }) },
+  start: { day: absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 }), second: 22 * 3600 },
+  character: { name: 'Kael', birthDay: absDayFromDate({ year: TEST_YEAR - 14, month: 1, day: 2 }) },
 });
 const base = { targets: [], references: [], unknownNames: [] };
 

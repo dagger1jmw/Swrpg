@@ -1,5 +1,6 @@
 // Montage spans on the calendar (D-142): whole months and years end on the same day of the month that
 // many months later (31-day months 1-8, 30-day months 9-12), at the wake time.
+import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { absDayFromDate, addCalendarMonths, dateFromAbsDay } from '../../src/engine/calendar';
 import type { GameState } from '../../src/state/gameState';
@@ -11,28 +12,28 @@ const day = (year: number, month: number, d: number) => absDayFromDate({ year, m
 
 describe('addCalendarMonths', () => {
   it('lands on the same day of the month', () => {
-    expect(addCalendarMonths(day(-3661, 1, 1), 3)).toBe(day(-3661, 4, 1));
-    expect(addCalendarMonths(day(-3661, 1, 1), 3) - day(-3661, 1, 1)).toBe(93);
-    expect(addCalendarMonths(day(-3661, 2, 17), 1)).toBe(day(-3661, 3, 17));
-    expect(addCalendarMonths(day(-3661, 9, 10), 3)).toBe(day(-3661, 12, 10));
+    expect(addCalendarMonths(day(TEST_YEAR, 1, 1), 3)).toBe(day(TEST_YEAR, 4, 1));
+    expect(addCalendarMonths(day(TEST_YEAR, 1, 1), 3) - day(TEST_YEAR, 1, 1)).toBe(93);
+    expect(addCalendarMonths(day(TEST_YEAR, 2, 17), 1)).toBe(day(TEST_YEAR, 3, 17));
+    expect(addCalendarMonths(day(TEST_YEAR, 9, 10), 3)).toBe(day(TEST_YEAR, 12, 10));
   });
   it('clamps to the shorter 30-day months 9-12', () => {
-    expect(addCalendarMonths(day(-3661, 8, 31), 1)).toBe(day(-3661, 9, 30));
-    expect(addCalendarMonths(day(-3661, 6, 31), 3)).toBe(day(-3661, 9, 30));
+    expect(addCalendarMonths(day(TEST_YEAR, 8, 31), 1)).toBe(day(TEST_YEAR, 9, 30));
+    expect(addCalendarMonths(day(TEST_YEAR, 6, 31), 3)).toBe(day(TEST_YEAR, 9, 30));
   });
   it('carries across years, including year 0 (1 BBY -> 0 BBY/ABY -> 1 ABY)', () => {
-    expect(addCalendarMonths(day(-3661, 11, 20), 3)).toBe(day(-3660, 2, 20));
+    expect(addCalendarMonths(day(TEST_YEAR, 11, 20), 3)).toBe(day((TEST_YEAR + 1), 2, 20));
     expect(addCalendarMonths(day(-1, 12, 5), 1)).toBe(day(0, 1, 5));
     expect(addCalendarMonths(day(0, 12, 5), 1)).toBe(day(1, 1, 5));
-    expect(addCalendarMonths(day(-3661, 5, 3), 12)).toBe(day(-3660, 5, 3));
+    expect(addCalendarMonths(day(TEST_YEAR, 5, 3), 12)).toBe(day((TEST_YEAR + 1), 5, 3));
   });
 });
 
 describe('jumpTargetDay', () => {
   it('months and years follow the calendar; days and weeks count days', () => {
-    const from = day(-3661, 1, 1);
-    expect(jumpTargetDay(from, 92 * 86_400, { amount: 3, unit: 'months' })).toBe(day(-3661, 4, 1));
-    expect(jumpTargetDay(from, 368 * 86_400, { amount: 1, unit: 'years' })).toBe(day(-3660, 1, 1));
+    const from = day(TEST_YEAR, 1, 1);
+    expect(jumpTargetDay(from, 92 * 86_400, { amount: 3, unit: 'months' })).toBe(day(TEST_YEAR, 4, 1));
+    expect(jumpTargetDay(from, 368 * 86_400, { amount: 1, unit: 'years' })).toBe(day((TEST_YEAR + 1), 1, 1));
     expect(jumpTargetDay(from, 92 * 86_400, { amount: 92, unit: 'days' })).toBe(from + 92);
     expect(jumpTargetDay(from, 14 * 86_400, { amount: 2, unit: 'weeks' })).toBe(from + 14);
     // A fractional month has no calendar day: counted in days.
@@ -42,7 +43,7 @@ describe('jumpTargetDay', () => {
 
 describe('a "3 months" montage turn', () => {
   it('ends on the same day of the month three months later, at the wake time', () => {
-    const start = day(-3661, 1, 1);
+    const start = day(TEST_YEAR, 1, 1);
     const s = createInitialState<GameState>(REGISTRY, {
       campaignId: 'c1',
       branchId: 'b1',
@@ -61,7 +62,7 @@ describe('a "3 months" montage turn', () => {
     });
     const rep = draft.jump!.report;
     expect(rep.interrupted).toBeNull();
-    expect(dateFromAbsDay(state.clock.now.day)).toEqual({ year: -3661, month: 4, day: 1 });
+    expect(dateFromAbsDay(state.clock.now.day)).toEqual({ year: TEST_YEAR, month: 4, day: 1 });
     expect(state.clock.now.second).toBe(s.routines.active.wakeSecond);
     expect(rep.requestedDays).toBe(93);
     expect(rep.daysCompleted).toBe(93);

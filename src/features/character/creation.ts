@@ -5,6 +5,7 @@
 // progression selectors. Lightsaber forms follow the form plans: Initiates train only Shii-Cho; from
 // Padawan the plan splits the 2 h master session and the 1 h solo hour among any forms, and each form's
 // first phase starts it at 0.75 x the highest form (the fundamentals transfer). Variance is off.
+import { orderSeatAt } from '../../data/orderSeats';
 import { ARCHETYPE_BY_ID, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
 import { BUDGET, FORM_TRANSFER_SHARE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
 import { ORDER_REQUIREMENTS } from '../../data/orderRequirements';
@@ -346,9 +347,9 @@ export function computeCreation(input: CreationInput): CreationResult {
   };
 }
 
-/** The Temple by start date (ranks.md era notes, L-03): Coruscant before 3,653 BBY, Tython from then. */
+/** The Order's seat by start date (src/data/orderSeats.ts; L-03, D-155: every era). */
 function templeFor(year: number): string {
-  return year < -3653 ? 'the Jedi Temple on Coruscant' : 'the Jedi Temple on Tython';
+  return orderSeatAt(year) ?? 'a hidden enclave of surviving Jedi';
 }
 
 interface FormStory {

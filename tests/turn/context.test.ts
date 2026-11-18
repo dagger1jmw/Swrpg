@@ -1,3 +1,4 @@
+import { LORE_TEST_YEAR as TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { CONTEXT_CAPS } from '../../src/ai/context.config';
 import { keywordsUsed, SUPPORTED_KEYWORDS, toGeminiSchema } from '../../src/ai/jsonSchema';
@@ -13,7 +14,7 @@ import { buildIntentRequest, buildNarrativeRequest, buildSummaryRequest, stateBl
 import type { TurnRecord } from '../../src/turn/record';
 import { resolveTurn } from '../../src/turn/resolve';
 
-const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
+const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 const fresh = (): GameState =>
   createInitialState<GameState>(REGISTRY, {
     campaignId: 'c',

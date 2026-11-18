@@ -958,6 +958,17 @@ The clock and the module contract come first, before any feature.
   Niman are linked by 0.25 variant synergy (both ways, progression-numbers §14).
 - The progression-side Niman rules are built in M3 (D-121).
 
+### Future work recorded during M5 (D-143, D-144, D-155)
+- **Canon rosters for every era (D-155).** Every lore era gets a canon roster with the same level of detail as era 09
+  (births, deaths, dated level snapshots, roles over time; presence computed from the campaign date), one file per
+  era in `src/data/canon/` matching `Docs/SWRPG lore/SW_Characters_NN_*.md`, added over time. Era 09 came first only
+  because it is Jared's preferred start; the system favours no year.
+- **Legacy-era One Sith academy (D-144):** add to SITH_ACADEMIES if a Legacy-era campaign is supported and the lore
+  supports live-blade training.
+- **A full ally side in duels (D-143 E):** allies fight their own engagements; until then they are story-only and
+  opponents can be marked engagedElsewhere.
+- **Character traits (D-143 M, end of production):** first entry Tactical Fighter, +1 to the sequence cap.
+
 ### Stubs each milestone uses (D-56)
 A milestone may only depend on a later one through a named stub, replaced when that
 milestone is built. Each stub is a function in `src/data/stubs.ts` with a test that its value
