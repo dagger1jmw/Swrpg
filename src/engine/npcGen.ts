@@ -1,0 +1,120 @@
+// NPC generation inputs (npc-generation.md §2-6; D-151, D-155, D-157). Pure. Code picks the archetype and rolls the
+// talents and the per-skill variance; the AI supplies only name, species, faction, role and approximate age. The
+// seed is a hash of the campaign seed and the NPC's ID (D-143 G), so generation order never matters. Levels are
+// recomputed from the current date with the closed form (the npcs feature calls character creation's closed form).
+import { archetypeDef, type CharacterPath } from '../data/archetypes';
+import type { CanonNpc } from '../data/canonNpcs';
+import {
+  COMBATANT_ROLES,
+  DEFAULT_ARCHETYPE,
+  FACTION_ARCHETYPE,
+  MINION_KINDS,
+  MINION_YEARS,
+  NPC_SEED_SALT,
+  NPC_VARIANCE_SIGMA,
+  ORDER_ROLES,
+  ROLE_ARCHETYPES,
+  ROLE_RANK,
+  TALENT_ROLL_ORDERS,
+  WARS,
+} from '../data/npcGen.config';
+import type { TalentLevel } from '../data/progression.config';
+import { TALENT_DOMAINS, type TalentDomain } from '../data/skills';
+import { nextFloat, seedRng, type RngState } from './rng';
+
+export const npcSeed = (campaignSeed: string, npcId: string): string => `${NPC_SEED_SALT}:${campaignSeed}:${npcId}`;
+
+export interface NpcGenInputs {
+  archetype: string;
+  path: CharacterPath;
+  talents: Partial<Record<TalentDomain, TalentLevel>>;
+  startAge: number;
+  warYears: number;
+  rank: string;
+  seed: string;
+  /** Minion grade 1-5, or null for a named NPC. */
+  minionGrade: number | null;
+}
+
+function pickWeighted<T>(rng: RngState, list: readonly (readonly [T, number])[]): [T, RngState] {
+  const [u, next] = nextFloat(rng);
+  let x = u * list.reduce((a, [, w]) => a + w, 0);
+  for (const [v, w] of list) {
+    if (x < w) return [v, next];
+    x -= w;
+  }
+  return [list[list.length - 1]![0], next];
+}
+
+/** War years: the overlap of the NPC's adult service years (from 16 or the training start) with the wars of its faction. */
+export function warYearsFor(role: string, faction: string, age: number, startAge: number, year: number): number {
+  if (!COMBATANT_ROLES.includes(role)) return 0;
+  const serviceFrom = year - (age - Math.max(16, startAge));
+  let total = 0;
+  for (const w of WARS) {
+    if (!w.factions.includes(faction)) continue;
+    const from = Math.max(serviceFrom, -w.fromBby);
+    const to = Math.min(year, -w.toBby);
+    if (to > from) total += to - from;
+  }
+  return total;
+}
+
+export function rollNpcInputs(input: { campaignSeed: string; npcId: string; role: string; faction: string; age: number; year: number }): NpcGenInputs {
+  const seed = npcSeed(input.campaignSeed, input.npcId);
+  let rng = seedRng(seed);
+  let archetype = FACTION_ARCHETYPE[input.faction]?.[input.role];
+  if (!archetype) {
+    const list = ROLE_ARCHETYPES[input.role];
+    if (list) [archetype, rng] = pickWeighted(rng, list);
+    else archetype = DEFAULT_ARCHETYPE;
+  }
+  const def = archetypeDef(archetype);
+  const dist = ORDER_ROLES.includes(input.role) ? TALENT_ROLL_ORDERS.order : TALENT_ROLL_ORDERS.other;
+  const talents: Partial<Record<TalentDomain, TalentLevel>> = {};
+  for (const d of TALENT_DOMAINS) {
+    let t: TalentLevel;
+    [t, rng] = pickWeighted(rng, dist);
+    if (t !== 'none') talents[d] = t;
+  }
+  const [u] = nextFloat(rng);
+  const [lo, hi] = def.startRange;
+  const startAge = Math.min(input.age, lo + u * (hi - lo));
+  const rank = ROLE_RANK[input.role] ?? (def.path === 'career' ? 'career' : 'none');
+  return { archetype, path: def.path, talents, startAge, warYears: warYearsFor(input.role, input.faction, input.age, startAge, input.year), rank, seed, minionGrade: null };
+}
+
+/** Per-skill variance exp(N(0, 0.12)), seeded by the NPC and the skill (npc-generation §1). */
+export function npcVariance(seed: string, skillId: string): number {
+  const [u1, r1] = nextFloat(seedRng(`${seed}:var:${skillId}`));
+  const [u2] = nextFloat(r1);
+  const z = Math.sqrt(-2 * Math.log(Math.max(1e-12, u1))) * Math.cos(2 * Math.PI * u2);
+  return Math.exp(NPC_VARIANCE_SIGMA * z);
+}
+
+/** A minion's grade (1-5) from its kind's chances (npc-generation §6). */
+export function rollMinionGrade(rng: RngState, kindId: string): [number, RngState] {
+  const kind = MINION_KINDS.find((k) => k.id === kindId) ?? MINION_KINDS[0]!;
+  return pickWeighted(rng, kind.grades.map((p, i) => [i + 1, p] as const));
+}
+
+/** Minion inputs: the grade sets years trained (2, 5, 10, 15, 20) at pace 1.0, no talents, no variance. */
+export function minionInputs(kindId: string, grade: number, seed: string): NpcGenInputs & { age: number } {
+  const kind = MINION_KINDS.find((k) => k.id === kindId) ?? MINION_KINDS[0]!;
+  const years = MINION_YEARS[Math.max(0, Math.min(4, grade - 1))]!;
+  const def = archetypeDef(kind.archetype);
+  const startAge = def.path === 'career' ? 17 : def.startAge;
+  return { archetype: kind.archetype, path: def.path, talents: {}, startAge, warYears: 0, rank: def.path === 'career' ? 'career' : def.path === 'sith' ? 'acolyte' : 'initiate', seed, minionGrade: grade, age: startAge + years };
+}
+
+/**
+ * Canon levels at a campaign year (D-152, D-155): the sheet's levels scaled by the closed-form growth of the entry's
+ * archetype between the snapshot age and the current age; `fixed` entries do not scale. `growthAt(age)` is the
+ * archetype's main-skill closed-form level at that age (supplied by the caller).
+ */
+export function canonScale(entry: CanonNpc, bby: number, growthAt: (age: number) => number): number {
+  if (entry.fixed) return 1;
+  const now = growthAt(Math.max(0, entry.birthBby - bby));
+  const snap = growthAt(Math.max(0, entry.birthBby - entry.snapshotBby));
+  return snap > 0 ? now / snap : 1;
+}

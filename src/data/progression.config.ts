@@ -303,3 +303,32 @@ export const COMBAT_XP = {
   rampFrom: -25,
   zeroAt: -35,
 } as const;
+
+// ---- Applied experience E, combat integration CI, the drill ceiling and bank (progression-numbers §7, §8;
+// combat-xp §3; D-45; Order classes as sparring, D-143 A). Built in M5. ----
+/** E per session or fight, scaled by (1 - E/120). lethalStronger: life-or-death vs an opponent 5+ levels stronger. */
+export const E_GAIN = { sparPeer: 0.2, sparMaster: 0.4, skirmish: 3, serious: 6, lethal: 6, lethalStronger: 10 } as const;
+export type ESource = keyof typeof E_GAIN;
+/** E from all sparring (and Order classes counted as sparring) is capped at this. */
+export const SPAR_E_CAP = 15;
+export const E_SCALE = 120;
+/** CI per Force ability use, scaled by (1 - CI/120); CI from sparring capped at 20. */
+export const CI_GAIN = { spar: 0.1, skirmish: 0.5, serious: 1, lethal: 2 } as const;
+export const SPAR_CI_CAP = 20;
+/** Stronger by at least this many levels makes a lethal fight give the +10 E (combat-xp §3). */
+export const E_STRONGER_GAP = 5;
+export const DRILL_CEILING = {
+  base: 25,
+  /** Above the ceiling, this share of drill XP applies; the rest is banked. */
+  aboveShare: 0.25,
+  /** Bank cap: the XP needed for this many levels above the current level. */
+  bankLevels: 15,
+  /** After a real fight (skirmish+): release this share of the remaining bank per day for `releaseDays`. */
+  releaseShare: 0.1,
+  releaseDays: 60,
+} as const;
+/** Order classes that count as sparring for E (D-143 A): activity -> sparring kind. */
+export const ORDER_CLASS_SPARRING: Readonly<Record<string, 'sparPeer' | 'sparMaster'>> = { shiiChoBasics: 'sparPeer', padawanTraining: 'sparMaster' };
+/** Reviewing a recording of one's own fight (progression-numbers §19). */
+export const RECORDING_REVIEW_BONUS = 0.05;
+
