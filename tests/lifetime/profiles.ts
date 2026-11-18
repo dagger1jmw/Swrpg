@@ -84,15 +84,22 @@ export const OBIWAN: LifeProfile = {
     ],
   },
   seed: 'obiwan',
+  // The Clone Wars years: wounding fights get a bacta tank (D-162).
+  warAges: [[35, 38]],
+  // Retuned in step 9 on the fixed seed and 5 more (D-159): spars are sessions of bouts (D-168), so few are needed and
+  // the peacetime combat share stays under 10%.
   fights: schedule([
-    { from: 6, to: 13, perYear: 22, stakes: 'spar', gap: 5, skillId: 'shiiCho' },
-    { from: 13, to: 35, perYear: 20, stakes: 'spar', gap: 5 },
+    { from: 6, to: 13, perYear: 8, stakes: 'spar', gap: 5, skillId: 'shiiCho' },
+    // Sparring with his master (Qui-Gon, a stronger partner, D-163).
+    { from: 13, to: 35, perYear: 10, stakes: 'spar', gap: 15 },
     // Padawan and Knight missions (Legends: Melida/Daan and the years with Qui-Gon).
-    { from: 13, to: 35, perYear: 3, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
-    // The Clone Wars (ages 35-38): mostly droid armies, some line troopers, a few duels.
+    { from: 13, to: 35, perYear: 4, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
+    // The Clone Wars (ages 35-38): droid armies, commando and MagnaGuard-type elites, and duels (Ventress, Grievous, Dooku).
     { from: 35, to: 38, perYear: 30, stakes: 'serious', gap: -30, opponent: 'battleDroid', count: 10 },
     { from: 35, to: 38, perYear: 10, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
-    { from: 35, to: 38, perYear: 4, stakes: 'serious', gap: 0 },
+    { from: 35, to: 38, perYear: 10, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 4 },
+    { from: 35, to: 36, perYear: 10, stakes: 'serious', gap: 0 },
+    { from: 36, to: 38, perYear: 12, stakes: 'serious', gap: 0 },
   ]),
 };
 
@@ -128,15 +135,26 @@ export const ANAKIN: LifeProfile = {
     ],
   },
   seed: 'anakin',
+  // The Clone Wars years: wounding fights get a bacta tank (D-162).
+  warAges: [[19, 22]],
+  // Retuned in step 9 on the fixed seed and 5 more (D-159): near-daily sparring sessions with his master (D-168; a
+  // stronger partner, D-163), lighter in the first year so 21 stays within the 4.0x pace (1.25 y); missions; the
+  // Clone Wars; after it, group spars with three partners (the Order's best duelists) and a few missions and duels.
   fights: schedule([
-    // Padawan missions from 10, the Clone Wars from 19 to 22 (mostly droids, some troopers, occasional elites and duels).
-    { from: 10, to: 19, perYear: 25, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
-    { from: 10, to: 19, perYear: 4, stakes: 'serious', gap: 0 },
-    { from: 19, to: 22, perYear: 40, stakes: 'serious', gap: -30, opponent: 'battleDroid', count: 10 },
-    { from: 19, to: 22, perYear: 12, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
-    { from: 19, to: 22, perYear: 3, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
-    { from: 19, to: 22, perYear: 6, stakes: 'serious', gap: 5 },
-    { from: 22, to: 200, perYear: 25, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
+    { from: 9, to: 10, perYear: 55, stakes: 'spar', gap: 15 },
+    { from: 10, to: 19, perYear: 155, stakes: 'spar', gap: 15 },
+    { from: 10, to: 19, perYear: 15, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
+    { from: 10, to: 19, perYear: 4, stakes: 'serious', gap: -5 },
+    // The Clone Wars (19-22): droid armies, elite squads and duels; the first year heaviest.
+    { from: 19, to: 22, perYear: 57, stakes: 'serious', gap: -30, opponent: 'battleDroid', count: 10 },
+    { from: 19, to: 22, perYear: 20, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
+    { from: 19, to: 22, perYear: 8, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
+    { from: 19, to: 22, perYear: 8, stakes: 'serious', gap: 0 },
+    { from: 19, to: 20, perYear: 6, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
+    { from: 19, to: 20, perYear: 2, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
+    { from: 22, to: 200, perYear: 240, stakes: 'spar', gap: 0, partners: 3 },
+    { from: 22, to: 200, perYear: 10, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
+    { from: 22, to: 200, perYear: 2, stakes: 'serious', gap: 0 },
   ]),
 };
 
@@ -171,6 +189,11 @@ export const LUKE: LifeProfile = {
     ],
   },
   seed: 'luke',
+  // Both wars: wounding fights get a bacta tank (D-162).
+  warAges: [
+    [19, 24],
+    [44, 50],
+  ],
   fights: schedule([
     // The Galactic Civil War (stormtroopers), then the Yuuzhan Vong War (warriors and duels).
     { from: 19, to: 24, perYear: 30, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
