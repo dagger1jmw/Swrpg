@@ -44,3 +44,31 @@ export const STUB_TEACHER_APTITUDE = 0;
 
 /** Combat in the lifetime test (architecture §15): scripted fights through computeCombatXp until duels (M5). */
 export const STUB_SCRIPTED_COMBAT = true;
+
+// ---- Stubs added in M5 (D-143) ----
+
+/** Weapons and armor come from path, archetype and role (src/data/weapons.ts) until the equipment spec. Replaced in M8. */
+export const STUB_WEAPONS = true;
+
+/** Dual blades for Jar'Kai (D-122): nobody has two sabers until items exist, so Jar'Kai cannot be picked in a duel. Replaced in M8. */
+export const STUB_DUAL_BLADES = false;
+
+/** The player's ShatterSense talent pick and the shatterpoint skill come with the Force catalog. Replaced in M6. */
+export const STUB_PLAYER_SHATTERSENSE = false;
+
+/** Light-side philosophy for Force insight's +0.10 (rolls §6): read from the path (Jedi = light) until alignment. Replaced in M6. */
+export function stubLightPhilosophy(path: string): boolean {
+  return path === 'jedi';
+}
+
+/**
+ * Prosthetic quality after a severed limb until items (D-143): a quality cybernetic for the Jedi, the Sith and
+ * Republic or Imperial soldiers (the archetypes the Order, the Empire or the military would fit), a basic
+ * prosthetic for everyone else. NPCs use their faction. Replaced in M8.
+ */
+export function stubProsthetic(input: { path?: string; archetype?: string; faction?: string }): 'qualityCybernetic' | 'basicProsthetic' {
+  if (input.path === 'jedi' || input.path === 'sith') return 'qualityCybernetic';
+  if (input.archetype === 'soldier') return 'qualityCybernetic';
+  if (input.faction !== undefined && ['jediOrder', 'sith', 'sithEmpire', 'republic'].includes(input.faction)) return 'qualityCybernetic';
+  return 'basicProsthetic';
+}
