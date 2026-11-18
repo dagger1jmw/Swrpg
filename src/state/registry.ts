@@ -2,10 +2,11 @@
 // day-loop role in §10 come first: clock (the time writer, no hook) and character (its hook only
 // reports birthdays). Then the §10 list: routines, health, progression, alignment, npcs and
 // relationships, threads, ranks, world, pacing; the interruption check is advanceTime itself.
-// Locations and memory have no day hook and sit with clock and character (M2). Later milestones
+// Locations, memory and flags have no day hook and sit with clock and character (M2, M5). Later milestones
 // insert their features at their §10 slot.
 import { characterFeature } from '../features/character';
 import { clockFeature } from '../features/clock';
+import { flagsFeature } from '../features/flags';
 import { healthFeature } from '../features/health';
 import { locationsFeature } from '../features/locations';
 import { memoryFeature } from '../features/memory';
@@ -25,6 +26,7 @@ export const REGISTRY: Registry<GameState> = [
   characterFeature,
   locationsFeature,
   memoryFeature,
+  flagsFeature,
   routinesFeature,
   healthFeature,
   progressionFeature,
@@ -42,6 +44,7 @@ export const HOOK_ORDER: readonly string[] = [
   'character',
   'locations',
   'memory',
+  'flags',
   'routines',
   'health',
   'progression',

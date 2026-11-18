@@ -116,7 +116,8 @@ describe('turn pipeline (architecture §4, §14)', () => {
     const s1 = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
     const { session, record } = await playTurn(deps, s1, { kind: 'typed', text: 'look' });
     const reasons = record.rejected.map((r) => r.reason);
-    expect(reasons).toContain('event type flagSet is not allowed this turn');
+    // M5: the flags feature exists; masterApproval is engine-only, so the AI's flagSet is rejected (flag-registry test 2).
+    expect(reasons).toContain('flag masterApproval does not allow the ai source');
     expect(reasons.some((r) => r.includes('only moment applies'))).toBe(true);
     expect(record.applied.map((a) => a.event.type)).toEqual(['timeElapsed', 'sceneUpdated', 'reviewQueued']);
     expect(session.state.clock.now.second).toBe(START_SECOND + 30 + 120);

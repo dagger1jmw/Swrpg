@@ -1,6 +1,7 @@
 // GameState is composed of feature slices (architecture §2). Each field has exactly one owner.
 import type { CharacterSlice } from '../features/character/character';
 import type { ClockSlice } from '../features/clock/clock';
+import type { FlagsSlice } from '../features/flags/flags';
 import type { HealthSlice } from '../features/health/health';
 import type { LocationsSlice } from '../features/locations/locations';
 import type { MemorySlice } from '../features/memory/memory';
@@ -20,6 +21,7 @@ export type GameState = {
   character: CharacterSlice;
   locations: LocationsSlice;
   memory: MemorySlice;
+  flags: FlagsSlice;
   routines: RoutinesSlice;
   health: HealthSlice;
   progression: ProgressionSlice;

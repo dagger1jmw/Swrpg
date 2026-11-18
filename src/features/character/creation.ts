@@ -48,6 +48,10 @@ export interface CreationInput {
   dominantHand: 'left' | 'right';
   /** Keep an unreachable rank as a logged story exception (a battlefield promotion). */
   storyException?: boolean;
+  /** Per-skill pace variance (NPC generation, npc-generation §1: exp(N(0, 0.12))); off for player characters. */
+  variance?: ((skillId: string) => number) | undefined;
+  /** NPC generation: skip the talent limit and the rank-minimum validation (levels are what they are). */
+  npc?: boolean;
   /**
    * Ignore the 3-point talent limit (D-116): any number of talents, each still at most exceptional;
    * the 2.8 M cap and the 4.0x pace limit still apply. The campaign is flagged unbalanced.
@@ -192,7 +196,7 @@ export function computeCreation(input: CreationInput): CreationResult {
   const [lo, hi] = PATH_START_RANGE[input.path];
   if (!(hStartIn >= lo - 1e-9 && hStartIn <= hi + 1e-9)) errors.push(`Training start age must be ${lo}-${hi} (Human-equivalent) for this path.`);
   if (input.trainingStartAge > age) errors.push('Training cannot start after the campaign start.');
-  if (!input.ignoreTalentLimit && talentCost(input.talents) > TALENT_POINTS) errors.push(`Talents cost ${talentCost(input.talents)} points; the limit is ${TALENT_POINTS}.`);
+  if (!input.ignoreTalentLimit && !input.npc && talentCost(input.talents) > TALENT_POINTS) errors.push(`Talents cost ${talentCost(input.talents)} points; the limit is ${TALENT_POINTS}.`);
   const padawanPlan: Record<string, number> = { ...(input.padawanPlan ?? DEFAULT_FORM_PLAN) };
   const knightPlan: Record<string, number> = { ...(input.knightPlan ?? padawanPlan) };
   for (const [name, plan] of [
@@ -272,7 +276,7 @@ export function computeCreation(input: CreationInput): CreationResult {
       p = Math.max(0, p + ((focus[key] ?? 0) - (def[key] ?? 0)) * perShare * fill[ph]);
       return p;
     };
-    const mult = talentMult(talents, skill) * crossTalentMult(talents, skill) * speciesLearning(species.id, skill);
+    const mult = talentMult(talents, skill) * crossTalentMult(talents, skill) * speciesLearning(species.id, skill) * (input.variance?.(skill) ?? 1);
     const phases = phasesFor({ initiate: pace('initiate'), padawan: pace('padawan'), knight: pace('knight') }, hAges, ages.onePhase);
     for (const ph of phases) if (ph.to > hStart && ph.from < h) maxPace = Math.max(maxPace, Math.min(4, ph.pace * mult));
     const row = CATEGORY_RULES[SKILL_BY_ID.get(skill)!.category].ageRow;
@@ -282,7 +286,7 @@ export function computeCreation(input: CreationInput): CreationResult {
   // Lightsaber forms (D-118, D-119): the form plans with the fundamentals transfer.
   const hasForms = Object.keys(a.weights).some(isFormKey) || input.path === 'jedi' || input.path === 'sith';
   if (hasForms) {
-    const formMult = (f: string): number => talentMult(talents, f) * crossTalentMult(talents, f) * speciesLearning(species.id, f);
+    const formMult = (f: string): number => talentMult(talents, f) * crossTalentMult(talents, f) * speciesLearning(species.id, f) * (input.variance?.(f) ?? 1);
     const xps = formXps({
       formPaces: a.formPaces,
       k: K,

@@ -62,3 +62,6 @@ export function selectInjuredSkills(s: GameState): { rest: string[]; adapt: stri
   const adapt = SKILL_IDS.filter((id) => !rest.includes(id) && selectLasting(s).some((l) => lastingAffects(l, id) && l.adaptation < aidCap(l) - 1e-9));
   return { rest, adapt };
 }
+
+/** The wound and lasting-injury schemas, shared with NPC health (npcs feature; the same shape, health §9). */
+export { lastingSchema, woundSchema } from './health';

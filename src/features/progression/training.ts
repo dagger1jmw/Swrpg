@@ -5,8 +5,7 @@
 import { ORDER_CLASS_SPARRING, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
 import { splitDrillXp } from '../../engine/appliedExperience';
 import { ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, type ActivityDef, type Intensity, type Unlock } from '../../data/activities';
-import { archetypeDef } from '../../data/archetypes';
-import { FORM_TRANSFER_SHARE, K, PASSION_DARK_PRESSURE_PER_HOUR, STEP_HOURS } from '../../data/progression.config';
+import { FORM_TRANSFER_SHARE, PASSION_DARK_PRESSURE_PER_HOUR, STEP_HOURS } from '../../data/progression.config';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../data/skills';
 import {
   STUB_ALIGNMENT_MULT,
@@ -14,21 +13,18 @@ import {
   STUB_INSTRUCTOR_LEAD,
   STUB_MASTER_LEAD,
   STUB_TEACHER_APTITUDE,
-  STUB_TEACHER_ARCHETYPE,
-  STUB_TEACHER_START_AGE,
 } from '../../data/stubs';
 import { TRAINING_RECORD_BY_ID } from '../../data/trainingRecords';
 import { ageFactor } from '../../engine/ageFactor';
 import { pickDrillRating, type Effort } from '../../engine/challenge';
-import { closedFormLevel, formXps, phasesFor } from '../../engine/closedForm';
 import { transferXp } from '../../engine/forms';
 import { computeTrainingXp, type SessionSplit, type TrainingResult } from '../../engine/computeXp';
-import { levelExact, tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
+import { tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { tirednessLabel } from '../../engine/fatigue';
 import { instructionFactor } from '../../engine/instruction';
 import { clampCredit, clampShare, inWindow, paceCap } from '../../engine/paceClamp';
 import type { RngState } from '../../engine/rng';
-import { humanEquivalentAge, naturalLevel, speciesLearning } from '../../engine/species';
+import { humanEquivalentAge, speciesLearning } from '../../engine/species';
 import { crossTalentMult, isChannelEligible, speedM, stateMult, talentMult } from '../../engine/speed';
 import { speciesDef } from '../../data/species';
 import type { GameState } from '../../state/gameState';
@@ -36,7 +32,7 @@ import type { GameEvent } from '../../state/types';
 import { selectCharacter, selectExactAge, selectHumanAge, selectPath } from '../character/selectors';
 import { selectNow } from '../clock/selectors';
 import { selectMeters } from '../health/selectors';
-import { selectNpc, selectNpcAge } from '../npcs/selectors';
+import { selectNpc, selectNpcLevel } from '../npcs/selectors';
 import { selectRank } from '../ranks/selectors';
 import { selectRelationship } from '../relationships/selectors';
 import {
@@ -113,37 +109,6 @@ export interface TrainingCard {
 export type TrainingPlan = { ok: false; reason: string } | { ok: true; card: TrainingCard; events: GameEvent[]; rng: RngState; hours: number };
 
 const known = (s: GameState, id: string): boolean => selectLevelExact(s, id) >= 1;
-
-/** The Teacher-level stub (architecture §15, D-56): the Average profile's closed-form level at the NPC's age. */
-export function stubTeacherLevel(skillId: string, age: number): number {
-  const a = archetypeDef(STUB_TEACHER_ARCHETYPE);
-  const def = SKILL_BY_ID.get(skillId);
-  if (!def) return 0;
-  if (def.kind === 'form') {
-    // A teacher of a form is assumed to specialize in it: the Average's form plan with that form as
-    // the main form (Shii-Cho teachers keep Shii-Cho as main), D-118 / D-119.
-    const other = skillId === 'ataru' ? 'soresu' : 'ataru';
-    const xp = formXps({
-      formPaces: a.formPaces,
-      k: K,
-      startAge: STUB_TEACHER_START_AGE,
-      age,
-      padawanAge: 12,
-      knightAge: 20.5,
-      onePhase: false,
-      padawanPlan: { [skillId]: 2, [other]: 1 },
-      knightPlan: { [skillId]: 2, [other]: 1 },
-      mult: () => 1,
-      transferShare: FORM_TRANSFER_SHARE,
-    });
-    return levelExact(Math.max(0, ...Object.values(xp)));
-  }
-  const pace = { initiate: a.paces.initiate?.[skillId], padawan: a.paces.padawan?.[skillId], knight: a.paces.knight?.[skillId] };
-  const row = CATEGORY_RULES[def.category].ageRow;
-  const trained = closedFormLevel({ row, startAge: STUB_TEACHER_START_AGE, age, phases: phasesFor(pace, { padawanAge: 12, knightAge: 20.5 }, false) });
-  const n = naturalLevel(skillId, 'human', age);
-  return n > 0 ? Math.pow(Math.pow(trained, 1.75) + Math.pow(n, 1.75), 1 / 1.75) : trained;
-}
 
 function resolvePrimaries(s: GameState, a: ActivityDef, skillId: string | undefined): Record<string, number> | string {
   const c = selectCharacter(s);
@@ -349,15 +314,12 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
 
   // Instruction (§15, §19): the teacher's level in THIS skill (stub: the Average closed form at their age).
   const studentLevel = selectLevelExact(s, primary);
-  const levelAt = (id: string | null): number | null => {
-    if (!id) return null;
-    const age = selectNpcAge(s, id);
-    return age === null ? null : stubTeacherLevel(primary, age);
-  };
+  // M5: a named NPC's own level in this skill (NPC generation; canon NPCs from their sheet), replacing the teacher stub.
+  const levelAt = (id: string | null): number | null => (id && selectNpc(s, id) ? selectNpcLevel(s, id, primary) : null);
   const bond = (id: string | null): boolean => (id ? (selectRelationship(s, id)?.value ?? 0) >= 20 : false);
   const npcTeacherLevel = levelAt(teacherId);
   const pLevel = source?.kind === 'peers' ? studentLevel : levelAt(partnerId);
-  if (teacherId && npcTeacherLevel === null) notes.push(`teacher ${selectNpc(s, teacherId)?.name ?? teacherId} has no known age: counted as a partner`);
+  if (teacherId && npcTeacherLevel === null) notes.push(`teacher ${teacherId} is unknown: counted as a partner`);
   // Order stubs (D-124): instructors and an unnamed master teach a fixed number of levels ahead.
   const tLevel =
     npcTeacherLevel ??
