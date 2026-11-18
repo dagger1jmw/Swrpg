@@ -96,6 +96,22 @@ describe('scheduler (training-routines §9)', () => {
     expect(hours(p)).toBeLessThan(hours(planDay(fresh, daily(fresh, { priorities: PRIOS, effort: 'standard' }), {})));
     // A look ahead (the preview's typical day) still starts from a night's sleep.
     expect(planDay(fought, r, {}, { fromSleep: true }).projectedEndF).toBeLessThan(p.projectedEndF + 1e-9);
+    // A Padawan whose fixed Order blocks alone would pass the limit after the fight: the Order excuses part of them.
+    const pad0 = createInitialState<GameState>(REGISTRY, {
+      campaignId: 'c1',
+      branchId: 'b1',
+      seed: 'r',
+      start: { day: START, second: 9 * 3600 },
+      character: { name: 'Kael', birthDay: START - 13 * 368, path: 'jedi', archetype: 'jediGuardian', mainFormId: 'soresu', secondFormId: 'ataru', trainingStartAge: 4 },
+      rank: 'padawan',
+    });
+    const pad = applyEvents(REGISTRY, pad0, [{ type: 'healthSynced', vitalityLost: 0, addWounds: [], meters: { p: 3, f: 0 }, cause: 'a dawn fight' }], { source: 'engine' }).state;
+    const pp = planDay(pad, daily(pad, { effort: 'standard' }), {});
+    const freshPad = planDay(pad0, daily(pad0, { effort: 'standard' }), {});
+    // Excused down to the fresh day's level (a 13-year-old's Order day alone already ends near 0.97; not cut further).
+    expect(pp.projectedEndF).toBeLessThanOrEqual(Math.max(TIREDNESS_LIMIT.standard, freshPad.projectedEndF) + 1e-9);
+    expect(pp.notes.join(' ')).toMatch(/Order requirements excused/);
+    expect(freshPad.notes.join(' ')).not.toMatch(/excused/);
   });
 
   it('test 6: locked blocks are never moved', () => {

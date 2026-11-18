@@ -1,4 +1,5 @@
 import { tirednessLabel, type Meters } from '../../engine/fatigue';
+import { forceFraction } from '../../engine/forceMeter';
 import type { GameState } from '../../state/gameState';
 import { SKILL_IDS } from '../../data/skills';
 import { aidCap, lastingAffects, lastingPenalty, type LastingInjury } from '../../engine/lasting';
@@ -23,7 +24,7 @@ export function selectFatigue(s: GameState): Fatigue {
   const m = s.health.meters;
   const p = m.p / caps.p;
   const mm = m.m / caps.m;
-  const f = m.f / caps.f;
+  const f = forceFraction(m.f, caps.f);
   return { p, m: mm, f, capacity: caps, labels: { p: tirednessLabel(p), m: tirednessLabel(mm), f: tirednessLabel(f) } };
 }
 

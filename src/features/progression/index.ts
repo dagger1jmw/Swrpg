@@ -8,7 +8,7 @@ import { SKILL_BY_ID, CATEGORY_RULES, PHYSICAL_STATS } from '../../data/skills';
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY } from '../../data/activities';
 import { COMBAT_OUTCOMES, COMBAT_STAKES } from '../../data/progression.config';
 import { computeCombatXp, type CombatSession } from '../../engine/combatXp';
-import { eSourceFor, gainCI, gainE, releaseBank, releaseUntil, splitDrillXp } from '../../engine/appliedExperience';
+import { eGainFor, gainCI, gainE, releaseBank, releaseUntil, splitDrillXp } from '../../engine/appliedExperience';
 import { RECORDING_REVIEW } from '../../data/combat.config';
 import { clampFor, speedFor } from './training';
 import { fromAbsSecond } from '../../engine/calendar';
@@ -126,9 +126,9 @@ function applyCeiling(slice: ProgressionSlice, credited: Record<string, number>)
 }
 
 /** One E gain for each form group among `forms` (each group once per session or fight). */
-function gainForGroups(E: ProgressionSlice['E'], forms: readonly string[], source: Parameters<typeof gainE>[1]): ProgressionSlice['E'] {
+function gainForGroups(E: ProgressionSlice['E'], forms: readonly string[], source: Parameters<typeof gainE>[1], sparCap?: number): ProgressionSlice['E'] {
   const next = { ...E };
-  for (const g of new Set(forms.map(formGroup).filter((x): x is string => x !== null))) next[g] = gainE(next[g] ?? { E: 0, eSpar: 0 }, source);
+  for (const g of new Set(forms.map(formGroup).filter((x): x is string => x !== null))) next[g] = gainE(next[g] ?? { E: 0, eSpar: 0 }, source, sparCap);
   return next;
 }
 
@@ -167,8 +167,9 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         day: z.object({ hoursByActivity: record, postWindow: z.number().min(0), lastPhysicalHeavy: z.boolean() }),
         /** Drill XP over the ceiling, banked (progression-numbers §7). */
         banked: record.optional(),
-        /** Sparring for E (partner sparring, or a taught Order class, D-143 A). */
-        sparring: z.enum(['sparPeer', 'sparMaster']).optional(),
+        /** Sparring for E (partner sparring, or a taught Order class, D-143 A): peer or stronger partner, and the cap (D-163). */
+        sparring: z.enum(['sparPeer', 'sparStronger']).optional(),
+        sparCap: z.number().min(0).max(120).optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
@@ -202,8 +203,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         // Training the skills a lasting injury affects adapts it (progression-numbers §18): health owns adaptation.
         const emit = selectLasting(ctx.state).length ? [...cr.emit, { type: 'adaptationTrained', hours: practice }] : cr.emit;
         const notes = [...cr.notes];
-        const spar = e['sparring'] as 'sparPeer' | 'sparMaster' | undefined;
-        const E = spar ? gainForGroups(slice.E, e['primaries'] as string[], spar) : slice.E;
+        const spar = e['sparring'] as 'sparPeer' | 'sparStronger' | undefined;
+        const E = spar ? gainForGroups(slice.E, e['primaries'] as string[], spar, e['sparCap'] as number | undefined) : slice.E;
         const { tierBeatsPending: beats, nextSeq: seq, paceWindow } = cr.slice;
         // Self-study (D-126): forms started without teaching are self-taught until a taught session.
         const taught = new Set((e['taught'] as string[] | undefined) ?? []);
@@ -232,8 +233,6 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         forceUses: z.array(z.object({ abilityId: z.string(), gap: z.number() })).max(500),
         /** The opponent's largest level advantage in the opposed skill (E: life-or-death vs 5+ stronger, combat-xp §3). */
         opponentGap: z.number().optional(),
-        /** A spar with the character's master (E +0.4 instead of +0.2). */
-        master: z.boolean().optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
@@ -270,7 +269,9 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         // E for the form groups fought with, CI per Force ability use (combat-xp §3); a skirmish or higher opens a new
         // 60-day bank release (D-45).
         const forms = session.exchanges.map((x) => x.skillId);
-        const E = gainForGroups(slice.E, forms, eSourceFor(session.stakes, { opponentGap: Number(e['opponentGap'] ?? 0), master: e['master'] === true }));
+        // A spar is with a peer or a stronger partner by the partner's level (opponentGap; a group already folded, D-163).
+        const g = eGainFor(session.stakes, { opponentGap: Number(e['opponentGap'] ?? 0), ownLevel: forms[0] ? selectLevelExact(ctx.state, forms[0]) : 0 });
+        const E = gainForGroups(slice.E, forms, g.source, g.cap);
         const CI = { ...slice.CI };
         for (const u of session.forceUses) CI[u.abilityId] = gainCI(CI[u.abilityId] ?? { CI: 0, ciSpar: 0 }, session.stakes);
         const bankReleaseUntil = spar ? slice.bankReleaseUntil : releaseUntil(day);

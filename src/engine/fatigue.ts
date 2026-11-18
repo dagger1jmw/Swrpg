@@ -1,15 +1,12 @@
 // Fatigue meters (progression-numbers §3, §9, §10; health §2). A training block is stepped in 30-minute
 // steps; the meters are read at the start of each step. Pure; mirrors docs-v2/calc/day.mjs.
 import type { Intensity, Load } from '../data/activities';
-import { FORCE_EFFORT, FORCE_METER, type ForceEffort } from '../data/health.config';
 import {
   CAPACITY,
   CROSS_PENALTY,
   EFFICIENCY,
   FATIGUE_WILLPOWER,
-  FORCE_CAPACITY,
   INTENSITY,
-  MEDITATION_FORCE_RECOVERY,
   OVERTRAINING,
   POST_WORKOUT,
   REST_RECOVERY,
@@ -18,6 +15,7 @@ import {
   STEP_HOURS,
   TIREDNESS_LABELS,
 } from '../data/progression.config';
+import { forceCapacity, restForce, sleepForce, trainingForceStep } from './forceMeter';
 
 export interface Meters {
   p: number;
@@ -30,18 +28,6 @@ export const ZERO_METERS: Meters = { p: 0, m: 0, f: 0 };
 export function capacity(stat: number): number {
   const s = Math.max(0, stat);
   return CAPACITY.base + (CAPACITY.perHundred * Math.min(s, 100)) / 100 + Math.max(0, Math.min(s, CAPACITY.maxStat) - 100) / CAPACITY.over100Per;
-}
-
-/** Force capacity (health §2). */
-export function forceCapacity(forceControl: number, willpower: number): number {
-  const fc = Math.max(0, forceControl);
-  const w = Math.max(0, willpower);
-  return (
-    FORCE_CAPACITY.base +
-    (FORCE_CAPACITY.perHundredFc * Math.min(fc, 100)) / 100 +
-    (FORCE_CAPACITY.perHundredWill * Math.min(w, 100)) / 100 +
-    Math.max(0, Math.min(fc, FORCE_CAPACITY.maxStat) - 100) / FORCE_CAPACITY.over100Per
-  );
 }
 
 export interface Capacities {
@@ -132,7 +118,7 @@ export function stepBlock(meters: Meters, caps: Capacities, dayIn: DayTraining, 
     will += FATIGUE_WILLPOWER.perHour * fatigueWillpowerRate(fMax) * STEP_HOURS;
     p = Math.max(0, p + block.load.p * inten.load * STEP_HOURS);
     m = Math.max(0, m + block.load.m * inten.load * STEP_HOURS);
-    f = block.meditation ? Math.max(0, f - MEDITATION_FORCE_RECOVERY * STEP_HOURS) : Math.max(0, f + block.load.f * inten.load * STEP_HOURS);
+    f = trainingForceStep(f, { meditation: block.meditation === true, loadF: block.load.f, intensityLoad: inten.load, hours: STEP_HOURS });
     peak = Math.max(peak, p / caps.p, m / caps.m);
   }
   day.lastPhysicalHeavy = block.physical && block.load.p >= POST_WORKOUT.minPhysicalLoad;
@@ -144,7 +130,7 @@ export function rest(meters: Meters, hours: number): Meters {
   return {
     p: Math.max(0, meters.p - REST_RECOVERY.p * hours),
     m: Math.max(0, meters.m - REST_RECOVERY.m * hours),
-    f: Math.max(0, meters.f - REST_RECOVERY.f * hours),
+    f: restForce(meters.f, hours),
   };
 }
 
@@ -157,7 +143,7 @@ export function sleepCarry(hours: number): number {
 
 export function afterSleep(meters: Meters, hours: number): Meters {
   const c = sleepCarry(hours);
-  return { p: meters.p * c, m: meters.m * c, f: meters.f * c };
+  return { p: meters.p * c, m: meters.m * c, f: sleepForce(meters.f, c) };
 }
 
 export function tirednessLabel(f: number): string {
@@ -165,33 +151,3 @@ export function tirednessLabel(f: number): string {
   return 'fresh';
 }
 
-// ---- Force meter use (health §2; M5) ----
-
-/** Load per use = base x effort x mastery factor max(0.4, 1 - level / 200) x combat-integration factor. */
-export function forceLoadPerUse(base: number, effort: ForceEffort, abilityLevel: number, ciFactor = 1): number {
-  return base * FORCE_EFFORT[effort] * Math.max(0.4, 1 - Math.max(0, abilityLevel) / 200) * ciFactor;
-}
-
-export interface ForceLoadResult {
-  meters: Meters;
-  /** Mental load added by backlash (+0.5 per Force load point over the limit). */
-  backlashMental: number;
-  /** True when the use went over the limit: the caller rolls the 5% collapse. */
-  overLimit: boolean;
-  /** Load points above 1.0 while channeling anger (+2 dark pressure each; alignment, M6). */
-  angerPointsOver1: number;
-}
-
-/**
- * Adds a use's Force load. The limit is 1.0 of capacity, or 1.3 while channeling anger. Load above the limit
- * backlashes (+0.5 mental load per point); with anger, load between 1.0 and 1.3 is counted for dark pressure.
- */
-export function applyForceLoad(meters: Meters, forceCap: number, load: number, angerChanneling = false): ForceLoadResult {
-  const limit = forceCap * (angerChanneling ? FORCE_METER.angerLimit : 1);
-  const before = meters.f;
-  const after = before + Math.max(0, load);
-  const over = Math.max(0, after - Math.max(before, limit));
-  const backlashMental = over * FORCE_METER.backlashMentalPerPoint;
-  const angerPointsOver1 = angerChanneling ? Math.max(0, Math.min(after, limit) - Math.max(before, forceCap)) : 0;
-  return { meters: { ...meters, f: after, m: meters.m + backlashMental }, backlashMental, overLimit: after > limit, angerPointsOver1 };
-}

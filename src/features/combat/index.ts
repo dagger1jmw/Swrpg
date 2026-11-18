@@ -2,6 +2,7 @@
 // combatStarted, the active duel, the player's beat actions, the NPC fates and the last fight's summary. Every roll is
 // the engine's (src/engine/duel.ts, combatForce.ts, sequence.ts); the AI only proposes that a fight starts, how it
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
+import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
 import { FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, STANCES, TACTICS, FORM_CHANGE_COST, type FateKind, type NpcFate } from '../../data/combat.config';
 import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
@@ -156,7 +157,8 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   const strikes = duel.log.filter((r) => r.kind !== 'force');
   const exchanges = strikes.map((r, i) => ({ skillId: active.exchangeSkills[i] ?? duel.a.skillId, gap: r.effB - r.effA }));
   const forceUses = duel.log.filter((r) => r.kind === 'force' && r.force?.side === 'A').map((r) => ({ abilityId: r.force!.abilityId, gap: r.force!.effTarget - r.force!.effUser }));
-  const opponentGap = Math.max(0, ...duel.opponents.map((o) => o.level - duel.a.level));
+  // A spar with several partners counts as one at the strongest's level + 10 per extra (D-163); otherwise the largest gap.
+  const opponentGap = active.stakes === 'spar' ? sparGroupLevel(duel.opponents.map((o) => o.level)) - duel.a.level : Math.max(0, ...duel.opponents.map((o) => o.level - duel.a.level));
   if (exchanges.length || forceUses.length) emit.push({ type: 'fightResolved', stakes: active.stakes, outcome, exchanges, forceUses, opponentGap });
   // heroicAct (flag-registry §2): a won lethal fight against an opponent 10+ stronger or of rank Sith Lord / Master.
   if (active.stakes === 'lethal' && outcome === 'won') {

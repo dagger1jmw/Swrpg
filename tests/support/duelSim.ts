@@ -2,7 +2,8 @@
 // (a Knight's 63.5 Vitality, Endurance 50, Willpower 50), level = form level = Force Sense, lightsabers, no armor.
 import type { DuelContext, Fighter } from '../../src/engine/duel';
 import { runUntilBeat, startDuel, type SideId } from '../../src/engine/duel';
-import { capacity, forceCapacity } from '../../src/engine/fatigue';
+import { capacity } from '../../src/engine/fatigue';
+import { forceCapacity } from '../../src/engine/forceMeter';
 import { seedRng } from '../../src/engine/rng';
 
 export function forceUser(id: string, level: number, over: Partial<Fighter> = {}): Fighter {

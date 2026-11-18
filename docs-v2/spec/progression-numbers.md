@@ -131,6 +131,10 @@ Applied experience E (0-100) per lightsaber form group.
     After day 60, whatever is left in the bank stays banked for the next real fight (it is
       not lost and not released further). A later skirmish or higher starts a new 60-day
       release.
+  Amended by D-163: sparring E is capped at 15 with peers only; a partner 10+ levels above raises
+    it toward that partner's level - 25 (combat-xp section 3), and 2-3 partners at once count as
+    the strongest + 10 per extra. A peacetime master keeps the ceiling above the form by
+    sparring stronger partners or groups.
   Reference scenario (Obi-Wan pace, E 12, first life-or-death fight at training year 12):
     year 11: level 40.4, bank 400 | year 12: 40.9, bank 1,022 | E -> 23.8, ceiling 48.8 |
     +1 week 42.3 | +2 weeks 43.0 | +1 month 43.6 | year 13: 45.5

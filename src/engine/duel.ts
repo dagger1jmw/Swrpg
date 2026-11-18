@@ -36,6 +36,7 @@ import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, SPENT_LEVEL_FACTOR, type Arm
 import { RANGED_WEAPONS } from '../data/weapons';
 import { applyDamage, bypassFraction, damageOf, rollLocation, severityOf, severs } from './damage';
 import { efficiency } from './fatigue';
+import { addFixedLoad, forceWithin } from './forceMeter';
 import { lastingPenalty, limbState, type LastingInjury } from './lasting';
 import { basicRoll, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
@@ -323,7 +324,7 @@ export function tryShatterpoint(s: DuelState, side: SideId): { s: DuelState; rol
   if (!f || f.shatterpoint <= 0 || f.shatterpointUsed) return { s, roll: null, success: false };
   const [roll, r] = basicRoll(s.rng, f.shatterpoint, []);
   const success = roll.total >= SHATTERPOINT_COMBAT.dc;
-  let next = withSide({ ...s, rng: r }, side, { ...f, shatterpointUsed: true, meters: { ...f.meters, f: f.meters.f + SHATTERPOINT_COMBAT.forceLoad } });
+  let next = withSide({ ...s, rng: r }, side, { ...f, shatterpointUsed: true, meters: { ...f.meters, f: addFixedLoad(f.meters.f, SHATTERPOINT_COMBAT.forceLoad) } });
   if (success) next = { ...next, advantage: side === 'A' ? SHATTERPOINT_COMBAT.advantage : -SHATTERPOINT_COMBAT.advantage };
   return { s: next, roll, success };
 }
@@ -331,7 +332,7 @@ export function tryShatterpoint(s: DuelState, side: SideId): { s: DuelState; rol
 /** Precognitive defense (rolls §3): chance min(0.5, FS/200) +0.10 centered; 0.4 Force load; never vs surprise or above meter 1.0. */
 function precog(f: Fighter, surprise: boolean, rng: RngState): { used: boolean; avoided: boolean; rng: RngState } {
   if (f.forceSense <= 0 || surprise) return { used: false, avoided: false, rng };
-  if (f.caps.f <= 0 || f.meters.f / f.caps.f > PRECOG.maxForceMeter) return { used: false, avoided: false, rng };
+  if (!forceWithin(f.meters.f, f.caps.f, PRECOG.maxForceMeter)) return { used: false, avoided: false, rng };
   const chance = Math.min(PRECOG.maxChance, f.forceSense * PRECOG.perForceSense) + (f.stateOfMind === 'centered' ? PRECOG.centeredBonus : 0);
   const [u, r] = nextFloat(rng);
   return { used: true, avoided: u < chance, rng: r };
@@ -445,7 +446,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       const quality = qualityOf(band(margin))!;
       const pc = precog(defF, surprise, rng);
       rng = pc.rng;
-      if (pc.used) defF = { ...defF, meters: { ...defF.meters, f: defF.meters.f + PRECOG.load } };
+      if (pc.used) defF = { ...defF, meters: { ...defF.meters, f: addFixedLoad(defF.meters.f, PRECOG.load) } };
       if (pc.avoided) {
         hit = { by: striker, quality, D: 0, part: 'torso', W: 0, severity: null, vitalityLost: 0, severed: false, avoided: true };
         notes.push(`${defF.name}: precognitive defense`);

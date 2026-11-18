@@ -14,7 +14,7 @@ import { archetypeDef, focusShares, sharesFromWeights } from '../../data/archety
 import { ORDER_REQUIREMENTS, REQUIREMENT_ROW, type Instructor } from '../../data/orderRequirements';
 import { BUDGET, STEP_HOURS, TIREDNESS_LIMIT } from '../../data/progression.config';
 import { FORM_IDS, SKILL_BY_ID } from '../../data/skills';
-import { EMPTY_DAY, afterSleep, stepBlock, type Capacities, type DayTraining, type Meters } from '../../engine/fatigue';
+import { EMPTY_DAY, ZERO_METERS, afterSleep, stepBlock, type Capacities, type DayTraining, type Meters } from '../../engine/fatigue';
 import { interp } from '../../engine/interp';
 import type { GameState } from '../../state/gameState';
 import { selectCharacter, selectHumanAge, selectPath } from '../character/selectors';
@@ -349,21 +349,29 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
   const limit = TIREDNESS_LIMIT[routine.effort];
   let ordered = orderBlocks(blocks);
   let projected = projectDay([...ordered, ...locked], start, caps).endF;
-  let trimmed = 0;
-  while (projected > limit) {
-    let i = -1;
-    const frac = (b: PlannedBlock): number => b.hours / b.planned;
-    blocks.forEach((b, j) => {
-      if (b.fill && b.hours > 0 && (i < 0 || frac(b) > frac(blocks[i]!) || (frac(b) === frac(blocks[i]!) && b.hours > blocks[i]!.hours))) i = j;
-    });
-    if (i < 0) break;
-    blocks[i] = { ...blocks[i]!, hours: blocks[i]!.hours - STEP_HOURS };
-    trimmed += STEP_HOURS;
-    ordered = orderBlocks(blocks.filter((b) => b.hours > 0));
-    projected = projectDay([...ordered, ...locked], start, caps).endF;
+  // The fill is trimmed first. If the fixed Order blocks alone still pass the limit because the day started tired (a
+  // fight at dawn), they are trimmed the same way, down to what they would reach on a fresh day: the Order excuses the
+  // exertion, never an ordinary day's requirements (D-165). Player-locked blocks are never trimmed.
+  const freshFixed = projectDay(orderBlocks(blocks.filter((b) => !b.fill)).concat(locked), ZERO_METERS, caps).endF;
+  const trimmed = { fill: 0, fixed: 0 };
+  for (const pass of ['fill', 'fixed'] as const) {
+    const target = pass === 'fill' ? limit : Math.max(limit, freshFixed);
+    while (projected > target + 1e-9) {
+      let i = -1;
+      const frac = (b: PlannedBlock): number => b.hours / b.planned;
+      blocks.forEach((b, j) => {
+        if ((pass === 'fill' ? b.fill : !b.fill) && b.hours > 0 && (i < 0 || frac(b) > frac(blocks[i]!) || (frac(b) === frac(blocks[i]!) && b.hours > blocks[i]!.hours))) i = j;
+      });
+      if (i < 0) break;
+      blocks[i] = { ...blocks[i]!, hours: blocks[i]!.hours - STEP_HOURS };
+      trimmed[pass] += STEP_HOURS;
+      ordered = orderBlocks(blocks.filter((b) => b.hours > 0));
+      projected = projectDay([...ordered, ...locked], start, caps).endF;
+    }
   }
-  if (trimmed > 0) notes.push(`fill trimmed by ${trimmed} h to stay under the ${routine.effort} tiredness limit ${limit}`);
-  if (projected > limit) notes.push(`fixed and locked blocks alone end the day at f ${projected.toFixed(2)} (over the ${routine.effort} limit ${limit})`);
+  if (trimmed.fill > 0) notes.push(`fill trimmed by ${trimmed.fill} h to stay under the ${routine.effort} tiredness limit ${limit}`);
+  if (trimmed.fixed > 0) notes.push(`Order requirements excused for ${trimmed.fixed} h: the day started too tired (over the ${routine.effort} limit ${limit}; D-165)`);
+  if (projected > limit + 1e-9) notes.push(`fixed and locked blocks alone end the day at f ${projected.toFixed(2)} (over the ${routine.effort} limit ${limit})`);
   return { trainingDay: true, recovery: false, items: layout(ordered, locked, routine.wakeSecond), budget, fillCredit: credit, projectedEndF: projected, notes };
 }
 

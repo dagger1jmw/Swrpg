@@ -5,7 +5,9 @@
 // scheduled fight is a real duel through the duel engine against a generated opponent at the scripted gap (a Force-
 // using duelist, or a group of trooper minions), with a rolled outcome; the player's wounds and Vitality go through
 // health (healthSynced; a Dying profile is always stabilized), and combat XP, E and CI come from the real duel log
-// through fightResolved. Replaces the M4 scripted fights (STUB_SCRIPTED_COMBAT).
+// through fightResolved. Replaces the M4 scripted fights (STUB_SCRIPTED_COMBAT). Care after a wounding fight (D-162, a
+// harness input): in a profile's war years a bacta tank for the worst new wound (x4; the tank days replace the routine),
+// otherwise Order and military profiles get 30 days of medical care. Spars may be against 2-3 partners (D-163).
 import { TEST_YEAR } from './dates';
 import { FORM_IDS } from '../../src/data/skills';
 import { absDayFromDate } from '../../src/engine/calendar';
@@ -19,9 +21,14 @@ import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 import type { GameEvent } from '../../src/state/types';
 import { SPARRING_DEFAULT_BY_RANK } from '../../src/data/combat.config';
+import { HEAL_MULT } from '../../src/data/health.config';
+import { sparGroupLevel } from '../../src/engine/appliedExperience';
+import { baseHealDays } from '../../src/engine/healing';
+import { advanceTime } from '../../src/state/advanceTime';
 import { MINION_KINDS } from '../../src/data/npcGen.config';
 import { runUntilBeat, startDuel, type DuelContext, type Fighter } from '../../src/engine/duel';
-import { capacity, forceCapacity } from '../../src/engine/fatigue';
+import { capacity } from '../../src/engine/fatigue';
+import { forceCapacity } from '../../src/engine/forceMeter';
 import { buildPlayerFighter } from '../../src/features/combat/build';
 
 export const DAYS = 368;
@@ -37,6 +44,8 @@ export interface Fight {
   opponent?: string;
   /** Minions in the group (default 3). */
   count?: number;
+  /** A spar against this many partners at once, each at the gap (D-163 group sparring; default 1). */
+  partners?: number;
   /** The form fought with ('$main' or absent = the profile's main form). */
   skillId?: string;
 }
@@ -65,6 +74,8 @@ export interface LifeProfile {
   seed: string;
   /** Scripted fights for a training day (age = years since birth). */
   fights?: (age: number, day: number) => Fight[];
+  /** War years [from, to): wounding fights get a bacta tank instead of medical care (D-162). */
+  warAges?: readonly (readonly [number, number])[];
 }
 
 export interface LifeResult {
@@ -87,6 +98,10 @@ export interface LifeResult {
   bankShare: number;
   /** Days with a moderate-or-worse wound, per year of age (war healing check). */
   woundedDaysByAge: Record<number, number>;
+  /** Days spent in a bacta tank instead of the routine (D-162). */
+  tankDays: number;
+  /** The day with the highest day-end tiredness: its age and the plan's notes (training-routines test 5). */
+  maxDay: { age: number; endF: number; fought: boolean; notes: string[] } | null;
 }
 
 const START_DAY = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
@@ -193,13 +208,16 @@ function duelistFighter(id: string, level: number, vitality: number): Fighter {
 }
 
 /** One real duel (D-143 B): the engine resolves it; health and progression apply it through their events. */
-function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number): GameState {
+function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: number): { s: GameState; tankDays: number } {
   let s = s0;
   let player = buildPlayerFighter(s);
   const form = f.skillId === undefined || f.skillId === '$main' ? p.mainForm : f.skillId;
   if (player.form !== null && selectLevelExact(s, form) > 0) player = { ...player, form, skillId: form, level: selectPerformance(s, form) };
   const level = player.level + f.gap;
-  const opponents = f.opponent && f.opponent !== 'duelist' ? Array.from({ length: f.count ?? 3 }, (_, i) => minionFighter(f.opponent!, `m${n}-${i}`, level, i % 5 < 3)) : [duelistFighter(`d${n}`, level, player.maxVitality)];
+  const opponents =
+    f.opponent && f.opponent !== 'duelist'
+      ? Array.from({ length: f.count ?? 3 }, (_, i) => minionFighter(f.opponent!, `m${n}-${i}`, level, i % 5 < 3))
+      : Array.from({ length: f.stakes === 'spar' ? (f.partners ?? 1) : 1 }, (_, i) => duelistFighter(`d${n}-${i}`, level, player.maxVitality));
   const sparring = f.stakes === 'spar' ? (SPARRING_DEFAULT_BY_RANK[s.ranks.rank] ?? 'trainingSaber') : null;
   if (sparring === 'trainingSaber') player = { ...player, weapon: 'trainingSaber' };
   const ctx: DuelContext = { sparring, situations: [], footing: 0, dyingRiskStakes: f.stakes === 'lethal' || f.stakes === 'serious' };
@@ -215,7 +233,9 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number): GameStat
   const max = player.maxVitality;
   events.push({ type: 'healthSynced', vitalityLost: Math.max(0, max - d.a.vitality), addWounds: newWounds, meters: { p: d.a.meters.p, f: d.a.meters.f }, cause: 'lifetime duel' });
   const exchanges = d.log.filter((x) => x.kind !== 'force').map((x) => ({ skillId: form, gap: x.effB - x.effA }));
-  if (exchanges.length) events.push({ type: 'fightResolved', stakes: f.stakes, outcome, exchanges, forceUses: [], opponentGap: f.gap });
+  // A spar with several partners counts as one at the strongest's level + 10 per extra (D-163).
+  const opponentGap = f.stakes === 'spar' ? sparGroupLevel(opponents.map((o) => o.level)) - player.level : f.gap;
+  if (exchanges.length) events.push({ type: 'fightResolved', stakes: f.stakes, outcome, exchanges, forceUses: [], opponentGap });
   const applied = applyEvents(REGISTRY, s, events, { source: 'engine' });
   if (applied.rejected.length) throw new Error(`fight rejected: ${applied.rejected[0]!.reason}`);
   s = applied.state;
@@ -224,12 +244,19 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number): GameStat
     s = applyEvents(REGISTRY, s, [{ type: 'woundsStabilized', by: 'a field medic' }], { source: 'engine' }).state;
     fightStats.stabilized += 1;
   }
-  // Order and military profiles get medical care after a wounding fight (Temple healers, field bacta; x2 healing).
-  if (newWounds.some((w) => w.severity !== 'minor') && p.path !== 'outsider') {
+  // Care after a wounding fight (D-162): in war years a bacta tank long enough for the worst new wound at x4 (the tank
+  // days replace the routine); otherwise Order and military profiles get medical care (Temple healers; x2 healing).
+  const serious = newWounds.filter((w) => w.severity !== 'minor');
+  let tankDays = 0;
+  if (serious.length && (p.warAges ?? []).some(([a, b]) => age >= a && age < b)) {
+    const hours = Math.ceil((Math.max(...serious.map((w) => baseHealDays(w))) * 24) / HEAL_MULT.bacta);
+    s = applyEvents(REGISTRY, s, [{ type: 'careStarted', kind: 'bacta', hours }], { source: 'engine' }).state;
+    tankDays = Math.ceil(hours / 24);
+  } else if (serious.length && p.path !== 'outsider') {
     s = applyEvents(REGISTRY, s, [{ type: 'careStarted', kind: 'medical', hours: 30 * 24 }], { source: 'engine' }).state;
   }
   if (s.health.death) throw new Error(`profile ${p.seed} died in fight ${n}`);
-  return s;
+  return { s, tankDays };
 }
 
 export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?: Record<string, number[]>; track?: string[] } = {}): LifeResult {
@@ -250,6 +277,9 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
   const eAtMilestone: Record<number, number> = {};
   const woundedDaysByAge: Record<number, number> = {};
   let discarded = 0;
+  let tankDays = 0;
+  let tankDayCount = 0;
+  let maxDay: LifeResult['maxDay'] = null;
   let yearXp: Record<string, number> = {};
   let yearFightXp: Record<string, number> = {};
   const track = opts.track ?? [];
@@ -267,16 +297,24 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
     }
     const before = { ...s.progression.skills };
     // Fights in the morning, before the day's routine: real duels (D-143 B).
-    const fights = p.fights?.(age, day) ?? [];
+    const fights = tankDays > 0 ? [] : (p.fights?.(age, day) ?? []);
     for (const f of fights) {
       const before = s;
-      s = realFight(s, p, f, (fightStats.fights += 1));
+      const fr = realFight(s, p, f, (fightStats.fights += 1), age);
+      s = fr.s;
+      tankDays = Math.max(tankDays, fr.tankDays);
       for (const k of mainKeys()) yearFightXp[k] = (yearFightXp[k] ?? 0) + (s.progression.skills[k]?.xp ?? 0) - (before.progression.skills[k]?.xp ?? 0);
     }
     const until = nextWakeAbs(s.clock.now.day * 86_400 + s.clock.now.second + 1, WAKE);
-    const r = advanceByRoutine(REGISTRY, s, { untilAbs: until, reason: 'lifetime' });
-    if (r.rejected.length) throw new Error(`rejected: ${JSON.stringify(r.rejected[0])}`);
-    for (const a of r.applied) {
+    if (tankDays > 0) {
+      // A day in the bacta tank (D-162): no routine, wake to wake at rest.
+      s = advanceTime(REGISTRY, s, { seconds: until - (s.clock.now.day * 86_400 + s.clock.now.second), reason: 'bacta tank', source: 'timeElapsed', occupation: 'rest' }).state;
+      tankDays -= 1;
+      tankDayCount += 1;
+    }
+    const r = s.clock.now.day * 86_400 + s.clock.now.second >= until ? null : advanceByRoutine(REGISTRY, s, { untilAbs: until, reason: 'lifetime' });
+    if (r?.rejected.length) throw new Error(`rejected: ${JSON.stringify(r.rejected[0])}`);
+    for (const a of r?.applied ?? []) {
       if (a.event.type !== 'activityResolved') continue;
       const tr = (a.event['transfer'] as Record<string, number> | undefined) ?? {};
       for (const [f, x] of Object.entries(tr)) {
@@ -291,8 +329,11 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
         bankedTotal += banked[f] ?? 0;
       }
     }
-    s = r.state;
-    for (const d of r.days) maxDayEndF = Math.max(maxDayEndF, d.endF);
+    if (r) s = r.state;
+    for (const d of r?.days ?? []) {
+      if (d.endF > maxDayEndF) maxDay = { age, endF: d.endF, fought: fights.length > 0, notes: d.notes };
+      maxDayEndF = Math.max(maxDayEndF, d.endF);
+    }
     for (const k of mainKeys()) yearXp[k] = (yearXp[k] ?? 0) + (s.progression.skills[k]?.xp ?? 0) - (before[k]?.xp ?? 0);
 
     const ageEnd = p.startAge + (day + 1) / DAYS;
@@ -320,5 +361,5 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
     }
   }
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));
-  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge };
+  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay };
 }

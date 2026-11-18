@@ -306,11 +306,21 @@ export const COMBAT_XP = {
 
 // ---- Applied experience E, combat integration CI, the drill ceiling and bank (progression-numbers §7, §8;
 // combat-xp §3; D-45; Order classes as sparring, D-143 A). Built in M5. ----
-/** E per session or fight, scaled by (1 - E/120). lethalStronger: life-or-death vs an opponent 5+ levels stronger. */
-export const E_GAIN = { sparPeer: 0.2, sparMaster: 0.4, skirmish: 3, serious: 6, lethal: 6, lethalStronger: 10 } as const;
+/**
+ * E per session or fight, scaled by (1 - E/120). sparStronger: sparring a partner at least SPAR_STRONGER.minGap levels
+ * above (D-163; formerly "sparring with master"). lethalStronger: life-or-death vs an opponent 5+ levels stronger.
+ */
+export const E_GAIN = { sparPeer: 0.2, sparStronger: 0.4, skirmish: 3, serious: 6, lethal: 6, lethalStronger: 10 } as const;
 export type ESource = keyof typeof E_GAIN;
-/** E from all sparring (and Order classes counted as sparring) is capped at this. */
+/** Sparring E from peers (and partners less than SPAR_STRONGER.minGap above) is capped at this. */
 export const SPAR_E_CAP = 15;
+/**
+ * Sparring a stronger partner (Jared, D-163): a partner (a master too) at least `minGap` levels above the student's
+ * form raises sparring E toward the partner's main-form level minus `targetBelow` (never below SPAR_E_CAP).
+ */
+export const SPAR_STRONGER = { minGap: 10, targetBelow: 25 } as const;
+/** Group sparring (D-163): 2-3 partners at once count as one at the strongest's level + `perExtra` per extra partner. */
+export const SPAR_GROUP = { perExtra: 10, maxPartners: 3 } as const;
 export const E_SCALE = 120;
 /** CI per Force ability use, scaled by (1 - CI/120); CI from sparring capped at 20. */
 export const CI_GAIN = { spar: 0.1, skirmish: 0.5, serious: 1, lethal: 2 } as const;
@@ -327,8 +337,8 @@ export const DRILL_CEILING = {
   releaseShare: 0.1,
   releaseDays: 60,
 } as const;
-/** Order classes that count as sparring for E (D-143 A): activity -> sparring kind. */
-export const ORDER_CLASS_SPARRING: Readonly<Record<string, 'sparPeer' | 'sparMaster'>> = { shiiChoBasics: 'sparPeer', padawanTraining: 'sparMaster' };
+/** Order classes that count as sparring for E when taught (D-143 A); peer or stronger by the teacher's level (D-163). */
+export const ORDER_SPARRING_CLASSES: readonly string[] = ['shiiChoBasics', 'padawanTraining'];
 /** Reviewing a recording of one's own fight (progression-numbers §19). */
 export const RECORDING_REVIEW_BONUS = 0.05;
 

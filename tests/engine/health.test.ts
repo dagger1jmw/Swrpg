@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { FORCE_BASE_LOAD } from '../../src/data/health.config';
 import { applyDamage, bypassFraction, damageOf, hazardDamage, severityOf, severs } from '../../src/engine/damage';
-import { applyForceLoad, forceCapacity, forceLoadPerUse } from '../../src/engine/fatigue';
+import { applyForceLoad, forceCapacity, forceLoadPerUse } from '../../src/engine/forceMeter';
 import { baseHealDays, healMultiplier, healsOvernight, lastingChance, progressHealing } from '../../src/engine/healing';
 import { adapt, lastingPenalty, type LastingInjury } from '../../src/engine/lasting';
 import { maxVitality, recoverVitality } from '../../src/engine/vitality';

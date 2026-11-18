@@ -8,6 +8,8 @@ import {
   E_STRONGER_GAP,
   SPAR_CI_CAP,
   SPAR_E_CAP,
+  SPAR_GROUP,
+  SPAR_STRONGER,
   type CombatStakes,
   type ESource,
 } from '../data/progression.config';
@@ -15,23 +17,46 @@ import { levelExact, xpForLevel } from './curve';
 
 export interface EState {
   E: number;
-  /** The part of E that came from sparring (capped at 15). */
+  /** The part of E that came from sparring (capped at 15 with peers, D-163 with stronger partners). */
   eSpar: number;
 }
 
-/** One E gain, scaled by (1 - E/120); sparring sources stop once sparring E reaches 15. */
-export function gainE(s: EState, source: ESource): EState {
-  const sparring = source === 'sparPeer' || source === 'sparMaster';
+/** One E gain, scaled by (1 - E/120); sparring sources stop once sparring E reaches `sparCap` (15 unless D-163). */
+export function gainE(s: EState, source: ESource, sparCap: number = SPAR_E_CAP): EState {
+  const sparring = source === 'sparPeer' || source === 'sparStronger';
   let g = E_GAIN[source] * Math.max(0, 1 - s.E / E_SCALE);
-  if (sparring) g = Math.min(g, Math.max(0, SPAR_E_CAP - s.eSpar));
+  if (sparring) g = Math.min(g, Math.max(0, sparCap - s.eSpar));
   return { E: s.E + g, eSpar: s.eSpar + (sparring ? g : 0) };
 }
 
-/** The E source of a fight by stakes (combat-xp §3); a spar is with a peer or a master. */
-export function eSourceFor(stakes: CombatStakes, opts: { opponentGap: number; master?: boolean }): ESource {
-  if (stakes === 'spar') return opts.master ? 'sparMaster' : 'sparPeer';
-  if (stakes === 'lethal') return opts.opponentGap >= E_STRONGER_GAP ? 'lethalStronger' : 'lethal';
-  return stakes;
+export interface SparE {
+  source: 'sparPeer' | 'sparStronger';
+  /** Sparring E stops at this. */
+  cap: number;
+}
+
+/**
+ * Sparring for E (D-163): a partner at least 10 levels above the student's form level (a master counts only then)
+ * raises sparring E toward the partner's main-form level minus 25 at the stronger rate; anyone else is a peer
+ * (sparring E capped at 15).
+ */
+export function sparringE(ownLevel: number, partnerLevel: number): SparE {
+  if (partnerLevel >= ownLevel + SPAR_STRONGER.minGap) return { source: 'sparStronger', cap: Math.max(SPAR_E_CAP, partnerLevel - SPAR_STRONGER.targetBelow) };
+  return { source: 'sparPeer', cap: SPAR_E_CAP };
+}
+
+/** Group sparring (D-163): 2-3 partners count as one at the strongest's level + 10 per extra partner (at most 3 count). */
+export function sparGroupLevel(levels: readonly number[]): number {
+  if (!levels.length) return 0;
+  const extra = Math.min(levels.length, SPAR_GROUP.maxPartners) - 1;
+  return Math.max(...levels) + SPAR_GROUP.perExtra * extra;
+}
+
+/** The E gain of a fight by stakes (combat-xp §3); a spar is with a peer or a stronger partner (D-163). */
+export function eGainFor(stakes: CombatStakes, opts: { opponentGap: number; ownLevel: number }): { source: ESource; cap?: number } {
+  if (stakes === 'spar') return sparringE(opts.ownLevel, opts.ownLevel + opts.opponentGap);
+  if (stakes === 'lethal') return { source: opts.opponentGap >= E_STRONGER_GAP ? 'lethalStronger' : 'lethal' };
+  return { source: stakes };
 }
 
 export interface CIState {

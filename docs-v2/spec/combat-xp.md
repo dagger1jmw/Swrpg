@@ -39,6 +39,18 @@ Session shape for computeXp (D-55): combat is a branch of the one computeXp func
   CI gains per Force ability use: spar +0.1 (capped at 20) | skirmish +0.5 | serious +1 |
     lethal +2. Scaled by (1 - CI/120).
   Any skirmish or higher starts the drill-ceiling bank release (progression spec section 7).
+  Amended by D-163 (sparring partners):
+    A partner at least 10 levels above the student's form level (a master counts only then) is a
+      stronger partner: +0.4 a session, and sparring E rises toward the partner's main-form level
+      minus 25 (never capped below 15). Anyone else is a peer: +0.2 a session, sparring E capped
+      at 15. Both scaled by (1 - E/120).
+    Group sparring: 2-3 partners at once count as one partner at the strongest's level + 10 per
+      extra partner (at most 3 count); the bout itself is harder (the numbers modifier).
+    Order classes counted as sparring (D-143 A) follow the same rule by the teacher's level: the
+      Temple instructor stub (10 ahead) is a stronger partner, but below level 40 its level - 25
+      is under 15; the stub master (30 ahead) raises sparring E to the student's level + 5.
+    Recorded for M7 (not built): instructors get a higher share of drill XP above the ceiling
+      (25% -> 35%) for the forms they teach.
 
 ## 4. Experience multiplier removed
   M no longer includes an experience factor. War speeds growth through combat XP, E and CI.

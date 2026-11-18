@@ -2,6 +2,7 @@
 // D-45; D-143 A), starting E at creation (character-creation §2) and the v3 -> v4 migration.
 import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
+import { FORM_IDS } from '../../src/data/skills';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { xpForLevel } from '../../src/engine/curve';
 import { computeCreation } from '../../src/features/character/creation';
@@ -95,13 +96,20 @@ describe('recording review (progression-numbers §19)', () => {
 });
 
 describe('starting E at creation (character-creation §2)', () => {
-  it('a Padawan of 16 has sparring E 15 on the forms trained; war years and missions add on top', () => {
+  it('a Padawan of 16 sparred the stub master (30 ahead): sparring E = highest form + 5 (D-163); war years add on top', () => {
     const base = { name: 'K', speciesId: 'human', path: 'jedi' as const, archetype: 'jediGuardian', trainingStartAge: 4, talents: {}, dominantHand: 'right' as const, birthDay: START - 16 * 368, startDay: START };
     const pad = computeCreation({ ...base, rank: 'padawan' });
     expect(pad.ok).toBe(true);
-    expect(pad.startingE['soresu']?.E ?? pad.startingE['shiiCho']?.E).toBeCloseTo(15, 3);
+    const highest = Math.max(...Object.entries(pad.levels).filter(([k]) => (FORM_IDS as readonly string[]).includes(k)).map(([, v]) => v));
+    const e = Object.values(pad.startingE)[0]!;
+    expect(e.E).toBeCloseTo(highest + 5, 0);
+    expect(e.eSpar).toBeCloseTo(e.E, 6);
     const war = computeCreation({ ...base, rank: 'padawan', warYears: 3 });
-    expect(Object.values(war.startingE)[0]!.E).toBeGreaterThan(15);
+    expect(Object.values(war.startingE)[0]!.E).toBeGreaterThan(e.E);
+  });
+  it('an Initiate sparred the stub instructors (10 ahead): stronger partners, but level - 15 is below 15, so E stops at 15', () => {
+    const ini = computeCreation({ name: 'K', speciesId: 'human', path: 'jedi', archetype: 'jediGuardian', trainingStartAge: 4, talents: {}, dominantHand: 'right', birthDay: START - 11 * 368, startDay: START, rank: 'initiate' });
+    expect(Object.values(ini.startingE)[0]!.E).toBeCloseTo(15, 3);
   });
 });
 

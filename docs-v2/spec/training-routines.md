@@ -86,7 +86,9 @@ building: D-128 (defaults), D-129 (AI suggestions), D-130 (timed day segments), 
  5. Projected day-end tiredness never passes the effort limit unless the player locked it.
     The projection starts from the actual meters at planning time (D-165): the day loop plans
     at wake, after the night's sleep, so exertion earlier that day (a fight at dawn) counts;
-    only a look ahead (the routine preview) starts from a night's sleep.
+    only a look ahead (the routine preview) starts from a night's sleep. When the fixed Order
+    blocks alone pass the limit because the day started tired, they are excused (trimmed) down
+    to the level they reach on a fresh day; player-locked blocks never are.
  6. Locked blocks are never moved.
  7. An injury removes affected skills from the routine within the same day.
  8. A 90-day montage produces story events (thread progress or relationship change) and a

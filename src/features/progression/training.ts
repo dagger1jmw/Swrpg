@@ -2,8 +2,9 @@
 // session and the engine events that apply it. Feature rule code: pure, reads other features
 // through selectors. An unknown or locked activity is rejected with a reason and never mapped to a
 // nearby one (D-07, skills-and-activities.md §2).
-import { ORDER_CLASS_SPARRING, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
-import { splitDrillXp } from '../../engine/appliedExperience';
+import { ORDER_SPARRING_CLASSES, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
+import { forceFraction } from '../../engine/forceMeter';
+import { sparringE, splitDrillXp, type SparE } from '../../engine/appliedExperience';
 import { ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, type ActivityDef, type Intensity, type Unlock } from '../../data/activities';
 import { FORM_TRANSFER_SHARE, PASSION_DARK_PRESSURE_PER_HOUR, STEP_HOURS } from '../../data/progression.config';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../data/skills';
@@ -428,17 +429,13 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     totals,
     discarded: round(r.discarded),
     levels,
-    tiredness: { p: tirednessLabel(r.meters.p / caps.p), m: tirednessLabel(r.meters.m / caps.m), f: tirednessLabel(r.meters.f / caps.f) },
+    tiredness: { p: tirednessLabel(r.meters.p / caps.p), m: tirednessLabel(r.meters.m / caps.m), f: tirednessLabel(forceFraction(r.meters.f, caps.f)) },
     notes,
   };
-  const orderClass = ORDER_CLASS_SPARRING[a.id];
-  const sparKind: 'sparPeer' | 'sparMaster' | undefined = a.sparring
-    ? source?.kind === 'master' || teacherId
-      ? 'sparMaster'
-      : 'sparPeer'
-    : orderClass && (source?.kind === 'instructor' || source?.kind === 'master' || teacherId)
-      ? orderClass
-      : undefined;
+  // Sparring for E (D-163): peer or stronger partner by the partner's level in this form (a teacher's, a named
+  // partner's, the Order stubs'; peers are even). Order classes count only when taught (D-143 A).
+  const taughtClass = ORDER_SPARRING_CLASSES.includes(a.id) && (source?.kind === 'instructor' || source?.kind === 'master' || teacherId !== null);
+  const sparE: SparE | undefined = a.sparring || taughtClass ? sparringE(studentLevel, tLevel ?? pLevel ?? studentLevel) : undefined;
   const events: GameEvent[] = [
     {
       type: 'activityResolved',
@@ -457,7 +454,7 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
       meditation: a.group === 'meditation',
       // Sparring for applied experience E (progression-numbers §7): partner sparring, and the Order classes that count
       // as sparring when taught (D-143 A: the Initiate forms class with instructors, the Padawan master session).
-      ...(sparKind ? { sparring: sparKind } : {}),
+      ...(sparE ? { sparring: sparE.source, sparCap: sparE.cap } : {}),
       day: r.day,
     },
     { type: 'activityLoad', activityId: a.id, meters: r.meters },

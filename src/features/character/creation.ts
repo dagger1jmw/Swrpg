@@ -6,8 +6,8 @@
 // Padawan the plan splits the 2 h master session and the 1 h solo hour among any forms, and each form's
 // first phase starts it at 0.75 x the highest form (the fundamentals transfer). Variance is off.
 import { orderSeatAt } from '../../data/orderSeats';
-import { SPAR_E_CAP } from '../../data/progression.config';
-import { gainE } from '../../engine/appliedExperience';
+import { STUB_INSTRUCTOR_LEAD, STUB_MASTER_LEAD } from '../../data/stubs';
+import { gainE, sparringE } from '../../engine/appliedExperience';
 import { ARCHETYPE_BY_ID, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
 import { BUDGET, FORM_TRANSFER_SHARE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
 import { ORDER_REQUIREMENTS } from '../../data/orderRequirements';
@@ -17,7 +17,7 @@ import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID, SKILL_IDS, type TalentDomain } f
 import { SPECIES_BY_ID, speciesDef } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { closedFormLevel, formXps, phasesFor, planSplit, type FormPlan } from '../../engine/closedForm';
-import { levelWithNatural, xpForLevel } from '../../engine/curve';
+import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { humanEquivalentAge, naturalLevel, speciesAgeFromHuman, speciesLearning } from '../../engine/species';
 import { crossTalentMult, talentMult, type Talents } from '../../engine/speed';
 
@@ -285,8 +285,16 @@ export function computeCreation(input: CreationInput): CreationResult {
   }
   // Lightsaber forms (D-118, D-119): the form plans with the fundamentals transfer.
   const hasForms = Object.keys(a.weights).some(isFormKey) || input.path === 'jedi' || input.path === 'sith';
+  // The highest form at the end of the Initiate and Padawan years: the Order classes' sparring partners (the stub
+  // instructors and master) are that many levels ahead, which sets the sparring E they give (D-163).
+  const phaseEnd = { initiate: 0, padawan: 0 };
   if (hasForms) {
     const formMult = (f: string): number => talentMult(talents, f) * crossTalentMult(talents, f) * speciesLearning(species.id, f) * (input.variance?.(f) ?? 1);
+    const formsAt = (age: number): Record<string, number> =>
+      formXps({ formPaces: a.formPaces, k: K, startAge: hStart, age, padawanAge: hAges.padawanAge, knightAge: hAges.knightAge, onePhase: ages.onePhase, padawanPlan, knightPlan, mult: formMult, transferShare: FORM_TRANSFER_SHARE, warYears, knightPoolDelta: ((focus[FORMS_KEY] ?? 0) - (def[FORMS_KEY] ?? 0)) * perShare * fill.knight });
+    const highestAt = (age: number): number => (age > hStart ? levelExact(Math.max(0, ...Object.values(formsAt(age)))) : 0);
+    phaseEnd.initiate = highestAt(Math.min(h, hAges.padawanAge));
+    phaseEnd.padawan = highestAt(Math.min(h, hAges.knightAge));
     const xps = formXps({
       formPaces: a.formPaces,
       k: K,
@@ -339,7 +347,7 @@ export function computeCreation(input: CreationInput): CreationResult {
     } else if (SKILL_BY_ID.has(key)) focusWeights[key] = (focusWeights[key] ?? 0) + share;
   }
   const facts = backstory(input, a, rankDef, h, storyException, unmet, { padawanPlan, knightPlan, mainFormId, hasForms });
-  const applied = startingApplied({ input, path: input.path, startAge: hStart, age: h, ages, warYears, startingXp });
+  const applied = startingApplied({ input, path: input.path, startAge: hStart, age: h, ages, warYears, startingXp, phaseEnd });
   return {
     ok: unmet.length === 0 || storyException,
     errors,
@@ -362,8 +370,9 @@ export function computeCreation(input: CreationInput): CreationResult {
 }
 
 /**
- * Starting E and CI (character-creation §2; D-143 A): Order classes count as sparring (the Initiate forms class +0.2 a
- * session, the Padawan master session +0.4; sparring E capped at 15), each war year adds E +3 and CI +1 on the
+ * Starting E and CI (character-creation §2; D-143 A, D-163): Order classes count as sparring with partners ahead of the
+ * student (the Initiate forms class with the stub instructors, the Padawan master session with the stub master; a
+ * partner 10+ levels ahead raises sparring E toward its level - 25, else peers cap it at 15), each war year adds E +3 and CI +1 on the
  * combat Force abilities the character knows (scaled as usual), and Knights and above add E +1 per year of missions
  * (at most +15). E applies to every form group the character has trained.
  */
@@ -375,6 +384,8 @@ function startingApplied(i: {
   ages: { padawanAge: number; knightAge: number; onePhase: boolean };
   warYears: number;
   startingXp: Record<string, number>;
+  /** The highest form level at the end of the Initiate and Padawan years (D-163). */
+  phaseEnd: { initiate: number; padawan: number };
 }): { E: Record<string, { E: number; eSpar: number }>; CI: Record<string, { CI: number; ciSpar: number }> } {
   let e = { E: 0, eSpar: 0 };
   const order = (i.path === 'jedi' || i.path === 'sith') && !i.ages.onePhase;
@@ -382,8 +393,11 @@ function startingApplied(i: {
     const initYears = Math.max(0, Math.min(i.age, i.ages.padawanAge) - i.startAge);
     const padYears = Math.max(0, Math.min(i.age, i.ages.knightAge) - Math.max(i.startAge, i.ages.padawanAge));
     const sessions = (years: number): number => Math.min(2000, Math.round(years * ORDER_SESSIONS_PER_YEAR));
-    for (let k = 0; k < sessions(initYears) && e.eSpar < SPAR_E_CAP - 1e-6; k++) e = gainE(e, 'sparPeer');
-    for (let k = 0; k < sessions(padYears) && e.eSpar < SPAR_E_CAP - 1e-6; k++) e = gainE(e, 'sparMaster');
+    // The Order classes as sparring (D-143 A) with the stub instructors and master ahead of the student (D-163).
+    const init = sparringE(i.phaseEnd.initiate, i.phaseEnd.initiate + STUB_INSTRUCTOR_LEAD);
+    const pad = sparringE(i.phaseEnd.padawan, i.phaseEnd.padawan + STUB_MASTER_LEAD);
+    for (let k = 0; k < sessions(initYears) && e.eSpar < init.cap - 1e-6; k++) e = gainE(e, init.source, init.cap);
+    for (let k = 0; k < sessions(padYears) && e.eSpar < pad.cap - 1e-6; k++) e = gainE(e, pad.source, pad.cap);
     const missionYears = Math.max(0, i.age - Math.max(i.startAge, i.ages.knightAge));
     let added = 0;
     for (let k = 0; k < Math.floor(missionYears) && added < MISSION_E_MAX; k++) {

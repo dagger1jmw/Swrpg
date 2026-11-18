@@ -5,7 +5,7 @@ import { NIMAN_CI_FACTOR } from '../data/formMatchups';
 import { FORCE_BASE_LOAD, LIGHTNING_PER_OUTPUT, FORCE_EFFORT, LOCATION_WEIGHTS, type ForceEffort } from '../data/health.config';
 import { OBJECT_SIZE_RULES, type ObjectSize } from '../data/terrain';
 import { applyDamage, damageOf, hazardDamage, rollLocation, severityOf } from './damage';
-import { applyForceLoad, forceLoadPerUse } from './fatigue';
+import { applyForceLoad, forceLoadPerUse, rollCollapse } from './forceMeter';
 import { basicRoll, type BasicRoll } from './rolls';
 import { nextFloat, nextInt } from './rng';
 import { currentTarget, settleEnd, type DuelState, type ExchangeRecord, type Fighter, type SideId } from './duel';
@@ -94,13 +94,8 @@ export function resolveForceAction(s0: DuelState, input: ForceActionInput, day: 
   const baseLoad = input.kind === 'throw' && input.objectSize ? OBJECT_SIZE_RULES[input.objectSize].forceLoad : FORCE_BASE_LOAD[abilityId] ?? 0.2;
   const load = forceLoadPerUse(baseLoad, input.effort, input.level, ci.strainMult);
   const fl = applyForceLoad({ p: user.meters.p, m: 0, f: user.meters.f }, user.caps.f, load, input.angerChanneling ?? false);
-  let rng = s.rng;
-  let collapse = false;
-  if (fl.overLimit) {
-    const [u, r] = nextFloat(rng);
-    rng = r;
-    collapse = u < 0.05;
-  }
+  const [collapse, rngAfterCollapse] = rollCollapse(s.rng, fl.overLimit);
+  let rng = rngAfterCollapse;
   const [mf, r1] = nextFloat(rng);
   rng = r1;
   const misfire = mf < ci.misfire;

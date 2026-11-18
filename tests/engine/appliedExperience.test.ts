@@ -1,6 +1,7 @@
-// progression-numbers §7-8 tests 8 and 9, combat-xp §3 (E and CI gains), D-143 A (Order classes as sparring).
+// progression-numbers §7-8 tests 8 and 9, combat-xp §3 (E and CI gains), D-143 A (Order classes as sparring), D-163
+// (sparring a stronger partner, group sparring).
 import { describe, expect, it } from 'vitest';
-import { bankCap, drillCeiling, eSourceFor, gainCI, gainE, releaseBank, releaseUntil, splitDrillXp } from '../../src/engine/appliedExperience';
+import { bankCap, drillCeiling, eGainFor, gainCI, gainE, releaseBank, releaseUntil, sparGroupLevel, sparringE, splitDrillXp } from '../../src/engine/appliedExperience';
 import { levelExact, xpForLevel } from '../../src/engine/curve';
 
 describe('applied experience E (combat-xp §3)', () => {
@@ -8,17 +9,44 @@ describe('applied experience E (combat-xp §3)', () => {
     expect(gainE({ E: 0, eSpar: 0 }, 'skirmish').E).toBe(3);
     expect(gainE({ E: 60, eSpar: 0 }, 'serious').E).toBe(63);
     expect(gainE({ E: 0, eSpar: 0 }, 'lethalStronger').E).toBe(10);
-    expect(eSourceFor('lethal', { opponentGap: 5 })).toBe('lethalStronger');
-    expect(eSourceFor('lethal', { opponentGap: 4 })).toBe('lethal');
-    expect(eSourceFor('spar', { opponentGap: 0, master: true })).toBe('sparMaster');
+    expect(eGainFor('lethal', { opponentGap: 5, ownLevel: 50 }).source).toBe('lethalStronger');
+    expect(eGainFor('lethal', { opponentGap: 4, ownLevel: 50 }).source).toBe('lethal');
   });
-  it('sparring E (and Order classes counted as sparring) stops at 15; real fights keep adding', () => {
+  it('peer sparring E (and Order classes counted as sparring) stops at 15; real fights keep adding', () => {
     let s = { E: 0, eSpar: 0 };
-    for (let i = 0; i < 2000; i++) s = gainE(s, 'sparMaster');
+    for (let i = 0; i < 2000; i++) s = gainE(s, 'sparPeer');
     expect(s.E).toBeCloseTo(15, 6);
     s = gainE(s, 'skirmish');
     expect(s.E).toBeGreaterThan(15);
     expect(s.eSpar).toBeCloseTo(15, 6);
+  });
+});
+
+describe('sparring partners (D-163)', () => {
+  it('a partner 10+ levels above is stronger: E toward its level - 25 at 0.4 a session; less than 10 above is a peer', () => {
+    expect(sparringE(50, 59)).toEqual({ source: 'sparPeer', cap: 15 });
+    expect(sparringE(50, 60)).toEqual({ source: 'sparStronger', cap: 35 });
+    expect(sparringE(50, 90)).toEqual({ source: 'sparStronger', cap: 65 });
+    // A stronger partner whose level - 25 is under 15 still gives the peer cap.
+    expect(sparringE(10, 30).cap).toBe(15);
+    expect(gainE({ E: 0, eSpar: 0 }, 'sparStronger').E).toBeCloseTo(0.4);
+    let s = { E: 0, eSpar: 0 };
+    const p = sparringE(50, 90);
+    for (let i = 0; i < 5000; i++) s = gainE(s, p.source, p.cap);
+    expect(s.eSpar).toBeCloseTo(65, 6);
+    // Still scaled by (1 - E/120): from E 60 a session gives 0.2.
+    expect(gainE({ E: 60, eSpar: 0 }, 'sparStronger', 65).E).toBeCloseTo(60.2);
+    // A fight: the partner's level is the student's plus the gap.
+    expect(eGainFor('spar', { opponentGap: 10, ownLevel: 70 })).toEqual({ source: 'sparStronger', cap: 55 });
+    expect(eGainFor('spar', { opponentGap: 5, ownLevel: 70 })).toEqual({ source: 'sparPeer', cap: 15 });
+  });
+  it('group sparring: the strongest partner + 10 per extra partner, at most 3 partners count', () => {
+    expect(sparGroupLevel([60])).toBe(60);
+    expect(sparGroupLevel([60, 50])).toBe(70);
+    expect(sparGroupLevel([55, 60, 58])).toBe(80);
+    expect(sparGroupLevel([60, 60, 60, 60])).toBe(80);
+    // The Order's best (70) sparring three Masters at 60 counts as a partner at 80: stronger.
+    expect(sparringE(70, sparGroupLevel([60, 60, 60])).source).toBe('sparStronger');
   });
 });
 
