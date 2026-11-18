@@ -169,7 +169,7 @@ function combatLine(state: GameState): string | null {
   const d = a.duel as { a: { name: string }; opponents: { name: string; out: boolean; engagedElsewhere: boolean }[]; advantage: number; exchange: number };
   const opp = d.opponents.map((o) => `${o.name}${o.out ? ' (out)' : o.engagedElsewhere ? ' (fighting an ally)' : ''}`).join(', ');
   const track = d.advantage > 0 ? 'the player character has the upper hand' : d.advantage < 0 ? 'the opponent has the upper hand' : 'even';
-  return `COMBAT (${a.stakes}${a.sparring ? `, ${a.sparring} sparring` : ''}): ${d.a.name} against ${opp}; ${d.exchange} exchanges so far; ${track}.`;
+  return `COMBAT (${a.stakes}${a.sparring ? `, ${a.sparring} sparring` : ''}): ${d.a.name} against ${opp}; ${d.exchange} exchanges so far; ${track}.${a.truceOffer ? ` A truce is on offer (${a.truceOffer}); the player has not answered.` : ''}`;
 }
 
 /** The character's skills by tier, strongest first (tiers only; the RESOLVED block carries any numbers). */

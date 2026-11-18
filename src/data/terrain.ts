@@ -41,6 +41,8 @@ export const TERRAIN_TAGS: readonly TerrainTag[] = [
   { id: 'zeroGravity', label: 'zero gravity', situation: 'zeroGravity', footing: -1 },
   { id: 'looseRock', label: 'loose rock', objects: { size: 'small', supply: [3, 6] }, hazard: { chance: 0.02, severity: 1, type: 'fall' } },
   { id: 'debris', label: 'debris', objects: { size: 'medium', supply: [2, 4] } },
+  /** Forests, jungles, swamps (Jared, D-180 follow-up): logs and heavy branches to throw; supply like debris. */
+  { id: 'fallenTimber', label: 'fallen branches and logs', objects: { size: 'medium', supply: [2, 4] } },
   { id: 'crates', label: 'crates and containers', objects: { size: 'medium', supply: [2, 5] }, position: 1 },
   { id: 'machinery', label: 'heavy machinery', objects: { size: 'large', supply: [1, 2] } },
   { id: 'fire', label: 'fire', hazard: { chance: 0.03, severity: 2, type: 'fire' } },

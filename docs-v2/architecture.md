@@ -412,7 +412,8 @@ tacticDeclared and healingReceived. They are intent fields now (above).
 | routineRequested {priorities[], effort, spanHint} | routines | skills exist; applies to future time only, never to this turn |
 | combatStarted {opponentRefs[], minionGroups[]?, stakes, terrainTags[], ambushClaim?, engagedElsewhereRefs[]?, sparringMode?} | combat | DEFERRED: applied at the start of the next turn's step b and narrated then; opponents exist (npcIntroduced or a tmp key first); ambush becomes a perception contest; minion groups by kind (D-157, D-158); sparringMode: a master's harsher stakes for one spar session, academy on the Sith path only (D-172); a spar is a session of bouts resolved like a montage (D-168) |
 | opponentEngagement {opponentRef, engagedElsewhere} | combat | an opponent turns to fight an ally, or back (D-143 E); engine-checked against the fight |
-| combatEnded {reason: fled / surrendered / interrupted / truce} | combat | wounds end fights on their own |
+| combatEnded {reason: interrupted, why} | combat | wounds end fights on their own; from the AI only interrupted, with the outside event (D-181); fled, surrendered and truce come from the engine (the player's beats, an engine-rolled fate, an accepted truce) |
+| truceOffered {why} | combat | the opponent offers a truce; the player accepts it with a beat button, any other action declines it (D-181); not in a sparring session |
 | forceVision {description} | force | narrative; may open a thread |
 | hazardOccurred {hazard, severityHint 1-3, cause} | health | DEFERRED like combatStarted: a hazard the player did not cause; damage by health rules at the start of the next turn's step b. Hazards the player causes enter as intent.risk |
 | emotionalEvent {type: grief / fear / anger / hatred / calm / pride / despair, intensity 1-3, cause} | progression (state of mind, mapping in progression-numbers §17) + alignment via selector-driven engine event | cap 1 per turn (D-36, D-54) |

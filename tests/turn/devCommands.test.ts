@@ -15,7 +15,8 @@ import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createCampaign, DEFAULT_START_SECOND } from '../../src/turn/campaign';
 import { buildNarrativeRequest, devScenarioBlock, historyWindow } from '../../src/turn/context';
-import { commitDevCommand, DEV_HELP, pendingScenario, playerFormLevel, runDevCommand } from '../../src/turn/devCommands';
+import { commitDevCommand, DEV_HELP, pendingScenario, playerFormLevel, runDevCommand, TERRAIN_ALIASES } from '../../src/turn/devCommands';
+import { TERRAIN_BY_ID } from '../../src/data/terrain';
 import type { Session } from '../../src/turn/pipeline';
 import type { TurnRecord } from '../../src/turn/record';
 import { resolveTurn } from '../../src/turn/resolve';
@@ -51,9 +52,29 @@ describe('dev commands emit the normal events (D-180)', () => {
     expect(o.ok).toBe(true);
     const fb = o.applied.find((a) => a.event.type === 'fightBegun')!.event;
     expect(fb['minionGroups']).toEqual([{ kind: 'battleDroid', count: 6 }]);
-    expect(fb['terrainTags']).toEqual(['unevenGround', 'cover']);
+    expect(fb['terrainTags']).toEqual(['unevenGround', 'cover', 'fallenTimber', 'looseRock']);
     expect((o.state.combat.active!.duel as DuelState).opponents).toHaveLength(6);
-    expect(o.state.combat.active!.terrainTags).toEqual(['unevenGround', 'cover']);
+    // Throwables with the normal per-fight supply: fallen branches and logs, loose rocks.
+    const objects = o.state.combat.active!.objects;
+    expect(objects['fallenTimber']).toBeGreaterThanOrEqual(2);
+    expect(objects['fallenTimber']).toBeLessThanOrEqual(4);
+    expect(objects['looseRock']).toBeGreaterThanOrEqual(3);
+    expect(objects['looseRock']).toBeLessThanOrEqual(6);
+  });
+  it('a Force-thrown rock in a forest fight (the case D-180 was for)', async () => {
+    let s = run((await campaign(true)).state, '/set telekinesis 40').state;
+    s = run(s, '/fight 1 duelist at -20 terrain forest').state;
+    const before = s.combat.active!.objects['looseRock']!;
+    const r = applyEvents(REGISTRY, s, [{ type: 'combatAction', action: 'force', force: { kind: 'throw', objectTag: 'looseRock' } }], { source: 'player' });
+    expect(r.rejected).toEqual([]);
+    const d = (r.state.combat.active?.duel ?? (r.state.combat.last as unknown as { duel: DuelState }).duel) as DuelState;
+    expect(d.log.some((x) => x.kind === 'force' && x.force?.abilityId === 'telekinesis')).toBe(true);
+    if (r.state.combat.active) expect(r.state.combat.active.objects['looseRock']).toBe(before - 1);
+  });
+  it('every outdoor or wrecked place word has throwables; indoor ones need none', () => {
+    const withObjects = (tags: readonly string[]) => tags.some((t) => TERRAIN_BY_ID.get(t)?.objects);
+    for (const p of ['forest', 'jungle', 'swamp', 'cave', 'ruins', 'desert', 'rooftop', 'hangar']) expect(withObjects(TERRAIN_ALIASES[p]!), p).toBe(true);
+    for (const tags of Object.values(TERRAIN_ALIASES)) for (const t of tags) expect(TERRAIN_BY_ID.has(t), t).toBe(true);
   });
   it('/fight 1 canon:malgus stakes lethal: the canon figure, linked, at lethal stakes', async () => {
     const o = run((await campaign(true, LORE_TEST_DATE)).state, '/fight 1 canon:malgus stakes lethal');

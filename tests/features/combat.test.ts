@@ -113,12 +113,59 @@ describe('beats and conclusion', () => {
     const beat = on.combat.active?.beat ?? 'fightEnded';
     expect(['woundingHit', 'maneuverLanded', 'spent', 'incapacitated', 'fightEnded']).toContain(beat);
   });
-  it('combatEnded (truce) concludes a fight without wounds', () => {
+  it('a truce comes from the player (D-181): the narrator offers it, Accept the truce concludes the fight without wounds', () => {
     const { s, id } = withNpc(fresh());
     const f = begin(s, [id]);
-    const r = ai(f, [{ type: 'combatEnded', reason: 'truce' }]).state;
+    const offered = ai(f, [{ type: 'truceOffered', why: 'Vek lowers his blade and proposes terms' }]);
+    expect(offered.rejected).toEqual([]);
+    expect(offered.state.combat.active!.truceOffer).toBe('Vek lowers his blade and proposes terms');
+    const r = player(offered.state, [{ type: 'combatAction', action: 'acceptTruce' }]).state;
     expect(r.combat.active).toBeNull();
     expect(r.combat.last!.outcome).toBe('truce');
+    // Any other action declines it; with no offer there is nothing to accept.
+    const declined = player(offered.state, [{ type: 'combatAction', action: 'continue' }]).state;
+    if (declined.combat.active) expect(declined.combat.active.truceOffer).toBeNull();
+    expect(player(f, [{ type: 'combatAction', action: 'acceptTruce' }]).rejected).toHaveLength(1);
+  });
+  it('the narrator ends a fight only as interrupted, with why (D-181)', () => {
+    const { s, id } = withNpc(fresh());
+    const f = begin(s, [id]);
+    for (const reason of ['truce', 'fled', 'surrendered']) {
+      const r = ai(f, [{ type: 'combatEnded', reason }]);
+      expect(r.rejected, reason).toHaveLength(1);
+      expect(r.rejected[0]!.reason).toMatch(/the narrator cannot end a fight as/);
+      expect(r.state.combat.active).not.toBeNull();
+    }
+    expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted' }]).rejected[0]!.reason).toMatch(/needs a why/);
+    const ok = ai(f, [{ type: 'combatEnded', reason: 'interrupted', why: 'Republic reinforcements pour into the hangar' }]);
+    expect(ok.rejected).toEqual([]);
+    expect(ok.state.combat.last!.reason).toBe('interrupted: Republic reinforcements pour into the hangar');
+  });
+  it('the target is a setting (D-182): no exchange, it stays until changed, and falls back when that target is out', () => {
+    const { s, id } = withNpc(fresh());
+    const second = withNpc(s, 'Darth Rue');
+    const f = begin(second.s, [id, second.id]);
+    const d0 = f.combat.active!.duel as DuelState;
+    const r = player(f, [{ type: 'targetSet', targetRef: second.id }]);
+    expect(r.rejected).toEqual([]);
+    const d1 = r.state.combat.active!.duel as DuelState;
+    expect(d1.opponents[d1.target]!.id).toBe(second.id);
+    expect(d1.exchange).toBe(d0.exchange);
+    expect(r.state.meta.rngState).toEqual(f.meta.rngState);
+    expect(r.state.clock.now).toEqual(f.clock.now);
+    // The old beat action is gone; only the player sets the target; an unknown one is refused.
+    expect(player(f, [{ type: 'combatAction', action: 'target', targetRef: second.id }]).rejected).toHaveLength(1);
+    expect(ai(f, [{ type: 'targetSet', targetRef: second.id }]).rejected).toHaveLength(1);
+    expect(player(f, [{ type: 'targetSet', targetRef: 'npc:ghost' }]).rejected).toHaveLength(1);
+    // It stays through an action; when that opponent is out the duel strikes at the next engaged one.
+    const next = player(r.state, [{ type: 'combatAction', action: 'continue' }]).state;
+    if (next.combat.active) expect((next.combat.active.duel as DuelState).target).toBe(d1.target);
+    const outDuel = { ...d1, opponents: d1.opponents.map((o) => (o.id === second.id ? { ...o, out: true } : o)) };
+    const outState = { ...r.state, combat: { ...r.state.combat, active: { ...r.state.combat.active!, duel: outDuel } } };
+    const after = player(outState, [{ type: 'combatAction', action: 'continue' }]).state;
+    const strikes = ((after.combat.active?.duel ?? (after.combat.last as unknown as { duel: DuelState }).duel) as DuelState).log.slice(d1.log.length);
+    expect(strikes.length).toBeGreaterThan(0);
+    expect(strikes.every((x) => x.targetId === id)).toBe(true);
   });
   it('opponentEngagement marks an opponent as fighting an ally; one must still face the player', () => {
     const { s, id } = withNpc(fresh());

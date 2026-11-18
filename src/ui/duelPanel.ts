@@ -82,6 +82,8 @@ export interface DuelPanelProps {
   act(input: TurnInput): void;
   /** The stance is a setting (D-182): no turn, no exchange, no AI call, no time. */
   setStance(stance: Stance): void;
+  /** The target is a setting too (D-182): no turn. */
+  setTarget(targetRef: string): void;
   /** While a fight is on, the narrator's tactical suggestions from the last turn live in the panel (D-181). */
   suggestions: readonly Choice[];
   pick(choice: Choice): void;
@@ -160,11 +162,13 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
           if (v) p.act({ kind: 'beat', label: `Switch to ${SKILL_BY_ID.get(v)?.name ?? v}`, action: { action: 'formChange', form: v } as never });
         } } }, [el('option', { text: 'Change form…', attrs: { value: '' } }), ...forms.map((f) => el('option', { text: SKILL_BY_ID.get(f)?.name ?? f, attrs: { value: f } }))])
     : null;
+  // The target is a setting (D-182): the select shows the current one; when it is out the next engaged one is shown.
+  const current = d.opponents[d.target] && !d.opponents[d.target]!.out && !d.opponents[d.target]!.engagedElsewhere ? d.opponents[d.target]!.id : engaged[0]?.id;
   const targetSelect = engaged.length > 1
     ? el('select', { attrs: { 'aria-label': 'Target' }, on: { change: (e) => {
           const v = (e.target as HTMLSelectElement).value;
-          if (v) p.act({ kind: 'beat', label: `Engage ${names[v] ?? v}`, action: { action: 'target', targetRef: v } as never });
-        } } }, [el('option', { text: 'Target…', attrs: { value: '' } }), ...engaged.map((o) => el('option', { text: o.name, attrs: { value: o.id } }))])
+          if (v && v !== current) p.setTarget(v);
+        } } }, engaged.map((o) => el('option', { text: `Target: ${o.name}`, attrs: { value: o.id, ...(o.id === current ? { selected: 'true' } : {}) } })))
     : null;
   if (formSelect && p.busy) formSelect.setAttribute('disabled', 'true');
   if (targetSelect && p.busy) targetSelect.setAttribute('disabled', 'true');
@@ -174,6 +178,10 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
     el('div', { class: 'box-head' }, [el('strong', { text: `Fight · ${active.stakes}${active.sparring ? ` (${active.sparring})` : ''} · exchange ${d.exchange}` })]),
     el('div', { class: 'box-body duel-body' }, [
       selectIsDying(s) ? el('div', { class: 'dying', text: 'Dying: get stabilized before the timer runs out.' }) : null,
+      // A truce on offer (D-181): accepted here; any other action declines it.
+      active.truceOffer
+        ? el('div', { class: 'beat-row truce' }, [el('span', { text: `Truce offered: ${active.truceOffer}` }), beat('Accept the truce', { action: 'acceptTruce' }, 'small')])
+        : null,
       trackBar(d.advantage),
       vitalityRow(d.a.name, d.a.vitality, d.a.maxVitality, d.a.out ? 'out' : 'fighting', d.a.out),
       ...d.opponents.map((o) => vitalityRow(o.name, o.vitality, o.maxVitality, o.out ? 'out' : o.engagedElsewhere ? 'fighting an ally' : o.minion ? 'minion' : 'fighting', o.out)),

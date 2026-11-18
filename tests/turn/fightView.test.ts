@@ -97,11 +97,12 @@ describe('the duel panel and the choice list agree (D-181)', () => {
 
   it('the story can interrupt a session (combatEnded interrupted): it ends with the bouts so far', () => {
     const s = begun(session('int'), 'spar');
-    const r = applyEvents(REGISTRY, s.state, [{ type: 'combatEnded', reason: 'interrupted' }], { source: 'ai' });
+    const r = applyEvents(REGISTRY, s.state, [{ type: 'combatEnded', reason: 'interrupted', why: 'the Temple alarm sounds' }], { source: 'ai' });
     expect(r.rejected).toEqual([]);
     expect(r.state.combat.active).toBeNull();
     expect(r.state.combat.last?.session?.ended).toBe('stopped');
     expect(r.state.combat.last?.reason).toBe('sparring session (interrupted)');
+    expect(applyEvents(REGISTRY, s.state, [{ type: 'truceOffered', why: 'x' }], { source: 'ai' }).rejected).toHaveLength(1);
     // Any other ending is refused while the session is on.
     for (const reason of ['truce', 'fled', 'surrendered']) expect(applyEvents(REGISTRY, s.state, [{ type: 'combatEnded', reason }], { source: 'ai' }).rejected).toHaveLength(1);
   });
@@ -154,6 +155,30 @@ describe('the duel panel and the choice list agree (D-181)', () => {
     expect(choicesAfterTurn(begun(s, 'serious').state, true, tactical).choices).toEqual(tactical);
     const named = [{ label: 'Challenge Bela again', intent: { actionType: 'fight' as const, targetRef: partner(s) } }, { label: 'Walk away', intent: { actionType: 'move' as const } }];
     expect(choicesAfterTurn(s.state, true, named)).toEqual({ choices: named, dropped: 0 });
+  });
+});
+
+describe('the narrator cannot end a duel (D-181, every fight)', () => {
+  for (const reason of ['truce', 'fled'] as const) {
+    it(`an AI ${reason} in a duel's narration is rejected with a reason, and the duel goes on`, async () => {
+      const { deps } = setup(many(6, [{ type: 'combatEnded', reason }]));
+      const s = begun(session(`ai-${reason}`), 'serious');
+      const t = await playTurn(deps, s, beat('narrate'));
+      const rej = t.record.rejected.find((r) => (r.event as { type?: string }).type === 'combatEnded');
+      expect(rej?.reason).toMatch(new RegExp(`the narrator cannot end a fight as ${reason}`));
+      expect(t.session.state.combat.active).not.toBeNull();
+      expect(t.record.draft.combat?.ended).toBeNull();
+    });
+  }
+  it('an interruption with why ends it; the offered truce waits for the player', async () => {
+    const { deps } = setup([...many(1, [{ type: 'truceOffered', why: 'the Sith offers to stand down' }]), ...many(4)]);
+    const s = begun(session('ai-truce-offer'), 'serious');
+    const t = await playTurn(deps, s, beat('narrate'));
+    expect(t.session.state.combat.active?.truceOffer).toBe('the Sith offers to stand down');
+    const acc = await playTurn(deps, t.session, beat('acceptTruce'));
+    expect(acc.session.state.combat.active).toBeNull();
+    expect(acc.session.state.combat.last?.outcome).toBe('truce');
+    expect(acc.record.draft.combat?.ended?.outcome).toBe('truce');
   });
 });
 

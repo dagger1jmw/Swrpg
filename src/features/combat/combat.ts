@@ -55,6 +55,8 @@ export const activeFightSchema = z.object({
   hidden: z.boolean(),
   /** A spar's session of bouts (D-168); null for a real fight. */
   session: sparSessionSchema.nullable().default(null),
+  /** A truce the narrator offered (D-181): the player accepts it with a beat button; any other action declines it. */
+  truceOffer: z.string().nullable().default(null),
 });
 export type ActiveFight = z.infer<typeof activeFightSchema>;
 

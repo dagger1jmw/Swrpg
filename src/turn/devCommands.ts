@@ -57,16 +57,19 @@ const SEVERITY_W: Readonly<Record<Severity, number>> = { minor: 5, moderate: 15,
 const TIMES_OF_DAY: Readonly<Record<string, number>> = { midnight: 0, dawn: 6 * 3600, morning: 8 * 3600, noon: 12 * 3600, midday: 12 * 3600, afternoon: 15 * 3600, evening: 19 * 3600, dusk: 19 * 3600, night: 22 * 3600 };
 const SPAN_UNIT: Readonly<Record<string, RequestedSpan['unit']>> = { d: 'days', day: 'days', days: 'days', w: 'weeks', week: 'weeks', weeks: 'weeks', m: 'months', mo: 'months', month: 'months', months: 'months', y: 'years', year: 'years', years: 'years' };
 const MAX_DUELISTS = 4;
-/** Place words for /fight terrain (design default, D-180): each stands for the terrain tags such a place has. */
+/**
+ * Place words for /fight terrain (design default, D-180): each stands for the terrain tags such a place has, with
+ * throwables wherever an outdoor or wrecked place has them (fallen timber, loose rock, debris, machinery).
+ */
 export const TERRAIN_ALIASES: Readonly<Record<string, readonly string[]>> = {
-  forest: ['unevenGround', 'cover'],
-  jungle: ['unevenGround', 'cover'],
-  swamp: ['slippery', 'unevenGround'],
-  cave: ['confined', 'unevenGround'],
-  ruins: ['debris', 'cover'],
-  desert: ['open', 'unevenGround'],
+  forest: ['unevenGround', 'cover', 'fallenTimber', 'looseRock'],
+  jungle: ['unevenGround', 'cover', 'fallenTimber', 'looseRock'],
+  swamp: ['slippery', 'unevenGround', 'fallenTimber'],
+  cave: ['confined', 'unevenGround', 'looseRock'],
+  ruins: ['debris', 'cover', 'looseRock'],
+  desert: ['open', 'unevenGround', 'looseRock'],
   plains: ['open'],
-  rooftop: ['ledge', 'highGround'],
+  rooftop: ['ledge', 'highGround', 'machinery'],
   hangar: ['flatFloor', 'crates', 'machinery'],
   corridor: ['confined', 'flatFloor'],
   temple: ['flatFloor'],

@@ -108,6 +108,12 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
   Amended by D-181: a bout's end is not the session's end. The fight stays active (the duel panel
   shows the bout's result and the next bout); the narration cannot end a session with
   combatEnded except as interrupted (the story stops it), which ends it with the bouts so far.
+  Extended by D-181 to every fight: the narration ends a fight only as interrupted, with why (an
+  outside event: reinforcements, a collapse, an alarm). Fled and surrendered come from the
+  player's Disengage and Surrender beats or an engine-rolled fate; a truce is offered by the
+  narration (truceOffered) and taken only when the player presses Accept the truce.
+  Target selection is a setting like the stance (D-182): no exchange, no turn; it stays until
+  changed, and when that opponent is out the duel strikes at the next engaged one.
 
 ## 4. Ranged and Force
   Blaster vs saber deflection: shooter d20 + blaster skill/10 vs defender d20 + form

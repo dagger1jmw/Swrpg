@@ -117,6 +117,7 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
     hidden: false,
     // A spar is a session of bouts up to 34 exchanges (D-168).
     session: spec.stakes === 'spar' ? newSession() : null,
+    truceOffer: null,
   };
   notes.push(`fight ${fightId}: ${spec.stakes}${sparring ? ` (${sparring})` : ''} against ${opponents.map((o) => o.name).join(', ') || 'nobody'}`);
   return { active, rng: duel.rng, notes, emit: [...emit, { type: 'pacingSet', level: 'moment' }] };
@@ -375,7 +376,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         // playBout / stopSession: a sparring session's bout played out beat by beat, or the session ended (D-168).
         // posture / clarify: natural combat words read from the player's text, or a question back when none (D-179).
         // A stance is a setting, not an action (D-182): stanceSet, outside the turn.
-        action: z.enum(['tactic', 'maneuver', 'aim', 'formChange', 'posture', 'clarify', 'force', 'target', 'shatterpoint', 'sequence', 'fightOn', 'narrate', 'resolve', 'continue', 'playBout', 'stopSession']),
+        // acceptTruce: the player accepts the narrator's truce offer (D-181). target: a setting now (targetSet, D-182).
+        action: z.enum(['acceptTruce', 'tactic', 'maneuver', 'aim', 'formChange', 'posture', 'clarify', 'force', 'shatterpoint', 'sequence', 'fightOn', 'narrate', 'resolve', 'continue', 'playBout', 'stopSession']),
         /** posture: a take-position attempt (D-179). */
         position: z.boolean().optional(),
         /** aim: the body part the next strike goes for (D-171). */
@@ -399,6 +401,16 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         let duel: DuelState = { ...before, a: { ...before.a } };
         let action = String(e['action']);
         const notes: string[] = [];
+        // A truce offer stands until the player answers it: accepted here, declined by any other action (D-181).
+        if (action === 'acceptTruce') {
+          if (!active.truceOffer) return { reject: 'no truce has been offered' };
+          const c = conclude(slice, s, { ...active, duel }, 'truce', 'truce');
+          return { slice: c.slice, emit: [...syncEmits(s, before, duel, active.meta), ...c.emit], notes: [`truce accepted: ${active.truceOffer}`, ...c.notes], ...(c.rng ? { rng: c.rng } : {}) };
+        }
+        if (active.truceOffer) {
+          notes.push('truce offer declined: the fight goes on');
+          active = { ...active, truceOffer: null };
+        }
         // A sparring session (D-168): by default the rest resolves in code with one narration; Play this bout plays the
         // current bout out with the normal beats (any tactical action does too); Stop ends the session.
         const session = active.session;
@@ -448,11 +460,6 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           // A form change costs 1 advantage step toward the opponent (Q32).
           duel = { ...duel, advantage: duel.advantage - FORM_CHANGE_COST, a: { ...duel.a, form, skillId: form, level: selectPerformance(s, form) } };
           notes.push(`form change to ${form} (-${FORM_CHANGE_COST} advantage)`);
-        } else if (action === 'target') {
-          const idx = duel.opponents.findIndex((o) => o.id === e['targetRef'] && !o.out);
-          if (idx < 0) return { reject: 'no such opponent in the fight' };
-          duel = { ...duel, target: idx };
-          mode = null;
         } else if (action === 'tactic') {
           const t = String(e['tactic']);
           if (t === 'surrender') {
@@ -543,12 +550,23 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
     },
     /** AI: a fight ends without wounds deciding it (fled, surrendered, interrupted, truce); wounds end fights on their own. */
     combatEnded: {
-      schema: z.object({ type: z.literal('combatEnded'), reason: z.enum(['fled', 'surrendered', 'interrupted', 'truce']) }),
+      schema: z.object({
+        type: z.literal('combatEnded'),
+        reason: z.enum(['fled', 'surrendered', 'interrupted', 'truce']).describe('The narrator may send only interrupted'),
+        why: z.string().min(1).max(200).optional().describe('Required with interrupted: the outside event that stops the fight (reinforcements, a collapse, an alarm)'),
+      }),
       sources: ['ai', 'engine'],
       narrative: (s) => s.combat.active !== null,
       handle: (slice, e, ctx) => {
         if (!slice.active) return { reject: 'no fight in progress' };
         const reason = String(e['reason']);
+        // The narrator cannot end a fight on its own say-so (D-181, extended): only an outside event stops it, with the
+        // reason. Fled and surrendered come from the player's beats or an engine-rolled fate; a truce from truceOffered
+        // and the player's acceptance.
+        if (ctx.source === 'ai') {
+          if (reason !== 'interrupted') return { reject: `the narrator cannot end a fight as ${reason}: fled and surrendered come from the player's Disengage and Surrender beats or an engine-rolled fate, and a truce from truceOffered and the player's acceptance; send combatEnded only as interrupted, for an outside event` };
+          if (!String(e['why'] ?? '').trim()) return { reject: 'combatEnded interrupted needs a why: the outside event that stops the fight' };
+        }
         // A sparring session ends by its bouts or when the player stops (D-181): a bout's point is not the end of the
         // session. Only the story stopping it (interrupted) ends it from the narration, with the bouts so far.
         const session = slice.active.session;
@@ -558,8 +576,39 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
         }
         const outcome: CombatOutcome = reason === 'truce' ? 'truce' : reason === 'surrendered' ? 'lost' : 'fled';
-        const c = conclude(slice, ctx.state, slice.active, outcome, reason);
+        const c = conclude(slice, ctx.state, slice.active, outcome, e['why'] ? `${reason}: ${String(e['why'])}` : reason);
         return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
+      },
+    },
+    /**
+     * AI: the opponent offers a truce (D-181). Nothing ends: the duel panel shows Accept the truce, and any other action
+     * declines it. Not in a sparring session (its bouts end it).
+     */
+    truceOffered: {
+      schema: z.object({ type: z.literal('truceOffered'), why: z.string().min(1).max(200).describe('Who offers it and on what terms, in a few words') }),
+      sources: ['ai'],
+      narrative: (s) => s.combat.active !== null && !s.combat.active.session,
+      handle: (slice, e) => {
+        if (!slice.active) return { reject: 'no fight in progress' };
+        if (slice.active.session) return { reject: 'a sparring session ends by its bouts or when the player stops' };
+        return { slice: { ...slice, active: { ...slice.active, truceOffer: String(e['why']) } }, notes: [`truce offered: ${String(e['why'])}`] };
+      },
+    },
+    /**
+     * Player: the target (D-182, extended). A setting like the stance: no exchange, no AI call, no time, no turn. It
+     * stays until changed; when that opponent is out the duel falls back to the next engaged one.
+     */
+    targetSet: {
+      schema: z.object({ type: z.literal('targetSet'), targetRef: z.string() }),
+      sources: ['player'],
+      handle: (slice, e) => {
+        const active = slice.active;
+        if (!active) return { reject: 'no fight in progress' };
+        const duel = active.duel as DuelState;
+        const idx = duel.opponents.findIndex((o) => o.id === e['targetRef'] && !o.out && !o.engagedElsewhere);
+        if (idx < 0) return { reject: 'no such opponent in the fight' };
+        if (duel.target === idx) return { slice };
+        return { slice: { ...slice, active: { ...active, duel: { ...duel, target: idx } } }, notes: [`target: ${duel.opponents[idx]!.name}`] };
       },
     },
     /** AI: an opponent turns to fight an ally, or back (D-143 E); engine-checked against the fight. */
