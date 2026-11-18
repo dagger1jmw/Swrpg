@@ -186,6 +186,8 @@ function settleReport(deps: TurnDeps, req: BuiltRequest, calls: readonly CallRec
 
 /** a + b: intent (typed input only) and engine resolution. Rolls dice exactly once. */
 export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnInput): Promise<PendingTurn> {
+  // Dev commands never reach the AI (D-180): they run in code through commitDevCommand.
+  if (input.kind === 'dev') throw new Error('a dev command is not a story turn (use commitDevCommand)');
   const calls: CallRecord[] = [];
   let intent: Intent | null = null;
   const intentNotes: string[] = [];

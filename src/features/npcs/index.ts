@@ -8,10 +8,12 @@ import { isHealed, progressHealing } from '../../engine/healing';
 import type { Wound } from '../../engine/wounds';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent } from '../../state/types';
+import { FORM_IDS } from '../../data/skills';
+import { DEV_REFUSAL, selectIsTestCharacter } from '../character/selectors';
 import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { selectCurrentLocationId } from '../locations/selectors';
 import { migrateNpcsV1, npcHealthSchema, npcsSliceSchema, type Npc, type NpcHealth, type NpcsSlice } from './npcs';
-import { resolveNpcRef, selectNpcAgeOrDefault, selectNpcGen, selectNpcs } from './selectors';
+import { resolveNpcRef, selectNpcAgeOrDefault, selectNpcGen, selectNpcLevels, selectNpcs } from './selectors';
 
 export const npcIntroducedSchema = z.object({
   type: z.literal('npcIntroduced'),
@@ -68,7 +70,8 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
   events: {
     npcIntroduced: {
       schema: npcIntroducedSchema,
-      sources: ['ai'],
+      // dev: a dev sandbox opponent or partner (D-180).
+      sources: ['ai', 'dev'],
       phase: 'create',
       narrative: () => true,
       handle: (slice, e, ctx) => {
@@ -150,6 +153,30 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         const gen = selectNpcGen(ctx.state, id)!;
         const birthDay = npc.birthDay ?? Math.round(selectNow(ctx.state).day - selectNpcAgeOrDefault(ctx.state, id) * DAYS_PER_YEAR);
         return { slice: update(slice, id, { gen, birthDay }), notes: [`${npc.name}: generated (${gen.archetype}, ${gen.rank})`] };
+      },
+    },
+    /**
+     * Dev sandbox (D-180), test campaigns only: a named NPC fights at a set level. The generated profile is scaled so
+     * its best lightsaber form sits at the level (the shape of the profile kept, like a canon sheet's scaling).
+     */
+    devNpcLevelsSet: {
+      schema: z.object({ type: z.literal('devNpcLevelsSet'), npcRef: z.string(), level: z.number().min(1).max(120) }),
+      sources: ['dev'],
+      targetField: 'npcRef',
+      refFields: ['npcRef'],
+      refKinds: npcRefKinds,
+      handle: (slice, e, ctx) => {
+        if (!selectIsTestCharacter(ctx.state)) return { reject: DEV_REFUSAL };
+        const id = String(e['npcRef']);
+        const npc = slice.byId[id];
+        if (!npc) return { reject: `unknown npc ${id}` };
+        const { devLevels: _old, ...plain } = npc;
+        const generated = selectNpcLevels({ ...ctx.state, npcs: { byId: { ...slice.byId, [id]: plain } } }, id);
+        const best = Math.max(0, ...FORM_IDS.map((f) => generated[f] ?? 0));
+        if (best <= 0) return { reject: `${npc.name} has no lightsaber form to scale` };
+        const ratio = Number(e['level']) / best;
+        const devLevels = Object.fromEntries(Object.entries(generated).map(([k, v]) => [k, Math.min(120, Math.round(v * ratio * 10) / 10)]));
+        return { slice: update(slice, id, { devLevels }), notes: [`${npc.name}: levels set for a best form of ${String(e['level'])} (x${ratio.toFixed(2)})`] };
       },
     },
     /** Engine: a duel segment's result for a named NPC (health §9: the same model as the player). */

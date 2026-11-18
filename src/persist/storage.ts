@@ -18,6 +18,8 @@ export interface CampaignRecord {
   lastPlayedAt: string;
   /** The player's opening premise, kept so an opening interrupted by a reload can be rerun. */
   premise?: string;
+  /** A dev test start's scenario (D-180): it overrides the generated opening, kept so a reloaded opening uses it too. */
+  scenario?: string;
 }
 
 export const AUTOSAVE_SLOT = 'autosave';

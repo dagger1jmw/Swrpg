@@ -2,7 +2,8 @@
 import type { ZodType } from 'zod';
 import type { RngState } from '../engine/rng';
 
-export type EventSource = 'ai' | 'player' | 'engine' | 'summary';
+/** dev: a dev sandbox command (D-180), test campaigns only; dev-only events also check the test mark themselves. */
+export type EventSource = 'ai' | 'player' | 'engine' | 'summary' | 'dev';
 
 /** Every event is a plain object discriminated on `type`. */
 export interface GameEvent {

@@ -47,6 +47,8 @@ import { clear, el, input, paragraphs } from './dom';
 import { renderSidePanel, type PanelTab } from './sidePanel';
 import { renderCombatDraft, renderDuelPanel } from './duelPanel';
 import { fightView } from '../turn/fightChoices';
+import { commitDevCommand, isDevCommand } from '../turn/devCommands';
+import { selectIsTestCharacter } from '../features/character/selectors';
 import { renderJumpPlayback, renderJumpReport } from './jumpCard';
 import { renderRoutineEditor, type JumpSpan } from './routineEditor';
 import { spanToSeconds } from '../ai/schemas/intent';
@@ -96,6 +98,8 @@ export class App {
   private panelError: string | null = null;
   /** The ended fight whose result summary the player closed (D-181; view state only). */
   private closedFight: string | null = null;
+  /** The last dev command's refusal or failure (D-180), shown in the status line. */
+  private devNote: string | null = null;
   /** Full request texts, this session only (D-87). */
   private debugRequests: DebugRequest[] = [];
   private summaryLog: SummaryOutcome[] = [];
@@ -210,6 +214,26 @@ export class App {
   }
 
   /** Player events (pins, review resolutions): applied through applyEvents and committed. */
+  /** A dev sandbox command (D-180): test campaigns only; recorded as a "[DEV]" turn, no AI call. */
+  private async runDev(text: string): Promise<void> {
+    if (!this.session || this.busy) return;
+    if (!selectIsTestCharacter(this.session.state)) {
+      this.devNote = 'Dev commands work only in a test campaign (the dev test start). Nothing was sent.';
+      this.render();
+      return;
+    }
+    try {
+      const r = await commitDevCommand({ registry: this.d.registry, storage: this.d.storage, wallClock: () => ({ iso: new Date(this.d.now()).toISOString() }) }, this.session, text);
+      this.session = r.session;
+      this.draft = '';
+      this.devNote = null;
+      this.feedStick = true;
+    } catch (e) {
+      this.devNote = `Dev command failed: ${e instanceof Error ? e.message : String(e)}`;
+    }
+    this.render();
+  }
+
   private async playerEvents(events: GameEvent[]): Promise<void> {
     if (!this.session || this.busy) return;
     const r = applyEvents(this.d.registry, this.session.state, events, { source: 'player' });
@@ -494,7 +518,7 @@ export class App {
     if (session && openingPending(session) && !this.busy && !this.failed) {
       choiceItems = [
         el('p', { class: 'hint', text: 'The opening scene was not written (the page was reloaded before it finished).' }),
-        el('button', { class: 'choice', text: 'Write the opening', on: { click: () => void this.runTurn({ kind: 'opening', premise: session.campaign.premise ?? '' }) } }),
+        el('button', { class: 'choice', text: 'Write the opening', on: { click: () => void this.runTurn({ kind: 'opening', premise: session.campaign.premise ?? '', ...(session.campaign.scenario ? { scenario: session.campaign.scenario } : {}) }) } }),
         el('button', { class: 'choice secondary', text: 'Discard and create a new character', on: { click: () => this.openModal('campaign') } }),
       ];
     }
@@ -537,7 +561,10 @@ export class App {
     text.addEventListener('input', () => (this.draft = text.value));
     const send = (): void => {
       const t = text.value.trim();
-      if (t) void this.runTurn({ kind: 'typed', text: t });
+      if (!t) return;
+      // Dev sandbox (D-180): in dev mode a slash command runs in code, never through the AI.
+      if (devFlag(globalThis.location?.search ?? '') && isDevCommand(t)) void this.runDev(t);
+      else void this.runTurn({ kind: 'typed', text: t });
     };
     text.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -563,6 +590,11 @@ export class App {
     } else if (this.busy) {
       const label = this.summarizing ? 'A chapter closed. Writing its summary…' : this.inFlight && this.inFlight.kind !== 'opening' ? `Resolving: ${describeInput(this.inFlight)}` : 'Writing the opening scene…';
       status = el('div', { class: 'status busy' }, [el('span', { class: 'spinner', attrs: { 'aria-hidden': 'true' } }), el('span', { class: 'status-text', text: label, attrs: { title: label } })]);
+    } else if (this.devNote) {
+      status = el('div', { class: 'status error' }, [
+        el('span', { class: 'status-text', text: this.devNote, attrs: { title: this.devNote } }),
+        el('button', { class: 'small secondary', text: 'Dismiss', on: { click: () => ((this.devNote = null), this.render()) } }),
+      ]);
     } else {
       status = el('div', { class: 'status' }, [el('span', { class: 'status-text hint', text: this.session ? 'Type an action, or pick a choice above.' : '' })]);
     }
@@ -828,8 +860,9 @@ export class App {
   private renderTestStart(name: HTMLInputElement, startD: { read: () => CalendarDate }, readTime: () => number, err: HTMLElement): HTMLElement[] {
     const rank = el('select', {}, TEST_START_RANKS.map((r) => el('option', { text: r, attrs: { value: r } })));
     const age = input({ type: 'number', value: '16', min: '4', max: '200', step: '0.5' });
+    const scenario = el('textarea', { attrs: { rows: '2', placeholder: "Optional: I'm a Knight in a forest on Dantooine, ambushed by 4 Mandalorians", 'aria-label': 'Scenario' } });
     const start = async (): Promise<void> => {
-      const req = testStartInput({ name: name.value, rank: rank.value as TestStartRank, age: Number(age.value), startDate: startD.read(), startSecond: readTime() });
+      const req = testStartInput({ name: name.value, rank: rank.value as TestStartRank, age: Number(age.value), startDate: startD.read(), startSecond: readTime(), scenario: scenario.value });
       const errors = validateNewCampaign(req);
       if (errors.length) {
         err.textContent = errors.join(' ');
@@ -844,12 +877,14 @@ export class App {
       this.modal = null;
       this.failed = null;
       this.feedStick = true;
-      await this.runTurn({ kind: 'opening', premise: req.premise ?? '' });
+      const sc = req.test?.scenario;
+      await this.runTurn({ kind: 'opening', premise: req.premise ?? '', ...(sc ? { scenario: sc } : {}) });
     };
     return [
       el('div', { class: 'field-label', text: 'Dev: test start (not part of normal creation)' }),
       el('div', { class: 'field' }, [el('label', { text: 'Rank' }), rank]),
       el('div', { class: 'field' }, [el('label', { text: 'Age' }), age]),
+      el('div', { class: 'field' }, [el('label', { text: 'Scenario (dev: the opening starts exactly here; later, /scenario in the chat box; /help lists the dev commands)' }), scenario]),
       el('p', { class: 'hint', text: 'An Average Jedi Guardian at this rank and age, levels from the closed form; uses the start date above. Marked as a test character.' }),
       el('div', { class: 'row actions' }, [el('button', { class: 'secondary', text: 'Start test character', on: { click: () => void start() } })]),
     ];
@@ -862,7 +897,7 @@ export class App {
       ...[...r.draft.rejected, ...r.rejected].map((x) => `rejected: ${x.reason}`),
       ...r.calls.map((c) => `call ${c.callType} ${c.model}: ${c.outcome}${c.usage ? `, ${c.usage.inputTokens} in / ${c.usage.outputTokens} out` : ''}`),
     ];
-    return el('article', { class: 'turn' }, [
+    return el('article', { class: r.input.kind === 'dev' ? 'turn dev' : 'turn' }, [
       r.input.kind === 'opening' && !r.input.premise ? null : el('div', { class: 'player', text: describeInput(r.input) }),
       ...r.draft.checks.map((c) => this.renderRoll(c)),
       r.draft.training ? this.renderTraining(r.draft.training) : null,

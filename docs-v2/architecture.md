@@ -1011,6 +1011,24 @@ The clock and the module contract come first, before any feature.
 - **Cleave (D-158):** keeping the advantage after taking a minion out; a candidate Shii-Cho / Sokan form trait
   against groups (M6 or later).
 
+### Dev tools (D-178, D-180; dev mode ?dev=1, test campaigns only)
+Testing aids, never part of normal play. Behind the ?dev=1 flag, and only in a campaign made by the dev test start
+(character.testCharacter, D-178); a normal campaign refuses every dev command and saves nothing.
+- **Test start (D-178):** rank and age, an Average Jedi Guardian from the closed form. An optional scenario box (D-180)
+  overrides the generated opening: the narrator gets a DEV SCENARIO block (start exactly in that situation) and still
+  proposes normal bounded events (combatStarted with minionGroups, terrain tags, NPCs) through the usual contract and
+  validation. The scenario is kept on the campaign record so a reloaded opening uses it.
+- **Dev commands (D-180, src/turn/devCommands.ts):** a slash command in the chat box is handled in code before the
+  intent call, with no AI call, and emits normal engine events through applyEvents, so the rules stay the same:
+  /fight, /spar, /wound, /heal, /set, /e, /ci, /fatigue, /skip, /time, /place, /scenario, /help (unknown commands show
+  the help). Normal events are reused where they exist (fightBegun with minion groups and play-out, npcIntroduced,
+  npcCanonLinked, healthSynced, locationCreatedByPlayer, locationChanged, the montage jump through resolveTurn, the
+  clock through advanceTime, its one writer). Dev-only events exist only where no normal event sets the value
+  (devSkillSet, devESet, devCISet, devFatigueSet, devHealed, devNpcLevelsSet); they take the dev event source and
+  refuse outside a test campaign themselves. Each command is a turn record (input kind dev) with a short "[DEV]" line:
+  in the transcript and the save, left out of the story history sent to the AI. /scenario holds until the next
+  narrated turn (read from the transcript).
+
 ### Stubs each milestone uses (D-56)
 A milestone may only depend on a later one through a named stub, replaced when that
 milestone is built. Each stub is a function in `src/data/stubs.ts` with a test that its value

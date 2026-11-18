@@ -12,7 +12,9 @@ import { eGainFor, gainCI, gainE, releaseBank, releaseUntil, splitDrillXp } from
 import { RECORDING_REVIEW } from '../../data/combat.config';
 import { clampFor, speedFor } from './training';
 import { fromAbsSecond } from '../../engine/calendar';
-import { levelWithNatural, thresholdsCrossed, tierOf } from '../../engine/curve';
+import { levelWithNatural, thresholdsCrossed, tierOf, xpForLevel } from '../../engine/curve';
+import { FORM_IDS, isSkillId } from '../../data/skills';
+import { DEV_REFUSAL, selectIsTestCharacter } from '../character/selectors';
 import { removeRust, rustAfterDay } from '../../engine/rust';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent } from '../../state/types';
@@ -146,6 +148,53 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
   stateSchema: progressionSliceSchema,
   events: {
     /** One resolved training session (computeXp result); the only way XP enters. */
+    /**
+     * Dev sandbox (D-180), test campaigns only: a skill at an exact level (trained XP above the natural baseline, rust
+     * cleared). A level under the natural baseline sits at the baseline.
+     */
+    devSkillSet: {
+      schema: z.object({ type: z.literal('devSkillSet'), skillId: z.string(), level: z.number().min(0).max(120) }),
+      sources: ['dev'],
+      handle: (slice, e, ctx) => {
+        if (!selectIsTestCharacter(ctx.state)) return { reject: DEV_REFUSAL };
+        const id = String(e['skillId']);
+        if (!isSkillId(id)) return { reject: `unknown skill ${id}` };
+        const natural = selectNatural(ctx.state, id);
+        const level = Number(e['level']);
+        const xp = Math.max(0, xpForLevel(level) - xpForLevel(natural));
+        const prev = slice.skills[id];
+        return {
+          slice: { ...slice, skills: { ...slice.skills, [id]: { xp, rust: 0, lastPracticedDay: prev?.lastPracticedDay ?? selectNow(ctx.state).day } } },
+          notes: [`${id} set to ${Math.max(level, natural).toFixed(1)}${level < natural ? ` (the natural baseline; ${level} asked)` : ''}`],
+        };
+      },
+    },
+    /** Dev sandbox (D-180): a form's E (0-120), kept with its sparring share. */
+    devESet: {
+      schema: z.object({ type: z.literal('devESet'), formId: z.string(), value: z.number().min(0).max(120) }),
+      sources: ['dev'],
+      handle: (slice, e, ctx) => {
+        if (!selectIsTestCharacter(ctx.state)) return { reject: DEV_REFUSAL };
+        const id = String(e['formId']);
+        if (!FORM_IDS.includes(id)) return { reject: `${id} is not a lightsaber form` };
+        const v = Number(e['value']);
+        const prev = slice.E[id];
+        return { slice: { ...slice, E: { ...slice.E, [id]: { E: v, eSpar: Math.min(prev?.eSpar ?? 0, v) } } }, notes: [`E ${id} = ${v}`] };
+      },
+    },
+    /** Dev sandbox (D-180): an ability's CI (0-120), kept with its sparring share. */
+    devCISet: {
+      schema: z.object({ type: z.literal('devCISet'), abilityId: z.string(), value: z.number().min(0).max(120) }),
+      sources: ['dev'],
+      handle: (slice, e, ctx) => {
+        if (!selectIsTestCharacter(ctx.state)) return { reject: DEV_REFUSAL };
+        const id = String(e['abilityId']);
+        if (!isSkillId(id)) return { reject: `unknown ability ${id}` };
+        const v = Number(e['value']);
+        const prev = slice.CI[id];
+        return { slice: { ...slice, CI: { ...slice.CI, [id]: { CI: v, ciSpar: Math.min(prev?.ciSpar ?? 0, v) } } }, notes: [`CI ${id} = ${v}`] };
+      },
+    },
     activityResolved: {
       schema: z.object({
         type: z.literal('activityResolved'),

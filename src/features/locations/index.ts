@@ -79,7 +79,7 @@ export const locationsFeature: FeatureModule<LocationsSlice, GameState> = {
     },
     locationChanged: {
       schema: z.object({ type: z.literal('locationChanged'), locationRef: z.string().describe('ID of the place the player character moved to') }),
-      sources: ['ai'],
+      sources: ['ai', 'dev'],
       targetField: 'locationRef',
       refFields: ['locationRef'],
       refKinds: { locationRef: ['loc'] },

@@ -28,6 +28,8 @@ export interface TestStartRequest {
   age: number;
   startDate: CalendarDate;
   startSecond: number;
+  /** D-180: the situation the opening starts in, overriding the generated opening (optional). */
+  scenario?: string;
 }
 
 /** The new-campaign input for a test start: the Average Jedi Guardian at that rank and age. */
@@ -41,6 +43,6 @@ export function testStartInput(r: TestStartRequest): NewCampaignInput {
     startSecond: r.startSecond,
     premise: `A test character: a ${r.rank} of the Jedi Order, age ${r.age}.`,
     creation: { speciesId: 'human', path: 'jedi', archetype: 'jediGuardian', rank: r.rank, trainingStartAge: 4, talents: {}, dominantHand: 'right', storyException: true },
-    test: { ci: TEST_START_CI[r.rank], abilities: Object.values(FORCE_ACTION_ABILITY) },
+    test: { ci: TEST_START_CI[r.rank], abilities: Object.values(FORCE_ACTION_ABILITY), ...(r.scenario?.trim() ? { scenario: r.scenario.trim() } : {}) },
   };
 }

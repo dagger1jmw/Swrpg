@@ -90,6 +90,7 @@ function canonGrowth(archetype: string, path: NpcGen['path'], speciesId: string,
 export function selectNpcLevels(s: GameState, id: string): Readonly<Record<string, number>> {
   const n = s.npcs.byId[id];
   if (!n) return {};
+  if (n.devLevels) return n.devLevels;
   const canon = n.canonId ? CANON_BY_ID.get(n.canonId) : undefined;
   if (canon) {
     const bby = -dateFromAbsDay(s.clock.now.day).year;

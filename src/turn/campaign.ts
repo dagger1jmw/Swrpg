@@ -21,7 +21,7 @@ export interface NewCampaignInput {
   /** Computed creation choices (M3). Absent = an untrained Human outsider (natural baselines only). */
   creation?: Omit<CreationInput, 'name' | 'birthDay' | 'startDay'>;
   /** A dev-only test start (D-178): CI for the known combat Force abilities, and the testCharacter mark. */
-  test?: { ci: number; abilities: readonly string[] };
+  test?: { ci: number; abilities: readonly string[]; scenario?: string };
 }
 
 /** A test start's CI (D-178): the rank's sparring-level CI on every combat Force ability the character knows. */
@@ -108,7 +108,8 @@ export async function createCampaign(
     ...(c ? { startingXp: c.startingXp, startingE: c.startingE, startingCI: input.test ? testCI(c.startingCI, c.startingXp, input.test) : c.startingCI, rank: cr!.rank, backstoryFacts: c.facts } : {}),
   });
   const premise = input.premise?.trim() ?? '';
-  const campaign: CampaignRecord = { campaignId: ids.campaignId, name: `${input.test ? '[TEST] ' : ''}${input.name.trim()}`, createdAt: wallIso, lastPlayedAt: wallIso, ...(premise ? { premise } : {}) };
+  const scenario = input.test?.scenario?.trim() ?? '';
+  const campaign: CampaignRecord = { campaignId: ids.campaignId, name: `${input.test ? '[TEST] ' : ''}${input.name.trim()}`, createdAt: wallIso, lastPlayedAt: wallIso, ...(premise ? { premise } : {}), ...(scenario ? { scenario } : {}) };
   await storage.commitTurn(makeEnvelope(registry, state, wallIso), campaign, null);
   return { state, history: [], campaign };
 }

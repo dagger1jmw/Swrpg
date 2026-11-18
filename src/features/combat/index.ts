@@ -346,18 +346,23 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         terrainTags: z.array(z.string()).optional(),
         /** The next bout after an auto-resolved spar keeps its mode (D-177). */
         sparringMode: z.enum(SPARRING_MODES).optional(),
+        /** A dev sandbox fight (D-180): unnamed opponents by kind, clamped like combatStarted's. */
+        minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(99) })).max(4).optional(),
+        /** A sparring session played out beat by beat from its first exchange (D-180 /spar), not resolved like a montage. */
+        playOut: z.boolean().optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
         if (slice.active) return { reject: 'a fight is already in progress' };
         const spec: PendingFight | null = e['fromPending']
           ? slice.pending
-          : { opponentRefs: (e['opponentRefs'] as string[]) ?? [], minionGroups: [], stakes: (e['stakes'] as CombatStakes) ?? 'serious', terrainTags: ((e['terrainTags'] as string[]) ?? []).filter((t) => TERRAIN_IDS.includes(t)), ambushClaim: false, engagedElsewhere: [], sparringMode: (e['sparringMode'] as PendingFight['sparringMode'] | undefined) ?? null };
+          : { opponentRefs: (e['opponentRefs'] as string[]) ?? [], minionGroups: ((e['minionGroups'] as { kind: string; count: number }[] | undefined) ?? []).map((g) => ({ kind: g.kind, count: Math.min(MINION_COUNT.max, Math.max(MINION_COUNT.min, g.count)) })), stakes: (e['stakes'] as CombatStakes) ?? 'serious', terrainTags: ((e['terrainTags'] as string[]) ?? []).filter((t) => TERRAIN_IDS.includes(t)), ambushClaim: false, engagedElsewhere: [], sparringMode: (e['sparringMode'] as PendingFight['sparringMode'] | undefined) ?? null };
         if (!spec) return { reject: 'no pending fight' };
         const id = `fight-${slice.seq}`;
         const r = startFight(ctx.state, spec, id);
         if (!r.active.duel.opponents.length) return { reject: 'no opponent could join the fight' };
-        return { slice: { ...slice, pending: null, active: r.active, seq: slice.seq + 1 }, emit: r.emit, notes: r.notes, rng: r.rng };
+        const active = e['playOut'] === true && r.active.session ? { ...r.active, session: { ...r.active.session, playing: true } } : r.active;
+        return { slice: { ...slice, pending: null, active, seq: slice.seq + 1 }, emit: r.emit, notes: r.notes, rng: r.rng };
       },
     },
     /**

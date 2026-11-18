@@ -43,6 +43,8 @@ export const npcSchema = z.object({
   /** Generation inputs (M5), stored when the NPC first enters a scene or a fight; null until then. */
   gen: npcGenSchema.nullable(),
   health: npcHealthSchema.nullable(),
+  /** Dev sandbox only (D-180): fixed levels that replace the generated ones (a test opponent at a set level). */
+  devLevels: z.record(z.string(), z.number().min(0)).optional(),
 });
 
 export const npcsSliceSchema = z.object({ byId: z.record(z.string(), npcSchema) });

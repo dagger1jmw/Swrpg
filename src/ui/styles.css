@@ -391,6 +391,9 @@ label.check { display: flex; gap: var(--pad-s); align-items: center; margin: var
 .beat-row button.toggle { background: var(--box-2); color: var(--text); border: 1px solid var(--line-strong); font-weight: 500; }
 .beat-row button.toggle.selected { background: var(--accent-soft); color: var(--text); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); font-weight: 700; }
 .beat-row.suggestions button.small { text-transform: none; }
+/* Dev sandbox lines (D-180): code, not story. */
+.turn.dev { font-family: var(--font-mono); font-size: var(--fs-s); color: var(--muted); white-space: pre-wrap; }
+.turn.dev .player { font-style: normal; }
 .bout-result { font-size: var(--fs-s); border-left: 3px solid var(--line-strong); padding-left: 8px; }
 .bout-result.fresh { border-left-color: var(--accent); }
 .fight-summary { display: flex; flex-direction: column; gap: 4px; border-left: 3px solid var(--accent); padding-left: 8px; }

@@ -18,7 +18,8 @@ import { ACTIVITIES } from '../data/activities';
 import { archetypeDef } from '../data/archetypes';
 import { SKILL_BY_ID, SKILL_IDS } from '../data/skills';
 import { speciesDef } from '../data/species';
-import { PC_REF, selectAge, selectCharacter, selectCharacterName } from '../features/character/selectors';
+import { PC_REF, selectAge, selectCharacter, selectCharacterName, selectIsTestCharacter } from '../features/character/selectors';
+import { pendingScenario } from './devScenario';
 import { selectFatigue } from '../features/health/selectors';
 import { selectGriefMult, selectSkillViews, selectStateOfMind, selectTierBeats } from '../features/progression/selectors';
 import { selectRankName } from '../features/ranks/selectors';
@@ -259,6 +260,8 @@ export function historyWindow(
   let fromTurn: number | null = null;
   for (let i = records.length - 1; i >= 0 && out.length < MAX_RAW_TURNS; i--) {
     const r = records[i]!;
+    // Dev sandbox commands are not story (D-180); a pending /scenario reaches the narrator as its own block.
+    if (r.input.kind === 'dev') continue;
     const pair: Message[] = [
       { role: 'user', text: `PLAYER: ${describeInput(r.input)}` },
       { role: 'model', text: r.narrative },
@@ -492,7 +495,19 @@ export function narrativeSystemPrompt(state: GameState, opening: boolean, level:
 
 /** The player's own words for this turn (scanned for names; D-85). */
 export function playerTextOf(input: TurnInput): string {
-  return input.kind === 'typed' ? input.text : input.kind === 'choice' ? input.choice.label : input.kind === 'action' || input.kind === 'beat' ? input.label : input.premise;
+  return input.kind === 'typed' || input.kind === 'dev' ? input.text : input.kind === 'choice' ? input.choice.label : input.kind === 'action' || input.kind === 'beat' ? input.label : input.premise;
+}
+
+/**
+ * A dev scenario (D-180; test campaigns only): the narration starts exactly in the situation given, through the normal
+ * events. Null outside a test campaign or when there is none.
+ */
+export function devScenarioBlock(state: GameState, scenario: string | null, opening: boolean): string | null {
+  if (!scenario || !selectIsTestCharacter(state)) return null;
+  return [
+    `DEV SCENARIO (a test campaign; this overrides ${opening ? 'the generated opening' : 'the current scene'}): start exactly in this situation: ${scenario}`,
+    'Set it up through the normal events: locationIntroduced and locationChanged for the place, npcIntroduced for anyone present, and combatStarted (opponentRefs or minionGroups, terrainTags, stakes) when a fight is under way or about to start. Do not narrate any exchange of a fight: the engine resolves it.',
+  ].join('\n');
 }
 
 export function buildNarrativeRequest(state: GameState, draft: TurnDraft, input: TurnInput, history: readonly TurnRecord[], opts: BuildOptions): BuiltRequest {
@@ -510,7 +525,9 @@ export function buildNarrativeRequest(state: GameState, draft: TurnDraft, input:
   const resolved = resolvedBlock(draft);
   const playerLine = input.kind === 'opening' ? `OPENING${input.premise ? `\nPlayer premise: ${input.premise}` : ''}` : `PLAYER ACTION: ${describeInput(input)}`;
 
-  const finalText = [st.text, arc.text, mem.text, lore.text, resolved, playerLine].filter(Boolean).join('\n\n');
+  const scenario = devScenarioBlock(state, input.kind === 'opening' ? (input.scenario ?? null) : pendingScenario(history), input.kind === 'opening');
+
+  const finalText = [st.text, arc.text, mem.text, lore.text, resolved, scenario, playerLine].filter(Boolean).join('\n\n');
   const messages: Message[] = [...recent.messages, { role: 'user', text: finalText }];
   const sections: SectionReport[] = [
     section('gmRules', CONTEXT_CAPS.gmRules, system, est, [{ id: input.kind === 'opening' ? 'core-gm + contract + pacing + opening' : 'core-gm + contract + pacing', tokens: est(system) }]),

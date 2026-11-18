@@ -9,11 +9,14 @@ import type { TrainingOutcome, TurnDraft } from './resolve';
 export type TurnInput =
   | { kind: 'typed'; text: string }
   | { kind: 'choice'; choice: Choice }
-  | { kind: 'opening'; premise: string }
+  /** scenario: a dev test start's situation, which overrides the generated opening (D-180). */
+  | { kind: 'opening'; premise: string; scenario?: string }
   /** A full intent built by the UI (the sheet's Train button); skips the intent call like a choice (M3). */
   | { kind: 'action'; intent: Intent; label: string }
   /** A combat beat button (M5, D-145): a combat action; skips the intent call; quiet beats make no call at all. */
-  | { kind: 'beat'; action: CombatActionInput; label: string };
+  | { kind: 'beat'; action: CombatActionInput; label: string }
+  /** A dev sandbox command (D-180; dev mode, test campaigns only): handled in code, no AI call. */
+  | { kind: 'dev'; text: string };
 
 /** The combat action a beat button sends (the combat feature's combatAction event, without its type). */
 export interface CombatActionInput {
@@ -72,5 +75,6 @@ export function describeInput(input: TurnInput): string {
   if (input.kind === 'choice') return input.choice.label;
   if (input.kind === 'action') return input.label;
   if (input.kind === 'beat') return input.label;
+  if (input.kind === 'dev') return input.text;
   return input.premise ? `(Opening) ${input.premise}` : '(Opening)';
 }

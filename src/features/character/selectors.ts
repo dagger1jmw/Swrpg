@@ -5,6 +5,10 @@ import type { Talents } from '../../engine/speed';
 import type { GameState } from '../../state/gameState';
 import type { CharacterSlice } from './character';
 
+/** A dev-only test character (D-178): the dev sandbox (D-180) works only in these campaigns. */
+export const selectIsTestCharacter = (s: GameState): boolean => s.character.testCharacter === true;
+/** The reason a dev-only event is refused outside a test campaign (D-180). */
+export const DEV_REFUSAL = 'dev commands work only in a test campaign (dev test start, ?dev=1)';
 export const selectCharacterName = (s: GameState): string => s.character.name;
 export const selectBirthDay = (s: GameState): number => s.character.birthDay;
 /** Age is derived, never stored. */

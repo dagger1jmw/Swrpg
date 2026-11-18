@@ -12,7 +12,7 @@ import { nextFloat, type RngState } from '../../engine/rng';
 import { dyingMinutes, isDying, killsWhileDying, stabilize, type Wound } from '../../engine/wounds';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent } from '../../state/types';
-import { selectArchetype, selectCharacter, selectPath } from '../character/selectors';
+import { DEV_REFUSAL, selectArchetype, selectCharacter, selectIsTestCharacter, selectPath } from '../character/selectors';
 import { selectNow } from '../clock/selectors';
 import { selectPerformance } from '../progression/selectors';
 import { emptyHealth, healthSliceSchema, lastingSchema, metersSchema, migrateHealthV1, woundSchema, type HealthSlice } from './health';
@@ -92,6 +92,27 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
       },
     },
     /** A duel segment's result for the player (combat resolution): Vitality, new wounds, meters. */
+    /** Dev sandbox (D-180), test campaigns only: wounds, dying and lost Vitality cleared; lasting injuries too with all. */
+    devHealed: {
+      schema: z.object({ type: z.literal('devHealed'), lasting: z.boolean().optional() }),
+      sources: ['dev'],
+      handle: (slice, e, ctx) => {
+        if (!selectIsTestCharacter(ctx.state)) return { reject: DEV_REFUSAL };
+        if (slice.death) return { reject: 'the character is dead' };
+        return { slice: { ...slice, wounds: [], vitalityLost: 0, dying: null, ...(e['lasting'] === true ? { lasting: [] } : {}) }, notes: [`healed${e['lasting'] === true ? ', lasting injuries cleared' : ''}`] };
+      },
+    },
+    /** Dev sandbox (D-180): a fatigue meter at a fraction of its capacity (0 fresh, 1 at capacity). */
+    devFatigueSet: {
+      schema: z.object({ type: z.literal('devFatigueSet'), meter: z.enum(['p', 'm', 'f']), fraction: z.number().min(0).max(3) }),
+      sources: ['dev'],
+      handle: (slice, e, ctx) => {
+        if (!selectIsTestCharacter(ctx.state)) return { reject: DEV_REFUSAL };
+        const meter = e['meter'] as 'p' | 'm' | 'f';
+        const cap = selectFatigue(ctx.state).capacity[meter];
+        return { slice: { ...slice, meters: { ...slice.meters, [meter]: Number(e['fraction']) * cap } }, notes: [`${meter} meter at ${Number(e['fraction'])} of capacity`] };
+      },
+    },
     healthSynced: {
       schema: z.object({
         type: z.literal('healthSynced'),
