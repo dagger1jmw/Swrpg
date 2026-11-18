@@ -30,6 +30,11 @@ export const QUIET_LINES: Readonly<Partial<Record<BeatReason, Readonly<Record<Li
     down: ['{opp} strikes, but {pc} gets the blade up in time.', "{pc} slips {opp}'s attack by a hair."],
     even: ['A strike, a parry; nothing lands.'],
   },
+  clarify: {
+    up: ['{pc} waits for an opening. What do you do: a stance, a feint, a strike, a move?'],
+    down: ['{pc} gives ground, waiting. What do you do: a stance, a feint, a strike, a move?'],
+    even: ['{pc} and {opp} circle. What do you do: a stance, a feint, a strike, a move?'],
+  },
   minionDown: {
     up: ['{pc} cuts through {opp}.', "{opp} goes down under {pc}'s blade.", '{pc} drops {opp} and turns to the next.'],
     down: ['{pc} cuts through {opp}.'],

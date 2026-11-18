@@ -362,7 +362,10 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
       schema: z.object({
         type: z.literal('combatAction'),
         // playBout / stopSession: a sparring session's bout played out beat by beat, or the session ended (D-168).
-        action: z.enum(['stance', 'tactic', 'maneuver', 'aim', 'formChange', 'force', 'target', 'shatterpoint', 'sequence', 'fightOn', 'narrate', 'resolve', 'continue', 'playBout', 'stopSession']),
+        // posture / clarify: natural combat words read from the player's text, or a question back when none (D-179).
+        action: z.enum(['stance', 'tactic', 'maneuver', 'aim', 'formChange', 'posture', 'clarify', 'force', 'target', 'shatterpoint', 'sequence', 'fightOn', 'narrate', 'resolve', 'continue', 'playBout', 'stopSession']),
+        /** posture: a take-position attempt (D-179). */
+        position: z.boolean().optional(),
         /** aim: the body part the next strike goes for (D-171). */
         part: z.enum(BODY_PARTS).optional(),
         stance: z.enum(STANCES).optional(),
@@ -406,7 +409,24 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         let beat: string | null = null;
         if (action === 'stance') duel = { ...duel, a: { ...duel.a, stance: e['stance'] as Fighter['stance'] } };
         else if (action === 'maneuver') duel = { ...duel, a: { ...duel.a, pendingManeuver: e['maneuver'] as Fighter['pendingManeuver'] } };
-        else if (action === 'aim') {
+        else if (action === 'posture') {
+          // Natural combat words (D-179): a form to switch to (at the usual cost), a stance, a take-position attempt.
+          const form = e['form'] as string | undefined;
+          if (form && form !== duel.a.form) {
+            if (FORM_IDS.includes(form) && form !== 'jarKai' && selectLevelExact(s, form) >= 1) {
+              duel = { ...duel, advantage: duel.advantage - FORM_CHANGE_COST, a: { ...duel.a, form, skillId: form, level: selectPerformance(s, form) } };
+              notes.push(`form change to ${form} (-${FORM_CHANGE_COST} advantage)`);
+            } else notes.push(`cannot fight in ${form}: staying in ${duel.a.form ?? 'the current form'}`);
+          }
+          if (e['stance']) duel = { ...duel, a: { ...duel.a, stance: e['stance'] as Fighter['stance'] } };
+          if (e['position']) duel = { ...duel, a: { ...duel.a, pendingManeuver: 'position' } };
+          notes.push(`posture: ${[e['stance'] ? `${String(e['stance'])} stance` : null, e['position'] ? 'taking position' : null, form ? `in ${form}` : null].filter(Boolean).join(', ') || 'as before'}`);
+        } else if (action === 'clarify') {
+          // No move the game could read (D-179): no exchange; the beat buttons ask.
+          mode = null;
+          beat = 'clarify';
+          notes.push('combat input not understood: the beat buttons ask what you do');
+        } else if (action === 'aim') {
           if (!e['part']) return { reject: 'aim needs a body part' };
           duel = { ...duel, a: { ...duel.a, aim: e['part'] as BodyPart } };
         }

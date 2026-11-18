@@ -8,6 +8,37 @@ import { isDying, isIncapacitated, statusLabel, type Wound } from '../engine/wou
 import type { ActiveFight, FightSummary } from '../features/combat/selectors';
 import type { GameState } from '../state/gameState';
 import type { CombatActionInput } from './record';
+import { COMBAT_WORD_GROUPS, FORM_WORDS } from '../data/combatWords';
+
+/**
+ * Natural combat words (D-179): the typed text (or a choice's label) read against the configured word groups and form
+ * names. Returns a posture action (stance, a take-position attempt, the form named: the handler switches or stays) or null when
+ * nothing matches. Whole words and phrases; the earliest stance word wins.
+ */
+export function combatWordsAction(text: string): Record<string, unknown> | null {
+  const t = ` ${text.toLowerCase().replace(/[^a-z0-9' -]+/g, ' ').replace(/\s+/g, ' ')} `;
+  const at = (phrase: string): number => {
+    const i = t.indexOf(` ${phrase} `);
+    return i < 0 ? Infinity : i;
+  };
+  let stance: { value: string; at: number } | null = null;
+  let takePosition = false;
+  let matched = false;
+  for (const g of COMBAT_WORD_GROUPS) {
+    const first = Math.min(...g.words.map(at));
+    if (first === Infinity) continue;
+    matched = true;
+    if (g.takePosition) takePosition = true;
+    if (g.stance && (!stance || first < stance.at)) stance = { value: g.stance, at: first };
+  }
+  let form: { id: string; at: number } | null = null;
+  for (const [phrase, id] of Object.entries(FORM_WORDS)) {
+    const i = at(phrase);
+    if (i !== Infinity && (!form || i < form.at)) form = { id, at: i };
+  }
+  if (!matched && !form) return null;
+  return { action: 'posture', ...(stance ? { stance: stance.value } : {}), ...(takePosition ? { position: true } : {}), ...(form ? { form: form.id } : {}) };
+}
 
 export interface CombatFighterView {
   id: string;

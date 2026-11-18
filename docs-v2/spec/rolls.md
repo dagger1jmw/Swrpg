@@ -67,6 +67,12 @@ Player beats (Moment pacing): the player does not act every exchange. The engine
   exchanges between beats, and the player chooses a stance or tactic at each beat:
   every strike, whenever advantage reaches +/-2, after any maneuver, and at least every 5
   exchanges. The AI narrates the beats from the engine's exchange log.
+  Natural combat words (D-179): typed input (or a choice) read for moves when the intent names
+  none (src/data/combatWords.ts): parry, block, defend, hold, guard -> defensive stance; press,
+  attack, push forward, overwhelm -> aggressive stance; dodge, evade, sidestep, roll -> defensive
+  stance and a take-position attempt; circle, reposition, high ground, get behind -> take
+  position; a form name, number or technique -> switch to (at the form-change cost) or stay in
+  that form. Words with no move ask back: no exchange, the beat buttons and a short line.
   Form change (Q32, copied by D-63): changing lightsaber form is allowed at a player beat and
   costs 1 advantage step (the track moves 1 toward the opponent).
 Time: the clock advances 5-10 seconds per exchange (rolled).

@@ -218,7 +218,9 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
   }
 
   // A combat beat button (M5, D-145) skips the intent call; its action resolves in step b.
-  const resolution = resolveTurn(deps.registry, session.state, intent, input.kind === 'beat' ? { beat: input.action } : {});
+  // The player's own words reach step b for the natural combat words (D-179).
+  const text = input.kind === 'typed' ? input.text : input.kind === 'choice' ? input.choice.label : undefined;
+  const resolution = resolveTurn(deps.registry, session.state, intent, input.kind === 'beat' ? { beat: input.action } : text !== undefined ? { text } : {});
   return { input, intent, resolution, calls, intentNotes, ...(intentReport ? { intentReport } : {}) };
 }
 

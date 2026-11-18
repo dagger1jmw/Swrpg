@@ -13,7 +13,8 @@ import { selectFatigue, selectIsDying, selectIsSpent, selectLastingPenalty, sele
 import { selectNpc, selectNpcLevel } from '../features/npcs/selectors';
 import { selectLevelExact } from '../features/progression/selectors';
 import { STABILIZE_DIFFICULTY } from '../data/health.config';
-import { combatActionFromBeat, combatActionFromIntent, combatDraft, type CombatDraft } from './combatTurn';
+import { combatActionFromBeat, combatActionFromIntent, combatDraft, combatWordsAction, type CombatDraft } from './combatTurn';
+import { CONTINUE_WORDS } from '../data/combatWords';
 import type { CombatActionInput } from './record';
 import { selectPacingLevel } from '../features/pacing/selectors';
 import { selectPerformance, selectRust } from '../features/progression/selectors';
@@ -143,13 +144,19 @@ export function trainingRequest(intent: Intent): Omit<TrainingRequest, 'hours'> 
   };
 }
 
+/** The text says to go on as before (D-179). */
+function saysContinue(text: string): boolean {
+  const t = ` ${text.toLowerCase().replace(/[^a-z' ]+/g, ' ').replace(/ +/g, ' ')} `;
+  return CONTINUE_WORDS.some((w) => t.includes(` ${w} `));
+}
+
 /** The intent asks for sparring as an activity ("spar with the other Initiates for an hour"), D-177. */
 function isSparringActivityIntent(intent: Intent | null): boolean {
   const id = intent?.activity?.activityId;
   return id !== undefined && ACTIVITY_BY_ID.get(id)?.sparring === true;
 }
 
-export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput } = {}): Resolution {
+export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput; text?: string } = {}): Resolution {
   let state = initial;
   const report: string[] = [];
   const applied: AppliedEvent[] = [];
@@ -225,6 +232,11 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     // A sparring session (D-168, D-177): input that describes a specific combat action (a parry, a strike, a feint, a
     // form technique, a sequence: anything but a request to spar as an activity) plays the bout out with the beats;
     // only sparring asked for as an activity resolves like a montage.
+    // Natural combat words (D-179): when the intent names no move, the player's text is read against the word list; a
+    // text with no move the game can read asks back through the beat buttons instead of resolving as Continue.
+    if (!opts.beat && payload['action'] === 'continue' && !isSparringActivityIntent(intent) && !(opts.text && saysContinue(opts.text))) {
+      payload = (opts.text ? combatWordsAction(opts.text) : null) ?? { action: 'clarify' };
+    }
     const sess = before.combat.active!.session;
     if (!opts.beat && sess && !sess.ended && !sess.playing && payload['action'] === 'continue' && !isSparringActivityIntent(intent)) payload = { action: 'playBout' };
     const done = apply([{ type: 'combatAction', ...payload }], 'player');

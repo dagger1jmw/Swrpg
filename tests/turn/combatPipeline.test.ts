@@ -237,3 +237,61 @@ describe('typed input in a sparring session (D-177)', () => {
     expect(next.session.state.combat.active?.session?.playing).toBe(true);
   });
 });
+
+describe('natural combat words (D-179)', () => {
+  const fightIntent = (): FixtureStep => ({ callType: 'intent', data: { actionType: 'fight', targets: [], references: [], unknownNames: [] } });
+  /** A typed line in a fight where the intent call named no move: the word list decides. */
+  async function typedInFight(text: string, s0 = session()) {
+    const { deps, provider } = setup([...many(1), fightIntent(), ...many(3)]);
+    const s = await inFight(deps, s0);
+    const before = provider.calls.length;
+    const t = await playTurn(deps, s, { kind: 'typed', text });
+    return { t, calls: provider.calls.slice(before).map((c) => c.opts.callType) };
+  }
+  const notes = (t: Awaited<ReturnType<typeof typedInFight>>['t']) => t.record.draft.combat!.notes.join(' ');
+  for (const [text, stance] of [['I parry his strike', 'defensive'], ['block and hold my ground', 'defensive'], ['I guard', 'defensive']] as const) {
+    it(`defend words: "${text}" -> ${stance} stance`, async () => {
+      const { t } = await typedInFight(text);
+      expect(notes(t)).toMatch(new RegExp(`posture: ${stance} stance`));
+    });
+  }
+  for (const text of ['press the attack', 'I attack', 'push forward and overwhelm him']) {
+    it(`attack words: "${text}" -> aggressive stance`, async () => {
+      const { t } = await typedInFight(text);
+      expect(notes(t)).toMatch(/posture: aggressive stance/);
+    });
+  }
+  for (const text of ['I dodge', 'sidestep the blow', 'roll away']) {
+    it(`evade words: "${text}" -> defensive stance and a take-position attempt`, async () => {
+      const { t } = await typedInFight(text);
+      expect(notes(t)).toMatch(/posture: defensive stance, taking position/);
+    });
+  }
+  for (const text of ['circle him', 'take the high ground', 'get behind him']) {
+    it(`reposition words: "${text}" -> take position`, async () => {
+      const { t } = await typedInFight(text);
+      expect(notes(t)).toMatch(/posture: taking position/);
+    });
+  }
+  it('"use Soresu fundamentals" stays in the form; "use Makashi" switches when it is known', async () => {
+    const { t } = await typedInFight('use Soresu fundamentals');
+    expect(notes(t)).toMatch(/posture: in soresu/);
+    expect(notes(t)).not.toMatch(/form change/);
+    const known = session();
+    const s1 = { ...known, state: { ...known.state, progression: { ...known.state.progression, skills: { ...known.state.progression.skills, makashi: { xp: xpForLevel(40), rust: 0, lastPracticedDay: null } } } } };
+    const sw = await typedInFight('switch to Makashi', s1);
+    expect(notes(sw.t)).toMatch(/form change to makashi/);
+  });
+  it('words with no move ask back through the beat buttons: no exchange, no narration call', async () => {
+    const { t, calls } = await typedInFight('I stare at him silently');
+    expect(t.record.draft.combat?.beat).toBe('clarify');
+    expect(t.record.draft.combat?.records).toHaveLength(0);
+    expect(t.record.draft.combat?.quiet).toBe(true);
+    expect(calls).toEqual(['intent']);
+    expect(t.session.state.combat.active).not.toBeNull();
+  });
+  it('"keep fighting" still continues', async () => {
+    const { t } = await typedInFight('keep fighting');
+    expect(t.record.draft.combat?.beat).not.toBe('clarify');
+  });
+});

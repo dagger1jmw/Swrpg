@@ -103,7 +103,8 @@ export const BEAT_TRACK = 2;
  */
 /** strikeAbsorbed: a hit that only takes Vitality (no wound) is quiet too. */
 /** minionDown: a hit on a minion (cut-down or strike) is quiet; wounds to the player or a named opponent are narrated. */
-export const QUIET_BEATS = ['trackSwing', 'periodic', 'strikeMissed', 'strikeAbsorbed', 'minionDown'] as const;
+/** clarify: the player's input named no move the game could read; no exchange, the beat buttons ask (D-179). */
+export const QUIET_BEATS = ['trackSwing', 'periodic', 'strikeMissed', 'strikeAbsorbed', 'minionDown', 'clarify'] as const;
 /** boutEnded: a sparring bout the player played out ended and the session goes on (D-168). */
 export const NARRATED_BEATS = ['woundingHit', 'maneuverLanded', 'spent', 'forceAction', 'sequence', 'incapacitated', 'fightEnded', 'playerNarrate', 'boutEnded'] as const;
 export type BeatReason = (typeof QUIET_BEATS)[number] | (typeof NARRATED_BEATS)[number];
