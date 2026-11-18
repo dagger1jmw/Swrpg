@@ -165,6 +165,7 @@ function minionFighter(kindId: string, id: string, level: number, beskar: boolea
     forceSense: 0,
     minion: true,
     coordination: k.coordination,
+    ...(k.accuracy ? { accuracy: k.accuracy } : {}),
     caps: { p: capacity(30), f: 0 },
   };
 }

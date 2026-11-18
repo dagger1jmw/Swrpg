@@ -175,6 +175,8 @@ main skill and summed to far more training than a day holds (Jedi Guardian 3.9x,
   Amended by D-158: each minion kind has a coordination value (numbers bonus = +1 per extra attacker x
   coordination, rounded down, max +3: B1 droids, militia, thugs 0; line troopers 0.5; elite squads and
   Mandalorians 1.0), a Vitality multiplier, and its weapon and armor; Mandalorians roll beskar by era.
+  Amended by D-161: a minion kind may carry an accuracy modifier on its attack rolls: B1 battle droids -3
+  (Legends: notoriously poor shots), elite troopers +0.5.
 
 ## 7. Required tests
  1. Reference table above reproduces within +/-1 level (variance off).

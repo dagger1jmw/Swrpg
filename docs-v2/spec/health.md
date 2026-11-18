@@ -49,6 +49,19 @@ Force meter (replaces Force strain):
     Lightsaber: graze 0 | solid 0.5 | clean 1.0 | critical 1.0
     Other weapons: 0, except critical 0.5
   Resolution: bypass part -> wound; rest reduces Vitality; any overflow below 0 -> wound.
+  Amended by D-161 (Jared): severity depends on the weapon.
+    Lightsabers keep the table above (a clean saber hit maims or kills; grazes are Vitality-only)
+      and their overflow goes straight into the wound.
+    Every other weapon (blasters, slugthrowers, vibroblades, melee, unarmed, heavy and droid
+      weapons) and hazards: wound damage follows the strike margin, W = weapon base x curve(margin),
+      scaled down with D by armor (health.config NONSABER_WOUND_BY_MARGIN: margin 7 or less 0,
+      8: 0.1, 12: 0.5, 17: 1.0, 25: 2.5, interpolated). Hits below margin 8 are Vitality-only; low
+      margins give minor wounds, the middle moderate, severe or worse only at high margins. The rest
+      of D reduces Vitality. Overflow is banded too: past an empty Vitality the wound stays the
+      margin's W, and a hit there is at least a minor wound (W 1). A hazard's severity hint reads as
+      margin 10 / 15 / 21 (a fall: minor / moderate / severe).
+    Measured on a Force user at level 50 (wounding hits, minor/moderate/severe+): a blaster rifle
+      55/31/15, a pistol 68/20/11; blaster vs blaster 60/26/14; saber vs saber unchanged 0/6/94.
 
 ## 5. Wounds
   Wound damage W -> severity: 1-9 minor | 10-19 moderate | 20-34 severe |
@@ -115,6 +128,9 @@ Force meter (replaces Force strain):
  2. Status is identical whether computed before or after save/load (no stored status).
  3. Knight (Vitality 63.5, no armor) takes 3 solid blaster-rifle hits with no wound; the 4th
     creates a moderate wound.
+    Amended by D-161: rifle grazes below margin 8 are Vitality-only until Vitality is empty (6
+    grazes); the 7th is a minor wound (banded overflow); a solid hit at margin 11 is minor, a
+    clean hit at margin 14 moderate, a critical at margin 17 severe.
  4. A clean lightsaber hit to the torso of any character is mortal (D 60, fully bypassed);
     to a limb it severs.
  5. A solid lightsaber hit sends 50% to wounds (D 40: severe wound, 20 off Vitality).

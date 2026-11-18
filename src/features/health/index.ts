@@ -133,7 +133,7 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
         const h = hazardDamage(type, sev);
         const [part, rng] = rollLocation(ctx.state.meta.rngState, type === 'fall' ? FALL_LOCATION_WEIGHTS : LOCATION_WEIGHTS);
         const vit = selectVitality(ctx.state);
-        const d = applyDamage(vit, h.D, h.bypass);
+        const d = applyDamage(vit, h.D, h.bypass, false, true);
         const sevName = severityOf(d.W);
         const lost = Math.min(selectMaxVitality(ctx.state), slice.vitalityLost + d.vitalityLost);
         const wounds: Wound[] = sevName ? [{ id: 'new', part: part as BodyPart, severity: sevName, W: d.W, stabilized: false, healProgress: 0, day: selectNow(ctx.state).day, source: `hazard:${type}` }] : [];

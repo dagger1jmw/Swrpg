@@ -42,29 +42,35 @@ describe('Vitality (health §3)', () => {
 });
 
 describe('damage (health §4)', () => {
-  it('test 3: a Knight takes 3 solid rifle hits with no wound; the 4th makes a moderate wound', () => {
+  it('test 3 (amended by D-161): rifle grazes below margin 8 are Vitality-only until Vitality is empty, then a minor wound; wounds follow the margin', () => {
     let v = 63.5;
-    const D = damageOf({ weapon: 'blasterRifle', quality: 'solid', armor: 'none', saberResistant: false });
-    expect(D).toBe(20);
-    for (let i = 0; i < 3; i++) {
-      const r = applyDamage(v, D, bypassFraction('blasterRifle', 'solid'));
+    const graze = damageOf({ weapon: 'blasterRifle', quality: 'graze', armor: 'none', saberResistant: false });
+    expect(graze).toBe(10);
+    for (let i = 0; i < 6; i++) {
+      const r = applyDamage(v, graze, bypassFraction('blasterRifle', 'graze', 6), false, true);
       expect(r.W).toBe(0);
       v = r.vitality;
     }
-    const fourth = applyDamage(v, D, bypassFraction('blasterRifle', 'solid'));
-    expect(severityOf(fourth.W)).toBe('moderate');
+    // Past an empty Vitality the overflow is banded: a graze is a minor wound (a lightsaber's overflow would go straight in).
+    const seventh = applyDamage(v, graze, bypassFraction('blasterRifle', 'graze', 6), false, true);
+    expect(seventh.vitality).toBe(0);
+    expect(severityOf(seventh.W)).toBe('minor');
+    const W = (q: 'solid' | 'clean' | 'critical', m: number) => applyDamage(63.5, damageOf({ weapon: 'blasterRifle', quality: q, armor: 'none', saberResistant: false }), bypassFraction('blasterRifle', q, m), false, true).W;
+    expect(severityOf(W('solid', 11))).toBe('minor');
+    expect(severityOf(W('clean', 14))).toBe('moderate');
+    expect(severityOf(W('critical', 17))).toBe('severe');
   });
   it('test 4: a clean saber hit to the torso is mortal (D 60, fully bypassed); to a limb it severs', () => {
     const D = damageOf({ weapon: 'lightsaber', quality: 'clean', armor: 'none', saberResistant: false });
     expect(D).toBe(60);
-    const r = applyDamage(63.5, D, bypassFraction('lightsaber', 'clean'));
+    const r = applyDamage(63.5, D, bypassFraction('lightsaber', 'clean', 12));
     expect(r.W).toBe(60);
     expect(severityOf(r.W)).toBe('mortal');
     expect(severs('lightsaber', 'leftArm', r.W)).toBe(true);
     expect(severs('lightsaber', 'torso', r.W)).toBe(false);
   });
   it('test 5: a solid saber hit sends 50% to wounds (severe wound, 20 off Vitality)', () => {
-    const r = applyDamage(63.5, 40, bypassFraction('lightsaber', 'solid'));
+    const r = applyDamage(63.5, 40, bypassFraction('lightsaber', 'solid', 8));
     expect(r.W).toBe(20);
     expect(severityOf(r.W)).toBe('severe');
     expect(r.vitalityLost).toBe(20);
@@ -74,12 +80,12 @@ describe('damage (health §4)', () => {
     expect(damageOf({ weapon: 'lightsaber', quality: 'solid', armor: 'heavy', saberResistant: true })).toBe(30);
   });
   it('training sabers never bypass Vitality (D-144)', () => {
-    expect(bypassFraction('trainingSaber', 'critical')).toBe(0);
+    expect(bypassFraction('trainingSaber', 'critical', 20)).toBe(0);
   });
   it('hazards (D-149): severity 1 a minor wound, 2 moderate, 3 severe for a fall', () => {
     const at = (s: 1 | 2 | 3) => {
       const h = hazardDamage('fall', s);
-      return severityOf(applyDamage(60, h.D, h.bypass).W);
+      return severityOf(applyDamage(60, h.D, h.bypass, false, true).W);
     };
     expect(at(1)).toBe('minor');
     expect(at(2)).toBe('moderate');

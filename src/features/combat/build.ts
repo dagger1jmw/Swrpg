@@ -157,7 +157,7 @@ export function buildMinionFighter(s: GameState, kindId: string, grade: number, 
   const loadout: Loadout = { weapon: kind.weapon, armor: kind.armor, saberResistant: kind.saberResistant === true || (kind.saberResistant === 'byEra' && beskar) };
   const f = fighterFromLevels(`${fightId}:${kindId}:${index}`, `${kind.label} ${index + 1}`, levels, loadout, { minion: true, vitalityLost: 0, wounds: [], lasting: [], shatterpoint: 0, lightSide: false });
   const v = f.maxVitality * kind.vitalityMult;
-  return { ...f, vitality: v, maxVitality: v, coordination: kind.coordination };
+  return { ...f, vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}) };
 }
 
 /** The duel context from the terrain tags and stakes (rolls §5, D-144). */

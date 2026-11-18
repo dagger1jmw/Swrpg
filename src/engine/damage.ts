@@ -4,10 +4,12 @@ import {
   ARMOR_VALUE,
   BYPASS,
   HAZARD_BASE,
-  HAZARD_BYPASS,
+  HAZARD_MARGIN,
   HAZARD_SEVERITY_MULT,
   HIT_MULT,
   LIMBS,
+  NONSABER_OVERFLOW_MIN_W,
+  NONSABER_WOUND_BY_MARGIN,
   SABER_ARMOR_FACTOR,
   SEVER_AT,
   SEVERITY_FROM_W,
@@ -18,6 +20,7 @@ import {
   type Severity,
   type WeaponKind,
 } from '../data/health.config';
+import { interp } from './interp';
 import { nextFloat, type RngState } from './rng';
 
 export const isSaber = (w: WeaponKind): boolean => w === 'lightsaber' || w === 'trainingSaber';
@@ -38,10 +41,15 @@ export function damageOf(i: HitInput): number {
   return Math.max(0, base * HIT_MULT[i.quality] - armor);
 }
 
-/** Fraction of D sent straight to wounds. A training saber (or low-power setting) never bypasses. */
-export function bypassFraction(weapon: WeaponKind, quality: HitQuality): number {
+/**
+ * Fraction of D sent straight to wounds. A training saber (or low-power setting) never bypasses; a lightsaber by hit
+ * quality (health §4). Every other weapon follows the strike margin (D-161): W = base x NONSABER_WOUND_BY_MARGIN(margin),
+ * scaled with D by armor, so the fraction of D is the curve's value over the quality multiplier.
+ */
+export function bypassFraction(weapon: WeaponKind, quality: HitQuality, margin: number): number {
   if (weapon === 'trainingSaber') return 0;
-  return weapon === 'lightsaber' ? BYPASS.lightsaber[quality] : BYPASS.other[quality];
+  if (weapon === 'lightsaber') return BYPASS.lightsaber[quality];
+  return Math.min(1, interp(NONSABER_WOUND_BY_MARGIN, margin) / HIT_MULT[quality]);
 }
 
 export interface DamageResult {
@@ -52,16 +60,19 @@ export interface DamageResult {
 }
 
 /**
- * Resolution (health §4): the bypass part becomes wound damage; the rest reduces Vitality; any overflow below 0
- * also becomes wound damage. `vitalityOnly` (training sabers, D-144): no bypass and no overflow wounds.
+ * Resolution (health §4): the bypass part becomes wound damage; the rest reduces Vitality. Overflow below 0: a
+ * lightsaber's goes straight into the wound; with `bandedOverflow` (every other weapon and hazards, D-161) the wound
+ * stays the margin's banded W, and a hit past an empty Vitality is at least a minor wound. `vitalityOnly` (training
+ * sabers, D-144; prosthetics, D-164): no bypass and no overflow wounds.
  */
-export function applyDamage(vitality: number, D: number, bypass: number, vitalityOnly = false): DamageResult {
+export function applyDamage(vitality: number, D: number, bypass: number, vitalityOnly = false, bandedOverflow = false): DamageResult {
   const direct = vitalityOnly ? 0 : D * bypass;
   const rest = D - direct;
   const after = vitality - rest;
   const overflow = after < 0 ? -after : 0;
   const v = Math.max(0, after);
-  return { vitality: v, W: direct + (vitalityOnly ? 0 : overflow), vitalityLost: vitality - v };
+  const W = vitalityOnly ? 0 : bandedOverflow ? (overflow > 0 ? Math.max(direct, NONSABER_OVERFLOW_MIN_W) : direct) : direct + overflow;
+  return { vitality: v, W, vitalityLost: vitality - v };
 }
 
 /** W -> severity (1-9 minor ... 50+ mortal); null below 1. */
@@ -88,7 +99,11 @@ export function severs(weapon: WeaponKind, part: BodyPart, W: number): boolean {
   return weapon === 'lightsaber' && LIMBS.includes(part) && W >= SEVER_AT;
 }
 
-/** Hazard damage (D-149): D = base x severity multiplier, with the hazard bypass. */
+/**
+ * Hazard damage (D-149): D = base x severity multiplier. The wound part follows the non-saber curve (D-161): the
+ * severity hint read as a margin (HAZARD_MARGIN), W = base x curve, the rest to Vitality.
+ */
 export function hazardDamage(type: HazardType, severity: 1 | 2 | 3): { D: number; bypass: number } {
-  return { D: HAZARD_BASE[type] * HAZARD_SEVERITY_MULT[severity], bypass: HAZARD_BYPASS[severity] };
+  const mult = HAZARD_SEVERITY_MULT[severity];
+  return { D: HAZARD_BASE[type] * mult, bypass: Math.min(1, interp(NONSABER_WOUND_BY_MARGIN, HAZARD_MARGIN[severity]) / mult) };
 }

@@ -28,11 +28,33 @@ export type ArmorKind = (typeof ARMOR_KINDS)[number];
 export const ARMOR_VALUE: Record<ArmorKind, number> = { none: 0, light: 3, medium: 6, heavy: 10 };
 /** Against lightsabers, armor counts x0.25 unless lightsaber-resistant (cortosis, beskar). */
 export const SABER_ARMOR_FACTOR = 0.25;
-/** Fraction of D sent straight to wounds (Vitality bypass). */
+/** Fraction of D a lightsaber sends straight to wounds (Vitality bypass); a clean saber hit maims or kills (health §4). */
 export const BYPASS = {
   lightsaber: { graze: 0, solid: 0.5, clean: 1.0, critical: 1.0 },
-  other: { graze: 0, solid: 0, clean: 0, critical: 0.5 },
 } as const;
+/**
+ * Every other weapon (blasters, slugthrowers, vibroblades, melee, unarmed, heavy weapons, droid weapons) and hazards
+ * (D-161, Jared): the wound damage W of a hit follows the strike margin, as a multiple of the weapon's base damage
+ * (interpolated; bands use the rounded margin, D-156), scaled down with D by armor. With a blaster rifle's base 20 and
+ * the severity thresholds below: hits below margin 8 are Vitality-only, low margins give minor wounds, the middle
+ * moderate, severe or worse only at high margins. The rest of D goes to Vitality; overflow below 0 keeps the band (D-161 option C). Tuned to about 50% minor, 35%
+ * moderate, 15% severe or worse of the wounding hits these weapons land on a Force user.
+ */
+export const NONSABER_WOUND_BY_MARGIN: readonly (readonly [number, number])[] = [
+  [7, 0],
+  [8, 0.1],
+  [12, 0.5],
+  [17, 1.0],
+  [25, 2.5],
+];
+/** Non-saber overflow is banded too (Jared, D-161 option C): a hit past an empty Vitality is at least this wound damage (minor). */
+export const NONSABER_OVERFLOW_MIN_W = 1;
+/**
+ * A hazard's severity hint read as a strike margin on the non-saber curve (D-161): hazards hurt the body directly (a
+ * dislocation, a burn), so severity 1 gives a minor wound (Jared: sparring accidents are "minor wounds usually"), 2
+ * moderate, 3 severe for a fall.
+ */
+export const HAZARD_MARGIN: Record<1 | 2 | 3, number> = { 1: 10, 2: 15, 3: 21 };
 /** Force Lightning damage = this x Force Output level x effort (health §4). */
 export const LIGHTNING_PER_OUTPUT = 0.4;
 
@@ -202,11 +224,6 @@ export type HazardType = (typeof HAZARD_TYPES)[number];
 /** D = base x severity multiplier. */
 export const HAZARD_BASE: Record<HazardType, number> = { fall: 14, fire: 12, explosion: 25, crash: 22, poison: 10, exposure: 8, impact: 12 };
 export const HAZARD_SEVERITY_MULT: Record<1 | 2 | 3, number> = { 1: 0.5, 2: 1, 3: 2 };
-/**
- * Hazards hurt the body directly (a dislocation, a burn), so part of D bypasses Vitality: severity 1 gives a
- * minor wound (Jared: sparring accidents are "minor wounds usually"), 2 moderate, 3 severe for a fall.
- */
-export const HAZARD_BYPASS: Record<1 | 2 | 3, number> = { 1: 0.5, 2: 0.75, 3: 1.0 };
 
 // ---- Minions (health §9) ----
 /**

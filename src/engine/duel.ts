@@ -34,7 +34,7 @@ import {
 import { FORM_MATCHUPS, FORM_STAMINA, type MatchupSituation } from '../data/formMatchups';
 import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, SPENT_LEVEL_FACTOR, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
 import { RANGED_WEAPONS } from '../data/weapons';
-import { applyDamage, bypassFraction, damageOf, rollLocation, severityOf, severs } from './damage';
+import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityOf, severs } from './damage';
 import { efficiency } from './fatigue';
 import { addFixedLoad, forceWithin } from './forceMeter';
 import { lastingPenalty, limbState, type LastingInjury } from './lasting';
@@ -90,6 +90,8 @@ export interface Fighter {
   pendingManeuver: Maneuver | null;
   /** Teamwork for the numbers bonus (D-158): minion kinds set it; named fighters count 1. */
   coordination?: number;
+  /** A minion kind's accuracy on its attack rolls (D-161: B1 droids shoot poorly); named fighters have none. */
+  accuracy?: number;
 }
 
 export interface DuelContext {
@@ -230,6 +232,7 @@ function sideMods(f: Fighter, opp: Fighter, ctx: DuelContext, numbersBonus: numb
   if (ctx.footing) both.push({ source: 'footing', value: ctx.footing });
   if (numbersBonus) both.push({ source: `numbers (+${numbersBonus})`, value: numbersBonus });
   if (f.disarmedFor > 0) attack.push({ source: 'disarmed', value: MANEUVER_EFFECT.disarmedAttack });
+  if (f.accuracy) attack.push({ source: 'accuracy', value: f.accuracy });
   return { attack: [...attack, ...both], defense: [...defense, ...both] };
 }
 
@@ -264,6 +267,8 @@ function withoutParts(w: Readonly<Record<BodyPart, number>>, parts: ReadonlySet<
 function damageFighter(
   f: Fighter,
   quality: HitQuality,
+  /** The strike's rounded margin: a non-saber weapon's wound follows it (D-161). */
+  margin: number,
   weapon: WeaponKind,
   ctx: DuelContext,
   rng: RngState,
@@ -276,7 +281,7 @@ function damageFighter(
   // only, no wound, no sever (equipment damage arrives with M8; D-164).
   const limbs = limbState(f.wounds, f.lasting);
   const [part, r1] = rollLocation(rng, limbs.gone.size ? withoutParts(LOCATION_WEIGHTS, limbs.gone) : LOCATION_WEIGHTS);
-  const dmg = applyDamage(f.vitality, D, bypassFraction(weapon, quality), vitalityOnly || limbs.prosthetic.has(part));
+  const dmg = applyDamage(f.vitality, D, bypassFraction(weapon, quality, margin), vitalityOnly || limbs.prosthetic.has(part), !isSaber(weapon));
   let W = dmg.W;
   let severity = severityOf(W);
   const severed = severity !== null && severs(weapon, part, W);
@@ -428,7 +433,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     // saber-resistant armor. Minion groups are mass, not duelists.
     if (B.minion && !B.saberResistant && band(margin) >= CUT_DOWN_MARGIN) {
       const q = qualityOf(band(margin)) ?? 'graze';
-      const d = damageFighter(B, q, A.weapon, ctx, rng, day, B.wounds.length + 1, ctx.sparring === 'trainingSaber' || A.weapon === 'trainingSaber');
+      const d = damageFighter(B, q, band(margin), A.weapon, ctx, rng, day, B.wounds.length + 1, ctx.sparring === 'trainingSaber' || A.weapon === 'trainingSaber');
       rng = d.rng;
       bOut = d.f;
       hit = { by: 'A', ...d.hit, avoided: false };
@@ -459,7 +464,8 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
         if (accident) notes.push('accident: a controlled strike lands for real');
         const vitalityOnly = ctx.sparring === 'trainingSaber' || atkF.weapon === 'trainingSaber';
         const woundSeq = defF.wounds.length + 1;
-        const d = damageFighter(defF, q, atkF.weapon, ctx, rng, day, woundSeq, vitalityOnly);
+        // An accident lands as a graze: the lowest strike margin.
+        const d = damageFighter(defF, q, accident ? STRIKE_MIN_MARGIN : band(margin), atkF.weapon, ctx, rng, day, woundSeq, vitalityOnly);
         rng = d.rng;
         defF = d.f;
         hit = { by: striker, ...d.hit, avoided: false };
@@ -468,7 +474,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       // A deflected bolt sent back at the shooter (rolls §4): graze at 8-11, solid at 12+.
       const quality: HitQuality = -band(margin) >= 12 ? 'solid' : 'graze';
       const shooter = atkF;
-      const d = damageFighter(shooter, quality, shooter.weapon, ctx, rng, day, shooter.wounds.length + 1, false);
+      const d = damageFighter(shooter, quality, -band(margin), shooter.weapon, ctx, rng, day, shooter.wounds.length + 1, false);
       rng = d.rng;
       hit = { by: other(striker), ...d.hit, avoided: false, redirected: true };
       if (striker === 'A') aOut = d.f;

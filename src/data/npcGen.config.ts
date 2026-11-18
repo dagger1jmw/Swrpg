@@ -130,6 +130,8 @@ export interface MinionKind {
    * 0 = mass without teamwork (B1 droids, militia, thugs); 0.5 line troopers; 1.0 elite squads and Mandalorians.
    */
   coordination: number;
+  /** Accuracy on the kind's attack rolls (D-161; 0 when absent): B1 droids are notoriously poor shots. */
+  accuracy?: number;
   /** Vitality multiplier on the stat-derived Vitality (droids are flimsy, beasts are tough). */
   vitalityMult: number;
   /** Lore note (a design default for Jared to check where marked). */
@@ -138,12 +140,12 @@ export interface MinionKind {
 /** Years trained by grade at pace 1.0 (npc-generation §6). */
 export const MINION_YEARS: readonly [number, number, number, number, number] = [2, 5, 10, 15, 20];
 export const MINION_KINDS: readonly MinionKind[] = [
-  { id: 'battleDroid', label: 'B1 battle droid', archetype: 'soldier', weapon: 'blasterRifle', armor: 'light', grades: [0.6, 0.35, 0.05, 0, 0], coordination: 0, vitalityMult: 0.6, note: 'B1: mass-produced, poorly coordinated; a Knight cutting through dozens is lore-accurate (Jared)' },
+  { id: 'battleDroid', label: 'B1 battle droid', archetype: 'soldier', weapon: 'blasterRifle', armor: 'light', grades: [0.6, 0.35, 0.05, 0, 0], coordination: 0, accuracy: -3, vitalityMult: 0.6, note: 'B1: mass-produced, poorly coordinated; a Knight cutting through dozens is lore-accurate (Jared)' },
   { id: 'militia', label: 'militia fighter', archetype: 'civilian', weapon: 'blasterPistol', armor: 'none', grades: [0.6, 0.35, 0.05, 0, 0], coordination: 0, vitalityMult: 1, note: 'untrained locals with blasters (Jared)' },
   { id: 'thug', label: 'thug', archetype: 'bountyHunter', weapon: 'blasterPistol', armor: 'none', grades: [0.5, 0.35, 0.15, 0, 0], coordination: 0, vitalityMult: 1, note: 'gangsters and enforcers (Jared: 0)' },
   { id: 'brawler', label: 'brawler', archetype: 'civilian', weapon: 'melee', armor: 'none', grades: [0.5, 0.4, 0.1, 0, 0], coordination: 0, vitalityMult: 1, note: 'design default: street fighters, no teamwork' },
   { id: 'trooper', label: 'line trooper', archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.1, 0.4, 0.35, 0.13, 0.02], coordination: 0.5, vitalityMult: 1, note: 'clones, Republic troopers, Imperial stormtroopers (Jared: 0.5)' },
-  { id: 'eliteTrooper', label: 'elite trooper', archetype: 'soldier', weapon: 'blasterRifle', armor: 'heavy', grades: [0, 0.1, 0.4, 0.4, 0.1], coordination: 1, vitalityMult: 1, note: 'ARC troopers, commandos, Imperial special forces, Havoc Squad-type units (Jared: 1.0)' },
+  { id: 'eliteTrooper', label: 'elite trooper', archetype: 'soldier', weapon: 'blasterRifle', armor: 'heavy', grades: [0, 0.1, 0.4, 0.4, 0.1], coordination: 1, accuracy: 0.5, vitalityMult: 1, note: 'ARC troopers, commandos, Imperial special forces, Havoc Squad-type units (Jared: 1.0)' },
   { id: 'mandalorian', label: 'Mandalorian warrior', archetype: 'mandalorian', weapon: 'blasterPistol', armor: 'heavy', saberResistant: 'byEra', grades: [0, 0.05, 0.3, 0.45, 0.2], coordination: 1, vitalityMult: 1, note: 'heavy armor (beskar by era, else durasteel or duraplast) and the highest grades: the most dangerous minion kind (Jared: 1.0)' },
   { id: 'superBattleDroid', label: 'B2 super battle droid', archetype: 'soldier', weapon: 'heavy', armor: 'heavy', grades: [0.3, 0.5, 0.2, 0, 0], coordination: 0, vitalityMult: 1.2, note: 'design default for Jared: B2s are tougher and better armed than B1s but still droid-brained (0)' },
   { id: 'droideka', label: 'droideka', archetype: 'soldier', weapon: 'heavy', armor: 'heavy', grades: [0.1, 0.4, 0.4, 0.1, 0], coordination: 0.5, vitalityMult: 1.5, note: 'design default for Jared: shielded rollers that work in pairs (0.5); no deflector shield model yet' },
