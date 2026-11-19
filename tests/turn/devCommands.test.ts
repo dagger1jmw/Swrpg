@@ -133,14 +133,17 @@ describe('dev commands emit the normal events (D-180)', () => {
     expect((o.state.combat.active!.duel as DuelState).a.meters.p).toBeCloseTo(o.state.health.meters.p, 9);
     expect(o.state.health.meters.p).toBeGreaterThan(0);
   });
-  it('/fight with a place word moves the scene there (combat pass 1 issue 21: "terrain temple" left it in the wilderness)', async () => {
+  it('/fight with a place word moves the scene to an in-world place (issue 21; D-215: never a "dev sandbox")', async () => {
     const s = (await campaign(true)).state;
     const o = run(s, '/fight 1 duelist terrain temple');
     expect(o.ok).toBe(true);
-    expect(o.state.locations.byId[o.state.locations.currentId!]!.name).toBe('Temple (dev sandbox)');
-    // Plain tags do not move the scene.
+    expect(o.state.locations.byId[o.state.locations.currentId!]!.name).toBe('an old temple hall on Dantooine');
+    // Plain tags keep a real scene's place; a scene with no place gets the neutral in-world default (D-215).
     const t = run(s, '/fight 6 b1 terrain cover');
-    expect(t.state.locations.currentId).toBe(s.locations.currentId);
+    const here = s.locations.currentId ? s.locations.byId[s.locations.currentId]!.name : null;
+    expect(t.state.locations.byId[t.state.locations.currentId!]!.name).toBe(here && !/sandbox/.test(here) ? here : 'an abandoned hangar on Nar Shaddaa');
+    const again = run(o.state.combat.active ? { ...o.state, combat: { ...o.state.combat, active: null } } : o.state, '/fight 2 trooper');
+    expect(again.state.locations.byId[again.state.locations.currentId!]!.name).toBe('an old temple hall on Dantooine');
   });
   it('/skip 3 days runs a montage on the routine (the same jump a montage turn runs)', async () => {
     const s = (await campaign(true)).state;

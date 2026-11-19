@@ -9,6 +9,7 @@ import { COMBAT_STAKES } from '../data/progression.config';
 import type { SPARRING_MODES } from '../data/combat.config';
 import { BODY_PARTS, SEVERITIES, type BodyPart, type Severity } from '../data/health.config';
 import { MINION_KINDS } from '../data/npcGen.config';
+import type { WeaponKind } from '../data/health.config';
 import { FORM_IDS, SKILL_BY_ID } from '../data/skills';
 import { TERRAIN_IDS } from '../data/terrain';
 import { absDayFromDate, dateFromAbsDay, isValidDate, type CalendarDate } from '../engine/calendar';
@@ -31,7 +32,7 @@ export { pendingScenario } from './devScenario';
 
 /** The help text: every command, one line each. Unknown commands show it. */
 export const DEV_HELP: readonly string[] = [
-  '/fight <count> <kind or level> [at <gap>] [terrain <tags>] [stakes spar|skirmish|serious|lethal] [mode training|controlled|academy]: a fight now, with the duel panel. Kinds: duelist, a minion kind (b1, b2, militia, thug, brawler, trooper, elite, mandalorian, droideka, beast, acolyte), a level, or canon:<name>. Examples: /fight 1 duelist at -10, /fight 6 b1 terrain forest, /fight 1 canon:malgus stakes lethal',
+  '/fight <count> <kind or level> [at <gap>] [terrain <tags>] [stakes spar|skirmish|serious|lethal] [mode training|controlled|academy] [weapon <kind>]: a fight now, with the duel panel. weapon (minion groups): scattergun, slugpistol, slugrifle, pistol, rifle, heavy, melee, saber. Kinds: duelist, a minion kind (b1, b2, militia, thug, brawler, trooper, elite, mandalorian, droideka, beast, acolyte), a level, or canon:<name>. Examples: /fight 1 duelist at -10, /fight 6 b1 terrain forest, /fight 1 canon:malgus stakes lethal',
   '/spar <partner level, at <gap>, or canon:<name>> [mode training|controlled|academy]: a sparring session, played out',
   '/wound <location> <severity>: a wound (torso, head, left arm, right leg, left hand ...; minor, moderate, severe, critical, mortal). /heal [all]: wounds and Vitality back (all: lasting injuries too)',
   '/set <skill> <level>, /e <form> <value>, /ci <ability> <value>: stats directly',
@@ -39,6 +40,7 @@ export const DEV_HELP: readonly string[] = [
   '/skip <amount> <days|weeks|months|years>: a montage (or time skip) on the routine',
   '/time <time of day, or year BBY|ABY [month] [day] [time]>: the clock forward to then. /place <location>: move there (created when new)',
   '/scenario <text>: the next narration starts exactly in that situation',
+  '/truce [terms]: the opponent offers a truce (the Accept truce button answers it). /fall: the fight\'s terrain accidents are rolled now',
   '/help: this list',
 ];
 
@@ -58,6 +60,18 @@ const SEVERITY_W: Readonly<Record<Severity, number>> = { minor: 5, moderate: 15,
 const TIMES_OF_DAY: Readonly<Record<string, number>> = { midnight: 0, dawn: 6 * 3600, morning: 8 * 3600, noon: 12 * 3600, midday: 12 * 3600, afternoon: 15 * 3600, evening: 19 * 3600, dusk: 19 * 3600, night: 22 * 3600 };
 const SPAN_UNIT: Readonly<Record<string, RequestedSpan['unit']>> = { d: 'days', day: 'days', days: 'days', w: 'weeks', week: 'weeks', weeks: 'weeks', m: 'months', mo: 'months', month: 'months', months: 'months', y: 'years', year: 'years', years: 'years' };
 const MAX_DUELISTS = 4;
+/** /fight weapon words for a minion group (D-215). */
+const WEAPON_ALIASES: Readonly<Record<string, WeaponKind>> = { scattergun: 'scatterGun', scatter: 'scatterGun', slugpistol: 'slugPistol', slug: 'slugPistol', slugrifle: 'slugRifle', pistol: 'blasterPistol', blaster: 'blasterPistol', blasterpistol: 'blasterPistol', rifle: 'blasterRifle', blasterrifle: 'blasterRifle', heavy: 'heavy', melee: 'melee', vibroblade: 'melee', saber: 'lightsaber', lightsaber: 'lightsaber', unarmed: 'unarmed' };
+/**
+ * Where a /fight place word puts the scene (D-215): an in-world place, never a "sandbox", "testing chamber" or
+ * "simulation" (the narrator read pass 2's "Ruins (dev sandbox)" as a combat simulation). Planets that exist in every era.
+ */
+export const DEV_PLACE_NAMES: Readonly<Record<string, string>> = {
+  forest: 'a forest clearing on Dantooine', jungle: 'a jungle on Yavin 4', swamp: 'a swamp on Dagobah', cave: 'a cave in the hills of Dantooine', ruins: 'ancient ruins on Dantooine', desert: 'the Dune Sea on Tatooine', plains: 'the grasslands of Dantooine', rooftop: 'a rooftop on Nar Shaddaa', hangar: 'an abandoned hangar on Nar Shaddaa', corridor: 'a starship corridor', temple: 'an old temple hall on Dantooine', 'training hall': 'a training hall', salle: 'a dueling salle', dojo: 'a training hall', 'sparring ring': 'a sparring ring', academy: 'an academy training floor', arena: 'a fighting pit on Nar Shaddaa', office: 'an office on Coruscant', ice: 'an ice field on Hoth', glacier: 'a glacier on Hoth', 'ilum caves': 'the ice caves of Ilum', hoth: 'an ice field on Hoth',
+};
+/** A fight with no place word in a scene with no place, or a leftover dev place, is set here (D-215). */
+export const DEV_DEFAULT_PLACE = 'an abandoned hangar on Nar Shaddaa';
+const isDevPlace = (name: string | undefined): boolean => !name || /dev sandbox|testing|simulation|sandbox/i.test(name);
 /**
  * Place words for /fight terrain (design default, D-180): each stands for the terrain tags such a place has, with
  * throwables wherever an outdoor or wrecked place has them (fallen timber, loose rock, debris, machinery).
@@ -201,7 +215,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
     case 'fight':
     case 'spar': {
       if (inFight) return fail('a fight is already in progress (Resolve to end, or Stop sparring, first)');
-      const kw = new Set(['at', 'terrain', 'stakes', 'mode']);
+      const kw = new Set(['at', 'terrain', 'stakes', 'mode', 'weapon']);
       let i = 0;
       let count = 1;
       if (cmd === 'fight') {
@@ -214,6 +228,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       const terrain: string[] = [];
       let stakes: string = cmd === 'spar' ? 'spar' : 'serious';
       let mode: string | null = null;
+      let weapon: WeaponKind | null = null;
       while (i < args.length) {
         const k = args[i++]!.toLowerCase();
         if (k === 'at') {
@@ -231,6 +246,10 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
         } else if (k === 'stakes') {
           stakes = (args[i++] ?? '').toLowerCase();
           if (!(COMBAT_STAKES as readonly string[]).includes(stakes)) return fail(`stakes: ${COMBAT_STAKES.join(', ')}`);
+        } else if (k === 'weapon') {
+          const w = WEAPON_ALIASES[(args[i++] ?? '').toLowerCase()];
+          if (!w) return fail(`weapon: ${Object.keys(WEAPON_ALIASES).join(', ')}`);
+          weapon = w;
         } else if (k === 'mode') {
           const m = MODE_ALIASES[(args[i++] ?? '').toLowerCase()];
           if (!m) return fail('mode: training, controlled or academy');
@@ -255,7 +274,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
         const age = c.birthBby + dateFromAbsDay(selectNow(state).day).year;
         if (age < 1) return fail(`${c.name} is not born yet at this date`);
         if (c.deathBby !== undefined && -dateFromAbsDay(selectNow(state).day).year < c.deathBby) return fail(`${c.name} is dead at this date`);
-        apply([{ type: 'npcIntroduced', name: c.name, species: c.speciesId, faction: c.faction, role: c.role, ageApprox: Math.round(age), description: 'a dev sandbox opponent (canon)' }], 'dev');
+        apply([{ type: 'npcIntroduced', name: c.name, species: c.speciesId, faction: c.faction, role: c.role, ageApprox: Math.round(age), description: 'here to fight' }], 'dev');
         const id = Object.values(state.npcs.byId).find((n) => n.name === c.name)?.id;
         if (!id) return fail(refused() ?? 'could not introduce the canon figure');
         apply([{ type: 'npcCanonLinked', npcRef: id, canonId: c.canonId }], 'engine');
@@ -263,7 +282,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
         who = c.name;
       } else if (minion) {
         if (gap !== null) report.push('at is ignored for minions: their levels come from their kind and grade');
-        minionGroups.push({ kind: minion, count });
+        minionGroups.push({ kind: minion, count, ...(weapon ? { weapon } : {}) });
         who = `${count} ${MINION_KINDS.find((k) => k.id === minion)!.label}${count > 1 ? 's' : ''}`;
       } else if (kind.toLowerCase() === 'duelist' || kind.toLowerCase() === 'partner' || (Number.isFinite(asLevel) && asLevel > 0)) {
         if (count > MAX_DUELISTS) return fail(`at most ${MAX_DUELISTS} named duelists`);
@@ -276,7 +295,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
           let k = 1;
           while (Object.values(state.npcs.byId).some((x) => x.name === `${base} ${k}`)) k++;
           const name = `${base} ${k}`;
-          apply([{ type: 'npcIntroduced', name, species: 'human', faction: ally ? 'jediOrder' : 'sithEmpire', role: ally ? 'jediKnight' : 'sithLord', ageApprox: 35, description: 'a dev sandbox opponent' }], 'dev');
+          apply([{ type: 'npcIntroduced', name, species: 'human', faction: ally ? 'jediOrder' : 'sithEmpire', role: ally ? 'jediKnight' : 'sithLord', ageApprox: 35, description: stakes === 'spar' ? 'a sparring partner' : 'an armed duelist who means to fight' }], 'dev');
           const id = Object.values(state.npcs.byId).find((x) => x.name === name)?.id;
           if (!id) return fail(refused() ?? 'could not introduce the duelist');
           apply([{ type: 'devNpcLevelsSet', npcRef: id, level }], 'dev');
@@ -285,10 +304,15 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
         }
         who = `${count} ${base.toLowerCase()}${count > 1 ? 's' : ''} at ${level.toFixed(1)} (your form ${playerFormLevel(state).toFixed(1)})`;
       } else return fail(`unknown kind "${kind}" (duelist, a level, a minion kind, or canon:<name>)`);
+      if (weapon && !minion) return fail('weapon is for a minion group (e.g. /fight 4 mandalorian weapon scattergun)');
       // A place word moves the scene there, so the narrator does not set the fight in the old place (issue 21).
+      // In-world places only (D-215): a place word sets its place; with none, a scene with no place (or a leftover dev
+      // place) gets the neutral default, and the scenario's place is kept.
       const placeWord = terrain.find((t) => TERRAIN_ALIASES[t.toLowerCase()]);
-      if (placeWord) {
-        const moved = movePlace(`${placeWord.charAt(0).toUpperCase()}${placeWord.slice(1)} (dev sandbox)`);
+      const here = state.locations.currentId ? state.locations.byId[state.locations.currentId]?.name : undefined;
+      const target = placeWord ? (DEV_PLACE_NAMES[placeWord.toLowerCase()] ?? DEV_DEFAULT_PLACE) : isDevPlace(here) ? DEV_DEFAULT_PLACE : null;
+      if (target && target !== here) {
+        const moved = movePlace(target);
         if (moved) return fail(moved);
       }
       const before = state;
@@ -297,6 +321,20 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       draft = { combat: combatDraft(before, state, true, report), pacingLevel: selectPacingLevel(state) };
       kind = state.combat.active.sparring ? `${stakes} (${state.combat.active.sparring})` : stakes;
       return out(true, `${cmd === 'spar' ? 'sparring session' : 'fight'} begun: ${who}, ${kind}${tags.length ? `, terrain ${tags.join(', ')}` : ''}`);
+    }
+
+    case 'truce': {
+      if (!inFight) return fail('no fight in progress');
+      apply([{ type: 'truceOffered', why: args.join(' ').trim() || 'the opponent offers to stop the fight' }], 'dev');
+      if (refused()) return fail(refused()!);
+      return out(true, 'the opponent offers a truce');
+    }
+
+    case 'fall': {
+      if (!inFight) return fail('no fight in progress');
+      apply([{ type: 'devTerrainRolled' }], 'dev');
+      if (refused()) return fail(refused()!);
+      return out(true, 'terrain accidents rolled');
     }
 
     case 'wound': {

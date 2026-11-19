@@ -38,7 +38,9 @@ import type { GameState } from '../state/gameState';
 import type { GameEvent, Registry } from '../state/types';
 import { createCampaign, DEFAULT_START_SECOND, loadEarlierSave, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
 import type { SaveMeta } from '../persist/saveHistory';
-import { devFlag, TEST_START_RANKS, testStartInput, type TestStartRank } from '../turn/testStart';
+import { devFlag, TEST_START_ARCHETYPES, TEST_START_RANKS, testStartInput, type TestStartArchetype, type TestStartRank } from '../turn/testStart';
+import { ARCHETYPE_BY_ID } from '../data/archetypes';
+import { SPECIES } from '../data/species';
 import { narrateTurn, prepareTurn, summarizeChapters, TurnError, type DebugRequest, type PendingTurn, type Session, type SummaryOutcome, type TurnDeps } from '../turn/pipeline';
 import { describeInput, type TurnInput, type TurnRecord } from '../turn/record';
 import type { TrainingOutcome } from '../turn/resolve';
@@ -967,10 +969,13 @@ export class App {
   /** Dev-only test start (D-178; ?dev=1): rank and age, an Average Jedi Guardian marked as a test character. */
   private renderTestStart(name: HTMLInputElement, startD: { read: () => CalendarDate }, readTime: () => number, err: HTMLElement): HTMLElement[] {
     const rank = el('select', {}, TEST_START_RANKS.map((r) => el('option', { text: r, attrs: { value: r } })));
+    // D-215: the archetype (path, skills and equipment) and the species.
+    const archetype = el('select', { attrs: { 'aria-label': 'Archetype' } }, Object.keys(TEST_START_ARCHETYPES).map((a) => el('option', { text: ARCHETYPE_BY_ID.get(a)?.name ?? a, attrs: { value: a } })));
+    const species = el('select', { attrs: { 'aria-label': 'Species' } }, SPECIES.map((x) => el('option', { text: x.name, attrs: { value: x.id } })));
     const age = input({ type: 'number', value: '16', min: '4', max: '200', step: '0.5' });
     const scenario = el('textarea', { attrs: { rows: '2', placeholder: "Optional: I'm a Knight in a forest on Dantooine, ambushed by 4 Mandalorians", 'aria-label': 'Scenario' } });
     const start = async (): Promise<void> => {
-      const req = testStartInput({ name: name.value, rank: rank.value as TestStartRank, age: Number(age.value), startDate: startD.read(), startSecond: readTime(), scenario: scenario.value });
+      const req = testStartInput({ name: name.value, rank: rank.value as TestStartRank, age: Number(age.value), startDate: startD.read(), startSecond: readTime(), scenario: scenario.value, archetype: archetype.value as TestStartArchetype, speciesId: species.value });
       const errors = validateNewCampaign(req);
       if (errors.length) {
         err.textContent = errors.join(' ');
@@ -990,10 +995,12 @@ export class App {
     };
     return [
       el('div', { class: 'field-label', text: 'Dev: test start (not part of normal creation)' }),
-      el('div', { class: 'field' }, [el('label', { text: 'Rank' }), rank]),
+      el('div', { class: 'field' }, [el('label', { text: 'Archetype' }), archetype]),
+      el('div', { class: 'field' }, [el('label', { text: 'Species' }), species]),
+      el('div', { class: 'field' }, [el('label', { text: 'Rank (Sith: acolyte, apprentice, Lord; a career has one rank)' }), rank]),
       el('div', { class: 'field' }, [el('label', { text: 'Age' }), age]),
       el('div', { class: 'field' }, [el('label', { text: 'Scenario (dev: the opening starts exactly here; later, /scenario in the chat box; /help lists the dev commands)' }), scenario]),
-      el('p', { class: 'hint', text: 'An Average Jedi Guardian at this rank and age, levels from the closed form; uses the start date above. Marked as a test character.' }),
+      el('p', { class: 'hint', text: 'The Average character of this archetype at this rank and age, levels from the closed form, with the archetype skills and equipment (a test Sith also knows Lightning; a smuggler has a blaster pistol and no Force); uses the start date above. Marked as a test character.' }),
       el('div', { class: 'row actions' }, [el('button', { class: 'secondary', text: 'Start test character', on: { click: () => void start() } })]),
     ];
   }

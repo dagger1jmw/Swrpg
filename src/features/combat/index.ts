@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
 import { rollBoutHazards } from '../../engine/terrainHazard';
-import { BODY_PARTS, type BodyPart } from '../../data/health.config';
+import { BODY_PARTS, WEAPON_KINDS, type BodyPart, type WeaponKind } from '../../data/health.config';
 import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt, minionKindForYear } from '../../data/npcGen.config';
 import { dateFromAbsDay, toAbsSecond } from '../../engine/calendar';
 import { mandalorianSlugthrower } from '../../data/weapons';
@@ -78,7 +78,8 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
       }
       // Numbered within its kind (pass 2: "B1 battle droid 2" was the first droid, after the duelist).
       const number = opponents.filter((o) => meta[o.id]?.minionKind === kind).length + 1;
-      const f = buildMinionFighter(s, kind, grade, opponents.length, fightId, beskar, slug, number);
+      // A dev /fight weapon for the group (D-215) overrides the kind's weapon and the Mandalorian slugthrower roll.
+      const f = buildMinionFighter(s, kind, grade, opponents.length, fightId, beskar, g.weapon ?? slug, number);
       opponents.push(f);
       meta[f.id] = { npcId: null, minionKind: kind, rank: null };
     }
@@ -379,7 +380,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         /** The next bout after an auto-resolved spar keeps its mode (D-177). */
         sparringMode: z.enum(SPARRING_MODES).optional(),
         /** A dev sandbox fight (D-180): unnamed opponents by kind, clamped like combatStarted's. */
-        minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(99) })).max(4).optional(),
+        minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(99), weapon: z.enum(WEAPON_KINDS).optional() })).max(4).optional(),
         /** A sparring session played out beat by beat from its first exchange (D-180 /spar), not resolved like a montage. */
         playOut: z.boolean().optional(),
       }),
@@ -388,7 +389,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         if (slice.active) return { reject: 'a fight is already in progress' };
         const spec: PendingFight | null = e['fromPending']
           ? slice.pending
-          : { opponentRefs: (e['opponentRefs'] as string[]) ?? [], minionGroups: ((e['minionGroups'] as { kind: string; count: number }[] | undefined) ?? []).map((g) => ({ kind: g.kind, count: Math.min(MINION_COUNT.max, Math.max(MINION_COUNT.min, g.count)) })), stakes: (e['stakes'] as CombatStakes) ?? 'serious', terrainTags: ((e['terrainTags'] as string[]) ?? []).filter((t) => TERRAIN_IDS.includes(t)), ambushClaim: false, engagedElsewhere: [], sparringMode: (e['sparringMode'] as PendingFight['sparringMode'] | undefined) ?? null };
+          : { opponentRefs: (e['opponentRefs'] as string[]) ?? [], minionGroups: ((e['minionGroups'] as { kind: string; count: number; weapon?: WeaponKind }[] | undefined) ?? []).map((g) => ({ kind: g.kind, count: Math.min(MINION_COUNT.max, Math.max(MINION_COUNT.min, g.count)), ...(g.weapon ? { weapon: g.weapon } : {}) })), stakes: (e['stakes'] as CombatStakes) ?? 'serious', terrainTags: ((e['terrainTags'] as string[]) ?? []).filter((t) => TERRAIN_IDS.includes(t)), ambushClaim: false, engagedElsewhere: [], sparringMode: (e['sparringMode'] as PendingFight['sparringMode'] | undefined) ?? null };
         if (!spec) return { reject: 'no pending fight' };
         const id = `fight-${slice.seq}`;
         const r = startFight(ctx.state, spec, id);
@@ -643,6 +644,21 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
       },
     },
+    /** Dev only (D-215): /fall rolls the fight's terrain accidents now, as at the start of a block of exchanges (D-185). */
+    devTerrainRolled: {
+      schema: z.object({ type: z.literal('devTerrainRolled') }),
+      sources: ['dev'],
+      handle: (slice, _e, ctx) => {
+        const active = slice.active;
+        if (!active) return { reject: 'no fight in progress' };
+        const hazards = active.ctx.hazards ?? [];
+        if (!hazards.length) return { reject: 'this fight has no hazardous terrain (try terrain ice, forest or ruins)' };
+        const before = active.duel as DuelState;
+        const hz = rollBoutHazards(before, hazards, selectNow(ctx.state).day);
+        const notes = hz.notes.length ? hz.notes : ['terrain rolled: nobody fell'];
+        return { slice: { ...slice, active: { ...active, duel: hz.duel } }, emit: syncEmits(ctx.state, before, hz.duel, active.meta), notes };
+      },
+    },
     /** Dev only (D-180; combat pass 1 issue 21): /fatigue during a fight reaches the player's fighter. */
     devDuelMetersSynced: {
       schema: z.object({ type: z.literal('devDuelMetersSynced') }),
@@ -670,7 +686,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
      */
     truceOffered: {
       schema: z.object({ type: z.literal('truceOffered'), why: z.string().min(1).max(200).describe('Who offers it and on what terms, in a few words') }),
-      sources: ['ai'],
+      // dev: /truce makes the opponent offer one, for testing (D-215).
+      sources: ['ai', 'dev'],
       narrative: (s) => s.combat.active !== null && !s.combat.active.session,
       handle: (slice, e) => {
         if (!slice.active) return { reject: 'no fight in progress' };

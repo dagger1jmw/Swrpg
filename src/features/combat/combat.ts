@@ -3,14 +3,14 @@
 // last fight for narration and the UI. fightsToday and the day's combat XP stay in progression (D-47).
 import { z } from 'zod';
 import { NPC_FATES, SPARRING_MODES } from '../../data/combat.config';
-import { HAZARD_TYPES } from '../../data/health.config';
+import { HAZARD_TYPES, WEAPON_KINDS } from '../../data/health.config';
 import { MINION_KIND_IDS } from '../../data/npcGen.config';
 import { COMBAT_OUTCOMES, COMBAT_STAKES } from '../../data/progression.config';
 import { TERRAIN_IDS } from '../../data/terrain';
 
 export const pendingFightSchema = z.object({
   opponentRefs: z.array(z.string()),
-  minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(12) })),
+  minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(12), weapon: z.enum(WEAPON_KINDS).optional() })),
   stakes: z.enum(COMBAT_STAKES),
   terrainTags: z.array(z.enum(TERRAIN_IDS as [string, ...string[]])),
   ambushClaim: z.boolean(),

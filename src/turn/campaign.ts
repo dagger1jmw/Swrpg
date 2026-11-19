@@ -21,7 +21,7 @@ export interface NewCampaignInput {
   /** Computed creation choices (M3). Absent = an untrained Human outsider (natural baselines only). */
   creation?: Omit<CreationInput, 'name' | 'birthDay' | 'startDay'>;
   /** A dev-only test start (D-178): CI for the known combat Force abilities, and the testCharacter mark. */
-  test?: { ci: number; abilities: readonly string[]; scenario?: string };
+  test?: { ci: number; abilities: readonly string[]; scenario?: string; grants?: Readonly<Record<string, string>> };
 }
 
 /** A test start's CI (D-178): the rank's sparring-level CI on every combat Force ability the character knows. */
@@ -80,6 +80,10 @@ export async function createCampaign(
   if (errors.length) throw new Error(errors.join(' '));
   const c = creationFor(input);
   const cr = input.creation;
+  // A test start's granted abilities copy another ability's starting XP (D-215: a test Sith knows Lightning).
+  const grants = input.test?.grants ?? {};
+  const xp: Record<string, number> = { ...(c?.startingXp ?? {}) };
+  for (const [to, from] of Object.entries(grants)) xp[to] = Math.max(xp[to] ?? 0, xp[from] ?? 0);
   const state = createInitialState<GameState>(registry, {
     campaignId: ids.campaignId,
     branchId: ids.branchId,
@@ -105,7 +109,7 @@ export async function createCampaign(
         : {}),
       ...(input.test ? { testCharacter: true } : {}),
     },
-    ...(c ? { startingXp: c.startingXp, startingE: c.startingE, startingCI: input.test ? testCI(c.startingCI, c.startingXp, input.test) : c.startingCI, rank: cr!.rank, backstoryFacts: c.facts } : {}),
+    ...(c ? { startingXp: xp, startingE: c.startingE, startingCI: input.test ? testCI(c.startingCI, xp, input.test) : c.startingCI, rank: cr!.rank, backstoryFacts: c.facts } : {}),
   });
   const premise = input.premise?.trim() ?? '';
   const scenario = input.test?.scenario?.trim() ?? '';
