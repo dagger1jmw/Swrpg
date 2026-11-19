@@ -29,6 +29,18 @@ export const STRIKE_WORDS: readonly string[] = [
   'strike', 'strikes', 'striking', 'heavy strikes', 'heavy strike', 'cut', 'cuts', 'cutting', 'cut down', 'carve', 'carve through', 'carving', 'slash', 'slashes', 'slashing', 'hack', 'hacks', 'hacking', 'cleave', 'cleaves', 'swing', 'swings', 'swinging', 'thrust', 'thrusts', 'lunge', 'lunges', 'stab', 'stabs', 'slice', 'slices', 'hew', 'chop', 'chops', 'bisect', 'behead', 'hit', 'hits',
 ];
 
+/**
+ * Force gestures (Jared, combat pass 2 issue 3; D-210): "thrust out my hand", "raise my palm", "extend both hands". A
+ * gesture is part of the Force action named in the same sentence (or the intent's Force step), never a strike, so
+ * "thrust" in "thrust out my hand" is not an attack verb. Matched as: verb, an optional direction, an optional owner
+ * and describing word, then a hand word.
+ */
+export const FORCE_GESTURE = new RegExp(
+  `\\b(thrust|thrusts|thrusting|throw|throws|throwing|stretch|stretches|stretching|extend|extends|extending|raise|raises|raising|lift|lifts|lifting|sweep|sweeps|sweeping|hold|holds|holding|reach|reaches|reaching|fling|flings|flinging|jab|jabs|shove|shoves|push|pushes|pushing|splay|splays|open|opens|point|points|pointing|snap|snaps|clench|clenches|clenching|curl|curls|curling|spread|spreads|spreading)` +
+    `(?: (?:out|forth|forward|outward|up|upward|toward \\w+))?(?: (?:my|both|one|an|a|the|his|her|their))?(?: (?:open|free|left|right|empty|outstretched|off))? (hand|hands|palm|palms|arm|arms|fingers|fist)\\b`,
+  'g',
+);
+
 /** Words that name a Force action in a clause (so an attack verb in it is not a separate strike), by step action. */
 export const FORCE_CLAUSE_WORDS: Readonly<Record<string, readonly string[]>> = {
   saberThrow: ['saber throw', 'throw my saber', 'throw my lightsaber', 'throw the saber', 'throw the lightsaber', 'hurl my saber', 'hurl my lightsaber', 'saber toss', 'toss my saber'],

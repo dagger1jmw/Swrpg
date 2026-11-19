@@ -136,11 +136,11 @@ describe('saber throw (D-193)', () => {
     }
     expect(interrupted).toBe(true);
   });
-  it('a sequence: a saber throw the character cannot make is dropped with its reason, and the chain goes on', () => {
+  it('a sequence: a saber throw the character cannot make fails with its reason (D-210), and the chain goes on', () => {
     const s = { duel: startDuel(knight(), [minion(0), minion(1)], seedRng('seq')), patternUses: {}, objects: {} };
     const r = runSequence(s, CTX, 0, [{ kind: 'forceAction', action: 'saberThrow' }, { kind: 'strike' }], 3, {}, { levelOf: () => 0, ciOf: () => 0, forceOutput: 0, trickLevel: 0 });
-    expect(r.results[0]!.status).toBe('dropped');
-    expect(r.lines[0]).toBe('step 1 saber throw: NOT REACHED (the character does not know telekinesis)');
+    expect(r.results[0]!.status).toBe('failed');
+    expect(r.lines[0]).toBe("step 1 saber throw: FAILED (you don't know Telekinesis)");
     expect(r.results[1]!.step.kind).toBe('strike');
   });
 });

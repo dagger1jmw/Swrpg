@@ -11,6 +11,7 @@ import { canThrowSaber, FORCE_ACTION_ABILITY, forceReason, resolveForceAction, t
 import { beatAfter, exchangeOutcomeText, hitText, partText, resolveExchange, runUntilBeat, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type RunMode } from './duel';
 import type { BeatReason } from '../data/combat.config';
 import type { Modifier } from './rolls';
+import { SKILL_BY_ID } from '../data/skills';
 import { basicRoll } from './rolls';
 
 export type SequenceStep =
@@ -131,7 +132,8 @@ export function runSequence(
     // A step that cannot be attempted is dropped with its reason and the chain goes on (D-191: no silent drops).
     const cannot = cannotAttempt(step, duel, force);
     if (cannot) {
-      results.push({ index: i, step, success: false, status: 'dropped', note: cannot });
+      // An ability the character does not know is FAILED with that reason (D-210): nothing is rolled, no exchange.
+      results.push({ index: i, step, success: false, status: cannot.startsWith(UNKNOWN_PREFIX) ? 'failed' : 'dropped', note: cannot });
       continue;
     }
     if (step.kind === 'stance') {
@@ -265,11 +267,14 @@ export function stepLabel(step: SequenceStep): string {
   return step.aim ? `strike (aimed at the ${partText(step.aim)})` : 'strike';
 }
 
+/** The reason for a step whose ability the character does not know (D-210). */
+export const UNKNOWN_PREFIX = "you don't know ";
+
 /** Why a step cannot be attempted at all, or null (D-191, D-193). */
 function cannotAttempt(step: SequenceStep, duel: DuelState, force: ForceProfile): string | null {
   if (step.kind !== 'forceAction') return null;
   const ability = FORCE_ACTION_ABILITY[step.action];
-  if (force.levelOf(step.action) < 1) return `the character does not know ${ability}`;
+  if (force.levelOf(step.action) < 1) return `${UNKNOWN_PREFIX}${SKILL_BY_ID.get(ability)?.name ?? ability}`;
   if (step.action === 'saberThrow' && !canThrowSaber(duel.a, force.levelOf(step.action))) return duel.a.saberLost ? 'the saber is on the ground: recall it first' : 'needs a lightsaber in hand, telekinesis 15 and a form 10';
   if (step.action === 'recall' && !duel.a.saberLost) return 'the saber is already in hand';
   // A mind trick on a mind it cannot touch costs nothing (D-194).

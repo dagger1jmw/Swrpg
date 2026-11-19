@@ -248,7 +248,8 @@ describe('daily-quota model fallback (D-80)', () => {
       { callType: 'narrative', model: 'gemini-3.8-flash', data: opening },
       { callType: 'narrative', model: 'gemini-3.8-flash', error: daily },
       { callType: 'narrative', model: 'gemini-3.5-flash-lite', data: plainNarrative() },
-      { callType: 'narrative', model: 'gemini-3.5-flash-lite', data: plainNarrative() },
+      // A different reply on the next turn: a word-for-word repeat would be retried (D-210).
+      { callType: 'narrative', model: 'gemini-3.5-flash-lite', data: plainNarrative({ narrative: 'Later the archive falls quiet, and the lamps burn low over the shelves of old datacards.' }) },
     ]);
     const s1 = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
     const pending = await prepareTurn(deps, s1, { kind: 'choice', choice: choiceInvestigate });

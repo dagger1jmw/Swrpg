@@ -20,7 +20,7 @@ import { cannotDuel, currentTarget, startDuel, tryShatterpoint, type DuelState, 
 import { rollMinionGrade } from '../../engine/npcGen';
 import { basicRoll } from '../../engine/rolls';
 import { nextFloat, nextInt, type RngState } from '../../engine/rng';
-import { runPassive, runSequence, sequenceCap, type SequenceStep } from '../../engine/sequence';
+import { runPassive, runSequence, sequenceCap, UNKNOWN_PREFIX, type SequenceStep } from '../../engine/sequence';
 import { isDying, isIncapacitated, type Wound } from '../../engine/wounds';
 import type { GameState } from '../../state/gameState';
 import type { ApplyCtx, FeatureModule, GameEvent } from '../../state/types';
@@ -511,8 +511,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           }
         } else if (action === 'force') {
           const f = e['force'] as { kind: ForceActionKind; effort?: 'light' | 'standard' | 'heavy' | 'allOut'; objectTag?: string };
-          const ability = FORCE_ACTION_ABILITY[f.kind];
-          if (selectLevelExact(s, ability) < 1) return { reject: `the character does not know ${ability}` };
+          // An ability the character does not know: the step line "FAILED (you don't know X)", a quiet no-effect beat with
+          // no exchange and no AI call (D-210), never a rejected event that leaves the narrator nothing to tell.
           const r = runSequence({ duel, patternUses: active.patternUses, objects: active.objects }, ctxD, day, [{ kind: 'forceAction', action: f.kind, ...(f.effort ? { effort: f.effort } : {}), ...(f.objectTag ? { objectTag: f.objectTag } : {}) }], 1, active.objectSizes, forceProfile(s));
           const settled = settle({ ...slice, active: { ...active, patternUses: r.state.patternUses, objects: r.state.objects } }, s, { ...active, patternUses: r.state.patternUses, objects: r.state.objects }, before, r.state.duel, ...beatFor(duel, r.state.duel, 'forceAction', r.lines), r.lines);
           return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
@@ -728,7 +728,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
 /** The beat after a Force action or a sequence: noEffect (quiet, no exchange) when nothing was attempted (D-194). */
 function beatFor(before: DuelState, after: DuelState, beat: 'forceAction' | 'sequence', lines: readonly string[]): [string, boolean] {
   // A feint or taunt rolls dice without an exchange record: it was attempted (D-199).
-  const attempted = after.log.length !== before.log.length || lines.some((l) => /: (DONE|FAILED) \(/.test(l) && !/^step \d+ stance /.test(l));
+  const attempted = after.log.length !== before.log.length || lines.some((l) => /: (DONE|FAILED) \(/.test(l) && !/^step \d+ stance /.test(l) && !l.includes(`FAILED (${UNKNOWN_PREFIX}`));
   return attempted ? [beat, true] : ['noEffect', false];
 }
 

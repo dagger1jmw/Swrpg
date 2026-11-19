@@ -14,7 +14,7 @@ import type { CombatDraft } from './combatTurn';
 import { careApplied } from './context';
 import type { TurnDraft } from './resolve';
 
-export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced';
+export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated';
 export interface NarrationIssue {
   kind: NarrationIssueKind;
   /** The correction for the retry, and the log line. */
@@ -208,6 +208,43 @@ function misplacedIssues(narrative: string, draft: TurnDraft, known: KnownWounds
   return out;
 }
 
+/** The words of a sentence for the repeat check: lower case letters and digits only. */
+const wordsOf = (s: string): string[] => s.toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').split(/\s+/).filter(Boolean);
+/** Word overlap of two texts: shared words over the larger set (1.0 = the same words). */
+function overlap(a: readonly string[], b: readonly string[]): number {
+  if (!a.length || !b.length) return 0;
+  const A = new Set(a);
+  const B = new Set(b);
+  let shared = 0;
+  for (const w of A) if (B.has(w)) shared++;
+  return shared / Math.max(A.size, B.size);
+}
+/** A sentence counts as repeated at this word overlap with a sentence of the previous reply (D-210). */
+export const REPEAT_SENTENCE = 0.8;
+/** The narration repeats the previous reply when this share of its sentences are repeats, or the whole text overlaps this much. */
+export const REPEAT_SHARE = 0.6;
+/** A reply shorter than this is not checked for repeats (a stock line, a one-sentence beat). */
+export const REPEAT_MIN_WORDS = 25;
+
+/**
+ * Rule 8 (D-210, combat pass 2 issue 9): the narration repeats the previous reply word for word or nearly (the narrator
+ * did so when RESOLVED was empty). One issue per repeated sentence, so the fallback can drop them; only when most of
+ * the reply repeats, never for one recurring phrase.
+ */
+export function repeatedIssues(narrative: string, previous: string): NarrationIssue[] {
+  const prev = sentencesOf(previous).map(wordsOf).filter((w) => w.length >= 5);
+  const now = sentencesOf(narrative);
+  if (!prev.length || !now.length || wordsOf(narrative).length < REPEAT_MIN_WORDS) return [];
+  const repeats = now.filter((s) => {
+    const w = wordsOf(s);
+    return w.length >= 5 && prev.some((p) => overlap(w, p) >= REPEAT_SENTENCE);
+  });
+  const whole = overlap(wordsOf(narrative), wordsOf(previous));
+  if (repeats.length / now.length < REPEAT_SHARE && whole < 0.85) return [];
+  const text = 'your narration repeats your previous reply nearly word for word: narrate only what RESOLVED says happened this turn, in new words';
+  return (repeats.length ? repeats : now).map((sentence) => ({ kind: 'repeated' as const, text, sentence }));
+}
+
 function healingIssues(narrative: string, draft: TurnDraft): NarrationIssue[] {
   const care = new Set(careApplied(draft));
   const out: NarrationIssue[] = [];
@@ -223,8 +260,9 @@ function healingIssues(narrative: string, draft: TurnDraft): NarrationIssue[] {
  * The contradictions between a narration and the turn's resolved block. `woundedOrHealing`: the character has wounds or
  * the turn is a time jump or a healing action (only then is healing prose checked).
  */
-export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHealing: boolean, known: KnownWounds = { player: [] }): NarrationIssue[] {
+export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHealing: boolean, known: KnownWounds = { player: [] }, previous: string | null = null): NarrationIssue[] {
   const issues: NarrationIssue[] = [];
+  if (previous) issues.push(...repeatedIssues(narrative, previous));
   if (draft.combat && !draft.combat.quiet) issues.push(...combatIssues(narrative, draft.combat, combatFacts(draft.combat)));
   if (woundedOrHealing) issues.push(...healingIssues(narrative, draft));
   issues.push(...misplacedIssues(narrative, draft, known));

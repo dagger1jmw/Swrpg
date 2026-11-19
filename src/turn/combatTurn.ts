@@ -9,7 +9,7 @@ import { isDying, isIncapacitated, statusLabel, type Wound } from '../engine/wou
 import type { ActiveFight, FightSummary } from '../features/combat/selectors';
 import type { GameState } from '../state/gameState';
 import type { CombatActionInput } from './record';
-import { COMBAT_WORD_GROUPS, FORCE_CLAUSE_WORDS, FORM_WORDS, STRIKE_WORDS } from '../data/combatWords';
+import { COMBAT_WORD_GROUPS, FORCE_CLAUSE_WORDS, FORCE_GESTURE, FORM_WORDS, STRIKE_WORDS } from '../data/combatWords';
 
 /**
  * Natural combat words (D-179): the typed text (or a choice's label) read against the configured word groups and form
@@ -44,7 +44,7 @@ export function combatWordsAction(text: string): Record<string, unknown> | null 
 type StepLike = { kind: string; action?: string } & Record<string, unknown>;
 
 /** The text as clauses in order (split on then, commas, semicolons, full stops and "and"), lower case. */
-function clausesOf(text: string): string[] {
+export function clausesOf(text: string): string[] {
   const t = text.toLowerCase().replace(/[^a-z0-9' -]+/g, (m) => (/[,;.!?]/.test(m) ? ' | ' : ' '));
   return t
     .split(/\||\bthen\b|\band\b|\bbefore\b|\bafter that\b/)
@@ -52,19 +52,23 @@ function clausesOf(text: string): string[] {
     .filter((c) => c.trim().length > 0);
 }
 const has = (clause: string, phrase: string): boolean => clause.includes(` ${phrase} `);
+/** A clause with its Force gestures taken out ("i thrust out my hand" -> "i "): a gesture is never a strike (D-210). */
+const withoutGestures = (clause: string): string => clause.replace(FORCE_GESTURE, ' ').replace(/\s+/g, ' ');
 
 /** Defend and evade words: a clause with one is not an attack ("I parry his strike"). */
 const DEFENSIVE = COMBAT_WORD_GROUPS.filter((g) => g.id === 'defend' || g.id === 'evade').flatMap((g) => g.words);
 /** Words before an attack word that make it a noun ("his strike", "the blow"). */
 const NOUN_BEFORE = ['his', 'her', 'their', 'its', 'the', 'a', 'an', 'incoming', 'every', 'each'];
 /** An attack clause: an attack verb used as a verb, and no defend or evade word. */
-function isStrikeClause(c: string): boolean {
+export function isStrikeClause(clause: string): boolean {
+  const c = withoutGestures(clause);
   if (DEFENSIVE.some((w) => has(c, w))) return false;
   return STRIKE_WORDS.some((w) => has(c, w) && !NOUN_BEFORE.some((n) => has(c, `${n} ${w}`)));
 }
 
 /** The Force step action a clause names, or null. */
-function forceActionIn(clause: string): string | null {
+export function forceActionIn(raw: string): string | null {
+  const clause = withoutGestures(raw);
   for (const [action, words] of Object.entries(FORCE_CLAUSE_WORDS)) if (words.some((w) => has(clause, w))) return action;
   return null;
 }
@@ -207,7 +211,7 @@ const view = (f: DuelState['a']): CombatFighterView => ({
 });
 
 function noEffectLine(notes: readonly string[]): string {
-  const m = notes.map((n) => /NOT REACHED \((.+)\)$/.exec(n)?.[1]).find((x) => x);
+  const m = notes.map((n) => /(?:NOT REACHED|FAILED) \((.+)\)$/.exec(n)?.[1]).find((x) => x);
   return m ? `${m[0]!.toUpperCase()}${m.slice(1)}.` : 'Nothing happens.';
 }
 
