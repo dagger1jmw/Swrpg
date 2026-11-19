@@ -10,6 +10,8 @@ import {
   FACTION_ARCHETYPE,
   MINION_KINDS,
   MINION_YEARS,
+  MINION_WEAPON_PROFILE,
+  SOLDIER_BLASTER_PACE,
   NPC_SEED_SALT,
   NPC_VARIANCE_SIGMA,
   ORDER_ROLES,
@@ -21,6 +23,7 @@ import {
 import type { TalentLevel } from '../data/progression.config';
 import { TALENT_DOMAINS, type TalentDomain } from '../data/skills';
 import { nextFloat, seedRng, type RngState } from './rng';
+import { closedFormLevel, phasesFor } from './closedForm';
 
 export const npcSeed = (campaignSeed: string, npcId: string): string => `${NPC_SEED_SALT}:${campaignSeed}:${npcId}`;
 
@@ -117,4 +120,16 @@ export function canonScale(entry: CanonNpc, bby: number, growthAt: (age: number)
   const now = growthAt(Math.max(0, entry.birthBby - bby));
   const snap = growthAt(Math.max(0, entry.birthBby - entry.snapshotBby));
   return snap > 0 ? now / snap : 1;
+}
+
+/**
+ * A minion's main-weapon level from its kind's profile (D-195): null when the kind's archetype measures the skill;
+ * else the closed form of the kind's pace over the grade's years (technique row, one phase).
+ */
+export function minionWeaponLevel(kindId: string, grade: number): { skill: 'blaster' | 'melee'; level: number } | null {
+  const p = MINION_WEAPON_PROFILE[kindId];
+  if (!p || p.source === 'archetype') return null;
+  const inp = minionInputs(kindId, grade, 'weapon');
+  const pace = p.share * SOLDIER_BLASTER_PACE;
+  return { skill: p.skill, level: closedFormLevel({ row: 'technique', startAge: inp.startAge, age: inp.age, phases: phasesFor({ knight: pace }, { padawanAge: inp.startAge, knightAge: inp.startAge }, true) }) };
 }

@@ -168,6 +168,30 @@ export const BESKAR_BY_ERA: readonly { toYear: number; chance: number; label: st
 ];
 export const beskarChanceAt = (year: number): number => (BESKAR_BY_ERA.find((e) => year < e.toYear) ?? BESKAR_BY_ERA[BESKAR_BY_ERA.length - 1]!).chance;
 
+/**
+ * Weapon-skill profile per minion kind (Jared, D-195): each kind's main weapon has a trained level from the kind, not
+ * from an archetype that never trains it. 'archetype': the kind's archetype measures that skill (soldier, bounty
+ * hunter, Mandalorian blaster; Sith Warrior forms), so the level is the archetype's closed form as before. Otherwise a
+ * pace for the weapon skill over the grade's years (closed form, technique row, one phase), as a share of the soldier's
+ * Knight+ blaster pace (1.326): militia get basic blaster training (a grade-1 militia fighter is a poor shot, not level
+ * 0), brawlers street melee, beasts their natural fighting. Design defaults.
+ */
+export const SOLDIER_BLASTER_PACE = 1.326;
+export type MinionWeaponProfile = { source: 'archetype' } | { source: 'kind'; skill: 'blaster' | 'melee'; share: number };
+export const MINION_WEAPON_PROFILE: Readonly<Record<string, MinionWeaponProfile>> = {
+  battleDroid: { source: 'archetype' },
+  militia: { source: 'kind', skill: 'blaster', share: 0.25 },
+  thug: { source: 'archetype' },
+  brawler: { source: 'kind', skill: 'melee', share: 0.5 },
+  trooper: { source: 'archetype' },
+  eliteTrooper: { source: 'archetype' },
+  mandalorian: { source: 'archetype' },
+  superBattleDroid: { source: 'archetype' },
+  droideka: { source: 'archetype' },
+  beast: { source: 'kind', skill: 'melee', share: 0.6 },
+  sithAcolyte: { source: 'archetype' },
+};
+
 export const MINION_KIND_IDS: readonly string[] = MINION_KINDS.map((k) => k.id);
 /** Minion count per group in combatStarted: a clamped AI amount (D-143 amends architecture §2). */
 export const MINION_COUNT = { min: 1, max: 12 } as const;

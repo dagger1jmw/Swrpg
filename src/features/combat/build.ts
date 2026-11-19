@@ -16,7 +16,7 @@ import type { MatchupSituation } from '../../data/formMatchups';
 import { dateFromAbsDay } from '../../engine/calendar';
 import type { DuelContext, Fighter } from '../../engine/duel';
 import { capacities } from '../../engine/fatigue';
-import { minionInputs } from '../../engine/npcGen';
+import { minionInputs, minionWeaponLevel } from '../../engine/npcGen';
 import { maxVitality } from '../../engine/vitality';
 import type { Wound } from '../../engine/wounds';
 import type { LastingInjury } from '../../engine/lasting';
@@ -160,7 +160,10 @@ export function buildNpcFighter(s: GameState, npcId: string): { fighter: Fighter
 export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false): Fighter {
   const kind = MINION_KINDS.find((k) => k.id === kindId) ?? MINION_KINDS[0]!;
   const inputs = minionInputs(kindId, grade, `${fightId}:${kindId}:${index}`);
-  const levels = npcLevelsFor(inputs, 'human', inputs.age, s.clock.now.day);
+  const base = npcLevelsFor(inputs, 'human', inputs.age, s.clock.now.day);
+  // The kind's weapon-skill profile (D-195): the main weapon always has a trained level.
+  const w = minionWeaponLevel(kindId, grade);
+  const levels = w ? { ...base, [w.skill]: Math.max(base[w.skill] ?? 0, w.level) } : base;
   const loadout: Loadout = { weapon: kind.weapon, armor: kind.armor, saberResistant: kind.saberResistant === true || (kind.saberResistant === 'byEra' && beskar) };
   const f = fighterFromLevels(`${fightId}:${kindId}:${index}`, `${kind.label} ${index + 1}`, levels, loadout, { minion: true, vitalityLost: 0, wounds: [], lasting: [], shatterpoint: 0, lightSide: false });
   const v = f.maxVitality * kind.vitalityMult;
