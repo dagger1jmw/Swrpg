@@ -11,7 +11,7 @@ import { computeCombatXp, type CombatSession } from '../../engine/combatXp';
 import { eGainFor, gainCI, gainE, releaseBank, releaseUntil, splitDrillXp } from '../../engine/appliedExperience';
 import { RECORDING_REVIEW } from '../../data/combat.config';
 import { clampFor, speedFor } from './training';
-import { fromAbsSecond } from '../../engine/calendar';
+import { formatDate, fromAbsSecond } from '../../engine/calendar';
 import { levelWithNatural, thresholdsCrossed, tierOf, xpForLevel } from '../../engine/curve';
 import { FORM_IDS, isSkillId } from '../../data/skills';
 import { DEV_REFUSAL, selectIsTestCharacter } from '../character/selectors';
@@ -324,7 +324,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         const CI = { ...slice.CI };
         for (const u of session.forceUses) CI[u.abilityId] = gainCI(CI[u.abilityId] ?? { CI: 0, ciSpar: 0 }, session.stakes);
         const bankReleaseUntil = spar ? slice.bankReleaseUntil : releaseUntil(day);
-        const releaseNote = spar ? [] : [`bank release open until day ${bankReleaseUntil}`];
+        const releaseNote = spar || bankReleaseUntil === null ? [] : [`bank release open until ${formatDate(bankReleaseUntil)}`];
         return {
           slice: { ...cr.slice, fightsToday, combatXpToday, E, CI, bankReleaseUntil },
           emit: cr.emit,

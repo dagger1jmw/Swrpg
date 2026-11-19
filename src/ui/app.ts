@@ -839,7 +839,8 @@ export class App {
         day.value = String(v.day);
       };
       const read = (): CalendarDate => {
-        const y = Math.trunc(Number(year.value));
+        // A blank year is no date yet (issue 20: an empty birth year read as year 0 and warned "does not fit age -22.0").
+        const y = year.value.trim() === '' ? Number.NaN : Math.trunc(Number(year.value));
         return { year: era.value === 'BBY' ? -y : y, month: Math.trunc(Number(month.value)), day: Math.trunc(Number(day.value)) };
       };
       const fields = el('div', { class: 'row' }, [

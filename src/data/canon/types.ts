@@ -34,6 +34,8 @@ export interface CanonNpc {
   armor?: 'beskar' | 'durasteel' | 'duraplast';
   /** Canon weapon (D-200: a named Mandalorian's slugthrower or blaster). Absent = the archetype's, or a roll by era. */
   weapon?: WeaponKind;
+  /** The blade colour the lore file gives (D-205). Absent = by path (Jedi blue or green, Sith red). */
+  bladeColor?: string;
   unmapped?: readonly string[];
   note?: string;
 }

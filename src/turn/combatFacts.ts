@@ -5,6 +5,8 @@ import { partText } from '../engine/duel';
 import { forceReason } from '../engine/combatForce';
 import { BUILD_UP } from '../data/combat.config';
 import { RANGED_WEAPONS } from '../data/weapons';
+import { TERRAIN_BY_ID } from '../data/terrain';
+import { SKILL_BY_ID } from '../data/skills';
 import type { WeaponKind } from '../data/health.config';
 import type { CombatDraft, CombatFighterView } from './combatTurn';
 
@@ -41,6 +43,9 @@ export interface CombatFacts {
   playerHit: boolean;
   anySevered: boolean;
 }
+
+/** A thrown object in words, by its terrain tag (issue 19). */
+const THROWN_TEXT: Readonly<Record<string, string>> = { fallenTimber: 'a fallen log', looseRock: 'a loose rock', debris: 'a chunk of debris', machinery: 'a piece of machinery', iceChunks: 'a chunk of ice', crates: 'a crate' };
 
 const fmt = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 const WEAPON_TEXT: Readonly<Record<string, string>> = { unarmed: 'unarmed (no weapon)', melee: 'a melee weapon', blasterPistol: 'a blaster pistol', blasterRifle: 'a blaster rifle', heavy: 'a heavy blaster', slugPistol: 'a slugthrower pistol (solid slugs, not bolts)', slugRifle: 'a slugthrower rifle (rapid solid slugs, not bolts)', scatterGun: 'a scatter gun (a spread of solid shot, not bolts)', lightsaber: 'a lightsaber', trainingSaber: 'a training saber' };
@@ -99,19 +104,23 @@ export function combatFacts(c: CombatDraft): CombatFacts {
       const f = r.force;
       const user = f.side === 'A' ? pc : t;
       const on = f.side === 'A' ? t : pc;
-      const what = f.kind === 'saberThrow' ? 'throws the lightsaber' : f.kind === 'recall' ? 'calls the dropped lightsaber back' : `uses ${f.abilityId}${f.kind === 'throw' ? ' to hurl an object' : ''} on ${on}`;
+      const thrown = f.kind === 'throw' ? ` to hurl ${f.objectTag ? (THROWN_TEXT[f.objectTag] ?? `a piece of ${TERRAIN_BY_ID.get(f.objectTag)?.label ?? 'debris'}`) : 'an object'}` : '';
+      const what = f.kind === 'saberThrow' ? 'throws the lightsaber' : f.kind === 'recall' ? 'calls the dropped lightsaber back' : `uses ${SKILL_BY_ID.get(f.abilityId)?.name ?? f.abilityId}${thrown} on ${on}`;
+      // A Push, Choke or mind trick acts on one opponent only (issue 19: "sending them tumbling together").
+      const others = c.fighters.filter((x) => x.id !== 'pc' && x.id !== (f.side === 'A' ? r.targetId : 'pc') && !x.out).length;
+      const onlyOne = f.side === 'A' && others > 0 && ['push', 'choke', 'mindTrick', 'throw', 'lightning'].includes(f.kind) ? ` Only ${on} is affected; the others are not.` : '';
       if (f.success) {
         if (f.damage) {
           hits.push({ n: r.n, byPlayer: f.side === 'A', targetId: f.side === 'A' ? r.targetId : 'pc', targetName: on, part: f.damage.part, severity: f.damage.severity, severed: false });
-          lines.push(`${head} ${user} ${what}: DONE. HIT (${on}, ${partText(f.damage.part)}, ${f.damage.severity ? `${f.damage.severity} wound` : 'no wound, stamina only'}).`);
+          lines.push(`${head} ${user} ${what}: DONE. HIT (${on}, ${partText(f.damage.part)}, ${f.damage.severity ? `${f.damage.severity} wound` : 'no wound, stamina only'}).${onlyOne}`);
         } else if (f.kind === 'saberThrow') lines.push(`${head} ${user} ${what}: DONE (the control holds; its strikes are the next lines; the saber returns to hand).`);
         else if (f.kind === 'recall') lines.push(`${head} ${user} ${what}: DONE (the saber is back in hand).`);
-        else if (f.stoodDown) lines.push(`${head} ${user} ${what}: DONE. NO HIT, no injury: ${on} stands down and leaves the fight.`);
-        else lines.push(`${head} ${user} ${what}: DONE. NO HIT, no injury: ${on} is thrown off balance (an opening for ${user}).`);
+        else if (f.stoodDown) lines.push(`${head} ${user} ${what}: DONE. NO HIT, no injury: ${on} stands down and leaves the fight.${onlyOne}`);
+        else lines.push(`${head} ${user} ${what}: DONE. NO HIT, no injury: ${on} is thrown off balance (an opening for ${user}).${onlyOne}`);
       } else {
         const reason = forceReason(f);
         lines.push(`${head} ${user} ${what}: FAILED (${reason}). NO HIT, no effect on ${on}. Explain the failure only with this reason; nothing else in the scene blocked it.`);
-        didNotHappen.push(`${user}'s ${f.kind === 'saberThrow' ? 'saber throw' : f.kind === 'recall' ? 'saber recall' : f.abilityId} had no effect (#${r.n}: ${reason})`);
+        didNotHappen.push(`${user}'s ${f.kind === 'saberThrow' ? 'saber throw' : f.kind === 'recall' ? 'saber recall' : (SKILL_BY_ID.get(f.abilityId)?.name ?? f.abilityId)} had no effect (#${r.n}: ${reason})`);
       }
       continue;
     }

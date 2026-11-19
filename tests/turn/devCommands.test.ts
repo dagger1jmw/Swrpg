@@ -126,6 +126,22 @@ describe('dev commands emit the normal events (D-180)', () => {
     expect(selectFatigue(o.state).p).toBeCloseTo(0.5, 6);
     expect(run(o.state, '/fatigue force 1').ok).toBe(true);
   });
+  it('/fatigue during a fight reaches the duel panel (combat pass 1 issue 21)', async () => {
+    const f = run((await campaign(true)).state, '/fight 6 b1').state;
+    const o = run(f, '/fatigue physical 0.9');
+    expect(o.ok).toBe(true);
+    expect((o.state.combat.active!.duel as DuelState).a.meters.p).toBeCloseTo(o.state.health.meters.p, 9);
+    expect(o.state.health.meters.p).toBeGreaterThan(0);
+  });
+  it('/fight with a place word moves the scene there (combat pass 1 issue 21: "terrain temple" left it in the wilderness)', async () => {
+    const s = (await campaign(true)).state;
+    const o = run(s, '/fight 1 duelist terrain temple');
+    expect(o.ok).toBe(true);
+    expect(o.state.locations.byId[o.state.locations.currentId!]!.name).toBe('Temple (dev sandbox)');
+    // Plain tags do not move the scene.
+    const t = run(s, '/fight 6 b1 terrain cover');
+    expect(t.state.locations.currentId).toBe(s.locations.currentId);
+  });
   it('/skip 3 days runs a montage on the routine (the same jump a montage turn runs)', async () => {
     const s = (await campaign(true)).state;
     const o = run(s, '/skip 3 days');

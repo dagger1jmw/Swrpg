@@ -110,7 +110,8 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
         if (!selectIsTestCharacter(ctx.state)) return { reject: DEV_REFUSAL };
         const meter = e['meter'] as 'p' | 'm' | 'f';
         const cap = selectFatigue(ctx.state).capacity[meter];
-        return { slice: { ...slice, meters: { ...slice.meters, [meter]: Number(e['fraction']) * cap } }, notes: [`${meter} meter at ${Number(e['fraction'])} of capacity`] };
+        // During a fight the duel panel reads the fighter's own meters: copy the new value there too (issue 21).
+        return { slice: { ...slice, meters: { ...slice.meters, [meter]: Number(e['fraction']) * cap } }, notes: [`${meter} meter at ${Number(e['fraction'])} of capacity`], ...(ctx.state.combat.active ? { emit: [{ type: 'devDuelMetersSynced' }] } : {}) };
       },
     },
     healthSynced: {

@@ -107,6 +107,8 @@ export interface Fighter {
   weaponHand?: 'left' | 'right';
   /** The saber thrown and dropped (D-193): the fighter is unarmed until a recall restores these. */
   saberLost?: { weapon: WeaponKind; skillId: string; level: number; form: string | null } | null;
+  /** A lightsaber's blade colour (D-205); absent for other weapons, training sabers and older saves. */
+  bladeColor?: string;
 }
 
 export interface DuelContext {
@@ -290,7 +292,7 @@ function sideMods(f: Fighter, opp: Fighter, ctx: DuelContext, numbersBonus: numb
   for (const m of matchupFor(f, opp, ctx, opponentsEngaged)) both.push(m);
   if (f.position) both.push({ source: f.position === 2 ? 'decisive position' : 'position', value: f.position === 2 ? CIRCUMSTANCE.decisivePosition : CIRCUMSTANCE.position });
   if (ctx.footing) both.push({ source: 'footing', value: ctx.footing });
-  if (numbersBonus) both.push({ source: `numbers (+${numbersBonus})`, value: numbersBonus });
+  if (numbersBonus) both.push({ source: 'numbers', value: numbersBonus });
   if (f.disarmedFor > 0) attack.push({ source: 'disarmed', value: MANEUVER_EFFECT.disarmedAttack });
   // Rapid slugthrower fire and scatter shot: more projectiles than a blade can meet (D-200).
   const spread = SLUG_SPREAD[opp.weapon];
@@ -474,7 +476,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   } else {
     // An aimed strike costs AIMED_STRIKE.attackPenalty on the strike roll (D-171).
     const aiming = (striker === 'A' ? A : B).aim;
-    const atk = [...(striker === 'A' ? modsA.attack : modsB.attack), ...(aiming ? [{ source: `aimed at the ${aiming}`, value: AIMED_STRIKE.attackPenalty }] : [])];
+    const atk = [...(striker === 'A' ? modsA.attack : modsB.attack), ...(aiming ? [{ source: `aimed at the ${partText(aiming)}`, value: AIMED_STRIKE.attackPenalty }] : [])];
     const def = striker === 'A' ? modsB.defense : modsA.defense;
     // Build-up rolls use attack AND defense (net); a strike uses attack vs defense.
     if (striker === 'A') {

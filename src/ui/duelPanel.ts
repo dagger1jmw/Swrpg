@@ -6,7 +6,7 @@ import { isNarratedBeat, MANEUVERS, STANCES, STRIKE_AT, type BeatReason, type St
 import { FORM_IDS, SKILL_BY_ID } from '../data/skills';
 import type { BasicRoll } from '../engine/rolls';
 import type { ForceOutcome } from '../engine/combatForce';
-import type { DuelState, ExchangeRecord } from '../engine/duel';
+import { partText, type DuelState, type ExchangeRecord } from '../engine/duel';
 import { selectActiveFight, selectFates, selectLastFight } from '../features/combat/selectors';
 import { selectIsDying } from '../features/health/selectors';
 import { selectNpc } from '../features/npcs/selectors';
@@ -19,32 +19,70 @@ import { el } from './dom';
 /** Short failure reasons on the roll card (D-192). */
 const FORCE_OUTCOME_SHORT: Readonly<Record<ForceOutcome, string>> = { success: 'success', skillTooLow: 'fell short', natural1: 'natural 1', dodged: 'dodged', cover: 'blocked by cover', forceResisted: 'resisted with the Force', willResisted: 'will held', deflected: 'caught by a lightsaber', immune: 'immune', forceInvisible: 'outside the Force', negated: 'Force-null bubble' };
 
-const f1 = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+/** One decimal, never "-0.0" (issue 20). */
+const f1 = (n: number): string => {
+  const r = Math.round(n * 10) / 10;
+  return r === 0 ? '0' : Number.isInteger(r) ? String(r) : r.toFixed(1);
+};
+const signed = (n: number): string => `${Math.round(n * 10) / 10 > 0 ? '+' : ''}${f1(n)}`;
+
+/** A Force ability's name for the player (issue 21: no raw ids such as forcePush). */
+export const abilityName = (id: string): string => SKILL_BY_ID.get(id)?.name ?? id;
+
+/** How a fight ended, in words (issue 21: "won (allOut)", "lost (sparring session (stopped))"). */
+const END_REASON: Readonly<Record<string, string>> = { allOut: 'every opponent is down', incapacitated: 'a fighter is down', dying: 'a fighter is dying', dead: 'a fighter is dead', spent: 'a fighter is spent', point: 'on a point', stopped: 'stopped' };
+export function endText(outcome: string, reason: string): string {
+  const why = END_REASON[reason] ?? reason.replace(/\s*\(([^()]*)\)/g, ': $1');
+  return why && why !== outcome ? `${outcome}: ${why}` : outcome;
+}
+
+/**
+ * Modifiers for display (issue 20): the same source summed into one entry ("+1 aggressive stance -1 aggressive stance"
+ * on a build-up roll is the stance's attack and defense, net 0), zero entries left out.
+ */
+function mergedModifiers(mods: BasicRoll['modifiers']): { source: string; value: number }[] {
+  const by = new Map<string, number>();
+  for (const m of mods) by.set(m.source, (by.get(m.source) ?? 0) + m.value);
+  return [...by].filter(([, v]) => Math.abs(v) > 1e-9).map(([source, value]) => ({ source, value }));
+}
 
 /** One side's roll as text: die, natural bonus, level bonus, each modifier with its source, total (rolls §7). */
-function rollText(label: string, r: BasicRoll | null): string {
+export function rollText(label: string, r: BasicRoll | null): string {
   if (!r) return `${label}: no roll`;
   const parts = [`d20 ${r.d20}`];
   if (r.naturalBonus) parts.push(`${r.naturalBonus > 0 ? '+' : ''}${r.naturalBonus} natural`);
   parts.push(`+${f1(r.levelBonus)} level`);
-  for (const m of r.modifiers) parts.push(`${m.value >= 0 ? '+' : ''}${f1(m.value)} ${m.source}`);
+  for (const m of mergedModifiers(r.modifiers)) parts.push(`${signed(m.value)} ${m.source}`);
   return `${label}: ${parts.join(' ')} = ${f1(r.total)}`;
 }
 
-function outcomeText(r: ExchangeRecord, names: Record<string, string>): string {
+/** The headline of a roll card (exported for tests). */
+export function outcomeText(r: ExchangeRecord, names: Record<string, string>): string {
   const pc = names['pc'] ?? 'You';
   const t = names[r.targetId] ?? 'opponent';
   if (r.kind === 'force' && r.force) {
     const f = r.force;
-    const label = f.kind === 'saberThrow' ? 'saber throw' : f.kind === 'recall' ? 'saber recall' : f.abilityId;
-    return `${label}: ${f.misfire ? 'misfire' : f.collapse ? 'collapse' : f.success ? 'success' : FORCE_OUTCOME_SHORT[f.outcome]}${f.dc !== null ? ` (DC ${f.dc})` : ''}${f.damage?.severity ? ` · ${f.damage.severity} wound` : ''}${f.stoodDown ? ' · stands down' : ''}${f.saberDropped ? ' · saber dropped' : ''}`;
+    const label = f.kind === 'saberThrow' ? 'Saber throw' : f.kind === 'recall' ? 'Saber recall' : abilityName(f.abilityId);
+    // Records from before D-192 have no outcome or difficulty (issue 17): they read "resisted".
+    const outcome = f.misfire ? 'misfire' : f.collapse ? 'collapse' : f.success ? 'success' : (FORCE_OUTCOME_SHORT[f.outcome] ?? 'resisted');
+    return `${label}: ${outcome}${f.dc !== null && f.dc !== undefined ? ` (DC ${f1(f.dc)})` : ''}${f.damage?.severity ? ` · ${f.damage.severity} wound, ${partText(f.damage.part)}` : ''}${f.stoodDown ? ' · stands down' : ''}${f.saberDropped ? ' · saber dropped' : ''}`;
   }
+  // A build-up exchange that cuts a minion down is headed by the hit, not the track (issue 20, R6).
+  if (r.kind === 'buildUp' && r.hit && !r.hit.avoided) return hitHeadline(r, pc, t);
   if (r.kind === 'buildUp') return r.advAfter === r.advBefore ? 'even' : r.advAfter > r.advBefore ? `${pc} gains ground` : `${t} gains ground`;
   if (r.maneuver) return `${r.maneuver.kind}`;
   if (!r.hit) return 'strike recovered';
   if (r.hit.avoided) return 'precognition: avoided';
   if (r.hit.point) return 'point';
-  return `${r.hit.quality} hit${r.hit.severed ? ` · ${r.hit.part} severed` : r.hit.severity ? ` · ${r.hit.severity} ${r.hit.part}` : ' · no wound'}`;
+  return hitHeadline(r, pc, t);
+}
+
+/** A hit's headline: who hit whom, the quality, and the wound in words ("solid hit on B1 battle droid 1 · moderate wound, left arm"). */
+function hitHeadline(r: ExchangeRecord, pc: string, t: string): string {
+  const h = r.hit!;
+  const victim = h.redirected ? (h.by === 'A' ? t : pc) : h.by === 'A' ? t : pc;
+  const what = h.severed ? `${partText(h.part)} severed` : h.severity ? `${h.severity} wound, ${partText(h.part)}` : 'no wound';
+  return `${h.quality} hit on ${victim} · ${what}`;
 }
 
 /** Quiet: resolved with no AI call; Narrated: covered by an AI narration (D-145). */
@@ -60,9 +98,24 @@ export function renderExchange(r: ExchangeRecord, names: Record<string, string>,
     el('summary', {}, [tag ? tagChip(tag) : null, el('span', { text: `#${r.n} ${r.kind === 'strike' ? 'strike' : r.kind === 'force' ? 'Force' : 'exchange'} · ${outcomeText(r, names)} · track ${track}` })]),
     el('div', { class: 'roll-line', text: rollText(names['pc'] ?? 'You', r.rollA) }),
     el('div', { class: 'roll-line', text: rollText(names[r.targetId] ?? 'Opponent', r.rollB) }),
-    el('div', { class: 'roll-line', text: `Margin ${r.margin >= 0 ? '+' : ''}${f1(r.margin)} · ${r.seconds} s${r.surprise ? ' · surprise' : ''}` }),
+    el('div', { class: 'roll-line', text: `${marginLabel(r, names['pc'] ?? 'You')} · ${r.seconds} s${r.surprise ? ' · surprise' : ''}${r.duringForce ? ' · while you use the Force' : ''}` }),
     ...r.notes.map((n) => el('div', { class: 'hint', text: n })),
   ]);
+}
+
+/**
+ * The margin from the player's side (issue 20: it followed the striker, +10.4 on the opponent's hit on the player). A
+ * Force use against a difficulty is the roll against the DC; a block or dodge after it says so.
+ */
+export function marginLabel(r: ExchangeRecord, pc: string): string {
+  if (r.kind === 'force' && r.force) {
+    const f = r.force;
+    const vs = f.dc !== null && f.dc !== undefined && !f.resist ? 'roll vs DC' : 'margin';
+    const after = !f.success && !['skillTooLow', 'natural1'].includes(f.outcome) && f.outcome ? ` (then ${FORCE_OUTCOME_SHORT[f.outcome] ?? 'resisted'})` : '';
+    return `${pc} ${vs} ${signed(r.margin)}${after}`;
+  }
+  const mine = r.kind === 'strike' && r.striker === 'B' ? -r.margin : r.margin;
+  return `Margin for ${pc} ${signed(mine)}`;
 }
 
 /** The exchanges of one turn in the feed. */
@@ -70,7 +123,7 @@ export function renderCombatDraft(c: CombatDraft): HTMLElement {
   const names = Object.fromEntries(c.fighters.map((f) => [f.id, f.name]));
   const tag: CallTag = c.quiet ? 'quiet' : 'narrated';
   return el('div', { class: `roll combat${c.quiet ? ' quiet' : ''}` }, [
-    el('div', {}, [tagChip(tag), el('span', { text: `${c.started ? 'The fight begins · ' : ''}${c.records.length} exchange${c.records.length === 1 ? '' : 's'}${c.beat ? ` · ${BEAT_LABEL[c.beat] ?? c.beat}` : ''}${c.ended ? ` · ${c.ended.outcome} (${c.ended.reason})` : ''}` })]),
+    el('div', {}, [tagChip(tag), el('span', { text: `${c.started ? 'The fight begins · ' : ''}${c.records.length} exchange${c.records.length === 1 ? '' : 's'}${c.beat ? ` · ${BEAT_LABEL[c.beat] ?? c.beat}` : ''}${c.ended ? ` · ${endText(c.ended.outcome, c.ended.reason)}` : ''}` })]),
     ...c.notes.filter((n) => /^(intent )?step \d/.test(n)).map((n) => el('div', { class: `roll-line step-line${/: FAILED/.test(n) ? ' failed' : /: NOT REACHED/.test(n) ? ' skipped' : ''}`, text: n })),
     ...c.records.map((r) => renderExchange(r, names, tag)),
   ]);
@@ -175,7 +228,7 @@ function renderSummary(c: CombatDraft, close: () => void): HTMLElement {
     const s = c.session;
     rows.push(el('div', { text: `Sparring session over (${s.ended === 'exchanges' ? 'time' : s.ended ?? e.reason}): ${s.won} won, ${s.lost} lost${s.unfinished ? `, ${s.unfinished} unfinished` : ''}.` }));
     if (s.injuries.length) rows.push(el('div', { class: 'hint', text: `Injuries: ${s.injuries.join('; ')}` }));
-  } else rows.push(el('div', { text: `Fight over: ${e.outcome} (${e.reason}).` }));
+  } else rows.push(el('div', { text: `Fight over: ${endText(e.outcome, e.reason)}.` }));
   if (e.playerFate) rows.push(el('div', { class: 'hint', text: `The opponent's choice: ${e.playerFate}` }));
   rows.push(el('div', { class: 'hint', text: c.fighters.map((f) => `${f.name}: ${f.status}`).join(' · ') }));
   return el('div', { class: 'fight-summary' }, [...rows, el('div', { class: 'beat-row' }, [el('button', { class: 'small secondary', text: 'Close', on: { click: close } })])]);
@@ -195,7 +248,9 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
     if (p.summary?.ended) items.push(renderSummary(p.summary, p.closeSummary));
     for (const f of fates) {
       const name = selectNpc(s, f.npcId)?.name ?? f.npcId;
-      items.push(el('div', { class: 'fate' }, [el('span', { text: `${name} is down. ` }), ...f.options.map((o) => beat(`${o[0]!.toUpperCase()}${o.slice(1)} ${name}`, { action: 'fate', npcRef: f.npcId, fate: o }))]));
+      // While the opponent is dying, sparing them means leaving them to die (issue 18).
+      const label = (o: string): string => (o === 'spare' && f.dying ? `Spare ${name} (leave dying)` : `${o[0]!.toUpperCase()}${o.slice(1)} ${name}`);
+      items.push(el('div', { class: 'fate' }, [el('span', { text: `${name} is ${f.dying ? 'dying' : 'down'}. ` }), ...f.options.map((o) => beat(label(o), { action: 'fate', npcRef: f.npcId, fate: o }))]));
     }
     const canReview = last && last.recorded && s.clock.now.day - last.day <= 7 && (s.progression.lastReviewDay === null || s.clock.now.day - s.progression.lastReviewDay >= 7);
     if (canReview) items.push(beat(`Review the recording (${SKILL_BY_ID.get(last.skillId)?.name ?? last.skillId})`, { action: 'review', skillId: last.skillId }));

@@ -97,7 +97,11 @@ export const combatSliceSchema = z.object({
   pending: pendingFightSchema.nullable(),
   active: activeFightSchema.nullable(),
   /** Incapacitated named NPCs whose fate the player chooses (spare, capture, kill). */
-  fates: z.array(z.object({ npcId: z.string(), fightId: z.string(), options: z.array(z.enum(NPC_FATES)) })),
+  /**
+   * Fates the player still has to choose. atAbs (absolute second) and locationId date and place the choice so it expires
+   * (issue 18: FATE_CHOICE_EXPIRY); dying: the opponent is dying, so Spare means leaving them. Absent on older saves.
+   */
+  fates: z.array(z.object({ npcId: z.string(), fightId: z.string(), options: z.array(z.enum(NPC_FATES)), atAbs: z.number().optional(), locationId: z.string().nullable().optional(), dying: z.boolean().optional() })),
   last: fightSummarySchema.nullable(),
   seq: z.number().int().min(1),
 });

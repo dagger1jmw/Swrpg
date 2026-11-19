@@ -11,7 +11,7 @@ import { stubLightPhilosophy, STUB_PLAYER_SHATTERSENSE } from '../../data/stubs'
 import { TERRAIN_BY_ID } from '../../data/terrain';
 import { TERRAIN_HAZARD_EVERY } from '../../data/combat.config';
 import type { TerrainHazard } from '../../engine/terrainHazard';
-import { loadoutFor, mandalorianSlugthrower, weaponSkillKind, type Loadout } from '../../data/weapons';
+import { BLADE_COLORS, bladeColorFor, loadoutFor, mandalorianSlugthrower, weaponSkillKind, type Loadout } from '../../data/weapons';
 import type { WeaponKind } from '../../data/health.config';
 import type { MatchupSituation } from '../../data/formMatchups';
 import { dateFromAbsDay } from '../../engine/calendar';
@@ -55,7 +55,9 @@ export function buildPlayerFighter(s: GameState): Fighter {
   const loadout = loadoutFor(selectArchetype(s), selectRank(s));
   const { skillId, form } = fightingSkill(loadout, (id) => selectLevelExact(s, id), c.mainFormId);
   const caps = selectCapacities(s);
+  const blade = loadout.weapon === 'lightsaber' ? bladeColorFor(selectPath(s), selectArchetype(s), c.name) : null;
   return {
+    ...(blade ? { bladeColor: blade } : {}),
     id: 'pc',
     name: c.name,
     skillId,
@@ -162,7 +164,8 @@ export function buildNpcFighter(s: GameState, npcId: string): { fighter: Fighter
     shatterpoint: canon?.specialTalents?.includes('ShatterSense') ? (levels['forceSense'] ?? 0) : 0,
     lightSide: gen.path === 'jedi',
   });
-  return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId) }, rank: gen.rank };
+  const blade = loadout.weapon === 'lightsaber' ? (canon?.bladeColor ?? bladeColorFor(gen.path, archetype, gen.seed)) : null;
+  return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId), ...(blade ? { bladeColor: blade } : {}) }, rank: gen.rank };
 }
 
 export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false, weapon: WeaponKind | null = null): Fighter {
@@ -173,10 +176,12 @@ export function buildMinionFighter(s: GameState, kindId: string, grade: number, 
   const w = minionWeaponLevel(kindId, grade);
   const levels = w ? { ...base, [w.skill]: Math.max(base[w.skill] ?? 0, w.level) } : base;
   const loadout: Loadout = { weapon: weapon ?? kind.weapon, armor: kind.armor, saberResistant: kind.saberResistant === true || (kind.saberResistant === 'byEra' && beskar) };
-  const f = fighterFromLevels(`${fightId}:${kindId}:${index}`, `${kind.label} ${index + 1}`, levels, loadout, { minion: true, vitalityLost: 0, wounds: [], lasting: [], shatterpoint: 0, lightSide: false });
+  const f = fighterFromLevels(`${fightId}:${kindId}:${index}`, `${kind.label.charAt(0).toUpperCase()}${kind.label.slice(1)} ${index + 1}`, levels, loadout, { minion: true, vitalityLost: 0, wounds: [], lasting: [], shatterpoint: 0, lightSide: false });
   const v = f.maxVitality * kind.vitalityMult;
   const droid = DROID_MINION_KINDS.includes(kind.id);
-  return { ...f, vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}), ...(droid ? { forceTraits: speciesForceTraits('droid'), forceResistance: 0 } : {}), ...(HEAVY_MINION_KINDS.includes(kind.id) ? { bodySize: 'heavy' as const } : {}) };
+  // Sith acolytes carry red blades (D-205).
+  const blade = loadout.weapon === 'lightsaber' ? BLADE_COLORS.sith[0] : null;
+  return { ...f, ...(blade ? { bladeColor: blade } : {}), vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}), ...(droid ? { forceTraits: speciesForceTraits('droid'), forceResistance: 0 } : {}), ...(HEAVY_MINION_KINDS.includes(kind.id) ? { bodySize: 'heavy' as const } : {}) };
 }
 
 /** The duel context from the terrain tags and stakes (rolls §5, D-144). */

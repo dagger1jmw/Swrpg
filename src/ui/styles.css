@@ -406,6 +406,8 @@ label.check { display: flex; gap: var(--pad-s); align-items: center; margin: var
 .beat-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .beat-row .hint { min-width: 5.5rem; }
 .beat-row button.small { min-height: 34px; text-transform: capitalize; }
+/* A risk note keeps its own case: "Push (5% collapse)" (issue 21). */
+.beat-row button.small.risky { text-transform: none; }
 /* Toggles (D-183): a setting or a pending choice. Unselected reads as outlined; selected keeps the text color on a
    tinted ground with an inset accent outline, a check and a bold label: never a solid fill, so the label never takes
    the fill's color. The same tokens hold in every theme. */

@@ -10,6 +10,7 @@ import { makeEstimator } from '../ai/tokenRatio';
 import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { orderSeatAt } from '../data/orderSeats';
+import { STRIKE_AT } from '../data/combat.config';
 import { selectIsDying, selectIsSpent, selectLasting, selectStatusLabel, selectWounds } from '../features/health/selectors';
 import type { CombatDraft } from './combatTurn';
 import { combatFacts, weaponText } from './combatFacts';
@@ -310,7 +311,7 @@ function storyFlowLines(state: GameState): string[] {
 export function describeJump(r: MontageReport): string[] {
   const name = r.level === 'montage' ? 'MONTAGE REPORT' : 'TIME SKIP REPORT';
   const lines = [
-    `${name}: ${r.fromLabel} to ${r.toLabel}, ${r.daysCompleted} of ${r.requestedDays} days (${r.trainingDays} training days, ${r.restDays} rest or recovery days, ${r.hoursTrained} hours of training).`,
+    `${name}: ${r.fromLabel} to ${r.toLabel}, ${r.daysCompleted} of ${r.requestedDays} days (${r.trainingDays} training day${r.trainingDays === 1 ? '' : 's'}, ${r.restDays} rest or recovery day${r.restDays === 1 ? '' : 's'}, ${r.hoursTrained} hours of training).`,
   ];
   if (r.interrupted) lines.push(`Interrupted on ${r.interrupted.label}: ${r.interrupted.reason}. End the narration at the moment this begins.`);
   const skills = r.skills.slice(0, JUMP_REPORT_MAX_SKILLS).map((s) => `${s.name} ${s.levelBefore === s.levelAfter ? `${s.levelAfter} (progress)` : `${s.levelBefore} -> ${s.levelAfter}`}`);
@@ -366,13 +367,18 @@ export function describeTraining(t: NonNullable<TurnDraft['training']>): string[
 export function describeCombat(c: CombatDraft): string[] {
   const facts = combatFacts(c);
   const lines = [`COMBAT ${c.fightId}${c.started ? ' (the fight begins now)' : ''}: the outcome list. Narrate these exchanges in order, nothing more and nothing different.`];
-  lines.push(`Weapons (the only ones in this fight): ${c.fighters.map((f) => `${f.name}: ${weaponText(f.weapon)}${f.form ? ` (${SKILL_BY_ID.get(f.form)?.name ?? f.form})` : ''}`).join('; ')}.`);
+  lines.push(`Weapons (the only ones in this fight): ${c.fighters.map((f) => `${f.name}: ${weaponText(f.weapon)}${f.bladeColor ? `, ${f.bladeColor} blade` : ''}${f.form ? ` (${SKILL_BY_ID.get(f.form)?.name ?? f.form})` : ''}`).join('; ')}.`);
   lines.push(...facts.lines);
   if (facts.steps.length) lines.push(`Steps the player asked for: ${facts.steps.map((s) => `step ${s.index + 1} ${s.label}: ${s.status} (${s.detail})`).join('; ')}.`);
   for (const n of c.notes.filter((x) => x.startsWith('intent step'))) lines.push(`Sequence: ${n}`);
   lines.push(`Hits in this passage: ${facts.hits.length ? facts.hits.map((h) => `#${h.n} on ${h.targetName} (${partText(h.part)}, ${h.severed ? 'severed' : h.severity ? `${h.severity} wound` : 'no wound'})`).join('; ') : 'NONE: nobody was hit, wounded or touched'}.`);
   if (facts.didNotHappen.length) lines.push(`Did not happen (never describe these as happening): ${facts.didNotHappen.join('; ')}.`);
   lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}${f.lostParts.length ? ` (lost: ${f.lostParts.map(partText).join(', ')})` : ''}`).join('; ')}.`);
+  // Who has the upper hand now (issue 19: "the droids press their advantage" while the player held +3).
+  if (!c.ended) lines.push(`Advantage now: ${advantageText(c)}.`);
+  // How a sparring bout ended (issue 19: a bout-ending hit softened and the loss left out).
+  const point = [...c.narrate].reverse().find((r) => r.hit?.point);
+  if (point && c.session) lines.push(`Bout result: ${point.hit!.by === 'A' ? `${c.fighters[0]?.name ?? 'the player character'} WON the bout with a clean touch` : `${c.fighters.find((f) => f.id === point.targetId)?.name ?? 'the opponent'} scored the clean touch and ${c.fighters[0]?.name ?? 'the player character'} LOST the bout`}. Say so plainly.`);
   // Terrain accidents (D-144, D-184): ground truth like the exchanges.
   for (const n of c.notes.filter((x) => x.startsWith('terrain: '))) lines.push(`Terrain accident: ${n.slice(9)}.`);
   if (c.session) {
@@ -382,6 +388,17 @@ export function describeCombat(c: CombatDraft): string[] {
   if (c.ended) lines.push(`The fight is over: ${c.ended.outcome} (${c.ended.reason})${c.ended.playerFate ? `; the opponent's choice: ${c.ended.playerFate}` : ''}. The choices are story choices again (what the character does next), not tactical moves.`);
   else lines.push('The fight goes on: end at the last exchange, at the moment the player chooses again.');
   return lines;
+}
+
+/** The advantage track in words for the narrator. */
+function advantageText(c: CombatDraft): string {
+  const pc = c.fighters[0]?.name ?? 'the player character';
+  const last = c.narrate[c.narrate.length - 1];
+  const opp = (last && c.fighters.find((f) => f.id === last.targetId)?.name) ?? 'the opponents';
+  const a = c.advantage;
+  if (a === 0) return 'even: neither side has the upper hand';
+  const who = a > 0 ? pc : opp;
+  return `${who} has the upper hand (${Math.abs(a)} of 5${Math.abs(a) >= STRIKE_AT ? ', and holds the strike' : ''}); do not describe the other side pressing an advantage`;
 }
 
 /** The care the engine applied this turn (careStarted, woundsStabilized), or a plain "none". */

@@ -2,7 +2,9 @@
 // beats, health sync, combat XP from the real duel log, fates and death, combatEnded, engagement, sparring modes.
 import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
-import { absDayFromDate } from '../../src/engine/calendar';
+import { absDayFromDate, addSeconds, toAbsSecond } from '../../src/engine/calendar';
+import { FATE_CHOICE_EXPIRY } from '../../src/data/combat.config';
+import { selectFates } from '../../src/features/combat/selectors';
 import { xpForLevel } from '../../src/engine/curve';
 import type { DuelState } from '../../src/engine/duel';
 import { applyEvents } from '../../src/state/applyEvents';
@@ -262,6 +264,24 @@ describe('beats and conclusion', () => {
       }
       return;
     }
+  });
+  it('a fate choice expires: the next fight, another place, or an hour later (combat pass 1 issue 18)', () => {
+    const { s, id } = withNpc(fresh());
+    const entry = { npcId: id, fightId: 'fight-9', options: ['spare', 'capture', 'kill'] as ('spare' | 'capture' | 'kill')[], atAbs: toAbsSecond(s.clock.now), locationId: s.locations.currentId, dying: true };
+    const open = { ...s, combat: { ...s.combat, fates: [entry] } };
+    expect(selectFates(open)).toHaveLength(1);
+    expect(player(open, [{ type: 'fateChosen', npcRef: id, fate: 'capture' }]).rejected).toEqual([]);
+    // An hour and a bit later it has passed.
+    const later = { ...open, clock: { ...open.clock, now: addSeconds(open.clock.now, FATE_CHOICE_EXPIRY.seconds + 60) } };
+    expect(selectFates(later)).toEqual([]);
+    expect(player(later, [{ type: 'fateChosen', npcRef: id, fate: 'kill' }]).rejected[0]?.reason).toMatch(/has passed/);
+    // Somewhere else, it has passed too.
+    expect(selectFates({ ...open, locations: { ...open.locations, currentId: 'loc:elsewhere' } })).toEqual([]);
+    // A new fight closes it.
+    const other = withNpc(open, 'Darth Rue');
+    expect(begin(other.s, [other.id]).combat.fates).toEqual([]);
+    // An entry from an older save (no date) is not offered.
+    expect(selectFates({ ...s, combat: { ...s.combat, fates: [{ npcId: id, fightId: 'old', options: ['spare'] }] } })).toEqual([]);
   });
   it('the same seed gives the same fight', () => {
     const run = () => {

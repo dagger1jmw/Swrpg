@@ -148,6 +148,7 @@ export function runSequence(
       note = `${success ? 'an opening' : 'seen through'}: ${duel.a.name} d20 ${u.d20} = ${u.total.toFixed(1)} vs ${target.name} d20 ${d.d20} = ${d.total.toFixed(1)} (margin ${(u.total - d.total).toFixed(1)})`;
     } else if (step.kind === 'forceAction') {
       let size: ObjectSize | undefined;
+      let thrown: string | undefined;
       if (step.action === 'throw') {
         // The object named, or any other throwable the fight still has (D-199): "a rock" in a forest of fallen timber throws timber.
         const named = step.objectTag !== undefined && (st.objects[step.objectTag] ?? 0) > 0 ? step.objectTag : undefined;
@@ -157,9 +158,9 @@ export function runSequence(
           continue;
         }
         size = objectSizes[tag];
+        thrown = tag;
         st = { ...st, objects: { ...st.objects, [tag]: (st.objects[tag] ?? 0) - 1 } };
       }
-      const before = duel.advantage;
       const r = resolveForceAction(
         duel,
         {
@@ -170,16 +171,17 @@ export function runSequence(
           effort: step.effort ?? 'standard',
           forceOutput: force.forceOutput,
           ...(size ? { objectSize: size } : {}),
+          ...(thrown ? { objectTag: thrown } : {}),
           bonus: bonus.reduce((a, m) => a + m.value, 0),
           targetDefense: adapt,
+          // A pattern's first use counts as surprise for its opening bonus (D-146), applied inside the action (issue 16).
+          firstUse,
         },
         day,
         ctx,
       );
       success = r.record.success;
-      let next = r.state;
-      // A pattern's first use counts as surprise for its opening bonus (D-146).
-      if (success && firstUse && (step.action === 'push' || step.action === 'choke')) next = { ...next, advantage: Math.max(next.advantage, Math.max(before + CIRCUMSTANCE.openingAdvantage, STRIKE_AT)) };
+      const next = r.state;
       const from = duel.log.length;
       st = { ...st, duel: { ...next, log: next.log.map((e, k) => (k >= from ? { ...e, step: i } : e)) } };
       splitDefense = success && step.action === 'throw';
@@ -259,7 +261,7 @@ export function stepLabel(step: SequenceStep): string {
   if (step.kind === 'maneuver') return `maneuver (${step.maneuver})`;
   if (step.kind === 'tactic') return step.tactic;
   if (step.kind === 'stance') return `stance (${step.stance})`;
-  return step.aim ? `strike (aimed at the ${step.aim})` : 'strike';
+  return step.aim ? `strike (aimed at the ${partText(step.aim)})` : 'strike';
 }
 
 /** Why a step cannot be attempted at all, or null (D-191, D-193). */

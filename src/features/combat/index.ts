@@ -9,7 +9,7 @@ import { afterBout, newSession, runSession, sessionOutcome, type SparSessionStat
 import { rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, type BodyPart } from '../../data/health.config';
 import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
-import { dateFromAbsDay } from '../../engine/calendar';
+import { dateFromAbsDay, toAbsSecond } from '../../engine/calendar';
 import { mandalorianSlugthrower } from '../../data/weapons';
 import { COMBAT_STAKES, type CombatOutcome, type CombatStakes } from '../../data/progression.config';
 import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.config';
@@ -32,7 +32,7 @@ import { selectCI, selectLevelExact, selectPerformance } from '../progression/se
 import { selectRank } from '../ranks/selectors';
 import { buildContext, buildMinionFighter, buildNpcFighter, buildPlayerFighter, sparringModeFor } from './build';
 import { combatSliceSchema, emptyCombat, pendingFightSchema, type ActiveFight, type CombatSlice, type PendingFight } from './combat';
-import { selectActiveFight, selectCombat } from './selectors';
+import { fateIsLive, selectActiveFight, selectCombat } from './selectors';
 
 const absNow = (s: GameState): number => s.clock.now.day * 86_400 + s.clock.now.second;
 const npcRefKinds = { opponentRef: ['npc'], opponentRefs: ['npc'], engagedElsewhereRefs: ['npc'], npcRef: ['npc'] } as const;
@@ -197,7 +197,7 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     if (!m?.npcId) continue;
     if (o.dead) emit.push({ type: 'npcDied', npcRef: m.npcId, cause: `killed in fight ${active.id}` });
     // An opponent who cannot stand or has lost the weapon arm (D-198) is down too: spared, captured or finished off.
-    else if (outcome === 'won' && (isIncapacitated(o.wounds as Wound[]) || isDying(o.wounds as Wound[]) || cannotDuel(o))) fates.push({ npcId: m.npcId, fightId: active.id, options: [...NPC_FATES] });
+    else if (outcome === 'won' && (isIncapacitated(o.wounds as Wound[]) || isDying(o.wounds as Wound[]) || cannotDuel(o))) fates.push({ npcId: m.npcId, fightId: active.id, options: [...NPC_FATES], atAbs: toAbsSecond(s.clock.now), locationId: s.locations.currentId, dying: isDying(o.wounds as Wound[]) });
   }
   let rng: RngState | undefined;
   let playerFate: FateKind | null = null;
@@ -386,7 +386,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         const r = startFight(ctx.state, spec, id);
         if (!r.active.duel.opponents.length) return { reject: 'no opponent could join the fight' };
         const active = e['playOut'] === true && r.active.session ? { ...r.active, session: { ...r.active.session, playing: true } } : r.active;
-        return { slice: { ...slice, pending: null, active, seq: slice.seq + 1 }, emit: r.emit, notes: r.notes, rng: r.rng };
+        // A new fight closes every fate choice still open (issue 18).
+        return { slice: { ...slice, pending: null, active, fates: [], seq: slice.seq + 1 }, emit: r.emit, notes: r.notes, rng: r.rng };
       },
     },
     /**
@@ -632,6 +633,17 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
       },
     },
+    /** Dev only (D-180; combat pass 1 issue 21): /fatigue during a fight reaches the player's fighter. */
+    devDuelMetersSynced: {
+      schema: z.object({ type: z.literal('devDuelMetersSynced') }),
+      sources: ['engine'],
+      handle: (slice, _e, ctx) => {
+        if (!slice.active) return { slice };
+        const duel = slice.active.duel as DuelState;
+        const m = ctx.state.health.meters;
+        return { slice: { ...slice, active: { ...slice.active, duel: { ...duel, a: { ...duel.a, meters: { p: m.p, f: m.f, m: m.m } } } } } };
+      },
+    },
     /**
      * AI: an alarm is raised or the authorities are called (D-196 amended): the cause an alarmOrAuthorities interruption
      * needs in the same reply. It changes no state; the note keeps it in the transcript.
@@ -697,10 +709,11 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
       schema: z.object({ type: z.literal('fateChosen'), npcRef: z.string(), fate: z.enum(NPC_FATES) }),
       sources: ['player'],
       targetField: 'npcRef',
-      handle: (slice, e) => {
+      handle: (slice, e, ctx) => {
         const id = String(e['npcRef']);
         const entry = slice.fates.find((f) => f.npcId === id);
         if (!entry) return { reject: `no fate to choose for ${id}` };
+        if (!fateIsLive(ctx.state, entry)) return { reject: `the moment to decide ${id}'s fate has passed` };
         const fate = e['fate'] as NpcFate;
         const emit: GameEvent[] = fate === 'kill' ? [{ type: 'npcDied', npcRef: id, cause: 'killed by the player at incapacitation' }] : [];
         return { slice: { ...slice, fates: slice.fates.filter((f) => f.npcId !== id) }, emit, notes: [`${id}: ${fate}`] };

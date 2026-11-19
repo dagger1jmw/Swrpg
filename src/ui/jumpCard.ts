@@ -39,7 +39,7 @@ export function renderJumpReport(r: MontageReport): HTMLElement {
   return el('div', { class: `roll jump${r.interrupted ? ' failure' : ' success'}` }, [
     el('div', { class: 'card-title' }, [el('strong', { text: `${title(r)}: ${r.fromLabel} → ${r.toLabel}` }), el('span', { class: 'rel', text: `${r.daysCompleted} of ${r.requestedDays} days` })]),
     r.interrupted ? el('div', { class: 'outcome interrupt', text: `Stopped early on ${r.interrupted.label}: ${r.interrupted.reason}` }) : null,
-    el('div', { text: `${r.trainingDays} training days, ${r.restDays} rest or recovery days, ${one(r.hoursTrained)} hours of training${r.breakthroughs ? `, ${r.breakthroughs} breakthroughs` : ''}` }),
+    el('div', { text: `${r.trainingDays} training day${r.trainingDays === 1 ? '' : 's'}, ${r.restDays} rest or recovery day${r.restDays === 1 ? '' : 's'}, ${one(r.hoursTrained)} hours of training${r.breakthroughs ? `, ${r.breakthroughs} breakthroughs` : ''}` }),
     ...r.skills.slice(0, 10).map((s) => el('div', { text: `${s.name} +${one(s.xp)} XP${s.levelAfter !== s.levelBefore ? ` · level ${s.levelBefore} → ${s.levelAfter}` : ''}`, class: s.levelAfter !== s.levelBefore ? 'outcome' : '' })),
     r.willpowerXp ? el('div', { class: 'hint', text: `Willpower +${one(r.willpowerXp)} XP (all sources)` }) : null,
     r.rust.cleared.length ? el('div', { class: 'hint', text: `Rust cleared: ${r.rust.cleared.map((x) => name(x.skillId)).join(', ')}` }) : null,

@@ -77,6 +77,23 @@ export function weaponSkillKind(w: WeaponKind): 'form' | 'blaster' | 'melee' | '
   return 'unarmed';
 }
 
+/**
+ * Lightsaber blade colours (Jared, after combat pass 1, D-205; design default): a Jedi's blade is blue or green (a
+ * Guardian blue, a Consular green, any other Jedi by a seeded pick), a Sith's red. Canon figures use the colour the
+ * lore files give (CanonNpc.bladeColor). The narrator may use only the listed colour; a training saber lists none.
+ */
+export const BLADE_COLORS = { jedi: ['blue', 'green'], sith: ['red'] } as const;
+const JEDI_COLOR_BY_ARCHETYPE: Readonly<Record<string, string>> = { jediGuardian: 'blue', jediConsular: 'green' };
+export function bladeColorFor(path: string | null, archetype: string, key: string): string | null {
+  if (path === 'sith') return BLADE_COLORS.sith[0];
+  if (path !== 'jedi') return null;
+  const fixed = JEDI_COLOR_BY_ARCHETYPE[archetype];
+  if (fixed) return fixed;
+  let h = 0;
+  for (const ch of key) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return BLADE_COLORS.jedi[h % BLADE_COLORS.jedi.length]!;
+}
+
 export function loadoutFor(archetype: string, rank: string | null): Loadout {
   const base = LOADOUT_BY_ARCHETYPE[archetype] ?? NONE;
   if (base.weapon === 'lightsaber' && rank !== null && TRAINING_SABER_RANKS.includes(rank)) return { ...base, weapon: 'trainingSaber' };

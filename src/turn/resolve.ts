@@ -278,7 +278,8 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   if (intent) {
     // A train / study intent with an activity (or a skill with a default activity) is a session (M3).
     const trainingReq = trainingRequest(intent);
-    if ((intent.actionType === 'train' || intent.actionType === 'study') && !trainingReq) report.push('no activity or skill named: nothing trained');
+    // A span of days with no activity named follows the routine (a montage or /skip): nothing to report there (issue 20).
+    if ((intent.actionType === 'train' || intent.actionType === 'study') && !trainingReq && !intent.requestedSpan) report.push('no activity or skill named: nothing trained');
 
     // Duration first: it decides the pacing level (D-72).
     let spanSeconds: number | null = null;

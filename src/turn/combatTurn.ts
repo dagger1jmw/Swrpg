@@ -145,6 +145,8 @@ export interface CombatFighterView {
   lostParts: string[];
   /** Body parts of every wound the fighter has now (the wound location check). Absent on older drafts. */
   woundParts?: string[];
+  /** The lightsaber's blade colour while it is in hand (D-205), else null. */
+  bladeColor?: string | null;
 }
 
 export interface CombatDraft {
@@ -190,7 +192,10 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   name: f.name,
   vitality: Math.round(f.vitality * 10) / 10,
   maxVitality: Math.round(f.maxVitality * 10) / 10,
-  status: f.dead ? 'Dead' : isDying(f.wounds as Wound[]) ? 'Dying' : isIncapacitated(f.wounds as Wound[]) ? 'Incapacitated' : f.out ? 'Out of the fight' : statusLabel(f.wounds as Wound[]),
+  // A droid is destroyed or disabled, never dying (issue 21).
+  status: f.forceTraits?.includes('droid')
+    ? f.dead ? 'Destroyed' : f.out || isDying(f.wounds as Wound[]) || isIncapacitated(f.wounds as Wound[]) ? 'Disabled' : statusLabel(f.wounds as Wound[])
+    : f.dead ? 'Dead' : isDying(f.wounds as Wound[]) ? 'Dying' : isIncapacitated(f.wounds as Wound[]) ? 'Incapacitated' : f.out ? 'Out of the fight' : statusLabel(f.wounds as Wound[]),
   out: f.out,
   engagedElsewhere: f.engagedElsewhere,
   minion: f.minion,
@@ -198,6 +203,7 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   form: f.form,
   lostParts: (f.wounds as Wound[]).filter((w) => w.severed).map((w) => w.part),
   woundParts: (f.wounds as Wound[]).map((w) => w.part),
+  bladeColor: f.weapon === 'lightsaber' ? (f.bladeColor ?? null) : null,
 });
 
 function noEffectLine(notes: readonly string[]): string {

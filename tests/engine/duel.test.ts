@@ -308,6 +308,20 @@ describe('sequences (D-146)', () => {
     }
     expect(seen).toBe(true);
   });
+  it('the first-use opening is on the Push card itself (pass 1 issue 16: card -3 -> -1, panel +3)', () => {
+    for (let i = 0; i < 100; i++) {
+      const s0 = seq(`first${i}`);
+      const r = runSequence({ ...s0, duel: { ...s0.duel, advantage: -3 } }, REAL, 0, [{ kind: 'forceAction', action: 'push' }], 1, {}, force);
+      if (!r.results[0]!.success) continue;
+      const card = r.state.duel.log.find((x) => x.kind === 'force')!;
+      expect(card.advBefore).toBe(-3);
+      expect(card.advAfter).toBe(3);
+      // The opponents' exchange during the push starts from the card's value (D-204).
+      expect(r.state.duel.log.find((x) => x.duringForce)!.advBefore).toBe(3);
+      return;
+    }
+    throw new Error('no successful push in 100 seeds');
+  });
   it('a failure at step 2 stops before step 3; the rest is dropped', () => {
     for (let i = 0; i < 200; i++) {
       const r = runSequence(seq(`fail${i}`), REAL, 0, [{ kind: 'strike' }, { kind: 'strike' }, { kind: 'strike' }], 3, {}, force);

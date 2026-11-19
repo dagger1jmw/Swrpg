@@ -1,7 +1,7 @@
 // Combat integration and Force actions in a duel (progression-numbers §8, rolls §4, health §2; D-122, D-154), and what
 // resists the Force (D-192): one pure contest for every Force use on a target, in combat and out of it. The Force load
 // goes through forceMeter.ts. Saber throw and recall (D-193). Pure.
-import { CIRCUMSTANCE, EXCHANGE_SECONDS, EXERTION_PER_EXCHANGE } from '../data/combat.config';
+import { CIRCUMSTANCE, EXCHANGE_SECONDS, EXERTION_PER_EXCHANGE, STRIKE_AT } from '../data/combat.config';
 import { NIMAN_CI_FACTOR } from '../data/formMatchups';
 import { FORCE_BASE_LOAD, LIGHTNING_PER_OUTPUT, FORCE_EFFORT, LOCATION_WEIGHTS, type ForceEffort } from '../data/health.config';
 import {
@@ -220,11 +220,18 @@ export interface ForceActionInput {
   forceOutput: number;
   /** Thrown object size (throw). */
   objectSize?: ObjectSize;
+  /** The terrain tag of the thrown object (throw), so the narrator names it (issue 19: "a heavy stone" in a fight of fallen timber). */
+  objectTag?: string;
   /** Extra modifier on the user's roll (sequence chain bonuses). */
   bonus?: number;
   /** Extra defense for the target (sequence adaptation). */
   targetDefense?: number;
   angerChanneling?: boolean;
+  /**
+   * A pattern's first use counts as surprise for its opening (D-146): a successful Push or Choke then puts the user at
+   * least at the strike. Applied here, before the record is written, so the card and the track agree (pass 1 issue 16).
+   */
+  firstUse?: boolean;
 }
 
 /** One minion struck by a thrown saber (D-193). */
@@ -238,6 +245,8 @@ export interface SaberThrowHit {
 }
 
 export interface ForceActionRecord {
+  /** The terrain tag of a thrown object (throw). */
+  objectTag?: string;
   kind: ForceActionKind;
   abilityId: string;
   side: SideId;
@@ -418,7 +427,10 @@ function forceActionOnly(s0: DuelState, input: ForceActionInput, day: number, ct
     }
     if (saberDropped) updatedUser = dropSaber(updatedUser);
   } else if (success) {
-    if (input.kind === 'push' || input.kind === 'choke') advantage = Math.max(-5, Math.min(5, advantage + dir * CIRCUMSTANCE.openingAdvantage));
+    if (input.kind === 'push' || input.kind === 'choke') {
+      advantage = Math.max(-5, Math.min(5, advantage + dir * CIRCUMSTANCE.openingAdvantage));
+      if (input.firstUse) advantage = dir > 0 ? Math.max(advantage, STRIKE_AT) : Math.min(advantage, -STRIKE_AT);
+    }
     else if (input.kind === 'mindTrick') {
       if (target.minion && MIND_TRICK_COMBAT.minionOut) {
         updatedTarget = { ...target, out: true };
@@ -480,6 +492,7 @@ function forceActionOnly(s0: DuelState, input: ForceActionInput, day: number, ct
     effUser,
     effTarget,
     ...(saberHits ? { saberHits } : {}),
+    ...(input.objectTag ? { objectTag: input.objectTag } : {}),
     ...(input.kind === 'saberThrow' ? { saberDropped } : {}),
     ...(stoodDown ? { stoodDown } : {}),
   };

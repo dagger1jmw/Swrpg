@@ -169,6 +169,17 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
     return r.applied;
   };
   const refused = (): string | null => (rejected.length ? rejected.map((r) => r.reason).join('; ') : null);
+  /** Moves the scene to a place, created when new (/place, and /fight's place words). Returns why it failed, or null. */
+  const movePlace = (name: string): string | null => {
+    let id = resolveLocationRef(state, name);
+    if (!id) {
+      apply([{ type: 'locationCreatedByPlayer', name }], 'player');
+      id = resolveLocationRef(state, name);
+      if (!id) return refused() ?? 'could not create the place';
+    }
+    apply([{ type: 'locationChanged', locationRef: id }], 'dev');
+    return refused();
+  };
 
   if (!selectIsTestCharacter(initial)) return fail('dev commands work only in a test campaign (the dev test start, ?dev=1)');
   const words = text.trim().split(/\s+/);
@@ -273,6 +284,12 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
         }
         who = `${count} ${base.toLowerCase()}${count > 1 ? 's' : ''} at ${level.toFixed(1)} (your form ${playerFormLevel(state).toFixed(1)})`;
       } else return fail(`unknown kind "${kind}" (duelist, a level, a minion kind, or canon:<name>)`);
+      // A place word moves the scene there, so the narrator does not set the fight in the old place (issue 21).
+      const placeWord = terrain.find((t) => TERRAIN_ALIASES[t.toLowerCase()]);
+      if (placeWord) {
+        const moved = movePlace(`${placeWord.charAt(0).toUpperCase()}${placeWord.slice(1)} (dev sandbox)`);
+        if (moved) return fail(moved);
+      }
       const before = state;
       apply([{ type: 'fightBegun', fromPending: false, opponentRefs, minionGroups, stakes, terrainTags: tags, ...(mode ? { sparringMode: mode } : {}), ...(stakes === 'spar' ? { playOut: true } : {}) }], 'engine');
       if (!state.combat.active) return fail(refused() ?? 'the fight did not begin');
@@ -385,15 +402,9 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
     case 'place': {
       const name = args.join(' ').trim();
       if (!name) return fail('/place <location>');
-      let id = resolveLocationRef(state, name);
-      if (!id) {
-        apply([{ type: 'locationCreatedByPlayer', name }], 'player');
-        id = resolveLocationRef(state, name);
-        if (!id) return fail(refused() ?? 'could not create the place');
-      }
-      apply([{ type: 'locationChanged', locationRef: id }], 'dev');
-      if (refused()) return fail(refused()!);
-      return out(true, `moved to ${state.locations.byId[id]?.name ?? name}`);
+      const failed = movePlace(name);
+      if (failed) return fail(failed);
+      return out(true, `moved to ${state.locations.byId[resolveLocationRef(state, name) ?? '']?.name ?? name}`);
     }
 
     default:

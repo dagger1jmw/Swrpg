@@ -1,5 +1,6 @@
 // The health card on the character sheet (health.md §3-8): Vitality, status, wounds with their healing, lasting
 // injuries with adaptation, the dying timer, death. Rendering only; everything shown is derived by selectors.
+import { partText } from '../engine/duel';
 import { selectDeath, selectIsDying, selectLasting, selectMaxVitality, selectStatusLabel, selectVitality, selectWoundPenalty, selectWounds } from '../features/health/selectors';
 import type { GameState } from '../state/gameState';
 import { el } from './dom';
@@ -36,7 +37,7 @@ export function renderHealthCard(s: GameState): HTMLElement {
     el('div', { class: 'hc-list' }, [
       el('div', { class: 'hc-label', text: 'Wounds' }),
       ...wounds.map((w) =>
-        el('div', { class: 'wound', text: `${w.stabilized && w.severity === 'mortal' ? 'stabilized critical' : w.severity} · ${w.part}${w.severed ? ' (severed)' : ''} · ${Math.round(w.healProgress * 100)}% healed` }),
+        el('div', { class: 'wound', text: `${w.stabilized && w.severity === 'mortal' ? 'stabilized critical' : w.severity} · ${partText(w.part)}${w.severed ? ' (severed)' : ''} · ${Math.round(w.healProgress * 100)}% healed` }),
       ),
       ...lasting.map((l) => el('div', { class: 'wound lasting', text: `${KIND_LABEL[l.kind] ?? l.kind} · ${l.aid} · ${Math.round(l.adaptation * 100)}% adapted` })),
       !wounds.length && !lasting.length ? el('div', { class: 'hint', text: 'No wounds.' }) : null,

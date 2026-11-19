@@ -74,6 +74,7 @@ const NPCS: readonly CanonNpc[] = [
     faction: 'sithEmpire',
     role: 'sithLord',
     archetype: 'sithWarrior',
+    bladeColor: 'crimson', // SW_Characters_09 (Lightsaber Forms): "Wields a crimson blade."
     birthBby: 3700,
     birthSource: 'estimate',
     earlierRoles: [{ role: 'sithAcolyte', untilBby: 3678 }],
@@ -90,6 +91,7 @@ const NPCS: readonly CanonNpc[] = [
     faction: 'sithEmpire',
     role: 'sithLord',
     archetype: 'sithWarrior',
+    bladeColor: 'crimson', // SW_Characters_09 (Lightsaber Forms): "Wields a crimson blade."
     birthBby: 3702,
     birthSource: 'lore',
     deathBby: 3637,

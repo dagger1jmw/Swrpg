@@ -242,6 +242,11 @@ export const FATE_ROLL: Readonly<Record<'sith' | 'jedi' | 'military' | 'underwor
 };
 /** NPC fate chosen by the player at the NPC's incapacitation. */
 export const NPC_FATES = ['spare', 'capture', 'kill'] as const;
+/**
+ * A fate choice lasts until the next fight, a change of place, or this much game time (design default, combat pass 1
+ * issue 18: a choice was still offered two weeks and three fights later).
+ */
+export const FATE_CHOICE_EXPIRY = { seconds: 3600 } as const;
 export type NpcFate = (typeof NPC_FATES)[number];
 
 // ---- heroicAct (flag-registry §2) ----
