@@ -183,7 +183,7 @@ function fateGroup(archetype: string): keyof typeof FATE_ROLL {
  * Concludes a fight (combat-xp §1-3, D-154): the combat branch of computeXp from the real duel log (fightResolved), E
  * and CI, heroicAct, NPC deaths and fates, the opponent's choice when the player is incapacitated, and the summary.
  */
-function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome: CombatOutcome, reason: string): { slice: CombatSlice; emit: GameEvent[]; notes: string[]; rng?: RngState } {
+function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome: CombatOutcome, reason: string): { slice: CombatSlice; emit: GameEvent[]; notes: string[]; rng: RngState } {
   const duel = active.duel as DuelState;
   const emit: GameEvent[] = [];
   const notes: string[] = [`fight ${active.id} ends: ${outcome} (${reason})`];
@@ -208,7 +208,9 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     // An opponent who cannot stand or has lost the weapon arm (D-198) is down too: spared, captured or finished off.
     else if (outcome === 'won' && (isIncapacitated(o.wounds as Wound[]) || isDying(o.wounds as Wound[]) || cannotDuel(o))) fates.push({ npcId: m.npcId, fightId: active.id, options: [...NPC_FATES], atAbs: toAbsSecond(s.clock.now), locationId: s.locations.currentId, dying: isDying(o.wounds as Wound[]) });
   }
-  let rng: RngState | undefined;
+  // One stream (D-238): the fight's dice continue the campaign's. The fate roll draws after the last exchange, and the
+  // stream after it goes back to meta, so the next fight never replays this one.
+  let rng: RngState = duel.rng;
   let playerFate: FateKind | null = null;
   const playerDown = outcome === 'lost' && (duel.a.out || isIncapacitated(duel.a.wounds as Wound[]) || isDying(duel.a.wounds as Wound[]) || cannotDuel(duel.a) !== null);
   // A surrender puts the player at the opponent's mercy too (D-216; pass 2: nothing was decided): the same fate roll.
@@ -222,12 +224,12 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     else if (surrendered) {
       // A surrender is a capture by default (Jared, D-218); an archetype with an execution chance may kill instead.
       const chance = captor.surrenderExecution ? (active.stakes === 'lethal' ? captor.surrenderExecution.lethal : captor.surrenderExecution.serious) : 0;
-      const [u, r] = nextFloat(s.meta.rngState);
+      const [u, r] = nextFloat(rng);
       rng = r;
       playerFate = u < chance ? 'killingStrike' : 'captured';
     } else {
       const table = FATE_ROLL[fateGroup(archetype)];
-      const [u, r] = nextFloat(s.meta.rngState);
+      const [u, r] = nextFloat(rng);
       rng = r;
       if (active.stakes === 'lethal') playerFate = u < table.lethal[0] ? 'killingStrike' : u < table.lethal[0] + table.lethal[1] ? 'captured' : 'left';
       else playerFate = u < table.serious[0] ? 'captured' : 'left';
@@ -254,7 +256,7 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     duel,
     session: active.session ?? null,
   };
-  return { slice: { ...slice, active: null, fates, last }, emit, notes, ...(rng ? { rng } : {}) };
+  return { slice: { ...slice, active: null, fates, last }, emit, notes, rng };
 }
 
 /** Outcome of a duel end for side A. */
@@ -278,7 +280,7 @@ function resolveSessionRest(slice: CombatSlice, s: GameState, active: ActiveFigh
 }
 
 /** Applies a segment's result: health sync, skills, beat, and the conclusion when the duel ended. */
-function settle(slice: CombatSlice, s: GameState, active: ActiveFight, before: DuelState, after: DuelState, beat: string | null, narrated: boolean, extraNotes: string[] = []): ReturnType<typeof conclude> {
+function settle(slice: CombatSlice, s: GameState, active: ActiveFight, before: DuelState, after: DuelState, beat: string | null, narrated: boolean, extraNotes: string[] = []): { slice: CombatSlice; emit: GameEvent[]; notes: string[]; rng: RngState } {
   const emit = syncEmits(s, before, after, active.meta);
   const nextActive: ActiveFight = {
     ...active,
@@ -294,7 +296,7 @@ function settle(slice: CombatSlice, s: GameState, active: ActiveFight, before: D
     if (r.next) {
       // The next bout's terrain accidents (D-144, D-184).
       const hz = rollBoutHazards(r.next, active.ctx.hazards ?? [], selectNow(s).day);
-      return { slice: { ...slice, active: { ...nextActive, duel: hz.duel, session: r.session, beat: 'boutEnded', lastNarrated: after.exchange } }, emit: [...emit, ...syncEmits(s, r.next, hz.duel, active.meta)], notes: [...extraNotes, boutNote, ...hz.notes] };
+      return { slice: { ...slice, active: { ...nextActive, duel: hz.duel, session: r.session, beat: 'boutEnded', lastNarrated: after.exchange } }, emit: [...emit, ...syncEmits(s, r.next, hz.duel, active.meta)], notes: [...extraNotes, boutNote, ...hz.notes], rng: hz.duel.rng };
     }
     const c = conclude(slice, s, { ...nextActive, session: r.session }, sessionOutcome(r.session), `sparring session (${r.session.ended})`);
     return { ...c, emit: [...emit, ...c.emit], notes: [...extraNotes, boutNote, ...c.notes] };
@@ -303,7 +305,7 @@ function settle(slice: CombatSlice, s: GameState, active: ActiveFight, before: D
     const c = conclude(slice, s, nextActive, outcomeOf(after), after.end.reason);
     return { ...c, emit: [...emit, ...c.emit], notes: [...extraNotes, ...c.notes] };
   }
-  return { slice: { ...slice, active: nextActive }, emit, notes: extraNotes };
+  return { slice: { ...slice, active: nextActive }, emit, notes: extraNotes, rng: after.rng };
 }
 
 /** Ends a sparring session before its exchange count: the bout in progress is unfinished (Stop sparring, or the story). */
@@ -440,7 +442,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         if (!active) return { reject: 'no fight in progress' };
         const s = ctx.state;
         const day = selectNow(s).day;
-        const before = active.duel as DuelState;
+        // One stream (D-238): the exchanges draw from the campaign's RNG, never from a copy kept since the fight began.
+        const before = { ...(active.duel as DuelState), rng: s.meta.rngState };
         const ctxD = active.ctx as ActiveFight['ctx'] & { situations: never[] };
         let duel: DuelState = { ...before, a: { ...before.a } };
         let action = String(e['action']);
@@ -449,7 +452,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         if (action === 'acceptTruce') {
           if (!active.truceOffer) return { reject: 'no truce has been offered' };
           const c = conclude(slice, s, { ...active, duel }, 'truce', 'truce');
-          return { slice: c.slice, emit: [...syncEmits(s, before, duel, active.meta), ...c.emit], notes: [`truce accepted: ${active.truceOffer}`, ...c.notes], ...(c.rng ? { rng: c.rng } : {}) };
+          return { slice: c.slice, emit: [...syncEmits(s, before, duel, active.meta), ...c.emit], notes: [`truce accepted: ${active.truceOffer}`, ...c.notes], rng: c.rng };
         }
         if (active.truceOffer) {
           notes.push('truce offer declined: the fight goes on');
@@ -461,12 +464,12 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         if (session && !session.ended) {
           if (action === 'stopSession') {
             const c = stopSession(slice, s, active, duel, session, 'stopped');
-            return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
+            return { slice: c.slice, emit: c.emit, notes: c.notes, rng: c.rng };
           }
           const passive = ['continue', 'fightOn', 'resolve', 'narrate'].includes(action);
           if (!session.playing && passive) {
             const c = resolveSessionRest(slice, s, active, session, before, duel, day, notes);
-            return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
+            return { slice: c.slice, emit: c.emit, notes: c.notes, rng: c.rng };
           }
           // A question back (clarify) is not an action: it leaves the session as it was (D-182).
           if (!session.playing && action !== 'clarify') active = { ...active, session: { ...session, playing: true } };
@@ -508,7 +511,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           const t = String(e['tactic']);
           if (t === 'surrender') {
             const c = conclude(slice, s, { ...active, duel }, 'lost', 'surrendered');
-            return { slice: c.slice, emit: [...syncEmits(s, before, duel, active.meta), ...c.emit], notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
+            return { slice: c.slice, emit: [...syncEmits(s, before, duel, active.meta), ...c.emit], notes: c.notes, rng: c.rng };
           }
           if (t === 'disengage') {
             // A contest that ends the fight as fled: d20 + Agility/10 (+ position) vs d20 + the opponent's skill/10.
@@ -518,7 +521,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
             duel = { ...duel, rng: r2 };
             if (u.total > d.total) {
               const c = conclude(slice, s, { ...active, duel }, 'fled', 'disengaged');
-              return { slice: c.slice, emit: [...syncEmits(s, before, duel, active.meta), ...c.emit], notes: [`disengage: ${u.total.toFixed(1)} vs ${d.total.toFixed(1)}`, ...c.notes] };
+              return { slice: c.slice, emit: [...syncEmits(s, before, duel, active.meta), ...c.emit], notes: [`disengage: ${u.total.toFixed(1)} vs ${d.total.toFixed(1)}`, ...c.notes], rng: c.rng };
             }
             notes.push(`disengage failed: ${u.total.toFixed(1)} vs ${d.total.toFixed(1)}`);
           } else if (t === 'feint' || t === 'taunt' || t === 'useEnvironment' || t === 'takePosition') {
@@ -535,7 +538,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           // no exchange and no AI call (D-210), never a rejected event that leaves the narrator nothing to tell.
           const r = runSequence({ duel, patternUses: active.patternUses, objects: active.objects }, ctxD, day, [{ kind: 'forceAction', action: f.kind, ...(f.effort ? { effort: f.effort } : {}), ...(f.objectTag ? { objectTag: f.objectTag } : {}) }], 1, active.objectSizes, forceProfile(s));
           const settled = settle({ ...slice, active: { ...active, patternUses: r.state.patternUses, objects: r.state.objects } }, s, { ...active, patternUses: r.state.patternUses, objects: r.state.objects }, before, r.state.duel, ...beatFor(duel, r.state.duel, 'forceAction', r.lines), r.lines);
-          return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
+          return { slice: settled.slice, emit: settled.emit, notes: settled.notes, rng: settled.rng };
         } else if (action === 'shatterpoint') {
           const r = tryShatterpoint(duel, 'A');
           if (!r.roll) return { reject: 'no ShatterSense, or the shatterpoint was already read this fight' };
@@ -562,7 +565,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           const seqNotes = [...incomplete, ...r.lines];
           const nextActive = { ...active, patternUses: r.state.patternUses, objects: r.state.objects };
           const settled = settle({ ...slice, active: nextActive }, s, nextActive, before, r.state.duel, ...beatFor(duel, r.state.duel, 'sequence', r.lines), seqNotes);
-          return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
+          return { slice: settled.slice, emit: settled.emit, notes: settled.notes, rng: settled.rng };
         } else if (action === 'fightOn') mode = 'fightOn';
         else if (action === 'resolve') mode = 'toEnd';
         else if (action === 'narrate') {
@@ -580,7 +583,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           narrated = beat !== null && isNarratedBeat(beat as BeatReason);
         }
         const settled = settle({ ...slice, active }, s, active, before, duel, beat, narrated, notes);
-        return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
+        return { slice: settled.slice, emit: settled.emit, notes: settled.notes, rng: settled.rng };
       },
     },
     /**
@@ -641,27 +644,29 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         }
         // A sparring session ends by its bouts or when the player stops (D-181): a bout's point is not the end of the
         // session. Only the story stopping it (interrupted) ends it from the narration, with the bouts so far.
-        const session = slice.active.session;
+        // One stream (D-238): a hazard rolled for everyone and the fate roll continue the campaign's RNG.
+        const synced: ActiveFight = { ...slice.active, duel: { ...(slice.active.duel as DuelState), rng: ctx.state.meta.rngState } };
+        const session = synced.session;
         if (session && !session.ended) {
           if (reason !== 'interrupted') return { reject: 'a sparring session ends by its bouts or when the player stops; a bout ending is not the end of the session' };
-          const c = stopSession(slice, ctx.state, slice.active, slice.active.duel as DuelState, session, 'interrupted');
-          return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
+          const c = stopSession(slice, ctx.state, synced, synced.duel as DuelState, session, 'interrupted');
+          return { slice: c.slice, emit: c.emit, notes: c.notes, rng: c.rng };
         }
         // An interrupted fight is recorded as interrupted with its real state: never fled, never won (D-196).
         const outcome: CombatOutcome = reason === 'truce' ? 'truce' : reason === 'surrendered' ? 'lost' : reason === 'interrupted' ? 'interrupted' : 'fled';
-        const standing = (slice.active.duel as DuelState).opponents.filter((o) => !o.out).length;
+        const standing = (synced.duel as DuelState).opponents.filter((o) => !o.out).length;
         const label = reason === 'interrupted' ? `${e['category'] ? `${String(e['category'])}: ` : ''}${String(e['why'] ?? 'an outside event')}; ${standing} opponent${standing === 1 ? '' : 's'} still standing` : e['why'] ? `${reason}: ${String(e['why'])}` : reason;
         // A narrator's hazard that ends the fight (Jared, D-217): the engine rolls its damage for everyone still in it by
         // the normal hazard rules; the narrator never sets damage. The wounds reach health and the NPCs before the end.
-        const before = slice.active.duel as DuelState;
+        const before = synced.duel as DuelState;
         const hazardEvent = reason === 'interrupted' && e['category'] === 'environmentCollapse' ? (ctx.batch ?? []).find((b) => b.event.type === 'hazardOccurred')?.event : undefined;
         if (hazardEvent) {
           const hz = hazardOnAll(before, { type: hazardEvent['hazard'] as HazardType, severity: Number(hazardEvent['severityHint']) as 1 | 2 | 3, cause: String(hazardEvent['cause']) }, selectNow(ctx.state).day);
-          const c = conclude(slice, ctx.state, { ...slice.active, duel: hz.duel }, outcome, label);
-          return { slice: c.slice, emit: [...syncEmits(ctx.state, before, hz.duel, slice.active.meta), ...c.emit], notes: [...hz.notes, ...c.notes], ...(c.rng ? { rng: c.rng } : {}) };
+          const c = conclude(slice, ctx.state, { ...synced, duel: hz.duel }, outcome, label);
+          return { slice: c.slice, emit: [...syncEmits(ctx.state, before, hz.duel, synced.meta), ...c.emit], notes: [...hz.notes, ...c.notes], rng: c.rng };
         }
-        const c = conclude(slice, ctx.state, slice.active, outcome, label);
-        return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
+        const c = conclude(slice, ctx.state, synced, outcome, label);
+        return { slice: c.slice, emit: c.emit, notes: c.notes, rng: c.rng };
       },
     },
     /** Dev only (D-215): /fall rolls the fight's terrain accidents now, as at the start of a block of exchanges (D-185). */
@@ -673,10 +678,10 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         if (!active) return { reject: 'no fight in progress' };
         const hazards = active.ctx.hazards ?? [];
         if (!hazards.length) return { reject: 'this fight has no hazardous terrain (try terrain ice, forest or ruins)' };
-        const before = active.duel as DuelState;
+        const before = { ...(active.duel as DuelState), rng: ctx.state.meta.rngState };
         const hz = rollBoutHazards(before, hazards, selectNow(ctx.state).day);
         const notes = hz.notes.length ? hz.notes : ['terrain rolled: nobody fell'];
-        return { slice: { ...slice, active: { ...active, duel: hz.duel } }, emit: syncEmits(ctx.state, before, hz.duel, active.meta), notes };
+        return { slice: { ...slice, active: { ...active, duel: hz.duel } }, emit: syncEmits(ctx.state, before, hz.duel, active.meta), notes, rng: hz.duel.rng };
       },
     },
     /** Dev only (D-180; combat pass 1 issue 21): /fatigue during a fight reaches the player's fighter. */
