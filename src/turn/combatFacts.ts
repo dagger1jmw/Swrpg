@@ -94,7 +94,7 @@ export function combatFacts(c: CombatDraft): CombatFacts {
   for (const r of c.narrate) {
     const t = names[r.targetId] ?? r.targetId;
     const step = r.step !== undefined ? ` (sequence step ${r.step + 1})` : '';
-    const head = `#${r.n}${r.surprise ? ' (surprise)' : ''}${step}`;
+    const head = `#${r.n}${r.surprise ? ' (surprise)' : ''}${step}${r.duringForce ? ` (while ${pc} uses the Force and only defends)` : ''}`;
     if (r.kind === 'force' && r.force) {
       const f = r.force;
       const user = f.side === 'A' ? pc : t;

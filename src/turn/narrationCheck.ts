@@ -239,7 +239,7 @@ export function fallbackNarration(narrative: string, draft: TurnDraft, issues: r
     const facts = combatFacts(draft.combat);
     const plain = facts.lines.map((l) =>
       l
-        .replace(/^#\d+(?: \(surprise\))?(?: \(sequence step \d+\))?\s*/, '')
+        .replace(/^#\d+(?: \(surprise\))?(?: \(sequence step \d+\))?(?: \(while .+? only defends\))?\s*/, '')
         .replace(/ Explain the failure only with this reason; nothing else in the scene blocked it\./, '')
         .replace(/: DONE\. /, ': ')
         .replace(/: DONE \(/, ' (')

@@ -169,6 +169,8 @@ export interface ExchangeRecord {
   force?: ForceActionRecord;
   /** Part of a typed sequence: the step index (sequence.ts). */
   step?: number;
+  /** The opponents' exchange while the player used the Force (D-204): the player only defended. */
+  duringForce?: boolean;
 }
 
 export type DuelEnd =
@@ -420,6 +422,12 @@ export interface ExchangeExtras {
    * strike. A miss by more than a tie gives the minion the build-up step for that margin.
    */
   forceStrike?: boolean;
+  /**
+   * The opponents act while the player uses the Force (Jared, after combat pass 1; D-204): the player only defends (no
+   * strike, no cut-down, the track never moves toward the player), and the exchange takes no time of its own (the Force
+   * action's seconds cover it).
+   */
+  duringForce?: boolean;
 }
 
 export function resolveExchange(initial: DuelState, ctx: DuelContext, day: number, extras: ExchangeExtras = {}): DuelState {
@@ -451,7 +459,8 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   const effB = fighterEffectiveLevel(B);
   const advBefore = s.advantage;
   const surprise = s.surprise !== null;
-  const striker: SideId | null = surprise ? s.surprise : advBefore >= STRIKE_AT ? 'A' : advBefore <= -STRIKE_AT ? 'B' : extras.forceStrike ? 'A' : null;
+  const defendOnly = extras.duringForce === true;
+  const striker: SideId | null = surprise ? s.surprise : advBefore <= -STRIKE_AT ? 'B' : defendOnly ? null : advBefore >= STRIKE_AT ? 'A' : extras.forceStrike ? 'A' : null;
   const forced = striker === 'A' && !surprise && advBefore < STRIKE_AT;
 
   let rng = s.rng;
@@ -477,8 +486,9 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     }
     margin = striker === 'A' ? rollA.total - rollB.total : rollB.total - rollA.total;
   }
-  const [secs, r2] = nextInt(rng, EXCHANGE_SECONDS.min, EXCHANGE_SECONDS.max);
+  const [rolledSecs, r2] = nextInt(rng, EXCHANGE_SECONDS.min, EXCHANGE_SECONDS.max);
   rng = r2;
+  const secs = defendOnly ? 0 : rolledSecs;
 
   let advAfter: number;
   let hit: Hit | null = null;
@@ -503,9 +513,14 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       advAfter = clampTrack(advAfter - CIRCUMSTANCE.openingAdvantage);
       notes.push(`${A.name} rolled a natural 1: opening for ${B.name}`);
     }
+    // While using the Force the player only defends (D-204): winning the exchange holds the track, never gains.
+    if (defendOnly) {
+      advAfter = Math.min(advBefore, advAfter);
+      notes.push(`${A.name} is using the Force and only defends`);
+    }
     // Cut-down (D-158): against a minion, a build-up margin of 6+ is already a hit, unless the minion wears
     // saber-resistant armor. Minion groups are mass, not duelists.
-    if (B.minion && !B.saberResistant && band(margin) >= CUT_DOWN_MARGIN) {
+    if (!defendOnly && B.minion && !B.saberResistant && band(margin) >= CUT_DOWN_MARGIN) {
       const q = qualityOf(band(margin)) ?? 'graze';
       const d = damageFighter(B, q, band(margin), A.weapon, ctx, rng, day, B.wounds.length + 1, ctx.sparring === 'trainingSaber' || A.weapon === 'trainingSaber');
       rng = d.rng;
@@ -645,6 +660,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     notes,
     surprise,
     ...(extras.step !== undefined ? { step: extras.step } : {}),
+    ...(defendOnly ? { duringForce: true } : {}),
   };
   return {
     ...next,

@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { SEQUENCE_CHAIN } from '../../src/data/sequence.config';
 import { combatIntegration, resolveForceAction } from '../../src/engine/combatForce';
-import { beatAfter, resolveExchange, runUntilBeat, startDuel, type DuelState, type Fighter } from '../../src/engine/duel';
+import { resolveExchange, runUntilBeat, startDuel, type DuelState, type Fighter } from '../../src/engine/duel';
 import { basicRoll } from '../../src/engine/rolls';
 import { seedRng, type RngState } from '../../src/engine/rng';
 import { patternOf, runSequence, sequenceCap, type ForceProfile, type SequenceState, type SequenceStep } from '../../src/engine/sequence';
@@ -188,13 +188,36 @@ describe('Force actions (rolls §4, D-154)', () => {
     for (let i = 0; i < 50 && !found; i++) {
       const r = resolveForceAction(duel(`push${i}`), { side: 'A', kind: 'push', level: 60, ci: 60, effort: 'standard', forceOutput: 50 }, 0);
       if (r.record.success) {
-        expect(r.state.advantage).toBe(2);
         expect(r.state.log[0]!.kind).toBe('force');
-        expect(beatAfter(r.state)).toBe('forceAction');
+        expect(r.state.log[0]!.advAfter).toBe(2);
+        // The opponent acts during the push (D-204): the player only defends, so the track never rises past the opening.
+        expect(r.state.log[1]!.duringForce).toBe(true);
+        expect(r.state.log[1]!.seconds).toBe(0);
+        expect(r.state.advantage).toBeLessThanOrEqual(2);
         found = true;
       }
     }
     expect(found).toBe(true);
+  });
+  it('no free Force turns (D-204; pass 1 R8): an unarmed Knight using only the Force is attacked by the droids', () => {
+    const droid = (i: number) => forceUser(`b1:${i}`, 30, { minion: true, weapon: 'blasterRifle', form: null, skillId: 'blaster', forceSense: 0, vitality: 20, maxVitality: 20, forceTraits: ['droid', 'mindImmune'] });
+    const knight = forceUser('A', 50, { weapon: 'unarmed', skillId: 'agility', form: null, saberLost: { weapon: 'lightsaber', skillId: 'soresu', level: 50, form: 'soresu' }, caps: { p: 5, f: 20 } });
+    let hitsOnKnight = 0;
+    let during = 0;
+    for (let i = 0; i < 100; i++) {
+      let st = startDuel(knight, [droid(1), droid(2), droid(3)], seedRng(`r8-${i}`));
+      for (let k = 0; k < 4 && !st.end; k++) st = resolveForceAction(st, { side: 'A', kind: 'push', level: 1, ci: 0, effort: 'standard', forceOutput: 0 }, 0).state;
+      const opp = st.log.filter((x) => x.duringForce);
+      during += opp.length;
+      // The opponents' exchange takes no time: the Force actions' seconds cover it.
+      expect(opp.every((x) => x.seconds === 0)).toBe(true);
+      // The player only defends: never a strike by the player, and a won build-up never moves the track toward them
+      // (a missed strike by the opponent still eases its pressure, D-156).
+      expect(opp.every((x) => x.striker !== 'A' && (x.striker !== null || x.advAfter <= x.advBefore))).toBe(true);
+      hitsOnKnight += st.log.filter((x) => x.hit && x.hit.by === 'B' && !x.hit.avoided).length;
+    }
+    expect(during).toBeGreaterThan(300);
+    expect(hitsOnKnight).toBeGreaterThan(0);
   });
   it('Force load is spent on every use; Lightning damages on a success', () => {
     for (let i = 0; i < 50; i++) {
@@ -267,14 +290,23 @@ describe('sequences (D-146)', () => {
     expect(runSequence(none, REAL, 0, [{ kind: 'forceAction', action: 'throw' }], 3, {}, force).lines[0]).toBe('step 1 Force throw: NOT REACHED (nothing left to throw here)');
   });
   it('when the opponent holds the strike, their strike is resolved and is why the chain stops (D-199)', () => {
-    const s0 = seq('init');
-    const s = { ...s0, duel: { ...s0.duel, advantage: -3 } };
-    const r = runSequence(s, REAL, 0, [{ kind: 'forceAction', action: 'saberThrow' }, { kind: 'strike' }, { kind: 'strike' }], 3, {}, force);
-    if (r.stopReason === 'opponentStrike' || (r.stopReason === 'fightEnded' && r.dropped.length)) {
+    // During a Force step the opponent, holding the strike, strikes (D-204). Started at -5, a missed strike only eases
+    // the track to -4, so the opponent still holds it after the step and the D-199 rule resolves their next strike.
+    let seen = false;
+    for (let i = 0; i < 200 && !seen; i++) {
+      // A recall moves no track, so a missed opponent strike during it leaves them at -4.
+      const s0 = seq(`init${i}`, { weapon: 'unarmed', skillId: 'agility', form: null, saberLost: { weapon: 'lightsaber', skillId: 'soresu', level: 60, form: 'soresu' } });
+      const s = { ...s0, duel: { ...s0.duel, advantage: -5 } };
+      const r = runSequence(s, REAL, 0, [{ kind: 'forceAction', action: 'recall' }, { kind: 'strike' }, { kind: 'strike' }], 3, {}, force);
+      expect(r.state.duel.log.find((x) => x.duringForce)!.striker).toBe('B');
+      if (r.stopReason !== 'opponentStrike') continue;
       const last = r.state.duel.log[r.state.duel.log.length - 1]!;
       expect(last.striker).toBe('B');
+      expect(last.duringForce).toBeUndefined();
       expect(r.lines[1]).toMatch(/^step 2 strike: NOT REACHED \(B had the initiative and struck first \(#\d+: .+\)\)$/);
-    } else expect(r.results[0]!.success).toBe(false);
+      seen = true;
+    }
+    expect(seen).toBe(true);
   });
   it('a failure at step 2 stops before step 3; the rest is dropped', () => {
     for (let i = 0; i < 200; i++) {
@@ -293,7 +325,7 @@ describe('sequences (D-146)', () => {
     expect(st.patternUses[patternOf(step[0]!)]).toBe(5);
     const last = st.duel.log[st.duel.log.length - 1]!;
     expect(last.force?.resist?.modifiers.find((m) => m.source.startsWith('adapted'))?.value ?? 0).toBeLessThanOrEqual(3);
-    const fourth = st.duel.log[3]!;
+    const fourth = st.duel.log.filter((x) => x.kind === 'force')[3]!;
     expect(fourth.force?.resist?.modifiers.find((m) => m.source.startsWith('adapted'))?.value).toBe(3);
   });
   it('the thrown-object supply runs out', () => {

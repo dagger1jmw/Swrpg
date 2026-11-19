@@ -25,7 +25,7 @@ import { applyDamage, damageOf, hazardDamage, rollLocation, severityOf } from '.
 import { applyForceLoad, forceLoadPerUse, rollCollapse } from './forceMeter';
 import { basicRoll, dcForRating, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
-import { cannotDuel, currentTarget, damageFighter, minionHitNote, engaged, fighterEffectiveLevel, hasSaber, isRanged, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type Fighter, type SideId } from './duel';
+import { cannotDuel, currentTarget, damageFighter, resolveExchange, minionHitNote, engaged, fighterEffectiveLevel, hasSaber, isRanged, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type Fighter, type SideId } from './duel';
 import { STRIKE_QUALITY, type HitQuality } from '../data/combat.config';
 import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, type Wound } from './wounds';
 
@@ -301,6 +301,14 @@ function qualityOf(margin: number): HitQuality | null {
  * §2 through forceMeter.ts (backlash over 1.0; a collapse is incapacitation for 1-3 hours).
  */
 export function resolveForceAction(s0: DuelState, input: ForceActionInput, day: number, ctx: DuelContext = { sparring: null, situations: [], footing: 0, dyingRiskStakes: false }): { state: DuelState; record: ForceActionRecord } {
+  const r = forceActionOnly(s0, input, day, ctx);
+  // No free turns (Jared, after combat pass 1; D-204): while the player uses the Force the opponents act, one exchange in
+  // which the player only defends (unarmed after a dropped saber, with Agility). It takes no time of its own.
+  if (input.side !== 'A' || r.state.end || !currentTarget(r.state)) return r;
+  return { state: resolveExchange(r.state, ctx, day, { duringForce: true }), record: r.record };
+}
+
+function forceActionOnly(s0: DuelState, input: ForceActionInput, day: number, ctx: DuelContext): { state: DuelState; record: ForceActionRecord } {
   let s = s0;
   const user = input.side === 'A' ? s.a : currentTarget(s)!;
   const target = input.side === 'A' ? currentTarget(s)! : s.a;
