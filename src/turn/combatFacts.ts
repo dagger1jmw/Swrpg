@@ -4,7 +4,8 @@
 import { partText } from '../engine/duel';
 import { forceReason } from '../engine/combatForce';
 import { BUILD_UP } from '../data/combat.config';
-import { RANGED_WEAPONS, type WeaponKind } from '../data/weapons';
+import { RANGED_WEAPONS } from '../data/weapons';
+import type { WeaponKind } from '../data/health.config';
 import type { CombatDraft, CombatFighterView } from './combatTurn';
 
 export interface HitFact {
