@@ -21,3 +21,4 @@ dist/
 
 # Generated lore index (scripts/build-lore.ts)
 src/lore/generated/
+tests/spread/out/
