@@ -335,10 +335,21 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   // types legal this turn pass (D-15); e.g. timeElapsed is refused when the draft advanced time (D-30).
   const legal = new Set(narrativeEventTypes(deps.registry, resolved, { timeAdvancedByDraft: draft.timeAdvanced !== null }));
   const notLegal: RejectedEvent[] = [];
+  // A fight this turn, or a hazard the engine already resolved this turn (a terrain fall, an intent's risk): the narrator's
+  // hazardOccurred would apply the same accident twice or wound the player outside the fight's rules (D-212). While the
+  // fight is still active it is kept (no damage, the cause of an environmentCollapse interruption); after it ended in
+  // this turn's draft, it is refused.
+  const engineHazard = draft.applied.some((a) => a.event.type === 'hazardResolved') || (draft.combat?.notes ?? []).some((n) => n.startsWith('terrain: '));
   const replyEvents = reply.events.filter((e) => {
-    if (legal.has(e.type)) return true;
-    notLegal.push({ event: e, reason: `event type ${e.type} is not allowed this turn` });
-    return false;
+    if (!legal.has(e.type)) {
+      notLegal.push({ event: e, reason: `event type ${e.type} is not allowed this turn` });
+      return false;
+    }
+    if (e.type === 'hazardOccurred' && !resolved.combat.active && (draft.combat !== null || engineHazard)) {
+      notLegal.push({ event: e, reason: draft.combat ? 'hazardOccurred refused: during and right after a fight, hazards come only from the engine\'s terrain rolls (D-212)' : 'hazardOccurred refused: the engine already resolved a hazard this turn (D-212)' });
+      return false;
+    }
+    return true;
   });
   const events: unknown[] = quiet ? [] : [...replyEvents, { type: 'sceneUpdated', moodTags: reply.scene.moodTags, presentNpcRefs: reply.scene.presentNpcRefs }];
   const result = applyEvents(deps.registry, resolved, events, { source: 'ai', resolved: draft.resolvedActions });

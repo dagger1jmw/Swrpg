@@ -9,6 +9,7 @@ import { TERRAIN_BY_ID } from '../data/terrain';
 import { SKILL_BY_ID } from '../data/skills';
 import type { WeaponKind } from '../data/health.config';
 import type { CombatDraft, CombatFighterView } from './combatTurn';
+import type { ExchangeRecord } from '../engine/duel';
 
 export interface HitFact {
   /** Exchange number. */
@@ -73,6 +74,25 @@ export function buildUpLoss(margin: number): 'gave ground' | 'was outpaced' | nu
   if (m <= BUILD_UP.tieWithin) return null;
   const twoSteps = BUILD_UP.steps.find(([, step]) => step === 2)![0];
   return m >= twoSteps ? 'was outpaced' : 'gave ground';
+}
+
+/**
+ * A build-up exchange's result from the real track (D-212, combat pass 2 issue 8): "gains ground" only when the track
+ * moved toward that side; a won roll that moved nothing "presses: no gain" (and, during the player's Force action,
+ * "holds: no gain, only defending"); a tie "both held".
+ */
+export function buildUpLead(r: Pick<ExchangeRecord, 'margin' | 'advBefore' | 'advAfter' | 'duringForce'>, pc: string, t: string): string {
+  const loss = buildUpLoss(r.margin);
+  if (!loss) return 'neither gains ground (reason: both held)';
+  const winner = r.margin > 0 ? pc : t;
+  const loser = r.margin > 0 ? t : pc;
+  const moved = r.advAfter - r.advBefore;
+  const towardWinner = r.margin > 0 ? moved > 0 : moved < 0;
+  if (towardWinner) return `${winner} gains ground (reason: ${loser} ${loss})`;
+  if (r.duringForce && r.margin > 0) return `${pc} holds: no gain (${pc} only defends while using the Force)`;
+  if (moved === 0) return `${winner} presses: no gain (the track does not move)`;
+  // The track moved the other way (a natural 1's opening): the side it moved toward gained.
+  return `${moved > 0 ? pc : t} gains ground (an opening)`;
 }
 
 const STEP_LINE = /^step (\d+) (.+?): (DONE|FAILED|NOT REACHED) \((.*)\)$/;
@@ -151,10 +171,7 @@ export function combatFacts(c: CombatDraft): CombatFacts {
       didNotHappen.push(`${striker}'s strike at ${defender} did not land (#${r.n})`);
       continue;
     }
-    const loss = buildUpLoss(r.margin);
-    const winner = r.margin > 0 ? pc : t;
-    const loser = r.margin > 0 ? t : pc;
-    const lead = loss ? `${winner} gains ground (reason: ${loser} ${loss})` : 'neither gains ground (reason: both held)';
+    const lead = buildUpLead(r, pc, t);
     lines.push(`${head} ${pc} and ${t} trade blows: NO HIT. ${lead} (margin ${fmt(Math.abs(r.margin))}).${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`);
   }
   const steps = stepFacts(c.notes);

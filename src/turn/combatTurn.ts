@@ -112,6 +112,44 @@ export function reconcileSteps(text: string, steps: readonly StepLike[], max: nu
   return out.slice(0, max);
 }
 
+/**
+ * The opponent the typed text aims at (D-212): a full name ("Duelist 2", "B1 battle droid 3"), else the kind noun of an
+ * opponent who faces the player ("the nearest droid"), preferring a noun inside an attack clause, then the last one
+ * named before it. Opponents fighting an ally or out are never picked. Null when the text names none.
+ */
+export function targetFromText(text: string, opponents: readonly { id: string; name: string; out: boolean; engagedElsewhere: boolean; minion: boolean }[]): string | null {
+  const live = opponents.filter((o) => !o.out && !o.engagedElsewhere);
+  const nounsOf = (o: (typeof live)[number]): string[] => {
+    const words = o.name.toLowerCase().replace(/\s+\d+$/, '').split(/\s+/);
+    return o.minion ? [words[words.length - 1]!] : words.filter((w) => w.length >= 4);
+  };
+  const clauses = clausesOf(text);
+  const firstStrike = clauses.findIndex((c) => isStrikeClause(c) || forceActionIn(c) !== null);
+  // A full name ("B1 battle droid 4") outranks a bare noun ("droid") in the same clause.
+  const mentions: { id: string; clause: number; at: number; full: boolean }[] = [];
+  clauses.forEach((c, k) => {
+    for (const o of live) {
+      const f = c.indexOf(` ${o.name.toLowerCase()} `);
+      if (f >= 0) mentions.push({ id: o.id, clause: k, at: k * 1000 + f, full: true });
+      for (const n of nounsOf(o)) {
+        const i = Math.max(c.indexOf(` ${n} `), c.indexOf(` ${n}s `));
+        if (i >= 0) mentions.push({ id: o.id, clause: k, at: k * 1000 + i, full: false });
+      }
+    }
+  });
+  if (!mentions.length) return null;
+  const pick = (ms: typeof mentions): string | null => {
+    if (!ms.length) return null;
+    const clause = ms[0]!.clause;
+    const same = ms.filter((m) => m.clause === clause);
+    return (same.find((m) => m.full) ?? same[0]!).id;
+  };
+  const inStrike = pick(mentions.filter((m) => m.clause === firstStrike));
+  if (inStrike) return inStrike;
+  const before = mentions.filter((m) => firstStrike < 0 || m.clause < firstStrike).sort((a, b) => b.at - a.at);
+  return pick(before) ?? pick(mentions)!;
+}
+
 /** The combat payload with the text's attack verbs and Force actions made sure of (D-191). */
 export function reconcileCombatPayload(text: string | undefined, payload: Record<string, unknown>, max: number): Record<string, unknown> {
   if (!text) return payload;

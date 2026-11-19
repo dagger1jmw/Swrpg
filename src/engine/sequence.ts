@@ -189,6 +189,16 @@ export function runSequence(
       st = { ...st, duel: { ...next, log: next.log.map((e, k) => (k >= from ? { ...e, step: i } : e)) } };
       splitDefense = success && step.action === 'throw';
       note = success ? forceSuccessText(r.record, duel.opponents[duel.target]?.name ?? 'the target') : forceReason(r.record);
+    } else if (duel.advantage <= -STRIKE_AT) {
+      // The opponent holds the strike when this step comes up (D-199, as Jared confirmed after combat pass 2): their
+      // strike is the exchange, the step is NOT REACHED with that reason, and the chain stops.
+      const struck = settleEnd(resolveExchange(duel, ctx, day));
+      const rec = struck.log[struck.log.length - 1]!;
+      const who = struck.opponents.find((o) => o.id === rec.targetId)?.name ?? 'the opponent';
+      strikeNote = initiativeNote(who, duel.a.name, rec);
+      st = { ...st, duel: struck };
+      stopReason = st.duel.end ? 'fightEnded' : 'opponentStrike';
+      break;
     } else {
       if (step.kind === 'maneuver') st = { ...st, duel: { ...duel, a: { ...duel.a, pendingManeuver: step.maneuver } } };
       // An aimed strike step (D-171).
@@ -224,7 +234,7 @@ export function runSequence(
       const struck = settleEnd(resolveExchange(st.duel, ctx, day));
       const rec = struck.log[struck.log.length - 1]!;
       const who = struck.opponents.find((o) => o.id === rec.targetId)?.name ?? 'the opponent';
-      strikeNote = `${who} had the initiative and struck first (#${rec.n}: ${rec.hit && !rec.hit.avoided && rec.hit.by === 'B' ? hitText(rec.hit, duel.a.name) : rec.maneuver ? `a ${rec.maneuver.kind} maneuver` : 'the strike did not land'})`;
+      strikeNote = initiativeNote(who, duel.a.name, rec);
       st = { ...st, duel: struck };
       stopReason = st.duel.end ? 'fightEnded' : 'opponentStrike';
       break;
@@ -239,6 +249,11 @@ export function runSequence(
     ...truncated.map((d, k) => stepLine(used.length + k, d, 'dropped', `past the sequence cap of ${cap}`)),
   ];
   return { state: st, results, truncated, dropped, stopReason, lines };
+}
+
+/** Why the rest of a sequence was not reached: the opponent held the initiative and struck (D-199). */
+function initiativeNote(who: string, pc: string, rec: ExchangeRecord): string {
+  return `${who} had the initiative and struck first (#${rec.n}: ${rec.hit && !rec.hit.avoided && rec.hit.by === 'B' ? hitText(rec.hit, pc) : rec.maneuver ? `a ${rec.maneuver.kind} maneuver` : 'the strike did not land'})`;
 }
 
 /** Step statuses in the log and the narrator's block (D-197). */

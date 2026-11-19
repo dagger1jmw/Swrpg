@@ -15,7 +15,8 @@ import { selectFatigue, selectIsDying, selectIsSpent, selectLastingPenalty, sele
 import { selectNpc, selectNpcLevel } from '../features/npcs/selectors';
 import { selectLevelExact } from '../features/progression/selectors';
 import { STABILIZE_DIFFICULTY } from '../data/health.config';
-import { combatActionFromBeat, combatActionFromIntent, combatDraft, combatWordsAction, reconcileCombatPayload, type CombatDraft } from './combatTurn';
+import type { DuelState } from '../engine/duel';
+import { combatActionFromBeat, combatActionFromIntent, combatDraft, combatWordsAction, reconcileCombatPayload, targetFromText, type CombatDraft } from './combatTurn';
 import { SEQUENCE_SCHEMA_MAX } from '../data/sequence.config';
 import { CONTINUE_WORDS, STOP_SPAR_WORDS } from '../data/combatWords';
 import type { CombatActionInput } from './record';
@@ -257,7 +258,12 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     // Typed words that end a sparring session, like the Stop sparring button (D-199).
     if (!opts.beat && sess && !sess.ended && opts.text && saysStopSparring(opts.text)) payload = { action: 'stopSession' };
     else if (!opts.beat && sess && !sess.ended && !sess.playing && payload['action'] === 'continue' && !isSparringActivityIntent(intent)) payload = { action: 'playBout' };
-    const done = apply([{ type: 'combatAction', ...payload }], 'player');
+    // The opponent the typed text aims at becomes the target first (D-212): "turn to the droids and cut at the nearest one".
+    const duelNow = before.combat.active!.duel as DuelState;
+    const aimed = !opts.beat && opts.text ? targetFromText(opts.text, duelNow.opponents.map((o) => ({ id: o.id, name: o.name, out: o.out, engagedElsewhere: o.engagedElsewhere, minion: o.minion }))) : null;
+    const current = duelNow.opponents[duelNow.target];
+    const retarget = aimed && aimed !== current?.id ? [{ type: 'targetSet', targetRef: aimed }] : [];
+    const done = apply([...retarget, { type: 'combatAction', ...payload }], 'player');
     const notes = done.flatMap((a) => a.notes);
     const after = state;
     const secondsAfter = after.combat.active ? (after.combat.active.duel as { seconds: number }).seconds : after.combat.last?.id === fightId ? ((after.combat.last.duel as { seconds: number } | undefined)?.seconds ?? secondsBefore) : secondsBefore;

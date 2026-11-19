@@ -184,11 +184,13 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   const exchanges = strikes.map((r, i) => ({ skillId: active.exchangeSkills[i] ?? duel.a.skillId, gap: r.effB - r.effA }));
   const forceUses = duel.log.filter((r) => r.kind === 'force' && r.force?.side === 'A').map((r) => ({ abilityId: r.force!.abilityId, gap: r.force!.effTarget - r.force!.effUser }));
   // A spar with several partners counts as one at the strongest's level + 10 per extra (D-163); otherwise the largest gap.
-  const opponentGap = active.stakes === 'spar' ? sparGroupLevel(duel.opponents.map((o) => o.level)) - duel.a.level : Math.max(0, ...duel.opponents.map((o) => o.level - duel.a.level));
+  // An opponent who fought an ally the whole time (D-212) is not the player's: no gap, no heroic act, no fate.
+  const faced = duel.opponents.filter((o) => !(o.engagedElsewhere && !o.out));
+  const opponentGap = active.stakes === 'spar' ? sparGroupLevel(duel.opponents.map((o) => o.level)) - duel.a.level : Math.max(0, ...faced.map((o) => o.level - duel.a.level));
   if (exchanges.length || forceUses.length) emit.push({ type: 'fightResolved', stakes: active.stakes, outcome, exchanges, forceUses, opponentGap });
   // heroicAct (flag-registry §2): a won lethal fight against an opponent 10+ stronger or of rank Sith Lord / Master.
   if (active.stakes === 'lethal' && outcome === 'won') {
-    const heroic = duel.opponents.some((o) => o.level - duel.a.level >= HEROIC_ACT.gapAtLeast || HEROIC_ACT.ranks.includes(active.meta[o.id]?.rank ?? ''));
+    const heroic = faced.some((o) => o.level - duel.a.level >= HEROIC_ACT.gapAtLeast || HEROIC_ACT.ranks.includes(active.meta[o.id]?.rank ?? ''));
     if (heroic) emit.push({ type: 'flagSet', flag: `heroicAct:${active.id}` });
   }
   const fates = [...slice.fates];

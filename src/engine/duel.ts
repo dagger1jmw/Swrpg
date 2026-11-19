@@ -177,7 +177,7 @@ export interface ExchangeRecord {
 }
 
 export type DuelEnd =
-  | { winner: SideId; reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'spent' | 'point' | 'exhausted' }
+  | { winner: SideId; reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'spent' | 'point' | 'exhausted' | 'opponentsDefeated' }
   | { winner: null; reason: 'stopped' | 'stalemate' };
 
 export interface DuelState {
@@ -250,6 +250,14 @@ export function fighterEffectiveLevel(f: Fighter): number {
   const lasting = lastingPenalty(f.lasting, f.skillId);
   const fat = efficiency(f.caps.p > 0 ? f.meters.p / f.caps.p : 0);
   return f.level * offHand * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * (1 - 0.25 * (1 - fat));
+}
+
+/**
+ * Why the player's side won when nobody faces the player any more (D-212): "opponentsDefeated" while an opponent still
+ * fights an ally (that duel goes on in the story and is never counted as defeated), else the last fighter's reason.
+ */
+export function allDownReason(s: DuelState, reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'exhausted'): 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'exhausted' | 'opponentsDefeated' {
+  return s.opponents.some((o) => o.engagedElsewhere && !o.out) ? 'opponentsDefeated' : reason;
 }
 
 export const engaged = (s: DuelState): Fighter[] => s.opponents.filter((o) => !o.out && !o.engagedElsewhere);
@@ -649,7 +657,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     const rb = status(bOut);
     if (rb) {
       next = withSide(next, 'B', { ...bOut, out: true });
-      if (engaged(next).length === 0) end = { winner: 'A', reason: rb === 'allOut' ? 'allOut' : rb };
+      if (engaged(next).length === 0) end = { winner: 'A', reason: allDownReason(next, rb === 'allOut' || bOut.minion ? 'allOut' : rb) };
       else {
         notes.push(`${bOut.name} is out of the fight`);
         advAfter = 0;
@@ -714,7 +722,7 @@ export function settleEnd(s: DuelState): DuelState {
   }
   const opps = s.opponents.map((o) => (!o.out && (o.dead || isDying(o.wounds) || isIncapacitated(o.wounds) || cannotDuel(o) || collapsedFromExhaustion(o)) ? { ...o, out: true } : o));
   const next = { ...s, opponents: opps };
-  if (engaged(next).length === 0) return { ...next, end: { winner: 'A', reason: 'allOut' } };
+  if (engaged(next).length === 0) return { ...next, end: { winner: 'A', reason: allDownReason(next, 'allOut') } };
   return { ...next, target: Math.max(0, opps.findIndex((o) => o.id === (currentTarget(next)?.id ?? ''))) };
 }
 
