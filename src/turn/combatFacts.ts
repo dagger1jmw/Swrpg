@@ -3,7 +3,9 @@
 // REACHED. Built only from the engine's records; pure.
 import { partText } from '../engine/duel';
 import { forceReason } from '../engine/combatForce';
-import type { CombatDraft } from './combatTurn';
+import { BUILD_UP } from '../data/combat.config';
+import { RANGED_WEAPONS, type WeaponKind } from '../data/weapons';
+import type { CombatDraft, CombatFighterView } from './combatTurn';
 
 export interface HitFact {
   /** Exchange number. */
@@ -43,6 +45,30 @@ const fmt = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(
 const WEAPON_TEXT: Readonly<Record<string, string>> = { unarmed: 'unarmed (no weapon)', melee: 'a melee weapon', blasterPistol: 'a blaster pistol', blasterRifle: 'a blaster rifle', heavy: 'a heavy blaster', slugPistol: 'a slugthrower pistol (solid slugs, not bolts)', slugRifle: 'a slugthrower rifle (rapid solid slugs, not bolts)', scatterGun: 'a scatter gun (a spread of solid shot, not bolts)', lightsaber: 'a lightsaber', trainingSaber: 'a training saber' };
 export const weaponText = (w: string): string => WEAPON_TEXT[w] ?? w;
 
+/**
+ * The engine's reason a strike did not land (Jared, after combat pass 1): parried, dodged or deflected, from the
+ * defender's weapon and the precognition roll. The narrator explains a miss only with this reason.
+ */
+export function strikeMissReason(striker: CombatFighterView | undefined, defender: CombatFighterView | undefined, avoided: boolean): string {
+  if (avoided) return 'dodged: foresaw it with precognition';
+  const dw = defender?.weapon ?? 'unarmed';
+  const ranged = RANGED_WEAPONS.includes((striker?.weapon ?? 'unarmed') as WeaponKind);
+  if (dw === 'lightsaber' || dw === 'trainingSaber') return ranged ? 'deflected on the blade' : 'parried';
+  if (dw === 'melee') return ranged ? 'dodged' : 'parried';
+  return 'dodged';
+}
+
+/**
+ * The loser's side of a build-up exchange (Jared): a tie holds, a 1-step loss gives ground, a loss of 2 or more steps
+ * (margin 6+, BUILD_UP) is outpaced. Null on a tie.
+ */
+export function buildUpLoss(margin: number): 'gave ground' | 'was outpaced' | null {
+  const m = Math.abs(Math.round(margin));
+  if (m <= BUILD_UP.tieWithin) return null;
+  const twoSteps = BUILD_UP.steps.find(([, step]) => step === 2)![0];
+  return m >= twoSteps ? 'was outpaced' : 'gave ground';
+}
+
 const STEP_LINE = /^step (\d+) (.+?): (DONE|FAILED|NOT REACHED) \((.*)\)$/;
 const FORCE_LABELS: Readonly<Record<string, string>> = { 'Force push': 'push', 'Force choke': 'choke', 'Force lightning': 'lightning', 'Force throw': 'throw', 'mind trick': 'mindTrick', 'saber throw': 'saberThrow', 'saber recall': 'recall' };
 
@@ -59,6 +85,7 @@ export function stepFacts(notes: readonly string[]): StepFact[] {
 /** The outcome list for the exchanges a narration covers. */
 export function combatFacts(c: CombatDraft): CombatFacts {
   const names = Object.fromEntries(c.fighters.map((f) => [f.id, f.name]));
+  const byId = new Map(c.fighters.map((f) => [f.id, f]));
   const pc = names['pc'] ?? 'the player character';
   const lines: string[] = [];
   const hits: HitFact[] = [];
@@ -109,12 +136,16 @@ export function combatFacts(c: CombatDraft): CombatFacts {
     if (r.kind === 'strike') {
       const striker = r.striker === 'A' ? pc : t;
       const defender = r.striker === 'A' ? t : pc;
-      lines.push(`${head} ${striker} strikes at ${defender}: NO HIT (${r.hit?.avoided ? `${defender} avoids it with precognition` : `${defender} blocks or evades and recovers`}).${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`);
+      const why = strikeMissReason(byId.get(r.striker === 'A' ? 'pc' : r.targetId), byId.get(r.striker === 'A' ? r.targetId : 'pc'), !!r.hit?.avoided);
+      lines.push(`${head} ${striker} strikes at ${defender}: NO HIT (reason: ${defender} ${why}).${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`);
       didNotHappen.push(`${striker}'s strike at ${defender} did not land (#${r.n})`);
       continue;
     }
-    const lead = r.advAfter > r.advBefore ? `${pc} gains ground` : r.advAfter < r.advBefore ? `${t} gains ground` : 'neither gains ground';
-    lines.push(`${head} ${pc} and ${t} trade blows: NO HIT. ${lead} (margin ${fmt(r.margin)}).${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`);
+    const loss = buildUpLoss(r.margin);
+    const winner = r.margin > 0 ? pc : t;
+    const loser = r.margin > 0 ? t : pc;
+    const lead = loss ? `${winner} gains ground (reason: ${loser} ${loss})` : 'neither gains ground (reason: both held)';
+    lines.push(`${head} ${pc} and ${t} trade blows: NO HIT. ${lead} (margin ${fmt(Math.abs(r.margin))}).${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`);
   }
   const steps = stepFacts(c.notes);
   for (const s of steps) if (s.status === 'NOT REACHED') didNotHappen.push(`step ${s.index + 1} (${s.label}) was NOT REACHED: ${s.detail}`);

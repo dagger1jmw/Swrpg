@@ -142,3 +142,28 @@ describe('the narrator block and the fallback (D-197)', () => {
     expect(PROMPTS.pacing.montage).toMatch(/describe only the care RESOLVED lists/);
   });
 });
+
+describe('the engine gives the reason for every NO HIT exchange (Jared, after combat pass 1)', () => {
+  const line = (c: CombatDraft, n: number) => describeCombat(c).find((l) => l.startsWith(`#${n} `))!;
+  it('a strike that does not land: parried, deflected, dodged, foresaw', () => {
+    const duel = combat({ fighters: [PC, DUELIST], narrate: [rec({ n: 1, kind: 'strike', striker: 'B', targetId: 'n1', margin: -3 }), rec({ n: 2, kind: 'strike', striker: 'A', targetId: 'n1', margin: 2 }), rec({ n: 3, kind: 'strike', striker: 'A', targetId: 'n1', hit: { ...hit('A', 'torso', null)!, avoided: true } })] });
+    expect(line(duel, 1)).toContain('NO HIT (reason: Kael Voss parried)');
+    expect(line(duel, 2)).toContain('NO HIT (reason: Duelist 1 parried)');
+    expect(line(duel, 3)).toContain('NO HIT (reason: Duelist 1 dodged: foresaw it with precognition)');
+    const bolts = combat({ narrate: [rec({ n: 4, kind: 'strike', striker: 'B', targetId: 'd1', margin: -2 }), rec({ n: 5, kind: 'strike', striker: 'A', targetId: 'd1', margin: 1 })] });
+    expect(line(bolts, 4)).toContain('NO HIT (reason: Kael Voss deflected on the blade)');
+    expect(line(bolts, 5)).toContain('NO HIT (reason: B1 battle droid 1 dodged)');
+    const unarmed = combat({ fighters: [{ ...PC, weapon: 'unarmed' }, ...droids(1)], narrate: [rec({ n: 6, kind: 'strike', striker: 'B', targetId: 'd1', margin: -2 })] });
+    expect(line(unarmed, 6)).toContain('NO HIT (reason: Kael Voss dodged)');
+  });
+  it('a build-up exchange: held on a tie, gave ground on 1 step, outpaced on 2 or more (margin 6+)', () => {
+    const c = combat({ fighters: [PC, DUELIST], narrate: [rec({ n: 1, targetId: 'n1', margin: 0.8 }), rec({ n: 2, targetId: 'n1', margin: 3.2, advAfter: 1 }), rec({ n: 3, targetId: 'n1', margin: -7, advAfter: -2 }), rec({ n: 4, targetId: 'n1', margin: -12, advAfter: -3 })] });
+    expect(line(c, 1)).toContain('neither gains ground (reason: both held)');
+    expect(line(c, 2)).toContain('Kael Voss gains ground (reason: Duelist 1 gave ground)');
+    expect(line(c, 3)).toContain('Duelist 1 gains ground (reason: Kael Voss was outpaced)');
+    expect(line(c, 4)).toContain('Kael Voss was outpaced');
+  });
+  it('the prompt says to use only the listed reason, with no invented slips', () => {
+    expect(PROMPTS.combatNarration).toMatch(/Explain each miss only with that reason/);
+  });
+});
