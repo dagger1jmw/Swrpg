@@ -5,6 +5,14 @@
 import type { Fight, LifeProfile } from '../support/lifetime';
 
 /** Years of training to reach each tier (progression-numbers §12; tolerance +/-20%). */
+/**
+ * The gated seed (Jared, D-159 amended 2026-11-19): the four profile tests run on `<profile seed>-s7`, the seed of the
+ * 20-seed spread closest to the median across every gate of all four profiles (total normalized distance 4.89; the old
+ * fixed seed ranked 7th at 8.20). The spread runner still runs the profile seed and -s1 to -s19 around it.
+ */
+export const GATED_SEED_SUFFIX = '-s7';
+export const gated = <P extends { seed: string }>(p: P): P => ({ ...p, seed: `${p.seed}${GATED_SEED_SUFFIX}` });
+
 export const TARGETS = {
   average: { 21: 5.0, 41: 16.0, 61: 32.1, 81: 52.7, 101: 77.5 },
   obiwan: { 21: 3.4, 41: 10.8, 61: 21.7, 81: 35.6, 101: 52.4 },
@@ -99,9 +107,10 @@ export const OBIWAN: LifeProfile = {
     { from: 35, to: 38, perYear: 10, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
     { from: 35, to: 38, perYear: 10, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 4 },
     { from: 35, to: 36, perYear: 10, stakes: 'serious', gap: 0 },
-    { from: 36, to: 37, perYear: 10, stakes: 'serious', gap: 0 },
+    { from: 36, to: 37, perYear: 11, stakes: 'serious', gap: 0 },
     // D-206 retune (longer duels after the precognition and pressure retune): the last war year 12 -> 11 duels.
-    // D-244 retune (fight counts only): the second war year 12 -> 10 duels (its share rose to 32%).
+    // D-244 retune (fight counts only): the second war year 12 -> 10 duels (its share rose to 32%), then 11 when D-159
+    // moved the gates to the 20-seed median (median 24.8% at 36).
     { from: 37, to: 38, perYear: 11, stakes: 'serious', gap: 0 },
   ]),
 };
@@ -157,9 +166,11 @@ export const ANAKIN: LifeProfile = {
     { from: 19, to: 22, perYear: 8, stakes: 'serious', gap: 0 },
     { from: 19, to: 20, perYear: 9, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
     // D-244 retune (fight counts only, after the weapon-arm rule and its duel-length retune): the first war year's
-    // combat share fell to 20%; more war fights did not lift it (the daily combat cap binds), so 25 sessions with his
-    // master that year (he and Obi-Wan sparred between campaigns).
-    { from: 19, to: 20, perYear: 25, stakes: 'spar', gap: 15 },
+    // combat share fell to 20%; more war fights did not lift it (the daily combat cap binds), so sessions with his
+    // master (he and Obi-Wan sparred between campaigns): 25 on the old fixed seed, then tuned to the 20-seed median
+    // (D-159 amended): 11 in the first war year (median 29.4% at 19) and 10 in the third (median 29.6% at 21).
+    { from: 19, to: 20, perYear: 11, stakes: 'spar', gap: 15 },
+    { from: 21, to: 22, perYear: 10, stakes: 'spar', gap: 15 },
     { from: 19, to: 20, perYear: 2, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
     { from: 22, to: 200, perYear: 300, stakes: 'spar', gap: 0, partners: 3 },
     { from: 22, to: 200, perYear: 10, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },

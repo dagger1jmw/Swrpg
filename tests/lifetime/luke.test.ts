@@ -2,12 +2,12 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { runLifetime, type LifeResult } from '../support/lifetime';
 import { expectMilestones, expectNotFasterThanAnakin, expectWithin4x } from './checks';
-import { LUKE, TARGETS } from './profiles';
+import { LUKE, TARGETS, gated } from './profiles';
 
 let r: LifeResult;
 const PHYS = ['perf:strength', 'perf:agility', 'perf:endurance'];
 beforeAll(() => {
-  r = runLifetime(LUKE, 70, { track: ['forceControl', ...PHYS] });
+  r = runLifetime(gated(LUKE), 70, { track: ['forceControl', ...PHYS] });
   console.info(`[report ${'luke'}] milestones ${JSON.stringify(r.milestones)} E@41/61 ${JSON.stringify(r.eAtMilestone)} bank share ${(r.bankShare * 100).toFixed(1)}% wounded days by age ${JSON.stringify(r.woundedDaysByAge)} combat share by year ${JSON.stringify(r.yearCombat.map((c, i) => Math.round((c / Math.max(1, r.yearMain[i]!)) * 100)))}`);
 }, 600_000);
 

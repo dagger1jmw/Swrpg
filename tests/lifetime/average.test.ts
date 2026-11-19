@@ -8,12 +8,12 @@ import { Y_AVG } from '../../src/data/progression.config';
 import { RANK_BY_ID } from '../../src/data/rankMinimums';
 import { runLifetime, type LifeResult } from '../support/lifetime';
 import { combatShare, expectMilestones, expectNotFasterThanAnakin, expectWithin4x } from './checks';
-import { AVERAGE, TARGETS } from './profiles';
+import { AVERAGE, TARGETS, gated } from './profiles';
 
 
 let avg: LifeResult;
 beforeAll(() => {
-  avg = runLifetime(AVERAGE, 95, { crossLevels: { highestForm: [24, 39, 58], forceControl: [14, 34], forceSense: [31], willpower: [53] } });
+  avg = runLifetime(gated(AVERAGE), 95, { crossLevels: { highestForm: [24, 39, 58], forceControl: [14, 34], forceSense: [31], willpower: [53] } });
   console.info(`[report ${'average'}] milestones ${JSON.stringify(avg.milestones)} E@41/61 ${JSON.stringify(avg.eAtMilestone)} bank share ${(avg.bankShare * 100).toFixed(1)}% wounded days by age ${JSON.stringify(avg.woundedDaysByAge)} combat share by year ${JSON.stringify(avg.yearCombat.map((c, i) => Math.round((c / Math.max(1, avg.yearMain[i]!)) * 100)))}`);
 }, 600_000);
 
