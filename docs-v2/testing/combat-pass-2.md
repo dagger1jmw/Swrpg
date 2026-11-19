@@ -521,7 +521,7 @@ in the browser; pass 3 re-checks there.
 
 | Group | Report issues | Decision | Commit |
 |---|---|---|---|
-| 1. The dropped saber and exhaustion | 1 (blocker) | D-208: the passive buttons recall a dropped saber first (retried until it comes back); physical collapse past 2.0 x capacity; a 200-exchange safety cap (exhausted stalemate) | de16c53 |
+| 1. The dropped saber and exhaustion | 1 (blocker) | D-208: the passive buttons recall a dropped saber first (retried until it comes back); physical collapse past the hard limit (4.0 x capacity, amended from 2.0 after the lifetime check); a 200-exchange safety cap (exhausted stalemate) | de16c53, ff6335b |
 | 2. The fallback and history size | 2 | D-209: the fallback is a summary of at most 10 sentences; one turn's narration is clipped to 2,400 characters in the history | 5b8ea17 |
 | 3. Input parsing | 3, 9 | D-210: Force gestures are never strikes; an unknown ability is "FAILED (you don't know ...)" with a quiet line and no AI call; a repeated narration is retried | fa3f3b3 |
 | 4. Narration check | 7, 13, 15 | D-211: invented slips, the outcome list's terms in prose, minions cut down when none was hit | 7a175cb |
@@ -554,7 +554,7 @@ cause (the 322-exchange passage) cannot recur after D-208.
 | 14 | Gemini 503 replies count on the usage meter (6 of 73 calls) | tooling | Count only replies that returned (2xx) or a 429 toward the daily estimate; a 503 is the server's, not a request against the quota. |
 | 15 | (new) A surrender pays more combat XP than fleeing (lost factor 1.2: 1.52 vs 0.41 fled) | tunable | Give a surrender the fled factor (0.8) or lower, so giving up is never the XP-best way out of a fight. |
 | 16 | (new) A lost leg was 17% adapted after 18 training days (71 h) | measure first | progression-numbers §18: +1% per effective hour of training the affected skills, at most 3% a day; the reference is a hand at 30-40 days. Measure which skills count for a leg (and the efficiency of those hours) before changing anything. |
-| 17 | (new) The physical hard limit is 2.0 x capacity (D-208, an overnight default) | for Jared | 2.0 leaves the duel tables unchanged; 1.5 would end a fresh fighter after about 95 exchanges; a 5% chance per exchange past 1.0 would mirror the Force meter. |
-| 18 | (new) 4 Mandalorians, Knight 50 balanced: 97.0 / 24.7 -> 96.3 / 25.0 after D-208 to D-212 | noise | 300 fights: the standard error is about 1.0 point on wins and 2.5 on wounds. No action. |
+| 17 | (new) The physical hard limit (D-208, an overnight default): first 2.0, amended to 4.0 | for Jared | 2.0 pushed Anakin's Clone Wars combat share to 24.5% (gate 25-35%) and 3.0 his 81 milestone 0.01 y past its limit; at 4.0 no lifetime fight collapses and every gate gives D-207's numbers. A lower limit needs a lifetime retune; a 5% chance per exchange past 1.0 would mirror the Force meter. |
+| 18 | (new) 4 Mandalorians, Knight 50 balanced: 97.0 / 24.7 -> 96.3 / 25.0 with the 2.0 hard limit | resolved | Back to 97.0 / 24.7 with the amended 4.0; every Knight-50 balanced row of the final sweep equals the pre-overnight baseline. |
 | 19 | Terrain accidents per fighter (pass 1, number 8): Kael fell three times and one droid three times in the 322-exchange fight; nine exchanges on ice had none | open | As recommended in pass 1: roll terrain once per block for the fight (one accident at most), not once per fighter. |
 | 20 | A missed sequence strike against a minion gives it the full build-up step (pass 1, number 4) | open | As recommended in pass 1: cap that loss at one step. |
