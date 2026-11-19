@@ -1012,6 +1012,12 @@ The clock and the module contract come first, before any feature.
 - **M6 weapon hand lost (Jared; measured in D-175, not adopted):** losing the weapon hand or arm disarms the fighter and
   takes them out of the saber fight (they can still flee, surrender, use the Force, or draw with the off hand at the
   off-hand penalty).
+- **M6 downed fighters (Jared, after combat pass 1; D-198):** a fighter who has lost a leg (or is otherwise down but
+  conscious) should be able to surrender, and to use the Force from the ground, instead of the fight simply ending for
+  them. Built as is for M5 (fine as built, Jared); comes with NPC Force actions in M6. The weapon-arm rule (D-198) stays
+  switched off until then.
+- **M6 NPC Force actions and free turns (D-204):** the defend-only exchange during a Force action is for the player's
+  Force actions; when NPCs get Force actions in M6, the player gets the same exchange during theirs.
 - **M6 Force reserve redesign: tests to re-measure (D-167).** Everything that reads Force-meter values goes through
   src/engine/forceMeter.ts. Tests that depend on those values: tests/engine/forceMeter.test.ts (the interface and the
   isolation check); tests/engine/health.test.ts test 8 (capacity, loads, backlash and collapse); tests/engine/duel.test.ts

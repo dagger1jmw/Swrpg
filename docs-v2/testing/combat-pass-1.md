@@ -429,3 +429,23 @@ rate to 79.0 (5 under the table), so that rule is off until M6.
 | 13 | (new) A feint rolls with no level bonus: `d20 6 = 6.0` | bug | The trick level is the best of Charisma and Intelligence only, both untrained for a Guardian. rolls §5 lists the form level too: include it. |
 | 14 | (new) Force-only turns are free: the opponents do not act | tunable | A Force action resolves with no exchange for the other side. Let the opponents take their exchange after it, or move the track one step toward them. |
 | 15 | (new) Saber-throw control: 64.6% for the average Knight at 50, 59.3% at 30 | tunable | Jared's target is about 70%. Rating 15 (DC 11.5) gives 70% at Telekinesis 46. |
+
+---
+
+# Jared's decisions on groups 3-6 and the re-check, and what was done (2026-11-18/19)
+
+| Item | Decision | Done |
+|---|---|---|
+| Duel-length gates moved by the severed-leg rule | Keep the leg rule (lore). Retune the duel-length tunables to restore the tables; then the lifetime suite (fight counts only if Anakin's and Obi-Wan's gates still fail) | See the duel-length and lifetime sections below |
+| Weapon-arm rule | Stays off; M6 | Recorded (architecture §15) |
+| Saber throw | Control rating 15 (about 70% for the average Knight at 50) | Measured 69.6% at Knight 50, 64.1% at Knight 30, 55.0% at Padawan 16; D-193 updated |
+| Downed fighters | Fine as built; record surrender and using the Force from the ground for M6 | Recorded (architecture §15) |
+| AI interruptions | No storyEvent; "interrupted" only with its cause in the same reply (an arrival, hazardOccurred, alarmRaised) | D-196 amended (new alarmRaised event; combatEnded applies last in a reply) |
+| Causes for misses | The engine gives the reason for every NO HIT; no invented slips | D-201 |
+| Wound location check | A wound on a different body location is a contradiction (the medic-week case) | D-202 |
+| Number 2: the wound penalty | Eases as the wound heals | D-203 (health §6 amended) |
+| Number 10: montage XP | Only to abilities the character knows | D-203 |
+| Number 13 / R9: feints | Roll with the form level | D-203 |
+| Number 14 / R8: Force turns | A Force action takes an exchange; the opponents act during it; no free turns, also when unarmed | D-204 |
+| Number 5: adaptation and Next beat | **As intended.** Adaptation is for repeated sequence patterns (D-146), not ordinary exchanges, so the Next beat button never adapts and typed strike steps do. No change | Verdict recorded here |
+| Issues 16-21 | Fix, with tests where it makes sense; blade colours on the weapon stub (Jedi blue or green, Sith red, canon colours from the lore); the player's feelings only from the block, opponents' expressions as flavor | D-205 |
