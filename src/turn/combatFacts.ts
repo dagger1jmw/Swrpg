@@ -40,7 +40,7 @@ export interface CombatFacts {
 }
 
 const fmt = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(1));
-const WEAPON_TEXT: Readonly<Record<string, string>> = { unarmed: 'unarmed (no weapon)', melee: 'a melee weapon', blasterPistol: 'a blaster pistol', blasterRifle: 'a blaster rifle', heavy: 'a heavy blaster', lightsaber: 'a lightsaber', trainingSaber: 'a training saber' };
+const WEAPON_TEXT: Readonly<Record<string, string>> = { unarmed: 'unarmed (no weapon)', melee: 'a melee weapon', blasterPistol: 'a blaster pistol', blasterRifle: 'a blaster rifle', heavy: 'a heavy blaster', slugPistol: 'a slugthrower pistol (solid slugs, not bolts)', slugRifle: 'a slugthrower rifle (rapid solid slugs, not bolts)', scatterGun: 'a scatter gun (a spread of solid shot, not bolts)', lightsaber: 'a lightsaber', trainingSaber: 'a training saber' };
 export const weaponText = (w: string): string => WEAPON_TEXT[w] ?? w;
 
 const STEP_LINE = /^step (\d+) (.+?): (DONE|FAILED|NOT REACHED) \((.*)\)$/;

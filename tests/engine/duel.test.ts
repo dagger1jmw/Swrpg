@@ -7,7 +7,7 @@ import { combatIntegration, resolveForceAction } from '../../src/engine/combatFo
 import { beatAfter, resolveExchange, runUntilBeat, startDuel, type DuelState, type Fighter } from '../../src/engine/duel';
 import { basicRoll } from '../../src/engine/rolls';
 import { seedRng, type RngState } from '../../src/engine/rng';
-import { patternOf, runSequence, sequenceCap, type ForceProfile, type SequenceState } from '../../src/engine/sequence';
+import { patternOf, runSequence, sequenceCap, type ForceProfile, type SequenceState, type SequenceStep } from '../../src/engine/sequence';
 import { REAL, forceUser } from '../support/duelSim';
 
 const trooper = (id: string, level: number, over: Partial<Fighter> = {}): Fighter =>
@@ -228,9 +228,53 @@ describe('sequences (D-146)', () => {
     expect(sequenceCap({ ...base, rank: 'initiate', exhausted: true })).toBe(1);
   });
   it('the cap truncates longer input by rank', () => {
-    const r = runSequence(seq('trunc'), REAL, 0, [{ kind: 'stance', stance: 'aggressive' }, { kind: 'stance', stance: 'balanced' }, { kind: 'stance', stance: 'defensive' }], 2, { looseRock: 'small' }, force);
-    expect(r.results).toHaveLength(2);
+    const r = runSequence(seq('trunc'), REAL, 0, [{ kind: 'strike' }, { kind: 'strike' }, { kind: 'strike' }], 2, { looseRock: 'small' }, force);
     expect(r.truncated).toHaveLength(1);
+    expect(r.lines[2]).toBe('step 3 strike: NOT REACHED (past the sequence cap of 2)');
+  });
+  it('a stance step is a setting: it does not count toward the cap (D-182, D-199)', () => {
+    // The combat pass 1 case: stance + 2 strikes + a Push at a Knight's cap of 3: the Push is inside the cap.
+    const steps: SequenceStep[] = [{ kind: 'stance', stance: 'aggressive' }, { kind: 'strike' }, { kind: 'strike' }, { kind: 'forceAction', action: 'push' }];
+    const r = runSequence(seq('stancecap'), REAL, 0, steps, 3, {}, force);
+    expect(r.truncated).toHaveLength(0);
+    expect(r.lines.some((l) => /past the sequence cap/.test(l))).toBe(false);
+    // Three stances and nothing else never hit a cap of 1.
+    const st = runSequence(seq('stances'), REAL, 0, [{ kind: 'stance', stance: 'aggressive' }, { kind: 'stance', stance: 'balanced' }, { kind: 'stance', stance: 'defensive' }], 1, {}, force);
+    expect(st.truncated).toHaveLength(0);
+    expect(st.state.duel.a.stance).toBe('defensive');
+    // One action too many is still cut.
+    expect(runSequence(seq('over'), REAL, 0, [...steps, { kind: 'strike' }], 3, {}, force).truncated).toHaveLength(1);
+  });
+  it('a failed feint shows its dice and margin and is a narrated beat, not "no effect" (D-199)', () => {
+    let seen = false;
+    for (let i = 0; i < 60 && !seen; i++) {
+      const r = runSequence(seq(`feint${i}`), REAL, 0, [{ kind: 'tactic', tactic: 'feint' }, { kind: 'strike' }], 3, {}, { ...force, trickLevel: 10 });
+      if (r.results[0]!.success) continue;
+      expect(r.lines[0]).toMatch(/^step 1 feint: FAILED \(seen through: A d20 \d+ = [\d.-]+ vs B d20 \d+ = [\d.-]+ \(margin -?[\d.]+\)\)$/);
+      expect(r.lines[1]).toBe('step 2 strike: NOT REACHED (an earlier step failed)');
+      seen = true;
+    }
+    expect(seen).toBe(true);
+  });
+  it('a throw uses any throwable the fight has when the named one is missing or spent (D-199)', () => {
+    const s = { ...seq('rocks'), objects: { fallenTimber: 2 } };
+    const r = runSequence(s, REAL, 0, [{ kind: 'forceAction', action: 'throw', objectTag: 'looseRock' }], 3, { fallenTimber: 'medium', looseRock: 'small' }, force);
+    expect(r.results[0]!.status).not.toBe('dropped');
+    expect(r.state.objects['fallenTimber']).toBe(1);
+    const spent = { ...seq('rocks2'), objects: { looseRock: 0, debris: 1 } };
+    expect(runSequence(spent, REAL, 0, [{ kind: 'forceAction', action: 'throw', objectTag: 'looseRock' }], 3, { debris: 'medium', looseRock: 'small' }, force).state.objects['debris']).toBe(0);
+    const none = { ...seq('rocks3'), objects: { looseRock: 0, debris: 0 } };
+    expect(runSequence(none, REAL, 0, [{ kind: 'forceAction', action: 'throw' }], 3, {}, force).lines[0]).toBe('step 1 Force throw: NOT REACHED (nothing left to throw here)');
+  });
+  it('when the opponent holds the strike, their strike is resolved and is why the chain stops (D-199)', () => {
+    const s0 = seq('init');
+    const s = { ...s0, duel: { ...s0.duel, advantage: -3 } };
+    const r = runSequence(s, REAL, 0, [{ kind: 'forceAction', action: 'saberThrow' }, { kind: 'strike' }, { kind: 'strike' }], 3, {}, force);
+    if (r.stopReason === 'opponentStrike' || (r.stopReason === 'fightEnded' && r.dropped.length)) {
+      const last = r.state.duel.log[r.state.duel.log.length - 1]!;
+      expect(last.striker).toBe('B');
+      expect(r.lines[1]).toMatch(/^step 2 strike: NOT REACHED \(B had the initiative and struck first \(#\d+: .+\)\)$/);
+    } else expect(r.results[0]!.success).toBe(false);
   });
   it('a failure at step 2 stops before step 3; the rest is dropped', () => {
     for (let i = 0; i < 200; i++) {

@@ -8,7 +8,7 @@ import { SEQUENCE_ADAPTATION, SEQUENCE_CAP, SEQUENCE_CHAIN } from '../data/seque
 import type { BodyPart, ForceEffort } from '../data/health.config';
 import type { ObjectSize } from '../data/terrain';
 import { canThrowSaber, FORCE_ACTION_ABILITY, forceReason, resolveForceAction, type ForceActionKind, type ForceActionRecord } from './combatForce';
-import { exchangeOutcomeText, partText, resolveExchange, settleEnd, type DuelContext, type DuelState } from './duel';
+import { exchangeOutcomeText, hitText, partText, resolveExchange, settleEnd, type DuelContext, type DuelState } from './duel';
 import type { Modifier } from './rolls';
 import { basicRoll } from './rolls';
 
@@ -94,8 +94,20 @@ export function runSequence(
   objectSizes: Readonly<Record<string, ObjectSize>>,
   force: ForceProfile,
 ): SequenceResult {
-  const used = steps.slice(0, cap);
-  const truncated = steps.slice(cap);
+  // A stance is a setting, not an action (D-182): it does not count toward the cap (D-199).
+  let actions = 0;
+  let cut = steps.length;
+  for (let k = 0; k < steps.length; k++) {
+    if (steps[k]!.kind === 'stance') continue;
+    actions++;
+    if (actions > cap) {
+      cut = k;
+      break;
+    }
+  }
+  const used = steps.slice(0, cut);
+  const truncated = steps.slice(cut);
+  let strikeNote = '';
   let st = s0;
   const results: StepResult[] = [];
   let pressure = 0;
@@ -137,7 +149,9 @@ export function runSequence(
     } else if (step.kind === 'forceAction') {
       let size: ObjectSize | undefined;
       if (step.action === 'throw') {
-        const tag = step.objectTag ?? Object.keys(st.objects).find((k) => (st.objects[k] ?? 0) > 0);
+        // The object named, or any other throwable the fight still has (D-199): "a rock" in a forest of fallen timber throws timber.
+        const named = step.objectTag !== undefined && (st.objects[step.objectTag] ?? 0) > 0 ? step.objectTag : undefined;
+        const tag = named ?? Object.keys(st.objects).find((k) => (st.objects[k] ?? 0) > 0);
         if (!tag || (st.objects[tag] ?? 0) <= 0) {
           results.push({ index: i, step, success: false, status: 'dropped', note: 'nothing left to throw here' });
           continue;
@@ -200,14 +214,20 @@ export function runSequence(
       stopReason = 'stepFailed';
       break;
     }
-    if (st.duel.advantage <= -STRIKE_AT) {
-      stopReason = 'opponentStrike';
+    if (st.duel.advantage <= -STRIKE_AT && i < used.length - 1) {
+      // The opponent holds the strike and takes it now (D-199): that exchange is resolved and is why the chain stops.
+      const struck = settleEnd(resolveExchange(st.duel, ctx, day));
+      const rec = struck.log[struck.log.length - 1]!;
+      const who = struck.opponents.find((o) => o.id === rec.targetId)?.name ?? 'the opponent';
+      strikeNote = `${who} had the initiative and struck first (#${rec.n}: ${rec.hit && !rec.hit.avoided && rec.hit.by === 'B' ? hitText(rec.hit, duel.a.name) : rec.maneuver ? `a ${rec.maneuver.kind} maneuver` : 'the strike did not land'})`;
+      st = { ...st, duel: struck };
+      stopReason = st.duel.end ? 'fightEnded' : 'opponentStrike';
       break;
     }
     if (step.kind !== 'stance') pressure = Math.min(SEQUENCE_CHAIN.pressureMax, pressure + SEQUENCE_CHAIN.pressurePerStep);
   }
   const dropped = used.slice(results.length);
-  const why = stopReason === 'stepFailed' ? 'an earlier step failed' : stopReason === 'opponentStrike' ? 'the opponent seized the strike' : 'the fight ended';
+  const why = stopReason === 'stepFailed' ? 'an earlier step failed' : strikeNote ? strikeNote : stopReason === 'opponentStrike' ? 'the opponent seized the strike' : 'the fight ended';
   const lines = [
     ...results.map((r) => stepLine(r.index, r.step, r.status, r.note)),
     ...dropped.map((d, k) => stepLine(results.length + k, d, 'dropped', why)),

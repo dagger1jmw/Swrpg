@@ -11,7 +11,8 @@ import { stubLightPhilosophy, STUB_PLAYER_SHATTERSENSE } from '../../data/stubs'
 import { TERRAIN_BY_ID } from '../../data/terrain';
 import { TERRAIN_HAZARD_EVERY } from '../../data/combat.config';
 import type { TerrainHazard } from '../../engine/terrainHazard';
-import { loadoutFor, weaponSkillKind, type Loadout } from '../../data/weapons';
+import { loadoutFor, mandalorianSlugthrower, weaponSkillKind, type Loadout } from '../../data/weapons';
+import type { WeaponKind } from '../../data/health.config';
 import type { MatchupSituation } from '../../data/formMatchups';
 import { dateFromAbsDay } from '../../engine/calendar';
 import type { DuelContext, Fighter } from '../../engine/duel';
@@ -146,7 +147,13 @@ export function buildNpcFighter(s: GameState, npcId: string): { fighter: Fighter
   if (archetype === 'mandalorian') {
     const beskar = canon?.armor ? canon.armor === 'beskar' : nextFloat(seedRng(`${gen.seed}:beskar`))[0] < beskarChanceAt(dateFromAbsDay(s.clock.now.day).year);
     loadout = { ...loadout, saberResistant: beskar };
+    // A slugthrower (D-200): the canon weapon, else a seeded roll by era.
+    const sr = seedRng(`${gen.seed}:slug`);
+    const [u1, sr2] = nextFloat(sr);
+    const slug = canon?.weapon ? null : mandalorianSlugthrower(dateFromAbsDay(s.clock.now.day).year, u1, nextFloat(sr2)[0]);
+    if (slug) loadout = { ...loadout, weapon: slug };
   }
+  if (canon?.weapon) loadout = { ...loadout, weapon: canon.weapon };
   const fighter = fighterFromLevels(npcId, npc.name, levels, loadout, {
     minion: false,
     vitalityLost: npc.health?.vitalityLost ?? 0,
@@ -158,14 +165,14 @@ export function buildNpcFighter(s: GameState, npcId: string): { fighter: Fighter
   return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId) }, rank: gen.rank };
 }
 
-export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false): Fighter {
+export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false, weapon: WeaponKind | null = null): Fighter {
   const kind = MINION_KINDS.find((k) => k.id === kindId) ?? MINION_KINDS[0]!;
   const inputs = minionInputs(kindId, grade, `${fightId}:${kindId}:${index}`);
   const base = npcLevelsFor(inputs, 'human', inputs.age, s.clock.now.day);
   // The kind's weapon-skill profile (D-195): the main weapon always has a trained level.
   const w = minionWeaponLevel(kindId, grade);
   const levels = w ? { ...base, [w.skill]: Math.max(base[w.skill] ?? 0, w.level) } : base;
-  const loadout: Loadout = { weapon: kind.weapon, armor: kind.armor, saberResistant: kind.saberResistant === true || (kind.saberResistant === 'byEra' && beskar) };
+  const loadout: Loadout = { weapon: weapon ?? kind.weapon, armor: kind.armor, saberResistant: kind.saberResistant === true || (kind.saberResistant === 'byEra' && beskar) };
   const f = fighterFromLevels(`${fightId}:${kindId}:${index}`, `${kind.label} ${index + 1}`, levels, loadout, { minion: true, vitalityLost: 0, wounds: [], lasting: [], shatterpoint: 0, lightSide: false });
   const v = f.maxVitality * kind.vitalityMult;
   const droid = DROID_MINION_KINDS.includes(kind.id);

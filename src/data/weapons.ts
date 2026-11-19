@@ -29,8 +29,45 @@ export const LOADOUT_BY_ARCHETYPE: Readonly<Record<string, Loadout>> = {
 /** Ranks that train with a training saber (Initiates, Sith acolytes). */
 export const TRAINING_SABER_RANKS: readonly string[] = ['initiate', 'acolyte'];
 
+/** Energy weapons: a lightsaber can send their bolts back, and the forms' vs-blaster matchups apply (rolls §4). */
+export const BLASTER_WEAPONS: readonly WeaponKind[] = ['blasterPistol', 'blasterRifle', 'heavy'];
+
+/**
+ * Slugthrowers (Jared, D-200; Legends): solid projectiles. Non-saber weapons (wounds by margin, D-161), fired with the
+ * blaster skill until the equipment system (M8). Against a lightsaber: the blade can block slugs (they melt on it) but
+ * never redirect them, so there is no Shien or Soresu redirect and no vs-blaster form matchup. Rapid fire (the
+ * slugthrower rifle) and scatter shot (the scatter gun) are more projectiles than a blade can meet: a defender with a
+ * saber takes `SLUG_SPREAD_DEFENSE` on the defense (design default).
+ */
+export const SLUGTHROWERS: readonly WeaponKind[] = ['slugPistol', 'slugRifle', 'scatterGun'];
+export const SLUG_SPREAD: Readonly<Partial<Record<WeaponKind, string>>> = { slugRifle: 'rapid slugthrower fire', scatterGun: 'scatter shot' };
+export const SLUG_SPREAD_DEFENSE = -1;
+export const isSlugthrower = (w: WeaponKind): boolean => SLUGTHROWERS.includes(w);
+
+/**
+ * Mandalorians carrying a slugthrower instead of a blaster, by era (D-200; design defaults: a favoured answer to Jedi,
+ * more so once fighting them became a trade). `toYear` is exclusive (negative = BBY). The kind is rolled by weight.
+ */
+export const MANDALORIAN_SLUGTHROWERS: readonly { toYear: number; share: number; label: string }[] = [
+  { toYear: -1000, share: 0.15, label: 'Old Republic eras' },
+  { toYear: -19, share: 0.2, label: 'the late Republic and the Clone Wars' },
+  { toYear: Infinity, share: 0.25, label: 'the Empire and after' },
+];
+export const MANDALORIAN_SLUG_KINDS: readonly (readonly [WeaponKind, number])[] = [['slugPistol', 0.5], ['slugRifle', 0.3], ['scatterGun', 0.2]];
+export const slugthrowerShareAt = (year: number): number => (MANDALORIAN_SLUGTHROWERS.find((e) => year < e.toYear) ?? MANDALORIAN_SLUGTHROWERS[MANDALORIAN_SLUGTHROWERS.length - 1]!).share;
+/** A Mandalorian's weapon from two uniform draws (the share by era, then the kind), or null to keep the blaster. */
+export function mandalorianSlugthrower(year: number, u1: number, u2: number): WeaponKind | null {
+  if (u1 >= slugthrowerShareAt(year)) return null;
+  let acc = 0;
+  for (const [w, weight] of MANDALORIAN_SLUG_KINDS) {
+    acc += weight;
+    if (u2 < acc) return w;
+  }
+  return MANDALORIAN_SLUG_KINDS[0]![0];
+}
+
 /** Weapons that use the ranged exchange (rolls §4). */
-export const RANGED_WEAPONS: readonly WeaponKind[] = ['blasterPistol', 'blasterRifle', 'heavy'];
+export const RANGED_WEAPONS: readonly WeaponKind[] = [...BLASTER_WEAPONS, ...SLUGTHROWERS];
 
 /** The skill a weapon fights with: forms for sabers, blaster for ranged, melee for melee, Agility unarmed. */
 export function weaponSkillKind(w: WeaponKind): 'form' | 'blaster' | 'melee' | 'unarmed' {

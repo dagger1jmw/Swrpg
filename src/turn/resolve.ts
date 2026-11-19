@@ -11,13 +11,13 @@ import { check, clampDifficulty, gradeMargin, isCheckRequired, type CheckCard } 
 import { ABILITY_FORCE_GROUP } from '../data/forceResistance.config';
 import { forceContest, forceResistanceOf, FORCE_OUTCOME_TEXT, speciesForceTraits, type ForceTarget } from '../engine/combatForce';
 import type { RngState } from '../engine/rng';
-import { selectFatigue, selectIsDying, selectIsSpent, selectLastingPenalty, selectWoundPenalty } from '../features/health/selectors';
+import { selectFatigue, selectIsDying, selectIsSpent, selectLastingPenalty, selectWoundPenalty, selectWounds } from '../features/health/selectors';
 import { selectNpc, selectNpcLevel } from '../features/npcs/selectors';
 import { selectLevelExact } from '../features/progression/selectors';
 import { STABILIZE_DIFFICULTY } from '../data/health.config';
 import { combatActionFromBeat, combatActionFromIntent, combatDraft, combatWordsAction, reconcileCombatPayload, type CombatDraft } from './combatTurn';
 import { SEQUENCE_SCHEMA_MAX } from '../data/sequence.config';
-import { CONTINUE_WORDS } from '../data/combatWords';
+import { CONTINUE_WORDS, STOP_SPAR_WORDS } from '../data/combatWords';
 import type { CombatActionInput } from './record';
 import { selectPacingLevel } from '../features/pacing/selectors';
 import { selectPerformance, selectRust } from '../features/progression/selectors';
@@ -123,14 +123,17 @@ export function jumpTargetDay(fromDay: number, seconds: number, span?: Requested
   return fromDay + Math.max(1, Math.round(seconds / 86_400));
 }
 
-export function resolveJump(registry: Registry<GameState>, initial: GameState, level: JumpLevel, targetDay: number, reason: string) {
+export function resolveJump(registry: Registry<GameState>, initial: GameState, level: JumpLevel, targetDay: number, reason: string, rest = false) {
   const days = Math.max(1, targetDay - initial.clock.now.day);
   const wake = initial.routines.active.wakeSecond;
   const untilAbs = (initial.clock.now.day + days) * 86_400 + wake;
-  const run = advanceByRoutine(registry, initial, { untilAbs, reason });
+  const run = advanceByRoutine(registry, initial, { untilAbs, reason, ...(rest ? { rest } : {}) });
   const report = buildMontageReport(initial, run, { level, requestedDays: days });
   return { run, report, days };
 }
+
+/** Default care spans (D-160): medical 7 days, a bacta tank 6 h, a Force healer 1 h. */
+const CARE_DEFAULT_HOURS = { medical: 7 * 24, bacta: 6, forceHealer: 1 } as const;
 
 /** The session a train / study intent asks for: its activity, or the default activity of its skill. */
 export function trainingRequest(intent: Intent): Omit<TrainingRequest, 'hours'> | null {
@@ -151,6 +154,12 @@ export function trainingRequest(intent: Intent): Omit<TrainingRequest, 'hours'> 
 function saysContinue(text: string): boolean {
   const t = ` ${text.toLowerCase().replace(/[^a-z' ]+/g, ' ').replace(/ +/g, ' ')} `;
   return CONTINUE_WORDS.some((w) => t.includes(` ${w} `));
+}
+
+/** The text ends a sparring session (D-199). */
+function saysStopSparring(text: string): boolean {
+  const t = ` ${text.toLowerCase().replace(/[^a-z' ]+/g, ' ').replace(/ +/g, ' ')} `;
+  return STOP_SPAR_WORDS.some((w) => t.includes(` ${w} `));
 }
 
 /** The intent asks for sparring as an activity ("spar with the other Initiates for an hour"), D-177. */
@@ -245,7 +254,9 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     // Attack verbs are strike steps and named Force actions are steps (D-191): the text makes sure of both.
     if (!opts.beat && opts.text) payload = reconcileCombatPayload(opts.text, payload, SEQUENCE_SCHEMA_MAX);
     const sess = before.combat.active!.session;
-    if (!opts.beat && sess && !sess.ended && !sess.playing && payload['action'] === 'continue' && !isSparringActivityIntent(intent)) payload = { action: 'playBout' };
+    // Typed words that end a sparring session, like the Stop sparring button (D-199).
+    if (!opts.beat && sess && !sess.ended && opts.text && saysStopSparring(opts.text)) payload = { action: 'stopSession' };
+    else if (!opts.beat && sess && !sess.ended && !sess.playing && payload['action'] === 'continue' && !isSparringActivityIntent(intent)) payload = { action: 'playBout' };
     const done = apply([{ type: 'combatAction', ...payload }], 'player');
     const notes = done.flatMap((a) => a.notes);
     const after = state;
@@ -284,7 +295,18 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       if (jumpSpan.clampedFrom !== undefined) report.push(`requested span ${jumpSpan.clampedFrom}s clamped to ${jumpSpan.seconds}s (${level})`);
       const reason = intent.requestedSpan ? `${level} for ${intent.requestedSpan.amount} ${intent.requestedSpan.unit}` : level;
       const target = jumpTargetDay(state.clock.now.day, jumpSpan.seconds, intent.requestedSpan, jumpSpan.clampedFrom !== undefined);
-      const j = resolveJump(registry, state, level, target, reason);
+      // Rest and care over days (D-199): the care period starts first, and the days are rest and recovery, not training.
+      const resting = intent.actionType === 'rest' || intent.actionType === 'heal' || intent.actionType === 'sleep' || intent.healing !== undefined;
+      if ((intent.actionType === 'heal' || intent.healing) && selectWounds(state).length && !selectIsDying(state)) {
+        const source = intent.healing?.source ?? 'medical';
+        const healer = intent.healing?.healerRef && selectNpc(state, intent.healing.healerRef) ? intent.healing.healerRef : null;
+        const hours = source === 'medical' ? jumpSpan.seconds / 3600 : source === 'bacta' ? CARE_DEFAULT_HOURS.bacta : CARE_DEFAULT_HOURS.forceHealer;
+        const healerLevel = source === 'forceHealer' ? (healer ? selectNpcLevel(state, healer, 'forceHealOthers') : selectLevelExact(state, 'forceHealSelf')) : undefined;
+        if (source !== 'forceHealer' || (healerLevel ?? 0) >= 1) apply([{ type: 'careStarted', kind: source, hours, ...(healerLevel !== undefined ? { healerLevel } : {}) }]);
+        else report.push('no Force healer: no Force healing applied');
+      }
+      const j = resolveJump(registry, state, level, target, reason, resting);
+      if (resting) report.push('rest and recovery: no training on these days');
       state = j.run.state;
       applied.push(...j.run.applied);
       rejected.push(...j.run.rejected);
@@ -327,7 +349,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       const healer = intent.healing?.healerRef && selectNpc(state, intent.healing.healerRef) ? intent.healing.healerRef : null;
       const selfForce = intent.forceAbility === 'forceHealSelf' && selectLevelExact(state, 'forceHealSelf') >= 1;
       const source = intent.healing?.source ?? (selfForce ? 'forceHealer' : 'medical');
-      const hours = spanSeconds !== null ? spanSeconds / 3600 : source === 'medical' ? 7 * 24 : source === 'bacta' ? 6 : 1;
+      const hours = spanSeconds !== null ? spanSeconds / 3600 : CARE_DEFAULT_HOURS[source];
       if (selectIsDying(state)) {
         const skill = healer ? (source === 'forceHealer' ? 'forceHealOthers' : 'medicine') : selfForce ? 'forceHealSelf' : 'medicine';
         const level = healer ? selectNpcLevel(state, healer, skill) : selectPerformance(state, skill);

@@ -68,5 +68,8 @@ export const FORM_WORDS: Readonly<Record<string, string>> = {
   'form vii': 'juyo',
 };
 
+/** Words that end a sparring session like the Stop sparring button (Jared, D-199); "solah" is the Legends call to yield a bout. */
+export const STOP_SPAR_WORDS: readonly string[] = ['end the sparring session', 'end the session', 'end the spar', 'end the bout', 'end the match', 'stop sparring', 'stop the spar', 'stop the session', 'stop the bout', "that's enough", 'that is enough', 'enough for today', 'enough for now', 'i yield', 'yield', 'solah', 'call it a day', 'we are done', "we're done", 'i am done', "i'm done"];
+
 /** Words that mean "go on as before" (Continue; in a sparring session, play the bout out). */
 export const CONTINUE_WORDS: readonly string[] = ['continue', 'keep fighting', 'fight on', 'keep going', 'carry on', 'go on'];

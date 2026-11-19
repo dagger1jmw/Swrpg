@@ -10,7 +10,7 @@ export const VITALITY_RECOVERY = { restPerHour: 0.5, lightPerHour: 0.15, fullSle
 export const SPENT_LEVEL_FACTOR = 0.9;
 
 // ---- Damage (health §4) ----
-export const WEAPON_KINDS = ['unarmed', 'melee', 'blasterPistol', 'blasterRifle', 'heavy', 'lightsaber', 'trainingSaber'] as const;
+export const WEAPON_KINDS = ['unarmed', 'melee', 'blasterPistol', 'blasterRifle', 'heavy', 'slugPistol', 'slugRifle', 'scatterGun', 'lightsaber', 'trainingSaber'] as const;
 export type WeaponKind = (typeof WEAPON_KINDS)[number];
 /** Weapon base damage. A training saber deals Vitality-only hits (sparring mode, D-143); its base is a lightsaber's. */
 export const WEAPON_BASE: Record<WeaponKind, number> = {
@@ -19,6 +19,10 @@ export const WEAPON_BASE: Record<WeaponKind, number> = {
   blasterPistol: 15,
   blasterRifle: 20,
   heavy: 30,
+  // Slugthrowers (D-200; design defaults near the blasters; rules in data/weapons.ts).
+  slugPistol: 13,
+  slugRifle: 18,
+  scatterGun: 22,
   lightsaber: 40,
   trainingSaber: 40,
 };

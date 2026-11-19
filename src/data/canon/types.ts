@@ -3,6 +3,7 @@
 // at a campaign date is computed (src/engine/canonRoster.ts): born, not yet dead, not unavailable, and old enough
 // for the role they hold at that date. Nothing here favours any start year.
 import type { FactionId, NpcRole, SpeciesId } from '../entities.config';
+import type { WeaponKind } from '../health.config';
 
 export type YearSource = 'lore' | 'estimate';
 
@@ -31,6 +32,8 @@ export interface CanonNpc {
   specialTalents?: readonly string[];
   /** Canon armor for Mandalorians (D-158): beskar is saber-resistant; durasteel and duraplast are not. Absent = rolled by era. */
   armor?: 'beskar' | 'durasteel' | 'duraplast';
+  /** Canon weapon (D-200: a named Mandalorian's slugthrower or blaster). Absent = the archetype's, or a roll by era. */
+  weapon?: WeaponKind;
   unmapped?: readonly string[];
   note?: string;
 }

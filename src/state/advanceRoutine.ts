@@ -71,7 +71,7 @@ const absOf = (s: GameState): number => s.clock.now.day * DAY + s.clock.now.seco
  * Runs the routine until `untilAbs` (normally a wake time), or until a hook interrupts. `untilAbs` is
  * clamped so the loop always ends at a wake time.
  */
-export function advanceByRoutine(registry: Registry<GameState>, initial: GameState, opts: { untilAbs: number; reason: string; jump?: boolean }): RoutineAdvanceResult {
+export function advanceByRoutine(registry: Registry<GameState>, initial: GameState, opts: { untilAbs: number; reason: string; jump?: boolean; rest?: boolean }): RoutineAdvanceResult {
   const jump = opts.jump ?? true;
   let state = initial;
   const applied: AppliedEvent[] = [];
@@ -155,7 +155,9 @@ export function advanceByRoutine(registry: Registry<GameState>, initial: GameSta
     if (now >= opts.untilAbs) break;
 
     // Morning: the day's plan. Notices from the night (midnight hooks) belong to this day.
-    const plan = planDay(state, routine, selectFillCredit(state));
+    // The player rests (D-199: "I rest for a week while a medic treats my arm"): rest and recovery days, no training.
+    const planned = planDay(state, routine, selectFillCredit(state));
+    const plan = opts.rest ? { ...planned, trainingDay: false, recovery: true, items: [], notes: ['rest and recovery: the character rests'] } : planned;
     const log: DayLog = { day: state.clock.now.day, label: formatDate(state.clock.now.day), trainingDay: plan.trainingDay, recovery: plan.recovery, sessions: [], hoursTrained: 0, notes: [...plan.notes], notices: dayNotices, endF: 0 };
     days.push(log);
     if (plan.trainingDay && !plan.recovery) apply([{ type: 'routineDayPlanned', fillCredit: plan.fillCredit }]);

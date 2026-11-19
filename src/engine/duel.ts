@@ -34,7 +34,7 @@ import {
 } from '../data/combat.config';
 import { FORM_MATCHUPS, FORM_STAMINA, type MatchupSituation } from '../data/formMatchups';
 import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, SEVERITIES, SPENT_LEVEL_FACTOR, WOUND_FIGHTING, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
-import { RANGED_WEAPONS } from '../data/weapons';
+import { BLASTER_WEAPONS, RANGED_WEAPONS, SLUG_SPREAD, SLUG_SPREAD_DEFENSE } from '../data/weapons';
 import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityOf, severs } from './damage';
 import { efficiency } from './fatigue';
 import { addFixedLoad, forceWithin } from './forceMeter';
@@ -252,7 +252,8 @@ export const hasSaber = (f: Fighter): boolean => f.weapon === 'lightsaber' || f.
 export function matchupFor(f: Fighter, opp: Fighter, ctx: DuelContext, opponentsEngaged: number): Modifier[] {
   if (!f.form) return [];
   const situations = new Set<MatchupSituation>(ctx.situations);
-  if (isRanged(opp)) situations.add('vsBlasters');
+  // Slugs cannot be sent back: the vs-blaster matchups are for energy bolts only (D-200).
+  if (BLASTER_WEAPONS.includes(opp.weapon)) situations.add('vsBlasters');
   if (hasSaber(opp) && opponentsEngaged <= 1) situations.add('saberDuel');
   if (opponentsEngaged > 1) situations.add('severalOpponents');
   const out: Modifier[] = [];
@@ -289,6 +290,9 @@ function sideMods(f: Fighter, opp: Fighter, ctx: DuelContext, numbersBonus: numb
   if (ctx.footing) both.push({ source: 'footing', value: ctx.footing });
   if (numbersBonus) both.push({ source: `numbers (+${numbersBonus})`, value: numbersBonus });
   if (f.disarmedFor > 0) attack.push({ source: 'disarmed', value: MANEUVER_EFFECT.disarmedAttack });
+  // Rapid slugthrower fire and scatter shot: more projectiles than a blade can meet (D-200).
+  const spread = SLUG_SPREAD[opp.weapon];
+  if (spread && hasSaber(f)) defense.push({ source: spread, value: SLUG_SPREAD_DEFENSE });
   if (f.accuracy) attack.push({ source: 'accuracy', value: f.accuracy });
   return { attack: [...attack, ...both], defense: [...defense, ...both] };
 }
@@ -543,7 +547,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
         defF = d.f;
         hit = { by: striker, ...d.hit, avoided: false };
       }
-    } else if (isRanged(atkF) && hasSaber(defF) && -band(margin) >= DEFLECT_REDIRECT_MARGIN && (defF.form === 'soresu' || defF.form === 'shien')) {
+    } else if (BLASTER_WEAPONS.includes(atkF.weapon) && hasSaber(defF) && -band(margin) >= DEFLECT_REDIRECT_MARGIN && (defF.form === 'soresu' || defF.form === 'shien')) {
       // A deflected bolt sent back at the shooter (rolls §4): graze at 8-11, solid at 12+.
       const quality: HitQuality = -band(margin) >= 12 ? 'solid' : 'graze';
       const shooter = atkF;

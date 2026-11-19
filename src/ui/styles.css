@@ -482,3 +482,8 @@ button.act.warn { background: transparent; border: 1px solid var(--warn); color:
 .force-meter.over .fnum, .force-meter .over-text { color: var(--bad); font-weight: 700; }
 .force-meter .over-text { display: block; grid-column: 1 / -1; }
 button.act.risky { border: 1px solid var(--bad); }
+
+/* Sequence step lines in the feed (D-199) and the initiative warning. */
+.step-line.failed { color: var(--warn); }
+.step-line.skipped { opacity: 0.7; font-style: italic; }
+.warn-line.initiative { font-weight: 600; }

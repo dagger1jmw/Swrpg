@@ -10,6 +10,7 @@ import { rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, type BodyPart } from '../../data/health.config';
 import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
 import { dateFromAbsDay } from '../../engine/calendar';
+import { mandalorianSlugthrower } from '../../data/weapons';
 import { COMBAT_STAKES, type CombatOutcome, type CombatStakes } from '../../data/progression.config';
 import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.config';
 import { FORM_IDS } from '../../data/skills';
@@ -62,7 +63,16 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
         [u, rng] = nextFloat(rng);
         beskar = u < beskarChanceAt(dateFromAbsDay(s.clock.now.day).year);
       }
-      const f = buildMinionFighter(s, kind, grade, opponents.length, fightId, beskar);
+      // Mandalorians may carry a slugthrower, by era (D-200).
+      let slug: ReturnType<typeof mandalorianSlugthrower> = null;
+      if (kind === 'mandalorian') {
+        let u1: number;
+        let u2: number;
+        [u1, rng] = nextFloat(rng);
+        [u2, rng] = nextFloat(rng);
+        slug = mandalorianSlugthrower(dateFromAbsDay(s.clock.now.day).year, u1, u2);
+      }
+      const f = buildMinionFighter(s, kind, grade, opponents.length, fightId, beskar, slug);
       opponents.push(f);
       meta[f.id] = { npcId: null, minionKind: kind, rank: null };
     }
@@ -503,7 +513,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           const ability = FORCE_ACTION_ABILITY[f.kind];
           if (selectLevelExact(s, ability) < 1) return { reject: `the character does not know ${ability}` };
           const r = runSequence({ duel, patternUses: active.patternUses, objects: active.objects }, ctxD, day, [{ kind: 'forceAction', action: f.kind, ...(f.effort ? { effort: f.effort } : {}), ...(f.objectTag ? { objectTag: f.objectTag } : {}) }], 1, active.objectSizes, forceProfile(s));
-          const settled = settle({ ...slice, active: { ...active, patternUses: r.state.patternUses, objects: r.state.objects } }, s, { ...active, patternUses: r.state.patternUses, objects: r.state.objects }, before, r.state.duel, ...beatFor(duel, r.state.duel, 'forceAction'), r.lines);
+          const settled = settle({ ...slice, active: { ...active, patternUses: r.state.patternUses, objects: r.state.objects } }, s, { ...active, patternUses: r.state.patternUses, objects: r.state.objects }, before, r.state.duel, ...beatFor(duel, r.state.duel, 'forceAction', r.lines), r.lines);
           return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
         } else if (action === 'shatterpoint') {
           const r = tryShatterpoint(duel, 'A');
@@ -530,7 +540,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           // Every step the intent returned gets a line: resolved, failed, or dropped with the reason (D-191).
           const seqNotes = [...incomplete, ...r.lines];
           const nextActive = { ...active, patternUses: r.state.patternUses, objects: r.state.objects };
-          const settled = settle({ ...slice, active: nextActive }, s, nextActive, before, r.state.duel, ...beatFor(duel, r.state.duel, 'sequence'), seqNotes);
+          const settled = settle({ ...slice, active: nextActive }, s, nextActive, before, r.state.duel, ...beatFor(duel, r.state.duel, 'sequence', r.lines), seqNotes);
           return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
         } else if (action === 'fightOn') mode = 'fightOn';
         else if (action === 'resolve') mode = 'toEnd';
@@ -675,8 +685,10 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
 };
 
 /** The beat after a Force action or a sequence: noEffect (quiet, no exchange) when nothing was attempted (D-194). */
-function beatFor(before: DuelState, after: DuelState, beat: 'forceAction' | 'sequence'): [string, boolean] {
-  return after.log.length === before.log.length ? ['noEffect', false] : [beat, true];
+function beatFor(before: DuelState, after: DuelState, beat: 'forceAction' | 'sequence', lines: readonly string[]): [string, boolean] {
+  // A feint or taunt rolls dice without an exchange record: it was attempted (D-199).
+  const attempted = after.log.length !== before.log.length || lines.some((l) => /: (DONE|FAILED) \(/.test(l) && !/^step \d+ stance /.test(l));
+  return attempted ? [beat, true] : ['noEffect', false];
 }
 
 /** The player's Force levels for actions and sequences (CI from progression). */

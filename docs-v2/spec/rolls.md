@@ -129,9 +129,16 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
     difficulty only (mass, size). A Force-null bubble (ysalamiri) stops every use; the Yuuzhan
     Vong cannot be touched directly (a thrown object still hits). Numbers in
     src/data/forceResistance.config.ts. Force load per use comes from the health spec section 2.
+  Sequences (D-199): a stance step is a setting and does not count toward the length cap. When
+    the opponent holds the strike, the first step resolves, then the opponent's strike, and the
+    remaining steps are not reached. A feint or taunt step shows its dice and margin.
   Saber throw (D-193): telekinesis control vs a difficulty; up to 3 minion strikes in the arc,
     each its own roll; one deflectable strike on a duelist (a Force user may wrench it away); a
     failed control roll drops the saber until a recall.
+  Slugthrowers (D-200): solid slugs, fired with the blaster skill until M8. A lightsaber blocks
+    them with the normal defense roll (they melt on the blade) but never redirects them, and the
+    forms' vs-blaster modifiers do not apply. Rapid slugthrower fire and scatter shot give a
+    defender with a saber -1. Mandalorians carry them by an era share (data/weapons.ts).
   Ranged firefights use build-up exchanges too (cover and suppression shift the track).
 
 ## 5. Circumstance modifiers (d20 points; 1 point = 10 levels)

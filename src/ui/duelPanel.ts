@@ -2,7 +2,7 @@
 // fixed box and its log scrolls inside its own box). Rendering and player actions only; no rules here.
 import type { Choice } from '../ai/schemas/compose';
 import { collapseRiskPerUse, forceFraction } from '../engine/forceMeter';
-import { isNarratedBeat, MANEUVERS, STANCES, type BeatReason, type Stance } from '../data/combat.config';
+import { isNarratedBeat, MANEUVERS, STANCES, STRIKE_AT, type BeatReason, type Stance } from '../data/combat.config';
 import { FORM_IDS, SKILL_BY_ID } from '../data/skills';
 import type { BasicRoll } from '../engine/rolls';
 import type { ForceOutcome } from '../engine/combatForce';
@@ -71,6 +71,7 @@ export function renderCombatDraft(c: CombatDraft): HTMLElement {
   const tag: CallTag = c.quiet ? 'quiet' : 'narrated';
   return el('div', { class: `roll combat${c.quiet ? ' quiet' : ''}` }, [
     el('div', {}, [tagChip(tag), el('span', { text: `${c.started ? 'The fight begins · ' : ''}${c.records.length} exchange${c.records.length === 1 ? '' : 's'}${c.beat ? ` · ${BEAT_LABEL[c.beat] ?? c.beat}` : ''}${c.ended ? ` · ${c.ended.outcome} (${c.ended.reason})` : ''}` })]),
+    ...c.notes.filter((n) => /^(intent )?step \d/.test(n)).map((n) => el('div', { class: `roll-line step-line${/: FAILED/.test(n) ? ' failed' : /: NOT REACHED/.test(n) ? ' skipped' : ''}`, text: n })),
     ...c.records.map((r) => renderExchange(r, names, tag)),
   ]);
 }
@@ -146,6 +147,9 @@ export interface DuelPanelProps {
   moreOpen: boolean;
   setMoreOpen(open: boolean): void;
 }
+
+/** The warning shown while the opponent holds the strike (advantage -3 or lower; D-199), or null. */
+export const initiativeWarning = (advantage: number): string | null => (advantage <= -STRIKE_AT ? 'Opponent has the initiative: a sequence may be cut short' : null);
 
 /** Mind abilities cannot touch this fighter (D-192): a droid, a lore-immune species, or someone outside the Force. */
 export const mindImmune = (f: { forceTraits?: readonly string[] }): boolean => (f.forceTraits ?? []).some((t) => t === 'droid' || t === 'mindImmune' || t === 'forceInvisible');
@@ -334,6 +338,8 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
         lastBout ? el('span', { class: `bout-result${active.beat === 'boutEnded' ? ' fresh' : ''}`, text: `Bout ${active.session!.bouts.length}: ${BOUT_RESULT[lastBout.winner ?? ''] ?? 'unfinished'}${lastBout.reason ? ` (${lastBout.reason})` : ''}${active.beat === 'boutEnded' ? `; bout ${active.session!.bouts.length + 1} next` : ''}` }) : null,
         others.length ? el('span', { class: 'hint', text: `+${others.length} more (${others.filter((o) => !o.out).length} fighting)` }) : null,
       ]),
+      // The opponent holds the strike (D-199): a typed sequence may be cut short by it.
+      initiativeWarning(d.advantage) ? el('div', { class: 'warn-line initiative', text: initiativeWarning(d.advantage)! }) : null,
       el('div', { class: 'beat-row main-actions' }, primary),
       // The stance: one segmented setting (D-182), under the primary row.
       el('div', { class: 'stance-seg', attrs: { role: 'group', 'aria-label': 'Stance' } }, [
