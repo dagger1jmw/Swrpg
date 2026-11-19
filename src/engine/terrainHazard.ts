@@ -2,6 +2,7 @@
 // fights; built with the ice tag, D-184). At the start of each bout (a real fight is one bout) every fighter still in
 // it rolls each hazardous tag: below the tag's chance it takes the hazard by the health rules (hazardDamage: a fall
 // lands by the fall location weights). Pure.
+import { PART_TEXT } from './duel';
 import { FALL_LOCATION_WEIGHTS, LOCATION_WEIGHTS, type HazardType } from '../data/health.config';
 import { applyDamage, hazardDamage, rollLocation, severityOf } from './damage';
 import type { DuelState, Fighter } from './duel';
@@ -36,7 +37,7 @@ function hurtBy(f: Fighter, h: TerrainHazard, rng: RngState, day: number): { f: 
   }
   if (isDying(out.wounds) || isIncapacitated(out.wounds)) out = { ...out, out: true };
   const what = h.note ? `${h.note} on the ${h.label}` : `${h.type === 'fall' ? 'falls' : 'is caught'} on the ${h.label}`;
-  return { f: out, rng: r, note: `terrain: ${f.name} ${what}${sev ? ` (${sev} ${part})` : ' (only stamina lost)'}` };
+  return { f: out, rng: r, note: `terrain: ${f.name} ${what}${sev ? ` (${sev} ${PART_TEXT[part] ?? part})` : ' (only stamina lost)'}` };
 }
 
 /** The bout-start hazard rolls; the duel's RNG advances. Notes name each accident. */

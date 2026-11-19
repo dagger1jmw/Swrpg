@@ -375,6 +375,8 @@ export function describeCombat(c: CombatDraft): string[] {
   const facts = combatFacts(c);
   const lines = [`COMBAT ${c.fightId}${c.started ? ' (the fight begins now)' : ''}: the outcome list. Narrate these exchanges in order, nothing more and nothing different.`];
   lines.push(`Weapons (the only ones in this fight): ${c.fighters.map((f) => `${f.name}: ${weaponText(f.weapon)}${f.bladeColor ? `, ${f.bladeColor} blade` : ''}${f.form ? ` (${SKILL_BY_ID.get(f.form)?.name ?? f.form})` : ''}`).join('; ')}.`);
+  // Armor as the engine has it (D-216; pass 2 gave an unarmored Jedi "your armor"): nobody wears what is not listed.
+  if (c.fighters.some((f) => f.armor !== undefined)) lines.push(`Armor (the only armor in this fight): ${c.fighters.map((f) => `${f.name}: ${!f.armor || f.armor === 'none' ? 'none' : `${f.armor}${f.saberResistant ? ' (beskar: turns a lightsaber)' : ''}`}`).join('; ')}.`);
   lines.push(...facts.lines);
   if (facts.steps.length) lines.push(`Steps the player asked for: ${facts.steps.map((s) => `step ${s.index + 1} ${s.label}: ${s.status} (${s.detail})`).join('; ')}.`);
   for (const n of c.notes.filter((x) => x.startsWith('intent step'))) lines.push(`Sequence: ${n}`);

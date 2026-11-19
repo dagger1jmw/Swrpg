@@ -5,6 +5,8 @@ import { selectDeath, selectIsDying, selectLasting, selectMaxVitality, selectSta
 import type { GameState } from '../state/gameState';
 import { el } from './dom';
 
+/** A lasting injury's aid in words (D-216; pass 2 showed "qualityCybernetic"). */
+const AID_LABEL: Readonly<Record<string, string>> = { none: 'no prosthetic', scarTissue: 'scar tissue', basicProsthetic: 'basic prosthetic', qualityCybernetic: 'quality cybernetic', offHand: 'the off hand' };
 const KIND_LABEL: Record<string, string> = {
   lostHand: 'lost hand',
   lostArm: 'lost arm',
@@ -39,7 +41,7 @@ export function renderHealthCard(s: GameState): HTMLElement {
       ...wounds.map((w) =>
         el('div', { class: 'wound', text: `${w.stabilized && w.severity === 'mortal' ? 'stabilized critical' : w.severity} · ${partText(w.part)}${w.severed ? ' (severed)' : ''} · ${Math.round(w.healProgress * 100)}% healed` }),
       ),
-      ...lasting.map((l) => el('div', { class: 'wound lasting', text: `${KIND_LABEL[l.kind] ?? l.kind} · ${l.aid} · ${Math.round(l.adaptation * 100)}% adapted` })),
+      ...lasting.map((l) => el('div', { class: 'wound lasting', text: `${KIND_LABEL[l.kind] ?? l.kind} · ${AID_LABEL[l.aid] ?? l.aid} · ${Math.round(l.adaptation * 100)}% adapted` })),
       !wounds.length && !lasting.length ? el('div', { class: 'hint', text: 'No wounds.' }) : null,
     ]),
     s.health.care ? el('div', { class: 'hint hc-row', text: 'Under medical care (x2 healing)' }) : null,

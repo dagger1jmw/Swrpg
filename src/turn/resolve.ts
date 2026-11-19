@@ -16,7 +16,8 @@ import { selectNpc, selectNpcLevel } from '../features/npcs/selectors';
 import { selectLevelExact } from '../features/progression/selectors';
 import { STABILIZE_DIFFICULTY } from '../data/health.config';
 import type { DuelState } from '../engine/duel';
-import { combatActionFromBeat, combatActionFromIntent, combatDraft, combatWordsAction, reconcileCombatPayload, targetFromText, type CombatDraft } from './combatTurn';
+import { combatActionFromBeat, combatActionFromIntent, combatDraft, combatWordsAction, reconcileCombatPayload, saysSpeech, targetFromText, type CombatDraft } from './combatTurn';
+import { SPEECH_LINE } from '../data/combatWords';
 import { SEQUENCE_SCHEMA_MAX } from '../data/sequence.config';
 import { CONTINUE_WORDS, STOP_SPAR_WORDS } from '../data/combatWords';
 import type { CombatActionInput } from './record';
@@ -269,6 +270,8 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     const secondsAfter = after.combat.active ? (after.combat.active.duel as { seconds: number }).seconds : after.combat.last?.id === fightId ? ((after.combat.last.duel as { seconds: number } | undefined)?.seconds ?? secondsBefore) : secondsBefore;
     const seconds = Math.max(0, secondsAfter - secondsBefore);
     combat = combatDraft(before, after, started, [...startNotes, ...notes]);
+    // Talking in a fight (D-216): the quiet line says what ends a fight instead of only asking what the player does.
+    if (combat && combat.beat === 'clarify' && opts.text && saysSpeech(opts.text)) combat = { ...combat, quietLine: SPEECH_LINE };
     if (seconds > 0) {
       const adv = advanceTime(registry, state, { seconds, reason: 'combat', source: 'turnDraft', requested: seconds, occupation: 'combat' });
       state = adv.state;
@@ -470,7 +473,8 @@ function mindContestCard(state: GameState, abilityId: string, npcId: string): { 
   const against = r.resist?.total ?? total + 1;
   const card: CheckCard = {
     kind: 'check',
-    label: `${abilityId === 'mindTrick' ? 'Mind trick' : abilityId} on ${npc.name}`,
+    // An immune mind makes no roll (D-216): the label says so instead of showing an empty d20.
+    label: `${abilityId === 'mindTrick' ? 'Mind trick' : abilityId} on ${npc.name}${r.outcome === 'immune' ? ': immune, no roll' : ''}`,
     skillId: abilityId,
     d20: r.user?.d20 ?? 0,
     natural: r.user?.natural ?? null,
@@ -485,7 +489,10 @@ function mindContestCard(state: GameState, abilityId: string, npcId: string): { 
     margin: total - against,
     success: r.success,
     grade: gradeMargin(r.user ? total - against : -10),
-    notes: [`contest: ${npc.name}'s ${r.resistKind === 'willpower' ? 'Willpower roll' : 'mind'}${r.resist ? ` ${r.resist.total.toFixed(1)}` : ''}`, `the mind trick ${FORCE_OUTCOME_TEXT[r.outcome]}`],
+    // The resisting dice in full (D-216): d20, the total, and a Force user's added resistance (D-192).
+    notes: r.outcome === 'immune'
+      ? [`${npc.name} cannot be mind-tricked: no roll is made (immune)`]
+      : [`contest: ${npc.name}'s ${r.resistKind === 'willpower' ? 'Willpower roll' : 'mind'}${r.resist ? ` d20 ${r.resist.d20} = ${r.resist.total.toFixed(1)}` : ''}${target.forceResistance > 0 ? ' (a Force user: half their Force resistance added)' : ''}`, `the mind trick ${FORCE_OUTCOME_TEXT[r.outcome]}`],
   };
   return { card, rng };
 }

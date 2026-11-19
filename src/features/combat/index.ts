@@ -127,7 +127,7 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
     stakes: spec.stakes,
     sparring,
     terrainTags: spec.terrainTags,
-    ctx: { ...ctx, situations: [...ctx.situations], hazards: ctx.hazards ?? [], positionAttempt: ctx.positionAttempt ?? 0, hazardEvery: ctx.hazardEvery ?? null },
+    ctx: { ...ctx, situations: [...ctx.situations], hazards: ctx.hazards ?? [], positionAttempt: ctx.positionAttempt ?? 0, hazardEvery: ctx.hazardEvery ?? null, cover: ctx.cover ?? false, forceNegated: ctx.forceNegated ?? false },
     duel,
     patternUses: {},
     objects,
@@ -211,7 +211,9 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   let rng: RngState | undefined;
   let playerFate: FateKind | null = null;
   const playerDown = outcome === 'lost' && (duel.a.out || isIncapacitated(duel.a.wounds as Wound[]) || isDying(duel.a.wounds as Wound[]) || cannotDuel(duel.a) !== null);
-  if (playerDown && reason !== 'surrendered') {
+  // A surrender puts the player at the opponent's mercy too (D-216; pass 2: nothing was decided): the same fate roll.
+  const surrendered = reason === 'surrendered';
+  if (playerDown || surrendered) {
     const rule = FATE_BY_STAKES[active.stakes];
     if (rule !== 'roll') playerFate = rule;
     else {
@@ -222,6 +224,8 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
       rng = r;
       if (active.stakes === 'lethal') playerFate = u < table.lethal[0] ? 'killingStrike' : u < table.lethal[0] + table.lethal[1] ? 'captured' : 'left';
       else playerFate = u < table.serious[0] ? 'captured' : 'left';
+      // A surrender is accepted as a capture, never answered with a killing strike (overnight design default, D-216).
+      if (surrendered && playerFate === 'killingStrike') playerFate = 'captured';
     }
     // A killing strike is a mortal wound, so the dying timer leaves room for a rescue (D-154).
     if (playerFate === 'killingStrike' && !isDying(duel.a.wounds as Wound[])) {

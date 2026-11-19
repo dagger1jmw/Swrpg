@@ -29,6 +29,9 @@ const signed = (n: number): string => `${Math.round(n * 10) / 10 > 0 ? '+' : ''}
 /** A Force ability's name for the player (issue 21: no raw ids such as forcePush). */
 export const abilityName = (id: string): string => SKILL_BY_ID.get(id)?.name ?? id;
 
+/** A weapon in a word or two for the panel (D-216). */
+export const WEAPON_SHORT: Readonly<Record<string, string>> = { unarmed: 'unarmed', melee: 'melee weapon', blasterPistol: 'blaster pistol', blasterRifle: 'blaster rifle', heavy: 'heavy blaster', slugPistol: 'slugthrower pistol', slugRifle: 'slugthrower rifle', scatterGun: 'scatter gun', lightsaber: 'lightsaber', trainingSaber: 'training saber' };
+
 /** How a fight ended, in words (issue 21: "won (allOut)", "lost (sparring session (stopped))"). */
 const END_REASON: Readonly<Record<string, string>> = { allOut: 'every opponent is down', incapacitated: 'a fighter is down', dying: 'a fighter is dying', dead: 'a fighter is dead', spent: 'a fighter is spent', point: 'on a point', stopped: 'stopped', exhausted: 'a fighter collapsed from exhaustion', opponentsDefeated: 'your opponents defeated', stalemate: 'an exhausted stalemate, both sides spent' };
 export function endText(outcome: string, reason: string): string {
@@ -176,7 +179,8 @@ function forceMeterRow(f: number, cap: number): HTMLElement {
     el('span', { class: 'fname', text: 'Force' }),
     el('span', { class: 'vbar', attrs: { role: 'meter', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(v.pct), 'aria-label': 'Force meter' } }, [el('span', { class: 'vfill', attrs: { style: `width:${Math.min(100, v.pct)}%` } })]),
     el('span', { class: 'fnum', text: `${v.pct}%` }),
-    v.over ? el('span', { class: 'fstatus over-text', text: v.text }) : el('span', { class: 'fstatus', text: '' }),
+    // One short line on the meter's row (D-216: the long text pushed the stance row out of a wide panel).
+    v.over ? el('span', { class: 'fstatus over-text', text: `over limit: ${Math.round(v.risk * 100)}%/use`, attrs: { title: v.text } }) : el('span', { class: 'fstatus', text: '' }),
   ]);
 }
 
@@ -296,7 +300,8 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
   const sess = active.session && !active.session.ended ? active.session : null;
   // A session not being played out resolves the rest at once from any passive action: one button for it.
   const montage = sess !== null && !sess.playing;
-  const status = (o: (typeof d.opponents)[number]): string => (o.out ? 'out' : o.engagedElsewhere ? 'fighting an ally' : o.minion ? 'minion' : 'fighting');
+  // The opponent's weapon is shown with the status (D-216; pass 2: one Mandalorian's slugthrower showed nowhere).
+  const status = (o: (typeof d.opponents)[number]): string => `${o.out ? 'out' : o.engagedElsewhere ? 'fighting an ally' : o.minion ? 'minion' : 'fighting'} · ${WEAPON_SHORT[o.weapon] ?? o.weapon}`;
   const others = d.opponents.filter((o) => o.id !== facing?.id);
   const act = (label: string, action: Record<string, unknown>, cls = 'small act', title?: string): HTMLElement =>
     el('button', { class: cls, text: label, attrs: { ...(title ? { title } : {}), ...(p.busy ? { disabled: 'true' } : {}) }, on: { click: () => p.act({ kind: 'beat', label, action: action as never }) } });
@@ -347,6 +352,10 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
             ...forceActs.filter(([, kind]) => kind !== 'throw' || throwable.length).map(([label, kind]) => {
               // A mind trick on a droid, a lore-immune species or a Force-invisible foe: greyed out, no exchange (D-194).
               if (kind === 'mindTrick' && facing && mindImmune(facing)) return el('button', { class: 'small act', text: `${label} (immune)`, attrs: { disabled: 'true', title: `${facing.name} cannot be mind-tricked` } });
+              // Where the Force cannot work (D-216): nothing in a Force-null bubble; nothing that touches a foe outside the
+              // Force directly (a thrown object or saber still hits; D-192).
+              if (active.ctx.forceNegated) return el('button', { class: 'small act', text: `${label} (no Force here)`, attrs: { disabled: 'true', title: 'A Force-null bubble: the Force cannot be used here' } });
+              if (facing?.forceTraits?.includes('forceInvisible') && (kind === 'push' || kind === 'choke' || kind === 'lightning')) return el('button', { class: 'small act', text: `${label} (immune)`, attrs: { disabled: 'true', title: `${facing.name} cannot be touched through the Force; a thrown object can` } });
               const risk = forceRisk.over ? ` (${Math.round(forceRisk.risk * 100)}% collapse)` : '';
               return act(`${label}${risk}`, { action: 'force', force: { kind, ...(kind === 'throw' ? { objectTag: throwable[0]![0] } : {}) } }, `small act${forceRisk.over ? ' risky' : ''}`, forceRisk.over ? forceRisk.text : undefined);
             }),
@@ -391,7 +400,7 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
         beatNow ? el('span', { class: 'hint', text: beatTag === 'quiet' ? '(no AI call)' : '(AI call)' }) : null,
         // Bout result while the session goes on (D-181).
         lastBout ? el('span', { class: `bout-result${active.beat === 'boutEnded' ? ' fresh' : ''}`, text: `Bout ${active.session!.bouts.length}: ${BOUT_RESULT[lastBout.winner ?? ''] ?? 'unfinished'}${lastBout.reason ? ` (${lastBout.reason})` : ''}${active.beat === 'boutEnded' ? `; bout ${active.session!.bouts.length + 1} next` : ''}` }) : null,
-        others.length ? el('span', { class: 'hint', text: `+${others.length} more (${others.filter((o) => !o.out).length} fighting)` }) : null,
+        others.length ? el('span', { class: 'hint', text: `+${others.length} more: ${others.filter((o) => !o.out).length} still fighting${others.some((o) => o.out) ? `, ${others.filter((o) => o.out).length} down` : ''}` }) : null,
       ]),
       // The opponent holds the strike (D-199): a typed sequence may be cut short by it.
       initiativeWarning(d.advantage) ? el('div', { class: 'warn-line initiative', text: initiativeWarning(d.advantage)! }) : null,

@@ -358,6 +358,12 @@ label.check { display: flex; gap: var(--pad-s); align-items: center; margin: var
 .modal .card.present { border-color: var(--accent); }
 .card-title { display: flex; justify-content: space-between; align-items: baseline; gap: var(--pad-s); margin-bottom: 4px; }
 .warn-line { color: var(--warn); font-size: var(--fs-s); margin: 2px 0; }
+.force-meter .over-text { white-space: nowrap; }
+/* iPad portrait and narrower (D-216): the turn count gives its room to the date and the place. */
+@media (max-width: 900px) {
+  .tb-turn { display: none; }
+  select.tb-model { width: 160px; }
+}
 .day-line { font-family: var(--font-mono); font-size: var(--fs-xs); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .day-line.muted { color: var(--muted); }
 .day-event { font-size: var(--fs-xs); color: var(--accent); padding-left: 1.5em; }

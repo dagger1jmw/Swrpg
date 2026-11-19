@@ -49,7 +49,7 @@ export interface CombatFacts {
 const THROWN_TEXT: Readonly<Record<string, string>> = { fallenTimber: 'a fallen log', looseRock: 'a loose rock', debris: 'a chunk of debris', machinery: 'a piece of machinery', iceChunks: 'a chunk of ice', crates: 'a crate' };
 
 const fmt = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(1));
-const WEAPON_TEXT: Readonly<Record<string, string>> = { unarmed: 'unarmed (no weapon)', melee: 'a melee weapon', blasterPistol: 'a blaster pistol', blasterRifle: 'a blaster rifle', heavy: 'a heavy blaster', slugPistol: 'a slugthrower pistol (solid slugs, not bolts)', slugRifle: 'a slugthrower rifle (rapid solid slugs, not bolts)', scatterGun: 'a scatter gun (a spread of solid shot, not bolts)', lightsaber: 'a lightsaber', trainingSaber: 'a training saber' };
+const WEAPON_TEXT: Readonly<Record<string, string>> = { unarmed: 'unarmed (no weapon)', melee: 'a melee weapon (a physical blade, staff or claws: it cuts, bruises or pierces, it does not burn)', blasterPistol: 'a blaster pistol', blasterRifle: 'a blaster rifle', heavy: 'a heavy blaster', slugPistol: 'a slugthrower pistol (solid slugs, not bolts)', slugRifle: 'a slugthrower rifle (rapid solid slugs, not bolts)', scatterGun: 'a scatter gun (a spread of solid shot, not bolts)', lightsaber: 'a lightsaber', trainingSaber: 'a training saber' };
 export const weaponText = (w: string): string => WEAPON_TEXT[w] ?? w;
 
 /**
@@ -130,7 +130,10 @@ export function combatFacts(c: CombatDraft): CombatFacts {
       const others = c.fighters.filter((x) => x.id !== 'pc' && x.id !== (f.side === 'A' ? r.targetId : 'pc') && !x.out).length;
       const onlyOne = f.side === 'A' && others > 0 && ['push', 'choke', 'mindTrick', 'throw', 'lightning'].includes(f.kind) ? ` Only ${on} is affected; the others are not.` : '';
       if (f.success) {
-        if (f.damage) {
+        if (f.damage && f.damage.D <= 0) {
+          // No damage (lightning scales with Force Output; D-216): the target is struck but unharmed.
+          lines.push(`${head} ${user} ${what}: DONE. NO HIT that harms: ${on} is struck but unharmed (no damage, no Vitality lost).${onlyOne}`);
+        } else if (f.damage) {
           hits.push({ n: r.n, byPlayer: f.side === 'A', targetId: f.side === 'A' ? r.targetId : 'pc', targetName: on, part: f.damage.part, severity: f.damage.severity, severed: false });
           lines.push(`${head} ${user} ${what}: DONE. HIT (${on}, ${partText(f.damage.part)}, ${f.damage.severity ? `${f.damage.severity} wound` : 'no wound, stamina only'}).${onlyOne}`);
         } else if (f.kind === 'saberThrow') lines.push(`${head} ${user} ${what}: DONE (the control holds; its strikes are the next lines; the saber returns to hand).`);

@@ -14,7 +14,7 @@ import type { CombatDraft } from './combatTurn';
 import { careApplied } from './context';
 import type { TurnDraft } from './resolve';
 
-export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms';
+export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms' | 'gearNotInBlock';
 export interface NarrationIssue {
   kind: NarrationIssueKind;
   /** The correction for the retry, and the log line. */
@@ -103,6 +103,9 @@ export function mechanicalTerm(sentence: string): string | null {
   }
   return null;
 }
+/** "two quick cuts", "three swift strikes" (rule 12). */
+const COUNTED_STRIKES = /\b(two|three|four|five|both)\s+(?:[a-z-]+,?\s+){0,2}?(cuts|strikes|blows|slashes|thrusts|swings|attacks|lunges)\b/i;
+const NUMBER_WORDS: Readonly<Record<string, number>> = { two: 2, both: 2, three: 3, four: 4, five: 5 };
 /** Natural words for a severity label in the fallback (rule 10): the severity is kept, the label is not. */
 const SEVERITY_PROSE: Readonly<Record<string, string>> = { minor: 'light', moderate: 'deep', severe: 'grievous', critical: 'terrible', mortal: 'deadly' };
 
@@ -116,6 +119,10 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
   const minionNouns = [...new Set(minions.flatMap((m) => m.name.toLowerCase().replace(/\s+\d+$/, '').split(/\s+/).slice(-1)))];
   const minionNounRe = minionNouns.length ? new RegExp(`\\b(${[...minionNouns, 'chassis', 'automaton', 'machine'].join('|')})s?\\b`, 'i') : null;
   const hazard = c.notes.some((n) => n.startsWith('terrain: '));
+  const pcView = c.fighters.find((f) => f.id === 'pc');
+  const pcUnarmored = pcView?.armor !== undefined && pcView.armor === 'none';
+  const strikesMade = facts.steps.filter((st) => /^strike/.test(st.label) && st.status !== 'NOT REACHED').length;
+  const strikesNotReached = facts.steps.some((st) => /^strike/.test(st.label) && st.status === 'NOT REACHED');
   const pushLanded = c.narrate.some((r) => (r.force?.success && (r.force.kind === 'push' || r.force.kind === 'throw')) || r.maneuver?.kind === 'knockdown');
   const add = (kind: NarrationIssueKind, text: string, sentence: string): void => {
     if (!out.some((x) => x.kind === kind && x.sentence === sentence)) out.push({ kind, text, sentence });
@@ -158,6 +165,13 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
         add('slipNoHazard', 'the block lists no terrain accident: nobody slips, stumbles, loses footing or grip, missteps or overextends; explain each miss only with the reason the block gives', s);
         break;
       }
+    }
+    // 11. The player's armor when the block gives them none (D-216).
+    if (pcUnarmored && /\byour (armor|armour|beskar|plating|breastplate|chest plate|vest)\b/i.test(s) && !NEGATED.test(s)) add('gearNotInBlock', 'the player character wears no armor in this fight: describe none', s);
+    // 12. More strikes told than the player made (D-216): "two swift cuts ... parries each blow" when the second strike step was NOT REACHED.
+    if (strikesNotReached) {
+      const m = COUNTED_STRIKES.exec(s);
+      if (m && (NUMBER_WORDS[m[1]!.toLowerCase()] ?? 0) > strikesMade && !NOT_DONE.test(s)) add('stepNotReached', `the player character made ${strikesMade} strike${strikesMade === 1 ? '' : 's'} here and the rest were NOT REACHED: describe ${strikesMade === 1 ? 'one' : strikesMade}, not ${m[1]}`, s);
     }
     // 10. Engine and outcome-list terms in the prose (D-205 R5, enforced D-211).
     const term = mechanicalTerm(s);

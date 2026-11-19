@@ -1,15 +1,17 @@
 // Combat in the turn (architecture §4 step b; D-145, D-146): the combat action a turn resolves, and the draft the
 // narration and the UI read. Pure.
-import { QUIET_LINES, fillLine, type LineSide } from '../data/combatLines';
+import { QUIET_LINES, QUIET_LINES_RANGED, fillLine, type LineSide } from '../data/combatLines';
+import { RANGED_WEAPONS } from '../data/weapons';
+import type { WeaponKind } from '../data/health.config';
 import { isNarratedBeat, type BeatReason } from '../data/combat.config';
 import type { Intent } from '../ai/schemas/intent';
 import type { ForceActionKind } from '../engine/combatForce';
-import type { DuelState, ExchangeRecord } from '../engine/duel';
+import { partText, type DuelState, type ExchangeRecord } from '../engine/duel';
 import { isDying, isIncapacitated, statusLabel, type Wound } from '../engine/wounds';
 import type { ActiveFight, FightSummary } from '../features/combat/selectors';
 import type { GameState } from '../state/gameState';
 import type { CombatActionInput } from './record';
-import { COMBAT_WORD_GROUPS, FORCE_CLAUSE_WORDS, FORCE_GESTURE, FORM_WORDS, STRIKE_WORDS } from '../data/combatWords';
+import { COMBAT_WORD_GROUPS, FORCE_CLAUSE_WORDS, FORCE_GESTURE, FORM_WORDS, OBJECT_WORDS, SPEECH_WORDS, STRIKE_WORDS } from '../data/combatWords';
 
 /**
  * Natural combat words (D-179): the typed text (or a choice's label) read against the configured word groups and form
@@ -66,6 +68,19 @@ export function isStrikeClause(clause: string): boolean {
   return STRIKE_WORDS.some((w) => has(c, w) && !NOUN_BEFORE.some((n) => has(c, `${n} ${w}`)));
 }
 
+/** True when the typed text is the player talking (quoted speech or a speech verb), D-216. */
+export function saysSpeech(text: string): boolean {
+  if (/["\u201c\u201d]/.test(text)) return true;
+  const t = ` ${text.toLowerCase().replace(/[^a-z0-9' -]+/g, ' ').replace(/\s+/g, ' ')} `;
+  return SPEECH_WORDS.some((w) => t.includes(` ${w} `));
+}
+
+/** The terrain tag of an object a clause names ("a heavy rock" -> looseRock), or null (D-216). */
+export function objectIn(clause: string): string | null {
+  for (const [tag, words] of Object.entries(OBJECT_WORDS)) if (words.some((w) => has(clause, w))) return tag;
+  return null;
+}
+
 /** The Force step action a clause names, or null. */
 export function forceActionIn(raw: string): string | null {
   const clause = withoutGestures(raw);
@@ -81,12 +96,19 @@ export function forceActionIn(raw: string): string | null {
  * steps unchanged when nothing is missing; at most `max` steps.
  */
 export function reconcileSteps(text: string, steps: readonly StepLike[], max: number): StepLike[] {
-  const clauses = clausesOf(text).map((c) => ({ force: forceActionIn(c), strike: isStrikeClause(c) }));
+  const raw = clausesOf(text).map((c) => ({ force: forceActionIn(c), strike: isStrikeClause(c), object: objectIn(c) }));
+  // "lift a heavy rock with the Force and hurl it": the object is named in the clause before the throw (D-216).
+  const clauses = raw.map((c, k) => (c.force === 'throw' && !c.object && k > 0 && !raw[k - 1]!.force ? { ...c, object: raw[k - 1]!.object } : c));
   const wantStrikes = clauses.filter((c) => c.strike && !c.force).length;
   const haveStrikes = steps.filter((x) => x.kind === 'strike').length;
   const wantForce = clauses.filter((c) => c.force).length;
   const haveForce = steps.filter((x) => x.kind === 'forceAction').length;
-  if (wantStrikes <= haveStrikes && wantForce <= haveForce) return [...steps];
+  // The objects named for throws reach steps the intent made without one (D-216).
+  const objects = clauses.filter((c) => c.force === 'throw' && c.object).map((c) => c.object!);
+  if (wantStrikes <= haveStrikes && wantForce <= haveForce) {
+    let k = 0;
+    return steps.map((x) => (x.kind === 'forceAction' && x.action === 'throw' && !x['objectTag'] && objects[k] ? { ...x, objectTag: objects[k++] } : x));
+  }
   const out: StepLike[] = [];
   const queue = [...steps];
   const takeUntil = (pred: (x: StepLike) => boolean): StepLike | null => {
@@ -102,7 +124,9 @@ export function reconcileSteps(text: string, steps: readonly StepLike[], max: nu
   for (const c of clauses) {
     if (c.force) {
       const f = takeUntil((x) => x.kind === 'forceAction');
-      out.push(f ?? { kind: 'forceAction', action: c.force });
+      const named = c.force === 'throw' ? c.object : null;
+      // A throw keeps the object the player named (D-216), unless the intent named one.
+      out.push(f ? (named && f.action === 'throw' && !f['objectTag'] ? { ...f, objectTag: named } : f) : { kind: 'forceAction', action: c.force, ...(named ? { objectTag: named } : {}) });
     } else if (c.strike) {
       const st = takeUntil((x) => x.kind === 'strike');
       out.push(st ?? { kind: 'strike' });
@@ -189,6 +213,9 @@ export interface CombatFighterView {
   woundParts?: string[];
   /** The lightsaber's blade colour while it is in hand (D-205), else null. */
   bladeColor?: string | null;
+  /** Body armor (D-216): none, light, medium or heavy, and whether it turns a lightsaber (beskar). Absent on older drafts. */
+  armor?: string;
+  saberResistant?: boolean;
 }
 
 export interface CombatDraft {
@@ -246,6 +273,8 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   lostParts: (f.wounds as Wound[]).filter((w) => w.severed).map((w) => w.part),
   woundParts: (f.wounds as Wound[]).map((w) => w.part),
   bladeColor: f.weapon === 'lightsaber' ? (f.bladeColor ?? null) : null,
+  armor: f.armor,
+  saberResistant: f.saberResistant,
 });
 
 function noEffectLine(notes: readonly string[]): string {
@@ -255,9 +284,12 @@ function noEffectLine(notes: readonly string[]): string {
 
 function quietLineFor(beat: string | null, duel: DuelState, records: readonly ExchangeRecord[]): string | null {
   if (!beat) return null;
-  const lines = QUIET_LINES[beat as BeatReason];
-  if (!lines) return null;
   const last = records[records.length - 1];
+  const opp0 = duel.opponents.find((o) => o.id === last?.targetId) ?? duel.opponents[0];
+  // A shooter on either side: the ranged lines (D-216), so a blaster is never "blade on blade".
+  const ranged = [opp0?.weapon, duel.a.weapon].some((w) => w !== undefined && RANGED_WEAPONS.includes(w as WeaponKind));
+  const lines = (ranged ? QUIET_LINES_RANGED[beat as BeatReason] : undefined) ?? QUIET_LINES[beat as BeatReason];
+  if (!lines) return null;
   const side: LineSide = last?.hit ? (last.hit.by === 'A' ? 'up' : 'down') : last?.striker ? (last.striker === 'A' ? 'up' : 'down') : duel.advantage > 0 ? 'up' : duel.advantage < 0 ? 'down' : 'even';
   const options = lines[side].length ? lines[side] : lines.even;
   const opp = duel.opponents.find((o) => o.id === last?.targetId) ?? duel.opponents[0];
@@ -281,7 +313,7 @@ export function combatDraft(before: GameState, after: GameState, started: boolea
   // A sparring session resolved in code is narrated once from its highlights: hits, points and maneuvers (D-168).
   const all = narrateFrom < 0 ? [] : duel.log.slice(narrateFrom);
   const narrate = sess && endedNow ? all.filter((r) => r.hit !== null || r.maneuver !== null) : all;
-  const injuries = sess ? duel.log.filter((r) => r.hit?.severity && r.n > fromNarrated).map((r) => `${r.hit!.severity} wound to the ${r.hit!.part}`) : [];
+  const injuries = sess ? duel.log.filter((r) => r.hit?.severity && r.n > fromNarrated).map((r) => `${r.hit!.severity} wound to the ${partText(r.hit!.part)}`) : [];
   const beat = active?.beat ?? (endedNow ? 'fightEnded' : null);
   const narrated = endedNow || started || (beat !== null && isNarratedBeat(beat as BeatReason));
   return {

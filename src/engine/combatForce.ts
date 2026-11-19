@@ -1,6 +1,7 @@
 // Combat integration and Force actions in a duel (progression-numbers §8, rolls §4, health §2; D-122, D-154), and what
 // resists the Force (D-192): one pure contest for every Force use on a target, in combat and out of it. The Force load
 // goes through forceMeter.ts. Saber throw and recall (D-193). Pure.
+import { SKILL_BY_ID } from '../data/skills';
 import { CIRCUMSTANCE, EXCHANGE_SECONDS, EXERTION_PER_EXCHANGE, STRIKE_AT } from '../data/combat.config';
 import { NIMAN_CI_FACTOR } from '../data/formMatchups';
 import { FORCE_BASE_LOAD, LIGHTNING_PER_OUTPUT, FORCE_EFFORT, LOCATION_WEIGHTS, type ForceEffort } from '../data/health.config';
@@ -512,7 +513,7 @@ function forceActionOnly(s0: DuelState, input: ForceActionInput, day: number, ct
     effA: input.side === 'A' ? effUser : effTarget,
     effB: input.side === 'A' ? effTarget : effUser,
     seconds: secs,
-    notes: [`${name}: ${input.kind === 'saberThrow' ? 'saber throw' : input.kind === 'recall' ? 'saber recall' : abilityId} ${forceReason(record)}${contest.dc !== null ? ` (difficulty DC ${contest.dc})` : ''}${stoodDown ? `; ${target.name} stands down` : ''}`],
+    notes: [`${name}: ${input.kind === 'saberThrow' ? 'saber throw' : input.kind === 'recall' ? 'saber recall' : (SKILL_BY_ID.get(abilityId)?.name ?? abilityId)} ${forceReason(record)}${contest.dc !== null ? ` (difficulty DC ${contest.dc})` : ''}${stoodDown ? `; ${target.name} stands down` : ''}`],
     surprise: false,
     force: record,
   };

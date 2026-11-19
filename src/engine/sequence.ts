@@ -269,7 +269,7 @@ function forceSuccessText(r: ForceActionRecord, target: string): string {
   }
   if (r.kind === 'recall') return 'the saber flies back to hand';
   if (r.kind === 'mindTrick') return r.stoodDown ? `${target} stands down and leaves the fight` : `${target} hesitates: an opening`;
-  if (r.damage) return r.damage.severity ? `hits ${target}: ${r.damage.severity} wound to the ${partText(r.damage.part)}` : `hits ${target}: no wound, stamina only`;
+  if (r.damage) return r.damage.D <= 0 ? `${target} is struck but unharmed (no damage)` : r.damage.severity ? `hits ${target}: ${r.damage.severity} wound to the ${partText(r.damage.part)}` : `hits ${target}: no wound, stamina only`;
   return `${target} is thrown off balance: an opening, no injury`;
 }
 

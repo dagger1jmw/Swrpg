@@ -41,6 +41,16 @@ export const FORCE_GESTURE = new RegExp(
   'g',
 );
 
+/** Object words in a throw clause -> the terrain tag thrown (D-216; pass 2: "a heavy rock" became "a fallen log"). */
+export const OBJECT_WORDS: Readonly<Record<string, readonly string[]>> = {
+  looseRock: ['rock', 'rocks', 'stone', 'stones', 'boulder', 'boulders', 'slab'],
+  fallenTimber: ['log', 'logs', 'branch', 'branches', 'timber', 'tree', 'trunk'],
+  debris: ['debris', 'rubble', 'masonry', 'chunk of masonry', 'pillar'],
+  iceChunks: ['ice', 'chunk of ice', 'ice chunk', 'icicle', 'icicles'],
+  crates: ['crate', 'crates', 'container', 'containers', 'barrel', 'barrels'],
+  machinery: ['machinery', 'machine', 'console', 'generator', 'engine'],
+};
+
 /** Words that name a Force action in a clause (so an attack verb in it is not a separate strike), by step action. */
 export const FORCE_CLAUSE_WORDS: Readonly<Record<string, readonly string[]>> = {
   saberThrow: ['saber throw', 'throw my saber', 'throw my lightsaber', 'throw the saber', 'throw the lightsaber', 'hurl my saber', 'hurl my lightsaber', 'saber toss', 'toss my saber'],
@@ -82,6 +92,11 @@ export const FORM_WORDS: Readonly<Record<string, string>> = {
 
 /** Words that end a sparring session like the Stop sparring button (Jared, D-199); "solah" is the Legends call to yield a bout. */
 export const STOP_SPAR_WORDS: readonly string[] = ['end the sparring session', 'end the session', 'end the spar', 'end the bout', 'end the match', 'stop sparring', 'stop the spar', 'stop the session', 'stop the bout', "that's enough", 'that is enough', 'enough for today', 'enough for now', 'i yield', 'yield', 'solah', 'call it a day', 'we are done', "we're done", 'i am done', "i'm done"];
+
+/** Words that mark talking in a fight (D-216): quoted speech, or a speech verb. */
+export const SPEECH_WORDS: readonly string[] = ['say', 'says', 'said', 'call out', 'calls out', 'shout', 'shouts', 'tell', 'tells', 'demand', 'demands', 'offer', 'offers', 'plead', 'pleads', 'order', 'orders', 'yell', 'yells', 'announce', 'announces', 'ask', 'asks', 'negotiate', 'parley', 'talk', 'talks', 'warn', 'warns'];
+/** The quiet line when the player only talks in a fight (D-216; pass 2 issue 25): what ends a fight, and what fights on. */
+export const SPEECH_LINE = 'Words alone do not stop a fight. To end it: Disengage or Surrender, or accept a truce if the other side offers one. To fight on: a stance, a feint, a strike, a move.';
 
 /** Words that mean "go on as before" (Continue; in a sparring session, play the bout out). */
 export const CONTINUE_WORDS: readonly string[] = ['continue', 'keep fighting', 'fight on', 'keep going', 'carry on', 'go on'];

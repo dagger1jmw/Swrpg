@@ -1,6 +1,7 @@
 // Health feature (health.md; architecture §2). M3 built the meters; M5 adds Vitality, wounds, lasting injuries,
 // dying, death, care and healing over time. Only this feature changes them, through engine events from combat
 // resolution, hazards, healing and the clock. The AI never sets a value. Status is derived on every read.
+import { partText } from '../../engine/duel';
 import { z } from 'zod';
 import { FALL_LOCATION_WEIGHTS, HAZARD_TYPES, LOCATION_WEIGHTS, VITALITY_RECOVERY, type BodyPart } from '../../data/health.config';
 import { stubProsthetic } from '../../data/stubs';
@@ -46,7 +47,7 @@ function addWounds(slice: HealthSlice, s: GameState, wounds: readonly Wound[], c
       notes.push(`${w.part} severed: a lasting injury (${r.lasting.aid})`);
     }
     next = { ...next, wounds: [...next.wounds, w], lasting, woundSeq: next.woundSeq + 1 };
-    notes.push(`${w.severity} wound to the ${w.part} (${cause})`);
+    notes.push(`${w.severity} wound to the ${partText(w.part)} (${cause})`);
     if (dies && !next.death) {
       next = { ...next, death: { atAbs: absNow(s), cause: `a second mortal wound while dying (${cause})` }, dying: null };
       emit.push({ type: 'characterDiedNotice', cause });
@@ -282,11 +283,11 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
         if (u < chance) {
           lasting.push({ id: `pc:l${seq}`, kind: lastingKindFor(w), part: w.part, adaptation: 0, aid: 'scarTissue', adaptedToday: 0, adaptDay: -1, day });
           seq += 1;
-          notices.push(`A ${w.severity} wound to the ${w.part} has healed, but left a lasting injury.`);
+          notices.push(`A ${w.severity} wound to the ${partText(w.part)} has healed, but left a lasting injury.`);
           continue;
         }
       }
-      notices.push(`A ${w.severity} wound to the ${w.part} has healed.`);
+      notices.push(`A ${w.severity} wound to the ${partText(w.part)} has healed.`);
     }
     next = { ...next, wounds: kept, lasting, woundSeq: seq };
     return { slice: next, ...(notices.length ? { notices } : {}), ...(emit.length ? { emit } : {}), ...(rolled ? { rng } : {}) };

@@ -25,6 +25,7 @@ import { applyEvents, type AppliedEvent, type RejectedEvent } from '../state/app
 import type { GameState } from '../state/gameState';
 import type { EventSource, Registry } from '../state/types';
 import { combatDraft } from './combatTurn';
+import { PART_TEXT } from '../engine/duel';
 import type { Session } from './pipeline';
 import type { TurnRecord } from './record';
 import { resolveTurn, type TurnDraft } from './resolve';
@@ -71,6 +72,13 @@ export const DEV_PLACE_NAMES: Readonly<Record<string, string>> = {
 };
 /** A fight with no place word in a scene with no place, or a leftover dev place, is set here (D-215). */
 export const DEV_DEFAULT_PLACE = 'an abandoned hangar on Nar Shaddaa';
+/**
+ * The years a Sith Empire exists (D-216; pass 2 had "sithEmpire" duelists in 22 BBY and 25 ABY): the Great Hyperspace
+ * War's empire, Revan's, the Sith Empire of the Great Galactic War and the Cold War, and Krayt's empire of the Legacy era.
+ * Outside them a dev Sith duelist is of the Sith, not the Empire.
+ */
+export const SITH_EMPIRE_YEARS: readonly (readonly [number, number])[] = [[-5000, -4989], [-3959, -3955], [-3681, -3627], [130, 140]];
+export const sithFactionAt = (year: number): 'sithEmpire' | 'sith' => (SITH_EMPIRE_YEARS.some(([a, b]) => year >= a && year < b) ? 'sithEmpire' : 'sith');
 const isDevPlace = (name: string | undefined): boolean => !name || /dev sandbox|testing|simulation|sandbox/i.test(name);
 /**
  * Place words for /fight terrain (design default, D-180): each stands for the terrain tags such a place has, with
@@ -295,7 +303,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
           let k = 1;
           while (Object.values(state.npcs.byId).some((x) => x.name === `${base} ${k}`)) k++;
           const name = `${base} ${k}`;
-          apply([{ type: 'npcIntroduced', name, species: 'human', faction: ally ? 'jediOrder' : 'sithEmpire', role: ally ? 'jediKnight' : 'sithLord', ageApprox: 35, description: stakes === 'spar' ? 'a sparring partner' : 'an armed duelist who means to fight' }], 'dev');
+          apply([{ type: 'npcIntroduced', name, species: 'human', faction: ally ? 'jediOrder' : sithFactionAt(dateFromAbsDay(selectNow(state).day).year), role: ally ? 'jediKnight' : 'sithLord', ageApprox: 35, description: stakes === 'spar' ? 'a sparring partner' : 'an armed duelist who means to fight' }], 'dev');
           const id = Object.values(state.npcs.byId).find((x) => x.name === name)?.id;
           if (!id) return fail(refused() ?? 'could not introduce the duelist');
           apply([{ type: 'devNpcLevelsSet', npcRef: id, level }], 'dev');
@@ -345,7 +353,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       if (!part) return fail(`unknown location (${BODY_PARTS.join(', ')})`);
       apply([{ type: 'healthSynced', vitalityLost: state.health.vitalityLost, addWounds: [{ id: 'dev', part, severity: sev, W: SEVERITY_W[sev], stabilized: false, healProgress: 0, day: selectNow(state).day, source: 'dev command' }], cause: 'dev command' }], 'engine');
       if (refused()) return fail(refused()!);
-      return out(true, `${sev} wound to the ${part}`);
+      return out(true, `${sev} wound to the ${PART_TEXT[part] ?? part}`);
     }
 
     case 'heal': {
@@ -462,7 +470,9 @@ export async function commitDevCommand(
   if (!selectIsTestCharacter(session.state)) return { session, record: null, ok: false, line: o.line };
   const prev = session.history[session.history.length - 1];
   const state: GameState = { ...o.state, meta: { ...o.state.meta, turn: o.state.meta.turn + 1 } };
-  const keep: Choice[] = prev?.choices ? [...prev.choices] : [];
+  // Choices offered before a time jump or a new fight no longer fit (D-216; pass 2: capture choices 35 days later).
+  const moved = o.draft.jump || o.draft.timeAdvanced || o.draft.combat;
+  const keep: Choice[] = prev?.choices && !moved ? [...prev.choices] : [];
   const record: TurnRecord = {
     turn: state.meta.turn,
     input: { kind: 'dev', text: text.trim() },

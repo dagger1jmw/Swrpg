@@ -48,6 +48,9 @@ export const activeFightSchema = z.object({
     positionAttempt: z.number().default(0),
     /** A real fight rolls the terrain every this many exchanges (D-185); null for a sparring bout and older saves. */
     hazardEvery: z.number().int().min(1).nullable().default(null),
+    /** Cover for ranged fighters and a Force-null bubble (D-192). Kept in the schema (D-216): a reload stripped them. */
+    cover: z.boolean().default(false),
+    forceNegated: z.boolean().default(false),
   }),
   duel: z.any(),
   /** Sequence state: pattern uses and the remaining throwable objects (D-146). */

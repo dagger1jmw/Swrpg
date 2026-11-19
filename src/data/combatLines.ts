@@ -36,8 +36,8 @@ export const QUIET_LINES: Readonly<Partial<Record<BeatReason, Readonly<Record<Li
     even: ['{pc} and {opp} circle. What do you do: a stance, a feint, a strike, a move?'],
   },
   minionHit: {
-    up: ["{pc}'s blade catches {opp}, but it keeps fighting.", '{opp} staggers from the hit and stays in the fight.'],
-    down: ["{pc}'s blade catches {opp}, but it keeps fighting."],
+    up: ["{pc}'s blade catches {opp}, who keeps fighting.", '{opp} staggers from the hit and stays in the fight.'],
+    down: ["{pc}'s blade catches {opp}, who keeps fighting."],
     even: ['{opp} is hit but stays up.'],
   },
   minionDown: {
@@ -48,6 +48,43 @@ export const QUIET_LINES: Readonly<Partial<Record<BeatReason, Readonly<Record<Li
   strikeAbsorbed: {
     up: ["{pc}'s blow lands, but {opp} rides it out and stays in the fight.", '{pc} scores a glancing hit; {opp} shrugs it off.'],
     down: ["{opp}'s blow lands; {pc} staggers but keeps the guard up.", '{opp} scores a glancing hit on {pc}.'],
+    even: ['A glancing hit, nothing more.'],
+  },
+};
+
+/**
+ * Quiet lines when the opponent (or the player) fights with a ranged weapon (D-216; combat pass 2 issue 24): no blade on
+ * blade, no blows from a shooter. Beats not listed here fall back to QUIET_LINES.
+ */
+export const QUIET_LINES_RANGED: Readonly<Partial<Record<BeatReason, Readonly<Record<LineSide, readonly string[]>>>>> = {
+  trackSwing: {
+    up: ['{pc} closes the distance; {opp} gives ground.', '{pc} turns the fire aside and pushes forward.', '{pc} takes the initiative under fire.'],
+    down: ['{opp} pins {pc} down with fire.', '{opp} keeps up the fire; {pc} gives ground.', '{pc} is driven back as {opp} takes the initiative.'],
+    even: ['Shots and deflections; neither side gives an inch.', 'They trade fire and footing, measuring each other.'],
+  },
+  periodic: {
+    up: ['{pc} keeps the pressure on.', '{pc} holds the upper hand for now.'],
+    down: ['{opp} keeps {pc} pinned under fire.', '{pc} is still looking for an opening.'],
+    even: ['The firefight grinds on, evenly matched.', 'Neither side can break through.'],
+  },
+  strikeMissed: {
+    up: ['{pc} goes for the opening, but {opp} gets clear in time.', "{pc}'s strike at {opp} finds nothing."],
+    down: ['{opp} fires, but {pc} is not hit.', "{opp}'s shot does not find {pc}."],
+    even: ['A shot, a strike; nothing lands.'],
+  },
+  minionHit: {
+    up: ['{pc} catches {opp}, who keeps fighting.', '{opp} staggers from the hit and stays in the fight.'],
+    down: ['{pc} catches {opp}, who keeps fighting.'],
+    even: ['{opp} is hit but stays up.'],
+  },
+  minionDown: {
+    up: ['{opp} goes down.', '{pc} drops {opp} and turns to the next.'],
+    down: ['{opp} goes down.'],
+    even: ['{opp} goes down.'],
+  },
+  strikeAbsorbed: {
+    up: ['{pc} lands a glancing hit; {opp} keeps fighting.'],
+    down: ["{opp}'s shot grazes {pc}, who keeps fighting.", '{opp} scores a glancing hit on {pc}.'],
     even: ['A glancing hit, nothing more.'],
   },
 };
