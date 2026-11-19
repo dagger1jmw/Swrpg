@@ -48,6 +48,7 @@ const MINION_ALIASES: Readonly<Record<string, string>> = {
   elite: 'eliteTrooper', elitetrooper: 'eliteTrooper', commando: 'eliteTrooper',
   mando: 'mandalorian', mandalorians: 'mandalorian',
   acolyte: 'sithAcolyte', sithacolyte: 'sithAcolyte',
+  clone: 'cloneTrooper', clones: 'cloneTrooper', storm: 'stormtrooper', stormtroopers: 'stormtrooper', wardroid: 'warDroid', wardroids: 'warDroid',
   ...Object.fromEntries(MINION_KINDS.flatMap((k) => [[k.id.toLowerCase(), k.id], [`${k.id.toLowerCase()}s`, k.id]])),
 };
 const MODE_ALIASES: Readonly<Record<string, (typeof SPARRING_MODES)[number]>> = { training: 'trainingSaber', trainingsaber: 'trainingSaber', controlled: 'controlled', academy: 'academy' };

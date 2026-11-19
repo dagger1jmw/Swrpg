@@ -8,7 +8,7 @@ import { INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERR
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
 import { rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, type BodyPart } from '../../data/health.config';
-import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
+import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt, minionKindForYear } from '../../data/npcGen.config';
 import { dateFromAbsDay, toAbsSecond } from '../../engine/calendar';
 import { mandalorianSlugthrower } from '../../data/weapons';
 import { COMBAT_STAKES, type CombatOutcome, type CombatStakes } from '../../data/progression.config';
@@ -51,8 +51,12 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
     meta[id] = { npcId: id, minionKind: null, rank: b.rank };
     if (!selectNpc(s, id)!.gen) emit.push({ type: 'npcGenerated', npcRef: id });
   }
+  const year = dateFromAbsDay(s.clock.now.day).year;
   for (const g of spec.minionGroups) {
-    const kind = MINION_KIND_IDS.includes(g.kind) ? g.kind : 'trooper';
+    // Minion kinds are era-gated (D-213): a kind asked for outside its years becomes its era's kind.
+    const era = minionKindForYear(MINION_KIND_IDS.includes(g.kind) ? g.kind : 'trooper', year);
+    const kind = era.kind;
+    if (era.note) notes.push(era.note);
     for (let i = 0; i < g.count; i++) {
       let grade: number;
       [grade, rng] = rollMinionGrade(rng, kind);
@@ -72,7 +76,9 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
         [u2, rng] = nextFloat(rng);
         slug = mandalorianSlugthrower(dateFromAbsDay(s.clock.now.day).year, u1, u2);
       }
-      const f = buildMinionFighter(s, kind, grade, opponents.length, fightId, beskar, slug);
+      // Numbered within its kind (pass 2: "B1 battle droid 2" was the first droid, after the duelist).
+      const number = opponents.filter((o) => meta[o.id]?.minionKind === kind).length + 1;
+      const f = buildMinionFighter(s, kind, grade, opponents.length, fightId, beskar, slug, number);
       opponents.push(f);
       meta[f.id] = { npcId: null, minionKind: kind, rank: null };
     }

@@ -2,6 +2,7 @@
 // then beats and typed-style combat actions by a play pattern until the fight ends. For balance measurements (D-158)
 // and the combat sweep. Deterministic per seed.
 import { TEST_START_DATE } from './dates';
+import type { CalendarDate } from '../../src/engine/calendar';
 import type { DuelState } from '../../src/engine/duel';
 import { seedRng } from '../../src/engine/rng';
 import { createMemoryStorage } from '../../src/persist/storage';
@@ -13,8 +14,8 @@ import { resolveTurn } from '../../src/turn/resolve';
 import { testStartInput, type TestStartRank } from '../../src/turn/testStart';
 import type { CombatActionInput } from '../../src/turn/record';
 
-export async function devCharacter(rank: TestStartRank, age: number): Promise<GameState> {
-  const input = testStartInput({ name: 'Test', rank, age, startDate: TEST_START_DATE, startSecond: DEFAULT_START_SECOND });
+export async function devCharacter(rank: TestStartRank, age: number, startDate: CalendarDate = TEST_START_DATE): Promise<GameState> {
+  const input = testStartInput({ name: 'Test', rank, age, startDate, startSecond: DEFAULT_START_SECOND });
   return (await createCampaign(REGISTRY, createMemoryStorage(), input, { campaignId: `h-${rank}-${age}`, branchId: 'b' }, 'h')).state;
 }
 

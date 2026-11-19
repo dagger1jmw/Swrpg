@@ -136,20 +136,33 @@ export interface MinionKind {
   vitalityMult: number;
   /** Lore note (a design default for Jared to check where marked). */
   note: string;
+  /**
+   * The calendar years the kind exists in (D-213), as [from, to) ranges (negative = BBY; to is exclusive); absent = every
+   * era. A kind asked for outside them becomes MINION_ERA_FALLBACK's kind.
+   */
+  eras?: readonly (readonly [number, number])[];
 }
 /** Years trained by grade at pace 1.0 (npc-generation §6). */
 export const MINION_YEARS: readonly [number, number, number, number, number] = [2, 5, 10, 15, 20];
 export const MINION_KINDS: readonly MinionKind[] = [
-  { id: 'battleDroid', label: 'B1 battle droid', archetype: 'soldier', weapon: 'blasterRifle', armor: 'light', grades: [0.6, 0.35, 0.05, 0, 0], coordination: 0, accuracy: -3, vitalityMult: 0.6, note: 'B1: mass-produced, poorly coordinated; a Knight cutting through dozens is lore-accurate (Jared)' },
+  { id: 'battleDroid', label: 'B1 battle droid', eras: [[-32, -18]], archetype: 'soldier', weapon: 'blasterRifle', armor: 'light', grades: [0.6, 0.35, 0.05, 0, 0], coordination: 0, accuracy: -3, vitalityMult: 0.6, note: 'B1: mass-produced, poorly coordinated; a Knight cutting through dozens is lore-accurate (Jared)' },
   { id: 'militia', label: 'militia fighter', archetype: 'civilian', weapon: 'blasterPistol', armor: 'none', grades: [0.6, 0.35, 0.05, 0, 0], coordination: 0, accuracy: -1, vitalityMult: 1, note: 'untrained locals with blasters (Jared)' },
   { id: 'thug', label: 'thug', archetype: 'bountyHunter', weapon: 'blasterPistol', armor: 'none', grades: [0.5, 0.35, 0.15, 0, 0], coordination: 0, vitalityMult: 1, note: 'gangsters and enforcers (Jared: 0)' },
   { id: 'brawler', label: 'brawler', archetype: 'civilian', weapon: 'melee', armor: 'none', grades: [0.5, 0.4, 0.1, 0, 0], coordination: 0, vitalityMult: 1, note: 'design default: street fighters, no teamwork' },
   { id: 'trooper', label: 'line trooper', archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.1, 0.4, 0.35, 0.13, 0.02], coordination: 0.5, vitalityMult: 1, note: 'clones, Republic troopers, Imperial stormtroopers (Jared: 0.5)' },
   { id: 'eliteTrooper', label: 'elite trooper', archetype: 'soldier', weapon: 'blasterRifle', armor: 'heavy', grades: [0, 0.1, 0.4, 0.4, 0.1], coordination: 1, accuracy: 0.5, vitalityMult: 1, note: 'ARC troopers, commandos, Imperial special forces, Havoc Squad-type units (Jared: 1.0)' },
   { id: 'mandalorian', label: 'Mandalorian warrior', archetype: 'mandalorian', weapon: 'blasterPistol', armor: 'heavy', saberResistant: 'byEra', grades: [0, 0.05, 0.3, 0.45, 0.2], coordination: 1, accuracy: 0.5, vitalityMult: 1, note: 'heavy armor (beskar by era, else durasteel or duraplast) and the highest grades: the most dangerous minion kind (Jared: 1.0)' },
-  { id: 'superBattleDroid', label: 'B2 super battle droid', archetype: 'soldier', weapon: 'heavy', armor: 'heavy', grades: [0.3, 0.5, 0.2, 0, 0], coordination: 0, vitalityMult: 1.2, note: 'design default for Jared: B2s are tougher and better armed than B1s but still droid-brained (0)' },
-  { id: 'droideka', label: 'droideka', archetype: 'soldier', weapon: 'heavy', armor: 'heavy', grades: [0.1, 0.4, 0.4, 0.1, 0], coordination: 0.5, vitalityMult: 1.5, note: 'design default for Jared: shielded rollers that work in pairs (0.5); no deflector shield model yet' },
+  { id: 'superBattleDroid', label: 'B2 super battle droid', eras: [[-22, -18]], archetype: 'soldier', weapon: 'heavy', armor: 'heavy', grades: [0.3, 0.5, 0.2, 0, 0], coordination: 0, vitalityMult: 1.2, note: 'design default for Jared: B2s are tougher and better armed than B1s but still droid-brained (0)' },
+  { id: 'droideka', label: 'droideka', eras: [[-32, -18]], archetype: 'soldier', weapon: 'heavy', armor: 'heavy', grades: [0.1, 0.4, 0.4, 0.1, 0], coordination: 0.5, vitalityMult: 1.5, note: 'design default for Jared: shielded rollers that work in pairs (0.5); no deflector shield model yet' },
   { id: 'beast', label: 'beast', archetype: 'civilian', weapon: 'melee', armor: 'light', grades: [0.3, 0.4, 0.2, 0.1, 0], coordination: 0, vitalityMult: 1.8, note: 'design default for Jared: predators and war beasts, no teamwork (0), tough hides' },
+  // Era kinds (D-213). War droid: era-neutral, the B1's numbers (the Krath war droids of 3,997 BBY and the Mandalorian
+  // Basilisk war droids are in the lore files; Timeline :176, Characters_04-05). Troopers by era: the line trooper stays
+  // era-neutral (Republic troopers, planetary forces); these name the era's own soldiers with the line trooper's numbers.
+  { id: 'warDroid', label: 'war droid', archetype: 'soldier', weapon: 'blasterRifle', armor: 'light', grades: [0.6, 0.35, 0.05, 0, 0], coordination: 0, accuracy: -3, vitalityMult: 0.6, note: 'design default (D-213): any era; the B1 battle droid\'s numbers for every droid infantry that is not of a named model' },
+  { id: 'cloneTrooper', label: 'clone trooper', eras: [[-22, -18]], archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.1, 0.4, 0.35, 0.13, 0.02], coordination: 0.5, vitalityMult: 1, note: 'Clone Wars only (D-213); the line trooper\'s numbers' },
+  { id: 'stormtrooper', label: 'stormtrooper', eras: [[-19, 200]], archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.1, 0.4, 0.35, 0.13, 0.02], coordination: 0.5, vitalityMult: 1, note: 'the Empire from 19 BBY through the Imperial Remnant and the Fel Empire (D-213); the line trooper\'s numbers' },
+  { id: 'sithTrooper', label: 'Sith trooper', eras: [[-3960, -3627]], archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.1, 0.4, 0.35, 0.13, 0.02], coordination: 0.5, vitalityMult: 1, note: 'the Sith Empire from the Jedi Civil War through the Great Galactic War and the Cold War (D-213; Characters_08 :265 "Sith trooper"); the line trooper\'s numbers' },
+  { id: 'skytrooper', label: 'Skytrooper', eras: [[-3636, -3627]], archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.1, 0.4, 0.35, 0.13, 0.02], coordination: 0.5, vitalityMult: 1, note: 'the Eternal Empire\'s droid soldiers, war against Zakuul (D-213; Characters_09B :342 "Skytrooper"); the line trooper\'s numbers, a droid' },
   { id: 'sithAcolyte', label: 'Sith acolyte', archetype: 'sithWarrior', weapon: 'lightsaber', armor: 'light', grades: [0.3, 0.4, 0.25, 0.05, 0], coordination: 0, vitalityMult: 1, note: 'design default for Jared: rivals who will not cover each other (0)' },
 ];
 /**
@@ -190,7 +203,38 @@ export const MINION_WEAPON_PROFILE: Readonly<Record<string, MinionWeaponProfile>
   droideka: { source: 'archetype' },
   beast: { source: 'kind', skill: 'melee', share: 0.6 },
   sithAcolyte: { source: 'archetype' },
+  warDroid: { source: 'archetype' },
+  cloneTrooper: { source: 'archetype' },
+  stormtrooper: { source: 'archetype' },
+  sithTrooper: { source: 'archetype' },
+  skytrooper: { source: 'archetype' },
 };
+
+/** The era-appropriate kind for a kind asked for outside its years (D-213): droids become war droids, troopers line troopers. */
+export const MINION_ERA_FALLBACK: Readonly<Record<string, string>> = {
+  battleDroid: 'warDroid',
+  superBattleDroid: 'warDroid',
+  droideka: 'warDroid',
+  skytrooper: 'warDroid',
+  cloneTrooper: 'trooper',
+  stormtrooper: 'trooper',
+  sithTrooper: 'trooper',
+};
+
+/** Whether a kind exists in a calendar year (D-213). */
+export function minionKindInEra(kindId: string, year: number): boolean {
+  const eras = MINION_KINDS.find((k) => k.id === kindId)?.eras;
+  return !eras || eras.some(([from, to]) => year >= from && year < to);
+}
+
+/** The kind to field in a year: the kind asked for, or its era fallback, with a note when it changed (D-213). */
+export function minionKindForYear(kindId: string, year: number): { kind: string; note: string | null } {
+  if (minionKindInEra(kindId, year)) return { kind: kindId, note: null };
+  const to = MINION_ERA_FALLBACK[kindId] ?? 'trooper';
+  const label = (id: string): string => MINION_KINDS.find((k) => k.id === id)?.label ?? id;
+  const when = year < 0 ? `${-year} BBY` : `${year} ABY`;
+  return { kind: to, note: `no ${label(kindId)}s in ${when}: ${label(to)}s instead (D-213)` };
+}
 
 export const MINION_KIND_IDS: readonly string[] = MINION_KINDS.map((k) => k.id);
 /** Minion count per group in combatStarted: a clamped AI amount (D-143 amends architecture §2). */

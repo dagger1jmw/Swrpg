@@ -65,7 +65,7 @@ export const FORCE_NEGATING_CREATURES: Readonly<Record<string, { effect: 'bubble
 };
 
 /** Minion kinds that are droids (immune to the mind group, no Force resistance). */
-export const DROID_MINION_KINDS: readonly string[] = ['battleDroid', 'superBattleDroid', 'droideka'];
+export const DROID_MINION_KINDS: readonly string[] = ['battleDroid', 'superBattleDroid', 'droideka', 'warDroid', 'skytrooper'];
 
 /**
  * Difficulty ratings (DC = 10 + rating / 10) for moving a mass by telekinesis: a body as a target (Push, grip) by build,

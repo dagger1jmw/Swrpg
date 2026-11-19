@@ -1,6 +1,6 @@
 // iPad combat test bugs (D-191, D-192): the dev Knight's Force skills, no silent step drops, attack verbs as strikes,
 // and the narrator told the engine's reason for a Force failure. Fixture AI; the dev test start (D-178).
-import { TEST_START_DATE } from '../support/dates';
+import { TEST_START_DATE, CLONE_WARS_DATE } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { createModelRouter, type QuotaState } from '../../src/ai/fallback';
 import { createFixtureProvider, type FixtureStep } from '../../src/ai/fixtureProvider';
@@ -36,7 +36,8 @@ function setup(steps: FixtureStep[]) {
 
 /** The dev Knight at 50 (D-178) in a forest fight with 6 B1s that has already begun. */
 async function knightVsB1(deps: TurnDeps, seed: string): Promise<Session> {
-  const input = testStartInput({ name: 'Test knight', rank: 'knight', age: 50, startDate: TEST_START_DATE, startSecond: DEFAULT_START_SECOND });
+  // B1 droids exist only in their era (D-213): the Clone Wars.
+  const input = testStartInput({ name: 'Test knight', rank: 'knight', age: 50, startDate: CLONE_WARS_DATE, startSecond: DEFAULT_START_SECOND });
   const c = await createCampaign(REGISTRY, createMemoryStorage(), input, { campaignId: `c-${seed}`, branchId: 'b' }, seed);
   const pending = applyEvents(REGISTRY, c.state, [{ type: 'combatStarted', opponentRefs: [], minionGroups: [{ kind: 'battleDroid', count: 6 }], stakes: 'lethal', terrainTags: ['fallenTimber'] }], { source: 'ai' }).state;
   const s: Session = { state: pending, history: [], campaign: c.campaign };

@@ -168,7 +168,7 @@ export function buildNpcFighter(s: GameState, npcId: string): { fighter: Fighter
   return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId), ...(blade ? { bladeColor: blade } : {}) }, rank: gen.rank };
 }
 
-export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false, weapon: WeaponKind | null = null): Fighter {
+export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false, weapon: WeaponKind | null = null, number: number = index + 1): Fighter {
   const kind = MINION_KINDS.find((k) => k.id === kindId) ?? MINION_KINDS[0]!;
   const inputs = minionInputs(kindId, grade, `${fightId}:${kindId}:${index}`);
   const base = npcLevelsFor(inputs, 'human', inputs.age, s.clock.now.day);
@@ -176,7 +176,7 @@ export function buildMinionFighter(s: GameState, kindId: string, grade: number, 
   const w = minionWeaponLevel(kindId, grade);
   const levels = w ? { ...base, [w.skill]: Math.max(base[w.skill] ?? 0, w.level) } : base;
   const loadout: Loadout = { weapon: weapon ?? kind.weapon, armor: kind.armor, saberResistant: kind.saberResistant === true || (kind.saberResistant === 'byEra' && beskar) };
-  const f = fighterFromLevels(`${fightId}:${kindId}:${index}`, `${kind.label.charAt(0).toUpperCase()}${kind.label.slice(1)} ${index + 1}`, levels, loadout, { minion: true, vitalityLost: 0, wounds: [], lasting: [], shatterpoint: 0, lightSide: false });
+  const f = fighterFromLevels(`${fightId}:${kindId}:${index}`, `${kind.label.charAt(0).toUpperCase()}${kind.label.slice(1)} ${number}`, levels, loadout, { minion: true, vitalityLost: 0, wounds: [], lasting: [], shatterpoint: 0, lightSide: false });
   const v = f.maxVitality * kind.vitalityMult;
   const droid = DROID_MINION_KINDS.includes(kind.id);
   // Sith acolytes carry red blades (D-205).

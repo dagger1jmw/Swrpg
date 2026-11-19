@@ -10,4 +10,10 @@ export const TEST_START_DATE: CalendarDate = { year: TEST_YEAR, month: 1, day: 1
  * Zym leads the Order (Docs/SWRPG lore timeline). A lore fact, not a start-date preference (D-155).
  */
 export const LORE_TEST_YEAR = -3661;
+
+/**
+ * A Clone Wars date for tests that field the era's own kinds (D-213): B1 and B2 battle droids, droidekas and clone
+ * troopers exist only then, so at the neutral TEST_YEAR they would become war droids and line troopers.
+ */
+export const CLONE_WARS_DATE: CalendarDate = { year: -22, month: 1, day: 1 };
 export const LORE_TEST_DATE: CalendarDate = { year: LORE_TEST_YEAR, month: 1, day: 1 };

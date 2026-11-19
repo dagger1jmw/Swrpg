@@ -8,6 +8,11 @@ import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { selectCI, selectLevelExact } from '../../src/features/progression/selectors';
 import { devCharacter, isWounded, PATTERNS, runFight, type FightResult, type FightSpec } from '../support/fightHarness';
+import { CLONE_WARS_DATE, TEST_YEAR } from '../support/dates';
+import { minionKindInEra } from '../../src/data/npcGen.config';
+
+/** Kinds that do not exist at the neutral test date fight in the Clone Wars (D-213), so the sweep measures the kinds it names. */
+const eraBase = async (rank: Parameters<typeof devCharacter>[0], age: number, kind: string | null): Promise<GameState> => devCharacter(rank, age, kind && !minionKindInEra(kind, TEST_YEAR) ? CLONE_WARS_DATE : undefined);
 
 const TERRAINS: Readonly<Record<string, string[]>> = { flatFloor: ['flatFloor'], forest: ['fallenTimber', 'unevenGround'], ice: ['slippery', 'iceChunks'], ruins: ['debris', 'looseRock', 'unevenGround', 'cover'], hangar: ['flatFloor', 'crates', 'machinery'] };
 const MINIONS: Readonly<Record<string, { kind: string; count: number }>> = {
@@ -102,11 +107,11 @@ describe('combat sweep', () => {
     let fights = 0;
     // Minion groups: every rank x group x terrain x pattern.
     for (const [rank, age] of RANKS) {
-      const base = await devCharacter(rank, age);
       for (const [mk, g] of Object.entries(MINIONS))
         for (const [tk, tags] of Object.entries(TERRAINS))
           for (const [pk, pat] of Object.entries(PATTERNS)) {
             const n = rank === 'knight' && age === 50 && tk === 'flatFloor' ? N_REFERENCE : N_CONFIG;
+            const base = await eraBase(rank, age, g.kind);
             for (let i = 0; i < n; i++) {
               const seed = `${rank}${age}:${mk}:${tk}:${pk}:${i}`;
               const f = runFight(base, { minionGroups: [g], terrainTags: tags }, pat, seed);
@@ -137,21 +142,23 @@ describe('combat sweep', () => {
     }
     // Determinism: the same seed twice gives the same fight.
     const knight = await devCharacter('knight', 50);
+    const knightCW = await eraBase('knight', 50, 'battleDroid');
+    const knightFor = (kind: string): GameState => (minionKindInEra(kind, TEST_YEAR) ? knight : knightCW);
     for (let i = 0; i < 60; i++) {
       const spec: FightSpec = { minionGroups: [Object.values(MINIONS)[i % 8]!], terrainTags: Object.values(TERRAINS)[i % 5]! };
       const pat = Object.values(PATTERNS)[i % 5]!;
-      const a = runFight(knight, spec, pat, `det${i}`);
-      const b = runFight(knight, spec, pat, `det${i}`);
+      const a = runFight(knightFor(spec.minionGroups![0]!.kind), spec, pat, `det${i}`);
+      const b = runFight(knightFor(spec.minionGroups![0]!.kind), spec, pat, `det${i}`);
       if (JSON.stringify(a.log) !== JSON.stringify(b.log) || a.outcome !== b.outcome) sw.issue('nondeterministic', `${a.log.length} vs ${b.log.length}`, `det${i}`, 'determinism');
     }
     // D-158 group sizes for the Knight at 50 (flat floor).
     for (const k of ['10 B1', '10 militia', '6 troopers', '6 elites', '4 Mandalorians', '6 B2', '4 droidekas'])
-      for (const pk of ['balanced', 'mixed', 'heavyForce']) for (let i = 0; i < N_RATE; i++) sw.record(`rates knight50 | ${k} | ${pk}`, runFight(knight, { minionGroups: [MINIONS[k]!], terrainTags: ['flatFloor'] }, PATTERNS[pk]!, `rate:${k}:${pk}:${i}`));
+      for (const pk of ['balanced', 'mixed', 'heavyForce']) for (let i = 0; i < N_RATE; i++) sw.record(`rates knight50 | ${k} | ${pk}`, runFight(knightFor(MINIONS[k]!.kind), { minionGroups: [MINIONS[k]!], terrainTags: ['flatFloor'] }, PATTERNS[pk]!, `rate:${k}:${pk}:${i}`));
     // The real level gaps of generated minions (D-158 measured at fixed gaps; compare there before tuning).
     const gaps: string[] = [];
     for (const [rank, age] of RANKS) {
-      const base = await devCharacter(rank, age);
       for (const [mk, g] of Object.entries(MINIONS)) {
+        const base = await eraBase(rank, age, g.kind);
         const xs: number[] = [];
         let pc = 0;
         for (let i = 0; i < 100; i++) {
