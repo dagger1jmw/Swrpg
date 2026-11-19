@@ -243,10 +243,12 @@ export const HAZARD_SEVERITY_MULT: Record<1 | 2 | 3, number> = { 1: 0.5, 2: 1, 3
 /**
  * A fighter whose physical meter passes hardLimit x capacity collapses from exhaustion: out of the fight, no wound
  * (the physical twin of the Force meter's collapse, health §2). progression-numbers §3 sets no physical hard limit, so
- * the value is a design default (overnight decision, Jared to confirm): 2.0 keeps the rolls §8 duel tables unchanged
- * (a 34-exchange duel adds about 2.7 load-hours) and stops a 322-exchange fight long before 26.4 / 5.1.
+ * the value is a design default (overnight decision, Jared to confirm). 4.0, not the first choice of 2.0: Anakin's war
+ * days chain fights with the meter carried over, and 2.0 dropped his Clone Wars combat share to 24.5% (gate 25-35%),
+ * 3.0 put his 81 milestone 0.01 y past its limit; at 4.0 every lifetime gate gives D-207's numbers exactly, and the
+ * pass-2 case (26.4 / 5.1 = 5.2x) still collapses. The 200-exchange safety cap (FIGHT_SAFETY_CAP) bounds one fight.
  */
-export const PHYSICAL_COLLAPSE = { hardLimit: 2.0 } as const;
+export const PHYSICAL_COLLAPSE = { hardLimit: 4.0 } as const;
 
 // ---- Minions (health §9) ----
 /**
