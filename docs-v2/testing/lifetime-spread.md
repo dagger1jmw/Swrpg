@@ -18,7 +18,7 @@ Each gate is tuned on the fixed seed (D-159: the fixed seed plus 5 more for retu
 
 What the flags mean (report only):
 
-- **Anakin, within 4.0x (8 of 20).** The gate is "no milestone faster than the Average's target / 4". Every failing seed fails at tier 41, which must take at least 4.0 years (16.0 / 4); the fixed seed takes 4.18, the 10th percentile 3.85. The 4.0x clamp (D-48) holds his training XP, but scripted war combat XP early in the Clone Wars lands before 41 on some seeds. Every seed passes ±20% and ≤ 1.2 x target at 41.
+- **Anakin, within 4.0x (8 of 20).** The gate is "no milestone faster than the Average's target / 4". Every failing seed fails at tier 41, which must take at least 4.0 years (16.0 / 4); the fixed seed takes 4.18, the 10th percentile 3.85. The 4.0x clamp (D-48) holds his training XP, but scripted war combat XP early in the Clone Wars lands before 41 on some seeds. At 41 every seed is inside ±20% and ≤ 1.2 x target; one seed (`anakin-s17`) misses both at 81 (16.39 y against 16.2).
 - **Anakin, Clone Wars share 25-35% (8 of 20).** Mostly age 19 (6 seeds below 25%; median 25.4%, the fixed seed 25.2%). The band's floor sits on the median of the first war year.
 - **Obi-Wan, Clone Wars share 20-30% (4 of 20).** Age 36 above 30% on 3 seeds (up to 36.9%) and age 35 below 20% on one (18.3%). D-159 already accepted this spread for seed 3.
 - Everything else fails on 2 seeds or fewer: the Average's K check (41 at 16.0 ± 0.1 y: 2) and Y_avg (2).
