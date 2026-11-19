@@ -275,7 +275,7 @@ describe('M and the pace clamp (§5, test 24)', () => {
   it('test 24: the clamp holds 4.0x the Average at the same share', () => {
     const cap = paceCap(20, 0.5);
     expect(cap).toBeCloseTo(4 * yAvg(20), 9);
-    expect(yAvg(20)).toBe(551);
+    expect(yAvg(20)).toBe(550);
     const r = clampCredit(500, cap - 100, cap);
     expect(r.credited).toBeCloseTo(100, 9);
     expect(r.discarded).toBeCloseTo(400, 9);

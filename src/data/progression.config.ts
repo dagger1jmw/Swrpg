@@ -110,24 +110,24 @@ export const PACE_WINDOW_DAYS = 365;
 /**
  * Y_avg(age): the Average profile's most-trained form XP for the 365 days starting at that age
  * (progression-numbers §5, K = 11.683), re-measured on the routine day loop in M4 (D-132) and again after the M5
- * retune (D-166): the training XP of the Average with its yearly mission (combat XP excluded), median of the fixed seed
- * and 5 more.
+ * retune (D-166) and after the known-abilities spillover rule (D-207): the training XP of the Average with its yearly
+ * mission (combat XP excluded), median of the fixed seed and 5 more.
  */
 export const Y_AVG: readonly (readonly [number, number])[] = [
   [4, 582],
   [8, 607],
   [12, 557],
-  [16, 534],
-  [20, 551],
-  [24, 444],
-  [30, 395],
-  [40, 468],
-  [50, 453],
-  [60, 485],
-  [70, 438],
-  [80, 439],
-  [90, 266],
-  [98, 194],
+  [16, 531],
+  [20, 550],
+  [24, 450],
+  [30, 396],
+  [40, 471],
+  [50, 448],
+  [60, 487],
+  [70, 440],
+  [80, 436],
+  [90, 289],
+  [98, 197],
 ];
 
 // ---- Age and learning speed (§16) ----
