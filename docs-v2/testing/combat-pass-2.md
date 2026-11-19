@@ -558,3 +558,32 @@ cause (the 322-exchange passage) cannot recur after D-208.
 | 18 | (new) 4 Mandalorians, Knight 50 balanced: 97.0 / 24.7 -> 96.3 / 25.0 with the 2.0 hard limit | resolved | Back to 97.0 / 24.7 with the amended 4.0; every Knight-50 balanced row of the final sweep equals the pre-overnight baseline. |
 | 19 | Terrain accidents per fighter (pass 1, number 8): Kael fell three times and one droid three times in the 322-exchange fight; nine exchanges on ice had none | open | As recommended in pass 1: roll terrain once per block for the fight (one accident at most), not once per fighter. |
 | 20 | A missed sequence strike against a minion gives it the full build-up step (pass 1, number 4) | open | As recommended in pass 1: cap that loss at one step. |
+
+## Jared's calls on the balance rows (2026-11-19)
+
+| # | Call | Decision | Built |
+|---|---|---|---|
+| 1 | A hold passes the chain on, without the pressure bonus | D-219 | yes |
+| 2 | Cap a first use's gain at +4 steps | D-220 | yes |
+| 3 | No change (fixed by D-208) | D-233 | - |
+| 4 | Count a state of mind once on a build-up roll | D-221 | yes |
+| 5 | No change (dice) | D-233 | - |
+| 6 | Precognition's Force load on the card | D-222 | yes |
+| 7 | Droid kinds dodge at min(Agility, weapon level) | D-223 | yes |
+| 8 | A Yuuzhan Vong warrior archetype, now | D-224 | yes |
+| 9 | The weak-minded modifier by minion grade | D-232 | M6 |
+| 10 | No change (health §3, §7) | D-233 | - |
+| 11 | No change (moot after D-208) | D-233 | - |
+| 12 | No change (alignment is M6) | D-233 | - |
+| 13 | Captors stabilize a dying prisoner, except archetypes that capture to execute | D-225 | yes |
+| 14 | The usage meter counts 2xx and 429 only | D-226 | yes |
+| 15 | Surrender XP factor 0.5 | D-227 | yes |
+| 16 | Measure a lost leg's adaptation | D-230 | measured, not changed |
+| 17 | Keep 4.0; measure a 5% collapse chance past 1.0 | D-231 | measured, not adopted |
+| 18 | No change (resolved at 4.0) | D-233 | - |
+| 19 | At most one terrain accident per roll for the whole fight | D-228 | yes |
+| 20 | A missed strike against a minion loses at most one step | D-229 | yes |
+
+Also from Jared's calls on the overnight decisions: a narrator's hazard that ends a fight is rolled for everyone in it (D-217); a surrender is a capture by default, with an execution chance for some archetypes (D-218); the fatigue curve past 1x capacity is flat at 0.775, with a proposal for a curve that keeps falling, measured and waiting (D-234).
+
+After the changes: npm run test:all 873/873; the sweep has no issues, and of the 21 Knight-50 rows the 11 balanced rows are unchanged while 10 mixed and heavyForce rows moved (the sequences and the Push: wins within 0.7 points, wounded rates lower, e.g. 6 elites mixed 28.3% -> 21.7%, 10 B1 mixed 4.3% -> 1.7%). No lifetime number moved on the fixed seeds (Anakin 41 4.18, 61 9.26, 81 15.82, 101 22.35; Obi-Wan 81 39.41, 101 59.65; war shares as before).
