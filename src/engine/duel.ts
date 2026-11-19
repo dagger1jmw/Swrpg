@@ -38,7 +38,7 @@ import { FORM_MATCHUPS, FORM_STAMINA, type MatchupSituation } from '../data/form
 import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, PHYSICAL_COLLAPSE, SEVERITIES, SPENT_LEVEL_FACTOR, WOUND_FIGHTING, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
 import { BLASTER_WEAPONS, RANGED_WEAPONS, SLUG_SPREAD, SLUG_SPREAD_DEFENSE } from '../data/weapons';
 import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityOf, severs } from './damage';
-import { efficiency } from './fatigue';
+import { fatigueLevelFactor } from './fatigue';
 import { addFixedLoad, forceWithin } from './forceMeter';
 import { lastingPenalty, limbState, type LastingInjury } from './lasting';
 import { basicRoll, type BasicRoll, type Modifier } from './rolls';
@@ -249,8 +249,9 @@ export function fighterEffectiveLevel(f: Fighter): number {
   const offHand = !f.minion && weaponArmState(f) === 'offHand' ? 1 - WOUND_FIGHTING.offHandPenalty : 1;
   const wound = woundPenalty(f.wounds, f.skillId, { willpower: f.willpower });
   const lasting = lastingPenalty(f.lasting, f.skillId);
-  const fat = efficiency(f.caps.p > 0 ? f.meters.p / f.caps.p : 0);
-  return f.level * offHand * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * (1 - 0.25 * (1 - fat));
+  // Fatigue keeps biting past 1.0 x capacity, down to 0.4 at the hard limit (D-234).
+  const fat = fatigueLevelFactor(f.caps.p > 0 ? f.meters.p / f.caps.p : 0);
+  return f.level * offHand * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * fat;
 }
 
 /**

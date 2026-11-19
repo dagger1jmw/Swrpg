@@ -15,6 +15,7 @@ import {
   STEP_HOURS,
   TIREDNESS_LABELS,
 } from '../data/progression.config';
+import { FATIGUE_PAST_CAPACITY, PHYSICAL_COLLAPSE } from '../data/health.config';
 import { forceCapacity, restForce, sleepForce, trainingForceStep } from './forceMeter';
 
 export interface Meters {
@@ -47,6 +48,18 @@ export function efficiency(f: number): number {
   if (f <= EFFICIENCY.flatUntil) return 1.0;
   if (f <= 1.0) return 1.0 - ((1.0 - EFFICIENCY.atLimit) * (f - EFFICIENCY.flatUntil)) / (1.0 - EFFICIENCY.flatUntil);
   return EFFICIENCY.overLimit;
+}
+
+/**
+ * The fatigue factor on a fighter's effective level (rolls §1 as amended by D-234): 1 - 0.25 x (1 - e(f)) up to 1.0 x
+ * capacity; past it a straight line from that value at 1.0 down to FATIGUE_PAST_CAPACITY.atHardLimit at the hard limit
+ * (no step at 1.0), never below it.
+ */
+export function fatigueLevelFactor(f: number): number {
+  const atOne = 1 - 0.25 * (1 - EFFICIENCY.atLimit);
+  if (f <= 1.0) return 1 - 0.25 * (1 - efficiency(f));
+  const end = FATIGUE_PAST_CAPACITY.atHardLimit;
+  return Math.max(end, atOne - ((atOne - end) * (f - 1)) / (PHYSICAL_COLLAPSE.hardLimit - 1));
 }
 
 /** Willpower from fatigue g(f) (§9). */

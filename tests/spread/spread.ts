@@ -4,6 +4,7 @@
 import { Y_AVG } from '../../src/data/progression.config';
 import { runLifetime, type LifeProfile, type LifeResult } from '../support/lifetime';
 import { TARGETS } from '../lifetime/profiles';
+import { within4xFloor } from '../lifetime/checks';
 
 export const SPREAD_SEEDS = 20;
 export const TIERS = [21, 41, 61, 81, 101] as const;
@@ -22,7 +23,11 @@ export interface SeedRow {
 const share = (r: LifeResult, i: number): number => (r.yearMain[i]! > 0 ? r.yearCombat[i]! / r.yearMain[i]! : 0);
 const within20 = (r: LifeResult, t: Record<number, number>): boolean => TIERS.every((k) => r.milestones[k] !== undefined && Math.abs(r.milestones[k]! / t[k]! - 1) <= 0.2);
 const notFasterThanAnakin = (r: LifeResult): boolean => TIERS.every((k) => (r.milestones[k] ?? Infinity) >= TARGETS.anakin[k] * 1.2);
-const within4x = (r: LifeResult): boolean => TIERS.every((k) => (r.milestones[k] ?? Infinity) >= TARGETS.average[k] / 4.0);
+// The clamp's own reference (D-235), as tests/lifetime/checks.ts.
+const within4x = (r: LifeResult): boolean => {
+  const floor = within4xFloor(r);
+  return TIERS.every((k) => (r.milestones[k] ?? Infinity) >= floor[k]!);
+};
 
 /** The gates of each profile's lifetime test, per seed (same bands as tests/lifetime/*.test.ts). */
 export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, boolean>; values: Record<string, number> }> = {

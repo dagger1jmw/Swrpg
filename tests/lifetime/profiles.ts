@@ -142,9 +142,11 @@ export const ANAKIN: LifeProfile = {
   // Retuned in step 9 on the fixed seed and 5 more (D-159): near-daily sparring sessions with his master (D-168; a
   // stronger partner, D-163), lighter in the first year so 21 stays within the 4.0x pace (1.25 y); missions; the
   // Clone Wars; after it, group spars with three partners (the Order's best duelists) and a few missions and duels.
+  // D-234 retune (fight counts only; fixed seed and the median of 5 more): spars 150 -> 160 a year before the war,
+  // the first war year's extra B2 fights 6 -> 9, the group spars after it 280 -> 300.
   fights: schedule([
     { from: 9, to: 10, perYear: 55, stakes: 'spar', gap: 15 },
-    { from: 10, to: 19, perYear: 150, stakes: 'spar', gap: 15 },
+    { from: 10, to: 19, perYear: 160, stakes: 'spar', gap: 15 },
     { from: 10, to: 19, perYear: 15, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
     { from: 10, to: 19, perYear: 4, stakes: 'serious', gap: -5 },
     // The Clone Wars (19-22): droid armies, elite squads and duels; the first year heaviest.
@@ -152,9 +154,9 @@ export const ANAKIN: LifeProfile = {
     { from: 19, to: 22, perYear: 20, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
     { from: 19, to: 22, perYear: 8, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
     { from: 19, to: 22, perYear: 8, stakes: 'serious', gap: 0 },
-    { from: 19, to: 20, perYear: 6, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
+    { from: 19, to: 20, perYear: 9, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
     { from: 19, to: 20, perYear: 2, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
-    { from: 22, to: 200, perYear: 280, stakes: 'spar', gap: 0, partners: 3 },
+    { from: 22, to: 200, perYear: 300, stakes: 'spar', gap: 0, partners: 3 },
     { from: 22, to: 200, perYear: 10, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
     { from: 22, to: 200, perYear: 2, stakes: 'serious', gap: 0 },
   ]),

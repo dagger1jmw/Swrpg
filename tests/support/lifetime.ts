@@ -105,6 +105,8 @@ export interface LifeResult {
   tankDays: number;
   /** The day with the highest day-end tiredness: its age and the plan's notes (training-routines test 5). */
   maxDay: { age: number; endF: number; fought: boolean; notes: string[] } | null;
+  /** The profile's training start age (the D-235 pace floor counts from it). */
+  startAge: number;
 }
 
 const START_DAY = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
@@ -367,5 +369,5 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
     }
   }
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));
-  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay };
+  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge };
 }

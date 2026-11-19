@@ -154,3 +154,24 @@ Run time per seed: median 30 s.
 | anakin | Clone Wars share 25-35% | 12 of 20 |
 | obiwan | Clone Wars share 20-30% | 6 of 20 |
 
+
+## Rerun after D-234 (fatigue curve), Anakin's retune, D-230 and D-235 (the Y_avg floor), 2026-11-19
+
+Same harness, 20 seeds per profile, final code. Gates failing per profile (out of 20):
+
+| Profile | Gate | Seeds failing |
+|---|---|---|
+| average | K: 41 at 16.0 +/- 0.1 y | 2: `average-s5`, `average-s13` |
+| average | Y_avg within +/-5% | 2: `average-s6`, `average-s16` |
+| anakin | milestones +/-20% | 1: `anakin-s1` |
+| anakin | every milestone <= 1.2 x target | 1: `anakin-s1` |
+| anakin | Clone Wars share 25-35% | 5: `anakin-s3`, `anakin-s4`, `anakin-s8`, `anakin-s11`, `anakin-s19` |
+| obiwan | milestones +/-20% | 1: `obiwan-s8` |
+| obiwan | Clone Wars share 20-30% | 3: `obiwan-s3`, `obiwan-s7`, `obiwan-s8` |
+
+Every profile passes the 4.0x floor on all 20 seeds (D-235). Closest seed to its floor: average 4.010x, anakin 1.154x, obiwan 3.099x, luke 1.504x.
+
+anakin war-year shares, 10th-90th percentile: age 19: 24.3-29.6% (median 26.4%); age 20: 25.2-28.6% (median 27.4%); age 21: 25.7-28.9% (median 26.7%).
+obiwan war-year shares, 10th-90th percentile: age 35: 21.4-27.4% (median 23.5%); age 36: 22.7-29.9% (median 26.7%); age 37: 22.2-27.4% (median 24.0%).
+
+anakin milestones, median of 20: 21 1.30 y, 41 4.43 y, 61 8.64 y, 81 15.48 y, 101 21.83 y.

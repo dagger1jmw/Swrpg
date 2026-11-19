@@ -209,6 +209,13 @@ export type Aid = (typeof AIDS)[number];
 export const AID_CAP: Record<Aid, number> = { none: 0.7, scarTissue: 0.7, basicProsthetic: 0.8, qualityCybernetic: 1.0, offHand: 0.9 };
 /** Adaptation per effective hour of training the affected skills, at most `perDayMax` a day. */
 export const ADAPTATION = { perHour: 0.01, perDayMax: 0.03 } as const;
+/**
+ * Lightsaber form hours toward a lost leg (Jared, D-230): forms are footwork, so a form's practice hours count at this
+ * share beside Agility and Endurance (full rate). Target: a quality cybernetic leg fully adapted in about 45-60 days on
+ * the default routine (a leg is harder than a hand); 0.5 gave 41 days, 0.3 gives 51 (measured, D-230). A lost hand or
+ * arm already counts every form hour in full, since its penalty is on the forms themselves.
+ */
+export const LEG_FORM_SHARE = 0.3;
 export const LASTING_KINDS = ['lostHand', 'lostArm', 'lostLeg', 'jointDamage', 'burnsOrLungs', 'headTrauma'] as const;
 export type LastingKind = (typeof LASTING_KINDS)[number];
 /** Base penalties P by kind on skill groups (progression-numbers §18; head trauma is a D-143 design default). */
@@ -249,6 +256,12 @@ export const HAZARD_SEVERITY_MULT: Record<1 | 2 | 3, number> = { 1: 0.5, 2: 1, 3
  * pass-2 case (26.4 / 5.1 = 5.2x) still collapses. The 200-exchange safety cap (FIGHT_SAFETY_CAP) bounds one fight.
  */
 export const PHYSICAL_COLLAPSE = { hardLimit: 4.0 } as const;
+/**
+ * The fight level factor past 1.0 x physical capacity (Jared, D-234): below 1.0 it is 1 - 0.25 x (1 - e(f)) (rolls §1),
+ * 0.825 at 1.0; past 1.0 it keeps falling in a straight line to `atHardLimit` at PHYSICAL_COLLAPSE.hardLimit, where the
+ * fighter collapses (was a step to 0.775 and flat to the limit). 0.68 at 2x, 0.54 at 3x.
+ */
+export const FATIGUE_PAST_CAPACITY = { atHardLimit: 0.4 } as const;
 
 // ---- Minions (health §9) ----
 /**

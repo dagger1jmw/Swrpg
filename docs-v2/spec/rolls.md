@@ -28,6 +28,8 @@ Total = d20 + effective level / 10 + modifiers
 Effective level = level of the skill used (form, Force ability, Agility, blaster skill...)
   * (1 - wound penalty) * (1 - rust) * (0.9 if Vitality is spent)
   * (1 - 0.25 * (1 - e(f_phys)))   [fatigue, e(f) from progression spec section 3]
+    In a fight past 1.0 x capacity (D-234): a straight line from 0.825 at 1.0 to 0.40 at the physical
+    hard limit (4.0, D-208), where the fighter collapses.
   Combat Force abilities use their combat-integration effective level (progression sec 8).
 There is no tier-gap bonus anywhere. 1 modifier point = 10 levels.
 
