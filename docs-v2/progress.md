@@ -46,3 +46,4 @@
 - 2026-11-18 — D-185: flat-floor accidents (0.5% a roll, minor band), real fights roll terrain once per 10 exchanges (config), sparring bouts once; lifetime runs use no terrain, unchanged. npm run test:all 613/613, typecheck, lint, build pass. Ready for Jared's iPad re-run.
 - 2026-11-18 — D-186: indoor place words map to flatFloor. Open: Order and routine sparring are training activities, not duels, so no flat-floor default was added there (question for Jared). npm test 578, test:lifetime 36/36, typecheck, lint pass.
 - 2026-11-18 — D-187 recorded for M6 (architecture §15): Makashi precision, marks of contact as techniques; not built. The lore files have no marks-of-contact entry yet.
+- 2026-11-18 — D-188: lightsaber combat lore file read and checked; D-187's lore gap filled; Zone 4, riposte, Trakata and shiim recorded for M6 (architecture §15); not built.

@@ -989,13 +989,23 @@ The clock and the module contract come first, before any feature.
 - **M6 Makashi precision (Jared, D-187; not built):** the aimed-strike penalty (D-171, -2) scales with Makashi level
   while fighting in Makashi: -2 at 0 to 0 at 61+ (design default, linear). No effect in any other form.
 - **M6 marks of contact as techniques (Jared, D-187; not built):** learnable techniques, each lowering the aimed-strike
-  penalty for its own target location from -2 toward 0 with technique skill: cho mai (hand), cho mok (limb), cho sun
-  (arm), mou kei (multiple limbs: one aimed strike may hit two limb locations, at a higher difficulty), and sai cha
-  (head) and shiak (a stab to the torso) if the lore supports them. Both items feed the D-171 aimed-strike rule only.
-  *Before building:* the names and definitions must be checked against the lore files, Legends only; checked
-  2026-11-18, Docs/SWRPG lore/ does not mention the marks of contact or any of the six names, so the lore entry
-  comes first (and the stacking with Makashi precision, the technique skill's curve and mou kei's difficulty are
-  numbers to set then).
+  penalty for its own target location from -2 toward 0 with technique skill: cho mai (the weapon hand), cho sun (the
+  weapon arm), cho mok (a limb, arm or leg), mou kei (a circular cut through several limbs: one aimed strike may hit
+  two limb locations, at a higher difficulty), sai cha (decapitation: head) and shiak (a stab: torso). Both items feed
+  the D-171 aimed-strike rule only. *Lore (D-188):* Docs/SWRPG lore/SW_Lightsaber_Combat_Marks_Zones_Techniques.md §1
+  (Legends) defines all six, so the lore gap is filled; its "Game notes" are design suggestions, not lore. The lore
+  also lists sai tok (cutting in two at the waist) and sun djem (disarming, the Shii-Cho aim; the existing disarm
+  maneuver). Numbers still to set at build time: the stacking with Makashi precision, the technique skill's curve and
+  mou kei's difficulty.
+- **M6 Zone 4, the back (Jared, D-188; not built):** a strike from behind (lore §2: Zone 4, "almost always fatal") lands
+  on the back when it follows a won take-position, or hits a fleeing or surprised opponent, with a lethal location
+  rule for that zone. The location rule and its numbers are set at build time.
+- **M6 riposte (Jared, D-188; not built):** a counter right after a successful defense (lore §4), as a Makashi and Djem
+  So form trait (lore §5: Makashi Riposte, Fluid Riposte); with cleave and the free form switch.
+- **M6 Trakata (Jared, D-188; not built):** switching the blade off and on mid-fight to slip a defense (lore §4), as a
+  high-risk tactic: a large opening on success, a big penalty if the opponent reads it.
+- **Shiim in narration (Jared, D-188; not built):** the narration term for a minor saber wound (lore §1: a minor wound
+  from the blade's edge), e.g. in the combat narration prompt's wording for minor saber hits; no rule change.
 - **M6 / M7 peacetime Sith Force growth (Jared):** the lifetime harness profile needs Force use in its trials so CI can
   grow (the harness duels log no Force uses), the dark-side bonuses come in M6 and the Sith Order schedule in M7. Re-run
   the Sidious-like report (D-175) after M6.
