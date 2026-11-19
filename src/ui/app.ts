@@ -46,7 +46,7 @@ import { creationForm } from './creationForm';
 import { clear, el, input, paragraphs } from './dom';
 import { renderSidePanel, type PanelTab } from './sidePanel';
 import { renderCombatDraft, renderDuelPanel } from './duelPanel';
-import { fightView } from '../turn/fightChoices';
+import { fightCalls, fightView } from '../turn/fightChoices';
 import { commitDevCommand, isDevCommand } from '../turn/devCommands';
 import { selectIsTestCharacter } from '../features/character/selectors';
 import { renderJumpPlayback, renderJumpReport } from './jumpCard';
@@ -549,6 +549,7 @@ export class App {
           pick: (choice) => void this.runTurn({ kind: 'choice', choice }),
           summary: view?.summary ?? null,
           closeSummary: () => ((this.closedFight = view?.summary?.fightId ?? null), this.render()),
+          aiCalls: devFlag(globalThis.location?.search ?? '') && session.state.combat.active ? fightCalls(session.history, session.state.combat.active.id) : null,
         })
       : null;
     const choices = choiceItems.length ? el('section', { class: 'box choices' }, [el('div', { class: 'box-body', attrs: { 'data-scroll': 'choices' } }, choiceItems)]) : null;

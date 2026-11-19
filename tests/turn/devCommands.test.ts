@@ -218,6 +218,8 @@ describe('dev commands in the transcript and the save (D-180)', () => {
       expect(r.record!.input).toEqual({ kind: 'dev', text: c });
       expect(r.record!.narrative).toMatch(/^\[DEV\] /);
       expect(r.record!.calls).toEqual([]);
+      // No AI call: a fight's start card from a dev command is tagged Quiet.
+      if (r.record!.draft.combat) expect(r.record!.draft.combat.quiet).toBe(true);
     }
     expect(storage.transcript.map((t) => (t.data as TurnRecord).input.kind)).toEqual(['dev', 'dev', 'dev']);
     const loaded = loadEnvelope(REGISTRY, await storage.loadSnapshot(AUTOSAVE_SLOT));

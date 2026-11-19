@@ -15,7 +15,7 @@ import { applyEvents } from '../../src/state/applyEvents';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
-import { AFTER_FIGHT_CHOICES, choicesAfterTurn, fightView } from '../../src/turn/fightChoices';
+import { AFTER_FIGHT_CHOICES, choicesAfterTurn, fightCalls, fightView } from '../../src/turn/fightChoices';
 import { playTurn, type Session, type TurnDeps } from '../../src/turn/pipeline';
 import type { TurnInput } from '../../src/turn/record';
 import type { Choice } from '../../src/ai/schemas/compose';
@@ -227,3 +227,22 @@ describe('a stance is a setting (D-182)', () => {
     expect(applyEvents(REGISTRY, session('none').state, [{ type: 'stanceSet', stance: 'defensive' }], { source: 'player' }).rejected).toHaveLength(1);
   });
 });
+
+describe('AI calls this fight (dev mode, iPad check)', () => {
+  it('counts the calls of the turns of this fight only; quiet beats add none', async () => {
+    const { deps } = setup(many(20));
+    let s = begun(session('calls'), 'serious');
+    const id = s.state.combat.active!.id;
+    const records = [];
+    for (let i = 0; i < 6 && s.state.combat.active; i++) {
+      const t = await playTurn(deps, s, beat('continue'));
+      records.push(t.record);
+      s = t.session;
+    }
+    const expected = records.filter((r) => !r.draft.combat?.quiet).length;
+    expect(fightCalls(s.history, id)).toBe(expected);
+    expect(fightCalls(s.history, 'fight-none')).toBe(0);
+    expect(records.filter((r) => r.draft.combat?.quiet).every((r) => r.calls.length === 0)).toBe(true);
+  });
+});
+

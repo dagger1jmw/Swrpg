@@ -1,7 +1,7 @@
 // The duel panel and the exchange roll cards (rolls.md §7; D-145 beat buttons; D-143 K iPad layout: the panel is a
 // fixed box and its log scrolls inside its own box). Rendering and player actions only; no rules here.
 import type { Choice } from '../ai/schemas/compose';
-import { MANEUVERS, STANCES, type Stance } from '../data/combat.config';
+import { isNarratedBeat, MANEUVERS, STANCES, type BeatReason, type Stance } from '../data/combat.config';
 import { FORM_IDS, SKILL_BY_ID } from '../data/skills';
 import type { BasicRoll } from '../engine/rolls';
 import type { DuelState, ExchangeRecord } from '../engine/duel';
@@ -38,13 +38,17 @@ function outcomeText(r: ExchangeRecord, names: Record<string, string>): string {
   return `${r.hit.quality} hit${r.hit.severed ? ` · ${r.hit.part} severed` : r.hit.severity ? ` · ${r.hit.severity} ${r.hit.part}` : ' · no wound'}`;
 }
 
+/** Quiet: resolved with no AI call; Narrated: covered by an AI narration (D-145). */
+export type CallTag = 'quiet' | 'narrated';
+const tagChip = (t: CallTag): HTMLElement => el('span', { class: `tag ${t}`, text: t === 'quiet' ? 'Quiet' : 'Narrated', attrs: { title: t === 'quiet' ? 'No AI call' : 'AI call' } });
+
 /** An exchange's roll card: both d20s, bonuses, modifiers with sources, the margin, the track and the outcome. */
-export function renderExchange(r: ExchangeRecord, names: Record<string, string>): HTMLElement {
+export function renderExchange(r: ExchangeRecord, names: Record<string, string>, tag?: CallTag): HTMLElement {
   const track = `${r.advBefore >= 0 ? '+' : ''}${r.advBefore} → ${r.advAfter >= 0 ? '+' : ''}${r.advAfter}`;
   const good = (r.hit && !r.hit.avoided && r.hit.by === 'A') || (r.striker === 'A' && r.maneuver) || (r.kind === 'buildUp' && r.advAfter > r.advBefore) || (r.kind === 'force' && r.force?.side === 'A' && r.force.success);
   const bad = (r.hit && !r.hit.avoided && r.hit.by === 'B') || (r.striker === 'B' && r.maneuver) || (r.kind === 'buildUp' && r.advAfter < r.advBefore);
   return el('details', { class: `exchange ${good ? 'up' : bad ? 'down' : ''}` }, [
-    el('summary', { text: `#${r.n} ${r.kind === 'strike' ? 'strike' : r.kind === 'force' ? 'Force' : 'exchange'} · ${outcomeText(r, names)} · track ${track}` }),
+    el('summary', {}, [tag ? tagChip(tag) : null, el('span', { text: `#${r.n} ${r.kind === 'strike' ? 'strike' : r.kind === 'force' ? 'Force' : 'exchange'} · ${outcomeText(r, names)} · track ${track}` })]),
     el('div', { class: 'roll-line', text: rollText(names['pc'] ?? 'You', r.rollA) }),
     el('div', { class: 'roll-line', text: rollText(names[r.targetId] ?? 'Opponent', r.rollB) }),
     el('div', { class: 'roll-line', text: `Margin ${r.margin >= 0 ? '+' : ''}${f1(r.margin)} · ${r.seconds} s${r.surprise ? ' · surprise' : ''}` }),
@@ -55,23 +59,39 @@ export function renderExchange(r: ExchangeRecord, names: Record<string, string>)
 /** The exchanges of one turn in the feed. */
 export function renderCombatDraft(c: CombatDraft): HTMLElement {
   const names = Object.fromEntries(c.fighters.map((f) => [f.id, f.name]));
+  const tag: CallTag = c.quiet ? 'quiet' : 'narrated';
   return el('div', { class: `roll combat${c.quiet ? ' quiet' : ''}` }, [
-    el('div', { text: `${c.started ? 'The fight begins · ' : ''}${c.records.length} exchange${c.records.length === 1 ? '' : 's'}${c.beat ? ` · ${c.beat}` : ''}${c.ended ? ` · ${c.ended.outcome} (${c.ended.reason})` : ''}` }),
-    ...c.records.map((r) => renderExchange(r, names)),
+    el('div', {}, [tagChip(tag), el('span', { text: `${c.started ? 'The fight begins · ' : ''}${c.records.length} exchange${c.records.length === 1 ? '' : 's'}${c.beat ? ` · ${BEAT_LABEL[c.beat] ?? c.beat}` : ''}${c.ended ? ` · ${c.ended.outcome} (${c.ended.reason})` : ''}` })]),
+    ...c.records.map((r) => renderExchange(r, names, tag)),
   ]);
 }
 
-function trackBar(adv: number): HTMLElement {
+/** Beat names for the player (D-145 beats). */
+const BEAT_LABEL: Readonly<Record<string, string>> = {
+  trackSwing: 'the track swung', periodic: 'a pause', strikeMissed: 'a strike missed', strikeAbsorbed: 'a strike absorbed', minionDown: 'a minion down', clarify: 'what do you do?',
+  woundingHit: 'a wounding hit', maneuverLanded: 'a maneuver landed', spent: 'a fighter is spent', forceAction: 'a Force action', sequence: 'a sequence', incapacitated: 'a fighter is down',
+  fightEnded: 'the fight ended', playerNarrate: 'narration', boutEnded: 'the bout ended',
+};
+
+/** The advantage track (-5..+5): the opponent's name at the left end, the player's at the right, and the value. */
+function trackBar(adv: number, pc: string, opp: string): HTMLElement {
   const cells = [];
   for (let i = -5; i <= 5; i++) cells.push(el('span', { class: `cell${i === adv ? ' on' : ''}${i === 0 ? ' zero' : ''}${i >= 3 ? ' strike-a' : i <= -3 ? ' strike-b' : ''}` }));
-  return el('div', { class: 'track', attrs: { 'aria-label': `advantage ${adv}` } }, cells);
+  const value = adv === 0 ? 'Even' : `${adv > 0 ? '+' : ''}${adv} ${adv > 0 ? pc : opp}`;
+  return el('div', { class: 'track-wrap' }, [
+    el('span', { class: 'track-end left', text: `◀ ${opp}`, attrs: { title: `left: ${opp} has the upper hand` } }),
+    el('div', { class: 'track', attrs: { role: 'meter', 'aria-valuemin': '-5', 'aria-valuemax': '5', 'aria-valuenow': String(adv), 'aria-label': `Advantage: ${value}` } }, cells),
+    el('span', { class: 'track-end right', text: `${pc} ▶`, attrs: { title: `right: ${pc} has the upper hand` } }),
+    el('span', { class: `track-value${adv > 0 ? ' up' : adv < 0 ? ' down' : ''}`, text: `Advantage: ${value}` }),
+  ]);
 }
 
 function vitalityRow(name: string, v: number, max: number, status: string, out: boolean): HTMLElement {
   const pct = max > 0 ? Math.max(0, Math.min(100, (v / max) * 100)) : 0;
   return el('div', { class: `fighter${out ? ' out' : ''}` }, [
-    el('span', { class: 'fname', text: name }),
-    el('span', { class: 'vbar' }, [el('span', { class: 'vfill', attrs: { style: `width:${pct.toFixed(0)}%` } })]),
+    el('span', { class: 'fname', text: name, attrs: { title: name } }),
+    el('span', { class: 'vbar', attrs: { role: 'meter', 'aria-valuemin': '0', 'aria-valuemax': String(Math.round(max)), 'aria-valuenow': String(Math.round(v)), 'aria-label': `${name} Vitality` } }, [el('span', { class: 'vfill', attrs: { style: `width:${pct.toFixed(0)}%` } })]),
+    el('span', { class: 'fnum', text: `${Math.round(v)} / ${Math.round(max)}` }),
     el('span', { class: 'fstatus', text: status }),
   ]);
 }
@@ -90,6 +110,8 @@ export interface DuelPanelProps {
   /** The fight that ended on the last turn, until the player closes its summary (D-181). */
   summary: CombatDraft | null;
   closeSummary(): void;
+  /** Dev mode: the AI calls made in this fight so far (null outside dev mode). */
+  aiCalls: number | null;
 }
 
 const BOUT_RESULT: Readonly<Record<string, string>> = { A: 'won', B: 'lost' };
@@ -173,18 +195,30 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
   if (formSelect && p.busy) formSelect.setAttribute('disabled', 'true');
   if (targetSelect && p.busy) targetSelect.setAttribute('disabled', 'true');
 
-  const log = el('div', { class: 'duel-log', attrs: { 'data-scroll': 'duel-log' } }, d.log.slice(-60).map((r) => renderExchange(r, names)));
+  // Quiet or Narrated (D-145): an exchange is narrated once an AI narration has covered it (lastNarrated).
+  const logTag = (r: ExchangeRecord): CallTag => (r.n <= active.lastNarrated ? 'narrated' : 'quiet');
+  const log = el('div', { class: 'duel-log', attrs: { 'data-scroll': 'duel-log' } }, d.log.slice(-60).map((r) => renderExchange(r, names, logTag(r))));
+  const facing = d.opponents[d.target] && !d.opponents[d.target]!.out ? d.opponents[d.target]! : (engaged[0] ?? d.opponents[0]);
+  const beatNow = active.beat;
+  const beatTag: CallTag = beatNow && isNarratedBeat(beatNow as BeatReason) ? 'narrated' : 'quiet';
+  const sess = active.session && !active.session.ended ? active.session : null;
   return el('section', { class: 'box duel' }, [
-    el('div', { class: 'box-head' }, [el('strong', { text: `Fight · ${active.stakes}${active.sparring ? ` (${active.sparring})` : ''} · exchange ${d.exchange}` })]),
-    el('div', { class: 'box-body duel-body' }, [
+    el('div', { class: 'box-head' }, [
+      el('strong', { text: `Fight · ${active.stakes}${active.sparring ? ` (${active.sparring})` : ''} · exchange ${d.exchange}` }),
+      p.aiCalls !== null ? el('span', { class: 'hint dev-calls', text: `AI calls this fight: ${p.aiCalls}` }) : null,
+    ]),
+    // Pinned (iPad fix): the fighters, the track and the main actions are always visible; the rest scrolls below.
+    el('div', { class: 'duel-pinned' }, [
       selectIsDying(s) ? el('div', { class: 'dying', text: 'Dying: get stabilized before the timer runs out.' }) : null,
       // A truce on offer (D-181): accepted here; any other action declines it.
       active.truceOffer
         ? el('div', { class: 'beat-row truce' }, [el('span', { text: `Truce offered: ${active.truceOffer}` }), beat('Accept the truce', { action: 'acceptTruce' }, 'small')])
         : null,
-      trackBar(d.advantage),
-      vitalityRow(d.a.name, d.a.vitality, d.a.maxVitality, d.a.out ? 'out' : 'fighting', d.a.out),
-      ...d.opponents.map((o) => vitalityRow(o.name, o.vitality, o.maxVitality, o.out ? 'out' : o.engagedElsewhere ? 'fighting an ally' : o.minion ? 'minion' : 'fighting', o.out)),
+      el('div', { class: 'duel-fighters' }, [
+        vitalityRow(d.a.name, d.a.vitality, d.a.maxVitality, d.a.out ? 'out' : 'fighting', d.a.out),
+        ...d.opponents.map((o) => vitalityRow(o.name, o.vitality, o.maxVitality, o.out ? 'out' : o.engagedElsewhere ? 'fighting an ally' : o.minion ? 'minion' : 'fighting', o.out)),
+      ]),
+      trackBar(d.advantage, d.a.name, facing?.name ?? 'Opponent'),
       // Bout result while the session goes on (D-181): the panel stays open between bouts.
       lastBout
         ? el('div', { class: `bout-result${active.beat === 'boutEnded' ? ' fresh' : ''}` }, [
@@ -192,6 +226,27 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
             el('span', { text: active.beat === 'boutEnded' ? ` Bout ${active.session!.bouts.length + 1} begins after a breather.` : ` Bout ${active.session!.bouts.length + 1} in progress.` }),
           ])
         : null,
+      el('div', { class: 'beat-status' }, [
+        el('span', { class: 'hint', text: beatNow ? `Beat: ${BEAT_LABEL[beatNow] ?? beatNow}` : 'Your move' }),
+        beatNow ? tagChip(beatTag) : null,
+        beatNow ? el('span', { class: 'hint', text: beatTag === 'quiet' ? '(no AI call)' : '(AI call)' }) : null,
+      ]),
+      el('div', { class: 'beat-row main-actions' }, [
+        beat(sess && !sess.playing ? 'Spar it out' : 'Continue', { action: 'continue' }, 'small'),
+        beat('Fight on', { action: 'fightOn' }, 'small'),
+        beat('Narrate', { action: 'narrate' }, 'small secondary'),
+        beat('Resolve to end', { action: 'resolve' }, 'small secondary'),
+      ]),
+      // A sparring session (D-168): the rest resolves at once by default; a bout can be played out beat by beat.
+      sess
+        ? el('div', { class: 'beat-row' }, [
+            el('span', { class: 'hint', text: `Sparring: bout ${sess.bouts.length + 1}, ${sess.bouts.filter((b) => b.winner === 'A').length} won, ${sess.bouts.filter((b) => b.winner === 'B').length} lost` }),
+            sess.playing ? null : beat('Play this bout', { action: 'playBout' }, 'small'),
+            beat('Stop sparring', { action: 'stopSession' }, 'small secondary'),
+          ])
+        : null,
+    ]),
+    el('div', { class: 'box-body duel-body' }, [
       // A stance is a setting (D-182): it stays selected until changed and resolves nothing.
       el('div', { class: 'beat-row' }, [
         el('span', { class: 'hint', text: 'Stance' }),
@@ -221,21 +276,8 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
             d.a.shatterpoint > 0 && !d.a.shatterpointUsed ? beat('Read the shatterpoint', { action: 'shatterpoint' }) : null,
           ])
         : null,
-      formSelect || targetSelect ? el('div', { class: 'beat-row' }, [formSelect, targetSelect]) : null,
-      // A sparring session (D-168): the rest resolves at once by default; a bout can be played out beat by beat.
-      active.session && !active.session.ended
-        ? el('div', { class: 'beat-row' }, [
-            el('span', { class: 'hint', text: `Sparring: bout ${active.session.bouts.length + 1}, ${active.session.bouts.filter((b) => b.winner === 'A').length} won, ${active.session.bouts.filter((b) => b.winner === 'B').length} lost` }),
-            active.session.playing ? null : beat('Play this bout', { action: 'playBout' }, 'small'),
-            beat('Stop sparring', { action: 'stopSession' }, 'small secondary'),
-          ])
-        : null,
-      el('div', { class: 'beat-row main-actions' }, [
-        beat(active.session && !active.session.playing ? 'Spar it out' : 'Continue', { action: 'continue' }, 'small'),
-        beat('Fight on', { action: 'fightOn' }, 'small'),
-        beat('Narrate', { action: 'narrate' }, 'small secondary'),
-        beat('Resolve to end', { action: 'resolve' }, 'small secondary'),
-      ]),
+      formSelect || targetSelect ? el('div', { class: 'beat-row' }, [el('span', { class: 'hint', text: 'Form' }), formSelect, targetSelect]) : null,
+      // The narrator's suggestions go last (D-181).
       p.suggestions.length
         ? el('div', { class: 'beat-row suggestions' }, [
             el('span', { class: 'hint', text: 'Or' }),

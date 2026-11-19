@@ -51,3 +51,8 @@ export function fightView(s: GameState, last: { choices: readonly Choice[]; draf
     summary: !inFight && ended && ended.fightId !== closedFight ? ended : null,
   };
 }
+
+/** The AI calls (intent and narration) the turns of a fight made so far (dev mode, iPad check). */
+export function fightCalls(history: readonly { calls?: readonly unknown[]; draft: { combat?: CombatDraft | null } }[], fightId: string): number {
+  return history.reduce((n, r) => n + (r.draft.combat?.fightId === fightId ? (r.calls?.length ?? 0) : 0), 0);
+}

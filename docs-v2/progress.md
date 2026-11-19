@@ -47,3 +47,4 @@
 - 2026-11-18 — D-186: indoor place words map to flatFloor. Open: Order and routine sparring are training activities, not duels, so no flat-floor default was added there (question for Jared). npm test 578, test:lifetime 36/36, typecheck, lint pass.
 - 2026-11-18 — D-187 recorded for M6 (architecture §15): Makashi precision, marks of contact as techniques; not built. The lore files have no marks-of-contact entry yet.
 - 2026-11-18 — D-188: lightsaber combat lore file read and checked; D-187's lore gap filled; Zone 4, riposte, Trakata and shiim recorded for M6 (architecture §15); not built.
+- 2026-11-18 — D-189 UI fixes from the iPad check: health card rows, duel panel pinned actions, Vitality numbers, labeled advantage track, Quiet / Narrated tags, dev AI-call count; checked at 820 x 1180 and 390 x 844 with no page scrolling. npm test 579, typecheck, lint, build pass. Ready for Jared's iPad re-run.

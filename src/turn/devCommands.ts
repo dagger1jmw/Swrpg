@@ -422,7 +422,8 @@ export async function commitDevCommand(
       training: o.draft.training ?? null,
       timeAdvanced: o.draft.timeAdvanced ?? null,
       jump: o.draft.jump ?? null,
-      combat: o.draft.combat ?? null,
+      // A dev command makes no AI call: its combat card is quiet (no narration yet).
+      combat: o.draft.combat ? { ...o.draft.combat, quiet: true } : null,
       pacingLevel: o.draft.pacingLevel ?? selectPacingLevel(state),
       notices: o.notices,
       report: o.report,
