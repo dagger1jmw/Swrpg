@@ -5,13 +5,14 @@
 // Rules: (1) severing or limb loss with no sever in the block and no limb lost earlier; (2) the player's blade landing
 // when the player hit nobody, or the player being hit when nobody hit the player; (3) a named minion cut down or
 // carved through that was not hit and still stands; (4) a step marked NOT REACHED described as done (by the ability);
-// (5) bacta or Force healing with no such care applied.
+// (5) bacta or Force healing with no such care applied; (6) a wounding hit left out; (7) a wound placed on a body
+// location the block does not have for that fighter.
 import { combatFacts, type CombatFacts } from './combatFacts';
 import type { CombatDraft } from './combatTurn';
 import { careApplied } from './context';
 import type { TurnDraft } from './resolve';
 
-export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted';
+export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced';
 export interface NarrationIssue {
   kind: NarrationIssueKind;
   /** The correction for the retry, and the log line. */
@@ -136,6 +137,75 @@ const PART_PROSE: Readonly<Record<string, RegExp>> = {
   head: /\b(head|face|skull|temple|jaw|neck|cheek|brow)\b/,
 };
 
+/**
+ * Rule 7 (Jared, after combat pass 1; the medic-week case: a "deep torso wound" when the wound was the right arm). Body
+ * words by location group, narrower than PART_PROSE: "side" and "back" are left out (your back foot, at your side).
+ */
+const LOCATION_WORDS: Readonly<Record<string, string>> = {
+  arm: 'arms?|shoulders?|elbows?|forearms?|biceps?',
+  hand: 'hands?|fingers|wrists?|knuckles',
+  leg: 'legs?|thighs?|knees?|shins?|calf|calves|ankles?|hips?|feet|foot',
+  torso: 'torso|chest|ribs|ribcage|stomach|abdomen|gut|belly|flank',
+  head: 'head|face|skull|temple|jaw|cheek|brow|neck|eyes?',
+};
+/** Groups a wound on a part may be described with (an arm wound may show at the wrist; a hand wound up the arm). */
+const LOCATION_ALLOWS: Readonly<Record<string, readonly string[]>> = { arm: ['arm', 'hand'], hand: ['hand', 'arm'], leg: ['leg'], torso: ['torso'], head: ['head'] };
+/** Words that make a clause about a wound (its place, its treatment or its pain). */
+const WOUND_WORDS = /\b(wound\w*|gash\w*|burn\w*|injur\w*|graz\w*|lacerat\w*|scorch\w*|bleed\w*|blood\w*|bandag\w*|treat\w*|tend\w*|heal\w*|mend\w*|hit|struck|sear\w*|cauteri\w*|pain\w*|ach\w*|throb\w*|stump|cut|slash\w*|stab\w*|pierc\w*)\b/i;
+/** Up to three describing words between the possessive and the body word, never another possessive or an article ("your blade cuts his chest" is not your chest). */
+/** Clauses that do not place a wound: near misses, aims, hypotheticals, negations (narrower than NOT_AN_EVENT, which also skips "recover"). */
+const NOT_PLACED = /\b(nearly|almost|narrowly|barely|threaten\w*|aim\w*|tries|try|trying|tried|attempt\w*|would|could|might|meant|miss\w*|avoid\w*|evad\w*|dodg\w*|parr\w+|block\w*|deflect\w*|turn\w* aside|sidestep\w*|short of|wide of|harmless\w*|unharmed|uninjured|untouched|no (wound|harm|injury|damage)|without (a |any )?(wound|harm|injury)|not|never)\b/i;
+const FILLER = String.raw`(?:(?!(?:his|her|their|its|your|the|a|an)\b)[\w-]+\s+){0,3}?`;
+const groupOf = (part: string): string => part.replace(/^(left|right)/, '').toLowerCase();
+
+export interface KnownWounds {
+  /** Body parts of every wound the player character had before or after the turn (health and this fight). */
+  player: readonly string[];
+}
+
+function misplacedIssues(narrative: string, draft: TurnDraft, known: KnownWounds): NarrationIssue[] {
+  const out: NarrationIssue[] = [];
+  const c = draft.combat;
+  const facts = c && !c.quiet ? combatFacts(c) : null;
+  // Each fighter's known locations: their wounds (health, earlier passages) and this passage's hits on them.
+  const partsOf = (id: string): Set<string> => {
+    const parts = new Set<string>();
+    const view = c?.fighters.find((f) => f.id === id);
+    for (const p of view?.woundParts ?? []) parts.add(groupOf(p));
+    for (const p of view?.lostParts ?? []) parts.add(groupOf(p));
+    for (const h of facts?.hits ?? []) if (h.targetId === id) parts.add(groupOf(h.part));
+    if (id === 'pc') for (const p of known.player) parts.add(groupOf(p));
+    return parts;
+  };
+  const allowed = (parts: Set<string>): Set<string> => new Set([...parts].flatMap((g) => LOCATION_ALLOWS[g] ?? [g]));
+  const subjects: { id: string; name: string; possessive: RegExp; mention: RegExp | null }[] = [{ id: 'pc', name: c?.fighters[0]?.name ?? 'the player character', possessive: new RegExp(String.raw`\byour\s+${FILLER}`), mention: null }];
+  for (const f of c?.fighters.slice(1) ?? []) {
+    if (f.minion) continue;
+    const words = f.name.toLowerCase().split(/[^a-z0-9']+/).filter((w) => w.length >= 4);
+    if (!words.length) continue;
+    subjects.push({ id: f.id, name: f.name, possessive: new RegExp(String.raw`\b(?:his|her|their|its)\s+${FILLER}`), mention: new RegExp(`\\b(${words.join('|')})\\b`, 'i') });
+  }
+  for (const subj of subjects) {
+    const parts = partsOf(subj.id);
+    if (!parts.size) continue; // no known wound: placing one is the hit rules' business, not this one
+    const ok = allowed(parts);
+    for (const s of sentencesOf(narrative)) {
+      for (const cl of clausesOf(s)) {
+        if (NOT_PLACED.test(cl) || !WOUND_WORDS.test(cl)) continue;
+        if (subj.mention && !subj.mention.test(s)) continue;
+        for (const [group, words] of Object.entries(LOCATION_WORDS)) {
+          if (ok.has(group)) continue;
+          const re = new RegExp(subj.possessive.source + `(${words})\\b`, 'i');
+          if (!re.test(cl)) continue;
+          const where = [...parts].join(', ');
+          if (!out.some((x) => x.sentence === s)) out.push({ kind: 'woundMisplaced', text: `${subj.name}'s wounds are on the ${where} only: do not describe a wound on the ${group}`, sentence: s });
+        }
+      }
+    }
+  }
+  return out;
+}
+
 function healingIssues(narrative: string, draft: TurnDraft): NarrationIssue[] {
   const care = new Set(careApplied(draft));
   const out: NarrationIssue[] = [];
@@ -151,10 +221,11 @@ function healingIssues(narrative: string, draft: TurnDraft): NarrationIssue[] {
  * The contradictions between a narration and the turn's resolved block. `woundedOrHealing`: the character has wounds or
  * the turn is a time jump or a healing action (only then is healing prose checked).
  */
-export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHealing: boolean): NarrationIssue[] {
+export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHealing: boolean, known: KnownWounds = { player: [] }): NarrationIssue[] {
   const issues: NarrationIssue[] = [];
   if (draft.combat && !draft.combat.quiet) issues.push(...combatIssues(narrative, draft.combat, combatFacts(draft.combat)));
   if (woundedOrHealing) issues.push(...healingIssues(narrative, draft));
+  issues.push(...misplacedIssues(narrative, draft, known));
   return issues;
 }
 
@@ -163,7 +234,7 @@ export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHea
  * sentences. Otherwise: the narration with the offending sentences removed.
  */
 export function fallbackNarration(narrative: string, draft: TurnDraft, issues: readonly NarrationIssue[]): string {
-  const combatWrong = issues.some((i) => i.kind !== 'healingNotApplied');
+  const combatWrong = issues.some((i) => i.kind !== 'healingNotApplied' && !(i.kind === 'woundMisplaced' && !draft.combat));
   if (draft.combat && combatWrong) {
     const facts = combatFacts(draft.combat);
     const plain = facts.lines.map((l) =>

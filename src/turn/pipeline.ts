@@ -305,7 +305,8 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     // The narration check (D-197): a narration that contradicts the resolved block is retried once with the same
     // TurnDraft and the contradictions listed; if the retry still contradicts it, code-written lines replace it.
     const woundedOrHealing = selectWounds(resolved).length > 0 || draft.jump !== null || draft.intent?.actionType === 'heal';
-    let issues = checkNarration(reply.narrative, draft, woundedOrHealing);
+    const known = { player: [...selectWounds(session.state), ...selectWounds(resolved)].map((w) => w.part) };
+    let issues = checkNarration(reply.narrative, draft, woundedOrHealing, known);
     if (issues.length) {
       modelNotes.push(`narration check: ${issues.length} contradiction(s) with RESOLVED (${issues.map((i) => i.kind).join(', ')}): "${issues[0]!.sentence.slice(0, 160)}"; retrying once`);
       const retryReq = buildNarrativeRequest(resolved, draft, pending.input, session.history, { ...buildOpts(deps, 'narrative', schemas.wire), correction: issues.map((i) => i.text) });
@@ -319,7 +320,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
       }
       if (second) {
         reply = second;
-        issues = checkNarration(reply.narrative, draft, woundedOrHealing);
+        issues = checkNarration(reply.narrative, draft, woundedOrHealing, known);
       }
       if (issues.length) {
         modelNotes.push(`narration check: still contradicting RESOLVED (${issues.map((i) => i.kind).join(', ')}); code-written lines used instead`);

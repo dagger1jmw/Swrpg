@@ -143,6 +143,8 @@ export interface CombatFighterView {
   form: string | null;
   /** Limbs already severed (this fight or before): the narration may mention them (D-197). */
   lostParts: string[];
+  /** Body parts of every wound the fighter has now (the wound location check). Absent on older drafts. */
+  woundParts?: string[];
 }
 
 export interface CombatDraft {
@@ -195,6 +197,7 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   weapon: f.weapon,
   form: f.form,
   lostParts: (f.wounds as Wound[]).filter((w) => w.severed).map((w) => w.part),
+  woundParts: (f.wounds as Wound[]).map((w) => w.part),
 });
 
 function noEffectLine(notes: readonly string[]): string {

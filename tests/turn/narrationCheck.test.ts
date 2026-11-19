@@ -167,3 +167,28 @@ describe('the engine gives the reason for every NO HIT exchange (Jared, after co
     expect(PROMPTS.combatNarration).toMatch(/Explain each miss only with that reason/);
   });
 });
+
+describe('a wound placed on the wrong body location (Jared, after combat pass 1)', () => {
+  const week = draft(null, { jump: { kind: 'montage' } as never });
+  it('the medic-week case: "your deep torso wound" when the wound is the right arm', () => {
+    const text = 'Over the following week, a medic tends to your deep torso wound using standard medpacs and a basic recovery bed. Without the luxury of bacta or kolto tanks, the healing is slow and arduous.';
+    const issues = checkNarration(text, week, true, { player: ['rightArm'] });
+    expect(issues.map((i) => i.kind)).toEqual(['woundMisplaced']);
+    expect(issues[0]!.sentence).toMatch(/deep torso wound/);
+    // The same week told on the right place passes; so does a wrist or shoulder for an arm wound.
+    expect(checkNarration('Over the following week, a medic tends to your wounded right arm using standard medpacs. The burn on your forearm slowly closes, and the ache in your shoulder fades.', week, true, { player: ['rightArm'] })).toEqual([]);
+    // With no wound known there is nothing to misplace (the hit rules cover invented wounds in a fight).
+    expect(checkNarration(text, week, true, { player: [] })).toEqual([]);
+    // The fallback outside a fight drops the offending sentence.
+    expect(fallbackNarration(text, week, issues)).toBe('Without the luxury of bacta or kolto tanks, the healing is slow and arduous.');
+  });
+  it('in a fight: a named opponent\'s wound on the wrong limb; another fighter\'s body is not yours', () => {
+    const c = combat({ fighters: [PC, DUELIST], beat: 'woundingHit', narrate: [rec({ n: 9, kind: 'strike', striker: 'A', targetId: 'n1', margin: 11, hit: hit('A', 'rightArm', 'moderate') })] });
+    expect(kinds('Your blade bites into Duelist 1, leaving a moderate wound across his thigh.', draft(c))).toContain('woundMisplaced');
+    expect(kinds('Your blade bites into Duelist 1, leaving a moderate wound across his right arm.', draft(c))).toEqual([]);
+    // The player has a torso wound from before; the opponent's chest is not the player's.
+    const c2 = combat({ fighters: [{ ...PC, woundParts: ['torso'] }, { ...DUELIST, woundParts: ['torso'] }], beat: 'woundingHit', narrate: [rec({ n: 3, kind: 'strike', striker: 'A', targetId: 'n1', margin: 11, hit: hit('A', 'torso', 'moderate') })] });
+    expect(kinds('Ignoring the pain in your chest, you drive your blade into Duelist 1, burning a moderate wound across his chest.', draft(c2))).toEqual([]);
+    expect(kinds('Duelist 1 recoils, and pain flares in your left leg as you press on.', draft(c2), true)).toContain('woundMisplaced');
+  });
+});
