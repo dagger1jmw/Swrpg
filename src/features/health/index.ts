@@ -118,13 +118,13 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
         type: z.literal('healthSynced'),
         vitalityLost: z.number().min(0),
         addWounds: z.array(woundSchema),
-        meters: z.object({ p: z.number().min(0), f: z.number().min(0) }).optional(),
+        meters: z.object({ p: z.number().min(0), f: z.number().min(0), m: z.number().min(0).optional() }).optional(),
         cause: z.string().max(80),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
         if (slice.death) return { reject: 'the character is dead' };
-        const meters = e['meters'] as { p: number; f: number } | undefined;
+        const meters = e['meters'] as { p: number; f: number; m?: number } | undefined;
         const base: HealthSlice = { ...slice, vitalityLost: Number(e['vitalityLost']), meters: meters ? { ...slice.meters, ...meters } : slice.meters };
         const r = addWounds(base, ctx.state, e['addWounds'] as Wound[], String(e['cause']));
         return { slice: r.slice, emit: r.emit, notes: r.notes };

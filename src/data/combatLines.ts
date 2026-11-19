@@ -35,6 +35,11 @@ export const QUIET_LINES: Readonly<Partial<Record<BeatReason, Readonly<Record<Li
     down: ['{pc} gives ground, waiting. What do you do: a stance, a feint, a strike, a move?'],
     even: ['{pc} and {opp} circle. What do you do: a stance, a feint, a strike, a move?'],
   },
+  minionHit: {
+    up: ["{pc}'s blade catches {opp}, but it keeps fighting.", '{opp} staggers from the hit and stays in the fight.'],
+    down: ["{pc}'s blade catches {opp}, but it keeps fighting."],
+    even: ['{opp} is hit but stays up.'],
+  },
   minionDown: {
     up: ['{pc} cuts through {opp}.', "{opp} goes down under {pc}'s blade.", '{pc} drops {opp} and turns to the next.'],
     down: ['{pc} cuts through {opp}.'],

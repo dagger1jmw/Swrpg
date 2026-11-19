@@ -135,8 +135,9 @@ function syncEmits(s: GameState, before: DuelState, after: DuelState, meta: Acti
   const a = after.a;
   const newWounds = a.wounds.slice(before.a.wounds.length) as Wound[];
   const lost = Math.max(0, selectMaxVitality(s) - a.vitality);
-  if (newWounds.length || a.vitality !== before.a.vitality || a.meters.p !== before.a.meters.p || a.meters.f !== before.a.meters.f) {
-    out.push({ type: 'healthSynced', vitalityLost: lost, addWounds: newWounds, meters: { p: a.meters.p, f: a.meters.f }, cause: 'duel' });
+  if (newWounds.length || a.vitality !== before.a.vitality || a.meters.p !== before.a.meters.p || a.meters.f !== before.a.meters.f || (a.meters.m ?? 0) !== (before.a.meters.m ?? 0)) {
+    // Backlash mental load (health §2, through forceMeter.ts) reaches the character with the other meters (D-194).
+    out.push({ type: 'healthSynced', vitalityLost: lost, addWounds: newWounds, meters: { p: a.meters.p, f: a.meters.f, ...(a.meters.m !== undefined ? { m: a.meters.m } : {}) }, cause: 'duel' });
   }
   for (const o of after.opponents) {
     const m = meta[o.id];
@@ -501,7 +502,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           const ability = FORCE_ACTION_ABILITY[f.kind];
           if (selectLevelExact(s, ability) < 1) return { reject: `the character does not know ${ability}` };
           const r = runSequence({ duel, patternUses: active.patternUses, objects: active.objects }, ctxD, day, [{ kind: 'forceAction', action: f.kind, ...(f.effort ? { effort: f.effort } : {}), ...(f.objectTag ? { objectTag: f.objectTag } : {}) }], 1, active.objectSizes, forceProfile(s));
-          const settled = settle({ ...slice, active: { ...active, patternUses: r.state.patternUses, objects: r.state.objects } }, s, { ...active, patternUses: r.state.patternUses, objects: r.state.objects }, before, r.state.duel, 'forceAction', true, r.results.map((x) => x.note));
+          const settled = settle({ ...slice, active: { ...active, patternUses: r.state.patternUses, objects: r.state.objects } }, s, { ...active, patternUses: r.state.patternUses, objects: r.state.objects }, before, r.state.duel, ...beatFor(duel, r.state.duel, 'forceAction'), r.results.map((x) => x.note));
           return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
         } else if (action === 'shatterpoint') {
           const r = tryShatterpoint(duel, 'A');
@@ -528,7 +529,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           // Every step the intent returned gets a line: resolved, failed, or dropped with the reason (D-191).
           const seqNotes = [...incomplete, ...r.lines];
           const nextActive = { ...active, patternUses: r.state.patternUses, objects: r.state.objects };
-          const settled = settle({ ...slice, active: nextActive }, s, nextActive, before, r.state.duel, 'sequence', true, seqNotes);
+          const settled = settle({ ...slice, active: nextActive }, s, nextActive, before, r.state.duel, ...beatFor(duel, r.state.duel, 'sequence'), seqNotes);
           return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
         } else if (action === 'fightOn') mode = 'fightOn';
         else if (action === 'resolve') mode = 'toEnd';
@@ -663,6 +664,11 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
   },
   selectors: { combat: selectCombat, active: selectActiveFight },
 };
+
+/** The beat after a Force action or a sequence: noEffect (quiet, no exchange) when nothing was attempted (D-194). */
+function beatFor(before: DuelState, after: DuelState, beat: 'forceAction' | 'sequence'): [string, boolean] {
+  return after.log.length === before.log.length ? ['noEffect', false] : [beat, true];
+}
 
 /** The player's Force levels for actions and sequences (CI from progression). */
 function forceProfile(s: GameState) {

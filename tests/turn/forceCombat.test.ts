@@ -14,6 +14,7 @@ import { applyEvents } from '../../src/state/applyEvents';
 import { REGISTRY } from '../../src/state/registry';
 import { createCampaign, DEFAULT_START_SECOND } from '../../src/turn/campaign';
 import { reconcileSteps } from '../../src/turn/combatTurn';
+import { describeCombat } from '../../src/turn/context';
 import { playTurn, type Session, type TurnDeps } from '../../src/turn/pipeline';
 import { testStartInput } from '../../src/turn/testStart';
 import type { TurnInput } from '../../src/turn/record';
@@ -82,6 +83,10 @@ describe('no silent step drops (D-191)', () => {
       expect(notes).toMatch(/step 3 Force push: (success|fails|dropped \(.+\))/);
       const forceAt = c.records.findIndex((r) => r.kind === 'force');
       if (forceAt >= 0) expect(forceAt).toBeGreaterThan(0);
+      // The narrator's block lists every step too (resolved and failed, not only dropped ones).
+      const block = describeCombat(c).join('\n');
+      expect(block).toMatch(/Sequence: step 1 stance: aggressive/);
+      expect(block).toMatch(/Sequence: step 2 strike: (lands|fails)/);
     });
   }
   it('the reconciler: attack verbs are strike steps in the text order, nouns and parries are not', () => {
@@ -136,5 +141,22 @@ describe('mind trick out of a fight (D-192)', () => {
   });
   it('a human soldier rolls Willpower against it', async () => {
     expect((await trick('human')).notes.join(' ')).toMatch(/Willpower roll/);
+  });
+});
+
+describe('a typed mind trick on a droid (D-194)', () => {
+  it('a quiet line, no exchange, no narration call', async () => {
+    const intent: FixtureStep = { callType: 'intent', data: { actionType: 'fight', targets: [], references: [], unknownNames: [], forceAbility: 'mindTrick' } };
+    const { deps, provider } = setup([...many(1), intent, ...many(2)]);
+    const s = await knightVsB1(deps, 'mt1');
+    const before = provider.calls.length;
+    const t = await playTurn(deps, s, { kind: 'typed', text: 'I wave my hand: you will lower your blasters.' });
+    const c = t.record.draft.combat!;
+    expect(c.records).toHaveLength(0);
+    expect(c.quiet).toBe(true);
+    expect(c.beat).toBe('noEffect');
+    expect(c.quietLine).toBe("Droids can't be mind-tricked.");
+    expect(provider.calls.slice(before).map((x) => x.opts.callType)).toEqual(['intent']);
+    expect(t.session.state.health.meters.f).toBe(s.state.health.meters.f);
   });
 });

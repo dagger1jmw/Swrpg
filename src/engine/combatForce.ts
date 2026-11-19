@@ -25,7 +25,7 @@ import { applyDamage, damageOf, hazardDamage, rollLocation, severityOf } from '.
 import { applyForceLoad, forceLoadPerUse, rollCollapse } from './forceMeter';
 import { basicRoll, dcForRating, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
-import { currentTarget, damageFighter, engaged, fighterEffectiveLevel, hasSaber, isRanged, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type Fighter, type SideId } from './duel';
+import { currentTarget, damageFighter, minionHitNote, engaged, fighterEffectiveLevel, hasSaber, isRanged, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type Fighter, type SideId } from './duel';
 import { STRIKE_QUALITY, type HitQuality } from '../data/combat.config';
 import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, type Wound } from './wounds';
 
@@ -312,7 +312,7 @@ export function resolveForceAction(s0: DuelState, input: ForceActionInput, day: 
     input.kind === 'throw' && input.objectSize ? OBJECT_SIZE_RULES[input.objectSize].forceLoad : input.kind === 'saberThrow' ? SABER_THROW.baseLoad : input.kind === 'recall' ? SABER_THROW.recallLoad : input.kind === 'mindTrick' ? MIND_TRICK_COMBAT.baseLoad : (FORCE_BASE_LOAD[abilityId] ?? 0.2);
   // No Force flows inside a Force-null bubble: no load, no roll (D-192).
   const load = ctx.forceNegated ? 0 : forceLoadPerUse(baseLoad, input.effort, input.level, ci.strainMult);
-  const fl = applyForceLoad({ p: user.meters.p, m: 0, f: user.meters.f }, user.caps.f, load, input.angerChanneling ?? false);
+  const fl = applyForceLoad({ p: user.meters.p, m: user.meters.m ?? 0, f: user.meters.f }, user.caps.f, load, input.angerChanneling ?? false);
   const [collapse, rngAfterCollapse] = rollCollapse(s.rng, fl.overLimit);
   let rng = rngAfterCollapse;
   const [mf, r1] = nextFloat(rng);
@@ -336,7 +336,8 @@ export function resolveForceAction(s0: DuelState, input: ForceActionInput, day: 
     });
   }
   let success = contest.success;
-  let updatedUser: Fighter = { ...user, meters: { ...user.meters, f: fl.meters.f, p: user.meters.p + EXERTION_PER_EXCHANGE }, out: user.out || collapse };
+  // Backlash mental load goes onto the user's mental meter (health §2 via forceMeter.ts; D-194).
+  let updatedUser: Fighter = { ...user, meters: { ...user.meters, f: fl.meters.f, p: user.meters.p + EXERTION_PER_EXCHANGE, ...(user.meters.m !== undefined || fl.backlashMental > 0 ? { m: fl.meters.m } : {}) }, out: user.out || collapse };
   let updatedTarget: Fighter = target;
   let damage: ForceActionRecord['damage'] = null;
   let advantage = s.advantage;
@@ -400,7 +401,7 @@ export function resolveForceAction(s0: DuelState, input: ForceActionInput, day: 
           effA: formLevel,
           effB: fighterEffectiveLevel(victim),
           seconds: 0,
-          notes: [`thrown saber ${hitIt ? (after.out ? `cuts down ${victim.name}` : `hits ${victim.name}`) : `misses ${victim.name}`}${saberDropped && !victim.minion ? `; ${victim.name} wrenches it from its arc with the Force` : ''}`],
+          notes: [`thrown saber: ${hitIt && hit ? minionHitNote(user.name, victim.name, after, hit) : `misses ${victim.name}`}${saberDropped && !victim.minion ? `; ${victim.name} wrenches it from its arc with the Force` : ''}`],
           surprise: false,
         });
         if (saberDropped) break;

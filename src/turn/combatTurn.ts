@@ -194,6 +194,11 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   form: f.form,
 });
 
+function noEffectLine(notes: readonly string[]): string {
+  const m = notes.map((n) => /dropped \((.+)\)$/.exec(n)?.[1]).find((x) => x);
+  return m ? `${m[0]!.toUpperCase()}${m.slice(1)}.` : 'Nothing happens.';
+}
+
 function quietLineFor(beat: string | null, duel: DuelState, records: readonly ExchangeRecord[]): string | null {
   if (!beat) return null;
   const lines = QUIET_LINES[beat as BeatReason];
@@ -232,7 +237,8 @@ export function combatDraft(before: GameState, after: GameState, started: boolea
     narrate,
     beat,
     quiet: !narrated,
-    quietLine: narrated ? null : quietLineFor(beat, duel, records),
+    // Nothing attempted (D-194): the reason is the quiet line ("droids can't be mind-tricked").
+    quietLine: narrated ? null : beat === 'noEffect' ? noEffectLine(notes) : quietLineFor(beat, duel, records),
     ended: endedNow ? { outcome: last!.outcome, reason: last!.reason, playerFate: last!.playerFate } : null,
     session: sess
       ? { won: sess.bouts.filter((b) => b.winner === 'A').length, lost: sess.bouts.filter((b) => b.winner === 'B').length, unfinished: sess.bouts.filter((b) => b.winner === null).length, ended: sess.ended, injuries }

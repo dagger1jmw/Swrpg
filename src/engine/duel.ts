@@ -76,8 +76,8 @@ export interface Fighter {
   maxVitality: number;
   wounds: readonly Wound[];
   lasting: readonly LastingInjury[];
-  /** Physical and Force meter loads and their capacities. */
-  meters: { p: number; f: number };
+  /** Physical and Force meter loads and their capacities; m is the mental load (Force backlash adds to it, D-194). */
+  meters: { p: number; f: number; m?: number };
   caps: { p: number; f: number };
   /** Position held: 0 none, 1 held, 2 decisive. */
   position: 0 | 1 | 2;
@@ -476,7 +476,8 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       rng = d.rng;
       bOut = d.f;
       hit = { by: 'A', ...d.hit, avoided: false };
-      notes.push(`${A.name} cuts down ${B.name}`);
+      // Cut down only when the minion is actually out (D-194); otherwise it is wounded or grazed and fights on.
+      notes.push(minionHitNote(A.name, B.name, bOut, hit));
     }
   } else {
     const atkF = striker === 'A' ? A : B;
@@ -617,6 +618,12 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   };
 }
 
+/** The note for a hit on a minion (D-194): cuts down only when it is out; wounds or grazes when it fights on. */
+export function minionHitNote(by: string, minion: string, after: Fighter, hit: Pick<Hit, 'severity'>): string {
+  if (after.out) return `${by} cuts down ${minion}`;
+  return hit.severity ? `${by} wounds ${minion} (${hit.severity}); it fights on` : `${by} grazes ${minion}; it fights on`;
+}
+
 /** Settles the end of the fight after an out-of-band exchange (Force action, sequence step). */
 export function settleEnd(s: DuelState): DuelState {
   if (s.end) return s;
@@ -638,7 +645,7 @@ export function beatAfter(s: DuelState): BeatReason | null {
   if (s.end) return s.end.reason === 'incapacitated' || s.end.reason === 'dying' || s.end.reason === 'dead' ? 'incapacitated' : 'fightEnded';
   if (rec.kind === 'force') return 'forceAction';
   const target = s.opponents.find((o) => o.id === rec.targetId);
-  if (rec.hit && !rec.hit.avoided && rec.hit.by === 'A' && target?.minion) return 'minionDown';
+  if (rec.hit && !rec.hit.avoided && rec.hit.by === 'A' && target?.minion) return target.out ? 'minionDown' : 'minionHit';
   if (rec.hit && !rec.hit.avoided && rec.hit.severity) return 'woundingHit';
   if (rec.maneuver) return 'maneuverLanded';
   if (s.spentNow) return 'spent';

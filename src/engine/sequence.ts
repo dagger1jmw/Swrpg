@@ -216,7 +216,7 @@ export function runSequence(
 
 /** A step's name for the log. */
 export function stepLabel(step: SequenceStep): string {
-  if (step.kind === 'forceAction') return step.action === 'saberThrow' ? 'saber throw' : step.action === 'recall' ? 'saber recall' : `Force ${step.action}`;
+  if (step.kind === 'forceAction') return step.action === 'saberThrow' ? 'saber throw' : step.action === 'recall' ? 'saber recall' : step.action === 'mindTrick' ? 'mind trick' : `Force ${step.action}`;
   if (step.kind === 'maneuver') return `maneuver (${step.maneuver})`;
   if (step.kind === 'tactic') return step.tactic;
   if (step.kind === 'stance') return `stance (${step.stance})`;
@@ -230,5 +230,13 @@ function cannotAttempt(step: SequenceStep, duel: DuelState, force: ForceProfile)
   if (force.levelOf(step.action) < 1) return `the character does not know ${ability}`;
   if (step.action === 'saberThrow' && !canThrowSaber(duel.a, force.levelOf(step.action))) return duel.a.saberLost ? 'the saber is on the ground: recall it first' : 'needs a lightsaber in hand, telekinesis 15 and a form 10';
   if (step.action === 'recall' && !duel.a.saberLost) return 'the saber is already in hand';
+  // A mind trick on a mind it cannot touch costs nothing (D-194).
+  const t = duel.opponents[duel.target];
+  if (step.action === 'mindTrick' && t) {
+    const traits = t.forceTraits ?? [];
+    if (traits.includes('droid')) return "droids can't be mind-tricked";
+    if (traits.includes('forceInvisible')) return `${t.name} cannot be touched through the Force`;
+    if (traits.includes('mindImmune')) return `${t.name} can't be mind-tricked`;
+  }
   return null;
 }

@@ -49,6 +49,8 @@ export interface FightResult {
   notes: string[];
   /** Every exchange record of the fight. */
   log: DuelState['log'];
+  /** The game state after the fight. */
+  state: GameState;
 }
 
 export interface FightSpec {
@@ -91,6 +93,7 @@ export function runFight(base: GameState, spec: FightSpec, pattern: Pattern, see
     rejected,
     notes,
     log: finalDuel?.log ?? [],
+    state,
   };
 }
 

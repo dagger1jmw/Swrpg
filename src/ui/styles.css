@@ -476,3 +476,9 @@ button.act.warn { background: transparent; border: 1px solid var(--warn); color:
 .duel-more[open] > summary { color: var(--text); }
 .duel-more-body { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; }
 
+/* The Force meter (D-194): red with the collapse risk once over the limit. */
+.force-meter .vfill { background: var(--accent); }
+.force-meter.over .vfill { background: var(--bad); }
+.force-meter.over .fnum, .force-meter .over-text { color: var(--bad); font-weight: 700; }
+.force-meter .over-text { display: block; grid-column: 1 / -1; }
+button.act.risky { border: 1px solid var(--bad); }

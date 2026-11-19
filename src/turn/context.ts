@@ -391,7 +391,7 @@ export function describeCombat(c: CombatDraft): string[] {
   const lines = [`COMBAT ${c.fightId}${c.started ? ' (the fight begins now)' : ''}: narrate these exchanges in order, nothing more.`];
   for (const r of c.narrate) lines.push(describeExchange(r, names));
   lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}`).join('; ')}.`);
-  for (const n of c.notes.filter((x) => /^step d|^intent step|sequence|not attempted|dropped/.test(x))) lines.push(`Sequence: ${n}`);
+  for (const n of c.notes.filter((x) => /^step \d|^intent step|sequence|not attempted|dropped/.test(x))) lines.push(`Sequence: ${n}`);
   // Terrain accidents (D-144, D-184): ground truth like the exchanges.
   for (const n of c.notes.filter((x) => x.startsWith('terrain: '))) lines.push(`Terrain accident: ${n.slice(9)}.`);
   if (c.session) {

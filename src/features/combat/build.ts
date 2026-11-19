@@ -77,7 +77,7 @@ export function buildPlayerFighter(s: GameState): Fighter {
     maxVitality: selectMaxVitality(s),
     wounds: selectWounds(s),
     lasting: selectLasting(s),
-    meters: { p: s.health.meters.p, f: s.health.meters.f },
+    meters: { p: s.health.meters.p, f: s.health.meters.f, m: s.health.meters.m },
     caps: { p: caps.p, f: caps.f },
     position: 0,
     disarmedFor: 0,

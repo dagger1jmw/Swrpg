@@ -1,6 +1,7 @@
 // The duel panel and the exchange roll cards (rolls.md §7; D-145 beat buttons; D-143 K iPad layout: the panel is a
 // fixed box and its log scrolls inside its own box). Rendering and player actions only; no rules here.
 import type { Choice } from '../ai/schemas/compose';
+import { collapseRiskPerUse, forceFraction } from '../engine/forceMeter';
 import { isNarratedBeat, MANEUVERS, STANCES, type BeatReason, type Stance } from '../data/combat.config';
 import { FORM_IDS, SKILL_BY_ID } from '../data/skills';
 import type { BasicRoll } from '../engine/rolls';
@@ -76,7 +77,7 @@ export function renderCombatDraft(c: CombatDraft): HTMLElement {
 
 /** Beat names for the player (D-145 beats). */
 const BEAT_LABEL: Readonly<Record<string, string>> = {
-  trackSwing: 'the track swung', periodic: 'a pause', strikeMissed: 'a strike missed', strikeAbsorbed: 'a strike absorbed', minionDown: 'a minion down', clarify: 'what do you do?',
+  trackSwing: 'the track swung', periodic: 'a pause', strikeMissed: 'a strike missed', strikeAbsorbed: 'a strike absorbed', minionDown: 'a minion down', minionHit: 'a minion hit', noEffect: 'no effect', clarify: 'what do you do?',
   woundingHit: 'a wounding hit', maneuverLanded: 'a maneuver landed', spent: 'a fighter is spent', forceAction: 'a Force action', sequence: 'a sequence', incapacitated: 'a fighter is down',
   fightEnded: 'the fight ended', playerNarrate: 'narration', boutEnded: 'the bout ended',
 };
@@ -104,6 +105,27 @@ function vitalityRow(name: string, v: number, max: number, status: string, out: 
   ]);
 }
 
+/**
+ * The Force meter (D-194): load against capacity. Above 1.0 the meter is red with the collapse risk per use (health §2,
+ * through forceMeter.ts); the rule itself is unchanged until the M6 redesign.
+ */
+export function forceMeterView(f: number, cap: number): { pct: number; over: boolean; risk: number; text: string } {
+  const frac = forceFraction(f, cap);
+  const risk = collapseRiskPerUse(f, cap);
+  const over = frac > 1;
+  return { pct: Math.round(frac * 100), over, risk, text: over ? `Over your limit: ${Math.round(risk * 100)}% collapse risk per use` : '' };
+}
+
+function forceMeterRow(f: number, cap: number): HTMLElement {
+  const v = forceMeterView(f, cap);
+  return el('div', { class: `fighter force-meter${v.over ? ' over' : ''}` }, [
+    el('span', { class: 'fname', text: 'Force' }),
+    el('span', { class: 'vbar', attrs: { role: 'meter', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(v.pct), 'aria-label': 'Force meter' } }, [el('span', { class: 'vfill', attrs: { style: `width:${Math.min(100, v.pct)}%` } })]),
+    el('span', { class: 'fnum', text: `${v.pct}%` }),
+    v.over ? el('span', { class: 'fstatus over-text', text: v.text }) : el('span', { class: 'fstatus', text: '' }),
+  ]);
+}
+
 export interface DuelPanelProps {
   state: GameState;
   busy: boolean;
@@ -124,6 +146,9 @@ export interface DuelPanelProps {
   moreOpen: boolean;
   setMoreOpen(open: boolean): void;
 }
+
+/** Mind abilities cannot touch this fighter (D-192): a droid, a lore-immune species, or someone outside the Force. */
+export const mindImmune = (f: { forceTraits?: readonly string[] }): boolean => (f.forceTraits ?? []).some((t) => t === 'droid' || t === 'mindImmune' || t === 'forceInvisible');
 
 const BOUT_RESULT: Readonly<Record<string, string>> = { A: 'won', B: 'lost' };
 const PART_LABEL: Readonly<Record<string, string>> = { head: 'head', torso: 'torso', rightArm: 'right arm', leftArm: 'left arm', rightLeg: 'right leg', leftLeg: 'left leg' };
@@ -192,6 +217,7 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
     ] as const
   ).filter(([, kind, ability]) => selectLevelExact(s, ability) >= 1 && (kind === 'recall' ? !!d.a.saberLost : kind === 'saberThrow' ? !d.a.saberLost && (d.a.weapon === 'lightsaber' || d.a.weapon === 'trainingSaber') : true));
   const throwable = Object.entries(active.objects).filter(([, n]) => n > 0);
+  const forceRisk = forceMeterView(d.a.meters.f, d.a.caps.f);
   const formSelect = forms.length
     ? el('select', { attrs: { 'aria-label': 'Change form' }, on: { change: (e) => {
           const v = (e.target as HTMLSelectElement).value;
@@ -259,7 +285,12 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
       forceActs.length || d.a.shatterpoint > 0
         ? el('div', { class: 'beat-row' }, [
             el('span', { class: 'hint', text: 'Force' }),
-            ...forceActs.filter(([, kind]) => kind !== 'throw' || throwable.length).map(([label, kind]) => act(label, { action: 'force', force: { kind, ...(kind === 'throw' ? { objectTag: throwable[0]![0] } : {}) } })),
+            ...forceActs.filter(([, kind]) => kind !== 'throw' || throwable.length).map(([label, kind]) => {
+              // A mind trick on a droid, a lore-immune species or a Force-invisible foe: greyed out, no exchange (D-194).
+              if (kind === 'mindTrick' && facing && mindImmune(facing)) return el('button', { class: 'small act', text: `${label} (immune)`, attrs: { disabled: 'true', title: `${facing.name} cannot be mind-tricked` } });
+              const risk = forceRisk.over ? ` (${Math.round(forceRisk.risk * 100)}% collapse)` : '';
+              return act(`${label}${risk}`, { action: 'force', force: { kind, ...(kind === 'throw' ? { objectTag: throwable[0]![0] } : {}) } }, `small act${forceRisk.over ? ' risky' : ''}`, forceRisk.over ? forceRisk.text : undefined);
+            }),
             d.a.shatterpoint > 0 && !d.a.shatterpointUsed ? act('Read the shatterpoint', { action: 'shatterpoint' }) : null,
           ])
         : null,
@@ -290,6 +321,8 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
       // Always visible: the player and the opponent faced, the track, the beat line, the primary row and the stance.
       el('div', { class: 'duel-fighters' }, [
         vitalityRow(d.a.name, d.a.vitality, d.a.maxVitality, d.a.out ? 'out' : 'fighting', d.a.out),
+        // The Force meter once the character has used the Force (always while over the limit, D-194).
+        d.a.caps.f > 0 && d.a.meters.f > 0 ? forceMeterRow(d.a.meters.f, d.a.caps.f) : null,
         facing ? vitalityRow(facing.name, facing.vitality, facing.maxVitality, status(facing), facing.out) : null,
       ]),
       trackBar(d.advantage, d.a.name, facing?.name ?? 'Opponent'),

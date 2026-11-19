@@ -73,6 +73,9 @@ export function applyForceLoad(meters: ForceMeters, forceCap: number, load: numb
 /** A fixed load with no backlash check (precognitive defense, a shatterpoint strike; as built in M5). */
 export const addFixedLoad = (f: number, load: number): number => f + Math.max(0, load);
 
+/** The collapse risk of the next use (D-194 warning): the collapse chance while the meter is above the limit, else 0. */
+export const collapseRiskPerUse = (f: number, cap: number): number => (cap > 0 && f > forceLimit(cap) ? FORCE_METER.collapseChance : 0);
+
 /** The collapse roll after a use over the limit (5%; the caller records 1-3 hours of incapacitation). */
 export function rollCollapse(rng: RngState, overLimit: boolean): [boolean, RngState] {
   if (!overLimit) return [false, rng];
