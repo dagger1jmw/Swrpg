@@ -13,6 +13,7 @@ import {
   DEFLECT_REDIRECT_MARGIN,
   EXCHANGE_SECONDS,
   EXERTION_PER_EXCHANGE,
+  FIGHT_SAFETY_CAP,
   FORCE_INSIGHT,
   MANEUVER_EFFECT,
   MANEUVER_MIN,
@@ -33,7 +34,7 @@ import {
   type Stance,
 } from '../data/combat.config';
 import { FORM_MATCHUPS, FORM_STAMINA, type MatchupSituation } from '../data/formMatchups';
-import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, SEVERITIES, SPENT_LEVEL_FACTOR, WOUND_FIGHTING, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
+import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, PHYSICAL_COLLAPSE, SEVERITIES, SPENT_LEVEL_FACTOR, WOUND_FIGHTING, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
 import { BLASTER_WEAPONS, RANGED_WEAPONS, SLUG_SPREAD, SLUG_SPREAD_DEFENSE } from '../data/weapons';
 import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityOf, severs } from './damage';
 import { efficiency } from './fatigue';
@@ -176,8 +177,8 @@ export interface ExchangeRecord {
 }
 
 export type DuelEnd =
-  | { winner: SideId; reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'spent' | 'point' }
-  | { winner: null; reason: 'stopped' };
+  | { winner: SideId; reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'spent' | 'point' | 'exhausted' }
+  | { winner: null; reason: 'stopped' | 'stalemate' };
 
 export interface DuelState {
   /** Terrain accident rolls so far and the exchange of the last (D-185); absent on older duels. */
@@ -226,6 +227,14 @@ export function weaponArmState(f: Fighter): 'ok' | 'offHand' | 'lost' {
   const on = f.wounds.filter((w) => parts.includes(w.part) && w.healProgress < 1);
   if (on.some((w) => w.severed)) return 'lost';
   return on.some((w) => atLeast(effectiveSeverity(w), WOUND_FIGHTING.minSeverity)) ? 'offHand' : 'ok';
+}
+
+/**
+ * Collapsed from exhaustion (D-208): the physical meter past PHYSICAL_COLLAPSE.hardLimit x capacity. The fighter is out
+ * of the fight with no wound; nobody fights on past the hard limit.
+ */
+export function collapsedFromExhaustion(f: Fighter): boolean {
+  return f.caps.p > 0 && f.meters.p > f.caps.p * PHYSICAL_COLLAPSE.hardLimit;
 }
 
 /** Out of the weapon fight by a wound rule (D-198): cannot stand, or the weapon arm is gone. Named fighters only. */
@@ -612,7 +621,11 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
 
   const spentNow: SideId | null = A.vitality > 0 && aOut.vitality <= 0 ? 'A' : B.vitality > 0 && bOut.vitality <= 0 ? 'B' : null;
   // End conditions.
-  const status = (f: Fighter): 'dead' | 'dying' | 'allOut' | 'incapacitated' | null => (f.dead ? 'dead' : isDying(f.wounds) ? 'dying' : f.out ? 'allOut' : isIncapacitated(f.wounds) || cannotDuel(f) ? 'incapacitated' : null);
+  const status = (f: Fighter): 'dead' | 'dying' | 'allOut' | 'incapacitated' | 'exhausted' | null => (f.dead ? 'dead' : isDying(f.wounds) ? 'dying' : f.out ? 'allOut' : isIncapacitated(f.wounds) || cannotDuel(f) ? 'incapacitated' : collapsedFromExhaustion(f) ? 'exhausted' : null);
+  // Past the physical hard limit (D-208): the fighter collapses and is out, a minion as much as a duelist.
+  for (const [f, was] of [[aOut, A], [bOut, B]] as const) {
+    if (collapsedFromExhaustion(f) && !collapsedFromExhaustion(was)) notes.push(`${f.name} collapses from exhaustion (physical ${f.meters.p.toFixed(1)} / ${f.caps.p.toFixed(1)}, past the hard limit of ${PHYSICAL_COLLAPSE.hardLimit}x): out of the fight`);
+  }
   // A leg or the weapon arm lost in this exchange (D-198): the fighter is out of the weapon fight.
   for (const [f, was] of [[aOut, A], [bOut, B]] as const) {
     const why = cannotDuel(f);
@@ -642,6 +655,14 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
         advAfter = 0;
       }
     }
+  }
+
+  // The safety cap (D-208): a real fight still undecided after FIGHT_SAFETY_CAP exchanges ends as an exhausted
+  // stalemate, both sides Spent. Sparring sessions have their own budget (D-168).
+  if (!end && ctx.sparring === null && s.exchange + 1 >= FIGHT_SAFETY_CAP.exchanges) {
+    end = { winner: null, reason: 'stalemate' };
+    next = { ...next, a: { ...next.a, vitality: 0 }, opponents: next.opponents.map((o) => (o.out || o.engagedElsewhere ? o : { ...o, vitality: 0 })) };
+    notes.push(`no outcome after ${FIGHT_SAFETY_CAP.exchanges} exchanges: an exhausted stalemate, both sides Spent`);
   }
 
   const rec: ExchangeRecord = {
@@ -687,11 +708,11 @@ export function minionHitNote(by: string, minion: string, after: Fighter, hit: P
 export function settleEnd(s: DuelState): DuelState {
   if (s.end) return s;
   const a = s.a;
-  if (a.dead || isDying(a.wounds) || isIncapacitated(a.wounds) || cannotDuel(a) || a.out) {
-    const reason = a.dead ? 'dead' : isDying(a.wounds) ? 'dying' : 'incapacitated';
+  if (a.dead || isDying(a.wounds) || isIncapacitated(a.wounds) || cannotDuel(a) || collapsedFromExhaustion(a) || a.out) {
+    const reason = a.dead ? 'dead' : isDying(a.wounds) ? 'dying' : !isIncapacitated(a.wounds) && !cannotDuel(a) && collapsedFromExhaustion(a) ? 'exhausted' : 'incapacitated';
     return { ...s, a: { ...a, out: true }, end: { winner: 'B', reason } };
   }
-  const opps = s.opponents.map((o) => (!o.out && (o.dead || isDying(o.wounds) || isIncapacitated(o.wounds) || cannotDuel(o)) ? { ...o, out: true } : o));
+  const opps = s.opponents.map((o) => (!o.out && (o.dead || isDying(o.wounds) || isIncapacitated(o.wounds) || cannotDuel(o) || collapsedFromExhaustion(o)) ? { ...o, out: true } : o));
   const next = { ...s, opponents: opps };
   if (engaged(next).length === 0) return { ...next, end: { winner: 'A', reason: 'allOut' } };
   return { ...next, target: Math.max(0, opps.findIndex((o) => o.id === (currentTarget(next)?.id ?? ''))) };
@@ -701,7 +722,7 @@ export function settleEnd(s: DuelState): DuelState {
 export function beatAfter(s: DuelState): BeatReason | null {
   const rec = s.log[s.log.length - 1];
   if (!rec) return null;
-  if (s.end) return s.end.reason === 'incapacitated' || s.end.reason === 'dying' || s.end.reason === 'dead' ? 'incapacitated' : 'fightEnded';
+  if (s.end) return s.end.reason === 'incapacitated' || s.end.reason === 'dying' || s.end.reason === 'dead' || s.end.reason === 'exhausted' ? 'incapacitated' : 'fightEnded';
   if (rec.kind === 'force') return 'forceAction';
   const target = s.opponents.find((o) => o.id === rec.targetId);
   if (rec.hit && !rec.hit.avoided && rec.hit.by === 'A' && target?.minion) return target.out ? 'minionDown' : 'minionHit';

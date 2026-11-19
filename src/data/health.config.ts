@@ -239,6 +239,15 @@ export type HazardType = (typeof HAZARD_TYPES)[number];
 export const HAZARD_BASE: Record<HazardType, number> = { fall: 14, fire: 12, explosion: 25, crash: 22, poison: 10, exposure: 8, impact: 12 };
 export const HAZARD_SEVERITY_MULT: Record<1 | 2 | 3, number> = { 1: 0.5, 2: 1, 3: 2 };
 
+// ---- Physical exhaustion in a fight (D-208) ----
+/**
+ * A fighter whose physical meter passes hardLimit x capacity collapses from exhaustion: out of the fight, no wound
+ * (the physical twin of the Force meter's collapse, health §2). progression-numbers §3 sets no physical hard limit, so
+ * the value is a design default (overnight decision, Jared to confirm): 2.0 keeps the rolls §8 duel tables unchanged
+ * (a 34-exchange duel adds about 2.7 load-hours) and stops a 322-exchange fight long before 26.4 / 5.1.
+ */
+export const PHYSICAL_COLLAPSE = { hardLimit: 2.0 } as const;
+
 // ---- Minions (health §9) ----
 /**
  * A wound of this severity or worse takes a minion out of the fight; so does being Spent (Vitality 0; D-157, Jared:

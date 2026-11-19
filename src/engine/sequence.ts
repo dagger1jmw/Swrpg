@@ -8,7 +8,8 @@ import { SEQUENCE_ADAPTATION, SEQUENCE_CAP, SEQUENCE_CHAIN } from '../data/seque
 import type { BodyPart, ForceEffort } from '../data/health.config';
 import type { ObjectSize } from '../data/terrain';
 import { canThrowSaber, FORCE_ACTION_ABILITY, forceReason, resolveForceAction, type ForceActionKind, type ForceActionRecord } from './combatForce';
-import { exchangeOutcomeText, hitText, partText, resolveExchange, settleEnd, type DuelContext, type DuelState } from './duel';
+import { beatAfter, exchangeOutcomeText, hitText, partText, resolveExchange, runUntilBeat, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type RunMode } from './duel';
+import type { BeatReason } from '../data/combat.config';
 import type { Modifier } from './rolls';
 import { basicRoll } from './rolls';
 
@@ -280,4 +281,54 @@ function cannotAttempt(step: SequenceStep, duel: DuelState, force: ForceProfile)
     if (traits.includes('mindImmune')) return `${t.name} can't be mind-tricked`;
   }
   return null;
+}
+
+/**
+ * Whether the passive buttons (Next beat, Fight on, Resolve to end) should try a recall first (D-208): the player is
+ * unarmed with their own saber on the ground, knows telekinesis, and the Force reaches here.
+ */
+export function canAutoRecall(duel: DuelState, ctx: DuelContext, force: ForceProfile): boolean {
+  return !!duel.a.saberLost && !duel.end && !ctx.forceNegated && force.levelOf('recall') >= 1;
+}
+
+export interface PassiveRun {
+  state: SequenceState;
+  records: ExchangeRecord[];
+  beat: BeatReason | null;
+  /** Step lines of the automatic recalls ("auto recall: step 1 saber recall: DONE (...)"). */
+  lines: string[];
+  /** Terrain accidents from the exchanges run (D-185). */
+  notes: string[];
+}
+
+/**
+ * A passive button's run (D-208, combat pass 2 blocker): when the player is unarmed with a recallable saber nearby,
+ * the first action is a recall (a Force action, with the opponents' exchange of D-204). A failed recall is retried at
+ * the next opportunity: Next beat stops after the attempt (a Force-action beat); Fight on stops after a failed attempt
+ * (the next press tries again) and goes on after a good one; Resolve to end retries until the saber is back or the fight
+ * ends. Then the exchanges run as before (runUntilBeat). Typed play is unchanged.
+ */
+export function runPassive(
+  s0: SequenceState,
+  ctx: DuelContext,
+  day: number,
+  mode: RunMode,
+  objectSizes: Readonly<Record<string, ObjectSize>>,
+  force: ForceProfile,
+  maxExchanges = 400,
+): PassiveRun {
+  let st = s0;
+  const records: ExchangeRecord[] = [];
+  const lines: string[] = [];
+  for (let tries = 0; tries < maxExchanges && canAutoRecall(st.duel, ctx, force); tries++) {
+    const from = st.duel.log.length;
+    const r = runSequence(st, ctx, day, [{ kind: 'forceAction', action: 'recall' }], 1, objectSizes, force);
+    st = r.state;
+    records.push(...st.duel.log.slice(from));
+    lines.push(...r.lines.map((l) => `auto recall: ${l}`));
+    if (st.duel.end) return { state: st, records, beat: beatAfter(st.duel), lines, notes: [] };
+    if (mode === 'beat' || (mode === 'fightOn' && st.duel.a.saberLost)) return { state: st, records, beat: 'forceAction', lines, notes: [] };
+  }
+  const run = runUntilBeat(st.duel, ctx, day, mode, maxExchanges);
+  return { state: { ...st, duel: run.state }, records: [...records, ...run.records], beat: run.beat ?? (lines.length && !run.records.length ? 'forceAction' : null), lines, notes: run.notes };
 }

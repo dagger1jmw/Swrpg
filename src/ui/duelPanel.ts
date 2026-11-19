@@ -30,7 +30,7 @@ const signed = (n: number): string => `${Math.round(n * 10) / 10 > 0 ? '+' : ''}
 export const abilityName = (id: string): string => SKILL_BY_ID.get(id)?.name ?? id;
 
 /** How a fight ended, in words (issue 21: "won (allOut)", "lost (sparring session (stopped))"). */
-const END_REASON: Readonly<Record<string, string>> = { allOut: 'every opponent is down', incapacitated: 'a fighter is down', dying: 'a fighter is dying', dead: 'a fighter is dead', spent: 'a fighter is spent', point: 'on a point', stopped: 'stopped' };
+const END_REASON: Readonly<Record<string, string>> = { allOut: 'every opponent is down', incapacitated: 'a fighter is down', dying: 'a fighter is dying', dead: 'a fighter is dead', spent: 'a fighter is spent', point: 'on a point', stopped: 'stopped', exhausted: 'a fighter collapsed from exhaustion', stalemate: 'an exhausted stalemate, both sides spent' };
 export function endText(outcome: string, reason: string): string {
   const why = END_REASON[reason] ?? reason.replace(/\s*\(([^()]*)\)/g, ': $1');
   return why && why !== outcome ? `${outcome}: ${why}` : outcome;

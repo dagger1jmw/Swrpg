@@ -16,11 +16,11 @@ import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.co
 import { FORM_IDS } from '../../data/skills';
 import { TERRAIN_BY_ID, TERRAIN_IDS, type ObjectSize } from '../../data/terrain';
 import { FORCE_ACTION_ABILITY, FORCE_ACTION_KINDS, type ForceActionKind } from '../../engine/combatForce';
-import { cannotDuel, currentTarget, runUntilBeat, startDuel, tryShatterpoint, type DuelState, type ExchangeRecord, type Fighter, type RunMode } from '../../engine/duel';
+import { cannotDuel, currentTarget, startDuel, tryShatterpoint, type DuelState, type ExchangeRecord, type Fighter, type RunMode } from '../../engine/duel';
 import { rollMinionGrade } from '../../engine/npcGen';
 import { basicRoll } from '../../engine/rolls';
 import { nextFloat, nextInt, type RngState } from '../../engine/rng';
-import { runSequence, sequenceCap, type SequenceStep } from '../../engine/sequence';
+import { runPassive, runSequence, sequenceCap, type SequenceStep } from '../../engine/sequence';
 import { isDying, isIncapacitated, type Wound } from '../../engine/wounds';
 import type { GameState } from '../../state/gameState';
 import type { ApplyCtx, FeatureModule, GameEvent } from '../../state/types';
@@ -238,7 +238,7 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
 }
 
 /** Outcome of a duel end for side A. */
-const outcomeOf = (d: DuelState): CombatOutcome => (d.end?.winner === 'A' ? 'won' : d.end?.winner === 'B' ? 'lost' : 'fled');
+const outcomeOf = (d: DuelState): CombatOutcome => (d.end?.winner === 'A' ? 'won' : d.end?.winner === 'B' ? 'lost' : d.end?.reason === 'stalemate' ? 'stalemate' : 'fled');
 
 /**
  * The rest of a sparring session resolved in code, like a montage (D-168): every remaining bout to its end, then the
@@ -551,13 +551,15 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           beat = 'playerNarrate';
         }
         if (mode) {
-          const r = runUntilBeat(duel, ctxD, day, mode);
-          duel = r.state;
-          notes.push(...r.notes);
+          // A dropped saber is recalled first by the passive buttons (D-208); typed play is unchanged.
+          const r = runPassive({ duel, patternUses: active.patternUses, objects: active.objects }, ctxD, day, mode, active.objectSizes, forceProfile(s));
+          duel = r.state.duel;
+          active = { ...active, patternUses: r.state.patternUses, objects: r.state.objects };
+          notes.push(...r.lines, ...r.notes);
           beat = r.beat;
           narrated = beat !== null && isNarratedBeat(beat as BeatReason);
         }
-        const settled = settle(slice, s, active, before, duel, beat, narrated, notes);
+        const settled = settle({ ...slice, active }, s, active, before, duel, beat, narrated, notes);
         return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
       },
     },

@@ -46,6 +46,11 @@ export const MANEUVER_EFFECT = { positionBonus: 1, knockdownAdvantage: 2, disarm
 export const EXCHANGE_SECONDS = { min: 5, max: 10 } as const;
 /** Physical load per exchange before the form's stamina multiplier (rolls §3, tunable). */
 export const EXERTION_PER_EXCHANGE = 0.08;
+/**
+ * Safety cap (Jared, combat pass 2, D-208): a real fight with no outcome after this many exchanges ends as an exhausted
+ * stalemate, both sides Spent. Sparring sessions keep their own exchange budget (D-168) and are exempt.
+ */
+export const FIGHT_SAFETY_CAP = { exchanges: 200 } as const;
 
 // ---- Precognitive defense, Force insight, shatterpoint (rolls §3, §6) ----
 /**

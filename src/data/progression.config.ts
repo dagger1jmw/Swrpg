@@ -287,7 +287,7 @@ export const CLOSED_FORM = { referenceLevel: 41, refStart: 4, refEnd: 20, warFac
 export const COMBAT_STAKES = ['spar', 'skirmish', 'serious', 'lethal'] as const;
 export type CombatStakes = (typeof COMBAT_STAKES)[number];
 /** interrupted (D-196): an outside event stopped the fight; nobody won, lost or fled, and the opponents are as they stood. */
-export const COMBAT_OUTCOMES = ['won', 'lost', 'fled', 'truce', 'interrupted'] as const;
+export const COMBAT_OUTCOMES = ['won', 'lost', 'fled', 'truce', 'interrupted', 'stalemate'] as const;
 export type CombatOutcome = (typeof COMBAT_OUTCOMES)[number];
 export const COMBAT_XP = {
   /** XP per exchange before challenge, stakes, outcome and M (tunable, §5). */
@@ -296,7 +296,7 @@ export const COMBAT_XP = {
   perForceUse: 0.1,
   stakes: { spar: 0.5, skirmish: 1.0, serious: 1.5, lethal: 2.0 } as Record<CombatStakes, number>,
   /** lost = lost and survived; an interrupted fight teaches what was fought at the fled factor, never the win factor (D-196). */
-  outcome: { won: 1.0, lost: 1.2, fled: 0.8, truce: 1.0, interrupted: 0.8 } as Record<CombatOutcome, number>,
+  outcome: { won: 1.0, lost: 1.2, fled: 0.8, truce: 1.0, interrupted: 0.8, stalemate: 0.8 } as Record<CombatOutcome, number>,
   /** Daily cap per skill, before M. */
   dailyCap: 12,
   /** The third and later fights in one day. */
