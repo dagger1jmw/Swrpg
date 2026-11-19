@@ -91,7 +91,7 @@ describe('a mind trick on an immune target costs nothing (D-194)', () => {
       const s = { duel: startDuel(forceUser('pc', 50), [t], seedRng('mt')), patternUses: {}, objects: {} };
       const r = runSequence(s, REAL, 0, [{ kind: 'forceAction', action: 'mindTrick' }], 3, {}, force);
       expect(r.results[0]!.status).toBe('dropped');
-      expect(r.results[0]!.note).toBe(`mind trick: dropped (${line})`);
+      expect(r.lines[0]).toBe(`step 1 mind trick: NOT REACHED (${line})`);
       expect(r.state.duel.log).toHaveLength(0);
       expect(r.state.duel.a.meters.f).toBe(0);
     });

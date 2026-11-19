@@ -79,7 +79,11 @@ class Sweep {
     // Sequences: each step of a 3-step sequence has a line (resolved, failed or dropped).
     if (pattern === 'mixed') {
       const lines = f.notes.filter((n) => /^step \d/.test(n));
-      if (lines.filter((n) => n.startsWith('step 1 ')).length !== lines.filter((n) => n.startsWith('step 3 ')).length) this.issue('stepLineMissing', 'a sequence without a step-3 line', seed, config);
+      // A single Force action logs only a step 1 line; a 3-step sequence logs steps 1 to 3, each DONE, FAILED or NOT REACHED (D-197).
+      if (lines.filter((n) => n.startsWith('step 2 ')).length !== lines.filter((n) => n.startsWith('step 3 ')).length) this.issue('stepLineMissing', 'a sequence without a step-3 line', seed, config);
+      const unmarked = lines.find((n) => !/: (DONE|FAILED|NOT REACHED) \(/.test(n));
+      if (unmarked) this.issue('stepLineUnmarked', unmarked, seed, config);
+      if (lines.some((n) => /lands/.test(n))) this.issue('stepSaysLands', lines.find((n) => /lands/.test(n)) ?? '', seed, config);
     }
     // A finished fight with a known Force ability used gives that ability CI.
     const used = new Set(d.log.filter((r) => r.force && !r.force.misfire && r.force.side === 'A').map((r) => r.force!.abilityId));

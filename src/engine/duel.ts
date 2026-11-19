@@ -715,3 +715,30 @@ export function startDuel(a: Fighter, opponents: readonly Fighter[], rng: RngSta
     rng,
   };
 }
+
+/** Body parts in plain words (logs and the narrator's block never show raw ids; D-197). */
+export const PART_TEXT: Readonly<Record<string, string>> = { head: 'head', torso: 'torso', leftArm: 'left arm', rightArm: 'right arm', leftLeg: 'left leg', rightLeg: 'right leg', leftHand: 'left hand', rightHand: 'right hand' };
+export const partText = (part: string): string => PART_TEXT[part] ?? part;
+
+/**
+ * A landed hit in plain words (D-197): what it did, with the location and the severity. Only real hits say "hits".
+ * "hits X: moderate wound to the left arm", "hits X: the right leg is severed", "hits X: no wound, stamina only".
+ */
+export function hitText(hit: Pick<Hit, 'severity' | 'part' | 'severed'>, target: string): string {
+  if (hit.severed) return `hits ${target}: the ${partText(hit.part)} is severed`;
+  return hit.severity ? `hits ${target}: ${hit.severity} wound to the ${partText(hit.part)}` : `hits ${target}: no wound, stamina only`;
+}
+
+/**
+ * What one exchange record did for side A as a step outcome (D-197): a real hit, a maneuver, ground gained, or not.
+ * Build-up exchanges never say "lands": they gain ground, hold or lose ground.
+ */
+export function exchangeOutcomeText(rec: ExchangeRecord, targetName: string, targetOut: boolean): { ok: boolean; text: string } {
+  if (rec.hit && !rec.hit.avoided && rec.hit.by === 'A' && !rec.hit.point) return { ok: true, text: `${hitText(rec.hit, targetName)}${targetOut ? '; out of the fight' : ''}` };
+  if (rec.hit?.point && rec.hit.by === 'A') return { ok: true, text: `lands a touch on ${targetName}: the bout ends on a point` };
+  if (rec.maneuver?.by === 'A') return { ok: true, text: rec.maneuver.kind === 'position' ? 'takes the better position' : rec.maneuver.kind === 'knockdown' ? `knocks ${targetName} down` : `disarms ${targetName}` };
+  if (rec.kind === 'strike' && rec.striker === 'A') return { ok: false, text: rec.hit?.avoided ? `misses: ${targetName} avoids the strike` : `misses ${targetName}: no hit` };
+  if (rec.kind === 'strike') return { ok: false, text: `${targetName} holds the strike: no opening to attack` };
+  if (rec.advAfter > rec.advBefore) return { ok: true, text: 'gains ground; no hit' };
+  return { ok: false, text: rec.advAfter < rec.advBefore ? 'loses ground; no hit' : 'holds; no ground gained, no hit' };
+}

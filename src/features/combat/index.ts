@@ -494,7 +494,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
             else {
               const r = runSequence({ duel, patternUses: active.patternUses, objects: active.objects }, ctxD, day, [{ kind: 'tactic', tactic: t === 'taunt' ? 'taunt' : 'feint' }], 1, active.objectSizes, forceProfile(s));
               duel = r.state.duel;
-              notes.push(...r.results.map((x) => x.note));
+              notes.push(...r.lines);
             }
           }
         } else if (action === 'force') {
@@ -502,7 +502,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           const ability = FORCE_ACTION_ABILITY[f.kind];
           if (selectLevelExact(s, ability) < 1) return { reject: `the character does not know ${ability}` };
           const r = runSequence({ duel, patternUses: active.patternUses, objects: active.objects }, ctxD, day, [{ kind: 'forceAction', action: f.kind, ...(f.effort ? { effort: f.effort } : {}), ...(f.objectTag ? { objectTag: f.objectTag } : {}) }], 1, active.objectSizes, forceProfile(s));
-          const settled = settle({ ...slice, active: { ...active, patternUses: r.state.patternUses, objects: r.state.objects } }, s, { ...active, patternUses: r.state.patternUses, objects: r.state.objects }, before, r.state.duel, ...beatFor(duel, r.state.duel, 'forceAction'), r.results.map((x) => x.note));
+          const settled = settle({ ...slice, active: { ...active, patternUses: r.state.patternUses, objects: r.state.objects } }, s, { ...active, patternUses: r.state.patternUses, objects: r.state.objects }, before, r.state.duel, ...beatFor(duel, r.state.duel, 'forceAction'), r.lines);
           return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };
         } else if (action === 'shatterpoint') {
           const r = tryShatterpoint(duel, 'A');

@@ -10,10 +10,10 @@ import { makeEstimator } from '../ai/tokenRatio';
 import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { orderSeatAt } from '../data/orderSeats';
-import type { ExchangeRecord } from '../engine/duel';
 import { selectIsDying, selectIsSpent, selectLasting, selectStatusLabel, selectWounds } from '../features/health/selectors';
 import type { CombatDraft } from './combatTurn';
-import { forceReason } from '../engine/combatForce';
+import { combatFacts, weaponText } from './combatFacts';
+import { partText } from '../engine/duel';
 import type { CheckCard } from '../engine/rolls';
 import { ACTIVITIES } from '../data/activities';
 import { archetypeDef } from '../data/archetypes';
@@ -84,6 +84,8 @@ export interface BuildOptions {
   /** Characters of the response JSON Schema (counted, uncapped). */
   schemaChars?: number;
   lore?: LoreIndex;
+  /** A retry after the narration check (D-197): the contradictions found in the discarded narration. */
+  correction?: readonly string[];
 }
 
 type Estimate = (text: string) => number;
@@ -356,42 +358,21 @@ export function describeTraining(t: NonNullable<TurnDraft['training']>): string[
   return lines;
 }
 
-/** One exchange as a line for the narrator (the margins and hits are ground truth; D-145). */
-function describeExchange(r: ExchangeRecord, names: Record<string, string>): string {
-  const t = names[r.targetId] ?? r.targetId;
-  const pc = names['pc'] ?? 'the player character';
-  const by = (side: 'A' | 'B'): string => (side === 'A' ? pc : t);
-  if (r.kind === 'force' && r.force) {
-    const f = r.force;
-    // The engine's reason is ground truth: the narrator explains a failure only with it (D-192).
-    const what = f.kind === 'saberThrow' ? 'throws the lightsaber' : f.kind === 'recall' ? 'calls the dropped lightsaber back' : `uses ${f.abilityId}${f.kind === 'throw' ? ' to hurl an object' : ''}`;
-    const reason = f.success ? 'succeeds' : forceReason(f);
-    return `#${r.n}${r.step !== undefined ? ` (sequence step ${r.step + 1})` : ''} ${by(f.side)} ${what} on ${f.side === 'A' ? t : pc}: ${reason}${f.damage ? `, ${f.damage.severity ?? 'no'} wound to the ${f.damage.part}` : ''}${f.stoodDown ? `; ${t} stands down and leaves the fight` : ''}.${f.success ? '' : ' Explain the failure only with this reason; nothing else in the scene blocked it.'}`;
-  }
-  if (r.kind === 'buildUp') {
-    const lead = r.advAfter > r.advBefore ? `${pc} gains ground` : r.advAfter < r.advBefore ? `${t} gains ground` : 'neither gains ground';
-    return `#${r.n} exchange: ${lead} (margin ${fmt(r.margin)}).${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`;
-  }
-  const striker = by(r.striker ?? 'A');
-  const defender = r.striker === 'A' ? t : pc;
-  let what: string;
-  if (r.maneuver) what = `${striker} lands a ${r.maneuver.kind} maneuver`;
-  else if (!r.hit) what = `${striker} strikes; ${defender} recovers (margin ${fmt(r.margin)})`;
-  else if (r.hit.avoided) what = `${striker} strikes; ${defender} avoids it with precognition`;
-  else if (r.hit.point) what = `${striker} lands a touch: the bout ends on a point`;
-  else {
-    const who = r.hit.redirected ? `${by(r.hit.by)} redirects the bolt into the shooter` : `${striker} lands a ${r.hit.quality} hit on ${defender}`;
-    what = `${who}: ${r.hit.severed ? `the ${r.hit.part} is severed` : r.hit.severity ? `${r.hit.severity} wound to the ${r.hit.part}` : 'no wound, only stamina lost'}`;
-  }
-  return `#${r.n}${r.surprise ? ' (surprise)' : ''}${r.step !== undefined ? ` (sequence step ${r.step + 1})` : ''} ${what}.${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`;
-}
-
+/**
+ * The combat block (D-145; rewritten by D-197): an explicit outcome list. Per exchange HIT (target, location, severity)
+ * or NO HIT; per step DONE, FAILED (reason) or NOT REACHED; a "Did not happen" line; each fighter's weapon. The
+ * narrator may describe nothing that is not here.
+ */
 export function describeCombat(c: CombatDraft): string[] {
-  const names = Object.fromEntries(c.fighters.map((f) => [f.id, f.name]));
-  const lines = [`COMBAT ${c.fightId}${c.started ? ' (the fight begins now)' : ''}: narrate these exchanges in order, nothing more.`];
-  for (const r of c.narrate) lines.push(describeExchange(r, names));
-  lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}`).join('; ')}.`);
-  for (const n of c.notes.filter((x) => /^step \d|^intent step|sequence|not attempted|dropped/.test(x))) lines.push(`Sequence: ${n}`);
+  const facts = combatFacts(c);
+  const lines = [`COMBAT ${c.fightId}${c.started ? ' (the fight begins now)' : ''}: the outcome list. Narrate these exchanges in order, nothing more and nothing different.`];
+  lines.push(`Weapons (the only ones in this fight): ${c.fighters.map((f) => `${f.name}: ${weaponText(f.weapon)}${f.form ? ` (${SKILL_BY_ID.get(f.form)?.name ?? f.form})` : ''}`).join('; ')}.`);
+  lines.push(...facts.lines);
+  if (facts.steps.length) lines.push(`Steps the player asked for: ${facts.steps.map((s) => `step ${s.index + 1} ${s.label}: ${s.status} (${s.detail})`).join('; ')}.`);
+  for (const n of c.notes.filter((x) => x.startsWith('intent step'))) lines.push(`Sequence: ${n}`);
+  lines.push(`Hits in this passage: ${facts.hits.length ? facts.hits.map((h) => `#${h.n} on ${h.targetName} (${partText(h.part)}, ${h.severed ? 'severed' : h.severity ? `${h.severity} wound` : 'no wound'})`).join('; ') : 'NONE: nobody was hit, wounded or touched'}.`);
+  if (facts.didNotHappen.length) lines.push(`Did not happen (never describe these as happening): ${facts.didNotHappen.join('; ')}.`);
+  lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}${f.lostParts.length ? ` (lost: ${f.lostParts.map(partText).join(', ')})` : ''}`).join('; ')}.`);
   // Terrain accidents (D-144, D-184): ground truth like the exchanges.
   for (const n of c.notes.filter((x) => x.startsWith('terrain: '))) lines.push(`Terrain accident: ${n.slice(9)}.`);
   if (c.session) {
@@ -403,8 +384,28 @@ export function describeCombat(c: CombatDraft): string[] {
   return lines;
 }
 
-export function resolvedBlock(draft: TurnDraft): string {
+/** The care the engine applied this turn (careStarted, woundsStabilized), or a plain "none". */
+export function careApplied(draft: TurnDraft): string[] {
+  const out: string[] = [];
+  for (const a of draft.applied) {
+    const e = a.event as { type?: string; kind?: string; by?: string };
+    if (e.type === 'careStarted') out.push(e.kind === 'bacta' ? 'bacta' : e.kind === 'forceHealer' ? 'forceHealer' : 'medical');
+    if (e.type === 'woundsStabilized') out.push('stabilized');
+  }
+  return out;
+}
+const CARE_TEXT: Readonly<Record<string, string>> = { medical: 'ordinary medical care (a medic, medpacs, a medcenter bed)', bacta: 'a bacta tank', forceHealer: 'a Force healer', stabilized: 'the wounds were stabilized' };
+function careLine(draft: TurnDraft): string {
+  const care = [...new Set(careApplied(draft))];
+  return care.length
+    ? `Care applied this turn: ${care.map((c) => CARE_TEXT[c] ?? c).join('; ')}. Describe no other treatment (no bacta, no Force healing) unless it is listed here.`
+    : 'Care applied this turn: none. Wounds heal only by rest and time: describe no bacta, kolto, medpacs, medics or Force healing treating the character.';
+}
+
+export function resolvedBlock(draft: TurnDraft, correction: readonly string[] = []): string {
   const lines = ['RESOLVED (ground truth; narrate consistently with it)'];
+  // A retry after the narration check (D-197): the contradictions to remove.
+  if (correction.length) lines.push(`CORRECTION: your last narration of this turn contradicted RESOLVED and was discarded. Write it again without these errors: ${correction.join(' | ')}`);
   if (draft.combat) lines.push(...describeCombat(draft.combat));
   if (draft.intent) lines.push(`Player action type: ${draft.intent.actionType}`);
   if (draft.checks.length === 0) lines.push('Checks: none required. Do not invent a success or failure that would need a roll.');
@@ -415,6 +416,8 @@ export function resolvedBlock(draft: TurnDraft): string {
     lines.push(`Time already advanced by the engine: ${formatSpan(draft.timeAdvanced.seconds)} (${draft.timeAdvanced.reason}). Narrate that stretch; do not add more time.`);
   }
   for (const n of draft.notices) lines.push(`Notice: ${n}`);
+  // Healing is only the care the engine applied (D-197): no bacta, healer or medicine beyond this line.
+  if (draft.jump || draft.intent?.actionType === 'heal' || draft.intent?.healing || careApplied(draft).length) lines.push(careLine(draft));
   return lines.join('\n');
 }
 
@@ -527,7 +530,7 @@ export function buildNarrativeRequest(state: GameState, draft: TurnDraft, input:
   const arc = arcSection(state, est);
   const mem = memorySection(state, referenced, playerText, recent.fromTurn, est, caps.memory);
   const lore = loreSection(state, referenced, playerText, est, opts.lore ?? LORE_INDEX);
-  const resolved = resolvedBlock(draft);
+  const resolved = resolvedBlock(draft, opts.correction ?? []);
   const playerLine = input.kind === 'opening' ? `OPENING${input.premise ? `\nPlayer premise: ${input.premise}` : ''}` : `PLAYER ACTION: ${describeInput(input)}`;
 
   const scenario = devScenarioBlock(state, input.kind === 'opening' ? (input.scenario ?? null) : pendingScenario(history), input.kind === 'opening');

@@ -140,7 +140,7 @@ describe('saber throw (D-193)', () => {
     const s = { duel: startDuel(knight(), [minion(0), minion(1)], seedRng('seq')), patternUses: {}, objects: {} };
     const r = runSequence(s, CTX, 0, [{ kind: 'forceAction', action: 'saberThrow' }, { kind: 'strike' }], 3, {}, { levelOf: () => 0, ciOf: () => 0, forceOutput: 0, trickLevel: 0 });
     expect(r.results[0]!.status).toBe('dropped');
-    expect(r.lines[0]).toMatch(/step 1 saber throw: dropped \(the character does not know telekinesis\)/);
+    expect(r.lines[0]).toBe('step 1 saber throw: NOT REACHED (the character does not know telekinesis)');
     expect(r.results[1]!.step.kind).toBe('strike');
   });
 });

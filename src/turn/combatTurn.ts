@@ -141,6 +141,8 @@ export interface CombatFighterView {
   minion: boolean;
   weapon: string;
   form: string | null;
+  /** Limbs already severed (this fight or before): the narration may mention them (D-197). */
+  lostParts: string[];
 }
 
 export interface CombatDraft {
@@ -192,10 +194,11 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   minion: f.minion,
   weapon: f.weapon,
   form: f.form,
+  lostParts: (f.wounds as Wound[]).filter((w) => w.severed).map((w) => w.part),
 });
 
 function noEffectLine(notes: readonly string[]): string {
-  const m = notes.map((n) => /dropped \((.+)\)$/.exec(n)?.[1]).find((x) => x);
+  const m = notes.map((n) => /NOT REACHED \((.+)\)$/.exec(n)?.[1]).find((x) => x);
   return m ? `${m[0]!.toUpperCase()}${m.slice(1)}.` : 'Nothing happens.';
 }
 

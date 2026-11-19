@@ -22,7 +22,8 @@ import type { TurnInput } from '../../src/turn/record';
 
 const START = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 const reply = (events: unknown[] = []) => ({
-  narrative: 'Blades meet in a shower of sparks.',
+  // Names every wound location, so the narration check (D-197) never finds a wound left out of this stock reply.
+  narrative: 'Blades meet in a shower of sparks; arm, leg, hand, torso and head all feel the fight.',
   choices: [
     { label: 'Press the attack', intent: { actionType: 'fight' } },
     { label: 'Give ground', intent: { actionType: 'fight' } },

@@ -7,8 +7,8 @@ import { CIRCUMSTANCE, STRIKE_AT, type Maneuver, type Stance, type Tactic } from
 import { SEQUENCE_ADAPTATION, SEQUENCE_CAP, SEQUENCE_CHAIN } from '../data/sequence.config';
 import type { BodyPart, ForceEffort } from '../data/health.config';
 import type { ObjectSize } from '../data/terrain';
-import { canThrowSaber, FORCE_ACTION_ABILITY, forceReason, resolveForceAction, type ForceActionKind } from './combatForce';
-import { resolveExchange, settleEnd, type DuelContext, type DuelState } from './duel';
+import { canThrowSaber, FORCE_ACTION_ABILITY, forceReason, resolveForceAction, type ForceActionKind, type ForceActionRecord } from './combatForce';
+import { exchangeOutcomeText, partText, resolveExchange, settleEnd, type DuelContext, type DuelState } from './duel';
 import type { Modifier } from './rolls';
 import { basicRoll } from './rolls';
 
@@ -118,13 +118,13 @@ export function runSequence(
     // A step that cannot be attempted is dropped with its reason and the chain goes on (D-191: no silent drops).
     const cannot = cannotAttempt(step, duel, force);
     if (cannot) {
-      results.push({ index: i, step, success: false, status: 'dropped', note: `${stepLabel(step)}: dropped (${cannot})` });
+      results.push({ index: i, step, success: false, status: 'dropped', note: cannot });
       continue;
     }
     if (step.kind === 'stance') {
       st = { ...st, duel: { ...duel, a: { ...duel.a, stance: step.stance } } };
       success = true;
-      note = `stance: ${step.stance}`;
+      note = `${step.stance} stance set`;
     } else if (step.kind === 'tactic') {
       // Opening contest (rolls §5): d20 + trick level / 10 vs d20 + Willpower or Force Sense / 10.
       const target = duel.opponents[duel.target]!;
@@ -133,13 +133,13 @@ export function runSequence(
       success = u.total >= d.total && u.natural !== 'nat1';
       const gain = success ? (firstUse ? Math.max(CIRCUMSTANCE.openingAdvantage, STRIKE_AT - duel.advantage) : CIRCUMSTANCE.openingAdvantage) : 0;
       st = { ...st, duel: { ...duel, rng: r2, advantage: Math.min(5, duel.advantage + gain) } };
-      note = `${step.tactic}: ${success ? 'opening' : 'seen through'}`;
+      note = `${success ? 'an opening' : 'seen through'}: ${duel.a.name} d20 ${u.d20} = ${u.total.toFixed(1)} vs ${target.name} d20 ${d.d20} = ${d.total.toFixed(1)} (margin ${(u.total - d.total).toFixed(1)})`;
     } else if (step.kind === 'forceAction') {
       let size: ObjectSize | undefined;
       if (step.action === 'throw') {
         const tag = step.objectTag ?? Object.keys(st.objects).find((k) => (st.objects[k] ?? 0) > 0);
         if (!tag || (st.objects[tag] ?? 0) <= 0) {
-          results.push({ index: i, step, success: false, status: 'dropped', note: `${stepLabel(step)}: dropped (nothing left to throw here)` });
+          results.push({ index: i, step, success: false, status: 'dropped', note: 'nothing left to throw here' });
           continue;
         }
         size = objectSizes[tag];
@@ -169,7 +169,7 @@ export function runSequence(
       const from = duel.log.length;
       st = { ...st, duel: { ...next, log: next.log.map((e, k) => (k >= from ? { ...e, step: i } : e)) } };
       splitDefense = success && step.action === 'throw';
-      note = `${stepLabel(step)}: ${success ? 'success' : forceReason(r.record)}`;
+      note = success ? forceSuccessText(r.record, duel.opponents[duel.target]?.name ?? 'the target') : forceReason(r.record);
     } else {
       if (step.kind === 'maneuver') st = { ...st, duel: { ...duel, a: { ...duel.a, pendingManeuver: step.maneuver } } };
       // An aimed strike step (D-171).
@@ -185,7 +185,9 @@ export function runSequence(
       else success = after.advantage > before.advantage;
       if (natural1) success = false;
       st = { ...st, duel: after };
-      note = `${step.kind}${step.kind === 'maneuver' ? ` (${step.maneuver})` : ''}: ${success ? 'lands' : 'fails'}`;
+      // Plain outcome (D-197): a real hit says hits with its location and severity; a build-up gains ground, holds or loses it.
+      const tgt = after.opponents.find((o) => o.id === rec.targetId);
+      note = exchangeOutcomeText(rec, tgt?.name ?? 'the opponent', tgt?.out === true).text;
       if (step.kind !== 'maneuver') splitDefense = false;
     }
     st = { ...st, duel: settleEnd(st.duel) };
@@ -207,11 +209,28 @@ export function runSequence(
   const dropped = used.slice(results.length);
   const why = stopReason === 'stepFailed' ? 'an earlier step failed' : stopReason === 'opponentStrike' ? 'the opponent seized the strike' : 'the fight ended';
   const lines = [
-    ...results.map((r) => `step ${r.index + 1} ${r.note}`),
-    ...dropped.map((d, k) => `step ${results.length + k + 1} ${stepLabel(d)}: dropped (${why})`),
-    ...truncated.map((d, k) => `step ${used.length + k + 1} ${stepLabel(d)}: dropped (past the sequence cap of ${cap})`),
+    ...results.map((r) => stepLine(r.index, r.step, r.status, r.note)),
+    ...dropped.map((d, k) => stepLine(results.length + k, d, 'dropped', why)),
+    ...truncated.map((d, k) => stepLine(used.length + k, d, 'dropped', `past the sequence cap of ${cap}`)),
   ];
   return { state: st, results, truncated, dropped, stopReason, lines };
+}
+
+/** Step statuses in the log and the narrator's block (D-197). */
+export const STEP_STATUS_TEXT = { resolved: 'DONE', failed: 'FAILED', dropped: 'NOT REACHED' } as const;
+/** One step's line: "step 2 strike: DONE (hits B1 battle droid 1: moderate wound to the left arm; out of the fight)". */
+export const stepLine = (index: number, step: SequenceStep, status: StepResult['status'], detail: string): string => `step ${index + 1} ${stepLabel(step)}: ${STEP_STATUS_TEXT[status]} (${detail})`;
+
+/** What a successful Force step did, in plain words. */
+function forceSuccessText(r: ForceActionRecord, target: string): string {
+  if (r.kind === 'saberThrow') {
+    const hits = (r.saberHits ?? []).filter((h) => h.quality).length;
+    return `the saber flies its arc (${hits} of ${(r.saberHits ?? []).length} strikes hit; each is listed) and returns to hand`;
+  }
+  if (r.kind === 'recall') return 'the saber flies back to hand';
+  if (r.kind === 'mindTrick') return r.stoodDown ? `${target} stands down and leaves the fight` : `${target} hesitates: an opening`;
+  if (r.damage) return r.damage.severity ? `hits ${target}: ${r.damage.severity} wound to the ${partText(r.damage.part)}` : `hits ${target}: no wound, stamina only`;
+  return `${target} is thrown off balance: an opening, no injury`;
 }
 
 /** A step's name for the log. */

@@ -78,15 +78,19 @@ describe('no silent step drops (D-191)', () => {
       expect(first.rollA).not.toBeNull();
       const notes = c.notes.join('\n');
       // Every step the sequence had appears: resolved, failed, or dropped with a reason.
-      expect(notes).toMatch(/step 1 stance: aggressive/);
-      expect(notes).toMatch(/step 2 strike: (lands|fails)/);
-      expect(notes).toMatch(/step 3 Force push: (success|fails|dropped \(.+\))/);
+      expect(notes).toMatch(/step 1 stance \(aggressive\): DONE \(aggressive stance set\)/);
+      // A strike roll: a real hit says hits with the location and severity; a miss says misses. Never "lands".
+      expect(notes).toMatch(/step 2 strike: (DONE \(hits B1 battle droid \d+: .+\)|FAILED \(misses.+\))/);
+      expect(notes).not.toMatch(/lands/);
+      expect(notes).toMatch(/step 3 Force push: (DONE|FAILED|NOT REACHED) \(.+\)/);
       const forceAt = c.records.findIndex((r) => r.kind === 'force');
       if (forceAt >= 0) expect(forceAt).toBeGreaterThan(0);
       // The narrator's block lists every step too (resolved and failed, not only dropped ones).
       const block = describeCombat(c).join('\n');
-      expect(block).toMatch(/Sequence: step 1 stance: aggressive/);
-      expect(block).toMatch(/Sequence: step 2 strike: (lands|fails)/);
+      expect(block).toMatch(/Steps the player asked for: step 1 stance \(aggressive\): DONE/);
+      expect(block).toMatch(/step 2 strike: (DONE|FAILED)/);
+      expect(block).toMatch(/Weapons \(the only ones in this fight\): Test knight: a lightsaber.*B1 battle droid 1: a blaster rifle/);
+      expect(block).toMatch(/Hits in this passage: /);
     });
   }
   it('the reconciler: attack verbs are strike steps in the text order, nouns and parries are not', () => {
@@ -158,5 +162,42 @@ describe('a typed mind trick on a droid (D-194)', () => {
     expect(c.quietLine).toBe("Droids can't be mind-tricked.");
     expect(provider.calls.slice(before).map((x) => x.opts.callType)).toEqual(['intent']);
     expect(t.session.state.health.meters.f).toBe(s.state.health.meters.f);
+  });
+});
+
+describe('the narration check in the pipeline (D-197)', () => {
+  const said = (narrative: string): FixtureStep => ({ callType: 'narrative', data: { ...reply(), narrative } });
+  const BAD = 'You spring forward and your blade catches the nearest droid cleanly, and you sever its arm at the shoulder.';
+  const GOOD = 'You hold your guard as the droids fan out among the trees, blasters levelled.';
+  it('a contradicting narration is retried once with the same draft and the contradictions listed', async () => {
+    const { deps, provider } = setup([...many(1), said(BAD), said(GOOD)]);
+    const s = await knightVsB1(deps, 'nc1');
+    const before = provider.calls.length;
+    const t = await playTurn(deps, s, beat('narrate'));
+    const made = provider.calls.slice(before);
+    expect(made.map((c) => c.opts.callType)).toEqual(['narrative', 'narrative']);
+    expect(JSON.stringify(made[1]!.messages)).toMatch(/CORRECTION: your last narration of this turn contradicted RESOLVED/);
+    expect(JSON.stringify(made[0]!.messages)).not.toMatch(/CORRECTION/);
+    expect(t.record.narrative).toBe(GOOD);
+    expect(t.record.draft.report.join('\n')).toMatch(/narration check: \d contradiction\(s\) with RESOLVED \(.*hitNotInLog.*\).*retrying once/);
+    expect(t.record.draft.report.join('\n')).toMatch(/narration check: the retry is consistent/);
+    // The same dice: the retry changed nothing in the fight.
+    expect((t.session.state.combat.active!.duel as DuelState).exchange).toBe((s.state.combat.active!.duel as DuelState).exchange);
+  });
+  it('when the retry still contradicts the block, code-written lines are used and it is logged', async () => {
+    const { deps, provider } = setup([...many(1), said(BAD), said(BAD)]);
+    const s = await knightVsB1(deps, 'nc2');
+    const before = provider.calls.length;
+    const t = await playTurn(deps, s, beat('narrate'));
+    expect(provider.calls.slice(before)).toHaveLength(2);
+    expect(t.record.narrative).not.toMatch(/sever|catches the nearest droid/);
+    expect(t.record.draft.report.join('\n')).toMatch(/code-written lines used instead/);
+  });
+  it('a consistent narration makes no second call', async () => {
+    const { deps, provider } = setup([...many(1), said(GOOD)]);
+    const s = await knightVsB1(deps, 'nc3');
+    const before = provider.calls.length;
+    await playTurn(deps, s, beat('narrate'));
+    expect(provider.calls.slice(before)).toHaveLength(1);
   });
 });

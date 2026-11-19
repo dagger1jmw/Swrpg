@@ -258,7 +258,8 @@ describe('sequences (D-146)', () => {
     for (let i = 0; i < 2; i++) st = runSequence(st, REAL, 0, step, 1, { looseRock: 'small' }, force).state;
     expect(st.objects['looseRock']).toBe(0);
     const r = runSequence(st, REAL, 0, step, 1, { looseRock: 'small' }, force);
-    expect(r.results[0]!.note).toBe('Force throw: dropped (nothing left to throw here)');
+    expect(r.results[0]!.note).toBe('nothing left to throw here');
+    expect(r.lines[0]).toBe('step 1 Force throw: NOT REACHED (nothing left to throw here)');
     expect(r.results[0]!.status).toBe('dropped');
   });
   it('fairness: against an equal opponent at the largest stacked bonus no step succeeds more than 90% of the time', () => {

@@ -21,6 +21,8 @@ import { SUMMARY_RETRIES_PER_CLOSE } from '../data/memory.config';
 import { PACING_OUTPUT_CAPS } from '../data/pacing.config';
 import { normalizeAlias } from '../engine/aliases';
 import { dateFromAbsDay } from '../engine/calendar';
+import { checkNarration, fallbackNarration } from './narrationCheck';
+import { selectWounds } from '../features/health/selectors';
 import { selectNow } from '../features/clock/selectors';
 import { selectOpenReview, selectPendingChapters } from '../features/memory/selectors';
 import { selectNpcs } from '../features/npcs/selectors';
@@ -299,6 +301,31 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
       throw new TurnError('narrate', e, calls, { ...pending, calls });
     }
     narrativeReport = settleReport(deps, req, calls, 'narrative');
+
+    // The narration check (D-197): a narration that contradicts the resolved block is retried once with the same
+    // TurnDraft and the contradictions listed; if the retry still contradicts it, code-written lines replace it.
+    const woundedOrHealing = selectWounds(resolved).length > 0 || draft.jump !== null || draft.intent?.actionType === 'heal';
+    let issues = checkNarration(reply.narrative, draft, woundedOrHealing);
+    if (issues.length) {
+      modelNotes.push(`narration check: ${issues.length} contradiction(s) with RESOLVED (${issues.map((i) => i.kind).join(', ')}): "${issues[0]!.sentence.slice(0, 160)}"; retrying once`);
+      const retryReq = buildNarrativeRequest(resolved, draft, pending.input, session.history, { ...buildOpts(deps, 'narrative', schemas.wire), correction: issues.map((i) => i.text) });
+      deps.onRequest?.({ callType: 'narrative', ...retryReq });
+      const retryOpts: BaseOptions = { ...callOptions('narrative', retryReq.system, budget), wireSchema: schemas.wire };
+      let second: typeof reply | null = null;
+      try {
+        second = await callModel(deps, calls, modelNotes, retryOpts, (opts: CallOptions) => deps.provider.generateStructured(schemas.parse, retryReq.messages, opts));
+      } catch (e) {
+        modelNotes.push(`narration check: the retry failed (${e instanceof Error ? e.message : 'error'})`);
+      }
+      if (second) {
+        reply = second;
+        issues = checkNarration(reply.narrative, draft, woundedOrHealing);
+      }
+      if (issues.length) {
+        modelNotes.push(`narration check: still contradicting RESOLVED (${issues.map((i) => i.kind).join(', ')}); code-written lines used instead`);
+        reply = { ...reply, narrative: fallbackNarration(reply.narrative, draft, issues) };
+      } else modelNotes.push('narration check: the retry is consistent');
+    }
   }
 
   // d. Validate and apply the narrative events (AI source), then the scene object. Only the event
