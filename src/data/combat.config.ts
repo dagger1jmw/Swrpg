@@ -31,8 +31,9 @@ export const CUT_DOWN_MARGIN = 6;
 /**
  * A strike that misses or is blocked (precognitive defense, a recovery) keeps the pressure: the track moves this
  * many steps toward 0 instead of resetting (D-156, Jared; rolls §3 amended). A landed hit or maneuver still resets.
+ * 2 since D-206 (was 1): retuned with PRECOG to bring duel length back after the severed-leg rule (D-198).
  */
-export const MISSED_STRIKE_STEP = 1;
+export const MISSED_STRIKE_STEP = 2;
 
 export const MANEUVERS = ['position', 'knockdown', 'disarm'] as const;
 export type Maneuver = (typeof MANEUVERS)[number];
@@ -48,10 +49,11 @@ export const EXERTION_PER_EXCHANGE = 0.08;
 
 // ---- Precognitive defense, Force insight, shatterpoint (rolls §3, §6) ----
 /**
- * Precognitive defense (rolls §3 as amended by D-156, Jared): chance min(0.25, Force Sense / 400), +0.10 centered.
- * Was min(0.5, FS / 200); halved so duels reach the rolls.md duration targets.
+ * Precognitive defense (rolls §3 as amended by D-156 and D-206, Jared): chance min(0.4, Force Sense / 250), +0.10
+ * centered. Was min(0.5, FS / 200) at first, min(0.25, FS / 400) under D-156; retuned in D-206 with MISSED_STRIKE_STEP
+ * after the severed-leg rule (D-198) shortened duels.
  */
-export const PRECOG = { load: 0.4, maxChance: 0.25, perForceSense: 1 / 400, centeredBonus: 0.1, maxForceMeter: 1.0 } as const;
+export const PRECOG = { load: 0.4, maxChance: 0.4, perForceSense: 1 / 250, centeredBonus: 0.1, maxForceMeter: 1.0 } as const;
 export const FORCE_INSIGHT = { minForceSense: 60, gapAtLeast: 15, perForceSense: 1 / 200, lightBonus: 0.1, advantage: 2 } as const;
 export const SHATTERPOINT_COMBAT = { dc: 15, advantage: 3, forceLoad: 0.3 } as const;
 

@@ -50,14 +50,14 @@ Strike exchange (a side has advantage >= 3; that side is the striker):
   4-7 graze | 8-11 solid | 12-15 clean | 16+ critical  (hit quality for health spec sec 4)
   Instead of a hit, the striker may take a maneuver: gain position 2+ | knockdown 4+ | disarm 8+
   After a strike that lands (a hit or a maneuver), advantage resets to 0. A strike that misses or is blocked
-    (recovery, precognitive defense) keeps the pressure: the track moves 1 step toward 0 (amended by D-156).
+    (recovery, precognitive defense) keeps the pressure: the track moves 2 steps toward 0 (amended by D-156; 2 since D-206, was 1).
   Bands (build-up steps, hit quality, maneuver thresholds) read the margin rounded to the nearest whole point, so a
     fraction of a level never tips a band edge (D-156). Circumstances on a side's total (matchups, position, footing,
     numbers) count on both its attack and defense rolls; stance and state of mind split as listed (D-156).
 
 Precognitive defense: when struck, a defender with Force Sense may spend 0.4 Force load to
-  avoid the strike, with chance min(0.25, Force Sense / 400), +0.10 when centered (amended by D-156;
-  was min(0.5, Force Sense / 200)). Not usable
+  avoid the strike, with chance min(0.4, Force Sense / 250), +0.10 when centered (amended by D-206;
+  was min(0.5, Force Sense / 200), then min(0.25, Force Sense / 400) under D-156). Not usable
   against a surprise strike or while the Force meter is above 1.0.
 Exertion: each exchange adds 0.08 physical load (tunable). Fatigue lowers effective level
   (section 1), so very long duels are also decided by stamina.
