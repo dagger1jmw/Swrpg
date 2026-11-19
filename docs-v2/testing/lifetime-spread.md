@@ -262,3 +262,14 @@ War-year combat share (median, 10th-90th percentile, min-max; s7):
 | Obi-Wan 37 | 25.5 | 24.7 | 22.0-28.7 | 21.2-30.7 | 2 (s9, s18 30.7) |
 
 Obi-Wan's failing seeds, shares at 35 / 36 / 37: s2 22.0 / 30.4 / 22.8; s9 25.6 / 24.0 / 30.7; s16 19.1 / 26.6 / 27.0; s18 21.8 / 29.7 / 30.7. Each misses at one age only, beyond the 10th-90th range, with the medians centered: tails, not an offset. Not settled; options for Jared in docs-v2/progress.md.
+
+### The war-share gate on the war-year mean (D-159 amended, option (d)), 2026-11-19
+
+The same 20-seed results, with the gate on the mean of each profile's war years (the per-year table above stays as information):
+
+| Profile (band) | s7 | Median | 10th-90th | Min-max | Seeds failing |
+|---|---|---|---|---|---|
+| Anakin, ages 19-21 (25-35%) | 29.7 | 28.9 | 27.7-29.8 | 25.0-31.6 | 0 |
+| Obi-Wan, ages 35-37 (20-30%) | 25.1 | 24.2 | 23.0-26.5 | 21.9-27.4 | 0 |
+
+With this gate no war-share gate fails on any of the 20 seeds. The only remaining seed failures across the four profiles: `average-s5` (K), `average-s18` (Y_avg) and `anakin-s18` (81 at 16.21 y against 16.20, accepted by Jared as seed spread). The gated seed s7 passes every gate.

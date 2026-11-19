@@ -16,11 +16,13 @@ describe('Obi-Wan lifetime (70 years)', () => {
     expectNotFasterThanAnakin(r);
     expectWithin4x(r);
   });
-  it('Clone Wars years (ages 35-38): combat is 20-30% of the yearly main-form XP', () => {
-    for (const i of [32, 33, 34]) {
-      expect(combatShare(r, i), `age ${3 + i}`).toBeGreaterThanOrEqual(0.2);
-      expect(combatShare(r, i), `age ${3 + i}`).toBeLessThanOrEqual(0.3);
-    }
+  // The mean over the war years (Jared, D-159 amended): the per-year shares are reported, not gated.
+  it('Clone Wars years (ages 35-38): combat is 20-30% of the main-form XP, on average over the war years', () => {
+    const war = [32, 33, 34].map((i) => combatShare(r, i));
+    console.info(`[report obiwan] war-year shares ${war.map((x) => (x * 100).toFixed(1)).join(' / ')}%`);
+    const mean = war.reduce((a, b) => a + b, 0) / war.length;
+    expect(mean, 'war-year mean').toBeGreaterThanOrEqual(0.2);
+    expect(mean, 'war-year mean').toBeLessThanOrEqual(0.3);
   });
   it('peacetime: combat under 10%', () => {
     for (let i = 0; i < r.yearMain.length; i++) if (i < 32 || i > 34) expect(combatShare(r, i), `age ${3 + i}`).toBeLessThan(0.1);

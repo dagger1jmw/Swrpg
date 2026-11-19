@@ -20,6 +20,7 @@ export interface SeedRow {
   ms: number;
 }
 
+const mean = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0) / xs.length;
 const share = (r: LifeResult, i: number): number => (r.yearMain[i]! > 0 ? r.yearCombat[i]! / r.yearMain[i]! : 0);
 const within20 = (r: LifeResult, t: Record<number, number>): boolean => TIERS.every((k) => r.milestones[k] !== undefined && Math.abs(r.milestones[k]! / t[k]! - 1) <= 0.2);
 const notFasterThanAnakin = (r: LifeResult): boolean => TIERS.every((k) => (r.milestones[k] ?? Infinity) >= TARGETS.anakin[k] * 1.2);
@@ -56,9 +57,10 @@ export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, bo
         'milestones +/-20%': within20(r, TARGETS.anakin),
         'every milestone <= 1.2 x target': TIERS.every((k) => (r.milestones[k] ?? Infinity) <= TARGETS.anakin[k] * 1.2),
         'within 4.0x': within4x(r),
-        'Clone Wars share 25-35%': war.every((x) => x >= 0.25 && x <= 0.35),
+        // The mean over the war years (D-159 amended); the per-year shares stay in the row as information.
+        'Clone Wars share 25-35% (war-year mean)': mean(war) >= 0.25 && mean(war) <= 0.35,
       },
-      values: { warMin: Math.min(...war), warMax: Math.max(...war) },
+      values: { warMin: Math.min(...war), warMax: Math.max(...war), warMean: mean(war) },
     };
   },
   obiwan: (r) => {
@@ -68,10 +70,10 @@ export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, bo
       gates: {
         'milestones +/-20%': within20(r, TARGETS.obiwan),
         'not faster than Anakin; within 4.0x': notFasterThanAnakin(r) && within4x(r),
-        'Clone Wars share 20-30%': war.every((x) => x >= 0.2 && x <= 0.3),
+        'Clone Wars share 20-30% (war-year mean)': mean(war) >= 0.2 && mean(war) <= 0.3,
         'peacetime combat < 10%': peace < 0.1,
       },
-      values: { warMin: Math.min(...war), warMax: Math.max(...war), peacetimeMaxShare: peace },
+      values: { warMin: Math.min(...war), warMax: Math.max(...war), warMean: mean(war), peacetimeMaxShare: peace },
     };
   },
   luke: (r) => {

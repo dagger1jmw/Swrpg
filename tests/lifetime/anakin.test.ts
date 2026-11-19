@@ -16,10 +16,12 @@ describe('Anakin lifetime (70 years)', () => {
     for (const t of TIERS) expect(r.milestones[t]!).toBeLessThanOrEqual(TARGETS.anakin[t] * 1.2);
   });
   it('never beyond 4.0x the Average pace', () => expectWithin4x(r));
-  it('Clone Wars years (ages 19-22): combat is 25-35% of the yearly main-form XP', () => {
-    for (const i of [10, 11, 12]) {
-      expect(combatShare(r, i), `age ${9 + i}`).toBeGreaterThanOrEqual(0.25);
-      expect(combatShare(r, i), `age ${9 + i}`).toBeLessThanOrEqual(0.35);
-    }
+  // The mean over the war years (Jared, D-159 amended): the per-year shares are reported, not gated.
+  it('Clone Wars years (ages 19-22): combat is 25-35% of the main-form XP, on average over the war years', () => {
+    const war = [10, 11, 12].map((i) => combatShare(r, i));
+    console.info(`[report anakin] war-year shares ${war.map((x) => (x * 100).toFixed(1)).join(' / ')}%`);
+    const mean = war.reduce((a, b) => a + b, 0) / war.length;
+    expect(mean, 'war-year mean').toBeGreaterThanOrEqual(0.25);
+    expect(mean, 'war-year mean').toBeLessThanOrEqual(0.35);
   });
 });
