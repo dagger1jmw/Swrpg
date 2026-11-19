@@ -71,8 +71,16 @@ export const TERRAIN_ALIASES: Readonly<Record<string, readonly string[]>> = {
   plains: ['open'],
   rooftop: ['ledge', 'highGround', 'machinery'],
   hangar: ['flatFloor', 'crates', 'machinery'],
+  // Indoor practice and working spaces (Jared, D-186): good floors, still the flat-floor accident roll.
   corridor: ['confined', 'flatFloor'],
   temple: ['flatFloor'],
+  'training hall': ['flatFloor'],
+  salle: ['flatFloor'],
+  dojo: ['flatFloor'],
+  'sparring ring': ['flatFloor'],
+  academy: ['flatFloor'],
+  arena: ['flatFloor'],
+  office: ['flatFloor'],
   // Ice (Jared, D-184): chunks to throw, slippery footing (the fall roll, -1 to take position), uneven ground.
   ice: ['iceChunks', 'slippery', 'unevenGround'],
   glacier: ['iceChunks', 'slippery', 'unevenGround'],

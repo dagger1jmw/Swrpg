@@ -168,3 +168,17 @@ describe('flat-floor accidents and hazard rolls in long fights (D-185)', () => {
   });
 });
 
+describe('indoor place words (D-186)', () => {
+  it('training hall, salle, dojo, sparring ring, Temple, academy, arena, corridor and office have the flat floor', async () => {
+    for (const p of ['training hall', 'salle', 'dojo', 'sparring ring', 'temple', 'academy', 'arena', 'corridor', 'office']) expect(TERRAIN_ALIASES[p], p).toContain('flatFloor');
+    const s = await knight();
+    for (const c of ['/spar at 0 terrain training hall', '/spar at 0 terrain sparring ring', '/fight 1 duelist terrain Temple', '/fight 2 thug terrain office']) {
+      const o = runDevCommand(REGISTRY, s, c);
+      expect(o.ok, c).toBe(true);
+      expect(o.state.combat.active!.terrainTags, c).toContain('flatFloor');
+      expect(o.state.combat.active!.ctx.hazards.map((h) => h.label), c).toEqual(['flat floor']);
+    }
+    expect(TERRAIN_ALIASES['corridor']).toEqual(['confined', 'flatFloor']);
+  });
+});
+
