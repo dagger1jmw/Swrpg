@@ -175,3 +175,47 @@ anakin war-year shares, 10th-90th percentile: age 19: 24.3-29.6% (median 26.4%);
 obiwan war-year shares, 10th-90th percentile: age 35: 21.4-27.4% (median 23.5%); age 36: 22.7-29.9% (median 26.7%); age 37: 22.2-27.4% (median 24.0%).
 
 anakin milestones, median of 20: 21 1.30 y, 41 4.43 y, 61 8.64 y, 81 15.48 y, 101 21.83 y.
+
+## Rerun after D-244 (the weapon-arm rule, the duel-length retune, the war-share retune), 2026-11-19
+
+Same harness, 20 seeds per profile, code at 2cf9c49. Report only: nothing tuned. Anakin and Obi-Wan are the profiles that changed (fight counts, D-244); every Luke and Average seed ran too.
+
+Gates failing per changed profile (out of 20; the previous rerun in brackets):
+
+| Profile | Gate | Seeds failing |
+|---|---|---|
+| anakin | milestones +/-20% | 0 [1] |
+| anakin | every milestone <= 1.2 x target | 0 [1] |
+| anakin | within 4.0x (D-235 floor) | 0 [0] |
+| anakin | Clone Wars share 25-35% | **7** [5]: `anakin-s1`, `-s2`, `-s10`, `-s12`, `-s15`, `-s16`, `-s17` |
+| obiwan | milestones +/-20% | 0 [1] |
+| obiwan | not faster than Anakin; within 4.0x | 0 [0] |
+| obiwan | Clone Wars share 20-30% | **7** [3]: `obiwan-s1`, `-s3`, `-s9`, `-s10`, `-s16`, `-s18`, `-s19` |
+| obiwan | peacetime combat < 10% | 0 [0] |
+
+Milestones (years; median, 10th-90th percentile; previous rerun's median in brackets):
+
+| Milestone | Anakin target | Anakin fixed | Anakin median (p10-p90) | Obi-Wan target | Obi-Wan fixed | Obi-Wan median (p10-p90) |
+|---|---|---|---|---|---|---|
+| 21 | 1.3 | 1.30 | 1.29 (1.27-1.44) [1.30] | 3.4 | 3.25 | 3.25 (3.24-3.28) [3.25] |
+| 41 | 4.1 | 3.99 | 4.03 (3.75-4.42) [4.43] | 10.8 | 12.24 | 12.48 (12.31-12.55) [12.46] |
+| 61 | 8.2 | 8.39 | 8.38 (7.97-9.15) [8.64] | 21.7 | 23.53 | 23.57 (23.48-23.68) [23.56] |
+| 81 | 13.5 | 15.27 | 15.24 (14.65-15.73) [15.48] | 35.6 | 39.73 | 39.51 (39.33-39.65) [39.49] |
+| 101 | 19.9 | 21.42 | 21.54 (21.00-22.25) [21.83] | 52.4 | 59.96 | 59.75 (59.50-59.89) [59.67] |
+
+War-year combat share of the yearly main-form XP (median, 10th-90th percentile, min-max, seeds outside the band; D-159's latest range in brackets):
+
+| Profile, age | Fixed seed | Median | p10-p90 | Min-max | Outside the band |
+|---|---|---|---|---|---|
+| Anakin 19 (25-35%) | 27.1 | **33.9** | 32.1-36.2 | 27.1-37.4 | 6 above: s1 36.1, s2 36.0, s10 36.2, s12 36.2, s16 36.0, s17 37.4 [24.3-29.6, median 26.4] |
+| Anakin 20 | 27.5 | 27.6 | 26.2-28.6 | 24.7-30.0 | 1 below: s15 24.7 [25.2-28.6, 27.4] |
+| Anakin 21 | 25.2 | 27.1 | 26.0-28.4 | 25.2-29.3 | 0 [25.7-28.9, 26.7] |
+| Obi-Wan 35 (20-30%) | 25.1 | 22.1 | 21.4-25.5 | 19.1-25.6 | 1 below: s16 19.1 [21.4-27.4, 23.5] |
+| Obi-Wan 36 | 23.5 | **21.4** | 18.2-24.3 | 17.2-25.2 | 5 below: s1 18.2, s9 17.2, s10 19.9, s18 19.3, s19 17.9 [22.7-29.9, 26.7] |
+| Obi-Wan 37 | 25.6 | 25.3 | 22.3-29.1 | 19.4-30.3 | 2: s3 19.4 below, s16 30.3 above [22.2-27.4, 24.0] |
+
+Reading:
+- **Anakin at 19:** the fixed seed (27.1%) is the lowest of the 20 seeds. The 25 sparring sessions added by D-244 to lift it put the median at 33.9%, near the top of the band, and six seeds above 35%. The retune was tuned on one seed that sits in the tail.
+- **Obi-Wan at 36:** the fixed seed (23.5%) is above the median (21.4%). Cutting his duels from 12 to 10 moved the whole distribution down, so five seeds fall below 20%. The gap between 9 duels (21.1%) and 10 (23.5%) on the fixed seed was large; the seed spread at 36 is wide (17.2-25.2%).
+- **Milestones:** better than before for both. No seed fails a milestone gate; Anakin's medians moved 0.2-0.4 y earlier at 41 to 101.
+- **Against D-159's note:** a seed outside the band but inside the natural spread is expected. Here the spread itself has moved outside the band: Anakin's age-19 10th-90th range (32.1-36.2%) crosses 35%, and Obi-Wan's age-36 range (18.2-24.3%) crosses 20%.
