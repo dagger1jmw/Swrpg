@@ -218,8 +218,12 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   if (playerDown || surrendered) {
     const rule = FATE_BY_STAKES[active.stakes];
     const winner = duel.opponents.find((o) => !o.out) ?? duel.opponents[0]!;
-    const archetype = active.meta[winner.id]?.npcId ? (selectNpcGen(s, active.meta[winner.id]!.npcId!)?.archetype ?? 'other') : 'soldier';
-    const captor = CAPTOR_RULES[archetype] ?? {};
+    // A minion captor is its kind's archetype (D-239: Yuuzhan Vong warriors capture to sacrifice, named or not). An
+    // execution on surrender stays a named captor's choice (D-218); minions only ever capture.
+    const winnerMeta = active.meta[winner.id];
+    const archetype = winnerMeta?.npcId ? (selectNpcGen(s, winnerMeta.npcId)?.archetype ?? 'other') : (MINION_KINDS.find((k) => k.id === winnerMeta?.minionKind)?.archetype ?? 'soldier');
+    const rules = CAPTOR_RULES[archetype] ?? {};
+    const captor = winnerMeta?.npcId ? rules : { ...(rules.capturesToExecute ? { capturesToExecute: true } : {}) };
     if (rule !== 'roll') playerFate = rule;
     else if (surrendered) {
       // A surrender is a capture by default (Jared, D-218); an archetype with an execution chance may kill instead.

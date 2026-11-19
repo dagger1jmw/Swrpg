@@ -170,6 +170,10 @@ export const MINION_KINDS: readonly MinionKind[] = [
   { id: 'stormtrooper', label: 'stormtrooper', eras: [[-19, 200]], archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.1, 0.4, 0.35, 0.13, 0.02], coordination: 0.5, vitalityMult: 1, note: 'the Empire from 19 BBY through the Imperial Remnant and the Fel Empire (D-213); the line trooper\'s numbers' },
   { id: 'sithTrooper', label: 'Sith trooper', eras: [[-3960, -3627]], archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.1, 0.4, 0.35, 0.13, 0.02], coordination: 0.5, vitalityMult: 1, note: 'the Sith Empire from the Jedi Civil War through the Great Galactic War and the Cold War (D-213; Characters_08 :265 "Sith trooper"); the line trooper\'s numbers' },
   { id: 'skytrooper', label: 'Skytrooper', eras: [[-3636, -3627]], archetype: 'soldier', weapon: 'blasterRifle', armor: 'medium', grades: [0.1, 0.4, 0.35, 0.13, 0.02], coordination: 0.5, vitalityMult: 1, note: 'the Eternal Empire\'s droid soldiers, war against Zakuul (D-213; Characters_09B :342 "Skytrooper"); the line trooper\'s numbers, a droid' },
+  // Yuuzhan Vong warriors (D-239): the D-224 archetype as a minion kind, melee (the amphistaff) in vonduun crab armor that
+  // resists a lightsaber (Characters_15 :34), outside the Force (D-192); warriors fight in squads (0.5). From the
+  // invasion (25 ABY) on: design default; out of era a brawler.
+  { id: 'yuuzhanVongWarrior', label: 'Yuuzhan Vong warrior', eras: [[25, 1000]], archetype: 'yuuzhanVongWarrior', weapon: 'melee', armor: 'heavy', saberResistant: true, grades: [0, 0.2, 0.45, 0.3, 0.05], coordination: 0.5, vitalityMult: 1.2, note: 'design default (D-239): the warrior caste, trained from youth; tough (1.2)' },
   { id: 'sithAcolyte', label: 'Sith acolyte', archetype: 'sithWarrior', weapon: 'lightsaber', armor: 'light', grades: [0.3, 0.4, 0.25, 0.05, 0], coordination: 0, vitalityMult: 1, note: 'design default for Jared: rivals who will not cover each other (0)' },
 ];
 /**
@@ -215,6 +219,9 @@ export const MINION_WEAPON_PROFILE: Readonly<Record<string, MinionWeaponProfile>
   stormtrooper: { source: 'archetype' },
   sithTrooper: { source: 'archetype' },
   skytrooper: { source: 'archetype' },
+  // The Vong warrior trains melee at the soldier's blaster pace (data/archetypes.ts); minionInputs' young grade-1
+  // ages fall before the archetype's start age (17), so the pace is given here (D-239).
+  yuuzhanVongWarrior: { source: 'kind', skill: 'melee', share: 1 },
 };
 
 /** The era-appropriate kind for a kind asked for outside its years (D-213): droids become war droids, troopers line troopers. */
@@ -226,6 +233,7 @@ export const MINION_ERA_FALLBACK: Readonly<Record<string, string>> = {
   cloneTrooper: 'trooper',
   stormtrooper: 'trooper',
   sithTrooper: 'trooper',
+  yuuzhanVongWarrior: 'brawler',
 };
 
 /** Whether a kind exists in a calendar year (D-213). */

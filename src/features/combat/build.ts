@@ -11,7 +11,8 @@ import { stubLightPhilosophy, STUB_PLAYER_SHATTERSENSE } from '../../data/stubs'
 import { TERRAIN_BY_ID } from '../../data/terrain';
 import { TERRAIN_HAZARD_EVERY } from '../../data/combat.config';
 import type { TerrainHazard } from '../../engine/terrainHazard';
-import { BLADE_COLORS, bladeColorFor, loadoutFor, mandalorianSlugthrower, weaponSkillKind, type Loadout } from '../../data/weapons';
+import { BLADE_COLORS, RANGED_WEAPONS, bladeColorFor, loadoutFor, mandalorianSlugthrower, weaponSkillKind, type Loadout } from '../../data/weapons';
+import { weaponFromDescription } from '../../data/speciesWords';
 import type { WeaponKind } from '../../data/health.config';
 import type { MatchupSituation } from '../../data/formMatchups';
 import { dateFromAbsDay } from '../../engine/calendar';
@@ -156,6 +157,11 @@ export function buildNpcFighter(s: GameState, npcId: string): { fighter: Fighter
     if (slug) loadout = { ...loadout, weapon: slug };
   }
   if (canon?.weapon) loadout = { ...loadout, weapon: canon.weapon };
+  // The weapon the description names (D-239): "amphistaff in hand" is a melee fighter, whatever the role's default.
+  else if (RANGED_WEAPONS.includes(loadout.weapon)) {
+    const named = weaponFromDescription(npc.description);
+    if (named) loadout = { ...loadout, weapon: named };
+  }
   const fighter = fighterFromLevels(npcId, npc.name, levels, loadout, {
     minion: false,
     vitalityLost: npc.health?.vitalityLost ?? 0,
@@ -179,11 +185,13 @@ export function buildMinionFighter(s: GameState, kindId: string, grade: number, 
   const f = fighterFromLevels(`${fightId}:${kindId}:${index}`, `${kind.label.charAt(0).toUpperCase()}${kind.label.slice(1)} ${number}`, levels, loadout, { minion: true, vitalityLost: 0, wounds: [], lasting: [], shatterpoint: 0, lightSide: false });
   const v = f.maxVitality * kind.vitalityMult;
   const droid = DROID_MINION_KINDS.includes(kind.id);
+  // A Yuuzhan Vong minion is outside the Force like a named one (D-192, D-239).
+  const vong = kind.archetype === 'yuuzhanVongWarrior';
   // Sith acolytes carry red blades (D-205).
   const blade = loadout.weapon === 'lightsaber' ? BLADE_COLORS.sith[0] : null;
   // A droid kind dodges no better than it shoots (Jared, D-223; pass 2 balance row 7: a B1 dodged a thrown object at
   // +3.6 but shot at +1.4 - 3): its Agility is min(Agility, weapon level).
-  return { ...f, ...(blade ? { bladeColor: blade } : {}), vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}), ...(droid ? { forceTraits: speciesForceTraits('droid'), forceResistance: 0, agility: Math.min(f.agility, f.level) } : {}), ...(HEAVY_MINION_KINDS.includes(kind.id) ? { bodySize: 'heavy' as const } : {}) };
+  return { ...f, ...(blade ? { bladeColor: blade } : {}), vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}), ...(droid ? { forceTraits: speciesForceTraits('droid'), forceResistance: 0, agility: Math.min(f.agility, f.level) } : {}), ...(vong ? { forceTraits: speciesForceTraits('yuuzhanVong') } : {}), ...(HEAVY_MINION_KINDS.includes(kind.id) ? { bodySize: 'heavy' as const } : {}) };
 }
 
 /** The duel context from the terrain tags and stakes (rolls §5, D-144). */

@@ -12,6 +12,8 @@ import { FORM_IDS } from '../../data/skills';
 import { DEV_REFUSAL, selectIsTestCharacter } from '../character/selectors';
 import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { selectCurrentLocationId } from '../locations/selectors';
+import { dateFromAbsDay } from '../../engine/calendar';
+import { inferSpecies } from '../../data/speciesWords';
 import { migrateNpcsV1, npcHealthSchema, npcsSliceSchema, type Npc, type NpcHealth, type NpcsSlice } from './npcs';
 import { resolveNpcRef, selectNpcAgeOrDefault, selectNpcGen, selectNpcLevels, selectNpcs } from './selectors';
 
@@ -28,18 +30,21 @@ export const npcIntroducedSchema = z.object({
 
 const npcRefKinds = { npcRef: ['npc'] } as const;
 
-function introduce(slice: NpcsSlice, e: GameEvent, state: GameState): { slice: NpcsSlice; id: string; existing: boolean } {
+function introduce(slice: NpcsSlice, e: GameEvent, state: GameState): { slice: NpcsSlice; id: string; existing: boolean; note: string | null } {
   const name = String(e['name']).trim();
   const existing = uniqueAliasMatch(Object.values(slice.byId), (n) => [n.name, ...n.aliases], name);
-  if (existing) return { slice, id: existing.id, existing: true };
+  if (existing) return { slice, id: existing.id, existing: true, note: null };
   const today = selectNow(state).day;
+  // The species from the name and description when the narrator left it out (D-239): the rules that hang on it
+  // (Force immunity, the Vong archetype and capture rule) need it.
+  const inferred = inferSpecies({ name, description: String(e['description'] ?? ''), given: String(e['species']), year: dateFromAbsDay(today).year });
   const id = mintId('npc', normalizeAlias(name), (x) => x in slice.byId);
   const age = e['ageApprox'];
   const npc: Npc = {
     id,
     name,
     aliases: [],
-    speciesId: e['species'] as Npc['speciesId'],
+    speciesId: inferred.species as Npc['speciesId'],
     factionId: e['faction'] as Npc['factionId'],
     role: e['role'] as Npc['role'],
     birthDay: typeof age === 'number' ? today - Math.round(age * DAYS_PER_YEAR) : null,
@@ -53,7 +58,7 @@ function introduce(slice: NpcsSlice, e: GameEvent, state: GameState): { slice: N
     gen: null,
     health: null,
   };
-  return { slice: { byId: { ...slice.byId, [id]: npc } }, id, existing: false };
+  return { slice: { byId: { ...slice.byId, [id]: npc } }, id, existing: false, note: inferred.note };
 }
 
 const update = (slice: NpcsSlice, id: string, patch: Partial<Npc>): NpcsSlice => ({ byId: { ...slice.byId, [id]: { ...slice.byId[id]!, ...patch } } });
@@ -76,7 +81,8 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
       narrative: () => true,
       handle: (slice, e, ctx) => {
         const r = introduce(slice, e, ctx.state);
-        return { slice: r.slice, mintedId: r.id, ...(r.existing ? { notes: [`"${String(e['name'])}" matched existing ${r.id} by exact alias; not created again`] } : {}) };
+        const notes = r.existing ? [`"${String(e['name'])}" matched existing ${r.id} by exact alias; not created again`] : r.note ? [r.note] : [];
+        return { slice: r.slice, mintedId: r.id, ...(notes.length ? { notes } : {}) };
       },
     },
     // A player creates an NPC from the review queue (name only; the rest unknown until the story says).
