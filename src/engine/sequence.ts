@@ -7,7 +7,7 @@ import { CIRCUMSTANCE, STRIKE_AT, type Maneuver, type Stance, type Tactic } from
 import { SEQUENCE_ADAPTATION, SEQUENCE_CAP, SEQUENCE_CHAIN } from '../data/sequence.config';
 import type { BodyPart, ForceEffort } from '../data/health.config';
 import type { ObjectSize } from '../data/terrain';
-import { resolveForceAction, type ForceActionKind } from './combatForce';
+import { canThrowSaber, FORCE_ACTION_ABILITY, forceReason, resolveForceAction, type ForceActionKind } from './combatForce';
 import { resolveExchange, settleEnd, type DuelContext, type DuelState } from './duel';
 import type { Modifier } from './rolls';
 import { basicRoll } from './rolls';
@@ -68,6 +68,8 @@ export interface StepResult {
   index: number;
   step: SequenceStep;
   success: boolean;
+  /** resolved (it succeeded), failed (rolled and failed), dropped (never attempted, the reason in the note; D-191). */
+  status: 'resolved' | 'failed' | 'dropped';
   note: string;
 }
 
@@ -77,6 +79,8 @@ export interface SequenceResult {
   /** Steps never resolved: truncated by the cap, or dropped after the chain stopped. */
   truncated: SequenceStep[];
   dropped: SequenceStep[];
+  /** One line per step the intent returned (D-191: no silent drops): resolved, failed, or dropped with the reason. */
+  lines: string[];
   stopReason: 'completed' | 'stepFailed' | 'opponentStrike' | 'fightEnded';
 }
 
@@ -111,6 +115,12 @@ export function runSequence(
     let success: boolean;
     let note: string;
     const duel = st.duel;
+    // A step that cannot be attempted is dropped with its reason and the chain goes on (D-191: no silent drops).
+    const cannot = cannotAttempt(step, duel, force);
+    if (cannot) {
+      results.push({ index: i, step, success: false, status: 'dropped', note: `${stepLabel(step)}: dropped (${cannot})` });
+      continue;
+    }
     if (step.kind === 'stance') {
       st = { ...st, duel: { ...duel, a: { ...duel.a, stance: step.stance } } };
       success = true;
@@ -129,9 +139,8 @@ export function runSequence(
       if (step.action === 'throw') {
         const tag = step.objectTag ?? Object.keys(st.objects).find((k) => (st.objects[k] ?? 0) > 0);
         if (!tag || (st.objects[tag] ?? 0) <= 0) {
-          results.push({ index: i, step, success: false, note: 'nothing left to throw' });
-          stopReason = 'stepFailed';
-          break;
+          results.push({ index: i, step, success: false, status: 'dropped', note: `${stepLabel(step)}: dropped (nothing left to throw here)` });
+          continue;
         }
         size = objectSizes[tag];
         st = { ...st, objects: { ...st.objects, [tag]: (st.objects[tag] ?? 0) - 1 } };
@@ -151,20 +160,25 @@ export function runSequence(
           targetDefense: adapt,
         },
         day,
+        ctx,
       );
       success = r.record.success;
       let next = r.state;
       // A pattern's first use counts as surprise for its opening bonus (D-146).
       if (success && firstUse && (step.action === 'push' || step.action === 'choke')) next = { ...next, advantage: Math.max(next.advantage, Math.max(before + CIRCUMSTANCE.openingAdvantage, STRIKE_AT)) };
-      st = { ...st, duel: { ...next, log: next.log.map((e, k) => (k === next.log.length - 1 ? { ...e, step: i } : e)) } };
+      const from = duel.log.length;
+      st = { ...st, duel: { ...next, log: next.log.map((e, k) => (k >= from ? { ...e, step: i } : e)) } };
       splitDefense = success && step.action === 'throw';
-      note = `${step.action}: ${r.record.misfire ? 'misfire' : success ? 'success' : 'resisted'}`;
+      note = `${stepLabel(step)}: ${success ? 'success' : forceReason(r.record)}`;
     } else {
       if (step.kind === 'maneuver') st = { ...st, duel: { ...duel, a: { ...duel.a, pendingManeuver: step.maneuver } } };
       // An aimed strike step (D-171).
       if (step.kind === 'strike' && step.aim) st = { ...st, duel: { ...st.duel, a: { ...st.duel.a, aim: step.aim } } };
       const before = st.duel;
-      const after = resolveExchange(before, ctx, day, { a: bonus, bDefense: defense, step: i });
+      // A strike step against a minion is a strike roll, not a build-up contest (D-191).
+      const target = before.opponents[before.target];
+      const forceStrike = step.kind === 'strike' && target?.minion === true;
+      const after = resolveExchange(before, ctx, day, { a: bonus, bDefense: defense, step: i, forceStrike });
       const rec = after.log[after.log.length - 1]!;
       const natural1 = rec.rollA?.natural === 'nat1';
       if (rec.kind === 'strike' && rec.striker === 'A') success = !!rec.maneuver || (!!rec.hit && !rec.hit.avoided);
@@ -175,7 +189,7 @@ export function runSequence(
       if (step.kind !== 'maneuver') splitDefense = false;
     }
     st = { ...st, duel: settleEnd(st.duel) };
-    results.push({ index: i, step, success, note });
+    results.push({ index: i, step, success, status: success ? 'resolved' : 'failed', note });
     if (st.duel.end) {
       stopReason = 'fightEnded';
       break;
@@ -191,5 +205,30 @@ export function runSequence(
     if (step.kind !== 'stance') pressure = Math.min(SEQUENCE_CHAIN.pressureMax, pressure + SEQUENCE_CHAIN.pressurePerStep);
   }
   const dropped = used.slice(results.length);
-  return { state: st, results, truncated, dropped, stopReason };
+  const why = stopReason === 'stepFailed' ? 'an earlier step failed' : stopReason === 'opponentStrike' ? 'the opponent seized the strike' : 'the fight ended';
+  const lines = [
+    ...results.map((r) => `step ${r.index + 1} ${r.note}`),
+    ...dropped.map((d, k) => `step ${results.length + k + 1} ${stepLabel(d)}: dropped (${why})`),
+    ...truncated.map((d, k) => `step ${used.length + k + 1} ${stepLabel(d)}: dropped (past the sequence cap of ${cap})`),
+  ];
+  return { state: st, results, truncated, dropped, stopReason, lines };
+}
+
+/** A step's name for the log. */
+export function stepLabel(step: SequenceStep): string {
+  if (step.kind === 'forceAction') return step.action === 'saberThrow' ? 'saber throw' : step.action === 'recall' ? 'saber recall' : `Force ${step.action}`;
+  if (step.kind === 'maneuver') return `maneuver (${step.maneuver})`;
+  if (step.kind === 'tactic') return step.tactic;
+  if (step.kind === 'stance') return `stance (${step.stance})`;
+  return step.aim ? `strike (aimed at the ${step.aim})` : 'strike';
+}
+
+/** Why a step cannot be attempted at all, or null (D-191, D-193). */
+function cannotAttempt(step: SequenceStep, duel: DuelState, force: ForceProfile): string | null {
+  if (step.kind !== 'forceAction') return null;
+  const ability = FORCE_ACTION_ABILITY[step.action];
+  if (force.levelOf(step.action) < 1) return `the character does not know ${ability}`;
+  if (step.action === 'saberThrow' && !canThrowSaber(duel.a, force.levelOf(step.action))) return duel.a.saberLost ? 'the saber is on the ground: recall it first' : 'needs a lightsaber in hand, telekinesis 15 and a form 10';
+  if (step.action === 'recall' && !duel.a.saberLost) return 'the saber is already in hand';
+  return null;
 }

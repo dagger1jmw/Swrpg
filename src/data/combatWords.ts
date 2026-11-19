@@ -17,7 +17,28 @@ export const COMBAT_WORD_GROUPS: readonly CombatWordGroup[] = [
   { id: 'attack', words: ['press', 'press the attack', 'attack', 'attacks', 'push forward', 'overwhelm', 'go on the offensive'], stance: 'aggressive' },
   { id: 'evade', words: ['dodge', 'dodges', 'evade', 'evades', 'sidestep', 'sidesteps', 'roll', 'roll away', 'duck'], stance: 'defensive', takePosition: true },
   { id: 'reposition', words: ['circle', 'circles', 'reposition', 'high ground', 'get behind', 'flank', 'outflank'], takePosition: true },
+  /** Explicit movement only (D-191): a position contest. */
+  { id: 'drive', words: ['push back', 'push him back', 'push her back', 'push them back', 'drive back', 'drive him back', 'drive her back', 'drive them back', 'take ground', 'gain ground', 'force them back'], takePosition: true },
 ];
+
+/**
+ * Attack verbs (Jared, D-191): a strike step, never a position contest. Against minions a strike step is a strike roll.
+ * Whole words or phrases, lower case; 'attack' and 'press' stay stance words (the attack group above).
+ */
+export const STRIKE_WORDS: readonly string[] = [
+  'strike', 'strikes', 'striking', 'heavy strikes', 'heavy strike', 'cut', 'cuts', 'cutting', 'cut down', 'carve', 'carve through', 'carving', 'slash', 'slashes', 'slashing', 'hack', 'hacks', 'hacking', 'cleave', 'cleaves', 'swing', 'swings', 'swinging', 'thrust', 'thrusts', 'lunge', 'lunges', 'stab', 'stabs', 'slice', 'slices', 'hew', 'chop', 'chops', 'bisect', 'behead', 'hit', 'hits',
+];
+
+/** Words that name a Force action in a clause (so an attack verb in it is not a separate strike), by step action. */
+export const FORCE_CLAUSE_WORDS: Readonly<Record<string, readonly string[]>> = {
+  saberThrow: ['saber throw', 'throw my saber', 'throw my lightsaber', 'throw the saber', 'throw the lightsaber', 'hurl my saber', 'hurl my lightsaber', 'saber toss', 'toss my saber'],
+  recall: ['recall my saber', 'call my saber', 'summon my saber', 'call the saber back', 'recall the saber', 'pull my saber back'],
+  push: ['force push', 'force-push', 'force pushes', 'push with the force', 'telekinetic push', 'force wave'],
+  choke: ['choke', 'force choke', 'grip', 'force grip'],
+  lightning: ['lightning', 'force lightning'],
+  throw: ['throw a rock', 'throw rocks', 'hurl a rock', 'throw a log', 'throw debris', 'throw a crate', 'telekinesis', 'telekinetically', 'fling', 'hurl'],
+  mindTrick: ['mind trick', 'jedi mind trick', 'force persuasion'],
+};
 
 /**
  * Form names and well-known Legends techniques -> form id ("use Shii-Cho fundamentals" keeps or switches to Shii-Cho).

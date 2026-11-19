@@ -13,6 +13,7 @@ import { orderSeatAt } from '../data/orderSeats';
 import type { ExchangeRecord } from '../engine/duel';
 import { selectIsDying, selectIsSpent, selectLasting, selectStatusLabel, selectWounds } from '../features/health/selectors';
 import type { CombatDraft } from './combatTurn';
+import { forceReason } from '../engine/combatForce';
 import type { CheckCard } from '../engine/rolls';
 import { ACTIVITIES } from '../data/activities';
 import { archetypeDef } from '../data/archetypes';
@@ -362,8 +363,10 @@ function describeExchange(r: ExchangeRecord, names: Record<string, string>): str
   const by = (side: 'A' | 'B'): string => (side === 'A' ? pc : t);
   if (r.kind === 'force' && r.force) {
     const f = r.force;
-    const out = f.misfire ? 'misfires' : f.collapse ? 'collapses from backlash' : f.success ? 'succeeds' : 'is resisted';
-    return `#${r.n} ${by(f.side)} uses ${f.abilityId}: ${out}${f.damage ? `, ${f.damage.severity ?? 'no'} wound to the ${f.damage.part}` : ''}.`;
+    // The engine's reason is ground truth: the narrator explains a failure only with it (D-192).
+    const what = f.kind === 'saberThrow' ? 'throws the lightsaber' : f.kind === 'recall' ? 'calls the dropped lightsaber back' : `uses ${f.abilityId}${f.kind === 'throw' ? ' to hurl an object' : ''}`;
+    const reason = f.success ? 'succeeds' : forceReason(f);
+    return `#${r.n}${r.step !== undefined ? ` (sequence step ${r.step + 1})` : ''} ${by(f.side)} ${what} on ${f.side === 'A' ? t : pc}: ${reason}${f.damage ? `, ${f.damage.severity ?? 'no'} wound to the ${f.damage.part}` : ''}${f.stoodDown ? `; ${t} stands down and leaves the fight` : ''}.${f.success ? '' : ' Explain the failure only with this reason; nothing else in the scene blocked it.'}`;
   }
   if (r.kind === 'buildUp') {
     const lead = r.advAfter > r.advBefore ? `${pc} gains ground` : r.advAfter < r.advBefore ? `${t} gains ground` : 'neither gains ground';
@@ -388,7 +391,7 @@ export function describeCombat(c: CombatDraft): string[] {
   const lines = [`COMBAT ${c.fightId}${c.started ? ' (the fight begins now)' : ''}: narrate these exchanges in order, nothing more.`];
   for (const r of c.narrate) lines.push(describeExchange(r, names));
   lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}`).join('; ')}.`);
-  for (const n of c.notes.filter((x) => /sequence|step|not attempted|dropped/.test(x))) lines.push(`Sequence: ${n}`);
+  for (const n of c.notes.filter((x) => /^step d|^intent step|sequence|not attempted|dropped/.test(x))) lines.push(`Sequence: ${n}`);
   // Terrain accidents (D-144, D-184): ground truth like the exchanges.
   for (const n of c.notes.filter((x) => x.startsWith('terrain: '))) lines.push(`Terrain accident: ${n.slice(9)}.`);
   if (c.session) {

@@ -5,7 +5,7 @@ export const SPECIES = [
   'human', 'twilek', 'zabrak', 'mirialan', 'togruta', 'kelDor', 'wookiee', 'rodian', 'cathar',
   'miraluka', 'chiss', 'sithPureblood', 'monCalamari', 'bothan', 'duros', 'trandoshan', 'nautolan',
   'ithorian', 'hutt', 'jawa', 'gamorrean', 'rattataki', 'arkanian', 'echani', 'iktotchi', 'cerean',
-  'droid', 'other', 'unknown',
+  'toydarian', 'yuuzhanVong', 'droid', 'other', 'unknown',
 ] as const;
 export type SpeciesId = (typeof SPECIES)[number];
 

@@ -8,7 +8,7 @@
 import { orderSeatAt } from '../../data/orderSeats';
 import { STUB_INSTRUCTOR_LEAD, STUB_MASTER_LEAD } from '../../data/stubs';
 import { gainE, sparringE } from '../../engine/appliedExperience';
-import { ARCHETYPE_BY_ID, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
+import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
 import { BUDGET, FORM_TRANSFER_SHARE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
 import { ORDER_REQUIREMENTS } from '../../data/orderRequirements';
 import { interp } from '../../engine/interp';
@@ -257,6 +257,9 @@ export function computeCreation(input: CreationInput): CreationResult {
   const keysBySkill = new Map<string, string>();
   for (const ph of phaseKeys) for (const key of Object.keys(a.paces[ph] ?? {})) if (SKILL_BY_ID.has(key) && !keysBySkill.has(key)) keysBySkill.set(key, key);
   for (const key of Object.keys(focus)) if (key !== FORMS_KEY && SKILL_BY_ID.has(key) && !keysBySkill.has(key)) keysBySkill.set(key, key);
+  // Order-trained Force abilities (D-191): a share of the parent stat's pace; an ability the archetype measures stays measured.
+  const derived = ARCHETYPE_FORCE_ABILITIES[a.id] ?? {};
+  for (const id of Object.keys(derived)) if (SKILL_BY_ID.has(id) && !keysBySkill.has(id)) keysBySkill.set(id, id);
 
   // How much of each phase's day is player-directed fill (budget minus Order hours), relative to the
   // Knight+ day the focus formula is measured on (D-115). Initiates and Padawans fill only a little.
@@ -268,14 +271,12 @@ export function computeCreation(input: CreationInput): CreationResult {
   const startingXp: Record<string, number> = {};
   const levels: Record<string, number> = {};
   let maxPace = 0;
+  // Focus sliders move a phase's pace by Delta share x the Knight+ pace per share (D-105), scaled by the phase's share
+  // of fill hours (D-115: the Order-fixed phases move by their fill only).
+  const ownPace = (key: string, ph: Phase): number => Math.max(0, (a.paces[ph]?.[key] ?? 0) + ((focus[key] ?? 0) - (def[key] ?? 0)) * perShare * fill[ph]);
   for (const [skill, key] of keysBySkill) {
-    const pace = (ph: Phase): number => {
-      let p = a.paces[ph]?.[key] ?? 0;
-      // Focus sliders move a phase's pace by Delta share x the Knight+ pace per share (D-105), scaled by
-      // the phase's share of fill hours (D-115: the Order-fixed phases move by their fill only).
-      p = Math.max(0, p + ((focus[key] ?? 0) - (def[key] ?? 0)) * perShare * fill[ph]);
-      return p;
-    };
+    const d = a.paces.knight?.[key] !== undefined || a.paces.padawan?.[key] !== undefined || a.paces.initiate?.[key] !== undefined ? undefined : derived[key];
+    const pace = (ph: Phase): number => (d ? d.share * ownPace(d.of, ph) : ownPace(key, ph));
     const mult = talentMult(talents, skill) * crossTalentMult(talents, skill) * speciesLearning(species.id, skill) * (input.variance?.(skill) ?? 1);
     const phases = phasesFor({ initiate: pace('initiate'), padawan: pace('padawan'), knight: pace('knight') }, hAges, ages.onePhase);
     for (const ph of phases) if (ph.to > hStart && ph.from < h) maxPace = Math.max(maxPace, Math.min(4, ph.pace * mult));

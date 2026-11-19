@@ -30,6 +30,39 @@ export interface ArchetypeDef {
   formPaces: Readonly<Partial<Record<Phase, Readonly<Partial<Record<FormSource, number>>>>>>;
 }
 
+/**
+ * Force abilities an Order-trained archetype learns (D-191). The measured paces have no ability rows: the routine's
+ * levitation drill trains Force Control while telekinesis is unknown (skills-and-activities: "Telekinesis, or Force
+ * Control if Telekinesis is unknown"), so every Jedi and Sith started with no Force abilities at all. Each ability's
+ * phase pace is this share of the parent stat's phase pace (focus included), on top of the parent (no hours moved), so
+ * the closed form grows it in step with Force Control. Design defaults; Legends: every Jedi learns telekinesis and the
+ * Push as an Initiate (lore: Telekinesis, Force Push), Guardians lean to the body abilities, Consulars to the mind and
+ * defense, Sith to the grip. Level ~ share^0.571 x the parent level (curve exponent 1.75).
+ */
+export interface DerivedAbility {
+  of: string;
+  share: number;
+}
+const JEDI_CORE: Readonly<Record<string, DerivedAbility>> = {
+  telekinesis: { of: 'forceControl', share: 0.8 },
+  forcePush: { of: 'forceControl', share: 0.6 },
+  forceJump: { of: 'forceControl', share: 0.45 },
+  mindTrick: { of: 'forceControl', share: 0.35 },
+};
+const SITH_CORE: Readonly<Record<string, DerivedAbility>> = {
+  telekinesis: { of: 'forceControl', share: 0.8 },
+  forcePush: { of: 'forceControl', share: 0.6 },
+  forceChoke: { of: 'forceControl', share: 0.5 },
+  forceJump: { of: 'forceControl', share: 0.45 },
+};
+export const ARCHETYPE_FORCE_ABILITIES: Readonly<Record<string, Readonly<Record<string, DerivedAbility>>>> = {
+  jediGuardian: { ...JEDI_CORE, forceSpeed: { of: 'forceControl', share: 0.5 } },
+  jediConsular: { ...JEDI_CORE, mindTrick: { of: 'forceControl', share: 0.55 }, forceBarrier: { of: 'forceControl', share: 0.45 } },
+  jediSentinel: { ...JEDI_CORE, mindTrick: { of: 'forceControl', share: 0.55 }, forceSpeed: { of: 'forceControl', share: 0.35 } },
+  sithWarrior: { ...SITH_CORE, forceSpeed: { of: 'forceControl', share: 0.5 } },
+  sithInquisitor: { ...SITH_CORE, mindTrick: { of: 'forceControl', share: 0.45 } },
+};
+
 export type FormSource = 'order' | 'master' | 'solo' | 'fill';
 
 const JEDI_RANGE = [2, 5] as const;

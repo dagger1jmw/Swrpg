@@ -5,6 +5,8 @@ import { MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
 import { nextFloat, seedRng } from '../../engine/rng';
 import { CANON_BY_ID } from '../../data/canonNpcs';
 import { FORM_IDS } from '../../data/skills';
+import { DROID_MINION_KINDS, HEAVY_MINION_KINDS } from '../../data/forceResistance.config';
+import { forceResistanceOf, speciesForceTraits } from '../../engine/combatForce';
 import { stubLightPhilosophy, STUB_PLAYER_SHATTERSENSE } from '../../data/stubs';
 import { TERRAIN_BY_ID } from '../../data/terrain';
 import { TERRAIN_HAZARD_EVERY } from '../../data/combat.config';
@@ -85,6 +87,8 @@ export function buildPlayerFighter(s: GameState): Fighter {
     engagedElsewhere: false,
     dead: false,
     pendingManeuver: null,
+    forceResistance: forceResistanceOf((id) => selectLevelExact(s, id)),
+    forceTraits: speciesForceTraits(c.speciesId),
   };
 }
 
@@ -126,6 +130,7 @@ function fighterFromLevels(id: string, name: string, levels: Readonly<Record<str
     engagedElsewhere: false,
     dead: false,
     pendingManeuver: null,
+    forceResistance: forceResistanceOf(lv),
   };
 }
 
@@ -149,7 +154,7 @@ export function buildNpcFighter(s: GameState, npcId: string): { fighter: Fighter
     shatterpoint: canon?.specialTalents?.includes('ShatterSense') ? (levels['forceSense'] ?? 0) : 0,
     lightSide: gen.path === 'jedi',
   });
-  return { fighter, rank: gen.rank };
+  return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId) }, rank: gen.rank };
 }
 
 export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false): Fighter {
@@ -159,7 +164,8 @@ export function buildMinionFighter(s: GameState, kindId: string, grade: number, 
   const loadout: Loadout = { weapon: kind.weapon, armor: kind.armor, saberResistant: kind.saberResistant === true || (kind.saberResistant === 'byEra' && beskar) };
   const f = fighterFromLevels(`${fightId}:${kindId}:${index}`, `${kind.label} ${index + 1}`, levels, loadout, { minion: true, vitalityLost: 0, wounds: [], lasting: [], shatterpoint: 0, lightSide: false });
   const v = f.maxVitality * kind.vitalityMult;
-  return { ...f, vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}) };
+  const droid = DROID_MINION_KINDS.includes(kind.id);
+  return { ...f, vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}), ...(droid ? { forceTraits: speciesForceTraits('droid'), forceResistance: 0 } : {}), ...(HEAVY_MINION_KINDS.includes(kind.id) ? { bodySize: 'heavy' as const } : {}) };
 }
 
 /** The duel context from the terrain tags and stakes (rolls §5, D-144). */
@@ -168,6 +174,8 @@ export function buildContext(_s: GameState, terrainTags: readonly string[], stak
   let footing = 0;
   let positionAttempt = 0;
   const hazards: TerrainHazard[] = [];
+  let cover = false;
+  let forceNegated = false;
   for (const t of terrainTags) {
     const tag = TERRAIN_BY_ID.get(t);
     if (!tag) continue;
@@ -175,9 +183,11 @@ export function buildContext(_s: GameState, terrainTags: readonly string[], stak
     if (tag.footing) footing = Math.min(footing, tag.footing);
     if (tag.positionAttempt) positionAttempt = Math.min(positionAttempt, tag.positionAttempt);
     if (tag.hazard) hazards.push({ ...tag.hazard, label: tag.label });
+    if (tag.cover) cover = true;
+    if (tag.forceNegation) forceNegated = true;
   }
   // A sparring bout rolls its terrain once; a real fight every TERRAIN_HAZARD_EVERY exchanges (D-185).
-  return { sparring, situations: [...situations], footing, dyingRiskStakes: stakes === 'lethal' || stakes === 'serious', hazards, positionAttempt, hazardEvery: stakes === 'spar' ? null : TERRAIN_HAZARD_EVERY };
+  return { sparring, situations: [...situations], footing, dyingRiskStakes: stakes === 'lethal' || stakes === 'serious', hazards, positionAttempt, hazardEvery: stakes === 'spar' ? null : TERRAIN_HAZARD_EVERY, ...(cover ? { cover } : {}), ...(forceNegated ? { forceNegated } : {}) };
 }
 
 /** Sparring mode (D-144): the rank's default, or the academy mode for the Sith at an academy in its years. */

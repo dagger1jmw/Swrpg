@@ -7,13 +7,16 @@ import { isSkillId } from '../data/skills';
 import { spanToSeconds, type Intent, type RequestedSpan } from '../ai/schemas/intent';
 import { addCalendarMonths } from '../engine/calendar';
 import { efficiency } from '../engine/fatigue';
-import { check, clampDifficulty, isCheckRequired, type CheckCard } from '../engine/rolls';
+import { check, clampDifficulty, gradeMargin, isCheckRequired, type CheckCard } from '../engine/rolls';
+import { ABILITY_FORCE_GROUP } from '../data/forceResistance.config';
+import { forceContest, forceResistanceOf, FORCE_OUTCOME_TEXT, speciesForceTraits, type ForceTarget } from '../engine/combatForce';
 import type { RngState } from '../engine/rng';
 import { selectFatigue, selectIsDying, selectIsSpent, selectLastingPenalty, selectWoundPenalty } from '../features/health/selectors';
 import { selectNpc, selectNpcLevel } from '../features/npcs/selectors';
 import { selectLevelExact } from '../features/progression/selectors';
 import { STABILIZE_DIFFICULTY } from '../data/health.config';
-import { combatActionFromBeat, combatActionFromIntent, combatDraft, combatWordsAction, type CombatDraft } from './combatTurn';
+import { combatActionFromBeat, combatActionFromIntent, combatDraft, combatWordsAction, reconcileCombatPayload, type CombatDraft } from './combatTurn';
+import { SEQUENCE_SCHEMA_MAX } from '../data/sequence.config';
 import { CONTINUE_WORDS } from '../data/combatWords';
 import type { CombatActionInput } from './record';
 import { selectPacingLevel } from '../features/pacing/selectors';
@@ -239,6 +242,8 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     if (!opts.beat && payload['action'] === 'continue' && !isSparringActivityIntent(intent) && !(opts.text && saysContinue(opts.text))) {
       payload = (opts.text ? combatWordsAction(opts.text) : null) ?? { action: 'clarify' };
     }
+    // Attack verbs are strike steps and named Force actions are steps (D-191): the text makes sure of both.
+    if (!opts.beat && opts.text) payload = reconcileCombatPayload(opts.text, payload, SEQUENCE_SCHEMA_MAX);
     const sess = before.combat.active!.session;
     if (!opts.beat && sess && !sess.ended && !sess.playing && payload['action'] === 'continue' && !isSparringActivityIntent(intent)) payload = { action: 'playBout' };
     const done = apply([{ type: 'combatAction', ...payload }], 'player');
@@ -343,8 +348,14 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       }
     }
 
-    // Engine-decided checks (D-37). M1: level 0 plus circumstance modifiers (none yet), stubs per §15.
-    if (isCheckRequired(intent.actionType, intent.targets.length)) {
+    // A mind ability on a person is a Willpower contest, never a flat difficulty (D-192): droids and lore-immune species
+    // cannot be affected; a Force user adds their Force resistance.
+    const mindTarget = intent.forceAbility && ABILITY_FORCE_GROUP[intent.forceAbility] === 'mind' ? npcTargets.find((t) => selectNpc(state, t)) : undefined;
+    if (mindTarget && intent.forceAbility) {
+      const card = mindContestCard(state, intent.forceAbility, mindTarget);
+      checks.push(card.card);
+      state = { ...state, meta: { ...state.meta, rngState: card.rng } };
+    } else if (isCheckRequired(intent.actionType, intent.targets.length)) {
       const { difficulty, clampedFrom } = clampDifficulty(intent.actionType, intent.proposedDifficulty);
       const notes: string[] = [];
       if (clampedFrom) notes.push(`difficulty ${clampedFrom} clamped to ${difficulty} for ${intent.actionType}`);
@@ -417,4 +428,35 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     // reply did not introduce them (pipeline, D-94).
   }
   return finish();
+}
+
+/** A mind ability on an NPC as a contest (D-192), shown as a check card whose DC is the target's roll. */
+function mindContestCard(state: GameState, abilityId: string, npcId: string): { card: CheckCard; rng: RngState } {
+  const npc = selectNpc(state, npcId)!;
+  const lv = (id: string): number => selectNpcLevel(state, npcId, id);
+  const target: ForceTarget = { name: npc.name, willpower: lv('willpower'), agility: lv('agility'), forceResistance: forceResistanceOf(lv), traits: speciesForceTraits(npc.speciesId), bodySize: 'humanoid', inCover: false, canReact: true, saberLevel: 0 };
+  const level = selectPerformance(state, abilityId);
+  const [r, rng] = forceContest(state.meta.rngState, { kind: 'mindTrick', group: 'mind', level, modifiers: [], target, negated: false });
+  const total = r.user?.total ?? 0;
+  const against = r.resist?.total ?? total + 1;
+  const card: CheckCard = {
+    kind: 'check',
+    label: `${abilityId === 'mindTrick' ? 'Mind trick' : abilityId} on ${npc.name}`,
+    skillId: abilityId,
+    d20: r.user?.d20 ?? 0,
+    natural: r.user?.natural ?? null,
+    naturalBonus: r.user?.naturalBonus ?? 0,
+    effectiveLevel: level,
+    levelBonus: r.user?.levelBonus ?? 0,
+    modifiers: r.user?.modifiers ?? [],
+    total,
+    difficulty: 'moderate',
+    rating: Math.round((against - 10) * 10),
+    dc: Math.round(against * 10) / 10,
+    margin: total - against,
+    success: r.success,
+    grade: gradeMargin(r.user ? total - against : -10),
+    notes: [`contest: ${npc.name}'s ${r.resistKind === 'willpower' ? 'Willpower roll' : 'mind'}${r.resist ? ` ${r.resist.total.toFixed(1)}` : ''}`, `the mind trick ${FORCE_OUTCOME_TEXT[r.outcome]}`],
+  };
+  return { card, rng };
 }

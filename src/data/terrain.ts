@@ -31,6 +31,10 @@ export interface TerrainTag {
   objects?: { size: ObjectSize; supply: readonly [number, number] };
   /** Modifier to take-position attempts (the position maneuver's margin): slippery ground -1 (Jared, D-184). */
   positionAttempt?: number;
+  /** Ranged fighters here are behind cover: it blocks lightning and thrown objects (D-192). */
+  cover?: boolean;
+  /** A Force-null bubble (ysalamiri, D-192): no Force use works. */
+  forceNegation?: boolean;
 }
 
 export const TERRAIN_TAGS: readonly TerrainTag[] = [
@@ -43,7 +47,7 @@ export const TERRAIN_TAGS: readonly TerrainTag[] = [
   { id: 'ledge', label: 'ledges and drops', position: 2, hazard: { chance: 0.04, severity: 2, type: 'fall' } },
   { id: 'floatingPlatforms', label: 'floating platforms', footing: -1, position: 2, hazard: { chance: 0.06, severity: 3, type: 'fall' } },
   { id: 'highGround', label: 'high ground', position: 2 },
-  { id: 'cover', label: 'cover', position: 1 },
+  { id: 'cover', label: 'cover', position: 1, cover: true },
   { id: 'zeroGravity', label: 'zero gravity', situation: 'zeroGravity', footing: -1 },
   { id: 'looseRock', label: 'loose rock', objects: { size: 'small', supply: [3, 6] }, hazard: { chance: 0.02, severity: 1, type: 'fall' } },
   { id: 'debris', label: 'debris', objects: { size: 'medium', supply: [2, 4] } },
@@ -51,8 +55,10 @@ export const TERRAIN_TAGS: readonly TerrainTag[] = [
   /** Ice fields, glaciers, Ilum's caves, Hoth (Jared, D-184): chunks of ice to throw. */
   { id: 'iceChunks', label: 'chunks of ice', objects: { size: 'medium', supply: [2, 5] } },
   { id: 'fallenTimber', label: 'fallen branches and logs', objects: { size: 'medium', supply: [2, 4] } },
-  { id: 'crates', label: 'crates and containers', objects: { size: 'medium', supply: [2, 5] }, position: 1 },
+  { id: 'crates', label: 'crates and containers', objects: { size: 'medium', supply: [2, 5] }, position: 1, cover: true },
   { id: 'machinery', label: 'heavy machinery', objects: { size: 'large', supply: [1, 2] } },
+  /** Ysalamiri in the area (D-192; Characters_14, Thrawn): a bubble where the Force cannot be used. */
+  { id: 'ysalamiri', label: 'ysalamiri (a Force-null bubble)', forceNegation: true },
   { id: 'fire', label: 'fire', hazard: { chance: 0.03, severity: 2, type: 'fire' } },
 ];
 

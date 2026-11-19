@@ -119,8 +119,19 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
   Blaster vs saber deflection: shooter d20 + blaster skill/10 vs defender d20 + form
     level/10 + form vs-blaster modifier; a defender margin of 8+ can redirect the bolt
     (rated by Soresu/Shien skill per the lore).
-  Force vs resistance: d20 + effective ability level/10 vs d20 + Willpower/10 (or a Force
-    defense ability). Force load per use comes from the health spec section 2.
+  Force vs resistance (amended by D-192): almost nothing resists the Force. Mind abilities:
+    d20 + effective ability level/10 vs d20 + Willpower/10 (+ half the Force resistance of a Force
+    user); droids, Hutts and Toydarians cannot be affected. Avoidable manifestations (Push,
+    lightning, a thrown object or saber): the difficulty, then a dodge (d20 + Agility/10 + the
+    ability's dodge modifier) only for a target that can react; cover blocks lightning and thrown
+    objects; a lightsaber catches lightning; a Force user counters with Force resistance. Grips:
+    difficulty only, unless the target is a Force user. Telekinesis on an object or a body:
+    difficulty only (mass, size). A Force-null bubble (ysalamiri) stops every use; the Yuuzhan
+    Vong cannot be touched directly (a thrown object still hits). Numbers in
+    src/data/forceResistance.config.ts. Force load per use comes from the health spec section 2.
+  Saber throw (D-193): telekinesis control vs a difficulty; up to 3 minion strikes in the arc,
+    each its own roll; one deflectable strike on a duelist (a Force user may wrench it away); a
+    failed control roll drops the saber until a recall.
   Ranged firefights use build-up exchanges too (cover and suppression shift the track).
 
 ## 5. Circumstance modifiers (d20 points; 1 point = 10 levels)

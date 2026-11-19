@@ -43,6 +43,7 @@ import { basicRoll, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
 import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, woundPenalty, type Wound } from './wounds';
 import type { ForceActionRecord } from './combatForce';
+import type { BodySize, ForceTrait } from '../data/forceResistance.config';
 import { rollBoutHazards, type TerrainHazard } from './terrainHazard';
 
 export type SideId = 'A' | 'B';
@@ -96,6 +97,14 @@ export interface Fighter {
   coordination?: number;
   /** A minion kind's accuracy on its attack rolls (D-161: B1 droids shoot poorly); named fighters have none. */
   accuracy?: number;
+  /** Force resistance level (D-192): Force users only (the best of Force Control, Barrier, Absorb); absent or 0 otherwise. */
+  forceResistance?: number;
+  /** Traits for Force resolution (D-192): a droid, immune to mind abilities, invisible to the Force. */
+  forceTraits?: readonly ForceTrait[];
+  /** Build for telekinetic difficulty (D-192); absent = humanoid. */
+  bodySize?: BodySize;
+  /** The saber thrown and dropped (D-193): the fighter is unarmed until a recall restores these. */
+  saberLost?: { weapon: WeaponKind; skillId: string; level: number; form: string | null } | null;
 }
 
 export interface DuelContext {
@@ -112,6 +121,10 @@ export interface DuelContext {
   positionAttempt?: number;
   /** A real fight rolls the terrain again every this many exchanges (D-185); null or absent for a sparring bout. */
   hazardEvery?: number | null;
+  /** Ranged fighters are behind cover (a cover terrain tag, D-192): it blocks lightning and thrown objects. */
+  cover?: boolean;
+  /** A Force-null bubble (ysalamiri, D-192): no Force action, precognition or insight works. */
+  forceNegated?: boolean;
 }
 
 export interface Hit {
@@ -201,8 +214,8 @@ export const currentTarget = (s: DuelState): Fighter | null => {
   return t && !t.out && !t.engagedElsewhere ? t : engaged(s)[0] ?? null;
 };
 
-const isRanged = (f: Fighter): boolean => RANGED_WEAPONS.includes(f.weapon);
-const hasSaber = (f: Fighter): boolean => f.weapon === 'lightsaber' || f.weapon === 'trainingSaber';
+export const isRanged = (f: Fighter): boolean => RANGED_WEAPONS.includes(f.weapon);
+export const hasSaber = (f: Fighter): boolean => f.weapon === 'lightsaber' || f.weapon === 'trainingSaber';
 
 /** The form matchup for `f` against `opp` in this context (rolls §5; Niman 0, D-122). */
 export function matchupFor(f: Fighter, opp: Fighter, ctx: DuelContext, opponentsEngaged: number): Modifier[] {
@@ -277,7 +290,7 @@ function withoutParts(w: Readonly<Record<BodyPart, number>>, parts: ReadonlySet<
 }
 
 /** Applies a hit's damage to a fighter (health §4-6; minions out on moderate, D-144 sparring modes). */
-function damageFighter(
+export function damageFighter(
   f: Fighter,
   quality: HitQuality,
   /** The strike's rounded margin: a non-saber weapon's wound follows it (D-161). */
@@ -325,6 +338,8 @@ function withSide(s: DuelState, side: SideId, f: Fighter): DuelState {
 /** Start-of-exchange chances: Force insight (once per fight, rolls §6). */
 function insightCheck(s: DuelState, side: SideId, f: Fighter, opp: Fighter, ctx: DuelContext): { s: DuelState; note: string | null } {
   if (f.insightUsed || f.forceSense < FORCE_INSIGHT.minForceSense) return { s, note: null };
+  // No insight inside a Force-null bubble or about a foe outside the Force (D-192).
+  if (ctx.forceNegated || opp.forceTraits?.includes('forceInvisible')) return { s, note: null };
   const facing = opp.level - f.level >= FORCE_INSIGHT.gapAtLeast || (ctx.dyingRiskStakes && f.vitality <= 0);
   if (!facing) return { s, note: null };
   const [u, r] = nextFloat(s.rng);
@@ -365,6 +380,11 @@ export interface ExchangeExtras {
   /** Extra defense for the target (sequence adaptation). */
   bDefense?: readonly Modifier[];
   step?: number;
+  /**
+   * A sequence strike step against a minion (D-191): a strike roll, not a build-up contest, unless the opponent holds the
+   * strike. A miss by more than a tie gives the minion the build-up step for that margin.
+   */
+  forceStrike?: boolean;
 }
 
 export function resolveExchange(initial: DuelState, ctx: DuelContext, day: number, extras: ExchangeExtras = {}): DuelState {
@@ -396,7 +416,8 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   const effB = fighterEffectiveLevel(B);
   const advBefore = s.advantage;
   const surprise = s.surprise !== null;
-  const striker: SideId | null = surprise ? s.surprise : advBefore >= STRIKE_AT ? 'A' : advBefore <= -STRIKE_AT ? 'B' : null;
+  const striker: SideId | null = surprise ? s.surprise : advBefore >= STRIKE_AT ? 'A' : advBefore <= -STRIKE_AT ? 'B' : extras.forceStrike ? 'A' : null;
+  const forced = striker === 'A' && !surprise && advBefore < STRIKE_AT;
 
   let rng = s.rng;
   let rollA: BasicRoll;
@@ -468,7 +489,8 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       notes.push(`${atkF.name}: ${pm}`);
     } else if (band(margin) >= STRIKE_MIN_MARGIN) {
       const quality = qualityOf(band(margin))!;
-      const pc = precog(defF, surprise, rng);
+      // Precognition fails inside a Force-null bubble and against a striker outside the Force (D-192).
+      const pc = ctx.forceNegated || atkF.forceTraits?.includes('forceInvisible') ? { used: false, avoided: false, rng } : precog(defF, surprise, rng);
       rng = pc.rng;
       if (pc.used) defF = { ...defF, meters: { ...defF.meters, f: addFixedLoad(defF.meters.f, PRECOG.load) } };
       if (pc.avoided) {
@@ -506,6 +528,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     // misses or is blocked keeps the pressure, one step toward 0 (D-156).
     const missed = !maneuver && (!hit || hit.avoided);
     if (maneuver?.kind === 'knockdown') advAfter = striker === 'A' ? MANEUVER_EFFECT.knockdownAdvantage : -MANEUVER_EFFECT.knockdownAdvantage;
+    else if (missed && forced && -band(margin) > BUILD_UP.tieWithin) advAfter = clampTrack(advBefore - (BUILD_UP.steps.find(([min]) => -band(margin) >= min)?.[1] ?? 1));
     else if (missed) advAfter = advBefore - Math.sign(advBefore) * Math.min(Math.abs(advBefore), MISSED_STRIKE_STEP);
     else advAfter = 0;
     if (maneuver?.kind === 'position') {

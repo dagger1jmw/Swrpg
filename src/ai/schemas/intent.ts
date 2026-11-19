@@ -14,7 +14,7 @@ export const sequenceStepSchema = z.object({
   stance: z.enum(STANCES).optional(),
   tactic: z.enum(['feint', 'taunt']).optional(),
   maneuver: z.enum(MANEUVERS).optional(),
-  action: z.enum(['push', 'choke', 'lightning', 'throw']).optional().describe('forceAction: push, choke, lightning, or throw an object'),
+  action: z.enum(['push', 'choke', 'lightning', 'throw', 'mindTrick', 'saberThrow', 'recall']).optional().describe('forceAction: push, choke, lightning, throw an object, mindTrick, saberThrow (throw the lightsaber and guide it back), recall (call a dropped saber back)'),
   objectTag: z.string().max(40).optional().describe('throw: a terrain tag holding throwable objects (loose rock, debris, crates, machinery)'),
   aim: z.enum(BODY_PARTS).optional().describe('strike: only when the player names where the strike goes (head, torso, an arm, a leg, a hand)'),
 });

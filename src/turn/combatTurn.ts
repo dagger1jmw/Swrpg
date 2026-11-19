@@ -3,12 +3,13 @@
 import { QUIET_LINES, fillLine, type LineSide } from '../data/combatLines';
 import { isNarratedBeat, type BeatReason } from '../data/combat.config';
 import type { Intent } from '../ai/schemas/intent';
+import type { ForceActionKind } from '../engine/combatForce';
 import type { DuelState, ExchangeRecord } from '../engine/duel';
 import { isDying, isIncapacitated, statusLabel, type Wound } from '../engine/wounds';
 import type { ActiveFight, FightSummary } from '../features/combat/selectors';
 import type { GameState } from '../state/gameState';
 import type { CombatActionInput } from './record';
-import { COMBAT_WORD_GROUPS, FORM_WORDS } from '../data/combatWords';
+import { COMBAT_WORD_GROUPS, FORCE_CLAUSE_WORDS, FORM_WORDS, STRIKE_WORDS } from '../data/combatWords';
 
 /**
  * Natural combat words (D-179): the typed text (or a choice's label) read against the configured word groups and form
@@ -38,6 +39,95 @@ export function combatWordsAction(text: string): Record<string, unknown> | null 
   }
   if (!matched && !form) return null;
   return { action: 'posture', ...(stance ? { stance: stance.value } : {}), ...(takePosition ? { position: true } : {}), ...(form ? { form: form.id } : {}) };
+}
+
+type StepLike = { kind: string; action?: string } & Record<string, unknown>;
+
+/** The text as clauses in order (split on then, commas, semicolons, full stops and "and"), lower case. */
+function clausesOf(text: string): string[] {
+  const t = text.toLowerCase().replace(/[^a-z0-9' -]+/g, (m) => (/[,;.!?]/.test(m) ? ' | ' : ' '));
+  return t
+    .split(/\||\bthen\b|\band\b|\bbefore\b|\bafter that\b/)
+    .map((c) => ` ${c.replace(/\s+/g, ' ').trim()} `)
+    .filter((c) => c.trim().length > 0);
+}
+const has = (clause: string, phrase: string): boolean => clause.includes(` ${phrase} `);
+
+/** Defend and evade words: a clause with one is not an attack ("I parry his strike"). */
+const DEFENSIVE = COMBAT_WORD_GROUPS.filter((g) => g.id === 'defend' || g.id === 'evade').flatMap((g) => g.words);
+/** Words before an attack word that make it a noun ("his strike", "the blow"). */
+const NOUN_BEFORE = ['his', 'her', 'their', 'its', 'the', 'a', 'an', 'incoming', 'every', 'each'];
+/** An attack clause: an attack verb used as a verb, and no defend or evade word. */
+function isStrikeClause(c: string): boolean {
+  if (DEFENSIVE.some((w) => has(c, w))) return false;
+  return STRIKE_WORDS.some((w) => has(c, w) && !NOUN_BEFORE.some((n) => has(c, `${n} ${w}`)));
+}
+
+/** The Force step action a clause names, or null. */
+function forceActionIn(clause: string): string | null {
+  for (const [action, words] of Object.entries(FORCE_CLAUSE_WORDS)) if (words.some((w) => has(clause, w))) return action;
+  return null;
+}
+
+/**
+ * Attack verbs are strike steps (D-191). The player's text read clause by clause: each clause with an attack verb and no
+ * Force action is one strike, in the player's order. When the intent's steps have fewer strikes than the text, the
+ * missing strikes are inserted where the text puts them (the intent call sometimes folds "driving heavy strikes" into
+ * the aggressive stance). A Force action the text names that the intent left out is added the same way. Returns the
+ * steps unchanged when nothing is missing; at most `max` steps.
+ */
+export function reconcileSteps(text: string, steps: readonly StepLike[], max: number): StepLike[] {
+  const clauses = clausesOf(text).map((c) => ({ force: forceActionIn(c), strike: isStrikeClause(c) }));
+  const wantStrikes = clauses.filter((c) => c.strike && !c.force).length;
+  const haveStrikes = steps.filter((x) => x.kind === 'strike').length;
+  const wantForce = clauses.filter((c) => c.force).length;
+  const haveForce = steps.filter((x) => x.kind === 'forceAction').length;
+  if (wantStrikes <= haveStrikes && wantForce <= haveForce) return [...steps];
+  const out: StepLike[] = [];
+  const queue = [...steps];
+  const takeUntil = (pred: (x: StepLike) => boolean): StepLike | null => {
+    const i = queue.findIndex(pred);
+    if (i < 0) {
+      // Nothing to match: the intent's leading stances, tactics and maneuvers keep their place before the inserted step.
+      while (queue[0] && queue[0].kind !== 'forceAction' && queue[0].kind !== 'strike') out.push(queue.shift()!);
+      return null;
+    }
+    out.push(...queue.splice(0, i)); // steps the intent put before it (stances, maneuvers) keep their place
+    return queue.shift()!;
+  };
+  for (const c of clauses) {
+    if (c.force) {
+      const f = takeUntil((x) => x.kind === 'forceAction');
+      out.push(f ?? { kind: 'forceAction', action: c.force });
+    } else if (c.strike) {
+      const st = takeUntil((x) => x.kind === 'strike');
+      out.push(st ?? { kind: 'strike' });
+    }
+  }
+  out.push(...queue);
+  return out.slice(0, max);
+}
+
+/** The combat payload with the text's attack verbs and Force actions made sure of (D-191). */
+export function reconcileCombatPayload(text: string | undefined, payload: Record<string, unknown>, max: number): Record<string, unknown> {
+  if (!text) return payload;
+  const a = payload['action'];
+  let steps: StepLike[];
+  if (a === 'sequence') steps = (payload['steps'] as StepLike[]) ?? [];
+  else if (a === 'force') {
+    const f = payload['force'] as { kind: string; effort?: string; objectTag?: string };
+    steps = [{ kind: 'forceAction', action: f.kind, ...(f.effort ? { effort: f.effort } : {}), ...(f.objectTag ? { objectTag: f.objectTag } : {}) }];
+  } else if (a === 'continue' || a === 'posture' || a === 'clarify' || a === 'aim') steps = [];
+  else return payload;
+  const next = reconcileSteps(text, steps, max);
+  if (next.length === steps.length && a !== 'posture' && a !== 'clarify' && a !== 'continue' && a !== 'aim') return payload;
+  if (!next.some((x) => x.kind === 'strike' || x.kind === 'forceAction')) return payload;
+  // A posture's stance goes first; an aim goes on the first strike.
+  const pre: StepLike[] = a === 'posture' && payload['stance'] ? [{ kind: 'stance', stance: payload['stance'] }] : [];
+  const aim = a === 'aim' ? payload['part'] : undefined;
+  let aimed = false;
+  const withAim = next.map((x) => (aim && !aimed && x.kind === 'strike' ? ((aimed = true), { ...x, aim }) : x));
+  return { action: 'sequence', steps: [...pre, ...withAim].slice(0, max) };
 }
 
 export interface CombatFighterView {
@@ -73,7 +163,7 @@ export interface CombatDraft {
   notes: string[];
 }
 
-const FORCE_KINDS: Readonly<Record<string, 'push' | 'choke' | 'lightning' | 'throw'>> = { forcePush: 'push', forceChoke: 'choke', forceLightning: 'lightning', telekinesis: 'throw' };
+const FORCE_KINDS: Readonly<Record<string, ForceActionKind>> = { forcePush: 'push', forceChoke: 'choke', forceLightning: 'lightning', telekinesis: 'throw', mindTrick: 'mindTrick', saberThrow: 'saberThrow', recall: 'recall' };
 
 /** The combat action an intent asks for in a fight (typed input): a sequence, a Force action, a tactic, or the next beat. */
 export function combatActionFromIntent(intent: Intent | null): Record<string, unknown> {

@@ -14,7 +14,7 @@ import { COMBAT_STAKES, type CombatOutcome, type CombatStakes } from '../../data
 import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.config';
 import { FORM_IDS } from '../../data/skills';
 import { TERRAIN_BY_ID, TERRAIN_IDS, type ObjectSize } from '../../data/terrain';
-import { FORCE_ACTION_ABILITY, type ForceActionKind } from '../../engine/combatForce';
+import { FORCE_ACTION_ABILITY, FORCE_ACTION_KINDS, type ForceActionKind } from '../../engine/combatForce';
 import { currentTarget, runUntilBeat, startDuel, tryShatterpoint, type DuelState, type ExchangeRecord, type Fighter, type RunMode } from '../../engine/duel';
 import { rollMinionGrade } from '../../engine/npcGen';
 import { basicRoll } from '../../engine/rolls';
@@ -285,7 +285,7 @@ const stepSchema = z.object({
   stance: z.enum(STANCES).optional(),
   tactic: z.enum(['feint', 'taunt']).optional(),
   maneuver: z.enum(MANEUVERS).optional(),
-  action: z.enum(['push', 'choke', 'lightning', 'throw']).optional(),
+  action: z.enum(FORCE_ACTION_KINDS as unknown as [ForceActionKind, ...ForceActionKind[]]).optional(),
   objectTag: z.string().optional(),
   aim: z.enum(BODY_PARTS).optional(),
 });
@@ -397,7 +397,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         tactic: z.enum(TACTICS).optional(),
         maneuver: z.enum(MANEUVERS).optional(),
         form: z.string().optional(),
-        force: z.object({ kind: z.enum(['push', 'choke', 'lightning', 'throw']), effort: z.enum(['light', 'standard', 'heavy', 'allOut']).optional(), objectTag: z.string().optional() }).optional(),
+        force: z.object({ kind: z.enum(FORCE_ACTION_KINDS as unknown as [ForceActionKind, ...ForceActionKind[]]), effort: z.enum(['light', 'standard', 'heavy', 'allOut']).optional(), objectTag: z.string().optional() }).optional(),
         targetRef: z.string().optional(),
         steps: z.array(stepSchema).max(SEQUENCE_SCHEMA_MAX).optional(),
       }),
@@ -509,7 +509,10 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           duel = r.s;
           notes.push(`shatterpoint read: ${r.roll.total.toFixed(1)} vs 15: ${r.success ? 'success (advantage 3)' : 'nothing'}`);
         } else if (action === 'sequence') {
-          const steps = ((e['steps'] as z.infer<typeof stepSchema>[] | undefined) ?? []).map(toStep).filter((x): x is SequenceStep => x !== null);
+          const raw = (e['steps'] as z.infer<typeof stepSchema>[] | undefined) ?? [];
+          const steps = raw.map(toStep).filter((x): x is SequenceStep => x !== null);
+          // A step the intent returned incomplete (a stance with no stance, a Force action with no action) is logged, never silently lost (D-191).
+          const incomplete = raw.flatMap((x, k) => (toStep(x) ? [] : [`intent step ${k + 1} (${x.kind}) dropped: incomplete (no ${x.kind === 'forceAction' ? 'action' : x.kind})`]));
           if (!steps.length) return { reject: 'an empty sequence' };
           const forceLevels = steps.filter((x) => x.kind === 'forceAction').map((x) => selectLevelExact(s, FORCE_ACTION_ABILITY[(x as { action: ForceActionKind }).action]));
           const fat = selectFatigue(s);
@@ -522,7 +525,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
             exhausted: duel.a.vitality <= 0 || fat.p > 1 || fat.f > 1,
           });
           const r = runSequence({ duel, patternUses: active.patternUses, objects: active.objects }, ctxD, day, steps, cap, active.objectSizes, forceProfile(s));
-          const seqNotes = [...r.results.map((x) => `step ${x.index + 1}: ${x.note}`), ...(r.truncated.length ? [`${r.truncated.length} step(s) past the cap of ${cap} not attempted`] : []), ...(r.dropped.length ? [`${r.dropped.length} step(s) dropped (${r.stopReason})`] : [])];
+          // Every step the intent returned gets a line: resolved, failed, or dropped with the reason (D-191).
+          const seqNotes = [...incomplete, ...r.lines];
           const nextActive = { ...active, patternUses: r.state.patternUses, objects: r.state.objects };
           const settled = settle({ ...slice, active: nextActive }, s, nextActive, before, r.state.duel, 'sequence', true, seqNotes);
           return { slice: settled.slice, emit: settled.emit, notes: settled.notes, ...(settled.rng ? { rng: settled.rng } : {}) };

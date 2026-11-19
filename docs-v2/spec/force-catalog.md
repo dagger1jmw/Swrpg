@@ -16,6 +16,14 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
   Force load: amount + unit (per use | per minute) (health spec sec 2)
   effort scaling notes (what light vs all-out does in the story)
   contest: what it rolls against (Willpower, a Force defense ability, a DC rating)
+    Amended by D-192: the contest is the ability's resolution group (forceResistance.config.ts):
+    mind (Willpower contest; Force users add Force resistance; droids and lore-immune species
+    immune), avoidable (difficulty, then a dodge only if the target can react; cover; saber
+    deflection; Force users counter), grip (difficulty; Force users resist), object (difficulty
+    only), unopposed. Current groups: mind = Mind Trick; avoidable = Force Push, Force Lightning,
+    Telekinesis (throwing an object), Saber Throw; grip = Force Choke; object = Telekinesis on an
+    object or a body; unopposed = Force Barrier, Force Speed, Force Jump, Force Absorb, Battle
+    Meditation, Force Heal (Self), Force Heal (Others), Revitalize.
   output: what code computes (damage formula, push distance class, heal rate, sense range)
   drills: [{ activityId, difficulty rating, physical/mental/Force load per hour }]
   synergy: [{ targetId, relation type }]      (progression spec sec 14)

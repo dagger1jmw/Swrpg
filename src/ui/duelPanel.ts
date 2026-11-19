@@ -4,6 +4,7 @@ import type { Choice } from '../ai/schemas/compose';
 import { isNarratedBeat, MANEUVERS, STANCES, type BeatReason, type Stance } from '../data/combat.config';
 import { FORM_IDS, SKILL_BY_ID } from '../data/skills';
 import type { BasicRoll } from '../engine/rolls';
+import type { ForceOutcome } from '../engine/combatForce';
 import type { DuelState, ExchangeRecord } from '../engine/duel';
 import { selectActiveFight, selectFates, selectLastFight } from '../features/combat/selectors';
 import { selectIsDying } from '../features/health/selectors';
@@ -13,6 +14,9 @@ import type { GameState } from '../state/gameState';
 import type { CombatDraft } from '../turn/combatTurn';
 import type { TurnInput } from '../turn/record';
 import { el } from './dom';
+
+/** Short failure reasons on the roll card (D-192). */
+const FORCE_OUTCOME_SHORT: Readonly<Record<ForceOutcome, string>> = { success: 'success', skillTooLow: 'fell short', natural1: 'natural 1', dodged: 'dodged', cover: 'blocked by cover', forceResisted: 'resisted with the Force', willResisted: 'will held', deflected: 'caught by a lightsaber', immune: 'immune', forceInvisible: 'outside the Force', negated: 'Force-null bubble' };
 
 const f1 = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
@@ -29,7 +33,11 @@ function rollText(label: string, r: BasicRoll | null): string {
 function outcomeText(r: ExchangeRecord, names: Record<string, string>): string {
   const pc = names['pc'] ?? 'You';
   const t = names[r.targetId] ?? 'opponent';
-  if (r.kind === 'force' && r.force) return `${r.force.abilityId}: ${r.force.misfire ? 'misfire' : r.force.collapse ? 'collapse' : r.force.success ? 'success' : 'resisted'}${r.force.damage?.severity ? ` · ${r.force.damage.severity} wound` : ''}`;
+  if (r.kind === 'force' && r.force) {
+    const f = r.force;
+    const label = f.kind === 'saberThrow' ? 'saber throw' : f.kind === 'recall' ? 'saber recall' : f.abilityId;
+    return `${label}: ${f.misfire ? 'misfire' : f.collapse ? 'collapse' : f.success ? 'success' : FORCE_OUTCOME_SHORT[f.outcome]}${f.dc !== null ? ` (DC ${f.dc})` : ''}${f.damage?.severity ? ` · ${f.damage.severity} wound` : ''}${f.stoodDown ? ' · stands down' : ''}${f.saberDropped ? ' · saber dropped' : ''}`;
+  }
   if (r.kind === 'buildUp') return r.advAfter === r.advBefore ? 'even' : r.advAfter > r.advBefore ? `${pc} gains ground` : `${t} gains ground`;
   if (r.maneuver) return `${r.maneuver.kind}`;
   if (!r.hit) return 'strike recovered';
@@ -178,8 +186,11 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
       ['Choke', 'choke', 'forceChoke'],
       ['Lightning', 'lightning', 'forceLightning'],
       ['Throw', 'throw', 'telekinesis'],
+      ['Mind trick', 'mindTrick', 'mindTrick'],
+      ['Saber throw', 'saberThrow', 'telekinesis'],
+      ['Recall saber', 'recall', 'telekinesis'],
     ] as const
-  ).filter(([, , ability]) => selectLevelExact(s, ability) >= 1);
+  ).filter(([, kind, ability]) => selectLevelExact(s, ability) >= 1 && (kind === 'recall' ? !!d.a.saberLost : kind === 'saberThrow' ? !d.a.saberLost && (d.a.weapon === 'lightsaber' || d.a.weapon === 'trainingSaber') : true));
   const throwable = Object.entries(active.objects).filter(([, n]) => n > 0);
   const formSelect = forms.length
     ? el('select', { attrs: { 'aria-label': 'Change form' }, on: { change: (e) => {
