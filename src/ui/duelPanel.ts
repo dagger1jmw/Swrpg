@@ -112,17 +112,20 @@ export interface DuelPanelProps {
   closeSummary(): void;
   /** Dev mode: the AI calls made in this fight so far (null outside dev mode). */
   aiCalls: number | null;
+  /** "More actions" open (view state, kept for the fight; collapsed by default). */
+  moreOpen: boolean;
+  setMoreOpen(open: boolean): void;
 }
 
 const BOUT_RESULT: Readonly<Record<string, string>> = { A: 'won', B: 'lost' };
 const PART_LABEL: Readonly<Record<string, string>> = { head: 'head', torso: 'torso', rightArm: 'right arm', leftArm: 'left arm', rightLeg: 'right leg', leftLeg: 'left leg' };
 
 /** A toggle button: selected shows an accent outline, a check and a bold label, never a solid fill (D-183). */
-function toggle(label: string, selected: boolean, busy: boolean, onClick: () => void): HTMLElement {
+function toggle(label: string, selected: boolean, busy: boolean, onClick: () => void, title?: string): HTMLElement {
   return el('button', {
     class: `small toggle${selected ? ' selected' : ''}`,
     text: selected ? `✓ ${label}` : label,
-    attrs: { 'aria-pressed': String(selected), ...(busy ? { disabled: 'true' } : {}) },
+    attrs: { 'aria-pressed': String(selected), ...(title ? { title } : {}), ...(busy ? { disabled: 'true' } : {}) },
     on: { click: onClick },
   });
 }
@@ -186,14 +189,7 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
     : null;
   // The target is a setting (D-182): the select shows the current one; when it is out the next engaged one is shown.
   const current = d.opponents[d.target] && !d.opponents[d.target]!.out && !d.opponents[d.target]!.engagedElsewhere ? d.opponents[d.target]!.id : engaged[0]?.id;
-  const targetSelect = engaged.length > 1
-    ? el('select', { attrs: { 'aria-label': 'Target' }, on: { change: (e) => {
-          const v = (e.target as HTMLSelectElement).value;
-          if (v && v !== current) p.setTarget(v);
-        } } }, engaged.map((o) => el('option', { text: `Target: ${o.name}`, attrs: { value: o.id, ...(o.id === current ? { selected: 'true' } : {}) } })))
-    : null;
   if (formSelect && p.busy) formSelect.setAttribute('disabled', 'true');
-  if (targetSelect && p.busy) targetSelect.setAttribute('disabled', 'true');
 
   // Quiet or Narrated (D-145): an exchange is narrated once an AI narration has covered it (lastNarrated).
   const logTag = (r: ExchangeRecord): CallTag => (r.n <= active.lastNarrated ? 'narrated' : 'quiet');
@@ -202,63 +198,43 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
   const beatNow = active.beat;
   const beatTag: CallTag = beatNow && isNarratedBeat(beatNow as BeatReason) ? 'narrated' : 'quiet';
   const sess = active.session && !active.session.ended ? active.session : null;
-  return el('section', { class: 'box duel' }, [
-    el('div', { class: 'box-head' }, [
-      el('strong', { text: `Fight · ${active.stakes}${active.sparring ? ` (${active.sparring})` : ''} · exchange ${d.exchange}` }),
-      p.aiCalls !== null ? el('span', { class: 'hint dev-calls', text: `AI calls this fight: ${p.aiCalls}` }) : null,
-    ]),
-    // Pinned (iPad fix): the fighters, the track and the main actions are always visible; the rest scrolls below.
-    el('div', { class: 'duel-pinned' }, [
-      selectIsDying(s) ? el('div', { class: 'dying', text: 'Dying: get stabilized before the timer runs out.' }) : null,
-      // A truce on offer (D-181): accepted here; any other action declines it.
-      active.truceOffer
-        ? el('div', { class: 'beat-row truce' }, [el('span', { text: `Truce offered: ${active.truceOffer}` }), beat('Accept the truce', { action: 'acceptTruce' }, 'small')])
+  // A session not being played out resolves the rest at once from any passive action: one button for it.
+  const montage = sess !== null && !sess.playing;
+  const status = (o: (typeof d.opponents)[number]): string => (o.out ? 'out' : o.engagedElsewhere ? 'fighting an ally' : o.minion ? 'minion' : 'fighting');
+  const others = d.opponents.filter((o) => o.id !== facing?.id);
+  const act = (label: string, action: Record<string, unknown>, cls = 'small act', title?: string): HTMLElement =>
+    el('button', { class: cls, text: label, attrs: { ...(title ? { title } : {}), ...(p.busy ? { disabled: 'true' } : {}) }, on: { click: () => p.act({ kind: 'beat', label, action: action as never }) } });
+
+  const primary = montage
+    ? [
+        act('Spar it out', { action: 'continue' }, 'small act', 'Resolve the rest of the session at once (one narration)'),
+        act('Play this bout', { action: 'playBout' }, 'small act', 'Play the current bout out beat by beat'),
+        act('Stop sparring', { action: 'stopSession' }, 'small act secondary'),
+      ]
+    : [
+        // Next beat: to the next moment you can act, often quiet (no AI call). To key moment: on through the quiet
+        // beats to the next narrated one (a wounding hit, a landed maneuver, someone spent or down).
+        act('Next beat', { action: 'continue' }, 'small act', 'Fight to the next beat: usually a quiet one, no AI call'),
+        act('To key moment', { action: 'fightOn' }, 'small act', 'Fight on through quiet beats to the next narrated moment (an AI call)'),
+        act('Narrate', { action: 'narrate' }, 'small act secondary', 'Narrate the exchanges so far (an AI call), no new exchange'),
+        act('Resolve to end', { action: 'resolve' }, 'small act secondary', 'Fight it out to the end now'),
+      ];
+
+  const more = el('details', { class: 'duel-more', ...(p.moreOpen ? { attrs: { open: '' } } : {}), on: { toggle: (e) => p.setMoreOpen((e.target as HTMLDetailsElement).open) } }, [
+    el('summary', { text: 'More actions' }),
+    el('div', { class: 'duel-more-body' }, [
+      others.length ? el('div', { class: 'duel-fighters others' }, others.map((o) => vitalityRow(o.name, o.vitality, o.maxVitality, status(o), o.out))) : null,
+      // Settings (outline toggles with a check): the target, the next strike, the aim. Actions are filled buttons.
+      engaged.length > 1
+        ? el('div', { class: 'beat-row' }, [el('span', { class: 'hint', text: 'Target' }), ...engaged.map((o) => toggle(o.name, o.id === current, p.busy, () => o.id !== current && p.setTarget(o.id)))])
         : null,
-      el('div', { class: 'duel-fighters' }, [
-        vitalityRow(d.a.name, d.a.vitality, d.a.maxVitality, d.a.out ? 'out' : 'fighting', d.a.out),
-        ...d.opponents.map((o) => vitalityRow(o.name, o.vitality, o.maxVitality, o.out ? 'out' : o.engagedElsewhere ? 'fighting an ally' : o.minion ? 'minion' : 'fighting', o.out)),
-      ]),
-      trackBar(d.advantage, d.a.name, facing?.name ?? 'Opponent'),
-      // Bout result while the session goes on (D-181): the panel stays open between bouts.
-      lastBout
-        ? el('div', { class: `bout-result${active.beat === 'boutEnded' ? ' fresh' : ''}` }, [
-            el('strong', { text: `Bout ${active.session!.bouts.length}: ${BOUT_RESULT[lastBout.winner ?? ''] ?? 'unfinished'}${lastBout.reason ? ` (${lastBout.reason})` : ''}.` }),
-            el('span', { text: active.beat === 'boutEnded' ? ` Bout ${active.session!.bouts.length + 1} begins after a breather.` : ` Bout ${active.session!.bouts.length + 1} in progress.` }),
-          ])
-        : null,
-      el('div', { class: 'beat-status' }, [
-        el('span', { class: 'hint', text: beatNow ? `Beat: ${BEAT_LABEL[beatNow] ?? beatNow}` : 'Your move' }),
-        beatNow ? tagChip(beatTag) : null,
-        beatNow ? el('span', { class: 'hint', text: beatTag === 'quiet' ? '(no AI call)' : '(AI call)' }) : null,
-      ]),
-      el('div', { class: 'beat-row main-actions' }, [
-        beat(sess && !sess.playing ? 'Spar it out' : 'Continue', { action: 'continue' }, 'small'),
-        beat('Fight on', { action: 'fightOn' }, 'small'),
-        beat('Narrate', { action: 'narrate' }, 'small secondary'),
-        beat('Resolve to end', { action: 'resolve' }, 'small secondary'),
-      ]),
-      // A sparring session (D-168): the rest resolves at once by default; a bout can be played out beat by beat.
-      sess
-        ? el('div', { class: 'beat-row' }, [
-            el('span', { class: 'hint', text: `Sparring: bout ${sess.bouts.length + 1}, ${sess.bouts.filter((b) => b.winner === 'A').length} won, ${sess.bouts.filter((b) => b.winner === 'B').length} lost` }),
-            sess.playing ? null : beat('Play this bout', { action: 'playBout' }, 'small'),
-            beat('Stop sparring', { action: 'stopSession' }, 'small secondary'),
-          ])
-        : null,
-    ]),
-    el('div', { class: 'box-body duel-body' }, [
-      // A stance is a setting (D-182): it stays selected until changed and resolves nothing.
-      el('div', { class: 'beat-row' }, [
-        el('span', { class: 'hint', text: 'Stance' }),
-        ...STANCES.map((st) => toggle(st, d.a.stance === st, p.busy, () => d.a.stance !== st && p.setStance(st))),
-      ]),
       el('div', { class: 'beat-row' }, [
         el('span', { class: 'hint', text: 'Tactic' }),
-        beat('Feint', { action: 'tactic', tactic: 'feint' }),
-        beat('Taunt', { action: 'tactic', tactic: 'taunt' }),
-        beat('Take position', { action: 'tactic', tactic: 'takePosition' }),
-        beat('Disengage', { action: 'tactic', tactic: 'disengage' }),
-        beat('Surrender', { action: 'tactic', tactic: 'surrender' }, 'small secondary'),
+        act('Feint', { action: 'tactic', tactic: 'feint' }),
+        act('Taunt', { action: 'tactic', tactic: 'taunt' }),
+        act('Take position', { action: 'tactic', tactic: 'takePosition' }),
+        act('Disengage', { action: 'tactic', tactic: 'disengage' }),
+        act('Surrender', { action: 'tactic', tactic: 'surrender' }, 'small act warn'),
       ]),
       el('div', { class: 'beat-row' }, [
         el('span', { class: 'hint', text: 'Next strike' }),
@@ -272,11 +248,12 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
       forceActs.length || d.a.shatterpoint > 0
         ? el('div', { class: 'beat-row' }, [
             el('span', { class: 'hint', text: 'Force' }),
-            ...forceActs.filter(([, kind]) => kind !== 'throw' || throwable.length).map(([label, kind]) => beat(label, { action: 'force', force: { kind, ...(kind === 'throw' ? { objectTag: throwable[0]![0] } : {}) } })),
-            d.a.shatterpoint > 0 && !d.a.shatterpointUsed ? beat('Read the shatterpoint', { action: 'shatterpoint' }) : null,
+            ...forceActs.filter(([, kind]) => kind !== 'throw' || throwable.length).map(([label, kind]) => act(label, { action: 'force', force: { kind, ...(kind === 'throw' ? { objectTag: throwable[0]![0] } : {}) } })),
+            d.a.shatterpoint > 0 && !d.a.shatterpointUsed ? act('Read the shatterpoint', { action: 'shatterpoint' }) : null,
           ])
         : null,
-      formSelect || targetSelect ? el('div', { class: 'beat-row' }, [el('span', { class: 'hint', text: 'Form' }), formSelect, targetSelect]) : null,
+      formSelect ? el('div', { class: 'beat-row' }, [el('span', { class: 'hint', text: 'Form' }), formSelect]) : null,
+      sess && sess.playing ? el('div', { class: 'beat-row' }, [el('span', { class: 'hint', text: 'Sparring' }), act('Stop sparring', { action: 'stopSession' }, 'small act secondary')]) : null,
       // The narrator's suggestions go last (D-181).
       p.suggestions.length
         ? el('div', { class: 'beat-row suggestions' }, [
@@ -285,6 +262,41 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
           ])
         : null,
       el('details', { class: 'log duel-log-wrap' }, [el('summary', { text: `Duel log (${d.log.length})` }), log]),
+    ]),
+  ]);
+
+  return el('section', { class: 'box duel compact' }, [
+    el('div', { class: 'box-head' }, [
+      el('strong', { text: `Fight · ${active.stakes}${active.sparring ? ` (${active.sparring})` : ''} · exchange ${d.exchange}${sess ? ` · bout ${sess.bouts.length + 1} (${sess.bouts.filter((b) => b.winner === 'A').length}-${sess.bouts.filter((b) => b.winner === 'B').length})` : ''}` }),
+      p.aiCalls !== null ? el('span', { class: 'hint dev-calls', text: `AI calls this fight: ${p.aiCalls}` }) : null,
+    ]),
+    el('div', { class: 'box-body duel-body' }, [
+      selectIsDying(s) ? el('div', { class: 'dying', text: 'Dying: get stabilized before the timer runs out.' }) : null,
+      // A truce on offer (D-181): accepted here; any other action declines it.
+      active.truceOffer
+        ? el('div', { class: 'beat-row truce' }, [el('span', { text: `Truce offered: ${active.truceOffer}` }), act('Accept the truce', { action: 'acceptTruce' })])
+        : null,
+      // Always visible: the player and the opponent faced, the track, the beat line, the primary row and the stance.
+      el('div', { class: 'duel-fighters' }, [
+        vitalityRow(d.a.name, d.a.vitality, d.a.maxVitality, d.a.out ? 'out' : 'fighting', d.a.out),
+        facing ? vitalityRow(facing.name, facing.vitality, facing.maxVitality, status(facing), facing.out) : null,
+      ]),
+      trackBar(d.advantage, d.a.name, facing?.name ?? 'Opponent'),
+      el('div', { class: 'beat-status' }, [
+        el('span', { class: 'hint', text: beatNow ? `Beat: ${BEAT_LABEL[beatNow] ?? beatNow}` : 'Your move' }),
+        beatNow ? tagChip(beatTag) : null,
+        beatNow ? el('span', { class: 'hint', text: beatTag === 'quiet' ? '(no AI call)' : '(AI call)' }) : null,
+        // Bout result while the session goes on (D-181).
+        lastBout ? el('span', { class: `bout-result${active.beat === 'boutEnded' ? ' fresh' : ''}`, text: `Bout ${active.session!.bouts.length}: ${BOUT_RESULT[lastBout.winner ?? ''] ?? 'unfinished'}${lastBout.reason ? ` (${lastBout.reason})` : ''}${active.beat === 'boutEnded' ? `; bout ${active.session!.bouts.length + 1} next` : ''}` }) : null,
+        others.length ? el('span', { class: 'hint', text: `+${others.length} more (${others.filter((o) => !o.out).length} fighting)` }) : null,
+      ]),
+      el('div', { class: 'beat-row main-actions' }, primary),
+      // The stance: one segmented setting (D-182), under the primary row.
+      el('div', { class: 'stance-seg', attrs: { role: 'group', 'aria-label': 'Stance' } }, [
+        el('span', { class: 'hint', text: 'Stance' }),
+        el('div', { class: 'seg' }, STANCES.map((st) => toggle(st, d.a.stance === st, p.busy, () => d.a.stance !== st && p.setStance(st), `${st} stance (a setting: no exchange)`))),
+      ]),
+      more,
     ]),
   ]);
 }

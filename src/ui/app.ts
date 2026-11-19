@@ -56,6 +56,26 @@ import type { Routine } from '../features/routines/selectors';
 import type { MontageReport } from '../state/montageReport';
 import { previewRoutine, type RoutinePreview } from '../state/routinePreview';
 
+/** The duel panel's share of the main column in a fight (iPad layout): remembered per device in localStorage. */
+const SPLIT_KEY = 'swrpg-v2:duelSplit';
+const SPLIT_MIN = 0.25;
+const SPLIT_MAX = 0.75;
+function readSplit(kv: KeyValueStore): number {
+  try {
+    const v = Number(kv.getItem(SPLIT_KEY));
+    return Number.isFinite(v) && v >= SPLIT_MIN && v <= SPLIT_MAX ? v : 0.5;
+  } catch {
+    return 0.5;
+  }
+}
+function writeSplit(kv: KeyValueStore, v: number): void {
+  try {
+    kv.setItem(SPLIT_KEY, v.toFixed(3));
+  } catch {
+    // Storage blocked (private mode): the split lasts for this page only.
+  }
+}
+
 export interface AppDeps {
   root: HTMLElement;
   registry: Registry<GameState>;
@@ -98,6 +118,10 @@ export class App {
   private panelError: string | null = null;
   /** The ended fight whose result summary the player closed (D-181; view state only). */
   private closedFight: string | null = null;
+  /** "More actions" in the duel panel: open or not, kept for the fight it was set in (collapsed by default). */
+  private moreOpen: { fightId: string; open: boolean } | null = null;
+  /** The duel panel's share of the main column in a fight (0.25-0.75; default 0.5), remembered per device. */
+  private duelSplit = 0.5;
   /** The last dev command's refusal or failure (D-180), shown in the status line. */
   private devNote: string | null = null;
   /** Full request texts, this session only (D-87). */
@@ -118,6 +142,7 @@ export class App {
   private playback: { report: MontageReport; shown: number; timer: ReturnType<typeof setTimeout> | null } | null = null;
 
   constructor(private readonly d: AppDeps) {
+    this.duelSplit = readSplit(d.kv);
     this.tokenRatios = loadTokenRatios(d.kv);
     this.settings = loadSettings(d.kv);
     this.usage = loadUsage(d.kv);
@@ -550,10 +575,51 @@ export class App {
           summary: view?.summary ?? null,
           closeSummary: () => ((this.closedFight = view?.summary?.fightId ?? null), this.render()),
           aiCalls: devFlag(globalThis.location?.search ?? '') && session.state.combat.active ? fightCalls(session.history, session.state.combat.active.id) : null,
+          moreOpen: !!session.state.combat.active && this.moreOpen?.fightId === session.state.combat.active.id && this.moreOpen.open,
+          setMoreOpen: (open) => {
+            const id = session.state.combat.active?.id;
+            if (id) this.moreOpen = { fightId: id, open };
+          },
         })
       : null;
     const choices = choiceItems.length ? el('section', { class: 'box choices' }, [el('div', { class: 'box-body', attrs: { 'data-scroll': 'choices' } }, choiceItems)]) : null;
 
+    // In a fight the story and the duel panel split the column (50/50 by default); a handle between them resizes it.
+    if (duel && session?.state.combat.active) {
+      const r = this.duelSplit;
+      feed.style.flex = `${(1 - r).toFixed(3)} 1 0px`;
+      duel.style.flex = `${r.toFixed(3)} 1 0px`;
+      duel.classList.add('split');
+      const handle = el('div', { class: 'split-handle', attrs: { role: 'separator', 'aria-orientation': 'horizontal', 'aria-label': 'Resize the story and the duel panel', tabindex: '0', 'aria-valuenow': String(Math.round(r * 100)) } }, [el('span', { class: 'grip' })]);
+      const setRatio = (ratio: number): void => {
+        this.duelSplit = Math.max(SPLIT_MIN, Math.min(SPLIT_MAX, ratio));
+        feed.style.flex = `${(1 - this.duelSplit).toFixed(3)} 1 0px`;
+        duel.style.flex = `${this.duelSplit.toFixed(3)} 1 0px`;
+      };
+      handle.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        handle.setPointerCapture(e.pointerId);
+        const top = feed.getBoundingClientRect().top;
+        const bottom = duel.getBoundingClientRect().bottom;
+        const move = (ev: PointerEvent): void => setRatio((bottom - ev.clientY) / Math.max(1, bottom - top));
+        const up = (): void => {
+          handle.removeEventListener('pointermove', move);
+          handle.removeEventListener('pointerup', up);
+          handle.removeEventListener('pointercancel', up);
+          writeSplit(this.d.kv, this.duelSplit);
+        };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', up);
+        handle.addEventListener('pointercancel', up);
+      });
+      handle.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+        e.preventDefault();
+        setRatio(this.duelSplit + (e.key === 'ArrowUp' ? 0.05 : -0.05));
+        writeSplit(this.d.kv, this.duelSplit);
+      });
+      return el('main', { class: 'main' }, [feed, handle, duel, choices, this.renderInput()]);
+    }
     return el('main', { class: 'main' }, [feed, duel, choices, this.renderInput()]);
   }
 
