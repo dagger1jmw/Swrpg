@@ -33,7 +33,7 @@ import {
   type Stance,
 } from '../data/combat.config';
 import { FORM_MATCHUPS, FORM_STAMINA, type MatchupSituation } from '../data/formMatchups';
-import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, SPENT_LEVEL_FACTOR, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
+import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, SEVERITIES, SPENT_LEVEL_FACTOR, WOUND_FIGHTING, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
 import { RANGED_WEAPONS } from '../data/weapons';
 import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityOf, severs } from './damage';
 import { efficiency } from './fatigue';
@@ -41,7 +41,7 @@ import { addFixedLoad, forceWithin } from './forceMeter';
 import { lastingPenalty, limbState, type LastingInjury } from './lasting';
 import { basicRoll, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
-import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, woundPenalty, type Wound } from './wounds';
+import { effectiveSeverity, isDying, isIncapacitated, killsWhileDying, takesMinionOut, woundPenalty, type Wound } from './wounds';
 import type { ForceActionRecord } from './combatForce';
 import type { BodySize, ForceTrait } from '../data/forceResistance.config';
 import { rollBoutHazards, type TerrainHazard } from './terrainHazard';
@@ -103,6 +103,8 @@ export interface Fighter {
   forceTraits?: readonly ForceTrait[];
   /** Build for telekinetic difficulty (D-192); absent = humanoid. */
   bodySize?: BodySize;
+  /** The hand the weapon is held in (D-198); absent = right. */
+  weaponHand?: 'left' | 'right';
   /** The saber thrown and dropped (D-193): the fighter is unarmed until a recall restores these. */
   saberLost?: { weapon: WeaponKind; skillId: string; level: number; form: string | null } | null;
 }
@@ -200,12 +202,41 @@ export interface DuelState {
 const clampTrack = (v: number): number => Math.max(-ADVANTAGE_MAX, Math.min(ADVANTAGE_MAX, v));
 const other = (s: SideId): SideId => (s === 'A' ? 'B' : 'A');
 
-/** Effective level (rolls §1) with wounds, lasting injuries, rust, Spent and fatigue. */
+const atLeast = (sev: Severity, min: Severity): boolean => SEVERITIES.indexOf(sev) >= SEVERITIES.indexOf(min);
+
+/** A leg severed in this fight, or lost earlier with no prosthetic: the fighter cannot stand (D-198). */
+export function cannotStand(f: Fighter): boolean {
+  if (!WOUND_FIGHTING.severedLegOut) return false;
+  if (f.wounds.some((w) => w.severed && (w.part === 'leftLeg' || w.part === 'rightLeg'))) return true;
+  return f.lasting.some((l) => l.kind === 'lostLeg' && (l.aid === 'none' || l.aid === 'scarTissue'));
+}
+
+/**
+ * The weapon arm (D-198): ok; offHand when it carries an unhealed wound of the configured severity or worse (the
+ * fighter switches hands); lost when the arm or hand was severed in this fight (no second weapon until M8).
+ */
+export function weaponArmState(f: Fighter): 'ok' | 'offHand' | 'lost' {
+  if (!WOUND_FIGHTING.weaponArm || f.weapon === 'unarmed') return 'ok';
+  const side = f.weaponHand ?? 'right';
+  const parts = [`${side}Arm`, `${side}Hand`];
+  const on = f.wounds.filter((w) => parts.includes(w.part) && w.healProgress < 1);
+  if (on.some((w) => w.severed)) return 'lost';
+  return on.some((w) => atLeast(effectiveSeverity(w), WOUND_FIGHTING.minSeverity)) ? 'offHand' : 'ok';
+}
+
+/** Out of the weapon fight by a wound rule (D-198): cannot stand, or the weapon arm is gone. Named fighters only. */
+export function cannotDuel(f: Fighter): 'leg' | 'arm' | null {
+  if (f.minion) return null;
+  return cannotStand(f) ? 'leg' : weaponArmState(f) === 'lost' ? 'arm' : null;
+}
+
+/** Effective level (rolls §1) with wounds, lasting injuries, rust, Spent and fatigue; the off hand when the weapon arm is badly wounded (D-198). */
 export function fighterEffectiveLevel(f: Fighter): number {
+  const offHand = !f.minion && weaponArmState(f) === 'offHand' ? 1 - WOUND_FIGHTING.offHandPenalty : 1;
   const wound = woundPenalty(f.wounds, f.skillId, { willpower: f.willpower });
   const lasting = lastingPenalty(f.lasting, f.skillId);
   const fat = efficiency(f.caps.p > 0 ? f.meters.p / f.caps.p : 0);
-  return f.level * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * (1 - 0.25 * (1 - fat));
+  return f.level * offHand * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * (1 - 0.25 * (1 - fat));
 }
 
 export const engaged = (s: DuelState): Fighter[] => s.opponents.filter((o) => !o.out && !o.engagedElsewhere);
@@ -560,7 +591,13 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
 
   const spentNow: SideId | null = A.vitality > 0 && aOut.vitality <= 0 ? 'A' : B.vitality > 0 && bOut.vitality <= 0 ? 'B' : null;
   // End conditions.
-  const status = (f: Fighter): 'dead' | 'dying' | 'allOut' | 'incapacitated' | null => (f.dead ? 'dead' : isDying(f.wounds) ? 'dying' : f.out ? 'allOut' : isIncapacitated(f.wounds) ? 'incapacitated' : null);
+  const status = (f: Fighter): 'dead' | 'dying' | 'allOut' | 'incapacitated' | null => (f.dead ? 'dead' : isDying(f.wounds) ? 'dying' : f.out ? 'allOut' : isIncapacitated(f.wounds) || cannotDuel(f) ? 'incapacitated' : null);
+  // A leg or the weapon arm lost in this exchange (D-198): the fighter is out of the weapon fight.
+  for (const [f, was] of [[aOut, A], [bOut, B]] as const) {
+    const why = cannotDuel(f);
+    if (why && !cannotDuel(was)) notes.push(why === 'leg' ? `${f.name} has lost a leg and cannot stand: out of the fight` : `${f.name} has lost the weapon arm: out of the fight`);
+    else if (!f.minion && weaponArmState(f) === 'offHand' && weaponArmState(was) !== 'offHand') notes.push(`${f.name} switches the weapon to the off hand (-${Math.round(WOUND_FIGHTING.offHandPenalty * 100)}%)`);
+  }
   if (!end && ctx.sparring === 'trainingSaber') {
     if (aOut.vitality <= 0) end = { winner: 'B', reason: 'spent' };
     else if (bOut.vitality <= 0) end = { winner: 'A', reason: 'spent' };
@@ -628,11 +665,11 @@ export function minionHitNote(by: string, minion: string, after: Fighter, hit: P
 export function settleEnd(s: DuelState): DuelState {
   if (s.end) return s;
   const a = s.a;
-  if (a.dead || isDying(a.wounds) || isIncapacitated(a.wounds) || a.out) {
+  if (a.dead || isDying(a.wounds) || isIncapacitated(a.wounds) || cannotDuel(a) || a.out) {
     const reason = a.dead ? 'dead' : isDying(a.wounds) ? 'dying' : 'incapacitated';
     return { ...s, a: { ...a, out: true }, end: { winner: 'B', reason } };
   }
-  const opps = s.opponents.map((o) => (!o.out && (o.dead || isDying(o.wounds) || isIncapacitated(o.wounds)) ? { ...o, out: true } : o));
+  const opps = s.opponents.map((o) => (!o.out && (o.dead || isDying(o.wounds) || isIncapacitated(o.wounds) || cannotDuel(o)) ? { ...o, out: true } : o));
   const next = { ...s, opponents: opps };
   if (engaged(next).length === 0) return { ...next, end: { winner: 'A', reason: 'allOut' } };
   return { ...next, target: Math.max(0, opps.findIndex((o) => o.id === (currentTarget(next)?.id ?? ''))) };

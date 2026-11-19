@@ -128,6 +128,16 @@ export const STATUS_LABELS: readonly (readonly [number, string])[] = [
 ];
 export const STATUS_PENALTY_PER_LOAD = 0.0075;
 export const INCAPACITATED_LOAD = 20;
+/**
+ * Wounds that change how, or whether, a fighter fights (Jared, D-198; lore-required for the leg).
+ * severedLegOut: a fighter whose leg is severed, or who has lost a leg with no prosthetic, cannot stand or duel: out of
+ * the fight (a prosthetic or cybernetic leg is exempt). weaponArm: a wound of `minSeverity` or worse to the weapon arm
+ * or hand (not yet healed) forces the off hand, at `offHandPenalty` on the fighting skill (the unadapted lost-hand
+ * penalty on forms, LASTING_PENALTIES.lostHand.forms); a severed weapon arm or hand puts the fighter out of the fight
+ * until there is a second weapon (items, M8). Minions already leave on a moderate wound.
+ */
+export const WOUND_FIGHTING = { severedLegOut: true, weaponArm: false, minSeverity: 'severe' as Severity, offHandPenalty: 0.4 };
+
 /** Total wound penalty (status + location) cap while still able to fight. */
 export const WOUND_PENALTY_CAP = 0.5;
 /** Dying timer = base + Endurance / perEndurance minutes. */

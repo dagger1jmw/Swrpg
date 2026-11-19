@@ -75,6 +75,10 @@ Force meter (replaces Force strain):
     again (it leaves the location roll; a lost arm takes its hand). A limb lost before the fight
     carries its prosthetic: a hit there costs Vitality only (no wound, no sever) until M8 makes
     it equipment damage. A limb is never severed twice.
+  Fighting on (D-198): a fighter whose leg is severed, or who has lost a leg with no prosthetic,
+    cannot stand or duel: out of the fight (a prosthetic or cybernetic leg is exempt). The
+    weapon-arm rule (a severe or worse wound switches to the off hand at 0.4; a severed weapon
+    arm ends the fight until a second weapon, M8) is built and switched off until M6.
   Wounds of the same body part do not merge; each heals on its own.
   Location penalties follow Docs/SW_Injury_System_v1.md targeting (arm -> saber and
     strength, leg -> agility, head -> Force and mental, torso -> all), as percentages.

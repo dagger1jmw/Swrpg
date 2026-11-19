@@ -89,6 +89,7 @@ export function buildPlayerFighter(s: GameState): Fighter {
     pendingManeuver: null,
     forceResistance: forceResistanceOf((id) => selectLevelExact(s, id)),
     forceTraits: speciesForceTraits(c.speciesId),
+    weaponHand: c.dominantHand,
   };
 }
 

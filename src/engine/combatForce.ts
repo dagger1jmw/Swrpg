@@ -25,7 +25,7 @@ import { applyDamage, damageOf, hazardDamage, rollLocation, severityOf } from '.
 import { applyForceLoad, forceLoadPerUse, rollCollapse } from './forceMeter';
 import { basicRoll, dcForRating, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
-import { currentTarget, damageFighter, minionHitNote, engaged, fighterEffectiveLevel, hasSaber, isRanged, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type Fighter, type SideId } from './duel';
+import { cannotDuel, currentTarget, damageFighter, minionHitNote, engaged, fighterEffectiveLevel, hasSaber, isRanged, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type Fighter, type SideId } from './duel';
 import { STRIKE_QUALITY, type HitQuality } from '../data/combat.config';
 import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, type Wound } from './wounds';
 
@@ -382,7 +382,7 @@ export function resolveForceAction(s0: DuelState, input: ForceActionInput, day: 
           after = d.f;
           hit = { by: input.side, ...d.hit, avoided: false };
         }
-        if (isDying(after.wounds) || isIncapacitated(after.wounds)) after = { ...after, out: true };
+        if (isDying(after.wounds) || isIncapacitated(after.wounds) || cannotDuel(after)) after = { ...after, out: true };
         saberHits.push({ targetId: victim.id, roll, defense, margin, quality: hitIt ? quality : null, cutDown: hitIt && after.out });
         if (victim.id === target.id) updatedTarget = after;
         else s = { ...s, opponents: s.opponents.map((o) => (o.id === after.id ? after : o)) };
@@ -440,7 +440,7 @@ export function resolveForceAction(s0: DuelState, input: ForceActionInput, day: 
       damage = { D, W: dmg.W, part, severity: sev };
     }
   }
-  if (isDying(updatedTarget.wounds) || isIncapacitated(updatedTarget.wounds)) updatedTarget = { ...updatedTarget, out: true };
+  if (isDying(updatedTarget.wounds) || isIncapacitated(updatedTarget.wounds) || cannotDuel(updatedTarget)) updatedTarget = { ...updatedTarget, out: true };
   const [secs, r3] = nextInt(rng, EXCHANGE_SECONDS.min, EXCHANGE_SECONDS.max);
   rng = r3;
   const effUser = ci.effectiveLevel;

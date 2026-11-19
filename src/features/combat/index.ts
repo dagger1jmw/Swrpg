@@ -15,7 +15,7 @@ import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.co
 import { FORM_IDS } from '../../data/skills';
 import { TERRAIN_BY_ID, TERRAIN_IDS, type ObjectSize } from '../../data/terrain';
 import { FORCE_ACTION_ABILITY, FORCE_ACTION_KINDS, type ForceActionKind } from '../../engine/combatForce';
-import { currentTarget, runUntilBeat, startDuel, tryShatterpoint, type DuelState, type ExchangeRecord, type Fighter, type RunMode } from '../../engine/duel';
+import { cannotDuel, currentTarget, runUntilBeat, startDuel, tryShatterpoint, type DuelState, type ExchangeRecord, type Fighter, type RunMode } from '../../engine/duel';
 import { rollMinionGrade } from '../../engine/npcGen';
 import { basicRoll } from '../../engine/rolls';
 import { nextFloat, nextInt, type RngState } from '../../engine/rng';
@@ -186,11 +186,12 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     const m = active.meta[o.id];
     if (!m?.npcId) continue;
     if (o.dead) emit.push({ type: 'npcDied', npcRef: m.npcId, cause: `killed in fight ${active.id}` });
-    else if (outcome === 'won' && (isIncapacitated(o.wounds as Wound[]) || isDying(o.wounds as Wound[]))) fates.push({ npcId: m.npcId, fightId: active.id, options: [...NPC_FATES] });
+    // An opponent who cannot stand or has lost the weapon arm (D-198) is down too: spared, captured or finished off.
+    else if (outcome === 'won' && (isIncapacitated(o.wounds as Wound[]) || isDying(o.wounds as Wound[]) || cannotDuel(o))) fates.push({ npcId: m.npcId, fightId: active.id, options: [...NPC_FATES] });
   }
   let rng: RngState | undefined;
   let playerFate: FateKind | null = null;
-  const playerDown = outcome === 'lost' && (duel.a.out || isIncapacitated(duel.a.wounds as Wound[]) || isDying(duel.a.wounds as Wound[]));
+  const playerDown = outcome === 'lost' && (duel.a.out || isIncapacitated(duel.a.wounds as Wound[]) || isDying(duel.a.wounds as Wound[]) || cannotDuel(duel.a) !== null);
   if (playerDown && reason !== 'surrendered') {
     const rule = FATE_BY_STAKES[active.stakes];
     if (rule !== 'roll') playerFate = rule;
