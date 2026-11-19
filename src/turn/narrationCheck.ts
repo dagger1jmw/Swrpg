@@ -16,7 +16,7 @@ import type { CombatDraft } from './combatTurn';
 import { careApplied } from './context';
 import type { TurnDraft } from './resolve';
 
-export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms' | 'gearNotInBlock' | 'stepFailed' | 'groundReversed' | 'survivorCount' | 'lastingState';
+export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms' | 'gearNotInBlock' | 'stepFailed' | 'groundReversed' | 'survivorCount' | 'lastingState' | 'captorsWrong';
 export interface NarrationIssue {
   kind: NarrationIssueKind;
   /** The correction for the retry, and the log line. */
@@ -46,6 +46,8 @@ const PLAYER_LANDS: readonly RegExp[] = [
 const PLAYER_IS_HIT: readonly RegExp[] = [
   /\b(catches|catching|hits|hitting|strikes|striking|sears|searing|burns|burning|grazes|grazing|clips|clipping|slams into|punches into|tears into|cuts into|slices into|bites into|scorches|gashes|wounds)\s+(?:\w+ ){0,2}(you\b(?! (off|by|un|flat))|your (arm|leg|shoulder|side|ribs|chest|back|thigh|torso|flank|hand|head|face|forearm|hip|knee)\b)/i,
   /\byou (?:are|take|suffer)\s+(?:\w+ ){0,3}(hit|struck|wounded|wound|gash|burn|graze)\b/i,
+  // "taking a light blow to your own ribs" (D-242; pass 3, with no hit on the player in the block).
+  /\b(?:tak(?:e|es|ing)|took|suffer\w*|absorb\w*) (?:\w+[ ,]+){0,3}(?:blow|hit|cut|graze|strike|bolt|shot|impact|slash)s? (?:to|on|into|across|against) your\b/i,
 ];
 
 /** Nouns after an ordinal that are not a fighter ("the second strike"). */
@@ -164,7 +166,18 @@ function unexplainedSlip(sentence: string, clause: string, causes: SlipCauses, o
   return null;
 }
 /** The outcome list's wording in prose (rule 10): severity labels, margins, tracks, beats, upper-case labels. */
-const SEVERITY_LABEL = /\b(?:a|an|the|another|one|his|her|its|their|your)\s+(?:[a-z-]+,?\s+){0,2}?(minor|moderate|severe|critical),?\s+(?:[a-z-]+,?\s+)?(wound|strike|blow|hit|cut|graze|injury|burn|gash)s?\b|\bmortal (strike|blow|hit)s?\b/i;
+// Labels on any blow (D-242; pass 3: "a severe stroke", "a critical slug", "a severe impact").
+const SEVERITY_LABEL = /\b(?:a|an|the|another|one|his|her|its|their|your)\s+(?:[a-z-]+,?\s+){0,2}?(minor|moderate|severe|critical),?\s+(?:[a-z-]+,?\s+)?(wound|strike|blow|hit|cut|graze|injury|burn|gash|stroke|impact|slug|shot|bolt|thrust|slash)s?\b|\bmortal (strike|blow|hit|stroke|shot|thrust)s?\b/i;
+/** "drains your stamina", "taxing its stamina", "strains his stamina" (D-242): the block's "stamina only" in prose. */
+// The verb only: "a drain on his stamina" (a noun) has no natural swap and is left alone.
+const STAMINA_PHRASE = /(?<!\b(?:a|an|the) )\b(drain|tax|strain|sap|test|wear|tire)(s|es|ed|ing)?\b(?:\s+(?:on|at|down))?\s+(your|his|her|its|their|the \w+'s)\s+stamina\b/i;
+/** Natural words for a stamina phrase: "wears you down", "wearing him down". */
+function staminaWords(m: RegExpExecArray): string {
+  const tense = m[2] === 'ing' ? 'wearing' : m[2] === 'ed' ? 'wore' : m[2] ? 'wears' : 'wear';
+  const who: Record<string, string> = { your: 'you', his: 'him', her: 'her', its: 'it', their: 'them' };
+  const w = m[3]!.toLowerCase();
+  return `${tense} ${who[w] ?? m[3]!.replace(/'s$/, '')} down`;
+}
 const ENGINE_TERMS: readonly [RegExp, string][] = [
   [/\bmargin\b/i, 'margin'],
   [/\badvantage track\b|\btrack (?:moves|moved|swings|swung|shifts|shifted)\b/i, 'track'],
@@ -172,6 +185,10 @@ const ENGINE_TERMS: readonly [RegExp, string][] = [
   [/\bexchange (?:#|no\.? ?)?\d+\b|#\d+\b|\bbuild-?up exchange\b/i, 'exchange'],
   [/\b(?:DONE|NO HIT|NOT REACHED|FAILED)\b|\bHIT\b/, 'labels'],
   [/\bstamina only\b|\b(?:the )?roll(?:s|ed)? (?:fell|falls|falling) short\b|\bshort of the difficulty\b|\bDC \d/i, 'engine wording'],
+  // "drains your stamina" (D-242); the repair swaps it for natural words.
+  [STAMINA_PHRASE, 'stamina'],
+  // The step list in prose: "you do not reach your intended strikes", "your remaining sequence" (D-242).
+  [/\bintended (?:strikes?|steps?|attacks?|cuts?)\b|\byour (?:remaining|planned|whole) sequence\b/i, 'step list'],
 ];
 /** The first outcome-list term in a sentence, or null. */
 export function mechanicalTerm(sentence: string): string | null {
@@ -205,6 +222,8 @@ const WEAPON_WORDS: readonly [RegExp, readonly string[], string][] = [
   [/\bscatter ?guns?\b/i, ['scatterGun'], 'a scatter gun'],
   [/\bslugthrowers?\b/i, ['slugPistol', 'slugRifle'], 'a slugthrower'],
 ];
+/** Blades meeting (rule 16c). */
+const BLADES_LOCK = /\b(?:lock\w* blades|clash\w* blades|blades? (?:lock|locks|locked|locking|clash|clashes|clashed|clashing|meet|meets|met|meeting|cross|crosses|crossed|crossing))\b/i;
 const SURVIVOR_NOUNS = ['opponent', 'foe', 'enemy', 'attacker', 'soldier', 'survivor', 'fighter', 'automaton', 'machine', 'figure'];
 
 function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): NarrationIssue[] {
@@ -244,6 +263,7 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
   const survivorNouns = [...new Set([...oppWords, ...SURVIVOR_NOUNS])].join('|');
   const survivor = new RegExp(String.raw`\bthe (?:sole |lone |one |single )?(?:surviving|last|final|only|remaining|lone|sole) (?:\w+ )?(?:${survivorNouns})\b(?!s)|\bthe only one (?:left|standing|remaining)\b|\bthe last (?:one|of them)\b|\bthe (?:lone|sole) survivor\b`, 'i');
   const carried = new Set(c.fighters.map((f) => f.weapon));
+  const oppBlade = c.fighters.some((f) => f.id !== 'pc' && ['lightsaber', 'trainingSaber', 'melee'].includes(f.weapon));
   const add = (kind: NarrationIssueKind, text: string, sentence: string): void => {
     if (!out.some((x) => x.kind === kind && x.sentence === sentence)) out.push({ kind, text, sentence });
   };
@@ -312,6 +332,8 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
     for (const [re, weaponKinds, word] of WEAPON_WORDS) {
       if (re.test(s) && !weaponKinds.some((k) => carried.has(k)) && !NEGATED.test(s)) add('gearNotInBlock', `nobody in this fight carries ${word}: only the weapons the block lists`, s);
     }
+    // 16c. Blades locked with an opponent who has none (D-242; pass 3: a B1 "locking blades").
+    if (!oppBlade && BLADES_LOCK.test(s) && !NEGATED.test(s)) add('gearNotInBlock', 'no opponent in this fight carries a blade: nobody locks or clashes blades with the player character (they shoot, or fight with what the block lists)', s);
     // 10. Engine and outcome-list terms in the prose (D-205 R5, enforced D-211).
     const term = mechanicalTerm(s);
     if (term) add('mechanicalTerms', `"${term}" is the outcome list's wording, not prose: show the wound and the moment instead (a deep cut, a grievous wound), never margins, tracks, beats or labels`, s);
@@ -378,6 +400,8 @@ export interface KnownWounds {
   player: readonly string[];
   /** Everyone in the scene whose body has lost something (D-237), from the state. In a fight the fighters' views come first. */
   lasting?: readonly LastingView[];
+  /** The player's captors while a prisoner (D-242): their kind and its noun. */
+  captors?: { kind: string | null; noun: string; group: string } | null;
 }
 
 function misplacedIssues(narrative: string, draft: TurnDraft, known: KnownWounds): NarrationIssue[] {
@@ -419,6 +443,28 @@ function misplacedIssues(narrative: string, draft: TurnDraft, known: KnownWounds
         }
       }
     }
+  }
+  return out;
+}
+
+/** Words of taking or holding a prisoner (rule 18). */
+const CAPTURE_WORDS = /\b(?:captor\w*|captive\w*|prisoner\w*|seiz\w+|grip\w*|grab\w*|grasp\w*|drag\w*|haul\w*|bind\w*|binders|bound|restrain\w*|shackl\w*|manacl\w*|march\w* you|escort\w*|led away|lead you|take you|takes you|taking you|took you|hold you|holds you|close in|closes in|surround\w*)\b/i;
+/** Minion kind nouns (rule 18), as the kinds' labels end. */
+const KIND_NOUNS = ['droid', 'trooper', 'warrior', 'thug', 'brawler', 'beast', 'acolyte', 'droideka', 'militia', 'soldier', 'mercenar'];
+
+/**
+ * Rule 18 (D-242; pass 3: line troopers captured a Padawan and "the remaining war droids" seized her): a sentence about
+ * taking or holding the prisoner names the captors' kind, not another. Only when the captors are a minion kind; a
+ * sentence that also names the captors' own noun is left alone.
+ */
+export function captorIssues(narrative: string, captors: { kind: string | null; noun: string; group: string } | null): NarrationIssue[] {
+  if (!captors?.kind) return [];
+  const out: NarrationIssue[] = [];
+  const own = new RegExp(`\\b${captors.noun}s?\\b`, 'i');
+  for (const s of sentencesOf(narrative)) {
+    if (!CAPTURE_WORDS.test(s) || own.test(s)) continue;
+    const other = KIND_NOUNS.find((n) => n !== captors.noun && new RegExp(`\\b${n}\\w*\\b`, 'i').test(s));
+    if (other) out.push({ kind: 'captorsWrong', text: `the player character was captured by ${captors.group}: the captors are ${captors.noun}s, not ${other}s`, sentence: s });
   }
   return out;
 }
@@ -581,6 +627,7 @@ export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHea
   if (woundedOrHealing) issues.push(...healingIssues(narrative, draft));
   issues.push(...misplacedIssues(narrative, draft, known));
   issues.push(...lastingIssues(narrative, lastingViews(draft.combat && !draft.combat.quiet ? draft.combat : null, known.lasting ?? [])));
+  issues.push(...captorIssues(narrative, known.captors ?? null));
   return issues;
 }
 
@@ -680,6 +727,11 @@ export function repairWording(narrative: string): string {
     .map((sentence) => {
       let fixed = sentence;
       // Swap the severity word of each label, one label at a time (a sentence may hold several).
+      for (let i = 0; i < 4; i++) {
+        const m = STAMINA_PHRASE.exec(fixed);
+        if (!m) break;
+        fixed = fixed.slice(0, m.index) + staminaWords(m) + fixed.slice(m.index + m[0].length);
+      }
       for (let i = 0; i < 8; i++) {
         const m = SEVERITY_LABEL.exec(fixed);
         if (!m) break;

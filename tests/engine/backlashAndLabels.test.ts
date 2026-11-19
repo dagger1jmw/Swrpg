@@ -48,8 +48,10 @@ describe('"cuts down" only when the minion is out (D-194)', () => {
   const minion = (over: Partial<Fighter> = {}) => forceUser('b1', 10, { name: 'B1', minion: true, ...over });
   it('the note names what happened', () => {
     expect(minionHitNote('Kael', 'B1', minion({ out: true }), { severity: null })).toBe('Kael cuts down B1');
-    expect(minionHitNote('Kael', 'B1', minion(), { severity: null })).toBe('Kael grazes B1; it fights on');
-    expect(minionHitNote('Kael', 'B1', minion(), { severity: 'minor' })).toBe('Kael wounds B1 (minor); it fights on');
+    // A person is "they", a droid "it"; a shooter shoots a minion down (D-242).
+    expect(minionHitNote('Kael', 'Trooper', minion(), { severity: null })).toBe('Kael grazes Trooper; they fight on');
+    expect(minionHitNote('Kael', 'B1', minion({ forceTraits: ['droid'] }), { severity: 'minor' })).toBe('Kael wounds B1 (minor); it fights on');
+    expect(minionHitNote('Dax', 'Trooper', minion({ out: true }), { severity: 'moderate' }, true)).toBe('Dax shoots down Trooper');
   });
   it('in duels: every cut-down note is on a minion that is out after that exchange, and a surviving one is a minionHit beat', () => {
     let survived = 0;
@@ -61,7 +63,7 @@ describe('"cuts down" only when the minion is out (D-194)', () => {
       if (r.notes.some((n) => n.includes('cuts down'))) expect(t.out).toBe(true);
       if (r.hit && !t.out) {
         survived++;
-        expect(r.notes.join(' ')).toMatch(/(grazes|wounds) .+ fights on/);
+        expect(r.notes.join(' ')).toMatch(/(grazes|wounds) .+ fights? on/);
       }
     }
     expect(survived).toBeGreaterThan(0);

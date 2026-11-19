@@ -405,7 +405,8 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
         beatNow ? el('span', { class: 'hint', text: beatTag === 'quiet' ? '(no AI call)' : '(AI call)' }) : null,
         // Bout result while the session goes on (D-181).
         lastBout ? el('span', { class: `bout-result${active.beat === 'boutEnded' ? ' fresh' : ''}`, text: `Bout ${active.session!.bouts.length}: ${BOUT_RESULT[lastBout.winner ?? ''] ?? 'unfinished'}${lastBout.reason ? ` (${lastBout.reason})` : ''}${active.beat === 'boutEnded' ? `; bout ${active.session!.bouts.length + 1} next` : ''}` }) : null,
-        others.length ? el('span', { class: 'hint', text: `+${others.length} more: ${others.filter((o) => !o.out).length} still fighting${others.some((o) => o.out) ? `, ${others.filter((o) => o.out).length} down` : ''}` }) : null,
+        // An opponent fighting an ally is not "still fighting" the player (D-242).
+        others.length ? el('span', { class: 'hint', text: `+${others.length} more: ${others.filter((o) => !o.out && !o.engagedElsewhere).length} still fighting${others.some((o) => !o.out && o.engagedElsewhere) ? `, ${others.filter((o) => !o.out && o.engagedElsewhere).length} fighting an ally` : ''}${others.some((o) => o.out) ? `, ${others.filter((o) => o.out).length} down` : ''}` }) : null,
       ]),
       // The opponent holds the strike (D-199): a typed sequence may be cut short by it.
       initiativeWarning(d.advantage) ? el('div', { class: 'warn-line initiative', text: initiativeWarning(d.advantage)! }) : null,

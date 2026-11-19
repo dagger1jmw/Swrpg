@@ -96,7 +96,14 @@ export function forceActionIn(raw: string): string | null {
  * the aggressive stance). A Force action the text names that the intent left out is added the same way. Returns the
  * steps unchanged when nothing is missing; at most `max` steps.
  */
-export function reconcileSteps(text: string, steps: readonly StepLike[], max: number): StepLike[] {
+/** The player's own words for a stance: the word groups' stances (D-179) or the stance named outright. */
+const STANCE_NAMED = /\b(aggressive|aggressively|defensive|defensively|balanced|stance|on the offensive|on the defensive)\b/i;
+
+export function reconcileSteps(text: string, steps0: readonly StepLike[], max: number): StepLike[] {
+  // A stance the intent added that the words never asked for is dropped (D-242; pass 3: "dive behind a stack of
+  // crates" and "keep low" became defensive stance steps, which then stayed set). The word groups' stances stay.
+  const askedStance = STANCE_NAMED.test(text) || combatWordsAction(text)?.['stance'] !== undefined;
+  const steps = askedStance ? steps0 : steps0.filter((x) => x.kind !== 'stance');
   const raw = clausesOf(text).map((c) => ({ force: forceActionIn(c), strike: isStrikeClause(c), object: objectIn(c) }));
   // "lift a heavy rock with the Force and hurl it": the object is named in the clause before the throw (D-216).
   const clauses = raw.map((c, k) => (c.force === 'throw' && !c.object && k > 0 && !raw[k - 1]!.force ? { ...c, object: raw[k - 1]!.object } : c));
@@ -233,7 +240,7 @@ export interface CombatDraft {
   /** A quiet beat: no AI call; the feed shows the roll cards and `quietLine`. */
   quiet: boolean;
   quietLine: string | null;
-  ended: { outcome: string; reason: string; playerFate: string | null } | null;
+  ended: { outcome: string; reason: string; playerFate: string | null; captors?: { group: string; kind: string | null; standing: number; names: string[] } } | null;
   /** A sparring session (D-168): bouts won, lost and unfinished, how it ended, and any real injury. */
   session: { won: number; lost: number; unfinished: number; ended: string | null; injuries: string[] } | null;
   advantage: number;
@@ -329,7 +336,7 @@ export function combatDraft(before: GameState, after: GameState, started: boolea
     quiet: !narrated,
     // Nothing attempted (D-194): the reason is the quiet line ("droids can't be mind-tricked").
     quietLine: narrated ? null : beat === 'noEffect' ? noEffectLine(notes) : quietLineFor(beat, duel, records),
-    ended: endedNow ? { outcome: last!.outcome, reason: last!.reason, playerFate: last!.playerFate } : null,
+    ended: endedNow ? { outcome: last!.outcome, reason: last!.reason, playerFate: last!.playerFate, ...(last!.captors ? { captors: last!.captors } : {}) } : null,
     session: sess
       ? { won: sess.bouts.filter((b) => b.winner === 'A').length, lost: sess.bouts.filter((b) => b.winner === 'B').length, unfinished: sess.bouts.filter((b) => b.winner === null).length, ended: sess.ended, injuries }
       : null,

@@ -55,7 +55,7 @@ export interface CombatFacts {
 const THROWN_TEXT: Readonly<Record<string, string>> = { fallenTimber: 'a fallen log', looseRock: 'a loose rock', debris: 'a chunk of debris', machinery: 'a piece of machinery', iceChunks: 'a chunk of ice', crates: 'a crate' };
 
 const fmt = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(1));
-const WEAPON_TEXT: Readonly<Record<string, string>> = { unarmed: 'unarmed (no weapon)', melee: 'a melee weapon (a physical blade, staff or claws: it cuts, bruises or pierces, it does not burn)', blasterPistol: 'a blaster pistol', blasterRifle: 'a blaster rifle', heavy: 'a heavy blaster', slugPistol: 'a slugthrower pistol (solid slugs, not bolts)', slugRifle: 'a slugthrower rifle (rapid solid slugs, not bolts)', scatterGun: 'a scatter gun (a spread of solid shot, not bolts)', lightsaber: 'a lightsaber', trainingSaber: 'a training saber' };
+const WEAPON_TEXT: Readonly<Record<string, string>> = { unarmed: 'unarmed (no weapon: dodges bolts and blows, cannot turn them aside)', melee: 'a melee weapon (a physical blade, staff or claws: it cuts, bruises or pierces, it does not burn)', blasterPistol: 'a blaster pistol', blasterRifle: 'a blaster rifle', heavy: 'a heavy blaster', slugPistol: 'a slugthrower pistol (solid slugs, not bolts)', slugRifle: 'a slugthrower rifle (rapid solid slugs, not bolts)', scatterGun: 'a scatter gun (a spread of solid shot, not bolts)', lightsaber: 'a lightsaber', trainingSaber: 'a training saber' };
 export const weaponText = (w: string): string => WEAPON_TEXT[w] ?? w;
 
 /**

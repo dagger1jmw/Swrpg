@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { DISTRACTED, OVERTRAINING, PACE_WINDOW_DAYS, PASSION_DAYS, STATE_STRENGTH, CENTERED_MEDITATION_HOURS, EMOTION_TO_STATE, FATIGUE_WILLPOWER, type StateOfMind } from '../../data/progression.config';
 import { SKILL_BY_ID, CATEGORY_RULES, PHYSICAL_STATS } from '../../data/skills';
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY } from '../../data/activities';
-import { COMBAT_OUTCOMES, COMBAT_STAKES } from '../../data/progression.config';
+import { COMBAT_OUTCOMES, COMBAT_STAKES, COMBAT_XP } from '../../data/progression.config';
 import { computeCombatXp, type CombatSession } from '../../engine/combatXp';
 import { eGainFor, gainCI, gainE, releaseBank, releaseUntil, splitDrillXp } from '../../engine/appliedExperience';
 import { RECORDING_REVIEW } from '../../data/combat.config';
@@ -330,7 +330,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         return {
           slice: { ...cr.slice, fightsToday, combatXpToday, E, CI, bankReleaseUntil },
           emit: cr.emit,
-          notes: [`combat XP ${total.toFixed(2)} (${session.stakes}, ${session.outcome})`, ...r.notes, ...ceiling.notes, ...cr.notes, ...releaseNote],
+          // The surrender factor on the line (D-242; pass 3: the 0.5 of D-227 was applied but not shown).
+          notes: [`combat XP ${total.toFixed(2)} (${session.stakes}, ${session.outcome}${session.surrendered ? `, surrendered x${COMBAT_XP.surrendered}` : ''})`, ...r.notes, ...ceiling.notes, ...cr.notes, ...releaseNote],
         };
       },
     },

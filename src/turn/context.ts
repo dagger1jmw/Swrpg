@@ -193,6 +193,24 @@ function healthLine(state: GameState): string {
 }
 
 /** A fight in progress (rolls §3): who is fighting whom, their status and the advantage. */
+/** How long after a capture the scene still carries the captors (D-242), unless the player has moved. Design default. */
+export const CAPTIVE_LINE_SECONDS = 24 * 3600;
+
+/** The captors of the last fight, while the player is still their prisoner here (D-242), or null. */
+export function selectCaptors(state: GameState): { group: string; kind: string | null; names: readonly string[] } | null {
+  const last = state.combat.last;
+  const c = last?.playerFate === 'captured' ? last.captors : null;
+  if (!c || state.combat.active) return null;
+  const now = selectNow(state).day * 86_400 + selectNow(state).second;
+  if (now - c.atAbs > CAPTIVE_LINE_SECONDS || (c.locationId ?? null) !== (state.locations.currentId ?? null)) return null;
+  return c;
+}
+
+function captiveLine(state: GameState): string | null {
+  const c = selectCaptors(state);
+  return c ? `CAPTIVE: the player character was captured by ${c.group}${c.kind ? ` (${c.names.join(', ')})` : ''} in the last fight. Name these captors, and no other kind of soldier or droid, until the story frees the character.` : null;
+}
+
 function combatLine(state: GameState): string | null {
   const a = state.combat.active;
   if (!a) return state.combat.pending ? 'COMBAT: a fight is about to begin (the engine resolves it this turn).' : null;
@@ -242,6 +260,7 @@ export function stateBlock(
     conditionLine(state),
     healthLine(state),
     ...(combatLine(state) ? [combatLine(state)!] : []),
+    ...(captiveLine(state) ? [captiveLine(state)!] : []),
     skillsLine(state),
     ...beatsLines(state),
     `Date: ${formatDate(now.day)}`,
@@ -397,6 +416,9 @@ export function describeTraining(t: NonNullable<TurnDraft['training']>): string[
  * or NO HIT; per step DONE, FAILED (reason) or NOT REACHED; a "Did not happen" line; each fighter's weapon. The
  * narrator may describe nothing that is not here.
  */
+/** A passage this long gets a key-events line (D-242). Design default. */
+const KEY_EVENTS_FROM = 10;
+
 export function describeCombat(c: CombatDraft): string[] {
   const facts = combatFacts(c);
   const lines = [`COMBAT ${c.fightId}${c.started ? ' (the fight begins now)' : ''}: the outcome list. Narrate these exchanges in order, nothing more and nothing different.`];
@@ -404,6 +426,11 @@ export function describeCombat(c: CombatDraft): string[] {
   // Armor as the engine has it (D-216; pass 2 gave an unarmored Jedi "your armor"): nobody wears what is not listed.
   if (c.fighters.some((f) => f.armor !== undefined)) lines.push(`Armor (the only armor in this fight): ${c.fighters.map((f) => `${f.name}: ${!f.armor || f.armor === 'none' ? 'none' : `${f.armor}${f.saberResistant ? ' (beskar: turns a lightsaber)' : ''}`}`).join('; ')}.`);
   lines.push(...facts.lines);
+  // A long passage (D-242; pass 3: 46 exchanges told as their aftermath): the events that must be told, in order.
+  if (c.narrate.length >= KEY_EVENTS_FROM) {
+    const key = facts.hits.filter((h) => h.severity || h.severed || c.fighters.find((f) => f.id === h.targetId)?.out);
+    if (key.length) lines.push(`Key events (tell each one, in order, however briefly): ${key.map((h) => `#${h.n} ${h.byPlayer ? (c.fighters[0]?.name ?? 'the player character') : 'an opponent'} hits ${h.targetName} (${partText(h.part)}${h.severed ? ', severed' : h.severity ? `, ${h.severity}` : ''})`).join('; ')}.`);
+  }
   if (facts.steps.length) lines.push(`Steps the player asked for: ${facts.steps.map((s) => `step ${s.index + 1} ${s.label}: ${s.status} (${s.detail})`).join('; ')}.`);
   for (const n of c.notes.filter((x) => x.startsWith('intent step'))) lines.push(`Sequence: ${n}`);
   lines.push(`Hits in this passage: ${facts.hits.length ? facts.hits.map((h) => `#${h.n} on ${h.targetName} (${partText(h.part)}, ${h.severed ? 'severed' : h.severity ? `${h.severity} wound` : 'no wound'})`).join('; ') : 'NONE: nobody was hit, wounded or touched'}.`);
@@ -426,6 +453,8 @@ export function describeCombat(c: CombatDraft): string[] {
     lines.push(`Sparring session: ${s.won + s.lost + s.unfinished} bouts so far, ${s.won} won, ${s.lost} lost${s.unfinished ? `, ${s.unfinished} unfinished` : ''}${s.ended ? `; the session ended (${s.ended === 'exchanges' ? 'time' : s.ended})` : ''}. ${c.ended ? 'Summarize the whole session from the highlights above: bouts won and lost, the telling moments' : c.beat === 'boutEnded' ? `Narrate the bout that just ended. The session goes on (D-181): after a short breather bout ${s.won + s.lost + s.unfinished + 1} begins. Do not send combatEnded` : `Bout ${s.won + s.lost + s.unfinished + 1} is in progress`}${s.injuries.length ? `, and the accident: ${s.injuries.join('; ')}` : ''}.`);
   }
   if (c.ended) lines.push(`The fight is over: ${c.ended.outcome} (${c.ended.reason})${c.ended.playerFate ? `; the opponent's choice: ${c.ended.playerFate}` : ''}. The choices are story choices again (what the character does next), not tactical moves.`);
+  // Who took the player (D-242; pass 3: "the remaining war droids" seized a Padawan whom line troopers had captured).
+  if (c.ended?.captors) lines.push(`Captured by: ${c.ended.captors.group}${c.ended.captors.kind ? ` (${c.ended.captors.names.join(', ')}, still standing)` : ''}. Name these captors and no others.`);
   else lines.push('The fight goes on: end at the last exchange, at the moment the player chooses again.');
   return lines;
 }

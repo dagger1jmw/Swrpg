@@ -512,7 +512,8 @@ export class App {
           const loc = selectCurrentLocation(state);
           return [
             el('strong', { class: 'tb-time', text: `${formatClock(now.second)} ${timeOfDayLabel(now.second)}` }),
-            el('span', { class: 'tb-date', text: formatDate(now.day) }),
+            // The weekday in its own span, hidden at iPad width (D-242).
+            el('span', { class: 'tb-date', attrs: { title: formatDate(now.day) } }, [formatDate(now.day).replace(/ \(weekday \d+\)$/, ''), el('span', { class: 'tb-weekday', text: / \(weekday \d+\)$/.exec(formatDate(now.day))?.[0] ?? '' })]),
             loc ? el('span', { class: 'tb-opt tb-place', text: loc.name }) : null,
             el('span', { class: 'tb-chip', text: selectPacingLevel(state) }),
             el('span', { class: 'tb-opt tb-turn', text: `turn ${state.meta.turn}` }),

@@ -139,13 +139,15 @@ function fighterFromLevels(id: string, name: string, levels: Readonly<Record<str
   };
 }
 
-export function buildNpcFighter(s: GameState, npcId: string): { fighter: Fighter; rank: string | null } {
+export function buildNpcFighter(s: GameState, npcId: string, live = true): { fighter: Fighter; rank: string | null } {
   const npc = selectNpc(s, npcId)!;
   const gen = selectNpcGen(s, npcId)!;
   const levels = selectNpcLevels(s, npcId);
   const canon = npc.canonId ? CANON_BY_ID.get(npc.canonId) : undefined;
   const archetype = canon?.archetype ?? gen.archetype;
-  let loadout = loadoutFor(archetype, gen.rank);
+  // A training saber is for practice (D-242; pass 3: a Sith acolyte attacking two Jedi with one): in a real fight an
+  // initiate or acolyte carries a lightsaber; a spar's mode sets the blades for everyone.
+  let loadout = loadoutFor(archetype, live ? null : gen.rank);
   // Mandalorian armor (D-158): canon armor, else a beskar roll by era, seeded per NPC.
   if (archetype === 'mandalorian') {
     const beskar = canon?.armor ? canon.armor === 'beskar' : nextFloat(seedRng(`${gen.seed}:beskar`))[0] < beskarChanceAt(dateFromAbsDay(s.clock.now.day).year);

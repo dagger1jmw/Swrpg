@@ -34,10 +34,11 @@ import type { CampaignRecord, Storage, TranscriptEntry } from '../persist/storag
 import { applyEvents, type AppliedEvent, type RejectedEvent, type UnknownRef } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
 import type { GameEvent, Registry } from '../state/types';
-import { buildIntentRequest, buildNarrativeRequest, buildSummaryRequest, lastingStates, type BuiltRequest, type ContextReport } from './context';
+import { buildIntentRequest, buildNarrativeRequest, buildSummaryRequest, lastingStates, selectCaptors, type BuiltRequest, type ContextReport } from './context';
+import { MINION_KINDS } from '../data/npcGen.config';
 import { expandChoice } from './expandChoice';
 import type { CallRecord, TurnInput, TurnRecord } from './record';
-import { refResolver, resolveIntentRefs } from './refs';
+import { fightMinionRef, refResolver, resolveIntentRefs } from './refs';
 import { resolveTurn, type Resolution } from './resolve';
 import { skipAheadChoice } from './skipAhead';
 import { choicesAfterTurn } from './fightChoices';
@@ -255,7 +256,7 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
     const base = callOptions('intent', req.system, CALL_SETTINGS.intent.maxOutputTokens + THINKING_HEADROOM_TOKENS);
     try {
       const raw = normalizeIntent(await callModel(deps, calls, intentNotes, base, (opts) => deps.provider.generateStructured(intentSchema, req.messages, opts)));
-      const checked = resolveIntentRefs(raw, resolve);
+      const checked = resolveIntentRefs(raw, resolve, fightMinionRef(session.state));
       intent = checked.intent;
       intentNotes.push(...checked.notes);
     } catch (e) {
@@ -270,7 +271,7 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
     // A full intent from the UI (the sheet's Train button): validated like any intent, no call.
     const parsed = intentSchema.safeParse(input.intent);
     if (!parsed.success) throw new TurnError('intent', new Error(`invalid action: ${parsed.error.issues[0]?.message ?? 'schema'}`), calls);
-    const checked = resolveIntentRefs(normalizeIntent(parsed.data), resolve);
+    const checked = resolveIntentRefs(normalizeIntent(parsed.data), resolve, fightMinionRef(session.state));
     intent = checked.intent;
     intentNotes.push(...checked.notes);
   }
@@ -362,7 +363,10 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     // captured fighter keeps it).
     const lastingNow = lastingStates(resolved);
     const lasting = [...lastingNow, ...lastingStates(session.state).filter((l) => !lastingNow.some((x) => x.name === l.name))];
-    const known = { player: [...selectWounds(session.state), ...selectWounds(resolved)].map((w) => w.part), lasting };
+    // The captors while the player is their prisoner (D-242): the kind's noun, as its label ends.
+    const held = selectCaptors(resolved);
+    const captors = held?.kind ? { kind: held.kind, group: held.group, noun: (MINION_KINDS.find((k) => k.id === held.kind)?.label ?? held.kind).toLowerCase().split(/\s+/).pop()!.replace(/s$/, '') } : null;
+    const known = { player: [...selectWounds(session.state), ...selectWounds(resolved)].map((w) => w.part), lasting, captors };
     // The previous story reply (dev commands are not story): a narration that repeats it is a contradiction (D-210).
     const previous = [...session.history].reverse().find((r) => r.input.kind !== 'dev' && r.narrative)?.narrative ?? null;
     const recheck = (text: string): NarrationIssue[] => checkNarration(text, draft, woundedOrHealing, known, previous);

@@ -332,9 +332,22 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       }
       const before = state;
       apply([{ type: 'fightBegun', fromPending: false, opponentRefs, minionGroups, stakes, terrainTags: tags, ...(mode ? { sparringMode: mode } : {}), ...(stakes === 'spar' ? { playOut: true } : {}) }], 'engine');
-      if (!state.combat.active) return fail(refused() ?? 'the fight did not begin');
+      // A dying player's fight ends at once (D-242): begun and over in the same command.
+      const endedAtOnce = !state.combat.active && state.combat.last !== null && state.combat.last.id !== before.combat.last?.id;
+      if (!state.combat.active && !endedAtOnce) return fail(refused() ?? 'the fight did not begin');
+      if (endedAtOnce) {
+        draft = { combat: combatDraft(before, state, true, report), pacingLevel: selectPacingLevel(state) };
+        return out(true, `fight begun and over at once: ${who}; ${state.combat.last!.outcome} (${state.combat.last!.reason})`);
+      }
+      const active = state.combat.active!;
+      // The kind that was fielded, not the one asked for (D-242; pass 3: "4 clone troopers" over the era note's line troopers).
+      if (minion) {
+        const fielded = Object.values(active.meta).find((m) => m.minionKind)?.minionKind;
+        const label = MINION_KINDS.find((k) => k.id === fielded)?.label;
+        if (label) who = `${count} ${label}${count > 1 ? 's' : ''}`;
+      }
       draft = { combat: combatDraft(before, state, true, report), pacingLevel: selectPacingLevel(state) };
-      kind = state.combat.active.sparring ? `${stakes} (${state.combat.active.sparring})` : stakes;
+      kind = active.sparring ? `${stakes} (${active.sparring})` : stakes;
       return out(true, `${cmd === 'spar' ? 'sparring session' : 'fight'} begun: ${who}, ${kind}${tags.length ? `, terrain ${tags.join(', ')}` : ''}`);
     }
 

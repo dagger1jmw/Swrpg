@@ -4,7 +4,7 @@
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
-import { INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, CAPTOR_RULES, FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
+import { INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, CAPTOR_RULES, FATE_BY_STAKES, FATE_CHOICE_EXPIRY, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
 import { hazardOnAll, rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, WEAPON_KINDS, type BodyPart, type HazardType, type WeaponKind } from '../../data/health.config';
@@ -31,7 +31,7 @@ import { selectNpc, selectNpcGen, selectNpcLevels } from '../npcs/selectors';
 import { selectCI, selectLevelExact, selectPerformance } from '../progression/selectors';
 import { selectRank } from '../ranks/selectors';
 import { buildContext, buildMinionFighter, buildNpcFighter, buildPlayerFighter, sparringModeFor } from './build';
-import { combatSliceSchema, emptyCombat, pendingFightSchema, type ActiveFight, type CombatSlice, type PendingFight } from './combat';
+import { combatSliceSchema, emptyCombat, pendingFightSchema, type ActiveFight, type CombatSlice, type FightSummary, type PendingFight } from './combat';
 import { fateIsLive, selectActiveFight, selectCombat } from './selectors';
 
 const absNow = (s: GameState): number => s.clock.now.day * 86_400 + s.clock.now.second;
@@ -46,7 +46,7 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
   const meta: ActiveFight['meta'] = { pc: { npcId: null, minionKind: null, rank: selectRank(s) } };
   for (const id of spec.opponentRefs) {
     if (!selectNpc(s, id)) continue;
-    const b = buildNpcFighter(s, id);
+    const b = buildNpcFighter(s, id, spec.stakes !== 'spar');
     opponents.push({ ...b.fighter, engagedElsewhere: spec.engagedElsewhere.includes(id) });
     meta[id] = { npcId: id, minionKind: null, rank: b.rank };
     if (!selectNpc(s, id)!.gen) emit.push({ type: 'npcGenerated', npcRef: id });
@@ -212,6 +212,7 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   // stream after it goes back to meta, so the next fight never replays this one.
   let rng: RngState = duel.rng;
   let playerFate: FateKind | null = null;
+  let captors: FightSummary['captors'] = null;
   const playerDown = outcome === 'lost' && (duel.a.out || isIncapacitated(duel.a.wounds as Wound[]) || isDying(duel.a.wounds as Wound[]) || cannotDuel(duel.a) !== null);
   // A surrender puts the player at the opponent's mercy too (D-216; pass 2: nothing was decided): the same fate roll.
   const surrendered = reason === 'surrendered';
@@ -239,13 +240,20 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
       else playerFate = u < table.serious[0] ? 'captured' : 'left';
     }
     // Captors want a prisoner alive (Jared, D-225): a dying captive is stabilized, unless the captor captures to execute.
-    if (playerFate === 'captured' && isDying(duel.a.wounds as Wound[]) && !captor.capturesToExecute) emit.push({ type: 'woundsStabilized', by: 'the captors' });
+    const stabilized = playerFate === 'captured' && isDying(duel.a.wounds as Wound[]) && !captor.capturesToExecute;
+    if (stabilized) emit.push({ type: 'woundsStabilized', by: 'the captors' });
     // A killing strike is a mortal wound, so the dying timer leaves room for a rescue (D-154).
     if (playerFate === 'killingStrike' && !isDying(duel.a.wounds as Wound[])) {
       emit.push({ type: 'healthSynced', vitalityLost: selectMaxVitality(s), addWounds: [{ id: 'fate', part: 'torso', severity: 'mortal', W: 55, stabilized: false, healProgress: 0, day: selectNow(s).day, source: 'a killing strike' }], cause: 'a killing strike' });
     }
     notes.push(`the opponent's choice: ${playerFate}`);
+    if (playerFate === 'captured') {
+      captors = captorsOf(duel, active, winner, s);
+      notes.push(`captured by: ${captors.group}`);
+    }
   }
+  // The end card shows the state after the captors' care (pass 3: "Mira Tane: Dying" after "stabilized by the captors").
+  const shown = playerDown || surrendered ? markStabilized(duel, emit) : duel;
   const last = {
     id: active.id,
     stakes: active.stakes,
@@ -260,7 +268,25 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     duel,
     session: active.session ?? null,
   };
-  return { slice: { ...slice, active: null, fates, last }, emit, notes, rng };
+  return { slice: { ...slice, active: null, fates, last: { ...last, duel: shown, captors } }, emit, notes, rng };
+}
+
+/**
+ * The player's captors (D-242): a named winner by name; a minion winner as its kind's group still standing ("4 line
+ * troopers"), with the names, so the following scenes name the right captors.
+ */
+function captorsOf(duel: DuelState, active: ActiveFight, winner: DuelState['opponents'][number], s: GameState): NonNullable<FightSummary['captors']> {
+  const kind = active.meta[winner.id]?.minionKind ?? null;
+  const standing = duel.opponents.filter((o) => !o.out && !o.engagedElsewhere && (kind ? active.meta[o.id]?.minionKind === kind : o.id === winner.id));
+  const label = kind ? (MINION_KINDS.find((k) => k.id === kind)?.label ?? kind) : winner.name;
+  const group = kind ? `${standing.length} ${label}${standing.length === 1 ? '' : 's'}` : winner.name;
+  return { group, kind, standing: standing.length, names: standing.map((o) => o.name), atAbs: toAbsSecond(s.clock.now), locationId: s.locations.currentId };
+}
+
+/** The duel with the player's mortal wounds stabilized when the conclusion emitted woundsStabilized. */
+function markStabilized(duel: DuelState, emit: readonly GameEvent[]): DuelState {
+  if (!emit.some((e) => e.type === 'woundsStabilized')) return duel;
+  return { ...duel, a: { ...duel.a, wounds: (duel.a.wounds as Wound[]).map((w) => (w.severity === 'mortal' && !w.stabilized ? { ...w, stabilized: true } : w)) } };
 }
 
 /** Outcome of a duel end for side A. */
@@ -413,7 +439,16 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         if (!r.active.duel.opponents.length) return { reject: 'no opponent could join the fight' };
         const active = e['playOut'] === true && r.active.session ? { ...r.active, session: { ...r.active.session, playing: true } } : r.active;
         // A new fight closes every fate choice still open (issue 18).
-        return { slice: { ...slice, pending: null, active, fates: [], seq: slice.seq + 1 }, emit: r.emit, notes: r.notes, rng: r.rng };
+        const begun = { ...slice, pending: null, active, fates: [], seq: slice.seq + 1 };
+        // A player who is dying cannot fight (D-242; pass 3: a typed attack ended the fight at exchange 0, a dev fight let
+        // the same player act): the fight ends at once as lost (dying), and the opponent's choice follows.
+        const d0 = active.duel as DuelState;
+        if (!active.session && isDying(d0.a.wounds as Wound[])) {
+          const ended = { ...active, duel: { ...d0, rng: r.rng, a: { ...d0.a, out: true }, end: { winner: 'B' as const, reason: 'dying' } } };
+          const c = conclude(begun, ctx.state, ended, 'lost', 'dying');
+          return { slice: c.slice, emit: [...r.emit, ...c.emit], notes: [...r.notes, 'the player character is dying and cannot fight: the fight ends at once', ...c.notes], rng: c.rng };
+        }
+        return { slice: begun, emit: r.emit, notes: r.notes, rng: r.rng };
       },
     },
     /**
@@ -813,6 +848,27 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         return { slice: { ...slice, fates: slice.fates.filter((f) => f.npcId !== id) }, emit, notes: [`${id}: ${fate}`] };
       },
     },
+  },
+  /**
+   * A fate choice that lapses (D-242; pass 3: the dying Jedi stayed "active, here now" two hours later with no word):
+   * past FATE_CHOICE_EXPIRY, or once the player has left the place, the choice is gone and the player learns it. A
+   * downed opponent is left where they fell; one left dying dies of the wounds (as "Spare (leave dying)" says).
+   */
+  onTimeAdvanced: (slice, step, ctx) => {
+    if (!slice.fates.length || slice.active) return { slice };
+    const here = ctx.state.locations.currentId;
+    const lapsed = slice.fates.filter((f) => f.atAbs !== undefined && (step.toAbs - f.atAbs > FATE_CHOICE_EXPIRY.seconds || (f.locationId ?? null) !== here));
+    if (!lapsed.length) return { slice };
+    const emit: GameEvent[] = [];
+    const notices: string[] = [];
+    for (const f of lapsed) {
+      const name = ctx.state.npcs.byId[f.npcId]?.name ?? f.npcId;
+      if (f.dying) {
+        emit.push({ type: 'npcDied', npcRef: f.npcId, cause: 'left dying after the fight' });
+        notices.push(`${name} was left dying and did not survive.`);
+      } else notices.push(`${name} was left where they fell.`);
+    }
+    return { slice: { ...slice, fates: slice.fates.filter((f) => !lapsed.includes(f)) }, emit, notices };
   },
   selectors: { combat: selectCombat, active: selectActiveFight },
 };

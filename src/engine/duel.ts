@@ -565,7 +565,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       bOut = d.f;
       hit = { by: 'A', ...d.hit, avoided: false };
       // Cut down only when the minion is actually out (D-194); otherwise it is wounded or grazed and fights on.
-      notes.push(minionHitNote(A.name, B.name, bOut, hit));
+      notes.push(minionHitNote(A.name, B.name, bOut, hit, isRanged(A)));
     }
   } else {
     const atkF = striker === 'A' ? A : B;
@@ -730,9 +730,10 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
 }
 
 /** The note for a hit on a minion (D-194): cuts down only when it is out; wounds or grazes when it fights on. */
-export function minionHitNote(by: string, minion: string, after: Fighter, hit: Pick<Hit, 'severity'>): string {
-  if (after.out) return `${by} cuts down ${minion}`;
-  return hit.severity ? `${by} wounds ${minion} (${hit.severity}); it fights on` : `${by} grazes ${minion}; it fights on`;
+export function minionHitNote(by: string, minion: string, after: Fighter, hit: Pick<Hit, 'severity'>, ranged = false): string {
+  // A shooter shoots a minion down; only a blade cuts it down (D-242; pass 3: "Dax Morrow cuts down Line trooper 1").
+  if (after.out) return `${by} ${ranged ? 'shoots down' : 'cuts down'} ${minion}`;
+  return hit.severity ? `${by} wounds ${minion} (${hit.severity}); ${after.forceTraits?.includes('droid') ? 'it' : 'they'} fight${after.forceTraits?.includes('droid') ? 's' : ''} on` : `${by} grazes ${minion}; ${after.forceTraits?.includes('droid') ? 'it fights' : 'they fight'} on`;
 }
 
 /** Settles the end of the fight after an out-of-band exchange (Force action, sequence step). */

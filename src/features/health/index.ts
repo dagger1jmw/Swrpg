@@ -22,6 +22,8 @@ import { selectFatigue, selectMaxVitality, selectMeters, selectStatusLabel, sele
 
 const absNow = (s: GameState): number => s.clock.now.day * 86_400 + s.clock.now.second;
 
+const AID_WORDS: Readonly<Record<string, string>> = { none: 'no prosthetic', scarTissue: 'scar tissue', basicProsthetic: 'a basic prosthetic', qualityCybernetic: 'a quality cybernetic' };
+
 /** A severed limb is a lasting injury at once, with the prosthetic the stub gives (D-149); losing the dominant hand switches it (Q39). */
 function severedLasting(s: GameState, w: Wound, id: string): { lasting: LastingInjury; emit: GameEvent[] } {
   const c = selectCharacter(s);
@@ -45,7 +47,8 @@ function addWounds(slice: HealthSlice, s: GameState, wounds: readonly Wound[], c
       const r = severedLasting(s, w, `pc:l${next.woundSeq}`);
       lasting = [...lasting, r.lasting];
       emit.push(...r.emit);
-      notes.push(`${w.part} severed: a lasting injury (${r.lasting.aid})`);
+      // In words (D-242; pass 3: "rightArm severed: a lasting injury (qualityCybernetic)").
+      notes.push(`${partText(w.part)} severed: a lasting injury (${AID_WORDS[r.lasting.aid] ?? r.lasting.aid})`);
     }
     next = { ...next, wounds: [...next.wounds, w], lasting, woundSeq: next.woundSeq + 1 };
     notes.push(`${w.severity} wound to the ${partText(w.part)} (${cause})`);

@@ -52,7 +52,14 @@ export function fightView(s: GameState, last: { choices: readonly Choice[]; draf
   };
 }
 
-/** The AI calls (intent and narration) the turns of a fight made so far (dev mode, iPad check). */
+/**
+ * The AI calls (intent and narration) the turns of a fight made so far (dev mode, iPad check), counted as the usage
+ * meter counts them (D-226, D-242): answered replies and 429s; a 5xx, a timeout or a network error is not a call.
+ */
 export function fightCalls(history: readonly { calls?: readonly unknown[]; draft: { combat?: CombatDraft | null } }[], fightId: string): number {
-  return history.reduce((n, r) => n + (r.draft.combat?.fightId === fightId ? (r.calls?.length ?? 0) : 0), 0);
+  const counts = (c: unknown): boolean => {
+    const o = (c as { outcome?: string }).outcome ?? 'ok';
+    return !['http', 'timeout', 'network', 'noKey'].includes(o);
+  };
+  return history.reduce((n, r) => n + (r.draft.combat?.fightId === fightId ? (r.calls ?? []).filter(counts).length : 0), 0);
 }

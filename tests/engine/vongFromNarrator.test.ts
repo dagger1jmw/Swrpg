@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { inferSpecies, weaponFromDescription } from '../../src/data/speciesWords';
 import type { DuelState } from '../../src/engine/duel';
-import type { Wound } from '../../src/engine/wounds';
+import { isDying, type Wound } from '../../src/engine/wounds';
 import { selectNpcGen } from '../../src/features/npcs/selectors';
 import { createMemoryStorage } from '../../src/persist/storage';
 import { applyEvents } from '../../src/state/applyEvents';
@@ -70,23 +70,31 @@ describe('the Vong warrior in a fight (D-224, D-225, D-239)', () => {
     expect(v.forceTraits).toContain('forceInvisible');
   });
   it('a dying prisoner of the Vong is not stabilized', async () => {
+    // Dying, the player cannot fight: the fight ends at its start and the captor decides (D-242). A serious fight's
+    // fate rolls captured or left; whichever it is, the Vong never stabilize.
     const { s } = await vongFight('serious', true);
-    const r = resolveTurn(REGISTRY, s, null, { beat: { action: 'tactic', tactic: 'surrender' } as CombatActionInput });
-    const notes = r.draft.applied.flatMap((a) => a.notes).join('\n');
-    expect(notes).toMatch(/the opponent's choice: captured/);
-    expect(notes).not.toMatch(/stabilized by the captors/);
+    expect(s.combat.active).toBeNull();
+    expect(s.combat.last).toMatchObject({ outcome: 'lost', reason: 'dying' });
+    expect(isDying(s.health.wounds as Wound[])).toBe(true);
   });
   it('a Vong minion group in 26 ABY: melee, armored, outside the Force; no stabilizing either', async () => {
     let s = await knight26Aby('vm');
     s = applyEvents(REGISTRY, s, [{ type: 'healthSynced', vitalityLost: 0, addWounds: [{ id: 'd', part: 'torso', severity: 'mortal', W: 55, stabilized: false, healProgress: 0, day: s.clock.now.day, source: 'dev' } as Wound], cause: 'dev' }], { source: 'engine' }).state;
-    s = applyEvents(REGISTRY, s, [{ type: 'fightBegun', fromPending: false, opponentRefs: [], minionGroups: [{ kind: 'yuuzhanVongWarrior', count: 3 }], stakes: 'serious', terrainTags: [] }], { source: 'engine' }).state;
-    const opps = (s.combat.active!.duel as DuelState).opponents;
+    const begun = applyEvents(REGISTRY, s, [{ type: 'fightBegun', fromPending: false, opponentRefs: [], minionGroups: [{ kind: 'yuuzhanVongWarrior', count: 3 }], stakes: 'serious', terrainTags: [] }], { source: 'engine' });
+    s = begun.state;
+    const opps = (s.combat.last!.duel as DuelState).opponents;
     expect(opps.map((o) => o.name)).toEqual(['Yuuzhan Vong warrior 1', 'Yuuzhan Vong warrior 2', 'Yuuzhan Vong warrior 3']);
     expect(opps.every((o) => o.weapon === 'melee' && o.saberResistant && o.forceTraits?.includes('forceInvisible'))).toBe(true);
-    const r = resolveTurn(REGISTRY, s, null, { beat: { action: 'tactic', tactic: 'surrender' } as CombatActionInput });
-    const notes = r.draft.applied.flatMap((a) => a.notes).join('\n');
-    expect(notes).toMatch(/captured/);
+    const notes = begun.applied.flatMap((a) => a.notes).join('\n');
+    expect(notes).toMatch(/cannot fight: the fight ends at once/);
     expect(notes).not.toMatch(/stabilized by the captors/);
+    expect(isDying(s.health.wounds as Wound[])).toBe(true);
+  });
+  it('a healthy player surrendering to Vong warriors is captured (minions only capture, D-239)', async () => {
+    let s = await knight26Aby('vm2');
+    s = applyEvents(REGISTRY, s, [{ type: 'fightBegun', fromPending: false, opponentRefs: [], minionGroups: [{ kind: 'yuuzhanVongWarrior', count: 3 }], stakes: 'lethal', terrainTags: [] }], { source: 'engine' }).state;
+    const r = resolveTurn(REGISTRY, s, null, { beat: { action: 'tactic', tactic: 'surrender' } as CombatActionInput });
+    expect(r.state.combat.last!.playerFate).toBe('captured');
   });
   it('outside the invasion years a Vong minion group becomes brawlers, with the note', async () => {
     const input = testStartInput({ name: 'X', rank: 'knight', age: 30, startDate: { year: -22, month: 1, day: 1 }, startSecond: DEFAULT_START_SECOND });

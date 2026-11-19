@@ -131,17 +131,25 @@ describe('rows 13 and 15, D-225 and D-227: capture and surrender', () => {
     s = applyEvents(REGISTRY, s, [{ type: 'npcIntroduced', name: 'Captor', ...npc, ageApprox: 30, description: 'an armed fighter' } as never], { source: 'ai' }).state;
     const id = Object.values(s.npcs.byId).find((n) => n.name === 'Captor')!.id;
     s = applyEvents(REGISTRY, s, [{ type: 'combatStarted', opponentRefs: [id], stakes: 'serious', terrainTags: ['flatFloor'] }], { source: 'ai' }).state;
-    return resolveTurn(REGISTRY, s, null, { beat: { action: 'tactic', tactic: 'surrender' } as CombatActionInput }).state;
+    // A dying player cannot fight (D-242): the fight ends at once as lost (dying), and the opponent's choice follows.
+    return resolveTurn(REGISTRY, s, null, { beat: { action: 'continue' } as CombatActionInput }).state;
+  };
+  /** The first seed whose fate roll is a capture (a serious fight rolls captured or left). */
+  const captured = async (npc: { species: string; faction: string; role: string }) => {
+    for (let i = 0; i < 40; i++) {
+      const s = await fight(`cap${i}`, npc);
+      if (s.combat.last!.playerFate === 'captured') return s;
+    }
+    throw new Error('no capture in 40 seeds');
   };
   it('a dying player captured by soldiers is stabilized by the captors', async () => {
-    const s = await fight('cap1', { species: 'human', faction: 'republic', role: 'soldier' });
-    expect(s.combat.last!.playerFate).toBe('captured');
+    const s = await captured({ species: 'human', faction: 'republic', role: 'soldier' });
+    expect(s.combat.last).toMatchObject({ outcome: 'lost', reason: 'dying', playerFate: 'captured' });
     expect(isDying(s.health.wounds as Wound[])).toBe(false);
     expect(s.health.dying).toBeNull();
   });
   it('captured by Yuuzhan Vong warriors (they take captives for sacrifice): not stabilized', async () => {
-    const s = await fight('cap2', { species: 'yuuzhanVong', faction: 'unknown', role: 'soldier' });
-    expect(s.combat.last!.playerFate).toBe('captured');
+    const s = await captured({ species: 'yuuzhanVong', faction: 'unknown', role: 'soldier' });
     expect(isDying(s.health.wounds as Wound[])).toBe(true);
   });
   it('a surrender pays the surrender factor 0.5, below fled (0.8) and lost (1.2)', () => {

@@ -93,6 +93,11 @@ export const fightSummarySchema = z.object({
   session: sparSessionSchema.nullable().optional(),
   /** After an auto-resolved session: the partners for "Play the next bout" when one can go on (D-177). */
   rematch: z.object({ opponentRefs: z.array(z.string()), sparringMode: z.enum(SPARRING_MODES).nullable() }).nullable().optional(),
+  /**
+   * Who took the player captive (D-242): the winning side's group, its minion kind (null for a named captor), how many
+   * still stand and their names, and when and where (the following scenes read it).
+   */
+  captors: z.object({ group: z.string(), kind: z.string().nullable(), standing: z.number().int(), names: z.array(z.string()), atAbs: z.number(), locationId: z.string().nullable() }).nullable().optional(),
 });
 export type FightSummary = z.infer<typeof fightSummarySchema>;
 

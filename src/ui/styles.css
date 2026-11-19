@@ -337,6 +337,9 @@ label.check { display: flex; gap: var(--pad-s); align-items: center; margin: var
     box-shadow: -12px 0 32px rgba(0, 0, 0, 0.5);
   }
   select.tb-model { width: 150px; }
+  /* D-242: at iPad width the date drops its weekday (the .tb-weekday span), and the place takes the room left. */
+  .tb-weekday { display: none; }
+  .tb-place { min-width: 0; flex: 1 1 auto; }
 }
 
 /* phone */
