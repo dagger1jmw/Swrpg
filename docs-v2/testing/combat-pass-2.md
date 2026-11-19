@@ -511,3 +511,50 @@ as designed. Not checked: a real touch screen.
 
 State left in the browser: `[TEST] Daro Venn` is the current campaign, in an unfinished dev duel (exchange 4, Force
 fatigue set to 1.2 by `/fatigue`). `[TEST] Kael Voss` (dead) and `[TEST] Tessa Rin` are in storage.
+
+---
+
+# Fixes built overnight (2026-11-19) and the balance list
+
+Jared's list from this report was built as D-208 to D-216, one commit per group, each with tests. Nothing was checked
+in the browser; pass 3 re-checks there.
+
+| Group | Report issues | Decision | Commit |
+|---|---|---|---|
+| 1. The dropped saber and exhaustion | 1 (blocker) | D-208: the passive buttons recall a dropped saber first (retried until it comes back); physical collapse past 2.0 x capacity; a 200-exchange safety cap (exhausted stalemate) | de16c53 |
+| 2. The fallback and history size | 2 | D-209: the fallback is a summary of at most 10 sentences; one turn's narration is clipped to 2,400 characters in the history | 5b8ea17 |
+| 3. Input parsing | 3, 9 | D-210: Force gestures are never strikes; an unknown ability is "FAILED (you don't know ...)" with a quiet line and no AI call; a repeated narration is retried | fa3f3b3 |
+| 4. Narration check | 7, 13, 15 | D-211: invented slips, the outcome list's terms in prose, minions cut down when none was hit | 7a175cb |
+| 5. Combat rules and labels | 4, 6, 8, 11 | D-212: the initiative stops a sequence before its step; real-track labels; the narrator's hazards in a fight do no damage; allies and typed targets ("your opponents defeated") | 0762954 |
+| 6. Era-correct enemies | 5 | D-213: kinds by era (war droid, clone trooper, stormtrooper, Sith trooper, Skytrooper), with the kind-by-era table | f290871 |
+| 7. Saves and death | 10 | D-214: the last 10 saves plus one per in-game day for 7 days; Load an earlier save starts a new branch; the death card points to it | 9118a9b |
+| 8. Dev tools | (pass 3 set-up) | D-215: the test start by archetype and species; in-world dev places; /fight weapon, /truce, /fall | 5ca33a5 |
+| 9. Minor issues | 14-27 | D-216: each fixed or left with its reason (in the decision) | 603fb28 |
+
+Issue 12 (flight narrated as a simulation) is answered by D-215's in-world dev places and descriptions; issue 2's
+cause (the 322-exchange passage) cannot recur after D-208.
+
+## Balance flags: recommendations (nothing changed)
+
+| # | Flag | Verdict | Recommendation |
+|---|---|---|---|
+| 1 | A sequence ends at the first build-up that only holds (pass 2: "FAILED (holds ...)" at margin -1.5 cancelled a second cut and a Push; 4 of 5 duel sequences stopped at step 1 or 2) | tunable | A hold is not a failure: let a strike step that holds (the tie band) pass the chain on without the pressure bonus, and stop only on lost ground or a miss. |
+| 2 | One Push at margin +2.9 moved the track from -3 to +3 | as built (D-146) | The first use of a pattern jumps to the strike from wherever the track is (max(opening, 3 - track)): six steps from -3. Cap the first-use gain at +4 steps so it cannot erase a held strike and grant one in one move. |
+| 3 | Unarmed, the Knight defended at Agility for 322 exchanges | fixed (D-208) | The recall, the collapse and the cap end it; no tuning. |
+| 4 | Despair is -1 on a strike but -2 on a build-up or defense roll | bug-like | Build-up rolls net a side's attack and defense modifiers (D-205 made the stance's +1 / -1 cancel); a state of mind with -1 / -1 counts twice. Count a state of mind once on a build-up roll (the larger of its two values). |
+| 5 | Duels of 81, 53 and 5 exchanges | as intended | Dice; D-206's medians are inside the table. The 5-exchange loss at gap -30 had two natural 20s and two natural 1s. |
+| 6 | The Force meter rises with no Force action (3% -> 11%; 8% -> 24% in 13 exchanges) | as built | It is precognitive defense (0.4 Force load per use, rolls §3), which fires against every strike that would hit. Say so on the card ("precognition: 0.4 Force load"); no number change. |
+| 7 | A B1 dodges a thrown object at +3.6 but shoots at +1.4 - 3 | tunable | Minion dodges use the kind's Agility from the soldier archetype; a droid kind's accuracy penalty (D-161) does not apply. Let droid kinds dodge at min(Agility, weapon level). |
+| 8 | A Yuuzhan Vong warrior generated on the civilian archetype | catalog gap | The narrator's "warrior" role maps to the civilian archetype; give the M6 catalog a Vong warrior archetype (species yuuzhanVong, a soldier-like pace with melee). |
+| 9 | A line trooper's Willpower (+3.7) beats a Knight's Mind Trick (+2.3) | open (pass 1, number 6) | As recommended in pass 1: settle it in the M6 catalog (a weak-minded modifier by minion grade). |
+| 10 | A minor wound heals in a day; Vitality 0 -> 72 in four days with severe wounds open | as intended | health §3 (rest 50% of Vitality an hour) and §7 (minor wounds overnight). |
+| 11 | Combat XP 10.67 for losing the 322-exchange fight | moot (D-208) | Cannot recur after the cap and the recall. |
+| 12 | A Jedi used Lightning and Choke with no consequence | as intended | Alignment is M6. |
+| 13 | A captured, dying character is not stabilized by the captor and dies | design gap | A "captured" fate should stabilize the player's mortal wound (captors want prisoners alive); "left" keeps the dying timer. For Jared: it changes when a campaign ends. |
+| 14 | Gemini 503 replies count on the usage meter (6 of 73 calls) | tooling | Count only replies that returned (2xx) or a 429 toward the daily estimate; a 503 is the server's, not a request against the quota. |
+| 15 | (new) A surrender pays more combat XP than fleeing (lost factor 1.2: 1.52 vs 0.41 fled) | tunable | Give a surrender the fled factor (0.8) or lower, so giving up is never the XP-best way out of a fight. |
+| 16 | (new) A lost leg was 17% adapted after 18 training days (71 h) | measure first | progression-numbers §18: +1% per effective hour of training the affected skills, at most 3% a day; the reference is a hand at 30-40 days. Measure which skills count for a leg (and the efficiency of those hours) before changing anything. |
+| 17 | (new) The physical hard limit is 2.0 x capacity (D-208, an overnight default) | for Jared | 2.0 leaves the duel tables unchanged; 1.5 would end a fresh fighter after about 95 exchanges; a 5% chance per exchange past 1.0 would mirror the Force meter. |
+| 18 | (new) 4 Mandalorians, Knight 50 balanced: 97.0 / 24.7 -> 96.3 / 25.0 after D-208 to D-212 | noise | 300 fights: the standard error is about 1.0 point on wins and 2.5 on wounds. No action. |
+| 19 | Terrain accidents per fighter (pass 1, number 8): Kael fell three times and one droid three times in the 322-exchange fight; nine exchanges on ice had none | open | As recommended in pass 1: roll terrain once per block for the fight (one accident at most), not once per fighter. |
+| 20 | A missed sequence strike against a minion gives it the full build-up step (pass 1, number 4) | open | As recommended in pass 1: cap that loss at one step. |
