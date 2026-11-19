@@ -26,7 +26,7 @@ import { applyDamage, damageOf, hazardDamage, rollLocation, severityOf } from '.
 import { applyForceLoad, forceLoadPerUse, rollCollapse } from './forceMeter';
 import { basicRoll, dcForRating, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
-import { cannotDuel, currentTarget, damageFighter, resolveExchange, minionHitNote, engaged, fighterEffectiveLevel, hasSaber, isRanged, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type Fighter, type SideId } from './duel';
+import { cannotDuel, currentTarget, damageFighter, resolveExchange, minionHitNote, engaged, fighterAgility, fighterEffectiveLevel, hasSaber, isRanged, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type Fighter, type SideId } from './duel';
 import { STRIKE_QUALITY, type HitQuality } from '../data/combat.config';
 import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, type Wound } from './wounds';
 
@@ -198,7 +198,7 @@ export function forceTargetOf(f: Fighter, s: DuelState, ctx: DuelContext, attack
   return {
     name: f.name,
     willpower: f.willpower,
-    agility: f.agility,
+    agility: fighterAgility(f),
     forceResistance: f.forceResistance ?? 0,
     traits: f.forceTraits ?? [],
     bodySize: f.bodySize ?? 'humanoid',

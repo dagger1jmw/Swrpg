@@ -16,7 +16,7 @@ import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.co
 import { FORM_IDS } from '../../data/skills';
 import { TERRAIN_BY_ID, TERRAIN_IDS, type ObjectSize } from '../../data/terrain';
 import { FORCE_ACTION_ABILITY, FORCE_ACTION_KINDS, type ForceActionKind } from '../../engine/combatForce';
-import { cannotDuel, currentTarget, startDuel, tryShatterpoint, type DuelState, type ExchangeRecord, type Fighter, type RunMode } from '../../engine/duel';
+import { cannotDuel, cannotStandText, currentTarget, fighterAgility, startDuel, tryShatterpoint, type DuelState, type ExchangeRecord, type Fighter, type RunMode } from '../../engine/duel';
 import { rollMinionGrade } from '../../engine/npcGen';
 import { basicRoll } from '../../engine/rolls';
 import { nextFloat, nextInt, type RngState } from '../../engine/rng';
@@ -448,6 +448,15 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           const c = conclude(begun, ctx.state, ended, 'lost', 'dying');
           return { slice: c.slice, emit: [...r.emit, ...c.emit], notes: [...r.notes, 'the player character is dying and cannot fight: the fight ends at once', ...c.notes], rng: c.rng };
         }
+        // The same for a player who cannot stand or has no weapon arm (D-245; pass 4: a fitted leg was put out after one
+        // exchange with no reason given). The log says why.
+        const why = active.session ? null : cannotDuel(d0.a);
+        if (why) {
+          const ended = { ...active, duel: { ...d0, rng: r.rng, a: { ...d0.a, out: true }, end: { winner: 'B' as const, reason: 'incapacitated' } } };
+          const c = conclude(begun, ctx.state, ended, 'lost', 'incapacitated');
+          const text = why === 'leg' ? cannotStandText(d0.a) : 'no weapon arm';
+          return { slice: c.slice, emit: [...r.emit, ...c.emit], notes: [...r.notes, `the player character cannot fight (${text}): the fight ends at once`, ...c.notes], rng: c.rng };
+        }
         return { slice: begun, emit: r.emit, notes: r.notes, rng: r.rng };
       },
     },
@@ -555,7 +564,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           if (t === 'disengage') {
             // A contest that ends the fight as fled: d20 + Agility/10 (+ position) vs d20 + the opponent's skill/10.
             const target = currentTarget(duel)!;
-            const [u, r1] = basicRoll(duel.rng, duel.a.agility, duel.a.position ? [{ source: 'position', value: duel.a.position }] : []);
+            const [u, r1] = basicRoll(duel.rng, fighterAgility(duel.a), duel.a.position ? [{ source: 'position', value: duel.a.position }] : []);
             const [d, r2] = basicRoll(r1, target.level, []);
             duel = { ...duel, rng: r2 };
             if (u.total > d.total) {

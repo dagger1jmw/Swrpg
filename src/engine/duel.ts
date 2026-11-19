@@ -41,7 +41,7 @@ import { BLASTER_WEAPONS, RANGED_WEAPONS, SLUG_SPREAD, SLUG_SPREAD_DEFENSE } fro
 import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityOf, severs } from './damage';
 import { fatigueLevelFactor } from './fatigue';
 import { addFixedLoad, forceWithin } from './forceMeter';
-import { lastingPenalty, limbState, type LastingInjury } from './lasting';
+import { lastingPenalty, lastingState, limbState, type LastingInjury } from './lasting';
 import { basicRoll, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
 import { effectiveSeverity, isDying, isIncapacitated, killsWhileDying, takesMinionOut, woundPenalty, type Wound } from './wounds';
@@ -213,11 +213,29 @@ const other = (s: SideId): SideId => (s === 'A' ? 'B' : 'A');
 
 const atLeast = (sev: Severity, min: Severity): boolean => SEVERITIES.indexOf(sev) >= SEVERITIES.indexOf(min);
 
-/** A leg severed in this fight, or lost earlier with no prosthetic: the fighter cannot stand (D-198). */
+/**
+ * A leg severed and not replaced: the fighter cannot stand (D-198). One reading with the narrator's block and the check
+ * (engine/lasting.ts lastingState, D-237): a severed leg whose prosthetic is on record (health fits the path's aid at
+ * once, D-164) is whole, so a fitted cybernetic leg stands and fights while the wound heals (D-245; pass 4: every fight
+ * ended after one exchange for 40 days and more). A leg severed in this fight has no prosthetic yet.
+ */
 export function cannotStand(f: Fighter): boolean {
   if (!WOUND_FIGHTING.severedLegOut) return false;
-  if (f.wounds.some((w) => w.severed && (w.part === 'leftLeg' || w.part === 'rightLeg'))) return true;
-  return f.lasting.some((l) => l.kind === 'lostLeg' && (l.aid === 'none' || l.aid === 'scarTissue'));
+  return lastingState(f.wounds, f.lasting).cannotStand;
+}
+
+/** Why a fighter cannot stand, in words ("cannot stand: severed left leg"), for the log; empty when they can. */
+export function cannotStandText(f: Fighter): string {
+  return lastingState(f.wounds, f.lasting).text.filter((t) => t.startsWith('cannot stand')).join('; ');
+}
+
+/**
+ * Agility where a fight rolls it (dodging a Force action, a disengage), cut by the lasting injuries that bite on Agility
+ * (progression-numbers §18: a lost leg P 0.35 x (1 - adaptation)). D-245: §18's penalty never reached a duel before. An
+ * unarmed fighter's level is Agility already and takes it through fighterEffectiveLevel.
+ */
+export function fighterAgility(f: Fighter): number {
+  return f.agility * (1 - lastingPenalty(f.lasting, 'agility'));
 }
 
 /**
@@ -671,6 +689,8 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   for (const [f, was] of [[aOut, A], [bOut, B]] as const) {
     const why = cannotDuel(f);
     if (why && !cannotDuel(was)) notes.push(why === 'leg' ? `${f.name} has lost a leg and cannot stand: out of the fight` : `${f.name} has lost the weapon arm: out of the fight`);
+    // Came into the fight unable to (D-245; pass 4: out after one exchange with no line saying why).
+    else if (why && !was.out) notes.push(why === 'leg' ? `${f.name} ${cannotStandText(f)}: out of the fight` : `${f.name} has no weapon arm: out of the fight`);
     else if (!f.minion && weaponArmState(f) === 'offHand' && weaponArmState(was) !== 'offHand') notes.push(`${f.name} switches the weapon to the off hand (-${Math.round(WOUND_FIGHTING.offHandPenalty * 100)}%)`);
   }
   if (!end && ctx.sparring === 'trainingSaber') {
