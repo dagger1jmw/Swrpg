@@ -99,7 +99,9 @@ export const OBIWAN: LifeProfile = {
     { from: 35, to: 38, perYear: 10, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
     { from: 35, to: 38, perYear: 10, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 4 },
     { from: 35, to: 36, perYear: 10, stakes: 'serious', gap: 0 },
-    { from: 36, to: 38, perYear: 12, stakes: 'serious', gap: 0 },
+    { from: 36, to: 37, perYear: 12, stakes: 'serious', gap: 0 },
+    // D-206 retune (longer duels after the precognition and pressure retune): the last war year 12 -> 11 duels.
+    { from: 37, to: 38, perYear: 11, stakes: 'serious', gap: 0 },
   ]),
 };
 
