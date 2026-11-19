@@ -10,7 +10,7 @@
 import type { ZodType } from 'zod';
 import { isDailyQuotaError, type ModelRouter } from '../ai/fallback';
 import { toGeminiSchema } from '../ai/jsonSchema';
-import { CALL_SETTINGS, JSON_OVERHEAD_TOKENS, THINKING_HEADROOM_TOKENS, TRUNCATION_RETRY_FACTOR } from '../ai/models.config';
+import { CALL_SETTINGS, JSON_OVERHEAD_TOKENS, OVERLOAD_RETRY, THINKING_HEADROOM_TOKENS, TRUNCATION_RETRY_FACTOR, overloadDelayMs } from '../ai/models.config';
 import { AiError, type CallOptions, type CallType, type Message, type ModelProvider, type StructuredResult, type Usage } from '../ai/provider';
 import { composeNarrativeSchema, narrativeEventTypes, type NarrativeReply } from '../ai/schemas/compose';
 import { intentSchema, normalizeIntent, type Intent } from '../ai/schemas/intent';
@@ -60,6 +60,12 @@ export interface TurnDeps {
   recordTokenRatio?(model: string, chars: number, promptTokens: number): void;
   /** Every request as built (debug view; kept in memory only, D-87). */
   onRequest?(request: DebugRequest): void;
+  /** A status line while a call is retried (D-240: "Gemini is busy, retrying…"); null when it is over. */
+  onStatus?(text: string | null): void;
+  /** Waits between overload retries (D-240); tests pass an instant one. Defaults to setTimeout. */
+  sleep?(ms: number): Promise<void>;
+  /** A number in [0, 1) for the retry jitter; defaults to the wall clock's milliseconds (pacing, not game dice). */
+  jitter?(): number;
 }
 
 export interface DebugRequest {
@@ -146,6 +152,34 @@ async function tracked<T>(deps: TurnDeps, calls: CallRecord[], opts: CallOptions
  * says that model's daily quota is exhausted, mark it and call the next model in the list. Each
  * model is tried at most once; a per-minute or unidentified 429 is rethrown (Retry button).
  */
+/** A reply the server could not give now (D-240): a 5xx, or no reply in time. Never a 4xx, a 429 or a bad reply. */
+export const isOverload = (e: unknown): boolean => e instanceof AiError && (e.kind === 'timeout' || (e.kind === 'http' && (e.status ?? 0) >= 500));
+
+/**
+ * One model on overload (D-240): the call, then up to OVERLOAD_RETRY.retries retries with backoff and jitter, the busy
+ * note shown while waiting. Any other error is thrown at once. The same request every time: the turn's draft is fixed.
+ */
+async function withOverloadRetry<T>(deps: TurnDeps, notes: string[], model: string, call: () => Promise<T>, retries: number): Promise<T> {
+  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  for (let n = 0; ; n++) {
+    try {
+      const out = await call();
+      if (n > 0) deps.onStatus?.(null);
+      return out;
+    } catch (e) {
+      if (!isOverload(e) || n >= retries) {
+        if (n > 0) deps.onStatus?.(null);
+        throw e;
+      }
+      // Jitter from the wall clock's milliseconds: pacing only, never game dice (which stay on the seeded RNG).
+      const wait = overloadDelayMs(n + 1, deps.jitter ? deps.jitter() : (deps.wallClock().ms % 1000) / 1000);
+      notes.push(`${model}: ${e instanceof AiError && e.kind === 'timeout' ? 'no reply in time' : `busy (${(e as AiError).status ?? 'server error'})`}; retry ${n + 1} of ${retries} in ${(wait / 1000).toFixed(1)} s`);
+      deps.onStatus?.(`Gemini is busy, retrying… (${n + 1} of ${retries})`);
+      await sleep(wait);
+    }
+  }
+}
+
 async function callModel<T>(
   deps: TurnDeps,
   calls: CallRecord[],
@@ -166,8 +200,22 @@ async function callModel<T>(
     }
     const opts: CallOptions = { ...base, model: choice.model };
     try {
-      return await tracked(deps, calls, opts, () => run(opts));
+      return await withOverloadRetry(deps, notes, choice.model, () => tracked(deps, calls, opts, () => run(opts)), OVERLOAD_RETRY.retries);
     } catch (e) {
+      // Still overloaded after the retries (D-240): one try on the next model in the order, then the turn's Retry.
+      if (isOverload(e) && OVERLOAD_RETRY.nextModel) {
+        const next = deps.router.next?.(base.callType, choice.model) ?? null;
+        if (!next || tried.has(next)) throw e;
+        tried.add(next);
+        notes.push(`${base.callType}: ${choice.model} still busy after ${OVERLOAD_RETRY.retries} retries; one try on ${next}`);
+        deps.onStatus?.(`Gemini is busy, trying ${next}…`);
+        const nextOpts: CallOptions = { ...base, model: next };
+        try {
+          return await tracked(deps, calls, nextOpts, () => run(nextOpts));
+        } finally {
+          deps.onStatus?.(null);
+        }
+      }
       if (!isDailyQuotaError(e)) throw e;
       deps.router.markExhausted(choice.model);
       lastDaily = e;

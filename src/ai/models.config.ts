@@ -62,3 +62,18 @@ export const SCHEMA_SIZE_CAP_CHARS = 12_000;
 export const USAGE_WARN_FRACTION = 0.8;
 /** A model request with no reply after this long is aborted and shown as an error with Retry. */
 export const REQUEST_TIMEOUT_MS = 90_000;
+
+/**
+ * Gemini overload (D-240; combat pass 3: about 100 replies of 503 "high demand" in one session). A 5xx reply or a
+ * timeout is retried on the same model up to `retries` times, waiting baseMs x factor^(n-1) (capped at maxMs) with
+ * +/- jitter, then tried once on the next model in the call type's fallback order; after that the turn shows Retry.
+ * The same TurnDraft is used throughout (the dice never change), and none of these count on the usage meter (D-226).
+ * Design defaults: 2 s, 4 s, 8 s, about 14 s in all.
+ */
+export const OVERLOAD_RETRY = { retries: 3, baseMs: 2000, factor: 2, maxMs: 10_000, jitter: 0.25, nextModel: true } as const;
+
+/** The wait before overload retry n (1-based), with jitter from u in [0, 1). */
+export function overloadDelayMs(n: number, u: number, cfg: { baseMs: number; factor: number; maxMs: number; jitter: number } = OVERLOAD_RETRY): number {
+  const raw = Math.min(cfg.maxMs, cfg.baseMs * cfg.factor ** (n - 1));
+  return Math.round(raw * (1 - cfg.jitter + 2 * cfg.jitter * u));
+}

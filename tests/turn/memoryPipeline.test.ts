@@ -170,7 +170,8 @@ describe('M2 pipeline: memory and lore', () => {
       { callType: 'narrative', data: openingM2 },
       ...Array.from({ length: 6 }, () => ({ callType: 'narrative' as const, data: quiet() })),
       { callType: 'narrative', data: quiet([{ type: 'sceneEnded', reason: 'done' }]) },
-      { callType: 'summary', error: { kind: 'http', status: 500 } },
+      // A 4xx: not an overload, so no automatic retry (D-240 retries 5xx and timeouts).
+      { callType: 'summary', error: { kind: 'http', status: 400 } },
       { callType: 'summary', data: { chapterSummary: 'Recovered.', arcSummary: 'Arc.' } },
     ]);
     let s = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;

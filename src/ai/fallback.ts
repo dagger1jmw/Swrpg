@@ -89,8 +89,22 @@ export function fallbackNotices(
   return out;
 }
 
+/** The next model in the list after `after` that is not exhausted today, or null (D-240: one try on overload). */
+export function nextModelAfter(list: readonly string[], after: string, quota: QuotaState, usage: UsageLog, limits: Readonly<Record<string, ModelLimits>>, nowMs: number): string | null {
+  const i = list.indexOf(after);
+  for (const model of list.slice(i + 1)) {
+    if (isExhaustedToday(quota, model, nowMs)) continue;
+    const rpd = limits[model]?.rpd;
+    if (rpd !== undefined && summarizeUsage(usage, model, limits[model] ?? {}, nowMs).requestsToday >= rpd) continue;
+    return model;
+  }
+  return null;
+}
+
 export interface ModelRouter {
   choose(callType: CallType): ModelChoice;
+  /** The next usable model after this one in the call type's order (D-240). Absent on older routers. */
+  next?(callType: CallType, after: string): string | null;
   markExhausted(model: string): void;
   notices(): string[];
 }
@@ -107,6 +121,7 @@ export interface RouterDeps {
 export function createModelRouter(d: RouterDeps): ModelRouter {
   return {
     choose: (callType) => chooseModel(d.getLists()[callType], d.getQuota(), d.getUsage(), d.getLimits(), d.now()),
+    next: (callType, after) => nextModelAfter(d.getLists()[callType], after, d.getQuota(), d.getUsage(), d.getLimits(), d.now()),
     markExhausted: (model) => d.setQuota(markExhausted(d.getQuota(), model, d.now())),
     notices: () => fallbackNotices(d.getLists(), d.getQuota(), d.getUsage(), d.getLimits(), d.now()),
   };

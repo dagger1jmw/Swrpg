@@ -30,7 +30,7 @@ function setup(steps: FixtureStep[]) {
   const getSettings = (): Settings => ({ ...defaultSettings(), apiKey: 'k'.repeat(30) });
   const router = createModelRouter({ getLists: () => getSettings().modelLists, getLimits: () => getSettings().limits, getUsage: () => store.usage, getQuota: () => store.quota, setQuota: (q) => (store.quota = q), now: () => 0 });
   let ms = Date.UTC(2026, 10, 18);
-  const deps: TurnDeps = { registry: REGISTRY, provider, router, storage, getSettings, wallClock: () => ({ ms: (ms += 1000), iso: new Date(ms).toISOString() }) };
+  const deps: TurnDeps = { registry: REGISTRY, provider, router, storage, getSettings, wallClock: () => ({ ms: (ms += 1000), iso: new Date(ms).toISOString() }), sleep: async () => {} };
   return { provider, deps };
 }
 
@@ -205,11 +205,13 @@ describe('the narration check in the pipeline (D-197)', () => {
   });
   it('when the retry call fails, an invented slip gets the summary: no sentence is cut out of the narration (D-236)', async () => {
     const slip = 'You hold your guard among the trees. Your footing slips on the wet leaves as the droids fan out.';
-    const { deps, provider } = setup([...many(1), said(slip), { callType: 'narrative', error: { kind: 'http', status: 503, message: 'Gemini error 503: high demand' } }]);
+    // The check's retry call stays busy through its own overload retries and the next model (D-240): 5 replies of 503.
+    const busy: FixtureStep = { callType: 'narrative', error: { kind: 'http', status: 503, message: 'Gemini error 503: high demand' } };
+    const { deps, provider } = setup([...many(1), said(slip), busy, busy, busy, busy, busy]);
     const s = await knightVsB1(deps, 'nc5');
     const before = provider.calls.length;
     const t = await playTurn(deps, s, beat('narrate'));
-    expect(provider.calls.slice(before)).toHaveLength(2);
+    expect(provider.calls.slice(before)).toHaveLength(6);
     const report = t.record.draft.report.join('\n');
     expect(report).toMatch(/narration check: the retry failed/);
     expect(report).toMatch(/the first reply stands and contradicts RESOLVED \(slipNoHazard\); code-written summary used instead/);

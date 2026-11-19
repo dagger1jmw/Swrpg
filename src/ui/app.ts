@@ -108,6 +108,8 @@ export class App {
   private busy = false;
   /** The action being resolved, shown in the feed and the input box while the GM replies. */
   private inFlight: TurnInput | null = null;
+  /** The overload retry note (D-240), shown beside the busy label. */
+  private retryNote: string | null = null;
   private failed: FailedTurn | null = null;
   private loadError: string | null = null;
   private readonly provider: ModelProvider;
@@ -221,6 +223,11 @@ export class App {
       onRequest: (r) => {
         this.debugRequests = [...this.debugRequests, r].slice(-DEBUG_REQUESTS_KEPT);
       },
+      // D-240: "Gemini is busy, retrying…" in the status line while a call waits for its retry.
+      onStatus: (text) => {
+        this.retryNote = text;
+        this.render();
+      },
     };
   }
 
@@ -238,6 +245,7 @@ export class App {
       this.panelError = `Summary failed: ${e instanceof Error ? e.message : String(e)}`;
     } finally {
       this.busy = false;
+      this.retryNote = null;
       this.summarizing = false;
       this.render();
     }
@@ -346,6 +354,7 @@ export class App {
     } finally {
       this.stopPlayback();
       this.busy = false;
+      this.retryNote = null;
       this.inFlight = null;
       this.render();
     }
@@ -661,7 +670,8 @@ export class App {
         el('button', { class: 'small secondary', text: 'Dismiss', on: { click: () => ((this.failed = null), this.render()) } }),
       ]);
     } else if (this.busy) {
-      const label = this.summarizing ? 'A chapter closed. Writing its summary…' : this.inFlight && this.inFlight.kind !== 'opening' ? `Resolving: ${describeInput(this.inFlight)}` : 'Writing the opening scene…';
+      const base = this.summarizing ? 'A chapter closed. Writing its summary…' : this.inFlight && this.inFlight.kind !== 'opening' ? `Resolving: ${describeInput(this.inFlight)}` : 'Writing the opening scene…';
+      const label = this.retryNote ? `${base} · ${this.retryNote}` : base;
       status = el('div', { class: 'status busy' }, [el('span', { class: 'spinner', attrs: { 'aria-hidden': 'true' } }), el('span', { class: 'status-text', text: label, attrs: { title: label } })]);
     } else if (this.devNote) {
       status = el('div', { class: 'status error' }, [
