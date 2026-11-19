@@ -10,8 +10,17 @@ import { selectCI, selectLevelExact } from '../../src/features/progression/selec
 import { devCharacter, isWounded, PATTERNS, runFight, type FightResult, type FightSpec } from '../support/fightHarness';
 import { CLONE_WARS_DATE, TEST_YEAR } from '../support/dates';
 import { minionKindInEra } from '../../src/data/npcGen.config';
+import { createMemoryStorage } from '../../src/persist/storage';
+import { createCampaign, DEFAULT_START_SECOND } from '../../src/turn/campaign';
+import { testStartInput } from '../../src/turn/testStart';
+import { TEST_START_DATE } from '../support/dates';
 
 /** Kinds that do not exist at the neutral test date fight in the Clone Wars (D-213), so the sweep measures the kinds it names. */
+/** A smuggler at 30 with a blaster pistol (the test start by archetype, D-215): a shooter, for the cover rows (D-243). */
+const smugglerBase = async (): Promise<GameState> => {
+  const input = testStartInput({ name: 'Smuggler', rank: 'knight', age: 30, startDate: TEST_START_DATE, startSecond: DEFAULT_START_SECOND, archetype: 'smuggler' });
+  return (await createCampaign(REGISTRY, createMemoryStorage(), input, { campaignId: 'sweep-smuggler', branchId: 'b' }, 'smuggler')).state;
+};
 const eraBase = async (rank: Parameters<typeof devCharacter>[0], age: number, kind: string | null): Promise<GameState> => devCharacter(rank, age, kind && !minionKindInEra(kind, TEST_YEAR) ? CLONE_WARS_DATE : undefined);
 
 const TERRAINS: Readonly<Record<string, string[]>> = { flatFloor: ['flatFloor'], forest: ['fallenTimber', 'unevenGround'], ice: ['slippery', 'iceChunks'], ruins: ['debris', 'looseRock', 'unevenGround', 'cover'], hangar: ['flatFloor', 'crates', 'machinery'] };
@@ -154,6 +163,10 @@ describe('combat sweep', () => {
     // D-158 group sizes for the Knight at 50 (flat floor).
     for (const k of ['10 B1', '10 militia', '6 troopers', '6 elites', '4 Mandalorians', '6 B2', '4 droidekas'])
       for (const pk of ['balanced', 'mixed', 'heavyForce']) for (let i = 0; i < N_RATE; i++) sw.record(`rates knight50 | ${k} | ${pk}`, runFight(knightFor(MINIONS[k]!.kind), { minionGroups: [MINIONS[k]!], terrainTags: ['flatFloor'] }, PATTERNS[pk]!, `rate:${k}:${pk}:${i}`));
+    // Cover (D-243): troopers in ruins with cover, against a Knight at 50 and a smuggler at 30 (a shooter: both in cover).
+    for (const pk of ['balanced', 'mixed']) for (let i = 0; i < N_RATE; i++) sw.record(`rates knight50 | 6 troopers | ${pk} | cover`, runFight(knightFor('trooper'), { minionGroups: [MINIONS['6 troopers']!], terrainTags: ['cover', 'debris'] }, PATTERNS[pk]!, `cover:${pk}:${i}`));
+    const smuggler = await smugglerBase();
+    for (const [tag, tags] of [['flat', ['flatFloor']], ['cover', ['cover', 'debris']]] as const) for (let i = 0; i < N_RATE; i++) sw.record(`rates smuggler30 | 4 troopers | balanced | ${tag}`, runFight(smuggler, { minionGroups: [{ kind: 'trooper', count: 4 }], terrainTags: [...tags] }, PATTERNS['balanced']!, `smug:${tag}:${i}`));
     // The real level gaps of generated minions (D-158 measured at fixed gaps; compare there before tuning).
     const gaps: string[] = [];
     for (const [rank, age] of RANKS) {

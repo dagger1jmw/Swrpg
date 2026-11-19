@@ -10,7 +10,7 @@ import { forceUser, REAL } from '../support/duelSim';
 
 const wound = (part: Wound['part'], severity: Wound['severity'], over: Partial<Wound> = {}): Wound => ({ id: `w-${part}`, part, severity, W: 27, stabilized: false, healProgress: 0, day: 0, source: 'combat', ...over });
 const lostLeg = (aid: LastingInjury['aid']): LastingInjury => ({ id: 'l1', kind: 'lostLeg', part: 'leftLeg', adaptation: 0, aid, adaptedToday: 0, adaptDay: 0, day: 0 });
-const cfg = WOUND_FIGHTING as { severedLegOut: boolean; weaponArm: boolean };
+const cfg = WOUND_FIGHTING as { severedLegOut: boolean; weaponArmLost: boolean; weaponArm: boolean };
 afterEach(() => {
   cfg.severedLegOut = true;
   cfg.weaponArm = false;
@@ -64,10 +64,25 @@ describe('a severed leg (D-198, lore-required)', () => {
   });
 });
 
-describe('the weapon arm (D-198; built, off until M6)', () => {
-  it('is off by default: a severe wound to the weapon arm changes only the usual penalties', () => {
+describe('the weapon arm (D-198; the loss adopted by D-244, the hand switch off)', () => {
+  it('a severe wound to the weapon arm changes only the usual penalties (the hand switch is off)', () => {
     expect(WOUND_FIGHTING.weaponArm).toBe(false);
     expect(weaponArmState(forceUser('x', 50, { wounds: [wound('rightArm', 'severe')] }))).toBe('ok');
+  });
+  it('D-244: a severed weapon arm or hand ends the duel; an off-hand weapon fights on at the penalty; a prosthetic is whole', () => {
+    expect(WOUND_FIGHTING.weaponArmLost).toBe(true);
+    expect(cannotDuel(forceUser('x', 50, { wounds: [wound('rightArm', 'severe', { severed: true })] }))).toBe('arm');
+    expect(cannotDuel(forceUser('x', 50, { wounds: [wound('rightHand', 'severe', { severed: true })] }))).toBe('arm');
+    expect(cannotDuel(forceUser('x', 50, { wounds: [wound('leftArm', 'severe', { severed: true })] }))).toBeNull();
+    const second = forceUser('x', 50, { offHandWeapon: 'lightsaber', wounds: [wound('rightArm', 'severe', { severed: true })] });
+    expect(weaponArmState(second)).toBe('offHand');
+    expect(cannotDuel(second)).toBeNull();
+    const whole = fighterEffectiveLevel(forceUser('x', 50, { wounds: [wound('leftArm', 'severe', { severed: true })] }));
+    expect(fighterEffectiveLevel(second)).toBeCloseTo(whole * (1 - WOUND_FIGHTING.offHandPenalty), 6);
+    const fitted = forceUser('x', 50, { wounds: [wound('rightArm', 'severe', { severed: true })], lasting: [{ id: 'l', kind: 'lostArm', part: 'rightArm', adaptation: 0.5, aid: 'qualityCybernetic', adaptedToday: 0, adaptDay: 0, day: 0 }] });
+    expect(cannotDuel(fitted)).toBeNull();
+    // A left-handed fighter mirrors it.
+    expect(cannotDuel(forceUser('x', 50, { weaponHand: 'left', wounds: [wound('leftHand', 'severe', { severed: true })] }))).toBe('arm');
   });
   it('when on: a severe wound switches to the off hand at the penalty; a severed weapon arm ends the fight; the other arm does neither', () => {
     cfg.weaponArm = true;

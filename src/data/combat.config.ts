@@ -31,9 +31,10 @@ export const CUT_DOWN_MARGIN = 6;
 /**
  * A strike that misses or is blocked (precognitive defense, a recovery) keeps the pressure: the track moves this
  * many steps toward 0 instead of resetting (D-156, Jared; rolls §3 amended). A landed hit or maneuver still resets.
- * 2 since D-206 (was 1): retuned with PRECOG to bring duel length back after the severed-leg rule (D-198).
+ * 2 since D-206 (was 1): retuned with PRECOG to bring duel length back after the severed-leg rule (D-198). 3 since
+ * D-244: retuned with PRECOG after the weapon-arm rule shortened duels again.
  */
-export const MISSED_STRIKE_STEP = 2;
+export const MISSED_STRIKE_STEP = 3;
 /**
  * A pattern's first use (D-146) jumps toward the strike, but by at most this many track steps in one move (Jared,
  * D-220; combat pass 2 balance row 2: one Push took the track from -3 to +3).
@@ -61,6 +62,8 @@ export const EXERTION_PER_EXCHANGE = 0.08;
  * stalemate, both sides Spent. Sparring sessions keep their own exchange budget (D-168) and are exempt.
  */
 export const FIGHT_SAFETY_CAP = { exchanges: 200 } as const;
+/** Cover (Jared, D-243): a shooter in cover defends at +2 against a ranged attack. */
+export const COVER_DEFENSE = 2;
 /**
  * The code-written fallback narration (D-197, capped by D-209): a summary of at most maxLines sentences (counts of
  * exchanges, hits and wounds, up to maxKeyEvents key events, the steps, the end state), never the engine's sentences.
@@ -70,11 +73,11 @@ export const NARRATION_FALLBACK = { maxLines: 10, maxKeyEvents: 5, maxLineChars:
 
 // ---- Precognitive defense, Force insight, shatterpoint (rolls §3, §6) ----
 /**
- * Precognitive defense (rolls §3 as amended by D-156 and D-206, Jared): chance min(0.4, Force Sense / 250), +0.10
+ * Precognitive defense (rolls §3 as amended by D-156, D-206 and D-244, Jared): chance min(0.5, Force Sense / 200), +0.10
  * centered. Was min(0.5, FS / 200) at first, min(0.25, FS / 400) under D-156; retuned in D-206 with MISSED_STRIKE_STEP
- * after the severed-leg rule (D-198) shortened duels.
+ * after the severed-leg rule (D-198) shortened duels; back to min(0.5, FS / 200) in D-244 after the weapon-arm rule.
  */
-export const PRECOG = { load: 0.4, maxChance: 0.4, perForceSense: 1 / 250, centeredBonus: 0.1, maxForceMeter: 1.0 } as const;
+export const PRECOG = { load: 0.4, maxChance: 0.5, perForceSense: 1 / 200, centeredBonus: 0.1, maxForceMeter: 1.0 } as const;
 export const FORCE_INSIGHT = { minForceSense: 60, gapAtLeast: 15, perForceSense: 1 / 200, lightBonus: 0.1, advantage: 2 } as const;
 export const SHATTERPOINT_COMBAT = { dc: 15, advantage: 3, forceLoad: 0.3 } as const;
 

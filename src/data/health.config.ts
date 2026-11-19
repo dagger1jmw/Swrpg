@@ -140,7 +140,9 @@ export const INCAPACITATED_LOAD = 20;
  * penalty on forms, LASTING_PENALTIES.lostHand.forms); a severed weapon arm or hand puts the fighter out of the fight
  * until there is a second weapon (items, M8). Minions already leave on a moderate wound.
  */
-export const WOUND_FIGHTING = { severedLegOut: true, weaponArm: false, minSeverity: 'severe' as Severity, offHandPenalty: 0.4 };
+// weaponArmLost (Jared, D-244; lore): a severed weapon arm or hand ends the duel unless the fighter has an off-hand weapon,
+// which they then use at offHandPenalty. weaponArm (the severe-wound hand switch of D-198) stays off.
+export const WOUND_FIGHTING = { severedLegOut: true, weaponArmLost: true, weaponArm: false, minSeverity: 'severe' as Severity, offHandPenalty: 0.4 };
 
 /** Total wound penalty (status + location) cap while still able to fight. */
 export const WOUND_PENALTY_CAP = 0.5;

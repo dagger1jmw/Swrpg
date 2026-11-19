@@ -99,8 +99,9 @@ export const OBIWAN: LifeProfile = {
     { from: 35, to: 38, perYear: 10, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
     { from: 35, to: 38, perYear: 10, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 4 },
     { from: 35, to: 36, perYear: 10, stakes: 'serious', gap: 0 },
-    { from: 36, to: 37, perYear: 12, stakes: 'serious', gap: 0 },
+    { from: 36, to: 37, perYear: 10, stakes: 'serious', gap: 0 },
     // D-206 retune (longer duels after the precognition and pressure retune): the last war year 12 -> 11 duels.
+    // D-244 retune (fight counts only): the second war year 12 -> 10 duels (its share rose to 32%).
     { from: 37, to: 38, perYear: 11, stakes: 'serious', gap: 0 },
   ]),
 };
@@ -155,6 +156,10 @@ export const ANAKIN: LifeProfile = {
     { from: 19, to: 22, perYear: 8, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
     { from: 19, to: 22, perYear: 8, stakes: 'serious', gap: 0 },
     { from: 19, to: 20, perYear: 9, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
+    // D-244 retune (fight counts only, after the weapon-arm rule and its duel-length retune): the first war year's
+    // combat share fell to 20%; more war fights did not lift it (the daily combat cap binds), so 25 sessions with his
+    // master that year (he and Obi-Wan sparred between campaigns).
+    { from: 19, to: 20, perYear: 25, stakes: 'spar', gap: 15 },
     { from: 19, to: 20, perYear: 2, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
     { from: 22, to: 200, perYear: 300, stakes: 'spar', gap: 0, partners: 3 },
     { from: 22, to: 200, perYear: 10, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },

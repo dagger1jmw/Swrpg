@@ -290,15 +290,15 @@ describe('sequences (D-146)', () => {
     expect(runSequence(none, REAL, 0, [{ kind: 'forceAction', action: 'throw' }], 3, {}, force).lines[0]).toBe('step 1 Force throw: NOT REACHED (nothing left to throw here)');
   });
   it('when the opponent holds the strike, their strike is resolved and is why the chain stops (D-199)', () => {
-    // During a Force step the opponent, holding the strike, strikes (D-204). Started at -5, a missed strike only eases
-    // the track to -4, so the opponent still holds it after the step and the D-199 rule resolves their next strike.
+    // During a Force step the opponents' exchange is a build-up (D-204). Started at -2, a build-up the opponent wins
+    // takes the track to -3 or past it, so the opponent holds the strike when the strike step comes up and the D-199
+    // rule resolves their strike instead. (Since D-244 a missed strike eases the track 3 steps, so a strike during the
+    // Force step can no longer leave the opponent holding it; the build-up path is the one that still does.)
     let seen = false;
-    for (let i = 0; i < 200 && !seen; i++) {
-      // A recall moves no track, so a missed opponent strike during it leaves them at -4.
+    for (let i = 0; i < 400 && !seen; i++) {
       const s0 = seq(`init${i}`, { weapon: 'unarmed', skillId: 'agility', form: null, saberLost: { weapon: 'lightsaber', skillId: 'soresu', level: 60, form: 'soresu' } });
-      const s = { ...s0, duel: { ...s0.duel, advantage: -5 } };
+      const s = { ...s0, duel: { ...s0.duel, advantage: -2 } };
       const r = runSequence(s, REAL, 0, [{ kind: 'forceAction', action: 'recall' }, { kind: 'strike' }, { kind: 'strike' }], 3, {}, force);
-      expect(r.state.duel.log.find((x) => x.duringForce)!.striker).toBe('B');
       if (r.stopReason !== 'opponentStrike') continue;
       const last = r.state.duel.log[r.state.duel.log.length - 1]!;
       expect(last.striker).toBe('B');

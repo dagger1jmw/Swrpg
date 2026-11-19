@@ -14,6 +14,7 @@ import {
   EXCHANGE_SECONDS,
   EXERTION_PER_EXCHANGE,
   FIGHT_SAFETY_CAP,
+  COVER_DEFENSE,
   FORCED_MISS_MAX_LOSS,
   FORCE_INSIGHT,
   MANEUVER_EFFECT,
@@ -107,6 +108,8 @@ export interface Fighter {
   bodySize?: BodySize;
   /** The hand the weapon is held in (D-198); absent = right. */
   weaponHand?: 'left' | 'right';
+  /** A weapon in the other hand (D-244): a fighter who loses the weapon arm fights on with it. None until items (M8). */
+  offHandWeapon?: WeaponKind | null;
   /** The saber thrown and dropped (D-193): the fighter is unarmed until a recall restores these. */
   saberLost?: { weapon: WeaponKind; skillId: string; level: number; form: string | null } | null;
   /** A lightsaber's blade colour (D-205); absent for other weapons, training sabers and older saves. */
@@ -218,15 +221,19 @@ export function cannotStand(f: Fighter): boolean {
 }
 
 /**
- * The weapon arm (D-198): ok; offHand when it carries an unhealed wound of the configured severity or worse (the
- * fighter switches hands); lost when the arm or hand was severed in this fight (no second weapon until M8).
+ * The weapon arm (D-198, D-244): lost when the weapon arm or hand is severed and not replaced (the duel ends for that
+ * fighter, D-244), or offHand when the fighter has an off-hand weapon to fight on with (at the off-hand penalty). A limb
+ * that already carries a prosthetic is whole. With D-198's hand switch on, an unhealed wound of minSeverity or worse to
+ * the weapon arm forces the off hand too.
  */
 export function weaponArmState(f: Fighter): 'ok' | 'offHand' | 'lost' {
-  if (!WOUND_FIGHTING.weaponArm || f.weapon === 'unarmed') return 'ok';
+  if (f.weapon === 'unarmed') return 'ok';
   const side = f.weaponHand ?? 'right';
   const parts = [`${side}Arm`, `${side}Hand`];
+  const fitted = new Set(f.lasting.filter((l) => (l.kind === 'lostArm' || l.kind === 'lostHand') && l.aid !== 'none' && l.aid !== 'scarTissue').map((l) => l.part as string));
   const on = f.wounds.filter((w) => parts.includes(w.part) && w.healProgress < 1);
-  if (on.some((w) => w.severed)) return 'lost';
+  if ((WOUND_FIGHTING.weaponArmLost || WOUND_FIGHTING.weaponArm) && on.some((w) => w.severed && !fitted.has(w.part))) return f.offHandWeapon ? 'offHand' : 'lost';
+  if (!WOUND_FIGHTING.weaponArm) return 'ok';
   return on.some((w) => atLeast(effectiveSeverity(w), WOUND_FIGHTING.minSeverity)) ? 'offHand' : 'ok';
 }
 
@@ -317,6 +324,9 @@ function sideMods(f: Fighter, opp: Fighter, ctx: DuelContext, numbersBonus: numb
   const spread = SLUG_SPREAD[opp.weapon];
   if (spread && hasSaber(f)) defense.push({ source: spread, value: SLUG_SPREAD_DEFENSE });
   if (f.accuracy) attack.push({ source: 'accuracy', value: f.accuracy });
+  // Cover against ranged attacks (Jared, D-243; pass 3 balance row 4): a shooter in a place with cover (the cover terrain
+  // tag) defends at +COVER_DEFENSE against a ranged attack. A fighter closing with a blade is not in cover (D-192's rule).
+  if (ctx.cover && isRanged(f) && isRanged(opp)) defense.push({ source: 'cover', value: COVER_DEFENSE });
   return { attack: [...attack, ...both], defense: [...defense, ...both] };
 }
 
