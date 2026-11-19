@@ -97,7 +97,10 @@ describe('the duel panel and the choice list agree (D-181)', () => {
 
   it('the story can interrupt a session (combatEnded interrupted): it ends with the bouts so far', () => {
     const s = begun(session('int'), 'spar');
-    const r = applyEvents(REGISTRY, s.state, [{ type: 'combatEnded', reason: 'interrupted', category: 'alarmOrAuthorities', why: 'the Temple alarm sounds' }], { source: 'ai' });
+    const ended = { type: 'combatEnded', reason: 'interrupted', category: 'alarmOrAuthorities', why: 'the Temple alarm sounds' };
+    // The cause must be in the same reply (D-196 amended).
+    expect(applyEvents(REGISTRY, s.state, [ended], { source: 'ai' }).rejected[0]?.reason).toMatch(/needs its cause/);
+    const r = applyEvents(REGISTRY, s.state, [ended, { type: 'alarmRaised', why: 'the Temple alarm' }], { source: 'ai' });
     expect(r.rejected).toEqual([]);
     expect(r.state.combat.active).toBeNull();
     expect(r.state.combat.last?.session?.ended).toBe('stopped');

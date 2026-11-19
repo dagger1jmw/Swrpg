@@ -29,6 +29,8 @@ const withNpc = (s: GameState, name = 'Darth Vek', role = 'sithLord', age = 35) 
   const r = ai(s, [{ type: 'npcIntroduced', name, species: 'human', faction: 'sithEmpire', role, ageApprox: age, description: '' }]);
   return { s: r.state, id: Object.values(r.state.npcs.byId).find((n) => n.name === name)!.id };
 };
+/** An NPC entering the scene in the same reply: the cause of a reinforcements / thirdParty interruption (D-196 amended). */
+const arrives = (name: string) => ({ type: 'npcIntroduced', name, species: 'human', faction: 'republic', role: 'soldier', ageApprox: 30, description: '' });
 const begin = (s: GameState, opponentRefs: string[], stakes = 'lethal', minionGroups: { kind: string; count: number }[] = []) => {
   const p = ai(s, [{ type: 'combatStarted', opponentRefs, minionGroups, stakes, terrainTags: ['flatFloor'] }]);
   expect(p.rejected).toEqual([]);
@@ -137,7 +139,7 @@ describe('beats and conclusion', () => {
       expect(r.state.combat.active).not.toBeNull();
     }
     expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted' }]).rejected[0]!.reason).toMatch(/needs a why/);
-    const ok = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'reinforcements', why: 'Republic reinforcements pour into the hangar' }]);
+    const ok = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'reinforcements', why: 'Republic reinforcements pour into the hangar' }, arrives('Captain Rex')]);
     expect(ok.rejected).toEqual([]);
     // Recorded as interrupted with its real state: never fled, never won (D-196).
     expect(ok.state.combat.last!.outcome).toBe('interrupted');
@@ -152,33 +154,66 @@ describe('beats and conclusion', () => {
     expect(exact.rejected).toHaveLength(1);
     expect(exact.state.combat.active).not.toBeNull();
     expect(exact.state.combat.last).toBeNull();
-    // Even with a category, a why that only restates the fight is refused.
+    // Even with a category and a cause, a why that only restates the fight is refused.
     for (const why of ['the combat is still ongoing', 'The fight continues', 'the duel is still in progress', 'they keep fighting', 'ongoing']) {
-      const r = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'storyEvent', why }]);
-      expect(r.rejected[0]?.reason, why).toMatch(/only describes the fight/);
+      const r = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'alarmOrAuthorities', why }, { type: 'alarmRaised', why: 'a klaxon' }]);
+      expect(r.rejected.map((x) => x.reason).join(' | '), why).toMatch(/only describes the fight/);
       expect(r.state.combat.active, why).not.toBeNull();
     }
     expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', why: 'the ceiling gives way' }]).rejected[0]!.reason).toMatch(/needs a category/);
     expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'weather', why: 'rain' }]).rejected).toHaveLength(1);
-    for (const [category, why] of [['environmentCollapse', 'the ceiling gives way between them'], ['alarmOrAuthorities', 'Temple guards flood the hall'], ['thirdParty', 'Master Vash steps between the blades'], ['storyEvent', 'the shuttle they both need begins to lift off']] as const) {
-      const r = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category, why }]);
-      expect(r.rejected, why).toEqual([]);
-      expect(r.state.combat.last!.outcome).toBe('interrupted');
-    }
+    // storyEvent is no longer a category (Jared, D-196 amended).
+    expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'storyEvent', why: 'the shuttle they both need begins to lift off' }]).rejected[0]!.reason).toMatch(/schema/);
   });
-  it('a story event is not something the fighters do (D-196; the re-check case: "The droids take cover behind the terrain.")', () => {
+  it('an interruption needs its cause in the same reply (Jared, D-196 amended)', () => {
+    const { s, id } = withNpc(fresh());
+    const f = begin(s, [id]);
+    const cases: [string, string, unknown][] = [
+      ['environmentCollapse', 'the ceiling gives way between them', { type: 'hazardOccurred', hazard: 'impact', severityHint: 1, cause: 'the ceiling gives way' }],
+      ['alarmOrAuthorities', 'the Temple alarm sounds through the hall', { type: 'alarmRaised', why: 'the Temple alarm' }],
+      ['alarmOrAuthorities', 'Temple guards flood the hall', arrives('Temple Guard Captain')],
+      ['thirdParty', 'Master Vash steps between the blades', arrives('Master Vash')],
+      ['reinforcements', 'a second Sith lands beside Vek', arrives('Darth Sorn')],
+    ];
+    for (const [category, why, cause] of cases) {
+      // Without its cause the fight goes on.
+      const none = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category, why }]);
+      expect(none.rejected[0]?.reason, `${category} without a cause`).toMatch(/needs its cause in the same reply/);
+      expect(none.state.combat.active).not.toBeNull();
+      // With it (in either order in the reply) the fight ends as interrupted.
+      for (const events of [[{ type: 'combatEnded', reason: 'interrupted', category, why }, cause], [cause, { type: 'combatEnded', reason: 'interrupted', category, why }]]) {
+        const r = ai(f, events);
+        expect(r.rejected, why).toEqual([]);
+        expect(r.state.combat.last!.outcome).toBe('interrupted');
+      }
+    }
+    // A cause of the wrong kind does not count: an alarm does not collapse the ceiling.
+    expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'environmentCollapse', why: 'the ceiling gives way' }, { type: 'alarmRaised', why: 'a klaxon' }]).rejected).toHaveLength(1);
+    // A sceneUpdated that lists only the fighters and someone already present is no arrival.
+    const present = ai(f, [arrives('Master Vash')]).state;
+    const vash = Object.values(present.npcs.byId).find((n) => n.name === 'Master Vash')!.id;
+    const seen = ai(present, [{ type: 'sceneUpdated', moodTags: [], presentNpcRefs: [vash] }]).state;
+    const thirdParty = { type: 'combatEnded', reason: 'interrupted', category: 'thirdParty', why: 'Master Vash steps between the blades' };
+    expect(ai(seen, [thirdParty, { type: 'sceneUpdated', moodTags: [], presentNpcRefs: [vash, id] }]).rejected).toHaveLength(1);
+    // Someone who was not present before the reply and now is: an arrival.
+    const arrived = ai(present, [thirdParty, { type: 'sceneUpdated', moodTags: [], presentNpcRefs: [vash, id] }]);
+    expect(arrived.rejected).toEqual([]);
+    expect(arrived.state.combat.last!.outcome).toBe('interrupted');
+  });
+  it('a third party is not something the fighters do (D-196; the re-check case: "The droids take cover behind the terrain.")', () => {
     const f = begin(fresh(), [], 'serious', [{ kind: 'battleDroid', count: 6 }]);
-    const exact = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'storyEvent', why: 'The droids take cover behind the terrain.' }]);
+    // The re-check's exact reply had no cause at all: refused before the wording is read.
+    expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'thirdParty', why: 'The droids take cover behind the terrain.' }]).rejected[0]?.reason).toMatch(/needs its cause/);
+    const exact = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'thirdParty', why: 'The droids take cover behind the terrain.' }, arrives('Bystander')]);
     expect(exact.rejected[0]?.reason).toMatch(/is something the fighters do \("droids"\), not an outside event/);
     expect(exact.state.combat.active).not.toBeNull();
     for (const why of ['The battle droid patrol regroups', 'the enemy falls back to the tree line', 'Your opponents hesitate']) {
-      const r = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'storyEvent', why }]);
+      const r = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'thirdParty', why }, arrives('Bystander')]);
       expect(r.rejected, why).toHaveLength(1);
       expect(r.state.combat.active, why).not.toBeNull();
     }
-    // Reinforcements may be more of the same kind; an outside event still passes.
-    expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'reinforcements', why: 'a second droid column marches out of the trees' }]).rejected).toEqual([]);
-    expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'storyEvent', why: 'a Republic gunship drops out of the clouds overhead' }]).rejected).toEqual([]);
+    // Reinforcements may be more of the same kind, with their arrival.
+    expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'reinforcements', why: 'a second droid column marches out of the trees' }, arrives('OOM-9')]).rejected).toEqual([]);
   });
   it('the target is a setting (D-182): no exchange, it stays until changed, and falls back when that target is out', () => {
     const { s, id } = withNpc(fresh());

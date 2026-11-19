@@ -204,11 +204,23 @@ export const SPARRING_ACCIDENT = { flatFloorChance: 1 / 200, flatFloorSeverity: 
 
 // ---- The narrator stopping a fight (D-181; D-196) ----
 /**
- * The only outside events that may interrupt a fight from the narration (Jared, D-196). storyEvent: an event already
- * named in the scene (a ship lifting off, a truce horn, a master's command).
+ * The only outside events that may interrupt a fight from the narration (Jared, D-196). Each needs its cause in the same
+ * reply (INTERRUPT_CAUSES): an interruption the engine cannot see is refused and the fight goes on.
  */
-export const INTERRUPT_CATEGORIES = ['reinforcements', 'environmentCollapse', 'alarmOrAuthorities', 'thirdParty', 'storyEvent'] as const;
+export const INTERRUPT_CATEGORIES = ['reinforcements', 'environmentCollapse', 'alarmOrAuthorities', 'thirdParty'] as const;
 export type InterruptCategory = (typeof INTERRUPT_CATEGORIES)[number];
+/**
+ * The events that can cause each interruption (Jared, D-196 amended). npcEntered: an npcIntroduced, or a sceneUpdated
+ * that adds someone present who is not a fighter and was not present before the reply. The cause must be applied in the
+ * same reply as the combatEnded.
+ */
+export type InterruptCause = 'npcEntered' | 'hazardOccurred' | 'alarmRaised';
+export const INTERRUPT_CAUSES: Readonly<Record<InterruptCategory, readonly InterruptCause[]>> = {
+  reinforcements: ['npcEntered'],
+  thirdParty: ['npcEntered'],
+  environmentCollapse: ['hazardOccurred'],
+  alarmOrAuthorities: ['alarmRaised', 'npcEntered'],
+};
 /** A why that only restates the fight is not an outside event ("the combat is still ongoing"); lower case, tested on the whole text. */
 export const INTERRUPT_RESTATES: readonly RegExp[] = [
   /\b(combat|fight|fighting|battle|duel|bout|melee|skirmish|exchange)\b.{0,40}\b(still|ongoing|on-going|continues|continuing|goes on|going on|in progress|not over|rages|raging|underway|under way|unresolved|remains)\b/,
@@ -238,5 +250,5 @@ export const HEROIC_ACT = { gapAtLeast: 10, ranks: ['lord', 'master'] as readonl
 // ---- Recording review (progression-numbers §19) ----
 export const RECORDING_REVIEW = { bonus: 0.05, days: 3, everyDays: 7, recordedModes: ['trainingSaber', 'controlled', 'academy'] as readonly SparringMode[] } as const;
 
-/** Words for the fighters themselves: a storyEvent or thirdParty why that uses one describes the fight (D-196). */
+/** Words for the fighters themselves: a thirdParty why that uses one describes the fight (D-196). */
 export const INTERRUPT_FIGHTER_WORDS: readonly string[] = ['opponent', 'opponents', 'enemy', 'enemies', 'attacker', 'attackers', 'foe', 'foes', 'combatants', 'fighters', 'duelists'];

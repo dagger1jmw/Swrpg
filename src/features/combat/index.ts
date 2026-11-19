@@ -4,7 +4,7 @@
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
-import { INTERRUPT_CATEGORIES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type NpcFate } from '../../data/combat.config';
+import { INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
 import { rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, type BodyPart } from '../../data/health.config';
@@ -23,7 +23,7 @@ import { nextFloat, nextInt, type RngState } from '../../engine/rng';
 import { runSequence, sequenceCap, type SequenceStep } from '../../engine/sequence';
 import { isDying, isIncapacitated, type Wound } from '../../engine/wounds';
 import type { GameState } from '../../state/gameState';
-import type { FeatureModule, GameEvent } from '../../state/types';
+import type { ApplyCtx, FeatureModule, GameEvent } from '../../state/types';
 import { selectPath } from '../character/selectors';
 import { selectNow } from '../clock/selectors';
 import { selectFatigue, selectMaxVitality } from '../health/selectors';
@@ -581,10 +581,12 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
       schema: z.object({
         type: z.literal('combatEnded'),
         reason: z.enum(['fled', 'surrendered', 'interrupted', 'truce']).describe('The narrator may send only interrupted'),
-        category: z.enum(INTERRUPT_CATEGORIES).optional().describe('Required with interrupted: reinforcements (they arrive), environmentCollapse (the place gives way), alarmOrAuthorities, thirdParty (someone outside the fight steps in), storyEvent (an event already named in the scene)'),
+        category: z.enum(INTERRUPT_CATEGORIES).optional().describe('Required with interrupted, and the cause must be in the same reply: reinforcements and thirdParty (someone arrives: npcIntroduced, or sceneUpdated adding them), environmentCollapse (hazardOccurred), alarmOrAuthorities (alarmRaised, or the authorities arriving)'),
         why: z.string().min(1).max(200).optional().describe('Required with interrupted: the outside event itself, in a few words. Never a description of the fight'),
       }),
       sources: ['ai', 'engine'],
+      // Applied after the rest of the reply, so the handler sees the event that caused an interruption (D-196).
+      phase: 'last',
       narrative: (s) => s.combat.active !== null,
       handle: (slice, e, ctx) => {
         if (!slice.active) return { reject: 'no fight in progress' };
@@ -599,9 +601,13 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           // An outside event of a listed kind, never the fight restated (D-196).
           if (!e['category']) return { reject: `combatEnded interrupted needs a category: ${INTERRUPT_CATEGORIES.join(', ')}` };
           if (INTERRUPT_RESTATES.some((re) => re.test(why.toLowerCase()))) return { reject: `combatEnded interrupted: "${why}" only describes the fight; an interruption is an outside event (${INTERRUPT_CATEGORIES.join(', ')}). The fight goes on` };
-          // A story event is something outside the fighters (D-196, tightened after the re-check): what the opponents or the
+          // The cause must be in the same reply (Jared, D-196 amended): an event the engine can see.
+          const category = e['category'] as InterruptCategory;
+          const causes = INTERRUPT_CAUSES[category];
+          if (!interruptCauseSeen(ctx, slice.active.duel as DuelState, causes)) return { reject: `combatEnded interrupted (${category}) needs its cause in the same reply: ${causes.map((c) => INTERRUPT_CAUSE_TEXT[c]).join(' or ')}. Nothing the engine can see stops the fight, so it goes on` };
+          // A third party is someone outside the fighters (D-196, tightened after the re-check): what the opponents or the
           // player do in the fight ("the droids take cover behind the terrain") is the fight, not an interruption.
-          if (e['category'] === 'storyEvent' || e['category'] === 'thirdParty') {
+          if (category === 'thirdParty') {
             const d = slice.active.duel as DuelState;
             const nouns = new Set<string>();
             for (const f of [d.a, ...d.opponents]) for (const w of f.name.toLowerCase().split(/[^a-z]+/)) if (w.length >= 4) nouns.add(w);
@@ -625,6 +631,16 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         const c = conclude(slice, ctx.state, slice.active, outcome, label);
         return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
       },
+    },
+    /**
+     * AI: an alarm is raised or the authorities are called (D-196 amended): the cause an alarmOrAuthorities interruption
+     * needs in the same reply. It changes no state; the note keeps it in the transcript.
+     */
+    alarmRaised: {
+      schema: z.object({ type: z.literal('alarmRaised'), why: z.string().min(1).max(200).describe('What raises the alarm, in a few words') }),
+      sources: ['ai'],
+      narrative: (s) => s.combat.active !== null,
+      handle: (slice, e) => ({ slice, notes: [`alarm raised: ${String(e['why'])}`] }),
     },
     /**
      * AI: the opponent offers a truce (D-181). Nothing ends: the duel panel shows Accept the truce, and any other action
@@ -709,6 +725,27 @@ function forceProfile(s: GameState) {
     forceOutput: selectLevelExact(s, 'forceOutput'),
     trickLevel: Math.max(selectLevelExact(s, 'charisma'), selectLevelExact(s, 'intelligence')),
   };
+}
+
+const INTERRUPT_CAUSE_TEXT: Readonly<Record<InterruptCause, string>> = {
+  npcEntered: 'someone entering the scene (npcIntroduced, or sceneUpdated adding them)',
+  hazardOccurred: 'hazardOccurred',
+  alarmRaised: 'alarmRaised',
+};
+
+/** Whether the reply so far applied one of the causes (D-196 amended). */
+function interruptCauseSeen(ctx: ApplyCtx<GameState>, duel: DuelState, causes: readonly InterruptCause[]): boolean {
+  const batch = ctx.batch ?? [];
+  const fighters = new Set([duel.a.id, ...duel.opponents.map((o) => o.id)]);
+  const before = new Set(ctx.batchStart?.pacing.scene.presentNpcIds ?? []);
+  return batch.some(({ event }) => {
+    if (event.type === 'hazardOccurred') return causes.includes('hazardOccurred');
+    if (event.type === 'alarmRaised') return causes.includes('alarmRaised');
+    if (!causes.includes('npcEntered')) return false;
+    if (event.type === 'npcIntroduced') return true;
+    if (event.type === 'sceneUpdated') return ((event['presentNpcRefs'] as string[] | undefined) ?? []).some((id) => !fighters.has(id) && !before.has(id));
+    return false;
+  });
 }
 
 export type { ExchangeRecord };

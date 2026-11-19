@@ -163,8 +163,8 @@ export function applyEvents<S extends BaseState>(
     ordered.push(p);
   }
 
-  // 6. Apply order: creation, time, everything else; reply order within each phase.
-  const phaseRank = { create: 0, time: 1, other: 2 } as const;
+  // 6. Apply order: creation, time, everything else, then 'last' events; reply order within each phase.
+  const phaseRank = { create: 0, time: 1, other: 2, last: 3 } as const;
   ordered.sort((a, b) => {
     const pa = phaseRank[owners.get(a.event.type)!.def.phase ?? 'other'];
     const pb = phaseRank[owners.get(b.event.type)!.def.phase ?? 'other'];
@@ -191,7 +191,7 @@ export function applyEvents<S extends BaseState>(
       return;
     }
     const e = substituted.event;
-    const result = def.handle(state[feature.id], e, { state, source });
+    const result = def.handle(state[feature.id], e, { state, source, batch: applied, batchStart: initial });
     if ('reject' in result) {
       rejected.push({ event: e, reason: result.reject });
       return;

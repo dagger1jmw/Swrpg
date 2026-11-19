@@ -54,6 +54,10 @@ export interface ApplyCtx<S extends BaseState = BaseState> {
   /** The full state as it is right before this event or hook (read-only; use selectors). */
   readonly state: S;
   readonly source: EventSource;
+  /** The events applied so far in this applyEvents call (the same reply), emitted ones included (D-196). */
+  readonly batch?: readonly { readonly event: GameEvent; readonly source: EventSource }[];
+  /** The state at the start of this applyEvents call (before the reply), for checks against what the reply changed. */
+  readonly batchStart?: S;
 }
 
 /** A request to advance the clock, executed by applyEvents through advanceTime in the time phase. */
@@ -83,8 +87,11 @@ export type HandleResult<Slice> =
     }
   | { reject: string };
 
-/** Apply-order class (D-32): creation first, then time, then everything else in reply order. */
-export type EventPhase = 'create' | 'time' | 'other';
+/**
+ * Apply-order class (D-32): creation first, then time, then everything else in reply order. 'last' events apply after
+ * all the others of the reply, so their handler can see what the reply did (combatEnded and its cause, D-196).
+ */
+export type EventPhase = 'create' | 'time' | 'other' | 'last';
 
 /** What the schema composer knows about the turn being narrated (D-15). */
 export interface NarrativeTurnInfo {

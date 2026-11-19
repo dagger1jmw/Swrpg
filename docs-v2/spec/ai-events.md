@@ -76,12 +76,19 @@ Combat (the AI sets up; the engine resolves)
   tacticDeclared { tactic, details }              -> becomes a contest (rolls spec sec 5)
   combatEnded { reason: interrupted, category, why } -> wounds end fights on their own; the AI may send only
                                                      interrupted, with a category (reinforcements,
-                                                     environmentCollapse, alarmOrAuthorities, thirdParty,
-                                                     storyEvent) and the outside event (D-181, D-196); a why that
-                                                     restates the fight is refused; the fight is recorded as
+                                                     environmentCollapse, alarmOrAuthorities, thirdParty) and the
+                                                     outside event (D-181, D-196); its cause must be in the same
+                                                     reply (reinforcements / thirdParty: npcIntroduced or a
+                                                     sceneUpdated arrival; environmentCollapse: hazardOccurred;
+                                                     alarmOrAuthorities: alarmRaised or an arrival), applied
+                                                     last in the reply; a why that restates the fight, or a
+                                                     thirdParty why that names the fighters, is refused; the
+                                                     fight is recorded as
                                                      interrupted with its real state, never fled or won; fled and
                                                      surrendered come from the player's beats or an engine fate
   truceOffered { why }                            -> the player accepts with a beat button or fights on (D-181)
+  alarmRaised { why }                             -> an alarm or the authorities called; no state change; the
+                                                     cause of an alarmOrAuthorities interruption (D-196)
 Force
   forceUseRequested { abilityId, effort, targetRef? }  -> load, contest and outcome by engine
   forceVision { description }                     -> narrative only; may open a thread
