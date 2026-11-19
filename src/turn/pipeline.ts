@@ -21,7 +21,7 @@ import { SUMMARY_RETRIES_PER_CLOSE } from '../data/memory.config';
 import { PACING_OUTPUT_CAPS } from '../data/pacing.config';
 import { normalizeAlias } from '../engine/aliases';
 import { dateFromAbsDay } from '../engine/calendar';
-import { checkNarration, fallbackNarration } from './narrationCheck';
+import { checkNarration, rewordable, settleNarration, type NarrationIssue } from './narrationCheck';
 import { selectWounds } from '../features/health/selectors';
 import { selectNow } from '../features/clock/selectors';
 import { selectOpenReview, selectPendingChapters } from '../features/memory/selectors';
@@ -313,9 +313,18 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     const known = { player: [...selectWounds(session.state), ...selectWounds(resolved)].map((w) => w.part) };
     // The previous story reply (dev commands are not story): a narration that repeats it is a contradiction (D-210).
     const previous = [...session.history].reverse().find((r) => r.input.kind !== 'dev' && r.narrative)?.narrative ?? null;
-    let issues = checkNarration(reply.narrative, draft, woundedOrHealing, known, previous);
-    if (issues.length) {
-      modelNotes.push(`narration check: ${issues.length} contradiction(s) with RESOLVED (${issues.map((i) => i.kind).join(', ')}): "${issues[0]!.sentence.slice(0, 160)}"; retrying once`);
+    const recheck = (text: string): NarrationIssue[] => checkNarration(text, draft, woundedOrHealing, known, previous);
+    const kindsOf = (list: readonly NarrationIssue[]): string => list.map((i) => i.kind).join(', ');
+    let issues = recheck(reply.narrative);
+    // Engine terms that a swap of words settles (D-236): reworded in code, checked again, no retry call.
+    const reworded = rewordable(reply.narrative, issues, recheck);
+    if (reworded !== null) {
+      modelNotes.push(`narration check: ${issues.length} engine term(s) in the prose ("${issues[0]!.sentence.slice(0, 160)}"); reworded in code, no retry`);
+      reply = { ...reply, narrative: reworded };
+    } else if (issues.length) {
+      // The quote is the offending sentence; an omission has none, so its correction is shown.
+      const quoted = issues.find((i) => i.sentence)?.sentence ?? issues[0]!.text;
+      modelNotes.push(`narration check: ${issues.length} contradiction(s) with RESOLVED (${kindsOf(issues)}): "${quoted.slice(0, 160)}"; retrying once`);
       const retryReq = buildNarrativeRequest(resolved, draft, pending.input, session.history, { ...buildOpts(deps, 'narrative', schemas.wire), correction: issues.map((i) => i.text) });
       deps.onRequest?.({ callType: 'narrative', ...retryReq });
       const retryOpts: BaseOptions = { ...callOptions('narrative', retryReq.system, budget), wireSchema: schemas.wire };
@@ -327,11 +336,15 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
       }
       if (second) {
         reply = second;
-        issues = checkNarration(reply.narrative, draft, woundedOrHealing, known, previous);
+        issues = recheck(reply.narrative);
       }
       if (issues.length) {
-        modelNotes.push(`narration check: still contradicting RESOLVED (${issues.map((i) => i.kind).join(', ')}); code-written lines used instead`);
-        reply = { ...reply, narrative: fallbackNarration(reply.narrative, draft, issues) };
+        // Settled in code (D-236): terms swapped when that is enough (checked again), else the summary; no sentence
+        // of a fight's narration is ever cut out.
+        const settled = settleNarration(reply.narrative, draft, issues, recheck);
+        const how = settled.how === 'reworded' ? 'engine terms reworded in code' : settled.how === 'summary' ? 'code-written summary used instead' : 'the offending sentences removed';
+        modelNotes.push(`narration check: ${second ? 'still contradicting RESOLVED' : 'the first reply stands and contradicts RESOLVED'} (${kindsOf(issues)}); ${how}`);
+        reply = { ...reply, narrative: settled.narrative };
       } else modelNotes.push('narration check: the retry is consistent');
     }
   }

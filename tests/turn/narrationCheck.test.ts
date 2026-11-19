@@ -50,15 +50,16 @@ describe('contradictions from combat pass 1 (D-197)', () => {
     const narrate = [rec({ n: 2, kind: 'strike', striker: 'A', targetId: 'n1', margin: 5, hit: hit('A', 'rightArm', null) }), rec({ n: 3, targetId: 'n1', advAfter: 5, margin: 28 })];
     const d = draft(combat({ fighters: [PC, DUELIST], narrate, notes: ['step 1 stance (aggressive): DONE (aggressive stance set)', 'step 2 strike: DONE (hits Duelist 1: no wound, stamina only)', 'step 3 strike: DONE (gains ground; no hit)', 'step 4 Force push: NOT REACHED (past the sequence cap of 3)'] }));
     const bad = 'You press the advantage, driving forward with two quick, calculated cuts that catch your opponent off guard, forcing him to parry hastily as a shallow graze marks his shoulder. Seizing the opening from his stumble, you sweep your hand forward and release a sudden surge of kinetic Force energy, shoving him heavily back across the clearing.';
-    // "his stumble" with no terrain accident is an invented slip too (D-211).
-    expect(kinds(bad, d)).toEqual(['slipNoHazard', 'stepNotReached']);
+    // "his stumble" follows the graze the block has on him: a reaction to a hit, not an invented slip (D-236).
+    expect(kinds(bad, d)).toEqual(['stepNotReached']);
     const good = "You lunge forward, aiming to drive your lightsaber straight through his guard, and a glancing cut skims his shoulder. The sudden counter-pressure cuts your momentum short before you can gather your focus to unleash a follow-up push through the Force, leaving you locked in the relentless melee.";
     expect(kinds(good, d)).toEqual([]);
   });
   it('issue 2: a wounding hit left out ("your strike is deftly turned aside") is caught as a missing wound', () => {
     const d = draft(combat({ fighters: [PC, DUELIST], beat: 'woundingHit', narrate: [rec({ n: 21, kind: 'strike', striker: 'A', targetId: 'n1', margin: 3 }), rec({ n: 22, kind: 'strike', striker: 'A', targetId: 'n1', margin: 10.9, hit: hit('A', 'rightArm', 'severe') })] }));
     const text = 'You lunge forward to press the opening left by his stumble, but your strike is deftly turned aside at the last instant as he recovers his footing.';
-    expect(kinds(text, d)).toEqual(['slipNoHazard', 'woundOmitted']);
+    // "his stumble": the block has a hit on him, so it is his reaction to it (D-236); the wound is still missing.
+    expect(kinds(text, d)).toEqual(['woundOmitted']);
     expect(kinds('He turns your first lunge aside, but the second finds him: your blade sears across his right arm, a deep and ugly wound.', d)).toEqual([]);
   });
   it('issue 11: bacta and Force healing with no care applied; real care passes', () => {

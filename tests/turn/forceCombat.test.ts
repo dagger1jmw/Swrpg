@@ -192,7 +192,30 @@ describe('the narration check in the pipeline (D-197)', () => {
     const t = await playTurn(deps, s, beat('narrate'));
     expect(provider.calls.slice(before)).toHaveLength(2);
     expect(t.record.narrative).not.toMatch(/sever|catches the nearest droid/);
-    expect(t.record.draft.report.join('\n')).toMatch(/code-written lines used instead/);
+    expect(t.record.draft.report.join('\n')).toMatch(/still contradicting RESOLVED \(.*\); code-written summary used instead/);
+  });
+  it('an engine term that a swap of words settles is reworded in code with no retry call (D-236)', async () => {
+    const { deps, provider } = setup([...many(1), said('You hold your guard, wary of a severe blow, as the droids fan out among the trees.')]);
+    const s = await knightVsB1(deps, 'nc4');
+    const before = provider.calls.length;
+    const t = await playTurn(deps, s, beat('narrate'));
+    expect(provider.calls.slice(before)).toHaveLength(1);
+    expect(t.record.narrative).toBe('You hold your guard, wary of a grievous blow, as the droids fan out among the trees.');
+    expect(t.record.draft.report.join('\n')).toMatch(/narration check: 1 engine term\(s\) in the prose .*reworded in code, no retry/);
+  });
+  it('when the retry call fails, an invented slip gets the summary: no sentence is cut out of the narration (D-236)', async () => {
+    const slip = 'You hold your guard among the trees. Your footing slips on the wet leaves as the droids fan out.';
+    const { deps, provider } = setup([...many(1), said(slip), { callType: 'narrative', error: { kind: 'http', status: 503, message: 'Gemini error 503: high demand' } }]);
+    const s = await knightVsB1(deps, 'nc5');
+    const before = provider.calls.length;
+    const t = await playTurn(deps, s, beat('narrate'));
+    expect(provider.calls.slice(before)).toHaveLength(2);
+    const report = t.record.draft.report.join('\n');
+    expect(report).toMatch(/narration check: the retry failed/);
+    expect(report).toMatch(/the first reply stands and contradicts RESOLVED \(slipNoHazard\); code-written summary used instead/);
+    // The summary, not the first reply with a sentence missing.
+    expect(t.record.narrative).not.toBe('You hold your guard among the trees.');
+    expect(t.record.narrative).toMatch(/The fight goes on: \d+ opponents? still standing\./);
   });
   it('a consistent narration makes no second call', async () => {
     const { deps, provider } = setup([...many(1), said(GOOD)]);

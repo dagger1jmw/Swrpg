@@ -77,12 +77,90 @@ const KILL = /\b(shear\w*|carv\w* (?:\w+ ){0,2}through|cut\w* (?:\w+ ){0,2}(?:do
 const KILL_AIM = new RegExp(`\\b(?:to|meant to|aiming to|trying to) (?:\\w+ )?(?:${KILL.source})`, 'i');
 /** Plain negation in a clause (rules 3b and 9): "never slips", "without losing footing", "does not stumble". */
 const NEGATED = /\b(no|not|never|nor|without|neither|doesn't|does not|didn't|did not|don't|do not|refus\w*|keep\w* (?:your|his|her|their|its) (?:footing|balance|feet)|regain\w*|steady|steadies|steadied|sure-footed)\b/i;
-/** A slip, stumble, misstep or lost footing (rule 9). */
-const SLIP = /\b(slip\w*|stumbl\w*|trip(?:s|ped|ping)?|misstep\w*|mis-step\w*|overextend\w*|over-extend\w*|los(?:e|es|ing|t) (?:\w+ )?(?:footing|balance|grip)|(?:footing|footwork|balance|grip|feet|foot) (?:\w+ )?(?:falter\w*|slip\w*|giv\w* way|gave way|betray\w*|fail\w*|skid\w*)|(?:falter\w*|unsteady|lose) (?:\w+ )?(?:footing|footwork)|footing faltering|lose your footing)\b/i;
-/** A blade or bolt slipping past a guard, someone slipping away: not a slip of footing. */
-const SLIP_PAST = /\bslip\w* (?:\w+ )?(?:past|through|under|inside|between|beneath|behind|around|away|free|into|out|by)\b|\bslip of (?:focus|concentration|attention|the mind|will)\b/i;
-/** Staggering back from a Push, a thrown object or a knockdown the block lists (rule 9 exemption). */
-const STUMBLE_FROM_PUSH = /\b(stumbl\w*|stagger\w*|reel\w*)\b/i;
+/**
+ * Rule 9 (D-201 in code; rewritten after combat pass 3, D-236): only the body counts. Footing terms are a slip of the
+ * feet, the balance or the grip; "your focus slips", "the moment slips away" and "slips past his guard" are not.
+ */
+const FOOTING: readonly RegExp[] = [
+  /\b(?:footing|footwork|balance|feet|foot|grip) (?:\w+ ){0,2}?(?:falter\w*|slip\w*|giv\w+ way|gave way|betray\w*|fail\w*|skid\w*)\b/i,
+  /\blos(?:e|es|ing|t) (?:\w+ ){0,2}?(?:footing|balance|grip)\b/i,
+  /\b(?:falter\w*|unsteady) (?:\w+ )?(?:footing|footwork)\b/i,
+  /\bslip(?:s|ped|ping)? (?:(?!past|through|under|inside|between|beneath|behind|around|away|free|into|out|by)\w+ ){0,3}?on (?:the|a|an|some|loose|wet|slick|uneven|broken|his|her|its|their|your)\b/i,
+  /\btrip(?:s|ped|ping)?\b/i,
+  /\bmis-?step\w*\b/i,
+  // A stumble on or over something is a slip of the feet whatever else happened ("stumbles over the uneven terrain").
+  /\bstumbl\w* (?:\w+ ){0,2}?(?:on|over) (?:the|a|an|some|loose|wet|slick|uneven|broken|his|her|its|their|your)\b/i,
+];
+/**
+ * How a fighter reacts to being hit, pushed, choked or knocked down: fine when the block has that on the fighter.
+ * "Off balance" and "staggers" alone never fire ("he catches you off balance" is being outpaced).
+ */
+const REACTION = /\b(stumbl\w*|(?:you|he|she|it|they) (?:fall|falls|fell) (?:to the (?:ground|floor|deck|dirt|stone|grass|snow|ice)|flat|hard|heavily|backwards?|on (?:the|his|her|its|their|your))|drop\w* to (?:one|his|her|its|their|your) knees?)\b/i;
+const SECOND_PERSON = /\b(you|your|yours|yourself)\b/;
+const THIRD_PERSON = /\b(he|she|it|they|his|her|its|their|him|them|himself|herself|itself|opponent|foe|enemy|adversary)\b/;
+
+/** What the block has on each side that explains a stumble or a fall (rule 9). */
+interface SlipCauses {
+  /** A terrain accident, a knockdown, a Push or a thrown object: footing really lost. */
+  footing: { pc: boolean; opp: boolean };
+  /** Those, or any hit, Choke or lightning: stumbling back, off balance, going down. */
+  reaction: { pc: boolean; opp: boolean };
+}
+
+function slipCauses(c: CombatDraft, facts: CombatFacts): SlipCauses {
+  const pcName = (c.fighters.find((f) => f.id === 'pc')?.name ?? '').toLowerCase();
+  const footing = { pc: false, opp: false };
+  const reaction = { pc: false, opp: false };
+  for (const n of c.notes) {
+    if (!n.startsWith('terrain: ')) continue;
+    if (pcName && n.toLowerCase().includes(pcName)) footing.pc = true;
+    else footing.opp = true;
+  }
+  for (const r of c.narrate) {
+    if (r.maneuver?.kind === 'knockdown') footing[r.maneuver.by === 'A' ? 'opp' : 'pc'] = true;
+    if (r.force?.success) {
+      const on = r.force.side === 'A' ? 'opp' : 'pc';
+      if (r.force.kind === 'push' || r.force.kind === 'throw') footing[on] = true;
+      if (r.force.kind === 'choke' || r.force.kind === 'lightning') reaction[on] = true;
+    }
+  }
+  for (const h of facts.hits) reaction[h.byPlayer ? 'opp' : 'pc'] = true;
+  reaction.pc ||= footing.pc;
+  reaction.opp ||= footing.opp;
+  return { footing, reaction };
+}
+
+/** Whose body a clause is about at `index`: the last "you" or "he / it / a name" before it, in the clause, else in the sentence. */
+function subjectAt(sentence: string, clause: string, index: number, oppNames: RegExp | null): 'pc' | 'opp' {
+  const last = (text: string): 'pc' | 'opp' | null => {
+    let at = -1;
+    let who: 'pc' | 'opp' | null = null;
+    for (const [re, side] of [[SECOND_PERSON, 'pc'], [THIRD_PERSON, 'opp'], [oppNames, 'opp']] as const) {
+      if (!re) continue;
+      for (const m of text.matchAll(new RegExp(re.source, 'gi'))) {
+        if (m.index > at) {
+          at = m.index;
+          who = side;
+        }
+      }
+    }
+    return who;
+  };
+  const start = Math.max(0, sentence.indexOf(clause));
+  return last(clause.slice(0, index)) ?? last(sentence.slice(0, start + index)) ?? last(clause) ?? 'pc';
+}
+
+/** The slip in a clause that the block does not explain (rule 9), or null. */
+function unexplainedSlip(sentence: string, clause: string, causes: SlipCauses, oppNames: RegExp | null): string | null {
+  if (NEGATED.test(clause)) return null;
+  for (const re of FOOTING) {
+    const m = re.exec(clause);
+    if (m && !causes.footing[subjectAt(sentence, clause, m.index, oppNames)]) return m[0];
+  }
+  const m = REACTION.exec(clause);
+  if (m && !causes.reaction[subjectAt(sentence, clause, m.index, oppNames)]) return m[0];
+  return null;
+}
 /** The outcome list's wording in prose (rule 10): severity labels, margins, tracks, beats, upper-case labels. */
 const SEVERITY_LABEL = /\b(?:a|an|the|another|one|his|her|its|their|your)\s+(?:[a-z-]+,?\s+){0,2}?(minor|moderate|severe|critical),?\s+(?:[a-z-]+,?\s+)?(wound|strike|blow|hit|cut|graze|injury|burn|gash)s?\b|\bmortal (strike|blow|hit)s?\b/i;
 const ENGINE_TERMS: readonly [RegExp, string][] = [
@@ -118,12 +196,13 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
   const minionHitByPlayer = facts.hits.some((h) => h.byPlayer && minions.some((m) => m.id === h.targetId)) || c.narrate.some((r) => r.force?.stoodDown);
   const minionNouns = [...new Set(minions.flatMap((m) => m.name.toLowerCase().replace(/\s+\d+$/, '').split(/\s+/).slice(-1)))];
   const minionNounRe = minionNouns.length ? new RegExp(`\\b(${[...minionNouns, 'chassis', 'automaton', 'machine'].join('|')})s?\\b`, 'i') : null;
-  const hazard = c.notes.some((n) => n.startsWith('terrain: '));
+  const causes = slipCauses(c, facts);
+  const oppWords = [...new Set(c.fighters.filter((f) => f.id !== 'pc').flatMap((f) => f.name.toLowerCase().split(/[^a-z']+/).filter((w) => w.length >= 4)))];
+  const oppNames = oppWords.length ? new RegExp(`\\b(${oppWords.join('|')})s?\\b`) : null;
   const pcView = c.fighters.find((f) => f.id === 'pc');
   const pcUnarmored = pcView?.armor !== undefined && pcView.armor === 'none';
   const strikesMade = facts.steps.filter((st) => /^strike/.test(st.label) && st.status !== 'NOT REACHED').length;
   const strikesNotReached = facts.steps.some((st) => /^strike/.test(st.label) && st.status === 'NOT REACHED');
-  const pushLanded = c.narrate.some((r) => (r.force?.success && (r.force.kind === 'push' || r.force.kind === 'throw')) || r.maneuver?.kind === 'knockdown');
   const add = (kind: NarrationIssueKind, text: string, sentence: string): void => {
     if (!out.some((x) => x.kind === kind && x.sentence === sentence)) out.push({ kind, text, sentence });
   };
@@ -157,14 +236,11 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
       const killClause = clausesOf(s).find((cl) => KILL.test(cl) && !KILL_AIM.test(cl) && !NOT_AN_EVENT.test(cl) && !NEGATED.test(cl));
       if (killClause) add('minionNotHit', 'you hit no minion in this passage: no droid, trooper or other minion is cut down, carved through or destroyed', s);
     }
-    // 9. Slips, stumbles and lost footing with no terrain accident in the block (D-201 enforced, D-211).
-    if (!hazard) {
-      for (const cl of clausesOf(s)) {
-        if (NEGATED.test(cl) || !SLIP.test(cl) || SLIP_PAST.test(cl)) continue;
-        if (pushLanded && STUMBLE_FROM_PUSH.test(cl)) continue;
-        add('slipNoHazard', 'the block lists no terrain accident: nobody slips, stumbles, loses footing or grip, missteps or overextends; explain each miss only with the reason the block gives', s);
-        break;
-      }
+    // 9. A slip of the feet, the balance or the grip that the block does not explain (D-201 enforced; D-211, D-236).
+    for (const cl of clausesOf(s)) {
+      if (!unexplainedSlip(s, cl, causes, oppNames)) continue;
+      add('slipNoHazard', 'the block lists no terrain accident, knockdown or hit that explains it: nobody slips, stumbles, trips or loses footing or grip; explain each miss only with the reason the block gives', s);
+      break;
     }
     // 11. The player's armor when the block gives them none (D-216).
     if (pcUnarmored && /\byour (armor|armour|beskar|plating|breastplate|chest plate|vest)\b/i.test(s) && !NEGATED.test(s)) add('gearNotInBlock', 'the player character wears no armor in this fight: describe none', s);
@@ -343,20 +419,42 @@ export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHea
   return issues;
 }
 
+/** How a narration with issues was settled (the engine log says which). */
+export interface NarrationSettled {
+  narrative: string;
+  how: 'reworded' | 'summary' | 'trimmed';
+}
+export type Recheck = (text: string) => readonly NarrationIssue[];
+
 /**
- * The code-written narration used when a retry still contradicts the block (D-197). Combat: a short summary (D-209,
- * combatSummary), never the engine's sentences. Otherwise: the narration with the offending sentences removed.
+ * The narration with only the outcome list's terms swapped (repairWording), when that alone settles every issue: the
+ * result is checked again and must be clean (D-236). Null otherwise: the caller retries, then falls back.
  */
-export function fallbackNarration(narrative: string, draft: TurnDraft, issues: readonly NarrationIssue[]): string {
-  // Only wording issues (engine terms, slips): the narration is kept with those sentences repaired or dropped (D-211);
-  // everything that got a fact wrong falls back to the summary.
-  const wordingOnly = issues.every((i) => i.kind === 'mechanicalTerms' || i.kind === 'slipNoHazard');
-  if (wordingOnly && issues.length) return repairWording(narrative, issues);
+export function rewordable(narrative: string, issues: readonly NarrationIssue[], recheck: Recheck): string | null {
+  if (!issues.length || !issues.every((i) => i.kind === 'mechanicalTerms')) return null;
+  const reworded = repairWording(narrative);
+  return reworded !== narrative && recheck(reworded).length === 0 ? reworded : null;
+}
+
+/**
+ * A narration that still has issues, settled in code (D-197, D-209, D-236). Wording repair only swaps terms and never
+ * removes a sentence, and its result is checked again; anything the swap cannot make consistent gets the combat summary
+ * (never the engine's sentences). Outside a fight the offending sentences (an invented treatment, a repeated line) are
+ * removed, as before.
+ */
+export function settleNarration(narrative: string, draft: TurnDraft, issues: readonly NarrationIssue[], recheck: Recheck): NarrationSettled {
+  const reworded = rewordable(narrative, issues, recheck);
+  if (reworded !== null) return { narrative: reworded, how: 'reworded' };
   const combatWrong = issues.some((i) => i.kind !== 'healingNotApplied' && !(i.kind === 'woundMisplaced' && !draft.combat));
-  if (draft.combat && combatWrong) return combatSummary(draft.combat).join(' ');
+  if (draft.combat && combatWrong) return { narrative: combatSummary(draft.combat).join(' '), how: 'summary' };
   const bad = new Set(issues.map((i) => i.sentence));
   const kept = sentencesOf(narrative).filter((s) => !bad.has(s));
-  return kept.length ? kept.join(' ') : 'Time passes as the engine recorded.';
+  return { narrative: kept.length ? kept.join(' ') : 'Time passes as the engine recorded.', how: 'trimmed' };
+}
+
+/** settleNarration with the plain re-check (no known wounds, no previous reply). */
+export function fallbackNarration(narrative: string, draft: TurnDraft, issues: readonly NarrationIssue[]): string {
+  return settleNarration(narrative, draft, issues, (text) => checkNarration(text, draft, false)).narrative;
 }
 
 const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`;
@@ -407,21 +505,24 @@ export function combatSummary(c: CombatDraft): string[] {
 }
 
 /**
- * The fallback for wording issues only (D-211): a severity label becomes natural words ("a painful, moderate wound" ->
- * "a painful, deep wound"; "a mortal strike" -> "a deadly strike"), so the wound and its place survive; a sentence with
- * any other engine term or an invented slip is dropped.
+ * Wording repair (D-211, narrowed by D-236): the outcome list's terms are swapped for natural words and nothing else
+ * changes. A severity label keeps its severity ("a painful, moderate wound" -> "a painful, deep wound"; "a mortal
+ * strike" -> "a deadly strike"), so the wound and its place survive. No sentence is ever removed: one that still has an
+ * engine term afterwards is left as it is, and the caller's re-check then falls back to the retry or the summary.
  */
-export function repairWording(narrative: string, issues: readonly NarrationIssue[]): string {
-  const bad = new Set(issues.map((i) => i.sentence));
-  const out: string[] = [];
-  for (const sentence of sentencesOf(narrative)) {
-    if (!bad.has(sentence)) {
-      out.push(sentence);
-      continue;
-    }
-    if (issues.some((i) => i.sentence === sentence && i.kind === 'slipNoHazard')) continue;
-    const fixed = sentence.replace(/\b(minor|moderate|severe|critical|mortal)\b/gi, (w) => SEVERITY_PROSE[w.toLowerCase()] ?? w);
-    if (!mechanicalTerm(fixed)) out.push(fixed);
-  }
-  return out.length ? out.join(' ') : 'The fight goes on as the engine recorded.';
+export function repairWording(narrative: string): string {
+  return sentencesOf(narrative)
+    .map((sentence) => {
+      let fixed = sentence;
+      // Swap the severity word of each label, one label at a time (a sentence may hold several).
+      for (let i = 0; i < 8; i++) {
+        const m = SEVERITY_LABEL.exec(fixed);
+        if (!m) break;
+        const label = m[0].replace(/\b(minor|moderate|severe|critical|mortal)\b/i, (w) => SEVERITY_PROSE[w.toLowerCase()] ?? w);
+        if (label === m[0]) break;
+        fixed = fixed.slice(0, m.index) + label + fixed.slice(m.index + m[0].length);
+      }
+      return fixed;
+    })
+    .join(' ');
 }

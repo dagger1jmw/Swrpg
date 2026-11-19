@@ -68,7 +68,8 @@ describe("the outcome list's terms in prose (D-205 R5 in code; D-211)", () => {
     const issues = checkNarration(text, draft(c), false);
     expect(issues.map((i) => i.kind)).toEqual(['mechanicalTerms']);
     expect(fallbackNarration(text, draft(c), issues)).toBe('A droid seizes the opening, its shot slipping past your guard to burn a painful, deep wound into your left leg.');
-    expect(repairWording('The margin is narrow. You press on.', [{ kind: 'mechanicalTerms', text: '', sentence: 'The margin is narrow.' }])).toBe('You press on.');
+    // D-236: wording repair never removes a sentence; a term it cannot swap is left for the re-check.
+    expect(repairWording('The margin is narrow. You press on.')).toBe('The margin is narrow. You press on.');
   });
 });
 
