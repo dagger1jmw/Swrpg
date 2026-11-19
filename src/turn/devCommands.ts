@@ -25,7 +25,8 @@ import { applyEvents, type AppliedEvent, type RejectedEvent } from '../state/app
 import type { GameState } from '../state/gameState';
 import type { EventSource, Registry } from '../state/types';
 import { combatDraft } from './combatTurn';
-import { PART_TEXT } from '../engine/duel';
+import { currentTarget, PART_TEXT, type DuelState } from '../engine/duel';
+import { HAZARD_TYPES } from '../data/health.config';
 import type { Session } from './pipeline';
 import type { TurnRecord } from './record';
 import { resolveTurn, type TurnDraft } from './resolve';
@@ -37,7 +38,11 @@ export const DEV_HELP: readonly string[] = [
   '/spar <partner level, at <gap>, or canon:<name>> [mode training|controlled|academy]: a sparring session, played out',
   '/wound <location> <severity>: a wound (torso, head, left arm, right leg, left hand ...; minor, moderate, severe, critical, mortal). /heal [all]: wounds and Vitality back (all: lasting injuries too)',
   '/set <skill> <level>, /e <form> <value>, /ci <ability> <value>: stats directly',
-  '/fatigue <physical|mental|force> <value>: a fatigue meter as a fraction of capacity (0 fresh, 1 at capacity)',
+  '/fatigue <physical|mental|force> <value>: a fatigue meter as a fraction of capacity (0 fresh, 1 at capacity, up to 5; the body collapses past 4 in a fight)',
+  '/sever <limb>: a severed limb (left leg, right arm, left hand ...), out of a fight; it becomes a lasting injury with the path’s prosthetic',
+  '/exchanges <n>: in a fight, resolve up to n exchanges with the current stance (stops when the fight ends). /exchanges to <n>: the counter to n with no rolls, then on to the end (to 195 reaches the 200-exchange cap)',
+  '/hazard <fall|fire|explosion|crash|poison|exposure|impact> <1-3> [end]: the narrator’s hazardOccurred as the narrator sends it; with end (in a fight), also its environmentCollapse interruption',
+  '/stakes <serious|lethal|skirmish>: the current fight’s stakes. /archetype <id>: the current opponent’s archetype (named opponents; the captor and fate rules)',
   '/skip <amount> <days|weeks|months|years>: a montage (or time skip) on the routine',
   '/time <time of day, or year BBY|ABY [month] [day] [time]>: the clock forward to then. /place <location>: move there (created when new)',
   '/scenario <text>: the next narration starts exactly in that situation',
@@ -61,6 +66,8 @@ const SEVERITY_W: Readonly<Record<Severity, number>> = { minor: 5, moderate: 15,
 const TIMES_OF_DAY: Readonly<Record<string, number>> = { midnight: 0, dawn: 6 * 3600, morning: 8 * 3600, noon: 12 * 3600, midday: 12 * 3600, afternoon: 15 * 3600, evening: 19 * 3600, dusk: 19 * 3600, night: 22 * 3600 };
 const SPAN_UNIT: Readonly<Record<string, RequestedSpan['unit']>> = { d: 'days', day: 'days', days: 'days', w: 'weeks', week: 'weeks', weeks: 'weeks', m: 'months', mo: 'months', month: 'months', months: 'months', y: 'years', year: 'years', years: 'years' };
 const MAX_DUELISTS = 4;
+/** /fatigue's top value (D-241): past the physical collapse at 4x (D-208). */
+const DEV_FATIGUE_MAX = 5;
 /** /fight weapon words for a minion group (D-215). */
 const WEAPON_ALIASES: Readonly<Record<string, WeaponKind>> = { scattergun: 'scatterGun', scatter: 'scatterGun', slugpistol: 'slugPistol', slug: 'slugPistol', slugrifle: 'slugRifle', pistol: 'blasterPistol', blaster: 'blasterPistol', blasterpistol: 'blasterPistol', rifle: 'blasterRifle', blasterrifle: 'blasterRifle', heavy: 'heavy', melee: 'melee', vibroblade: 'melee', saber: 'lightsaber', lightsaber: 'lightsaber', unarmed: 'unarmed' };
 /**
@@ -381,9 +388,69 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       const meter = METER_ALIASES[(args[0] ?? '').toLowerCase()];
       const v = Number(args[1]);
       if (!meter || !Number.isFinite(v)) return fail('/fatigue <physical|mental|force> <value>');
-      apply([{ type: 'devFatigueSet', meter, fraction: Math.max(0, Math.min(3, v)) }], 'dev');
+      // Up to 5 (D-241); a value out of range is said, not silently clamped (pass 3: "/fatigue 3.9" answered "at 3").
+      const f = Math.max(0, Math.min(DEV_FATIGUE_MAX, v));
+      apply([{ type: 'devFatigueSet', meter, fraction: f }], 'dev');
       if (refused()) return fail(refused()!);
-      return out(true, `${meter === 'p' ? 'physical' : meter === 'm' ? 'mental' : 'Force'} fatigue at ${Math.max(0, Math.min(3, v))}`);
+      return out(true, `${meter === 'p' ? 'physical' : meter === 'm' ? 'mental' : 'Force'} fatigue at ${f}${f !== v ? ` (asked ${v}; the range is 0 to ${DEV_FATIGUE_MAX})` : ''}`);
+    }
+
+    case 'sever': {
+      if (inFight) return fail('not during a fight (the duel owns the wounds)');
+      const part = partFromWords(args.join(' '));
+      if (!part || !/(Arm|Leg|Hand)$/.test(part)) return fail('a limb: left arm, right arm, left hand, right hand, left leg, right leg');
+      apply([{ type: 'healthSynced', vitalityLost: state.health.vitalityLost, addWounds: [{ id: 'dev', part, severity: 'severe', W: SEVERITY_W.severe, stabilized: true, healProgress: 0, day: selectNow(state).day, source: 'dev command', severed: true }], cause: 'dev command' }], 'engine');
+      if (refused()) return fail(refused()!);
+      return out(true, `${PART_TEXT[part] ?? part} severed`);
+    }
+
+    case 'exchanges': {
+      if (!inFight) return fail('no fight in progress');
+      // "/exchanges to 195": the counter to 195 with no rolls, then exchanges to the cap or the end (D-241).
+      const to = args[0]?.toLowerCase() === 'to' ? Number(args[1]) : null;
+      const n = to !== null ? 400 : Number(args[0]);
+      if (to !== null && (!Number.isInteger(to) || to < 0 || to > 399)) return fail('/exchanges to <0-399>');
+      if (!Number.isInteger(n) || n < 1 || n > 400) return fail('/exchanges <1-400>, or /exchanges to <n>');
+      const before = state;
+      apply([{ type: 'devExchanges', count: n, ...(to !== null ? { setTo: to } : {}) }], 'dev');
+      if (refused()) return fail(refused()!);
+      draft = { combat: combatDraft(before, state, false, report), pacingLevel: selectPacingLevel(state) };
+      return out(true, state.combat.active ? `${n} exchanges asked; the fight goes on` : `the fight ended: ${state.combat.last?.outcome ?? '?'} (${state.combat.last?.reason ?? '?'})`);
+    }
+
+    case 'hazard': {
+      const type = (args[0] ?? '').toLowerCase();
+      const sev = Number(args[1]);
+      const end = args[2]?.toLowerCase() === 'end';
+      if (!(HAZARD_TYPES as readonly string[]).includes(type) || ![1, 2, 3].includes(sev)) return fail(`/hazard <${HAZARD_TYPES.join('|')}> <1-3> [end]`);
+      if (end && !inFight) return fail('end needs a fight in progress');
+      // The narrator's events exactly as a reply carries them (source ai), in one batch so an interruption sees its cause (D-196, D-217).
+      const before = state;
+      const events: unknown[] = [{ type: 'hazardOccurred', hazard: type, severityHint: sev, cause: `dev /hazard ${type}` }];
+      if (end) events.push({ type: 'combatEnded', reason: 'interrupted', category: 'environmentCollapse', why: `the ${type} brings the place down` });
+      apply(events, 'ai');
+      if (refused()) return fail(refused()!);
+      if (inFight) draft = { combat: combatDraft(before, state, false, report), pacingLevel: selectPacingLevel(state) };
+      return out(true, `the narrator's ${type} (severity ${sev})${end ? ' ends the fight' : inFight ? ' during the fight (no damage unless it ends it, D-212)' : ' (applied next turn, D-29)'}`);
+    }
+
+    case 'stakes': {
+      if (!inFight) return fail('no fight in progress');
+      const stakes = (args[0] ?? '').toLowerCase();
+      apply([{ type: 'devStakesSet', stakes }], 'dev');
+      if (refused()) return fail(refused()!);
+      return out(true, `stakes ${stakes}`);
+    }
+
+    case 'archetype': {
+      if (!inFight) return fail('no fight in progress');
+      const duel = state.combat.active!.duel as DuelState;
+      const target = currentTarget(duel);
+      const npcId = target ? state.combat.active!.meta[target.id]?.npcId : null;
+      if (!npcId) return fail('the current opponent is a minion: its archetype is its kind’s (target a named opponent)');
+      apply([{ type: 'devNpcArchetypeSet', npcRef: npcId, archetype: args[0] ?? '' }], 'dev');
+      if (refused()) return fail(refused()!);
+      return out(true, `${target!.name}: archetype ${args[0]}`);
     }
 
     case 'skip': {

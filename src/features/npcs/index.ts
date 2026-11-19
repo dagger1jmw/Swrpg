@@ -9,6 +9,7 @@ import type { Wound } from '../../engine/wounds';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent } from '../../state/types';
 import { FORM_IDS } from '../../data/skills';
+import { ARCHETYPE_BY_ID } from '../../data/archetypes';
 import { DEV_REFUSAL, selectIsTestCharacter } from '../character/selectors';
 import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { selectCurrentLocationId } from '../locations/selectors';
@@ -145,6 +146,24 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
      * Engine: generation inputs stored when the NPC first enters a scene or a fight (npc-generation §4). An unknown birth
      * day is fixed from the role's default age (D-151) so the NPC ages from here on.
      */
+    /** Dev only (D-241): /archetype sets an NPC's generation archetype (the captor and fate rules read it at a fight's end). */
+    devNpcArchetypeSet: {
+      schema: z.object({ type: z.literal('devNpcArchetypeSet'), npcRef: z.string(), archetype: z.string().min(1) }),
+      sources: ['dev'],
+      targetField: 'npcRef',
+      refFields: ['npcRef'],
+      refKinds: npcRefKinds,
+      handle: (slice, e, ctx) => {
+        if (!selectIsTestCharacter(ctx.state)) return { reject: DEV_REFUSAL };
+        const id = String(e['npcRef']);
+        const npc = slice.byId[id];
+        if (!npc) return { reject: `unknown npc ${id}` };
+        const archetype = String(e['archetype']);
+        if (!ARCHETYPE_BY_ID.has(archetype)) return { reject: `unknown archetype ${archetype} (${[...ARCHETYPE_BY_ID.keys()].join(', ')})` };
+        const gen = selectNpcGen(ctx.state, id)!;
+        return { slice: update(slice, id, { gen: { ...gen, archetype } }), notes: [`${npc.name}: archetype ${gen.archetype} -> ${archetype} (the fight's fighter keeps its levels and weapon)`] };
+      },
+    },
     npcGenerated: {
       schema: z.object({ type: z.literal('npcGenerated'), npcRef: z.string() }),
       sources: ['engine'],

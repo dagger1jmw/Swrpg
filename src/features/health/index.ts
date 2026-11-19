@@ -106,7 +106,8 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
     },
     /** Dev sandbox (D-180): a fatigue meter at a fraction of its capacity (0 fresh, 1 at capacity). */
     devFatigueSet: {
-      schema: z.object({ type: z.literal('devFatigueSet'), meter: z.enum(['p', 'm', 'f']), fraction: z.number().min(0).max(3) }),
+      // Up to 5x capacity in dev (D-241): past the physical collapse at 4x (D-208).
+      schema: z.object({ type: z.literal('devFatigueSet'), meter: z.enum(['p', 'm', 'f']), fraction: z.number().min(0).max(5) }),
       sources: ['dev'],
       handle: (slice, e, ctx) => {
         if (!selectIsTestCharacter(ctx.state)) return { reject: DEV_REFUSAL };

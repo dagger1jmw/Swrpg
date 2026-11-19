@@ -688,6 +688,44 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         return { slice: { ...slice, active: { ...active, duel: hz.duel } }, emit: syncEmits(ctx.state, before, hz.duel, active.meta), notes, rng: hz.duel.rng };
       },
     },
+    /**
+     * Dev only (D-241): /exchanges n resolves up to n exchanges with the current stance, as Resolve to end would, and
+     * stops early when the fight ends (the 200-exchange cap among the ways, D-208). No narration of its own.
+     */
+    devExchanges: {
+      // setTo: move the exchange counter to that number first, with no rolls (dev: real duels end long before the
+      // 200-exchange cap, so this is the way to test it).
+      schema: z.object({ type: z.literal('devExchanges'), count: z.number().int().min(1).max(400), setTo: z.number().int().min(0).max(399).optional() }),
+      sources: ['dev'],
+      handle: (slice, e, ctx) => {
+        const active = slice.active;
+        if (!active) return { reject: 'no fight in progress' };
+        if (active.session) return { reject: 'not in a sparring session (its bouts have their own budget, D-168)' };
+        const s = ctx.state;
+        const setTo = e['setTo'] as number | undefined;
+        const was = active.duel as DuelState;
+        if (setTo !== undefined && setTo < was.exchange) return { reject: `the fight is already at exchange ${was.exchange}` };
+        const before = { ...was, rng: s.meta.rngState, ...(setTo !== undefined ? { exchange: setTo } : {}) };
+        const ctxD = active.ctx as ActiveFight['ctx'] & { situations: never[] };
+        const r = runPassive({ duel: before, patternUses: active.patternUses, objects: active.objects }, ctxD, selectNow(s).day, 'toEnd', active.objectSizes, forceProfile(s), Number(e['count']));
+        const next = { ...active, patternUses: r.state.patternUses, objects: r.state.objects };
+        const done = r.state.duel.exchange - before.exchange;
+        const settled = settle({ ...slice, active: next }, s, next, before, r.state.duel, r.beat, false, [...r.lines, ...r.notes, ...(setTo !== undefined ? [`dev: exchange counter moved ${was.exchange} -> ${setTo} (no rolls)`] : []), `dev: ${done} exchange${done === 1 ? '' : 's'} resolved (asked ${String(e['count'])})`]);
+        return { slice: settled.slice, emit: settled.emit, notes: settled.notes, rng: settled.rng };
+      },
+    },
+    /** Dev only (D-241): /stakes sets the current fight's stakes (the execution and fate rules read them at the end). */
+    devStakesSet: {
+      schema: z.object({ type: z.literal('devStakesSet'), stakes: z.enum(COMBAT_STAKES) }),
+      sources: ['dev'],
+      handle: (slice, e) => {
+        const active = slice.active;
+        if (!active) return { reject: 'no fight in progress' };
+        const stakes = e['stakes'] as CombatStakes;
+        if (stakes === 'spar' || active.stakes === 'spar') return { reject: 'a spar and a real fight are set up differently: start a new one' };
+        return { slice: { ...slice, active: { ...active, stakes, ctx: { ...active.ctx, dyingRiskStakes: stakes === 'lethal' || stakes === 'serious' } } }, notes: [`stakes: ${active.stakes} -> ${stakes}`] };
+      },
+    },
     /** Dev only (D-180; combat pass 1 issue 21): /fatigue during a fight reaches the player's fighter. */
     devDuelMetersSynced: {
       schema: z.object({ type: z.literal('devDuelMetersSynced') }),
