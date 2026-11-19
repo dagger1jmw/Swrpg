@@ -51,6 +51,12 @@ export const EXERTION_PER_EXCHANGE = 0.08;
  * stalemate, both sides Spent. Sparring sessions keep their own exchange budget (D-168) and are exempt.
  */
 export const FIGHT_SAFETY_CAP = { exchanges: 200 } as const;
+/**
+ * The code-written fallback narration (D-197, capped by D-209): a summary of at most maxLines sentences (counts of
+ * exchanges, hits and wounds, up to maxKeyEvents key events, the steps, the end state), never the engine's sentences.
+ * maxLineChars caps a sentence that lists many wounds.
+ */
+export const NARRATION_FALLBACK = { maxLines: 10, maxKeyEvents: 5, maxLineChars: 300 } as const;
 
 // ---- Precognitive defense, Force insight, shatterpoint (rolls §3, §6) ----
 /**

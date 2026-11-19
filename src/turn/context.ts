@@ -1,7 +1,7 @@
 // Context building (architecture §5, M2): prompt sections + state + recent raw turns + memory +
 // lore + arc, each section held to its token cap (src/ai/context.config.ts), with a per-section
 // report for the debug view. Pure; never mutates state. Replaces the minimal M1 builder (D-74).
-import { CONTEXT_CAPS, JUMP_CAPS, JUMP_REPORT_MAX_EVENTS, JUMP_REPORT_MAX_SKILLS, MAX_RAW_TURNS, SUMMARY_INPUT_CAP_TOKENS, type SectionName } from '../ai/context.config';
+import { CONTEXT_CAPS, JUMP_CAPS, JUMP_REPORT_MAX_EVENTS, JUMP_REPORT_MAX_SKILLS, HISTORY_NARRATIVE_MAX_CHARS, MAX_RAW_TURNS, SUMMARY_INPUT_CAP_TOKENS, type SectionName } from '../ai/context.config';
 import type { MontageReport } from '../state/montageReport';
 import { selectUntoldWorldEvents } from '../features/world/selectors';
 import { PROMPTS } from '../ai/prompts';
@@ -268,7 +268,7 @@ export function historyWindow(
     if (r.input.kind === 'dev') continue;
     const pair: Message[] = [
       { role: 'user', text: `PLAYER: ${describeInput(r.input)}` },
-      { role: 'model', text: r.narrative },
+      { role: 'model', text: clipNarrative(r.narrative) },
     ];
     const cost = pair.reduce((a, m) => a + est(m.text), 0);
     if (used + cost > capTokens) break;
@@ -278,6 +278,13 @@ export function historyWindow(
     fromTurn = turnOf(r, i);
   }
   return { messages: out.flat(), report: { name: 'recentTurns', cap: capTokens, tokens: used, included, dropped: [] }, fromTurn };
+}
+
+/** A turn's narration as the history carries it (D-209): never more than HISTORY_NARRATIVE_MAX_CHARS. */
+export function clipNarrative(text: string): string {
+  if (text.length <= HISTORY_NARRATIVE_MAX_CHARS) return text;
+  const cut = text.lastIndexOf(' ', HISTORY_NARRATIVE_MAX_CHARS);
+  return `${text.slice(0, cut > 0 ? cut : HISTORY_NARRATIVE_MAX_CHARS)} (...)`;
 }
 
 /** Messages only (kept for callers that do not need the report). */

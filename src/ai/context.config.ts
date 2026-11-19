@@ -14,6 +14,13 @@ export const CONTEXT_CAPS: Record<SectionName, number> = {
 /** "The newest 10-15 raw turns that fit" (architecture §5, §7). */
 export const MAX_RAW_TURNS = 15;
 
+/**
+ * One turn's narration in the recent-turns history is clipped to this many characters (D-209): a code-written fallback
+ * is a short summary now, but saves from before D-209 hold the full engine log there (39,541 characters in combat
+ * pass 2), and no single turn should crowd the story out of the prompt.
+ */
+export const HISTORY_NARRATIVE_MAX_CHARS = 2400;
+
 /** Starting characters-per-token ratio before calibration (D-26). */
 export const DEFAULT_CHARS_PER_TOKEN = 4;
 

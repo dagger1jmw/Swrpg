@@ -124,15 +124,17 @@ describe('the narrator block and the fallback (D-197)', () => {
     expect(PROMPTS.combatNarration).toMatch(/ABSOLUTE RULE/);
     expect(PROMPTS.combatNarration).toMatch(/does not punch, slash or parry with a gauntlet/);
   });
-  it('a retry carries the contradictions; the fallback is the outcome list in plain sentences', () => {
+  it('a retry carries the contradictions; the fallback is a short summary in plain sentences (D-209)', () => {
     const d = draft(c);
     const issues = checkNarration('You carve through the first battle droid and sever the arm of the second.', d, false);
     expect(issues.length).toBeGreaterThan(0);
     expect(resolvedBlock(d, issues.map((i) => i.text))).toMatch(/CORRECTION: your last narration of this turn contradicted RESOLVED/);
     const fb = fallbackNarration('x', d, issues);
-    expect(fb).toMatch(/Kael Voss strikes at B1 battle droid 1: no hit/);
-    expect(fb).toMatch(/a hit \(B1 battle droid 2, left arm, moderate wound\)/);
-    expect(fb).toMatch(/Not reached: Force push/);
+    expect(fb).toMatch(/2 exchanges of fighting: Kael Voss lands 1 hit \(1 wounding\) and takes 0 hits/);
+    expect(fb).toMatch(/Kael Voss hits B1 battle droid 2: moderate wound to the left arm\./);
+    expect(fb).toMatch(/1 strike or attempt did not land/);
+    expect(fb).toMatch(/Not reached: Force push \(past the sequence cap of 3\)/);
+    expect(fb).not.toMatch(/NO HIT|HIT \(|#\d|margin/);
     expect(checkNarration(fb, d, false)).toEqual([]);
   });
   it('a montage is told the care that was applied, or none', () => {

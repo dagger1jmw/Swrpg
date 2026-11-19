@@ -7,7 +7,9 @@
 // carved through that was not hit and still stands; (4) a step marked NOT REACHED described as done (by the ability);
 // (5) bacta or Force healing with no such care applied; (6) a wounding hit left out; (7) a wound placed on a body
 // location the block does not have for that fighter.
-import { combatFacts, type CombatFacts } from './combatFacts';
+import { NARRATION_FALLBACK } from '../data/combat.config';
+import { partText } from '../engine/duel';
+import { combatFacts, type CombatFacts, type HitFact } from './combatFacts';
 import type { CombatDraft } from './combatTurn';
 import { careApplied } from './context';
 import type { TurnDraft } from './resolve';
@@ -230,30 +232,60 @@ export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHea
 }
 
 /**
- * The code-written narration used when a retry still contradicts the block (D-197). Combat: the outcome list in plain
- * sentences. Otherwise: the narration with the offending sentences removed.
+ * The code-written narration used when a retry still contradicts the block (D-197). Combat: a short summary (D-209,
+ * combatSummary), never the engine's sentences. Otherwise: the narration with the offending sentences removed.
  */
 export function fallbackNarration(narrative: string, draft: TurnDraft, issues: readonly NarrationIssue[]): string {
   const combatWrong = issues.some((i) => i.kind !== 'healingNotApplied' && !(i.kind === 'woundMisplaced' && !draft.combat));
-  if (draft.combat && combatWrong) {
-    const facts = combatFacts(draft.combat);
-    const plain = facts.lines.map((l) =>
-      l
-        .replace(/^#\d+(?: \(surprise\))?(?: \(sequence step \d+\))?(?: \(while .+? only defends\))?\s*/, '')
-        .replace(/ Explain the failure only with this reason; nothing else in the scene blocked it\./, '')
-        .replace(/: DONE\. /, ': ')
-        .replace(/: DONE \(/, ' (')
-        .replace(/NO HIT/g, 'no hit')
-        .replace(/HIT \(/g, 'a hit (')
-        .replace(/FAILED/g, 'it fails')
-        .replace(/SEVERED/g, 'severed'),
-    );
-    const missed = facts.steps.filter((s) => s.status === 'NOT REACHED').map((s) => `${s.label} (${s.detail})`);
-    if (missed.length) plain.push(`Not reached: ${missed.join('; ')}.`);
-    if (draft.combat.ended) plain.push(`The fight is over: ${draft.combat.ended.outcome}.`);
-    return plain.join(' ');
-  }
+  if (draft.combat && combatWrong) return combatSummary(draft.combat).join(' ');
   const bad = new Set(issues.map((i) => i.sentence));
   const kept = sentencesOf(narrative).filter((s) => !bad.has(s));
   return kept.length ? kept.join(' ') : 'Time passes as the engine recorded.';
+}
+
+const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`;
+const clipLine = (line: string): string => (line.length <= NARRATION_FALLBACK.maxLineChars ? line : `${line.slice(0, line.lastIndexOf(' ', NARRATION_FALLBACK.maxLineChars - 5))} ...`);
+const woundWords = (h: HitFact): string => (h.severed ? `the ${partText(h.part)} severed` : h.severity ? `${h.severity} wound to the ${partText(h.part)}` : `a graze on the ${partText(h.part)}`);
+const SEVERITY_RANK: Readonly<Record<string, number>> = { minor: 1, moderate: 2, severe: 3, critical: 4, mortal: 5 };
+
+/**
+ * The fallback's summary of a combat passage (D-209): at most NARRATION_FALLBACK.maxLines plain sentences: the count of
+ * exchanges, hits and wounds each way, the key events (severed limbs, then the worst wounds, in exchange order), the
+ * other wounds by location, the steps, and the end state. It stays short for a 300-exchange Resolve to end and never
+ * contradicts the block (every wound's location is named).
+ */
+export function combatSummary(c: CombatDraft): string[] {
+  const facts = combatFacts(c);
+  const pc = c.fighters.find((f) => f.id === 'pc')?.name ?? 'You';
+  const lines: string[] = [];
+  const force = c.narrate.filter((r) => r.kind === 'force').length;
+  const by = facts.hits.filter((h) => h.byPlayer);
+  const on = facts.hits.filter((h) => !h.byPlayer);
+  const wounding = (hs: HitFact[]): number => hs.filter((h) => h.severity || h.severed).length;
+  lines.push(`${plural(c.narrate.length, 'exchange')} of fighting${force ? ` (${plural(force, 'use')} of the Force)` : ''}: ${pc} lands ${plural(by.length, 'hit')} (${wounding(by)} wounding) and takes ${plural(on.length, 'hit')} (${wounding(on)} wounding).`);
+  // Key events: severed limbs first, then the worst wounds, told in exchange order.
+  const ranked = [...facts.hits].filter((h) => h.severity || h.severed).sort((a, b) => Number(b.severed) - Number(a.severed) || (SEVERITY_RANK[b.severity ?? ''] ?? 0) - (SEVERITY_RANK[a.severity ?? ''] ?? 0) || a.n - b.n);
+  const key = ranked.slice(0, NARRATION_FALLBACK.maxKeyEvents).sort((a, b) => a.n - b.n);
+  const strikerOf = (h: HitFact): string => (h.byPlayer ? pc : (c.fighters.find((f) => f.id === c.narrate.find((r) => r.n === h.n)?.targetId)?.name ?? 'The opponent'));
+  for (const h of key) lines.push(`${strikerOf(h)} hits ${h.targetName}: ${woundWords(h)}.`);
+  // The other wounds by fighter and location, so none is left out (the check's woundOmitted rule).
+  const rest = ranked.slice(NARRATION_FALLBACK.maxKeyEvents);
+  if (rest.length) {
+    const byTarget = new Map<string, string[]>();
+    for (const h of rest.sort((a, b) => a.n - b.n)) byTarget.set(h.targetName, [...(byTarget.get(h.targetName) ?? []), woundWords(h)]);
+    lines.push(clipLine(`Other wounds: ${[...byTarget].map(([t, w]) => `${t}, ${w.join(', ')}`).join('; ')}.`));
+  }
+  const missed = facts.didNotHappen.filter((d) => !d.startsWith('step ')).length;
+  if (missed) lines.push(`${plural(missed, 'strike or attempt', 'strikes and attempts')} did not land.`);
+  const steps = facts.steps;
+  const done = steps.filter((st) => st.status !== 'NOT REACHED').map((st) => `${st.label} ${st.status === 'DONE' ? 'done' : 'failed'}`);
+  if (done.length) lines.push(clipLine(`Steps: ${done.join('; ')}.`));
+  const notReached = steps.filter((st) => st.status === 'NOT REACHED').map((st) => `${st.label} (${st.detail})`);
+  if (notReached.length) lines.push(clipLine(`Not reached: ${notReached.join('; ')}.`));
+  const standing = c.fighters.filter((f) => f.id !== 'pc' && !f.out && !f.engagedElsewhere).length;
+  if (c.ended) lines.push(`The fight is over: ${c.ended.outcome}${c.ended.playerFate ? `; the opponent's choice: ${c.ended.playerFate}` : ''}.`);
+  else lines.push(`The fight goes on: ${plural(standing, 'opponent')} still standing.`);
+  // The end state always survives the cap.
+  if (lines.length > NARRATION_FALLBACK.maxLines) return [...lines.slice(0, NARRATION_FALLBACK.maxLines - 1), lines[lines.length - 1]!];
+  return lines;
 }
