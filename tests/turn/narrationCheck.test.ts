@@ -50,14 +50,15 @@ describe('contradictions from combat pass 1 (D-197)', () => {
     const narrate = [rec({ n: 2, kind: 'strike', striker: 'A', targetId: 'n1', margin: 5, hit: hit('A', 'rightArm', null) }), rec({ n: 3, targetId: 'n1', advAfter: 5, margin: 28 })];
     const d = draft(combat({ fighters: [PC, DUELIST], narrate, notes: ['step 1 stance (aggressive): DONE (aggressive stance set)', 'step 2 strike: DONE (hits Duelist 1: no wound, stamina only)', 'step 3 strike: DONE (gains ground; no hit)', 'step 4 Force push: NOT REACHED (past the sequence cap of 3)'] }));
     const bad = 'You press the advantage, driving forward with two quick, calculated cuts that catch your opponent off guard, forcing him to parry hastily as a shallow graze marks his shoulder. Seizing the opening from his stumble, you sweep your hand forward and release a sudden surge of kinetic Force energy, shoving him heavily back across the clearing.';
-    expect(kinds(bad, d)).toEqual(['stepNotReached']);
+    // "his stumble" with no terrain accident is an invented slip too (D-211).
+    expect(kinds(bad, d)).toEqual(['slipNoHazard', 'stepNotReached']);
     const good = "You lunge forward, aiming to drive your lightsaber straight through his guard, and a glancing cut skims his shoulder. The sudden counter-pressure cuts your momentum short before you can gather your focus to unleash a follow-up push through the Force, leaving you locked in the relentless melee.";
     expect(kinds(good, d)).toEqual([]);
   });
   it('issue 2: a wounding hit left out ("your strike is deftly turned aside") is caught as a missing wound', () => {
     const d = draft(combat({ fighters: [PC, DUELIST], beat: 'woundingHit', narrate: [rec({ n: 21, kind: 'strike', striker: 'A', targetId: 'n1', margin: 3 }), rec({ n: 22, kind: 'strike', striker: 'A', targetId: 'n1', margin: 10.9, hit: hit('A', 'rightArm', 'severe') })] }));
     const text = 'You lunge forward to press the opening left by his stumble, but your strike is deftly turned aside at the last instant as he recovers his footing.';
-    expect(kinds(text, d)).toEqual(['woundOmitted']);
+    expect(kinds(text, d)).toEqual(['slipNoHazard', 'woundOmitted']);
     expect(kinds('He turns your first lunge aside, but the second finds him: your blade sears across his right arm, a deep and ugly wound.', d)).toEqual([]);
   });
   it('issue 11: bacta and Force healing with no care applied; real care passes', () => {
@@ -77,7 +78,9 @@ describe('contradictions from combat pass 1 (D-197)', () => {
   });
   it('severing is fine when the block has it or a limb was lost before', () => {
     const d = draft(combat({ fighters: [PC, DUELIST], narrate: [rec({ n: 27, kind: 'strike', striker: 'A', targetId: 'n1', margin: 22, hit: hit('A', 'rightLeg', 'severe', true) })] }));
-    expect(kinds('In one fluid, decisive motion, you bring your lightsaber around in a sweeping arc, landing a critical strike that severs his right leg at the knee.', d)).toEqual([]);
+    expect(kinds('In one fluid, decisive motion, you bring your lightsaber around in a sweeping arc, landing a terrible strike that severs his right leg at the knee.', d)).toEqual([]);
+    // "a critical strike" is the outcome list's label (D-211).
+    expect(kinds('In one fluid, decisive motion, you bring your lightsaber around in a sweeping arc, landing a critical strike that severs his right leg at the knee.', d)).toEqual(['mechanicalTerms']);
     const after = draft(combat({ fighters: [PC, { ...DUELIST, lostParts: ['rightLeg'] }], narrate: [rec({ n: 30, targetId: 'n1' })] }));
     expect(kinds('He drags himself up on the stump of his leg, blade still raised.', after)).toEqual([]);
   });
@@ -186,11 +189,11 @@ describe('a wound placed on the wrong body location (Jared, after combat pass 1)
   });
   it('in a fight: a named opponent\'s wound on the wrong limb; another fighter\'s body is not yours', () => {
     const c = combat({ fighters: [PC, DUELIST], beat: 'woundingHit', narrate: [rec({ n: 9, kind: 'strike', striker: 'A', targetId: 'n1', margin: 11, hit: hit('A', 'rightArm', 'moderate') })] });
-    expect(kinds('Your blade bites into Duelist 1, leaving a moderate wound across his thigh.', draft(c))).toContain('woundMisplaced');
-    expect(kinds('Your blade bites into Duelist 1, leaving a moderate wound across his right arm.', draft(c))).toEqual([]);
+    expect(kinds('Your blade bites into Duelist 1, leaving a deep wound across his thigh.', draft(c))).toContain('woundMisplaced');
+    expect(kinds('Your blade bites into Duelist 1, leaving a deep wound across his right arm.', draft(c))).toEqual([]);
     // The player has a torso wound from before; the opponent's chest is not the player's.
     const c2 = combat({ fighters: [{ ...PC, woundParts: ['torso'] }, { ...DUELIST, woundParts: ['torso'] }], beat: 'woundingHit', narrate: [rec({ n: 3, kind: 'strike', striker: 'A', targetId: 'n1', margin: 11, hit: hit('A', 'torso', 'moderate') })] });
-    expect(kinds('Ignoring the pain in your chest, you drive your blade into Duelist 1, burning a moderate wound across his chest.', draft(c2))).toEqual([]);
+    expect(kinds('Ignoring the pain in your chest, you drive your blade into Duelist 1, burning a deep wound across his chest.', draft(c2))).toEqual([]);
     expect(kinds('Duelist 1 recoils, and pain flares in your left leg as you press on.', draft(c2), true)).toContain('woundMisplaced');
   });
 });

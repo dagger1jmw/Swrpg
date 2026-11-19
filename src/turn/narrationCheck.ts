@@ -14,7 +14,7 @@ import type { CombatDraft } from './combatTurn';
 import { careApplied } from './context';
 import type { TurnDraft } from './resolve';
 
-export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated';
+export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms';
 export interface NarrationIssue {
   kind: NarrationIssueKind;
   /** The correction for the retry, and the log line. */
@@ -49,7 +49,7 @@ const PLAYER_IS_HIT: readonly RegExp[] = [
 /** Nouns after an ordinal that are not a fighter ("the second strike"). */
 const NOT_A_FIGHTER = 'strike|blow|cut|bolt|shot|time|attempt|exchange|swing|thrust|step|moment|pass|parry|volley|attack|lunge|wave|round|one of|of';
 const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth'];
-const DAMAGE = /\b(carv\w*|cut\w*|slic\w*|cleav\w*|slash\w*|hack\w*|bisect\w*|sever\w*|destroy\w*|shatter\w*|impal\w*|pierc\w*|skewer\w*|fell\w*|drop\w*|kill\w*|slay\w*|finish\w*|dispatch\w*|tak\w+ (?:\w+ )?(?:out|down)|took (?:\w+ )?(?:out|down)|goes down|falls?|collaps\w*|crumpl\w*|toppl\w*|disabl\w*|wound\w*|sear\w*|burn\w*|maim\w*)\b/i;
+const DAMAGE = /\b(carv\w*|cut\w*|slic\w*|cleav\w*|slash\w*|hack\w*|bisect\w*|sever\w*|destroy\w*|shatter\w*|impal\w*|pierc\w*|skewer\w*|fell\w*|drop\w*|kill\w*|slay\w*|finish\w*|dispatch\w*|shear\w*|dismantl\w*|demolish\w*|obliterat\w*|decapitat\w*|wreck\w*|smash\w*|rend\w*|rent|split\w*|(?:tear|tears|tore|rip|rips|ripped) (?:\w+ )?(?:through|apart)|tak\w+ (?:\w+ )?(?:out|down)|took (?:\w+ )?(?:out|down)|goes down|falls?|collaps\w*|crumpl\w*|toppl\w*|disabl\w*|wound\w*|sear\w*|burn\w*|maim\w*)\b/i;
 
 /** How each Force step reads in prose (rule 4). */
 const FORCE_PROSE: Readonly<Record<string, RegExp>> = {
@@ -71,11 +71,52 @@ const FORCE_HEAL = /\bforce[- ](heal\w*|assisted healing)|\bhealing (trance|thro
  */
 const HEALING_NOT_APPLIED_TALK = /\b(no|not|nor|never|without|rather than|instead of|in place of|unlike|only by|only with|absent|absence|need\w*|wish\w*|would|should|could|must|seek\w*|find|look\w* for|ask\w*|request\w*|suggest\w*|recommend\w*|offer\w*|if|until|when you reach|lack\w*|out of|luxury)\b/i;
 
+/** A kill or destruction verb (rule 3b): the strong subset of DAMAGE (not "falls" or "wounds"). */
+const KILL = /\b(shear\w*|carv\w* (?:\w+ ){0,2}through|cut\w* (?:\w+ ){0,2}(?:down|through|apart|in (?:two|half))|slic\w* (?:\w+ ){0,2}(?:through|apart|in (?:two|half))|cleav\w*|bisect\w*|destroy\w*|fell(?:s|ed)?|drop(?:s|ped|ping)? (?:it|him|her|them|the)\b|dismantl\w*|demolish\w*|obliterat\w*|decapitat\w*|behead\w*|(?:tear|tears|tore|tearing|rip|rips|ripped|ripping) (?:\w+ ){0,2}(?:through|apart)|split\w* (?:it|him|her|them|the \w+) (?:in two|apart|open)|wreck\w*|reduc\w* (?:it|them|the \w+) to (?:scrap|slag|pieces)|cut\w* (?:it|him|her|them) down|shatter\w* (?:its|the) (?:chassis|head|torso))/i;
+/** A kill verb as the purpose of a move ("to cut down", "to carve through"): rule 3b skips it. */
+const KILL_AIM = new RegExp(`\\b(?:to|meant to|aiming to|trying to) (?:\\w+ )?(?:${KILL.source})`, 'i');
+/** Plain negation in a clause (rules 3b and 9): "never slips", "without losing footing", "does not stumble". */
+const NEGATED = /\b(no|not|never|nor|without|neither|doesn't|does not|didn't|did not|don't|do not|refus\w*|keep\w* (?:your|his|her|their|its) (?:footing|balance|feet)|regain\w*|steady|steadies|steadied|sure-footed)\b/i;
+/** A slip, stumble, misstep or lost footing (rule 9). */
+const SLIP = /\b(slip\w*|stumbl\w*|trip(?:s|ped|ping)?|misstep\w*|mis-step\w*|overextend\w*|over-extend\w*|los(?:e|es|ing|t) (?:\w+ )?(?:footing|balance|grip)|(?:footing|footwork|balance|grip|feet|foot) (?:\w+ )?(?:falter\w*|slip\w*|giv\w* way|gave way|betray\w*|fail\w*|skid\w*)|(?:falter\w*|unsteady|lose) (?:\w+ )?(?:footing|footwork)|footing faltering|lose your footing)\b/i;
+/** A blade or bolt slipping past a guard, someone slipping away: not a slip of footing. */
+const SLIP_PAST = /\bslip\w* (?:\w+ )?(?:past|through|under|inside|between|beneath|behind|around|away|free|into|out|by)\b|\bslip of (?:focus|concentration|attention|the mind|will)\b/i;
+/** Staggering back from a Push, a thrown object or a knockdown the block lists (rule 9 exemption). */
+const STUMBLE_FROM_PUSH = /\b(stumbl\w*|stagger\w*|reel\w*)\b/i;
+/** The outcome list's wording in prose (rule 10): severity labels, margins, tracks, beats, upper-case labels. */
+const SEVERITY_LABEL = /\b(?:a|an|the|another|one|his|her|its|their|your)\s+(?:[a-z-]+,?\s+){0,2}?(minor|moderate|severe|critical),?\s+(?:[a-z-]+,?\s+)?(wound|strike|blow|hit|cut|graze|injury|burn|gash)s?\b|\bmortal (strike|blow|hit)s?\b/i;
+const ENGINE_TERMS: readonly [RegExp, string][] = [
+  [/\bmargin\b/i, 'margin'],
+  [/\badvantage track\b|\btrack (?:moves|moved|swings|swung|shifts|shifted)\b/i, 'track'],
+  [/\b(?:quiet|narrated|next|this) beat\b/i, 'beat'],
+  [/\bexchange (?:#|no\.? ?)?\d+\b|#\d+\b|\bbuild-?up exchange\b/i, 'exchange'],
+  [/\b(?:DONE|NO HIT|NOT REACHED|FAILED)\b|\bHIT\b/, 'labels'],
+  [/\bstamina only\b|\b(?:the )?roll(?:s|ed)? (?:fell|falls|falling) short\b|\bshort of the difficulty\b|\bDC \d/i, 'engine wording'],
+];
+/** The first outcome-list term in a sentence, or null. */
+export function mechanicalTerm(sentence: string): string | null {
+  const label = SEVERITY_LABEL.exec(sentence);
+  if (label) return label[0].trim();
+  for (const [re] of ENGINE_TERMS) {
+    const m = re.exec(sentence);
+    if (m) return m[0];
+  }
+  return null;
+}
+/** Natural words for a severity label in the fallback (rule 10): the severity is kept, the label is not. */
+const SEVERITY_PROSE: Readonly<Record<string, string>> = { minor: 'light', moderate: 'deep', severe: 'grievous', critical: 'terrible', mortal: 'deadly' };
+
 function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): NarrationIssue[] {
   const out: NarrationIssue[] = [];
   const sentences = sentencesOf(narrative);
   const anyLost = c.fighters.some((f) => f.lostParts.length > 0);
   const playerHitSomeone = facts.hits.some((h) => h.byPlayer);
+  const minions = c.fighters.filter((f) => f.minion && f.id !== 'pc');
+  const minionHitByPlayer = facts.hits.some((h) => h.byPlayer && minions.some((m) => m.id === h.targetId)) || c.narrate.some((r) => r.force?.stoodDown);
+  const minionNouns = [...new Set(minions.flatMap((m) => m.name.toLowerCase().replace(/\s+\d+$/, '').split(/\s+/).slice(-1)))];
+  const minionNounRe = minionNouns.length ? new RegExp(`\\b(${[...minionNouns, 'chassis', 'automaton', 'machine'].join('|')})s?\\b`, 'i') : null;
+  const hazard = c.notes.some((n) => n.startsWith('terrain: '));
+  const pushLanded = c.narrate.some((r) => (r.force?.success && (r.force.kind === 'push' || r.force.kind === 'throw')) || r.maneuver?.kind === 'knockdown');
   const add = (kind: NarrationIssueKind, text: string, sentence: string): void => {
     if (!out.some((x) => x.kind === kind && x.sentence === sentence)) out.push({ kind, text, sentence });
   };
@@ -102,6 +143,25 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
         if (named && DAMAGE.test(cl)) add('minionNotHit', `${o.name} was NOT hit and is still fighting: do not describe it cut, carved through, wounded or brought down`, s);
       }
     }
+    // 3b. A minion cut down when the player hit no minion at all (D-211): "you ... the nearest war droid ... shearing
+    // cleanly through its metallic chassis". Unnamed ("the nearest droid", "its chassis"), so read by the minion nouns.
+    if (!minionHitByPlayer && minionNouns.length && /\b(you|your)\b/i.test(s) && minionNounRe!.test(s)) {
+      // "to cut down the nearest droid" is the aim of a move, not its result.
+      const killClause = clausesOf(s).find((cl) => KILL.test(cl) && !KILL_AIM.test(cl) && !NOT_AN_EVENT.test(cl) && !NEGATED.test(cl));
+      if (killClause) add('minionNotHit', 'you hit no minion in this passage: no droid, trooper or other minion is cut down, carved through or destroyed', s);
+    }
+    // 9. Slips, stumbles and lost footing with no terrain accident in the block (D-201 enforced, D-211).
+    if (!hazard) {
+      for (const cl of clausesOf(s)) {
+        if (NEGATED.test(cl) || !SLIP.test(cl) || SLIP_PAST.test(cl)) continue;
+        if (pushLanded && STUMBLE_FROM_PUSH.test(cl)) continue;
+        add('slipNoHazard', 'the block lists no terrain accident: nobody slips, stumbles, loses footing or grip, missteps or overextends; explain each miss only with the reason the block gives', s);
+        break;
+      }
+    }
+    // 10. Engine and outcome-list terms in the prose (D-205 R5, enforced D-211).
+    const term = mechanicalTerm(s);
+    if (term) add('mechanicalTerms', `"${term}" is the outcome list's wording, not prose: show the wound and the moment instead (a deep cut, a grievous wound), never margins, tracks, beats or labels`, s);
     // 4. A step NOT REACHED described as done (whole-sentence negation).
     if (!NOT_DONE.test(s)) {
       for (const st of facts.steps) {
@@ -274,6 +334,10 @@ export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHea
  * combatSummary), never the engine's sentences. Otherwise: the narration with the offending sentences removed.
  */
 export function fallbackNarration(narrative: string, draft: TurnDraft, issues: readonly NarrationIssue[]): string {
+  // Only wording issues (engine terms, slips): the narration is kept with those sentences repaired or dropped (D-211);
+  // everything that got a fact wrong falls back to the summary.
+  const wordingOnly = issues.every((i) => i.kind === 'mechanicalTerms' || i.kind === 'slipNoHazard');
+  if (wordingOnly && issues.length) return repairWording(narrative, issues);
   const combatWrong = issues.some((i) => i.kind !== 'healingNotApplied' && !(i.kind === 'woundMisplaced' && !draft.combat));
   if (draft.combat && combatWrong) return combatSummary(draft.combat).join(' ');
   const bad = new Set(issues.map((i) => i.sentence));
@@ -326,4 +390,24 @@ export function combatSummary(c: CombatDraft): string[] {
   // The end state always survives the cap.
   if (lines.length > NARRATION_FALLBACK.maxLines) return [...lines.slice(0, NARRATION_FALLBACK.maxLines - 1), lines[lines.length - 1]!];
   return lines;
+}
+
+/**
+ * The fallback for wording issues only (D-211): a severity label becomes natural words ("a painful, moderate wound" ->
+ * "a painful, deep wound"; "a mortal strike" -> "a deadly strike"), so the wound and its place survive; a sentence with
+ * any other engine term or an invented slip is dropped.
+ */
+export function repairWording(narrative: string, issues: readonly NarrationIssue[]): string {
+  const bad = new Set(issues.map((i) => i.sentence));
+  const out: string[] = [];
+  for (const sentence of sentencesOf(narrative)) {
+    if (!bad.has(sentence)) {
+      out.push(sentence);
+      continue;
+    }
+    if (issues.some((i) => i.sentence === sentence && i.kind === 'slipNoHazard')) continue;
+    const fixed = sentence.replace(/\b(minor|moderate|severe|critical|mortal)\b/gi, (w) => SEVERITY_PROSE[w.toLowerCase()] ?? w);
+    if (!mechanicalTerm(fixed)) out.push(fixed);
+  }
+  return out.length ? out.join(' ') : 'The fight goes on as the engine recorded.';
 }
