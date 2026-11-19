@@ -6,15 +6,17 @@
 // when the player hit nobody, or the player being hit when nobody hit the player; (3) a named minion cut down or
 // carved through that was not hit and still stands; (4) a step marked NOT REACHED described as done (by the ability);
 // (5) bacta or Force healing with no such care applied; (6) a wounding hit left out; (7) a wound placed on a body
-// location the block does not have for that fighter.
+// location the block does not have for that fighter. Rules 8 to 12: D-210, D-211, D-216, D-236. Rules 13 to 17 (D-237):
+// a shot or a failed Force step told as done, ground given to the wrong side, "the last one" while several stand, a
+// weapon nobody carries, and a fighter who stands on a leg that is gone or uses an arm that is gone.
 import { NARRATION_FALLBACK } from '../data/combat.config';
 import { partText } from '../engine/duel';
-import { combatFacts, type CombatFacts, type HitFact } from './combatFacts';
+import { combatFacts, playerShotNotReached, type CombatFacts, type HitFact } from './combatFacts';
 import type { CombatDraft } from './combatTurn';
 import { careApplied } from './context';
 import type { TurnDraft } from './resolve';
 
-export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms' | 'gearNotInBlock';
+export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms' | 'gearNotInBlock' | 'stepFailed' | 'groundReversed' | 'survivorCount' | 'lastingState';
 export interface NarrationIssue {
   kind: NarrationIssueKind;
   /** The correction for the retry, and the log line. */
@@ -187,6 +189,24 @@ const NUMBER_WORDS: Readonly<Record<string, number>> = { two: 2, both: 2, three:
 /** Natural words for a severity label in the fallback (rule 10): the severity is kept, the label is not. */
 const SEVERITY_PROSE: Readonly<Record<string, string>> = { minor: 'light', moderate: 'deep', severe: 'grievous', critical: 'terrible', mortal: 'deadly' };
 
+/** The player character firing a ranged weapon (rule 13): a shot taken, or "your bolt" in the air. */
+const PLAYER_FIRES = /\byou\b[^.]{0,120}?\b(?:fire back|return fire|open fire|fire (?:a|an|off|two|three|twice|again|at|toward|towards|into|from|blindly|wildly|once)|shoot|shoots|shooting|squeez\w+ (?:off|the trigger)|snap\w* off (?:a|an|two)|pull\w* the trigger|loos\w+ (?:a|an|two) (?:shot|bolt)s?)\b|\byour (?:\w+ )?(?:bolt|shot|blast)s?\b/i;
+/** What a Force action looks like when it worked (rule 14): only the visible effect, never the attempt. */
+const FORCE_EFFECT: Readonly<Record<string, RegExp>> = {
+  push: /\b(?:hurl\w*|throw\w*|send\w*|sent|slam\w*|knock\w*|fling\w*|flung|toss\w*|blast\w*|shov\w*|driv\w+)\b[^.]{0,50}?\b(?:back(?:ward|wards)?|off (?:his|her|its|their) feet|flying|sprawling|crashing|tumbling|reeling|to the (?:ground|floor|deck)|into the|across the)\b/i,
+  choke: /\b(?:gasp\w*|chok\w+ (?:for|on)|claw\w* at (?:his|her|its|their) (?:throat|neck)|lift\w* (?:him|her|it|them) off|(?:throat|windpipe) (?:clos\w+|constrict\w*|crush\w*)|struggl\w+ (?:for|to) breath\w*)\b/i,
+  lightning: /\b(?:lightning|bolts?|arcs?)\b[^.]{0,70}?\b(?:strik\w+|struck|slam\w*|lash\w*|sear\w*|burn\w*|scorch\w*|engulf\w*|wrack\w*|convuls\w*|crackl\w+ (?:over|across|through))\b[^.]{0,40}?\b(?:him|her|it|them|his|its|their|the \w+'s)\b/i,
+  throw: /\b(?:rock|stone|boulder|log|branch|crate|debris|chunk|timber|machinery|slab|rubble)\b[^.]{0,60}?\b(?:slam\w*|crash\w*|smash\w*|strik\w+|struck|hit|hits|catch\w*|crush\w*)\b[^.]{0,30}?\b(?:him|her|it|them|into|against)\b/i,
+  recall: /\b(?:saber|lightsaber|hilt|weapon|blade)\b[^.]{0,60}?\b(?:leap\w*|flies|fly|flew|snap\w*|return\w*|slap\w*|smack\w*|spin\w*|land\w*)\b[^.]{0,20}?\b(?:in|into|to) your (?:\w+ )?(?:hand|palm|grip|grasp)\b/i,
+  saberThrow: /\b(?:saber|lightsaber|hilt|weapon|blade)\b[^.]{0,60}?\b(?:loop\w*|return\w*|arc\w*|spin\w*|snap\w*|fl(?:ies|y|ew))\b[^.]{0,20}?\bback (?:in|into|to) your (?:\w+ )?(?:hand|palm|grip|grasp)\b/i,
+};
+/** A weapon named in prose that nobody in the fight carries (rule 16b): only the unmistakable ones. */
+const WEAPON_WORDS: readonly [RegExp, readonly string[], string][] = [
+  [/\bscatter ?guns?\b/i, ['scatterGun'], 'a scatter gun'],
+  [/\bslugthrowers?\b/i, ['slugPistol', 'slugRifle'], 'a slugthrower'],
+];
+const SURVIVOR_NOUNS = ['opponent', 'foe', 'enemy', 'attacker', 'soldier', 'survivor', 'fighter', 'automaton', 'machine', 'figure'];
+
 function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): NarrationIssue[] {
   const out: NarrationIssue[] = [];
   const sentences = sentencesOf(narrative);
@@ -203,6 +223,27 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
   const pcUnarmored = pcView?.armor !== undefined && pcView.armor === 'none';
   const strikesMade = facts.steps.filter((st) => /^strike/.test(st.label) && st.status !== 'NOT REACHED').length;
   const strikesNotReached = facts.steps.some((st) => /^strike/.test(st.label) && st.status === 'NOT REACHED');
+  // Rules 13 to 16 (D-237).
+  const pcName = c.fighters[0]?.name ?? 'the player character';
+  const noShot = playerShotNotReached(c);
+  const forceUses = c.narrate.filter((r) => r.kind === 'force' && r.force && r.force.side === 'A').map((r) => r.force!);
+  // A failed kind with no success of its own in the passage. The saber back in hand is one picture for a throw and a
+  // recall, so either one succeeding excuses it for both.
+  const saberBack = forceUses.some((f) => f.success && (f.kind === 'recall' || f.kind === 'saberThrow'));
+  const failedForce = [...new Set(forceUses.filter((f) => !f.success).map((f) => f.kind as string))].filter((k) => !forceUses.some((f) => f.success && f.kind === k) && !(saberBack && (k === 'recall' || k === 'saberThrow')));
+  const playerGained = c.narrate.some((r) => r.advAfter > r.advBefore || r.maneuver?.by === 'A') || playerHitSomeone || forceUses.some((f) => f.success);
+  const oppAlt = [...oppWords, 'opponent', 'foe', 'enemy', 'adversary'].join('|');
+  const oppGivesGround = new RegExp(
+    String.raw`\b(?:he|she|it|they|${oppAlt})\b[^,;.]{0,50}?\b(?:gives?|giving|gave|yields?|yielding|cedes?|ceding) (?:\w+ )?(?:ground|an inch|a step)\b` +
+      // "you drive him back", never "to drive him back" (an aim) or "driving you back" (you are the one driven).
+      String.raw`|\byou\b[^,;.]{0,50}?(?<!\bto )\b(?:driv\w+|drove|forc\w+|push\w*|press\w*|shov\w*|back\w*) (?:him|her|it|them|the (?:${oppAlt})|${oppAlt})(?: \w+)? back\b` +
+      String.raw`|(?<!\b(?:driv\w+|drove|forc\w+|push\w+|press\w+|shov\w+|pin\w*|keep\w*|hold\w*) )\byou (?:\w+ ){0,3}?(?<!\bto )(?:claim\w*|gain\w*|seiz\w+|win|wins|winning|won) (?:\w+ )?ground\b`,
+    'i',
+  );
+  const standing = c.fighters.filter((f) => f.id !== 'pc' && !f.out && !f.engagedElsewhere);
+  const survivorNouns = [...new Set([...oppWords, ...SURVIVOR_NOUNS])].join('|');
+  const survivor = new RegExp(String.raw`\bthe (?:sole |lone |one |single )?(?:surviving|last|final|only|remaining|lone|sole) (?:\w+ )?(?:${survivorNouns})\b(?!s)|\bthe only one (?:left|standing|remaining)\b|\bthe last (?:one|of them)\b|\bthe (?:lone|sole) survivor\b`, 'i');
+  const carried = new Set(c.fighters.map((f) => f.weapon));
   const add = (kind: NarrationIssueKind, text: string, sentence: string): void => {
     if (!out.some((x) => x.kind === kind && x.sentence === sentence)) out.push({ kind, text, sentence });
   };
@@ -248,6 +289,28 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
     if (strikesNotReached) {
       const m = COUNTED_STRIKES.exec(s);
       if (m && (NUMBER_WORDS[m[1]!.toLowerCase()] ?? 0) > strikesMade && !NOT_DONE.test(s)) add('stepNotReached', `the player character made ${strikesMade} strike${strikesMade === 1 ? '' : 's'} here and the rest were NOT REACHED: describe ${strikesMade === 1 ? 'one' : strikesMade}, not ${m[1]}`, s);
+    }
+    // 13. A shot the player character never took (D-237): the strike step was NOT REACHED and nothing was fired.
+    if (noShot && !NOT_DONE.test(s) && PLAYER_FIRES.test(s)) add('stepNotReached', `${pcName}'s strike was NOT REACHED: no shot was fired in this passage, so describe none (no bolt of theirs flies, hits or misses)`, s);
+    // 14. A Force action that FAILED told with its effect (D-237): the push that throws him back, the saber back in hand.
+    for (const kind of failedForce) {
+      const effect = FORCE_EFFECT[kind];
+      if (!effect) continue;
+      // The saber's flight spans clauses ("leaps from the floor, spinning into your palm"): read by the sentence.
+      const ownSaber = kind === 'recall' || kind === 'saberThrow';
+      const clean = (x: string): boolean => effect.test(x) && !NOT_AN_EVENT.test(x) && !NOT_DONE.test(x) && !NEGATED.test(x);
+      const shown = ownSaber ? clean(s) : clausesOf(s).some(clean);
+      // A push's effect needs the push in the same sentence: a body driven back by a blade is not a Force push.
+      const sameAction = ownSaber || (FORCE_PROSE[kind]?.test(s) ?? false);
+      if (shown && sameAction) add('stepFailed', `the ${FORCE_NAME[kind] ?? (kind === 'recall' ? 'saber recall' : kind)} FAILED in this passage: it had no effect, so describe none`, s);
+    }
+    // 15. Ground given to the wrong side (D-237; pass 3: "Kade smoothly gives ground" when Kade gained it).
+    if (!playerGained && clausesOf(s).some((x) => oppGivesGround.test(x) && !NOT_AN_EVENT.test(x) && !NEGATED.test(x))) add('groundReversed', `${pcName} gained no ground in this passage (the track never moved their way): the opponent does not give ground, yield or get driven back`, s);
+    // 16. "The surviving X", "the last X", "the only one left" while more than one opponent stands (D-237).
+    if (standing.length > 1 && survivor.test(s) && !NEGATED.test(s)) add('survivorCount', `${standing.length} opponents are still standing (${standing.map((f) => f.name).join(', ')}): nobody is "the last", "the surviving" or "the only one left"`, s);
+    // 16b. A weapon nobody in this fight carries (D-237; pass 3: a scatter gun from the fight before).
+    for (const [re, weaponKinds, word] of WEAPON_WORDS) {
+      if (re.test(s) && !weaponKinds.some((k) => carried.has(k)) && !NEGATED.test(s)) add('gearNotInBlock', `nobody in this fight carries ${word}: only the weapons the block lists`, s);
     }
     // 10. Engine and outcome-list terms in the prose (D-205 R5, enforced D-211).
     const term = mechanicalTerm(s);
@@ -313,6 +376,8 @@ const groupOf = (part: string): string => part.replace(/^(left|right)/, '').toLo
 export interface KnownWounds {
   /** Body parts of every wound the player character had before or after the turn (health and this fight). */
   player: readonly string[];
+  /** Everyone in the scene whose body has lost something (D-237), from the state. In a fight the fighters' views come first. */
+  lasting?: readonly LastingView[];
 }
 
 function misplacedIssues(narrative: string, draft: TurnDraft, known: KnownWounds): NarrationIssue[] {
@@ -356,6 +421,105 @@ function misplacedIssues(narrative: string, draft: TurnDraft, known: KnownWounds
     }
   }
   return out;
+}
+
+/** A fighter whose body has lost something (D-237): from the fight's views or the state (context.lastingStates). */
+export interface LastingView {
+  name: string;
+  pc: boolean;
+  cannotStand: boolean;
+  missing: readonly string[];
+}
+
+/** Getting up, in words that can only be about a third person ("pull himself up", "to his feet", "help him up"). */
+const STAND_REFLEXIVE_3 = /\b(?:(?:pull|haul|push|lever|lift|climb|clamber|scrambl|stagger|get|rise|rais)\w* (?:(?:himself|herself|itself|themselves) )?(?:(?:back )?(?:up|upright)\b|(?:back )?(?:to|onto) (?:his|her|its|their) feet)|(?:back )?(?:on|onto|to) (?:his|her|its|their) feet|(?:help|haul|pull|lift)\w* (?:him|her|it|them) (?:up|upright|to (?:his|her|its|their) feet))\b/i;
+const STAND_REFLEXIVE_2 = /\b(?:(?:pull|haul|push|lever|lift|climb|clamber|scrambl|stagger|get|rise)\w* (?:yourself )?(?:back )?(?:to|onto) your feet|(?:pull|haul|push|lever) yourself (?:up|upright)|(?:back )?(?:on|onto|to) your feet)\b/i;
+/** Standing or moving on legs, whoever does it: read with the clause's subject. */
+const STAND_PLAIN = /\b(?:stands? up|stands? tall|stands? again|rises?|rising|walks?|walking|strides?|striding|runs?|running|sprints?|sprinting|paces?|pacing|steps? (?:forward|back|toward|towards|away|aside|in|out|closer)|leaps?|leaping|kicks?|kicking|charges?|charging|lunges?|lunging)\b/i;
+/** A failed or impossible attempt, or the injury itself: not standing. */
+const NOT_STANDING = /\b(?:tr(?:y|ies|ying|ied)|attempt\w*|fail\w*|cannot|can't|unable|struggl\w*|collaps\w*|crumpl\w*|never|not|no|without|would|could|if|stump|sever\w*|missing|gone|lost|drag\w*|crawl\w*)\b/i;
+const MISSING_TALK = /\b(?:stump|sever\w*|missing|gone|lost|ruin\w*|cauteri\w*|where|empty|remain\w*|used to|once)\b/i;
+const THIRD_ANY = /\b(?:he|she|it|they|his|her|its|their|him|them|himself|herself|itself|themselves)\b/i;
+/** A capitalized word after the first: the sentence names someone or somewhere else. */
+const namesSomeoneElse = (sentence: string): boolean => /\b(?!I\b)[A-Z][a-z]{2,}\b/.test(sentence.replace(/^\W*\w+/, ''));
+
+/**
+ * Rule 17 (D-237; pass 3: a duelist with a severed arm and leg "taking your hand to pull himself up"): a fighter who
+ * cannot stand does not stand up, walk, kick or get helped to their feet, and a missing arm or hand is not used. Who a
+ * sentence is about: the one fighter named in it, or, for a sentence with only pronouns, the one named just before.
+ */
+export function lastingIssues(narrative: string, list: readonly LastingView[]): NarrationIssue[] {
+  const out: NarrationIssue[] = [];
+  if (!list.length) return out;
+  const named = list
+    .filter((l) => !l.pc)
+    .map((l) => ({ l, words: l.name.split(/[^A-Za-z']+/).filter((w) => w.length >= 4) }))
+    .filter((n) => n.words.length)
+    .map((n) => ({ l: n.l, re: new RegExp(`\\b(${n.words.join('|')})\\b`, 'i') }));
+  const pc = list.find((l) => l.pc) ?? null;
+  const lacks = (l: LastingView, side: string, limb: string): boolean => l.missing.some((p) => p.toLowerCase() === `${side}${limb}`);
+  const upper = (l: LastingView): boolean => l.missing.some((p) => /Arm$|Hand$/.test(p));
+  const flag = (l: LastingView, what: string, s: string): void => {
+    if (!out.some((x) => x.sentence === s)) out.push({ kind: 'lastingState', text: `${l.name} ${what}`, sentence: s });
+  };
+  let referent: (typeof named)[number] | null = null;
+  for (const s of sentencesOf(narrative)) {
+    const here = named.filter((n) => n.re.test(s));
+    let third: (typeof named)[number] | null = null;
+    if (here.length === 1) third = referent = here[0]!;
+    else if (here.length > 1) referent = null;
+    else if (namesSomeoneElse(s)) referent = null;
+    else if (THIRD_ANY.test(s)) third = referent;
+    for (const cl of clausesOf(s)) {
+      if (third) {
+        const t = third.l;
+        if (t.cannotStand && !NOT_STANDING.test(cl)) {
+          const plain = STAND_PLAIN.exec(cl);
+          if (STAND_REFLEXIVE_3.test(cl) || (plain && subjectAt(s, cl, plain.index, third.re) === 'opp')) flag(t, 'cannot stand (a leg is gone): they stay down; no standing up, walking, kicking or being helped to their feet', s);
+        }
+        if (upper(t) && !MISSING_TALK.test(cl)) {
+          const m = /\b(?:his|her|its|their) (right|left) (arm|hand|fist|fingers)\b/i.exec(cl);
+          const limb = m && /arm/i.test(m[2]!) ? 'arm' : 'hand';
+          if (m && lacks(t, m[1]!.toLowerCase(), limb)) flag(t, `has no ${m[1]!.toLowerCase()} ${limb}: it is not used, raised or gripped with`, s);
+          const both = /\b(?:both (?:of (?:his|her|its|their) )?(?:hands|arms|fists)|two-handed|with two hands)\b/i.exec(cl);
+          if (both && subjectAt(s, cl, both.index, third.re) === 'opp') flag(t, 'has lost an arm or a hand: nothing is done with both hands', s);
+        }
+      }
+      if (pc) {
+        if (pc.cannotStand && !NOT_STANDING.test(cl)) {
+          const plain = STAND_PLAIN.exec(cl);
+          if (STAND_REFLEXIVE_2.test(cl) || (plain && /\byou\b/i.test(cl) && subjectAt(s, cl, plain.index, null) === 'pc')) flag(pc, 'cannot stand (a leg is gone): no standing up, walking, kicking or getting to their feet', s);
+        }
+        if (upper(pc) && !MISSING_TALK.test(cl)) {
+          const m = /\byour (right|left) (arm|hand|fist|fingers)\b/i.exec(cl);
+          const limb = m && /arm/i.test(m[2]!) ? 'arm' : 'hand';
+          if (m && lacks(pc, m[1]!.toLowerCase(), limb)) flag(pc, `has no ${m[1]!.toLowerCase()} ${limb}: it is not used`, s);
+          if (/\b(?:both (?:of your )?(?:hands|arms|fists)|with two hands)\b/i.test(cl) && /\byour?\b/i.test(cl)) flag(pc, 'has lost an arm or a hand: nothing is done with both hands', s);
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Who has lost what, as the narration must respect it (rule 17). In a fight: each fighter's state at the start of the
+ * passage (a limb severed in this passage is the hit rules' business; the fighter was whole until then). Outside a
+ * fight: the state's list.
+ */
+function lastingViews(c: CombatDraft | null, fromState: readonly LastingView[]): LastingView[] {
+  if (!c) return [...fromState];
+  const facts = combatFacts(c);
+  const out: LastingView[] = [];
+  for (const f of c.fighters) {
+    if (!f.lasting?.missing.length) continue;
+    const now = facts.hits.filter((h) => h.severed && h.targetId === f.id).map((h) => h.part);
+    const justLost = (p: string): boolean => now.some((n) => n === p || (n.endsWith('Arm') && p === n.replace('Arm', 'Hand')));
+    const missing = f.lasting.missing.filter((p) => !justLost(p));
+    if (missing.length) out.push({ name: f.name, pc: f.id === 'pc', cannotStand: missing.some((p) => p.endsWith('Leg')), missing });
+  }
+  const names = new Set(c.fighters.map((f) => f.name));
+  return [...out, ...fromState.filter((l) => !names.has(l.name))];
 }
 
 /** The words of a sentence for the repeat check: lower case letters and digits only. */
@@ -416,6 +580,7 @@ export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHea
   if (draft.combat && !draft.combat.quiet) issues.push(...combatIssues(narrative, draft.combat, combatFacts(draft.combat)));
   if (woundedOrHealing) issues.push(...healingIssues(narrative, draft));
   issues.push(...misplacedIssues(narrative, draft, known));
+  issues.push(...lastingIssues(narrative, lastingViews(draft.combat && !draft.combat.quiet ? draft.combat : null, known.lasting ?? [])));
   return issues;
 }
 

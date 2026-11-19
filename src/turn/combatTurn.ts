@@ -8,6 +8,7 @@ import type { Intent } from '../ai/schemas/intent';
 import type { ForceActionKind } from '../engine/combatForce';
 import { partText, type DuelState, type ExchangeRecord } from '../engine/duel';
 import { isDying, isIncapacitated, statusLabel, type Wound } from '../engine/wounds';
+import { lastingState, type LastingInjury } from '../engine/lasting';
 import type { ActiveFight, FightSummary } from '../features/combat/selectors';
 import type { GameState } from '../state/gameState';
 import type { CombatActionInput } from './record';
@@ -216,6 +217,8 @@ export interface CombatFighterView {
   /** Body armor (D-216): none, light, medium or heavy, and whether it turns a lightsaber (beskar). Absent on older drafts. */
   armor?: string;
   saberResistant?: boolean;
+  /** What the body can no longer do (D-237): "cannot stand: severed left leg", "no right arm". Absent on older drafts. */
+  lasting?: { cannotStand: boolean; missing: string[]; text: string[] };
 }
 
 export interface CombatDraft {
@@ -275,6 +278,7 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   bladeColor: f.weapon === 'lightsaber' ? (f.bladeColor ?? null) : null,
   armor: f.armor,
   saberResistant: f.saberResistant,
+  lasting: lastingState(f.wounds as Wound[], (f.lasting ?? []) as LastingInjury[]),
 });
 
 function noEffectLine(notes: readonly string[]): string {

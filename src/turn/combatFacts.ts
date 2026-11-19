@@ -114,6 +114,18 @@ export function stepFacts(notes: readonly string[]): StepFact[] {
   return out;
 }
 
+/**
+ * True when the player character carries a ranged weapon, a strike step of the sequence was NOT REACHED, and no strike
+ * of theirs was resolved in the passage: they did not fire (D-237).
+ */
+export function playerShotNotReached(c: CombatDraft): boolean {
+  const pcView = c.fighters.find((f) => f.id === 'pc');
+  if (!pcView || !RANGED_WEAPONS.includes(pcView.weapon as WeaponKind)) return false;
+  const steps = stepFacts(c.notes);
+  if (!steps.some((s) => /^strike/.test(s.label) && s.status === 'NOT REACHED')) return false;
+  return !steps.some((s) => /^strike/.test(s.label) && s.status !== 'NOT REACHED') && !c.narrate.some((r) => r.kind === 'strike' && r.striker === 'A');
+}
+
 /** The outcome list for the exchanges a narration covers. */
 export function combatFacts(c: CombatDraft): CombatFacts {
   const names = Object.fromEntries(c.fighters.map((f) => [f.id, f.name]));
@@ -122,6 +134,7 @@ export function combatFacts(c: CombatDraft): CombatFacts {
   const lines: string[] = [];
   const hits: HitFact[] = [];
   const didNotHappen: string[] = [];
+  const noShot = playerShotNotReached(c);
   for (const r of c.narrate) {
     const t = names[r.targetId] ?? r.targetId;
     const step = r.step !== undefined ? ` (sequence step ${r.step + 1})` : '';
@@ -181,7 +194,9 @@ export function combatFacts(c: CombatDraft): CombatFacts {
       continue;
     }
     const lead = buildUpLead(r, pc, t);
-    lines.push(`${head} ${pc} and ${t} trade blows: NO HIT. ${lead} (margin ${fmt(Math.abs(r.margin))}).${toldNotes(r)}`);
+    // A shooter whose strike step was NOT REACHED took no shot in the build-up (D-237; pass 3: "fire back" narrated).
+    const how = noShot ? `${pc} and ${t} maneuver for position: NO HIT, and ${pc} gets no shot off` : `${pc} and ${t} trade blows: NO HIT`;
+    lines.push(`${head} ${how}. ${lead} (margin ${fmt(Math.abs(r.margin))}).${toldNotes(r)}`);
   }
   const steps = stepFacts(c.notes);
   for (const s of steps) if (s.status === 'NOT REACHED') didNotHappen.push(`step ${s.index + 1} (${s.label}) was NOT REACHED: ${s.detail}`);

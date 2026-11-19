@@ -34,7 +34,7 @@ import type { CampaignRecord, Storage, TranscriptEntry } from '../persist/storag
 import { applyEvents, type AppliedEvent, type RejectedEvent, type UnknownRef } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
 import type { GameEvent, Registry } from '../state/types';
-import { buildIntentRequest, buildNarrativeRequest, buildSummaryRequest, type BuiltRequest, type ContextReport } from './context';
+import { buildIntentRequest, buildNarrativeRequest, buildSummaryRequest, lastingStates, type BuiltRequest, type ContextReport } from './context';
 import { expandChoice } from './expandChoice';
 import type { CallRecord, TurnInput, TurnRecord } from './record';
 import { refResolver, resolveIntentRefs } from './refs';
@@ -310,7 +310,11 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     // The narration check (D-197): a narration that contradicts the resolved block is retried once with the same
     // TurnDraft and the contradictions listed; if the retry still contradicts it, code-written lines replace it.
     const woundedOrHealing = selectWounds(resolved).length > 0 || draft.jump !== null || draft.intent?.actionType === 'heal';
-    const known = { player: [...selectWounds(session.state), ...selectWounds(resolved)].map((w) => w.part) };
+    // Lasting state (D-237): who in the scene cannot stand or lacks a limb, before and after the turn (a spared or
+    // captured fighter keeps it).
+    const lastingNow = lastingStates(resolved);
+    const lasting = [...lastingNow, ...lastingStates(session.state).filter((l) => !lastingNow.some((x) => x.name === l.name))];
+    const known = { player: [...selectWounds(session.state), ...selectWounds(resolved)].map((w) => w.part), lasting };
     // The previous story reply (dev commands are not story): a narration that repeats it is a contradiction (D-210).
     const previous = [...session.history].reverse().find((r) => r.input.kind !== 'dev' && r.narrative)?.narrative ?? null;
     const recheck = (text: string): NarrationIssue[] => checkNarration(text, draft, woundedOrHealing, known, previous);

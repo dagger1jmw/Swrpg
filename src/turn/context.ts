@@ -15,6 +15,8 @@ import { selectIsDying, selectIsSpent, selectLasting, selectStatusLabel, selectW
 import type { CombatDraft } from './combatTurn';
 import { combatFacts, weaponText } from './combatFacts';
 import { partText } from '../engine/duel';
+import { lastingState, type LastingInjury, type LastingState } from '../engine/lasting';
+import type { Wound } from '../engine/wounds';
 import type { CheckCard } from '../engine/rolls';
 import { ACTIVITIES } from '../data/activities';
 import { archetypeDef } from '../data/archetypes';
@@ -127,13 +129,37 @@ function focusIds(state: GameState, referencedIds: readonly string[], playerText
   ];
 }
 
+const npcLasting = (n: { health?: unknown }): LastingState => {
+  const h = n.health as { wounds?: Wound[]; lasting?: LastingInjury[] } | null | undefined;
+  return lastingState(h?.wounds ?? [], h?.lasting ?? []);
+};
+
+/**
+ * The lasting state of everyone the narration may be about (D-237): the player character, the NPCs present, and the
+ * NPCs whose fate is being chosen. Read by the narration check; only those with something missing are listed.
+ */
+export function lastingStates(state: GameState): { name: string; pc: boolean; cannotStand: boolean; missing: string[] }[] {
+  const out: { name: string; pc: boolean; cannotStand: boolean; missing: string[] }[] = [];
+  const own = lastingState(selectWounds(state), selectLasting(state));
+  if (own.missing.length) out.push({ name: selectCharacterName(state), pc: true, cannotStand: own.cannotStand, missing: own.missing });
+  const ids = new Set([...selectPresentNpcIds(state), ...state.combat.fates.map((f) => f.npcId)]);
+  for (const id of ids) {
+    const n = state.npcs.byId[id];
+    if (!n) continue;
+    const l = npcLasting(n);
+    if (l.missing.length) out.push({ name: n.name, pc: false, cannotStand: l.cannotStand, missing: l.missing });
+  }
+  return out;
+}
+
 function idLines(state: GameState, focus: readonly string[]): Map<string, string> {
   const lines = new Map<string, string>();
   const npcs = [...selectNpcs(state)].sort((a, b) => b.lastSeenDay - a.lastSeenDay || a.id.localeCompare(b.id));
   const locs = [...selectLocations(state)].sort((a, b) => b.introducedTurn - a.introducedTurn || a.id.localeCompare(b.id));
   const threads = [...selectOpenThreads(state)].sort((a, b) => b.lastTurn - a.lastTurn || a.id.localeCompare(b.id));
   const all = new Map<string, string>();
-  for (const n of npcs) all.set(n.id, `${n.id} = ${n.name} (${n.role}${n.status !== 'active' ? `, ${n.status}` : ''})`);
+  // Lasting state travels with the NPC into later scenes (D-237): a spared or captured fighter keeps a missing limb.
+  for (const n of npcs) all.set(n.id, `${n.id} = ${n.name} (${n.role}${n.status !== 'active' ? `, ${n.status}` : ''}${npcLasting(n).text.length ? `; ${npcLasting(n).text.join('; ')}` : ''})`);
   for (const l of locs) all.set(l.id, `${l.id} = ${l.name} (${l.kind})`);
   for (const t of threads) all.set(t.id, `${t.id} = "${t.title}" (open thread)`);
   for (const id of focus) if (all.has(id)) lines.set(id, all.get(id)!);
@@ -382,7 +408,12 @@ export function describeCombat(c: CombatDraft): string[] {
   for (const n of c.notes.filter((x) => x.startsWith('intent step'))) lines.push(`Sequence: ${n}`);
   lines.push(`Hits in this passage: ${facts.hits.length ? facts.hits.map((h) => `#${h.n} on ${h.targetName} (${partText(h.part)}, ${h.severed ? 'severed' : h.severity ? `${h.severity} wound` : 'no wound'})`).join('; ') : 'NONE: nobody was hit, wounded or touched'}.`);
   if (facts.didNotHappen.length) lines.push(`Did not happen (never describe these as happening): ${facts.didNotHappen.join('; ')}.`);
-  lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}${f.lostParts.length ? ` (lost: ${f.lostParts.map(partText).join(', ')})` : ''}`).join('; ')}.`);
+  lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}${f.lasting?.text.length ? ` (${f.lasting.text.join('; ')})` : f.lostParts.length ? ` (lost: ${f.lostParts.map(partText).join(', ')})` : ''}`).join('; ')}.`);
+  // Lasting state (D-237): nobody stands on a leg that is gone or uses an arm that is gone, now or later.
+  if (c.fighters.some((f) => f.lasting?.text.length)) lines.push('A fighter who cannot stand stays down: no standing up, walking, kicking or being helped to their feet. A missing arm or hand is not used.');
+  // Who is still standing (D-237; pass 3: "the surviving Mandalorian" with two warriors up).
+  const standing = c.fighters.filter((f) => f.id !== 'pc' && !f.out && !f.engagedElsewhere);
+  if (c.fighters.length > 2) lines.push(`Opponents still standing: ${standing.length}${standing.length ? ` (${standing.map((f) => f.name).join(', ')})` : ''}. Never write "the last", "the surviving" or "the only one left" unless exactly one stands.`);
   // Who has the upper hand now (issue 19: "the droids press their advantage" while the player held +3).
   if (!c.ended) lines.push(`Advantage now: ${advantageText(c)}.`);
   // How a sparring bout ended (issue 19: a bout-ending hit softened and the loss left out).

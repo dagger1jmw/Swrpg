@@ -79,3 +79,40 @@ export function adapt(l: LastingInjury, effectiveHours: number, day: number): La
   const gain = Math.min(room, Math.max(0, effectiveHours) * ADAPTATION.perHour, Math.max(0, aidCap(l) - l.adaptation));
   return { ...l, adaptation: l.adaptation + gain, adaptedToday: usedToday + gain, adaptDay: day };
 }
+
+/** What a fighter's body can no longer do, for the narrator's block and the narration check (D-237). */
+export interface LastingState {
+  /** A leg is gone and nothing replaces it. */
+  cannotStand: boolean;
+  /** Limbs that are gone with no prosthetic (a lost arm includes its hand). */
+  missing: BodyPart[];
+  /** In words: "cannot stand: severed left leg", "no right arm". */
+  text: string[];
+}
+
+const partWords = (p: BodyPart): string => p.replace(/([A-Z])/g, ' $1').toLowerCase();
+
+/**
+ * The lasting state of a body (D-237): limbs severed and not yet replaced (fresh severed wounds, and lost limbs with no
+ * aid or only scar tissue). A limb with a prosthetic is not missing: its owner stands and uses it.
+ */
+export function lastingState(wounds: readonly Wound[], lasting: readonly LastingInjury[]): LastingState {
+  const fresh = new Set<BodyPart>();
+  const old = new Set<BodyPart>();
+  // A severed limb that already has a prosthetic on record (health gives the faction's aid at once, D-164) is not missing.
+  const fitted = new Set(lasting.filter((l) => LOST_KINDS.includes(l.kind) && l.aid !== 'none' && l.aid !== 'scarTissue').map((l) => l.part));
+  for (const w of wounds) if (w.severed && !fitted.has(w.part)) fresh.add(w.part);
+  for (const l of lasting) if (LOST_KINDS.includes(l.kind) && (l.aid === 'none' || l.aid === 'scarTissue') && !fresh.has(l.part)) old.add(l.part);
+  const text: string[] = [];
+  const missing: BodyPart[] = [];
+  for (const [set, word] of [[fresh, 'severed'], [old, 'no']] as const) {
+    for (const p of set) {
+      missing.push(p);
+      const with_ = LIMB_WITH[p];
+      if (with_ && !missing.includes(with_)) missing.push(with_);
+      const leg = p.endsWith('Leg');
+      text.push(leg ? `cannot stand: ${word} ${partWords(p)}` : word === 'severed' ? `no ${partWords(p)} (severed)` : `no ${partWords(p)}`);
+    }
+  }
+  return { cannotStand: missing.some((p) => p.endsWith('Leg')), missing, text };
+}
