@@ -4,7 +4,7 @@
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
-import { FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type NpcFate } from '../../data/combat.config';
+import { INTERRUPT_CATEGORIES, INTERRUPT_RESTATES, FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
 import { rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, type BodyPart } from '../../data/health.config';
@@ -570,7 +570,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
       schema: z.object({
         type: z.literal('combatEnded'),
         reason: z.enum(['fled', 'surrendered', 'interrupted', 'truce']).describe('The narrator may send only interrupted'),
-        why: z.string().min(1).max(200).optional().describe('Required with interrupted: the outside event that stops the fight (reinforcements, a collapse, an alarm)'),
+        category: z.enum(INTERRUPT_CATEGORIES).optional().describe('Required with interrupted: reinforcements (they arrive), environmentCollapse (the place gives way), alarmOrAuthorities, thirdParty (someone outside the fight steps in), storyEvent (an event already named in the scene)'),
+        why: z.string().min(1).max(200).optional().describe('Required with interrupted: the outside event itself, in a few words. Never a description of the fight'),
       }),
       sources: ['ai', 'engine'],
       narrative: (s) => s.combat.active !== null,
@@ -582,7 +583,11 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         // and the player's acceptance.
         if (ctx.source === 'ai') {
           if (reason !== 'interrupted') return { reject: `the narrator cannot end a fight as ${reason}: fled and surrendered come from the player's Disengage and Surrender beats or an engine-rolled fate, and a truce from truceOffered and the player's acceptance; send combatEnded only as interrupted, for an outside event` };
-          if (!String(e['why'] ?? '').trim()) return { reject: 'combatEnded interrupted needs a why: the outside event that stops the fight' };
+          const why = String(e['why'] ?? '').trim();
+          if (!why) return { reject: 'combatEnded interrupted needs a why: the outside event that stops the fight' };
+          // An outside event of a listed kind, never the fight restated (D-196).
+          if (!e['category']) return { reject: `combatEnded interrupted needs a category: ${INTERRUPT_CATEGORIES.join(', ')}` };
+          if (INTERRUPT_RESTATES.some((re) => re.test(why.toLowerCase()))) return { reject: `combatEnded interrupted: "${why}" only describes the fight; an interruption is an outside event (${INTERRUPT_CATEGORIES.join(', ')}). The fight goes on` };
         }
         // A sparring session ends by its bouts or when the player stops (D-181): a bout's point is not the end of the
         // session. Only the story stopping it (interrupted) ends it from the narration, with the bouts so far.
@@ -592,8 +597,11 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           const c = stopSession(slice, ctx.state, slice.active, slice.active.duel as DuelState, session, 'interrupted');
           return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
         }
-        const outcome: CombatOutcome = reason === 'truce' ? 'truce' : reason === 'surrendered' ? 'lost' : 'fled';
-        const c = conclude(slice, ctx.state, slice.active, outcome, e['why'] ? `${reason}: ${String(e['why'])}` : reason);
+        // An interrupted fight is recorded as interrupted with its real state: never fled, never won (D-196).
+        const outcome: CombatOutcome = reason === 'truce' ? 'truce' : reason === 'surrendered' ? 'lost' : reason === 'interrupted' ? 'interrupted' : 'fled';
+        const standing = (slice.active.duel as DuelState).opponents.filter((o) => !o.out).length;
+        const label = reason === 'interrupted' ? `${e['category'] ? `${String(e['category'])}: ` : ''}${String(e['why'] ?? 'an outside event')}; ${standing} opponent${standing === 1 ? '' : 's'} still standing` : e['why'] ? `${reason}: ${String(e['why'])}` : reason;
+        const c = conclude(slice, ctx.state, slice.active, outcome, label);
         return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
       },
     },

@@ -74,8 +74,12 @@ Combat (the AI sets up; the engine resolves)
   combatStarted { opponentRefs[], stakes: spar | skirmish | serious | lethal,
                   terrainTags[], ambushClaim?: bool }   -> ambush becomes a perception contest
   tacticDeclared { tactic, details }              -> becomes a contest (rolls spec sec 5)
-  combatEnded { reason: interrupted, why }        -> wounds end fights on their own; the AI may send only
-                                                     interrupted, with the outside event (D-181); fled and
+  combatEnded { reason: interrupted, category, why } -> wounds end fights on their own; the AI may send only
+                                                     interrupted, with a category (reinforcements,
+                                                     environmentCollapse, alarmOrAuthorities, thirdParty,
+                                                     storyEvent) and the outside event (D-181, D-196); a why that
+                                                     restates the fight is refused; the fight is recorded as
+                                                     interrupted with its real state, never fled or won; fled and
                                                      surrendered come from the player's beats or an engine fate
   truceOffered { why }                            -> the player accepts with a beat button or fights on (D-181)
 Force

@@ -137,9 +137,34 @@ describe('beats and conclusion', () => {
       expect(r.state.combat.active).not.toBeNull();
     }
     expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted' }]).rejected[0]!.reason).toMatch(/needs a why/);
-    const ok = ai(f, [{ type: 'combatEnded', reason: 'interrupted', why: 'Republic reinforcements pour into the hangar' }]);
+    const ok = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'reinforcements', why: 'Republic reinforcements pour into the hangar' }]);
     expect(ok.rejected).toEqual([]);
-    expect(ok.state.combat.last!.reason).toBe('interrupted: Republic reinforcements pour into the hangar');
+    // Recorded as interrupted with its real state: never fled, never won (D-196).
+    expect(ok.state.combat.last!.outcome).toBe('interrupted');
+    expect(ok.state.combat.last!.reason).toBe('reinforcements: Republic reinforcements pour into the hangar; 1 opponent still standing');
+    expect(ok.state.combat.fates).toEqual([]);
+  });
+  it('an interruption needs a listed category and an outside event, not the fight restated (D-196; combat pass 1 blocker)', () => {
+    const { s, id } = withNpc(fresh());
+    const f = begin(s, [id]);
+    // The exact case from the browser pass.
+    const exact = ai(f, [{ type: 'combatEnded', reason: 'interrupted', why: 'the combat is still ongoing' }]);
+    expect(exact.rejected).toHaveLength(1);
+    expect(exact.state.combat.active).not.toBeNull();
+    expect(exact.state.combat.last).toBeNull();
+    // Even with a category, a why that only restates the fight is refused.
+    for (const why of ['the combat is still ongoing', 'The fight continues', 'the duel is still in progress', 'they keep fighting', 'ongoing']) {
+      const r = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'storyEvent', why }]);
+      expect(r.rejected[0]?.reason, why).toMatch(/only describes the fight/);
+      expect(r.state.combat.active, why).not.toBeNull();
+    }
+    expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', why: 'the ceiling gives way' }]).rejected[0]!.reason).toMatch(/needs a category/);
+    expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'weather', why: 'rain' }]).rejected).toHaveLength(1);
+    for (const [category, why] of [['environmentCollapse', 'the ceiling gives way between them'], ['alarmOrAuthorities', 'Temple guards flood the hall'], ['thirdParty', 'Master Vash steps between the blades'], ['storyEvent', 'the shuttle they both need begins to lift off']] as const) {
+      const r = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category, why }]);
+      expect(r.rejected, why).toEqual([]);
+      expect(r.state.combat.last!.outcome).toBe('interrupted');
+    }
   });
   it('the target is a setting (D-182): no exchange, it stays until changed, and falls back when that target is out', () => {
     const { s, id } = withNpc(fresh());

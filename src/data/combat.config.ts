@@ -202,6 +202,20 @@ export const SITH_ACADEMIES: readonly SithAcademy[] = [
 /** Sparring environment accidents (Jared, D-143): hazard chance per bout by terrain, plus a flat-floor floor. */
 export const SPARRING_ACCIDENT = { flatFloorChance: 1 / 200, flatFloorSeverity: 1 } as const;
 
+// ---- The narrator stopping a fight (D-181; D-196) ----
+/**
+ * The only outside events that may interrupt a fight from the narration (Jared, D-196). storyEvent: an event already
+ * named in the scene (a ship lifting off, a truce horn, a master's command).
+ */
+export const INTERRUPT_CATEGORIES = ['reinforcements', 'environmentCollapse', 'alarmOrAuthorities', 'thirdParty', 'storyEvent'] as const;
+export type InterruptCategory = (typeof INTERRUPT_CATEGORIES)[number];
+/** A why that only restates the fight is not an outside event ("the combat is still ongoing"); lower case, tested on the whole text. */
+export const INTERRUPT_RESTATES: readonly RegExp[] = [
+  /\b(combat|fight|fighting|battle|duel|bout|melee|skirmish|exchange)\b.{0,40}\b(still|ongoing|on-going|continues|continuing|goes on|going on|in progress|not over|rages|raging|underway|under way|unresolved|remains)\b/,
+  /\b(still|continue|continues|continuing|keep|keeps)\b.{0,30}\b(fighting|fight|combat|battle|duel|ongoing)\b/,
+  /^(n\/?a|none|no reason|unknown|ongoing|in progress|interrupted|the fight|combat)\.?$/,
+];
+
 // ---- Opponent fate when the player is incapacitated (D-143 design defaults) ----
 export type FateKind = 'spared' | 'captured' | 'left' | 'killingStrike';
 /** By stakes; lethal and serious roll by the opponent's archetype group. */
