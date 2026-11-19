@@ -88,16 +88,22 @@ export interface PenaltyInputs {
   suppression?: number;
 }
 
-/** Location penalty for a skill: the sum over wounds whose part targets it. */
+/**
+ * How much of a wound's penalty is still felt (Jared, after combat pass 1; health §6 amended): the share still unhealed,
+ * 1 - healProgress. Wound load (status labels, incapacitation) is not scaled.
+ */
+export const unhealedShare = (w: Wound): number => Math.min(1, Math.max(0, 1 - (w.healProgress ?? 0)));
+
+/** Location penalty for a skill: the sum over wounds whose part targets it, each scaled by its unhealed share. */
 export function locationPenalty(wounds: readonly Wound[], skillId: string): number {
   const targets = skillTargets(skillId);
   let p = 0;
-  for (const w of wounds) if (PART_TARGETS[w.part].some((x) => targets.has(x))) p += LOCATION_PENALTY[effectiveSeverity(w)];
+  for (const w of wounds) if (PART_TARGETS[w.part].some((x) => targets.has(x))) p += LOCATION_PENALTY[effectiveSeverity(w)] * unhealedShare(w);
   return p;
 }
 
-/** Status penalty: 0.75% of effective level per wound-load point. */
-export const statusPenalty = (wounds: readonly Wound[]): number => STATUS_PENALTY_PER_LOAD * woundLoad(wounds);
+/** Status penalty: 0.75% of effective level per wound-load point, each wound's load scaled by its unhealed share. */
+export const statusPenalty = (wounds: readonly Wound[]): number => STATUS_PENALTY_PER_LOAD * wounds.reduce((a, w) => a + WOUND_LOAD[effectiveSeverity(w)] * unhealedShare(w), 0);
 
 /** Passive Willpower resistance: Willpower / 400 of wound penalties, max 25% (Q40). */
 export const willpowerSuppression = (willpower: number): number => Math.min(WILLPOWER_SUPPRESSION.max, Math.max(0, willpower) * WILLPOWER_SUPPRESSION.perWillpower);

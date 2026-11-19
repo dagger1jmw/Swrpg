@@ -95,6 +95,9 @@ describe('a failed feint through the turn (D-199; the D-194 regression)', () => 
       expect(notes).toMatch(/step 1 feint: FAILED \(seen through: .+ d20 \d+ = .+ vs Darth Vek d20 \d+ = .+ \(margin -?[\d.]+\)\)/);
       expect(r.draft.combat!.beat).toBe('sequence');
       expect(r.draft.combat!.quiet).toBe(false);
+      // The feint rolls with the form level (rolls §5; combat pass 1 R9: "d20 6 = 6.0" for a Guardian).
+      const [, d20, total] = /: FAILED \(seen through: .+? d20 (\d+) = ([\d.-]+) vs/.exec(notes)!;
+      expect(Number(total) - Number(d20)).toBeGreaterThan(4);
       failed = true;
     }
     expect(failed).toBe(true);

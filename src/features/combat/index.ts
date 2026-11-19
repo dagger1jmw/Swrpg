@@ -717,13 +717,20 @@ function beatFor(before: DuelState, after: DuelState, beat: 'forceAction' | 'seq
   return attempted ? [beat, true] : ['noEffect', false];
 }
 
+/** The level of the form (or weapon skill) the player fights with now; 0 out of a fight. */
+function fightingFormLevel(s: GameState): number {
+  const duel = s.combat.active?.duel as DuelState | undefined;
+  return duel ? selectLevelExact(s, duel.a.skillId) : 0;
+}
+
 /** The player's Force levels for actions and sequences (CI from progression). */
 function forceProfile(s: GameState) {
   return {
     levelOf: (a: ForceActionKind) => selectLevelExact(s, FORCE_ACTION_ABILITY[a]),
     ciOf: (a: ForceActionKind) => selectCI(s, FORCE_ACTION_ABILITY[a]),
     forceOutput: selectLevelExact(s, 'forceOutput'),
-    trickLevel: Math.max(selectLevelExact(s, 'charisma'), selectLevelExact(s, 'intelligence')),
+    // Feints and taunts: d20 + Charisma, Intelligence or form level / 10 (rolls §5); the form is the one fought with now.
+    trickLevel: Math.max(selectLevelExact(s, 'charisma'), selectLevelExact(s, 'intelligence'), fightingFormLevel(s)),
   };
 }
 

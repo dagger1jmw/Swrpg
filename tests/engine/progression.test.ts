@@ -206,6 +206,15 @@ describe('synergy (§14)', () => {
     const total = Object.values(spill).reduce((a, b) => a + b, 0);
     expect(total).toBeLessThanOrEqual(0.25 * 30 + 1e-9);
   });
+
+  it('spillover reaches only Force abilities the character knows (level 1+; combat pass 1: a Guardian gaining Barrier XP)', () => {
+    const levels: Record<string, number> = { forceControl: 50, telekinesis: 45, forceBarrier: 0, forceAbsorb: 0.6 };
+    const spill = spillover({ credited: { forceControl: 10 }, levelOf: (s) => levels[s] ?? 0, xpOf: () => 0, naturalOf: () => 0 });
+    expect(spill['telekinesis'] ?? 0).toBeGreaterThan(0);
+    expect(spill['forceBarrier']).toBeUndefined();
+    expect(spill['forceAbsorb']).toBeUndefined();
+    expect(spill['battleMeditation']).toBeUndefined();
+  });
 });
 
 describe('instruction (§15, §19)', () => {

@@ -2,7 +2,7 @@
 // session x coefficient; it stops at the target's ceiling (a fraction of the source's level), and the
 // total from one session is capped at 25% of its credited XP. Pure.
 import { SYNERGY, SYNERGY_SESSION_CAP, type SynergyRelation } from '../data/progression.config';
-import { SKILLS } from '../data/skills';
+import { SKILLS, SKILL_BY_ID } from '../data/skills';
 import { xpForLevel } from './curve';
 
 export interface SynergyLink {
@@ -64,6 +64,9 @@ export interface SpilloverInput {
   links?: readonly SynergyLink[];
 }
 
+/** A Force ability below level 1 is unknown; every other skill (stats, forms, career skills) always takes spillover. */
+const knows = (input: SpilloverInput, skill: string): boolean => SKILL_BY_ID.get(skill)?.kind !== 'forceAbility' || input.levelOf(skill) >= 1;
+
 /** Spillover XP per target skill. Never past the target's ceiling; total at most 25% of the session's credited XP. */
 export function spillover(input: SpilloverInput): Record<string, number> {
   const links = input.links ?? SYNERGY_LINKS;
@@ -72,6 +75,9 @@ export function spillover(input: SpilloverInput): Record<string, number> {
   for (const link of links) {
     const c = input.credited[link.source] ?? 0;
     if (c <= 0) continue;
+    // Only abilities the character knows (level 1+, the combat rule) take spillover (Jared, after combat pass 1): Force
+    // Control practice does not teach a Guardian Force Barrier.
+    if (!knows(input, link.target)) continue;
     const rule = SYNERGY[link.relation];
     const ceilingLevel = rule.ceiling * input.levelOf(link.source);
     const n = input.naturalOf(link.target);

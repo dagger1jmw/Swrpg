@@ -116,6 +116,16 @@ describe('status, dying and death (health §6)', () => {
     const many = Array.from({ length: 6 }, (_, i) => wound({ id: `w${i}`, severity: 'severe', W: 25, part: 'rightArm' }));
     expect(woundPenalty(many, 'soresu', { willpower: 0 })).toBe(0.5);
   });
+  it('the penalty eases as the wound heals: scaled by the unhealed share (D-203; combat pass 1: -12% at 67% healed)', () => {
+    const fresh = [wound({ severity: 'severe', W: 25, part: 'rightArm' })];
+    const twoThirds = [wound({ severity: 'severe', W: 25, part: 'rightArm', healProgress: 2 / 3 })];
+    const full = woundPenalty(fresh, 'soresu', { willpower: 0 });
+    expect(full).toBeGreaterThan(0.1);
+    expect(woundPenalty(twoThirds, 'soresu', { willpower: 0 })).toBeCloseTo(full / 3);
+    expect(woundPenalty([wound({ severity: 'severe', W: 25, part: 'rightArm', healProgress: 1 })], 'soresu', { willpower: 0 })).toBe(0);
+    // The wound load and its label do not ease until the wound has healed.
+    expect(statusLabel(twoThirds)).toBe(statusLabel(fresh));
+  });
   it('test 9: pain suppression changes penalties only, never status or timers', () => {
     const ws = [wound({ severity: 'severe', W: 25 })];
     const before = { label: statusLabel(ws), dying: isDying(ws) };

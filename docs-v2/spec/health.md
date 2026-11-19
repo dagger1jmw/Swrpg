@@ -92,6 +92,10 @@ Force meter (replaces Force strain):
   Incapacitated: load 20+, OR any critical wound to torso or head (cannot fight)
   Dying: any unstabilized mortal wound
   Dead: the dying timer expires, OR a second mortal wound while Dying
+  A wound's penalty (its location penalty and its share of the status penalty) eases as it
+    heals: it is multiplied by the share still unhealed, 1 - heal progress (a severe arm wound at
+    67% healed gives a third of its penalty). The wound load itself, for the labels and for
+    incapacitation, does not ease until the wound has healed (Jared, D-203).
   Total wound penalty (status + location) is capped at -50% while still able to fight.
   Dying timer = 10 + Endurance/10 minutes (End 50: 15 min). Force trance or similar
     abilities pause it. Stabilizing (medpac, medical skill, Force healing) converts the mortal
