@@ -51,23 +51,23 @@ describe('17: the object named is the object thrown', () => {
   });
 });
 
-describe('18: a surrender puts the player at the opponent\'s mercy', () => {
-  it('a lethal surrender rolls the opponent\'s choice, and is never answered with a killing strike', async () => {
-    const fates = new Set<string>();
-    for (let i = 0; i < 12; i++) {
-      let s = await devCharacter('knight', 30);
-      s = { ...s, meta: { ...s.meta, rngState: seedRng(`sur${i}`) } };
-      s = applyEvents(REGISTRY, s, [{ type: 'npcIntroduced', name: 'Duelist 4', species: 'human', faction: 'sith', role: 'sithLord', ageApprox: 35, description: 'an armed duelist' }], { source: 'ai' }).state;
-      const id = Object.values(s.npcs.byId).find((n) => n.name === 'Duelist 4')!.id;
-      s = applyEvents(REGISTRY, s, [{ type: 'combatStarted', opponentRefs: [id], stakes: 'lethal', terrainTags: ['flatFloor'] }], { source: 'ai' }).state;
-      s = resolveTurn(REGISTRY, s, null, { beat: { action: 'narrate' } as CombatActionInput }).state;
-      const r = resolveTurn(REGISTRY, s, null, { beat: { action: 'tactic', tactic: 'surrender' } as CombatActionInput });
-      const fate = r.state.combat.last!.playerFate;
-      expect(fate).not.toBeNull();
-      expect(fate).not.toBe('killingStrike');
-      fates.add(fate!);
-    }
-    expect([...fates].every((f) => f === 'captured' || f === 'left')).toBe(true);
+describe("18: a surrender puts the player at the opponent's mercy (D-218)", () => {
+  const surrenderTo = async (seed: string, role: 'sithLord' | 'jediKnight', faction: 'sith' | 'jediOrder') => {
+    let s = await devCharacter('knight', 30);
+    s = { ...s, meta: { ...s.meta, rngState: seedRng(seed) } };
+    s = applyEvents(REGISTRY, s, [{ type: 'npcIntroduced', name: 'Duelist 4', species: 'human', faction, role, ageApprox: 35, description: 'an armed duelist' }], { source: 'ai' }).state;
+    const id = Object.values(s.npcs.byId).find((n) => n.name === 'Duelist 4')!.id;
+    s = applyEvents(REGISTRY, s, [{ type: 'combatStarted', opponentRefs: [id], stakes: 'lethal', terrainTags: ['flatFloor'] }], { source: 'ai' }).state;
+    s = resolveTurn(REGISTRY, s, null, { beat: { action: 'narrate' } as CombatActionInput }).state;
+    return resolveTurn(REGISTRY, s, null, { beat: { action: 'tactic', tactic: 'surrender' } as CombatActionInput }).state.combat.last!.playerFate;
+  };
+  it('a surrender is a capture by default: a Jedi never kills a surrendered foe', async () => {
+    for (let i = 0; i < 10; i++) expect(await surrenderTo(`jsur${i}`, 'jediKnight', 'jediOrder')).toBe('captured');
+  });
+  it('a Sith in a lethal fight keeps an execution chance (CAPTOR_RULES): captured or a killing strike, never left', async () => {
+    const fates = new Set<string | null>();
+    for (let i = 0; i < 30; i++) fates.add(await surrenderTo(`sur${i}`, 'sithLord', 'sith'));
+    expect(fates).toEqual(new Set(['captured', 'killingStrike']));
   });
 });
 

@@ -297,6 +297,11 @@ export const COMBAT_XP = {
   stakes: { spar: 0.5, skirmish: 1.0, serious: 1.5, lethal: 2.0 } as Record<CombatStakes, number>,
   /** lost = lost and survived; an interrupted fight teaches what was fought at the fled factor, never the win factor (D-196). */
   outcome: { won: 1.0, lost: 1.2, fled: 0.8, truce: 1.0, interrupted: 0.8, stalemate: 0.8 } as Record<CombatOutcome, number>,
+  /**
+   * A surrender (an outcome of lost) in place of the lost factor (Jared, D-227; combat pass 2 balance row 15: at 1.2 a
+   * surrender paid more than fleeing). Below fled, so giving up is never the XP-best way out of a fight.
+   */
+  surrendered: 0.5,
   /** Daily cap per skill, before M. */
   dailyCap: 12,
   /** The third and later fights in one day. */

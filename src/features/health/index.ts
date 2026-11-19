@@ -141,10 +141,10 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
       sources: ['ai'],
       narrative: (s) => s.health.death === null,
       handle: (slice, e, ctx) => {
-        // During a fight hazards come only from the engine's terrain rolls (D-212): the narrator's hazard does no damage.
-        // It is still applied as an event (no state change), so it can stand as the cause of an environmentCollapse
-        // interruption in the same reply (D-196).
-        if (ctx.state.combat.active) return { slice, notes: ['during a fight hazards come only from the engine\'s terrain rolls: no damage (D-212); it may stand as an interruption\'s cause'] };
+        // During a fight the narrator's hazard does no damage of its own (D-212): it is applied as an event (no state
+        // change) so it can stand as the cause of an environmentCollapse interruption in the same reply (D-196). When that
+        // interruption ends the fight, the engine rolls the hazard for everyone in it by the hazard rules (D-217).
+        if (ctx.state.combat.active) return { slice, notes: ['during a fight the narrator\'s hazard does no damage unless it ends the fight (environmentCollapse): then the engine rolls it for everyone in the fight (D-212, D-217)'] };
         // One hazard per reply (D-212): a second one is a duplicate.
         if ((ctx.batch ?? []).some((b) => b.event.type === 'hazardOccurred')) return { reject: 'one hazard per reply: a second hazardOccurred is a duplicate (D-212)' };
         if (slice.pendingHazards.length >= 3) return { reject: 'too many pending hazards' };

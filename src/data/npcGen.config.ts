@@ -22,6 +22,13 @@ export const ROLE_ARCHETYPES: Readonly<Record<string, readonly (readonly [string
 export const FACTION_ARCHETYPE: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   mandalorians: { soldier: 'mandalorian', officer: 'mandalorian', bountyHunter: 'mandalorian', criminal: 'mandalorian' },
 };
+/**
+ * Species overrides by role (Jared, D-224): a Yuuzhan Vong in a fighting role is of the warrior caste, whatever the
+ * narrator's faction. Other Vong roles (shapers, priests, workers) stay civilian until the M6 catalog.
+ */
+export const SPECIES_ARCHETYPE: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  yuuzhanVong: { soldier: 'yuuzhanVongWarrior', officer: 'yuuzhanVongWarrior', pilot: 'yuuzhanVongWarrior', bountyHunter: 'yuuzhanVongWarrior', criminal: 'yuuzhanVongWarrior', other: 'yuuzhanVongWarrior' },
+};
 /** Everyone else is a civilian (politician, official, merchant, scholar, healer, servant, civilian, droid, other). */
 export const DEFAULT_ARCHETYPE = 'civilian';
 

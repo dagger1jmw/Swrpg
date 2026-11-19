@@ -45,7 +45,7 @@ export function selectNpcGen(s: GameState, id: string): NpcGen | null {
   if (!n) return null;
   if (n.gen) return n.gen;
   const year = dateFromAbsDay(s.clock.now.day).year;
-  return rollNpcInputs({ campaignSeed: s.meta.campaignId, npcId: id, role: n.role, faction: n.factionId, age: selectNpcAgeOrDefault(s, id), year });
+  return rollNpcInputs({ campaignSeed: s.meta.campaignId, npcId: id, role: n.role, faction: n.factionId, age: selectNpcAgeOrDefault(s, id), year, species: n.speciesId });
 }
 
 const levelCache = new Map<string, Readonly<Record<string, number>>>();

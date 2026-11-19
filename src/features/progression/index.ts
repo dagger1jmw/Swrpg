@@ -282,6 +282,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         forceUses: z.array(z.object({ abilityId: z.string(), gap: z.number() })).max(500),
         /** The opponent's largest level advantage in the opposed skill (E: life-or-death vs 5+ stronger, combat-xp §3). */
         opponentGap: z.number().optional(),
+        /** The player surrendered: the surrender XP factor (D-227). */
+        surrendered: z.boolean().optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {

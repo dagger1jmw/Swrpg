@@ -2,7 +2,7 @@
 // resists the Force (D-192): one pure contest for every Force use on a target, in combat and out of it. The Force load
 // goes through forceMeter.ts. Saber throw and recall (D-193). Pure.
 import { SKILL_BY_ID } from '../data/skills';
-import { CIRCUMSTANCE, EXCHANGE_SECONDS, EXERTION_PER_EXCHANGE, STRIKE_AT } from '../data/combat.config';
+import { CIRCUMSTANCE, EXCHANGE_SECONDS, EXERTION_PER_EXCHANGE, FIRST_USE_MAX_GAIN, STRIKE_AT } from '../data/combat.config';
 import { NIMAN_CI_FACTOR } from '../data/formMatchups';
 import { FORCE_BASE_LOAD, LIGHTNING_PER_OUTPUT, FORCE_EFFORT, LOCATION_WEIGHTS, type ForceEffort } from '../data/health.config';
 import {
@@ -429,8 +429,10 @@ function forceActionOnly(s0: DuelState, input: ForceActionInput, day: number, ct
     if (saberDropped) updatedUser = dropSaber(updatedUser);
   } else if (success) {
     if (input.kind === 'push' || input.kind === 'choke') {
+      const from = advantage;
       advantage = Math.max(-5, Math.min(5, advantage + dir * CIRCUMSTANCE.openingAdvantage));
-      if (input.firstUse) advantage = dir > 0 ? Math.max(advantage, STRIKE_AT) : Math.min(advantage, -STRIKE_AT);
+      // A first use jumps toward the strike, at most FIRST_USE_MAX_GAIN steps in one move (D-220).
+      if (input.firstUse) advantage = dir > 0 ? Math.max(advantage, Math.min(STRIKE_AT, from + FIRST_USE_MAX_GAIN)) : Math.min(advantage, Math.max(-STRIKE_AT, from - FIRST_USE_MAX_GAIN));
     }
     else if (input.kind === 'mindTrick') {
       if (target.minion && MIND_TRICK_COMBAT.minionOut) {

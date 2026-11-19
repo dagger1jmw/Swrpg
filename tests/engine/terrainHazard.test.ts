@@ -59,14 +59,21 @@ describe('ice terrain (D-184)', () => {
     expect(flat).toBeGreaterThan(0);
     expect(icy).toBeLessThan(flat);
   });
-  it('the bout roll: a sure hazard hurts every fighter by the fall rules and names it; none leaves the duel as it was', () => {
+  it('the bout roll: a sure hazard hurts one fighter of the fight by the fall rules and names it (D-228: one accident per roll)', () => {
     const d = startDuel(forceUser('A', 50), [forceUser('B', 50)], seedRng('fall'));
     const sure: TerrainHazard = { chance: 1, severity: 2, type: 'fall', label: 'slippery surface' };
     const r = rollBoutHazards(d, [sure], 3);
-    expect(r.duel.a.vitality).toBeLessThan(d.a.vitality);
-    expect(r.duel.opponents[0]!.vitality).toBeLessThan(d.opponents[0]!.vitality);
-    expect(r.notes).toHaveLength(2);
+    const hurt = [r.duel.a.vitality < d.a.vitality, r.duel.opponents[0]!.vitality < d.opponents[0]!.vitality].filter(Boolean);
+    expect(hurt).toHaveLength(1);
+    expect(r.notes).toHaveLength(1);
     expect(r.notes[0]).toMatch(/^terrain: .* falls on the slippery surface/);
+    // Neither side is favoured: over many seeds both the player and the opponent take the accident.
+    const victims = new Set<string>();
+    for (let i = 0; i < 40; i++) {
+      const x = rollBoutHazards(startDuel(forceUser('A', 50), [forceUser('B', 50)], seedRng(`pick${i}`)), [sure], 3);
+      victims.add(x.notes[0]!.startsWith('terrain: A ') ? 'A' : 'B');
+    }
+    expect(victims).toEqual(new Set(['A', 'B']));
     expect(rollBoutHazards(d, [{ ...sure, chance: 0 }], 3).duel.a).toEqual(d.a);
     expect(rollBoutHazards(d, [], 3).duel).toBe(d);
   });

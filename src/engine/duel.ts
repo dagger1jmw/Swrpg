@@ -14,6 +14,7 @@ import {
   EXCHANGE_SECONDS,
   EXERTION_PER_EXCHANGE,
   FIGHT_SAFETY_CAP,
+  FORCED_MISS_MAX_LOSS,
   FORCE_INSIGHT,
   MANEUVER_EFFECT,
   MANEUVER_MIN,
@@ -303,8 +304,8 @@ function sideMods(f: Fighter, opp: Fighter, ctx: DuelContext, numbersBonus: numb
   if (st.defense) defense.push({ source: `${f.stance} stance`, value: st.defense });
   const som = f.stateOfMind ? STATE_OF_MIND_COMBAT[f.stateOfMind] : undefined;
   if (som && (f.stateOfMind !== 'pride' || opp.level < f.level)) {
-    if (som.attack) attack.push({ source: `state of mind: ${f.stateOfMind}`, value: som.attack });
-    if (som.defense) defense.push({ source: `state of mind: ${f.stateOfMind}`, value: som.defense });
+    if (som.attack) attack.push({ source: `${STATE_OF_MIND_SOURCE}${f.stateOfMind}`, value: som.attack });
+    if (som.defense) defense.push({ source: `${STATE_OF_MIND_SOURCE}${f.stateOfMind}`, value: som.defense });
   }
   for (const m of matchupFor(f, opp, ctx, opponentsEngaged)) both.push(m);
   if (f.position) both.push({ source: f.position === 2 ? 'decisive position' : 'position', value: f.position === 2 ? CIRCUMSTANCE.decisivePosition : CIRCUMSTANCE.position });
@@ -324,7 +325,11 @@ function sideMods(f: Fighter, opp: Fighter, ctx: DuelContext, numbersBonus: numb
  */
 const band = (m: number): number => Math.round(m);
 
-/** Build-up modifiers: each side's attack and defense modifiers (net), counting the shared ones once. */
+/**
+ * Build-up modifiers: each side's attack and defense modifiers (net), counting the shared ones once. A state of mind
+ * whose two values have the same sign counts once, at the larger of them (Jared, D-221; despair -1 / -1 was -2 on a
+ * build-up roll but -1 on a strike); one with opposite signs nets, like the stance (D-205).
+ */
 function netMods(m: Mods, extra: readonly Modifier[]): Modifier[] {
   const seen = new Set<Modifier>();
   const out: Modifier[] = [];
@@ -332,8 +337,14 @@ function netMods(m: Mods, extra: readonly Modifier[]): Modifier[] {
     seen.add(x);
     out.push(x);
   }
+  const som = out.filter((x) => x.source.startsWith(STATE_OF_MIND_SOURCE));
+  if (som.length === 2 && Math.sign(som[0]!.value) === Math.sign(som[1]!.value)) {
+    const keep = Math.abs(som[0]!.value) >= Math.abs(som[1]!.value) ? som[0]! : som[1]!;
+    return [...out.filter((x) => !som.includes(x) || x === keep), ...extra];
+  }
   return [...out, ...extra];
 }
+const STATE_OF_MIND_SOURCE = 'state of mind: ';
 
 function qualityOf(margin: number): HitQuality | null {
   for (const [min, q] of STRIKE_QUALITY) if (margin >= min) return q;
@@ -419,6 +430,13 @@ export function tryShatterpoint(s: DuelState, side: SideId): { s: DuelState; rol
   if (success) next = { ...next, advantage: side === 'A' ? SHATTERPOINT_COMBAT.advantage : -SHATTERPOINT_COMBAT.advantage };
   return { s: next, roll, success };
 }
+
+/**
+ * Notes for the roll card only (D-222): kept on the exchange record and shown on its card, never written into the
+ * narrator's block (turn/combatFacts.ts drops them).
+ */
+export const CARD_ONLY_NOTE = 'card: ';
+export const precogCardNote = (name: string, avoided: boolean): string => `${CARD_ONLY_NOTE}${name}: precognition${avoided ? '' : ' (the strike still lands)'}: ${PRECOG.load} Force load`;
 
 /** Precognitive defense (rolls §3): chance min(0.5, FS/200) +0.10 centered; 0.4 Force load; never vs surprise or above meter 1.0. */
 function precog(f: Fighter, surprise: boolean, rng: RngState): { used: boolean; avoided: boolean; rng: RngState } {
@@ -562,7 +580,11 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       // Precognition fails inside a Force-null bubble and against a striker outside the Force (D-192).
       const pc = ctx.forceNegated || atkF.forceTraits?.includes('forceInvisible') ? { used: false, avoided: false, rng } : precog(defF, surprise, rng);
       rng = pc.rng;
-      if (pc.used) defF = { ...defF, meters: { ...defF.meters, f: addFixedLoad(defF.meters.f, PRECOG.load) } };
+      if (pc.used) {
+        defF = { ...defF, meters: { ...defF.meters, f: addFixedLoad(defF.meters.f, PRECOG.load) } };
+        // Why the Force meter rises with no Force action (Jared, D-222; pass 2 balance row 6): said on the card.
+        notes.push(precogCardNote(defF.name, pc.avoided));
+      }
       if (pc.avoided) {
         hit = { by: striker, quality, D: 0, part: 'torso', W: 0, severity: null, vitalityLost: 0, severed: false, avoided: true };
         notes.push(`${defF.name}: precognitive defense`);
@@ -598,7 +620,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     // misses or is blocked keeps the pressure, one step toward 0 (D-156).
     const missed = !maneuver && (!hit || hit.avoided);
     if (maneuver?.kind === 'knockdown') advAfter = striker === 'A' ? MANEUVER_EFFECT.knockdownAdvantage : -MANEUVER_EFFECT.knockdownAdvantage;
-    else if (missed && forced && -band(margin) > BUILD_UP.tieWithin) advAfter = clampTrack(advBefore - (BUILD_UP.steps.find(([min]) => -band(margin) >= min)?.[1] ?? 1));
+    else if (missed && forced && -band(margin) > BUILD_UP.tieWithin) advAfter = clampTrack(advBefore - Math.min(FORCED_MISS_MAX_LOSS, BUILD_UP.steps.find(([min]) => -band(margin) >= min)?.[1] ?? 1));
     else if (missed) advAfter = advBefore - Math.sign(advBefore) * Math.min(Math.abs(advBefore), MISSED_STRIKE_STEP);
     else advAfter = 0;
     if (maneuver?.kind === 'position') {

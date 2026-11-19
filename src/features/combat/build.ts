@@ -181,7 +181,9 @@ export function buildMinionFighter(s: GameState, kindId: string, grade: number, 
   const droid = DROID_MINION_KINDS.includes(kind.id);
   // Sith acolytes carry red blades (D-205).
   const blade = loadout.weapon === 'lightsaber' ? BLADE_COLORS.sith[0] : null;
-  return { ...f, ...(blade ? { bladeColor: blade } : {}), vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}), ...(droid ? { forceTraits: speciesForceTraits('droid'), forceResistance: 0 } : {}), ...(HEAVY_MINION_KINDS.includes(kind.id) ? { bodySize: 'heavy' as const } : {}) };
+  // A droid kind dodges no better than it shoots (Jared, D-223; pass 2 balance row 7: a B1 dodged a thrown object at
+  // +3.6 but shot at +1.4 - 3): its Agility is min(Agility, weapon level).
+  return { ...f, ...(blade ? { bladeColor: blade } : {}), vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}), ...(droid ? { forceTraits: speciesForceTraits('droid'), forceResistance: 0, agility: Math.min(f.agility, f.level) } : {}), ...(HEAVY_MINION_KINDS.includes(kind.id) ? { bodySize: 'heavy' as const } : {}) };
 }
 
 /** The duel context from the terrain tags and stakes (rolls §5, D-144). */

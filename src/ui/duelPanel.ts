@@ -2,11 +2,11 @@
 // fixed box and its log scrolls inside its own box). Rendering and player actions only; no rules here.
 import type { Choice } from '../ai/schemas/compose';
 import { collapseRiskPerUse, forceFraction } from '../engine/forceMeter';
-import { isNarratedBeat, MANEUVERS, STANCES, STRIKE_AT, type BeatReason, type Stance } from '../data/combat.config';
+import { isNarratedBeat, MANEUVERS, PRECOG, STANCES, STRIKE_AT, type BeatReason, type Stance } from '../data/combat.config';
 import { FORM_IDS, SKILL_BY_ID } from '../data/skills';
 import type { BasicRoll } from '../engine/rolls';
 import type { ForceOutcome } from '../engine/combatForce';
-import { partText, type DuelState, type ExchangeRecord } from '../engine/duel';
+import { CARD_ONLY_NOTE, partText, type DuelState, type ExchangeRecord } from '../engine/duel';
 import { selectActiveFight, selectFates, selectLastFight } from '../features/combat/selectors';
 import { selectIsDying } from '../features/health/selectors';
 import { selectNpc } from '../features/npcs/selectors';
@@ -102,7 +102,7 @@ export function renderExchange(r: ExchangeRecord, names: Record<string, string>,
     el('div', { class: 'roll-line', text: rollText(names['pc'] ?? 'You', r.rollA) }),
     el('div', { class: 'roll-line', text: rollText(names[r.targetId] ?? 'Opponent', r.rollB) }),
     el('div', { class: 'roll-line', text: `${marginLabel(r, names['pc'] ?? 'You')} · ${r.seconds} s${r.surprise ? ' · surprise' : ''}${r.duringForce ? ' · while you use the Force' : ''}` }),
-    ...r.notes.map((n) => el('div', { class: 'hint', text: n })),
+    ...r.notes.map((n) => el('div', { class: 'hint', text: n.startsWith(CARD_ONLY_NOTE) ? n.slice(CARD_ONLY_NOTE.length) : n })),
   ]);
 }
 
@@ -173,14 +173,19 @@ export function forceMeterView(f: number, cap: number): { pct: number; over: boo
   return { pct: Math.round(frac * 100), over, risk, text: over ? `Over your limit: ${Math.round(risk * 100)}% collapse risk per use` : '' };
 }
 
-function forceMeterRow(f: number, cap: number): HTMLElement {
+/** The meter row's short line while under the limit: precognition's load, when the character has it (D-222). */
+export const PRECOG_METER_TEXT = `precognition ${PRECOG.load}/use`;
+
+function forceMeterRow(f: number, cap: number, precog: boolean): HTMLElement {
   const v = forceMeterView(f, cap);
   return el('div', { class: `fighter force-meter${v.over ? ' over' : ''}` }, [
     el('span', { class: 'fname', text: 'Force' }),
     el('span', { class: 'vbar', attrs: { role: 'meter', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(v.pct), 'aria-label': 'Force meter' } }, [el('span', { class: 'vfill', attrs: { style: `width:${Math.min(100, v.pct)}%` } })]),
     el('span', { class: 'fnum', text: `${v.pct}%` }),
     // One short line on the meter's row (D-216: the long text pushed the stance row out of a wide panel).
-    v.over ? el('span', { class: 'fstatus over-text', text: `over limit: ${Math.round(v.risk * 100)}%/use`, attrs: { title: v.text } }) : el('span', { class: 'fstatus', text: '' }),
+    v.over
+      ? el('span', { class: 'fstatus over-text', text: `over limit: ${Math.round(v.risk * 100)}%/use`, attrs: { title: v.text } })
+      : el('span', { class: 'fstatus', text: precog ? PRECOG_METER_TEXT : '', attrs: precog ? { title: `Precognitive defense fires against strikes that would hit you and adds ${PRECOG.load} Force load each time, even when you use no Force action.` } : {} }),
   ]);
 }
 
@@ -390,7 +395,7 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
       el('div', { class: 'duel-fighters' }, [
         vitalityRow(d.a.name, d.a.vitality, d.a.maxVitality, d.a.out ? 'out' : 'fighting', d.a.out),
         // The Force meter once the character has used the Force (always while over the limit, D-194).
-        d.a.caps.f > 0 && d.a.meters.f > 0 ? forceMeterRow(d.a.meters.f, d.a.caps.f) : null,
+        d.a.caps.f > 0 && d.a.meters.f > 0 ? forceMeterRow(d.a.meters.f, d.a.caps.f, d.a.forceSense > 0 && !active.ctx.forceNegated) : null,
         facing ? vitalityRow(facing.name, facing.vitality, facing.maxVitality, status(facing), facing.out) : null,
       ]),
       trackBar(d.advantage, d.a.name, facing?.name ?? 'Opponent'),

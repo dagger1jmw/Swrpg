@@ -24,6 +24,8 @@ export const LOADOUT_BY_ARCHETYPE: Readonly<Record<string, Loadout>> = {
   smuggler: { weapon: 'blasterPistol', armor: 'none', saberResistant: false },
   bountyHunter: { weapon: 'blasterPistol', armor: 'light', saberResistant: false },
   civilian: NONE,
+  // The amphistaff and vonduun crab armor, both lightsaber-resistant (Characters_15 :34; D-224).
+  yuuzhanVongWarrior: { weapon: 'melee', armor: 'heavy', saberResistant: true },
 };
 
 /** Ranks that train with a training saber (Initiates, Sith acolytes). */

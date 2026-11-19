@@ -118,7 +118,12 @@ function callOptions(callType: CallType, system: string, maxOutputTokens: number
   };
 }
 
-const reachedApi = (e: unknown): boolean => !(e instanceof AiError && (e.kind === 'network' || e.kind === 'noKey'));
+/**
+ * A failed call counts on the usage meter only when the API replied 2xx (an empty, cut-off, blocked or malformed
+ * reply) or 429 (Jared, D-226; combat pass 2 balance row 14: 503s counted). A 5xx or other HTTP error, a timeout, a
+ * network error or no key is not a request against the quota.
+ */
+export const countsOnMeter = (e: unknown): boolean => !(e instanceof AiError && (e.kind === 'network' || e.kind === 'noKey' || e.kind === 'timeout' || (e.kind === 'http' && e.status !== 429)));
 
 /** One model call, recorded for the transcript and the usage meter. */
 async function tracked<T>(deps: TurnDeps, calls: CallRecord[], opts: CallOptions, run: () => Promise<{ data: T; usage: Usage }>): Promise<T> {
@@ -131,7 +136,7 @@ async function tracked<T>(deps: TurnDeps, calls: CallRecord[], opts: CallOptions
     const usage = e instanceof AiError ? (e.usage ?? null) : null;
     const outcome = e instanceof AiError ? (e.kind === 'rateLimit' ? `rateLimit:${e.quotaScope ?? 'unknown'}` : e.kind) : 'error';
     calls.push({ callType: opts.callType, model: opts.model, usage, outcome });
-    if (reachedApi(e)) deps.recordCall?.(opts.model, usage);
+    if (countsOnMeter(e)) deps.recordCall?.(opts.model, usage);
     throw e;
   }
 }

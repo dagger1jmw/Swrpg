@@ -195,6 +195,24 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     },
   },
   {
+    // Jared, D-224 (combat pass 2 balance row 8): the warrior caste, the main enemy of the Yuuzhan Vong War era. The
+    // soldier's paces with melee (the amphistaff) as the weapon skill in place of the blaster, and no Force (the Vong
+    // are outside it, D-192). Not a player archetype; generated NPCs only.
+    id: 'yuuzhanVongWarrior',
+    name: 'Yuuzhan Vong warrior',
+    path: 'career',
+    main: 'melee',
+    weights: { melee: 1.0, tactics: 0.6, strength: 0.6, agility: 0.6, endurance: 0.6, willpower: 0.2 },
+    startAge: 17,
+    startRange: [16, 30],
+    paces: {
+      knight: { strength: 0.283, agility: 0.523, endurance: 0.334, willpower: 0.832, intelligence: 0.154, melee: 1.326, tactics: 0.463 },
+    },
+    formPaces: {
+      knight: {},
+    },
+  },
+  {
     id: 'smuggler',
     name: 'Smuggler / scoundrel',
     path: 'career',

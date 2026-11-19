@@ -34,6 +34,16 @@ export const CUT_DOWN_MARGIN = 6;
  * 2 since D-206 (was 1): retuned with PRECOG to bring duel length back after the severed-leg rule (D-198).
  */
 export const MISSED_STRIKE_STEP = 2;
+/**
+ * A pattern's first use (D-146) jumps toward the strike, but by at most this many track steps in one move (Jared,
+ * D-220; combat pass 2 balance row 2: one Push took the track from -3 to +3).
+ */
+export const FIRST_USE_MAX_GAIN = 4;
+/**
+ * A sequence strike step against a minion that misses by more than a tie (D-191) gives the minion at most this many
+ * build-up steps (Jared, D-229; pass 1 number 4, pass 2 balance row 20).
+ */
+export const FORCED_MISS_MAX_LOSS = 1;
 
 export const MANEUVERS = ['position', 'knockdown', 'disarm'] as const;
 export type Maneuver = (typeof MANEUVERS)[number];
@@ -253,6 +263,20 @@ export const FATE_ROLL: Readonly<Record<'sith' | 'jedi' | 'military' | 'underwor
   underworld: { lethal: [0.5, 0.3, 0.2], serious: [0.4, 0.6] },
   other: { lethal: [0.3, 0.4, 0.3], serious: [0.3, 0.7] },
 };
+/**
+ * What a captor does with the player (Jared, D-218 and D-225; design defaults). A surrender is accepted as a capture,
+ * except that an archetype with `surrenderExecution` keeps that chance (by stakes) to kill a surrendered foe: the Sith
+ * in a lethal fight, a bounty hunter on a dead-or-alive job (lethal stakes until contracts exist). A captured player
+ * who is dying is stabilized by the captors (they want a prisoner alive), unless the archetype `capturesToExecute`:
+ * the Yuuzhan Vong take captives for sacrifice (Legends). Archetypes not listed: no execution, captives stabilized.
+ */
+export const CAPTOR_RULES: Readonly<Record<string, { surrenderExecution?: { lethal: number; serious: number }; capturesToExecute?: boolean }>> = {
+  sithWarrior: { surrenderExecution: { lethal: 0.3, serious: 0 } },
+  sithInquisitor: { surrenderExecution: { lethal: 0.3, serious: 0 } },
+  bountyHunter: { surrenderExecution: { lethal: 0.2, serious: 0 } },
+  yuuzhanVongWarrior: { capturesToExecute: true },
+};
+
 /** NPC fate chosen by the player at the NPC's incapacitation. */
 export const NPC_FATES = ['spare', 'capture', 'kill'] as const;
 /**

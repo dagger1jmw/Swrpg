@@ -13,6 +13,8 @@ export interface CombatSession {
   /** One entry per exchange, by the skill used (the form for melee, blaster for ranged). */
   exchanges: readonly { skillId: string; gap: number }[];
   forceUses: readonly { abilityId: string; gap: number }[];
+  /** The player surrendered (outcome lost): COMBAT_XP.surrendered in place of the outcome factor (D-227). */
+  surrendered?: boolean;
 }
 
 export interface CombatInput {
@@ -47,7 +49,7 @@ export function combatChallenge(gap: number): number {
 export function computeCombatXp(input: CombatInput): CombatResult {
   const { session } = input;
   const stakes = COMBAT_XP.stakes[session.stakes];
-  const outcome = COMBAT_XP.outcome[session.outcome];
+  const outcome = session.surrendered ? COMBAT_XP.surrendered : COMBAT_XP.outcome[session.outcome];
   const notes: string[] = [];
   const rawBySkill: Record<string, number> = {};
   for (const ex of session.exchanges) rawBySkill[ex.skillId] = (rawBySkill[ex.skillId] ?? 0) + COMBAT_XP.perExchange * combatChallenge(ex.gap) * stakes * outcome;

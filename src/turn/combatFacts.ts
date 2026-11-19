@@ -1,7 +1,7 @@
 // The explicit outcome list for a combat narration (D-197): what the narrator's block states and what the
 // post-narration check reads. Per exchange: HIT (target, location, severity) or NO HIT. Per step: DONE, FAILED or NOT
 // REACHED. Built only from the engine's records; pure.
-import { partText } from '../engine/duel';
+import { CARD_ONLY_NOTE, partText } from '../engine/duel';
 import { forceReason } from '../engine/combatForce';
 import { BUILD_UP } from '../data/combat.config';
 import { RANGED_WEAPONS } from '../data/weapons';
@@ -10,6 +10,12 @@ import { SKILL_BY_ID } from '../data/skills';
 import type { WeaponKind } from '../data/health.config';
 import type { CombatDraft, CombatFighterView } from './combatTurn';
 import type { ExchangeRecord } from '../engine/duel';
+
+/** An exchange's notes for the block, without the card-only ones (D-222). */
+const toldNotes = (r: ExchangeRecord): string => {
+  const n = r.notes.filter((x) => !x.startsWith(CARD_ONLY_NOTE));
+  return n.length ? ` ${n.join('; ')}.` : '';
+};
 
 export interface HitFact {
   /** Exchange number. */
@@ -155,7 +161,7 @@ export function combatFacts(c: CombatDraft): CombatFacts {
       hits.push({ n: r.n, byPlayer, targetId: byPlayer ? r.targetId : 'pc', targetName: victim, part: hit.part, severity: hit.severity, severed: hit.severed });
       const result = hit.severed ? `the ${partText(hit.part)} is SEVERED` : hit.severity ? `${hit.severity} wound` : 'no wound, stamina only';
       const how = hit.redirected ? `${striker} redirects the blaster bolt back into the shooter` : `${striker} hits ${victim}`;
-      lines.push(`${head} ${how}: HIT (${victim}, ${partText(hit.part)}, ${result}).${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`);
+      lines.push(`${head} ${how}: HIT (${victim}, ${partText(hit.part)}, ${result}).${toldNotes(r)}`);
       continue;
     }
     if (r.hit?.point) {
@@ -170,12 +176,12 @@ export function combatFacts(c: CombatDraft): CombatFacts {
       const striker = r.striker === 'A' ? pc : t;
       const defender = r.striker === 'A' ? t : pc;
       const why = strikeMissReason(byId.get(r.striker === 'A' ? 'pc' : r.targetId), byId.get(r.striker === 'A' ? r.targetId : 'pc'), !!r.hit?.avoided);
-      lines.push(`${head} ${striker} strikes at ${defender}: NO HIT (reason: ${defender} ${why}).${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`);
+      lines.push(`${head} ${striker} strikes at ${defender}: NO HIT (reason: ${defender} ${why}).${toldNotes(r)}`);
       didNotHappen.push(`${striker}'s strike at ${defender} did not land (#${r.n})`);
       continue;
     }
     const lead = buildUpLead(r, pc, t);
-    lines.push(`${head} ${pc} and ${t} trade blows: NO HIT. ${lead} (margin ${fmt(Math.abs(r.margin))}).${r.notes.length ? ` ${r.notes.join('; ')}.` : ''}`);
+    lines.push(`${head} ${pc} and ${t} trade blows: NO HIT. ${lead} (margin ${fmt(Math.abs(r.margin))}).${toldNotes(r)}`);
   }
   const steps = stepFacts(c.notes);
   for (const s of steps) if (s.status === 'NOT REACHED') didNotHappen.push(`step ${s.index + 1} (${s.label}) was NOT REACHED: ${s.detail}`);

@@ -4,10 +4,10 @@
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
-import { INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
+import { INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, CAPTOR_RULES, FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
-import { rollBoutHazards } from '../../engine/terrainHazard';
-import { BODY_PARTS, WEAPON_KINDS, type BodyPart, type WeaponKind } from '../../data/health.config';
+import { hazardOnAll, rollBoutHazards } from '../../engine/terrainHazard';
+import { BODY_PARTS, WEAPON_KINDS, type BodyPart, type HazardType, type WeaponKind } from '../../data/health.config';
 import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt, minionKindForYear } from '../../data/npcGen.config';
 import { dateFromAbsDay, toAbsSecond } from '../../engine/calendar';
 import { mandalorianSlugthrower } from '../../data/weapons';
@@ -194,7 +194,7 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   // An opponent who fought an ally the whole time (D-212) is not the player's: no gap, no heroic act, no fate.
   const faced = duel.opponents.filter((o) => !(o.engagedElsewhere && !o.out));
   const opponentGap = active.stakes === 'spar' ? sparGroupLevel(duel.opponents.map((o) => o.level)) - duel.a.level : Math.max(0, ...faced.map((o) => o.level - duel.a.level));
-  if (exchanges.length || forceUses.length) emit.push({ type: 'fightResolved', stakes: active.stakes, outcome, exchanges, forceUses, opponentGap });
+  if (exchanges.length || forceUses.length) emit.push({ type: 'fightResolved', stakes: active.stakes, outcome, exchanges, forceUses, opponentGap, ...(reason === 'surrendered' ? { surrendered: true } : {}) });
   // heroicAct (flag-registry §2): a won lethal fight against an opponent 10+ stronger or of rank Sith Lord / Master.
   if (active.stakes === 'lethal' && outcome === 'won') {
     const heroic = faced.some((o) => o.level - duel.a.level >= HEROIC_ACT.gapAtLeast || HEROIC_ACT.ranks.includes(active.meta[o.id]?.rank ?? ''));
@@ -215,18 +215,25 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   const surrendered = reason === 'surrendered';
   if (playerDown || surrendered) {
     const rule = FATE_BY_STAKES[active.stakes];
+    const winner = duel.opponents.find((o) => !o.out) ?? duel.opponents[0]!;
+    const archetype = active.meta[winner.id]?.npcId ? (selectNpcGen(s, active.meta[winner.id]!.npcId!)?.archetype ?? 'other') : 'soldier';
+    const captor = CAPTOR_RULES[archetype] ?? {};
     if (rule !== 'roll') playerFate = rule;
-    else {
-      const winner = duel.opponents.find((o) => !o.out) ?? duel.opponents[0]!;
-      const archetype = active.meta[winner.id]?.npcId ? (selectNpcGen(s, active.meta[winner.id]!.npcId!)?.archetype ?? 'other') : 'soldier';
+    else if (surrendered) {
+      // A surrender is a capture by default (Jared, D-218); an archetype with an execution chance may kill instead.
+      const chance = captor.surrenderExecution ? (active.stakes === 'lethal' ? captor.surrenderExecution.lethal : captor.surrenderExecution.serious) : 0;
+      const [u, r] = nextFloat(s.meta.rngState);
+      rng = r;
+      playerFate = u < chance ? 'killingStrike' : 'captured';
+    } else {
       const table = FATE_ROLL[fateGroup(archetype)];
       const [u, r] = nextFloat(s.meta.rngState);
       rng = r;
       if (active.stakes === 'lethal') playerFate = u < table.lethal[0] ? 'killingStrike' : u < table.lethal[0] + table.lethal[1] ? 'captured' : 'left';
       else playerFate = u < table.serious[0] ? 'captured' : 'left';
-      // A surrender is accepted as a capture, never answered with a killing strike (overnight design default, D-216).
-      if (surrendered && playerFate === 'killingStrike') playerFate = 'captured';
     }
+    // Captors want a prisoner alive (Jared, D-225): a dying captive is stabilized, unless the captor captures to execute.
+    if (playerFate === 'captured' && isDying(duel.a.wounds as Wound[]) && !captor.capturesToExecute) emit.push({ type: 'woundsStabilized', by: 'the captors' });
     // A killing strike is a mortal wound, so the dying timer leaves room for a rescue (D-154).
     if (playerFate === 'killingStrike' && !isDying(duel.a.wounds as Wound[])) {
       emit.push({ type: 'healthSynced', vitalityLost: selectMaxVitality(s), addWounds: [{ id: 'fate', part: 'torso', severity: 'mortal', W: 55, stabilized: false, healProgress: 0, day: selectNow(s).day, source: 'a killing strike' }], cause: 'a killing strike' });
@@ -644,6 +651,15 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         const outcome: CombatOutcome = reason === 'truce' ? 'truce' : reason === 'surrendered' ? 'lost' : reason === 'interrupted' ? 'interrupted' : 'fled';
         const standing = (slice.active.duel as DuelState).opponents.filter((o) => !o.out).length;
         const label = reason === 'interrupted' ? `${e['category'] ? `${String(e['category'])}: ` : ''}${String(e['why'] ?? 'an outside event')}; ${standing} opponent${standing === 1 ? '' : 's'} still standing` : e['why'] ? `${reason}: ${String(e['why'])}` : reason;
+        // A narrator's hazard that ends the fight (Jared, D-217): the engine rolls its damage for everyone still in it by
+        // the normal hazard rules; the narrator never sets damage. The wounds reach health and the NPCs before the end.
+        const before = slice.active.duel as DuelState;
+        const hazardEvent = reason === 'interrupted' && e['category'] === 'environmentCollapse' ? (ctx.batch ?? []).find((b) => b.event.type === 'hazardOccurred')?.event : undefined;
+        if (hazardEvent) {
+          const hz = hazardOnAll(before, { type: hazardEvent['hazard'] as HazardType, severity: Number(hazardEvent['severityHint']) as 1 | 2 | 3, cause: String(hazardEvent['cause']) }, selectNow(ctx.state).day);
+          const c = conclude(slice, ctx.state, { ...slice.active, duel: hz.duel }, outcome, label);
+          return { slice: c.slice, emit: [...syncEmits(ctx.state, before, hz.duel, slice.active.meta), ...c.emit], notes: [...hz.notes, ...c.notes], ...(c.rng ? { rng: c.rng } : {}) };
+        }
         const c = conclude(slice, ctx.state, slice.active, outcome, label);
         return { slice: c.slice, emit: c.emit, notes: c.notes, ...(c.rng ? { rng: c.rng } : {}) };
       },

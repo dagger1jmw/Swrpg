@@ -3,7 +3,7 @@
 // next (an opening's advantage, split defense when a thrown object and a strike land together, building pressure
 // +1 per success up to +3). The chain stops at the first failed step or when the opponent reaches a strike; the
 // remaining steps are dropped, not refunded. A natural 1 always fails a step.
-import { CIRCUMSTANCE, STRIKE_AT, type Maneuver, type Stance, type Tactic } from '../data/combat.config';
+import { CIRCUMSTANCE, FIRST_USE_MAX_GAIN, STRIKE_AT, type Maneuver, type Stance, type Tactic } from '../data/combat.config';
 import { SEQUENCE_ADAPTATION, SEQUENCE_CAP, SEQUENCE_CHAIN } from '../data/sequence.config';
 import type { BodyPart, ForceEffort } from '../data/health.config';
 import type { ObjectSize } from '../data/terrain';
@@ -127,6 +127,7 @@ export function runSequence(
     const defense: Modifier[] = adapt ? [{ source: `adapted to ${pattern}`, value: adapt }] : [];
     st = { ...st, patternUses: { ...st.patternUses, [pattern]: prior + 1 } };
     let success: boolean;
+    let held = false;
     let note: string;
     const duel = st.duel;
     // A step that cannot be attempted is dropped with its reason and the chain goes on (D-191: no silent drops).
@@ -146,7 +147,8 @@ export function runSequence(
       const [u, r1] = basicRoll(duel.rng, force.trickLevel, bonus);
       const [d, r2] = basicRoll(r1, Math.max(target.willpower, target.forceSense), defense);
       success = u.total >= d.total && u.natural !== 'nat1';
-      const gain = success ? (firstUse ? Math.max(CIRCUMSTANCE.openingAdvantage, STRIKE_AT - duel.advantage) : CIRCUMSTANCE.openingAdvantage) : 0;
+      // A first use jumps toward the strike, at most FIRST_USE_MAX_GAIN steps in one move (D-220).
+      const gain = success ? (firstUse ? Math.min(FIRST_USE_MAX_GAIN, Math.max(CIRCUMSTANCE.openingAdvantage, STRIKE_AT - duel.advantage)) : CIRCUMSTANCE.openingAdvantage) : 0;
       st = { ...st, duel: { ...duel, rng: r2, advantage: Math.min(5, duel.advantage + gain) } };
       note = `${success ? 'an opening' : 'seen through'}: ${duel.a.name} d20 ${u.d20} = ${u.total.toFixed(1)} vs ${target.name} d20 ${d.d20} = ${d.total.toFixed(1)} (margin ${(u.total - d.total).toFixed(1)})`;
     } else if (step.kind === 'forceAction') {
@@ -213,6 +215,9 @@ export function runSequence(
       if (rec.kind === 'strike' && rec.striker === 'A') success = !!rec.maneuver || (!!rec.hit && !rec.hit.avoided);
       else success = after.advantage > before.advantage;
       if (natural1) success = false;
+      // A strike step's build-up that only holds (the tie band; the track where it was) is not a failure (Jared, D-219):
+      // the chain goes on, without the building-pressure bonus. Lost ground, a miss or a natural 1 still stop it.
+      held = !success && !natural1 && step.kind === 'strike' && rec.kind === 'buildUp' && after.advantage === before.advantage && !(rec.hit && rec.hit.by === 'B' && !rec.hit.avoided);
       st = { ...st, duel: after };
       // Plain outcome (D-197): a real hit says hits with its location and severity; a build-up gains ground, holds or loses it.
       const tgt = after.opponents.find((o) => o.id === rec.targetId);
@@ -220,12 +225,12 @@ export function runSequence(
       if (step.kind !== 'maneuver') splitDefense = false;
     }
     st = { ...st, duel: settleEnd(st.duel) };
-    results.push({ index: i, step, success, status: success ? 'resolved' : 'failed', note });
+    results.push({ index: i, step, success, status: success || held ? 'resolved' : 'failed', note: held ? `${note}; the chain goes on` : note });
     if (st.duel.end) {
       stopReason = 'fightEnded';
       break;
     }
-    if (!success) {
+    if (!success && !held) {
       stopReason = 'stepFailed';
       break;
     }
@@ -239,7 +244,8 @@ export function runSequence(
       stopReason = st.duel.end ? 'fightEnded' : 'opponentStrike';
       break;
     }
-    if (step.kind !== 'stance') pressure = Math.min(SEQUENCE_CHAIN.pressureMax, pressure + SEQUENCE_CHAIN.pressurePerStep);
+    if (held) pressure = 0;
+    else if (step.kind !== 'stance') pressure = Math.min(SEQUENCE_CHAIN.pressureMax, pressure + SEQUENCE_CHAIN.pressurePerStep);
   }
   const dropped = used.slice(results.length);
   const why = stopReason === 'stepFailed' ? 'an earlier step failed' : strikeNote ? strikeNote : stopReason === 'opponentStrike' ? 'the opponent seized the strike' : 'the fight ended';

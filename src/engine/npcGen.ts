@@ -16,6 +16,7 @@ import {
   NPC_VARIANCE_SIGMA,
   ORDER_ROLES,
   ROLE_ARCHETYPES,
+  SPECIES_ARCHETYPE,
   ROLE_RANK,
   TALENT_ROLL_ORDERS,
   WARS,
@@ -63,10 +64,10 @@ export function warYearsFor(role: string, faction: string, age: number, startAge
   return total;
 }
 
-export function rollNpcInputs(input: { campaignSeed: string; npcId: string; role: string; faction: string; age: number; year: number }): NpcGenInputs {
+export function rollNpcInputs(input: { campaignSeed: string; npcId: string; role: string; faction: string; age: number; year: number; species?: string }): NpcGenInputs {
   const seed = npcSeed(input.campaignSeed, input.npcId);
   let rng = seedRng(seed);
-  let archetype = FACTION_ARCHETYPE[input.faction]?.[input.role];
+  let archetype = (input.species ? SPECIES_ARCHETYPE[input.species]?.[input.role] : undefined) ?? FACTION_ARCHETYPE[input.faction]?.[input.role];
   if (!archetype) {
     const list = ROLE_ARCHETYPES[input.role];
     if (list) [archetype, rng] = pickWeighted(rng, list);
