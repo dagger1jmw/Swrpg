@@ -106,7 +106,8 @@ export const MIND_TRICK_COMBAT = { minionOut: true, openingAdvantage: 2, baseLoa
  */
 export const SABER_THROW = {
   maxTargets: 3,
-  controlDifficulty: 30,
+  /** Rating 20 = DC 12 (D-193): the average Knight at 50 (Telekinesis 46) controls the throw about 65% of the time. */
+  controlDifficulty: 20,
   hitMargin: 6,
   minTelekinesis: 15,
   minForm: 10,

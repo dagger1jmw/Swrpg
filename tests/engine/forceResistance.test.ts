@@ -161,3 +161,11 @@ describe('strike steps against minions are strike rolls, not position contests (
     expect(r.state.duel.log[0]!.kind).toBe('buildUp');
   });
 });
+
+describe('saber-throw control difficulty (D-193, corrected)', () => {
+  it('is rating 20 (DC 12), as the decision records', () => {
+    expect(SABER_THROW.controlDifficulty).toBe(20);
+    const s = startDuel(knight(), [minion(0)], seedRng('dc'));
+    expect(resolveForceAction(s, { side: 'A', kind: 'saberThrow', level: 60, ci: 60, effort: 'standard', forceOutput: 0 }, 0, CTX).record.dc).toBe(12);
+  });
+});
