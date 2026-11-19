@@ -552,3 +552,41 @@ The new rules of this round:
 State left in the browser: `[TEST] Sela Dorn` is the current campaign, in an unfinished dev fight (exchange 6, the
 saber on the floor). The other six test campaigns are in storage. The tab is closed. Usage meter: 64 / 500 for
 gemini-3.5-flash-lite.
+
+---
+
+# Fixes built after pass 3 (2026-11-19) and the balance list
+
+Jared's list from this report, one commit per group, each with tests. Nothing was checked in the browser; pass 4 does.
+
+| Group | Report issues | Decision | Commit |
+|---|---|---|---|
+| 1. RNG state (blocker) | 1 | D-238: one stream; every dice-drawing combat handler starts from meta and writes back; the fate roll draws after the last exchange. Every other dice site checked (they already wrote back) | efb1b36 |
+| 2. Narration check precision | 3, 4, 20 | D-236: the slip rule counts only the body, explained per fighter by a hit, Choke, Push, knockdown or terrain accident; wording repair only swaps terms and the result is checked again; the summary otherwise. Measured on 195 saved narrations | 56e5fc7 |
+| 3. Missed narration errors | 5, 6, 7 | D-237: a shot or failed Force step told as done, ground given to the wrong side, "the surviving X" while several stand, a weapon nobody carries, lasting state (cannot stand, no right arm) in the block, the state and the check | 5aed76e |
+| 4. Yuuzhan Vong from the narrator | 2 | D-239: species and weapon read from the name and description (with the era), a Vong minion kind, minion captors by their kind | 897bce1 |
+| 5. Gemini overload | (the 503s) | D-240: 3 retries with backoff and jitter, one try on the next model, then Retry; the busy note; nothing on the meter | 2f9ccbc |
+| 6. Dev commands | not tested | D-241: /sever, /fatigue to 5, /exchanges n and /exchanges to n (the 200 cap), /hazard [end], /stakes, /archetype | e917c45 |
+| 7. Minor issues and captors | 8-24, captors | D-242: each fixed or left with the reason; captors recorded, in the block, in STATE for later scenes, and a check (rule 18) | d503428 |
+
+## Balance flags: recommendations (nothing changed)
+
+All the pass-3 numbers were seen through the RNG bug (issue 1): every fight of a campaign replayed the first one's dice, so each flag below wants a fresh look in pass 4 before anything is tuned.
+
+| # | Flag (pass 3) | Verdict | Recommendation |
+|---|---|---|---|
+| 1 | Duel lengths 81, 60, 67, 34 on Resolve to end | re-measure | Fresh dev duels after D-238 (16 probe duels, a Master at 60): gap 0 ended in 7 to 141 exchanges (median about 44), gap +30 in 23 to 74 (median about 42). Inside D-206's spread; no change. Pass 4 compares a few against D-206's table |
+| 2 | heroicAct for a Knight at 53.6 beating a duelist at 28.6 | rule gap | HEROIC_ACT counts any opponent of rank Sith Lord or Master, whatever the gap, and the dev duelist was generated as a Sith Lord at 28.6. Let the rank clause count only when the opponent is within 10 levels below the player (or at least the player's level minus 10); a canon Sith Lord stays heroic. For Jared |
+| 3 | The Force meter from precognition alone (53% to 86% over 81 exchanges; 10% to 45% over 67) | as built (D-222) | 0.4 Force load per use, shown on the card now. A long duel can take a Force user near the limit with no Force action. If that is unwanted: let the meter recover a little per exchange in which precognition was not used (a rest rate, not a new cost). For Jared; nothing changed |
+| 4 | A smuggler at +3.0 shot down four troopers in cover, no cover modifier on any card | rules gap | Cover (terrain tag cover) only blocks Force targeting today (D-192); it gives a shooter nothing. Recommend a cover modifier on ranged attacks: +2 to the defense of a fighter in cover against a ranged attack, both sides, with "Take position" as the way to get it. A spec change (rolls §5); for Jared |
+| 5 | A Sith Lord whose weapon arm was severed at #16 fought on for 22 exchanges and won | by design, for Jared | D-198 built the weapon-arm rule and left it off (health.config WOUND_FIGHTING.weaponArm false): a severed weapon arm puts the fighter out until a second weapon exists (M8). With it off, a fighter fights on at full skill with no arm. Recommend switching it on with the off-hand penalty (0.4) for a fighter who still has the other hand, rather than out of the fight; measure the lifetime gates first (rule 6) |
+| 6 | A quality cybernetic arm: 3% adapted after 20 days, 50% at day 40 (about 2.5% a day once healed) | as built | §18's reference ("3h/day of forms -> full adaptation in ~34 days") assumes training; the first 20 days were mostly injury rest (19.5 training hours in the first 10), so adaptation began when training did. At 2.5% a day from day 20 the arm is full near day 60, about 40 days of training. No change; pass 4 times it from the end of the healing |
+| 7 | Lightning: 8 Vitality a hit and never a wound from a Sith Lord | as built (D-216) | Lightning scales with Force Output; the test Sith had little. Recommend nothing until a Sith with a trained Force Output is tested (pass 4 can use /set forceOutput) |
+| 8 | A lightsaber graze costs 20 Vitality and no wound | as built | Health §3; no change |
+| 9 | Four Mandalorians with slugthrower rifles beat a Knight at 30 on ice | one sample | The sweep has knight30 vs 4 Mandalorians at 80% won with the default weapons and no slugthrower group; add a "4 Mandalorians, slugthrower rifles" row to the sweep to measure it. No change |
+| 10 | A Jedi killed a dying prisoner with no consequence | as intended | Alignment is M6 |
+| 11 | (new, from the final sweep) The 38 sweep rows against Sith acolytes moved: they fought with training sabers and never wounded anyone (wounded 0.0 in every row); with D-242's live lightsabers a Padawan at 16 against an acolyte 10 below wins 75% (was 100%) and is wounded 50%; a Knight at 50 at gap -30 is wounded 33% | fixed artifact, for Jared | The old rows measured a sweep artifact of the same training-saber rule. The new numbers match other duelists at the same gap (Knight 50 vs a Jedi Knight at 25, gap -30: wounded 33%). No change; Jared may want acolytes weaker than a duelist of the same level (they are trainees): a level or grade discount in the M6 catalog |
+
+## Not tested after the fixes
+
+Everything above is unit- and fixture-tested only. Pass 4 (docs-v2/progress.md, handoff) checks the blocker, the precision changes, the Vong and the items pass 3 could not reach, in the browser.
