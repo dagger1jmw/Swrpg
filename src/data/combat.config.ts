@@ -237,3 +237,6 @@ export const HEROIC_ACT = { gapAtLeast: 10, ranks: ['lord', 'master'] as readonl
 
 // ---- Recording review (progression-numbers §19) ----
 export const RECORDING_REVIEW = { bonus: 0.05, days: 3, everyDays: 7, recordedModes: ['trainingSaber', 'controlled', 'academy'] as readonly SparringMode[] } as const;
+
+/** Words for the fighters themselves: a storyEvent or thirdParty why that uses one describes the fight (D-196). */
+export const INTERRUPT_FIGHTER_WORDS: readonly string[] = ['opponent', 'opponents', 'enemy', 'enemies', 'attacker', 'attackers', 'foe', 'foes', 'combatants', 'fighters', 'duelists'];

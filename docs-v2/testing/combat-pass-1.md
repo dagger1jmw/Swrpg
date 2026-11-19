@@ -304,3 +304,128 @@ minion (fixed, D-194); the narrator block missing resolved and failed steps (fix
 beasts fighting at level 0 (fixed, D-195); elite wounds above the D-158 Soresu row (accepted, D-194); heavy Force use
 losing 10 to 47% of fights to backlash collapses (rule kept, warning added, D-194). Minion win rates agree with D-158
 at the same level gaps.
+
+---
+
+# Fixes and re-check (2026-11-18, later the same day)
+
+Fixes from the list above went in as D-196 to D-200, one commit per group. Then scenarios 1, 3 and 6 were replayed in
+the browser with the same typed inputs. `npm run sweep`: 9,840 fights, no issues. `npm run test:all`: 4 lifetime gates
+fail, all moved by the severed-leg rule and left for Jared to decide (see D-198 below); everything else passes.
+
+**AI calls used in the re-check: 25 of the 25 budget** (usage meter 132 -> 157). One of the 25 was a retry caused by a
+false alarm in the new narration check (fixed, see below).
+
+## What was fixed
+
+| Issue | Fix | Decision |
+|---|---|---|
+| 1 | Interrupting a fight needs a category from a fixed list and an outside event; restating the fight is refused; "interrupted" is its own outcome (never fled or won) | D-196 |
+| 2, 3, 4, 5, 11, 13 | Plain step labels (DONE / FAILED / NOT REACHED, "gains ground; no hit", "hits X: moderate wound to the left arm"); the HIT / NO HIT outcome list with each fighter's weapon; the ABSOLUTE RULE in the prompt; a check before commit with one retry and a code-written fallback; "Care applied this turn" for montages | D-197 |
+| 12 | A severed leg ends the duel for that fighter (prosthetic legs exempt). The weapon-arm rule is built and switched off | D-198 |
+| 6, 7, 8, 9, 10, 14 | Stance outside the sequence cap; the opponent's strike resolved and logged when they hold the initiative, with a panel warning; a failed feint is a beat with its dice; a throw uses any throwable; typed rest with care rests and starts care; typed words end a sparring session | D-199 |
+| (new) | Slugthrower pistol, rifle and scatter gun | D-200 |
+| 15 | Saber-throw control difficulty set to rating 20 (DC 12); D-193 corrected with the measured numbers | D-193 |
+
+Not fixed (not on the list): issues 16 to 21. Issue 22 is answered in "Numbers that look off" below.
+
+## Re-check results
+
+### Scenario 1: Knight vs 6 B1, forest (10 calls)
+
+| Input | Engine | Narration | Verdict |
+|---|---|---|---|
+| `I ignite my lightsaber and cut down the nearest battle droid.` | `step 1 strike: FAILED (misses B1 battle droid 1: no hit)`; `#1 strike · strike recovered` (10.4 vs 8.4) | "your humming blade slicing through empty air just inches from its chassis" | Faithful. The step line now shows in the feed. |
+| `I throw my lightsaber in a wide arc through the droids and call it back to my hand.` | `step 1 saber throw: FAILED (... the saber drops nearby (unarmed until recalled))`; `step 2 saber recall: NOT REACHED (an earlier step failed)`; `#2 Force · saber throw: fell short (DC 12) · saber dropped` | "The weapon falters mid-air, clattering harmlessly into the tall grass near your feet before you can complete the arc or reach out to recall it." | Faithful. DC is 12 now. (Pass 1: an invented hit and a severed arm.) |
+| `I call my lightsaber back to my hand with the Force, then throw it in an arc through the droids.` | `step 1 saber recall: DONE (the saber flies back to hand)`; `step 2 saber throw: FAILED` | "leaps from the grass and snaps firmly back into your outstretched palm ... clatters uselessly to the earth near your feet once more, leaving you temporarily unarmed" | Faithful. |
+| `I pull my lightsaber back to my hand, then lift a heavy rock with the Force and hurl it at the nearest droid.` | `step 2 Force throw: FAILED (fails: the target is behind cover, which blocks it)`; `#6 Force · telekinesis: blocked by cover (DC 12)` | "the machine instantly ducks behind the dense roots of an ancient tree ... the massive stone crashes harmlessly against the trunk" | Faithful, with the engine's reason. The throw is attempted now (pass 1: "nothing left to throw"). **But the narrator ended the fight again: see below.** |
+| `Resolve to end` (new fight, 11 exchanges) | Saved record: droid 1 torso moderate; droid 2 torso no wound, then torso severe; droid 3 right leg severed; droid 4 right arm severed; droid 5 head mortal; droid 6 head moderate | "into the torso of the first ... grazing its chest ... a severe blow to its torso ... the third ... cleaving its right leg clean off ... the fourth ... sever its right arm at the shoulder ... the fifth in the head ... a moderate strike to the head of the final droid" | Faithful on every hit, location and severity. No retry. |
+
+**The blocker came back once, in a new form (bug, blocker; fixed during the re-check).** On the rock-throw turn the engine
+log showed `applied combatEnded (fight fight-1 ends: interrupted (storyEvent: The droids take cover behind the
+terrain.; 6 opponents still standing))`. D-196 recorded it correctly (interrupted, not fled; 6 standing), but the fight
+should not have ended: the narrator used the storyEvent category for something the fighters did. Fix: a storyEvent or
+thirdParty reason that names the fighters (the words of their names, or opponent / enemy / attacker / foe) is refused.
+A test holds the exact case. The narrator did not try again in the remaining turns, so the tightened rule has not been
+seen working live.
+
+### Scenario 3: Knight vs 1 duelist, lethal (9 calls)
+
+| Input | Engine | Narration | Verdict |
+|---|---|---|---|
+| `I strike at his sword arm.` | `step 1 strike (aimed at the rightArm): DONE (gains ground; no hit)` | "The robed figure holds his ground, raising his own humming plasma blade to intercept your strike" | Faithful. (Pass 1: "Your blade catches him cleanly".) |
+| `I feint high, then cut low at his leg.` | `step 1 feint: FAILED (seen through: Kael Voss d20 6 = 6.0 vs Duelist 1 d20 6 = 13.5 (margin -7.5))`; `step 2 strike (aimed at the leftLeg): NOT REACHED` | "the robed figure reads the motion instantly ... you never get the opening needed to bring your blade down toward his leg" | Faithful, a narrated beat with its dice. (Pass 1: "no effect".) |
+| `I press him with two quick cuts, then shove him back with a Force push.` | `step 1 stance (aggressive): DONE`; `step 2 strike: FAILED (loses ground; no hit)`; steps 3 and 4 `NOT REACHED (an earlier step failed)` | "you never get the chance to follow up with a second strike, nor do you find the opening needed to unleash a Force push" | Faithful. No cap line: the stance no longer counts. |
+| `I shove him back with a Force push, then strike twice at his body.` (track -4) | Panel: "Opponent has the initiative: a sequence may be cut short". `step 1 Force push: FAILED (fails: the roll fell short of the difficulty ...)` | "your focus falters just shy of the threshold ... you never get the chance to press forward with your intended twin strikes" | Faithful. The opponent's-strike path was not reached live (the push failed first); it is covered by a unit test. |
+| `Next beat` to a wounding hit (29 exchanges in the block) | Hits: #16 on Kael, right leg, no wound; #32 on Duelist 1, right arm, moderate | "catching Kael's right leg with a glancing graze that leaves stamina taxed but no lasting wound ... a solid, moderate strike against Duelist 1's right arm" | Faithful. (Pass 1: the wound was left out.) |
+| `Resolve to end` | #43 on Kael: torso, mortal. Lost (dying), the opponent's choice: killing strike | "Duelist 1's blade flashes forward in a lethal arc, plunging deep into Kael's torso" | Faithful. |
+
+No leg was severed in this duel, so the severed-leg rule was not seen live (unit tests and 400 simulated duels cover it).
+
+### Scenario 6: wound, `/skip 7d`, a typed week of care (6 calls with the dev set-up)
+
+- `/heal all`, `/wound right arm severe`, `/skip 7d`: 5 training days; `severe · rightArm · 33% healed` (base rate, as before).
+- `I spend the next week resting while a medic treats my wounded arm.`: intent `rest`, `healing: medical`, `1 weeks`.
+  Report: `0 training days, 7 rest or recovery days, 0 hours of training`. Engine: `under medical care for 7.0 days (x2
+  healing)`, `rest and recovery: no training on these days`. Health afterwards: `No wounds` (33% -> healed: twice the
+  base rate). (Pass 1: 6 training days and the base rate.)
+- Narration: "a medic tends to your deep torso wound using standard medpacs and a basic recovery bed. Without the
+  luxury of bacta or kolto tanks, the healing is slow and arduous". No invented bacta or Force healing.
+- **False alarm in the new check (bug, minor; fixed).** The first narration said "treated only by standard medpacs and
+  basic care rather than restorative bacta", which is correct, and the check flagged the word bacta and retried (one
+  extra call). "rather than", "only by", "not" and similar now count as saying the care was not applied; both sentences
+  are tests.
+- **Wrong wound (narration, minor).** The narrator treated a "deep torso wound"; the engine's wound was the right arm.
+  The torso wound was the one from the lost duel, removed by the dev `/heal all`, which the narrator never saw. Partly a
+  dev artifact, and also the known gap in D-197: a wound placed wrongly is not detected.
+
+## New observations in the re-check
+
+| # | Category | Severity | Issue |
+|---|---|---|---|
+| R1 | bug | blocker (fixed) | The narrator interrupted a fight with storyEvent "The droids take cover behind the terrain." |
+| R2 | bug | minor (fixed) | The narration check flagged a sentence saying the care was not bacta |
+| R3 | narration | minor | Third person for one long passage ("Kael evades ..."), and saber colours that change ("blue and crimson arcs ... green and red light") |
+| R4 | narration | minor | Still invents small causes: "your grip slips just a fraction on the energy matrix", "your footing slips slightly on the tall grass", "a critical misstep" |
+| R5 | narration | minor | Mechanical words in prose: "a moderate strike to the head", "a severe blow to its torso" (a side effect of the explicit outcome list) |
+| R6 | UX | minor | The roll card of a build-up exchange that cuts a minion down does not show the hit's location or severity (the saved record had to be read to check the narration) |
+| R7 | UX | minor | A raw id is left in the step label: "strike (aimed at the rightArm)" |
+| R8 | balance | flag | The droids did nothing for two turns while the Knight stood unarmed using only Force actions (see the list below) |
+| R9 | balance | flag | The feint rolled `d20 6 = 6.0`: no level bonus at all (see the list below) |
+
+## Gates moved by the severed-leg rule (D-198), for Jared's decision
+
+`npm run test:all` fails these four. They are left failing; nothing was retuned.
+
+| Gate | Target | Before | With the leg rule |
+|---|---|---|---|
+| duelTables test 1: median exchanges, gap 0 | 30 to 40 | 37 | 27 |
+| the same, gap +5 / +10 | 30 to 40 | 35 / 36 | 25 / 26 |
+| the same, gap +20 | 29 +/-5 | 31 | 23 |
+| Anakin: never beyond 4.0x the Average pace (tier 41) | 4 or more | passed | 3.90 |
+| Anakin, Clone Wars ages 19-22: combat share of yearly main-form XP | 25 to 35% | passed | 22.4% |
+| Obi-Wan, Clone Wars ages 35-38: the same | 20 to 30% | passed | 35.0% (age 37) |
+
+Win rates stay inside the table's +/-3 at every gap (for example gap 0: 49.4 -> 49.6; +20: 83.3 -> 82.0). Duels are
+about 10 exchanges shorter. With the weapon-arm rule on as well, the even duel drops to 22 exchanges and the +20 win
+rate to 79.0 (5 under the table), so that rule is off until M6.
+
+## Numbers that look off: recommendation for each (nothing changed)
+
+| # | Number | Verdict | Recommendation |
+|---|---|---|---|
+| 1 | A severe wound to the sword arm costs 12% on the main form | tunable | The weapon-arm rule (D-198, built, off) is the answer: 40% in the off hand. Decide it with the duel-length gates. |
+| 2 | The wound penalty does not ease as the wound heals (-12% at 67% healed) | bug | The penalty reads severity only. Scale the location and status penalty by the share still unhealed. |
+| 3 | One 50-exchange duel takes the physical meter to 4.5 of 5.1 ("exhausted") | as intended | 0.08 per exchange by config. Duels are now about 27 exchanges (about 2.2), so it eases by itself. |
+| 4 | A missed sequence strike against a minion by 12 moved the track from 0 to -3 | tunable | My D-191 rule gives the full build-up step. Cap the loss at 1 step: one parried cut should not hand a droid the strike. |
+| 5 | Typed strike steps make the opponent adapt (+1, +2); the Next beat button never does | bug | Adaptation was meant for a Force ability plus a maneuver (D-146). Leave plain strike steps out of it. |
+| 6 | A line trooper's Willpower (45) beats a Knight's Mind Trick (23) | tunable | Two causes: the soldier archetype's Willpower pace is high, and Mind Trick's share is 0.35. Settle it with the M6 catalog (for example a weak-minded modifier by minion grade). |
+| 7 | A Padawan (34) led a Master (68) for most of 28 exchanges | as intended | Dice. A 34-level gap is 3.4 points on a d20, and the rolls §8 table gives the weaker side about 8% at -30. |
+| 8 | Fights on loose rock open with an opponent falling (2 of 2 in pass 1) | tunable | Each fighter rolls each hazardous tag: forest is 3% + 2% per fighter, so a 7-fighter fight has an accident about 30% of the time. Roll once per fight, or halve the chances. |
+| 9 | Taking cover does nothing for the player beyond a position maneuver | as built | A rule gap, not a bug. M6: cover gives ranged attackers a penalty against a player behind it. |
+| 10 | A montage gives +0.1 XP to Force Barrier, Force Absorb and Battle Meditation, which the Guardian does not know | bug | Force Control synergy spills into every Force ability. Spill only into abilities the character has learned. |
+| 11 | A Jedi used Force lightning with no consequence | as intended | Alignment is M6. |
+| 12 | Combat XP: 0.49 for six B1s, 0.00 for six more the same day | as intended | XP scales with the level gap, and B1s are 35 to 40 levels below this Knight. |
+| 13 | (new) A feint rolls with no level bonus: `d20 6 = 6.0` | bug | The trick level is the best of Charisma and Intelligence only, both untrained for a Guardian. rolls §5 lists the form level too: include it. |
+| 14 | (new) Force-only turns are free: the opponents do not act | tunable | A Force action resolves with no exchange for the other side. Let the opponents take their exchange after it, or move the track one step toward them. |
+| 15 | (new) Saber-throw control: 64.6% for the average Knight at 50, 59.3% at 30 | tunable | Jared's target is about 70%. Rating 15 (DC 11.5) gives 70% at Telekinesis 46. |

@@ -68,6 +68,10 @@ describe('contradictions from combat pass 1 (D-197)', () => {
     expect(kinds('You float in the bacta tank for hours while the wound knits.', withBacta, true)).toEqual([]);
     // Talk about healing that is not applied is fine.
     expect(kinds('The medic shakes his head: you need a bacta tank, and there is none within a day of here.', draft(null, { jump }), true)).toEqual([]);
+    // The re-check's false alarm: the narrator saying the care was NOT bacta must pass (both of its sentences).
+    const medical = draft(null, { jump, applied: [{ event: { type: 'careStarted', kind: 'medical', hours: 168 }, notes: [] }] as never });
+    expect(kinds('The pain of the injury fades into a dull, persistent ache, treated only by standard medpacs and basic care rather than restorative bacta.', medical, true)).toEqual([]);
+    expect(kinds('Without the luxury of bacta or kolto tanks, the healing is slow and arduous, relying on ordinary antiseptic dressings.', medical, true)).toEqual([]);
     // Unwounded, in an ordinary scene, a bacta ward is just scenery.
     expect(kinds('You walk past the bacta tanks of the medcenter.', draft(null), false)).toEqual([]);
   });

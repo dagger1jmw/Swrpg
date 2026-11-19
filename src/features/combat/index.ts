@@ -4,7 +4,7 @@
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
-import { INTERRUPT_CATEGORIES, INTERRUPT_RESTATES, FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type NpcFate } from '../../data/combat.config';
+import { INTERRUPT_CATEGORIES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, FATE_BY_STAKES, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
 import { rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, type BodyPart } from '../../data/health.config';
@@ -599,6 +599,16 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           // An outside event of a listed kind, never the fight restated (D-196).
           if (!e['category']) return { reject: `combatEnded interrupted needs a category: ${INTERRUPT_CATEGORIES.join(', ')}` };
           if (INTERRUPT_RESTATES.some((re) => re.test(why.toLowerCase()))) return { reject: `combatEnded interrupted: "${why}" only describes the fight; an interruption is an outside event (${INTERRUPT_CATEGORIES.join(', ')}). The fight goes on` };
+          // A story event is something outside the fighters (D-196, tightened after the re-check): what the opponents or the
+          // player do in the fight ("the droids take cover behind the terrain") is the fight, not an interruption.
+          if (e['category'] === 'storyEvent' || e['category'] === 'thirdParty') {
+            const d = slice.active.duel as DuelState;
+            const nouns = new Set<string>();
+            for (const f of [d.a, ...d.opponents]) for (const w of f.name.toLowerCase().split(/[^a-z]+/)) if (w.length >= 4) nouns.add(w);
+            const words = why.toLowerCase().split(/[^a-z]+/);
+            const named = words.find((w) => nouns.has(w) || nouns.has(w.replace(/s$/, '')) || INTERRUPT_FIGHTER_WORDS.includes(w));
+            if (named) return { reject: `combatEnded interrupted: "${why}" is something the fighters do ("${named}"), not an outside event. The fight goes on; if nothing outside the fight stops it, send no combatEnded` };
+          }
         }
         // A sparring session ends by its bouts or when the player stops (D-181): a bout's point is not the end of the
         // session. Only the story stopping it (interrupted) ends it from the narration, with the bouts so far.

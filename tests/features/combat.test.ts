@@ -166,6 +166,20 @@ describe('beats and conclusion', () => {
       expect(r.state.combat.last!.outcome).toBe('interrupted');
     }
   });
+  it('a story event is not something the fighters do (D-196; the re-check case: "The droids take cover behind the terrain.")', () => {
+    const f = begin(fresh(), [], 'serious', [{ kind: 'battleDroid', count: 6 }]);
+    const exact = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'storyEvent', why: 'The droids take cover behind the terrain.' }]);
+    expect(exact.rejected[0]?.reason).toMatch(/is something the fighters do \("droids"\), not an outside event/);
+    expect(exact.state.combat.active).not.toBeNull();
+    for (const why of ['The battle droid patrol regroups', 'the enemy falls back to the tree line', 'Your opponents hesitate']) {
+      const r = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'storyEvent', why }]);
+      expect(r.rejected, why).toHaveLength(1);
+      expect(r.state.combat.active, why).not.toBeNull();
+    }
+    // Reinforcements may be more of the same kind; an outside event still passes.
+    expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'reinforcements', why: 'a second droid column marches out of the trees' }]).rejected).toEqual([]);
+    expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'storyEvent', why: 'a Republic gunship drops out of the clouds overhead' }]).rejected).toEqual([]);
+  });
   it('the target is a setting (D-182): no exchange, it stays until changed, and falls back when that target is out', () => {
     const { s, id } = withNpc(fresh());
     const second = withNpc(s, 'Darth Rue');

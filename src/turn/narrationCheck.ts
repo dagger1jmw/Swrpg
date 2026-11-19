@@ -61,8 +61,12 @@ const FORCE_NAME: Readonly<Record<string, string>> = { push: 'Force push', light
 
 const BACTA = /\b(bacta|kolto)\b/i;
 const FORCE_HEAL = /\bforce[- ](heal\w*|assisted healing)|\bhealing (trance|through the force)|\b(heal\w*|mend\w*|knit\w*)\b[^.]{0,40}\b(with|through|using) the force\b/i;
-/** Healing only talked about, wished for or sought. */
-const HEALING_NOT_APPLIED_TALK = /\b(no|without|need\w*|wish\w*|would|should|could|must|seek\w*|find|look\w* for|ask\w*|request\w*|suggest\w*|recommend\w*|offer\w*|if|until|when you reach|lack\w*|out of)\b/i;
+/**
+ * Healing only talked about, wished for, sought, or named as what the character did NOT get ("treated only by medpacs
+ * rather than restorative bacta": a false alarm in the re-check, since the block itself tells the narrator there is no
+ * bacta).
+ */
+const HEALING_NOT_APPLIED_TALK = /\b(no|not|nor|never|without|rather than|instead of|in place of|unlike|only by|only with|absent|absence|need\w*|wish\w*|would|should|could|must|seek\w*|find|look\w* for|ask\w*|request\w*|suggest\w*|recommend\w*|offer\w*|if|until|when you reach|lack\w*|out of|luxury)\b/i;
 
 function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): NarrationIssue[] {
   const out: NarrationIssue[] = [];
