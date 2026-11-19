@@ -115,6 +115,25 @@ export async function createCampaign(
 }
 
 /** Loads the autosave and its transcript. Returns null when there is none, or an error message. */
+/**
+ * Loads an earlier save and plays on from it on a new branch (D-214; architecture §13; health.md: after death an older
+ * save starts a new branch). The old branch's transcript up to that turn is copied to the new branch (nothing is ever
+ * deleted), and the new branch becomes the autosave. Returns the session, or an error for a broken save.
+ */
+export async function loadEarlierSave(registry: Registry<GameState>, storage: Storage, key: string, newBranchId: string, wallIso: string): Promise<{ session: Session } | { error: string }> {
+  const raw = await storage.loadSnapshot(key);
+  if (raw === null || raw === undefined) return { error: 'that save is no longer kept' };
+  const loaded = loadEnvelope(registry, raw);
+  if (!loaded.ok) return { error: loaded.error };
+  const old = loaded.state;
+  const state: GameState = { ...old, meta: { ...old.meta, branchId: newBranchId } };
+  const entries = (await storage.readTranscript(old.meta.campaignId, old.meta.branchId)).filter((e) => e.turn <= old.meta.turn).map((e) => ({ ...e, branchId: newBranchId }));
+  const campaign: CampaignRecord = { ...((await storage.loadCampaign(old.meta.campaignId)) ?? { campaignId: old.meta.campaignId, name: old.character.name, createdAt: wallIso }), lastPlayedAt: wallIso };
+  await storage.importCampaign(makeEnvelope(registry, state, wallIso), campaign, entries);
+  const history = entries.map((e) => ({ ...(e.data as TurnRecord), turn: e.turn }));
+  return { session: { state, history, campaign } };
+}
+
 export async function resumeCampaign(registry: Registry<GameState>, storage: Storage): Promise<{ session: Session } | { error: string } | null> {
   const raw = await storage.loadSnapshot(AUTOSAVE_SLOT);
   if (raw === null || raw === undefined) return null;

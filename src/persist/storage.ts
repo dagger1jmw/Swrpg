@@ -1,6 +1,7 @@
 // Storage interface (architecture §13). The turn commit writes the autosave snapshot and the
 // transcript entry in one transaction. The transcript is append-only and never deleted.
 import type { SaveEnvelope } from './envelope';
+import { retainSaves, saveIndexKey, saveMetaOf, type SaveMeta } from './saveHistory';
 
 export interface TranscriptEntry<T = unknown> {
   campaignId: string;
@@ -25,10 +26,15 @@ export interface CampaignRecord {
 export const AUTOSAVE_SLOT = 'autosave';
 
 export interface Storage {
-  /** Writes the autosave snapshot, the campaign record and (if given) a transcript entry atomically. */
+  /**
+   * Writes the autosave snapshot, the campaign record and (if given) a transcript entry atomically, and keeps the
+   * snapshot in the campaign's save history (D-214: the last 10, plus one per in-game day for the last 7 days).
+   */
   commitTurn(envelope: SaveEnvelope, campaign: CampaignRecord, entry: TranscriptEntry | null): Promise<void>;
-  /** The raw autosave envelope, unvalidated (load it with loadEnvelope). */
+  /** A raw snapshot envelope, unvalidated (load it with loadEnvelope): the autosave, or an earlier save by its key. */
   loadSnapshot(slot: string): Promise<unknown>;
+  /** The campaign's earlier saves, newest first (D-214). */
+  listSaves(campaignId: string): Promise<SaveMeta[]>;
   loadCampaign(campaignId: string): Promise<CampaignRecord | null>;
   /** Transcript entries of one branch from `fromTurn` (inclusive), in turn order. */
   readTranscript(campaignId: string, branchId: string, fromTurn?: number): Promise<TranscriptEntry[]>;
@@ -57,8 +63,17 @@ export function createMemoryStorage(opts: { failNextCommit?: boolean } = {}): St
         throw new Error('Simulated storage failure');
       }
       snapshots.set(AUTOSAVE_SLOT, env);
+      // The save history (D-214), in the same all-or-nothing step.
+      const meta = saveMetaOf(env);
+      const r = retainSaves((snapshots.get(saveIndexKey(meta.campaignId)) as SaveMeta[] | undefined) ?? [], meta);
+      snapshots.set(meta.key, structuredClone(env));
+      for (const k of r.drop) snapshots.delete(k);
+      snapshots.set(saveIndexKey(meta.campaignId), r.keep);
       campaigns.set(rec.campaignId, rec);
       if (ent) transcript.push(ent);
+    },
+    async listSaves(campaignId) {
+      return structuredClone((snapshots.get(saveIndexKey(campaignId)) as SaveMeta[] | undefined) ?? []);
     },
     async importCampaign(envelope, campaign, entries) {
       const ents = entries.map((e) => structuredClone(e));

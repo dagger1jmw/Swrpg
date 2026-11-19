@@ -36,7 +36,8 @@ import type { Storage } from '../persist/storage';
 import { applyEvents } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
 import type { GameEvent, Registry } from '../state/types';
-import { createCampaign, DEFAULT_START_SECOND, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
+import { createCampaign, DEFAULT_START_SECOND, loadEarlierSave, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
+import type { SaveMeta } from '../persist/saveHistory';
 import { devFlag, TEST_START_RANKS, testStartInput, type TestStartRank } from '../turn/testStart';
 import { narrateTurn, prepareTurn, summarizeChapters, TurnError, type DebugRequest, type PendingTurn, type Session, type SummaryOutcome, type TurnDeps } from '../turn/pipeline';
 import { describeInput, type TurnInput, type TurnRecord } from '../turn/record';
@@ -129,6 +130,8 @@ export class App {
   private summaryLog: SummaryOutcome[] = [];
   private summarizing = false;
   private settingsNote: string | null = null;
+  /** The current campaign's earlier saves (D-214), loaded when the campaign menu opens. */
+  private saves: { campaignId: string; list: SaveMeta[] } | null = null;
   /** The unsent text in the action box, kept across re-renders. */
   private draft = '';
   /** The feed follows new turns only while the player is at the bottom. */
@@ -557,8 +560,8 @@ export class App {
       const ending = el('section', { class: 'box choices ending' }, [
         el('div', { class: 'box-body' }, [
           el('strong', { text: `${session.state.character.name} is dead.` }),
-          el('p', { class: 'hint', text: `${session.state.health.death.cause}. Load an older save from the campaign menu to play on from there (a new branch), or create a new character.` }),
-          el('button', { class: 'choice secondary', text: 'Campaign menu', on: { click: () => this.openModal('campaign') } }),
+          el('p', { class: 'hint', text: deathCardHint(session.state.health.death.cause) }),
+          el('button', { class: 'choice secondary', text: 'Load an earlier save', on: { click: () => this.openModal('campaign') } }),
         ]),
       ]);
       return el('main', { class: 'main' }, [feed, ending]);
@@ -797,6 +800,7 @@ export class App {
       out.push(
         el('h3', { text: 'Current campaign' }),
         el('p', { text: `${this.session.campaign.name} · turn ${this.session.state.meta.turn}` }),
+        ...this.renderEarlierSaves(this.session),
       );
     }
     out.push(
@@ -822,6 +826,41 @@ export class App {
       ...this.renderCreateForm(),
     );
     return out;
+  }
+
+  /** "Load an earlier save" (D-214): the kept saves with their date, place and turn; loading one starts a new branch. */
+  private renderEarlierSaves(session: Session): HTMLElement[] {
+    const id = session.state.meta.campaignId;
+    if (this.saves?.campaignId !== id) {
+      this.saves = { campaignId: id, list: [] };
+      void this.d.storage.listSaves(id).then((list) => {
+        this.saves = { campaignId: id, list };
+        this.render();
+      });
+    }
+    const list = this.saves.list.filter((m) => !(m.branchId === session.state.meta.branchId && m.turn === session.state.meta.turn));
+    return [
+      el('h3', { text: 'Load an earlier save' }),
+      el('p', { class: 'hint', text: 'The last 10 saves and one for each of the last 7 in-game days. Playing on from one starts a new branch; nothing is deleted.' }),
+      list.length
+        ? el('div', { class: 'save-list' }, list.map((m) => el('button', { class: 'choice secondary', text: saveLabel(m), on: { click: () => void this.loadEarlier(m) } })))
+        : el('p', { class: 'hint', text: 'No earlier saves yet.' }),
+    ];
+  }
+
+  private async loadEarlier(m: SaveMeta): Promise<void> {
+    const r = await loadEarlierSave(this.d.registry, this.d.storage, m.key, this.d.newId(), new Date(this.d.now()).toISOString());
+    if ('error' in r) {
+      this.settingsNote = `Could not load that save: ${r.error}`;
+    } else {
+      this.session = r.session;
+      this.saves = null;
+      this.failed = null;
+      this.feedStick = true;
+      this.modal = null;
+      this.settingsNote = null;
+    }
+    this.render();
   }
 
   private renderCreateForm(): HTMLElement[] {
@@ -1018,4 +1057,14 @@ export class App {
       ...c.notes.map((n) => el('div', { class: 'hint', text: n })),
     ]);
   }
+}
+
+/** The death card's hint (D-214): where to go to play on. */
+export function deathCardHint(cause: string): string {
+  return `${cause.charAt(0).toUpperCase()}${cause.slice(1)}. Choose Load an earlier save (in the campaign menu) to play on from before this moment on a new branch, or create a new character.`;
+}
+
+/** One earlier save in the list: the in-game date and time, the place and the turn. */
+export function saveLabel(m: SaveMeta): string {
+  return `${formatDate(m.day)}, ${formatClock(m.second)} · ${m.place ?? 'an unknown place'} · turn ${m.turn}${m.dead ? ' · after death' : ''}`;
 }

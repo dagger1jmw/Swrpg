@@ -2,6 +2,7 @@
 // (autosave + slots), transcript keyed by [campaignId, branchId, turn].
 import type { CampaignRecord, Storage, TranscriptEntry } from './storage';
 import { AUTOSAVE_SLOT } from './storage';
+import { retainSaves, saveIndexKey, saveMetaOf, type SaveMeta } from './saveHistory';
 
 const DB_NAME = 'swrpg-v2';
 const DB_VERSION = 1;
@@ -41,11 +42,25 @@ export function createIndexedDbStorage(db: IDBDatabase): Storage {
     async commitTurn(envelope, campaign: CampaignRecord, entry: TranscriptEntry | null) {
       const tx = db.transaction(['snapshots', 'campaigns', 'transcript'], 'readwrite');
       const done = txDone(tx);
-      tx.objectStore('snapshots').put(envelope, AUTOSAVE_SLOT);
+      const snaps = tx.objectStore('snapshots');
+      snaps.put(envelope, AUTOSAVE_SLOT);
+      // The save history (D-214), in the same transaction: read the index, keep the retained saves, delete the rest.
+      const meta = saveMetaOf(envelope);
+      const idx = snaps.get(saveIndexKey(meta.campaignId));
+      idx.onsuccess = () => {
+        const r = retainSaves((idx.result as SaveMeta[] | undefined) ?? [], meta);
+        snaps.put(envelope, meta.key);
+        for (const k of r.drop) snaps.delete(k);
+        snaps.put(r.keep, saveIndexKey(meta.campaignId));
+      };
       tx.objectStore('campaigns').put(campaign);
       // add (not put): an existing entry aborts the whole transaction, so nothing is overwritten.
       if (entry) tx.objectStore('transcript').add(entry);
       await done;
+    },
+    async listSaves(campaignId) {
+      const tx = db.transaction('snapshots', 'readonly');
+      return ((await promisify(tx.objectStore('snapshots').get(saveIndexKey(campaignId)))) as SaveMeta[] | undefined) ?? [];
     },
     async importCampaign(envelope, campaign, entries) {
       const tx = db.transaction(['snapshots', 'campaigns', 'transcript'], 'readwrite');
