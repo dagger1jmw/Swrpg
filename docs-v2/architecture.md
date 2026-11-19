@@ -986,6 +986,16 @@ The clock and the module contract come first, before any feature.
   because E grows only in the form group fought with and peer sparring E stops at 15.
 - **M6 free form switch (Jared):** a form change costs 0 advantage when both forms are at 61+ (Master tier), with the
   secondary-form growth above and cleave.
+- **M6 Makashi precision (Jared, D-187; not built):** the aimed-strike penalty (D-171, -2) scales with Makashi level
+  while fighting in Makashi: -2 at 0 to 0 at 61+ (design default, linear). No effect in any other form.
+- **M6 marks of contact as techniques (Jared, D-187; not built):** learnable techniques, each lowering the aimed-strike
+  penalty for its own target location from -2 toward 0 with technique skill: cho mai (hand), cho mok (limb), cho sun
+  (arm), mou kei (multiple limbs: one aimed strike may hit two limb locations, at a higher difficulty), and sai cha
+  (head) and shiak (a stab to the torso) if the lore supports them. Both items feed the D-171 aimed-strike rule only.
+  *Before building:* the names and definitions must be checked against the lore files, Legends only; checked
+  2026-11-18, Docs/SWRPG lore/ does not mention the marks of contact or any of the six names, so the lore entry
+  comes first (and the stacking with Makashi precision, the technique skill's curve and mou kei's difficulty are
+  numbers to set then).
 - **M6 / M7 peacetime Sith Force growth (Jared):** the lifetime harness profile needs Force use in its trials so CI can
   grow (the harness duels log no Force uses), the dark-side bonuses come in M6 and the Sith Order schedule in M7. Re-run
   the Sidious-like report (D-175) after M6.

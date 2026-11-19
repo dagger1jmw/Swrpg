@@ -45,3 +45,4 @@
 - 2026-11-18 — D-184: ice terrain (iceChunks 2-5, slippery -1 to take position, ice / glacier / Ilum caves / Hoth place words); the D-144 per-bout terrain hazard roll, found unbuilt, built. npm run test:all 608/608, typecheck, lint, build pass.
 - 2026-11-18 — D-185: flat-floor accidents (0.5% a roll, minor band), real fights roll terrain once per 10 exchanges (config), sparring bouts once; lifetime runs use no terrain, unchanged. npm run test:all 613/613, typecheck, lint, build pass. Ready for Jared's iPad re-run.
 - 2026-11-18 — D-186: indoor place words map to flatFloor. Open: Order and routine sparring are training activities, not duels, so no flat-floor default was added there (question for Jared). npm test 578, test:lifetime 36/36, typecheck, lint pass.
+- 2026-11-18 — D-187 recorded for M6 (architecture §15): Makashi precision, marks of contact as techniques; not built. The lore files have no marks-of-contact entry yet.
