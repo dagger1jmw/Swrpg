@@ -274,6 +274,16 @@ export const PATH_ARCHETYPES: Record<CharacterPath, readonly string[]> = {
   outsider: ['jediGuardian', 'jediConsular', 'jediSentinel'],
   career: ['soldier', 'mandalorian', 'smuggler', 'bountyHunter', 'civilian'],
 };
+/**
+ * Archetypes that only generated NPCs take (not on the creation form), by path (D-246). Creation accepts them for an NPC
+ * (CreationInput.npc); without this the Yuuzhan Vong warrior (D-224) got no levels at all (pass 4: +0, 20 Vitality).
+ */
+export const NPC_ARCHETYPES: Record<CharacterPath, readonly string[]> = {
+  jedi: [],
+  sith: [],
+  outsider: [],
+  career: ['yuuzhanVongWarrior'],
+};
 
 /** Training start range per path (character-creation §1); outsiders may start late, like Luke. */
 export const PATH_START_RANGE: Record<CharacterPath, readonly [number, number]> = {

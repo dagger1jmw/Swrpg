@@ -8,7 +8,7 @@
 import { orderSeatAt } from '../../data/orderSeats';
 import { STUB_INSTRUCTOR_LEAD, STUB_MASTER_LEAD } from '../../data/stubs';
 import { gainE, sparringE } from '../../engine/appliedExperience';
-import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
+import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
 import { BUDGET, FORM_TRANSFER_SHARE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
 import { ORDER_REQUIREMENTS } from '../../data/orderRequirements';
 import { interp } from '../../engine/interp';
@@ -190,7 +190,7 @@ export function computeCreation(input: CreationInput): CreationResult {
   if (!a) errors.push(`Unknown archetype ${input.archetype}.`);
   if (!species) errors.push(`Unknown species ${input.speciesId}.`);
   if (!rankDef) errors.push(`Unknown rank ${input.rank}.`);
-  if (a && !PATH_ARCHETYPES[input.path].includes(a.id)) errors.push(`${a.name} is not an archetype of the ${input.path} path.`);
+  if (a && !PATH_ARCHETYPES[input.path].includes(a.id) && !(input.npc && NPC_ARCHETYPES[input.path].includes(a.id))) errors.push(`${a.name} is not an archetype of the ${input.path} path.`);
   if (rankDef && rankDef.path !== input.path) errors.push(`${rankDef.name} is not a rank of the ${input.path} path.`);
   if (rankDef && !ranksFor(input.path, hNow).some((r) => r.id === rankDef.id)) errors.push(`${rankDef.name} does not fit age ${age.toFixed(1)}.`);
   const [lo, hi] = PATH_START_RANGE[input.path];
