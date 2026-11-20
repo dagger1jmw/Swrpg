@@ -40,6 +40,11 @@ Force meter (replaces Force strain):
   Vitality 0 = Spent: all further damage goes to wounds, and effective level is reduced 10%.
   Vitality can never cause death or incapacitation. Spent against an opponent who fights to capture
     is the one exception: the fight ends there and the player is taken (D-262, rolls section 5).
+  Wounds do not lower Vitality, and Vitality does not show a wound (M5 balance row 19, 2026-11-20):
+    only the part of D that is not bypassed comes off Vitality, so a clean or critical saber hit
+    (bypass 1) can make a mortal wound and leave Vitality full. Dying, stabilizing (the mortal wound
+    marked stabilized) and healing leave Vitality as it is; it recovers by the rates above. A wound's
+    weakness is its wound penalty (section 6), not Vitality.
 
 ## 4. Damage
   Damage D = weapon base * hit quality - armor (minimum 0)

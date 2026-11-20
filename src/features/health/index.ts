@@ -3,7 +3,7 @@
 // resolution, hazards, healing and the clock. The AI never sets a value. Status is derived on every read.
 import { partText } from '../../engine/duel';
 import { z } from 'zod';
-import { FALL_LOCATION_WEIGHTS, HAZARD_TYPES, LEG_FORM_SHARE, LOCATION_WEIGHTS, VITALITY_RECOVERY, type BodyPart } from '../../data/health.config';
+import { FALL_LOCATION_WEIGHTS, HAZARD_TYPES, ARM_OTHER_SHARE, LEG_FORM_SHARE, LOCATION_WEIGHTS, VITALITY_RECOVERY, type BodyPart } from '../../data/health.config';
 import { SKILL_BY_ID } from '../../data/skills';
 import { stubProsthetic } from '../../data/stubs';
 import { applyDamage, hazardDamage, rollLocation, severityOf } from '../../engine/damage';
@@ -225,7 +225,9 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
         const lasting = (slice.lasting as LastingInjury[]).map((l) => {
           // A lost leg adapts from lightsaber form drills at LEG_FORM_SHARE (D-230), though its penalty now reaches the
           // forms too (D-251): the share is checked first, so the measured adaptation pace does not change.
-          const h = Object.entries(hours).reduce((a, [skill, x]) => a + (l.kind === 'lostLeg' && SKILL_BY_ID.get(skill)?.kind === 'form' ? x * LEG_FORM_SHARE : lastingAffects(l, skill) ? x : 0), 0);
+          // A lost arm or hand also adapts from every other practice hour at ARM_OTHER_SHARE (M5 balance row 6).
+          const arm = l.kind === 'lostArm' || l.kind === 'lostHand';
+          const h = Object.entries(hours).reduce((a, [skill, x]) => a + (l.kind === 'lostLeg' && SKILL_BY_ID.get(skill)?.kind === 'form' ? x * LEG_FORM_SHARE : lastingAffects(l, skill) ? x : arm ? x * ARM_OTHER_SHARE : 0), 0);
           return h > 0 ? adapt(l, h, day) : l;
         });
         return { slice: { ...slice, lasting } };

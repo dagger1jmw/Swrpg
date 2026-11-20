@@ -26,6 +26,23 @@ them) and the ten from combat-pass-5.md (issue 17). Nothing in this table has be
 | 18 | Pass 5 flag 9 | A gap-0 duel ended at exchange 3 | A critical mortal hit on the player's natural 1 | As intended | A lethal duel can end at once; D-244's length table includes these |
 | 19 | Pass 5 flag 10 | Vitality full after a stabilized mortal wound | Varek, captured and stabilized: "69 / 69" with a stabilized critical torso wound; a dying Joren showed "0 / 68 (spent)" | **Possible bug** (check) | One sample. The fight was 3 exchanges and one hit, so the Vitality lost may really have been small, but full Vitality next to a mortal wound reads wrong. Worth one unit test of the captured-and-stabilized path before M5 closes |
 
+## Jared's calls (2026-11-20)
+
+Accepted as recommended, with these done:
+
+- **Row 6 (tunable): done, D-273.** ARM_OTHER_SHARE 1: a quality cybernetic arm or hand 48% at day 20, 72% at 30,
+  98% at 40, 100% on day 41 (was 3% at 30). The 3%-a-day cap and the rest days bind, so no share brings it under 40.
+- **Row 13 (checked after row 6).** Lost to dev duelists 10 below, 200 duels each: a whole Knight 28.0%; leg and arm
+  at day 40 38.5% (before 68.5%), at day 60 41.0% (before 71.0%); an arm alone at day 40 27.5%; a leg alone 28.5%. What
+  remains is the leg when both limbs are lost (17% adapted at day 40: the arm wound blocks the form drills it adapts
+  from). Not changed.
+- **Row 14 (check): as intended.** npm run sweep's new row: the smuggler at 30 against 4 line troopers in 3,653 BBY,
+  300 fights, flat ground: won 67.3%, wounded 78.0% (the neutral year 67.0% / 71.3%). Pass 5's 11 of 12 was a lucky
+  sample.
+- **Row 19 (possible bug): not a bug.** Health §3's bypass sends all of a clean saber hit to the wound, so a mortal
+  wound can leave Vitality full; stabilizing does not touch Vitality. Spec amended (it was silent), unit test added.
+- **Row 4: done, D-274.** The roll card says "cover on both sides: the two bonuses cancel".
+
 ## Pass-5 minor issues left as they are, with reasons
 
 - **Issue 14, graze places.** A graze's location is in the block ("HIT (Duelist 1, torso, no wound, stamina only)"), so

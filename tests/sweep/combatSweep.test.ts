@@ -18,9 +18,9 @@ import { TEST_START_DATE } from '../support/dates';
 
 /** Kinds that do not exist at the neutral test date fight in the Clone Wars (D-213), so the sweep measures the kinds it names. */
 /** A smuggler at 30 with a blaster pistol (the test start by archetype, D-215): a shooter, for the cover rows (D-243). */
-const smugglerBase = async (): Promise<GameState> => {
-  const input = testStartInput({ name: 'Smuggler', rank: 'knight', age: 30, startDate: TEST_START_DATE, startSecond: DEFAULT_START_SECOND, archetype: 'smuggler' });
-  return (await createCampaign(REGISTRY, createMemoryStorage(), input, { campaignId: 'sweep-smuggler', branchId: 'b' }, 'smuggler')).state;
+const smugglerBase = async (startDate = TEST_START_DATE, id = 'sweep-smuggler'): Promise<GameState> => {
+  const input = testStartInput({ name: 'Smuggler', rank: 'knight', age: 30, startDate, startSecond: DEFAULT_START_SECOND, archetype: 'smuggler' });
+  return (await createCampaign(REGISTRY, createMemoryStorage(), input, { campaignId: id, branchId: 'b' }, 'smuggler')).state;
 };
 const eraBase = async (rank: Parameters<typeof devCharacter>[0], age: number, kind: string | null): Promise<GameState> => devCharacter(rank, age, kind && !minionKindInEra(kind, TEST_YEAR) ? CLONE_WARS_DATE : undefined);
 
@@ -172,6 +172,9 @@ describe('combat sweep', () => {
     for (const pk of ['balanced', 'mixed']) for (let i = 0; i < N_RATE; i++) sw.record(`rates knight50 | 6 troopers | ${pk} | cover`, runFight(knightFor('trooper'), { minionGroups: [MINIONS['6 troopers']!], terrainTags: ['cover', 'debris'] }, PATTERNS[pk]!, `cover:${pk}:${i}`));
     const smuggler = await smugglerBase();
     for (const [tag, tags] of [['flat', ['flatFloor']], ['cover', ['cover', 'debris']]] as const) for (let i = 0; i < N_RATE; i++) sw.record(`rates smuggler30 | 4 troopers | balanced | ${tag}`, runFight(smuggler, { minionGroups: [{ kind: 'trooper', count: 4 }], terrainTags: [...tags] }, PATTERNS['balanced']!, `smug:${tag}:${i}`));
+    // M5 balance row 14: pass 5's smuggler won 11 of 12 against 4 line troopers in 3,653 BBY; the same row at that date.
+    const smuggler3653 = await smugglerBase({ year: -3653, month: 1, day: 1 }, 'sweep-smuggler-3653');
+    for (let i = 0; i < N_RATE; i++) sw.record('rates smuggler30 3653BBY | 4 troopers | balanced | flat', runFight(smuggler3653, { minionGroups: [{ kind: 'trooper', count: 4 }], terrainTags: ['flatFloor'] }, PATTERNS['balanced']!, `smug3653:${i}`));
     // The real level gaps of generated minions (D-158 measured at fixed gaps; compare there before tuning).
     const gaps: string[] = [];
     for (const [rank, age] of RANKS) {

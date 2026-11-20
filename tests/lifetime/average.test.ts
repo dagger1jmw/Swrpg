@@ -41,11 +41,13 @@ describe('Average lifetime (95 years through the routine day loop)', () => {
     for (const t of Object.values(avg.transfers)) expect(t.age).toBeCloseTo(12, 1);
   });
 
-  it('the Y_avg table matches the run within +/-5% (D-48 clamp input, re-measured on the real loop, D-132)', () => {
+  // The calibration gate (+/-5%) is judged on the 20-seed median in npm run spread (D-159 amended, Jared 2026-11-20);
+  // the gated seed keeps this sanity check: one seed's long recovery can move its own years past 5%.
+  it('the Y_avg table matches the run within +/-10% on the gated seed (sanity; the +/-5% gate is the spread median)', () => {
     for (const [age, y] of Y_AVG) {
       const got = avg.yearMain[age - 4];
       expect(got, `age ${age}`).toBeDefined();
-      expect(Math.abs(got! / y - 1), `age ${age}: ${got} vs ${y}`).toBeLessThanOrEqual(0.05);
+      expect(Math.abs(got! / y - 1), `age ${age}: ${got} vs ${y}`).toBeLessThanOrEqual(0.1);
     }
   });
 

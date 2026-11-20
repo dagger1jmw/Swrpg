@@ -44,12 +44,13 @@ export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, bo
         'milestones +/-20%': within20(r, TARGETS.average),
         'not faster than Anakin; within 4.0x': notFasterThanAnakin(r) && within4x(r),
         'peacetime combat < 10%': peace < 0.1,
-        'Y_avg within +/-5%': yAvgDev <= 0.05,
+        // The Y_avg calibration gate is judged on the 20-seed median (D-159 amended, Jared 2026-11-20): yAvgMedianGate.
         'rank minimums +/-2 y': ranks,
         // Days with a serious fight left out (D-159 amended, 2026-11-20).
         'day-end tiredness < 1.1': r.maxDayEndFNoSeriousFight < 1.1,
       },
-      values: { yAvgMaxDeviation: yAvgDev, peacetimeMaxShare: peace },
+      // Per seed, reported; the gate is the 20-seed median per age (yAvgMedianGate).
+      values: { yAvgMaxDeviation: yAvgDev, peacetimeMaxShare: peace, ...Object.fromEntries(Y_AVG.map(([age, y]) => [`yAvgRatio@${age}`, (r.yearMain[age - 4] ?? 0) / y])) },
     };
   },
   anakin: (r) => {
@@ -123,4 +124,26 @@ export const SPREAD_JOBS: readonly Job<SeedRow & { profile: string }>[] = SPREAD
 /** Sequential, as before the shards (kept for a check that the shards give the same rows). */
 export function runSpread(name: string, profile: LifeProfile, years: number, opts: Parameters<typeof runLifetime>[2] = {}): SeedRow[] {
   return Array.from({ length: SPREAD_SEEDS }, (_, k) => spreadRow(name, profile, years, k, opts));
+}
+
+/** The Y_avg calibration gate (D-159 amended, Jared 2026-11-20): the 20-seed median of each age's ratio to the table within this. */
+export const Y_AVG_MEDIAN_BAND = 0.05;
+
+/**
+ * The Y_avg gate on the 20-seed median: per Y_AVG age, the median over the Average's seeds of (the run's main-form XP that
+ * year) / (the table's), within Y_AVG_MEDIAN_BAND. One seed's long recovery moves its own years, not the median.
+ */
+export function yAvgMedianGate(rows: readonly { profile: string; values: Record<string, number> }[]): { pass: boolean; worst: { age: number; ratio: number }; seeds: number } {
+  const avg = rows.filter((r) => r.profile === 'average');
+  const median = (xs: number[]): number => {
+    const s = [...xs].sort((a, b) => a - b);
+    const m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
+  };
+  let worst = { age: 0, ratio: 1 };
+  for (const [age] of Y_AVG) {
+    const ratio = median(avg.map((r) => r.values[`yAvgRatio@${age}`] ?? 0));
+    if (Math.abs(ratio - 1) > Math.abs(worst.ratio - 1)) worst = { age, ratio };
+  }
+  return { pass: avg.length > 0 && Math.abs(worst.ratio - 1) <= Y_AVG_MEDIAN_BAND, worst, seeds: avg.length };
 }

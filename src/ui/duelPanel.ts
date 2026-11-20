@@ -122,8 +122,18 @@ export function renderExchange(r: ExchangeRecord, names: Record<string, string>,
     el('div', { class: 'roll-line', text: rollText(names['pc'] ?? 'You', r.rollA) }),
     el('div', { class: 'roll-line', text: rollText(names[r.targetId] ?? 'Opponent', r.rollB) }),
     el('div', { class: 'roll-line', text: `${marginLabel(r, names['pc'] ?? 'You')} · ${r.seconds} s${r.surprise ? ' · surprise' : ''}${r.duringForce ? ' · while you use the Force' : ''}` }),
+    ...(coverNote(r) ? [el('div', { class: 'hint', text: coverNote(r)! })] : []),
     ...r.notes.map((n) => el('div', { class: 'hint', text: n.startsWith(CARD_ONLY_NOTE) ? n.slice(CARD_ONLY_NOTE.length) : n })),
   ]);
+}
+
+/**
+ * Both shooters in cover on one exchange (D-243; M5 balance row 4): the two bonuses cancel, which the card says so the
+ * "+2 cover" on each line does not read as an edge for either side. Null otherwise.
+ */
+export function coverNote(r: ExchangeRecord): string | null {
+  const has = (roll: BasicRoll | null): boolean => !!roll?.modifiers.some((m) => m.source === 'cover');
+  return has(r.rollA) && has(r.rollB) ? 'cover on both sides: the two bonuses cancel' : null;
 }
 
 /**

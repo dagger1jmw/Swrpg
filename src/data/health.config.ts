@@ -233,6 +233,15 @@ export const ADAPTATION = { perHour: 0.01, perDayMax: 0.03 } as const;
  */
 export const LEG_FORM_SHARE = 0.3;
 /**
+ * Other practice hours toward a lost arm or hand (Jared, 2026-11-20; M5 balance table row 6): while the severed limb
+ * heals, the routine trains no forms (the injured skill), so only strength reached it (3% at day 30, 7% at day 60). A
+ * fitted arm or hand is used in every drill, so every other practice hour counts at this share; its forms and strength
+ * count in full as before. Target: the hand's 30-40 day reference for a quality cybernetic on the default routine
+ * (tuned, the share only, as in D-230). Measured (Knight at 30): 21% at day 10, 48% at 20, 72% at 30, 98% at 40, 100% on
+ * day 41; 1.15 gives the same (99% at 40), since the 3%-a-day cap and the rest days bind, so 1 it is.
+ */
+export const ARM_OTHER_SHARE = 1;
+/**
  * A lost or prosthetic leg slows form strikes (Jared, D-251, design default): forms P = this x the leg's Agility P, so the
  * effective form penalty is 0.5 x 0.35 x (1 - adaptation). The adaptation that cures it is still D-230's (form hours at
  * LEG_FORM_SHARE beside Agility and Endurance in full).
