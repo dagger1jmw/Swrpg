@@ -81,6 +81,13 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
       phase: 'create',
       narrative: () => true,
       handle: (slice, e, ctx) => {
+        // A fight's minions are mass, not people (pass 4 issue 15: four "Mandalorian warrior N" introduced as NPCs in the
+        // surrender narration). The narrator may not make one a named NPC; the fight's group is the record.
+        if (ctx.source === 'ai') {
+          const name = String(e['name']).trim().toLowerCase();
+          const duels = [ctx.state.combat.active?.duel, (ctx.state.combat.last as { duel?: unknown } | null)?.duel] as ({ opponents?: { name: string; minion: boolean }[] } | undefined)[];
+          if (duels.some((d) => d?.opponents?.some((o) => o.minion && o.name.toLowerCase() === name))) return { reject: `"${String(e['name'])}" is a minion of the fight, not a person: not introduced as an NPC` };
+        }
         const r = introduce(slice, e, ctx.state);
         const notes = r.existing ? [`"${String(e['name'])}" matched existing ${r.id} by exact alias; not created again`] : r.note ? [r.note] : [];
         return { slice: r.slice, mintedId: r.id, ...(notes.length ? { notes } : {}) };

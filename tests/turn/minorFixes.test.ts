@@ -35,7 +35,7 @@ describe('14: more strikes told than the player made', () => {
 describe('16: armor and weapons as the engine has them', () => {
   it('the block lists armor; "your armor" on an unarmored player is caught', () => {
     const c = combat({ fighters: [fighter('pc', 'Kael Voss'), fighter('m1', 'Mandalorian warrior 1', { weapon: 'blasterPistol', armor: 'heavy', saberResistant: true, minion: true, form: null })] });
-    expect(describeCombat(c).join('\n')).toMatch(/Armor \(the only armor in this fight\): Kael Voss: none; Mandalorian warrior 1: heavy \(beskar: turns a lightsaber\)\./);
+    expect(describeCombat(c).join('\n')).toMatch(/Armor \(the only armor in this fight\): Kael Voss: none; Mandalorian warrior 1: heavy \(saber-resistant: a lightsaber does not cut through it easily\)\./);
     expect(kinds('A sudden burn flares across your torso as a blow connects harmlessly against your armor.', c)).toContain('gearNotInBlock');
     expect(describeCombat(combat({ fighters: [fighter('pc', 'Daro Venn'), fighter('v', 'Yuuzhan Vong Warrior', { weapon: 'melee', form: null })] })).join('\n')).toMatch(/a melee weapon \(.*it does not burn\)/);
   });

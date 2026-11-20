@@ -1,4 +1,4 @@
-﻿// D-246 (combat pass 4 issue 2): every fighter the generator can make has generated levels, never +0. Pass 4: the
+// D-246 (combat pass 4 issue 2): every fighter the generator can make has generated levels, never +0. Pass 4: the
 // narrator's Yuuzhan Vong warrior fought at level +0 with 20 Vitality and was worth 0 XP, because creation refused the
 // NPC-only archetype (D-224) and the NPC got an empty level table; the Vong minions had the same empty table under the
 // weapon level D-195 patches in (Vitality 24 for every grade).

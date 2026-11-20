@@ -30,6 +30,7 @@ import { HAZARD_TYPES } from '../data/health.config';
 import type { Session } from './pipeline';
 import type { TurnRecord } from './record';
 import { resolveTurn, type TurnDraft } from './resolve';
+import { selectPlayerFightingLevel } from '../features/combat/selectors';
 export { pendingScenario } from './devScenario';
 
 /** The help text: every command, one line each. Unknown commands show it. */
@@ -141,11 +142,15 @@ function canonFromWords(q0: string): CanonNpc | null {
   return CANON_NPCS.find((c) => squash(c.canonId.replace(/^lore:/, '')) === q) ?? CANON_NPCS.find((c) => squash(c.name) === q) ?? CANON_NPCS.find((c) => squash(c.canonId).includes(q) || squash(c.name).includes(q)) ?? null;
 }
 
-/** The player's reference level for a gap: the main form, else the best form. */
+/**
+ * The player's reference level for a gap: the main form, else the best form, else the weapon skill they fight with
+ * (pass 4 issue 15: a smuggler's "/fight 1 duelist at +10" read "your form 0.0" and fielded a level-10 Sith Lord).
+ */
 export function playerFormLevel(s: GameState): number {
   const main = selectCharacter(s).mainFormId;
   if (main) return selectLevelExact(s, main);
-  return Math.max(0, ...FORM_IDS.map((f) => selectLevelExact(s, f)));
+  const best = Math.max(0, ...FORM_IDS.map((f) => selectLevelExact(s, f)));
+  return best > 0 ? best : selectPlayerFightingLevel(s);
 }
 
 /** Time of day in seconds from "08:00", "8:30pm", "8am", "noon". */
@@ -317,7 +322,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
           if (refused()) return fail(refused()!);
           opponentRefs.push(id);
         }
-        who = `${count} ${base.toLowerCase()}${count > 1 ? 's' : ''} at ${level.toFixed(1)} (your form ${playerFormLevel(state).toFixed(1)})`;
+        who = `${count} ${base.toLowerCase()}${count > 1 ? 's' : ''} at ${level.toFixed(1)} (your level ${playerFormLevel(state).toFixed(1)})`;
       } else return fail(`unknown kind "${kind}" (duelist, a level, a minion kind, or canon:<name>)`);
       if (weapon && !minion) return fail('weapon is for a minion group (e.g. /fight 4 mandalorian weapon scattergun)');
       // A place word moves the scene there, so the narrator does not set the fight in the old place (issue 21).
@@ -330,6 +335,11 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
         const moved = movePlace(target);
         if (moved) return fail(moved);
       }
+      // Earlier dev opponents leave the scene (pass 4 issue 15: "Duelist 9 pauses nearby" in the 37th dev duel), unless a
+      // fate choice about them is still open.
+      const openFate = new Set(state.combat.fates.map((f) => f.npcId));
+      const stay = state.pacing.scene.presentNpcIds.filter((id) => opponentRefs.includes(id) || !state.npcs.byId[id]?.devLevels || openFate.has(id));
+      if (stay.length !== state.pacing.scene.presentNpcIds.length) state = { ...state, pacing: { ...state.pacing, scene: { ...state.pacing.scene, presentNpcIds: stay } } };
       const before = state;
       apply([{ type: 'fightBegun', fromPending: false, opponentRefs, minionGroups, stakes, terrainTags: tags, ...(mode ? { sparringMode: mode } : {}), ...(stakes === 'spar' ? { playOut: true } : {}) }], 'engine');
       // A dying player's fight ends at once (D-242): begun and over in the same command.
@@ -549,7 +559,9 @@ export async function commitDevCommand(
   // Outside a test campaign nothing is recorded: the save stays as it was (D-180).
   if (!selectIsTestCharacter(session.state)) return { session, record: null, ok: false, line: o.line };
   const prev = session.history[session.history.length - 1];
-  const state: GameState = { ...o.state, meta: { ...o.state.meta, turn: o.state.meta.turn + 1 } };
+  // A dev turn is a turn of the save, not of the story: the chapter does not count it (pass 4 issue 13).
+  const cur = o.state.memory.current;
+  const state: GameState = { ...o.state, meta: { ...o.state.meta, turn: o.state.meta.turn + 1 }, memory: { ...o.state.memory, current: { ...cur, devTurns: (cur.devTurns ?? 0) + 1 } } };
   // Choices offered before a time jump or a new fight no longer fit (D-216; pass 2: capture choices 35 days later).
   const moved = o.draft.jump || o.draft.timeAdvanced || o.draft.combat;
   const keep: Choice[] = prev?.choices && !moved ? [...prev.choices] : [];

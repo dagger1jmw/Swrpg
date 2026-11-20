@@ -195,7 +195,13 @@ export function combatFacts(c: CombatDraft): CombatFacts {
     }
     const lead = buildUpLead(r, pc, t);
     // A shooter whose strike step was NOT REACHED took no shot in the build-up (D-237; pass 3: "fire back" narrated).
-    const how = noShot ? `${pc} and ${t} maneuver for position: NO HIT, and ${pc} gets no shot off` : `${pc} and ${t} trade blows: NO HIT`;
+    // "Trade blows" only between two who can strike each other up close (pass 4 issue 6: an unarmed Jedi "trades blows"
+    // with a blaster droid); a shooter fires and the other side moves or answers in kind.
+    const pcW = byId.get('pc')?.weapon ?? 'unarmed';
+    const tW = byId.get(r.targetId)?.weapon ?? 'unarmed';
+    const shoots = (w: string): boolean => RANGED_WEAPONS.includes(w as WeaponKind);
+    const exchange = shoots(pcW) && shoots(tW) ? 'trade fire' : shoots(tW) ? `maneuver while ${t} fires` : shoots(pcW) ? `maneuver while ${pc} fires` : 'trade blows';
+    const how = noShot ? `${pc} and ${t} maneuver for position: NO HIT, and ${pc} gets no shot off` : `${pc} and ${t} ${exchange}: NO HIT`;
     lines.push(`${head} ${how}. ${lead} (margin ${fmt(Math.abs(r.margin))}).${toldNotes(r)}`);
   }
   const steps = stepFacts(c.notes);

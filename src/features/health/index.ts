@@ -104,7 +104,9 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
       handle: (slice, e, ctx) => {
         if (!selectIsTestCharacter(ctx.state)) return { reject: DEV_REFUSAL };
         if (slice.death) return { reject: 'the character is dead' };
-        return { slice: { ...slice, wounds: [], vitalityLost: 0, dying: null, ...(e['lasting'] === true ? { lasting: [] } : {}) }, notes: [`healed${e['lasting'] === true ? ', lasting injuries cleared' : ''}`] };
+        const all = e['lasting'] === true;
+        // Lost limbs back means the hand from before the loss (pass 4 issue 10: the next duel watched the other arm).
+        return { slice: { ...slice, wounds: [], vitalityLost: 0, dying: null, ...(all ? { lasting: [] } : {}) }, notes: [`healed${all ? ', lasting injuries cleared' : ''}`], ...(all ? { emit: [{ type: 'dominantHandRestored' }] } : {}) };
       },
     },
     /** Dev sandbox (D-180): a fatigue meter at a fraction of its capacity (0 fresh, 1 at capacity). */

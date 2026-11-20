@@ -526,7 +526,9 @@ function forceActionOnly(s0: DuelState, input: ForceActionInput, day: number, ct
 
 /** True when the fighter can make a saber throw (D-193): holding a saber, telekinesis and a form at the minimums. */
 export function canThrowSaber(f: Fighter, telekinesis: number): boolean {
-  return hasSaber(f) && !f.saberLost && telekinesis >= SABER_THROW.minTelekinesis && f.level >= SABER_THROW.minForm;
+  // A level read back from XP can sit a hair under the requirement (pass 4: /set telekinesis 15 read 14.9999...).
+  const EPS = 1e-6;
+  return hasSaber(f) && !f.saberLost && telekinesis >= SABER_THROW.minTelekinesis - EPS && f.level >= SABER_THROW.minForm - EPS;
 }
 
 /** The Force group of a skill-catalog ability (for reports; D-192). */

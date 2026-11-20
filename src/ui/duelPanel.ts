@@ -5,7 +5,7 @@ import { collapseRiskPerUse, forceFraction } from '../engine/forceMeter';
 import { isNarratedBeat, MANEUVERS, PRECOG, STANCES, STRIKE_AT, type BeatReason, type Stance } from '../data/combat.config';
 import { FORM_IDS, SKILL_BY_ID } from '../data/skills';
 import type { BasicRoll } from '../engine/rolls';
-import type { ForceOutcome } from '../engine/combatForce';
+import { canThrowSaber, type ForceOutcome } from '../engine/combatForce';
 import { CARD_ONLY_NOTE, partText, type DuelState, type ExchangeRecord } from '../engine/duel';
 import { selectActiveFight, selectFates, selectLastFight } from '../features/combat/selectors';
 import { selectIsDying } from '../features/health/selectors';
@@ -34,10 +34,27 @@ export const WEAPON_SHORT: Readonly<Record<string, string>> = { unarmed: 'unarme
 
 /** How a fight ended, in words (issue 21: "won (allOut)", "lost (sparring session (stopped))"). */
 const END_REASON: Readonly<Record<string, string>> = { allOut: 'every opponent is down', incapacitated: 'a fighter is down', dying: 'a fighter is dying', dead: 'a fighter is dead', spent: 'a fighter is spent', point: 'on a point', stopped: 'stopped', exhausted: 'a fighter collapsed from exhaustion', opponentsDefeated: 'your opponents defeated', stalemate: 'an exhausted stalemate, both sides spent' };
+/**
+ * An opponent's armor on the card (Jared, after pass 4: the Vong's saber-resistant armor showed nowhere): its weight,
+ * its own name, and whether it stands up to a lightsaber (health §5: armor counts x0.25 against a saber unless
+ * saber-resistant). Nothing for no armor.
+ */
+export function armorText(o: { armor: string; saberResistant: boolean; armorName?: string }): string {
+  if (o.armor === 'none' && !o.saberResistant) return '';
+  const name = o.armorName ?? `${o.armor} armor`;
+  return o.saberResistant ? `${name} (resists lightsabers)` : name;
+}
+
+/** Interruption causes in words (pass 4 issue 12: "interrupted: environmentCollapse: ..." on the end card). */
+const INTERRUPT_WORDS: Readonly<Record<string, string>> = { environmentCollapse: 'the place came down', reinforcements: 'reinforcements arrived', alarmOrAuthorities: 'the alarm was raised', thirdParty: 'someone else stepped in' };
 export function endText(outcome: string, reason: string): string {
-  const why = END_REASON[reason] ?? reason.replace(/\s*\(([^()]*)\)/g, ': $1');
+  const cat = /^(\w+):\s*/.exec(reason);
+  const raw = cat && INTERRUPT_WORDS[cat[1]!] ? `${INTERRUPT_WORDS[cat[1]!]} (${reason.slice(cat[0].length)})` : reason;
+  const why = END_REASON[raw] ?? raw.replace(/\s*\(([^()]*)\)/g, ': $1');
   return why && why !== outcome ? `${outcome}: ${why}` : outcome;
 }
+/** The opponent's choice in words (pass 4 issue 12: "killingStrike"). */
+export const FATE_WORDS: Readonly<Record<string, string>> = { killingStrike: 'a killing strike', captured: 'taken captive', left: 'left where you fell' };
 
 /**
  * Modifiers for display (issue 20): the same source summed into one entry ("+1 aggressive stance -1 aggressive stance"
@@ -238,7 +255,7 @@ function renderSummary(c: CombatDraft, close: () => void): HTMLElement {
     rows.push(el('div', { text: `Sparring session over (${s.ended === 'exchanges' ? 'time' : s.ended ?? e.reason}): ${s.won} won, ${s.lost} lost${s.unfinished ? `, ${s.unfinished} unfinished` : ''}.` }));
     if (s.injuries.length) rows.push(el('div', { class: 'hint', text: `Injuries: ${s.injuries.join('; ')}` }));
   } else rows.push(el('div', { text: `Fight over: ${endText(e.outcome, e.reason)}.` }));
-  if (e.playerFate) rows.push(el('div', { class: 'hint', text: `The opponent's choice: ${e.playerFate}` }));
+  if (e.playerFate) rows.push(el('div', { class: 'hint', text: `The opponent's choice: ${FATE_WORDS[e.playerFate] ?? e.playerFate}` }));
   rows.push(el('div', { class: 'hint', text: c.fighters.map((f) => `${f.name}: ${f.status}`).join(' · ') }));
   return el('div', { class: 'fight-summary' }, [...rows, el('div', { class: 'beat-row' }, [el('button', { class: 'small secondary', text: 'Close', on: { click: close } })])]);
 }
@@ -283,7 +300,8 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
       ['Saber throw', 'saberThrow', 'telekinesis'],
       ['Recall saber', 'recall', 'telekinesis'],
     ] as const
-  ).filter(([, kind, ability]) => selectLevelExact(s, ability) >= 1 && (kind === 'recall' ? !!d.a.saberLost : kind === 'saberThrow' ? !d.a.saberLost && (d.a.weapon === 'lightsaber' || d.a.weapon === 'trainingSaber') : true));
+    // The saber throw shows only when the engine would allow it (pass 4 issue 9: live at Telekinesis 2, then refused).
+  ).filter(([, kind, ability]) => selectLevelExact(s, ability) >= 1 && (kind === 'recall' ? !!d.a.saberLost : kind === 'saberThrow' ? canThrowSaber(d.a, selectLevelExact(s, ability)) : true));
   const throwable = Object.entries(active.objects).filter(([, n]) => n > 0);
   const forceRisk = forceMeterView(d.a.meters.f, d.a.caps.f);
   const formSelect = forms.length
@@ -306,7 +324,7 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
   // A session not being played out resolves the rest at once from any passive action: one button for it.
   const montage = sess !== null && !sess.playing;
   // The opponent's weapon is shown with the status (D-216; pass 2: one Mandalorian's slugthrower showed nowhere).
-  const status = (o: (typeof d.opponents)[number]): string => `${o.out ? 'out' : o.engagedElsewhere ? 'fighting an ally' : o.minion ? 'minion' : 'fighting'} · ${WEAPON_SHORT[o.weapon] ?? o.weapon}`;
+  const status = (o: (typeof d.opponents)[number]): string => `${o.out ? 'out' : o.engagedElsewhere ? 'fighting an ally' : o.minion ? 'minion' : 'fighting'} · ${o.weaponName ?? WEAPON_SHORT[o.weapon] ?? o.weapon}${armorText(o) ? ` · ${armorText(o)}` : ''}`;
   const others = d.opponents.filter((o) => o.id !== facing?.id);
   const act = (label: string, action: Record<string, unknown>, cls = 'small act', title?: string): HTMLElement =>
     el('button', { class: cls, text: label, attrs: { ...(title ? { title } : {}), ...(p.busy ? { disabled: 'true' } : {}) }, on: { click: () => p.act({ kind: 'beat', label, action: action as never }) } });

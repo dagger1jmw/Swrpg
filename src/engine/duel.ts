@@ -64,6 +64,10 @@ export interface Fighter {
   weapon: WeaponKind;
   armor: ArmorKind;
   saberResistant: boolean;
+  /** The weapon's own name where the kind is generic ("amphistaff" for melee), for the panel and the narrator. */
+  weaponName?: string;
+  /** The armor's own name ("vonduun crab armor"), for the panel and the narrator. */
+  armorName?: string;
   forceSense: number;
   willpower: number;
   agility: number;

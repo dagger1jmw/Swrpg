@@ -44,6 +44,8 @@ export const memorySliceSchema = z.object({
     startTurn: z.number().int().min(0),
     startDay: z.number().int(),
     signals: z.array(z.object({ kind: z.literal('sceneEnded'), turn: z.number().int(), reason: z.string() })),
+    /** Dev command turns in this chapter (pass 4 issue 13): not story turns, so they do not count toward its length. */
+    devTurns: z.number().int().min(0).optional(),
   }),
   review: z.array(reviewItemSchema),
   /** Counter for fact / chapter / review IDs. */

@@ -26,7 +26,9 @@ export interface CloseDecision {
 
 /** Turns in the open chapter up to and including `turn` (turn 0 is the campaign start, not a turn). */
 export function chapterTurnCount(state: GameState, turn: number): number {
-  return turn - Math.max(1, selectCurrentChapter(state).startTurn) + 1;
+  // Dev command turns are not story turns (pass 4 issue 13: a chapter summary call every 30 turns of /exchanges).
+  const cur = selectCurrentChapter(state);
+  return Math.max(0, turn - Math.max(1, cur.startTurn) + 1 - (cur.devTurns ?? 0));
 }
 
 /**

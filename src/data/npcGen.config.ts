@@ -1,4 +1,4 @@
-// NPC generation inputs (npc-generation.md §2-6; M5). Code picks the archetype, rolls talents and variance;
+// NPC generation inputs (npc-generation.md Â§2-6; M5). Code picks the archetype, rolls talents and variance;
 // the AI supplies only name, species, faction, role and approximate age (npcIntroduced). Design defaults are
 // logged in docs-v2/decisions.md (D-143 onward).
 import type { WeaponKind, ArmorKind } from './health.config';
@@ -83,7 +83,7 @@ export const ROLE_MIN_AGE: Readonly<Record<string, number>> = {
 /** Rank ages for the closed-form phases (D-105: Sith on the Jedi ages until M7). */
 export const RANK_AGES = { padawanAge: 12, knightAge: 20.5 } as const;
 
-// ---- Talents (npc-generation §2) ----
+// ---- Talents (npc-generation Â§2) ----
 export const TALENT_ROLL_ORDERS: Readonly<Record<'order' | 'other', readonly (readonly ['none' | 'gifted' | 'prodigy' | 'exceptional', number])[]>> = {
   /** Force-trained orders (Jedi, Sith). */
   order: [['none', 0.7], ['gifted', 0.22], ['prodigy', 0.07], ['exceptional', 0.01]],
@@ -92,7 +92,7 @@ export const TALENT_ROLL_ORDERS: Readonly<Record<'order' | 'other', readonly (re
 };
 export const ORDER_ROLES: readonly string[] = ['jediMaster', 'jediKnight', 'padawan', 'initiate', 'sithLord', 'sithAcolyte'];
 
-/** Per-skill variance exp(N(0, sigma)), seeded per NPC (npc-generation §1). */
+/** Per-skill variance exp(N(0, sigma)), seeded per NPC (npc-generation Â§1). */
 export const NPC_VARIANCE_SIGMA = 0.12;
 
 /**
@@ -101,7 +101,7 @@ export const NPC_VARIANCE_SIGMA = 0.12;
  */
 export const NPC_SEED_SALT = 'npc-gen-v1';
 
-// ---- War years (npc-generation §1 war term; character-creation §2) ----
+// ---- War years (npc-generation Â§1 war term; character-creation Â§2) ----
 export interface War {
   id: string;
   fromBby: number;
@@ -121,7 +121,7 @@ export const WARS: readonly War[] = [
 /** Roles that fight in a war (combatants gain war years). */
 export const COMBATANT_ROLES: readonly string[] = ['jediMaster', 'jediKnight', 'padawan', 'sithLord', 'sithAcolyte', 'soldier', 'officer', 'pilot', 'bountyHunter'];
 
-// ---- Minions (npc-generation §6, health §9) ----
+// ---- Minions (npc-generation Â§6, health Â§9) ----
 export interface MinionKind {
   id: string;
   label: string;
@@ -141,6 +141,9 @@ export interface MinionKind {
   accuracy?: number;
   /** Vitality multiplier on the stat-derived Vitality (droids are flimsy, beasts are tough). */
   vitalityMult: number;
+  /** The weapon's and the armor's own names, where the kind's are generic (pass 4 issue 12). */
+  weaponName?: string;
+  armorName?: string;
   /** Lore note (a design default for Jared to check where marked). */
   note: string;
   /**
@@ -149,7 +152,7 @@ export interface MinionKind {
    */
   eras?: readonly (readonly [number, number])[];
 }
-/** Years trained by grade at pace 1.0 (npc-generation §6). */
+/** Years trained by grade at pace 1.0 (npc-generation Â§6). */
 export const MINION_YEARS: readonly [number, number, number, number, number] = [2, 5, 10, 15, 20];
 export const MINION_KINDS: readonly MinionKind[] = [
   { id: 'battleDroid', label: 'B1 battle droid', eras: [[-32, -18]], archetype: 'soldier', weapon: 'blasterRifle', armor: 'light', grades: [0.6, 0.35, 0.05, 0, 0], coordination: 0, accuracy: -3, vitalityMult: 0.6, note: 'B1: mass-produced, poorly coordinated; a Knight cutting through dozens is lore-accurate (Jared)' },
@@ -173,7 +176,7 @@ export const MINION_KINDS: readonly MinionKind[] = [
   // Yuuzhan Vong warriors (D-239): the D-224 archetype as a minion kind, melee (the amphistaff) in vonduun crab armor that
   // resists a lightsaber (Characters_15 :34), outside the Force (D-192); warriors fight in squads (0.5). From the
   // invasion (25 ABY) on: design default; out of era a brawler.
-  { id: 'yuuzhanVongWarrior', label: 'Yuuzhan Vong warrior', eras: [[25, 1000]], archetype: 'yuuzhanVongWarrior', weapon: 'melee', armor: 'heavy', saberResistant: true, grades: [0, 0.2, 0.45, 0.3, 0.05], coordination: 0.5, vitalityMult: 1.2, note: 'design default (D-239): the warrior caste, trained from youth; tough (1.2)' },
+  { id: 'yuuzhanVongWarrior', label: 'Yuuzhan Vong warrior', eras: [[25, 1000]], archetype: 'yuuzhanVongWarrior', weapon: 'melee', weaponName: 'amphistaff', armor: 'heavy', armorName: 'vonduun crab armor', saberResistant: true, grades: [0, 0.2, 0.45, 0.3, 0.05], coordination: 0.5, vitalityMult: 1.2, note: 'design default (D-239): the warrior caste, trained from youth; tough (1.2)' },
   { id: 'sithAcolyte', label: 'Sith acolyte', archetype: 'sithWarrior', weapon: 'lightsaber', armor: 'light', grades: [0.3, 0.4, 0.25, 0.05, 0], coordination: 0, vitalityMult: 1, note: 'design default for Jared: rivals who will not cover each other (0)' },
 ];
 /**
@@ -252,5 +255,5 @@ export function minionKindForYear(kindId: string, year: number): { kind: string;
 }
 
 export const MINION_KIND_IDS: readonly string[] = MINION_KINDS.map((k) => k.id);
-/** Minion count per group in combatStarted: a clamped AI amount (D-143 amends architecture §2). */
+/** Minion count per group in combatStarted: a clamped AI amount (D-143 amends architecture Â§2). */
 export const MINION_COUNT = { min: 1, max: 12 } as const;

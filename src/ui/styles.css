@@ -179,6 +179,8 @@ h3:first-child { margin-top: 0; }
 .tb-left > * { overflow: hidden; text-overflow: ellipsis; flex: 0 1 auto; min-width: 0; }
 .tb-time { color: var(--accent); flex-shrink: 0; }
 .tb-date, .tb-place, .tb-turn { color: var(--muted); font-size: var(--fs-s); }
+.tb-where { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; }
+.tb-where > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .tb-chip { font-size: var(--fs-xs); padding: 2px 8px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--text); flex-shrink: 0; }
 .tb-right { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
 select.tb-model { width: 210px; min-height: 36px; padding: 4px 8px; font-size: var(--fs-s); }
@@ -340,6 +342,9 @@ label.check { display: flex; gap: var(--pad-s); align-items: center; margin: var
   /* D-242: at iPad width the date drops its weekday (the .tb-weekday span), and the place takes the room left. */
   .tb-weekday { display: none; }
   .tb-place { min-width: 0; flex: 1 1 auto; }
+  /* Pass 4 issue 14: date over place, each on its own short line, so neither is cut at 820 px. */
+  .tb-where { flex-direction: column; align-items: flex-start; gap: 0; line-height: 1.15; }
+  .tb-where .tb-date, .tb-where .tb-place { font-size: var(--fs-xs); max-width: 100%; }
 }
 
 /* phone */

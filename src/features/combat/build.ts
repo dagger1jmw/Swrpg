@@ -12,7 +12,7 @@ import { TERRAIN_BY_ID } from '../../data/terrain';
 import { TERRAIN_HAZARD_EVERY } from '../../data/combat.config';
 import type { TerrainHazard } from '../../engine/terrainHazard';
 import { BLADE_COLORS, RANGED_WEAPONS, bladeColorFor, loadoutFor, mandalorianSlugthrower, weaponSkillKind, type Loadout } from '../../data/weapons';
-import { weaponFromDescription } from '../../data/speciesWords';
+import { armorNameFromDescription, weaponFromDescription, weaponNameFromDescription } from '../../data/speciesWords';
 import type { WeaponKind } from '../../data/health.config';
 import type { MatchupSituation } from '../../data/formMatchups';
 import { dateFromAbsDay } from '../../engine/calendar';
@@ -173,7 +173,11 @@ export function buildNpcFighter(s: GameState, npcId: string, live = true): { fig
     lightSide: gen.path === 'jedi',
   });
   const blade = loadout.weapon === 'lightsaber' ? (canon?.bladeColor ?? bladeColorFor(gen.path, archetype, gen.seed)) : null;
-  return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId), ...(blade ? { bladeColor: blade } : {}) }, rank: gen.rank };
+  // The weapon's and the armor's own names from the description, or the Vong caste's (pass 4 issue 12).
+  const vongKind = archetype === 'yuuzhanVongWarrior' ? MINION_KINDS.find((k) => k.archetype === archetype) : undefined;
+  const weaponName = loadout.weapon === 'melee' ? (weaponNameFromDescription(npc.description) ?? vongKind?.weaponName ?? null) : null;
+  const armorName = armorNameFromDescription(npc.description) ?? (loadout.saberResistant ? (vongKind?.armorName ?? null) : null);
+  return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId), ...(blade ? { bladeColor: blade } : {}), ...(weaponName ? { weaponName } : {}), ...(armorName ? { armorName } : {}) }, rank: gen.rank };
 }
 
 export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false, weapon: WeaponKind | null = null, number: number = index + 1): Fighter {
@@ -193,7 +197,7 @@ export function buildMinionFighter(s: GameState, kindId: string, grade: number, 
   const blade = loadout.weapon === 'lightsaber' ? BLADE_COLORS.sith[0] : null;
   // A droid kind dodges no better than it shoots (Jared, D-223; pass 2 balance row 7: a B1 dodged a thrown object at
   // +3.6 but shot at +1.4 - 3): its Agility is min(Agility, weapon level).
-  return { ...f, ...(blade ? { bladeColor: blade } : {}), vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}), ...(droid ? { forceTraits: speciesForceTraits('droid'), forceResistance: 0, agility: Math.min(f.agility, f.level) } : {}), ...(vong ? { forceTraits: speciesForceTraits('yuuzhanVong') } : {}), ...(HEAVY_MINION_KINDS.includes(kind.id) ? { bodySize: 'heavy' as const } : {}) };
+  return { ...f, ...(blade ? { bladeColor: blade } : {}), ...(kind.weaponName && !weapon ? { weaponName: kind.weaponName } : {}), ...(kind.armorName ? { armorName: kind.armorName } : {}), vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}), ...(droid ? { forceTraits: speciesForceTraits('droid'), forceResistance: 0, agility: Math.min(f.agility, f.level) } : {}), ...(vong ? { forceTraits: speciesForceTraits('yuuzhanVong') } : {}), ...(HEAVY_MINION_KINDS.includes(kind.id) ? { bodySize: 'heavy' as const } : {}) };
 }
 
 /** The duel context from the terrain tags and stakes (rolls §5, D-144). */

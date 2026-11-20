@@ -6,7 +6,7 @@ import type { WeaponKind } from '../data/health.config';
 import { isNarratedBeat, type BeatReason } from '../data/combat.config';
 import type { Intent } from '../ai/schemas/intent';
 import type { ForceActionKind } from '../engine/combatForce';
-import { partText, type DuelState, type ExchangeRecord } from '../engine/duel';
+import { isRanged, partText, type DuelState, type ExchangeRecord } from '../engine/duel';
 import { isDying, isIncapacitated, statusLabel, type Wound } from '../engine/wounds';
 import { lastingState, type LastingInjury } from '../engine/lasting';
 import type { ActiveFight, FightSummary } from '../features/combat/selectors';
@@ -224,6 +224,9 @@ export interface CombatFighterView {
   /** Body armor (D-216): none, light, medium or heavy, and whether it turns a lightsaber (beskar). Absent on older drafts. */
   armor?: string;
   saberResistant?: boolean;
+  /** The weapon's and the armor's own names ("amphistaff", "vonduun crab armor"; pass 4 issue 12). */
+  weaponName?: string;
+  armorName?: string;
   /** What the body can no longer do (D-237): "cannot stand: severed left leg", "no right arm". Absent on older drafts. */
   lasting?: { cannotStand: boolean; missing: string[]; text: string[] };
 }
@@ -246,6 +249,8 @@ export interface CombatDraft {
   advantage: number;
   fighters: CombatFighterView[];
   notes: string[];
+  /** Both sides shoot from behind cover (D-243); absent when not. */
+  cover?: boolean;
 }
 
 const FORCE_KINDS: Readonly<Record<string, ForceActionKind>> = { forcePush: 'push', forceChoke: 'choke', forceLightning: 'lightning', telekinesis: 'throw', mindTrick: 'mindTrick', saberThrow: 'saberThrow', recall: 'recall' };
@@ -285,6 +290,8 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   bladeColor: f.weapon === 'lightsaber' ? (f.bladeColor ?? null) : null,
   armor: f.armor,
   saberResistant: f.saberResistant,
+  ...(f.weaponName ? { weaponName: f.weaponName } : {}),
+  ...(f.armorName ? { armorName: f.armorName } : {}),
   lasting: lastingState(f.wounds as Wound[], (f.lasting ?? []) as LastingInjury[]),
 });
 
@@ -343,5 +350,7 @@ export function combatDraft(before: GameState, after: GameState, started: boolea
     advantage: duel.advantage,
     fighters: [view(duel.a), ...duel.opponents.map(view)],
     notes: [...notes],
+    // Cover counts between shooters (D-243): said in the block when the player and an opponent both shoot.
+    ...((active ?? prev)?.ctx.cover && isRanged(duel.a) && duel.opponents.some((o) => isRanged(o)) ? { cover: true } : {}),
   };
 }

@@ -3,6 +3,7 @@ import { toAbsSecond } from '../../engine/calendar';
 import type { DuelState } from '../../engine/duel';
 import type { GameState } from '../../state/gameState';
 import type { ActiveFight, CombatSlice, FightSummary, PendingFight } from './combat';
+import { buildPlayerFighter } from './build';
 
 export const selectCombat = (s: GameState): CombatSlice => s.combat;
 export const selectActiveFight = (s: GameState): ActiveFight | null => s.combat.active;
@@ -15,3 +16,5 @@ export const fateIsLive = (s: GameState, f: CombatSlice['fates'][number]): boole
   s.combat.active === null && f.atAbs !== undefined && toAbsSecond(s.clock.now) - f.atAbs <= FATE_CHOICE_EXPIRY.seconds && (f.locationId ?? null) === s.locations.currentId;
 export const selectFates = (s: GameState): CombatSlice['fates'] => s.combat.fates.filter((f) => fateIsLive(s, f));
 export type { ActiveFight, FightSummary, PendingFight } from './combat';
+/** The level the player fights at with their loadout's skill (a form, the blaster, melee or Agility). */
+export const selectPlayerFightingLevel = (s: GameState): number => buildPlayerFighter(s).level;

@@ -453,7 +453,14 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   // Staleness (architecture §8, D-18): if the story is stale and no choice jumps forward, code appends a
   // deterministic "Skip ahead" choice and logs it. Suggest only; never auto-skip.
   // D-181: a finished fight offers story choices only (the combat slice decides, not the narration).
-  const fc = choicesAfterTurn(state, draft.combat !== null, reply.choices);
+  // A choice may name an NPC this same reply introduced by its temp key (pass 4: "choice targetRef tmp:npc1 is not a
+  // valid ID; dropped" on an opening's first button): the key becomes the minted ID, as for the reply's own events.
+  const replyChoices = reply.choices.map((c) => {
+    const t = c.intent.targetRef;
+    const id = t ? result.tempMap[t] : undefined;
+    return id ? { ...c, intent: { ...c.intent, targetRef: id } } : c;
+  });
+  const fc = choicesAfterTurn(state, draft.combat !== null, replyChoices);
   const choices = fc.choices;
   const skip = skipAheadChoice(state, choices);
   const skipNotes: string[] = fc.dropped ? [`fight over: ${fc.dropped} tactical choice(s) dropped (D-181)`] : [];

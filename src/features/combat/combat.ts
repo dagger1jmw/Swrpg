@@ -97,7 +97,7 @@ export const fightSummarySchema = z.object({
    * Who took the player captive (D-242): the winning side's group, its minion kind (null for a named captor), how many
    * still stand and their names, and when and where (the following scenes read it).
    */
-  captors: z.object({ group: z.string(), kind: z.string().nullable(), standing: z.number().int(), names: z.array(z.string()), atAbs: z.number(), locationId: z.string().nullable() }).nullable().optional(),
+  captors: z.object({ group: z.string(), kind: z.string().nullable(), standing: z.number().int(), names: z.array(z.string()), atAbs: z.number(), locationId: z.string().nullable(), weapon: z.string().optional() }).nullable().optional(),
 });
 export type FightSummary = z.infer<typeof fightSummarySchema>;
 

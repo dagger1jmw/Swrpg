@@ -178,7 +178,9 @@ describe('lasting state: a leg or an arm that is gone', () => {
     expect(kinds('Duelist 2 fights on with his left hand, his right sleeve empty, and gives a step.', earlier)).toEqual([]);
     const hit = { by: 'A', quality: 'critical', D: 40, part: 'leftLeg', W: 30, severity: 'severe', vitalityLost: 0, severed: true, avoided: false };
     const now = combat({ fighters: [fighter('pc', 'Joren Kast'), fighter('n1', 'Duelist 2', { lostParts: ['leftLeg'], out: true, lasting: { cannotStand: true, missing: ['leftLeg'], text: ['cannot stand: severed left leg'] } })], narrate: [rec({ n: 81, kind: 'strike', striker: 'A', margin: 20, advBefore: 3, advAfter: 0, hit: hit as never })] });
-    expect(kinds('As Duelist 2 lunges, you step inside his guard and cleave through his left leg. He collapses to the stone floor, out of the fight.', now)).toEqual([]);
+    // "out of the fight" is the card's phrase (pass 4 issue 5), reworded in code; no lasting-state issue.
+    expect(kinds('As Duelist 2 lunges, you step inside his guard and cleave through his left leg. He collapses to the stone floor, out of the fight.', now)).toEqual(['mechanicalTerms']);
+    expect(kinds('As Duelist 2 lunges, you step inside his guard and cleave through his left leg. He collapses to the stone floor and does not rise.', now)).toEqual([]);
     const block = describeCombat(now).join('\n');
     expect(block).toMatch(/Duelist 2 Healthy \(cannot stand: severed left leg\)/);
     expect(block).toMatch(/A fighter who cannot stand stays down/);

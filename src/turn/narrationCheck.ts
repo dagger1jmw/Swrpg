@@ -99,7 +99,9 @@ const FOOTING: readonly RegExp[] = [
  * How a fighter reacts to being hit, pushed, choked or knocked down: fine when the block has that on the fighter.
  * "Off balance" and "staggers" alone never fire ("he catches you off balance" is being outpaced).
  */
-const REACTION = /\b(stumbl\w*|(?:you|he|she|it|they) (?:fall|falls|fell) (?:to the (?:ground|floor|deck|dirt|stone|grass|snow|ice)|flat|hard|heavily|backwards?|on (?:the|his|her|its|their|your))|drop\w* to (?:one|his|her|its|their|your) knees?)\b/i;
+// Getting footing back means it was shaken (pass 4 issue 7: "You recover your footing" with nothing on the player in the
+// block): a reaction, fine after a hit, Choke or Push on that fighter.
+const REACTION = /\b(stumbl\w*|(?:recover\w*|regain\w*) (?:\w+ )?(?:footing|balance)|(?:you|he|she|it|they) (?:fall|falls|fell) (?:to the (?:ground|floor|deck|dirt|stone|grass|snow|ice)|flat|hard|heavily|backwards?|on (?:the|his|her|its|their|your))|drop\w* to (?:one|his|her|its|their|your) knees?)\b/i;
 const SECOND_PERSON = /\b(you|your|yours|yourself)\b/;
 const THIRD_PERSON = /\b(he|she|it|they|his|her|its|their|him|them|himself|herself|itself|opponent|foe|enemy|adversary)\b/;
 
@@ -178,6 +180,15 @@ function staminaWords(m: RegExpExecArray): string {
   const w = m[3]!.toLowerCase();
   return `${tense} ${who[w] ?? m[3]!.replace(/'s$/, '')} down`;
 }
+/**
+ * The roll cards' phrases with a natural swap (pass 4 issue 5): the repair replaces them in code, no retry. "No wound"
+ * is left alone: it is ordinary prose too ("the blow leaves no wound").
+ */
+const WORD_SWAPS: readonly [RegExp, string][] = [
+  [/\b(?:entirely |completely )?out of the fight\b/i, 'unable to fight on'],
+  // The card's "is outpaced" only; "outpaced pressure" or "outpacing your guard" is ordinary prose.
+  [/\b(is|are|was|were|being) outpaced\b/i, '$1 pressed hard'],
+];
 const ENGINE_TERMS: readonly [RegExp, string][] = [
   [/\bmargin\b/i, 'margin'],
   [/\badvantage track\b|\btrack (?:moves|moved|swings|swung|shifts|shifted)\b/i, 'track'],
@@ -187,8 +198,11 @@ const ENGINE_TERMS: readonly [RegExp, string][] = [
   [/\bstamina only\b|\b(?:the )?roll(?:s|ed)? (?:fell|falls|falling) short\b|\bshort of the difficulty\b|\bDC \d/i, 'engine wording'],
   // "drains your stamina" (D-242); the repair swaps it for natural words.
   [STAMINA_PHRASE, 'stamina'],
-  // The step list in prose: "you do not reach your intended strikes", "your remaining sequence" (D-242).
-  [/\bintended (?:strikes?|steps?|attacks?|cuts?)\b|\byour (?:remaining|planned|whole) sequence\b/i, 'step list'],
+  // The step list in prose: "you do not reach your intended strikes", "your remaining sequence" (D-242), "leaving your
+  // intended maneuver unreached" (pass 4).
+  [/\bintended (?:strikes?|steps?|attacks?|cuts?|maneuvers?|manoeuvres?)\b|\byour (?:remaining|planned|whole) sequence\b|\bunreached\b/i, 'step list'],
+  // The cards' own phrases (pass 4 issue 5): "out of the fight", "outpaced"; WORD_SWAPS has the natural words.
+  ...WORD_SWAPS.map(([re]) => [re, 'card wording'] as [RegExp, string]),
 ];
 /** The first outcome-list term in a sentence, or null. */
 export function mechanicalTerm(sentence: string): string | null {
@@ -732,6 +746,7 @@ export function repairWording(narrative: string): string {
         if (!m) break;
         fixed = fixed.slice(0, m.index) + staminaWords(m) + fixed.slice(m.index + m[0].length);
       }
+      for (const [re, words] of WORD_SWAPS) fixed = fixed.replace(new RegExp(re.source, 'gi'), words);
       for (let i = 0; i < 8; i++) {
         const m = SEVERITY_LABEL.exec(fixed);
         if (!m) break;

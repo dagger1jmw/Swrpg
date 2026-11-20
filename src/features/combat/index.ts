@@ -10,7 +10,7 @@ import { hazardOnAll, rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, WEAPON_KINDS, type BodyPart, type HazardType, type WeaponKind } from '../../data/health.config';
 import { MINION_COUNT, MINION_KIND_IDS, MINION_KINDS, beskarChanceAt, minionKindForYear } from '../../data/npcGen.config';
 import { dateFromAbsDay, toAbsSecond } from '../../engine/calendar';
-import { mandalorianSlugthrower } from '../../data/weapons';
+import { mandalorianSlugthrower, WEAPON_NAMES } from '../../data/weapons';
 import { COMBAT_STAKES, type CombatOutcome, type CombatStakes } from '../../data/progression.config';
 import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.config';
 import { FORM_IDS } from '../../data/skills';
@@ -280,13 +280,19 @@ function captorsOf(duel: DuelState, active: ActiveFight, winner: DuelState['oppo
   const standing = duel.opponents.filter((o) => !o.out && !o.engagedElsewhere && (kind ? active.meta[o.id]?.minionKind === kind : o.id === winner.id));
   const label = kind ? (MINION_KINDS.find((k) => k.id === kind)?.label ?? kind) : winner.name;
   const group = kind ? `${standing.length} ${label}${standing.length === 1 ? '' : 's'}` : winner.name;
-  return { group, kind, standing: standing.length, names: standing.map((o) => o.name), atAbs: toAbsSecond(s.clock.now), locationId: s.locations.currentId };
+  // Their weapon in words (pass 4 issue 4: Mandalorians with slugthrower rifles leveled "a heavy blaster" next scene).
+  const w = standing[0] ?? winner;
+  const weapon = w.weaponName ? `${w.weaponName}${kind ? 's' : ''}` : WEAPON_NAMES[w.weapon];
+  return { group, kind, standing: standing.length, names: standing.map((o) => o.name), atAbs: toAbsSecond(s.clock.now), locationId: s.locations.currentId, weapon };
 }
 
 /** The duel with the player's mortal wounds stabilized when the conclusion emitted woundsStabilized. */
 function markStabilized(duel: DuelState, emit: readonly GameEvent[]): DuelState {
-  if (!emit.some((e) => e.type === 'woundsStabilized')) return duel;
-  return { ...duel, a: { ...duel.a, wounds: (duel.a.wounds as Wound[]).map((w) => (w.severity === 'mortal' && !w.stabilized ? { ...w, stabilized: true } : w)) } };
+  // A killing strike's mortal wound is on the card too (pass 4 issue 12: "Varn Kessa: Healthy" after it).
+  const fate = emit.flatMap((e) => (e.type === 'healthSynced' && e['cause'] === 'a killing strike' ? ((e['addWounds'] as Wound[] | undefined) ?? []) : []));
+  const withFate = fate.length ? { ...duel, a: { ...duel.a, wounds: [...(duel.a.wounds as Wound[]), ...fate] } } : duel;
+  if (!emit.some((e) => e.type === 'woundsStabilized')) return withFate;
+  return { ...withFate, a: { ...withFate.a, wounds: (withFate.a.wounds as Wound[]).map((w) => (w.severity === 'mortal' && !w.stabilized ? { ...w, stabilized: true } : w)) } };
 }
 
 /** Outcome of a duel end for side A. */

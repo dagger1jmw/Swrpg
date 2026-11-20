@@ -197,7 +197,7 @@ function healthLine(state: GameState): string {
 export const CAPTIVE_LINE_SECONDS = 24 * 3600;
 
 /** The captors of the last fight, while the player is still their prisoner here (D-242), or null. */
-export function selectCaptors(state: GameState): { group: string; kind: string | null; names: readonly string[] } | null {
+export function selectCaptors(state: GameState): { group: string; kind: string | null; names: readonly string[]; weapon?: string | undefined } | null {
   const last = state.combat.last;
   const c = last?.playerFate === 'captured' ? last.captors : null;
   if (!c || state.combat.active) return null;
@@ -208,7 +208,7 @@ export function selectCaptors(state: GameState): { group: string; kind: string |
 
 function captiveLine(state: GameState): string | null {
   const c = selectCaptors(state);
-  return c ? `CAPTIVE: the player character was captured by ${c.group}${c.kind ? ` (${c.names.join(', ')})` : ''} in the last fight. Name these captors, and no other kind of soldier or droid, until the story frees the character.` : null;
+  return c ? `CAPTIVE: the player character was captured by ${c.group}${c.kind ? ` (${c.names.join(', ')})` : ''}${c.weapon ? `, armed with ${c.weapon} and no other weapons` : ''} in the last fight. Name these captors, and no other kind of soldier or droid, until the story frees the character. A blow from a captor is a story event only: it does not wound the character.` : null;
 }
 
 function combatLine(state: GameState): string | null {
@@ -422,9 +422,11 @@ const KEY_EVENTS_FROM = 10;
 export function describeCombat(c: CombatDraft): string[] {
   const facts = combatFacts(c);
   const lines = [`COMBAT ${c.fightId}${c.started ? ' (the fight begins now)' : ''}: the outcome list. Narrate these exchanges in order, nothing more and nothing different.`];
-  lines.push(`Weapons (the only ones in this fight): ${c.fighters.map((f) => `${f.name}: ${weaponText(f.weapon)}${f.bladeColor ? `, ${f.bladeColor} blade` : ''}${f.form ? ` (${SKILL_BY_ID.get(f.form)?.name ?? f.form})` : ''}`).join('; ')}.`);
+  lines.push(`Weapons (the only ones in this fight): ${c.fighters.map((f) => `${f.name}: ${f.weaponName ? `an ${f.weaponName}, ` : ''}${weaponText(f.weapon)}${f.bladeColor ? `, ${f.bladeColor} blade` : ''}${f.form ? ` (${SKILL_BY_ID.get(f.form)?.name ?? f.form})` : ''}`).join('; ')}.`);
   // Armor as the engine has it (D-216; pass 2 gave an unarmored Jedi "your armor"): nobody wears what is not listed.
-  if (c.fighters.some((f) => f.armor !== undefined)) lines.push(`Armor (the only armor in this fight): ${c.fighters.map((f) => `${f.name}: ${!f.armor || f.armor === 'none' ? 'none' : `${f.armor}${f.saberResistant ? ' (beskar: turns a lightsaber)' : ''}`}`).join('; ')}.`);
+  if (c.fighters.some((f) => f.armor !== undefined)) lines.push(`Armor (the only armor in this fight): ${c.fighters.map((f) => `${f.name}: ${!f.armor || f.armor === 'none' ? 'none' : `${f.armorName ? `${f.armorName}, ` : ''}${f.armor}${f.saberResistant ? ' (saber-resistant: a lightsaber does not cut through it easily)' : ''}`}`).join('; ')}.`);
+  // Cover between shooters (D-243; pass 4 issue 7: the narrated beat in the ruins put nobody behind anything).
+  if (c.cover) lines.push('Cover: the shooters on both sides fire from behind cover (the terrain has it); show them using it.');
   lines.push(...facts.lines);
   // A long passage (D-242; pass 3: 46 exchanges told as their aftermath): the events that must be told, in order.
   if (c.narrate.length >= KEY_EVENTS_FROM) {

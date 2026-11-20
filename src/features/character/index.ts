@@ -35,7 +35,17 @@ export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
     dominantHandSwitched: {
       schema: z.object({ type: z.literal('dominantHandSwitched'), reason: z.string().max(120) }),
       sources: ['engine'],
-      handle: (slice, e) => ({ slice: { ...slice, dominantHand: slice.dominantHand === 'right' ? 'left' : 'right' }, notes: [`dominant hand switched (${String(e['reason'])})`] }),
+      handle: (slice, e) => ({ slice: { ...slice, naturalHand: slice.naturalHand ?? slice.dominantHand, dominantHand: slice.dominantHand === 'right' ? 'left' : 'right' }, notes: [`dominant hand switched (${String(e['reason'])})`] }),
+    },
+    /** The lost limbs restored (dev /heal all): the hand from before the loss comes back (pass 4 issue 10). Engine only. */
+    dominantHandRestored: {
+      schema: z.object({ type: z.literal('dominantHandRestored') }),
+      sources: ['engine'],
+      handle: (slice) => {
+        if (!slice.naturalHand) return { slice };
+        const { naturalHand, ...rest } = slice;
+        return { slice: { ...rest, dominantHand: naturalHand }, notes: naturalHand !== slice.dominantHand ? [`dominant hand restored (${naturalHand})`] : [] };
+      },
     },
   },
   // The player character is referenced as "pc" (e.g. factLearned about the character, M2).

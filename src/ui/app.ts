@@ -513,8 +513,11 @@ export class App {
           return [
             el('strong', { class: 'tb-time', text: `${formatClock(now.second)} ${timeOfDayLabel(now.second)}` }),
             // The weekday in its own span, hidden at iPad width (D-242).
-            el('span', { class: 'tb-date', attrs: { title: formatDate(now.day) } }, [formatDate(now.day).replace(/ \(weekday \d+\)$/, ''), el('span', { class: 'tb-weekday', text: / \(weekday \d+\)$/.exec(formatDate(now.day))?.[0] ?? '' })]),
-            loc ? el('span', { class: 'tb-opt tb-place', text: loc.name }) : null,
+            // Date and place together: one line on a wide screen, two short lines at iPad width (pass 4 issue 14: both cut).
+            el('span', { class: 'tb-where' }, [
+              el('span', { class: 'tb-date', attrs: { title: formatDate(now.day) } }, [formatDate(now.day).replace(/ \(weekday \d+\)$/, ''), el('span', { class: 'tb-weekday', text: / \(weekday \d+\)$/.exec(formatDate(now.day))?.[0] ?? '' })]),
+              loc ? el('span', { class: 'tb-opt tb-place', text: loc.name, attrs: { title: loc.name } }) : null,
+            ]),
             el('span', { class: 'tb-chip', text: selectPacingLevel(state) }),
             el('span', { class: 'tb-opt tb-turn', text: `turn ${state.meta.turn}` }),
           ];

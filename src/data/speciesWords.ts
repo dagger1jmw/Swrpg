@@ -76,6 +76,20 @@ export function inferSpecies(input: { name: string; description: string; given: 
  * The weapon an NPC's description names (D-239), or null. Melee words win over a ranged default; blaster words keep a
  * ranged one. Only the unmistakable words: an amphistaff, a vibroblade, a sword, a staff, an axe, a knife or claws.
  */
+/**
+ * The melee weapon's own word in a description (pass 4 issue 12: the panel said "melee weapon" for an amphistaff), or
+ * null; read only when weaponFromDescription gives melee.
+ */
+export function weaponNameFromDescription(description: string): string | null {
+  const m = /\b(amphistaff|vibro-?(?:blade|sword|axe|knife|staff)|cortosis (?:blade|sword|staff)|sword|staff|axe|knife|dagger|spear|club|claws)s?\b/i.exec(description);
+  return m ? m[1]!.toLowerCase() : null;
+}
+/** Armor names worth saying (D-224's vonduun crab armor; beskar). */
+export function armorNameFromDescription(description: string): string | null {
+  const m = /\b(vonduun crab armor|beskar(?:'gam)?)\b/i.exec(description);
+  return m ? m[1]!.toLowerCase() : null;
+}
+
 export function weaponFromDescription(description: string): WeaponKind | null {
   if (/\b(?:amphistaffs?|vibro-?(?:blades?|swords?|axes?|knives|knife|staffs?)|swords?|staffs?|axes?|knives|knife|daggers?|spears?|clubs?|claws?|cortosis (?:blade|sword|staff))\b/i.test(description) && !/\b(?:light ?sabers?|saberstaff|blasters?|rifles?|pistols?)\b/i.test(description)) return 'melee';
   return null;

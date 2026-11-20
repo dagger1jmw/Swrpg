@@ -21,6 +21,8 @@ export const characterSliceSchema = z.object({
   trainingStartAge: z.number().min(0).nullable(),
   talents: z.partialRecord(z.enum(TALENT_DOMAINS), z.enum(TALENT_LEVELS)),
   dominantHand: z.enum(['left', 'right']),
+  /** The hand before a loss switched it (Q39), so restoring the limb restores it (pass 4 issue 10). Absent when never switched. */
+  naturalHand: z.enum(['left', 'right']).optional(),
   /** Created with the talent limit ignored (D-116): shown on the sheet; balance is not promised. */
   unbalanced: z.boolean(),
   /**

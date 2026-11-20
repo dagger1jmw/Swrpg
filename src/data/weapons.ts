@@ -70,6 +70,8 @@ export function mandalorianSlugthrower(year: number, u1: number, u2: number): We
 
 /** Weapons that use the ranged exchange (rolls §4). */
 export const RANGED_WEAPONS: readonly WeaponKind[] = [...BLASTER_WEAPONS, ...SLUGTHROWERS];
+/** A weapon kind in plain words (the captors' line in later scenes; pass 4 issue 4). */
+export const WEAPON_NAMES: Readonly<Record<WeaponKind, string>> = { unarmed: 'no weapon', melee: 'melee weapons', blasterPistol: 'blaster pistols', blasterRifle: 'blaster rifles', heavy: 'heavy blasters', slugPistol: 'slugthrower pistols', slugRifle: 'slugthrower rifles', scatterGun: 'scatter guns', lightsaber: 'a lightsaber', trainingSaber: 'a training saber' };
 
 /** The skill a weapon fights with: forms for sabers, blaster for ranged, melee for melee, Agility unarmed. */
 export function weaponSkillKind(w: WeaponKind): 'form' | 'blaster' | 'melee' | 'unarmed' {
