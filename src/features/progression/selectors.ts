@@ -4,6 +4,8 @@ import { SKILLS, SKILL_BY_ID, type PhysicalStat } from '../../data/skills';
 import { levelWithNatural, tierOf, xpForLevel } from '../../engine/curve';
 import { drillCeiling } from '../../engine/appliedExperience';
 import { capacities, type Capacities } from '../../engine/fatigue';
+import { lastingPenalty, type LastingInjury } from '../../engine/lasting';
+import { CAPACITY_ENDURANCE_KINDS } from '../../data/health.config';
 import { bodyCap, forceBoost, naturalLevel } from '../../engine/species';
 import type { StateOfMind, TierName } from '../../data/progression.config';
 import type { GameState } from '../../state/gameState';
@@ -47,7 +49,15 @@ export const selectEffectiveLevel = (s: GameState, id: string): number => select
 
 /** Meter capacities from Endurance, Willpower and Force Control, cut by the overtraining streak. */
 export function selectCapacities(s: GameState): Capacities {
-  return capacities(selectPerformance(s, 'endurance'), selectLevelExact(s, 'willpower'), selectLevelExact(s, 'forceControl'), s.progression.overtrainStreak);
+  return capacities(capacityEndurance(selectPerformance(s, 'endurance'), s.health.lasting as readonly LastingInjury[]), selectLevelExact(s, 'willpower'), selectLevelExact(s, 'forceControl'), s.progression.overtrainStreak);
+}
+
+/**
+ * Endurance as the fatigue meters read it (Jared, D-252): a lost leg's Endurance penalty (progression-numbers §18:
+ * P 0.15 x (1 - adaptation)) cuts the capacity, in and out of fights. Only the kinds in CAPACITY_ENDURANCE_KINDS.
+ */
+export function capacityEndurance(endurance: number, lasting: readonly LastingInjury[]): number {
+  return endurance * (1 - lastingPenalty(lasting.filter((l) => CAPACITY_ENDURANCE_KINDS.includes(l.kind)), 'endurance'));
 }
 
 export const selectStateOfMind = (s: GameState): StateOfMind => activeState(s.progression.stateOfMind, s.clock.now.day);

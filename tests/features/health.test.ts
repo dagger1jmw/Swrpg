@@ -72,12 +72,12 @@ describe('wounds, dying and death (health §6)', () => {
     const second = sync(r.state, [wound({ severity: 'mortal', W: 55, part: 'leftLeg' })]).state;
     expect(second.health.death).not.toBeNull();
   });
-  it('a severed dominant hand is a lasting injury at once and switches the hand (Q39)', () => {
+  it('a severed dominant hand is a lasting injury at once; its prosthetic is fitted at once, so the hand stays (Q39 as amended by D-253)', () => {
     const r = sync(fresh(), [wound({ severity: 'severe', W: 34, part: 'rightHand', severed: true })]);
     expect(r.state.health.lasting).toHaveLength(1);
     expect(r.state.health.lasting[0]!.kind).toBe('lostHand');
     expect(r.state.health.lasting[0]!.aid).toBe('qualityCybernetic');
-    expect(r.state.character.dominantHand).toBe('left');
+    expect(r.state.character.dominantHand).toBe('right');
   });
   it('a hazard (D-149) wounds by its severity', () => {
     const r = applyEvents(REGISTRY, fresh(), [{ type: 'hazardResolved', hazard: 'fall', severity: 2, cause: 'slipped from a ledge' }], { source: 'engine' });

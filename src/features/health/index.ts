@@ -9,7 +9,7 @@ import { stubProsthetic } from '../../data/stubs';
 import { applyDamage, hazardDamage, rollLocation, severityOf } from '../../engine/damage';
 import { afterSleep, rest, sleepCarry } from '../../engine/fatigue';
 import { healMultiplier, healsOvernight, isHealed, lastingChance, progressHealing } from '../../engine/healing';
-import { adapt, lastingAffects, lastingKindFor, type LastingInjury } from '../../engine/lasting';
+import { adapt, isFittedAid, lastingAffects, lastingKindFor, type LastingInjury } from '../../engine/lasting';
 import { nextFloat, type RngState } from '../../engine/rng';
 import { dyingMinutes, isDying, killsWhileDying, stabilize, type Wound } from '../../engine/wounds';
 import type { GameState } from '../../state/gameState';
@@ -30,7 +30,10 @@ function severedLasting(s: GameState, w: Wound, id: string): { lasting: LastingI
   const aid = stubProsthetic({ path: selectPath(s), archetype: selectArchetype(s) });
   const lasting: LastingInjury = { id, kind: lastingKindFor(w), part: w.part, adaptation: 0, aid, adaptedToday: 0, adaptDay: -1, day: w.day };
   const dominant = c.dominantHand === 'right' ? ['rightHand', 'rightArm'] : ['leftHand', 'leftArm'];
-  const emit: GameEvent[] = dominant.includes(w.part) ? [{ type: 'dominantHandSwitched', reason: `lost the ${w.part}` }] : [];
+  // A prosthetic fitted at once counts as whole (Jared, D-253; D-244): the hand switches only when the limb is lost and
+  // not replaced (no aid, or scar tissue only).
+  const replaced = isFittedAid(aid);
+  const emit: GameEvent[] = dominant.includes(w.part) && !replaced ? [{ type: 'dominantHandSwitched', reason: `lost the ${w.part}` }] : [];
   return { lasting, emit };
 }
 
@@ -220,8 +223,9 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
         const day = selectNow(ctx.state).day;
         const hours = e['hours'] as Record<string, number>;
         const lasting = (slice.lasting as LastingInjury[]).map((l) => {
-          // A lost leg also adapts from lightsaber form drills at LEG_FORM_SHARE (D-230).
-          const h = Object.entries(hours).reduce((a, [skill, x]) => a + (lastingAffects(l, skill) ? x : l.kind === 'lostLeg' && SKILL_BY_ID.get(skill)?.kind === 'form' ? x * LEG_FORM_SHARE : 0), 0);
+          // A lost leg adapts from lightsaber form drills at LEG_FORM_SHARE (D-230), though its penalty now reaches the
+          // forms too (D-251): the share is checked first, so the measured adaptation pace does not change.
+          const h = Object.entries(hours).reduce((a, [skill, x]) => a + (l.kind === 'lostLeg' && SKILL_BY_ID.get(skill)?.kind === 'form' ? x * LEG_FORM_SHARE : lastingAffects(l, skill) ? x : 0), 0);
           return h > 0 ? adapt(l, h, day) : l;
         });
         return { slice: { ...slice, lasting } };

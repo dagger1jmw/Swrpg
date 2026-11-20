@@ -1040,6 +1040,23 @@ The clock and the module contract come first, before any feature.
   malfunction, loss). Until then such a hit costs Vitality only: no wound and no sever.
 - **Cleave (D-158):** keeping the advantage after taking a minion out; a candidate Shii-Cho / Sokan form trait
   against groups (M6 or later).
+- **M8 cybernetics as equipment, by quality tier (Jared, 2026-11-19; not built).** With the prosthetic damage above.
+  - *Quality (well fitted):* a cybernetic hand or arm gives unarmed damage base x1.5; +2 against disarm, and no
+    dropped weapon on a natural 1; a cybernetic arm gives +1 to knockdown and position contests and to the power forms
+    (Djem So, Shien), never to lightsaber damage. No precision penalty.
+  - *Basic prosthetic:* no bonuses; -1 to precision (Makashi precision and aimed strikes).
+  - *Crude or deliberately painful* (Vader's, by Palpatine's design): the quality tier's strength bonuses, -1 to
+    precision, and chronic pain as a standing mental-fatigue load. For M6, chronic pain can feed anger for dark-side
+    channeling.
+  - *All tiers:* ion weapons and Force lightning can short the limb out for 1-3 exchanges, and no Force lightning can be
+    cast through a cybernetic hand (Legends: Dark Lord: The Rise of Darth Vader).
+  - *Weight:* heavy full-limb cybernetics give a small penalty to acrobatics (Ataru, Force jumps, Agility dodges).
+    Armor weight is separate, in the M8 armor system: heavy armor costs acrobatics for anyone who wears it (most of
+    Vader's lost agility was the suit).
+- **M6 Force loss from lost living tissue (Jared, 2026-11-19; not built).** A permanent multiplier on Force learning and
+  on the Force ceiling, scaled by the tissue lost: a hand about 2%, an arm or a leg about 5% each, major burns or organ
+  loss more (design defaults). Calibration checks: Luke (one hand) barely affected; Vader (four limbs, burns, lungs) at
+  about half. Never a direct cut to current levels. Trandoshans regenerate limbs and are exempt (Legends).
 
 ### Dev tools (D-178, D-180; dev mode ?dev=1, test campaigns only)
 Testing aids, never part of normal play. Behind the ?dev=1 flag, and only in a campaign made by the dev test start

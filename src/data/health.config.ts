@@ -218,13 +218,26 @@ export const ADAPTATION = { perHour: 0.01, perDayMax: 0.03 } as const;
  * arm already counts every form hour in full, since its penalty is on the forms themselves.
  */
 export const LEG_FORM_SHARE = 0.3;
+/**
+ * A lost or prosthetic leg slows form strikes (Jared, D-251, design default): forms P = this x the leg's Agility P, so the
+ * effective form penalty is 0.5 x 0.35 x (1 - adaptation). The adaptation that cures it is still D-230's (form hours at
+ * LEG_FORM_SHARE beside Agility and Endurance in full).
+ */
+export const LEG_FORM_PENALTY_SHARE = 0.5;
+/** The lost leg's base penalties (progression-numbers §18). */
+const LEG_AGILITY_P = 0.35;
+/**
+ * Lasting kinds whose Endurance penalty cuts the fatigue meters' capacity (Jared, D-252): the leg only, x (1 - A), in
+ * and out of fights. Burns or lung damage (Endurance P 0.4) is not on the list: Jared's call named the leg.
+ */
+export const CAPACITY_ENDURANCE_KINDS: readonly string[] = ['lostLeg'];
 export const LASTING_KINDS = ['lostHand', 'lostArm', 'lostLeg', 'jointDamage', 'burnsOrLungs', 'headTrauma'] as const;
 export type LastingKind = (typeof LASTING_KINDS)[number];
 /** Base penalties P by kind on skill groups (progression-numbers §18; head trauma is a D-143 design default). */
 export const LASTING_PENALTIES: Record<LastingKind, Readonly<Partial<Record<PenaltyTarget | 'endurance' | 'forceOutput', number>>>> = {
   lostHand: { forms: 0.4, strength: 0.2 },
   lostArm: { forms: 0.4, strength: 0.3 },
-  lostLeg: { agility: 0.35, endurance: 0.15 },
+  lostLeg: { agility: LEG_AGILITY_P, endurance: 0.15, forms: LEG_FORM_PENALTY_SHARE * LEG_AGILITY_P },
   jointDamage: { agility: 0.15 },
   burnsOrLungs: { endurance: 0.4, forceOutput: 0.1 },
   headTrauma: { mental: 0.1, force: 0.1 },

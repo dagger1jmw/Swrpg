@@ -376,7 +376,12 @@ A lasting injury sets a base penalty P on the skills and stats it affects. Adapt
 (0-100%) reduces it: effective penalty = P * (1 - A).
   Examples (tunable; map to Docs/SW_Injury_System_v1.md):
     Lost dominant hand: lightsaber forms P 40%, hand-based Strength tasks P 20%
-    Lost limb (leg): Agility P 35%, Endurance P 15%
+    Lost limb (leg): Agility P 35%, Endurance P 15%, lightsaber forms P = 0.5 x the Agility P
+      (17.5%; D-251, design default: form footwork). It applies with any aid, a prosthetic or
+      cybernetic leg included, and adaptation reduces it like the others. The leg's form hours
+      still adapt it at LEG_FORM_SHARE (D-230), not in full. Its Endurance P also cuts the fatigue
+      meters' capacity (Endurance read x (1 - 0.15 x (1 - A)) for the capacities), in and out of
+      fights (D-252).
     Severe joint or muscle wound: affected stat P 15%
     Major burns or lung damage: Endurance P 40%, Force Output P 10%
   Adaptation: +1% per effective hour of training the affected skills (at most 3% per day).

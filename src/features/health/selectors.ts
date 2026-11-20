@@ -1,7 +1,7 @@
 import { tirednessLabel, type Meters } from '../../engine/fatigue';
 import { forceFraction } from '../../engine/forceMeter';
 import type { GameState } from '../../state/gameState';
-import { SKILL_IDS } from '../../data/skills';
+import { SKILL_BY_ID, SKILL_IDS } from '../../data/skills';
 import { aidCap, lastingAffects, lastingPenalty, type LastingInjury } from '../../engine/lasting';
 import { maxVitality } from '../../engine/vitality';
 import { isDying, isIncapacitated, locationPenalty, statusLabel, woundLoad, woundPenalty, type Wound } from '../../engine/wounds';
@@ -60,7 +60,10 @@ export const selectLastingPenalty = (s: GameState, skillId: string): number => l
 export function selectInjuredSkills(s: GameState): { rest: string[]; adapt: string[] } {
   const wounds = selectWounds(s).filter((w) => w.severity !== 'minor');
   const rest = SKILL_IDS.filter((id) => wounds.some((w) => locationPenalty([w], id) > 0));
-  const adapt = SKILL_IDS.filter((id) => !rest.includes(id) && selectLasting(s).some((l) => lastingAffects(l, id) && l.adaptation < aidCap(l) - 1e-9));
+  // A lost leg's form penalty (D-251) does not make form practice adaptation training: forms count toward the leg at
+  // LEG_FORM_SHARE only (D-230), so the routine trains them as before.
+  const legForm = (l: LastingInjury, id: string): boolean => l.kind === 'lostLeg' && SKILL_BY_ID.get(id)?.kind === 'form';
+  const adapt = SKILL_IDS.filter((id) => !rest.includes(id) && selectLasting(s).some((l) => lastingAffects(l, id) && !legForm(l, id) && l.adaptation < aidCap(l) - 1e-9));
   return { rest, adapt };
 }
 

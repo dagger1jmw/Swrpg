@@ -27,7 +27,7 @@ import { selectArchetype, selectCharacter, selectPath } from '../character/selec
 import { selectLasting, selectMaxVitality, selectVitality, selectWounds } from '../health/selectors';
 import { selectCurrentLocation } from '../locations/selectors';
 import { npcLevelsFor, selectNpc, selectNpcGen, selectNpcLevels } from '../npcs/selectors';
-import { selectCapacities, selectGriefMult, selectLevelExact, selectPerformance, selectRust, selectStateOfMind } from '../progression/selectors';
+import { capacityEndurance, selectCapacities, selectGriefMult, selectLevelExact, selectPerformance, selectRust, selectStateOfMind } from '../progression/selectors';
 import { selectRank } from '../ranks/selectors';
 
 /** The fighting skill for a loadout: the best of the given forms for sabers, blaster, melee, or Agility unarmed. */
@@ -100,7 +100,8 @@ export function buildPlayerFighter(s: GameState): Fighter {
 function fighterFromLevels(id: string, name: string, levels: Readonly<Record<string, number>>, loadout: Loadout, opts: { minion: boolean; vitalityLost: number; wounds: readonly Wound[]; lasting: readonly LastingInjury[]; shatterpoint: number; lightSide: boolean }): Fighter {
   const lv = (k: string): number => levels[k] ?? 0;
   const { skillId, form } = fightingSkill(loadout, lv, null);
-  const caps = capacities(lv('endurance'), lv('willpower'), lv('forceControl'));
+  // A lost leg cuts the meters' capacity for an NPC too (D-252).
+  const caps = capacities(capacityEndurance(lv('endurance'), opts.lasting), lv('willpower'), lv('forceControl'));
   const maxV = maxVitality({ endurance: lv('endurance'), strength: lv('strength'), bodyAbility: Math.max(lv('forceSpeed'), lv('forceJump')) });
   return {
     id,

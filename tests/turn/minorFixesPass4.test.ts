@@ -110,9 +110,12 @@ describe('9: the saber throw at exactly its requirement', () => {
 });
 
 describe('10: /heal all gives the natural hand back', () => {
-  it('a lost right arm switches the hand; /heal all restores it', async () => {
+  it('a lost right arm with its prosthetic fitted at once keeps the hand (D-253); a switch is undone by /heal all', async () => {
     let s = ok(await start({ seed: 'hand' }), '/sever right arm');
-    expect(s.character.dominantHand).toBe('left');
+    expect(s.character.dominantHand).toBe('right');
+    // A switch (a limb lost and not replaced) records the natural hand; /heal all restores it.
+    s = applyEvents(REGISTRY, s, [{ type: 'dominantHandSwitched', reason: 'lost the rightArm' }], { source: 'engine' }).state;
+    expect(s.character).toMatchObject({ dominantHand: 'left', naturalHand: 'right' });
     s = ok(s, '/heal all');
     expect(s.character.dominantHand).toBe('right');
     expect(s.character.naturalHand).toBeUndefined();

@@ -24,6 +24,8 @@ export interface LastingInjury {
 }
 
 export const aidCap = (l: LastingInjury): number => AID_CAP[l.aid];
+/** A prosthetic replaces the limb (basic or cybernetic, or the off-hand retraining); none and scar tissue do not. */
+export const isFittedAid = (aid: Aid): boolean => aid !== 'none' && aid !== 'scarTissue';
 
 /** The lasting kind a healed wound leaves; a severed limb is always a lost hand, arm or leg. */
 export function lastingKindFor(w: Wound): LastingKind {
