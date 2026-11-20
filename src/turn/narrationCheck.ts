@@ -497,11 +497,11 @@ const namesSomeoneElse = (sentence: string): boolean => /\b(?!I\b)[A-Z][a-z]{2,}
 export function lastingIssues(narrative: string, list: readonly LastingView[]): NarrationIssue[] {
   const out: NarrationIssue[] = [];
   if (!list.length) return out;
+  // A fighter is named by the full name only (D-247; pass 4: "Duelist 9 steps forward" was read as Duelist 37, who had
+  // lost a leg, because the two names share the word "Duelist"). "Duelist 3" is not "Duelist 37" either.
   const named = list
-    .filter((l) => !l.pc)
-    .map((l) => ({ l, words: l.name.split(/[^A-Za-z']+/).filter((w) => w.length >= 4) }))
-    .filter((n) => n.words.length)
-    .map((n) => ({ l: n.l, re: new RegExp(`\\b(${n.words.join('|')})\\b`, 'i') }));
+    .filter((l) => !l.pc && l.name.trim().length > 0)
+    .map((l) => ({ l, re: new RegExp(`(?<![\\w-])${l.name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')}(?![\\w-])`, 'i') }));
   const pc = list.find((l) => l.pc) ?? null;
   const lacks = (l: LastingView, side: string, limb: string): boolean => l.missing.some((p) => p.toLowerCase() === `${side}${limb}`);
   const upper = (l: LastingView): boolean => l.missing.some((p) => /Arm$|Hand$/.test(p));

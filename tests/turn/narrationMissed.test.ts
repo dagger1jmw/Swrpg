@@ -157,6 +157,20 @@ describe('lasting state: a leg or an arm that is gone', () => {
     ])
       expect(lastingIssues(text, [DUELIST]).map((i) => i.kind), text).toEqual(['lastingState']);
   });
+  it('pass 4 (D-247): a fighter is matched by the full name, never a shared word ("Duelist 9" is not "Duelist 37")', () => {
+    const D37: LastingView = { name: 'Duelist 37', pc: false, cannotStand: true, missing: ['rightLeg'] };
+    // The exact sentence of the pass-4 Spare narration, flagged then (a retry and a true sentence removed).
+    const pass4 = 'Duelist 9 steps forward slightly from the shadows of the ferns, his expression unreadable, while Duelist 6 watches your restraint with a cold, assessing gaze.';
+    expect(lastingIssues(pass4, [D37])).toEqual([]);
+    expect(checkNarration(pass4, draft(null), false, { player: [], lasting: [D37] })).toEqual([]);
+    // A number prefix is not the name either; the real one still fires.
+    expect(lastingIssues('Duelist 3 steps forward and raises his blade.', [D37])).toEqual([]);
+    expect(lastingIssues('Duelist 37 steps forward and raises his blade.', [D37]).map((i) => i.kind)).toEqual(['lastingState']);
+    // Shared title words: two Mandalorian warriors, one of them legless.
+    const M3: LastingView = { name: 'Mandalorian warrior 3', pc: false, cannotStand: true, missing: ['leftLeg'] };
+    expect(lastingIssues('Mandalorian warrior 1 strides toward you through the snow.', [M3])).toEqual([]);
+    expect(lastingIssues('Mandalorian warrior 3 strides toward you through the snow.', [M3]).map((i) => i.kind)).toEqual(['lastingState']);
+  });
   it('in a fight: a limb lost earlier counts, a limb severed in this passage does not (he was whole until then)', () => {
     const maimed = fighter('n1', 'Duelist 2', { lostParts: ['rightArm'], lasting: { cannotStand: false, missing: ['rightArm', 'rightHand'], text: ['no right arm (severed)'] } });
     const earlier = combat({ fighters: [fighter('pc', 'Joren Kast'), maimed], narrate: [rec({ n: 70, margin: 4, advAfter: 1 })] });
