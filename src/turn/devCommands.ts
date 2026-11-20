@@ -6,7 +6,7 @@ import type { Choice } from '../ai/schemas/compose';
 import type { Intent, RequestedSpan } from '../ai/schemas/intent';
 import { CANON_NPCS, type CanonNpc } from '../data/canonNpcs';
 import { COMBAT_STAKES } from '../data/progression.config';
-import type { SPARRING_MODES } from '../data/combat.config';
+import { moraleFor, type SPARRING_MODES } from '../data/combat.config';
 import { BODY_PARTS, SEVERITIES, type BodyPart, type Severity } from '../data/health.config';
 import { MINION_KINDS } from '../data/npcGen.config';
 import type { WeaponKind } from '../data/health.config';
@@ -485,6 +485,10 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       if (!npcId) return fail('the current opponent is a minion: its archetype is its kind’s (target a named opponent)');
       apply([{ type: 'devNpcArchetypeSet', npcRef: npcId, archetype: args[0] ?? '' }], 'dev');
       if (refused()) return fail(refused()!);
+      // The fighter in the fight takes the archetype's morale too (D-256), so a surrender can be tested on demand.
+      const act = state.combat.active!;
+      const d = act.duel as DuelState;
+      state = { ...state, combat: { ...state.combat, active: { ...act, duel: { ...d, opponents: d.opponents.map((o) => (o.id === target!.id ? { ...o, morale: moraleFor(args[0] ?? '') } : o)) } } } };
       return out(true, `${target!.name}: archetype ${args[0]}`);
     }
 

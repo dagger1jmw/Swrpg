@@ -1,6 +1,6 @@
 // Building duel fighters from the game state (rolls.md §1: effective levels from the real skill levels, wounds,
 // rust, Spent and fatigue). Pure; reads other features only through their selectors.
-import { SITH_ACADEMIES, SPARRING_DEFAULT_BY_RANK, type SparringMode } from '../../data/combat.config';
+import { SITH_ACADEMIES, SPARRING_DEFAULT_BY_RANK, moraleFor, type SparringMode } from '../../data/combat.config';
 import { MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
 import { nextFloat, seedRng } from '../../engine/rng';
 import { CANON_BY_ID } from '../../data/canonNpcs';
@@ -179,7 +179,9 @@ export function buildNpcFighter(s: GameState, npcId: string, live = true): { fig
   const vongKind = archetype === 'yuuzhanVongWarrior' ? MINION_KINDS.find((k) => k.archetype === archetype) : undefined;
   const weaponName = loadout.weapon === 'melee' ? (weaponNameFromDescription(npc.description) ?? vongKind?.weaponName ?? null) : null;
   const armorName = armorNameFromDescription(npc.description) ?? (loadout.saberResistant ? (vongKind?.armorName ?? null) : null);
-  return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId), ...(blade ? { bladeColor: blade } : {}), ...(weaponName ? { weaponName } : {}), ...(armorName ? { armorName } : {}) }, rank: gen.rank };
+  // Morale by archetype (D-256); a droid NPC never breaks.
+  const morale = npc.speciesId === 'droid' ? moraleFor('', 'battleDroid') : moraleFor(archetype);
+  return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId), ...(blade ? { bladeColor: blade } : {}), ...(weaponName ? { weaponName } : {}), ...(armorName ? { armorName } : {}), morale }, rank: gen.rank };
 }
 
 export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false, weapon: WeaponKind | null = null, number: number = index + 1): Fighter {
@@ -199,7 +201,7 @@ export function buildMinionFighter(s: GameState, kindId: string, grade: number, 
   const blade = loadout.weapon === 'lightsaber' ? BLADE_COLORS.sith[0] : null;
   // A droid kind dodges no better than it shoots (Jared, D-223; pass 2 balance row 7: a B1 dodged a thrown object at
   // +3.6 but shot at +1.4 - 3): its Agility is min(Agility, weapon level).
-  return { ...f, ...(blade ? { bladeColor: blade } : {}), ...(kind.weaponName && !weapon ? { weaponName: kind.weaponName } : {}), ...(kind.armorName ? { armorName: kind.armorName } : {}), vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}), ...(droid ? { forceTraits: speciesForceTraits('droid'), forceResistance: 0, agility: Math.min(f.agility, f.level) } : {}), ...(vong ? { forceTraits: speciesForceTraits('yuuzhanVong') } : {}), ...(HEAVY_MINION_KINDS.includes(kind.id) ? { bodySize: 'heavy' as const } : {}) };
+  return { ...f, morale: moraleFor(kind.archetype, kind.id), ...(blade ? { bladeColor: blade } : {}), ...(kind.weaponName && !weapon ? { weaponName: kind.weaponName } : {}), ...(kind.armorName ? { armorName: kind.armorName } : {}), vitality: v, maxVitality: v, coordination: kind.coordination, ...(kind.accuracy ? { accuracy: kind.accuracy } : {}), ...(droid ? { forceTraits: speciesForceTraits('droid'), forceResistance: 0, agility: Math.min(f.agility, f.level) } : {}), ...(vong ? { forceTraits: speciesForceTraits('yuuzhanVong') } : {}), ...(HEAVY_MINION_KINDS.includes(kind.id) ? { bodySize: 'heavy' as const } : {}) };
 }
 
 /** The duel context from the terrain tags and stakes (rolls §5, D-144). */

@@ -33,7 +33,7 @@ export const abilityName = (id: string): string => SKILL_BY_ID.get(id)?.name ?? 
 export const WEAPON_SHORT: Readonly<Record<string, string>> = { unarmed: 'unarmed', melee: 'melee weapon', blasterPistol: 'blaster pistol', blasterRifle: 'blaster rifle', heavy: 'heavy blaster', slugPistol: 'slugthrower pistol', slugRifle: 'slugthrower rifle', scatterGun: 'scatter gun', lightsaber: 'lightsaber', trainingSaber: 'training saber' };
 
 /** How a fight ended, in words (issue 21: "won (allOut)", "lost (sparring session (stopped))"). */
-const END_REASON: Readonly<Record<string, string>> = { allOut: 'every opponent is down', incapacitated: 'a fighter is down', dying: 'a fighter is dying', dead: 'a fighter is dead', spent: 'a fighter is spent', point: 'on a point', stopped: 'stopped', exhausted: 'a fighter collapsed from exhaustion', opponentsDefeated: 'your opponents defeated', stalemate: 'an exhausted stalemate, both sides spent' };
+const END_REASON: Readonly<Record<string, string>> = { allOut: 'every opponent is down', incapacitated: 'a fighter is down', dying: 'a fighter is dying', dead: 'a fighter is dead', spent: 'a fighter is spent', point: 'on a point', stopped: 'stopped', exhausted: 'a fighter collapsed from exhaustion', opponentsDefeated: 'your opponents defeated', yielded: 'the opponents broke (surrendered or fled)', stalemate: 'an exhausted stalemate, both sides spent' };
 /**
  * An opponent's armor on the card (Jared, after pass 4: the Vong's saber-resistant armor showed nowhere): its weight,
  * its own name, and whether it stands up to a lightsaber (health §5: armor counts x0.25 against a saber unless

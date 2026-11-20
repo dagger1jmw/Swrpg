@@ -20,7 +20,7 @@ import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 import type { GameEvent } from '../../src/state/types';
-import { SPARRING_DEFAULT_BY_RANK } from '../../src/data/combat.config';
+import { SPARRING_DEFAULT_BY_RANK, moraleFor } from '../../src/data/combat.config';
 import { HEAL_MULT } from '../../src/data/health.config';
 import { sparGroupLevel } from '../../src/engine/appliedExperience';
 import { baseHealDays } from '../../src/engine/healing';
@@ -172,6 +172,8 @@ function minionFighter(kindId: string, id: string, level: number, beskar: boolea
     coordination: k.coordination,
     ...(k.accuracy ? { accuracy: k.accuracy } : {}),
     caps: { p: capacity(30), f: 0 },
+    // Morale by the kind (D-256), as a generated minion has it.
+    morale: moraleFor(k.archetype, k.id),
   };
 }
 
@@ -210,6 +212,8 @@ function duelistFighter(id: string, level: number, vitality: number): Fighter {
     engagedElsewhere: false,
     dead: false,
     pendingManeuver: null,
+    // A Force-using duelist (Jedi or Sith) breaks late (D-256; half yield, half flee).
+    morale: { group: 'late', surrender: 0.5 },
   };
 }
 

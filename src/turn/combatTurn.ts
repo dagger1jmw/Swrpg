@@ -279,7 +279,7 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   // A droid is destroyed or disabled, never dying (issue 21).
   status: f.forceTraits?.includes('droid')
     ? f.dead ? 'Destroyed' : f.out || isDying(f.wounds as Wound[]) || isIncapacitated(f.wounds as Wound[]) ? 'Disabled' : statusLabel(f.wounds as Wound[])
-    : f.dead ? 'Dead' : isDying(f.wounds as Wound[]) ? 'Dying' : isIncapacitated(f.wounds as Wound[]) ? 'Incapacitated' : f.out ? 'Out of the fight' : statusLabel(f.wounds as Wound[]),
+    : f.dead ? 'Dead' : isDying(f.wounds as Wound[]) ? 'Dying' : isIncapacitated(f.wounds as Wound[]) ? 'Incapacitated' : f.yielded === 'surrendered' ? 'Surrendered' : f.yielded === 'fled' ? 'Fled' : f.out ? 'Out of the fight' : statusLabel(f.wounds as Wound[]),
   out: f.out,
   engagedElsewhere: f.engagedElsewhere,
   minion: f.minion,

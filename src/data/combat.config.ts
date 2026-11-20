@@ -280,6 +280,55 @@ export const CAPTOR_RULES: Readonly<Record<string, { surrenderExecution?: { leth
   yuuzhanVongWarrior: { capturesToExecute: true },
 };
 
+/**
+ * Morale (Jared, D-256; design defaults). An NPC opponent, named or minion, checks morale when it takes a severe or worse
+ * wound, when it is Spent, and when its side is losing badly (half or more of its side out). A check breaks with the
+ * group's chance; a break is a surrender with the group's share, else the fighter disengages and flees. Either ends that
+ * fighter's part in the fight; a named fighter's surrender opens the fate choice. The player never checks morale, and a
+ * sparring bout has none. `enabled` exists for measurement (the D-256 sever counts ran with it off and on).
+ */
+export const MORALE_GROUPS = ['early', 'average', 'late', 'never'] as const;
+export type MoraleGroup = (typeof MORALE_GROUPS)[number];
+export const MORALE = {
+  enabled: true,
+  /** The chance a check breaks, by group. */
+  breakChance: { early: 0.45, average: 0.2, late: 0.06, never: 0 } as Record<MoraleGroup, number>,
+  /** A side is losing badly once this share of it is out. */
+  losingBadlyShare: 0.5,
+};
+/** A fighter's morale: its group, and the share of breaks that are surrenders (the rest flee). */
+export interface MoraleProfile {
+  group: MoraleGroup;
+  surrender: number;
+}
+/**
+ * By archetype (design defaults, Jared's list): militia, thugs and mercenaries break early; soldiers average; Sith,
+ * Mandalorians and the Yuuzhan Vong late or never; droids never (by minion kind below). Jedi break late and yield rather
+ * than run; Sith run rather than yield; a Yuuzhan Vong warrior never breaks (Legends: death in battle is an honour).
+ */
+export const MORALE_BY_ARCHETYPE: Readonly<Record<string, MoraleProfile>> = {
+  civilian: { group: 'early', surrender: 0.4 },
+  smuggler: { group: 'early', surrender: 0.3 },
+  bountyHunter: { group: 'early', surrender: 0.3 },
+  soldier: { group: 'average', surrender: 0.6 },
+  mandalorian: { group: 'late', surrender: 0.3 },
+  jediGuardian: { group: 'late', surrender: 0.8 },
+  jediConsular: { group: 'late', surrender: 0.8 },
+  jediSentinel: { group: 'late', surrender: 0.8 },
+  sithWarrior: { group: 'late', surrender: 0.2 },
+  sithInquisitor: { group: 'late', surrender: 0.2 },
+  yuuzhanVongWarrior: { group: 'never', surrender: 0 },
+};
+/** Minion kinds that differ from their archetype: droids never break; beasts flee and never surrender. */
+export const MORALE_BY_MINION_KIND: Readonly<Record<string, MoraleProfile>> = {
+  battleDroid: { group: 'never', surrender: 0 },
+  superBattleDroid: { group: 'never', surrender: 0 },
+  droideka: { group: 'never', surrender: 0 },
+  warDroid: { group: 'never', surrender: 0 },
+  beast: { group: 'early', surrender: 0 },
+};
+export const moraleFor = (archetype: string, minionKind: string | null = null): MoraleProfile => (minionKind ? MORALE_BY_MINION_KIND[minionKind] : undefined) ?? MORALE_BY_ARCHETYPE[archetype] ?? { group: 'average', surrender: 0.5 };
+
 /** NPC fate chosen by the player at the NPC's incapacitation. */
 export const NPC_FATES = ['spare', 'capture', 'kill'] as const;
 /**

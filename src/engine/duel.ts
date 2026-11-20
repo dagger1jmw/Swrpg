@@ -4,6 +4,8 @@
 // ally, D-143 E) neither attack nor count. The engine never asks the AI anything: every roll, hit and wound is here.
 import {
   ADVANTAGE_MAX,
+  MORALE,
+  type MoraleProfile,
   BEAT_EVERY,
   BEAT_TRACK,
   BUILD_UP,
@@ -36,7 +38,7 @@ import {
   type Stance,
 } from '../data/combat.config';
 import { FORM_MATCHUPS, FORM_STAMINA, type MatchupSituation } from '../data/formMatchups';
-import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, PHYSICAL_COLLAPSE, SEVERITIES, SPENT_LEVEL_FACTOR, WOUND_FIGHTING, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
+import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, PHYSICAL_COLLAPSE, SEVERING, SEVERITIES, SPENT_LEVEL_FACTOR, WOUND_FIGHTING, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
 import { BLASTER_WEAPONS, RANGED_WEAPONS, SLUG_SPREAD, SLUG_SPREAD_DEFENSE } from '../data/weapons';
 import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityOf, severs } from './damage';
 import { fatigueLevelFactor } from './fatigue';
@@ -118,6 +120,10 @@ export interface Fighter {
   saberLost?: { weapon: WeaponKind; skillId: string; level: number; form: string | null } | null;
   /** A lightsaber's blade colour (D-205); absent for other weapons, training sabers and older saves. */
   bladeColor?: string;
+  /** Morale (D-256): NPC opponents only; absent = never checks (the player, test fighters). */
+  morale?: MoraleProfile;
+  /** Left the fight by morale (D-256): fled, or surrendered (a named one's fate is the player's choice). */
+  yielded?: 'fled' | 'surrendered';
 }
 
 export interface DuelContext {
@@ -185,7 +191,7 @@ export interface ExchangeRecord {
 }
 
 export type DuelEnd =
-  | { winner: SideId; reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'spent' | 'point' | 'exhausted' | 'opponentsDefeated' }
+  | { winner: SideId; reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'spent' | 'point' | 'exhausted' | 'opponentsDefeated' | 'yielded' }
   | { winner: null; reason: 'stopped' | 'stalemate' };
 
 export interface DuelState {
@@ -412,7 +418,19 @@ export function damageFighter(
   const dmg = applyDamage(f.vitality, D, bypassFraction(weapon, quality, margin), vitalityOnly || limbs.prosthetic.has(part), !isSaber(weapon));
   let W = dmg.W;
   let severity = severityOf(W);
-  const severed = severity !== null && severs(weapon, part, W);
+  let severed = severity !== null && severs(weapon, part, W);
+  // A sever chance below 1 (measured only, SEVERING.chance; D-256): a qualifying hit that does not sever stays a limb
+  // wound of at most critical. At 1 no die is drawn, so the stream is the rule's as it is.
+  let rngS = r1;
+  if (severed && SEVERING.chance < 1) {
+    let u: number;
+    [u, rngS] = nextFloat(rngS);
+    if (u >= SEVERING.chance) {
+      severed = false;
+      W = Math.min(W, 49);
+      severity = severityOf(W);
+    }
+  }
   if (severed) {
     W = Math.min(W, 34);
     severity = 'severe';
@@ -426,7 +444,7 @@ export function damageFighter(
     if (f.minion && takesMinionOut(severity)) next = { ...next, out: true };
   }
   void ctx;
-  return { f: next, hit: { quality, D, part, W, severity, vitalityLost: dmg.vitalityLost, severed }, rng: r1 };
+  return { f: next, hit: { quality, D, part, W, severity, vitalityLost: dmg.vitalityLost, severed }, rng: rngS };
 }
 
 function withSide(s: DuelState, side: SideId, f: Fighter): DuelState {
@@ -720,6 +738,41 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
         advAfter = 0;
       }
     }
+  }
+
+  // Morale (Jared, D-256): an NPC opponent checks when it takes a severe or worse wound or is Spent this exchange, and
+  // every standing one checks when this exchange puts half or more of its side out. A break ends that fighter's part:
+  // it surrenders or flees. Real fights only; the dice continue the duel's stream.
+  if (!end && ctx.sparring === null && MORALE.enabled) {
+    const side = (d: DuelState): Fighter[] => d.opponents.filter((o) => !o.engagedElsewhere);
+    const outShare = (d: DuelState): number => side(d).filter((o) => o.out).length / Math.max(1, side(d).length);
+    const after = next.opponents.find((o) => o.id === B.id)!;
+    const checks = new Set<string>();
+    if (!after.out) {
+      const fresh = after.wounds.slice(B.wounds.length);
+      if (fresh.some((w) => w.severed || atLeast(w.severity, 'severe')) || spentNow === 'B') checks.add(B.id);
+    }
+    if (side(next).length > 1 && outShare(s) < MORALE.losingBadlyShare && outShare(next) >= MORALE.losingBadlyShare) for (const o of side(next)) if (!o.out) checks.add(o.id);
+    let r = next.rng;
+    let ops = next.opponents;
+    for (const id of checks) {
+      const f = ops.find((o) => o.id === id)!;
+      const p = f.morale;
+      if (!p || f.dead || f.out) continue;
+      const chance = MORALE.breakChance[p.group];
+      if (chance <= 0) continue;
+      let u: number;
+      [u, r] = nextFloat(r);
+      if (u >= chance) continue;
+      let v: number;
+      [v, r] = nextFloat(r);
+      const yielded = v < p.surrender ? ('surrendered' as const) : ('fled' as const);
+      ops = ops.map((o) => (o.id === id ? { ...o, out: true, yielded } : o));
+      notes.push(yielded === 'surrendered' ? `${f.name}'s morale breaks: surrenders, out of the fight` : `${f.name}'s morale breaks: disengages and flees, out of the fight`);
+      if (id === B.id) advAfter = 0;
+    }
+    next = { ...next, opponents: ops, rng: r };
+    if (checks.size && engaged(next).length === 0) end = { winner: 'A', reason: 'yielded' };
   }
 
   // The safety cap (D-208): a real fight still undecided after FIGHT_SAFETY_CAP exchanges ends as an exhausted

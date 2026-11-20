@@ -443,6 +443,9 @@ export function describeCombat(c: CombatDraft): string[] {
   // Who is still standing (D-237; pass 3: "the surviving Mandalorian" with two warriors up).
   const standing = c.fighters.filter((f) => f.id !== 'pc' && !f.out && !f.engagedElsewhere);
   if (c.fighters.length > 2) lines.push(`Opponents still standing: ${standing.length}${standing.length ? ` (${standing.map((f) => f.name).join(', ')})` : ''}. Never write "the last", "the surviving" or "the only one left" unless exactly one stands.`);
+  // Morale (D-256): who broke in this passage, and how; they are out of the fight and are told as such.
+  const broke = c.narrate.flatMap((r) => r.notes.filter((n) => /'s morale breaks: /.test(n)).map((n) => `#${r.n} ${n.replace(/'s morale breaks: /, ' ').replace(/, out of the fight$/, '')}`));
+  if (broke.length) lines.push(`Morale: ${broke.join('; ')}. Each is out of the fight: tell the surrender or the flight as it happened, no more blows on them.`);
   // Who has the upper hand now (issue 19: "the droids press their advantage" while the player held +3).
   if (!c.ended) lines.push(`Advantage now: ${advantageText(c)}.`);
   // How a sparring bout ended (issue 19: a bout-ending hit softened and the loss left out).

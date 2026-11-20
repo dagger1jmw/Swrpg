@@ -206,7 +206,8 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     if (!m?.npcId) continue;
     if (o.dead) emit.push({ type: 'npcDied', npcRef: m.npcId, cause: `killed in fight ${active.id}` });
     // An opponent who cannot stand or has lost the weapon arm (D-198) is down too: spared, captured or finished off.
-    else if (outcome === 'won' && (isIncapacitated(o.wounds as Wound[]) || isDying(o.wounds as Wound[]) || cannotDuel(o))) fates.push({ npcId: m.npcId, fightId: active.id, options: [...NPC_FATES], atAbs: toAbsSecond(s.clock.now), locationId: s.locations.currentId, dying: isDying(o.wounds as Wound[]) });
+    // A named opponent who surrendered on morale (D-256) is at the player's mercy too; one who fled is gone.
+    else if (outcome === 'won' && (o.yielded === 'surrendered' || isIncapacitated(o.wounds as Wound[]) || isDying(o.wounds as Wound[]) || cannotDuel(o))) fates.push({ npcId: m.npcId, fightId: active.id, options: [...NPC_FATES], atAbs: toAbsSecond(s.clock.now), locationId: s.locations.currentId, dying: isDying(o.wounds as Wound[]) });
   }
   // One stream (D-238): the fight's dice continue the campaign's. The fate roll draws after the last exchange, and the
   // stream after it goes back to meta, so the next fight never replays this one.

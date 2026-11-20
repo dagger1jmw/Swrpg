@@ -11,7 +11,7 @@ import {
   NONSABER_OVERFLOW_MIN_W,
   NONSABER_WOUND_BY_MARGIN,
   SABER_ARMOR_FACTOR,
-  SEVER_AT,
+  SEVERING,
   SEVERITY_FROM_W,
   WEAPON_BASE,
   type ArmorKind,
@@ -96,7 +96,7 @@ export function rollLocation(rng: RngState, weights: Readonly<Record<BodyPart, n
 
 /** The limb rule (health §5): a lightsaber wound of 35+ to a limb or hand severs it. */
 export function severs(weapon: WeaponKind, part: BodyPart, W: number): boolean {
-  return weapon === 'lightsaber' && LIMBS.includes(part) && W >= SEVER_AT;
+  return weapon === 'lightsaber' && LIMBS.includes(part) && W >= SEVERING.at;
 }
 
 /**

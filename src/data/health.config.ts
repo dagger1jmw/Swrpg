@@ -99,6 +99,15 @@ export const FALL_LOCATION_WEIGHTS: Record<BodyPart, number> = {
 };
 /** A lightsaber wound of W >= this to a limb or hand severs it (a lasting injury) instead of critical / mortal. */
 export const SEVER_AT = 35;
+/** The same threshold as an object a measurement can vary (D-256 sever counts); the engine reads this one. */
+export const SEVERING = {
+  at: SEVER_AT,
+  /**
+   * The chance a qualifying limb hit severs (else it stays a critical or mortal-band wound, capped at critical). 1 is the
+   * rule as it is (no die drawn); lower values were measured for D-256's proposal only, not adopted.
+   */
+  chance: 1,
+};
 export const LIMBS: readonly BodyPart[] = ['leftArm', 'rightArm', 'leftLeg', 'rightLeg', 'leftHand', 'rightHand'];
 
 /**
