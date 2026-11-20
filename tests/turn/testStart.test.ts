@@ -4,11 +4,12 @@ import { describe, expect, it } from 'vitest';
 import { migrateCharacterV4 } from '../../src/features/character/character';
 import { computeCreation } from '../../src/features/character/creation';
 import { selectLevelExact } from '../../src/features/progression/selectors';
+import { selectRank } from '../../src/features/ranks/selectors';
 import { createMemoryStorage } from '../../src/persist/storage';
 import { REGISTRY } from '../../src/state/registry';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { createCampaign, DEFAULT_START_SECOND, validateNewCampaign } from '../../src/turn/campaign';
-import { devFlag, TEST_START_CI, TEST_START_RANKS, testStartInput } from '../../src/turn/testStart';
+import { devFlag, TEST_START_CI, TEST_START_RANKS, testStartInput, testStartRankOptions } from '../../src/turn/testStart';
 
 describe('dev test start (D-178)', () => {
   it('only behind ?dev=1', () => {
@@ -40,5 +41,17 @@ describe('dev test start (D-178)', () => {
     const s = await createCampaign(REGISTRY, createMemoryStorage(), input, { campaignId: 'c-n', branchId: 'b' }, 'x');
     expect(s.state.character.testCharacter).toBe(false);
     expect(migrateCharacterV4({ id: 'x', name: 'Old' }).testCharacter).toBe(false);
+  });
+});
+
+describe('the test start\'s rank list follows the archetype (pass 4: a Sith had no "Sith Lord" to pick)', () => {
+  it('Jedi tiers by name, the Sith ladder by its names, one rank for a career; the chosen option is the character\'s rank', async () => {
+    expect(testStartRankOptions('jediGuardian').map((o) => o.label)).toEqual(['Initiate', 'Padawan', 'Knight', 'Master']);
+    const sith = testStartRankOptions('sithWarrior');
+    expect(sith.map((o) => o.label)).toEqual(['Academy acolyte', 'Apprentice', 'Sith Lord']);
+    expect(testStartRankOptions('smuggler')).toHaveLength(1);
+    const lord = sith.find((o) => o.label === 'Sith Lord')!;
+    const s = (await createCampaign(REGISTRY, createMemoryStorage(), testStartInput({ name: 'Varn Kessa', rank: lord.value, age: 30, archetype: 'sithWarrior', startDate: TEST_START_DATE, startSecond: DEFAULT_START_SECOND }), { campaignId: 'c-lord', branchId: 'b' }, 'lord')).state;
+    expect(selectRank(s)).toBe('lord');
   });
 });

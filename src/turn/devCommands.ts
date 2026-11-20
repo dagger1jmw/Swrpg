@@ -37,7 +37,7 @@ export { pendingScenario } from './devScenario';
 export const DEV_HELP: readonly string[] = [
   '/fight <count> <kind or level> [at <gap>] [terrain <tags>] [stakes spar|skirmish|serious|lethal] [mode training|controlled|academy] [weapon <kind>]: a fight now, with the duel panel. weapon (minion groups): scattergun, slugpistol, slugrifle, pistol, rifle, heavy, melee, saber. Kinds: duelist, a minion kind (b1, b2, militia, thug, brawler, trooper, elite, mandalorian, droideka, beast, acolyte), a level, or canon:<name>. Examples: /fight 1 duelist at -10, /fight 6 b1 terrain forest, /fight 1 canon:malgus stakes lethal',
   '/spar <partner level, at <gap>, or canon:<name>> [mode training|controlled|academy]: a sparring session, played out',
-  '/wound <location> <severity>: a wound (torso, head, left arm, right leg, left hand ...; minor, moderate, severe, critical, mortal). /heal [all]: wounds and Vitality back (all: lasting injuries too)',
+  '/wound <location> <severity>: a wound (torso, head, left arm, right leg, left hand ...; minor, moderate, severe, critical, mortal). /heal [all]: wounds and Vitality back (all: lasting injuries too). Fatigue is separate: /fatigue physical 0 (and force, mental)',
   '/set <skill> <level>, /e <form> <value>, /ci <ability> <value>: stats directly',
   '/fatigue <physical|mental|force> <value>: a fatigue meter as a fraction of capacity (0 fresh, 1 at capacity, up to 5; the body collapses past 4 in a fight)',
   '/sever <limb>: a severed limb (left leg, right arm, left hand ...), out of a fight; it becomes a lasting injury with the path’s prosthetic',

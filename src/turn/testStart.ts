@@ -52,6 +52,21 @@ export const TEST_START_GRANTS: Readonly<Partial<Record<TestStartArchetype, Read
   sithInquisitor: { forceLightning: 'forceChoke' },
 };
 
+/**
+ * The rank choices of the test start for an archetype, labeled with that path's own ranks (pass 4: the list read
+ * initiate / padawan / knight / master for a Sith, so "Sith Lord" was not on it and the acolyte tier was kept). A career
+ * has one rank. The value is the tier, as testStartInput takes it.
+ */
+export function testStartRankOptions(archetype: TestStartArchetype): { value: TestStartRank; label: string }[] {
+  const path = TEST_START_ARCHETYPES[archetype];
+  const tiers: readonly TestStartRank[] = path === 'career' ? ['knight'] : TEST_START_RANKS;
+  const seen = new Set<string>();
+  return tiers
+    .map((t) => ({ value: t, rank: RANK_ON_PATH[path][t] }))
+    .filter((o) => !seen.has(o.rank) && seen.add(o.rank))
+    .map((o) => ({ value: o.value, label: RANKS.find((r) => r.id === o.rank)?.name ?? o.rank }));
+}
+
 /** True when the page was opened with ?dev=1 (the dev flag for the test start). */
 export function devFlag(search: string): boolean {
   return new URLSearchParams(search).get('dev') === '1';
