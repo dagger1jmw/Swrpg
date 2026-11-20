@@ -3,7 +3,7 @@ import { forceFraction } from '../../engine/forceMeter';
 import type { GameState } from '../../state/gameState';
 import { SKILL_BY_ID, SKILL_IDS } from '../../data/skills';
 import { aidCap, lastingAffects, lastingPenalty, type LastingInjury } from '../../engine/lasting';
-import { maxVitality } from '../../engine/vitality';
+import { maxVitality, maxVitalityWithLasting } from '../../engine/vitality';
 import { isDying, isIncapacitated, locationPenalty, statusLabel, woundLoad, woundPenalty, type Wound } from '../../engine/wounds';
 import { selectBodyAbilityLevel, selectCapacities, selectLevelExact, selectPerformance } from '../progression/selectors';
 import type { HealthSlice } from './health';
@@ -37,7 +37,9 @@ export const selectMaxFraction = (s: GameState): number => {
 // ---- Vitality, wounds and status (health §3-6; M5). All derived; nothing here is stored. ----
 
 export function selectMaxVitality(s: GameState): number {
-  return maxVitality({ endurance: selectPerformance(s, 'endurance'), strength: selectPerformance(s, 'strength'), bodyAbility: selectBodyAbilityLevel(s) });
+  const base = maxVitality({ endurance: selectPerformance(s, 'endurance'), strength: selectPerformance(s, 'strength'), bodyAbility: selectBodyAbilityLevel(s) });
+  // The lasting injuries' Endurance penalty (D-255).
+  return maxVitalityWithLasting(base, lastingPenalty(s.health.lasting as readonly LastingInjury[], 'endurance'));
 }
 export const selectVitality = (s: GameState): number => Math.max(0, selectMaxVitality(s) - s.health.vitalityLost);
 export const selectIsSpent = (s: GameState): boolean => selectVitality(s) <= 0;

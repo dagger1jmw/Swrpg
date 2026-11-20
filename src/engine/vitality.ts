@@ -13,6 +13,14 @@ export function maxVitality(i: VitalityInputs): number {
   return VITALITY.base + VITALITY.endurance * i.endurance + VITALITY.strength * i.strength + VITALITY.bodyAbility * i.bodyAbility;
 }
 
+/**
+ * Max Vitality with the lasting injuries' Endurance penalty (Jared, D-255, design default): max x (1 - the combined
+ * lasting Endurance penalty), each injury's P x (1 - adaptation) (a lost leg 0.15, burns or lung damage 0.4).
+ */
+export function maxVitalityWithLasting(max: number, lastingEndurancePenalty: number): number {
+  return max * (1 - Math.max(0, Math.min(1, lastingEndurancePenalty)));
+}
+
 export type VitalityRecovery = 'rest' | 'light' | 'combat';
 
 /** Recovery over `hours`: rest 50% of max per hour, light activity 15%, none in combat. */

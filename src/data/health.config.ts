@@ -227,10 +227,10 @@ export const LEG_FORM_PENALTY_SHARE = 0.5;
 /** The lost leg's base penalties (progression-numbers §18). */
 const LEG_AGILITY_P = 0.35;
 /**
- * Lasting kinds whose Endurance penalty cuts the fatigue meters' capacity (Jared, D-252): the leg only, x (1 - A), in
- * and out of fights. Burns or lung damage (Endurance P 0.4) is not on the list: Jared's call named the leg.
+ * Lasting kinds whose Endurance penalty cuts the fatigue meters' capacity, x (1 - A), in and out of fights: the leg
+ * (Jared, D-252) and burns or lung damage (Jared, D-254). Every lasting kind with an Endurance penalty is on it.
  */
-export const CAPACITY_ENDURANCE_KINDS: readonly string[] = ['lostLeg'];
+export const CAPACITY_ENDURANCE_KINDS: readonly string[] = ['lostLeg', 'burnsOrLungs'];
 export const LASTING_KINDS = ['lostHand', 'lostArm', 'lostLeg', 'jointDamage', 'burnsOrLungs', 'headTrauma'] as const;
 export type LastingKind = (typeof LASTING_KINDS)[number];
 /** Base penalties P by kind on skill groups (progression-numbers §18; head trauma is a D-143 design default). */

@@ -31,7 +31,10 @@ Force meter (replaces Force strain):
 
 ## 3. Vitality (short-term buffer)
   Max Vitality = 20 + 0.6 * Endurance + 0.3 * Strength + 0.2 * Force body-ability level
-    (youngling End 15 Str 10: 32 | Knight End 50 Str 45: 63.5 | Master End 80 Str 70 body 40: 97)
+    (youngling End 15 Str 10: 32 | Knight End 50 Str 45: 63.5 | Master End 80 Str 70 body 40: 97),
+    then x (1 - the lasting injuries' combined Endurance penalty), each P x (1 - adaptation):
+    a lost leg 15%, burns or lung damage 40% (D-255, design default). The same Endurance
+    penalties cut the fatigue meters' capacity (D-252, D-254).
   Recovery: resting 50% of max per hour | light activity 15% per hour | none in combat
     (Force healing can restore it) | sleep 7h+ full.
   Vitality 0 = Spent: all further damage goes to wounds, and effective level is reduced 10%.

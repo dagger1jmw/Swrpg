@@ -19,9 +19,9 @@ import { dateFromAbsDay } from '../../engine/calendar';
 import type { DuelContext, Fighter } from '../../engine/duel';
 import { capacities } from '../../engine/fatigue';
 import { minionInputs, minionWeaponLevel } from '../../engine/npcGen';
-import { maxVitality } from '../../engine/vitality';
+import { maxVitality, maxVitalityWithLasting } from '../../engine/vitality';
 import type { Wound } from '../../engine/wounds';
-import type { LastingInjury } from '../../engine/lasting';
+import { lastingPenalty, type LastingInjury } from '../../engine/lasting';
 import type { GameState } from '../../state/gameState';
 import { selectArchetype, selectCharacter, selectPath } from '../character/selectors';
 import { selectLasting, selectMaxVitality, selectVitality, selectWounds } from '../health/selectors';
@@ -102,7 +102,8 @@ function fighterFromLevels(id: string, name: string, levels: Readonly<Record<str
   const { skillId, form } = fightingSkill(loadout, lv, null);
   // A lost leg cuts the meters' capacity for an NPC too (D-252).
   const caps = capacities(capacityEndurance(lv('endurance'), opts.lasting), lv('willpower'), lv('forceControl'));
-  const maxV = maxVitality({ endurance: lv('endurance'), strength: lv('strength'), bodyAbility: Math.max(lv('forceSpeed'), lv('forceJump')) });
+  // The lasting injuries' Endurance penalty (D-255), for an NPC as for the player.
+  const maxV = maxVitalityWithLasting(maxVitality({ endurance: lv('endurance'), strength: lv('strength'), bodyAbility: Math.max(lv('forceSpeed'), lv('forceJump')) }), lastingPenalty(opts.lasting, 'endurance'));
   return {
     id,
     name,

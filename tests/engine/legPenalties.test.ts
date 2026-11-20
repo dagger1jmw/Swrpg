@@ -6,7 +6,8 @@ import { fighterEffectiveLevel } from '../../src/engine/duel';
 import { lastingPenalty, type LastingInjury } from '../../src/engine/lasting';
 import { capacities } from '../../src/engine/fatigue';
 import { buildPlayerFighter } from '../../src/features/combat/build';
-import { selectInjuredSkills, selectLasting } from '../../src/features/health/selectors';
+import { selectInjuredSkills, selectLasting, selectMaxVitality } from '../../src/features/health/selectors';
+import { maxVitalityWithLasting } from '../../src/engine/vitality';
 import { capacityEndurance, selectCapacities, selectPerformance } from '../../src/features/progression/selectors';
 import { createMemoryStorage } from '../../src/persist/storage';
 import type { GameState } from '../../src/state/gameState';
@@ -52,11 +53,16 @@ describe('D-251: a lost or prosthetic leg slows form strikes', () => {
 });
 
 describe('D-252: the leg\'s Endurance penalty cuts the fatigue meters\' capacity', () => {
-  it('capacityEndurance: x (1 - 0.15 x (1 - A)) for a leg; burns are not on the list', () => {
+  it('capacityEndurance: x (1 - 0.15 x (1 - A)) for a leg; burns or lung damage x (1 - 0.4 x (1 - A)) (D-254)', () => {
     expect(capacityEndurance(40, [leg(0)])).toBeCloseTo(34, 9);
     expect(capacityEndurance(40, [leg(0.5)])).toBeCloseTo(37, 9);
     expect(capacityEndurance(40, [leg(1)])).toBeCloseTo(40, 9);
-    expect(capacityEndurance(40, [leg(0, 'none', 'burnsOrLungs')])).toBe(40);
+    expect(capacityEndurance(40, [leg(0, 'none', 'burnsOrLungs')])).toBeCloseTo(24, 9);
+    expect(capacityEndurance(40, [leg(0.5, 'scarTissue', 'burnsOrLungs')])).toBeCloseTo(32, 9);
+    // Both: multiplicative, as lasting penalties combine.
+    expect(capacityEndurance(40, [leg(0), leg(0, 'none', 'burnsOrLungs')])).toBeCloseTo(40 * 0.85 * 0.6, 9);
+    // Joint damage has no Endurance penalty.
+    expect(capacityEndurance(40, [leg(0, 'scarTissue', 'jointDamage')])).toBe(40);
   });
   it('the player\'s capacity drops after /sever left leg and recovers with adaptation; the duel uses it', async () => {
     const s0 = await knight('cap');
@@ -68,6 +74,19 @@ describe('D-252: the leg\'s Endurance penalty cuts the fatigue meters\' capacity
     expect(buildPlayerFighter(s1).caps.p).toBeCloseTo(selectCapacities(s1).p, 9);
     const s2 = ok(s1, '/skip 40 days');
     expect(selectCapacities(s2).p).toBeGreaterThan(selectCapacities(s1).p);
+  });
+});
+
+describe('D-255: max Vitality uses the lasting Endurance penalty', () => {
+  it('max x (1 - the combined lasting Endurance penalty); the player and an NPC fighter', async () => {
+    expect(maxVitalityWithLasting(60, 0)).toBe(60);
+    expect(maxVitalityWithLasting(60, lastingPenalty([leg(0)], 'endurance'))).toBeCloseTo(51, 9);
+    expect(maxVitalityWithLasting(60, lastingPenalty([leg(0, 'none', 'burnsOrLungs')], 'endurance'))).toBeCloseTo(36, 9);
+    const s0 = await knight('mv');
+    const s1 = ok(s0, '/sever left leg');
+    const a = selectLasting(s1).find((l) => l.kind === 'lostLeg')!.adaptation;
+    expect(selectMaxVitality(s1)).toBeCloseTo(selectMaxVitality(s0) * (1 - 0.15 * (1 - a)), 6);
+    expect(buildPlayerFighter(s1).maxVitality).toBeCloseTo(selectMaxVitality(s1), 9);
   });
 });
 
