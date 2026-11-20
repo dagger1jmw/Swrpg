@@ -341,16 +341,16 @@ Force Lightning   (94)  [ForceOutput anchor]
 **Prerequisites:** Force Wound: Telekinesis 21+, Dark Side 1+ · Force Rend: Force Wound 30+, Dark Side 60+
 **Notes:** The Jedi Order forbids Force Wound and everything on this line. A character who begins using Wound risks accelerating down this path.
 
-#### ↳ Force Choke → Force Grip → Force Crush ⬜  *(neutral line — telekinetic grip)*
+#### ↳ Force Choke → Force Grip → Force Crush ⬜/🔴  *(telekinetic grip line — Choke is dark-tagged, Grip and Crush are neutral)*
 **Anchor Stat:** ForceControl (precision) + ForceOutput (holding power)
 **Difficulty Tier:** Choke D=2.5 · Grip D=2.5 · Crush D=4.0
 **Summary:**
-- *Force Choke:* Telekinetic constriction of the throat or airway. Non-lethal in short bursts, lethal if sustained. Used by both Jedi and Sith — the technique draws on the same precision as any fine telekinetic manipulation; the moral weight comes from context and intent, not the ability itself.
+- *Force Choke:* Telekinetic constriction of the throat or airway. Non-lethal in short bursts, lethal if sustained. A purely offensive application with no use outside harming or subduing a living being, so nearly every use is dark side in nature. The one exception is using it briefly to knock someone unconscious, not to punish or kill: Luke Skywalker used it this way on two occasions.
 - *Force Grip:* Full-body telekinetic immobilization — more powerful and precise than Choke, locking the target completely rather than targeting just the throat. Useful for restraint, disarming, or holding targets without physical contact.
 - *Force Crush:* Catastrophic compression via the Force. Primarily applied to droids, machinery, armor, and objects. Can be lethal against living targets; sustained lethal use against living beings generates dark side pressure through the alignment system.
-**Alignment:** ⬜ Neutral — morally determined by application. Crushing a droid is different from crushing a person. The Force does not inherently taint these abilities.
+**Alignment:** 🔴 Force Choke is dark-tagged: each use adds Dark, except a brief use to render someone unconscious without punishment or lasting harm. ⬜ Force Grip and Force Crush are neutral applications of telekinesis, with uses outside combat (restraint, lifting, crushing droids, machinery and objects). Harmful use of Grip or Crush against living beings is judged as a deed (alignment deed tags), not by the ability.
 **Prerequisites:** Force Choke: Telekinesis 21+, ForceControl 10+ · Force Grip: Force Choke 15+ · Force Crush: Force Grip 21+
-**Notes:** Jedi have used Force Choke and Force Crush throughout Legends canon (Anakin, Luke, and others in contested circumstances). The Order discourages aggressive use against living beings but does not categorically forbid the technique. Force Wound is a separate, darker branch — knowing Choke does not lead there automatically.
+**Notes:** Jedi have used Force Grip and Force Crush throughout Legends without channeling the dark side. Force Choke is the one application of this line Legends treats as dark in nature. It can manifest unbidden in a moment of rage. Force Wound is a separate, darker branch — knowing Choke does not lead there automatically. (Alignment updated 2026-11-20, M6 catalog review.)
 
 ---
 
@@ -379,6 +379,108 @@ Force Lightning   (94)  [ForceOutput anchor]
 **Summary:** A telekinetic barrier formed into a spherical shell around the user, deflecting physical objects and projectiles. Different from Force Barrier (which is energy-based) — this is physically solid.
 **Alignment:** Neutral
 **Prerequisites:** Telekinesis 30+, ForceBarrier 15+
+
+---
+
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### ↳ Force Disarm ⚪
+**Anchor Stats:** ForceControl
+**Difficulty Tier: D=1.0 (Basic)**
+**Summary:** Pulling a weapon from an opponent's grasp, optionally into the user's own hand.
+**Alignment:** Neutral
+**Prerequisites:** Telekinesis 15+, Force Pull 10+
+**Notes:** A section of the Telekinesis article. Yoda disarmed Asajj Ventress this way; Darth Vader disarmed Han Solo on Bespin. A stronger user can overwhelm the target's resistance. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Telekinesis" (Force Disarm section): https://starwars.fandom.com/wiki/Telekinesis/Legends
+
+---
+
+#### ↳ Force Blast ⚪
+**Anchor Stats:** ForceOutput
+**Difficulty Tier: D=1.5 (Moderate)**
+**Summary:** A more powerful, far more violent version of Force Push that blasts opponents and obstacles aside. The Felucian shamans' variant, the sickening blast, also harms the target's physical condition.
+**Alignment:** Neutral
+**Prerequisites:** Force Push 30+, ForceOutput 25+
+**Notes:** Galen Marek and Darth Vader used it. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Telekinesis" (Force Blast section): https://starwars.fandom.com/wiki/Telekinesis/Legends; https://starwars.fandom.com/wiki/Force_blast
+
+---
+
+#### ↳ Force Shockwave ⚪
+**Anchor Stats:** ForceOutput
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Emitting a destructive ring of energy that damages or destroys everything in its radius. Also called Focus Shockwave or Force Bomb.
+**Alignment:** Neutral
+**Prerequisites:** Force Push 30+, ForceOutput 30+
+**Notes:** Obi-Wan Kenobi used it in the Clone Wars; Savage Opress released a similar pulse against battle droids. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force Shockwave": https://starwars.fandom.com/wiki/Force_Shockwave
+
+---
+
+#### ↳ Force Burst ⚪
+**Anchor Stats:** ForceOutput + ForceControl
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** A sphere of concentrated Force energy sent at a target with great speed and accuracy. Its strength depends on the time and energy put into it, from huge and explosive to small but deadly.
+**Alignment:** Neutral (not exclusive to the dark side; the Sith variant is reddish)
+**Prerequisites:** Telekinesis 41+, ForceControl 30+
+**Notes:** Similar to Force Destruction but not dark-tagged. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force Burst": https://starwars.fandom.com/wiki/Force_Burst
+
+---
+
+#### ↳ Force Kill 🔴
+**Anchor Stats:** ForceControl + ForceOutput
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Telekinetically destroying a victim's organs, such as stopping the heart. Listed among the derivatives of Force Grip.
+**Alignment:** Dark Side, severe
+**Prerequisites:** Force Choke 30+, Dark Side 40+
+**Notes:** Darth Tyranus killed the dealer Auben this way on Korriban; Darth Bane killed his father by squeezing his heart; Darth Vader could stop a heart or freeze lungs. Related: Heart Stun. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Telekinesis" (Force Kill section): https://starwars.fandom.com/wiki/Telekinesis/Legends
+
+---
+
+#### ↳ Force Flight ⚪
+**Anchor Stats:** ForceControl
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Telekinetically moving oneself toward a destination: levitation taken to an extreme. Takes great concentration.
+**Alignment:** Neutral
+**Prerequisites:** Force Levitation 41+, ForceControl 41+
+**Notes:** The Dark Jedi Maw relied on it after losing his lower body. Tyranus, Vader and Sidious may have had it. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Telekinesis" (Force Flight section): https://starwars.fandom.com/wiki/Telekinesis/Legends
+
+---
+
+#### ↳ Projected Fighting ⚪
+**Anchor Stats:** ForceOutput + Strength
+**Difficulty Tier: D=1.5 (Moderate)**
+**Summary:** Striking an opponent at range without contact, the Force acting as an extension of one's body in hand-to-hand combat. Damage depends on the user's physical strength; it can be pulled to stun.
+**Alignment:** Neutral
+**Prerequisites:** Telekinesis 21+, unarmed combat training
+**Notes:** Defended against like a normal unarmed attack, or with the Force by Force-sensitives. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Telekinesis" (Projected fighting section): https://starwars.fandom.com/wiki/Telekinesis/Legends
+
+---
+
+#### ↳ Force Wind 🔴
+**Anchor Stats:** ForceOutput + ForceControl
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Manipulating air currents into a destructive tornado that lifts and flings targets. An ancient Sith technique.
+**Alignment:** Dark Side, standard
+**Prerequisites:** Telekinesis 41+, Dark Side 20+
+**Notes:** Streen used it on Yavin 4, including to smash TIE fighters into each other. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force Wind": https://starwars.fandom.com/wiki/Force_Wind
+
+---
+
+#### ↳ Combustion ⚪
+**Anchor Stats:** ForceOutput
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Causing objects to explode by sheer will (High Galactic: Flamusfracta). Harder or easier depending on the object's size, density and flammability. Rarely used on people, with devastating effect.
+**Alignment:** Neutral (lethal use against people is judged as a deed)
+**Prerequisites:** Telekinesis 51+, ForceOutput 41+
+**Notes:** Yarael Poof used it. Replaces Fiery Energy if that entry is dropped. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Combustion": https://starwars.fandom.com/wiki/Combustion
 
 ---
 
@@ -417,13 +519,14 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 ---
 
-#### Precognitive Reflexes ⚪
+#### Precognition ⚪
 **Anchor Stat:** ForceSense (reading incoming threats) + ForceControl (acting on the read in time)
 **Difficulty Tier: D=2.5 (Complex)** — the passive always-on version requires sustained refinement
 **Summary:** Sensing what is about to happen a fraction of a second before it does — allowing the user to react to attacks before they're launched. The combat application of foresight.
 **Alignment:** Neutral
 **Prerequisites:** ForceSense 21+, ForceControl 10+
-**Notes:** This is largely what makes Jedi seem impossibly fast to normal opponents. Passive when trained enough.
+**Notes:** Also called danger sense. This is largely what makes Jedi seem impossibly fast to normal opponents. Passive when trained enough. Formerly listed as Precognitive Reflexes. (Renamed or merged 2026-11-20 to match Wookieepedia.)
+**Source:** Wookieepedia (Legends), "Precognition": https://starwars.fandom.com/wiki/Precognition/Legends
 
 ---
 
@@ -543,20 +646,69 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Aing-Tii Fighting-Sight ⚪ ⚠️
+#### Fighting-sight (Aing-Tii) ⚪ ⚠️
 **Anchor Stats:** ForceSense (hyper-precise present-awareness) + ForceControl (acting on it)
 **Difficulty Tier: D=4.0 (Advanced)** — faction-locked; can only be trained via Aing-Tii teaching
 **Summary:** A unique Aing-Tii ability that grants hyper-precise awareness of the immediate present — all objects, beings, and their trajectories simultaneously — enabling the practitioner to fight with uncanny precision even blindfolded.
 **Alignment:** Neutral (Aing-Tii see the Force as a spectrum, not light/dark)
+**Tradition:** Aing-Tii (tradition-locked)
 **Prerequisites:** ForceSense 41+, ForceControl 30+, Aing-Tii approval required
-**Notes:** ⚠️ **Faction-locked — requires contact with and approval from the Aing-Tii of the Kathol Rift.** The Aing-Tii rarely share their techniques with outsiders. Jacen Solo and Luke Skywalker are among the few non-Aing-Tii to learn this. Era considerations: accessible from approximately 40 BBY onward in Legends.
+**Notes:** ⚠️ **Faction-locked — requires contact with and approval from the Aing-Tii of the Kathol Rift.** The Aing-Tii rarely share their techniques with outsiders. Jacen Solo and Luke Skywalker are among the few non-Aing-Tii to learn this. Era considerations: accessible from approximately 40 BBY onward in Legends. Formerly listed as Aing-Tii Fighting-Sight. (Renamed or merged 2026-11-20 to match Wookieepedia.)
+**Source:** Wookieepedia (Legends), "Fighting-sight": https://starwars.fandom.com/wiki/Fighting-sight
 
+
+---
+
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### Telepathy ⚪
+**Anchor Stats:** ForceSense + ForceControl
+**Difficulty Tier: D=1.5 (Moderate)**
+**Summary:** Reading and interacting with other minds, and communicating thought to thought. Range is theoretically unlimited, but the telepath usually must sense the person; about 1,000 km is a typical limit with Force-sensitives and a few kilometers with non-sensitives.
+**Alignment:** Neutral
+**Prerequisites:** ForceSense 15+
+**Notes:** Every Force user can potentially learn it. Force Whisper is its directed, one-way form. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Telepathy": https://starwars.fandom.com/wiki/Telepathy/Legends
+
+---
+
+#### Sense Force Potential ⚪
+**Anchor Stats:** ForceSense
+**Difficulty Tier: D=1.5 (Moderate)**
+**Summary:** Judging how strong a person's connection to the Force is. Pairs with the Potential value in the M6 reserve spec.
+**Alignment:** Neutral
+**Prerequisites:** ForceSense 25+
+**Notes:** The Sith of Bane's line used it to choose apprentices; Bane found Zannah's potential this way. Darth Vader sensed the boy Reezen. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Sense Force Potential": https://starwars.fandom.com/wiki/Sense_Force_Potential
+
+---
+
+#### Instinctive Astrogation ⚪
+**Anchor Stats:** ForceSense
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Finding a fast, safe hyperspace route without a navicomputer or astromech by sensing the safest path. Can be learned through practice without formal training.
+**Alignment:** Neutral
+**Prerequisites:** ForceSense 25+, Piloting skill
+**Notes:** Tron Nixx developed it unknowingly; Saesee Tiin and Kyp Durron were adept. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Instinctive astrogation": https://starwars.fandom.com/wiki/Instinctive_astrogation
+
+---
+
+#### Technometry ⚪
+**Anchor Stats:** ForceSense + ForceKnowledge
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Tapping into and reading technological devices through the Force, and in some cases controlling them.
+**Alignment:** Neutral
+**Prerequisites:** ForceSense 30+, ForceKnowledge 21+
+**Notes:** Appears from Knights of the Old Republic II through Fate of the Jedi. Overlaps with Electronic Manipulation at the control end. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Technometry": https://starwars.fandom.com/wiki/Technometry
 
 ---
 
 ### ⚪ BODY ENHANCEMENT FAMILY
 *Using the Force to push the physical body beyond its natural limits.*
-**Anchor Stats:** Speed/strength burst abilities → **ForceOutput** primary. Sustained regulation abilities (Endurance, Breath Control, Tapas) → **Meditation** primary. Precise body control (Force Heal Self, Force Camouflage) → **ForceControl** primary.
+**Anchor Stats:** Speed/strength burst abilities → **ForceOutput** primary. Sustained regulation abilities (Endurance, Breath Control, Tapas) → **Meditation** primary. Precise body control (Force Heal Self, Force Cloak) → **ForceControl** primary.
 
 ---
 
@@ -573,21 +725,23 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 #### Force Speed ⚪
 **Anchor Stat:** ForceOutput (burst acceleration) + ForceControl (sustained without burning out)
 **Difficulty Tier: D=1.5 (Moderate)**
-**Summary:** Accelerating the body to move faster than humanly possible — a blur of motion that makes the user nearly impossible to track with the naked eye.
+**Summary:** Accelerating the body to move faster than humanly possible — a blur of motion that makes the user nearly impossible to track with the naked eye. Covers more than running: accelerated reflexes and reaction time are part of the same power.
 **Alignment:** Neutral
 **Prerequisites:** ForceControl 10+
-**Notes:** Very high Physical Strain from sustained use. Short bursts are manageable; sustained Force Speed is exhausting.
+**Notes:** Very high Physical Strain from sustained use. Short bursts are manageable; sustained Force Speed is exhausting. Absorbs the former Force-Enhanced Reflexes entry (the old key resolves here). (Renamed or merged 2026-11-20 to match Wookieepedia.)
+**Source:** Wookieepedia (Legends), "Force speed": https://starwars.fandom.com/wiki/Force_speed/Legends
 
 ---
 
-#### Force Strength ⚪
+#### Enhance Attribute ⚪
 **Anchor Stat:** ForceOutput (pure amplification burst)
 **Difficulty Tier: D=1.0 (Basic)**
-**Summary:** Channeling Force energy into muscles to temporarily amplify physical strength far beyond natural limits.
+**Summary:** Channeling Force energy into the body to temporarily amplify a physical attribute, most often strength, far beyond natural limits.
 **Alignment:** Neutral
 **Prerequisites:** ForceControl 15+
-**Notes:** Not sustained — short explosive bursts. Strain accumulates quickly. Synergizes with Djem So and other strength-based lightsaber forms.
-> ⚠️ **Stat reference note:** `ForceStrength` as a prerequisite elsewhere in this document (e.g., Force Rage) refers to *this learnable ability* at the specified level — not to any core or Force stat. There is no stat named ForceStrength in the system.
+**Notes:** Not sustained — short explosive bursts. Strain accumulates quickly. Synergizes with Djem So and other strength-based lightsaber forms; Anakin Skywalker thought every Jedi should be able to use it for Form V. Formerly listed as Force Strength. (Renamed or merged 2026-11-20 to match Wookieepedia.)
+**Source:** Wookieepedia (Legends), "Enhance Attribute": https://starwars.fandom.com/wiki/Enhance_Attribute
+> ⚠️ **Stat reference note:** `EnhanceAttribute` as a prerequisite elsewhere in this document (e.g., Force Enrage) refers to *this learnable ability* at the specified level — not to any core or Force stat. There is no stat by that name in the system. (The old key `ForceStrength` should resolve to Enhance Attribute.)
 
 ---
 
@@ -612,13 +766,14 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Force-Enhanced Reflexes ⚪
-**Anchor Stats:** ForceSense (reading incoming threats) + ForceControl (response precision)
-**Difficulty Tier: D=2.5 (Complex)**
-**Summary:** Accelerating neural response time through the Force — enabling faster reactions than physically natural.
+#### Crucitorn ⚪
+**Anchor Stats:** Meditation + Willpower
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Enduring physical pain by transcending physical sensation through the Force. Where Control Pain is the foundational ability that suppresses an injury's effects so the user can function as if it were not there, Crucitorn goes beyond the body's signals altogether.
 **Alignment:** Neutral
-**Prerequisites:** ForceSense 15+, ForceControl 10+
-**Notes:** Passive when sufficiently trained. Complements Precognitive Reflexes.
+**Prerequisites:** Control Pain 41+, Meditation 41+, Willpower 30+
+**Notes:** The Legends counterpart to the canon technique Endure (the old key `Endure` resolves here). Ties into the M6 reserve spec alongside Force Body and Battlemind. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed.)
+**Source:** Wookieepedia (Legends), "Crucitorn (technique)": https://starwars.fandom.com/wiki/Crucitorn_(technique)
 
 ---
 
@@ -638,31 +793,21 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** A comprehensive Force-enhanced amplification of the user's own physical and mental performance — accelerating speed, reflexes, and striking power while sharpening accuracy and resolve. At higher levels, the resonant clarity radiates outward passively, extending a measure of the same enhancement to nearby allies.
 **Alignment:** Light Side
 **Prerequisites:** Battlemind 15+, ForceOutput 15+
-**Notes:** Distinct from its three closest relatives: **Battlemind** (internal mental focus only, no physical component, no ally effect), **Force Rage** (dark side counterpart — amplifies through anger at the cost of control and sanity), and **Battle Meditation** (strategic-scale perception shift affecting an entire battle rather than individual performance). Force Valor is the complete self-amplification package — physical and mental, self and allies.
+**Notes:** Distinct from its three closest relatives: **Battlemind** (internal mental focus only, no physical component, no ally effect), **Force Enrage** (dark side counterpart — amplifies through anger at the cost of control and sanity), and **Battle Meditation** (strategic-scale perception shift affecting an entire battle rather than individual performance). Force Valor is the complete self-amplification package — physical and mental, self and allies.
 - Self-enhancement: the body moves and reacts faster, leaps farther and higher, strikes more powerfully, and fights with sharper accuracy.
 - Ally aura: at higher proficiency levels, the resonant clarity field extends passively to nearby Force-sensitives and non-sensitives alike — boosting their resolve and reaction time without requiring them to channel the Force themselves.
 - Yoda relied on Force Valor to compensate for the physical limitations of extreme old age, maintaining the speed and power requirements of Form IV (Ataru) in combat. Without it, the demands of that form would have been physically impossible for a being of his age.
 
 ---
 
-#### Force Camouflage ⚪
-**Anchor Stat:** ForceControl (maintaining the bend in both visual and Force perception simultaneously)
+#### Force Cloak (Force Camouflage) ⚪
+**Anchor Stat:** ForceControl (holding the bend of light and sound, or the mind-trick erasure)
 **Difficulty Tier: D=4.0 (Advanced)**
-**Summary:** Bending light and Force perception around the user's body to become partially or fully invisible. Different from Force Stealth (which hides the Force presence) — Camouflage affects both visual and Force detection.
+**Summary:** Making oneself nearly invisible to sight. Two methods: bending light and sound waves around the body, which also hides the user from droids and the Yuuzhan Vong; or an advanced mind trick that erases the user's presence from observers' minds, which does not fool droids or other nonliving beings. Hides the body, not the Force presence: hiding from Force-sensitives is Force Concealment, and a user wanting both must hold both.
 **Alignment:** Neutral
-**Prerequisites:** ForceControl 41+
-**Notes:** Extremely draining. Movement disrupts the camouflage. Requires stillness or very slow movement to maintain full invisibility.
-
-> **Sub-application:**
-
-#### ↳ Force Cloak ⚪
-**Anchor Stat:** ForceControl (complete sensory erasure)
-**Difficulty Tier: D=4.0 (Advanced)**
-**Summary:** A refined and more complete version of Force Camouflage — total concealment from both visual and Force-sensitive detection simultaneously.
-**Alignment:** Neutral
-**Prerequisites:** ForceCamouflage 30+
-**Notes:** ⚠️ One of the rarest stealth abilities. Even other Force-sensitives cannot detect a cloaked user without exceptional skill.
-
+**Prerequisites:** ForceControl 41+ (light-bending method: Telekinesis 30+; mind-trick method: MindTrick 30+)
+**Notes:** ⚠️ Rare. Extremely hard to learn, so it usually comes as a natural talent (a natural talent lowers the learning cost). Physically and mentally taxing to maintain; the concentration it demands limits what else the user can do. Practiced since the early Republic, origin lost; the Jedi kept it in the Great Holocron. Users include Juhani (natural talent), Darth Traya, the Tholme–Quinlan Vos–Aayla Secura lineage, Anakin Skywalker, Darth Maul, Maris Brood, Jaden Korr and Lomi Plo; the Disciples of Twilight later perfected it. (Merged 2026-11-20: the lore file previously listed Force Camouflage and Force Cloak as separate abilities; Wookieepedia treats them as one power.)
+**Source:** Wookieepedia (Legends), "Force cloak": https://starwars.fandom.com/wiki/Force_cloak
 ---
 
 #### Breath Control ⚪
@@ -692,6 +837,17 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Neutral
 **Prerequisites:** Meditation 30+, Breath Control 15+
 **Notes:** Can be held for hours or days. Used to survive injury, vacuum, or captivity. The user cannot act during the trance — they are functionally unconscious.
+
+---
+
+#### Morichro ⚪ ⚠️
+**Anchor Stats:** ForceControl + Meditation
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Slowing a being's bodily functions, such as breathing and heart rate. On oneself it allows long suspended animation: a trained user can survive over a year without food, water or air, though not vacuum. On another it can induce mild catatonia, long-term suspended animation, or death. An unmonitored target may never wake, or may die of dehydration or starvation.
+**Alignment:** Neutral, but forbidden. Dark side users generally avoided it, because it requires mastering a less malicious use of the Force first. Using it to kill is judged as a deed.
+**Prerequisites:** Meditation 41+, ForceControl 41+, Hibernation Trance 21+, Jedi Master who knows it (lore-locked)
+**Notes:** ⚠️ **Forbidden Jedi art.** Known to Jedi since about 24,500 BBY. The Council classified it as forbidden around 5,000 BBY, and by 1,000 BBY banned teaching it to all but a select few Masters; Knights were never permitted it. Awdrysta Pina used it against Arden Lyn during the First Great Schism. Yaddle revived knowledge of it in the Order's final centuries; Jedi healers used it in the Clone Wars, and Kyp Durron and Anakin Solo used it to survive. First appeared in *The Emperor's Pawns* article, spelled "Mortichro". (Added 2026-11-20, M6 catalog review.)
+**Source:** Wookieepedia (Legends), "Morichro": https://starwars.fandom.com/wiki/Morichro/Legends
 
 ---
 
@@ -725,6 +881,20 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### Force Sustenance ⚪
+**Anchor Stats:** Meditation
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Sustaining oneself with the Force alone, without food, and for short periods even in vacuum.
+**Alignment:** Neutral
+**Prerequisites:** Meditation 41+, Breath Control 21+
+**Notes:** Darth Bane stopped needing food through it; Luke Skywalker learned a similar use as a Master. Mind Walking can amplify it. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force Sustenance": https://starwars.fandom.com/wiki/Force_Sustenance
+
+---
+
 ### ⚪ MENTAL & SOCIAL FAMILY
 *Influencing, reading, and interacting with other minds.*
 **Anchor Stats:** Mind influence abilities → **ForceControl** (precision of mental touch) + **ForceSense** (reading the target's resistance). Analytical abilities → **ForceKnowledge** + **Meditation**.
@@ -748,6 +918,15 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Neutral
 **Prerequisites:** MindTrick 21+, Charisma 15+
 **Notes:** More force required; more noticeable to Force-sensitives nearby.
+
+#### ↳ Dominate Mind ⚪
+**Anchor Stats:** ForceControl + Willpower
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** An advanced variant of the mind trick (the stronger counterpart of affect mind). Very few beings can resist it. It compels a target to act on a command rather than only nudging their perception, but stops short of the total, lasting override of Mind Control.
+**Alignment:** Neutral (Jedi-taught in the Old Republic era). Using it to make someone harm others or themselves is judged as a deed (domination).
+**Prerequisites:** ForcePersuasion 21+, ForceControl 30+
+**Notes:** Does not affect droids. Known from the Jedi Civil War era, when some soldiers were trained to resist mind tricks. (Added 2026-11-20, M6 catalog review.)
+**Source:** Wookieepedia (Legends), "Mind trick" (variants: affect mind and dominate mind); mirror: https://starwars.archivum.wiki/article/force_illusion
 
 #### ↳ Mind Control 🔴
 **Anchor Stats:** ForceControl (overriding a will entirely requires extreme precision)
@@ -860,13 +1039,14 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Force Listening ⚪ ⚠️
+#### Theran Force-listening ⚪ ⚠️
 **Anchor Stats:** Meditation + ForceSense
 **Difficulty Tier: D=4.0 (Advanced)**
 **Summary:** A deep meditative technique of the Theran Listeners — allowing the user to hear the voice of the Force itself speaking through living things, providing guidance and insight unavailable through normal sense or meditation.
 **Alignment:** Neutral (Light Side leaning)
 **Prerequisites:** Meditation 41+, ForceSense 30+
-**Notes:** ⚠️ **Faction-locked — primarily a Theran Listener tradition.** Extremely rare outside this tradition. Requires complete stillness and silence to initiate.
+**Notes:** ⚠️ **Faction-locked — primarily a Theran Listener tradition.** Extremely rare outside this tradition. Requires complete stillness and silence to initiate. Formerly listed as Force Listening. (Renamed or merged 2026-11-20 to match Wookieepedia.)
+**Source:** Wookieepedia (Legends), "Theran Force-listening": https://starwars.fandom.com/wiki/Theran_Force-listening
 
 ---
 
@@ -876,7 +1056,76 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** A Force-enhanced mental state of absolute focus and calm in combat — suppressing fear, doubt, and distraction, allowing perfect clarity under lethal pressure.
 **Alignment:** Light Side
 **Prerequisites:** Meditation 21+, Willpower 20+
-**Notes:** Different from Force Rage (which amplifies anger) — Battlemind amplifies calm clarity. Used by Jedi to maintain composure in overwhelming situations.
+**Notes:** Different from Force Enrage (which amplifies anger) — Battlemind amplifies calm clarity. Used by Jedi to maintain composure in overwhelming situations.
+
+---
+
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### ↳ Force Confusion ⚪
+**Anchor Stats:** ForceControl
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** An advanced mind trick that temporarily makes an enemy fight as an ally. Quicker to use than affect mind in battle.
+**Alignment:** Neutral (making someone harm their own side is judged as a deed)
+**Prerequisites:** Mind Trick 30+
+**Notes:**  (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Mind trick" (Force confusion section): https://starwars.fandom.com/wiki/Mind_trick/Legends
+
+---
+
+#### ↳ Force Corrupt 🔴
+**Anchor Stats:** ForceControl
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Forcing targets to the user's side while slowly draining their life.
+**Alignment:** Dark Side, standard
+**Prerequisites:** Force Confusion 21+, Dark Side 30+
+**Notes:** Imperial Force users in the Galactic Civil War, possibly Mara Jade and Palpatine, used it on enemy soldiers. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Mind trick" (Force corrupt section): https://starwars.fandom.com/wiki/Mind_trick/Legends
+
+---
+
+#### ↳ Mind Twist 🔴
+**Anchor Stats:** ForceControl + ForceSense
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Intruding into a mind and twisting its perception of reality, strongly enough for the body to react (burn marks from an imagined fire).
+**Alignment:** Dark Side, standard
+**Prerequisites:** Mind Trick 41+, Dark Side 20+
+**Notes:** Developed by Daegen Lok (Dawn of the Jedi era). (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Mind trick" (Mind Twist section): https://starwars.fandom.com/wiki/Mind_trick/Legends
+
+---
+
+#### ↳ Force Illusion ⚪
+**Anchor Stats:** ForceControl + ForceSense
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Projecting an image into the minds of beings in range, from a pillar of fire to a fleet of warships, controlled by the user's imagination.
+**Alignment:** Neutral
+**Prerequisites:** Mind Trick 41+, Force Projection 21+
+**Notes:** Unlike a hologram it can be steered mentally. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Mind trick" (Force illusion section): https://starwars.fandom.com/wiki/Mind_trick/Legends
+
+---
+
+#### Memory Rub ⚪
+**Anchor Stats:** ForceControl + ForceSense
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Altering or erasing another's memories or learned skills.
+**Alignment:** Neutral (non-consensual use is judged as a deed)
+**Prerequisites:** Telepathy 30+, Mind Trick 30+
+**Notes:** Obi-Wan Kenobi erased the memory of the buyer of the Soulless One on Nar Shaddaa. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Memory rub": https://starwars.fandom.com/wiki/Memory_rub/Legends
+
+---
+
+#### Neural Storm ⚪
+**Anchor Stats:** ForceOutput + ForceSense
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Overloading a victim's neural network with psychic energy for extreme but momentary disorientation.
+**Alignment:** Neutral
+**Prerequisites:** Telepathy 21+
+**Notes:**  (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Neural Storm": https://starwars.fandom.com/wiki/Neural_Storm
 
 ---
 
@@ -936,6 +1185,38 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
+#### Force Concealment (Force Stealth) ⚪
+**Anchor Stats:** ForceControl + Meditation
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Hiding one's Force alignment, one's ability to use the Force, or one's entire presence from other Force-sensitives. Distinct from Force Cloak (also called Force Camouflage), which hides the body from sight. Variants include shrinking one's presence in the Force to almost nothing (Vergere), hiding emotions under stress (Jacen Solo), choosing exactly who can sense you (Luke Skywalker), and the Quey'tek meditation, which masks a dark signature so it appears benevolent.
+**Alignment:** Neutral. The Quey'tek variant is a dark-side technique.
+**Prerequisites:** ForceControl 25+, Meditation 20+
+**Notes:** Contested by Force Sense. At high mastery it becomes a free use (M6 reserve spec), so it can be held without upkeep. Darth Sidious hid his dark nature from the Jedi High Council for over three decades, even in the same room. Obi-Wan Kenobi and Yoda used it in exile; Vergere, Darth Traya and the Jensaarai used it to evade enemies; Asajj Ventress, Darth Tyranus and Darth Maul used Quey'tek. Alternate names: Force Concealment, Buried Presence, Force Stealth. (Added 2026-11-20, M6 catalog review.)
+**Source:** Wookieepedia (Legends), "Force stealth": https://starwars.fandom.com/wiki/Force_stealth
+
+
+> **Sub-applications:**
+
+#### ↳ Force Clouding 🔴
+**Anchor Stats:** ForceControl + ForceKnowledge
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** A Sith technique: pulling one's dark power inward and wearing a mask of insignificance, to hide in plain sight among Jedi.
+**Alignment:** Dark Side, lesser
+**Prerequisites:** Force Concealment 21+, Dark Side 20+, Sith teaching
+**Notes:** Used by the Order of the Sith Lords. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force Clouding": https://starwars.fandom.com/wiki/Force_Clouding
+
+#### ↳ False Light Side Aura 🔴
+**Anchor Stats:** ForceControl + ForceKnowledge
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Sith magic that disguises a dark aura as a light one. Related to the Quey'tek meditation.
+**Alignment:** Dark Side, lesser
+**Prerequisites:** Force Clouding 21+, Dark Side 30+
+**Notes:** First appeared in Darth Bane: Rule of Two. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "False light side aura": https://starwars.fandom.com/wiki/False_light_side_aura
+
+---
+
 #### Wall of Light 🔵 ⚠️
 **Anchor Stats:** ForceOutput (requires multiple users' combined power) + ForceKnowledge
 **Difficulty Tier: D=4.0 (Advanced)**
@@ -960,6 +1241,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Anchor Stats:** ForceOutput + ForceControl
 **Difficulty Tier: D=2.5 (Complex)**
 **Summary:** Actively tearing through a Force Barrier or Force protection to expose the opponent underneath.
+**Notes:** Wookieepedia's "Force Breach" is a disambiguation between injuring through shatterpoints and Force suppression; kept here as an application of Force Suppression (2026-11-20).
 **Alignment:** Neutral
 **Prerequisites:** ForceSuppression 15+
 
@@ -986,6 +1268,17 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
+#### Force Meld 🔵
+**Anchor Stats:** Meditation + ForceSense
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Joining the minds of allied Force-sensitives so they act as a single entity and draw strength from each other. A refinement of Battle Meditation: where Battle Meditation sways Force users and non-sensitives on both sides, the meld coordinates and strengthens only the Force-sensitives on the user's side, which makes it easier to master.
+**Alignment:** Light Side leaning. Not limited to the light side; its drawbacks fed the Dark Nest Crisis.
+**Prerequisites:** Meditation 30+, ForceSense 30+ (anchoring a large meld: Meditation 51+)
+**Notes:** Known to the ancient Jedi, though dangerous: the Jedi under Grandmaster Awdrysta Pina used it to defeat the Legions of Lettow on Columus. Jorus C'baoth performed it at least eight times. Anakin Solo redeveloped it in the Yuuzhan Vong War; Jacen Solo used it on the Myrkr mission; Jaina Solo refined it for starfighter squadrons. Obi-Wan Kenobi warned it takes a Master of great power and depth to form a single-entity meld without destroying the minds involved. Pain and great disturbances are shared by all members. A light-side majority can keep one member from slipping to the dark side. A meld divided in purpose becomes a liability. Long use blurs identities. Available in every era as rare. Full rules: M6 reserve spec, Force meld. (Added 2026-11-20, M6 catalog review.)
+**Source:** Wookieepedia (Legends), "Force-meld": https://starwars.fandom.com/wiki/Force-meld
+
+---
+
 #### Electric Judgment 🔵 ⚠️
 **Anchor Stat:** ForceControl (channeling compassion rather than hatred is the key precision act)
 **Difficulty Tier: D=4.0 (Advanced)**
@@ -993,6 +1286,64 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Light Side (distinct from Force Lightning's Dark Side nature)
 **Prerequisites:** ForceControl 41+, Willpower 40+, Light Side 40+
 **Notes:** ⚠️ **Controversial and rare.** Plo Koon was one of the few Jedi to use this. The Jedi Council historically discouraged it due to its visual similarity to Sith lightning, regardless of alignment. The technique channels compassion rather than hatred — intent is everything.
+
+---
+
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### Thought Shield ⚪
+**Anchor Stats:** Willpower + Meditation
+**Difficulty Tier: D=1.0 (Basic)**
+**Summary:** Keeping one's thoughts, emotions and motives hidden. In battle it stops an enemy reading your next move.
+**Alignment:** Neutral
+**Prerequisites:** Willpower 10+, Meditation 10+
+**Notes:** Taught to Padawans from the earliest age; with practice it becomes second nature. Contests Telepathy and Mind Probe. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Thought shield": https://starwars.fandom.com/wiki/Thought_shield
+
+---
+
+#### Force Deflection (Rebuke) ⚪
+**Anchor Stats:** ForceControl + ForceSense
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Deflecting incoming attacks, including blaster bolts, with the Force alone.
+**Alignment:** Neutral
+**Prerequisites:** ForceControl 30+, Force Barrier 21+
+**Notes:** Used by those without a lightsaber. Master Thon repelled a pirate salvo; Nomi Sunrider deflected a bolt barehanded. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force deflection": https://starwars.fandom.com/wiki/Force_deflection/Legends
+
+---
+
+#### Energy Resistance ⚪
+**Anchor Stats:** ForceControl
+**Difficulty Tier: D=1.5 (Moderate)**
+**Summary:** A barrier of energy-absorbing force around the user that reduces damage from energy weapons. Advanced forms also protect allies and grant immunity to poison and disease.
+**Alignment:** Light Side leaning
+**Prerequisites:** Force Barrier 15+
+**Notes:** Common among Jedi in the Jedi Civil War. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Energy resistance": https://starwars.fandom.com/wiki/Energy_resistance
+
+---
+
+#### Force Scattering ⚪
+**Anchor Stats:** ForceControl + ForceSense
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Imprinting one's presence across an area so other Force users cannot find your exact location.
+**Alignment:** Neutral
+**Prerequisites:** Force Concealment 21+
+**Notes:** Kueller used it on Pydyr before confronting Luke Skywalker. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force scattering": https://starwars.fandom.com/wiki/Force_scattering
+
+---
+
+#### Force-flash ⚪
+**Anchor Stats:** ForceControl
+**Difficulty Tier: D=1.0 (Basic)**
+**Summary:** Briefly fuzzing a security holocam to pass unseen, or producing a blinding flash of light.
+**Alignment:** Neutral
+**Prerequisites:** ForceControl 15+
+**Notes:** Seff Hellin used it in his prison raid; Abeloth's flash blinded ships across a system. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force-flash": https://starwars.fandom.com/wiki/Force-flash
 
 ---
 
@@ -1055,10 +1406,11 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 #### Dark Transfer 🔴/🔵 ⚠️
 **Anchor Stats:** ForceKnowledge + Meditation + ForceControl
 **Difficulty Tier: D=4.0 (Advanced)**
-**Summary:** The ability to pull a recently deceased person back from death — reversing the transition from life to death. An extraordinarily rare and demanding ability.
-**Alignment:** ⚠️ In Legends this was developed by Darth Plagueis as a Dark Side power; a compassionate application was demonstrated by Abeloth. Deeply controversial.
-**Prerequisites:** ForceHeal (Others) 61+, Midi-chlorian Manipulation 30+ OR extreme innate talent
-**Notes:** ⚠️ **Exceptionally rare — borderline mythical.** Only the most powerful healers or dark side practitioners have achieved it. The Force pushes back against this technique.
+**Summary:** Drawing on the dark side to heal someone on the brink of death, or at full strength to revive someone who has just died. The user perceives wounds and weakness as broken red lines (shatterpoints) and mends them with the Force; the same points can be used to destroy instead.
+**Alignment:** 🔴 Dark Side. Some Jedi regard it as imposing one's own will in defiance of the will of the Force.
+**Prerequisites:** ForceHeal (Others) 61+, Shatterpoint 21+, Dark Side 30+ — OR manifests instinctively under extreme need (Cade Skywalker)
+**Notes:** ⚠️ **Ancient Sith technique, exceptionally rare.** Credited to Karness Muur, one of the ancient Sith Lords and creator of the rakghoul plague, though it may be older still. Muur's essence, preserved in the Muur Talisman, used Celeste Morne's body to begin healing Darth Krayt, which gave Krayt his first understanding of it; Krayt learned the rest through his own death and revival. Cade Skywalker manifested it instinctively without a teacher, and used it around 137 ABY to revive Marasiah Fel on Vendaxa. Arcs of Force lightning appear around the user while it is used. Learning class: taught, can manifest. (Corrected 2026-11-20: earlier text credited Darth Plagueis and Abeloth, which is wrong.)
+**Source:** Wookieepedia (Legends), "Dark transfer": https://starwars.fandom.com/wiki/Dark_transfer
 
 ---
 
@@ -1128,6 +1480,31 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### Inspire 🔵
+**Anchor Stats:** Meditation + Charisma
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Filling allies with hope and courage to face terrible odds, possibly making them slightly more resistant to injury.
+**Alignment:** Light Side
+**Prerequisites:** Meditation 30+, Charisma 21+
+**Notes:** First appeared in Knights of the Old Republic II. Replaces Aura of Serenity if that entry is dropped. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Inspire": https://starwars.fandom.com/wiki/Inspire
+
+---
+
+#### Force Harmony 🔵
+**Anchor Stats:** Meditation + ForceOutput
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Several willing Force users joining their energies into a pure manifestation of the light side, protecting them from dark side powers and able to sever an opponent from the dark side.
+**Alignment:** Light Side
+**Prerequisites:** Meditation 51+, Light Side 50+, two or more participants
+**Notes:** Luke, Leia and the unborn Anakin Solo used it against the reborn Palpatine, turning his Force storm on him. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force harmony": https://starwars.fandom.com/wiki/Force_harmony
+
+---
+
 ### 🔴 DARK SIDE FAMILY
 *Powers accessible only to those who have embraced the dark side of the Force.*
 **Anchor Stats:** Destructive/discharge abilities (Lightning, Rage, Drain) → **ForceOutput** primary. Psychological/subtle dark abilities (Fear, Subjugate, Memory Walk) → **ForceControl** primary.
@@ -1167,6 +1544,18 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
+
+#### ↳ Other Force Lightning Variants 🔴
+**Anchor Stats:** ForceOutput + ForceControl
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Lightning applications with game-specific origins: Force Tempest (lightning from all limbs in a whirlwind), Sith Barrage (a bolt up from the ground), Lightning Shield (a protective field that also shocks nearby enemies), Lightning Grenade and Lightning Bomb (lightning made to explode in or out of a victim), Sith Seeker (a push followed by an uncontrolled ball of lightning), Lightning Burst (arcs to adjacent enemies). Hassat-durr is a separate white-lightning version used by the Baran-Do Sages, which is not dark side.
+**Alignment:** Dark Side, standard (Hassat-durr: Neutral)
+**Prerequisites:** Force Lightning 30+ (Lightning Grenade and Seeker: also Telekinesis 30+)
+**Notes:** Treat each as an application of Force Lightning, not its own track. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force lightning" (Variants section): https://starwars.fandom.com/wiki/Force_lightning/Legends
+
+---
+
 #### Force Drain 🔴
 **Anchor Stats:** ForceOutput (magnitude of leeching) + ForceControl (sustaining without destabilizing)
 **Difficulty Tier: D=2.5 (Complex)**
@@ -1177,13 +1566,14 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Force Rage 🔴
+#### Force Enrage 🔴
 **Anchor Stat:** ForceOutput (rage amplifies raw power directly)
 **Difficulty Tier: D=1.5 (Moderate)** — easy to start, hard to stop
 **Summary:** Channeling anger, hatred, and emotion into a surge of Force-enhanced physical power — temporarily amplifying speed, strength, and aggression dramatically at the cost of control and alignment.
 **Alignment:** Dark Side — severe drift
-**Prerequisites:** ForceStrength 15+, Dark Side drift 20+
-**Notes:** *(Prerequisite refers to the Force Strength body enhancement ability at level 15+, not a stat — see stat reference note in that entry.)* During Force Rage the user is difficult to reason with and may attack allies. The crash afterward leaves significant physical strain and mental exhaustion. Addictive.
+**Prerequisites:** EnhanceAttribute 15+, Dark Side drift 20+
+**Notes:** *(Prerequisite refers to the Enhance Attribute body enhancement ability at level 15+, not a stat — see stat reference note in that entry.)* During Force Rage the user is difficult to reason with and may attack allies. The crash afterward leaves significant physical strain and mental exhaustion. Addictive. Alias: Force Rage (the old key `ForceRage` resolves here). (Renamed or merged 2026-11-20 to match Wookieepedia.)
+**Source:** Wookieepedia (Legends), "Force Enrage": https://starwars.fandom.com/wiki/Force_Enrage
 
 ---
 
@@ -1277,6 +1667,97 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### Force Destruction 🔴
+**Anchor Stats:** ForceOutput
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Dark side energy stored in the body and released as a massive sphere that paralyzes or vaporizes everything in a large radius, with backlash beyond it.
+**Alignment:** Dark Side, severe
+**Prerequisites:** ForceOutput 61+, Dark Side 50+
+**Notes:** Extremely exhausting, so unreliable as a routine attack. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force Destruction": https://starwars.fandom.com/wiki/Force_Destruction
+
+---
+
+#### Force Maelstrom 🔴
+**Anchor Stats:** ForceOutput + ForceControl
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** A storm of dark-side energy and lightning around the user that strikes everything nearby.
+**Alignment:** Dark Side, severe
+**Prerequisites:** Force Lightning 41+, Dark Side 50+
+**Notes:** Darth Malgus used it; Darth Sidious mastered it as a step toward Force storm. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force Maelstrom": https://starwars.fandom.com/wiki/Force_Maelstrom
+
+---
+
+#### Hatred 🔴
+**Anchor Stats:** ForceOutput
+**Difficulty Tier: D=1.5 (Moderate)**
+**Summary:** An often involuntary release of the dark side: the user's hate radiates from them in palpable waves.
+**Alignment:** Dark Side, standard
+**Prerequisites:** Dark Side 25+ (can manifest involuntarily)
+**Notes:** Allana Solo used it in fear and anger in 43 ABY. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Hatred": https://starwars.fandom.com/wiki/Hatred
+
+---
+
+#### Heart Stun 🔴
+**Anchor Stats:** ForceControl
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Halting the heart in a kind of stasis, to capture a target without a fight, or fatally.
+**Alignment:** Dark Side, standard
+**Prerequisites:** Force Choke 21+, ForceControl 41+
+**Notes:** Rumored to have kept General Grievous alive; Darth Maul used it fatally. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Heart stun": https://starwars.fandom.com/wiki/Heart_stun
+
+---
+
+#### Cryokinesis 🔴
+**Anchor Stats:** ForceControl
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Drawing heat out of a target so it drops rapidly in temperature, becoming cold and fragile. Cannot shape ice despite the name.
+**Alignment:** Dark Side, standard
+**Prerequisites:** ForceControl 30+, Dark Side 20+
+**Notes:** First mentioned in the Jedi Academy Training Manual. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Cryokinesis": https://starwars.fandom.com/wiki/Cryokinesis
+
+---
+
+#### Create Force Wraith 🔴
+**Anchor Stats:** ForceKnowledge + ForceOutput
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Creating a being of dark side energy. Each use seduces the user further to the dark side.
+**Alignment:** Dark Side, severe
+**Prerequisites:** ForceKnowledge 51+, Dark Side 50+
+**Notes:**  (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Create Force Wraith": https://starwars.fandom.com/wiki/Create_Force_Wraith
+
+---
+
+#### Consume Essence 🔴
+**Anchor Stats:** ForceControl
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Feeding on the anger, strength and death around the user to gain strength.
+**Alignment:** Dark Side, standard
+**Prerequisites:** Force Drain 21+, Dark Side 30+
+**Notes:** Darth Maul fed on his opponents' anger after Qui-Gon fell; Darth Krayt used it to hold off his Vong implants. First identified in Star Wars: The Old Republic. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Consume Essence": https://starwars.fandom.com/wiki/Consume_Essence
+
+---
+
+#### Possession 🔴
+**Anchor Stats:** ForceKnowledge + Meditation
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** A spirit or essence taking over a living being's body and directing it.
+**Alignment:** Dark Side, severe
+**Prerequisites:** ForceKnowledge 71+, Dark Side 70+ (or as a spirit)
+**Notes:** Vitiate shared his essence with the Children of the Emperor and possessed nearly every being on Ziost; Mother Talzin possessed Dooku. Resolves the Possession item in the questions file. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Possession": https://starwars.fandom.com/wiki/Possession/Legends
+
+---
+
 ### ⚪ TELEPORTATION & SPACE/TIME FAMILY
 *The rarest abilities — manipulating the fabric of space and time through the Force.*
 **Anchor Stats:** ForceControl (folding space) + ForceSense (perceiving where you're going). Meditation dominant for faction techniques (Phase, Fold Space).
@@ -1334,13 +1815,13 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 ---
 
 #### Dimension Shift ⚪ ⚠️
-**Anchor Stats:** ForceControl + ForceSense
+**Anchor Stats:** ForceControl + ForceOutput
 **Difficulty Tier: D=4.0 (Advanced)**
-**Summary:** Briefly shifting one's physical form partially outside normal space — passing through objects or becoming intangible for a moment.
+**Summary:** Making an object vanish, either by moving its matter into an alternate dimension or by compressing its molecules, so other things can pass through the space it occupied. The user can later recall it from anywhere through a link set up beforehand, restoring it so precisely that no trace of the disappearance remains. Used to hide doors, cupboards and objects. It works on matter the user links to, not on the user's own body; passing through walls is Phase.
 **Alignment:** Neutral
-**Prerequisites:** ForceControl 61+, Teleportation 15+
-**Notes:** ⚠️ Exceptionally rare and poorly documented. Distinct from Phase (which uses the White Current) — Dimension Shift is a direct Force manipulation of physical reality.
-
+**Prerequisites:** ForceControl 61+, Telekinesis 41+, Force-strong users only (pool gate in the M6 reserve spec)
+**Notes:** ⚠️ Rare. Jedi Master Plett used it to make cupboards and doors in his house on Belsavis. Irek Ismaren rediscovered it on Belsavis, and Leia Organa Solo learned it while his prisoner. Jorj Car'das demonstrated it, possibly learned from the Aing-Tii. Learning class: taught, can be rediscovered. The name is conjectural (Wookieepedia). (Corrected 2026-11-20: the lore file previously described it as making the user intangible, with a Teleportation prerequisite.)
+**Source:** Wookieepedia (Legends), "Dimension Shift": https://starwars.fandom.com/wiki/Dimension_Shift. Appearances per Jared: *Children of the Jedi* (first) and *Vision of the Future*.
 ---
 
 #### Force Storm (Wormhole) 🔴 ⚠️
@@ -1350,6 +1831,20 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Dark Side — severe/extreme drift
 **Prerequisites:** Dark Side 90+, ForceControl 91+, ForceLightning Storm 41+
 **Notes:** ⚠️ **Mythically rare and catastrophically dangerous.** Only Palpatine demonstrated this reliably. Cannot be controlled precisely — a Force Storm is as dangerous to its creator as to targets.
+
+---
+
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### Force Travel 🔴
+**Anchor Stats:** ForceOutput + ForceKnowledge
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Travelling great distances instantly through a momentary rift in space. More corrupting the farther and less familiar the destination.
+**Alignment:** Dark Side, severe
+**Prerequisites:** ForceOutput 61+, ForceKnowledge 51+, Dark Side 50+
+**Notes:**  (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force travel": https://starwars.fandom.com/wiki/Force_travel
 
 ---
 
@@ -1396,6 +1891,42 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Neutral
 **Prerequisites:** ForceSense 30+, ForceControl 30+
 **Notes:** Subtle and slow-acting. Cannot conjure weather from nothing — amplifies or redirects existing conditions.
+
+---
+
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### Ionize (Mechu Macture) ⚪
+**Anchor Stats:** ForceControl + ForceOutput
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Overloading and damaging electronic systems such as droids with a stream of ions.
+**Alignment:** Light Side leaning
+**Prerequisites:** ForceControl 30+
+**Notes:** Discovered by Arca Jeth during the Great Droid Revolution; common among Jedi in the Jedi Civil War; later used by Luke Skywalker. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Ionize": https://starwars.fandom.com/wiki/Ionize
+
+---
+
+#### Electronic Manipulation 🔴
+**Anchor Stats:** ForceControl + ForceKnowledge
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Reprogramming or controlling machines through the Force. Harder on intelligent or hostile droids and for larger changes.
+**Alignment:** Dark Side, lesser (requires embracing inner rage; the Jedi avoided it)
+**Prerequisites:** Ionize 21+, Mind Trick 21+
+**Notes:** First appeared in Dark Apprentice. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Electronic Manipulation": https://starwars.fandom.com/wiki/Electronic_Manipulation
+
+---
+
+#### Force Familiar ⚪
+**Anchor Stats:** ForceSense
+**Difficulty Tier: D=1.5 (Moderate)**
+**Summary:** A bond in the Force with an animal companion.
+**Alignment:** Neutral
+**Prerequisites:** Animal Bond 21+
+**Notes:** An art on the Force-steeped world of Vjun. First appeared in Yoda: Dark Rendezvous. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force familiar": https://starwars.fandom.com/wiki/Force_familiar
 
 ---
 
@@ -1465,6 +1996,53 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### Force Ghost ⚪
+**Anchor Stats:** Meditation + ForceKnowledge
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Preserving one's identity after death by guarding one's essence against being absorbed into the Force, and continuing to interact with the living. Some Sith combined similar techniques with essence transfer.
+**Alignment:** Neutral (Jedi practice; Sith variants are dark)
+**Prerequisites:** Meditation 81+, ForceKnowledge 61+, a teacher who knows it (lore-locked)
+**Notes:** A major story ability; acquiring it should be a story event. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force ghost": https://starwars.fandom.com/wiki/Force_ghost/Legends
+
+---
+
+#### Life Bond ⚪
+**Anchor Stats:** ForceSense + ForceControl
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** A permanent mental link with another person: shared senses, limited telepathy, and linked injury and dark-side susceptibility.
+**Alignment:** Neutral
+**Prerequisites:** Force Bond 21+
+**Notes:** Gorc and Pic shared one; Gorc's death sent Pic into a frenzy. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Life Bond": https://starwars.fandom.com/wiki/Life_Bond
+
+---
+
+#### Mind Walking ⚪
+**Anchor Stats:** Meditation + ForceKnowledge
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Leaving the body in deep meditation to enter the realm "beyond shadows".
+**Alignment:** Neutral (dangerous)
+**Prerequisites:** Meditation 61+, taught by Mind Walkers (lore-locked)
+**Notes:** Learned by Jacen Solo after the Yuuzhan Vong War, later by Luke and Ben Skywalker. Resolves the MindWalking item in the questions file. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Mind Walking": https://starwars.fandom.com/wiki/Mind_Walking
+
+---
+
+#### Oneness ⚪
+**Anchor Stats:** Meditation
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** A state of union with the Force: becoming an extension of the Force in perfect calm, with brief access to power far beyond normal limits, followed by heavy but temporary exhaustion.
+**Alignment:** Light Side (rarely dark, with severe temptation)
+**Prerequisites:** Story event only
+**Notes:** Luke Skywalker reached it more than once. Mechanics: M6 reserve spec, as a surge past the pool ceiling with a heavy temporary cost and no permanent damage (design decision, 2026-11-20). (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Oneness": https://starwars.fandom.com/wiki/Oneness/Legends
+
+---
+
 ### 🔴 SITH ALCHEMY & FORBIDDEN ARTS
 **Anchor Stats:** ForceKnowledge (all of these require deep lore mastery) + Dark Side (alignment gating). ForceOutput relevant for Thought Bomb and Force Storm.
 **Note:** These abilities have no sub-ability proficiency tracks — each is individually learned through lore access and story events, not proficiency drilling.
@@ -1478,6 +2056,17 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Prerequisites:** ForceKnowledge 81+, Dark Side 80+
 **Notes:** ⚠️ **Faction and era locked — Sith tradition only.** Requires access to Sith texts and extensive study. Products of Sith alchemy (Sithspawn, alchemically forged weapons) are powerful but unstable.
 
+> **Sub-application:**
+
+#### ↳ Mask (Sith Alchemy) 🔴 ⚠️
+**Anchor Stats:** ForceKnowledge + ForceControl
+**Difficulty Tier:** Ritual (cast outside combat)
+**Summary:** A Sith alchemy ritual that conceals the user's true appearance: features, age, disfigurement, the marks of the dark side, even species with great skill. It lasts until the user drops it. As a product of the dark side, it is vulnerable to powerful blasts of dark side energy, which can melt it away and make further concealment difficult.
+**Alignment:** Dark Side. Casting costs a small amount of Corruption.
+**Prerequisites:** ForceKnowledge 51+, Dark Side 40+, taught by a Sith master who knows it or learned from a Sith holocron or text (lore-locked). Does not require full Sith Alchemy.
+**Notes:** ⚠️ Darth Sidious may have used it to hide his true appearance behind the face of the Naboo politician Palpatine; when Mace Windu reflected his lightning, the Mask would have melted away. George Lucas told Ian McDiarmid to think of Palpatine's face as a mask. Hides appearance only; hiding one's presence is Force Concealment. Breaks on collapse, past 1.0 strain while channeling the dark side, or a major dark-side release (M6 alignment spec). Created for the Wizards of the Coast Star Wars Roleplaying Game by Gary M. Sarli. Design choice between competing explanations of Palpatine's face. (Added 2026-11-20, M6 catalog review.)
+**Source:** "Mask (Sith Alchemy)" (Wookieepedia mirror): https://starwars.archivum.wiki/article/Mask_(Sith_Alchemy)
+
 ---
 
 #### Midi-chlorian Manipulation 🔴 ⚠️
@@ -1489,12 +2078,13 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Transfer Essence 🔴 ⚠️
+#### Essence Transfer 🔴 ⚠️
 **Anchor Stats:** ForceKnowledge + Meditation + Dark Side alignment
 **Summary:** The ability to transfer one's own consciousness into another body — achieving a form of immortality by abandoning one's dying physical shell and inhabiting a new host.
 **Alignment:** Dark Side — extreme drift
 **Prerequisites:** Dark Side 80+, ForceKnowledge 71+, Meditation 51+
-**Notes:** ⚠️ **Sith technique — era and faction considerations apply.** Palpatine used this repeatedly in Legends. The process destroys the host's original personality. A character pursuing this path should be considered firmly on the Sith path.
+**Notes:** ⚠️ **Sith technique — era and faction considerations apply.** Palpatine used this repeatedly in Legends. The process destroys the host's original personality. A character pursuing this path should be considered firmly on the Sith path. Formerly listed as Transfer Essence (the old key resolves here). (Renamed or merged 2026-11-20 to match Wookieepedia.)
+**Source:** Wookieepedia (Legends), "Essence transfer": https://starwars.fandom.com/wiki/Essence_transfer
 
 ---
 
@@ -1524,6 +2114,64 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Dark Side — severe drift
 **Prerequisites:** ForceKnowledge 51+, Dark Side 40+, `sithTextAccess` flag required
 **Notes:** ⚠️ **Sith sorcery — distinct from the Mind Trick family.** Force Fear (Mind Trick sub-application) is a precision targeted mind-influence; Summon Fear uses a fundamentally different mechanism — it channels the dark side's inherent dread directly, making it harder to resist (even for strong-willed targets who can block mind tricks) and affecting a wider area at high proficiency. Not era-locked — the technique survived through the Rule of Two and is part of the Sith tradition accessible to any Sith with sufficient dark side knowledge. Requires Sith text access or a Sith mentor to discover, but no specific era restriction applies.
+
+---
+
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### Force Walk 🔴
+**Anchor Stats:** Willpower + ForceKnowledge
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** An ancient Sith technique binding restless Force ghosts to the living, so the user can draw on their power. Binding an unwilling ghost gives more power than a willing one.
+**Alignment:** Dark Side, severe
+**Prerequisites:** ForceKnowledge 61+, Dark Side 60+, Willpower 51+, Sith teaching (lore-locked)
+**Notes:** Its masters rose quickly and then faded mysteriously. Only Darth Nox and Lord Ergast bound more than one ghost. An outside power source in the M6 reserve spec. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force walk": https://starwars.fandom.com/wiki/Force_walk
+
+---
+
+#### Taint 🔴
+**Anchor Stats:** ForceKnowledge
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Tainting an object or person so it radiates the dark side, causing pain to light-side users and stunning neutral beings who touch it.
+**Alignment:** Dark Side, standard
+**Prerequisites:** ForceKnowledge 41+, Dark Side 40+
+**Notes:**  (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Taint": https://starwars.fandom.com/wiki/Taint
+
+---
+
+#### Supernova (Sith Magic) 🔴
+**Anchor Stats:** ForceOutput + ForceKnowledge
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Sith sorcery, amplified by Sith crystals, that rips the core from a star; the core can be hurled as a weapon. Can backfire on the caster.
+**Alignment:** Dark Side, severe
+**Prerequisites:** Sith Sorcery mastery, ForceKnowledge 81+, Dark Side 80+, Sith crystals
+**Notes:** Only the strongest dark side masters can control it. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Supernova (Sith magic)": https://starwars.fandom.com/wiki/Supernova_(Sith_magic)
+
+---
+
+#### Stygian Art 🔴
+**Anchor Stats:** ForceKnowledge
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Blending technology with Sith alchemy to sow creation from destruction.
+**Alignment:** Dark Side, severe
+**Prerequisites:** Mechu-deru 41+, Sith Alchemy 21+
+**Notes:** Devised by the former Emperor's Hand Cronal during the Galactic Civil War. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Stygian Art": https://starwars.fandom.com/wiki/Stygian_Art
+
+---
+
+#### Mechu-deru Vitae 🔴
+**Anchor Stats:** ForceKnowledge
+**Difficulty Tier: D=4.0 (Advanced)**
+**Summary:** Creating technobeasts with a technovirus that converts flesh into metal.
+**Alignment:** Dark Side, severe
+**Prerequisites:** Mechu-deru 41+, Sith Alchemy 30+
+**Notes:** Derived from mechu-deru by the Sith Lord Belia Darzu. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Mechu-deru vitae": https://starwars.fandom.com/wiki/Mechu-deru_vitae
 
 ---
 
@@ -1592,6 +2240,21 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
+
+
+> **Added from the Wookieepedia audit (2026-11-20):**
+
+#### Force Blinding 🔵
+**Anchor Stats:** ForceOutput
+**Difficulty Tier: D=1.5 (Moderate)**
+**Summary:** A burst of Force energy that overwhelms the target's optic nerves, causing temporary blindness. Force Sight defends against it.
+**Alignment:** Light Side leaning (classically light; the dark side uses it too)
+**Prerequisites:** ForceOutput 15+, ForceControl 15+
+**Notes:** Classified by the Sith in the Offense school. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Source:** Wookieepedia (Legends), "Force blinding": https://starwars.fandom.com/wiki/Force_blinding
+
+---
+
 ## INNATE TALENTS (Non-trainable — character creation or player override only)
 
 **Registry rules:**
@@ -1614,7 +2277,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 | `ShatterSense` | Shatterpoint Innate Talent | See Shatterpoint Path B entry — ×0.1 XP cost, 70% strain reduction, uncapped track, passive perception | See Shatterpoint section for full mechanical spec |
 | `BattleMeditationAffinity` | Battle Meditation Affinity | Battle Meditation XP cost ×0.3, Force Strain ×0.6. Equivalent innate case to ShatterSense — Bastila Shan is the canonical example | Separate from ShatterSense; can hold both |
 | `LivingForceConnection` | Living Force Connection | Environmental Force Sense always active passively; Animal Bond strain-free | Qui-Gon Jinn archetype |
-| `PrecognitiveEdge` | Precognitive Edge | Precognitive Reflexes activates one tier earlier than normal prerequisite | |
+| `PrecognitiveEdge` | Precognitive Edge | Precognition activates one tier earlier than normal prerequisite | |
 
 **Design note:** The `ShatterSense` and `BattleMeditationAffinity` talents are in the same category — abilities that *can* be learned without innate talent but which innate talent holders reach at a fraction of the cost and to a depth no standard learner can match.
 

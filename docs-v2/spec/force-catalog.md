@@ -67,6 +67,21 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
   Legacy aliases all resolve to a v2 id, except the removed aliases "ForceFortitude",
     "Force Fortitude", "Fortitude" and "ForceBodyControl" (decisions.md, 2026-11-16), which
     are rejected as unknown names.
+  Renamed lore entries (lore update 2026-11-20, D-276): each old key and old display name is
+    an alias of the new entry, so it resolves there.
+      | Old key / old name                                | New entry               |
+      |---|---|
+      | ForceCamouflage / Force Camouflage                | Force Cloak             |
+      | ForceStrength / Force Strength                    | Enhance Attribute       |
+      | ForceEnhancedReflexes / Force-Enhanced Reflexes   | Force Speed (forceSpeed)|
+      | PrecognitiveReflexes / Precognitive Reflexes      | Precognition            |
+      | AingTiiFightingSight / Aing-Tii Fighting-Sight    | Fighting-sight          |
+      | ForceListening / Force Listening                  | Theran Force-listening  |
+      | ForceRage / Force Rage                            | Force Enrage            |
+      | TransferEssence / Transfer Essence                | Essence Transfer        |
+      | Endure                                            | Crucitorn               |
+    Aliases are exact (normalizeAlias, D-13); only the names in this table and in the lore
+    entries are added, never a near spelling.
   Unknown ability names are always rejected; they never fall back to a nearby ability.
   Non-combat Shatterpoint reads use the D-06 band table above: level below the band start
     cannot attempt; a negative margin is a misread (D-63).
