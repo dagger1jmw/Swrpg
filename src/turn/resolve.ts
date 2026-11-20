@@ -251,7 +251,9 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     // Natural combat words (D-179): when the intent names no move, the player's text is read against the word list; a
     // text with no move the game can read asks back through the beat buttons instead of resolving as Continue.
     if (!opts.beat && payload['action'] === 'continue' && !isSparringActivityIntent(intent) && !(opts.text && saysContinue(opts.text))) {
-      payload = (opts.text ? combatWordsAction(opts.text) : null) ?? { action: 'clarify' };
+      // A choice or text that starts the fight (the opening's "Draw your lightsaber and meet the charge") is the first
+      // beat, not a question back (pass 5 issue 12: "not understood", and blows told at exchange 0).
+      payload = (opts.text ? combatWordsAction(opts.text) : null) ?? (started ? { action: 'continue' } : { action: 'clarify' });
     }
     // Attack verbs are strike steps and named Force actions are steps (D-191): the text makes sure of both.
     if (!opts.beat && opts.text) payload = reconcileCombatPayload(opts.text, payload, SEQUENCE_SCHEMA_MAX);

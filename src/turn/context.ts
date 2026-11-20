@@ -10,10 +10,10 @@ import { makeEstimator } from '../ai/tokenRatio';
 import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { orderSeatAt } from '../data/orderSeats';
-import { STRIKE_AT, SUBDUE_TEXT, type SubdueMode } from '../data/combat.config';
+import { FATE_ACT_NOTE, NARRATION_LENGTH, STRIKE_AT, SUBDUE_TEXT, type SubdueMode } from '../data/combat.config';
 import { selectIsDying, selectIsSpent, selectLasting, selectStatusLabel, selectWounds } from '../features/health/selectors';
 import type { CombatDraft } from './combatTurn';
-import { combatFacts, weaponText } from './combatFacts';
+import { combatFacts, fightHighlights, narrationParagraphs, weaponText } from './combatFacts';
 import { partText } from '../engine/duel';
 import { lastingState, type LastingInjury, type LastingState } from '../engine/lasting';
 import type { Wound } from '../engine/wounds';
@@ -416,9 +416,6 @@ export function describeTraining(t: NonNullable<TurnDraft['training']>): string[
  * or NO HIT; per step DONE, FAILED (reason) or NOT REACHED; a "Did not happen" line; each fighter's weapon. The
  * narrator may describe nothing that is not here.
  */
-/** A passage this long gets a key-events line (D-242). Design default. */
-const KEY_EVENTS_FROM = 10;
-
 export function describeCombat(c: CombatDraft): string[] {
   const facts = combatFacts(c);
   const lines = [`COMBAT ${c.fightId}${c.started ? ' (the fight begins now)' : ''}: the outcome list. Narrate these exchanges in order, nothing more and nothing different.`];
@@ -430,17 +427,23 @@ export function describeCombat(c: CombatDraft): string[] {
   // A capturing fighter subdues (D-262): its hits drain stamina and never wound; it takes the player when Spent.
   const intents = c.fighters.filter((f) => f.intent).map((f) => `${f.name} ${f.intent === 'capture' ? `fights to capture: subdues with ${SUBDUE_TEXT[f.subdue as SubdueMode]?.means ?? 'stun attacks'} (no wounds; takes ${c.fighters[0]?.name ?? 'the player'} captive when Spent)` : (INTENT_TEXT[f.intent!] ?? `strikes to ${f.intent}`)}`);
   if (intents.length) lines.push(`Intent: ${intents.join('; ')}.`);
+  // Outside the Force (D-192; pass 5 issue 12: "Use a Force push to create space" offered against the Vong).
+  const outside = c.fighters.filter((f) => f.outsideForce && !f.out).map((f) => f.name);
+  if (outside.length) lines.push(`Outside the Force: ${outside.join(', ')}. No Force push, choke, lightning or mind trick can touch them (a thrown object or a thrown saber still can): offer no such choice against them.`);
   // Cover between shooters (D-243; pass 4 issue 7: the narrated beat in the ruins put nobody behind anything).
   if (c.cover) lines.push('Cover: the shooters on both sides fire from behind cover (the terrain has it); show them using it.');
   lines.push(...facts.lines);
-  // A long passage (D-242; pass 3: 46 exchanges told as their aftermath): the events that must be told, in order.
-  if (c.narrate.length >= KEY_EVENTS_FROM) {
-    const key = facts.hits.filter((h) => h.severity || h.severed || c.fighters.find((f) => f.id === h.targetId)?.out);
-    if (key.length) lines.push(`Key events (tell each one, in order, however briefly): ${key.map((h) => `#${h.n} ${h.byPlayer ? (c.fighters[0]?.name ?? 'the player character') : 'an opponent'} hits ${h.targetName} (${partText(h.part)}${h.severed ? ', severed' : h.severity ? `, ${h.severity}` : ''})`).join('; ')}.`);
+  // A long passage (D-242, D-271; passes 3 and 5: 46 and 51 exchanges told as their aftermath): the highlights that
+  // carry the fight's arc, and how long to tell it.
+  if (c.narrate.length >= NARRATION_LENGTH.highlightsFrom) {
+    const key = fightHighlights(c, facts);
+    if (key.length) lines.push(`Highlights (tell each one, in order; they are the fight's arc): ${key.join('; ')}.`);
+    const p = narrationParagraphs(c.narrate.length);
+    lines.push(`Length: about ${p} paragraph${p === 1 ? '' : 's'} for these ${c.narrate.length} exchanges. Tell the fight itself first, as it happened, and only then ${c.ended ? 'its end and the aftermath' : 'where it stands now'}.`);
   }
   if (facts.steps.length) lines.push(`Steps the player asked for: ${facts.steps.map((s) => `step ${s.index + 1} ${s.label}: ${s.status} (${s.detail})`).join('; ')}.`);
   for (const n of c.notes.filter((x) => x.startsWith('intent step'))) lines.push(`Sequence: ${n}`);
-  lines.push(`Hits in this passage: ${facts.hits.length ? facts.hits.map((h) => `#${h.n} on ${h.targetName} (${partText(h.part)}, ${h.severed ? 'severed' : h.severity ? `${h.severity} wound` : 'no wound'})`).join('; ') : 'NONE: nobody was hit, wounded or touched'}.`);
+  lines.push(`Hits in this passage: ${facts.hits.length ? facts.hits.map((h) => `#${h.n} on ${h.targetName} (${h.stun ? `${h.stun}: no wound, no place` : `${partText(h.part)}, ${h.severed ? 'severed' : h.severity ? `${h.severity} wound` : 'no wound'}`})`).join('; ') : 'NONE: nobody was hit, wounded or touched'}.`);
   if (facts.didNotHappen.length) lines.push(`Did not happen (never describe these as happening): ${facts.didNotHappen.join('; ')}.`);
   lines.push(`Now: ${c.fighters.map((f) => `${f.name} ${f.status}${f.lasting?.text.length ? ` (${f.lasting.text.join('; ')})` : f.lostParts.length ? ` (lost: ${f.lostParts.map(partText).join(', ')})` : ''}`).join('; ')}.`);
   // Lasting state (D-237): nobody stands on a leg that is gone or uses an arm that is gone, now or later.
@@ -465,7 +468,8 @@ export function describeCombat(c: CombatDraft): string[] {
   if (c.ended) lines.push(`The fight is over: ${c.ended.outcome} (${c.ended.reason})${c.ended.playerFate ? `; the opponent's choice: ${c.ended.playerFate}` : ''}. The choices are story choices again (what the character does next), not tactical moves.`);
   // Who took the player (D-242; pass 3: "the remaining war droids" seized a Padawan whom line troopers had captured).
   if (c.ended?.captors) lines.push(`Captured by: ${c.ended.captors.group}${c.ended.captors.kind ? ` (${c.ended.captors.names.join(', ')}, still standing)` : ''}. Name these captors and no others.`);
-  else lines.push('The fight goes on: end at the last exchange, at the moment the player chooses again.');
+  // Only for a fight still going (pass 5 issue 6: every ended fight without captors got this line too).
+  if (!c.ended) lines.push('The fight goes on: end at the last exchange, at the moment the player chooses again.');
   return lines;
 }
 
@@ -511,6 +515,8 @@ export function resolvedBlock(draft: TurnDraft, correction: readonly string[] = 
   if (draft.timeAdvanced) {
     lines.push(`Time already advanced by the engine: ${formatSpan(draft.timeAdvanced.seconds)} (${draft.timeAdvanced.reason}). Narrate that stretch; do not add more time.`);
   }
+  // A fate the player chose for a beaten opponent (pass 5 issue 13: Kill was told as an escape from an old captivity).
+  for (const a of draft.applied) for (const n of a.notes) if (n.startsWith(FATE_ACT_NOTE)) lines.push(`Fate chosen: the player character ${n.slice(FATE_ACT_NOTE.length)}, the beaten opponent of the fight just ended, here and now. Narrate exactly this act and its moment: no other fight, escape or rescue happens, and nobody else is harmed or appears.`);
   for (const n of draft.notices) lines.push(`Notice: ${n}`);
   // Healing is only the care the engine applied (D-197): no bacta, healer or medicine beyond this line.
   if (draft.jump || draft.intent?.actionType === 'heal' || draft.intent?.healing || careApplied(draft).length) lines.push(careLine(draft));

@@ -134,6 +134,8 @@ export interface Fighter {
   subdue?: SubdueMode | null;
   /** Tactical withdrawal chance when losing (D-263): named Sith duelists; absent or 0 = never. */
   withdraw?: number;
+  /** Withdrawal checks already rolled in this fight (D-268: at most TACTICAL_WITHDRAWAL.maxChecks). */
+  withdrawChecks?: number;
   /** Left the fight by morale (D-256): fled, or surrendered (a named one's fate is the player's choice); or withdrew (D-263). */
   yielded?: 'fled' | 'surrendered' | 'withdrew';
 }
@@ -175,6 +177,8 @@ export interface Hit {
   redirected?: boolean;
   /** A subduing hit (D-262): Vitality only, by this means. */
   stun?: SubdueMode;
+  /** The hit landed on a prosthetic limb: Vitality only, no wound (D-164; the card says so, pass 5 issue 10). */
+  prosthetic?: boolean;
 }
 
 export interface ExchangeRecord {
@@ -479,7 +483,9 @@ export function damageFighter(
     if (f.minion && takesMinionOut(severity)) next = { ...next, out: true };
   }
   void ctx;
-  return { f: next, hit: { quality, D, part, W, severity, vitalityLost: dmg.vitalityLost, severed }, rng: rngS };
+  // A prosthetic took it (pass 5 issue 10: the card read "critical hit · no wound" with no place or reason).
+  const onProsthetic = !vitalityOnly && limbs.prosthetic.has(part);
+  return { f: next, hit: { quality, D, part, W, severity, vitalityLost: dmg.vitalityLost, severed, ...(onProsthetic ? { prosthetic: true } : {}) }, rng: rngS };
 }
 
 /**
@@ -826,19 +832,25 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     notes.push(`${A.name} is Spent and subdued: taken captive`);
   }
 
-  // Tactical withdrawal (Jared, D-263): a losing Sith duelist breaks off and escapes with its archetype's chance, apart
-  // from panic morale. Losing: a severe or worse wound or a sever this exchange, Spent this exchange, or the track
-  // swinging to TACTICAL_WITHDRAWAL.trackAt against it. Real fights only; the dice continue the duel's stream.
+  // Tactical withdrawal (Jared, D-263, D-268): a losing Sith duelist breaks off and escapes with its archetype's chance,
+  // apart from panic morale. Losing: a severe or worse wound or a sever this exchange, Spent this exchange, or the track
+  // swinging to TACTICAL_WITHDRAWAL.trackAt against it with Vitality at or below vitalityAtMost. One check per exchange
+  // with a trigger, at most maxChecks a fight; an unwounded Sith above vitalityAtMost never withdraws (pass 5: 40 of 58
+  // won duels ended this way, most with the Sith unhurt). Real fights only; the dice continue the duel's stream.
   if (!end && ctx.sparring === null && TACTICAL_WITHDRAWAL.enabled) {
     const after = next.opponents.find((o) => o.id === B.id)!;
-    if (!after.out && !after.dead && (after.withdraw ?? 0) > 0) {
+    const checksLeft = (after.withdrawChecks ?? 0) < TACTICAL_WITHDRAWAL.maxChecks;
+    const low = after.vitality <= TACTICAL_WITHDRAWAL.vitalityAtMost * after.maxVitality;
+    if (!after.out && !after.dead && (after.withdraw ?? 0) > 0 && checksLeft && (after.wounds.length > 0 || low)) {
       const fresh = after.wounds.slice(B.wounds.length);
-      const losing = fresh.some((w) => w.severed || atLeast(w.severity, 'severe')) || spentNow === 'B' || (advAfter >= TACTICAL_WITHDRAWAL.trackAt && advBefore < TACTICAL_WITHDRAWAL.trackAt);
+      const swung = advAfter >= TACTICAL_WITHDRAWAL.trackAt && advBefore < TACTICAL_WITHDRAWAL.trackAt;
+      const losing = fresh.some((w) => w.severed || atLeast(w.severity, 'severe')) || spentNow === 'B' || (swung && low);
       if (losing) {
         const [u, r] = nextFloat(next.rng);
-        next = { ...next, rng: r };
+        const checked = { ...after, withdrawChecks: (after.withdrawChecks ?? 0) + 1 };
+        next = withSide({ ...next, rng: r }, 'B', checked);
         if (u < after.withdraw!) {
-          next = withSide(next, 'B', { ...after, out: true, yielded: 'withdrew' });
+          next = withSide(next, 'B', { ...checked, out: true, yielded: 'withdrew' });
           notes.push(`${after.name} withdraws: breaks off the fight and escapes, out of the fight`);
           advAfter = 0;
           if (engaged(next).length === 0) end = { winner: 'A', reason: 'yielded' };

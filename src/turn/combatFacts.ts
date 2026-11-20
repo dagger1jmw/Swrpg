@@ -3,7 +3,7 @@
 // REACHED. Built only from the engine's records; pure.
 import { CARD_ONLY_NOTE, partText } from '../engine/duel';
 import { forceReason } from '../engine/combatForce';
-import { BUILD_UP } from '../data/combat.config';
+import { BUILD_UP, NARRATION_LENGTH, SUBDUE_TEXT } from '../data/combat.config';
 import { RANGED_WEAPONS } from '../data/weapons';
 import { TERRAIN_BY_ID } from '../data/terrain';
 import { SKILL_BY_ID } from '../data/skills';
@@ -13,9 +13,16 @@ import type { ExchangeRecord } from '../engine/duel';
 
 /** An exchange's notes for the block, without the card-only ones (D-222). */
 const toldNotes = (r: ExchangeRecord): string => {
-  const n = r.notes.filter((x) => !x.startsWith(CARD_ONLY_NOTE));
+  const n = r.notes.filter((x) => !x.startsWith(CARD_ONLY_NOTE)).map(fumbleText);
   return n.length ? ` ${n.join('; ')}.` : '';
 };
+
+/**
+ * A natural 1 in the block (D-269): a mistake by that fighter in that exchange, told as a misstep, a stumble or an
+ * overextension; the slip rule allows those words for that fighter (pass 5: "a sudden misstep" flagged three times).
+ */
+export const fumbleText = (note: string): string =>
+  note.replace(/^(.+) rolled a natural 1: opening for (.+)$/, '$1 makes a mistake (fumble): an opening for $2; tell it as a misstep, a stumble or an overextension by $1 (no fall, no slip on the ground)');
 
 export interface HitFact {
   /** Exchange number. */
@@ -27,6 +34,8 @@ export interface HitFact {
   /** Null: stamina only, no wound. */
   severity: string | null;
   severed: boolean;
+  /** A subduing hit (D-262): no wound and no place on the body; the verb ("stuns", "snares"). */
+  stun?: string;
 }
 
 export interface StepFact {
@@ -171,8 +180,14 @@ export function combatFacts(c: CombatDraft): CombatFacts {
       const byPlayer = hit.by === 'A';
       const victim = byPlayer ? t : pc;
       const striker = byPlayer ? pc : t;
-      hits.push({ n: r.n, byPlayer, targetId: byPlayer ? r.targetId : 'pc', targetName: victim, part: hit.part, severity: hit.severity, severed: hit.severed });
-      const result = hit.severed ? `the ${partText(hit.part)} is SEVERED` : hit.severity ? `${hit.severity} wound` : 'no wound, stamina only';
+      const stun = hit.stun ? SUBDUE_TEXT[hit.stun].verb : undefined;
+      hits.push({ n: r.n, byPlayer, targetId: byPlayer ? r.targetId : 'pc', targetName: victim, part: hit.part, severity: hit.severity, severed: hit.severed, ...(stun ? { stun } : {}) });
+      // A subduing hit has no place on the body (pass 5 issue 14: a stun bolt told "squarely in the chest").
+      if (stun) {
+        lines.push(`${head} ${striker} ${stun} ${victim}: HIT (${victim}, no wound and no place on the body: it drains their stamina toward capture).${toldNotes(r)}`);
+        continue;
+      }
+      const result = hit.severed ? `the ${partText(hit.part)} is SEVERED` : hit.severity ? `${hit.severity} wound` : hit.prosthetic ? 'the prosthetic limb takes it: no wound, stamina only' : 'no wound, stamina only';
       const how = hit.redirected ? `${striker} redirects the blaster bolt back into the shooter` : `${striker} hits ${victim}`;
       lines.push(`${head} ${how}: HIT (${victim}, ${partText(hit.part)}, ${result}).${toldNotes(r)}`);
       continue;
@@ -210,3 +225,39 @@ export function combatFacts(c: CombatDraft): CombatFacts {
   const unhitOpponents = c.fighters.filter((f) => f.id !== 'pc' && !hitByPlayer.has(f.id)).map((f) => ({ id: f.id, name: f.name, out: f.out, minion: f.minion }));
   return { lines, hits, steps, didNotHappen, unhitOpponents, playerHit: hits.some((h) => !h.byPlayer), anySevered: hits.some((h) => h.severed) };
 }
+
+/** Notes that mark a fighter leaving the fight or the fight being decided: always a highlight (D-271). */
+const DECIDING_NOTE = /is out of the fight|cuts down|shoots down|morale breaks|withdraws|Spent and subdued|collapses from exhaustion|cannot stand|lost the weapon arm|has no weapon arm/;
+
+/**
+ * The highlights of a long passage (D-271; pass 5 issue 5: a 51-exchange capture fight told as two sentences of
+ * aftermath): the wounding hits and severs, the subduing hits, every fighter leaving the fight, the turning point and
+ * the moment it was decided, in order, at most NARRATION_LENGTH.maxHighlights (the deciding ones kept first).
+ */
+export function fightHighlights(c: CombatDraft, facts: CombatFacts): string[] {
+  const pc = c.fighters[0]?.name ?? 'the player character';
+  const items: { n: number; text: string; rank: number }[] = [];
+  // The opponent of an exchange is its target (the one engaged with the player).
+  const opponentAt = (n: number): string => c.fighters.find((f) => f.id === c.narrate.find((r) => r.n === n)?.targetId)?.name ?? 'an opponent';
+  for (const h of facts.hits) {
+    const by = h.byPlayer ? pc : opponentAt(h.n);
+    if (h.stun) items.push({ n: h.n, text: `#${h.n} ${by} ${h.stun} ${h.targetName} (no wound)`, rank: 2 });
+    else if (h.severity || h.severed) items.push({ n: h.n, text: `#${h.n} ${by} hits ${h.targetName} (${partText(h.part)}, ${h.severed ? 'severed' : h.severity})`, rank: h.severed || h.severity === 'severe' || h.severity === 'critical' || h.severity === 'mortal' ? 0 : 1 });
+  }
+  for (const r of c.narrate) for (const n of r.notes) if (DECIDING_NOTE.test(n)) items.push({ n: r.n, text: `#${r.n} ${n.replace(/, out of the fight$/, '')}`, rank: 0 });
+  // The turning point: the first landed hit of the side that won after the loser's last one (from there on only one
+  // side landed anything). Only in an ended fight with a winner.
+  const winnerIsPc = c.ended?.outcome === 'won' ? true : c.ended?.outcome === 'lost' ? false : null;
+  if (winnerIsPc !== null && facts.hits.length) {
+    const lastLoser = Math.max(0, ...facts.hits.filter((h) => h.byPlayer !== winnerIsPc).map((h) => h.n));
+    const turn = facts.hits.find((h) => h.byPlayer === winnerIsPc && h.n > lastLoser);
+    if (turn && turn.n !== facts.hits[facts.hits.length - 1]!.n) items.push({ n: turn.n, text: `#${turn.n} the turning point: from here on only ${winnerIsPc ? pc : 'the opponents'} land anything`, rank: 0 });
+  }
+  // Within one exchange, the hit comes before what it caused (the order they were added).
+  const ordered = items.map((x, i) => ({ ...x, i }));
+  const kept = [...ordered].sort((a, b) => a.rank - b.rank || a.n - b.n).slice(0, NARRATION_LENGTH.maxHighlights);
+  return kept.sort((a, b) => a.n - b.n || a.i - b.i).map((x) => x.text);
+}
+
+/** About one paragraph per NARRATION_LENGTH.exchangesPerParagraph exchanges, at least 1, at most maxParagraphs (D-271). */
+export const narrationParagraphs = (exchanges: number): number => Math.max(1, Math.min(NARRATION_LENGTH.maxParagraphs, Math.round(exchanges / NARRATION_LENGTH.exchangesPerParagraph)));

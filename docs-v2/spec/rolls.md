@@ -174,12 +174,16 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
     without Choke or lightning, an amphistaff, a heavy repeater, a slugthrower) keeps its
     archetype's kill or disarm. A stun bolt deflected back stuns its shooter. No capture in a
     spar.
-  Tactical withdrawal (D-263; design default, combat.config TACTICAL_WITHDRAWAL): apart from
-    panic morale, a named Sith duelist who is losing (a severe or worse wound or a sever this
-    exchange, Spent this exchange, or the track swinging to 4 against it) withdraws with its
-    archetype's chance, 30% for Sith warriors and inquisitors: it breaks off and escapes, out of
-    the fight, with no fate to choose (Dooku, Ventress and Grievous all did). The last opponent
-    withdrawing ends the fight won ("the opponents broke"). Real fights only.
+  Tactical withdrawal (D-263, narrowed by D-268; design default, combat.config
+    TACTICAL_WITHDRAWAL): apart from panic morale, a named Sith duelist who is losing (a severe
+    or worse wound or a sever this exchange, Spent this exchange, or the track swinging to 4
+    against it while its Vitality is at or below 50%) withdraws with its archetype's chance, 30%
+    for Sith warriors and inquisitors: it breaks off and escapes, out of the fight, with no fate
+    to choose (Dooku, Ventress and Grievous fled sometimes, not every time). One check per
+    exchange with a trigger, at most two a fight; an unwounded Sith above half its Vitality never
+    withdraws. Target: 20-30% of the player's won duels against Sith end this way (measured by
+    npm run sweep). The last opponent withdrawing ends the fight won ("the opponents broke").
+    Real fights only.
   Disengage (tactic): d20 + Agility / 10 (+ position) against d20 + the current opponent's
     skill / 10; a win ends the fight as fled (engine/duel.ts disengageContest). The lifetime
     harness plays its profiles as sensible Jedi who use it when severely wounded, near Spent

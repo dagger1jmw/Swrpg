@@ -38,6 +38,7 @@ import type { GameState } from '../state/gameState';
 import type { GameEvent, Registry } from '../state/types';
 import { createCampaign, DEFAULT_START_SECOND, loadEarlierSave, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
 import type { SaveMeta } from '../persist/saveHistory';
+import { EarlierSaves } from './earlierSaves';
 import { devFlag, TEST_START_ARCHETYPES, testStartInput, testStartRankOptions, type TestStartArchetype, type TestStartRank } from '../turn/testStart';
 import { ARCHETYPE_BY_ID } from '../data/archetypes';
 import { SPECIES } from '../data/species';
@@ -136,7 +137,7 @@ export class App {
   private summarizing = false;
   private settingsNote: string | null = null;
   /** The current campaign's earlier saves (D-214), loaded when the campaign menu opens. */
-  private saves: { campaignId: string; list: SaveMeta[] } | null = null;
+  private readonly saves = new EarlierSaves((id) => this.d.storage.listSaves(id), () => this.render());
   /** The unsent text in the action box, kept across re-renders. */
   private draft = '';
   /** The feed follows new turns only while the player is at the bottom. */
@@ -467,6 +468,8 @@ export class App {
   }
 
   private openModal(m: Modal): void {
+    // The save list is read again each time the campaign menu opens (pass 5 issue 3).
+    if (m === 'campaign') this.saves.invalidate();
     this.modal = m;
     this.settingsNote = null;
     this.render();
@@ -850,15 +853,7 @@ export class App {
 
   /** "Load an earlier save" (D-214): the kept saves with their date, place and turn; loading one starts a new branch. */
   private renderEarlierSaves(session: Session): HTMLElement[] {
-    const id = session.state.meta.campaignId;
-    if (this.saves?.campaignId !== id) {
-      this.saves = { campaignId: id, list: [] };
-      void this.d.storage.listSaves(id).then((list) => {
-        this.saves = { campaignId: id, list };
-        this.render();
-      });
-    }
-    const list = this.saves.list.filter((m) => !(m.branchId === session.state.meta.branchId && m.turn === session.state.meta.turn));
+    const list = this.saves.current(session.state.meta.campaignId).filter((m) => !(m.branchId === session.state.meta.branchId && m.turn === session.state.meta.turn));
     return [
       el('h3', { text: 'Load an earlier save' }),
       el('p', { class: 'hint', text: 'The last 10 saves and one for each of the last 7 in-game days. Playing on from one starts a new branch; nothing is deleted.' }),
@@ -874,7 +869,7 @@ export class App {
       this.settingsNote = `Could not load that save: ${r.error}`;
     } else {
       this.session = r.session;
-      this.saves = null;
+      this.saves.invalidate();
       this.failed = null;
       this.feedStick = true;
       this.modal = null;

@@ -407,15 +407,21 @@ export function strikeIntentFor(archetype: string, stakes: string, wantsAlive: b
 }
 
 /**
- * Tactical withdrawal (Jared, D-263; design default 30%): separate from panic morale. A named Sith duelist who is losing
- * (takes a severe or worse wound, becomes Spent, or the track swings to TRACK_AT against it) withdraws with its
- * archetype's chance: it breaks off and escapes, out of the fight, with no fate to choose (Legends: Dooku, Ventress and
- * Grievous all did). Real fights only; `enabled` exists for measurement.
+ * Tactical withdrawal (Jared, D-263; design default 30%; triggers narrowed by D-268): separate from panic morale. A named
+ * Sith duelist who is losing withdraws with its archetype's chance: it breaks off and escapes, out of the fight, with no
+ * fate to choose (Legends: Dooku, Ventress and Grievous fled sometimes, not every time). Losing (D-268): it takes a severe
+ * or worse wound or a sever, becomes Spent, or the track swings to TRACK_AT against it while its Vitality is at or below
+ * vitalityAtMost of its maximum. One check per trigger event, at most maxChecks a fight; an unwounded Sith above
+ * vitalityAtMost never withdraws. Real fights only; `enabled` exists for measurement.
  */
 export const TACTICAL_WITHDRAWAL = {
   enabled: true,
   /** The track against the fighter that counts as losing badly (advantage 4 of 5 toward the other side). */
   trackAt: 4,
+  /** The track trigger counts only at or below this share of max Vitality (D-268). */
+  vitalityAtMost: 0.5,
+  /** At most this many withdrawal checks in one fight (D-268). */
+  maxChecks: 2,
   byArchetype: { sithWarrior: 0.3, sithInquisitor: 0.3 } as Readonly<Record<string, number>>,
 };
 export const withdrawChanceFor = (archetype: string): number => TACTICAL_WITHDRAWAL.byArchetype[archetype] ?? 0;
@@ -427,6 +433,14 @@ export const NPC_FATES = ['spare', 'capture', 'kill'] as const;
  * issue 18: a choice was still offered two weeks and three fights later).
  */
 export const FATE_CHOICE_EXPIRY = { seconds: 3600 } as const;
+/** The engine note that carries a chosen fate's act in words ("fate act: kills Duelist 8"), for RESOLVED's fate line. */
+export const FATE_ACT_NOTE = 'fate act: ';
+
+/**
+ * A long passage told in full (Jared, D-271; design default): the block gives highlights from this many exchanges, and
+ * a length of about one paragraph per exchangesPerParagraph exchanges, at most maxParagraphs.
+ */
+export const NARRATION_LENGTH = { highlightsFrom: 10, exchangesPerParagraph: 15, maxParagraphs: 4, maxHighlights: 12 } as const;
 export type NpcFate = (typeof NPC_FATES)[number];
 
 // ---- heroicAct (flag-registry §2) ----

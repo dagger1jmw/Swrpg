@@ -111,12 +111,22 @@ interface SlipCauses {
   footing: { pc: boolean; opp: boolean };
   /** Those, or any hit, Choke or lightning: stumbling back, off balance, going down. */
   reaction: { pc: boolean; opp: boolean };
+  /** A natural 1 in the passage (D-269): that fighter's misstep, stumble or overextension is the block's fumble. */
+  fumble: { pc: boolean; opp: boolean };
 }
+
+/** The words a fumble may be told with (D-269): only the bare word, never a slip on something ("stumbles over the rocks"). */
+const FUMBLE_WORD = /^(?:mis-?step\w*|stumbl\w*|over-?extend\w*)$/i;
 
 function slipCauses(c: CombatDraft, facts: CombatFacts): SlipCauses {
   const pcName = (c.fighters.find((f) => f.id === 'pc')?.name ?? '').toLowerCase();
   const footing = { pc: false, opp: false };
   const reaction = { pc: false, opp: false };
+  const fumble = { pc: false, opp: false };
+  for (const r of c.narrate) {
+    if (r.rollA?.natural === 'nat1') fumble.pc = true;
+    if (r.rollB?.natural === 'nat1') fumble.opp = true;
+  }
   for (const n of c.notes) {
     if (!n.startsWith('terrain: ')) continue;
     if (pcName && n.toLowerCase().includes(pcName)) footing.pc = true;
@@ -133,7 +143,7 @@ function slipCauses(c: CombatDraft, facts: CombatFacts): SlipCauses {
   for (const h of facts.hits) reaction[h.byPlayer ? 'opp' : 'pc'] = true;
   reaction.pc ||= footing.pc;
   reaction.opp ||= footing.opp;
-  return { footing, reaction };
+  return { footing, reaction, fumble };
 }
 
 /** Whose body a clause is about at `index`: the last "you" or "he / it / a name" before it, in the clause, else in the sentence. */
@@ -159,12 +169,18 @@ function subjectAt(sentence: string, clause: string, index: number, oppNames: Re
 /** The slip in a clause that the block does not explain (rule 9), or null. */
 function unexplainedSlip(sentence: string, clause: string, causes: SlipCauses, oppNames: RegExp | null): string | null {
   if (NEGATED.test(clause)) return null;
+  // A fumble word on the fighter whose natural 1 is in the passage is the block's own mistake (D-269).
+  const fumbled = (m: RegExpExecArray, who: 'pc' | 'opp'): boolean => FUMBLE_WORD.test(m[0]) && causes.fumble[who];
   for (const re of FOOTING) {
     const m = re.exec(clause);
-    if (m && !causes.footing[subjectAt(sentence, clause, m.index, oppNames)]) return m[0];
+    if (!m) continue;
+    const who = subjectAt(sentence, clause, m.index, oppNames);
+    if (!causes.footing[who] && !fumbled(m, who)) return m[0];
   }
   const m = REACTION.exec(clause);
-  if (m && !causes.reaction[subjectAt(sentence, clause, m.index, oppNames)]) return m[0];
+  if (!m) return null;
+  const who = subjectAt(sentence, clause, m.index, oppNames);
+  if (!causes.reaction[who] && !fumbled(m, who)) return m[0];
   return null;
 }
 /** The outcome list's wording in prose (rule 10): severity labels, margins, tracks, beats, upper-case labels. */
@@ -172,7 +188,8 @@ function unexplainedSlip(sentence: string, clause: string, causes: SlipCauses, o
 const SEVERITY_LABEL = /\b(?:a|an|the|another|one|his|her|its|their|your)\s+(?:[a-z-]+,?\s+){0,2}?(minor|moderate|severe|critical),?\s+(?:[a-z-]+,?\s+)?(wound|strike|blow|hit|cut|graze|injury|burn|gash|stroke|impact|slug|shot|bolt|thrust|slash)s?\b|\bmortal (strike|blow|hit|stroke|shot|thrust)s?\b/i;
 /** "drains your stamina", "taxing its stamina", "strains his stamina" (D-242): the block's "stamina only" in prose. */
 // The verb only: "a drain on his stamina" (a noun) has no natural swap and is left alone.
-const STAMINA_PHRASE = /(?<!\b(?:a|an|the) )\b(drain|tax|strain|sap|test|wear|tire)(s|es|ed|ing)?\b(?:\s+(?:on|at|down))?\s+(your|his|her|its|their|the \w+'s)\s+stamina\b/i;
+// "tests your own endurance" too (pass 5 issue 11).
+const STAMINA_PHRASE = /(?<!\b(?:a|an|the) )\b(drain|tax|strain|sap|test|wear|tire)(s|es|ed|ing)?\b(?:\s+(?:on|at|down))?\s+(your|his|her|its|their|the \w+'s)\s+(?:own\s+)?(?:stamina|endurance)\b/i;
 /** Natural words for a stamina phrase: "wears you down", "wearing him down". */
 function staminaWords(m: RegExpExecArray): string {
   const tense = m[2] === 'ing' ? 'wearing' : m[2] === 'ed' ? 'wore' : m[2] ? 'wears' : 'wear';
@@ -187,7 +204,14 @@ function staminaWords(m: RegExpExecArray): string {
 const WORD_SWAPS: readonly [RegExp, string][] = [
   [/\b(?:entirely |completely )?out of the fight\b/i, 'unable to fight on'],
   // The card's "is outpaced" only; "outpaced pressure" or "outpacing your guard" is ordinary prose.
-  [/\b(is|are|was|were|being) outpaced\b/i, '$1 pressed hard'],
+  // One word may sit between (pass 5 issue 11: "you are forced outpaced across the uneven floor").
+  [/\b(is|are|was|were|being) (?!not |never )(?:[a-z]+ )?outpaced\b/i, '$1 pressed hard'],
+  // The block's "stamina only" as a state (pass 5 issue 11: "leaving his stamina taxed"); a bare "your stamina holds" stays.
+  [/\byour stamina (?:taxed|drained|sapped|strained|spent)\b/i, 'you worn down'],
+  [/\bhis stamina (?:taxed|drained|sapped|strained|spent)\b/i, 'him worn down'],
+  [/\bher stamina (?:taxed|drained|sapped|strained|spent)\b/i, 'her worn down'],
+  [/\bits stamina (?:taxed|drained|sapped|strained|spent)\b/i, 'it worn down'],
+  [/\btheir stamina (?:taxed|drained|sapped|strained|spent)\b/i, 'them worn down'],
 ];
 const ENGINE_TERMS: readonly [RegExp, string][] = [
   [/\bmargin\b/i, 'margin'],
@@ -684,6 +708,18 @@ export function fallbackNarration(narrative: string, draft: TurnDraft, issues: r
 }
 
 const plural = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`;
+/** A morale break, a withdrawal or a capture in plain words for the code-written summary, or null. */
+function leftTheFight(note: string): string | null {
+  let m = /^(.+)'s morale breaks: surrenders/.exec(note);
+  if (m) return `${m[1]} surrenders.`;
+  m = /^(.+)'s morale breaks: disengages and flees/.exec(note);
+  if (m) return `${m[1]} flees.`;
+  m = /^(.+) withdraws: breaks off the fight and escapes/.exec(note);
+  if (m) return `${m[1]} breaks off and escapes.`;
+  m = /^(.+) is Spent and subdued: taken captive/.exec(note);
+  if (m) return `${m[1]} is subdued and taken captive.`;
+  return null;
+}
 const clipLine = (line: string): string => (line.length <= NARRATION_FALLBACK.maxLineChars ? line : `${line.slice(0, line.lastIndexOf(' ', NARRATION_FALLBACK.maxLineChars - 5))} ...`);
 const woundWords = (h: HitFact): string => (h.severed ? `the ${partText(h.part)} severed` : h.severity ? `${h.severity} wound to the ${partText(h.part)}` : `a graze on the ${partText(h.part)}`);
 const SEVERITY_RANK: Readonly<Record<string, number>> = { minor: 1, moderate: 2, severe: 3, critical: 4, mortal: 5 };
@@ -723,8 +759,11 @@ export function combatSummary(c: CombatDraft): string[] {
   const notReached = steps.filter((st) => st.status === 'NOT REACHED').map((st) => `${st.label} (${st.detail})`);
   if (notReached.length) lines.push(clipLine(`Not reached: ${notReached.join('; ')}.`));
   const standing = c.fighters.filter((f) => f.id !== 'pc' && !f.out && !f.engagedElsewhere).length;
-  if (c.ended) lines.push(`The fight is over: ${c.ended.outcome}${c.ended.playerFate ? `; the opponent's choice: ${c.ended.playerFate}` : ''}.`);
-  else lines.push(`The fight goes on: ${plural(standing, 'opponent')} still standing.`);
+  // Who broke, withdrew or was taken (pass 5 issue 7: Thug 4's surrender was left out), on the end line so the cap keeps it.
+  const left = c.narrate.flatMap((r) => r.notes.map(leftTheFight).filter((x): x is string => x !== null));
+  const leftText = left.length ? ` ${left.join(' ')}` : '';
+  if (c.ended) lines.push(`The fight is over: ${c.ended.outcome}${c.ended.playerFate ? `; the opponent's choice: ${c.ended.playerFate}` : ''}.${leftText}`);
+  else lines.push(`The fight goes on: ${plural(standing, 'opponent')} still standing.${leftText}`);
   // The end state always survives the cap.
   if (lines.length > NARRATION_FALLBACK.maxLines) return [...lines.slice(0, NARRATION_FALLBACK.maxLines - 1), lines[lines.length - 1]!];
   return lines;

@@ -203,8 +203,10 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     path: 'career',
     main: 'melee',
     weights: { melee: 1.0, tactics: 0.6, strength: 0.6, agility: 0.6, endurance: 0.6, willpower: 0.2 },
-    startAge: 17,
-    startRange: [16, 30],
+    // Trained for war from youth, as a caste (D-270; pass 5 issue 4: the soldier's [16, 30] let a 28-year-old warrior
+    // start the year he was met, melee 0.7, "+0.4 level" and 0 XP). Design default.
+    startAge: 14,
+    startRange: [12, 17],
     paces: {
       knight: { strength: 0.283, agility: 0.523, endurance: 0.334, willpower: 0.832, intelligence: 0.154, melee: 1.326, tactics: 0.463 },
     },

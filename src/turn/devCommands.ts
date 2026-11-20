@@ -6,7 +6,7 @@ import type { Choice } from '../ai/schemas/compose';
 import type { Intent, RequestedSpan } from '../ai/schemas/intent';
 import { CANON_NPCS, type CanonNpc } from '../data/canonNpcs';
 import { COMBAT_STAKES } from '../data/progression.config';
-import { moraleFor, STRIKE_INTENTS, type SPARRING_MODES, type StrikeIntent } from '../data/combat.config';
+import { moraleFor, STRIKE_INTENTS, withdrawChanceFor, type SPARRING_MODES, type StrikeIntent } from '../data/combat.config';
 import { BODY_PARTS, SEVERITIES, type BodyPart, type Severity } from '../data/health.config';
 import { MINION_KINDS } from '../data/npcGen.config';
 import type { WeaponKind } from '../data/health.config';
@@ -489,10 +489,17 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       if (!npcId) return fail('the current opponent is a minion: its archetype is its kind’s (target a named opponent)');
       apply([{ type: 'devNpcArchetypeSet', npcRef: npcId, archetype: args[0] ?? '' }], 'dev');
       if (refused()) return fail(refused()!);
-      // The fighter in the fight takes the archetype's morale too (D-256), so a surrender can be tested on demand.
+      // The fighter in the fight takes the archetype's morale (D-256) and its tactical withdrawal (D-263) too, so a
+      // surrender can be tested on demand (pass 5 issue 8: a Sith duelist set to bountyHunter still withdrew).
       const act = state.combat.active!;
       const d = act.duel as DuelState;
-      state = { ...state, combat: { ...state.combat, active: { ...act, duel: { ...d, opponents: d.opponents.map((o) => (o.id === target!.id ? { ...o, morale: moraleFor(args[0] ?? '') } : o)) } } } };
+      const arch = args[0] ?? '';
+      const withdraw = withdrawChanceFor(arch);
+      const recast = (o: (typeof d.opponents)[number]): (typeof d.opponents)[number] => {
+        const { withdraw: _old, ...rest } = o;
+        return { ...rest, morale: moraleFor(arch), ...(withdraw > 0 ? { withdraw } : {}) };
+      };
+      state = { ...state, combat: { ...state.combat, active: { ...act, duel: { ...d, opponents: d.opponents.map((o) => (o.id === target!.id ? recast(o) : o)) } } } };
       return out(true, `${target!.name}: archetype ${args[0]}`);
     }
 
@@ -508,7 +515,11 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       // Capture needs a subduing means (D-262): an opponent without one keeps its intent.
       const cannot = d.opponents.filter((o) => (all || o.id === cur?.id) && want === 'capture' && !o.subdue).map((o) => o.name);
       state = { ...state, combat: { ...state.combat, active: { ...act, duel: { ...d, opponents: d.opponents.map((o) => ((all || o.id === cur?.id) && !(want === 'capture' && !o.subdue) ? { ...o, intent: want } : o)) } } } };
-      return out(true, `${all ? 'every opponent' : (cur?.name ?? 'the opponent')} ${want === 'capture' ? 'fights to capture' : `strikes to ${want}`}${cannot.length ? ` (no way to subdue, unchanged: ${cannot.join(', ')})` : ''}`);
+      // Say only what changed (pass 5 issue 16: "Duelist 9 fights to capture (no way to subdue, unchanged: Duelist 9)").
+      const who = all ? 'every opponent' : (cur?.name ?? 'the opponent');
+      const did = want === 'capture' ? 'fights to capture' : `strikes to ${want}`;
+      if (cannot.length && !all) return out(true, `${who} has no way to subdue: the intent is unchanged`);
+      return out(true, `${who} ${did}${cannot.length ? ` (except ${cannot.join(', ')}: no way to subdue, unchanged)` : ''}`);
     }
 
     case 'skip': {

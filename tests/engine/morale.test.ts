@@ -1,7 +1,7 @@
 // D-256 morale: an NPC opponent checks when it takes a severe or worse wound, is Spent, or its side is losing badly;
 // it surrenders or flees by its archetype's group; a named one's surrender opens the fate choice; the block says it.
 import { describe, expect, it } from 'vitest';
-import { MORALE, moraleFor, type MoraleProfile } from '../../src/data/combat.config';
+import { MORALE, moraleFor, withdrawChanceFor, type MoraleProfile } from '../../src/data/combat.config';
 import { runUntilBeat, startDuel, type DuelState, type Fighter } from '../../src/engine/duel';
 import { seedRng } from '../../src/engine/rng';
 import { buildMinionFighter } from '../../src/features/combat/build';
@@ -93,6 +93,10 @@ describe('morale profiles', () => {
     expect((f.combat.active!.duel as DuelState).opponents[0]!.morale?.group).toBe('late');
     f = runDevCommand(REGISTRY, f, '/archetype bountyHunter').state;
     expect((f.combat.active!.duel as DuelState).opponents[0]!.morale).toEqual(moraleFor('bountyHunter'));
+    // ... and its tactical withdrawal (pass 5 issue 8): a bounty hunter has none; back to a Sith Warrior, the Sith's.
+    expect((f.combat.active!.duel as DuelState).opponents[0]!.withdraw).toBeUndefined();
+    f = runDevCommand(REGISTRY, f, '/archetype sithWarrior').state;
+    expect((f.combat.active!.duel as DuelState).opponents[0]!.withdraw).toBe(withdrawChanceFor('sithWarrior'));
   });
 });
 

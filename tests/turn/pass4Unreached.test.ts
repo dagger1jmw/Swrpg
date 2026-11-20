@@ -60,7 +60,7 @@ describe('the summary fallback on a double factual contradiction (D-209, D-236)'
     const before = inner.calls.length;
     const t = await playTurn(deps, s, beat('narrate'));
     expect(inner.calls.slice(before).map((c) => c.opts.callType)).toEqual(['narrative', 'narrative']);
-    expect(t.record.draft.report.join('\n')).toMatch(/still contradicting RESOLVED \(.*\); code-written summary used instead/);
+    expect(t.record.draft.report.join('\n')).toMatch(/still contradicting RESOLVED \(.*\): ".+"; code-written summary used instead/);
     expect(t.record.narrative).not.toMatch(/sever its arm/);
     // The summary says how the fight stands and has nothing the check refuses.
     expect(t.record.narrative).toMatch(/The fight (goes on|is over)/);

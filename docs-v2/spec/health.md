@@ -163,8 +163,9 @@ Force meter (replaces Force strain):
     Mandalorians late; the Yuuzhan Vong and droids never; beasts flee and never surrender. A broken
     fighter is out of the fight; a named one's surrender opens the fate choice; the last one breaking
     ends the fight won ("the opponents broke"). The player never checks morale; sparring has none.
-  Tactical withdrawal (D-263) is separate from morale: a losing named Sith duelist withdraws at
-    30% (rolls section 5); it leaves no fate to choose.
+  Tactical withdrawal (D-263, D-268) is separate from morale: a losing named Sith duelist
+    withdraws at 30%, at most two checks a fight and never unwounded above half its Vitality
+    (rolls section 5); it leaves no fate to choose.
     The narration block states each break.
   Cut-down (D-158): against a minion, a build-up margin of 6+ is already a hit (quality by the margin),
   unless the minion wears saber-resistant armor. Mandalorian beskar is rolled per Mandalorian by era

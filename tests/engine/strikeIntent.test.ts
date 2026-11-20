@@ -130,6 +130,28 @@ describe('Sith tactical withdrawal (D-263)', () => {
     expect(withdrew).toBeGreaterThan(10);
     expect(never).toBe(0);
   });
+  it('D-268: only when wounded or at half Vitality; at most two checks a fight', () => {
+    let seen = 0;
+    for (let i = 0; i < 120; i++) {
+      // A tiny chance still rolls every check, so the checks can be counted.
+      const rare = runUntilBeat(startDuel(forceUser('PC', 55), [{ ...forceUser('S', 50), withdraw: 1e-9 }], seedRng(`twc${i}`)), REAL, 0, 'toEnd', 3000).state;
+      expect(rare.opponents[0]!.withdrawChecks ?? 0).toBeLessThanOrEqual(2);
+      const sure = runUntilBeat(startDuel(forceUser('PC', 55), [{ ...forceUser('S', 50), withdraw: 1 }], seedRng(`twc${i}`)), REAL, 0, 'toEnd', 3000).state;
+      const o = sure.opponents[0]!;
+      if (o.yielded !== 'withdrew') continue;
+      seen++;
+      // The moment it withdrew: wounded, or at or below half its Vitality.
+      expect(o.wounds.length > 0 || o.vitality <= 0.5 * o.maxVitality, `seed twc${i}`).toBe(true);
+    }
+    expect(seen).toBeGreaterThan(10);
+  });
+  it('D-268: the track swinging against an unwounded Sith at full Vitality is no trigger', () => {
+    for (let i = 0; i < 200; i++) {
+      const d = runUntilBeat(startDuel(forceUser('PC', 60), [{ ...forceUser('S', 45), withdraw: 1 }], seedRng(`twt${i}`)), REAL, 0, 'toEnd', 3000).state;
+      const o = d.opponents[0]!;
+      if (o.yielded === 'withdrew') expect(o.wounds.length > 0 || o.vitality <= 0.5 * o.maxVitality, `seed twt${i}`).toBe(true);
+    }
+  });
   it('no withdrawal in a spar', () => {
     const d = runUntilBeat(startDuel(forceUser('PC', 60), [{ ...forceUser('S', 45), withdraw: 1 }], seedRng('sp')), { ...REAL, sparring: 'trainingSaber' }, 0, 'toEnd', 3000).state;
     expect(d.opponents[0]!.yielded).toBeUndefined();

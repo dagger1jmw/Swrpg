@@ -399,7 +399,9 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
         // of a fight's narration is ever cut out.
         const settled = settleNarration(reply.narrative, draft, issues, recheck);
         const how = settled.how === 'reworded' ? 'engine terms reworded in code' : settled.how === 'summary' ? 'code-written summary used instead' : 'the offending sentences removed';
-        modelNotes.push(`narration check: ${second ? 'still contradicting RESOLVED' : 'the first reply stands and contradicts RESOLVED'} (${kindsOf(issues)}); ${how}`);
+        // The sentence that still contradicts, as the first firing quotes one (pass 5 issue 7: "sever" with no quote).
+        const still = issues.find((i) => i.sentence)?.sentence ?? issues[0]!.text;
+        modelNotes.push(`narration check: ${second ? 'still contradicting RESOLVED' : 'the first reply stands and contradicts RESOLVED'} (${kindsOf(issues)}): "${still.slice(0, 160)}"; ${how}`);
         reply = { ...reply, narrative: settled.narrative };
       } else modelNotes.push('narration check: the retry is consistent');
     }

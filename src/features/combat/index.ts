@@ -4,7 +4,7 @@
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
-import { strikeIntentFor, INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, CAPTOR_RULES, FATE_BY_STAKES, FATE_CHOICE_EXPIRY, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
+import { strikeIntentFor, INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, CAPTOR_RULES, FATE_ACT_NOTE, FATE_BY_STAKES, FATE_CHOICE_EXPIRY, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
 import { hazardOnAll, rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, WEAPON_KINDS, type BodyPart, type HazardType, type WeaponKind } from '../../data/health.config';
@@ -873,7 +873,11 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         if (!fateIsLive(ctx.state, entry)) return { reject: `the moment to decide ${id}'s fate has passed` };
         const fate = e['fate'] as NpcFate;
         const emit: GameEvent[] = fate === 'kill' ? [{ type: 'npcDied', npcRef: id, cause: 'killed by the player at incapacitation' }] : [];
-        return { slice: { ...slice, fates: slice.fates.filter((f) => f.npcId !== id) }, emit, notes: [`${id}: ${fate}`] };
+        // The act in plain words, for RESOLVED's fate line (pass 5 issue 13: Kill Duelist 8 was told as an escape from an
+        // old captivity, with Jedi who were not there).
+        const name = ctx.state.npcs.byId[id]?.name ?? id;
+        const act = fate === 'kill' ? `kills ${name}` : fate === 'capture' ? `takes ${name} prisoner` : `spares ${name}`;
+        return { slice: { ...slice, fates: slice.fates.filter((f) => f.npcId !== id) }, emit, notes: [`${id}: ${fate}`, `${FATE_ACT_NOTE}${act}`] };
       },
     },
   },

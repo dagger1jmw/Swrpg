@@ -89,6 +89,9 @@ export function outcomeText(r: ExchangeRecord, names: Record<string, string>): s
   }
   // A build-up exchange that cuts a minion down is headed by the hit, not the track (issue 20, R6).
   if (r.kind === 'buildUp' && r.hit && !r.hit.avoided) return hitHeadline(r, pc, t);
+  // A fighter who breaks off in this exchange resets the track to 0: the margin, not the reset, says who gained (pass 5
+  // issue 9: "Duelist 1 gains ground · track +1 → +0" on the exchange Joren won by 9.9, as the Sith withdrew).
+  if (r.kind === 'buildUp' && r.notes.some((n) => /withdraws: |morale breaks: /.test(n))) return r.margin >= 0 ? `${pc} gains ground` : `${t} gains ground`;
   if (r.kind === 'buildUp') return r.advAfter === r.advBefore ? 'even' : r.advAfter > r.advBefore ? `${pc} gains ground` : `${t} gains ground`;
   if (r.maneuver) return `${r.maneuver.kind}`;
   if (!r.hit) return 'strike recovered';
@@ -101,7 +104,7 @@ export function outcomeText(r: ExchangeRecord, names: Record<string, string>): s
 function hitHeadline(r: ExchangeRecord, pc: string, t: string): string {
   const h = r.hit!;
   const victim = h.redirected ? (h.by === 'A' ? t : pc) : h.by === 'A' ? t : pc;
-  const what = h.severed ? `${partText(h.part)} severed` : h.severity ? `${h.severity} wound, ${partText(h.part)}` : 'no wound';
+  const what = h.severed ? `${partText(h.part)} severed` : h.severity ? `${h.severity} wound, ${partText(h.part)}` : h.prosthetic ? `${partText(h.part)} (prosthetic): no wound` : h.stun ? 'stunned: no wound' : 'no wound';
   return `${h.quality} hit on ${victim} · ${what}`;
 }
 

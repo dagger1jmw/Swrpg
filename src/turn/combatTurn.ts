@@ -231,6 +231,8 @@ export interface CombatFighterView {
   /** The weapon's and the armor's own names ("amphistaff", "vonduun crab armor"; pass 4 issue 12). */
   weaponName?: string;
   armorName?: string;
+  /** Outside the Force (D-192: the Yuuzhan Vong): no Push, Choke, lightning or mind trick touches them. */
+  outsideForce?: boolean;
   /** What the body can no longer do (D-237): "cannot stand: severed left leg", "no right arm". Absent on older drafts. */
   lasting?: { cannotStand: boolean; missing: string[]; text: string[] };
 }
@@ -298,6 +300,7 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   ...(f.intent === 'capture' && f.subdue ? { subdue: f.subdue } : {}),
   ...(f.weaponName ? { weaponName: f.weaponName } : {}),
   ...(f.armorName ? { armorName: f.armorName } : {}),
+  ...(f.forceTraits?.includes('forceInvisible') ? { outsideForce: true } : {}),
   lasting: lastingState(f.wounds as Wound[], (f.lasting ?? []) as LastingInjury[]),
 });
 

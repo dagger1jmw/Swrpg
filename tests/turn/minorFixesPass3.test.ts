@@ -87,7 +87,9 @@ describe('narration fixes (issues 8, 9, 10, 11)', () => {
     const narrate = Array.from({ length: 12 }, (_, i) => rec({ n: i + 1, targetId: 'd1' }));
     narrate[4] = rec({ n: 5, kind: 'strike', striker: 'A', targetId: 'd1', hit: { by: 'A', quality: 'clean', D: 40, part: 'torso', W: 40, severity: 'moderate', vitalityLost: 0, severed: false, avoided: false } as never });
     const block = describeCombat(combat({ fighters: [fighter('pc', 'Dax Morrow', { weapon: 'blasterPistol', form: null }), fighter('d1', 'Line trooper 1', { minion: true, weapon: 'blasterRifle', form: null, out: true })], narrate })).join('\n');
-    expect(block).toMatch(/Key events \(tell each one, in order, however briefly\): #5 Dax Morrow hits Line trooper 1 \(torso, moderate\)\./);
+    // D-271 renamed the line Highlights and added the length.
+    expect(block).toMatch(/Highlights \(tell each one, in order; they are the fight's arc\): #5 Dax Morrow hits Line trooper 1 \(torso, moderate\)\./);
+    expect(block).toMatch(/Length: about 1 paragraph for these 12 exchanges/);
   });
   it('13: unarmed means dodging, never turning a bolt aside', () => {
     const block = describeCombat(combat({ fighters: [fighter('pc', 'Sela Dorn', { weapon: 'unarmed', form: null }), droid(1)] })).join('\n');

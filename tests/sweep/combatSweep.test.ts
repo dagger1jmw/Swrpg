@@ -13,6 +13,7 @@ import { minionKindInEra } from '../../src/data/npcGen.config';
 import { createMemoryStorage } from '../../src/persist/storage';
 import { createCampaign, DEFAULT_START_SECOND } from '../../src/turn/campaign';
 import { testStartInput } from '../../src/turn/testStart';
+import { playerFormLevel } from '../../src/turn/devCommands';
 import { TEST_START_DATE } from '../support/dates';
 
 /** Kinds that do not exist at the neutral test date fight in the Clone Wars (D-213), so the sweep measures the kinds it names. */
@@ -212,4 +213,42 @@ describe('combat sweep', () => {
     );
     expect(sw.issues).toEqual([]);
   }, 3_600_000);
+
+  it('D-268: the share of won duels against Sith duelists that end in withdrawal (report)', async () => {
+    const t0 = Date.now();
+    // D-268: the share of won duels against named Sith duelists that end in their tactical withdrawal (design target
+    // 20-30%). The pass-5 set-up: a Knight test start at 30, dev Sith duelists at a gap of -10, 0 and +10 to the form,
+    // 20 duelists a gap (each generated as a Sith Warrior or Inquisitor), 15 fights each.
+    const withdrawRows: string[] = [];
+    {
+      const k30 = await devCharacter('knight', 30, CLONE_WARS_DATE);
+      const form = playerFormLevel(k30);
+      let wonAll = 0;
+      let wdAll = 0;
+      for (const gap of [-10, 0, 10]) {
+        let won = 0;
+        let wd = 0;
+        let ex = 0;
+        for (let j = 0; j < 20; j++) {
+          const name = `Sith ${gap} ${j}`;
+          let st = applyEvents(REGISTRY, k30, [{ type: 'npcIntroduced', name, species: 'human', faction: 'sith', role: 'sithLord', ageApprox: 35, description: '' }], { source: 'dev' }).state;
+          const id = Object.values(st.npcs.byId).find((x) => x.name === name)!.id;
+          st = applyEvents(REGISTRY, st, [{ type: 'devNpcLevelsSet', npcRef: id, level: Math.round((form + gap) * 10) / 10 }], { source: 'dev' }).state;
+          for (let i = 0; i < 15; i++) {
+            const f = runFight(st, { opponentRefs: [id], terrainTags: ['flatFloor'], stakes: 'serious' }, PATTERNS['balanced']!, `wd:${gap}:${j}:${i}`);
+            if (f.outcome !== 'won') continue;
+            won++;
+            ex += f.exchanges;
+            if (f.finalDuel?.opponents[0]?.yielded === 'withdrew') wd++;
+          }
+        }
+        wonAll += won;
+        wdAll += wd;
+        withdrawRows.push(`knight30 (form ${form.toFixed(1)}) vs Sith duelist gap ${gap >= 0 ? '+' : ''}${gap}: won ${won} of 300, withdrew ${wd} (${won ? ((100 * wd) / won).toFixed(1) : '-'}% of the won), won fights ${won ? (ex / won).toFixed(1) : '-'} exchanges`);
+      }
+      withdrawRows.push(`all gaps: withdrew ${wdAll} of ${wonAll} won (${((100 * wdAll) / Math.max(1, wonAll)).toFixed(1)}%)`);
+    }
+    console.log(['D-268 Sith tactical withdrawal, share of won duels (target 20-30%):', ...withdrawRows, `(${((Date.now() - t0) / 1000).toFixed(1)} s)`].join('\n'));
+  }, 3_600_000);
 });
+
