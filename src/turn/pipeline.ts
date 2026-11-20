@@ -22,6 +22,7 @@ import { PACING_OUTPUT_CAPS } from '../data/pacing.config';
 import { normalizeAlias } from '../engine/aliases';
 import { dateFromAbsDay } from '../engine/calendar';
 import { checkNarration, rewordable, settleNarration, type NarrationIssue } from './narrationCheck';
+import { longPassageProseTokens } from './combatFacts';
 import { selectWounds } from '../features/health/selectors';
 import { selectNow } from '../features/clock/selectors';
 import { selectOpenReview, selectPendingChapters } from '../features/memory/selectors';
@@ -41,7 +42,7 @@ import type { CallRecord, TurnInput, TurnRecord } from './record';
 import { fightMinionRef, refResolver, resolveIntentRefs } from './refs';
 import { resolveTurn, type Resolution } from './resolve';
 import { skipAheadChoice } from './skipAhead';
-import { choicesAfterTurn } from './fightChoices';
+import { choicesAfterTurn, outsideForceOpponents, withoutForceOnImmune } from './fightChoices';
 import { selectUntoldWorldEvents } from '../features/world/selectors';
 
 export interface TurnDeps {
@@ -340,7 +341,9 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     const schemas = composeNarrativeSchema(deps.registry, resolved, turnInfo);
     const req = buildNarrativeRequest(resolved, draft, pending.input, session.history, buildOpts(deps, 'narrative', schemas.wire));
     deps.onRequest?.({ callType: 'narrative', ...req });
-    const budget = PACING_OUTPUT_CAPS[draft.pacingLevel] + JSON_OVERHEAD_TOKENS + THINKING_HEADROOM_TOKENS;
+    // A long fight passage asks for up to four paragraphs (D-271): its prose budget replaces the pacing cap when larger.
+    const longFight = draft.combat && !draft.combat.quiet ? longPassageProseTokens(draft.combat.narrate.length) : 0;
+    const budget = Math.max(PACING_OUTPUT_CAPS[draft.pacingLevel], longFight) + JSON_OVERHEAD_TOKENS + THINKING_HEADROOM_TOKENS;
     const first: BaseOptions = { ...callOptions('narrative', req.system, budget), wireSchema: schemas.wire };
     const narrate = (opts: CallOptions) => deps.provider.generateStructured(schemas.parse, req.messages, opts);
     try {
@@ -463,9 +466,13 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     return id ? { ...c, intent: { ...c.intent, targetRef: id } } : c;
   });
   const fc = choicesAfterTurn(state, draft.combat !== null, replyChoices);
-  const choices = fc.choices;
+  // Opponents outside the Force (D-192; M5 final check): no Force push, choke, lightning or mind trick offered against
+  // them, from the turn that starts the fight (pending or active).
+  const immune = withoutForceOnImmune(state, fc.choices);
+  const choices = immune.choices;
   const skip = skipAheadChoice(state, choices);
   const skipNotes: string[] = fc.dropped ? [`fight over: ${fc.dropped} tactical choice(s) dropped (D-181)`] : [];
+  if (immune.dropped) skipNotes.push(`outside the Force (${outsideForceOpponents(state).join(', ')}): ${immune.dropped} Force choice(s) dropped`);
   if (skip) {
     choices.push(skip);
     skipNotes.push(`staleness: appended "${skip.label}" (${skip.spanDays} days; D-18)`);

@@ -422,6 +422,11 @@ export const TACTICAL_WITHDRAWAL = {
   vitalityAtMost: 0.5,
   /** At most this many withdrawal checks in one fight (D-268). */
   maxChecks: 2,
+  /**
+   * The Sith presses for the win instead (D-268 amended, M5 final check: a Sith withdrew from a Knight at 1 / 61): no
+   * withdrawal while the player is Spent, Dying, or at or below this share of max Vitality.
+   */
+  pressWhenFoeAtMost: 0.15,
   byArchetype: { sithWarrior: 0.3, sithInquisitor: 0.3 } as Readonly<Record<string, number>>,
 };
 export const withdrawChanceFor = (archetype: string): number => TACTICAL_WITHDRAWAL.byArchetype[archetype] ?? 0;
@@ -440,7 +445,12 @@ export const FATE_ACT_NOTE = 'fate act: ';
  * A long passage told in full (Jared, D-271; design default): the block gives highlights from this many exchanges, and
  * a length of about one paragraph per exchangesPerParagraph exchanges, at most maxParagraphs.
  */
-export const NARRATION_LENGTH = { highlightsFrom: 10, exchangesPerParagraph: 15, maxParagraphs: 4, maxHighlights: 12 } as const;
+/**
+ * Long passages (D-271; M5 final check: about 4 paragraphs asked, 1 written three times). tokensPerParagraph: the prose
+ * output budget per asked paragraph, which replaces the pacing cap when larger (a moment's 700 cannot hold four
+ * paragraphs and the reply's JSON). wordsPerParagraph: the range the Length line asks for.
+ */
+export const NARRATION_LENGTH = { highlightsFrom: 10, exchangesPerParagraph: 15, maxParagraphs: 4, maxHighlights: 12, tokensPerParagraph: 260, wordsPerParagraph: [80, 130] } as const;
 export type NpcFate = (typeof NPC_FATES)[number];
 
 // ---- heroicAct (flag-registry §2) ----

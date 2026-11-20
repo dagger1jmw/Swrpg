@@ -55,7 +55,7 @@ describe('4: the captors in later scenes carry their weapon', () => {
 describe('5: the cards\' phrases in prose are reworded in code', () => {
   it('"out of the fight", "is outpaced", "intended maneuver unreached"', () => {
     expect(mechanicalTerm('The crimson-bladed duelist collapses, unable to stand, entirely out of the fight.')).not.toBeNull();
-    expect(repairWording('The crimson-bladed duelist collapses, unable to stand, entirely out of the fight.')).toBe('The crimson-bladed duelist collapses, unable to stand, unable to fight on.');
+    expect(repairWording('The crimson-bladed duelist collapses, unable to stand, entirely out of the fight.')).toBe('The crimson-bladed duelist collapses, unable to stand.');
     expect(repairWording('Your bolt goes wide as you are outpaced.')).toBe('Your bolt goes wide as you are pressed hard.');
     expect(mechanicalTerm('a blow you narrowly dodge, leaving your intended maneuver unreached')).not.toBeNull();
     // Ordinary prose stays: "outpaced pressure", "leaves no wound".

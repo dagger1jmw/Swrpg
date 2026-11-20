@@ -1,6 +1,7 @@
 // D-260 strike intent (kill, disarm), D-262 capture by subduing, D-263 Sith tactical withdrawal, and the severing rule.
 import { describe, expect, it } from 'vitest';
-import { INTENT_WEIGHTS, strikeIntentFor, subdueFor } from '../../src/data/combat.config';
+import { INTENT_WEIGHTS, strikeIntentFor, subdueFor, TACTICAL_WITHDRAWAL } from '../../src/data/combat.config';
+import { isDying } from '../../src/engine/wounds';
 import { capturedNow, damageFighter, disengageContest, intentWeights, runUntilBeat, startDuel, subdueFighter, type DuelState, type Fighter } from '../../src/engine/duel';
 import { severs } from '../../src/engine/damage';
 import { seedRng, type RngState } from '../../src/engine/rng';
@@ -151,6 +152,27 @@ describe('Sith tactical withdrawal (D-263)', () => {
       const o = d.opponents[0]!;
       if (o.yielded === 'withdrew') expect(o.wounds.length > 0 || o.vitality <= 0.5 * o.maxVitality, `seed twt${i}`).toBe(true);
     }
+  });
+  it('D-268 amended: no withdrawal while the player is Spent, Dying or at or below 15% Vitality; the Sith presses', () => {
+    let withdrew = 0;
+    let lowRuns = 0;
+    for (let i = 0; i < 200; i++) {
+      // A player who starts the duel nearly beaten (10% Vitality), against a Sith sure to withdraw when it can.
+      const pc = forceUser('PC', 60);
+      const low = { ...pc, vitality: Math.floor(0.1 * pc.maxVitality) };
+      for (const start of [pc, low]) {
+        const d = runUntilBeat(startDuel(start, [{ ...forceUser('S', 50), withdraw: 1 }], seedRng(`twp${i}`)), REAL, 0, 'toEnd', 3000).state;
+        if (d.opponents[0]!.yielded !== 'withdrew') continue;
+        withdrew++;
+        if (start === low) lowRuns++;
+        // The moment it withdrew is the last state: the player was neither Spent, Dying nor at 15% or below.
+        expect(d.a.vitality, `seed twp${i}`).toBeGreaterThan(TACTICAL_WITHDRAWAL.pressWhenFoeAtMost * d.a.maxVitality);
+        expect(isDying(d.a.wounds), `seed twp${i}`).toBe(false);
+      }
+    }
+    expect(withdrew).toBeGreaterThan(10);
+    // Against the nearly beaten player the Sith never breaks off (no Vitality comes back mid-fight).
+    expect(lowRuns).toBe(0);
   });
   it('no withdrawal in a spar', () => {
     const d = runUntilBeat(startDuel(forceUser('PC', 60), [{ ...forceUser('S', 45), withdraw: 1 }], seedRng('sp')), { ...REAL, sparring: 'trainingSaber' }, 0, 'toEnd', 3000).state;

@@ -439,7 +439,14 @@ export function describeCombat(c: CombatDraft): string[] {
     const key = fightHighlights(c, facts);
     if (key.length) lines.push(`Highlights (tell each one, in order; they are the fight's arc): ${key.join('; ')}.`);
     const p = narrationParagraphs(c.narrate.length);
-    lines.push(`Length: about ${p} paragraph${p === 1 ? '' : 's'} for these ${c.narrate.length} exchanges. Tell the fight itself first, as it happened, and only then ${c.ended ? 'its end and the aftermath' : 'where it stands now'}.`);
+    // M5 final check: "about 4 paragraphs" came back as one paragraph three times. The count, the words and the blank
+    // lines are spelled out, and the line overrides the pacing's usual length.
+    const [lo, hi] = NARRATION_LENGTH.wordsPerParagraph;
+    lines.push(
+      p === 1
+        ? `Length: one full paragraph (${lo} to ${hi} words) for these ${c.narrate.length} exchanges. Tell the fight itself first, as it happened, and only then ${c.ended ? 'its end and the aftermath' : 'where it stands now'}.`
+        : `Length: ${p} paragraphs for these ${c.narrate.length} exchanges, separated by blank lines, ${lo} to ${hi} words each (${p * lo} to ${p * hi} words in all); this overrides the pacing's usual length. Not one paragraph: the first ${p - 1} tell the fight itself, as it happened, in order; the last tells ${c.ended ? 'how it was decided and the aftermath' : 'where it stands now'}.`,
+    );
   }
   if (facts.steps.length) lines.push(`Steps the player asked for: ${facts.steps.map((s) => `step ${s.index + 1} ${s.label}: ${s.status} (${s.detail})`).join('; ')}.`);
   for (const n of c.notes.filter((x) => x.startsWith('intent step'))) lines.push(`Sequence: ${n}`);

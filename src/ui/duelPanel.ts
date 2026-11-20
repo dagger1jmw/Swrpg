@@ -89,15 +89,25 @@ export function outcomeText(r: ExchangeRecord, names: Record<string, string>): s
   }
   // A build-up exchange that cuts a minion down is headed by the hit, not the track (issue 20, R6).
   if (r.kind === 'buildUp' && r.hit && !r.hit.avoided) return hitHeadline(r, pc, t);
-  // A fighter who breaks off in this exchange resets the track to 0: the margin, not the reset, says who gained (pass 5
-  // issue 9: "Duelist 1 gains ground · track +1 → +0" on the exchange Joren won by 9.9, as the Sith withdrew).
-  if (r.kind === 'buildUp' && r.notes.some((n) => /withdraws: |morale breaks: /.test(n))) return r.margin >= 0 ? `${pc} gains ground` : `${t} gains ground`;
+  // A fighter who breaks off in this exchange resets the track to 0: the card says what happened, with the margin (pass
+  // 5 issue 9, M5 final check: "Joren Tal gains ground · track +0 → +0" on a margin of +13.3 as the Sith withdrew).
+  const left = breakOff(r);
+  if (r.kind === 'buildUp' && left) return `${left} · margin ${signed(r.margin)}`;
   if (r.kind === 'buildUp') return r.advAfter === r.advBefore ? 'even' : r.advAfter > r.advBefore ? `${pc} gains ground` : `${t} gains ground`;
   if (r.maneuver) return `${r.maneuver.kind}`;
   if (!r.hit) return 'strike recovered';
   if (r.hit.avoided) return 'precognition: avoided';
   if (r.hit.point) return 'point';
   return hitHeadline(r, pc, t);
+}
+
+/** "Duelist 1 withdraws", "Thug 2 surrenders", "Thug 3 flees" from an exchange's notes, or null. */
+export function breakOff(r: ExchangeRecord): string | null {
+  for (const n of r.notes) {
+    const m = /^(.+?) withdraws: /.exec(n) ?? /^(.+?)'s morale breaks: (surrenders|disengages and flees)/.exec(n);
+    if (m) return `${m[1]} ${m[2] === 'surrenders' ? 'surrenders' : m[2] ? 'flees' : 'withdraws'}`;
+  }
+  return null;
 }
 
 /** A hit's headline: who hit whom, the quality, and the wound in words ("solid hit on B1 battle droid 1 · moderate wound, left arm"). */
@@ -118,7 +128,7 @@ export function renderExchange(r: ExchangeRecord, names: Record<string, string>,
   const good = (r.hit && !r.hit.avoided && r.hit.by === 'A') || (r.striker === 'A' && r.maneuver) || (r.kind === 'buildUp' && r.advAfter > r.advBefore) || (r.kind === 'force' && r.force?.side === 'A' && r.force.success);
   const bad = (r.hit && !r.hit.avoided && r.hit.by === 'B') || (r.striker === 'B' && r.maneuver) || (r.kind === 'buildUp' && r.advAfter < r.advBefore);
   return el('details', { class: `exchange ${good ? 'up' : bad ? 'down' : ''}` }, [
-    el('summary', {}, [tag ? tagChip(tag) : null, el('span', { text: `#${r.n} ${r.kind === 'strike' ? 'strike' : r.kind === 'force' ? 'Force' : 'exchange'} · ${outcomeText(r, names)} · track ${track}` })]),
+    el('summary', {}, [tag ? tagChip(tag) : null, el('span', { text: `#${r.n} ${r.kind === 'strike' ? 'strike' : r.kind === 'force' ? 'Force' : 'exchange'} · ${outcomeText(r, names)}${r.kind === 'buildUp' && breakOff(r) ? '' : ` · track ${track}`}` })]),
     el('div', { class: 'roll-line', text: rollText(names['pc'] ?? 'You', r.rollA) }),
     el('div', { class: 'roll-line', text: rollText(names[r.targetId] ?? 'Opponent', r.rollB) }),
     el('div', { class: 'roll-line', text: `${marginLabel(r, names['pc'] ?? 'You')} · ${r.seconds} s${r.surprise ? ' · surprise' : ''}${r.duringForce ? ' · while you use the Force' : ''}` }),

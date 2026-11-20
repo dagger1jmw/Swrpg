@@ -31,7 +31,7 @@ export interface HitFact {
   targetId: string;
   targetName: string;
   part: string;
-  /** Null: stamina only, no wound. */
+  /** Null: no wound (winded). */
   severity: string | null;
   severed: boolean;
   /** A subduing hit (D-262): no wound and no place on the body; the verb ("stuns", "snares"). */
@@ -163,7 +163,7 @@ export function combatFacts(c: CombatDraft): CombatFacts {
           lines.push(`${head} ${user} ${what}: DONE. NO HIT that harms: ${on} is struck but unharmed (no damage, no Vitality lost).${onlyOne}`);
         } else if (f.damage) {
           hits.push({ n: r.n, byPlayer: f.side === 'A', targetId: f.side === 'A' ? r.targetId : 'pc', targetName: on, part: f.damage.part, severity: f.damage.severity, severed: false });
-          lines.push(`${head} ${user} ${what}: DONE. HIT (${on}, ${partText(f.damage.part)}, ${f.damage.severity ? `${f.damage.severity} wound` : 'no wound, stamina only'}).${onlyOne}`);
+          lines.push(`${head} ${user} ${what}: DONE. HIT (${on}, ${partText(f.damage.part)}, ${f.damage.severity ? `${f.damage.severity} wound` : 'no wound (winded)'}).${onlyOne}`);
         } else if (f.kind === 'saberThrow') lines.push(`${head} ${user} ${what}: DONE (the control holds; its strikes are the next lines; the saber returns to hand).`);
         else if (f.kind === 'recall') lines.push(`${head} ${user} ${what}: DONE (the saber is back in hand).`);
         else if (f.stoodDown) lines.push(`${head} ${user} ${what}: DONE. NO HIT, no injury: ${on} stands down and leaves the fight.${onlyOne}`);
@@ -187,7 +187,7 @@ export function combatFacts(c: CombatDraft): CombatFacts {
         lines.push(`${head} ${striker} ${stun} ${victim}: HIT (${victim}, no wound and no place on the body: it drains their stamina toward capture).${toldNotes(r)}`);
         continue;
       }
-      const result = hit.severed ? `the ${partText(hit.part)} is SEVERED` : hit.severity ? `${hit.severity} wound` : hit.prosthetic ? 'the prosthetic limb takes it: no wound, stamina only' : 'no wound, stamina only';
+      const result = hit.severed ? `the ${partText(hit.part)} is SEVERED` : hit.severity ? `${hit.severity} wound` : hit.prosthetic ? 'the prosthetic limb takes it: no wound (winded)' : 'no wound (winded)';
       const how = hit.redirected ? `${striker} redirects the blaster bolt back into the shooter` : `${striker} hits ${victim}`;
       lines.push(`${head} ${how}: HIT (${victim}, ${partText(hit.part)}, ${result}).${toldNotes(r)}`);
       continue;
@@ -251,7 +251,10 @@ export function fightHighlights(c: CombatDraft, facts: CombatFacts): string[] {
   if (winnerIsPc !== null && facts.hits.length) {
     const lastLoser = Math.max(0, ...facts.hits.filter((h) => h.byPlayer !== winnerIsPc).map((h) => h.n));
     const turn = facts.hits.find((h) => h.byPlayer === winnerIsPc && h.n > lastLoser);
-    if (turn && turn.n !== facts.hits[facts.hits.length - 1]!.n) items.push({ n: turn.n, text: `#${turn.n} the turning point: from here on only ${winnerIsPc ? pc : 'the opponents'} land anything`, rank: 0 });
+    // "only Joren Tal lands anything", "only the opponents land anything" (M5 final check: "only Joren Tal land").
+    const several = c.fighters.filter((f) => f.id !== 'pc').length > 1;
+    const who = winnerIsPc ? `${pc} lands` : several ? 'the opponents land' : 'the opponent lands';
+    if (turn && turn.n !== facts.hits[facts.hits.length - 1]!.n) items.push({ n: turn.n, text: `#${turn.n} the turning point: from here on only ${who} anything`, rank: 0 });
   }
   // Within one exchange, the hit comes before what it caused (the order they were added).
   const ordered = items.map((x, i) => ({ ...x, i }));
@@ -261,3 +264,9 @@ export function fightHighlights(c: CombatDraft, facts: CombatFacts): string[] {
 
 /** About one paragraph per NARRATION_LENGTH.exchangesPerParagraph exchanges, at least 1, at most maxParagraphs (D-271). */
 export const narrationParagraphs = (exchanges: number): number => Math.max(1, Math.min(NARRATION_LENGTH.maxParagraphs, Math.round(exchanges / NARRATION_LENGTH.exchangesPerParagraph)));
+
+/**
+ * The prose output budget a passage needs (M5 final check): a long passage's asked paragraphs at
+ * NARRATION_LENGTH.tokensPerParagraph, else 0. The caller takes the larger of this and the pacing cap.
+ */
+export const longPassageProseTokens = (exchanges: number): number => (exchanges >= NARRATION_LENGTH.highlightsFrom ? narrationParagraphs(exchanges) * NARRATION_LENGTH.tokensPerParagraph : 0);

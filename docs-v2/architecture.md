@@ -953,11 +953,13 @@ The clock and the module contract come first, before any feature.
 | M2 | Memory and lore | npcs (identity), locations, threads, facts, relationships; People tab and review queue; chapters and arc (chapterSummarized); context builder with caps and report; lore index and retrieval; export/import | Long campaigns that remember |
 | M3 | Progression and creation | Skills and activities (spec/skills-and-activities.md), curve, fatigue meters, computeXp, synergy, rust, state of mind, intent-driven activities (train / study / sleep), rest, the 4.0x clamp, NPC closed form and the Human body-cap table (moved from M5/M8, D-56), the species table and natural baseline (D-102, D-103), computed character creation, sheet UI, tier beats | Train in story and grow |
 | M4 | Time advance | Montage and timeSkip, routine scheduler, settling-in and staleness, thread deadlines, weighted events, interruptions, lifetime test (scripted combat via combat-xp.md math) | Skip months and years |
-| M5 | Combat and health (built, D-143..D-175) | Duels and beats (sequences, Force actions, sparring sessions, aimed strikes), Vitality, wounds by weapon and margin, healing (medical, bacta, Force healing), lasting injuries and prosthetics, NPC generation (talents, variance, minions by kind, canon era rosters), combat XP, E and CI from the duel log, the drill ceiling and bank, the Force meter module; lifetime test re-run with real duels on 6 seeds | Fight |
+| M5 | Combat and health (**complete**, 2026-11-20; D-143..D-275) | Duels and beats (sequences, Force actions, sparring sessions, aimed strikes), Vitality, wounds by weapon and margin, healing (medical, bacta, Force healing), lasting injuries and prosthetics, NPC generation (talents, variance, minions by kind, canon era rosters), combat XP, E and CI from the duel log, the drill ceiling and bank, the Force meter module; lifetime test re-run with real duels on 6 seeds | Fight |
 | M6 | Force and alignment | Catalog data, Force meter, Force use, combat integration, Shatterpoint, alignment, dark pressure, concealment | Use the Force |
 | M7 | Ranks and milestones | Ladders, trials, standing, Order requirements, Council of Reassignment, Council bypass, flag registry sources for rank flags | Advance in the Order |
 | M8 | World | Timeline events, factions, renown, equipment spec and items/credits, species table | A living galaxy |
 | M9 | Polish | Save slots UI, migrations hardening, responsive layout (iPad first), debug console | Release candidate (Phase 9 cutover) |
+
+**M5 complete (2026-11-20).** Built and tuned over five browser passes and a final check (docs-v2/testing/): duels with beats, typed sequences and Force actions, sparring sessions, Vitality and wounds by weapon and margin, healing, lasting injuries and prosthetics, NPC generation and minions by kind, capture by subduing, morale and Sith withdrawal, the narration check, combat XP and the lifetime harness with real duels. Last runs: test:all 1089/1089, sweep with no issues, spread with every gate on all 80 lifetimes (D-275 and the decisions before it).
 
 ### Recorded for M5 (D-122, Jared)
 - **Niman (Form VI) in combat:** matchups 0 in every situation (rolls.md §5). Force abilities used
@@ -1057,6 +1059,8 @@ The clock and the module contract come first, before any feature.
 - **Cleave (D-158):** keeping the advantage after taking a minion out; a candidate Shii-Cho / Sokan form trait
   against groups (M6 or later).
 - **M8 cybernetics as equipment, by quality tier (Jared, 2026-11-19; not built).** With the prosthetic damage above.
+  To revisit then (Jared, 2026-11-20): a leg lost together with an arm adapts slowly (17% at day 40 against 64% alone),
+  since the arm wound blocks the form drills the leg adapts from; accepted for M5 as a slower recovery (D-273).
   - *Quality (well fitted):* a cybernetic hand or arm gives unarmed damage base x1.5; +2 against disarm, and no
     dropped weapon on a natural 1; a cybernetic arm gives +1 to knockdown and position contests and to the power forms
     (Djem So, Shien), never to lightsaber damage. No precision penalty.

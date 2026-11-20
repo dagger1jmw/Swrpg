@@ -80,8 +80,9 @@ describe('narration fixes (issues 8, 9, 10, 11)', () => {
       expect(mechanicalTerm(t), t).not.toBeNull();
     expect(repairWording('The glancing blow drains your stamina without breaking skin. Another one is taxing his stamina.')).toBe('The glancing blow wears you down without breaking skin. Another one is wearing him down.');
     expect(mechanicalTerm('the flurry wears you down')).toBeNull();
-    // The noun has no natural swap; it is left alone rather than repaired into bad grammar.
-    expect(mechanicalTerm('the surge leaves him standing firm with only a drain on his stamina')).toBeNull();
+    // M5 final check: the bare word is the block's too; the repair says "strength".
+    expect(mechanicalTerm('the surge leaves him standing firm with only a drain on his stamina')).toBe('stamina');
+    expect(repairWording('the surge leaves him standing firm with only a drain on his stamina')).toBe('the surge leaves him standing firm with only a drain on his strength');
   });
   it('11: a long passage gets its key events listed in order', () => {
     const narrate = Array.from({ length: 12 }, (_, i) => rec({ n: i + 1, targetId: 'd1' }));
@@ -89,7 +90,7 @@ describe('narration fixes (issues 8, 9, 10, 11)', () => {
     const block = describeCombat(combat({ fighters: [fighter('pc', 'Dax Morrow', { weapon: 'blasterPistol', form: null }), fighter('d1', 'Line trooper 1', { minion: true, weapon: 'blasterRifle', form: null, out: true })], narrate })).join('\n');
     // D-271 renamed the line Highlights and added the length.
     expect(block).toMatch(/Highlights \(tell each one, in order; they are the fight's arc\): #5 Dax Morrow hits Line trooper 1 \(torso, moderate\)\./);
-    expect(block).toMatch(/Length: about 1 paragraph for these 12 exchanges/);
+    expect(block).toMatch(/Length: one full paragraph \(80 to 130 words\) for these 12 exchanges/);
   });
   it('13: unarmed means dodging, never turning a bolt aside', () => {
     const block = describeCombat(combat({ fighters: [fighter('pc', 'Sela Dorn', { weapon: 'unarmed', form: null }), droid(1)] })).join('\n');

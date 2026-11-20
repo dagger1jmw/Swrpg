@@ -33,11 +33,16 @@ describe('natural-1 fumbles (D-269)', () => {
     // Joren against six thugs: his own natural 1.
     const thugs = combat('Joren Tal', fighter('n1', 'Thug 1', { minion: true, weapon: 'blasterPistol', form: null }), { narrate: [nat1('A', 'Joren Tal', 'Thug 1', 1)] });
     expect(kinds('You draw your blue blade, but a misstep throws your stance off balance as the first bolt scorches past.', thugs)).not.toContain('slipNoHazard');
-    // Varek against Duelist 1: his own natural 1. "outpaced" and "natural" are still engine words (rule 10), rightly.
+    // Varek against Duelist 1: his own natural 1. The block's miss reason is "was outpaced", so "outpaced" tells it and is
+    // not flagged (M5 final check); with no such reason it is.
     const varek = combat('Varek Thane', fighter('n1', 'Duelist 1'), { narrate: [nat1('A', 'Varek Thane', 'Duelist 1', 3)] });
+    expect(describeCombat(varek).join('\n')).toMatch(/was outpaced/);
     const k = kinds('As the bout presses on, you are outpaced, a fraction of a second too slow as a natural misstep leaves your defense wide open.', varek);
     expect(k).not.toContain('slipNoHazard');
-    expect(k).toContain('mechanicalTerms');
+    expect(k).not.toContain('mechanicalTerms');
+    const plain = combat('Varek Thane', fighter('n1', 'Duelist 1'));
+    expect(describeCombat(plain).join('\n')).not.toMatch(/was outpaced/);
+    expect(kinds('You step aside and outpace the strike.', plain)).toContain('mechanicalTerms');
     // Overextending is a fumble word too.
     expect(kinds('You overextend on the lunge, and he slides inside your guard.', varek)).not.toContain('slipNoHazard');
   });
@@ -120,7 +125,7 @@ describe('a long fight told in full: the pass-5 capture fight (D-271)', () => {
     }
   });
   it('the length: about 3 paragraphs for 51 exchanges, the fight first and the end after', () => {
-    expect(block).toMatch(/Length: about 3 paragraphs for these 51 exchanges\. Tell the fight itself first, as it happened, and only then its end and the aftermath\./);
+    expect(block).toMatch(/Length: 3 paragraphs for these 51 exchanges, separated by blank lines, 80 to 130 words each \(240 to 390 words in all\); this overrides the pacing's usual length\. Not one paragraph: the first 2 tell the fight itself, as it happened, in order; the last tells how it was decided and the aftermath\./);
     expect(block).toMatch(/Captured by: 3 line troopers/);
     expect(block).not.toMatch(/The fight goes on/);
   });
@@ -131,7 +136,7 @@ describe('a long fight told in full: the pass-5 capture fight (D-271)', () => {
   });
   it('the length guideline caps at 4 paragraphs and never goes under 1', () => {
     const long = describeCombat({ ...capture, narrate: Array.from({ length: 200 }, (_, i) => rec({ n: i + 1, targetId: 't2' })) }).join('\n');
-    expect(long).toMatch(/Length: about 4 paragraphs for these 200 exchanges/);
+    expect(long).toMatch(/Length: 4 paragraphs for these 200 exchanges/);
     const short = describeCombat({ ...capture, narrate: narrate.slice(0, 5) }).join('\n');
     expect(short).not.toMatch(/Length:/);
   });
@@ -163,20 +168,24 @@ describe('the other pass-5 minor issues', () => {
   it('9: the exchange a Sith withdraws on is headed by its margin, not the track reset', async () => {
     const { outcomeText } = await import('../../src/ui/duelPanel');
     const names = { pc: 'Joren Tal', n1: 'Duelist 1' };
-    expect(outcomeText(rec({ n: 37, margin: 9.9, advBefore: 1, advAfter: 0, notes: ['Duelist 1 withdraws: breaks off the fight and escapes, out of the fight'] }), names)).toBe('Joren Tal gains ground');
+    // M5 final check: the card says the withdrawal and its margin, not "gains ground" with a track reset.
+    expect(outcomeText(rec({ n: 37, margin: 9.9, advBefore: 1, advAfter: 0, notes: ['Duelist 1 withdraws: breaks off the fight and escapes, out of the fight'] }), names)).toBe('Duelist 1 withdraws · margin +9.9');
+    expect(outcomeText(rec({ n: 12, margin: 4.2, advBefore: 2, advAfter: 0, notes: ["Duelist 1's morale breaks: surrenders, out of the fight"] }), names)).toBe('Duelist 1 surrenders · margin +4.2');
     expect(outcomeText(rec({ n: 8, margin: -3, advBefore: 1, advAfter: 0 }), names)).toBe('Duelist 1 gains ground');
   });
   it('10: a hit on a prosthetic says where and why on the card and in the block', async () => {
     const { outcomeText } = await import('../../src/ui/duelPanel');
     const r = rec({ n: 10, kind: 'strike', striker: 'B', hit: { by: 'B', quality: 'critical', D: 40, part: 'rightArm', W: 0, severity: null, vitalityLost: 9, severed: false, avoided: false, prosthetic: true } as never });
     expect(outcomeText(r, { pc: 'Joren Tal', n1: 'Duelist 1' })).toBe('critical hit on Joren Tal · right arm (prosthetic): no wound');
-    expect(describeCombat(combat('Joren Tal', fighter('n1', 'Duelist 1'), { narrate: [r] })).join('\n')).toMatch(/HIT \(Joren Tal, right arm, the prosthetic limb takes it: no wound, stamina only\)/);
+    expect(describeCombat(combat('Joren Tal', fighter('n1', 'Duelist 1'), { narrate: [r] })).join('\n')).toMatch(/HIT \(Joren Tal, right arm, the prosthetic limb takes it: no wound \(winded\)\)/);
   });
   it('11: "his stamina taxed", "tests your own endurance", "forced outpaced" are repaired; "your stamina holds" and "not outpaced" stay', async () => {
     const { mechanicalTerm, repairWording } = await import('../../src/turn/narrationCheck');
     expect(repairWording('Your blade grazes his torso, leaving his stamina taxed, while he returns a sharp strike that tests your own endurance.')).toBe('Your blade grazes his torso, leaving him worn down, while he returns a sharp strike that wears you down.');
     expect(repairWording('You are forced outpaced across the uneven floor.')).toBe('You are pressed hard across the uneven floor.');
-    expect(mechanicalTerm('Though your stamina holds against the shock, you reel.')).toBeNull();
+    // M5 final check: "stamina" joins the check; the repair says "strength".
+    expect(mechanicalTerm('Though your stamina holds against the shock, you reel.')).toBe('stamina');
+    expect(repairWording('Though your stamina holds against the shock, you reel.')).toBe('Though your strength holds against the shock, you reel.');
     expect(mechanicalTerm('You are not outpaced for long.')).toBeNull();
   });
   it('12: a fighter outside the Force is named in the block, with no Force choices against them', () => {

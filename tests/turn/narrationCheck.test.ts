@@ -48,7 +48,7 @@ describe('contradictions from combat pass 1 (D-197)', () => {
   });
   it('issue 5: a Force push marked NOT REACHED narrated as done; saying the character did not get to it passes', () => {
     const narrate = [rec({ n: 2, kind: 'strike', striker: 'A', targetId: 'n1', margin: 5, hit: hit('A', 'rightArm', null) }), rec({ n: 3, targetId: 'n1', advAfter: 5, margin: 28 })];
-    const d = draft(combat({ fighters: [PC, DUELIST], narrate, notes: ['step 1 stance (aggressive): DONE (aggressive stance set)', 'step 2 strike: DONE (hits Duelist 1: no wound, stamina only)', 'step 3 strike: DONE (gains ground; no hit)', 'step 4 Force push: NOT REACHED (past the sequence cap of 3)'] }));
+    const d = draft(combat({ fighters: [PC, DUELIST], narrate, notes: ['step 1 stance (aggressive): DONE (aggressive stance set)', 'step 2 strike: DONE (hits Duelist 1: no wound (winded))', 'step 3 strike: DONE (gains ground; no hit)', 'step 4 Force push: NOT REACHED (past the sequence cap of 3)'] }));
     const bad = 'You press the advantage, driving forward with two quick, calculated cuts that catch your opponent off guard, forcing him to parry hastily as a shallow graze marks his shoulder. Seizing the opening from his stumble, you sweep your hand forward and release a sudden surge of kinetic Force energy, shoving him heavily back across the clearing.';
     // "his stumble" follows the graze the block has on him: a reaction to a hit, not an invented slip (D-236).
     expect(kinds(bad, d)).toEqual(['stepNotReached']);

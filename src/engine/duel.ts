@@ -841,7 +841,10 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     const after = next.opponents.find((o) => o.id === B.id)!;
     const checksLeft = (after.withdrawChecks ?? 0) < TACTICAL_WITHDRAWAL.maxChecks;
     const low = after.vitality <= TACTICAL_WITHDRAWAL.vitalityAtMost * after.maxVitality;
-    if (!after.out && !after.dead && (after.withdraw ?? 0) > 0 && checksLeft && (after.wounds.length > 0 || low)) {
+    // The player nearly beaten (D-268 amended): Spent, Dying or at or below pressWhenFoeAtMost: the Sith presses instead.
+    const foe = next.a;
+    const foeNearlyBeaten = foe.vitality <= 0 || isDying(foe.wounds) || foe.vitality <= TACTICAL_WITHDRAWAL.pressWhenFoeAtMost * foe.maxVitality;
+    if (!after.out && !after.dead && (after.withdraw ?? 0) > 0 && checksLeft && !foeNearlyBeaten && (after.wounds.length > 0 || low)) {
       const fresh = after.wounds.slice(B.wounds.length);
       const swung = advAfter >= TACTICAL_WITHDRAWAL.trackAt && advBefore < TACTICAL_WITHDRAWAL.trackAt;
       const losing = fresh.some((w) => w.severed || atLeast(w.severity, 'severe')) || spentNow === 'B' || (swung && low);
@@ -1042,12 +1045,12 @@ export const partText = (part: string): string => PART_TEXT[part] ?? part;
 
 /**
  * A landed hit in plain words (D-197): what it did, with the location and the severity. Only real hits say "hits".
- * "hits X: moderate wound to the left arm", "hits X: the right leg is severed", "hits X: no wound, stamina only".
+ * "hits X: moderate wound to the left arm", "hits X: the right leg is severed", "hits X: no wound (winded)".
  */
 export function hitText(hit: Pick<Hit, 'severity' | 'part' | 'severed' | 'stun'>, target: string): string {
-  if (hit.stun) return `${SUBDUE_TEXT[hit.stun].verb} ${target}: no wound, stamina only`;
+  if (hit.stun) return `${SUBDUE_TEXT[hit.stun].verb} ${target}: no wound (winded)`;
   if (hit.severed) return `hits ${target}: the ${partText(hit.part)} is severed`;
-  return hit.severity ? `hits ${target}: ${hit.severity} wound to the ${partText(hit.part)}` : `hits ${target}: no wound, stamina only`;
+  return hit.severity ? `hits ${target}: ${hit.severity} wound to the ${partText(hit.part)}` : `hits ${target}: no wound (winded)`;
 }
 
 /**

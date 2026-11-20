@@ -189,7 +189,16 @@ const SEVERITY_LABEL = /\b(?:a|an|the|another|one|his|her|its|their|your)\s+(?:[
 /** "drains your stamina", "taxing its stamina", "strains his stamina" (D-242): the block's "stamina only" in prose. */
 // The verb only: "a drain on his stamina" (a noun) has no natural swap and is left alone.
 // "tests your own endurance" too (pass 5 issue 11).
-const STAMINA_PHRASE = /(?<!\b(?:a|an|the) )\b(drain|tax|strain|sap|test|wear|tire)(s|es|ed|ing)?\b(?:\s+(?:on|at|down))?\s+(your|his|her|its|their|the \w+'s)\s+(?:own\s+)?(?:stamina|endurance)\b/i;
+// "draining your remaining stamina" too (M5 final check).
+const STAMINA_PHRASE = /(?<!\b(?:a|an|the) )\b(drain|tax|strain|sap|test|wear|tire)(s|es|ed|ing)?\b(?:\s+(?:on|at|down))?\s+(your|his|her|its|their|the \w+'s)\s+(?:(?:own|remaining|last)\s+)?(?:stamina|endurance)\b/i;
+/** "Stamina" anywhere in prose (M5 final check: "rattles your stamina"): the block's word. The repair says "strength". */
+const STAMINA_WORD = /\bstamina\b/i;
+/**
+ * "Outpace" in any form (M5 final check: "you step aside and outpace the strike"): engine wording, except in a passage
+ * whose block gives "was outpaced" as a miss reason (the narrator is then telling the block's own reason).
+ */
+const OUTPACE_WORD = /(?<!\b(?:not|never) )\boutpac(?:e|es|ed|ing)\b/i;
+const OUTPACE_SWAP: Readonly<Record<string, string>> = { outpace: 'outmatch', outpaces: 'outmatches', outpaced: 'outmatched', outpacing: 'outmatching' };
 /** Natural words for a stamina phrase: "wears you down", "wearing him down". */
 function staminaWords(m: RegExpExecArray): string {
   const tense = m[2] === 'ing' ? 'wearing' : m[2] === 'ed' ? 'wore' : m[2] ? 'wears' : 'wear';
@@ -220,8 +229,9 @@ const ENGINE_TERMS: readonly [RegExp, string][] = [
   [/\bexchange (?:#|no\.? ?)?\d+\b|#\d+\b|\bbuild-?up exchange\b/i, 'exchange'],
   [/\b(?:DONE|NO HIT|NOT REACHED|FAILED)\b|\bHIT\b/, 'labels'],
   [/\bstamina only\b|\b(?:the )?roll(?:s|ed)? (?:fell|falls|falling) short\b|\bshort of the difficulty\b|\bDC \d/i, 'engine wording'],
-  // "drains your stamina" (D-242); the repair swaps it for natural words.
+  // "drains your stamina" (D-242); the repair swaps it for natural words. Then the bare word (M5 final check).
   [STAMINA_PHRASE, 'stamina'],
+  [STAMINA_WORD, 'stamina'],
   // The step list in prose: "you do not reach your intended strikes", "your remaining sequence" (D-242), "leaving your
   // intended maneuver unreached" (pass 4).
   [/\bintended (?:strikes?|steps?|attacks?|cuts?|maneuvers?|manoeuvres?)\b|\byour (?:remaining|planned|whole) sequence\b|\bunreached\b/i, 'step list'],
@@ -238,11 +248,25 @@ export function mechanicalTerm(sentence: string): string | null {
   }
   return null;
 }
+/** "Steel" as metal, not "nerves of steel" or "steel yourself" (rule 10b). */
+const STEEL_WORD = /\bsteel\b(?!y)(?! (?:yourself|himself|herself|themselves|itself)\b)(?<!\bof steel)/i;
+const STEEL_TEXT = '"steel": two lightsabers are light and energy, not metal; they hiss and crackle, never ring as steel';
+/** The first outcome-list term in a sentence once the words `skip` matches are set aside, or null. */
+function mechanicalTermBesides(sentence: string, skip: RegExp): string | null {
+  return mechanicalTerm(sentence.replace(new RegExp(skip.source, 'gi'), 'pressed'));
+}
 /** "two quick cuts", "three swift strikes" (rule 12). */
 const COUNTED_STRIKES = /\b(two|three|four|five|both)\s+(?:[a-z-]+,?\s+){0,2}?(cuts|strikes|blows|slashes|thrusts|swings|attacks|lunges)\b/i;
 const NUMBER_WORDS: Readonly<Record<string, number>> = { two: 2, both: 2, three: 3, four: 4, five: 5 };
 /** Natural words for a severity label in the fallback (rule 10): the severity is kept, the label is not. */
-const SEVERITY_PROSE: Readonly<Record<string, string>> = { minor: 'light', moderate: 'deep', severe: 'grievous', critical: 'terrible', mortal: 'deadly' };
+// A small set per severity (M5 final check): the repair takes the first one the passage does not use yet.
+const SEVERITY_PROSE: Readonly<Record<string, readonly string[]>> = {
+  minor: ['light', 'shallow', 'slight'],
+  moderate: ['deep', 'painful', 'nasty'],
+  severe: ['grievous', 'savage', 'brutal'],
+  critical: ['terrible', 'devastating', 'ruinous'],
+  mortal: ['deadly', 'fatal', 'killing'],
+};
 
 /** The player character firing a ranged weapon (rule 13): a shot taken, or "your bolt" in the air. */
 const PLAYER_FIRES = /\byou\b[^.]{0,120}?\b(?:fire back|return fire|open fire|fire (?:a|an|off|two|three|twice|again|at|toward|towards|into|from|blindly|wildly|once)|shoot|shoots|shooting|squeez\w+ (?:off|the trigger)|snap\w* off (?:a|an|two)|pull\w* the trigger|loos\w+ (?:a|an|two) (?:shot|bolt)s?)\b|\byour (?:\w+ )?(?:bolt|shot|blast)s?\b/i;
@@ -302,6 +326,10 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
   const survivor = new RegExp(String.raw`\bthe (?:sole |lone |one |single )?(?:surviving|last|final|only|remaining|lone|sole) (?:\w+ )?(?:${survivorNouns})\b(?!s)|\bthe only one (?:left|standing|remaining)\b|\bthe last (?:one|of them)\b|\bthe (?:lone|sole) survivor\b`, 'i');
   const carried = new Set(c.fighters.map((f) => f.weapon));
   const oppBlade = c.fighters.some((f) => f.id !== 'pc' && ['lightsaber', 'trainingSaber', 'melee'].includes(f.weapon));
+  // The block's own miss reason (combatFacts.buildUpLoss): "outpace" in prose then tells it.
+  const outpacedReason = facts.lines.some((l) => /\bwas outpaced\b/.test(l));
+  const saber = (w: string): boolean => w === 'lightsaber' || w === 'trainingSaber';
+  const sabersBothSides = saber(c.fighters[0]?.weapon ?? '') && c.fighters.some((f) => f.id !== 'pc' && saber(f.weapon));
   const add = (kind: NarrationIssueKind, text: string, sentence: string): void => {
     if (!out.some((x) => x.kind === kind && x.sentence === sentence)) out.push({ kind, text, sentence });
   };
@@ -372,8 +400,13 @@ function combatIssues(narrative: string, c: CombatDraft, facts: CombatFacts): Na
     }
     // 16c. Blades locked with an opponent who has none (D-242; pass 3: a B1 "locking blades").
     if (!oppBlade && BLADES_LOCK.test(s) && !NEGATED.test(s)) add('gearNotInBlock', 'no opponent in this fight carries a blade: nobody locks or clashes blades with the player character (they shoot, or fight with what the block lists)', s);
-    // 10. Engine and outcome-list terms in the prose (D-205 R5, enforced D-211).
-    const term = mechanicalTerm(s);
+    // 10b. Steel in a lightsaber duel (M5 final check: "as steel and light meet" between two lightsabers): a blade of
+    // light is not metal. Reworded in code ("energy"), no retry.
+    if (sabersBothSides && STEEL_WORD.test(s)) add('mechanicalTerms', STEEL_TEXT, s);
+    // 10. Engine and outcome-list terms in the prose (D-205 R5, enforced D-211). "Outpace" only when the block gives no
+    // "was outpaced" reason (M5 final check).
+    const found = mechanicalTerm(s) ?? OUTPACE_WORD.exec(s)?.[0] ?? null;
+    const term = found && outpacedReason && OUTPACE_WORD.test(found) ? mechanicalTermBesides(s, OUTPACE_WORD) : found;
     if (term) add('mechanicalTerms', `"${term}" is the outcome list's wording, not prose: show the wound and the moment instead (a deep cut, a grievous wound), never margins, tracks, beats or labels`, s);
     // 4. A step NOT REACHED described as done (whole-sentence negation).
     if (!NOT_DONE.test(s)) {
@@ -682,7 +715,7 @@ export type Recheck = (text: string) => readonly NarrationIssue[];
  */
 export function rewordable(narrative: string, issues: readonly NarrationIssue[], recheck: Recheck): string | null {
   if (!issues.length || !issues.every((i) => i.kind === 'mechanicalTerms')) return null;
-  const reworded = repairWording(narrative);
+  const reworded = repairWording(narrative, { steel: issues.some((i) => i.text === STEEL_TEXT) });
   return reworded !== narrative && recheck(reworded).length === 0 ? reworded : null;
 }
 
@@ -698,8 +731,9 @@ export function settleNarration(narrative: string, draft: TurnDraft, issues: rea
   const combatWrong = issues.some((i) => i.kind !== 'healingNotApplied' && !(i.kind === 'woundMisplaced' && !draft.combat));
   if (draft.combat && combatWrong) return { narrative: combatSummary(draft.combat).join(' '), how: 'summary' };
   const bad = new Set(issues.map((i) => i.sentence));
-  const kept = sentencesOf(narrative).filter((s) => !bad.has(s));
-  return { narrative: kept.length ? kept.join(' ') : 'Time passes as the engine recorded.', how: 'trimmed' };
+  // Paragraphs kept, as in the repair.
+  const kept = paragraphsOf(narrative).map((p) => sentencesOf(p).filter((s) => !bad.has(s)).join(' ')).filter(Boolean);
+  return { narrative: kept.length ? kept.join('\n\n') : 'Time passes as the engine recorded.', how: 'trimmed' };
 }
 
 /** settleNarration with the plain re-check (no known wounds, no previous reply). */
@@ -775,25 +809,51 @@ export function combatSummary(c: CombatDraft): string[] {
  * strike" -> "a deadly strike"), so the wound and its place survive. No sentence is ever removed: one that still has an
  * engine term afterwards is left as it is, and the caller's re-check then falls back to the retry or the summary.
  */
-export function repairWording(narrative: string): string {
-  return sentencesOf(narrative)
-    .map((sentence) => {
-      let fixed = sentence;
-      // Swap the severity word of each label, one label at a time (a sentence may hold several).
-      for (let i = 0; i < 4; i++) {
-        const m = STAMINA_PHRASE.exec(fixed);
-        if (!m) break;
-        fixed = fixed.slice(0, m.index) + staminaWords(m) + fixed.slice(m.index + m[0].length);
-      }
-      for (const [re, words] of WORD_SWAPS) fixed = fixed.replace(new RegExp(re.source, 'gi'), words);
-      for (let i = 0; i < 8; i++) {
-        const m = SEVERITY_LABEL.exec(fixed);
-        if (!m) break;
-        const label = m[0].replace(/\b(minor|moderate|severe|critical|mortal)\b/i, (w) => SEVERITY_PROSE[w.toLowerCase()] ?? w);
-        if (label === m[0]) break;
-        fixed = fixed.slice(0, m.index) + label + fixed.slice(m.index + m[0].length);
-      }
-      return fixed;
-    })
-    .join(' ');
+export function repairWording(narrative: string, opts: { steel?: boolean } = {}): string {
+  // Words already in the passage, and each one the repair puts in: a severity word is never used twice (M5 final check:
+  // "grievous" three times in one paragraph).
+  const used = new Set(wordsOf(narrative));
+  const severityWord = (severity: string): string => {
+    const options = SEVERITY_PROSE[severity.toLowerCase()];
+    if (!options) return severity;
+    const pick = options.find((w) => !used.has(w)) ?? options[0]!;
+    used.add(pick);
+    return pick;
+  };
+  const fixSentence = (sentence: string): string => {
+    let fixed = sentence;
+    for (let i = 0; i < 4; i++) {
+      const m = STAMINA_PHRASE.exec(fixed);
+      if (!m) break;
+      fixed = fixed.slice(0, m.index) + staminaWords(m) + fixed.slice(m.index + m[0].length);
+    }
+    // A sentence that already says "unable to" loses the card's "out of the fight" clause instead of saying it twice
+    // (M5 final check: "unable to stand, left unable to fight on").
+    if (/\bunable to\b/i.test(fixed)) fixed = fixed.replace(/,?\s*(?:and |left |leaving (?:him|her|it|them|you) )?(?:entirely |completely )?out of the fight\b/gi, '');
+    for (const [re, words] of WORD_SWAPS) fixed = fixed.replace(new RegExp(re.source, 'gi'), words);
+    // The bare word last, after the phrases with natural swaps of their own.
+    fixed = fixed.replace(/\bstamina\b/gi, (w) => (w[0] === 'S' ? 'Strength' : 'strength'));
+    // Rule 10b: only when the check found steel in a lightsaber duel.
+    if (opts.steel) fixed = fixed.replace(new RegExp(STEEL_WORD.source, 'gi'), (w) => (w[0] === 'S' ? 'Energy' : 'energy'));
+    fixed = fixed.replace(new RegExp(OUTPACE_WORD.source, 'gi'), (w) => {
+      const swap = OUTPACE_SWAP[w.toLowerCase()] ?? w;
+      return w[0] === 'O' ? swap[0]!.toUpperCase() + swap.slice(1) : swap;
+    });
+    // Swap the severity word of each label, one label at a time (a sentence may hold several).
+    for (let i = 0; i < 8; i++) {
+      const m = SEVERITY_LABEL.exec(fixed);
+      if (!m) break;
+      const label = m[0].replace(/\b(minor|moderate|severe|critical|mortal)\b/i, (w) => severityWord(w));
+      if (label === m[0]) break;
+      fixed = fixed.slice(0, m.index) + label + fixed.slice(m.index + m[0].length);
+    }
+    return fixed;
+  };
+  // Paragraphs are kept (M5 final check: every reworded long fight came back as one paragraph).
+  return paragraphsOf(narrative)
+    .map((p) => sentencesOf(p).map(fixSentence).join(' '))
+    .join('\n\n');
 }
+
+/** The paragraphs of a narration, split on blank lines as the feed renders them. */
+const paragraphsOf = (text: string): string[] => text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
