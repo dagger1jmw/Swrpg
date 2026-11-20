@@ -40,6 +40,22 @@ export function schedule(specs: readonly FightSpec[]): (age: number, day: number
   };
 }
 
+/**
+ * D-258 (Jared, 2026-11-19): serious duels against Force users cut to Legends-plausible lifetime counts (Obi-Wan 13,
+ * Luke about 20, Anakin about 30, the Average four), their XP replaced by other serious fights; these counts were tuned
+ * on the gated seed so the milestones and war-year shares stay in their gates.
+ */
+export const OBIWAN_MANDO = 12;
+export const LUKE_VONG = 6;
+export const ANAKIN_PADAWAN_ELITES = 3;
+export const ANAKIN_WAR_MANDO = 2;
+export const ANAKIN_LATER_MANDO = 2;
+export const AVERAGE_SKIRMISHES = 0.95;
+export const ANAKIN_MASTER_19 = 11;
+export const ANAKIN_MASTER_21 = 10;
+export const AVERAGE_DUEL_GAP = -25;
+export const ANAKIN_WAR_B1 = 25;
+
 /** Average: Jedi Guardian, the default template, standard effort; peacetime: one real skirmish a year from Knight (D-40). */
 export const AVERAGE: LifeProfile = {
   archetype: 'jediGuardian',
@@ -53,8 +69,15 @@ export const AVERAGE: LifeProfile = {
   mainForm: 'soresu',
   secondForm: 'ataru',
   seed: 'average',
-  // Peacetime: one real mission a year from Padawan on (D-143 A), against a squad of line troopers.
-  fights: schedule([{ from: 12, to: 200, perYear: 1, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 }]),
+  // Peacetime: about one real mission a year from Padawan on (D-143 A), against a squad of line troopers. D-258: 0.95 a
+  // year (was 1) brings the highest form's 41 back to 16.0 +/- 0.1 on the gated seed (15.99) after the morale rule; 0.85
+  // and 0.9 drift a mission into the age-20 year, where its drill-bank release lifts that year's XP by 10-25%.
+  fights: schedule([
+    { from: 12, to: 200, perYear: AVERAGE_SKIRMISHES, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
+    // A handful of duels against Force users over a life (D-258, Jared): one every 15 years from 25 to 80 (four, at 34,
+    // 49, 64 and 79), against weaker duelists (gap -15: at -5 a long duel alone ended the day over the tiredness gate).
+    { from: 25, to: 80, perYear: 1 / 15, stakes: 'serious', gap: AVERAGE_DUEL_GAP },
+  ]),
 };
 
 /**
@@ -106,12 +129,13 @@ export const OBIWAN: LifeProfile = {
     { from: 35, to: 38, perYear: 30, stakes: 'serious', gap: -30, opponent: 'battleDroid', count: 10 },
     { from: 35, to: 38, perYear: 10, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
     { from: 35, to: 38, perYear: 10, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 4 },
-    { from: 35, to: 36, perYear: 10, stakes: 'serious', gap: 0 },
-    { from: 36, to: 37, perYear: 11, stakes: 'serious', gap: 0 },
-    // D-206 retune (longer duels after the precognition and pressure retune): the last war year 12 -> 11 duels.
-    // D-244 retune (fight counts only): the second war year 12 -> 10 duels (its share rose to 32%), then 11 when D-159
-    // moved the gates to the 20-seed median (median 24.8% at 36).
-    { from: 37, to: 38, perYear: 11, stakes: 'serious', gap: 0 },
+    // Duels against Force users (D-258, Jared: Legends-plausible counts, about 12-15 in a life; Ventress, Grievous,
+    // Dooku, Maul): 4 / 5 / 4 in the war years (were 10 / 11 / 11; D-206, D-244 and D-159 had tuned them for the share).
+    { from: 35, to: 36, perYear: 4, stakes: 'serious', gap: 0 },
+    { from: 36, to: 37, perYear: 5, stakes: 'serious', gap: 0 },
+    { from: 37, to: 38, perYear: 4, stakes: 'serious', gap: 0 },
+    // Their XP from other serious fights (D-258): Death Watch Mandalorian squads (Legends: Mandalore, the Clone Wars).
+    { from: 35, to: 38, perYear: OBIWAN_MANDO, stakes: 'serious', gap: 0, opponent: 'mandalorian', count: 3 },
   ]),
 };
 
@@ -158,23 +182,28 @@ export const ANAKIN: LifeProfile = {
     { from: 9, to: 10, perYear: 55, stakes: 'spar', gap: 15 },
     { from: 10, to: 19, perYear: 160, stakes: 'spar', gap: 15 },
     { from: 10, to: 19, perYear: 15, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
-    { from: 10, to: 19, perYear: 4, stakes: 'serious', gap: -5 },
+    // Duels against Force users (D-258, Jared: about 25-30 in a life): 1 a year as a Padawan (was 4), 4 a year in the
+    // war (was 8), 0.15 a year after it (was 2); their XP from elite squads and Mandalorians.
+    { from: 10, to: 19, perYear: 1, stakes: 'serious', gap: -5 },
+    { from: 10, to: 19, perYear: ANAKIN_PADAWAN_ELITES, stakes: 'serious', gap: -5, opponent: 'eliteTrooper', count: 4 },
     // The Clone Wars (19-22): droid armies, elite squads and duels; the first year heaviest.
-    { from: 19, to: 22, perYear: 57, stakes: 'serious', gap: -30, opponent: 'battleDroid', count: 10 },
+    { from: 19, to: 22, perYear: ANAKIN_WAR_B1, stakes: 'serious', gap: -30, opponent: 'battleDroid', count: 10 },
     { from: 19, to: 22, perYear: 20, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
     { from: 19, to: 22, perYear: 8, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
-    { from: 19, to: 22, perYear: 8, stakes: 'serious', gap: 0 },
+    { from: 19, to: 22, perYear: 4, stakes: 'serious', gap: 0 },
+    { from: 19, to: 22, perYear: ANAKIN_WAR_MANDO, stakes: 'serious', gap: 0, opponent: 'mandalorian', count: 3 },
     { from: 19, to: 20, perYear: 9, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
     // D-244 retune (fight counts only, after the weapon-arm rule and its duel-length retune): the first war year's
     // combat share fell to 20%; more war fights did not lift it (the daily combat cap binds), so sessions with his
     // master (he and Obi-Wan sparred between campaigns): 25 on the old fixed seed, then tuned to the 20-seed median
     // (D-159 amended): 11 in the first war year (median 29.4% at 19) and 10 in the third (median 29.6% at 21).
-    { from: 19, to: 20, perYear: 11, stakes: 'spar', gap: 15 },
-    { from: 21, to: 22, perYear: 10, stakes: 'spar', gap: 15 },
+    { from: 19, to: 20, perYear: ANAKIN_MASTER_19, stakes: 'spar', gap: 15 },
+    { from: 21, to: 22, perYear: ANAKIN_MASTER_21, stakes: 'spar', gap: 15 },
     { from: 19, to: 20, perYear: 2, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
     { from: 22, to: 200, perYear: 300, stakes: 'spar', gap: 0, partners: 3 },
     { from: 22, to: 200, perYear: 10, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
-    { from: 22, to: 200, perYear: 2, stakes: 'serious', gap: 0 },
+    { from: 22, to: 200, perYear: 0.15, stakes: 'serious', gap: 0 },
+    { from: 22, to: 200, perYear: ANAKIN_LATER_MANDO, stakes: 'serious', gap: 0, opponent: 'mandalorian', count: 3 },
   ]),
 };
 
@@ -218,6 +247,9 @@ export const LUKE: LifeProfile = {
     // The Galactic Civil War (stormtroopers), then the Yuuzhan Vong War (warriors and duels).
     { from: 19, to: 24, perYear: 30, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
     { from: 44, to: 50, perYear: 14, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 4 },
-    { from: 44, to: 50, perYear: 6, stakes: 'serious', gap: 0 },
+    // Duels against Force users (D-258, Jared: about 20 in a life; were 36): 3.4 a year in the Vong war; their XP from
+    // Yuuzhan Vong warrior groups (melee: an amphistaff never severs).
+    { from: 44, to: 50, perYear: 3.4, stakes: 'serious', gap: 0 },
+    { from: 44, to: 50, perYear: LUKE_VONG, stakes: 'serious', gap: 0, opponent: 'yuuzhanVongWarrior', count: 3 },
   ]),
 };

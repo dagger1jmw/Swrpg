@@ -273,3 +273,16 @@ The same 20-seed results, with the gate on the mean of each profile's war years 
 | Obi-Wan, ages 35-37 (20-30%) | 25.1 | 24.2 | 23.0-26.5 | 21.9-27.4 | 0 |
 
 With this gate no war-share gate fails on any of the 20 seeds. The only remaining seed failures across the four profiles: `average-s5` (K), `average-s18` (Y_avg) and `anakin-s18` (81 at 16.21 y against 16.20, accepted by Jared as seed spread). The gated seed s7 passes every gate.
+
+## Rerun after D-254 to D-258 (morale, the lasting Endurance rules, the duel schedules), 2026-11-20
+
+npm run spread on the final code (D-258 schedules; old Y_avg table, D-259). The gated seed s7 passes every gate of all four profiles.
+
+| Profile | Gate failures (seeds) | Milestone medians (21 / 41 / 61 / 81 / 101) | War-year mean, median (range) |
+|---|---|---|---|
+| Average | K: 1 (s5); Y_avg: 3 (s12, s15, s16); day-end tiredness: 3 (average, s4, s11) | 4.18 / 15.99 / 33.46 / 55.15 / 82.20 | - |
+| Obi-Wan | none | 3.25 / 12.47 / 23.57 / 39.04 / 59.23 | 27.9% (26.5-28.9%) |
+| Anakin | war share: 2 (s13 24.0%, s15 35.2%) | 1.28 / 3.85 / 7.80 / 14.49 / 20.59 | 29.4% (24.0-35.2%) |
+| Luke | none | 1.86 / 6.08 / 12.57 / 21.44 / 33.59 | - |
+
+New since the last run: the Average's tiredness failures (its four duels, D-258: a long duel alone can end a day over 1.1) and two more Y_avg seeds; Anakin's two war-share seeds are as many as D-159's target allows.
