@@ -12,7 +12,7 @@ import { TEST_YEAR } from './dates';
 import { FORM_IDS } from '../../src/data/skills';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { levelExact } from '../../src/engine/curve';
-import { selectE, selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
+import { selectCapacities, selectE, selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
 import type { Priority } from '../../src/features/routines/selectors';
 import { advanceByRoutine, nextWakeAbs } from '../../src/state/advanceRoutine';
 import { applyEvents } from '../../src/state/applyEvents';
@@ -26,7 +26,8 @@ import { sparGroupLevel } from '../../src/engine/appliedExperience';
 import { baseHealDays } from '../../src/engine/healing';
 import { advanceTime } from '../../src/state/advanceTime';
 import { MINION_KINDS } from '../../src/data/npcGen.config';
-import { currentTarget, disengageContest, fighterEffectiveLevel, runUntilBeat, startDuel, type DuelContext, type DuelState, type Fighter } from '../../src/engine/duel';
+import { currentTarget, disengageContest, fighterEffectiveLevel, runUntilBeat, startDuel, type DuelContext, type DuelState, type ExchangeRecord, type Fighter } from '../../src/engine/duel';
+import { FORCE_USER_MIN_LEVEL } from '../../src/data/forceResistance.config';
 import { capacity } from '../../src/engine/fatigue';
 import { forceCapacity } from '../../src/engine/forceMeter';
 import { buildPlayerFighter } from '../../src/features/combat/build';
@@ -83,7 +84,7 @@ export interface LifeProfile {
 
 export interface LifeResult {
   /** This life's mortal wounds taken and Dying states entered, its disengages and its Sith opponents' withdrawals (reporting only). */
-  fightStats?: { mortal: number; dying: number; withdrew: number; sithWithdrew: number };
+  fightStats?: { mortal: number; dying: number; withdrew: number; sithWithdrew: number; skipped: number };
   xp: Record<string, number>;
   milestones: Record<number, number>;
   /** Main-specialty XP per year (the most-trained form's for form profiles), transfers excluded. */
@@ -158,7 +159,7 @@ function setRoutine(p: LifeProfile, s: GameState, rank: string): GameState {
 }
 
 /** Per-run fight statistics (reported by the lifetime tests, D-143 J). */
-export const fightStats = { fights: 0, won: 0, lost: 0, wounds: 0, stabilized: 0, mortal: 0, withdrew: 0, sithWithdrew: 0 };
+export const fightStats = { fights: 0, won: 0, lost: 0, wounds: 0, stabilized: 0, mortal: 0, withdrew: 0, sithWithdrew: 0, skipped: 0 };
 
 /** A minion of a kind at a level (the kind's weapon, armor, coordination and Vitality; npc-generation §6, D-158). */
 function minionFighter(kindId: string, id: string, level: number, beskar: boolean): Fighter {
@@ -229,7 +230,7 @@ function duelistFighter(id: string, level: number, vitality: number): Fighter {
  * stronger or more above its own). Legends: Obi-Wan pulling back from Grievous. A failed contest fights on to the next
  * beat; a won one ends the fight as fled.
  */
-export const PLAYER_WITHDRAWAL = { nearSpent: 0.2, losingTrack: -2, stronger: 10, enabled: true };
+export const PLAYER_WITHDRAWAL = { nearSpent: 0.2, losingTrack: -2, stronger: 10, enabled: true, strongerIgnoresFatigue: false };
 
 export function withdrawReason(d: DuelState, woundsBefore: number): 'severe' | 'nearSpent' | 'stronger' | null {
   const a = d.a;
@@ -237,7 +238,9 @@ export function withdrawReason(d: DuelState, woundsBefore: number): 'severe' | '
   if (fresh.some((w) => w.severed || SEVERITIES.indexOf(w.severity) >= SEVERITIES.indexOf('severe'))) return 'severe';
   if (a.vitality <= a.maxVitality * PLAYER_WITHDRAWAL.nearSpent && d.advantage <= PLAYER_WITHDRAWAL.losingTrack) return 'nearSpent';
   const t = currentTarget(d);
-  return t !== null && fighterEffectiveLevel(t) - fighterEffectiveLevel(a) >= PLAYER_WITHDRAWAL.stronger ? 'stronger' : null;
+  // Candidate (d), measured only: the profile's own level without fatigue (its tiredness is not the opponent's strength).
+  const mine = fighterEffectiveLevel(PLAYER_WITHDRAWAL.strongerIgnoresFatigue ? { ...a, meters: { ...a.meters, p: 0 } } : a);
+  return t !== null && fighterEffectiveLevel(t) - mine >= PLAYER_WITHDRAWAL.stronger ? 'stronger' : null;
 }
 export const wantsToWithdraw = (d: DuelState, woundsBefore: number): boolean => withdrawReason(d, woundsBefore) !== null;
 /** Disengages by trigger and opponent (reporting only): "stronger vs battleDroid" -> count. */
@@ -247,7 +250,9 @@ export const withdrawLog: Record<string, number> = {};
 export function fightWithWithdrawal(start: DuelState, ctx: DuelContext, day: number, label = ''): DuelState {
   let d = start;
   for (let guard = 0; guard < 3000 && !d.end; guard++) {
-    d = runUntilBeat(d, ctx, day, 'beat', 3000).state;
+    const run = runUntilBeat(d, ctx, day, 'beat', 3000);
+    d = run.state;
+    recordMortals(d, run.records);
     const why = d.end || !PLAYER_WITHDRAWAL.enabled ? null : withdrawReason(d, start.a.wounds.length);
     if (!why) continue;
     const c = disengageContest(d);
@@ -258,6 +263,63 @@ export function fightWithWithdrawal(start: DuelState, ctx: DuelContext, day: num
     }
   }
   return d;
+}
+
+/**
+ * Candidate (c) (Jared, 2026-11-20; measured only, off): the harness does not start an optional fight (any fight
+ * outside the profile's war years: missions, spars, peacetime duels) while a fatigue meter is past its capacity, as a
+ * sensible Jedi would not take a mission exhausted. Scheduled war fights still happen.
+ */
+export const READINESS = { enabled: false };
+const inWar = (p: LifeProfile, age: number): boolean => (p.warAges ?? []).some(([a, b]) => age >= a && age < b);
+function pastCapacity(s: GameState): boolean {
+  const c = selectCapacities(s);
+  const m = s.health.meters;
+  return m.p > c.p || m.f > c.f || (m.m ?? 0) > c.m;
+}
+
+/** One mortal wound taken by the profile, with its context (the D-267 diagnosis; reporting only). */
+export interface MortalEvent {
+  age: number;
+  rank: string;
+  stakes: string;
+  /** The scheduled opponent: a minion kind, or duelist. */
+  kind: string;
+  weapon: string;
+  forceUser: boolean;
+  intent: string;
+  margin: number;
+  quality: string;
+  part: string;
+  /** The profile's meters over capacity at the fight's start and right after the hit. */
+  start: { p: number; f: number; m: number };
+  atHit: { p: number; f: number; m: number };
+}
+export const mortalEvents: MortalEvent[] = [];
+let fightContext: Omit<MortalEvent, 'weapon' | 'forceUser' | 'intent' | 'margin' | 'quality' | 'part' | 'atHit'> & { caps: { p: number; f: number; m: number } } | null = null;
+
+function recordMortals(d: DuelState, records: readonly ExchangeRecord[]): void {
+  if (!fightContext) return;
+  const ctx = fightContext;
+  for (const r of records) {
+    if (!r.hit || r.hit.avoided || r.hit.by !== 'B' || r.hit.redirected || r.hit.severity !== 'mortal') continue;
+    const o = d.opponents.find((x) => x.id === r.targetId);
+    const ratio = (v: number, c: number): number => (c > 0 ? Math.round((v / c) * 100) / 100 : 0);
+    mortalEvents.push({
+      age: ctx.age,
+      rank: ctx.rank,
+      stakes: ctx.stakes,
+      kind: ctx.kind,
+      weapon: o?.weapon ?? '?',
+      forceUser: Math.max(o?.forceSense ?? 0, o?.forceResistance ?? 0) >= FORCE_USER_MIN_LEVEL,
+      intent: o?.intent ?? 'none',
+      margin: Math.round(r.margin * 10) / 10,
+      quality: r.hit.quality,
+      part: r.hit.part,
+      start: ctx.start,
+      atHit: { p: ratio(d.a.meters.p, ctx.caps.p), f: ratio(d.a.meters.f, ctx.caps.f), m: ratio(d.a.meters.m ?? 0, ctx.caps.m) },
+    });
+  }
 }
 
 /** One real duel (D-143 B): the engine resolves it; health and progression apply it through their events. */
@@ -285,6 +347,12 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
   const start = startDuel(player, sparring === 'trainingSaber' ? opponents.map((o) => (o.weapon === 'lightsaber' ? { ...o, weapon: 'trainingSaber' as const } : o)) : opponents, s.meta.rngState);
   // A spar is a session of bouts up to 34 exchanges (D-168); a real fight runs to its end, or until the profile
   // disengages (D-264).
+  {
+    const c = selectCapacities(s);
+    const m = s.health.meters;
+    const r = (v: number, cap: number): number => (cap > 0 ? Math.round((v / cap) * 100) / 100 : 0);
+    fightContext = { age: Math.floor(age), rank: s.ranks.rank, stakes: f.stakes, kind: f.opponent ?? 'duelist', start: { p: r(m.p, c.p), f: r(m.f, c.f), m: r(m.m ?? 0, c.m) }, caps: { p: c.p, f: c.f, m: c.m } };
+  }
   const sess = sparring ? runSession(start, newSession(), ctx, s.clock.now.day) : null;
   const d = sess ? sess.duel : fightWithWithdrawal(start, ctx, s.clock.now.day, `${f.opponent ?? 'duelist'} ${f.stakes} at age ${Math.floor(age)}`);
   if (!sess) {
@@ -368,8 +436,16 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
     }
     const before = { ...s.progression.skills };
     // Fights in the morning, before the day's routine: real duels (D-143 B).
-    const fights = tankDays > 0 ? [] : (p.fights?.(age, day) ?? []);
-    for (const f of fights) {
+    const scheduled = tankDays > 0 ? [] : (p.fights?.(age, day) ?? []);
+    const fights: Fight[] = [];
+    for (const f of scheduled) {
+      // Fight readiness (candidate c, measured only): an optional fight (outside the war years) is skipped while a
+      // meter is past its capacity.
+      if (READINESS.enabled && !inWar(p, age) && pastCapacity(s)) {
+        fightStats.skipped += 1;
+        continue;
+      }
+      fights.push(f);
       const before = s;
       const fr = realFight(s, p, f, (fightStats.fights += 1), age);
       s = fr.s;
@@ -434,6 +510,6 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
   }
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));
   // This life's mortal wounds and Dying states (every Dying profile is stabilized, so the stabilizations count them).
-  const fights = { mortal: fightStats.mortal - statsBefore.mortal, dying: fightStats.stabilized - statsBefore.stabilized, withdrew: fightStats.withdrew - statsBefore.withdrew, sithWithdrew: fightStats.sithWithdrew - statsBefore.sithWithdrew };
+  const fights = { mortal: fightStats.mortal - statsBefore.mortal, dying: fightStats.stabilized - statsBefore.stabilized, withdrew: fightStats.withdrew - statsBefore.withdrew, sithWithdrew: fightStats.sithWithdrew - statsBefore.sithWithdrew, skipped: fightStats.skipped - statsBefore.skipped };
   return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, maxDayEndFNoSeriousFight, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge, fightStats: fights };
 }

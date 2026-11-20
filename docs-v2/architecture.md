@@ -979,7 +979,9 @@ The clock and the module contract come first, before any feature.
 - **Character traits (D-143 M, end of production):** first entry Tactical Fighter, +1 to the sequence cap. Traits are
   also where specialists improve against odds that stay as they are for the average fighter (Jared, D-243): for
   example a gunslinger trait for a blaster career (the smuggler at 30 against 4 line troopers in the open wins 64%,
-  accepted as is for an untraited career).
+  accepted as is for an untraited career). Blink (Jared, 2026-11-20; D-267; record only, not built): a latent
+  precognition for a character who is not Force-sensitive (Legends: Nova Stihl), a small version of precognitive
+  defense with no Force load.
 - **M8 equipment (D-158):** saber-resistant armor and weapons for anyone but Mandalorians (cortosis weave, personal
   beskar, phrik); until then STUB_WEAPONS gives saber resistance only through the Mandalorian beskar-by-era rule.
 - **M6 secondary-form growth (Jared, 2026-11-18):** fighting experience should partly carry over between forms. Design

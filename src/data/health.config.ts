@@ -54,6 +54,11 @@ export const NONSABER_WOUND_BY_MARGIN: readonly (readonly [number, number])[] = 
 /** Non-saber overflow is banded too (Jared, D-161 option C): a hit past an empty Vitality is at least this wound damage (minor). */
 export const NONSABER_OVERFLOW_MIN_W = 1;
 /**
+ * Candidate (b) (Jared, 2026-11-20; measured only, 0 = off): a non-saber hit is mortal only from this strike margin;
+ * below it the wound stops at critical (W 49).
+ */
+export const NONSABER_MORTAL = { minMargin: 0 };
+/**
  * A hazard's severity hint read as a strike margin on the non-saber curve (D-161): hazards hurt the body directly (a
  * dislocation, a burn), so severity 1 gives a minor wound (Jared: sparring accidents are "minor wounds usually"), 2
  * moderate, 3 severe for a fall.

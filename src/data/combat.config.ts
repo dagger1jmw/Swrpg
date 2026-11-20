@@ -78,6 +78,14 @@ export const NARRATION_FALLBACK = { maxLines: 10, maxKeyEvents: 5, maxLineChars:
  * after the severed-leg rule (D-198) shortened duels; back to min(0.5, FS / 200) in D-244 after the weapon-arm rule.
  */
 export const PRECOG = { load: 0.4, maxChance: 0.5, perForceSense: 1 / 200, centeredBonus: 0.1, maxForceMeter: 1.0 } as const;
+/**
+ * Candidate (a) (Jared, 2026-11-20; measured only, off): danger sense softening a killing blow, part of precognitive
+ * defense (Legends: precognition, danger sense and battle precognition are one power). When the defender's precognition
+ * is used and does not avoid a hit that would be mortal, it gets a second chance to drop the wound one step (to
+ * critical): min(maxChance, Force Sense x perForceSense), halved against a Force-user attacker (whose Force use clouds
+ * the defender's foresight), for PRECOG.load more Force load.
+ */
+export const PRECOG_SOFTEN = { enabled: false, maxChance: 0.6, perForceSense: 1 / 150, vsForceUser: 0.5 };
 export const FORCE_INSIGHT = { minForceSense: 60, gapAtLeast: 15, perForceSense: 1 / 200, lightBonus: 0.1, advantage: 2 } as const;
 export const SHATTERPOINT_COMBAT = { dc: 15, advantage: 3, forceLoad: 0.3 } as const;
 
