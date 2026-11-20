@@ -94,10 +94,19 @@ export function rollLocation(rng: RngState, weights: Readonly<Record<BodyPart, n
   return [entries[entries.length - 1]![0], next];
 }
 
-/** The limb rule (health §5): a lightsaber wound of 35+ to a limb or hand severs it. */
-export function severs(weapon: WeaponKind, part: BodyPart, W: number): boolean {
-  return weapon === 'lightsaber' && LIMBS.includes(part) && W >= SEVERING.at;
+/**
+ * The limb rule (health §5): a lightsaber wound of 35+ to a limb or hand severs it. A non-saber blade (a vibroblade, an
+ * amphistaff; the melee kind) severs only on a critical hit against an unarmored target who is not a Force user (Jared,
+ * D-260). Other weapons never sever; beskar blades and the like belong to M8.
+ */
+export function severs(weapon: WeaponKind, part: BodyPart, W: number, target: { quality?: HitQuality; armor?: ArmorKind; forceUser?: boolean } = {}): boolean {
+  if (!LIMBS.includes(part)) return false;
+  if (weapon === 'lightsaber') return W >= SEVERING.at;
+  // A blade's wound follows the margin and stops near W 30 (D-161), so its threshold is a severe wound (design default).
+  return weapon === 'melee' && W >= BLADE_SEVER_AT && target.quality === 'critical' && target.armor === 'none' && target.forceUser === false;
 }
+/** A non-saber blade severs at a severe wound or worse (W 20+; D-260 design default). */
+export const BLADE_SEVER_AT = 20;
 
 /**
  * Hazard damage (D-149): D = base x severity multiplier. The wound part follows the non-saber curve (D-161): the

@@ -154,6 +154,15 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
     limb. The strike roll takes -2 (combat.config AIMED_STRIKE) and the chosen part replaces the
     location roll (health section 5); a part already lost falls back to the roll. The aim is spent
     on the next strike. The intent call maps typed input such as "go for his head".
+  Strike intent (D-260): each NPC fighter strikes to kill, to disarm or to capture (combat.config
+    INTENT_WEIGHTS, strikeIntentFor; design defaults). Jedi disarm (the weapon hand and the limbs,
+    the marks of contact) and kill only in lethal stakes; Sith, soldiers, mercenaries,
+    Mandalorians, the Yuuzhan Vong and everyone else kill (torso and head); a fighter the scene
+    or a contract sets to bring the player in alive (combatStarted wantAliveRefs) captures (limbs
+    and the weapon hand, and no hit past critical). Intent replaces the striker's location
+    weights; it is not an aimed strike, so there is no -2. The player has no intent: the base
+    roll, or an aimed strike as above. The narration block states each opponent's intent. The
+    section 8 tables use fighters with no intent and are unchanged.
   Opening: +2 advantage. Created by winning a feint, taunt or trick contest
     (d20 + Charisma, Intelligence or form level / 10 vs d20 + Willpower or Force Sense / 10),
     or by an opponent's natural 1 in a build-up exchange.

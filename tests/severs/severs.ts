@@ -31,11 +31,13 @@ const AVG_OPTS = { crossLevels: { highestForm: [24, 39, 58], forceControl: [14, 
 const P = { average: [AVERAGE, 95, AVG_OPTS], anakin: [ANAKIN, 70, {}], obiwan: [OBIWAN, 70, {}], luke: [LUKE, 70, {}] } as const;
 const cfg = (label: string, profile: keyof typeof P, morale: boolean, extra: Partial<SeverConfig> = {}): SeverConfig => ({ label, profile, p: P[profile][0], years: P[profile][1], opts: P[profile][2], morale, ...extra });
 
-/** The configurations, in output order (as the old per-configuration files). */
+/**
+ * The configurations, in output order: the rules as they are (strike intent, D-260; morale on), and the D-257 sever
+ * chance of 0.1 on top, measured only. (Morale off and the A / B candidates answered D-256 and D-257; see decisions.)
+ */
 export const SEVER_CONFIGS: readonly SeverConfig[] = [
-  ...(['anakin', 'average', 'luke', 'obiwan'] as const).flatMap((n) => [cfg(`${n} morale off`, n, false), cfg(`${n} morale on`, n, true)]),
-  ...(['anakin', 'luke', 'obiwan'] as const).flatMap((n) => [cfg(`${n} A: sever at 50`, n, true, { severAt: 50 }), cfg(`${n} B: at 50, limb share x0.5`, n, true, { severAt: 50, limbShare: 0.5 })]),
-  ...(['anakin', 'luke', 'obiwan'] as const).map((n) => cfg(`${n} D: sever chance 0.1`, n, true, { chance: 0.1 })),
+  ...(['anakin', 'average', 'luke', 'obiwan'] as const).map((n) => cfg(`${n} now`, n, true)),
+  ...(['anakin', 'average', 'luke', 'obiwan'] as const).map((n) => cfg(`${n} + sever chance 0.1`, n, true, { chance: 0.1 })),
 ];
 
 /** Sets a configuration's switches for one job and puts every one back afterwards (one shard runs many configurations). */

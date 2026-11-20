@@ -425,6 +425,10 @@ export function describeCombat(c: CombatDraft): string[] {
   lines.push(`Weapons (the only ones in this fight): ${c.fighters.map((f) => `${f.name}: ${f.weaponName ? `an ${f.weaponName}, ` : ''}${weaponText(f.weapon)}${f.bladeColor ? `, ${f.bladeColor} blade` : ''}${f.form ? ` (${SKILL_BY_ID.get(f.form)?.name ?? f.form})` : ''}`).join('; ')}.`);
   // Armor as the engine has it (D-216; pass 2 gave an unarmored Jedi "your armor"): nobody wears what is not listed.
   if (c.fighters.some((f) => f.armor !== undefined)) lines.push(`Armor (the only armor in this fight): ${c.fighters.map((f) => `${f.name}: ${!f.armor || f.armor === 'none' ? 'none' : `${f.armorName ? `${f.armorName}, ` : ''}${f.armor}${f.saberResistant ? ' (saber-resistant: a lightsaber does not cut through it easily)' : ''}`}`).join('; ')}.`);
+  // Strike intent (D-260): what each opponent is trying to do; the hits in the list already follow it.
+  const INTENT_TEXT: Readonly<Record<string, string>> = { kill: 'to kill (torso and head)', disarm: 'to disarm (the weapon hand and the limbs)', capture: 'to capture (limbs and the weapon hand; no killing blow)' };
+  const intents = c.fighters.filter((f) => f.intent).map((f) => `${f.name} strikes ${INTENT_TEXT[f.intent!] ?? f.intent}`);
+  if (intents.length) lines.push(`Intent: ${intents.join('; ')}.`);
   // Cover between shooters (D-243; pass 4 issue 7: the narrated beat in the ruins put nobody behind anything).
   if (c.cover) lines.push('Cover: the shooters on both sides fire from behind cover (the terrain has it); show them using it.');
   lines.push(...facts.lines);

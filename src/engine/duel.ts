@@ -4,8 +4,10 @@
 // ally, D-143 E) neither attack nor count. The engine never asks the AI anything: every roll, hit and wound is here.
 import {
   ADVANTAGE_MAX,
+  INTENT_WEIGHTS,
   MORALE,
   type MoraleProfile,
+  type StrikeIntent,
   BEAT_EVERY,
   BEAT_TRACK,
   BUILD_UP,
@@ -48,7 +50,7 @@ import { basicRoll, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
 import { effectiveSeverity, isDying, isIncapacitated, killsWhileDying, takesMinionOut, woundPenalty, type Wound } from './wounds';
 import type { ForceActionRecord } from './combatForce';
-import type { BodySize, ForceTrait } from '../data/forceResistance.config';
+import { FORCE_USER_MIN_LEVEL, type BodySize, type ForceTrait } from '../data/forceResistance.config';
 import { rollBoutHazards, type TerrainHazard } from './terrainHazard';
 
 export type SideId = 'A' | 'B';
@@ -122,6 +124,8 @@ export interface Fighter {
   bladeColor?: string;
   /** Morale (D-256): NPC opponents only; absent = never checks (the player, test fighters). */
   morale?: MoraleProfile;
+  /** Strike intent (D-260): NPC fighters only; absent = the base location roll (the player, test fighters). */
+  intent?: StrikeIntent;
   /** Left the fight by morale (D-256): fled, or surrendered (a named one's fate is the player's choice). */
   yielded?: 'fled' | 'surrendered';
 }
@@ -395,6 +399,22 @@ function withoutParts(w: Readonly<Record<BodyPart, number>>, parts: ReadonlySet<
   return Object.fromEntries(Object.entries(w).map(([k, v]) => [k, parts.has(k as BodyPart) ? 0 : v])) as Record<BodyPart, number>;
 }
 
+/** An intent's location weights on a defender whose weapon is in this hand (D-260). */
+export function intentWeights(intent: StrikeIntent, weaponHand: 'left' | 'right'): Record<BodyPart, number> {
+  const w = INTENT_WEIGHTS[intent];
+  const off = weaponHand === 'right' ? 'left' : 'right';
+  return {
+    torso: w.torso,
+    head: w.head,
+    [`${weaponHand}Arm`]: w.weaponArm,
+    [`${weaponHand}Hand`]: w.weaponHand,
+    [`${off}Arm`]: w.offArm,
+    [`${off}Hand`]: w.offHand,
+    leftLeg: w.leftLeg,
+    rightLeg: w.rightLeg,
+  } as Record<BodyPart, number>;
+}
+
 /** Applies a hit's damage to a fighter (health §4-6; minions out on moderate, D-144 sparring modes). */
 export function damageFighter(
   f: Fighter,
@@ -409,16 +429,20 @@ export function damageFighter(
   vitalityOnly: boolean,
   /** The striker's aimed location (D-171); a part already gone falls back to the roll. */
   aim: BodyPart | null = null,
+  /** The striker's intent (D-260): its location weights replace the base roll; capture stops at critical. */
+  intent: StrikeIntent | null = null,
 ): { f: Fighter; hit: Omit<Hit, 'by' | 'avoided'>; rng: RngState } {
   const D = damageOf({ weapon, quality, armor: f.armor, saberResistant: f.saberResistant });
   // A limb severed earlier in the fight cannot be hit again; a prosthetic takes the hit instead of the body: Vitality
   // only, no wound, no sever (equipment damage arrives with M8; D-164).
   const limbs = limbState(f.wounds, f.lasting);
-  const [part, r1] = aim && !limbs.gone.has(aim) ? [aim, rng] : rollLocation(rng, limbs.gone.size ? withoutParts(LOCATION_WEIGHTS, limbs.gone) : LOCATION_WEIGHTS);
+  const weights = intent ? intentWeights(intent, f.weaponHand ?? 'right') : LOCATION_WEIGHTS;
+  const [part, r1] = aim && !limbs.gone.has(aim) ? [aim, rng] : rollLocation(rng, limbs.gone.size ? withoutParts(weights, limbs.gone) : weights);
   const dmg = applyDamage(f.vitality, D, bypassFraction(weapon, quality, margin), vitalityOnly || limbs.prosthetic.has(part), !isSaber(weapon));
-  let W = dmg.W;
+  // A capturing striker avoids killing blows (D-260): its hits stop at critical.
+  let W = intent === 'capture' ? Math.min(dmg.W, 49) : dmg.W;
   let severity = severityOf(W);
-  let severed = severity !== null && severs(weapon, part, W);
+  let severed = severity !== null && severs(weapon, part, W, { quality, armor: f.armor, forceUser: Math.max(f.forceSense, f.forceResistance ?? 0) >= FORCE_USER_MIN_LEVEL });
   // A sever chance below 1 (measured only, SEVERING.chance; D-256): a qualifying hit that does not sever stays a limb
   // wound of at most critical. At 1 no die is drawn, so the stream is the rule's as it is.
   let rngS = r1;
@@ -649,7 +673,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
         const vitalityOnly = ctx.sparring === 'trainingSaber' || atkF.weapon === 'trainingSaber';
         const woundSeq = defF.wounds.length + 1;
         // An accident lands as a graze: the lowest strike margin.
-        const d = damageFighter(defF, q, accident ? STRIKE_MIN_MARGIN : band(margin), atkF.weapon, ctx, rng, day, woundSeq, vitalityOnly, accident ? null : (atkF.aim ?? null));
+        const d = damageFighter(defF, q, accident ? STRIKE_MIN_MARGIN : band(margin), atkF.weapon, ctx, rng, day, woundSeq, vitalityOnly, accident ? null : (atkF.aim ?? null), accident ? null : (atkF.intent ?? null));
         rng = d.rng;
         defF = d.f;
         hit = { by: striker, ...d.hit, avoided: false };

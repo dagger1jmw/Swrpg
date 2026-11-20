@@ -4,7 +4,7 @@
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
-import { INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, CAPTOR_RULES, FATE_BY_STAKES, FATE_CHOICE_EXPIRY, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
+import { strikeIntentFor, INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, CAPTOR_RULES, FATE_BY_STAKES, FATE_CHOICE_EXPIRY, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
 import { hazardOnAll, rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, WEAPON_KINDS, type BodyPart, type HazardType, type WeaponKind } from '../../data/health.config';
@@ -35,7 +35,7 @@ import { combatSliceSchema, emptyCombat, pendingFightSchema, type ActiveFight, t
 import { fateIsLive, selectActiveFight, selectCombat } from './selectors';
 
 const absNow = (s: GameState): number => s.clock.now.day * 86_400 + s.clock.now.second;
-const npcRefKinds = { opponentRef: ['npc'], opponentRefs: ['npc'], engagedElsewhereRefs: ['npc'], npcRef: ['npc'] } as const;
+const npcRefKinds = { opponentRef: ['npc'], opponentRefs: ['npc'], engagedElsewhereRefs: ['npc'], wantAliveRefs: ['npc'], npcRef: ['npc'] } as const;
 
 /** Starts a fight from a pending combatStarted or a fight intent (deferred events resolve at the next step b, D-29). */
 function startFight(s: GameState, spec: PendingFight, fightId: string): { active: ActiveFight; rng: RngState; notes: string[]; emit: GameEvent[] } {
@@ -47,7 +47,9 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
   for (const id of spec.opponentRefs) {
     if (!selectNpc(s, id)) continue;
     const b = buildNpcFighter(s, id, spec.stakes !== 'spar');
-    opponents.push({ ...b.fighter, engagedElsewhere: spec.engagedElsewhere.includes(id) });
+    // Strike intent from the archetype and the scene (D-260): capture when the scene wants the player alive.
+    const intent = strikeIntentFor(b.archetype, spec.stakes, (spec.wantAlive ?? []).includes(id));
+    opponents.push({ ...b.fighter, intent, engagedElsewhere: spec.engagedElsewhere.includes(id) });
     meta[id] = { npcId: id, minionKind: null, rank: b.rank };
     if (!selectNpc(s, id)!.gen) emit.push({ type: 'npcGenerated', npcRef: id });
   }
@@ -80,7 +82,8 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
       const number = opponents.filter((o) => meta[o.id]?.minionKind === kind).length + 1;
       // A dev /fight weapon for the group (D-215) overrides the kind's weapon and the Mandalorian slugthrower roll.
       const f = buildMinionFighter(s, kind, grade, opponents.length, fightId, beskar, g.weapon ?? slug, number);
-      opponents.push(f);
+      // A minion strikes with its kind's archetype's intent (D-260).
+      opponents.push({ ...f, intent: strikeIntentFor(MINION_KINDS.find((k) => k.id === kind)?.archetype ?? 'soldier', spec.stakes, false) });
       meta[f.id] = { npcId: null, minionKind: kind, rank: null };
     }
   }
@@ -392,10 +395,11 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         ambushClaim: z.boolean().optional().describe('The opponents attack from hiding'),
         engagedElsewhereRefs: z.array(z.string()).max(6).optional().describe('Opponents fighting an ally, not the player'),
         sparringMode: z.enum(SPARRING_MODES).optional().describe('Spar only, a story event: the master calls harsher stakes for this session (academy: Sith live blades and real wounds)'),
+        wantAliveRefs: z.array(z.string()).max(6).optional().describe('Opponents who want the player character alive (sent to bring them in, a bounty for a live capture): they strike to capture, not to kill'),
       }),
       sources: ['ai', 'engine'],
       narrative: (s) => s.combat.active === null && s.combat.pending === null,
-      refFields: ['opponentRefs', 'engagedElsewhereRefs'],
+      refFields: ['opponentRefs', 'engagedElsewhereRefs', 'wantAliveRefs'],
       refKinds: npcRefKinds,
       handle: (slice, e) => {
         if (slice.active) return { reject: 'a fight is already in progress' };
@@ -415,6 +419,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           ambushClaim: e['ambushClaim'] === true,
           engagedElsewhere: (e['engagedElsewhereRefs'] as string[] | undefined) ?? [],
           sparringMode: e['stakes'] === 'spar' ? ((e['sparringMode'] as PendingFight['sparringMode'] | undefined) ?? null) : null,
+          wantAlive: ((e['wantAliveRefs'] as string[] | undefined) ?? []).filter((r) => opponentRefs.includes(r)),
         });
         return { slice: { ...slice, pending }, notes: [...notes, 'fight deferred to the next turn (D-29)'] };
       },
@@ -433,13 +438,15 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(99), weapon: z.enum(WEAPON_KINDS).optional() })).max(4).optional(),
         /** A sparring session played out beat by beat from its first exchange (D-180 /spar), not resolved like a montage. */
         playOut: z.boolean().optional(),
+        /** Opponents who want the player alive (D-260; dev /fight ... alive). */
+        wantAliveRefs: z.array(z.string()).optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
         if (slice.active) return { reject: 'a fight is already in progress' };
         const spec: PendingFight | null = e['fromPending']
           ? slice.pending
-          : { opponentRefs: (e['opponentRefs'] as string[]) ?? [], minionGroups: ((e['minionGroups'] as { kind: string; count: number; weapon?: WeaponKind }[] | undefined) ?? []).map((g) => ({ kind: g.kind, count: Math.min(MINION_COUNT.max, Math.max(MINION_COUNT.min, g.count)), ...(g.weapon ? { weapon: g.weapon } : {}) })), stakes: (e['stakes'] as CombatStakes) ?? 'serious', terrainTags: ((e['terrainTags'] as string[]) ?? []).filter((t) => TERRAIN_IDS.includes(t)), ambushClaim: false, engagedElsewhere: [], sparringMode: (e['sparringMode'] as PendingFight['sparringMode'] | undefined) ?? null };
+          : { opponentRefs: (e['opponentRefs'] as string[]) ?? [], minionGroups: ((e['minionGroups'] as { kind: string; count: number; weapon?: WeaponKind }[] | undefined) ?? []).map((g) => ({ kind: g.kind, count: Math.min(MINION_COUNT.max, Math.max(MINION_COUNT.min, g.count)), ...(g.weapon ? { weapon: g.weapon } : {}) })), stakes: (e['stakes'] as CombatStakes) ?? 'serious', terrainTags: ((e['terrainTags'] as string[]) ?? []).filter((t) => TERRAIN_IDS.includes(t)), ambushClaim: false, engagedElsewhere: [], sparringMode: (e['sparringMode'] as PendingFight['sparringMode'] | undefined) ?? null, wantAlive: (e['wantAliveRefs'] as string[] | undefined) ?? [] };
         if (!spec) return { reject: 'no pending fight' };
         const id = `fight-${slice.seq}`;
         const r = startFight(ctx.state, spec, id);

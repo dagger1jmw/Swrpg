@@ -6,7 +6,7 @@ import type { Choice } from '../ai/schemas/compose';
 import type { Intent, RequestedSpan } from '../ai/schemas/intent';
 import { CANON_NPCS, type CanonNpc } from '../data/canonNpcs';
 import { COMBAT_STAKES } from '../data/progression.config';
-import { moraleFor, type SPARRING_MODES } from '../data/combat.config';
+import { moraleFor, STRIKE_INTENTS, type SPARRING_MODES, type StrikeIntent } from '../data/combat.config';
 import { BODY_PARTS, SEVERITIES, type BodyPart, type Severity } from '../data/health.config';
 import { MINION_KINDS } from '../data/npcGen.config';
 import type { WeaponKind } from '../data/health.config';
@@ -44,6 +44,7 @@ export const DEV_HELP: readonly string[] = [
   '/exchanges <n>: in a fight, resolve up to n exchanges with the current stance (stops when the fight ends). /exchanges to <n>: the counter to n with no rolls, then on to the end (to 195 reaches the 200-exchange cap)',
   '/hazard <fall|fire|explosion|crash|poison|exposure|impact> <1-3> [end]: the narrator’s hazardOccurred as the narrator sends it; with end (in a fight), also its environmentCollapse interruption',
   '/stakes <serious|lethal|skirmish>: the current fight’s stakes. /archetype <id>: the current opponent’s archetype (named opponents; the captor and fate rules)',
+  '/intent <kill|disarm|capture> [all]: the current opponent’s strike intent, or every opponent’s (D-260)',
   '/skip <amount> <days|weeks|months|years>: a montage (or time skip) on the routine',
   '/time <time of day, or year BBY|ABY [month] [day] [time]>: the clock forward to then. /place <location>: move there (created when new)',
   '/scenario <text>: the next narration starts exactly in that situation',
@@ -490,6 +491,19 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       const d = act.duel as DuelState;
       state = { ...state, combat: { ...state.combat, active: { ...act, duel: { ...d, opponents: d.opponents.map((o) => (o.id === target!.id ? { ...o, morale: moraleFor(args[0] ?? '') } : o)) } } } };
       return out(true, `${target!.name}: archetype ${args[0]}`);
+    }
+
+    case 'intent': {
+      // D-260: an opponent's strike intent, the current one or all of them (dev; the scene sets it in play).
+      if (!inFight) return fail('no fight in progress');
+      const want = (args[0] ?? '').toLowerCase() as StrikeIntent;
+      if (!STRIKE_INTENTS.includes(want)) return fail(`/intent <${STRIKE_INTENTS.join('|')}> [all]`);
+      const act = state.combat.active!;
+      const d = act.duel as DuelState;
+      const cur = currentTarget(d);
+      const all = args[1]?.toLowerCase() === 'all';
+      state = { ...state, combat: { ...state.combat, active: { ...act, duel: { ...d, opponents: d.opponents.map((o) => (all || o.id === cur?.id ? { ...o, intent: want } : o)) } } } };
+      return out(true, `${all ? 'every opponent' : (cur?.name ?? 'the opponent')} strikes to ${want}`);
     }
 
     case 'skip': {

@@ -20,7 +20,7 @@ import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 import type { GameEvent } from '../../src/state/types';
-import { SPARRING_DEFAULT_BY_RANK, moraleFor } from '../../src/data/combat.config';
+import { SPARRING_DEFAULT_BY_RANK, moraleFor, strikeIntentFor } from '../../src/data/combat.config';
 import { HEAL_MULT } from '../../src/data/health.config';
 import { sparGroupLevel } from '../../src/engine/appliedExperience';
 import { baseHealDays } from '../../src/engine/healing';
@@ -96,6 +96,8 @@ export interface LifeResult {
   levelsByYear: Record<string, number>[];
   transfers: Record<string, { age: number; xp: number }>;
   maxDayEndF: number;
+  /** The same over days with no serious or lethal fight (D-159 amended, Jared: the gate checks routine overload, not fight exhaustion). */
+  maxDayEndFNoSeriousFight: number;
   discarded: number;
   state: GameState;
   /** D-143 J reports: main-form E when the main milestones 41 and 61 are crossed; the share of drill XP banked. */
@@ -226,10 +228,16 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
   const form = f.skillId === undefined || f.skillId === '$main' ? p.mainForm : f.skillId;
   if (player.form !== null && selectLevelExact(s, form) > 0) player = { ...player, form, skillId: form, level: selectPerformance(s, form) };
   const level = player.level + f.gap;
+  // Strike intent (D-260), as the game sets it: a minion by its kind's archetype; a Force-using duelist of the other order
+  // (a Sith against a Jedi profile kills; a Jedi against a Sith profile disarms, and kills in lethal stakes); a sparring
+  // partner is of the profile's own order.
+  const kindArch = MINION_KINDS.find((k) => k.id === f.opponent)?.archetype ?? 'soldier';
+  const ownJedi = p.path !== 'sith' && p.path !== 'career';
+  const duelistArch = f.stakes === 'spar' ? (ownJedi ? 'jediGuardian' : 'sithWarrior') : ownJedi ? 'sithWarrior' : 'jediGuardian';
   const opponents =
     f.opponent && f.opponent !== 'duelist'
-      ? Array.from({ length: f.count ?? 3 }, (_, i) => minionFighter(f.opponent!, `m${n}-${i}`, level, i % 5 < 3))
-      : Array.from({ length: f.stakes === 'spar' ? (f.partners ?? 1) : 1 }, (_, i) => duelistFighter(`d${n}-${i}`, level, player.maxVitality));
+      ? Array.from({ length: f.count ?? 3 }, (_, i) => ({ ...minionFighter(f.opponent!, `m${n}-${i}`, level, i % 5 < 3), intent: strikeIntentFor(kindArch, f.stakes, false) }))
+      : Array.from({ length: f.stakes === 'spar' ? (f.partners ?? 1) : 1 }, (_, i) => ({ ...duelistFighter(`d${n}-${i}`, level, player.maxVitality), intent: strikeIntentFor(duelistArch, f.stakes, false) }));
   const sparring = f.stakes === 'spar' ? (f.sparringMode ?? SPARRING_DEFAULT_BY_RANK[s.ranks.rank] ?? 'trainingSaber') : null;
   if (sparring === 'trainingSaber') player = { ...player, weapon: 'trainingSaber' };
   const ctx: DuelContext = { sparring, situations: [], footing: 0, dyingRiskStakes: f.stakes === 'lethal' || f.stakes === 'serious' };
@@ -288,6 +296,7 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
   const levelsByYear: Record<string, number>[] = [];
   const transfers: Record<string, { age: number; xp: number }> = {};
   let maxDayEndF = 0;
+  let maxDayEndFNoSeriousFight = 0;
   let drillTotal = 0;
   let bankedTotal = 0;
   const eAtMilestone: Record<number, number> = {};
@@ -349,6 +358,7 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
     for (const d of r?.days ?? []) {
       if (d.endF > maxDayEndF) maxDay = { age, endF: d.endF, fought: fights.length > 0, notes: d.notes };
       maxDayEndF = Math.max(maxDayEndF, d.endF);
+      if (!fights.some((f) => f.stakes === 'serious' || f.stakes === 'lethal')) maxDayEndFNoSeriousFight = Math.max(maxDayEndFNoSeriousFight, d.endF);
     }
     for (const k of mainKeys()) yearXp[k] = (yearXp[k] ?? 0) + (s.progression.skills[k]?.xp ?? 0) - (before[k]?.xp ?? 0);
 
@@ -379,5 +389,5 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));
   // This life's mortal wounds and Dying states (every Dying profile is stabilized, so the stabilizations count them).
   const fights = { mortal: fightStats.mortal - statsBefore.mortal, dying: fightStats.stabilized - statsBefore.stabilized };
-  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge, fightStats: fights };
+  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, maxDayEndFNoSeriousFight, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge, fightStats: fights };
 }

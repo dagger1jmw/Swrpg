@@ -17,6 +17,8 @@ export const pendingFightSchema = z.object({
   engagedElsewhere: z.array(z.string()),
   /** A spar's stakes chosen for this session as a story event (D-172), else the default by rank and place. */
   sparringMode: z.enum(SPARRING_MODES).nullable().default(null),
+  /** Opponents who want the player alive (D-260): they strike to capture. Absent on older saves. */
+  wantAlive: z.array(z.string()).default([]),
 });
 export type PendingFight = z.infer<typeof pendingFightSchema>;
 

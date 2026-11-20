@@ -224,6 +224,8 @@ export interface CombatFighterView {
   /** Body armor (D-216): none, light, medium or heavy, and whether it turns a lightsaber (beskar). Absent on older drafts. */
   armor?: string;
   saberResistant?: boolean;
+  /** Strike intent (D-260): kill, disarm or capture; NPC fighters only. */
+  intent?: string;
   /** The weapon's and the armor's own names ("amphistaff", "vonduun crab armor"; pass 4 issue 12). */
   weaponName?: string;
   armorName?: string;
@@ -290,6 +292,7 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   bladeColor: f.weapon === 'lightsaber' ? (f.bladeColor ?? null) : null,
   armor: f.armor,
   saberResistant: f.saberResistant,
+  ...(f.intent ? { intent: f.intent } : {}),
   ...(f.weaponName ? { weaponName: f.weaponName } : {}),
   ...(f.armorName ? { armorName: f.armorName } : {}),
   lasting: lastingState(f.wounds as Wound[], (f.lasting ?? []) as LastingInjury[]),

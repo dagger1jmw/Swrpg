@@ -329,6 +329,40 @@ export const MORALE_BY_MINION_KIND: Readonly<Record<string, MoraleProfile>> = {
 };
 export const moraleFor = (archetype: string, minionKind: string | null = null): MoraleProfile => (minionKind ? MORALE_BY_MINION_KIND[minionKind] : undefined) ?? MORALE_BY_ARCHETYPE[archetype] ?? { group: 'average', surrender: 0.5 };
 
+/**
+ * Strike intent (Jared, D-260; design defaults). Each NPC fighter strikes to kill, to disarm or to capture, set from its
+ * archetype and the scene. Intent shifts where its hits land (these weights replace health §5's location roll for that
+ * striker); it is not an aimed strike, so there is no -2. The weights name the defender's weapon side ("weaponArm",
+ * "weaponHand") and the other side ("offArm", "offHand"). The player strikes with no intent (the base roll) and aims, as
+ * before (D-171). A capturing striker also avoids killing blows: its hits stop at critical (W 49 at most).
+ */
+export const STRIKE_INTENTS = ['kill', 'disarm', 'capture'] as const;
+export type StrikeIntent = (typeof STRIKE_INTENTS)[number];
+export type IntentPart = 'torso' | 'head' | 'weaponArm' | 'weaponHand' | 'offArm' | 'offHand' | 'leftLeg' | 'rightLeg';
+export const INTENT_WEIGHTS: Readonly<Record<StrikeIntent, Readonly<Record<IntentPart, number>>>> = {
+  // Torso and head (base: torso 35, head 10, arms 25, legs 25, hands 5).
+  kill: { torso: 55, head: 18, weaponArm: 7, offArm: 5, weaponHand: 2, offHand: 1, leftLeg: 6, rightLeg: 6 },
+  // The weapon hand and the limbs: the marks of contact (cho mai, cho sun, cho mok; lore §1).
+  disarm: { torso: 15, head: 2, weaponArm: 25, offArm: 10, weaponHand: 18, offHand: 4, leftLeg: 13, rightLeg: 13 },
+  // Limbs and the weapon hand, to bring the target down alive.
+  capture: { torso: 12, head: 2, weaponArm: 20, offArm: 12, weaponHand: 14, offHand: 4, leftLeg: 18, rightLeg: 18 },
+};
+/** Default intent by archetype (Jared's list): Jedi disarm, everyone else kills; capture comes from the scene. */
+export const INTENT_BY_ARCHETYPE: Readonly<Record<string, StrikeIntent>> = {
+  jediGuardian: 'disarm',
+  jediConsular: 'disarm',
+  jediSentinel: 'disarm',
+};
+/**
+ * A fighter's intent: capture when the scene or a contract wants the target alive (a Sith sent to bring them in, a
+ * bounty for a live capture); a Jedi disarms, and kills only in lethal stakes where a life is at stake; all others kill.
+ */
+export function strikeIntentFor(archetype: string, stakes: string, wantsAlive: boolean): StrikeIntent {
+  if (wantsAlive) return 'capture';
+  const base = INTENT_BY_ARCHETYPE[archetype] ?? 'kill';
+  return base === 'disarm' && stakes === 'lethal' ? 'kill' : base;
+}
+
 /** NPC fate chosen by the player at the NPC's incapacitation. */
 export const NPC_FATES = ['spare', 'capture', 'kill'] as const;
 /**

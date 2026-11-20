@@ -73,7 +73,11 @@ Force meter (replaces Force strain):
     D-171): torso 35% | left/right arm 25% |
     left/right leg 25% | head 10% | hands 5%
   Limb rule: a lightsaber wound of 35+ to a limb or hand severs it (a lasting injury,
-    progression spec section 18) instead of becoming critical or mortal.
+    progression spec section 18) instead of becoming critical or mortal. Only lightsabers sever
+    in general (D-260): a non-saber blade (a vibroblade, an amphistaff) severs only on a critical
+    hit that leaves a severe wound or worse (W 20+, design default) to the limb of an unarmored
+    target who is not a Force user; other weapons never sever (beskar blades and the like are
+    M8). Where a striker's hits land follows its strike intent (rolls section 5, D-260).
   Lost and prosthetic limbs (D-164): a limb severed earlier in the same fight cannot be hit
     again (it leaves the location roll; a lost arm takes its hand). A limb lost before the fight
     carries its prosthetic: a hit there costs Vitality only (no wound, no sever) until M8 makes

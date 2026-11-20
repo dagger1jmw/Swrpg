@@ -46,7 +46,8 @@ export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, bo
         'peacetime combat < 10%': peace < 0.1,
         'Y_avg within +/-5%': yAvgDev <= 0.05,
         'rank minimums +/-2 y': ranks,
-        'day-end tiredness < 1.1': r.maxDayEndF < 1.1,
+        // Days with a serious fight left out (D-159 amended, 2026-11-20).
+        'day-end tiredness < 1.1': r.maxDayEndFNoSeriousFight < 1.1,
       },
       values: { yAvgMaxDeviation: yAvgDev, peacetimeMaxShare: peace },
     };

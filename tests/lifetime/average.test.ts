@@ -58,7 +58,9 @@ describe('Average lifetime (95 years through the routine day loop)', () => {
     expect(Math.abs(at('highestForm>=58') - 35)).toBeLessThanOrEqual(2);
   });
 
+  // D-159 amended (Jared, 2026-11-20): days with a serious fight are left out; the check is for training-routine
+  // overload, and a fight's exhaustion is the combat system working as intended.
   it('the day-end tiredness of the standard routine stays near the limit (training-routines §2)', () => {
-    expect(avg.maxDayEndF).toBeLessThan(1.1);
+    expect(avg.maxDayEndFNoSeriousFight).toBeLessThan(1.1);
   });
 });

@@ -141,7 +141,7 @@ function fighterFromLevels(id: string, name: string, levels: Readonly<Record<str
   };
 }
 
-export function buildNpcFighter(s: GameState, npcId: string, live = true): { fighter: Fighter; rank: string | null } {
+export function buildNpcFighter(s: GameState, npcId: string, live = true): { fighter: Fighter; rank: string | null; archetype: string } {
   const npc = selectNpc(s, npcId)!;
   const gen = selectNpcGen(s, npcId)!;
   const levels = selectNpcLevels(s, npcId);
@@ -181,7 +181,7 @@ export function buildNpcFighter(s: GameState, npcId: string, live = true): { fig
   const armorName = armorNameFromDescription(npc.description) ?? (loadout.saberResistant ? (vongKind?.armorName ?? null) : null);
   // Morale by archetype (D-256); a droid NPC never breaks.
   const morale = npc.speciesId === 'droid' ? moraleFor('', 'battleDroid') : moraleFor(archetype);
-  return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId), ...(blade ? { bladeColor: blade } : {}), ...(weaponName ? { weaponName } : {}), ...(armorName ? { armorName } : {}), morale }, rank: gen.rank };
+  return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId), ...(blade ? { bladeColor: blade } : {}), ...(weaponName ? { weaponName } : {}), ...(armorName ? { armorName } : {}), morale }, rank: gen.rank, archetype };
 }
 
 export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false, weapon: WeaponKind | null = null, number: number = index + 1): Fighter {
