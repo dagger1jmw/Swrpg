@@ -82,6 +82,8 @@ export interface LifeProfile {
 }
 
 export interface LifeResult {
+  /** This life's mortal wounds taken and Dying states entered (reporting only). */
+  fightStats?: { mortal: number; dying: number };
   xp: Record<string, number>;
   milestones: Record<number, number>;
   /** Main-specialty XP per year (the most-trained form's for form profiles), transfers excluded. */
@@ -154,7 +156,7 @@ function setRoutine(p: LifeProfile, s: GameState, rank: string): GameState {
 }
 
 /** Per-run fight statistics (reported by the lifetime tests, D-143 J). */
-export const fightStats = { fights: 0, won: 0, lost: 0, wounds: 0, stabilized: 0 };
+export const fightStats = { fights: 0, won: 0, lost: 0, wounds: 0, stabilized: 0, mortal: 0 };
 
 /** A minion of a kind at a level (the kind's weapon, armor, coordination and Vitality; npc-generation §6, D-158). */
 function minionFighter(kindId: string, id: string, level: number, beskar: boolean): Fighter {
@@ -241,6 +243,7 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
   else fightStats.lost += 1;
   const newWounds = d.a.wounds.slice(player.wounds.length);
   fightStats.wounds += newWounds.length;
+  fightStats.mortal += newWounds.filter((w) => w.severity === 'mortal').length;
   const events: GameEvent[] = [];
   const max = player.maxVitality;
   events.push({ type: 'healthSynced', vitalityLost: Math.max(0, max - d.a.vitality), addWounds: newWounds, meters: { p: d.a.meters.p, f: d.a.meters.f }, cause: 'lifetime duel' });
@@ -272,6 +275,7 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
 }
 
 export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?: Record<string, number[]>; track?: string[] } = {}): LifeResult {
+  const statsBefore = { ...fightStats };
   let s = profileState(p);
   const total = Math.round(years * DAYS);
   const isFormMain = p.main === '$highestForm';
@@ -373,5 +377,7 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
     }
   }
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));
-  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge };
+  // This life's mortal wounds and Dying states (every Dying profile is stabilized, so the stabilizations count them).
+  const fights = { mortal: fightStats.mortal - statsBefore.mortal, dying: fightStats.stabilized - statsBefore.stabilized };
+  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge, fightStats: fights };
 }

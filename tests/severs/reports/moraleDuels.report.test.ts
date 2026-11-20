@@ -1,7 +1,7 @@
 // Report only (D-256): the rolls §8 table 1 duels with the opponent (B) given a Force user's late morale, against the same
 // duels with none (the duel-table test's own fighters carry no morale, so its gates cannot move). 10,000 duels a gap.
 import { it } from 'vitest';
-import { REAL, forceUser, simulate } from '../support/duelSim';
+import { REAL, forceUser, simulate } from '../../support/duelSim';
 
 it('duel table with late morale on the opponent', () => {
   for (const gap of [0, 5, 10, 20, 30, 40, 60]) {

@@ -3,7 +3,8 @@
 // line for docs-v2/testing/lifetime-spread.md. Not part of npm test or test:all; run with npm run spread (40+ minutes).
 import { Y_AVG } from '../../src/data/progression.config';
 import { runLifetime, type LifeProfile, type LifeResult } from '../support/lifetime';
-import { TARGETS } from '../lifetime/profiles';
+import { ANAKIN, AVERAGE, LUKE, OBIWAN, TARGETS } from '../lifetime/profiles';
+import type { Job } from '../support/parallelRuns';
 import { within4xFloor } from '../lifetime/checks';
 
 export const SPREAD_SEEDS = 20;
@@ -93,16 +94,32 @@ export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, bo
   },
 };
 
-/** Runs one profile on the fixed seed and SPREAD_SEEDS - 1 more; prints each seed's row as it finishes. */
+/** One seed of one profile (k = 0 is the profile's own seed, then -s1 ... -s19): its spread row. */
+export function spreadRow(name: string, profile: LifeProfile, years: number, k: number, opts: Parameters<typeof runLifetime>[2] = {}): SeedRow & { profile: string } {
+  const seed = k === 0 ? profile.seed : `${profile.seed}-s${k}`;
+  const t0 = Date.now();
+  const r = runLifetime({ ...profile, seed }, years, opts);
+  const g = GATES[name]!(r);
+  return { profile: name, seed, milestones: Object.fromEntries(TIERS.map((t) => [t, r.milestones[t] ?? null])), shares: r.yearMain.map((_, i) => share(r, i)), gates: g.gates, values: g.values, ms: Date.now() - t0 };
+}
+
+/** The four profiles as the old per-profile files ran them (in their file order: anakin, average, luke, obiwan). */
+export const SPREAD_PROFILES: readonly { name: string; profile: LifeProfile; years: number; opts: Parameters<typeof runLifetime>[2] }[] = [
+  { name: 'anakin', profile: ANAKIN, years: 70, opts: {} },
+  { name: 'average', profile: AVERAGE, years: 95, opts: { crossLevels: { highestForm: [24, 39, 58], forceControl: [14, 34], forceSense: [31], willpower: [53] } } },
+  { name: 'luke', profile: LUKE, years: 70, opts: { track: ['forceControl', 'perf:strength', 'perf:agility', 'perf:endurance'] } },
+  { name: 'obiwan', profile: OBIWAN, years: 70, opts: {} },
+];
+
+/** Relative cost of one life by profile, for balancing the shards (mean seconds a life, measured 2026-11-20). */
+export const LIFE_COST: Readonly<Record<string, number>> = { luke: 32, anakin: 46, obiwan: 63, average: 74 };
+
+/** Every (profile, seed) as a job, in output order (profile, then seed). */
+export const SPREAD_JOBS: readonly Job<SeedRow & { profile: string }>[] = SPREAD_PROFILES.flatMap((p, pi) =>
+  Array.from({ length: SPREAD_SEEDS }, (_, k) => ({ order: pi * SPREAD_SEEDS + k, cost: LIFE_COST[p.name] ?? p.years, run: () => spreadRow(p.name, p.profile, p.years, k, p.opts) })),
+);
+
+/** Sequential, as before the shards (kept for a check that the shards give the same rows). */
 export function runSpread(name: string, profile: LifeProfile, years: number, opts: Parameters<typeof runLifetime>[2] = {}): SeedRow[] {
-  const rows: SeedRow[] = [];
-  for (let k = 0; k < SPREAD_SEEDS; k++) {
-    const seed = k === 0 ? profile.seed : `${profile.seed}-s${k}`;
-    const t0 = Date.now();
-    const r = runLifetime({ ...profile, seed }, years, opts);
-    const g = GATES[name]!(r);
-    rows.push({ seed, milestones: Object.fromEntries(TIERS.map((t) => [t, r.milestones[t] ?? null])), shares: r.yearMain.map((_, i) => share(r, i)), gates: g.gates, values: g.values, ms: Date.now() - t0 });
-    console.info(`[spread] ${JSON.stringify({ profile: name, ...rows[rows.length - 1] })}`);
-  }
-  return rows;
+  return Array.from({ length: SPREAD_SEEDS }, (_, k) => spreadRow(name, profile, years, k, opts));
 }

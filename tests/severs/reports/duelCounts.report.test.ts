@@ -2,12 +2,12 @@
 // its life, by kind. (2) The chance a duel takes one of the player's limbs, at the gaps the schedules use, now and under
 // the severing candidates. Lifetime severs are about (1) x (2) until the limbs run out (four limbs, two hands).
 import { it } from 'vitest';
-import { LOCATION_WEIGHTS, SEVERING } from '../../src/data/health.config';
-import { runUntilBeat, startDuel } from '../../src/engine/duel';
-import { seedRng } from '../../src/engine/rng';
-import { REAL, forceUser } from '../support/duelSim';
-import { ANAKIN, AVERAGE, LUKE, OBIWAN } from '../lifetime/profiles';
-import type { LifeProfile } from '../support/lifetime';
+import { LOCATION_WEIGHTS, SEVERING } from '../../../src/data/health.config';
+import { runUntilBeat, startDuel } from '../../../src/engine/duel';
+import { seedRng } from '../../../src/engine/rng';
+import { REAL, forceUser } from '../../support/duelSim';
+import { ANAKIN, AVERAGE, LUKE, OBIWAN } from '../../lifetime/profiles';
+import type { LifeProfile } from '../../support/lifetime';
 
 const YEARS: Record<string, number> = { average: 95, anakin: 70, obiwan: 70, luke: 70 };
 

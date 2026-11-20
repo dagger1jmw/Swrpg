@@ -11,5 +11,8 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
     environment: 'node',
+    // 8 workers (measured: this machine's throughput tops out near 4-8 lives at once; 15 is slower, see
+    // tests/support/parallelRuns.ts). The lifetime suite runs one profile per worker.
+    maxWorkers: 8,
   },
 });

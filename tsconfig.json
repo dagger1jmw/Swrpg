@@ -19,5 +19,5 @@
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "tests", "vite.config.ts", "eslint.config.js"]
+  "include": ["src", "tests", "vite.config.ts", "vitest.spread.config.ts", "vitest.severs.config.ts", "eslint.config.js"]
 }
