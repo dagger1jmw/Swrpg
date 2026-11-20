@@ -230,7 +230,7 @@ function duelistFighter(id: string, level: number, vitality: number): Fighter {
  * stronger or more above its own). Legends: Obi-Wan pulling back from Grievous. A failed contest fights on to the next
  * beat; a won one ends the fight as fled.
  */
-export const PLAYER_WITHDRAWAL = { nearSpent: 0.2, losingTrack: -2, stronger: 10, enabled: true, strongerIgnoresFatigue: false };
+export const PLAYER_WITHDRAWAL = { nearSpent: 0.2, losingTrack: -2, stronger: 10, enabled: true };
 
 export function withdrawReason(d: DuelState, woundsBefore: number): 'severe' | 'nearSpent' | 'stronger' | null {
   const a = d.a;
@@ -238,9 +238,7 @@ export function withdrawReason(d: DuelState, woundsBefore: number): 'severe' | '
   if (fresh.some((w) => w.severed || SEVERITIES.indexOf(w.severity) >= SEVERITIES.indexOf('severe'))) return 'severe';
   if (a.vitality <= a.maxVitality * PLAYER_WITHDRAWAL.nearSpent && d.advantage <= PLAYER_WITHDRAWAL.losingTrack) return 'nearSpent';
   const t = currentTarget(d);
-  // Candidate (d), measured only: the profile's own level without fatigue (its tiredness is not the opponent's strength).
-  const mine = fighterEffectiveLevel(PLAYER_WITHDRAWAL.strongerIgnoresFatigue ? { ...a, meters: { ...a.meters, p: 0 } } : a);
-  return t !== null && fighterEffectiveLevel(t) - mine >= PLAYER_WITHDRAWAL.stronger ? 'stronger' : null;
+  return t !== null && fighterEffectiveLevel(t) - fighterEffectiveLevel(a) >= PLAYER_WITHDRAWAL.stronger ? 'stronger' : null;
 }
 export const wantsToWithdraw = (d: DuelState, woundsBefore: number): boolean => withdrawReason(d, woundsBefore) !== null;
 /** Disengages by trigger and opponent (reporting only): "stronger vs battleDroid" -> count. */
@@ -266,11 +264,11 @@ export function fightWithWithdrawal(start: DuelState, ctx: DuelContext, day: num
 }
 
 /**
- * Candidate (c) (Jared, 2026-11-20; measured only, off): the harness does not start an optional fight (any fight
- * outside the profile's war years: missions, spars, peacetime duels) while a fatigue meter is past its capacity, as a
- * sensible Jedi would not take a mission exhausted. Scheduled war fights still happen.
+ * Fight readiness (Jared, D-267; harness realism): the harness does not start an optional fight (any fight outside
+ * the profile's war years: missions, spars, peacetime duels) while a fatigue meter is past its capacity, as a sensible
+ * Jedi would not take a mission exhausted. Scheduled war fights still happen.
  */
-export const READINESS = { enabled: false };
+export const READINESS = { enabled: true };
 const inWar = (p: LifeProfile, age: number): boolean => (p.warAges ?? []).some(([a, b]) => age >= a && age < b);
 function pastCapacity(s: GameState): boolean {
   const c = selectCapacities(s);

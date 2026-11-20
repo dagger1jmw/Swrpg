@@ -1038,6 +1038,20 @@ The clock and the module contract come first, before any feature.
   standard tiredness limit 0.9 even when fresh; the Order schedule is revisited with the Order requirements in M7.
 - **M7 teaching (D-163):** characters with the instructor role get a higher share of drill XP above the ceiling
   (design default 25% -> 35%) for the forms they teach.
+- **M6 precognition softening killing blows (Jared, D-267; measured, not adopted; with the precognition redesign).**
+  Part of precognitive defense (Legends: precognition, danger sense and battle precognition are one power): when
+  precognition does not avoid a hit that would be mortal, a second chance drops the wound one step, min(0.6, Force
+  Sense / 150), halved against a Force-user attacker, at PRECOG.load. Measured (20 seeds; code in commit 7cf3a63): alone
+  it cut mortal wounds per life to 2.10 / 4.80 / 10.00 / 0.35 (Obi-Wan / Luke / Anakin / the Average; from 2.35 / 5.75 /
+  14.05 / 0.35); on top of the non-saber mortal band (b30) only 5.45 -> 5.30 for Anakin, since its full chance is against
+  non-Force attackers, whose hits the band already caps; the Average failed Y_avg on 2-3 more seeds. The D-158 rows moved
+  0.4 points at most; the rolls §8 tables 0.7 at most, all on target.
+- **M8 prepared Jedi hunters (Jared, D-267; not built).** A hunter (an NPC or a player) who prepares for a specific Force
+  user gets setup bonuses from traps and planning: a prepared ambush (surprise plus a starting advantage), chosen ground
+  (terrain and cover) and anti-Jedi gear (slugthrowers, scatter guns, flamethrowers, whipcords, nets, cortosis armor,
+  ysalamiri). With the non-saber mortal band (D-267: mortal only from margin 30), this is how a non-Force fighter can
+  realistically reach a killing blow on a Jedi. Preparation takes time and resources in the story (a contract, scouting,
+  buying gear).
 - **M8 prosthetic damage (D-164):** a hit to a prosthetic limb becomes equipment damage to the prosthetic (repair,
   malfunction, loss). Until then such a hit costs Vitality only: no wound and no sever.
 - **Cleave (D-158):** keeping the advantage after taking a minion out; a candidate Shii-Cho / Sokan form trait

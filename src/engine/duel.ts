@@ -29,7 +29,6 @@ import {
   MANEUVER_MIN,
   MISSED_STRIKE_STEP,
   PRECOG,
-  PRECOG_SOFTEN,
   SHATTERPOINT_COMBAT,
   STANCE_MODS,
   STATE_OF_MIND_COMBAT,
@@ -442,9 +441,7 @@ export function damageFighter(
   aim: BodyPart | null = null,
   /** The striker's intent (D-260): kill and disarm weights replace the base roll (capture subdues instead: subdueFighter). */
   intent: StrikeIntent | null = null,
-  /** Candidate (a): the chance that danger sense drops a mortal wound to critical (0 = none, no die drawn). */
-  soften = 0,
-): { f: Fighter; hit: Omit<Hit, 'by' | 'avoided'>; rng: RngState; softenTried?: boolean } {
+): { f: Fighter; hit: Omit<Hit, 'by' | 'avoided'>; rng: RngState } {
   const D = damageOf({ weapon, quality, armor: f.armor, saberResistant: f.saberResistant });
   // A limb severed earlier in the fight cannot be hit again; a prosthetic takes the hit instead of the body: Vitality
   // only, no wound, no sever (equipment damage arrives with M8; D-164).
@@ -453,7 +450,7 @@ export function damageFighter(
   const [part, r1] = aim && !limbs.gone.has(aim) ? [aim, rng] : rollLocation(rng, limbs.gone.size ? withoutParts(weights, limbs.gone) : weights);
   const dmg = applyDamage(f.vitality, D, bypassFraction(weapon, quality, margin), vitalityOnly || limbs.prosthetic.has(part), !isSaber(weapon));
   let W = dmg.W;
-  // Candidate (b): a non-saber hit is mortal only from NONSABER_MORTAL.minMargin (0 = off).
+  // The non-saber mortal band (D-267): a non-saber hit is mortal only from NONSABER_MORTAL.minMargin.
   if (!isSaber(weapon) && margin < NONSABER_MORTAL.minMargin) W = Math.min(W, 49);
   let severity = severityOf(W);
   let severed = severity !== null && severs(weapon, part, W, { quality, armor: f.armor, forceUser: Math.max(f.forceSense, f.forceResistance ?? 0) >= FORCE_USER_MIN_LEVEL });
@@ -473,17 +470,6 @@ export function damageFighter(
     W = Math.min(W, 34);
     severity = 'severe';
   }
-  // Candidate (a): danger sense's second chance on a killing blow (a die only when the hit is mortal).
-  let softenTried = false;
-  if (soften > 0 && severity === 'mortal') {
-    softenTried = true;
-    let u: number;
-    [u, rngS] = nextFloat(rngS);
-    if (u < soften) {
-      W = 49;
-      severity = 'critical';
-    }
-  }
   // Minions (combatStarted groups) fold when Spent as well as on a moderate wound (health §9 as amended by D-157).
   let next: Fighter = { ...f, vitality: dmg.vitality, out: f.out || (f.minion && MINION_FOLDS_WHEN_SPENT && dmg.vitality <= 0) };
   if (severity) {
@@ -493,14 +479,7 @@ export function damageFighter(
     if (f.minion && takesMinionOut(severity)) next = { ...next, out: true };
   }
   void ctx;
-  return { f: next, hit: { quality, D, part, W, severity, vitalityLost: dmg.vitalityLost, severed }, rng: rngS, ...(softenTried ? { softenTried } : {}) };
-}
-
-/** Candidate (a): the defender's chance that danger sense softens a killing blow from this attacker (0 when off). */
-export function precogSoftenChance(def: Fighter, atk: Fighter): number {
-  if (!PRECOG_SOFTEN.enabled || def.forceSense <= 0) return 0;
-  const base = Math.min(PRECOG_SOFTEN.maxChance, def.forceSense * PRECOG_SOFTEN.perForceSense);
-  return Math.max(atk.forceSense, atk.forceResistance ?? 0) >= FORCE_USER_MIN_LEVEL ? base * PRECOG_SOFTEN.vsForceUser : base;
+  return { f: next, hit: { quality, D, part, W, severity, vitalityLost: dmg.vitalityLost, severed }, rng: rngS };
 }
 
 /**
@@ -747,15 +726,9 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
           hit = { by: striker, ...d.hit, avoided: false };
         } else {
           // An accident lands as a graze: the lowest strike margin.
-          // Candidate (a): a precognition that did not avoid the hit may still soften a killing blow, at its Force load.
-          const soften = pc.used ? precogSoftenChance(defF, atkF) : 0;
-          const d = damageFighter(defF, q, accident ? STRIKE_MIN_MARGIN : band(margin), atkF.weapon, ctx, rng, day, woundSeq, vitalityOnly, accident ? null : (atkF.aim ?? null), accident ? null : (atkF.intent ?? null), soften);
+          const d = damageFighter(defF, q, accident ? STRIKE_MIN_MARGIN : band(margin), atkF.weapon, ctx, rng, day, woundSeq, vitalityOnly, accident ? null : (atkF.aim ?? null), accident ? null : (atkF.intent ?? null));
           rng = d.rng;
           defF = d.f;
-          if (d.softenTried) {
-            defF = { ...defF, meters: { ...defF.meters, f: addFixedLoad(defF.meters.f, PRECOG.load) } };
-            notes.push(`${CARD_ONLY_NOTE}${defF.name}: danger sense ${d.hit.severity === 'mortal' ? 'cannot turn' : 'turns'} the killing blow: ${PRECOG.load} Force load`);
-          }
           hit = { by: striker, ...d.hit, avoided: false };
         }
       }

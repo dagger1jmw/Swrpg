@@ -64,6 +64,13 @@ Force meter (replaces Force strain):
       of D reduces Vitality. Overflow is banded too: past an empty Vitality the wound stays the
       margin's W, and a hit there is at least a minor wound (W 1). A hazard's severity hint reads as
       margin 10 / 15 / 21 (a fall: minor / moderate / severe).
+    The non-saber mortal band (D-267, Jared; tunable, health.config NONSABER_MORTAL): a non-saber
+      hit is mortal only at a rounded strike margin of 30 or more; below it the wound stops at
+      critical (W 49). Lightsabers are untouched. Measured over 20 lifetimes a profile, mortal
+      wounds per life (Obi-Wan / Luke / Anakin / the Average) 2.35 / 5.75 / 14.05 / 0.35 ->
+      1.60 / 3.60 / 4.65 / 0.20 (with the harness's fight readiness, D-267), all inside the targets (1-3 / 2-6 / 3-6 / 0-1). Below margin 30,
+      a non-Force fighter reaches a killing blow on a Jedi through preparation (architecture §15,
+      M8 prepared Jedi hunters), not a lucky shot.
     Measured on a Force user at level 50 (wounding hits, minor/moderate/severe+): a blaster rifle
       55/31/15, a pistol 68/20/11; blaster vs blaster 60/26/14; saber vs saber unchanged 0/6/94.
   Subduing hits (D-262; design defaults, combat.config SUBDUE): a capturing fighter's hits are
