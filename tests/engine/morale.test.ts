@@ -104,7 +104,7 @@ describe('in the game: a named opponent\'s surrender opens the fate choice; the 
       let s: GameState = runDevCommand(REGISTRY, s0, '/fight 1 duelist at -10').state;
       const active = s.combat.active!;
       const duel = active.duel as DuelState;
-      s = { ...s, combat: { ...s.combat, active: { ...active, duel: { ...duel, opponents: duel.opponents.map((o) => ({ ...o, morale: { group: 'early', surrender: 1 } })) } } } };
+      s = { ...s, combat: { ...s.combat, active: { ...active, duel: { ...duel, opponents: duel.opponents.map((o) => ({ ...o, morale: { group: 'early', surrender: 1 }, withdraw: 0 })) } } } }; // morale only: no Sith withdrawal (D-263)
       const pre = s;
       const after = runDevCommand(REGISTRY, s, '/exchanges 400').state;
       const last = after.combat.last!;

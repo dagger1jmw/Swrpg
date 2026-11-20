@@ -35,7 +35,7 @@ export { pendingScenario } from './devScenario';
 
 /** The help text: every command, one line each. Unknown commands show it. */
 export const DEV_HELP: readonly string[] = [
-  '/fight <count> <kind or level> [at <gap>] [terrain <tags>] [stakes spar|skirmish|serious|lethal] [mode training|controlled|academy] [weapon <kind>]: a fight now, with the duel panel. weapon (minion groups): scattergun, slugpistol, slugrifle, pistol, rifle, heavy, melee, saber. Kinds: duelist, a minion kind (b1, b2, militia, thug, brawler, trooper, elite, mandalorian, droideka, beast, acolyte), a level, or canon:<name>. Examples: /fight 1 duelist at -10, /fight 6 b1 terrain forest, /fight 1 canon:malgus stakes lethal',
+  '/fight <count> <kind or level> [at <gap>] [terrain <tags>] [stakes spar|skirmish|serious|lethal] [mode training|controlled|academy] [weapon <kind>] [alive]: a fight now, with the duel panel. alive: the opponents want you alive and subdue when they can (D-262). weapon (minion groups): scattergun, slugpistol, slugrifle, pistol, rifle, heavy, melee, saber. Kinds: duelist, a minion kind (b1, b2, militia, thug, brawler, trooper, elite, mandalorian, droideka, beast, acolyte), a level, or canon:<name>. Examples: /fight 1 duelist at -10, /fight 6 b1 terrain forest, /fight 1 canon:malgus stakes lethal',
   '/spar <partner level, at <gap>, or canon:<name>> [mode training|controlled|academy]: a sparring session, played out',
   '/wound <location> <severity>: a wound (torso, head, left arm, right leg, left hand ...; minor, moderate, severe, critical, mortal). /heal [all]: wounds and Vitality back (all: lasting injuries too). Fatigue is separate: /fatigue physical 0 (and force, mental)',
   '/set <skill> <level>, /e <form> <value>, /ci <ability> <value>: stats directly',
@@ -44,7 +44,7 @@ export const DEV_HELP: readonly string[] = [
   '/exchanges <n>: in a fight, resolve up to n exchanges with the current stance (stops when the fight ends). /exchanges to <n>: the counter to n with no rolls, then on to the end (to 195 reaches the 200-exchange cap)',
   '/hazard <fall|fire|explosion|crash|poison|exposure|impact> <1-3> [end]: the narrator’s hazardOccurred as the narrator sends it; with end (in a fight), also its environmentCollapse interruption',
   '/stakes <serious|lethal|skirmish>: the current fight’s stakes. /archetype <id>: the current opponent’s archetype (named opponents; the captor and fate rules)',
-  '/intent <kill|disarm|capture> [all]: the current opponent’s strike intent, or every opponent’s (D-260)',
+  '/intent <kill|disarm|capture> [all]: the current opponent’s strike intent, or every opponent’s (D-260; capture only with a subduing means, D-262)',
   '/skip <amount> <days|weeks|months|years>: a montage (or time skip) on the routine',
   '/time <time of day, or year BBY|ABY [month] [day] [time]>: the clock forward to then. /place <location>: move there (created when new)',
   '/scenario <text>: the next narration starts exactly in that situation',
@@ -248,7 +248,9 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
     case 'fight':
     case 'spar': {
       if (inFight) return fail('a fight is already in progress (Resolve to end, or Stop sparring, first)');
-      const kw = new Set(['at', 'terrain', 'stakes', 'mode', 'weapon']);
+      const kw = new Set(['at', 'terrain', 'stakes', 'mode', 'weapon', 'alive']);
+      // The opponents want the player alive (D-262): they subdue when their loadout can.
+      let alive = false;
       let i = 0;
       let count = 1;
       if (cmd === 'fight') {
@@ -283,7 +285,8 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
           const w = WEAPON_ALIASES[(args[i++] ?? '').toLowerCase()];
           if (!w) return fail(`weapon: ${Object.keys(WEAPON_ALIASES).join(', ')}`);
           weapon = w;
-        } else if (k === 'mode') {
+        } else if (k === 'alive') alive = true;
+        else if (k === 'mode') {
           const m = MODE_ALIASES[(args[i++] ?? '').toLowerCase()];
           if (!m) return fail('mode: training, controlled or academy');
           mode = m;
@@ -295,7 +298,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       if (found.includes(null)) return fail(`unknown terrain ${terrain.filter((_, j) => found[j] === null).join(', ')} (tags: ${TERRAIN_IDS.join(', ')}; places: ${Object.keys(TERRAIN_ALIASES).join(', ')})`);
       const tags = [...new Set(found.flat() as string[])];
       const opponentRefs: string[] = [];
-      const minionGroups: { kind: string; count: number }[] = [];
+      const minionGroups: { kind: string; count: number; wantAlive?: boolean }[] = [];
       const own = selectPath(state);
       const asLevel = Number(kind);
       const minion = MINION_ALIASES[kind.toLowerCase()];
@@ -315,7 +318,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
         who = c.name;
       } else if (minion) {
         if (gap !== null) report.push('at is ignored for minions: their levels come from their kind and grade');
-        minionGroups.push({ kind: minion, count, ...(weapon ? { weapon } : {}) });
+        minionGroups.push({ kind: minion, count, ...(weapon ? { weapon } : {}), ...(alive ? { wantAlive: true } : {}) });
         who = `${count} ${MINION_KINDS.find((k) => k.id === minion)!.label}${count > 1 ? 's' : ''}`;
       } else if (kind.toLowerCase() === 'duelist' || kind.toLowerCase() === 'partner' || (Number.isFinite(asLevel) && asLevel > 0)) {
         if (count > MAX_DUELISTS) return fail(`at most ${MAX_DUELISTS} named duelists`);
@@ -354,7 +357,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       const stay = state.pacing.scene.presentNpcIds.filter((id) => opponentRefs.includes(id) || !state.npcs.byId[id]?.devLevels || openFate.has(id));
       if (stay.length !== state.pacing.scene.presentNpcIds.length) state = { ...state, pacing: { ...state.pacing, scene: { ...state.pacing.scene, presentNpcIds: stay } } };
       const before = state;
-      apply([{ type: 'fightBegun', fromPending: false, opponentRefs, minionGroups, stakes, terrainTags: tags, ...(mode ? { sparringMode: mode } : {}), ...(stakes === 'spar' ? { playOut: true } : {}) }], 'engine');
+      apply([{ type: 'fightBegun', fromPending: false, opponentRefs, minionGroups, stakes, terrainTags: tags, ...(mode ? { sparringMode: mode } : {}), ...(stakes === 'spar' ? { playOut: true } : {}), ...(alive && opponentRefs.length ? { wantAliveRefs: opponentRefs } : {}) }], 'engine');
       // A dying player's fight ends at once (D-242): begun and over in the same command.
       const endedAtOnce = !state.combat.active && state.combat.last !== null && state.combat.last.id !== before.combat.last?.id;
       if (!state.combat.active && !endedAtOnce) return fail(refused() ?? 'the fight did not begin');
@@ -502,8 +505,10 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       const d = act.duel as DuelState;
       const cur = currentTarget(d);
       const all = args[1]?.toLowerCase() === 'all';
-      state = { ...state, combat: { ...state.combat, active: { ...act, duel: { ...d, opponents: d.opponents.map((o) => (all || o.id === cur?.id ? { ...o, intent: want } : o)) } } } };
-      return out(true, `${all ? 'every opponent' : (cur?.name ?? 'the opponent')} strikes to ${want}`);
+      // Capture needs a subduing means (D-262): an opponent without one keeps its intent.
+      const cannot = d.opponents.filter((o) => (all || o.id === cur?.id) && want === 'capture' && !o.subdue).map((o) => o.name);
+      state = { ...state, combat: { ...state.combat, active: { ...act, duel: { ...d, opponents: d.opponents.map((o) => ((all || o.id === cur?.id) && !(want === 'capture' && !o.subdue) ? { ...o, intent: want } : o)) } } } };
+      return out(true, `${all ? 'every opponent' : (cur?.name ?? 'the opponent')} ${want === 'capture' ? 'fights to capture' : `strikes to ${want}`}${cannot.length ? ` (no way to subdue, unchanged: ${cannot.join(', ')})` : ''}`);
     }
 
     case 'skip': {

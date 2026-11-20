@@ -6,8 +6,12 @@ import {
   ADVANTAGE_MAX,
   INTENT_WEIGHTS,
   MORALE,
+  SUBDUE,
+  SUBDUE_TEXT,
+  TACTICAL_WITHDRAWAL,
   type MoraleProfile,
   type StrikeIntent,
+  type SubdueMode,
   BEAT_EVERY,
   BEAT_TRACK,
   BUILD_UP,
@@ -40,7 +44,7 @@ import {
   type Stance,
 } from '../data/combat.config';
 import { FORM_MATCHUPS, FORM_STAMINA, type MatchupSituation } from '../data/formMatchups';
-import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, PHYSICAL_COLLAPSE, SEVERING, SEVERITIES, SPENT_LEVEL_FACTOR, WOUND_FIGHTING, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
+import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, PHYSICAL_COLLAPSE, SEVERING, SEVERITIES, SPENT_LEVEL_FACTOR, WEAPON_BASE, WOUND_FIGHTING, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
 import { BLASTER_WEAPONS, RANGED_WEAPONS, SLUG_SPREAD, SLUG_SPREAD_DEFENSE } from '../data/weapons';
 import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityOf, severs } from './damage';
 import { fatigueLevelFactor } from './fatigue';
@@ -126,8 +130,12 @@ export interface Fighter {
   morale?: MoraleProfile;
   /** Strike intent (D-260): NPC fighters only; absent = the base location roll (the player, test fighters). */
   intent?: StrikeIntent;
-  /** Left the fight by morale (D-256): fled, or surrendered (a named one's fate is the player's choice). */
-  yielded?: 'fled' | 'surrendered';
+  /** The fighter's subduing means from its loadout (D-262): what a capture intent strikes with; absent or null = none. */
+  subdue?: SubdueMode | null;
+  /** Tactical withdrawal chance when losing (D-263): named Sith duelists; absent or 0 = never. */
+  withdraw?: number;
+  /** Left the fight by morale (D-256): fled, or surrendered (a named one's fate is the player's choice); or withdrew (D-263). */
+  yielded?: 'fled' | 'surrendered' | 'withdrew';
 }
 
 export interface DuelContext {
@@ -165,6 +173,8 @@ export interface Hit {
   point?: boolean;
   /** A deflected blaster bolt sent back at the shooter. */
   redirected?: boolean;
+  /** A subduing hit (D-262): Vitality only, by this means. */
+  stun?: SubdueMode;
 }
 
 export interface ExchangeRecord {
@@ -195,7 +205,7 @@ export interface ExchangeRecord {
 }
 
 export type DuelEnd =
-  | { winner: SideId; reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'spent' | 'point' | 'exhausted' | 'opponentsDefeated' | 'yielded' }
+  | { winner: SideId; reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'spent' | 'point' | 'exhausted' | 'opponentsDefeated' | 'yielded' | 'captured' }
   | { winner: null; reason: 'stopped' | 'stalemate' };
 
 export interface DuelState {
@@ -400,7 +410,7 @@ function withoutParts(w: Readonly<Record<BodyPart, number>>, parts: ReadonlySet<
 }
 
 /** An intent's location weights on a defender whose weapon is in this hand (D-260). */
-export function intentWeights(intent: StrikeIntent, weaponHand: 'left' | 'right'): Record<BodyPart, number> {
+export function intentWeights(intent: 'kill' | 'disarm', weaponHand: 'left' | 'right'): Record<BodyPart, number> {
   const w = INTENT_WEIGHTS[intent];
   const off = weaponHand === 'right' ? 'left' : 'right';
   return {
@@ -429,18 +439,17 @@ export function damageFighter(
   vitalityOnly: boolean,
   /** The striker's aimed location (D-171); a part already gone falls back to the roll. */
   aim: BodyPart | null = null,
-  /** The striker's intent (D-260): its location weights replace the base roll; capture stops at critical. */
+  /** The striker's intent (D-260): kill and disarm weights replace the base roll (capture subdues instead: subdueFighter). */
   intent: StrikeIntent | null = null,
 ): { f: Fighter; hit: Omit<Hit, 'by' | 'avoided'>; rng: RngState } {
   const D = damageOf({ weapon, quality, armor: f.armor, saberResistant: f.saberResistant });
   // A limb severed earlier in the fight cannot be hit again; a prosthetic takes the hit instead of the body: Vitality
   // only, no wound, no sever (equipment damage arrives with M8; D-164).
   const limbs = limbState(f.wounds, f.lasting);
-  const weights = intent ? intentWeights(intent, f.weaponHand ?? 'right') : LOCATION_WEIGHTS;
+  const weights = intent === 'kill' || intent === 'disarm' ? intentWeights(intent, f.weaponHand ?? 'right') : LOCATION_WEIGHTS;
   const [part, r1] = aim && !limbs.gone.has(aim) ? [aim, rng] : rollLocation(rng, limbs.gone.size ? withoutParts(weights, limbs.gone) : weights);
   const dmg = applyDamage(f.vitality, D, bypassFraction(weapon, quality, margin), vitalityOnly || limbs.prosthetic.has(part), !isSaber(weapon));
-  // A capturing striker avoids killing blows (D-260): its hits stop at critical.
-  let W = intent === 'capture' ? Math.min(dmg.W, 49) : dmg.W;
+  let W = dmg.W;
   let severity = severityOf(W);
   let severed = severity !== null && severs(weapon, part, W, { quality, armor: f.armor, forceUser: Math.max(f.forceSense, f.forceResistance ?? 0) >= FORCE_USER_MIN_LEVEL });
   // A sever chance below 1 (measured only, SEVERING.chance; D-256): a qualifying hit that does not sever stays a limb
@@ -469,6 +478,41 @@ export function damageFighter(
   }
   void ctx;
   return { f: next, hit: { quality, D, part, W, severity, vitalityLost: dmg.vitalityLost, severed }, rng: rngS };
+}
+
+/**
+ * A subduing hit (D-262): Vitality only, never a wound, a location or a sever. D = the means' base (a stun bolt: its
+ * blaster's) x hit quality, less armor unless the means goes around it (a net, binders, a choke). A minion folds when
+ * Spent as usual (a stun bolt sent back at its shooter).
+ */
+export function subdueFighter(f: Fighter, quality: HitQuality, weapon: WeaponKind, mode: SubdueMode): { f: Fighter; hit: Omit<Hit, 'by' | 'avoided'> } {
+  const base = mode === 'stunBolt' ? WEAPON_BASE[weapon] : SUBDUE.base[mode];
+  const D = damageOf({ weapon: 'unarmed', quality, armor: SUBDUE.ignoresArmor.includes(mode) ? 'none' : f.armor, saberResistant: false, base });
+  const vitality = Math.max(0, f.vitality - D);
+  const next: Fighter = { ...f, vitality, out: f.out || (f.minion && MINION_FOLDS_WHEN_SPENT && vitality <= 0) };
+  return { f: next, hit: { quality, D, part: 'torso', W: 0, severity: null, vitalityLost: f.vitality - vitality, severed: false, stun: mode } };
+}
+
+/** The striker's subduing means when it fights to capture and has one (D-262), else null. */
+export const subduingMeans = (f: Fighter): SubdueMode | null => (f.intent === 'capture' && f.subdue ? f.subdue : null);
+
+/**
+ * Captured (D-262): the player is Spent while an engaged opponent fights to capture with a subduing means. The fight
+ * ends in capture; the player is out with no new wound.
+ */
+export function capturedNow(s: DuelState): boolean {
+  return !s.a.out && s.a.vitality <= 0 && engaged(s).some((o) => subduingMeans(o) !== null);
+}
+
+/**
+ * The disengage contest (rolls §5 tactics): d20 + Agility / 10 (+ position) against d20 + the current opponent's skill /
+ * 10; a win ends the fight as fled. The same contest for the player's typed tactic and the lifetime harness (D-264).
+ */
+export function disengageContest(d: DuelState): { ok: boolean; mine: BasicRoll; theirs: BasicRoll; duel: DuelState } {
+  const target = currentTarget(d)!;
+  const [mine, r1] = basicRoll(d.rng, fighterAgility(d.a), d.a.position ? [{ source: 'position', value: d.a.position }] : []);
+  const [theirs, r2] = basicRoll(r1, target.level, []);
+  return { ok: mine.total > theirs.total, mine, theirs, duel: { ...d, rng: r2 } };
 }
 
 function withSide(s: DuelState, side: SideId, f: Fighter): DuelState {
@@ -672,17 +716,27 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
         if (accident) notes.push('accident: a controlled strike lands for real');
         const vitalityOnly = ctx.sparring === 'trainingSaber' || atkF.weapon === 'trainingSaber';
         const woundSeq = defF.wounds.length + 1;
-        // An accident lands as a graze: the lowest strike margin.
-        const d = damageFighter(defF, q, accident ? STRIKE_MIN_MARGIN : band(margin), atkF.weapon, ctx, rng, day, woundSeq, vitalityOnly, accident ? null : (atkF.aim ?? null), accident ? null : (atkF.intent ?? null));
-        rng = d.rng;
-        defF = d.f;
-        hit = { by: striker, ...d.hit, avoided: false };
+        // A capturing fighter subdues (D-262): Vitality only, no location, no wound.
+        const means = accident ? null : subduingMeans(atkF);
+        if (means) {
+          const d = subdueFighter(defF, q, atkF.weapon, means);
+          defF = d.f;
+          hit = { by: striker, ...d.hit, avoided: false };
+        } else {
+          // An accident lands as a graze: the lowest strike margin.
+          const d = damageFighter(defF, q, accident ? STRIKE_MIN_MARGIN : band(margin), atkF.weapon, ctx, rng, day, woundSeq, vitalityOnly, accident ? null : (atkF.aim ?? null), accident ? null : (atkF.intent ?? null));
+          rng = d.rng;
+          defF = d.f;
+          hit = { by: striker, ...d.hit, avoided: false };
+        }
       }
     } else if (BLASTER_WEAPONS.includes(atkF.weapon) && hasSaber(defF) && -band(margin) >= DEFLECT_REDIRECT_MARGIN && (defF.form === 'soresu' || defF.form === 'shien')) {
       // A deflected bolt sent back at the shooter (rolls §4): graze at 8-11, solid at 12+.
       const quality: HitQuality = -band(margin) >= 12 ? 'solid' : 'graze';
       const shooter = atkF;
-      const d = damageFighter(shooter, quality, -band(margin), shooter.weapon, ctx, rng, day, shooter.wounds.length + 1, false);
+      // A stun bolt sent back stuns its shooter (D-262).
+      const stunning = subduingMeans(shooter) === 'stunBolt';
+      const d = stunning ? { ...subdueFighter(shooter, quality, shooter.weapon, 'stunBolt'), rng } : damageFighter(shooter, quality, -band(margin), shooter.weapon, ctx, rng, day, shooter.wounds.length + 1, false);
       rng = d.rng;
       hit = { by: other(striker), ...d.hit, avoided: false, redirected: true };
       if (striker === 'A') aOut = d.f;
@@ -760,6 +814,33 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       else {
         notes.push(`${bOut.name} is out of the fight`);
         advAfter = 0;
+      }
+    }
+  }
+  // Spent against a capturing opponent (D-262): subdued and taken.
+  if (!end && ctx.sparring === null && capturedNow(next)) {
+    next = { ...next, a: { ...next.a, out: true } };
+    end = { winner: 'B', reason: 'captured' };
+    notes.push(`${A.name} is Spent and subdued: taken captive`);
+  }
+
+  // Tactical withdrawal (Jared, D-263): a losing Sith duelist breaks off and escapes with its archetype's chance, apart
+  // from panic morale. Losing: a severe or worse wound or a sever this exchange, Spent this exchange, or the track
+  // swinging to TACTICAL_WITHDRAWAL.trackAt against it. Real fights only; the dice continue the duel's stream.
+  if (!end && ctx.sparring === null && TACTICAL_WITHDRAWAL.enabled) {
+    const after = next.opponents.find((o) => o.id === B.id)!;
+    if (!after.out && !after.dead && (after.withdraw ?? 0) > 0) {
+      const fresh = after.wounds.slice(B.wounds.length);
+      const losing = fresh.some((w) => w.severed || atLeast(w.severity, 'severe')) || spentNow === 'B' || (advAfter >= TACTICAL_WITHDRAWAL.trackAt && advBefore < TACTICAL_WITHDRAWAL.trackAt);
+      if (losing) {
+        const [u, r] = nextFloat(next.rng);
+        next = { ...next, rng: r };
+        if (u < after.withdraw!) {
+          next = withSide(next, 'B', { ...after, out: true, yielded: 'withdrew' });
+          notes.push(`${after.name} withdraws: breaks off the fight and escapes, out of the fight`);
+          advAfter = 0;
+          if (engaged(next).length === 0) end = { winner: 'A', reason: 'yielded' };
+        }
       }
     }
   }
@@ -858,6 +939,8 @@ export function settleEnd(s: DuelState): DuelState {
   const opps = s.opponents.map((o) => (!o.out && (o.dead || isDying(o.wounds) || isIncapacitated(o.wounds) || cannotDuel(o) || collapsedFromExhaustion(o)) ? { ...o, out: true } : o));
   const next = { ...s, opponents: opps };
   if (engaged(next).length === 0) return { ...next, end: { winner: 'A', reason: allDownReason(next, 'allOut') } };
+  // Spent against a capturing opponent after a Force action or a sequence step (D-262).
+  if (capturedNow(next)) return { ...next, a: { ...next.a, out: true }, end: { winner: 'B', reason: 'captured' } };
   return { ...next, target: Math.max(0, opps.findIndex((o) => o.id === (currentTarget(next)?.id ?? ''))) };
 }
 
@@ -865,7 +948,7 @@ export function settleEnd(s: DuelState): DuelState {
 export function beatAfter(s: DuelState): BeatReason | null {
   const rec = s.log[s.log.length - 1];
   if (!rec) return null;
-  if (s.end) return s.end.reason === 'incapacitated' || s.end.reason === 'dying' || s.end.reason === 'dead' || s.end.reason === 'exhausted' ? 'incapacitated' : 'fightEnded';
+  if (s.end) return s.end.reason === 'incapacitated' || s.end.reason === 'dying' || s.end.reason === 'dead' || s.end.reason === 'exhausted' || s.end.reason === 'captured' ? 'incapacitated' : 'fightEnded';
   if (rec.kind === 'force') return 'forceAction';
   const target = s.opponents.find((o) => o.id === rec.targetId);
   if (rec.hit && !rec.hit.avoided && rec.hit.by === 'A' && target?.minion) return target.out ? 'minionDown' : 'minionHit';
@@ -947,7 +1030,8 @@ export const partText = (part: string): string => PART_TEXT[part] ?? part;
  * A landed hit in plain words (D-197): what it did, with the location and the severity. Only real hits say "hits".
  * "hits X: moderate wound to the left arm", "hits X: the right leg is severed", "hits X: no wound, stamina only".
  */
-export function hitText(hit: Pick<Hit, 'severity' | 'part' | 'severed'>, target: string): string {
+export function hitText(hit: Pick<Hit, 'severity' | 'part' | 'severed' | 'stun'>, target: string): string {
+  if (hit.stun) return `${SUBDUE_TEXT[hit.stun].verb} ${target}: no wound, stamina only`;
   if (hit.severed) return `hits ${target}: the ${partText(hit.part)} is severed`;
   return hit.severity ? `hits ${target}: ${hit.severity} wound to the ${partText(hit.part)}` : `hits ${target}: no wound, stamina only`;
 }

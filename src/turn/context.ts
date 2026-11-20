@@ -10,7 +10,7 @@ import { makeEstimator } from '../ai/tokenRatio';
 import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { orderSeatAt } from '../data/orderSeats';
-import { STRIKE_AT } from '../data/combat.config';
+import { STRIKE_AT, SUBDUE_TEXT, type SubdueMode } from '../data/combat.config';
 import { selectIsDying, selectIsSpent, selectLasting, selectStatusLabel, selectWounds } from '../features/health/selectors';
 import type { CombatDraft } from './combatTurn';
 import { combatFacts, weaponText } from './combatFacts';
@@ -426,8 +426,9 @@ export function describeCombat(c: CombatDraft): string[] {
   // Armor as the engine has it (D-216; pass 2 gave an unarmored Jedi "your armor"): nobody wears what is not listed.
   if (c.fighters.some((f) => f.armor !== undefined)) lines.push(`Armor (the only armor in this fight): ${c.fighters.map((f) => `${f.name}: ${!f.armor || f.armor === 'none' ? 'none' : `${f.armorName ? `${f.armorName}, ` : ''}${f.armor}${f.saberResistant ? ' (saber-resistant: a lightsaber does not cut through it easily)' : ''}`}`).join('; ')}.`);
   // Strike intent (D-260): what each opponent is trying to do; the hits in the list already follow it.
-  const INTENT_TEXT: Readonly<Record<string, string>> = { kill: 'to kill (torso and head)', disarm: 'to disarm (the weapon hand and the limbs)', capture: 'to capture (limbs and the weapon hand; no killing blow)' };
-  const intents = c.fighters.filter((f) => f.intent).map((f) => `${f.name} strikes ${INTENT_TEXT[f.intent!] ?? f.intent}`);
+  const INTENT_TEXT: Readonly<Record<string, string>> = { kill: 'strikes to kill (torso and head)', disarm: 'strikes to disarm (the weapon hand and the limbs)' };
+  // A capturing fighter subdues (D-262): its hits drain stamina and never wound; it takes the player when Spent.
+  const intents = c.fighters.filter((f) => f.intent).map((f) => `${f.name} ${f.intent === 'capture' ? `fights to capture: subdues with ${SUBDUE_TEXT[f.subdue as SubdueMode]?.means ?? 'stun attacks'} (no wounds; takes ${c.fighters[0]?.name ?? 'the player'} captive when Spent)` : (INTENT_TEXT[f.intent!] ?? `strikes to ${f.intent}`)}`);
   if (intents.length) lines.push(`Intent: ${intents.join('; ')}.`);
   // Cover between shooters (D-243; pass 4 issue 7: the narrated beat in the ruins put nobody behind anything).
   if (c.cover) lines.push('Cover: the shooters on both sides fire from behind cover (the terrain has it); show them using it.');

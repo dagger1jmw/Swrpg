@@ -55,7 +55,7 @@ export interface FightResult {
 }
 
 export interface FightSpec {
-  minionGroups?: { kind: string; count: number }[];
+  minionGroups?: { kind: string; count: number; wantAlive?: boolean }[];
   opponentRefs?: string[];
   stakes?: 'lethal' | 'serious' | 'skirmish' | 'spar';
   terrainTags?: string[];

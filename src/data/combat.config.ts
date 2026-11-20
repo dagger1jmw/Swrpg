@@ -331,21 +331,19 @@ export const moraleFor = (archetype: string, minionKind: string | null = null): 
 
 /**
  * Strike intent (Jared, D-260; design defaults). Each NPC fighter strikes to kill, to disarm or to capture, set from its
- * archetype and the scene. Intent shifts where its hits land (these weights replace health §5's location roll for that
- * striker); it is not an aimed strike, so there is no -2. The weights name the defender's weapon side ("weaponArm",
+ * archetype and the scene. Kill and disarm shift where its hits land (these weights replace health §5's location roll for
+ * that striker); it is not an aimed strike, so there is no -2. The weights name the defender's weapon side ("weaponArm",
  * "weaponHand") and the other side ("offArm", "offHand"). The player strikes with no intent (the base roll) and aims, as
- * before (D-171). A capturing striker also avoids killing blows: its hits stop at critical (W 49 at most).
+ * before (D-171). Capture (D-262) is not a hit location: a capturing fighter subdues (SUBDUE below).
  */
 export const STRIKE_INTENTS = ['kill', 'disarm', 'capture'] as const;
 export type StrikeIntent = (typeof STRIKE_INTENTS)[number];
 export type IntentPart = 'torso' | 'head' | 'weaponArm' | 'weaponHand' | 'offArm' | 'offHand' | 'leftLeg' | 'rightLeg';
-export const INTENT_WEIGHTS: Readonly<Record<StrikeIntent, Readonly<Record<IntentPart, number>>>> = {
+export const INTENT_WEIGHTS: Readonly<Record<'kill' | 'disarm', Readonly<Record<IntentPart, number>>>> = {
   // Torso and head (base: torso 35, head 10, arms 25, legs 25, hands 5).
   kill: { torso: 55, head: 18, weaponArm: 7, offArm: 5, weaponHand: 2, offHand: 1, leftLeg: 6, rightLeg: 6 },
   // The weapon hand and the limbs: the marks of contact (cho mai, cho sun, cho mok; lore §1).
   disarm: { torso: 15, head: 2, weaponArm: 25, offArm: 10, weaponHand: 18, offHand: 4, leftLeg: 13, rightLeg: 13 },
-  // Limbs and the weapon hand, to bring the target down alive.
-  capture: { torso: 12, head: 2, weaponArm: 20, offArm: 12, weaponHand: 14, offHand: 4, leftLeg: 18, rightLeg: 18 },
 };
 /** Default intent by archetype (Jared's list): Jedi disarm, everyone else kills; capture comes from the scene. */
 export const INTENT_BY_ARCHETYPE: Readonly<Record<string, StrikeIntent>> = {
@@ -353,15 +351,74 @@ export const INTENT_BY_ARCHETYPE: Readonly<Record<string, StrikeIntent>> = {
   jediConsular: 'disarm',
   jediSentinel: 'disarm',
 };
+
+/**
+ * Capture by subduing (Jared, D-262; design defaults). Legends: a Jedi is taken by being subdued, not out-fenced. A
+ * capturing fighter's landed strikes are subduing attacks that drain Vitality and never wound (no location, no sever, no
+ * killing blow), and the fight ends in capture when the player is Spent. The means come from the loadout: a Force user
+ * with Force Choke or Force Lightning chokes to unconsciousness or uses low-power lightning; Mandalorians and bounty
+ * hunters use nets, whipcords and binders; a stun baton, an electrostaff or a force pike stuns in melee; a blaster pistol
+ * or rifle fires on stun. A fighter with none of these (a lightsaber without Choke or lightning, an amphistaff, a heavy
+ * repeater, a slugthrower) cannot capture and keeps its archetype's kill or disarm intent.
+ */
+export const SUBDUE_MODES = ['choke', 'lightning', 'snare', 'stunMelee', 'stunBolt'] as const;
+export type SubdueMode = (typeof SUBDUE_MODES)[number];
+export const SUBDUE = {
+  /** Damage base by mode (health §4's D before the hit multiplier); a stun bolt uses its blaster's own base. */
+  base: { choke: 18, lightning: 18, snare: 14, stunMelee: 12 } as Readonly<Record<Exclude<SubdueMode, 'stunBolt'>, number>>,
+  /** A net, a whipcord, binders and a choke go around armor; stun bolts, stun batons and lightning are stopped by it as the weapons are. */
+  ignoresArmor: ['choke', 'snare'] as readonly SubdueMode[],
+  /** A Force user subdues with Choke or lightning from this level of the ability. */
+  forceAbilityMin: 10,
+  /** Blasters with a stun setting (heavy repeaters have none). */
+  stunWeapons: ['blasterPistol', 'blasterRifle'] as readonly string[],
+  /** Melee weapons that stun, by name. */
+  stunMeleeName: /stun|electro|force pike|shock/i,
+  /** Archetypes that carry nets, whipcords and binders. */
+  snareArchetypes: ['mandalorian', 'bountyHunter'] as readonly string[],
+} as const;
+/** The verb for a subduing hit in the log and the narrator's block. */
+export const SUBDUE_TEXT: Readonly<Record<SubdueMode, { verb: string; means: string }>> = {
+  choke: { verb: 'chokes', means: 'Force Choke to unconsciousness' },
+  lightning: { verb: 'shocks', means: 'low-power Force lightning' },
+  snare: { verb: 'snares', means: 'nets, whipcords and binders' },
+  stunMelee: { verb: 'stuns', means: 'a stun weapon in melee' },
+  stunBolt: { verb: 'stuns', means: 'blaster bolts on stun' },
+};
+/** A fighter's subduing means from its loadout, archetype and Force abilities (null: it cannot capture). */
+export function subdueFor(i: { archetype: string; weapon: string; weaponName?: string | null | undefined; forceChoke?: number | undefined; forceLightning?: number | undefined }): SubdueMode | null {
+  if ((i.forceChoke ?? 0) >= SUBDUE.forceAbilityMin) return 'choke';
+  if ((i.forceLightning ?? 0) >= SUBDUE.forceAbilityMin) return 'lightning';
+  if (SUBDUE.snareArchetypes.includes(i.archetype)) return 'snare';
+  if (i.weapon === 'melee' && i.weaponName && SUBDUE.stunMeleeName.test(i.weaponName)) return 'stunMelee';
+  if (SUBDUE.stunWeapons.includes(i.weapon)) return 'stunBolt';
+  return null;
+}
+
 /**
  * A fighter's intent: capture when the scene or a contract wants the target alive (a Sith sent to bring them in, a
- * bounty for a live capture); a Jedi disarms, and kills only in lethal stakes where a life is at stake; all others kill.
+ * bounty for a live capture) and the fighter has a subduing means (D-262; else it falls back); a Jedi disarms, and kills
+ * only in lethal stakes where a life is at stake; all others kill. A spar has no capture.
  */
-export function strikeIntentFor(archetype: string, stakes: string, wantsAlive: boolean): StrikeIntent {
-  if (wantsAlive) return 'capture';
+export function strikeIntentFor(archetype: string, stakes: string, wantsAlive: boolean, subdue: SubdueMode | null): StrikeIntent {
+  if (wantsAlive && subdue && stakes !== 'spar') return 'capture';
   const base = INTENT_BY_ARCHETYPE[archetype] ?? 'kill';
   return base === 'disarm' && stakes === 'lethal' ? 'kill' : base;
 }
+
+/**
+ * Tactical withdrawal (Jared, D-263; design default 30%): separate from panic morale. A named Sith duelist who is losing
+ * (takes a severe or worse wound, becomes Spent, or the track swings to TRACK_AT against it) withdraws with its
+ * archetype's chance: it breaks off and escapes, out of the fight, with no fate to choose (Legends: Dooku, Ventress and
+ * Grievous all did). Real fights only; `enabled` exists for measurement.
+ */
+export const TACTICAL_WITHDRAWAL = {
+  enabled: true,
+  /** The track against the fighter that counts as losing badly (advantage 4 of 5 toward the other side). */
+  trackAt: 4,
+  byArchetype: { sithWarrior: 0.3, sithInquisitor: 0.3 } as Readonly<Record<string, number>>,
+};
+export const withdrawChanceFor = (archetype: string): number => TACTICAL_WITHDRAWAL.byArchetype[archetype] ?? 0;
 
 /** NPC fate chosen by the player at the NPC's incapacitation. */
 export const NPC_FATES = ['spare', 'capture', 'kill'] as const;

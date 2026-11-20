@@ -38,7 +38,8 @@ Force meter (replaces Force strain):
   Recovery: resting 50% of max per hour | light activity 15% per hour | none in combat
     (Force healing can restore it) | sleep 7h+ full.
   Vitality 0 = Spent: all further damage goes to wounds, and effective level is reduced 10%.
-  Vitality can never cause death or incapacitation.
+  Vitality can never cause death or incapacitation. Spent against an opponent who fights to capture
+    is the one exception: the fight ends there and the player is taken (D-262, rolls section 5).
 
 ## 4. Damage
   Damage D = weapon base * hit quality - armor (minimum 0)
@@ -65,6 +66,11 @@ Force meter (replaces Force strain):
       margin 10 / 15 / 21 (a fall: minor / moderate / severe).
     Measured on a Force user at level 50 (wounding hits, minor/moderate/severe+): a blaster rifle
       55/31/15, a pistol 68/20/11; blaster vs blaster 60/26/14; saber vs saber unchanged 0/6/94.
+  Subduing hits (D-262; design defaults, combat.config SUBDUE): a capturing fighter's hits are
+    Vitality only, D = the means' base x hit quality - armor: a stun bolt its blaster's base (15 or
+    20), a stun weapon in melee 12, nets, whipcords and binders 14, Force Choke 18, low-power
+    lightning 18. Nets, binders and a choke go around armor; stun bolts, stun batons and
+    lightning are stopped by it as their weapons are. No bypass, no overflow, no wound.
 
 ## 5. Wounds
   Wound damage W -> severity: 1-9 minor | 10-19 moderate | 20-34 severe |
@@ -77,7 +83,8 @@ Force meter (replaces Force strain):
     in general (D-260): a non-saber blade (a vibroblade, an amphistaff) severs only on a critical
     hit that leaves a severe wound or worse (W 20+, design default) to the limb of an unarmored
     target who is not a Force user; other weapons never sever (beskar blades and the like are
-    M8). Where a striker's hits land follows its strike intent (rolls section 5, D-260).
+    M8). Where a striker's hits land follows its strike intent (rolls section 5, D-260); a
+    capturing fighter's subduing hits have no location and never sever (D-262).
   Lost and prosthetic limbs (D-164): a limb severed earlier in the same fight cannot be hit
     again (it leaves the location roll; a lost arm takes its hand). A limb lost before the fight
     carries its prosthetic: a hit there costs Vitality only (no wound, no sever) until M8 makes
@@ -149,6 +156,8 @@ Force meter (replaces Force strain):
     Mandalorians late; the Yuuzhan Vong and droids never; beasts flee and never surrender. A broken
     fighter is out of the fight; a named one's surrender opens the fate choice; the last one breaking
     ends the fight won ("the opponents broke"). The player never checks morale; sparring has none.
+  Tactical withdrawal (D-263) is separate from morale: a losing named Sith duelist withdraws at
+    30% (rolls section 5); it leaves no fate to choose.
     The narration block states each break.
   Cut-down (D-158): against a minion, a build-up margin of 6+ is already a hit (quality by the margin),
   unless the minion wears saber-resistant armor. Mandalorian beskar is rolled per Mandalorian by era

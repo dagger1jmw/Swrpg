@@ -40,7 +40,7 @@ interface Issue { kind: string; detail: string; seed: string; config: string }
 class Sweep {
   issues: Issue[] = [];
   counts: Record<string, number> = {};
-  rows: Record<string, { n: number; win: number; wounded: number; ex: number }> = {};
+  rows: Record<string, { n: number; win: number; wounded: number; ex: number; captured: number }> = {};
   bump(k: string): void {
     this.counts[k] = (this.counts[k] ?? 0) + 1;
   }
@@ -49,16 +49,17 @@ class Sweep {
     if (this.issues.filter((x) => x.kind === kind).length < 5) this.issues.push({ kind, detail, seed, config });
   }
   record(key: string, f: FightResult): void {
-    const r = (this.rows[key] ??= { n: 0, win: 0, wounded: 0, ex: 0 });
+    const r = (this.rows[key] ??= { n: 0, win: 0, wounded: 0, ex: 0, captured: 0 });
     r.n++;
     if (f.outcome === 'won') r.win++;
+    if (f.reason === 'captured') r.captured++;
     if (isWounded(f)) r.wounded++;
     r.ex += f.exchanges;
   }
   table(prefix = ''): string[] {
     return Object.entries(this.rows)
       .filter(([k]) => k.startsWith(prefix))
-      .map(([k, r]) => `${k.padEnd(58)} n ${String(r.n).padStart(4)}  win ${((100 * r.win) / r.n).toFixed(1).padStart(5)}  wounded ${((100 * r.wounded) / r.n).toFixed(1).padStart(5)}  exchanges ${(r.ex / r.n).toFixed(1)}`);
+      .map(([k, r]) => `${k.padEnd(58)} n ${String(r.n).padStart(4)}  win ${((100 * r.win) / r.n).toFixed(1).padStart(5)}  wounded ${((100 * r.wounded) / r.n).toFixed(1).padStart(5)}  exchanges ${(r.ex / r.n).toFixed(1)}${r.captured ? `  captured ${((100 * r.captured) / r.n).toFixed(1)}` : ''}`);
   }
 
   /** Every check on one finished fight. */
@@ -163,6 +164,9 @@ describe('combat sweep', () => {
     // D-158 group sizes for the Knight at 50 (flat floor).
     for (const k of ['10 B1', '10 militia', '6 troopers', '6 elites', '4 Mandalorians', '6 B2', '4 droidekas'])
       for (const pk of ['balanced', 'mixed', 'heavyForce']) for (let i = 0; i < N_RATE; i++) sw.record(`rates knight50 | ${k} | ${pk}`, runFight(knightFor(MINIONS[k]!.kind), { minionGroups: [MINIONS[k]!], terrainTags: ['flatFloor'] }, PATTERNS[pk]!, `rate:${k}:${pk}:${i}`));
+    // Capture (D-262): the same groups sent to take the Knight alive; a group with no subduing means (B2s, droidekas:
+    // heavy repeaters) keeps its kill intent, so its rows match the kill rows.
+    for (const k of ['10 B1', '10 militia', '6 troopers', '6 elites', '4 Mandalorians', '6 B2', '4 droidekas']) for (let i = 0; i < N_RATE; i++) sw.record(`rates knight50 | ${k} | balanced | capture`, runFight(knightFor(MINIONS[k]!.kind), { minionGroups: [{ ...MINIONS[k]!, wantAlive: true }], terrainTags: ['flatFloor'] }, PATTERNS['balanced']!, `rate:${k}:balanced:${i}`));
     // Cover (D-243): troopers in ruins with cover, against a Knight at 50 and a smuggler at 30 (a shooter: both in cover).
     for (const pk of ['balanced', 'mixed']) for (let i = 0; i < N_RATE; i++) sw.record(`rates knight50 | 6 troopers | ${pk} | cover`, runFight(knightFor('trooper'), { minionGroups: [MINIONS['6 troopers']!], terrainTags: ['cover', 'debris'] }, PATTERNS[pk]!, `cover:${pk}:${i}`));
     const smuggler = await smugglerBase();

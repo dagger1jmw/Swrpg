@@ -157,12 +157,33 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
   Strike intent (D-260): each NPC fighter strikes to kill, to disarm or to capture (combat.config
     INTENT_WEIGHTS, strikeIntentFor; design defaults). Jedi disarm (the weapon hand and the limbs,
     the marks of contact) and kill only in lethal stakes; Sith, soldiers, mercenaries,
-    Mandalorians, the Yuuzhan Vong and everyone else kill (torso and head); a fighter the scene
-    or a contract sets to bring the player in alive (combatStarted wantAliveRefs) captures (limbs
-    and the weapon hand, and no hit past critical). Intent replaces the striker's location
-    weights; it is not an aimed strike, so there is no -2. The player has no intent: the base
-    roll, or an aimed strike as above. The narration block states each opponent's intent. The
-    section 8 tables use fighters with no intent and are unchanged.
+    Mandalorians, the Yuuzhan Vong and everyone else kill (torso and head). Kill and disarm
+    replace the striker's location weights; intent is not an aimed strike, so there is no -2.
+    The player has no intent: the base roll, or an aimed strike as above. The narration block
+    states each opponent's intent. The section 8 tables use fighters with no intent and are
+    unchanged.
+  Capture (amended by D-262; Legends: a Jedi is taken by being subdued, not out-fenced): a fighter
+    the scene or a contract sets to bring the player in alive (combatStarted wantAliveRefs, or a
+    minion group's wantAlive) captures when its loadout has a subduing means (combat.config
+    SUBDUE, subdueFor): Force Choke to unconsciousness or low-power Force lightning for a Force
+    user with the ability at 10+; nets, whipcords and binders for Mandalorians and bounty
+    hunters; a stun baton, an electrostaff or a force pike in melee; a blaster pistol or rifle
+    on stun. Its landed strikes drain Vitality and never wound (health section 4); no location,
+    no sever, no killing blow. The fight ends in capture when the player is Spent (the player
+    is taken, the captors' fate is capture). A fighter with no subduing means (a lightsaber
+    without Choke or lightning, an amphistaff, a heavy repeater, a slugthrower) keeps its
+    archetype's kill or disarm. A stun bolt deflected back stuns its shooter. No capture in a
+    spar.
+  Tactical withdrawal (D-263; design default, combat.config TACTICAL_WITHDRAWAL): apart from
+    panic morale, a named Sith duelist who is losing (a severe or worse wound or a sever this
+    exchange, Spent this exchange, or the track swinging to 4 against it) withdraws with its
+    archetype's chance, 30% for Sith warriors and inquisitors: it breaks off and escapes, out of
+    the fight, with no fate to choose (Dooku, Ventress and Grievous all did). The last opponent
+    withdrawing ends the fight won ("the opponents broke"). Real fights only.
+  Disengage (tactic): d20 + Agility / 10 (+ position) against d20 + the current opponent's
+    skill / 10; a win ends the fight as fled (engine/duel.ts disengageContest). The lifetime
+    harness plays its profiles as sensible Jedi who use it when severely wounded, near Spent
+    while losing on the track, or against a clearly stronger opponent (D-264).
   Opening: +2 advantage. Created by winning a feint, taunt or trick contest
     (d20 + Charisma, Intelligence or form level / 10 vs d20 + Willpower or Force Sense / 10),
     or by an opponent's natural 1 in a build-up exchange.

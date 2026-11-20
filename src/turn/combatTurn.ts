@@ -226,6 +226,8 @@ export interface CombatFighterView {
   saberResistant?: boolean;
   /** Strike intent (D-260): kill, disarm or capture; NPC fighters only. */
   intent?: string;
+  /** A capturing fighter's subduing means (D-262). */
+  subdue?: string;
   /** The weapon's and the armor's own names ("amphistaff", "vonduun crab armor"; pass 4 issue 12). */
   weaponName?: string;
   armorName?: string;
@@ -281,7 +283,7 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   // A droid is destroyed or disabled, never dying (issue 21).
   status: f.forceTraits?.includes('droid')
     ? f.dead ? 'Destroyed' : f.out || isDying(f.wounds as Wound[]) || isIncapacitated(f.wounds as Wound[]) ? 'Disabled' : statusLabel(f.wounds as Wound[])
-    : f.dead ? 'Dead' : isDying(f.wounds as Wound[]) ? 'Dying' : isIncapacitated(f.wounds as Wound[]) ? 'Incapacitated' : f.yielded === 'surrendered' ? 'Surrendered' : f.yielded === 'fled' ? 'Fled' : f.out ? 'Out of the fight' : statusLabel(f.wounds as Wound[]),
+    : f.dead ? 'Dead' : isDying(f.wounds as Wound[]) ? 'Dying' : isIncapacitated(f.wounds as Wound[]) ? 'Incapacitated' : f.yielded === 'surrendered' ? 'Surrendered' : f.yielded === 'fled' ? 'Fled' : f.yielded === 'withdrew' ? 'Withdrew' : f.out ? 'Out of the fight' : statusLabel(f.wounds as Wound[]),
   out: f.out,
   engagedElsewhere: f.engagedElsewhere,
   minion: f.minion,
@@ -293,6 +295,7 @@ const view = (f: DuelState['a']): CombatFighterView => ({
   armor: f.armor,
   saberResistant: f.saberResistant,
   ...(f.intent ? { intent: f.intent } : {}),
+  ...(f.intent === 'capture' && f.subdue ? { subdue: f.subdue } : {}),
   ...(f.weaponName ? { weaponName: f.weaponName } : {}),
   ...(f.armorName ? { armorName: f.armorName } : {}),
   lasting: lastingState(f.wounds as Wound[], (f.lasting ?? []) as LastingInjury[]),

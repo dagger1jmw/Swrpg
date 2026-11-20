@@ -105,6 +105,9 @@ describe('engine and turn fixes (issues 15-22)', () => {
   });
   it('16: a fate choice that lapses says so; a fighter left dying dies', async () => {
     let s = dev(await knight('fate'), '/fight 1 duelist at -45 stakes lethal');
+    // The fate choice is the point: a Sith who withdraws (D-263) leaves none, so this one fights to the end.
+    const act = s.combat.active!;
+    s = { ...s, combat: { ...s.combat, active: { ...act, duel: { ...(act.duel as DuelState), opponents: (act.duel as DuelState).opponents.map((o) => ({ ...o, withdraw: 0 })) } } } };
     for (let i = 0; i < 5 && s.combat.active; i++) s = dev(s, '/exchanges 100');
     expect(s.combat.last!.outcome).toBe('won');
     const fate = s.combat.fates[0]!;

@@ -6,11 +6,12 @@ import type { Fight, LifeProfile } from '../support/lifetime';
 
 /** Years of training to reach each tier (progression-numbers §12; tolerance +/-20%). */
 /**
- * The gated seed (Jared, D-159 amended 2026-11-19): the four profile tests run on `<profile seed>-s7`, the seed of the
- * 20-seed spread closest to the median across every gate of all four profiles (total normalized distance 4.89; the old
- * fixed seed ranked 7th at 8.20). The spread runner still runs the profile seed and -s1 to -s19 around it.
+ * The gated seed (Jared, D-159 amended 2026-11-19; re-selected 2026-11-20 after D-262 to D-264): the four profile tests run on
+ * `<profile seed>-s9`, the seed of the 20-seed spread closest to the median across every gated quantity of all four profiles
+ * (total normalized distance 4.24; s7, chosen at 4.89 before, had drifted to 10.01, 18th of 20). The spread runner still
+ * runs the profile seed and -s1 to -s19 around it.
  */
-export const GATED_SEED_SUFFIX = '-s7';
+export const GATED_SEED_SUFFIX = '-s9';
 export const gated = <P extends { seed: string }>(p: P): P => ({ ...p, seed: `${p.seed}${GATED_SEED_SUFFIX}` });
 
 export const TARGETS = {
@@ -54,7 +55,9 @@ export const AVERAGE_SKIRMISHES = 0.95;
 export const ANAKIN_MASTER_19 = 11;
 export const ANAKIN_MASTER_21 = 10;
 export const AVERAGE_DUEL_GAP = -25;
-export const ANAKIN_WAR_B1 = 25;
+export const ANAKIN_WAR_B1 = 80;
+export const ANAKIN_WAR_B2 = 20;
+export const ANAKIN_WAR_ELITE = 8;
 
 /** Average: Jedi Guardian, the default template, standard effort; peacetime: one real skirmish a year from Knight (D-40). */
 export const AVERAGE: LifeProfile = {
@@ -186,10 +189,12 @@ export const ANAKIN: LifeProfile = {
     // war (was 8), 0.15 a year after it (was 2); their XP from elite squads and Mandalorians.
     { from: 10, to: 19, perYear: 1, stakes: 'serious', gap: -5 },
     { from: 10, to: 19, perYear: ANAKIN_PADAWAN_ELITES, stakes: 'serious', gap: -5, opponent: 'eliteTrooper', count: 4 },
-    // The Clone Wars (19-22): droid armies, elite squads and duels; the first year heaviest.
+    // The Clone Wars (19-22): droid armies, elite squads and duels; the first year heaviest. D-264 retune (fight counts
+    // only, 20 seeds): his own withdrawals spare him severe wounds and bacta days, so more training and less combat XP
+    // (war-year mean median 22.0%, every seed under 25%); B1 groups 25 -> 80 a year (median 30.5%, 28.5-34.2%).
     { from: 19, to: 22, perYear: ANAKIN_WAR_B1, stakes: 'serious', gap: -30, opponent: 'battleDroid', count: 10 },
-    { from: 19, to: 22, perYear: 20, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
-    { from: 19, to: 22, perYear: 8, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
+    { from: 19, to: 22, perYear: ANAKIN_WAR_B2, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },
+    { from: 19, to: 22, perYear: ANAKIN_WAR_ELITE, stakes: 'serious', gap: -10, opponent: 'eliteTrooper', count: 6 },
     { from: 19, to: 22, perYear: 4, stakes: 'serious', gap: 0 },
     { from: 19, to: 22, perYear: ANAKIN_WAR_MANDO, stakes: 'serious', gap: 0, opponent: 'mandalorian', count: 3 },
     { from: 19, to: 20, perYear: 9, stakes: 'serious', gap: -20, opponent: 'superBattleDroid', count: 6 },

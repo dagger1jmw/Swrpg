@@ -10,14 +10,14 @@ import { TERRAIN_IDS } from '../../data/terrain';
 
 export const pendingFightSchema = z.object({
   opponentRefs: z.array(z.string()),
-  minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(12), weapon: z.enum(WEAPON_KINDS).optional() })),
+  minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(12), weapon: z.enum(WEAPON_KINDS).optional(), wantAlive: z.boolean().optional() })),
   stakes: z.enum(COMBAT_STAKES),
   terrainTags: z.array(z.enum(TERRAIN_IDS as [string, ...string[]])),
   ambushClaim: z.boolean(),
   engagedElsewhere: z.array(z.string()),
   /** A spar's stakes chosen for this session as a story event (D-172), else the default by rank and place. */
   sparringMode: z.enum(SPARRING_MODES).nullable().default(null),
-  /** Opponents who want the player alive (D-260): they strike to capture. Absent on older saves. */
+  /** Opponents who want the player alive (D-260): they subdue when their loadout can (D-262). Absent on older saves. */
   wantAlive: z.array(z.string()).default([]),
 });
 export type PendingFight = z.infer<typeof pendingFightSchema>;
