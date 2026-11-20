@@ -48,6 +48,7 @@ export const DEV_HELP: readonly string[] = [
   '/time <time of day, or year BBY|ABY [month] [day] [time]>: the clock forward to then. /place <location>: move there (created when new)',
   '/scenario <text>: the next narration starts exactly in that situation',
   '/truce [terms]: the opponent offers a truce (the Accept truce button answers it). /fall: the fight\'s terrain accidents are rolled now',
+  '/simulate 503 <n>: the next n AI requests fail as HTTP 503 (busy), to see the retries, the busy note and the next model (D-250); 0 clears it',
   '/help: this list',
 ];
 
@@ -179,7 +180,11 @@ export interface DevOutcome {
   report: string[];
   /** Set when the command ran a turn's draft pieces (a fight's start, a montage, a clock advance). */
   draft: Partial<Pick<TurnDraft, 'combat' | 'jump' | 'timeAdvanced' | 'pacingLevel' | 'training' | 'checks'>>;
+  /** /simulate 503 n (D-250): the caller arms its provider so the next n requests return 503. */
+  simulate503?: number;
 }
+/** At most this many simulated 503s at once: 5 is a full narrative fallback (3 retries, the next model, its failure). */
+export const SIMULATE_503_MAX = 10;
 
 /**
  * Runs one dev command against the state (pure). Refused outside a test campaign; an unknown command shows the help.
@@ -225,6 +230,13 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
   switch (cmd) {
     case 'help':
       return out(true, `commands:\n${DEV_HELP.join('\n')}`);
+
+    case 'simulate': {
+      // D-250: the next n model requests fail as 503 (the app arms its provider; nothing in the save changes).
+      const n = Number(args[1]);
+      if (args[0] !== '503' || !Number.isInteger(n) || n < 0 || n > SIMULATE_503_MAX) return fail(`/simulate 503 <0-${SIMULATE_503_MAX}>`);
+      return { ...out(true, n ? `the next ${n} AI request${n > 1 ? 's' : ''} return 503 (simulated; retries and the fallback follow as for a real one)` : 'no simulated 503s'), simulate503: n };
+    }
 
     case 'scenario': {
       const scenario = args.join(' ').trim();
@@ -554,7 +566,7 @@ export async function commitDevCommand(
   deps: { registry: Registry<GameState>; storage: Storage; wallClock: () => { iso: string } },
   session: Session,
   text: string,
-): Promise<{ session: Session; record: TurnRecord | null; ok: boolean; line: string }> {
+): Promise<{ session: Session; record: TurnRecord | null; ok: boolean; line: string; simulate503?: number }> {
   const o = runDevCommand(deps.registry, session.state, text);
   // Outside a test campaign nothing is recorded: the save stays as it was (D-180).
   if (!selectIsTestCharacter(session.state)) return { session, record: null, ok: false, line: o.line };
@@ -595,5 +607,5 @@ export async function commitDevCommand(
   const entry: TranscriptEntry<TurnRecord> = { campaignId: state.meta.campaignId, branchId: state.meta.branchId, turn: state.meta.turn, savedAt: wall.iso, data: record };
   const campaign: CampaignRecord = { ...session.campaign, lastPlayedAt: wall.iso };
   await deps.storage.commitTurn(makeEnvelope(deps.registry, state, wall.iso), campaign, entry);
-  return { session: { state, history: [...session.history, record], campaign }, record, ok: o.ok, line: o.line };
+  return { session: { state, history: [...session.history, record], campaign }, record, ok: o.ok, line: o.line, ...(o.simulate503 !== undefined ? { simulate503: o.simulate503 } : {}) };
 }

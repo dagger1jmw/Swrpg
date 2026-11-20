@@ -51,6 +51,7 @@ import { renderSidePanel, type PanelTab } from './sidePanel';
 import { renderCombatDraft, renderDuelPanel } from './duelPanel';
 import { fightCalls, fightView } from '../turn/fightChoices';
 import { commitDevCommand, isDevCommand } from '../turn/devCommands';
+import { withSimulatedOverload, type SimulatedOverload } from '../ai/simulateOverload';
 import { selectIsTestCharacter } from '../features/character/selectors';
 import { renderJumpPlayback, renderJumpReport } from './jumpCard';
 import { renderRoutineEditor, type JumpSpan } from './routineEditor';
@@ -112,7 +113,7 @@ export class App {
   private retryNote: string | null = null;
   private failed: FailedTurn | null = null;
   private loadError: string | null = null;
-  private readonly provider: ModelProvider;
+  private readonly provider: SimulatedOverload;
   private quota: QuotaState;
   private readonly router: ModelRouter;
   private tokenRatios: TokenRatios;
@@ -154,7 +155,8 @@ export class App {
     this.settings = loadSettings(d.kv);
     this.usage = loadUsage(d.kv);
     this.quota = loadQuota(d.kv);
-    this.provider = d.makeProvider(() => this.settings.apiKey);
+    // Wrapped for the dev /simulate 503 (D-250); it passes every request through until armed.
+    this.provider = withSimulatedOverload(d.makeProvider(() => this.settings.apiKey));
     this.router = createModelRouter({
       getLists: () => this.settings.modelLists,
       getLimits: () => this.settings.limits,
@@ -263,6 +265,8 @@ export class App {
     try {
       const r = await commitDevCommand({ registry: this.d.registry, storage: this.d.storage, wallClock: () => ({ iso: new Date(this.d.now()).toISOString() }) }, this.session, text);
       this.session = r.session;
+      // /simulate 503 n (D-250): the next n requests of this page fail as 503.
+      if (r.simulate503 !== undefined) this.provider.arm(r.simulate503);
       this.draft = '';
       this.devNote = null;
       this.feedStick = true;
