@@ -720,7 +720,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** Accelerating the body to move faster than humanly possible — a blur of motion that makes the user nearly impossible to track with the naked eye. Covers more than running: accelerated reflexes and reaction time are part of the same power.
 **Alignment:** Neutral
 **Prerequisites:** ForceControl 10+
-**Notes:** Very high Physical Strain from sustained use. Short bursts are manageable; sustained Force Speed is exhausting. Absorbs the former Force-Enhanced Reflexes entry (the old key resolves here). (Renamed or merged 2026-11-20 to match Wookieepedia.)
+**Notes:** Very high Physical Strain from sustained use. Short bursts are manageable; sustained Force Speed is exhausting. Also called burst of speed, Force sprint or Force reflex; the user perceives the world as if in slow motion. The Matukai also used it. Absorbs the former Force-Enhanced Reflexes entry (the old key resolves here). (Renamed or merged 2026-11-20 to match Wookieepedia.)
 **Source:** Wookieepedia (Legends), "Force speed": https://starwars.fandom.com/wiki/Force_speed/Legends
 
 ---
@@ -753,8 +753,9 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** Channeling the Force inward to suppress the neural signals of pain — allowing the user to continue functioning at full capacity despite injury. Does not heal wounds; it separates the mind from the body's distress signals.
 **Alignment:** Neutral
 **Prerequisites:** ForceControl 25+, Meditation 20+
-**Notes:** In the game engine, Control Pain level directly equals percentage mitigation of injury roll penalties (level 40 = 40% penalty reduction, level 100 = full suppression). Costs Force Strain per combat round whenever active with unhealed injuries present. Distinct from Force Heal — it does not close wounds or accelerate recovery, only prevents injury from degrading performance. Can be used in conjunction with dark-side Pain Channeling, but the two represent opposite philosophies: Control Pain maintains Jedi clarity by transcending the pain; Pain Channeling embraces it as fuel.
+**Notes:** In the game engine, Control Pain level directly equals percentage mitigation of injury roll penalties (level 40 = 40% penalty reduction, level 100 = full suppression). Costs Force Strain per combat round whenever active with unhealed injuries present. Also negates the effect of a stun blast, letting the user act normally. Distinct from Force Heal — it does not close wounds or accelerate recovery, only prevents injury from degrading performance. Can be used in conjunction with dark-side Pain Channeling, but the two represent opposite philosophies: Control Pain maintains Jedi clarity by transcending the pain; Pain Channeling embraces it as fuel.
 > ⚠️ **Engine note:** The `ControlPain` key in FORCE_ABILITY_CATALOG and CHANGES block tags is the JS identifier. Display name is "Control Pain" (two words).
+**Source:** Wookieepedia (Legends), "Control Pain": https://starwars.fandom.com/wiki/Control_Pain
 
 ---
 
@@ -764,7 +765,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** Enduring physical pain by transcending physical sensation through the Force. Where Control Pain is the foundational ability that suppresses an injury's effects so the user can function as if it were not there, Crucitorn goes beyond the body's signals altogether.
 **Alignment:** Neutral
 **Prerequisites:** Control Pain 41+, Meditation 41+, Willpower 30+
-**Notes:** The Legends counterpart to the canon technique Endure (the old key `Endure` resolves here). Ties into the M6 reserve spec alongside Force Body and Battlemind. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed.)
+**Notes:** The Legends counterpart to the canon technique Endure (the old key `Endure` resolves here). The Sith classed it in their Mind school, and Darth Bane wrote about it in an essay later collected in the Book of Sith. Ties into the M6 reserve spec alongside Force Body and Battlemind. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed.)
 **Source:** Wookieepedia (Legends), "Crucitorn (technique)": https://starwars.fandom.com/wiki/Crucitorn_(technique)
 
 ---
@@ -776,6 +777,8 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Light Side
 **Prerequisites:** Meditation 21+, ForceControl 15+
 **Notes:** Cannot heal missing limbs or regenerate organs. Works best on wounds, internal damage, and illness. High Force Strain.
+**Alignment note (2026-11-20):** stays light side. Dark-side healing is its own ability, Dark Transfer.
+**Source:** Wookieepedia (Legends), "Force healing": https://starwars.fandom.com/wiki/Force_healing/Legends
 
 ---
 
@@ -806,20 +809,22 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 #### Breath Control ⚪
 **Anchor Stat:** Meditation
 **Difficulty Tier: D=1.5 (Moderate)**
-**Summary:** The user can slow their metabolism and oxygen consumption dramatically through Force meditation — surviving without air for extended periods or filtering toxins.
+**Summary:** Suppressing the body's instinct to shut down without oxygen, conserving the air in the lungs to go without breathing far longer than normal; skilled practitioners may hold their breath for hours or even days.
 **Alignment:** Neutral
 **Prerequisites:** Meditation 15+, Endurance 10+
-**Notes:** Old Republic Jedi technique. Allows survival in vacuum for short periods, or in toxic atmospheres. Also used to slow bleeding and regulate body temperature in extremes.
+**Notes:** Does not stop anything entering or leaving the respiratory system, so toxic air or vacuum also needs a Force barrier or other protection. Also used to slow bleeding and regulate the body in extremes. (Corrected 2026-11-20, body family pass.)
+**Source:** Wookieepedia (Legends), "Breath control": https://starwars.fandom.com/wiki/Breath_control
 
 ---
 
 #### Tapas ⚪
 **Anchor Stat:** Meditation
 **Difficulty Tier: D=1.5 (Moderate)**
-**Summary:** The ability to regulate one's own body temperature through the Force — generating warmth internally in extreme cold or suppressing heat in extreme temperatures.
+**Summary:** Concentrating on the Force to retain body heat, keeping warm in cold environments, including vacuum.
 **Alignment:** Neutral
 **Prerequisites:** Meditation 21+, Endurance 10+
-**Notes:** Survival-oriented ability. Luke Skywalker and Obi-Wan Kenobi used it during cold-climate missions.
+**Notes:** Survival ability. Jacen Solo used it at the Battle of Ebaq in 28 ABY. Cooling the body in heat is not part of the Legends technique. (Corrected 2026-11-20, body family pass.)
+**Source:** Wookieepedia (Legends), "Tapas": https://starwars.fandom.com/wiki/Tapas
 
 ---
 
@@ -833,11 +838,11 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Morichro ⚪ ⚠️
+#### Morichro 🔵 ⚠️
 **Anchor Stats:** ForceControl + Meditation
 **Difficulty Tier: D=4.0 (Advanced)**
 **Summary:** Slowing a being's bodily functions, such as breathing and heart rate. On oneself it allows long suspended animation: a trained user can survive over a year without food, water or air, though not vacuum. On another it can induce mild catatonia, long-term suspended animation, or death. An unmonitored target may never wake, or may die of dehydration or starvation.
-**Alignment:** Neutral, but forbidden. Dark side users generally avoided it, because it requires mastering a less malicious use of the Force first. Using it to kill is judged as a deed.
+**Alignment:** Light Side, but forbidden. Wookieepedia lists it among light side powers; dark side users generally avoided it because it requires mastering a less malicious use of the Force first. Using it to kill is judged as a deed. (Corrected 2026-11-20, body family pass.)
 **Prerequisites:** Meditation 41+, ForceControl 41+, Hibernation Trance 21+, Jedi Master who knows it (lore-locked)
 **Notes:** ⚠️ **Forbidden Jedi art.** Known to Jedi since about 24,500 BBY. The Council classified it as forbidden around 5,000 BBY, and by 1,000 BBY banned teaching it to all but a select few Masters; Knights were never permitted it. Awdrysta Pina used it against Arden Lyn during the First Great Schism. Yaddle revived knowledge of it in the Order's final centuries; Jedi healers used it in the Clone Wars, and Kyp Durron and Anakin Solo used it to survive. First appeared in *The Emperor's Pawns* article, spelled "Mortichro". (Added 2026-11-20, M6 catalog review.)
 **Source:** Wookieepedia (Legends), "Morichro": https://starwars.fandom.com/wiki/Morichro/Legends
@@ -850,7 +855,8 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** An intensely physical Force-meditation technique — a ritualized series of movements and postures repeated to the point of exhaustion to synchronize body and Force. Not combat-relevant but deep spiritual conditioning.
 **Alignment:** Neutral (Light Side leaning — Jedi practice)
 **Prerequisites:** Meditation 15+, any lightsaber form 10+
-**Notes:** ⚠️ **Old Republic era Jedi practice.** Rarely documented outside the Old Republic Jedi Order. Provides passive bonuses to Force attunement and strain recovery when practiced regularly.
+**Notes:** Developed by the early Je'daii Masters of the Stav Kesh academy on Tython as a martial meditation; considered an advanced form of moving meditation. Available in every era from the Je'daii onward. Completing it correctly leaves the practitioner on the brink of exhaustion. Provides passive bonuses to Force attunement and strain recovery when practiced regularly. (Corrected 2026-11-20, body family pass.)
+**Source:** Wookieepedia (Legends), "Alchaka": https://starwars.fandom.com/wiki/Alchaka
 
 ---
 
@@ -860,7 +866,8 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** Converting Force energy directly into physical endurance — allowing the user to ignore mortal wounds and keep fighting at the cost of burning through their own life Force.
 **Alignment:** Neutral (extremely dangerous; Light Side users view it as a last resort)
 **Prerequisites:** RemoveFatigue 30+, ForceControl 30+
-**Notes:** Severe risk. Every wound ignored with Force Body still exists physically — the user is burning life force to remain conscious. Death or permanent injury is likely if overused.
+**Notes:** Severe risk. Every wound ignored with Force Body still exists physically — the user is burning life force to remain conscious. Death or permanent injury is likely if overused. A solid connection to the Force and physical durability are needed to use it safely. Also known as Noble Sacrifice and Consumption (Star Wars: The Old Republic) and Prolong Force (roleplaying game); first appeared in Knights of the Old Republic II. (Corrected 2026-11-20, body family pass.)
+**Source:** Wookieepedia (Legends), "Force Body": https://starwars.fandom.com/wiki/Force_Body
 
 ---
 
@@ -1011,13 +1018,14 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Battlemind 🔵
+#### Battlemind ⚪
 **Anchor Stat:** Meditation (stillness under pressure)
 **Difficulty Tier: D=2.5 (Complex)**
 **Summary:** A Force-enhanced mental state of absolute focus and calm in combat — suppressing fear, doubt, and distraction, allowing perfect clarity under lethal pressure.
-**Alignment:** Light Side
+**Alignment:** Neutral. Used by Jedi and Sith alike: Darth Maul had it, and Mace Windu combined it with dark side power to create Vaapad. (Corrected 2026-11-20, body family pass.)
 **Prerequisites:** Meditation 21+, Willpower 20+
 **Notes:** Different from Force Enrage (which amplifies anger) — Battlemind amplifies calm clarity. Used by Jedi to maintain composure in overwhelming situations.
+**Source:** Wookieepedia (Legends), "Battlemind": https://starwars.fandom.com/wiki/Battlemind
 
 ---
 
@@ -1102,7 +1110,8 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** Generating a telekinetic field of Force energy around the user that deflects physical impacts, mitigates energy attacks, and generally reduces incoming damage. Every Padawan-level Force user has a passive version.
 **Alignment:** Neutral
 **Prerequisites:** ForceControl 10+
-**Notes:** Always partially active for trained Force users. Breaks under sustained pressure, overwhelming power, or high strain. Recovers slowly.
+**Notes:** Always partially active for trained Force users. Can be raised around the user, a friend, or even a foe. Holds only a few attacks before collapsing, depending on the user's strength; breaks under sustained pressure, overwhelming power, or high strain. Recovers slowly. Also called Force shield, Force of Will or Force defense. (Corrected 2026-11-20, defense family pass.)
+**Source:** Wookieepedia (Legends), "Force barrier": https://starwars.fandom.com/wiki/Force_barrier/Legends
 
 > **Sub-applications:**
 
@@ -1112,27 +1121,29 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** Projecting the Force Barrier outward into a spherical shell large enough to protect multiple people simultaneously.
 **Alignment:** Neutral
 **Prerequisites:** ForceBarrier 30+, ForceControl 25+
-**Notes:** Drains Force rapidly. More useful in a crisis than sustained combat.
+**Notes:** Drains Force rapidly. The user must be still to cast it and sometimes to hold it. Can also be cast around an attacker to trap them inside their own attack. Darth Bane used it. (Corrected 2026-11-20, defense family pass.)
+**Source:** Wookieepedia (Legends), "Protection bubble": https://starwars.fandom.com/wiki/Protection_bubble
 
 ---
 
 #### Tutaminis 🔵
 **Anchor Stats:** Meditation (the energy dissipation discipline requires deep attunement) + ForceControl
-**Difficulty Tier: D=4.0 (Advanced)**
-**Summary:** The Jedi discipline of energy dissipation — the art of absorbing, redirecting, or nullifying any incoming energy through the body or hands. **Tutaminis is the parent discipline** from which Force Absorb (a specific sub-application) derives. Demonstrated by Yoda (absorbing Dooku's Force Lightning through his hands) and Mace Windu. Requires extreme skill, composure, and deep meditative attunement.
+**Difficulty Tier: D=2.5 (Complex)** *(lowered from Advanced 2026-11-20)*
+**Summary:** The Jedi discipline of energy dissipation — the art of absorbing, redirecting, or nullifying any incoming energy through the body or hands. **Tutaminis is the parent discipline** from which Force Absorb (a specific sub-application) derives. Demonstrated by Yoda (absorbing Dooku's Force Lightning through his hands) and Mace Windu. The basics are taught in the very first classes at Jedi academies and expected by graduation; mastery takes a lifetime.
 **Alignment:** Light Side
 **Prerequisites:** ForceBarrier 21+, Meditation 21+, ForceControl 21+
-**Notes:** At high proficiency, a practitioner can absorb lightsaber strikes and blaster bolts channeled directly through the hands or body. This is the ability that makes a master Jedi nearly impossible to harm with energy weapons at close range. Very rare.
+**Notes:** At high proficiency, a practitioner can absorb lightsaber strikes and blaster bolts channeled directly through the hands or body. This is the ability that makes a master Jedi nearly impossible to harm with energy weapons at close range. Absorbed energy can heal the user or power other Force abilities. **Three ways to answer an energy attack (M6, 2026-11-20):** (1) **Absorb** it: the pool refills by a share of what the attacker spent, 0.5 at base rising to 0.8 with mastery, capped at the absorber's own draw. (2) **Redirect** it: forgo absorption and send the attack back at the attacker, as Yoda did with Dooku's lightning; no pool gain. (3) **Release** it: discharge absorbed energy as an outward burst, as Yoda did against Palpatine in the Senate. Absorbing too much at once, past the user's capacity, forces a release whether the user wants it or not. (Corrected 2026-11-20, defense family pass.)
+**Source:** Wookieepedia (Legends), "Tutaminis": https://starwars.fandom.com/wiki/Tutaminis
 
 > **Sub-application:**
 
 #### ↳ Force Absorb 🔵
 **Anchor Stats:** Meditation + ForceControl
-**Difficulty Tier: D=2.5 (Complex)**
+**Difficulty Tier: D=4.0 (Advanced)** *(raised from Complex 2026-11-20; the advanced application of Tutaminis)*
 **Summary:** A specific application of Tutaminis — actively drawing in Force-based attacks (telekinesis bursts, Force Lightning, Force pushes) and neutralizing or converting them into the user's own reserves.
 **Alignment:** Light Side
 **Prerequisites:** Tutaminis 15+, Meditation 15+
-**Notes:** Focused on Force-energy specifically (rather than physical-energy attacks, which require higher Tutaminis mastery). Passive Force attacks can be absorbed at lower proficiency; concentrated lightning or Sith sorcery requires significant skill.
+**Notes:** Focused on Force-energy specifically (rather than physical-energy attacks, which require higher Tutaminis mastery). Passive Force attacks can be absorbed at lower proficiency; concentrated lightning or Sith sorcery requires significant skill. Uses the Tutaminis absorb, redirect and release rules; the absorb share rises from 0.5 to 0.8 with mastery. (Corrected 2026-11-20, defense family pass.)
 
 ---
 
@@ -1142,7 +1153,8 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** Strengthening the mind and body against Force-based attacks — reducing the effectiveness of Mind Tricks, Force Lightning, Force Drain, and similar assaults.
 **Alignment:** Neutral
 **Prerequisites:** ForceBarrier 15+, Willpower 20+
-**Notes:** Passive defense that scales with training. A high-resistance user can partially shrug off abilities that would otherwise be devastating.
+**Notes:** Passive defense that scales with training. A high-resistance user can partially shrug off abilities that would otherwise be devastating. At novice level this is Force resistance; mastered, it becomes **Force immunity**, which can render some Force powers entirely inert. Jedi Sentinels specialize in it against the dark side. (Corrected 2026-11-20, defense family pass.)
+**Source:** Wookieepedia (Legends), "Force resistance": https://starwars.fandom.com/wiki/Force_resistance
 
 ---
 
@@ -1200,21 +1212,22 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 #### ↳ Force Breach ⚪
 **Anchor Stats:** ForceOutput + ForceControl
-**Difficulty Tier: D=2.5 (Complex)**
+**Difficulty Tier: D=4.0 (Advanced)** *(raised 2026-11-20)*
 **Summary:** Actively tearing through a Force Barrier or Force protection to expose the opponent underneath.
-**Notes:** Wookieepedia's "Force Breach" is a disambiguation between injuring through shatterpoints and Force suppression; kept here as an application of Force Suppression (2026-11-20).
+**Notes:** Wookieepedia's "Force Breach" is a disambiguation between injuring through shatterpoints and Force suppression; kept here as an application of Force Suppression (2026-11-20). In the Old Sith Wars era, Force Breach was the name for advanced mastery of Force Suppression; in the Cold War era the name was applied to rupturing shatterpoints. (Corrected 2026-11-20, defense family pass.)
 **Alignment:** Neutral
 **Prerequisites:** ForceSuppression 15+
 
 ---
 
-#### Sever Force 🔴/🔵 ⚠️
+#### Sever Force 🔵 ⚠️
 **Anchor Stats:** ForceControl + ForceKnowledge
 **Difficulty Tier: D=4.0 (Advanced)**
-**Summary:** Permanently cutting a Force-sensitive being off from the Force — a devastating, irreversible act. The victim loses all Force ability permanently.
-**Alignment:** Dark Side if used offensively; Light Side context if used as a mercy or protective measure
+**Summary:** A non-lethal power that interrupts or blocks a being's connection to the Force with a wall of light side energy afflicting the target's mind. Usually lasting, but not always permanent.
+**Alignment:** Light Side
 **Prerequisites:** ForceControl 61+, ForceKnowledge 51+, ForceSuppression 30+
-**Notes:** ⚠️ **Exceptionally rare and grave.** The Jedi Order considers this only in extreme circumstances — it is equivalent to destroying a core part of a person's identity. Causes permanent trauma to the victim regardless of circumstances.
+**Notes:** ⚠️ **Exceptionally rare and grave.** The Jedi Order considers this only in extreme circumstances — it is equivalent to destroying a core part of a person's identity. The ancient Jedi scholar Odan-Urr called severing a connection the most powerful attack a Jedi could perform. Destroying a person's midi-chlorians, as Darth Plagueis discovered, is a different and darker method. (Corrected 2026-11-20, defense family pass.)
+**Source:** Wookieepedia (Legends), "Sever Force": https://starwars.fandom.com/wiki/Sever_Force/Legends
 
 ---
 
@@ -1224,9 +1237,9 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** The user extends their consciousness across an entire battlefield through the Force — coordinating allied forces, amplifying their cohesion and morale while inducing confusion and despair in enemies. Strategic ability.
 **Alignment:** Light Side (a Dark Side variant exists but is destabilizing)
 **Prerequisites:** Meditation 61+, ForceControl 41+, ForceKnowledge 30+
-**Notes:** One of the most strategically powerful Force abilities in Legends. Nomi Sunrider, Bastila Shan, and Darth Nihilus (inverted) are notable practitioners. Extremely rare. The practitioner is immobilized while active — they become a strategic anchor, not a combatant. Distinct from Battle Precognition (personal) — Battle Meditation affects entire allied forces.
+**Notes:** One of the most strategically powerful Force abilities in Legends. Nomi Sunrider, Bastila Shan, and Darth Nihilus (inverted) are notable practitioners. Extremely rare. At army or fleet scale the practitioner must stay still and becomes a strategic anchor; at small scale it also works in skirmishes and duels. Also called Enhanced Coordination. (Corrected 2026-11-20, defense family pass.) Distinct from Battle Precognition (personal) — Battle Meditation affects entire allied forces.
 > **Innate Talent:** `BattleMeditationAffinity` — XP cost ×0.3, Force Strain ×0.6. Equivalent innate case to ShatterSense. Bastila Shan is the canonical example. See Innate Talents section.
-
+**Source:** Wookieepedia (Legends), "Battle meditation": https://starwars.fandom.com/wiki/Battle_meditation/Legends
 ---
 
 #### Force Meld 🔵
@@ -1243,10 +1256,11 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 #### Electric Judgment 🔵 ⚠️
 **Anchor Stat:** ForceControl (channeling compassion rather than hatred is the key precision act)
 **Difficulty Tier: D=4.0 (Advanced)**
-**Summary:** A light side variant of Force Lightning — channeling Force energy through the hands as a bolt of golden or purple-white light. Stuns and incapacitates rather than kills.
+**Summary:** A light side variant of Force Lightning — channeling Force energy through the hands as a bolt of golden or purple-white light. Bolts of variable intensity, set by effort, from stunning to deadly. Also called Emerald Lightning; it can show yellow-orange, green, white or gold.
 **Alignment:** Light Side (distinct from Force Lightning's Dark Side nature)
 **Prerequisites:** ForceControl 41+, Willpower 40+, Light Side 40+
-**Notes:** ⚠️ **Controversial and rare.** Plo Koon was one of the few Jedi to use this. The Jedi Council historically discouraged it due to its visual similarity to Sith lightning, regardless of alignment. The technique channels compassion rather than hatred — intent is everything.
+**Notes:** ⚠️ **Controversial and rare.** It was at one time classed as forbidden within the Jedi Order. Plo Koon, Luke Skywalker and Jacen Solo used it. The Jedi Council historically discouraged it due to its visual similarity to Sith lightning, regardless of alignment. The technique channels compassion rather than hatred — intent is everything; the Jedi's use comes from a sense of determined justice. (Corrected 2026-11-20, defense family pass.)
+**Source:** Wookieepedia (Legends), "Electric Judgment": https://starwars.fandom.com/wiki/Electric_Judgment
 
 ---
 
