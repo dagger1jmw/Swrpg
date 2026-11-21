@@ -1,3 +1,5 @@
+<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 integration checklist" (https://claude.ai/artifact/5nJqew4V3WKMwPSKSsumKe, rev 46). The repo copy is the build reference; design changes go in the doc first, then re-export. -->
+
 # SWRPG M6 integration checklist
 
 Nov 21, 2026 · @Jared Wright

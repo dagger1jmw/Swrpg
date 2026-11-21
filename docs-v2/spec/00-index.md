@@ -21,6 +21,7 @@ Status key: **Replaced** = a decided spec covers it fully. **Partly replaced** =
 | force-catalog-m6.md | M6 Force ability catalog: entry fields, the family passes (§5 to §5k), lightsaber forms (exported 2026-11-21; M6 build reference) |
 | force-reserve.md | M6 Force reserve: pool, draw, strain, the Willpower zone, recovery, growth, NPC Potential (exported 2026-11-21; M6 build reference) |
 | alignment-m6.md | M6 alignment: values, deeds, temptation, thresholds, the fall and redemption, Force philosophies (§9) (exported 2026-11-21; M6 build reference; supersedes alignment.md) |
+| m6-integration-checklist.md | M6 integration checklist: where the M6 specs touch built M5 systems (blockers, integration items, small connections, re-measure list) (exported 2026-11-21; M6 build reference) |
 | npc-generation.md | NPC levels from age and pace, canon NPCs |
 | ai-events.md | Event catalog the AI may emit |
 | ranks.md | Jedi and Sith rank ladders, trials, Order requirements, milestones |
