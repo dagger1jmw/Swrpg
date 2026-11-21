@@ -275,6 +275,8 @@ All 131 catalog entries map to a lore heading. The lore doc has one ability with
 | ForceWeapon (8943) | Force Weapon | Misc | — | 1.5 | neutral | forceControl:21, Telekinesis:15 | — | — | Force Weapon (1573) | Lore anchors include Telekinesis ability; code forceControl only |
 | ForceBellow (8944) | Force Bellow | Misc | — | 1 | neutral | forceControl:10, charisma:10 | — | — | Force Bellow (1583) | matches lore |
 
+> Note (2026-11-20): Shadowstrike (its row in the table above) was rejected in D-278 as a Ta-Ree spell, not a Force power; the table is kept as the original audit.
+
 ### Alias map and collisions
 
 | Alias (legacy/index.html:8951-8959) | Maps to | Note |

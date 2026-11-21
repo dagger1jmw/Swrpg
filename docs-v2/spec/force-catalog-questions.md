@@ -27,6 +27,7 @@ These appeared in the legacy lore database (`legacy/index.html` LORE_DATABASE) w
 |---|---|
 | UnifyingForcePerception | The Unifying Force is a philosophy, not a power (decisions.md, 2026-11-16) |
 | Kii-Shikk | No Legends source (lore-checks.md L-06) |
+| Shadowstrike | A Ta-Ree spell, not a Force power; removed from the lore file and rejected as an unknown name (D-278). Closes the Shadowstrike part of Q27 (Sith-text access) |
 
 Source: lore-checks.md L-15; decisions.md, 2026-11-16.
 

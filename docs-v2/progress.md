@@ -166,3 +166,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-20: Force lore file body and defense family passes committed (corrections, tier changes, new rules); npm test 1053 of 1053.
 - 2026-11-20: Force lore body, defense and sensory passes committed; Psychometry aliases (Postcognition, Force Memory, Force Echo) and D-63 amended (Shatterpoint read cost from the lore entry, M6); tests green.
 - 2026-11-20: M6 Force catalog passes committed (D-278): lore file across 13 families and forms; 15 more aliases, Shadowstrike rejected, new form keys, Zero-G to environment training, §15 form items settled (record only); tests green.
+- 2026-11-20: D-278 tidy-up: Shadowstrike part of Q27 closed (00-index, force-catalog-questions Dropped table); note under the 05-force-abilities audit table.
