@@ -1,5 +1,7 @@
 # Alignment and dark pressure (v1)
 
+> **Superseded (2026-11-21) by [alignment-m6.md](alignment-m6.md).** Kept as the v1 record. Its Force philosophies carried over into alignment-m6.md §9. Build M6 from alignment-m6.md.
+
 Reference scenarios (simulated):
 
 | Scenario                                                   | Result                                              |

@@ -172,3 +172,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-21: Spec look-over records: §15 cybernetic Force-loss note superseded by the Reserve Spec rule; D-279 midi-chlorian counts (2016 canon book) as Potential-curve anchors, a logged Legends-only exception.
 - 2026-11-21: §15 cybernetic Force-loss mapping from the Reserve Spec §7 table; CLAUDE.md notes the D-279 exception.
 - 2026-11-21: §15 cybernetic note: the 15-point ceiling cut stacks per replacement (Vader 60% + 75 points).
+- 2026-11-21: M6 specs added to the repo (force-reserve.md, alignment-m6.md, force-catalog-m6.md; exported from the design docs) and indexed; alignment.md superseded by alignment-m6.md; the M6 integration checklist doc now points at the repo copies as the build reference.

@@ -16,8 +16,11 @@ Status key: **Replaced** = a decided spec covers it fully. **Partly replaced** =
 | health.md | Tiredness meters, Vitality, wounds, healing |
 | rolls.md | d20 + level, exchanges, advantage, combat resolution |
 | combat-xp.md | Per-exchange combat XP |
-| alignment.md | Alignment, dark pressure, redemption |
+| alignment.md | Alignment, dark pressure, redemption (v1). **Superseded by alignment-m6.md**; kept as the v1 record (its Force philosophies carried over into alignment-m6.md §9) |
 | force-catalog.md | Force ability and form catalog |
+| force-catalog-m6.md | M6 Force ability catalog: entry fields, the family passes (§5 to §5k), lightsaber forms (exported 2026-11-21; M6 build reference) |
+| force-reserve.md | M6 Force reserve: pool, draw, strain, the Willpower zone, recovery, growth, NPC Potential (exported 2026-11-21; M6 build reference) |
+| alignment-m6.md | M6 alignment: values, deeds, temptation, thresholds, the fall and redemption, Force philosophies (§9) (exported 2026-11-21; M6 build reference; supersedes alignment.md) |
 | npc-generation.md | NPC levels from age and pace, canon NPCs |
 | ai-events.md | Event catalog the AI may emit |
 | ranks.md | Jedi and Sith rank ladders, trials, Order requirements, milestones |
