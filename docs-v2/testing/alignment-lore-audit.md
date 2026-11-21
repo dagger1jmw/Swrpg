@@ -6,6 +6,8 @@
 
 **Status after the rulings on 84ec410 (2026-11-21):** finding 1 is **resolved** by D-331 (a redemption act moves a character from fallen to redeemed at any depth; Dark drops to just below the fall line; Corruption and the skin's corruption stay; stress can trigger temptation). Finding 2 is ruled by D-329 (pressure multipliers, cap 4, Korriban's pull by era) and finding 13 by D-330 (the intent discount). alignment-m6.md carries these as repo-only amendments.
 
+**Status after the rulings on cb3f0d1 (2026-11-21):** finding 4 is **resolved** by D-331 amended: an explicit engine event of a mind wipe or severance from the Force, with a visible cause event the narrator cannot declare, clears the fallen flag (Dark to 49; Corruption and skin unchanged; no Light +15); the character must still choose the light afterwards. Bonded-NPC appeals still work through the deed trigger at a temptation moment. The severed status itself is a proposal (D-332, checklist item 26).
+
 **Compared:** `docs-v2/spec/alignment-m6.md` (export of rev 30) against `Docs/SWRPG lore/SW_DarkSide_Fall_Corruption_Redemption_Part1.md`, `_Part2.md` and `_Part3.md` (Old Republic to 1000 BBY; 1000 BBY–4 ABY; 4 ABY onward).
 
 **Finding types:**
@@ -94,7 +96,7 @@ The lore's model is "a pattern with decisive moments" (P1 §1): slow pressure pl
 
 **For Jared.** A harness target for the M6 re-measure, for example: a Knight with no outside pressure takes months of repeated dark deeds to fall; outside pressure compresses it to days or weeks. The fast 3-scene path is then a tuning question for the caps, not a formula change.
 
-## 4. Redemption that happens to the character (Missing; Medium)
+## 4. Redemption that happens to the character (Missing; Medium) — resolved by D-331 amended
 
 **Spec (§6).** The only trigger is the character's own major or extreme `sacrifice`, `mercy` or `forgiveness` deed at a temptation moment while Dark is 50+.
 
