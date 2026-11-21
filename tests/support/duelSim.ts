@@ -5,6 +5,7 @@ import { runUntilBeat, startDuel, type SideId } from '../../src/engine/duel';
 import { capacity } from '../../src/engine/fatigue';
 import { forceCapacity } from '../../src/engine/forceMeter';
 import { seedRng } from '../../src/engine/rng';
+import './precogTrial';
 
 export function forceUser(id: string, level: number, over: Partial<Fighter> = {}): Fighter {
   return {

@@ -22,6 +22,11 @@ export interface MortalRow {
   withdrew: number;
   sithWithdrew: number;
   skipped: number;
+  /** The M6 precognition trial (harness only; zeros when off): real fights, and those where the profile went dark. */
+  precogFights: number;
+  precogDark: number;
+  precogOpp: number;
+  precogDarkOpp: number;
   events: MortalEvent[];
 }
 
@@ -44,6 +49,10 @@ export function mortalRow(candidate: string, pi: number, k: number): MortalRow {
     withdrew: r.fightStats?.withdrew ?? 0,
     sithWithdrew: r.fightStats?.sithWithdrew ?? 0,
     skipped: r.fightStats?.skipped ?? 0,
+    precogFights: r.fightStats?.precogFights ?? 0,
+    precogDark: r.fightStats?.precogDark ?? 0,
+    precogOpp: r.fightStats?.precogOpp ?? 0,
+    precogDarkOpp: r.fightStats?.precogDarkOpp ?? 0,
     events: [...mortalEvents],
   };
 }

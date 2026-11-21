@@ -4,6 +4,7 @@
 // were not adopted and are gone (their code is in commit 7cf3a63; (a) is recorded for M6).
 import { NONSABER_MORTAL } from '../../src/data/health.config';
 import { READINESS } from './lifetime';
+import { PRECOG_LABEL } from './precogTrial';
 
 export const ADOPTED = { minMargin: 30, readiness: true } as const;
 
@@ -14,5 +15,6 @@ export function applyCandidate(spec: string | undefined): string {
   READINESS.enabled = parts.includes('noready') ? false : ADOPTED.readiness;
   const unknown = parts.filter((x) => x !== 'noready' && !/^b\d+$/.test(x));
   if (unknown.length) throw new Error(`unknown candidate ${unknown.join(', ')}`);
-  return parts.length ? parts.join('+') : 'now';
+  // The M6 precognition trial (PRECOG_M6, harness only) is named in the label when it is on.
+  return (parts.length ? parts.join('+') : 'now') + (PRECOG_LABEL === 'off' ? '' : ` [${PRECOG_LABEL}]`);
 }

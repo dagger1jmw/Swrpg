@@ -48,7 +48,8 @@ import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, NONSABER_MORTAL, PHYSICAL_CO
 import { BLASTER_WEAPONS, RANGED_WEAPONS, SLUG_SPREAD, SLUG_SPREAD_DEFENSE } from '../data/weapons';
 import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityOf, severs } from './damage';
 import { fatigueLevelFactor } from './fatigue';
-import { addFixedLoad, forceWithin } from './forceMeter';
+import { addFixedLoad, forceFraction, forceWithin } from './forceMeter';
+import { PRECOG_TRIAL, precogUpkeep, trialPool, type PrecogTrialState } from './precogTrial';
 import { lastingPenalty, lastingState, limbState, type LastingInjury } from './lasting';
 import { basicRoll, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
@@ -138,6 +139,8 @@ export interface Fighter {
   withdrawChecks?: number;
   /** Left the fight by morale (D-256): fled, or surrendered (a named one's fate is the player's choice); or withdrew (D-263). */
   yielded?: 'fled' | 'surrendered' | 'withdrew';
+  /** The M6 precognition trial's pool (engine/precogTrial.ts): set only while the harness-only trial flag is on. */
+  precogTrial?: PrecogTrialState;
 }
 
 export interface DuelContext {
@@ -569,9 +572,30 @@ export const precogCardNote = (name: string, avoided: boolean): string => `${CAR
 function precog(f: Fighter, surprise: boolean, rng: RngState): { used: boolean; avoided: boolean; rng: RngState } {
   if (f.forceSense <= 0 || surprise) return { used: false, avoided: false, rng };
   if (!forceWithin(f.meters.f, f.caps.f, PRECOG.maxForceMeter)) return { used: false, avoided: false, rng };
+  // The M6 trial (harness only, off by default): senses dark at running on will.
+  if (PRECOG_TRIAL.enabled && f.precogTrial?.dark) return { used: false, avoided: false, rng };
   const chance = Math.min(PRECOG.maxChance, f.forceSense * PRECOG.perForceSense) + (f.stateOfMind === 'centered' ? PRECOG.centeredBonus : 0);
   const [u, r] = nextFloat(rng);
   return { used: true, avoided: u < chance, rng: r };
+}
+
+/**
+ * The M6 precognition trial's upkeep (engine/precogTrial.ts; harness only, off by default): each Force-sensing fighter in
+ * this exchange pays precognition's sustained draw, and the strain it gains adds to the Force meter (strain = meter
+ * fraction). No dice.
+ */
+function precogTrialUpkeep(s: DuelState, ctx: DuelContext): DuelState {
+  if (ctx.forceNegated) return s;
+  let next = s;
+  for (const side of ['A', 'B'] as const) {
+    const f = side === 'A' ? next.a : currentTarget(next);
+    if (!f || f.forceSense <= 0 || !(f.caps.f > 0)) continue;
+    const t = f.precogTrial ?? trialPool(f.id, f.forceSense, f.level);
+    const worst = f.wounds.reduce<Severity | null>((w, x) => (w === null || SEVERITIES.indexOf(x.severity) > SEVERITIES.indexOf(w) ? x.severity : w), null);
+    const r = precogUpkeep(t, { strain: forceFraction(f.meters.f, f.caps.f), forceSense: f.forceSense, centered: f.stateOfMind === 'centered', fearful: f.stateOfMind === 'fear' || f.stateOfMind === 'despair', worstWound: worst, exchange: next.exchange });
+    next = withSide(next, side, { ...f, precogTrial: r.t, meters: { ...f.meters, f: addFixedLoad(f.meters.f, r.strainGain * f.caps.f) } });
+  }
+  return next;
 }
 
 /** Resolves one exchange between A and the current target (rolls §3-5). `day` stamps new wounds. */
@@ -608,6 +632,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     s = r.s;
     if (r.note) notes.push(r.note);
   }
+  if (PRECOG_TRIAL.enabled) s = precogTrialUpkeep(s, ctx);
   const A = s.a;
   const B = currentTarget(s)!;
   const nEngaged = engaged(s).length;
@@ -708,7 +733,8 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       const pc = ctx.forceNegated || atkF.forceTraits?.includes('forceInvisible') ? { used: false, avoided: false, rng } : precog(defF, surprise, rng);
       rng = pc.rng;
       if (pc.used) {
-        defF = { ...defF, meters: { ...defF.meters, f: addFixedLoad(defF.meters.f, PRECOG.load) } };
+        // Under the M6 trial the cost is the per-exchange upkeep instead of a load per trigger.
+        if (!PRECOG_TRIAL.enabled) defF = { ...defF, meters: { ...defF.meters, f: addFixedLoad(defF.meters.f, PRECOG.load) } };
         // Why the Force meter rises with no Force action (Jared, D-222; pass 2 balance row 6): said on the card.
         notes.push(precogCardNote(defF.name, pc.avoided));
       }

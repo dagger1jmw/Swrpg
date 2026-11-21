@@ -5,6 +5,7 @@ import { TEST_START_DATE } from './dates';
 import type { CalendarDate } from '../../src/engine/calendar';
 import type { DuelState } from '../../src/engine/duel';
 import { seedRng } from '../../src/engine/rng';
+import './precogTrial';
 import { createMemoryStorage } from '../../src/persist/storage';
 import { applyEvents } from '../../src/state/applyEvents';
 import type { GameState } from '../../src/state/gameState';

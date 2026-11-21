@@ -32,6 +32,7 @@ import { capacity } from '../../src/engine/fatigue';
 import { forceCapacity } from '../../src/engine/forceMeter';
 import { buildPlayerFighter } from '../../src/features/combat/build';
 import { newSession, runSession, sessionOutcome } from '../../src/engine/sparSession';
+import { setPlayerCount } from './precogTrial';
 
 export const DAYS = 368;
 const WAKE = 6 * 3600;
@@ -84,7 +85,7 @@ export interface LifeProfile {
 
 export interface LifeResult {
   /** This life's mortal wounds taken and Dying states entered, its disengages and its Sith opponents' withdrawals (reporting only). */
-  fightStats?: { mortal: number; dying: number; withdrew: number; sithWithdrew: number; skipped: number };
+  fightStats?: { mortal: number; dying: number; withdrew: number; sithWithdrew: number; skipped: number; precogFights: number; precogDark: number; precogDarkOpp: number; precogOpp: number };
   xp: Record<string, number>;
   milestones: Record<number, number>;
   /** Main-specialty XP per year (the most-trained form's for form profiles), transfers excluded. */
@@ -159,7 +160,7 @@ function setRoutine(p: LifeProfile, s: GameState, rank: string): GameState {
 }
 
 /** Per-run fight statistics (reported by the lifetime tests, D-143 J). */
-export const fightStats = { fights: 0, won: 0, lost: 0, wounds: 0, stabilized: 0, mortal: 0, withdrew: 0, sithWithdrew: 0, skipped: 0 };
+export const fightStats = { fights: 0, won: 0, lost: 0, wounds: 0, stabilized: 0, mortal: 0, withdrew: 0, sithWithdrew: 0, skipped: 0, precogFights: 0, precogDark: 0, precogDarkOpp: 0, precogOpp: 0 };
 
 /** A minion of a kind at a level (the kind's weapon, armor, coordination and Vitality; npc-generation §6, D-158). */
 function minionFighter(kindId: string, id: string, level: number, beskar: boolean): Fighter {
@@ -356,6 +357,17 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
   if (!sess) {
     if (d.end?.reason === 'stopped') fightStats.withdrew += 1;
     if (d.opponents.some((o) => o.yielded === 'withdrew')) fightStats.sithWithdrew += 1;
+    // The M6 precognition trial (harness only): real fights in which the profile, or a Force-using opponent, reached
+    // running on will (senses dark) mid-fight.
+    if (d.a.precogTrial) {
+      fightStats.precogFights += 1;
+      if (d.a.precogTrial.dark) fightStats.precogDark += 1;
+    }
+    for (const o of d.opponents) {
+      if (!o.precogTrial || o.forceSense < FORCE_USER_MIN_LEVEL) continue;
+      fightStats.precogOpp += 1;
+      if (o.precogTrial.dark) fightStats.precogDarkOpp += 1;
+    }
   }
   s = { ...s, meta: { ...s.meta, rngState: d.rng } };
   const outcome = sess ? sessionOutcome(sess.session) : d.end?.winner === 'A' ? 'won' : d.end?.winner === 'B' ? 'lost' : 'fled';
@@ -396,6 +408,7 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
 
 export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?: Record<string, number[]>; track?: string[] } = {}): LifeResult {
   const statsBefore = { ...fightStats };
+  setPlayerCount(p.seed);
   let s = profileState(p);
   const total = Math.round(years * DAYS);
   const isFormMain = p.main === '$highestForm';
@@ -508,6 +521,6 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
   }
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));
   // This life's mortal wounds and Dying states (every Dying profile is stabilized, so the stabilizations count them).
-  const fights = { mortal: fightStats.mortal - statsBefore.mortal, dying: fightStats.stabilized - statsBefore.stabilized, withdrew: fightStats.withdrew - statsBefore.withdrew, sithWithdrew: fightStats.sithWithdrew - statsBefore.sithWithdrew, skipped: fightStats.skipped - statsBefore.skipped };
+  const fights = { mortal: fightStats.mortal - statsBefore.mortal, dying: fightStats.stabilized - statsBefore.stabilized, withdrew: fightStats.withdrew - statsBefore.withdrew, sithWithdrew: fightStats.sithWithdrew - statsBefore.sithWithdrew, skipped: fightStats.skipped - statsBefore.skipped, precogFights: fightStats.precogFights - statsBefore.precogFights, precogDark: fightStats.precogDark - statsBefore.precogDark, precogDarkOpp: fightStats.precogDarkOpp - statsBefore.precogDarkOpp, precogOpp: fightStats.precogOpp - statsBefore.precogOpp };
   return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, maxDayEndFNoSeriousFight, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge, fightStats: fights };
 }

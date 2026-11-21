@@ -23,7 +23,7 @@ export function teardown(): void {
     const fails: Record<string, string[]> = {};
     for (const r of rs) for (const [g, ok] of Object.entries(r.gates)) if (!ok) (fails[g] ??= []).push(r.seed.replace(/^.*-/, ''));
     const pick = (f: (r: MortalRow) => number) => ({ mean: +mean(rs.map(f)).toFixed(2), median: median(rs.map(f)) });
-    console.info(`[mortals-summary] ${JSON.stringify({ candidate: rs[0]!.candidate, profile, mortal: pick((r) => r.mortal), lost: pick((r) => r.lost), withdrew: pick((r) => r.withdrew), skipped: pick((r) => r.skipped), warMean: rs[0]!.values['warMean'] !== undefined ? +median(rs.map((r) => r.values['warMean']!)).toFixed(4) : null, failing: fails })}`);
+    console.info(`[mortals-summary] ${JSON.stringify({ candidate: rs[0]!.candidate, profile, mortal: pick((r) => r.mortal), lost: pick((r) => r.lost), withdrew: pick((r) => r.withdrew), skipped: pick((r) => r.skipped), precogDarkShare: +(rs.reduce((a, r) => a + r.precogDark, 0) / Math.max(1, rs.reduce((a, r) => a + r.precogFights, 0))).toFixed(4), precogDarkOppShare: +(rs.reduce((a, r) => a + r.precogDarkOpp, 0) / Math.max(1, rs.reduce((a, r) => a + r.precogOpp, 0))).toFixed(4), warMean: rs[0]!.values['warMean'] !== undefined ? +median(rs.map((r) => r.values['warMean']!)).toFixed(4) : null, failing: fails })}`);
   }
   const t0 = (globalThis as { __t0?: number }).__t0 ?? Date.now();
   console.info(`[mortals-runtime] ${rows.length} lifetimes in ${((Date.now() - t0) / 1000).toFixed(1)} s`);

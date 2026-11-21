@@ -1,3 +1,45 @@
+## Morning summary (2026-11-21 overnight run)
+
+- **A. M6 specs:** already committed on rebuild with source comments; nothing to do (decision 1).
+- **B. Step 1 report:** [docs-v2/testing/m6-step1-report.md](testing/m6-step1-report.md).
+  - Key finding: the Force meter does not cap Force-drill hours today. The scheduler trims by physical and mental fatigue only, so M6's free uses remove no existing cap.
+  - It also covers:
+    - the meter as built
+    - the unit conversion onto the pool and strain, including precognition's 0.4, the Shatterpoint read and the 0.5 backlash
+    - every Force-talent effect (all XP-only)
+    - drill fatigue and a difficulty-based XP proposal
+- **C. Precognition trial:** [docs-v2/testing/precog-m6-trial.md](testing/precog-m6-trial.md).
+  - **Best candidate: base 5 per exchange** (the catalog value). Every duel table and every lifetime gate passes on all 20 seeds; D-158, mortal wounds and lost limbs stay within noise.
+  - **Senior Knight and up:** in real lifetime fights, precognition goes dark in at most 0.5% of fights.
+  - **Padawans feel it:** 27% go dark in an even Padawan 25 duel.
+  - **One question for you:** the reserve spec's per-exchange pain focus strain makes 12–18% of fighters at every rank go dark in long, wounded even duels. With it off, Masters go dark 0% and senior Knights 0.7%. Four options are in the report.
+  - **Integration looks feasible.** Nothing adopted; M5 stays until you decide.
+  - Bases 7.5, 10 and 15 are worse; base 15 fails one Obi-Wan milestone seed.
+- **Runtimes:**
+  - Full batch (6 candidates × mortals, sweep and severs; 8 workers; 20 seeds): 12,292 s, about 3 h 25 min.
+  - Per candidate: mortals 962–1,032 s, severs 1,006–1,019 s, sweep 40–42 s.
+- **Code:** the prototype is flagged off (`PRECOG_TRIAL.enabled = false`; only the harness's `PRECOG_M6` turns it on). No live game rule changed.
+
+## Overnight decisions for Jared (2026-11-21 run)
+
+Conservative calls made while you were away. Nothing here is adopted into the game; the live M5 rules are unchanged.
+
+1. **Part A needed no commit.** All four M6 specs (force-reserve, alignment-m6, force-catalog-m6, m6-integration-checklist) were already committed on rebuild (b60413a, 9bf1752, 8d47128), and each already has its source comment naming the claude.ai doc and revision. Nothing was re-exported or changed.
+2. **The prototype's flag is harness-only.** `PRECOG_TRIAL.enabled` (src/engine/precogTrial.ts) is false in the game and is set only by the test harness from the `PRECOG_M6` environment variable (tests/support/precogTrial.ts). The duel engine gained one guarded hook. With the flag off it uses no dice and changes nothing: npm test 1053/1053 before the new unit test was added.
+3. **Harness assumptions the specs leave open** (recorded in precog-m6-trial.md):
+   - Pool max by Force Sense, anchored on the reserve spec's §3 worked example: 30% of the ceiling at 20, 70% at 50, 95% at 90.
+   - Conditioning by fighting level: 10 at 20, 40 at 50, 70 at 90.
+   - Ability level and Force Control are both read as Force Sense for efficiency.
+   - Fighters start each fight with a full pool; strain carries in through the Force meter (strain = meter ÷ capacity, the step 1 conversion).
+   - Precognition is held from the first exchange. Once the senses go dark it stays off for that fight: lull centering is not modelled, which is the pessimistic choice.
+   - Precognition counts as contested in combat, so it is never free (catalog: "Never in combat").
+   - Pain and fear focus strain apply while it is held (reserve §4): moderate wound +0.01, severe +0.02, critical or mortal +0.03; fear or despair +0.01.
+4. **A pain-off run is diagnostic only.** The screen showed the reserve spec's pain focus strain sets a rank-independent floor of dark senses in long duels. One full run with pain switched off was added to separate it from the upkeep cost. It is not a candidate for adoption; pain is outside the sweep you asked for.
+5. **The comfort-line and usual-rate defaults were not swept.** Pain causes the dark floor, not pool depth, and those two defaults only change pool-depth strain. Changing them would not fix the floor, so a sweep was not needed.
+6. **The health.md vs code mismatch on Force-meter efficiency** (step 1 report, finding 2) is recorded, not fixed.
+7. **No decisions.md entries were added.** The XP rework (step 1 report §3) and precognition at base 5 (trial report) are proposals waiting for your approval. They will get D- numbers when you rule on them.
+8. **The trial run counts every fight from the first exchange.** Both fighters hold precognition the whole fight, and once their senses go dark they stay dark. This makes the dark rates an upper bound.
+
 - 2026-11-16 — Phase 0: rebuild branch, V170 moved to legacy/, old V1xx HTML removed, docs-v2/ scaffold, new root CLAUDE.md. Verified.
 - 2026-11-16 — Phase 1: legacy V170 feature audit. 24 feature files (docs-v2/spec/01-24), ai-contract-legacy.md, bugs.md (35 high-severity bugs, v170-audit verified), 00-index.md with 65 open questions. Renamed audit to v170-audit.md. Read-only; no code changed.
 - 2026-11-16 — Phase 1 answers: Legends-only rule added to CLAUDE.md; Phase 1 canon claims re-checked (only crystal 'bleeding' was Disney-era); lore-checks.md (L-01..L-18, 9 flagged); 00-index.md questions point to phase1-answers.md.
@@ -174,3 +216,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-21: §15 cybernetic note: the 15-point ceiling cut stacks per replacement (Vader 60% + 75 points).
 - 2026-11-21: M6 specs added to the repo (force-reserve.md, alignment-m6.md, force-catalog-m6.md; exported from the design docs) and indexed; alignment.md superseded by alignment-m6.md; the M6 integration checklist doc now points at the repo copies as the build reference.
 - 2026-11-21 handoff: M6 design is in the repo (force-reserve.md, alignment-m6.md, force-catalog-m6.md, m6-integration-checklist.md; Force lore file passes D-276 to D-279). Nothing in M6 is built yet. Next session: M6 plan mode, starting with the checklist blockers (drill fatigue, units) and the reserve spec's build step 1 read-only report. Tests 1053/1053 at handoff.
+- 2026-11-21 overnight: M6 step 1 report (docs-v2/testing/m6-step1-report.md) and the precognition-on-reserve harness trial (docs-v2/testing/precog-m6-trial.md; prototype src/engine/precogTrial.ts flagged off). Best candidate base 5: all duel tables and lifetime gates pass on 20 seeds; pain focus strain question for Jared. Nothing adopted.
