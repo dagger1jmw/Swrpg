@@ -68,7 +68,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A master of **Form V (Djem So)** — a powerful, aggressive counter-attacking style emphasizing solid blocks that flow into overwhelming ripostes. Ferocious strength, blinding speed, and Force-augmented power, dominating through relentless offense (with Shien-grip and Ataru acrobatics in his repertoire). He killed Dooku by overpowering him with rage-bolstered Djem So. His aggression is his strength and his flaw — it leaves openings a disciplined defensive master (Obi-Wan's Soresu) can exploit, as on Mustafar.
   **Form ratings (game stats):** Shien/Djem So 94 (primary) · Ataru 88 · Shii-Cho 86 · Niman 84 · Soresu 80 · Juyo 80
-- **Force Abilities (game stats):** Telekinesis 95 *(Force Push 90%, Force Throw 88%)* · Force Body 92 *(**Force Speed** 92%)* · Force Sense 92 *(**Precognition / piloting instinct** 95%)* · Force Barrier 80 · Force Rage 78 *(when he slips toward the dark)*
+- **Force Abilities (game stats):** Telekinesis 95 *(Force Push 90%, Force Throw 88%)* · Force Body 92 *(**Force Speed** 92%)* · Force Sense 92 *(**Precognition / piloting instinct** 95%)* · Force Barrier 80 · Force Enrage 78 *(when he slips toward the dark)*
 - **Signature Ability:** **The Chosen One's raw power (walled off)** — the highest natural potential of his generation, kept substantially restrained: discipline, fear of his own strength, and emotional restraint cap his demonstrated Output (100) well below his true ceiling. Both jump on the Knightfall sheet.
 - **Notable Feats:** "Hero With No Fear" of the Clone Wars; killed Count Dooku; countless victories; trained Ahsoka Tano; **on Mortis briefly touched near-full potential** (subduing the Son); the Chosen One of prophecy.
 - **Alignment:** Light side (with a persistent, dangerous pull toward the dark).
@@ -93,7 +93,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** The same **Form V (Djem So)** mastery, now **fully unleashed** through the dark side — overwhelming, merciless, far stronger and faster than he ever allowed himself, every strike amplified by rage and the power he'd kept walled off. He carved through the Temple's defenders, killed the Battlemaster Cin Drallig, and overwhelmed the Separatist Council. He fought Obi-Wan on Mustafar to a long, furious standstill — his dark-fueled offense was the superior *force*, but it was wild and his control imperfect; only his arrogance lost him the duel, not a deficit of power.
   **Form ratings (game stats):** Shien/Djem So 98 (primary — rage-amplified) · Ataru 92 · Shii-Cho 90 · Niman 88 · Juyo 86
-- **Force Abilities (game stats):** **Force Rage 100** *(rage-amplification — the engine of his unleashed output, Mastered 92%)* · Telekinesis 100 *(raw — Force Push 90%, Force Throw 88%)* · **Force Choke 95** *(choked a Jedi one-handed while dueling another, Expert 90%)* · Force Body 95 *(Force Strength/Speed 92%)* · Force Sense 96 *(Precognition 90%)*
+- **Force Abilities (game stats):** **Force Enrage 100** *(rage-amplification — the engine of his unleashed output, Mastered 92%)* · Telekinesis 100 *(raw — Force Push 90%, Force Throw 88%)* · **Force Choke 95** *(choked a Jedi one-handed while dueling another, Expert 90%)* · Force Body 95 *(Force Strength/Speed 92%)* · Force Sense 96 *(Precognition 90%)*
 - **Unique techniques:** **The Chosen One unleashed** *(the no-longer-restrained magnitude of the prophesied Chosen One channeled through the dark side — surging output, but still growing and only loosely controlled)*
 - **Signature Ability:** **The Chosen One unleashed (raw output)** — high-legendary Force *output* (120, and still rising had he lived on unmaimed), with Control (90) lagging well behind: the gap that makes him devastating yet beatable. The most we ever saw of Anakin — short of his unrealized ~138 ceiling.
 - **Notable Feats:** Led Operation: Knightfall; slew Cin Drallig and his students; killed the Separatist Council on Mustafar; among the strongest beings alive at this moment — undone only by his own arrogance against Obi-Wan.
@@ -125,7 +125,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** The galaxy's foremost master of **Form III (Soresu)** — the ultimate defensive form, built to minimize movement, conserve energy, and weather any storm until the opponent overextends. His defense is so complete that aggressive masters (even Anakin's Djem So) exhaust themselves against it; he blends in old Ataru for mobility. He held his own against Dooku, killed Grievous, and beat the dark-fueled Anakin on Mustafar by out-lasting and out-positioning him.
   **Form ratings (game stats):** Soresu 96 (primary — definitive master) · Ataru 84 · Shii-Cho 84 · Shien/Djem So 80 · Makashi 80 · Niman 80
-- **Force Abilities (game stats):** Force Barrier 90 *(Force Absorb 82%)* · Mind Trick 88 *(**Force Persuasion** 88%)* · Force Sense 88 *(**Precognitive Reflexes** 88%)* · Telekinesis 84 *(Force Push 78%)* · Force Body 82
+- **Force Abilities (game stats):** Force Barrier 90 *(Force Absorb 82%)* · Mind Trick 88 *(**Force Persuasion** 88%)* · Force Sense 88 *(**Precognition** 88%)* · Telekinesis 84 *(Force Push 78%)* · Force Body 82
 - **Signature Ability:** **Soresu mastery (the definitive defensive duelist)** — an almost impenetrable defense that turns aggression against itself; paired with diplomatic brilliance. The exact inverse of Knightfall Anakin: modest Output (80), high Control (92) — finesse over force.
 - **Notable Feats:** Hugely grown since Naboo; Council member and General; dueled Dooku; killed General Grievous on Utapau; defeated the fallen Anakin on Mustafar.
 - **Alignment:** Light side.
@@ -150,7 +150,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** An aggressive, acrobatic **Shien (reverse-grip Form V)** dual-wielding style, fast and unorthodox, suited to her agility and youth. Skilled and rapidly improving, though not yet master tier during the war.
   **Form ratings (game stats):** Shien (reverse-grip) 82 (primary) · *(Jar'Kai dual-wield 80)* · Ataru 80 · Shii-Cho 74
-- **Force Abilities (game stats):** Force Body 76 *(Force Speed 80%)* · Telekinesis 74 *(Force Push 68%)* · Force Sense 80 *(Precognitive Reflexes 75%)*
+- **Force Abilities (game stats):** Force Body 76 *(Force Speed 80%)* · Telekinesis 74 *(Force Push 68%)* · Force Sense 80 *(Precognition 75%)*
 - **Signature Ability:** **Reverse-grip dual-wielding** — a fast, acrobatic, unorthodox combat style; a gifted, rapidly growing young warrior-commander.
 - **Notable Feats:** Anakin's Padawan; Jedi Commander across many battles; left the Order before the war's end (surviving the purge).
 - **Alignment:** Light side.
@@ -254,7 +254,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** The supreme master of **Form II (Makashi)** — elegant, precise dueling built to defeat other blades through finesse, footwork, and economy of motion, wielded with his signature curved hilt. He out-fences nearly any opponent, exploiting the openings of aggressive styles (he countered Ataru by drawing opponents into overhead leaps). As a Sith he interlaces Makashi with **Force lightning** and telekinesis. Surpassed only by Yoda; defeated Obi-Wan and Anakin at Geonosis (taking Anakin's arm). A rage-fueled, higher-Output Anakin eventually overpowered his finesse aboard the *Invisible Hand* — raw Output exceeding superior Control.
   **Form ratings (game stats):** Makashi 96 (primary, curved hilt) · Ataru 86 · Soresu 84 · Shii-Cho 84 · Niman 82
-- **Force Abilities (game stats):** Force Lightning 90 *(Chain Lightning 85% — learned as a Sith)* · Force Sense 88 *(**Precognitive Reflexes** 88%)* · Telekinesis 86 *(Force Push 80%)* · Force Body 82 *(Force Speed 82%)*
+- **Force Abilities (game stats):** Force Lightning 90 *(Chain Lightning 85% — learned as a Sith)* · Force Sense 88 *(**Precognition** 88%)* · Telekinesis 86 *(Force Push 80%)* · Force Body 82 *(Force Speed 82%)*
 - **Signature Ability:** **Makashi grandmaster + Sith lightning** — the finest dueling-form specialist of the age (Control 94), now armed with Force lightning; high but not apex raw Output (86) — his edge is precision, not power.
 - **Notable Feats:** Led the Confederacy; defeated Obi-Wan and Anakin at Geonosis; dueled Yoda; trained Ventress and Grievous — killed by Anakin at Sidious's urging.
 - **Alignment:** Dark side.
@@ -304,7 +304,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Twin curved-hilt lightsabers — often combined into a double-blade — in a fast, acrobatic, aggressive style blending Jar'Kai dual-wielding with athletic Ataru-like movement. Lethal and relentless, she could press Obi-Wan and Anakin hard, though she lacked the refined mastery of a true Sith Lord.
   **Form ratings (game stats):** Jar'Kai (twin/saberstaff) 86 (primary) · Ataru 84 · Niman 80 · Shii-Cho 78
-- **Force Abilities (game stats):** Force Body 78 *(Force Speed 82%)* · Force Rage 78 · Telekinesis 76 *(Force Push 70%)* · Force Sense 80
+- **Force Abilities (game stats):** Force Body 78 *(Force Speed 82%)* · Force Enrage 78 · Telekinesis 76 *(Force Push 70%)* · Force Sense 80
 - **Unique techniques:** **Nightsister magick** *(later — Dathomirian dark-side sorcery, after her break with Dooku)*
 - **Signature Ability:** **Dark Acolyte assassin** — a fast, acrobatic dual-saber duelist and lethal assassin, Dooku's instrument against the Jedi.
 - **Notable Feats:** Trained by Dooku as his Dark Acolyte; led Separatist forces; repeatedly battled Obi-Wan and Anakin; betrayed and cast aside by the Sith.

@@ -63,7 +63,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A competent duelist who wields her late husband Andur's lightsaber, but her gift was never the blade — she ends fights through the Force. Defensive and controlled.
   **Form ratings (game stats):** Shii-Cho 60 · Makashi 48 · Soresu 56
-- **Force Abilities (game stats):** Battle Meditation 105 *(Force Valor 95%)* · Force Sense 90 *(Battle Foresight 82%, Farsight 70%)* · Telekinesis 85 *(Force Push 80%, Force Throw 68%)* · Force Barrier 80 *(Force Absorb 60%)*
+- **Force Abilities (game stats):** Battle Meditation 105 *(Force Valor 95%)* · Force Sense 90 *(Battle Precognition 82%, Farsight 70%)* · Telekinesis 85 *(Force Push 80%, Force Throw 68%)* · Force Barrier 80 *(Force Absorb 60%)*
 - **Unique techniques:** **Force Light** *(legendary light-side power, ranked with Yoda/Thon)* · **Force-severing** *(severed Ulic's Force connection entirely — no registry equivalent)*
 - **Signature Ability:** **Battle meditation & Force Light** — projecting morale-shaping will across battlefields, wielding Force Light, and uniquely able to **sever another being's connection to the Force**.
 - **Notable Feats:** Turned Krath guards on each other via battle meditation; countered Aleema's mass illusions; severed Ulic from the Force; ranked with Yoda and Thon in Force Light.
@@ -89,7 +89,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Fights with a staff-cane as much as a lightsaber, in a measured, defensive method built on a teacher's patience. Skilled but no legendary duelist — overcome by a stronger, fallen pupil.
   **Form ratings (game stats):** Shii-Cho 75 · Soresu 70 · Makashi 58
-- **Force Abilities (game stats):** Battle Meditation 75 *(Force Valor 80%)* · Telekinesis 82 *(Force Push 80%, Force Wave 62%)* · Force Sense 86 *(Precognitive Reflexes 60%)* · Force Barrier 78
+- **Force Abilities (game stats):** Battle Meditation 75 *(Force Valor 80%)* · Telekinesis 82 *(Force Push 80%, Force Wave 62%)* · Force Sense 86 *(Precognition 60%)* · Force Barrier 78
 - **Unique techniques:** **Spirit transcendence** *(returned as a Force presence to aid the living against Kun)*
 - **Signature Ability:** **Sage-master's insight** — deep wisdom, teaching mastery, and the ability to return as a Force presence after death.
 - **Notable Feats:** Trained Exar Kun and many others; confronted Kun in the Senate; his returning spirit was key to Kun's final defeat on Yavin 4.
@@ -115,7 +115,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A capable practitioner who fights through the Force first — measured and wise in combat, never aggressive.
   **Form ratings (game stats):** Shii-Cho 66 · Soresu 64 · Makashi 50
-- **Force Abilities (game stats):** Battle Meditation 90 *(Force Valor 92%)* · Force Sense 88 *(Farsight 80%, Battle Foresight 68%)* · Telekinesis 80 *(Force Push 75%)* · Force Barrier 78 · Force Stasis 60 *(Force Slow 55%)*
+- **Force Abilities (game stats):** Battle Meditation 90 *(Force Valor 92%)* · Force Sense 88 *(Farsight 80%, Battle Precognition 68%)* · Telekinesis 80 *(Force Push 75%)* · Force Barrier 78 · Force Stasis 60 *(Force Slow 55%)*
 - **Unique techniques:** **Spirit-banishment** *(banished Freedon Nadd's lingering spirit from Iziz)*
 - **Signature Ability:** **Battle meditation** — able to turn a war single-handedly from orbit; powerful enough to banish a Sith Lord's spirit.
 - **Notable Feats:** Ended the Beast Wars; defeated Queen Amanoa and banished Nadd's spirit; trained the Qel-Droma brothers and Tott Doneeta.
@@ -167,7 +167,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A solid Knight who adapted his technique around his cybernetic limbs — practical and resourceful rather than flashy.
   **Form ratings (game stats):** Shii-Cho 62 · Shien/Djem So 56
-- **Force Abilities (game stats):** Telekinesis 70 *(Force Push 60%)* · Force Sense 72 *(Precognitive Reflexes 58%)* · Force Body 55 *(Force Speed 45%)* · Force Barrier 60
+- **Force Abilities (game stats):** Telekinesis 70 *(Force Push 60%)* · Force Sense 72 *(Precognition 58%)* · Force Body 55 *(Force Speed 45%)* · Force Barrier 60
 - **Signature Ability:** **Master mechanic** — an exceptional engineer who built and maintained his own cybernetic limbs and repaired droids and ships in the field.
 - **Notable Feats:** Fought through the Beast Wars and the whole war; never abandoned his fallen brother; his death turned Ulic back toward the light.
 - **Alignment:** Light side.
@@ -221,7 +221,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A prodigiously gifted combatant — already conversant in all seven forms, favoring fast, aggressive, acrobatic pressure and the balanced versatility of Niman. A showman whose pride made every duel a performance. *(Has not yet invented the double-blade.)*
   **Form ratings (game stats):** Shii-Cho 80 · Makashi 78 · Soresu 70 · Ataru 84 · Shien/Djem So 76 · **Niman 86** · Juyo 72
-- **Force Abilities (game stats):** Telekinesis 82 *(Force Push 78%, Force Throw 65%)* · Force Body 80 *(Force Speed 80%, Force Strength 62%)* · Force Sense 82 *(Precognitive Reflexes 75%)* · Mind Trick 55 *(Force Persuasion 50%)*
+- **Force Abilities (game stats):** Telekinesis 82 *(Force Push 78%, Force Throw 65%)* · Force Body 80 *(Force Speed 80%, Enhance Attribute 62%)* · Force Sense 82 *(Precognition 75%)* · Mind Trick 55 *(Force Persuasion 50%)*
 - **Signature Ability:** **Voracious Force-talent** — a once-in-a-generation aptitude across combat and Force study, paired with a reckless hunger for forbidden knowledge.
 - **Notable Feats:** Baas's most gifted student; stole the Tedryn Holocron; tracked Nadd's secrets across Onderon, Dxun, and Korriban.
 - **Alignment:** Light → falling.
@@ -246,7 +246,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** One of the **greatest lightsaber duelists in Sith history** and the **inventor of the double-bladed lightsaber (saberstaff)**. He fuses acrobatic aggression with Sith ferocity and sorcery — spinning two-ended attacks interlaced with Force speed, telekinetic strikes, and Sith magic mid-duel. **Master of all seven classic forms; his signature is Form VI (Niman)**, which he wielded with a lethality few in history ever matched, using its balanced versatility to flow seamlessly between offense, defense, and Force attacks.
   **Form ratings (game stats):** Shii-Cho 98 · Makashi 100 · Soresu 96 · Ataru 102 · Shien/Djem So 100 · **Niman 110** · Juyo 98
-- **Force Abilities (game stats):** Sith Alchemy 105 *(Midi-chlorian Manipulation 95%)* · Telekinesis 98 *(Force Push 90%, Force Throw 85%)* · Force Lightning 88 *(Chain Lightning 80%, Force Storm 60%)* · Force Body 95 *(Force Speed 95%, Force Strength 82%)* · Mind Probe 85 *(Mind Control 78%)* · Force Sense 92 *(Precognitive Reflexes 88%)*
+- **Force Abilities (game stats):** Sith Alchemy 105 *(Midi-chlorian Manipulation 95%)* · Telekinesis 98 *(Force Push 90%, Force Throw 85%)* · Force Lightning 88 *(Chain Lightning 80%, Force Storm 60%)* · Force Body 95 *(Force Speed 95%, Enhance Attribute 82%)* · Mind Probe 85 *(Mind Control 78%)* · Force Sense 92 *(Precognition 88%)*
 - **Unique techniques:** **Spirit-binding** *(bound his spirit to Yavin 4, surviving ~4,000 years)* · **Sith battle-magic** *(mass life-drain to power his last defense)*
 - **Signature Ability:** **Sith sorcery & spirit-binding** — mastery of Sith alchemy and battle-magic culminating in draining an entire population and binding his own spirit to survive bodily death for four millennia.
 - **Notable Feats:** Anointed Dark Lord by Ragnos's ghost; founded the Brotherhood; invented the saberstaff; killed Vodo-Siosk Baas and Chancellor Sidrona; engineered the Cron Supernova; bound his spirit to Yavin 4 (menacing Luke's students ~3,500 years later).
@@ -276,7 +276,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A formidable duelist with a direct, confident, commanding style — he fights like the war-leader he is, pressing forward and rallying others. Favors the power-counterattack of Form V.
   **Form ratings (game stats):** Shii-Cho 78 · Makashi 70 · Ataru 74 · Shien/Djem So 78
-- **Force Abilities (game stats):** Telekinesis 80 *(Force Push 78%)* · Force Body 80 *(Force Speed 80%, Force Strength 65%)* · Force Sense 82 *(Precognitive Reflexes 78%)* · Battle Meditation 60 *(Force Valor 55%)*
+- **Force Abilities (game stats):** Telekinesis 80 *(Force Push 78%)* · Force Body 80 *(Force Speed 80%, Enhance Attribute 65%)* · Force Sense 82 *(Precognition 78%)* · Battle Meditation 60 *(Force Valor 55%)*
 - **Signature Ability:** **Natural war-leader** — a charismatic, courageous commander whom others instinctively followed.
 - **Notable Feats:** Ended the Beast Wars; fought the Freedon Nadd Uprising; Arca Jeth's finest student.
 - **Alignment:** Light side (about to fall).
@@ -301,7 +301,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Overwhelming dark-side ferocity — his disciplined foundation now fused with Sith aggression and amplified by rage, channeling far greater strength and speed than in his Jedi days. He leans hard into the power-style of Form V and the aggression of Form VII.
   **Form ratings (game stats):** Shii-Cho 88 · Makashi 80 · Ataru 84 · Shien/Djem So 92 · Juyo 82
-- **Force Abilities (game stats):** Force Body 100 *(Force Strength 95%, Force Speed 93%)* · Telekinesis 90 *(Force Push 88%, Force Throw 80%)* · Force Lightning 82 *(Chain Lightning 72%)* · Force Rage 85 · Battle Meditation 78 *(Force Valor 80%)*
+- **Force Abilities (game stats):** Force Body 100 *(Enhance Attribute 95%, Force Speed 93%)* · Telekinesis 90 *(Force Push 88%, Force Throw 80%)* · Force Lightning 82 *(Chain Lightning 72%)* · Force Enrage 85 · Battle Meditation 78 *(Force Valor 80%)*
 - **Signature Ability:** **Dark-side war-juggernaut** — channeling the dark side to vastly amplify his physical power and battlefield presence, leading Krath, Mandalorian, and Sith armies.
 - **Notable Feats:** Seized the Krath; subjugated the Mandalorians (beating Mandalore the Indomitable in single combat); led the assault on Coruscant; killed Cay at Ossus; after being Force-stripped, guided the Jedi to Kun's defeat.
 - **Alignment:** Dark side (later redeemed, but Force-stripped).

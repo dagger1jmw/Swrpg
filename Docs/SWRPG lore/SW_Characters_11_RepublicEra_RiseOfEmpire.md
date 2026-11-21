@@ -123,7 +123,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A master of **Form VII (Juyo)** — the most vicious, aggressive form — fused with his signature **double-bladed lightsaber (saberstaff)** and spectacular acrobatics. Relentless, spinning, two-ended ferocity and Force-augmented speed and leaps. He dominated both Qui-Gon and Obi-Wan for much of their duel and killed Qui-Gon; his overconfidence after gaining the upper hand let Obi-Wan kill him. Legendary combat; merely solid broader Force.
   **Form ratings (game stats):** Juyo 92 (primary) · *(saberstaff / Jar'Kai dual-blade 94 — signature)* · Ataru 88 · Shii-Cho 82
-- **Force Abilities (game stats):** Force Body 88 *(**Force Speed** 92%)* · Force Rage 85 · Telekinesis 78 *(Force Push 72%)* · Force Sense 78 *(Precognitive Reflexes 75%)*
+- **Force Abilities (game stats):** Force Body 88 *(**Force Speed** 92%)* · Force Enrage 85 · Telekinesis 78 *(Force Push 72%)* · Force Sense 78 *(Precognition 75%)*
 - **Signature Ability:** **Acrobatic saberstaff lethality** — a peerless acrobatic duelist with the double-blade, bred and conditioned into a perfect Sith assassin.
 - **Notable Feats:** Sidious's first apprentice; tracked and engaged the Jedi on Tatooine and Naboo; killed Qui-Gon Jinn; defeated only by Obi-Wan at the cost of his own life (core Legends).
 - **Alignment:** Dark side.
@@ -178,7 +178,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** The **creator and sole true master of Form VII: Vaapad** — so aggressive and psychologically dangerous that few dared learn it; it channels the user's own darkness and the opponent's malice into a relentless, almost precognitive offense that grows stronger against more powerful foes. Wields a signature purple blade. The finest blade in the Order after Yoda; bested Sidious in their duel (before Anakin's betrayal turned it).
   **Form ratings (game stats):** Vaapad/Juyo 98 (creator & sole master) · Shii-Cho 88 · Soresu 86 · Ataru 84
-- **Force Abilities (game stats):** Telekinesis 88 *(Force Push 82%)* · Force Sense 88 *(Battle Foresight 85%)* · Force Body 84 *(Force Speed 82%)* · Force Barrier 80
+- **Force Abilities (game stats):** Telekinesis 88 *(Force Push 82%)* · Force Sense 88 *(Battle Precognition 85%)* · Force Body 84 *(Force Speed 82%)* · Force Barrier 80
 - **Unique techniques:** **Shatterpoint perception** *(perceiving the fracture-points in people, objects, and events where a precise strike has maximal effect — Mastered 92%)*
 - **Signature Ability:** **Vaapad & shatterpoint** — sole master of the most aggressive form, plus the rare shatterpoint sight.
 - **Notable Feats:** Co-led the Jedi High Council; created Form VII Vaapad; among the greatest duelists in Jedi history; came closest of any Jedi to defeating Darth Sidious.
@@ -230,7 +230,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** As a Padawan, fought with **Form IV (Ataru)** — speed and leaping offense — which against Maul proved a liability (Ataru's poor torso defense contributed to Qui-Gon's death and his own near-fatal exposure). He had not yet developed the legendary **Soresu** defense of his Clone Wars self (Era 12); at Naboo he was outmatched, surviving more through Maul's overconfidence and his own recovered composure than skill.
   **Form ratings (game stats):** Ataru 76 (primary, at this point) · Shii-Cho 72 · Soresu 60 *(only beginning to develop — becomes his signature in Era 12)*
-- **Force Abilities (game stats):** Force Body 74 *(Force Speed 76%)* · Telekinesis 72 *(Force Push 65%)* · Force Sense 76 *(Precognitive Reflexes 68%)*
+- **Force Abilities (game stats):** Force Body 74 *(Force Speed 76%)* · Telekinesis 72 *(Force Push 65%)* · Force Sense 76 *(Precognition 68%)*
 - **Unique techniques:** **Dark-side surge (one-off)** *(a brief, untrained channeling of rage at Naboo — notable as a one-time event, not a trained ability)*
 - **Signature Ability:** **Resolve under loss (the Sith-slayer of Naboo)** — the focus to recover his calm in his darkest moment and exploit a superior opponent's arrogance; the seed of the disciplined master he would become.
 - **Notable Feats:** Defeated Darth Maul at Naboo (first Jedi to kill a Sith in ~1,000 years) — as the weaker duelist, winning through Maul's arrogance and his own regained composure; knighted; took Anakin Skywalker as his apprentice.
@@ -260,7 +260,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** The galaxy's foremost master of **Form II (Makashi)** — the elegant, precise dueling form built for single combat and for facing other lightsabers. Refined economy of motion, controlled footwork, surgical precision, with a distinctive curved-hilt saber that maximizes Makashi's finesse. He disdains brute force, out-fencing opponents through superior technique and tempo. Among the three finest blades in the Order (Yoda, Windu, Dooku).
   **Form ratings (game stats):** Makashi 96 (primary, curved hilt) · Ataru 86 · Soresu 84 · Shii-Cho 84 · Niman 82
-- **Force Abilities (game stats):** Telekinesis 86 *(Force Push 80%)* · Force Sense 86 *(**Precognitive Reflexes** 85%)* · Force Body 82 *(Force Speed 82%)* · Force Barrier 78
+- **Force Abilities (game stats):** Telekinesis 86 *(Force Push 80%)* · Force Sense 86 *(**Precognition** 85%)* · Force Body 82 *(Force Speed 82%)* · Force Barrier 78
 - **Signature Ability:** **Makashi grandmaster** — the supreme dueling-form specialist of the era, built to defeat other blades; paired with noble charisma and political reach.
 - **Notable Feats:** Nearly 70 years a Jedi; trained Qui-Gon Jinn; one of the three greatest duelists in the Order; left the Order and fell to Sidious's influence.
 - **Alignment:** Light side → falling (becomes Darth Tyranus, Era 12).

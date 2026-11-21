@@ -143,7 +143,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A versatile, aggressive duelist who blends Jedi training with a soldier's pragmatism and blaster skill; powerful with telekinesis and Force speed. Defeated multiple Dark Jedi in single combat.
   **Form ratings (game stats):** Shien/Djem So 86 (primary) · Shii-Cho 80 · Ataru 80
-- **Force Abilities (game stats):** Telekinesis 88 *(Force Push/Pull 82%)* · Force Body 86 *(**Force Speed** 88%)* · Force Sense 82 *(Precognitive Reflexes 80%)*
+- **Force Abilities (game stats):** Telekinesis 88 *(Force Push/Pull 82%)* · Force Body 86 *(**Force Speed** 88%)* · Force Sense 82 *(Precognition 80%)*
 - **Signature Ability:** **Dark-Jedi-slayer** — a battle-hardened Jedi who repeatedly hunted and defeated dark-side adepts (the Seven Dark Jedi, Desann, Tavion) and resisted the Valley of the Jedi's corrupting power.
 - **Notable Feats:** Stole the first Death Star plans; destroyed Jerec and the Seven Dark Jedi at the Valley of the Jedi; defeated Desann and Tavion; Jedi Master and instructor.
 - **Alignment:** Light side.
@@ -279,7 +279,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Admiral Daala | Human | Imperial warlord; commander at the Maw | 52 | 56 | 60 | 82 | 70 | 74 | — | — | — | — | — | Naval command 72 | N/A — ruthless; tried to unify the warlords; Kyp destroyed much of her fleet |
 | Rukh | Noghri | Thrawn's bodyguard/assassin | 80 | 88 | 78 | 78 | 50 | 58 | — | — | — | — | — | Stealth/melee 86 | N/A — assassinated Thrawn at Bilbringi when the Noghri learned of the betrayal |
 | Lumiya (Shira Brie) | Human | Dark Lady of the Sith; Vader's secret apprentice | 64 | 80 | 70 | 84 | 78 | 84 | 80 | 70 | 78 | 82 | 80 | Lightwhip 84 · Makashi 76 | Force Lightning 78 · Telekinesis 76 — central to Legacy of the Force (Era 16) |
-| Desann | Chistori | Dark Jedi; sought Valley of the Jedi power | 88 | 74 | 84 | 82 | 70 | 74 | 78 | 66 | 74 | 80 | 90 | Djem So 84 · Shii-Cho 78 | Force Body 88 *(Strength 90%)* · Force Rage 82 — massive reptilian Dark Jedi; defeated by Kyle Katarn |
+| Desann | Chistori | Dark Jedi; sought Valley of the Jedi power | 88 | 74 | 84 | 82 | 70 | 74 | 78 | 66 | 74 | 80 | 90 | Djem So 84 · Shii-Cho 78 | Force Body 88 *(Strength 90%)* · Force Enrage 82 — massive reptilian Dark Jedi; defeated by Kyle Katarn |
 | Tavion | Human | Dark Jedi; Desann's apprentice; later Cultist | 58 | 80 | 64 | 78 | 70 | 70 | 78 | 66 | 72 | 80 | 78 | Ataru 80 · Makashi 74 | Force Lightning 76 · Telekinesis 74 — later led the Disciples of Ragnos (Scepter of Ragnos) |
 | Brakiss | Human | Dark Jedi; failed Praxeum infiltrator | 60 | 68 | 64 | 78 | 76 | 80 | 78 | 68 | 76 | 80 | 78 | Makashi 76 · Shii-Cho 70 | Force Lightning 76 · Telekinesis 74 — later runs the Shadow Academy (Era 15) |
 

@@ -72,7 +72,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Fights with a **single yellow-white lightsaber**, in an aggressive, powerful Zakuul-Knight style augmented by the dark side and his cybernetic arm's strength. Relentless and physically dominant, overwhelming with heavy strikes and Force power; more controlled and purposeful after his redemption. A Djem So power-duelist. *(As a prince he and Thexan fought as a paired duo, each with a single blade.)*
   **Form ratings (game stats):** Shien/Djem So 88 (primary) · Shii-Cho 84 · Juyo 80 · Ataru 78
-- **Force Abilities (game stats):** Force Body 86 *(Force Strength 85%, cybernetic-augmented)* · Telekinesis 84 *(Force Push 80%)* · Force Rage 80 · Force Lightning 78 *(Chain Lightning 70%)*
+- **Force Abilities (game stats):** Force Body 86 *(Enhance Attribute 85%, cybernetic-augmented)* · Telekinesis 84 *(Force Push 80%)* · Force Enrage 80 · Force Lightning 78 *(Chain Lightning 70%)*
 - **Signature Ability:** **Zakuulan royal power** — inherited extraordinary Force strength from the entity that fathered him; commands the Eternal Fleet and the Knights of Zakuul.
 - **Notable Feats:** Killed his twin Thexan; assassinated Valkorion's body; seized and held the Eternal Throne for five years; later redeemed and fought for the Alliance against Vaylin.
 - **Alignment:** Dark side → redeemed (light-leaning).
@@ -97,7 +97,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A frenzied, overwhelming style backed by **raw telekinetic force on a scale few can match** — hurling debris, ships, and opponents with casual ease, battering foes with relentless saber assaults. Less about refined technique than overpowering everything in reach through sheer Force might; her instability makes her wildly dangerous but occasionally erratic. Juyo ferocity with raw power over finesse.
   **Form ratings (game stats):** Juyo 86 · Ataru 84 · Shii-Cho 82 · Shien/Djem So 80
-- **Force Abilities (game stats):** **Telekinesis 108** *(**mass telekinesis** 95% — tore apart structures and entire warships; her signature)* · Force Lightning 92 *(Chain Lightning 88%, Force Storm 80%)* · Force Rage 90 · Force Body 84 *(Force Speed 80%)*
+- **Force Abilities (game stats):** **Telekinesis 108** *(**mass telekinesis** 95% — tore apart structures and entire warships; her signature)* · Force Lightning 92 *(Chain Lightning 88%, Force Storm 80%)* · Force Enrage 90 · Force Body 84 *(Force Speed 80%)*
 - **Unique techniques:** **Unbound Force might** *(raw telekinetic magnitude rivaling apex beings, capped only by her shattered psyche)*
 - **Signature Ability:** **Unbound Force might** — possibly the most raw-powerful Force-user of the era; tears apart structures and warships telekinetically, limited only by her broken mind.
 - **Notable Feats:** World-class Force power from childhood (Valkorion feared her); seized the Eternal Throne; overwhelmed Alliance forces until killed by the Commander.
@@ -123,7 +123,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A disciplined, balanced Zakuul-Knight duelist who fought in tandem with his twin — powerful but more controlled and less aggressive than Arcann.
   **Form ratings (game stats):** Shien/Djem So 84 · Soresu 82 · Shii-Cho 80 · Niman 78
-- **Force Abilities (game stats):** Force Body 82 *(Force Strength 80%)* · Telekinesis 80 *(Force Push 72%)* · Force Sense 82 *(Precognitive Reflexes 70%)*
+- **Force Abilities (game stats):** Force Body 82 *(Enhance Attribute 80%)* · Telekinesis 80 *(Force Push 72%)* · Force Sense 82 *(Precognition 70%)*
 - **Signature Ability:** **Zakuulan royal power** — the same inherited Force strength as his siblings, paired with a steadier temperament.
 - **Notable Feats:** Co-led the Eternal Fleet's Core Worlds raids; died trying to restrain Arcann.
 - **Alignment:** Dark side (loyal son).
@@ -148,7 +148,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A veteran Knight of Zakuul with a refined, disciplined style honed over a long career in Valkorion's elite guard — balanced, controlled, highly effective. Her weapon varies by depiction: a **lightsaber pike** (a reach/staff polearm) in some appearances, a **single saber** in others. Favors precise, defensive footwork and Ataru mobility.
   **Form ratings (game stats):** Soresu 80 · Makashi 78 · Ataru 78 · Shii-Cho 74 · *(lightsaber pike / single saber)*
-- **Force Abilities (game stats):** Force Body 80 *(Force Speed 78%)* · Telekinesis 80 *(Force Push 74%)* · Force Sense 82 *(Precognitive Reflexes 72%)* · Force Barrier 78
+- **Force Abilities (game stats):** Force Body 80 *(Force Speed 78%)* · Telekinesis 80 *(Force Push 74%)* · Force Sense 82 *(Precognition 72%)* · Force Barrier 78
 - **Signature Ability:** **Knight of Zakuul mastery** — elite training of Valkorion's personal guard, blending martial skill with Force discipline.
 - **Notable Feats:** Rose to Valkorion's elite guard and consort; mother of the Zakuul royal children; joined the Alliance; helped destroy Valkorion's spirit using Dramath's holocron.
 - **Alignment:** Light-leaning (gray; a Knight of Zakuul, not Jedi or Sith).
@@ -287,7 +287,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** The same overwhelming, physically dominant power style, now even more cybernetically reinforced; cold, patient ferocity, having survived being "killed" more than once. A Djem So juggernaut.
   **Form ratings (game stats):** Shien/Djem So 92 (primary) · Shii-Cho 82 · Juyo 80 · Ataru 76
-- **Force Abilities (game stats):** Telekinesis 88 *(Force Push 85%, **Force Choke** 82%)* · Force Lightning 85 *(Chain Lightning 80%)* · Force Body 88 *(Force Strength 90%, cybernetic-augmented)* · Force Barrier 78
+- **Force Abilities (game stats):** Telekinesis 88 *(Force Push 85%, **Force Choke** 82%)* · Force Lightning 85 *(Chain Lightning 80%)* · Force Body 88 *(Enhance Attribute 90%, cybernetic-augmented)* · Force Barrier 78
 - **Signature Ability:** **The Returned** — survived apparent death repeatedly through cybernetics and sheer will; an unkillable schemer pursuing a galaxy-remaking vision.
 - **Notable Feats:** Survived Ilum; rebuilt as Acina's secret enforcer; broke his own control chip; central antagonist/wildcard of Ossus, Onslaught, and Legacy of the Sith.
 - **Alignment:** Dark side (rogue; serves only his own vision).

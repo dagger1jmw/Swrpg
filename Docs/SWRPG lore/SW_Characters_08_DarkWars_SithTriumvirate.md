@@ -67,7 +67,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Competent with a single saber, but her signature is wielding **three lightsabers telekinetically** in a floating, Force-driven defense — a Niman-rooted style that fuses bladework with the Force rather than relying on physical dueling. Master-tier, not legendary, with the blade.
   **Form ratings (game stats):** Niman 78 *(telekinetic three-saber style)* · Makashi 76 · Soresu 74 · Shii-Cho 70 · *(Jar'Kai / telekinetic multi-blade: 80)*
-- **Force Abilities (game stats):** Telekinesis 92 *(**floating three-saber control** 90%, Force Push 80%)* · Force Sense 95 *(**Force Vision / Precognition** 90%, Battle Foresight 80%)* · Mind Probe 90 *(Mind Control 85%)* · Mind Trick 90 *(Force Persuasion 95%)* · Force Drain 82 *(life-drain 80% — drained the Lost Masters)*
+- **Force Abilities (game stats):** Telekinesis 92 *(**floating three-saber control** 90%, Force Push 80%)* · Force Sense 95 *(**Force Vision / Precognition** 90%, Battle Precognition 80%)* · Mind Probe 90 *(Mind Control 85%)* · Mind Trick 90 *(Force Persuasion 95%)* · Force Drain 82 *(life-drain 80% — drained the Lost Masters)*
 - **Unique techniques:** **Force-bond severing** *(perceiving and cutting the Force bonds between beings — and the threat to "kill the Force" itself)*
 - **Signature Ability:** **Force philosophy & manipulation** — unmatched insight into the nature of the Force and the will of others; able to guide, blackmail, redeem, or doom those around her, and to perceive and sever Force bonds.
 - **Notable Feats:** Trained Revan as a Jedi; founded and led the Sith Triumvirate; manipulated galactic events from the shadows; drained and killed the Lost Masters; orchestrated the rise of Meetra Surik; sought to destroy the Force itself.
@@ -121,7 +121,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Sion fights with **savage, relentless aggression** — a brute-force dark-side style that batters opponents with overwhelming power and never tires, because pain only feeds him. A pure Djem So power-bruiser laced with Juyo ferocity. His true edge isn't technique but **regeneration**: dismembering or "killing" him only briefly interrupts him, as his hatred drags his shattered body back together. He fights without fear or self-preservation, wielding a crimson blade.
   **Form ratings (game stats):** Shien/Djem So 90 (primary) · Juyo 84 · Shii-Cho 80 · Ataru 72
-- **Force Abilities (game stats):** Force Body 105 *(**pain-fueled self-resurrection** 95%, Force Strength 90%, Force Endurance 98%)* · Force Rage 92 · Telekinesis 80 *(Force Push 75%)* · Force Lightning 60 *(Force Shock 60%)*
+- **Force Abilities (game stats):** Force Body 105 *(**pain-fueled self-resurrection** 95%, Enhance Attribute 90%, Remove Fatigue 98%)* · Force Enrage 92 · Telekinesis 80 *(Force Push 75%)* · Force Lightning 60 *(Force Shock 60%)*
 - **Unique techniques:** **Pain-fueled immortality** *(sustaining and reassembling his destroyed body indefinitely through hatred; effectively unkillable by physical means — defeatable only by breaking his will to endure)*
 - **Signature Ability:** **Pain-fueled immortality** — reassembles his shattered body through sheer hatred; defeatable only by being convinced to stop resurrecting himself.
 - **Notable Feats:** Survived countless deaths across an unnaturally long life; co-ruled the Triumvirate; relentlessly hunted Surik; could only be defeated by being convinced to let go.
@@ -151,7 +151,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A versatile, disciplined duelist hardened by the Mandalorian Wars, with a strong defensive foundation and the adaptability to face Sith Lords of wildly different styles. Skilled but not her defining trait — her edge is the bonds and resolve she brings to a fight.
   **Form ratings (game stats):** Soresu 84 · Shii-Cho 80 · Niman 82 · Makashi 78 · Ataru 78
-- **Force Abilities (game stats):** Battle Meditation 88 *(Force Valor 82%)* · Force Sense 88 *(Battle Foresight 80%, Precognitive Reflexes 75%)* · Telekinesis 84 *(Force Push 78%)* · Force Body 78 *(Force Speed 75%)* · Force Heal 80 *(self/other 72%)*
+- **Force Abilities (game stats):** Battle Meditation 88 *(Force Valor 82%)* · Force Sense 88 *(Battle Precognition 80%, Precognition 75%)* · Telekinesis 84 *(Force Push 78%)* · Force Body 78 *(Force Speed 75%)* · Force Heal 80 *(self/other 72%)*
 - **Unique techniques:** **Force-bond mastery ("the Wound made whole")** *(forges deep Force connections — draws others into the Force, teaches and empowers allies, awakens latent Force-sensitives — and is immune to Force-drain; the inverse let her sever her own connection at Malachor)*
 - **Signature Ability:** **Force-bond mastery** — an unmatched gift for forging deep Force connections, empowering allies, and awakening latent Force-sensitives; her wound-in-the-Force nature makes her immune to Force-drain.
 - **Notable Feats:** Activated the Mass Shadow Generator at Malachor V; survived as a wound in the Force; reconnected and retrained herself; redeemed Visas Marr; broke Darth Sion's will; destroyed Darth Nihilus (immune to his hunger); confronted Darth Traya at Malachor; trained a new circle of Jedi.
@@ -275,7 +275,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Primarily a blaster/brawler who trains in the saber late — a scrappy, unorthodox close-quarters fighter.
   **Form ratings (game stats):** Shii-Cho 50 *(late training)* · *(Blaster/brawling: 76)*
-- **Force Abilities (game stats):** **Mind-folding** *(unique — see below)* · Force Sense 55 *(Precognitive Reflexes 50%)* · Telekinesis 48 *(latent → developing)*
+- **Force Abilities (game stats):** **Mind-folding** *(unique — see below)* · Force Sense 55 *(Precognition 50%)* · Telekinesis 48 *(latent → developing)*
 - **Unique techniques:** **Mind-folding** *(a self-taught mental discipline that shields his thoughts and presence from Force detection and resists mental intrusion/torture — maps as a strong mental Force Barrier)*
 - **Signature Ability:** **Mind-folding** — shields his mind from Force detection and resists mental intrusion.
 - **Notable Feats:** Republic soldier and Sith Jedi-killer; concealed his Force-sensitivity for years; retrained as a Jedi under Surik.
@@ -301,7 +301,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A late-trained Jedi Guardian — solid, practical, and direct, with his engineer's economy of motion.
   **Form ratings (game stats):** Shii-Cho 60 · Shien/Djem So 56
-- **Force Abilities (game stats):** Telekinesis 70 *(Force-guided repair, Force Push 60%)* · Force Body 68 *(Force Strength 62%)* · Force Sense 70 *(Precognitive Reflexes 60%)*
+- **Force Abilities (game stats):** Telekinesis 70 *(Force-guided repair, Force Push 60%)* · Force Body 68 *(Enhance Attribute 62%)* · Force Sense 70 *(Precognition 60%)*
 - **Signature Ability:** **Master engineer** — a genius inventor who designed and built the Mass Shadow Generator superweapon; repairs and improvises technology with Force-guided skill.
 - **Notable Feats:** Built and activated the Mass Shadow Generator at Malachor V; served Surik in two wars; trained as a Jedi Guardian.
 - **Alignment:** Light side.

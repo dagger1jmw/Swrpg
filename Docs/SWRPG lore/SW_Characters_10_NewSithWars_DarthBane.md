@@ -61,7 +61,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A **complete master of all seven classic forms**, studied in depth at the Korriban academy — but he favors **Form V (Djem So/Shien)**, channeling his immense physical power and the orbalisks' enhancement into overwhelming, momentum-crushing offense. Cold, methodical brutality, fusing blade-work with Force lightning, telekinetic strikes, and raw dark-side power. His orbalisk armor renders him nearly impervious to lightsabers, letting him trade blows no normal duelist could survive — which (with a collapsing temple) is how he beat the more technically gifted Blademaster Kas'im.
   **Form ratings (game stats):** Shien/Djem So 104 (primary) · Juyo 94 · Soresu 92 · Shii-Cho 90 · Ataru 90 · Makashi 88 · Niman 88
-- **Force Abilities (game stats):** Force Lightning 110 *(Chain Lightning 92%, Force Storm 85%)* · Force Body 108 *(orbalisk-amplified — Force Strength 95%, Force Endurance 95%)* · Telekinesis 105 *(Force Push 90%, Force Throw 88%)* · Sith Alchemy 100 *(Sith sorcery; orbalisk symbiosis)* · Mind Probe 90 *(Mind Control 82%)*
+- **Force Abilities (game stats):** Force Lightning 110 *(Chain Lightning 92%, Force Storm 85%)* · Force Body 108 *(orbalisk-amplified — Enhance Attribute 95%, Remove Fatigue 95%)* · Telekinesis 105 *(Force Push 90%, Force Throw 88%)* · Sith Alchemy 100 *(Sith sorcery; orbalisk symbiosis)* · Mind Probe 90 *(Mind Control 82%)*
 - **Unique techniques:** **Orbalisk armor symbiosis** *(parasitic living armor — near-invulnerability to lightsabers, amplified strength, regeneration, and dark-side power)*
 - **Signature Ability:** **The Rule of Two & the Sith'ari** — reforged the entire Sith tradition into a hidden master-and-apprentice line designed to grow ever stronger across generations; the prophesied perfect Sith, augmented by orbalisk armor.
 - **Notable Feats:** Manipulated the Brotherhood into self-annihilation via the thought bomb at Ruusan; sole Sith survivor; founded the Rule of Two; bonded with orbalisk armor; killed Lord Valenthyne Farfalla and a Jedi strike team on Tython; established the lineage that produced Sidious.
@@ -171,7 +171,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A **grandmaster of all seven classic forms** — the Brotherhood's official Blademaster, famed for his **double-bladed lightsaber** and his ability to switch forms fluidly mid-duel to counter any opponent. Pure precision and adaptability: he reads a foe's style and shifts to its perfect counter. As a *pure technician he out-fences even Bane* — his form ratings are the highest in the era — and he fought Bane to the brink, beaten only by the orbalisks and a collapsing temple.
   **Form ratings (game stats):** **Jar'Kai dual-blade 100** (signature) · Niman 98 · Ataru 98 · Makashi 96 · Soresu 94 · Juyo 94 · Shii-Cho 92 · Shien/Djem So 92
-- **Force Abilities (game stats):** Force Body 80 *(Force Speed 85%)* · Force Sense 82 *(**Precognitive Reflexes** 82% — reads opponents)* · Telekinesis 72 *(Force Push 65%)*
+- **Force Abilities (game stats):** Force Body 80 *(Force Speed 85%)* · Force Sense 82 *(**Precognition** 82% — reads opponents)* · Telekinesis 72 *(Force Push 65%)*
 - **Signature Ability:** **Blademaster** — supreme, adaptive mastery of every lightsaber form, able to counter any duelist by shifting styles mid-fight; trained the Brotherhood's Sith.
 - **Notable Feats:** Blademaster of the Brotherhood's academy; trained a generation of Sith; dueled Darth Bane to the brink before being killed.
 - **Alignment:** Dark side.
@@ -226,7 +226,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A formidable duelist and general — a powerful, commanding Djem So style backed by battlefield presence.
   **Form ratings (game stats):** Shien/Djem So 82 · Shii-Cho 80 · Soresu 78 · Ataru 76
-- **Force Abilities (game stats):** Battle Meditation 85 *(Force Valor 82%)* · Force Sense 86 *(Battle Foresight 78%)* · Telekinesis 80 *(Force Push 74%)* · Force Body 78
+- **Force Abilities (game stats):** Battle Meditation 85 *(Force Valor 82%)* · Force Sense 86 *(Battle Precognition 78%)* · Telekinesis 80 *(Force Push 74%)* · Force Body 78
 - **Signature Ability:** **Supreme war-command** — unified the scattered Jedi into the Army of Light and led the Republic to victory through brilliant (if costly) generalship and personal prowess.
 - **Notable Feats:** Founded and led the Army of Light; commander of the Republic Military; won numerous campaigns; sacrificed himself and 100 Jedi at Ruusan to force the Brotherhood's self-destruction.
 - **Alignment:** Light side.
@@ -251,7 +251,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A skilled, versatile duelist — graceful and adaptable, favoring the acrobatic Ataru and elegant Makashi.
   **Form ratings (game stats):** Ataru 82 · Makashi 80 · Shii-Cho 76 · Soresu 76
-- **Force Abilities (game stats):** Force Sense 84 *(Battle Foresight 72%)* · Telekinesis 80 *(Force Push 74%)* · Battle Meditation 78 *(Force Valor 70%)* · Force Body 76 *(Force Speed 75%)*
+- **Force Abilities (game stats):** Force Sense 84 *(Battle Precognition 72%)* · Telekinesis 80 *(Force Push 74%)* · Battle Meditation 78 *(Force Valor 70%)* · Force Body 76 *(Force Speed 75%)*
 - **Signature Ability:** **Versatile Jedi Lord** — a multi-talented commander, diplomat, and duelist who led the Army of Light to its final victory and helped reform the Republic.
 - **Notable Feats:** Commanded the Army of Light after Hoth; survived Ruusan; brokered the Ruusan Reformations; led the Tython strike team against Bane (and died to him).
 - **Alignment:** Light side.
@@ -276,7 +276,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A solid, earnest young Knight — disciplined Shii-Cho/Soresu fundamentals.
   **Form ratings (game stats):** Shii-Cho 72 · Soresu 70 · Ataru 70
-- **Force Abilities (game stats):** Force Sense 78 *(Precognitive Reflexes 65%)* · Telekinesis 72 *(Force Push 62%)* · Force Barrier 68
+- **Force Abilities (game stats):** Force Sense 78 *(Precognition 65%)* · Telekinesis 72 *(Force Push 62%)* · Force Barrier 68
 - **Signature Ability:** **Dogged investigator** — the Jedi who refused to believe the Sith were extinct and proved a Dark Lord had survived Ruusan.
 - **Notable Feats:** Survived Ruusan as a Padawan; established the Valley of the Jedi memorial; uncovered Bane's survival; helped fatally wound Bane on Tython (with Worror Dowmat's Force-bubble) before dying.
 - **Alignment:** Light side.

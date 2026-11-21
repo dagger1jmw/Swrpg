@@ -64,7 +64,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A **supremely adaptable duelist** whose primary form is **Niman (Form VI)** — the "Moderation Form," which he, like Exar Kun before him, raised to true mastery rather than the mediocrity it produces in most hands. Niman fits Revan exactly: a balanced synthesis of all preceding forms with no real weakness, it lets him weave **telekinetic attacks directly into his bladework** (the "draw closer" and "pushing slash") and frees him to develop the broader Force and strategic powers that define him, rather than over-investing in pure swordplay. From its dual-blade roots he is also a natural Jar'Kai practitioner. Echani close-combat training underpins his footwork and reading of opponents — he fights the *being*, not the blade — and he remains highly proficient in every other form, flowing into Djem So's aggression or Ataru's acrobatics as a situation demands. He defeated Mandalore the Ultimate in full beskar'gam in single combat.
   **Form ratings (game stats):** **Niman 100** (primary) · Shii-Cho 90 · Makashi 90 · Soresu 90 · Ataru 95 · Shien/Djem So 94 · Juyo 85 · *(Echani martial arts / Jar'Kai dual-blade: 90)*
-- **Force Abilities (game stats):** Battle Meditation 95 *(Force Valor 88%)* · Force Sense 92 *(**Battle Foresight** 90%, Precognitive Reflexes 85%)* · Telekinesis 92 *(Force Push 88%, Force Throw 82%)* · Force Body 85 *(Force Speed 88%, Force Strength 75%)* · Mind Trick 85 *(Force Persuasion 82%)* · Force Barrier 82
+- **Force Abilities (game stats):** Battle Meditation 95 *(Force Valor 88%)* · Force Sense 92 *(**Battle Precognition** 90%, Precognition 85%)* · Telekinesis 92 *(Force Push 88%, Force Throw 82%)* · Force Body 85 *(Force Speed 88%, Enhance Attribute 75%)* · Mind Trick 85 *(Force Persuasion 82%)* · Force Barrier 82
 - **Signature Ability:** **Strategic genius & battle command** — a once-in-an-age military mind who reversed an entire war; combines battlefield Force perception with peerless tactical planning.
 - **Notable Feats:** Rallied a third of the Jedi Order to war; appointed Supreme Commander; liberated Taris; engineered the victory at Malachor V; slew Mandalore the Ultimate in single combat.
 - **Alignment:** Light side (about to fall).
@@ -96,7 +96,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A **powerful, physical duelist** who fights with strength and aggression — a frontline warrior's style emphasizing overwhelming force, stamina, and direct pressure rather than Revan's finesse. Towering and relentless, he wears opponents down and breaks their guard through sheer power. A natural Djem So practitioner.
   **Form ratings (game stats):** Shii-Cho 82 · Shien/Djem So 88 · Ataru 78 · Soresu 76
-- **Force Abilities (game stats):** Force Body 88 *(Force Strength 90%, Force Speed 78%)* · Telekinesis 82 *(Force Push 85%, Force Wave 70%)* · Force Sense 78 *(Precognitive Reflexes 70%)* · Force Barrier 75
+- **Force Abilities (game stats):** Force Body 88 *(Enhance Attribute 90%, Force Speed 78%)* · Telekinesis 82 *(Force Push 85%, Force Wave 70%)* · Force Sense 78 *(Precognition 70%)* · Force Barrier 75
 - **Signature Ability:** **Frontline war-leader** — the army's courage and muscle; a Force-strong warrior who inspired troops and spearheaded the hardest assaults.
 - **Notable Feats:** Co-led the Revanchists with Revan; among the most formidable Jedi warriors of the war; Revan's most trusted second.
 - **Alignment:** Light side (about to fall).
@@ -128,7 +128,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A highly talented, versatile duelist hardened by years of varied combat — disciplined and efficient rather than flashy, with a strong defensive foundation and a gift for adapting to any opponent.
   **Form ratings (game stats):** Shii-Cho 80 · Soresu 84 · Niman 82 · Makashi 76 · Ataru 74
-- **Force Abilities (game stats):** Battle Meditation 86 *(Force Valor 82%)* · Force Sense 84 *(Battle Foresight 78%, Precognitive Reflexes 72%)* · Telekinesis 80 *(Force Push 75%)* · Force Body 78 *(Force Speed 75%)* · Force Barrier 70
+- **Force Abilities (game stats):** Battle Meditation 86 *(Force Valor 82%)* · Force Sense 84 *(Battle Precognition 78%, Precognition 72%)* · Telekinesis 80 *(Force Push 75%)* · Force Body 78 *(Force Speed 75%)* · Force Barrier 70
 - **Unique techniques:** **Force connection-forging** *(rare gift to form deep Force bonds and "enlighten"/empower allies — and its inverse, severing herself from the Force entirely at Malachor)*
 - **Signature Ability:** **Force connection-forging** — forms deep Force bonds and empowers those around her; later able to teach and rebuild Force-sensitives. At Malachor she demonstrated the inverse — severing herself from the Force.
 - **Notable Feats:** Jedi General under Revan; activated the Mass Shadow Generator at Malachor V; the only war Jedi to return neither fallen nor dead; severed and (later) re-formed her own Force connection.
@@ -160,7 +160,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Among the Council's finest blades — a classic, elegant duelist who favors the precision of Makashi and the speed of Ataru, with the footwork of a lifelong swordsman.
   **Form ratings (game stats):** Makashi 86 · Ataru 84 · Soresu 82 · Shii-Cho 78 · Niman 74
-- **Force Abilities (game stats):** Force Body 82 *(Force Speed 82%)* · Force Sense 86 *(Precognitive Reflexes 80%)* · Telekinesis 80 *(Force Push 75%)* · Battle Meditation 70 *(Force Valor 65%)* · Force Barrier 72
+- **Force Abilities (game stats):** Force Body 82 *(Force Speed 82%)* · Force Sense 86 *(Precognition 80%)* · Telekinesis 80 *(Force Push 75%)* · Battle Meditation 70 *(Force Valor 65%)* · Force Barrier 72
 - **Signature Ability:** **Master duelist-diplomat** — among the Council's finest blades, paired with genuine compassion for those caught in the war.
 - **Notable Feats:** High Council member through two wars; informal master to Meetra Surik; survived to the Purge.
 - **Alignment:** Light side.

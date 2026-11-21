@@ -118,7 +118,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A skilled, fast young duelist with strong instincts and his family's aptitude; trained by Jacen and then honed in the field. Combines Jedi skill with investigative/commando resourcefulness.
   **Form ratings (game stats):** Shien/Djem So 82 (primary) · Ataru 80 · Shii-Cho 76
-- **Force Abilities (game stats):** Force Sense 84 *(Precognitive Reflexes 80%)* · Telekinesis 80 *(Force Push 74%)* · Force Body 80 *(Force Speed 80%)*
+- **Force Abilities (game stats):** Force Sense 84 *(Precognition 80%)* · Telekinesis 80 *(Force Push 74%)* · Force Body 80 *(Force Speed 80%)*
 - **Signature Ability:** **Skywalker scion** — strong inherited potential and rapid growth; an investigator's mind paired with a warrior's nerve.
 - **Notable Feats:** Apprenticed to (and broke from) Darth Caedus; uncovered that Caedus killed his mother; fought against him; a rising pillar of the Order.
 - **Alignment:** Light side (briefly darkened under Caedus).

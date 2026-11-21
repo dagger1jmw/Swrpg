@@ -65,7 +65,7 @@ const NPCS: readonly CanonNpc[] = [
     snapshotBby: 3660,
     levels: { ...core(90, 88, 98, 96, 70, 78), ...force(84, 72, 82, 88, 84), djemSo: 88, shien: 88, juyo: 82, shiiCho: 82, ataru: 78, telekinesis: 80, forcePush: pct(80, 0.75), forceLightning: 78 },
     fixed: 'imposed immortality since ~3,950 BBY (lore: Lord Scourge sheet)',
-    unmapped: ['Force Body 90 (Force Strength 85%, Force Endurance 90%)', 'Force Rage 80', 'Chain Lightning 70%'],
+    unmapped: ['Force Body 90 (Enhance Attribute 85%, Remove Fatigue 90%)', 'Force Enrage 80', 'Chain Lightning 70%'],
   },
   {
     canonId: 'lore:darth-malgus',
@@ -81,7 +81,7 @@ const NPCS: readonly CanonNpc[] = [
     unavailable: [{ fromBby: 3639, toBby: 3630, reason: 'believed killed at Ilum (~3,640); in hiding until he resurfaces ~3,629 (Timeline :544)' }],
     snapshotBby: 3653,
     levels: { ...core(90, 82, 92, 94, 86, 80), ...force(84, 70, 80, 95, 90), djemSo: 92, shien: 92, shiiCho: 82, juyo: 80, ataru: 76, telekinesis: 88, forcePush: pct(88, 0.85), forceChoke: pct(88, 0.82), forceLightning: 85, forceBarrier: 78 },
-    unmapped: ['Force Body 86 (Force Strength 88%)', 'Chain Lightning 80%'],
+    unmapped: ['Force Body 86 (Enhance Attribute 88%)', 'Chain Lightning 80%'],
     note: "Darth Vindican's apprentice at Korriban (3,681, Timeline :322); leads the Sacking of Coruscant (3,653)",
   },
   {
@@ -98,7 +98,7 @@ const NPCS: readonly CanonNpc[] = [
     deathSource: 'lore',
     snapshotBby: 3640,
     levels: { ...core(84, 80, 88, 96, 84, 84), ...force(86, 82, 86, 92, 84), soresu: 88, djemSo: 84, shien: 84, shiiCho: 80, makashi: 76, forceBarrier: 88, forceAbsorb: pct(88, 0.8), telekinesis: 84, forcePush: pct(84, 0.8), forceLightning: 78 },
-    unmapped: ['Force Body 82 (Force Endurance 82%)', 'Chain Lightning 70%'],
+    unmapped: ['Force Body 82 (Remove Fatigue 82%)', 'Chain Lightning 70%'],
   },
   {
     canonId: 'lore:darth-baras',
@@ -128,7 +128,7 @@ const NPCS: readonly CanonNpc[] = [
     deathSource: 'estimate',
     snapshotBby: 3643,
     levels: { ...core(80, 78, 82, 86, 78, 74), ...force(82, 68, 80, 88, 84), djemSo: 82, shien: 82, juyo: 78, shiiCho: 76, ataru: 74, forceLightning: 82, telekinesis: 80, forcePush: pct(80, 0.75) },
-    unmapped: ['Force Rage 78', 'Chain Lightning 75%'],
+    unmapped: ['Force Enrage 78', 'Chain Lightning 75%'],
     note: 'commands the orbital fleet at the Sacking (3,653); the Desolator Crisis (~3,643, Timeline :437); killed by the Hero of Tython',
   },
   {
@@ -371,7 +371,7 @@ const NPCS: readonly CanonNpc[] = [
       telekinesis: 85,
       forcePush: pct(85, 0.8),
     },
-    unmapped: ['Force Valor 88% (of Battle Meditation)', 'Battle Foresight 82%', 'Force Body 85'],
+    unmapped: ['Force Valor 88% (of Battle Meditation)', 'Battle Precognition 82%', 'Force Body 85'],
     note: 'Padawan at Korriban (3,681), Knight at Alderaan (3,667, age ~32), Grand Master after the move to Tython (~3,648); the sheet is her Galactic War peak',
   },
   {
@@ -387,7 +387,7 @@ const NPCS: readonly CanonNpc[] = [
     deathSource: 'estimate',
     snapshotBby: 3643,
     levels: { ...core(64, 72, 70, 86, 78, 80), ...force(82, 80, 82, 84, 78), djemSo: 78, shien: 78, shiiCho: 74, soresu: 74, ataru: 70, telekinesis: 80, forcePush: pct(80, 0.72), forceSpeed: pct(75, 0.7) },
-    unmapped: ['Precognitive Reflexes 70%', 'Force Body 75'],
+    unmapped: ['Precognition 70%', 'Force Body 75'],
     note: "mentor of the Hero of Tython; killed by Darth Angral's forces, persists as a Force spirit",
   },
   {
@@ -532,7 +532,7 @@ const NPCS: readonly CanonNpc[] = [
       forceSpeed: pct(85, 0.88),
     },
     fixed: 'sustained in stasis for 300 years; his levels are those of his own era, not grown by age',
-    unmapped: ['Force Valor 85% (of Battle Meditation)', 'Battle Foresight 90%', 'Force Throw 85%', 'Force Drain 78', 'Force Body 85'],
+    unmapped: ['Force Valor 85% (of Battle Meditation)', 'Battle Precognition 90%', 'Force Throw 85%', 'Force Drain 78', 'Force Body 85'],
     note: 'freed and destroyed at Yavin 4 (~3,640); founder of the Order of Revan',
   },
   {
@@ -601,7 +601,7 @@ const NPCS: readonly CanonNpc[] = [
     earlierRoles: [{ role: 'padawan', untilBby: 3644 }],
     snapshotBby: 3637,
     levels: { ...core(80, 90, 84, 92, 82, 80), ...force(86, 80, 82, 90, 86), ataru: 90, djemSo: 86, shien: 86, shiiCho: 82, juyo: 80, forceSpeed: pct(86, 0.88), telekinesis: 84, forcePush: pct(84, 0.8), forceBarrier: 80, forceHealSelf: 72 },
-    unmapped: ['Force Body 86 (Force Strength 78%)', 'Battle Foresight 78%'],
+    unmapped: ['Force Body 86 (Enhance Attribute 78%)', 'Battle Precognition 78%'],
     note: 'trained on Tython under Orgus Din; destroys the Emperor\'s host body (3,637)',
   },
   {
@@ -630,7 +630,7 @@ const NPCS: readonly CanonNpc[] = [
     earlierRoles: [{ role: 'sithAcolyte', untilBby: 3644 }],
     snapshotBby: 3637,
     levels: { ...core(92, 86, 90, 92, 78, 76), ...force(82, 70, 78, 92, 90), djemSo: 92, shien: 92, juyo: 86, shiiCho: 84, ataru: 80, forceSpeed: pct(90, 0.8), forceLightning: 82, telekinesis: 84, forcePush: pct(84, 0.8), forceChoke: pct(84, 0.78) },
-    unmapped: ['Force Body 90 (Force Strength 90%)', 'Force Rage 86', 'Chain Lightning 75%'],
+    unmapped: ['Force Body 90 (Enhance Attribute 90%)', 'Force Enrage 86', 'Chain Lightning 75%'],
     note: "Darth Baras's apprentice, then the Emperor's Wrath",
   },
   {

@@ -117,7 +117,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Wields a **Force-imbued sword** in an aggressive, dark-amplified style — using Battlemind and the dark side to boost speed and strength mid-duel. Harder-edged in melee than the sorcerous Sadow.
   **Bladework rating (game stats):** 78
-- **Force Abilities (game stats):** Battlemind 82 *(combat-clarity amplification)* · Force Body 80 *(Force Speed 82%, Force Strength 82%)* · Sith Alchemy 65 *(devised a protective device for his son)* · Force Lightning 60 *(Chain Lightning 55%)* · Telekinesis 80 *(Force Push 82%)*
+- **Force Abilities (game stats):** Battlemind 82 *(combat-clarity amplification)* · Force Body 80 *(Force Speed 82%, Enhance Attribute 82%)* · Sith Alchemy 65 *(devised a protective device for his son)* · Force Lightning 60 *(Chain Lightning 55%)* · Telekinesis 80 *(Force Push 82%)*
 - **Signature Ability:** **Battlemind & dark-side amplification** — amplified his speed, strength, and rage; a proficient Sith alchemist and sorcerer.
 - **Notable Feats:** Contested Sadow for the Dark Lordship; faked his own death and ambushed Sadow's fortress; nearly defeated Sadow in their final fleet duel.
 - **Alignment:** Dark side.
@@ -226,7 +226,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A seasoned warrior-Jedi, more practiced in the field than Odan-Urr. Solid, dependable bladework backed by battle meditation.
   **Bladework rating (game stats):** 70
-- **Force Abilities (game stats):** Battle Meditation 80 *(Force Valor 82% — co-won Kirrek)* · Telekinesis 75 *(Force Push 62%)* · Force Sense 82 *(Precognitive Reflexes 60%)* · Force Barrier 60
+- **Force Abilities (game stats):** Battle Meditation 80 *(Force Valor 82% — co-won Kirrek)* · Telekinesis 75 *(Force Push 62%)* · Force Sense 82 *(Precognition 60%)* · Force Barrier 60
 - **Signature Ability:** **Battle meditation** — co-wielded with Odan-Urr to turn Kirrek; a seasoned battlefield Jedi and statesman.
 - **Notable Feats:** Adviser to Empress Teta; rescued the Daragons; carried the warning to Coruscant; helped win Kirrek.
 - **Alignment:** Light side.
@@ -302,7 +302,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A pilot, not a swordsman.
   **Bladework rating (game stats):** 35
-- **Force Abilities (game stats):** Force Sense 55 *(**Precognitive Reflexes** 38% — ace-navigator instinct)* · Telekinesis 15 *(latent, barely trained)*
+- **Force Abilities (game stats):** Force Sense 55 *(**Precognition** 38% — ace-navigator instinct)* · Telekinesis 15 *(latent, barely trained)*
 - **Signature Ability:** **Ace hyperspace navigator** — jumps that reached farther than any recorded Republic vessel.
 - **Notable Feats:** Accidentally discovered Sith space; guided then betrayed Sadow's fleet; transmitted the coordinates that enabled the Republic's counterattack.
 - **Alignment:** Neutral; briefly dark-influenced, died turning against the Sith.
@@ -327,7 +327,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Given a lightsaber by Odan-Urr but never properly trained; fights on raw nerve and pilot's reflexes.
   **Bladework rating (game stats):** 40
-- **Force Abilities (game stats):** Force Sense 52 *(Precognitive Reflexes 38% — pilot's instinct)* · Telekinesis 15 *(latent)*
+- **Force Abilities (game stats):** Force Sense 52 *(Precognition 38% — pilot's instinct)* · Telekinesis 15 *(latent)*
 - **Signature Ability:** **Ace hyperspace navigator** — a bold, resourceful pilot and survivor.
 - **Notable Feats:** Delivered the warning that saved the Republic's defense; penetrated Empress Teta's palace to be heard; survived the war.
 - **Alignment:** Neutral / light-leaning.

@@ -122,7 +122,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A powerful, disciplined warrior — strong, fast, relentlessly aggressive, with centuries of experience and an immortal's fearlessness. Fights with controlled ferocity (not berserker rage), exploiting endless stamina and his inability to be permanently killed to outlast foes. A Djem So power-duelist with Juyo edge.
 **Form ratings (game stats):** Shien/Djem So 88 · Juyo 82 · Shii-Cho 82 · Ataru 78
-* **Force Abilities (game stats):** Force Body 90 *(Force Strength 85%, Force Endurance 90%)* · Force Rage 80 · Telekinesis 80 *(Force Push 75%)* · Force Lightning 78 *(Chain Lightning 70%)*
+* **Force Abilities (game stats):** Force Body 90 *(Enhance Attribute 85%, Remove Fatigue 90%)* · Force Enrage 80 · Telekinesis 80 *(Force Push 75%)* · Force Lightning 78 *(Chain Lightning 70%)*
 * **Unique techniques:** **Imposed immortality** *(unending life granted by the Emperor at the cost of perpetual pain; cannot age or die by ordinary means)*
 * **Signature Ability:** **Imposed immortality** — fights without self-preservation and endures across centuries; cannot be permanently killed by ordinary means.
 * **Notable Feats:** Uncovered the Emperor's galaxy-ending plan; killed Meetra Surik (enabling Revan's capture); served as the Emperor's Wrath \~300 years; ultimately turned on the Emperor to aid the Hero of Tython.
@@ -149,7 +149,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** **Overwhelming, physically dominant aggression** — a powerhouse style built on raw strength and Force-augmented power attacks, blending saber strikes with Force pushes, chokes, and lightning to crush foes. Fights with the cold confidence of a warrior who survived being blown apart and rebuilt. Wields a crimson blade. A pure Djem So juggernaut. Disarmed and beat Satele Shan one-on-one on Alderaan (only a grenade saved her).
 **Form ratings (game stats):** Shien/Djem So 92 (primary) · Shii-Cho 82 · Juyo 80 · Ataru 76
-* **Force Abilities (game stats):** Telekinesis 88 *(Force Push 85%, **Force Choke** 82%)* · Force Lightning 85 *(Chain Lightning 80%)* · Force Body 86 *(Force Strength 88%)* · Force Barrier 78
+* **Force Abilities (game stats):** Telekinesis 88 *(Force Push 85%, **Force Choke** 82%)* · Force Lightning 85 *(Chain Lightning 80%)* · Force Body 86 *(Enhance Attribute 88%)* · Force Barrier 78
 * **Signature Ability:** **Unbreakable war-juggernaut** — immense Force-augmented power and indomitable will hardened by survived catastrophic injury; breaks armies and Jedi alike.
 * **Notable Feats:** Recaptured Korriban; killed Kao Cen Darach; led the Sacking of Coruscant and the assault on the Jedi Temple; survived being blown apart; declared his own breakaway Empire.
 * **Alignment:** Dark side.
@@ -175,7 +175,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A disciplined, powerful duelist who fights like the defensive bulwark he is — controlled, relentless, nearly impossible to break, channeling the dark side into endurance and crushing counterattacks rather than reckless aggression. A Soresu master with Djem So counterpunch. Wields a crimson blade behind his iconic mask and heavy armor.
 **Form ratings (game stats):** Soresu 88 (primary) · Shien/Djem So 84 · Shii-Cho 80 · Makashi 76
-* **Force Abilities (game stats):** Force Barrier 88 *(Force Absorb 80%)* · Telekinesis 84 *(Force Push 80%)* · Force Lightning 78 *(Chain Lightning 70%)* · Force Body 82 *(Force Endurance 82%)*
+* **Force Abilities (game stats):** Force Barrier 88 *(Force Absorb 80%)* · Telekinesis 84 *(Force Push 80%)* · Force Lightning 78 *(Chain Lightning 70%)* · Force Body 82 *(Remove Fatigue 82%)*
 * **Signature Ability:** **Bulwark of the Empire** — an indomitable defensive will and command presence; personally halted Republic offensives and held the Empire together.
 * **Notable Feats:** Dark Councilor from his early twenties; drove back Republic armies; one of only seven Councilors to survive the Great War; forged a truce with Satele to defeat the returned Revan; died facing the Eternal Empire.
 * **Alignment:** Dark side (pragmatic, honorable by Sith standards).
@@ -205,7 +205,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A fluid, acrobatic, Force-speed-driven style — Ataru athleticism fused with deep Force control, leaning on telekinesis, Force barriers, and battlefield awareness as much as the blade. Renowned for a Force barrier strong enough to hold back a Sith Lord's full Force push.
 **Form ratings (game stats):** Ataru 88 (primary) · Soresu 82 · Niman 80 · Shii-Cho 78
-* **Force Abilities (game stats):** Battle Meditation 92 *(Force Valor 88% — the Shan inheritance from Bastila)* · Force Barrier 92 *(**Force Absorb** 85% — held back a Sith's full push)* · Force Sense 92 *(Battle Foresight 82%)* · Force Body 85 *(Force Speed 90%)* · Telekinesis 85 *(Force Push 80%)*
+* **Force Abilities (game stats):** Battle Meditation 92 *(Force Valor 88% — the Shan inheritance from Bastila)* · Force Barrier 92 *(**Force Absorb** 85% — held back a Sith's full push)* · Force Sense 92 *(Battle Precognition 82%)* · Force Body 85 *(Force Speed 90%)* · Telekinesis 85 *(Force Push 80%)*
 * **Signature Ability:** **Battle meditation \& Shan-bloodline depth** — master of the war-deciding battle-meditation art plus an exceptional command of Force barrier and Force speed; her connection runs as deep as her legendary ancestry.
 * **Notable Feats:** Turned the Battle of Alderaan and helped defeat Malgus; became Grand Master; led the Order through two wars; allied with Marr to defeat the returned Revan; mother of Theron Shan.
 * **Alignment:** Light side.
@@ -233,7 +233,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** Even fractured, Revan keeps **Niman (Form VI) as his primary form** and his hallmark total adaptability — single or dual blades, seamless offense-to-defense, Echani-honed reading of opponents — now edged with the instability of his broken mind, freely drawing on both light and dark. Centuries of stasis did not dull the deadliest duelist of the Old Republic.
 **Form ratings (game stats):** **Niman 100** (primary) · Ataru 95 · Shien/Djem So 94 · Juyo 88 · Soresu 90 · Makashi 90 · Shii-Cho 90 · *(Jar'Kai dual-blade / Echani: 94)*
-* **Force Abilities (game stats):** Battle Meditation 92 *(Force Valor 85%)* · Force Sense 94 *(Battle Foresight 90%)* · Telekinesis 92 *(Force Push 88%, Force Throw 85%)* · Force Lightning 85 *(Chain Lightning 78%)* · Force Body 85 *(Force Speed 88%)* · Force Drain 78 *(life-drain 70%)*
+* **Force Abilities (game stats):** Battle Meditation 92 *(Force Valor 85%)* · Force Sense 94 *(Battle Precognition 90%)* · Telekinesis 92 *(Force Push 88%, Force Throw 85%)* · Force Lightning 85 *(Chain Lightning 78%)* · Force Body 85 *(Force Speed 88%)* · Force Drain 78 *(life-drain 70%)*
 * **Unique techniques:** **Light-and-dark mastery (fractured)** *(integrated Jedi+Sith knowledge at apex level, but his split psyche makes him unpredictable and willing to cross lines his whole self would not)*
 * **Signature Ability:** **Light-and-dark mastery (fractured)** — apex integrated technique, destabilized by his broken mind.
 * **Notable Feats:** Endured \~300 years of stasis and the Emperor's mental assault; founded the Order of Revan; schemed to permanently destroy the Emperor; defeated only by the combined might of Satele and Marr at Yavin 4.
@@ -313,7 +313,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A solid all-around duelist — practical, grounded, war-tested.
 **Form ratings (game stats):** Shien/Djem So 78 · Shii-Cho 74 · Soresu 74 · Ataru 70
-* **Force Abilities (game stats):** Telekinesis 80 *(Force Push 72%)* · Force Sense 82 *(Precognitive Reflexes 70%)* · Force Body 75 *(Force Speed 70%)*
+* **Force Abilities (game stats):** Telekinesis 80 *(Force Push 72%)* · Force Sense 82 *(Precognition 70%)* · Force Body 75 *(Force Speed 70%)*
 * **Unique techniques:** **Spirit guidance** *(freed his student's mind from the Emperor's domination from beyond death)*
 * **Signature Ability:** **Pragmatic war-master** — a grounded combat instructor and battlefield Jedi who could free a mind from the Emperor's control even as a spirit.
 * **Notable Feats:** Veteran of the Great War; trained the Hero of Tython; returned as a spirit to break the Emperor's control over his student.
@@ -370,7 +370,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** An aggressive duelist — fast, wrathful, offense-first.
 **Form ratings (game stats):** Shien/Djem So 82 · Juyo 78 · Shii-Cho 76 · Ataru 74
-* **Force Abilities (game stats):** Force Lightning 82 *(Chain Lightning 75%)* · Telekinesis 80 *(Force Push 75%)* · Force Rage 78 · Force Sense 82
+* **Force Abilities (game stats):** Force Lightning 82 *(Chain Lightning 75%)* · Telekinesis 80 *(Force Push 75%)* · Force Enrage 78 · Force Sense 82
 * **Signature Ability:** **Wrathful warlord** — a powerful battlefield Sith driven by vengeance, wielding superweapons and fleets against the Republic.
 * **Notable Feats:** Helped reignite the Galactic War; commanded the fleet at the Sacking; waged a superweapon vendetta; killed by the Hero of Tython.
 * **Alignment:** Dark side.
@@ -483,7 +483,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A premier offensive duelist — fast, aggressive, relentless, blending Force speed and power strikes. Capable of standing against the Emperor's Wrath and the Emperor's own host body.
 **Form ratings (game stats):** Ataru 90 (primary) · Shien/Djem So 86 · Shii-Cho 82 · Juyo 80
-* **Force Abilities (game stats):** Force Body 86 *(Force Speed 88%, Force Strength 78%)* · Telekinesis 84 *(Force Push 80%)* · Force Sense 86 *(Battle Foresight 78%)* · Force Barrier 80 · Force Heal 72
+* **Force Abilities (game stats):** Force Body 86 *(Force Speed 88%, Enhance Attribute 78%)* · Telekinesis 84 *(Force Push 80%)* · Force Sense 86 *(Battle Precognition 78%)* · Force Barrier 80 · Force Heal 72
 * **Signature Ability:** **The foretold Jedi** — destined and able to destroy the Emperor's body; a war-champion who resisted and broke the Emperor's mental domination.
 * **Notable Feats:** Trained under Orgus Din; destroyed Darth Angral; freed from the Emperor's control; destroyed the Emperor's host body on Dromund Kaas.
 * **Alignment:** Light side.
@@ -536,7 +536,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** An overwhelming offensive duelist — raw Force-augmented power, ferocity, and momentum, built to execute the Emperor's enemies without hesitation. A Djem So juggernaut with Juyo edge.
 **Form ratings (game stats):** Shien/Djem So 92 (primary) · Juyo 86 · Shii-Cho 84 · Ataru 80
-* **Force Abilities (game stats):** Force Body 90 *(Force Strength 90%, Force Speed 80%)* · Force Rage 86 · Force Lightning 82 *(Chain Lightning 75%)* · Telekinesis 84 *(Force Push 80%, Force Choke 78%)*
+* **Force Abilities (game stats):** Force Body 90 *(Enhance Attribute 90%, Force Speed 80%)* · Force Enrage 86 · Force Lightning 82 *(Chain Lightning 75%)* · Telekinesis 84 *(Force Push 80%, Force Choke 78%)*
 * **Signature Ability:** **Emperor's executioner** — sanctioned to kill any enemy of the Emperor, including Dark Councilors; a peerless dark-side warrior.
 * **Notable Feats:** Apprenticed to Darth Baras then destroyed him; became the second Emperor's Wrath; defeated the rogue Dread Masters at Oricon.
 * **Alignment:** Dark side.

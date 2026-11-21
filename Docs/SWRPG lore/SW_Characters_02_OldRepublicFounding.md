@@ -76,7 +76,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** Wields a massive **alchemically forged battle-axe** in an overpowering, unstoppable style built on enormous strength and near-immortal endurance. Cleaves through ranks and champions alike. Pure dominance, no finesse.
 **Bladework rating (game stats):** 95
-* **Force Abilities (game stats):** Sith Alchemy 85 *(forged his own armor, axe, and an early holocron — Midi 62%)* · Force Lightning 80 *(Chain Lightning 78%)* · Telekinesis 88 *(Force Push 82%, Force Throw 65%)* · Force Body 90 *(Force Strength 95%, Force Endurance 95% — near-immortal vitality)* · Mind Probe 70 *(god-king domination 65%)*
+* **Force Abilities (game stats):** Sith Alchemy 85 *(forged his own armor, axe, and an early holocron — Midi 62%)* · Force Lightning 80 *(Chain Lightning 78%)* · Telekinesis 88 *(Force Push 82%, Force Throw 65%)* · Force Body 90 *(Enhance Attribute 95%, Remove Fatigue 95% — near-immortal vitality)* · Mind Probe 70 *(god-king domination 65%)*
 * **Unique techniques:** **Sith sorcery \& god-king presence** *(his people believed him invincible and immortal)*
 * **Signature Ability:** **Sith sorcery \& god-king presence** — a master of ancient Sith magic; created one of the first Sith holocrons.
 * **Notable Feats:** United all of Korriban by conquest; reigned \~300 years; led the Sith to repel the Rakatan Infinite Empire; his holocron shaped dark-siders for 20,000+ years.
@@ -134,7 +134,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** The era's premier **unarmed/melee** combatant. Her **Teräs Käsi** is a Force-assisted martial art of precise strikes, joint-breaks, and lethal speed — built to fight and kill Force-users barehanded. Devastating in close quarters.
 **Bladework rating (game stats):** 92 *(unarmed Teräs Käsi — represents her melee combat skill)*
-* **Force Abilities (game stats):** Battlemind 85 *(combat clarity for Teräs Käsi)* · Force Body 85 *(Force Speed 82%, Force Strength 82%)* · Force Sense 74 *(Precognitive Reflexes 82% — reads strikes barehanded)* · Telekinesis 65 *(Force Push 60%, Force Grip 45%)*
+* **Force Abilities (game stats):** Battlemind 85 *(combat clarity for Teräs Käsi)* · Force Body 85 *(Force Speed 82%, Enhance Attribute 82%)* · Force Sense 74 *(Precognition 82% — reads strikes barehanded)* · Telekinesis 65 *(Force Push 60%, Force Grip 45%)*
 * **Unique techniques:** **Teräs Käsi mastery** *(supreme Force-assisted unarmed martial art)*
 * **Signature Ability:** **Teräs Käsi mastery** — capable of fighting and killing Force-users barehanded, augmented by Battlemind and Force valor.
 * **Notable Feats:** Co-led the Legions of Lettow; destroyed Awdrysta Pina's katana with a talisman and mortally wounded him; survived a heart-stopping morichro strike via a \~24,500-year trance.
@@ -161,7 +161,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A disciplined Grand Master who wields a **katana-type blade** with controlled, classical precision — defense and counter over aggression. He slew Xendor in single combat.
 **Bladework rating (game stats):** 82
-* **Force Abilities (game stats):** Force Stasis 90 *(**Morichro** 95% — signature)* · Meditation discipline 90 · Force Sense 86 *(Battle Foresight 82%)* · Telekinesis 80 *(Force Push 82%)* · Force Barrier 80
+* **Force Abilities (game stats):** Force Stasis 90 *(**Morichro** 95% — signature)* · Meditation discipline 90 · Force Sense 86 *(Battle Precognition 82%)* · Telekinesis 80 *(Force Push 82%)* · Force Barrier 80
 * **Unique techniques:** **Morichro** *(rare Force technique halting autonomic functions — mapped as a Mastered Force Stasis specialization; stopped Arden Lyn's heart)*
 * **Signature Ability:** **Morichro** — slows or halts a target's heartbeat and breathing.
 * **Notable Feats:** Led the Jedi to victory in the First Great Schism; slew Xendor at Columus; neutralized Arden Lyn on Irkalla.
@@ -192,7 +192,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A powerful Dark Jedi swordsman and battlefield general who fought with both a proto-saber and the captured Sith war-sword of King Graush. Aggressive, dominant, tireless — he personally cut down more than a dozen Jedi at Corbos.
 **Bladework rating (game stats):** 88
-* **Force Abilities (game stats):** Force Lightning 85 *(Chain Lightning 82%)* · Telekinesis 88 *(Force Push 82%, Force Throw 82%)* · Mind Probe 85 *(Mind Control 82% — convinced an entire species the Exiles were gods)* · Force Body 85 *(Force Strength 82%, Force Speed 62%)* · Force Sense 84 *(Battle Foresight 62%)*
+* **Force Abilities (game stats):** Force Lightning 85 *(Chain Lightning 82%)* · Telekinesis 88 *(Force Push 82%, Force Throw 82%)* · Mind Probe 85 *(Mind Control 82% — convinced an entire species the Exiles were gods)* · Force Body 85 *(Enhance Attribute 82%, Force Speed 62%)* · Force Sense 84 *(Battle Precognition 62%)*
 * **Signature Ability:** **Dominion of the first Dark Lord** — battlefield Force power plus the political mastery to subjugate an entire species.
 * **Notable Feats:** Led the Dark Jedi through the Hundred-Year Darkness; slew over a dozen Jedi at Corbos; beheaded Hakagram Graush; became the first Dark Lord of the Sith.
 * **Alignment:** Dark side (spirit later redeemed).
@@ -245,7 +245,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A sorcerer-tactician; fights through Sithspawn and Force power, not the blade.
 **Bladework rating (game stats):** 40
-* **Force Abilities (game stats):** Sith Alchemy 102 *(**Midi-chlorian Manipulation** 95% — leviathans, rakghoul-transformation, the Muur Talisman)* · Force Heal 85 *(dark-side healing 82% — healed Krayt where XoXaan's lore failed)* · Mind Probe 85 *(Mind Control 82% — talisman-driven domination)* · Force Sense 82 *(Battle Foresight 82% — tactics that saved the Exiles)* · Telekinesis 55
+* **Force Abilities (game stats):** Sith Alchemy 102 *(**Midi-chlorian Manipulation** 95% — leviathans, rakghoul-transformation, the Muur Talisman)* · Force Heal 85 *(dark-side healing 82% — healed Krayt where XoXaan's lore failed)* · Mind Probe 85 *(Mind Control 82% — talisman-driven domination)* · Force Sense 82 *(Battle Precognition 82% — tactics that saved the Exiles)* · Telekinesis 55
 * **Unique techniques:** **Talisman-binding** *(bound his consciousness into the Muur Talisman to survive death)*
 * **Signature Ability:** **Life manipulation \& talisman binding** — twisting and preserving life, engineering Sithspawn, and binding his consciousness into the Muur Talisman to dominate across millennia.
 * **Notable Feats:** Force-tactics saved the Exiles at Fluwhaka; engineered leviathans; created the Muur Talisman; menaced the galaxy as late as the Legacy era.
@@ -299,7 +299,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A capable Dark Jedi swordsman, but his preferred weapon is **Force lightning** — he opens and ends fights with it, using the blade mainly to finish. An admiral who thinks in fleets.
 **Bladework rating (game stats):** 72
-* **Force Abilities (game stats):** Force Lightning 100 *(Chain Lightning 95%, Force Storm 82% — signature)* · Sith Alchemy 85 *(**oubliette-craft** 82% — stasis prisons of aware living death)* · Telekinesis 80 *(Force Push 82%)* · Force Body 60 *(Force Endurance 60%)* · Force Sense 80
+* **Force Abilities (game stats):** Force Lightning 100 *(Chain Lightning 95%, Force Storm 82% — signature)* · Sith Alchemy 85 *(**oubliette-craft** 82% — stasis prisons of aware living death)* · Telekinesis 80 *(Force Push 82%)* · Force Body 60 *(Remove Fatigue 60%)* · Force Sense 80
 * **Unique techniques:** **Oubliette-craft** *(stasis prisons inflicting eternal aware living death)*
 * **Signature Ability:** **Oubliette-craft \& Force lightning** — a master of Force lightning who engineered oubliettes and the "live for yourself" Sith creed.
 * **Notable Feats:** Sole surviving admiral of the Exile fleet; co-founded the Sith philosophy; created the oubliette built to imprison Karness Muur; survived in stasis into the Lost Tribe era.

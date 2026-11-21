@@ -76,7 +76,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** The **best swordsman of his age** — a complete master of all seven forms refined over \~200 years, blending Old-Republic Jedi technique with Sith ferocity and overwhelming Force power, interlaced with lightning, telekinesis, and XoXaan's sorcery. He matched peak Luke in the Realm Beyond Shadows (Era 17) and overpowered nearly every opponent of his era; only his failing body and, ultimately, Cade Skywalker brought him down.
 **Form ratings (game stats):** Shien/Djem So 102 (primary) · Makashi 100 · Soresu 100 · Ataru 98 · Niman 98 · Juyo 98 · Shii-Cho 96 · *(Jar'Kai 98)* — **master of all seven (best of his age)**
-* **Force Abilities (game stats):** Telekinesis 118 *(Force Crush/Push 92%)* · Force Lightning 120 *(**Chain Lightning** 95%)* · Sith Alchemy 116 *(**Sith sorcery** from XoXaan 92%)* · Mind Domination 110 *(92%)* · Force Sense 110 *(Precognitive Reflexes 90%)*
+* **Force Abilities (game stats):** Telekinesis 118 *(Force Crush/Push 92%)* · Force Lightning 120 *(**Chain Lightning** 95%)* · Sith Alchemy 116 *(**Sith sorcery** from XoXaan 92%)* · Mind Domination 110 *(92%)* · Force Sense 110 *(Precognition 90%)*
 * **Unique techniques:** **Force/Vong/stasis life-extension** *(\~200-year lifespan; survives death repeatedly, rebuilt in a Yuuzhan-Vong-tech body — but the implants are slowly killing him)*
 * **Signature Ability:** **Dark Lord of the One Sith** — apex mastery on both axes (Output 132 / Control 130) plus vast Sith knowledge (116); founder and god-emperor of an order of many Sith; the most powerful Force-user and best duelist *of his age*. **Weakness:** his Vong-implanted body is slowly killing him.
 * **Notable Feats:** Survived Order 66 and the Vong; founded the One Sith over a century in hiding; engineered the Sith–Imperial War and the Massacre at Ossus; seized the galactic throne; near-equal of peak Luke (allied to drive off Abeloth, Era 17); killed and resurrected repeatedly — ended at last by Cade Skywalker.
@@ -132,7 +132,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A fast, acrobatic, aggressive duelist (red blade), bred for lethal close combat and assassination; combines saberwork with Force speed.
 **Form ratings (game stats):** Ataru 88 (primary) · Jar'Kai 82 · Shii-Cho 78
-* **Force Abilities (game stats):** Force Body 84 *(**Force Speed** 88%)* · Telekinesis 80 *(Force Push 74%)* · Force Sense 82 *(Precognitive Reflexes 80%)*
+* **Force Abilities (game stats):** Force Body 84 *(**Force Speed** 88%)* · Telekinesis 80 *(Force Push 74%)* · Force Sense 82 *(Precognition 80%)*
 * **Signature Ability:** **Krayt's Hand** — an elite Sith assassin raised from birth; fast, acrobatic, and deadly, tasked with turning Cade Skywalker.
 * **Notable Feats:** Beheaded a Jedi on Krayt's order; tasked with seducing Cade to the dark side; among the most prominent of Krayt's Hands.
 * **Alignment:** Dark side.
@@ -158,7 +158,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A powerful, aggressive, physically dominant duelist — one of the One Sith's finest blades, leading frontline slaughters and personal hunts. Lost an arm to Cade (Vong-grafted replacement).
 **Form ratings (game stats):** Shien/Djem So 88 (primary) · Juyo 84 · Shii-Cho 80
-* **Force Abilities (game stats):** Force Body 86 *(**Force Strength** 90%)* · Force Rage 84 · Telekinesis 82 *(Force Push 78%)*
+* **Force Abilities (game stats):** Force Body 86 *(**Enhance Attribute** 90%)* · Force Enrage 84 · Telekinesis 82 *(Force Push 78%)*
 * **Signature Ability:** **Sith enforcer** — a brutal, dominant warrior-Sith; among Krayt's deadliest blades and hunters.
 * **Notable Feats:** Led much of the Massacre at Ossus; enforcer and Hand of Krayt; relentless hunter of Cade; lost and Vong-replaced an arm.
 * **Alignment:** Dark side.
@@ -241,7 +241,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A powerful, disciplined Jedi duelist; strong and steady, a frontline Master of the remnant Order.
 **Form ratings (game stats):** Shien/Djem So 88 (primary) · Soresu 84 · Shii-Cho 80
-* **Force Abilities (game stats):** Force Body 84 *(Force Strength 86%)* · Telekinesis 84 *(Force Push 80%)* · Force Sense 84
+* **Force Abilities (game stats):** Force Body 84 *(Enhance Attribute 86%)* · Telekinesis 84 *(Force Push 80%)* · Force Sense 84
 * **Signature Ability:** **Steadfast mentor** — a powerful, principled Jedi Master who never gave up on Cade; survived Ossus and was resurrected by Cade's gift.
 * **Notable Feats:** Survived the Massacre at Ossus; mentored Cade Skywalker; resurrected by Cade after a mortal wound; fought through the war against the One Sith.
 * **Alignment:** Light side.
@@ -268,7 +268,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Name|Species|Role|STR|AGI|END|WIL|CHA|INT|FSense|Med|FKnow|FCtrl|FOut|Top Forms / Combat|Top Force Abilities|
 |-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
 |Darth Maladi|Devaronian|Sith scientist/torturer; head of Sith Intelligence|54|60|60|84|70|90|78|70|86|82|76|Shii-Cho 70|Sith Alchemy 86 *(bio-weapons/poisons 90%)* — couldn't break Cade|
-|Darth Stryfe|Human|Sith Hand; Krayt loyalist warrior|80|78|78|82|66|74|78|68|72|82|84|Djem So 84 · Shii-Cho 78|Force Body 82 · Force Rage 80 — brutal enforcer/Hand|
+|Darth Stryfe|Human|Sith Hand; Krayt loyalist warrior|80|78|78|82|66|74|78|68|72|82|84|Djem So 84 · Shii-Cho 78|Force Body 82 · Force Enrage 80 — brutal enforcer/Hand|
 |Darth Wredd|Human|Sith (later era; "one Sith vs. one Sith")|74|80|74|82|70|78|80|70|74|84|86|Ataru 84 · Djem So 82|Telekinesis 84 · Force Lightning 82 — rogue Sith of the later Legacy stories|
 |Moff Morlish Veed|Human|Grand Moff; Sith-aligned military head|48|52|56|82|78|84|—|—|—|—|—|Command 72|N/A — ambitious non-Force Imperial collaborator|
 

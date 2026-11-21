@@ -66,7 +66,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** As Dark Lord, Revan retains **Niman (Form VI) as his primary form** and his hallmark total adaptability — but his fall sharpened it with dark-side ferocity. He now leans heavily on full **Jar'Kai dual-wielding** and weaves the savage unpredictability of **Juyo** into his attacks (the form behind his jaw-severing strike on Malak), along with **Force lightning channeled through the blade**. His Echani-trained reading of opponents lets him dismantle technique-bound duelists; he wields a crimson blade and fights to dominate and end fights fast. Canonically capable of defeating Darth Malak in single combat.
   **Form ratings (game stats):** **Niman 100** (primary) · Juyo 92 · Ataru 95 · Shien/Djem So 96 · Makashi 90 · Soresu 90 · Shii-Cho 90 · *(Jar'Kai dual-blade / Echani: 94)*
-- **Force Abilities (game stats):** Force Lightning 90 *(Chain Lightning 85%, Force Storm 62%)* · Battle Meditation 95 *(Force Valor 88%)* · Telekinesis 92 *(Force Push 88%, Force Throw 85%)* · Force Sense 94 *(Battle Foresight 90%)* · Force Drain 82 *(life-drain 75%)* · Force Body 85 *(Force Speed 88%)* · Mind Probe 85 *(Mind Control 78%)*
+- **Force Abilities (game stats):** Force Lightning 90 *(Chain Lightning 85%, Force Storm 62%)* · Battle Meditation 95 *(Force Valor 88%)* · Telekinesis 92 *(Force Push 88%, Force Throw 85%)* · Force Sense 94 *(Battle Precognition 90%)* · Force Drain 82 *(life-drain 75%)* · Force Body 85 *(Force Speed 88%)* · Mind Probe 85 *(Mind Control 78%)*
 - **Signature Ability:** **Strategic genius & dark mastery** — the same war-winning strategic mind, now backed by the Star Forge and the full dark-side arsenal (lightning, life-drain) atop his light-side breadth.
 - **Notable Feats:** Founded his own Sith Empire; seized and wielded the Star Forge; waged the Jedi Civil War; one of the few beings to master techniques of both light and dark at apex level.
 - **Alignment:** Dark side.
@@ -91,7 +91,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** The redeemed Revan keeps **Niman (Form VI) as his primary form** and his supreme adaptability — single or dual blades, seamless offense-to-defense transitions, Echani-informed control of tempo and psychology — but now disciplined by Jedi clarity rather than dark fury. He still *knows* Juyo's aggression and retains his Jar'Kai dual-blade mastery, but draws on them with restraint, favoring Niman's balance and the broader Force suite. He wields blue/green blades and defeated the dark-amplified Darth Malak in single combat aboard the Star Forge.
   **Form ratings (game stats):** **Niman 100** (primary) · Ataru 95 · Shien/Djem So 94 · Makashi 90 · Soresu 92 · Shii-Cho 90 · Juyo 85 · *(Jar'Kai dual-blade / Echani: 92)*
-- **Force Abilities (game stats):** Battle Meditation 95 *(Force Valor 88%)* · Force Sense 94 *(Battle Foresight 90%, Precognitive Reflexes 85%)* · Telekinesis 92 *(Force Push 88%, Force Throw 85%)* · Force Body 85 *(Force Speed 88%)* · Force Heal 80 *(self/other 70%)* · Mind Trick 88 *(Force Persuasion 85%)* · Force Barrier 85
+- **Force Abilities (game stats):** Battle Meditation 95 *(Force Valor 88%)* · Force Sense 94 *(Battle Precognition 90%, Precognition 85%)* · Telekinesis 92 *(Force Push 88%, Force Throw 85%)* · Force Body 85 *(Force Speed 88%)* · Force Heal 80 *(self/other 70%)* · Mind Trick 88 *(Force Persuasion 85%)* · Force Barrier 85
 - **Unique techniques:** **Balance of light and dark** *(retains working knowledge of dark techniques — lightning, drain — but channels everything through Jedi discipline)*
 - **Signature Ability:** **Balance of light and dark** — uniquely integrates the knowledge and instincts of both a Jedi and a Sith Lord, making him adaptable beyond either tradition.
 - **Notable Feats:** Rediscovered and destroyed his own Star Forge; redeemed Bastila Shan; killed Darth Malak; won the Battle of Rakata Prime, ending the Jedi Civil War.
@@ -121,7 +121,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Darth Malak fights with **brutal, overpowering aggression** — a towering, physically dominant duelist who channels the dark side to amplify already immense strength and stamina, battering down defenses through raw force and relentless pressure. A pure **Djem So** power-duelist with Juyo ferocity. He wields a crimson blade. He lacks Revan's finesse and adaptability, relying instead on power, ferocity, and (in extremis) draining life-energy — which is ultimately why Revan defeats him.
   **Form ratings (game stats):** Shien/Djem So 92 (primary) · Juyo 82 · Shii-Cho 84 · Ataru 78 · Soresu 76
-- **Force Abilities (game stats):** Force Body 90 *(Force Strength 92%, Force Speed 80%)* · Force Drain 88 *(**life-drain** 90% — signature)* · Force Lightning 82 *(Chain Lightning 75%)* · Telekinesis 84 *(Force Push 88%, Force Wave 72%)* · Force Sense 80 *(Precognitive Reflexes 70%)*
+- **Force Abilities (game stats):** Force Body 90 *(Enhance Attribute 92%, Force Speed 80%)* · Force Drain 88 *(**life-drain** 90% — signature)* · Force Lightning 82 *(Chain Lightning 75%)* · Telekinesis 84 *(Force Push 88%, Force Wave 72%)* · Force Sense 80 *(Precognition 70%)*
 - **Unique techniques:** **Life-drain in battle** *(siphoning the life-force of captive Jedi to continually replenish his power during a duel)*
 - **Signature Ability:** **Life-drain in battle** — siphoning the life-force of captive Jedi through the Force to replenish his own power mid-combat.
 - **Notable Feats:** Seized the Dark Lordship by betraying Revan; waged the Jedi Civil War; bombarded Taris and shattered the Jedi; nearly destroyed the Jedi Order; powered himself by draining captive Jedi at the Star Forge.
@@ -151,7 +151,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Wields a **yellow double-bladed saber** competently — favoring the dual-blade roots of Niman and the speed of Ataru — but her legend is the Force, not the blade. A solid duelist, not a great one.
   **Form ratings (game stats):** Ataru 76 · Niman 74 *(double-blade)* · Shii-Cho 70 · *(Jar'Kai dual-blade: 72)*
-- **Force Abilities (game stats):** **Battle Meditation 100** *(Force Valor 95% — prodigy-level; could decide a galactic engagement by thought alone)* · Force Sense 88 *(Battle Foresight 80%)* · Telekinesis 78 *(Force Push 70%)* · Force Barrier 75
+- **Force Abilities (game stats):** **Battle Meditation 100** *(Force Valor 95% — prodigy-level; could decide a galactic engagement by thought alone)* · Force Sense 88 *(Battle Precognition 80%)* · Telekinesis 78 *(Force Push 70%)* · Force Barrier 75
 - **Signature Ability:** **Battle meditation (prodigy-level)** — among the most powerful battle-meditation users in history; could turn the tide of a galactic fleet engagement by thought alone, even as a young Padawan. Considered *the* key to winning the war.
 - **Notable Feats:** Captured Darth Revan and saved his life, forming a lasting Force bond; resisted then succumbed to and was redeemed from the dark side; turned the Battle of Rakata Prime with her battle meditation; survived the post-war purge; matriarch of the Shan bloodline.
 - **Alignment:** Light side (briefly fell to the dark under Malak's torture — see note).
@@ -203,7 +203,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** An aggressive Guardian who channels Cathar speed and ferocity into a fast, attacking style — favoring the acrobatic aggression of Ataru with raw Juyo edge.
   **Form ratings (game stats):** Ataru 76 · Shii-Cho 70 · Juyo 60
-- **Force Abilities (game stats):** Force Body 76 *(Force Speed 80%, Force Strength 72% — Cathar physicality)* · Telekinesis 70 *(Force Push 62%)* · Force Sense 74 *(Precognitive Reflexes 68%)*
+- **Force Abilities (game stats):** Force Body 76 *(Force Speed 80%, Enhance Attribute 72% — Cathar physicality)* · Telekinesis 70 *(Force Push 62%)* · Force Sense 74 *(Precognition 68%)*
 - **Signature Ability:** **Cathar ferocity** — channeling her species' natural speed, strength, and claws into an aggressive Force-combat style.
 - **Notable Feats:** First Cathar Jedi; fell and was redeemed from the dark side; fought through Revan's quest to the Star Forge.
 - **Alignment:** Light side (briefly fell, redeemed).

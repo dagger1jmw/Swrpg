@@ -63,7 +63,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Wielded the **First Blade**, a precursor proto-saber. Fights as a complete swordsman-sage — economical, patient, overwhelming when committed — fusing blade-work with telekinetic battlefield control.
   **Bladework rating (game stats):** 80
-- **Force Abilities (game stats):** Telekinesis 90 *(Force Push 85%, Force Throw 65%, Force Wave 62%)* · Force Sense 95 *(Precognitive Reflexes 82%, Farsight 62%)* · Battle Meditation 90 *(Force Valor 65%)* · Mind Trick 82 *(Force Persuasion 80%)* · Force Barrier 85
+- **Force Abilities (game stats):** Telekinesis 90 *(Force Push 85%, Force Throw 65%, Force Wave 62%)* · Force Sense 95 *(Precognition 82%, Farsight 62%)* · Battle Meditation 90 *(Force Valor 65%)* · Mind Trick 82 *(Force Persuasion 80%)* · Force Barrier 85
 - **Unique techniques:** **Spirit transcendence** *(retained full conscious power as a Force ghost for millennia)*
 - **Signature Ability:** **Spirit transcendence** — among the earliest beings to retain full consciousness and power after death.
 - **Notable Feats:** Called "immeasurably powerful"; drew an army to his philosophy; claimed the First Blade; co-founded the Jedi Order; endured as a guardian ghost for millennia.
@@ -140,7 +140,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A powerful, grounded warrior-smith. Fights with his own forged Forcesaber in a direct, heavy, durable style — relying on strength and superior weapons of his own making. A general who anchors a line.
   **Bladework rating (game stats):** 78
-- **Force Abilities (game stats):** Sith Alchemy 80 *(Force-smithing — Midi-chlorian Manipulation 55%)* · Telekinesis 55 *(Force Push 52%)* · Force Body 58 *(Force Strength 60%, Force Endurance 58%)* · Force Barrier 55
+- **Force Abilities (game stats):** Sith Alchemy 80 *(Force-smithing — Midi-chlorian Manipulation 55%)* · Telekinesis 55 *(Force Push 52%)* · Force Body 58 *(Enhance Attribute 60%, Remove Fatigue 58%)* · Force Barrier 55
 - **Unique techniques:** **Force-smithing** *(forging Force-imbued Madog steel)*
 - **Signature Ability:** **Force-smithing** — forging the toughest metal of the era; mass-produced the Order's Forcesabers.
 - **Notable Feats:** Created Madog steel; mass-produced Forcesabers; served as a battlefield general.
@@ -217,7 +217,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A **relentless, overwhelming-offense** fighter built on Rakatan war-training — explosive aggression, no hesitation, an instinct to break an opponent's weapon and guard before killing. Wields the **Forcesaber**, channeling rage and pain into the blade, integrating Force lightning mid-swing and telekinetic shoves to control distance. Treats the duel as a hunt.
   **Bladework rating (game stats):** 104
-- **Force Abilities (game stats):** Force Lightning 88 *(Force Shock 82%, Chain Lightning 62%)* · Force Barrier 90 *(Force Absorb 82% → Tutaminis 60% — drew power from a Force storm)* · Telekinesis 95 *(Force Push 82%, Force Throw 65%)* · Force Sense 90 *(Precognitive Reflexes 85%)* · Force Body 80 *(Force Speed 82%, Force Strength 80%)*
+- **Force Abilities (game stats):** Force Lightning 88 *(Force Shock 82%, Chain Lightning 62%)* · Force Barrier 90 *(Force Absorb 82% → Tutaminis 60% — drew power from a Force storm)* · Telekinesis 95 *(Force Push 82%, Force Throw 65%)* · Force Sense 90 *(Precognition 85%)* · Force Body 80 *(Force Speed 82%, Enhance Attribute 80%)*
 - **Unique techniques:** **Lightning absorption** *(the only being able to both hurl and absorb/redirect Force lightning, drawing power from a Force storm itself)*
 - **Signature Ability:** **Forcesaber mastery & lightning absorption** — the only being able to ignite his Forcesaber by will alone; can hurl and absorb/redirect Force lightning.
 - **Notable Feats:** Reckoned the best Force Hound in the entire Infinite Empire; broke the Madog-steel blades of three Je'daii in seconds; killed Predor Tul'kar and ultimately Predor Skal'nas.
@@ -243,7 +243,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A capable Ranger who fights mounted on her rancor-dragon Butch as often as on foot, mixing blade work with beast-coordinated attacks.
   **Bladework rating (game stats):** 66
-- **Force Abilities (game stats):** Sith Alchemy 55 *(beast-bonding 82%)* · Telekinesis 55 *(Force Push 60%)* · Force Sense 60 · Force Body 35 *(Force Strength 38%)*
+- **Force Abilities (game stats):** Sith Alchemy 55 *(beast-bonding 82%)* · Telekinesis 55 *(Force Push 60%)* · Force Sense 60 · Force Body 35 *(Enhance Attribute 38%)*
 - **Unique techniques:** **Beast-bonding alchemy** *(created and bonded her rancor-dragon mount, Butch)*
 - **Signature Ability:** **Beast-bonding alchemy** — created and bonded her rancor-dragon mount through flesh alchemy.
 - **Notable Feats:** Ignited Xesh's Forcesaber through sheer rage; repeatedly recovered Xesh from the dark side and Rakatan control.
@@ -320,7 +320,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A scrappy, practical fighter, more at home in a cockpit than a duel. Competent with a Forcesaber but relies on instinct and aggression.
   **Bladework rating (game stats):** 64
-- **Force Abilities (game stats):** Force Sense 68 *(**Precognitive Reflexes** 82% — Force-assisted piloting)* · Force Body 55 *(Force Speed 62%)* · Telekinesis 35 · Force Barrier 35
+- **Force Abilities (game stats):** Force Sense 68 *(**Precognition** 82% — Force-assisted piloting)* · Force Body 55 *(Force Speed 62%)* · Telekinesis 35 · Force Barrier 35
 - **Signature Ability:** **Force-assisted piloting** — an ace Hunter-class starfighter pilot and squadron leader.
 - **Notable Feats:** First to ignite Xesh's Forcesaber by channeling controlled anger; led Red and Blue squadrons in the defense of the Tython system.
 - **Alignment:** Balance.
@@ -345,7 +345,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A nimble, light-footed fighter and pilot; favors evasion and precision over power.
   **Bladework rating (game stats):** 60
-- **Force Abilities (game stats):** Force Sense 66 *(Precognitive Reflexes 62%)* · Meditation discipline 68 *(strongly light-attuned)* · Telekinesis 35 · Force Body 35 *(Force Speed 38%)*
+- **Force Abilities (game stats):** Force Sense 66 *(Precognition 62%)* · Meditation discipline 68 *(strongly light-attuned)* · Telekinesis 35 · Force Body 35 *(Force Speed 38%)*
 - **Unique techniques:** **Luminous affinity** *(drawn so strongly to the light she required exile to Ashla to rebalance)*
 - **Signature Ability:** **Luminous affinity** — a mirror of the usual dark-side exile to Bogan.
 - **Notable Feats:** Capable Ranger and starfighter pilot in the defense of the system.

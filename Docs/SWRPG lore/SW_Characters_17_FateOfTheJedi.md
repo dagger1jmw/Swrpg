@@ -152,7 +152,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A skilled, fast, well-rounded duelist and commando, blending Jedi training with investigative resourcefulness; fought Sith and Abeloth's forces throughout the era.
 **Form ratings (game stats):** Shien/Djem So 84 (primary) · Ataru 82 · Shii-Cho 78
-* **Force Abilities (game stats):** Force Sense 86 *(Precognitive Reflexes 82%)* · Telekinesis 82 *(Force Push 76%)* · Force Body 82 *(Force Speed 82%)*
+* **Force Abilities (game stats):** Force Sense 86 *(Precognition 82%)* · Telekinesis 82 *(Force Push 76%)* · Force Body 82 *(Force Speed 82%)*
 * **Signature Ability:** **Skywalker Knight** — strong inherited potential realized into a capable Jedi Knight; resourceful and brave, his father's right hand against Abeloth.
 * **Notable Feats:** Partnered Luke throughout the Abeloth hunt; navigated his fraught romance with Vestara Khai; a rising pillar of the Order.
 * **Alignment:** Light side.
