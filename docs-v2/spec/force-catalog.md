@@ -57,7 +57,13 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
     A read is possible only when the character's Shatterpoint level is at least the band's
     start. Success reveals the shatterpoint (narrated from the engine's result). A negative
     margin is a misread: the engine records wrong guidance and the AI narrates it as if
-    true (Q21). Each read costs 0.3 Force load (health §2). Focus and tunnel-vision states
+    true (Q21). Cost (D-63 amended 2026-11-20, from the lore file's Shatterpoint entry; M6):
+    each read is an Advanced instant use, base 40 pool points divided by efficiency,
+    multiplied by the read depth (physical weaknesses or combat x1, a person x1.5, a
+    relationship x2.25, a situation x3.4, an event x5), plus a fixed focus strain per read
+    that does not depend on skill (+0.05 for combat, rising to +0.25 for an event; the lore
+    gives no values for the bands between). This replaces the flat 0.3 Force load per read.
+    Focus and tunnel-vision states
     are dropped (Q21, D-05). Reads enter only through the intent (intent.forceAbility =
     shatterpoint, D-29).
 
@@ -88,6 +94,9 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
       | ForceSubjugate                                    | Mind Control            |
       | DominateMind / Dominate Mind / MindDomination     | Mind Control            |
       | Battle-meld / BattleMeld                          | Force Meld              |
+      | Postcognition                                     | Psychometry             |
+      | ForceMemory / Force Memory                        | Psychometry             |
+      | ForceEcho / Force Echo                            | Psychometry             |
     Aliases are exact (normalizeAlias, D-13); only the names in this table and in the lore
     entries are added, never a near spelling.
   Dropped legacy names (D-276), rejected as unknown names with no alias: ResistAging (now a

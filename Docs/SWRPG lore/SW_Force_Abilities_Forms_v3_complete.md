@@ -506,17 +506,19 @@ Force Lightning   (94)  [ForceOutput anchor]
 **Summary:** Reading the emotional state of others through the Force — sensing fear, joy, pain, deception, or intent without the target speaking. Stronger than basic Sense.
 **Alignment:** Neutral
 **Prerequisites:** ForceSense 10+
-**Notes:** Can be done passively (ambient emotional reading) or actively (deliberate probing). Active use is noticeable to Force-sensitive targets.
+**Notes:** Can be done passively (ambient emotional reading) or actively (deliberate probing). Active use is noticeable to Force-sensitive targets. Depth grows with skill: surface emotions first, then motivations, hidden feelings and even deeply guarded secrets (contested by Thought Shield). Anakin Skywalker discovered it at 17 on Romin. (Corrected 2026-11-20, sensory family pass.)
+**Source:** Wookieepedia (Legends), "Force empathy": https://starwars.fandom.com/wiki/Force_empathy/Legends
 
 ---
 
 #### Force Sight ⚪
 **Anchor Stat:** ForceSense (perceiving Force flows directly)
-**Difficulty Tier: D=1.5 (Moderate)**
+**Difficulty Tier: D=1.0 (Basic)** *(lowered from Moderate 2026-11-20)*
 **Summary:** Perceiving the living Force directly — seeing it flow through beings, objects, and environments. Can be used to see in darkness or beyond physical sight.
 **Alignment:** Neutral
 **Prerequisites:** ForceSense 21+
-**Notes:** Allows a trained user to perceive the world purely through Force connections, bypassing normal vision. Used extensively by blind Force-sensitives.
+**Notes:** Allows a trained user to perceive the world purely through Force connections, bypassing normal vision. A basic variation of Force sense that sees in darkness and through walls. Trained users can counter Force persuasion and Force blinding. The Miraluka rely on it constantly to make up for their blindness: they see auras rather than colors, distinguish living beings and their alignment, and see through most objects. (Corrected 2026-11-20, sensory family pass.)
+**Source:** Wookieepedia (Legends), "Force sight": https://starwars.fandom.com/wiki/Force_sight
 
 ---
 
@@ -526,7 +528,7 @@ Force Lightning   (94)  [ForceOutput anchor]
 **Summary:** Sensing what is about to happen a fraction of a second before it does — allowing the user to react to attacks before they're launched. The combat application of foresight.
 **Alignment:** Neutral
 **Prerequisites:** ForceSense 21+, ForceControl 10+
-**Notes:** Also called danger sense. This is largely what makes Jedi seem impossibly fast to normal opponents. Passive when trained enough. Formerly listed as Precognitive Reflexes. (Renamed or merged 2026-11-20 to match Wookieepedia.)
+**Notes:** Also called danger sense. Covers guiding premonitions and warnings as well as combat foresight, and the Sith use it too. This is largely what makes Jedi seem impossibly fast to normal opponents. Passive when trained enough. Formerly listed as Precognitive Reflexes. (Renamed or merged 2026-11-20 to match Wookieepedia.)
 **Source:** Wookieepedia (Legends), "Precognition": https://starwars.fandom.com/wiki/Precognition/Legends
 
 ---
@@ -537,7 +539,8 @@ Force Lightning   (94)  [ForceOutput anchor]
 **Summary:** Visions of past, present, or future events through the Force — involuntary flashes or deliberately induced meditation visions. Notoriously unreliable and difficult to interpret.
 **Alignment:** Neutral
 **Prerequisites:** ForceSense 41+
-**Notes:** Cannot be fully controlled. What is seen may be symbolic, literal, or conditional. Misinterpreting a vision has historically caused great harm (e.g. Anakin Skywalker).
+**Notes:** Cannot be fully controlled. What is seen may be symbolic, literal, or conditional. Misinterpreting a vision has historically caused great harm (e.g. Anakin Skywalker). Considered the cornerstone of the Unifying Force. Visions are extremely rare and uncontrollable: many meditate for one and few succeed. They sometimes occur in a Padawan's Trial of the Spirit. The Skywalker line (Anakin, Luke, Jacen Solo, Ben Skywalker) is especially prone; proposed innate talent: Vision-prone. In the engine, involuntary visions are story events at no cost; deliberate attempts cost pool and usually fail (M6 catalog). (Corrected 2026-11-20, sensory family pass.)
+**Source:** Wookieepedia (Legends), "Force vision": https://starwars.fandom.com/wiki/Force_vision/Legends
 
 ---
 
@@ -564,6 +567,8 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 **MECHANICAL TIER: Unique — separate XP track with dual-path mechanics.**
 Shatterpoint uses a completely separate XP track from all other abilities. It is **never** stored in `masterXP.forceAbilities`. It has its own track at `masterXP.shatterpoint.main`. The standard XP engine must never process it. The CHANGES block tag `SHATTERPOINT_XP=` routes to `spApplyXP()` which applies the ×0.1 multiplier automatically for `ShatterSense` holders — the AI never pre-applies this reduction.
+
+**Cost (M6, agreed 2026-11-20):** each read is an Advanced instant use: base 40 pool points divided by efficiency, multiplied by the depth of what is read (physical weaknesses or combat ×1, a person ×1.5, a relationship ×2.25, a situation ×3.4, an event ×5). Each read also adds a fixed focus strain that does not depend on skill: +0.05 for combat, rising to +0.25 for an event. This replaces the old flat 0.3 Force load per read. The D-63 rules (depth gates, misreads, once per fight in combat) are otherwise unchanged.
 
 ##### Path A — Shatterpoint (Standard Learning, no innate talent)
 Learnable through decades of dedicated training. Per the *Shatterpoint* novel, Mace Windu describes Jedi Masters who spent entire lifetimes working toward a level of perception he possessed naturally at age 7.
@@ -628,13 +633,14 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Postcognition ⚪
+#### Psychometry ⚪
 **Anchor Stats:** ForceSense + ForceKnowledge (interpreting what's perceived)
 **Difficulty Tier: D=2.5 (Complex)**
-**Summary:** Reading the Force residue of past events in an object or location — sensing what happened there, who was present, and strong emotions that were felt. Sometimes called "psychometry."
+**Summary:** Reading the Force residue of past events in an object or location — sensing what happened there, who was present, and strong emotions that were felt. Also called postcognition, tai vordrax or telemetry. The user experiences the events as if present: sights, sounds, and the emotional and physical feelings of whoever used the object. Absorbs the former Force Memory / Force Echo entry, including its broader reading of a place's history.
 **Alignment:** Neutral
 **Prerequisites:** ForceSense 30+, ForceKnowledge 15+
-**Notes:** Triggered by touching objects or entering locations with significant Force imprints. Strong trauma or dark side events leave vivid impressions.
+**Notes:** Triggered by touching objects or entering locations with significant Force imprints. Strong trauma or dark side events leave vivid impressions. Easiest on personal objects used often; harder on objects used once or by many people. Reading an object used for dark deeds such as murder can taint the user (a lesser Dark gain). Sometimes the user's eyes glow. Old keys `Postcognition`, `ForceMemory` and `ForceEcho` resolve here. (Corrected 2026-11-20, sensory family pass.)
+**Source:** Wookieepedia (Legends), "Psychometry": https://starwars.fandom.com/wiki/Psychometry/Legends
 
 ---
 
@@ -645,7 +651,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Neutral (Aing-Tii see the Force as a spectrum, not light/dark)
 **Tradition:** Aing-Tii (tradition-locked)
 **Prerequisites:** ForceSense 41+, ForceControl 30+, Aing-Tii approval required
-**Notes:** ⚠️ **Faction-locked — requires contact with and approval from the Aing-Tii of the Kathol Rift.** The Aing-Tii rarely share their techniques with outsiders. Jacen Solo and Luke Skywalker are among the few non-Aing-Tii to learn this. Era considerations: accessible from approximately 40 BBY onward in Legends. Formerly listed as Aing-Tii Fighting-Sight. (Renamed or merged 2026-11-20 to match Wookieepedia.)
+**Notes:** ⚠️ **Faction-locked — requires contact with and approval from the Aing-Tii of the Kathol Rift.** The Aing-Tii rarely share their techniques with outsiders. Jacen Solo and Luke Skywalker are among the few non-Aing-Tii to learn this. Era: available once contact with the Aing-Tii exists, from the New Republic era onward (the earlier "40 BBY" was a typo). First appears in Legacy of the Force: Invincible; Jysella Horn shows it in Fate of the Jedi. Formerly listed as Aing-Tii Fighting-Sight. (Renamed or merged 2026-11-20 to match Wookieepedia.)
 **Source:** Wookieepedia (Legends), "Fighting-sight": https://starwars.fandom.com/wiki/Fighting-sight
 
 
@@ -1921,16 +1927,6 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 ### ⚪ KNOWLEDGE & ARCANE FAMILY
 *Abilities that access deep Force knowledge, history, or metaphysical secrets.*
 **Anchor Stats:** All abilities in this family → **ForceKnowledge** primary + **Meditation** secondary.
-
----
-
-#### Force Memory / Force Echo ⚪
-**Anchor Stats:** ForceKnowledge + Meditation
-**Difficulty Tier: D=2.5 (Complex)**
-**Summary:** Perceiving the Force impressions left on objects, locations, or beings by significant past events — reading the "memory" the Force holds of what happened there.
-**Alignment:** Neutral
-**Prerequisites:** ForceKnowledge 41+, Meditation 30+
-**Notes:** Distinct from Postcognition (which is sensory) — Force Echo is more interpretive and narrative. A Jedi might sit in a room and perceive the entire history of battles fought there.
 
 ---
 
