@@ -1,4 +1,6 @@
-<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Force Ability Catalog Spec" (https://claude.ai/artifact/Hk5HFmY88zFae3j5NpxMaE, rev 48). The repo copy is the build reference; design changes go in the doc first, then re-export. -->
+<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Force Ability Catalog Spec" (https://claude.ai/artifact/Hk5HFmY88zFae3j5NpxMaE, rev 48). Superseded doc: since 2026-11-21 this repo copy is canonical and the doc is no longer updated. -->
+
+**Canonical (Jared, 2026-11-21):** this repo file is the source of truth for M6. The claude.ai design doc it was exported from is superseded and no longer maintained; design changes are made here and logged in docs-v2/decisions.md.
 
 # SWRPG M6 — Force Ability Catalog Spec (draft for review)
 

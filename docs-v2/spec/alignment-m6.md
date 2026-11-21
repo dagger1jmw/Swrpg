@@ -1,4 +1,6 @@
-<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Alignment System Spec" (https://claude.ai/artifact/VPpMJAFgQVJfGXjpFM7RUm, rev 30). The repo copy is the build reference; design changes go in the doc first, then re-export. Repo-only amendments since the export (Jared's rulings, 2026-11-21): §3 the intent discount (D-330); §6 redemption (D-331) and its event path for a mind wipe or severance (D-331 amended); §7 skin after redemption (D-325); §9 pressure multipliers and Korriban's pull by era (D-329). Copy them into the doc before the next re-export. -->
+<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Alignment System Spec" (https://claude.ai/artifact/VPpMJAFgQVJfGXjpFM7RUm, rev 30). Superseded doc: since 2026-11-21 this repo copy is canonical and the doc is no longer updated. Changes made in the repo after the export (Jared's rulings, 2026-11-21): §3 the intent discount (D-330); §6 redemption (D-331) and its event path for a mind wipe or severance (D-331 amended); §7 skin after redemption (D-325); §9 pressure multipliers and Korriban's pull by era (D-329). -->
+
+**Canonical (Jared, 2026-11-21):** this repo file is the source of truth for M6. The claude.ai design doc it was exported from is superseded and no longer maintained; design changes are made here and logged in docs-v2/decisions.md.
 
 # SWRPG M6 — Alignment System Spec (draft for review)
 

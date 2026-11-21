@@ -5,6 +5,7 @@
 import { NONSABER_MORTAL } from '../../src/data/health.config';
 import { READINESS } from './lifetime';
 import { PRECOG_LABEL } from './precogTrial';
+import { FORCE_XP_LABEL } from './forceXpTrial';
 
 export const ADOPTED = { minMargin: 30, readiness: true } as const;
 
@@ -16,5 +17,5 @@ export function applyCandidate(spec: string | undefined): string {
   const unknown = parts.filter((x) => x !== 'noready' && !/^b\d+$/.test(x));
   if (unknown.length) throw new Error(`unknown candidate ${unknown.join(', ')}`);
   // The M6 precognition trial (PRECOG_M6, harness only) is named in the label when it is on.
-  return (parts.length ? parts.join('+') : 'now') + (PRECOG_LABEL === 'off' ? '' : ` [${PRECOG_LABEL}]`);
+  return (parts.length ? parts.join('+') : 'now') + (PRECOG_LABEL === 'off' ? '' : ` [${PRECOG_LABEL}]`) + (FORCE_XP_LABEL === 'off' ? '' : ` [${FORCE_XP_LABEL}]`);
 }

@@ -1,4 +1,6 @@
-<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 integration checklist" (https://claude.ai/artifact/5nJqew4V3WKMwPSKSsumKe, rev 46). The repo copy is the build reference; design changes go in the doc first, then re-export. Repo-only additions since the export (Jared's rulings, 2026-11-21): the item 16 correction, items 20-21, items 22-23 and the Sith-academy re-measure line (lore batch 1, D-319), from lore batch 2 the new item 15, items 24-25 and the fall-path re-measure line (D-323..D-326), and from the rulings on 84ec410 the item 15 curve, the item 24 approval and Korriban table, the item 25 intent discount and three re-measure sims (D-323 amended, D-329..D-331), from the rulings on cb3f0d1 the item 25 gate note and item 26 (D-330 amended, D-332), and the item 26 sensing and reconnection tweak (D-332 amended); copy them into the doc before the next re-export. -->
+<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 integration checklist" (https://claude.ai/artifact/5nJqew4V3WKMwPSKSsumKe, rev 46). Superseded doc: since 2026-11-21 this repo copy is canonical and the doc is no longer updated. Changes made in the repo after the export (Jared's rulings, 2026-11-21): the item 16 correction, items 20-21, items 22-23 and the Sith-academy re-measure line (lore batch 1, D-319), from lore batch 2 the new item 15, items 24-25 and the fall-path re-measure line (D-323..D-326), and from the rulings on 84ec410 the item 15 curve, the item 24 approval and Korriban table, the item 25 intent discount and three re-measure sims (D-323 amended, D-329..D-331), from the rulings on cb3f0d1 the item 25 gate note and item 26 (D-330 amended, D-332), and the item 26 sensing and reconnection tweak (D-332 amended). -->
+
+**Canonical (Jared, 2026-11-21):** this repo file is the source of truth for M6. The claude.ai design doc it was exported from is superseded and no longer maintained; design changes are made here and logged in docs-v2/decisions.md.
 
 # SWRPG M6 integration checklist
 
@@ -12,7 +14,7 @@ These are the points where the M6 specs (reserve, alignment, catalog) touch syst
 - **Per item:** the risk, what M5 has now, and the open decision. Tick an item once its decision is made and logged.
 - **After integration:** run the re-measure list at the end.
 
-**Build reference (2026-11-21):** Claude Code builds from the repo copies of the three specs: `docs-v2/spec/force-reserve.md` (reserve), `docs-v2/spec/alignment-m6.md` (alignment) and `docs-v2/spec/force-catalog-m6.md` (catalog). Design changes go in the design docs first, then are re-exported to the repo.
+**Build reference (2026-11-21):** Claude Code builds from the repo copies of the three specs: `docs-v2/spec/force-reserve.md` (reserve), `docs-v2/spec/alignment-m6.md` (alignment) and `docs-v2/spec/force-catalog-m6.md` (catalog). Since 2026-11-21 these repo files (and this checklist) are canonical: design changes are made here, not in the claude.ai design docs, which are superseded.
 
 ## Blockers
 

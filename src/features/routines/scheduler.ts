@@ -22,6 +22,8 @@ import { selectInjuredSkills, selectMeters } from '../health/selectors';
 import { selectNpc } from '../npcs/selectors';
 import { selectCapacities, selectDrillCeiling, selectLevelExact, selectOvertrainStreak, type TrainingSource } from '../progression/selectors';
 import { selectRank } from '../ranks/selectors';
+import { FORCE_XP_TRIAL } from '../../engine/forceXpTrial';
+import { forceHours, recordPlan, strainTrim } from '../progression/selectors';
 import type { Routine } from './routines';
 
 export interface PlannedBlock {
@@ -372,6 +374,19 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
       projected = projectDay([...ordered, ...locked], start, caps).endF;
     }
   }
+  // The Force XP trial's strain trim (engine/forceXpTrial.ts; harness only, off in the game): after the meters trim,
+  // Force hours come off until the projected strain is within the effort's limit (force-xp-rework.md §4).
+  let strain = { trimmed: 0, peak: 0, end: 0 };
+  if (FORCE_XP_TRIAL.enabled) {
+    strain = strainTrim(s, blocks, (bs) => orderBlocks(bs), routine.effort, STEP_HOURS);
+    if (strain.trimmed > 0) {
+      ordered = orderBlocks(blocks.filter((b) => b.hours > 0));
+      projected = projectDay([...ordered, ...locked], start, caps).endF;
+      notes.push(`Force XP trial: Force hours trimmed by ${strain.trimmed} h to keep projected strain under ${FORCE_XP_TRIAL.strainLimit[routine.effort]}`);
+    }
+  }
+  if (FORCE_XP_TRIAL.enabled || FORCE_XP_TRIAL.collect)
+    recordPlan(s, { endF: projected, meterTrim: trimmed.fill + trimmed.fixed, strainTrim: strain.trimmed, strainPeak: strain.peak, strainEnd: strain.end, forcePlanned: forceHours(blocks, 'planned') + forceHours(locked), forceKept: forceHours(blocks) + forceHours(locked) });
   if (trimmed.fill > 0) notes.push(`fill trimmed by ${trimmed.fill} h to stay under the ${routine.effort} tiredness limit ${limit}`);
   if (trimmed.fixed > 0) notes.push(`Order requirements excused for ${trimmed.fixed} h: the day started too tired (over the ${routine.effort} limit ${limit}; D-165)`);
   if (projected > limit + 1e-9) notes.push(`fixed and locked blocks alone end the day at f ${projected.toFixed(2)} (over the ${routine.effort} limit ${limit})`);

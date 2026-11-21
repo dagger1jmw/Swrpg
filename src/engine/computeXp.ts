@@ -61,6 +61,8 @@ export interface TrainingInput {
    */
   clamp(skill: string, wanted: number, sessionHours: number): { credited: number; discarded: number };
   rng: RngState;
+  /** The Force XP trial's trickle on a free exercise (engine/forceXpTrial.ts; harness only, absent in the game). */
+  challengeMult?: number;
 }
 
 export interface TrainingResult {
@@ -97,7 +99,7 @@ export function computeTrainingXp(input: TrainingInput): TrainingResult {
     { activityId: input.activityId, load: input.load, physical: input.physical, meditation: input.meditation, hours: input.hours, intensity: input.intensity },
   );
   const [outcome, rng] = rollOutcome(input.rng);
-  const challenge = challengeFactor(input.drillRating - input.challengeLevel);
+  const challenge = challengeFactor(input.drillRating - input.challengeLevel) * (input.challengeMult ?? 1);
   const base = block.effectiveHours * INTENSITY[input.intensity].xp * challenge * outcome.mult;
   const shares = splitShares(input.split);
 

@@ -33,6 +33,9 @@ import { forceCapacity } from '../../src/engine/forceMeter';
 import { buildPlayerFighter } from '../../src/features/combat/build';
 import { newSession, runSession, sessionOutcome } from '../../src/engine/sparSession';
 import { setPlayerCount } from './precogTrial';
+import { setForceXpCount } from './forceXpTrial';
+import { resetForceXpTrial, summarizeForceXpTrial, type ForceXpTrialSummary } from '../../src/features/progression/forceXpTrialHook';
+import { FORCE_XP_TRIAL } from '../../src/engine/forceXpTrial';
 
 export const DAYS = 368;
 const WAKE = 6 * 3600;
@@ -113,6 +116,8 @@ export interface LifeResult {
   maxDay: { age: number; endF: number; fought: boolean; notes: string[] } | null;
   /** The profile's training start age (the D-235 pace floor counts from it). */
   startAge: number;
+  /** The Force XP trial's report (harness only; present while FORCE_XP is collect or on). */
+  forceXpTrial?: ForceXpTrialSummary;
 }
 
 const START_DAY = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
@@ -409,6 +414,8 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
 export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?: Record<string, number[]>; track?: string[] } = {}): LifeResult {
   const statsBefore = { ...fightStats };
   setPlayerCount(p.seed);
+  setForceXpCount(p.seed);
+  resetForceXpTrial();
   let s = profileState(p);
   const total = Math.round(years * DAYS);
   const isFormMain = p.main === '$highestForm';
@@ -522,5 +529,5 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));
   // This life's mortal wounds and Dying states (every Dying profile is stabilized, so the stabilizations count them).
   const fights = { mortal: fightStats.mortal - statsBefore.mortal, dying: fightStats.stabilized - statsBefore.stabilized, withdrew: fightStats.withdrew - statsBefore.withdrew, sithWithdrew: fightStats.sithWithdrew - statsBefore.sithWithdrew, skipped: fightStats.skipped - statsBefore.skipped, precogFights: fightStats.precogFights - statsBefore.precogFights, precogDark: fightStats.precogDark - statsBefore.precogDark, precogDarkOpp: fightStats.precogDarkOpp - statsBefore.precogDarkOpp, precogOpp: fightStats.precogOpp - statsBefore.precogOpp };
-  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, maxDayEndFNoSeriousFight, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge, fightStats: fights };
+  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, maxDayEndFNoSeriousFight, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge, fightStats: fights, ...(FORCE_XP_TRIAL.enabled || FORCE_XP_TRIAL.collect ? { forceXpTrial: summarizeForceXpTrial() } : {}) };
 }

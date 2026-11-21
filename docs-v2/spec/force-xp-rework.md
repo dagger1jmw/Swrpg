@@ -1,6 +1,6 @@
 # Force XP rework: difficulty, not hours (proposal)
 
-**Status:** approved in direction (Jared, 2026-11-21); **not adopted, not built.** It revises the step 1 report §3.3 (`docs-v2/testing/m6-step1-report.md`). It implements checklist item 1 (`m6-integration-checklist.md`). It builds on the M4 challenge factor (`src/engine/challenge.ts`) and the reserve spec §3–4 and §7 (`force-reserve.md`).
+**Status:** approved in direction (Jared, 2026-11-21); **not adopted.** Built as a prototype behind a flag that is off in the game (`src/engine/forceXpTrial.ts`); measured in `docs-v2/testing/force-xp-trial.md`. It revises the step 1 report §3.3 (`docs-v2/testing/m6-step1-report.md`). It implements checklist item 1 (`m6-integration-checklist.md`). It builds on the M4 challenge factor (`src/engine/challenge.ts`) and the reserve spec §3–4 and §7 (`force-reserve.md`).
 
 ## Goal
 
@@ -59,6 +59,13 @@ Each exercise gives one rating per skill it trains. XP for each skill uses that 
 | Force Sense | Its own sensing tier + range, obscured or faint, number of signatures, distraction | Blindfold sparring, tracking a hidden partner, reading a shielded mind |
 | An ability (Telekinesis, Push and so on) | The full rating of exercises that use it | As above; its parent stat gets its usual share (D-191) |
 
+**Draw for Sense exercises (Jared, 2026-11-21).** A sensing exercise draws the catalog's sustained cost for the sensing ability used, per minute held. Force Sight costs 2 (Basic), and Precognition costs 5 (Complex) in blindfold sparring and similar exercises. The draw is scaled like other exercises:
+- **Scale:** the distance class (reserve §3 factors; for sensing, scale measures distance).
+- **Effort:** reserve values.
+- **Signatures:** × (1 + 0.1 per extra signature tracked).
+
+Obscured or faint targets, range within the class and distraction raise only the rating.
+
 ## 3. XP per session
 
 The M4 formula is unchanged:
@@ -104,7 +111,7 @@ A session that ends below the comfort line without a collapse adds the "training
 
 ## 6. The Orgus Din check (low Potential, heavy drilling)
 
-**Lore.** Orgus Din reached his skill "through endless practice" to make up for a weak Force aptitude (*Threat of Peace* endnotes, via `Docs/SWRPG lore/SW_Jedi_Daily_Life_Training_OldRepublic.md`). His 3,643 BBY sheet has Force Control 84 (`SW_Characters_09_GreatGalacticWar_ColdWar.md`). The proposed count is 7,000, the Jedi minimum (reserve §11). That is an estimate for Jared to approve.
+**Lore.** Orgus Din reached his skill "through endless practice" to make up for a weak Force aptitude (*Threat of Peace* endnotes, via `Docs/SWRPG lore/SW_Jedi_Daily_Life_Training_OldRepublic.md`). His 3,643 BBY sheet has Force Control 84 (`SW_Characters_09_GreatGalacticWar_ColdWar.md`). His count is 7,000, the reserve spec's Jedi minimum (§11). That is a **design default, not lore** (D-322, lore batch 2): no Legends source gives his midi-chlorian count.
 
 **His numbers:**
 - Ceiling 500 × 0.7^1.5 = 293. At Force Sense 82, pool max is about 270.

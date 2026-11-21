@@ -1,4 +1,6 @@
-<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Force Reserve System Spec" (https://claude.ai/artifact/LKSHzUgtMoibFVfU3oroHj, rev 56). The repo copy is the build reference; design changes go in the doc first, then re-export. Repo-only amendments since the export: §4 pain focus strain and the precognition paragraph (D-282, 2026-11-21); §7 the cybernetics rule (D-323 amended, 2026-11-21) and the §11 Vader check that follows from it; copy into the doc before the next re-export. -->
+<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Force Reserve System Spec" (https://claude.ai/artifact/LKSHzUgtMoibFVfU3oroHj, rev 56). Superseded doc: since 2026-11-21 this repo copy is canonical and the doc is no longer updated. Changes made in the repo after the export: §4 pain focus strain and the precognition paragraph (D-282, 2026-11-21); §7 the cybernetics rule (D-323 amended, 2026-11-21) and the §11 Vader check that follows from it. -->
+
+**Canonical (Jared, 2026-11-21):** this repo file is the source of truth for M6. The claude.ai design doc it was exported from is superseded and no longer maintained; design changes are made here and logged in docs-v2/decisions.md.
 
 # SWRPG M6 — Force Reserve System Spec (draft for review)
 

@@ -18,6 +18,8 @@ import {
 import { TRAINING_RECORD_BY_ID } from '../../data/trainingRecords';
 import { ageFactor } from '../../engine/ageFactor';
 import { pickDrillRating, type Effort } from '../../engine/challenge';
+import { FORCE_XP_TRIAL } from '../../engine/forceXpTrial';
+import { forceSessionRating, recordChallenge, trialMeditation } from './forceXpTrialHook';
 import { transferXp } from '../../engine/forms';
 import { computeTrainingXp, type SessionSplit, type TrainingResult } from '../../engine/computeXp';
 import { levelExact, tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
@@ -362,6 +364,18 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     notes.push(`self-study: no teacher, drilled at a lower rating (${DRILL_RATING_NAMES[drillRating] ?? drillRating})`);
   }
 
+  // The Force XP trial (engine/forceXpTrial.ts; harness only, off in the game): a Force-discipline session trains on an
+  // exercise whose rating replaces the ladder's, and draws on the trial reserve; meditation refills it.
+  const drillEffort = req.drillEffort ?? effortFor(intensity);
+  let challengeMult = 1;
+  if (FORCE_XP_TRIAL.enabled && a.group === 'force') {
+    const t = forceSessionRating(s, primary, hours, drillEffort === 'push' ? 'push' : 'standard', challengeLevel);
+    drillRating = t.rating;
+    challengeMult = t.mult;
+    notes.push(t.note);
+  }
+  if (FORCE_XP_TRIAL.enabled && a.group === 'meditation') trialMeditation(s, hours);
+
   const state = selectStateOfMind(s);
   const m = speedFor(s, instr.factor);
   const clamp = clampFor(s, hours);
@@ -389,7 +403,9 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     naturalOf: (id) => selectNatural(s, id),
     clamp,
     rng: s.meta.rngState,
+    ...(challengeMult !== 1 ? { challengeMult } : {}),
   });
+  if ((FORCE_XP_TRIAL.enabled || FORCE_XP_TRIAL.collect) && a.group === 'force') recordChallenge(s, primary, drillEffort, challengeLevel, r.hours, r.challenge);
   notes.push(...transferNotes, ...r.notes);
   if ((state === 'fear' || state === 'anger' || state === 'hatred') && Object.keys(prim).some(isChannelEligible)) {
     notes.push(`channeling ${state}: +${(PASSION_DARK_PRESSURE_PER_HOUR * r.effectiveHours).toFixed(1)} dark pressure (recorded with alignment in M6)`);

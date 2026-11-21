@@ -3,7 +3,7 @@
 // context (the opponent's kind, weapon, Force use and intent; the profile's meters; age and rank). npm run mortals runs
 // the jobs in parallel shards; the global teardown prints "[mortals] {json}" per seed and "[mortals-summary]" per
 // profile. Not part of npm test or test:all.
-import { mortalEvents, runLifetime, type MortalEvent } from '../support/lifetime';
+import { mortalEvents, runLifetime, type LifeResult, type MortalEvent } from '../support/lifetime';
 import type { Job } from '../support/parallelRuns';
 import { GATES, LIFE_COST, SPREAD_PROFILES, SPREAD_SEEDS, TIERS } from '../spread/spread';
 
@@ -27,6 +27,8 @@ export interface MortalRow {
   precogDark: number;
   precogOpp: number;
   precogDarkOpp: number;
+  /** The Force XP trial's report (absent when FORCE_XP is off). */
+  forceXpTrial?: LifeResult['forceXpTrial'];
   events: MortalEvent[];
 }
 
@@ -53,6 +55,7 @@ export function mortalRow(candidate: string, pi: number, k: number): MortalRow {
     precogDark: r.fightStats?.precogDark ?? 0,
     precogOpp: r.fightStats?.precogOpp ?? 0,
     precogDarkOpp: r.fightStats?.precogDarkOpp ?? 0,
+    ...(r.forceXpTrial ? { forceXpTrial: r.forceXpTrial } : {}),
     events: [...mortalEvents],
   };
 }
