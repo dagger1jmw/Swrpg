@@ -590,9 +590,9 @@ function precogTrialUpkeep(s: DuelState, ctx: DuelContext): DuelState {
   for (const side of ['A', 'B'] as const) {
     const f = side === 'A' ? next.a : currentTarget(next);
     if (!f || f.forceSense <= 0 || !(f.caps.f > 0)) continue;
-    const t = f.precogTrial ?? trialPool(f.id, f.forceSense, f.level);
+    const t = f.precogTrial ?? trialPool(f.id, f.forceSense, f.level, f.wounds.length);
     const worst = f.wounds.reduce<Severity | null>((w, x) => (w === null || SEVERITIES.indexOf(x.severity) > SEVERITIES.indexOf(w) ? x.severity : w), null);
-    const r = precogUpkeep(t, { strain: forceFraction(f.meters.f, f.caps.f), forceSense: f.forceSense, centered: f.stateOfMind === 'centered', fearful: f.stateOfMind === 'fear' || f.stateOfMind === 'despair', worstWound: worst, exchange: next.exchange });
+    const r = precogUpkeep(t, { strain: forceFraction(f.meters.f, f.caps.f), forceSense: f.forceSense, centered: f.stateOfMind === 'centered', fearful: f.stateOfMind === 'fear' || f.stateOfMind === 'despair', worstWound: worst, newWounds: f.wounds.slice(t.woundsSeen).map((w) => w.severity), woundCount: f.wounds.length, exchange: next.exchange });
     next = withSide(next, side, { ...f, precogTrial: r.t, meters: { ...f.meters, f: addFixedLoad(f.meters.f, r.strainGain * f.caps.f) } });
   }
   return next;

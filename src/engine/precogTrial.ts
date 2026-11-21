@@ -34,6 +34,14 @@ export interface PrecogTrialConfig {
   conditioningByLevel: readonly (readonly [number, number])[];
   /** Diagnostic scale on the reserve spec's pain focus strain (1 = the spec's +0.01 to +0.03 a round). */
   painScale: number;
+  /**
+   * Pain model (D-282; default 1, the adopted rule): 0 = trial 1's per-exchange pain strain (the pre-D-282 spec) while a
+   * wound is carried; 1 = a one-time strain spike each time the fighter takes a new wound while holding a sustained
+   * ability (painSpike by severity), and nothing per exchange for a wound already carried.
+   */
+  painPerWound: number;
+  /** Trial 2 spike by new wound severity (starting values: moderate 0.05, severe 0.15, critical or mortal 0.30). */
+  painSpike: Record<string, number>;
 }
 
 export const PRECOG_TRIAL: PrecogTrialConfig = {
@@ -58,6 +66,8 @@ export const PRECOG_TRIAL: PrecogTrialConfig = {
     [120, 85],
   ],
   painScale: 1,
+  painPerWound: 1,
+  painSpike: { minor: 0, moderate: 0.05, severe: 0.15, critical: 0.3, mortal: 0.3 },
 };
 
 /** Reserve spec numbers the trial uses unchanged (§3-4). */
@@ -93,12 +103,14 @@ export interface PrecogTrialState {
   strainGained: number;
   /** The worst tier reached (0 fresh .. 4 running on will). */
   worstTier: number;
+  /** Wounds the fighter carried when last checked (trial 2: only wounds past this count are new). */
+  woundsSeen: number;
 }
 
 export const poolCeiling = (count: number): number => RESERVE.ceilingAtAverage * (Math.max(0, count) / RESERVE.averageCount) ** RESERVE.ceilingExponent;
 
 /** A fresh pool for a fighter (arrives rested: the pool is full; strain carries in through the Force meter). */
-export function trialPool(id: string, forceSense: number, level: number): PrecogTrialState {
+export function trialPool(id: string, forceSense: number, level: number, woundsCarried = 0): PrecogTrialState {
   const c = PRECOG_TRIAL;
   const poolMax = poolCeiling(c.counts[id] ?? c.defaultCount) * interp(c.poolShareByForceSense, forceSense);
   const cond = Math.max(0, Math.min(100, interp(c.conditioningByLevel, level))) / 100;
@@ -112,6 +124,7 @@ export function trialPool(id: string, forceSense: number, level: number): Precog
     held: 0,
     strainGained: 0,
     worstTier: 0,
+    woundsSeen: woundsCarried,
   };
 }
 
@@ -145,23 +158,33 @@ export interface UpkeepInput {
   centered: boolean;
   fearful: boolean;
   worstWound: string | null;
+  /** Severities of wounds taken since the last upkeep (trial 2 spikes). */
+  newWounds?: readonly string[];
+  /** The fighter's wound count now (trial 2 bookkeeping). */
+  woundCount?: number;
   exchange: number;
 }
 
 /** One exchange of holding precognition: the draw, the strain gained, and the senses going dark. */
 export function precogUpkeep(t: PrecogTrialState, i: UpkeepInput): { t: PrecogTrialState; strainGain: number } {
-  if (t.dark) return { t, strainGain: 0 };
-  if (i.strain > 1.0 || t.pool <= 0) return { t: { ...t, dark: true, darkAt: i.exchange, worstTier: 4 }, strainGain: 0 };
+  const woundsSeen = i.woundCount ?? t.woundsSeen;
+  if (t.dark) return { t: { ...t, woundsSeen }, strainGain: 0 };
+  if (i.strain > 1.0 || t.pool <= 0) return { t: { ...t, woundsSeen, dark: true, darkAt: i.exchange, worstTier: 4 }, strainGain: 0 };
   const state = (i.centered ? RESERVE.calmState : 1) * Math.min(RESERVE.tiredFocusCap, 1 + RESERVE.tiredFocusPerStrain * Math.max(0, i.strain));
   const draw = (PRECOG_TRIAL.upkeepBase * state) / trialEfficiency(i.forceSense);
   const paid = Math.min(draw, t.pool);
   const mult = Math.min(RESERVE.combinedCap, depthMult(t.pool, t.comfort) * rateMult(draw, t.usual));
-  const focus = RESERVE.durationStrain + (i.worstWound ? (RESERVE.painStrain[i.worstWound] ?? 0) * PRECOG_TRIAL.painScale : 0) + (i.fearful ? RESERVE.fearStrain : 0);
+  const pain = PRECOG_TRIAL.painPerWound
+    ? (i.newWounds ?? []).reduce((sum, w) => sum + (PRECOG_TRIAL.painSpike[w] ?? 0), 0)
+    : i.worstWound
+      ? (RESERVE.painStrain[i.worstWound] ?? 0)
+      : 0;
+  const focus = RESERVE.durationStrain + pain * PRECOG_TRIAL.painScale + (i.fearful ? RESERVE.fearStrain : 0);
   const strainGain = (paid / t.poolMax) * mult + focus;
   const pool = t.pool - paid;
   const strain = i.strain + strainGain;
   const dark = pool <= 0 || strain > 1.0;
-  const next: PrecogTrialState = { ...t, pool, held: t.held + 1, strainGained: t.strainGained + strainGain, dark, darkAt: dark ? i.exchange : null, worstTier: 0 };
+  const next: PrecogTrialState = { ...t, woundsSeen, pool, held: t.held + 1, strainGained: t.strainGained + strainGain, dark, darkAt: dark ? i.exchange : null, worstTier: 0 };
   next.worstTier = Math.max(t.worstTier, dark ? 4 : trialTier(next, strain));
   return { t: next, strainGain };
 }

@@ -1,4 +1,4 @@
-<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Force Reserve System Spec" (https://claude.ai/artifact/LKSHzUgtMoibFVfU3oroHj, rev 56). The repo copy is the build reference; design changes go in the doc first, then re-export. -->
+<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Force Reserve System Spec" (https://claude.ai/artifact/LKSHzUgtMoibFVfU3oroHj, rev 56). The repo copy is the build reference; design changes go in the doc first, then re-export. Repo-only amendment since the export: §4 pain focus strain and the precognition paragraph (D-282, 2026-11-21); copy into the doc before the next re-export. -->
 
 # SWRPG M6 — Force Reserve System Spec (draft for review)
 
@@ -180,8 +180,10 @@ The bars drift apart early and converge late. A fighter who reaches empty arrive
 | --- | --- |
 | Juggling | +0.01 per round for each maintained ability beyond your upkeep slots |
 | Duration | +0.001 per round per maintained ability, even inside comfort |
-| Pain | +0.01 to +0.03 per round while drawing, by wound severity |
+| Pain | Once per new wound taken while holding any sustained ability: moderate +0.05, severe +0.15, critical or mortal +0.30 (tunable). A wound already carried adds nothing per round (D-282, amended 2026-11-21) |
 | Fear and doubt | +0.01 per round under emotional pressure, reduced or removed by Meditation and Jedi calm |
+
+**Precognition (D-282, 2026-11-21).** Precognitive defense is a sustained draw every exchange while held: base 5 (the catalog's Complex sustained cost) × state ÷ efficiency. Its trigger chance is unchanged (D-244: min(0.5, Force Sense / 200), +0.10 centered). The senses go dark at the running-on-will tier (section 5). Measured in `docs-v2/testing/precog-m6-trial-2.md`.
 
 **What strain does.** It does not cap output. It raises draw costs through the tired-focus factor in section 3, slows pool refill (section 6), and past 1.0 it triggers backlash and collapse (section 5). The M5 sequence-cap reduction for a meter above 1.0 stays as built.
 

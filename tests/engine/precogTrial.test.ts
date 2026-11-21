@@ -53,6 +53,22 @@ describe('precognition trial', () => {
     expect(after.strainGain).toBe(0);
   });
 
+  it('trial 2 pain: a one-time spike per new wound, nothing per exchange for a wound already carried', () => {
+    const was = PRECOG_TRIAL.painPerWound;
+    PRECOG_TRIAL.painPerWound = 1;
+    try {
+      const knight = trialPool('k', 50, 50, 1);
+      const base = { strain: 0, forceSense: 50, centered: false, fearful: false, exchange: 4 };
+      const carried = precogUpkeep(knight, { ...base, worstWound: 'severe', newWounds: [], woundCount: 1 });
+      expect(carried.strainGain).toBeCloseTo((2 / 350) * 0.25 + 0.001, 9);
+      const hit = precogUpkeep(knight, { ...base, worstWound: 'severe', newWounds: ['severe', 'moderate'], woundCount: 3 });
+      expect(hit.strainGain - carried.strainGain).toBeCloseTo(0.15 + 0.05, 9);
+      expect(hit.t.woundsSeen).toBe(3);
+    } finally {
+      PRECOG_TRIAL.painPerWound = was;
+    }
+  });
+
   it('strain above 1.0 darkens the senses before any draw', () => {
     const r = precogUpkeep(trialPool('m', 80, 80), { strain: 1.05, forceSense: 80, centered: true, fearful: false, worstWound: null, exchange: 3 });
     expect(r.t.dark).toBe(true);

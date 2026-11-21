@@ -1,5 +1,7 @@
 # Precognition on the M6 reserve: harness trial
 
+> **Followed by trial 2** (`precog-m6-trial-2.md`, D-282): pain strain is now once per new wound, and that is the prototype's default. To reproduce the runs below, add `wound=0` (for example `PRECOG_M6=base=5,wound=0`).
+
 2026-11-21 (overnight run). M6 integration checklist item 5 (`docs-v2/spec/m6-integration-checklist.md`). It tests reserve spec §2–5 (`docs-v2/spec/force-reserve.md`) as far as precognition needs them, using the unit conversion from the step 1 report (`docs-v2/testing/m6-step1-report.md` §1). **Not adopted.** The game still runs the M5 rule. The prototype is `src/engine/precogTrial.ts`, behind `PRECOG_TRIAL.enabled` (false). Only the test harness turns it on, through the `PRECOG_M6` environment variable (`tests/support/precogTrial.ts`).
 
 ## Verdict

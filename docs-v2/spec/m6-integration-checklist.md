@@ -1,4 +1,4 @@
-<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 integration checklist" (https://claude.ai/artifact/5nJqew4V3WKMwPSKSsumKe, rev 46). The repo copy is the build reference; design changes go in the doc first, then re-export. -->
+<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 integration checklist" (https://claude.ai/artifact/5nJqew4V3WKMwPSKSsumKe, rev 46). The repo copy is the build reference; design changes go in the doc first, then re-export. Repo-only additions since the export (Jared's rulings, 2026-11-21): the item 16 correction and items 20-21; copy them into the doc before the next re-export. -->
 
 # SWRPG M6 integration checklist
 
@@ -124,9 +124,13 @@ Integration points the M6 design chat found that the first pass missed.
 - [ ] **14. NPC alignment values in code:** the agreed archetype table and the hand-set canon values go into npc-generation, so eyes and sensing work for opponents.
 - [ ] **15. Cybernetic ceiling loss:** M5's severed limbs apply the ceiling loss when a cybernetic is fitted (5/10/20% plus 15 points per replacement). Add it to the `npm run severs` re-measure.
 - [ ] **16. Valor, Battlemind and Force Body:** M5 already uses them; they become per-round draws, and their M5 numbers convert with item 3.
+
+  **Correction (Jared, 2026-11-21, from the step 1 report):** the per-minute loads in health.md §2 for Valor, Battlemind and Control Pain were never coded in M5. Only the suppression crash (+0.5 mental) is built. Their M6 per-round draws are therefore **new costs, not a conversion**. Measure them on the D-158 rows plus a Sith-heavy duel set before adopting the catalog values.
 - [ ] **17. Learning-class gates:** lore-locked and story-event abilities are gated by story flags (Q50), not only by stat levels.
 - [ ] **18. Potential at character creation:** the creation flow gains the pick-or-roll Potential step and the awakening state (character-creation.md).
 - [ ] **19. New catalog data:** load the 15 new aliases, the six new form keys and the per-ability costs from the lore file.
+- [ ] **20. Force efficiency (health.md §2's e(f), never coded):** the spec says Force abilities use the same e(f) performance curve as the other meters, but M5 never applied it (step 1 report, finding 2). Under M6, the strain thresholds apply the performance curve to Force abilities. Build it and gate it during integration; don't fix it in M5. (Jared, 2026-11-21.)
+- [ ] **21. Force XP rework:** the direction for item 1 is written up as `docs-v2/spec/force-xp-rework.md`. It covers the finesse axis, which skill each exercise trains, the day trim and the Orgus Din check. Approved in direction, not adopted; build it with the M6 integration and tune it on all 20 seeds.
 
 ## Re-measure after integration
 
