@@ -2023,6 +2023,16 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
+#### Sith Sorcery 🔴 ⚠️
+**Anchor Stats:** ForceKnowledge + ForceOutput
+**Summary:** Sith magic: an arcane expression of the Force first developed by the original Sith species to manipulate the dark side. Its applications range across acts of violence, altering another's perceptions, empowering artifacts, places and weapons, disturbing the natural order, healing, incantations, necromancy, protection, and twisting life. Sith Alchemy (altering living things and matter) is its close sibling; Supernova, Sutta Chwituskak and other named workings are specific applications.
+**Alignment:** Dark Side — extreme drift
+**Prerequisites:** ForceKnowledge 61+, Dark Side 50+, Sith teaching, a holocron or Sith texts (lore-locked)
+**Notes:** ⚠️ **Sith tradition only.** No proficiency track of its own beyond the workings a character has learned; each named working is learned separately as a ritual. Masters include Naga Sadow, Marka Ragnos and the One Sith loremasters such as Darth Wyyrlok. (Added 2026-11-20 after the character-file audit found it referenced but missing.)
+**Source:** Wookieepedia (Legends), "Sith sorcery": https://starwars.fandom.com/wiki/Sith_sorcery/Legends
+
+---
+
 #### Sith Alchemy 🔴 ⚠️
 **Anchor Stats:** ForceKnowledge + ForceOutput (raw power needed to alter matter)
 **Summary:** Using the dark side of the Force to alter the fundamental nature of living organisms, objects, and matter — creating monsters, enhanced weapons, and warped creatures.
