@@ -1,4 +1,4 @@
-<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Force Reserve System Spec" (https://claude.ai/artifact/LKSHzUgtMoibFVfU3oroHj, rev 56). The repo copy is the build reference; design changes go in the doc first, then re-export. Repo-only amendment since the export: §4 pain focus strain and the precognition paragraph (D-282, 2026-11-21); copy into the doc before the next re-export. -->
+<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Force Reserve System Spec" (https://claude.ai/artifact/LKSHzUgtMoibFVfU3oroHj, rev 56). The repo copy is the build reference; design changes go in the doc first, then re-export. Repo-only amendments since the export: §4 pain focus strain and the precognition paragraph (D-282, 2026-11-21); §7 the cybernetics rule (D-323 amended, 2026-11-21) and the §11 Vader check that follows from it; copy into the doc before the next re-export. -->
 
 # SWRPG M6 — Force Reserve System Spec (draft for review)
 
@@ -284,20 +284,26 @@ Pool max grows toward the ceiling Potential sets, fast at first and slower as it
 | Disciplined Knight (Obi-Wan) | Solid | Worked close to its ceiling | Very high in a few abilities | Moderate |
 | Force-dominant Sith Lord | High | Large, plus outside sources | High in signature powers | Very high |
 
-**Cybernetic replacement lowers the pool ceiling (agreed 2026-11-20).** Replacing living body with machine dulls the connection: you feel the Force less. Efficiency and skill are untouched, which is why Vader still uses the Force freely in combat.
+**Cybernetic replacement and the pool ceiling (D-323 amended, Jared, 2026-11-21; repo-only amendment, replacing the 5/10/20% plus 15 points table).** Legends: losing limbs does not reduce potential (SW_Midichlorians_Force_Potential.md §6). The ceiling falls only when a large share of the living body is lost or replaced (Lucas: "as a living form, there's not that much of him left"). Efficiency and skill are untouched, which is why Vader still uses the Force freely in combat.
 
-| Replacement | Ceiling loss |
+- **Permanent loss** = max(0, s − 0.30) × 1.3, where s is the share of the living body lost or replaced:
+
+| Part lost or replaced | Share of the body |
 | --- | --- |
-| Hand or minor part | 5%, plus 15 points |
-| Major limb (arm or leg) | 10%, plus 15 points |
-| Extensive life support (burns, artificial lungs) | 20%, plus 15 points |
+| Hand | 1% |
+| Forearm | 2% |
+| Whole arm | 5% |
+| Whole leg | 17% |
+| Lungs replaced by a respirator | 5% |
+| Extensive burns needing artificial skin | 15% |
 
+- **Checks:** one hand, one arm, one leg or both arms: no loss (Luke's hand, Anakin's arm). Both legs (34%): about 5%. All four limbs (44%): about 18%. Vader after Mustafar (both legs, the left arm, the earlier right forearm, burns, lungs: 61%): about 40%.
+- **Psychological part:** a further loss (about 20% for Vader) that story events can recover (*Dark Lord*: Sidious says Vader could regain his full power by facing his choices). Vader's total is about 60%: ceiling 0.397 × 2,305 = 915 against Palpatine's 1,138, about 0.8×, matching Lucas ("maybe 20 percent less than the Emperor") and the Legends "eight-tenths".
+- **Lightning:** a cybernetic hand or arm blocks lightning-type powers (Legends: shorting the cybernetics). Separate from the ceiling.
 - **Pool max** is capped at the new ceiling. Potential itself does not change.
-- **Percentage plus flat** is deliberate. A huge connection shrugs off most of the loss in practice. For an average Jedi, the same loss can drop them below feat gates and comfort levels, so it is a major blow.
-- **Calibration:** Vader lost four limbs and needed full life support: 4 × 10% + 20% = 60% off his ceiling, plus 5 × 15 = 75 points (the flat cut stacks per replacement too, clarified 2026-11-21). That takes Anakin's intended 2× Palpatine down to about 0.8×, matching Lucas's 2005 statement. Luke's lost hand (5%) leaves him able to reach Anakin's intended level.
 - **Source of the event:** amputations and replacements come from the injury and health system. The loss applies when the cybernetic is fitted.
 
-This supersedes the earlier architecture §15 note (about 2% for a hand and 5% per limb, as a learning multiplier). The 5/10/20% loss plus 15 points off the ceiling above is the rule (look-over fix, 2026-11-21).
+This supersedes the earlier 5/10/20% plus 15 points table and the architecture §15 note.
 
 **Learning abilities.** Each ability in the catalog gets a learning class that sets how it can be acquired.
 
@@ -481,7 +487,7 @@ Potential is read off this table, straight-line between the anchor rows. The eng
 | Yoda | 19,250 | about 1,340 |
 | Anakin, Luke, Leia | 27,700 | about 2,300 |
 
-Checks: Anakin's ceiling is 2.03× Palpatine's. Vader, after the 60% cybernetic loss in section 7, sits at about 0.76×, close to Lucas's 80%. Yoda's ceiling is above Palpatine's, as *Dark Rendezvous* implies. Only the strongest clear the celestial feat gate of 900.
+Checks: Anakin's ceiling is 2.03× Palpatine's. Vader, after the about 60% loss in section 7 (40% permanent, 20% psychological), sits at about 0.80×, matching Lucas's 80%. Yoda's ceiling is above Palpatine's, as *Dark Rendezvous* implies. Only the strongest clear the celestial feat gate of 900.
 
 - **In-world readings:** a blood test reports the count with a few percent of noise. Sense Force Potential describes the band in words unless the user is very skilled.
 

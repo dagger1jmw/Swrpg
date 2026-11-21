@@ -2,7 +2,9 @@
 
 2026-11-21. Report only: no spec was changed.
 
-**Status after lore batch 2 (2026-11-21, decisions D-324..D-328):** Jared's rulings settle the lore side of findings 3 (fall-speed targets, D-324), 8, 9, 15 and 16 (corruption, eyes and skin, D-325), 5 and 6 (redemption and the lasting hold, D-326) and 10 (madness, D-327). The spec changes they imply are still to be made in the alignment doc. Findings 2 (pressure) and 13 (gray use) are M6 checklist items 24 and 25. Finding 1 (redemption leaves deep-Dark characters fallen) is open.
+**Status after lore batch 2 (2026-11-21, decisions D-324..D-328):** Jared's rulings settle the lore side of findings 3 (fall-speed targets, D-324), 8, 9, 15 and 16 (corruption, eyes and skin, D-325), 5 and 6 (redemption and the lasting hold, D-326) and 10 (madness, D-327). The spec changes they imply are still to be made in the alignment doc. Findings 2 (pressure) and 13 (gray use) are M6 checklist items 24 and 25.
+
+**Status after the rulings on 84ec410 (2026-11-21):** finding 1 is **resolved** by D-331 (a redemption act moves a character from fallen to redeemed at any depth; Dark drops to just below the fall line; Corruption and the skin's corruption stay; stress can trigger temptation). Finding 2 is ruled by D-329 (pressure multipliers, cap 4, Korriban's pull by era) and finding 13 by D-330 (the intent discount). alignment-m6.md carries these as repo-only amendments.
 
 **Compared:** `docs-v2/spec/alignment-m6.md` (export of rev 30) against `Docs/SWRPG lore/SW_DarkSide_Fall_Corruption_Redemption_Part1.md`, `_Part2.md` and `_Part3.md` (Old Republic to 1000 BBY; 1000 BBY–4 ABY; 4 ABY onward).
 
@@ -42,7 +44,7 @@
 | 21 | Fall speed | Missing | No tags for the deeds the lore names as near points of no return: taking up a Sith artifact, killing a loved one or ally | Low |
 | 22 | Outside pressure | Missing | Dark sites mask presence (Yoda hid beside the Cave of Evil); the sensing rules ignore location | Low |
 
-## 1. Redemption leaves the character fallen (Contradicts; High)
+## 1. Redemption leaves the character fallen (Contradicts; High) — resolved by D-331
 
 **Spec (§6).** Redemption: Dark falls by 30% of its value, Light gains 15, immersion drops to 0. The fall: Dark 50+ and Dark higher than Light.
 

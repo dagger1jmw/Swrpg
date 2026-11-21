@@ -1116,7 +1116,8 @@ The clock and the module contract come first, before any feature.
   cut alike (Vader: 4 x 10% + 20% = 60%, plus 5 x 15 = 75 points off the ceiling), and apply when the cybernetic is
   fitted.
   **Superseded again (D-323, 2026-11-21, lore batch 2):** a single limb never lowers the ceiling; only a large share of
-  the living body does (proposed: permanent loss = max(0, share lost − 0.20)), plus a recoverable psychological part.
+  the living body does (approved, D-323 amended: permanent loss = max(0, share lost − 0.30) × 1.3), plus a recoverable
+  psychological part.
   M6 checklist item 15.
 
 ### Dev tools (D-178, D-180; dev mode ?dev=1, test campaigns only)

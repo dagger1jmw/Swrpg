@@ -1,4 +1,4 @@
-<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Alignment System Spec" (https://claude.ai/artifact/VPpMJAFgQVJfGXjpFM7RUm, rev 30). The repo copy is the build reference; design changes go in the doc first, then re-export. -->
+<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 — Alignment System Spec" (https://claude.ai/artifact/VPpMJAFgQVJfGXjpFM7RUm, rev 30). The repo copy is the build reference; design changes go in the doc first, then re-export. Repo-only amendments since the export (Jared's rulings, 2026-11-21): §3 the intent discount (D-330); §6 redemption (D-331); §7 skin after redemption (D-325); §9 pressure multipliers and Korriban's pull by era (D-329). Copy them into the doc before the next re-export. -->
 
 # SWRPG M6 — Alignment System Spec (draft for review)
 
@@ -78,7 +78,8 @@ These changes are automatic. The engine applies them from the structured Force l
 | Light-tagged ability (Force Light, Aura of Serenity) |  | +0.3 per use |  |
 | Meditation session | Reduced by the hold table | +0.5 |  |
 
-- Dark-tagged abilities add Dark whatever the intent. The one exception is Force Choke used briefly to knock someone out, not to punish or kill, as Luke did twice: that use adds no Dark. Force Grip and Force Crush are neutral telekinesis, so harming someone with them is judged as a deed instead.
+- Dark-tagged abilities add Dark whatever the intent, except as follows. Force Choke used briefly to knock someone out, not to punish or kill, as Luke did twice, adds no Dark.
+- **Intent discount (D-330, Jared, 2026-11-21; repo-only amendment).** A dark-tagged power used calmly with light intent, as a tool (Kyle Katarn, Jolee Bindo), gives a small Dark gain (+0.2), no immersion and no Corruption, and at most one such gain per scene; further calm uses that scene add nothing. Calm with light intent means: no fear or rage state, no anger fuel that scene, and no dark deed tag on the use. Anything else takes the table value, and anger deeds count in full. Force Grip and Force Crush are neutral telekinesis, so harming someone with them is judged as a deed instead.
 - Electric Judgment is the one exception the lore draws: the same visual, channeled through compassion. It is light-tagged, as the catalog already notes.
 - Neutral abilities change nothing on their own. Using Push to save a life or to murder someone is a deed, and gets tagged as one.
 
@@ -203,12 +204,13 @@ Where two labels could apply, Gray and the extremes win over the middle labels.
 - If Dark pulls 15 or more ahead of Light, the Gray lean is lost and the normal rules return at once. From there the fall works as usual.
 - Lore model: the Je'daii held the Ashla and the Bogan in balance, until enough of them leaned on the dark side that its use was banned. This goes on the lore-check list.
 
-**Redemption.** It takes a pivotal act, not just time.
+**Redemption (D-331, Jared, 2026-11-21; repo-only amendment).** It takes a pivotal act, not just time, and it works at any depth.
 
-- **Trigger:** a `sacrifice`, `mercy` or `forgiveness` deed of major or extreme severity, made at a temptation moment while Dark is 50 or higher.
-- **Effect:** Dark falls by 30% of its value, Light gains 15, and immersion drops to 0. The eyes clear (section 7). Corruption stays.
-- **After it:** the long climb. The hold table still applies, so staying redeemed takes continued work.
-- **Lore models:** Revan, Bastila Shan, Ulic Qel-Droma and Anakin at the end of *Return of the Jedi*. These go on the lore-check list.
+- **Trigger:** a redemption act, Shim's Stage 4: a selfless act done without the dark side (no dark-side draw that scene), at real cost. The engine reads it as a `sacrifice`, `mercy` or `forgiveness` deed of major or extreme severity while fallen. The cost is a story matter, not a mechanic.
+- **Effect:** the character moves from fallen to redeemed, however deep their Dark is. Dark drops to just below the fall line (49, if it was higher), Light gains 15, and immersion drops to 0, so the eyes clear (section 7). Corruption does not reset, and the skin's physical corruption stays.
+- **After it:** Dark falls only through atonement over time (meditation and Light gains, the hold table). The lasting hold stays: while redeemed, a stress trigger (a fear or rage state, high strain, a loved one threatened) opens a temptation moment even inside the cool-down, still at most one per scene.
+- **Minor taint** (Dark under 50, not fallen) is atoned for by reflection: meditation and the hold table, with no redemption event.
+- **Lore models:** Revan, Bastila Shan, Ulic Qel-Droma, Anakin at the end of *Return of the Jedi*, Kyp Durron (SW_DarkSide_Fall_Corruption_Redemption_Part1-3.md §3). Shim's "a killer of innocents can't be redeemed" is an in-universe opinion, not a rule (D-328).
 
 ## 7. Immersion, eyes and Corruption
 
@@ -242,7 +244,7 @@ Immersion decides what shows on the surface. Corruption decides what lasts. The 
 | 80 | Severe disfigurement while immersed | Shortened lifespan, physical stats capped below peak |
 | 95 | Body visibly failing | Survival depends on the dark side or outside power |
 
-Surface signs scale with Corruption times immersion, so a redeemed character's skin colour returns while the lasting damage stays. Visible injuries, like scars or burns from Force Lightning, are wounds tracked by the health system, not Corruption.
+Surface signs scale with Corruption times immersion, but at redemption the eyes recover and the skin does not (D-325, D-331; repo-only amendment): skin pallor and marks already gained stay, as Vader's did, while the eyes clear. Visible injuries, like scars or burns from Force Lightning, are wounds tracked by the health system, not Corruption.
 
 ## 8. Sensing, concealment and the Sith alchemy mask
 
@@ -296,7 +298,34 @@ Alignment reads into the reserve system and the catalog, and stays separate from
 | Nexus sites | Dark nexus sites add immersion while you draw there. Light nexus sites boost meditation's effect on Dark |
 | Ability catalog | Light and Dark requirements read straight from the two scores |
 | Outside power sources | Add Corruption and immersion directly |
+| Pressure (D-329) | Dark places, artifacts, mentors, spirits and torture multiply Dark gains, as below |
 | Lifetime profiles and the Sith Order schedule (M7) | Profiles need alignment events so the Sidious-like check can be re-run |
+
+**Pressure multipliers (D-329, Jared, 2026-11-21; repo-only amendment).** A pressure factor P, the product of the sources present, capped at 4. P multiplies Dark from deeds and from dark-tagged Force use, multiplies the per-scene deed cap (+15), and divides the temptation cool-down (rounded down). Targets: the D-324 fall speeds (self-driven years; outside pressure days to months; torture about a week; a wound in the Force immediate).
+
+| Source | P |
+| --- | --- |
+| A wound in the Force (Malachor V, 3,960–3,951 BBY) | 3 |
+| Byss (the reborn Emperor, 10–11 ABY) | 2 |
+| A dark spirit or entity working on the character (Exar Kun on Kyp) | 2 |
+| Korriban, by era (below) | 1.1 to 1.5 |
+| Yavin 4's temples while Kun's spirit is there (to 11 ABY) | 1.5 |
+| The Dagobah cave, while inside (it also masks presence from sensing) | 1.5 |
+| A carried Sith artifact (an amulet, a Sith holocron in use) | 1.5 |
+| A Sith mentor actively turning the character | 1.25 |
+| Torture (also one temptation moment each scene of captivity) | 1.5 |
+
+Korriban's pull by era:
+
+| Year | Korriban's pull (P) | Basis |
+| --- | --- | --- |
+| To 3,951 BBY (the ancient Sith to the KOTOR era) | 1.5, strong | Lore: the tombs' permanent dark aura and dark-side pools (*KotOR II*) |
+| 3,636 BBY | 1.5, strong | Design default: the Imperial academy era; the lore files give no reading |
+| c. 1,000 BBY | 1.1, faded | Lore: Bane found the dark side had "retreated from the ancient edifices long ago" |
+| c. 23 BBY | 1.5, strong | Lore: a pull "powerful, insistent, irresistible" (*Jedi Quest*) |
+| After 23 BBY | 1.5 | Design default |
+
+Straight-line between the rows. Lore: SW_DarkSide_Fall_Corruption_Redemption_Part1.md §7 and Part2.md §7.
 
 **Alignment is not allegiance.** A Jedi can lean dark and still belong to the Order, as Anakin did. A Sith can have Light in them. Faction standing is its own system, and the Order reacts to what it senses and learns, not to the raw score.
 
