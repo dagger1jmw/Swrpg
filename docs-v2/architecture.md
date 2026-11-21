@@ -1086,6 +1086,9 @@ The clock and the module contract come first, before any feature.
   on the Force ceiling, scaled by the tissue lost: a hand about 2%, an arm or a leg about 5% each, major burns or organ
   loss more (design defaults). Calibration checks: Luke (one hand) barely affected; Vader (four limbs, burns, lungs) at
   about half. Never a direct cut to current levels. Trandoshans regenerate limbs and are exempt (Legends).
+  **Superseded (2026-11-21):** the hand ~2% / limb ~5% learning multiplier above is replaced by the M6 Reserve Spec's
+  rule: a 5 / 10 / 20% loss plus 15 points off the Force ceiling (the Reserve Spec sets which tissue loss takes which
+  step). Kept here as the earlier record.
 
 ### Dev tools (D-178, D-180; dev mode ?dev=1, test campaigns only)
 Testing aids, never part of normal play. Behind the ?dev=1 flag, and only in a campaign made by the dev test start
