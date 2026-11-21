@@ -99,7 +99,7 @@ record it as a conflict with Legends and follow Legends.
 27. DEFAULT: yes. Shadowstrike, Midi-chlorian Manipulation and Transfer Essence are
     "forbidden" availability: learning them needs access to a Sith text or teacher (story
     gate). Non-numeric lore prerequisites stay story-checked by code via flags.
-    → **Closed in full by D-278:** Shadowstrike removed (a Ta-Ree spell); Midi-chlorian Manipulation and Essence Transfer (old name Transfer Essence) have the learning class "Story event", stricter than Sith-text access; non-numeric lore prerequisites are carried by each entry's learning class (Taught / Can manifest / Lore-locked / Story event), gated by story flags per Q50; stat prerequisites stay numeric.
+    → **Closed in full by D-278:** Shadowstrike removed (a Ta-Ree spell); Midi-chlorian Manipulation and Essence Transfer (old name Transfer Essence) have the learning class "Story event", stricter than Sith-text access; non-numeric lore prerequisites are carried by each entry's learning class (Taught / Can manifest / Lore-locked / Story event), gated by story flags per Q50; stat prerequisites stay numeric (lore: Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md, the **Learning class:** line on each ability entry and the learning-class note at the top of Form Notes).
 28. LORE CHECK: verify the Battlemind and Force Body aliases against the lore. Split
     ForceHeal into Self and Others if the lore distinguishes them.
 29. DEFAULT: Force Barrier is a learned ability that uses the Force meter (health.md). No

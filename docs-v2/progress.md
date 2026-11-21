@@ -168,3 +168,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-20: M6 Force catalog passes committed (D-278): lore file across 13 families and forms; 15 more aliases, Shadowstrike rejected, new form keys, Zero-G to environment training, §15 form items settled (record only); tests green.
 - 2026-11-20: D-278 tidy-up: Shadowstrike part of Q27 closed (00-index, force-catalog-questions Dropped table); note under the 05-force-abilities audit table.
 - 2026-11-20: D-278 close-out: Q27 closed in full, Q24 and Q25 superseded; pointers appended in 00-index.md and phase1-answers.md.
+- 2026-11-20: Force lore file: Learning class line on all 183 ability entries plus the general rule in Form Notes; Q27 pointer now cites the lore file.
