@@ -991,11 +991,19 @@ The clock and the module contract come first, before any feature.
   in a secondary form earns E for that form. Measured stall (step 9): second forms reach about 40-53 and then gain about
   3 levels in 20 years (Average Ataru 41.5 at 40, 44.8 at 60; Obi-Wan Ataru 51.0 / 52.9; the swordmaster 40.4 / 43.6),
   because E grows only in the form group fought with and peer sparring E stops at 15.
+  **Settled (D-278; not built):** own E plus half the main form's E (design default, tuned with the lifetime harness);
+  fighting in a secondary form during a duel earns E for that form. Lore: "Form Rules (M6)" in the Force lore file.
 - **M6 free form switch (Jared):** a form change costs 0 advantage when both forms are at 61+ (Master tier), with the
-  secondary-form growth above and cleave.
+  secondary-form growth above and cleave. **Settled (D-278; not built):** 0 advantage when both forms are 61+; below
+  that the M5 switch cost applies. Lore: "Form Rules (M6)".
 - **M6 Makashi precision (Jared, D-187; not built):** the aimed-strike penalty (D-171, -2) scales with Makashi level
-  while fighting in Makashi: -2 at 0 to 0 at 61+ (design default, linear). No effect in any other form.
-- **M6 marks of contact as techniques (Jared, D-187; not built):** learnable techniques, each lowering the aimed-strike
+  while fighting in Makashi: -2 at 0 to 0 at 61+ (design default, linear). No effect in any other form. **Settled
+  (D-278; not built):** as written. Lore: "Form Rules (M6)".
+- **M6 marks of contact as techniques (Jared, D-187; not built):** **Settled (D-278; not built):** the Force lore file's
+  "Form Rules (M6)" section now has the lore entry with all nine marks (sun djem: disarm action; shiim: no aiming
+  needed; cho mai: hand; cho sun: arm; cho mok: limb; shiak: torso; sai cha: head; sai tok: torso, higher difficulty;
+  mou kei: one aimed strike hits two limbs, higher difficulty), shared by every Jedi form; each targeting mark is a
+  learnable technique. The numbers below are still set at build time. Earlier record: learnable techniques, each lowering the aimed-strike
   penalty for its own target location from -2 toward 0 with technique skill: cho mai (the weapon hand), cho sun (the
   weapon arm), cho mok (a limb, arm or leg), mou kei (a circular cut through several limbs: one aimed strike may hit
   two limb locations, at a higher difficulty), sai cha (decapitation: head) and shiak (a stab: torso). Both items feed
@@ -1057,7 +1065,8 @@ The clock and the module contract come first, before any feature.
 - **M8 prosthetic damage (D-164):** a hit to a prosthetic limb becomes equipment damage to the prosthetic (repair,
   malfunction, loss). Until then such a hit costs Vitality only: no wound and no sever.
 - **Cleave (D-158):** keeping the advantage after taking a minion out; a candidate Shii-Cho / Sokan form trait
-  against groups (M6 or later).
+  against groups (M6 or later). **Settled for M6 (D-278; not built):** Shii-Cho and Shien at 41+, against a group, keep
+  the advantage after taking out a minion (Sokan is not included). Lore: "Form Rules (M6)" in the Force lore file.
 - **M8 cybernetics as equipment, by quality tier (Jared, 2026-11-19; not built).** With the prosthetic damage above.
   To revisit then (Jared, 2026-11-20): a leg lost together with an arm adapts slowly (17% at day 40 against 64% alone),
   since the arm wound blocks the form drills the leg adapts from; accepted for M5 as a slower recovery (D-273).

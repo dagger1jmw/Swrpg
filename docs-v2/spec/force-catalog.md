@@ -40,6 +40,17 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
   state-of-mind notes (e.g. Juyo/Vaapad and anger channeling)
   availability and era notes
 
+## Lightsaber form keys (M6 passes, D-278; lore form table)
+  Added form keys: TKSaber (Telekinetic Lightsaber Combat), Lightwhip (Lightwhip Combat),
+    SaberPike (Lightsaber Pike Combat), StrongStyle, MediumStyle and FastStyle. The last three
+    are era-locked: available only after Luke Skywalker founds the New Jedi Order.
+  Zero-G is no longer a form (Legends has none): zero or low gravity is an environment
+    modifier, and training in it reduces the penalty. The legacy key ZeroGravity, and the
+    current v2 form id zeroG, become that environment training. A save holding ZeroGravity
+    (or zeroG) as a form keeps its value as the environment training level; nothing is lost.
+    Not built yet: the code still has zeroG as a form (skills.ts, activities.ts zeroGBasics,
+    formMatchups.ts, terrain.ts zeroGravity); the change and the save migration are M6 work.
+
 ## Shatterpoint reads (D-63; Q20, Q21, D-06)
   Shatterpoint is ShatterSense-only (Q20), on the main curve with an XP cost x3.
   Combat reads: rolls.md §6 (contest d20 + level/10 vs 15, advantage jumps to 3, once per
@@ -97,11 +108,23 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
       | Postcognition                                     | Psychometry             |
       | ForceMemory / Force Memory                        | Psychometry             |
       | ForceEcho / Force Echo                            | Psychometry             |
+      | DrainKnowledge                                    | Mind Probe              |
+      | ForceProjection                                   | Dopplegänger            |
+      | AccelerateHealing / HealingMeditation / CuratoSalva | Force Heal (Self) (forceHealSelf) |
+      | ControlDisease / ControlAnothersDisease           | Cure Disease            |
+      | ControlAnothersPain                               | Control Pain            |
+      | RemoveAnothersFatigue                             | Remove Fatigue          |
+      | PlaceInHibernationTrance                          | Hibernation Trance      |
+      | ForceWhisper                                      | Telepathy               |
+      | ForceExhaustion                                   | Force Slow              |
+      | ForceStasisField                                  | Stasis Field            |
+      | ForceTeleportation                                | Fold Space              |
     Aliases are exact (normalizeAlias, D-13); only the names in this table and in the lore
     entries are added, never a near spelling.
   Dropped legacy names (D-276), rejected as unknown names with no alias: ResistAging (now a
     passive effect of the age system, not an ability), ForceComprehension, AuraOfSerenity,
-    KyberResonance, FieryEnergy.
+    KyberResonance, FieryEnergy, Shadowstrike (a Ta-Ree spell, not a Force power; M6 passes,
+    D-278).
   Unique abilities (D-277 amended): an ability that cannot be learned and belongs to one
     entity is written in the character files with a "Unique: " prefix (for example
     "Unique: Multipresence 175", "Unique: Beast-form 125"). The alias and catalog check
