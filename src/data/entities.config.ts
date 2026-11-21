@@ -14,7 +14,7 @@ export const FACTIONS = ['republic', 'sithEmpire', 'jediOrder', 'sith', 'mandalo
 export type FactionId = (typeof FACTIONS)[number];
 
 export const NPC_ROLES = [
-  'jediMaster', 'jediKnight', 'padawan', 'initiate', 'sithLord', 'sithAcolyte', 'soldier', 'officer',
+  'jediMaster', 'jediKnight', 'padawan', 'initiate', 'sithLord', 'sithAcolyte', 'darkJedi', 'darkAcolyte', 'inquisitor', 'soldier', 'officer',
   'pilot', 'politician', 'official', 'merchant', 'smuggler', 'criminal', 'bountyHunter', 'scholar',
   'healer', 'servant', 'civilian', 'droid', 'other',
 ] as const;

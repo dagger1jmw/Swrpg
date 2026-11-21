@@ -36,7 +36,7 @@ export function creationSpecies(id: string): string {
 export function selectNpcAgeOrDefault(s: GameState, id: string): number {
   const n = s.npcs.byId[id];
   if (!n) return DEFAULT_AGE;
-  return n.birthDay !== null ? (s.clock.now.day - n.birthDay) / DAYS_PER_YEAR : DEFAULT_AGE_BY_ROLE[n.role] ?? DEFAULT_AGE;
+  return n.birthDay !== null ? (s.clock.now.day - n.birthDay) / DAYS_PER_YEAR : DEFAULT_AGE_BY_ROLE[n.rankRole ?? n.role] ?? DEFAULT_AGE;
 }
 
 /** Stored generation inputs, or the ones generation would store (deterministic: campaign seed + NPC ID, D-143 G). */
@@ -45,7 +45,7 @@ export function selectNpcGen(s: GameState, id: string): NpcGen | null {
   if (!n) return null;
   if (n.gen) return n.gen;
   const year = dateFromAbsDay(s.clock.now.day).year;
-  return rollNpcInputs({ campaignSeed: s.meta.campaignId, npcId: id, role: n.role, faction: n.factionId, age: selectNpcAgeOrDefault(s, id), year, species: n.speciesId });
+  return rollNpcInputs({ campaignSeed: s.meta.campaignId, npcId: id, role: n.role, ...(n.rankRole ? { rankRole: n.rankRole } : {}), faction: n.factionId, age: selectNpcAgeOrDefault(s, id), year, species: n.speciesId });
 }
 
 const levelCache = new Map<string, Readonly<Record<string, number>>>();

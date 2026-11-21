@@ -8,7 +8,7 @@ import { CANON_NPCS, type CanonNpc } from '../data/canonNpcs';
 import { COMBAT_STAKES } from '../data/progression.config';
 import { moraleFor, STRIKE_INTENTS, withdrawChanceFor, type SPARRING_MODES, type StrikeIntent } from '../data/combat.config';
 import { BODY_PARTS, SEVERITIES, type BodyPart, type Severity } from '../data/health.config';
-import { MINION_KINDS } from '../data/npcGen.config';
+import { MINION_KINDS, minionKindPlural, roleForYear } from '../data/npcGen.config';
 import type { WeaponKind } from '../data/health.config';
 import { FORM_IDS, SKILL_BY_ID } from '../data/skills';
 import { TERRAIN_IDS } from '../data/terrain';
@@ -319,7 +319,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       } else if (minion) {
         if (gap !== null) report.push('at is ignored for minions: their levels come from their kind and grade');
         minionGroups.push({ kind: minion, count, ...(weapon ? { weapon } : {}), ...(alive ? { wantAlive: true } : {}) });
-        who = `${count} ${MINION_KINDS.find((k) => k.id === minion)!.label}${count > 1 ? 's' : ''}`;
+        who = `${count} ${count > 1 ? minionKindPlural(minion) : MINION_KINDS.find((k) => k.id === minion)!.label}`;
       } else if (kind.toLowerCase() === 'duelist' || kind.toLowerCase() === 'partner' || (Number.isFinite(asLevel) && asLevel > 0)) {
         if (count > MAX_DUELISTS) return fail(`at most ${MAX_DUELISTS} named duelists`);
         const level = Number.isFinite(asLevel) && asLevel > 0 ? asLevel : Math.round((playerFormLevel(state) + (gap ?? 0)) * 10) / 10;
@@ -331,7 +331,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
           let k = 1;
           while (Object.values(state.npcs.byId).some((x) => x.name === `${base} ${k}`)) k++;
           const name = `${base} ${k}`;
-          apply([{ type: 'npcIntroduced', name, species: 'human', faction: ally ? 'jediOrder' : sithFactionAt(dateFromAbsDay(selectNow(state).day).year), role: ally ? 'jediKnight' : 'sithLord', ageApprox: 35, description: stakes === 'spar' ? 'a sparring partner' : 'an armed duelist who means to fight' }], 'dev');
+          apply([{ type: 'npcIntroduced', name, species: 'human', faction: ally ? 'jediOrder' : sithFactionAt(dateFromAbsDay(selectNow(state).day).year), role: ally ? 'jediKnight' : roleForYear('sithLord', dateFromAbsDay(selectNow(state).day).year).role, ageApprox: 35, description: stakes === 'spar' ? 'a sparring partner' : 'an armed duelist who means to fight' }], 'dev');
           const id = Object.values(state.npcs.byId).find((x) => x.name === name)?.id;
           if (!id) return fail(refused() ?? 'could not introduce the duelist');
           apply([{ type: 'devNpcLevelsSet', npcRef: id, level }], 'dev');

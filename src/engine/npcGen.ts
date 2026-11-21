@@ -64,7 +64,7 @@ export function warYearsFor(role: string, faction: string, age: number, startAge
   return total;
 }
 
-export function rollNpcInputs(input: { campaignSeed: string; npcId: string; role: string; faction: string; age: number; year: number; species?: string }): NpcGenInputs {
+export function rollNpcInputs(input: { campaignSeed: string; npcId: string; role: string; rankRole?: string; faction: string; age: number; year: number; species?: string }): NpcGenInputs {
   const seed = npcSeed(input.campaignSeed, input.npcId);
   let rng = seedRng(seed);
   let archetype = (input.species ? SPECIES_ARCHETYPE[input.species]?.[input.role] : undefined) ?? FACTION_ARCHETYPE[input.faction]?.[input.role];
@@ -84,7 +84,8 @@ export function rollNpcInputs(input: { campaignSeed: string; npcId: string; role
   const [u] = nextFloat(rng);
   const [lo, hi] = def.startRange;
   const startAge = Math.min(input.age, lo + u * (hi - lo));
-  const rank = ROLE_RANK[input.role] ?? (def.path === 'career' ? 'career' : 'none');
+  // An era-corrected role keeps the original role's rank (D-320).
+  const rank = ROLE_RANK[input.rankRole ?? input.role] ?? (def.path === 'career' ? 'career' : 'none');
   return { archetype, path: def.path, talents, startAge, warYears: warYearsFor(input.role, input.faction, input.age, startAge, input.year), rank, seed, minionGrade: null };
 }
 

@@ -1,6 +1,6 @@
 # Lore research queue
 
-Last updated 2026-11-21 (lore batch, docs-v2/lore-batch-2026-11-21.md).
+Last updated 2026-11-21 (lore batch, docs-v2/lore-batch-2026-11-21.md; dark-side files added the same day).
 
 This file tracks every lore file in `Docs/SWRPG lore/`: what it covers, where it came from, what in docs-v2 relies on it, and what the research bot should redo next. The lore files themselves stay in `Docs/SWRPG lore/` (the canon source of truth). This queue and the lore index (README.md, next to this file) live in `docs-v2/lore/`, because CLAUDE.md forbids new files in `Docs/`.
 
@@ -43,6 +43,9 @@ This file tracks every lore file in `Docs/SWRPG lore/`: what it covers, where it
 | SW_Sith_Training_AllEras_Part2.md | Sith training and organization, Eras 7–10 (Rule of Two to the One Sith); non-Sith darksiders | 1,000 BBY–c. 138 ABY | 73 KB | bot (reviewed) | 2 | D-308, D-309, D-311, D-315, D-316, D-317, D-318, D-320 | — |
 | SW_Lightsabers_Crystals_Materials_AllEras.md | Lightsaber construction, crystals, blade colours, variants, saber-resistant materials | All eras | 99 KB | bot (reviewed) | 3 | D-285, D-286, D-287, D-288, D-289, D-292, D-301, D-303, D-317 | architecture.md (§15 M8 equipment ideas) |
 | SW_Weapons_Armor_AllEras.md | Non-saber weapons, armour, personal shields, anti-Jedi gear | All eras, focused on the Old Republic and Clone Wars | 87 KB | bot (reviewed) | 3 | D-289, D-290, D-291, D-292, D-293, D-294 | architecture.md (§15 prepared Jedi hunters) |
+| SW_DarkSide_Fall_Corruption_Redemption_Part1.md | The dark side: how falling works, falls, redemptions, physical corruption, power, madness, places, gray paths | To 1,000 BBY | 48 KB | bot (reviewed) | 1 | — | alignment-m6.md (audited: docs-v2/testing/alignment-lore-audit.md) |
+| SW_DarkSide_Fall_Corruption_Redemption_Part2.md | As Part 1 | 1,000 BBY–4 ABY | 44 KB | bot (reviewed) | 1 | — | alignment-m6.md (audited) |
+| SW_DarkSide_Fall_Corruption_Redemption_Part3.md | As Part 1, plus Force psychosis | 4 ABY–c. 138 ABY | 50 KB | bot (reviewed) | 1 | — | alignment-m6.md (audited) |
 
 ## Redo briefs for the pre-bot files
 
@@ -57,7 +60,6 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 ## Gaps (no file yet)
 
 - **Yuuzhan Vong weapons and armour** (queued). Amphistaffs, thud bugs, razor bugs, coufees, vonduun crab armour (it resists lightsabers; D-239 uses it as saber-resistant), ooglith masquers, and how Jedi fought them. Priority 3 (M8 equipment), also used by the existing Yuuzhan Vong rules (D-192, D-224, D-239).
-- **The dark side: corruption, physical signs and redemption, all eras.** alignment-m6.md was written partly from memory (its §11 lists the points to verify): eye colour and corruption marks, Sith alchemy and outside power sources, Palpatine's mask, falls and redemptions (Revan, Bastila Shan, Ulic Qel-Droma, Anakin). Priority 1.
 - **Species traits, lifespans and ageing.** 23-species.md: Docs/SWRPG lore/ has no species table; progression-numbers §11 and §16 need body-cap and lifespan tables for other species. Priority 3 (M8 species table).
 - **Medicine, bacta, cybernetics and prosthetics.** health.md and the §15 notes (M8 cybernetics by quality tier, M6 Force loss from lost tissue) rest on design defaults and scattered character-sheet facts. Priority 3.
 - **Economy, credits and prices by era.** The M8 items and credits spec (22-equipment-and-items.md) has no lore source for prices, wages or what a Master spends on a Padawan (D-295). Priority 3.
@@ -70,4 +72,5 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 
 - **Jedi training, all eras:** SW_Jedi_Training_AllEras_Part1.md and Part2.md (2026-11-21; decisions D-296..D-307).
 - **Sith training, all eras:** SW_Sith_Training_AllEras_Part1.md and Part2.md (2026-11-21; decisions D-308..D-318, D-320).
+- **The dark side: fall, corruption and redemption, all eras** (was a gap; alignment-m6.md was written partly from memory): SW_DarkSide_Fall_Corruption_Redemption_Part1.md to Part3.md (2026-11-21). Audited against alignment-m6.md in docs-v2/testing/alignment-lore-audit.md (22 findings, report only).
 - Also added in the same batch: Jedi Order ranks and Council, Jedi daily life, Sith academies, lightsabers and materials, weapons and armour.

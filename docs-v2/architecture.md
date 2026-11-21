@@ -1046,6 +1046,11 @@ The clock and the module contract come first, before any feature.
   ShatterSense) come with the Clone Wars era roster; the D-175 4v1 used estimates.
 - **M7 Order schedule (D-165, Jared):** a 13-year-old Padawan's fixed Order day alone ends near f 0.97 against the
   standard tiredness limit 0.9 even when fresh; the Order schedule is revisited with the Order requirements in M7.
+- **M7 era rank names for the narrator (Jared, 2026-11-21; not built).** The narrator cannot read the topical lore files
+  (the D-81 lore index holds only the character files and the timeline), so the D-308 table of Sith rank names by era
+  (and the D-298 Jedi ranks by era) goes into src/data as era-keyed data, and the context builder adds the current
+  era's rank names to the narrator's state block. Same pattern as D-320's role era gating. Source:
+  Docs/SWRPG lore/SW_Sith_Training_AllEras_Part1.md and _Part2.md (cross-era rank tables).
 - **M7 teaching (D-163):** characters with the instructor role get a higher share of drill XP above the ceiling
   (design default 25% -> 35%) for the forms they teach.
 - **M6 precognition softening killing blows (Jared, D-267; measured, not adopted; with the precognition redesign).**

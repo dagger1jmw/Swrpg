@@ -11,6 +11,10 @@ export const ROLE_ARCHETYPES: Readonly<Record<string, readonly (readonly [string
   initiate: [['jediGuardian', 0.4], ['jediConsular', 0.35], ['jediSentinel', 0.25]],
   sithLord: [['sithWarrior', 0.6], ['sithInquisitor', 0.4]],
   sithAcolyte: [['sithWarrior', 0.6], ['sithInquisitor', 0.4]],
+  // Non-Sith darksiders (D-311, D-320): the Sith numbers, so an era correction never changes balance.
+  darkJedi: [['sithWarrior', 0.6], ['sithInquisitor', 0.4]],
+  darkAcolyte: [['sithWarrior', 0.6], ['sithInquisitor', 0.4]],
+  inquisitor: [['sithWarrior', 0.6], ['sithInquisitor', 0.4]],
   soldier: [['soldier', 1]],
   officer: [['soldier', 1]],
   pilot: [['smuggler', 1]],
@@ -40,6 +44,9 @@ export const ROLE_RANK: Readonly<Record<string, string>> = {
   initiate: 'initiate',
   sithLord: 'lord',
   sithAcolyte: 'acolyte',
+  darkJedi: 'lord',
+  darkAcolyte: 'acolyte',
+  inquisitor: 'lord',
 };
 /** Age when the AI gave none (D-143 design default). */
 export const DEFAULT_AGE_BY_ROLE: Readonly<Record<string, number>> = {
@@ -49,6 +56,9 @@ export const DEFAULT_AGE_BY_ROLE: Readonly<Record<string, number>> = {
   jediMaster: 50,
   sithAcolyte: 16,
   sithLord: 40,
+  darkJedi: 40,
+  darkAcolyte: 16,
+  inquisitor: 40,
   soldier: 28,
   officer: 38,
 };
@@ -64,6 +74,9 @@ export const ROLE_MIN_AGE: Readonly<Record<string, number>> = {
   jediMaster: 31,
   sithAcolyte: 8,
   sithLord: 18,
+  darkJedi: 18,
+  darkAcolyte: 8,
+  inquisitor: 18,
   soldier: 18,
   officer: 22,
   pilot: 18,
@@ -90,7 +103,7 @@ export const TALENT_ROLL_ORDERS: Readonly<Record<'order' | 'other', readonly (re
   /** Everyone else. The spec's 80 / 17 / 3 / 0.2 sums to 100.2; "none" takes the 0.2 off (79.8). */
   other: [['none', 0.798], ['gifted', 0.17], ['prodigy', 0.03], ['exceptional', 0.002]],
 };
-export const ORDER_ROLES: readonly string[] = ['jediMaster', 'jediKnight', 'padawan', 'initiate', 'sithLord', 'sithAcolyte'];
+export const ORDER_ROLES: readonly string[] = ['jediMaster', 'jediKnight', 'padawan', 'initiate', 'sithLord', 'sithAcolyte', 'darkJedi', 'darkAcolyte', 'inquisitor'];
 
 /** Per-skill variance exp(N(0, sigma)), seeded per NPC (npc-generation Â§1). */
 export const NPC_VARIANCE_SIGMA = 0.12;
@@ -119,7 +132,51 @@ export const WARS: readonly War[] = [
   },
 ];
 /** Roles that fight in a war (combatants gain war years). */
-export const COMBATANT_ROLES: readonly string[] = ['jediMaster', 'jediKnight', 'padawan', 'sithLord', 'sithAcolyte', 'soldier', 'officer', 'pilot', 'bountyHunter'];
+export const COMBATANT_ROLES: readonly string[] = ['jediMaster', 'jediKnight', 'padawan', 'sithLord', 'sithAcolyte', 'darkJedi', 'darkAcolyte', 'inquisitor', 'soldier', 'officer', 'pilot', 'bountyHunter'];
+
+// ---- Era gating of the dark-side roles (D-320; lore: SW_Sith_Training_AllEras_Part2.md, D-311) ----
+// Years as [from, to) ranges, negative = BBY, like the minion kinds (D-213). From 1,000 BBY to c. 25 ABY only the Rule
+// of Two pair are Sith (to 4 ABY); everyone else who uses the dark side is not (D-311). The One Sith are founded
+// "before 27 ABY", so generic Sith return at 25 ABY (design default, Jared).
+const SITH_ERAS: readonly (readonly [number, number])[] = [[-100000, -999], [25, 100000]];
+/** Dooku's Dark Acolytes: the Clone Wars (22-19 BBY). */
+const DARK_ACOLYTE_ERAS: readonly (readonly [number, number])[] = [[-22, -18]];
+/** The Inquisitorius: 19 BBY to c. 11 ABY. */
+const INQUISITOR_ERAS: readonly (readonly [number, number])[] = [[-19, 12]];
+/** Roles with era limits; absent = every era (Dark Jedi exist in any era: the default fallback). */
+export const ROLE_ERAS: Readonly<Record<string, readonly (readonly [number, number])[]>> = {
+  sithLord: SITH_ERAS,
+  sithAcolyte: SITH_ERAS,
+  darkAcolyte: DARK_ACOLYTE_ERAS,
+  inquisitor: INQUISITOR_ERAS,
+};
+/** The next role to try outside a role's years; the chain ends at darkJedi, which has no limit. */
+export const ROLE_ERA_FALLBACK: Readonly<Record<string, string>> = {
+  sithLord: 'darkJedi',
+  sithAcolyte: 'darkAcolyte',
+  darkAcolyte: 'darkJedi',
+  inquisitor: 'darkJedi',
+};
+const ROLE_LABEL: Readonly<Record<string, string>> = { sithLord: 'Sith Lord', sithAcolyte: 'Sith acolyte', darkJedi: 'Dark Jedi', darkAcolyte: 'Dark Acolyte', inquisitor: 'Inquisitor' };
+
+const inEras = (eras: readonly (readonly [number, number])[] | undefined, year: number): boolean => !eras || eras.some(([from, to]) => year >= from && year < to);
+const yearLabel = (year: number): string => (year < 0 ? `${-year} BBY` : `${year} ABY`);
+
+export function roleInEra(role: string, year: number): boolean {
+  return inEras(ROLE_ERAS[role], year);
+}
+
+/**
+ * The role a generic (non-canon) NPC holds in a year (D-320): the role asked for, or the first role along its fallback
+ * chain that exists then, with a note when it changed. Named canon figures are exempt; the caller checks the canon match.
+ */
+export function roleForYear(role: string, year: number): { role: string; note: string | null } {
+  let r = role;
+  for (let i = 0; i < 4 && !roleInEra(r, year); i++) r = ROLE_ERA_FALLBACK[r] ?? 'darkJedi';
+  if (r === role) return { role, note: null };
+  const why = year >= -999 && year < 25 ? '; only the Rule of Two Master and apprentice are Sith in these years' : '';
+  return { role: r, note: `no ${ROLE_LABEL[role] ?? role} in ${yearLabel(year)}: a ${ROLE_LABEL[r] ?? r} instead (D-320${why})` };
+}
 
 // ---- Minions (npc-generation Â§6, health Â§9) ----
 export interface MinionKind {
@@ -151,6 +208,8 @@ export interface MinionKind {
    * era. A kind asked for outside them becomes MINION_ERA_FALLBACK's kind.
    */
   eras?: readonly (readonly [number, number])[];
+  /** The plural, where adding an s is wrong ("Dark Jedi"). */
+  plural?: string;
 }
 /** Years trained by grade at pace 1.0 (npc-generation Â§6). */
 export const MINION_YEARS: readonly [number, number, number, number, number] = [2, 5, 10, 15, 20];
@@ -177,7 +236,11 @@ export const MINION_KINDS: readonly MinionKind[] = [
   // resists a lightsaber (Characters_15 :34), outside the Force (D-192); warriors fight in squads (0.5). From the
   // invasion (25 ABY) on: design default; out of era a brawler.
   { id: 'yuuzhanVongWarrior', label: 'Yuuzhan Vong warrior', eras: [[25, 1000]], archetype: 'yuuzhanVongWarrior', weapon: 'melee', weaponName: 'amphistaff', armor: 'heavy', armorName: 'vonduun crab armor', saberResistant: true, grades: [0, 0.2, 0.45, 0.3, 0.05], coordination: 0.5, vitalityMult: 1.2, note: 'design default (D-239): the warrior caste, trained from youth; tough (1.2)' },
-  { id: 'sithAcolyte', label: 'Sith acolyte', archetype: 'sithWarrior', weapon: 'lightsaber', armor: 'light', grades: [0.3, 0.4, 0.25, 0.05, 0], coordination: 0, vitalityMult: 1, note: 'design default for Jared: rivals who will not cover each other (0)' },
+  // Sith acolytes are era-gated with the Sith roles (D-320): none from 1,000 BBY to 25 ABY, where only the Rule of Two
+  // pair are Sith (D-311). Out of era: Dark Acolytes (22-19 BBY), else Dark Jedi, both with the acolyte's numbers.
+  { id: 'sithAcolyte', label: 'Sith acolyte', eras: SITH_ERAS, archetype: 'sithWarrior', weapon: 'lightsaber', armor: 'light', grades: [0.3, 0.4, 0.25, 0.05, 0], coordination: 0, vitalityMult: 1, note: 'design default for Jared: rivals who will not cover each other (0)' },
+  { id: 'darkAcolyte', label: 'Dark Acolyte', eras: DARK_ACOLYTE_ERAS, archetype: 'sithWarrior', weapon: 'lightsaber', armor: 'light', grades: [0.3, 0.4, 0.25, 0.05, 0], coordination: 0, vitalityMult: 1, note: 'D-320: the Sith acolyte numbers; Dooku\'s Dark Acolytes (Sith AE2, Era 7)' },
+  { id: 'darkJedi', label: 'Dark Jedi', plural: 'Dark Jedi', archetype: 'sithWarrior', weapon: 'lightsaber', armor: 'light', grades: [0.3, 0.4, 0.25, 0.05, 0], coordination: 0, vitalityMult: 1, note: 'D-320: the Sith acolyte numbers; any era, the default fallback for a dark-side group' },
 ];
 /**
  * Beskar by era (Jared, D-158; Legends, Mandalorian armor). The curve is lore: beskar was a crucial part of the armor for
@@ -217,6 +280,8 @@ export const MINION_WEAPON_PROFILE: Readonly<Record<string, MinionWeaponProfile>
   droideka: { source: 'archetype' },
   beast: { source: 'kind', skill: 'melee', share: 0.6 },
   sithAcolyte: { source: 'archetype' },
+  darkAcolyte: { source: 'archetype' },
+  darkJedi: { source: 'archetype' },
   warDroid: { source: 'archetype' },
   cloneTrooper: { source: 'archetype' },
   stormtrooper: { source: 'archetype' },
@@ -237,21 +302,28 @@ export const MINION_ERA_FALLBACK: Readonly<Record<string, string>> = {
   stormtrooper: 'trooper',
   sithTrooper: 'trooper',
   yuuzhanVongWarrior: 'brawler',
+  sithAcolyte: 'darkAcolyte',
+  darkAcolyte: 'darkJedi',
 };
 
 /** Whether a kind exists in a calendar year (D-213). */
 export function minionKindInEra(kindId: string, year: number): boolean {
-  const eras = MINION_KINDS.find((k) => k.id === kindId)?.eras;
-  return !eras || eras.some(([from, to]) => year >= from && year < to);
+  return inEras(MINION_KINDS.find((k) => k.id === kindId)?.eras, year);
 }
 
 /** The kind to field in a year: the kind asked for, or its era fallback, with a note when it changed (D-213). */
 export function minionKindForYear(kindId: string, year: number): { kind: string; note: string | null } {
   if (minionKindInEra(kindId, year)) return { kind: kindId, note: null };
-  const to = MINION_ERA_FALLBACK[kindId] ?? 'trooper';
-  const label = (id: string): string => MINION_KINDS.find((k) => k.id === id)?.label ?? id;
-  const when = year < 0 ? `${-year} BBY` : `${year} ABY`;
-  return { kind: to, note: `no ${label(kindId)}s in ${when}: ${label(to)}s instead (D-213)` };
+  // The fallback chain (D-320: Sith acolyte -> Dark Acolyte -> Dark Jedi) ends at a kind with no era limit.
+  let to = MINION_ERA_FALLBACK[kindId] ?? 'trooper';
+  for (let i = 0; i < 4 && !minionKindInEra(to, year); i++) to = MINION_ERA_FALLBACK[to] ?? 'trooper';
+  return { kind: to, note: `no ${minionKindPlural(kindId)} in ${yearLabel(year)}: ${minionKindPlural(to)} instead (D-213)` };
+}
+
+/** A kind's plural label ("B1 battle droids", "Dark Jedi"). */
+export function minionKindPlural(kindId: string): string {
+  const k = MINION_KINDS.find((x) => x.id === kindId);
+  return k ? (k.plural ?? `${k.label}s`) : `${kindId}s`;
 }
 
 export const MINION_KIND_IDS: readonly string[] = MINION_KINDS.map((k) => k.id);

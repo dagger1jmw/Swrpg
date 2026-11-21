@@ -45,6 +45,11 @@ export const npcSchema = z.object({
   health: npcHealthSchema.nullable(),
   /** Dev sandbox only (D-180): fixed levels that replace the generated ones (a test opponent at a set level). */
   devLevels: z.record(z.string(), z.number().min(0)).optional(),
+  /**
+   * The role whose rank and default age the NPC keeps after an era correction (D-320): a Sith acolyte made a Dark Jedi
+   * keeps the acolyte's rank, so the correction never changes balance. Absent = the role itself.
+   */
+  rankRole: z.enum(NPC_ROLES).optional(),
 });
 
 export const npcsSliceSchema = z.object({ byId: z.record(z.string(), npcSchema) });

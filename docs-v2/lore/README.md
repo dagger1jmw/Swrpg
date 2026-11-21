@@ -59,6 +59,14 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Sith_Training_AllEras_Part1.md` | Sith training and organization from the ancient Sith Empire to the Brotherhood of Darkness (to 1,000 BBY) |
 | `Docs/SWRPG lore/SW_Sith_Training_AllEras_Part2.md` | Sith training and organization from the Rule of Two to the One Sith, and the non-Sith darksiders (1,000 BBY onward) |
 
+## The dark side
+
+| Path | Scope |
+|---|---|
+| `Docs/SWRPG lore/SW_DarkSide_Fall_Corruption_Redemption_Part1.md` | The dark side to 1,000 BBY: how falling works (Shim's Four Stages), falls, redemptions, physical corruption, power, madness, dark places and gray paths |
+| `Docs/SWRPG lore/SW_DarkSide_Fall_Corruption_Redemption_Part2.md` | The dark side 1,000 BBY–4 ABY: the same eight sections (Anakin, Dooku, Vos, Vaapad, Mustafar, the Potentium) |
+| `Docs/SWRPG lore/SW_DarkSide_Fall_Corruption_Redemption_Part3.md` | The dark side from 4 ABY: the same eight sections (Luke on Byss, Kyp, Caedus, Cade, Force psychosis) |
+
 ## Equipment
 
 | Path | Scope |

@@ -15,6 +15,7 @@ import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { selectCurrentLocationId } from '../locations/selectors';
 import { dateFromAbsDay } from '../../engine/calendar';
 import { inferSpecies } from '../../data/speciesWords';
+import { roleForYear } from '../../data/npcGen.config';
 import { migrateNpcsV1, npcHealthSchema, npcsSliceSchema, type Npc, type NpcHealth, type NpcsSlice } from './npcs';
 import { resolveNpcRef, selectNpcAgeOrDefault, selectNpcGen, selectNpcLevels, selectNpcs } from './selectors';
 
@@ -122,6 +123,24 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         if (!npc) return { reject: `unknown npc ${id}` };
         if (npc.status === 'deceased') return { reject: `${id} is deceased; that is one-way` };
         return { slice: update(slice, id, { status: e['state'] as Npc['status'] }) };
+      },
+    },
+    // Engine: a generic NPC's dark-side role corrected for the era (D-320), after the canon check found no canon match
+    // (named canon Sith keep their role). The NPC keeps the original role's rank (rankRole), so balance does not change.
+    npcRoleEraCorrected: {
+      schema: z.object({ type: z.literal('npcRoleEraCorrected'), npcRef: z.string() }),
+      sources: ['engine'],
+      targetField: 'npcRef',
+      refFields: ['npcRef'],
+      refKinds: npcRefKinds,
+      handle: (slice, e, ctx) => {
+        const id = String(e['npcRef']);
+        const npc = slice.byId[id];
+        if (!npc) return { reject: `unknown npc ${id}` };
+        if (npc.canonId) return { reject: `${id} is canon ${npc.canonId}: a canon figure keeps its role` };
+        const r = roleForYear(npc.role, dateFromAbsDay(selectNow(ctx.state).day).year);
+        if (!r.note) return { reject: `${id}: ${npc.role} exists in this era` };
+        return { slice: update(slice, id, { role: r.role as Npc['role'], rankRole: npc.rankRole ?? npc.role }), notes: [`${npc.name}: ${r.note}`] };
       },
     },
     // Engine: canon link found by exact alias in era (D-81), applied by the pipeline after creation.

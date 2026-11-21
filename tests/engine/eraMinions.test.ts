@@ -36,8 +36,14 @@ describe('the kind-by-era table (D-213)', () => {
   ])('%s in %i -> %s', (kind, year, want) => {
     expect(minionKindForYear(kind, year).kind).toBe(want);
   });
-  it('every fallback is an era-neutral kind, and every droid kind is a droid for the Force rules', () => {
-    for (const to of Object.values(MINION_ERA_FALLBACK)) expect(MINION_KINDS.find((k) => k.id === to)?.eras).toBeUndefined();
+  it('every fallback chain ends at an era-neutral kind, and every droid kind is a droid for the Force rules', () => {
+    // A fallback may itself be era-gated (D-320: Sith acolyte -> Dark Acolyte -> Dark Jedi), but every chain ends at a
+    // kind that exists in every era.
+    for (const start of Object.keys(MINION_ERA_FALLBACK)) {
+      let to = MINION_ERA_FALLBACK[start]!;
+      for (let i = 0; i < 4 && MINION_ERA_FALLBACK[to] && MINION_KINDS.find((k) => k.id === to)?.eras; i++) to = MINION_ERA_FALLBACK[to]!;
+      expect(MINION_KINDS.find((k) => k.id === to)?.eras).toBeUndefined();
+    }
     for (const id of ['battleDroid', 'superBattleDroid', 'droideka', 'warDroid', 'skytrooper']) expect(DROID_MINION_KINDS).toContain(id);
   });
   it('the note says what changed', () => {

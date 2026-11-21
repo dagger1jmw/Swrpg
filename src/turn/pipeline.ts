@@ -29,6 +29,7 @@ import { selectOpenReview, selectPendingChapters } from '../features/memory/sele
 import { selectNpcs } from '../features/npcs/selectors';
 import { LORE_INDEX } from '../lore';
 import { findCanonEntity } from '../lore/retrieve';
+import { roleInEra } from '../data/npcGen.config';
 import { buildChapterClosed, decideChapterClose, type ChapterTurn } from '../memory/chapterClose';
 import { makeEnvelope } from '../persist/envelope';
 import type { CampaignRecord, Storage, TranscriptEntry } from '../persist/storage';
@@ -302,7 +303,11 @@ function reviewFollowUps(registry: Registry<GameState>, state: GameState, unknow
   return out;
 }
 
-/** New NPCs whose exact name matches an in-era lore person get their canon ID (D-81). */
+/**
+ * New NPCs whose exact name matches an in-era lore person get their canon ID (D-81). A new NPC with no canon match whose
+ * dark-side role does not exist in this era (a generic "Sith Lord" in 500 BBY) gets the era's role (D-320); a canon
+ * figure keeps the narrator's role (Darth Maul in 32 BBY stays a Sith).
+ */
 function canonEvents(before: GameState, after: GameState): GameEvent[] {
   const year = dateFromAbsDay(selectNow(after).day).year;
   const out: GameEvent[] = [];
@@ -310,6 +315,7 @@ function canonEvents(before: GameState, after: GameState): GameEvent[] {
     if (before.npcs.byId[n.id] || n.canonId) continue;
     const hit = findCanonEntity(LORE_INDEX, normalizeAlias(n.name), year);
     if (hit) out.push({ type: 'npcCanonLinked', npcRef: n.id, canonId: hit.canonId });
+    else if (!roleInEra(n.role, year)) out.push({ type: 'npcRoleEraCorrected', npcRef: n.id });
   }
   return out;
 }

@@ -25,7 +25,7 @@ References
 Events
 - timeElapsed (only when the schema offers it): the in-game seconds that passed during this reply, with a short reason. Be realistic: a short exchange is seconds to a few minutes; a long conversation or a walk across the Temple is tens of minutes. The engine clamps it to the current pacing range.
 - pacingSuggested: suggest a pacing level with a reason. Only moment is applied automatically (for example when sudden danger starts); other levels are offered to the player.
-- npcIntroduced: the first time a named or story-relevant non-player character appears or is named. Name as people call them, with any title. Pick species, faction and role from the allowed values (unknown or other when unsure).
+- npcIntroduced: the first time a named or story-relevant non-player character appears or is named. Name as people call them, with any title. Pick species, faction and role from the allowed values (unknown or other when unsure). A dark-side user who is not a Sith is darkJedi, darkAcolyte (the Clone Wars) or inquisitor (the Empire), never sithLord or sithAcolyte.
 - npcStatusChanged: someone leaves the story for a while (dormant), for good (departed), or returns (active). Never use it for a death.
 - relationshipChanged: when an NPC's attitude toward the player character clearly shifts. Small steps: 1 for a noticeable change, 3 only for something they will never forget. At most one per NPC per reply.
 - locationIntroduced: a place the story reaches or names that is not in VALID IDS. Give parentRef (the planet of a city, the building of a room) when it is in VALID IDS or introduced earlier in this reply. moveHere is true when the player character is now there.
