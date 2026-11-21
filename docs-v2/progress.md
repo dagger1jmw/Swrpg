@@ -171,3 +171,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-20: Force lore file: Learning class line on all 183 ability entries plus the general rule in Form Notes; Q27 pointer now cites the lore file.
 - 2026-11-21: Spec look-over records: §15 cybernetic Force-loss note superseded by the Reserve Spec rule; D-279 midi-chlorian counts (2016 canon book) as Potential-curve anchors, a logged Legends-only exception.
 - 2026-11-21: §15 cybernetic Force-loss mapping from the Reserve Spec §7 table; CLAUDE.md notes the D-279 exception.
+- 2026-11-21: §15 cybernetic note: the 15-point ceiling cut stacks per replacement (Vader 60% + 75 points).

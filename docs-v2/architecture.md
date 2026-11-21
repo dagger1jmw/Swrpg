@@ -1089,8 +1089,9 @@ The clock and the module contract come first, before any feature.
   **Superseded (2026-11-21):** the hand ~2% / limb ~5% learning multiplier above is replaced by the M6 Reserve Spec's
   rule: a 5 / 10 / 20% loss plus 15 points off the Force ceiling. Kept here as the earlier record. Mapping (Reserve Spec
   §7 table): a hand or minor part 5% + 15 points; a major limb (arm or leg) 10% + 15 points; extensive life support
-  (burns, artificial lungs) 20% + 15 points. Losses stack per replacement (Vader: 4 x 10% + 20% = 60%) and apply when
-  the cybernetic is fitted.
+  (burns, artificial lungs) 20% + 15 points. Losses stack per replacement, the percentage and the flat 15-point ceiling
+  cut alike (Vader: 4 x 10% + 20% = 60%, plus 5 x 15 = 75 points off the ceiling), and apply when the cybernetic is
+  fitted.
 
 ### Dev tools (D-178, D-180; dev mode ?dev=1, test campaigns only)
 Testing aids, never part of normal play. Behind the ?dev=1 flag, and only in a campaign made by the dev test start
