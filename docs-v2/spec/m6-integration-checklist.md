@@ -132,6 +132,9 @@ Integration points the M6 design chat found that the first pass missed.
 - [ ] **20. Force efficiency (health.md §2's e(f), never coded):** the spec says Force abilities use the same e(f) performance curve as the other meters, but M5 never applied it (step 1 report, finding 2). Under M6, the strain thresholds apply the performance curve to Force abilities. Build it and gate it during integration; don't fix it in M5. (Jared, 2026-11-21.)
 - [ ] **21. Force XP rework:** the direction for item 1 is written up as `docs-v2/spec/force-xp-rework.md`. It covers the finesse axis, which skill each exercise trains, the day trim and the Orgus Din check. Approved in direction, not adopted; build it with the M6 integration and tune it on all 20 seeds.
 
+- [ ] **22. Conversion by torture (D-319, lore batch 2026-11-21):** a captured Jedi (captured by subduing, D-262) may face a conversion arc. Torture works only through temptation moments and corruption pressure; it never sets alignment directly. A fall still comes from the character's own deeds.
+- [ ] **23. Step 1 review check: Orgus Din (D-319):** weak Force aptitude, Council-level combat skill "through endless practice" (`Docs/SWRPG lore/SW_Jedi_Daily_Life_Training_OldRepublic.md`). Low Potential and talent plus heavy drilling must still reach high skill. The proposed lifetime gate is in force-xp-rework.md §6.
+
 ## Re-measure after integration
 
 Run these with full 20-seed runs in parallel, and report runtimes. Tune only the tunables; anything needing K or a formula change is reported, not done.
@@ -145,3 +148,4 @@ Run these with full 20-seed runs in parallel, and report runtimes. Tune only the
 - [ ] The Luke-vs-Vader surge report
 - [ ] The precognition trial result (precog-m6-trial.md)
 - [ ] An eye-state check on canon NPCs: Dooku normal, a practising Sith "while channeling", Palpatine "constant" but hidden by the Mask
+- [ ] A simulated Sith-academy run (interrogation, judging prisoners, trial killings): how fast Dark climbs under the per-turn and per-scene deed caps (D-319)

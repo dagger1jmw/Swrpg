@@ -1062,6 +1062,24 @@ The clock and the module contract come first, before any feature.
   ysalamiri). With the non-saber mortal band (D-267: mortal only from margin 30), this is how a non-Force fighter can
   realistically reach a killing blow on a Jedi. Preparation takes time and resources in the story (a contract, scouting,
   buying gear).
+  *Doctrine (lore batch 2026-11-21; Docs/SWRPG lore/SW_Weapons_Armor_AllEras.md, Game notes and "Anti-Jedi gear"):*
+  a prepared hunter follows Revan's and HK-47's doctrine rather than duelling: flame, slugs, sonics, mines, nets,
+  attacks on the Jedi's companions and sniping from cover. These are the attacks a saber cannot redirect or cannot
+  block at all (D-292), so they are the hunter's default loadout.
+- **M8 equipment spec ideas (lore batch 2026-11-21; not built).** From the Game notes of
+  Docs/SWRPG lore/SW_Lightsabers_Crystals_Materials_AllEras.md (suggestions, not lore), with D-285..D-294:
+  - *Crystal slots:* one primary crystal (sets the colour and the base blade) and up to two focusing crystals or
+    modifiers (the sources' "one required, three ideal").
+  - *Crystal modifiers by rarity:* KOTOR-style effects (deflection, ion damage against droids, stun, fire) as
+    modifiers; the rarer the crystal, the stronger the effect.
+  - *Cortosis shut-off versus parry-only materials:* refined cortosis drops the blade for a short time (D-289);
+    phrik, beskar, songsteel, ultrachrome and cortosis-weave parry with no shut-off.
+  - *Ultrachrome melt threshold:* it parries, but melts under sustained contact.
+  - *Synthetic blades that can break a Jedi blade:* a standard synthetic (usually red) crystal gives a slightly
+    stronger blade with a rare chance to "break" a standard saber's blade by overloading it, but is less manoeuvrable
+    and less stable (lore file, "Synthetic lightsaber crystals"); the chance is set at build time.
+  - *Crystal availability by era:* Adega first, Ilum from c. 22,800 BBY (D-288); Ilum-only for Jedi between Ruusan and
+    the Purge; crystal sites razed under the Empire.
 - **M8 prosthetic damage (D-164):** a hit to a prosthetic limb becomes equipment damage to the prosthetic (repair,
   malfunction, loss). Until then such a hit costs Vitality only: no wound and no sever.
 - **Cleave (D-158):** keeping the advantage after taking a minion out; a candidate Shii-Cho / Sokan form trait

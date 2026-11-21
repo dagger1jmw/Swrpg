@@ -576,3 +576,101 @@ D-123 is the plan Jared approved. Entries marked "chosen while Jared was away" w
   - *Equal duels* (4,000 each): Masters 0–0.1% dark (target ≤2%), senior Knight 1.2% (≤3%), Knight 3.2%, Padawan 25 v 25 24.6% (20–30%).
   - *D-158 heavy-Force rows* at 1,000 fights: within 2.5 points of off (about 1.3 standard errors).
   - *Code:* `src/engine/precogTrial.ts` keeps `PRECOG_TRIAL.enabled = false` in the game. The trial-2 settings are `PRECOG_M6=base=5,wound=1` in the harness. The M5 rule (0.4 load per trigger, gate at meter 1.0) runs until the M6 integration.
+
+## 2026-11-21 — Lore batch: equipment, Jedi Order, Sith orders (Jared; docs-v2/lore-batch-2026-11-21.md)
+Nine research-bot lore files were reviewed in chat and added to Docs/SWRPG lore/. Lore files are named in short form below: *Ranks* = SW_Jedi_Order_Ranks_Council_OldRepublic.md, *Daily Life* = SW_Jedi_Daily_Life_Training_OldRepublic.md, *Jedi AE1/AE2* = SW_Jedi_Training_AllEras_Part1/Part2.md, *Sith Academies* = SW_Sith_Academies_Training_OldRepublic.md, *Sith AE1/AE2* = SW_Sith_Training_AllEras_Part1/Part2.md, *Sabers* = SW_Lightsabers_Crystals_Materials_AllEras.md, *Weapons* = SW_Weapons_Armor_AllEras.md. Where a file lists a [conflict] without picking, the version here is Jared's pick. None of these entries is built yet; each one is an input for the milestone it is filed under.
+
+### Jedi Order ranks and the Council (lore: Ranks)
+- **D-283 Satele Shan's career dates (Jared's picks among the Ranks file's conflicts).** Knight in 3,661 BBY and still a Knight at the 3,653 BBY peace talks, consistent with D-152 (the closed form makes her a 38-year-old Knight in 3,661). Master and a High Council seat in 3,651 BBY. Grand Master c. 3,648 BBY, after the Council moved the Order to Tython (the Ranks file's Version B order of events: Council seat, move to Tython, then appointment; the Tython Temple was built 3,650–3,647 BBY). Her term ends c. 3,636 BBY with the Eternal Empire's conquest (Ranks Version A, footnoted to KotFE). Later narrative use of "Grand Master Shan" is the old title, not a term in office. *Lore:* Ranks, "Grand Master" and Timeline.
+- **D-284 The Coruscant Temple is rebuilt c. 3,500 BBY (Jared's pick).** The Order works from Tython c. 3,653–3,636 BBY and is scattered after the conquest. The Coruscant Temple is rebuilt with major work from c. 3,500 BBY: the Ranks file's Versions B and C with Version A's date, dropping the "several decades" phrase as the outlier. *Lore:* Ranks, "Jedi Temple (Tython)", uncertainty notes.
+
+### M8: equipment
+- **D-285 Lightsaber technology by era (lore: Sabers, "Before the lightsaber" and "Hilt and blade variants"; Jedi AE1, Eras 1–2).**
+  - Before c. 15,500 BBY: Force-imbued blades are the Jedi weapon, and they stay the main weapon on early Ossus.
+  - The Forcesaber (Rakatan-derived; copied by the Je'daii in the Force Wars, c. 25,793 BBY) is powered through the dark side by lab-grown crystals and has no power source. It can only be used by drawing on the dark side, and every use counts as dark-side use (an M6 alignment deed).
+  - c. 15,500 BBY: the first lightsabers. Unstable, they overheat after short use; rare and cumbersome.
+  - c. 7,000 BBY (Hundred-Year Darkness) to the Great Hyperspace War: protosabers are common. The hilt is cabled to a belt power pack. No saber throw and no telekinetic saber combat.
+  - After the Great Hyperspace War (complete by c. 4,800 BBY): modern self-contained lightsabers (the Sith moved the power cell into the hilt). From the Great Sith War (c. 4,000 BBY) on, every saber is modern.
+  - The First Blade is a unique SWTOR prototype, not an era type.
+- **D-286 Training sabers (lore: Sabers, "Training lightsaber"; Daily Life; Sith Academies).** A permanent low-power setting, matching M5's training-saber mode; a trained Jedi can overload one in an emergency (flavour only, no rule). Old Republic training sabers use bondar (stun) crystals; later eras use low-grade Adegan crystals. SWTOR-era Padawans (3,653–3,643 BBY) use electroblade practice swords until the Forge rite (D-303). All of them deal Vitality damage only.
+- **D-287 Mass production (lore: Sabers, "Construction practice").** Lightsaber components can be mass-produced, but assembly is by hand, so stock sabers exist (the Brotherhood of Darkness, the Reborn, the Imperial Knights).
+- **D-288 Crystal sources (lore: Sabers, "Construction practice and crystal sources").** Adega first; Ilum from c. 22,800 BBY.
+- **D-289 Cortosis by purity (lore: Sabers, "Cortosis"; Weapons, "Anti-Jedi gear").** Refined cortosis (shields, gauntlets, cortosis rounds) shuts a lightsaber off for a short time. The exact duration is a design default set in the M8 equipment spec (sources range from "temporarily" to "several minutes"). Trace cortosis-weave in armour and vibroblades only resists a blade, like phrik.
+- **D-290 Electrostaffs (lore: Weapons, "Electrostaff").** Phrik by default in the Clone Wars, though not every staff is (cheap staffs can be cut). Imperial riot-trooper staffs are cortosis. Electrostaffs bypass armour and neutralize personal shields.
+- **D-291 Armour against blasters (lore: Weapons, "Armour: general classes", "Clone trooper armour", "Stormtrooper armour").** Good military armour reduces a blaster hit but never makes the wearer immune. Light armour and blast vests barely help against blasters but do help against slugs and shrapnel.
+- **D-292 What a saber can do against each attack (lore: Weapons, "Slugthrowers", "Stun (as an effect)", "Sonic weapons", "Anti-Jedi gear"; Sabers, overview).** Blaster bolts: deflect and redirect. Slugs: block, never redirect. Stun: block (dissipated, as Ahsoka does in TCW "The Jedi Who Knew Too Much"), never redirect, at a slightly harder block. Flame and sonic attacks: no blade block; only a costly Force barrier.
+- **D-293 Personal energy shields by era (lore: Weapons, "Personal energy shields", "Disruptors, the Mandalorian ripper and the Mandalorian disintegrator").** A by-era chance like beskarChance: prominent in the Mandalorian Wars and the Jedi Civil War, rare by the Clone Wars, nearly lost from the Galactic Civil War to the Vong War. Shield-piercing weapons (Mandalorian ripper, disintegrator, disruptors) and vibroweapons beat them.
+- **D-294 Era kit (lore: Weapons, "History of blaster technology", "Pulse-wave blaster", "Vibroweapons", "Bowcaster").** Pulse-wave blasters only up to about the Great Sith War (they lost out to triple blasters; the self-contained blaster appeared before the Mandalorian Wars). Cortosis-weave vibroswords are common around 3,956 BBY and rare by the Galactic Civil War. Bowcaster: 6–10 quarrels standard.
+- **D-295 Money (lore: Daily Life, "Padawan").** Padawans are not given funds; the Master manages them.
+
+### M7: Jedi Order
+- **D-296 Apprentices per Master, by era (lore: Jedi AE1 and AE2, cross-era tables; Daily Life).** Several before c. 3,996 BBY (praxeums up to about 20). After the Great Sith War, Masters are asked to take one, with exceptions: the default for the KOTOR and SWTOR eras, where in practice students also learn from several teachers. Lapsed in the New Sith Wars; strict from Ruusan (1,000 BBY); several again in the New Jedi Order; one at a time in the Legacy era.
+- **D-297 Marriage, by era (lore: Jedi AE1 and AE2, cross-era tables and "Corellian Jedi").** Normal c. 4,000 BBY; discouraged after 3,996 BBY; forbidden by the late Republic. In the SWTOR era relationships are secret. Corellian Jedi are excepted. Allowed again in the New Jedi Order and Legacy eras.
+- **D-298 The Jedi era table (lore: Jedi AE1 and AE2, cross-era tables and Game notes; Ranks; Daily Life).** The M7 Order rules read one row per era, with D-296 and D-297 for apprentices and marriage:
+
+  | Era | Age of entry | Apprentices per Master | How knighting works | Family |
+  |---|---|---|---|---|
+  | Je'daii (to 25,783 BBY) | Young child, on arrival on Tython | One, one-on-one | Survive the Great Journey and each Temple's displays → Ranger (D-299) | Mated couples allowed |
+  | Early Order (to c. 5,000 BBY) | Any; adults taken | Several (2–5) | The Master's word, sometimes a personal test | Allowed |
+  | Great Sith War to c. 3,950 BBY | Parent-chosen child or adult → younglings; adults by Council vote | Up to 20 in a praxeum → one nominal, several teachers | Master and peers judge, or a final trial and ceremony, or deeds in war | Normal → discouraged |
+  | SWTOR (3,681–3,636 BBY) | Infant or young child (to Coruscant, then Tython) | One, with exceptions | High Council ruling; deeds count in wartime; field knighting (D-302) | Forbidden; secret relationships |
+  | New Sith Wars (to 1,000 BBY) | Child recruited on campaign | Varies | Battle deeds; Jedi Lords | Hereditary titles |
+  | Late Republic (1,000–22 BBY) | Infant; rare exceptions by Council vote | One | Five Trials; retakes allowed | Forbidden (Ki-Adi-Mundi excepted) |
+  | Clone Wars (22–19 BBY) | As the late Republic | One; orphaned Padawans pooled (D-305) | The Council may knight for deeds | Forbidden |
+  | Dark Times (19 BBY–4 ABY) | Any | 1–3 | The teacher's judgement | Hidden families |
+  | New Jedi Order (4–c. 40 ABY) | Any at first, children later | Several (2–3) | Master and Grand Master approval after a proving mission | Allowed |
+  | Legacy (c. 130 ABY) | Childhood | One at a time | Council or a senior Master; deeds | Allowed |
+
+  The Game notes' training lengths are design defaults, not lore.
+- **D-299 The Je'daii (lore: Jedi AE1, Era 1).** One-on-one Padawan training away from Padawan Kesh. Journeyers start the two-year Great Journey in their late teens. Ranks: initiate → Padawan → Journeyer → Ranger → Master → Temple Master.
+- **D-300 Default Temple day (lore: Daily Life, timetable, general *The Jedi Path*; Jedi AE2, Era 6).** Morning Force study (Control, Sense, Alter), midday classes, afternoon physical and lightsaber training (Forms I–VI with training sabers), five meditations a day. Wartime and Tython eras run looser: field tasks, Council-approved solo Padawan missions, fewer formal classes. Padawans set their own schedule around missions. (Feeds the M7 Order schedule review, D-165.)
+- **D-301 Progression (lore: Daily Life, "Initiate Trials", "Clans"; Sabers, Sevinte).** Initiate Trials can be retaken, but there is no extra year ("progress or leave"). The usual cutoff for being chosen is about 13; before Ruusan, adolescents and adults can be recruited. Initiates get real sabers only after showing strike control (the Sevinte cadence). Clan size: about ten.
+- **D-302 Knighthood (lore: Ranks, "Jedi Knight"; Jedi AE2, Era 6).** The High Council rules on readiness. In wartime, deeds can count toward the Trials, and Masters can knight in the field. Which Trials the Old Republic used is still open (Ranks: not found).
+- **D-303 Saber construction by era (lore: Daily Life; Jedi AE1; Sabers, "Construction practice").** An Initiate Trial before Ruusan in general; a late-Padawan rite at Tython's Forge (Vur Tepe) in 3,653–3,643 BBY.
+- **D-304 Failing or not being chosen (lore: Daily Life, "Service Corps"; Jedi AE2, Era 6).** Leads to the Service Corps (AgriCorps, MedCorps, EduCorps, ExplorCorps) under the Council of Reassignment: a non-combat career branch. ExplorCorps sees the most fighting.
+- **D-305 Clone Wars (lore: Jedi AE2, Era 6).** Padawans serve as Jedi Commanders (one per regiment), promotion is faster, fewer are sent to the Service Corps, and orphaned Padawans are pooled at the Temple. Anakin is knighted after Praesitlyn in a secret ceremony without Trials.
+- **D-306 Grand Master date check (lore: Daily Life, Shigar Konshi; Ranks).** Shigar Konshi's selection by a "recently appointed" Grand Master is consistent with D-283's c. 3,648. No change.
+- **D-307 Not used: the *Jedi Academy* children's books' school-style Temple (lore: Jedi AE2, "Not used").**
+
+### M7: Sith and other dark-side orders
+- **D-308 Sith rank names by era (lore: Sith AE1 and AE2, cross-era rank tables).** The narrator uses the era's names:
+  - Ancient Empire: castes (Kissai priest-teachers, Massassi warriors), Sith Lords, the ten-member Sith Council, the Dark Lord.
+  - Kun's Brotherhood of the Sith (c. 3,996 BBY): disciples, Sith Lord, Dark Lord.
+  - Imperial (Vitiate's Empire, to 3,636 BBY): acolyte → apprentice → Sith Lord → Darth → Dark Council (12 Dark Lords, one Sphere each) → Emperor's Wrath → Emperor; Overseer and Assistant Overseer are staff roles.
+  - Revan and the Triumvirate (3,959–3,951 BBY): Dark Lord, apprentice, Shadow Hand, assassins and marauders; self-styled "Lord of" titles.
+  - Brotherhood of Darkness (1,010–1,000 BBY): every Master is a "Dark Lord of the Sith"; Darth is discouraged.
+  - JCW-era Korriban: "true Sith" status is earned through prestige.
+  - Rule of Two (1,000 BBY–4 ABY): Master and apprentice only.
+  - Lost Tribe: Tyro → apprentice → Saber → Master → Lord → High Lord → Grand Consort → Grand Lord.
+  - One Sith: acolyte → apprentice → Lord/Lady → Darth (by merit only), plus the offices of Hand, Fist, Voice/Regent, Loremaster and Inquisitor.
+- **D-309 "Darth" by era (lore: Sith AE1, Era 3 "Vitiate" and Era 6; Sith AE2, Eras 7, 9, 10).** Granted by the Emperor to high Lords (Vitiate did not use it as a young Lord); banned by Kaan; chosen by the Master at the oath under the Rule of Two (some kept birth names); self-styled (the Triumvirate, Caedus); merit only in the One Sith, so not every Sith is a Darth.
+- **D-310 Shadow Hand (lore: Sith AE1, "The Shadow Hand title").** A single sworn subordinate who is both apprentice and second-in-command.
+- **D-311 Non-Sith darksiders (lore: Sith AE2, Eras 7–9).** From 1,000 BBY to 4 ABY only the Rule of Two pair are Sith. Dark Acolytes, Dooku's assassins, Inquisitors, Emperor's Hands, Prophets of the Dark Side, the Royal Guard's Force-trained elite, the Dark Side Elite, Jerec's Dark Jedi, the Shadow Academy's Dark Jedi and the Reborn are not Sith. The narrator must not call them Sith. (Engine gap: D-320.)
+- **D-312 Class size per instructor and the lesser academies (lore: Sith Academies; Sith AE1, "The lesser academies").** About 6 (Imperial Korriban), 3–4 (JCW Korriban), 20+ (Brotherhood Korriban). Brotherhood lesser academies train one role each: acolytes on Dathomir and Iridonia; assassins and spies on Ryloth, Umbara and Nar Shaddaa; warriors and marauders on Honoghr, Gentes and Gamorr. The acolyte stage normally lasts several years from a young age; SWTOR-style fast tracks are exceptional.
+- **D-313 Imperial recruitment (lore: Sith Academies; Sith AE1, Era 3).** Academy training is mandatory by law for every Force-sensitive in Imperial territory, and parents who hide a child are punished. Slaves could be taken as apprentices during the Great Galactic War; slave and alien acolyte classes became policy in the Cold War and were still resented. Killing among Imperial acolytes is forbidden on pain of death, but common, disguised as tomb accidents.
+- **D-314 The Sith Blademaster (lore: Sith Academies; Sith AE1, Era 6).** The counterpart of the Jedi Battlemaster. Brotherhood practice: sequences from all seven forms, one assigned key form per student, a critique after each bout, and end-of-class challenges that could be lethal.
+- **D-315 Sith sparring and challenge mode (lore: Sith Academies; Sith AE1; Sith AE2, Eras 7–8).** Training bouts are non-lethal (Brotherhood pelko-barbed training sabers burn and briefly numb a limb), but challenges and trials use real weapons. M7 adds a challenge mode that uses the full M5 wound rules. Lethal trials by era: the Inquisitor audition (those not chosen are executed), the Royal Guard's final duel to the death, the Shadow Academy's knife drill, the Rule of Two survival tests (Maul on Hypori).
+- **D-316 Killing the Master (lore: Sith AE2, Eras 7 and 10).** The promotion step under the Rule of Two (when the apprentice has surpassed the Master) and in the One Sith (on the Dark Lord's order, with the Master allowing it).
+- **D-317 Weapons in training (lore: Sith Academies; Sabers, "Hilt and blade variants"; Sith AE2, Era 8).** A warblade or training saber during the trials; a lightsaber at apprenticeship, often the master's own as a gift. Apprentice Inquisitors use lightfoils.
+- **D-318 Sith conflict picks (Jared; lore: Sith Academies, Sith AE1, Sith AE2).** Slaves and aliens were admitted gradually. Harkun's first class had 7. Gerr was badly injured, not killed. Vindican was a Sith Lord in 3,681 BBY (keep the name Darth Vindican; whether he is alive in 3,661 stays the D-152 question). JCW admission is by Sith Medallion. The Korriban Academy was founded by Exar Kun's disciples in 3,996 BBY. Darth Rivan was betrayed by his apprentice. Emperor's Hands start training after their powers develop (Mara Jade the exception). Inquisitor recruitment is staged, with Byss as the founding cohort.
+
+### M6 checks
+- **D-319 Three M6 checks from the lore batch (lore: Sith Academies; Daily Life, Orgus Din; D-262).** Added to docs-v2/spec/m6-integration-checklist.md:
+  - *Re-measure:* a simulated Sith-academy run (interrogation, judging prisoners, trial killings) to check how fast Dark climbs under the per-turn and per-scene deed caps.
+  - *Conversion by torture:* a captured Jedi (captured by subduing, D-262) may face a conversion arc. Torture works only through temptation moments and corruption pressure and never sets alignment directly, so a fall still comes from the character's own deeds.
+  - *Step 1 review:* Orgus Din (weak Force aptitude, Council-level skill "through endless practice"). Low Potential and talent plus heavy drilling must still reach high skill (force-xp-rework.md §6 has the proposed lifetime gate).
+
+### Engine check (report only; no code changed)
+- **D-320 "Sith" opponents between 1,000 BBY and c. 25 ABY: the engine allows them (proposal, waiting for Jared).** *Finding:* D-213's era check covers minion kinds only.
+  1. The narrator's npcIntroduced accepts the roles sithLord and sithAcolyte and the faction sith in any year (data/entities.config.ts NPC_ROLES; features/npcs), so a generic "Sith Lord" can be generated in 500 BBY or 10 ABY.
+  2. The sithAcolyte minion kind (data/npcGen.config.ts MINION_KINDS) has no eras, so "four Sith acolytes" can be fielded in any year.
+  3. The dev /fight command (turn/devCommands.ts) spawns a role sithLord in any year; sithFactionAt only switches the faction between sithEmpire and sith.
+  4. No Dark Jedi, Dark Acolyte or Inquisitor role or minion kind exists, so there is nothing era-correct to fall back to.
+
+  *Proposed fix (not built):*
+  - Add the roles darkJedi, darkAcolyte and inquisitor, using the existing sithWarrior / sithInquisitor archetype numbers, so balance does not change.
+  - Give sithLord and sithAcolyte a role era list that excludes [-1000, 25). The end year is a design default: Sith AE2 has the One Sith founded on Korriban "before 27 ABY" (era table c. 25 ABY), and the Lost Tribe and Lumiya come later still. Generic Sith after 25 ABY are then One Sith, Lost Tribe or Lumiya's line, and the narrator still uses the era's rank names (D-308).
+  - Out of era, a generic Sith role becomes darkJedi (from sithLord) or darkAcolyte (from sithAcolyte), with a D-213-style note. A name that matches a canon figure keeps its Sith role (the Rule of Two Masters and apprentices in the canon rosters).
+  - Give the sithAcolyte minion kind the same eras, with a darkAcolyte fallback kind.
+  - Add one narrator line from D-311 to the era block.
+  - Tests: role and minion cases at 500 BBY, 4 ABY and 3,661 BBY, and a canon match (Darth Maul at 32 BBY stays Sith).
