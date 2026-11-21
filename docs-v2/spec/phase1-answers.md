@@ -91,12 +91,15 @@ record it as a conflict with Legends and follow Legends.
 24. DEFAULT: Shien and Djem So are separate skills linked as variants (synergy 0.25), as in
     progression-numbers.md sec 14. Include the other forms the Legends lore file lists
     (Tràkata, Sokan, etc.). Kii-Shikk: LORE CHECK; keep it only if a Legends source exists.
+    → **Superseded by D-278:** Zero-G is no longer a form (environment training); new form keys TKSaber, Lightwhip, SaberPike, StrongStyle, MediumStyle, FastStyle; Kii-Shikk stays as the Q24 answer left it.
 25. LORE CHECK: follow the Legends lore for Force Plague (own ability or a stage of Force
     Affliction). Drop it if it has no Legends source.
+    → **Superseded by D-278:** Force Plague is its own Advanced ability under Force Slow, after Force Affliction (Wookieepedia, "Force Slow").
 26. DEFAULT: the lore's prerequisites (the lore is the source of truth).
 27. DEFAULT: yes. Shadowstrike, Midi-chlorian Manipulation and Transfer Essence are
     "forbidden" availability: learning them needs access to a Sith text or teacher (story
     gate). Non-numeric lore prerequisites stay story-checked by code via flags.
+    → **Closed in full by D-278:** Shadowstrike removed (a Ta-Ree spell); Midi-chlorian Manipulation and Essence Transfer (old name Transfer Essence) have the learning class "Story event", stricter than Sith-text access; non-numeric lore prerequisites are carried by each entry's learning class (Taught / Can manifest / Lore-locked / Story event), gated by story flags per Q50; stat prerequisites stay numeric.
 28. LORE CHECK: verify the Battlemind and Force Body aliases against the lore. Split
     ForceHeal into Self and Others if the lore distinguishes them.
 29. DEFAULT: Force Barrier is a learned ability that uses the Force meter (health.md). No
