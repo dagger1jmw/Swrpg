@@ -1,6 +1,6 @@
 # Lore research queue
 
-Last updated 2026-11-21 (lore batch, docs-v2/lore-batch-2026-11-21.md; dark-side files added the same day).
+Last updated 2026-11-21 (lore batch, docs-v2/lore-batch-2026-11-21.md; dark-side files added the same day; lore batch 2, docs-v2/lore-batch-2-2026-11-21.md).
 
 This file tracks every lore file in `Docs/SWRPG lore/`: what it covers, where it came from, what in docs-v2 relies on it, and what the research bot should redo next. The lore files themselves stay in `Docs/SWRPG lore/` (the canon source of truth). This queue and the lore index (README.md, next to this file) live in `docs-v2/lore/`, because CLAUDE.md forbids new files in `Docs/`.
 
@@ -43,9 +43,11 @@ This file tracks every lore file in `Docs/SWRPG lore/`: what it covers, where it
 | SW_Sith_Training_AllEras_Part2.md | Sith training and organization, Eras 7–10 (Rule of Two to the One Sith); non-Sith darksiders | 1,000 BBY–c. 138 ABY | 73 KB | bot (reviewed) | 2 | D-308, D-309, D-311, D-315, D-316, D-317, D-318, D-320 | — |
 | SW_Lightsabers_Crystals_Materials_AllEras.md | Lightsaber construction, crystals, blade colours, variants, saber-resistant materials | All eras | 99 KB | bot (reviewed) | 3 | D-285, D-286, D-287, D-288, D-289, D-292, D-301, D-303, D-317 | architecture.md (§15 M8 equipment ideas) |
 | SW_Weapons_Armor_AllEras.md | Non-saber weapons, armour, personal shields, anti-Jedi gear | All eras, focused on the Old Republic and Clone Wars | 87 KB | bot (reviewed) | 3 | D-289, D-290, D-291, D-292, D-293, D-294 | architecture.md (§15 prepared Jedi hunters) |
-| SW_DarkSide_Fall_Corruption_Redemption_Part1.md | The dark side: how falling works, falls, redemptions, physical corruption, power, madness, places, gray paths | To 1,000 BBY | 48 KB | bot (reviewed) | 1 | — | alignment-m6.md (audited: docs-v2/testing/alignment-lore-audit.md) |
-| SW_DarkSide_Fall_Corruption_Redemption_Part2.md | As Part 1 | 1,000 BBY–4 ABY | 44 KB | bot (reviewed) | 1 | — | alignment-m6.md (audited) |
-| SW_DarkSide_Fall_Corruption_Redemption_Part3.md | As Part 1, plus Force psychosis | 4 ABY–c. 138 ABY | 50 KB | bot (reviewed) | 1 | — | alignment-m6.md (audited) |
+| SW_DarkSide_Fall_Corruption_Redemption_Part1.md | The dark side: how falling works, falls, redemptions, physical corruption, power, madness, places, gray paths | To 1,000 BBY | 48 KB | bot (reviewed) | 1 | D-324, D-325, D-326, D-328 | alignment-m6.md (audited: docs-v2/testing/alignment-lore-audit.md) |
+| SW_DarkSide_Fall_Corruption_Redemption_Part2.md | As Part 1 | 1,000 BBY–4 ABY | 44 KB | bot (reviewed) | 1 | D-324, D-325, D-326, D-327, D-328 | alignment-m6.md (audited) |
+| SW_DarkSide_Fall_Corruption_Redemption_Part3.md | As Part 1, plus Force psychosis | 4 ABY–c. 138 ABY | 50 KB | bot (reviewed) | 1 | D-324, D-325, D-326, D-327, D-328 | alignment-m6.md (audited); force-catalog-questions.md (ForcePsychosis); m6-integration-checklist.md (items 24-25) |
+| SW_Midichlorians_Force_Potential.md | Midi-chlorian counts and Force potential: measurement, named counts, thresholds, inheritance, potential vs skill, losing potential, late awakening (revision 2) | All eras | 34 KB | bot (reviewed) | 1 | D-279, D-321, D-322, D-323 | force-reserve.md (§2, §7, §11 counts and ceiling); m6-integration-checklist.md (item 15) |
+| SW_Lucas_Statements_Force_Potential.md | George Lucas's statements on Force potential, Vader's power, midi-chlorians, balance and the dark side. Behind-the-scenes material, not in-universe lore: informs design numbers only | n/a (statements 1977–2010s) | 42 KB | bot (reviewed) | 1 | D-322, D-323 | force-reserve.md (§11 design counts) |
 
 ## Redo briefs for the pre-bot files
 
@@ -56,6 +58,11 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 - **Priority 1. Era 09 characters (redo of SW_Characters_09_GreatGalacticWar_ColdWar.md).** Re-research every named Jedi, Sith, Imperial, Republic and Mandalorian figure of 3,681–3,636 BBY: birth and death years, rank by year (with the D-283 Satele Shan dates as a check), Masters and apprentices, lightsaber forms and Force powers named in the sources, alignment and visible corruption, species and homeworld. Mark every design estimate as such. Answer the open D-152 questions (Darth Vindican's and Ngani Zho's death years, Aric Jorgan's age in 3,661) and the Orgus Din background (D-319). Game systems: the built canon roster (src/data/canon), M6 hand-set alignment values for canon NPCs (checklist item 14), M7 ranks, the lore index.
 - **Priority 3. Galaxy timeline (redo of SW_Legends_Galaxy_Timeline.md).** Rebuild the timeline from Wookieepedia Legends with one dated, cited row per event: wars, treaties, Temple moves, academy foundings, faction control of key worlds, and technology changes (lightsaber, blaster and shield eras), with conflicts listed and Disney-era material flagged. Keep the era headings that the parser reads (src/lore/parse.ts) or propose a format change. Game systems: the lore index (D-81), calendar and era checks (13-calendar-and-time.md), M8 timeline events and factions, D-213 era checks, character-creation era dates.
 - **Priority 4. Character sheets, Eras 01–08, 09-B and 10–18 (redo of the other 17 SW_Characters_* files, one era per run, when that era's canon roster is built, D-155).** For the era, research every named Force user and major non-Force figure: dates, rank by year, Masters and apprentices, forms and powers named in the sources, alignment, species and homeworld, with per-entry citations and conflicts listed without picking. Name dark-side figures correctly for their era (D-311: no "Sith" for non-Sith darksiders between 1,000 BBY and 4 ABY). Game systems: canon rosters by era (D-155), canon NPC levels and alignment (npc-generation §5, alignment-m6.md), the lore index.
+
+## Queued research (not done yet)
+
+- **Jedi ranks, councils and roles, all eras** (priority 2). The ranks file covers only c. 3,700–3,600 BBY. Brief: Jedi ranks and titles (Initiate to Grand Master, Battlemaster, Watchman, Jedi Lord, Commander/General, Shadow), the High Council and the other councils (Reconciliation, First Knowledge, Reassignment), and specialist roles (Consular, Guardian, Sentinel and their sub-roles) for every era from the Je'daii to the Legacy era, with per-entry citations. Game systems: M7 rank ladders and Order requirements, the D-298 era table, the narrator's era rank names (architecture §15).
+- **Yuuzhan Vong weapons and armour** (priority 3; also listed under Gaps).
 
 ## Gaps (no file yet)
 

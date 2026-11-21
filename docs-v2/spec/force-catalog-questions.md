@@ -17,7 +17,7 @@ These appeared in the legacy lore database (`legacy/index.html` LORE_DATABASE) w
 |---|---|---|
 | Possession | 1 | **Sourced and added** to the lore file (Dark side family). [Wookieepedia: Possession (Legends)](https://starwars.fandom.com/wiki/Possession/Legends). Legacy alias `Possession` resolves to it |
 | MindWalking | 1 | **Sourced and added** to the lore file (Knowledge & Arcane family). [Wookieepedia: Mind Walking](https://starwars.fandom.com/wiki/Mind_Walking). Legacy alias `MindWalking` resolves to it |
-| ForcePsychosis | 1 | **Not a power.** [Wookieepedia: Force psychosis](https://starwars.fandom.com/wiki/Force_psychosis) describes a mental illness affecting young Jedi after the Second Galactic Civil War. Rejected as an ability name; a candidate for the illness or world-events systems instead |
+| ForcePsychosis | 1 | **Not a power.** [Wookieepedia: Force psychosis](https://starwars.fandom.com/wiki/Force_psychosis) describes a mental illness affecting young Jedi after the Second Galactic Civil War. Rejected as an ability name; a candidate for the illness or world-events systems instead. **Reframed (D-327, 2026-11-21):** an affliction caused by the entity Abeloth (c. 43 ABY, *Fate of the Jedi*), so a world event for that era only, eased by being cut off from the Force and lifted when Abeloth is defeated. Not a result of a character's own dark-side use; madness from one's own dark-side use is a separate alignment rule that needs an existing trauma (SW_DarkSide_Fall_Corruption_Redemption_Part3.md §6) |
 | Multipresence | 1 | **Dropped.** No Legends source exists |
 | ForceHealingResurrection | 1 | **Dropped.** Not Legends; likely a Disney canon idea that slipped in. Legends resurrection is covered by Dark Transfer |
 

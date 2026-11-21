@@ -2,6 +2,8 @@
 
 2026-11-21. Report only: no spec was changed.
 
+**Status after lore batch 2 (2026-11-21, decisions D-324..D-328):** Jared's rulings settle the lore side of findings 3 (fall-speed targets, D-324), 8, 9, 15 and 16 (corruption, eyes and skin, D-325), 5 and 6 (redemption and the lasting hold, D-326) and 10 (madness, D-327). The spec changes they imply are still to be made in the alignment doc. Findings 2 (pressure) and 13 (gray use) are M6 checklist items 24 and 25. Finding 1 (redemption leaves deep-Dark characters fallen) is open.
+
 **Compared:** `docs-v2/spec/alignment-m6.md` (export of rev 30) against `Docs/SWRPG lore/SW_DarkSide_Fall_Corruption_Redemption_Part1.md`, `_Part2.md` and `_Part3.md` (Old Republic to 1000 BBY; 1000 BBY–4 ABY; 4 ABY onward).
 
 **Finding types:**

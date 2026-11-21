@@ -1,4 +1,4 @@
-<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 integration checklist" (https://claude.ai/artifact/5nJqew4V3WKMwPSKSsumKe, rev 46). The repo copy is the build reference; design changes go in the doc first, then re-export. Repo-only additions since the export (Jared's rulings, 2026-11-21): the item 16 correction and items 20-21; copy them into the doc before the next re-export. -->
+<!-- Exported 2026-11-21 from the claude.ai doc "SWRPG M6 integration checklist" (https://claude.ai/artifact/5nJqew4V3WKMwPSKSsumKe, rev 46). The repo copy is the build reference; design changes go in the doc first, then re-export. Repo-only additions since the export (Jared's rulings, 2026-11-21): the item 16 correction, items 20-21, items 22-23 and the Sith-academy re-measure line (lore batch 1, D-319), and from lore batch 2 the new item 15, items 24-25 and the fall-path re-measure line (D-323..D-326); copy them into the doc before the next re-export. -->
 
 # SWRPG M6 integration checklist
 
@@ -122,7 +122,12 @@ These four can break M5 or its calibration if M6 is built as written.
 Integration points the M6 design chat found that the first pass missed.
 
 - [ ] **14. NPC alignment values in code:** the agreed archetype table and the hand-set canon values go into npc-generation, so eyes and sensing work for opponents.
-- [ ] **15. Cybernetic ceiling loss:** M5's severed limbs apply the ceiling loss when a cybernetic is fitted (5/10/20% plus 15 points per replacement). Add it to the `npm run severs` re-measure.
+- [ ] **15. Cybernetics and the Force ceiling (D-323; replaces "cybernetic ceiling loss", 5/10/20% plus 15 points):**
+  - A single lost or replaced limb never lowers the pool ceiling (Legends: Luke's hand, Anakin's arm).
+  - The ceiling falls only when a large share of the living body is lost or replaced. Proposed curve (D-323, for review): permanent loss = max(0, share lost − 0.20), with a body-share table; Vader's post-Mustafar injuries give about 40%.
+  - A psychological part (about 20% for Vader) is recoverable through story events. Vader's total is about 60%, so his ceiling is about 80% of Palpatine's.
+  - Cybernetic hands or arms block lightning-type powers (separate from the ceiling). The suit's immobility is a combat mobility effect (M5/M8), not a Force effect.
+  - **Build:** with tests: one lost hand gives no ceiling change; Vader's injury set gives about 40% permanent and 20% recoverable; lightning is blocked with a cybernetic arm. Report the curve and its threshold for review before adoption. Add it to the `npm run severs` re-measure.
 - [ ] **16. Valor, Battlemind and Force Body:** M5 already uses them; they become per-round draws, and their M5 numbers convert with item 3.
 
   **Correction (Jared, 2026-11-21, from the step 1 report):** the per-minute loads in health.md §2 for Valor, Battlemind and Control Pain were never coded in M5. Only the suppression crash (+0.5 mental) is built. Their M6 per-round draws are therefore **new costs, not a conversion**. Measure them on the D-158 rows plus a Sith-heavy duel set before adopting the catalog values.
@@ -134,6 +139,17 @@ Integration points the M6 design chat found that the first pass missed.
 
 - [ ] **22. Conversion by torture (D-319, lore batch 2026-11-21):** a captured Jedi (captured by subduing, D-262) may face a conversion arc. Torture works only through temptation moments and corruption pressure; it never sets alignment directly. A fall still comes from the character's own deeds.
 - [ ] **23. Step 1 review check: Orgus Din (D-319):** weak Force aptitude, Council-level combat skill "through endless practice" (`Docs/SWRPG lore/SW_Jedi_Daily_Life_Training_OldRepublic.md`). Low Potential and talent plus heavy drilling must still reach high skill. The proposed lifetime gate is in force-xp-rework.md §6.
+
+- [ ] **24. Pressure multipliers (D-324; lore: SW_DarkSide_Fall_Corruption_Redemption_Part1-3.md, Sections 1, 2 and 7):** dark-side sites (Korriban by era, Malachor, Byss, Yavin 4's temples, the Dagobah cave), Sith artifacts, Sith mentors and torture speed up deeds' effect and temptation frequency.
+  - **Check against alignment-m6.md: not there.** The spec's nexus sites and outside power sources add only immersion and Corruption, which never raise Dark (alignment-lore-audit.md finding 2).
+  - **Proposal (design defaults, for review):** a pressure factor P, the product of the sources present, capped at 4. P multiplies Dark from deeds and from dark-tagged Force use, multiplies the per-scene deed cap (+15), and divides the temptation cool-down (rounded down, at least 0 scenes).
+    - Sites: a wound in the Force (Malachor V, 3,960–3,951 BBY) 3; Byss (the reborn Emperor, 10–11 ABY) 2; Korriban strong (to c. 3,950 BBY, and again from c. 23 BBY) 1.5, faded (c. 1,000 BBY, Bane's thirteen days) 1.1; Yavin 4's temples while Kun's spirit is there (to 11 ABY) 1.5; the Dagobah cave 1.5 while inside (it also masks presence from sensing).
+    - A carried Sith artifact (an amulet, a Sith holocron in use) 1.5. A Sith mentor actively turning the character 1.25. A dark spirit or entity working on the character (Kun on Kyp) 2.
+    - Torture: 1.5, plus one temptation moment each scene of captivity (the D-319 conversion-by-torture rule still routes through temptation, never setting alignment directly).
+  - **Targets:** the D-324 fall speeds: self-driven years; outside pressure days to months; torture about a week; a wound in the Force immediate.
+- [ ] **25. Gray use (D-326; lore: Part1 §8, Part2 §5 and §8, Part3 §8):** a dark-tagged power used calmly with light intent should weigh far less than a deed done in anger (Kyle Katarn, Jolee Bindo, Mace Windu's Vaapad).
+  - **Check against alignment-m6.md:** per use it does weigh less. A calm standard dark-tagged use is +1 Dark (+0.5 while Gray); the same act in anger is anger fuel +1 plus `indulged_anger` (moderate +3) or `murder` (major +6), ×1.5 at a temptation moment: 4 to 10 times as much. But dark-tagged use has no intent discount (only the knockout Choke) and sits outside the per-scene cap, so a career of calm use (Kyle) still climbs to the Dark band (audit finding 13). Gray keeps 25% of Corruption build-up where the lore says none (audit finding 11).
+  - **Vaapad:** a risky light-side form. Heavy use (a fight in Vaapad) shortens the temptation cool-down by one scene; Vaapad fought in rage counts as anger fuel. Juyo the same (the New Sith Wars falls). Design defaults for review.
 
 ## Re-measure after integration
 
@@ -149,3 +165,4 @@ Run these with full 20-seed runs in parallel, and report runtimes. Tune only the
 - [ ] The precognition trial result (precog-m6-trial.md)
 - [ ] An eye-state check on canon NPCs: Dooku normal, a practising Sith "while channeling", Palpatine "constant" but hidden by the Mask
 - [ ] A simulated Sith-academy run (interrogation, judging prisoners, trial killings): how fast Dark climbs under the per-turn and per-scene deed caps (D-319)
+- [ ] Fall-path sim (D-324): an Anakin-like path where the Tusken massacre alone does not cause the fall, but the Dooku execution, Windu betrayal and Temple chain does, within a day. Report the Dark, Corruption and immersion trajectory

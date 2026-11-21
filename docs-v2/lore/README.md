@@ -59,6 +59,13 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Sith_Training_AllEras_Part1.md` | Sith training and organization from the ancient Sith Empire to the Brotherhood of Darkness (to 1,000 BBY) |
 | `Docs/SWRPG lore/SW_Sith_Training_AllEras_Part2.md` | Sith training and organization from the Rule of Two to the One Sith, and the non-Sith darksiders (1,000 BBY onward) |
 
+## Force potential
+
+| Path | Scope |
+|---|---|
+| `Docs/SWRPG lore/SW_Midichlorians_Force_Potential.md` | Midi-chlorian counts and Force potential in Legends: measurement, named counts, thresholds, inheritance, potential versus skill, losing potential, late awakening (revision 2) |
+| `Docs/SWRPG lore/SW_Lucas_Statements_Force_Potential.md` | George Lucas's statements on Force potential, Vader's power, midi-chlorians, balance and the dark side. **Behind-the-scenes material, not in-universe lore:** it informs design numbers and never overrides Legends |
+
 ## The dark side
 
 | Path | Scope |
