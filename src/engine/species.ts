@@ -3,6 +3,7 @@
 import { FORCE_BOOST, HUMAN_BODY_CAP, NATURAL_PHYSICAL_FACTOR, NATURAL_WILLPOWER } from '../data/progression.config';
 import { SKILL_BY_ID, type PhysicalStat } from '../data/skills';
 import { speciesDef, type SpeciesDef } from '../data/species';
+import { FORCE_XP_TRIAL } from './forceXpTrial';
 import { interp } from './interp';
 
 const HUMAN_MATURITY = 18;
@@ -43,9 +44,14 @@ export function naturalLevel(skillId: string, speciesId: string, age: number): n
   return 0;
 }
 
-/** Force boost (§11): min(45, 0.3 * max(0, FC - 40) + 0.2 * Force body-ability level). */
+/**
+ * Force boost (§11): min(45, 0.3 * max(0, FC - 40) + 0.2 * Force body-ability level). With the Force XP trial on
+ * (harness only, off in the game; ruling 1 on force-xp-trial.md), FC is read capped at 110: the ceiling removal
+ * stays for Force abilities and only the physical boost saturates.
+ */
 export function forceBoost(forceControl: number, bodyAbilityLevel: number): number {
-  return Math.min(FORCE_BOOST.max, FORCE_BOOST.fcPer * Math.max(0, forceControl - FORCE_BOOST.fcFrom) + FORCE_BOOST.bodyPer * Math.max(0, bodyAbilityLevel));
+  const fc = FORCE_XP_TRIAL.enabled ? Math.min(forceControl, FORCE_XP_TRIAL.physicalBoostFcCap) : forceControl;
+  return Math.min(FORCE_BOOST.max, FORCE_BOOST.fcPer * Math.max(0, fc - FORCE_BOOST.fcFrom) + FORCE_BOOST.bodyPer * Math.max(0, bodyAbilityLevel));
 }
 
 /** Physical performance = min(level, body cap) + Force boost (§11). Other skills pass through. */

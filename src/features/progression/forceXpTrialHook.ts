@@ -6,7 +6,7 @@
 import { ACTIVITY_BY_ID } from '../../data/activities';
 import { REQUIREMENT_ROW } from '../../data/orderRequirements';
 import { FORM_IDS } from '../../data/skills';
-import { FORCE_XP_TRIAL, buildExercise, drillHours, exerciseKind, gapForChallenge, recoverHours, reshapeReserve, targetFor, type Exercise, type Reserve, type TrialEffort, type TrialRow } from '../../engine/forceXpTrial';
+import { FORCE_XP_TRIAL, buildExercise, drillHours, exerciseKind, gapForChallenge, levelBand, poolFit, recoverHours, reshapeReserve, scaleExercise, targetFor, type Exercise, type Reserve, type TrialEffort, type TrialRow } from '../../engine/forceXpTrial';
 import type { GameState } from '../../state/gameState';
 import { selectPath } from '../character/selectors';
 import { selectRank } from '../ranks/selectors';
@@ -42,9 +42,17 @@ export interface BucketStat {
   bedStrainDays: number;
 }
 
+/** Force drill hours by day bucket, and those fitted to the pool (ruling 2) with their hour-weighted demand factor. */
+export interface FitStat {
+  hours: number;
+  fittedHours: number;
+  fitHours: number;
+}
+
 export interface ForceXpTrialSummary {
   sessions: Record<string, SessionStat>;
   buckets: Record<string, BucketStat>;
+  fits: Record<string, FitStat>;
 }
 
 interface Store {
@@ -53,15 +61,20 @@ interface Store {
   summary: ForceXpTrialSummary;
   /** The bucket of the day last planned (for the bedtime strain). */
   dayBucket: string | null;
+  /** The day plan's pool fit (ruling 2): the demand factor for that day's Force sessions. */
+  dayFit: { day: number; f: number } | null;
+  /** Harness diagnosis only: called with each reserve event when set. */
+  trace?: ((e: Record<string, unknown>) => void) | undefined;
 }
 
-export const TRIAL_STORE: Store = { reserve: null, at: null, summary: { sessions: {}, buckets: {} }, dayBucket: null };
+export const TRIAL_STORE: Store = { reserve: null, at: null, summary: { sessions: {}, buckets: {}, fits: {} }, dayBucket: null, dayFit: null };
 
 export function resetForceXpTrial(): void {
   TRIAL_STORE.reserve = null;
   TRIAL_STORE.at = null;
-  TRIAL_STORE.summary = { sessions: {}, buckets: {} };
+  TRIAL_STORE.summary = { sessions: {}, buckets: {}, fits: {} };
   TRIAL_STORE.dayBucket = null;
+  TRIAL_STORE.dayFit = null;
 }
 
 export const summarizeForceXpTrial = (): ForceXpTrialSummary => JSON.parse(JSON.stringify(TRIAL_STORE.summary)) as ForceXpTrialSummary;
@@ -106,6 +119,7 @@ function caughtUp(s: GameState, stored: Reserve | null, at: number | null, onBed
       t = until;
     } else {
       onBed?.(r.strain);
+      TRIAL_STORE.trace?.({ ev: 'sleep', t, strain: r.strain, pool: r.pool / r.poolMax });
       const until = Math.min(now, wakeT + DAY);
       r = recoverHours(r, (until - t) / 3600, 'sleep');
       t = until;
@@ -115,9 +129,9 @@ function caughtUp(s: GameState, stored: Reserve | null, at: number | null, onBed
 }
 
 const gapCache = new Map<string, number>();
-const targetGap = (row: TrialRow, effort: 'standard' | 'push', skillId: string): number => {
-  const target = targetFor(row, effort, exerciseKind(skillId));
-  const key = `${target}|${effort}`;
+const targetGap = (row: TrialRow, effort: 'standard' | 'push', skillId: string, level: number): number => {
+  const target = targetFor(row, effort, exerciseKind(skillId), level);
+  const key = `${target.toFixed(4)}|${effort}`;
   let g = gapCache.get(key);
   if (g === undefined) {
     g = gapForChallenge(target, effort);
@@ -129,14 +143,26 @@ const targetGap = (row: TrialRow, effort: 'standard' | 'push', skillId: string):
 /** The session's default exercise (proposal §1-3; neutral start: rating = level + the gap whose challenge is the row's target). */
 export function exerciseFor(s: GameState, skillId: string, effort: 'standard' | 'push', poolMax: number, challengeLevel?: number): Exercise {
   const level = challengeLevel ?? selectPerformance(s, skillId);
-  return buildExercise(skillId, { level, forceControl: selectLevelExact(s, 'forceControl'), poolMax, targetRating: level + targetGap(trialRow(s), effort, skillId) });
+  return buildExercise(skillId, { level, forceControl: selectLevelExact(s, 'forceControl'), poolMax, targetRating: level + targetGap(trialRow(s), effort, skillId, level) });
 }
 
 /** A Force-discipline session: the exercise's rating and trickle multiplier, and its draw on the reserve. */
 export function forceSessionRating(s: GameState, skillId: string, hours: number, effort: 'standard' | 'push', challengeLevel: number): { rating: number; mult: number; note: string } {
   const r = caughtUp(s, TRIAL_STORE.reserve, TRIAL_STORE.at, bedStrain);
-  const ex = exerciseFor(s, skillId, effort, r.poolMax, challengeLevel);
+  // The day plan's fit (ruling 2), and no more than this block alone allows from the reserve now (a guard for where the
+  // session differs from the plan's projection: a level crossed during the day, a fight before it).
+  const dayFit = TRIAL_STORE.dayFit && TRIAL_STORE.dayFit.day === s.clock.now.day ? TRIAL_STORE.dayFit.f : 1;
+  const base = exerciseFor(s, skillId, effort, r.poolMax, challengeLevel);
+  const blockFit = poolFit((g) => drillHours(r, scaleExercise(base, g), hours).strain);
+  const ex = scaleExercise(base, Math.min(dayFit, blockFit));
   TRIAL_STORE.reserve = drillHours(r, ex, hours);
+  const fs = (TRIAL_STORE.summary.fits[bucketOf(s)] ??= { hours: 0, fittedHours: 0, fitHours: 0 });
+  fs.hours += hours;
+  if (ex.fit !== undefined) {
+    fs.fittedHours += hours;
+    fs.fitHours += hours * ex.fit;
+  }
+  TRIAL_STORE.trace?.({ ev: 'drill', t: absOf(s), skillId, hours, before: r.strain, poolBefore: r.pool / r.poolMax, after: TRIAL_STORE.reserve.strain, poolAfter: TRIAL_STORE.reserve.pool / r.poolMax, poolMax: r.poolMax, comfort: r.comfort / r.poolMax, draw: ex.drawPerUnit, usual: r.usual, label: ex.label });
   TRIAL_STORE.at = absOf(s) + Math.round(hours * 3600);
   return { rating: ex.rating, mult: ex.free ? FORCE_XP_TRIAL.trickle : 1, note: `Force XP trial: ${ex.label}, rating ${ex.rating.toFixed(1)}${ex.free ? ' (free: trickle)' : ''}, strain ${TRIAL_STORE.reserve.strain.toFixed(2)}, pool ${Math.round((100 * TRIAL_STORE.reserve.pool) / TRIAL_STORE.reserve.poolMax)}%` };
 }
@@ -158,9 +184,9 @@ function bedStrain(strain: number): void {
   TRIAL_STORE.dayBucket = null;
 }
 
-/** Collects a Force session's challenge factor (hour-weighted), by Order row, drill effort and level band. */
+/** Collects a Force session's challenge factor (hour-weighted), by Order row, drill effort and 10-level band (80 = 80 and above). */
 export function recordChallenge(s: GameState, skillId: string, effort: TrialEffort, level: number, hours: number, challenge: number): void {
-  const key = `${trialRow(s)}|${effort}|${level < 80 ? 'lt80' : 'ge80'}|${skillId}`;
+  const key = `${trialRow(s)}|${effort}|b${levelBand(level)}|${skillId}`;
   const st = (TRIAL_STORE.summary.sessions[key] ??= { hours: 0, challengeHours: 0, sessions: 0 });
   st.hours += hours;
   st.challengeHours += hours * challenge;
@@ -178,7 +204,7 @@ export interface TrialBlock {
 const isForce = (b: { activityId: string }): boolean => ACTIVITY_BY_ID.get(b.activityId)?.group === 'force';
 
 /** Projected strain over the day's ordered blocks from a reserve (peak and end). */
-export function projectStrain(s: GameState, ordered: readonly (TrialBlock | { rest: number })[], start: Reserve, effort: 'standard' | 'push'): { peak: number; end: number } {
+export function projectStrain(s: GameState, ordered: readonly (TrialBlock | { rest: number })[], start: Reserve, effort: 'standard' | 'push', fit = 1): { peak: number; end: number } {
   let r = start;
   let peak = r.strain;
   for (const o of ordered) {
@@ -188,7 +214,7 @@ export function projectStrain(s: GameState, ordered: readonly (TrialBlock | { re
     }
     if (o.hours <= 0) continue;
     const g = ACTIVITY_BY_ID.get(o.activityId)?.group;
-    if (g === 'force') r = drillHours(r, exerciseFor(s, o.skillId, effort, r.poolMax), o.hours);
+    if (g === 'force') r = drillHours(r, scaleExercise(exerciseFor(s, o.skillId, effort, r.poolMax), fit), o.hours);
     else r = recoverHours(r, o.hours, g === 'meditation' ? 'meditation' : 'normal');
     peak = Math.max(peak, r.strain);
   }
@@ -211,9 +237,16 @@ export function strainTrim<B extends TrialBlock>(
   const limit = FORCE_XP_TRIAL.strainLimit[routineEffort];
   const start = caughtUp(s, TRIAL_STORE.reserve, TRIAL_STORE.at);
   const fresh: Reserve = { ...start, pool: start.poolMax, strain: 0 };
-  const project = (from: Reserve, bs: readonly B[]): { peak: number; end: number } => projectStrain(s, order(bs.filter((b) => b.hours > 0)), from, effort);
-  let p = project(start, blocks);
-  const freshFixed = project(fresh, blocks.filter((b) => !b.fill && isForce(b))).peak;
+  const project = (from: Reserve, bs: readonly B[], f: number): { peak: number; end: number } => projectStrain(s, order(bs.filter((b) => b.hours > 0)), from, effort, f);
+  // Ruling 2: the day's Force block is fitted to the pool first (one demand factor for every Force exercise of the day,
+  // finesse making up the rating), and refitted after every trim step; hours come off only while even the floors
+  // overrun (a day that started strained). The fresh-day level of the fixed blocks is fitted the same way.
+  const fitted = (from: Reserve, bs: readonly B[]): { fit: number; peak: number; end: number } => {
+    const f = poolFit((g) => project(from, bs, g).peak);
+    return { fit: f, ...project(from, bs, f) };
+  };
+  let p = fitted(start, blocks);
+  const freshFixed = fitted(fresh, blocks.filter((b) => !b.fill && isForce(b))).peak;
   let trimmed = 0;
   for (const pass of ['fill', 'fixed'] as const) {
     const target = pass === 'fill' ? limit : Math.max(limit, freshFixed);
@@ -225,10 +258,13 @@ export function strainTrim<B extends TrialBlock>(
       if (i < 0) break;
       blocks[i] = { ...blocks[i]!, hours: blocks[i]!.hours - step };
       trimmed += step;
-      p = project(start, blocks);
+      p = fitted(start, blocks);
     }
   }
-  return { trimmed, ...p };
+  const fit = p.fit;
+  TRIAL_STORE.dayFit = { day: s.clock.now.day, f: fit };
+  TRIAL_STORE.trace?.({ ev: 'plan', t: absOf(s), startStrain: start.strain, startPool: start.pool / start.poolMax, trimmed, peak: p.peak, end: p.end, freshFixed, fit });
+  return { trimmed, peak: p.peak, end: p.end };
 }
 
 /** Records the planned day for the report (both modes; strain fields stay 0 when the trial is off). */

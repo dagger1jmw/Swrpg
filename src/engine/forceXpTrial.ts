@@ -30,11 +30,17 @@ export interface ForceXpTrialConfig {
   /** A finesse rating at or above this makes an exercise never free (proposal §1). */
   freeFinesseLine: number;
   /**
-   * Neutral start (force-xp-trial.md step 1): the challenge factor each default exercise aims at, keyed
-   * "row|effort|kind" (kind: control, output, sense), set to today's measured hour-weighted mean for Force sessions below
-   * level 80, where the 10-90 ladder does not bind. Missing keys use 1.0 (standard) and 1.25 (push).
+   * Neutral start (force-xp-trial.md step 1; by level band, force-xp-trial-2.md ruling 5): the challenge factor each
+   * default exercise aims at, keyed "row|effort|kind" (kind: control, output, sense), as [level, factor] anchors at the
+   * midpoints of 10-level bands, interpolated between them and held flat past the ends. Each anchor is today's measured
+   * hour-weighted mean for that band below level 80, where the 10-90 ladder does not bind; at 80 and above the last
+   * anchor holds (the ceiling removal). Missing keys use 1.0 (standard) and 1.25 (push).
    */
-  targetChallenge: Record<string, number>;
+  targetChallenge: Record<string, readonly (readonly [number, number])[]>;
+  /** Trial only (ruling 1 on force-xp-trial.md): the §11 physical Force boost reads Force Control capped at this. */
+  physicalBoostFcCap: number;
+  /** Trial only (ruling 2): a session's exercise draw is lowered until the block ends at or under this strain. */
+  poolFitStrain: number;
   /** Midi-chlorian count by character id (the lifetime player is 'pc'); others use defaultCount. */
   counts: Record<string, number>;
   defaultCount: number;
@@ -52,28 +58,25 @@ export const FORCE_XP_TRIAL: ForceXpTrialConfig = {
   unitsPerHour: 12,
   strainLimit: { easy: 0.4, standard: 0.75, push: 1.0 },
   freeFinesseLine: 15,
-  // Measured 2026-11-21 (npm run mortals, FORCE_XP=collect, 4 profiles x 20 seeds; force-xp-trial.md step 1). No profile
-  // drills Force Output, so output uses control's value.
+  // TARGETS-BEGIN (measured 2026-11-21: npm run mortals, FORCE_XP=collect, 4 profiles x 20 seeds, hour-weighted by 10-level
+  // band, anchors at band midpoints for bands with 2,000+ hours below level 80; force-xp-trial-2.md ruling 5)
   targetChallenge: {
-    'initiate|standard|control': 1.0065,
-    'initiate|standard|output': 1.0065,
-    'initiate|standard|sense': 1.0067,
-    'initiate|push|control': 1.0102,
-    'initiate|push|output': 1.0102,
-    'initiate|push|sense': 1.0053,
-    'padawan|standard|control': 1.0203,
-    'padawan|standard|output': 1.0203,
-    'padawan|standard|sense': 1.0243,
-    'padawan|push|control': 1.126,
-    'padawan|push|output': 1.126,
-    'padawan|push|sense': 1.128,
-    'knight|standard|control': 1.0222,
-    'knight|standard|output': 1.0222,
-    'knight|standard|sense': 1.022,
-    'knight|push|control': 1.0274,
-    'knight|push|output': 1.0274,
-    'knight|push|sense': 1.0401,
+    'initiate|push|control': [[5, 1.0182], [15, 1.0000]],
+    'initiate|push|sense': [[5, 1.0181], [15, 1.0000]],
+    'initiate|standard|control': [[5, 1.0181], [15, 1.0000]],
+    'initiate|standard|sense': [[5, 1.0179], [15, 1.0000]],
+    'knight|push|control': [[5, 1.0237], [15, 1.0763], [25, 1.0419], [35, 1.0683], [45, 1.0318], [55, 1.0000], [65, 1.0403], [75, 1.0000]],
+    'knight|push|sense': [[5, 1.0384], [15, 1.2315], [25, 1.0483], [35, 1.1508], [45, 1.0356], [55, 1.0000], [65, 1.0501], [75, 1.0000]],
+    'knight|standard|control': [[35, 1.0000], [45, 1.0382], [55, 1.0000], [65, 1.0390], [75, 1.0000]],
+    'knight|standard|sense': [[35, 1.0000], [45, 1.0394], [55, 1.0000], [65, 1.0401]],
+    'padawan|push|control': [[5, 1.0369], [15, 1.2304], [25, 1.0471], [35, 1.2041], [45, 1.0802]],
+    'padawan|push|sense': [[5, 1.0386], [15, 1.2276], [25, 1.0483], [35, 1.1923], [45, 1.1486]],
+    'padawan|standard|control': [[15, 1.0000], [25, 1.0373], [35, 1.0000]],
+    'padawan|standard|sense': [[15, 1.0000], [25, 1.0371], [35, 1.0000]],
   },
+  // TARGETS-END
+  physicalBoostFcCap: 110,
+  poolFitStrain: 0.75,
   counts: {},
   defaultCount: 10_000,
   poolShareByForceSense: [
@@ -155,10 +158,19 @@ export function gapForChallenge(target: number, effort: 'standard' | 'push'): nu
   return best.gap;
 }
 
-/** The neutral-start target for a session: by Order row, drill effort and exercise kind, else 1.0 standard / 1.25 push. */
-export function targetFor(row: TrialRow, effort: 'standard' | 'push', kind: ExerciseKind): number {
-  return FORCE_XP_TRIAL.targetChallenge[`${row}|${effort}|${kind}`] ?? (effort === 'push' ? 1.25 : 1.0);
+/**
+ * The neutral-start target for a session: by Order row, drill effort, exercise kind (output reads control's anchors; no
+ * profile drills Force Output) and the drilled skill's level, else 1.0 standard / 1.25 push.
+ */
+export function targetFor(row: TrialRow, effort: 'standard' | 'push', kind: ExerciseKind, level: number): number {
+  const k = kind === 'output' ? 'control' : kind;
+  const anchors = FORCE_XP_TRIAL.targetChallenge[`${row}|${effort}|${k}`];
+  if (!anchors || anchors.length === 0) return effort === 'push' ? 1.25 : 1.0;
+  return interp(anchors, level);
 }
+
+/** The report band of a level for neutral targets: 0, 10, ... 70, and 80 for every level at or above 80. */
+export const levelBand = (level: number): number => Math.min(80, Math.max(0, Math.floor(level / 10) * 10));
 
 export interface Exercise {
   kind: ExerciseKind;
@@ -173,6 +185,10 @@ export interface Exercise {
   drawPerUnit: number;
   sustained: boolean;
   free: boolean;
+  /** Reserve §3 efficiency the draw was divided by. */
+  efficiency: number;
+  /** Set when fitted to the pool (ruling 2): the demand factor applied. */
+  fit?: number;
   /** What the exercise is, for notes. */
   label: string;
 }
@@ -193,7 +209,19 @@ const largestAllowedScale = (poolMax: number): number => {
   return s;
 };
 
-const reliefScale = (scale: number, level: number): number => 1 + (scale - 1) * (1 - Math.min(RESERVE.masteryReliefCap, RESERVE.masteryReliefPerLevel * Math.max(0, level)));
+/**
+ * Effort for a control or sense exercise: normal when the target rating reaches the tier's normal demand rating, else
+ * the continuous effort whose demand rating is the target, floored at light (trial 2: continuous, so the draw has no
+ * jump where the target crosses the normal demand; trial 1 switched straight to light effort plus finesse there).
+ */
+const effortFor = (base: number, targetRating: number): number => {
+  const E = RESERVE.effort;
+  const normal = demandRating(base, 1, E.normal);
+  if (targetRating >= normal) return E.normal;
+  return Math.max(E.light, E.normal * 2 ** ((targetRating - normal) / FORCE_XP_TRIAL.slope));
+};
+
+const reliefScale =(scale: number, level: number): number => 1 + (scale - 1) * (1 - Math.min(RESERVE.masteryReliefCap, RESERVE.masteryReliefPerLevel * Math.max(0, level)));
 
 /**
  * The default exercise for a session (proposal §1-2, as built for the trial). Control: the ability's tier (stats: the
@@ -225,35 +253,27 @@ export function buildExercise(skillId: string, ctx: ExerciseCtx): Exercise {
     }
     const rating = demandRating(base, scale, effort);
     const free = tier <= 1.5 && ctx.level >= (tier <= 1 ? RESERVE.free.basic : RESERVE.free.moderate) && effort <= E.normal && scale <= RESERVE.scaleFactors[1]!;
-    return { kind, tier, base, scale, effort, finesse: 0, rating, drawPerUnit: free ? 0 : (base * reliefScale(scale, ctx.level) * effort) / eff, sustained: false, free, label: `output tier ${tier} scale ${scale.toFixed(2)} effort ${effort}` };
+    return { kind, tier, base, scale, effort, finesse: 0, rating, drawPerUnit: free ? 0 : (base * reliefScale(scale, ctx.level) * effort) / eff, sustained: false, free, efficiency: eff, label: `output tier ${tier} scale ${scale.toFixed(2)} effort ${effort}` };
   }
   if (kind === 'sense') {
     const precog = ctx.level >= 60;
     const tier = precog ? 2.5 : 1.0;
     const cost = precog ? 5 : 2;
-    let effort: number = E.normal;
-    let demand = demandRating(RESERVE.tierBase * tier, 1, effort);
-    if (ctx.targetRating < demand) {
-      effort = E.light;
-      demand = demandRating(RESERVE.tierBase * tier, 1, effort);
-    }
+    const effort = effortFor(RESERVE.tierBase * tier, ctx.targetRating);
+    const demand = demandRating(RESERVE.tierBase * tier, 1, effort);
     const finesse = Math.max(0, ctx.targetRating - demand);
     let scale = 1;
     for (let cls = 1; finesse > 70 + 60 * (cls - 1) && cls < RESERVE.scaleFactors.length; cls++) scale = RESERVE.scaleFactors[cls]!;
     const free = !precog && ctx.level >= RESERVE.free.basic && finesse < FORCE_XP_TRIAL.freeFinesseLine;
-    return { kind, tier, base: cost, scale, effort, finesse, rating: demand + finesse, drawPerUnit: free ? 0 : (cost * reliefScale(scale, ctx.level) * effort) / eff, sustained: true, free, label: `${precog ? 'precognition' : 'Force Sight'} finesse ${finesse.toFixed(0)}` };
+    return { kind, tier, base: cost, scale, effort, finesse, rating: demand + finesse, drawPerUnit: free ? 0 : (cost * reliefScale(scale, ctx.level) * effort) / eff, sustained: true, free, efficiency: eff, label: `${precog ? 'precognition' : 'Force Sight'} finesse ${finesse.toFixed(0)}` };
   }
   const tier = ABILITY_TIER[skillId] ?? defaultTier(ctx.level);
   const base = RESERVE.tierBase * tier;
-  let effort: number = E.normal;
-  let finesse = ctx.targetRating - demandRating(base, 1, effort);
-  if (finesse < 0) {
-    effort = E.light;
-    finesse = Math.max(0, ctx.targetRating - demandRating(base, 1, effort));
-  }
+  const effort = effortFor(base, ctx.targetRating);
+  const finesse = Math.max(0, ctx.targetRating - demandRating(base, 1, effort));
   const freeTier = tier <= 1.5 && ctx.level >= (tier <= 1 ? RESERVE.free.basic : RESERVE.free.moderate);
   const free = freeTier && finesse < FORCE_XP_TRIAL.freeFinesseLine;
-  return { kind, tier, base, scale: 1, effort, finesse, rating: demandRating(base, 1, effort) + finesse, drawPerUnit: free ? 0 : (base * effort) / eff, sustained: false, free, label: `control tier ${tier} effort ${effort} finesse ${finesse.toFixed(0)}` };
+  return { kind, tier, base, scale: 1, effort, finesse, rating: demandRating(base, 1, effort) + finesse, drawPerUnit: free ? 0 : (base * effort) / eff, sustained: false, free, efficiency: eff, label: `control tier ${tier} effort ${effort} finesse ${finesse.toFixed(0)}` };
 }
 
 /** A character's reserve while the trial runs (harness state; M6 integration replaces it with real state). */
@@ -300,6 +320,43 @@ export function drillHours(r: Reserve, ex: Exercise, hours: number): Reserve {
     pool -= paid;
   }
   return { ...r, pool, strain };
+}
+
+/**
+ * Ruling 2 on force-xp-trial.md: the exercise fits the pool. Its demand comes down (a lighter effort, a lower tier) by
+ * a continuous factor f, and finesse makes up the rating (+30 x log2(1/f)), so the rating and the challenge factor are
+ * unchanged. The floor is Basic at light effort (Force Sight at light effort for sense). Output keeps its scale gate and
+ * is not scaled (its rating reads no finesse; no profile drills it). Pure.
+ */
+export function scaleExercise(ex: Exercise, f: number): Exercise {
+  if (f >= 1 || ex.free || ex.drawPerUnit <= 0 || ex.kind === 'output') return ex;
+  // Demand now and at the floor (base x scale relief x effort, before efficiency).
+  const demand = ex.drawPerUnit * ex.efficiency;
+  const floorDemand = ex.kind === 'sense' ? 2 * RESERVE.effort.light : RESERVE.tierBase * RESERVE.effort.light;
+  const g = Math.max(f, Math.min(1, floorDemand / demand));
+  if (g >= 1) return ex;
+  const add = FORCE_XP_TRIAL.slope * Math.log2(1 / g);
+  return { ...ex, drawPerUnit: ex.drawPerUnit * g, effort: ex.effort * g, finesse: ex.finesse + add, free: false, fit: g, label: `${ex.label}, fitted to the pool (demand x${g.toFixed(2)}, finesse +${add.toFixed(0)})` };
+}
+
+/**
+ * The day's pool fit (ruling 2): the largest demand factor f in (0, 1] for which `peak(f)` (the projected strain peak
+ * of the day's Force block with every exercise scaled by f) is at or under FORCE_XP_TRIAL.poolFitStrain, the standard
+ * strain limit. If even the floors overrun (a day that started strained), the floor (f = 0, clamped per exercise) is
+ * used and the strain trim stays the safety net. Pure.
+ */
+export function poolFit(peak: (f: number) => number): number {
+  const limit = FORCE_XP_TRIAL.poolFitStrain;
+  if (peak(1) <= limit + 1e-9) return 1;
+  if (peak(0) > limit) return 0;
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 20; i++) {
+    const mid = (lo + hi) / 2;
+    if (peak(mid) <= limit) lo = mid;
+    else hi = mid;
+  }
+  return lo;
 }
 
 /** Recovery over hours (reserve §6): pool refill (tired refill 1 - 0.5 x strain, floor 0.35) and strain cleared. */
