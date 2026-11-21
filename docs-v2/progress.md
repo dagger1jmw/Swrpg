@@ -173,3 +173,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-21: §15 cybernetic Force-loss mapping from the Reserve Spec §7 table; CLAUDE.md notes the D-279 exception.
 - 2026-11-21: §15 cybernetic note: the 15-point ceiling cut stacks per replacement (Vader 60% + 75 points).
 - 2026-11-21: M6 specs added to the repo (force-reserve.md, alignment-m6.md, force-catalog-m6.md; exported from the design docs) and indexed; alignment.md superseded by alignment-m6.md; the M6 integration checklist doc now points at the repo copies as the build reference.
+- 2026-11-21 handoff: M6 design is in the repo (force-reserve.md, alignment-m6.md, force-catalog-m6.md, m6-integration-checklist.md; Force lore file passes D-276 to D-279). Nothing in M6 is built yet. Next session: M6 plan mode, starting with the checklist blockers (drill fatigue, units) and the reserve spec's build step 1 read-only report. Tests 1053/1053 at handoff.
