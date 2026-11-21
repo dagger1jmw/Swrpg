@@ -93,7 +93,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** The same **Form V (Djem So)** mastery, now **fully unleashed** through the dark side — overwhelming, merciless, far stronger and faster than he ever allowed himself, every strike amplified by rage and the power he'd kept walled off. He carved through the Temple's defenders, killed the Battlemaster Cin Drallig, and overwhelmed the Separatist Council. He fought Obi-Wan on Mustafar to a long, furious standstill — his dark-fueled offense was the superior *force*, but it was wild and his control imperfect; only his arrogance lost him the duel, not a deficit of power.
   **Form ratings (game stats):** Shien/Djem So 98 (primary — rage-amplified) · Ataru 92 · Shii-Cho 90 · Niman 88 · Juyo 86
-- **Force Abilities (game stats):** **Force Enrage 100** *(rage-amplification — the engine of his unleashed output, Mastered 92%)* · Telekinesis 100 *(raw — Force Push 90%, Force Throw 88%)* · **Force Choke 95** *(choked a Jedi one-handed while dueling another, Expert 90%)* · Force Body 95 *(Force Strength/Speed 92%)* · Force Sense 96 *(Precognition 90%)*
+- **Force Abilities (game stats):** **Force Enrage 100** *(rage-amplification — the engine of his unleashed output, Mastered 92%)* · Telekinesis 100 *(raw — Force Push 90%, Force Throw 88%)* · **Force Choke 95** *(choked a Jedi one-handed while dueling another, Expert 90%)* · Force Body 95 *(Enhance Attribute/Force Speed 92%)* · Force Sense 96 *(Precognition 90%)*
 - **Unique techniques:** **The Chosen One unleashed** *(the no-longer-restrained magnitude of the prophesied Chosen One channeled through the dark side — surging output, but still growing and only loosely controlled)*
 - **Signature Ability:** **The Chosen One unleashed (raw output)** — high-legendary Force *output* (120, and still rising had he lived on unmaimed), with Control (90) lagging well behind: the gap that makes him devastating yet beatable. The most we ever saw of Anakin — short of his unrealized ~138 ceiling.
 - **Notable Feats:** Led Operation: Knightfall; slew Cin Drallig and his students; killed the Separatist Council on Mustafar; among the strongest beings alive at this moment — undone only by his own arrogance against Obi-Wan.
@@ -202,7 +202,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Intelligence | 110 | | | |
 
 - **Lightsaber Forms / Bladework:** *(none — transforms and strikes with raw dark-side power and beast-forms rather than a blade)*
-- **Force Abilities (game stats):** Force Lightning 138 *(dark-side storms 95%)* · Telekinesis 136 · Force Drain 130 *(life/will-draining 90%)* · Beast-transformation 130 *(monstrous forms — unique)* · Mind Probe 130 *(vision-casting / temptation 92%)*
+- **Force Abilities (game stats):** Force Lightning 138 *(dark-side storms 95%)* · Telekinesis 136 · Force Drain 130 *(life/will-draining 90%)* · Unique: Beast-transformation 130 *(monstrous forms — unique)* · Mind Probe 130 *(vision-casting / temptation 92%)*
 - **Unique techniques:** **Dark-side incarnation** *(shapeshifting into monstrous forms; casting visions of the future to tempt and break the will)*
 - **Signature Ability:** **The dark side incarnate** — raw, malevolent dark-side power on a cosmic scale, paired with temptation and vision-casting.
 - **Alignment:** Dark side (absolute).
@@ -225,7 +225,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Intelligence | 108 | | | |
 
 - **Lightsaber Forms / Bladework:** *(none — a cosmic entity of the light, not a duelist)*
-- **Force Abilities (game stats):** Force Heal 138 *(life-transfer / resurrection-tier healing 95% — restored the dying Ahsoka)* · Force Light 134 *(light-side power against the dark 92%)* · Telekinesis 130 · Beast-form 125 *(griffin-form — unique)*
+- **Force Abilities (game stats):** Force Heal 138 *(life-transfer / resurrection-tier healing 95% — restored the dying Ahsoka)* · Force Light 134 *(light-side power against the dark 92%)* · Telekinesis 130 · Unique: Beast-form 125 *(griffin-form — unique)*
 - **Unique techniques:** **Light-side incarnation & life-transfer** *(gave her own life-force to revive another — resurrection-tier healing)*
 - **Signature Ability:** **The light side incarnate** — benevolent cosmic light-side power, supreme healing and life-transfer.
 - **Alignment:** Light side (absolute).

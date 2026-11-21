@@ -110,7 +110,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** A heavily modified **Form V (Djem So)** adapted to the suit — trading his old acrobatic speed for relentless, overpowering, methodical pressure. He uses cybernetic strength and Force power to batter and corner opponents, conserving motion (the armor limits agility) while crushing through any guard, interlacing telekinesis (Force choke, hurling objects) with blade-work. Against the elderly Ben Kenobi he dueled cautiously; he was far deadlier against lesser foes, cutting down Jedi survivors for two decades.
 **Form ratings (game stats):** Shien/Djem So 100 (suit-adapted) · Shii-Cho 86 · Soresu 84 · Makashi 82
-* **Force Abilities (game stats):** **Force Choke 100** *(remote telekinetic grip — Mastered 92%)* · Telekinesis 100 *(Force Push 88%)* · Force Body 100 *(suit-enhanced Enhance Attribute 92%)* · Force Sense 90 *(Precognition 82%)*
+* **Force Abilities (game stats):** **Force Choke 100** *(remote telekinetic grip — Mastered 92%)* · Telekinesis 100 *(Force Push 88%)* · Force Body 100 *(Enhance Attribute, suit-assisted 92%)* · Force Sense 90 *(Precognition 82%)*
 * **Signature Ability:** **The armored juggernaut** — suit-enhanced strength and near-invulnerable durability, with cold, honed Control (106) far exceeding his raw Knightfall self — but raw Output (108) capped below it by the life-support's drain on his power.
 * **Notable Feats:** Hunted the Jedi survivors across the Dark Times; trained the secret apprentice Galen Marek; killed Ben Kenobi aboard the Death Star; Supreme Commander of the Imperial Fleet.
 * **Alignment:** Dark side.
@@ -136,7 +136,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** The honed apex of suited **Form V (Djem So)** — every strike measured, overpowering, and surgically precise, blending crushing physical power with refined telekinetic control (he hurled debris at Luke on Bespin while dueling, and choked or disarmed at will). He could dismantle a far younger, faster opponent through sheer control and power, as he did to Luke twice — beaten only when Luke's *rage* (drawing on the dark side) briefly overwhelmed him at Endor, after which Luke pulled back. The most *disciplined* Vader, the inverse of Knightfall Anakin: lower Output, far higher Control.
 **Form ratings (game stats):** Shien/Djem So 104 (suit-adapted apex) · Shii-Cho 88 · Soresu 90 · Makashi 92
-* **Force Abilities (game stats):** **Force Choke 102** *(remote telekinetic grip — Mastered 95%)* · Telekinesis 104 *(Force Push 92%; hurled debris while dueling)* · Force Body 102 *(suit-enhanced Enhance Attribute 92%)* · Force Sense 92 *(Precognition 88%)*
+* **Force Abilities (game stats):** **Force Choke 102** *(remote telekinetic grip — Mastered 95%)* · Telekinesis 104 *(Force Push 92%; hurled debris while dueling)* · Force Body 102 *(Enhance Attribute, suit-assisted 92%)* · Force Sense 92 *(Precognition 88%)*
 * **Signature Ability:** **Honed armored mastery** — Vader's combat and Force control at their absolute peak (Control 114); a precise, overwhelming juggernaut whose raw output, though immense, never returns to his pre-suit organic apex.
 * **Notable Feats:** Defeated Luke at Bespin (took his hand, revealed their kinship); dueled Luke at Endor; turned on the Emperor to save his son, destroying Sidious and dying redeemed as Anakin Skywalker.
 * **Alignment:** Dark side → redeemed at the very end.

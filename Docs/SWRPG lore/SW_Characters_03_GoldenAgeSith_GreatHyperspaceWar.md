@@ -251,7 +251,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Non-physical combatant; fights purely through the Force.
   **Bladework rating (game stats):** *(none)*
-- **Force Abilities (game stats):** Telekinesis 92 *(**mass Force projection** 82% — destroyed a massed Massassi assault single-handedly)* · Mind Trick 80 *(Force Persuasion 82% — telepathy)* · Meditation discipline 90 · Force Sense 86 *(Environmental Force Sense 82%)*
+- **Force Abilities (game stats):** Telekinesis 92 *(**mass Force projection** 82% — destroyed a massed Massassi assault single-handedly)* · Mind Trick 80 *(Force Persuasion 82% — telepathy)* · Meditation discipline 90 · Force Sense 86 *(environmental awareness 82%)*
 - **Unique techniques:** **Telepathic Force mastery** *(devastating power despite near-total physical limitation)*
 - **Signature Ability:** **Telepathic Force mastery** — a purely mental Force-user who defeated a massed Massassi force single-handedly.
 - **Notable Feats:** Trained Odan-Urr; warned of the Sith threat; destroyed a massed Massassi assault at Kirrek at the cost of his life.

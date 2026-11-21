@@ -93,7 +93,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** A superb, aggressive duelist — primarily **single-blade** (with **highly trained Jar'Kai** as a real option) — now sharpened by **Mandalorian combat training**: tactics, ranged weapons, armor, and a killer's pragmatism layered onto her Jedi skills. This combination let her overcome a brother whose raw Force power exceeded hers. Also a peerless starfighter ace.
   **Form ratings (game stats):** Shien/Djem So 90 (primary, single-blade) · Ataru 88 · Jar'Kai 88 *(highly trained — dual-wield)* · Shii-Cho 82 · *(+ Mandalorian tactics/ranged 84)*
-- **Force Abilities (game stats):** Force Body 88 *(combat sense 88%, Force Speed 85%)* · Force Sense 88 *(**piloting precognition** 90%)* · Battle-meld 86 *(twin-bond coordination 88%)* · Telekinesis 86
+- **Force Abilities (game stats):** Force Body 88 *(combat sense 88%, Force Speed 85%)* · Force Sense 88 *(**piloting precognition** 90%)* · Force Meld 86 *(twin-bond coordination 88%)* · Telekinesis 86
 - **Signature Ability:** **The Sword of the Jedi** — the Order's destined warrior; combined Jedi mastery with Mandalorian training to defeat a more raw-powerful Sith (her own twin).
 - **Notable Feats:** Trained by Boba Fett and the Mandalorians; killed Darth Caedus in single combat, ending the war; named to the Jedi High Council.
 - **Alignment:** Light side.

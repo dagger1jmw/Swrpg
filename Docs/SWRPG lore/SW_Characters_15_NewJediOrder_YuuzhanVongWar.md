@@ -124,7 +124,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Primarily a **single-blade** duelist, though **highly trained in Jar'Kai (dual-wielding)** as well — fast and aggressive, combining saberwork with peerless piloting and gunnery. Coordinated battle-melds with her brothers made the Solo siblings devastating as a unit. Helped bring down Tsavong Lah.
   **Form ratings (game stats):** Shien/Djem So 88 (primary, single-blade) · Ataru 86 · Jar'Kai 86 *(highly trained — dual-wield)* · Shii-Cho 80
-- **Force Abilities (game stats):** Force Body 86 *(**combat sense** 88%, Force Speed 85%)* · Force Sense 86 *(**piloting precognition** 90%)* · Battle-meld 85 *(twin/sibling coordination 88%)* · Telekinesis 84
+- **Force Abilities (game stats):** Force Body 86 *(**combat sense** 88%, Force Speed 85%)* · Force Sense 86 *(**piloting precognition** 90%)* · Force Meld 85 *(twin/sibling coordination 88%)* · Telekinesis 84
 - **Signature Ability:** **Sword of the Jedi** — the Order's fiercest warrior-pilot; an avatar of fear to the enemy (the "Yun-Harla" gambit); equally lethal in a cockpit or a duel.
 - **Notable Feats:** Named Sword of the Jedi; impersonated the goddess Yun-Harla; helped kill Tsavong Lah at Ebaq 9; ace pilot across the war's worst battles.
 - **Alignment:** Light side (with a grief-driven brush with the dark after Anakin's death).
@@ -231,7 +231,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Intelligence | 100 | | | |
 
 - **Lightsaber Forms / Bladework:** *(none — not a duelist; fights through the Force and manipulation)*
-- **Force Abilities (game stats):** **Mind Domination 100** *(controlled Supreme Overlord Shimrra for decades — Mastered 92%)* · Force manipulation 96 *(dark-side sorcery)* · Telekinesis 90 *(Force Push 82%)* · Force Sense 92
+- **Force Abilities (game stats):** **Mind Control 100** *(controlled Supreme Overlord Shimrra for decades — Mastered 92%)* · Force manipulation 96 *(dark-side sorcery)* · Telekinesis 90 *(Force Push 82%)* · Force Sense 92
 - **Unique techniques:** **Restored Vong Force-sensitivity** *(the only Force-sensitive Yuuzhan Vong in existence — the war's central secret; he casts a Force presence where his entire species does not)*
 - **Signature Ability:** **The hidden hand** — the only Force-sensitive Yuuzhan Vong; mentally dominated the Supreme Overlord and masterminded the entire invasion from behind the throne.
 - **Notable Feats:** Restored his own (and only his own) Force-sensitivity; controlled Shimrra for decades; masterminded the war; overpowered Jaina — killed only by Jacen at the height of his Oneness.
@@ -360,7 +360,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Luke Skywalker (NJO) | New Jedi Order | **Legendary — near-apex (ascending)** | FOut 128 / FCtrl 120 / AGI 98 — unmatched outside Abeloth | Djem So 100 (all 7 + martial) |
 | Jacen Solo (NJO) | New Jedi Order | **Legendary** | FOut 112 / FCtrl 104 (Oneness; 2nd-best duelist) | Djem So 94 (single-blade) |
 | Anakin Solo | New Jedi Order | Legendary-adjacent | FOut 108 / FCtrl 96 (prodigy, died young) | Djem So 90 |
-| Onimi | Yuuzhan Vong | **Legendary-adjacent** | FOut 100 / INT 100 (only Force-sensitive Vong) | Mind Domination 100 |
+| Onimi | Yuuzhan Vong | **Legendary-adjacent** | FOut 100 / INT 100 (only Force-sensitive Vong) | Mind Control 100 |
 | Vergere | ex-Jedi (gray) | Legendary (knowledge) | FKnow 100 / FCtrl 96 / INT 92 | Force Heal 96 (tears) |
 | Jaina Solo | New Jedi Order | Legendary-adjacent | AGI 88 / FCtrl 92 / FOut 92 | Djem So 88 (single; Jar'Kai 86) |
 | Tsavong Lah | Yuuzhan Vong | Legendary (non-Force) | STR 88 / WIL 90 / INT 88 (✗) | Amphistaff 90 |

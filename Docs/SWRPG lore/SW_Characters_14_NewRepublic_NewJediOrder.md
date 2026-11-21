@@ -198,7 +198,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 - **Lightsaber Forms / Bladework:** Still a master of all seven forms (favoring **Form VII / Juyo**) when he deigns to use the blade — but in the Dark Empire he fights almost entirely through overwhelming sorcery: Force lightning and planet-scale Force storms.
   **Form ratings (game stats):** Juyo 98 (favored) · Makashi 94 · Soresu 92 · Ataru 92 · Niman 90 · Shien/Djem So 90 · Shii-Cho 88
-- **Force Abilities (game stats):** **Force Storm 138** *(**planet/fleet-scale** dark-side maelstroms — his most destructive power, Mastered 95%)* · Force Lightning 132 *(Chain Lightning 95%, sustained torrents)* · Sith Alchemy 122 *(**Sith sorcery** 95%)* · Mind Domination 118 *(mass mind-control 92%)* · Telekinesis 118
+- **Force Abilities (game stats):** **Force Storm 138** *(**planet/fleet-scale** dark-side maelstroms — his most destructive power, Mastered 95%)* · Force Lightning 132 *(Chain Lightning 95%, sustained torrents)* · Sith Alchemy 122 *(**Sith sorcery** 95%)* · Mind Control 118 *(mass mind-control 92%)* · Telekinesis 118
 - **Unique techniques:** **Spirit-transfer immortality** *(consciousness transferred into prepared clone bodies; survives bodily death repeatedly until the vessels degrade)*
 - **Signature Ability:** **Force storm & spirit-transfer immortality** — conjures galaxy-threatening Force storms (devastating whole fleets), and survives death by transferring into prepared clone bodies; top of Tier A on Output (135) and Knowledge (120).
 - **Notable Feats:** Returned from death in clone bodies; nearly reconquered the galaxy; briefly turned Luke; wielded Force storms; destroyed permanently only by Empatojayos Brand's sacrifice.
@@ -279,7 +279,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Admiral Daala | Human | Imperial warlord; commander at the Maw | 52 | 56 | 60 | 82 | 70 | 74 | — | — | — | — | — | Naval command 72 | N/A — ruthless; tried to unify the warlords; Kyp destroyed much of her fleet |
 | Rukh | Noghri | Thrawn's bodyguard/assassin | 80 | 88 | 78 | 78 | 50 | 58 | — | — | — | — | — | Stealth/melee 86 | N/A — assassinated Thrawn at Bilbringi when the Noghri learned of the betrayal |
 | Lumiya (Shira Brie) | Human | Dark Lady of the Sith; Vader's secret apprentice | 64 | 80 | 70 | 84 | 78 | 84 | 80 | 70 | 78 | 82 | 80 | Lightwhip 84 · Makashi 76 | Force Lightning 78 · Telekinesis 76 — central to Legacy of the Force (Era 16) |
-| Desann | Chistori | Dark Jedi; sought Valley of the Jedi power | 88 | 74 | 84 | 82 | 70 | 74 | 78 | 66 | 74 | 80 | 90 | Djem So 84 · Shii-Cho 78 | Force Body 88 *(Strength 90%)* · Force Enrage 82 — massive reptilian Dark Jedi; defeated by Kyle Katarn |
+| Desann | Chistori | Dark Jedi; sought Valley of the Jedi power | 88 | 74 | 84 | 82 | 70 | 74 | 78 | 66 | 74 | 80 | 90 | Djem So 84 · Shii-Cho 78 | Force Body 88 *(Enhance Attribute 90%)* · Force Enrage 82 — massive reptilian Dark Jedi; defeated by Kyle Katarn |
 | Tavion | Human | Dark Jedi; Desann's apprentice; later Cultist | 58 | 80 | 64 | 78 | 70 | 70 | 78 | 66 | 72 | 80 | 78 | Ataru 80 · Makashi 74 | Force Lightning 76 · Telekinesis 74 — later led the Disciples of Ragnos (Scepter of Ragnos) |
 | Brakiss | Human | Dark Jedi; failed Praxeum infiltrator | 60 | 68 | 64 | 78 | 76 | 80 | 78 | 68 | 76 | 80 | 78 | Makashi 76 · Shii-Cho 70 | Force Lightning 76 · Telekinesis 74 — later runs the Shadow Academy (Era 15) |
 

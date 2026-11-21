@@ -86,11 +86,19 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
       | ForceInsight                                      | Force Sense (forceSense)|
       | BattleForesight                                   | Battle Precognition     |
       | ForceSubjugate                                    | Mind Control            |
+      | DominateMind / Dominate Mind / MindDomination     | Mind Control            |
+      | Battle-meld / BattleMeld                          | Force Meld              |
     Aliases are exact (normalizeAlias, D-13); only the names in this table and in the lore
     entries are added, never a near spelling.
   Dropped legacy names (D-276), rejected as unknown names with no alias: ResistAging (now a
     passive effect of the age system, not an ability), ForceComprehension, AuraOfSerenity,
     KyberResonance, FieryEnergy.
+  Unique abilities (D-277 amended): an ability that cannot be learned and belongs to one
+    entity is written in the character files with a "Unique: " prefix (for example
+    "Unique: Multipresence 175", "Unique: Beast-form 125"). The alias and catalog check
+    accepts any name with this prefix and does not treat it as a catalog ability: it is not
+    looked up, aliased or offered for learning. A name without the prefix that is not in the
+    catalog or the alias table is still rejected.
   Unknown ability names are always rejected; they never fall back to a nearby ability.
   Non-combat Shatterpoint reads use the D-06 band table above: level below the band start
     cannot attempt; a negative margin is a misread (D-63).
