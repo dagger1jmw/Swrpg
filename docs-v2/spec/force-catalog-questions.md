@@ -6,7 +6,7 @@ Open items for the v2 Force catalog (force-catalog.md). An ability or form goes 
 
 | Name | Source | Status |
 |---|---|---|
-| Dominate Mind | KOTOR Force power (Legends), a mind trick variant. Legacy name: MindDomination (5 uses in the legacy lore database) | **Resolved 2026-11-20:** added to the lore file under Mind Trick. Ready for its catalog entry |
+| Dominate Mind | KOTOR Force power (Legends), a mind trick variant. Legacy name: MindDomination (5 uses in the legacy lore database) | **Resolved 2026-11-20:** merged into Mind Control as an alias (Wookieepedia: mind control is also known as dominate mind). The KOTOR persuasion use is covered by high levels of Force Persuasion |
 | Battle Meld | Force-meld (Legends): known to the ancient Jedi (Awdrysta Pina's Jedi at Columus), redeveloped in the New Jedi Order era. Legacy name: BattleMeld (2 uses) | **Resolved 2026-11-20:** available in every era as rare (the earlier "not available in 3,661 BBY" note was wrong). Added to the lore file as Force Meld, alias Battle Meld |
 
 ## Legacy names reviewed (2026-11-20)
@@ -37,3 +37,21 @@ Source: lore-checks.md L-15; decisions.md, 2026-11-16.
 | Dimension Shift | [Wookieepedia: Dimension Shift](https://starwars.fandom.com/wiki/Dimension_Shift) (name conjectural); *Children of the Jedi* and *Vision of the Future* | Kept. Lore entry corrected: it hides objects, it does not make the user intangible |
 | Force Camouflage | [Wookieepedia: Force cloak](https://starwars.fandom.com/wiki/Force_cloak) lists it as another name for Force cloak | Merged into Force Cloak in the lore file. Any code alias `ForceCamouflage` should resolve to Force Cloak |
 | Force Concealment, Morichro, Mask (Sith Alchemy) | Wookieepedia (Legends); see the lore file entries | Added to the lore file 2026-11-20 |
+
+## Unmatched lore entries reviewed (2026-11-20)
+
+| Former entry | Resolution |
+|---|---|
+| Telekinetic Barrage | Renamed Ballistakinesis (not limited to the Jensaarai) |
+| Force Endurance | Renamed Remove Fatigue |
+| Environmental Force Sense | Merged into Force Sense |
+| Battle Foresight | Renamed Battle Precognition, under Precognition |
+| Resist Aging | No longer an ability: passive longevity from meditation and connection, for the age system |
+| Force Insight | Merged into Force Sense |
+| Force Comprehension | Dropped: no official source |
+| Aura of Serenity | Dropped: calming people is a Mind Trick application, animals is Animal Bond. Serenity (trance) and Cleanse Mind added |
+| Force Subjugate | Dropped: covered by Mind Control. Crush Opposition and Corruption added |
+| Kyber Resonance | Dropped as canon-only. Purification (crystal) added |
+| Fiery Energy | Dropped: canon only. Combustion and Pyrokinesis cover it |
+
+Old names above should resolve to their replacements where one exists.

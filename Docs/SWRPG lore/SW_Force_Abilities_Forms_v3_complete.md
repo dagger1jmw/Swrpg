@@ -311,14 +311,14 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 ---
 
-#### ↳ Telekinetic Barrage ⚪
-**Anchor Stat:** ForceOutput (sustaining multiple objects at speed) + ForceControl (targeting each)
+#### ↳ Ballistakinesis ⚪
+**Anchor Stats:** ForceOutput + ForceControl
 **Difficulty Tier: D=2.5 (Complex)**
-**Summary:** Simultaneously controlling and hurling multiple objects at a target — rocks, debris, weapons — in a sustained volley.
+**Summary:** Using telekinesis to accelerate a handful of small objects to lethal speed. Not especially accurate, but when blanketing an area with debris accuracy matters little. Evasion is possible but difficult.
 **Alignment:** Neutral
 **Prerequisites:** Telekinesis 41+
-**Notes:** Devastating in environments with loose debris. Force Strain scales quickly with the number of objects controlled.
-
+**Notes:** Wookieepedia names the Jensaarai as users, but it is not limited to them: it matches one of the first Jedi Sage abilities in Star Wars: The Old Republic, under a different name. Formerly listed as Telekinetic Barrage (the old key resolves here). (Reviewed 2026-11-20, Wookieepedia audit.)
+**Source:** Wookieepedia (Legends), "Ballistakinesis": https://starwars.fandom.com/wiki/Ballistakinesis
 ---
 
 #### ↳ Force Repulse ⚪
@@ -333,7 +333,7 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 #### ↳ Force Wound → Force Rend 🔴  *(dark line — harmful intent)*
 **Anchor Stat:** ForceControl + ForceOutput
-**Difficulty Tier:** Wound D=1.5 · Rend D=4.0
+**Difficulty Tier:** Wound D=2.5 · Rend D=4.0 *(Wound raised from 1.5 on 2026-11-20)*
 **Summary:**
 - *Force Wound:* Telekinetically constricts a target's internal organs or musculature, causing immediate pain and debilitation without contact. The intent is specifically to harm living tissue — this is what makes it dark side.
 - *Force Rend:* Telekinetically tears a target or object apart at near-molecular level. Exceedingly rare, Sith-only. The lethal endpoint of the dark wound line.
@@ -479,7 +479,7 @@ Force Lightning   (94)  [ForceOutput anchor]
 **Summary:** Causing objects to explode by sheer will (High Galactic: Flamusfracta). Harder or easier depending on the object's size, density and flammability. Rarely used on people, with devastating effect.
 **Alignment:** Neutral (lethal use against people is judged as a deed)
 **Prerequisites:** Telekinesis 51+, ForceOutput 41+
-**Notes:** Yarael Poof used it. Replaces Fiery Energy if that entry is dropped. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Notes:** Yarael Poof used it. Replaces the former Fiery Energy entry (canon only). (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
 **Source:** Wookieepedia (Legends), "Combustion": https://starwars.fandom.com/wiki/Combustion
 
 ---
@@ -495,7 +495,8 @@ Force Lightning   (94)  [ForceOutput anchor]
 **Summary:** The baseline awareness of the Force — sensing living beings nearby, detecting danger, feeling disturbances. The foundation of all sensory Force abilities.
 **Alignment:** Neutral
 **Prerequisites:** ForceStats.ForceSense 1+ (built in)
-**Notes:** Always active at a low level. Training amplifies range, clarity, and subtlety.
+**Notes:** Always active at a low level. Training amplifies range, clarity, and subtlety. Usually one of the first things taught to a Jedi. Applications in Legends: feeling the surrounding environment and the bonds between living things (absorbs the former Environmental Force Sense entry); danger sense, a tingling warning just before a threat that does not say where it comes from; locating hidden beings at a distance and through barriers, and for advanced users like Kyle Katarn and Jaden Korr, sensing a nearby being's health; feeling great disturbances such as mass deaths from anywhere in the galaxy; sensing a close friend or relative in mortal danger from great distances, closely related to Farsight; and heightened perception of patterns and situations (absorbs the former Force Insight entry). Sensing through the Force is never fully under the user's control. Its counter-application, **clear mind**, hides the user from others trying to sense them; some Jedi Sentinels used it on covert missions (see Force Concealment). Old keys `EnvironmentalForceSense` and `ForceInsight` resolve here. (Reviewed 2026-11-20, Wookieepedia audit.)
+**Source:** Wookieepedia (Legends), "Force sense": https://starwars.fandom.com/wiki/Force_sense/Legends
 
 ---
 
@@ -530,16 +531,6 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 ---
 
-#### Environmental Force Sense ⚪
-**Anchor Stat:** ForceSense + Meditation (sustaining broad awareness)
-**Difficulty Tier: D=2.5 (Complex)**
-**Summary:** Expanding awareness outward to feel the entire living tapestry of an environment — every creature, plant, person, and their emotional states across a wide area.
-**Alignment:** Neutral
-**Prerequisites:** ForceSense 30+
-**Notes:** Draining at long range. Experienced users can sense disturbances across kilometers.
-
----
-
 #### Force Vision ⚪
 **Anchor Stat:** ForceSense (cannot be directed — visions surface through it)
 **Difficulty Tier: D=4.0 (Advanced)** — cannot be fully controlled even at Grandmaster
@@ -550,13 +541,14 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 ---
 
-#### Battle Foresight ⚪
+#### ↳ Battle Precognition ⚪
 **Anchor Stats:** ForceSense (perception of the whole engagement) + ForceControl (filtering signal from noise)
 **Difficulty Tier: D=4.0 (Advanced)**
 **Summary:** In the midst of combat, perceiving the flow of the entire engagement — anticipating enemy movements, identifying tactical openings, sensing the moment a battle turns.
 **Alignment:** Neutral
 **Prerequisites:** ForceSense 61+, ForceControl 41+
-
+**Source note:** A variant of Precognition: sensing and foretelling the flows of the Force while engaged in battle. Another variant, **Blink**, is an unconscious form from latent Force-sensitivity (the stormtrooper sergeant Nova Stihl), which fits the unawakened uses in the M6 reserve spec. Formerly listed as Battle Foresight (the old key resolves here). (Reviewed 2026-11-20, Wookieepedia audit.)
+**Source:** Wookieepedia (Legends), "Precognition": https://starwars.fandom.com/wiki/Precognition/Legends
 ---
 
 #### Shatterpoint ⚪ — Two Distinct Abilities
@@ -567,7 +559,7 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 **Summary:** The perception of fracture points — places, moments, objects, or people that are at a critical breaking point where the right action causes the greatest change. More perception than power: not what *is*, but what *could be* and where the lever is.
 
-**Prerequisites (Path A — Shatterpoint):** ForceSense 61+, ForceKnowledge 51+, Battle Foresight 41+, Meditation 41+
+**Prerequisites (Path A — Shatterpoint):** ForceSense 61+, ForceKnowledge 51+, Battle Precognition 41+, Meditation 41+
 **Prerequisites (Path B — Shatterpoint Innate):** `ShatterSense` talent flag active (see Innate Talents)
 
 **MECHANICAL TIER: Unique — separate XP track with dual-path mechanics.**
@@ -745,14 +737,14 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Force Endurance ⚪
+#### Remove Fatigue ⚪
 **Anchor Stat:** Meditation (sustained regulation) + ForceControl
 **Difficulty Tier: D=1.5 (Moderate)**
-**Summary:** Suppressing physical exhaustion through the Force — pushing the body to keep functioning past its natural fatigue threshold.
+**Summary:** Using the Force to shed fatigue, letting the body keep functioning past its natural exhaustion threshold.
 **Alignment:** Neutral
 **Prerequisites:** ForceControl 10+, Endurance 10+
-**Notes:** Does not eliminate the underlying strain — it defers it. A user who pushes too far will collapse when the ability drops.
-
+**Notes:** The foundational endurance technique. Battlemind, Force Valor and Force Body each extend endurance in their own way; Force Body is the extreme version, going past the body's limits with a deferred crash. Formerly listed as Force Endurance (the old key `ForceEndurance` resolves here). (Reviewed 2026-11-20, Wookieepedia audit.)
+**Source:** Wookieepedia (Legends), "Remove Fatigue": https://starwars.fandom.com/wiki/Remove_Fatigue
 ---
 
 #### Control Pain ⚪
@@ -793,6 +785,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** A comprehensive Force-enhanced amplification of the user's own physical and mental performance — accelerating speed, reflexes, and striking power while sharpening accuracy and resolve. At higher levels, the resonant clarity radiates outward passively, extending a measure of the same enhancement to nearby allies.
 **Alignment:** Light Side
 **Prerequisites:** Battlemind 15+, ForceOutput 15+
+**Upkeep override (M6, 2026-11-20):** held at one step cheaper than its tier (3 per round instead of 5), because it is usually held together with Force Speed. Its learning difficulty is unchanged.
 **Notes:** Distinct from its three closest relatives: **Battlemind** (internal mental focus only, no physical component, no ally effect), **Force Enrage** (dark side counterpart — amplifies through anger at the cost of control and sanity), and **Battle Meditation** (strategic-scale perception shift affecting an entire battle rather than individual performance). Force Valor is the complete self-amplification package — physical and mental, self and allies.
 - Self-enhancement: the body moves and reacts faster, leaps farther and higher, strikes more powerfully, and fights with sharper accuracy.
 - Ally aura: at higher proficiency levels, the resonant clarity field extends passively to nearby Force-sensitives and non-sensitives alike — boosting their resolve and reaction time without requiring them to channel the Force themselves.
@@ -866,19 +859,14 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Difficulty Tier: D=4.0 (Advanced)**
 **Summary:** Converting Force energy directly into physical endurance — allowing the user to ignore mortal wounds and keep fighting at the cost of burning through their own life Force.
 **Alignment:** Neutral (extremely dangerous; Light Side users view it as a last resort)
-**Prerequisites:** ForceEndurance 30+, ForceControl 30+
+**Prerequisites:** RemoveFatigue 30+, ForceControl 30+
 **Notes:** Severe risk. Every wound ignored with Force Body still exists physically — the user is burning life force to remain conscious. Death or permanent injury is likely if overused.
 
 ---
 
-#### Resist Aging ⚪
-**Anchor Stat:** Meditation (sustained attunement required daily)
-**Difficulty Tier: D=4.0 (Advanced)**
-**Summary:** Slowing the natural aging process through sustained Force attunement and cellular control. Not immortality — significantly extended lifespan.
-**Alignment:** Neutral
-**Prerequisites:** Meditation 41+, ForceControl 30+, ForceKnowledge 21+
-**Notes:** Passive when sufficiently developed. Explains why experienced Jedi Masters like Yoda live for centuries. Requires consistent daily meditation — lapsing causes accelerated aging.
-
+#### Longevity through the Force (passive, not an ability)
+**Summary:** Deep meditation and a deep connection to the Force slow aging. This is not a learnable ability: it is a passive effect for the age system, scaled by Meditation and connection. Very long lives such as Yoda's (and Yaddle's, about 450) come from their species, not a technique.
+**Notes:** Replaces the former Resist Aging entry, which had no Legends source. (Reviewed 2026-11-20, Wookieepedia audit.)
 ---
 
 
@@ -917,16 +905,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** A more powerful and sustained form of mind influence — strong enough to overcome resistance in moderately strong-willed targets.
 **Alignment:** Neutral
 **Prerequisites:** MindTrick 21+, Charisma 15+
-**Notes:** More force required; more noticeable to Force-sensitives nearby.
-
-#### ↳ Dominate Mind ⚪
-**Anchor Stats:** ForceControl + Willpower
-**Difficulty Tier: D=4.0 (Advanced)**
-**Summary:** An advanced variant of the mind trick (the stronger counterpart of affect mind). Very few beings can resist it. It compels a target to act on a command rather than only nudging their perception, but stops short of the total, lasting override of Mind Control.
-**Alignment:** Neutral (Jedi-taught in the Old Republic era). Using it to make someone harm others or themselves is judged as a deed (domination).
-**Prerequisites:** ForcePersuasion 21+, ForceControl 30+
-**Notes:** Does not affect droids. Known from the Jedi Civil War era, when some soldiers were trained to resist mind tricks. (Added 2026-11-20, M6 catalog review.)
-**Source:** Wookieepedia (Legends), "Mind trick" (variants: affect mind and dominate mind); mirror: https://starwars.archivum.wiki/article/force_illusion
+**Notes:** More force required; more noticeable to Force-sensitives nearby. Covers the KOTOR powers Affect Mind and, at high levels, Dominate Mind (a persuasion very few can resist), which are persuasion rather than control.
 
 #### ↳ Mind Control 🔴
 **Anchor Stats:** ForceControl (overriding a will entirely requires extreme precision)
@@ -934,7 +913,8 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** Total domination of another mind — overriding their will entirely, making them act against their deepest instincts.
 **Alignment:** Dark Side — causes significant drift
 **Prerequisites:** MindTrick 30+, ForceControl 30+, Dark Side drift 15+
-**Notes:** Forbidden by the Jedi Order. The controlled subject is aware of what is happening, causing psychological trauma. Continued use causes permanent mental damage to the victim.
+**Notes:** Forbidden by the Jedi Order. The controlled subject is aware of what is happening, causing psychological trauma. Continued use causes permanent mental damage to the victim. Also known as dominate mind or control mind: the dark-side counterpart of the mind trick, far more invasive, taking complete control of the victim's mind. Higher mastery allows more people to be controlled. The old key `DominateMind` resolves here. (Merged 2026-11-20: Dominate Mind was briefly a separate entry based on the KOTOR power.)
+**Source:** Wookieepedia (Legends), "Mind trick" (Mind control section): https://starwars.fandom.com/wiki/Mind_trick/Legends
 
 #### ↳ Force Projection ⚪
 **Anchor Stats:** ForceControl + ForceOutput (sustaining the illusion requires power)
@@ -1007,25 +987,6 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Dark Side
 **Prerequisites:** MindProbe 21+, Dark Side 20+
 **Notes:** Effective in combat for momentarily breaking concentration. Extended use causes permanent mental damage.
-
----
-
-#### Force Insight ⚪
-**Anchor Stats:** ForceKnowledge + Meditation
-**Difficulty Tier: D=1.5 (Moderate)**
-**Summary:** Heightened analytical reasoning through the Force — seeing patterns, connections, and solutions that are invisible to normal cognition.
-**Alignment:** Neutral
-**Prerequisites:** ForceKnowledge 21+, Meditation 15+
-
----
-
-#### Force Comprehension ⚪
-**Anchor Stats:** ForceKnowledge + Meditation
-**Difficulty Tier: D=1.5 (Moderate)**
-**Summary:** Rapidly absorbing and understanding written or spoken information — reading at superhuman speed with full retention, or grasping the meaning of unknown languages through Force attunement.
-**Alignment:** Neutral
-**Prerequisites:** ForceKnowledge 15+, Meditation 10+
-**Notes:** Different from Comprehend Speech (which is auditory/linguistic) — Force Comprehension is broader analytical acceleration.
 
 ---
 
@@ -1263,7 +1224,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** The user extends their consciousness across an entire battlefield through the Force — coordinating allied forces, amplifying their cohesion and morale while inducing confusion and despair in enemies. Strategic ability.
 **Alignment:** Light Side (a Dark Side variant exists but is destabilizing)
 **Prerequisites:** Meditation 61+, ForceControl 41+, ForceKnowledge 30+
-**Notes:** One of the most strategically powerful Force abilities in Legends. Nomi Sunrider, Bastila Shan, and Darth Nihilus (inverted) are notable practitioners. Extremely rare. The practitioner is immobilized while active — they become a strategic anchor, not a combatant. Distinct from Battle Foresight (personal) — Battle Meditation affects entire allied forces.
+**Notes:** One of the most strategically powerful Force abilities in Legends. Nomi Sunrider, Bastila Shan, and Darth Nihilus (inverted) are notable practitioners. Extremely rare. The practitioner is immobilized while active — they become a strategic anchor, not a combatant. Distinct from Battle Precognition (personal) — Battle Meditation affects entire allied forces.
 > **Innate Talent:** `BattleMeditationAffinity` — XP cost ×0.3, Force Strain ×0.6. Equivalent innate case to ShatterSense. Bastila Shan is the canonical example. See Innate Talents section.
 
 ---
@@ -1440,13 +1401,25 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Aura of Serenity 🔵
-**Anchor Stats:** Meditation + Charisma
+#### Serenity (Trance) 🔵
+**Anchor Stats:** Meditation + Willpower
 **Difficulty Tier: D=2.5 (Complex)**
-**Summary:** Projecting calm, peace, and emotional equilibrium outward through the Force — soothing agitated beings, de-escalating confrontations, and calming animals or crowds.
+**Summary:** A calm meditative trance used to center oneself, even in the middle of a fight: Qui-Gon Jinn knelt in it behind the laser gates during his duel with Darth Maul.
 **Alignment:** Light Side
-**Prerequisites:** Meditation 41+, Willpower 30+
+**Prerequisites:** Meditation 30+
+**Notes:** This is the lore basis for "centering in a lull" in the M6 reserve spec. Calming other people is a Mind Trick application, and calming animals is Animal Bond; together these replace the former Aura of Serenity entry, which had no Legends source. Not to be confused with Serenity, the Force Priestess. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed.)
+**Source:** Wookieepedia (Legends), "Serenity (trance)": https://starwars.fandom.com/wiki/Serenity_(trance)
 
+---
+
+#### Cleanse Mind 🔵
+**Anchor Stats:** Meditation + ForceControl
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Negating an ongoing mind-affecting Force power on oneself or an ally within line of sight.
+**Alignment:** Light Side
+**Prerequisites:** Thought Shield 21+, Meditation 30+
+**Notes:** A crucial power of Jedi Consulars. Counters Mind Trick applications, Force Fear, Force Corrupt and similar effects. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed.)
+**Source:** Wookieepedia (Legends), "Cleanse Mind": https://starwars.fandom.com/wiki/Cleanse_Mind
 ---
 
 #### Malacia 🔵
@@ -1489,7 +1462,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** Filling allies with hope and courage to face terrible odds, possibly making them slightly more resistant to injury.
 **Alignment:** Light Side
 **Prerequisites:** Meditation 30+, Charisma 21+
-**Notes:** First appeared in Knights of the Old Republic II. Replaces Aura of Serenity if that entry is dropped. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
+**Notes:** First appeared in Knights of the Old Republic II. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed; confirm in the family pass.)
 **Source:** Wookieepedia (Legends), "Inspire": https://starwars.fandom.com/wiki/Inspire
 
 ---
@@ -1627,14 +1600,25 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Force Subjugate 🔴
-**Anchor Stats:** ForceControl + ForceSense
+#### Crush Opposition 🔴
+**Anchor Stats:** ForceOutput + Willpower
 **Difficulty Tier: D=4.0 (Advanced)**
-**Summary:** Breaking a target's will entirely through sustained Force pressure — similar to Mind Control but more thorough and more permanently damaging.
-**Alignment:** Dark Side — severe drift
-**Prerequisites:** MindControl 21+, Dark Side 30+
-**Notes:** Distinct from Mind Control — Subjugate can reshape a person's fundamental personality and loyalties over time. Used by Sith to create servants.
+**Summary:** Sapping the willpower of everyone around the user, to a degree and radius that grow with skill.
+**Alignment:** Dark Side, standard
+**Prerequisites:** Force Fear 21+, Dark Side 30+
+**Notes:** Replaces the former Force Subjugate entry, which had no Legends source; breaking a will completely is Mind Control. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed.)
+**Source:** Wookieepedia (Legends), "Crush Opposition": https://starwars.fandom.com/wiki/Crush_Opposition
 
+---
+
+#### Corruption 🔴
+**Anchor Stats:** ForceOutput
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** Hurling a bolt of pure dark side energy.
+**Alignment:** Dark Side, standard
+**Prerequisites:** ForceOutput 30+, Dark Side 25+
+**Notes:** Not the same as Force Corrupt (the mind trick variant) or the Corruption value in the alignment system. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed.)
+**Source:** Wookieepedia (Legends), "Corruption": https://starwars.fandom.com/wiki/Corruption
 ---
 
 #### Sutta Chwituskak 🔴 ⚠️
@@ -1644,16 +1628,6 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Dark Side
 **Prerequisites:** ForceKnowledge 61+, Dark Side 60+
 **Notes:** ⚠️ **Ancient Sith technique.** Extremely obscure. Likely era-locked to early Sith Empire periods.
-
----
-
-#### Fiery Energy 🔴
-**Anchor Stats:** ForceOutput + Dark Side alignment
-**Difficulty Tier: D=1.5 (Moderate)**
-**Summary:** Channeling destructive dark side Force energy into fire — feeding, directing, and amplifying existing flames or igniting combustible material.
-**Alignment:** Dark Side (see also Pyrokinesis for neutral variant)
-**Prerequisites:** Dark Side 30+, Telekinesis 21+
-**Notes:** Related to but distinct from Pyrokinesis. The dark side application is more destructive and less controlled.
 
 ---
 
@@ -1880,7 +1854,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Summary:** Telekinetically exciting molecules in combustible material to generate fire — creating or directing flame through Force-driven molecular agitation.
 **Alignment:** Neutral (aggressive use drifts Dark)
 **Prerequisites:** Telekinesis 25+, ForceControl 20+
-**Notes:** Different from Fiery Energy (which uses raw dark side) — Pyrokinesis is a purely physical application of telekinesis at the molecular level.
+**Notes:** Pyrokinesis is a purely physical application of telekinesis at the molecular level.
 
 ---
 
@@ -1956,14 +1930,14 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 
 ---
 
-#### Kyber Resonance ⚪
-**Anchor Stats:** ForceKnowledge + ForceSense
-**Difficulty Tier: D=1.5 (Moderate)**
-**Summary:** Communicating with and deepening attunement to one's kyber crystal — understanding its nature, influencing its properties, and maintaining the bond between Jedi and saber.
-**Alignment:** Neutral
-**Prerequisites:** ForceKnowledge 30+
-**Notes:** A uniquely Jedi practice. A crystal attuned to its owner functions better and can warn of danger. Sith do not attune natural crystals this way; they use synthetic red crystals.
-
+#### Purification (Crystal) 🔵
+**Anchor Stats:** Meditation + ForceKnowledge
+**Difficulty Tier: D=2.5 (Complex)**
+**Summary:** An advanced Jedi technique for cleansing a crystal made or used by a dark-side user of its former owner's hate, imbuing it with the light side through meditation.
+**Alignment:** Light Side
+**Prerequisites:** Meditation 41+, ForceKnowledge 30+
+**Notes:** In 41 ABY Jaden Korr banished the dark side from a Dark Jedi's red crystal and turned it into a yellow-bladed Jedi weapon. Replaces the former Kyber Resonance entry, which appears to be a canon-only idea. (Added 2026-11-20 from the Wookieepedia audit. Tier and prerequisites proposed.)
+**Source:** Wookieepedia (Legends), "Purification": https://starwars.fandom.com/wiki/Purification/Legends; "Lightsaber crystal": https://starwars.fandom.com/wiki/Lightsaber_crystal/Legends
 ---
 
 #### Force Phantom ⚪ ⚠️
@@ -2276,7 +2250,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 | `QuickStudy` | Quick Study | All ForceKnowledge XP gains ×1.2 | |
 | `ShatterSense` | Shatterpoint Innate Talent | See Shatterpoint Path B entry — ×0.1 XP cost, 70% strain reduction, uncapped track, passive perception | See Shatterpoint section for full mechanical spec |
 | `BattleMeditationAffinity` | Battle Meditation Affinity | Battle Meditation XP cost ×0.3, Force Strain ×0.6. Equivalent innate case to ShatterSense — Bastila Shan is the canonical example | Separate from ShatterSense; can hold both |
-| `LivingForceConnection` | Living Force Connection | Environmental Force Sense always active passively; Animal Bond strain-free | Qui-Gon Jinn archetype |
+| `LivingForceConnection` | Living Force Connection | Force Sense environmental awareness always active passively; Animal Bond strain-free | Qui-Gon Jinn archetype |
 | `PrecognitiveEdge` | Precognitive Edge | Precognition activates one tier earlier than normal prerequisite | |
 
 **Design note:** The `ShatterSense` and `BattleMeditationAffinity` talents are in the same category — abilities that *can* be learned without innate talent but which innate talent holders reach at a fraction of the cost and to a depth no standard learner can match.

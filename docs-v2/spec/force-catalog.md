@@ -80,8 +80,17 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
       | ForceRage / Force Rage                            | Force Enrage            |
       | TransferEssence / Transfer Essence                | Essence Transfer        |
       | Endure                                            | Crucitorn               |
+      | TelekineticBarrage                                | Ballistakinesis         |
+      | ForceEndurance                                    | Remove Fatigue          |
+      | EnvironmentalForceSense                           | Force Sense (forceSense)|
+      | ForceInsight                                      | Force Sense (forceSense)|
+      | BattleForesight                                   | Battle Precognition     |
+      | ForceSubjugate                                    | Mind Control            |
     Aliases are exact (normalizeAlias, D-13); only the names in this table and in the lore
     entries are added, never a near spelling.
+  Dropped legacy names (D-276), rejected as unknown names with no alias: ResistAging (now a
+    passive effect of the age system, not an ability), ForceComprehension, AuraOfSerenity,
+    KyberResonance, FieryEnergy.
   Unknown ability names are always rejected; they never fall back to a nearby ability.
   Non-combat Shatterpoint reads use the D-06 band table above: level below the band start
     cannot attempt; a negative margin is a misread (D-63).
