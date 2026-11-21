@@ -326,7 +326,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Cilghal | Mon Calamari | Jedi healer Master | 56 | 56 | 64 | 86 | 76 | 84 | 86 | 84 | 88 | 84 | 70 | Shii-Cho 64 | **Force Heal 92** *(coomb-spore research 88%)* — the Order's greatest healer |
 | Kenth Hamner | Human | Jedi Master; military liaison | 70 | 74 | 72 | 84 | 78 | 84 | 80 | 74 | 74 | 82 | 78 | Soresu 80 · Shii-Cho 74 | Force Body 78 · Telekinesis 76 — steady, by-the-book Master |
 | Tenel Ka Djo | Human (Hapan) | Jedi Knight; Queen Mother of Hapes | 74 | 82 | 74 | 88 | 82 | 84 | 82 | 74 | 72 | 84 | 80 | Shii-Cho 82 (one-armed) · Ataru 78 | Force Body 80 *(Speed 82%)* — rules Hapes; Jacen's love |
-| Lowbacca | Wookiee | Jedi Knight | 92 | 66 | 88 | 82 | 64 | 78 | 80 | 70 | 74 | 80 | 82 | Shien 80 · Shii-Cho 76 | Force Body 84 *(Strength 90%)* — Chewbacca's nephew; tech-savvy |
+| Lowbacca | Wookiee | Jedi Knight | 92 | 66 | 88 | 82 | 64 | 78 | 80 | 70 | 74 | 80 | 82 | Shien 80 · Shii-Cho 76 | Force Body 84 *(Enhance Attribute 90%)* — Chewbacca's nephew; tech-savvy |
 | Zekk | Human | Jedi Knight | 72 | 80 | 74 | 82 | 74 | 76 | 82 | 70 | 72 | 82 | 86 | Ataru 80 · Shii-Cho 76 | Force Sense 82 · Telekinesis 82 — former "Darkest Knight," redeemed |
 | Tesar Sebatyne | Barabel | Jedi Knight | 82 | 78 | 82 | 80 | 64 | 72 | 80 | 72 | 72 | 80 | 80 | Shien 78 · Shii-Cho 74 | Force Body 82 *(Strength 85%)* — Saba's clutch-mate; Myrkr survivor |
 | Tahiri Veila | Human | Jedi Knight; Vong-shaped | 64 | 84 | 70 | 82 | 76 | 80 | 82 | 70 | 76 | 82 | 80 | Ataru 82 · Jar'Kai 78 | Force Sense 82 · Telekinesis 78 — shaped with a Vong persona (Riina); later Caedus's apprentice (Era 16) |

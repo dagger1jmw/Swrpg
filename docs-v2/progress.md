@@ -162,3 +162,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-20: D-276 amended: six more legacy aliases and five dropped names in force-catalog.md; tests green.
 - 2026-11-20: D-277: character lore and canon data renamed to current Force ability names (123 replacements); 3 held and 8 non-catalog names listed for review; lore index unchanged; tests green.
 - 2026-11-20: D-277 amended: Mind Control and Force Meld aliases, Unique: prefix rule, 18 character-file edits; one lore chunk changed (Abeloth); tests green.
+- 2026-11-20: D-277 tidy-up: 15 :329 Enhance Attribute, 17 :84 prefix removed; lore index back to unchanged; tests green.
