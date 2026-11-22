@@ -107,6 +107,7 @@ Covers fighting traditions outside the Jedi forms that matter in saber combat: T
     - 41 ABY: Boba Fett trained Jaina Solo in "bounty hunting and anti-Jedi combative techniques". She used that training to defeat and kill Darth Caedus. [Mandalorian/Legends §Restoration](https://starwars.fandom.com/wiki/Mandalorian/Legends)
     - Goran Beviin taught her Mandalorian fighting techniques using beskar training armor and beskad sabers. She was given beskar plates. [Beskar/Legends §War and resurgence](https://starwars.fandom.com/wiki/Beskar/Legends)
   - **Notable Mandalorian Jedi-killers:**
+    - Great Galactic War example (added (lore batch 15)): a "Mandalorian Jedi hunter" attacked Syo Bakarn's Master, and the Padawan saved him (Syo Bakarn §Seeds planted; SW_Mandalorians_GGW_Part1). Mandalorian Jedi hunters were active through the war.
     - Jango Fett is listed as a notable Jedi hunter. [Jedi hunter/Legends §Notable Jedi hunters](https://starwars.fandom.com/wiki/Jedi_hunter/Legends)
     - At Galidraan (shortly before 44 BBY), eleven Jedi died, six of them killed by Jango Fett himself. [Mandalorian/Legends §The Mandalorian Civil War](https://starwars.fandom.com/wiki/Mandalorian/Legends)
     - Pre Vizsla was a great non-Force duelist. [Lightsaber combat/Legends §Overview](https://starwars.fandom.com/wiki/Lightsaber_combat/Legends)

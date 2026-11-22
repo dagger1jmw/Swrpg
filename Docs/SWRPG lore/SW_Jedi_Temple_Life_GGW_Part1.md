@@ -249,7 +249,7 @@ Full entries are in SW_Force_Traditions_AllEras_Part1/2; this is a window filter
 | 3668 BBY | Kaedan's team captures the Dread Masters | [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan) |
 | 3667–3666 BBY | Satele at Alderaan; secret relationship; Theron given to Zho | [Satele Shan §Fighting the Empire](https://starwars.fandom.com/wiki/Satele_Shan) |
 | 3665 BBY | Hoth; Wyellett lost | [Satele Shan §Hero of the Republic](https://starwars.fandom.com/wiki/Satele_Shan); [Wyellett](https://starwars.fandom.com/wiki/Wyellett) |
-| 3664–3662 BBY | "Three years" of Jedi–Mandalorian skirmishes [inferred count back from 3661 BBY] | [Blockade of the Hydian Way §A crippled Republic](https://starwars.fandom.com/wiki/Blockade_of_the_Hydian_Way) |
+| c. 3664–3661 BBY | "Three years" of Jedi–Mandalorian skirmishes [inferred count back from 3661 BBY; widened (lore batch 15)] | [Blockade of the Hydian Way §A crippled Republic](https://starwars.fandom.com/wiki/Blockade_of_the_Hydian_Way) |
 | by 3663 BBY | Bela Kiwiiks a Master | [Bela Kiwiiks §Biography](https://starwars.fandom.com/wiki/Bela_Kiwiiks) |
 | 3661 BBY | Hydian Way blockade; Jedi strike near Devaron fails; riots; surrender talk; Satele recalled | [Blockade of the Hydian Way §A crippled Republic](https://starwars.fandom.com/wiki/Blockade_of_the_Hydian_Way); [Battle near Devaron](https://starwars.fandom.com/wiki/Battle_near_Devaron); [Satele Shan §Hero of the Republic](https://starwars.fandom.com/wiki/Satele_Shan) |
 | 3660 BBY | Blockade broken with the Jedi starfighter fleet's help | [Blockade of the Hydian Way §Smugglers take the lead](https://starwars.fandom.com/wiki/Blockade_of_the_Hydian_Way) |

@@ -1109,6 +1109,12 @@ The clock and the module contract come first, before any feature.
   Game notes; candidates).** A food-price index by level for 3661–3660 BBY (numbers `invented`); the 3661 riots from the
   street; the 3660 relief (cheering crowds, an empty podium at Visz's medal ceremony); security tiers (SSOs and CSF in
   the Senate District, the CSF in the mid-levels, the Underworld Police below).
+- **M7 Mandalorian starts (Jared, 2026-11-21, lore batch 15; D-382, D-383; lore: SW_Mandalorians_GGW_Part1.md, Game
+  notes; candidates).** Five start options: a nomad mercenary who refused the Sith in 3667; a blockade warrior under the
+  Lesser; a member of one of the future schism clans (Ordo, Itera, Kelborn, Cadera); a Vizla-style Imperial contractor;
+  a Republic-side exception (no institutional backing; seen as traitors by the Lesser's followers). Design hooks:
+  blockade picket duty (hail, warn, intercept; sourced), a stigma track (arue'tal), the rare death duel (Geroya be
+  Haran, a Cold War custom).
 - **M7 signature moves (Jared, 2026-11-21, lore batch 10; D-371; not built).** Consider giving named lightsaber
   maneuvers (the Named maneuvers table in SW_Force_Abilities_Forms_v3_complete.md: Sarlacc Sweep, Makashi riposte,
   Falling Avalanche, Assured Strike and the rest) mechanical effects. In M6 they are narrator flavour on existing actions.

@@ -1057,3 +1057,23 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *Arriving in 3660:* Hylo Visz and her crew, Tyresius Lokai, Zale Barrows and Quan, with the relief convoy.
   - *Elsewhere in 3661:* Elin Garza (Army, at the front), Jace Malcom (front), Nico Okarr.
   - *Game hooks (M7 candidates, architecture §15):* a food-price index by level for 3661–3660 BBY (numbers `invented`; the record gives only "dramatic" rises); the 3661 riots from the street (starving lower-level residents, protests at the Senate, the news of the failed Jedi strike); the 3660 relief (cheering crowds at the freighter landings, an empty podium at the medal ceremony); security tiers (SSOs and CSF in the Senate District, the CSF in the mid-levels, the Underworld Police below).
+- **D-382 The Mandalorians in the Great Galactic War (Jared, 2026-11-21; lore batch 15; lore: SW_Mandalorians_GGW_Part1.md; rulings on its 10 decisions).**
+  - *1. The Lesser's title:* 3667 BBY. The Empire courted the Mandalorians that year and he claimed the title; the clans rallied on Geonosis over 3667–3665, and the army left a year after that. (The 3665 alternative is recorded as a resolved [conflict] in the GGW files.)
+  - *2. Gap before the Lesser:* centuries; no Mand'alor between the Preserver (c. 3951 BBY) and the Lesser.
+  - *3. Battle on the Hydian Way:* 3660 BBY; the blockade runs 3661–3660 (D-380 [6]).
+  - *4. The Vindicated's accession:* c. 3660 BBY, right after the blockade's defeat and the Great Hunt. The *Encyclopedia*'s "after the Treaty" stays [BTS].
+  - *5. Crusader's schism:* under the Vindicated, c. 3660–3652 BBY [inferred from Cadera's "nearly a decade" in hiding before c. 3642]. In 3661 it hasn't happened: Clans Ordo, Itera, Kelborn and Cadera are dissenters in waiting, still loyal in form.
+  - *6. Great Hunt:* both kept. The Defenestrator won a Hunt between 3678 and 3668; the Lesser's c. 3660 Hunt "revived" the contest as a Mandalorian rallying event ("revived" read loosely).
+  - *7. Culture from other eras:* allowed as flavour, tagged `[other era]`: Resol'nare, Mando'a vocabulary, adoption, nomad life, food, verd'goten. The old Neo-Crusader zealotry (outsiders inducted under threat of death) had faded by this era.
+  - *8. Beskar:* rare in this window (design default, tagged `invented`). Most warriors wear ordinary Mandalorian armour; full beskar is a mark of wealth or standing. The state of Mandalore and its mines is unrecorded and isn't described beyond the file.
+  - *9. Republic-side Mandalorian PCs:* allowed as exceptions. Most clans refused the Sith in 3667 and stayed independent nomads, so a nomad mercenary on Republic contracts is plausible. No institutional backing; the Lesser's followers see them as traitors. After 3660 the schism clans are the natural route, at the cost of the stigma of arue'tal.
+  - *10. Kyramud and Davaab craft:* excluded from this war; blockade ships are Mandalorian cruisers and support ships.
+  - *Edits to earlier files:* the Lesser's 3665 alternative recorded and resolved in GGW Part1 and Part3; the Crusader's schism row in GGW Part2 marked and resolved; GGW Part2's dead pointer to the Power Structures file now points to SW_Mandalorians_GGW_Part1; the Defenestrator vs "revived" Hunt conflict flagged and resolved in GGW Part1; the Jedi Temple file's skirmish years widened to c. 3664–3661 BBY; the sub-group styles file gains the Mandalorian Jedi hunter who attacked Syo Bakarn's Master as this era's example. Batch 14's surrender re-cite was already in place.
+- **D-383 Mandalorians in 3661 BBY: roster and M7 start options (Jared, 2026-11-21; lore batch 15; lore: SW_Mandalorians_GGW_Part1.md).**
+  - *Mandalore the Lesser:* commanding the blockade (the stretch between Devaron and the Minos Cluster). His real name is unknown; the narrator never gives one.
+  - *Artus Lok:* rising under the Lesser; exact whereabouts unknown.
+  - *Shae Vizla:* an Imperial contractor for heavy-risk work, hating Jedi since her brother's death (c. 3664); placed where a story needs her, consistent with her recorded deeds.
+  - *Jicoln Cadera:* Clan Cadera chief, not yet in revolt; whereabouts unknown.
+  - *The warship* Beskad: lost this year.
+  - *Mandalorian Jedi hunters:* active (the Bakarn pattern).
+  - *M7 start options (architecture §15):* a nomad mercenary who refused the Sith in 3667; a blockade warrior under the Lesser; a member of one of the future schism clans; a Vizla-style Imperial contractor; a Republic-side exception (ruling 9). Design hooks: blockade picket duty (hail, warn, intercept; sourced), a stigma track (arue'tal), and the rare death duel (Geroya be Haran, a Cold War custom).
