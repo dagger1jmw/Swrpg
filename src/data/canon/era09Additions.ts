@@ -1691,7 +1691,9 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     faction: "republic",
     role: "droid",
     archetype: "civilian",
-    birthBby: 3668,
+    // Built "before 3643 BBY", and not yet in 3661 or 3653 (SW_Characters_09 Part3a); 3668 put him on the board in 3662
+    // and 3660 around the "not built" snapshot (D-409). 3645 is an estimate inside the recorded window.
+    birthBby: 3645,
     birthSource: "estimate",
     snapshotBby: 3661,
     levels: {},

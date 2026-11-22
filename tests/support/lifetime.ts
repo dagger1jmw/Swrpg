@@ -10,7 +10,7 @@
 // otherwise Order and military profiles get 30 days of medical care. Spars may be against 2-3 partners (D-163).
 import { TEST_YEAR } from './dates';
 import { FORM_IDS } from '../../src/data/skills';
-import { absDayFromDate } from '../../src/engine/calendar';
+import { absDayFromDate, type CalendarDate } from '../../src/engine/calendar';
 import { levelExact } from '../../src/engine/curve';
 import { selectCapacities, selectE, selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
 import type { Priority } from '../../src/features/routines/selectors';
@@ -122,17 +122,17 @@ export interface LifeResult {
 
 const START_DAY = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 
-export function profileState(p: LifeProfile): GameState {
+export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
   const plan = p.formPlan ?? { padawan: { [p.mainForm]: 2, [p.secondForm]: 1 }, knight: { [p.mainForm]: 2, [p.secondForm]: 1 } };
   const rank = rankFor(p, p.startAge);
   const s = createInitialState<GameState>(REGISTRY, {
     campaignId: `life-${p.seed}`,
     branchId: 'b',
     seed: p.seed,
-    start: { day: START_DAY, second: WAKE },
+    start: { day: startDay, second: WAKE },
     character: {
       name: p.seed,
-      birthDay: START_DAY - Math.round(p.startAge * DAYS),
+      birthDay: startDay - Math.round(p.startAge * DAYS),
       path: p.path,
       archetype: p.archetype,
       mainFormId: p.mainForm,
@@ -411,12 +411,21 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
   return { s, tankDays };
 }
 
-export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?: Record<string, number[]>; track?: string[] } = {}): LifeResult {
+export interface LifetimeOpts {
+  crossLevels?: Record<string, number[]>;
+  track?: string[];
+  /** The start date (default the neutral TEST_YEAR; an era profile starts on a lore date, D-409). */
+  startDate?: CalendarDate;
+  /** Called at the end of every day; a returned state replaces the life's state (e.g. a move with the Order, D-409). */
+  onDay?: (s: GameState, info: { day: number; age: number }) => GameState | void;
+}
+
+export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = {}): LifeResult {
   const statsBefore = { ...fightStats };
   setPlayerCount(p.seed);
   setForceXpCount(p.seed);
   resetForceXpTrial();
-  let s = profileState(p);
+  let s = profileState(p, opts.startDate ? absDayFromDate(opts.startDate) : START_DAY);
   const total = Math.round(years * DAYS);
   const isFormMain = p.main === '$highestForm';
   const mainLevel = (st: GameState): number => (isFormMain ? Math.max(0, ...FORM_IDS.map((f) => levelExact(st.progression.skills[f]?.xp ?? 0))) : levelExact(st.progression.skills[p.main]?.xp ?? 0));
@@ -525,6 +534,7 @@ export function runLifetime(p: LifeProfile, years: number, opts: { crossLevels?:
       mainByYear.push(lvl);
       levelsByYear.push(Object.fromEntries(track.map((k) => [k, levelOf(s, k)])));
     }
+    if (opts.onDay) s = opts.onDay(s, { day, age: ageEnd }) ?? s;
   }
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));
   // This life's mortal wounds and Dying states (every Dying profile is stabilized, so the stabilizations count them).

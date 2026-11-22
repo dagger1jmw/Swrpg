@@ -1354,3 +1354,17 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *[5] Checked and consistent:* placements against the board (every placed figure is on the board or in prison in its years), leaders alive on the roster, "unknown" worlds against their gates, the seat against the Tython gate, the rank eras (unchanged through 3,640), species gates (Voss 3,645, Kaleesh 3,641), and planet lines against the new control spans (Alderaan withdraws in 3,653; the Jedi reclaim Tython after 3,653).
   - *[6] M8:* the Cold War events go to m8-world-checklist.md item 8.
   - *[7] M8:* era rules for the Cold War years go to item 9; every rule but two ends by 3,653.
+
+- **D-409 The 3,661 era lifetime profile (overnight run item 4; tests/lifetime/era3661.test.ts).**
+  - **The profile:** the Average Jedi Guardian with Padawan at 13. They start as a 4-year-old initiate in 3,671 and are a 14-year-old Padawan in 3,661. The run uses the real game from 3,671 to the start of 3,649, on the spread's 20 seeds. It is part of `npm run test:lifetime` (and `test:all`); `ERA_SEEDS=n` gives a quicker look.
+  - **The harness:** runLifetime takes a start date and a daily hook (tests/support/lifetime.ts). The defaults are unchanged, so every other profile runs exactly as before.
+  - **The probe:** from 3,661, at each new year, on the live state:
+    - the state block's Order-seat, leaders and control lines;
+    - a canon link for every roster figure, made the way the pipeline makes one (a new NPC by the exact name, the lore index's match for the year, then `npcCanonLinked`);
+    - `planTravel` to every closed map world;
+    - a travel turn through `resolveTurn` to a closed world, which must pass no time;
+    - whether Tython can be reached.
+    The character lives in the Coruscant Temple, then moves with the Order to Tython in 3,650.
+  - **Gates, all met on 20 of 20 seeds:** no crash; no canon link to an off-board figure (each year links exactly the board, 155–164, and refuses the rest); no trip to a closed world (15–18 tried a year); the seat, Tython, control, leaders and board changes land on their dates (the test lists them).
+  - **World events:** none exist yet (M8). The report lists where they would fire: 3,660 (the Hydian Way battle, the Lesser's death, the Rim Campaign), 3,653 (the Sacking, the Treaty), 3,652 (Alderaan, Ord Mantell), 3,651 (Tython rediscovered), 3,650 (the Order moves), 3,649 (Janarus re-elected).
+  - **Fixed, found by the profile:** M1-4X's estimated build year was 3,668, so he was on the board in 3,662 and 3,660 around the snapshot's "not built" in 3,661. The lore says built "before 3,643" and not built in 3,661 or 3,653. The estimate is now 3,645. A test now catches any figure that flickers around the snapshot.

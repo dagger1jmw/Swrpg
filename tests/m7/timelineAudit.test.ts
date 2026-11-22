@@ -42,6 +42,16 @@ describe('timeline audit 3,661-3,640 (D-408)', () => {
     expect(gaps).toEqual(['Grand Master of the Jedi Order 3652']);
     expect(leadersAt(3649).find((l) => l.office === 'Supreme Chancellor')?.holder).toBe('Dorian Janarus');
   });
+  it('no figure flickers around the 3,661 snapshot (on the board in 3,662 or 3,660 but off in 3,661 without being born or dying)', () => {
+    const flicker = CANON_NPCS.filter((n) => {
+      const off = canonOffBoard(n, 3661);
+      if (off === null) return false;
+      const before = canonOffBoard(n, 3662) === null;
+      const after = canonOffBoard(n, 3660) === null && n.birthBby !== 3660;
+      return before || after;
+    }).map((n) => n.canonId);
+    expect(flicker).toEqual([]);
+  });
   it('Coruscant has a controller every year', () => {
     for (const bby of YEARS) expect(controlAt(['Coruscant'], bby).length, String(bby)).toBeGreaterThan(0);
   });
