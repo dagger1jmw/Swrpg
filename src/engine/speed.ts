@@ -1,5 +1,5 @@
 // Speed multiplier M (progression-numbers §5, §17; D-21, D-64) and the state-of-mind multiplier. Pure.
-import { CROSS_TALENT, GRIEF_MULT, M_CAP, STATE_MULT, TALENT_MULT, type StateOfMind, type TalentLevel } from '../data/progression.config';
+import { ACCELERATED_PATH, CROSS_TALENT, FORCE_RICH_FACTOR, FORCE_RICH_SITES, GRIEF_MULT, M_CAP, STATE_MULT, TALENT_MULT, type StateOfMind, type TalentLevel } from '../data/progression.config';
 import { CATEGORY_RULES, SKILL_BY_ID, type TalentDomain } from '../data/skills';
 
 export type Talents = Partial<Record<TalentDomain, TalentLevel>>;
@@ -80,4 +80,30 @@ export interface SpeedInput {
 export function speedM(i: SpeedInput): { m: number; capped: boolean } {
   const raw = i.talent * i.crossTalent * i.instruction * i.age * i.state * i.alignment * i.species;
   return raw > M_CAP ? { m: M_CAP, capped: true } : { m: raw, capped: false };
+}
+
+// ---- Special training conditions (D-418; progression-numbers §21) ----
+
+/** A Force skill (the Force stats and abilities): what a Force-rich place speeds up. */
+export const isForceSkill = (skillId: string): boolean => SKILL_BY_ID.get(skillId)?.category === 'force';
+/** What the accelerated path speeds up: the Force skills and the lightsaber forms. */
+export const isAcceleratedSkill = (skillId: string): boolean => isForceSkill(skillId) || SKILL_BY_ID.get(skillId)?.kind === 'form';
+
+/**
+ * M with the special conditions (D-418): a Force-rich place multiplies a Force skill's M inside the 2.8 cap; the
+ * accelerated path multiplies a Force skill's or form's M on top of the cap (the only condition allowed past it).
+ */
+export function conditionedM(m: number, skillId: string, c: { forceRich: boolean; accelerated: boolean }): number {
+  const place = c.forceRich && isForceSkill(skillId) ? FORCE_RICH_FACTOR : 1;
+  const accel = c.accelerated && isAcceleratedSkill(skillId) ? ACCELERATED_PATH.mult : 1;
+  return Math.min(M_CAP, m * place) * accel;
+}
+
+/** The 4.0x clamp's cap with the accelerated path (D-418): raised x capMult for its skills, unchanged otherwise. */
+export const conditionedCap = (cap: number, skillId: string, accelerated: boolean): number => (accelerated && isAcceleratedSkill(skillId) ? cap * ACCELERATED_PATH.capMult : cap);
+
+/** The Force-rich site at any of these place names (a location and its ancestors), if any. */
+export function forceRichSiteAt(placeNames: readonly string[]): (typeof FORCE_RICH_SITES)[number] | null {
+  const norm = (x: string): string => ` ${x.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim()} `;
+  return FORCE_RICH_SITES.find((site) => placeNames.some((n) => norm(n).includes(norm(site.place)))) ?? null;
 }

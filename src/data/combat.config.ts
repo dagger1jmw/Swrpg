@@ -318,6 +318,8 @@ export const MORALE_BY_ARCHETYPE: Readonly<Record<string, MoraleProfile>> = {
   sithWarrior: { group: 'late', surrender: 0.2 },
   sithInquisitor: { group: 'late', surrender: 0.2 },
   yuuzhanVongWarrior: { group: 'never', surrender: 0 },
+  // The melee warrior (D-422): fights on like the Mandalorians, rarely yields (design default).
+  warrior: { group: 'late', surrender: 0.2 },
 };
 /** Minion kinds that differ from their archetype: droids never break; beasts flee and never surrender. */
 export const MORALE_BY_MINION_KIND: Readonly<Record<string, MoraleProfile>> = {

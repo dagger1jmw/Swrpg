@@ -34,6 +34,11 @@ export const characterSliceSchema = z.object({
   testCharacter: z.boolean(),
   /** The start option taken (D-401 [2]): its side, and whether the character is Imperial-born. Absent for a free start. */
   start: z.object({ optionId: z.string().min(1), faction: z.string().min(1), imperialBorn: z.boolean() }).optional(),
+  /**
+   * The accelerated path (D-418): training cut to the Force and blade work, knowledge and doctrine dropped. Absent = the
+   * standard path. Force skills and forms train faster, past the 4.0x ceiling (progression-numbers §21).
+   */
+  trainingPath: z.enum(['standard', 'accelerated']).optional(),
 });
 
 export type CharacterSlice = z.infer<typeof characterSliceSchema>;

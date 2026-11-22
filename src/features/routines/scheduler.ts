@@ -248,7 +248,14 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
   // 1. Order requirements (fixed commitments, never trimmed).
   let used = 0;
   const plan = sortedPlan(planFor(s, row));
-  for (const req of ORDER_REQUIREMENTS[row] ?? []) {
+  // The accelerated path drops the Order's knowledge and doctrine blocks (D-418: history, protocol, doctrine).
+  const accelerated = selectCharacter(s).trainingPath === 'accelerated';
+  const knowledgeBlock = (req: { activityId: string; primary?: string }): boolean => {
+    const act = ACTIVITY_BY_ID.get(req.activityId);
+    const id = req.primary ?? (act?.primary.kind === 'skill' ? act.primary.skill : '');
+    return SKILL_BY_ID.get(id)?.category === 'knowledge';
+  };
+  for (const req of (ORDER_REQUIREMENTS[row] ?? []).filter((r) => !(accelerated && knowledgeBlock(r)))) {
     const source = sourceFor(req.instructor, routine, s, notes);
     const intensity: Intensity = 'standard';
     if (req.primary === '$planMaster' || req.primary === '$planSolo') {

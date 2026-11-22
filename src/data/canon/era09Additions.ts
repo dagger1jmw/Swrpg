@@ -146,7 +146,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
   {
     canonId: "lore:oteg",
     name: "Oteg",
-    speciesId: "other",
+    speciesId: "yodasSpecies",
     faction: "jediOrder",
     archetype: "jediGuardian",
     birthBby: 3844,
@@ -157,7 +157,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       summary: "male, of Yoda's species; Jedi Master; after the Treaty, High Council; later left the Council to command the First Expeditionary Fleet as Fleet Admiral, with Satele's approval",
       source: "SW_Characters_09_GGW_ColdWar_Part1.md › Other light-side figures (table)"
     },
-    anchors: [],
+    anchors: [{ bby: 3642, complete: true, basis: "sheet", sources: "hand set (Jared, D-421): placed among the Council Master sheets (Kaedan, Bela Kiwiiks, Gnost-Dural, Orgus Din); Yoda's species: small and agile, a long-lived Master and Fleet Admiral; the Maelstrom Prison flashpoint (3,642)", levels: { strength: 40, agility: 78, endurance: 60, willpower: 90, charisma: 80, intelligence: 84, forceSense: 84, meditation: 84, forceKnowledge: 84, forceControl: 84, forceOutput: 78, ataru: 80, soresu: 72, shiiCho: 70, telekinesis: 82, forcePush: 66, forceJump: 70, tactics: 72 } }],
   },
   {
     canonId: "lore:shol-bestros",
@@ -174,7 +174,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       teachers: "advised the Padawan Gnost-Dural",
       source: "SW_Characters_09_GGW_ColdWar_Part1.md › Other light-side figures (table)"
     },
-    anchors: [{ bby: 3643, complete: true, basis: "draft", sources: "draft for review (D-415): the generator's line from archetype and rank at a year a work shows: SWTOR: the Jedi Knight story (3,643)", levels: { strength: 40, agility: 46, endurance: 53, willpower: 108, forceSense: 79, forceControl: 68, meditation: 25, forceKnowledge: 13, shiiCho: 35, soresu: 106, ataru: 69, telekinesis: 54, forcePush: 53, forceSpeed: 46, forceJump: 45, mindTrick: 38 } }],
+    anchors: [],
   },
   {
     canonId: "lore:jerbhen-hulis",
@@ -191,7 +191,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       teachers: "an unidentified Padawan",
       source: "SW_Characters_09_GGW_ColdWar_Part1.md › Other light-side figures (table)"
     },
-    anchors: [{ bby: 3678, complete: true, basis: "draft", sources: "draft for review (D-415): the generator's line from archetype and rank at a year a work shows: Blood of the Empire (3,678)", levels: { strength: 47, agility: 47, endurance: 49, willpower: 86, forceSense: 45, forceControl: 63, meditation: 16, forceKnowledge: 13, shiiCho: 33, soresu: 69, ataru: 51, telekinesis: 52, forcePush: 37, forceSpeed: 35, forceJump: 33, mindTrick: 30 } }],
+    anchors: [],
   },
   {
     canonId: "lore:wyellett",
@@ -641,7 +641,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "unknown",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3706,
+    birthBby: 3709,
     birthSource: "estimate",
     deathBby: 3638,
     deathSource: "lore",
@@ -658,7 +658,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "unknown",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3706,
+    birthBby: 3709,
     birthSource: "estimate",
     deathBby: 3638,
     deathSource: "lore",
@@ -675,7 +675,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "unknown",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3706,
+    birthBby: 3709,
     birthSource: "estimate",
     deathBby: 3638,
     deathSource: "lore",
@@ -692,7 +692,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "unknown",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3706,
+    birthBby: 3709,
     birthSource: "estimate",
     facts: {
       group: "Sith / dark side",
@@ -707,7 +707,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "unknown",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3706,
+    birthBby: 3709,
     birthSource: "estimate",
     deathBby: 3638,
     deathSource: "lore",
@@ -724,7 +724,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "unknown",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3706,
+    birthBby: 3709,
     birthSource: "estimate",
     deathBby: 3638,
     deathSource: "lore",
@@ -741,7 +741,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "human",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3680,
+    birthBby: 3683,
     birthSource: "estimate",
     deathBby: 3643,
     deathSource: "lore",
@@ -817,7 +817,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "human",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3677,
+    birthBby: 3682,
     birthSource: "estimate",
     deathBby: 3642,
     deathSource: "lore",
@@ -835,7 +835,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "human",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3723,
+    birthBby: 3726,
     birthSource: "estimate",
     facts: {
       sex: "male",
@@ -852,7 +852,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "human",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3680,
+    birthBby: 3685,
     birthSource: "estimate",
     deathBby: 3643,
     deathSource: "lore",
@@ -890,7 +890,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "human",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3703,
+    birthBby: 3706,
     birthSource: "estimate",
     deathBby: 3681,
     deathSource: "lore",
@@ -928,7 +928,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "human",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3678,
+    birthBby: 3683,
     birthSource: "estimate",
     facts: {
       sex: "male",
@@ -945,7 +945,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "sithPureblood",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3680,
+    birthBby: 3685,
     birthSource: "estimate",
     deathBby: 3640,
     deathSource: "lore",
@@ -964,7 +964,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "sithPureblood",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3680,
+    birthBby: 3685,
     birthSource: "estimate",
     facts: {
       sex: "male",
@@ -1000,7 +1000,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "human",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3720,
+    birthBby: 3723,
     birthSource: "estimate",
     note: "birth year: design estimate, on record as an active hermit in the tomb of Ajunta Pall in 3661 (D-376)",
     facts: {
@@ -1010,7 +1010,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       teachers: "acolytes",
       source: "SW_Characters_09_GGW_ColdWar_Part2.md › Other Sith Lords, apprentices, academy staff and dark-side users (table)"
     },
-    anchors: [{ bby: 3643, complete: true, basis: "draft", sources: "draft for review (D-415): the generator's line from archetype and rank at a year a work shows: SWTOR: the Sith Warrior and Inquisitor stories (3,643)", levels: { strength: 48, agility: 47, endurance: 59, willpower: 117, forceSense: 35, forceControl: 39, forceOutput: 49, meditation: 15, forceKnowledge: 14, shiiCho: 29, soresu: 95, ataru: 55, telekinesis: 37, forcePush: 34, forceSpeed: 29, forceJump: 27, forceChoke: 28 } }],
+    anchors: [],
   },
   {
     canonId: "lore:tremel",
@@ -1029,7 +1029,26 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       teachers: "the Wrath (informal)",
       source: "SW_Characters_09_GGW_ColdWar_Part2.md › Other Sith Lords, apprentices, academy staff and dark-side users (table)"
     },
-    anchors: [{ bby: 3643, complete: true, basis: "draft", sources: "draft for review (D-415): the generator's line from archetype and rank at a year a work shows: SWTOR: the Sith Warrior story (3,643)", levels: { strength: 50, agility: 49, endurance: 56, willpower: 97, forceSense: 33, forceControl: 41, forceOutput: 51, meditation: 15, forceKnowledge: 14, shiiCho: 32, soresu: 82, ataru: 57, telekinesis: 37, forcePush: 30, forceSpeed: 27, forceJump: 28, forceChoke: 25 } }],
+    anchors: [],
+  },
+  {
+    canonId: "lore:ragate",
+    name: "Ragate",
+    speciesId: "human",
+    faction: "sithEmpire",
+    archetype: "sithInquisitor",
+    birthBby: 3718,
+    birthSource: "estimate",
+    deathBby: 3637,
+    deathSource: "lore",
+    bladeColor: "yellow",
+    facts: {
+      sex: "female",
+      group: "Sith / dark side",
+      summary: "female Human; Overseer at the Korriban academy, keeper of the rite of blood and bone; helped reopen the Ritual Chambers during the Great Galactic War; elderly by the Galactic War; skilled in precognition; killed in 3637 BBY",
+      source: "SW_Characters_09_GGW_ColdWar_Part2.md › Other Sith Lords, apprentices, academy staff and dark-side users (table; added from SW_Korriban_Academy_Part1, D-421)"
+    },
+    anchors: [{ bby: 3643, complete: true, basis: "sheet", sources: "hand set (Jared, D-421): an old, frail Overseer skilled in precognition (Korriban files); the Sith Inquisitor and Warrior prologues on Korriban (3,643)", levels: { strength: 30, agility: 34, endurance: 36, willpower: 82, charisma: 62, intelligence: 78, forceSense: 84, meditation: 70, forceKnowledge: 80, forceControl: 72, forceOutput: 62, makashi: 60, shiiCho: 58, soresu: 54, telekinesis: 66, forceLightning: 58 } }],
   },
   {
     canonId: "lore:ffon-althe",
@@ -1057,7 +1076,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "human",
     faction: "sithEmpire",
     archetype: "sithWarrior",
-    birthBby: 3670,
+    birthBby: 3673,
     birthSource: "estimate",
     facts: {
       sex: "male",
@@ -1073,7 +1092,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Khem Val",
     speciesId: "dashade",
     faction: "sithEmpire",
-    archetype: "bountyHunter",
+    archetype: "warrior",
     birthBby: 5501,
     birthSource: "estimate",
     fixed: "an ancient Dashade, kept in stasis for millennia; does not age on the human curve",
@@ -1281,7 +1300,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "human",
     faction: "republic",
     archetype: "soldier",
-    birthBby: 3706,
+    birthBby: 3703,
     birthSource: "estimate",
     facts: {
       sex: "male",
@@ -1289,7 +1308,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       summary: "male Human (infobox). Supreme Commander during the Great War and Cold War. Married Galena Rans. \"Totally outplayed\" by the Sith plan for the Sacking. Later led at Ilum, where he was captured and rescued, then retired.",
       source: "SW_Characters_09_GGW_ColdWar_Part3a.md › Rans"
     },
-    anchors: [{ bby: 3653, complete: true, basis: "draft", sources: "draft for review (D-415): the generator's line from archetype and rank at a year a work shows: Threat of Peace (3,653)", levels: { strength: 51, agility: 58, endurance: 49, willpower: 72, intelligence: 20, forceControl: 2, meditation: 6, blaster: 74, tactics: 42 } }],
+    anchors: [],
   },
   {
     canonId: "lore:stantorrs",
@@ -1361,7 +1380,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Nico Okarr",
     speciesId: "human",
     faction: "republic",
-    archetype: "civilian",
+    archetype: "smuggler",
     birthBby: 3706,
     birthSource: "estimate",
     facts: {
@@ -1948,7 +1967,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Broonmark",
     speciesId: "talz",
     faction: "sithEmpire",
-    archetype: "bountyHunter",
+    archetype: "warrior",
     birthBby: 3680,
     birthSource: "estimate",
     facts: {
@@ -2076,7 +2095,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Mandalore the Lesser",
     speciesId: "human",
     faction: "mandalorians",
-    archetype: "mandalorian",
+    archetype: "warrior",
     birthBby: 3700,
     birthSource: "estimate",
     deathBby: 3660,
@@ -2252,7 +2271,8 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       summary: "Hutt male; Supreme Mogul of the Hutt Cartel for nearly two centuries by the Cold War; over 800 years old",
       source: "SW_Characters_09_GGW_ColdWar_Part3b.md › C. Underworld and Hutts"
     },
-    anchors: [],
+    fixed: "over 800 years old: a Hutt on the long plateau of a 1,000-year life; his sheet holds through the era (D-421)",
+    anchors: [{ bby: 3643, complete: true, basis: "sheet", sources: "hand set (Jared, D-421): an 800+ Hutt crime lord: huge strength and endurance, minimal agility and personal combat, high willpower, intelligence and presence; SWTOR Smuggler and Bounty Hunter stories (3,643)", levels: { strength: 110, agility: 14, endurance: 120, willpower: 86, charisma: 82, intelligence: 84, melee: 22, blaster: 16, tactics: 60 } }],
   },
   {
     canonId: "lore:suudaa-nemro",

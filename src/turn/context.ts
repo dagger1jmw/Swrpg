@@ -11,13 +11,13 @@ import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { orderSeatAt } from '../data/orderSeats';
 import { controlAt, leadersAt } from '../data/worldControl';
-import { placementsAt } from '../data/canonPlacements';
+import { onRecordAt, onRecordFor } from '../data/canonPlacements';
 import { describeTravel } from './travel';
 import { eraRulesAt } from '../data/eraRules';
 import { rankErasAt } from '../data/eraRanks';
 import { closedWorlds, mapSide } from '../data/galaxyMap';
 import { CANON_BY_ID } from '../data/canonNpcs';
-import { canonOffBoard } from '../engine/canonRoster';
+import { canonOffBoard, canonStatusAt } from '../engine/canonRoster';
 import { findCanonEntity } from '../lore/retrieve';
 import { FATE_ACT_NOTE, NARRATION_LENGTH, STRIKE_AT, SUBDUE_TEXT, type SubdueMode } from '../data/combat.config';
 import { selectIsDying, selectIsSpent, selectLasting, selectStatusLabel, selectWounds } from '../features/health/selectors';
@@ -258,6 +258,7 @@ export function stateBlock(
   est: Estimate,
   cap: number = CONTEXT_CAPS.state,
   focus: readonly string[] = [],
+  playerText = '',
 ): { text: string; report: SectionReport } {
   const now = selectNow(state);
   const chain = selectLocationChain(state, selectCurrentLocationId(state));
@@ -276,7 +277,7 @@ export function stateBlock(
     `Jedi Order: ${orderSeatAt(dateFromAbsDay(now.day).year) ?? 'no standing Temple at this date'}`,
     ...rankLines(dateFromAbsDay(now.day).year),
     ...worldLines(-dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
-    ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
+    ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), namedCanonIds(state, focus, playerText, -dateFromAbsDay(now.day).year)),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,
     `Location: ${chain.length ? chain.map((l) => `${l.name} (${l.id})`).join(', in ') : 'not recorded yet (introduce it with locationIntroduced)'}`,
     `Present: ${present.length ? present.join(', ') : 'nobody recorded'}`,
@@ -648,7 +649,7 @@ export function buildNarrativeRequest(state: GameState, draft: TurnDraft, input:
   const playerText = playerTextOf(input);
 
   const recent = historyWindow(history, caps.recentTurns, est);
-  const st = stateBlock(state, est, caps.state, focusIds(state, referenced, playerText));
+  const st = stateBlock(state, est, caps.state, focusIds(state, referenced, playerText), playerText);
   const arc = arcSection(state, est);
   const mem = memorySection(state, referenced, playerText, recent.fromTurn, est, caps.memory);
   const lore = loreSection(state, referenced, playerText, est, opts.lore ?? LORE_INDEX);
@@ -735,6 +736,29 @@ function worldLines(bby: number, placeNames: readonly string[]): string[] {
   ];
 }
 
+/** At most this many named figures' whereabouts per turn (D-420). */
+const NAMED_ON_RECORD_MAX = 6;
+
+/**
+ * The canon figures named this turn (D-420): the canon links of the NPCs in focus (referenced or named), and any roster
+ * figure whose lore alias appears in the player's words.
+ */
+function namedCanonIds(state: GameState, focus: readonly string[], playerText: string, bby: number): string[] {
+  const out = new Set<string>();
+  for (const id of focus) {
+    const c = state.npcs.byId[id]?.canonId;
+    if (c) out.add(c);
+  }
+  const text = ` ${normalizeText(playerText)} `;
+  if (text.trim()) {
+    for (const e of LORE_INDEX.entities) {
+      if (!CANON_BY_ID.has(e.canonId) || e.fromYear > -bby || -bby > e.toYear) continue;
+      if (e.aliases.some((a) => a.length > 3 && text.includes(` ${a} `))) out.add(e.canonId);
+    }
+  }
+  return [...out];
+}
+
 /** How an off-board reason reads for the narrator (D-401 [4]). */
 const OFF_BOARD_TEXT = { unborn: 'not yet born', dead: 'dead', unavailable: 'out of sight', imprisoned: 'imprisoned elsewhere' } as const;
 
@@ -746,10 +770,32 @@ const PATH_FACTION: Readonly<Record<string, string>> = { jedi: 'jediOrder', sith
  * board), a warning for each story NPC named after a canon figure who is off the board now (the link was refused), and
  * the era rules for this place and the factions in play. No full roster is sent.
  */
-function boardLines(state: GameState, bby: number, placeNames: readonly string[]): string[] {
+function boardLines(state: GameState, bby: number, placeNames: readonly string[], named: readonly string[] = []): string[] {
   const lines: string[] = [];
-  const here = placementsAt(placeNames, bby).filter((p) => !p.canonId || !CANON_BY_ID.get(p.canonId) || canonOffBoard(CANON_BY_ID.get(p.canonId)!, bby) === null || p.imprisoned);
+  // D-420 (Jared): every on-record whereabouts at this place (not only the D-401 placements), for figures on the board
+  // (or held here); never a full list. A figure the campaign has diverged from (D-419) is left out: the lore's
+  // whereabouts no longer apply to them.
+  const diverged = new Set(selectNpcs(state).filter((n) => n.canonId && n.canonDiverged).map((n) => n.canonId!));
+  const onBoard = (canonId: string): boolean => !canonId || !CANON_BY_ID.get(canonId) || canonOffBoard(CANON_BY_ID.get(canonId)!, bby) === null;
+  const here = onRecordAt(placeNames, bby).filter((p) => !diverged.has(p.canonId) && (onBoard(p.canonId) || p.imprisoned));
   if (here.length) lines.push(`Canon figures here (on record this year; introduce them only as the story reaches them): ${here.map((p) => `${p.name}: ${p.doing}`).join('; ')}`);
+  // D-420: the on-record whereabouts of any canon figure named this turn (the player's words, the people referenced).
+  const hereIds = new Set(here.map((p) => p.canonId));
+  const namedLines: string[] = [];
+  for (const id of named) {
+    if (hereIds.has(id) || diverged.has(id) || namedLines.length >= NAMED_ON_RECORD_MAX) continue;
+    const canon = CANON_BY_ID.get(id);
+    if (!canon) continue;
+    const off = canonOffBoard(canon, bby);
+    if (off && off !== 'imprisoned') {
+      const why = canonStatusAt(canon, bby);
+      namedLines.push(`${canon.name}: ${OFF_BOARD_TEXT[off]}${why ? ` (${why.note})` : ''}`);
+      continue;
+    }
+    const rec = onRecordFor(id, bby);
+    if (rec.length) namedLines.push(`${canon.name}: ${rec.map((r) => (r.place ? `${r.doing} (${r.place})` : r.doing)).join('; ')}`);
+  }
+  if (namedLines.length) lines.push(`Named canon figures on record this year (whereabouts not stated are open): ${namedLines.join('; ')}`);
   const warned: string[] = [];
   for (const n of selectNpcs(state)) {
     if (n.canonId || warned.length >= 3) continue;

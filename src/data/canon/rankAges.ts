@@ -7,18 +7,20 @@ import { ROLE_MIN_AGE } from '../npcGen.config';
 
 /** The typical starting age of a rank or title (years). */
 export const RANK_TYPICAL_AGE: Readonly<Record<string, number>> = {
-  // Jedi: Padawan at 13 (the era profile's default), Knight at 25 (the Obi-Wan check, npc-generation §3), Master at 40.
+  // Jedi: Padawan at 13 (the era profile's default), Knight at 25 (the Obi-Wan check, npc-generation §3; Jared, D-417: the
+  // average Knight at about 25 after 12-13 years as a Padawan), Master at 40.
   Initiate: 4,
   Padawan: 13,
   'Jedi Knight': 25,
   'Jedi Master': 40,
   'High Council member': 45,
   'Grand Master': 55,
-  // Sith: acolyte at 15, apprentice or Lord at 22, Darth at 35, Dark Councilor at 45.
+  // Sith (D-417: the ladder mirrors the Jedi, Knight 25 and Master 40): acolyte at 15, apprentice at 20, Lord at 25,
+  // Darth at 40, Dark Councilor at 45.
   acolyte: 15,
   apprentice: 20,
-  'Sith Lord': 22,
-  Darth: 35,
+  'Sith Lord': 25,
+  Darth: 40,
   'Dark Councilor': 45,
   Overseer: 35,
   // Careers.

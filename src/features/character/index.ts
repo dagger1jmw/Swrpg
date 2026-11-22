@@ -26,12 +26,30 @@ export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
       ...(c.unbalanced !== undefined ? { unbalanced: c.unbalanced } : {}),
       testCharacter: c.testCharacter === true,
       ...(c.start !== undefined ? { start: { ...c.start } } : {}),
+      ...(c.trainingPath !== undefined ? { trainingPath: c.trainingPath } : {}),
       ...(c.formPlan !== undefined ? { formPlan: c.formPlan === null ? null : { padawan: { ...c.formPlan.padawan }, knight: { ...c.formPlan.knight } } } : {}),
     };
   },
   stateSchema: characterSliceSchema,
   migrations: { 2: migrateCharacterV1, 3: migrateCharacterV2, 4: migrateCharacterV3, 5: migrateCharacterV4 },
   events: {
+    /**
+     * The training path (D-418): the accelerated path (training cut to the Force and blade work) or back to the standard
+     * path when later study begins. The player sets it; the engine may (a start option).
+     */
+    trainingPathSet: {
+      schema: z.object({ type: z.literal('trainingPathSet'), path: z.enum(['standard', 'accelerated']) }),
+      sources: ['player', 'engine'],
+      handle: (slice, e) => {
+        const path = e['path'] as 'standard' | 'accelerated';
+        if ((slice.trainingPath ?? 'standard') === path) return { slice };
+        if (path === 'standard') {
+          const { trainingPath: _old, ...rest } = slice;
+          return { slice: rest, notes: ['training path: standard'] };
+        }
+        return { slice: { ...slice, trainingPath: path }, notes: ['training path: accelerated (Force and blade work; knowledge and doctrine dropped)'] };
+      },
+    },
     /** Losing the dominant hand or arm switches the hand (Q39; health §5). Engine only. */
     dominantHandSwitched: {
       schema: z.object({ type: z.literal('dominantHandSwitched'), reason: z.string().max(120) }),

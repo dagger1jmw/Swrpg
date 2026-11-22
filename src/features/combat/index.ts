@@ -873,6 +873,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         if (!fateIsLive(ctx.state, entry)) return { reject: `the moment to decide ${id}'s fate has passed` };
         const fate = e['fate'] as NpcFate;
         const emit: GameEvent[] = fate === 'kill' ? [{ type: 'npcDied', npcRef: id, cause: 'killed by the player at incapacitation' }] : [];
+        // A captured canon figure leaves its canon course (D-419).
+        if (fate === 'capture' && ctx.state.npcs.byId[id]?.canonId) emit.push({ type: 'npcCanonDiverged', npcRef: id, reason: 'captured' });
         // The act in plain words, for RESOLVED's fate line (pass 5 issue 13: Kill Duelist 8 was told as an escape from an
         // old captivity, with Jedi who were not there).
         const name = ctx.state.npcs.byId[id]?.name ?? id;

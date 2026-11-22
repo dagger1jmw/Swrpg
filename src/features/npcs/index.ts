@@ -273,12 +273,40 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
       targetField: 'npcRef',
       refFields: ['npcRef'],
       refKinds: npcRefKinds,
-      handle: (slice, e) => {
+      handle: (slice, e, ctx) => {
         const id = String(e['npcRef']);
         const npc = slice.byId[id];
         if (!npc) return { reject: `unknown npc ${id}` };
         if (npc.status === 'deceased') return { slice };
-        return { slice: update(slice, id, { status: 'deceased' }), notes: [`${npc.name} dies (${String(e['cause'])})`] };
+        // A canon figure killed in the campaign diverges from its canon spans (D-419).
+        const diverged = npc.canonId && !npc.canonDiverged ? { canonDiverged: { day: selectNow(ctx.state).day, reason: 'killed' as const } } : {};
+        return { slice: update(slice, id, { status: 'deceased', ...diverged }), notes: [`${npc.name} dies (${String(e['cause'])})`] };
+      },
+    },
+    /**
+     * A canon figure the campaign has diverged from (Jared, D-419): captured, turned (changed sides) or removed from their
+     * post. The engine records a capture; the narrator reports a turn or a removal it has told. From this day the figure
+     * keeps no later canon promotions and the lore's later whereabouts stop applying. One-way: the first divergence stands.
+     */
+    npcCanonDiverged: {
+      schema: z.object({
+        type: z.literal('npcCanonDiverged'),
+        npcRef: z.string(),
+        reason: z.enum(['captured', 'turned', 'removed']).describe('captured; turned (changed sides); removed (lost their post or office)'),
+      }),
+      sources: ['ai', 'engine'],
+      targetField: 'npcRef',
+      refFields: ['npcRef'],
+      refKinds: npcRefKinds,
+      narrative: (s) => selectNpcs(s).some((n) => n.canonId !== null),
+      handle: (slice, e, ctx) => {
+        const id = String(e['npcRef']);
+        const npc = slice.byId[id];
+        if (!npc) return { reject: `unknown npc ${id}` };
+        if (!npc.canonId) return { reject: `${id} is not a canon figure: nothing to diverge from` };
+        if (npc.canonDiverged) return { slice };
+        const reason = e['reason'] as 'captured' | 'turned' | 'removed';
+        return { slice: update(slice, id, { canonDiverged: { day: selectNow(ctx.state).day, reason } }), notes: [`${npc.name} leaves the canon course (${reason}): no later canon promotions`] };
       },
     },
     // Player: resolves a review-queue name to an existing NPC.

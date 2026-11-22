@@ -30,7 +30,8 @@ import { instructionFactor } from '../../engine/instruction';
 import { clampCredit, clampShare, inWindow, paceCap } from '../../engine/paceClamp';
 import type { RngState } from '../../engine/rng';
 import { humanEquivalentAge, speciesLearning } from '../../engine/species';
-import { crossTalentMult, isChannelEligible, speedM, stateMult, talentMult } from '../../engine/speed';
+import { conditionedCap, conditionedM, crossTalentMult, forceRichSiteAt, isChannelEligible, speedM, stateMult, talentMult } from '../../engine/speed';
+import { selectCurrentLocationId, selectLocationChain } from '../locations/selectors';
 import { speciesDef } from '../../data/species';
 import type { GameState } from '../../state/gameState';
 import type { GameEvent } from '../../state/types';
@@ -247,10 +248,11 @@ export function speedFor(s: GameState, instruction: number): (skill: string) => 
   const state = selectStateOfMind(s);
   const grief = selectGriefMult(s);
   const despair = selectDespairMult(s);
+  const conditions = selectTrainingConditions(s);
   return (skill: string): number => {
     const def = SKILL_BY_ID.get(skill);
     if (!def) return 1;
-    return speedM({
+    const m = speedM({
       talent: talentMult(c.talents, skill),
       crossTalent: crossTalentMult(c.talents, skill),
       instruction,
@@ -258,8 +260,16 @@ export function speedFor(s: GameState, instruction: number): (skill: string) => 
       state: stateMult(state, skill, { grief, despair, darkPressure: STUB_DARK_PRESSURE }),
       alignment: STUB_ALIGNMENT_MULT,
       species: speciesLearning(c.speciesId, skill),
-    }).m * reviewBuff(s, skill);
+    }).m;
+    return conditionedM(m, skill, conditions) * reviewBuff(s, skill);
   };
+}
+
+/** The special training conditions in force now (D-418): the accelerated path, and a Force-rich place. */
+export function selectTrainingConditions(s: GameState): { accelerated: boolean; forceRich: boolean; site: string | null } {
+  const names = selectLocationChain(s, selectCurrentLocationId(s)).flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean));
+  const site = forceRichSiteAt(names);
+  return { accelerated: selectCharacter(s).trainingPath === 'accelerated', forceRich: site !== null, site: site?.place ?? null };
 }
 
 /** Reviewing a recording of one's own fight: +5% XP to that skill for 3 days (progression-numbers §19, D-154). */
@@ -279,11 +289,13 @@ export function clampFor(s: GameState, hours: number): (skill: string, wanted: n
   const hoursIn = (id: string): number => inWindow(win[id] ?? [], today).reduce((x, e) => x + e.hours, 0);
   const totalHours = Object.keys(win).reduce((x, id) => x + hoursIn(id), 0) + hours;
   const windowAge = humanEquivalentAge(speciesDef(c.speciesId), selectExactAge(s) - 365 / 368);
+  const accelerated = c.trainingPath === 'accelerated';
   return (skill, wanted, sessionHours) => {
     const skillHours = hoursIn(skill) + sessionHours;
     const share = clampShare(c.focusWeights[skill] ?? 0, skillHours, totalHours);
     const used = inWindow(win[skill] ?? [], today).reduce((x, e) => x + e.xp, 0);
-    return clampCredit(wanted, used, paceCap(windowAge, share));
+    // The accelerated path is the only condition allowed past the 4.0x ceiling (D-418).
+    return clampCredit(wanted, used, conditionedCap(paceCap(windowAge, share), skill, accelerated));
   };
 }
 

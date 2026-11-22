@@ -154,6 +154,8 @@ export interface InitCtx {
     formPlan?: { padawan: Readonly<Record<string, number>>; knight: Readonly<Record<string, number>> } | null;
     /** The start option taken (D-401 [2]). */
     start?: { optionId: string; faction: string; imperialBorn: boolean };
+    /** The accelerated path (D-418). */
+    trainingPath?: 'standard' | 'accelerated';
   };
   /** Starting trained XP per skill from computed creation (character-creation §2). */
   startingXp?: Readonly<Record<string, number>>;

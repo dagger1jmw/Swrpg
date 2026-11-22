@@ -118,6 +118,7 @@ Status in 3661 BBY is a short form; the full 3661 BBY and 3653 BBY lines are in 
 | Harkun | Sith / dark side | — | c. 3641 BBY, Korriban | not stated | Part2 › Other Sith Lords, apprentices, academy staff and dark-side users (table) |
 | Spindrall | Sith / dark side | — | — | not stated | Part2 › Other Sith Lords, apprentices, academy staff and dark-side users (table) |
 | Tremel | Sith / dark side | — | 3643 BBY, Korriban | not stated | Part2 › Other Sith Lords, apprentices, academy staff and dark-side users (table) |
+| Ragate | Sith / dark side | — | 3637 BBY, Korriban | not stated | Part2 › Other Sith Lords, apprentices, academy staff and dark-side users (table) |
 | Ffon Althe | Sith / dark side | — | c. 3643 BBY, Korriban | not stated | Part2 › Other Sith Lords, apprentices, academy staff and dark-side users (table) |
 | Grathan | Sith / dark side | — | — | not stated | Part2 › Other Sith Lords, apprentices, academy staff and dark-side users (table) |
 | Khem Val | Sith / dark side | before 5500 BBY | — | not stated | Part2 › Other Sith Lords, apprentices, academy staff and dark-side users (table) |

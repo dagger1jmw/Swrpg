@@ -32,15 +32,18 @@ describe('hand-set anchors first (brief §4)', () => {
   it('the priority figures each have an appearances entry', () => {
     for (const id of priority) expect(APPEARANCES.some((a) => a.canonId === `lore:${id}`), id).toBe(true);
   });
-  it('every priority figure but Karagga has a complete anchor (hand-set, or a draft for review); each inside the figure\'s life', () => {
-    for (const id of priority.filter((x) => x !== 'karagga-the-unyielding')) {
+  // D-421 (Jared): the D-415 drafts are rejected pending the stat scale; Karagga, Oteg and Ragate have hand-set lines.
+  const drafted = ['spindrall', 'tremel', 'rans'];
+  it('every priority figure but the rejected drafts has a complete hand-set anchor inside the figure\'s life; no drafts remain', () => {
+    for (const id of drafted) expect(CANON_BY_ID.get(`lore:${id}`)!.anchors, id).toEqual([]);
+    for (const id of [...priority.filter((x) => !drafted.includes(x)), 'oteg', 'ragate']) {
       const n = CANON_BY_ID.get(`lore:${id}`)!;
       const a = n.anchors.find((x) => x.complete);
       expect(a, id).toBeDefined();
       expect(a!.bby, id).toBeLessThan(n.birthBby);
       if (n.deathBby !== undefined) expect(a!.bby, id).toBeGreaterThanOrEqual(n.deathBby);
     }
-    expect(CANON_NPCS.filter((n) => n.anchors.some((a) => a.basis === 'draft')).length).toBe(5);
+    expect(CANON_NPCS.filter((n) => n.anchors.some((a) => a.basis === 'draft')).length).toBe(0);
   });
 });
 

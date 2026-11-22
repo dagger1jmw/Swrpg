@@ -26,6 +26,8 @@ export const LOADOUT_BY_ARCHETYPE: Readonly<Record<string, Loadout>> = {
   civilian: NONE,
   // The amphistaff and vonduun crab armor, both lightsaber-resistant (Characters_15 :34; D-224).
   yuuzhanVongWarrior: { weapon: 'melee', armor: 'heavy', saberResistant: true },
+  // The melee warrior (D-422): a blade or a heavy close weapon, light armor; canon armor or weapon overrides it.
+  warrior: { weapon: 'melee', armor: 'light', saberResistant: false },
 };
 
 /** Ranks that train with a training saber (Initiates, Sith acolytes). */

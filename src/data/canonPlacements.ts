@@ -23,10 +23,8 @@ export interface CanonPlacement {
   source: string;
 }
 
-/** Figures on record at a place who are not in a canon roster. */
-const NOT_IN_ROSTER: readonly CanonPlacement[] = [
-  { name: 'Overseer Ragate', place: 'Korriban', fromBby: 3681, toBby: 3644, doing: 'an Overseer, keeper of the rite of blood and bone; reopened the Ritual Chambers during the war', source: 'SW_Korriban_Academy_Part1 §B; D-376' },
-];
+/** Figures on record at a place who are not in a canon roster (none since Ragate joined the roster, D-421). */
+const NOT_IN_ROSTER: readonly CanonPlacement[] = [];
 
 /** Every placement: the roster's placed location spans, then the figures outside the rosters. */
 export const CANON_PLACEMENTS: readonly CanonPlacement[] = [
@@ -51,4 +49,47 @@ const mentions = (text: string, name: string): boolean => (` ${norm(text)} `).in
 /** The placed figures at any of these place names (a location and its ancestors) in `bby`. */
 export function placementsAt(placeNames: readonly string[], bby: number): CanonPlacement[] {
   return CANON_PLACEMENTS.filter((p) => bby <= p.fromBby && bby >= p.toBby && placeNames.some((n) => mentions(n, p.place)));
+}
+
+/** One on-record whereabouts line (D-420): a location span, or a dated status fact, covering the year. */
+export interface OnRecord {
+  canonId: string;
+  name: string;
+  /** The place, or '' for a status fact that names none. */
+  place: string;
+  doing: string;
+  imprisoned: boolean;
+}
+
+const covers = (from: number, to: number | undefined, death: number | undefined, bby: number): boolean => bby <= from && bby >= (to ?? death ?? -Infinity);
+
+/**
+ * Every on-record whereabouts at these place names this year (Jared, D-420): any location span of a roster figure that
+ * covers the year and names the place, placed or not; any dated status fact of the year whose wording names the place
+ * ("recalled to Coruscant over the Hydian blockade"); and the figures outside the rosters. The narrator gets these for
+ * the current place; it never gets a full list.
+ */
+export function onRecordAt(placeNames: readonly string[], bby: number): OnRecord[] {
+  const out: OnRecord[] = [];
+  for (const n of CANON_NPCS) {
+    const spans = (n.locations ?? []).filter((l) => covers(l.fromBby, l.toBby, n.deathBby, bby) && placeNames.some((p) => mentions(p, l.place)));
+    for (const l of spans) out.push({ canonId: n.canonId, name: l.shownAs ?? n.name, place: l.place, doing: l.doing, imprisoned: l.imprisoned === true });
+    if (spans.length) continue;
+    for (const st of n.status ?? []) {
+      if (st.kind !== 'active' || !covers(st.fromBby, st.toBby, n.deathBby, bby)) continue;
+      const place = placeNames.find((p) => p.trim().length > 2 && mentions(st.note, p));
+      if (place) out.push({ canonId: n.canonId, name: n.name, place, doing: st.note, imprisoned: false });
+    }
+  }
+  for (const p of NOT_IN_ROSTER) if (covers(p.fromBby, p.toBby, undefined, bby) && placeNames.some((x) => mentions(x, p.place))) out.push({ canonId: '', name: p.name, place: p.place, doing: p.doing, imprisoned: p.imprisoned === true });
+  return out;
+}
+
+/** A roster figure's on-record whereabouts this year (D-420: sent when the figure is named): location spans and the year's status facts. */
+export function onRecordFor(canonId: string, bby: number): OnRecord[] {
+  const n = CANON_NPCS.find((x) => x.canonId === canonId);
+  if (!n) return [];
+  const spans = (n.locations ?? []).filter((l) => covers(l.fromBby, l.toBby, n.deathBby, bby)).map((l) => ({ canonId: n.canonId, name: l.shownAs ?? n.name, place: l.place, doing: l.doing, imprisoned: l.imprisoned === true }));
+  const facts = (n.status ?? []).filter((st) => st.kind === 'active' && covers(st.fromBby, st.toBby, n.deathBby, bby)).map((st) => ({ canonId: n.canonId, name: n.name, place: '', doing: st.note, imprisoned: false }));
+  return [...spans, ...facts];
 }

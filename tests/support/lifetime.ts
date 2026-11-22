@@ -84,6 +84,10 @@ export interface LifeProfile {
   fights?: (age: number, day: number) => Fight[];
   /** War years [from, to): wounding fights get a bacta tank instead of medical care (D-162). */
   warAges?: readonly (readonly [number, number])[];
+  /** The accelerated path (D-418), from the start. */
+  trainingPath?: 'accelerated';
+  /** Train at this place all life (a Force-rich site for the D-418 condition: "Dagobah"). */
+  place?: string;
 }
 
 export interface LifeResult {
@@ -141,11 +145,15 @@ export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
       trainingStartAge: p.startAge,
       ...(p.talents ? { talents: p.talents } : {}),
       ...(p.focusWeights ? { focusWeights: p.focusWeights } : {}),
+      ...(p.trainingPath ? { trainingPath: p.trainingPath } : {}),
     },
     rank,
     ...(p.startingXp ? { startingXp: p.startingXp } : {}),
   });
-  return setRoutine(p, s, rank);
+  const placed = p.place
+    ? applyEvents(REGISTRY, s, [{ type: 'locationIntroduced', name: p.place, kind: 'planet', region: p.place, description: 'training ground', moveHere: true }], { source: 'engine' }).state
+    : s;
+  return setRoutine(p, placed, rank);
 }
 
 const LADDER = { jedi: ['initiate', 'padawan', 'knight'], sith: ['acolyte', 'apprentice', 'lord'] } as const;

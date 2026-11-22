@@ -456,3 +456,24 @@ A lasting injury sets a base penalty P on the skills and stats it affects. Adapt
     dark-pressure floor (D-46).
 26. emotionalEvent maps to the state of mind by the section 17 table; distracted never
     comes from an event (D-54).
+
+## 21. Special training conditions (added by D-418)
+Conditions that change how fast a character trains, beyond talent, teacher and age:
+  Exceptional teacher: the teacher factor of sec 15 at its cap (x1.15), plus aptitude (+0.05)
+    and bond (+0.03, sec 19). Inside the 2.8 M cap and the 4.0x clamp.
+  Force-rich place: Force skills (the Force stats and abilities) x1.10 at a Force-rich site
+    (force-reserve.md sec 9 site types: light nexus, dark nexus, living Force site). Inside the
+    2.8 M cap and the 4.0x clamp. Invented (D-418).
+  Accelerated path: training cut to the essentials of using and channelling the Force and blade
+    work. History, protocol and most doctrine are dropped (the Order's knowledge blocks leave the
+    routine); only enough doctrine is kept to understand what being a Jedi means.
+    Effect: Force skills and lightsaber forms x3.2 on top of the 2.8 M cap, and their 4.0x clamp
+    raised x3.2. Knowledge and doctrine stats (Force Knowledge, Meditation, Intelligence) get no
+    bonus and stay low until later study (the player switches back to the standard path).
+    It is the only condition allowed to exceed the 4.0x ceiling. The 4.0x calibration and the
+    averages are not recalibrated for it.
+    Target (an outlier, not calibration data): Luke (accelerated path, exceptional teacher, a
+    Force-rich place with a dark-side nexus) reaches a powerful Knight (about 55 in Force Control
+    and the blade, stats spec bands) in about 4 years. Harness check:
+    tests/lifetime/lukeAccelerated.test.ts (20-seed medians at x3.2: Force Control 54.4 and Djem
+    So 48.8 at 4 years, 62.9 and 56.3 at 5). The numbers are first tuning, for Jared to adjust.

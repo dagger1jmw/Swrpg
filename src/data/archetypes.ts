@@ -215,6 +215,25 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     },
   },
   {
+    // Jared, D-422: the non-Force melee fighter (Mandalorian blade-fighters, Talz, Dashade, arena gladiators). The Yuuzhan
+    // Vong warrior's measured paces (the soldier's, with melee in place of the blaster; D-224), so no new pace is
+    // invented; heavier on the body than the soldier in its weights. Not a player archetype yet; NPCs only.
+    id: 'warrior',
+    name: 'Warrior (melee)',
+    path: 'career',
+    main: 'melee',
+    weights: { melee: 1.0, strength: 0.8, endurance: 0.8, agility: 0.6, tactics: 0.3, willpower: 0.2 },
+    // Raised to fight from youth (gladiator pits, warrior clans, Tulak Hord's servants): design default.
+    startAge: 14,
+    startRange: [10, 20],
+    paces: {
+      knight: { strength: 0.283, agility: 0.523, endurance: 0.334, willpower: 0.832, intelligence: 0.154, melee: 1.326, tactics: 0.463 },
+    },
+    formPaces: {
+      knight: {},
+    },
+  },
+  {
     id: 'smuggler',
     name: 'Smuggler / scoundrel',
     path: 'career',
@@ -284,7 +303,7 @@ export const NPC_ARCHETYPES: Record<CharacterPath, readonly string[]> = {
   jedi: [],
   sith: [],
   outsider: [],
-  career: ['yuuzhanVongWarrior'],
+  career: ['yuuzhanVongWarrior', 'warrior'],
 };
 
 /** Training start range per path (character-creation §1); outsiders may start late, like Luke. */

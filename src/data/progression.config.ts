@@ -350,3 +350,29 @@ export const ORDER_SPARRING_CLASSES: readonly string[] = ['shiiChoBasics', 'pada
 /** Reviewing a recording of one's own fight (progression-numbers §19). */
 export const RECORDING_REVIEW_BONUS = 0.05;
 
+
+// ---- Special training conditions (D-418; progression-numbers §21) ----
+/**
+ * Force-rich places (force-reserve.md §9 site types; the training effect is invented, D-418): Force skills (the Force
+ * stats and abilities) train x FORCE_RICH_FACTOR there, inside the 2.8 M cap and the 4.0x clamp. Matched against the
+ * names of the current location and its ancestors.
+ */
+export const FORCE_RICH_SITES: readonly { place: string; kind: 'lightNexus' | 'darkNexus' | 'livingForce' }[] = [
+  { place: 'Tython', kind: 'lightNexus' },
+  { place: 'Ilum', kind: 'lightNexus' },
+  { place: 'Jedi Temple', kind: 'lightNexus' },
+  { place: 'Korriban', kind: 'darkNexus' },
+  { place: 'Dromund Kaas', kind: 'darkNexus' },
+  { place: 'Malachor V', kind: 'darkNexus' },
+  // Living Force world with a dark-side cave nexus (Legends: Dagobah, the Cave of Evil).
+  { place: 'Dagobah', kind: 'livingForce' },
+];
+export const FORCE_RICH_FACTOR = 1.1;
+/**
+ * The accelerated path (Jared, D-418): training cut to using and channelling the Force and blade work; history, protocol
+ * and most doctrine dropped (the Order's knowledge blocks leave the routine), so the knowledge and doctrine stats stay
+ * low until later study. Force skills and lightsaber forms train x `mult` on top of the 2.8 M cap, and their 4.0x clamp
+ * is raised x `capMult`: the only condition allowed past the 4.0x ceiling. The averages and the 4.0x calibration are not
+ * changed for it. First guess (invented), tuned on the Luke accelerated-path harness check (tests/lifetime/lukeAccelerated).
+ */
+export const ACCELERATED_PATH = { mult: 3.2, capMult: 3.2 } as const;

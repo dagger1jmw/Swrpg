@@ -15,14 +15,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 5098,
-        "toBby": 5092,
+        "toBby": 5089,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 5091,
+        "fromBby": 5088,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
@@ -49,7 +49,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3985,
+        "fromBby": 3988,
         "toBby": 3979,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -71,7 +71,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "status in 3,661 BBY (master index, lore batch 19)"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:darth-malgus": {
     "ranks": [
@@ -120,22 +120,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3687,
-        "toBby": 3681,
+        "toBby": 3678,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3680,
-        "toBby": 3668,
+        "fromBby": 3677,
+        "toBby": 3663,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3667,
+        "fromBby": 3662,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
@@ -164,22 +164,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3682,
-        "toBby": 3676,
+        "toBby": 3673,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3675,
-        "toBby": 3663,
+        "fromBby": 3672,
+        "toBby": 3658,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3662,
+        "fromBby": 3657,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -190,15 +190,15 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3690,
-        "toBby": 3684,
+        "fromBby": 3695,
+        "toBby": 3686,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3683,
+        "fromBby": 3685,
         "toBby": 3671,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -220,22 +220,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "status in 3,661 BBY (master index, lore batch 19)"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:darth-jadus": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3673,
-        "toBby": 3667,
+        "fromBby": 3678,
+        "toBby": 3669,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3666,
+        "fromBby": 3668,
         "toBby": 3654,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -248,14 +248,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:dread-masters": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3985,
+        "fromBby": 3988,
         "toBby": 3979,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -289,22 +289,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "Timeline slice Part 1 (3,668); lore batch 19 master index, status in 3,661 (\"prisoner on Belsavis\")"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:darth-vindican": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3725,
-        "toBby": 3719,
+        "fromBby": 3730,
+        "toBby": 3721,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3718,
+        "fromBby": 3720,
         "toBby": 3706,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -317,7 +317,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:darth-vowrawn": {
     "ranks": [
@@ -325,22 +325,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3701,
-        "toBby": 3695,
+        "toBby": 3692,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3694,
-        "toBby": 3682,
+        "fromBby": 3691,
+        "toBby": 3677,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3681,
+        "fromBby": 3676,
         "toBby": 3630,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -416,15 +416,15 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3705,
-        "toBby": 3699,
+        "fromBby": 3710,
+        "toBby": 3701,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3698,
+        "fromBby": 3700,
         "toBby": 3686,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -437,22 +437,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:darth-mekhis": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3705,
-        "toBby": 3699,
+        "fromBby": 3710,
+        "toBby": 3701,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3698,
+        "fromBby": 3700,
         "toBby": 3686,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -482,22 +482,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "status in 3,661 BBY (master index, lore batch 19)"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:darth-acina": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3700,
-        "toBby": 3694,
+        "fromBby": 3705,
+        "toBby": 3696,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3693,
+        "fromBby": 3695,
         "toBby": 3681,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -510,14 +510,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:exal-kressh": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3705,
+        "fromBby": 3708,
         "toBby": 3699,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -530,7 +530,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:eleena-daru": {
     "ranks": [
@@ -1315,7 +1315,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3650,
+        "fromBby": 3653,
         "toBby": 3644,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -1336,14 +1336,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "a Cold War protagonist, kept out of the 3,681-3,653 setting (D-378 [9] reasoning, D-401 [6]); identity unknown before (D-377); through 3,653 (D-411 [4])"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:darth-nox": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3652,
+        "fromBby": 3657,
         "toBby": 3644,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -1372,7 +1372,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "a Cold War protagonist, kept out of the 3,681-3,653 setting (D-378 [9] reasoning, D-401 [6]); identity unknown before (D-377); through 3,653 (D-411 [4])"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:cipher-nine": {
     "ranks": [
@@ -1696,7 +1696,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "a Jedi Master by c. 3,642 (Vitiate page; batch 13; Part1 conflict ruling 4)"
       }
     ],
-    "events": [{ "bby": 3654, "kind": "injury", "note": "war injuries weakened his connection to the Force; in 3,653 he turned to peace", "factors": { "forceSense": 0.8, "forceControl": 0.8, "forceOutput": 0.8, "meditation": 0.8, "forceKnowledge": 0.8 }, "source": "SW_Characters_09_GGW_ColdWar_Part1 (Warren Sedoru, alignment); the year (before 3,653) and the factor 0.8 are invented (D-415)", "estimate": true }],
+    "events": [
+      {
+        "bby": 3654,
+        "kind": "injury",
+        "note": "war injuries weakened his connection to the Force; in 3,653 he turned to peace",
+        "factors": {
+          "forceSense": 0.8,
+          "forceControl": 0.8,
+          "forceOutput": 0.8,
+          "meditation": 0.8,
+          "forceKnowledge": 0.8
+        },
+        "source": "SW_Characters_09_GGW_ColdWar_Part1 (Warren Sedoru, alignment); the year (before 3,653) and the factor 0.8 are invented (D-415)",
+        "estimate": true
+      }
+    ],
     "birthBasis": "born \"several decades before 3,681\" (Part1), read as 30 years"
   },
   "lore:ardun-kothe": {
@@ -2354,22 +2369,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3685,
-        "toBby": 3679,
+        "toBby": 3676,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3678,
-        "toBby": 3666,
+        "fromBby": 3675,
+        "toBby": 3661,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3665,
+        "fromBby": 3660,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -2392,22 +2407,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3680,
-        "toBby": 3674,
+        "toBby": 3671,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3673,
-        "toBby": 3661,
+        "fromBby": 3670,
+        "toBby": 3656,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3660,
+        "fromBby": 3655,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -2420,22 +2435,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3685,
-        "toBby": 3679,
+        "toBby": 3676,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3678,
-        "toBby": 3666,
+        "fromBby": 3675,
+        "toBby": 3661,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3665,
+        "fromBby": 3660,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -2457,22 +2472,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3683,
-        "toBby": 3677,
+        "toBby": 3674,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3676,
-        "toBby": 3664,
+        "fromBby": 3673,
+        "toBby": 3659,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3663,
+        "fromBby": 3658,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -2494,22 +2509,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3675,
-        "toBby": 3669,
+        "toBby": 3666,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3668,
-        "toBby": 3656,
+        "fromBby": 3665,
+        "toBby": 3651,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3655,
+        "fromBby": 3650,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -2522,22 +2537,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3675,
-        "toBby": 3669,
+        "toBby": 3666,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3668,
-        "toBby": 3656,
+        "fromBby": 3665,
+        "toBby": 3651,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3655,
+        "fromBby": 3650,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -2550,22 +2565,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3710,
-        "toBby": 3704,
+        "toBby": 3701,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3703,
-        "toBby": 3691,
+        "fromBby": 3700,
+        "toBby": 3686,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3690,
+        "fromBby": 3685,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -2607,22 +2622,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3673,
-        "toBby": 3667,
+        "toBby": 3664,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3666,
-        "toBby": 3654,
+        "fromBby": 3663,
+        "toBby": 3649,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3653,
+        "fromBby": 3648,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -2635,22 +2650,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3670,
-        "toBby": 3664,
+        "toBby": 3661,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3663,
-        "toBby": 3651,
+        "fromBby": 3660,
+        "toBby": 3646,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3650,
+        "fromBby": 3645,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -2663,22 +2678,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3670,
-        "toBby": 3664,
+        "toBby": 3661,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3663,
-        "toBby": 3651,
+        "fromBby": 3660,
+        "toBby": 3646,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3650,
+        "fromBby": 3645,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -2691,22 +2706,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3742,
-        "toBby": 3736,
+        "toBby": 3733,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3735,
-        "toBby": 3723,
+        "fromBby": 3732,
+        "toBby": 3718,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3722,
+        "fromBby": 3717,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -2727,7 +2742,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3691,
+        "fromBby": 3694,
         "toBby": 3685,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -2761,14 +2776,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "Timeline slice Part 1 (3,668); lore batch 19 master index, status in 3,661 (\"prisoner on Belsavis\")"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:bestia": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3691,
+        "fromBby": 3694,
         "toBby": 3685,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -2802,14 +2817,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "Timeline slice Part 1 (3,668); lore batch 19 master index, status in 3,661 (\"prisoner on Belsavis\")"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:brontes": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3691,
+        "fromBby": 3694,
         "toBby": 3685,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -2843,14 +2858,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "Timeline slice Part 1 (3,668); lore batch 19 master index, status in 3,661 (\"prisoner on Belsavis\")"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:calphayus": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3691,
+        "fromBby": 3694,
         "toBby": 3685,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -2884,14 +2899,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "Timeline slice Part 1 (3,668); lore batch 19 master index, status in 3,661 (\"prisoner on Belsavis\")"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:styrak": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3691,
+        "fromBby": 3694,
         "toBby": 3685,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -2925,14 +2940,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "Timeline slice Part 1 (3,668); lore batch 19 master index, status in 3,661 (\"prisoner on Belsavis\")"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:tyrans": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3691,
+        "fromBby": 3694,
         "toBby": 3685,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -2966,14 +2981,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "Timeline slice Part 1 (3,668); lore batch 19 master index, status in 3,661 (\"prisoner on Belsavis\")"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:tarnis": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3665,
+        "fromBby": 3668,
         "toBby": 3659,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -2986,7 +3001,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "Darth Angral's son; a Sith Lord before the Sacking (3,653)"
+    "birthBasis": "Darth Angral's son; a Sith Lord before the Sacking (3,653) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:praven": {
     "ranks": [
@@ -3025,14 +3040,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3675,
-        "toBby": 3669,
+        "toBby": 3666,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3668,
+        "fromBby": 3665,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -3054,22 +3069,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3681,
-        "toBby": 3675,
+        "toBby": 3672,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3674,
-        "toBby": 3662,
+        "fromBby": 3671,
+        "toBby": 3657,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3661,
+        "fromBby": 3656,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -3090,15 +3105,15 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3662,
-        "toBby": 3656,
+        "fromBby": 3667,
+        "toBby": 3658,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3655,
+        "fromBby": 3657,
         "toBby": 3643,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -3111,14 +3126,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "a Sith Lord in the 3,653 invasion force; a Darth and Governor of Balmorra by 3,642"
+    "birthBasis": "a Sith Lord in the 3,653 invasion force; a Darth and Governor of Balmorra by 3,642 (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:calypho": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3708,
+        "fromBby": 3711,
         "toBby": 3702,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -3131,22 +3146,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "Teneb Kel's master, arrested c. 3,678; kept"
+    "birthBasis": "Teneb Kel's master, arrested c. 3,678; kept (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:darth-skotia": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3665,
-        "toBby": 3659,
+        "fromBby": 3670,
+        "toBby": 3661,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3658,
+        "fromBby": 3660,
         "toBby": 3646,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -3159,7 +3174,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "a Darth on Dromund Kaas, murdered in 3,643"
+    "birthBasis": "a Darth on Dromund Kaas, murdered in 3,643 (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:nefarid": {
     "ranks": [
@@ -3186,7 +3201,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3688,
+        "fromBby": 3691,
         "toBby": 3682,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -3199,7 +3214,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "a young Sith Lord by 3,681 (the old estimate had him born after his death)"
+    "birthBasis": "a young Sith Lord by 3,681 (the old estimate had him born after his death) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:darth-gravus": {
     "ranks": [
@@ -3207,22 +3222,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3665,
-        "toBby": 3659,
+        "toBby": 3656,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3658,
-        "toBby": 3646,
+        "fromBby": 3655,
+        "toBby": 3641,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3645,
+        "fromBby": 3640,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -3234,15 +3249,15 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3663,
-        "toBby": 3657,
+        "fromBby": 3668,
+        "toBby": 3659,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3656,
+        "fromBby": 3658,
         "toBby": 3644,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -3255,22 +3270,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "Decimus's right hand, a Darth hunting the Order of Revan in 3,643"
+    "birthBasis": "Decimus's right hand, a Darth hunting the Order of Revan in 3,643 (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:darth-serevin": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3665,
-        "toBby": 3659,
+        "fromBby": 3670,
+        "toBby": 3661,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3658,
+        "fromBby": 3660,
         "toBby": 3646,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -3283,22 +3298,22 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "a Sith Lord in the Cold War, a Darth by 3,642"
+    "birthBasis": "a Sith Lord in the Cold War, a Darth by 3,642 (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:darth-tormen": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3665,
-        "toBby": 3659,
+        "fromBby": 3670,
+        "toBby": 3661,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3658,
+        "fromBby": 3660,
         "toBby": 3646,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -3311,7 +3326,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "undated; a Darth employing the Hunter c. 3,643"
+    "birthBasis": "undated; a Darth employing the Hunter c. 3,643 (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:harkun": {
     "ranks": [
@@ -3346,7 +3361,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3705,
+        "fromBby": 3708,
         "toBby": 3699,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -3369,7 +3384,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "SW_Korriban_Academy_Part1; D-376"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:tremel": {
     "ranks": [
@@ -3426,7 +3441,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3655,
+        "fromBby": 3658,
         "toBby": 3649,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
@@ -3439,7 +3454,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "estimate": true
       }
     ],
-    "birthBasis": "a Sith Lord in rebellion on Dromund Kaas c. 3,643"
+    "birthBasis": "a Sith Lord in rebellion on Dromund Kaas c. 3,643 (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
   },
   "lore:khem-val": {
     "ranks": [
@@ -3469,14 +3484,14 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "role": "sithAcolyte",
         "title": "acolyte",
         "fromBby": 3650,
-        "toBby": 3644,
+        "toBby": 3641,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3643,
+        "fromBby": 3640,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
@@ -3719,24 +3734,31 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "soldier",
         "title": "soldier",
-        "fromBby": 3688,
-        "toBby": 3682,
+        "fromBby": 3685,
+        "toBby": 3679,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "officer",
         "title": "officer",
-        "fromBby": 3681,
+        "fromBby": 3678,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "officer",
         "title": "Supreme Commander",
-        "fromBby": 3681,
+        "fromBby": 3653,
+        "toBby": 3653,
+        "source": "Supreme Commander of the Republic military: in office at the Sacking (SW_Characters_09_GGW_ColdWar_Part3a, Rans: \"totally outplayed\" by the Sith plan; 3653 status); D-421"
+      },
+      {
+        "role": "officer",
+        "title": "Supreme Commander",
+        "fromBby": 3642,
         "toBby": 3640,
-        "source": "Supreme Commander of the Republic military: D-360 [3]; D-386 [1]; SW_Characters_09_GGW_ColdWar_Part3a (Rans: Supreme Commander in the Great War and the Cold War; retired after Ilum); D-408 [3]",
+        "source": "Supreme Commander of the Republic military: replaced Stantorrs (c. 3,643; Part3a, Stantorrs) and retired after Ilum (3,640; Part3a, Rans); D-421 (Jared)",
         "estimate": true
       }
     ],
@@ -3749,7 +3771,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "status in 3,653 BBY (lore batch 19)"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "Supreme Commander at the Sacking (3,653), at 50 (D-421: re-derived from his real span; the inferred 3,681 start removed)"
   },
   "lore:stantorrs": {
     "ranks": [
@@ -3767,6 +3789,13 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "fromBby": 3681,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
+      },
+      {
+        "role": "officer",
+        "title": "Supreme Commander",
+        "fromBby": 3643,
+        "toBby": 3643,
+        "source": "Supreme Commander of the Republic military: in 3,643 he sent his aide Ula Vii to Nal Hutta, then was replaced by Rans (SW_Characters_09_GGW_ColdWar_Part3a, Stantorrs); D-421 (Jared)"
       }
     ],
     "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
@@ -3852,23 +3881,32 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
   "lore:nico-okarr": {
     "ranks": [
       {
-        "role": "civilian",
-        "title": "civilian",
-        "fromBby": 3688,
-        "source": "estimate: typical rank ages (D-412)",
+        "role": "smuggler",
+        "title": "smuggler",
+        "fromBby": 3686,
+        "source": "estimate: typical rank ages (D-412); one of the most celebrated spacers of the Outer Rim before the war (Part3a)",
         "estimate": true
       }
     ],
     "status": [
       {
         "kind": "stasis",
-        "fromBby": 3681,
+        "fromBby": 3680,
         "toBby": 3632,
-        "note": "vanished after the Korriban escape; a Korriban artifact kept him from ageing, unseen until 3,631",
-        "source": "Part3a (missing, not seen until 3,631)"
+        "note": "vanished after helping Satele Shan and Jace Malcom escape Korriban in 3,681; a Korriban artifact kept him from ageing, unseen until 3,631",
+        "source": "Part3a (captured on Korriban in 3,681, helped the escape, then vanished; not seen until 3,631); D-421 (Jared: off the board from his disappearance, not 3,681)"
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)",
+    "locations": [
+      {
+        "fromBby": 3681,
+        "toBby": 3681,
+        "place": "Korriban",
+        "doing": "captured by the Sith; helped Satele Shan and Jace Malcom escape, then vanished",
+        "source": "Part3a (Nico Okarr)"
+      }
+    ]
   },
   "lore:elara-dorne": {
     "ranks": [
@@ -4905,5 +4943,43 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       }
     ],
     "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+  },
+  "lore:ragate": {
+    "ranks": [
+      {
+        "role": "sithAcolyte",
+        "title": "acolyte",
+        "fromBby": 3703,
+        "toBby": 3699,
+        "source": "estimate: typical rank ages (D-412)",
+        "estimate": true
+      },
+      {
+        "role": "official",
+        "title": "Sith of the Academy staff",
+        "fromBby": 3698,
+        "toBby": 3682,
+        "source": "estimate: \"as a young teacher\" she cut down the first acolyte to break under her training (SW_Korriban_Academy_Part1)",
+        "estimate": true
+      },
+      {
+        "role": "official",
+        "title": "Overseer",
+        "fromBby": 3681,
+        "source": "Overseer, keeper of the rite of blood and bone; helped reopen the Ritual Chambers when the Academy reopened during the Great Galactic War (SW_Korriban_Academy_Part1; D-376)",
+        "estimate": true
+      }
+    ],
+    "locations": [
+      {
+        "fromBby": 3681,
+        "place": "Korriban",
+        "doing": "an Overseer, keeper of the rite of blood and bone; reopened the Ritual Chambers during the war",
+        "placed": true,
+        "source": "SW_Korriban_Academy_Part1 §B; D-376",
+        "shownAs": "Overseer Ragate"
+      }
+    ],
+    "birthBasis": "elderly by the Galactic War (c. 3,643), read as 75 then; an Overseer when the Academy reopened in the war (3,681), at 37"
   },
 };

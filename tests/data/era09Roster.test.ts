@@ -8,10 +8,10 @@ const era09 = CANON_ERAS.find((e) => e.id === 'era09')!;
 const loreIds = new Set(LORE_INDEX.entities.filter((e) => /^c09p/.test(e.chunkId)).map((e) => e.canonId));
 
 describe('Era 09 roster (lore batch 19)', () => {
-  it('matches the new lore files one to one: 183 figures, each in the lore index, none twice', () => {
+  it('matches the new lore files one to one: 184 figures (183 and Ragate, D-421), each in the lore index, none twice', () => {
     const ids = era09.npcs.map((n) => n.canonId);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(loreIds.size).toBe(183);
+    expect(loreIds.size).toBe(184);
     expect(ids.filter((id) => !loreIds.has(id))).toEqual([]);
     expect([...loreIds].filter((id) => !ids.includes(id))).toEqual([]);
   });

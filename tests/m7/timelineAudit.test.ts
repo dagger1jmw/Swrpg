@@ -36,10 +36,14 @@ describe('timeline audit 3,661-3,640 (D-408)', () => {
       }
     }
   });
-  it('a Chancellor, a Supreme Commander, an Emperor (or the Dark Council) and a Mandalore every year; and the Grand Master vacancy of 3,652 on record (D-411 [3])', () => {
-    const offices = [...new Set(FACTION_LEADERS.map((l) => l.office))];
+  it('a Chancellor, an Emperor (or the Dark Council) and a Mandalore every year; the Supreme Commander only where on record (D-421); and the Grand Master vacancy of 3,652 on record (D-411 [3])', () => {
+    const SC = 'Supreme Commander of the Republic military';
+    const offices = [...new Set(FACTION_LEADERS.map((l) => l.office))].filter((o) => o !== SC);
     const gaps = YEARS.flatMap((bby) => offices.filter((o) => !leadersAt(bby).some((l) => l.office === o)).map((o) => `${o} ${bby}`));
     expect(gaps).toEqual([]);
+    // D-421 (Jared): Rans at the Sacking, Stantorrs c. 3,643, Rans after him to Ilum, Malcom from 3,640; 3,661 is blank.
+    const sc = (bby: number): string | undefined => leadersAt(bby).find((l) => l.office === SC)?.holder;
+    expect([sc(3661), sc(3653), sc(3650), sc(3643), sc(3642)]).toEqual([undefined, 'Rans', undefined, 'Stantorrs', 'Rans']);
     expect(leadersAt(3652).find((l) => l.office === 'Grand Master of the Jedi Order')?.holder).toMatch(/vacant: the Jedi Council leads/);
     expect(leadersAt(3649).find((l) => l.office === 'Supreme Chancellor')?.holder).toBe('Dorian Janarus');
   });

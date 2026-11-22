@@ -93,7 +93,10 @@ export const FACTION_LEADERS: readonly LeaderSpan[] = [
   { office: 'Supreme Chancellor', holder: 'Berooken', fromBby: 3661, toBby: 3653, inferred: true, source: 'D-363; D-381 (elected "late in the war", no date)' },
   { office: 'Supreme Chancellor', holder: 'Dorian Janarus', fromBby: 3653, toBby: 3640, source: 'Timeline slice Part 2 (elected shortly after the Treaty in 3,653; re-elected 3,649 and 3,645; killed 3,640); D-408 [3]' },
   { office: 'Supreme Chancellor', holder: 'Leontyne Saresh', fromBby: 3640, toBby: 3632, source: 'Timeline slice Part 2 (3,640, 3,632); D-408 [3]' },
-  { office: 'Supreme Commander of the Republic military', holder: 'Rans', fromBby: 3681, toBby: 3640, inferred: true, source: 'D-360 [3]; D-386 [1]; SW_Characters_09_GGW_ColdWar_Part3a (Rans: Supreme Commander in the Great War and the Cold War; retired after Ilum); D-408 [3]' },
+  // D-421 (Jared): the inferred Rans span of 3,681-3,643 is removed; the years not on record (3,661 among them) are blank.
+  { office: 'Supreme Commander of the Republic military', holder: 'Rans', fromBby: 3653, toBby: 3653, source: 'SW_Characters_09_GGW_ColdWar_Part3a (Rans: in office at the Sacking); D-421' },
+  { office: 'Supreme Commander of the Republic military', holder: 'Stantorrs', fromBby: 3643, toBby: 3643, source: 'SW_Characters_09_GGW_ColdWar_Part3a (Stantorrs: Supreme Commander in 3,643, replaced by Rans); D-421' },
+  { office: 'Supreme Commander of the Republic military', holder: 'Rans', fromBby: 3642, toBby: 3640, inferred: true, source: 'SW_Characters_09_GGW_ColdWar_Part3a (Rans replaced Stantorrs; retired after Ilum, 3,640); D-421' },
   { office: 'Supreme Commander of the Republic military', holder: 'Jace Malcom', fromBby: 3640, toBby: 3640, source: 'Timeline slice Part 2 (3,640); later years are not on record (D-411 [5]); D-408 [3]' },
   { office: 'Grand Master of the Jedi Order', holder: 'Zym', fromBby: 3661, toBby: 3653, inferred: true, source: 'D-379; D-390 [1]' },
   { office: 'Grand Master of the Jedi Order', holder: 'vacant: the Jedi Council leads the Order', fromBby: 3652, toBby: 3652, source: 'Zym dies in 3,653 and Satele Shan is made Grand Master in 3,651; no acting head is on record (D-411 [3])' },

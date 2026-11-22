@@ -258,3 +258,47 @@ export const LUKE: LifeProfile = {
     { from: 44, to: 50, perYear: LUKE_VONG, stakes: 'serious', gap: 0, opponent: 'yuuzhanVongWarrior', count: 3 },
   ]),
 };
+
+/**
+ * Luke on the accelerated path (Jared, D-418; outlier, not calibration data): start 19, outsider, Force prodigy, push,
+ * 280 days, on Dagobah (a Force-rich place) with an exceptional teacher (the master stub, the teacher factor's x1.15
+ * cap) for the Force and the blade: Force Control, Force Sense, Djem So and Force Speed only, no knowledge or meditation.
+ * The Galactic Civil War skirmishes as in LUKE.
+ */
+export const LUKE_ACCELERATED: LifeProfile = {
+  archetype: 'jediGuardian',
+  path: 'outsider',
+  main: 'forceControl',
+  startAge: 19,
+  padawanAge: 19,
+  knightAge: 19,
+  daysPerYear: 280,
+  effort: 'push',
+  talents: { force: 'prodigy' },
+  focusWeights: { forceControl: 0.35, forceSense: 0.15, djemSo: 0.35, forceSpeed: 0.15 },
+  startingXp: { forceSpeed: 12 },
+  mainForm: 'djemSo',
+  secondForm: 'soresu',
+  formPlan: { padawan: { djemSo: 3 }, knight: { djemSo: 1 } },
+  fillSource: { kind: 'solo' },
+  priorities: {
+    knight: [
+      { skillId: 'forceControl', weight: 3, intensity: 'intense', source: { kind: 'master' } },
+      { skillId: 'djemSo', weight: 3, intensity: 'intense', source: { kind: 'master' } },
+      { skillId: 'forceSense', weight: 1, source: { kind: 'master' } },
+      { skillId: 'forceSpeed', weight: 1, source: { kind: 'master' } },
+    ],
+  },
+  seed: 'luke-accelerated',
+  trainingPath: 'accelerated',
+  place: 'Dagobah',
+  warAges: [[19, 24]],
+  fights: schedule([
+    { from: 19, to: 24, perYear: 30, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 },
+    // Sparring with his teacher (a stronger partner, D-163: lifts the blade's drill ceiling).
+    { from: 19, to: 24, perYear: 40, stakes: 'spar', gap: 15 },
+    // Duels with a far stronger opponent (Legends: Vader at Bespin, 3 ABY, and on the second Death Star, 4 ABY).
+    { from: 22, to: 23, perYear: 1, stakes: 'serious', gap: 25 },
+    { from: 23, to: 24, perYear: 2, stakes: 'serious', gap: 15 },
+  ]),
+};

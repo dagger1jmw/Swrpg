@@ -32,6 +32,9 @@ export const FACTION_ARCHETYPE: Readonly<Record<string, Readonly<Record<string, 
  */
 export const SPECIES_ARCHETYPE: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   yuuzhanVong: { soldier: 'yuuzhanVongWarrior', officer: 'yuuzhanVongWarrior', pilot: 'yuuzhanVongWarrior', bountyHunter: 'yuuzhanVongWarrior', criminal: 'yuuzhanVongWarrior', other: 'yuuzhanVongWarrior' },
+  // Melee warrior species (Jared, D-422): a Talz or Dashade in a fighting role is a warrior.
+  talz: { soldier: 'warrior', bountyHunter: 'warrior', criminal: 'warrior', other: 'warrior' },
+  dashade: { soldier: 'warrior', bountyHunter: 'warrior', criminal: 'warrior', other: 'warrior' },
 };
 /** Everyone else is a civilian (politician, official, merchant, scholar, healer, servant, civilian, droid, other). */
 export const DEFAULT_ARCHETYPE = 'civilian';

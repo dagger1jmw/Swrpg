@@ -128,6 +128,18 @@ function canonDeps(canon: CanonNpc, today: number, asOfBby = -Infinity): CanonSt
   };
 }
 
+/**
+ * The game's progression line for a canon figure at a date (tools and tests; the stat-scale conversion, D-423): the
+ * closed form for its archetype, rank spans and lived age, with the given talents and no variance. Not its anchors.
+ */
+export function canonProgressionLineAt(canon: CanonNpc, bby: number, today: number, talents: NpcGen['talents'] = {}): Readonly<Record<string, number>> {
+  const def = archetypeDef(canon.archetype);
+  const shape = canonShape(canon, bby, -Infinity);
+  const gen: NpcGen = { archetype: canon.archetype, path: def.path, talents, startAge: def.startAge, warYears: 0, rank: shape.rank, seed: `canon:${canon.archetype}`, minionGrade: 1 };
+  const age = canon.fixed ? 60 : canonLivedAgeAt(canon, bby);
+  return npcLevelsFor(gen, canon.speciesId, Math.max(def.startAge + 0.01, age), today, shape.phases);
+}
+
 /** A canon figure's levels at a date from its anchors (D-414), outside a campaign (tools and tests). */
 export function canonFigureLevelsAt(canon: CanonNpc, bby: number, today: number): Record<string, number> {
   return canonLevelsAt(canon, bby, canonDeps(canon, today));
@@ -154,7 +166,10 @@ export function selectNpcLevels(s: GameState, id: string): Readonly<Record<strin
     const deps = canonDeps(canon, today);
     const start = canonLevelsAt(canon, startBby, deps);
     if (canon.fixed) return start;
-    return canonLevelsInCampaign(start, deps.growthAt, startBby, Math.min(nowBby, startBby));
+    // Jared, D-419: after the start the figure keeps its canon promotions, unless the campaign has diverged for it
+    // (killed, captured, turned, removed from its post): from that day only the rank spans begun by then shape its growth.
+    const growth = n.canonDiverged ? canonDeps(canon, today, Math.min(startBby, -dateFromAbsDay(n.canonDiverged.day).year)).growthAt : deps.growthAt;
+    return canonLevelsInCampaign(start, growth, startBby, Math.min(nowBby, startBby));
   }
   const gen = selectNpcGen(s, id);
   return gen ? npcLevelsFor(gen, n.speciesId, selectNpcAgeOrDefault(s, id), s.clock.now.day) : {};

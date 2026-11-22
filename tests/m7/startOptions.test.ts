@@ -151,7 +151,9 @@ describe('placements and the board here (D-401 [3], [4])', () => {
   it('the narrator sees the figures at the current location only', () => {
     const k = stateBlock(goTo(fresh(-3661, 'sith'), 'Korriban', 'Horuset system'), est).text;
     expect(k).toMatch(/Canon figures here .*Overseer Tremel/);
-    expect(stateBlock(goTo(fresh(-3661), 'Coruscant', 'Core Worlds'), est).text).not.toMatch(/Canon figures here/);
+    expect(stateBlock(goTo(fresh(-3661), 'Tatooine', 'Outer Rim'), est).text).not.toMatch(/Canon figures here/);
+    // D-420: Coruscant now shows the year's on-record facts that name it (Satele recalled over the blockade).
+    expect(stateBlock(goTo(fresh(-3661), 'Coruscant', 'Core Worlds'), est).text).toMatch(/Canon figures here .*Satele Shan/);
   });
   it('a warning when a story NPC carries the name of an off-board figure', () => {
     let s = goTo(fresh(-3661), 'Coruscant', 'Core Worlds');
