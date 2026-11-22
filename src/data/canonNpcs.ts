@@ -4,7 +4,7 @@
 import { ERA_09 } from './canon/era09GreatGalacticWar';
 import type { CanonEra, CanonNpc } from './canon/types';
 
-export type { CanonEra, CanonNpc, CanonStatus } from './canon/types';
+export type { CanonEra, CanonNpc, CanonTimeline, RankSpan, StatusSpan, LocationSpan, StatAnchor } from './canon/types';
 
 export const CANON_ERAS: readonly CanonEra[] = [ERA_09];
 

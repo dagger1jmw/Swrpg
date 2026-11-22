@@ -123,7 +123,7 @@ describe('start options (D-401 [2])', () => {
 
 describe('placements and the board here (D-401 [3], [4])', () => {
   it('only figures on record: Korriban staff, Karagga on Nal Hutta, Ngani Zho and Theron on Monastery', () => {
-    expect(placementsAt(['Korriban'], 3661).map((p) => p.name)).toEqual(['Overseer Tremel', 'Spindrall', 'Overseer Ragate']);
+    expect(placementsAt(['Korriban'], 3661).map((p) => p.name).sort()).toEqual(['Overseer Ragate', 'Overseer Tremel', 'Spindrall']);
     expect(placementsAt(['Nal Hutta'], 3661).map((p) => p.name)).toEqual(['Karagga the Unyielding']);
     expect(placementsAt(['Monastery'], 3661).map((p) => p.canonId)).toEqual(['lore:ngani-zho', 'lore:theron-shan']);
     expect(placementsAt(['Coruscant'], 3661)).toEqual([]);

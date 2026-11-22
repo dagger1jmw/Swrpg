@@ -7,26 +7,99 @@ import type { WeaponKind } from '../health.config';
 
 export type YearSource = 'lore' | 'estimate';
 
-export interface CanonNpc {
+/**
+ * A dated span of a figure's life (date-agnostic refactor, D-412). Years are BBY as positive numbers, both ends
+ * inclusive; an absent `toBby` runs to the figure's death (or on, when no death is recorded). `source` is the lore's
+ * wording (or the basis of an estimate); `estimate` marks a span the sources don't date.
+ */
+export interface CanonSpan {
+  fromBby: number;
+  toBby?: number;
+  source: string;
+  estimate?: boolean;
+}
+
+/** A rank, role or office held (Padawan, Knight, Master; acolyte, Lord, Darth; Overseer; a military rank; an office). */
+export interface RankSpan extends CanonSpan {
+  role: NpcRole;
+  /** How the narrator names the rank ("Padawan", "Darth", "Overseer", "Supreme Commander"). */
+  title: string;
+  /** The side served in this span, when it differs from the entry's `faction` (a defector, a fallen or redeemed Jedi). */
+  faction?: FactionId;
+}
+
+/**
+ * A status on record. 'active' carries a cited fact and changes nothing; 'exiled' stays on the board. 'imprisoned' is
+ * off the board except at the prison; 'stasis', 'missing', 'captured' and 'offRecord' (identity unknown in these years)
+ * are off it. A figure doesn't age or train in stasis.
+ */
+export type StatusKind = 'active' | 'imprisoned' | 'stasis' | 'missing' | 'captured' | 'exiled' | 'offRecord';
+export interface StatusSpan extends CanonSpan {
+  kind: StatusKind;
+  note: string;
+}
+
+/** Where the lore puts a figure. `placed` spans are sent to the narrator at that place (D-401 [3], [4]). */
+export interface LocationSpan extends CanonSpan {
+  place: string;
+  /** One short line: what they are doing there. */
+  doing: string;
+  placed?: boolean;
+  /** Held there: an NPC linked to them at this place is a prisoner (D-401 [5]). */
+  imprisoned?: boolean;
+  /** How the narrator names them there, when not by name ("Theron Shan (a child of about 5)"). */
+  shownAs?: string;
+}
+
+/** A dated event that changes the figure's stats from its date on (an injury, a lost limb, a fall, a redemption). */
+export interface StatEvent {
+  bby: number;
+  kind: 'injury' | 'limbLoss' | 'fall' | 'redemption' | 'other';
+  note: string;
+  /** Multipliers per stat from this date on; absent stats are unchanged. */
+  factors?: Readonly<Record<string, number>>;
+  source: string;
+  estimate?: boolean;
+}
+
+/**
+ * A stat anchor (D-414): levels the sources show at one date. A complete anchor sets every stat; a partial one only the
+ * stats a source shows. Other ages are calculated from the nearest anchor for each stat (src/engine/canonStats.ts).
+ */
+export interface StatAnchor {
+  bby: number;
+  complete: boolean;
+  levels: Readonly<Record<string, number>>;
+  /** The works or rulings the levels rest on. */
+  sources: string;
+  /** 'sheet': hand set; 'draft': generated from archetype and rank for review (D-415). */
+  basis: 'sheet' | 'draft';
+}
+
+/** A figure's dated facts (src/data/canon/era09Timeline.ts), merged into the roster entry. */
+export interface CanonTimeline {
+  ranks: readonly RankSpan[];
+  status?: readonly StatusSpan[];
+  locations?: readonly LocationSpan[];
+  events?: readonly StatEvent[];
+  /** The basis of an estimated birth year (D-412: from the rank spans and facts). */
+  birthBasis?: string;
+}
+
+export interface CanonNpc extends CanonTimeline {
   canonId: string;
   name: string;
   speciesId: SpeciesId;
+  /** The figure's main side; a rank span's `faction` overrides it for its years. */
   faction: FactionId;
-  /** The role the figure holds from `roleFrom` on (or always, when there is no earlier role). */
-  role: NpcRole;
   archetype: string;
   birthBby: number;
-  /** 'lore' when the lore files give the year; 'estimate' is a design default (Jared, D-155: keep the estimates, marked). */
+  /** 'lore' when the lore files give the year; 'estimate' is a design default (D-155, re-estimated in D-412). */
   birthSource: YearSource;
   deathBby?: number;
   deathSource?: YearSource;
-  /** Earlier roles, oldest first: the role held until (and including) the year `untilBby`. */
-  earlierRoles?: readonly { role: NpcRole; untilBby: number }[];
-  /** Years the figure cannot appear (stasis, prison, hiding), inclusive. */
-  unavailable?: readonly { fromBby: number; toBby: number; reason: string }[];
-  /** The year the sheet's levels describe (BBY). */
-  snapshotBby: number;
-  levels: Readonly<Record<string, number>>;
+  /** Stat anchors, oldest first; none = the generator builds the line from archetype and rank (D-414). */
+  anchors: readonly StatAnchor[];
   /** Present = the levels do not scale with age; the justification (npc-generation §5). */
   fixed?: string;
   specialTalents?: readonly string[];
@@ -40,13 +113,7 @@ export interface CanonNpc {
   note?: string;
   /** Canon IDs the figure had under the old lore file (lore batch 19: "Grand Master Zym" -> "Zym"); still resolve. */
   formerCanonIds?: readonly string[];
-  /**
-   * Where the levels come from (lore batch 19, D-391). Absent = the hand-set sheet. 'provisional' = an active adult at
-   * the default start with no sheet yet: levels are the npc-generation closed form for the archetype and age, for
-   * Jared's review. 'factsOnly' = a child, unborn or dead in 3661 BBY: no sheet; the same closed form when they appear.
-   */
-  statsSource?: 'provisional' | 'factsOnly';
-  /** Sourced facts from the lore files that the engine does not read yet (sex, homeworld, ranks, teachers, alignment). */
+  /** Sourced facts from the lore files that the engine does not read yet (sex, homeworld, teachers, alignment). */
   facts?: Readonly<{
     sex?: 'male' | 'female';
     homeworld?: string;
@@ -59,19 +126,6 @@ export interface CanonNpc {
     conflicts?: string;
     source?: string;
   }>;
-  /** Status at the default start (3661 BBY): the "who is on the board" filter (lore batch 19). */
-  status3661?: CanonStatus;
-  /** Status at the Sacking of Coruscant (3653 BBY), as the lore file words it. */
-  status3653?: string;
-}
-
-/** A figure's status at a snapshot year (lore batch 19, D-391). */
-export interface CanonStatus {
-  kind: 'active' | 'child' | 'unborn' | 'dead' | 'imprisoned' | 'notStated';
-  /** Age in years, for children. */
-  age?: number;
-  /** The lore file's wording (location where stated). */
-  note: string;
 }
 
 export interface CanonEra {

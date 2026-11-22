@@ -118,9 +118,10 @@ export function minionInputs(kindId: string, grade: number, seed: string): NpcGe
  * archetype's main-skill closed-form level at that age (supplied by the caller).
  */
 export function canonScale(entry: CanonNpc, bby: number, growthAt: (age: number) => number): number {
-  if (entry.fixed) return 1;
+  const sheet = entry.anchors.find((a) => a.complete);
+  if (entry.fixed || !sheet) return 1;
   const now = growthAt(Math.max(0, entry.birthBby - bby));
-  const snap = growthAt(Math.max(0, entry.birthBby - entry.snapshotBby));
+  const snap = growthAt(Math.max(0, entry.birthBby - sheet.bby));
   return snap > 0 ? now / snap : 1;
 }
 

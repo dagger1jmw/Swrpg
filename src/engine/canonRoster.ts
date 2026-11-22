@@ -1,32 +1,94 @@
-// Who of the canon rosters is present at a campaign date (npc-generation.md §5; D-155). Pure. Years are BBY as
-// positive numbers (a campaign year y < 0 is |y| BBY; ABY years are negative BBY here). A figure is present in a
-// year when born by then, not dead before it (the death year itself counts as present: the figure lives part of
-// it), not unavailable that year, and old enough for the role held then.
+// Who of the canon rosters is present at a campaign date, and as what (npc-generation.md §5; D-155; date-agnostic since
+// D-412). Pure. Years are BBY as positive numbers (a campaign year y < 0 is |y| BBY; ABY years are negative BBY here).
+// Everything here is calculated from the figure's dated spans at the date asked: rank and role, side, status, location
+// and age. A figure is present in a year when born by then, not dead before it (the death year itself counts: the
+// figure lives part of it), not off the board by a status span, and old enough for the role held then.
 import { CANON_NPCS, type CanonNpc } from '../data/canonNpcs';
-import type { NpcRole } from '../data/entities.config';
+import type { CanonSpan, LocationSpan, RankSpan, StatusKind, StatusSpan } from '../data/canon/types';
+import type { FactionId, NpcRole } from '../data/entities.config';
 import { ROLE_MIN_AGE } from '../data/npcGen.config';
 import { CANON_PLACEMENTS, type CanonPlacement } from '../data/canonPlacements';
 
 /** Campaign calendar year (negative = BBY) to BBY. */
 export const toBby = (year: number): number => -year;
 
+/** Whether a span covers `bby` (an open end runs to the figure's death, or on). */
+export function spanCovers(s: CanonSpan, bby: number, deathBby?: number): boolean {
+  return bby <= s.fromBby && bby >= (s.toBby ?? deathBby ?? -Infinity);
+}
+
+/**
+ * The rank, role or office held at `bby`: the latest-starting span that covers it, and of two starting together the
+ * shorter (an office inside a rank wins).
+ */
+export function canonRankAt(n: CanonNpc, bby: number): RankSpan | null {
+  const len = (r: RankSpan) => r.fromBby - (r.toBby ?? n.deathBby ?? -Infinity);
+  let best: RankSpan | null = null;
+  for (const r of n.ranks) if (spanCovers(r, bby, n.deathBby) && (!best || r.fromBby < best.fromBby || (r.fromBby === best.fromBby && len(r) < len(best)))) best = r;
+  return best;
+}
+
+/** The role at `bby`; before the first rank span (a child), 'civilian'. */
 export function canonRoleAt(n: CanonNpc, bby: number): NpcRole {
-  for (const r of n.earlierRoles ?? []) if (bby >= r.untilBby) return r.role;
-  return n.role;
+  return canonRankAt(n, bby)?.role ?? 'civilian';
+}
+
+/** The side served at `bby`: the rank span's, else the entry's. */
+export function canonFactionAt(n: CanonNpc, bby: number): FactionId {
+  return canonRankAt(n, bby)?.faction ?? n.faction;
+}
+
+/** How strongly a status keeps a figure off the board (the strongest covering span wins). */
+const STATUS_WEIGHT: Readonly<Record<StatusKind, number>> = { imprisoned: 6, stasis: 5, captured: 4, missing: 3, offRecord: 2, exiled: 1, active: 0 };
+
+/** The status at `bby` other than 'active' (the strongest covering span), or null. */
+export function canonStatusAt(n: CanonNpc, bby: number): StatusSpan | null {
+  let best: StatusSpan | null = null;
+  for (const s of n.status ?? []) if (s.kind !== 'active' && spanCovers(s, bby, n.deathBby) && (!best || STATUS_WEIGHT[s.kind] > STATUS_WEIGHT[best.kind])) best = s;
+  return best;
+}
+
+/** The status facts on record for `bby` (including 'active' ones), for the narrator and tools. */
+export function canonStatusFactsAt(n: CanonNpc, bby: number): StatusSpan[] {
+  return (n.status ?? []).filter((s) => spanCovers(s, bby, n.deathBby));
+}
+
+/** Where the lore puts the figure in `bby`. */
+export function canonLocationsAt(n: CanonNpc, bby: number): LocationSpan[] {
+  return (n.locations ?? []).filter((l) => spanCovers(l, bby, n.deathBby));
 }
 
 export function canonAgeAt(n: CanonNpc, bby: number): number {
   return n.birthBby - bby;
 }
 
+/** Years spent in stasis between birth and `bby` (a figure doesn't age or train in stasis; D-414). */
+export function canonStasisYears(n: CanonNpc, bby: number): number {
+  let years = 0;
+  for (const s of n.status ?? []) {
+    if (s.kind !== 'stasis') continue;
+    const from = Math.min(s.fromBby, n.birthBby);
+    const to = Math.max(s.toBby ?? bby, bby);
+    if (to <= from) years += from - to;
+  }
+  return years;
+}
+
+/** The figure's lived age at `bby`: calendar age less the years in stasis. */
+export function canonLivedAgeAt(n: CanonNpc, bby: number): number {
+  return Math.max(0, canonAgeAt(n, bby) - canonStasisYears(n, bby));
+}
+
 export type Absence = 'unborn' | 'dead' | 'unavailable' | 'tooYoung';
 
 /** Null when present; otherwise why not. */
 export function canonAbsence(n: CanonNpc, bby: number): Absence | null {
-  if (bby > n.birthBby) return 'unborn';
-  if (n.deathBby !== undefined && bby < n.deathBby) return 'dead';
-  if ((n.unavailable ?? []).some((u) => bby <= u.fromBby && bby >= u.toBby)) return 'unavailable';
-  if (canonAgeAt(n, bby) < (ROLE_MIN_AGE[canonRoleAt(n, bby)] ?? 0)) return 'tooYoung';
+  const off = canonOffBoard(n, bby);
+  if (off === 'unborn' || off === 'dead') return off;
+  if (off) return 'unavailable';
+  // Present means present in a role: a child before their first rank span (or too young for it) is not.
+  const rank = canonRankAt(n, bby);
+  if (!rank || canonAgeAt(n, bby) < (ROLE_MIN_AGE[rank.role] ?? 0)) return 'tooYoung';
   return null;
 }
 
@@ -34,34 +96,25 @@ export function canonPresentAt(bby: number, roster: readonly CanonNpc[] = CANON_
   return roster.filter((n) => canonAbsence(n, bby) === null);
 }
 
-// ---- Who is on the board (M7 playable 3,661 BBY start; D-400) ----
+// ---- Who is on the board (M7; D-400; from the spans since D-412) ----
 
 /** Why a canon figure is off the board at a date. Children are on the board (as children), so 'tooYoung' is not here. */
 export type OffBoard = 'unborn' | 'dead' | 'unavailable' | 'imprisoned';
 
-/** Snapshot years that carry a lore status (lore batch 19: `status3661`). */
-const STATUS_YEARS = [3661] as const;
-
 /**
- * Null when the figure can be on the board in `bby`; otherwise why not. A figure is on the board when the lore puts them
- * there: "active" in the snapshot year, or (status not stated, and in every other year) placed by their birth and death
- * years and unavailable spans. A child is on the board as a child. A figure the snapshot says is dead, unborn or
- * imprisoned is off it, even when the birth and death years alone would place them.
+ * Null when the figure can be on the board in `bby`; otherwise why not: unborn, dead, imprisoned (a prison span), or
+ * unavailable (in stasis, missing, captured, or off the record). An exiled figure stays on the board. A child is on the
+ * board as a child.
  */
 export function canonOffBoard(n: CanonNpc, bby: number): OffBoard | null {
   if (bby > n.birthBby) return 'unborn';
   if (n.deathBby !== undefined && bby < n.deathBby) return 'dead';
-  // A prison on record wins over a generic unavailable span for the same years (the Dread Masters, D-401 [5]).
-  if (prisonOf(n.canonId, bby)) return 'imprisoned';
-  if ((n.unavailable ?? []).some((u) => bby <= u.fromBby && bby >= u.toBby)) return 'unavailable';
-  if ((STATUS_YEARS as readonly number[]).includes(bby) && n.status3661) {
-    const k = n.status3661.kind;
-    if (k === 'dead' || k === 'unborn' || k === 'imprisoned') return k;
-  }
-  return null;
+  const s = canonStatusAt(n, bby);
+  if (!s || s.kind === 'exiled') return null;
+  return s.kind === 'imprisoned' ? 'imprisoned' : 'unavailable';
 }
 
-/** Where the lore holds a figure prisoner in `bby` (src/data/canonPlacements.ts), or null. */
+/** Where the lore holds a figure prisoner in `bby` (a location span marked imprisoned), or null. */
 export function prisonOf(canonId: string, bby: number): CanonPlacement | null {
   return CANON_PLACEMENTS.find((p) => p.imprisoned && p.canonId === canonId && bby <= p.fromBby && bby >= p.toBby) ?? null;
 }

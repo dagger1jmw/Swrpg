@@ -19,10 +19,14 @@ describe('Era 09 roster (lore batch 19)', () => {
     expect(era09.loreFile).toBe('Docs/SWRPG lore/SW_Characters_09_GGW_ColdWar_Index.md');
     expect(era09.npcs.some((n) => n.name === 'Darth Nyriss')).toBe(false);
   });
-  it('every figure has a 3661 BBY status; children carry an age', () => {
+  it('every figure has rank spans (D-412), each dated and sourced, none before birth', () => {
     for (const n of era09.npcs) {
-      expect(n.status3661, n.name).toBeDefined();
-      if (n.status3661!.kind === 'child') expect(n.status3661!.age, n.name).toBeGreaterThanOrEqual(0);
+      expect(n.ranks.length, n.name).toBeGreaterThan(0);
+      for (const r of n.ranks) {
+        expect(r.fromBby, `${n.name} ${r.title}`).toBeLessThanOrEqual(n.birthBby);
+        if (r.toBby !== undefined) expect(r.toBby, `${n.name} ${r.title}`).toBeLessThanOrEqual(r.fromBby);
+        expect(r.source.length, n.name).toBeGreaterThan(0);
+      }
     }
   });
   it('former canon IDs resolve to the renamed entries', () => {
@@ -31,19 +35,21 @@ describe('Era 09 roster (lore batch 19)', () => {
     expect(CANON_BY_ID.get('lore:grand-moff-kilran')?.canonId).toBe('lore:rycus-kilran');
     expect(CANON_BY_ID.get('lore:lord-scourge')?.canonId).toBe('lore:scourge');
   });
-  it('entries without a sheet carry no hand-set levels; the hand-set sheets keep theirs', () => {
+  it('anchors carry their date and sources; a complete anchor sets levels', () => {
     for (const n of era09.npcs) {
-      if (n.statsSource) expect(Object.keys(n.levels), n.name).toEqual([]);
-      else expect(Object.keys(n.levels).length, n.name).toBeGreaterThan(0);
+      for (const a of n.anchors) {
+        expect(a.sources.length, n.name).toBeGreaterThan(0);
+        if (a.complete) expect(Object.keys(a.levels).length, n.name).toBeGreaterThan(0);
+      }
     }
   });
   it('settles the batch 7 mismatches from the new files', () => {
     const get = (id: string) => CANON_BY_ID.get(id)!;
     expect(get('lore:syo-bakarn').birthBby).toBe(3678);
     expect(get('lore:mandalore-the-lesser')).toBeDefined();
-    expect(get('lore:satele-shan').earlierRoles?.find((r) => r.role === 'jediKnight')?.untilBby).toBe(3652);
-    expect(get('lore:darth-malgus').earlierRoles?.[0]).toEqual({ role: 'sithAcolyte', untilBby: 3681 });
-    expect(get('lore:gnost-dural').earlierRoles?.map((r) => r.role)).toEqual(['padawan', 'jediKnight']);
+    expect(get('lore:satele-shan').ranks.find((r) => r.role === 'jediKnight')?.toBby).toBe(3652);
+    expect(get('lore:darth-malgus').ranks.find((r) => r.role === 'sithAcolyte')?.toBby).toBe(3681);
+    expect(get('lore:gnost-dural').ranks.map((r) => r.role)).toEqual(['initiate', 'padawan', 'jediKnight', 'jediMaster']);
     expect(get('lore:zym').note).toMatch(/Braden/);
     expect(get('lore:darth-angral').note).toMatch(/led the Sacking fleet/);
   });

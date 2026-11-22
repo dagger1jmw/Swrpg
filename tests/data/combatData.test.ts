@@ -164,15 +164,18 @@ describe('canon NPCs (npc-generation §5, D-155)', () => {
     for (const c of CANON_NPCS) {
       expect(SPECIES).toContain(c.speciesId);
       expect(FACTIONS).toContain(c.faction);
-      for (const r of [c.role, ...(c.earlierRoles ?? []).map((e) => e.role)]) expect(NPC_ROLES).toContain(r);
+      for (const r of c.ranks) expect(NPC_ROLES).toContain(r.role);
+      for (const r of c.ranks) if (r.faction) expect(FACTIONS).toContain(r.faction);
       expect(ARCHETYPE_BY_ID.has(c.archetype), c.name).toBe(true);
-      for (const k of Object.keys(c.levels)) expect(isSkillId(k), `${c.name}: ${k}`).toBe(true);
-      for (const v of Object.values(c.levels)) expect(v).toBeGreaterThanOrEqual(0);
+      for (const a of c.anchors) {
+        for (const k of Object.keys(a.levels)) expect(isSkillId(k), `${c.name}: ${k}`).toBe(true);
+        for (const v of Object.values(a.levels)) expect(v).toBeGreaterThanOrEqual(0);
+      }
     }
   });
-  it('dates are ordered: born before the sheet and before death; every year is marked lore or estimate', () => {
+  it('dates are ordered: born before each anchor and before death; every year is marked lore or estimate', () => {
     for (const c of CANON_NPCS) {
-      expect(c.birthBby, c.name).toBeGreaterThan(c.snapshotBby);
+      for (const a of c.anchors) expect(c.birthBby, c.name).toBeGreaterThan(a.bby);
       expect(['lore', 'estimate']).toContain(c.birthSource);
       if (c.deathBby !== undefined) {
         expect(c.birthBby).toBeGreaterThan(c.deathBby);

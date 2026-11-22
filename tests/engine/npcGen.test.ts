@@ -91,7 +91,7 @@ describe('canon scaling (D-152, D-155)', () => {
   const growth = (age: number) => Math.max(0, age - 4) ** 0.6;
   it('a figure met before the sheet’s year is weaker; at the sheet’s year the ratio is 1', () => {
     expect(canonScale(satele, 3681, growth)).toBeLessThan(1);
-    expect(canonScale(satele, satele.snapshotBby, growth)).toBeCloseTo(1);
+    expect(canonScale(satele, satele.anchors[0]!.bby, growth)).toBeCloseTo(1);
   });
   it('fixed entries do not scale', () => {
     expect(canonScale(vitiate, 3681, growth)).toBe(1);

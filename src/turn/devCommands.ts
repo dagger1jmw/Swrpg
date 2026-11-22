@@ -13,6 +13,7 @@ import type { WeaponKind } from '../data/health.config';
 import { FORM_IDS, SKILL_BY_ID } from '../data/skills';
 import { TERRAIN_IDS } from '../data/terrain';
 import { absDayFromDate, dateFromAbsDay, isValidDate, type CalendarDate } from '../engine/calendar';
+import { canonRoleAt } from '../engine/canonRoster';
 import { selectCharacter, selectIsTestCharacter, selectPath } from '../features/character/selectors';
 import { selectNow } from '../features/clock/selectors';
 import { resolveLocationRef } from '../features/locations/selectors';
@@ -310,7 +311,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
         const age = c.birthBby + dateFromAbsDay(selectNow(state).day).year;
         if (age < 1) return fail(`${c.name} is not born yet at this date`);
         if (c.deathBby !== undefined && -dateFromAbsDay(selectNow(state).day).year < c.deathBby) return fail(`${c.name} is dead at this date`);
-        apply([{ type: 'npcIntroduced', name: c.name, species: c.speciesId, faction: c.faction, role: c.role, ageApprox: Math.round(age), description: 'here to fight' }], 'dev');
+        apply([{ type: 'npcIntroduced', name: c.name, species: c.speciesId, faction: c.faction, role: canonRoleAt(c, -dateFromAbsDay(selectNow(state).day).year), ageApprox: Math.round(age), description: 'here to fight' }], 'dev');
         const id = Object.values(state.npcs.byId).find((n) => n.name === c.name)?.id;
         if (!id) return fail(refused() ?? 'could not introduce the canon figure');
         apply([{ type: 'npcCanonLinked', npcRef: id, canonId: c.canonId }], 'engine');

@@ -92,7 +92,7 @@ export function selectNpcLevels(s: GameState, id: string): Readonly<Record<strin
   if (!n) return {};
   if (n.devLevels) return n.devLevels;
   const canon = n.canonId ? CANON_BY_ID.get(n.canonId) : undefined;
-  if (canon?.statsSource) {
+  if (canon && !canon.anchors.some((a) => a.complete)) {
     // No hand-set sheet yet (lore batch 19, D-391): the npc-generation closed form for the entry's archetype at its
     // age, with no talents, a variance seeded by the canon ID, and the entry's own species.
     const def = archetypeDef(canon.archetype);
@@ -103,7 +103,7 @@ export function selectNpcLevels(s: GameState, id: string): Readonly<Record<strin
   if (canon) {
     const bby = -dateFromAbsDay(s.clock.now.day).year;
     const ratio = canonScale(canon, bby, canonGrowth(canon.archetype, archetypeDef(canon.archetype).path, canon.speciesId, s.clock.now.day));
-    return Object.fromEntries(Object.entries(canon.levels).map(([k, v]) => [k, v * ratio]));
+    return Object.fromEntries(Object.entries(canon.anchors.find((a) => a.complete)!.levels).map(([k, v]) => [k, v * ratio]));
   }
   const gen = selectNpcGen(s, id);
   return gen ? npcLevelsFor(gen, n.speciesId, selectNpcAgeOrDefault(s, id), s.clock.now.day) : {};
