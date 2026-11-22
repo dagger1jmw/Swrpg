@@ -1695,7 +1695,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     // and 3660 around the "not built" snapshot (D-409). 3645 is an estimate inside the recorded window.
     birthBby: 3645,
     birthSource: "estimate",
-    snapshotBby: 3661,
+    snapshotBby: 3644,
     levels: {},
     statsSource: "factsOnly",
     facts: {
