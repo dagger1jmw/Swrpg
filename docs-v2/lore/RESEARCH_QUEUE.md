@@ -1,6 +1,6 @@
 # Lore research queue
 
-Last updated 2026-11-21 (lore batch, docs-v2/lore-batch-2026-11-21.md; dark-side files added the same day; lore batch 2, docs-v2/lore-batch-2-2026-11-21.md; Force catalog revision, docs-v2/lore/batches/force-catalog-revision.md; lore batch 3, docs-v2/lore/batches/lore-batch-3-lightsaber-combat.md; lore batch 4, docs-v2/lore/batches/lore-batch-4-jedi-ranks-councils.md; lore batch 5, docs-v2/lore/batches/lore-batch-5-force-traditions.md; lore batch 6, docs-v2/lore/batches/lore-batch-6-swtor-power-structures.md; lore batch 7, docs-v2/lore/batches/lore-batch-7-great-galactic-war.md; lore batch 8, docs-v2/lore/batches/lore-batch-8-coruscant-temple.md; lore batch 9, docs-v2/lore/batches/lore-batch-9-dromund-kaas.md; lore batch 10, docs-v2/lore/batches/lore-batch-10-forms-catalog-corrections.md).
+Last updated 2026-11-21 (lore batch, docs-v2/lore-batch-2026-11-21.md; dark-side files added the same day; lore batch 2, docs-v2/lore-batch-2-2026-11-21.md; Force catalog revision, docs-v2/lore/batches/force-catalog-revision.md; lore batch 3, docs-v2/lore/batches/lore-batch-3-lightsaber-combat.md; lore batch 4, docs-v2/lore/batches/lore-batch-4-jedi-ranks-councils.md; lore batch 5, docs-v2/lore/batches/lore-batch-5-force-traditions.md; lore batch 6, docs-v2/lore/batches/lore-batch-6-swtor-power-structures.md; lore batch 7, docs-v2/lore/batches/lore-batch-7-great-galactic-war.md; lore batch 8, docs-v2/lore/batches/lore-batch-8-coruscant-temple.md; lore batch 9, docs-v2/lore/batches/lore-batch-9-dromund-kaas.md; lore batch 10, docs-v2/lore/batches/lore-batch-10-forms-catalog-corrections.md; lore batch 11, docs-v2/lore/batches/lore-batch-11-yuuzhan-vong-gear.md).
 
 This file tracks every lore file in `Docs/SWRPG lore/`: what it covers, where it came from, what in docs-v2 relies on it, and what the research bot should redo next. The lore files themselves stay in `Docs/SWRPG lore/` (the canon source of truth). This queue and the lore index (README.md, next to this file) live in `docs-v2/lore/`, because CLAUDE.md forbids new files in `Docs/`.
 
@@ -61,6 +61,10 @@ This file tracks every lore file in `Docs/SWRPG lore/`: what it covers, where it
 | SW_Dromund_Kaas_KaasCity_OldRepublic_Part2.md | Dromund Kaas, Part 2: daily life and society, other Imperial worlds, NPCs | c. 4980–3630 BBY, focus 3681–3653 BBY | 49 KB | bot (reviewed) | 2 | D-366, D-368 | architecture.md (§15 M7 Imperial-born start) |
 | SW_Lightsaber_Forms_Catalog_Check_Part1.md | Lightsaber forms catalog check of the v3 file, Part 1: verdict tables (forms table and notes, notes-only items, Form Rules and marks, lightsaber lines elsewhere), design-only items | All eras | 42 KB | bot (reviewed) | 1 | D-369, D-370 | docs-v2/reports/lore-batch-10.md; force-catalog-m6.md (§5k) |
 | SW_Lightsaber_Forms_Catalog_Check_Part2.md | Lightsaber forms catalog check, Part 2: items missing from v3, practitioner check, the 16 decisions, sources | All eras | 25 KB | bot (reviewed) | 1 | D-369, D-370, D-371 | docs-v2/reports/lore-batch-10.md |
+| SW_YuuzhanVong_Gear_Index.md | Yuuzhan Vong personal gear set: file list | c. 25–137 ABY | 1 KB | bot (reviewed) | 3 | D-372 | — |
+| SW_YuuzhanVong_Gear_Part1.md | Yuuzhan Vong personal gear, Part 1: living weapons (amphistaffs, coufees, thud and razor bugs, tsaisi, shaper-hand weapons) and armour (vonduun crab armour) | c. 25–137 ABY | 33 KB | bot (reviewed) | 3 | D-372, D-374 | architecture.md (§15 M8 Vong gear) |
+| SW_YuuzhanVong_Gear_Part2.md | Yuuzhan Vong personal gear, Part 2: biots and tools (villips, cloakers, gnulliths, masquers, healing swatches, qahsa), implants, the Embrace of Pain, counter-tech | c. 25–137 ABY | 34 KB | bot (reviewed) | 3 | D-372, D-373 | architecture.md (§15 M8 Vong gear) |
+| SW_YuuzhanVong_Gear_Part3.md | Yuuzhan Vong personal gear, Part 3: the Force and the Vong, Vongsense, availability by era, the 14 decisions, game notes, for-later topics | c. 25–137 ABY | 20 KB | bot (reviewed) | 3 | D-372, D-373, D-374 | force-catalog-m6.md (§5d Vongsense); architecture.md (§15 M8 Vong gear) |
 | SW_Legends_Galaxy_Timeline.md | Galaxy timeline: scripted events and NPC deployment by era | 36,453 BBY–c. 139 ABY | 122 KB | pre-bot | 3 | D-01, D-02, D-08, D-38, D-81, D-144, D-213, D-277 | 01-character-creation.md, 13-calendar-and-time.md, 16-lore-injection.md, bugs.md, lore-checks.md, architecture.md |
 | SW_Lightsaber_Combat_Marks_Zones_Techniques.md | Marks of contact, target zones, stances and techniques | All eras (general) | 7 KB | pre-bot (written from Wookieepedia, 2026-11-18) | 1 | D-188, D-267 | architecture.md |
 | SW_Jedi_Daily_Life_Training_OldRepublic.md | Jedi daily life: *Jedi Path* timetable, clans, Initiate Trials, Padawan life, Service Corps | c. 3,700–3,600 BBY, with general material | 63 KB | bot (reviewed) | 2 | D-286, D-295, D-296, D-298, D-300, D-301, D-303, D-304, D-306, D-319 | force-xp-rework.md, m6-integration-checklist.md |
@@ -90,11 +94,16 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 
 ## Queued research (not done yet)
 
-- **Yuuzhan Vong weapons and armour** (priority 3; also listed under Gaps).
+- **Yuuzhan Vong ships and coralskippers** (priority 4; from SW_YuuzhanVong_Gear_Part3 "For later topics"): yorik-et, yorik-trema transports, the *Stalking Moon*, Slayer skippers, cognition hood/Tall-Yor, neural cusp, sensing nodule, arrest tentacle, saline jetter.
+- **Dovin basals** (priority 4; same source), including lambent's dependence on their gravity.
+- **Yammosks and dhuryams beyond counter-tech** (priority 4; same source), and the gravitic amplitude modulator (fleet-scale jamming).
+- **Yuuzhan Vong squad, ship and planetary weapons** (priority 4; same source): magma spitter, rock spitter, Yaret-Kor, qworlth skaal, grutchins (ship form), turfhopper, chom-vrone.
+- **Worldshaping / vongforming** (priority 4; same source): the Ossus Project in depth, the Vongspawn virus, villip gardens, the World Brain.
+- **Yuuzhan Vong creatures that aren't personal gear** (priority 4; same source): voxyn, Slayers (as a unit), shreeyam'tiz, provoker spineray, bo'tous, senalak fields as terrain, coufee eels, shlecho newt, the Chazrach (species).
+- **Yuuzhan Vong pathogens** (priority 4; same source): Alpha Red, Omega Red, coomb (as disease).
 
 ## Gaps (no file yet)
 
-- **Yuuzhan Vong weapons and armour** (queued). Amphistaffs, thud bugs, razor bugs, coufees, vonduun crab armour (it resists lightsabers; D-239 uses it as saber-resistant), ooglith masquers, and how Jedi fought them. Priority 3 (M8 equipment), also used by the existing Yuuzhan Vong rules (D-192, D-224, D-239).
 - **Species traits, lifespans and ageing.** 23-species.md: Docs/SWRPG lore/ has no species table; progression-numbers §11 and §16 need body-cap and lifespan tables for other species. Priority 3 (M8 species table).
 - **Medicine, bacta, cybernetics and prosthetics.** health.md and the §15 notes (M8 cybernetics by quality tier, M6 Force loss from lost tissue) rest on design defaults and scattered character-sheet facts. Priority 3.
 - **Economy, credits and prices by era.** The M8 items and credits spec (22-equipment-and-items.md) has no lore source for prices, wages or what a Master spends on a Padawan (D-295). Priority 3.
@@ -109,6 +118,7 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 
 ## Done
 
+- **Yuuzhan Vong personal gear** (lore batch 11; was queued and a gap): SW_YuuzhanVong_Gear_Index.md and Part1.md to Part3.md (2026-11-21; decisions D-372..D-374).
 - **Lightsaber forms catalog check** (lore batch 10): SW_Lightsaber_Forms_Catalog_Check_Part1.md and Part2.md (2026-11-21; decisions D-369..D-371). The v3 file's lightsaber content is corrected and matches the SW_Lightsaber_* set, which is now the forms source of truth; this completes lore batch 3's "lightsaber combat, all eras".
 - **Dromund Kaas and Kaas City, Old Republic era** (lore batch 9): SW_Dromund_Kaas_KaasCity_OldRepublic_Part1.md and Part2.md (2026-11-21; decisions D-366..D-368).
 - **Coruscant and the Jedi Temple, Old Republic era** (lore batch 8): SW_Coruscant_Jedi_Temple_OldRepublic_Part1.md and Part2.md (2026-11-21; decisions D-364, D-365).

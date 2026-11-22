@@ -1133,8 +1133,26 @@ The clock and the module contract come first, before any feature.
   - *Synthetic blades that can break a Jedi blade:* a standard synthetic (usually red) crystal gives a slightly
     stronger blade with a rare chance to "break" a standard saber's blade by overloading it, but is less manoeuvrable
     and less stable (lore file, "Synthetic lightsaber crystals"); the chance is set at build time.
+  - *Lambent crystal (lore batch 11, D-372):* harvested under planetary or dovin-basal gravity; an attuned user gets a
+    vague sense of the Yuuzhan Vong. Users: Anakin Solo (26 ABY), Cade Skywalker (137 ABY).
   - *Crystal availability by era:* Adega first, Ilum from c. 22,800 BBY (D-288); Ilum-only for Jedi between Ruusan and
     the Purge; crystal sites razed under the Empire.
+- **M8 Yuuzhan Vong gear (Jared, 2026-11-21, lore batch 11; D-372 to D-374; lore: SW_YuuzhanVong_Gear_Part1-3.md;
+  design rules, not lore; not built).**
+  - *Bonding:* D-374 (living weapons bond to their captor; strangers need a bonding event).
+  - *Castes:* no weapon bans by caste. Rank items (tsaisi, command cloak, grafted armour, Steng's Talons, Cloak of Nuun)
+    are socially locked; a non-entitled Vong carrying one commits a serious offence. Shaper-hand weapons need the graft.
+  - *Stun immunity:* Vong ignore stun settings and spray-stick shocks; snap bugs barely affect them.
+  - *Pain cost:* most biots worn on or put into the body (masquer, cloaker, fighting claw, implants) hurt the wearer;
+    the gnullith is the exception. Implants risk rejection (Shamed status); Steng's Talons rarely survive implantation;
+    Yorik-Kul slowly kills.
+  - *Availability by era:* pre-war, Praetorite agents only; war (25–29 ABY), outsiders get gear by capture only (live
+    armour is rare); post-war, thud and razor bugs are contraband used by the underworld, and the Jedi train against
+    modified vonduun armour; Legacy era, rare, through Vong exiles, Nei Rin's shapers, feral biots on Wayland and One
+    Sith labs. Prices and training times have no source: invent them at M8, tagged `invented`.
+  - *Embrace of Pain:* a character held in it can't use the Force; long exposure pushes toward the dark side through
+    the existing fall-path mechanics, with no new system.
+  - *Vongsense and the Force targeting rule:* D-372, D-373 (catalog §5d).
 - **M8 prosthetic damage (D-164):** a hit to a prosthetic limb becomes equipment damage to the prosthetic (repair,
   malfunction, loss). Until then such a hit costs Vitality only: no wound and no sever.
 - **Cleave (D-158):** keeping the advantage after taking a minion out; a candidate Shii-Cho / Sokan form trait

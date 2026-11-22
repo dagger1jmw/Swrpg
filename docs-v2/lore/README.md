@@ -98,6 +98,10 @@ Last updated 2026-11-21.
 |---|---|
 | `Docs/SWRPG lore/SW_Lightsabers_Crystals_Materials_AllEras.md` | Lightsaber construction, crystals, blade colours, hilt variants and lightsaber-resistant materials, all eras |
 | `Docs/SWRPG lore/SW_Weapons_Armor_AllEras.md` | Non-lightsaber weapons, armour, personal energy shields and anti-Jedi gear, all eras (focus on the Old Republic and Clone Wars) |
+| `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Index.md` | Yuuzhan Vong personal gear: index of the three parts |
+| `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Part1.md` | Yuuzhan Vong gear, Part 1: living weapons and armour |
+| `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Part2.md` | Yuuzhan Vong gear, Part 2: biots, tools, implants, the Embrace of Pain, counter-tech |
+| `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Part3.md` | Yuuzhan Vong gear, Part 3: the Force and the Vong, Vongsense, availability, decisions |
 
 ## Force traditions
 
