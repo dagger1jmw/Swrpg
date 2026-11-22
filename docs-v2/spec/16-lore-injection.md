@@ -62,7 +62,7 @@ Code selects and formats all of it. The AI only reads it. Nothing checks that th
 | 3 | LORE_DATABASE contradicts itself: its own timeline has 3661 "Blockade begins … Jedi Temple on rationing" and 3660 "blockade broken" (10458-10465) | (internal) | High |
 | 4 | Satele Shan: "Daughter of Bastila Shan" (9061) | "A **descendant** of the legendary Revan and Bastila Shan"; born 3,699 BBY (SW_Characters_09 lines 194-195). Bastila lived ~300 years earlier | High |
 | 5 | Jace Malcom: "Republic SIS hero of Alderaan" (9105) | "An elite Republic **trooper** … rose to Supreme Commander" (SW_Characters_09 line ~252) | Med |
-| 6 | Satele becomes Grand Master "~3,648 BBY after the Order relocates to Tython" (9057, 10476) | "attains that after the Sacking/Treaty era" (SW_Characters_09 line 214), no exact year | Low (not a contradiction; the legacy year is more specific than canon) |
+| 6 | Satele becomes Grand Master "~3,648 BBY after the Order relocates to Tython" (9057, 10476) | "attains that after the Sacking/Treaty era" (SW_Characters_09 line 214), no exact year | Low (not a contradiction; the legacy year is more specific than canon). *Later ruling: Grand Master 3,651 BBY ("D-283 amended"); the legacy ~3,648 is not used.* |
 | 7 | `currentEra.label` "Year 20 of the Great Galactic War" with Year-21 faction seeds | Timeline: 3,661 = Year 20 and 3,660 = Year 21 (lines 377, 386) | Med (mixed years) |
 
 Items I checked that agree with canon: Zym killed at the Sacking of Coruscant (3653); Malgus defeated at Alderaan (3667); Theron born ~3666 (age ~5 in 3661); Marr on the Dark Council from the war's start; the Abeloth / Luke / Vitiate apex ordering (SW_Characters_09 lines 44-52).

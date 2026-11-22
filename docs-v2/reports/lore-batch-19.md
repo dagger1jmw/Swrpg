@@ -60,7 +60,7 @@ The old parser read only the pre-bot layout. Two things went wrong with the new 
 
 | # (crosscheck) | Mismatch | Settled by the new files | In the roster |
 |---|---|---|---|
-| 1 | Satele a Master from 3653 in the data, against 3651 (D-283) | "Made Grand Master after she rediscovered Tython, in 3651 BBY" | Knight until 3652, Master (Grand Master) from 3651. **Flag:** D-283 has Master and a Council seat in 3651 but Grand Master c. 3648; the new file puts Grand Master in 3651 itself |
+| 1 | Satele a Master from 3653 in the data, against 3651 (D-283) | "Made Grand Master after she rediscovered Tython, in 3651 BBY" | Knight until 3652, Master (Grand Master) from 3651. **Flag:** D-283 has Master and a Council seat in 3651 but Grand Master c. 3648; the new file puts Grand Master in 3651 itself. *Settled by "D-283 amended": Grand Master 3651, Master before 3651 (undated).* |
 | 3 | Zym "killed in the Sacking" | Killed by the bounty hunter Braden on Coruscant after the Treaty, 3653 (ruling 1) | Note corrected; ID now `lore:zym` |
 | 4 | Malgus an acolyte in 3681 vs a Lord; "leads the Sacking" vs Angral | Vindican's apprentice in 3681, a Sith Lord after Korriban, Darth c. 3667; in 3653 he led the infiltration of the Temple | Apprentice (`sithAcolyte`) through 3681, Lord from 3680; note corrected; survives Ilum |
 | 5 | Angral "commands the orbital fleet" vs led the Sacking | A Sith Lord who oversaw the Rim Campaign and led the Sacking fleet and the attack on Coruscant, killing Berooken (ruling 8) | Note corrected; died 3643 BBY (lore) |
@@ -68,7 +68,7 @@ The old parser read only the pre-bot layout. Two things went wrong with the new 
 | 7 | Gnost-Dural with no Knight period | A Padawan at the Coruscant Temple, knighted on the day of the Tingel Arm news (c. 3681), a Master later; born years before 3685 | Padawan to 3681, Knight to 3654 (Master year an estimate); born 3705 (estimate, was 3760) |
 | 8 | Mandalore the Lesser missing | An entry in Part 3b | Added (provisional; title 3667, died c. 3660) |
 
-**Unsettled: none.** The only open point is the D-283 flag above, which is about when Satele became Grand Master (c. 3648 vs 3651). It is not one of the seven.
+**Unsettled: none.** The D-283 flag above (when Satele became Grand Master, c. 3648 vs 3651) is settled by "D-283 amended": 3651.
 
 ## Roster changes (D-391)
 

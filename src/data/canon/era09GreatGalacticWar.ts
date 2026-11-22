@@ -374,7 +374,7 @@ const NPCS: readonly CanonNpc[] = [
       forcePush: pct(85, 0.8),
     },
     unmapped: ['Force Valor 88% (of Battle Meditation)', 'Battle Precognition 82%', 'Force Body 85', 'Foresight (named on her page)', 'Telepathy (named on her page)', 'Tutaminis: blocked a blade bare-handed (named)'],
-    note: 'Padawan of Ngani Zho, then of Darach at Korriban (3,681); knighted under Dar\'Nala before 3,667; made Grand Master after rediscovering Tython, 3,651 BBY (lore batch 19; D-283 had c. 3,648, flagged); powers named: strong telekinesis, tutaminis, foresight, telepathy; the sheet is her Galactic War peak',
+    note: 'Padawan of Ngani Zho, then of Darach at Korriban (3,681); knighted under Dar\'Nala before 3,667; made Grand Master after rediscovering Tython, 3,651 BBY (lore batch 19; D-283 amended); Master before 3,651, undated; powers named: strong telekinesis, tutaminis, foresight, telepathy; the sheet is her Galactic War peak',
   },
   {
     canonId: 'lore:orgus-din',
