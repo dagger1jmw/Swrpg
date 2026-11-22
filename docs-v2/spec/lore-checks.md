@@ -72,8 +72,8 @@ Every flag above is resolved. Each decision is logged with its reason in decisio
 
 ### L-03 — The Old Republic Order in 3,661 BBY (Q12)
 - **Location (Answered; this corrects the question's premise):** in 3,661 BBY the Order is based in the **Jedi Temple on Coruscant**, led by **Grand Master Zym**.
-  - Sources: Timeline :383, :385 (Coruscant riots, Temple on rationing, Zym); SW_Characters_09_GreatGalacticWar_ColdWar.md:59 ("Grand Master Zym still leads the Jedi").
-  - The move to **Tython** comes only after the Sacking of Coruscant and the Treaty of Coruscant in 3,653 BBY (Timeline :410-412, :421: "The Jedi Order, driven from Coruscant, relocates to Tython").
+  - Sources: Timeline slice Part 1, 3,661 BBY (Coruscant riots; the old "Temple on rationing" row was unsourced and dropped in lore batch 20); SW_Characters_09_GreatGalacticWar_ColdWar.md:59 ("Grand Master Zym still leads the Jedi").
+  - The move to **Tython** comes only after the Sacking of Coruscant and the Treaty of Coruscant in 3,653 BBY (Timeline slice Part 1, 3,653 BBY; Timeline slice Part 2: the Order relocates to Tython in 3,650 BBY).
   - So ranks.md and the routines should use the Coruscant Temple for a 3,661 start, and Tython only for starts after 3,653.
 - **Ages and trials (Lore silent):** no lore file states the Initiate Trials age, a Padawan-selection cutoff at 13, the Council of Reassignment, or the five Knight Trials. (12-milestones-rank-life-stage.md, Conflicts, already noted that these came only from legacy code.)
   - **(Legends, outside the lore files):** the Padawan cutoff at 13, the Service Corps, and the five Knight Trials (Skill, Courage, Flesh, Spirit, Insight) are Legends material, but from the prequel era (about 32 BBY), not the Old Republic.
@@ -149,12 +149,12 @@ Every flag above is resolved. Each decision is logged with its reason in decisio
 
 ### L-12 — Factions for renown in 3,661 BBY (Q54)
 - **Supported by the lore:**
-  - **Galactic Republic**, including the Republic military and the SIS (Timeline :391).
-  - **Sith Empire**, including Imperial Intelligence and the Dark Council (Timeline :305-311; SW_Characters_09 many).
+  - **Galactic Republic**, including the Republic military and the SIS (Timeline slice Part 1).
+  - **Sith Empire**, including Imperial Intelligence and the Dark Council (Timeline slice Part 1; SW_Characters_09 many).
   - **Jedi Order.**
-  - **Mandalorians**, unified under Mandalore the Lesser with Imperial backing (Timeline :374-375 and :381, "Imperial Intelligence sponsors Mandalorian gladiator", "Mandalore the Lesser unifies clans").
-- **In the lore, but best as a sub-faction:** the **Chiss**, an Empire ally ("Chiss alliance secured", Timeline :311). Treat them as part of the Empire for renown unless the player operates in Chiss space.
-- **Partly:** the smuggler underworld (Hylo Visz is a smuggler; Nar Shaddaa appears at Timeline :374).
+  - **Mandalorians**, unified under Mandalore the Lesser with Imperial backing (Timeline slice Part 1, 3,667 BBY: an Imperial Intelligence-sponsored gladiator is hailed as Mandalore the Lesser; 3,661 BBY: he leads the clans in the blockade).
+- **In the lore, but best as a sub-faction:** the **Chiss**, an Empire ally (the Chiss alliance, Timeline slice Part 1, before 3,681 BBY). Treat them as part of the Empire for renown unless the player operates in Chiss space.
+- **Partly:** the smuggler underworld (Hylo Visz is a smuggler; Timeline slice Part 1, 3,660 BBY).
 - **Lore silent:** the lore files never name the **Hutt Cartel** for this era.
 - **FLAG:** decide whether to add an "Underworld / Hutt Cartel" renown track. The lore supports the underworld as a setting but doesn't define the faction.
 - **Separate tracks?** "Sith" and "Jedi" as renown separate from Empire and Republic are a design choice. The lore treats the Dark Council as part of the Empire and the Order as allied to, but separate from, the Republic.
@@ -198,7 +198,7 @@ Per your Q30 answer, the FLAG rows go to force-catalog-questions.md when the cat
 
 ### L-16 — "Cold War of 3,661 BBY" (re-check under the Legends rule)
 - **Answer:** 3,661 BBY is **Year 20 of the Great Galactic War** (3,681–3,653 BBY). The **Cold War** runs 3,653–3,642 BBY, from the Treaty of Coruscant to the Galactic War.
-- **Source:** Timeline :305-311, :377 ("3,661 BBY — Year 20"), :411-417 ("COLD WAR — 3,653–3,642 BBY"); SW_Characters_09:59 ("the Great Galactic War is ongoing (year 20 of 28)").
+- **Source:** Timeline slice Part 1 ("3,661 BBY — Year 20"), Timeline slice Part 2 ("COLD WAR — 3,653–3,642 BBY"); SW_Characters_09:59 ("the Great Galactic War is ongoing (year 20 of 28)").
 - **Where the wrong label appears:** phase1-answers.md (Legends rule paragraph, "the Cold War of 3,661 BBY"; Q1 "3,661 BBY (Cold War)") and character-creation.md §1 ("era (default 3,661 BBY, Cold War)").
 - **FLAG:** I didn't edit those files, since they are your decisions. Change "Cold War" to "Great Galactic War" in both, or change the default start year if you meant a Cold War start (3,653–3,642).
 - **What depends on it:** the start date decides whether Zym or Satele leads the Order, Coruscant or Tython, and whether the blockade is running (L-01, L-03).

@@ -53,7 +53,7 @@ Audited: `legacy/index.html` (V170). All line numbers were checked against the f
 11. **Scene matching by substring is loose.** Location/lastSeen matching (3930-3938) can match broadly, for example `lastSeen` "Day 5 Frostuary" against the location.
 
 ## Conflicts between sources
-- Master Prompt v7.1 (lines 685-698) describes Legacy Changes with Strength ratings, and the timeline doc (lines ~470-476) describes Legacy Change processing (status `modified`/`cancelled`, galaxyEventQueue notice, lineageRecord log). The code has no writer for legacyChanges or lineageRecord at all (bug 1).
+- Master Prompt v7.1 (lines 685-698) describes Legacy Changes with Strength ratings, and the timeline doc (moved below in lore batch 20, "Moved from the lore timeline") describes Legacy Change processing (status `modified`/`cancelled`, galaxyEventQueue notice, lineageRecord log). The code has no writer for legacyChanges or lineageRecord at all (bug 1).
 - Docs/updates.md V125 says the AI WORLD JSON "only controls ... location, inGameDate, inGameTime, currentScene, sceneNPCs". In code, inGameDate and inGameTime are also restored (4928, 4932), so that statement is out of date.
 - Milestone thresholds are tuned to the old curve. See v170-audit.md "Milestones (rework)". Owned by another audit area.
 
@@ -67,3 +67,43 @@ Audited: `legacy/index.html` (V170). All line numbers were checked against the f
 2. Should Legacy Changes and the lineage record come back in v2? Both have been dead since V125.
 3. Should story flags be set by story events (proposed by the AI, checked by code) rather than toggled by the player, and should they gate abilities as the catalog intended?
 4. What escalation do you want for overdue story threads? (Today every thread becomes "must address" after 3 days.)
+
+## Moved from the lore timeline (lore batch 20, D-395)
+These two blocks were in `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` (after GALACTIC WAR (SECOND)). They are game mechanics, not lore, so they moved here. No code reads either block: the lore index skipped them as non-era sections and nothing in `src/` uses them. They are inputs for the galaxy simulation and Legacy Change specs, which do not exist yet ("Replaced by" above). The old text is also kept in `docs-v2/lore/superseded/SW_Legends_Galaxy_Timeline_3700-3600BBY_old-rows.md`.
+
+### Legacy Change framework (as written in the timeline, unchanged)
+
+**Era Change (local):** Alters events within one era only. AI improvises within era parameters.
+*Example:* Different battle outcome; minor figure dies earlier or survives.
+
+**Faction Change (era + downstream):** Changes faction power, leadership, or trajectory. Ripples forward.
+*Example:* Jedi Order keeps military structure after Ruusan → very different Clone Wars.
+
+**Legacy Change (cross-era, CRITICAL events):** Removes or permanently alters a CRITICAL event. Cascades dramatically.
+*Example:* Coruscant never sacked → Treaty never happens; Cold War never begins; Jedi stay on Coruscant.
+
+**JS behavior on Legacy Change:**
+1. Scan all scripted events after change date tagged CRITICAL
+2. Set status `modified` (faction change) or `cancelled` (causal dependency removed)
+3. Push `galaxyEventQueue` notification: "Legacy Change detected"
+4. Log to `worldState.lineageRecord`
+
+The CRITICAL/HIGH/MEDIUM/LOW tags this framework reads are the timeline's old Downstream column. The 3,700–3,600 BBY slice dropped that column (lore batch 20, ruling 3); if the simulation needs event priorities, they belong in game data, not the lore file.
+
+### Galaxy sim faction state seeds, re-dated to the 3,661 BBY start
+
+The old seeds were for 3,660 BBY, just after the blockade broke. Re-dated to the default start (ruling 8): the blockade is active, the Coruscant riots are going on, Mandalore the Lesser leads the clans, and the Rim Campaign is starting (SW_Timeline_3700_3600BBY_Part1, 3,661 BBY). The unsourced comments ("Temple restaffing", "rationing easing") are dropped. The numbers are the old game values, unchanged and not yet reviewed: a simulation spec should set them.
+
+```javascript
+// 3,661 BBY, Year 20 of the Great Galactic War: Hydian Way blockade active; Coruscant riots; Rim Campaign starting
+factions: {
+  jediOrder:    { power:58, morale:55, focus:'Hydian Way blockade (the strike near Devaron failed)' },
+  sithEmpire:   { power:72, morale:68, focus:'Rim Campaign starting' },
+  republic:     { power:52, morale:58, stability:44, riotsOngoing:true },
+  mandalorians: { power:52, morale:48, blockadeActive:true, leader:'Mandalore the Lesser' }
+},
+temple: {
+  supplyLevel:68, trainingQuality:78,
+  currentFocus:'Hydian Way blockade cutting supplies'
+}
+```

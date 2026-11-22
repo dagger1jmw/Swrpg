@@ -41,7 +41,7 @@ Fields per entry: ID (species, sex, homeworld); life (birth and death and how ea
 - **Key facts:**
   - ID: male Human from Coruscant (infobox) [Dorian Janarus](https://starwars.fandom.com/wiki/Dorian_Janarus).
   - Life: birth not stated; died 3640 BBY aboard the Founder at Corellia (infobox) [Dorian Janarus](https://starwars.fandom.com/wiki/Dorian_Janarus). He was killed by the bounty hunter known as the Hunter [Leontyne Saresh §Biography](https://starwars.fandom.com/wiki/Leontyne_Saresh); [Hunter (individual)](https://starwars.fandom.com/wiki/Hunter_%28individual%29).
-  - Ranks: long-serving senator of Coruscant. Elected Chancellor unanimously "sometime after" the Treaty, replacing Am-Ris [Dorian Janarus §Biography](https://starwars.fandom.com/wiki/Dorian_Janarus).
+  - Ranks: long-serving senator of Coruscant. Elected Chancellor unanimously "sometime after" the Treaty, replacing Am-Ris (lore batch 20, ruling 13: elected 3653 BBY, shortly after the Treaty; re-elected 3649 and 3645 BBY) [Dorian Janarus §Biography](https://starwars.fandom.com/wiki/Dorian_Janarus).
   - 3661 BBY / 3653 BBY: senator for Coruscant (date of first term not stated) / senator, then Chancellor-elect after the Treaty [Dorian Janarus §Biography](https://starwars.fandom.com/wiki/Dorian_Janarus).
 - **Related:** Saresh; the Grand Champion (Part3b).
 - **Uncertainty:** his page has a "Gameplay alternatives" section, because the Hunter's story lets him survive; Wookieepedia's default (killed) is used here.
@@ -199,7 +199,7 @@ Companions of the Republic classes, listed with the class they joined. Ages in 3
 | c. 3663 BBY | T7-O1 lent to the SIS | [T7-O1 §Early history](https://starwars.fandom.com/wiki/T7-O1) |
 | 3654 BBY | Peace offer; Trant made Nar Shaddaa Bureau Chief | [Berooken §Biography](https://starwars.fandom.com/wiki/Berooken); [Marcus Trant §Early career](https://starwars.fandom.com/wiki/Marcus_Trant) |
 | 3653 BBY | Sacking; Berooken killed; Am-Ris signs the Treaty; Gaul Panteer leads Alderaan's secession | [Berooken](https://starwars.fandom.com/wiki/Berooken); [Paran Am-Ris §Biography](https://starwars.fandom.com/wiki/Paran_Am-Ris); [Gaul Panteer §Biography](https://starwars.fandom.com/wiki/Gaul_Panteer) |
-| after 3653 BBY | Janarus elected Chancellor | [Dorian Janarus §Biography](https://starwars.fandom.com/wiki/Dorian_Janarus) |
+| 3653 BBY | Janarus elected Chancellor, shortly after the Treaty; re-elected 3649 and 3645 BBY (lore batch 20, ruling 13) | [Dorian Janarus §Biography](https://starwars.fandom.com/wiki/Dorian_Janarus) |
 | c. 3650 BBY | Trant becomes SIS Director [inferred] | [Marcus Trant §Director of SIS](https://starwars.fandom.com/wiki/Marcus_Trant) |
 | c. 3643 BBY | Havoc Squad defects under Tavus; Meteor takes command | [Elin Garza §Cold War](https://starwars.fandom.com/wiki/Elin_Garza); [Meteor (Havoc Squad)](https://starwars.fandom.com/wiki/Meteor_%28Havoc_Squad%29) |
 | 3640 BBY | Janarus killed; Saresh becomes Chancellor; Malcom becomes Supreme Commander | [Dorian Janarus](https://starwars.fandom.com/wiki/Dorian_Janarus); [Leontyne Saresh §Biography](https://starwars.fandom.com/wiki/Leontyne_Saresh); [Jace Malcom](https://starwars.fandom.com/wiki/Jace_Malcom) |

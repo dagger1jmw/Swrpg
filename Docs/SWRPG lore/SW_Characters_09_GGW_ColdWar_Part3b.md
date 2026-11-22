@@ -19,7 +19,7 @@ Fields per entry: as in Part3a. "Not stated" means no source gives it. Force-sen
 - **Era:** c. 3692 BBY – c. 3641 BBY
 - **Key facts:**
   - ID: male Human from Dromund Kaas (infobox) [Rycus Kilran](https://starwars.fandom.com/wiki/Rycus_Kilran).
-  - Life: born c. 3692 BBY on Dromund Kaas; died c. 3641 BBY in the Maelstrom (infobox) [Rycus Kilran](https://starwars.fandom.com/wiki/Rycus_Kilran).
+  - Life: born c. 3692 BBY on Dromund Kaas; died 3642 BBY in the Maelstrom (lore batch 20, ruling 20; the infobox has c. 3641 BBY) [Rycus Kilran](https://starwars.fandom.com/wiki/Rycus_Kilran).
   - Ranks: tactical adviser in the Brema sector. He took command of the fleet at Ord Ibanna when his Sith superior died, and won. He was still a captain at the Sacking, then made an honorary Grand Moff after the war, and commanded the Fifth Fleet [Rycus Kilran §Biography](https://starwars.fandom.com/wiki/Rycus_Kilran). Pacifier of the Togruta Uprising [Rycus Kilran](https://starwars.fandom.com/wiki/Rycus_Kilran).
   - Feats: the scars from a "heroic stand against a Jedi boarding party". His tactics at the Sacking earned his nickname [Rycus Kilran §Biography](https://starwars.fandom.com/wiki/Rycus_Kilran).
   - 3661 BBY / 3653 BBY: rank and post not stated / captain in the Sacking of Coruscant [Rycus Kilran §Biography](https://starwars.fandom.com/wiki/Rycus_Kilran).
@@ -155,7 +155,8 @@ Fields per entry: as in Part3a. "Not stated" means no source gives it. Force-sen
 | 3653 BBY | Sacking: Kilran, Vizla, Eleena (killed by Malgus); Druckenwell (Quinn, Broysc); Nok Drayen infected; Vrath Xizor dies | [Rycus Kilran §Biography](https://starwars.fandom.com/wiki/Rycus_Kilran); [Mandalore the Avenger](https://starwars.fandom.com/wiki/Mandalore_the_Avenger); [Eleena Daru §Death](https://starwars.fandom.com/wiki/Eleena_Daru); [Malavai Quinn §Early life and service](https://starwars.fandom.com/wiki/Malavai_Quinn); [Nok Drayen §Diseased](https://starwars.fandom.com/wiki/Nok_Drayen); [Vrath Xizor](https://starwars.fandom.com/wiki/Vrath_Xizor) |
 | 3643 BBY | Braden and Nok Drayen die; Great Hunt | [Braden](https://starwars.fandom.com/wiki/Braden); [Nok Drayen](https://starwars.fandom.com/wiki/Nok_Drayen); [Suudaa Nem'ro §Great Hunt](https://starwars.fandom.com/wiki/Suudaa_Nem%27ro) |
 | 3642 BBY | Shara Jenn becomes Keeper; Davos dies on Hoth | [Shara Jenn §Biography](https://starwars.fandom.com/wiki/Shara_Jenn); [Layek Davos](https://starwars.fandom.com/wiki/Layek_Davos) |
-| c. 3641 BBY | Kilran, Broysc, Barrows, Nem'ro and Jewl'a die | [Rycus Kilran](https://starwars.fandom.com/wiki/Rycus_Kilran); [Broysc](https://starwars.fandom.com/wiki/Broysc); [Zale Barrows](https://starwars.fandom.com/wiki/Zale_Barrows); [Suudaa Nem'ro](https://starwars.fandom.com/wiki/Suudaa_Nem%27ro); [Jewl'a Nightbringer](https://starwars.fandom.com/wiki/Jewl%27a_Nightbringer) |
+| 3642 BBY | Kilran dies in the Maelstrom (lore batch 20, ruling 20) | [Rycus Kilran](https://starwars.fandom.com/wiki/Rycus_Kilran) |
+| c. 3641 BBY | Broysc, Barrows, Nem'ro and Jewl'a die | [Rycus Kilran](https://starwars.fandom.com/wiki/Rycus_Kilran); [Broysc](https://starwars.fandom.com/wiki/Broysc); [Zale Barrows](https://starwars.fandom.com/wiki/Zale_Barrows); [Suudaa Nem'ro](https://starwars.fandom.com/wiki/Suudaa_Nem%27ro); [Jewl'a Nightbringer](https://starwars.fandom.com/wiki/Jewl%27a_Nightbringer) |
 | 3640 BBY | Hunter (Star Cabal) dies | [Hunter (Star Cabal)](https://starwars.fandom.com/wiki/Hunter_%28Star_Cabal%29) |
 | 3639 BBY | Karagga dies | [Karagga](https://starwars.fandom.com/wiki/Karagga) |
 

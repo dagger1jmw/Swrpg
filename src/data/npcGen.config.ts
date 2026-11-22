@@ -128,7 +128,7 @@ export const WARS: readonly War[] = [
     fromBby: 3681,
     toBby: 3653,
     factions: ['republic', 'sithEmpire', 'jediOrder', 'sith', 'mandalorians'],
-    source: 'Timeline :305-311 (D-01)',
+    source: 'Timeline slice Part 1 (Great Galactic War; D-01)',
   },
 ];
 /** Roles that fight in a war (combatants gain war years). */

@@ -2,7 +2,7 @@
 
 Every lore file in `Docs/SWRPG lore/`, the canon source of truth for story facts (CLAUDE.md Golden Rule 3). Canon here means Star Wars Legends only. The files stay in `Docs/SWRPG lore/`; this index and the research queue (`RESEARCH_QUEUE.md`, next to this file: origins, citations, redo briefs, gaps) live in `docs-v2/lore/`, because nothing new is written into `Docs/`.
 
-Game-mechanics sections in these files (Game notes, tiers, numbers) are suggestions that docs-v2 specs may override; every override is logged in `docs-v2/decisions.md`. The runtime lore index for the narrator (D-81, `scripts/build-lore.ts`) reads only the character files and the timeline.
+Game-mechanics sections in these files (Game notes, tiers, numbers) are suggestions that docs-v2 specs may override; every override is logged in `docs-v2/decisions.md`. The runtime lore index for the narrator (D-81, `scripts/build-lore.ts`) reads only the character files and the timeline (the old file and its slices).
 
 Last updated 2026-11-21.
 
@@ -38,7 +38,10 @@ Last updated 2026-11-21.
 
 | Path | Scope |
 |---|---|
-| `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` | Complete galaxy timeline: scripted events and NPC deployment by era, all eras |
+| `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` | Complete galaxy timeline: scripted events and NPC deployment by era, all eras except 3,700–3,600 BBY (in the slice files below, lore batch 20) |
+| `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part1.md` | Galaxy timeline, 3,700–3,653 BBY (replaces the old timeline's rows for these years; read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part2.md` | Galaxy timeline, 3,653 to c. 3,622 BBY (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part3.md` | Galaxy timeline slice 1, Part 3: checks, conflicts and decisions (no entries) |
 
 ## The Force and lightsaber combat
 

@@ -12,25 +12,25 @@ export interface OrderSeat {
 
 export const ORDER_SEATS: readonly OrderSeat[] = [
   { fromYear: -Infinity, toYear: -25000, seat: 'the Je\'daii temples on Tython', source: 'Timeline :76' },
-  { fromYear: -25000, toYear: -3653, seat: 'the Jedi Temple on Coruscant', source: 'Timeline :90, :410' },
+  { fromYear: -25000, toYear: -3653, seat: 'the Jedi Temple on Coruscant', source: 'Timeline :90; Timeline slice Part 1 (3,653 BBY, the Sacking)' },
   {
     fromYear: -3653,
     toYear: -3600,
     seat: 'the Jedi Temple on Tython',
-    source: 'Timeline :421, :434',
+    source: 'Timeline slice Part 2 (3,650 BBY: the Order relocates to Tython; the Temple there is finished in 3,647)',
     estimate: 'the return to Coruscant is not dated in the lore files; 3,600 BBY is a design default',
   },
-  { fromYear: -3600, toYear: -19, seat: 'the Jedi Temple on Coruscant', source: 'Timeline :673-676', estimate: 'start year as above' },
-  { fromYear: -19, toYear: 11, seat: null, source: 'Timeline :676 (the Temple falls; the Order is destroyed)' },
-  { fromYear: 11, toYear: 36, seat: 'the Jedi Praxeum on Yavin 4', source: 'Timeline :764' },
+  { fromYear: -3600, toYear: -19, seat: 'the Jedi Temple on Coruscant', source: 'Timeline :421-424', estimate: 'start year as above' },
+  { fromYear: -19, toYear: 11, seat: null, source: 'Timeline :424 (the Temple falls; the Order is destroyed)' },
+  { fromYear: 11, toYear: 36, seat: 'the Jedi Praxeum on Yavin 4', source: 'Timeline :512' },
   {
     fromYear: 36,
     toYear: 128,
     seat: 'the Jedi academy on Ossus',
-    source: 'Timeline :862',
+    source: 'Timeline :610',
     estimate: 'the move from Yavin 4 to Ossus is not dated in the lore files; 36 ABY is a design default',
   },
-  { fromYear: 128, toYear: Infinity, seat: null, source: 'Timeline :866 (Massacre at Ossus)' },
+  { fromYear: 128, toYear: Infinity, seat: null, source: 'Timeline :614 (Massacre at Ossus)' },
 ];
 
 export function orderSeatAt(year: number): string | null {

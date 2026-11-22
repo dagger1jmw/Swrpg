@@ -204,7 +204,7 @@ Not found for the window; see Not found.
 | Unit | Facts | Citation |
 |---|---|---|
 | 45th Infantry Division | One of its platoons, under Lt Garza, was shot down on Bomodon in 3673 BBY and liberated the planet over ten months alongside SIS agent Trant. Still active on Ord Mantell in 3643 BBY (post-window). | [45th Infantry Division §History](https://starwars.fandom.com/wiki/45th_Infantry_Division) |
-| Forty-fifth Battalion | Found in disarray at Rhen Var after an Imperial invasion near the war's end, then rallied by Jedi | [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan) |
+| Forty-fifth Battalion | Found in disarray at Rhen Var after an Imperial invasion near the war's end (c. 3654–3653 BBY [inferred], game default, lore batch 20, ruling 16), then rallied by Jedi | [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan) |
 | Kaedan's Special Forces team | Captured the Dread Masters aboard a dreadnought in 3668 BBY and seized an Imperial database | [Capture of the Dread Masters](https://starwars.fandom.com/wiki/Capture_of_the_Dread_Masters)[Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan) |
 | Victor Squadron | Starfighters that downed dozens of Imperial battlecruisers at Hoth before being wiped out, 3665 BBY | [Victor Squadron](https://starwars.fandom.com/wiki/Victor_Squadron) |
 | Infantry units 2nd, 4th, 38th, 81st, 86th, 301st | Named for the Great War through Galactic War, with no specific year | [Republic Infantry](https://starwars.fandom.com/wiki/Republic_Infantry) |
@@ -220,7 +220,7 @@ Not found for the window; see Not found.
 | Jek Kardan | Havoc CO after Malcom's promotion [inferred timing] | [Jek Kardan §Biography](https://starwars.fandom.com/wiki/Jek_Kardan) |
 | Harron Tavus | Havoc member since 3667 BBY. As the war "neared its third decade" (from c. 3661 BBY [inferred]), he and Orgus Din led Republic forces in the Minos Cluster, winning at Karideph. | [Minos Cluster Campaign §The long haul](https://starwars.fandom.com/wiki/Minos_Cluster_Campaign) |
 | Elin Garza | Colonel by c. 3667–3665 BBY in the Minos Cluster, where her rallying wins earned the Medal of Valor. Her exact post in 3661 BBY isn't given. | [Minos Cluster Campaign §The long haul](https://starwars.fandom.com/wiki/Minos_Cluster_Campaign) |
-| Jaric Kaedan | Jedi Knight working with Special Forces, Dread Masters capture 3668 BBY. Rhen Var at the war's end. | [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan) |
+| Jaric Kaedan | Jedi Knight working with Special Forces, Dread Masters capture 3668 BBY. Rhen Var at the war's end (c. 3654–3653 BBY [inferred], lore batch 20). | [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan) |
 | Zeerid Korr, Aryn Leneer | Havoc early in the war. Korr's discharge is undated. | [Zeerid Korr §Soldier then smuggler](https://starwars.fandom.com/wiki/Zeerid_Korr)[Aryn Leneer §Comrade of Havoc Squad](https://starwars.fandom.com/wiki/Aryn_Leneer) |
 | Gnost-Dural | Moved to the Navy in 3671 BBY. Earlier he served under Admiral Greik at Bothawui. | [Minos Cluster Campaign §The long haul](https://starwars.fandom.com/wiki/Minos_Cluster_Campaign)[Gnost-Dural §Great Galactic War](https://starwars.fandom.com/wiki/Gnost-Dural) |
 | Laren Omas | Dead (Hoth, 3665 BBY) | [Battle of Hoth (Great Galactic War) §The battle](https://starwars.fandom.com/wiki/Battle_of_Hoth_%28Great_Galactic_War%29) |

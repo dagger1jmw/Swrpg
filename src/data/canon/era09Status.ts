@@ -30,8 +30,8 @@ export const ERA_09_STATUS: Readonly<Record<string, { status3661: CanonStatus; s
   },
   "lore:ngani-zho": {
     status3661: {
-      kind: "notStated",
-      note: "not stated (raising Theron)"
+      kind: "active",
+      note: "raising Theron; takes him to Monastery c. 3661 BBY (timeline, lore batch 20)"
     }
   },
   "lore:orgus-din": {
@@ -732,7 +732,7 @@ export const ERA_09_STATUS: Readonly<Record<string, { status3661: CanonStatus; s
     status3661: {
       kind: "child",
       age: 5,
-      note: "~5, in Zho's care"
+      note: "~5, in Zho's care; taken to Monastery c. 3661 BBY (timeline, lore batch 20)"
     },
     status3653: "about 13 [both inferred from 3666 BBY]."
   },

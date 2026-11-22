@@ -47,14 +47,14 @@ Status in 3661 BBY is a short form; the full 3661 BBY and 3653 BBY lines are in 
 | Fortris Gall | Jedi / light side | — | — | not stated | Part1 › Fortris Gall |
 | Nomen Karr | Jedi / light side | — | c. 3643 BBY | not stated | Part1 › Nomen Karr |
 | Warren Sedoru | Jedi / light side | decades before 3681 BBY | — | not stated | Part1 › Warren Sedoru |
-| Ardun Kothe | Jedi / light side | c. 3696 BBY | c. 3642 BBY | Jedi [inferred] | Part1 › Ardun Kothe |
+| Ardun Kothe | Jedi / light side | c. 3696 BBY | 3641 BBY (lore batch 20) | Jedi [inferred] | Part1 › Ardun Kothe |
 | Hero of Tython (class-story protagonist; title only) | Jedi / light side | — | — | not stated | Part1 › Hero of Tython (class-story protagonist; title only) |
 | The Barsen'thor (class-story protagonist; title only) | Jedi / light side | — | — | not stated | Part1 › The Barsen'thor (class-story protagonist; title only) |
 | Belth Allusis | Jedi / light side | — | 3671 BBY, Bothawui | dead | Part1 › Other light-side figures (table) |
 | Oteg | Jedi / light side | before 3843 BBY | — | not stated | Part1 › Other light-side figures (table) |
 | Shol Bestros | Jedi / light side | several years before 3681 BBY | — | not stated | Part1 › Other light-side figures (table) |
 | Jerbhen Hulis | Jedi / light side | — | — | not stated | Part1 › Other light-side figures (table) |
-| Wyellett | Jedi / light side | — | c. 3642 BBY, Hoth | not stated | Part1 › Other light-side figures (table) |
+| Wyellett | Jedi / light side | — | 3641 BBY, Hoth (lore batch 20) | not stated | Part1 › Other light-side figures (table) |
 | Xerender | Jedi / light side | — | c. 3642 BBY, Hoth | not stated | Part1 › Other light-side figures (table) |
 | Bengel Morr | Jedi / light side | — | — | not stated | Part1 › Other light-side figures (table) |
 | Tasiele Shan | Jedi / light side | — | — | not stated | Part1 › Other light-side figures (table) |
@@ -79,7 +79,7 @@ Status in 3661 BBY is a short form; the full 3661 BBY and 3653 BBY lines are in 
 | Darth Mekhis | Sith / dark side | well before 3681 BBY | 3643 BBY | head of Technology [inferred] | Part2 › Darth Mekhis |
 | Darth Vowrawn | Sith / dark side | 3716 BBY | — | Dark Councilor (~55) | Part2 › Darth Vowrawn |
 | Darth Acina | Sith / dark side | — | 3629 BBY | not stated | Part2 › Darth Acina |
-| Darth Ekkage | Sith / dark side | — | 3640 BBY, Belsavis | not stated | Part2 › Other Dark Councilors and senior Sith (table) |
+| Darth Ekkage | Sith / dark side | — | 3641 BBY, Belsavis (lore batch 20) | not stated | Part2 › Other Dark Councilors and senior Sith (table) |
 | Darth Vengean | Sith / dark side | — | 3641 BBY, Dromund Kaas | not stated | Part2 › Other Dark Councilors and senior Sith (table) |
 | Darth Azamin | Sith / dark side | — | c. 3653 BBY | not stated | Part2 › Other Dark Councilors and senior Sith (table) |
 | Darth Decimus | Sith / dark side | — | 3640 BBY, Corellia | not stated | Part2 › Other Dark Councilors and senior Sith (table) |
@@ -162,7 +162,7 @@ Status in 3661 BBY is a short form; the full 3661 BBY and 3653 BBY lines are in 
 | Felix Iresso | Republic (non-Force) | 3673 BBY | — | ~12 | Part3a › C. Republic-side companions and others |
 | Arra Yooms | Republic (non-Force) | c. 3662 BBY | — | infant | Part3a › C. Republic-side companions and others |
 | Korvan | Republic (non-Force) | not stated | — | not stated | Part3a › C. Republic-side companions and others |
-| Rycus Kilran ("the Butcher of Coruscant") | Imperial (non-Force) | c. 3692 BBY | c. 3641 BBY | not stated (~31) | Part3b › Rycus Kilran ("the Butcher of Coruscant") |
+| Rycus Kilran ("the Butcher of Coruscant") | Imperial (non-Force) | c. 3692 BBY | 3642 BBY (lore batch 20) | not stated (~31) | Part3b › Rycus Kilran ("the Butcher of Coruscant") |
 | Vasil Dorne | Imperial (non-Force) | c. 3703 BBY [conflict: c. 3706 BBY] | — | garrison commander [inferred] | Part3b › Vasil Dorne |
 | Zellos | Imperial (non-Force) | — | — | not stated | Part3b › Zellos |
 | Shareis | Imperial (non-Force) | — | — | War Minister (Ord Radama, c. 3660 BBY) | Part3b › Imperial ministers and commanders |

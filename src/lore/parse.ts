@@ -62,10 +62,15 @@ const unitSign = (u: string): number => (u.toUpperCase() === 'ABY' ? 1 : -1);
 const signed = (n: number, u: string): number => (n === 0 ? 0 : n * unitSign(u));
 const num = (s: string): number => Number(s.replace(/,/g, ''));
 
-/** Parses "3,681–3,653 BBY", "19 BBY – 4 ABY", "~3,630–3,625 BBY", "40 ABY". Null when no year. */
+/**
+ * Parses "3,681–3,653 BBY", "19 BBY – 4 ABY", "~3,630–3,625 BBY", "40 ABY", "between 3,636 and 3,630 BBY". Years with
+ * or without the thousands comma ("3,681 BBY", "3681 BBY"). Null when no year.
+ */
 export function parseYearRange(text: string): { from: number; to: number } | null {
   const clean = text.replace(/[*\\]/g, '');
-  const range = /([\d,]+)\s*(BBY|ABY)?\s*[–-]\s*[~≈]?\s*([\d,]+)\s*(BBY|ABY)/i.exec(clean);
+  const range =
+    /([\d,]+)\s*(BBY|ABY)?\s*[–-]\s*[~≈]?\s*([\d,]+)\s*(BBY|ABY)/i.exec(clean) ??
+    /between\s+([\d,]+)\s*(BBY|ABY)?\s+and\s+([\d,]+)\s*(BBY|ABY)/i.exec(clean);
   if (range) {
     const u2 = range[4]!;
     const u1 = range[2] ?? u2;
@@ -150,12 +155,14 @@ function namesFromCell(cell: string): string[] {
     .filter((a) => a.length >= 3);
 }
 
-const NON_PLACES = /^(galaxy-wide|multiple|various|unknown|several|—|-|n\/a)/i;
+const NON_PLACES = /^(galaxy-wide|multiple|various|unknown|several|other\b|—|-|n\/a)/i;
 
 function placesFromCell(cell: string): string[] {
+  // Asides first: "Balmorra (Empire → Republic)" names one place, not three.
   return cell
-    .split(/,|→|\/|;|\band\b/)
-    .map((p) => p.replace(/\([^)]*\)/g, '').trim())
+    .replace(/\([^)]*\)/g, '')
+    .split(/,|→|\/|;|\band\b|\s+to\s+/)
+    .map((p) => p.trim())
     .filter((p) => p && !NON_PLACES.test(p))
     .map(normalizeText)
     .filter((p) => p.length >= 3);
@@ -170,11 +177,60 @@ interface Era {
   to: number;
 }
 
-function parseTimeline(fileKey: string, content: string, out: LoreChunk[], vocabulary: Set<string>): void {
-  const lines = content.split(/\r?\n/);
+/** Research tags in the bot's timeline rows ("[conflict]", "[inferred]", ...): kept in the lore file, not sent as story. */
+const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort)\b[^\]]*\]/gi;
+/** Asides about the files rather than the story: "(see Ord Radama row)", "(SW_Republic_Military_GGW gives the range)", "(ruling 16)". */
+const FILE_ASIDE =
+  /\s*\([^()]*\b(?:SW_\w+|files?|slice|rows?|see|page|pages|Wookieepedia|ruling|lore batch|D-\d+|Decisions? needed|Part \d)\b[^()]*\)/gi;
+/** Overview sentences about the file itself (lore batch 20's slice): "the rows below keep only dates", "the old file has ...". */
+const TIMELINE_META =
+  /\bold file\b|\bthis slice\b|\bparser\b|Decisions needed|\brows? (?:below|here)\b|\bin-scope\b|\brebuilt here\b|\btable\b|\bSW_\w+|`|\byear pages?\b|\bLegends year\b/i;
+
+/** A timeline cell or paragraph as story text: citations, research tags, file asides and "[conflict] ..." notes dropped. */
+function cleanTimelineText(s: string): string {
+  return stripCitations(s)
+    .replace(/([.!?])(?:\s*;)+/g, '$1') // "... front. [A](u); [B](u)" leaves "front.;"
+    .replace(/(?:\s*;)+\s*(?=[.!?]|$)/g, '') // "... Tython [A](u); [B](u)." leaves "Tython;."
+    .replace(/([.;])\s*\[conflict\][\s\S]*$/i, '$1')
+    .replace(RESEARCH_TAG, '')
+    .replace(FILE_ASIDE, '')
+    .replace(/\s+([.,;:])/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+/** Overview prose: citations and file-meta sentences dropped (lines kept; list lines stay whole). */
+function cleanTimelineOverview(text: string): string {
+  return text
+    .split('\n')
+    .map((line) => {
+      if (!line.trim() || /^\s*-\s/.test(line)) return line.trim() ? cleanTimelineText(line) : line;
+      const sentences = stripCitations(line).match(/[^.!?]+[.!?]+["')\]]*|[^.!?]+$/g) ?? [line];
+      return sentences
+        .filter((s) => !TIMELINE_META.test(s))
+        .map(cleanTimelineText)
+        .filter(Boolean)
+        .join(' ');
+    })
+    .filter((line, i, all) => line.trim() || (i > 0 && all[i - 1]!.trim()))
+    .join('\n')
+    .trim();
+}
+
+/**
+ * The galaxy timeline (D-81): the old SW_Legends_Galaxy_Timeline.md plus the research bot's slices
+ * (SW_Timeline_3700_3600BBY_Part1-3, lore batch 20), read as one timeline so era ids stay stable. Era headings ("## NAME
+ * — 3,681–3,653 BBY"), "### Overview", "#### 3,661 BBY — Year 20" headings and event tables in either layout: the old
+ * columns (Date | Event | Key Figures | Location | Downstream) or the slice's (Date | Event | Type | Place | Who |
+ * Source), found by header. The slice's "State of the galaxy" paragraphs under a year heading become that year's first
+ * row. An era split across files merges its overviews and rows.
+ */
+function parseTimeline(fileKey: string, contents: readonly string[], out: LoreChunk[], vocabulary: Set<string>): void {
   let era: Era | null = null;
-  let eraJustOpened = false;
+  let eraJustOpened: boolean; // both reset at the start of each file
   let overview: string[] | null = null;
+  let yearHeading: { from: number; to: number; label: string } | null;
+  let cols = { date: 0, event: 1, who: 2, place: 3 };
   const groups = new Map<string, { from: number; to: number; era: Era; rows: string[]; names: Set<string>; places: Set<string> }>();
   const order: string[] = [];
   // For dating overview sentences (D-98): named events and "Year N" headings per era.
@@ -184,74 +240,110 @@ function parseTimeline(fileKey: string, content: string, out: LoreChunk[], vocab
 
   const flushOverview = (): void => {
     if (era && overview) {
-      const text = proseLines(overview);
-      if (text) overviews.push({ era, text });
+      const text = cleanTimelineOverview(proseLines(overview));
+      const same = overviews.find((o) => o.era.slug === era!.slug);
+      if (text && same) same.text = `${same.text}\n${text}`;
+      else if (text) overviews.push({ era, text });
     }
     overview = null;
   };
+  const groupFor = (e: Era, range: { from: number; to: number }) => {
+    const key = `${e.slug}:${range.from}_${range.to}`;
+    let g = groups.get(key);
+    if (!g) {
+      g = { from: range.from, to: range.to, era: e, rows: [], names: new Set(), places: new Set() };
+      groups.set(key, g);
+      order.push(key);
+    }
+    return g;
+  };
 
-  for (const line of lines) {
-    const h2 = /^##\s+(.*)$/.exec(line);
-    if (h2 && !/^###/.test(line)) {
-      const title = h2[1]!.trim();
-      if (/^[═=\s]*$/.test(title)) continue; // decoration
-      flushOverview();
-      const range = parseYearRange(title);
-      if (range) {
-        const name = cleanMarkdown(title.split(/\s+[—–-]\s+/)[0] ?? title).trim();
-        era = { slug: slugify(name), title: titleCase(name), from: range.from, to: range.to };
-        eraJustOpened = true;
-      } else if (!eraJustOpened) {
-        era = null; // a non-era section (document purpose, sim seeds, ...): not lore
+  for (const content of contents) {
+    flushOverview();
+    era = null;
+    eraJustOpened = false;
+    yearHeading = null;
+    for (const line of content.split(/\r?\n/)) {
+      const h2 = /^##\s+(.*)$/.exec(line);
+      if (h2 && !/^###/.test(line)) {
+        const title = h2[1]!.trim();
+        if (/^[═=\s]*$/.test(title)) continue; // decoration
+        flushOverview();
+        yearHeading = null;
+        const range = parseYearRange(title);
+        if (range) {
+          const name = cleanMarkdown(title.split(/\s+[—–-]\s+/)[0] ?? title).trim();
+          era = { slug: slugify(name), title: titleCase(name), from: range.from, to: range.to };
+          eraJustOpened = true;
+        } else if (!eraJustOpened) {
+          era = null; // a non-era section (document purpose, sim seeds, summary, ...): not lore
+        }
+        continue;
       }
-      continue;
+      if (/^#{3,}\s/.test(line)) {
+        flushOverview();
+        eraJustOpened = false;
+        yearHeading = null;
+        // "#### 3,661 BBY — Year 20" / "#### 3,676–3,672 BBY — Years 5-9" / "#### 3,681 BBY — Year 0 (war begins)":
+        // map war years to years.
+        const yh = /^####\s+(.*?)\s+[—–-]\s+Years?\s+(\d+)(?:\s*[-–]\s*(\d+))?/i.exec(line);
+        const yr = yh ? parseYearRange(yh[1]!) : null;
+        if (era && yh && yr) {
+          const map = yearNByEra.get(era.slug) ?? new Map<number, number>();
+          const n0 = Number(yh[2]);
+          const n1 = yh[3] ? Number(yh[3]) : n0;
+          for (let n = n0; n <= n1; n++) map.set(n, Math.min(yr.to, yr.from + (n - n0)));
+          yearNByEra.set(era.slug, map);
+          yearHeading = { ...yr, label: cleanMarkdown(yh[1]!).trim() };
+        }
+        if (/^###\s+Overview/i.test(line)) overview = [];
+        continue;
+      }
+      if (line.trim()) eraJustOpened = false;
+      if (!era) continue;
+      if (isTableLine(line)) {
+        flushOverview();
+        const cs = cells(line);
+        if (isSeparatorRow(cs)) continue;
+        if (/^date$/i.test(cs[0] ?? '')) {
+          const at = (re: RegExp, fallback: number): number => {
+            const i = cs.findIndex((c) => re.test(c));
+            return i >= 0 ? i : fallback;
+          };
+          cols = { date: 0, event: at(/^event/i, 1), who: at(/^(who|key figures)/i, -1), place: at(/^(place|location)/i, -1) };
+          continue;
+        }
+        const pick = (i: number): string => (i >= 0 ? cleanTimelineText(cs[i] ?? '') : '');
+        const date = pick(cols.date);
+        const event = pick(cols.event);
+        const figures = pick(cols.who);
+        const location = pick(cols.place);
+        const range = parseYearRange(date) ?? { from: era.from, to: era.to };
+        const bold = /\|[^|]*\|\s*\*\*([^*]+)\*\*/.exec(line);
+        if (bold && parseYearRange(date)) {
+          const list = eventsByEra.get(era.slug) ?? [];
+          list.push({ name: bold[1]!.trim(), year: range.to });
+          eventsByEra.set(era.slug, list);
+        }
+        const g = groupFor(era, range);
+        const extra = [figures, location].filter((c) => c && c !== '—');
+        g.rows.push(`- ${date}: ${event}${extra.length ? ` (${extra.join('; ')})` : ''}`);
+        for (const n of namesFromCell(figures)) g.names.add(n);
+        for (const p of placesFromCell(location)) {
+          g.places.add(p);
+          vocabulary.add(p);
+        }
+        continue;
+      }
+      // "**State of the galaxy, 3,665 BBY.** The Republic lost ..." under a year heading (lore batch 20's slice).
+      const state = /^\s*\*\*State of the galaxy[^*]*\*\*\s*(.*)$/i.exec(line);
+      if (state && yearHeading && !overview) {
+        const body = cleanTimelineText(cleanMarkdown(state[1]!));
+        if (body) groupFor(era, yearHeading).rows.push(`- State of the galaxy, ${yearHeading.label}: ${body}`);
+        continue;
+      }
+      if (overview) overview.push(line);
     }
-    if (/^#{3,}\s/.test(line)) {
-      flushOverview();
-      eraJustOpened = false;
-      // "#### 3,661 BBY — Year 20" / "#### 3,659–3,654 BBY — Years 22-27": map war years to years.
-      const yh = /^####\s+(.*?)\s+[—–-]\s+Years?\s+(\d+)(?:\s*[-–]\s*(\d+))?/i.exec(line);
-      const yr = yh ? parseYearRange(yh[1]!) : null;
-      if (era && yh && yr) {
-        const map = yearNByEra.get(era.slug) ?? new Map<number, number>();
-        const n0 = Number(yh[2]);
-        const n1 = yh[3] ? Number(yh[3]) : n0;
-        for (let n = n0; n <= n1; n++) map.set(n, Math.min(yr.to, yr.from + (n - n0)));
-        yearNByEra.set(era.slug, map);
-      }
-      if (/^###\s+Overview/i.test(line)) overview = [];
-      continue;
-    }
-    if (line.trim()) eraJustOpened = false;
-    if (!era) continue;
-    if (isTableLine(line)) {
-      flushOverview();
-      const cs = cells(line);
-      if (isSeparatorRow(cs) || /^date$/i.test(cs[0] ?? '')) continue;
-      const [date = '', event = '', figures = '', location = ''] = cs;
-      const range = parseYearRange(date) ?? { from: era.from, to: era.to };
-      const bold = /\|[^|]*\|\s*\*\*([^*]+)\*\*/.exec(line);
-      if (bold && parseYearRange(date)) {
-        const list = eventsByEra.get(era.slug) ?? [];
-        list.push({ name: bold[1]!.trim(), year: range.to });
-        eventsByEra.set(era.slug, list);
-      }
-      const key = `${era.slug}:${range.from}_${range.to}`;
-      let g = groups.get(key);
-      if (!g) {
-        g = { from: range.from, to: range.to, era, rows: [], names: new Set(), places: new Set() };
-        groups.set(key, g);
-        order.push(key);
-      }
-      g.rows.push(`- ${date}: ${event}${figures && figures !== '—' ? ` (${figures}${location && location !== '—' ? `; ${location}` : ''})` : ''}`);
-      for (const n of namesFromCell(figures)) g.names.add(n);
-      for (const p of placesFromCell(location)) {
-        g.places.add(p);
-        vocabulary.add(p);
-      }
-      continue;
-    }
-    if (overview) overview.push(line);
   }
   flushOverview();
 
@@ -314,11 +406,14 @@ export function dateOverview(
   for (const [key, years] of stripped) if (years.size === 1) keys.push({ key, year: [...years][0]! });
 
   const own = (s: string): number | null => {
-    const years: number[] = [];
+    let years: number[] = [];
     for (const m of s.matchAll(/([\d,]+)\s*(BBY|ABY)\b/gi)) {
       const r = parseYearRange(m[0]);
       if (r) years.push(r.to);
     }
+    // A sentence naming the era's own span ("a war from 3,681 BBY to 3,653 BBY") describes the era, which the
+    // chunk's head already dates: it belongs at the start, not at the era's end.
+    if (years.includes(era.from) && years.includes(era.to) && era.from !== era.to) years = years.filter((y) => y !== era.to);
     for (const m of s.matchAll(/\byears?\s+(\d+)\b/gi)) {
       const y = yearN.get(Number(m[1]));
       if (y !== undefined) years.push(y);
@@ -557,6 +652,8 @@ export function fileKey(name: string): string | null {
   const c = /^SW_Characters_([0-9A-Za-z-]+?)_/.exec(name);
   if (c) return `c${c[1]!.toLowerCase()}`;
   if (/^SW_Legends_Galaxy_Timeline/.test(name)) return 'tl';
+  // The research bot's timeline slices (SW_Timeline_3700_3600BBY_Part1.md, lore batch 20) join the same timeline.
+  if (/^SW_Timeline_.*_Part\d+\.md$/.test(name)) return 'tl';
   return null;
 }
 
@@ -565,10 +662,10 @@ export function buildLoreIndex(files: readonly LoreFile[]): LoreIndex {
   const chunks: LoreChunk[] = [];
   const entities: LoreEntity[] = [];
   const vocabulary = new Set<string>();
-  for (const f of sorted) {
-    const key = fileKey(f.name);
-    if (key === 'tl') parseTimeline(key, f.content, chunks, vocabulary);
-  }
+  // The old timeline first, then the slices in name order (an era the old file still opens keeps its place).
+  const timeline = sorted.filter((f) => fileKey(f.name) === 'tl');
+  timeline.sort((a, b) => Number(!/^SW_Legends_Galaxy_Timeline/.test(a.name)) - Number(!/^SW_Legends_Galaxy_Timeline/.test(b.name)));
+  if (timeline.length) parseTimeline('tl', timeline.map((f) => f.content), chunks, vocabulary);
   for (const f of sorted) {
     const key = fileKey(f.name);
     if (key && key !== 'tl') parseCharacterFile(key, f.content, chunks, entities);

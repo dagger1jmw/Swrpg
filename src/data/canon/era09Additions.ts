@@ -129,7 +129,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     archetype: "jediGuardian",
     birthBby: 3696,
     birthSource: "lore",
-    deathBby: 3642,
+    deathBby: 3641,
     deathSource: "lore",
     snapshotBby: 3661,
     levels: {},
@@ -138,7 +138,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
       sex: "male",
       homeworld: "Dantooine",
       group: "Jedi / light side",
-      summary: "male Human, born on Dantooine (infobox). Jedi Knight; left the Order and joined the SIS when the Treaty was signed in 3653 BBY; given special Senate sanction around 3642 BBY.",
+      summary: "male Human, born on Dantooine (infobox). Jedi Knight; left the Order and joined the SIS when the Treaty was signed in 3653 BBY; given special Senate sanction around 3642 BBY; died 3641 BBY in the Quesh war (lore batch 20, ruling 20).",
       alignment: "light side; no fall.",
       source: "SW_Characters_09_GGW_ColdWar_Part1.md › Ardun Kothe"
     }
@@ -232,7 +232,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     archetype: "jediGuardian",
     birthBby: 3706,
     birthSource: "estimate",
-    deathBby: 3642,
+    deathBby: 3641,
     deathSource: "lore",
     snapshotBby: 3661,
     levels: {},
@@ -240,7 +240,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     facts: {
       sex: "male",
       group: "Jedi / light side",
-      summary: "male Human; white hair; Jedi Master, \"one of the great Jedi heroes\" of the war; took Darth Baras's lightsaber after a duel; captured, and his transport crashed at Hoth; found by Xerender in 3642 BBY",
+      summary: "male Human; white hair; Jedi Master, \"one of the great Jedi heroes\" of the war; took Darth Baras's lightsaber after a duel; captured, and his transport crashed at Hoth; found by Xerender in 3642 BBY; died 3641 BBY in the fighting on Hoth (lore batch 20, ruling 20)",
       teachers: "apprentice Xerender",
       source: "SW_Characters_09_GGW_ColdWar_Part1.md › Other light-side figures (table)"
     }
@@ -497,7 +497,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     archetype: "sithWarrior",
     birthBby: 3706,
     birthSource: "estimate",
-    deathBby: 3640,
+    deathBby: 3641,
     deathSource: "lore",
     snapshotBby: 3661,
     levels: {},
@@ -505,7 +505,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     facts: {
       sex: "female",
       group: "Sith / dark side",
-      summary: "female Human; Baras's sister; Dark Councilor in the war; led Sith infiltrators and the Red Legion; captured by the Jedi and held on Belsavis",
+      summary: "female Human; Baras's sister; Dark Councilor in the war; led Sith infiltrators and the Red Legion; captured by the Jedi and held on Belsavis; died there in 3641 BBY when the Empire invaded (lore batch 20, ruling 19)",
       source: "SW_Characters_09_GGW_ColdWar_Part2.md › Other Dark Councilors and senior Sith (table)"
     }
   },
@@ -1427,7 +1427,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
       sex: "male",
       homeworld: "Coruscant",
       group: "Republic (non-Force)",
-      summary: "male Human from Coruscant (infobox). long-serving senator of Coruscant. Elected Chancellor unanimously \"sometime after\" the Treaty, replacing Am-Ris.",
+      summary: "male Human from Coruscant (infobox). long-serving senator of Coruscant. Elected Chancellor unanimously \"sometime after\" the Treaty, replacing Am-Ris: 3653 BBY, re-elected 3649 and 3645 BBY (lore batch 20, ruling 13).",
       source: "SW_Characters_09_GGW_ColdWar_Part3a.md › Dorian Janarus"
     }
   },
@@ -1440,15 +1440,15 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     archetype: "civilian",
     birthBby: 3712,
     birthSource: "estimate",
-    deathBby: 3653,
-    deathSource: "lore",
+    deathBby: 3650,
+    deathSource: "estimate",
     snapshotBby: 3661,
     levels: {},
     statsSource: "provisional",
     facts: {
       homeworld: "Alderaan",
       group: "Republic (non-Force)",
-      summary: "both Human, from Alderaan (infobox);. Silara was queen from some time before 3667 BBY. Gaul was Alderaan's senator by 3653 BBY and voted to secede after the Treaty;.",
+      summary: "both Human, from Alderaan (infobox);. Silara was queen from some time before 3667 BBY. Gaul was Alderaan's senator by 3653 BBY and voted to secede after the Treaty. Both died \"several years after 3653 BBY\" (lore batch 20; the death year 3650 is an estimate).",
       source: "SW_Characters_09_GGW_ColdWar_Part3a.md › Silara Panteer and Gaul Panteer"
     }
   },

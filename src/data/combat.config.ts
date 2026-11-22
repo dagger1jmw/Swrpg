@@ -212,7 +212,7 @@ export const SITH_ACADEMIES: readonly SithAcademy[] = [
     location: 'korriban',
     fromBby: 3681,
     toBby: 3636,
-    source: 'Timeline :322 (Sith retake Korriban), :506 (Eternal Empire raids)',
+    source: 'Timeline slice Part 1 (3,681 BBY: the Sith retake Korriban and re-establish the Academy), Timeline slice Part 2 (3,636 BBY: Eternal Empire raids)',
     designDefault: 'academy era by Jared; end year 3,636 BBY confirmed',
   },
   {
@@ -220,7 +220,7 @@ export const SITH_ACADEMIES: readonly SithAcademy[] = [
     location: 'korriban',
     fromBby: 1010,
     toBby: 1000,
-    source: 'Timeline :572; Characters_10 :62, :293 (Qordis heads the Korriban academy)',
+    source: 'Timeline :320; Characters_10 :62, :293 (Qordis heads the Korriban academy)',
     designDefault: 'end at Ruusan ~1,000 BBY confirmed by Jared',
   },
 ];

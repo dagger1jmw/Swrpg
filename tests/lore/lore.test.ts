@@ -41,6 +41,11 @@ describe('lore parsing', () => {
     expect(parseYearRange('**3,661 BBY**')).toEqual({ from: -3661, to: -3661 });
     expect(parseYearRange('Note on Darth Maul')).toBeNull();
   });
+  it('reads years with or without the thousands comma, and "between X and Y" (lore batch 20)', () => {
+    expect(parseYearRange('3681 BBY')).toEqual(parseYearRange('3,681 BBY'));
+    expect(parseYearRange('3681–3653 BBY')).toEqual({ from: -3681, to: -3653 });
+    expect(parseYearRange('between 3,636 and 3,630 BBY')).toEqual({ from: -3636, to: -3630 });
+  });
   it('parses character headings with parentheticals and alias lists', () => {
     expect(parseCharacterHeading('Revan (V) — the freed prisoner ("mad Revan")').name).toBe('Revan');
     expect(parseCharacterHeading('The Dread Masters (Bestia, Brontes, Tyrans)').aliases).toEqual(['dread masters', 'bestia', 'brontes', 'tyrans']);
@@ -66,8 +71,17 @@ describe('lore parsing', () => {
   it('carries timeline years and skips non-era sections', () => {
     const y3661 = built.chunks.find((c) => c.kind === 'timeline' && c.fromYear === -3661 && c.toYear === -3661)!;
     expect(y3661.text).toContain('Blockade of the Hydian Way begins');
+    expect(y3661.text).toContain('State of the galaxy, 3,661 BBY: Mandalorian cruisers closed the Hydian Way');
     expect(y3661.locations).toContain('hydian way');
     expect(built.chunks.some((c) => c.text.includes('GALAXY SIM') || c.text.includes('power:58'))).toBe(false);
+  });
+  it('reads the 3,700–3,600 BBY slice in place of the old rows, with no research notes (lore batch 20)', () => {
+    const tl = built.chunks.filter((c) => c.id.startsWith('tl:'));
+    expect(tl.some((c) => /\[(conflict|inferred|unclear)|https?:|SW_\w|\(rows? \d/.test(c.text))).toBe(false);
+    expect(tl.some((c) => c.text.includes('Dustig Trace'))).toBe(false); // an old unsourced row, removed
+    const rhenVar = tl.find((c) => c.text.includes('Battle of Rhen Var'))!;
+    expect([rhenVar.fromYear, rhenVar.toYear]).toEqual([-3654, -3653]); // ruling 16: not a front in 3,661
+    expect(tl.find((c) => c.id === 'tl:cold-war:-3642_-3642')!.text).toContain('Balmorra is freed'); // ruling 15
   });
   it('indexes bench figures as canon entities', () => {
     expect(built.entities.find((e) => e.name === 'Shol Bestros')?.aliases).toContain('shol bestros');
@@ -135,6 +149,101 @@ Legends lore reference. [A source](https://example.org/x)
   });
 });
 
+describe('timeline slices (lore batch 20, D-396)', () => {
+  const old = `# Timeline
+
+## DOCUMENT PURPOSE
+Not lore.
+
+## ═══
+## OLD ERA — 3,700–3,690 BBY
+## ═══
+
+### Overview
+Old years.
+
+| Date | Event | Key Figures | Location | Downstream |
+|---|---|---|---|---|
+| **3,700 BBY** | Old row | Ann Ode | Here | LOW |
+`;
+  const slice = `# Galaxy Timeline, c. 3,700–3,600 BBY (Part 1 of 3)
+
+## Summary
+This file covers 3,700–3,600 BBY.
+
+## ════
+## OLD ERA — 3,700–3,690 BBY
+## ════
+
+### Overview
+Only the in-scope rows are rebuilt here. In these years a route was charted [Route](https://starwars.fandom.com/wiki/Route).
+
+| Date | Event | Type | Place | Who | Source |
+|---|---|---|---|---|---|
+| 3695 BBY [conflict] | A route is charted (see the Route row) | Tech | Brentaal IV to Denon | Freia Kallea | [Route](https://x.org) |
+
+## ════
+## TEST WAR — 3,689–3,680 BBY
+## ════
+
+### Overview
+A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The rows below keep only dates. The Test Blockade in year 4 hurt trade. The war ends in a treaty.
+
+### Year-by-Year Scripted Events
+
+#### 3,689 BBY — Year 0 (war begins)
+
+| Date | Event | Type | Place | Who | Source |
+|---|---|---|---|---|---|
+| 3,689 BBY | The war begins | War | Korriban (Republic → Empire) | — | [p](https://x.org) |
+
+#### 3,685 BBY — Year 4
+
+**State of the galaxy, 3,685 BBY.** The blockade held (row 1). [3685 BBY](https://x.org)
+
+| Date | Event | Type | Place | Who | Source |
+|---|---|---|---|---|---|
+| 3,685 BBY | The blockade. [conflict] One page says 3,684 BBY [x](https://x.org) | War | Route | Admiral Ox | [p](https://x.org) |
+| between 3,686 and 3,684 BBY | Skirmishes | War | — | — | [p](https://x.org) |
+`;
+  const built = buildLoreIndex([
+    { name: 'SW_Timeline_3700_3600BBY_Part1.md', content: slice },
+    { name: 'SW_Legends_Galaxy_Timeline.md', content: old },
+  ]);
+  const chunk = (id: string) => built.chunks.find((c) => c.id === id)!;
+
+  it('the slices join the timeline', () => {
+    expect(fileKey('SW_Timeline_3700_3600BBY_Part1.md')).toBe('tl');
+    expect(fileKey('SW_Timeline_3700_3600BBY_Part3.md')).toBe('tl');
+    expect(fileKey('OLD_SW_Legends_Galaxy_Timeline.md')).toBeNull();
+  });
+  it('merges an era the old file also opens, and drops file notes and citations from overviews', () => {
+    expect(chunk('tl:old-era:overview').text).toBe('Old Era, 3,700 BBY to 3,690 BBY. Old years.\nIn these years a route was charted.');
+    expect(chunk('tl:old-era:-3700_-3700').text).toContain('- 3,700 BBY: Old row (Ann Ode; Here)');
+  });
+  it('reads the new columns by header and drops research tags, asides and conflict notes', () => {
+    const route = chunk('tl:old-era:-3695_-3695');
+    expect(route.text).toBe('Old Era, events of 3,695 BBY:\n- 3695 BBY: A route is charted (Freia Kallea; Brentaal IV to Denon)');
+    expect(route.locations).toEqual(['brentaal iv', 'denon']);
+    expect(chunk('tl:test-war:-3689_-3689').locations).toEqual(['korriban']);
+    expect(chunk('tl:test-war:-3686_-3684').text).toContain('Skirmishes');
+  });
+  it('puts a year\'s state-of-the-galaxy paragraph first among its rows', () => {
+    expect(chunk('tl:test-war:-3685_-3685').text).toBe(
+      'Test War, events of 3,685 BBY:\n- State of the galaxy, 3,685 BBY: The blockade held.\n- 3,685 BBY: The blockade. (Admiral Ox; Route)',
+    );
+  });
+  it('dates overview sentences by Year 0-based headings, era span and era-end words (D-98)', () => {
+    const parts = chunk('tl:test-war:overview').parts!.map((p) => [p.year, p.text.trim()]);
+    expect(parts).toEqual([
+      [-3689, 'Test War, 3,689 BBY to 3,680 BBY.'],
+      [-3689, 'A war from 3,689 BBY to 3,680 BBY.'],
+      [-3685, 'The Test Blockade in year 4 hurt trade.'],
+      [-3680, 'The war ends in a treaty.'],
+    ]);
+  });
+});
+
 describe('lore retrieval', () => {
   const base = { canonIds: [], names: [], locationNames: [] };
 
@@ -172,13 +281,13 @@ describe('lore retrieval', () => {
   });
   it('era overviews send only sentences up to the current year (D-98)', () => {
     const at = (year: number, id: string) => retrieveLore(LORE_INDEX, { ...base, year }, 3000, est).included.find((s) => s.chunk.id === id)!.text;
-    const ggw = at(-3661, 'tl:great-galactic-war:overview');
-    expect(ggw).toContain('Mandalorian Blockade in year 20');
-    expect(ggw).not.toContain('Sacking of Coruscant');
-    expect(at(-3653, 'tl:great-galactic-war:overview')).toContain('Sacking of Coruscant');
-    expect(at(-3675, 'tl:great-galactic-war:overview')).not.toContain('Bothawui');
+    // A sentence naming the era's own span is the era's description, sent from its first year.
+    expect(at(-3681, 'tl:great-galactic-war:overview')).toContain('twenty-eight-year war');
+    expect(at(-3653, 'tl:cold-war:overview')).not.toContain('year 11 ATC');
+    expect(at(-3642, 'tl:cold-war:overview')).toContain('year 11 ATC');
+    expect(at(-3642, 'tl:galactic-war-second:overview')).not.toContain('collapsed midway');
+    expect(at(-3641, 'tl:galactic-war-second:overview')).toContain('collapsed midway');
     expect(at(-22, 'tl:clone-wars:overview')).not.toContain('Order 66');
-    expect(at(-3650, 'tl:cold-war:overview')).not.toMatch(/Grand Master|proxy conflicts/);
   });
   it('respects the cap', () => {
     const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661 }, 400, est);

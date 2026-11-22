@@ -83,7 +83,7 @@ const NPCS: readonly CanonNpc[] = [
     birthBby: 3700,
     birthSource: 'lore',
     earlierRoles: [{ role: 'sithAcolyte', untilBby: 3681 }],
-    unavailable: [{ fromBby: 3639, toBby: 3630, reason: 'believed killed at Ilum (~3,640); in hiding until he resurfaces ~3,629 (Timeline :544)' }],
+    unavailable: [{ fromBby: 3639, toBby: 3629, reason: 'believed killed at Ilum (3,640); in hiding until revealed alive at Ossus, c. 3,628 (Timeline slice Part 2, lore batch 20)' }],
     snapshotBby: 3653,
     levels: { ...core(90, 82, 92, 94, 86, 80), ...force(84, 70, 80, 95, 90), djemSo: 92, shien: 92, shiiCho: 82, juyo: 80, ataru: 76, telekinesis: 88, forcePush: pct(88, 0.85), forceChoke: pct(88, 0.82), forceLightning: 85, forceBarrier: 78 },
     unmapped: ['Force Body 86 (Enhance Attribute 88%)', 'Chain Lightning 80%'],
@@ -305,11 +305,11 @@ const NPCS: readonly CanonNpc[] = [
     archetype: 'soldier',
     birthBby: 3692,
     birthSource: 'lore',
-    deathBby: 3641,
+    deathBby: 3642,
     deathSource: 'lore',
     snapshotBby: 3653,
     levels: { ...core(50, 50, 56, 80, 78, 86), tactics: 70 },
-    note: '"Butcher of Coruscant"; still a captain at the Sacking (3,653), Grand Moff (honorary) only after the war; died c. 3,641 BBY in the Maelstrom (lore batch 19, SW_Characters_09_GGW_ColdWar)',
+    note: '"Butcher of Coruscant"; still a captain at the Sacking (3,653), Grand Moff (honorary) only after the war; died 3,642 BBY in the Maelstrom guarding Revan (lore batch 20, ruling 20; batch 19 had c. 3,641)',
   },
   // ---- The Jedi and the Republic ----
   {
@@ -612,7 +612,7 @@ const NPCS: readonly CanonNpc[] = [
     birthSource: 'lore',
     snapshotBby: 3640,
     levels: { ...core(64, 76, 66, 82, 80, 86), blaster: 78, stealth: 78 },
-    note: 'SIS agent; Satele and Jace Malcom\'s son, born ~3,666 (Timeline :360); not Force-sensitive',
+    note: 'SIS agent; Satele and Jace Malcom\'s son, born 3,666 (Timeline slice Part 1); not Force-sensitive',
   },
   // ---- Galactic War heroes (appear late in the era) ----
   {
