@@ -68,6 +68,7 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Jedi_Training_AllEras_Part2.md` | Jedi training and organization from the late Republic to the Legacy era, plus the Matukai, Antarian Rangers and Jensaarai (1,000 BBY onward) |
 | `Docs/SWRPG lore/SW_Jedi_Ranks_Councils_Roles_AllEras_Part1.md` | Jedi ranks, councils and roles, all eras, Part 1: to 1000 BBY (extends the Old Republic ranks file) |
 | `Docs/SWRPG lore/SW_Jedi_Ranks_Councils_Roles_AllEras_Part2.md` | Jedi ranks, councils and roles, all eras, Part 2: 1000 BBY to the Legacy era |
+| `Docs/SWRPG lore/SW_Jedi_Temple_Life_GGW_Part1.md` | Jedi life at the Coruscant Temple in the Great Galactic War (3681–3653 BBY, focus 3661 BBY) |
 
 ## Sith and other dark-side orders
 

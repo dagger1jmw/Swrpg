@@ -1099,6 +1099,12 @@ The clock and the module contract come first, before any feature.
   military-family townhouse, private Force instructors, Imperial Guard sentries as childhood idols, the jungle edge,
   parade routes, and departure for Korriban as the opening transition. The slave-born Force-sensitive route (sent to
   Korriban "willing or not", D-366).
+- **M7 Jedi starts in the Great Galactic War (Jared, 2026-11-21, lore batch 13; D-378, D-379; lore:
+  SW_Jedi_Temple_Life_GGW_Part1.md, Game notes; candidates).** Apprenticeship as a sequence of Masters, with field
+  postings to specialists. The 3661 BBY Hydian Way crisis as an event chain: Council debate, the Devaron strike, food
+  riots, surrender talk, smuggler relief in 3660. The Corellian Jedi academy (green robes, marriage allowed, Jedi
+  Credits; by 3653 BBY) as an alternative Jedi start. **Flagged for M7 design, not a default:** a Padawan PC who is an
+  unknowing Child of the Emperor (the Syo Bakarn pattern).
 - **M7 signature moves (Jared, 2026-11-21, lore batch 10; D-371; not built).** Consider giving named lightsaber
   maneuvers (the Named maneuvers table in SW_Force_Abilities_Forms_v3_complete.md: Sarlacc Sweep, Makashi riposte,
   Falling Avalanche, Assured Strike and the rest) mechanical effects. In M6 they are narrator flavour on existing actions.

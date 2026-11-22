@@ -34,7 +34,7 @@ Covers how lightsaber combat was taught from the earliest Order on Tython to the
 - **Era:** Great Galactic War and Cold War (SWTOR; exact years not given on the cited pages)
 - **Key facts:**
 
-- The Order moved to Tython. Padawan training shifted toward military readiness and politics. [Padawan/Legends §Instruction](https://starwars.fandom.com/wiki/Padawan/Legends)
+- Padawan training (corrected (lore batch 13), ruling 11): Core World politics before the war; the shift toward practical military readiness and diplomatic service came with wartime liaison with the Republic military, and was completed in the Cold War after the Order moved to Tython. [Padawan/Legends §Instruction](https://starwars.fandom.com/wiki/Padawan/Legends)
 - The Battlemaster title went to Jedi who excelled in combat. Jun Seros replaced the dead Kao Cen Darach. The Hero of Tython was later named Battlemaster. [Battlemaster/Legends §History](https://starwars.fandom.com/wiki/Battlemaster/Legends)
 - The Jedi developed Juyo-Kos; Jaric Kaedan was a master. On the Sith side, Scourge studied Forms VII, IV and III. [Lightsaber combat/Legends §Practice and Training during the Sith Resurgence](https://starwars.fandom.com/wiki/Lightsaber_combat/Legends)
 

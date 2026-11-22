@@ -69,7 +69,7 @@ Legends lore reference for SWRPG. Researched Nov 21, 2026. Sources: Wookieepedia
     - Kellian Jarro killed over 100 Mandalorian commandos. [Kellian Jarro](https://starwars.fandom.com/wiki/Kellian_Jarro)
     - Kilran's tactics earned him the name "Butcher of Coruscant". [Rycus Kilran](https://starwars.fandom.com/wiki/Rycus_Kilran)
     - Orgus Din's Padawan Bengel Morr was lost in the Temple (he survived and later fell to the dark side). [Orgus Din](https://starwars.fandom.com/wiki/Orgus_Din)
-  - **Grand Master Zym:** reported killed during the Sacking (one source) or killed afterwards (another) [conflict]. [Bela Kiwiiks](https://starwars.fandom.com/wiki/Bela_Kiwiiks); [Zym §Biography](https://starwars.fandom.com/wiki/Zym)
+  - **Grand Master Zym:** reported killed during the Sacking (one source) or killed afterwards (another) [conflict]. Council deaths [conflict]: "six High Council members died in the Sacking" vs "half of the Council was killed, including Grand Master Zym" (Jedi High Council/Legends). Resolved (lore batch 13, ruling 5; D-363 [2]): six died in the Sacking; Zym died afterwards in the ruins. [Bela Kiwiiks](https://starwars.fandom.com/wiki/Bela_Kiwiiks); [Zym §Biography](https://starwars.fandom.com/wiki/Zym)
 - **Related:** treaty terms and Republic offices in SW_SWTOR_Era_Power_Structures_Part2.md; Grand Masters in SW_Jedi_Ranks_Councils_Roles_AllEras_Part1.md
 - **Uncertainty:** [conflict] the offer year; Zym's death. See Decisions needed.
 

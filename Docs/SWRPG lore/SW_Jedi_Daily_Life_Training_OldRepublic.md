@@ -14,6 +14,7 @@ This file covers how the Jedi Order trained and lived in the Old Republic window
 ## Entries
 
 ### Daily schedule of an Initiate (general)
+- **Later-era default (lore batch 13, ruling 1):** adopted as the default for 3681–3653 BBY, though attested only for the post-Ruusan Order. Wartime colour: many Initiates and Padawans are away with Masters at the front, so the Temple feels emptier than in peacetime [inferred].
 - **Type:** routine
 - **Era:** general (post-Ruusan Coruscant academy). No source gives a timetable for 3,700–3,600 BBY (see "Not found").
 - **Key facts:**
@@ -37,13 +38,14 @@ This file covers how the Jedi Order trained and lived in the Old Republic window
   - Force study began with Control. Students had to prove themselves in their other classes before they were allowed lightsaber training. Advanced meditation came with the Third Pillar, then the six levels of lightsaber combat, then the Initiate Trials (general; ref: *The Jedi Path*). [source](https://starwars.fandom.com/wiki/Jedi_Initiate/Legends) ("Instruction")
   - The Trials could be retaken, but an Initiate could not stay an extra year at the academy: "One had to progress, or leave" (general; ref: *The Jedi Path*). [source](https://starwars.fandom.com/wiki/Jedi_Initiate/Legends) ("Instruction")
   - In the Order's early years, and after reforms or purges, the Initiate stage did not exist or was not the main source of Knights. Masters took on anyone with Force affinity (general; ref: *The Jedi Path*). [source](https://starwars.fandom.com/wiki/Jedi_Initiate/Legends) ("Overview")
-  - **Era:** a Kiffar orphan born c. 3661 BBY was handed to the Coruscant Temple as an infant and trained there (ref: *Fatal Alliance*). [source](https://starwars.fandom.com/wiki/Shigar_Konshi) ("Jedi training")
+  - **Era** `unverified` (not covered by SW_Jedi_Temple_Life_GGW_Part1; queued for a check, lore batch 13): a Kiffar orphan born c. 3661 BBY was handed to the Coruscant Temple as an infant and trained there (ref: *Fatal Alliance*). [source](https://starwars.fandom.com/wiki/Shigar_Konshi) ("Jedi training")
   - **Era:** a learner found by the Order trained under "several Jedi Masters" during the Cold War. As a "Jedi Initiate" the learner was sent to Tython in 3643 BBY to learn from an official teacher and take the Jedi Trials (ref: SWTOR Jedi Knight mission "Attack of the Flesh Raiders"; TOR dates). [source](https://starwars.fandom.com/wiki/Hero_of_Tython) ("Early life")
   - **Era:** a child prodigy was trained "under a number of Jedi instructors" during the Cold War as an Initiate, then sent to Tython by 3643 BBY to learn from an official mentor and complete the Jedi Trials (ref: SWTOR Jedi Consular mission "The Path of a Jedi"). [source](https://starwars.fandom.com/wiki/The_Barsen%27thor) ("Early Jedi training"; "Arrival")
 - **Related:** Daily schedule; Clans; Initiate Trials; Padawan
 - **Uncertainty:** In both 3643 BBY examples the wiki calls the learner an "Initiate" who goes to Tython for the "Jedi Trials". It is [unclear] whether these were Initiate Trials or Knighthood Trials (the same point is noted in SW_Jedi_Order_Ranks_Council_OldRepublic.md).
 
 ### Clans (general)
+- **Later-era default (lore batch 13, ruling 1):** adopted as the default for 3681–3653 BBY, though attested only for the post-Ruusan Order. Clans of about ten, with fosterers.
 - **Type:** institution (Initiate group)
 - **Era:** general (post-Ruusan); not attested in this window
 - **Key facts:**
@@ -86,7 +88,7 @@ This file covers how the Jedi Order trained and lived in the Old Republic window
   - Padawans still took Temple classes, but on flexible schedules. A Master could leave the Padawan at the Temple during a solo mission, to take an extra course or one-on-one classes with an instructor. Padawans moved from Control to Sense (general; ref: *The Jedi Path*). [source](https://starwars.fandom.com/wiki/Padawan/Legends) ("Instruction")
   - "As a Padawan, students set their own schedule" around assignments and missions. Partnerships typically lasted over a decade with no fixed term (general; ref: *The Jedi Path*). [source](https://starwars.fandom.com/wiki/Jedi_training/Legends) ("Training in the Old Jedi Order")
   - Masters taught practical skills (physical sciences, piloting, droid repair, astronavigation) and self-sufficiency, including meditations and gardening techniques "to stave off hunger" (ref: *TOR Encyclopedia*). [source](https://starwars.fandom.com/wiki/Padawan/Legends) ("Instruction")
-  - **Era:** after the move to Tython in the Cold War, training refocused. Working with the Republic military made command structures and protocols essential, and there was "a renewed emphasis on practical military readiness and diplomatic service" (ref: *TOR Encyclopedia*). [source](https://starwars.fandom.com/wiki/Padawan/Legends) ("Instruction")
+  - **Era (corrected (lore batch 13), ruling 11):** before the war Padawans needed Core World politics more than Sith warfare; the shift toward military readiness and diplomatic service began with wartime liaison with the Republic military and was completed in the Cold War after the move to Tython. The page puts the completed refocus after the move: Working with the Republic military made command structures and protocols essential, and there was "a renewed emphasis on practical military readiness and diplomatic service" (ref: *TOR Encyclopedia*). [source](https://starwars.fandom.com/wiki/Padawan/Legends) ("Instruction")
   - **Era:** before 3681 BBY Satele Shan studied as a Padawan under Ngani Zho (ref: *The Lost Suns* 1). In 3681 BBY she went to the Republic station over Korriban to study under Battlemaster Kao Cen Darach (ref: *Journal of Master Gnost-Dural*), who taught her the double-bladed lightsaber she built and guided her through some of the Jedi Trials (ref: *TOR Encyclopedia*). [source](https://starwars.fandom.com/wiki/Satele_Shan) ("Early life")
   - **Era:** Ngani Zho trained "many Jedi" in the Great Galactic War, including Satele Shan, Bela Kiwiiks, Jaric Kaedan and Syo Bakarn. [source](https://starwars.fandom.com/wiki/Ngani_Zho) ("Great Galactic War"); also (ref: *The Lost Suns* 1) [source](https://starwars.fandom.com/wiki/Bela_Kiwiiks) ("Biography")
   - **Era:** as a senior Padawan at the Coruscant Temple, Gnost-Dural began keeping a journal on the advice of Master Shol Bestros, as a personal reference and as material for the Archives (ref: *Journal of Master Gnost-Dural*). [source](https://starwars.fandom.com/wiki/Gnost-Dural) ("Apprenticeship")
@@ -100,6 +102,7 @@ This file covers how the Jedi Order trained and lived in the Old Republic window
 - **Uncertainty:** General (post-Ruusan) sources limit each Master to one Padawan at a time. The era evidence shows Ngani Zho training several future Councillors, but it does not say whether this was at the same time [unclear]. Shigar Konshi was "selected as a Padawan by the recently appointed Grand Master, Satele Shan" [source](https://starwars.fandom.com/wiki/Shigar_Konshi) ("Jedi training"). With *Fatal Alliance* set c. 3643 BBY, this bears on the Grand Master date [conflict] in SW_Jedi_Order_Ranks_Council_OldRepublic.md, and fits its "by 3645 BBY" version better than 3651 BBY [inferred]. The page does not date the selection itself.
 
 ### Padawan selection (general)
+- **Not adopted for 3681–3653 BBY (lore batch 13, ruling 1):** the annual selection tournament and the age limit for selection contradict this era's attested practice (Padawans served several Masters; older recruits were taken).
 - **Type:** practice
 - **Era:** general (post-Ruusan Coruscant)
 - **Key facts:**
@@ -254,6 +257,7 @@ This file covers how the Jedi Order trained and lived in the Old Republic window
 - **Uncertainty:** none
 
 ### Padawan dress and the braid (general)
+- **Lore batch 13, ruling 1:** plain tunics are a later-era default adopted for 3681–3653 BBY; the Padawan braid and its severing at Knighthood are **not** adopted. A Padawan in 3661 BBY has no braid.
 - **Type:** custom
 - **Era:** general
 - **Key facts:**
