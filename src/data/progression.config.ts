@@ -425,3 +425,9 @@ export const DAILY_LIFE_PACES: Readonly<Record<string, Readonly<Partial<Record<'
 export const DAILY_LIFE_PACES_BY_ARCHETYPE: Readonly<Record<string, typeof DAILY_LIFE_PACES>> = {
   jediConsular: { forceKnowledge: { knight: 0.189 } },
 };
+/**
+ * Long lives in the NPC closed form (Jared, D-429): the Human-equivalent age counts at most a full life (100: the
+ * species' own maturity and lifespan map it, species.md §1), and levels above `from` gain with diminishing returns toward
+ * `apex` (the roster's apex, about 135): level = from + (apex - from) x (1 - exp(-(L - from) / (apex - from))). Invented.
+ */
+export const LONG_LIFE = { maxHumanAge: 100, from: 110, apex: 135 } as const;

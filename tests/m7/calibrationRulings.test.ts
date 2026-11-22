@@ -153,16 +153,30 @@ describe('the data rulings (D-417, D-421, D-422)', () => {
   });
 });
 
-describe('the stat scale (D-423)', () => {
-  it('hand-set sheets load in the game scale, stat by stat, the authored numbers kept; no factor inflates', async () => {
-    const { SHEET_TO_GAME, sheetFactor } = await import('../../src/data/canon/sheetScale');
-    for (const f of Object.values(SHEET_TO_GAME)) expect(f).toBeLessThanOrEqual(1);
-    const malgus = canon('darth-malgus').anchors[0]!;
-    expect(malgus.scale).toBe('game');
-    expect(malgus.levels['djemSo']).toBeCloseTo(malgus.authored!['djemSo']! * sheetFactor('djemSo'), 1);
-    expect(malgus.levels['forceKnowledge']).toBeCloseTo(malgus.authored!['forceKnowledge']! * 0.28, 1);
-    expect(sheetFactor('juyo')).toBe(SHEET_TO_GAME['$forms']);
-    expect(sheetFactor('forceChoke')).toBe(SHEET_TO_GAME['$abilities']);
+describe('the stat scale (D-423, revised by D-429)', () => {
+  it('per-group factors (capped at 1.0), the authored numbers kept, forms and abilities by kind', async () => {
+    const { SHEET_TO_GAME_BY_GROUP, sheetFactor } = await import('../../src/data/canon/sheetScale');
+    for (const g of Object.values(SHEET_TO_GAME_BY_GROUP)) for (const f of Object.values(g)) expect(f).toBeLessThanOrEqual(1);
+    const kaedan = canon('jaric-kaedan').anchors[0]!;
+    expect(kaedan.scale).toBe('game');
+    expect(kaedan.levels['juyo']).toBeCloseTo(kaedan.authored!['juyo']! * sheetFactor('juyo', 'jedi'), 1);
+    expect(sheetFactor('juyo', 'sith')).toBe(SHEET_TO_GAME_BY_GROUP.sith['$forms']);
+    expect(sheetFactor('forceChoke', 'sith')).toBe(SHEET_TO_GAME_BY_GROUP.sith['$abilities']);
+  });
+  it('Force Knowledge, Meditation, Intelligence and Tactics come from the bands, never above the authored value', async () => {
+    const { bandValue, standingBand } = await import('../../src/data/canon/sheetScale');
+    const kaedan = canon('jaric-kaedan');
+    expect(standingBand(kaedan, kaedan.anchors[0]!.bby)).toBe(60);
+    // A Guardian Master: one band below the Master's 60 for Force Knowledge.
+    expect(kaedan.anchors[0]!.levels['forceKnowledge']).toBe(40);
+    expect(bandValue('forceKnowledge', 30, 60, 'jediConsular')).toBe(30);
+    expect(bandValue('tactics', 90, 80, 'soldier')).toBe(80);
+  });
+  it('the apex and focus figures carry hand-set game-scale lines', async () => {
+    const { GAME_SCALE_LINES } = await import('../../src/data/canon/sheetScale');
+    for (const id of Object.keys(GAME_SCALE_LINES)) expect(CANON_BY_ID.has(id), id).toBe(true);
+    expect(canon('vitiate').anchors[0]!.levels['forceOutput']).toBe(125);
+    expect(canon('zym').anchors[0]!.levels['forceKnowledge']).toBe(110);
   });
   it('the Sith no longer default to Soresu: Warriors Djem So and Shien, Inquisitors Makashi and Niman', async () => {
     const { defaultFormPlan } = await import('../../src/features/character/creation');
@@ -171,5 +185,20 @@ describe('the stat scale (D-423)', () => {
     expect(defaultFormPlan('jediGuardian')).toEqual({ soresu: 2, ataru: 1 });
     const line = (await import('../../src/features/npcs/selectors')).canonProgressionLineAt(canon('darth-vindican'), 3681, at(-3681));
     expect((line['djemSo'] ?? 0)).toBeGreaterThan(line['soresu'] ?? 0);
+  });
+});
+
+describe('long lives in the NPC closed form (D-429)', () => {
+  it('diminishing returns above the band top, toward the apex', async () => {
+    const { softCapLevel } = await import('../../src/features/character/creation');
+    expect(softCapLevel(90)).toBe(90);
+    expect(softCapLevel(110)).toBe(110);
+    expect(softCapLevel(150)).toBeGreaterThan(125);
+    expect(softCapLevel(500)).toBeLessThan(135);
+  });
+  it('Zym (a Kel Dor of 120) no longer overshoots: the generator line stays under the apex', async () => {
+    const { canonProgressionLineAt } = await import('../../src/features/npcs/selectors');
+    const line = canonProgressionLineAt(canon('zym'), 3660, at(-3660));
+    for (const v of Object.values(line)) expect(v).toBeLessThan(135);
   });
 });

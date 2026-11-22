@@ -9,7 +9,7 @@ import { orderSeatAt } from '../../data/orderSeats';
 import { STUB_INSTRUCTOR_LEAD, STUB_MASTER_LEAD } from '../../data/stubs';
 import { gainE, sparringE } from '../../engine/appliedExperience';
 import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
-import { BUDGET, DAILY_LIFE_PACES, DAILY_LIFE_PACES_BY_ARCHETYPE, FORM_TRANSFER_SHARE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
+import { BUDGET, DAILY_LIFE_PACES, DAILY_LIFE_PACES_BY_ARCHETYPE, FORM_TRANSFER_SHARE, LONG_LIFE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
 import { ORDER_REQUIREMENTS } from '../../data/orderRequirements';
 import { interp } from '../../engine/interp';
 import { AVERAGE_RANK_AGES, KNIGHT_TRIALS, RANK_BY_ID, RANK_PHASE, type RankDef } from '../../data/rankMinimums';
@@ -200,7 +200,9 @@ export function computeCreation(input: CreationInput): CreationResult {
   const rankDef = RANK_BY_ID.get(input.rank);
   const age = ageAt(input.birthDay, input.startDay);
   // Life-stage gates read the Human-equivalent age (species.md §1); unknown species fall back to Human.
-  const hNow = species ? humanEquivalentAge(species, age) : age;
+  // NPCs (D-429): a figure past its species' full life accrues no more (Zym, a Kel Dor of 120, read as 179 before).
+  const hRaw = species ? humanEquivalentAge(species, age) : age;
+  const hNow = input.npc ? Math.min(LONG_LIFE.maxHumanAge, hRaw) : hRaw;
   const hStartIn = species ? humanEquivalentAge(species, input.trainingStartAge) : input.trainingStartAge;
   if (!a) errors.push(`Unknown archetype ${input.archetype}.`);
   if (!species) errors.push(`Unknown species ${input.speciesId}.`);
@@ -344,7 +346,8 @@ export function computeCreation(input: CreationInput): CreationResult {
   }
   for (const id of SKILL_IDS) {
     const n = naturalLevel(id, species.id, age);
-    const lv = levelWithNatural(startingXp[id] ?? 0, n);
+    const raw = levelWithNatural(startingXp[id] ?? 0, n);
+    const lv = input.npc ? softCapLevel(raw) : raw;
     if (lv > 0) levels[id] = lv;
   }
 
@@ -501,4 +504,11 @@ function backstory(input: CreationInput, a: ArchetypeDef, rank: RankDef, h: numb
   for (const [domain, level] of Object.entries(input.talents)) if (level && level !== 'none') facts.push(`Recognized as ${level === 'gifted' ? 'gifted' : `a ${level === 'prodigy' ? 'prodigy' : 'exceptional talent'}`} in ${domain === 'combat' ? 'combat' : domain === 'force' ? 'the Force' : domain === 'physical' ? 'physical training' : 'study'}.`);
   if (exception) facts.push(`Holds the rank of ${rank.name} as a story exception (a battlefield promotion) without meeting ${unmet.map((u) => `${SKILL_BY_ID.get(u.skillId)?.name ?? u.skillId} ${u.need}`).join(', ')}.`);
   return facts;
+}
+
+/** Diminishing returns above the band top (D-429; LONG_LIFE): identity up to LONG_LIFE.from, toward LONG_LIFE.apex above it. */
+export function softCapLevel(level: number): number {
+  if (level <= LONG_LIFE.from) return level;
+  const span = LONG_LIFE.apex - LONG_LIFE.from;
+  return LONG_LIFE.from + span * (1 - Math.exp(-(level - LONG_LIFE.from) / span));
 }

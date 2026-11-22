@@ -10,10 +10,10 @@ export type { CanonEra, CanonNpc, CanonTimeline, RankSpan, StatusSpan, LocationS
 export const CANON_ERAS: readonly CanonEra[] = [ERA_09];
 
 /** A hand-set sheet in the game scale (D-423): converted from the sheet scale, the authored levels kept. */
-const toGame = (a: StatAnchor): StatAnchor => (a.basis === 'sheet' && a.scale !== 'game' ? { ...a, levels: sheetToGame(a.levels), scale: 'game', authored: a.levels } : a);
+const toGame = (n: CanonNpc, a: StatAnchor): StatAnchor => (a.basis === 'sheet' && a.scale !== 'game' ? { ...a, levels: sheetToGame(n, a), scale: 'game', authored: a.levels } : a);
 
 /** Every canon entry across all eras (one entry per figure per era file), with its sheets in the game scale (D-423). */
-export const CANON_NPCS: readonly CanonNpc[] = CANON_ERAS.flatMap((e) => e.npcs).map((n) => (n.anchors.length ? { ...n, anchors: n.anchors.map(toGame) } : n));
+export const CANON_NPCS: readonly CanonNpc[] = CANON_ERAS.flatMap((e) => e.npcs).map((n) => (n.anchors.length ? { ...n, anchors: n.anchors.map((a) => toGame(n, a)) } : n));
 
 /**
  * Canon entries by lore canon ID. A figure appears in one era file per era it belongs to; the first era wins here.
