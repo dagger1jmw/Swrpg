@@ -92,18 +92,22 @@ The CRITICAL/HIGH/MEDIUM/LOW tags this framework reads are the timeline's old Do
 
 ### Galaxy sim faction state seeds, re-dated to the 3,661 BBY start
 
-The old seeds were for 3,660 BBY, just after the blockade broke. Re-dated to the default start (ruling 8): the blockade is active, the Coruscant riots are going on, Mandalore the Lesser leads the clans, and the Rim Campaign is starting (SW_Timeline_3700_3600BBY_Part1, 3,661 BBY). The unsourced comments ("Temple restaffing", "rationing easing") are dropped. The numbers are the old game values, unchanged and not yet reviewed: a simulation spec should set them.
+The old seeds were for 3,660 BBY, just after the blockade broke. Re-dated to the default start (ruling 8): the blockade is active, the Coruscant riots are going on, Mandalore the Lesser leads the clans, and the Rim Campaign is starting (SW_Timeline_3700_3600BBY_Part1, 3,661 BBY). The unsourced comments ("Temple restaffing", "rationing easing") are dropped. The numbers were reviewed against lore batches 12–21 and the proposed values accepted (D-401 [9]): Republic morale 35 and stability 35, Jedi morale 45, Mandalorian morale 65, Temple supply 55 (invented), plus the Hutts (neutral), the Chiss (the Empire's ally) and the Mandalorians' Imperial patron. A simulation spec still decides how they are used.
 
 ```javascript
 // 3,661 BBY, Year 20 of the Great Galactic War: Hydian Way blockade active; Coruscant riots; Rim Campaign starting
+// Reviewed against lore batches 12-21 and accepted (D-401 [9]); see m7-start-checklist.md, Seed review.
 factions: {
-  jediOrder:    { power:58, morale:55, focus:'Hydian Way blockade (the strike near Devaron failed)' },
+  jediOrder:    { power:58, morale:45, focus:'Hydian Way blockade (the strike near Devaron failed)' },
   sithEmpire:   { power:72, morale:68, focus:'Rim Campaign starting' },
-  republic:     { power:52, morale:58, stability:44, riotsOngoing:true },
-  mandalorians: { power:52, morale:48, blockadeActive:true, leader:'Mandalore the Lesser' }
+  republic:     { power:52, morale:35, stability:35, riotsOngoing:true },
+  mandalorians: { power:52, morale:65, blockadeActive:true, leader:'Mandalore the Lesser', alliedWith:'sithEmpire' },
+  hutts:        { neutral:true },             // numbers set by the simulation spec
+  chiss:        { alliedWith:'sithEmpire' }    // the Empire's only true ally
 },
 temple: {
-  supplyLevel:68, trainingQuality:78,
-  currentFocus:'Hydian Way blockade cutting supplies'
+  supplyLevel:55,                             // invented: the Temple's own supply is unrecorded
+  trainingQuality:78,
+  currentFocus:"The Hydian Way blockade and the Council's strike (Devaron)"
 }
 ```

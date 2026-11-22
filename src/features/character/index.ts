@@ -25,6 +25,7 @@ export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
       ...(c.dominantHand !== undefined ? { dominantHand: c.dominantHand } : {}),
       ...(c.unbalanced !== undefined ? { unbalanced: c.unbalanced } : {}),
       testCharacter: c.testCharacter === true,
+      ...(c.start !== undefined ? { start: { ...c.start } } : {}),
       ...(c.formPlan !== undefined ? { formPlan: c.formPlan === null ? null : { padawan: { ...c.formPlan.padawan }, knight: { ...c.formPlan.knight } } } : {}),
     };
   },

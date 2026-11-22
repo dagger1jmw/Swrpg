@@ -5,7 +5,11 @@ export const SPECIES = [
   'human', 'twilek', 'zabrak', 'mirialan', 'togruta', 'kelDor', 'wookiee', 'rodian', 'cathar',
   'miraluka', 'chiss', 'sithPureblood', 'monCalamari', 'bothan', 'duros', 'trandoshan', 'nautolan',
   'ithorian', 'hutt', 'jawa', 'gamorrean', 'rattataki', 'arkanian', 'echani', 'iktotchi', 'cerean',
-  'toydarian', 'yuuzhanVong', 'droid', 'other', 'unknown',
+  'toydarian', 'yuuzhanVong',
+  // Lore batch 21 species (D-401 [13]): the rest of the species table, so canon figures and NPCs can carry them.
+  'devaronian', 'gand', 'kaleesh', 'nikto', 'weequay', 'talz', 'epicanthix', 'falleen', 'dashade', 'chagrian', 'selkath',
+  'sullustan', 'zeltron', 'gran', 'voss', 'houk', 'gormak', 'gektl', 'yodasSpecies', 'sarkhai', 'aqualish',
+  'droid', 'other', 'unknown',
 ] as const;
 export type SpeciesId = (typeof SPECIES)[number];
 
@@ -22,7 +26,8 @@ export type NpcRole = (typeof NPC_ROLES)[number];
 
 /** AI-settable NPC states; deceased comes only from the engine (D-33, D-65). */
 export const NPC_AI_STATES = ['active', 'dormant', 'departed'] as const;
-export const NPC_STATES = [...NPC_AI_STATES, 'deceased'] as const;
+/** 'imprisoned': a canon figure linked at their prison (D-401 [5]). */
+export const NPC_STATES = [...NPC_AI_STATES, 'deceased', 'imprisoned'] as const;
 export type NpcState = (typeof NPC_STATES)[number];
 
 /** Upper bound for ageApprox (long-lived species exist; the species spec narrows this in M8). */

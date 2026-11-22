@@ -5,6 +5,7 @@
 import { CANON_NPCS, type CanonNpc } from '../data/canonNpcs';
 import type { NpcRole } from '../data/entities.config';
 import { ROLE_MIN_AGE } from '../data/npcGen.config';
+import { CANON_PLACEMENTS, type CanonPlacement } from '../data/canonPlacements';
 
 /** Campaign calendar year (negative = BBY) to BBY. */
 export const toBby = (year: number): number => -year;
@@ -50,12 +51,19 @@ const STATUS_YEARS = [3661] as const;
 export function canonOffBoard(n: CanonNpc, bby: number): OffBoard | null {
   if (bby > n.birthBby) return 'unborn';
   if (n.deathBby !== undefined && bby < n.deathBby) return 'dead';
+  // A prison on record wins over a generic unavailable span for the same years (the Dread Masters, D-401 [5]).
+  if (prisonOf(n.canonId, bby)) return 'imprisoned';
   if ((n.unavailable ?? []).some((u) => bby <= u.fromBby && bby >= u.toBby)) return 'unavailable';
   if ((STATUS_YEARS as readonly number[]).includes(bby) && n.status3661) {
     const k = n.status3661.kind;
     if (k === 'dead' || k === 'unborn' || k === 'imprisoned') return k;
   }
   return null;
+}
+
+/** Where the lore holds a figure prisoner in `bby` (src/data/canonPlacements.ts), or null. */
+export function prisonOf(canonId: string, bby: number): CanonPlacement | null {
+  return CANON_PLACEMENTS.find((p) => p.imprisoned && p.canonId === canonId && bby <= p.fromBby && bby >= p.toBby) ?? null;
 }
 
 /** The canon figures on the board at a date (bby), each entry once (the first era file wins, as in CANON_BY_ID). */

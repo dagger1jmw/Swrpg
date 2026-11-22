@@ -15,7 +15,8 @@ import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { selectCurrentLocationId } from '../locations/selectors';
 import { dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { CANON_BY_ID } from '../../data/canonNpcs';
-import { canonOffBoard, type OffBoard } from '../../engine/canonRoster';
+import { canonOffBoard, prisonOf, type OffBoard } from '../../engine/canonRoster';
+import { selectLocationChain } from '../locations/selectors';
 
 /** How an off-board reason reads in a rejection (D-400). */
 const OFF_BOARD_WORDS: Readonly<Record<OffBoard, string>> = { unborn: 'not yet born', dead: 'dead', unavailable: 'out of sight', imprisoned: 'imprisoned' };
@@ -163,6 +164,13 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         const canon = CANON_BY_ID.get(String(e['canonId']));
         const bby = -dateFromAbsDay(selectNow(ctx.state).day).year;
         const off = canon ? canonOffBoard(canon, bby) : null;
+        // An imprisoned figure links when the scene is at their prison, as a prisoner (D-401 [5]).
+        if (canon && off === 'imprisoned') {
+          const prison = prisonOf(canon.canonId, bby);
+          const here = selectLocationChain(ctx.state, selectCurrentLocationId(ctx.state)).flatMap((l) => [l.name, ...l.aliases, l.region ?? '']);
+          const atPrison = prison ? here.some((n) => ` ${n.toLowerCase()} `.includes(` ${prison.place.toLowerCase()} `)) : false;
+          if (atPrison) return { slice: update(slice, id, { canonId: canon.canonId, status: 'imprisoned' }), notes: [`${id} is canon ${canon.canonId}, a prisoner at ${prison!.place}`] };
+        }
         if (canon && off) return { reject: `${canon.name} is ${OFF_BOARD_WORDS[off]} in ${formatYear(-bby)}${canon.status3661 && bby === 3661 ? ` (lore: ${canon.status3661.note})` : ''}: not linked to canon` };
         return { slice: update(slice, id, { canonId: String(e['canonId']) }), notes: [`${id} is canon ${String(e['canonId'])}`] };
       },

@@ -41,6 +41,8 @@ export interface SpeciesDef {
   maturity: number;
   ageSource: AgeSource;
   bodyScale: number;
+  /** Where a non-1.0 body scale comes from (D-401 [12]: clear size outliers, house default until the M8 traits). */
+  bodyScaleSource?: AgeTag;
   capBonus: Partial<Record<PhysicalStat, number>>;
   learning: readonly LearningFactor[];
   /** Story and contest rules the engine does not compute yet, shown on the sheet. */
@@ -253,11 +255,11 @@ export const SPECIES: readonly SpeciesDef[] = [
   plain('kaleesh', 'Kaleesh', 80, 18, gs(`maximum 80 (game stat; ${P2}, Kaleesh)`)),
   plain('nikto', 'Nikto', 100, 18, HD),
   plain('weequay', 'Weequay', 90, 18, gs(`maximum 90 (game stat; ${P2}, Weequay)`)),
-  plain('talz', 'Talz', 52, 18, gs(`maximum 52 (game stat; ${P2}, Talz)`)),
+  plain('talz', 'Talz', 52, 18, gs(`maximum 52 (game stat; ${P2}, Talz)`), { bodyScale: 1.25, bodyScaleSource: 'house default' as const }),
   plain('epicanthix', 'Epicanthix', 130, 18, { lifespan: 'lore', maturity: 'house default', basis: `up to 130 (novel; ${P2}, Epicanthix)` }),
   plain('falleen', 'Falleen', 250, 18, gs(`most live to about 250, rarely 400 (UAA, WEG; D-399 [3]; ${P2}, Falleen)`)),
-  plain('hutt', 'Hutt', 1000, 200, { lifespan: 'lore', maturity: 'lore', basis: `adult at 200, lives over 1,000 (${P2}, Hutt)` }),
-  plain('jawa', 'Jawa', 80, 18, gs(`maximum 80 (game stat; ${P2}, Jawa)`)),
+  plain('hutt', 'Hutt', 1000, 200, { lifespan: 'lore', maturity: 'lore', basis: `adult at 200, lives over 1,000 (${P2}, Hutt)` }, { bodyScale: 1.5, bodyScaleSource: 'house default' as const }),
+  plain('jawa', 'Jawa', 80, 18, gs(`maximum 80 (game stat; ${P2}, Jawa)`), { bodyScale: 0.6, bodyScaleSource: 'house default' as const }),
   plain('dashade', 'Dashade', 85, 18, gs(`average 85 (game stat; "many centuries" in the infobox; ${P2}, Dashade)`)),
   plain('chagrian', 'Chagrian', 76, 18, gs(`maximum 76 (game stat; ${P2}, Chagrian)`)),
   plain('selkath', 'Selkath', 100, 18, gs(`maximum 100 (game stat; ${P2}, Selkath)`)),
@@ -268,10 +270,10 @@ export const SPECIES: readonly SpeciesDef[] = [
   plain('gran', 'Gran', 79, 18, gs(`maximum 79 (infobox, source unchecked: unverified; ${P2}, Gran)`, 'house default', true)),
   plain('voss', 'Voss', 100, 18, HD, { knownFrom: -3645, notes: ['Unknown to the galaxy until the rediscovery c. 3,645 BBY (D-399 [15])'] }),
   // NPC-only (thin, D-399 [20]).
-  plain('houk', 'Houk', 100, 18, HD, { playable: false }),
+  plain('houk', 'Houk', 100, 18, HD, { playable: false, bodyScale: 1.25, bodyScaleSource: 'house default' as const }),
   plain('gormak', 'Gormak', 100, 18, HD, { playable: false, knownFrom: -3645 }),
   plain('gektl', 'Gektl', 100, 18, HD, { playable: false }),
-  plain('yodas_species', "Yoda's species", 900, 18, { lifespan: 'lore', maturity: 'house default', basis: `Yoda died at 900 (${P2}, Yoda's species)` }, { playable: false }),
+  plain('yodas_species', "Yoda's species", 900, 18, { lifespan: 'lore', maturity: 'house default', basis: `Yoda died at 900 (${P2}, Yoda's species)` }, { playable: false, bodyScale: 0.5, bodyScaleSource: 'house default' as const }),
   plain('sarkhai', 'Sarkhai', 100, 18, HD, { playable: false }),
   plain('echani', 'Echani', 100, 18, HD, { playable: false }),
   plain('aqualish', 'Aqualish', 80, 17, gs(`venerable 80+, adult 17 (infobox, source unchecked: unverified; ${P2}, Aqualish)`, 'game stat', true), { playable: false }),

@@ -36,6 +36,7 @@ import type { Storage } from '../persist/storage';
 import { applyEvents } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
 import type { GameEvent, Registry } from '../state/types';
+import { START_OPTION_BY_ID, startOptionsFor } from '../data/startOptions';
 import { createCampaign, DEFAULT_START_AGE, DEFAULT_START_DATE, DEFAULT_START_SECOND, loadEarlierSave, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
 import type { SaveMeta } from '../persist/saveHistory';
 import { EarlierSaves } from './earlierSaves';
@@ -928,6 +929,28 @@ export class App {
     const ageLine = el('p', { class: 'hint' });
     const err = el('div', { class: 'error' });
     const cf = creationForm();
+    // Start options (D-401 [2]): mechanical starts for the start date, or a free start. Choosing one fills the premise.
+    const startPick = el('select', { attrs: { 'aria-label': 'Start' } });
+    const imperialBorn = input({ type: 'checkbox' });
+    const startNote = el('p', { class: 'hint' });
+    let lastAutoPremise = '';
+    const fillStarts = (): void => {
+      const s = startD.read();
+      const opts = isValidDate(s) ? startOptionsFor(s.year) : [];
+      const keep = startPick.value;
+      startPick.replaceChildren(el('option', { text: 'Free start (no preset)', attrs: { value: '' } }), ...opts.map((o) => el('option', { text: o.title, attrs: { value: o.id } })));
+      startPick.value = opts.some((o) => o.id === keep) ? keep : '';
+      describeStart();
+    };
+    const describeStart = (): void => {
+      const o = START_OPTION_BY_ID.get(startPick.value);
+      startNote.textContent = o ? `${o.places.map((p) => p.name).join(', ')}. Path: ${o.paths.join(' or ')}${o.ranks.length ? `; rank: ${o.ranks.join(', ')}` : ''}${o.archetypes.length ? `; archetype: ${o.archetypes.join(', ')}` : ''}. Opening threads: ${o.threads.map((x) => x.title).join('; ')}.` : '';
+      if (o && (!premise.value.trim() || premise.value === lastAutoPremise)) {
+        premise.value = o.premise;
+        lastAutoPremise = o.premise;
+      }
+    };
+    startPick.addEventListener('change', describeStart);
 
     const readTime = (): number => {
       const [h, m] = time.value.split(':').map(Number);
@@ -939,12 +962,13 @@ export class App {
       const ok = isValidDate(b) && isValidDate(s);
       ageLine.textContent = ok ? `Age at the start: ${ageInYears(absDayFromDate(b), absDayFromDate(s))}` : '';
       cf.update(ok ? absDayFromDate(b) : null, ok ? absDayFromDate(s) : null, name.value);
+      fillStarts();
     };
     for (const i of [...birth.all, ...startD.all, name]) i.addEventListener('input', updateAge);
     updateAge();
 
     const begin = async (): Promise<void> => {
-      const req = { name: name.value, birthDate: birth.read(), startDate: startD.read(), startSecond: readTime(), premise: premise.value, creation: cf.read() };
+      const req = { name: name.value, birthDate: birth.read(), startDate: startD.read(), startSecond: readTime(), premise: premise.value, creation: cf.read(), ...(startPick.value ? { start: { optionId: startPick.value, imperialBorn: imperialBorn.checked } } : {}) };
       const errors = validateNewCampaign(req);
       if (errors.length) {
         err.textContent = errors.join(' ');
@@ -972,6 +996,9 @@ export class App {
       startD.fields,
       el('div', { class: 'field' }, [el('label', { text: 'Time of day' }), time]),
       ageLine,
+      el('div', { class: 'field' }, [el('label', { text: 'Start' }), startPick]),
+      startNote,
+      el('label', { class: 'check' }, [imperialBorn, document.createTextNode(' Imperial-born (a Sith Pureblood outside the Empire must be)')]),
       ...cf.fields,
       el('div', { class: 'field' }, [el('label', { text: 'Premise' }), premise]),
       err,

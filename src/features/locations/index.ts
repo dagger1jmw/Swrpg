@@ -46,7 +46,8 @@ export const locationsFeature: FeatureModule<LocationsSlice, GameState> = {
   events: {
     locationIntroduced: {
       schema: locationIntroducedSchema,
-      sources: ['ai'],
+      // engine: a start option seeds its places (D-401 [2]).
+      sources: ['ai', 'engine'],
       phase: 'create',
       refFields: ['parentRef'],
       refKinds: { parentRef: ['loc'] },

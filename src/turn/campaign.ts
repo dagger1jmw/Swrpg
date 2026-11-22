@@ -8,6 +8,8 @@ import type { GameState } from '../state/gameState';
 import { createInitialState } from '../state/registryTools';
 import type { Registry } from '../state/types';
 import type { Session } from './pipeline';
+import { applyEvents } from '../state/applyEvents';
+import { checkStart, START_OPTION_BY_ID, startOptionsFor, type StartOption } from '../data/startOptions';
 import type { TurnRecord } from './record';
 
 export interface NewCampaignInput {
@@ -20,6 +22,8 @@ export interface NewCampaignInput {
   premise?: string;
   /** Computed creation choices (M3). Absent = an untrained Human outsider (natural baselines only). */
   creation?: Omit<CreationInput, 'name' | 'birthDay' | 'startDay'>;
+  /** A start option (D-401 [2]): its id, and whether the character is Imperial-born (D-401 [10]). Absent = a free start. */
+  start?: { optionId: string; imperialBorn: boolean };
   /** A dev-only test start (D-178): CI for the known combat Force abilities, and the testCharacter mark. */
   test?: { ci: number; abilities: readonly string[]; scenario?: string; grants?: Readonly<Record<string, string>> };
 }
@@ -63,10 +67,59 @@ export function validateNewCampaign(input: NewCampaignInput): string[] {
     const c = creationFor(input);
     if (c) {
       errors.push(...c.errors);
+      errors.push(...startErrors(input));
       if (!c.ok && c.unmet.length) errors.push(`The rank's skill minimums are not met (${c.unmet.map((u) => `${u.skillId} ${u.have}/${u.need}`).join(', ')}): ${c.options.join('; ')}.`);
     }
   }
   return errors;
+}
+
+/** Years of the Sith Empire's open war in which a Pureblood needs an Imperial origin (D-401 [10]: the 3,661 start). */
+const PUREBLOOD_ORIGIN_BBY = { from: 3681, to: 3653 } as const;
+
+/** The chosen start option, when there is one and it is offered for the start date. */
+export function startOptionFor(input: NewCampaignInput): StartOption | null {
+  const o = input.start ? START_OPTION_BY_ID.get(input.start.optionId) : undefined;
+  return o ?? null;
+}
+
+/** Errors for the start option against the creation choices (D-401 [2], [10]). */
+export function startErrors(input: NewCampaignInput): string[] {
+  const cr = input.creation;
+  if (!cr) return [];
+  const year = input.startDate.year;
+  if (input.start) {
+    const o = START_OPTION_BY_ID.get(input.start.optionId);
+    if (!o) return [`Unknown start ${input.start.optionId}.`];
+    if (!startOptionsFor(year).includes(o)) return [`The start "${o.title}" is not offered for ${-year > 0 ? `${-year} BBY` : `${year} ABY`}.`];
+    return checkStart(o, { optionId: o.id, path: cr.path, rank: cr.rank, archetype: cr.archetype, speciesId: cr.speciesId, imperialBorn: input.start.imperialBorn });
+  }
+  // A free start in the war years: a Pureblood still needs an Imperial origin (the Sith path, or marked Imperial-born).
+  const bby = -year;
+  if (cr.speciesId === 'sith_pureblood' && bby <= PUREBLOOD_ORIGIN_BBY.from && bby >= PUREBLOOD_ORIGIN_BBY.to && cr.path !== 'sith') {
+    return ['A Sith Pureblood needs an Imperial origin in the war years: the Sith path, or a start marked Imperial-born (D-401 [10]).'];
+  }
+  return [];
+}
+
+/**
+ * The events that seed a start option (D-401 [2]): its places, outermost first, each inside the one before, with the
+ * character in the innermost; and its opening threads, tied to that place. Engine events, validated like any other.
+ */
+export function startEvents(o: StartOption): unknown[] {
+  const events: unknown[] = o.places.map((p, i) => ({
+    type: 'locationIntroduced',
+    key: `tmp:start${i}`,
+    name: p.name,
+    kind: p.kind,
+    region: p.region,
+    ...(i > 0 ? { parentRef: `tmp:start${i - 1}` } : {}),
+    description: p.description,
+    moveHere: i === o.places.length - 1,
+  }));
+  const here = `tmp:start${o.places.length - 1}`;
+  for (const th of o.threads) events.push({ type: 'threadOpened', title: th.title, stakes: th.stakes, entityRefs: o.places.length ? [here] : [] });
+  return events;
 }
 
 /** True when the campaign was created but its opening turn never committed (e.g. a reload mid-call). */
@@ -89,7 +142,8 @@ export async function createCampaign(
   const grants = input.test?.grants ?? {};
   const xp: Record<string, number> = { ...(c?.startingXp ?? {}) };
   for (const [to, from] of Object.entries(grants)) xp[to] = Math.max(xp[to] ?? 0, xp[from] ?? 0);
-  const state = createInitialState<GameState>(registry, {
+  const startOption = startOptionFor(input);
+  const initial = createInitialState<GameState>(registry, {
     campaignId: ids.campaignId,
     branchId: ids.branchId,
     seed: ids.campaignId,
@@ -113,9 +167,17 @@ export async function createCampaign(
           }
         : {}),
       ...(input.test ? { testCharacter: true } : {}),
+      ...(startOption ? { start: { optionId: startOption.id, faction: startOption.faction, imperialBorn: input.start?.imperialBorn === true } } : {}),
     },
     ...(c ? { startingXp: xp, startingE: c.startingE, startingCI: input.test ? testCI(c.startingCI, xp, input.test) : c.startingCI, rank: cr!.rank, backstoryFacts: c.facts } : {}),
   });
+  // A start option seeds its places and threads as engine events (D-401 [2]); every one must apply.
+  let state = initial;
+  if (startOption) {
+    const r = applyEvents(registry, state, startEvents(startOption), { source: 'engine' });
+    if (r.rejected.length) throw new Error(`The start could not be seeded: ${r.rejected.map((x) => x.reason).join('; ')}`);
+    state = r.state;
+  }
   const premise = input.premise?.trim() ?? '';
   const scenario = input.test?.scenario?.trim() ?? '';
   const campaign: CampaignRecord = { campaignId: ids.campaignId, name: `${input.test ? '[TEST] ' : ''}${input.name.trim()}`, createdAt: wallIso, lastPlayedAt: wallIso, ...(premise ? { premise } : {}), ...(scenario ? { scenario } : {}) };

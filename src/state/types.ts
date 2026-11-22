@@ -152,6 +152,8 @@ export interface InitCtx {
     testCharacter?: boolean;
     /** Form plans (D-118). */
     formPlan?: { padawan: Readonly<Record<string, number>>; knight: Readonly<Record<string, number>> } | null;
+    /** The start option taken (D-401 [2]). */
+    start?: { optionId: string; faction: string; imperialBorn: boolean };
   };
   /** Starting trained XP per skill from computed creation (character-creation §2). */
   startingXp?: Readonly<Record<string, number>>;

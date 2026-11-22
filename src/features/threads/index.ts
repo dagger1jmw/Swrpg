@@ -38,7 +38,8 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
         deadlineHint: z.enum(DEADLINE_HINTS).optional().describe('Only when the story sets a time pressure'),
         entityRefs: z.array(z.string()).max(8).describe('IDs (or temp keys) of the people and places involved'),
       }),
-      sources: ['ai'],
+      // engine: a start option opens its threads (D-401 [2]).
+      sources: ['ai', 'engine'],
       phase: 'create',
       refFields: ['entityRefs'],
       narrative: () => true,

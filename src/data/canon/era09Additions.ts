@@ -430,7 +430,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
   {
     canonId: "lore:nadia-grell",
     name: "Nadia Grell",
-    speciesId: "other",
+    speciesId: "sarkhai",
     faction: "jediOrder",
     role: "jediMaster",
     archetype: "jediGuardian",
@@ -636,7 +636,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
   {
     canonId: "lore:darth-karrid",
     name: "Darth Karrid",
-    speciesId: "other",
+    speciesId: "falleen",
     faction: "sithEmpire",
     role: "sithLord",
     archetype: "sithInquisitor",
@@ -1291,7 +1291,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
   {
     canonId: "lore:khem-val",
     name: "Khem Val",
-    speciesId: "other",
+    speciesId: "dashade",
     faction: "sithEmpire",
     role: "sithLord",
     archetype: "sithWarrior",
@@ -1312,7 +1312,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
   {
     canonId: "lore:xalek",
     name: "Xalek",
-    speciesId: "other",
+    speciesId: "kaleesh",
     faction: "sithEmpire",
     role: "sithLord",
     archetype: "sithWarrior",
@@ -1668,7 +1668,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
   {
     canonId: "lore:tanno-vik",
     name: "Tanno Vik",
-    speciesId: "other",
+    speciesId: "weequay",
     faction: "republic",
     role: "soldier",
     archetype: "soldier",
@@ -1705,7 +1705,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
   {
     canonId: "lore:yuun",
     name: "Yuun",
-    speciesId: "other",
+    speciesId: "gand",
     faction: "republic",
     role: "officer",
     archetype: "soldier",
@@ -1725,7 +1725,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
   {
     canonId: "lore:fideltin-rusk",
     name: "Fideltin Rusk",
-    speciesId: "other",
+    speciesId: "chagrian",
     faction: "republic",
     role: "officer",
     archetype: "soldier",
@@ -2224,7 +2224,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
   {
     canonId: "lore:ula-vii",
     name: "Ula Vii",
-    speciesId: "other",
+    speciesId: "epicanthix",
     faction: "sithEmpire",
     role: "official",
     archetype: "smuggler",
@@ -2323,7 +2323,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
   {
     canonId: "lore:broonmark",
     name: "Broonmark",
-    speciesId: "other",
+    speciesId: "talz",
     faction: "sithEmpire",
     role: "official",
     archetype: "civilian",
@@ -2612,7 +2612,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
   {
     canonId: "lore:gault-rennow",
     name: "Gault Rennow",
-    speciesId: "other",
+    speciesId: "devaronian",
     faction: "independent",
     role: "bountyHunter",
     archetype: "bountyHunter",

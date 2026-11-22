@@ -32,6 +32,8 @@ export const characterSliceSchema = z.object({
   formPlan: z.object({ padawan: z.record(z.string(), z.number().min(0)), knight: z.record(z.string(), z.number().min(0)) }).nullable(),
   /** A dev-only test start (D-178): rank and age chosen, levels from the closed form. Never set by normal creation. */
   testCharacter: z.boolean(),
+  /** The start option taken (D-401 [2]): its side, and whether the character is Imperial-born. Absent for a free start. */
+  start: z.object({ optionId: z.string().min(1), faction: z.string().min(1), imperialBorn: z.boolean() }).optional(),
 });
 
 export type CharacterSlice = z.infer<typeof characterSliceSchema>;

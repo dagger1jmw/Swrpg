@@ -11,6 +11,11 @@ import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { orderSeatAt } from '../data/orderSeats';
 import { controlAt, leadersAt } from '../data/worldControl';
+import { placementsAt } from '../data/canonPlacements';
+import { eraRulesAt } from '../data/eraRules';
+import { CANON_BY_ID } from '../data/canonNpcs';
+import { canonOffBoard } from '../engine/canonRoster';
+import { findCanonEntity } from '../lore/retrieve';
 import { FATE_ACT_NOTE, NARRATION_LENGTH, STRIKE_AT, SUBDUE_TEXT, type SubdueMode } from '../data/combat.config';
 import { selectIsDying, selectIsSpent, selectLasting, selectStatusLabel, selectWounds } from '../features/health/selectors';
 import type { CombatDraft } from './combatTurn';
@@ -267,6 +272,7 @@ export function stateBlock(
     `Date: ${formatDate(now.day)}`,
     `Jedi Order: ${orderSeatAt(dateFromAbsDay(now.day).year) ?? 'no standing Temple at this date'}`,
     ...worldLines(-dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
+    ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,
     `Location: ${chain.length ? chain.map((l) => `${l.name} (${l.id})`).join(', in ') : 'not recorded yet (introduce it with locationIntroduced)'}`,
     `Present: ${present.length ? present.join(', ') : 'nobody recorded'}`,
@@ -722,4 +728,37 @@ function worldLines(bby: number, placeNames: readonly string[]): string[] {
     ...(leaders.length ? [`Leaders: ${leaders.map((l) => `${l.office}: ${l.holder}${tag(l.inferred)}`).join('; ')}`] : []),
     ...control.map((c) => `Control: ${c.place}: ${c.side} (${c.note})${tag(c.inferred)}`),
   ];
+}
+
+/** How an off-board reason reads for the narrator (D-401 [4]). */
+const OFF_BOARD_TEXT = { unborn: 'not yet born', dead: 'dead', unavailable: 'out of sight', imprisoned: 'imprisoned elsewhere' } as const;
+
+/** The character's side for era rules: the start option's, else the path's (D-401 [8]). */
+const PATH_FACTION: Readonly<Record<string, string>> = { jedi: 'jediOrder', sith: 'sithEmpire' };
+
+/**
+ * The board at this place (D-401 [3], [4], [8]): the canon figures the lore places here this year (only those on the
+ * board), a warning for each story NPC named after a canon figure who is off the board now (the link was refused), and
+ * the era rules for this place and the factions in play. No full roster is sent.
+ */
+function boardLines(state: GameState, bby: number, placeNames: readonly string[]): string[] {
+  const lines: string[] = [];
+  const here = placementsAt(placeNames, bby).filter((p) => !p.canonId || !CANON_BY_ID.get(p.canonId) || canonOffBoard(CANON_BY_ID.get(p.canonId)!, bby) === null || p.imprisoned);
+  if (here.length) lines.push(`Canon figures here (on record this year; introduce them only as the story reaches them): ${here.map((p) => `${p.name}: ${p.doing}`).join('; ')}`);
+  const warned: string[] = [];
+  for (const n of selectNpcs(state)) {
+    if (n.canonId || warned.length >= 3) continue;
+    const hit = findCanonEntity(LORE_INDEX, normalizeAlias(n.name), -bby);
+    const canon = hit ? CANON_BY_ID.get(hit.canonId) : undefined;
+    const off = canon ? canonOffBoard(canon, bby) : null;
+    if (canon && off) warned.push(`${n.name} (${n.id}) is not the canon ${canon.name}, who is ${OFF_BOARD_TEXT[off]} this year; treat them as someone else, or correct the story`);
+  }
+  for (const w of warned) lines.push(`Board warning: ${w}`);
+  const factions = new Set<string>();
+  const c = selectCharacter(state);
+  const own = c.start?.faction ?? PATH_FACTION[c.path];
+  if (own) factions.add(own);
+  for (const id of selectPresentNpcIds(state)) { const f = state.npcs.byId[id]?.factionId; if (f) factions.add(f); }
+  for (const r of eraRulesAt(bby, placeNames, [...factions])) lines.push(`Era rule: ${r.text}`);
+  return lines;
 }
