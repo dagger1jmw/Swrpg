@@ -2,7 +2,7 @@
 // promotion check every rank change goes through. Pure reads of state.
 import { archetypeDef } from '../../data/archetypes';
 import { WARS, TALENT_ROLL_ORDERS } from '../../data/npcGen.config';
-import { RANK_BY_ID, ranksForPath } from '../../data/rankMinimums';
+import { KNIGHT_TRIALS, RANK_BY_ID, ranksForPath } from '../../data/rankMinimums';
 import { COUNCIL_SEAT, MASTER_APPROVAL, SELECTION, TAKE_PADAWAN_AGE, type TrialId } from '../../data/ranks.config';
 import { FORM_IDS, TALENT_DOMAINS } from '../../data/skills';
 import { dateFromAbsDay } from '../../engine/calendar';
@@ -115,7 +115,7 @@ export function selectStanding(s: GameState, size?: number): number {
 export function selectMasterApprovalUnmet(s: GameState): string[] {
   const out: string[] = [];
   if (s.ranks.rank !== 'padawan') out.push('not a Padawan');
-  if (selectYearsInRank(s) < 6) out.push('under six years as a Padawan');
+  if (selectYearsInRank(s) < KNIGHT_TRIALS.padawanYears) out.push(`under ${KNIGHT_TRIALS.padawanYears} years as a Padawan`);
   if (selectExactAge(s) < 18) out.push('under 18');
   const m = s.ranks.masterId;
   if (!m) out.push('no master recorded');

@@ -97,7 +97,7 @@ export const ROLE_MIN_AGE: Readonly<Record<string, number>> = {
   other: 0,
 };
 /** Rank ages for the closed-form phases (D-105: Sith on the Jedi ages until M7). */
-export const RANK_AGES = { padawanAge: 12, knightAge: 20.5 } as const;
+export const RANK_AGES = { padawanAge: 12, knightAge: 25 } as const;
 
 // ---- Talents (npc-generation Â§2) ----
 export const TALENT_ROLL_ORDERS: Readonly<Record<'order' | 'other', readonly (readonly ['none' | 'gifted' | 'prodigy' | 'exceptional', number])[]>> = {

@@ -66,7 +66,8 @@ export const AVERAGE: LifeProfile = {
   main: '$highestForm',
   startAge: 4,
   padawanAge: 12,
-  knightAge: 20.5,
+  // D-426 (Jared): the Average Knight at 25 after 13 years as a Padawan (20.5 before).
+  knightAge: 25,
   daysPerYear: 300,
   effort: 'standard',
   mainForm: 'soresu',

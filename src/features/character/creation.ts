@@ -12,7 +12,7 @@ import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, PATH_ARCHET
 import { BUDGET, FORM_TRANSFER_SHARE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
 import { ORDER_REQUIREMENTS } from '../../data/orderRequirements';
 import { interp } from '../../engine/interp';
-import { AVERAGE_RANK_AGES, RANK_BY_ID, RANK_PHASE, type RankDef } from '../../data/rankMinimums';
+import { AVERAGE_RANK_AGES, KNIGHT_TRIALS, RANK_BY_ID, RANK_PHASE, type RankDef } from '../../data/rankMinimums';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID, SKILL_IDS, type TalentDomain } from '../../data/skills';
 import { SPECIES_BY_ID, speciesDef, speciesOfferedAt } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
@@ -164,7 +164,7 @@ export function phaseAges(rank: string, path: CharacterPath, startAge: number, a
   if (phase === 'initiate') return { padawanAge: Infinity, knightAge: Infinity, onePhase: false };
   if (phase === 'padawan') return { padawanAge: Math.max(startAge, Math.min(AVERAGE_RANK_AGES.padawan, age)), knightAge: Infinity, onePhase: false };
   const knightAge = Math.max(startAge, Math.min(AVERAGE_RANK_AGES.knight, age));
-  return { padawanAge: Math.max(startAge, Math.min(AVERAGE_RANK_AGES.padawan, knightAge - 6)), knightAge, onePhase: false };
+  return { padawanAge: Math.max(startAge, Math.min(AVERAGE_RANK_AGES.padawan, knightAge - KNIGHT_TRIALS.padawanYears)), knightAge, onePhase: false };
 }
 
 /** The Knight+ standard day (budget 6 h, no Order hours) that the focus formula is measured on. */

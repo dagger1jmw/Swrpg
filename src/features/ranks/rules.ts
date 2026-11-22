@@ -2,6 +2,7 @@
 // selectors feed them. Every promotion is a story event the player plays: code checks the requirements, rolls the
 // checks and applies the result; the AI only proposes.
 import { COUNCIL_BYPASS, DEED_POINTS, KNIGHT_TRIAL_IDS, SELECTION, STANDING_WEIGHTS, TRIALS, TRIAL_RULES, type TrialDef, type TrialId } from '../../data/ranks.config';
+import { KNIGHT_TRIALS } from '../../data/rankMinimums';
 import { basicRoll, dcForRating, type BasicRoll } from '../../engine/rolls';
 import type { RngState } from '../../engine/rng';
 
@@ -56,7 +57,7 @@ export function trialBlock(
   }
   if (c.rank !== 'padawan') return 'the Knight Trials are for Padawans';
   if (c.age < 18) return 'the Knight Trials open at age 18';
-  if (c.padawanYears < 6) return `six years as a Padawan first (${c.padawanYears.toFixed(1)} so far)`;
+  if (c.padawanYears < KNIGHT_TRIALS.padawanYears) return `${KNIGHT_TRIALS.padawanYears} years as a Padawan first (${c.padawanYears.toFixed(1)} so far)`;
   if (!c.masterApproval) return "the master's approval is needed (masterApproval)";
   if (c.unmetKnight.length) return `unmet Knight minimums: ${c.unmetKnight.join(', ')}`;
   return null;

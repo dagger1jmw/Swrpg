@@ -1495,3 +1495,10 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *[6] Torian Cadera and Akaavi Spar* are warriors, tagged "SWTOR portrayal".
   - *[7] The warrior archetype* is offered at character creation (the career path).
   - *[12] Deeds:* 20 standing points a deed, a starting value, invented.
+
+- **D-426 The player ladder: Knight at 25 (Jared, 2026-11-22; calibration report question 1).**
+  - *[1] Ages:* the Average is a Padawan from 12 and a Knight at 25 (13 years as a Padawan): `AVERAGE_RANK_AGES`, the Knight and Sith Lord `typicalAge`, the generator's `RANK_AGES`, the lifetime profile. `KNIGHT_TRIALS.padawanYears` 6 → 10 (the master's approval and the trials). The closed form's phases follow (a Knight NPC was a Padawan until 25).
+  - *[2] The Knight minimums re-read by the D-51 rule at 24 (the Average's levels on the gated seed, rounded down):* highest form 39 → 47 (47.4), Force Control 34 → 40 (40.2), Force Sense 31 → 36 (37.0), Willpower 53 → 56 (56.2). The Sith Lord row mirrors them; the Master row keeps main specialty 58 (now met at 33.7) and takes the new Knight minimums.
+  - *[3] The calibration holds:* Adept 41 at 16.05 years (gate 16.0 +/- 0.1); 61 at 32.6, 81 at 54.1, 101 at 81.0 (all within +/-20%).
+  - *[4] The 4.0x ceiling is not recalibrated:* `Y_AVG` stays as calibrated. The Average's own yearly XP now runs higher at 20-30 (20-seed medians 601 / 545 / 424 against the table's 550 / 450 / 396, the Padawan's master sessions to 25), so the Y_avg sanity checks skip those ages (`Y_AVG_FROZEN_AGES`).
+  - *[5] Reference:* the creation test's Ataru at 24 is 32.4 (33.4 with a Knight at 20.5).

@@ -19,7 +19,7 @@ death.
 ## 2. Rank-gating flags (engine or player only)
 | Flag | Sources | Set when | Read by |
 |---|---|---|---|
-| masterApproval | engine | the ranks day hook evaluates the master's approval monthly: Padawan for 6+ years, age 18+, relationship with the master >= +40 (friend), and all Knight skill minimums met | Knight Trials eligibility (ranks.md §1) |
+| masterApproval | engine | the ranks day hook evaluates the master's approval monthly: Padawan for 10+ years (D-426; 6 before), age 18+, relationship with the master >= +40 (friend), and all Knight skill minimums met | Knight Trials eligibility (ranks.md §1) |
 | heroicAct:<id> | engine | a resolved lethal fight is won against an opponent 10+ levels stronger in the opposed skill, or against an NPC whose rank is Sith Lord or higher | Wartime Courage and Flesh credit; Council bypass |
 | trialPassed:<trialId>, trialFailed:<trialId> | engine | a trial scene's checks resolve (ranks.md §1) | Knight eligibility, retakes, third-failure choice |
 | initiateTrialsPassed | engine | the Initiate Trial checks resolve | Padawan selection window |

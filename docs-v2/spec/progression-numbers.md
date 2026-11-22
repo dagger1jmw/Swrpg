@@ -236,7 +236,7 @@ Profile schedule structure (amended by D-40, D-41, D-42; supersedes the inputs b
   by its archetype shares; the main specialty takes a 0.5 share of the fill from Knight on.
   Profiles change only effort (hours), talents, teachers, rank ages and combat events.
     Average: Jedi Guardian, start 4, standard effort, 300 training days of 368, Padawan at
-      12, Knight at 20.5, Temple instructors x1.05, master x1.15, solo x0.90, fill x1.00,
+      12, Knight at 25 (D-426; 20.5 before), Temple instructors x1.05, master x1.15, solo x0.90, fill x1.00,
       no talent, peacetime (1 real skirmish per year keeps the drill ceiling above the
       main form; it never binds).
     Obi-Wan: start 3, push effort, 315 days, Padawan at 13, Knight at 25, master strong in

@@ -4,7 +4,7 @@
 // with the 0.75 fundamentals transfer; targets on the highest form, D-118, D-119), advanceByRoutine,
 // and one skirmish a year from Knight (D-40). npc test 7 (every archetype reachable) is in archetypes*.test.ts.
 import { beforeAll, describe, expect, it } from 'vitest';
-import { Y_AVG } from '../../src/data/progression.config';
+import { Y_AVG, Y_AVG_FROZEN_AGES } from '../../src/data/progression.config';
 import { RANK_BY_ID } from '../../src/data/rankMinimums';
 import { runLifetime, type LifeResult } from '../support/lifetime';
 import { combatShare, expectMilestones, expectNotFasterThanAnakin, expectWithin4x } from './checks';
@@ -13,7 +13,7 @@ import { AVERAGE, TARGETS, gated } from './profiles';
 
 let avg: LifeResult;
 beforeAll(() => {
-  avg = runLifetime(gated(AVERAGE), 95, { crossLevels: { highestForm: [24, 39, 58], forceControl: [14, 34], forceSense: [31], willpower: [53] } });
+  avg = runLifetime(gated(AVERAGE), 95, { crossLevels: { highestForm: [24, 47, 58], forceControl: [14, 40], forceSense: [36], willpower: [56] } });
   console.info(`[report ${'average'}] milestones ${JSON.stringify(avg.milestones)} E@41/61 ${JSON.stringify(avg.eAtMilestone)} bank share ${(avg.bankShare * 100).toFixed(1)}% wounded days by age ${JSON.stringify(avg.woundedDaysByAge)} combat share by year ${JSON.stringify(avg.yearCombat.map((c, i) => Math.round((c / Math.max(1, avg.yearMain[i]!)) * 100)))}`);
 }, 600_000);
 
@@ -44,7 +44,7 @@ describe('Average lifetime (95 years through the routine day loop)', () => {
   // The calibration gate (+/-5%) is judged on the 20-seed median in npm run spread (D-159 amended, Jared 2026-11-20);
   // the gated seed keeps this sanity check: one seed's long recovery can move its own years past 5%.
   it('the Y_avg table matches the run within +/-10% on the gated seed (sanity; the +/-5% gate is the spread median)', () => {
-    for (const [age, y] of Y_AVG) {
+    for (const [age, y] of Y_AVG.filter(([a]) => !Y_AVG_FROZEN_AGES.includes(a))) {
       const got = avg.yearMain[age - 4];
       expect(got, `age ${age}`).toBeDefined();
       expect(Math.abs(got! / y - 1), `age ${age}: ${got} vs ${y}`).toBeLessThanOrEqual(0.1);
@@ -55,8 +55,8 @@ describe('Average lifetime (95 years through the routine day loop)', () => {
   it('ranks test 1: the Average meets each rank minimum within +/-2 years of the stated age', () => {
     const at = (key: string): number => avg.cross[key]!;
     for (const k of ['highestForm>=24', 'forceControl>=14']) expect(Math.abs(at(k) - 10), k).toBeLessThanOrEqual(2);
-    expect(RANK_BY_ID.get('knight')!.minimums).toEqual({ $highestForm: 39, forceControl: 34, forceSense: 31, willpower: 53 });
-    for (const k of ['highestForm>=39', 'forceControl>=34', 'forceSense>=31', 'willpower>=53']) expect(Math.abs(at(k) - 20.3), k).toBeLessThanOrEqual(2);
+    expect(RANK_BY_ID.get('knight')!.minimums).toEqual({ $highestForm: 47, forceControl: 40, forceSense: 36, willpower: 56 });
+    for (const k of ['highestForm>=47', 'forceControl>=40', 'forceSense>=36', 'willpower>=56']) expect(Math.abs(at(k) - 24), k).toBeLessThanOrEqual(2);
     expect(Math.abs(at('highestForm>=58') - 35)).toBeLessThanOrEqual(2);
   });
 

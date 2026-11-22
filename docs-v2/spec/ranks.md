@@ -61,6 +61,10 @@ Padawan selection (playable window)
 Padawan
   Missions with the master; the master is the main teacher (progression spec sec 15).
 Knight Trials (five playable trials)
+  D-426 (Jared, current rule): the Average is a Padawan from 12 and a Knight at 25. Eligible: at least
+    10 years as a Padawan, age 18+, the master's approval, and highest form >= 47, Force Control >= 40,
+    Force Sense >= 36, Willpower >= 56 (the Average's levels at 24 by the D-51 rule). The history below
+    is kept for reference.
   Eligible: at least 6 years as a Padawan, age 18+, the master's approval (engine flag
     masterApproval, flag-registry.md), and highest form >= 39, Force Control >= 34, Force Sense
     >= 31, Willpower >= 53 (Willpower amended by D-51: recomputed so the Average profile

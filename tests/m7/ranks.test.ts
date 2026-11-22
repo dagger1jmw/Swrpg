@@ -24,7 +24,7 @@ const make = (o: { age: number; rank: string; xp?: Record<string, number>; year?
     rank: o.rank,
   });
 const xp = (levels: Record<string, number>) => Object.fromEntries(Object.entries(levels).map(([k, v]) => [k, xpForLevel(v)]));
-const KNIGHT_READY = xp({ soresu: 45, forceControl: 40, forceSense: 36, willpower: 60, endurance: 45 });
+const KNIGHT_READY = xp({ soresu: 50, forceControl: 44, forceSense: 40, willpower: 62, endurance: 45 });
 
 describe('rules (pure)', () => {
   it('standing weights: 50% percentile, 30% deeds, 20% relationships; selection is S / 940', () => {
@@ -49,13 +49,13 @@ describe('rules (pure)', () => {
     expect(never / 10000).toBeLessThan(0.17);
   });
   it('test 4: retakes wait a year; a third failure ends the attempts', () => {
-    const c = { rank: 'padawan', age: 22, padawanYears: 8, masterApproval: true, unmetKnight: [], unmetInitiate: [], corps: false };
+    const c = { rank: 'padawan', age: 25, padawanYears: 12, masterApproval: true, unmetKnight: [], unmetInitiate: [], corps: false };
     expect(trialBlock('courage', c, NO_RECORD, 1000)).toBeNull();
     expect(trialBlock('courage', c, { passed: false, fails: 1, lastDay: 900 }, 1000)).toMatch(/waits a year/);
     expect(trialBlock('courage', c, { passed: false, fails: 1, lastDay: 600 }, 1000)).toBeNull();
     expect(trialBlock('courage', c, { passed: false, fails: 3, lastDay: 0 }, 1000)).toMatch(/no more attempts/);
     expect(trialBlock('courage', { ...c, masterApproval: false }, NO_RECORD, 1000)).toMatch(/approval/);
-    expect(trialBlock('courage', { ...c, padawanYears: 5 }, NO_RECORD, 1000)).toMatch(/six years/);
+    expect(trialBlock('courage', { ...c, padawanYears: 9 }, NO_RECORD, 1000)).toMatch(/10 years/);
   });
   it('test 4: each trial uses its stated checks (Skill: 3 of 4 at rating 45; Spirit reads the dark pressure)', () => {
     expect(TRIALS.skill.checks).toHaveLength(4);
@@ -104,7 +104,7 @@ describe('the ranks feature', () => {
   });
   it('a trial attempt rolls its checks, records the result and its flag; the master must approve first', () => {
     let s = make({ age: 25, rank: 'padawan', xp: KNIGHT_READY });
-    s = { ...s, ranks: { ...s.ranks, since: s.clock.now.day - 368 * 8 } };
+    s = { ...s, ranks: { ...s.ranks, since: s.clock.now.day - 368 * 12 } };
     expect(selectTrialBlock(s, 'insight')).toMatch(/approval/);
     s = applyEvents(REGISTRY, s, [{ type: 'flagSet', flag: 'masterApproval' }], { source: 'engine' }).state;
     expect(selectTrialBlock(s, 'insight')).toBeNull();
@@ -123,7 +123,7 @@ describe('the ranks feature', () => {
     s = applyEvents(REGISTRY, s, [{ type: 'npcIntroduced', key: 'tmp:1', name: 'Master Orvan', species: 'human', faction: 'jediOrder', role: 'jediMaster', ageApprox: 60, description: '' }], { source: 'ai' }).state;
     const m = Object.keys(s.npcs.byId)[0]!;
     s = applyEvents(REGISTRY, s, [{ type: 'masterSet', npcRef: m }], { source: 'player' }).state;
-    s = { ...s, ranks: { ...s.ranks, since: s.clock.now.day - 368 * 8 }, relationships: { byNpcId: { [m]: { value: 50, lastDay: 0, lastReason: "test" } } } } as GameState;
+    s = { ...s, ranks: { ...s.ranks, since: s.clock.now.day - 368 * 12 }, relationships: { byNpcId: { [m]: { value: 50, lastDay: 0, lastReason: "test" } } } } as GameState;
     const later = advanceTime(REGISTRY, s, { seconds: 40 * 86400, reason: "test", source: "timeElapsed" }).state;
     expect(later.flags.set).toContain('masterApproval');
   });

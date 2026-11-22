@@ -24,17 +24,19 @@ export interface RankDef {
 /**
  * Jedi ladder. Padawan: passed the Initiate Trials (age 10+, highest form 24, Force Control 14).
  * Knight: Knight Trials (age 18+, 6 years as a Padawan, highest form 39 (D-111), Force Control 34,
- * Force Sense 31, Willpower 53 (D-120: the D-51 rule read at 20.3 after the D-118 re-calibration)).
+ * Force Sense 31, Willpower 53 (D-120: the D-51 rule read at 20.3 after the D-118 re-calibration)). D-426: Knight at 25
+ * after 13 years as a Padawan; the Knight minimums re-read by the D-51 rule at 24: highest form 47, Force Control 40,
+ * Force Sense 36, Willpower 56 (the Average's levels at 24, rounded down).
  * Master: main specialty 58. The Sith ladder mirrors it (ranks.md §2).
  */
 export const RANKS: readonly RankDef[] = [
   { id: 'initiate', name: 'Initiate', path: 'jedi', order: 0, minAge: 0, maxAge: 13, minimums: {} },
   { id: 'padawan', name: 'Padawan', path: 'jedi', order: 1, minAge: 10, minimums: { $highestForm: 24, forceControl: 14 }, typicalAge: 12 },
-  { id: 'knight', name: 'Knight', path: 'jedi', order: 2, minAge: 18, minimums: { $highestForm: 39, forceControl: 34, forceSense: 31, willpower: 53 }, typicalAge: 20.5 },
-  { id: 'master', name: 'Master', path: 'jedi', order: 3, minAge: 31, minimums: { $main: 58, $highestForm: 39, forceControl: 34, forceSense: 31, willpower: 53 }, typicalAge: 35 },
+  { id: 'knight', name: 'Knight', path: 'jedi', order: 2, minAge: 18, minimums: { $highestForm: 47, forceControl: 40, forceSense: 36, willpower: 56 }, typicalAge: 25 },
+  { id: 'master', name: 'Master', path: 'jedi', order: 3, minAge: 31, minimums: { $main: 58, $highestForm: 47, forceControl: 40, forceSense: 36, willpower: 56 }, typicalAge: 35 },
   { id: 'acolyte', name: 'Academy acolyte', path: 'sith', order: 0, minAge: 0, minimums: {} },
   { id: 'apprentice', name: 'Apprentice', path: 'sith', order: 1, minAge: 10, minimums: { $highestForm: 24, forceControl: 14 }, typicalAge: 12 },
-  { id: 'lord', name: 'Sith Lord', path: 'sith', order: 2, minAge: 18, minimums: { $highestForm: 39, forceControl: 34, forceSense: 31, willpower: 53 }, typicalAge: 20.5 },
+  { id: 'lord', name: 'Sith Lord', path: 'sith', order: 2, minAge: 18, minimums: { $highestForm: 47, forceControl: 40, forceSense: 36, willpower: 56 }, typicalAge: 25 },
   { id: 'none', name: 'No rank', path: 'outsider', order: 0, minAge: 0, minimums: {} },
   { id: 'career', name: 'Career', path: 'career', order: 0, minAge: 0, minimums: {} },
 ];
@@ -66,6 +68,8 @@ export const RANK_PHASE: Readonly<Record<string, 'initiate' | 'padawan' | 'knigh
 
 /** Initiate Trials (ranks.md §1, D-66): checked in M7; kept here with the other minimums. */
 export const INITIATE_TRIALS = { minAge: 10, minimums: { $highestForm: 24, forceControl: 14 } } as const;
-export const KNIGHT_TRIALS = { minAge: 18, padawanYears: 6 } as const;
+/** D-426 (Jared): at least 10 years as a Padawan (6 before); the Average is a Padawan from 12 to 25. */
+export const KNIGHT_TRIALS = { minAge: 18, padawanYears: 10 } as const;
 /** Calibration rank ages of the Average profile (progression-numbers §12; Sith use them until M7). */
-export const AVERAGE_RANK_AGES = { padawan: 12, knight: 20.5 } as const;
+/** D-426 (Jared): the average Jedi Knight at 25 after 13 years as a Padawan (Knight 20.5 before). */
+export const AVERAGE_RANK_AGES = { padawan: 12, knight: 25 } as const;

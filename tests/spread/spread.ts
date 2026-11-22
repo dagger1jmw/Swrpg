@@ -1,7 +1,7 @@
 // Lifetime seed spread (Jared, combat pass 2 overnight job; report only, nothing tuned): each lifetime profile run on
 // the fixed seed and 19 more, every gate of tests/lifetime checked per seed, each seed printed as one "[spread] {json}"
 // line for docs-v2/testing/lifetime-spread.md. Not part of npm test or test:all; run with npm run spread (40+ minutes).
-import { Y_AVG } from '../../src/data/progression.config';
+import { Y_AVG, Y_AVG_FROZEN_AGES } from '../../src/data/progression.config';
 import { runLifetime, type LifeProfile, type LifeResult } from '../support/lifetime';
 import { ANAKIN, AVERAGE, LUKE, OBIWAN, TARGETS } from '../lifetime/profiles';
 import type { Job } from '../support/parallelRuns';
@@ -34,10 +34,10 @@ const within4x = (r: LifeResult): boolean => {
 /** The gates of each profile's lifetime test, per seed (same bands as tests/lifetime/*.test.ts). */
 export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, boolean>; values: Record<string, number> }> = {
   average: (r) => {
-    const yAvgDev = Math.max(...Y_AVG.map(([age, y]) => Math.abs((r.yearMain[age - 4] ?? 0) / y - 1)));
+    const yAvgDev = Math.max(...Y_AVG.filter(([a]) => !Y_AVG_FROZEN_AGES.includes(a)).map(([age, y]) => Math.abs((r.yearMain[age - 4] ?? 0) / y - 1)));
     const peace = Math.max(...r.yearMain.map((_, i) => share(r, i)));
     const at = (k: string): number => r.cross[k] ?? NaN;
-    const ranks = ['highestForm>=24', 'forceControl>=14'].every((k) => Math.abs(at(k) - 10) <= 2) && ['highestForm>=39', 'forceControl>=34', 'forceSense>=31', 'willpower>=53'].every((k) => Math.abs(at(k) - 20.3) <= 2) && Math.abs(at('highestForm>=58') - 35) <= 2;
+    const ranks = ['highestForm>=24', 'forceControl>=14'].every((k) => Math.abs(at(k) - 10) <= 2) && ['highestForm>=47', 'forceControl>=40', 'forceSense>=36', 'willpower>=56'].every((k) => Math.abs(at(k) - 24) <= 2) && Math.abs(at('highestForm>=58') - 35) <= 2;
     return {
       gates: {
         'K: 41 at 16.0 +/- 0.1 y': Math.abs((r.milestones[41] ?? 0) - 16.0) <= 0.1,
@@ -108,7 +108,7 @@ export function spreadRow(name: string, profile: LifeProfile, years: number, k: 
 /** The four profiles as the old per-profile files ran them (in their file order: anakin, average, luke, obiwan). */
 export const SPREAD_PROFILES: readonly { name: string; profile: LifeProfile; years: number; opts: Parameters<typeof runLifetime>[2] }[] = [
   { name: 'anakin', profile: ANAKIN, years: 70, opts: {} },
-  { name: 'average', profile: AVERAGE, years: 95, opts: { crossLevels: { highestForm: [24, 39, 58], forceControl: [14, 34], forceSense: [31], willpower: [53] } } },
+  { name: 'average', profile: AVERAGE, years: 95, opts: { crossLevels: { highestForm: [24, 47, 58], forceControl: [14, 40], forceSense: [36], willpower: [56] } } },
   { name: 'luke', profile: LUKE, years: 70, opts: { track: ['forceControl', 'perf:strength', 'perf:agility', 'perf:endurance'] } },
   { name: 'obiwan', profile: OBIWAN, years: 70, opts: {} },
 ];

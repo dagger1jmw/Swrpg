@@ -113,6 +113,12 @@ export const PACE_WINDOW_DAYS = 365;
  * retune (D-166) and after the known-abilities spillover rule (D-207): the training XP of the Average with its yearly
  * mission (combat XP excluded), median of the fixed seed and 5 more.
  */
+/**
+ * D-426: the table is the 4.0x ceiling's calibration and stays frozen (Jared: the ceiling is not recalibrated). Since the
+ * Average became a Padawan to 25, its own medians differ at 20, 24 and 30 (20 seeds: 601, 545, 424 against 550, 450, 396);
+ * the sanity checks skip those ages (Y_AVG_FROZEN_AGES).
+ */
+export const Y_AVG_FROZEN_AGES: readonly number[] = [20, 24, 30];
 export const Y_AVG: readonly (readonly [number, number])[] = [
   [4, 582],
   [8, 607],

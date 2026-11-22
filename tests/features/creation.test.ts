@@ -40,9 +40,9 @@ describe('computed creation (character-creation §6)', () => {
     expect(c.levels['forceSense']!).toBeGreaterThanOrEqual(31);
     expect(c.levels['forceControl']!).toBeGreaterThanOrEqual(34);
     expect(c.levels['willpower']!).toBeGreaterThanOrEqual(53);
-    // docs-v2/calc: Shii-Cho 30.1, Soresu 46.4, Ataru 33.4.
+    // docs-v2/calc: Shii-Cho 30.1, Soresu 46.4, Ataru 33.4 (Knight at 20.5); D-426, a Padawan to 24: Ataru 32.4.
     near(c.levels['shiiCho']!, 30.1);
-    near(c.levels['ataru']!, 33.4);
+    near(c.levels['ataru']!, 32.4);
   });
 
   it('test 2: a 9-year-old Initiate (start 4) trains Shii-Cho only: 23.4 +/-1, the day loop at 5 years', () => {
