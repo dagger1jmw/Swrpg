@@ -16,6 +16,8 @@ import {
   STUB_TEACHER_APTITUDE,
 } from '../../data/stubs';
 import { TRAINING_RECORD_BY_ID } from '../../data/trainingRecords';
+import { dateFromAbsDay } from '../../engine/calendar';
+import { VAAPAD_MASTER_LEVEL, vaapadAccess, type VaapadTeacher } from './formAccess';
 import { ageFactor } from '../../engine/ageFactor';
 import { pickDrillRating, type Effort } from '../../engine/challenge';
 import { FORCE_XP_TRIAL } from '../../engine/forceXpTrial';
@@ -170,6 +172,19 @@ interface UnlockCtx {
   partner: boolean;
   /** The fundamentals transfer this session would give (D-119): level gates read the level after it (D-173). */
   transfer: Readonly<Record<string, number>>;
+  /** Vaapad's teacher, if this session's teacher qualifies (D-370). */
+  vaapadTeacher: VaapadTeacher | null;
+  /** This session's training record, if any. */
+  recordId: string | null;
+}
+
+/** A named NPC teacher as a Vaapad teacher (D-370): Windu (teaching is his permission), Bulq, or a Vaapad master. */
+function vaapadTeacherOf(s: GameState, teacherId: string | null): VaapadTeacher | null {
+  if (!teacherId) return null;
+  const canonId = selectNpc(s, teacherId)?.canonId ?? null;
+  if (canonId === 'lore:mace-windu') return { kind: 'windu', permission: true };
+  if (canonId === 'lore:sora-bulq') return { kind: 'bulq' };
+  return (selectNpcLevel(s, teacherId, 'vaapad') ?? 0) >= VAAPAD_MASTER_LEVEL ? { kind: 'master' } : null;
 }
 
 /** A skill's level with this session's fundamentals transfer, if any (D-173). */
@@ -205,6 +220,19 @@ function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
       return u.ranks.includes(selectRank(s)) ? `not for ${u.ranks.join(' or ')}` : null;
     case 'path':
       return u.paths.includes(selectPath(s)) ? null : `only for the ${u.paths.join(' or ')} path`;
+    case 'formGate': {
+      if (known(s, ctx.primary)) return null;
+      if (ctx.primary !== 'vaapad') return `${name(ctx.primary)} is not known yet`;
+      const a = vaapadAccess({
+        year: dateFromAbsDay(selectNow(s).day).year,
+        teacher: ctx.vaapadTeacher,
+        records: ctx.recordId === 'record:njoFormVII',
+        // Light side only: until alignment is built (M6), the Sith path stands in for a dark-side character.
+        lightSide: selectPath(s) !== 'sith',
+        juyoLevel: selectLevelExact(s, 'juyo'),
+      });
+      return a.ok ? null : a.reason;
+    }
     case 'hasApprentice':
       return 'needs an apprentice (M7)';
     case 'partner':
@@ -279,6 +307,7 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     if (!record) return { ok: false, reason: `unknown training record ${source.id}` };
     if (record.kind === 'archive' && !record.paths.includes(selectPath(s))) return { ok: false, reason: `${record.name} is not open to the ${selectPath(s)} path` };
     if (record.levels[primary] === undefined) return { ok: false, reason: `${record.name} does not cover ${SKILL_BY_ID.get(primary)?.name ?? primary}` };
+    if (record.fromYear !== undefined && dateFromAbsDay(selectNow(s).day).year < record.fromYear) return { ok: false, reason: `${record.name} does not exist yet` };
   }
   const teaching = teacherId !== null || record !== undefined || source?.kind === 'instructor' || source?.kind === 'master';
   const partnered = partnerId !== null || source?.kind === 'peers';
@@ -292,7 +321,7 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     const t = transferXp(id, formXp);
     if (t > 0) transfer[id] = t;
   }
-  const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teaching, partner: partnered, transfer };
+  const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teaching, partner: partnered, transfer, vaapadTeacher: vaapadTeacherOf(s, teacherId), recordId: record?.id ?? null };
   const selfStudyStart: string[] = [];
   for (const u of a.unlock) {
     const fail = unlockFails(u, ctx);

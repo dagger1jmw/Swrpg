@@ -15,7 +15,12 @@ export interface TrainingRecordDef {
   paths: readonly CharacterPath[];
   /** Fixed teaching level per covered skill. */
   levels: Readonly<Record<string, number>>;
+  /** First calendar year the record exists (negative = BBY); none = every era. */
+  fromYear?: number;
 }
+
+/** Design default: the New Jedi Order's academy and its recovered Form VII records, c. 11 ABY (D-352 [21], D-370). */
+export const NJO_FORM_RECORDS_YEAR = 11;
 
 const ARCHIVE_FORM_LEVEL = 35;
 const FORMS_IN_ARCHIVES = ['shiiCho', 'makashi', 'soresu', 'ataru', 'shien', 'djemSo', 'niman', 'trakata', 'jarKai', 'sokan', 'saberstaff', 'zeroG'];
@@ -24,7 +29,10 @@ const forms = (ids: readonly string[], level: number): Record<string, number> =>
 export const TRAINING_RECORDS: readonly TrainingRecordDef[] = [
   { id: 'record:jediArchiveForms', name: 'Jedi Archives: lightsaber form records', kind: 'archive', paths: ['jedi'], levels: forms(FORMS_IN_ARCHIVES, ARCHIVE_FORM_LEVEL) },
   { id: 'record:jediArchiveLore', name: 'Jedi Archives: Force lore and meditation texts', kind: 'archive', paths: ['jedi'], levels: { forceKnowledge: 45, meditation: 35, forceSense: 30 } },
-  { id: 'record:sithArchiveForms', name: 'Sith archives: combat form records', kind: 'archive', paths: ['sith'], levels: forms([...FORMS_IN_ARCHIVES, 'juyo', 'vaapad', 'dunMoch'], ARCHIVE_FORM_LEVEL) },
+  { id: 'record:sithArchiveForms', name: 'Sith archives: combat form records', kind: 'archive', paths: ['sith'], levels: forms([...FORMS_IN_ARCHIVES, 'juyo', 'dunMoch'], ARCHIVE_FORM_LEVEL) },
+  // Lore batch 10 (D-370): Vaapad is Windu's late-Republic technique and not in the Sith archives. Its records survived
+  // the Purge and were recovered by the New Jedi Order (The Jedi Path, the Great Holocron), kept into the Legacy era.
+  { id: 'record:njoFormVII', name: 'Jedi Archives: recovered Form VII records (Juyo and Vaapad)', kind: 'archive', paths: ['jedi'], levels: forms(['juyo', 'vaapad'], ARCHIVE_FORM_LEVEL), fromYear: NJO_FORM_RECORDS_YEAR },
   { id: 'record:sithArchiveLore', name: 'Sith archives: teachings of the dark side', kind: 'archive', paths: ['sith'], levels: { forceKnowledge: 45, forceLightning: 30, forceChoke: 30 } },
   { id: 'holocron:formMaster', name: 'Holocron of a lightsaber master', kind: 'holocron', paths: [], levels: forms(FORMS_IN_ARCHIVES, 60) },
   { id: 'holocron:forceMaster', name: 'Holocron of a Force master', kind: 'holocron', paths: [], levels: { forceControl: 60, forceSense: 60, telekinesis: 60, forceKnowledge: 65, meditation: 55 } },

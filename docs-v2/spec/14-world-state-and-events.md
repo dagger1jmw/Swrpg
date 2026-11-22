@@ -24,7 +24,7 @@ Audited: `legacy/index.html` (V170). All line numbers were checked against the f
 | Milestones | `JEDI_MILESTONES` / `SITH_MILESTONES`; Sith list used if faction contains "sith" or alignment < −50; added once by id | legacy/index.html:3883-3911 |
 | World log | AI's worldLog is discarded; on a WORLD parse failure, code adds the first narrative line ≤120 chars; capped at 20 | legacy/index.html:4907, 6167-6173 |
 | galaxySimState | `{faction: event}` from `worldState.galaxyEvents` + `worldState.activeThreats` | legacy/index.html:6153-6166 |
-| Story flags list | `SIM_FLAGS` (maceLiving, maceTrustEstablished, aingTiiContact, aingTiiApproved, fallanassiContact, jediArchiveAccess, sithTextAccess, jediCouncilPermission) | legacy/index.html:8752-8761 |
+| Story flags list | `SIM_FLAGS` (maceLiving, maceTrustEstablished, aingTiiContact, aingTiiApproved, fallanassiContact, jediArchiveAccess, sithTextAccess, jediCouncilPermission) | legacy/index.html:8752-8761 (v2, D-370: maceLiving and maceTrustEstablished are replaced by the Vaapad teacher-or-records gate; jediCouncilPermission is Juyo only) |
 | Flag toggle | `worldState.storyFlags[key] = !…` (player only) | legacy/index.html:11678-11684 |
 | Ability flags | `FORCE_ABILITY_CATALOG[*].flags` ("required worldState.storyFlags[] entries") | legacy/index.html:8772, e.g. 8812, 8905-8908, 8929-8934 |
 | Canon intent | canon events occur unless the player realistically interferes; Legacy Changes have Strength ratings | SW_Legends_RPG_Master_Prompt_v7_1.md lines 20, 685-698 |

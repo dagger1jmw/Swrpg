@@ -69,6 +69,8 @@ export type Unlock =
   | { kind: 'rank'; ranks: readonly string[] }
   | { kind: 'notRank'; ranks: readonly string[] }
   | { kind: 'path'; paths: readonly string[] }
+  /** Restricted forms (D-370): Vaapad's teacher-or-records gate when the primary is Vaapad; known otherwise. */
+  | { kind: 'formGate' }
   | { kind: 'hasApprentice' }
   | { kind: 'partner' };
 
@@ -136,7 +138,7 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   // Niman drills are lighter: physical load 0.8 instead of 1.0 (D-121).
   act('nimanBasics', 'Niman basics', 'forms', NIMAN_LOAD, 'standard', fixed('niman'), { forceControl: 0.5, willpower: 0.4, agility: 0.3, strength: 0.2 }, [learnable()]),
   act('juyoVaapadBasics', 'Juyo / Vaapad basics', 'forms', S, 'intense', options('juyo', 'vaapad'), { willpower: 0.6, agility: 0.5, strength: 0.4, forceControl: 0.3 }, [
-    known(),
+    { kind: 'formGate' },
     { kind: 'notRank', ranks: ['initiate', 'acolyte'] },
   ]),
   act('dualSaber', 'Dual saber practice', 'forms', S, 'standard', { kind: 'anyForm' }, { $secondForm: 0.6, agility: 0.5, strength: 0.3 }, [known(), { kind: 'formsKnown', min: 2 }]),

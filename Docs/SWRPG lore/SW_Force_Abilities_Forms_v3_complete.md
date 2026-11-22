@@ -157,16 +157,17 @@ Force Lightning   (94)  [ForceOutput anchor]
 | Key (masterXP path) | Display Name | Tradition | Style | Difficulty |
 |---|---|---|---|---|
 | `ShiiCho` | Shii-Cho (Form I) | Universal | Wide sweeping strikes, disarming | Beginner |
-| `Makashi` | Makashi (Form II) | Jedi / Sith | Precise dueling, minimal movement | Intermediate |
-| `Soresu` | Soresu (Form III) | Jedi | Defensive, deflection focus | Intermediate |
-| `Ataru` | Ataru (Form IV) | Jedi | Acrobatic, aggressive, Force-enhanced | Intermediate |
+| `Makashi` | Makashi (Form II) | Jedi / Sith | Precise dueling, footwork-centred, minimal energy expenditure | Intermediate |
+| `Soresu` | Soresu (Form III) | Jedi origin; also Sith | Defensive, deflection focus | Intermediate |
+| `Ataru` | Ataru (Form IV) | Jedi origin; also Sith | Acrobatic, aggressive, Force-enhanced | Intermediate |
 | `ShienDjemSo` | Shien / Djem So (Form V) | Jedi / Sith | Power strikes, counter-attack | Intermediate |
-| `Niman` | Niman (Form VI) | Jedi | Balanced, Force integration | Advanced |
+| `Niman` | Niman (Form VI) | Jedi origin; also Sith | Balanced, Force integration | Beginner (easy to learn; at least ten years to master) |
 | `Juyo` | Juyo (Form VII) | Jedi / Sith | Ferocious, unpredictable | Advanced (restricted for Jedi in later eras) |
+| `JuyoKos` | Juyo-Kos (Juyo variant) | Jedi | Juyo refinement (Great Galactic War era) | Advanced (restricted like Juyo; review) |
 | `Vaapad` | Vaapad (Form VII variant) | Jedi | Channels darkness, requires mastery | Advanced / Lore-locked |
 | `Trakat` | Tràkata | Neutral | Blade deactivation feints | Advanced |
 | `JarKai` | Jar'Kai | Neutral | Dual-blade coordination | Advanced |
-| `Sokan` | Sokan | Jedi | Terrain principle, mobility | Advanced |
+| `Sokan` | Sokan | Jedi origin; also Sith | Terrain principle, mobility | Advanced |
 | `DunMoch` | Dun Möch | Sith-leaning | Psychological warfare + combat | Restricted |
 | `DoubleBlade` | Saberstaff (Double-bladed) | Neutral | Extended weapon, spinning defense | Advanced |
 | `TKSaber` | Telekinetic Lightsaber Combat | Neutral | Sabers wielded by telekinesis | Advanced |
@@ -178,11 +179,11 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 ### Form Notes
 
-**Learning class (2026-11-20):** every form is Taught, except Vaapad (Lore-locked: taught by Windu, Bulq or Billaba, or later from the recovered records), the Strong, Medium and Fast styles (era-locked to the New Jedi Order), and Dun Möch (Sith teaching). Learning classes are Taught, Can manifest, Lore-locked and Story event; lore-locked and story-event entries are gated by story flags (Q50), and stat prerequisites stay numeric.
+**Learning class (2026-11-20):** every form is Taught, except Vaapad (Lore-locked: a teacher or the recovered records, see the Vaapad note), the Strong, Medium and Fast styles (era-locked to the New Jedi Order), and Dun Möch (Sith teaching). Learning classes are Taught, Can manifest, Lore-locked and Story event; lore-locked and story-event entries are gated by story flags (Q50), and stat prerequisites stay numeric.
 
 **Shii-Cho (Form I):** The oldest and most fundamental form. Broad, sweeping strikes designed to disarm multiple opponents. Emphasizes wide coverage over precision. All characters begin here — solo practice unlocks at stat ≥ 15.
 
-**Makashi (Form II):** Elegant dueling form developed as a direct counter to other lightsaber wielders. Minimal footwork, maximum precision. Low physical demand but high mental and willpower requirements. Count Dooku was its best-known master; practitioners often used curved hilts built for it. (Corrected 2026-11-20: Ventress removed as a named user.)
+**Makashi (Form II):** Elegant dueling form developed as a direct counter to other lightsaber wielders. Footwork-centred, with maximum precision and minimal energy expenditure; low physical demand. Count Dooku was its best-known master; practitioners often used curved hilts built for it. Asajj Ventress used it (skilled, not a master), often with two blades. (Corrected 2026-11-21, lore batch 10: the 2026-11-20 removal of Ventress is reversed; "minimal footwork" and the unsourced "high mental and willpower requirements" are removed.)
 
 **Soresu (Form III):** The most defensive of all forms. Tight, economical movements designed to deflect blaster bolts and weather overwhelming attacks. Emphasizes endurance and patience. Mastered by Obi-Wan Kenobi.
 
@@ -190,11 +191,11 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 **Shien / Djem So (Form V):** Two related sub-variants — Shien optimizes blaster deflection back at shooters; Djem So emphasizes powerful, dominating saber strikes. Both are strength-focused counter-attacking forms. Used by Anakin Skywalker and Darth Vader.
 
-**Niman (Form VI):** The "diplomat's form" — a moderate blend of Forms I, III, IV and V integrated with Force use. No single weakness or strength. Allows Force powers to be woven seamlessly into combat. Deadly once truly mastered, as Exar Kun showed; Revan used it, and Darth Maul and Anakin used it as a second form. Began as the Kashi Mer dual-blade style of the Royale Macheteros, adopted by the Legions of Lettow and then refined by the Jedi. (Corrected 2026-11-20: Kit Fisto removed; he was a Shii-Cho master.)
+**Niman (Form VI):** The "diplomat's form" — a moderate blend of Forms I, III, IV and V integrated with Force use. Allows Force powers to be woven seamlessly into combat. Its named weaknesses: relaxed bladework, and most Niman users find it almost impossible to beat a Makashi user. Easy to learn, but at least ten years to master (Cin Drallig). Deadly once truly mastered, as Exar Kun showed; Darth Maul and Anakin used it as a second form; Revan is named as a user in one uncited sentence [unclear]. Began as the Kashi Mer dual-blade style of the Royale Macheteros, adopted by the Legions of Lettow and then refined by the Jedi (a minority version has it developed from Jar'Kai). (Corrected 2026-11-21, lore batch 10.) (Corrected 2026-11-20: Kit Fisto removed; he was a Shii-Cho master.)
 
-**Juyo (Form VII):** The most vicious and unpredictable form, drawing on a deep emotional link to fuel attacks ("seemingly unconnected staccato sequences": Cin Drallig). High mental strain. Dangerous to the practitioner's alignment. Era note: in the Old Republic era it was practised by Jedi Masters Kavar, Zez-Kai Ell and Vrook Lamar, so it is open to Jedi then; knowledge of it became restricted in later eras (Drallig refused to teach Anakin). Sith use it without reservation (Darth Maul, Galen Marek). (Corrected 2026-11-20.)
+**Juyo (Form VII):** The most vicious and unpredictable form, drawing on a deep emotional link to fuel attacks ("seemingly unconnected staccato sequences": Cin Drallig). High mental strain. Dangerous to the practitioner's alignment. Era note: in the Old Republic era it was practised by Jedi Masters Kavar, Zez-Kai Ell and Vrook Lamar; it was available to Jedi then, but only to students their teacher judged steady, and its status swung between frowned-upon and taboo. After the New Sith Wars, Skarch Vaunk hand-picked a few students a year; in the Clone Wars, Drallig refused to teach Anakin. Sith and Dark Jedi use it without reservation (Darth Maul; the Dark Jedi Galen Marek). Before the late Republic, "Vaapad" is an old name for Juyo. (Corrected 2026-11-20 and 2026-11-21, lore batch 10.)
 
-**Vaapad (Form VII variant):** ⚠️ **Lore-locked.** Created by Mace Windu and Sora Bulq late in the Republic; Depa Billaba and Quinlan Vos also used it. It does not exist before then. In the Clone Wars era it must be taught by Windu, Bulq or Billaba; the records of Juyo and Vaapad survived the Purge and were recovered by the New Jedi Order, so from then on it can be learned from them (preserved into the Legacy era). Light Side only, requires Juyo 61+. (Corrected 2026-11-20: was "Prequel Era only; requires Mace Windu alive".) A refined variant of Juyo that channels the practitioner's own darkness *and* the opponent's dark side energy back through the blade. Only Mace Windu truly mastered it (Yoda: "One student alone, to mastery has risen"). Attempting without guidance risks rapid Dark Side corruption.
+**Vaapad (Form VII variant):** ⚠️ **Lore-locked.** Created by Mace Windu and Sora Bulq late in the Republic; Depa Billaba and Quinlan Vos also used it. The Vaapad technique doesn't exist before then: in the New Sith Wars "Vaapad" is an old name for Form VII, an alias of Juyo (*Book of Sith*, *Path of Destruction*, reconciled by *Star Wars Insider* 92; Karpyshyn's typo comment is [BTS]). **Gate: a teacher or records.** Teacher: Windu, with his personal permission; Sora Bulq, unsanctioned (learning from him carries a corruption risk); or any living Vaapad master (Billaba, Vos while alive, or a character who has mastered it). Records: from the New Jedi Order onward, the recovered records (*The Jedi Path*, the Great Holocron), preserved into the Legacy era. Light Side only, requires Juyo 61+. (Corrected 2026-11-20: was "Prequel Era only; requires Mace Windu alive".) A refined variant of Juyo that channels the practitioner's own darkness *and* the opponent's dark side energy back through the blade (one half of a "superconducting loop" with the darkness in the foe). Billaba became a master of it; Vos completed his mastery at Saleucami; Windu was its last master only after Bulq and Billaba died. Attempting without guidance risks rapid Dark Side corruption. (Corrected 2026-11-21, lore batch 10: the unsourced Yoda quote and "only Windu mastered it" are removed.)
 
 **Tràkata:** Neutral technique of deactivating and reactivating the blade mid-combat to feint and confuse opponents. Not a full form — functions as a supplemental style layered onto another form. Some traditionalists consider it dishonorable: the Jedi avoided it because it relies on deception, and the Sith struggled with it because it needs calm tactics rather than rage.
 
@@ -202,26 +203,59 @@ Force Lightning   (94)  [ForceOutput anchor]
 
 **Sokan:** More a principle than a true form, developed by Jedi Knights during the Great Hyperspace War: using terrain — ledges, cover, elevation — and quick tumbling to close distance and force opponents into bad positions (Obi-Wan's high ground on Mustafar). Before the Clone Wars, practitioners folded in Ataru's kinetic elements.
 
-**Dun Möch:** 🔴 Restricted Sith technique combining combat with psychological warfare — taunts that expose an opponent's inner doubts and break their concentration. Done properly it needs patience and control, rare among the Sith; Darth Bane's defeat of Sirak at the Korriban academy is a classic example. Causes Dark Side drift on use. Considered a dishonor by the Jedi Order.
+**Dun Möch:** 🔴 Restricted Sith technique combining combat with psychological warfare — taunts that expose an opponent's inner doubts and break their concentration. Done properly it needs patience and control, rare among the Sith; Darth Bane's defeat of Sirak at the Korriban academy is a classic example. Causes Dark Side drift on use. A Sith doctrine; Jedi use is rare and debated. (Corrected 2026-11-21, lore batch 10.)
 
 **Zero-G Combat:** Removed as a form 2026-11-20 (Legends has no such form). Zero or low gravity is an environment modifier that training in it reduces; the old key `ZeroGravity` becomes that training.
 
-**Saberstaff (Double-bladed):** Requires separate weapon. Spinning defense and wide-area coverage. High difficulty. Associated with Darth Maul and Zabrak culture. Requires DoubleBlade ≥ 10 before the second blade can be activated in combat. It does more damage but is less precise, and so few understand it that few know how to fight against it.
+**Saberstaff (Double-bladed):** Requires separate weapon. Spinning defense and wide-area coverage. High difficulty. Associated with Darth Maul and Zabrak culture. Requires DoubleBlade ≥ 10 before the second blade can be activated in combat. Wide coverage, and surprise against foes with no experience of it: so few understand it that few know how to fight against it. Styles built on power or penetration are hard to apply with it, and elaborate flourishes leave the user open. A damage bonus applies only to thrown saberstaffs. Invented by Sith Lords; Exar Kun is the first recorded user. (Corrected 2026-11-21, lore batch 10.)
 
-**Telekinetic Lightsaber Combat:** Wielding lightsabers by telekinesis: range stops mattering and several sabers at once become possible. Extremely difficult; requires Telekinesis 41+ and grows with it. The saber throw is its basic form; Luke Skywalker's feats with many sabers are its peak. (Added 2026-11-20.)
+**Telekinetic Lightsaber Combat:** Wielding lightsabers by telekinesis: range stops mattering and several sabers at once become possible. Extremely difficult; requires Telekinesis 41+ and grows with it. The saber throw is its basic form; its sourced peak is Darth Traya wielding at least three sabers against Meetra Surik. (Corrected 2026-11-21, lore batch 10.) (Added 2026-11-20.)
 
 **Lightwhip Combat:** A rare, exotic weapon wielded like a whip: reach of several meters, and it flexes around a parrying blade. Duelists trained for an energy blade or a solid weapon are not ready for one that is both (Lumiya). (Added 2026-11-20.)
 
-**Lightsaber Pike Combat:** A lightsaber on a long shaft of lightsaber-resistant alloy such as phrik: much greater reach, the shaft blocks strikes, and the long handle gives leverage for power attacks; weaknesses like the saberstaff's. (Added 2026-11-20.)
+**Lightsaber Pike Combat:** A lightsaber on a long shaft of lightsaber-resistant alloy such as phrik: much greater reach, the shaft blocks strikes, and the long handle gives leverage for power attacks. The double-bladed Temple Guard pike fights like a saberstaff; the polearm type has no stated weaknesses. (Corrected 2026-11-21, lore batch 10.) (Added 2026-11-20.)
 
 **Strong, Medium and Fast Styles (New Jedi Order):** ⚠️ **Era-locked:** available once Luke Skywalker founds the New Jedi Order; this is how early New Jedi Order students learn. With so much of the old Order's knowledge lost, Luke's new Order had to essentially start lightsaber combat from scratch: Kam Solusar (trained by Palpatine's Dark Side Elite) taught the students the three rings of defense, the outer, middle and inner rings that these styles are named for, and Corran Horn added unarmed technique. The strong style was also used by Dark Jedi of the era such as Desann and the Disciples of Ragnos. (Era lock set 2026-11-20; Wookieepedia, "Lightsaber combat", Redevelopment section.) Strong (outer ring): wide, powerful strikes that batter through defenses and win blade locks, but slow and poor against blasters. Medium (middle ring): a balance of speed and power, usually taught first, a foundation for other forms; based on Niman. Fast (inner ring): short, quick cuts chained almost indefinitely, the best blaster defense of the three, strong with Force Speed, but light on power and short on reach. Users: Kyle Katarn, Jaden Korr.
 
-**Notes only (not learnable forms):** Trispzest, S'kytri aerial combat blending Form VII with flight (Kharys), lore-locked to winged species; Form "Zero", Yoda's ethic of knowing when not to draw the saber; Lus-ma, an obscure style Dooku taught Grievous and the MagnaGuards; su ma, Ataru's spins, somersaults and cartwheels.
+**Notes only (not learnable forms):** Trispzest, S'kytri aerial combat blending Form VII with flight (Kharys), open to characters who fly or levitate (S'kytri; the legless, levitating Dark Jedi Maw); Form "Zero", the ethic of knowing when not to draw the saber, named by Skarch Vaunk in *The Jedi Path* and supported by Yoda (Kyle Katarn taught a version in the New Jedi Order); Lus-ma, an obscure style Dooku taught Grievous and the MagnaGuards; su ma, Ataru's spins, somersaults and cartwheels.
+
+**Juyo-Kos (added 2026-11-21, lore batch 10):** a Jedi refinement of Juyo from the Great Galactic War (SWTOR era); Jaric Kaedan was its named master ("a living weapon"). Jedi only, restricted like Juyo. Thin source: playable, marked review.
+
+**Reverse Shien grip (added 2026-11-21):** a Form V variant with the hilt held backward for long sweeping strikes against several foes; rare. Users: Revan, Quinlan Vos, Adi Gallia, Ahsoka Tano, Galen Marek; favoured by Palpatine's Saber Guard. Also the Jensaarai's style.
+
+**NPC lore notes (added 2026-11-21; for those NPCs' fighting descriptions only):** personal Form V variants: Bane's hyper-aggressive Djem So, Zannah's purely offensive Djem So, Vader's post-Mustafar variant with Juyo and Makashi elements. Kas'im's secret two-saber Ataru (he called Jar'Kai flawed).
+
+**Praetoria Vonil and Praetoria Ishu (added 2026-11-21):** offensive and defensive team styles unique to the Imperial Knights (Legacy era), learned in addition to the classical forms; gated to the Imperial Knights tradition.
+
+**Three rings of defense (added 2026-11-21):** the technique layer under the New Jedi Order's Strong, Medium and Fast styles: the outer ring (four diagonal guards), the middle ring (right-angle guards, good for blast deflection) and the inner ring (navel guard; parry, then counter). Narrator flavour on the existing style mechanics; no new mechanics.
+
+**Mounted lightsaber combat (added 2026-11-21):** a technique note. One-handed; low lunges and diagonal slashes from height; the rider must protect the mount; studied in the Temple.
+
+**Cross-references:** saber variants (shoto, curved hilt and lightfoil, crossguard, dual-phase, training saber, protosaber, long-handle saber) are in SW_Lightsaber_WeaponVariants_AllEras.md; sub-group styles that meet sabers (Teräs Käsi, Echani, Matukai, Jensaarai, Zeison Sha, Mandalorian methods, Sith swords) are in SW_Lightsaber_SubgroupStyles_AllEras.md.
+
+#### Named maneuvers (added 2026-11-21, lore batch 10)
+
+Flavour names on existing actions for the narrator; no new mechanics in M6 (signature-move effects are an M7 question).
+
+| Form or technique | Alternative names | Named moves |
+|---|---|---|
+| Shii-Cho (Form I) | Way of the Sarlacc; Determination Form | Sarlacc Sweep; Disarming Slash |
+| Makashi (Form II) | Way of the Ysalamiri; Contention Form | Contentious opportunity; Makashi riposte |
+| Soresu (Form III) | Way of the Mynock; Resilience Form | Deflecting slash; circle of shelter |
+| Ataru (Form IV) | Way of the Hawk-Bat; Aggression Form | Hawk-Bat Swoop; Saber Swarm; su ma (jung su ma spin, ton su ma somersault, en su ma cartwheel) |
+| Shien / Djem So (Form V) | Way of the Krayt Dragon; Perseverance Form | Barrier of Blades; Shien Deflection; Falling Avalanche; Fluid Riposte |
+| Niman (Form VI) | Way of the Rancor; Moderation Form | Draw Closer; pushing slash |
+| Juyo (Form VII) | Way of the Vornskr; Ferocity Form | Assured Strike; Vornskr's Ferocity; Swift Flank; Tempered Aggression |
+| Tràkata | — | Pass the Blade; Unbalancing Block; Flash Slash |
+| Sokan | — | High Ground Defense; Unhindered Charge |
+| Jar'Kai | — | Rising Whirlwind; Twin Strike |
+| Basic moves | — | Jung; jung ma; shun; sai; Flowing Water; Falling Leaf; dulon; kai-kan |
+| Ready stances | — | Jedi Ready; Defensive Neutral; Offensive Neutral; Center of Being |
 
 ### Form Rules (M6, 2026-11-20)
 
 - **Second-form growth:** a secondary form's drill ceiling uses its own E plus half the main form's E (design default, tuned with the lifetime harness), and fighting in a secondary form during a duel earns E for that form. Fixes the measured stall (Obi-Wan's second form 51 → 53 over twenty years).
-- **Free form switch:** switching forms costs 0 advantage when both forms are 61+ (Palpatine and Dooku moved between forms fluidly). Below that, the M5 switch cost applies.
+- **Free form switch:** switching forms costs 0 advantage when both forms are 61+ (Sidious was a master of all seven forms). Below that, the M5 switch cost applies.
 - **Cleave:** while fighting in Shii-Cho or Shien at 41+ against a group, the fighter keeps the advantage after taking out a minion. Shii-Cho was specialized for multiple opponents; Shien was built for Jedi who were often outnumbered.
 - **Makashi precision:** while fighting in Makashi, the aimed-strike penalty shrinks from −2 at 0 to none at 61+ (D-187).
 - **Marks of contact:** every Jedi form uses the same marks. Each targeting mark is a learnable technique that lowers the aimed-strike penalty for its own target from −2 toward 0 with technique skill.
@@ -334,7 +368,7 @@ Force Lightning   (94)  [ForceOutput anchor]
 **Alignment:** Neutral
 **Prerequisites:** Telekinesis 15+, any lightsaber form 10+
 **Learning class:** Taught, can manifest
-**Notes:** The saber can be guided around obstacles. Leaves the user temporarily unarmed — high risk, high reward.
+**Notes:** The saber can be guided around obstacles. Leaves the user temporarily unarmed — high risk, high reward. Protosabers (corded to a power pack) cannot be thrown. (Corrected 2026-11-21, lore batch 10.)
 
 ---
 
@@ -345,7 +379,7 @@ Force Lightning   (94)  [ForceOutput anchor]
 **Alignment:** Neutral
 **Prerequisites:** Telekinesis 30+, any lightsaber form 21+
 **Learning class:** Taught
-**Notes:** Extremely high Force Strain to maintain. Requires either multiple sabers or exceptional speed.
+**Notes:** Extremely high Force Strain to maintain. Requires multiple sabers (Mace Windu with one is the sourced exception). (Corrected 2026-11-21, lore batch 10.)
 
 ---
 
@@ -886,7 +920,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Notes:** Distinct from its three closest relatives: **Battlemind** (internal mental focus only, no physical component, no ally effect), **Force Enrage** (dark side counterpart — amplifies through anger at the cost of control and sanity), and **Battle Meditation** (strategic-scale perception shift affecting an entire battle rather than individual performance). Force Valor is the complete self-amplification package — physical and mental, self and allies.
 - Self-enhancement: the body moves and reacts faster, leaps farther and higher, strikes more powerfully, and fights with sharper accuracy.
 - Ally aura: at higher proficiency levels, the resonant clarity field extends passively to nearby Force-sensitives and non-sensitives alike — boosting their resolve and reaction time without requiring them to channel the Force themselves.
-- Yoda relied on Force Valor to compensate for the physical limitations of extreme old age, maintaining the speed and power requirements of Form IV (Ataru) in combat. Without it, the demands of that form would have been physically impossible for a being of his age.
+- Yoda relied on Force Valor to compensate for the physical limitations of extreme old age, maintaining the speed and power requirements of Form IV (Ataru) in combat. It was necessary for a practitioner of Form IV at his age. (Corrected 2026-11-21, lore batch 10.)
 
 ---
 
@@ -1263,7 +1297,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Alignment:** Light Side
 **Prerequisites:** ForceBarrier 21+, Meditation 21+, ForceControl 21+
 **Learning class:** Taught
-**Notes:** At high proficiency, a practitioner can absorb lightsaber strikes and blaster bolts channeled directly through the hands or body. This is the ability that makes a master Jedi nearly impossible to harm with energy weapons at close range. Absorbed energy can heal the user or power other Force abilities. **Three ways to answer an energy attack (M6, 2026-11-20):** (1) **Absorb** it: the pool refills by a share of what the attacker spent, 0.5 at base rising to 0.8 with mastery, capped at the absorber's own draw. (2) **Redirect** it: forgo absorption and send the attack back at the attacker, as Yoda did with Dooku's lightning; no pool gain. (3) **Release** it: discharge absorbed energy as an outward burst, as Yoda did against Palpatine in the Senate. Absorbing too much at once, past the user's capacity, forces a release whether the user wants it or not. (Corrected 2026-11-20, defense family pass.)
+**Notes:** At high proficiency, a practitioner can absorb blaster bolts and other energy channeled through the hands or body; a rare few masters could catch or dispel a blade or bolt (Nejaa Halcyon, Satele Shan). (Corrected 2026-11-21, lore batch 10; catching a blade is the top Tutaminis tier, D-341.) Absorbed energy can heal the user or power other Force abilities. **Three ways to answer an energy attack (M6, 2026-11-20):** (1) **Absorb** it: the pool refills by a share of what the attacker spent, 0.5 at base rising to 0.8 with mastery, capped at the absorber's own draw. (2) **Redirect** it: forgo absorption and send the attack back at the attacker, as Yoda did with Dooku's lightning; no pool gain. (3) **Release** it: discharge absorbed energy as an outward burst, as Yoda did against Palpatine in the Senate. Absorbing too much at once, past the user's capacity, forces a release whether the user wants it or not. (Corrected 2026-11-20, defense family pass.)
 **Source:** Wookieepedia (Legends), "Tutaminis": https://starwars.fandom.com/wiki/Tutaminis
 
 > **Sub-application:**
@@ -2565,7 +2599,7 @@ Most scenes have no shatterpoints. The ability is not a combat scanner that ping
 **Prerequisites:** ForceControl 21+, Telekinesis 15+
 **Learning class:** Taught
 **Cost:** Sustained, 3 per round.
-**Notes:** Allows a skilled Force-user to fight effectively without a lightsaber in unusual circumstances. A Force-imbued weapon can block a lightsaber without being damaged. The Je'daii and later the Jedi imbued swords this way (Vur Tepe); most users came from outside the Order, like the Zeison Sha with their discblades. Vodo-Siosk Baas used it on his staff against Exar Kun. (Corrected 2026-11-20, nature/knowledge/misc pass.)
+**Notes:** Allows a skilled Force-user to fight effectively without a lightsaber in unusual circumstances. A Force-imbued weapon can block a lightsaber without being damaged. The Je'daii and later the Jedi imbued swords this way (Vur Tepe; the Je'daii line is cited to the *Force and Destiny Core Rulebook*, [gray], backed by pre-2014 Legends on Je'daii Force-imbued swords); most users came from outside the Order, like the Zeison Sha with their discblades. Vodo-Siosk Baas used it on his staff against Exar Kun. (Corrected 2026-11-20, nature/knowledge/misc pass.)
 **Source:** Wookieepedia (Legends), "Force weapon": https://starwars.fandom.com/wiki/Force_weapon
 
 ---
@@ -2648,14 +2682,13 @@ These flags live in `worldState.storyFlags{}` and gate abilities that require sp
 
 | Flag Key | Set When | Gates |
 |---|---|---|
-| `maceLiving` | Mace Windu is alive in the current era | Vaapad teachable |
-| `maceTrustEstablished` | Mace Windu has personally agreed to teach the character | Vaapad learning begins |
+| `vaapadTeacherOrRecords` | A Vaapad teacher (Windu with his permission; Bulq, unsanctioned; or a living Vaapad master) or, from the New Jedi Order on, the recovered Form VII records | Vaapad learnable (replaces `maceLiving` and `maceTrustEstablished`, 2026-11-21, lore batch 10) |
 | `aingTiiContact` | Character has made peaceful contact with Aing-Tii monks | Flow-walking, Fighting-Sight discoverable |
 | `aingTiiApproved` | Aing-Tii have agreed to teach the character | Flow-walking, Fighting-Sight learnable |
 | `fallanassiContact` | Character has made contact with the Fallanassi | Phase, Fold Space discoverable |
 | `jediArchiveAccess` | Character has access to Jedi Temple Archives | Advanced theory abilities discoverable via research |
 | `sithTextAccess` | Character has access to Sith holocron or scroll | Sith-origin abilities discoverable |
-| `jediCouncilPermission` | Jedi Council has granted permission | Juyo learnable, Vaapad learnable (also requires maceTrustEstablished) |
+| `jediCouncilPermission` | Jedi Council has granted permission | Juyo learnable (Juyo only since 2026-11-21; Vaapad uses `vaapadTeacherOrRecords`) |
 | `masterAssigned` | Character has been formally assigned a Jedi Master | Padawan mandatory training rows active |
 | `padawanAssigned` | Character has been assigned a Padawan | Knight instruction mandatory row active |
 
@@ -2693,7 +2726,7 @@ Stored in `characterSheet.lifeStage`. Set by AI via `LIFE_STAGE:` tag in CHANGES
 | Two saber forms both ≥ 21 | "Form Combination Drills" |
 | Two saber forms both exist | "Dual Saber Practice" |
 | Any Force ability ≥ Apprentice tier (21+) | "Force-Enhanced Athletics" |
-| `lightsaberForms.Vaapad` unlocked | ⚠️ Verify Mace Windu alive + Prequel era |
+| `lightsaberForms.Vaapad` unlocked | Verify `vaapadTeacherOrRecords`, Juyo 61+, light side; Vaapad exists only from its late-Republic creation (lore batch 10) |
 | `forceAbilities.FlowWalking` unlocked | ⚠️ Verify Aing-Tii contact established |
 | Any `forceAbilityProficiency` key gains first point | "[Sub-Ability] Focused Practice" drill auto-added |
 | Sub-ability proficiency reaches 25% (Novice) | "[Sub-Ability] Developing Application" drill unlocked |

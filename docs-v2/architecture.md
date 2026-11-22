@@ -1095,6 +1095,9 @@ The clock and the module contract come first, before any feature.
   military-family townhouse, private Force instructors, Imperial Guard sentries as childhood idols, the jungle edge,
   parade routes, and departure for Korriban as the opening transition. The slave-born Force-sensitive route (sent to
   Korriban "willing or not", D-366).
+- **M7 signature moves (Jared, 2026-11-21, lore batch 10; D-371; not built).** Consider giving named lightsaber
+  maneuvers (the Named maneuvers table in SW_Force_Abilities_Forms_v3_complete.md: Sarlacc Sweep, Makashi riposte,
+  Falling Avalanche, Assured Strike and the rest) mechanical effects. In M6 they are narrator flavour on existing actions.
 - **M7 forbidden powers and Order reputation (D-346, Jared, 2026-11-21; not built).** A Knight learning a forbidden
   power (Electric Judgment, Deadly Sight, Morichro from 1000 BBY) needs a Master's permission; learning it covertly
   risks the character's standing in the Order. Build with Order standing.

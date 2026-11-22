@@ -39,7 +39,7 @@ Last updated 2026-11-21.
 
 | Path | Scope |
 |---|---|
-| `Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md` | Force abilities master list (13 families), lightsaber forms, Form Rules (M6) and Shatterpoint. **Force powers sections superseded** by the six SW_Force_Powers files below (D-338); **lightsaber forms sections current** until the forms catalog check is applied (lore batch 10); the SW_Lightsaber_* set below is the new forms source |
+| `Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md` | Force abilities master list (13 families), lightsaber forms, Form Rules (M6) and Shatterpoint. **Force powers sections superseded** by the six SW_Force_Powers files below (D-338); **lightsaber forms sections corrected** by the forms catalog check (lore batch 10) and retired as a source: the SW_Lightsaber_* set below is the forms source of truth |
 | `Docs/SWRPG lore/SW_Force_Powers_Part1a.md` | Force powers: shared index for Parts 1–3, scale anchors, Control powers |
 | `Docs/SWRPG lore/SW_Force_Powers_Part1b.md` | Force powers: Sense and universal powers (Force-bond, oneness, harmony, battle meditation) |
 | `Docs/SWRPG lore/SW_Force_Powers_Part2a.md` | Force powers: Alter (telekinesis, mind influence, environment), Alter scale anchors |
@@ -55,6 +55,8 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Lightsaber_CombatTechniques_AllEras.md` | Zones, rings, marks of contact, stances, deflection, throws and telekinesis, mobility, multiple opponents, anti-Jedi tactics, resistant materials |
 | `Docs/SWRPG lore/SW_Lightsaber_Duels_AllEras.md` | Sourced duelist rankings and anchor duels by era |
 | `Docs/SWRPG lore/SW_Lightsaber_Combat_Marks_Zones_Techniques.md` | Marks of contact, target zones, stances and techniques of lightsaber combat |
+| `Docs/SWRPG lore/SW_Lightsaber_Forms_Catalog_Check_Part1.md` | Lightsaber forms catalog check, Part 1: verdicts on the v3 lightsaber content (applied in lore batch 10) |
+| `Docs/SWRPG lore/SW_Lightsaber_Forms_Catalog_Check_Part2.md` | Lightsaber forms catalog check, Part 2: missing items, practitioner check, the 16 decisions |
 
 ## Jedi Order
 
