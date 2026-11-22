@@ -5,7 +5,7 @@ import { CANON_BY_ID } from '../../src/data/canonNpcs';
 import { placementsAt } from '../../src/data/canonPlacements';
 import { eraRulesAt } from '../../src/data/eraRules';
 import { SPECIES_BY_ID } from '../../src/data/species';
-import { checkStart, START_OPTIONS, startOptionsFor } from '../../src/data/startOptions';
+import { alienRole, checkStart, START_OPTIONS, startOptionsFor } from '../../src/data/startOptions';
 import { canonOffBoard } from '../../src/engine/canonRoster';
 import { xpForLevel } from '../../src/engine/curve';
 import { applyEvents } from '../../src/state/applyEvents';
@@ -60,6 +60,41 @@ describe('start options (D-401 [2])', () => {
     expect(c('underworld-smuggler', true)).toEqual([]);
     const free: NewCampaignInput = { name: 'X', birthDate: { year: -3675, month: 1, day: 1 }, startDate: { year: -3661, month: 1, day: 1 }, startSecond: 0, creation: { speciesId: 'sith_pureblood', path: 'jedi', archetype: 'jediGuardian', rank: 'padawan', trainingStartAge: 4, talents: {}, dominantHand: 'right' } };
     expect(startErrors(free).join()).toMatch(/Imperial origin/);
+  });
+  describe('alien Imperial starts (D-388 [10], D-407)', () => {
+    const c = (id: string, speciesId: string, bby?: number) => {
+      const o = START_OPTIONS.find((x) => x.id === id)!;
+      const check = { optionId: id, path: o.paths[0]!, rank: o.ranks[0] ?? 'career', archetype: o.archetypes[0] ?? 'sithWarrior', speciesId, imperialBorn: false, ...(bby ? { bby } : {}) };
+      return { errors: checkStart(o, check), role: alienRole(o, check) };
+    };
+    it('no aliens in the regular forces in 3,661, with a clear refusal naming the routes', () => {
+      expect(c('imperial-soldier', 'human').errors).toEqual([]);
+      const r = c('imperial-soldier', 'twilek').errors.join();
+      expect(r).toMatch(/admit only Humans in 3,661 BBY/);
+      expect(r).toMatch(/Chiss agent or liaison.*slave sent to Korriban.*informer/);
+      expect(c('imperial-soldier', 'chiss').errors.join()).toMatch(/admit only Humans/);
+      expect(c('imperial-officer', 'zabrak').errors.join()).toMatch(/except Chiss liaisons/);
+    });
+    it('the allowed routes: a Chiss liaison or agent, a slave sent to Korriban, an informer', () => {
+      expect(c('imperial-officer', 'chiss')).toMatchObject({ errors: [], role: { title: 'A Chiss liaison' } });
+      expect(c('imperial-agent', 'chiss')).toMatchObject({ errors: [], role: { title: 'A Chiss agent' } });
+      expect(c('imperial-agent', 'twilek')).toMatchObject({ errors: [], role: { title: 'An informer, not an officer' } });
+      expect(c('korriban-slave', 'twilek')).toEqual({ errors: [], role: null });
+      expect(c('imperial-agent', 'human').role).toBeNull();
+    });
+    it('Purebloods keep their own rule; after Ilum (3,640) aliens are admitted', () => {
+      expect(c('imperial-soldier', 'sith_pureblood').errors).toEqual([]);
+      expect(c('imperial-soldier', 'twilek', 3639).errors).toEqual([]);
+    });
+    it('creation refuses it, and an informer start opens the role as a thread', async () => {
+      const base = { name: 'Vex', birthDate: { year: -3685, month: 1, day: 1 }, startDate: { year: -3661, month: 1, day: 1 }, startSecond: 0 };
+      const soldier: NewCampaignInput = { ...base, creation: { speciesId: 'twilek', path: 'career', archetype: 'soldier', rank: 'career', trainingStartAge: 16, talents: {}, dominantHand: 'right' }, start: { optionId: 'imperial-soldier', imperialBorn: false } };
+      expect(startErrors(soldier).join()).toMatch(/admit only Humans/);
+      const agent: NewCampaignInput = { ...soldier, start: { optionId: 'imperial-agent', imperialBorn: false } };
+      expect(startErrors(agent)).toEqual([]);
+      const s = (await createCampaign(REGISTRY, createMemoryStorage(), agent, { campaignId: 'c', branchId: 'b' }, '2026-11-22T00:00:00Z')).state;
+      expect(Object.values(s.threads.byId).map((t) => t.title)).toContain('An informer, not an officer');
+    });
   });
   it('a new campaign with a start seeds its places (the character in the innermost) and threads', async () => {
     const input: NewCampaignInput = {

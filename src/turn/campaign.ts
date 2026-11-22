@@ -9,7 +9,7 @@ import { createInitialState } from '../state/registryTools';
 import type { Registry } from '../state/types';
 import type { Session } from './pipeline';
 import { applyEvents } from '../state/applyEvents';
-import { checkStart, START_OPTION_BY_ID, startOptionsFor, type StartOption } from '../data/startOptions';
+import { alienRole, checkStart, START_OPTION_BY_ID, startOptionsFor, type StartOption, type StartThread } from '../data/startOptions';
 import type { TurnRecord } from './record';
 
 export interface NewCampaignInput {
@@ -92,7 +92,7 @@ export function startErrors(input: NewCampaignInput): string[] {
     const o = START_OPTION_BY_ID.get(input.start.optionId);
     if (!o) return [`Unknown start ${input.start.optionId}.`];
     if (!startOptionsFor(year).includes(o)) return [`The start "${o.title}" is not offered for ${-year > 0 ? `${-year} BBY` : `${year} ABY`}.`];
-    return checkStart(o, { optionId: o.id, path: cr.path, rank: cr.rank, archetype: cr.archetype, speciesId: cr.speciesId, imperialBorn: input.start.imperialBorn });
+    return checkStart(o, { optionId: o.id, path: cr.path, rank: cr.rank, archetype: cr.archetype, speciesId: cr.speciesId, imperialBorn: input.start.imperialBorn, bby: -year });
   }
   // A free start in the war years: a Pureblood still needs an Imperial origin (the Sith path, or marked Imperial-born).
   const bby = -year;
@@ -106,7 +106,7 @@ export function startErrors(input: NewCampaignInput): string[] {
  * The events that seed a start option (D-401 [2]): its places, outermost first, each inside the one before, with the
  * character in the innermost; and its opening threads, tied to that place. Engine events, validated like any other.
  */
-export function startEvents(o: StartOption): unknown[] {
+export function startEvents(o: StartOption, extraThreads: readonly StartThread[] = []): unknown[] {
   const events: unknown[] = o.places.map((p, i) => ({
     type: 'locationIntroduced',
     key: `tmp:start${i}`,
@@ -118,7 +118,7 @@ export function startEvents(o: StartOption): unknown[] {
     moveHere: i === o.places.length - 1,
   }));
   const here = `tmp:start${o.places.length - 1}`;
-  for (const th of o.threads) events.push({ type: 'threadOpened', title: th.title, stakes: th.stakes, entityRefs: o.places.length ? [here] : [] });
+  for (const th of [...o.threads, ...extraThreads]) events.push({ type: 'threadOpened', title: th.title, stakes: th.stakes, entityRefs: o.places.length ? [here] : [] });
   return events;
 }
 
@@ -174,7 +174,8 @@ export async function createCampaign(
   // A start option seeds its places and threads as engine events (D-401 [2]); every one must apply.
   let state = initial;
   if (startOption) {
-    const r = applyEvents(registry, state, startEvents(startOption), { source: 'engine' });
+    const role = cr ? alienRole(startOption, { optionId: startOption.id, path: cr.path, rank: cr.rank, archetype: cr.archetype, speciesId: cr.speciesId, imperialBorn: input.start?.imperialBorn === true, bby: -input.startDate.year }) : null;
+    const r = applyEvents(registry, state, startEvents(startOption, role ? [role] : []), { source: 'engine' });
     if (r.rejected.length) throw new Error(`The start could not be seeded: ${r.rejected.map((x) => x.reason).join('; ')}`);
     state = r.state;
   }

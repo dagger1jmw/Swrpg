@@ -146,7 +146,7 @@ This checklist turns the M7 start options in architecture §15 into the work for
 
   **Decided and built (D-401 [12]):** clear outliers set (Hutt 1.5, Talz 1.25, Houk 1.25, Jawa 0.6, Yoda's species 0.5; house default); the rest stay 1.0 until M8 (m8-world-checklist.md item 3).
 
-- [ ] **20. Alien Imperial starts (D-388 [10]).** No aliens in the regular Imperial forces in 3,661. The routes are a Chiss agent or liaison, a Force-sensitive slave sent to Korriban, or an informer. This is a creation constraint once Imperial career starts exist (item 2).
+- [x] **20. Alien Imperial starts (D-388 [10]).** No aliens in the regular Imperial forces in 3,661. The routes are a Chiss agent or liaison, a Force-sensitive slave sent to Korriban, or an informer. This is a creation constraint once Imperial career starts exist (item 2). **Built (D-407):** each Imperial start carries an `alien` rule (src/data/startOptions.ts). The soldier start refuses non-Humans; the naval officer takes only a Chiss liaison; the Intelligence start takes a Chiss agent or any alien as an informer; the slave sent to Korriban takes any species. Creation refuses with a message naming the routes, and an alien who passes gets the role as an opening thread. Purebloods keep D-401 [10]; the rule lapses after Ilum (3,640).
 - [x] **21. Late Jedi recruits (D-378 [6]).** Recruits are normally young children, and older recruits are allowed as exceptions. The creation path's training-start range already covers this; no change.
 
 ## E. Checks

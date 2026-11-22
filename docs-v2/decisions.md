@@ -1316,3 +1316,16 @@ Spec and decision changes only; no code. Each changed spec's export header lists
     - [a] "Along the Hydian Way through the strip" means both ends are Hydian Way worlds and the strip's rows lie between them (inclusive); a trip between two non-Hydian worlds whose straight line crosses the strip is not refused, since the map has no routing.
     - [b] The zone line goes to everyone; the detour only to those who don't pass.
     - [c] The detour multiplies the hop (before climb-out), like the other hazard factors.
+
+- **D-407 Alien Imperial starts enforced (Jared, 2026-11-22; overnight run item 2; m7-start-checklist.md item 20; D-388 [10]).**
+  - **Rule:** before the Battle of Ilum (3,640), a non-Human can't take the regular Imperial military or naval starts. Each Imperial start option carries an `alien` rule:
+    - `imperial-soldier`: refused (Humans only; Chiss too, since the liaison route is naval or Intelligence);
+    - `imperial-officer`: a Chiss liaison only;
+    - `imperial-agent`: a Chiss agent, or any other alien as an informer or asset outside the formal ranks;
+    - `korriban-slave`: any species (the Force-sensitive slave route).
+  - **Creation** refuses with a message that names the three routes. An alien who passes gets the role as an opening story thread ("A Chiss liaison", "A Chiss agent", "An informer, not an officer"), so the narrator knows it.
+  - **Purebloods** follow D-401 [10], not this rule.
+  - *Defaults taken (reversible, for review):*
+    - [a] Only the species `human` counts as Human; near-Humans (Miraluka, Rattataki, Echani and the rest) count as aliens.
+    - [b] The Sith Academy acolyte and the Imperial-born start on Dromund Kaas are left open to any species: they aren't the military, and the request named only the military and naval starts. D-388 [10] lists the slave route as the alien way to Korriban, so these two may need the same rule.
+    - [c] The lapse year is 3,640 (D-388 [10]: "formal admission comes after Ilum"); every start option is 3,661-only today, so it matters only for later starts.

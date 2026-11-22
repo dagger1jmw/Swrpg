@@ -25,6 +25,18 @@ export interface StartThread {
 /** Whether a Sith Pureblood may take this start (D-401 [10]). */
 export type PurebloodRule = 'allowed' | 'imperialBornOnly' | 'refused';
 
+/**
+ * Whether a non-Human may take this Imperial start before aliens are formally admitted after Ilum (D-388 [10], D-407):
+ * - 'allowed': any species (and no role note);
+ * - 'refused': the regular forces (Humans only);
+ * - 'chissLiaison': a Chiss only, as a liaison from the Ascendancy (naval starts);
+ * - 'chissOrInformer': a Chiss as an agent, any other alien as an informer or asset outside the formal ranks (Intelligence).
+ * Sith Purebloods follow their own rule (`pureblood`), not this one. Absent = 'allowed'.
+ */
+export type AlienRule = 'allowed' | 'refused' | 'chissLiaison' | 'chissOrInformer';
+/** Aliens are admitted to the Imperial forces after the Battle of Ilum (3,640; D-388 [10]); the rule applies before it. */
+export const ALIEN_ADMISSION_BBY = 3640;
+
 export interface StartOption {
   id: string;
   title: string;
@@ -43,6 +55,8 @@ export interface StartOption {
   /** The default premise, editable by the player. */
   premise: string;
   pureblood: PurebloodRule;
+  /** Non-Human species on an Imperial start (D-388 [10], D-407). Absent = any species. */
+  alien?: AlienRule;
   /** The architecture §15 note and decisions it comes from. */
   source: string;
 }
@@ -278,6 +292,7 @@ export const START_OPTIONS: readonly StartOption[] = [
     threads: [RIM],
     premise: 'An Imperial conscript in 3,661 BBY, mustering for the Rim Campaign under officers who answer to Sith Lords.',
     pureblood: 'allowed',
+    alien: 'refused',
     source: 'architecture §15 "M7 Imperial non-Sith starts" (soldier); D-388, D-389',
   },
   {
@@ -293,6 +308,7 @@ export const START_OPTIONS: readonly StartOption[] = [
     threads: [RIM],
     premise: 'The junior captain of a Gage-class transport in 3,661 BBY, carrying troops for the Rim Campaign.',
     pureblood: 'allowed',
+    alien: 'chissLiaison',
     source: 'architecture §15 "M7 Imperial non-Sith starts" (junior naval officer); D-389',
   },
   {
@@ -308,6 +324,7 @@ export const START_OPTIONS: readonly StartOption[] = [
     threads: [{ title: 'Handling the Mandalorians', stakes: 'Imperial Intelligence keeps Mandalore the Lesser\'s blockade on course; the clans are proud, and some resent their patrons.', source: 'SW_Imperial_Military_Intelligence_GGW_Part1, Game notes; D-389' }, BLOCKADE],
     premise: 'A Minder of Imperial Intelligence in 3,661 BBY, under a Watcher, handling the Mandalorians who hold the Hydian Way.',
     pureblood: 'allowed',
+    alien: 'chissOrInformer',
     source: 'architecture §15 "M7 Imperial non-Sith starts" (agent); D-389',
   },
 ];
@@ -328,6 +345,27 @@ export interface StartCheck {
   speciesId: string;
   /** The player marks an Imperial-born character (a defector or underworld Pureblood, D-401 [10]). */
   imperialBorn: boolean;
+  /** The start year as BBY (positive); the alien rule applies before 3,640. Absent = the start's own first year. */
+  bby?: number;
+}
+
+const ALIEN_ROUTES = 'the routes for an alien are a Chiss agent or liaison (the Intelligence or naval starts), a Force-sensitive slave sent to Korriban (the Sith path), or an informer for Imperial Intelligence';
+
+function alienApplies(o: StartOption, c: StartCheck): boolean {
+  return c.speciesId !== 'human' && c.speciesId !== 'sith_pureblood' && (c.bby ?? o.fromBby) > ALIEN_ADMISSION_BBY;
+}
+
+/** The role an alien takes on this start (an opening thread for the narrator), or null (D-407). */
+export function alienRole(o: StartOption, c: StartCheck): StartThread | null {
+  if (!alienApplies(o, c)) return null;
+  const source = 'SW_Imperial_Military_Intelligence_GGW_Part1; D-388 [10], D-407';
+  if (o.alien === 'chissLiaison' && c.speciesId === 'chiss') return { title: 'A Chiss liaison', stakes: 'The character serves as a liaison from the Chiss Ascendancy, the Empire\'s only true ally; aliens are not admitted to the regular forces, and the crew knows it.', source };
+  if (o.alien === 'chissOrInformer') {
+    return c.speciesId === 'chiss'
+      ? { title: 'A Chiss agent', stakes: 'The character is a Chiss agent of Imperial Intelligence, on loan from the Ascendancy; the Empire values the alliance but admits no aliens to its formal ranks.', source }
+      : { title: 'An informer, not an officer', stakes: 'The character is an informer and asset of Imperial Intelligence, outside the formal ranks; aliens are not admitted to the Empire\'s service, and a handler can disown them at will.', source };
+  }
+  return null;
 }
 
 /** Errors for a creation that does not fit the chosen start (empty when it fits). */
@@ -339,6 +377,10 @@ export function checkStart(o: StartOption, c: StartCheck): string[] {
   if (c.speciesId === 'sith_pureblood') {
     if (o.pureblood === 'refused') errors.push(`A Sith Pureblood can't take the start "${o.title}" in 3,661 BBY: Purebloods need an Imperial origin (D-401 [10]).`);
     else if (o.pureblood === 'imperialBornOnly' && !c.imperialBorn) errors.push(`A Sith Pureblood takes the start "${o.title}" only as an Imperial-born defector (mark the character Imperial-born).`);
+  }
+  if (alienApplies(o, c)) {
+    if (o.alien === 'refused') errors.push(`The start "${o.title}" is the Empire's regular forces, which admit only Humans in 3,661 BBY (aliens are admitted after Ilum, 3,640). As a non-Human, ${ALIEN_ROUTES} (D-388 [10]).`);
+    else if (o.alien === 'chissLiaison' && c.speciesId !== 'chiss') errors.push(`The start "${o.title}" is the Imperial Navy, which takes no aliens in 3,661 BBY except Chiss liaisons from the Ascendancy. As a non-Human, ${ALIEN_ROUTES} (D-388 [10]).`);
   }
   return errors;
 }
