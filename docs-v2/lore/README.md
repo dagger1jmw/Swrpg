@@ -2,7 +2,7 @@
 
 Every lore file in `Docs/SWRPG lore/`, the canon source of truth for story facts (CLAUDE.md Golden Rule 3). Canon here means Star Wars Legends only. The files stay in `Docs/SWRPG lore/`; this index and the research queue (`RESEARCH_QUEUE.md`, next to this file: origins, citations, redo briefs, gaps) live in `docs-v2/lore/`, because nothing new is written into `Docs/`.
 
-Game-mechanics sections in these files (Game notes, tiers, numbers) are suggestions that docs-v2 specs may override; every override is logged in `docs-v2/decisions.md`. The runtime lore index for the narrator (D-81, `scripts/build-lore.ts`) reads only the character files, the timeline (the old file and its slices) and the species files (sent only when a species is named).
+Game-mechanics sections in these files (Game notes, tiers, numbers) are suggestions that docs-v2 specs may override; every override is logged in `docs-v2/decisions.md`. The runtime lore index for the narrator (D-81, `scripts/build-lore.ts`) reads only the character files, the timeline (the old file and its slices), the species files (sent only when a species is named) and the planets files (a world when the scene is there or it is named; a route when named).
 
 Last updated 2026-11-21.
 
@@ -147,3 +147,14 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Species_OldRepublic_Part1.md` | Old Republic species, Part 1: Humans, Sith Purebloods and 18 core species |
 | `Docs/SWRPG lore/SW_Species_OldRepublic_Part2.md` | Old Republic species, Part 2: 25 more species; cyborgs, Zakuulans, rakghouls |
 | `Docs/SWRPG lore/SW_Species_OldRepublic_Part3.md` | Old Republic species, Part 3: comparison, ageing, conflicts, decisions (no entries) |
+
+## Planets, routes and travel
+
+| Path | Scope |
+|---|---|
+| `Docs/SWRPG lore/SW_Planets_Travel_OldRepublic_Part1.md` | Planets and travel, Part 1: the galaxy in 3661, master table, full entries (Alderaan to Tython) |
+| `Docs/SWRPG lore/SW_Planets_Travel_OldRepublic_Part2.md` | Planets and travel, Part 2: Voss, Zakuul, Ziost; thin entries Aderalis to Kalee |
+| `Docs/SWRPG lore/SW_Planets_Travel_OldRepublic_Part3.md` | Planets and travel, Part 3: thin entries Kant to Umbara |
+| `Docs/SWRPG lore/SW_Planets_Travel_OldRepublic_Part4.md` | Planets and travel, Part 4: thin entries to Zosha, mention-only index, routes begin |
+| `Docs/SWRPG lore/SW_Planets_Travel_OldRepublic_Part5.md` | Planets and travel, Part 5: routes, travel, places timeline, conflicts |
+| `Docs/SWRPG lore/SW_Planets_Travel_OldRepublic_Part6.md` | Planets and travel, Part 6: sources, checklist, decisions (no entries) |

@@ -12,11 +12,29 @@ export interface EraRule {
   places?: readonly string[];
   /** Sent when one of these factions is in play. */
   factions?: readonly FactionId[];
+  /** Sent every turn in its years (a rule about all places). */
+  always?: boolean;
   text: string;
   source: string;
 }
 
 export const ERA_RULES: readonly EraRule[] = [
+  {
+    id: 'places-and-populations',
+    fromBby: 3681,
+    toBby: 3600,
+    always: true,
+    text: 'Places on record only from SWTOR-era works (c. 3,643–3,622) may be used, as unconfirmed in these years, unless they exist only because of a later event (the Taris resettlement, the Tython Temple, Mek-Sha); Coruscant keeps its strict rule. Give populations only as orders of magnitude, never an exact figure.',
+    source: 'D-402 [11], [12]',
+  },
+  {
+    id: 'odacer-faustin',
+    fromBby: 3681,
+    toBby: 3656,
+    places: ['Odacer-Faustin'],
+    text: 'Odacer-Faustin is Imperial space with no Sith academy named yet (its first dated student is in 3,655).',
+    source: 'D-402 [9]',
+  },
   {
     id: 'coruscant-shortage',
     fromBby: 3661,
@@ -101,6 +119,8 @@ export function eraRulesAt(bby: number, placeNames: readonly string[], factions:
     (r) =>
       bby <= r.fromBby &&
       bby >= r.toBby &&
-      ((r.places ?? []).some((p) => placeNames.some((n) => mentions(n, p))) || (r.factions ?? []).some((f) => factions.includes(f))),
+      (r.always === true ||
+        (r.places ?? []).some((p) => placeNames.some((n) => mentions(n, p))) ||
+        (r.factions ?? []).some((f) => factions.includes(f))),
   );
 }

@@ -13,6 +13,7 @@ import { orderSeatAt } from '../data/orderSeats';
 import { controlAt, leadersAt } from '../data/worldControl';
 import { placementsAt } from '../data/canonPlacements';
 import { eraRulesAt } from '../data/eraRules';
+import { closedWorlds, mapSide } from '../data/galaxyMap';
 import { CANON_BY_ID } from '../data/canonNpcs';
 import { canonOffBoard } from '../engine/canonRoster';
 import { findCanonEntity } from '../lore/retrieve';
@@ -760,5 +761,9 @@ function boardLines(state: GameState, bby: number, placeNames: readonly string[]
   if (own) factions.add(own);
   for (const id of selectPresentNpcIds(state)) { const f = state.npcs.byId[id]?.factionId; if (f) factions.add(f); }
   for (const r of eraRulesAt(bby, placeNames, [...factions])) lines.push(`Era rule: ${r.text}`);
+  // Closed worlds for the character's side (D-402 [5]-[8]): names only, plus the reason when the scene is at one.
+  const closed = closedWorlds(mapSide(own), bby);
+  if (closed.length) lines.push(`Closed worlds this year (no known route, secret, or not yet existing; the character can't travel there without a story reason): ${closed.map((g) => g.place).join(', ')}`);
+  for (const g of closed) if (placeNames.some((n) => ` ${n.toLowerCase()} `.includes(` ${g.place.toLowerCase()} `))) lines.push(`Closed world here: ${g.place}: ${g.reason}${g.storyException ? ` (allowed with a story reason: ${g.storyException})` : ''}`);
   return lines;
 }

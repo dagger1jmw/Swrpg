@@ -1,0 +1,763 @@
+# Planets, Hyperspace Routes and Travel — Old Republic era (c. 3681–3600 BBY) — Part 6 of 6
+Continues SW_Planets_Travel_OldRepublic_Part5.md. Legends lore reference for SWRPG. Researched Nov 21, 2026. Draft for review.
+
+## Sources
+725 pages, all on starwars.fandom.com (Legends or Legends-banner pages, plus the year pages):
+- 3622 BBY: https://starwars.fandom.com/wiki/3622_BBY
+- 3623 BBY: https://starwars.fandom.com/wiki/3623_BBY
+- 3624 BBY: https://starwars.fandom.com/wiki/3624_BBY
+- 3625 BBY: https://starwars.fandom.com/wiki/3625_BBY
+- 3626 BBY: https://starwars.fandom.com/wiki/3626_BBY
+- 3627 BBY: https://starwars.fandom.com/wiki/3627_BBY
+- 3628 BBY: https://starwars.fandom.com/wiki/3628_BBY
+- 3629 BBY: https://starwars.fandom.com/wiki/3629_BBY
+- 3630 BBY: https://starwars.fandom.com/wiki/3630_BBY
+- 3631 BBY: https://starwars.fandom.com/wiki/3631_BBY
+- 3636 BBY: https://starwars.fandom.com/wiki/3636_BBY
+- 3637 BBY: https://starwars.fandom.com/wiki/3637_BBY
+- 3638 BBY: https://starwars.fandom.com/wiki/3638_BBY
+- 3639 BBY: https://starwars.fandom.com/wiki/3639_BBY
+- 3640 BBY: https://starwars.fandom.com/wiki/3640_BBY
+- 3641 BBY: https://starwars.fandom.com/wiki/3641_BBY
+- 3642 BBY: https://starwars.fandom.com/wiki/3642_BBY
+- 3643 BBY: https://starwars.fandom.com/wiki/3643_BBY
+- 3645 BBY: https://starwars.fandom.com/wiki/3645_BBY
+- 3646 BBY: https://starwars.fandom.com/wiki/3646_BBY
+- 3647 BBY: https://starwars.fandom.com/wiki/3647_BBY
+- 3648 BBY: https://starwars.fandom.com/wiki/3648_BBY
+- 3653 BBY: https://starwars.fandom.com/wiki/3653_BBY
+- 3655 BBY: https://starwars.fandom.com/wiki/3655_BBY
+- 3658 BBY: https://starwars.fandom.com/wiki/3658_BBY
+- 3660 BBY: https://starwars.fandom.com/wiki/3660_BBY
+- 3661 BBY: https://starwars.fandom.com/wiki/3661_BBY
+- 3663 BBY: https://starwars.fandom.com/wiki/3663_BBY
+- 3664 BBY: https://starwars.fandom.com/wiki/3664_BBY
+- 3665 BBY: https://starwars.fandom.com/wiki/3665_BBY
+- 3667 BBY: https://starwars.fandom.com/wiki/3667_BBY
+- 3668 BBY: https://starwars.fandom.com/wiki/3668_BBY
+- 3670 BBY: https://starwars.fandom.com/wiki/3670_BBY
+- 3671 BBY: https://starwars.fandom.com/wiki/3671_BBY
+- 3673 BBY: https://starwars.fandom.com/wiki/3673_BBY
+- 3674 BBY: https://starwars.fandom.com/wiki/3674_BBY
+- 3678 BBY: https://starwars.fandom.com/wiki/3678_BBY
+- 3680 BBY: https://starwars.fandom.com/wiki/3680_BBY
+- 3681 BBY: https://starwars.fandom.com/wiki/3681_BBY
+- Aaeton: https://starwars.fandom.com/wiki/Aaeton
+- Aargau/Legends: https://starwars.fandom.com/wiki/Aargau/Legends
+- Aaris III: https://starwars.fandom.com/wiki/Aaris_III
+- Abafar/Legends: https://starwars.fandom.com/wiki/Abafar/Legends
+- Abhean/Legends: https://starwars.fandom.com/wiki/Abhean/Legends
+- Abregado-rae/Legends: https://starwars.fandom.com/wiki/Abregado-rae/Legends
+- Adamastor: https://starwars.fandom.com/wiki/Adamastor
+- Aderalis: https://starwars.fandom.com/wiki/Aderalis
+- Adikaria/Legends: https://starwars.fandom.com/wiki/Adikaria/Legends
+- Adinai: https://starwars.fandom.com/wiki/Adinai
+- Aduba-5: https://starwars.fandom.com/wiki/Aduba-5
+- Aduba-6: https://starwars.fandom.com/wiki/Aduba-6
+- Aeten II/Legends: https://starwars.fandom.com/wiki/Aeten_II/Legends
+- Af'El/Legends: https://starwars.fandom.com/wiki/Af'El/Legends
+- Agamar/Legends: https://starwars.fandom.com/wiki/Agamar/Legends
+- Ahakista/Legends: https://starwars.fandom.com/wiki/Ahakista/Legends
+- Akana: https://starwars.fandom.com/wiki/Akana
+- Alaris Prime/Legends: https://starwars.fandom.com/wiki/Alaris_Prime/Legends
+- Alderaan/Legends: https://starwars.fandom.com/wiki/Alderaan/Legends
+- Alorthas: https://starwars.fandom.com/wiki/Alorthas
+- Alpheridies/Legends: https://starwars.fandom.com/wiki/Alpheridies/Legends
+- Alsakan/Legends: https://starwars.fandom.com/wiki/Alsakan/Legends
+- Altair 3: https://starwars.fandom.com/wiki/Altair_3
+- Altair 9: https://starwars.fandom.com/wiki/Altair_9
+- Althir III: https://starwars.fandom.com/wiki/Althir_III
+- Alzar: https://starwars.fandom.com/wiki/Alzar
+- Alzoc III/Legends: https://starwars.fandom.com/wiki/Alzoc_III/Legends
+- Amador: https://starwars.fandom.com/wiki/Amador
+- Ambria/Legends: https://starwars.fandom.com/wiki/Ambria/Legends
+- Anaxes/Legends: https://starwars.fandom.com/wiki/Anaxes/Legends
+- Ando Prime/Legends: https://starwars.fandom.com/wiki/Ando_Prime/Legends
+- Anoat/Legends: https://starwars.fandom.com/wiki/Anoat/Legends
+- Antamont: https://starwars.fandom.com/wiki/Antamont
+- Antar 4/Legends: https://starwars.fandom.com/wiki/Antar_4/Legends
+- Anzat/Legends: https://starwars.fandom.com/wiki/Anzat/Legends
+- Aquella: https://starwars.fandom.com/wiki/Aquella
+- Arbra/Legends: https://starwars.fandom.com/wiki/Arbra/Legends
+- Archenar asteroid field: https://starwars.fandom.com/wiki/Archenar_asteroid_field
+- Argazda/Legends: https://starwars.fandom.com/wiki/Argazda/Legends
+- Arkania/Legends: https://starwars.fandom.com/wiki/Arkania/Legends
+- Arkanis/Legends: https://starwars.fandom.com/wiki/Arkanis/Legends
+- Artus Five: https://starwars.fandom.com/wiki/Artus_Five
+- Asation: https://starwars.fandom.com/wiki/Asation
+- Ascendant Spear: https://starwars.fandom.com/wiki/Ascendant_Spear
+- Ashas Ree/Legends: https://starwars.fandom.com/wiki/Ashas_Ree/Legends
+- Astrogation/Legends: https://starwars.fandom.com/wiki/Astrogation/Legends
+- Athiss/Legends: https://starwars.fandom.com/wiki/Athiss/Legends
+- Atrisia/Legends: https://starwars.fandom.com/wiki/Atrisia/Legends
+- Attahox/Legends: https://starwars.fandom.com/wiki/Attahox/Legends
+- Aurek-class tactical strikefighter: https://starwars.fandom.com/wiki/Aurek-class_tactical_strikefighter
+- Austan Asteroid Cluster: https://starwars.fandom.com/wiki/Austan_Asteroid_Cluster
+- Averill: https://starwars.fandom.com/wiki/Averill
+- Avernio Three: https://starwars.fandom.com/wiki/Avernio_Three
+- Axxila/Legends: https://starwars.fandom.com/wiki/Axxila/Legends
+- Balionn-Gur's planet: https://starwars.fandom.com/wiki/Balionn-Gur's_planet
+- Balmorra/Legends: https://starwars.fandom.com/wiki/Balmorra/Legends
+- Balosar/Legends: https://starwars.fandom.com/wiki/Balosar/Legends
+- Bandomeer/Legends: https://starwars.fandom.com/wiki/Bandomeer/Legends
+- Bannakon: https://starwars.fandom.com/wiki/Bannakon
+- Baralou: https://starwars.fandom.com/wiki/Baralou
+- Baroonda/Legends: https://starwars.fandom.com/wiki/Baroonda/Legends
+- Baros: https://starwars.fandom.com/wiki/Baros
+- Basilisk: https://starwars.fandom.com/wiki/Basilisk
+- Battle near Devaron: https://starwars.fandom.com/wiki/Battle_near_Devaron
+- Battle of Agamar (Great Galactic War): https://starwars.fandom.com/wiki/Battle_of_Agamar_(Great_Galactic_War)
+- Battle of Dantooine (Great Galactic War): https://starwars.fandom.com/wiki/Battle_of_Dantooine_(Great_Galactic_War)
+- Battle of Dathomir (Great Galactic War): https://starwars.fandom.com/wiki/Battle_of_Dathomir_(Great_Galactic_War)
+- Battle of Hoth (Great Galactic War): https://starwars.fandom.com/wiki/Battle_of_Hoth_(Great_Galactic_War)
+- Battle of Ilum (Great Galactic War): https://starwars.fandom.com/wiki/Battle_of_Ilum_(Great_Galactic_War)
+- Battle of Ord Radama: https://starwars.fandom.com/wiki/Battle_of_Ord_Radama
+- Battle of Serenno: https://starwars.fandom.com/wiki/Battle_of_Serenno
+- Battle of Utapau (Great Galactic War): https://starwars.fandom.com/wiki/Battle_of_Utapau_(Great_Galactic_War)
+- Battle of Ziost: https://starwars.fandom.com/wiki/Battle_of_Ziost
+- Battle on the Hydian Way: https://starwars.fandom.com/wiki/Battle_on_the_Hydian_Way
+- Begeren: https://starwars.fandom.com/wiki/Begeren
+- Belazura: https://starwars.fandom.com/wiki/Belazura
+- Belkadan/Legends: https://starwars.fandom.com/wiki/Belkadan/Legends
+- Bellis IV: https://starwars.fandom.com/wiki/Bellis_IV
+- Belnar/Legends: https://starwars.fandom.com/wiki/Belnar/Legends
+- Belsavis/Legends: https://starwars.fandom.com/wiki/Belsavis/Legends
+- Bengely Four: https://starwars.fandom.com/wiki/Bengely_Four
+- Berchest/Legends: https://starwars.fandom.com/wiki/Berchest/Legends
+- Berrun: https://starwars.fandom.com/wiki/Berrun
+- Besberra: https://starwars.fandom.com/wiki/Besberra
+- Bespin/Legends: https://starwars.fandom.com/wiki/Bespin/Legends
+- Bestine IV/Legends: https://starwars.fandom.com/wiki/Bestine_IV/Legends
+- Bezha Two: https://starwars.fandom.com/wiki/Bezha_Two
+- Bhargebba Six: https://starwars.fandom.com/wiki/Bhargebba_Six
+- Bimmiel asteroid field: https://starwars.fandom.com/wiki/Bimmiel_asteroid_field
+- Bimmisaari/Legends: https://starwars.fandom.com/wiki/Bimmisaari/Legends
+- Blockade of the Hydian Way: https://starwars.fandom.com/wiki/Blockade_of_the_Hydian_Way
+- Blockade of the Rimma Trade Route: https://starwars.fandom.com/wiki/Blockade_of_the_Rimma_Trade_Route
+- Bomodon: https://starwars.fandom.com/wiki/Bomodon
+- Bonadan/Legends: https://starwars.fandom.com/wiki/Bonadan/Legends
+- Boonta/Legends: https://starwars.fandom.com/wiki/Boonta/Legends
+- Boranall: https://starwars.fandom.com/wiki/Boranall
+- Bosthirda/Legends: https://starwars.fandom.com/wiki/Bosthirda/Legends
+- Bothawui/Legends: https://starwars.fandom.com/wiki/Bothawui/Legends
+- Brentaal IV/Legends: https://starwars.fandom.com/wiki/Brentaal_IV/Legends
+- Brentaal–Denon Route: https://starwars.fandom.com/wiki/Brentaal%E2%80%93Denon_Route
+- Bresnan: https://starwars.fandom.com/wiki/Bresnan
+- BT-7 Thunderclap: https://starwars.fandom.com/wiki/BT-7_Thunderclap
+- Byblos/Legends: https://starwars.fandom.com/wiki/Byblos/Legends
+- Byllura: https://starwars.fandom.com/wiki/Byllura
+- Byss (Abyssin)/Legends: https://starwars.fandom.com/wiki/Byss_(Abyssin)/Legends
+- Caamas/Legends: https://starwars.fandom.com/wiki/Caamas/Legends
+- Cadannia: https://starwars.fandom.com/wiki/Cadannia
+- Cademimu V: https://starwars.fandom.com/wiki/Cademimu_V
+- Cadinth: https://starwars.fandom.com/wiki/Cadinth
+- Campaign near Gell Mattar: https://starwars.fandom.com/wiki/Campaign_near_Gell_Mattar
+- Caramm V/Legends: https://starwars.fandom.com/wiki/Caramm_V/Legends
+- Carida/Legends: https://starwars.fandom.com/wiki/Carida/Legends
+- Carratos: https://starwars.fandom.com/wiki/Carratos
+- Cartao/Legends: https://starwars.fandom.com/wiki/Cartao/Legends
+- Castell/Legends: https://starwars.fandom.com/wiki/Castell/Legends
+- Cathar (location)/Legends: https://starwars.fandom.com/wiki/Cathar_(location)/Legends
+- Cato Neimoidia/Legends: https://starwars.fandom.com/wiki/Cato_Neimoidia/Legends
+- Celanon Spur/Legends: https://starwars.fandom.com/wiki/Celanon_Spur/Legends
+- Celanon/Legends: https://starwars.fandom.com/wiki/Celanon/Legends
+- Centares/Legends: https://starwars.fandom.com/wiki/Centares/Legends
+- Ch'hodos: https://starwars.fandom.com/wiki/Ch'hodos
+- Chabosh: https://starwars.fandom.com/wiki/Chabosh
+- Chad/Legends: https://starwars.fandom.com/wiki/Chad/Legends
+- Champala/Legends: https://starwars.fandom.com/wiki/Champala/Legends
+- Chandrila/Legends: https://starwars.fandom.com/wiki/Chandrila/Legends
+- Charmath: https://starwars.fandom.com/wiki/Charmath
+- Charros IV/Legends: https://starwars.fandom.com/wiki/Charros_IV/Legends
+- Choah Belt/Legends: https://starwars.fandom.com/wiki/Choah_Belt/Legends
+- Cholganna/Legends: https://starwars.fandom.com/wiki/Cholganna/Legends
+- Chommell Minor/Legends: https://starwars.fandom.com/wiki/Chommell_Minor/Legends
+- Clak'dor V/Legends: https://starwars.fandom.com/wiki/Clak'dor_V/Legends
+- Clak'dor VII/Legends: https://starwars.fandom.com/wiki/Clak'dor_VII/Legends
+- Commenor/Legends: https://starwars.fandom.com/wiki/Commenor/Legends
+- Cona/Legends: https://starwars.fandom.com/wiki/Cona/Legends
+- Concord Dawn/Legends: https://starwars.fandom.com/wiki/Concord_Dawn/Legends
+- Copero/Legends: https://starwars.fandom.com/wiki/Copero/Legends
+- Corbos: https://starwars.fandom.com/wiki/Corbos
+- Corellia/Legends: https://starwars.fandom.com/wiki/Corellia/Legends
+- Corellian Run/Legends: https://starwars.fandom.com/wiki/Corellian_Run/Legends
+- Corellian Trade Spine/Legends: https://starwars.fandom.com/wiki/Corellian_Trade_Spine/Legends
+- Corsin Run: https://starwars.fandom.com/wiki/Corsin_Run
+- Corsin/Legends: https://starwars.fandom.com/wiki/Corsin/Legends
+- Coruscant riots (3661 BBY): https://starwars.fandom.com/wiki/Coruscant_riots_(3661_BBY)
+- Coruscant/Legends: https://starwars.fandom.com/wiki/Coruscant/Legends
+- Coruscant–Dantooine hyperlane: https://starwars.fandom.com/wiki/Coruscant%E2%80%93Dantooine_hyperlane
+- Corvis Minor IV: https://starwars.fandom.com/wiki/Corvis_Minor_IV
+- Csilla/Legends: https://starwars.fandom.com/wiki/Csilla/Legends
+- Cularin/Legends: https://starwars.fandom.com/wiki/Cularin/Legends
+- Customs Enforcement Division: https://starwars.fandom.com/wiki/Customs_Enforcement_Division
+- Cyborrea/Legends: https://starwars.fandom.com/wiki/Cyborrea/Legends
+- CZ-198: https://starwars.fandom.com/wiki/CZ-198
+- Da Soocha: https://starwars.fandom.com/wiki/Da_Soocha
+- Dac/Legends: https://starwars.fandom.com/wiki/Dac/Legends
+- Dagobah/Legends: https://starwars.fandom.com/wiki/Dagobah/Legends
+- Dakot Seven: https://starwars.fandom.com/wiki/Dakot_Seven
+- Dantooine/Legends: https://starwars.fandom.com/wiki/Dantooine/Legends
+- Darada: https://starwars.fandom.com/wiki/Darada
+- Daragon Trail: https://starwars.fandom.com/wiki/Daragon_Trail
+- Darth Malgus: https://starwars.fandom.com/wiki/Darth_Malgus
+- Darvannis: https://starwars.fandom.com/wiki/Darvannis
+- Dathomir/Legends: https://starwars.fandom.com/wiki/Dathomir/Legends
+- Defender-class light corvette/Legends: https://starwars.fandom.com/wiki/Defender-class_light_corvette/Legends
+- Delaya/Legends: https://starwars.fandom.com/wiki/Delaya/Legends
+- Delemede/Legends: https://starwars.fandom.com/wiki/Delemede/Legends
+- Delphon/Legends: https://starwars.fandom.com/wiki/Delphon/Legends
+- Denab/Legends: https://starwars.fandom.com/wiki/Denab/Legends
+- Denbalen: https://starwars.fandom.com/wiki/Denbalen
+- Dennogra/Legends: https://starwars.fandom.com/wiki/Dennogra/Legends
+- Denon/Legends: https://starwars.fandom.com/wiki/Denon/Legends
+- Denova: https://starwars.fandom.com/wiki/Denova
+- Deralia: https://starwars.fandom.com/wiki/Deralia
+- Desevro/Legends: https://starwars.fandom.com/wiki/Desevro/Legends
+- Devaron/Legends: https://starwars.fandom.com/wiki/Devaron/Legends
+- Doan: https://starwars.fandom.com/wiki/Doan
+- Dodz: https://starwars.fandom.com/wiki/Dodz
+- Dorin/Legends: https://starwars.fandom.com/wiki/Dorin/Legends
+- Drall (planet): https://starwars.fandom.com/wiki/Drall_(planet)
+- Drexel/Legends: https://starwars.fandom.com/wiki/Drexel/Legends
+- Drezzi: https://starwars.fandom.com/wiki/Drezzi
+- Dromund Fels: https://starwars.fandom.com/wiki/Dromund_Fels
+- Dromund Kaas/Legends: https://starwars.fandom.com/wiki/Dromund_Kaas/Legends
+- Dromund Kalakar: https://starwars.fandom.com/wiki/Dromund_Kalakar
+- Droxine: https://starwars.fandom.com/wiki/Droxine
+- Druckenwell/Legends: https://starwars.fandom.com/wiki/Druckenwell/Legends
+- Dubrillion/Legends: https://starwars.fandom.com/wiki/Dubrillion/Legends
+- Durace: https://starwars.fandom.com/wiki/Durace
+- Duro/Legends: https://starwars.fandom.com/wiki/Duro/Legends
+- Duroon: https://starwars.fandom.com/wiki/Duroon
+- Dustig Trace: https://starwars.fandom.com/wiki/Dustig_Trace
+- Dxun/Legends: https://starwars.fandom.com/wiki/Dxun/Legends
+- Ebra: https://starwars.fandom.com/wiki/Ebra
+- Eiattu 6: https://starwars.fandom.com/wiki/Eiattu_6
+- Elerion: https://starwars.fandom.com/wiki/Elerion
+- Eliad: https://starwars.fandom.com/wiki/Eliad
+- Elom (planet)/Legends: https://starwars.fandom.com/wiki/Elom_(planet)/Legends
+- Elrood/Legends: https://starwars.fandom.com/wiki/Elrood/Legends
+- Elshandruu Pica: https://starwars.fandom.com/wiki/Elshandruu_Pica
+- Empress Teta/Legends: https://starwars.fandom.com/wiki/Empress_Teta/Legends
+- Endex: https://starwars.fandom.com/wiki/Endex
+- Endor/Legends: https://starwars.fandom.com/wiki/Endor/Legends
+- Endovan: https://starwars.fandom.com/wiki/Endovan
+- Entralla/Legends: https://starwars.fandom.com/wiki/Entralla/Legends
+- Eriadu/Legends: https://starwars.fandom.com/wiki/Eriadu/Legends
+- Erigorm: https://starwars.fandom.com/wiki/Erigorm
+- Esseles/Legends: https://starwars.fandom.com/wiki/Esseles/Legends
+- Exigar: https://starwars.fandom.com/wiki/Exigar
+- Fait d'Fait: https://starwars.fandom.com/wiki/Fait_d'Fait
+- Fakir: https://starwars.fandom.com/wiki/Fakir
+- Falleen (planet)/Legends: https://starwars.fandom.com/wiki/Falleen_(planet)/Legends
+- Farstine: https://starwars.fandom.com/wiki/Farstine
+- Felucia/Legends: https://starwars.fandom.com/wiki/Felucia/Legends
+- Feris: https://starwars.fandom.com/wiki/Feris
+- Ferrhast: https://starwars.fandom.com/wiki/Ferrhast
+- Fest/Legends: https://starwars.fandom.com/wiki/Fest/Legends
+- Florrum/Legends: https://starwars.fandom.com/wiki/Florrum/Legends
+- Folor/Legends: https://starwars.fandom.com/wiki/Folor/Legends
+- Fondor/Legends: https://starwars.fandom.com/wiki/Fondor/Legends
+- Foray-class blockade runner: https://starwars.fandom.com/wiki/Foray-class_blockade_runner
+- Foundry/Legends: https://starwars.fandom.com/wiki/Foundry/Legends
+- Frenos Three: https://starwars.fandom.com/wiki/Frenos_Three
+- Fresia/Legends: https://starwars.fandom.com/wiki/Fresia/Legends
+- Fury-class Imperial interceptor: https://starwars.fandom.com/wiki/Fury-class_Imperial_interceptor
+- Gadon 3: https://starwars.fandom.com/wiki/Gadon_3
+- Gaftikar: https://starwars.fandom.com/wiki/Gaftikar
+- Gamorr/Legends: https://starwars.fandom.com/wiki/Gamorr/Legends
+- Gand (planet)/Legends: https://starwars.fandom.com/wiki/Gand_(planet)/Legends
+- Garcornia: https://starwars.fandom.com/wiki/Garcornia
+- Gargon Two: https://starwars.fandom.com/wiki/Gargon_Two
+- Gargon/Legends: https://starwars.fandom.com/wiki/Gargon/Legends
+- Garos IV: https://starwars.fandom.com/wiki/Garos_IV
+- Garqi/Legends: https://starwars.fandom.com/wiki/Garqi/Legends
+- Gatalenta/Legends: https://starwars.fandom.com/wiki/Gatalenta/Legends
+- Gaurick: https://starwars.fandom.com/wiki/Gaurick
+- Gelemeade: https://starwars.fandom.com/wiki/Gelemeade
+- Gelemeade's fourth moon: https://starwars.fandom.com/wiki/Gelemeade's_fourth_moon
+- Gell Mattar: https://starwars.fandom.com/wiki/Gell_Mattar
+- Gen'Dai homeworld/Legends: https://starwars.fandom.com/wiki/Gen'Dai_homeworld/Legends
+- Genarius: https://starwars.fandom.com/wiki/Genarius
+- Gentes/Legends: https://starwars.fandom.com/wiki/Gentes/Legends
+- Geonosis campaign: https://starwars.fandom.com/wiki/Geonosis_campaign
+- Geonosis/Legends: https://starwars.fandom.com/wiki/Geonosis/Legends
+- Geran/Legends: https://starwars.fandom.com/wiki/Geran/Legends
+- Giddea: https://starwars.fandom.com/wiki/Giddea
+- Gillad: https://starwars.fandom.com/wiki/Gillad
+- Glee Anselm/Legends: https://starwars.fandom.com/wiki/Glee_Anselm/Legends
+- Golm: https://starwars.fandom.com/wiki/Golm
+- Golm asteroid belt: https://starwars.fandom.com/wiki/Golm_asteroid_belt
+- Goluud Corridor: https://starwars.fandom.com/wiki/Goluud_Corridor
+- Gorm: https://starwars.fandom.com/wiki/Gorm
+- Goroth Prime/Legends: https://starwars.fandom.com/wiki/Goroth_Prime/Legends
+- Grand Hypergate: https://starwars.fandom.com/wiki/Grand_Hypergate
+- Great Galactic War: https://starwars.fandom.com/wiki/Great_Galactic_War
+- Gree/Legends: https://starwars.fandom.com/wiki/Gree/Legends
+- Grella: https://starwars.fandom.com/wiki/Grella
+- Grizmallt/Legends: https://starwars.fandom.com/wiki/Grizmallt/Legends
+- Groth: https://starwars.fandom.com/wiki/Groth
+- Haashimut: https://starwars.fandom.com/wiki/Haashimut
+- Had Abbadon: https://starwars.fandom.com/wiki/Had_Abbadon
+- Haffrin: https://starwars.fandom.com/wiki/Haffrin
+- Halco: https://starwars.fandom.com/wiki/Halco
+- Hallion: https://starwars.fandom.com/wiki/Hallion
+- Halpat: https://starwars.fandom.com/wiki/Halpat
+- Hammerhead-class cruiser: https://starwars.fandom.com/wiki/Hammerhead-class_cruiser
+- Hapes/Legends: https://starwars.fandom.com/wiki/Hapes/Legends
+- Harrower-class dreadnought: https://starwars.fandom.com/wiki/Harrower-class_dreadnought
+- Haruun Kal/Legends: https://starwars.fandom.com/wiki/Haruun_Kal/Legends
+- Hebine Ring: https://starwars.fandom.com/wiki/Hebine_Ring
+- Heffrin: https://starwars.fandom.com/wiki/Heffrin
+- Herdessa/Legends: https://starwars.fandom.com/wiki/Herdessa/Legends
+- Herrik: https://starwars.fandom.com/wiki/Herrik
+- Hesperidium/Legends: https://starwars.fandom.com/wiki/Hesperidium/Legends
+- Hestria: https://starwars.fandom.com/wiki/Hestria
+- Hollast VII: https://starwars.fandom.com/wiki/Hollast_VII
+- Honoghr/Legends: https://starwars.fandom.com/wiki/Honoghr/Legends
+- Hosko: https://starwars.fandom.com/wiki/Hosko
+- Hoszh Iszhir: https://starwars.fandom.com/wiki/Hoszh_Iszhir
+- Hoth/Legends: https://starwars.fandom.com/wiki/Hoth/Legends
+- Hutt–Imperial treaty: https://starwars.fandom.com/wiki/Hutt%E2%80%93Imperial_treaty
+- Hydian Spur: https://starwars.fandom.com/wiki/Hydian_Spur
+- Hydian Way/Legends: https://starwars.fandom.com/wiki/Hydian_Way/Legends
+- Hyperdrive/Legends: https://starwars.fandom.com/wiki/Hyperdrive/Legends
+- Hypergate: https://starwars.fandom.com/wiki/Hypergate
+- Hyperspace beacon/Legends: https://starwars.fandom.com/wiki/Hyperspace_beacon/Legends
+- Hyperspace route/Legends: https://starwars.fandom.com/wiki/Hyperspace_route/Legends
+- Hyperspace/Legends: https://starwars.fandom.com/wiki/Hyperspace/Legends
+- Hypori/Legends: https://starwars.fandom.com/wiki/Hypori/Legends
+- Iego/Legends: https://starwars.fandom.com/wiki/Iego/Legends
+- Iktotch/Legends: https://starwars.fandom.com/wiki/Iktotch/Legends
+- Illodia: https://starwars.fandom.com/wiki/Illodia
+- Ilum/Legends: https://starwars.fandom.com/wiki/Ilum/Legends
+- Imynusoph/Legends: https://starwars.fandom.com/wiki/Imynusoph/Legends
+- Interdiction field/Legends: https://starwars.fandom.com/wiki/Interdiction_field/Legends
+- Iokath: https://starwars.fandom.com/wiki/Iokath
+- Iope: https://starwars.fandom.com/wiki/Iope
+- Iridonia/Legends: https://starwars.fandom.com/wiki/Iridonia/Legends
+- Isen: https://starwars.fandom.com/wiki/Isen
+- Isen IV: https://starwars.fandom.com/wiki/Isen_IV
+- Iseno/Legends: https://starwars.fandom.com/wiki/Iseno/Legends
+- Iskalon/Legends: https://starwars.fandom.com/wiki/Iskalon/Legends
+- Ison Trade Corridor/Legends: https://starwars.fandom.com/wiki/Ison_Trade_Corridor/Legends
+- Ithor/Legends: https://starwars.fandom.com/wiki/Ithor/Legends
+- Jabiim/Legends: https://starwars.fandom.com/wiki/Jabiim/Legends
+- Jandoon: https://starwars.fandom.com/wiki/Jandoon
+- Javaal: https://starwars.fandom.com/wiki/Javaal
+- Jebble: https://starwars.fandom.com/wiki/Jebble
+- Joralla: https://starwars.fandom.com/wiki/Joralla
+- Jurio: https://starwars.fandom.com/wiki/Jurio
+- Kabray: https://starwars.fandom.com/wiki/Kabray
+- Kajim: https://starwars.fandom.com/wiki/Kajim
+- Kal'Shebbol/Legends: https://starwars.fandom.com/wiki/Kal'Shebbol/Legends
+- Kalakar Six: https://starwars.fandom.com/wiki/Kalakar_Six
+- Kalandis Seven: https://starwars.fandom.com/wiki/Kalandis_Seven
+- Kalee/Legends: https://starwars.fandom.com/wiki/Kalee/Legends
+- Kalis: https://starwars.fandom.com/wiki/Kalis
+- Kaliska: https://starwars.fandom.com/wiki/Kaliska
+- Kalsunor: https://starwars.fandom.com/wiki/Kalsunor
+- Kamar/Legends: https://starwars.fandom.com/wiki/Kamar/Legends
+- Kamat Aegit: https://starwars.fandom.com/wiki/Kamat_Aegit
+- Kamat Krote: https://starwars.fandom.com/wiki/Kamat_Krote
+- Kamino/Legends: https://starwars.fandom.com/wiki/Kamino/Legends
+- Kandosii-type dreadnaught: https://starwars.fandom.com/wiki/Kandosii-type_dreadnaught
+- Kant: https://starwars.fandom.com/wiki/Kant
+- Kaon: https://starwars.fandom.com/wiki/Kaon
+- Karfeddion/Legends: https://starwars.fandom.com/wiki/Karfeddion/Legends
+- Karideph: https://starwars.fandom.com/wiki/Karideph
+- Kashoon: https://starwars.fandom.com/wiki/Kashoon
+- Kashyyyk/Legends: https://starwars.fandom.com/wiki/Kashyyyk/Legends
+- Katarr/Legends: https://starwars.fandom.com/wiki/Katarr/Legends
+- Katchan: https://starwars.fandom.com/wiki/Katchan
+- Kauron: https://starwars.fandom.com/wiki/Kauron
+- Kauron asteroid field: https://starwars.fandom.com/wiki/Kauron_asteroid_field
+- Keres I: https://starwars.fandom.com/wiki/Keres_I
+- Keres II: https://starwars.fandom.com/wiki/Keres_II
+- Kessel Run/Legends: https://starwars.fandom.com/wiki/Kessel_Run/Legends
+- Kessel/Legends: https://starwars.fandom.com/wiki/Kessel/Legends
+- Khar Delba: https://starwars.fandom.com/wiki/Khar_Delba
+- Khar Shian: https://starwars.fandom.com/wiki/Khar_Shian
+- Khomm/Legends: https://starwars.fandom.com/wiki/Khomm/Legends
+- Kiffex/Legends: https://starwars.fandom.com/wiki/Kiffex/Legends
+- Kiffu/Legends: https://starwars.fandom.com/wiki/Kiffu/Legends
+- Kintan/Legends: https://starwars.fandom.com/wiki/Kintan/Legends
+- Kinyen/Legends: https://starwars.fandom.com/wiki/Kinyen/Legends
+- Kirrek: https://starwars.fandom.com/wiki/Kirrek
+- Kiskua: https://starwars.fandom.com/wiki/Kiskua
+- Klatooine/Legends: https://starwars.fandom.com/wiki/Klatooine/Legends
+- Knores: https://starwars.fandom.com/wiki/Knores
+- Kolaador: https://starwars.fandom.com/wiki/Kolaador
+- Kor Nasirii: https://starwars.fandom.com/wiki/Kor_Nasirii
+- Koros-Tython hyperlane: https://starwars.fandom.com/wiki/Koros-Tython_hyperlane
+- Korriban/Legends: https://starwars.fandom.com/wiki/Korriban/Legends
+- Korriz: https://starwars.fandom.com/wiki/Korriz
+- Koru Neimoidia/Legends: https://starwars.fandom.com/wiki/Koru_Neimoidia/Legends
+- Kovor: https://starwars.fandom.com/wiki/Kovor
+- Kowak/Legends: https://starwars.fandom.com/wiki/Kowak/Legends
+- Krayiss II: https://starwars.fandom.com/wiki/Krayiss_II
+- Kuat/Legends: https://starwars.fandom.com/wiki/Kuat/Legends
+- Kubindi/Legends: https://starwars.fandom.com/wiki/Kubindi/Legends
+- Kuras III: https://starwars.fandom.com/wiki/Kuras_III
+- Lan Barell/Legends: https://starwars.fandom.com/wiki/Lan_Barell/Legends
+- Laria: https://starwars.fandom.com/wiki/Laria
+- Lehon/Legends: https://starwars.fandom.com/wiki/Lehon/Legends
+- Lenico IV: https://starwars.fandom.com/wiki/Lenico_IV
+- Leritor/Legends: https://starwars.fandom.com/wiki/Leritor/Legends
+- Lettow: https://starwars.fandom.com/wiki/Lettow
+- Lijuter: https://starwars.fandom.com/wiki/Lijuter
+- Livien: https://starwars.fandom.com/wiki/Livien
+- Llanic/Legends: https://starwars.fandom.com/wiki/Llanic/Legends
+- Loovria/Legends: https://starwars.fandom.com/wiki/Loovria/Legends
+- Loposi Three: https://starwars.fandom.com/wiki/Loposi_Three
+- Loposi Three's moon: https://starwars.fandom.com/wiki/Loposi_Three's_moon
+- Loronar/Legends: https://starwars.fandom.com/wiki/Loronar/Legends
+- Lorrd/Legends: https://starwars.fandom.com/wiki/Lorrd/Legends
+- Lorta/Legends: https://starwars.fandom.com/wiki/Lorta/Legends
+- Maelstrom Nebula/Legends: https://starwars.fandom.com/wiki/Maelstrom_Nebula/Legends
+- Makeb: https://starwars.fandom.com/wiki/Makeb
+- Makem Te/Legends: https://starwars.fandom.com/wiki/Makem_Te/Legends
+- Malachor II: https://starwars.fandom.com/wiki/Malachor_II
+- Malachor III: https://starwars.fandom.com/wiki/Malachor_III
+- Malachor V: https://starwars.fandom.com/wiki/Malachor_V
+- Malastare/Legends: https://starwars.fandom.com/wiki/Malastare/Legends
+- Malrev IV: https://starwars.fandom.com/wiki/Malrev_IV
+- Manaan/Legends: https://starwars.fandom.com/wiki/Manaan/Legends
+- Manari: https://starwars.fandom.com/wiki/Manari
+- Mandalore the Lesser: https://starwars.fandom.com/wiki/Mandalore_the_Lesser
+- Mandalore/Legends: https://starwars.fandom.com/wiki/Mandalore/Legends
+- Mandalorian Road: https://starwars.fandom.com/wiki/Mandalorian_Road
+- Mandellia: https://starwars.fandom.com/wiki/Mandellia
+- Mardona III/Legends: https://starwars.fandom.com/wiki/Mardona_III/Legends
+- Marfa: https://starwars.fandom.com/wiki/Marfa
+- Mearalis II/Legends: https://starwars.fandom.com/wiki/Mearalis_II/Legends
+- Mechis II: https://starwars.fandom.com/wiki/Mechis_II
+- Mechis III/Legends: https://starwars.fandom.com/wiki/Mechis_III/Legends
+- Mek-Sha: https://starwars.fandom.com/wiki/Mek-Sha
+- Melldia: https://starwars.fandom.com/wiki/Melldia
+- Merisee/Legends: https://starwars.fandom.com/wiki/Merisee/Legends
+- Meriso: https://starwars.fandom.com/wiki/Meriso
+- Metellos/Legends: https://starwars.fandom.com/wiki/Metellos/Legends
+- Mima II: https://starwars.fandom.com/wiki/Mima_II
+- Mimban/Legends: https://starwars.fandom.com/wiki/Mimban/Legends
+- Mindor/Legends: https://starwars.fandom.com/wiki/Mindor/Legends
+- Mirial/Legends: https://starwars.fandom.com/wiki/Mirial/Legends
+- Molavar/Legends: https://starwars.fandom.com/wiki/Molavar/Legends
+- Moltok/Legends: https://starwars.fandom.com/wiki/Moltok/Legends
+- Mon Eron: https://starwars.fandom.com/wiki/Mon_Eron
+- Mon Gazza/Legends: https://starwars.fandom.com/wiki/Mon_Gazza/Legends
+- Monastery/Legends: https://starwars.fandom.com/wiki/Monastery/Legends
+- Mozos: https://starwars.fandom.com/wiki/Mozos
+- Mugaar/Legends: https://starwars.fandom.com/wiki/Mugaar/Legends
+- Murkhana/Legends: https://starwars.fandom.com/wiki/Murkhana/Legends
+- Mustafar/Legends: https://starwars.fandom.com/wiki/Mustafar/Legends
+- Muunilinst/Legends: https://starwars.fandom.com/wiki/Muunilinst/Legends
+- Mygeeto/Legends: https://starwars.fandom.com/wiki/Mygeeto/Legends
+- Myrkr: https://starwars.fandom.com/wiki/Myrkr
+- N'zoth: https://starwars.fandom.com/wiki/N'zoth
+- Naalol/Legends: https://starwars.fandom.com/wiki/Naalol/Legends
+- Naboo/Legends: https://starwars.fandom.com/wiki/Naboo/Legends
+- Nache Bhelfia: https://starwars.fandom.com/wiki/Nache_Bhelfia
+- Nal Hutta/Legends: https://starwars.fandom.com/wiki/Nal_Hutta/Legends
+- Nal Koska: https://starwars.fandom.com/wiki/Nal_Koska
+- Nal Yeshu: https://starwars.fandom.com/wiki/Nal_Yeshu
+- Nam'ta: https://starwars.fandom.com/wiki/Nam'ta
+- Namadii Corridor/Legends: https://starwars.fandom.com/wiki/Namadii_Corridor/Legends
+- Nameless moon: https://starwars.fandom.com/wiki/Nameless_moon
+- Naos Asteroid Belt: https://starwars.fandom.com/wiki/Naos_Asteroid_Belt
+- Nar Shaddaa/Legends: https://starwars.fandom.com/wiki/Nar_Shaddaa/Legends
+- Nathema: https://starwars.fandom.com/wiki/Nathema
+- Neimoidia/Legends: https://starwars.fandom.com/wiki/Neimoidia/Legends
+- Nelvaan/Legends: https://starwars.fandom.com/wiki/Nelvaan/Legends
+- Nevoota (planet): https://starwars.fandom.com/wiki/Nevoota_(planet)
+- New Cov/Legends: https://starwars.fandom.com/wiki/New_Cov/Legends
+- Nez Peron/Legends: https://starwars.fandom.com/wiki/Nez_Peron/Legends
+- Nfolgai: https://starwars.fandom.com/wiki/Nfolgai
+- Nim Drovis: https://starwars.fandom.com/wiki/Nim_Drovis
+- Noe'ha'on/Legends: https://starwars.fandom.com/wiki/Noe'ha'on/Legends
+- Noonar: https://starwars.fandom.com/wiki/Noonar
+- Nopsin: https://starwars.fandom.com/wiki/Nopsin
+- Nouane/Legends: https://starwars.fandom.com/wiki/Nouane/Legends
+- Nuvar: https://starwars.fandom.com/wiki/Nuvar
+- Nyemari: https://starwars.fandom.com/wiki/Nyemari
+- Obroa-skai/Legends: https://starwars.fandom.com/wiki/Obroa-skai/Legends
+- Obus VI: https://starwars.fandom.com/wiki/Obus_VI
+- Odacer-Faustin: https://starwars.fandom.com/wiki/Odacer-Faustin
+- Odessen: https://starwars.fandom.com/wiki/Odessen
+- Odryn: https://starwars.fandom.com/wiki/Odryn
+- Onderon/Legends: https://starwars.fandom.com/wiki/Onderon/Legends
+- Ootmian Pabol/Legends: https://starwars.fandom.com/wiki/Ootmian_Pabol/Legends
+- Ord Biniir/Legends: https://starwars.fandom.com/wiki/Ord_Biniir/Legends
+- Ord Cantrell/Legends: https://starwars.fandom.com/wiki/Ord_Cantrell/Legends
+- Ord Dalet: https://starwars.fandom.com/wiki/Ord_Dalet
+- Ord Dorlass: https://starwars.fandom.com/wiki/Ord_Dorlass
+- Ord Ibanna: https://starwars.fandom.com/wiki/Ord_Ibanna
+- Ord Mantell/Legends: https://starwars.fandom.com/wiki/Ord_Mantell/Legends
+- Ord Mirit: https://starwars.fandom.com/wiki/Ord_Mirit
+- Ord Radama/Legends: https://starwars.fandom.com/wiki/Ord_Radama/Legends
+- Ord Trasi/Legends: https://starwars.fandom.com/wiki/Ord_Trasi/Legends
+- Oricon: https://starwars.fandom.com/wiki/Oricon
+- Orleon: https://starwars.fandom.com/wiki/Orleon
+- Orma: https://starwars.fandom.com/wiki/Orma
+- Orto Plutonia/Legends: https://starwars.fandom.com/wiki/Orto_Plutonia/Legends
+- Orto/Legends: https://starwars.fandom.com/wiki/Orto/Legends
+- Ossus/Legends: https://starwars.fandom.com/wiki/Ossus/Legends
+- Paigu: https://starwars.fandom.com/wiki/Paigu
+- Pakuuni/Legends: https://starwars.fandom.com/wiki/Pakuuni/Legends
+- Palawa: https://starwars.fandom.com/wiki/Palawa
+- Panatha: https://starwars.fandom.com/wiki/Panatha
+- Paulking XIV: https://starwars.fandom.com/wiki/Paulking_XIV
+- Pavia: https://starwars.fandom.com/wiki/Pavia
+- Pelagon: https://starwars.fandom.com/wiki/Pelagon
+- Pencael IV: https://starwars.fandom.com/wiki/Pencael_IV
+- Pengalan IV: https://starwars.fandom.com/wiki/Pengalan_IV
+- Peragus asteroid field: https://starwars.fandom.com/wiki/Peragus_asteroid_field
+- Peragus II: https://starwars.fandom.com/wiki/Peragus_II
+- Perlemian Trade Route/Legends: https://starwars.fandom.com/wiki/Perlemian_Trade_Route/Legends
+- Phaseera: https://starwars.fandom.com/wiki/Phaseera
+- Phatrong/Legends: https://starwars.fandom.com/wiki/Phatrong/Legends
+- Phiris: https://starwars.fandom.com/wiki/Phiris
+- Phoebus: https://starwars.fandom.com/wiki/Phoebus
+- Phorliss: https://starwars.fandom.com/wiki/Phorliss
+- Phoros: https://starwars.fandom.com/wiki/Phoros
+- Pirdia: https://starwars.fandom.com/wiki/Pirdia
+- Poderis: https://starwars.fandom.com/wiki/Poderis
+- Polis Massa/Legends: https://starwars.fandom.com/wiki/Polis_Massa/Legends
+- Polith Belt: https://starwars.fandom.com/wiki/Polith_Belt
+- Port Nowhere: https://starwars.fandom.com/wiki/Port_Nowhere
+- Prishardia: https://starwars.fandom.com/wiki/Prishardia
+- Promencious Four: https://starwars.fandom.com/wiki/Promencious_Four
+- Qalydon/Legends: https://starwars.fandom.com/wiki/Qalydon/Legends
+- Qexis: https://starwars.fandom.com/wiki/Qexis
+- Quas Killam: https://starwars.fandom.com/wiki/Quas_Killam
+- Quesh: https://starwars.fandom.com/wiki/Quesh
+- Quooria: https://starwars.fandom.com/wiki/Quooria
+- Rabaan: https://starwars.fandom.com/wiki/Rabaan
+- Radnor/Legends: https://starwars.fandom.com/wiki/Radnor/Legends
+- Raisa: https://starwars.fandom.com/wiki/Raisa
+- Ralltiir/Legends: https://starwars.fandom.com/wiki/Ralltiir/Legends
+- Raskane IV: https://starwars.fandom.com/wiki/Raskane_IV
+- Rattatak/Legends: https://starwars.fandom.com/wiki/Rattatak/Legends
+- Raxus II: https://starwars.fandom.com/wiki/Raxus_II
+- Raxus Prime/Legends: https://starwars.fandom.com/wiki/Raxus_Prime/Legends
+- Raxus Secundus/Legends: https://starwars.fandom.com/wiki/Raxus_Secundus/Legends
+- Regretter's Rock: https://starwars.fandom.com/wiki/Regretter's_Rock
+- Rehemsa: https://starwars.fandom.com/wiki/Rehemsa
+- Rekkiad: https://starwars.fandom.com/wiki/Rekkiad
+- Relgim Run/Legends: https://starwars.fandom.com/wiki/Relgim_Run/Legends
+- Rendili/Legends: https://starwars.fandom.com/wiki/Rendili/Legends
+- Repea: https://starwars.fandom.com/wiki/Repea
+- Republic Customs Office: https://starwars.fandom.com/wiki/Republic_Customs_Office
+- Republic Strategic Information Service: https://starwars.fandom.com/wiki/Republic_Strategic_Information_Service
+- Rhen Var/Legends: https://starwars.fandom.com/wiki/Rhen_Var/Legends
+- Rhinnal/Legends: https://starwars.fandom.com/wiki/Rhinnal/Legends
+- Riflor/Legends: https://starwars.fandom.com/wiki/Riflor/Legends
+- Rimma: https://starwars.fandom.com/wiki/Rimma
+- Rimma Trade Route/Legends: https://starwars.fandom.com/wiki/Rimma_Trade_Route/Legends
+- Rinn/Legends: https://starwars.fandom.com/wiki/Rinn/Legends
+- Rishi moon: https://starwars.fandom.com/wiki/Rishi_moon
+- Rishi/Legends: https://starwars.fandom.com/wiki/Rishi/Legends
+- Rodia/Legends: https://starwars.fandom.com/wiki/Rodia/Legends
+- Rogue Moon: https://starwars.fandom.com/wiki/Rogue_Moon
+- Rokirex: https://starwars.fandom.com/wiki/Rokirex
+- Romossobar: https://starwars.fandom.com/wiki/Romossobar
+- Ronika/Legends: https://starwars.fandom.com/wiki/Ronika/Legends
+- Roon/Legends: https://starwars.fandom.com/wiki/Roon/Legends
+- Ropagi II: https://starwars.fandom.com/wiki/Ropagi_II
+- Rordak: https://starwars.fandom.com/wiki/Rordak
+- Ruan: https://starwars.fandom.com/wiki/Ruan
+- Rugosa/Legends: https://starwars.fandom.com/wiki/Rugosa/Legends
+- Ruhnuk: https://starwars.fandom.com/wiki/Ruhnuk
+- Rukabi Major: https://starwars.fandom.com/wiki/Rukabi_Major
+- Ruul (moon): https://starwars.fandom.com/wiki/Ruul_(moon)
+- Ruuria/Legends: https://starwars.fandom.com/wiki/Ruuria/Legends
+- Ruusan/Legends: https://starwars.fandom.com/wiki/Ruusan/Legends
+- Ryloth/Legends: https://starwars.fandom.com/wiki/Ryloth/Legends
+- Sacorria: https://starwars.fandom.com/wiki/Sacorria
+- Sakiya: https://starwars.fandom.com/wiki/Sakiya
+- Saleucami/Legends: https://starwars.fandom.com/wiki/Saleucami/Legends
+- Sarafur: https://starwars.fandom.com/wiki/Sarafur
+- Sarapin Four: https://starwars.fandom.com/wiki/Sarapin_Four
+- Sarapin/Legends: https://starwars.fandom.com/wiki/Sarapin/Legends
+- Sarkhai/Legends: https://starwars.fandom.com/wiki/Sarkhai/Legends
+- Sebaddon: https://starwars.fandom.com/wiki/Sebaddon
+- Sebiris: https://starwars.fandom.com/wiki/Sebiris
+- Seline: https://starwars.fandom.com/wiki/Seline
+- Selonia/Legends: https://starwars.fandom.com/wiki/Selonia/Legends
+- Seluket: https://starwars.fandom.com/wiki/Seluket
+- Sembla/Legends: https://starwars.fandom.com/wiki/Sembla/Legends
+- Sennatt: https://starwars.fandom.com/wiki/Sennatt
+- Serenno/Legends: https://starwars.fandom.com/wiki/Serenno/Legends
+- Sernpidal/Legends: https://starwars.fandom.com/wiki/Sernpidal/Legends
+- Serroco: https://starwars.fandom.com/wiki/Serroco
+- Seswenna Expansion: https://starwars.fandom.com/wiki/Seswenna_Expansion
+- Setolio: https://starwars.fandom.com/wiki/Setolio
+- Sevarcos II: https://starwars.fandom.com/wiki/Sevarcos_II
+- Seylott/Legends: https://starwars.fandom.com/wiki/Seylott/Legends
+- Shalyvane: https://starwars.fandom.com/wiki/Shalyvane
+- Shili/Legends: https://starwars.fandom.com/wiki/Shili/Legends
+- Shola/Legends: https://starwars.fandom.com/wiki/Shola/Legends
+- Sirilla: https://starwars.fandom.com/wiki/Sirilla
+- Sisar Run/Legends: https://starwars.fandom.com/wiki/Sisar_Run/Legends
+- Sith Empire (Post–Great Hyperspace War): https://starwars.fandom.com/wiki/Sith_Empire_(Post%E2%80%93Great_Hyperspace_War)
+- Skako/Legends: https://starwars.fandom.com/wiki/Skako/Legends
+- Skine: https://starwars.fandom.com/wiki/Skine
+- Skustell/Legends: https://starwars.fandom.com/wiki/Skustell/Legends
+- Sleheyron/Legends: https://starwars.fandom.com/wiki/Sleheyron/Legends
+- Sluis Van/Legends: https://starwars.fandom.com/wiki/Sluis_Van/Legends
+- Sneeve/Legends: https://starwars.fandom.com/wiki/Sneeve/Legends
+- Socorro/Legends: https://starwars.fandom.com/wiki/Socorro/Legends
+- Solu Five: https://starwars.fandom.com/wiki/Solu_Five
+- Sprizen End Run: https://starwars.fandom.com/wiki/Sprizen_End_Run
+- Spurs of Celanon/Legends: https://starwars.fandom.com/wiki/Spurs_of_Celanon/Legends
+- Sriluur/Legends: https://starwars.fandom.com/wiki/Sriluur/Legends
+- Sullust/Legends: https://starwars.fandom.com/wiki/Sullust/Legends
+- Sululluub: https://starwars.fandom.com/wiki/Sululluub
+- Sundari (planet): https://starwars.fandom.com/wiki/Sundari_(planet)
+- Syned One: https://starwars.fandom.com/wiki/Syned_One
+- Syngia: https://starwars.fandom.com/wiki/Syngia
+- Syvris/Legends: https://starwars.fandom.com/wiki/Syvris/Legends
+- Taanab/Legends: https://starwars.fandom.com/wiki/Taanab/Legends
+- Talay/Legends: https://starwars.fandom.com/wiki/Talay/Legends
+- Talofan: https://starwars.fandom.com/wiki/Talofan
+- Taloraan/Legends: https://starwars.fandom.com/wiki/Taloraan/Legends
+- Talravin: https://starwars.fandom.com/wiki/Talravin
+- Talus/Legends: https://starwars.fandom.com/wiki/Talus/Legends
+- Tandankin: https://starwars.fandom.com/wiki/Tandankin
+- Tantra: https://starwars.fandom.com/wiki/Tantra
+- Tar Morden: https://starwars.fandom.com/wiki/Tar_Morden
+- Taral V: https://starwars.fandom.com/wiki/Taral_V
+- Taris/Legends: https://starwars.fandom.com/wiki/Taris/Legends
+- Tas-La: https://starwars.fandom.com/wiki/Tas-La
+- Taskeed/Legends: https://starwars.fandom.com/wiki/Taskeed/Legends
+- Tatooine/Legends: https://starwars.fandom.com/wiki/Tatooine/Legends
+- Telos IV: https://starwars.fandom.com/wiki/Telos_IV
+- Temesher: https://starwars.fandom.com/wiki/Temesher
+- Tepasi/Legends: https://starwars.fandom.com/wiki/Tepasi/Legends
+- Terminus-class destroyer: https://starwars.fandom.com/wiki/Terminus-class_destroyer
+- Test environment JX967A24: https://starwars.fandom.com/wiki/Test_environment_JX967A24
+- Teth/Legends: https://starwars.fandom.com/wiki/Teth/Legends
+- Thila/Legends: https://starwars.fandom.com/wiki/Thila/Legends
+- Tholatin: https://starwars.fandom.com/wiki/Tholatin
+- Tholoth/Legends: https://starwars.fandom.com/wiki/Tholoth/Legends
+- Thyferra/Legends: https://starwars.fandom.com/wiki/Thyferra/Legends
+- Tibrin/Legends: https://starwars.fandom.com/wiki/Tibrin/Legends
+- Tiisheraan/Legends: https://starwars.fandom.com/wiki/Tiisheraan/Legends
+- Tingel Arm campaign: https://starwars.fandom.com/wiki/Tingel_Arm_campaign
+- Tingel Route: https://starwars.fandom.com/wiki/Tingel_Route
+- Tinnel IV/Legends: https://starwars.fandom.com/wiki/Tinnel_IV/Legends
+- Tion Trade Route: https://starwars.fandom.com/wiki/Tion_Trade_Route
+- Tirsa: https://starwars.fandom.com/wiki/Tirsa
+- Toola/Legends: https://starwars.fandom.com/wiki/Toola/Legends
+- Toprawa/Legends: https://starwars.fandom.com/wiki/Toprawa/Legends
+- Toydaria/Legends: https://starwars.fandom.com/wiki/Toydaria/Legends
+- Trandosha/Legends: https://starwars.fandom.com/wiki/Trandosha/Legends
+- Treaty of Coruscant: https://starwars.fandom.com/wiki/Treaty_of_Coruscant
+- Triellus Trade Route/Legends: https://starwars.fandom.com/wiki/Triellus_Trade_Route/Legends
+- Trif: https://starwars.fandom.com/wiki/Trif
+- Triton/Legends: https://starwars.fandom.com/wiki/Triton/Legends
+- Tryast: https://starwars.fandom.com/wiki/Tryast
+- Tund/Legends: https://starwars.fandom.com/wiki/Tund/Legends
+- Tunyok: https://starwars.fandom.com/wiki/Tunyok
+- Tython hyperspace route (Satele Shan): https://starwars.fandom.com/wiki/Tython_hyperspace_route_(Satele_Shan)
+- Tython/Legends: https://starwars.fandom.com/wiki/Tython/Legends
+- Tytun: https://starwars.fandom.com/wiki/Tytun
+- Ukio/Legends: https://starwars.fandom.com/wiki/Ukio/Legends
+- Ulmatra/Legends: https://starwars.fandom.com/wiki/Ulmatra/Legends
+- Umbara/Legends: https://starwars.fandom.com/wiki/Umbara/Legends
+- Unidentified fringe planet: https://starwars.fandom.com/wiki/Unidentified_fringe_planet
+- Unidentified Hok system asteroid: https://starwars.fandom.com/wiki/Unidentified_Hok_system_asteroid
+- Unidentified hyperlane (Bezha Two): https://starwars.fandom.com/wiki/Unidentified_hyperlane_(Bezha_Two)
+- Unidentified Inner Rim planet (revolution): https://starwars.fandom.com/wiki/Unidentified_Inner_Rim_planet_(revolution)
+- Unidentified Jedi world: https://starwars.fandom.com/wiki/Unidentified_Jedi_world
+- Unidentified jungle world (Torch Nebula): https://starwars.fandom.com/wiki/Unidentified_jungle_world_(Torch_Nebula)
+- Unidentified Mid Rim planet: https://starwars.fandom.com/wiki/Unidentified_Mid_Rim_planet
+- Unidentified moon of Kiskua: https://starwars.fandom.com/wiki/Unidentified_moon_of_Kiskua
+- Unidentified Outer Rim moon: https://starwars.fandom.com/wiki/Unidentified_Outer_Rim_moon
+- Unidentified planet (Lorardia system): https://starwars.fandom.com/wiki/Unidentified_planet_(Lorardia_system)
+- Unidentified planetoid (Vesla system): https://starwars.fandom.com/wiki/Unidentified_planetoid_(Vesla_system)
+- Unidentified Wild Space planet: https://starwars.fandom.com/wiki/Unidentified_Wild_Space_planet
+- Uphrades: https://starwars.fandom.com/wiki/Uphrades
+- Urkupp: https://starwars.fandom.com/wiki/Urkupp
+- Useria: https://starwars.fandom.com/wiki/Useria
+- Useria's moon: https://starwars.fandom.com/wiki/Useria's_moon
+- Utapau/Legends: https://starwars.fandom.com/wiki/Utapau/Legends
+- Vaal asteroid field: https://starwars.fandom.com/wiki/Vaal_asteroid_field
+- Vaced/Legends: https://starwars.fandom.com/wiki/Vaced/Legends
+- Vactooine: https://starwars.fandom.com/wiki/Vactooine
+- Valor-class cruiser: https://starwars.fandom.com/wiki/Valor-class_cruiser
+- Vandelhelm/Legends: https://starwars.fandom.com/wiki/Vandelhelm/Legends
+- Vandin: https://starwars.fandom.com/wiki/Vandin
+- Varl/Legends: https://starwars.fandom.com/wiki/Varl/Legends
+- Varn: https://starwars.fandom.com/wiki/Varn
+- Vasch: https://starwars.fandom.com/wiki/Vasch
+- Vassek/Legends: https://starwars.fandom.com/wiki/Vassek/Legends
+- Velmor/Legends: https://starwars.fandom.com/wiki/Velmor/Legends
+- Vena: https://starwars.fandom.com/wiki/Vena
+- Vendaxa/Legends: https://starwars.fandom.com/wiki/Vendaxa/Legends
+- Verroth: https://starwars.fandom.com/wiki/Verroth
+- Vesla Three: https://starwars.fandom.com/wiki/Vesla_Three
+- Vesla Two: https://starwars.fandom.com/wiki/Vesla_Two
+- Vinsoth/Legends: https://starwars.fandom.com/wiki/Vinsoth/Legends
+- Vo: https://starwars.fandom.com/wiki/Vo
+- Vondoru: https://starwars.fandom.com/wiki/Vondoru
+- Vontor: https://starwars.fandom.com/wiki/Vontor
+- Voss: https://starwars.fandom.com/wiki/Voss
+- Vulta: https://starwars.fandom.com/wiki/Vulta
+- Vultar: https://starwars.fandom.com/wiki/Vultar
+- Vur IV: https://starwars.fandom.com/wiki/Vur_IV
+- Waskiro/Legends: https://starwars.fandom.com/wiki/Waskiro/Legends
+- Wayland/Legends: https://starwars.fandom.com/wiki/Wayland/Legends
+- X-70B Phantom-class prototype: https://starwars.fandom.com/wiki/X-70B_Phantom-class_prototype
+- Xo: https://starwars.fandom.com/wiki/Xo
+- Yablari/Legends: https://starwars.fandom.com/wiki/Yablari/Legends
+- Yanibar: https://starwars.fandom.com/wiki/Yanibar
+- Yavin 4/Legends: https://starwars.fandom.com/wiki/Yavin_4/Legends
+- Yavin Prime/Legends: https://starwars.fandom.com/wiki/Yavin_Prime/Legends
+- Yev: https://starwars.fandom.com/wiki/Yev
+- Ylesia/Legends: https://starwars.fandom.com/wiki/Ylesia/Legends
+- Yn: https://starwars.fandom.com/wiki/Yn
+- Zaadja/Legends: https://starwars.fandom.com/wiki/Zaadja/Legends
+- Zadd: https://starwars.fandom.com/wiki/Zadd
+- Zakuul: https://starwars.fandom.com/wiki/Zakuul
+- Zeltros/Legends: https://starwars.fandom.com/wiki/Zeltros/Legends
+- Zilior: https://starwars.fandom.com/wiki/Zilior
+- Ziost/Legends: https://starwars.fandom.com/wiki/Ziost/Legends
+- Zonju V: https://starwars.fandom.com/wiki/Zonju_V
+- Zorfe Trete: https://starwars.fandom.com/wiki/Zorfe_Trete
+- Zosha: https://starwars.fandom.com/wiki/Zosha
+- Zygerria Four: https://starwars.fandom.com/wiki/Zygerria_Four
+
+## Changes from the previous file
+- This is the first version of SW_Planets_Travel_OldRepublic. There is no previous file to compare against.
+
+## Before submitting, check
+1. Every fact has a citation — yes. Planet fields cite the infobox or the named section, and every place, route and travel figure has a link.
+2. Every citation is Legends or acceptable — yes. /Legends pages were used where a Canon page exists, and Legends-only pages were checked by their banner. Canon-only grids are listed under Canon only.
+3. Dates have eras — yes (BBY throughout; other-era guides tagged).
+4. Nothing invented — yes. Gaps are listed in Not found and marked "Not on record [unclear]".
+5. Uncertainties tagged — yes ([unclear], [conflict], [inferred], [BTS], [unconfirmed in window]).
+6. Game ideas only in Game notes — yes.
+7. File name follows the pattern — yes (SW_Planets_Travel_OldRepublic_PartN.md).
+8. Every RPG/game figure is labelled (game stat: …) — yes (KOTOR Campaign Guide hyperdrive classes in Part C2).
+
+## Decisions needed
+1. **Hydian Way battle year:** 3661 or 3660 BBY (C-1). 3660 fits more sources and matches the timeline file's ruling 9.
+2. **Serenno's fall:** about 3661 or c. 3660 BBY (C-3).
+3. **Base travel-time table:** no era trip times exist. Approve a designer-set base table (to be marked invented), multiplied by hyperdrive class.
+4. **KOTOR-era game stats:** use the KOTOR Campaign Guide hyperdrive classes (Class 2 for *Hammerhead*, *Aurek*, *Foray*, *Kandosii*) for ships still in use in 3661, or leave them unrated? These stats come from material set about 300 years earlier.
+5. **Dromund Kaas in 3661:** can Republic players know its coordinates? (The name was known from 3668 BBY.)
+6. **Quesh:** discovered before or after 3661?
+7. **SWTOR-era places (c. 3643+) on worlds that are open in 3661:** assume they exist in 3661 unless a later event created them, or require confirmation for each?
+8. **Infobox population figures** often belong to other eras. Use them as placeholders or leave them blank?
+9. **Mention-only worlds (Part A index):** put them on the map as background nodes, or omit them?
+10. **Developer file correction:** move Dromund Kaas's grid R-5 out of "Canon only" in SW_Dromund_Kaas_Part1/Part2 (C-4).
+11. **Devaron's link to the Hydian Way** (C-7): place the blockade stretch as described, even though Devaron's infobox route is the Corellian Trade Spine?
+
+## Not used
+- **Rule 7 gray-area sources:** none were needed. No fact in this file rests on a 2014–2016 non-SWTOR source.
+- **Rule 8 last-resort sources:** none (Star Wars: Graphics not used).
+- **Other-era travel data used only as tagged guides:** Galactic Civil War hyperdrive class typical ratings and the Imperial-era Coruscant–Alderaan 16-hour trip (Part C). They are not era facts.
+- **Infobox route lists of other eras:** routes in planet infoboxes with no era attestation are listed in Part B2 for map use only and flagged; their 3661 existence is [unclear].
+- **Canon material:** see Canon only.

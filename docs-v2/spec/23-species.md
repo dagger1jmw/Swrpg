@@ -92,6 +92,7 @@ Game-book age bands are the default ageing tables where no lore exists; where lo
 
 **Era gating rule:** a species can be picked only if its people are known to the side and the era of the start. In code this is `knownFrom` in species.ts and `speciesOfferedAt(year)`, and computeCreation rejects anything else.
 - For the 3,661 BBY start the only gated case is the **Voss**, unknown to the galaxy until the rediscovery c. 3,645 BBY. No Voss player characters before then: a backstory exception is not offered at creation, and Voss NPCs before 3,645 need a story reason.
+- **Kaleesh (lore batch 22, D-402 [10]; amends D-399 [21]):** Kalee is in Wild Space, and its page says the Kaleesh were "only recently contacted by the Galactic War" (SW_Planets_Travel_OldRepublic_Part2, Kalee). That does not put contact before 3,661, so the Kaleesh are NPC-only at the 3,661 start, gated like the Voss. Offered from the Galactic War (3,641; the year is a design reading of "recently contacted by the Galactic War"). 36 species are offered in 3,661.
 - **Later start eras need the same check** as more gates are found.
 
 **Setting rulings:**
@@ -133,7 +134,7 @@ One line each, giving:
 | Nautolan | 70 game stat / 18 house | respected; no Force culture | Anselmian, Basic | Glee Anselm: not stated | — | P1 |
 | Devaronian | 100 house / 18 house | higher than other species | Basic, Devaronese | Devaron: not stated | — | P1 |
 | Gand | 95 game stat / 18 house | the findsmen | Gand | Gand: not stated | — | P2 |
-| Kaleesh | 80 game stat / 18 house | a blessing; no Jedi known | Kaleesh | not stated; "recently arrived" in the galaxy | — | P2 |
+| Kaleesh (from 3,641; D-402 [10]) | 80 game stat / 18 house | a blessing; no Jedi known | Kaleesh | Kalee in Wild Space, only recently contacted | — | P2 |
 | Nikto | 100 house / 18 house | no rate stated | Nikto | Kintan, Hutt Space [inferred] | — | P2 |
 | Weequay | 90 game stat / 18 house | many; some Jedi | Sriluurian | Sriluur: not stated | — | P2 |
 | Talz | 52 game stat / 18 house | not stated | chirps and buzzes | not stated (a Cold War Senator) | — | P2 |

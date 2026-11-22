@@ -45,6 +45,7 @@ export const WORLD_CONTROL: readonly ControlSpan[] = [
   { place: 'Balmorra', fromBby: 3653, toBby: 3643, side: 'sithEmpire', note: 'Imperial after the Republic ended its support (freed in 3,642)', source: `${S1} (after 3,653); ${S2} (3,642)` },
   { place: 'Geonosis', fromBby: 3665, toBby: 3653, side: 'contested', note: 'the Geonosis campaign, an active front; the Mandalorian clans rallied here 3,667–3,665', source: `${S1} (3,665); D-382 [1]` },
   { place: 'Minos Cluster', fromBby: 3681, toBby: 3654, side: 'contested', note: 'a front for the whole war (the Jedi fleet arrived in 3,680); fighting ends with the peace offer of 3,654 and the Empire withdraws in 3,653', source: `${S1} (3,680, 3,654); D-393 [17]` },
+  { place: 'Serenno', fromBby: 3681, toBby: 3661, side: 'republic', note: "Republic-held, with Jedi Master Ven Zallow's base; it falls to Malgus c. 3,660 in the Rim Campaign", source: 'D-402 [2]; SW_Planets_Travel_OldRepublic_Part1 (Serenno)' },
   { place: 'Ord Radama', fromBby: 3681, toBby: 3653, side: 'republic', note: 'Republic-held; taken by Malgus and Venemal in 3,660 and retaken the same year (the "Harrower Disaster")', source: `${S1} (3,660)` },
   { place: 'Alderaan', fromBby: 3667, toBby: 3654, side: 'republic', note: 'the Imperial invasion of 3,667 was repelled', source: `${S1} (3,667)` },
   { place: 'Bothawui', fromBby: 3671, toBby: 3654, side: 'republic', note: 'Republic-defended since the two battles of 3,671 halted the Sith advance', source: `${S1} (3,671); SW_Species_OldRepublic_Part1 (Bothan)` },

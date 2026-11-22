@@ -259,6 +259,9 @@ Each location below has its own row in the location table.
 | Emperor's orbital station | space station | orbit | Emperor's personal station | "much of his reign" [unclear] | [Dromund system §Description](https://starwars.fandom.com/wiki/Dromund_system) |
 | Burned city block (Vesh household) | residential block | Kaas City | Destroyed when the Force-sensitive Thana Vesh killed her wealthy military parents | after 3681 BBY | [Thana Vesh's parents](https://starwars.fandom.com/wiki/Thana_Vesh's_parents); [Thana Vesh §Early Life](https://starwars.fandom.com/wiki/Thana_Vesh) |
 
+## Changes from the previous file
+- **Lore batch 22 (2026-11-22, D-402 [17]):** grid square R-5 is Legends (Dromund Kaas/Legends infobox, The Essential Atlas, 2009), not Canon only; moved out of "Canon only, not used".
+
 ## Timeline
 | Year | Event | Place | Key figures | Citation |
 |---|---|---|---|---|
@@ -298,7 +301,7 @@ Each location below has its own row in the location table.
 
 ## Canon only, not used
 Each was checked against Legends pages first.
-- [Dromund Kaas](https://starwars.fandom.com/wiki/Dromund_Kaas) (Canon page): adds grid square R-5, "believed to be a myth" along with Moraband, and a Sidious visit per a 35 ABY historian. None of these appear on the fetched Legends pages. The Legends Dromund Kaas/Legends page is used for everything else.
+- [Dromund Kaas](https://starwars.fandom.com/wiki/Dromund_Kaas) (Canon page): adds "believed to be a myth" along with Moraband, and a Sidious visit per a 35 ABY historian. None of these appear on the fetched Legends pages. The Legends Dromund Kaas/Legends page is used for everything else. (Grid R-5 moved out of this list in lore batch 22: the Legends page gives R-5, from The Essential Atlas, 2009.)
 - [Dromund Kaas system](https://starwars.fandom.com/wiki/Dromund_Kaas_system) (Canon): the Legends equivalent is "Dromund system", which was used.
 - [Ord Radama](https://starwars.fandom.com/wiki/Ord_Radama) (Canon page): Ord Radama/Legends used instead.
 - [Imperial Science Bureau](https://starwars.fandom.com/wiki/Imperial_Science_Bureau) (Canon, Galactic Empire): the Legends page "Imperial Science Bureau (Sith Empire)" was used.

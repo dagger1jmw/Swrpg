@@ -112,11 +112,13 @@ describe('species (species.md §5)', () => {
     }
   });
 
-  it('lore batch 21 (D-399): 38 species offered in 3,661 BBY, the Voss only from 3,645 BBY, seven NPC-only', () => {
-    expect(speciesOfferedAt(-3661)).toHaveLength(37);
+  it('lore batch 21 (D-399): 38 species offered, the Voss only from 3,645 BBY and the Kaleesh from 3,641 (D-402 [10]), seven NPC-only', () => {
+    expect(speciesOfferedAt(-3661)).toHaveLength(36);
+    expect(speciesOfferedAt(-3661).map((s) => s.id)).not.toContain('kaleesh');
+    expect(speciesOfferedAt(-3641)).toHaveLength(38);
     expect(speciesOfferedAt(-3661).map((s) => s.id)).not.toContain('voss');
     expect(speciesOfferedAt(-3645).map((s) => s.id)).toContain('voss');
-    expect(speciesOfferedAt(-3645)).toHaveLength(38);
+    expect(speciesOfferedAt(-3645)).toHaveLength(37);
     expect(SPECIES.filter((s) => !s.playable).map((s) => s.id).sort()).toEqual(['aqualish', 'echani', 'gektl', 'gormak', 'houk', 'sarkhai', 'yodas_species']);
   });
   it('lore batch 21 (D-399): rulings 2-6, 19 in the age data', () => {

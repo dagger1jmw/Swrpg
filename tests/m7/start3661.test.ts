@@ -105,8 +105,8 @@ describe('who controls what in 3,661 BBY (D-400)', () => {
 });
 
 describe('species at a 3,661 BBY start (lore batch 21)', () => {
-  it('37 offered, the Voss not yet', () => {
-    expect(speciesOfferedAt(-3661)).toHaveLength(37);
+  it('36 offered, the Voss and the Kaleesh not yet (D-402 [10])', () => {
+    expect(speciesOfferedAt(-3661)).toHaveLength(36);
     expect(speciesOfferedAt(-3661).some((s) => s.id === 'voss')).toBe(false);
   });
 });

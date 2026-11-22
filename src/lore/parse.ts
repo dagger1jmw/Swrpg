@@ -7,7 +7,7 @@
 // abilities file is not indexed until M6.
 import { normalizeAlias, normalizeText, slugify, textMentions } from '../engine/aliases.ts';
 
-export type LoreChunkKind = 'character' | 'bench' | 'overview' | 'timeline' | 'note' | 'species';
+export type LoreChunkKind = 'character' | 'bench' | 'overview' | 'timeline' | 'note' | 'species' | 'planet' | 'route';
 
 export interface LoreChunk {
   id: string;
@@ -607,6 +607,79 @@ function parseSpeciesFile(fileKey: string, content: string, out: LoreChunk[]): v
   }
 }
 
+/** A piece that opens with an event date ("3653 BBY: ...", "c. 3643 BBY: ...", "Changes: 3661 BBY: ..."). */
+const LEADING_DATE = /^(?:-\s*)?(?:[A-Za-z][A-Za-z0-9 ]{0,20}:\s*)?(?:c\.\s*|by\s+|after\s+|before\s+|early\s+|mid-|late\s+)?(\d[\d,]*)(?:\s*[–-]\s*\d[\d,]*)?\s*BBY\b/;
+
+/**
+ * Splits planet or route prose into pieces dated by their own leading event date, so the narrator gets only what has
+ * happened by the current year (D-98's mechanism; lore batch 22). Each line is split into sentences; a sentence that
+ * opens with a date takes that date (a range takes its start); every other piece belongs to the era's start. Not
+ * monotonic: an undated field after a dated event stays visible.
+ */
+function datedEventPieces(text: string, eraFrom: number): { year: number; text: string }[] {
+  const out: { year: number; text: string }[] = [];
+  for (const line of text.split('\n')) {
+    if (!line.trim()) continue;
+    const pieces = line.match(/[^.!?]+(?:[.!?]+(?=\s|$)["')\]]*)?/g) ?? [line];
+    pieces.forEach((piece, i) => {
+      const m = LEADING_DATE.exec(piece.trim());
+      const year = m ? -Number(m[1]!.replace(/,/g, '')) : eraFrom;
+      out.push({ year: Math.max(eraFrom, year), text: `${piece.trim()}${i === pieces.length - 1 ? '\n' : ' '}` });
+    });
+  }
+  return out;
+}
+
+/** Planet field 3's population, which belongs to other eras: dropped from story text (D-402 [12]). */
+const POPULATION = /population: .*?(?=; (?:native species|language|government|other species)|\. \[|$)/;
+
+/**
+ * The research bot's planets and travel files (SW_Planets_Travel_OldRepublic_Part1-6, lore batch 22, D-403). Each `###`
+ * planet entry ("**Type:** celestial body" or a numbered "1. Location" field) becomes a `planet` chunk, located at the
+ * planet so it is sent when the scene is there or the planet is named. Each route entry ("Endpoints", "Founded" or a
+ * hyperroute type) becomes a `route` chunk, sent only when named. Citations, the population figures and the big tables
+ * (the master table, the mention-only index, the B2 list, the 725 sources) are left out.
+ */
+function parsePlanetFile(fileKey: string, content: string, out: LoreChunk[]): void {
+  const lines = content.split(/\r?\n/);
+  const range = parseYearRange(lines.find((l) => /^#\s/.test(l)) ?? '');
+  if (!range) return;
+  let cur: { heading: string; body: string[] } | null = null;
+  const sections: { heading: string; body: string[] }[] = [];
+  for (const line of lines) {
+    const h = /^(#{1,4})\s+(.*)$/.exec(line);
+    if (h) {
+      cur = h[1]!.length === 3 ? { heading: h[2]!.trim(), body: [] } : null;
+      if (cur) sections.push(cur);
+    } else if (cur) cur.body.push(line);
+  }
+  const seen = new Set<string>();
+  for (const s of sections) {
+    const isPlanet = s.body.some((l) => /^\s*-\s*\*\*Type:\*\*\s*celestial body/i.test(l) || /^\s*-\s*\*\*1\. Location:/.test(l));
+    const isRoute = !isPlanet && s.body.some((l) => /^\s*-\s*\*\*(Endpoints|Founded):\*\*/.test(l) || /^\s*-\s*\*\*Type:\*\*\s*[a-z-]*hyperroute/i.test(l));
+    if (!isPlanet && !isRoute) continue;
+    const name = stripLinks(s.heading).replace(/\s*\([^)]*\)\s*$/, '').trim();
+    const id = `${fileKey}:${slugify(name)}`;
+    if (!name || seen.has(id)) continue;
+    seen.add(id);
+    const body = s.body.filter((l) => !isTableLine(l) && !/^\s*-\s*\*\*Cross-reference:\*\*/.test(l)).map((l) => stripCitations(l).replace(POPULATION, 'population: other-era figure only'));
+    const norm = normalizeText(name);
+    const head = `${name} (${isPlanet ? 'world' : 'hyperspace route'})`;
+    const prose = proseLines(body);
+    out.push({
+      id,
+      kind: isPlanet ? 'planet' : 'route',
+      title: name,
+      fromYear: range.from,
+      toYear: range.to,
+      names: [normalizeAlias(name)].filter((a) => a.length >= 3),
+      locations: isPlanet && norm.length >= 3 ? [norm] : [],
+      text: `${head}\n${prose}`,
+      parts: [{ year: range.from, text: `${head}\n` }, ...datedEventPieces(prose, range.from)],
+    });
+  }
+}
+
 function parseCharacterFile(fileKey: string, content: string, out: LoreChunk[], entities: LoreEntity[]): void {
   if (parseBotCharacterFile(fileKey, content, out, entities)) return;
   const lines = content.split(/\r?\n/);
@@ -705,6 +778,9 @@ export function fileKey(name: string): string | null {
   // Species files (SW_Species_OldRepublic_Part1.md -> sp-oldrepublic-p1; lore batch 21).
   const sp = /^SW_Species_([0-9A-Za-z]+)_Part(\d+)\.md$/.exec(name);
   if (sp) return `sp-${sp[1]!.toLowerCase()}-p${sp[2]}`;
+  // Planets and travel files (SW_Planets_Travel_OldRepublic_Part1.md -> pl-oldrepublic-p1; lore batch 22).
+  const pl = /^SW_Planets_Travel_([0-9A-Za-z]+)_Part(\d+)\.md$/.exec(name);
+  if (pl) return `pl-${pl[1]!.toLowerCase()}-p${pl[2]}`;
   return null;
 }
 
@@ -720,6 +796,7 @@ export function buildLoreIndex(files: readonly LoreFile[]): LoreIndex {
   for (const f of sorted) {
     const key = fileKey(f.name);
     if (key?.startsWith('sp-')) parseSpeciesFile(key, f.content, chunks);
+    else if (key?.startsWith('pl-')) parsePlanetFile(key, f.content, chunks);
     else if (key && key !== 'tl') parseCharacterFile(key, f.content, chunks, entities);
   }
   // Research-bot sets (c09p1, c09p2, ...): an alias two figures of the same set share (Scourge's old title "Emperor's
@@ -744,7 +821,8 @@ export function buildLoreIndex(files: readonly LoreFile[]): LoreIndex {
   // Tag character, bench and note chunks with the locations they mention.
   const places = [...vocabulary].sort();
   for (const c of chunks) {
-    if (c.kind === 'timeline') continue;
+    // Timeline rows, planets and routes keep their own locations (a planet entry names many places; D-403).
+    if (c.kind === 'timeline' || c.kind === 'planet' || c.kind === 'route') continue;
     const norm = normalizeText(c.text);
     c.locations = places.filter((p) => textMentions(norm, p));
   }
