@@ -1105,6 +1105,10 @@ The clock and the module contract come first, before any feature.
   riots, surrender talk, smuggler relief in 3660. The Corellian Jedi academy (green robes, marriage allowed, Jedi
   Credits; by 3653 BBY) as an alternative Jedi start. **Flagged for M7 design, not a default:** a Padawan PC who is an
   unknowing Child of the Emperor (the Syo Bakarn pattern).
+- **M7 Coruscant in 3661 BBY (Jared, 2026-11-21, lore batch 14; D-380, D-381; lore: SW_Coruscant_City_GGW_Part1.md,
+  Game notes; candidates).** A food-price index by level for 3661–3660 BBY (numbers `invented`); the 3661 riots from the
+  street; the 3660 relief (cheering crowds, an empty podium at Visz's medal ceremony); security tiers (SSOs and CSF in
+  the Senate District, the CSF in the mid-levels, the Underworld Police below).
 - **M7 signature moves (Jared, 2026-11-21, lore batch 10; D-371; not built).** Consider giving named lightsaber
   maneuvers (the Named maneuvers table in SW_Force_Abilities_Forms_v3_complete.md: Sarlacc Sweep, Makashi riposte,
   Falling Avalanche, Assured Strike and the rest) mechanical effects. In M6 they are narrator flavour on existing actions.

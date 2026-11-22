@@ -221,7 +221,7 @@ Names marked "conj." are Wookieepedia's conjectural titles (the page opens with 
 - **Standing rule:** no game statistics are given anywhere in this file.
 
 ## Decisions needed
-1. **Year of the peace offer:** 3654 BBY (Berooken page) vs 3653 BBY (Treaty, conference and Malgus pages). Best fit: offer in 3654 BBY, conference and Sacking in 3653 BBY.
+1. **Year of the peace offer:** 3654 BBY (Berooken page) vs 3653 BBY (Treaty, conference and Malgus pages). Best fit: offer in 3654 BBY, conference and Sacking in 3653 BBY. Resolved (D-363 [1]; lore batch 14, ruling 3): offer in 3654 BBY, conference and Sacking in 3653 BBY.
 2. **Grand Master Zym's death:** killed in the Sacking (Kiwiiks page, citing *Threat of Peace* Act 1) vs killed afterwards by Braden on the Envoy/Temple ruins (Zym page). Best fit: afterwards, as the more detailed account.
 3. **Battle of Bomodon:** 3674 BBY (Bomodon and Trant pages) vs 3673 BBY (Garza page). Best fit: 3674 BBY.
 4. **End of the Hydian Way blockade:** 3660 BBY (blockade infobox, riots, Barrows) vs 3661 BBY (Battle on the Hydian Way intro). Best fit: 3660 BBY.

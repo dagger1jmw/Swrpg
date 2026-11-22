@@ -108,7 +108,7 @@ Legends lore reference for SWRPG. Researched Nov 21, 2026. Sources: Wookieepedia
 - **Era:** whole Republic era; this window as marked
 - **Key facts:**
   - **Role:**
-    - "One of the oldest planetary police forces in the galaxy", working with the Senate Guard and Jedi Peacekeepers. [Coruscant §Law enforcement](https://starwars.fandom.com/wiki/Coruscant/Legends)
+    - "One of the oldest planetary police forces in the galaxy", working with the Senate Guard and Jedi Peacekeepers. *Ruling 7 (lore batch 14):* in this window Senate security is the CSF plus the military's Senate Security Officers; the narrator may say "Senate guards" informally, but the formal Senate Guard (blue robes, Senate Commandos) is later-era and stays out. [Coruscant §Law enforcement](https://starwars.fandom.com/wiki/Coruscant/Legends)
     - In the Old Republic era it shared Senate Building security with the military's Senate Security Officers. [Coruscant Security Force §Senate Guard](https://starwars.fandom.com/wiki/Coruscant_Security_Force/Legends)
   - **Uniform during the Great Galactic War:** an off-white or tan shirt, tan trousers, dark knee boots, a utility belt, a grey blast vest, and a grey blast helmet or headset comlink. It was later changed to blue-grey with yellow stripes (SWTOR Coruscant). [Coruscant Security Force §Uniforms and equipment](https://starwars.fandom.com/wiki/Coruscant_Security_Force/Legends)
   - **Units:**

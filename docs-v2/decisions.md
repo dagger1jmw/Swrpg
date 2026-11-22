@@ -1038,3 +1038,22 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *Location unknown in 3661:* Dar'Nala (on Coruscant in 3671) and Tol Braga; placed where a story needs them, consistent with their recorded deeds.
   - *Dead by 3661:* Darach (3681), Belth Allusis (3671), Wyellett (lost 3665).
   - *Game hooks (Game notes; M7 candidates, architecture §15):* apprenticeship as a sequence of Masters with field postings to specialists; the 3661 Hydian Way crisis as an event chain (Council debate, the Devaron strike, food riots, surrender talk, smuggler relief in 3660); a Padawan PC as an unknowing Child of the Emperor (the Bakarn pattern), a heavy hook flagged for M7 design, not a default.
+- **D-380 Coruscant the city, Great Galactic War (Jared, 2026-11-21; lore batch 14; lore: SW_Coruscant_City_GGW_Part1.md; rulings on its 12 decisions).**
+  - *1. 3680 BBY riots:* "the Coruscant riots of 3680 BBY" is used as a named event; the name is Wookieepedia's own title, the events are on record.
+  - *2. Surrender talk in 3661:* it came from individual senators, many of them, including war hawks. The Senate as a body never formally debated surrender. (SW_Great_Galactic_War_Part2 reworded to "many senators, even the most ardent war hawks, began to suggest surrender", citing the Blockade of the Hydian Way page.)
+  - *3. Peace offer:* the offer came in 3654 BBY; the conference and the Sacking in 3653 BBY (D-363 [1]). The Power Structures and GGW files now all read this way.
+  - *4. Blockade relief (3660):* both accounts fit: the SIS sent Republic Navy elements and the Jedi starfighter fleet, and starfighters and corvettes from nearby systems joined.
+  - *5. Visz's medal:* the Senate organised a ceremony; she didn't attend.
+  - *6. Blockade dates:* 3661–3660 BBY. The riots begin in 3661 and end when the blockade breaks in 3660.
+  - *7. Senate security:* the CSF plus the military's Senate Security Officers. The narrator may say "Senate guards" informally; the formal Senate Guard (blue robes, Senate Commandos) is later-era and stays out.
+  - *8. Underworld Police:* allowed in this window, tagged undated.
+  - *9. Garza at Bomodon:* a ten-month campaign spanning 3674–3673 BBY (refines D-360 [15]'s 3674).
+  - *10. Pre-Sacking underworld (departs from the bot's best fit):* the named cast stays the Migrant Merchants' Guild (laundering, smuggling), the Exchange (offworld engspice) and the Hutts (money behind blockade runs). Small local gangs are allowed, tagged `invented`, because a lower-level start needs street crime. No invented organisation may be galaxy-wide or fill Black Sun's later role; that space stays empty until after the Sacking (D-365).
+  - *11. Rationing, curfews and conscription:* show shortages, soaring prices and volunteer enlistment, as on record. No formal rationing (the riots demanded food precisely because the Republic wasn't supplying it). No conscription (the record says volunteers). No standing curfew (as Kaas City, D-367); short district lockdowns during riots may be narrated, tagged `invented`.
+  - *12. Market kiosks and the market air-taxi station:* both named places stay out of 3661. Generic public transport (air taxis, turbolifts, airspeeders) may be narrated as era-neutral city function, with no specific station named (D-364's function rule).
+- **D-381 Coruscant in 3661 BBY: non-Jedi roster and hooks (Jared, 2026-11-21; lore batch 14; lore: SW_Coruscant_City_GGW_Part1.md).**
+  - *On record:* Senator Dorian Janarus (Coruscant), long-serving in the war; Marcus Trant (SIS field agent; the SIS is now a full espionage bureau, headquartered at the Heorem Complex, start date unclear); the CSF.
+  - *Chancellor Berooken:* Chancellor in 3661, per D-363, tagged [inferred]; the sources say only that he was elected late in the war. No source found dates his election after 3661.
+  - *Arriving in 3660:* Hylo Visz and her crew, Tyresius Lokai, Zale Barrows and Quan, with the relief convoy.
+  - *Elsewhere in 3661:* Elin Garza (Army, at the front), Jace Malcom (front), Nico Okarr.
+  - *Game hooks (M7 candidates, architecture §15):* a food-price index by level for 3661–3660 BBY (numbers `invented`; the record gives only "dramatic" rises); the 3661 riots from the street (starving lower-level residents, protests at the Senate, the news of the failed Jedi strike); the 3660 relief (cheering crowds at the freighter landings, an empty podium at the medal ceremony); security tiers (SSOs and CSF in the Senate District, the CSF in the mid-levels, the Underworld Police below).

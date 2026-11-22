@@ -25,7 +25,7 @@ This is Part 2 of 2: the Galactic Republic's power structure, 3681–c. 3627 BBY
     - In this era the "thousands of representatives" of the Senate elected the Chancellor. Elections in 3649 and 3645 BBY were "small affairs" because candidates feared Sith assassination. [Supreme Chancellor election, 3653 BBY §Election and aftermath](https://starwars.fandom.com/wiki/Supreme_Chancellor_election,_3653_BBY); [Supreme Chancellor election, 3649 BBY](https://starwars.fandom.com/wiki/Supreme_Chancellor_election,_3649_BBY); [Supreme Chancellor election, 3645 BBY](https://starwars.fandom.com/wiki/Supreme_Chancellor_election,_3645_BBY)
   - **Office holders:** see the offices table below.
   - **Senate powers shown in this era:**
-    - The Senate overruled the Jedi High Council and accepted the Dark Council's 3653 BBY peace offer; see the Jedi entry below. [Berooken §Biography](https://starwars.fandom.com/wiki/Berooken)
+    - The Senate overruled the Jedi High Council and accepted the Dark Council's peace offer (offer 3654 BBY; conference and Sacking 3653 BBY (lore batch 14)); see the Jedi entry below. [Berooken §Biography](https://starwars.fandom.com/wiki/Berooken)
     - Although only a small delegation signed the Treaty of Coruscant, only a vote of the full Senate could overturn it. [Treaty of Coruscant §Terms](https://starwars.fandom.com/wiki/Treaty_of_Coruscant)
     - The treaty made the Senate revoke the membership of several outlying worlds, including Bothawui and Rodia. [Treaty of Coruscant §A discontented Republic](https://starwars.fandom.com/wiki/Treaty_of_Coruscant)
     - The Senate shut down General Garza's rescue of Havoc Squad on Ando Prime, because the mission lacked its consent and risked breaking the treaty. [Havoc Squad §Defection](https://starwars.fandom.com/wiki/Havoc_Squad)
@@ -162,7 +162,7 @@ This is Part 2 of 2: the Galactic Republic's power structure, 3681–c. 3627 BBY
 - **Type:** relationship
 - **Era:** 3681–c. 3627 BBY
 - **Key facts:**
-  - **The 3653 BBY peace offer:**
+  - **The peace offer (offer 3654 BBY; conference and Sacking 3653 BBY (lore batch 14)):**
     - The High Council advised the Senate and the Chancellor to ignore the Dark Council's peace offer.
     - The Senate "overruled the Jedi", but the Council persuaded Berooken to stay on Coruscant during the talks.
 

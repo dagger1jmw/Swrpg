@@ -126,3 +126,4 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Coruscant_Jedi_Temple_OldRepublic_Part2.md` | Coruscant, Part 2: the city, law, crime, NPCs and the location table, c. 3700–3653 BBY |
 | `Docs/SWRPG lore/SW_Dromund_Kaas_KaasCity_OldRepublic_Part1.md` | Dromund Kaas, Part 1: the planet, Kaas City, the Citadel, the Dark Temple, location table |
 | `Docs/SWRPG lore/SW_Dromund_Kaas_KaasCity_OldRepublic_Part2.md` | Dromund Kaas, Part 2: daily life, other Imperial worlds, NPCs |
+| `Docs/SWRPG lore/SW_Coruscant_City_GGW_Part1.md` | Coruscant the city in the Great Galactic War (focus 3661 BBY): riots, blockade, Senate, security, underworld |
