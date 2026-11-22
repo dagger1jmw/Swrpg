@@ -46,7 +46,7 @@ export function naturalLevel(skillId: string, speciesId: string, age: number): n
 
 /**
  * Force boost (§11): min(45, 0.3 * max(0, FC - 40) + 0.2 * Force body-ability level). With the Force XP trial on
- * (harness only, off in the game; ruling 1 on force-xp-trial.md), FC is read capped at 110: the ceiling removal
+ * (off in the game until M6 integration; D-335), FC is read capped at 115: the ceiling removal
  * stays for Force abilities and only the physical boost saturates.
  */
 export function forceBoost(forceControl: number, bodyAbilityLevel: number): number {

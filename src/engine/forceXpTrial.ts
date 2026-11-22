@@ -37,7 +37,10 @@ export interface ForceXpTrialConfig {
    * anchor holds (the ceiling removal). Missing keys use 1.0 (standard) and 1.25 (push).
    */
   targetChallenge: Record<string, readonly (readonly [number, number])[]>;
-  /** Trial only (ruling 1 on force-xp-trial.md): the §11 physical Force boost reads Force Control capped at this. */
+  /**
+   * Trial only (D-335): the §11 physical Force boost reads Force Control capped at this. 115 puts Luke's physical peak
+   * median at 63 (force-xp-trial-3.md; 110 gave 59–60, 120 gave 65.5).
+   */
   physicalBoostFcCap: number;
   /** Trial only (ruling 2): a session's exercise draw is lowered until the block ends at or under this strain. */
   poolFitStrain: number;
@@ -75,7 +78,7 @@ export const FORCE_XP_TRIAL: ForceXpTrialConfig = {
     'padawan|standard|sense': [[15, 1.0000], [25, 1.0371], [35, 1.0000]],
   },
   // TARGETS-END
-  physicalBoostFcCap: 110,
+  physicalBoostFcCap: 115,
   poolFitStrain: 0.75,
   counts: {},
   defaultCount: 10_000,

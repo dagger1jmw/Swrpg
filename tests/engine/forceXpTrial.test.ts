@@ -82,12 +82,12 @@ describe('Force XP trial', () => {
     expect(fit.drawPerUnit * fit.efficiency).toBeCloseTo(5, 9);
   });
 
-  it('ruling 1: with the trial on, the physical Force boost reads Force Control capped at 110', () => {
+  it('D-335: with the trial on, the physical Force boost reads Force Control capped at 115', () => {
     const was = FORCE_XP_TRIAL.enabled;
     try {
       expect(forceBoost(150, 0)).toBeCloseTo(0.3 * 110, 9);
       FORCE_XP_TRIAL.enabled = true;
-      expect(forceBoost(150, 0)).toBeCloseTo(0.3 * 70, 9);
+      expect(forceBoost(150, 0)).toBeCloseTo(0.3 * 75, 9);
       expect(forceBoost(100, 10)).toBeCloseTo(0.3 * 60 + 2, 9);
     } finally {
       FORCE_XP_TRIAL.enabled = was;

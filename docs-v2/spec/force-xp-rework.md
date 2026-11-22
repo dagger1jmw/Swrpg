@@ -1,6 +1,6 @@
 # Force XP rework: difficulty, not hours (proposal)
 
-**Status:** approved in direction (Jared, 2026-11-21); **not adopted.** Built as a prototype behind a flag that is off in the game (`src/engine/forceXpTrial.ts`); measured in `docs-v2/testing/force-xp-trial.md` and, with Jared's rulings 1–5 (boost cap at FC 110, exercises fitted to the pool, band-keyed neutral targets), in `docs-v2/testing/force-xp-trial-2.md`, where every gate passes; decision entries D-333 to D-337 are proposed there, not logged. It revises the step 1 report §3.3 (`docs-v2/testing/m6-step1-report.md`). It implements checklist item 1 (`m6-integration-checklist.md`). It builds on the M4 challenge factor (`src/engine/challenge.ts`) and the reserve spec §3–4 and §7 (`force-reserve.md`).
+**Status:** **adopted as the M6 Force XP model** (Jared, 2026-11-21; D-333 to D-337). Built behind a flag that stays off in the game until M6 integration (`src/engine/forceXpTrial.ts`, checklist item 21). Measured in `docs-v2/testing/force-xp-trial.md`; with Jared's rulings 1–5 (boost cap, exercises fitted to the pool, band-keyed neutral targets) in `docs-v2/testing/force-xp-trial-2.md`; the boost cap was set at Force Control 115 in `docs-v2/testing/force-xp-trial-3.md`. Every gate passes on all 20 seeds. It revises the step 1 report §3.3 (`docs-v2/testing/m6-step1-report.md`). It implements checklist item 1 (`m6-integration-checklist.md`). It builds on the M4 challenge factor (`src/engine/challenge.ts`) and the reserve spec §3–4 and §7 (`force-reserve.md`).
 
 ## Goal
 

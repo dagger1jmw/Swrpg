@@ -744,3 +744,27 @@ Spec and decision changes only; no code. Each changed spec's export header lists
 - **D-332 amended (Jared, 2026-11-21; applies when the severed status is built; lore: Characters_06 Meetra Surik).**
   - *Sensing:* a severed character is an absence in the Force, not an ordinary person (Kreia sensed Meetra as a void). Ordinary sensing reads nothing. A strong senser (a clear win on the sensing contest, alignment-m6.md §8) notices the void itself and knows something is wrong.
   - *Return:* the slow curve (R = smoothstep(t ÷ T), T = 10 years) stays as the fallback (Ulic). A reconnection event (a Force bond, a teacher, returning to the place of the wound) starts a faster recovery instead of adding a year: R rises from its current value to 1 along a smoothstep over months (design default 6 months; Meetra reconnected over months once Kreia and her companions bonded with her, after about nine years cut off). Like the other events, a reconnection needs a visible cause; the narrator cannot declare it. Permanent severance stays a story choice.
+- **D-333 Force XP from exercise difficulty (Jared, 2026-11-21; force-xp-rework.md; measured in force-xp-trial.md, force-xp-trial-2.md and force-xp-trial-3.md).** Adopted as the M6 Force XP model. The flag (`FORCE_XP_TRIAL.enabled`) stays off in the game until M6 integration (checklist item 21).
+  - Force-discipline sessions train on an exercise whose rating (demand + finesse, proposal §1–2) replaces the 10–90 drill ladder for Force skills. The M4 XP formula and K are unchanged.
+  - Free exercises earn the challenge factor × 0.1 (the trickle).
+  - Neutral start: each exercise aims at today's challenge mean, as [level, factor] anchors at 10-level band midpoints for each rank, effort and kind, interpolated between anchors. At level 80 and above the last anchor holds, so there is no ceiling.
+  - Below a tier's normal demand rating, effort is continuous, floored at light (Jared accepts, ruling 3 on force-xp-trial-2.md).
+  - Luke's first two milestones run about 9% slower than the old model, inside the ±20% gate. Jared accepts this; no step table (ruling 2 on force-xp-trial-2.md; Golden Rule 7).
+- **D-334 Exercises fit the pool (Jared, ruling 2 on force-xp-trial.md).**
+  - Each day's Force block is fitted to the pool: one demand factor, at which the projected strain peaks at or under the standard limit of 0.75. Finesse makes up the rating, so XP is unchanged.
+  - The floor is Basic at light effort (Force Sight at light effort for sense).
+  - Each session also fits its own block from the reserve at the time.
+  - Pool max gates only the scale classes, via Output (reserve §3).
+  - The strain trim (proposal §4) stays as the safety net, in hours, for days when even the floors overrun.
+  - Backlash and collapse above 1.0 strain (reserve §5) are not modelled in training, which stays under 0.75. They are built and gated in scene at M6 integration (checklist item 27; ruling 4 on force-xp-trial-2.md).
+  - Gate: Orgus Din (count 7,000, a design default per D-322) on a heavy Control routine reaches Force Control 84 within ±2 years of count 10,000 on all 20 seeds.
+- **D-335 Physical Force boost saturates at Force Control 115 (Jared, ruling 1 on force-xp-trial.md and ruling 1 on force-xp-trial-2.md).**
+  - Boost = min(45, 0.3 × (min(FC, 115) − 40) + 0.2 × body-ability level). This amends progression-numbers §11 when the D-333 model is switched on.
+  - The ceiling removal stays for Force abilities. Luke's 58–68 peak gate is unchanged.
+  - Chosen from runs at 115 and 120 (20 seeds each) as the cap whose Luke physical peak median is nearest 63–65 with every gate passing: 115 gives a median of 63 (range 62–63); 120 gives 65.5 (65–66). The 110 trial value gave 59–60 (force-xp-trial-3.md).
+- **D-336 Overnight strain (Jared, ruling 3 on force-xp-trial.md; finding).**
+  - Reserve §6 recovery is applied as specified. Carried strain came from same-day overdraw, which D-334 removes.
+  - No change to recovery.
+- **D-337 Padawan binding limit (Jared, ruling 4 on force-xp-trial.md).**
+  - The old meters binding for Padawans is accepted. The proposal's prediction that strain binds is withdrawn: its block assumed 2 h of Control, where the real default block is 1 h Control plus 1 h sense.
+  - No tuning of R or the multipliers.

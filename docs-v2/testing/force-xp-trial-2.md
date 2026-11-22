@@ -2,9 +2,9 @@
 
 2026-11-21. Jared's rulings on `force-xp-trial.md` (8d6b5a5), built into the prototype and measured on 20 seeds.
 
-**Status:**
-- **Not adopted.** The flag is still off in the game (`FORCE_XP_TRIAL.enabled = false`).
-- The decision entries proposed at the end are **not** in `decisions.md`. They wait for Jared's review.
+**Status (updated 2026-11-21):**
+- **Adopted** as the M6 Force XP model after Jared's rulings on this report. The flag stays off in the game until M6 integration.
+- The proposed entries below are logged as D-333 to D-337, with the boost cap at Force Control 115, not 110 (`force-xp-trial-3.md`).
 
 ## Verdict
 

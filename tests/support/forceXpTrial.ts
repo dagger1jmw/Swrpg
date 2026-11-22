@@ -1,7 +1,7 @@
 // The Force XP rework trial switch (harness only; docs-v2/testing/force-xp-trial.md). Unset or "off", the game's M4
 // drill ladder runs. "collect" leaves the game's rules on and records each Force session's challenge factor and each
 // day's trims (the neutral-start measurement). "on" runs the prototype (src/engine/forceXpTrial.ts) with its defaults;
-// a comma list of key=value overrides follows, e.g. "on,trickle=0.2,units=10". Imported for its side effect by the
+// a comma list of key=value overrides follows, e.g. "on,trickle=0.2,units=10,cap=115". Imported for its side effect by the
 // lifetime harness, so every worker of a parallel run reads the same environment.
 import { FORCE_XP_TRIAL } from '../../src/engine/forceXpTrial';
 import { PROFILE_COUNTS } from './precogTrial';
@@ -21,6 +21,7 @@ export function applyForceXpTrial(spec: string | undefined): string {
     if (!Number.isFinite(n)) throw new Error(`FORCE_XP: bad part "${part}"`);
     if (k === 'trickle') FORCE_XP_TRIAL.trickle = n;
     else if (k === 'units') FORCE_XP_TRIAL.unitsPerHour = n;
+    else if (k === 'cap') FORCE_XP_TRIAL.physicalBoostFcCap = n;
     else throw new Error(`FORCE_XP: unknown key "${k}"`);
   }
   return mode === 'off' ? 'off' : `force-xp ${mode}${parts.length > 1 ? ` ${parts.slice(1).join(',')}` : ''}`;
