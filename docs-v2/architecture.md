@@ -1084,6 +1084,12 @@ The clock and the module contract come first, before any feature.
     roles?
   - *Career paths (candidates, nothing decided):* the Game notes paths: a Sith PC through a Sphere's pyramid to the
     Council; non-Sith Imperial careers; Jedi, Republic and SIS careers.
+- **M7 start locations: Coruscant and the Temple (Jared, 2026-11-21, lore batch 8; D-364, D-365; lore:
+  SW_Coruscant_Jedi_Temple_OldRepublic_Part1.md and _Part2.md).**
+  - Use Part 2's location table and Part 1's attested Temple features as the start-location data. Every Temple room or
+    city location the campaign adds gets a data flag `invented: true`, so canon and invented places stay distinguishable.
+  - *Outings (candidates):* Senate Plaza crowds, the Coruscant Spaceport, the Galactic Market, relief work in the
+    starving lower levels, The Works as forbidden ground.
 - **M7 forbidden powers and Order reputation (D-346, Jared, 2026-11-21; not built).** A Knight learning a forbidden
   power (Electric Judgment, Deadly Sight, Morichro from 1000 BBY) needs a Master's permission; learning it covertly
   risks the character's standing in the Order. Build with Order standing.
