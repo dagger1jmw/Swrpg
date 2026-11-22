@@ -115,3 +115,5 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Great_Galactic_War_Part3.md` | The Great Galactic War, Part 3: 3659–3653 BBY, the Sacking and the treaty, plus the who-was-where NPC table |
 | `Docs/SWRPG lore/SW_Coruscant_Jedi_Temple_OldRepublic_Part1.md` | Coruscant, Part 1: the Jedi Temple and other Jedi sites, c. 3700–3653 BBY |
 | `Docs/SWRPG lore/SW_Coruscant_Jedi_Temple_OldRepublic_Part2.md` | Coruscant, Part 2: the city, law, crime, NPCs and the location table, c. 3700–3653 BBY |
+| `Docs/SWRPG lore/SW_Dromund_Kaas_KaasCity_OldRepublic_Part1.md` | Dromund Kaas, Part 1: the planet, Kaas City, the Citadel, the Dark Temple, location table |
+| `Docs/SWRPG lore/SW_Dromund_Kaas_KaasCity_OldRepublic_Part2.md` | Dromund Kaas, Part 2: daily life, other Imperial worlds, NPCs |

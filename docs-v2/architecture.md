@@ -1090,6 +1090,11 @@ The clock and the module contract come first, before any feature.
     city location the campaign adds gets a data flag `invented: true`, so canon and invented places stay distinguishable.
   - *Outings (candidates):* Senate Plaza crowds, the Coruscant Spaceport, the Galactic Market, relief work in the
     starving lower levels, The Works as forbidden ground.
+- **M7 Imperial-born and slave-born starts (Jared, 2026-11-21, lore batch 9; D-366 to D-368; lore:
+  SW_Dromund_Kaas_KaasCity_OldRepublic_Part1.md and _Part2.md, Game notes; candidates).** An Imperial-born start: a
+  military-family townhouse, private Force instructors, Imperial Guard sentries as childhood idols, the jungle edge,
+  parade routes, and departure for Korriban as the opening transition. The slave-born Force-sensitive route (sent to
+  Korriban "willing or not", D-366).
 - **M7 forbidden powers and Order reputation (D-346, Jared, 2026-11-21; not built).** A Knight learning a forbidden
   power (Electric Judgment, Deadly Sight, Morichro from 1000 BBY) needs a Master's permission; learning it covertly
   risks the character's standing in the Order. Build with Order standing.
