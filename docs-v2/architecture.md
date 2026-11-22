@@ -1115,6 +1115,12 @@ The clock and the module contract come first, before any feature.
   a Republic-side exception (no institutional backing; seen as traitors by the Lesser's followers). Design hooks:
   blockade picket duty (hail, warn, intercept; sourced), a stigma track (arue'tal), the rare death duel (Geroya be
   Haran, a Cold War custom).
+- **M7 underworld starts (Jared, 2026-11-21, lore batch 16; D-384, D-385; lore: SW_NarShaddaa_HuttSpace_GGW_Part1.md,
+  Game notes; candidates).** Three starting homes: Undercity orphan, Cartel dock mechanic, freelance smuggler (all
+  sourced to Hylo Visz's life). Faction hooks: a Hutt patron (neutral, pays both ways), the Exchange (debt-driven),
+  Drayen's rising syndicate, Imperial Diplomatic Service courting (from 3667). A debt track (Hutt investment expects a
+  return; Exchange debt escalates; figures `invented`). Bounty work: low Republic payouts and heavy taxes push hunters
+  to underworld contracts.
 - **M7 signature moves (Jared, 2026-11-21, lore batch 10; D-371; not built).** Consider giving named lightsaber
   maneuvers (the Named maneuvers table in SW_Force_Abilities_Forms_v3_complete.md: Sarlacc Sweep, Makashi riposte,
   Falling Avalanche, Assured Strike and the rest) mechanical effects. In M6 they are narrator flavour on existing actions.

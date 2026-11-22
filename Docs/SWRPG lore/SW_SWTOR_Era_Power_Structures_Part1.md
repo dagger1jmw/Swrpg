@@ -397,6 +397,15 @@ Each Sphere was also called the "Pyramid of …" and most also the "Ministry of 
 | Minister of Sith Intelligence | Lana Beniko | after Yavin 4 (Galactic War) [unclear] | Head of Sith Intelligence | [Minister of Sith Intelligence](https://starwars.fandom.com/wiki/Minister_of_Sith_Intelligence); [Sith Intelligence §History](https://starwars.fandom.com/wiki/Sith_Intelligence) |
 | Minister of Logistics | Khamarr; Davidge; Lorman | 3660 BBY–?; 3640 BBY; ?–3630 BBY | Economy, slave labour, transport; negotiated the surrender to Zakuul | [Minister of Logistics](https://starwars.fandom.com/wiki/Minister_of_Logistics); [Ministry of Logistics §History](https://starwars.fandom.com/wiki/Ministry_of_Logistics) |
 
+### Hutt Cartel (pointer, added (lore batch 16))
+- **Type:** neutral power
+- **Era:** 3681–3653 BBY
+- **Key facts:**
+  - Supreme Mogul Karagga the Unyielding rules from Nal Hutta, [inferred] for the window (he had ruled "nearly two centuries" by the Cold War).
+  - The Hutt–Imperial treaty keeps Hutt Space neutral and bars aid to the Republic; it holds unbroken through the war (the Quesh breach is c. 3643 BBY).
+  - The Hutts were angered at being left out of the Treaty of Coruscant.
+- **Related:** SW_NarShaddaa_HuttSpace_GGW_Part1.md (Nar Shaddaa, Hutt Space, the Cartel, the Exchange, the underworld in the war).
+
 ## Timeline
 | Date | Event | Citation |
 |---|---|---|

@@ -163,6 +163,7 @@ This file covers Coruscant outside the Jedi Temple as a home for non-Jedi charac
     - **Coruscant presence:** none is described for the window (see Not found).
   - **Smugglers:**
     - Hylo Visz worked Hutt, corporate and government contracts and preferred government work [Hylo Visz §Working for the Cartel](https://starwars.fandom.com/wiki/Hylo_Visz).
+    - About a year after the blockade run, the Hutts who had funded it came to collect (lore batch 16).
     - Her band of Zale Barrows, Tyresius Lokai and Quan met in a Nar Shaddaa cantina. It was not on Coruscant [Hylo Visz §Breaking the blockade](https://starwars.fandom.com/wiki/Hylo_Visz); [Quan](https://starwars.fandom.com/wiki/Quan).
     - Lokai was "allegedly born on Coruscant" [Gault Rennow §Hylo Visz and the Hydian Way blockade](https://starwars.fandom.com/wiki/Gault_Rennow).
   - **Black markets:** the general Legends page says nearly every planet had one, selling forbidden droids, drugs, weapons, banned music and bootleg holos [Black market/Legends](https://starwars.fandom.com/wiki/Black_market/Legends). There's nothing specific to Coruscant in this era.
@@ -223,7 +224,7 @@ This file covers Coruscant outside the Jedi Temple as a home for non-Jedi charac
 | Tyresius Lokai (later Gault Rennow) | Devaronian con man | "Allegedly" Coruscant-born; left Coruscant with Visz 3660 BBY and stole her pay | [Gault Rennow](https://starwars.fandom.com/wiki/Gault_Rennow); [Hylo Visz §Going into hiding](https://starwars.fandom.com/wiki/Hylo_Visz) |
 | Zale Barrows; Quan | Human smuggler; unknown species | Blockade run 3660 BBY; Barrows later led the Free Spacers Fleet at Coruscant (undated) | [Zale Barrows §Biography](https://starwars.fandom.com/wiki/Zale_Barrows); [Quan](https://starwars.fandom.com/wiki/Quan) |
 | Zeerid Korr | Human; ex-Havoc Squad, Exchange pilot | Ran engspice to Coruscant through the 3653 BBY blockade | [Zeerid Korr](https://starwars.fandom.com/wiki/Zeerid_Korr) |
-| Vrath Xizor | Bounty hunter, ex-Imperial sniper | Reached Coruscant and tipped off Malgus, 3653 BBY | [Zeerid Korr §Reunion with a Jedi](https://starwars.fandom.com/wiki/Zeerid_Korr) |
+| Vrath Xizor | Bounty hunter, ex-Imperial sniper | Hired by Hutt crime lords against Zeerid Korr's engspice drop (lore batch 16); reached Coruscant and tipped off Malgus, 3653 BBY | [Zeerid Korr §Reunion with a Jedi](https://starwars.fandom.com/wiki/Zeerid_Korr) |
 | Rycus Kilran | Imperial captain | Called the "Butcher of Coruscant" by Republic civilians for the Sacking, 3653 BBY | [Rycus Kilran §Biography](https://starwars.fandom.com/wiki/Rycus_Kilran) |
 | Femi, Doorn, Theraguin; Roon Neele; Eleena Daru; Gin Lesl | CSF and others | See the Coruscant file NPC table | Coruscant file |
 
@@ -294,7 +295,7 @@ This is a new file, not a redo. Discrepancies with the cross-referenced files:
 - Conscription or a draft in the Republic. Enlistment is described only as volunteer.
 - Curfews or martial law on Coruscant before the 2-day Imperial martial law of 3653 BBY.
 - Any police or military crackdown on the 3680 or 3661 BBY riots.
-- Refugee camps or refugee flows to Coruscant before 3653 BBY. Visz's Balmorran refugee transport went to Nar Shaddaa [Hylo Visz §Early life](https://starwars.fandom.com/wiki/Hylo_Visz).
+- Refugee camps or refugee flows to Coruscant before 3653 BBY. Visz's Balmorran refugee transport stopped at Nar Shaddaa, bound for more peaceful regions (lore batch 16) [Hylo Visz §Early life](https://starwars.fandom.com/wiki/Hylo_Visz).
 - Named factories, industrial sectors other than The Works, named upper-level districts, cantinas, shops or restaurants active in 3681–3653 BBY.
 - Named pre-Sacking Coruscant gangs or crime bosses, and any Hutt or Exchange base on Coruscant in the window.
 - Named journalists, news programmes or HoloNet outlets for the window.

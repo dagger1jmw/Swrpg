@@ -128,3 +128,4 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Dromund_Kaas_KaasCity_OldRepublic_Part2.md` | Dromund Kaas, Part 2: daily life, other Imperial worlds, NPCs |
 | `Docs/SWRPG lore/SW_Coruscant_City_GGW_Part1.md` | Coruscant the city in the Great Galactic War (focus 3661 BBY): riots, blockade, Senate, security, underworld |
 | `Docs/SWRPG lore/SW_Mandalorians_GGW_Part1.md` | The Mandalorians in the Great Galactic War: the Lesser, the clans, the blockade, the schism, culture |
+| `Docs/SWRPG lore/SW_NarShaddaa_HuttSpace_GGW_Part1.md` | Nar Shaddaa and Hutt Space in the Great Galactic War: the Cartel, the treaty, the underworld |

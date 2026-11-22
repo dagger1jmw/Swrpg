@@ -148,7 +148,7 @@ Legends lore reference for SWRPG. Researched Nov 21, 2026. Sources: Wookieepedia
 - **Chancellors before Berooken:** none named in the pages fetched.
 - **Battle dates:** no exact dates for the undated battles (Part 2 table), and no start year for Balmorra beyond "by 3670 BBY".
 - **Front-line maps by year:** none found other than the treaty-line map.
-- **Hutt fighting:** no direct Hutt combat role, only the treaty. [Hutt–Imperial treaty](https://starwars.fandom.com/wiki/Hutt%E2%80%93Imperial_treaty)
+- **Hutt fighting:** no direct Hutt combat role, only the treaty. [Hutt–Imperial treaty](https://starwars.fandom.com/wiki/Hutt%E2%80%93Imperial_treaty) For the Hutts' indirect part (funding the 3660 BBY blockade run, Barrga's Rendili drive sale, Hutt crime lords hiring Xizor against Korr's engspice drop) see SW_NarShaddaa_HuttSpace_GGW_Part1.md (lore batch 16).
 - **Lucas material:** no George Lucas BTS material for this era. The behind-the-scenes material is BioWare/LucasArts publication notes and one author tweet.
 
 ## Canon only, not used
