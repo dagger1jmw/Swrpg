@@ -30,6 +30,23 @@ export const ORDER_REQUIREMENTS: Readonly<Record<string, readonly RequirementBlo
     { activityId: 'senseAwareness', hours: 1, instructor: 'master', intensity: 'standard' },
   ],
   knight: [],
+  // D-427 (Jared): the Sith rows mirror the Jedi time structure with the Korriban content (lore batch 12;
+  // SW_Korriban_Academy_Part1 curriculum): martial training with the warblade (Form I basics; the lightsaber comes with
+  // apprenticeship), Force work and the meditation chambers with the Overseers, the Sith Code and history; then the
+  // apprenticeship: forms, Force Control and awareness with the master.
+  acolyte: [
+    { activityId: 'shiiChoBasics', hours: 2, instructor: 'instructor' },
+    { activityId: 'forceControlDrill', hours: 0.5, instructor: 'instructor', primary: 'forceControl' },
+    { activityId: 'basicCentering', hours: 0.5, instructor: 'instructor' },
+    { activityId: 'forceLore', hours: 1, instructor: 'instructor' },
+  ],
+  apprentice: [
+    { activityId: 'padawanTraining', hours: 2, instructor: 'master', primary: '$planMaster' },
+    { activityId: '$formBasics', hours: 1, instructor: 'solo', primary: '$planSolo' },
+    { activityId: 'forceControlDrill', hours: 1, instructor: 'master', primary: 'forceControl' },
+    // Force awareness with the master (the measured Padawan paces keep it; a channeling block waits for re-measured paces).
+    { activityId: 'senseAwareness', hours: 1, instructor: 'master', intensity: 'standard' },
+  ],
 };
 
 /** Rank -> Order requirement row (Sith on the Jedi rows until M7). */
@@ -38,8 +55,8 @@ export const REQUIREMENT_ROW: Readonly<Record<string, string>> = {
   padawan: 'padawan',
   knight: 'knight',
   master: 'knight',
-  acolyte: 'initiate',
-  apprentice: 'padawan',
+  acolyte: 'acolyte',
+  apprentice: 'apprentice',
   lord: 'knight',
   none: 'knight',
 };

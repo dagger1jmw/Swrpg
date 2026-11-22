@@ -200,7 +200,10 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   // An opponent who fought an ally the whole time (D-212) is not the player's: no gap, no heroic act, no fate.
   const faced = duel.opponents.filter((o) => !(o.engagedElsewhere && !o.out));
   const opponentGap = active.stakes === 'spar' ? sparGroupLevel(duel.opponents.map((o) => o.level)) - duel.a.level : Math.max(0, ...faced.map((o) => o.level - duel.a.level));
-  if (exchanges.length || forceUses.length) emit.push({ type: 'fightResolved', stakes: active.stakes, outcome, exchanges, forceUses, opponentGap, ...(reason === 'surrendered' ? { surrendered: true } : {}) });
+  // The strongest opponent's form (D-427: learning by dueling a stronger opponent).
+  const strongest = [...faced].sort((x, y) => y.level - x.level)[0];
+  const opponentForm = strongest && FORM_IDS.includes(strongest.skillId) ? strongest.skillId : null;
+  if (exchanges.length || forceUses.length) emit.push({ type: 'fightResolved', stakes: active.stakes, outcome, exchanges, forceUses, opponentGap, ...(opponentForm ? { opponentForm } : {}), ...(reason === 'surrendered' ? { surrendered: true } : {}) });
   // heroicAct (flag-registry §2): a won lethal fight against an opponent 10+ stronger or of rank Sith Lord / Master.
   if (active.stakes === 'lethal' && outcome === 'won') {
     const heroic = faced.some((o) => o.level - duel.a.level >= HEROIC_ACT.gapAtLeast || HEROIC_ACT.ranks.includes(active.meta[o.id]?.rank ?? ''));

@@ -4,7 +4,8 @@
 // outcome replaces it. The daily cap (12 XP per skill before M) and the third-fight halving apply per
 // skill; the 4.0x clamp is applied through `clamp`. E, CI, the sparring ceiling and the bank arrive with
 // duels in M5. Pure.
-import { COMBAT_XP, PRIMARY_SHARE, SECONDARY_SHARE, type CombatOutcome, type CombatStakes } from '../data/progression.config';
+import { COMBAT_XP, PRIMARY_SHARE, SECONDARY_SHARE, STRONGER_DUEL, type CombatOutcome, type CombatStakes } from '../data/progression.config';
+import { FORM_IDS } from '../data/skills';
 import { challengeFactor } from './challenge';
 
 export interface CombatSession {
@@ -98,4 +99,19 @@ export function computeCombatXp(input: CombatInput): CombatResult {
     }
   }
   return { beforeM, credited, discarded, notes };
+}
+
+/**
+ * Learning by dueling a stronger opponent (Jared, D-427; STRONGER_DUEL, invented): a serious or lethal fight against an
+ * opponent at least `minGap` levels stronger gives `share` of the fight's credited form XP to the opponent's form as well
+ * (an unknown form included: it then opens without a teacher); x`acceleratedMult` on the accelerated path. Null when it
+ * does not apply.
+ */
+export function strongerDuelXp(stakes: string, opponentGap: number, opponentForm: string | null, credited: Readonly<Record<string, number>>, accelerated: boolean): { form: string; xp: number } | null {
+  if (!opponentForm || !FORM_IDS.includes(opponentForm)) return null;
+  if (stakes !== 'serious' && stakes !== 'lethal') return null;
+  if (opponentGap < STRONGER_DUEL.minGap) return null;
+  const formXp = Object.entries(credited).reduce((a, [k, v]) => a + (FORM_IDS.includes(k) ? v : 0), 0);
+  const xp = formXp * STRONGER_DUEL.share * (accelerated ? STRONGER_DUEL.acceleratedMult : 1);
+  return xp > 0 ? { form: opponentForm, xp } : null;
 }

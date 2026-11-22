@@ -56,6 +56,8 @@ export interface Fight {
   sparringMode?: 'trainingSaber' | 'controlled' | 'academy';
   /** The form fought with ('$main' or absent = the profile's main form). */
   skillId?: string;
+  /** A duelist opponent's form (D-427: learning from a stronger opponent); default Soresu. */
+  opponentForm?: string;
 }
 
 export interface LifeProfile {
@@ -395,7 +397,9 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
   const exchanges = d.log.filter((x) => x.kind !== 'force').map((x) => ({ skillId: form, gap: x.effB - x.effA }));
   // A spar with several partners counts as one at the strongest's level + 10 per extra (D-163).
   const opponentGap = f.stakes === 'spar' ? sparGroupLevel(opponents.map((o) => o.level)) - player.level : f.gap;
-  if (exchanges.length) events.push({ type: 'fightResolved', stakes: f.stakes, outcome, exchanges, forceUses: [], opponentGap });
+  // A Force-using duelist's form (D-427: learning by dueling a stronger opponent; only serious fights 10+ stronger use it).
+  const opponentForm = f.opponent ? undefined : (f.opponentForm ?? 'soresu');
+  if (exchanges.length) events.push({ type: 'fightResolved', stakes: f.stakes, outcome, exchanges, forceUses: [], opponentGap, ...(opponentForm ? { opponentForm } : {}) });
   const applied = applyEvents(REGISTRY, s, events, { source: 'engine' });
   if (applied.rejected.length) throw new Error(`fight rejected: ${applied.rejected[0]!.reason}`);
   s = applied.state;

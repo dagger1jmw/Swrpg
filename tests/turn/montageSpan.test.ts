@@ -47,7 +47,8 @@ describe('a "3 months" montage turn', () => {
     const s = createInitialState<GameState>(REGISTRY, {
       campaignId: 'c1',
       branchId: 'b1',
-      seed: 'span',
+      // A seed whose 3 months roll no world event (D-427: the daily-life blocks shifted the RNG; 'span' now rolls one).
+      seed: 'span-2',
       start: { day: start, second: 9 * 3600 },
       character: { name: 'Kael', birthDay: start - 25 * 368, path: 'jedi', archetype: 'jediGuardian', mainFormId: 'soresu', trainingStartAge: 4 },
       rank: 'knight',

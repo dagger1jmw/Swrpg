@@ -12,7 +12,8 @@
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY, isPhysicalActivity, type ActivityDef, type Intensity } from '../../data/activities';
 import { archetypeDef, focusShares, sharesFromWeights } from '../../data/archetypes';
 import { ORDER_REQUIREMENTS, REQUIREMENT_ROW, type Instructor } from '../../data/orderRequirements';
-import { BUDGET, STEP_HOURS, TIREDNESS_LIMIT } from '../../data/progression.config';
+import { BUDGET, DAILY_LIFE, STEP_HOURS, TIREDNESS_LIMIT } from '../../data/progression.config';
+import { weekday } from '../../engine/calendar';
 import { FORM_IDS, SKILL_BY_ID } from '../../data/skills';
 import { EMPTY_DAY, ZERO_METERS, afterSleep, stepBlock, type Capacities, type DayTraining, type Meters } from '../../engine/fatigue';
 import { interp } from '../../engine/interp';
@@ -78,7 +79,15 @@ export function requirementRow(s: GameState): 'initiate' | 'padawan' | 'knight' 
   const path = selectPath(s);
   if (path !== 'jedi' && path !== 'sith') return 'knight';
   const row = REQUIREMENT_ROW[selectRank(s)] ?? 'knight';
-  return row === 'initiate' || row === 'padawan' ? row : 'knight';
+  // The Sith rows (D-427) are the acolyte and apprentice phases.
+  return row === 'initiate' || row === 'acolyte' ? 'initiate' : row === 'padawan' || row === 'apprentice' ? 'padawan' : 'knight';
+}
+
+/** The Order requirements row key for the rank (the Sith have their own rows, D-427). */
+export function orderRowKey(s: GameState): string {
+  const path = selectPath(s);
+  if (path !== 'jedi' && path !== 'sith') return 'knight';
+  return REQUIREMENT_ROW[selectRank(s)] ?? 'knight';
 }
 
 /** The form plan in force for the character's rank (D-118): exported for the preview's unused-form warning (D-174). */
@@ -255,7 +264,7 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
     const id = req.primary ?? (act?.primary.kind === 'skill' ? act.primary.skill : '');
     return SKILL_BY_ID.get(id)?.category === 'knowledge';
   };
-  for (const req of (ORDER_REQUIREMENTS[row] ?? []).filter((r) => !(accelerated && knowledgeBlock(r)))) {
+  for (const req of (ORDER_REQUIREMENTS[orderRowKey(s)] ?? []).filter((r) => !(accelerated && knowledgeBlock(r)))) {
     const source = sourceFor(req.instructor, routine, s, notes);
     const intensity: Intensity = 'standard';
     if (req.primary === '$planMaster' || req.primary === '$planSolo') {
@@ -397,7 +406,26 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
   if (trimmed.fill > 0) notes.push(`fill trimmed by ${trimmed.fill} h to stay under the ${routine.effort} tiredness limit ${limit}`);
   if (trimmed.fixed > 0) notes.push(`Order requirements excused for ${trimmed.fixed} h: the day started too tired (over the ${routine.effort} limit ${limit}; D-165)`);
   if (projected > limit + 1e-9) notes.push(`fixed and locked blocks alone end the day at f ${projected.toFixed(2)} (over the ${routine.effort} limit ${limit})`);
-  return { trainingDay: true, recovery: false, items: layout(ordered, locked, routine.wakeSecond), budget, fillCredit: credit, projectedEndF: projected, notes };
+  // 5. Daily life outside the training budget (D-427): the meditation block and the Knight's study expectation come
+  // after the day's training and are never trimmed; the budget, the fill and the projection above don't count them.
+  const life = dailyLifeBlocks(s, row, day, accelerated);
+  return { trainingDay: true, recovery: false, items: layout([...ordered, ...life], locked, routine.wakeSecond), budget, fillCredit: credit, projectedEndF: projected, notes };
+}
+
+/** The daily-life blocks of an Order member (D-427; DAILY_LIFE): meditation from Padawan on, study on 3 days of 7 from Knight on. */
+export function dailyLifeBlocks(s: GameState, row: 'initiate' | 'padawan' | 'knight', day: number, accelerated: boolean): PlannedBlock[] {
+  const path = selectPath(s);
+  if (path !== 'jedi' && path !== 'sith') return [];
+  const out: PlannedBlock[] = [];
+  const block = (activityId: string, hours: number): PlannedBlock => {
+    const act = ACTIVITY_BY_ID.get(activityId)!;
+    const skillId = act.primary.kind === 'skill' ? act.primary.skill : activityId;
+    return { kind: 'train', activityId, skillId, hours, planned: hours, startSecond: 0, source: { kind: 'solo' }, intensity: act.defaultIntensity, fixed: true, locked: false, fill: false };
+  };
+  if (DAILY_LIFE.meditation.fromRows.includes(row)) out.push(block(DAILY_LIFE.meditation.activityId, DAILY_LIFE.meditation.hours));
+  // The study days: the same weekdays every week (design default: 3 of 7).
+  if (row === 'knight' && !accelerated && weekday(day) % 2 === 0 && weekday(day) <= 2 * DAILY_LIFE.knightStudy.daysPerWeek) out.push(block(DAILY_LIFE.knightStudy.activityId[path]!, DAILY_LIFE.knightStudy.hours));
+  return out;
 }
 
 /** Forms are trained only through their plan; any form in the plan or priorities is a lightsaber form. */

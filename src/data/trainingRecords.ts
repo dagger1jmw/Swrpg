@@ -10,13 +10,15 @@ import type { CharacterPath } from './archetypes';
 export interface TrainingRecordDef {
   id: string;
   name: string;
-  kind: 'archive' | 'holocron';
+  kind: 'archive' | 'holocron' | 'journal';
   /** Paths whose archives hold it (archive records); holocrons work for anyone holding one. */
   paths: readonly CharacterPath[];
   /** Fixed teaching level per covered skill. */
   levels: Readonly<Record<string, number>>;
   /** First calendar year the record exists (negative = BBY); none = every era. */
   fromYear?: number;
+  /** Only at these places (matched against the current location and its ancestors): the Archives in the Temple (D-427). */
+  places?: readonly string[];
 }
 
 /** Design default: the New Jedi Order's academy and its recovered Form VII records, c. 11 ABY (D-352 [21], D-370). */
@@ -36,6 +38,15 @@ export const TRAINING_RECORDS: readonly TrainingRecordDef[] = [
   { id: 'record:sithArchiveLore', name: 'Sith archives: teachings of the dark side', kind: 'archive', paths: ['sith'], levels: { forceKnowledge: 45, forceLightning: 30, forceChoke: 30 } },
   { id: 'holocron:formMaster', name: 'Holocron of a lightsaber master', kind: 'holocron', paths: [], levels: forms(FORMS_IN_ARCHIVES, 60) },
   { id: 'holocron:forceMaster', name: 'Holocron of a Force master', kind: 'holocron', paths: [], levels: { forceControl: 60, forceSense: 60, telekinesis: 60, forceKnowledge: 65, meditation: 55 } },
+  // Study of texts (Jared, D-427; levels invented): the full Archives in the Temple, journals and gatekeeper holocrons.
+  // The Archives stand in the Coruscant Temple and, after the Sacking, on Tython (the Order's seats, orderSeats.ts).
+  { id: 'record:jediArchivesTemple', name: 'Jedi Archives: the full collection, studied in the Temple', kind: 'archive', paths: ['jedi'], levels: { forceKnowledge: 75, meditation: 50, forceSense: 40 }, places: ['Jedi Temple', 'Tython'] },
+  { id: 'record:sithLibraryKorriban', name: 'the Sith Library of the Korriban Academy', kind: 'archive', paths: ['sith'], levels: { forceKnowledge: 70, forceOutput: 40 }, places: ['Korriban'] },
+  { id: 'journal:jediMaster', name: "A Jedi Master's journal", kind: 'journal', paths: [], levels: { forceKnowledge: 55, forceControl: 50, meditation: 50 } },
+  // Legends: Obi-Wan Kenobi kept journals in his exile on Tatooine (19-0 BBY), which Luke read; the levels are invented.
+  { id: 'journal:obiWanKenobi', name: "Obi-Wan Kenobi's journal", kind: 'journal', paths: [], levels: { forceKnowledge: 70, meditation: 60, forceControl: 65, soresu: 70 }, fromYear: -19 },
+  { id: 'holocron:jediGatekeeper', name: 'A Jedi holocron with its gatekeeper', kind: 'holocron', paths: [], levels: { forceKnowledge: 85, meditation: 70, forceSense: 70 } },
+  { id: 'holocron:sithLord', name: "A Sith Lord's holocron", kind: 'holocron', paths: [], levels: { forceKnowledge: 80, forceOutput: 60, forceLightning: 55 } },
 ];
 
 export const TRAINING_RECORD_BY_ID: ReadonlyMap<string, TrainingRecordDef> = new Map(TRAINING_RECORDS.map((r) => [r.id, r]));

@@ -7,7 +7,8 @@ import { DISTRACTED, OVERTRAINING, PACE_WINDOW_DAYS, PASSION_DAYS, STATE_STRENGT
 import { SKILL_BY_ID, CATEGORY_RULES, PHYSICAL_STATS } from '../../data/skills';
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY } from '../../data/activities';
 import { COMBAT_OUTCOMES, COMBAT_STAKES, COMBAT_XP } from '../../data/progression.config';
-import { computeCombatXp, type CombatSession } from '../../engine/combatXp';
+import { computeCombatXp, strongerDuelXp, type CombatSession } from '../../engine/combatXp';
+import { selectCharacter } from '../character/selectors';
 import { eGainFor, gainCI, gainE, releaseBank, releaseUntil, splitDrillXp } from '../../engine/appliedExperience';
 import { RECORDING_REVIEW } from '../../data/combat.config';
 import { clampFor, speedFor } from './training';
@@ -284,6 +285,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         opponentGap: z.number().optional(),
         /** The player surrendered: the surrender XP factor (D-227). */
         surrendered: z.boolean().optional(),
+        /** The strongest opponent's lightsaber form (D-427: learning by dueling a stronger opponent). */
+        opponentForm: z.string().optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
@@ -314,6 +317,10 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         // Sparring XP to a form is ceiling-limited like drill XP; real fights are not (D-45).
         const spar = session.stakes === 'spar';
         const ceiling = spar ? applyCeiling(slice, r.credited) : { credited: r.credited, bank: slice.bank, notes: [] as string[] };
+        // Learning by dueling a stronger opponent (D-427): a serious or lethal fight against one 10+ levels stronger gives a
+        // share of the fight's form XP to the opponent's form too, even an unknown one; x2 on the accelerated path.
+        const learned = strongerDuelXp(session.stakes, Number(e['opponentGap'] ?? 0), typeof e['opponentForm'] === 'string' ? String(e['opponentForm']) : null, ceiling.credited, selectCharacter(ctx.state).trainingPath === 'accelerated');
+        if (learned) ceiling.credited = { ...ceiling.credited, [learned.form]: (ceiling.credited[learned.form] ?? 0) + learned.xp };
         const windowHours = Object.fromEntries(Object.keys(ceiling.credited).map((k) => [k, hoursFor(k)]));
         const cr = creditXp({ ...slice, bank: ceiling.bank }, ctx.state, ceiling.credited, practice, windowHours, day);
         const total = Object.values(ceiling.credited).reduce((a, b) => a + b, 0);
@@ -331,7 +338,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           slice: { ...cr.slice, fightsToday, combatXpToday, E, CI, bankReleaseUntil },
           emit: cr.emit,
           // The surrender factor on the line (D-242; pass 3: the 0.5 of D-227 was applied but not shown).
-          notes: [`combat XP ${total.toFixed(2)} (${session.stakes}, ${session.outcome}${session.surrendered ? `, surrendered x${COMBAT_XP.surrendered}` : ''})`, ...r.notes, ...ceiling.notes, ...cr.notes, ...releaseNote],
+          notes: [...(learned ? [`learned from a stronger opponent: +${learned.xp.toFixed(2)} XP to ${SKILL_BY_ID.get(learned.form)?.name ?? learned.form}`] : []), `combat XP ${total.toFixed(2)} (${session.stakes}, ${session.outcome}${session.surrendered ? `, surrendered x${COMBAT_XP.surrendered}` : ''})`, ...r.notes, ...ceiling.notes, ...cr.notes, ...releaseNote],
         };
       },
     },

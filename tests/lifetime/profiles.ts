@@ -299,7 +299,7 @@ export const LUKE_ACCELERATED: LifeProfile = {
     // Sparring with his teacher (a stronger partner, D-163: lifts the blade's drill ceiling).
     { from: 19, to: 24, perYear: 40, stakes: 'spar', gap: 15 },
     // Duels with a far stronger opponent (Legends: Vader at Bespin, 3 ABY, and on the second Death Star, 4 ABY).
-    { from: 22, to: 23, perYear: 1, stakes: 'serious', gap: 25 },
-    { from: 23, to: 24, perYear: 2, stakes: 'serious', gap: 15 },
+    { from: 22, to: 23, perYear: 1, stakes: 'serious', gap: 25, opponentForm: 'djemSo' },
+    { from: 23, to: 24, perYear: 2, stakes: 'serious', gap: 15, opponentForm: 'djemSo' },
   ]),
 };

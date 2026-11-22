@@ -17,6 +17,7 @@ import { migrateRanksV1, ranksSliceSchema, type RanksSlice } from './ranks';
 import { NO_RECORD, rollTrial, selectionChance } from './rules';
 import {
   selectBypassUnmet,
+  selectMayTakePadawan,
   selectMasterApprovalUnmet,
   selectMinimumLevel,
   selectPromotionCheck,
@@ -119,6 +120,30 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
         if (!ctx.state.npcs.byId[id]) return { reject: `unknown npc ${id}` };
         return { slice: { ...slice, masterId: id }, notes: [`master: ${ctx.state.npcs.byId[id]!.name}`] };
       },
+    },
+    /**
+     * The character takes a Padawan (Jared, D-427: teaching and mentoring): a Knight or Master of 25+ (ranks.md §1; the
+     * Council's approval is the story's). The player sets it; the engine may. Opens the teaching activity.
+     */
+    apprenticeTaken: {
+      schema: z.object({ type: z.literal('apprenticeTaken'), npcRef: z.string() }),
+      sources: ['player', 'engine'],
+      targetField: 'npcRef',
+      refFields: ['npcRef'],
+      refKinds: { npcRef: ['npc'] },
+      handle: (slice, e, ctx) => {
+        const id = String(e['npcRef']);
+        if (!ctx.state.npcs.byId[id]) return { reject: `unknown npc ${id}` };
+        if (!selectMayTakePadawan(ctx.state)) return { reject: 'a Padawan is taken by a Knight or Master of 25 or more' };
+        if (slice.apprenticeId) return { reject: 'the character already has a Padawan' };
+        return { slice: { ...slice, apprenticeId: id }, notes: [`Padawan: ${ctx.state.npcs.byId[id]!.name}`] };
+      },
+    },
+    /** The character's Padawan is knighted (a story the player plays): a Master requirement (ranks.md §1). */
+    apprenticeKnighted: {
+      schema: z.object({ type: z.literal('apprenticeKnighted') }),
+      sources: ['player', 'engine'],
+      handle: (slice) => (slice.apprenticeId ? { slice: { ...slice, apprenticeId: null, padawansKnighted: slice.padawansKnighted + 1 }, notes: ['your Padawan is knighted'] } : { reject: 'no Padawan to knight' }),
     },
     /** Engine: chosen as a Padawan (the monthly selection roll, or a Knight's interest while in the Corps). */
     padawanChosen: {

@@ -153,7 +153,10 @@ function resolveSecondaries(s: GameState, a: ActivityDef, primaries: Record<stri
   const c = selectCharacter(s);
   const out: Record<string, number> = {};
   for (const [k, w] of Object.entries(a.secondaries)) {
-    if (k === '$secondForm') {
+    if (k === '$mainForm') {
+      // The main form taught (D-427: teaching's review share).
+      if (c.mainFormId && !(c.mainFormId in primaries)) out[c.mainFormId] = (out[c.mainFormId] ?? 0) + w;
+    } else if (k === '$secondForm') {
       if (c.secondFormId && !(c.secondFormId in primaries)) out[c.secondFormId] = (out[c.secondFormId] ?? 0) + w;
     } else if (k === '$knownForms') {
       const forms = FORM_IDS.filter((f) => !(f in primaries) && known(s, f));
@@ -236,7 +239,7 @@ function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
       return a.ok ? null : a.reason;
     }
     case 'hasApprentice':
-      return 'needs an apprentice (M7)';
+      return s.ranks.apprenticeId ? null : 'needs a Padawan of your own (apprenticeTaken)';
     case 'partner':
       return ctx.partner ? null : 'needs a training partner present';
   }
@@ -321,6 +324,10 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     if (record.kind === 'archive' && !record.paths.includes(selectPath(s))) return { ok: false, reason: `${record.name} is not open to the ${selectPath(s)} path` };
     if (record.levels[primary] === undefined) return { ok: false, reason: `${record.name} does not cover ${SKILL_BY_ID.get(primary)?.name ?? primary}` };
     if (record.fromYear !== undefined && dateFromAbsDay(selectNow(s).day).year < record.fromYear) return { ok: false, reason: `${record.name} does not exist yet` };
+    if (record.places) {
+      const here = selectLocationChain(s, selectCurrentLocationId(s)).flatMap((l) => [l.name, ...l.aliases, l.region ?? '']).map((x) => ` ${x.toLowerCase()} `);
+      if (!record.places.some((p) => here.some((h) => h.includes(` ${p.toLowerCase()} `)))) return { ok: false, reason: `${record.name} can be studied only at ${record.places.join(' or ')}` };
+    }
   }
   const teaching = teacherId !== null || record !== undefined || source?.kind === 'instructor' || source?.kind === 'master';
   const partnered = partnerId !== null || source?.kind === 'peers';
@@ -380,7 +387,7 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     (record ? record.levels[primary]! : source?.kind === 'instructor' ? studentLevel + STUB_INSTRUCTOR_LEAD : source?.kind === 'master' ? studentLevel + STUB_MASTER_LEAD : null);
   if (source?.kind === 'instructor') notes.push('Temple instructors (stub teacher, D-124)');
   if (source?.kind === 'master') notes.push('master (stub teacher until masters exist, D-124)');
-  if (record) notes.push(`${record.name} (teaches at level ${tLevel})${record.kind === 'holocron' ? '; possession is trusted until items exist (M8)' : ''}`);
+  if (record) notes.push(`${record.name} (teaches at level ${tLevel})${record.kind !== 'archive' ? '; possession is trusted until items exist (M8)' : ''}`);
   const instr = instructionFactor({
     studentLevel,
     ...(tLevel !== null && (teacherId || record || source?.kind === 'instructor' || source?.kind === 'master')

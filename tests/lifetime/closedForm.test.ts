@@ -24,7 +24,8 @@ beforeAll(() => {
 describe('npc test 2: closed form vs the routine day loop', () => {
   it('within +/-2 levels at 10, 30 and 60 years (highest form)', () => {
     for (const years of [10, 30, 60]) {
-      const xp = formXps({ formPaces: GUARDIAN.formPaces, k: K, startAge: 4, age: 4 + years, padawanAge: 12, knightAge: 20.5, onePhase: false, padawanPlan: PLAN, knightPlan: PLAN, mult: () => 1, transferShare: FORM_TRANSFER_SHARE });
+      // The Average's rank ages (D-426: Knight at 25).
+      const xp = formXps({ formPaces: GUARDIAN.formPaces, k: K, startAge: 4, age: 4 + years, padawanAge: AVERAGE.padawanAge, knightAge: AVERAGE.knightAge, onePhase: false, padawanPlan: PLAN, knightPlan: PLAN, mult: () => 1, transferShare: FORM_TRANSFER_SHARE });
       const closed = levelExact(Math.max(0, ...Object.values(xp)));
       const day = r.mainByYear[years - 1]!;
       expect(Math.abs(closed - day), `${years} years: day ${day.toFixed(2)} vs closed ${closed.toFixed(2)}`).toBeLessThanOrEqual(2);

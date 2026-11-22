@@ -372,3 +372,56 @@ export const FORCE_RICH_FACTOR = 1.1;
  * changed for it. First guess (invented), tuned on the Luke accelerated-path harness check (tests/lifetime/lukeAccelerated).
  */
 export const ACCELERATED_PATH = { mult: 3.2, capMult: 3.2 } as const;
+
+// ---- XP sources for the knowledge stats (Jared, D-427; M7). Every number here is invented and tagged. ----
+/**
+ * Daily-life blocks outside the D-25 training budget (so the forms calibration is untouched), for Order members (the
+ * Jedi and Sith paths): a meditation block every training day from Padawan or apprentice on, and a Knight's study
+ * expectation (Force lore, the Code) on `daysPerWeek` days of 7 from Knight or Lord on. Both are dropped on the
+ * accelerated path except the meditation block (using the Force), which it keeps.
+ */
+export const DAILY_LIFE = {
+  // From Knight on only for now: Knights were already centered on most days by the fill's Willpower meditation (D-133),
+  // so the block keeps the calibration; for Padawans it would center every day (x1.05 on all training) and move the K
+  // calibration (41 at 15.76 years on the gated seed), which needs K re-solved and the paces re-measured first.
+  // Built but off (no rows) pending Jared (D-427): every scheduled meditation centers the next day (x1.05, D-133), and a
+  // daily block makes Knights centered every day instead of most days, which moves the closed form off the day loop
+  // (Guardian at 60 years: 86.2 against 83.5) and needs the paces re-measured.
+  meditation: { hours: 0.5, activityId: 'basicCentering', fromRows: [] as readonly string[] },
+  knightStudy: { hours: 1, daysPerWeek: 3, activityId: { jedi: 'jediCode', sith: 'forceLore' } as Readonly<Record<string, string>> },
+} as const;
+/**
+ * Learning by dueling a stronger opponent (D-427): a serious or lethal fight against an opponent at least `minGap` levels
+ * stronger gives `share` of the fight's form XP to the opponent's form as well, even an unknown one (it then opens
+ * without a teacher). On the accelerated path the share is x`acceleratedMult` (Jared, D-427: duels count more there).
+ */
+export const STRONGER_DUEL = { minGap: 10, share: 0.25, acceleratedMult: 2 } as const;
+/** Natural Intelligence and Charisma by Human-equivalent age (D-427: schooling and life; invented), like Willpower's. */
+export const NATURAL_INTELLIGENCE: readonly (readonly [number, number])[] = [
+  [4, 4],
+  [10, 8],
+  [16, 12],
+  [20, 14],
+  [30, 16],
+  [60, 18],
+];
+export const NATURAL_CHARISMA: readonly (readonly [number, number])[] = [
+  [4, 3],
+  [10, 6],
+  [16, 9],
+  [20, 11],
+  [30, 13],
+  [60, 15],
+];
+/**
+ * The daily-life blocks in the NPC closed form (D-427): the paces they add for Order members, measured on the Average
+ * Guardian's day loop (2026-11-22, the knowledge report: the XP each phase gained over the run without them, divided by
+ * R x the age integral). Meditation from Padawan on; Force Knowledge (the Knight's study) from Knight on.
+ */
+export const DAILY_LIFE_PACES: Readonly<Record<string, Readonly<Partial<Record<'initiate' | 'padawan' | 'knight', number>>>>> = {
+  forceKnowledge: { knight: 0.139 },
+};
+/** Per-archetype overrides of DAILY_LIFE_PACES (measured: the Consular gains more from the study, 0.189). */
+export const DAILY_LIFE_PACES_BY_ARCHETYPE: Readonly<Record<string, typeof DAILY_LIFE_PACES>> = {
+  jediConsular: { forceKnowledge: { knight: 0.189 } },
+};

@@ -19,6 +19,8 @@ export const ranksSliceSchema = z.object({
   padawansKnighted: z.number().int().min(0),
   /** A third failed trial awaits the player's choice (ranks.md §1). */
   pendingChoice: z.boolean(),
+  /** The character's own Padawan or apprentice (an NPC), from Knight at 25 with the Council's approval (D-427). */
+  apprenticeId: z.string().nullable().optional(),
 });
 export type RanksSlice = z.infer<typeof ranksSliceSchema>;
 

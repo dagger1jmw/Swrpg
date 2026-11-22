@@ -71,7 +71,7 @@ function sourceOptions(s: GameState): [string, string][] {
     out.push([`npc:${n.id}`, `taught by ${n.name}`]);
     out.push([`partner:${n.id}`, `with ${n.name} (partner)`]);
   }
-  for (const r of TRAINING_RECORDS) if (r.kind === 'holocron' || r.paths.includes(path)) out.push([`record:${r.id}`, r.name]);
+  for (const r of TRAINING_RECORDS) if (r.kind !== 'archive' || r.paths.includes(path)) out.push([`record:${r.id}`, r.name]);
   return out;
 }
 

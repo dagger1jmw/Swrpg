@@ -84,7 +84,7 @@ export function trialRow(s: GameState): TrialRow {
   const path = selectPath(s);
   if (path !== 'jedi' && path !== 'sith') return 'knight';
   const row = REQUIREMENT_ROW[selectRank(s)] ?? 'knight';
-  return row === 'initiate' || row === 'padawan' ? row : 'knight';
+  return row === 'initiate' || row === 'acolyte' ? 'initiate' : row === 'padawan' || row === 'apprentice' ? 'padawan' : 'knight';
 }
 
 const fightingLevel = (s: GameState): number => Math.max(0, ...FORM_IDS.map((f) => selectLevelExact(s, f)));

@@ -54,3 +54,6 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [ ] **9. Era rules for the Cold War years (timeline audit, D-408 [7]).**
 
   Every era rule but `places-and-populations` and `imperial-forces` ends by 3,653, because the M7 table was written for the war years. A campaign that crosses the Treaty loses the Coruscant, Nar Shaddaa, Tatooine, Jedi-life and Korriban rules. The Korriban rule ends in 3,654, though the Academy staff are placed to 3,644. Write the Cold War versions from the topical files (the Korriban, Coruscant and Nar Shaddaa Cold War sections), or extend the current ones where they still hold.
+- [ ] **10. An officer archetype with command and staff work (Jared, D-427 [9]).**
+
+  Tactics main, Intelligence second, Charisma. Commanding in a battle earns tactics XP the way fighting earns form XP (from the battle's stakes and outcome); staff work (planning, logistics) is an activity for Intelligence and Tactics. Today officers use the soldier archetype, and no source but study grows tactics (calibration report §4).

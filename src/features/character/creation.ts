@@ -9,7 +9,7 @@ import { orderSeatAt } from '../../data/orderSeats';
 import { STUB_INSTRUCTOR_LEAD, STUB_MASTER_LEAD } from '../../data/stubs';
 import { gainE, sparringE } from '../../engine/appliedExperience';
 import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
-import { BUDGET, FORM_TRANSFER_SHARE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
+import { BUDGET, DAILY_LIFE_PACES, DAILY_LIFE_PACES_BY_ARCHETYPE, FORM_TRANSFER_SHARE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
 import { ORDER_REQUIREMENTS } from '../../data/orderRequirements';
 import { interp } from '../../engine/interp';
 import { AVERAGE_RANK_AGES, KNIGHT_TRIALS, RANK_BY_ID, RANK_PHASE, type RankDef } from '../../data/rankMinimums';
@@ -302,7 +302,9 @@ export function computeCreation(input: CreationInput): CreationResult {
   const ownPace = (key: string, ph: Phase): number => Math.max(0, (a.paces[ph]?.[key] ?? 0) + ((focus[key] ?? 0) - (def[key] ?? 0)) * perShare * fill[ph]);
   for (const [skill, key] of keysBySkill) {
     const d = a.paces.knight?.[key] !== undefined || a.paces.padawan?.[key] !== undefined || a.paces.initiate?.[key] !== undefined ? undefined : derived[key];
-    const pace = (ph: Phase): number => (d ? d.share * ownPace(d.of, ph) : ownPace(key, ph));
+    // The daily-life blocks of an Order member (D-427): meditation from Padawan on, the Knight's study.
+    const life = (ph: Phase): number => (input.path === 'jedi' || input.path === 'sith' ? ((DAILY_LIFE_PACES_BY_ARCHETYPE[a.id] ?? DAILY_LIFE_PACES)[key]?.[ph] ?? 0) : 0);
+    const pace = (ph: Phase): number => (d ? d.share * ownPace(d.of, ph) : ownPace(key, ph)) + life(ph);
     const mult = talentMult(talents, skill) * crossTalentMult(talents, skill) * speciesLearning(species.id, skill) * (input.variance?.(skill) ?? 1);
     const phases = phasesFor({ initiate: pace('initiate'), padawan: pace('padawan'), knight: pace('knight') }, hAges, ages.onePhase);
     for (const ph of phases) if (ph.to > hStart && ph.from < h) maxPace = Math.max(maxPace, Math.min(4, ph.pace * mult));
