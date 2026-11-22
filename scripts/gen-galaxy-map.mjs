@@ -8,6 +8,9 @@ const DIR = join('Docs', 'SWRPG lore');
 const parts = [1, 2, 3, 4, 5].map((n) => readFileSync(join(DIR, `SW_Planets_Travel_OldRepublic_Part${n}.md`), 'utf8').replace(/\r\n/g, '\n'));
 const all = parts.join('\n');
 const strip = (s) => s.replace(/\s*\[[^\]]*\]\(https?:[^)]*\)/g, '').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
+// A name cell is a link ("[Varn](https://...)"): keep its text. strip() drops whole citation links, which emptied 398 index names
+// before this fix (D-405).
+const linkText = (s) => s.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/\*\*/g, '').trim();
 const cells = (l) => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
 
 // Master table (Part 1).
@@ -34,7 +37,7 @@ const planets = rows.map((l) => {
   const c3653 = /^\s+- (?:c\. )?3653 BBY: (.+)$/m.exec(body ?? '')?.[1];
   const gating = field(body, 6);
   return {
-    name: strip(name),
+    name: linkText(name),
     region: region === '—' ? '' : region,
     grid: grid === '—' ? '' : grid,
     ...(sector && sector !== '—' ? { sector } : {}),
@@ -55,10 +58,13 @@ const p4 = parts[3];
 const a3 = p4.slice(p4.indexOf('## A3.'), p4.indexOf('# Part B'));
 const mention = a3.split('\n').filter((l) => l.startsWith('| [')).map((l) => {
   const [w, region, grid, sector] = cells(l);
-  return { name: strip(w), region: region === '—' ? '' : region, grid: grid === '—' ? '' : grid, ...(sector && sector !== '—' ? { sector } : {}) };
+  return { name: linkText(w), region: region === '—' ? '' : region, grid: grid === '—' ? '' : grid, ...(sector && sector !== '—' ? { sector } : {}) };
 });
-const onMap = mention.filter((m) => m.grid !== 'Canon-only');
-const offMap = mention.filter((m) => m.grid === 'Canon-only').map((m) => m.name);
+// Two worlds are in both the master table and the index (Malachor V, Mandellia): the master-table entry wins.
+const inTable = new Set(planets.map((p) => p.name.toLowerCase()));
+const indexOnly = mention.filter((m) => !inTable.has(m.name.toLowerCase()));
+const onMap = indexOnly.filter((m) => m.grid !== 'Canon-only');
+const offMap = indexOnly.filter((m) => m.grid === 'Canon-only').map((m) => m.name);
 
 // Routes B1 (attested): the ### sections from "## B1" to "### Other routes named in era sources".
 const b1Start = all.indexOf('## B1.');

@@ -79,8 +79,14 @@ describe('the planets files in the lore index (D-403)', () => {
 describe('the generated galaxy map (D-404)', () => {
   it('has the master table, the background worlds and the routes', () => {
     expect(PLANETS).toHaveLength(182);
-    expect(MENTION_ONLY.length + OFF_MAP.length).toBe(427);
-    expect(OFF_MAP).toHaveLength(20);
+    // 427 index rows, less the two the master table already has (Malachor V, Mandellia; D-405).
+    expect(MENTION_ONLY.length + OFF_MAP.length).toBe(425);
+    expect(OFF_MAP).toHaveLength(19);
+    // Every name is read (D-405: the citation stripper had emptied 398 index names).
+    expect([...PLANETS, ...MENTION_ONLY].every((p) => p.name.length > 0)).toBe(true);
+    expect(OFF_MAP.every((n) => n.length > 0)).toBe(true);
+    expect(MENTION_ONLY.find((m) => m.name === 'Varn')).toMatchObject({ grid: 'O-6', sector: 'Quelii sector' });
+    expect(MENTION_ONLY.find((m) => m.name === 'Kintan')).toMatchObject({ grid: 'S-9', sector: "Si'Klaata Cluster" });
     expect(ROUTES_ATTESTED.find((r) => r.name === 'Hydian Way')!.blockade).toBe(true);
     expect(ROUTES_UNATTESTED.some((r) => /Pabol Hutta/.test(r.name))).toBe(false);
   });

@@ -1281,3 +1281,28 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *Curated:* `WORLD_GATES` (rulings 5–8) with opening years and who each is closed to; `closedWorlds(side, bby)`; the state block lists the closed worlds for the character's side (start faction, else path) and gives the reason when the scene is at one. Era rules added: the always-on places-and-populations rule ([11], [12]) and Odacer-Faustin ([9]).
   - *Travel:* the draft table (base hop times by region, class multiplier, Deep Core ×3, off-lane ×4 plus a 3-hour plot, 1-hour climb-out each end, asteroid ×1.5, the Maelstrom sublight only, the blockade closed) and house-default classes are in m7-start-checklist.md §F, all `invented`, waiting for approval; checklist item 26 tracks the travel system.
   - *Spellings:* no planet in the files is spelled differently from the roster, the character files, the timeline or the control table. Two worlds named elsewhere are not in the planets files: Varn (Guss Tuno's birthplace, SW_Characters_09_GGW_ColdWar_Part3a) and Kintan (the Nikto homeworld, SW_Species_OldRepublic_Part2).
+- **D-405 Rulings on the lore batch 22 questions, travel wired into play, era rank names, the map fix, and the rest of early access in M8 (Jared, 2026-11-22).**
+  - *[1] Kaleesh gate:* 3,641 stays, tagged [inferred] (species.ts note, 23-species.md).
+  - *[2] Travel:* approved with two changes, all numbers still `invented`.
+    - **Hop time:** the region value is the minimum, plus time per grid square crossed beyond the first: Core 3 h, Colonies and Inner Rim 4 h, Expansion and Mid Rim 6 h, Outer Rim and Hutt Space 8 h, Wild Space and Unknown Regions 15 h. A hop across regions uses the slower rate.
+    - **Classes:** common freighter 2, modified smuggler ship 1.5, civilian transport 3; the rest as drafted.
+    - **Built (m7-start-checklist.md item 26):**
+      - src/engine/travel.ts (pure; the grid distance moves one square in any direction, diagonals included) and src/data/travel.config.ts;
+      - src/turn/travel.ts: a "travel" intent from the current location's map world to a targeted, referenced or named map world takes the engine's time, which passes through the normal span path. A requested span is overridden and noted.
+      - Refused, with no time passing: a world closed to the character's side (D-402 [5]–[8]), or a routine trip across the blockade.
+      - The blockade corridor is read as grid columns L–N, rows 14–21, from Devaron's square to the Minos Cluster (an invented reading of "between Devaron and the Minos Cluster"). Mandalorians and Imperials pass; running it for anyone else is M8 (m8-world-checklist.md item 4).
+      - A destination not on the map leaves the time to the narrator, as before.
+      - The ship is a common freighter until ships are data (M8), and the smuggler start's ship is a modified smuggler ship.
+      - The narrator gets a "Travel:" line in the turn results.
+    - **Anchor, re-run:** Coruscant (L-9) to Alderaan (M-10) is one square, a single Core hop at the 4-hour minimum plus 2 hours of climb-out. That is 10 h in a common freighter, 8 h at Class 1.5 and 6 h at Class 1, against the Imperial-era guide of about 16 h. The guide's route clips the Deep Core, which a hop between two Core Worlds doesn't see.
+  - *[3] The galaxy map generator:* Varn (O-6, Quelii sector) and Kintan (S-9, Si'Klaata Cluster) are in the mention-only index (Part 4). The generator ran the citation stripper on the name cells, and every index name is a link, so it erased them.
+    - **The damage:** no row was dropped (all 427 were kept, which is why the count test passed), but 398 mention-only names and all 20 off-map names came out empty.
+    - **The fix:** names now keep their link text (`linkText`).
+    - **Duplicates:** the file also lists two worlds in both the master table and the index (Malachor V, Mandellia); the master-table entry now wins.
+    - **Result:** 182 worlds, 406 mention-only nodes and 19 off-map names, every name non-empty (tested; Varn and Kintan checked). D-404's spelling note, "not in the planets files", is superseded: both are in the index. The lore index was unaffected (it doesn't read the tables).
+  - *[4] Era rank names (m7-start-checklist.md item 15):* built as specified in architecture §15. src/data/eraRanks.ts holds the Jedi and Sith ladders by era from the cross-era tables (D-298, D-299, D-308; SW_Jedi_Training_AllEras, SW_Jedi_Ranks_Councils_Roles_AllEras, SW_Sith_Training_AllEras), keyed by year. Overlaps are allowed (Vitiate's Empire alongside Kun's Brotherhood). The state block gets a "Rank names in this era" line.
+  - *[5] M8, the rest of early access* (docs-v2/spec/m8-world-checklist.md):
+    - world events: the 3,661–3,660 chain, plus the 3,653 Sacking of Coruscant and the Treaty of Coruscant as scheduled events (the control table already changes on its dates; the events give the narrator the scene);
+    - running the Hydian blockade (the Visz storyline);
+    - economy and prices (research due Monday), then medicine and bacta, then droids;
+    - species traits and bodies, and separate adult and prime ages (already listed).

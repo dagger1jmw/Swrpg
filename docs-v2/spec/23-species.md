@@ -92,7 +92,7 @@ Game-book age bands are the default ageing tables where no lore exists; where lo
 
 **Era gating rule:** a species can be picked only if its people are known to the side and the era of the start. In code this is `knownFrom` in species.ts and `speciesOfferedAt(year)`, and computeCreation rejects anything else.
 - For the 3,661 BBY start the only gated case is the **Voss**, unknown to the galaxy until the rediscovery c. 3,645 BBY. No Voss player characters before then: a backstory exception is not offered at creation, and Voss NPCs before 3,645 need a story reason.
-- **Kaleesh (lore batch 22, D-402 [10]; amends D-399 [21]):** Kalee is in Wild Space, and its page says the Kaleesh were "only recently contacted by the Galactic War" (SW_Planets_Travel_OldRepublic_Part2, Kalee). That does not put contact before 3,661, so the Kaleesh are NPC-only at the 3,661 start, gated like the Voss. Offered from the Galactic War (3,641; the year is a design reading of "recently contacted by the Galactic War"). 36 species are offered in 3,661.
+- **Kaleesh (lore batch 22, D-402 [10]; amends D-399 [21]):** Kalee is in Wild Space, and its page says the Kaleesh were "only recently contacted by the Galactic War" (SW_Planets_Travel_OldRepublic_Part2, Kalee). That does not put contact before 3,661, so the Kaleesh are NPC-only at the 3,661 start, gated like the Voss. Offered from the Galactic War, 3,641 [inferred] (D-405 [1]: kept, tagged inferred). 36 species are offered in 3,661.
 - **Later start eras need the same check** as more gates are found.
 
 **Setting rulings:**

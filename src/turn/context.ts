@@ -12,7 +12,9 @@ import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engi
 import { orderSeatAt } from '../data/orderSeats';
 import { controlAt, leadersAt } from '../data/worldControl';
 import { placementsAt } from '../data/canonPlacements';
+import { describeTravel } from './travel';
 import { eraRulesAt } from '../data/eraRules';
+import { rankErasAt } from '../data/eraRanks';
 import { closedWorlds, mapSide } from '../data/galaxyMap';
 import { CANON_BY_ID } from '../data/canonNpcs';
 import { canonOffBoard } from '../engine/canonRoster';
@@ -272,6 +274,7 @@ export function stateBlock(
     ...beatsLines(state),
     `Date: ${formatDate(now.day)}`,
     `Jedi Order: ${orderSeatAt(dateFromAbsDay(now.day).year) ?? 'no standing Temple at this date'}`,
+    ...rankLines(dateFromAbsDay(now.day).year),
     ...worldLines(-dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
     ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,
@@ -527,6 +530,7 @@ export function resolvedBlock(draft: TurnDraft, correction: readonly string[] = 
   if (draft.checks.length === 0) lines.push('Checks: none required. Do not invent a success or failure that would need a roll.');
   for (const c of draft.checks) lines.push(describeCheck(c));
   if (draft.training) lines.push(...describeTraining(draft.training));
+  if (draft.travel) lines.push(describeTravel(draft.travel));
   if (draft.jump) lines.push(...describeJump(draft.jump.report));
   if (draft.timeAdvanced) {
     lines.push(`Time already advanced by the engine: ${formatSpan(draft.timeAdvanced.seconds)} (${draft.timeAdvanced.reason}). Narrate that stretch; do not add more time.`);
@@ -766,4 +770,10 @@ function boardLines(state: GameState, bby: number, placeNames: readonly string[]
   if (closed.length) lines.push(`Closed worlds this year (no known route, secret, or not yet existing; the character can't travel there without a story reason): ${closed.map((g) => g.place).join(', ')}`);
   for (const g of closed) if (placeNames.some((n) => ` ${n.toLowerCase()} `.includes(` ${g.place.toLowerCase()} `))) lines.push(`Closed world here: ${g.place}: ${g.reason}${g.storyException ? ` (allowed with a story reason: ${g.storyException})` : ''}`);
   return lines;
+}
+
+/** The era's rank names (architecture §15, D-308, D-405): one line per order in use. */
+function rankLines(year: number): string[] {
+  const rows = rankErasAt(year);
+  return rows.length ? [`Rank names in this era: ${rows.map((r) => `${r.order} (${r.era}): ${r.names}`).join('; ')}`] : [];
 }

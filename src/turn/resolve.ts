@@ -30,6 +30,7 @@ import { advanceByRoutine } from '../state/advanceRoutine';
 import { buildMontageReport, type MontageReport } from '../state/montageReport';
 import { applyEvents, type AppliedEvent, type RejectedEvent } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
+import { planTravel, type TravelOutcome } from './travel';
 import type { Registry, ResolvedAction } from '../state/types';
 
 /** Sleep with no stated duration (health spec: 7 h+ is a full night). */
@@ -56,6 +57,8 @@ export interface TurnDraft {
   readonly jump: { level: JumpLevel; report: MontageReport } | null;
   /** A duel segment this turn (M5): the exchanges, the beat, quiet or narrated, the end; null outside combat. */
   readonly combat: CombatDraft | null;
+  /** A trip between map worlds (M7, D-405): its engine time, or why it was refused; absent when no trip. */
+  readonly travel?: TravelOutcome;
   /** The level the narration is written at (the jump's level for a jump). */
   readonly pacingLevel: PacingLevel;
   readonly notices: readonly string[];
@@ -180,6 +183,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   let training: TrainingOutcome | null = null;
   let timeAdvanced: TimeAdvanced | null = null;
   let jump: TurnDraft['jump'] = null;
+  let travel: TravelOutcome | null = null;
   let combat: CombatDraft | null = null;
   let narrationLevel: PacingLevel | null = null;
 
@@ -191,6 +195,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       timeAdvanced,
       jump,
       combat,
+      ...(travel ? { travel } : {}),
       pacingLevel: narrationLevel ?? selectPacingLevel(state),
       notices: Object.freeze(notices),
       report: Object.freeze(report),
@@ -298,6 +303,16 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     else if (intent.actionType === 'sleep') spanSeconds = DEFAULT_SLEEP_SECONDS;
     else if (trainingReq) spanSeconds = DEFAULT_TRAINING_HOURS * 3600;
     if (spanSeconds === null && isJumpLevel(intent.requestedPacing)) spanSeconds = DEFAULT_JUMP_DAYS[intent.requestedPacing] * 86_400;
+    // Travel between map worlds (M7, D-405): the engine's trip time, or no time when the trip is refused.
+    travel = planTravel(state, intent);
+    if (travel?.ok) {
+      if (intent.requestedSpan) report.push(`travel time is the engine's (${travel.hours} h), not the requested span`);
+      spanSeconds = Math.round(travel.hours! * 3600);
+      report.push(`travel ${travel.from} to ${travel.to}: ${travel.hours} h (${travel.parts.join(', ')})`);
+    } else if (travel) {
+      report.push(`travel refused: ${travel.reason}`);
+      spanSeconds = null;
+    }
 
     // Montage and time skip (M4): the routine runs day by day to the target morning; checks and a
     // single training session do not apply (the routine is the training, D-139).

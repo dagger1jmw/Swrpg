@@ -254,7 +254,7 @@ export const SPECIES: readonly SpeciesDef[] = [
   plain('gand', 'Gand', 95, 18, gs(`venerable 95+ (game stat; the same book's average of 61 does not fit it; ${P2}, Gand)`), { notes: ['Lunged Gand need breathing gear (story)'] }),
   // D-402 [10]: Kalee is in Wild Space and the Kaleesh were "only recently contacted by the Galactic War" (SW_Planets_Travel_OldRepublic_Part2,
   // Kalee), which does not put contact before 3,661: gated like the Voss, open from the Galactic War (3,641).
-  plain('kaleesh', 'Kaleesh', 80, 18, gs(`maximum 80 (game stat; ${P2}, Kaleesh)`), { knownFrom: -3641, notes: ['Only recently contacted by the Galactic War (D-402 [10])'] }),
+  plain('kaleesh', 'Kaleesh', 80, 18, gs(`maximum 80 (game stat; ${P2}, Kaleesh)`), { knownFrom: -3641, notes: ['Only recently contacted by the Galactic War; offered from 3,641 [inferred] (D-402 [10], D-405 [1])'] }),
   plain('nikto', 'Nikto', 100, 18, HD),
   plain('weequay', 'Weequay', 90, 18, gs(`maximum 90 (game stat; ${P2}, Weequay)`)),
   plain('talz', 'Talz', 52, 18, gs(`maximum 52 (game stat; ${P2}, Talz)`), { bodyScale: 1.25, bodyScaleSource: 'house default' as const }),

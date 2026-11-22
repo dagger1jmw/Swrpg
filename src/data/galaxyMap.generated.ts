@@ -2435,2360 +2435,2354 @@ export const PLANETS: readonly GeneratedPlanet[] = [
 /** Mention-only worlds (A3) with a Legends grid: background nodes, control blank (D-402 [13]). */
 export const MENTION_ONLY: readonly MapNode[] = [
  {
-  "name": "",
+  "name": "Aaeton",
   "region": "Core Worlds",
   "grid": "K-9"
  },
  {
-  "name": "",
+  "name": "Aargau",
   "region": "Core Worlds",
   "grid": "L-10"
  },
  {
-  "name": "",
+  "name": "Aaris III",
   "region": "Outer Rim Territories",
   "grid": "M-21",
   "sector": "Kathol sector"
  },
  {
-  "name": "",
+  "name": "Abafar",
   "region": "Outer Rim Territories",
   "grid": "N-5",
   "sector": "Sprizen sector"
  },
  {
-  "name": "",
+  "name": "Abhean",
   "region": "Mid Rim",
   "grid": "R-7",
   "sector": "Maldrood sector"
  },
  {
-  "name": "",
+  "name": "Abregado-rae",
   "region": "Core Worlds",
   "grid": "K-13"
  },
  {
-  "name": "",
+  "name": "Adamastor",
   "region": "Core Worlds",
   "grid": "L-9"
  },
  {
-  "name": "",
+  "name": "Adikaria",
   "region": "Core Worlds",
   "grid": "K-12"
  },
  {
-  "name": "",
+  "name": "Adinai",
   "region": "Outer Rim Territories; Tion Cluster",
   "grid": "S-6",
   "sector": "Allied Tion sector"
  },
  {
-  "name": "",
+  "name": "Aduba-5",
   "region": "Outer Rim Territories",
   "grid": "U-11",
   "sector": "Bheriz sector"
  },
  {
-  "name": "",
+  "name": "Aduba-6",
   "region": "Outer Rim Territories",
   "grid": "U-11",
   "sector": "Bheriz sector"
  },
  {
-  "name": "",
+  "name": "Af'El",
   "region": "Outer Rim Territories",
   "grid": "S-8",
   "sector": "The Periphery"
  },
  {
-  "name": "",
+  "name": "Ahakista",
   "region": "Outer Rim Territories",
   "grid": "K-3",
   "sector": "Myto sector"
  },
  {
-  "name": "",
+  "name": "Akana",
   "region": "Outer Rim Territories",
   "grid": "M-20",
   "sector": "Elrood sector"
  },
  {
-  "name": "",
+  "name": "Alaris Prime",
   "region": "Mid Rim",
   "grid": "P-9",
   "sector": "Mytaranor sector"
  },
  {
-  "name": "",
+  "name": "Alorthas",
   "region": "Outer Rim Territories",
   "grid": "M-19",
   "sector": "Elrood sector"
  },
  {
-  "name": "",
+  "name": "Alsakan",
   "region": "Core Worlds",
   "grid": "L-9",
   "sector": "Alsaka sector"
  },
  {
-  "name": "",
+  "name": "Altair 3",
   "region": "Outer Rim Territories",
   "grid": "P-6",
   "sector": "Thrasybule sector"
  },
  {
-  "name": "",
+  "name": "Altair 9",
   "region": "Outer Rim Territories",
   "grid": "P-6",
   "sector": "Thrasybule sector"
  },
  {
-  "name": "",
+  "name": "Althir III",
   "region": "Outer Rim Territories",
   "grid": "P-6",
   "sector": "Rolion sector"
  },
  {
-  "name": "",
+  "name": "Alzar",
   "region": "Outer Rim Territories",
   "grid": "R-6",
   "sector": "Thanium sector"
  },
  {
-  "name": "",
+  "name": "Amador",
   "region": "Expansion Region",
   "grid": "L-8",
   "sector": "Immalia sector"
  },
  {
-  "name": "",
+  "name": "Ambria",
   "region": "Inner Rim",
   "grid": "O-10",
   "sector": "Stenness Node, Airon sector"
  },
  {
-  "name": "",
+  "name": "Anaxes",
   "region": "Core Worlds",
   "grid": "L-9",
   "sector": "Azure sector"
  },
  {
-  "name": "",
+  "name": "Ando Prime",
   "region": "Mid Rim",
   "grid": "Q-15",
   "sector": "Lambda sector"
  },
  {
-  "name": "",
+  "name": "Anoat",
   "region": "Outer Rim Territories",
   "grid": "K-18",
   "sector": "Anoat sector"
  },
  {
-  "name": "",
+  "name": "Antamont",
   "region": "Outer Rim Territories",
   "grid": "R-6",
   "sector": "Meridian sector"
  },
  {
-  "name": "",
+  "name": "Antar 4",
   "region": "Inner Rim",
   "grid": "N-12"
  },
  {
-  "name": "",
+  "name": "Anzat",
   "region": "Mid Rim; The Slice",
   "grid": "R-7",
   "sector": "Bryx sector"
  },
  {
-  "name": "",
+  "name": "Aquella",
   "region": "Mid Rim",
   "grid": "L-17",
   "sector": "Senex-Juvex"
  },
  {
-  "name": "",
+  "name": "Arbra",
   "region": "Outer Rim Territories",
   "grid": "N-17",
   "sector": "Bon'nyuw-Luq sector"
  },
  {
-  "name": "",
+  "name": "Argazda",
   "region": "Outer Rim Territories",
   "grid": "N-4",
   "sector": "Kanz sector"
  },
  {
-  "name": "",
+  "name": "Arkanis",
   "region": "Outer Rim Territories",
   "grid": "R-17",
   "sector": "Arkanis sector"
  },
  {
-  "name": "",
+  "name": "Atrisia",
   "region": "Core Worlds",
   "grid": "J-12",
   "sector": "Atrisian Commonwealth"
  },
  {
-  "name": "",
+  "name": "Attahox",
   "region": "Expansion Region",
   "grid": "P-12",
   "sector": "Hocatar sector"
  },
  {
-  "name": "",
+  "name": "Austan Asteroid Cluster",
   "region": "Outer Rim Territories",
   "grid": "R-16",
   "sector": "Arkanis sector"
  },
  {
-  "name": "",
+  "name": "Averill",
   "region": "Mid Rim",
   "grid": "P-11",
   "sector": "Teraab sector"
  },
  {
-  "name": "",
+  "name": "Axxila",
   "region": "Outer Rim Territories",
   "grid": "O-5",
   "sector": "D'Astan sector"
  },
  {
-  "name": "",
+  "name": "Balionn-Gur's planet",
   "region": "",
   "grid": ""
  },
  {
-  "name": "",
+  "name": "Bandomeer",
   "region": "Outer Rim Territories",
   "grid": "O-6",
   "sector": "Meerian sector"
  },
  {
-  "name": "",
+  "name": "Bannakon",
   "region": "Outer Rim Territories",
   "grid": "L-4",
   "sector": "Raioballo sector"
  },
  {
-  "name": "",
+  "name": "Baroonda",
   "region": "Outer Rim Territories",
   "grid": "T-9",
   "sector": "Calaron sector"
  },
  {
-  "name": "",
+  "name": "Basilisk",
   "region": "Core Worlds",
   "grid": "L-9"
  },
  {
-  "name": "",
+  "name": "Belazura",
   "region": "Colonies",
   "grid": "M-13"
  },
  {
-  "name": "",
+  "name": "Bellis IV",
   "region": "Outer Rim Territories",
   "grid": "P-7",
   "sector": "Demetras sector"
  },
  {
-  "name": "",
+  "name": "Belnar",
   "region": "Colonies",
   "grid": "M-9",
   "sector": "Belnar sector"
  },
  {
-  "name": "",
+  "name": "Bengely Four",
   "region": "Outer Rim Territories",
   "grid": "N-19",
   "sector": "Tamarin sector"
  },
  {
-  "name": "",
+  "name": "Berchest",
   "region": "Inner Rim",
   "grid": "N-8",
   "sector": "Anthos sector"
  },
  {
-  "name": "",
+  "name": "Berrun",
   "region": "Colonies",
   "grid": "M-10"
  },
  {
-  "name": "",
+  "name": "Besberra",
   "region": "Outer Rim",
   "grid": "L-20",
   "sector": "Cegul sector"
  },
  {
-  "name": "",
+  "name": "Bespin",
   "region": "Outer Rim Territories; Greater Javin",
   "grid": "K-18",
   "sector": "Anoat sector; Ivax Nebula; Ison Corridor"
  },
  {
-  "name": "",
+  "name": "Bestine IV",
   "region": "Inner Rim",
   "grid": "M-14"
  },
  {
-  "name": "",
+  "name": "Bhargebba Six",
   "region": "Outer Rim Territories",
   "grid": "R-4",
   "sector": "Esstran sector"
  },
  {
-  "name": "",
+  "name": "Bimmisaari",
   "region": "Mid Rim",
   "grid": "R-9",
   "sector": "Halla sector"
  },
  {
-  "name": "",
+  "name": "Bonadan",
   "region": "Outer Rim Territories",
   "grid": "S-3",
   "sector": "Corporate Sector"
  },
  {
-  "name": "",
+  "name": "Boonta",
   "region": "Outer Rim Territories",
   "grid": "S-8",
   "sector": "Suolriep sector"
  },
  {
-  "name": "",
+  "name": "Bresnan",
   "region": "Mid Rim",
   "grid": "Q-10",
   "sector": "Trax sector"
  },
  {
-  "name": "",
+  "name": "Byblos",
   "region": "Colonies",
   "grid": "M-12"
  },
  {
-  "name": "",
+  "name": "Byllura",
   "region": "Outer Rim Territories",
   "grid": "N-17",
   "sector": "Grumani sector"
  },
  {
-  "name": "/Legends)",
+  "name": "Byss (Abyssin)/Legends)",
   "region": "Outer Rim Territories",
   "grid": "S-7",
   "sector": "Ash Worlds"
  },
  {
-  "name": "",
+  "name": "Caamas",
   "region": "Core Worlds",
   "grid": "M-9"
  },
  {
-  "name": "",
+  "name": "Cadannia",
   "region": "Mid Rim",
   "grid": "P-7",
   "sector": "Msst sector"
  },
  {
-  "name": "",
+  "name": "Cadinth",
   "region": "Outer Rim Territories",
   "grid": "S-6",
   "sector": "Allied Tion sector"
  },
  {
-  "name": "",
+  "name": "Caramm V",
   "region": "Mid Rim",
   "grid": "R-8",
   "sector": "Talcene sector"
  },
  {
-  "name": "",
+  "name": "Carida",
   "region": "Colonies",
   "grid": "M-9"
  },
  {
-  "name": "",
+  "name": "Carratos",
   "region": "Inner Rim",
   "grid": "K-8"
  },
  {
-  "name": "",
+  "name": "Cartao",
   "region": "Expansion Region",
   "grid": "O-8",
   "sector": "Prackla sector"
  },
  {
-  "name": "",
+  "name": "Castell",
   "region": "Colonies;",
   "grid": "M-9"
  },
  {
-  "name": "/Legends)",
+  "name": "Cathar (location)/Legends)",
   "region": "Outer Rim Territories",
   "grid": "N-6",
   "sector": "Quelii sector"
  },
  {
-  "name": "",
+  "name": "Cato Neimoidia",
   "region": "Colonies",
   "grid": "N-11"
  },
  {
-  "name": "",
+  "name": "Celanon",
   "region": "Outer Rim Territories",
   "grid": "O-6",
   "sector": "D'Astan sector"
  },
  {
-  "name": "",
+  "name": "Centares",
   "region": "Mid Rim",
   "grid": "R-7",
   "sector": "Maldrood sector"
  },
  {
-  "name": "",
+  "name": "Ch'hodos",
   "region": "Outer Rim Territories",
   "grid": "R-4",
   "sector": "Esstran sector"
  },
  {
-  "name": "",
+  "name": "Chabosh",
   "region": "Outer Rim Territories",
   "grid": "M-5",
   "sector": "Lahara sector"
  },
  {
-  "name": "",
+  "name": "Chad",
   "region": "Outer Rim Territories",
   "grid": "R-7",
   "sector": "Jospro sector"
  },
  {
-  "name": "",
+  "name": "Champala",
   "region": "Inner Rim",
   "grid": "L-8"
  },
  {
-  "name": "",
+  "name": "Charmath",
   "region": "Core Worlds",
   "grid": "K-9",
   "sector": "Farrfin sector"
  },
  {
-  "name": "",
+  "name": "Charros IV",
   "region": "Mid Rim",
   "grid": "R-9",
   "sector": "Taldot sector"
  },
  {
-  "name": "",
+  "name": "Choah Belt",
   "region": "Outer Rim Territories",
   "grid": "S-5",
   "sector": "Mortex sector"
  },
  {
-  "name": "",
+  "name": "Cholganna",
   "region": "Outer Rim Territories",
   "grid": "T-5",
   "sector": "N/A"
  },
  {
-  "name": "",
+  "name": "Chommell Minor",
   "region": "Mid Rim",
   "grid": "O-17",
   "sector": "Chommell sector"
  },
  {
-  "name": "",
+  "name": "Clak'dor V",
   "region": "Outer Rim Territories",
   "grid": "M-18",
   "sector": "Mayagil sector"
  },
  {
-  "name": "",
+  "name": "Clak'dor VII",
   "region": "Outer Rim Territories",
   "grid": "M-18",
   "sector": "Mayagil sector"
  },
  {
-  "name": "",
+  "name": "Commenor",
   "region": "Colonies",
   "grid": "N-10"
  },
  {
-  "name": "",
+  "name": "Cona",
   "region": "Inner Rim",
   "grid": "O-11",
   "sector": "Inner Cluster"
  },
  {
-  "name": "",
+  "name": "Concord Dawn",
   "region": "Outer Rim Territories",
   "grid": "O-7",
   "sector": "Mandalore sector"
  },
  {
-  "name": "",
+  "name": "Corbos",
   "region": "Outer Rim Territories",
   "grid": "Q-5",
   "sector": "Esstran sector"
  },
  {
-  "name": "",
+  "name": "Corsin",
   "region": "Expansion Region",
   "grid": "M-7",
   "sector": "Greater Plooriod sector"
  },
  {
-  "name": "",
+  "name": "Corvis Minor IV",
   "region": "Outer Rim Territories",
   "grid": "N-5",
   "sector": "Ciutric sector"
  },
  {
-  "name": "",
+  "name": "Cularin",
   "region": "Expansion Region",
   "grid": "P-14",
   "sector": "Thaere sector"
  },
  {
-  "name": "",
+  "name": "Cyborrea",
   "region": "Hutt Space",
   "grid": "S-9"
  },
  {
-  "name": "",
+  "name": "Da Soocha",
   "region": "Hutt Space",
   "grid": "S-11"
  },
  {
-  "name": "",
+  "name": "Dac",
   "region": "Outer Rim Territories",
   "grid": "U-6",
   "sector": "Calamari sector"
  },
  {
-  "name": "",
+  "name": "Dakot Seven",
   "region": "Outer Rim Territories",
   "grid": "R-5",
   "sector": "Mortex sector"
  },
  {
-  "name": "",
+  "name": "Darada",
   "region": "Core Worlds",
   "grid": "K-9"
  },
  {
-  "name": "",
+  "name": "Delaya",
   "region": "Core Worlds",
   "grid": "M-10",
   "sector": "Alderaan sector"
  },
  {
-  "name": "",
+  "name": "Delemede",
   "region": "Outer Rim Territories",
   "grid": "N-20",
   "sector": "Rseik sector"
  },
  {
-  "name": "",
+  "name": "Delphon",
   "region": "Outer Rim Territories",
   "grid": "K-18",
   "sector": "Greater Javin"
  },
  {
-  "name": "",
+  "name": "Denab",
   "region": "Outer Rim Territories",
   "grid": "M-19",
   "sector": "Sluis sector"
  },
  {
-  "name": "",
+  "name": "Denbalen",
   "region": "Mid Rim",
   "grid": "R-16",
   "sector": "Trans-Nebular sector"
  },
  {
-  "name": "",
+  "name": "Dennogra",
   "region": "Outer Rim Territories",
   "grid": "S-8",
   "sector": "Tharin sector"
  },
  {
-  "name": "",
+  "name": "Doan",
   "region": "Outer Rim Territories",
   "grid": "M-6",
   "sector": "Halthor sector"
  },
  {
-  "name": "",
+  "name": "Dodz",
   "region": "Outer Rim Territories",
   "grid": "U-13",
   "sector": "Zoraster sector"
  },
  {
-  "name": ")",
+  "name": "Drall (planet))",
   "region": "Core Worlds",
   "grid": "M-11",
   "sector": "Corellian sector"
  },
  {
-  "name": "",
+  "name": "Dromund Fels",
   "region": "Outer Rim Territories",
   "grid": "R-5",
   "sector": "Esstran sector"
  },
  {
-  "name": "",
+  "name": "Dromund Kalakar",
   "region": "Outer Rim Territories",
   "grid": "R-5",
   "sector": "Esstran sector"
  },
  {
-  "name": "",
+  "name": "Droxine",
   "region": "Outer Rim Territories",
   "grid": "Q-5",
   "sector": "Esstran sector"
  },
  {
-  "name": "",
+  "name": "Dubrillion",
   "region": "Outer Rim Territories",
   "grid": "K-3",
   "sector": "Myto sector"
  },
  {
-  "name": "",
+  "name": "Durace",
   "region": "Unknown Regions",
   "grid": "H-6"
  },
  {
-  "name": "",
+  "name": "Duroon",
   "region": "Outer Rim Territories",
   "grid": "S-4",
   "sector": "Corporate Sector"
  },
  {
-  "name": "",
+  "name": "Ebra",
   "region": "Mid Rim",
   "grid": "L-6",
   "sector": "Kesh sector"
  },
  {
-  "name": "",
+  "name": "Eiattu 6",
   "region": "Mid Rim",
   "grid": "L-17",
   "sector": "Ado sector"
  },
  {
-  "name": "",
+  "name": "Elerion",
   "region": "Outer Rim Territories",
   "grid": "R-6",
   "sector": "Thanium sector"
  },
  {
-  "name": "",
+  "name": "Elshandruu Pica",
   "region": "Outer Rim Territories",
   "grid": "O-18",
   "sector": "Quence sector (Sector Capital)"
  },
  {
-  "name": "",
+  "name": "Empress Teta",
   "region": "Deep Core",
   "grid": "L-10",
   "sector": "Koros sector"
  },
  {
-  "name": "",
+  "name": "Endex",
   "region": "Outer Rim Territories",
   "grid": "J-5",
   "sector": "Velcar sector"
  },
  {
-  "name": "",
+  "name": "Endor",
   "region": "Outer Rim Territories; Inner Zuma Region",
   "grid": "H-16",
   "sector": "Zuma sector; Moddell sector; Outer Moddell systems"
  },
  {
-  "name": "",
+  "name": "Endovan",
   "region": "Mid Rim",
   "grid": "Q-8",
   "sector": "Sarka sector"
  },
  {
-  "name": "",
+  "name": "Entralla",
   "region": "Outer Rim Territories",
   "grid": "K-4",
   "sector": "Velcar sector"
  },
  {
-  "name": "",
+  "name": "Erigorm",
   "region": "Core Worlds",
   "grid": "L-9"
  },
  {
-  "name": "",
+  "name": "Esseles",
   "region": "Core Worlds",
   "grid": "L-9",
   "sector": "Darpa sector"
  },
  {
-  "name": "",
+  "name": "Fait d'Fait",
   "region": "Mid Rim",
   "grid": "O-7",
   "sector": "Venaarian sector"
  },
  {
-  "name": "",
+  "name": "Fakir",
   "region": "Colonies; Bakchou arm",
   "grid": "K-9",
   "sector": "Fakir sector"
  },
  {
-  "name": "",
+  "name": "Farstine",
   "region": "Mid Rim",
   "grid": "P-17",
   "sector": "Ryndellian sector"
  },
  {
-  "name": "",
+  "name": "Feris",
   "region": "Mid Rim",
   "grid": "K-17",
   "sector": "Agarix sector"
  },
  {
-  "name": "",
+  "name": "Ferrhast",
   "region": "Core Worlds",
   "grid": "L-13"
  },
  {
-  "name": "",
+  "name": "Fest",
   "region": "Outer Rim Territories",
   "grid": "L-5",
   "sector": "Atrivis sector"
  },
  {
-  "name": "",
+  "name": "Florrum",
   "region": "Outer Rim Territories",
   "grid": "R-5",
   "sector": "Sertar sector"
  },
  {
-  "name": "",
+  "name": "Folor",
   "region": "Colonies",
   "grid": "N-10"
  },
  {
-  "name": "",
+  "name": "Fresia",
   "region": "Core Worlds",
   "grid": "K-10",
   "sector": "Torranix sector"
  },
  {
-  "name": "",
+  "name": "Gadon 3",
   "region": "Outer Rim Territories",
   "grid": "S-6",
   "sector": "Cronese Mandate"
  },
  {
-  "name": "",
+  "name": "Gaftikar",
   "region": "Outer Rim Territories",
   "grid": "P-5",
   "sector": "Kalamith sector"
  },
  {
-  "name": "",
+  "name": "Gamorr",
   "region": "Outer Rim Territories",
   "grid": "T-14",
   "sector": "Galov sector"
  },
  {
-  "name": "",
+  "name": "Garcornia",
   "region": "Mid Rim",
   "grid": "M-17",
   "sector": "Ado sector"
  },
  {
-  "name": "",
+  "name": "Gargon",
   "region": "Outer Rim Territories",
   "grid": "O-7",
   "sector": "Mandalore sector"
  },
  {
-  "name": "",
+  "name": "Gargon Two",
   "region": "Outer Rim Territories",
   "grid": "O-7",
   "sector": "Mandalore sector"
  },
  {
-  "name": "",
+  "name": "Garos IV",
   "region": "Mid Rim",
   "grid": "P-7",
   "sector": "Msst sector"
  },
  {
-  "name": "",
+  "name": "Garqi",
   "region": "Outer Rim Territories",
   "grid": "K-5",
   "sector": "Cassander sector"
  },
  {
-  "name": "",
+  "name": "Gaurick",
   "region": "Outer Rim Territories",
   "grid": "S-4",
   "sector": "Corporate Sector"
  },
  {
-  "name": "",
+  "name": "Gen'Dai homeworld",
   "region": "",
   "grid": ""
  },
  {
-  "name": "",
+  "name": "Genarius",
   "region": "Expansion Region",
   "grid": "P-14",
   "sector": "Thaere sector"
  },
  {
-  "name": "",
+  "name": "Gentes",
   "region": "Outer Rim Territories; Greater Javin",
   "grid": "K-18",
   "sector": "Anoat sector"
  },
  {
-  "name": "",
+  "name": "Geran",
   "region": "Outer Rim Territories",
   "grid": "T-9",
   "sector": "Calaron sector"
  },
  {
-  "name": "",
+  "name": "Gillad",
   "region": "Deep Core",
   "grid": "L-10",
   "sector": "Koros sector"
  },
  {
-  "name": "",
+  "name": "Glee Anselm",
   "region": "Mid Rim",
   "grid": "J-7",
   "sector": "Jalor sector"
  },
  {
-  "name": "",
+  "name": "Golm",
   "region": "Mid Rim",
   "grid": "R-14",
   "sector": "Bothan Space"
  },
  {
-  "name": "",
+  "name": "Golm asteroid belt",
   "region": "Mid Rim",
   "grid": "R-14",
   "sector": "Bothan Space"
  },
  {
-  "name": "",
+  "name": "Gorm",
   "region": "Wild Space (c. 12,000 BBY–11,000 BBY)",
   "grid": "O-6",
   "sector": "Meerian sector"
  },
  {
-  "name": "",
+  "name": "Goroth Prime",
   "region": "Mid Rim",
   "grid": "R-16",
   "sector": "Trans-Nebular sector"
  },
  {
-  "name": "",
+  "name": "Grella",
   "region": "Colonies",
   "grid": "L-13",
   "sector": "Tapani sector"
  },
  {
-  "name": "",
+  "name": "Grizmallt",
   "region": "Core Worlds",
   "grid": "L-9"
  },
  {
-  "name": "",
+  "name": "Groth",
   "region": "The Slice",
   "grid": "S-11",
   "sector": "''Bootana Hutta''"
  },
  {
-  "name": "",
+  "name": "Haashimut",
   "region": "Outer Rim Territories",
   "grid": "S-7",
   "sector": "Ash Worlds"
  },
  {
-  "name": "",
+  "name": "Had Abbadon",
   "region": "Deep Core",
   "grid": "L-10"
  },
  {
-  "name": "",
+  "name": "Halco",
   "region": "Inner Rim Territories",
   "grid": "M-14"
  },
  {
-  "name": "",
+  "name": "Halpat",
   "region": "Core Worlds",
   "grid": "K-9"
  },
  {
-  "name": "",
+  "name": "Hapes",
   "region": "Inner Rim",
   "grid": "O-9",
   "sector": "Hapes Cluster"
  },
  {
-  "name": "",
+  "name": "Haruun Kal",
   "region": "Mid Rim",
   "grid": "M-17",
   "sector": "Dustig sector"
  },
  {
-  "name": "",
+  "name": "Hebine Ring",
   "region": "Outer Rim Territories",
   "grid": "O-17",
   "sector": "Sanbra sector"
  },
  {
-  "name": "",
+  "name": "Heffrin",
   "region": "Outer Rim Territories",
   "grid": "R-17",
   "sector": "Arkanis sector"
  },
  {
-  "name": "",
+  "name": "Herdessa",
   "region": "Mid Rim",
   "grid": "Q-16",
   "sector": "Herdessa sector"
  },
  {
-  "name": "",
+  "name": "Hesperidium",
   "region": "Core Worlds",
   "grid": "L-9",
   "sector": "Corusca sector"
  },
  {
-  "name": "",
+  "name": "Hestria",
   "region": "Mid Rim",
   "grid": "L-18",
   "sector": "Senex-Juvex"
  },
  {
-  "name": "",
+  "name": "Hollast VII",
   "region": "Hutt Space",
   "grid": "S-12"
  },
  {
-  "name": "",
+  "name": "Honoghr",
   "region": "Outer Rim Territories",
   "grid": "T-10",
   "sector": "Kessel sector"
  },
  {
-  "name": "",
+  "name": "Hosko",
   "region": "The Slice",
   "grid": "S-11"
  },
  {
-  "name": "",
+  "name": "Hoszh Iszhir",
   "region": "Core Worlds",
   "grid": "K-9",
   "sector": "Uoti sector"
  },
  {
-  "name": "",
+  "name": "Iego",
   "region": "Outer Rim Territories; Extrictarium Nebula",
   "grid": "T-7",
   "sector": "Ash Worlds"
  },
  {
-  "name": "",
+  "name": "Iktotch",
   "region": "Expansion Region",
   "grid": "O-14",
   "sector": "Narvath sector"
  },
  {
-  "name": "",
+  "name": "Illodia",
   "region": "Core Worlds",
   "grid": "K-13",
   "sector": "Illodia sector"
  },
  {
-  "name": "",
+  "name": "Iope",
   "region": "Outer Rim Territories",
   "grid": "U-12",
   "sector": "Baxel sector"
  },
  {
-  "name": "",
+  "name": "Iseno",
   "region": "Inner Rim",
   "grid": "N-13",
   "sector": "Iseno sector"
  },
  {
-  "name": "",
+  "name": "Iskalon",
   "region": "Mid Rim",
   "grid": "R-16",
   "sector": "Trans-Nebular sector"
  },
  {
-  "name": "",
+  "name": "Ithor",
   "region": "Mid Rim",
   "grid": "M-6",
   "sector": "Ottega sector"
  },
  {
-  "name": "",
+  "name": "Jandoon",
   "region": "Outer Rim Territories",
   "grid": "P-4",
   "sector": "Corva sector"
  },
  {
-  "name": "",
+  "name": "Jebble",
   "region": "Outer Rim Territories",
   "grid": "N-7",
   "sector": "Ojoster sector"
  },
  {
-  "name": "",
+  "name": "Joralla",
   "region": "Mid Rim",
   "grid": "L-17",
   "sector": "Mektrun sector"
  },
  {
-  "name": "",
+  "name": "Jurio",
   "region": "Outer Rim Territories",
   "grid": "P-4",
   "sector": "Corva sector"
  },
  {
-  "name": "",
+  "name": "Kabray",
   "region": "Mid Rim",
   "grid": "P-15",
   "sector": "Corweillian sector"
  },
  {
-  "name": "",
+  "name": "Kalakar Six",
   "region": "Outer Rim Territories",
   "grid": "R-5",
   "sector": "Esstran sector"
  },
  {
-  "name": "",
+  "name": "Kalis",
   "region": "Outer Rim Territories",
   "grid": "M-19",
   "sector": "Elrood sector"
  },
  {
-  "name": "",
+  "name": "Kaliska",
   "region": "Mid Rim",
   "grid": "K-17",
   "sector": "Sombure sector"
  },
  {
-  "name": "",
+  "name": "Kalsunor",
   "region": "Outer Rim Territories",
   "grid": "R-4",
   "sector": "Esstran sector"
  },
  {
-  "name": "",
+  "name": "Kamar",
   "region": "Wild Space",
   "grid": "Either S-3 or S-4"
  },
  {
-  "name": "",
+  "name": "Kamino",
   "region": "Wild Space",
   "grid": "S-15"
  },
  {
-  "name": "",
+  "name": "Karfeddion",
   "region": "Mid Rim",
   "grid": "L-18",
   "sector": "Senex-Juvex"
  },
  {
-  "name": "",
+  "name": "Kashoon",
   "region": "Outer Rim Territories",
   "grid": "S-5",
   "sector": "Colundra sector"
  },
  {
-  "name": "",
+  "name": "Katarr",
   "region": "Mid Rim",
   "grid": "O-8",
   "sector": "Vensori sector"
  },
  {
-  "name": "",
+  "name": "Katchan",
   "region": "Outer Rim Territories",
   "grid": "K-20",
   "sector": "Kallea sector"
  },
  {
-  "name": "",
+  "name": "Kauron",
   "region": "Outer Rim Territories",
   "grid": "O-4",
   "sector": "Meram sector"
  },
  {
-  "name": "",
+  "name": "Kauron asteroid field",
   "region": "Outer Rim Territories",
   "grid": "O-4",
   "sector": "Meram sector"
  },
  {
-  "name": "",
+  "name": "Keres I",
   "region": "Deep Core",
   "grid": "L-10",
   "sector": "Koros sector"
  },
  {
-  "name": "",
+  "name": "Keres II",
   "region": "Deep Core",
   "grid": "L-10",
   "sector": "Koros sector"
  },
  {
-  "name": "",
+  "name": "Khomm",
   "region": "Deep Core",
   "grid": "L-12"
  },
  {
-  "name": "",
+  "name": "Kiffex",
   "region": "Inner Rim",
   "grid": "L-14",
   "sector": "Kiffu sector"
  },
  {
-  "name": "",
+  "name": "Kiffu",
   "region": "Inner Rim",
   "grid": "L-14",
   "sector": "Kiffu sector"
  },
  {
-  "name": "",
+  "name": "Kintan",
   "region": "Outer Rim Territories",
   "grid": "S-9",
   "sector": "Si'Klaata Cluster"
  },
  {
-  "name": "",
+  "name": "Kinyen",
   "region": "Expansion Region",
   "grid": "L-15",
   "sector": "Bes Ber Bikade sector"
  },
  {
-  "name": "",
+  "name": "Kirrek",
   "region": "Deep Core",
   "grid": "L-10",
   "sector": "Koros sector"
  },
  {
-  "name": "",
+  "name": "Kiskua",
   "region": "Hutt Space",
   "grid": "S-12"
  },
  {
-  "name": "",
+  "name": "Klatooine",
   "region": "Hutt Space",
   "grid": "S-9",
   "sector": "Si'Klaata Cluster"
  },
  {
-  "name": "",
+  "name": "Knores",
   "region": "Mid Rim",
   "grid": "L-17",
   "sector": "Senex-Juvex"
  },
  {
-  "name": "",
+  "name": "Kolaador",
   "region": "Outer Rim Territories",
   "grid": "R-17"
  },
  {
-  "name": "",
+  "name": "Kor Nasirii",
   "region": "The Slice",
   "grid": "S-10",
   "sector": "''Bootana Hutta''"
  },
  {
-  "name": "",
+  "name": "Korriz",
   "region": "Outer Rim Territories",
   "grid": "R-4",
   "sector": "Esstran sector"
  },
  {
-  "name": "",
+  "name": "Koru Neimoidia",
   "region": "Colonies",
   "grid": "N-11"
  },
  {
-  "name": "",
+  "name": "Kowak",
   "region": "Outer Rim Territories",
   "grid": "S-16",
   "sector": "Sevetta sector"
  },
  {
-  "name": "",
+  "name": "Krayiss II",
   "region": "Outer Rim Territories",
   "grid": "R-5",
   "sector": "Esstran sector"
  },
  {
-  "name": "",
+  "name": "Kubindi",
   "region": "Outer Rim Territories",
   "grid": "T-9",
   "sector": "Calaron sector"
  },
  {
-  "name": "",
+  "name": "Kuras III",
   "region": "Outer Rim Territories",
   "grid": "M-19",
   "sector": "Elrood sector"
  },
  {
-  "name": "",
+  "name": "Lan Barell",
   "region": "Outer Rim Territories",
   "grid": "O-18",
   "sector": "Hook Nebula"
  },
  {
-  "name": "",
+  "name": "Laria",
   "region": "Outer Rim Territories",
   "grid": "N-19",
   "sector": "Rseik sector"
  },
  {
-  "name": "",
+  "name": "Lettow",
   "region": "Core Worlds",
   "grid": "M-11"
  },
  {
-  "name": "",
+  "name": "Lijuter",
   "region": "Outer Rim Territories",
   "grid": "S-8",
   "sector": "Suolriep sector"
  },
  {
-  "name": "",
+  "name": "Livien",
   "region": "Outer Rim Territories",
   "grid": "S-5",
   "sector": "Tion Hegemony"
  },
  {
-  "name": "",
+  "name": "Loovria",
   "region": "Mid Rim",
   "grid": "L-18",
   "sector": "Juvex sector"
  },
  {
-  "name": "",
+  "name": "Loposi Three",
   "region": "Mid Rim",
   "grid": "M-17",
   "sector": "Dustig sector"
  },
  {
-  "name": "",
+  "name": "Loposi Three's moon",
   "region": "Mid Rim",
   "grid": "M-17",
   "sector": "Dustig sector"
  },
  {
-  "name": "",
+  "name": "Loronar",
   "region": "Colonies",
   "grid": "M-12"
  },
  {
-  "name": "",
+  "name": "Malachor II",
   "region": "Outer Rim Territories",
   "grid": "S-4",
   "sector": "Chorlian sector"
  },
  {
-  "name": "",
-  "region": "Outer Rim Territories",
-  "grid": "S-4",
-  "sector": "Chorlian sector"
- },
- {
-  "name": "",
+  "name": "Malrev IV",
   "region": "Outer Rim Territories",
   "grid": "P-6",
   "sector": "Thrasybule sector"
  },
  {
-  "name": "",
+  "name": "Manari",
   "region": "Expansion Region",
   "grid": "O-15",
   "sector": "Brevost sector"
  },
  {
-  "name": "",
+  "name": "Mechis II",
   "region": "Inner Rim",
   "grid": "L-14"
  },
  {
-  "name": "",
+  "name": "Mechis III",
   "region": "Inner Rim",
   "grid": "L-14"
  },
  {
-  "name": "",
+  "name": "Merisee",
   "region": "Outer Rim Territories",
   "grid": "M-19",
   "sector": "Elrood sector"
  },
  {
-  "name": "",
+  "name": "Meriso",
   "region": "Outer Rim Territories",
   "grid": "M-19",
   "sector": "Elrood sector"
  },
  {
-  "name": "",
+  "name": "Metellos",
   "region": "Core Worlds",
   "grid": "K-10",
   "sector": "Corusca sector"
  },
  {
-  "name": "",
+  "name": "Mima II",
   "region": "Mid Rim",
   "grid": "L-17",
   "sector": "D'Aelgoth sector"
  },
  {
-  "name": "",
+  "name": "Mimban",
   "region": "Expansion Region",
   "grid": "O-12",
   "sector": "Circarpous sector"
  },
  {
-  "name": "",
+  "name": "Molavar",
   "region": "Outer Rim Territories",
   "grid": "S-15",
   "sector": "Abrion sector"
  },
  {
-  "name": "",
+  "name": "Moltok",
   "region": "Outer Rim Territories",
   "grid": "L-5",
   "sector": "Atrivis sector"
  },
  {
-  "name": "",
+  "name": "Mon Eron",
   "region": "Outer Rim Territories",
   "grid": "U-6",
   "sector": "Calamari sector"
  },
  {
-  "name": "",
+  "name": "Mon Gazza",
   "region": "Mid Rim",
   "grid": "Q-16",
   "sector": "Lambda sector"
  },
  {
-  "name": "",
+  "name": "Mozos",
   "region": "Deep Core",
   "grid": "L-10",
   "sector": "Koros sector"
  },
  {
-  "name": "",
+  "name": "Murkhana",
   "region": "Outer Rim Territories",
   "grid": "S-6",
   "sector": "Auril sector"
  },
  {
-  "name": "",
+  "name": "Mustafar",
   "region": "Outer Rim Territories",
   "grid": "L-19",
   "sector": "Atravis sector"
  },
  {
-  "name": "",
+  "name": "Muunilinst",
   "region": "Outer Rim Territories",
   "grid": "K-4",
   "sector": "Obtrexta sector"
  },
  {
-  "name": "",
+  "name": "Mygeeto",
   "region": "Outer Rim Territories",
   "grid": "K-5",
   "sector": "Albarrio sector"
  },
  {
-  "name": "",
+  "name": "Myrkr",
   "region": "Inner Rim",
   "grid": "N-7"
  },
  {
-  "name": "",
+  "name": "N'zoth",
   "region": "Core Worlds",
   "grid": "K-10",
   "sector": "Farlax sector"
  },
  {
-  "name": "",
+  "name": "Naalol",
   "region": "Mid Rim",
   "grid": "L-17",
   "sector": "Spirva sector"
  },
  {
-  "name": "",
+  "name": "Naboo",
   "region": "Mid Rim",
   "grid": "O-17",
   "sector": "Chommell sector"
  },
  {
-  "name": "",
+  "name": "Nal Koska",
   "region": "Hutt Space",
   "grid": "S-12"
  },
  {
-  "name": "",
+  "name": "Nal Yeshu",
   "region": "Hutt Space",
   "grid": "S-12"
  },
  {
-  "name": "",
+  "name": "Nam'ta",
   "region": "Outer Rim Territories",
   "grid": "L-5",
   "sector": "Atrivis sector"
  },
  {
-  "name": "",
+  "name": "Nameless moon",
   "region": "Unknown Regions",
   "grid": ""
  },
  {
-  "name": "",
+  "name": "Naos Asteroid Belt",
   "region": "Wild Space",
   "grid": "S-18"
  },
  {
-  "name": "",
+  "name": "Neimoidia",
   "region": "Colonies",
   "grid": "M-10"
  },
  {
-  "name": "",
+  "name": "Nelvaan",
   "region": "Outer Rim Territories",
   "grid": "Q-16",
   "sector": "Savareen sector"
  },
  {
-  "name": ")",
+  "name": "Nevoota (planet))",
   "region": "Colonies",
   "grid": "M-10"
  },
  {
-  "name": "",
+  "name": "Nfolgai",
   "region": "Outer Rim Territories",
   "grid": "R-4",
   "sector": "Esstran sector"
  },
  {
-  "name": "",
+  "name": "Nim Drovis",
   "region": "Outer Rim Territories",
   "grid": "R-7",
   "sector": "Meridian sector"
  },
  {
-  "name": "",
+  "name": "Noe'ha'on",
   "region": "Expansion Region",
   "grid": "K-16",
   "sector": "Piryn Shar sector"
  },
  {
-  "name": "",
+  "name": "Noonar",
   "region": "Outer Rim Territories",
   "grid": "M-6",
   "sector": "Noonian sector"
  },
  {
-  "name": "",
+  "name": "Nopsin",
   "region": "Mid Rim",
   "grid": "I-15",
   "sector": "Freestanding subsectors"
  },
  {
-  "name": "",
+  "name": "Nouane",
   "region": "Inner Rim",
   "grid": "N-8",
   "sector": "Nouane"
  },
  {
-  "name": "",
+  "name": "Nyemari",
   "region": "Outer Rim Territories",
   "grid": "R-6",
   "sector": "Meridian sector"
  },
  {
-  "name": "",
+  "name": "Obroa-skai",
   "region": "Inner Rim",
   "grid": "N-8"
  },
  {
-  "name": "",
+  "name": "Odryn",
   "region": "Outer Rim Territories",
   "grid": "N-7",
   "sector": "Noonian sector"
  },
  {
-  "name": "",
+  "name": "Ord Biniir",
   "region": "Outer Rim Territories",
   "grid": "L-5",
   "sector": "Relgim sector"
  },
  {
-  "name": "",
+  "name": "Ord Cantrell",
   "region": "Outer Rim Territories",
   "grid": "K-6",
   "sector": "Fath sector"
  },
  {
-  "name": "",
+  "name": "Ord Dalet",
   "region": "Outer Rim Territories",
   "grid": "R-5",
   "sector": "Sertar sector"
  },
  {
-  "name": "",
+  "name": "Ord Dorlass",
   "region": "Mid Rim",
   "grid": "O-16",
   "sector": "Iskin sector"
  },
  {
-  "name": "",
+  "name": "Ord Ibanna",
   "region": "Outer Rim Territories",
   "grid": "M-17",
   "sector": "Brema sector"
  },
  {
-  "name": "",
+  "name": "Ord Mirit",
   "region": "Colonies",
   "grid": "K-9"
  },
  {
-  "name": "",
+  "name": "Ord Trasi",
   "region": "Outer Rim Territories",
   "grid": "L-4",
   "sector": "Relgim sector"
  },
  {
-  "name": "",
+  "name": "Orleon",
   "region": "Mid Rim",
   "grid": "Q-8",
   "sector": "Talcene sector"
  },
  {
-  "name": "",
+  "name": "Orma",
   "region": "Expansion Region",
   "grid": "O-14",
   "sector": "Brak sector"
  },
  {
-  "name": "",
+  "name": "Orto",
   "region": "Outer Rim Territories",
   "grid": "M-19",
   "sector": "Sluis sector"
  },
  {
-  "name": "",
+  "name": "Orto Plutonia",
   "region": "Outer Rim Territories",
   "grid": "P-19",
   "sector": "Sujimis sector"
  },
  {
-  "name": "",
+  "name": "Paigu",
   "region": "Outer Rim Territories",
   "grid": "R-6",
   "sector": "Vorzyd sector"
  },
  {
-  "name": "",
+  "name": "Palawa",
   "region": "Core Worlds",
   "grid": "L-10"
  },
  {
-  "name": "",
+  "name": "Panatha",
   "region": "Outer Rim Territories",
   "grid": "H-16",
   "sector": "Pacanth Reach"
  },
  {
-  "name": "",
+  "name": "Paulking XIV",
   "region": "Outer Rim Territories",
   "grid": "U-8",
   "sector": "Centrality"
  },
  {
-  "name": "",
+  "name": "Pavia",
   "region": "Colonies",
   "grid": "L-13",
   "sector": "Tapani sector; Expanse; Cadriaan Province"
  },
  {
-  "name": "",
+  "name": "Pelagon",
   "region": "Colonies",
   "grid": "L-13",
   "sector": "Pelagia Province; Tapani sector"
  },
  {
-  "name": "",
+  "name": "Pencael IV",
   "region": "Colonies",
   "grid": "M-12"
  },
  {
-  "name": "",
+  "name": "Pengalan IV",
   "region": "Inner Rim",
   "grid": "O-8"
  },
  {
-  "name": "",
+  "name": "Peragus asteroid field",
   "region": "Outer Rim Territories",
   "grid": "Q-4"
  },
  {
-  "name": "",
+  "name": "Peragus II",
   "region": "Outer Rim Territories",
   "grid": "Q-4",
   "sector": "Xappyh sector"
  },
  {
-  "name": "",
+  "name": "Phaseera",
   "region": "Mid Rim",
   "grid": "P-8",
   "sector": "Lantillian sector"
  },
  {
-  "name": "",
+  "name": "Phatrong",
   "region": "Outer Rim Territories",
   "grid": "P-6",
   "sector": "Thrasybule sector"
  },
  {
-  "name": "",
+  "name": "Phiris",
   "region": "Deep Core",
   "grid": "L-10",
   "sector": "Koros sector"
  },
  {
-  "name": "",
+  "name": "Phoebus",
   "region": "Outer Rim Territories",
   "grid": "R-6",
   "sector": "Thanium Worlds"
  },
  {
-  "name": "",
+  "name": "Phorliss",
   "region": "Core Worlds",
   "grid": "K-9",
   "sector": "Dolomar sector"
  },
  {
-  "name": "",
+  "name": "Phoros",
   "region": "Deep Core",
   "grid": "L-10",
   "sector": "Koros sector"
  },
  {
-  "name": "",
+  "name": "Pirdia",
   "region": "Outer Rim Territories",
   "grid": "R-16",
   "sector": "Savareen sector"
  },
  {
-  "name": "",
+  "name": "Poderis",
   "region": "Inner Rim",
   "grid": "M-8",
   "sector": "Orus sector"
  },
  {
-  "name": "",
+  "name": "Polis Massa",
   "region": "Outer Rim Territories",
   "grid": "K-20",
   "sector": "Subterrel sector"
  },
  {
-  "name": "",
+  "name": "Prishardia",
   "region": "Outer Rim Territories",
   "grid": "R-7",
   "sector": "Antemeridian sector"
  },
  {
-  "name": "",
+  "name": "Qalydon",
   "region": "Outer Rim Territories",
   "grid": "R-5",
   "sector": "Sertar sector"
  },
  {
-  "name": "",
+  "name": "Qexis",
   "region": "Outer Rim Territories",
   "grid": "N-19",
   "sector": "Danjar sector"
  },
  {
-  "name": "",
+  "name": "Quas Killam",
   "region": "Mid Rim",
   "grid": "P-10",
   "sector": "Terr'skiar sector"
  },
  {
-  "name": "",
+  "name": "Radnor",
   "region": "Mid Rim",
   "grid": "Q-16",
   "sector": "Daimar sector"
  },
  {
-  "name": "",
+  "name": "Raisa",
   "region": "Core Worlds",
   "grid": "M-10",
   "sector": "Alderaan sector"
  },
  {
-  "name": "",
+  "name": "Ralltiir",
   "region": "Core Worlds",
   "grid": "L-9",
   "sector": "Darpa sector"
  },
  {
-  "name": "",
+  "name": "Raskane IV",
   "region": "Expansion Region",
   "grid": "P-13",
   "sector": "Sepan sector"
  },
  {
-  "name": "",
+  "name": "Raxus II",
   "region": "Outer Rim Territories",
   "grid": "S-5",
   "sector": "Tion Hegemony"
  },
  {
-  "name": "",
+  "name": "Raxus Prime",
   "region": "Outer Rim Territories",
   "grid": "S-5",
   "sector": "Tion Hegemony"
  },
  {
-  "name": "",
+  "name": "Raxus Secundus",
   "region": "Outer Rim Territories",
   "grid": "S-5",
   "sector": "Tion Hegemony"
  },
  {
-  "name": "",
+  "name": "Regretter's Rock",
   "region": "",
   "grid": ""
  },
  {
-  "name": "",
+  "name": "Rendili",
   "region": "Core Worlds",
   "grid": "M-11"
  },
  {
-  "name": "",
+  "name": "Repea",
   "region": "Outer Rim Territories",
   "grid": "R-7",
   "sector": "Auril sector"
  },
  {
-  "name": "",
+  "name": "Riflor",
   "region": "Mid Rim",
   "grid": "J-16",
   "sector": "Narrant sector"
  },
  {
-  "name": "",
+  "name": "Rimma",
   "region": "Core Worlds",
   "grid": "L-13"
  },
  {
-  "name": "",
+  "name": "Rinn",
   "region": "Outer Rim Territories",
   "grid": "U-12",
   "sector": "Baxel sector"
  },
  {
-  "name": "",
+  "name": "Rogue Moon",
   "region": "Outer Rim Territories",
   "grid": "N-7",
   "sector": "Ojoster sector"
  },
  {
-  "name": "",
+  "name": "Ronika",
   "region": "Deep Core",
   "grid": "L-10",
   "sector": "Koros sector"
  },
  {
-  "name": "",
+  "name": "Roon",
   "region": "Outer Rim Territories",
   "grid": "S-15",
   "sector": "Abrion sector; The Cloak of the Sith"
  },
  {
-  "name": "",
+  "name": "Ropagi II",
   "region": "Expansion Region",
   "grid": "N-16",
   "sector": "Kira sector"
  },
  {
-  "name": "",
+  "name": "Rordak",
   "region": "Outer Rim Territories",
   "grid": "R-17",
   "sector": "Pelgrin sector"
  },
  {
-  "name": "",
+  "name": "Rugosa",
   "region": "Outer Rim Territories",
   "grid": "O-17",
   "sector": "Sanbra sector"
  },
  {
-  "name": "",
+  "name": "Rukabi Major",
   "region": "Outer Rim Territories",
   "grid": "P-5",
   "sector": "Gordian Reach"
  },
  {
-  "name": ")",
+  "name": "Ruul (moon))",
   "region": "Outer Rim Territories",
   "grid": "S-8",
   "sector": "Periphery sector"
  },
  {
-  "name": "",
+  "name": "Ruusan",
   "region": "Mid Rim",
   "grid": "P-11",
   "sector": "Teraab sector"
  },
  {
-  "name": "",
+  "name": "Sacorria",
   "region": "Core Worlds",
   "grid": "M-11",
   "sector": "Corellian sector"
  },
  {
-  "name": "",
+  "name": "Sakiya",
   "region": "Hutt Space",
   "grid": "S-11"
  },
  {
-  "name": "",
+  "name": "Sarafur",
   "region": "Outer Rim Territories",
   "grid": "H-16",
   "sector": "Zuma sector"
  },
  {
-  "name": "",
+  "name": "Sarapin",
   "region": "Core Worlds",
   "grid": "M-10"
  },
  {
-  "name": "",
+  "name": "Sebiris",
   "region": "Outer Rim Territories",
   "grid": "M-21",
   "sector": "Kathol sector"
  },
  {
-  "name": "",
+  "name": "Selonia",
   "region": "Core Worlds",
   "grid": "M-11",
   "sector": "Corellian sector"
  },
  {
-  "name": "",
+  "name": "Sembla",
   "region": "Outer Rim Territories",
   "grid": "S-5",
   "sector": "Sertar sector"
  },
  {
-  "name": "",
+  "name": "Sennatt",
   "region": "Mid Rim",
   "grid": "R-14",
   "sector": "Bothan sector"
  },
  {
-  "name": "",
+  "name": "Serroco",
   "region": "Expansion Region",
   "grid": "N-7",
   "sector": "Ploo sector"
  },
  {
-  "name": "",
+  "name": "Setolio",
   "region": "Colonies",
   "grid": "L-13",
   "sector": "Tapani sector"
  },
  {
-  "name": "",
+  "name": "Sevarcos II",
   "region": "Outer Rim Territories",
   "grid": "N-19",
   "sector": "Tamarin sector"
  },
  {
-  "name": "",
+  "name": "Seylott",
   "region": "Outer Rim Territories",
   "grid": "P-18",
   "sector": "Sarin sector"
  },
  {
-  "name": "",
+  "name": "Shalyvane",
   "region": "Outer Rim Territories",
   "grid": "S-5",
   "sector": "Indrexu sector"
  },
  {
-  "name": "",
+  "name": "Shili",
   "region": "Expansion Region",
   "grid": "L-8",
   "sector": "Ehosiq sector"
  },
  {
-  "name": "",
+  "name": "Shola",
   "region": "Outer Rim Territories",
   "grid": "U-14",
   "sector": "Tammuz sector"
  },
  {
-  "name": "",
+  "name": "Sirilla",
   "region": "Core Worlds",
   "grid": "M-9"
  },
  {
-  "name": "",
+  "name": "Skako",
   "region": "Core Worlds",
   "grid": "L-9"
  },
  {
-  "name": "",
+  "name": "Skine",
   "region": "Outer Rim Territories",
   "grid": "Q-19",
   "sector": "Skine sector"
  },
  {
-  "name": "",
+  "name": "Skustell",
   "region": "Outer Rim Territories",
   "grid": "N-19",
   "sector": "Tarabba sector"
  },
  {
-  "name": "",
+  "name": "Sleheyron",
   "region": "Hutt Space",
   "grid": "S-10"
  },
  {
-  "name": "",
+  "name": "Sneeve",
   "region": "Mid Rim",
   "grid": "Q-10",
   "sector": "Kastolar sector"
  },
  {
-  "name": "",
+  "name": "Socorro",
   "region": "Outer Rim Territories",
   "grid": "Q-17",
   "sector": "Kibilini sector"
  },
  {
-  "name": ")",
+  "name": "Sundari (planet))",
   "region": "Mid Rim",
   "grid": "P-7",
   "sector": "Msst sector"
  },
  {
-  "name": "",
+  "name": "Syned One",
   "region": "Outer Rim Territories",
   "grid": "N-17",
   "sector": "Grumani sector"
  },
  {
-  "name": "",
+  "name": "Syngia",
   "region": "Outer Rim Territories",
   "grid": "R-5",
   "sector": "Sertar sector"
  },
  {
-  "name": "",
+  "name": "Taanab",
   "region": "Inner Rim",
   "grid": "O-8"
  },
  {
-  "name": "",
+  "name": "Talofan",
   "region": "Outer Rim Territories",
   "grid": "P-18",
   "sector": "Bajic sector"
  },
  {
-  "name": "",
+  "name": "Taloraan",
   "region": "Expansion Region",
   "grid": "I-15",
   "sector": "Freestanding subsectors"
  },
  {
-  "name": "",
+  "name": "Talravin",
   "region": "Core Worlds",
   "grid": "M-10"
  },
  {
-  "name": "",
+  "name": "Talus",
   "region": "Core Worlds",
   "grid": "M-11",
   "sector": "Corellian sector"
  },
  {
-  "name": "",
+  "name": "Tandankin",
   "region": "Outer Rim Territories",
   "grid": "R-6",
   "sector": "Spadja sector"
  },
  {
-  "name": "",
+  "name": "Tantra",
   "region": "Outer Rim Territories",
   "grid": "M-19",
   "sector": "Tantra sector"
  },
  {
-  "name": "",
+  "name": "Tar Morden",
   "region": "Expansion Region",
   "grid": "K-16",
   "sector": "Vensensor sector"
  },
  {
-  "name": "",
+  "name": "Tas-La",
   "region": "Hutt Space",
   "grid": "S-9",
   "sector": "Si'Klaata Cluster"
  },
  {
-  "name": "",
+  "name": "Taskeed",
   "region": "Outer Rim Territories",
   "grid": "S-7",
   "sector": "Tharin sector"
  },
  {
-  "name": "",
+  "name": "Telos IV",
   "region": "Outer Rim Territories",
   "grid": "Q-4",
   "sector": "Kwymar sector"
  },
  {
-  "name": "",
+  "name": "Tepasi",
   "region": "Core Worlds",
   "grid": "L-9"
  },
  {
-  "name": "",
+  "name": "Test environment JX967A24",
   "region": "Wild Space",
   "grid": ""
  },
  {
-  "name": "",
+  "name": "Thila",
   "region": "Outer Rim Territories",
   "grid": "Q-4",
   "sector": "Illisurevimurasi sector"
  },
  {
-  "name": "",
+  "name": "Tholatin",
   "region": "Mid Rim",
   "grid": "P-10",
   "sector": "Mytaranor sector"
  },
  {
-  "name": "",
+  "name": "Tholoth",
   "region": "Colonies",
   "grid": "N-12"
  },
  {
-  "name": "",
+  "name": "Thyferra",
   "region": "Inner Rim",
   "grid": "L-14",
   "sector": "Jaso sector"
  },
  {
-  "name": "",
+  "name": "Tibrin",
   "region": "Mid Rim",
   "grid": "L-18",
   "sector": "Hadar sector"
  },
  {
-  "name": "",
+  "name": "Tiisheraan",
   "region": "Core Worlds",
   "grid": "L-13"
  },
  {
-  "name": "",
+  "name": "Tinnel IV",
   "region": "Core Worlds",
   "grid": "M-12",
   "sector": "Quanta sector"
  },
  {
-  "name": "",
+  "name": "Tirsa",
   "region": "Outer Rim Territories",
   "grid": "S-4",
   "sector": "Corporate Sector"
  },
  {
-  "name": "",
+  "name": "Toola",
   "region": "Outer Rim Territories",
   "grid": "S-5",
   "sector": "Nilgaard sector"
  },
  {
-  "name": "",
+  "name": "Toprawa",
   "region": "Outer Rim Territories",
   "grid": "P-5",
   "sector": "Kalamith sector"
  },
  {
-  "name": "",
+  "name": "Toydaria",
   "region": "Mid Rim",
   "grid": "R-11"
  },
  {
-  "name": "",
+  "name": "Trandosha",
   "region": "Mid Rim",
   "grid": "P-9",
   "sector": "Mytaranor sector"
  },
  {
-  "name": "",
+  "name": "Trif",
   "region": "Outer Rim Territories",
   "grid": "N-4",
   "sector": "Ciutric sector"
  },
  {
-  "name": "",
+  "name": "Tryast",
   "region": "Deep Core",
   "grid": "L-10",
   "sector": "Koros sector"
  },
  {
-  "name": "",
+  "name": "Tund",
   "region": "Outer Rim Territories",
   "grid": "U-8",
   "sector": "Centrality"
  },
  {
-  "name": "",
+  "name": "Tunyok",
   "region": "Outer Rim Territories",
   "grid": "T-14",
   "sector": "Galov sector"
  },
  {
-  "name": "",
+  "name": "Tytun",
   "region": "Expansion Region",
   "grid": "N-15",
   "sector": "Baroli sector"
  },
  {
-  "name": "",
+  "name": "Ukio",
   "region": "Outer Rim Territories",
   "grid": "S-15",
   "sector": "Abrion sector"
  },
  {
-  "name": "",
+  "name": "Ulmatra",
   "region": "Hutt Space",
   "grid": "S-10"
  },
  {
-  "name": "",
+  "name": "Unidentified Hok system asteroid",
   "region": "Colonies",
   "grid": "M-9"
  },
  {
-  "name": ")",
+  "name": "Unidentified Inner Rim planet (revolution))",
   "region": "Inner Rim",
   "grid": ""
  },
  {
-  "name": ")",
+  "name": "Unidentified jungle world (Torch Nebula))",
   "region": "Outer Rim Territories",
   "grid": "P-19",
   "sector": "Torch Nebula"
  },
  {
-  "name": "",
+  "name": "Unidentified Mid Rim planet",
   "region": "Mid Rim",
   "grid": ""
  },
  {
-  "name": "",
+  "name": "Unidentified moon of Kiskua",
   "region": "Hutt Space",
   "grid": "S-12"
  },
  {
-  "name": "",
+  "name": "Unidentified Outer Rim moon",
   "region": "Outer Rim Territories",
   "grid": ""
  },
  {
-  "name": ")",
+  "name": "Unidentified planet (Lorardia system))",
   "region": "Outer Rim Territories",
   "grid": "O-6",
   "sector": "D'Astan sector"
  },
  {
-  "name": "",
+  "name": "Unidentified Wild Space planet",
   "region": "Wild Space",
   "grid": ""
  },
  {
-  "name": "",
+  "name": "Urkupp",
   "region": "Outer Rim Territories",
   "grid": "R-6",
   "sector": "Auril sector"
  },
  {
-  "name": "",
+  "name": "Vaal asteroid field",
   "region": "Outer Rim Territories",
   "grid": "P-5",
   "sector": "Gordian Reach"
  },
  {
-  "name": "",
+  "name": "Vaced",
   "region": "Mid Rim",
   "grid": "J-7",
   "sector": "Jalor sector"
  },
  {
-  "name": "",
+  "name": "Vactooine",
   "region": "Outer Rim Territories",
   "grid": "R-16",
   "sector": "Arkanis sector"
  },
  {
-  "name": "",
+  "name": "Vandelhelm",
   "region": "Expansion Region",
   "grid": "M-15",
   "sector": "Epsi Collective"
  },
  {
-  "name": "",
+  "name": "Varl",
   "region": "Mid Rim",
   "grid": "S-11",
   "sector": "Hutt Space"
  },
  {
-  "name": "",
+  "name": "Varn",
   "region": "Outer Rim Territories",
   "grid": "O-6",
   "sector": "Quelii sector"
  },
  {
-  "name": "",
+  "name": "Vasch",
   "region": "Outer Rim Territories",
   "grid": "R-17",
   "sector": "Arkanis sector"
  },
  {
-  "name": "",
+  "name": "Vassek",
   "region": "Outer Rim Territories",
   "grid": "I-17",
   "sector": "Wazta sector"
  },
  {
-  "name": "",
+  "name": "Velmor",
   "region": "Mid Rim",
   "grid": "P-7",
   "sector": "Halori sector"
  },
  {
-  "name": "",
+  "name": "Vena",
   "region": "Expansion Region",
   "grid": "P-9",
   "sector": "Nojic sector"
  },
  {
-  "name": "",
+  "name": "Vendaxa",
   "region": "Expansion Region",
   "grid": "O-14",
   "sector": "Chaykin sector"
  },
  {
-  "name": "",
+  "name": "Vo",
   "region": "Core Worlds; the Arrowhead",
   "grid": "M-11",
   "sector": "Corellian sector; Outlier systems"
  },
  {
-  "name": "",
+  "name": "Vontor",
   "region": "Hutt Space",
   "grid": "S-9",
   "sector": "Si'Klaata Cluster"
  },
  {
-  "name": "",
+  "name": "Vultar",
   "region": "Core Worlds",
   "grid": "L-10"
  },
  {
-  "name": "",
+  "name": "Waskiro",
   "region": "Outer Rim Territories",
   "grid": "R-7",
   "sector": "Jospro sector"
  },
  {
-  "name": "",
+  "name": "Wayland",
   "region": "Outer Rim Territories",
   "grid": "N-7",
   "sector": "Ojoster sector"
  },
  {
-  "name": "",
+  "name": "Xo",
   "region": "Outer Rim Territories",
   "grid": "N-2",
   "sector": "Spinward sector"
  },
  {
-  "name": "",
+  "name": "Yablari",
   "region": "Outer Rim Territories",
   "grid": "R-6",
   "sector": "Vorzyd sector"
  },
  {
-  "name": "",
+  "name": "Yanibar",
   "region": "Wild Space",
   "grid": "R-19"
  },
  {
-  "name": "",
+  "name": "Ylesia",
   "region": "Hutt Space",
   "grid": "T-12"
  },
  {
-  "name": "",
+  "name": "Yn",
   "region": "Inner Rim",
   "grid": "K-14"
  },
  {
-  "name": "",
+  "name": "Zaadja",
   "region": "Outer Rim Territories",
   "grid": "R-16",
   "sector": "Savareen sector"
  },
  {
-  "name": "",
+  "name": "Zilior",
   "region": "Outer Rim Territories",
   "grid": "R-5",
   "sector": "Sertar sector"
  },
  {
-  "name": "",
+  "name": "Zonju V",
   "region": "Wild Space",
   "grid": "J-21"
  },
  {
-  "name": "",
+  "name": "Zygerria Four",
   "region": "Outer Rim Territories",
   "grid": "S-4",
   "sector": "Chorlian sector"
@@ -4796,7 +4790,7 @@ export const MENTION_ONLY: readonly MapNode[] = [
 ];
 
 /** Mention-only worlds whose only grid is Canon-only: off the map until a Legends location turns up (D-402 [13]). */
-export const OFF_MAP: readonly string[] = ["","","","","","","","","","","","","","","","","","","",""];
+export const OFF_MAP: readonly string[] = ["Bezha Two","Exigar","Frenos Three","Gelemeade","Gelemeade's fourth moon","Giddea","Herrik","Kajim","Mearalis II","Rokirex","Romossobar","Seluket","Solu Five","Temesher","Useria","Useria's moon","Verroth","Vur IV","Yev"];
 
 /** Routes attested in the window (B1 and "other routes named in era sources"): the trunk network (D-402 [15]). */
 export const ROUTES_ATTESTED: readonly GeneratedRoute[] = [

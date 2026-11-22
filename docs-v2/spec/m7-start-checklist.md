@@ -130,7 +130,7 @@ This checklist turns the M7 start options in architecture §15 into the work for
 
   **Decided and built (D-401 [8]):** src/data/eraRules.ts, nine rules, each sent only when its place or faction is relevant.
 
-- [ ] **15. Era rank names for the narrator** (architecture §15, D-298, D-308). Specified in full in §15 (era-keyed data plus a state-block line), so it needs no decision. **Not built in this pass**; ready for the next one.
+- [x] **15. Era rank names for the narrator** (architecture §15, D-298, D-308). Specified in full in §15 (era-keyed data plus a state-block line), so it needs no decision. **Built (D-405 [4]):** src/data/eraRanks.ts holds the Jedi and Sith ladders by era, from the cross-era tables (D-298, D-299, D-308). The state block has a "Rank names in this era" line.
 - [x] **16. The galaxy-sim faction seeds (spec 14, D-395).** No code reads them (no galaxy simulation yet). The review against batches 12–21 is below; **the values wait for question 9.**
 
   **Decided (D-401 [9]):** all five values and the three additions accepted and written into spec 14.
@@ -195,11 +195,16 @@ Not contradicted, and kept: `sithEmpire` power 72 and morale 68 with "Rim Campai
   The state block lists the closed worlds for the character's side, with the reason when the scene is at one.
 
   **Built and tested.**
-- [ ] **26. Travel system: base table, class multiplier, hazards, blockade (batch 22).**
+- [x] **26. Travel system: base table, class multiplier, hazards, blockade (batch 22).**
 
-  Not built. The draft numbers are below, all `invented`, waiting for Jared's approval (D-402 [3]). They are not wired into play.
+  **Approved with changes and built (D-405 [2]).**
+  - **Engine:** src/engine/travel.ts, with the numbers in src/data/travel.config.ts (all `invented`).
+  - **In play:** src/turn/travel.ts. A "travel" intent between two map worlds takes the engine's time, which then passes; the narrator gets a "Travel:" line.
+  - **Refused:** a trip to a world closed to the character's side, or a routine trip across the blockade. No time passes.
+  - **Places not on the map** leave the time to the narrator.
+  - **The ship:** a common freighter (Class 2) until ships are data in M8; the smuggler start flies a modified ship (Class 1.5).
 
-### Draft travel table (D-402 [3]; every number `invented`, for review)
+### Travel table (D-402 [3], approved with changes in D-405 [2]; every number `invented`)
 
 **The model:** a trip follows charted lanes as a sum of hops between consecutive stops on a route. Then:
 - hyperdrive class multiplies the hop time (lore);
@@ -207,17 +212,16 @@ Not contradicted, and kept: `sithEmpire` power 72 and morale 68 with "Rim Campai
 - climbing out of a gravity well adds sublight time at each end (lore);
 - plotting a jump to a destination never travelled to takes hours (lore).
 
-**Base hop time** (Class 1, between consecutive stops on a charted route):
+**Hop time** (Class 1): the region value is the minimum, plus time for each grid square crossed beyond the first (D-405). The distance is in grid squares, diagonals included. A hop across regions uses the slower rate.
 
-| Region of the hop | Hours |
-|---|---|
-| Core Worlds | 4 |
-| Colonies, Inner Rim | 6 |
-| Expansion Region, Mid Rim | 10 |
-| Outer Rim, Hutt Space | 16 |
-| Wild Space, Unknown Regions | 30 |
+| Region of the hop | Minimum hours | Per extra square |
+|---|---|---|
+| Core Worlds | 4 | 3 |
+| Colonies, Inner Rim | 6 | 4 |
+| Expansion Region, Mid Rim | 10 | 6 |
+| Outer Rim, Hutt Space | 16 | 8 |
+| Wild Space, Unknown Regions | 30 | 15 |
 
-A hop across two regions takes the slower region's time.
 
 **Modifiers:**
 - **Hyperdrive class:** hop time × class (Class 2 takes twice as long, Class 0.5 half). This is lore; only the factors are ours.
@@ -230,6 +234,6 @@ A hop across two regions takes the slower region's time.
 **Hyperdrive classes:**
 - Lore: the *Ascendant Spear*, Class 0.5.
 - Game stat (KOTOR Campaign Guide): the *Hammerhead*, *Aurek*, *Foray* and *Kandosii*, Class 2 (the *Kandosii*'s backup drive is Class 9).
-- House default: *Valor*-class cruiser 2; *Harrower*-class dreadnought 2; *Terminus*-class destroyer 1.5; *Thranta*-class corvette 1.5; *Fury*-class interceptor 1; *Defender*-class corvette 1.5; a common freighter 3; a civilian transport 4.
+- House default: *Valor*-class cruiser 2; *Harrower*-class dreadnought 2; *Terminus*-class destroyer 1.5; *Thranta*-class corvette 1.5; *Fury*-class interceptor 1; *Defender*-class corvette 1.5; a common freighter 2, a modified smuggler ship 1.5, a civilian transport 3 (amended in D-405).
 
-**Anchor check:** the only real figure is the Imperial-era trip from Coruscant to Alderaan, about 16 hours, which is a guide from another era. In the draft it is two Core hops (8 hours at Class 1) plus 2 hours of climb-out. A Class 2 ship takes 16 + 2 = 18 hours, and a Class 1.5 ship takes 14 hours.
+**Anchor check (re-run, D-405):** the only real figure is the Imperial-era trip from Coruscant to Alderaan, about 16 hours, a guide from another era. Coruscant (L-9) and Alderaan (M-10) are one square apart, so the trip is one Core hop at the 4-hour minimum, plus 2 hours of climb-out. That gives 10 hours in a common freighter (Class 2), 8 in a smuggler ship (Class 1.5) and 6 at Class 1, under the guide. The guide's route clips the Deep Core, which the map can't see, since both worlds are Core Worlds.
