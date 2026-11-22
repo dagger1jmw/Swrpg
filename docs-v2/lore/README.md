@@ -103,3 +103,10 @@ Last updated 2026-11-21.
 |---|---|
 | `Docs/SWRPG lore/SW_Force_Traditions_AllEras_Part1.md` | Force traditions, Part 1: Dai Bendu to the Corellian Jedi (Baran Do, Aing-Tii, Luka Sene, Ysanna, Voss Mystics, Rhand, Paladins and others) |
 | `Docs/SWRPG lore/SW_Force_Traditions_AllEras_Part2.md` | Force traditions, Part 2: Dathomir to the Imperial Knights, plus the who-exists-in-each-era narrator table for both parts |
+
+## Old Republic era setting (SWTOR, the default start)
+
+| Path | Scope |
+|---|---|
+| `Docs/SWRPG lore/SW_SWTOR_Era_Power_Structures_Part1.md` | SWTOR era, Part 1: the Sith Empire (Emperor, Dark Council and Spheres, ministries, Intelligence, Kaggath, military ranks) |
+| `Docs/SWRPG lore/SW_SWTOR_Era_Power_Structures_Part2.md` | SWTOR era, Part 2: the Republic (Chancellors, Senate, military, SIS, Jedi and government), full timeline for both sides |

@@ -1075,6 +1075,15 @@ The clock and the module contract come first, before any feature.
     (Legacy era), Sorcerers of Rhand, Nightsisters (any era after Allya), Seyugi Dervishes, Bando Gora (c. 44–32 BBY),
     the Wyrd (Clone Wars Cularin), Blackguard.
   - *Era gating:* spawn traditions from Part 2's "who exists in each era" table; "y" cells are optional.
+- **M7 SWTOR protagonists and career paths (Jared, 2026-11-21, lore batch 6; D-360 to D-362; lore:
+  SW_SWTOR_Era_Power_Structures_Part1.md and _Part2.md).**
+  - *SWTOR protagonists as canon NPCs:* the class heroes (Hero of Tython, the Barsen'thor, the Emperor's Wrath, Lord
+    Kallig / Darth Nox, Cipher Nine, Havoc Squad's commander, the Outlander) appear in the timeline only by title.
+    Default: canon NPCs known by title, with species, gender and name left open unless the player meets them. The
+    narrator never gives them fixed names. **Open question for Jared:** should a player be able to take one of these
+    roles?
+  - *Career paths (candidates, nothing decided):* the Game notes paths: a Sith PC through a Sphere's pyramid to the
+    Council; non-Sith Imperial careers; Jedi, Republic and SIS careers.
 - **M7 forbidden powers and Order reputation (D-346, Jared, 2026-11-21; not built).** A Knight learning a forbidden
   power (Electric Judgment, Deadly Sight, Morichro from 1000 BBY) needs a Master's permission; learning it covertly
   risks the character's standing in the Order. Build with Order standing.
