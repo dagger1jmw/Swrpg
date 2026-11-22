@@ -59,3 +59,107 @@ Audited file: `legacy/index.html` (V170). Read-only audit.
 2. Should species give traits with mechanical effects (for example Miraluka Force sight, Iktotchi precognition, Kel Dor low-light vision), or stay narrative?
 3. Where should species lifespans and body-cap tables come from, since Docs/SWRPG lore/ has no species table? Is it OK to add one to the lore folder, or should it live in a v2 spec?
 4. Should Resist Aging actually slow aging (body cap and lifespan) in v2?
+
+---
+
+# v2 species (lore batch 21, D-399)
+
+## Sources
+The lore source for species is `Docs/SWRPG lore/SW_Species_OldRepublic_Part1.md` (Human, Sith Purebloods and 18 core species), `_Part2.md` (25 more species; cyborgs, Zakuulans and rakghouls) and `_Part3.md` (comparison table, ageing findings, conflicts, Game notes, decisions). This spec records only the rulings and the data fields; the facts stay in those files. The game data is `src/data/species.ts`. Each species entry is also in the narrator's lore index, sent only when the species is named (D-398, parser).
+
+## Ageing data: where each number comes from
+Every lifespan and maturity in `src/data/species.ts` carries a tag in `ageSource`:
+- `lore`: stated in a novel, comic, game text or codex;
+- `game stat`: from an RPG sourcebook (mostly the Ultimate Alien Anthology, UAA). Infobox ages whose source could not be checked also carry `unverified` (Aqualish, Gran);
+- `house default`: our own choice.
+
+Game-book age bands are the default ageing tables where no lore exists; where lore gives a figure, lore wins. The 15 species with no lifespan source use the Human bands as a house default (lifespan 100, maturity 18): Sith Purebloods, Twi'leks, Mirialans, Rattataki, Mon Calamari, Rodians, Nikto, Devaronians, Houk, Sullustans, Voss, Gormak, Gektl, Echani and Sarkhai. Revisit a species if a source turns up.
+
+**How the bands become the two numbers** (`lifespan` = the age at Human-equivalent 100, `maturity` = the age at Human-equivalent 18; species.md §1): lifespan is the stated average lifespan when lore gives one, else the game book's venerable age or stated maximum, else the Human 100. Maturity is the book's adult age where given, else 18.
+
+**Not species traits:** Scourge's immortality (a ritual) and Khem Val's centuries in stasis (an outside cause) never feed species data. **Force-sensitive longevity** (up to about 200 for Humans and Human-baseline species) is a design item: m6-integration-checklist.md item 33.
+
+**Ageing signs** (flavour the narrator may use; `ageingSigns`):
+- Trandoshans stop regrowing limbs at about 54 (game stat). This is mechanical only once limb loss exists.
+- Sullustan eyes start failing after 30 (lore).
+- Old Purebloods get mottled skin and withered tendrils (lore).
+
+## Who can be played
+- **Offered at character creation (38):** the 35 playable-ready species, plus three thin ones with good culture sources (Mirialan, Rattataki, Voss).
+- **NPC-only (7):** Houk, Gormak, Gektl, Yoda's species, Sarkhai, Echani and Aqualish.
+- **Not species:** cyborgs are a variant of any species. Zakuulans are Humans (use the Human entry), and rakghouls are not playable.
+- Sith Purebloods stay Empire-only (species.md §4).
+
+**Era gating rule:** a species can be picked only if its people are known to the side and the era of the start. In code this is `knownFrom` in species.ts and `speciesOfferedAt(year)`, and computeCreation rejects anything else.
+- For the 3,661 BBY start the only gated case is the **Voss**, unknown to the galaxy until the rediscovery c. 3,645 BBY. No Voss player characters before then: a backstory exception is not offered at creation, and Voss NPCs before 3,645 need a story reason.
+- **Later start eras need the same check** as more gates are found.
+
+**Setting rulings:**
+- Ryloth is Hutt-controlled in 3,661 BBY [inferred] (the clans regained it "sometime after 3,643 BBY"). Tag it inferred wherever it appears.
+- The Mother Machine claim that Twi'leks and Zabraks were made by it is an in-world rumour only.
+- Homeworld control not stated in the files stays blank. Purely local colour may be invented, tagged `invented`, and must not contradict galactic control.
+- The Cerean Force rate and languages rest on a gray-window book and are accepted.
+
+## The playable species
+One line each, giving:
+- lifespan / maturity, with their tags;
+- Force;
+- languages;
+- standing in 3,661 BBY (Republic and Empire);
+- naming conventions where the file gives them.
+
+"—" means not stated, left blank under ruling 18. P1 and P2 are SW_Species_OldRepublic_Part1 and Part2 (the species' own entry).
+
+| Species | Lifespan / maturity | Force | Languages | 3,661 BBY standing | Naming | Cite |
+|---|---|---|---|---|---|---|
+| Human | 100 game stat / 18 house | no rate stated | Basic and many others | most common in both powers; a favoured "master race" in the Empire | — | P1 |
+| Sith Pureblood | 100 house / 18 house | non-sensitives "extremely rare" | Sith | Empire only: the privileged caste; Korriban is Imperial | — | P1 |
+| Chiss | 80 game stat / 10 lore | rare; Force use forbidden at home | Cheunh; trade languages | the Ascendancy is the Empire's ally | — | P1 |
+| Twi'lek | 100 house / 18 house | lekku possibly sensitive; no tradition | Twi'leki (Ryl), lekku sign | Ryloth Hutt-controlled [inferred]; many slaves in the Empire | — | P1 |
+| Zabrak | 80 lore / 18 house | no rate stated | Zabraki, Basic | Iridonia contested between both powers | — | P1 |
+| Mirialan (thin) | 100 house / 18 house | religious Force belief | Mirialan, Basic | Mirial a refuge, Republic-aligned [inferred] | — | P1 |
+| Miraluka | 84 game stat / 18 house | whole species | Miralukese | Alpheridies: not stated | — | P1 |
+| Cathar | 90 game stat / 18 game stat | often Jedi | Catharese | most sided with the Republic | — | P1 |
+| Rattataki (thin) | 100 house / 18 house | many among Vich's captives | Rattataki | Rattatak partly Sith-occupied | — | P1 |
+| Togruta | 95 game stat / 18 game stat | special affinity | Togruti | Shili: not stated | — | P1 |
+| Kel Dor | 70 game stat / 18 house | silver eyes mark affinity | Kel Dor, Basic | Dorin: not stated | given names copy the sounds of Dorin's atmosphere | P1 |
+| Mon Calamari | 100 house / 18 house | no rate stated | Mon Calamarian, Basic | Republic member | — | P1 |
+| Wookiee | 400 lore / 60 house | no rate stated | Shyriiwook and others; cannot speak Basic | Kashyyyk: not stated (joined the Republic) | — | P1 |
+| Trandoshan | 60 game stat / 15 game stat | uncommon | Dosh | Trandosha: not stated | — | P1 |
+| Rodian | 100 house / 18 house | no era rate | Rodese, Basic, Huttese | not stated (annexed by the Empire in 3,653) | — | P1 |
+| Duros | 70 game stat / 15 game stat | no rate stated | Durese | Duro: not stated; a favoured species in Imperial field hospitals | — | P1 |
+| Bothan | 85 game stat / 17 game stat | no rate stated | Bothese, Botha, Wrendui | Bothawui Republic-defended | — | P1 |
+| Cerean | 70 game stat / 15 game stat | about Human [gray] | Cerean, Basic | Cerea: not stated | — | P1 |
+| Nautolan | 70 game stat / 18 house | respected; no Force culture | Anselmian, Basic | Glee Anselm: not stated | — | P1 |
+| Devaronian | 100 house / 18 house | higher than other species | Basic, Devaronese | Devaron: not stated | — | P1 |
+| Gand | 95 game stat / 18 house | the findsmen | Gand | Gand: not stated | — | P2 |
+| Kaleesh | 80 game stat / 18 house | a blessing; no Jedi known | Kaleesh | not stated; "recently arrived" in the galaxy | — | P2 |
+| Nikto | 100 house / 18 house | no rate stated | Nikto | Kintan, Hutt Space [inferred] | — | P2 |
+| Weequay | 90 game stat / 18 house | many; some Jedi | Sriluurian | Sriluur: not stated | — | P2 |
+| Talz | 52 game stat / 18 house | not stated | chirps and buzzes | not stated (a Cold War Senator) | — | P2 |
+| Epicanthix | 130 lore / 18 house | mind shielding | Epicant | Panatha: not stated | — | P2 |
+| Falleen | 250 game stat / 18 house | resist mind tricks | Falleen | not stated | — | P2 |
+| Hutt | 1,000 lore / 200 lore | rare; mind-shielded | Huttese | Nal Hutta neutral | personal, clan and family names (Zorba Desilijic Tiure) | P2 |
+| Jawa | 80 game stat / 18 house | not stated | Jawaese | Tatooine: not stated | — | P2 |
+| Voss (thin; from c. 3,645) | 100 house / 18 house | high rate; the Mystics | Voss, Basic | independent and unknown to outsiders | — | P2 |
+| Dashade | 85 game stat / 18 house | resistant | Dashadi | near-extinct (Urkupp destroyed in 3,996) | — | P2 |
+| Chagrian | 76 game stat / 18 house | not stated | Chagri | Champala: not stated | — | P2 |
+| Selkath | 100 game stat / 18 house | not stated | Selkatha | Manaan neutral | — | P2 |
+| Sullustan | 100 house / 18 house | not stated | Sullustese | Sullust: not stated | — | P2 |
+| Ithorian | 85 game stat / 18 house | many; priest-healers | Ithorese | Ithor: not stated | — | P2 |
+| Arkanian | 103 game stat / 15 game stat | not stated | Arkanian | Republic | — | P2 |
+| Zeltron | 80 game stat / 18 house | empathic telepathy | Basic | Zeltros: not stated | — | P2 |
+| Gran | 79 game stat, unverified / 18 house | not stated | Gran | Kinyen: not stated | — | P2 |
+
+## The ten thin species, and why
+A species is thin when at least two of these are missing: body numbers, lifespan, culture and era (see each entry's readiness mark in P1 and P2).
+- **Mirialan** (offered): no height or lifespan; culture well sourced.
+- **Rattataki** (offered): no height or lifespan; culture and era sourced (Vich's captives).
+- **Voss** (offered from c. 3,645 BBY): no height or lifespan; culture well sourced.
+- **Houk:** no lifespan and no era detail.
+- **Gormak:** no body numbers or lifespan; culture only as the Voss's rivals.
+- **Gektl:** no body numbers, lifespan or language.
+- **Yoda's species:** no culture or homeworld; only Jedi known.
+- **Sarkhai:** no body numbers, lifespan or language.
+- **Echani:** no numbers at all.
+- **Aqualish:** ages from an unchecked infobox; little culture or era detail.

@@ -14,7 +14,7 @@ import { ORDER_REQUIREMENTS } from '../../data/orderRequirements';
 import { interp } from '../../engine/interp';
 import { AVERAGE_RANK_AGES, RANK_BY_ID, RANK_PHASE, type RankDef } from '../../data/rankMinimums';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID, SKILL_IDS, type TalentDomain } from '../../data/skills';
-import { SPECIES_BY_ID, speciesDef } from '../../data/species';
+import { SPECIES_BY_ID, speciesDef, speciesOfferedAt } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { closedFormLevel, formXps, phasesFor, planSplit, type FormPlan } from '../../engine/closedForm';
 import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
@@ -189,6 +189,9 @@ export function computeCreation(input: CreationInput): CreationResult {
   const hStartIn = species ? humanEquivalentAge(species, input.trainingStartAge) : input.trainingStartAge;
   if (!a) errors.push(`Unknown archetype ${input.archetype}.`);
   if (!species) errors.push(`Unknown species ${input.speciesId}.`);
+  // D-399 [20], [21]: players pick from the species offered for the start year (NPCs may be any species in the table).
+  else if (!input.npc && !speciesOfferedAt(dateFromAbsDay(input.startDay).year).some((s) => s.id === species.id))
+    errors.push(species.playable ? `${species.name} are not known to the galaxy in ${formatYear(dateFromAbsDay(input.startDay).year)}.` : `${species.name} are not offered at character creation.`);
   if (!rankDef) errors.push(`Unknown rank ${input.rank}.`);
   if (a && !PATH_ARCHETYPES[input.path].includes(a.id) && !(input.npc && NPC_ARCHETYPES[input.path].includes(a.id))) errors.push(`${a.name} is not an archetype of the ${input.path} path.`);
   if (rankDef && rankDef.path !== input.path) errors.push(`${rankDef.name} is not a rank of the ${input.path} path.`);

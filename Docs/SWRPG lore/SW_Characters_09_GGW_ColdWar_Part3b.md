@@ -61,7 +61,7 @@ Fields per entry: as in Part3a. "Not stated" means no source gives it. Force-sen
 | Watcher X | Human male (genetically enhanced) | b. 3685 BBY | engineered in the womb; joined at 21; Operation Undertow 3664 BBY led to his forced retirement | ~24, post-Undertow / ~32 | [Watcher X §Biography](https://starwars.fandom.com/wiki/Watcher_X) |
 | Fixer Seven | not stated | — | badly hurt in Operation Undertow, 3664 BBY | not stated | [Fixer Seven](https://starwars.fandom.com/wiki/Fixer_Seven) |
 | Cipher Twelve | male | d. 3672 BBY | "old guard" Cipher Agent; Lokin called him the finest; killed by a Hapan royal assassin | dead / dead | [Cipher Twelve](https://starwars.fandom.com/wiki/Cipher_Twelve) |
-| Ula Vii | Epicanthix male, Panatha | — | Intelligence agent posing as Stantorrs's aide, c. 3643 BBY | not stated | [Ula Vii §Cold War](https://starwars.fandom.com/wiki/Ula_Vii) |
+| Ula Vii | Epicanthix male, Panatha | — | Intelligence agent posing as Stantorrs's aide, c. 3643 BBY; Cold War Imperial Epicanthix spies kept; the Epicanthix page's Palpatine-era "first contact" is read as the later Empire's contact, not the first ever [conflict] (lore batch 21, ruling 13) | not stated | [Ula Vii §Cold War](https://starwars.fandom.com/wiki/Ula_Vii) |
 | Hunter (Star Cabal) | Human female | b. c. 3670 BBY; d. 3640 BBY aboard the Star Chamber | Star Cabal operative raised from childhood; disguised as a male SIS agent | ~9 / ~17 | [Hunter (Star Cabal)](https://starwars.fandom.com/wiki/Hunter_%28Star_Cabal%29) |
 
 ### Cipher Nine (title only)
@@ -74,7 +74,7 @@ Fields per entry: as in Part3a. "Not stated" means no source gives it. Force-sen
 | Malavai Quinn | Human male, Dromund Kaas | 3680 BBY | son of Rymar Quinn; lieutenant at Druckenwell 3653 BBY; Baras's agent (Wrath) | ~19, serving / lieutenant | [Malavai Quinn §Early life and service](https://starwars.fandom.com/wiki/Malavai_Quinn) |
 | Vette (born Ce'na) | Rutian Twi'lek female, born on Ryloth | 3664 BBY | slave freed by Nok Drayen; thief (Wrath) | ~3 / ~11 | [Vette §Early life](https://starwars.fandom.com/wiki/Vette) |
 | Pierce | Human male, Ziost | 3671 BBY | black ops from his teens; lieutenant; Tarrick hit (Wrath) | ~10 / ~18 | [Pierce §Great Galactic War](https://starwars.fandom.com/wiki/Pierce) |
-| Broonmark | Talz male, Alzoc III | — | killer who served the Republic, then the Empire (Wrath) | not stated | [Broonmark](https://starwars.fandom.com/wiki/Broonmark) |
+| Broonmark | Talz male, Alzoc III | — | killer who served the Republic, then the Empire (Wrath); a Cold War Talz kept; the Talz page's "found around 15 BBY" is read as a later rediscovery after contact was lost [conflict] (lore batch 21, ruling 12) | not stated | [Broonmark](https://starwars.fandom.com/wiki/Broonmark) |
 | Kaliyo Djannis | Rattataki female, Rattatak | c. 3672 BBY | anarchist; Nem'ro's enforcer (Cipher Nine) | ~11 / ~19 | [Kaliyo Djannis](https://starwars.fandom.com/wiki/Kaliyo_Djannis); [Kaliyo Djannis §Early life](https://starwars.fandom.com/wiki/Kaliyo_Djannis) |
 | Eckard "Fixer Fifteen" Lokin | Human/Rakghoul male, Dromund Kaas | c. 3707 BBY | doctor; on the Warhammer at the start of the war (Cipher Nine) | ~54 / ~62 | [Eckard Lokin](https://starwars.fandom.com/wiki/Eckard_Lokin); [Eckard Lokin §Biography](https://starwars.fandom.com/wiki/Eckard_Lokin) |
 | Vector Hyllus | Human male, Jurio | 3669 BBY | diplomat turned Killik Joiner (Cipher Nine) | ~8 / ~16 | [Vector Hyllus](https://starwars.fandom.com/wiki/Vector_Hyllus) |

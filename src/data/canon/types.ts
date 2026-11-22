@@ -55,6 +55,8 @@ export interface CanonNpc {
     teachers?: string;
     formsAndPowers?: string;
     alignment?: string;
+    /** Conflicts between sources, and which one the game follows (lore batch 21). */
+    conflicts?: string;
     source?: string;
   }>;
   /** Status at the default start (3661 BBY): the "who is on the board" filter (lore batch 19). */

@@ -200,7 +200,12 @@ Human body cap by age (straight-line between points):
   5:15 | 9:25 | 12:35 | 15:50 | 18:65 | 22-35:80 | 45:78 | 55:74 | 65:68 | 75:58 |
   85:45 | 100:25
 Other species get their own tables (species.md: the Human table rescaled by age mapping and
-  bodyScale, D-103).
+  bodyScale, D-103). The species lifespans and maturities that feed the age mapping come from lore
+  batch 21 (D-399; src/data/species.ts, each tagged lore / game stat / house default). The body-cap
+  maths is unchanged: the species bands reach it only through the Human-equivalent age h.
+  Design item (D-399 [5], not code): Force-sensitive longevity, up to about 200 (about 300 with
+  elite medicine), for Humans and Human-baseline species only; species with their own lifespan data
+  wait for a scaled rule (m6-integration-checklist.md item 33).
 
 ## 11a. Natural baseline (added by D-102; decides D-67)
 Untrained characters are not at 0 in body and will. Natural level N by Human-equivalent age h
@@ -332,7 +337,8 @@ diff = teacher's level in THAT skill - student's level in THAT skill
   Physical training
     response:              0.80   0.90   1.10   1.00   0.90   0.75
   Academic (Intelligence): 1.00 at all ages
-  Long-lived species map these bands onto their own life stages.
+  Long-lived species map these bands onto their own life stages (through h, species.md sec 1;
+  the bands per species are lore batch 21's, D-399).
 
 ## 17. State of mind
 Amended by D-46 and D-54: one enum and one mapping table, owned by progression. The age

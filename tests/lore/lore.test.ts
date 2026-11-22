@@ -244,6 +244,48 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
   });
 });
 
+describe('species files (lore batch 21, D-399)', () => {
+  const file = `# Playable Species of a Test Era (c. 3681–3600 BBY), Part 1 of 3
+
+## Entries
+
+### How to read this file
+- **Entry layout:** numbered bullets.
+
+### Sith (Sith Purebloods and Sith hybrids)
+- **Type:** species (Red Sith). **playable-ready**
+- **Key facts:**
+  1. **Body:** red skin [Sith (species)](https://starwars.fandom.com/wiki/Sith).
+
+### Kel Dor
+- **Type:** species. **playable-ready**
+- **Key facts:**
+  1. **Body:** needs a mask [Kel Dor](https://x.org).
+`;
+  const built = buildLoreIndex([{ name: 'SW_Species_TestEra_Part1.md', content: file }]);
+
+  it('reads each Type: species entry as a species chunk, with plurals and no citations', () => {
+    expect(fileKey('SW_Species_OldRepublic_Part2.md')).toBe('sp-oldrepublic-p2');
+    expect(built.chunks.map((c) => [c.id, c.kind])).toEqual([
+      ['sp-testera-p1:sith', 'species'],
+      ['sp-testera-p1:kel-dor', 'species'],
+    ]);
+    const kd = built.chunks[1]!;
+    expect(kd.names).toEqual(['kel dor', 'kel dors']);
+    expect(kd.text).not.toMatch(/https?:/);
+    expect([kd.fromYear, kd.toYear]).toEqual([-3681, -3600]);
+  });
+  it('"Sith" alone does not name the species (the Order is meant far more often)', () => {
+    expect(built.chunks[0]!.names).toEqual(expect.arrayContaining(['sith purebloods', 'pureblood']));
+    expect(built.chunks[0]!.names).not.toContain('sith');
+  });
+  it('is sent only when the species is named, never on its own or for a place', () => {
+    const base = { canonIds: [], names: [], locationNames: ['dorin'], year: -3661 };
+    expect(retrieveLore(built, base, 3000, est).included).toEqual([]);
+    expect(retrieveLore(built, { ...base, playerText: normalizeText('I greet the Kel Dor') }, 3000, est).included.map((s) => s.chunk.title)).toEqual(['Kel Dor']);
+  });
+});
+
 describe('lore retrieval', () => {
   const base = { canonIds: [], names: [], locationNames: [] };
 

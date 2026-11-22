@@ -278,7 +278,7 @@ const NPCS: readonly CanonNpc[] = [
     unmapped: ['Sith Sorcery 76'],
     deathBby: 3678,
     deathSource: 'lore',
-    note: "a Sith hybrid descended from Ludo Kressh (species 'other'); the Emperor's first student; rogue; killed on Korriban in 3,678 BBY by Teneb Kel",
+    note: "a Sith hybrid descended from Ludo Kressh (species 'other'); the Emperor's first student; rogue; killed on Korriban in 3,678 BBY by Teneb Kel; species: a Sith hybrid (her own page, best fit); the Sith species page also calls her a Pureblood in its Cold War section [conflict] (lore batch 21, ruling 11)",
   },
   {
     canonId: 'lore:eleena-daru',

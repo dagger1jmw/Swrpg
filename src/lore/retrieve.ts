@@ -63,7 +63,8 @@ export function scoreChunk(c: LoreChunk, q: LoreQuery): { score: number; why: st
   }
   // A person's entry describes their whole life, later events included, so it is sent only when
   // that person is in play (canon, name or the player's words), never for a shared place (D-93).
-  if (c.kind !== 'character' && c.kind !== 'bench') for (const l of c.locations) if (q.locationNames.includes(l)) add(LORE_SCORES.locationMatch, `place ${l}`);
+  // A species entry (lore batch 21) is sent only when the species is named, never for a place it mentions.
+  if (c.kind !== 'character' && c.kind !== 'bench' && c.kind !== 'species') for (const l of c.locations) if (q.locationNames.includes(l)) add(LORE_SCORES.locationMatch, `place ${l}`);
   return { score, why };
 }
 

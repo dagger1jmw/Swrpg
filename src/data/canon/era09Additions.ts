@@ -1325,6 +1325,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
       group: "Sith / dark side",
       summary: "male Kaleesh; Nox's apprentice; Sith Lord after Nox disappeared",
       teachers: "Harkun; Darth Nox",
+      conflicts: "born 3665 BBY (his own page); the Kalee page has 3664 BBY [conflict] (lore batch 21, ruling 10)",
       source: "SW_Characters_09_GGW_ColdWar_Part2.md › Other Sith Lords, apprentices, academy staff and dark-side users (table)"
     }
   },
@@ -1716,6 +1717,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
       sex: "male",
       group: "Republic (non-Force)",
       summary: "Gand male (findsman, Force-sensitive); Havoc engineer from the start of the Galactic War (Meteor)",
+      conflicts: "born 3670 BBY (his own page); the Gand planet page has 3668 BBY [conflict] (lore batch 21, ruling 9)",
       source: "SW_Characters_09_GGW_ColdWar_Part3a.md › C. Republic-side companions and others"
     }
   },
@@ -2234,6 +2236,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
       sex: "male",
       group: "Imperial (non-Force)",
       summary: "Epicanthix male, Panatha; Intelligence agent posing as Stantorrs's aide, c. 3643 BBY",
+      conflicts: "Cold War Imperial Epicanthix spies kept; the Epicanthix page's Palpatine-era \"first contact\" is read as the later Empire's contact, not the first ever [conflict] (lore batch 21, ruling 13)",
       source: "SW_Characters_09_GGW_ColdWar_Part3b.md › Imperial Intelligence"
     }
   },
@@ -2332,6 +2335,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
       sex: "male",
       group: "Imperial (non-Force)",
       summary: "Talz male, Alzoc III; killer who served the Republic, then the Empire (Wrath)",
+      conflicts: "a Cold War Talz kept; the Talz page's \"found around 15 BBY\" is read as a later rediscovery after contact was lost [conflict] (lore batch 21, ruling 12)",
       source: "SW_Characters_09_GGW_ColdWar_Part3b.md › Imperial-side companions"
     }
   },

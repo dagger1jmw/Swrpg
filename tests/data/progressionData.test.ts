@@ -6,7 +6,7 @@ import { ORDER_REQUIREMENTS, REQUIREMENT_ROW } from '../../src/data/orderRequire
 import { AGE_ROWS, RUST } from '../../src/data/progression.config';
 import { RANKS } from '../../src/data/rankMinimums';
 import { CATEGORY_RULES, SKILLS, SKILL_BY_ID, isSkillId, skillDef } from '../../src/data/skills';
-import { SPECIES, TRAIT_LIMITS } from '../../src/data/species';
+import { SPECIES, TRAIT_LIMITS, speciesOfferedAt } from '../../src/data/species';
 
 const TOKENS = new Set(['$mainForm', '$secondForm', '$knownForms', '$pairedStat', '$primary', '$main', '$highestForm', '$planMaster', '$planSolo']);
 const known = (id: string): boolean => TOKENS.has(id) || isSkillId(id);
@@ -100,13 +100,34 @@ describe('skills and activities (spec §6)', () => {
 
 describe('species (species.md §5)', () => {
   it('test 6: every species row has a lifespan, maturity, bodyScale and a source or design note', () => {
-    expect(SPECIES).toHaveLength(12);
+    expect(SPECIES).toHaveLength(45);
     for (const s of SPECIES) {
       expect(s.lifespan).toBeGreaterThan(s.maturity);
       expect(s.maturity).toBeGreaterThan(0);
       expect(s.bodyScale).toBeGreaterThan(0);
       expect(s.source.length).toBeGreaterThan(0);
+      // Lore batch 21 (D-399): every age number carries a source tag and a basis.
+      for (const tag of [s.ageSource.lifespan, s.ageSource.maturity]) expect(['lore', 'game stat', 'house default']).toContain(tag);
+      expect(s.ageSource.basis.length).toBeGreaterThan(0);
     }
+  });
+
+  it('lore batch 21 (D-399): 38 species offered in 3,661 BBY, the Voss only from 3,645 BBY, seven NPC-only', () => {
+    expect(speciesOfferedAt(-3661)).toHaveLength(37);
+    expect(speciesOfferedAt(-3661).map((s) => s.id)).not.toContain('voss');
+    expect(speciesOfferedAt(-3645).map((s) => s.id)).toContain('voss');
+    expect(speciesOfferedAt(-3645)).toHaveLength(38);
+    expect(SPECIES.filter((s) => !s.playable).map((s) => s.id).sort()).toEqual(['aqualish', 'echani', 'gektl', 'gormak', 'houk', 'sarkhai', 'yodas_species']);
+  });
+  it('lore batch 21 (D-399): rulings 2-6, 19 in the age data', () => {
+    const d = (id: string) => SPECIES.find((s) => s.id === id)!;
+    for (const id of ['sith_pureblood', 'twilek', 'mirialan', 'rattataki', 'mon_calamari', 'rodian', 'voss', 'nikto', 'devaronian', 'houk', 'sullustan', 'gormak', 'gektl', 'echani', 'sarkhai']) {
+      expect([d(id).lifespan, d(id).maturity, d(id).ageSource.lifespan], id).toEqual([100, 18, 'house default']);
+    }
+    expect([d('falleen').lifespan, d('wookiee').lifespan, d('zabrak').lifespan, d('zabrak').ageSource.lifespan]).toEqual([250, 400, 80, 'lore']);
+    expect([d('hutt').lifespan, d('hutt').maturity]).toEqual([1000, 200]);
+    expect(d('gran').ageSource).toMatchObject({ lifespan: 'game stat', unverified: true });
+    expect(d('aqualish').ageSource).toMatchObject({ lifespan: 'game stat', unverified: true });
   });
 
   it('traits stay within the species.md §3 limits', () => {

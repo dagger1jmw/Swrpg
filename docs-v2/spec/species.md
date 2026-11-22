@@ -17,6 +17,10 @@ Every species reuses the Human tables, rescaled. No separate curve per species.
     makes h catch up at 2x until it reaches the true value.
 
 ## 2. Launch species (3,661 BBY Great Galactic War era)
+  Superseded for ages and the species list by lore batch 21 (D-399): src/data/species.ts now has
+  45 species (38 offered at creation, the Voss from c. 3,645 BBY; 7 NPC-only), each lifespan and
+  maturity tagged lore / game stat / house default, and 23-species.md lists them. The table below
+  keeps the traits (unchanged); its lifespans are the pre-batch design values.
   id          lifespan  maturity  bodyScale  traits
   human       100       18        1.00       none (baseline)
   twilek      100       18        1.00       lekku: Charisma learning x1.05 (D-113); dance/agility culture: Agility cap +5

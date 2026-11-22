@@ -95,6 +95,15 @@ describe('computed creation (character-creation §6)', () => {
     }
   });
 
+  it('offers only the species known for the start year, and no NPC-only species (lore batch 21, D-399)', () => {
+    const at3661 = { startDay: absDayFromDate({ year: -3661, month: 1, day: 1 }), birthDay: absDayFromDate({ year: -3685, month: 1, day: 1 }) };
+    expect(computeCreation(jedi(24, 'knight', { ...at3661, speciesId: 'voss' })).errors.join()).toMatch(/Voss are not known to the galaxy in 3,661 BBY/);
+    expect(computeCreation(jedi(24, 'knight', { speciesId: 'voss' })).errors).toEqual([]); // a later start
+    expect(computeCreation(jedi(24, 'knight', { speciesId: 'houk' })).errors.join()).toMatch(/not offered at character creation/);
+    expect(computeCreation(jedi(24, 'knight', { ...at3661, speciesId: 'kel_dor' })).errors).toEqual([]);
+    expect(computeCreation(jedi(24, 'knight', { speciesId: 'houk', npc: true })).errors).toEqual([]);
+  });
+
   it('test 6: the same inputs always produce the same character', () => {
     expect(computeCreation(jedi(24, 'knight'))).toEqual(computeCreation(jedi(24, 'knight')));
   });

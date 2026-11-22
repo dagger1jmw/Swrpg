@@ -48,3 +48,14 @@ describe('Era 09 roster (lore batch 19)', () => {
     expect(get('lore:darth-angral').note).toMatch(/led the Sacking fleet/);
   });
 });
+
+describe('species conflicts (lore batch 21, D-399 rulings 9-13)', () => {
+  const npc = (id: string) => CANON_BY_ID.get(`lore:${id}`)!;
+  it('the character pages win, and each conflict is noted', () => {
+    expect(npc('yuun').birthBby).toBe(3670);
+    expect(npc('xalek').birthBby).toBe(3665);
+    expect(npc('exal-kressh').speciesId).toBe('other'); // a Sith hybrid
+    expect(npc('exal-kressh').note).toMatch(/Pureblood in its Cold War section \[conflict\]/);
+    for (const id of ['yuun', 'xalek', 'broonmark', 'ula-vii']) expect(npc(id).facts?.conflicts, id).toMatch(/\[conflict\]/);
+  });
+});

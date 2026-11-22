@@ -261,6 +261,7 @@ Death years are from the infoboxes (c9/ibox.tsv).
   - Forms/powers: Force lightning and telekinesis [Exal Kressh §Powers and abilities](https://starwars.fandom.com/wiki/Exal_Kressh).
   - Alignment: betrayed the Emperor when she learned of the "Children" plan, and leaked fleet movements to the Republic [Exal Kressh](https://starwars.fandom.com/wiki/Exal_Kressh).
   - 3661 BBY / 3653 BBY: dead.
+- **Uncertainty:** species: a Sith hybrid (her own page, best fit); the Sith species page also calls her a Pureblood in its Cold War section [conflict] (lore batch 21, ruling 11).
 - **Related:** Vitiate, Thanaton (Part2); Jerbhen Hulis (Part1).
 - **Uncertainty:** the old file's "first student" has no source; the Vitiate page says the Emperor meant to possess her "as the first of his Children" [Tenebrae §A renewed war](https://starwars.fandom.com/wiki/Tenebrae).
 
@@ -334,7 +335,7 @@ Death years are from the infoboxes (c9/ibox.tsv).
 | Ffon Althe | male Pureblood from Korriban | — / c. 3643 BBY, Korriban | acolyte favored by Harkun | Overseer Harkun | — / — | [Ffon Althe](https://starwars.fandom.com/wiki/Ffon_Althe) |
 | Grathan | male Human | — / — | Sith Lord who rebelled against the Council from a base on Dromund Kaas; defeated by Baras's apprentice | several apprentices | — / — | [Grathan](https://starwars.fandom.com/wiki/Grathan) |
 | Khem Val | male Dashade; red eyes, gray skin | before 5500 BBY / — | Tulak Hord's servant, revived to serve Darth Nox; resists the Force | Masters Tulak Hord and Darth Nox | — / — | [Khem Val](https://starwars.fandom.com/wiki/Khem_Val); [Khem Val §Powers and abilities](https://starwars.fandom.com/wiki/Khem_Val) |
-| Xalek | male Kaleesh | 3665 BBY, Kalee / — | Nox's apprentice; Sith Lord after Nox disappeared | Harkun; Darth Nox | aged about 4 [inferred] / about 12 [inferred] | [Xivhkalrainik](https://starwars.fandom.com/wiki/Xivhkalrainik); [Xivhkalrainik §Powers and abilities](https://starwars.fandom.com/wiki/Xivhkalrainik) |
+| Xalek | male Kaleesh | 3665 BBY, Kalee (born 3665 BBY (his own page); the Kalee page has 3664 BBY [conflict] (lore batch 21, ruling 10)) / — | Nox's apprentice; Sith Lord after Nox disappeared | Harkun; Darth Nox | aged about 4 [inferred] / about 12 [inferred] | [Xivhkalrainik](https://starwars.fandom.com/wiki/Xivhkalrainik); [Xivhkalrainik §Powers and abilities](https://starwars.fandom.com/wiki/Xivhkalrainik) |
 | Jaesa Willsaam | female Human; orange (dark-side) eye variant | 3664 BBY, Alderaan / — | Jedi Padawan of Nomen Karr; then the Wrath's apprentice | Yonlach, Nomen Karr, the Wrath | aged about 3 [inferred] / about 11 [inferred] | [Jaesa Willsaam](https://starwars.fandom.com/wiki/Jaesa_Willsaam); [Jaesa Willsaam §Powers and abilities](https://starwars.fandom.com/wiki/Jaesa_Willsaam) |
 | Lana Beniko | female Human from Dromund Kaas; yellow (dark-side) eyes | — / — | Sith Lord; adviser to Darth Arkous; helped plan the Tython assault in 3637 BBY; later called the former Sith Intelligence Minister | Overseer Harkun | — / — | [Lana Beniko](https://starwars.fandom.com/wiki/Lana_Beniko); [Lana Beniko §Investigating the Dark Lord](https://starwars.fandom.com/wiki/Lana_Beniko); [Darth Mortis §A fractured Council](https://starwars.fandom.com/wiki/Darth_Mortis) |
 

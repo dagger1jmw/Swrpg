@@ -8,8 +8,8 @@ import { ARCHETYPE_BY_ID, PATH_ARCHETYPES, PATH_START_RANGE, type CharacterPath 
 import { TALENT_COST, TALENT_LEVELS, TALENT_POINTS, type TalentLevel } from '../data/progression.config';
 import { FORM_IDS, SKILL_BY_ID, TALENT_DOMAINS, type TalentDomain } from '../data/skills';
 import { RANK_PHASE } from '../data/rankMinimums';
-import { SPECIES } from '../data/species';
-import { speciesDef } from '../data/species';
+import { SPECIES, speciesDef, speciesOfferedAt } from '../data/species';
+import { dateFromAbsDay } from '../engine/calendar';
 import { humanEquivalentAge, speciesAgeFromHuman } from '../engine/species';
 import { computeCreation, defaultFocus, DEFAULT_FORM_PLAN, PADAWAN_PLAN_HOURS, ranksFor, talentCost, type CreationInput } from '../features/character/selectors';
 import { el, input } from './dom';
@@ -39,7 +39,14 @@ export interface CreationForm {
 
 export function creationForm(): CreationForm {
   const path = el('select', {}, PATHS.map((p) => option(p.id, p.label)));
-  const species = el('select', {}, SPECIES.map((s) => option(s.id, s.name)));
+  const species = el('select', {}, SPECIES.filter((s) => s.playable).map((s) => option(s.id, s.name)));
+  // D-399 [20], [21]: only the species offered for the start year (the Voss from c. 3,645 BBY).
+  const fillSpecies = (startDay: number | null): void => {
+    const offered = startDay === null ? SPECIES.filter((s) => s.playable) : speciesOfferedAt(dateFromAbsDay(startDay).year);
+    const keep = offered.some((s) => s.id === species.value) ? species.value : 'human';
+    species.replaceChildren(...offered.map((s) => option(s.id, s.name)));
+    species.value = keep;
+  };
   const rank = el('select');
   const archetype = el('select');
   const start = input({ type: 'number', min: '2', max: '40', step: '0.5', value: '4' });
@@ -297,6 +304,7 @@ export function creationForm(): CreationForm {
     read,
     update: (birthDay, startDay, name) => {
       last = { birthDay, startDay, name };
+      fillSpecies(startDay);
       fillRanks();
       renderPlans();
       refresh();

@@ -2,7 +2,7 @@
 
 Every lore file in `Docs/SWRPG lore/`, the canon source of truth for story facts (CLAUDE.md Golden Rule 3). Canon here means Star Wars Legends only. The files stay in `Docs/SWRPG lore/`; this index and the research queue (`RESEARCH_QUEUE.md`, next to this file: origins, citations, redo briefs, gaps) live in `docs-v2/lore/`, because nothing new is written into `Docs/`.
 
-Game-mechanics sections in these files (Game notes, tiers, numbers) are suggestions that docs-v2 specs may override; every override is logged in `docs-v2/decisions.md`. The runtime lore index for the narrator (D-81, `scripts/build-lore.ts`) reads only the character files and the timeline (the old file and its slices).
+Game-mechanics sections in these files (Game notes, tiers, numbers) are suggestions that docs-v2 specs may override; every override is logged in `docs-v2/decisions.md`. The runtime lore index for the narrator (D-81, `scripts/build-lore.ts`) reads only the character files, the timeline (the old file and its slices) and the species files (sent only when a species is named).
 
 Last updated 2026-11-21.
 
@@ -139,3 +139,11 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_NarShaddaa_HuttSpace_GGW_Part1.md` | Nar Shaddaa and Hutt Space in the Great Galactic War: the Cartel, the treaty, the underworld |
 | `Docs/SWRPG lore/SW_Republic_Military_GGW_Part1.md` | The Republic Military in the Great Galactic War: command, Army, Special Forces, Navy, SIS, ranks and medals |
 | `Docs/SWRPG lore/SW_Imperial_Military_Intelligence_GGW_Part1.md` | The Imperial Military and Imperial Intelligence in the Great Galactic War: command, ranks, ships, Watchers and Fixers |
+
+## Species
+
+| Path | Scope |
+|---|---|
+| `Docs/SWRPG lore/SW_Species_OldRepublic_Part1.md` | Old Republic species, Part 1: Humans, Sith Purebloods and 18 core species |
+| `Docs/SWRPG lore/SW_Species_OldRepublic_Part2.md` | Old Republic species, Part 2: 25 more species; cyborgs, Zakuulans, rakghouls |
+| `Docs/SWRPG lore/SW_Species_OldRepublic_Part3.md` | Old Republic species, Part 3: comparison, ageing, conflicts, decisions (no entries) |

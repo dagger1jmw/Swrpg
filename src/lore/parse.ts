@@ -7,7 +7,7 @@
 // abilities file is not indexed until M6.
 import { normalizeAlias, normalizeText, slugify, textMentions } from '../engine/aliases.ts';
 
-export type LoreChunkKind = 'character' | 'bench' | 'overview' | 'timeline' | 'note';
+export type LoreChunkKind = 'character' | 'bench' | 'overview' | 'timeline' | 'note' | 'species';
 
 export interface LoreChunk {
   id: string;
@@ -559,6 +559,54 @@ function parseBotCharacterFile(fileKey: string, content: string, out: LoreChunk[
   return true;
 }
 
+const SPECIES_TYPE = /^\s*-\s*\*\*Type:\*\*\s*species\b/i;
+const AMBIGUOUS_SPECIES_NAMES: ReadonlySet<string> = new Set(['sith']);
+
+/**
+ * The research bot's species files (SW_Species_OldRepublic_Part1-3, lore batch 21, D-398): the era is in the H1 title;
+ * each species is a `###` entry with a "- **Type:** species" bullet. Each becomes a `species` chunk, sent only when the
+ * species is named (lore/retrieve.ts). Names: the heading, its parenthesised names ("Sith (Sith Purebloods and Sith
+ * hybrids)") and plurals. Entries without a Type bullet (reading notes, the non-playable group list, Part 3's tables)
+ * add nothing.
+ */
+function parseSpeciesFile(fileKey: string, content: string, out: LoreChunk[]): void {
+  const lines = content.split(/\r?\n/);
+  const range = parseYearRange(lines.find((l) => /^#\s/.test(l)) ?? '');
+  if (!range) return;
+  let cur: { heading: string; body: string[] } | null = null;
+  const sections: { heading: string; body: string[] }[] = [];
+  for (const line of lines) {
+    const h = /^(#{1,4})\s+(.*)$/.exec(line);
+    if (h) {
+      cur = h[1]!.length === 3 ? { heading: h[2]!.trim(), body: [] } : null;
+      if (cur) sections.push(cur);
+    } else if (cur) cur.body.push(line);
+  }
+  for (const s of sections) {
+    if (!s.body.some((l) => SPECIES_TYPE.test(l))) continue;
+    const heading = stripLinks(s.heading);
+    const name = heading.replace(/\s*\([^)]*\)/g, '').trim();
+    const raw = [name];
+    for (const m of heading.matchAll(/\(([^)]*)\)/g)) raw.push(...m[1]!.split(/[;,]|\band\b/));
+    // "Sith" alone names the Order far more often than the species: the species answers to "Sith Pureblood(s)",
+    // "Sith hybrid(s)" and "Pureblood(s)" only.
+    if (/^sith$/i.test(name)) raw.push('pureblood');
+    const base = [...new Set(raw.map(normalizeAlias).filter((a) => a.length >= 3 && !AMBIGUOUS_SPECIES_NAMES.has(a)))];
+    const names = [...new Set(base.flatMap((a) => (a.endsWith('s') ? [a] : [a, `${a}s`])))];
+    const body = s.body.filter((l) => !/^\s*-\s*\*\*(Related|Key facts):\*\*/i.test(l)).map(stripCitations);
+    out.push({
+      id: `${fileKey}:${slugify(name)}`,
+      kind: 'species',
+      title: name,
+      fromYear: range.from,
+      toYear: range.to,
+      names,
+      locations: [],
+      text: `${name} (species)\n${proseLines(body)}`,
+    });
+  }
+}
+
 function parseCharacterFile(fileKey: string, content: string, out: LoreChunk[], entities: LoreEntity[]): void {
   if (parseBotCharacterFile(fileKey, content, out, entities)) return;
   const lines = content.split(/\r?\n/);
@@ -654,6 +702,9 @@ export function fileKey(name: string): string | null {
   if (/^SW_Legends_Galaxy_Timeline/.test(name)) return 'tl';
   // The research bot's timeline slices (SW_Timeline_3700_3600BBY_Part1.md, lore batch 20) join the same timeline.
   if (/^SW_Timeline_.*_Part\d+\.md$/.test(name)) return 'tl';
+  // Species files (SW_Species_OldRepublic_Part1.md -> sp-oldrepublic-p1; lore batch 21).
+  const sp = /^SW_Species_([0-9A-Za-z]+)_Part(\d+)\.md$/.exec(name);
+  if (sp) return `sp-${sp[1]!.toLowerCase()}-p${sp[2]}`;
   return null;
 }
 
@@ -668,7 +719,8 @@ export function buildLoreIndex(files: readonly LoreFile[]): LoreIndex {
   if (timeline.length) parseTimeline('tl', timeline.map((f) => f.content), chunks, vocabulary);
   for (const f of sorted) {
     const key = fileKey(f.name);
-    if (key && key !== 'tl') parseCharacterFile(key, f.content, chunks, entities);
+    if (key?.startsWith('sp-')) parseSpeciesFile(key, f.content, chunks);
+    else if (key && key !== 'tl') parseCharacterFile(key, f.content, chunks, entities);
   }
   // Research-bot sets (c09p1, c09p2, ...): an alias two figures of the same set share (Scourge's old title "Emperor's
   // Wrath" vs the Wrath protagonist) is dropped from both, so exact-alias matching stays unambiguous; each figure keeps
