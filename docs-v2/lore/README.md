@@ -64,6 +64,8 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Jedi_Daily_Life_Training_OldRepublic.md` | Jedi daily life and training: the *Jedi Path* timetable, clans, Initiate Trials, Padawan life, the Service Corps (c. 3,700–3,600 BBY, with general material) |
 | `Docs/SWRPG lore/SW_Jedi_Training_AllEras_Part1.md` | Jedi training and organization from the Je'daii to the Ruusan Reformation, plus the Corellian Jedi and the Baran Do (to 1,000 BBY) |
 | `Docs/SWRPG lore/SW_Jedi_Training_AllEras_Part2.md` | Jedi training and organization from the late Republic to the Legacy era, plus the Matukai, Antarian Rangers and Jensaarai (1,000 BBY onward) |
+| `Docs/SWRPG lore/SW_Jedi_Ranks_Councils_Roles_AllEras_Part1.md` | Jedi ranks, councils and roles, all eras, Part 1: to 1000 BBY (extends the Old Republic ranks file) |
+| `Docs/SWRPG lore/SW_Jedi_Ranks_Councils_Roles_AllEras_Part2.md` | Jedi ranks, councils and roles, all eras, Part 2: 1000 BBY to the Legacy era |
 
 ## Sith and other dark-side orders
 

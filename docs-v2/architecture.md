@@ -1051,6 +1051,15 @@ The clock and the module contract come first, before any feature.
   (and the D-298 Jedi ranks by era) goes into src/data as era-keyed data, and the context builder adds the current
   era's rank names to the narrator's state block. Same pattern as D-320's role era gating. Source:
   Docs/SWRPG lore/SW_Sith_Training_AllEras_Part1.md and _Part2.md (cross-era rank tables).
+- **M7 Jedi Council path, roles and wartime postings (Jared, 2026-11-21, lore batch 4; D-356, D-357; lore:
+  SW_Jedi_Ranks_Councils_Roles_AllEras_Part1.md and _Part2.md; design notes, not decisions).**
+  - A player Jedi's path to the Council: Master rank, then noted as "Old Guard", then a limited-term seat in a crisis,
+    then a long-term seat, then a lifetime seat on a vacancy. In the Clone Wars a Chancellor's appointment gives a seat
+    without Master rank. In the NJO a seat opens by unanimous vote, and vacancies can last years.
+  - NPC role generation draws from the specialist roles table filtered by era: no Service Corps after 19 BBY, and Jedi
+    Generals only in war eras.
+  - The Clone Wars order of battle (10 High Generals, 20 Senior Generals, 80 corps, 320 legions, 1,280 regiments with
+    Padawan Commanders) is the default for a Jedi's wartime posting.
 - **M7 forbidden powers and Order reputation (D-346, Jared, 2026-11-21; not built).** A Knight learning a forbidden
   power (Electric Judgment, Deadly Sight, Morichro from 1000 BBY) needs a Master's permission; learning it covertly
   risks the character's standing in the Order. Build with Order standing.

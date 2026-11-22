@@ -821,3 +821,28 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *[32] Exar Kun's record:* both statements hold. As a student he sometimes lost to Baas in sparring; he was never defeated in a real duel.
   - *[33] Rankings:* soft calibration targets for the duel harness, not hard per-era tiers.
   - *[34] Comparisons across eras:* there are no lore rankings across eras. Results come from the characters' stats alone.
+- **D-356 Jedi councils and leadership (Jared, 2026-11-21; lore batch 4; lore: SW_Jedi_Ranks_Councils_Roles_AllEras_Part1.md (P1) and _Part2.md (P2); extends SW_Jedi_Order_Ranks_Council_OldRepublic.md; M7).**
+  - *[P1-1] High Council origin:* the founders' councils existed from the Order's start. An inner circle of 12 Masters existed by the Great Hyperspace War (5000 BBY) with no fixed home, and it was formally constituted by 3997 BBY. The "after the Great Sith War" version is the move to a Coruscant spire, not the founding.
+  - *[P1-3] Grand Master and Master of the Order:* two offices, often held by one person. Grand Master heads the whole Order, for life or until given up. Master of the Order is the elected leader of the High Council. The engine stores them as two flags an NPC can hold together.
+  - *[P1-4] Nomi Sunrider:* recognized as overall leader at Exis Station (3986 BBY); Grand Master in effect, on the Grand Master list.
+  - *[P1-5] Fae Coven:* Grand Master from c. 990 BBY for at least a century; end date unset (after 896 BBY).
+  - *[P1-6] Yoda:* the office of Grand Master ends with the Order in 19 BBY. Survivors and the narrator may still call him Grand Master until his death (4 ABY), as a courtesy.
+  - *[P1-9] Awdrysta Pina:* kept as Grand Master (by 24,500 BBY), [gray].
+  - *[P1-11] Legacy era:* Kol Skywalker is "head of the Council". The formal titles (Grand Master, Master of the Order) stay unset; the Master of the Order reading is Wookieepedia's own inference.
+  - *[P2-1] Service Corps:* overseen by the Council of Reassignment (confirms D-304).
+  - *[P2-2] NJO Masters' Council:* formed during the Yuuzhan Vong War, continued to 35 ABY, formalized as the 12-seat High Council in 36 ABY.
+  - *[P2-4] Gray items kept:* the High Council appoints members by unanimous vote (backed by *The Jedi Path*'s rule for all Coruscant Councils), and the Jedi Artisan role.
+  - *[P2-10] Anakin on the Council:* the first Knight appointed by a Chancellor. Knights had sat before during the transition to Master (Ki-Adi-Mundi).
+  - *Late Republic structure (design default):* the High Council has 12 seats (5 for life, 4 long-term, 3 limited-term), plus the Councils of First Knowledge, Reconciliation and Reassignment (5 seats each). All four are dissolved in 19 BBY.
+  - *SWTOR era (default start, c. 3661 BBY):* Grand Master Zym until 3653 BBY, then Satele Shan. The logged Satele dates stand (D-283: Master 3651, Grand Master c. 3648, term ends c. 3636); the new file's 3651–3636 range is consistent with them. Council members are rarely together, for security. Wartime succession: Jedi summoned to replace fallen Councilors often serve only until stability returns. Barsen'thor is a ceremonial title, given only twice before the Cold War-era Consular received it.
+- **D-357 Jedi rank and membership (Jared, 2026-11-21; lore batch 4; lore: SW_Jedi_Ranks_Councils_Roles_AllEras_Part1.md and _Part2.md; M7).**
+  - *[P1-2] Becoming a Master:* the High Council promotes at its discretion. Usual grounds: training a Padawan to Knighthood, modified Trials, or noted service; some Knights are never promoted. Where Masters may train several apprentices (before c. 3996 BBY, and in the NJO), training several to Knighthood is the common path. Self-declared Masters are accepted in the Old and New Sith Wars and in times of disbandment, with a reputation cost among orthodox NPCs. In the NJO, promotion is by Luke or the Council, for mastery or deeds.
+  - *[P1-7] Jedi Lords:* feudal Jedi Lords existed for centuries in the New Sith Wars; the Grand Council period (c. 1100–1000 BBY) is the best documented. The title is renounced at Ruusan.
+  - *[P1-8] Order size after the Jedi Civil War:* fewer than 100. Most gathered at Katarr (the "last known hundred") and died there, leaving scattered survivors (Surik and the Lost Jedi).
+  - *[P2-3] Order size before the Purge (design default derived from lore):* about 10,000 Knights and Masters in 19 BBY, from "fewer than 100 survivors, about one percent" (*Star Wars Insider* 87). Initiates, Padawans and the Service Corps come on top. Lucas's 1977 "several hundred thousand" predates the prequels and stays [BTS], not used.
+  - *[P2-5] Right of Denial:* a Clone Wars Padawan option to refuse a military rank (handing the lightsaber in to the Temple), [last resort].
+  - *[P2-6] Sentinel title:* available in every Republic era (it appears in the Jedi Civil War). In the NJO the role exists without the title until it returns by c. 137 ABY.
+  - *[P2-7] SWTOR advanced classes:* Sage, Shadow and the rest are flavour names for that era only, with no mechanics of their own.
+  - *[P2-9] The Lost Twenty:* only Masters who resigned voluntarily (Dooku the 20th, 32 BBY). Knights who left (Bardan Jusik) aren't counted; exiles and expulsions are separate.
+  - *[P2-11] Ossus survivors:* the reconciliation is accepted. About half the Order survived, mostly the half that hadn't withdrawn to Ossus.
+  - *Expulsion (design default):* in Republic eras, a hearing before the Council of Reconciliation with testimony. Outcomes: exile, stripped rank, or reassignment to the Service Corps.
