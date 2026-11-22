@@ -174,7 +174,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       teachers: "advised the Padawan Gnost-Dural",
       source: "SW_Characters_09_GGW_ColdWar_Part1.md › Other light-side figures (table)"
     },
-    anchors: [],
+    anchors: [{ bby: 3643, complete: true, basis: "draft", sources: "draft for review (D-415): the generator's line from archetype and rank at a year a work shows: SWTOR: the Jedi Knight story (3,643)", levels: { strength: 40, agility: 46, endurance: 53, willpower: 108, forceSense: 79, forceControl: 68, meditation: 25, forceKnowledge: 13, shiiCho: 35, soresu: 106, ataru: 69, telekinesis: 54, forcePush: 53, forceSpeed: 46, forceJump: 45, mindTrick: 38 } }],
   },
   {
     canonId: "lore:jerbhen-hulis",
@@ -191,7 +191,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       teachers: "an unidentified Padawan",
       source: "SW_Characters_09_GGW_ColdWar_Part1.md › Other light-side figures (table)"
     },
-    anchors: [],
+    anchors: [{ bby: 3678, complete: true, basis: "draft", sources: "draft for review (D-415): the generator's line from archetype and rank at a year a work shows: Blood of the Empire (3,678)", levels: { strength: 47, agility: 47, endurance: 49, willpower: 86, forceSense: 45, forceControl: 63, meditation: 16, forceKnowledge: 13, shiiCho: 33, soresu: 69, ataru: 51, telekinesis: 52, forcePush: 37, forceSpeed: 35, forceJump: 33, mindTrick: 30 } }],
   },
   {
     canonId: "lore:wyellett",
@@ -1010,7 +1010,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       teachers: "acolytes",
       source: "SW_Characters_09_GGW_ColdWar_Part2.md › Other Sith Lords, apprentices, academy staff and dark-side users (table)"
     },
-    anchors: [],
+    anchors: [{ bby: 3643, complete: true, basis: "draft", sources: "draft for review (D-415): the generator's line from archetype and rank at a year a work shows: SWTOR: the Sith Warrior and Inquisitor stories (3,643)", levels: { strength: 48, agility: 47, endurance: 59, willpower: 117, forceSense: 35, forceControl: 39, forceOutput: 49, meditation: 15, forceKnowledge: 14, shiiCho: 29, soresu: 95, ataru: 55, telekinesis: 37, forcePush: 34, forceSpeed: 29, forceJump: 27, forceChoke: 28 } }],
   },
   {
     canonId: "lore:tremel",
@@ -1029,7 +1029,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       teachers: "the Wrath (informal)",
       source: "SW_Characters_09_GGW_ColdWar_Part2.md › Other Sith Lords, apprentices, academy staff and dark-side users (table)"
     },
-    anchors: [],
+    anchors: [{ bby: 3643, complete: true, basis: "draft", sources: "draft for review (D-415): the generator's line from archetype and rank at a year a work shows: SWTOR: the Sith Warrior story (3,643)", levels: { strength: 50, agility: 49, endurance: 56, willpower: 97, forceSense: 33, forceControl: 41, forceOutput: 51, meditation: 15, forceKnowledge: 14, shiiCho: 32, soresu: 82, ataru: 57, telekinesis: 37, forcePush: 30, forceSpeed: 27, forceJump: 28, forceChoke: 25 } }],
   },
   {
     canonId: "lore:ffon-althe",
@@ -1289,7 +1289,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       summary: "male Human (infobox). Supreme Commander during the Great War and Cold War. Married Galena Rans. \"Totally outplayed\" by the Sith plan for the Sacking. Later led at Ilum, where he was captured and rescued, then retired.",
       source: "SW_Characters_09_GGW_ColdWar_Part3a.md › Rans"
     },
-    anchors: [],
+    anchors: [{ bby: 3653, complete: true, basis: "draft", sources: "draft for review (D-415): the generator's line from archetype and rank at a year a work shows: Threat of Peace (3,653)", levels: { strength: 51, agility: 58, endurance: 49, willpower: 72, intelligence: 20, forceControl: 2, meditation: 6, blaster: 74, tactics: 42 } }],
   },
   {
     canonId: "lore:stantorrs",

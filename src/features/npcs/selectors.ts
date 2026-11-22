@@ -80,7 +80,9 @@ export function npcLevelsFor(gen: NpcGen, speciesId: string, age: number, today:
 // ---- Canon figures (D-414): rank-shaped generator lines and growth, for src/engine/canonStats.ts ----
 
 const PADAWAN_PHASE = (r: RankSpan): boolean => r.role === 'padawan' || r.title === 'apprentice';
-const KNIGHT_PHASE = (r: RankSpan): boolean => r.role === 'jediKnight' || r.role === 'jediMaster' || ((r.role === 'sithLord' || r.role === 'inquisitor' || r.role === 'darkJedi') && r.title !== 'apprentice');
+const TRAINEE_ROLES: readonly string[] = ['initiate', 'padawan', 'sithAcolyte', 'darkAcolyte'];
+/** The Knight phase: a Knight, Master or Lord, or any adult role a Force-user holds after training (an Overseer, an agent). */
+const KNIGHT_PHASE = (r: RankSpan): boolean => r.title !== 'apprentice' && !TRAINEE_ROLES.includes(r.role);
 
 /**
  * The creation rank at `bby` and the phase ages a canon figure's rank spans give. Spans starting after `asOfBby` are
@@ -99,7 +101,8 @@ function canonShape(canon: CanonNpc, bby: number, asOfBby: number): { rank: stri
   const padawanAge = Number.isFinite(pad) ? pad : Number.isFinite(knightAge) ? Math.max(0, knightAge - 6) : Infinity;
   const at = canonRankAt({ ...canon, ranks: known }, Math.max(bby, asOfBby));
   const young = def.path === 'sith' ? 'acolyte' : 'initiate';
-  const rank = at ? (at.title === 'apprentice' ? 'apprentice' : (ROLE_RANK[at.role] ?? young)) : young;
+  const adult = def.path === 'sith' ? 'lord' : 'knight';
+  const rank = at ? (at.title === 'apprentice' ? 'apprentice' : (ROLE_RANK[at.role] ?? (KNIGHT_PHASE(at) ? adult : young))) : young;
   return { rank, phases: { padawanAge, knightAge } };
 }
 

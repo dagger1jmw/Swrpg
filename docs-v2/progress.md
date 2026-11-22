@@ -264,3 +264,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-22: D-412. Date-agnostic refactor stage 1: canon roster as dated rank/status/location spans (era09Timeline.ts), birth estimates re-derived from rank facts, brief §4 corrections, placements from location spans.
 - 2026-11-22: D-413. Date-agnostic refactor stage 2: starts date-keyed (valid years, dated threads, place notes, premises), spec 14 seeds as a 3661 keyframe, map control as dated keyframes, 3661 audit.
 - 2026-11-22: D-414. Date-agnostic refactor stage 3: canon NPC stat model (complete and partial anchors, rank-shaped growth, dated events, stasis, generator lines, calculated once at the campaign start).
+- 2026-11-22: D-415. Date-agnostic refactor stage 4: works table (29 works, dated from lore events), appearances and gaps for the hand-set figures, draft anchors for five figures, Sedoru injury event.

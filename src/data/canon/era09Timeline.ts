@@ -1696,6 +1696,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "source": "a Jedi Master by c. 3,642 (Vitiate page; batch 13; Part1 conflict ruling 4)"
       }
     ],
+    "events": [{ "bby": 3654, "kind": "injury", "note": "war injuries weakened his connection to the Force; in 3,653 he turned to peace", "factors": { "forceSense": 0.8, "forceControl": 0.8, "forceOutput": 0.8, "meditation": 0.8, "forceKnowledge": 0.8 }, "source": "SW_Characters_09_GGW_ColdWar_Part1 (Warren Sedoru, alignment); the year (before 3,653) and the factor 0.8 are invented (D-415)", "estimate": true }],
     "birthBasis": "born \"several decades before 3,681\" (Part1), read as 30 years"
   },
   "lore:ardun-kothe": {

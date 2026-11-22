@@ -81,7 +81,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     birthSource: 'lore',
     unmapped: ['Force Body 86 (Enhance Attribute 88%)', 'Chain Lightning 80%'],
     note: "Darth Vindican's apprentice at Korriban (3,681), a Sith Lord after it, Darth c. 3,667; led the Rim Campaign with Venemal (c. 3,660); at the Sacking (3,653) he led the infiltration of the Jedi Temple, while Angral led the attack; survives Ilum (lore batch 19, SW_Characters_09_GGW_ColdWar)",
-    anchors: [{ bby: 3653, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(90, 82, 92, 94, 86, 80), ...force(84, 70, 80, 95, 90), djemSo: 92, shien: 92, shiiCho: 82, juyo: 80, ataru: 76, telekinesis: 88, forcePush: pct(88, 0.85), forceChoke: pct(88, 0.82), forceLightning: 85, forceBarrier: 78 } }],
+    anchors: [{ bby: 3653, complete: true, basis: 'sheet', sources: 'Deceived (3,653); hand-set sheet (lore batch 19)', levels: { ...core(90, 82, 92, 94, 86, 80), ...force(84, 70, 80, 95, 90), djemSo: 92, shien: 92, shiiCho: 82, juyo: 80, ataru: 76, telekinesis: 88, forcePush: pct(88, 0.85), forceChoke: pct(88, 0.82), forceLightning: 85, forceBarrier: 78 } }],
   },
   {
     canonId: 'lore:darth-marr',
@@ -123,7 +123,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     deathSource: 'lore',
     unmapped: ['Force Enrage 78', 'Chain Lightning 75%'],
     note: 'a Sith Lord, not a Dark Councilor (ruling 8): oversaw the Rim Campaign with the Council (c. 3,660); led the Sacking fleet and the attack on Coruscant (3,653) and killed Chancellor Berooken; the Desolator Crisis; killed aboard the Oppressor above Tython in 3,643 BBY (lore batch 19, SW_Characters_09_GGW_ColdWar)',
-    anchors: [{ bby: 3643, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(80, 78, 82, 86, 78, 74), ...force(82, 68, 80, 88, 84), djemSo: 82, shien: 82, juyo: 78, shiiCho: 76, ataru: 74, forceLightning: 82, telekinesis: 80, forcePush: pct(80, 0.75) } }],
+    anchors: [{ bby: 3643, complete: true, basis: 'sheet', sources: 'SWTOR: the Jedi Knight story (3,643); hand-set sheet (lore batch 19)', levels: { ...core(80, 78, 82, 86, 78, 74), ...force(82, 68, 80, 88, 84), djemSo: 82, shien: 82, juyo: 78, shiiCho: 76, ataru: 74, forceLightning: 82, telekinesis: 80, forcePush: pct(80, 0.75) } }],
   },
   {
     canonId: 'lore:darth-jadus',
@@ -289,7 +289,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     deathSource: 'lore',
     unmapped: ['Force Valor 70% (of Battle Meditation)', 'Farsight 72%'],
     note: 'Grand Master through the Great War; survived the Sacking and was killed by the bounty hunter Braden on Coruscant after the Treaty, 3,653 BBY (ruling 1; the "in the Sacking" reading is the minority version) (lore batch 19, SW_Characters_09_GGW_ColdWar)',
-    anchors: [{ bby: 3660, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(48, 52, 56, 88, 80, 82), ...force(86, 90, 88, 82, 76), soresu: 76, shiiCho: 66, battleMeditation: 78, telekinesis: 70 } }],
+    anchors: [{ bby: 3660, complete: true, basis: 'sheet', sources: 'Threat of Peace (3,653); a Grand Master estimate (lore batch 19)', levels: { ...core(48, 52, 56, 88, 80, 82), ...force(86, 90, 88, 82, 76), soresu: 76, shiiCho: 66, battleMeditation: 78, telekinesis: 70 } }],
   },
   {
     canonId: 'lore:kao-cen-darach',
@@ -315,7 +315,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     birthSource: 'lore',
     unmapped: ['Force Valor 88% (of Battle Meditation)', 'Battle Precognition 82%', 'Force Body 85', 'Foresight (named on her page)', 'Telepathy (named on her page)', 'Tutaminis: blocked a blade bare-handed (named)'],
     note: 'Padawan of Ngani Zho, then of Darach at Korriban (3,681); knighted under Dar\'Nala before 3,667; made Grand Master after rediscovering Tython, 3,651 BBY (lore batch 19; D-283 amended); Master before 3,651, undated; powers named: strong telekinesis, tutaminis, foresight, telepathy; the sheet is her Galactic War peak',
-    anchors: [{ bby: 3643, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: {
+    anchors: [{ bby: 3643, complete: true, basis: 'sheet', sources: 'SWTOR (3,643-3,637) and Fatal Alliance (3,643); hand-set sheet (lore batch 19)', levels: {
       ...core(70, 88, 76, 96, 88, 84),
       ...force(92, 94, 90, 94, 82),
       ataru: 88,
@@ -372,7 +372,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     deathBby: 3643,
     deathSource: 'lore',
     note: "Satele's first master; raising Theron away from the Order's eyes; vanished in 3,653 BBY and was killed c. 3,643 BBY in the Vesla system fighting Sith troopers while defending Teff'ith, not by Malgus (lore batch 19, SW_Characters_09_GGW_ColdWar)",
-    anchors: [{ bby: 3660, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(56, 58, 60, 84, 76, 82), ...force(82, 84, 82, 76, 74), soresu: 72, shiiCho: 68 } }],
+    anchors: [{ bby: 3660, complete: true, basis: 'sheet', sources: 'The Lost Suns (c. 3,643); hand-set sheet (lore batch 19)', levels: { ...core(56, 58, 60, 84, 76, 82), ...force(82, 84, 82, 76, 74), soresu: 72, shiiCho: 68 } }],
   },
   {
     canonId: 'lore:gnost-dural',
@@ -398,7 +398,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     deathSource: 'lore',
     unmapped: ['Force Body 80'],
     note: 'led the Temple defense; killed by Malgus at the Sacking (3,653)',
-    anchors: [{ bby: 3655, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(70, 78, 72, 84, 76, 80), ...force(82, 78, 80, 82, 82), djemSo: 80, shien: 80, ataru: 78, telekinesis: 80 } }],
+    anchors: [{ bby: 3655, complete: true, basis: 'sheet', sources: 'Deceived (3,653: the Temple duel); hand-set sheet (lore batch 19)', levels: { ...core(70, 78, 72, 84, 76, 80), ...force(82, 78, 80, 82, 82), djemSo: 80, shien: 80, ataru: 78, telekinesis: 80 } }],
   },
   {
     canonId: 'lore:jaric-kaedan',
@@ -412,7 +412,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     deathSource: 'lore',
     unmapped: ['Force Body 82', 'Juyo-Kos (a Juyo variant, D-369): his named form, entered as juyo'],
     note: 'the Order\'s Watchman, never Battlemaster; found by the Order at twelve; Knight under Ngani Zho; led the strike that captured the Dread Masters (3,668); High Council after the Treaty; killed at Ilum, 3,640 BBY; main form changed to Juyo-Kos with battle meditation (lore batch 19)',
-    anchors: [{ bby: 3668, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(74, 80, 74, 84, 74, 80), ...force(82, 78, 80, 84, 84), juyo: 84, djemSo: 74, shien: 74, ataru: 72, battleMeditation: 76 } }],
+    anchors: [{ bby: 3668, complete: true, basis: 'sheet', sources: 'the strike on the Dread Masters (3,668); hand-set sheet (lore batch 19)', levels: { ...core(74, 80, 74, 84, 74, 80), ...force(82, 78, 80, 84, 84), juyo: 84, djemSo: 74, shien: 74, ataru: 72, battleMeditation: 76 } }],
   },
   {
     canonId: 'lore:tol-braga',
@@ -494,7 +494,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     birthBby: 3702,
     birthSource: 'estimate',
     note: 'escapes Korriban with Satele (3,681); fights Malgus at Alderaan (3,667); later Supreme Commander',
-    anchors: [{ bby: 3643, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(76, 78, 80, 86, 78, 80), blaster: 84 } }],
+    anchors: [{ bby: 3643, complete: true, basis: 'sheet', sources: 'SWTOR (3,643-3,640); hand-set sheet (lore batch 19)', levels: { ...core(76, 78, 80, 86, 78, 80), blaster: 84 } }],
   },
   {
     canonId: 'lore:leontyne-saresh',
