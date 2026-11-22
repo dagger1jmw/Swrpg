@@ -8,6 +8,8 @@ export interface OrderSeat {
   seat: string | null;
   source: string;
   estimate?: string;
+  /** The Order is moving between seats (D-397: 3,653–3,650 BBY, the Coruscant Temple in ruins). */
+  relocating?: boolean;
 }
 
 export const ORDER_SEATS: readonly OrderSeat[] = [
@@ -15,6 +17,13 @@ export const ORDER_SEATS: readonly OrderSeat[] = [
   { fromYear: -25000, toYear: -3653, seat: 'the Jedi Temple on Coruscant', source: 'Timeline :90; Timeline slice Part 1 (3,653 BBY, the Sacking)' },
   {
     fromYear: -3653,
+    toYear: -3650,
+    seat: 'the ruined Jedi Temple on Coruscant (the Order is relocating to Tython)',
+    source: 'Timeline slice Part 1 (3,653 BBY: the Temple destroyed in the Sacking); D-397',
+    relocating: true,
+  },
+  {
+    fromYear: -3650,
     toYear: -3600,
     seat: 'the Jedi Temple on Tython',
     source: 'Timeline slice Part 2 (3,650 BBY: the Order relocates to Tython; the Temple there is finished in 3,647)',

@@ -108,3 +108,6 @@ The seeds feed no harness suite, so no suite was run.
   - years with and without the comma, and "between";
   - the real slice: no research notes left, Rhen Var at 3,654–3,653, and the 3,642 rows in the Cold War.
 - **Harness:** not run. No lifetime, spread, mortals, severs, sweep or Orgus suite reads the timeline, the seeds or the canon roster (D-391).
+
+## Follow-up (D-397)
+Jared's answers to the three questions: the Order seat for 3,653–3,650 BBY is the ruined Coruscant Temple, flagged `relocating`, with Tython from 3,650 BBY; Xerender dies in 3,641 BBY with Wyellett; the Panteers' 3,650 BBY is kept and tagged [inferred] with the reason. The superseded rows stay in docs-v2/lore/superseded/.

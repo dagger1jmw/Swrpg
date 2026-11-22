@@ -254,7 +254,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     archetype: "jediGuardian",
     birthBby: 3706,
     birthSource: "estimate",
-    deathBby: 3642,
+    deathBby: 3641,
     deathSource: "lore",
     snapshotBby: 3661,
     levels: {},
@@ -262,7 +262,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     facts: {
       sex: "male",
       group: "Jedi / light side",
-      summary: "male Human; Padawan of Wyellett; dueled Baras with him in the war; Jedi Knight by 3642 BBY",
+      summary: "male Human; Padawan of Wyellett; dueled Baras with him in the war; Jedi Knight by 3642 BBY; died 3641 BBY with Wyellett in the fighting on Hoth (lore batch 20)",
       teachers: "Master Wyellett; Padawan Sewlor",
       source: "SW_Characters_09_GGW_ColdWar_Part1.md › Other light-side figures (table)"
     }
@@ -1448,7 +1448,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     facts: {
       homeworld: "Alderaan",
       group: "Republic (non-Force)",
-      summary: "both Human, from Alderaan (infobox);. Silara was queen from some time before 3667 BBY. Gaul was Alderaan's senator by 3653 BBY and voted to secede after the Treaty. Both died \"several years after 3653 BBY\" (lore batch 20; the death year 3650 is an estimate).",
+      summary: "both Human, from Alderaan (infobox);. Silara was queen from some time before 3667 BBY. Gaul was Alderaan's senator by 3653 BBY and voted to secede after the Treaty. Both died \"several years after 3653 BBY\" (lore batch 20). Death year 3650 [inferred]: the files say only \"several years after 3653\", read as about three.",
       source: "SW_Characters_09_GGW_ColdWar_Part3a.md › Silara Panteer and Gaul Panteer"
     }
   },

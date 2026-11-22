@@ -55,7 +55,7 @@ Status in 3661 BBY is a short form; the full 3661 BBY and 3653 BBY lines are in 
 | Shol Bestros | Jedi / light side | several years before 3681 BBY | — | not stated | Part1 › Other light-side figures (table) |
 | Jerbhen Hulis | Jedi / light side | — | — | not stated | Part1 › Other light-side figures (table) |
 | Wyellett | Jedi / light side | — | 3641 BBY, Hoth (lore batch 20) | not stated | Part1 › Other light-side figures (table) |
-| Xerender | Jedi / light side | — | c. 3642 BBY, Hoth | not stated | Part1 › Other light-side figures (table) |
+| Xerender | Jedi / light side | — | 3641 BBY, Hoth (with Wyellett; lore batch 20) | not stated | Part1 › Other light-side figures (table) |
 | Bengel Morr | Jedi / light side | — | — | not stated | Part1 › Other light-side figures (table) |
 | Tasiele Shan | Jedi / light side | — | — | not stated | Part1 › Other light-side figures (table) |
 | Parkanas Tark (Lord Vivicar) | Jedi / light side | — | — | not stated | Part1 › Other light-side figures (table) |
@@ -128,7 +128,7 @@ Status in 3661 BBY is a short form; the full 3661 BBY and 3653 BBY lines are in 
 | Paran Am-Ris | Republic (non-Force) | — | — | not stated | Part3a › Paran Am-Ris |
 | Dorian Janarus | Republic (non-Force) | — | 3640 BBY | senator for Coruscant (date of first term not stated) | Part3a › Dorian Janarus |
 | Leontyne Saresh | Republic (non-Force) | — | — | not stated | Part3a › Leontyne Saresh |
-| Silara Panteer and Gaul Panteer | Republic (non-Force) | Silara: well before 3667 BBY | both several years after 3653 BBY | Silara queen | Part3a › Silara Panteer and Gaul Panteer |
+| Silara Panteer and Gaul Panteer | Republic (non-Force) | Silara: well before 3667 BBY | both several years after 3653 BBY (game default c. 3650 BBY [inferred], lore batch 20) | Silara queen | Part3a › Silara Panteer and Gaul Panteer |
 | Jebevel Madon | Republic (non-Force) | — | — | not stated | Part3a › Minor Republic political figures |
 | Galena Rans | Republic (non-Force) | — | — | not stated | Part3a › Minor Republic political figures |
 | Jace Malcom | Republic (non-Force) | — | — | not stated (serving) | Part3a › Jace Malcom |
