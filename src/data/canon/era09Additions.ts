@@ -234,6 +234,7 @@ export const ERA_09_ADDITIONS: readonly CanonNpc[] = [
     birthSource: "estimate",
     deathBby: 3641,
     deathSource: "lore",
+    unavailable: [{ fromBby: 3665, toBby: 3643, reason: "captured, his prison transport lost at Hoth in 3665; found by Xerender in 3642 (D-379: lost in 3,661; M7 board, D-400)" }],
     snapshotBby: 3661,
     levels: {},
     statsSource: "provisional",

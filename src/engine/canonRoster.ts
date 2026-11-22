@@ -32,3 +32,38 @@ export function canonAbsence(n: CanonNpc, bby: number): Absence | null {
 export function canonPresentAt(bby: number, roster: readonly CanonNpc[] = CANON_NPCS): CanonNpc[] {
   return roster.filter((n) => canonAbsence(n, bby) === null);
 }
+
+// ---- Who is on the board (M7 playable 3,661 BBY start; D-400) ----
+
+/** Why a canon figure is off the board at a date. Children are on the board (as children), so 'tooYoung' is not here. */
+export type OffBoard = 'unborn' | 'dead' | 'unavailable' | 'imprisoned';
+
+/** Snapshot years that carry a lore status (lore batch 19: `status3661`). */
+const STATUS_YEARS = [3661] as const;
+
+/**
+ * Null when the figure can be on the board in `bby`; otherwise why not. A figure is on the board when the lore puts them
+ * there: "active" in the snapshot year, or (status not stated, and in every other year) placed by their birth and death
+ * years and unavailable spans. A child is on the board as a child. A figure the snapshot says is dead, unborn or
+ * imprisoned is off it, even when the birth and death years alone would place them.
+ */
+export function canonOffBoard(n: CanonNpc, bby: number): OffBoard | null {
+  if (bby > n.birthBby) return 'unborn';
+  if (n.deathBby !== undefined && bby < n.deathBby) return 'dead';
+  if ((n.unavailable ?? []).some((u) => bby <= u.fromBby && bby >= u.toBby)) return 'unavailable';
+  if ((STATUS_YEARS as readonly number[]).includes(bby) && n.status3661) {
+    const k = n.status3661.kind;
+    if (k === 'dead' || k === 'unborn' || k === 'imprisoned') return k;
+  }
+  return null;
+}
+
+/** The canon figures on the board at a date (bby), each entry once (the first era file wins, as in CANON_BY_ID). */
+export function canonBoardAt(bby: number, roster: readonly CanonNpc[] = CANON_NPCS): CanonNpc[] {
+  const seen = new Set<string>();
+  return roster.filter((n) => {
+    if (seen.has(n.canonId) || canonOffBoard(n, bby) !== null) return false;
+    seen.add(n.canonId);
+    return true;
+  });
+}

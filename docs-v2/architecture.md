@@ -1044,6 +1044,10 @@ The clock and the module contract come first, before any feature.
   capacity, precog in the real duels, training f load), whose fight schedules are tuned against today's values.
 - **Canon Clone Wars masters:** canon levels for Agen Kolar, Saesee Tiin, Kit Fisto and Mace Windu (with his
   shatterpoint perception) come with the Clone Wars era roster; the D-175 4v1 used estimates.
+- **M7 playable 3,661 BBY start (Jared, 2026-11-21; D-400):** the start options below and the 3,661 settlements of lore
+  batches 12–21 are turned into docs-v2/spec/m7-start-checklist.md, the canonical M7 start checklist (same format as the M6
+  checklist). First pass built: the default start date, the board filter and canon-link refusal, the control and leaders
+  table, and the species at creation.
 - **M7 Order schedule (D-165, Jared):** a 13-year-old Padawan's fixed Order day alone ends near f 0.97 against the
   standard tiredness limit 0.9 even when fresh; the Order schedule is revisited with the Order requirements in M7.
 - **M7 era rank names for the narrator (Jared, 2026-11-21; not built).** The narrator cannot read the topical lore files

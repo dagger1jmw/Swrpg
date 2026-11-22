@@ -10,6 +10,7 @@ import { makeEstimator } from '../ai/tokenRatio';
 import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { orderSeatAt } from '../data/orderSeats';
+import { controlAt, leadersAt } from '../data/worldControl';
 import { FATE_ACT_NOTE, NARRATION_LENGTH, STRIKE_AT, SUBDUE_TEXT, type SubdueMode } from '../data/combat.config';
 import { selectIsDying, selectIsSpent, selectLasting, selectStatusLabel, selectWounds } from '../features/health/selectors';
 import type { CombatDraft } from './combatTurn';
@@ -265,6 +266,7 @@ export function stateBlock(
     ...beatsLines(state),
     `Date: ${formatDate(now.day)}`,
     `Jedi Order: ${orderSeatAt(dateFromAbsDay(now.day).year) ?? 'no standing Temple at this date'}`,
+    ...worldLines(-dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,
     `Location: ${chain.length ? chain.map((l) => `${l.name} (${l.id})`).join(', in ') : 'not recorded yet (introduce it with locationIntroduced)'}`,
     `Present: ${present.length ? present.join(', ') : 'nobody recorded'}`,
@@ -706,4 +708,18 @@ export function buildSummaryRequest(state: GameState, chapter: Chapter, records:
     section('recentTurns', SUMMARY_INPUT_CAP_TOKENS, turnText, est, turns.map((t) => ({ id: `turn ${t.turn}`, tokens: est(t.gm), ...(share !== Infinity ? { note: 'clipped' } : {}) }))),
   ];
   return { system, messages, report: finishReport('summary', opts, sections, system, messages) };
+}
+
+/**
+ * The powers at this date (M7, D-400; src/data/worldControl.ts): who leads them, and who controls the current place and
+ * its ancestors. Only what the lore states; inferred readings are marked. Nothing when the date has no entries.
+ */
+function worldLines(bby: number, placeNames: readonly string[]): string[] {
+  const tag = (inferred?: boolean): string => (inferred ? ' [inferred]' : '');
+  const leaders = leadersAt(bby);
+  const control = controlAt(placeNames, bby);
+  return [
+    ...(leaders.length ? [`Leaders: ${leaders.map((l) => `${l.office}: ${l.holder}${tag(l.inferred)}`).join('; ')}`] : []),
+    ...control.map((c) => `Control: ${c.place}: ${c.side} (${c.note})${tag(c.inferred)}`),
+  ];
 }

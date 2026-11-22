@@ -13,7 +13,12 @@ import { ARCHETYPE_BY_ID } from '../../data/archetypes';
 import { DEV_REFUSAL, selectIsTestCharacter } from '../character/selectors';
 import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { selectCurrentLocationId } from '../locations/selectors';
-import { dateFromAbsDay } from '../../engine/calendar';
+import { dateFromAbsDay, formatYear } from '../../engine/calendar';
+import { CANON_BY_ID } from '../../data/canonNpcs';
+import { canonOffBoard, type OffBoard } from '../../engine/canonRoster';
+
+/** How an off-board reason reads in a rejection (D-400). */
+const OFF_BOARD_WORDS: Readonly<Record<OffBoard, string>> = { unborn: 'not yet born', dead: 'dead', unavailable: 'out of sight', imprisoned: 'imprisoned' };
 import { inferSpecies } from '../../data/speciesWords';
 import { roleForYear } from '../../data/npcGen.config';
 import { migrateNpcsV1, npcHealthSchema, npcsSliceSchema, type Npc, type NpcHealth, type NpcsSlice } from './npcs';
@@ -150,9 +155,15 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
       targetField: 'npcRef',
       refFields: ['npcRef'],
       refKinds: npcRefKinds,
-      handle: (slice, e) => {
+      handle: (slice, e, ctx) => {
         const id = String(e['npcRef']);
         if (!slice.byId[id]) return { reject: `unknown npc ${id}` };
+        // Only a figure the lore puts on the board at this date is linked (D-400): not one dead, unborn, imprisoned or
+        // out of sight then. The NPC stays as an ordinary story NPC.
+        const canon = CANON_BY_ID.get(String(e['canonId']));
+        const bby = -dateFromAbsDay(selectNow(ctx.state).day).year;
+        const off = canon ? canonOffBoard(canon, bby) : null;
+        if (canon && off) return { reject: `${canon.name} is ${OFF_BOARD_WORDS[off]} in ${formatYear(-bby)}${canon.status3661 && bby === 3661 ? ` (lore: ${canon.status3661.note})` : ''}: not linked to canon` };
         return { slice: update(slice, id, { canonId: String(e['canonId']) }), notes: [`${id} is canon ${String(e['canonId'])}`] };
       },
     },

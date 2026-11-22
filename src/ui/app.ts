@@ -36,7 +36,7 @@ import type { Storage } from '../persist/storage';
 import { applyEvents } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
 import type { GameEvent, Registry } from '../state/types';
-import { createCampaign, DEFAULT_START_SECOND, loadEarlierSave, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
+import { createCampaign, DEFAULT_START_AGE, DEFAULT_START_DATE, DEFAULT_START_SECOND, loadEarlierSave, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
 import type { SaveMeta } from '../persist/saveHistory';
 import { EarlierSaves } from './earlierSaves';
 import { devFlag, TEST_START_ARCHETYPES, testStartInput, testStartRankOptions, type TestStartArchetype, type TestStartRank } from '../turn/testStart';
@@ -905,14 +905,17 @@ export class App {
       ]);
       return { fields, read, set, all: [year, era, month, day] };
     };
-    // No default year (D-155): the player picks an era (its first year fills the start date) or types a date.
+    // The default start (D-400): the form opens on 3,661 BBY; the player may pick another era (its first year fills the
+    // start date) or type any date.
     const eras = LORE_INDEX.chunks.filter((c) => c.id.endsWith(':overview')).sort((a, b) => a.fromYear - b.fromYear);
     const eraPick = el('select', {}, [
       el('option', { text: 'Choose an era...', attrs: { value: '' } }),
       ...eras.map((c) => el('option', { text: `${c.title.replace(/ \(overview\)$/, '')} (${formatYear(c.fromYear)} to ${formatYear(c.toYear)})`, attrs: { value: c.id } })),
     ]);
-    const birth = dateInputs(null);
-    const startD = dateInputs(null);
+    const birth = dateInputs({ ...DEFAULT_START_DATE, year: DEFAULT_START_DATE.year - DEFAULT_START_AGE });
+    const startD = dateInputs(DEFAULT_START_DATE);
+    const defaultEra = eras.find((x) => x.fromYear <= DEFAULT_START_DATE.year && DEFAULT_START_DATE.year <= x.toYear);
+    if (defaultEra) eraPick.value = defaultEra.id;
     eraPick.addEventListener('change', () => {
       const c = eras.find((x) => x.id === eraPick.value);
       if (!c) return;
