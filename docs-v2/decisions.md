@@ -1329,3 +1329,28 @@ Spec and decision changes only; no code. Each changed spec's export header lists
     - [a] Only the species `human` counts as Human; near-Humans (Miraluka, Rattataki, Echani and the rest) count as aliens.
     - [b] The Sith Academy acolyte and the Imperial-born start on Dromund Kaas are left open to any species: they aren't the military, and the request named only the military and naval starts. D-388 [10] lists the slave route as the alien way to Korriban, so these two may need the same rule.
     - [c] The lapse year is 3,640 (D-388 [10]: "formal admission comes after Ilum"); every start option is 3,661-only today, so it matters only for later starts.
+
+- **D-408 Timeline audit, 3,661 to 3,640 BBY (overnight run item 3; scripts/audit-timeline.ts; tests/m7/timelineAudit.test.ts).** Each year was checked across the board, control and leaders, the Order seat, world gates, rank names, lore-index eligibility, era rules and travel refusals.
+  - *[1] Tython's gate (fixed):* it opened in 3,652 (D-402 [7]: "after 3,653"), a year before the control table's 3,651 rediscovery (D-283 amended; timeline slice Part 2). The gate now opens in 3,651, so Tython is closed in 3,652 and open in 3,651, with the seat from 3,650.
+  - *[2] Control after the Treaty (filled from the timeline slice Part 2):* the table stopped at 3,653, leaving Coruscant with no controller after the Sacking. Added:
+    - Coruscant: Republic, 3,652 on;
+    - Alderaan: independent, 3,652 on (seceded; civil war);
+    - Tython: Republic, 3,651–3,638;
+    - Taris: Republic, 3,648–3,643 (resettlement), then Empire from 3,642;
+    - Voss: independent, 3,645 on;
+    - Balmorra: Republic, 3,642 on;
+    - Corellia: contested, 3,640 on;
+    - Ilum: contested, 3,640–3,636.
+    End years not on record are tagged `inferred` and held to 3,637.
+  - *[3] Leaders (filled and fixed):*
+    - Vitiate runs to 3,640, matching the roster's death year and the death-year-counts rule (it ended at 3,641, leaving 3,640 with no Emperor).
+    - From 3,640 "none in power: the Emperor's essence is dormant and the Dark Council rules", to 3,637.
+    - Chancellors: Janarus 3,653–3,640, then Saresh 3,640–3,632.
+    - Supreme Commanders: Rans to 3,640 (Part3a: the Great War and the Cold War, retired after Ilum), then Malcom from 3,640 (end year `inferred`).
+    - The only gap left is the Grand Master in 3,652 (Zym died in 3,653, and Satele is made Grand Master in 3,651), a vacancy on record (question).
+  - *[4] Not changed (questions):*
+    - The Hydian Way control span ends in 3,661 ("broken in 3,660", tested), while D-402 [16], travel, the Lesser and the era rules use 3,661–3,660.
+    - The SWTOR protagonists' unavailable spans end in 3,654 (as built in D-401 [6]), so they come onto the board in 3,653, though the ruling says "kept out of 3,681–3,653".
+  - *[5] Checked and consistent:* placements against the board (every placed figure is on the board or in prison in its years), leaders alive on the roster, "unknown" worlds against their gates, the seat against the Tython gate, the rank eras (unchanged through 3,640), species gates (Voss 3,645, Kaleesh 3,641), and planet lines against the new control spans (Alderaan withdraws in 3,653; the Jedi reclaim Tython after 3,653).
+  - *[6] M8:* the Cold War events go to m8-world-checklist.md item 8.
+  - *[7] M8:* era rules for the Cold War years go to item 9; every rule but two ends by 3,653.

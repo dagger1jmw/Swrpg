@@ -59,7 +59,7 @@ export interface WorldGate {
 export const WORLD_GATES: readonly WorldGate[] = [
   { place: 'Dromund Kaas', fromBby: 3681, opensBby: 3640, closedTo: 'republic', reason: 'the Republic knows the name (from 3,668) but has no usable coordinates; the first Republic assault is in 3,640', storyException: 'capture, or a stolen Imperial navicomputer', source: 'D-402 [5]' },
   { place: 'Quesh', fromBby: 3681, opensBby: 3643, closedTo: 'all', reason: 'not on public charts; at most in Republic survey records, unsettled, with no Hutt interest', storyException: 'Republic survey records', source: 'D-402 [6]' },
-  { place: 'Tython', fromBby: 3681, opensBby: 3652, closedTo: 'all', reason: 'its lanes are erased; Satele Shan\'s route re-finds it after 3,653', source: 'D-402 [7]; D-393 [14]' },
+  { place: 'Tython', fromBby: 3681, opensBby: 3651, closedTo: 'all', reason: 'its lanes are erased; Satele Shan re-finds it in 3,651', source: 'D-402 [7]; D-393 [14]; Timeline slice Part 2 (3,651); D-408 [1]' },
   { place: 'Voss', fromBby: 3681, opensBby: 3645, closedTo: 'all', reason: 'unknown to the galaxy until the rediscovery c. 3,645', source: 'D-402 [7]; D-399 [15]' },
   { place: 'Denova', fromBby: 3681, opensBby: 3652, closedTo: 'all', reason: 'found only after the Treaty of Coruscant', source: 'D-402 [7]' },
   { place: 'Belsavis', fromBby: 3681, opensBby: 3641, closedTo: 'all', reason: 'a Republic secret (the Tomb prison); the Empire learns of it only in the Galactic War', storyException: 'Republic characters with a story reason (SIS, prison staff)', source: 'D-402 [7]' },

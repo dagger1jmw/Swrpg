@@ -38,3 +38,19 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [ ] **7. Droids (D-405 [5]).**
 
   After medicine: droid models by era (the research queue's "Droids by era" gap; D-213's era minion kinds), companions, prices and their place in combat.
+- [ ] **8. Cold War world events, 3,653–3,640 (timeline audit, D-408 [6]).**
+
+  The control and leader tables now change on the Cold War's recorded dates (D-408 [2], [3]), but nothing gives the narrator the scene. Candidates from the timeline slice Part 2, as scheduled world events (with item 1):
+  - Alderaan's secession and the Alderaan Civil War (after 3,653);
+  - the Separatist War on Ord Mantell (after 3,653);
+  - Satele Shan rediscovers Tython and becomes Grand Master (3,651);
+  - the Senate shelves the Coruscant Temple, and the Order moves to Tython (3,650); the Tython Temple is finished (3,647);
+  - Janarus's re-elections (3,649, 3,645);
+  - the Taris Resettlement (3,648) and the Imperial invasion of Taris (3,642);
+  - the Desolator crisis (3,643);
+  - Balmorra freed (3,642), and the Maelstrom raid that frees Revan (3,642);
+  - the Treaty's collapse in mid-3,641, and the invasion of Belsavis that frees the Dread Masters (3,641);
+  - and, in 3,640: Corellia, Ilum, the Emperor's Voice, Janarus's death, and Saresh and Malcom taking office.
+- [ ] **9. Era rules for the Cold War years (timeline audit, D-408 [7]).**
+
+  Every era rule but `places-and-populations` and `imperial-forces` ends by 3,653, because the M7 table was written for the war years. A campaign that crosses the Treaty loses the Coruscant, Nar Shaddaa, Tatooine, Jedi-life and Korriban rules. The Korriban rule ends in 3,654, though the Academy staff are placed to 3,644. Write the Cold War versions from the topical files (the Korriban, Coruscant and Nar Shaddaa Cold War sections), or extend the current ones where they still hold.
