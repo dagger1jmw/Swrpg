@@ -1,0 +1,71 @@
+// Ranks and skill minimums (ranks.md §1-2; D-51, D-66, D-102, D-111, D-120). The ranks slice is a
+// stub until M7: the rank is chosen at creation and fixed. Skill keys: '$main' = the archetype's main
+// specialty, '$highestForm' = the character's highest lightsaber form (D-118: every "main form"
+// minimum reads the highest form; for an Initiate that is Shii-Cho).
+
+import type { CharacterPath } from './archetypes';
+
+export interface RankDef {
+  id: string;
+  name: string;
+  path: CharacterPath;
+  /** Order in the ladder (0 = first). */
+  order: number;
+  /** Youngest age the rank fits (creation filter; design ages, D-108). */
+  minAge: number;
+  /** Oldest age the rank fits, if any (Initiates not chosen by 13 go to the Service Corps). */
+  maxAge?: number;
+  /** Skill minimums met by the Average near the typical age (ranks test 1). */
+  minimums: Readonly<Record<string, number>>;
+  /** Typical Average age, for the "ahead of their time" milestone and the closed-form phases. */
+  typicalAge?: number;
+}
+
+/**
+ * Jedi ladder. Padawan: passed the Initiate Trials (age 10+, highest form 24, Force Control 14).
+ * Knight: Knight Trials (age 18+, 6 years as a Padawan, highest form 39 (D-111), Force Control 34,
+ * Force Sense 31, Willpower 53 (D-120: the D-51 rule read at 20.3 after the D-118 re-calibration)).
+ * Master: main specialty 58. The Sith ladder mirrors it (ranks.md §2).
+ */
+export const RANKS: readonly RankDef[] = [
+  { id: 'initiate', name: 'Initiate', path: 'jedi', order: 0, minAge: 0, maxAge: 13, minimums: {} },
+  { id: 'padawan', name: 'Padawan', path: 'jedi', order: 1, minAge: 10, minimums: { $highestForm: 24, forceControl: 14 }, typicalAge: 12 },
+  { id: 'knight', name: 'Knight', path: 'jedi', order: 2, minAge: 18, minimums: { $highestForm: 39, forceControl: 34, forceSense: 31, willpower: 53 }, typicalAge: 20.5 },
+  { id: 'master', name: 'Master', path: 'jedi', order: 3, minAge: 31, minimums: { $main: 58, $highestForm: 39, forceControl: 34, forceSense: 31, willpower: 53 }, typicalAge: 35 },
+  { id: 'acolyte', name: 'Academy acolyte', path: 'sith', order: 0, minAge: 0, minimums: {} },
+  { id: 'apprentice', name: 'Apprentice', path: 'sith', order: 1, minAge: 10, minimums: { $highestForm: 24, forceControl: 14 }, typicalAge: 12 },
+  { id: 'lord', name: 'Sith Lord', path: 'sith', order: 2, minAge: 18, minimums: { $highestForm: 39, forceControl: 34, forceSense: 31, willpower: 53 }, typicalAge: 20.5 },
+  { id: 'none', name: 'No rank', path: 'outsider', order: 0, minAge: 0, minimums: {} },
+  { id: 'career', name: 'Career', path: 'career', order: 0, minAge: 0, minimums: {} },
+];
+
+export const RANK_BY_ID: ReadonlyMap<string, RankDef> = new Map(RANKS.map((r) => [r.id, r]));
+
+export function rankDef(id: string): RankDef {
+  const r = RANK_BY_ID.get(id);
+  if (!r) throw new Error(`Unknown rank id: ${id}`);
+  return r;
+}
+
+export function ranksForPath(path: CharacterPath): RankDef[] {
+  return RANKS.filter((r) => r.path === path).sort((a, b) => a.order - b.order);
+}
+
+/** Phase of the closed form and the Order requirements for a rank. */
+export const RANK_PHASE: Readonly<Record<string, 'initiate' | 'padawan' | 'knight'>> = {
+  initiate: 'initiate',
+  padawan: 'padawan',
+  knight: 'knight',
+  master: 'knight',
+  acolyte: 'initiate',
+  apprentice: 'padawan',
+  lord: 'knight',
+  none: 'knight',
+  career: 'knight',
+};
+
+/** Initiate Trials (ranks.md §1, D-66): checked in M7; kept here with the other minimums. */
+export const INITIATE_TRIALS = { minAge: 10, minimums: { $highestForm: 24, forceControl: 14 } } as const;
+export const KNIGHT_TRIALS = { minAge: 18, padawanYears: 6 } as const;
+/** Calibration rank ages of the Average profile (progression-numbers §12; Sith use them until M7). */
+export const AVERAGE_RANK_AGES = { padawan: 12, knight: 20.5 } as const;
