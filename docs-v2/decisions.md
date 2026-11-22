@@ -1443,3 +1443,8 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *[4] One dated event in the data:* Warren Sedoru's war injuries (Force stats × 0.8 from 3,654; the year and the factor are invented and tagged).
   - *[5] Shape fix:* any adult role a Force-user holds after training (an Overseer, an agent) counts as the Knight phase for the curve (Tremel's Overseer years had fallen back to acolyte growth).
   - *[6] Tests:* tests/data/works.test.ts.
+
+- **D-416 Date-agnostic refactor wrapped up (brief §5; docs-v2/reports/date-agnostic-refactor.md).**
+  - *Tests at several dates:* 3,681, 3,667, 3,661, 3,653, 3,643, 3,640 and 3,630 (the board, ranks, statuses), plus the same figure at three ages, a partial anchor and stasis, and the board, starts and placements by date.
+  - *Harness:* `npm run test:lifetime` (the era profile on 20 seeds and the lifetime profiles): 11 files, 43 tests, all pass, 361.6 s. Sweep: no issues, 40.6 s. Mortals were not re-run: they read no canon figure, and generated NPCs take the same path as before.
+  - *Questions for Jared* are in the report (10). The rest of M7's §15 builds on the rank spans next.

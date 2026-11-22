@@ -17,6 +17,8 @@ This checklist turns the M7 start options in architecture §15 into the work for
 
 Every item is built and tested except **23, the browser smoke test (Jared's)**. The overnight run added the narrowed blockade (D-406), alien Imperial starts (item 20, D-407), the timeline audit 3,661–3,640 (item 27, D-408) and the 3,661 era lifetime profile (item 28, D-409).
 
+**Done before the rest of M7:** the date-agnostic refactor (D-412 to D-416; docs-v2/reports/date-agnostic-refactor.md): the roster's dated rank spans, date-keyed starts and the canon stat model, so ranks can build on them.
+
 **What's left in M7 beyond this checklist** (architecture §15 and the milestone table: "Ranks and milestones"; none of it started):
 - the rank ladders, trials and standing; Order requirements; the Council of Reassignment and the Council bypass; the flag registry sources for rank flags;
 - the Order schedule revisit (D-165: a 13-year-old Padawan's fixed day ends near f 0.97);
