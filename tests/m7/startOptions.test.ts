@@ -5,7 +5,7 @@ import { CANON_BY_ID } from '../../src/data/canonNpcs';
 import { placementsAt } from '../../src/data/canonPlacements';
 import { eraRulesAt } from '../../src/data/eraRules';
 import { SPECIES_BY_ID } from '../../src/data/species';
-import { alienRole, checkStart, START_OPTIONS, startOptionsFor } from '../../src/data/startOptions';
+import { alienRole, checkStart, START_OPTIONS, startOptionsFor, startPlaceDescription, startPremiseAt, startThreadsAt } from '../../src/data/startOptions';
 import { canonOffBoard } from '../../src/engine/canonRoster';
 import { xpForLevel } from '../../src/engine/curve';
 import { applyEvents } from '../../src/state/applyEvents';
@@ -35,13 +35,29 @@ const est = makeEstimator(4);
 describe('start options (D-401 [2])', () => {
   it('17 starts for 3,661 BBY, none a SWTOR protagonist, each with places, threads and a premise', () => {
     expect(startOptionsFor(-3661)).toHaveLength(START_OPTIONS.length);
-    expect(startOptionsFor(-3650)).toEqual([]);
     for (const o of START_OPTIONS) {
       expect(o.places.length, o.id).toBeGreaterThan(0);
-      expect(o.threads.length, o.id).toBeGreaterThan(0);
-      expect(o.premise.length, o.id).toBeGreaterThan(20);
-      expect(o.title + o.premise, o.id).not.toMatch(/Hero of Tython|Barsen'thor|Emperor's Wrath|Darth Nox|Cipher Nine|Grand Champion|Voidhound|Havoc Squad commander|Outlander/);
+      expect(startThreadsAt(o, 3661).length, o.id).toBeGreaterThan(0);
+      expect(startPremiseAt(o, -3661), o.id).toMatch(/ in 3,661 BBY/);
+      expect(o.title + o.premises.map((p) => p.text).join(' '), o.id).not.toMatch(/Hero of Tython|Barsen'thor|Emperor's Wrath|Darth Nox|Cipher Nine|Grand Champion|Voidhound|Havoc Squad commander|Outlander/);
     }
+  });
+  it('date-keyed (D-413): each start has its valid years; threads, place notes and the premise follow the date', () => {
+    const ids = (y: number) => startOptionsFor(y).map((o) => o.id);
+    expect(ids(-3670)).toContain('jedi-temple');
+    expect(ids(-3670)).not.toContain('mandalorian-blockade');
+    expect(ids(-3670)).not.toContain('republic-trooper');
+    expect(ids(-3650)).toContain('korriban-acolyte');
+    expect(ids(-3650)).not.toContain('jedi-temple');
+    expect(ids(-3630)).toEqual([]);
+    const temple = START_OPTIONS.find((o) => o.id === 'jedi-temple')!;
+    expect(startThreadsAt(temple, 3670)).toEqual([]);
+    expect(startPremiseAt(temple, -3670)).toBe('A Jedi of the Coruscant Temple in 3,670 BBY, in the war with the Sith Empire.');
+    expect(startPlaceDescription(temple.places[0]!, 3670)).toBe('The Republic capital.');
+    expect(startPlaceDescription(temple.places[0]!, 3661)).toMatch(/blockade/);
+    const trooper = START_OPTIONS.find((o) => o.id === 'republic-trooper')!;
+    expect(startThreadsAt(trooper, 3663).map((t) => t.title)).toEqual(['The Geonosis campaign']);
+    expect(startPremiseAt(START_OPTIONS.find((o) => o.id === 'korriban-acolyte')!, -3650)).toMatch(/Korriban in 3,650 BBY/);
   });
   it('a start checks path, rank and archetype', () => {
     const jedi = START_OPTIONS.find((o) => o.id === 'jedi-temple')!;
@@ -64,7 +80,7 @@ describe('start options (D-401 [2])', () => {
   describe('alien Imperial starts (D-388 [10], D-407)', () => {
     const c = (id: string, speciesId: string, bby?: number) => {
       const o = START_OPTIONS.find((x) => x.id === id)!;
-      const check = { optionId: id, path: o.paths[0]!, rank: o.ranks[0] ?? 'career', archetype: o.archetypes[0] ?? 'sithWarrior', speciesId, imperialBorn: false, ...(bby ? { bby } : {}) };
+      const check = { optionId: id, path: o.paths[0]!, rank: o.ranks[0] ?? 'career', archetype: o.archetypes[0] ?? 'sithWarrior', speciesId, imperialBorn: false, bby: bby ?? 3661 };
       return { errors: checkStart(o, check), role: alienRole(o, check) };
     };
     it('no aliens in the regular forces in 3,661, with a clear refusal naming the routes', () => {
@@ -118,6 +134,10 @@ describe('start options (D-401 [2])', () => {
     expect(s.locations.byId[here.parentId!]!.name).toBe('Coruscant');
     expect(Object.values(s.threads.byId).map((t) => t.title)).toEqual(['The Hydian Way blockade', 'The Council and the strike near Devaron']);
     expect(s.character.start).toEqual({ optionId: 'jedi-temple', faction: 'jediOrder', imperialBorn: false });
+    // The same start in 3,670 seeds no 3,661 thread and no blockade line.
+    const s70 = (await createCampaign(REGISTRY, createMemoryStorage(), { ...input, birthDate: { year: -3684, month: 1, day: 1 }, startDate: { year: -3670, month: 1, day: 1 } }, { campaignId: 'c', branchId: 'b' }, '2026-11-22T00:00:00Z')).state;
+    expect(Object.values(s70.threads.byId)).toEqual([]);
+    expect(Object.values(s70.locations.byId).find((l) => l.name === 'Coruscant')?.description).toBe('The Republic capital.');
   });
 });
 

@@ -36,7 +36,7 @@ import type { Storage } from '../persist/storage';
 import { applyEvents } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
 import type { GameEvent, Registry } from '../state/types';
-import { START_OPTION_BY_ID, startOptionsFor } from '../data/startOptions';
+import { START_OPTION_BY_ID, startOptionsFor, startPremiseAt, startThreadsAt } from '../data/startOptions';
 import { createCampaign, DEFAULT_START_AGE, DEFAULT_START_DATE, DEFAULT_START_SECOND, loadEarlierSave, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
 import type { SaveMeta } from '../persist/saveHistory';
 import { EarlierSaves } from './earlierSaves';
@@ -944,10 +944,13 @@ export class App {
     };
     const describeStart = (): void => {
       const o = START_OPTION_BY_ID.get(startPick.value);
-      startNote.textContent = o ? `${o.places.map((p) => p.name).join(', ')}. Path: ${o.paths.join(' or ')}${o.ranks.length ? `; rank: ${o.ranks.join(', ')}` : ''}${o.archetypes.length ? `; archetype: ${o.archetypes.join(', ')}` : ''}. Opening threads: ${o.threads.map((x) => x.title).join('; ')}.` : '';
+      const sd = startD.read();
+      const year = isValidDate(sd) ? sd.year : DEFAULT_START_DATE.year;
+      const threads = o ? startThreadsAt(o, -year) : [];
+      startNote.textContent = o ? `${o.places.map((p) => p.name).join(', ')}. Path: ${o.paths.join(' or ')}${o.ranks.length ? `; rank: ${o.ranks.join(', ')}` : ''}${o.archetypes.length ? `; archetype: ${o.archetypes.join(', ')}` : ''}.${threads.length ? ` Opening threads: ${threads.map((x) => x.title).join('; ')}.` : ''}` : '';
       if (o && (!premise.value.trim() || premise.value === lastAutoPremise)) {
-        premise.value = o.premise;
-        lastAutoPremise = o.premise;
+        premise.value = startPremiseAt(o, year);
+        lastAutoPremise = premise.value;
       }
     };
     startPick.addEventListener('change', describeStart);

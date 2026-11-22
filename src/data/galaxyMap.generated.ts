@@ -12,7 +12,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Tammuz sector",
   "system": "Deralia system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -23,7 +23,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "J-6",
   "system": "Aeten system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "WILD",
   "gated": false,
   "full": false
@@ -38,7 +38,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Braxant Run",
    "Celanon Spur"
   ],
-  "control3661": "[unclear] Imperial victory in a battle in its forests)",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "[unclear] Imperial victory in a battle in its forests)"
+   }
+  ],
   "role": "IMP-HELD [inferred]",
   "gated": false,
   "full": false
@@ -52,8 +57,16 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Commenor Run"
   ],
-  "control3661": "Republic; liberated after the 3667 BBY invasion;",
-  "change3653": "peace talks held here; Alderaan withdraws from the Republic in protest",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic; liberated after the 3667 BBY invasion;"
+   },
+   {
+    "bby": 3653,
+    "text": "peace talks held here; Alderaan withdraws from the Republic in protest"
+   }
+  ],
   "role": "REP-CORE",
   "gated": false,
   "full": true
@@ -65,7 +78,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Farstey sector",
   "system": "Abron system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -77,7 +90,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Sujimis sector",
   "system": "Alzoc system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "REP [inferred]",
   "gated": false,
   "full": false
@@ -89,7 +102,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Kastolar sector",
   "system": "Archenar system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -100,7 +113,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "M-8",
   "system": "Perave system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "REP [inferred]",
   "gated": false,
   "full": false
@@ -112,7 +125,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Kwymar sector",
   "system": "Artus system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -124,7 +137,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Veragi sector",
   "system": "Asation system",
   "routes": [],
-  "control3661": "Gree world; not stated for 3661",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Gree world; not stated for 3661"
+   }
+  ],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -139,7 +157,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Kamat Aegit",
    "Zorfe Trete"
   ],
-  "control3661": "Sith Empire; central Imperial garrison c. 3660 BBY",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire; central Imperial garrison c. 3660 BBY"
+   }
+  ],
   "role": "IMP (Sith Worlds)",
   "gated": false,
   "full": false
@@ -153,7 +176,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Descri Wris"
   ],
-  "control3661": "",
+  "control": [],
   "role": "IMP (Sith Worlds) [inferred]",
   "gated": false,
   "full": false
@@ -163,7 +186,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "Unknown Regions",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -174,8 +197,16 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "M-10",
   "system": "Balmorra system",
   "routes": [],
-  "control3661": "Contested: Imperial invasion early in the war, Balmorran resistance plus a dwindling Republic force;",
-  "change3653": "treaty ends official Republic support; resistance continues",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Contested: Imperial invasion early in the war, Balmorran resistance plus a dwindling Republic force;"
+   },
+   {
+    "bby": 3653,
+    "text": "treaty ends official Republic support; resistance continues"
+   }
+  ],
   "role": "CONTESTED (front line)",
   "gated": false,
   "full": true
@@ -186,7 +217,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "L-12",
   "system": "Balosar system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -198,7 +229,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Varada sector",
   "system": "Baralou system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -212,7 +243,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Prously's Rim Run"
   ],
-  "control3661": "Sith Empire [inferred]; seized in 3678 BBY",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire [inferred]; seized in 3678 BBY"
+   }
+  ],
   "role": "IMP-HELD",
   "gated": false,
   "full": false
@@ -226,7 +262,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Kamat Aegit"
   ],
-  "control3661": "Sith Empire; Republic-supervised until invaded in 3678 BBY",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire; Republic-supervised until invaded in 3678 BBY"
+   }
+  ],
   "role": "IMP-HELD",
   "gated": false,
   "full": false
@@ -238,7 +279,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Dalonbian sector",
   "system": "Belkadan system",
   "routes": [],
-  "control3661": "Sith Empire puppet government (secretly before 3681)",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire puppet government (secretly before 3681)"
+   }
+  ],
   "role": "IMP-HELD (puppet)",
   "gated": false,
   "full": false
@@ -252,7 +298,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Belsavis Run"
   ],
-  "control3661": "Republic prison (The Tomb); prisoners arrive in 3668 and 3661 BBY;",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic prison (The Tomb); prisoners arrive in 3668 and 3661 BBY;"
+   }
+  ],
   "role": "REP (secret)",
   "gated": true,
   "gating": "Unknown to the Empire: it learned Belsavis's location only by the Galactic War (via Ivory and a Rakata transmitter).",
@@ -267,7 +318,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Veragi Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -279,7 +330,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Churba sector",
   "system": "Bomodon system",
   "routes": [],
-  "control3661": "[unclear] Occupied by the Empire early in the war; Garza's platoon fought a ten-month campaign from 3674 BBY;. Holder at 3661 not stated",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "[unclear] Occupied by the Empire early in the war; Garza's platoon fought a ten-month campaign from 3674 BBY;. Holder at 3661 not stated"
+   }
+  ],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -291,7 +347,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Doldur sector",
   "system": "Boranall system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -305,7 +361,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Kamat Krote"
   ],
-  "control3661": "Sith Empire [inferred from 'remained under Sith rule']",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire [inferred from 'remained under Sith rule']"
+   }
+  ],
   "role": "IMP-CORE [inferred]",
   "gated": false,
   "full": false
@@ -322,7 +383,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Manda Merchant Route",
    "Reena Trade Route"
   ],
-  "control3661": "Republic; held after the First and Second Battles of Bothawui (3671 BBY);",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic; held after the First and Second Battles of Bothawui (3671 BBY);"
+   }
+  ],
   "role": "REP (Mid Rim bulwark)",
   "gated": false,
   "full": false
@@ -340,7 +406,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Corsin Run",
    "Perlemian Trade Route"
   ],
-  "control3661": "Republic; war refugees there during the Great Galactic War",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic; war refugees there during the Great Galactic War"
+   }
+  ],
   "role": "REP-CORE (junction)",
   "gated": false,
   "full": false
@@ -354,7 +425,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Celanon Spur"
   ],
-  "control3661": "",
+  "control": [],
   "role": "REP [inferred]",
   "gated": false,
   "full": false
@@ -369,7 +440,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Perlemian Trade Route",
    "Bormea/Darpa Corridor"
   ],
-  "control3661": "",
+  "control": [],
   "role": "REP-CORE [inferred]",
   "gated": false,
   "full": false
@@ -383,7 +454,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Path of the Houses"
   ],
-  "control3661": "Chiss Ascendancy [inferred from Chiss Space location]",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Chiss Ascendancy [inferred from Chiss Space location]"
+   }
+  ],
   "role": "CHISS",
   "gated": false,
   "gating": "Chiss space; not stated.",
@@ -399,7 +475,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Corellian Run",
    "Corellian Trade Spine"
   ],
-  "control3661": "Republic [inferred: no change recorded before 3640 BBY]",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic [inferred: no change recorded before 3640 BBY]"
+   }
+  ],
   "role": "REP-CORE",
   "gated": false,
   "full": true
@@ -421,8 +502,16 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Perlemian Trade Route",
    "Shawken Spur"
   ],
-  "control3661": "Republic capital (Republic since its founding). Starvation and riots from the Hydian Way blockade in 3661",
-  "change3653": "Sacking of Coruscant; Jedi Temple destroyed, Chancellor Berooken killed, planet occupied until the treaty;",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic capital (Republic since its founding). Starvation and riots from the Hydian Way blockade in 3661"
+   },
+   {
+    "bby": 3653,
+    "text": "Sacking of Coruscant; Jedi Temple destroyed, Chancellor Berooken killed, planet occupied until the treaty;"
+   }
+  ],
   "role": "REP-CORE (capital)",
   "gated": false,
   "full": true
@@ -437,7 +526,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Path of the Houses",
    "Vagaari Corridor"
   ],
-  "control3661": "Chiss Ascendancy, allied to the Empire by a wartime summit;",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Chiss Ascendancy, allied to the Empire by a wartime summit;"
+   }
+  ],
   "role": "CHISS (Imperial ally)",
   "gated": true,
   "gating": "Unknown Regions.",
@@ -448,7 +542,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "Unknown Regions",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "Czerka Corporation warehouse moon; date of purchase not given [unclear]",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Czerka Corporation warehouse moon; date of purchase not given [unclear]"
+   }
+  ],
   "role": "CORPORATE",
   "gated": true,
   "gating": "Unknown Regions; not stated.",
@@ -461,7 +560,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Sluis sector",
   "system": "Dagobah system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -477,8 +576,16 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Myto's Arrow",
    "Veragi Trade Route"
   ],
-  "control3661": "Republic [inferred: Republic troops still fighting there in 3653 BBY])",
-  "change3653": "Battle of Dantooine; commanders refuse the treaty)",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic [inferred: Republic troops still fighting there in 3653 BBY])"
+   },
+   {
+    "bby": 3653,
+    "text": "Battle of Dantooine; commanders refuse the treaty)"
+   }
+  ],
   "role": "REP (Outer Rim)",
   "gated": false,
   "gating": "Open (Coruscant–Dantooine hyperlane).",
@@ -490,7 +597,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "Canon-only",
   "sector": "Calaron sector",
   "routes": [],
-  "control3661": "Hutt-associated retreat; discovered by spice smugglers c. 5 centuries before the war",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Hutt-associated retreat; discovered by spice smugglers c. 5 centuries before the war"
+   }
+  ],
   "role": "HUTT [inferred]",
   "gated": false,
   "gating": "Open; no Legends grid.",
@@ -503,7 +615,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Quelii sector",
   "system": "Dathomir system",
   "routes": [],
-  "control3661": "[unclear] battle site; [BTS] mention removed from SWTOR website in 2011)",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "[unclear] battle site; [BTS] mention removed from SWTOR website in 2011)"
+   }
+  ],
   "role": "CONTESTED",
   "gated": false,
   "full": false
@@ -519,7 +636,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Hydian Way",
    "Brentaal–Denon Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "REP-CORE [inferred]",
   "gated": false,
   "full": false
@@ -531,7 +648,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Ojoster sector",
   "system": "Denova system",
   "routes": [],
-  "control3661": "Undiscovered: first scouted by the Republic during the Cold War",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Undiscovered: first scouted by the Republic during the Cold War"
+   }
+  ],
   "role": "UNKNOWN",
   "gated": true,
   "gating": "Gated until after 3653 BBY.",
@@ -544,7 +666,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Tammuz sector",
   "system": "Deralia system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -559,7 +681,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Desevran Trace",
    "Perlemian Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -573,7 +695,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Corellian Trade Spine"
   ],
-  "control3661": "Republic [inferred]: Jedi survivors regroup there after the failed 3661 strike;",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic [inferred]: Jedi survivors regroup there after the failed 3661 strike;"
+   }
+  ],
   "role": "FRONT LINE (Hydian Way)",
   "gated": false,
   "full": false
@@ -589,7 +716,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Dorin Run",
    "Namadii Corridor"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -601,7 +728,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Lol sector",
   "system": "Drexel system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -613,7 +740,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Esstran sector",
   "system": "Drezzi system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -627,7 +754,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Kamat Krote"
   ],
-  "control3661": "Sith Empire capital. The Republic learned the capital was Dromund Kaas from the captured Dread Masters in 3668 BBY; whether it had usable coordinates by 3661 is not stated [unclear]",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire capital. The Republic learned the capital was Dromund Kaas from the captured Dread Masters in 3668 BBY; whether it had usable coordinates by 3661 is not stated [unclear]"
+   }
+  ],
   "role": "IMP-CORE",
   "gated": false,
   "gating": "Republic: name known from 3668 BBY; first recorded Republic assault 3640 BBY.",
@@ -643,8 +775,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Corellian Run",
    "Reena Trade Route"
   ],
-  "control3661": "",
-  "change3653": "major battle above the planet",
+  "control": [
+   {
+    "bby": 3653,
+    "text": "major battle above the planet"
+   }
+  ],
   "role": "FRONT LINE (3653)",
   "gated": false,
   "full": false
@@ -659,7 +795,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Corellian Trade Spine",
    "Duros Run"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -671,7 +807,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Japrael sector",
   "system": "Japrael system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -683,7 +819,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Minos Cluster",
   "system": "Eliad system",
   "routes": [],
-  "control3661": "[unclear] Jedi held positions here in the Minos Cluster campaign;; holder at 3661 not stated (Minos largely Imperial)",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "[unclear] Jedi held positions here in the Minos Cluster campaign;; holder at 3661 not stated (Minos largely Imperial)"
+   }
+  ],
   "role": "CONTESTED (Minos)",
   "gated": false,
   "full": false
@@ -695,7 +836,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Sertar sector",
   "system": "Elom system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -709,7 +850,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Elrood-Derilyn Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -728,7 +869,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Senex Trace",
    "Yankirk Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -740,7 +881,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Doldur sector",
   "system": "Falleen system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -752,7 +893,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Thanium Worlds",
   "system": "Felucia system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -767,7 +908,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Gandeal-Fondor Hyperlane",
    "Shipwrights' Trace"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -778,7 +919,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "N-10",
   "system": "Foundry system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -790,7 +931,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Shadola sector",
   "system": "Gand system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -800,7 +941,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -810,7 +951,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "",
   "grid": "",
   "routes": [],
-  "control3661": "Planet not named; Gell Mattar is a city. Republic win in 3666 BBY",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Planet not named; Gell Mattar is a city. Republic win in 3666 BBY"
+   }
+  ],
   "role": "REP-WON (3666)",
   "gated": false,
   "gating": "Planet unidentified [unclear].",
@@ -825,7 +971,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "The Crystal Passage"
   ],
-  "control3661": "Active front: Republic–Imperial ground campaign on Geonosis, dated between 3665 BBY and 3653 BBY; also the arena world where Imperial Intelligence raised Mandalore the Lesser",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Active front: Republic–Imperial ground campaign on Geonosis, dated between 3665 BBY and 3653 BBY; also the arena world where Imperial Intelligence raised Mandalore the Lesser"
+   }
+  ],
   "role": "CONTESTED (front line)",
   "gated": false,
   "full": false
@@ -837,7 +988,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Veragi sector",
   "system": "Gree system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -849,7 +1000,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Esstran sector",
   "system": "Haffrin system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -861,7 +1012,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Esstran sector",
   "system": "Hallion system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -875,7 +1026,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Ison Trade Corridor"
   ],
-  "control3661": "Unclaimed. Battle of Hoth (3665 BBY) left a wreck field; no side recovered it;",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Unclaimed. Battle of Hoth (3665 BBY) left a wreck field; no side recovered it;"
+   }
+  ],
   "role": "UNCLAIMED (wreck field)",
   "gated": false,
   "full": true
@@ -887,7 +1043,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Ferra sector",
   "system": "Hypori system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -901,7 +1057,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Metellos–Ilum hyperlane"
   ],
-  "control3661": "Republic and Jedi; used as a staging ground because its location and lanes were hard to navigate). A Sith attack occurred sometime in 3681–3653 BBY [BTS: SWTOR website 2008, removed 2011])",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic and Jedi; used as a staging ground because its location and lanes were hard to navigate). A Sith attack occurred sometime in 3681–3653 BBY [BTS: SWTOR website 2008, removed 2011])"
+   }
+  ],
   "role": "REP (hidden)",
   "gated": true,
   "gating": "Hard to reach: 'difficult-to-navigate hyperlanes').",
@@ -917,7 +1078,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Hydian Way",
    "Hydian Spur (in 3694 BBY)"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "gating": "Hydian Way southern end.",
@@ -929,7 +1090,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "Canon-only",
   "system": "Iokath system",
   "routes": [],
-  "control3661": "Hidden machine world; visitors killed by ARIES",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Hidden machine world; visitors killed by ARIES"
+   }
+  ],
   "role": "WILD (hidden)",
   "gated": true,
   "gating": "Gated until c. 3631 BBY.",
@@ -944,7 +1110,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Coruscant–Dantooine hyperlane"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -956,7 +1122,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "D'Astan sector",
   "system": "Isen system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -968,7 +1134,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "D'Astan sector",
   "system": "Isen system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -982,7 +1148,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Triellus Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -994,7 +1160,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Bormea sector",
   "system": "Brentaal system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1009,7 +1175,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Rimma Trade Route",
    "Trition Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1021,7 +1187,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Pallis sector",
   "system": "Kalandis system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1032,7 +1198,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "J-4",
   "system": "Kalee system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1044,7 +1210,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Bothan sector",
   "system": "Kant system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1056,7 +1222,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Tion Hegemony",
   "system": "Kaon system",
   "routes": [],
-  "control3661": "Tion Hegemony world [inferred]",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Tion Hegemony world [inferred]"
+   }
+  ],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1071,7 +1242,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Trition Trade Route",
    "Rimma Trade Route"
   ],
-  "control3661": "[unclear] Imperial invasion repelled sometime 3667–3653 BBY",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "[unclear] Imperial invasion repelled sometime 3667–3653 BBY"
+   }
+  ],
   "role": "CONTESTED (Minos)",
   "gated": false,
   "gating": "Discovered 3956–3681 BBY.",
@@ -1089,7 +1265,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Nightroad",
    "Randon Run"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1105,7 +1281,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Kessel Trade Corridor",
    "Rycar's Run"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "gating": "Open (Kessel Run).",
@@ -1121,7 +1297,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Kamat Aegit",
    "Nache Bhelfia"
   ],
-  "control3661": "Old Sith Empire world; Imperial fleet rendezvous there c. 3638 BBY",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Old Sith Empire world; Imperial fleet rendezvous there c. 3638 BBY"
+   }
+  ],
   "role": "IMP [inferred]",
   "gated": false,
   "full": false
@@ -1133,7 +1314,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Sith Worlds",
   "system": "Khar Delba system",
   "routes": [],
-  "control3661": "Old Sith Empire world; not stated for 3661",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Old Sith Empire world; not stated for 3661"
+   }
+  ],
   "role": "IMP (old Sith space) [inferred]",
   "gated": false,
   "full": false
@@ -1149,7 +1335,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Kamat Krote",
    "Nache Bhelfia"
   ],
-  "control3661": "Sith Empire. Taken from its Jedi/Republic guard in the opening assault of 3681 BBY; the academy was re-established.",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire. Taken from its Jedi/Republic guard in the opening assault of 3681 BBY; the academy was re-established."
+   }
+  ],
   "role": "IMP-CORE",
   "gated": false,
   "gating": "Open to the Empire; the Republic knows its location (Korriban was a guarded Republic-watched world before 3681).",
@@ -1162,7 +1353,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Koradin sector",
   "system": "Kovor system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1174,7 +1365,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Kuat sector",
   "system": "Kuat system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "REP-CORE [inferred]",
   "gated": false,
   "full": false
@@ -1185,7 +1376,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "G-11",
   "system": "Lehon system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": true,
   "gating": "Unknown Regions; not stated.",
@@ -1198,7 +1389,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Cademimu sector",
   "system": "Lenico system",
   "routes": [],
-  "control3661": "Dead world with small refuge",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Dead world with small refuge"
+   }
+  ],
   "role": "CONTESTED [inferred]",
   "gated": false,
   "full": false
@@ -1213,7 +1409,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Askar Trace",
    "Manda–Mon Gazza hyperlane"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1228,7 +1424,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Llanic Spice Run",
    "Triellus Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1240,7 +1436,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Kanz sector",
   "system": "Lorrd system",
   "routes": [],
-  "control3661": "Argazdan Redoubt until 3670 BBY; then freed by the Jedi → Republic [inferred]",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Argazdan Redoubt until 3670 BBY; then freed by the Jedi → Republic [inferred]"
+   }
+  ],
   "role": "REP [inferred]",
   "gated": false,
   "full": false
@@ -1254,7 +1455,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Cerean Reach"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1264,7 +1465,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "",
   "grid": "",
   "routes": [],
-  "control3661": "Sith Empire: hidden prison station in the nebula",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire: hidden prison station in the nebula"
+   }
+  ],
   "role": "IMP-SECRET",
   "gated": true,
   "gating": "Secret to the Republic until 3642 BBY [inferred from the strike]. Charged dust scrambles navicomputers; the Relgim Run through it must be flown at sublight.",
@@ -1277,7 +1483,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Aida sector",
   "system": "Makeb system",
   "routes": [],
-  "control3661": "Independent (Makeb Business Council, trade partnership with the Republic)",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Independent (Makeb Business Council, trade partnership with the Republic)"
+   }
+  ],
   "role": "NEUTRAL",
   "gated": false,
   "gating": "Discovered during the Mandalorian Wars (3976–3960 BBY); open.",
@@ -1292,7 +1503,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Perlemian Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1304,7 +1515,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Chorlian sector",
   "system": "Malachor system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "IMP [inferred]",
   "gated": false,
   "full": false
@@ -1316,7 +1527,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Chorlian sector",
   "system": "Malachor system",
   "routes": [],
-  "control3661": "Ruined world; not stated for 3661",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Ruined world; not stated for 3661"
+   }
+  ],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1332,7 +1548,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Hydian Way",
    "Seswenna Expansion"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1343,7 +1559,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "O-11",
   "system": "Pyrshak system",
   "routes": [],
-  "control3661": "Neutral Selkath, but surface cities destroyed by the Empire during the Great Galactic War;. [unclear] whether this was before or after 3661",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Neutral Selkath, but surface cities destroyed by the Empire during the Great Galactic War;. [unclear] whether this was before or after 3661"
+   }
+  ],
   "role": "NEUTRAL (devastated)",
   "gated": false,
   "full": true
@@ -1357,7 +1578,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Mandalorian Road"
   ],
-  "control3661": "",
+  "control": [],
   "role": "MANDO [inferred]",
   "gated": false,
   "gating": "Open (Mandalorian Road).",
@@ -1368,7 +1589,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "Outer Rim Territories",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "Dead world: pirate population wiped out by Nok Drayen in the early years of the war. Exact year [unclear]",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Dead world: pirate population wiped out by Nok Drayen in the early years of the war. Exact year [unclear]"
+   }
+  ],
   "role": "DEAD WORLD",
   "gated": false,
   "full": false
@@ -1378,7 +1604,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1389,7 +1615,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "M-10",
   "system": "Marfa system",
   "routes": [],
-  "control3661": "Republic; Jedi AgriCorps facilities in the Cold War",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic; Jedi AgriCorps facilities in the Cold War"
+   }
+  ],
   "role": "REP-CORE",
   "gated": false,
   "full": false
@@ -1399,7 +1630,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "",
   "grid": "",
   "routes": [],
-  "control3661": "Not yet established [inferred]: founded by Loddu after the Hutt capture of Makeb (3638 BBY)",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Not yet established [inferred]: founded by Loddu after the Hutt capture of Makeb (3638 BBY)"
+   }
+  ],
   "role": "NOT YET BUILT",
   "gated": true,
   "gating": "Gated until after 3638 BBY.",
@@ -1412,7 +1648,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Esstran sector",
   "system": "Melldia system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1423,7 +1659,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "M-8",
   "system": "Taspan system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1437,7 +1673,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Listehol Run"
   ],
-  "control3661": "Republic; refuge for Outer Rim refugee",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic; refuge for Outer Rim refugee"
+   }
+  ],
   "role": "REP (refuge)",
   "gated": false,
   "full": false
@@ -1451,7 +1692,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Reena Trade Route"
   ],
-  "control3661": "Neutral pilgrimage world",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Neutral pilgrimage world"
+   }
+  ],
   "role": "NEUTRAL",
   "gated": false,
   "full": false
@@ -1465,7 +1711,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Corellian Trade Spine"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1481,7 +1727,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "''Pabol Hutta''",
    "''Shag Pabol''"
   ],
-  "control3661": "Hutt Cartel; neutral through the Great Galactic War;",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Hutt Cartel; neutral through the Great Galactic War;"
+   }
+  ],
   "role": "HUTT",
   "gated": false,
   "full": true
@@ -1498,8 +1749,16 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Rycar's Run",
    "''Shag Pabol''"
   ],
-  "control3661": "Hutt Cartel (neutral under the Hutt–Imperial treaty);",
-  "change3653": "Exchange defeated by the Shadow Syndicate",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Hutt Cartel (neutral under the Hutt–Imperial treaty);"
+   },
+   {
+    "bby": 3653,
+    "text": "Exchange defeated by the Shadow Syndicate"
+   }
+  ],
   "role": "HUTT",
   "gated": false,
   "full": true
@@ -1511,7 +1770,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Chorlian sector",
   "system": "Nathema system",
   "routes": [],
-  "control3661": "Vitiate's secret world; routes erased;)",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Vitiate's secret world; routes erased;)"
+   }
+  ],
   "role": "HIDDEN",
   "gated": true,
   "gating": "Gated: no routes on record until the Alliance era.",
@@ -1527,7 +1791,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Corellian Run",
    "Duros Space Run"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1539,7 +1803,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "D'Astan sector",
   "system": "Nez Peron system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "IMP [unclear for 3661]",
   "gated": false,
   "full": false
@@ -1551,7 +1815,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Dustig sector",
   "system": "Nuvar system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": true,
   "gating": "Uncharted in 3701 BBY.",
@@ -1562,7 +1826,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "Wild Space",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "Uncharted before the Eternal Empire conquest",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Uncharted before the Eternal Empire conquest"
+   }
+  ],
   "role": "WILD",
   "gated": true,
   "gating": "Gated (uncharted).",
@@ -1575,7 +1844,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Esstran sector",
   "system": "Odacer-Faustin system",
   "routes": [],
-  "control3661": "Sith Empire academy world in the Cold War; [unclear] for 3661 (first dated student 3655 BBY)",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire academy world in the Cold War; [unclear] for 3661 (first dated student 3655 BBY)"
+   }
+  ],
   "role": "IMP",
   "gated": false,
   "full": false
@@ -1585,7 +1859,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "Wild Space",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "Unsettled Wild Space world",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Unsettled Wild Space world"
+   }
+  ],
   "role": "WILD",
   "gated": true,
   "gating": "Gated (unknown) until c. 3631 BBY.",
@@ -1600,7 +1879,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Lesser Lantillian Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1615,8 +1894,16 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Celanon Spur",
    "Entralla Route"
   ],
-  "control3661": "Republic; never attacked outright in the Great Galactic War",
-  "change3653": "a corrupt admiral sells the local fleet; Republic presence collapses",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic; never attacked outright in the Great Galactic War"
+   },
+   {
+    "bby": 3653,
+    "text": "a corrupt admiral sells the local fleet; Republic presence collapses"
+   }
+  ],
   "role": "REP (rear, Hydian Way shadowport)",
   "gated": false,
   "full": true
@@ -1628,7 +1915,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Esstran sector",
   "system": "Ord Radama system",
   "routes": [],
-  "control3661": "Republic world in Imperial-claimed Esstran sector; attacked in the 3660 Rim Campaign;",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic world in Imperial-claimed Esstran sector; attacked in the 3660 Rim Campaign;"
+   }
+  ],
   "role": "FRONT LINE",
   "gated": false,
   "full": true
@@ -1640,7 +1932,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Corva sector",
   "system": "Oricon system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1652,7 +1944,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Auril sector",
   "system": "Adega system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1667,7 +1959,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Overic Griplink",
    "Pakuuni Drift"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1682,7 +1974,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Rimma Trade Route",
    "Shapani Bypass"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1692,7 +1984,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "",
   "grid": "",
   "routes": [],
-  "control3661": "Not in existence as Port Nowhere in 3661 [inferred: page places it 'during the Cold War']",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Not in existence as Port Nowhere in 3661 [inferred: page places it 'during the Cold War']"
+   }
+  ],
   "role": "NOT YET (later)",
   "gated": true,
   "gating": "Gated: later era; uncharted, moving location.",
@@ -1703,7 +2000,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1714,7 +2011,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "S-10",
   "system": "Quesh system",
   "routes": [],
-  "control3661": "Unclaimed: discovered by the Republic during the Great Galactic War and dismissed as useless; discovery year not stated [unclear]",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Unclaimed: discovered by the Republic during the Great Galactic War and dismissed as useless; discovery year not stated [unclear]"
+   }
+  ],
   "role": "UNKNOWN/UNCLAIMED",
   "gated": true,
   "gating": "May be undiscovered at 3661 [unclear]: discovery date within 3681–3653 not given.",
@@ -1727,7 +2029,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Farstey sector",
   "system": "Quooria system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1739,7 +2041,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Circarpous sector",
   "system": "Ishanna system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1751,7 +2053,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Trilon sector",
   "system": "Guter Wade system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1765,7 +2067,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Corellian Run",
    "The Spin"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1777,7 +2079,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Chorlian sector",
   "system": "Rekkiad system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1789,7 +2091,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Thanium sector",
   "system": "Tobali system",
   "routes": [],
-  "control3661": "Republic [inferred]; invaded near the end of the war and recovered",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic [inferred]; invaded near the end of the war and recovered"
+   }
+  ],
   "role": "REP",
   "gated": false,
   "full": false
@@ -1803,7 +2110,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Perlemian Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "REP-CORE [inferred]",
   "gated": false,
   "full": false
@@ -1815,7 +2122,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Abrion sector",
   "system": "Rishi system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1830,7 +2137,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Manda Merchant Route",
    "Zareca String"
   ],
-  "control3661": "Nova Blades pirates, settled more than a century before the Galactic War",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Nova Blades pirates, settled more than a century before the Galactic War"
+   }
+  ],
   "role": "PIRATE (hidden in Rishi Maze)",
   "gated": true,
   "gating": "Off the charts: found by pirates who crashed while exploring the Rishi Maze [inferred: not known to either power].",
@@ -1845,7 +2157,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Corellian Run"
   ],
-  "control3661": "Republic [inferred]; annexed by the Empire after the war under the Treaty",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic [inferred]; annexed by the Empire after the war under the Treaty"
+   }
+  ],
   "role": "REP",
   "gated": false,
   "full": false
@@ -1859,7 +2176,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Agricultural Circuit",
    "Koros Trunk Line"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1869,7 +2186,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "Wild Space",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "Mining world [inferred]; mining ceased in 3663 BBY when a nebula surrounded it",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Mining world [inferred]; mining ceased in 3663 BBY when a nebula surrounded it"
+   }
+  ],
   "role": "CUT OFF",
   "gated": true,
   "gating": "Cut off by an ionic storm/nebula from 3663 BBY;.",
@@ -1885,7 +2207,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Hydian Way",
    "Morellian Trail"
   ],
-  "control3661": "Sith Empire puppet government",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire puppet government"
+   }
+  ],
   "role": "IMP-HELD (puppet)",
   "gated": false,
   "full": false
@@ -1903,7 +2230,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Old Corellian Run",
    "Ryloth Road"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "gating": "Open (end of the Corellian Run).",
@@ -1918,7 +2245,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Talcene Transit"
   ],
-  "control3661": "Strategically held Outer Rim trade hub; holder not named [unclear]",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Strategically held Outer Rim trade hub; holder not named [unclear]"
+   }
+  ],
   "role": "REP [unclear]",
   "gated": false,
   "full": false
@@ -1929,7 +2261,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "M-10",
   "system": "Sarapin system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1939,7 +2271,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "Mid Rim",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1951,7 +2283,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Freestanding subsectors",
   "system": "Sebaddon system",
   "routes": [],
-  "control3661": "Unknown: Lema Xandret hid here after defecting in 3658 BBY;",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Unknown: Lema Xandret hid here after defecting in 3658 BBY;"
+   }
+  ],
   "role": "UNKNOWN",
   "gated": true,
   "gating": "Unknown Regions; secret.",
@@ -1966,7 +2303,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Veragi Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -1980,7 +2317,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Spurs of Celanon"
   ],
-  "control3661": "[conflict] Republic-held with Jedi Master Ven Zallow's base until taken by Malgus: 'about 3661 BBY' vs 'c. 3660 BBY';",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "[conflict] Republic-held with Jedi Master Ven Zallow's base until taken by Malgus: 'about 3661 BBY' vs 'c. 3660 BBY';"
+   }
+  ],
   "role": "FRONT LINE",
   "gated": false,
   "gating": "Open (Spurs of Celanon).",
@@ -1995,7 +2337,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Veragi Trade Route"
   ],
-  "control3661": "Sith Empire puppet government",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire puppet government"
+   }
+  ],
   "role": "IMP-HELD (puppet)",
   "gated": false,
   "full": false
@@ -2009,7 +2356,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Rimma Trade Route"
   ],
-  "control3661": "Sith Empire [inferred]: shipyards destroyed and world conquered in 3681 BBY",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire [inferred]: shipyards destroyed and world conquered in 3681 BBY"
+   }
+  ],
   "role": "IMP-HELD",
   "gated": false,
   "full": false
@@ -2023,7 +2375,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Sisar Run"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2038,7 +2390,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Rimma Trade Route",
    "Silvestri Trace/Sanctuary Pipeline"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2053,7 +2405,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Rimma Trade Route",
    "Silvestri Trace/Sanctuary Pipeline"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2069,7 +2421,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "The Sy-Y",
    "Triellus Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2081,7 +2433,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Dufilvian sector",
   "system": "Talay system",
   "routes": [],
-  "control3661": "Republic outpost and comm hub during the war",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic outpost and comm hub during the war"
+   }
+  ],
   "role": "REP",
   "gated": false,
   "full": false
@@ -2093,7 +2450,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Calamari sector",
   "system": "Taral system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2107,7 +2464,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Mandalorian Road"
   ],
-  "control3661": "Republic claim over a ruined, unresettled world [inferred: recolonization only began during the Cold War]",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic claim over a ruined, unresettled world [inferred: recolonization only began during the Cold War]"
+   }
+  ],
   "role": "REP (ruin)",
   "gated": false,
   "full": true
@@ -2127,7 +2489,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Tatooine Dash",
    "Triellus Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE (no record)",
   "gated": false,
   "gating": "Open (Corellian Run/Triellus per infobox).",
@@ -2143,7 +2505,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "''Shag Pabol''",
    "Triellus Trade Route"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2158,7 +2520,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Rimma Trade Route",
    "Sharlissian Trade Corridor"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2174,7 +2536,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Tython hyperspace route",
    "Tython hyperspace route"
   ],
-  "control3661": "No one. Hyperlanes to Tython had collapsed after the Great Hunt and the world was abandoned for centuries; Satele Shan blazed a new Deep Core route only after the Sacking (3653 BBY)",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "No one. Hyperlanes to Tython had collapsed after the Great Hunt and the world was abandoned for centuries; Satele Shan blazed a new Deep Core route only after the Sacking (3653 BBY)"
+   }
+  ],
   "role": "LOST",
   "gated": true,
   "gating": "Unreachable at 3661 (no known lane). Opens after 3653 BBY via Satele Shan's route.",
@@ -2189,7 +2556,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Great Kashyyyk Branch"
   ],
-  "control3661": "Republic member 'from that government's earliest days'",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic member 'from that government's earliest days'"
+   }
+  ],
   "role": "REP",
   "gated": false,
   "full": false
@@ -2199,7 +2571,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "",
   "grid": "",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2209,7 +2581,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "Unknown Regions",
   "grid": "",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2220,7 +2592,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "N-6",
   "system": "Vesla system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2231,7 +2603,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "M-8",
   "system": "Uphrades system",
   "routes": [],
-  "control3661": "Republic agriworld ('Coruscant's Granary')",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic agriworld ('Coruscant's Granary')"
+   }
+  ],
   "role": "REP-CORE (food supply)",
   "gated": false,
   "full": false
@@ -2243,7 +2620,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Tarabba sector",
   "system": "Utapau system",
   "routes": [],
-  "control3661": "[unclear] battleground; Republic defeated there",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "[unclear] battleground; Republic defeated there"
+   }
+  ],
   "role": "CONTESTED",
   "gated": false,
   "full": false
@@ -2253,7 +2635,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2265,7 +2647,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Corosi sector",
   "system": "Vesla system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2277,7 +2659,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Corosi sector",
   "system": "Vesla system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2294,7 +2676,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Sprizen End Run",
    "Spurs of Celanon"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2304,7 +2686,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "Unknown Regions",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2318,7 +2700,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Cadinth Run"
   ],
-  "control3661": "Unknown to both powers. Rediscovered by accident after the Treaty, several years before 3640 BBY",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Unknown to both powers. Rediscovered by accident after the Treaty, several years before 3640 BBY"
+   }
+  ],
   "role": "UNKNOWN",
   "gated": true,
   "gating": "Gated until after 3653 BBY.",
@@ -2333,7 +2720,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Mandalorian Road"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2347,7 +2734,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Yavin Bypass"
   ],
-  "control3661": "",
+  "control": [],
   "role": "UNKNOWN [inferred]",
   "gated": false,
   "gating": "Remote; no 3661 record.",
@@ -2362,7 +2749,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Yavin Bypass"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2374,7 +2761,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "sector": "Trilon sector",
   "system": "Zaddja system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2384,7 +2771,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "region": "Wild Space",
   "grid": "Canon-only",
   "routes": [],
-  "control3661": "Eternal Empire (Valkorion) in Wild Space; no contact with the galaxy recorded before 3636 BBY",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Eternal Empire (Valkorion) in Wild Space; no contact with the galaxy recorded before 3636 BBY"
+   }
+  ],
   "role": "WILD (Eternal Empire)",
   "gated": true,
   "gating": "Gated until 3636 BBY.",
@@ -2400,7 +2792,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
    "Lesser Lantillian Route",
    "Great Kashyyyk Branch"
   ],
-  "control3661": "",
+  "control": [],
   "role": "OFFSTAGE",
   "gated": false,
   "full": false
@@ -2414,7 +2806,12 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "routes": [
    "Nache Bhelfia"
   ],
-  "control3661": "Sith Empire; capital of Imperial buffer space, city of New Adasta ('Gateway to the Empire')",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire; capital of Imperial buffer space, city of New Adasta ('Gateway to the Empire')"
+   }
+  ],
   "role": "IMP-CORE (front line in 3660)",
   "gated": false,
   "full": true
@@ -2425,7 +2822,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "grid": "F-6",
   "system": "Zosha system",
   "routes": [],
-  "control3661": "",
+  "control": [],
   "role": "REP [inferred]",
   "gated": false,
   "full": false
@@ -4797,7 +5194,12 @@ export const ROUTES_ATTESTED: readonly GeneratedRoute[] = [
  {
   "name": "Hydian Way",
   "endpoints": "Bonadan to Imynusoph. It crosses the Core, Colonies, Inner Rim, Expansion Region, Mid Rim and Outer Rim. Stops include D'ian, Lythos, Mall'ordian, Reltooine, Cadomai Prime, Ruuria, Listehol, Tantive IV, Doniphon, Telos IV, the Shi'kar Straits, Praadost II, Pho Ph'eah, Serenno, Toprawa and Simpla-12; junctions include the Tingel Route and the Corellian Run.",
-  "control3661": "Republic supply artery. Blockaded from 3661 BBY by Mandalorian cruisers in its southern section, between Devaron (Colonies) and the Minos Cluster (southern Outer Rim). This cut supplies to the Core and to the fronts on the route, including Ord Radama. Ruuria, on the northern stretch, has been an Imperial puppet since 3681 BBY [inferred from Part A].",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic supply artery. Blockaded from 3661 BBY by Mandalorian cruisers in its southern section, between Devaron (Colonies) and the Minos Cluster (southern Outer Rim). This cut supplies to the Core and to the fronts on the route, including Ord Radama. Ruuria, on the northern stretch, has been an Imperial puppet since 3681 BBY [inferred from Part A]."
+   }
+  ],
   "founded": "3705–3693 BBY by Freia Kallea and Banu Hydia, with portions by Thoax and Farge Osaax, stitched together from older routes",
   "attested": true,
   "blockade": true
@@ -4805,7 +5207,12 @@ export const ROUTES_ATTESTED: readonly GeneratedRoute[] = [
  {
   "name": "Rimma Trade Route",
   "endpoints": "Abregado-rae (Core) to Karideph. Stops include Dentaal, Giju, Ghorman, Vanik, Thyferra, Tauber, Yag'Dhul, Sukkult, Wroona, Tregillis, Vandelhelm, Woostri, Daemen, Alakatha, Lanthe, Vondarc, Medth and Tshindral III. Junctions include the Corellian Trade Spine and the Harrin Trade Corridor.",
-  "control3661": "the Seswenna-sector stretch has been Imperial since 3671 BBY; the Core and Colonies stretches are Republic [inferred];.",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "the Seswenna-sector stretch has been Imperial since 3671 BBY; the Core and Colonies stretches are Republic [inferred];."
+   }
+  ],
   "founded": "5500 BBY",
   "attested": true,
   "blockade": false
@@ -4813,7 +5220,12 @@ export const ROUTES_ATTESTED: readonly GeneratedRoute[] = [
  {
   "name": "Perlemian Trade Route",
   "endpoints": "Coruscant to beyond Quermia. Stops include Alsakan, Grizmallt, Anaxes, Corulag, Chandrila, Brentaal IV, Esseles, Rhinnal, Ralltiir, Ifmix VI, Shulstine V and Castell. Junctions include the Corellian Run, Namadii Corridor, Koros Trunk Line, Hydian Way and Triellus.",
-  "control3661": "Republic (Core and Colonies stretches) [inferred: no Imperial gains on these worlds are recorded for 3661 in Part A]. Rhinnal (on the route) is attacked during the Cold War; Chandrila sees fighting c. 3642 BBY.",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic (Core and Colonies stretches) [inferred: no Imperial gains on these worlds are recorded for 3661 in Part A]. Rhinnal (on the route) is attacked during the Cold War; Chandrila sees fighting c. 3642 BBY."
+   }
+  ],
   "founded": "c",
   "attested": true,
   "blockade": false
@@ -4821,7 +5233,12 @@ export const ROUTES_ATTESTED: readonly GeneratedRoute[] = [
  {
   "name": "Corellian Run",
   "endpoints": "Coruscant to Smuggler's Run. Stops include Ixtlar, Wukkar, Kailor V, Rehemsa and Corellia. Junctions include the Perlemian, Corellian Trade Spine and Hydian Way.",
-  "control3661": "Republic in the Core [inferred]. Ryloth lies at its far end.",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic in the Core [inferred]. Ryloth lies at its far end."
+   }
+  ],
   "founded": "25,000–24,000 BBY",
   "attested": true,
   "blockade": false
@@ -4829,49 +5246,79 @@ export const ROUTES_ATTESTED: readonly GeneratedRoute[] = [
  {
   "name": "Corellian Trade Spine",
   "endpoints": "Corellia to past Terminus. Stops include Duro, Chasin, Gandeal, Mechis, Yag'Dhul and Harrin; junctions include the Corellian Run, Rimma and Ison Corridor.",
-  "control3661": "Republic [inferred]. Devaron lies on it.",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic [inferred]. Devaron lies on it."
+   }
+  ],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Triellus Trade Route",
   "endpoints": "Centares to Enarc (Mid and Outer Rim, edging Hutt Space). Stops include Jabiim, Formos and Teth; junctions include the Perlemian, Kessel Run and Pabol Sleheyron.",
-  "control3661": "not stated [unclear]. Jabiim sees a Sith victory in the Cold War.",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "not stated [unclear]. Jabiim sees a Sith victory in the Cold War."
+   }
+  ],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Kessel Run",
   "endpoints": "Formos to Kessel via Rion. Era use: none found [unclear].",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Ootmian Pabol (Hutt Space)",
   "endpoints": "Gyndine to Nal Hutta; stops include New Apsolon, Coachelle Prime, Ota, Randon, Ubrikkia, Kwenn and Keldooine. Gyndine scouts linked Hutt Space to the Republic in 12,000 BBY. A supernova in the Kyyr system c. 4000 BBY wrecked part of the route.",
-  "control3661": "Hutt, neutral [inferred from Nal Hutta, Part A]. Nar Shaddaa's infobox also lists the Oktos Route, Rycar's Run and Shag Pabol. (The Pabol Hutta is Canon-sourced; see Canon only.)",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Hutt, neutral [inferred from Nal Hutta, Part A]. Nar Shaddaa's infobox also lists the Oktos Route, Rycar's Run and Shag Pabol. (The Pabol Hutta is Canon-sourced; see Canon only.)"
+   }
+  ],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Sith-space routes (Esstran sector / Stygian Caldera)",
   "endpoints": "",
-  "control3661": "Sith Empire. All their named worlds (Korriban, Dromund Kaas, Ziost, Bosthirda, Khar Delba) are Imperial in Part A. Begeren was invaded in 3678 BBY. Ashas Ree and Ziost are attacked by the Republic in 3660 BBY [inferred: Imperial before that].",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Sith Empire. All their named worlds (Korriban, Dromund Kaas, Ziost, Bosthirda, Khar Delba) are Imperial in Part A. Begeren was invaded in 3678 BBY. Ashas Ree and Ziost are attacked by the Republic in 3660 BBY [inferred: Imperial before that]."
+   }
+  ],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Tingel Route",
   "endpoints": "",
-  "control3661": "Imperial sphere [inferred]: the Tingel Arm worlds were Imperial puppets from 3681 BBY.",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Imperial sphere [inferred]: the Tingel Arm worlds were Imperial puppets from 3681 BBY."
+   }
+  ],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Coruscant–Dantooine hyperlane",
   "endpoints": "",
-  "control3661": "Republic [inferred]. Dantooine is the site of a battle in 3653 BBY.",
+  "control": [
+   {
+    "bby": 3661,
+    "text": "Republic [inferred]. Dantooine is the site of a battle in 3653 BBY."
+   }
+  ],
   "founded": "before 12,000 BBY",
   "attested": true,
   "blockade": false
@@ -4879,77 +5326,77 @@ export const ROUTES_ATTESTED: readonly GeneratedRoute[] = [
  {
   "name": "Koros–Tython hyperlane and the new Tython route",
   "endpoints": "",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Relgim Run (Maelstrom Nebula)",
   "endpoints": "Fedje to Ord Thoden (Outer Rim).",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Celanon Spur",
   "endpoints": "Dorin to Celanon via Myomar, Vicondor, Qiilura/Ord Mantell and Ithor; junctions include the Namadii Corridor and the Hydian Way.",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Spurs of Celanon",
   "endpoints": "charted before 3705 BBY. Celanon to Serenno via Ord Cestus, Axxila, Vinsoth and Vandyne; joins the Hydian Way and the Sprizen End Run. Serenno falls c. 3661/3660 BBY [conflict] (Part A).",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Ison Trade Corridor",
   "endpoints": "Indellian to Mataou via Varonat, Bespin, Anoat and Hoth. Hoth is the 3665 BBY battlefield (Part A).",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Namadii Corridor",
   "endpoints": "Coruscant to Namadii via Pantolomin, Borleias, Ord Mirit and Palanhi; junctions include the Perlemian, the Corellian Run and the Celanon Spur.",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Sisar Run",
   "endpoints": "Nwarcol Point to Nimban via Sriluur and Cyborrea (Outer Rim / Hutt Space).",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Tion Trade Route",
   "endpoints": "Dellalt to Estaria via Raxus Prime, Tion, Rudrig and Caluula.",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Goluud Corridor",
   "endpoints": "founded 5000 BBY; stop Goluud Minor.",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Dustig Trace",
   "endpoints": "consortium monopoly in the Cold War (c. 3643 BBY).",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  },
  {
   "name": "Bezha Two hyperlane (secret/new)",
   "endpoints": "c. 3643 BBY, a lane was found to Bezha Two, a lost Core Founder world thought destroyed by a supernova [inferred date per the page's dating note]).",
-  "control3661": "",
+  "control": [],
   "attested": true,
   "blockade": false
  }

@@ -2,7 +2,7 @@
 // worlds and the knowledge rules, and the state-block line.
 import { describe, expect, it } from 'vitest';
 import { makeEstimator } from '../../src/ai/tokenRatio';
-import { closedWorlds, mapSide, MENTION_ONLY, OFF_MAP, planetByName, PLANETS, ROUTES_ATTESTED, ROUTES_UNATTESTED } from '../../src/data/galaxyMap';
+import { closedWorlds, controlOnRecordAt, mapSide, MENTION_ONLY, OFF_MAP, planetByName, PLANETS, ROUTES_ATTESTED, ROUTES_UNATTESTED } from '../../src/data/galaxyMap';
 import { eraRulesAt } from '../../src/data/eraRules';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { xpForLevel } from '../../src/engine/curve';
@@ -90,9 +90,14 @@ describe('the generated galaxy map (D-404)', () => {
     expect(ROUTES_ATTESTED.find((r) => r.name === 'Hydian Way')!.blockade).toBe(true);
     expect(ROUTES_UNATTESTED.some((r) => /Pabol Hutta/.test(r.name))).toBe(false);
   });
-  it('keeps "not on record" control blank and records 3,653 changes', () => {
-    expect(planetByName('Aderalis')!.control3661).toBe('');
-    expect(planetByName('Coruscant')!.change3653).toMatch(/Sacking/);
+  it('keeps "not on record" control blank and records control as dated keyframes (3,661, 3,653; D-413)', () => {
+    expect(planetByName('Aderalis')!.control).toEqual([]);
+    const c = planetByName('Coruscant')!.control;
+    expect(c.map((k) => k.bby)).toEqual([3661, 3653]);
+    expect(controlOnRecordAt(c, 3653)?.text).toMatch(/Sacking/);
+    expect(controlOnRecordAt(c, 3640)?.bby).toBe(3653);
+    expect(controlOnRecordAt(c, 3661)?.bby).toBe(3661);
+    expect(controlOnRecordAt(c, 3670)).toBeNull();
     expect(planetByName('Dromund Kaas')!.grid).toBe('R-5');
   });
 });

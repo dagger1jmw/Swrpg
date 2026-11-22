@@ -11,13 +11,22 @@ export interface MapNode {
   sector?: string;
 }
 
+/** A control statement on record for a year (BBY): the latest keyframe at or before a date is the last word on record. */
+export interface ControlKeyframe {
+  bby: number;
+  text: string;
+}
+
+/** The latest control statement on record at or before `bby` (BBY), or null. */
+export function controlOnRecordAt(keyframes: readonly ControlKeyframe[], bby: number): ControlKeyframe | null {
+  return keyframes.filter((k) => k.bby >= bby).sort((a, b) => a.bby - b.bby)[0] ?? null;
+}
+
 export interface GeneratedPlanet extends MapNode {
   system?: string;
   routes: readonly string[];
-  /** The control statement for 3,661 ('' when not on record). */
-  control3661: string;
-  /** A change recorded for 3,653, for a later 3,653 start. */
-  change3653?: string;
+  /** Control on record, as dated keyframes from the planets file (3,661, and a 3,653 change); empty when not on record. */
+  control: readonly ControlKeyframe[];
   /** The file's role code (REP-CORE, IMP-HELD, FRONT LINE, GATED, ...). */
   role: string;
   gated: boolean;
@@ -29,7 +38,8 @@ export interface GeneratedPlanet extends MapNode {
 export interface GeneratedRoute {
   name: string;
   endpoints: string;
-  control3661: string;
+  /** Control on record, as dated keyframes (3,661 where the file states it). */
+  control: readonly ControlKeyframe[];
   founded?: string;
   attested: boolean;
   /** The Hydian Way's southern stretch, blockaded 3,661-3,660 (D-402 [16]). */
@@ -55,7 +65,7 @@ export interface WorldGate {
   source: string;
 }
 
-/** Worlds closed at the 3,661 start (D-402 [5]–[8]): no known route, secret, or not yet existing. */
+/** Worlds closed by date (D-402 [5]–[8]): no known route, secret, or not yet existing; each opens on its own year. */
 export const WORLD_GATES: readonly WorldGate[] = [
   { place: 'Dromund Kaas', fromBby: 3681, opensBby: 3640, closedTo: 'republic', reason: 'the Republic knows the name (from 3,668) but has no usable coordinates; the first Republic assault is in 3,640', storyException: 'capture, or a stolen Imperial navicomputer', source: 'D-402 [5]' },
   { place: 'Quesh', fromBby: 3681, opensBby: 3643, closedTo: 'all', reason: 'not on public charts; at most in Republic survey records, unsettled, with no Hutt interest', storyException: 'Republic survey records', source: 'D-402 [6]' },

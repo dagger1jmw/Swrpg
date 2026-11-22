@@ -105,7 +105,7 @@ export const ERA_RULES: readonly EraRule[] = [
     fromBby: 3681,
     toBby: 3641,
     factions: ['sithEmpire', 'sith'],
-    text: 'No aliens serve in the regular Imperial forces (formal admission comes after 3,640); field hospitals treat only favoured species. No Moff, admiral or general is named as "the" commander for 3,661; Imperial Intelligence\'s Keeper and Minister go by title only.',
+    text: 'No aliens serve in the regular Imperial forces (formal admission comes after 3,640); field hospitals treat only favoured species. No Moff, admiral or general is named as "the" commander in these years; Imperial Intelligence\'s Keeper and Minister go by title only.',
     source: 'D-388 [1], [9], [10]',
   },
 ];

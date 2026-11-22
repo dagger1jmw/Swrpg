@@ -262,3 +262,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-22: D-410. M7 start checklist wrapped up: all built except the browser smoke test; the rest of M7 (ranks and milestones core) listed. Overnight report: docs-v2/reports/m7-overnight.md.
 - 2026-11-22: D-411. Overnight questions answered: blockade open from 3660, Grand Master vacancy line for 3652, protagonists out through 3653, Cold War spans end at last recorded year, Imperial-born start Humans and Purebloods only.
 - 2026-11-22: D-412. Date-agnostic refactor stage 1: canon roster as dated rank/status/location spans (era09Timeline.ts), birth estimates re-derived from rank facts, brief §4 corrections, placements from location spans.
+- 2026-11-22: D-413. Date-agnostic refactor stage 2: starts date-keyed (valid years, dated threads, place notes, premises), spec 14 seeds as a 3661 keyframe, map control as dated keyframes, 3661 audit.

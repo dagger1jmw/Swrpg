@@ -43,9 +43,12 @@ const planets = rows.map((l) => {
     ...(sector && sector !== '—' ? { sector } : {}),
     ...(system && system !== '—' ? { system } : {}),
     routes,
-    // Field 2's first line is the full statement (the master table shortens it).
-    control3661: blank(field(body, 2).replace(/s*.$/, '') || strip(control)),
-    ...(c3653 ? { change3653: strip(c3653) } : {}),
+    // Control on record, as dated keyframes (D-413): field 2's first line is the 3,661 statement (the master table
+    // shortens it); a 3,653 change recorded under field 2 is the next keyframe.
+    control: [
+      ...(blank(field(body, 2).replace(/s*.$/, '') || strip(control)) ? [{ bby: 3661, text: blank(field(body, 2).replace(/s*.$/, '') || strip(control)) }] : []),
+      ...(c3653 ? [{ bby: 3653, text: strip(c3653) }] : []),
+    ],
     role: strip(role),
     gated: gated === 'yes',
     ...(gating && !/^(open|not stated)\.?$/i.test(gating) ? { gating } : {}),
@@ -74,13 +77,13 @@ for (const m of all.slice(b1Start, b1End).matchAll(/^### (.+)\n([\s\S]*?)(?=^###
   const body = m[2];
   const get = (k) => strip(new RegExp(`^- \\*\\*${k}:\\*\\*\\s*(.*)$`, 'm').exec(body)?.[1] ?? '');
   const founded = /\*\*Founded:\*\*\s*([^.[]+)/.exec(body)?.[1]?.trim();
-  b1.push({ name: m[1].trim(), endpoints: get('Endpoints') || strip(/\*\*Endpoints:\*\*\s*([^\n]*)/.exec(body)?.[1] ?? ''), control3661: get('Control 3661'), ...(founded ? { founded } : {}), attested: true, blockade: /\*\*Blockaded\*\*/.test(body) });
+  b1.push({ name: m[1].trim(), endpoints: get('Endpoints') || strip(/\*\*Endpoints:\*\*\s*([^\n]*)/.exec(body)?.[1] ?? ''), control: get('Control 3661') ? [{ bby: 3661, text: get('Control 3661') }] : [], ...(founded ? { founded } : {}), attested: true, blockade: /\*\*Blockaded\*\*/.test(body) });
 }
 // "Other routes named in era sources": attested, one bullet each.
 const other = all.slice(b1End, all.indexOf('## B2.'));
 for (const m of other.matchAll(/^- \*\*([^:*]+):\*\*\s*(.*)$/gm)) {
   if (/hypergates|Rishi Maze|^Nathema/.test(m[1])) continue;
-  b1.push({ name: m[1].trim(), endpoints: strip(m[2]), control3661: '', attested: true, blockade: false });
+  b1.push({ name: m[1].trim(), endpoints: strip(m[2]), control: [], attested: true, blockade: false });
 }
 // B2 (infobox only, unattested in the window); the Canon-sourced Pabol Hutta is left out (D-402 [15]).
 const b2s = all.slice(all.indexOf('## B2.'), all.indexOf('# Part C'));

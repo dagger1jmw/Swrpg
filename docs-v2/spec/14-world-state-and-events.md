@@ -90,7 +90,9 @@ These two blocks were in `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` (after 
 
 The CRITICAL/HIGH/MEDIUM/LOW tags this framework reads are the timeline's old Downstream column. The 3,700–3,600 BBY slice dropped that column (lore batch 20, ruling 3); if the simulation needs event priorities, they belong in game data, not the lore file.
 
-### Galaxy sim faction state seeds, re-dated to the 3,661 BBY start
+### Galaxy sim faction state seeds: the 3,661 BBY keyframe
+
+These seeds are a **keyframe at 3,661 BBY** (D-413), not the frame for the simulation: other start dates get their own keyframes later, and a campaign starts from the latest keyframe at or before its start date. Only the 3,661 keyframe exists so far.
 
 The old seeds were for 3,660 BBY, just after the blockade broke. Re-dated to the default start (ruling 8): the blockade is active, the Coruscant riots are going on, Mandalore the Lesser leads the clans, and the Rim Campaign is starting (SW_Timeline_3700_3600BBY_Part1, 3,661 BBY). The unsourced comments ("Temple restaffing", "rationing easing") are dropped. The numbers were reviewed against lore batches 12–21 and the proposed values accepted (D-401 [9]): Republic morale 35 and stability 35, Jedi morale 45, Mandalorian morale 65, Temple supply 55 (invented), plus the Hutts (neutral), the Chiss (the Empire's ally) and the Mandalorians' Imperial patron. A simulation spec still decides how they are used.
 

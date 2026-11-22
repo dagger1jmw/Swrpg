@@ -1407,3 +1407,19 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *[7] The engine (src/engine/canonRoster.ts):* `canonRankAt`, `canonRoleAt`, `canonFactionAt`, `canonStatusAt`, `canonLocationsAt`, `canonLivedAgeAt` (calendar age less stasis years) and `canonOffBoard` all query the spans at the date. "Present in a role" (`canonAbsence`) is now: holds a rank span that year, old enough for it. The link refusal quotes the status span's note for any year (it quoted the 3,661 note only in 3,661).
   - *[8] Interim stats:* the hand-set sheets are complete anchors (`anchors`), and figures with no sheet have `anchors: []`; until stage 3 (D-414) the stats behave as before.
   - *[9] Tests:* tests/data/canonTimeline.test.ts (rank ages, birth bases, offices, the §4 corrections, the board at 3,681, 3,667, 3,661, 3,653, 3,643, 3,640 and 3,630).
+
+- **D-413 Date-agnostic refactor, stage 2: date-keyed starts, keyframes and the 3,661 audit (brief §1).**
+  - *[1] Start options (src/data/startOptions.ts):* the 17 starts are kept as they were, each now valid for the years where its setting holds:
+    - the Coruscant Temple, the Minos Cluster front, the Coruscant lower levels and the Republic pilot: 3,681-3,654 (the war, before the Sacking);
+    - the Republic trooper: 3,665-3,654 (the Geonosis front, after Alderaan);
+    - the Korriban acolyte, Imperial-born, slave-born, Nar Shaddaa (smuggler, orphan, mechanic), SIS and the three Imperial starts: 3,681-3,642 (through the Cold War);
+    - the nomad Mandalorian: 3,667-3,660 (while the Lesser leads the clans);
+    - the Mandalorian blockade picket: 3,661 only.
+    Threads, place notes and premises are dated. A thread is seeded only in its years (the blockade, the Council's strike, picket duty, the riots and the Shange operation 3,661; the Rim Campaign 3,661-3,660; the Geonosis campaign 3,665-3,653; the Minos front 3,681-3,654; the clans who refused and handling the Mandalorians 3,667-3,660). A place's description is a timeless line plus dated notes (Coruscant "starving under the Hydian Way blockade" only in 3,661). Each start keeps its 3,661 premise as the 3,661 version, with a plain premise for its other years (invented wording, setting only). The form offers starts, threads and the premise by the picked date. Refusal messages name the picked year instead of "3,661 BBY". *Reversible default:* a start whose threads are all 3,661 events has no opening thread in other years.
+  - *[2] Spec 14's galaxy sim seeds* are recorded as a keyframe at 3,661 (14-world-state-and-events.md): other start dates get their own keyframes later, and a campaign starts from the latest keyframe at or before its date.
+  - *[3] The galaxy map's planet and route control* (`control3661`, `change3653`) are dated keyframes (`control: { bby, text }[]`), with `controlOnRecordAt` returning the last statement on record at or before a date (scripts/gen-galaxy-map.mjs; galaxyMap.generated.ts regenerated, nothing else changed).
+  - *[4] Audit for baked-in 3,661 assumptions:*
+    - Already dated spans, unchanged: control and leaders, the Order seat, world gates, species gates, era rules, travel, the Pureblood war years (3,681-3,653).
+    - Fixed: the imperial-forces era rule said "for 3,661" (now "in these years"); the start refusal messages; the start places, threads and premises; the map's control fields.
+    - The new-campaign form opens on 3,661 as a prefill only (D-400), which stays.
+    - The lore chunks' "In 3661 BBY / 3653 BBY:" status line (from the master index column) is dated wording sent only with the chunk; kept as a cited fact.
