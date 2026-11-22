@@ -7,7 +7,7 @@ This file covers Nar Shaddaa and the rest of Hutt Space as a home base for a smu
 
 The sources say:
 - The Hutt Cartel stayed neutral through the whole war. It resented the Emperor for leaving it out of his plans, but Imperial agents blocked every Republic attempt to win it over, and a Hutt–Imperial treaty made the neutrality formal.
-- Hutt money still reached both sides. Hutts funded Visz's blockade run against the Empire's Mandalorian allies, a Hutt sold prototype drives to a Republic firm, and in 3653 BBY Hutt crime lords tipped off the Sith blockade at Coruscant.
+- Hutt money still reached both sides. Hutts funded Visz's blockade run (the Hydian Way; The SIS page calls the route the "Rimma Trade Route"; recorded as an error or variant, not a second route (ruling 11 (lore batch 17))) against the Empire's Mandalorian allies, a Hutt sold prototype drives to a Republic firm, and in 3653 BBY Hutt crime lords tipped off the Sith blockade at Coruscant.
 - Nar Shaddaa itself is thinly described for these years. The Visz story gives an Undercity, Hutt-owned shipyards and docks, gangs of orphans and an unnamed cantina. Most named districts and landmarks are attested only for the Cold War (post-window) or for older eras, and are flagged as such.
 
 **Cross-references (not repeated here):**

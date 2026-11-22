@@ -338,7 +338,7 @@ This is a new file, not a redo. Discrepancies with the cross-referenced files:
 6. Riot dates: 3661 BBY riots ending in 3660 BBY (riots page) with the battle in 3660 BBY (Barrows, Lokai). Best fit: blockade 3661–3660 BBY; no conflict.
 7. Senate security: CSF plus military SSOs (CSF page) vs the Senate Guard with the CSF (Coruscant/Legends; Senate Guard page). Best fit: unclear. The CSF page's sequence is the most specific about "Old Republic".
 8. Underworld Police in this window: undated. Allow it (fits) or omit it.
-9. Garza at Bomodon: 3673 BBY (Garza page) vs 3674 BBY (Trant page). Best fit: either. The Garza page gives ten months, so it may span both years.
+9. Garza at Bomodon: 3673 BBY (Garza page) vs 3674 BBY (Trant page). Best fit: either. The Garza page gives ten months, so it may span both years. The 45th Infantry Division page also supports 3673 BBY; per D-380 [9] the campaign ran ten months across 3674–3673 BBY (lore batch 17).
 10. Pre-Sacking underworld: no named Coruscant gang. Allow `invented` local gangs, or limit the cast to the Guild, the Exchange and the Hutts (best fit).
 11. Rationing, curfews and conscription: none on record. Choose whether the game adds them, tagged `invented`, or depicts only market shortage and volunteer enlistment (best fit).
 12. GTN kiosks and the market air-taxi station: era unclear or Cold War only. Exclude from 3661 BBY (best fit), or allow them as era-neutral.

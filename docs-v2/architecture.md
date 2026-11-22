@@ -1121,6 +1121,10 @@ The clock and the module contract come first, before any feature.
   Drayen's rising syndicate, Imperial Diplomatic Service courting (from 3667). A debt track (Hutt investment expects a
   return; Exchange debt escalates; figures `invented`). Bounty work: low Republic payouts and heavy taxes push hunters
   to underworld contracts.
+- **M7 Republic military starts (Jared, 2026-11-21, lore batch 17; D-386, D-387; lore: SW_Republic_Military_GGW_Part1.md,
+  Game notes; candidates).** A trooper: a post-Alderaan recruit (joined c. 3667), a veteran of four to six years in 3661,
+  with Hoth survivors' stories around them. A pilot: Liberators off a Valor-class cruiser (the *Intercessor* carried 110
+  fighters). A spy: an SIS start inside the 3661 Shange operation, a morally gray abduction.
 - **M7 signature moves (Jared, 2026-11-21, lore batch 10; D-371; not built).** Consider giving named lightsaber
   maneuvers (the Named maneuvers table in SW_Force_Abilities_Forms_v3_complete.md: Sarlacc Sweep, Makashi riposte,
   Falling Avalanche, Assured Strike and the rest) mechanical effects. In M6 they are narrator flavour on existing actions.

@@ -4,7 +4,7 @@ Legends lore reference for SWRPG. Researched Nov 21, 2026. Sources: Wookieepedia
 
 ## Summary
 - **Hoth:** the 3665 BBY Imperial victory destroyed the Republic's prototype fleet. [Battle of Hoth (Great Galactic War)](https://starwars.fandom.com/wiki/Battle_of_Hoth_%28Great_Galactic_War%29)
-- **Hydian Way:** Imperial Intelligence's Mandalorian puppet blockaded the Hydian Way (3661–3660 BBY), starving Coruscant until Hylo Visz's smugglers and the Republic broke it. [Blockade of the Hydian Way](https://starwars.fandom.com/wiki/Blockade_of_the_Hydian_Way)
+- **Hydian Way:** Imperial Intelligence's Mandalorian puppet blockaded the Hydian Way (3661–3660 BBY; The SIS page calls the route the "Rimma Trade Route"; recorded as an error or variant, not a second route (ruling 11 (lore batch 17))), starving Coruscant until Hylo Visz's smugglers and the Republic broke it. [Blockade of the Hydian Way](https://starwars.fandom.com/wiki/Blockade_of_the_Hydian_Way)
 - **Rim Campaign:** the Empire's c. 3661–3660 BBY campaign, from Ord Radama to Serenno, pushed the Republic out of the Esstran sector. [Rim Campaign](https://starwars.fandom.com/wiki/Rim_Campaign)
 - **This part also covers:** undated battles, Mandalorian involvement, other factions and daily life.
 
@@ -207,7 +207,7 @@ Names marked "conj." are Wookieepedia's conjectural titles.
 ## Decisions needed
 1. **Year of the peace offer:** 3654 BBY (Berooken page) vs 3653 BBY (Treaty, conference and Malgus pages). Best fit: offer in 3654 BBY, conference and Sacking in 3653 BBY. Resolved (D-363 [1]; lore batch 14, ruling 3): offer in 3654 BBY, conference and Sacking in 3653 BBY.
 2. **Grand Master Zym's death:** killed in the Sacking (Kiwiiks page, citing *Threat of Peace* Act 1) vs killed afterwards by Braden on the Envoy/Temple ruins (Zym page). Best fit: afterwards, as the more detailed account.
-3. **Battle of Bomodon:** 3674 BBY (Bomodon and Trant pages) vs 3673 BBY (Garza page). Best fit: 3674 BBY.
+3. **Battle of Bomodon:** 3674 BBY (Bomodon and Trant pages) vs 3673 BBY (Garza page). Best fit: 3674 BBY. The 45th Infantry Division page also supports 3673 BBY; per D-380 [9] the campaign ran ten months across 3674–3673 BBY (lore batch 17).
 4. **End of the Hydian Way blockade:** 3660 BBY (blockade infobox, riots, Barrows) vs 3661 BBY (Battle on the Hydian Way intro). Best fit: 3660 BBY.
 5. **Mandalore the Lesser's death:** "during or shortly after" the blockade (GGW) vs after the c. 3660 BBY Great Hunt (Great Hunt page) vs "sometime after the Treaty" (Mandalore the Vindicated intro). Best fit: c. 3660 BBY, after the Great Hunt.
 6. **Mandalorian entry:** the Lesser took the title in 3667 BBY vs "3661 BBY" for the Mandalorians' return. Best fit: both; the title in 3667 BBY, open war in 3661 BBY.

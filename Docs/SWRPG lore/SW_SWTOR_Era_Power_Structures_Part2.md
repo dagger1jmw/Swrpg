@@ -88,7 +88,7 @@ This is Part 2 of 2: the Galactic Republic's power structure, 3681–c. 3627 BBY
   - **Form of address:** superiors were addressed by rank or "sir" regardless of gender. [Republic Military/Legends §Proper Address](https://starwars.fandom.com/wiki/Republic_Military/Legends)
   - **Army ranks in the Cold War:** Grand Marshal, General, Colonel, Major, Captain, Lieutenant, Ensign, Sergeant, Corporal, Specialist, Private. "Commander" was an honorific for respected veteran officers, not a rank. [Republic Army §Ranks](https://starwars.fandom.com/wiki/Republic_Army)
   - **Army units:** fire team (2), squad (6–10), platoon (50–100), company (150–250), battalion (750–1,500), regiment (4,000–6,000), division (20,000–40,000), task force (40,000+). [Republic Army §Tactical organization](https://starwars.fandom.com/wiki/Republic_Army)
-  - **Training:** basic training lasted 18 weeks, followed by up to 12 months of specialist training (Cold War). [Republic Army §Specializations](https://starwars.fandom.com/wiki/Republic_Army)
+  - **Training:** basic training lasted 18 weeks, followed by up to 12 months of specialist training (Cold War). [conflict] Great War vs Cold War attestation; resolved (lore batch 17), ruling 5: used for the Great War window too, tagged [conflict]. [Republic Army §Specializations](https://starwars.fandom.com/wiki/Republic_Army)
   - **Navy:**
     - It won the Republic's first major victory at Bothawui. [Republic Navy/Legends §The Sith Wars](https://starwars.fandom.com/wiki/Republic_Navy/Legends)
     - The Jedi Master Oteg served as a Fleet Admiral and led the attack on Maelstrom Prison. [Sith Empire (Post–Great Hyperspace War) §Battling the Republic](https://starwars.fandom.com/wiki/Sith_Empire_%28Post%E2%80%93Great_Hyperspace_War%29)
@@ -123,8 +123,8 @@ This is Part 2 of 2: the Galactic Republic's power structure, 3681–c. 3627 BBY
 - **Era:** Great Galactic War to c. 3631 BBY
 - **Key facts:**
   - **Recruitment:** the best troopers were drawn from the Republic Army to defend the Republic in the Great Galactic War and the Cold War. [Republic Special Forces Division](https://starwars.fandom.com/wiki/Republic_Special_Forces_Division)
-  - **Origin:** after the treaty the military recruited elite troopers into new Special Forces squads, as shock troops in case the peace failed. [Treaty of Coruscant §A discontented Republic](https://starwars.fandom.com/wiki/Treaty_of_Coruscant)
-  - **Havoc Squad:** created as part of the new special forces "following the departure of the Jedi from Coruscant for the planet Tython". [Havoc Squad §History](https://starwars.fandom.com/wiki/Havoc_Squad)
+  - **Origin:** after the treaty the military recruited elite troopers into new Special Forces squads, as shock troops in case the peace failed. [conflict] Resolved (lore batch 17, ruling 3): Special Forces were founded during the Great War (Garza a founder; Omas, Kaedan's team, Tavus); this post-Treaty origin is the minority version. [Treaty of Coruscant §A discontented Republic](https://starwars.fandom.com/wiki/Treaty_of_Coruscant)
+  - **Havoc Squad:** created as part of the new special forces "following the departure of the Jedi from Coruscant for the planet Tython". [conflict] More sources make it a Great War unit: Infantry Squad 326, named "Havoc" under Malcom; Jek Kardan a founding member; Harron Tavus joining in 3667 BBY; Aryn Leneer and Zeerid Korr with it early in the war (SW_Republic_Military_GGW_Part1). Resolved (lore batch 17), ruling 2: a Great War unit; the post-Tython origin is the minority version (consistent with D-363 [12]). [Havoc Squad §History](https://starwars.fandom.com/wiki/Havoc_Squad)
   - **Jedi partners:** some units worked with Jedi; Lieutenant Harron Tavus often fought alongside Master Orgus Din. In parts of the galaxy the Special Forces "constituted the only military available". [Republic Special Forces Division §History](https://starwars.fandom.com/wiki/Republic_Special_Forces_Division)
   - **Defection:** by 3643 BBY Tavus led hundreds of Special Forces operatives to defect to the Empire. [Republic Special Forces Division §History](https://starwars.fandom.com/wiki/Republic_Special_Forces_Division)
   - **Front-line duty:** Supreme Commander Malcom later moved Havoc from covert work to the front lines. [Elin Garza §Last days of service](https://starwars.fandom.com/wiki/Elin_Garza)
@@ -147,6 +147,7 @@ This is Part 2 of 2: the Galactic Republic's power structure, 3681–c. 3627 BBY
     - All agents learned Huttese.
 
     [Republic Strategic Information Service §Overview](https://starwars.fandom.com/wiki/Republic_Strategic_Information_Service)
+  - **Great War operations (added (lore batch 17)):** in 3661 BBY the SIS abducted the Cathar prince Shange and held him in stasis on Belsavis; its Outer Rim listening posts led to the capture of the Dread Masters (3668 BBY).
   - **Limits:** it had "little oversight" but stayed within its legal limits while looking for loopholes. [Republic Strategic Information Service §Early operations](https://starwars.fandom.com/wiki/Republic_Strategic_Information_Service)
   - **Directors:** an unidentified Director (to 3650 BBY), then Marcus Trant (from 3650 BBY). [Director of Republic Strategic Information Service](https://starwars.fandom.com/wiki/Director_of_Republic_Strategic_Information_Service); [Marcus Trant §Director of SIS](https://starwars.fandom.com/wiki/Marcus_Trant)
   - **Trant:** he refused to give the Senate operational details. [Marcus Trant §Director of SIS](https://starwars.fandom.com/wiki/Marcus_Trant)
