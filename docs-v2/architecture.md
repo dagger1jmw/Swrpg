@@ -1125,6 +1125,13 @@ The clock and the module contract come first, before any feature.
   Game notes; candidates).** A trooper: a post-Alderaan recruit (joined c. 3667), a veteran of four to six years in 3661,
   with Hoth survivors' stories around them. A pilot: Liberators off a Valor-class cruiser (the *Intercessor* carried 110
   fighters). A spy: an SIS start inside the 3661 Shange operation, a morally gray abduction.
+- **M7 Imperial non-Sith starts (Jared, 2026-11-21, lore batch 18; D-388, D-389; lore:
+  SW_Imperial_Military_Intelligence_GGW_Part1.md, Game notes; candidates).** A soldier: a conscript aged about 18–40 in
+  the 25–30-year term; a Rim Campaign posting gives Ord Radama's rise and fall as an arc. A junior naval officer: captain
+  of a Gage-class transport, with demotion back to one as a setback. An agent: a Minder or Fixer under a Watcher,
+  handling Mandalorians during the blockade. Design hook (a mechanic, not lore): a "Sith displeasure" track for officers
+  serving under a Sith Lord. Alien Imperial routes (D-388 [10]): a Chiss agent or liaison, a Force-sensitive slave sent
+  to Korriban, or an informer outside the formal ranks.
 - **M7 signature moves (Jared, 2026-11-21, lore batch 10; D-371; not built).** Consider giving named lightsaber
   maneuvers (the Named maneuvers table in SW_Force_Abilities_Forms_v3_complete.md: Sarlacc Sweep, Makashi riposte,
   Falling Avalanche, Assured Strike and the rest) mechanical effects. In M6 they are narrator flavour on existing actions.

@@ -130,3 +130,4 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Mandalorians_GGW_Part1.md` | The Mandalorians in the Great Galactic War: the Lesser, the clans, the blockade, the schism, culture |
 | `Docs/SWRPG lore/SW_NarShaddaa_HuttSpace_GGW_Part1.md` | Nar Shaddaa and Hutt Space in the Great Galactic War: the Cartel, the treaty, the underworld |
 | `Docs/SWRPG lore/SW_Republic_Military_GGW_Part1.md` | The Republic Military in the Great Galactic War: command, Army, Special Forces, Navy, SIS, ranks and medals |
+| `Docs/SWRPG lore/SW_Imperial_Military_Intelligence_GGW_Part1.md` | The Imperial Military and Imperial Intelligence in the Great Galactic War: command, ranks, ships, Watchers and Fixers |

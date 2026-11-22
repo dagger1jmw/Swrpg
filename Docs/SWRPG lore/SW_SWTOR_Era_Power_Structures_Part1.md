@@ -261,7 +261,8 @@ Each Sphere was also called the "Pyramid of …" and most also the "Ministry of 
 - **Key facts:**
   - **Service:**
     - Every non-Force-sensitive was conscripted on reaching adulthood and served until retirement or disability. A soldier typically served 25–30 years. [Imperial Military (Sith Empire) §Organization](https://starwars.fandom.com/wiki/Imperial_Military_%28Sith_Empire%29); [Imperial Military (Sith Empire) §Army](https://starwars.fandom.com/wiki/Imperial_Military_%28Sith_Empire%29)
-    - Children of military families had to earn their own place. [Imperial Military (Sith Empire) §Organization](https://starwars.fandom.com/wiki/Imperial_Military_%28Sith_Empire%29)
+    - Children of military families had to earn their own place.
+  - **Armour and identification (added (lore batch 18)):** [conflict] on armour colour, resolved per ruling 4: gray is the standard; the sourced variants are unit markings (black and white for commandos, green for grenadiers; black and red also attested); the Imperial Guard wear white with red. Officers carried code cylinders. [Imperial Military (Sith Empire) §Organization](https://starwars.fandom.com/wiki/Imperial_Military_%28Sith_Empire%29)
   - **Army ranks:** Private, Specialist, Corporal, Sergeant, Ensign, Lieutenant, Captain, Major, Colonel, General. Units ran from fire team to division (20,000–40,000). An "Assault Group" or "Operations Group" of over 40,000 served under a Moff or a high-ranking Sith Lord. [Imperial Military (Sith Empire) §Army](https://starwars.fandom.com/wiki/Imperial_Military_%28Sith_Empire%29)
   - **Navy ranks:** Private, Specialist, Corporal, Petty Officer, Ensign, Lieutenant, (Commander), Captain, Group Captain, Commodore, Admiral. [Imperial Military (Sith Empire) §Navy](https://starwars.fandom.com/wiki/Imperial_Military_%28Sith_Empire%29); [Sith Empire (Post–Great Hyperspace War) §Navy](https://starwars.fandom.com/wiki/Sith_Empire_%28Post%E2%80%93Great_Hyperspace_War%29)
   - **High command:**
@@ -274,8 +275,8 @@ Each Sphere was also called the "Pyramid of …" and most also the "Ministry of 
   - **Aliens:** after Malgus' attempted coup at Ilum in 3640 BBY, the Empire began admitting aliens to its forces to secure their loyalty, despite humanocentrist objections (Grand Moff Ilyan Regus). [Imperial Military (Sith Empire) §History](https://starwars.fandom.com/wiki/Imperial_Military_%28Sith_Empire%29)
 - **Related:** Ministry of War; Moffs (next entry)
 - **Uncertainty:**
-  - [conflict] Navy ranks: one list includes Commander [Imperial Military (Sith Empire) §Navy](https://starwars.fandom.com/wiki/Imperial_Military_%28Sith_Empire%29), the other does not [Sith Empire (Post–Great Hyperspace War) §Navy](https://starwars.fandom.com/wiki/Sith_Empire_%28Post%E2%80%93Great_Hyperspace_War%29).
-  - [conflict] Grand Moff as an "honorary title" [Moff/Legends §Origins](https://starwars.fandom.com/wiki/Moff/Legends); [Grand Moff/Legends §Galactic Republic](https://starwars.fandom.com/wiki/Grand_Moff/Legends) versus a rank with direct access to the Minister of War [Imperial Military (Sith Empire) §Organization](https://starwars.fandom.com/wiki/Imperial_Military_%28Sith_Empire%29).
+  - [conflict] Navy ranks: a third list on the Imperial Navy page runs Grand Admiral to Private, with sub-grades such as "Captain First-Class". Resolved (lore batch 18), ruling 2: use the Imperial Navy page's list (the longest), with its sub-grades. Earlier versions: one list includes Commander [Imperial Military (Sith Empire) §Navy](https://starwars.fandom.com/wiki/Imperial_Military_%28Sith_Empire%29), the other does not [Sith Empire (Post–Great Hyperspace War) §Navy](https://starwars.fandom.com/wiki/Sith_Empire_%28Post%E2%80%93Great_Hyperspace_War%29).
+  - [conflict] Grand Moff: Zellos held it as a real wartime rank (3671 BBY), against Kilran's post-war honorary title. Resolved (lore batch 18), ruling 3: a real wartime rank that could also be conferred as an honour; both uses stand. Earlier wording: Grand Moff as an "honorary title" [Moff/Legends §Origins](https://starwars.fandom.com/wiki/Moff/Legends); [Grand Moff/Legends §Galactic Republic](https://starwars.fandom.com/wiki/Grand_Moff/Legends) versus a rank with direct access to the Minister of War [Imperial Military (Sith Empire) §Organization](https://starwars.fandom.com/wiki/Imperial_Military_%28Sith_Empire%29).
 
 ### Moffs and provinces
 - **Type:** rank and territorial office
@@ -420,7 +421,7 @@ Each Sphere was also called the "Pyramid of …" and most also the "Ministry of 
 ## Not found
 - **"Planetary Security Council":** no Legends page or mention for the Republic in 3681–3600 BBY. Searches found only the Clone Wars-era Senate Security Council and planetary security forces, so this file does not describe one.
 - **How laws affecting the Jedi were made:** no page describes Senate procedure for legislation on the Jedi in this era. Only the Senate overruling the Council (3653 BBY) and executive actions under Saresh are attested.
-- **Named Imperial provinces and Moff assignments:** no list was found. The only named Moff in a Sith power base is Valion Pyron (Kallig).
+- **Named Imperial provinces and Moff assignments:** no list was found. The only named Moff in a Sith power base is Valion Pyron (Kallig). *Added (lore batch 18):* for the war window, Broysc (Moff) and Zellos (Grand Moff) are named (SW_Imperial_Military_Intelligence_GGW_Part1).
 - **Minister of War:** no dates for the term of Shareis or other holders.
 - **Republic Minister of Defense:** no holder named for 3681–3600 BBY.
 - **Galena Rans' election:** no exact year.

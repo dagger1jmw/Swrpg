@@ -281,7 +281,7 @@ The sources say:
 | early war (by 3670 BBY) | Balmorra raided; Visz orphaned on Nar Shaddaa | [Hylo Visz §Early life](https://starwars.fandom.com/wiki/Hylo_Visz); [Balmorra/Legends §Republic era](https://starwars.fandom.com/wiki/Balmorra/Legends) |
 | 3678–3668 BBY | Defenestrator's Great Hunt | [Great Hunt (Defenestrator)](https://starwars.fandom.com/wiki/Great_Hunt_%28Defenestrator%29) |
 | 3667 BBY | Imperial Diplomatic Service courts the underworld; Hutts still undecided | [Blockade of the Hydian Way §The Sith in reflection](https://starwars.fandom.com/wiki/Blockade_of_the_Hydian_Way) |
-| 3664 BBY [conflict] | Operation: Undertow | [Fixer Seven](https://starwars.fandom.com/wiki/Fixer_Seven); [Operation: Undertow](https://starwars.fandom.com/wiki/Operation:_Undertow) |
+| c. 3664 BBY [resolved (lore batch 18), ruling 6; Fixer Seven's page also calls him a Cold War Fixer] | Operation: Undertow | [Fixer Seven](https://starwars.fandom.com/wiki/Fixer_Seven); [Operation: Undertow](https://starwars.fandom.com/wiki/Operation:_Undertow) |
 | during the war [conflict] | Barrga's ion-drive deal; *Crimson Fleece* lost | [Hylo Visz §The debacle on Corellia](https://starwars.fandom.com/wiki/Hylo_Visz); [Hutt/Legends §The Old Republic](https://starwars.fandom.com/wiki/Hutt/Legends) |
 | during the war | Drayen destroys Mandellia; kills half the Cartel | [Nok Drayen §Rise to power](https://starwars.fandom.com/wiki/Nok_Drayen) |
 | 3660 BBY | Visz's band meets on Nar Shaddaa; Hutt-funded blockade run | [Hylo Visz §Breaking the blockade](https://starwars.fandom.com/wiki/Hylo_Visz); [Blockade of the Hydian Way §Smugglers take the lead](https://starwars.fandom.com/wiki/Blockade_of_the_Hydian_Way) |

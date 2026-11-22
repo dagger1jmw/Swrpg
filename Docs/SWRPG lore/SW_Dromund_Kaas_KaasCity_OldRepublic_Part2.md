@@ -311,7 +311,7 @@ Each was checked against Legends pages first.
 9. **Curfews and passes in the window:** none attested (only c. 3950 BBY emergency measures and the Cold War transit passes). Best fit: decide whether to extend the Cold War pass system back, as an invention.
 10. **Planet placement:** Dromund system vs Thurra system (Jedi vs. Sith). Best fit: Dromund system.
 11. **Elara Dorne's enlistment year:** 3648 BBY vs 3647 BBY. Post-window, minor; best fit 3648 BBY (her own page).
-12. **Ord Radama:** the brief lists it as a core Imperial world, but sources show a Republic-held world contested in 3660 BBY. Best fit: treat it as a front-line battlefield, not a home world.
+12. **Ord Radama:** the brief lists it as a core Imperial world, but sources show a Republic-held world contested in 3660 BBY. Best fit: treat it as a front-line battlefield, not a home world. [gray] The 3660 BBY date comes from the FFG adventure *Onslaught at Arda I*; [BTS] the *Book of Sith* author meant 3655 BBY. Resolved (lore batch 18), ruling 5: c. 3660 BBY, tagged [gray].
 13. **Vaiken Spacedock:** built in the Cold War, so not available in the window. Best fit: exclude it before 3653 BBY.
 
 ## Sources
