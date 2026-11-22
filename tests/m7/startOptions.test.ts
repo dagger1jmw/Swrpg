@@ -82,6 +82,13 @@ describe('start options (D-401 [2])', () => {
       expect(c('korriban-slave', 'twilek')).toEqual({ errors: [], role: null });
       expect(c('imperial-agent', 'human').role).toBeNull();
     });
+    it('near-Humans count as aliens; Imperial-born is Humans and Purebloods only; the acolyte start stays open (D-411 [6])', () => {
+      for (const sp of ['miraluka', 'rattataki']) expect(c('imperial-soldier', sp).errors.join(), sp).toMatch(/admit only Humans/);
+      expect(c('kaas-imperial-born', 'twilek').errors.join()).toMatch(/Humans and Sith Purebloods.*slave-born route/);
+      expect(c('kaas-imperial-born', 'human').errors).toEqual([]);
+      expect(c('kaas-imperial-born', 'sith_pureblood').errors).toEqual([]);
+      expect(c('korriban-acolyte', 'twilek').errors).toEqual([]);
+    });
     it('Purebloods keep their own rule; after Ilum (3,640) aliens are admitted', () => {
       expect(c('imperial-soldier', 'sith_pureblood').errors).toEqual([]);
       expect(c('imperial-soldier', 'twilek', 3639).errors).toEqual([]);
@@ -176,7 +183,10 @@ describe('species rulings (D-401 [12], [13])', () => {
     expect(['nadia-grell', 'darth-karrid', 'khem-val', 'xalek', 'tanno-vik', 'yuun', 'fideltin-rusk', 'ula-vii', 'broonmark', 'gault-rennow'].map(sp)).toEqual(['sarkhai', 'falleen', 'dashade', 'kaleesh', 'weequay', 'gand', 'chagrian', 'epicanthix', 'talz', 'devaronian']);
   });
   it('the SWTOR protagonists are out of 3,681-3,653 (D-401 [6]); Theron stays', () => {
-    for (const id of ['emperor-wrath', 'darth-nox', 'cipher-nine', 'the-grand-champion', 'voidhound', 'meteor']) expect(canonOffBoard(CANON_BY_ID.get(`lore:${id}`)!, 3661), id).toBe('unavailable');
+    for (const id of ['emperor-wrath', 'darth-nox', 'cipher-nine', 'the-grand-champion', 'voidhound', 'meteor']) {
+      expect(canonOffBoard(CANON_BY_ID.get(`lore:${id}`)!, 3661), id).toBe('unavailable');
+      expect(canonOffBoard(CANON_BY_ID.get(`lore:${id}`)!, 3653), id).toBe('unavailable'); // through 3,653 (D-411 [4])
+    }
     expect(canonOffBoard(CANON_BY_ID.get('lore:theron-shan')!, 3661)).toBeNull();
   });
 });

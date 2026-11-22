@@ -54,7 +54,7 @@ export const START_SHIPS: Readonly<Record<string, string>> = { 'underworld-smugg
 /**
  * The Hydian Way blockade (D-402 [3], [16]; narrowed in D-406). "Between Devaron and the Minos Cluster" is read as the
  * grid strip from Devaron's square (M-13) south to the Minos Cluster (M-20): columns L-N, rows 14-21 (an invented
- * reading of a stretch of space). In 3,661-3,660, for anyone but Mandalorians and Imperials:
+ * reading of a stretch of space). In 3,661 (open from the start of 3,660, as the control table has it; D-411 [2]), for anyone but Mandalorians and Imperials:
  * - refused: a routine trip with an end on the Hydian Way inside the strip, or a trip along the Hydian Way through it
  *   (both ends Hydian Way worlds, with the strip's rows between them);
  * - other worlds in the strip are reachable, with the hop time × `detourFactor` (invented) for the detour.
@@ -62,7 +62,7 @@ export const START_SHIPS: Readonly<Record<string, string>> = { 'underworld-smugg
  */
 export const BLOCKADE = {
   fromBby: 3661,
-  toBby: 3660,
+  toBby: 3661,
   route: 'Hydian Way',
   columns: ['L', 'M', 'N'],
   rowFrom: 14,

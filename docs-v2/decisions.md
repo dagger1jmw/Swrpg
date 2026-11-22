@@ -1370,3 +1370,13 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - **Fixed, found by the profile:** M1-4X's estimated build year was 3,668, so he was on the board in 3,662 and 3,660 around the snapshot's "not built" in 3,661. The lore says built "before 3,643" and not built in 3,661 or 3,653. The estimate is now 3,645. A test now catches any figure that flickers around the snapshot.
 
 - **D-410 M7 start checklist wrapped up (overnight run item 5).** m7-start-checklist.md now has a status section. Every start item is built and tested except 23, the browser smoke test (Jared's). Items 27 (the timeline audit) and 28 (the era profile) were added, and stale text was updated (map counts after D-405, the narrowed blockade). The rest of M7 per architecture §15 is listed there, not started: the ranks-and-milestones core, the Order schedule, masters, the Council path, forbidden powers, teaching, Sith Force growth, and the design candidates.
+
+- **D-411 Rulings on the overnight questions (Jared, 2026-11-22; docs-v2/reports/m7-overnight.md questions 1-8).**
+  - *[1] Blockade defaults (D-406):* all three kept: a through trip has both ends on the Hydian Way; everyone gets the zone line, and only those who don't pass take the detour; the detour multiplies the hop, before climb-out.
+  - *[2] The blockade ends with 3,661:* the control table rules. Travel refuses and detours in 3,661 only and is open from the start of 3,660 (BLOCKADE.toBby 3,661). M8's break event (item 4) takes over later. The Coruscant shortage era rule (D-380 [11], 3,661-3,660) is left as it is: shortages outlast the blockade.
+  - *[3] Grand Master in 3,652:* vacant, with a leader line "vacant: the Jedi Council leads the Order". No acting head.
+  - *[4] SWTOR protagonists:* their unavailable spans run through 3,653, so none of the eight is on the board before 3,652.
+  - *[5] Cold War end years:* a span ends at its last recorded year and is blank after it; the inferred hold to 3,637 is dropped. Coruscant (Republic) to 3,632 (Saresh's term ends there); Alderaan (independent) to 3,638 (the civil war's rakghoul outbreak); Taris (Empire) and Balmorra (Republic) 3,642 only; Voss to c. 3,640; Corellia 3,640 only; Malcom 3,640 only. None is tagged `inferred` now.
+  - *[6] Alien starts:* near-Humans (Miraluka, Rattataki, Echani) count as aliens for the regular Imperial military; only Humans and Purebloods are exempt, plus the Chiss liaison route. The Korriban acolyte start stays open to aliens (batch 12: alien acolytes, with prejudice). The Imperial-born start takes Humans and Purebloods only (new rule `slaveBornRoute`): an alien uses the slave-born route.
+  - *[7] M1-4X:* built 3,645, tagged estimate (as D-409).
+  - *[8] Cold War era rules:* M8 (item 9).

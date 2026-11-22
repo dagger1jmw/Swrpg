@@ -38,16 +38,16 @@ describe('the trip time (D-405; all numbers invented)', () => {
     expect(planTrip({ from: CORUSCANT, to: ALDERAAN, bby: 3661, faction: 'republic', shipClass: 1, offLane: true })).toMatchObject({ hours: 21 }); // 4 x 4 + 3 + 2
     expect(planTrip({ from: CORUSCANT, to: { name: 'Maelstrom Nebula', region: 'Outer Rim Territories', grid: 'S-5' }, bby: 3661, faction: 'sithEmpire', shipClass: 1 })).toMatchObject({ hours: 74 });
   });
-  it('the blockade (D-406): the Hydian Way in the strip is closed in 3,661-3,660 for all but Mandalorians and Imperials', () => {
+  it('the blockade (D-406): the Hydian Way in the strip is closed in 3,661 (open from 3,660, D-411 [2]) for all but Mandalorians and Imperials', () => {
     const eriadu = { name: 'Eriadu', region: 'Outer Rim Territories', grid: 'M-18', onBlockadeRoute: true };
     expect(planTrip({ from: CORUSCANT, to: eriadu, bby: 3661, faction: 'republic', shipClass: 2 })).toMatchObject({ ok: false, reason: expect.stringMatching(/Eriadu is on it/) });
     expect(planTrip({ from: CORUSCANT, to: eriadu, bby: 3661, faction: 'mandalorians', shipClass: 2 }).ok).toBe(true);
     expect(planTrip({ from: CORUSCANT, to: eriadu, bby: 3661, faction: 'sithEmpire', shipClass: 2 }).ok).toBe(true);
-    expect(planTrip({ from: CORUSCANT, to: eriadu, bby: 3659, faction: 'republic', shipClass: 2 }).ok).toBe(true);
+    expect(planTrip({ from: CORUSCANT, to: eriadu, bby: 3660, faction: 'republic', shipClass: 2 }).ok).toBe(true); // open from 3,660 (D-411 [2])
     // Along the Hydian Way through the strip: Denon (N-13) to Imynusoph (J-21), both outside it.
     const denon = { name: 'Denon', region: 'Inner Rim', grid: 'N-13', onBlockadeRoute: true };
     const imynusoph = { name: 'Imynusoph', region: 'Outer Rim Territories', grid: 'J-21', onBlockadeRoute: true };
-    expect(planTrip({ from: denon, to: imynusoph, bby: 3660, faction: 'republic', shipClass: 2 }).ok).toBe(false);
+    expect(planTrip({ from: denon, to: imynusoph, bby: 3661, faction: 'republic', shipClass: 2 }).ok).toBe(false);
     // Two Hydian Way worlds north of the strip are not affected.
     const brentaal = { name: 'Brentaal IV', region: 'Core Worlds', grid: 'L-9', onBlockadeRoute: true };
     expect(planTrip({ from: brentaal, to: denon, bby: 3661, faction: 'republic', shipClass: 1 }).ok).toBe(true);
@@ -58,8 +58,8 @@ describe('the trip time (D-405; all numbers invented)', () => {
     expect(planTrip({ from: CORUSCANT, to: sullust, bby: 3661, faction: 'republic', shipClass: 2 })).toMatchObject({ ok: true, hours: 218, notes: ['blockade zone: patrols, shortages, scarce passage'] });
     // Mandalorians and Imperials skip the detour but still see the zone.
     expect(planTrip({ from: CORUSCANT, to: sullust, bby: 3661, faction: 'mandalorians', shipClass: 2 })).toMatchObject({ ok: true, hours: 146, notes: ['blockade zone: patrols, shortages, scarce passage'] });
-    // After 3,660: no detour, no note.
-    expect(planTrip({ from: CORUSCANT, to: sullust, bby: 3659, faction: 'republic', shipClass: 2 })).toMatchObject({ ok: true, hours: 146, notes: [] });
+    // From 3,660: no detour, no note.
+    expect(planTrip({ from: CORUSCANT, to: sullust, bby: 3660, faction: 'republic', shipClass: 2 })).toMatchObject({ ok: true, hours: 146, notes: [] });
   });
   it('the Hydian Way worlds come from the map\'s route data', () => {
     const on = worldsOnRoute('Hydian Way');

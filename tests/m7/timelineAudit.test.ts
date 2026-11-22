@@ -36,10 +36,11 @@ describe('timeline audit 3,661-3,640 (D-408)', () => {
       }
     }
   });
-  it('a Chancellor, a Supreme Commander, an Emperor (or the Dark Council) and a Mandalore every year; the Grand Master only vacant in 3,652', () => {
+  it('a Chancellor, a Supreme Commander, an Emperor (or the Dark Council) and a Mandalore every year; and the Grand Master vacancy of 3,652 on record (D-411 [3])', () => {
     const offices = [...new Set(FACTION_LEADERS.map((l) => l.office))];
     const gaps = YEARS.flatMap((bby) => offices.filter((o) => !leadersAt(bby).some((l) => l.office === o)).map((o) => `${o} ${bby}`));
-    expect(gaps).toEqual(['Grand Master of the Jedi Order 3652']);
+    expect(gaps).toEqual([]);
+    expect(leadersAt(3652).find((l) => l.office === 'Grand Master of the Jedi Order')?.holder).toMatch(/vacant: the Jedi Council leads/);
     expect(leadersAt(3649).find((l) => l.office === 'Supreme Chancellor')?.holder).toBe('Dorian Janarus');
   });
   it('no figure flickers around the 3,661 snapshot (on the board in 3,662 or 3,660 but off in 3,661 without being born or dying)', () => {
@@ -54,6 +55,13 @@ describe('timeline audit 3,661-3,640 (D-408)', () => {
   });
   it('Coruscant has a controller every year', () => {
     for (const bby of YEARS) expect(controlAt(['Coruscant'], bby).length, String(bby)).toBeGreaterThan(0);
+  });
+  it('Cold War spans end at their last recorded year, with nothing inferred after it (D-411 [5])', () => {
+    expect(controlAt(['Taris'], 3641)).toEqual([]);
+    expect(controlAt(['Balmorra'], 3641)).toEqual([]);
+    expect(controlAt(['Corellia'], 3639)).toEqual([]);
+    expect(leadersAt(3639).some((l) => l.holder === 'Jace Malcom')).toBe(false);
+    expect(WORLD_CONTROL.filter((c) => c.fromBby <= 3653 && c.inferred)).toEqual([]);
   });
   it('placed figures are on the board (or in prison) for every year they are placed', () => {
     for (const bby of YEARS) {

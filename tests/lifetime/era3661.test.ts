@@ -232,7 +232,7 @@ describe('the 3,661 era Jedi (20 seeds, 3,661 to 3,649)', () => {
     expect(y[3661]!.leaders).toMatch(/Mandalore: Mandalore the Lesser/);
     expect(y[3659]!.leaders).not.toMatch(/the Lesser/);
     expect(y[3653]!.leaders).toMatch(/Grand Master of the Jedi Order: Zym/);
-    expect(y[3652]!.leaders).not.toMatch(/Grand Master/);
+    expect(y[3652]!.leaders).toMatch(/Grand Master of the Jedi Order: vacant: the Jedi Council leads/); // D-411 [3]
     expect(y[3651]!.leaders).toMatch(/Grand Master of the Jedi Order: Satele Shan/);
     expect(y[3652]!.leaders).toMatch(/Supreme Chancellor: Dorian Janarus/);
   });

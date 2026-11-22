@@ -30,10 +30,12 @@ export type PurebloodRule = 'allowed' | 'imperialBornOnly' | 'refused';
  * - 'allowed': any species (and no role note);
  * - 'refused': the regular forces (Humans only);
  * - 'chissLiaison': a Chiss only, as a liaison from the Ascendancy (naval starts);
- * - 'chissOrInformer': a Chiss as an agent, any other alien as an informer or asset outside the formal ranks (Intelligence).
+ * - 'chissOrInformer': a Chiss as an agent, any other alien as an informer or asset outside the formal ranks (Intelligence);
+ * - 'slaveBornRoute': Humans and Purebloods only; an alien Force-sensitive takes the slave-born route (Imperial-born; D-411 [6]).
+ * Near-Humans (Miraluka, Rattataki, Echani) count as aliens: only `human` and `sith_pureblood` are exempt (D-411 [6]).
  * Sith Purebloods follow their own rule (`pureblood`), not this one. Absent = 'allowed'.
  */
-export type AlienRule = 'allowed' | 'refused' | 'chissLiaison' | 'chissOrInformer';
+export type AlienRule = 'allowed' | 'refused' | 'chissLiaison' | 'chissOrInformer' | 'slaveBornRoute';
 /** Aliens are admitted to the Imperial forces after the Battle of Ilum (3,640; D-388 [10]); the rule applies before it. */
 export const ALIEN_ADMISSION_BBY = 3640;
 
@@ -127,6 +129,7 @@ export const START_OPTIONS: readonly StartOption[] = [
     threads: [{ title: 'Sent to Korriban', stakes: 'A Force-sensitive child of the Empire is bound for the Academy; the family\'s standing rides on what follows.', source: 'SW_Dromund_Kaas_KaasCity_OldRepublic_Part2, Game notes; D-366' }],
     premise: 'An Imperial-born Force-sensitive in Kaas City in 3,661 BBY, raised by private instructors, about to leave for Korriban.',
     pureblood: 'allowed',
+    alien: 'slaveBornRoute',
     source: 'architecture §15 "M7 Imperial-born and slave-born starts"; D-366 to D-368',
   },
   {
@@ -380,6 +383,7 @@ export function checkStart(o: StartOption, c: StartCheck): string[] {
   }
   if (alienApplies(o, c)) {
     if (o.alien === 'refused') errors.push(`The start "${o.title}" is the Empire's regular forces, which admit only Humans in 3,661 BBY (aliens are admitted after Ilum, 3,640). As a non-Human, ${ALIEN_ROUTES} (D-388 [10]).`);
+    else if (o.alien === 'slaveBornRoute') errors.push(`The start "${o.title}" is for Humans and Sith Purebloods. An alien Force-sensitive in the Empire takes the slave-born route to Korriban (D-388 [10], D-411 [6]).`);
     else if (o.alien === 'chissLiaison' && c.speciesId !== 'chiss') errors.push(`The start "${o.title}" is the Imperial Navy, which takes no aliens in 3,661 BBY except Chiss liaisons from the Ascendancy. As a non-Human, ${ALIEN_ROUTES} (D-388 [10]).`);
   }
   return errors;

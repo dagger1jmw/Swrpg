@@ -4,7 +4,7 @@
 // inclusive, as in the canon rosters. A place the lore leaves unstated is not listed (D-399 [18]: leave it blank, never
 // invent it); `inferred` marks a reading the sources only imply. Covers 3,681-3,653 BBY (the war), and the Cold War's
 // recorded changes to 3,640 from the timeline slice Part 2 (D-408); other eras get their own entries when their lore is
-// in (D-155). An end year not on record is marked `inferred` and held to 3,637, before the Eternal Empire's arrival.
+// in (D-155). A span ends at its last recorded year and is blank after it (D-411 [5]: never held to an inferred end).
 
 export type ControlSide =
   | 'republic'
@@ -65,14 +65,14 @@ export const WORLD_CONTROL: readonly ControlSpan[] = [
   { place: 'Tython', fromBby: 3681, toBby: 3652, side: 'unknown to the galaxy', note: 'the lost Jedi homeworld, rediscovered by Satele Shan in 3,651', source: `${S2} (3,651, 3,650); D-283 amended` },
   { place: 'Belkadan', aliases: ['Ruuria', 'Sernpidal', 'Dalonbian sector'], fromBby: 3681, toBby: 3681, side: 'sithEmpire', note: 'secretly Imperial-controlled puppet worlds from before the war', source: `${S1} (before 3,681)` },
   // The Cold War and the Galactic War's opening, from the timeline slice Part 2 (D-408 [2]).
-  { place: 'Coruscant', fromBby: 3652, toBby: 3637, side: 'republic', note: 'the Republic capital, returned under the Treaty of Coruscant; the Jedi Temple lies in ruins, and in 3,650 the Senate puts off rebuilding it', inferred: true, source: `${S1} (3,653); ${S2} (3,650); D-408 [2]` },
-  { place: 'Alderaan', fromBby: 3652, toBby: 3637, side: 'independent', note: 'seceded from the Republic after the Treaty, when Senator Gaul Panteer walked out; the Alderaan Civil War follows (still going in 3,641)', inferred: true, source: `${S2} (after 3,653, 3,641); D-408 [2]` },
+  { place: 'Coruscant', fromBby: 3652, toBby: 3632, side: 'republic', note: 'the Republic capital, returned under the Treaty of Coruscant; the Jedi Temple lies in ruins, and in 3,650 the Senate puts off rebuilding it', source: `${S1} (3,653); ${S2} (3,650, 3,643, 3,641, 3,632); D-408 [2], D-411 [5]` },
+  { place: 'Alderaan', fromBby: 3652, toBby: 3638, side: 'independent', note: 'seceded from the Republic after the Treaty, when Senator Gaul Panteer walked out; the Alderaan Civil War follows (still going in 3,641 and 3,638)', source: `${S2} (after 3,653, 3,641, 3,638); D-408 [2], D-411 [5]` },
   { place: 'Tython', fromBby: 3651, toBby: 3638, side: 'republic', note: 'the Jedi homeworld, rediscovered by Satele Shan in 3,651; the Order moves there in 3,650 and finishes its Temple in 3,647', source: `${S2} (3,651, 3,650, 3,647, 3,637); D-408 [2]` },
   { place: 'Taris', fromBby: 3648, toBby: 3643, side: 'republic', note: 'the Republic\'s Taris Resettlement Initiative', source: `${S2} (3,648); D-408 [2]` },
-  { place: 'Taris', fromBby: 3642, toBby: 3637, side: 'sithEmpire', note: 'invaded and occupied by the Empire, halting the resettlement', inferred: true, source: `${S2} (3,642); D-408 [2]` },
-  { place: 'Voss', fromBby: 3645, toBby: 3637, side: 'independent', note: 'rediscovered c. 3,645; the Voss stay independent, and from c. 3,640 both powers court them', inferred: true, source: `SW_Species_OldRepublic_Part2 (Voss); D-399 [15]; ${S2} (c. 3,640); D-408 [2]` },
-  { place: 'Balmorra', fromBby: 3642, toBby: 3637, side: 'republic', note: 'freed from Imperial control by the Republic and the Balmorran resistance', inferred: true, source: `${S2} (3,642); D-408 [2]` },
-  { place: 'Corellia', fromBby: 3640, toBby: 3637, side: 'contested', note: 'invaded by Darth Decimus in the Battle of Corellia', inferred: true, source: `${S2} (3,640); D-408 [2]` },
+  { place: 'Taris', fromBby: 3642, toBby: 3642, side: 'sithEmpire', note: 'invaded and occupied by the Empire, halting the resettlement', source: `${S2} (3,642); D-408 [2], D-411 [5]` },
+  { place: 'Voss', fromBby: 3645, toBby: 3640, side: 'independent', note: 'rediscovered c. 3,645; the Voss stay independent, and from c. 3,640 both powers court them', source: `SW_Species_OldRepublic_Part2 (Voss); D-399 [15]; ${S2} (c. 3,640); D-408 [2], D-411 [5]` },
+  { place: 'Balmorra', fromBby: 3642, toBby: 3642, side: 'republic', note: 'freed from Imperial control by the Republic and the Balmorran resistance', source: `${S2} (3,642); D-408 [2], D-411 [5]` },
+  { place: 'Corellia', fromBby: 3640, toBby: 3640, side: 'contested', note: 'invaded by Darth Decimus in the Battle of Corellia', source: `${S2} (3,640); D-408 [2], D-411 [5]` },
   { place: 'Ilum', fromBby: 3640, toBby: 3636, side: 'contested', note: 'contested for the rest of the Galactic War after the Battle of Ilum', source: `${S2} (3,640); D-408 [2]` },
 ];
 
@@ -94,8 +94,9 @@ export const FACTION_LEADERS: readonly LeaderSpan[] = [
   { office: 'Supreme Chancellor', holder: 'Dorian Janarus', fromBby: 3653, toBby: 3640, source: 'Timeline slice Part 2 (elected shortly after the Treaty in 3,653; re-elected 3,649 and 3,645; killed 3,640); D-408 [3]' },
   { office: 'Supreme Chancellor', holder: 'Leontyne Saresh', fromBby: 3640, toBby: 3632, source: 'Timeline slice Part 2 (3,640, 3,632); D-408 [3]' },
   { office: 'Supreme Commander of the Republic military', holder: 'Rans', fromBby: 3681, toBby: 3640, inferred: true, source: 'D-360 [3]; D-386 [1]; SW_Characters_09_GGW_ColdWar_Part3a (Rans: Supreme Commander in the Great War and the Cold War; retired after Ilum); D-408 [3]' },
-  { office: 'Supreme Commander of the Republic military', holder: 'Jace Malcom', fromBby: 3640, toBby: 3636, inferred: true, source: 'Timeline slice Part 2 (3,640); the end year is not on record; D-408 [3]' },
+  { office: 'Supreme Commander of the Republic military', holder: 'Jace Malcom', fromBby: 3640, toBby: 3640, source: 'Timeline slice Part 2 (3,640); later years are not on record (D-411 [5]); D-408 [3]' },
   { office: 'Grand Master of the Jedi Order', holder: 'Zym', fromBby: 3661, toBby: 3653, inferred: true, source: 'D-379; D-390 [1]' },
+  { office: 'Grand Master of the Jedi Order', holder: 'vacant: the Jedi Council leads the Order', fromBby: 3652, toBby: 3652, source: 'Zym dies in 3,653 and Satele Shan is made Grand Master in 3,651; no acting head is on record (D-411 [3])' },
   { office: 'Grand Master of the Jedi Order', holder: 'Satele Shan', fromBby: 3651, toBby: 3636, source: 'D-283 amended' },
   { office: 'Mandalore', holder: 'Mandalore the Lesser (backed by Imperial Intelligence)', fromBby: 3667, toBby: 3660, source: `${S1} (3,667, 3,660); D-382 [1], [4]` },
   { office: 'Mandalore', holder: 'Mandalore the Vindicated (Artus Lok)', fromBby: 3660, toBby: 3636, source: `${S1} (3,660); ${S2} (3,636–3,630)` },
