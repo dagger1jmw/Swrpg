@@ -74,6 +74,67 @@ describe('lore parsing', () => {
   });
 });
 
+describe('research-bot character files (lore batch 19, D-392)', () => {
+  const bot = `# Era 99 Characters: A Test War (c. 3681–3636 BBY), Part 1: Jedi
+
+Legends lore reference. [A source](https://example.org/x)
+
+## Entries
+
+### A. A group heading (not a person)
+
+### Ana Vel (the Bright; born Ana Velis)
+- **Type:** character (Jedi Master)
+- **Era:** 3700 BBY – 3640 BBY
+- **Key facts:**
+  - ID: female Human [Ana Vel §Life](https://starwars.fandom.com/wiki/Ana_Vel).
+  - Life: born 3700 BBY. Game stats: none.
+- **Related:** Bo Tarn.
+
+### Minor Jedi
+| Name | Species / sex | Born / died (infobox) | Role and dates | 3661 BBY / 3653 BBY | Source |
+|---|---|---|---|---|---|
+| [Bo Tarn](https://starwars.fandom.com/wiki/Bo_Tarn) | male Zabrak | — | Knight at Alderaan [x](https://e.org) | active / dead | [p](https://e.org) |
+
+### Old estimates
+| Character | Old estimate (summary) | Verdict | Basis |
+|---|---|---|---|
+| Ana Vel | strong | kept | — |
+`;
+  const index = `# Era 99 Characters: A Test War (c. 3681–3636 BBY), Index
+
+### Master index
+| Name | Group | Born | Died | Status in 3661 BBY | File › section |
+|---|---|---|---|---|---|
+| Ana Vel | Jedi | 3700 BBY | 3640 BBY | Master | Part1 › Ana Vel |
+`;
+  const built = buildLoreIndex([
+    { name: 'SW_Characters_99_TestWar_Part1.md', content: bot },
+    { name: 'SW_Characters_99_TestWar_Index.md', content: index },
+  ]);
+
+  it('gives each part its own file key', () => {
+    expect(fileKey('SW_Characters_09_GGW_ColdWar_Part3a.md')).toBe('c09p3a');
+    expect(fileKey('SW_Characters_09_GGW_ColdWar_Index.md')).toBe('c09i');
+    expect(fileKey('SW_Characters_08_DarkWars_SithTriumvirate.md')).toBe('c08');
+    expect(fileKey('OLD_SW_Characters_09_GreatGalacticWar_ColdWar.md')).toBeNull();
+  });
+  it('reads ### entries with a Type bullet as characters, with the era from the title and the citations stripped', () => {
+    const ana = built.chunks.find((c) => c.canonId === 'lore:ana-vel')!;
+    expect(ana.kind).toBe('character');
+    expect([ana.fromYear, ana.toYear]).toEqual([-3681, -3636]);
+    expect(ana.text).toContain('ID: female Human.');
+    expect(ana.text).not.toMatch(/https?:|Game stats|Related|Type:/);
+    expect(ana.names).toEqual(expect.arrayContaining(['ana vel', 'bright', 'ana velis']));
+  });
+  it('reads minor-figure tables by their headers, and skips group headings, master indexes and verdict tables', () => {
+    const bo = built.chunks.find((c) => c.canonId === 'lore:bo-tarn')!;
+    expect(bo.kind).toBe('bench');
+    expect(bo.text).toBe('Bo Tarn (male Zabrak): Knight at Alderaan. In 3661 BBY / 3653 BBY: active / dead.');
+    expect(built.chunks.map((c) => c.title).sort()).toEqual(['Ana Vel', 'Bo Tarn']);
+  });
+});
+
 describe('lore retrieval', () => {
   const base = { canonIds: [], names: [], locationNames: [] };
 
