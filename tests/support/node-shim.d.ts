@@ -12,4 +12,4 @@ declare module 'node:os' {
 declare module 'node:path' {
   export function join(...parts: string[]): string;
 }
-declare const process: { cwd(): string; env: Record<string, string | undefined> };
+declare const process: { cwd(): string; pid: number; env: Record<string, string | undefined> };

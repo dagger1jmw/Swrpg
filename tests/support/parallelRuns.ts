@@ -2,6 +2,12 @@
 // that Vitest runs one per CPU core; each job writes its result to a file, and the suite's global teardown prints them
 // merged in job order, so the output does not depend on which worker finished first. No game behaviour changes: each
 // job runs exactly what the old sequential loop ran for that seed.
+//
+// Each run has its own results folder, node_modules/.cache/swrpg-runs/<suite>/<runId>, with a run.json saying what
+// produced it (the environment settings). The global setup starts the run and hands the folder to the shard workers
+// through an environment variable; the teardown reads only that folder. Two runs of the same suite at once therefore
+// never mix their lives (they only slow each other down: the machine is saturated at 8 workers). The last KEEP_RUNS
+// run folders per suite are kept; older ones are deleted when a run starts.
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { join } from 'node:path';
@@ -13,6 +19,12 @@ import { join } from 'node:path';
  */
 export const SHARDS = 8;
 
+/** Run folders kept per suite (the new run included). */
+export const KEEP_RUNS = 5;
+
+/** Environment settings that change what a run measures; recorded in run.json. */
+export const RUN_ENV_KEYS = ['CANDIDATE', 'FORCE_XP', 'PRECOG_M6', 'D158_N', 'D158_PATTERNS', 'TRACE_YEARS', 'TRACE_SEED', 'TRACE_PLAIN'] as const;
+
 export interface Job<R> {
   /** Stable order of the merged output (configuration, then seed). */
   order: number;
@@ -21,7 +33,67 @@ export interface Job<R> {
   run: () => R;
 }
 
-export const resultsDir = (suite: string): string => join(process.cwd(), 'node_modules', '.cache', 'swrpg-runs', suite);
+export interface RunInfo {
+  suite: string;
+  runId: string;
+  startedAt: string;
+  pid: number;
+  env: Partial<Record<(typeof RUN_ENV_KEYS)[number], string>>;
+}
+
+export const runsRoot = (): string => join(process.cwd(), 'node_modules', '.cache', 'swrpg-runs');
+
+/** The environment variable that carries a suite's current run folder from the global setup to the shard workers. */
+export const runDirEnv = (suite: string): string => `SWRPG_RUN_DIR_${suite.toUpperCase().replace(/[^A-Z0-9]/g, '_')}`;
+
+let lastStamp = '';
+let sameStamp = 0;
+/** Sorts in start order: UTC timestamp to the millisecond, a counter within the millisecond, the pid, a random tag. */
+function newRunId(): string {
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').replace('.', '-').replace('Z', '');
+  sameStamp = stamp === lastStamp ? sameStamp + 1 : 0;
+  lastStamp = stamp;
+  return `${stamp}-${String(sameStamp).padStart(2, '0')}-p${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/** Deletes a suite's oldest run folders so that `keep` remain. */
+export function pruneRuns(suite: string, keep: number, root = runsRoot()): void {
+  const dir = join(root, suite);
+  let names: string[];
+  try {
+    names = readdirSync(dir).sort();
+  } catch {
+    return;
+  }
+  // Loose files from before per-run folders (<order>.json) go too.
+  for (const n of names) if (n.endsWith('.json')) rmSync(join(dir, n), { force: true });
+  const runs = names.filter((n) => !n.endsWith('.json'));
+  for (const n of runs.slice(0, Math.max(0, runs.length - keep))) rmSync(join(dir, n), { recursive: true, force: true });
+}
+
+/**
+ * Starts a run (global setup): prunes old run folders, creates this run's folder with its run.json, and sets the
+ * environment variable the shard workers read. Returns the folder.
+ */
+export function startRun(suite: string, root = runsRoot()): string {
+  pruneRuns(suite, KEEP_RUNS - 1, root);
+  const runId = newRunId();
+  const dir = join(root, suite, runId);
+  mkdirSync(dir, { recursive: true });
+  const env: RunInfo['env'] = {};
+  for (const k of RUN_ENV_KEYS) if (process.env[k] !== undefined) env[k] = process.env[k];
+  const info: RunInfo = { suite, runId, startedAt: new Date().toISOString(), pid: process.pid, env };
+  writeFileSync(join(dir, 'run.json'), JSON.stringify(info, null, 2));
+  process.env[runDirEnv(suite)] = dir;
+  return dir;
+}
+
+/** The current run's folder (shard workers); fails rather than write where another run might read. */
+export function currentRunDir(suite: string): string {
+  const dir = process.env[runDirEnv(suite)];
+  if (!dir) throw new Error(`no run folder for suite '${suite}': ${runDirEnv(suite)} is unset (startRun runs in the global setup)`);
+  return dir;
+}
 
 /** The jobs of one shard: longest first, each to the least-loaded shard (deterministic). */
 export function jobsOfShard<R>(jobs: readonly Job<R>[], shard: number, shards = SHARDS): Job<R>[] {
@@ -37,30 +109,27 @@ export function jobsOfShard<R>(jobs: readonly Job<R>[], shard: number, shards = 
   return mine.sort((a, b) => a.order - b.order);
 }
 
-/** Runs a shard's jobs and writes each result as `<order>.json` in the suite's results folder. */
-export function runShard<R>(suite: string, jobs: readonly Job<R>[], shard: number): number {
-  const dir = resultsDir(suite);
-  mkdirSync(dir, { recursive: true });
+/** Runs a shard's jobs and writes each result as `<order>.json` in the run's folder. */
+export function runShard<R>(suite: string, jobs: readonly Job<R>[], shard: number, dir = currentRunDir(suite)): number {
   const mine = jobsOfShard(jobs, shard);
   for (const j of mine) writeFileSync(join(dir, `${String(j.order).padStart(6, '0')}.json`), JSON.stringify(j.run()));
   return mine.length;
 }
 
-/** Clears a suite's results (global setup). */
-export function clearResults(suite: string): void {
-  rmSync(resultsDir(suite), { recursive: true, force: true });
-}
-
-/** All results of a suite in job order (global teardown). */
-export function readResults<R>(suite: string): R[] {
-  const dir = resultsDir(suite);
+/** All results of one run in job order (global teardown). */
+export function readResults<R>(dir: string): R[] {
   let files: string[];
   try {
-    files = readdirSync(dir).filter((f) => f.endsWith('.json')).sort();
+    files = readdirSync(dir).filter((f) => /^\d+\.json$/.test(f)).sort();
   } catch {
     return [];
   }
   return files.map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')) as R);
+}
+
+/** What produced a run folder. */
+export function readRunInfo(dir: string): RunInfo {
+  return JSON.parse(readFileSync(join(dir, 'run.json'), 'utf8')) as RunInfo;
 }
 
 export const cores = (): number => availableParallelism();

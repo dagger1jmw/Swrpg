@@ -40,7 +40,8 @@
 **A discarded first attempt (about 2.1 h of wall time).** The two caps were first run at the same time, and the results had to be thrown away:
 - The parallel harness writes each job's result to one shared folder per suite (`node_modules/.cache/swrpg-runs/<suite>`, `tests/support/parallelRuns.ts`).
 - Two runs of the same suite at the same time therefore overwrite each other's results. The cap 115 mortals output held 44 lives labelled cap 120.
-- **Rule:** never run two copies of the same suite at the same time.
+- **Fixed after this trial (Jared's ruling on b7f3e1f):** each run now writes to its own folder, `node_modules/.cache/swrpg-runs/<suite>/<runId>`, with a `run.json` that records the environment settings (`FORCE_XP`, `CANDIDATE` and so on). The reporter reads only its own run, so overlapping runs no longer mix results. The last 5 run folders per suite are kept.
+- **Advice:** still don't run two copies of the same suite at once. The machine is saturated at 8 workers, so two runs take as long as running them one after the other.
 
 ## Other rulings
 

@@ -1,15 +1,19 @@
-// Global setup for npm run spread (parallel shards): clears the results, then prints them merged in profile and seed
+// Global setup for npm run spread (parallel shards): starts its own results folder, then prints them merged in profile and seed
 // order (anakin, average, luke, obiwan; the profile seed, then -s1 ... -s19), one "[spread] {json}" line per seed.
-import { clearResults, readResults } from '../support/parallelRuns';
+import { readResults, readRunInfo, startRun } from '../support/parallelRuns';
+
+/** This run's results folder (its own; see parallelRuns.ts). */
+let runDir = '';
 import { Y_AVG_MEDIAN_BAND, yAvgMedianGate } from './spread';
 
 export function setup(): void {
-  clearResults('spread');
+  runDir = startRun('spread');
   (globalThis as { __t0?: number }).__t0 = Date.now();
 }
 
 export function teardown(): void {
-  const rows = readResults<Record<string, unknown>>('spread');
+  const rows = readResults<Record<string, unknown>>(runDir);
+  console.info(`[spread-run] ${JSON.stringify(readRunInfo(runDir))}`);
   for (const r of rows) console.info(`[spread] ${JSON.stringify(r)}`);
   // The Y_avg calibration gate on the 20-seed median (D-159 amended): a FAIL fails the run.
   const g = yAvgMedianGate(rows as unknown as { profile: string; values: Record<string, number> }[]);

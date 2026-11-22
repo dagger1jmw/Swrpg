@@ -1,6 +1,9 @@
-// Global setup for npm run mortals (parallel shards): clears the results, then prints them merged in profile and seed
+// Global setup for npm run mortals (parallel shards): starts its own results folder, then prints them merged in profile and seed
 // order: one "[mortals] {json}" line per seed and one "[mortals-summary] {json}" line per profile.
-import { clearResults, readResults } from '../support/parallelRuns';
+import { readResults, readRunInfo, startRun } from '../support/parallelRuns';
+
+/** This run's results folder (its own; see parallelRuns.ts). */
+let runDir = '';
 import type { MortalRow } from './mortals';
 
 const median = (xs: readonly number[]): number => {
@@ -10,12 +13,13 @@ const median = (xs: readonly number[]): number => {
 const mean = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length);
 
 export function setup(): void {
-  clearResults('mortals');
+  runDir = startRun('mortals');
   (globalThis as { __t0?: number }).__t0 = Date.now();
 }
 
 export function teardown(): void {
-  const rows = readResults<MortalRow>('mortals');
+  const rows = readResults<MortalRow>(runDir);
+  console.info(`[mortals-run] ${JSON.stringify(readRunInfo(runDir))}`);
   const byProfile = new Map<string, MortalRow[]>();
   for (const r of rows) byProfile.set(r.profile, [...(byProfile.get(r.profile) ?? []), r]);
   for (const [profile, rs] of byProfile) {

@@ -1,15 +1,19 @@
-// Global setup for npm run severs (parallel shards): clears the results, then prints them merged in configuration and
+// Global setup for npm run severs (parallel shards): starts its own results folder, then prints them merged in configuration and
 // seed order: one "[severs] {json}" line per seed and one "[severs-summary] {json}" line per configuration.
-import { clearResults, readResults } from '../support/parallelRuns';
+import { readResults, readRunInfo, startRun } from '../support/parallelRuns';
+
+/** This run's results folder (its own; see parallelRuns.ts). */
+let runDir = '';
 import { severSummary, type SeverRow } from './severs';
 
 export function setup(): void {
-  clearResults('severs');
+  runDir = startRun('severs');
   (globalThis as { __t0?: number }).__t0 = Date.now();
 }
 
 export function teardown(): void {
-  const rows = readResults<SeverRow>('severs');
+  const rows = readResults<SeverRow>(runDir);
+  console.info(`[severs-run] ${JSON.stringify(readRunInfo(runDir))}`);
   const byConfig = new Map<string, SeverRow[]>();
   for (const r of rows) byConfig.set(r.config, [...(byConfig.get(r.config) ?? []), r]);
   for (const [, rs] of byConfig) {
