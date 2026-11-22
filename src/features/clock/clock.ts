@@ -20,6 +20,8 @@ export const lastAdvanceSchema = z.object({
 export const clockSliceSchema = z.object({
   now: instantSchema,
   lastAdvance: lastAdvanceSchema.nullable(),
+  /** The campaign's start day (D-414: canon NPC lines are calculated once at the start). Absent in older saves. */
+  startDay: z.number().int().optional(),
 });
 
 export type ClockSlice = z.infer<typeof clockSliceSchema>;

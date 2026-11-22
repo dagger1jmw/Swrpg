@@ -53,6 +53,11 @@ export interface CreationInput {
   /** NPC generation: skip the talent limit and the rank-minimum validation (levels are what they are). */
   npc?: boolean;
   /**
+   * NPC generation: the real ages the Padawan and Knight phases start, from a canon figure's rank spans (D-414: rank
+   * spans shape the curve). Absent = the rank's average ages (phaseAges). Infinity = not reached.
+   */
+  phases?: { padawanAge: number; knightAge: number };
+  /**
    * Ignore the 3-point talent limit (D-116): any number of talents, each still at most exceptional;
    * the 2.8 M cap and the 4.0x pace limit still apply. The campaign is flagged unbalanced.
    */
@@ -250,7 +255,15 @@ export function computeCreation(input: CreationInput): CreationResult {
   const perShare = (def[mainKey] ?? 0) > 0 ? mainKnightPace / def[mainKey]! : 0;
   const h = hNow;
   const hStart = hStartIn;
-  const ages = phaseAges(rankDef.id, input.path, hStart, h);
+  const ages0 = phaseAges(rankDef.id, input.path, hStart, h);
+  const he = (x: number): number => (Number.isFinite(x) ? humanEquivalentAge(species, x) : Infinity);
+  const phasesIn = input.phases;
+  const ages = phasesIn && !ages0.onePhase
+    ? (() => {
+        const knightAge = Math.max(hStart, he(phasesIn.knightAge));
+        return { ...ages0, knightAge, padawanAge: Math.min(knightAge, Math.max(hStart, he(phasesIn.padawanAge))) };
+      })()
+    : ages0;
   const hAges = { padawanAge: ages.padawanAge, knightAge: ages.knightAge };
   const talents: Talents = input.talents;
   const warYears = input.warYears ?? 0;

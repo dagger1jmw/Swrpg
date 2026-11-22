@@ -3,7 +3,6 @@
 // seed is a hash of the campaign seed and the NPC's ID (D-143 G), so generation order never matters. Levels are
 // recomputed from the current date with the closed form (the npcs feature calls character creation's closed form).
 import { archetypeDef, type CharacterPath } from '../data/archetypes';
-import type { CanonNpc } from '../data/canonNpcs';
 import {
   COMBATANT_ROLES,
   DEFAULT_ARCHETYPE,
@@ -110,19 +109,6 @@ export function minionInputs(kindId: string, grade: number, seed: string): NpcGe
   const def = archetypeDef(kind.archetype);
   const startAge = def.path === 'career' ? 17 : def.startAge;
   return { archetype: kind.archetype, path: def.path, talents: {}, startAge, warYears: 0, rank: def.path === 'career' ? 'career' : def.path === 'sith' ? 'acolyte' : 'initiate', seed, minionGrade: grade, age: startAge + years };
-}
-
-/**
- * Canon levels at a campaign year (D-152, D-155): the sheet's levels scaled by the closed-form growth of the entry's
- * archetype between the snapshot age and the current age; `fixed` entries do not scale. `growthAt(age)` is the
- * archetype's main-skill closed-form level at that age (supplied by the caller).
- */
-export function canonScale(entry: CanonNpc, bby: number, growthAt: (age: number) => number): number {
-  const sheet = entry.anchors.find((a) => a.complete);
-  if (entry.fixed || !sheet) return 1;
-  const now = growthAt(Math.max(0, entry.birthBby - bby));
-  const snap = growthAt(Math.max(0, entry.birthBby - sheet.bby));
-  return snap > 0 ? now / snap : 1;
 }
 
 /**

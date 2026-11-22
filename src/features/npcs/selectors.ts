@@ -7,7 +7,11 @@ import { DEFAULT_AGE, DEFAULT_AGE_BY_ROLE } from '../../data/npcGen.config';
 import { FORM_IDS } from '../../data/skills';
 import { SPECIES_BY_ID } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay } from '../../engine/calendar';
-import { canonScale, npcVariance, rollNpcInputs } from '../../engine/npcGen';
+import { npcVariance, rollNpcInputs } from '../../engine/npcGen';
+import { canonLevelsAt, canonLevelsInCampaign, type CanonStatDeps } from '../../engine/canonStats';
+import { canonLivedAgeAt, canonRankAt } from '../../engine/canonRoster';
+import { ROLE_RANK } from '../../data/npcGen.config';
+import type { CanonNpc, RankSpan } from '../../data/canon/types';
 import { computeCreation, ranksFor } from '../character/selectors';
 import type { Npc, NpcGen } from './npcs';
 
@@ -52,14 +56,14 @@ const levelCache = new Map<string, Readonly<Record<string, number>>>();
 const CACHE_MAX = 400;
 
 /** Closed-form levels for generation inputs at an age (character creation's closed form, with the NPC's variance). */
-export function npcLevelsFor(gen: NpcGen, speciesId: string, age: number, today: number): Readonly<Record<string, number>> {
-  const key = JSON.stringify([gen, speciesId, Math.round(age * 100) / 100]);
+export function npcLevelsFor(gen: NpcGen, speciesId: string, age: number, today: number, phases?: { padawanAge: number; knightAge: number }): Readonly<Record<string, number>> {
+  const key = JSON.stringify([gen, speciesId, Math.round(age * 100) / 100, phases ? [phases.padawanAge, phases.knightAge].map((x) => (Number.isFinite(x) ? x : -1)) : null]);
   const hit = levelCache.get(key);
   if (hit) return hit;
   const birthDay = Math.round(today - age * DAYS_PER_YEAR);
   const species = creationSpecies(speciesId);
   const startAge = Math.min(gen.startAge, Math.max(0, age - 0.01));
-  const base = { name: 'npc', birthDay, startDay: today, speciesId: species, path: gen.path, archetype: gen.archetype, trainingStartAge: startAge, talents: gen.talents, warYears: gen.warYears, dominantHand: 'right' as const, npc: true, variance: gen.minionGrade === null ? (k: string) => npcVariance(gen.seed, k) : undefined };
+  const base = { name: 'npc', birthDay, startDay: today, speciesId: species, path: gen.path, archetype: gen.archetype, trainingStartAge: startAge, talents: gen.talents, warYears: gen.warYears, dominantHand: 'right' as const, npc: true, variance: gen.minionGrade === null ? (k: string) => npcVariance(gen.seed, k) : undefined, ...(phases ? { phases } : {}) };
   let r = computeCreation({ ...base, rank: gen.rank });
   if (!r.levels || Object.keys(r.levels).length === 0 || r.errors.length) {
     // The role's rank may not fit the age (a young "Knight"); fall back to the highest rank that fits.
@@ -73,14 +77,57 @@ export function npcLevelsFor(gen: NpcGen, speciesId: string, age: number, today:
   return levels;
 }
 
-/** The canon growth curve: the archetype's highest main level at an age (default start age, no variance). */
-function canonGrowth(archetype: string, path: NpcGen['path'], speciesId: string, today: number): (age: number) => number {
-  const def = archetypeDef(archetype);
-  return (age: number) => {
-    const gen: NpcGen = { archetype, path, talents: {}, startAge: def.startAge, warYears: 0, rank: path === 'career' ? 'career' : 'none', seed: `canon:${archetype}`, minionGrade: 1 };
-    const lv = npcLevelsFor(gen, speciesId, Math.max(def.startAge + 0.01, age), today);
-    return Math.max(0, ...Object.entries(lv).filter(([k]) => FORM_IDS.includes(k) || k === def.main).map(([, v]) => v));
+// ---- Canon figures (D-414): rank-shaped generator lines and growth, for src/engine/canonStats.ts ----
+
+const PADAWAN_PHASE = (r: RankSpan): boolean => r.role === 'padawan' || r.title === 'apprentice';
+const KNIGHT_PHASE = (r: RankSpan): boolean => r.role === 'jediKnight' || r.role === 'jediMaster' || ((r.role === 'sithLord' || r.role === 'inquisitor' || r.role === 'darkJedi') && r.title !== 'apprentice');
+
+/**
+ * The creation rank at `bby` and the phase ages a canon figure's rank spans give. Spans starting after `asOfBby` are
+ * not known yet (a campaign's figure grows from its start without its later canon promotions).
+ */
+function canonShape(canon: CanonNpc, bby: number, asOfBby: number): { rank: string; phases?: { padawanAge: number; knightAge: number } } {
+  const def = archetypeDef(canon.archetype);
+  if (def.path === 'career' || def.path === 'outsider') return { rank: 'career' };
+  const known = canon.ranks.filter((r) => r.fromBby >= asOfBby);
+  const firstAge = (f: (r: RankSpan) => boolean): number => {
+    const r = known.filter(f).sort((a, b) => b.fromBby - a.fromBby)[0];
+    return r ? canon.birthBby - r.fromBby : Infinity;
   };
+  const knightAge = firstAge(KNIGHT_PHASE);
+  const pad = firstAge(PADAWAN_PHASE);
+  const padawanAge = Number.isFinite(pad) ? pad : Number.isFinite(knightAge) ? Math.max(0, knightAge - 6) : Infinity;
+  const at = canonRankAt({ ...canon, ranks: known }, Math.max(bby, asOfBby));
+  const young = def.path === 'sith' ? 'acolyte' : 'initiate';
+  const rank = at ? (at.title === 'apprentice' ? 'apprentice' : (ROLE_RANK[at.role] ?? young)) : young;
+  return { rank, phases: { padawanAge, knightAge } };
+}
+
+/** The engine's dependencies for one canon figure (memoized per date): the generator line, growth G and lived age. */
+function canonDeps(canon: CanonNpc, today: number, asOfBby = -Infinity): CanonStatDeps {
+  const def = archetypeDef(canon.archetype);
+  const lines = new Map<string, Readonly<Record<string, number>>>();
+  const line = (bby: number, variance: boolean): Readonly<Record<string, number>> => {
+    const k = `${bby}:${variance}`;
+    const hit = lines.get(k);
+    if (hit) return hit;
+    const shape = canonShape(canon, bby, asOfBby);
+    const gen: NpcGen = { archetype: canon.archetype, path: def.path, talents: {}, startAge: def.startAge, warYears: 0, rank: shape.rank, seed: variance ? `canon:${canon.canonId}` : `canon:${canon.archetype}`, minionGrade: variance ? null : 1 };
+    const age = canon.fixed ? 60 : canonLivedAgeAt(canon, bby);
+    const lv = npcLevelsFor(gen, canon.speciesId, Math.max(def.startAge + 0.01, age), today, shape.phases);
+    lines.set(k, lv);
+    return lv;
+  };
+  return {
+    lineAt: (bby) => line(bby, true),
+    growthAt: (bby) => Math.max(0, ...Object.entries(line(bby, false)).filter(([k]) => FORM_IDS.includes(k) || k === def.main).map(([, v]) => v)),
+    livedAgeAt: (bby) => canonLivedAgeAt(canon, bby),
+  };
+}
+
+/** A canon figure's levels at a date from its anchors (D-414), outside a campaign (tools and tests). */
+export function canonFigureLevelsAt(canon: CanonNpc, bby: number, today: number): Record<string, number> {
+  return canonLevelsAt(canon, bby, canonDeps(canon, today));
 }
 
 /**
@@ -92,18 +139,19 @@ export function selectNpcLevels(s: GameState, id: string): Readonly<Record<strin
   if (!n) return {};
   if (n.devLevels) return n.devLevels;
   const canon = n.canonId ? CANON_BY_ID.get(n.canonId) : undefined;
-  if (canon && !canon.anchors.some((a) => a.complete)) {
-    // No hand-set sheet yet (lore batch 19, D-391): the npc-generation closed form for the entry's archetype at its
-    // age, with no talents, a variance seeded by the canon ID, and the entry's own species.
-    const def = archetypeDef(canon.archetype);
-    const gen: NpcGen = { archetype: canon.archetype, path: def.path, talents: {}, startAge: def.startAge, warYears: 0, rank: def.path === 'career' ? 'career' : 'none', seed: `canon:${canon.canonId}`, minionGrade: null };
-    const age = canon.fixed ? 60 : canon.birthBby + dateFromAbsDay(s.clock.now.day).year;
-    return npcLevelsFor(gen, canon.speciesId, Math.max(0, age), s.clock.now.day);
-  }
   if (canon) {
-    const bby = -dateFromAbsDay(s.clock.now.day).year;
-    const ratio = canonScale(canon, bby, canonGrowth(canon.archetype, archetypeDef(canon.archetype).path, canon.speciesId, s.clock.now.day));
-    return Object.fromEntries(Object.entries(canon.anchors.find((a) => a.complete)!.levels).map(([k, v]) => [k, v * ratio]));
+    // D-414: the figure's line is calculated once at the campaign's start date from its anchors (or the generator, with
+    // no anchor), then grows by the normal NPC maths: the closed-form growth along its rank spans, with no later anchor
+    // pulling it back, so the story can change its course. A figure not yet in training at the start is calculated when
+    // their training starts. An old save without a start day uses today.
+    const today = s.clock.now.day;
+    const nowBby = -dateFromAbsDay(today).year;
+    const def = archetypeDef(canon.archetype);
+    const startBby = Math.min(-dateFromAbsDay(s.clock.startDay ?? today).year, canon.birthBby - Math.ceil(def.startAge));
+    const deps = canonDeps(canon, today);
+    const start = canonLevelsAt(canon, startBby, deps);
+    if (canon.fixed) return start;
+    return canonLevelsInCampaign(start, deps.growthAt, startBby, Math.min(nowBby, startBby));
   }
   const gen = selectNpcGen(s, id);
   return gen ? npcLevelsFor(gen, n.speciesId, selectNpcAgeOrDefault(s, id), s.clock.now.day) : {};

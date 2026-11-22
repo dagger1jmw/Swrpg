@@ -60,15 +60,20 @@ describe('NPC generation in play (npc-generation §4)', () => {
 });
 
 describe('canon NPCs in play (D-152, D-155)', () => {
-  it("Satele Shan met at Korriban (3,681) is far below her Galactic War sheet; at the sheet's year she matches it", () => {
+  it("Satele Shan met at Korriban (3,681) is far below her Galactic War sheet; a campaign started at the sheet's year matches it (D-414)", () => {
     const early = fresh(-3681);
     let s = introduce(early, 'Satele Shan', 'padawan', 18);
     const id = idOf(s, 'Satele Shan');
     s = applyEvents(REGISTRY, s, [{ type: 'npcCanonLinked', npcRef: id, canonId: 'lore:satele-shan' }], { source: 'engine' }).state;
     const young = selectNpcLevel(s, id, 'ataru');
     expect(young).toBeLessThan(70);
-    const peak = { ...s, clock: { ...s.clock, now: { ...s.clock.now, day: at(-3643) } } };
-    expect(selectNpcLevel(peak, id, 'ataru')).toBeCloseTo(88, 0);
+    // Calculated once at the 3,681 start, she then grows by the normal maths: stronger by 3,643, not pulled to the sheet.
+    const later = { ...s, clock: { ...s.clock, now: { ...s.clock.now, day: at(-3643) } } };
+    expect(selectNpcLevel(later, id, 'ataru')).toBeGreaterThan(young + 10);
+    let p = introduce(fresh(-3643), 'Satele Shan', 'jediMaster', 56);
+    const pid = idOf(p, 'Satele Shan');
+    p = applyEvents(REGISTRY, p, [{ type: 'npcCanonLinked', npcRef: pid, canonId: 'lore:satele-shan' }], { source: 'engine' }).state;
+    expect(selectNpcLevel(p, pid, 'ataru')).toBeCloseTo(88, 0);
   });
   it('fixed canon entries (Vitiate) do not scale', () => {
     let s = introduce(fresh(LORE_TEST_YEAR), 'Vitiate', 'sithLord', 900, 'sithEmpire');

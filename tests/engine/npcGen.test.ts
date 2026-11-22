@@ -1,9 +1,8 @@
 // npc-generation §7 tests 5 and 6 (talent frequencies, same seed same NPC), D-143 G (order independence), minions
 // (§6), war years and canon scaling (D-152, D-155).
 import { describe, expect, it } from 'vitest';
-import { CANON_NPCS } from '../../src/data/canonNpcs';
 import { MINION_KINDS } from '../../src/data/npcGen.config';
-import { canonScale, minionInputs, npcSeed, npcVariance, rollMinionGrade, rollNpcInputs, warYearsFor } from '../../src/engine/npcGen';
+import { minionInputs, npcSeed, npcVariance, rollMinionGrade, rollNpcInputs, warYearsFor } from '../../src/engine/npcGen';
 import { seedRng } from '../../src/engine/rng';
 
 const base = { campaignSeed: 'camp', role: 'jediKnight', faction: 'jediOrder', age: 30, year: -1032 };
@@ -85,15 +84,3 @@ describe('minions (npc-generation §6)', () => {
   });
 });
 
-describe('canon scaling (D-152, D-155)', () => {
-  const satele = CANON_NPCS.find((c) => c.name === 'Satele Shan')!;
-  const vitiate = CANON_NPCS.find((c) => c.name === 'Vitiate')!;
-  const growth = (age: number) => Math.max(0, age - 4) ** 0.6;
-  it('a figure met before the sheet’s year is weaker; at the sheet’s year the ratio is 1', () => {
-    expect(canonScale(satele, 3681, growth)).toBeLessThan(1);
-    expect(canonScale(satele, satele.anchors[0]!.bby, growth)).toBeCloseTo(1);
-  });
-  it('fixed entries do not scale', () => {
-    expect(canonScale(vitiate, 3681, growth)).toBe(1);
-  });
-});

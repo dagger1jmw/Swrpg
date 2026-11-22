@@ -22,7 +22,7 @@ export function clampToPacing(seconds: number, level: keyof typeof PACING_RANGES
 export const clockFeature: FeatureModule<ClockSlice, GameState> = {
   id: 'clock',
   version: 1,
-  initialState: (ctx) => ({ now: { day: ctx.start.day, second: ctx.start.second }, lastAdvance: null }),
+  initialState: (ctx) => ({ now: { day: ctx.start.day, second: ctx.start.second }, lastAdvance: null, startDay: ctx.start.day }),
   stateSchema: clockSliceSchema,
   events: {
     timeElapsed: {
