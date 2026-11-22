@@ -1080,8 +1080,12 @@ The clock and the module contract come first, before any feature.
   - *SWTOR protagonists as canon NPCs:* the class heroes (Hero of Tython, the Barsen'thor, the Emperor's Wrath, Lord
     Kallig / Darth Nox, Cipher Nine, Havoc Squad's commander, the Outlander) appear in the timeline only by title.
     Default: canon NPCs known by title, with species, gender and name left open unless the player meets them. The
-    narrator never gives them fixed names. **Open question for Jared:** should a player be able to take one of these
-    roles?
+    narrator never gives them fixed names. **Closed (Jared, lore batch 12, D-377):** players can't take over a SWTOR
+    class-story protagonist. All eight stay title-only canon NPCs whose paths a player character can cross (as allies,
+    rivals, patrons or enemies), consistent with their recorded deeds and dates.
+  - *Design backlog (not now, D-377):* consider letting the player become the leader figure in the KOTFE/KOTET era (the
+    Outlander / Alliance Commander role), possibly in place of the canon Outlander. Undecided; it needs its own design
+    pass.
   - *Career paths (candidates, nothing decided):* the Game notes paths: a Sith PC through a Sphere's pyramid to the
     Council; non-Sith Imperial careers; Jedi, Republic and SIS careers.
 - **M7 start locations: Coruscant and the Temple (Jared, 2026-11-21, lore batch 8; D-364, D-365; lore:

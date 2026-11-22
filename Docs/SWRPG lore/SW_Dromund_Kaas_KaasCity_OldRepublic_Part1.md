@@ -319,7 +319,7 @@ Each was checked against Legends pages first.
 - **SWTOR locations:** the hubs, the Trade Center, the plaza and the Spires should not appear before 3653 BBY. The Spires and the Ergast monument (undated) need a Decision.
 
 ## Decisions needed
-1. **Acolyte academy for an Imperial-born child in 3681–3653 BBY:** Dromund Kaas academy (attested pre-war, and in the Sith Order page) vs Korriban (all Force-sensitives sent there after 3681 BBY). Best fit: Korriban for acolytes, with Dromund Kaas as the Sith HQ and possibly a lesser academy.
+1. **Acolyte academy for an Imperial-born child in 3681–3653 BBY:** Dromund Kaas academy (attested pre-war, and in the Sith Order page) vs Korriban. Narrowed in lore batch 12 (ruling 4): during the war (3681–3653 BBY) only the decree sending Force-sensitive slaves to Korriban is dated; the law covering all Force-sensitives in Imperial territory is attested from the Cold War. In game an Imperial-born Force-sensitive in 3661 BBY still goes to Korriban by default, by custom and family ambition rather than law [inferred], with the lesser Dromund Kaas academy as the alternative.
 2. **Kaas City layout for the window:** use the SWTOR Cold War layout (six hubs, Trade Center, plaza) vs attested-only. Best fit: attested-only plus SWTOR places marked "may predate 3653 BBY, unconfirmed".
 3. **Hub 3 office:** Ministry of Travel (Kaas City page) vs Ministry of Logistics (Hub 3 and Ministry pages). Best fit: Logistics.
 4. **Ministry of Logistics HQ:** the Citadel (in the window) vs Ziost's Orbital Defense Command Center (moved there in the Cold War). Best fit: Citadel during the window.

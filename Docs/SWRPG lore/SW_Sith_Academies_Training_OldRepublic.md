@@ -36,7 +36,7 @@ Two career paths ran alongside these ranks: the Sith Warrior (combat) and the Si
   - Era: some children were groomed from the moment they showed Force sensitivity. Others hid their abilities but were still forced into the trials. Children whose parents hid their Force sensitivity were taken from home, and the parents were punished (ref: *The Old Republic Encyclopedia*, p. 164). [source](https://starwars.fandom.com/wiki/Sith_training) ("Methods and Specifications")
   - Era: at first only Sith Purebloods and Imperial Humans could become Sith. Later the academies pressed any Force-adept into the trials, which frustrated traditionalists (ref: *The Old Republic Encyclopedia*, p. 164). [source](https://starwars.fandom.com/wiki/Sith_training) ("Methods and Specifications")
   - Era: after the Empire retook Korriban, any Force-sensitive found was sent to the academy as an acolyte, "willing or not". Groups of acolytes were taught by one Overseer and competed to be noticed by a visiting Sith Lord, hoping to become that Lord's apprentice. Trials included judging prisoners and tests of endurance, and students often went into the wilderness or the ancient tombs for tests (ref: SWTOR). [source](https://starwars.fandom.com/wiki/Sith_training) ("Sith Training under the Empires")
-  - Era: an Imperial law required all Force-sensitives in Imperial territory to be trained at the Academy (ref: SWTOR Sith Warrior mission "Arm Yourself"). [source](https://starwars.fandom.com/wiki/Vemrin) ("Biography")
+  - Era: an Imperial law required all Force-sensitives in Imperial territory to be trained at the Academy (ref: SWTOR Sith Warrior mission "Arm Yourself"). [source](https://starwars.fandom.com/wiki/Vemrin) ("Biography") The law is attested from the Cold War (Vemrin, Kory); in the war only the decree on Force-sensitive slaves is dated (lore batch 12).
   - General: academy training was competitive by design, keeping students isolated rather than cooperative, with one instructor for several students. Students were also expected to study and practise on their own (ref: *Knights of the Old Republic*). [source](https://starwars.fandom.com/wiki/Sith_training) ("Training Regimes")
   - General: Force training in the Sith empires was taught in class. One master taught several students to draw on anger and focus on offensive uses of the Force, starting with simple skills such as telekinesis and moving up to telepathy or Force lightning (ref: *Knights of the Old Republic*; *Darth Bane: Path of Destruction*). [source](https://starwars.fandom.com/wiki/Sith_training) ("Force application training")
   - General: the academies taught interrogation and torture, often on live subjects such as prisoners of war or local criminals (ref: *Knights of the Old Republic*). [source](https://starwars.fandom.com/wiki/Sith_training) ("Interrogation and Assassination")
@@ -74,7 +74,7 @@ Two career paths ran alongside these ranks: the Sith Warrior (combat) and the Si
   - **Layout:**
     - It was a stone and durasteel pyramid at the back of the Valley of the Dark Lords. Its entrance stood at the top of a wide stair flanked by two kneeling slave statues. The main hall had twin staircases to the upper levels and a stone monument carved with Sith faces, a reminder that success meant crushing rivals (ref: SWTOR). [source](https://starwars.fandom.com/wiki/Sith_Academy_%28Korriban%29) ("Layout")
     - The lower levels held jails for prisoners awaiting interrogation and "many chambers for studying, lecturing, meditation, and training" (ref: SWTOR). [source](https://starwars.fandom.com/wiki/Sith_Academy_%28Korriban%29) ("Layout")
-  - **Library:** the multi-level library lay off the main hall, with scrolls, holocrons, datapads and holobooks behind armed guards. Darth Thanaton, head of the Sphere of Ancient Knowledge, maintained it. Its holdings included Darth Vilus's teachings and Darth Iratus's holocron (ref: SWTOR). [source](https://starwars.fandom.com/wiki/Sith_Academy_%28Korriban%29) ("Layout")
+  - **Library:** the multi-level library lay off the main hall, with scrolls, holocrons, datapads and holobooks behind armed guards. The head of the Sphere of Ancient Knowledge maintained it (Darth Thanaton from 3640 BBY; whoever held the Sphere before that (lore batch 12)). Its holdings included Darth Vilus's teachings and Darth Iratus's holocron (ref: SWTOR). [source](https://starwars.fandom.com/wiki/Sith_Academy_%28Korriban%29) ("Layout")
   - **Living quarters and restricted areas:**
     - The Academy had dormitories for students. It also had secret Ritual Chambers guarded by the Dark Honor Guard, where alchemical creatures such as the Bloodfiend lived (ref: SWTOR). [source](https://starwars.fandom.com/wiki/Sith_Academy_%28Korriban%29) ("Layout")
     - Rooms near the summit were restricted to the highest-ranking Sith. The Dark Council kept chambers there for conferences. Rumour held that the Emperor had a throne room deep inside (ref: SWTOR). [source](https://starwars.fandom.com/wiki/Sith_Academy_%28Korriban%29) ("Layout")
@@ -150,14 +150,14 @@ Two career paths ran alongside these ranks: the Sith Warrior (combat) and the Si
   - Rules were bent by staff. Harkun dismissed a slave-born acolyte's work, bribed others to kill them and set near-impossible tasks. He suggested that a death would look more like an accident in a tomb than in his office (ref: SWTOR). [source](https://starwars.fandom.com/wiki/Harkun) ("Turning slaves into Lords"; "Personality and traits"). Vemrin sent his friend Dolgis to ambush a rival acolyte (ref: SWTOR "Slaying the Beast"). [source](https://starwars.fandom.com/wiki/Vemrin) ("Biography")
   - Ffon Althe, a Pureblood, killed fellow acolyte Gerr with Force lightning during one of Harkun's displays (ref: SWTOR). [source](https://starwars.fandom.com/wiki/Ffon_Althe) ("Biography")
   - Lying to a Lord was fatal. When Althe presented a map he had not recovered, Zash had him confess and then killed him (ref: SWTOR). [source](https://starwars.fandom.com/wiki/Ffon_Althe) ("Biography")
-  - Under Sith tradition, a corrupt Master's students usually shared the Master's fate. Teneb Kel was arrested with Calypho, but because his training was unfinished he was sent to serve with the Imperial Military instead of being imprisoned (ref: *Blood of the Empire*). [source](https://starwars.fandom.com/wiki/Darth_Thanaton) ("Early life and training")
+  - Under Sith tradition, a corrupt Master's students usually shared the Master's fate. Teneb Kel was arrested with Calypho, but because his training was unfinished he was sent to serve with the Imperial Military instead of being imprisoned (ref: *Blood of the Empire*). [source](https://starwars.fandom.com/wiki/Darth_Thanaton) ("Early life and training") `unverified` (not covered by SW_Korriban_Academy_Part1/2; queued for a check, lore batch 12) (Teneb Kel's arrest and military service).
 - **Related:** Acolyte trials; Overseers
 - **Uncertainty:** [conflict] What happened to Gerr?
   - Ffon Althe's "Biography" says Althe "executed" Gerr.
   - The same page's "Powers and abilities" says the lightning "badly injure[d]" him.
   - Spindrall's page lists Gerr among the acolytes who finished the tomb task and returned.
 
-  Badly injured fits best, since Gerr is still named afterwards [inferred]. Either version works for the developer.
+  Corrected (lore batch 12): Gerr was killed. SW_Korriban_Academy_Part1 (researched under the current rules) has Harkun order Ffon to kill Gerr in his chamber and lists Gerr among the acolytes killed by rivals; the "badly injured" reading is dropped.
 
 ### Weapons in training: warblade, training saber, lightsaber
 - **Type:** practice
@@ -165,9 +165,9 @@ Two career paths ran alongside these ranks: the Sith Warrior (combat) and the Si
 - **Key facts:**
   - **Era:** the Wrath used an ancient Sith warblade as an acolyte and earned a red-bladed lightsaber with apprenticeship (ref: SWTOR "Arm Yourself", "The Final Trial"). [source](https://starwars.fandom.com/wiki/Empire%27s_Wrath) ("Trials"). Vemrin also fought with a warblade (ref: SWTOR "The Final Trial"). [source](https://starwars.fandom.com/wiki/Vemrin) ("Personality and traits")
   - **Era:** Zash gave her new apprentice her old lightsaber as a gift (ref: SWTOR "A Map for the Future"). [source](https://starwars.fandom.com/wiki/Darth_Nox) ("The Dashade and final trials")
-  - **Era (Great Galactic War):** Teneb Kel fought his tomb trials with a training saber (ref: *Blood of the Empire*). [source](https://starwars.fandom.com/wiki/Darth_Thanaton) ("Early life and training")
+  - **Era (Great Galactic War):** Teneb Kel fought his tomb trials with a training saber (ref: *Blood of the Empire*). [source](https://starwars.fandom.com/wiki/Darth_Thanaton) ("Early life and training") `unverified` (not covered by SW_Korriban_Academy_Part1/2; queued for a check, lore batch 12).
   - **Era (Odacer-Faustin, 3645 BBY):** students fought training duels with lightsabers, and apprentices "thought twice" about touching the Blademaster's training sabers without permission (ref: *Red Harvest*). [source](https://starwars.fandom.com/wiki/Wim_Nickter) (intro); [source](https://starwars.fandom.com/wiki/Shak%27Weth) ("Personality and traits")
-  - **Comparison (Brotherhood):** training sabers were durasteel, blunt-edged and balanced like lightsabers. They were coated in millions of toxin-filled pelko bug barbs that burned and briefly paralysed, mimicking a lost limb (ref: *Darth Bane: Path of Destruction*). [source](https://starwars.fandom.com/wiki/Sith_training_saber) ("Description")
+  - **Comparison (Brotherhood):** `unverified` (not covered by SW_Korriban_Academy_Part1/2; queued for a check, lore batch 12). training sabers were durasteel, blunt-edged and balanced like lightsabers. They were coated in millions of toxin-filled pelko bug barbs that burned and briefly paralysed, mimicking a lost limb (ref: *Darth Bane: Path of Destruction*). [source](https://starwars.fandom.com/wiki/Sith_training_saber) ("Description")
   - **Style by path:** Warriors favoured squared-off "technical" lightsabers and sometimes dual blades (Jar'Kai). Inquisitors often favoured double-bladed sabers with esoteric designs (ref: SWTOR dev dispatch; Holonet). [source](https://starwars.fandom.com/wiki/Sith_Warrior) ("Armor and armaments"); [source](https://starwars.fandom.com/wiki/Sith_Inquisitor) ("Weapons and apparel")
 - **Related:** Acolyte trials; Apprenticeship
 - **Uncertainty:** Whether every acolyte trained with a warblade or training saber before getting a lightsaber is not stated as a rule [unclear]. The SWTOR codex "Sith Weapons" was not found on the pages read (see "Not found").
@@ -191,7 +191,7 @@ Two career paths ran alongside these ranks: the Sith Warrior (combat) and the Si
   - The same page's "Biography" says he "advanced to the level of Sith Lord" (ref: SWTOR Fan Friday, 12 August 2011).
   - Later SWTOR material styles him "Darth" (ref: *Legacy of the Sith* collector's edition).
 
-  The versions can stack: a Lord could be a master to an apprentice and later hold the Darth title [inferred]. The cited "Sith Lord" fits best for 3681 BBY.
+  The versions can stack: a Lord could be a master to an apprentice and later hold the Darth title [inferred]. The cited "Sith Lord" fits best for 3681 BBY. `unverified` (not covered by SW_Korriban_Academy_Part1/2; queued for a check, lore batch 12).
 
 ### Sith Lord, Darth and the Dark Council
 - **Type:** rank
@@ -263,6 +263,7 @@ Two career paths ran alongside these ranks: the Sith Warrior (combat) and the Si
 - **Uncertainty:** Several Odacer-Faustin character pages have no footnotes. Their facts come from *Red Harvest* (the only work these characters appear in, per their pages), but the wording is the wiki's.
 
 ### Children of the Emperor at the Korriban Academy
+- **Status:** `unverified` (not covered by SW_Korriban_Academy_Part1/2; queued for a check, lore batch 12). The new files cover only the Children machinery in the Academy's depths.
 - **Type:** program
 - **Era:** era (Great Galactic War to 3653 BBY)
 - **Key facts:**
@@ -369,7 +370,7 @@ Two career paths ran alongside these ranks: the Sith Warrior (combat) and the Si
   - Version B: the old Sith Empire, centuries earlier (*KotOR*, per the Sith training page).
   - The Ritual Chambers page (SWTOR) says "Revan's Empire" built the Academy, which partly contradicts Version A.
 
-  Version A is the most specific and best sourced. Version B and the SWTOR wording may mean an older site reused [inferred]. For an Imperial-era campaign, the 3681 BBY rebuild is what matters.
+  Version A is the most specific and best sourced. Version B and the SWTOR wording may mean an older site reused [inferred]. For an Imperial-era campaign, the 3681 BBY rebuild is what matters. Resolved (lore batch 12), ruling 3: an ancient site (the Ritual Chambers are older); the academy itself was founded in 3996 BBY by Exar Kun's disciples.
 
 ## Timeline
 

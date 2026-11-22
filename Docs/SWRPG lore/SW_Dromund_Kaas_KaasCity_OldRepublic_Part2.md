@@ -7,7 +7,7 @@ Legends lore reference for SWRPG. Researched Nov 21, 2026. Sources: Wookieepedia
   - Imperial society put Force-sensitive Sith above everyone else, with Humans and purebloods favoured over aliens;
   - slavery was hereditary and permanent;
   - every non-Force-sensitive adult was conscripted;
-  - Force-sensitives were sent to an academy "willing or not". During the window that was mainly Korriban, after its recapture in 3681 BBY.
+  - Force-sensitives were sent to an academy "willing or not". During the window that was mainly Korriban, after its recapture in 3681 BBY. Narrowed in lore batch 12 (ruling 4): in the war only the decree sending Force-sensitive slaves is dated; the law covering all Force-sensitives in Imperial territory is attested from the Cold War. An Imperial-born child in 3661 BBY goes to Korriban by custom and family ambition [inferred], or to the lesser Dromund Kaas academy.
 
   [Sith Empire (Post–Great Hyperspace War) §Society and culture](https://starwars.fandom.com/wiki/Sith_Empire_(Post–Great_Hyperspace_War)); [Imperial Military (Sith Empire) §Organization](https://starwars.fandom.com/wiki/Imperial_Military_(Sith_Empire)); [Sith training §Sith Training under the Empires](https://starwars.fandom.com/wiki/Sith_training)
 - **Belief and news:** the Emperor was revered as god and king, and state news was propaganda. [Tenebrae §Legacy](https://starwars.fandom.com/wiki/Tenebrae); [Ministry of Intelligence (Sith Empire)](https://starwars.fandom.com/wiki/Ministry_of_Intelligence_(Sith_Empire))
@@ -108,7 +108,7 @@ Legends lore reference for SWRPG. Researched Nov 21, 2026. Sources: Wookieepedia
 - **Type:** practice
 - **Era:** mixed; window items marked.
 - **Key facts:**
-  - **Sending Force-sensitives away:** "Any individual discovered to be Force-sensitive would be sent, willing or not, to the academy as an acolyte." This describes the Korriban academy after its re-establishment in 3681 BBY. [Sith training §Sith Training under the Empires](https://starwars.fandom.com/wiki/Sith_training)
+  - **Sending Force-sensitives away:** "Any individual discovered to be Force-sensitive would be sent, willing or not, to the academy as an acolyte." This describes the Korriban academy after its re-establishment in 3681 BBY; as a law covering every Force-sensitive in Imperial territory it is attested from the Cold War (lore batch 12, ruling 4). [Sith training §Sith Training under the Empires](https://starwars.fandom.com/wiki/Sith_training)
   - **Where Sith trained:** the Sith Order trained members in academies on Korriban and Dromund Kaas. It also had lesser academies (e.g. Odacer-Faustin) and its headquarters in the Sith Sanctum. [Sith Order (Sith Empire)](https://starwars.fandom.com/wiki/Sith_Order_(Sith_Empire))
   - **Scourge (pre-war):** found to be Force-sensitive in 3964 BBY, he was sent to Dromund Kaas and enrolled as "a young acolyte". He trained for eight years before a posting in 3956 BBY. [Scourge (Sith) §Early life](https://starwars.fandom.com/wiki/Scourge_(Sith))
   - **Malgus (pre-war, born 3700 BBY):**
@@ -132,7 +132,7 @@ Legends lore reference for SWRPG. Researched Nov 21, 2026. Sources: Wookieepedia
   - **Science Bureau project (c. 3685 BBY):** the Imperial Science Bureau and Imperial Intelligence chose a family and genetically altered a child in the womb. [Imperial Science Bureau (Sith Empire) §History](https://starwars.fandom.com/wiki/Imperial_Science_Bureau_(Sith_Empire))
   - **Non-Force-sensitive children:** no civilian schooling system is described. Citizens were "educated about" the Great Hyperspace War (see Society). [Sith Empire (Post–Great Hyperspace War) §Society and culture](https://starwars.fandom.com/wiki/Sith_Empire_(Post–Great_Hyperspace_War))
 - **Uncertainty:**
-  - [conflict] Academy location for young acolytes. A Dromund Kaas academy is attested for Scourge (3964 BBY) and Malgus (before 3681 BBY), and as part of the Sith Order generally [Sith Academy (Dromund Kaas)](https://starwars.fandom.com/wiki/Sith_Academy_(Dromund_Kaas)); [Sith Order (Sith Empire)](https://starwars.fandom.com/wiki/Sith_Order_(Sith_Empire)). From 3681 BBY, Force-sensitives were sent to Korriban [Sith training §Sith Training under the Empires](https://starwars.fandom.com/wiki/Sith_training); [Korriban §Great Galactic War](https://starwars.fandom.com/wiki/Korriban/Legends). Best fit: both existed during the window, with Korriban the main acolyte academy after 3681 BBY.
+  - [conflict] Academy location for young acolytes. A Dromund Kaas academy is attested for Scourge (3964 BBY) and Malgus (before 3681 BBY), and as part of the Sith Order generally [Sith Academy (Dromund Kaas)](https://starwars.fandom.com/wiki/Sith_Academy_(Dromund_Kaas)); [Sith Order (Sith Empire)](https://starwars.fandom.com/wiki/Sith_Order_(Sith_Empire)). From 3681 BBY, Force-sensitive slaves were sent to Korriban by decree, and from the Cold War every Force-sensitive by law (narrowed in lore batch 12) [Sith training §Sith Training under the Empires](https://starwars.fandom.com/wiki/Sith_training); [Korriban §Great Galactic War](https://starwars.fandom.com/wiki/Korriban/Legends). Best fit: both existed during the window, with Korriban the main acolyte academy after 3681 BBY.
   - [conflict] Malgus's childhood home. He was born on Dromund Kaas [Darth Malgus §Early life](https://starwars.fandom.com/wiki/Darth_Malgus), but raised on an estate with a zoo "on a planet other than Dromund Kaas", and "taken to Dromund Kaas" for the academy [Darth Malgus §Early life](https://starwars.fandom.com/wiki/Darth_Malgus). Best fit: born on Dromund Kaas, raised off-world.
 
 ### Conscription and military life
@@ -300,7 +300,7 @@ Each was checked against Legends pages first.
 - **Avoid before 3653 BBY:** Vaiken Spacedock, public-transit passes (the Cold War system) and the six named hubs.
 
 ## Decisions needed
-1. **Acolyte academy for an Imperial-born child in 3681–3653 BBY:** Dromund Kaas academy (attested pre-war, and in the Sith Order page) vs Korriban (all Force-sensitives sent there after 3681 BBY). Best fit: Korriban for acolytes, with Dromund Kaas as the Sith HQ and possibly a lesser academy.
+1. **Acolyte academy for an Imperial-born child in 3681–3653 BBY:** Dromund Kaas academy (attested pre-war, and in the Sith Order page) vs Korriban (Force-sensitive slaves by decree from 3681 BBY; every Force-sensitive by law from the Cold War, narrowed in lore batch 12). Best fit: Korriban for acolytes, with Dromund Kaas as the Sith HQ and a lesser academy (D-367).
 2. **Kaas City layout for the window:** use the SWTOR Cold War layout (six hubs, Trade Center, plaza) vs attested-only. Best fit: attested-only plus SWTOR places marked "may predate 3653 BBY, unconfirmed".
 3. **Hub 3 office:** Ministry of Travel (Kaas City page) vs Ministry of Logistics (Hub 3 and Ministry pages). Best fit: Logistics.
 4. **Ministry of Logistics HQ:** the Citadel (in the window) vs Ziost's Orbital Defense Command Center (moved there in the Cold War). Best fit: Citadel during the window.

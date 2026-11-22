@@ -76,6 +76,8 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Sith_Academies_Training_OldRepublic.md` | Imperial Sith academies and training (c. 3,681–3,636 BBY), compared with Jedi Civil War Korriban and the Brotherhood of Darkness |
 | `Docs/SWRPG lore/SW_Sith_Training_AllEras_Part1.md` | Sith training and organization from the ancient Sith Empire to the Brotherhood of Darkness (to 1,000 BBY) |
 | `Docs/SWRPG lore/SW_Sith_Training_AllEras_Part2.md` | Sith training and organization from the Rule of Two to the One Sith, and the non-Sith darksiders (1,000 BBY onward) |
+| `Docs/SWRPG lore/SW_Korriban_Academy_Part1.md` | Korriban Academy, Part 1: history, staff, acolytes, trials, graduation (3681–3640 BBY) |
+| `Docs/SWRPG lore/SW_Korriban_Academy_Part2.md` | Korriban Academy, Part 2: layout, dangers, daily life, other eras, timeline |
 
 ## Force potential
 
