@@ -110,3 +110,6 @@ Last updated 2026-11-21.
 |---|---|
 | `Docs/SWRPG lore/SW_SWTOR_Era_Power_Structures_Part1.md` | SWTOR era, Part 1: the Sith Empire (Emperor, Dark Council and Spheres, ministries, Intelligence, Kaggath, military ranks) |
 | `Docs/SWRPG lore/SW_SWTOR_Era_Power_Structures_Part2.md` | SWTOR era, Part 2: the Republic (Chancellors, Senate, military, SIS, Jedi and government), full timeline for both sides |
+| `Docs/SWRPG lore/SW_Great_Galactic_War_Part1.md` | The Great Galactic War, Part 1: 3681–3667 BBY |
+| `Docs/SWRPG lore/SW_Great_Galactic_War_Part2.md` | The Great Galactic War, Part 2: 3666–3660 BBY (the default start year) |
+| `Docs/SWRPG lore/SW_Great_Galactic_War_Part3.md` | The Great Galactic War, Part 3: 3659–3653 BBY, the Sacking and the treaty, plus the who-was-where NPC table |
