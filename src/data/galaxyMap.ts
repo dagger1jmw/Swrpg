@@ -1,7 +1,7 @@
 // The galaxy map for the Old Republic era (lore batch 22, D-402, D-404). The world and route lists are generated from
 // the planets files (galaxyMap.generated.ts); this module holds the curated rulings: which worlds are closed at a date,
 // and to whom (D-402 [5]–[8]). Years are BBY as positive numbers. Control "not on record" stays blank (D-402 [14]).
-// Travel numbers are a design draft awaiting Jared's approval and are not wired into play (D-402 [3]; m7-start-checklist.md).
+// Travel numbers live in travel.config.ts (approved with changes, D-405; the blockade narrowed in D-406).
 import { MENTION_ONLY, OFF_MAP, PLANETS, ROUTES_ATTESTED, ROUTES_UNATTESTED } from './galaxyMap.generated';
 
 export interface MapNode {
@@ -94,4 +94,24 @@ export function closedWorlds(side: MapSide, bby: number): WorldGate[] {
 export function planetByName(name: string): GeneratedPlanet | undefined {
   const n = name.toLowerCase();
   return PLANETS.find((p) => p.name.toLowerCase() === n);
+}
+
+/**
+ * The map worlds on a route (D-406): planets whose route list names it, plus map worlds named as stops in the route's
+ * endpoints text. Names are lower-case.
+ */
+export function worldsOnRoute(route: string): ReadonlySet<string> {
+  const r = route.toLowerCase();
+  const out = new Set(PLANETS.filter((p) => p.routes.some((x) => x.toLowerCase() === r)).map((p) => p.name.toLowerCase()));
+  const text = ROUTES_ATTESTED.find((x) => x.name.toLowerCase() === r)?.endpoints ?? '';
+  // "Bonadan to Imynusoph. ... Stops include D'ian, Lythos, ... and Simpla-12; junctions include ..." -> stop names.
+  const stopsText = text.split(/junctions? include/i)[0] ?? '';
+  const names = new Set(
+    stopsText
+      .split(/,|;|\.\s|\bto\b|\band\b|\bvia\b|stops include|\bthe\b/i)
+      .map((x) => x.trim().replace(/\.$/, '').toLowerCase())
+      .filter(Boolean),
+  );
+  for (const w of [...PLANETS, ...MENTION_ONLY]) if (names.has(w.name.toLowerCase())) out.add(w.name.toLowerCase());
+  return out;
 }

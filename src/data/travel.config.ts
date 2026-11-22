@@ -52,9 +52,22 @@ export const DEFAULT_SHIP = 'commonFreighter';
 export const START_SHIPS: Readonly<Record<string, string>> = { 'underworld-smuggler': 'smugglerShip' };
 
 /**
- * The Hydian Way blockade (D-402 [3], [16]): "between Devaron and the Minos Cluster", read as the grid corridor from
- * Devaron's square (M-13) south to the Minos Cluster (M-20), columns L-N, rows 14-21 (an invented reading of a stretch
- * of space). A trip with one end inside the corridor and one outside crosses the blockade. Mandalorian and Imperial
- * characters pass; running it for anyone else is a story event (the Visz storyline, M8).
+ * The Hydian Way blockade (D-402 [3], [16]; narrowed in D-406). "Between Devaron and the Minos Cluster" is read as the
+ * grid strip from Devaron's square (M-13) south to the Minos Cluster (M-20): columns L-N, rows 14-21 (an invented
+ * reading of a stretch of space). In 3,661-3,660, for anyone but Mandalorians and Imperials:
+ * - refused: a routine trip with an end on the Hydian Way inside the strip, or a trip along the Hydian Way through it
+ *   (both ends Hydian Way worlds, with the strip's rows between them);
+ * - other worlds in the strip are reachable, with the hop time × `detourFactor` (invented) for the detour.
+ * Anyone with an end in the strip gets the narrator's `zoneNote`. Running the blockade is a story event (M8 item 4).
  */
-export const BLOCKADE = { fromBby: 3661, toBby: 3660, columns: ['L', 'M', 'N'], rowFrom: 14, rowTo: 21, passes: ['mandalorians', 'sithEmpire', 'sith'] } as const;
+export const BLOCKADE = {
+  fromBby: 3661,
+  toBby: 3660,
+  route: 'Hydian Way',
+  columns: ['L', 'M', 'N'],
+  rowFrom: 14,
+  rowTo: 21,
+  passes: ['mandalorians', 'sithEmpire', 'sith'],
+  detourFactor: 1.5,
+  zoneNote: 'blockade zone: patrols, shortages, scarce passage',
+} as const;

@@ -1306,3 +1306,13 @@ Spec and decision changes only; no code. Each changed spec's export header lists
     - running the Hydian blockade (the Visz storyline);
     - economy and prices (research due Monday), then medicine and bacta, then droids;
     - species traits and bodies, and separate adult and prime ages (already listed).
+
+- **D-406 The Hydian Way blockade narrowed (Jared, 2026-11-22; overnight run item 1).** Amends D-405 [2]'s blockade reading.
+  - **Refused** (3,661–3,660; Mandalorians and Imperials pass): a routine trip with an end on the Hydian Way inside the strip (grid columns L–N, rows 14–21), or a trip along the Hydian Way through it. The Hydian Way worlds come from the map's route data: planets whose route list names it, plus stops named in the route's endpoints text (`worldsOnRoute`). In the strip that is Eriadu (M-18) and Malastare (N-16).
+  - **Reachable:** the strip's other worlds (for example Sullust, M-17; Eliad, M-20; Thyferra, L-14), with the hop time × 1.5 for the detour (`invented`). Mandalorians and Imperials take no detour.
+  - **The narrator:** a trip with an end in the strip in those years gets a "blockade zone: patrols, shortages, scarce passage" line, whoever travels.
+  - **Unchanged:** the anchor (Coruscant–Alderaan, 10 h in a common freighter); running the blockade stays in M8 (m8-world-checklist.md item 4).
+  - *Defaults taken (reversible, for review):*
+    - [a] "Along the Hydian Way through the strip" means both ends are Hydian Way worlds and the strip's rows lie between them (inclusive); a trip between two non-Hydian worlds whose straight line crosses the strip is not refused, since the map has no routing.
+    - [b] The zone line goes to everyone; the detour only to those who don't pass.
+    - [c] The detour multiplies the hop (before climb-out), like the other hazard factors.

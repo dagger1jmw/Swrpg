@@ -3,8 +3,8 @@
 // location (or a place it is in); the destination is the first targeted place, reference or named place that is on the map.
 // Places not on the map leave the time to the narrator, as before.
 import type { Intent } from '../ai/schemas/intent';
-import { closedWorlds, mapSide, MENTION_ONLY, PLANETS, type MapNode } from '../data/galaxyMap';
-import { DEFAULT_SHIP, HYPERDRIVE_CLASSES, START_SHIPS } from '../data/travel.config';
+import { closedWorlds, mapSide, MENTION_ONLY, PLANETS, worldsOnRoute, type MapNode } from '../data/galaxyMap';
+import { BLOCKADE, DEFAULT_SHIP, HYPERDRIVE_CLASSES, START_SHIPS } from '../data/travel.config';
 import { dateFromAbsDay } from '../engine/calendar';
 import { planTrip, type TravelWorld } from '../engine/travel';
 import { selectCharacter } from '../features/character/selectors';
@@ -21,10 +21,13 @@ export interface TravelOutcome {
   ship: string;
   shipClass: number;
   parts: readonly string[];
+  /** Lines for the narrator about the trip (the blockade zone, D-406). */
+  notes: readonly string[];
 }
 
 const WORLDS: readonly MapNode[] = [...PLANETS, ...MENTION_ONLY];
 const byName = new Map(WORLDS.map((w) => [w.name.toLowerCase(), w]));
+const ON_BLOCKADE_ROUTE = worldsOnRoute(BLOCKADE.route);
 const PATH_FACTION: Readonly<Record<string, string>> = { jedi: 'jediOrder', sith: 'sithEmpire' };
 
 /** The map world a location lies on: the first name in its chain (name, aliases, region) that is a map world. */
@@ -60,17 +63,18 @@ export function planTravel(state: GameState, intent: Intent): TravelOutcome | nu
   const closed = closedWorlds(mapSide(faction), bby).find((g) => g.place.toLowerCase() === dest.name.toLowerCase() || dest.name.toLowerCase().startsWith(`${g.place.toLowerCase()} `));
   const shipId = (c.start && START_SHIPS[c.start.optionId]) ?? DEFAULT_SHIP;
   const ship = HYPERDRIVE_CLASSES[shipId]!;
-  const from: TravelWorld = { name: origin.world.name, region: origin.world.region, grid: origin.world.grid, station: origin.station };
-  const to: TravelWorld = { name: dest.name, region: dest.region, grid: dest.grid };
+  const onRoute = (w: MapNode): boolean => ON_BLOCKADE_ROUTE.has(w.name.toLowerCase());
+  const from: TravelWorld = { name: origin.world.name, region: origin.world.region, grid: origin.world.grid, station: origin.station, onBlockadeRoute: onRoute(origin.world) };
+  const to: TravelWorld = { name: dest.name, region: dest.region, grid: dest.grid, onBlockadeRoute: onRoute(dest) };
   const plan = planTrip({ from, to, bby, faction, shipClass: ship.class, ...(closed ? { closedReason: `${closed.reason}${closed.storyException ? ` (only with a story reason: ${closed.storyException})` : ''}` } : {}) });
   return plan.ok
-    ? { from: from.name, to: to.name, ok: true, hours: plan.hours, ship: ship.name, shipClass: ship.class, parts: plan.parts }
-    : { from: from.name, to: to.name, ok: false, reason: plan.reason, ship: ship.name, shipClass: ship.class, parts: [] };
+    ? { from: from.name, to: to.name, ok: true, hours: plan.hours, ship: ship.name, shipClass: ship.class, parts: plan.parts, notes: plan.notes }
+    : { from: from.name, to: to.name, ok: false, reason: plan.reason, ship: ship.name, shipClass: ship.class, parts: [], notes: [] };
 }
 
 /** The narrator's line for a trip (the time is the engine's; the numbers are invented, D-405). */
 export function describeTravel(t: TravelOutcome): string {
   return t.ok
-    ? `Travel: ${t.from} to ${t.to} takes ${t.hours} hours in ${t.ship} (Class ${t.shipClass}); that time has passed. Narrate the journey and the arrival.`
+    ? `Travel: ${t.from} to ${t.to} takes ${t.hours} hours in ${t.ship} (Class ${t.shipClass}); that time has passed.${t.notes.map((n) => ` ${n.charAt(0).toUpperCase()}${n.slice(1)}.`).join('')} Narrate the journey and the arrival.`
     : `Travel refused: ${t.from} to ${t.to}: ${t.reason}. The character has not made the trip; narrate why not.`;
 }

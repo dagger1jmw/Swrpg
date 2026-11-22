@@ -200,7 +200,8 @@ Not contradicted, and kept: `sithEmpire` power 72 and morale 68 with "Rim Campai
   **Approved with changes and built (D-405 [2]).**
   - **Engine:** src/engine/travel.ts, with the numbers in src/data/travel.config.ts (all `invented`).
   - **In play:** src/turn/travel.ts. A "travel" intent between two map worlds takes the engine's time, which then passes; the narrator gets a "Travel:" line.
-  - **Refused:** a trip to a world closed to the character's side, or a routine trip across the blockade. No time passes.
+  - **Refused:** a trip to a world closed to the character's side, or (3,661–3,660) a routine trip to a Hydian Way world inside the blockade strip, or along the Hydian Way through it. No time passes.
+  - **The blockade zone (D-406):** the strip's other worlds (Sullust, Eliad, Thyferra) are reachable with the hop time × 1.5 for the detour (`invented`); the narrator gets a "blockade zone: patrols, shortages, scarce passage" line. Mandalorians and Imperials pass without the detour.
   - **Places not on the map** leave the time to the narrator.
   - **The ship:** a common freighter (Class 2) until ships are data in M8; the smuggler start flies a modified ship (Class 1.5).
 
