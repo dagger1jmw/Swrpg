@@ -173,3 +173,33 @@ civilian archetypes need.
    weights normalize to the 0.25 share.
 3. The age row and rust row used for each skill match its category.
 4. Unknown skill or activity ids are rejected (no alias fallback).
+
+## 7. Stat bands (added by D-423)
+The game's progression is the reference scale. Each band says roughly what a level means, from
+the calibration profiles (progression-targets §2) and the closed-form lines by archetype and age
+(no talent unless stated; "gifted" = x1.25 pace, "ceiling" = prodigy in every domain). Canon
+sheets are converted into this scale (src/data/canon/sheetScale.ts). Bands are guides, not
+gates; a figure's archetype focus decides which stats reach the high bands.
+
+| Stat | 40 | 60 | 80 | 100 | 120 |
+|---|---|---|---|---|---|
+| Lightsaber forms (highest) | a new Knight (Average at 20) | a Master-level duelist (Average at 36, Obi-Wan at 25) | the elite of an era (Average at 57, Anakin at 22) | legendary (Anakin at 29, Average at 82) | apex: beyond the 4.0x ceiling's reach at 60 (Yoda, Sidious) |
+| Force Control | Knight-level control (Knight minimum 34 at 20; Average Guardian at 27) | a strong Master (Average Guardian at 65; Luke at 33) | an elite Force user (Luke at 42) | legendary (Luke at 53) | apex (Luke about 116 at 62) |
+| Force Sense | a seasoned Knight (Average at 37) | a Master's senses (Average at 70; gifted at 60) | a seer (a Force-focused prodigy, late in life) | legendary foresight | apex |
+| Force Output | a Lord's raw power (Sith Warrior at 40 has 30) | a powerful Lord (Sith Warrior at 70) | a dark-side specialist in its prime (Sith Inquisitor's main) | legendary power (an Inquisitor elder) | apex (Vitiate) |
+| Willpower | an untrained adult tops out near 35; a Padawan in training | a new Knight (53-61 at 20-25) | a Master at 40 (Average 80) | an elder Jedi at 60 (Average 102) | an elder at 80 (Average 119) |
+| Meditation | a devoted contemplative (Consular at 45) | a master of meditation (a Consular's prime, gifted) | rare: a lifelong contemplative prodigy | legendary | apex |
+| Force Knowledge | a scholar-Knight (Consular at 30) | a Consular Master at 40 | an Archive master (Consular at 50) | a Consular elder (Average at 60) | the Order's loremasters (Consular at 80) |
+| Intelligence | an educated professional (civilian at 40) | an expert (civilian at 60) | brilliant (a gifted specialist's prime) | genius | apex |
+| Tactics | an experienced officer (soldier at 52) | a general (soldier at 80; gifted at 65) | a brilliant strategist | legendary | apex |
+| Blaster / melee | a trained soldier (soldier at 32) | a veteran (soldier at 46) | an elite marksman or blade (soldier at 63) | legendary (soldier at 80+) | apex |
+| Strength, Agility, Endurance (trained level) | a fit, trained adult (a Jedi Knight) | an elite athlete or soldier (soldier Agility at 60) | the Human body cap (80, sec 11 of progression-numbers) | only with species or the Force boost | apex (Force-augmented) |
+| Charisma | a practiced speaker (civilian at 70) | a leader | a famed orator | legendary presence | apex |
+
+Notes:
+- Force Knowledge and Meditation reach the high bands only for figures whose archetype studies
+  them (the Consular); Guardians, Sentinels and Sith Warriors stay near 10-25 for life, because
+  their only source is the Initiate's Force Lore hour (D-423 diagnosis; XP-source proposals in
+  docs-v2/reports/calibration-2026-11-22.md §4, held for review).
+- Intelligence, Charisma and Tactics have no natural baseline and no Order source: a Jedi or Sith
+  stays at 0 in them unless the player studies.

@@ -11,7 +11,7 @@ import { RANK_PHASE } from '../data/rankMinimums';
 import { SPECIES, speciesDef, speciesOfferedAt } from '../data/species';
 import { dateFromAbsDay } from '../engine/calendar';
 import { humanEquivalentAge, speciesAgeFromHuman } from '../engine/species';
-import { computeCreation, defaultFocus, DEFAULT_FORM_PLAN, PADAWAN_PLAN_HOURS, ranksFor, talentCost, type CreationInput } from '../features/character/selectors';
+import { computeCreation, defaultFocus, defaultFormPlan, DEFAULT_FORM_PLAN, PADAWAN_PLAN_HOURS, ranksFor, talentCost, type CreationInput } from '../features/character/selectors';
 import { el, input } from './dom';
 import { formPlanEditor } from './formPlanEditor';
 
@@ -252,6 +252,12 @@ export function creationForm(): CreationForm {
     refresh();
   });
   for (const n of [rank, path, archetype]) n.addEventListener('change', renderPlans);
+  // The archetype's default form plan (D-423: Sith Warriors Djem So and Shien, Inquisitors Makashi and Niman).
+  archetype.addEventListener('change', () => {
+    padawanPlan.set(defaultFormPlan(archetype.value));
+    knightPlan.set(defaultFormPlan(archetype.value));
+    refresh();
+  });
 
   const renderBypass = (): void => {
     bypassBox.replaceChildren();

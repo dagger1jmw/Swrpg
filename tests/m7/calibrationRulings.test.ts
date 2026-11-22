@@ -134,7 +134,7 @@ describe('the data rulings (D-417, D-421, D-422)', () => {
     expect(canon('nico-okarr').archetype).toBe('smuggler');
   });
   it('hand-set lines: Karagga (a Hutt crime lord), Oteg (Yoda\'s species, among the Council Masters), Ragate (in the roster)', () => {
-    const k = canon('karagga-the-unyielding').anchors[0]!.levels;
+    const k = canon('karagga-the-unyielding').anchors[0]!.authored!;
     expect(k['strength']!).toBeGreaterThan(100);
     expect(k['agility']!).toBeLessThan(20);
     expect(canon('oteg').speciesId).toBe('yodasSpecies');
@@ -145,5 +145,26 @@ describe('the data rulings (D-417, D-421, D-422)', () => {
     expect(LOADOUT_BY_ARCHETYPE['warrior']?.weapon).toBe('melee');
     for (const id of ['khem-val', 'broonmark', 'mandalore-the-lesser']) expect(canon(id).archetype, id).toBe('warrior');
     expect(rollNpcInputs({ campaignSeed: 's', npcId: 'npc:x', role: 'bountyHunter', faction: 'independent', age: 30, year: -3661, species: 'talz' }).archetype).toBe('warrior');
+  });
+});
+
+describe('the stat scale (D-423)', () => {
+  it('hand-set sheets load in the game scale, stat by stat, the authored numbers kept; no factor inflates', async () => {
+    const { SHEET_TO_GAME, sheetFactor } = await import('../../src/data/canon/sheetScale');
+    for (const f of Object.values(SHEET_TO_GAME)) expect(f).toBeLessThanOrEqual(1);
+    const malgus = canon('darth-malgus').anchors[0]!;
+    expect(malgus.scale).toBe('game');
+    expect(malgus.levels['djemSo']).toBeCloseTo(malgus.authored!['djemSo']! * sheetFactor('djemSo'), 1);
+    expect(malgus.levels['forceKnowledge']).toBeCloseTo(malgus.authored!['forceKnowledge']! * 0.28, 1);
+    expect(sheetFactor('juyo')).toBe(SHEET_TO_GAME['$forms']);
+    expect(sheetFactor('forceChoke')).toBe(SHEET_TO_GAME['$abilities']);
+  });
+  it('the Sith no longer default to Soresu: Warriors Djem So and Shien, Inquisitors Makashi and Niman', async () => {
+    const { defaultFormPlan } = await import('../../src/features/character/creation');
+    expect(defaultFormPlan('sithWarrior')).toEqual({ djemSo: 2, shien: 1 });
+    expect(defaultFormPlan('sithInquisitor')).toEqual({ makashi: 2, niman: 1 });
+    expect(defaultFormPlan('jediGuardian')).toEqual({ soresu: 2, ataru: 1 });
+    const line = (await import('../../src/features/npcs/selectors')).canonProgressionLineAt(canon('darth-vindican'), 3681, at(-3681));
+    expect((line['djemSo'] ?? 0)).toBeGreaterThan(line['soresu'] ?? 0);
   });
 });

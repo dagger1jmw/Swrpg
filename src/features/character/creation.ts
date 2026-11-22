@@ -122,6 +122,16 @@ export function talentCost(t: Partial<Record<TalentDomain, TalentLevel>>): numbe
 
 /** The Average's Padawan form plan (D-118): main Soresu 2 h with the master, second Ataru 1 h solo. */
 export const DEFAULT_FORM_PLAN: Readonly<Record<string, number>> = { soresu: 2, ataru: 1 };
+/**
+ * Sith default form plans (Jared, D-423: the Sith should not default to Soresu). From the hand-set Sith sheets' leading
+ * forms: Warriors Djem So and Shien (6 of 7 sheets), Inquisitors Makashi, with Niman beside it (Vitiate's sheet).
+ */
+export const DEFAULT_FORM_PLAN_BY_ARCHETYPE: Readonly<Record<string, Readonly<Record<string, number>>>> = {
+  sithWarrior: { djemSo: 2, shien: 1 },
+  sithInquisitor: { makashi: 2, niman: 1 },
+};
+/** An archetype's default Padawan form plan. */
+export const defaultFormPlan = (archetype: string): Readonly<Record<string, number>> => DEFAULT_FORM_PLAN_BY_ARCHETYPE[archetype] ?? DEFAULT_FORM_PLAN;
 /** Hours of the Padawan form plan: the 2 h master session + the 1 h solo hour. */
 export const PADAWAN_PLAN_HOURS = 3;
 
@@ -205,7 +215,7 @@ export function computeCreation(input: CreationInput): CreationResult {
   if (!(hStartIn >= lo - 1e-9 && hStartIn <= hi + 1e-9)) errors.push(`Training start age must be ${lo}-${hi} (Human-equivalent) for this path.`);
   if (input.trainingStartAge > age) errors.push('Training cannot start after the campaign start.');
   if (!input.ignoreTalentLimit && !input.npc && talentCost(input.talents) > TALENT_POINTS) errors.push(`Talents cost ${talentCost(input.talents)} points; the limit is ${TALENT_POINTS}.`);
-  const padawanPlan: Record<string, number> = { ...(input.padawanPlan ?? DEFAULT_FORM_PLAN) };
+  const padawanPlan: Record<string, number> = { ...(input.padawanPlan ?? defaultFormPlan(input.archetype)) };
   const knightPlan: Record<string, number> = { ...(input.knightPlan ?? padawanPlan) };
   for (const [name, plan] of [
     ['Padawan', padawanPlan],
