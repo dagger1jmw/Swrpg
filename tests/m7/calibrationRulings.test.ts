@@ -12,7 +12,8 @@ import { absDayFromDate } from '../../src/engine/calendar';
 import { canonOffBoard, canonRankAt } from '../../src/engine/canonRoster';
 import { xpForLevel } from '../../src/engine/curve';
 import { rollNpcInputs } from '../../src/engine/npcGen';
-import { conditionedCap, conditionedM, forceRichSiteAt } from '../../src/engine/speed';
+import { conditionedCap, conditionedM } from '../../src/engine/speed';
+import { FORCE_NEXUSES, forceRichWorldAt, nexusSitesAt } from '../../src/data/forceNexus';
 import { selectNpcLevels } from '../../src/features/npcs/selectors';
 import { selectTrainingConditions } from '../../src/features/progression/training';
 import { planDay } from '../../src/features/routines/scheduler';
@@ -52,10 +53,14 @@ describe('the accelerated path and Force-rich places (D-418)', () => {
     expect(conditionedCap(100, 'meditation', true)).toBe(100);
     expect(conditionedCap(100, 'djemSo', false)).toBe(100);
   });
-  it('Dagobah, Tython and Korriban are Force-rich; Coruscant is not (only its Temple)', () => {
-    expect(forceRichSiteAt(['Dagobah'])?.kind).toBe('livingForce');
-    expect(forceRichSiteAt(['Coruscant'])).toBeNull();
-    expect(forceRichSiteAt(['Jedi Temple', 'Coruscant'])?.kind).toBe('lightNexus');
+  it('D-425: Force-rich worlds and nexus planets count; sites are data only (the Temple, the Valley, the cave)', () => {
+    expect(forceRichWorldAt(['Dagobah'])?.nexus).toBe(false);
+    expect(forceRichWorldAt(['Korriban'])?.leaning).toBe('dark');
+    expect(forceRichWorldAt(['Coruscant'])).toBeNull();
+    expect(forceRichWorldAt(['Jedi Temple', 'Coruscant'])).toBeNull();
+    expect(forceRichWorldAt(['Byss'], -3661)).toBeNull();
+    expect(nexusSitesAt(['Valley of the Dark Lords', 'Korriban']).map((n) => n.id)).toEqual(['valley-of-the-dark-lords']);
+    for (const n of FORCE_NEXUSES) expect(n.source, n.id).toBeTruthy();
     expect(selectTrainingConditions(goTo(fresh(-3661), 'Tython', 'Deep Core')).forceRich).toBe(true);
   });
   it('the accelerated path drops the Order knowledge block from an Initiate day (Force Lore), and the event switches it back', () => {

@@ -3751,7 +3751,7 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "title": "Supreme Commander",
         "fromBby": 3653,
         "toBby": 3653,
-        "source": "Supreme Commander of the Republic military: in office at the Sacking (SW_Characters_09_GGW_ColdWar_Part3a, Rans: \"totally outplayed\" by the Sith plan; 3653 status); D-421"
+        "source": "Supreme Commander of the Republic military: in office at the Sacking (SW_Characters_09_GGW_ColdWar_Part3a, Rans: \"totally outplayed\" by the Sith plan; 3653 status); D-421; conflicts with Stantorrs Supreme Commander c. 3,643, replaced by Rans (Part3a uncertainty 1): both kept as recorded (D-425)"
       },
       {
         "role": "officer",

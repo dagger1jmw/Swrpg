@@ -217,7 +217,7 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
   {
     // Jared, D-422: the non-Force melee fighter (Mandalorian blade-fighters, Talz, Dashade, arena gladiators). The Yuuzhan
     // Vong warrior's measured paces (the soldier's, with melee in place of the blaster; D-224), so no new pace is
-    // invented; heavier on the body than the soldier in its weights. Not a player archetype yet; NPCs only.
+    // invented; heavier on the body than the soldier in its weights. Offered at character creation for non-Force melee paths (D-425).
     id: 'warrior',
     name: 'Warrior (melee)',
     path: 'career',
@@ -293,7 +293,7 @@ export const PATH_ARCHETYPES: Record<CharacterPath, readonly string[]> = {
   jedi: ['jediGuardian', 'jediConsular', 'jediSentinel'],
   sith: ['sithWarrior', 'sithInquisitor'],
   outsider: ['jediGuardian', 'jediConsular', 'jediSentinel'],
-  career: ['soldier', 'mandalorian', 'smuggler', 'bountyHunter', 'civilian'],
+  career: ['soldier', 'mandalorian', 'warrior', 'smuggler', 'bountyHunter', 'civilian'],
 };
 /**
  * Archetypes that only generated NPCs take (not on the creation form), by path (D-246). Creation accepts them for an NPC
@@ -303,7 +303,7 @@ export const NPC_ARCHETYPES: Record<CharacterPath, readonly string[]> = {
   jedi: [],
   sith: [],
   outsider: [],
-  career: ['yuuzhanVongWarrior', 'warrior'],
+  career: ['yuuzhanVongWarrior'],
 };
 
 /** Training start range per path (character-creation §1); outsiders may start late, like Luke. */

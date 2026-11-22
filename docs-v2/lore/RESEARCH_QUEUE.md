@@ -174,3 +174,8 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 - **Sith training, all eras:** SW_Sith_Training_AllEras_Part1.md and Part2.md (2026-11-21; decisions D-308..D-318, D-320).
 - **The dark side: fall, corruption and redemption, all eras** (was a gap; alignment-m6.md was written partly from memory): SW_DarkSide_Fall_Corruption_Redemption_Part1.md to Part3.md (2026-11-21). Audited against alignment-m6.md in docs-v2/testing/alignment-lore-audit.md (22 findings, report only).
 - Also added in the same batch: Jedi Order ranks and Council, Jedi daily life, Sith academies, lightsabers and materials, weapons and armour.
+
+## Force nexuses (D-425, 2026-11-22)
+- Dagobah as a Force-rich world (teeming with life) and the dark-side cave as a nexus site: Jared's ruling from Legends (The Empire Strikes Back); not yet in the lore files. Wanted: a cited entry (planet and site, leaning).
+- Ilum: listed as a light nexus in force-reserve.md §9 but not in the lore files; left out of src/data/forceNexus.ts until cited.
+- The Coruscant Jedi Temple's leaning (the lore gives "a Force nexus holy to the native Coruscanti", leaning unstated; light is inferred).

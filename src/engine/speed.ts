@@ -1,5 +1,5 @@
 // Speed multiplier M (progression-numbers §5, §17; D-21, D-64) and the state-of-mind multiplier. Pure.
-import { ACCELERATED_PATH, CROSS_TALENT, FORCE_RICH_FACTOR, FORCE_RICH_SITES, GRIEF_MULT, M_CAP, STATE_MULT, TALENT_MULT, type StateOfMind, type TalentLevel } from '../data/progression.config';
+import { ACCELERATED_PATH, CROSS_TALENT, FORCE_RICH_FACTOR, GRIEF_MULT, M_CAP, STATE_MULT, TALENT_MULT, type StateOfMind, type TalentLevel } from '../data/progression.config';
 import { CATEGORY_RULES, SKILL_BY_ID, type TalentDomain } from '../data/skills';
 
 export type Talents = Partial<Record<TalentDomain, TalentLevel>>;
@@ -101,9 +101,3 @@ export function conditionedM(m: number, skillId: string, c: { forceRich: boolean
 
 /** The 4.0x clamp's cap with the accelerated path (D-418): raised x capMult for its skills, unchanged otherwise. */
 export const conditionedCap = (cap: number, skillId: string, accelerated: boolean): number => (accelerated && isAcceleratedSkill(skillId) ? cap * ACCELERATED_PATH.capMult : cap);
-
-/** The Force-rich site at any of these place names (a location and its ancestors), if any. */
-export function forceRichSiteAt(placeNames: readonly string[]): (typeof FORCE_RICH_SITES)[number] | null {
-  const norm = (x: string): string => ` ${x.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim()} `;
-  return FORCE_RICH_SITES.find((site) => placeNames.some((n) => norm(n).includes(norm(site.place)))) ?? null;
-}

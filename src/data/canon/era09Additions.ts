@@ -2129,7 +2129,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Torian Cadera",
     speciesId: "human",
     faction: "independent",
-    archetype: "bountyHunter",
+    archetype: "warrior",
     birthBby: 3660,
     birthSource: "lore",
     facts: {
@@ -2139,13 +2139,14 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       source: "SW_Characters_09_GGW_ColdWar_Part3b.md › Other Mandalorians and the Grand Champion's circle"
     },
     anchors: [],
+    note: "warrior archetype: their melee fighting is the SWTOR portrayal (Torian's techstaff, Akaavi's vibrosword), not stated in the lore files (D-425)",
   },
   {
     canonId: "lore:akaavi-spar",
     name: "Akaavi Spar",
     speciesId: "zabrak",
     faction: "independent",
-    archetype: "bountyHunter",
+    archetype: "warrior",
     birthBby: 3670,
     birthSource: "lore",
     facts: {
@@ -2155,6 +2156,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       source: "SW_Characters_09_GGW_ColdWar_Part3b.md › Other Mandalorians and the Grand Champion's circle"
     },
     anchors: [],
+    note: "warrior archetype: their melee fighting is the SWTOR portrayal (Torian's techstaff, Akaavi's vibrosword), not stated in the lore files (D-425)",
   },
   {
     canonId: "lore:dao-stryver",

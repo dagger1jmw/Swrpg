@@ -30,8 +30,9 @@ import { instructionFactor } from '../../engine/instruction';
 import { clampCredit, clampShare, inWindow, paceCap } from '../../engine/paceClamp';
 import type { RngState } from '../../engine/rng';
 import { humanEquivalentAge, speciesLearning } from '../../engine/species';
-import { conditionedCap, conditionedM, crossTalentMult, forceRichSiteAt, isChannelEligible, speedM, stateMult, talentMult } from '../../engine/speed';
+import { conditionedCap, conditionedM, crossTalentMult, isChannelEligible, speedM, stateMult, talentMult } from '../../engine/speed';
 import { selectCurrentLocationId, selectLocationChain } from '../locations/selectors';
+import { forceRichWorldAt } from '../../data/forceNexus';
 import { speciesDef } from '../../data/species';
 import type { GameState } from '../../state/gameState';
 import type { GameEvent } from '../../state/types';
@@ -268,8 +269,8 @@ export function speedFor(s: GameState, instruction: number): (skill: string) => 
 /** The special training conditions in force now (D-418): the accelerated path, and a Force-rich place. */
 export function selectTrainingConditions(s: GameState): { accelerated: boolean; forceRich: boolean; site: string | null } {
   const names = selectLocationChain(s, selectCurrentLocationId(s)).flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean));
-  const site = forceRichSiteAt(names);
-  return { accelerated: selectCharacter(s).trainingPath === 'accelerated', forceRich: site !== null, site: site?.place ?? null };
+  const site = forceRichWorldAt(names, dateFromAbsDay(selectNow(s).day).year);
+  return { accelerated: selectCharacter(s).trainingPath === 'accelerated', forceRich: site !== null, site: site?.name ?? null };
 }
 
 /** Reviewing a recording of one's own fight: +5% XP to that skill for 3 days (progression-numbers §19, D-154). */

@@ -353,20 +353,10 @@ export const RECORDING_REVIEW_BONUS = 0.05;
 
 // ---- Special training conditions (D-418; progression-numbers §21) ----
 /**
- * Force-rich places (force-reserve.md §9 site types; the training effect is invented, D-418): Force skills (the Force
- * stats and abilities) train x FORCE_RICH_FACTOR there, inside the 2.8 M cap and the 4.0x clamp. Matched against the
- * names of the current location and its ancestors.
+ * Force-rich worlds (D-418, D-425; src/data/forceNexus.ts): Force skills (the Force stats and abilities) train x this on a
+ * Force-rich world or a nexus planet, inside the 2.8 M cap and the 4.0x clamp. Invented. Lore basis (Jared): on a
+ * Force-rich world you feel the Force more strongly, so you progress faster while using it there.
  */
-export const FORCE_RICH_SITES: readonly { place: string; kind: 'lightNexus' | 'darkNexus' | 'livingForce' }[] = [
-  { place: 'Tython', kind: 'lightNexus' },
-  { place: 'Ilum', kind: 'lightNexus' },
-  { place: 'Jedi Temple', kind: 'lightNexus' },
-  { place: 'Korriban', kind: 'darkNexus' },
-  { place: 'Dromund Kaas', kind: 'darkNexus' },
-  { place: 'Malachor V', kind: 'darkNexus' },
-  // Living Force world with a dark-side cave nexus (Legends: Dagobah, the Cave of Evil).
-  { place: 'Dagobah', kind: 'livingForce' },
-];
 export const FORCE_RICH_FACTOR = 1.1;
 /**
  * The accelerated path (Jared, D-418): training cut to using and channelling the Force and blade work; history, protocol
