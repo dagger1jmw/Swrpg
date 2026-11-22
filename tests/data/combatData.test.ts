@@ -193,32 +193,32 @@ describe('canon roster by campaign date (D-155)', () => {
   const why = (name: string, bby: number) => canonAbsence(CANON_NPCS.find((c) => c.name === name)!, bby);
   it('3,681 BBY, before Korriban falls: Kao Cen Darach, Padawan Satele, apprentice Malgus and Vindican; no Theron or Hero of Tython', () => {
     const at = names(3681);
-    for (const n of ['Kao Cen Darach', 'Satele Shan', 'Darth Malgus', 'Darth Vindican', 'Grand Master Zym', 'Jace Malcom']) expect(at, n).toContain(n);
+    for (const n of ['Kao Cen Darach', 'Satele Shan', 'Darth Malgus', 'Darth Vindican', 'Zym', 'Jace Malcom']) expect(at, n).toContain(n);
     expect(canonRoleAt(CANON_NPCS.find((c) => c.name === 'Satele Shan')!, 3681)).toBe('padawan');
     expect(canonRoleAt(CANON_NPCS.find((c) => c.name === 'Darth Malgus')!, 3681)).toBe('sithAcolyte');
     expect(why('Theron Shan', 3681)).toBe('unborn');
-    expect(why('The Hero of Tython', 3681)).toBe('unborn');
+    expect(why('Hero of Tython', 3681)).toBe('unborn');
     expect(why('Aric Jorgan', 3681)).toBe('unborn');
     expect(why('Revan', 3681)).toBe('unavailable');
   });
   it('3,653 BBY, the Sacking: Zym and Ven Zallow (their death year), Malgus; Kao Cen and Vindican dead, Dread Masters imprisoned, Theron too young', () => {
     const at = names(3653);
-    for (const n of ['Grand Master Zym', 'Ven Zallow', 'Darth Malgus', 'Satele Shan', 'Shae Vizla']) expect(at, n).toContain(n);
+    for (const n of ['Zym', 'Ven Zallow', 'Darth Malgus', 'Satele Shan', 'Shae Vizla']) expect(at, n).toContain(n);
     expect(why('Kao Cen Darach', 3653)).toBe('dead');
     expect(why('Darth Vindican', 3653)).toBe('dead');
-    expect(why('The Dread Masters', 3653)).toBe('unavailable');
+    expect(why('Dread Masters', 3653)).toBe('unavailable');
     expect(why('Theron Shan', 3653)).toBe('tooYoung');
   });
   it('3,640 BBY, the Galactic War: Hero of Tython, Theron, Marr and Revan; Zym and Ngani Zho dead', () => {
     const at = names(3640);
-    for (const n of ['The Hero of Tython', 'Theron Shan', 'Darth Marr', 'Revan', 'Satele Shan']) expect(at, n).toContain(n);
-    expect(why('Grand Master Zym', 3640)).toBe('dead');
-    expect(why('Master Ngani Zho', 3640)).toBe('dead');
-    expect(why('Darth Baras', 3640)).toBe('dead');
+    for (const n of ['Hero of Tython', 'Theron Shan', 'Darth Marr', 'Revan', 'Satele Shan']) expect(at, n).toContain(n);
+    expect(why('Zym', 3640)).toBe('dead');
+    expect(why('Ngani Zho', 3640)).toBe('dead');
+    expect(why('Darth Baras', 3639)).toBe('dead'); // died 3,640 BBY (lore batch 19): present in his death year
   });
-  it('Aric Jorgan (born ~3,675) is never an active soldier before 3,657', () => {
-    expect(why('Aric Jorgan', 3658)).toBe('tooYoung');
-    expect(why('Aric Jorgan', 3657)).toBeNull();
+  it('Aric Jorgan (born 3,673, lore batch 19) is never an active soldier before 3,655', () => {
+    expect(why('Aric Jorgan', 3656)).toBe('tooYoung');
+    expect(why('Aric Jorgan', 3655)).toBeNull();
   });
 });
 

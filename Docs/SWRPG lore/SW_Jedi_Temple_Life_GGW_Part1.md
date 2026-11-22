@@ -39,7 +39,7 @@ Most of the familiar day-to-day detail of Jedi life (clans, refectories, braids,
     - Dar'Nala "was identified as Force-sensitive and taken into the Jedi Order" [Dar'Nala §The Great Galactic War](https://starwars.fandom.com/wiki/Dar%27Nala).
   - **Wartime child recruit:** Syo Bakarn (born c. 3678 BBY, Corellia) was "taken from his homeworld" once the Order discovered his Force-sensitivity. He had earlier been abducted as an infant by the Emperor's Hand, processed at the Korriban academy as the first "Child of the Emperor", and returned to his parents with no memory of it [Syo Bakarn §Seeds planted](https://starwars.fandom.com/wiki/Syo_Bakarn); [Children of the Emperor](https://starwars.fandom.com/wiki/Children_of_the_Emperor).
   - **Older recruits:**
-    - Jaric Kaedan was "discovered by the Jedi Order at the age of twelve" and trained by Ngani Zho [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan). He was born "sometime before the year 3691 BBY", so he was recruited before c. 3679 BBY [inferred from dates]. Whether that was before or during the war is [unclear].
+    - Jaric Kaedan was "discovered by the Jedi Order at the age of twelve" and trained by Ngani Zho [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan). He was born "sometime before the year 3691 BBY" (page text); his infobox says "before 3680 BBY". The two bounds are compatible (lore batch 19). So he was recruited before c. 3679 BBY [inferred from dates]. Whether that was before or during the war is [unclear].
     - Shol Bestros, a Miraluka born "several years before" 3681 BBY, "turned his back on the Jedi Order" until Battlemaster Kao Cen Darach convinced him as a youth to join. He later reached the High Council [Shol Bestros §Biography](https://starwars.fandom.com/wiki/Shol_Bestros); [Kao Cen Darach §Career as a Jedi](https://starwars.fandom.com/wiki/Kao_Cen_Darach).
   - **Long-lived species:** Oteg was educated by the Order "two centuries before the start" of the war [Oteg §Biography](https://starwars.fandom.com/wiki/Oteg).
   - **Wartime acceleration:** no source says the Order lowered or raised its age limits, or took more older recruits, because of the war [Not found]. The only older cases (Kaedan, Bestros) predate or straddle 3681 BBY.
@@ -184,7 +184,7 @@ Rows marked **GGW file** are already placed by period in SW_Great_Galactic_War_P
 
 | Name | Species | Rank/role in window | Key dates | Where | Citation |
 |---|---|---|---|---|---|
-| Zym | Kel Dor | Grand Master | to 3653 BBY | off Coruscant during the Sacking; linked to the Alderaan delegation (3653 BBY) | [Zym §Biography](https://starwars.fandom.com/wiki/Zym) (GGW file) |
+| Zym | Kel Dor | Grand Master | to 3653 BBY | off Coruscant during the Sacking; linked to the Alderaan delegation (3653 BBY); died afterwards in the ruins, killed by the bounty hunter Braden (ruling 1 (lore batch 19)) | [Zym §Biography](https://starwars.fandom.com/wiki/Zym) (GGW file) |
 | Belth Allusis | Human | High Council; commander at Bothawui | killed 3671 BBY | F | [Belth Allusis](https://starwars.fandom.com/wiki/Belth_Allusis); [Jedi High Council/Legends §Known members](https://starwars.fandom.com/wiki/Jedi_High_Council/Legends) |
 | Shol Bestros | Miraluka | Master by c. 3681 BBY; later High Council | — | C (mentor at the Temple) | [Shol Bestros §Biography](https://starwars.fandom.com/wiki/Shol_Bestros) |
 | Ngani Zho | Human | Master; trainer of many | to 3653 BBY (disappeared at the treaty) | raising Theron (from c. 3666 BBY) | [Ngani Zho §Great Galactic War](https://starwars.fandom.com/wiki/Ngani_Zho); [Ngani Zho §Cold War](https://starwars.fandom.com/wiki/Ngani_Zho) |
@@ -301,7 +301,7 @@ Each was checked against Legends pages first (rule 3):
 2. **Satele's Knighthood:** completed under Darach (Darach page) vs some Trials in 3681 BBY and finished under Dar'Nala (Satele and Dar'Nala pages). Best fit: under Dar'Nala, before 3667 BBY.
 3. **Invented Temple rooms:** any room not on record stays `invented` (layout rule). Confirm.
 4. **Devaron strike outcome:** wiped out (Battle near Devaron) vs defeated and retreated to Devaron (Great Galactic War page). Best fit: heavy losses, survivors retreated.
-5. **Council deaths in 3653 BBY:** six members (Sacking page) vs "half of the Council, including Zym" (High Council page). Best fit: six in the Sacking, Zym afterward.
+5. **Council deaths in 3653 BBY:** six members (Sacking page) vs "half of the Council, including Zym" (High Council page). Best fit: six in the Sacking, Zym afterward, killed by the bounty hunter Braden (lore batch 19).
 6. **Recruitment age:** children (most cases) vs at twelve (Kaedan) vs youth (Bestros). Best fit: normally young, with older exceptions allowed.
 7. **Corellian academy in the window:** existed by 3653 BBY, founding date unknown. Best fit: include it, tagged [unclear].
 8. **Malachor III date:** "around the time of the Great Galactic War". Best fit: mid-war, unfixed.

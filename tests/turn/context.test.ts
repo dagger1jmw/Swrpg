@@ -36,7 +36,7 @@ const world = (): GameState =>
     { type: 'npcIntroduced', key: 'tmp:4', name: 'Master Orren Vash', species: 'human', faction: 'jediOrder', role: 'jediMaster', description: 'Patient.' },
     { type: 'factLearned', aboutRef: 'tmp:4', fact: 'Orren lost his first apprentice at Alderaan.', importance: 'major' },
     { type: 'threadOpened', key: 'tmp:5', title: 'The missing holocron', stakes: 'Trust', entityRefs: ['tmp:4'] },
-    { type: 'npcCanonLinked', npcRef: 'tmp:3', canonId: 'lore:grand-master-zym' },
+    { type: 'npcCanonLinked', npcRef: 'tmp:3', canonId: 'lore:zym' },
   ].filter((e) => e.type !== 'npcCanonLinked')) as GameState;
 const opts = { model: 'm', ratio: 4 };
 const est = makeEstimator(4);
@@ -66,7 +66,7 @@ describe('request builder (architecture §5)', () => {
     expect(text).toContain('Orren lost his first apprentice at Alderaan.');
     expect(text).toContain('LORE (Star Wars Legends, true at this date)');
     expect(text).toContain('Blockade of the Hydian Way begins');
-    expect(text).toContain('descendant of the legendary Revan and Bastila Shan');
+    expect(text).toContain('descended from Revan and Bastila Shan');
     expect(text).not.toContain('Blockade broken');
     const mem = req.report.sections.find((x) => x.name === 'memory')!;
     expect(mem.included.find((i) => i.id === 'fact:1')!.note).toContain('npc:orren-vash');

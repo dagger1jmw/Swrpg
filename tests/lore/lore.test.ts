@@ -60,7 +60,7 @@ describe('lore parsing', () => {
     const satele = built.chunks.find((c) => c.canonId === 'lore:satele-shan' && c.kind === 'character')!;
     expect(satele.fromYear).toBeLessThanOrEqual(-3661);
     expect(satele.toYear).toBeGreaterThanOrEqual(-3661);
-    expect(satele.text).toContain('descendant of the legendary Revan and Bastila Shan');
+    expect(satele.text).toContain('descended from Revan and Bastila Shan');
     expect(satele.text).not.toMatch(/ForceSense|\|\s*\d|Form ratings|game stats|player-character/);
   });
   it('carries timeline years and skips non-era sections', () => {
@@ -70,7 +70,7 @@ describe('lore parsing', () => {
     expect(built.chunks.some((c) => c.text.includes('GALAXY SIM') || c.text.includes('power:58'))).toBe(false);
   });
   it('indexes bench figures as canon entities', () => {
-    expect(built.entities.find((e) => e.name === 'Master Ngani Zho')?.aliases).toContain('ngani zho');
+    expect(built.entities.find((e) => e.name === 'Shol Bestros')?.aliases).toContain('shol bestros');
   });
 });
 
@@ -155,8 +155,8 @@ describe('lore retrieval', () => {
     expect(ids.some((id) => id.includes('great-galactic-war'))).toBe(false);
   });
   it('a canon NPC in the scene pulls their chunk to the top', () => {
-    const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661, canonIds: ['lore:grand-master-zym'] }, 3000, est);
-    expect(sel.included[0]!.chunk.canonId).toBe('lore:grand-master-zym');
+    const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661, canonIds: ['lore:zym'] }, 3000, est);
+    expect(sel.included[0]!.chunk.canonId).toBe('lore:zym');
   });
   it('the player mentioning a canon name pulls their chunk', () => {
     const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661, playerText: normalizeText('I ask about Satele Shan') }, 3000, est);
@@ -168,7 +168,7 @@ describe('lore retrieval', () => {
   });
   it('a three-letter canon name in the player text counts (Zym, D-95)', () => {
     const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661, playerText: normalizeText('Did Grand Master Zym send us?') }, 3000, est);
-    expect(sel.included.map((s) => s.chunk.canonId)).toContain('lore:grand-master-zym');
+    expect(sel.included.map((s) => s.chunk.canonId)).toContain('lore:zym');
   });
   it('era overviews send only sentences up to the current year (D-98)', () => {
     const at = (year: number, id: string) => retrieveLore(LORE_INDEX, { ...base, year }, 3000, est).included.find((s) => s.chunk.id === id)!.text;
@@ -191,7 +191,7 @@ describe('lore retrieval', () => {
     expect(isEligible(chunk, -3660)).toBe(true);
   });
   it('finds in-era canon entities by exact alias only', () => {
-    expect(findCanonEntity(LORE_INDEX, 'zym', -3661)?.canonId).toBe('lore:grand-master-zym');
+    expect(findCanonEntity(LORE_INDEX, 'zym', -3661)?.canonId).toBe('lore:zym');
     expect(findCanonEntity(LORE_INDEX, 'zy', -3661)).toBeNull();
     expect(findCanonEntity(LORE_INDEX, 'zym', -22)).toBeNull();
   });

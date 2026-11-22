@@ -81,7 +81,7 @@ describe('M2 pipeline: memory and lore', () => {
     expect(record.rejected).toEqual([]);
     const s = session.state;
     expect(Object.keys(s.npcs.byId).sort()).toEqual(['npc:orren-vash', 'npc:zym']);
-    expect(s.npcs.byId['npc:zym']!.canonId).toBe('lore:grand-master-zym');
+    expect(s.npcs.byId['npc:zym']!.canonId).toBe('lore:zym');
     expect(s.locations.currentId).toBe('loc:jedi-temple');
     expect(Object.keys(s.threads.byId)).toEqual(['thread:the-missing-holocron']);
     expect(s.pacing.scene.presentNpcIds).toEqual(['npc:orren-vash', 'npc:zym']);

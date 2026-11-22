@@ -372,7 +372,7 @@ export function parseCharacterHeading(heading: string): { name: string; aliases:
   return { name, aliases: [...aliases].filter((a) => a.length >= 3) };
 }
 
-// ---------------------------------------------------------------- research-bot character files (D-390)
+// ---------------------------------------------------------------- research-bot character files (D-392)
 
 /** Markdown links to their text: "[Zym](https://...)" -> "Zym". The bot files cite every line. */
 const stripLinks = (s: string): string => s.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/\s{2,}/g, ' ');

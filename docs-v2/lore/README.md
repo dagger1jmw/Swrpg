@@ -17,7 +17,7 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Characters_06_MandalorianWars.md` | Era 06: the Mandalorian Wars and the rise of Revan (c. 3,976–3,960 BBY) |
 | `Docs/SWRPG lore/SW_Characters_07_JediCivilWar.md` | Era 07: the Jedi Civil War (c. 3,959–3,956 BBY) |
 | `Docs/SWRPG lore/SW_Characters_08_DarkWars_SithTriumvirate.md` | Era 08: the Dark Wars and the Sith Triumvirate (c. 3,955–3,950 BBY) |
-| `Docs/SWRPG lore/SW_Characters_09_GreatGalacticWar_ColdWar.md` | Era 09: the Great Galactic War, Cold War and Galactic War (c. 3,681–3,636 BBY); source of the built canon roster |
+| `Docs/SWRPG lore/OLD_SW_Characters_09_GreatGalacticWar_ColdWar.md` | **Superseded** by the SW_Characters_09_GGW_ColdWar files below (lore batch 19); not read by the lore index. Was: Era 09: the Great Galactic War, Cold War and Galactic War (c. 3,681–3,636 BBY); source of the built canon roster |
 | `Docs/SWRPG lore/SW_Characters_09B_EternalEmpire_Alliance.md` | Era 09-B: the Eternal Empire, the Alliance and the later SWTOR era (c. 3,637–3,620 BBY and later) |
 | `Docs/SWRPG lore/SW_Characters_10_NewSithWars_DarthBane.md` | Era 10: the New Sith Wars and the rise of Darth Bane (c. 2,000–990 BBY) |
 | `Docs/SWRPG lore/SW_Characters_11_RepublicEra_RiseOfEmpire.md` | Era 11: the Republic era and the rise of the Empire (c. 990–22 BBY) |
@@ -28,6 +28,11 @@ Last updated 2026-11-21.
 | `Docs/SWRPG lore/SW_Characters_16_LegacyOfTheForce.md` | Era 16: Legacy of the Force and the Second Galactic Civil War (c. 40 ABY) |
 | `Docs/SWRPG lore/SW_Characters_17_FateOfTheJedi.md` | Era 17: Fate of the Jedi (c. 43–44 ABY) |
 | `Docs/SWRPG lore/SW_Characters_18_LegacyEra.md` | Era 18: the Legacy era (c. 130–139 ABY) |
+| `Docs/SWRPG lore/SW_Characters_09_GGW_ColdWar_Index.md` | Era 09 (redo): master index of 183 figures with their 3661 BBY status (source of the built canon roster) |
+| `Docs/SWRPG lore/SW_Characters_09_GGW_ColdWar_Part1.md` | Era 09 (redo), Part 1: Jedi and light-side Force users (39) |
+| `Docs/SWRPG lore/SW_Characters_09_GGW_ColdWar_Part2.md` | Era 09 (redo), Part 2: Sith and dark-side users (56) |
+| `Docs/SWRPG lore/SW_Characters_09_GGW_ColdWar_Part3a.md` | Era 09 (redo), Part 3a: Republic non-Force figures (39) |
+| `Docs/SWRPG lore/SW_Characters_09_GGW_ColdWar_Part3b.md` | Era 09 (redo), Part 3b: Imperial non-Force figures, Mandalorians, underworld (49) |
 
 ## Galaxy and timeline
 

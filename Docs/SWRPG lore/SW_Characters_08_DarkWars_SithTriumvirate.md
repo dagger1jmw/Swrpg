@@ -322,6 +322,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | G0-T0 | Droid | Crime-lord / Republic planning droid | 30 | 50 | 70 | 80 | 70 | 90 | — | — | — | — | — | Utility/none | N/A — manipulative intelligence droid (INT 90) |
 | Tobin | Human | Onderonian officer; Sion's agent | 56 | 58 | 60 | 66 | 62 | 66 | — | — | — | — | — | Ranged 58 | N/A — non-Force military officer |
 | Vaklu | Human | Onderon general; attempted coup | 60 | 60 | 64 | 72 | 70 | 74 | — | — | — | — | — | Ranged/Command 64 | N/A — non-Force; civil-war instigator |
+| Darth Nyriss | Human | Dark Councilor; held Revan captive | 66 | 66 | 70 | 86 | 78 | 84 | 82 | 80 | 86 | 84 | 84 | Makashi 76 · Shii-Cho 72 | Force Lightning 82 · Sith Sorcery 80 — conspirator; killed by Revan |
+
+*Darth Nyriss (moved from the Era 09 file, lore batch 19):* she belongs to this era (died 3950 BBY). Her old entry above keeps its estimates, but its forms (Makashi, Shii-Cho) contradict her Wookieepedia page, which names Juyo.
 
 ---
 

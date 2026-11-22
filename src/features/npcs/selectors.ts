@@ -92,6 +92,14 @@ export function selectNpcLevels(s: GameState, id: string): Readonly<Record<strin
   if (!n) return {};
   if (n.devLevels) return n.devLevels;
   const canon = n.canonId ? CANON_BY_ID.get(n.canonId) : undefined;
+  if (canon?.statsSource) {
+    // No hand-set sheet yet (lore batch 19, D-391): the npc-generation closed form for the entry's archetype at its
+    // age, with no talents, a variance seeded by the canon ID, and the entry's own species.
+    const def = archetypeDef(canon.archetype);
+    const gen: NpcGen = { archetype: canon.archetype, path: def.path, talents: {}, startAge: def.startAge, warYears: 0, rank: def.path === 'career' ? 'career' : 'none', seed: `canon:${canon.canonId}`, minionGrade: null };
+    const age = canon.fixed ? 60 : canon.birthBby + dateFromAbsDay(s.clock.now.day).year;
+    return npcLevelsFor(gen, canon.speciesId, Math.max(0, age), s.clock.now.day);
+  }
   if (canon) {
     const bby = -dateFromAbsDay(s.clock.now.day).year;
     const ratio = canonScale(canon, bby, canonGrowth(canon.archetype, archetypeDef(canon.archetype).path, canon.speciesId, s.clock.now.day));

@@ -2,6 +2,8 @@
 
 2026-11-21, lore batch 7. **Report only. No data changed; these wait for Jared's ruling.**
 
+**Status (lore batch 19, D-390, D-391):** all eight are settled. #2 was settled in batch 13 (D-378 [2]); the other seven were folded into batch 19, where the new SW_Characters_09_GGW_ColdWar files win. How each was settled is in docs-v2/reports/lore-batch-19.md. One new difference is flagged: the new file has Satele made Grand Master in 3651 BBY, against D-283's c. 3648.
+
 **What was compared:**
 - **Lore:** the dated events and the "who was where" table in `Docs/SWRPG lore/SW_Great_Galactic_War_Part1.md` to `_Part3.md` (Part 3 has the table).
 - **Canon data:** the NPC data in `src/data/canon/era09GreatGalacticWar.ts`, using birth and death years, `earlierRoles` and notes.

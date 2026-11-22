@@ -38,6 +38,38 @@ export interface CanonNpc {
   bladeColor?: string;
   unmapped?: readonly string[];
   note?: string;
+  /** Canon IDs the figure had under the old lore file (lore batch 19: "Grand Master Zym" -> "Zym"); still resolve. */
+  formerCanonIds?: readonly string[];
+  /**
+   * Where the levels come from (lore batch 19, D-391). Absent = the hand-set sheet. 'provisional' = an active adult at
+   * the default start with no sheet yet: levels are the npc-generation closed form for the archetype and age, for
+   * Jared's review. 'factsOnly' = a child, unborn or dead in 3661 BBY: no sheet; the same closed form when they appear.
+   */
+  statsSource?: 'provisional' | 'factsOnly';
+  /** Sourced facts from the lore files that the engine does not read yet (sex, homeworld, ranks, teachers, alignment). */
+  facts?: Readonly<{
+    sex?: 'male' | 'female';
+    homeworld?: string;
+    group?: string;
+    summary?: string;
+    teachers?: string;
+    formsAndPowers?: string;
+    alignment?: string;
+    source?: string;
+  }>;
+  /** Status at the default start (3661 BBY): the "who is on the board" filter (lore batch 19). */
+  status3661?: CanonStatus;
+  /** Status at the Sacking of Coruscant (3653 BBY), as the lore file words it. */
+  status3653?: string;
+}
+
+/** A figure's status at a snapshot year (lore batch 19, D-391). */
+export interface CanonStatus {
+  kind: 'active' | 'child' | 'unborn' | 'dead' | 'imprisoned' | 'notStated';
+  /** Age in years, for children. */
+  age?: number;
+  /** The lore file's wording (location where stated). */
+  note: string;
 }
 
 export interface CanonEra {
