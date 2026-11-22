@@ -187,7 +187,64 @@
    - Switching back to the standard path (`trainingPathSet`) plus sources 1-3 lets them grow later: Luke after Return of the Jedi, peaking around Fate of the Jedi.
 
 ## 5. M7 §15, "Ranks and milestones" (D-424)
-To be filled in when built.
+**Built (the core):**
+- **Slice:** the ranks slice v2 (rank and start day, master, trial records, Service Corps, Padawans knighted, a pending choice), with a v1 migration.
+- **Promotions:** `promotionProposed` is checked against every requirement and applied only when they all hold; otherwise it is rejected with the unmet ones (ranks.md tests 6-7).
+- **Trials:**
+  - `trialAttempted` rolls the Initiate Trials and the five Knight Trials with their stated checks: Skill 3 of 4 at rating 45; Spirit against the dark pressure; Flesh at f 0.8.
+  - Retakes wait a year; a third failure opens `trialFailureChoice`.
+  - A wartime heroic act credits Courage and Flesh.
+- **Standing:** 50% skill percentile (a seeded population of 1,000 NPC Initiates of the same age), 30% deeds, 20% relationships.
+- **Monthly hook:**
+  - Padawan selection at S / 940.
+  - The Council of Reassignment at 13.
+  - A Knight's interest in the Corps at 2% a month.
+  - `masterApproval` and the Council bypass when all their conditions hold.
+- **Master:** `masterSet` (player or engine; never the AI).
+
+**Tests:** tests/m7/ranks.test.ts, 12 tests:
+- the not-chosen rate is 11-17% over 36 rolls;
+- the retake rules;
+- the trial checks;
+- the heroic credit;
+- the seeded percentile;
+- the AI refusal;
+- a Knight promotion with the trials;
+- the AI cannot set rank flags;
+- a trial attempt;
+- reassignment at 13;
+- the master's approval from the hook.
+
+**Not built (the rest of M7):**
+- the Order schedule revisit;
+- named masters' instruction;
+- the Council path and wartime postings;
+- forbidden powers and reputation;
+- teaching XP;
+- Sith Force growth;
+- the design candidates;
+- pace-for-age milestones;
+- UI for trials and choices (events only for now).
+
+The player ladder's ages are data, waiting on question 1.
+
+**Suites:** `npm test` 1,258 pass. `npm run test:all` 1,304 pass (131 files) in 379.8 s. The lifetime runs: 334.9 s after items 1-10 and 335.7 s after item A.
 
 ## 6. Questions
-To be filled in at the end.
+1. **The player ladder** (§1a): move the Average to Padawan 12.5 and Knight 25, with 10-12 Padawan years and the minimums re-read at about 24 (recommended)? Or keep 20.5?
+2. **The accelerated path:** keep x3.2 (Force Control 54 and Djem So 49 at 4 years; 63 and 56 at 5)? The blade lags; should real duels count more on that path?
+3. **Force-rich places:** the x1.10 on Force skills is new and invented. Keep it, change it, or remove it?
+4. **Rans:** his page has him in office at the Sacking (3,653). I kept that as a one-year span next to Stantorrs (3,643) and Rans 3,642-3,640. Keep 3,653, or drop it too?
+5. **Nico Okarr:** his file dates the disappearance to 3,681 (after the Korriban escape), so he is off from 3,680. If you have a later recorded disappearance, which year?
+6. **Mandalorians:** only Mandalore the Lesser (an arena gladiator) moved to warrior. Torian Cadera and Akaavi Spar fight in melee in SWTOR, but the lore files don't say so. Move them, or have the lore files checked first?
+7. **The warrior archetype** is NPC-only. Offer it at character creation?
+8. **The stat conversion:** accept the linear per-stat factors? And how should the out-of-band groups (§3) be handled?
+   - Consular and Inquisitor sheets sit far below their focus lines;
+   - Sith Warriors sit above theirs;
+   - apex figures are flattened (Vitiate's form 76).
+
+   Options: hand-set game-scale lines (`scale: 'game'`) for the apex and focus figures, or a per-archetype factor.
+9. **Very old figures:** the generator overshoots for long lives (Zym at 120 has Force Knowledge 236 and Willpower 209). Cap the closed form at the apex band (about 120-135)?
+10. **The XP-source proposals** (§4): which to build, and in which milestone?
+11. **The Sith Order rows** (ranks.md §1a, "to confirm in M7"): keep the Initiate row for acolytes and the Padawan row for apprentices?
+12. **Deeds in standing:** I used 20 points a deed flag, up to 100 (a design default). OK?

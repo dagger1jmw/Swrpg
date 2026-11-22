@@ -266,3 +266,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-22: D-414. Date-agnostic refactor stage 3: canon NPC stat model (complete and partial anchors, rank-shaped growth, dated events, stasis, generator lines, calculated once at the campaign start).
 - 2026-11-22: D-415. Date-agnostic refactor stage 4: works table (29 works, dated from lore events), appearances and gaps for the hand-set figures, draft anchors for five figures, Sedoru injury event.
 - 2026-11-22: D-416. Date-agnostic refactor done (D-412 to D-415): tests at seven dates; test:lifetime 361.6 s, sweep 40.6 s, all pass. Report: docs-v2/reports/date-agnostic-refactor.md.
+- 2026-11-22: Calibration pass: baseline tag, items 1-10 (D-417 to D-422), stat scale (D-423), M7 ranks core (D-424). See docs-v2/reports/calibration-2026-11-22.md.
