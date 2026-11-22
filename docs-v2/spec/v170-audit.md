@@ -85,7 +85,7 @@ Either is defensible; the invented month names and the extra two weekdays aren't
 
 | System | What V170 does | v2 replacement |
 | --- | --- | --- |
-| Shatterpoint | Its own XP track, 500 × 1.07^L (5× the old curve), about 107 references | A rare Force ability on the main curve, unlocked by the ShatterSense talent; add a cost multiplier if it should stay harder to learn |
+| Shatterpoint | Its own XP track, 500 × 1.07^L (5× the old curve), about 107 references | A rare Force ability on the main curve, unlocked by the shatterpoint perception talent; add a cost multiplier if it should stay harder to learn |
 | Proficiencies | Separate cost-per-point system with "trickle" from the parent ability (about 46 references) | Sub-ability synergy in the Progression spec (parent to sub-ability 0.10, sub-ability to parent 0.15) |
 | Talents | Flat XP multipliers (×1.2–1.3) applied after everything else, bypassing caps | Domain talent levels (gifted, prodigy, exceptional) inside the 2.8 cap |
 | Momentum windows | AI tag `MOMENTUM_WINDOW` sets an XP multiplier for story turns only | State of mind (centered ×1.05) and rolled breakthroughs |
@@ -119,7 +119,7 @@ The rebuild discards V170's code, but not its design work. These carry over, as 
 - [x] **Health model:** decided. Fatigue meters (with a Force meter) + Vitality + Wounds; only wounds can incapacitate or kill. Spec is in the prompt pack's Health section. *(Now docs-v2/spec/health.md; amended by D-59.)*
 - [x] **Roll model:** decided. A visible d20 + level ÷ 4 *(amended by D-22: d20 + effective level / 10, rolls.md)* with no tier cliffs, margin-based hit quality and maneuvers, and strong earned circumstances (surprise, openings, position, state of mind). Spec is in the prompt pack's Rolls section. *(Now docs-v2/spec/rolls.md; amended by D-59.)*
 - [x] **Calendar:** decided. The 12-month / 368-day Legends calendar (Essential Atlas version), with no invented month or weekday names. *(Amended by D-38: numbered months, 1-8 have 31 days and 9-12 have 30, year 0, continuous 7-day weeks; architecture.md §10.)*
-- [x] **Shatterpoint:** decided. A rare ability on the main curve (ShatterSense talent only, XP cost ×3).
+- [x] **Shatterpoint:** decided. A rare ability on the main curve (shatterpoint perception talent only, XP cost ×3).
 - [x] **V170 saves:** decided. Not imported; v2 starts a new campaign.
 
 This audit should be read alongside the Phase 1 feature audit in the prompt pack (not in the repo; the Phase 1 audit is docs-v2/spec/01-24 and bugs.md, amended by D-59). Claude Code's audit will confirm these findings in more detail and add line-level bug lists.

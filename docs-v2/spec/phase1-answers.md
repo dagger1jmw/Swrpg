@@ -69,14 +69,14 @@ record it as a conflict with Legends and follow Legends.
 
 ## Talents, proficiencies, Shatterpoint
 17. DEFAULT: legacy talents map to domain talent levels (gifted/prodigy/exceptional) where
-    they speed learning; special talents (ShatterSense, etc.) become unlock flags. Battle
+    they speed learning; special talents (shatterpoint perception, etc.) become unlock flags. Battle
     Meditation's x3.33 XP was not intended; drop it.
 18. DEFAULT: strain talents become small health-spec bonuses (for example +0.5 Force meter
     capacity). Talents with no code are kept only if the Legends lore defines an effect;
     otherwise drop them and list them in decisions.md.
 19. DECIDED (progression-numbers.md sec 14): sub-abilities are main-curve skills linked by
     synergy. No percentages.
-20. DECIDED: learning Shatterpoint without the ShatterSense talent is gone. ShatterSense
+20. DECIDED: learning Shatterpoint without the shatterpoint perception talent is gone. shatterpoint perception
     characters start with a Shatterpoint level computed at creation like any skill.
 21. DEFAULT: keep it simple. A Shatterpoint read is a contest (rolls.md sec 6); a negative
     margin is a misread (wrong guidance, narrated). Reading costs Force load 0.3 per use.

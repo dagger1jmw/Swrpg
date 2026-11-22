@@ -210,8 +210,8 @@ Per your Q30 answer, the FLAG rows go to force-catalog-questions.md when the cat
 ### L-18 — v2 Shatterpoint decisions vs the lore file (Q20, Q21)
 - **What the lore file defines:**
   - **Path A**, learned without the talent, capped at level 20 (SW_Force_Abilities_Forms_v3_complete.md:459-480).
-  - **ShatterSense** seeding at **level 5**.
+  - **shatterpoint perception** seeding at **level 5**.
   - **Focus / awareness-bandwidth** levels with **tunnel vision** above 70.
   - **Interpretation strain** (20–40 on Path A, ×0.3 with the talent).
-- **What v2 decided:** remove Path A (Q20), compute ShatterSense's starting level at creation (Q20), drop focus and tunnel vision, and charge Force load 0.3 per read (Q21).
+- **What v2 decided:** remove Path A (Q20), compute shatterpoint perception's starting level at creation (Q20), drop focus and tunnel vision, and charge Force load 0.3 per read (Q21).
 - **FLAG:** CLAUDE.md Golden Rule 3 says never contradict `Docs/SWRPG lore/`. These lore entries are game-mechanics design, not story facts, and Mace Windu's natural gift (the Legends basis) is preserved either way. Confirm that game-mechanics sections of the lore file can be overridden by v2 specs, and log it in decisions.md. Otherwise the rule is technically broken here and in L-13.

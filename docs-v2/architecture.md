@@ -890,7 +890,7 @@ This section is the architecture.
 | Strain talents (Iron Mind, Natural Telekinetic Burst, Unbreakable Spirit) | small health bonuses, e.g. +0.5 meter capacity (Q18) |
 | Momentum windows | removed; state of mind and rolled breakthroughs (Q46) |
 | Proficiencies / sub-ability percentages and trickle | sub-abilities are main-curve skills linked by synergy (Q19) |
-| Shatterpoint 500 x 1.07^L track | an ability on the main curve, ShatterSense only, XP cost x3 |
+| Shatterpoint 500 x 1.07^L track | an ability on the main curve, shatterpoint perception only, XP cost x3 |
 | Training simulator | montage activity type with the routine scheduler |
 | COMBAT: / COMBAT_END XP | per-exchange combat XP from the duel log |
 
@@ -1043,7 +1043,7 @@ The clock and the module contract come first, before any feature.
   rolls §8 tables: precog and Force Sense in every duel); and every lifetime profile (tests/lifetime/*: fighters' Force
   capacity, precog in the real duels, training f load), whose fight schedules are tuned against today's values.
 - **Canon Clone Wars masters:** canon levels for Agen Kolar, Saesee Tiin, Kit Fisto and Mace Windu (with his
-  ShatterSense) come with the Clone Wars era roster; the D-175 4v1 used estimates.
+  shatterpoint perception) come with the Clone Wars era roster; the D-175 4v1 used estimates.
 - **M7 Order schedule (D-165, Jared):** a 13-year-old Padawan's fixed Order day alone ends near f 0.97 against the
   standard tiredness limit 0.9 even when fresh; the Order schedule is revisited with the Order requirements in M7.
 - **M7 era rank names for the narrator (Jared, 2026-11-21; not built).** The narrator cannot read the topical lore files
@@ -1051,6 +1051,9 @@ The clock and the module contract come first, before any feature.
   (and the D-298 Jedi ranks by era) goes into src/data as era-keyed data, and the context builder adds the current
   era's rank names to the narrator's state block. Same pattern as D-320's role era gating. Source:
   Docs/SWRPG lore/SW_Sith_Training_AllEras_Part1.md and _Part2.md (cross-era rank tables).
+- **M7 forbidden powers and Order reputation (D-346, Jared, 2026-11-21; not built).** A Knight learning a forbidden
+  power (Electric Judgment, Deadly Sight, Morichro from 1000 BBY) needs a Master's permission; learning it covertly
+  risks the character's standing in the Order. Build with Order standing.
 - **M7 teaching (D-163):** characters with the instructor role get a higher share of drill XP above the ceiling
   (design default 25% -> 35%) for the forms they teach.
 - **M6 precognition softening killing blows (Jared, D-267; measured, not adopted; with the precognition redesign).**

@@ -29,8 +29,8 @@ export const STUB_WEAPONS = true;
 /** Dual blades for Jar'Kai (D-122): nobody has two sabers until items exist, so Jar'Kai cannot be picked in a duel. Replaced in M8. */
 export const STUB_DUAL_BLADES = false;
 
-/** The player's ShatterSense talent pick and the shatterpoint skill come with the Force catalog. Replaced in M6. */
-export const STUB_PLAYER_SHATTERSENSE = false;
+/** The player's shatterpoint perception talent pick and the shatterpoint skill come with the Force catalog. Replaced in M6. */
+export const STUB_PLAYER_SHATTERPOINT_PERCEPTION = false;
 
 /** Light-side philosophy for Force insight's +0.10 (rolls §6): read from the path (Jedi = light) until alignment. Replaced in M6. */
 export function stubLightPhilosophy(path: string): boolean {

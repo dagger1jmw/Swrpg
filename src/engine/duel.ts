@@ -81,7 +81,7 @@ export interface Fighter {
   willpower: number;
   agility: number;
   endurance: number;
-  /** Shatterpoint level when the fighter has ShatterSense; 0 otherwise. */
+  /** Shatterpoint level when the fighter has shatterpoint perception; 0 otherwise. */
   shatterpoint: number;
   /** Light-side philosophy for Force insight's +0.10 (stubLightPhilosophy until M6). */
   lightSide: boolean;
@@ -550,7 +550,7 @@ function insightCheck(s: DuelState, side: SideId, f: Fighter, opp: Fighter, ctx:
   return { s: next, note: null };
 }
 
-/** Shatterpoint (ShatterSense only, once per fight, rolls §6): d20 + level/10 vs 15; success jumps to advantage 3. */
+/** Shatterpoint (shatterpoint perception only, once per fight, rolls §6): d20 + level/10 vs 15; success jumps to advantage 3. */
 export function tryShatterpoint(s: DuelState, side: SideId): { s: DuelState; roll: BasicRoll | null; success: boolean } {
   const f = side === 'A' ? s.a : currentTarget(s);
   if (!f || f.shatterpoint <= 0 || f.shatterpointUsed) return { s, roll: null, success: false };

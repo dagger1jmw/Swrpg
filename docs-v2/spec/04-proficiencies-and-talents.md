@@ -6,7 +6,7 @@ Scope: sub-ability proficiency percentages (Force Push under Telekinesis, etc.),
 - A Force ability family (e.g. Telekinesis) has a level. Each sub-application (Force Push, Force Pull ...) has a separate 0-100% proficiency with a tier label: Novice, Developing, Proficient, Expert, Mastered.
 - Proficiency is capped by the parent level (soft cap); the sidebar shows "(N% raw)" when capped (7488-7493).
 - Training the parent trickles 5% into every sub-ability that has any XP; training a sub-ability sends 20% back to the parent.
-- At creation (max 2) or any time in the Talents panel, the player picks innate talents. Five change XP gains, four change strain, one (ShatterSense) unlocks Shatterpoint (see 06); the rest are labels for the AI.
+- At creation (max 2) or any time in the Talents panel, the player picks innate talents. Five change XP gains, four change strain, one (shatterpoint perception) unlocks Shatterpoint (see 06); the rest are labels for the AI.
 
 ## Rules and formulas
 
@@ -36,7 +36,7 @@ Scope: sub-ability proficiency percentages (Force Push under Telekinesis, etc.),
 | Talent: IronMind | sim mental strain x0.8 | legacy/index.html:11441 |
 | Talent: UnbreakableSpirit | sim XP penalty above 90 strain 0.3 instead of 0.1 | legacy/index.html:11568 |
 | Talents with no code effect | CombatIntuition (+1 when outnumbered), DarkAffinity, LivingForceConnection, PrecognitiveEdge | defined 8737-8742; no other references in the file |
-| Talent registry | 13 talents, 2 marked `special` (ShatterSense, BattleMeditationAffinity) | legacy/index.html:8731-8745 |
+| Talent registry | 13 talents, 2 marked `special` (shatterpoint perception, BattleMeditationAffinity) | legacy/index.html:8731-8745 |
 | Creation limit | max 2 talents | legacy/CLAUDE.md session log V121 |
 
 ## State read / written
@@ -74,9 +74,9 @@ Scope: sub-ability proficiency percentages (Force Push under Telekinesis, etc.),
 - **Proficiency totals.** XP Reference §12 and legacy/CLAUDE.md §4F: ~81,700 / 122,550 / 204,250 / 326,800. Code: 80,231 / 120,360 / 200,636 / 321,047. The "equivalent base-ability level" column (60/67/73/80) was matched to the wrong cumulative table (see 03).
 - **Soft cap bands.** XP Reference §12 (0-20 -> 25%) vs code (≥20 -> 50%) vs AI context (≤20 -> 25%).
 - **BattleMeditationAffinity.** XP Reference §11 "XP x0.3 (70% cheaper)"; talent label "XP x0.3"; code x3.33 XP.
-- **ShatterSense XP effect.** XP Reference §11 "XP cost x0.1"; code none (see 06).
+- **shatterpoint perception XP effect.** XP Reference §11 "XP cost x0.1"; code none (see 06).
 - **v170-audit "flat multipliers x1.2-1.3".** BattleMeditationAffinity is x3.33.
-- **Lore vs code.** `Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md` (line ~1614) lists ShatterSense as "x0.1 XP cost, 70% strain reduction"; code has no discount and no strain reduction for Shatterpoint.
+- **Lore vs code.** `Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md` (line ~1614) lists shatterpoint perception as "x0.1 XP cost, 70% strain reduction"; code has no discount and no strain reduction for Shatterpoint.
 
 ## Replaced by
 - progression-numbers.md §14 (synergy: parent -> sub-ability 0.10, sub -> parent 0.15, ceilings, 25% spillover cap) replaces trickle and the proficiency track.

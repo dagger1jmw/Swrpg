@@ -111,7 +111,7 @@ Outcome roll per session (code rolls it, mean ~1.0):
   Combat Force abilities: no ceiling; combat integration penalty in combat (section 8)
   Every Force ability is tagged combat, non-combat, or both.
   Shatterpoint: a rare Force ability (tagged both) on the main curve, unlocked only by the
-    ShatterSense talent, with an XP cost multiplier of x3 (tunable). No separate XP track.
+    shatterpoint perception talent, with an XP cost multiplier of x3 (tunable). No separate XP track.
 
 ## 7. Lightsaber drill ceiling and bank
 Applied experience E (0-120; amended by D-176: the gains scale by (1 - E/120), so 120 is their limit) per lightsaber form group.

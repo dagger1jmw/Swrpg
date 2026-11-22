@@ -37,11 +37,11 @@ After this, display text strips lines starting with ROLL:/ROLL_OPPOSED:/TIER_GAP
 | COMBAT_START: | `COMBAT_START: name, intensity` | 1792-1798 | pre-scan over all rawText 4958-4965; loop 5065-5079 | `startCombat`. Skipped if the pre-scan already applied it. If the pre-roll started combat, it only renames the opponent |
 | COMBAT_ROUND: | `COMBAT_ROUND: n, intensity` | 1799-1800 | 5081-5089 | `updateCombatStrain(rounds)`. rounds = JS-counted rolls if >0, else the AI's n. Safety net 6102-6107 |
 | COMBAT_END: | `COMBAT_END: primary, secondary|none, tier, engagement, outcome[, fate]` | 1801-1814 | 5093-5107 | Rebuilds a stub `activeCombat` if missing (round 5, tier 2). `endCombat(outcome, engagement)`, then `npcApplyFate` |
-| TRAINING: | `TRAINING: cat.Key, hours, intensity, difficulty, outcome` | 1783-1789, 1834-1848 | 5109-5149 | Hours guard (≤2× elapsed). ShatterSense block. Sub-ability redirected to proficiency. `calcTrainingXP`, then momentum, then talent multiplier, then `applyXPToSheet` |
+| TRAINING: | `TRAINING: cat.Key, hours, intensity, difficulty, outcome` | 1783-1789, 1834-1848 | 5109-5149 | Hours guard (≤2× elapsed). shatterpoint perception block. Sub-ability redirected to proficiency. `calcTrainingXP`, then momentum, then talent multiplier, then `applyXPToSheet` |
 | COMBAT: | `COMBAT: path, rounds, tierGap, engagement, outcome[, secondary: path2]` | only mentioned ("TRAINING: or COMBAT: lines") 1783, 1828, 1831 | 5151-5172 | `calcCombatXP`, applied to primary and secondary |
 | PROFICIENCY: | `PROFICIENCY: Abil.Sub, xp` | 1842-1852 | 5174-5199 | Sub must be in the catalog with `par === Abil`. Momentum applied. `applyProficiencyXP` |
 | LOCATION= / LOCATION: | — | not taught | 5201 | Ignored (no-op) |
-| XP: | `XP: cat.Key, amount` | **not taught** | 5205-5221 | Direct XP (momentum applied). ShatterSense guard |
+| XP: | `XP: cat.Key, amount` | **not taught** | 5205-5221 | Direct XP (momentum applied). shatterpoint perception guard |
 | LIFE_STAGE= / : | `LIFE_STAGE=value` | **not taught** (legacy/CLAUDE.md:345) | pre-scan 4738-4742; loop 5225-5232 | Whitelist of 7 stages |
 | RANK= / : | `RANK=value` | 1771-1775 | pre-scan 4744-4750; loop 5239-5246 | `RANK_VALID_VALUES`; lifeStage via `RANK_LIFESTAGE_MAP` |
 | MOMENTUM_WINDOW= | `mult,days` | 1777, 2616 | 5250-5266 | 0 closes; expiry computed |

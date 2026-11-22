@@ -24,7 +24,7 @@ import {
 import { RANKS } from '../../src/data/rankMinimums';
 import { SEQUENCE_CAP } from '../../src/data/sequence.config';
 import { FORM_IDS, isSkillId } from '../../src/data/skills';
-import { STUB_DUAL_BLADES, STUB_PLAYER_SHATTERSENSE, STUB_WEAPONS, stubLightPhilosophy, stubProsthetic } from '../../src/data/stubs';
+import { STUB_DUAL_BLADES, STUB_PLAYER_SHATTERPOINT_PERCEPTION, STUB_WEAPONS, stubLightPhilosophy, stubProsthetic } from '../../src/data/stubs';
 import { TERRAIN_TAGS } from '../../src/data/terrain';
 import { LOADOUT_BY_ARCHETYPE, loadoutFor } from '../../src/data/weapons';
 import { slugify } from '../../src/engine/aliases';
@@ -37,7 +37,7 @@ describe('M5 stubs (D-143)', () => {
   it('hold their values until M6 / M8', () => {
     expect(STUB_WEAPONS).toBe(true);
     expect(STUB_DUAL_BLADES).toBe(false);
-    expect(STUB_PLAYER_SHATTERSENSE).toBe(false);
+    expect(STUB_PLAYER_SHATTERPOINT_PERCEPTION).toBe(false);
     expect(stubLightPhilosophy('jedi')).toBe(true);
     expect(stubLightPhilosophy('sith')).toBe(false);
     expect(stubProsthetic({ path: 'jedi' })).toBe('qualityCybernetic');

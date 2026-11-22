@@ -608,7 +608,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
           return { slice: settled.slice, emit: settled.emit, notes: settled.notes, rng: settled.rng };
         } else if (action === 'shatterpoint') {
           const r = tryShatterpoint(duel, 'A');
-          if (!r.roll) return { reject: 'no ShatterSense, or the shatterpoint was already read this fight' };
+          if (!r.roll) return { reject: 'no shatterpoint perception, or the shatterpoint was already read this fight' };
           duel = r.s;
           notes.push(`shatterpoint read: ${r.roll.total.toFixed(1)} vs 15: ${r.success ? 'success (advantage 3)' : 'nothing'}`);
         } else if (action === 'sequence') {

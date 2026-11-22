@@ -39,7 +39,13 @@ Last updated 2026-11-21.
 
 | Path | Scope |
 |---|---|
-| `Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md` | Force abilities master list (13 families), lightsaber forms, Form Rules (M6) and Shatterpoint |
+| `Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md` | Force abilities master list (13 families), lightsaber forms, Form Rules (M6) and Shatterpoint. **Force powers sections superseded** by the six SW_Force_Powers files below (D-338); **lightsaber forms sections current** until lore batch 10 |
+| `Docs/SWRPG lore/SW_Force_Powers_Part1a.md` | Force powers: shared index for Parts 1–3, scale anchors, Control powers |
+| `Docs/SWRPG lore/SW_Force_Powers_Part1b.md` | Force powers: Sense and universal powers (Force-bond, oneness, harmony, battle meditation) |
+| `Docs/SWRPG lore/SW_Force_Powers_Part2a.md` | Force powers: Alter (telekinesis, mind influence, environment), Alter scale anchors |
+| `Docs/SWRPG lore/SW_Force_Powers_Part2b.md` | Force powers: dark side (lightning, drain and spirit powers, destructive powers, Sith sorcery and alchemy) |
+| `Docs/SWRPG lore/SW_Force_Powers_Part3a.md` | Force powers: rare, lost, species and order-specific techniques |
+| `Docs/SWRPG lore/SW_Force_Powers_Part3b.md` | Force powers: catalog check of force-catalog-m6.md (design reference; applied by D-338 to D-349) |
 | `Docs/SWRPG lore/SW_Lightsaber_Combat_Marks_Zones_Techniques.md` | Marks of contact, target zones, stances and techniques of lightsaber combat |
 
 ## Jedi Order

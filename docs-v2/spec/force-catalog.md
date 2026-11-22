@@ -52,7 +52,7 @@ Every value must cite its lore section, or be listed in docs/spec/force-catalog-
     formMatchups.ts, terrain.ts zeroGravity); the change and the save migration are M6 work.
 
 ## Shatterpoint reads (D-63; Q20, Q21, D-06)
-  Shatterpoint is ShatterSense-only (Q20), on the main curve with an XP cost x3.
+  Shatterpoint is shatterpoint perception-only (Q20), on the main curve with an XP cost x3.
   Combat reads: rolls.md §6 (contest d20 + level/10 vs 15, advantage jumps to 3, once per
     fight).
   Non-combat reads (a person, a relationship, a situation, an event): a check (rolls.md §2)

@@ -25,7 +25,7 @@ The aim is to keep the AI on canon and stop it inflating NPC power.
 | NPC line | `name [tier] FC:x FOut:y — status (115 chars)` | legacy/index.html:11061-11069 |
 | Apex lines | TRANSCENDENT, S, A + rule | legacy/index.html:11072-11078 |
 | Ability rules | `FORCE_ABILITY_RULES[key]` or a pointer to SW_Force_Abilities_Forms_v3_complete.md; profCap: ≤20→25%, ≤40→50%, ≤60→70%, ≤80→85%, else 100% | legacy/index.html:10518-10556, 11081-11095 |
-| Shatterpoint line | added if ShatterSense or SP level > 0 | legacy/index.html:11096-11101 |
+| Shatterpoint line | added if shatterpoint perception or SP level > 0 | legacy/index.html:11096-11101 |
 | Failure mode | any exception → returns `''` silently | legacy/index.html:11105-11107 |
 | When injected | each `buildContext()` call (main request, truncation continuation, missing-choices retry) | legacy/index.html:4119, 4604, 4656, 4688 |
 | Second canon NPC table | `CANON_PROFILES_3661BBY` (5 NPCs) seeded into `characterProfiles` on new game and on load | legacy/index.html:3573-3637, 3443, 8325 |

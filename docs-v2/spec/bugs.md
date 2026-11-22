@@ -163,7 +163,7 @@ All line numbers refer to legacy/index.html (V170).
 | C15 | Med | Shatterpoint | No interpretation strain ever applied; AI can't apply it either | No SP strain code; `FORCE_STRAIN=` increases dropped without TRAINING/COMBAT tags and during combat | 5057, 5508; prompt 2474-2489 |
 | C16 | Med | Shatterpoint | Partial reads treated as misreads | `misread` set for `contested` | 6798, 6802 |
 | C17 | Med | Shatterpoint | SP session fields rewritten by AI SHEET JSON | Not in snapshot/restore list | 4722-4772, 4784-4804 |
-| C18 | Med | Shatterpoint | Path A has two tracks; 5x award deletes the 1x entry, sheet level re-seeds it | Guards only for ShatterSense holders | 5119-5121, 6736-6737, 7136-7155 |
+| C18 | Med | Shatterpoint | Path A has two tracks; 5x award deletes the 1x entry, sheet level re-seeds it | Guards only for shatterpoint perception holders | 5119-5121, 6736-6737, 7136-7155 |
 | C19 | Low | Shatterpoint | Perceived tier always 1; roll target starts with "=" | `slice(22)` / `slice(17)` keep the separator | 5538, 5560 |
 | C20 | Low | Shatterpoint | `turn` always 0 in roll/misread records | `window.turnCount` undefined (`let` at top level) | 2784, 6799, 6803 |
 | C21 | Low | Shatterpoint | Sim practice uses Legendary outcome weight at L5 | Level used as tier index | 11554, 11975 |

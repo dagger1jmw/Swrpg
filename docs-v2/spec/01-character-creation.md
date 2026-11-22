@@ -26,7 +26,7 @@ Audited file: `legacy/index.html` (V170, commit 8bef4a1). All line numbers refer
 | Era presets (start year) | GGW 3661; Cold War 3640; Mandalorian Wars 3970; Jedi Civil War 3958; Old Sith Wars/Interwar 3750; Clone Wars 22; GCW 1; Custom | HTML 1176-1183 |
 | Talent limit | Max 2 checked | 3344 |
 | Starting XP | `masterXP[cat][key].totalXP = xpToReachLevel(level)` for each allocated stat > 0; ShiiCho likewise | 3391-3398 |
-| ShatterSense seed | `masterXP.shatterpoint.main = spXPToReachLevel(5)` | 3399 |
+| shatterpoint perception seed | `masterXP.shatterpoint.main = spXPToReachLevel(5)` | 3399 |
 | Birthday | `{ day:1, month:6, year: startYear + age, era:'BBY' }` | 3383, 3403 |
 | Alignment start | Sith −20, Jedi +20, others 0 (same for equilibrium and peak) | 3405-3408 |
 | HP / strain start | hp 100/100; all strains 0/100; forceBarrier null / max 100 | 3410-3411 |
@@ -78,7 +78,7 @@ Read from the DOM: `cc-name, cc-story-start, cc-faction, cc-rank, cc-age, cc-dis
 ## Replaced by
 
 - Starting stat levels (point pools, random spread): **Replaced by progression-numbers.md** (levels from years trained × pace, talent multipliers in §5, human body cap §11).
-- Talent picks (13 flat-multiplier talents, `SIM_INNATE_TALENTS` 8731-8745): **Replaced by progression-numbers.md** (domain talents none/gifted/prodigy/exceptional) and force-catalog.md (ShatterSense as a talent gate).
+- Talent picks (13 flat-multiplier talents, `SIM_INNATE_TALENTS` 8731-8745): **Replaced by progression-numbers.md** (domain talents none/gifted/prodigy/exceptional) and force-catalog.md (shatterpoint perception as a talent gate).
 - Starting alignment: **Replaced by alignment.md**.
 - Starting HP and strain: **Replaced by health.md**.
 - `RANK=` / `AGE=` AI tags: **Replaced by ai-events.md** (no direct state tags).

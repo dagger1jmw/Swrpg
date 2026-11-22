@@ -216,7 +216,7 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
   Force insight: once per fight, when facing an opponent 15+ levels stronger or when Dying
     risk is present, a character with Force Sense 60+ has a chance at the start of each
     exchange of Force Sense / 200 (+0.10 for light-side philosophies) to gain +2 advantage.
-  Shatterpoint (ShatterSense talent only): contest d20 + Shatterpoint level/10 vs 15; on
+  Shatterpoint (shatterpoint perception talent only): contest d20 + Shatterpoint level/10 vs 15; on
     success, advantage jumps to 3 (an immediate strike), once per fight.
   The AI cannot grant either; code rolls them.
   Non-combat Shatterpoint reads (perceiving a person, a relationship, a situation or an

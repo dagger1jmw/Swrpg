@@ -129,7 +129,7 @@ Scope: `FORCE_ABILITY_CATALOG`, `FORCE_ABILITY_ALIASES`, `FORCE_ABILITY_RULES`, 
 | Trickle-back cap | Capped at parent's xpRequired (lore 142) | Uncapped (7269) | CLAUDE.md §4F mentions no cap |
 | Talent ForceReservoir | maxForceBarrier +20 (lore 1609) | forceOutput XP ×1.3 (6988, 8736) | CLAUDE.md V128 log: ×1.3 |
 | Talent BladeIntuition | +5 levels to the first form at creation (lore 1610) | lightsaberForms XP ×1.3 (6985) | V128 changed it on purpose |
-| ShatterSense cost | "×0.1 XP cost" (lore 1614) | Separate 500×1.07^n track | CLAUDE.md §4B: "No cost discount" |
+| shatterpoint perception cost | "×0.1 XP cost" (lore 1614) | Separate 500×1.07^n track | CLAUDE.md §4B: "No cost discount" |
 | Innate passive TK burst key | `NaturalTelekineticBurst_passive` (lore 1633) | `TelekineticBurstPassive` (8749) | — |
 | Who sets story flags | "The AI sets them when the relevant story event occurs" (lore 1641) | No tag exists, and code never reads them | CLAUDE.md §8 repeats the lore claim |
 | Barrier for every Padawan | Force Barrier needs FC10+ (lore 889-893) | Prompt: "Every Padawan+ Force user has a passive Force barrier always active" (2307) | — |
@@ -170,7 +170,7 @@ All 131 catalog entries map to a lore heading. The lore doc has one ability with
 | EnvironmentalForceSense (8806) | Environmental Force Sense | Sensory | — | 2.5 | neutral | forceSense:30 | — | — | Environmental Force Sense (430) | matches lore |
 | ForceVision (8807) | Force Vision | Sensory | — | 4 | neutral | forceSense:41 | — | — | Force Vision (440) | matches lore |
 | BattleForesight (8808) | Battle Foresight | Sensory | — | 4 | neutral | forceSense:61, forceControl:41 | — | — | Battle Foresight (450) | FORCE_ABILITY_RULES says FS>=21 vs catalog FS61+FC41 |
-| Shatterpoint (8809) | Shatterpoint | Sensory | — | null | neutral | forceSense:61, forceKnowledge:51, BattleForesight:41, meditation:41 | — | — | Shatterpoint (459) | Path B (ShatterSense) lives on separate masterXP.shatterpoint track; key deleted from forceAbilities for ShatterSense holders (4807, 7060) |
+| Shatterpoint (8809) | Shatterpoint | Sensory | — | null | neutral | forceSense:61, forceKnowledge:51, BattleForesight:41, meditation:41 | — | — | Shatterpoint (459) | Path B (shatterpoint perception) lives on separate masterXP.shatterpoint track; key deleted from forceAbilities for shatterpoint perception holders (4807, 7060) |
 | Farsight (8810) | Farsight | Sensory | — | 2.5 | neutral | forceSense:30, meditation:20 | — | — | Farsight (526) | matches lore |
 | Postcognition (8811) | Postcognition | Sensory | — | 2.5 | neutral | forceSense:30, forceKnowledge:15 | — | — | Postcognition (536) | matches lore |
 | AingTiiFightingSight (8812) | Aing-Tii Fighting-Sight | Sensory | — | 4 | neutral | forceSense:41, forceControl:30 | aingTiiContact, aingTiiApproved | — | Aing-Tii Fighting-Sight (546) | flags aingTiiContact+aingTiiApproved (never checked by code) |
@@ -317,6 +317,6 @@ Collisions and gaps:
 6. Are the aliases "Force Fortitude → Battlemind" and "ForceBodyControl → Force Body" correct, or should they map elsewhere or be rejected?
 7. Does "ForceHeal" (used for many canon NPCs) mean Force Heal (Self), Force Heal (Others), or a family name for both?
 8. Is the Force Barrier a learned ability (lore doc: FC 10+), or does every Padawan have it passively (old prompt)? Should v2 keep a separate barrier integrity meter at all, or fold it into the Force meter and health model?
-9. The lore doc's innate talent effects (Force Reservoir = +20 max barrier; Blade Intuition = +5 levels at creation; ShatterSense = ×0.1 cost) differ from what the code does. Which is canon for v2?
+9. The lore doc's innate talent effects (Force Reservoir = +20 max barrier; Blade Intuition = +5 levels at creation; shatterpoint perception = ×0.1 cost) differ from what the code does. Which is canon for v2?
 10. Some lore prerequisites are not plain numbers ("OR extreme innate talent", "all primary abilities at Adept tier", "Jedi Sentinel specialization"). Should they stay as story-checked conditions, or become numbers?
 11. The lore database uses 16 ability names that are not in the catalog (MindDomination, SithSorcery, BattleMeld, Multipresence, MindWalking and others). Should they become catalog entries, aliases of existing entries, or be rewritten in the character files?

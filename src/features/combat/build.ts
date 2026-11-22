@@ -7,7 +7,7 @@ import { CANON_BY_ID } from '../../data/canonNpcs';
 import { FORM_IDS } from '../../data/skills';
 import { DROID_MINION_KINDS, HEAVY_MINION_KINDS } from '../../data/forceResistance.config';
 import { forceResistanceOf, speciesForceTraits } from '../../engine/combatForce';
-import { stubLightPhilosophy, STUB_PLAYER_SHATTERSENSE } from '../../data/stubs';
+import { stubLightPhilosophy, STUB_PLAYER_SHATTERPOINT_PERCEPTION } from '../../data/stubs';
 import { TERRAIN_BY_ID } from '../../data/terrain';
 import { TERRAIN_HAZARD_EVERY } from '../../data/combat.config';
 import type { TerrainHazard } from '../../engine/terrainHazard';
@@ -72,7 +72,7 @@ export function buildPlayerFighter(s: GameState): Fighter {
     willpower: selectLevelExact(s, 'willpower'),
     agility: selectPerformance(s, 'agility'),
     endurance: selectPerformance(s, 'endurance'),
-    shatterpoint: STUB_PLAYER_SHATTERSENSE ? selectLevelExact(s, 'forceSense') : 0,
+    shatterpoint: STUB_PLAYER_SHATTERPOINT_PERCEPTION ? selectLevelExact(s, 'forceSense') : 0,
     lightSide: stubLightPhilosophy(selectPath(s)),
     minion: false,
     stateOfMind: combatState(s),
@@ -171,7 +171,7 @@ export function buildNpcFighter(s: GameState, npcId: string, live = true): { fig
     vitalityLost: npc.health?.vitalityLost ?? 0,
     wounds: (npc.health?.wounds ?? []) as Wound[],
     lasting: (npc.health?.lasting ?? []) as LastingInjury[],
-    shatterpoint: canon?.specialTalents?.includes('ShatterSense') ? (levels['forceSense'] ?? 0) : 0,
+    shatterpoint: canon?.specialTalents?.includes('shatterpointPerception') ? (levels['forceSense'] ?? 0) : 0,
     lightSide: gen.path === 'jedi',
   });
   const blade = loadout.weapon === 'lightsaber' ? (canon?.bladeColor ?? bladeColorFor(gen.path, archetype, gen.seed)) : null;
