@@ -21,6 +21,10 @@ export const ranksSliceSchema = z.object({
   pendingChoice: z.boolean(),
   /** The character's own Padawan or apprentice (an NPC), from Knight at 25 with the Council's approval (D-427). */
   apprenticeId: z.string().nullable().optional(),
+  /** Pace-for-age milestones reached (ranks.md §4), each once. */
+  milestones: z.array(z.string()).optional(),
+  /** A seat on the High Council (ranks.md §1; D-430): granted on a story vacancy when the engine's checks hold. */
+  councilSeat: z.boolean().optional(),
 });
 export type RanksSlice = z.infer<typeof ranksSliceSchema>;
 

@@ -94,3 +94,16 @@ export const COUNCIL_BYPASS = { standing: 75, minAge: 18 } as const;
 export const TAKE_PADAWAN_AGE = 25;
 /** A High Council seat (ranks.md §1): a Master, a vacancy (story), main specialty 70, Council standing. */
 export const COUNCIL_SEAT = { main: 70, standing: 75 } as const;
+
+/**
+ * Pace-for-age milestones (ranks.md §4): pace for age = the character's level / the Average's level at the same training
+ * years, in the main specialty, checked monthly after `afterYears` of training; each fires once as a milestone beat.
+ */
+export const PACE_MILESTONES = {
+  afterYears: 3,
+  noticed: { pace: 1.5, label: 'noticed by the masters (pace for age 1.5+ in the main specialty)' },
+  prodigyTalk: { pace: 2.0, label: 'prodigy talk across the Temple (pace for age 2.0+)' },
+  /** Meets the next rank's skill minimums this many years before the Average's age for it. */
+  aheadOfTime: { years: 3, label: "ahead of their time (the next rank's minimums met 3+ years early)" },
+} as const;
+export type PaceMilestone = 'noticed' | 'prodigyTalk' | 'aheadOfTime';

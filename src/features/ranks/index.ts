@@ -4,7 +4,7 @@
 // proposes (promotionProposed), and a proposal with unmet requirements is rejected and logged (ranks.md test 7).
 import { z } from 'zod';
 import { RANK_BY_ID } from '../../data/rankMinimums';
-import { KNIGHT_TRIAL_IDS, SELECTION, SERVICE_CORPS, TRIALS, TRIAL_RULES, type TrialId } from '../../data/ranks.config';
+import { KNIGHT_TRIAL_IDS, PACE_MILESTONES, SELECTION, SERVICE_CORPS, TRIALS, TRIAL_RULES, type PaceMilestone, type TrialId } from '../../data/ranks.config';
 import { dateFromAbsDay, fromAbsSecond } from '../../engine/calendar';
 import { efficiency } from '../../engine/fatigue';
 import { nextFloat } from '../../engine/rng';
@@ -14,9 +14,12 @@ import { selectExactAge } from '../character/selectors';
 import { selectHasFlag } from '../flags/selectors';
 import { selectLevelExact } from '../progression/selectors';
 import { migrateRanksV1, ranksSliceSchema, type RanksSlice } from './ranks';
-import { NO_RECORD, rollTrial, selectionChance } from './rules';
+import { NO_RECORD, paceMilestonesDue, rollTrial, selectionChance } from './rules';
 import {
+  selectAheadYears,
   selectBypassUnmet,
+  selectCouncilSeatUnmet,
+  selectPaceForAge,
   selectMayTakePadawan,
   selectMasterApprovalUnmet,
   selectMinimumLevel,
@@ -145,6 +148,31 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
       sources: ['player', 'engine'],
       handle: (slice) => (slice.apprenticeId ? { slice: { ...slice, apprenticeId: null, padawansKnighted: slice.padawansKnighted + 1 }, notes: ['your Padawan is knighted'] } : { reject: 'no Padawan to knight' }),
     },
+    /**
+     * A High Council seat (ranks.md §1; D-356, D-430): the story offers a vacancy (the narrator or the player proposes it);
+     * the engine checks Master rank, main specialty 70 and standing 75. Wartime appointments are the same event.
+     */
+    councilSeatProposed: {
+      schema: z.object({ type: z.literal('councilSeatProposed'), reason: z.string().max(200).optional() }),
+      sources: ['ai', 'player'],
+      narrative: (s) => s.ranks.rank === 'master' && !s.ranks.councilSeat,
+      handle: (slice, e, ctx) => {
+        if (slice.councilSeat) return { slice };
+        const unmet = selectCouncilSeatUnmet(ctx.state);
+        if (unmet.length) return { reject: `a High Council seat refused: ${unmet.join('; ')}` };
+        return { slice: { ...slice, councilSeat: true }, notes: [`a seat on the High Council${e['reason'] ? ` (${String(e['reason'])})` : ''}`] };
+      },
+    },
+    /** Engine: a pace-for-age milestone (ranks.md §4) is reached; once each; queues a milestone beat for the narrator. */
+    paceMilestoneReached: {
+      schema: z.object({ type: z.literal('paceMilestoneReached'), milestone: z.enum(['noticed', 'prodigyTalk', 'aheadOfTime']) }),
+      sources: ['engine'],
+      handle: (slice, e) => {
+        const m = e['milestone'] as PaceMilestone;
+        if ((slice.milestones ?? []).includes(m)) return { slice };
+        return { slice: { ...slice, milestones: [...(slice.milestones ?? []), m] }, emit: [{ type: 'milestoneBeatQueued', id: `milestone:${m}`, label: PACE_MILESTONES[m].label }], notes: [`milestone: ${PACE_MILESTONES[m].label}`] };
+      },
+    },
     /** Engine: chosen as a Padawan (the monthly selection roll, or a Knight's interest while in the Corps). */
     padawanChosen: {
       schema: z.object({ type: z.literal('padawanChosen') }),
@@ -208,6 +236,11 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
         emit.push({ type: 'flagSet', flag: 'councilBypassGranted' });
         notices.push('The Council summons you: for your service in the war it will raise you to Knight without the trials.');
       }
+    }
+    // Pace-for-age milestones (ranks.md §4).
+    if (s.character.path === 'jedi' || s.character.path === 'sith') {
+      const p = selectPaceForAge(s);
+      for (const m of paceMilestonesDue({ years: p.years, pace: p.pace, aheadYears: selectAheadYears(s), reached: slice.milestones ?? [] })) emit.push({ type: 'paceMilestoneReached', milestone: m });
     }
     return emit.length ? { slice, emit, notices, rng } : { slice, rng };
   },

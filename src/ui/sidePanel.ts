@@ -24,6 +24,8 @@ import { selectOpenThreads, selectThreads } from '../features/threads/selectors'
 import type { GameState } from '../state/gameState';
 import type { GameEvent } from '../state/types';
 import { renderHealthCard } from './healthCard';
+import { KNIGHT_TRIAL_IDS, TRIALS, type TrialId } from '../data/ranks.config';
+import { selectMayTakePadawan, selectStanding, selectTrialBlock } from '../features/ranks/selectors';
 import { el } from './dom';
 
 export type PanelTab = 'character' | 'people' | 'places' | 'threads' | 'memory' | 'debug';
@@ -211,6 +213,50 @@ function routineCard(p: SidePanelProps): HTMLElement {
   ]);
 }
 
+/**
+ * The Order card (M7 §15, D-424 and D-430): rank, standing, the master and Padawan, and the trials. Every button sends a
+ * player event the engine checks (trialAttempted, trialFailureChoice, masterSet, apprenticeTaken, apprenticeKnighted);
+ * a disabled trial shows why.
+ */
+function ordersCard(p: SidePanelProps): HTMLElement[] {
+  const s = p.state;
+  const path = selectCharacter(s).path;
+  if (path !== 'jedi' && path !== 'sith') return [];
+  const npcs = selectNpcs(s).filter((n) => n.status !== 'deceased');
+  const masters = npcs.filter((n) => ['jediMaster', 'jediKnight', 'sithLord'].includes(n.role));
+  const pupils = npcs.filter((n) => ['padawan', 'sithAcolyte', 'initiate'].includes(n.role));
+  const send = (e: GameEvent): void => p.playerEvents([e]);
+  const trials = (s.ranks.rank === 'initiate' ? ['initiate'] : s.ranks.rank === 'padawan' ? [...KNIGHT_TRIAL_IDS] : []) as TrialId[];
+  const trialRow = (t: TrialId): HTMLElement => {
+    const rec = s.ranks.trials[t];
+    const block = selectTrialBlock(s, t);
+    const status = rec?.passed ? 'passed' : rec?.fails ? `failed ${rec.fails}x` : 'not attempted';
+    return el('div', { class: 'kv' }, [el('span', { class: 'k', text: `${TRIALS[t].name}: ` }), `${status} `, rec?.passed ? null : el('button', { text: 'Attempt', attrs: { ...(block || p.busy ? { disabled: 'true' } : {}), title: block ?? TRIALS[t].note }, on: { click: () => send({ type: 'trialAttempted', trial: t }) } })]);
+  };
+  const select = (label: string, list: typeof npcs, onPick: (id: string) => void): HTMLElement | null => {
+    if (!list.length) return null;
+    const sel = el('select', {}, [el('option', { text: 'choose…', attrs: { value: '' } }), ...list.map((n) => el('option', { text: n.name, attrs: { value: n.id } }))]) as HTMLSelectElement;
+    sel.addEventListener('change', () => sel.value && onPick(sel.value));
+    return el('div', { class: 'kv' }, [el('span', { class: 'k', text: `${label}: ` }), sel]);
+  };
+  return [
+    el('div', { class: 'card' }, [
+      el('div', { class: 'card-title' }, [el('strong', { text: 'The Order' }), el('span', { class: 'rel', text: selectRankName(s) })]),
+      kv('Standing', selectStanding(s).toFixed(0)),
+      kv('Master', s.ranks.masterId ? nameOf(s, s.ranks.masterId) : null),
+      !s.ranks.masterId && (s.ranks.rank === 'padawan' || s.ranks.rank === 'apprentice') ? select('Set your master', masters, (id) => send({ type: 'masterSet', npcRef: id })) : null,
+      kv('Padawan', s.ranks.apprenticeId ? nameOf(s, s.ranks.apprenticeId) : null),
+      selectMayTakePadawan(s) && !s.ranks.apprenticeId ? select('Take a Padawan', pupils, (id) => send({ type: 'apprenticeTaken', npcRef: id })) : null,
+      s.ranks.apprenticeId ? el('button', { text: 'Your Padawan is knighted', on: { click: () => send({ type: 'apprenticeKnighted' }) } }) : null,
+      s.ranks.corps ? kv('Service Corps', s.ranks.corps) : null,
+      ...trials.map(trialRow),
+      s.ranks.pendingChoice
+        ? el('div', { class: 'kv' }, ['A third failure: ', ...([['serviceCorps', 'Service Corps'], ['remainPadawan', 'Remain a Padawan in service'], ['leaveOrder', 'Leave the Order']] as const).map(([c, label]) => el('button', { text: label, on: { click: () => send({ type: 'trialFailureChoice', choice: c }) } }))])
+        : null,
+    ]),
+  ];
+}
+
 /** Character tab: the M3 sheet (identity, condition, skills, Train) plus who and where. */
 function character(p: SidePanelProps): HTMLElement[] {
   const s = p.state;
@@ -251,9 +297,10 @@ function character(p: SidePanelProps): HTMLElement[] {
       meter('Mental', f.m, f.capacity.m, f.labels.m),
       meter('Force', f.f, f.capacity.f, f.labels.f),
       s.progression.overtrainStreak ? kv('Overtrained', `${s.progression.overtrainStreak} day(s) in a row`) : null,
-      beats.length ? kv('Pending beats', beats.map((b) => `${SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId} reached ${b.tier}`).join('; ')) : null,
+      beats.length ? kv('Pending beats', beats.map((b) => (b.tier === 0 ? b.skillId : `${SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId} reached ${b.tier}`)).join('; ')) : null,
     ]),
     renderHealthCard(s),
+    ...ordersCard(p),
     routineCard(p),
     trainPanel(p),
     ...byCat.map((g) => el('div', { class: 'card skills' }, [el('div', { class: 'card-title' }, [el('strong', { text: CATEGORY_LABEL[g.cat] ?? g.cat })]), ...g.rows.map(skillRow)])),

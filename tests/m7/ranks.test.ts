@@ -128,3 +128,24 @@ describe('the ranks feature', () => {
     expect(later.flags.set).toContain('masterApproval');
   });
 });
+
+describe('pace-for-age milestones and the Council seat (ranks.md §4, D-430)', () => {
+  it('noticed at 1.5, prodigy talk at 2.0, after 3 years; ahead of their time 3+ years early; each once', async () => {
+    const { paceMilestonesDue } = await import('../../src/features/ranks/rules');
+    expect(paceMilestonesDue({ years: 2, pace: 3, aheadYears: 5, reached: [] })).toEqual([]);
+    expect(paceMilestonesDue({ years: 4, pace: 1.6, aheadYears: null, reached: [] })).toEqual(['noticed']);
+    expect(paceMilestonesDue({ years: 4, pace: 2.1, aheadYears: 3.5, reached: ['noticed'] })).toEqual(['prodigyTalk', 'aheadOfTime']);
+  });
+  it('a far-ahead Padawan is noticed by the monthly check, and the narrator sees the beat', async () => {
+    const s = make({ age: 15, rank: 'padawan', xp: xp({ soresu: 60, forceControl: 45, forceSense: 40, willpower: 60 }) });
+    const later = advanceTime(REGISTRY, s, { seconds: 40 * 86400, reason: 'test', source: 'timeElapsed' }).state;
+    expect(later.ranks.milestones).toContain('noticed');
+    expect(later.progression.tierBeatsPending.some((b) => b.id === 'milestone:noticed')).toBe(true);
+  });
+  it('the Council seat needs a Master with main specialty 70 and standing 75', () => {
+    const s = make({ age: 50, rank: 'master', xp: xp({ soresu: 60 }) });
+    const r = applyEvents(REGISTRY, s, [{ type: 'councilSeatProposed', reason: 'a vacancy' }], { source: 'ai' });
+    expect(r.state.ranks.councilSeat ?? false).toBe(false);
+    expect(r.rejected.map((x) => x.reason).join(' ')).toMatch(/main specialty under 70/);
+  });
+});

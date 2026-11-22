@@ -128,6 +128,8 @@ Grand Master: story only.
     by years of service, skill minimums matched to the NPC archetype curve, and deeds.
 
 ## 4. Milestones (recalibrated)
+  Built (D-430): checked monthly after 3 years of training; the Average reference is the closed form for
+  the character's archetype, rank and start age with no talent; each milestone fires once as a beat.
   Triggers use pace for age instead of fixed thresholds:
     pace for age = the character's level / the Average profile's level at the same training
     years, per skill.

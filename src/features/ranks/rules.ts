@@ -1,7 +1,7 @@
 // Rank rules (ranks.md §1-5, flag-registry.md §2-3; M7 §15, D-424). Pure: no DOM, no network, no state access; the
 // selectors feed them. Every promotion is a story event the player plays: code checks the requirements, rolls the
 // checks and applies the result; the AI only proposes.
-import { COUNCIL_BYPASS, DEED_POINTS, KNIGHT_TRIAL_IDS, SELECTION, STANDING_WEIGHTS, TRIALS, TRIAL_RULES, type TrialDef, type TrialId } from '../../data/ranks.config';
+import { COUNCIL_BYPASS, DEED_POINTS, KNIGHT_TRIAL_IDS, PACE_MILESTONES, SELECTION, STANDING_WEIGHTS, TRIALS, TRIAL_RULES, type PaceMilestone, type TrialDef, type TrialId } from '../../data/ranks.config';
 import { KNIGHT_TRIALS } from '../../data/rankMinimums';
 import { basicRoll, dcForRating, type BasicRoll } from '../../engine/rolls';
 import type { RngState } from '../../engine/rng';
@@ -104,3 +104,13 @@ export function bypassUnmet(c: { wartime: boolean; heroic: boolean; standing: nu
   return out;
 }
 
+
+/** The pace-for-age milestones due now (ranks.md §4; PACE_MILESTONES), not yet reached. */
+export function paceMilestonesDue(c: { years: number; pace: number; aheadYears: number | null; reached: readonly string[] }): PaceMilestone[] {
+  if (c.years < PACE_MILESTONES.afterYears) return [];
+  const due: PaceMilestone[] = [];
+  if (c.pace >= PACE_MILESTONES.noticed.pace) due.push('noticed');
+  if (c.pace >= PACE_MILESTONES.prodigyTalk.pace) due.push('prodigyTalk');
+  if (c.aheadYears !== null && c.aheadYears >= PACE_MILESTONES.aheadOfTime.years) due.push('aheadOfTime');
+  return due.filter((m) => !c.reached.includes(m));
+}

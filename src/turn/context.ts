@@ -243,7 +243,7 @@ function beatsLines(state: GameState): string[] {
   if (!beats.length) return [];
   return [
     `Pending milestone beats (let the scene acknowledge one, e.g. a master's recognition, then send milestoneBeatAcknowledged): ${beats
-      .map((b) => `${b.id} = ${SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId} reached ${b.tier}`)
+      .map((b) => (b.tier === 0 ? `${b.id} = ${b.skillId}` : `${b.id} = ${SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId} reached ${b.tier}`))
       .join('; ')}`,
   ];
 }

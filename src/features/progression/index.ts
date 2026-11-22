@@ -384,6 +384,16 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         return { slice: { ...slice, stateOfMind }, notes };
       },
     },
+    /** Engine: a non-tier milestone beat (ranks.md §4 pace-for-age milestones): shown to the narrator like a tier beat. */
+    milestoneBeatQueued: {
+      schema: z.object({ type: z.literal('milestoneBeatQueued'), id: z.string(), label: z.string().max(200) }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        const id = String(e['id']);
+        if (slice.tierBeatsPending.some((b) => b.id === id)) return { slice };
+        return { slice: { ...slice, tierBeatsPending: [...slice.tierBeatsPending, { id, skillId: String(e['label']), tier: 0, day: selectNow(ctx.state).day }] } };
+      },
+    },
     milestoneBeatAcknowledged: {
       schema: z.object({ type: z.literal('milestoneBeatAcknowledged'), beatId: z.string().describe('The id of a pending milestone beat the scene acknowledged') }),
       sources: ['ai'],
