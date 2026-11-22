@@ -39,13 +39,21 @@ Last updated 2026-11-21.
 
 | Path | Scope |
 |---|---|
-| `Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md` | Force abilities master list (13 families), lightsaber forms, Form Rules (M6) and Shatterpoint. **Force powers sections superseded** by the six SW_Force_Powers files below (D-338); **lightsaber forms sections current** until lore batch 10 |
+| `Docs/SWRPG lore/SW_Force_Abilities_Forms_v3_complete.md` | Force abilities master list (13 families), lightsaber forms, Form Rules (M6) and Shatterpoint. **Force powers sections superseded** by the six SW_Force_Powers files below (D-338); **lightsaber forms sections current** until the forms catalog check is applied (lore batch 10); the SW_Lightsaber_* set below is the new forms source |
 | `Docs/SWRPG lore/SW_Force_Powers_Part1a.md` | Force powers: shared index for Parts 1–3, scale anchors, Control powers |
 | `Docs/SWRPG lore/SW_Force_Powers_Part1b.md` | Force powers: Sense and universal powers (Force-bond, oneness, harmony, battle meditation) |
 | `Docs/SWRPG lore/SW_Force_Powers_Part2a.md` | Force powers: Alter (telekinesis, mind influence, environment), Alter scale anchors |
 | `Docs/SWRPG lore/SW_Force_Powers_Part2b.md` | Force powers: dark side (lightning, drain and spirit powers, destructive powers, Sith sorcery and alchemy) |
 | `Docs/SWRPG lore/SW_Force_Powers_Part3a.md` | Force powers: rare, lost, species and order-specific techniques |
 | `Docs/SWRPG lore/SW_Force_Powers_Part3b.md` | Force powers: catalog check of force-catalog-m6.md (design reference; applied by D-338 to D-349) |
+| `Docs/SWRPG lore/SW_Lightsaber_Index_AllEras.md` | Lightsaber combat set: file list, continuity checks, the 34 combined decisions, pointer to the forms catalog check |
+| `Docs/SWRPG lore/SW_Lightsaber_Forms_AllEras_Part1.md` | Forms I–VII, Shien variants, Juyo/Vaapad and dark-side risk, practitioners, sourced matchups |
+| `Docs/SWRPG lore/SW_Lightsaber_Forms_AllEras_Part2.md` | Sokan, Tràkata, Jar'Kai, Dun Möch, Form Zero, Su ma, Lus-ma, Trispzest, Juyo-Kos, mounted and telekinetic combat, NJO styles, Praetoria styles |
+| `Docs/SWRPG lore/SW_Lightsaber_SubgroupStyles_AllEras.md` | Teräs Käsi, Echani, Sith swords, Force-imbued swords, Mandalorian methods, Jedi hunters, Matukai, Jensaarai, Zeison Sha, Imperial Knights |
+| `Docs/SWRPG lore/SW_Lightsaber_Training_AllEras.md` | Lightsaber training progression from Tython to the Legacy era |
+| `Docs/SWRPG lore/SW_Lightsaber_WeaponVariants_AllEras.md` | Hilt and blade variants, pre-saber and saber-capable weapons |
+| `Docs/SWRPG lore/SW_Lightsaber_CombatTechniques_AllEras.md` | Zones, rings, marks of contact, stances, deflection, throws and telekinesis, mobility, multiple opponents, anti-Jedi tactics, resistant materials |
+| `Docs/SWRPG lore/SW_Lightsaber_Duels_AllEras.md` | Sourced duelist rankings and anchor duels by era |
 | `Docs/SWRPG lore/SW_Lightsaber_Combat_Marks_Zones_Techniques.md` | Marks of contact, target zones, stances and techniques of lightsaber combat |
 
 ## Jedi Order

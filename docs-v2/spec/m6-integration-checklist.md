@@ -175,6 +175,15 @@ Integration points the M6 design chat found that the first pass missed.
   - **Build:** every point of strain above 1.0 spills into mental fatigue (backlash). Each use above 1.0 has a collapse chance starting at 5% and rising 5 points per further use, capped at 50%; collapse means Incapacitated for 1 to 3 hours. The overdraw Willpower check and its Vitality toll scaled by the age penalty apply. Anger fuel moves the backlash line to 1.3. Item 3 maps the M5 thresholds; item 9 shows the collapse chance.
   - **Tests:** strain 1.2 adds 0.2 to mental fatigue; the collapse chance runs 5, 10, 15 … 50% over successive uses above 1.0 and resets after rest; anger fuel moves the line to 1.3; an old fighter's overdraw costs more Vitality than one in their prime; a training day never exceeds 1.0 strain.
   - **Gate:** the re-measure list below (duel tables, D-158 rows, precognition trial) with backlash and collapse on.
+- [ ] **28. Anchor duels for the duel harness (lore batch 3; D-355; lore: SW_Lightsaber_Duels_AllEras.md, timeline). Report only, don't build.** Check whether the harness can reproduce these outcomes within plausible variance, and report which ones the current engine can express (terrain, form switching, blade-locks) and which need new rules:
+  - Lehon, 1000 BBY: Bane's Force power beats Kas'im's better swordsmanship.
+  - Coruscant, 19 BBY: the form-switch feint catches Dooku.
+  - Naboo, 32 BBY: the catwalk limits Qui-Gon's Ataru.
+  - Byss, 10 ABY: strength breaks a blade-lock.
+  - Mustafar, 19 BBY: Soresu holds against a furious Form V.
+  - *Starting point (from a code read, 2026-11-21, not a run):* terrain exists (src/data/terrain.ts; the `confined` matchup gives Ataru −1, which covers Naboo in part). There is no mid-duel form switch: the free form switch of force-catalog-m6.md §5k is not built, so the Coruscant feint can't be expressed. There is no blade-lock rule, so Byss can't be expressed. Lehon and Mustafar run on existing Force use and matchups (src/data/formMatchups.ts has no Soresu-versus-Djem So defence entry, only Djem So +1 against Soresu).
+- [ ] **29. Form matchup table against the sources (lore batch 3; lore: SW_Lightsaber_Forms_AllEras_Part1.md, sourced matchups). Report only.** Compare the engine's form-counter rules (src/data/formMatchups.ts, built from the v3 file's form notes and rolls §5) with the sourced matchups in Forms Part 1. List every rule with no source, and every sourced matchup the engine lacks.
+- [ ] **30. Vaapad and Juyo drafts (D-350, D-352; lore: Forms Part 1, Juyo/Vaapad and dark-side risk).** The Vaapad and Juyo drafts awaiting review use D-350's access rule (the forbidden/restricted class, D-346; Juyo needs several forms mastered first; Vaapad needs Windu's permission) and the "superconducting loop" (power drawn from a dark-sided opponent at a corruption cost) as their lore basis.
 
 ## Re-measure after integration
 
