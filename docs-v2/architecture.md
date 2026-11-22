@@ -1060,6 +1060,21 @@ The clock and the module contract come first, before any feature.
     Generals only in war eras.
   - The Clone Wars order of battle (10 High Generals, 20 Senior Generals, 80 corps, 320 legions, 1,280 regiments with
     Padawan Commanders) is the default for a Jedi's wartime posting.
+- **M7 Force tradition candidates (Jared, 2026-11-21, lore batch 5; D-359; lore: SW_Force_Traditions_AllEras_Part1.md
+  and _Part2.md, Game notes; candidates only, nothing decided).**
+  - *Playable backgrounds:* Baran Do Sage (Kel Dor), Luka Sene member (Miraluka), Keetael adept (Draethos), Jal Shey
+    neophyte (any species, non-combat), Wardens of the Sky apprentice, Order of Shasa adept (Selkath), Ysanna
+    tribesperson (Ossus, New Republic era), Blazing Chain raider (Unknown Regions), Dathomiri witch (Allyan clan, from c.
+    600 BBY), Antarian Ranger (non-Force, c. 620 BBY to the NJO), Disciple of Twilight, Altisian Jedi (late Republic and
+    Dark Times), Agents of Ossus cell member (Dark Times), Kilian Squire (Imperial era), Thuwisten (Tyia), Gray Paladin
+    (late Republic and Dark Times).
+  - *Teacher NPCs:* an Aing-Tii monk for fold space and flow-walking (very rare; could be a quest reward), a Baran Do
+    master for *ayna-seff*, a Luka Sene Mentor for Field Detection, a Fallanassi adept (illusion and immersion; they
+    rarely teach men), a Theran Listener for Force-listening, a witch clan elder for "spells".
+  - *Antagonist traditions:* Sorcerers of Tund, Krath (Great Sith War era), Mecrosa assassins (Tapani), Ember of Vahl
+    (Legacy era), Sorcerers of Rhand, Nightsisters (any era after Allya), Seyugi Dervishes, Bando Gora (c. 44–32 BBY),
+    the Wyrd (Clone Wars Cularin), Blackguard.
+  - *Era gating:* spawn traditions from Part 2's "who exists in each era" table; "y" cells are optional.
 - **M7 forbidden powers and Order reputation (D-346, Jared, 2026-11-21; not built).** A Knight learning a forbidden
   power (Electric Judgment, Deadly Sight, Morichro from 1000 BBY) needs a Master's permission; learning it covertly
   risks the character's standing in the Order. Build with Order standing.

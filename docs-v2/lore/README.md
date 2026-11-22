@@ -96,3 +96,10 @@ Last updated 2026-11-21.
 |---|---|
 | `Docs/SWRPG lore/SW_Lightsabers_Crystals_Materials_AllEras.md` | Lightsaber construction, crystals, blade colours, hilt variants and lightsaber-resistant materials, all eras |
 | `Docs/SWRPG lore/SW_Weapons_Armor_AllEras.md` | Non-lightsaber weapons, armour, personal energy shields and anti-Jedi gear, all eras (focus on the Old Republic and Clone Wars) |
+
+## Force traditions
+
+| Path | Scope |
+|---|---|
+| `Docs/SWRPG lore/SW_Force_Traditions_AllEras_Part1.md` | Force traditions, Part 1: Dai Bendu to the Corellian Jedi (Baran Do, Aing-Tii, Luka Sene, Ysanna, Voss Mystics, Rhand, Paladins and others) |
+| `Docs/SWRPG lore/SW_Force_Traditions_AllEras_Part2.md` | Force traditions, Part 2: Dathomir to the Imperial Knights, plus the who-exists-in-each-era narrator table for both parts |

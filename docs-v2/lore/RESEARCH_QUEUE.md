@@ -1,6 +1,6 @@
 # Lore research queue
 
-Last updated 2026-11-21 (lore batch, docs-v2/lore-batch-2026-11-21.md; dark-side files added the same day; lore batch 2, docs-v2/lore-batch-2-2026-11-21.md; Force catalog revision, docs-v2/lore/batches/force-catalog-revision.md; lore batch 3, docs-v2/lore/batches/lore-batch-3-lightsaber-combat.md; lore batch 4, docs-v2/lore/batches/lore-batch-4-jedi-ranks-councils.md).
+Last updated 2026-11-21 (lore batch, docs-v2/lore-batch-2026-11-21.md; dark-side files added the same day; lore batch 2, docs-v2/lore-batch-2-2026-11-21.md; Force catalog revision, docs-v2/lore/batches/force-catalog-revision.md; lore batch 3, docs-v2/lore/batches/lore-batch-3-lightsaber-combat.md; lore batch 4, docs-v2/lore/batches/lore-batch-4-jedi-ranks-councils.md; lore batch 5, docs-v2/lore/batches/lore-batch-5-force-traditions.md).
 
 This file tracks every lore file in `Docs/SWRPG lore/`: what it covers, where it came from, what in docs-v2 relies on it, and what the research bot should redo next. The lore files themselves stay in `Docs/SWRPG lore/` (the canon source of truth). This queue and the lore index (README.md, next to this file) live in `docs-v2/lore/`, because CLAUDE.md forbids new files in `Docs/`.
 
@@ -48,6 +48,8 @@ This file tracks every lore file in `Docs/SWRPG lore/`: what it covers, where it
 | SW_Lightsaber_Duels_AllEras.md | Sourced duelist rankings and anchor duels by era | All eras | 22 KB | bot (reviewed) | 1 | D-355 | m6-integration-checklist.md (items 28–30) |
 | SW_Jedi_Ranks_Councils_Roles_AllEras_Part1.md | Jedi ranks, councils and roles to 1000 BBY (extends SW_Jedi_Order_Ranks_Council_OldRepublic.md) | c. 36,453–1,000 BBY | 50 KB | bot (reviewed) | 2 | D-356, D-357 | architecture.md (§15 M7 Council path) |
 | SW_Jedi_Ranks_Councils_Roles_AllEras_Part2.md | Jedi ranks, councils and roles 1000 BBY–138 ABY (extends SW_Jedi_Order_Ranks_Council_OldRepublic.md) | 1,000 BBY–c. 138 ABY | 60 KB | bot (reviewed) | 2 | D-356, D-357 | architecture.md (§15 M7 Council path) |
+| SW_Force_Traditions_AllEras_Part1.md | Non-Jedi and non-Sith Force traditions, Part 1 (Dai Bendu to the Corellian Jedi: Baran Do, Aing-Tii, Luka Sene, Ysanna, Voss Mystics, Rhand, Paladins and others), cross-era table | All eras | 69 KB | bot (reviewed) | 1 | D-358, D-359 | force-catalog-m6.md (§5l); architecture.md (§15 M7 tradition candidates) |
+| SW_Force_Traditions_AllEras_Part2.md | Force traditions, Part 2 (Dathomir witches and Nightsisters to the Imperial Knights: Disciples of Twilight, Fallanassi, Theran Listeners, Iron Knights, Potentium and others), cross-era table, the who-exists-in-each-era narrator table | All eras | 61 KB | bot (reviewed) | 1 | D-358, D-359 | force-catalog-m6.md (§5l); architecture.md (§15 M7 tradition candidates) |
 | SW_Legends_Galaxy_Timeline.md | Galaxy timeline: scripted events and NPC deployment by era | 36,453 BBY–c. 139 ABY | 122 KB | pre-bot | 3 | D-01, D-02, D-08, D-38, D-81, D-144, D-213, D-277 | 01-character-creation.md, 13-calendar-and-time.md, 16-lore-injection.md, bugs.md, lore-checks.md, architecture.md |
 | SW_Lightsaber_Combat_Marks_Zones_Techniques.md | Marks of contact, target zones, stances and techniques | All eras (general) | 7 KB | pre-bot (written from Wookieepedia, 2026-11-18) | 1 | D-188, D-267 | architecture.md |
 | SW_Jedi_Daily_Life_Training_OldRepublic.md | Jedi daily life: *Jedi Path* timetable, clans, Initiate Trials, Padawan life, Service Corps | c. 3,700–3,600 BBY, with general material | 63 KB | bot (reviewed) | 2 | D-286, D-295, D-296, D-298, D-300, D-301, D-303, D-304, D-306, D-319 | force-xp-rework.md, m6-integration-checklist.md |
@@ -77,7 +79,6 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 
 ## Queued research (not done yet)
 
-- **Force traditions, all eras** (priority 2). Non-Jedi and non-Sith Force traditions across the eras. Coverage check from the Jedi ranks file (Part 2, decision P2-8): make sure it covers the Paladins, the Iron Knights, Potentium followers and the Corellian Jedi.
 - **Yuuzhan Vong weapons and armour** (priority 3; also listed under Gaps).
 
 ## Gaps (no file yet)
@@ -97,6 +98,7 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 
 ## Done
 
+- **Force traditions, all eras** (lore batch 5): SW_Force_Traditions_AllEras_Part1.md and Part2.md (2026-11-21; decisions D-358, D-359). The P2-8 coverage check passes: Part 1 covers the Paladins and the Corellian Jedi, Part 2 the Iron Knights and Potentium.
 - **Jedi ranks, councils and roles, all eras** (lore batch 4): SW_Jedi_Ranks_Councils_Roles_AllEras_Part1.md and Part2.md (2026-11-21; decisions D-356, D-357). They extend SW_Jedi_Order_Ranks_Council_OldRepublic.md; they don't replace it.
 - **Lightsaber combat, all eras** (lore batch 3): SW_Lightsaber_Index_AllEras.md and the seven topic files (2026-11-21; decisions D-350..D-355). Done apart from the catalog check against SW_Force_Abilities_Forms_v3_complete.md (Index item 6), which lore batch 10 applies; until then the v3 forms content stays in place.
 - **Force powers, all eras** (Priority 1 redo, powers part): SW_Force_Powers_Part1a.md to Part3b.md (2026-11-21; decisions D-338..D-349). Part3b is a catalog check of force-catalog-m6.md, applied in the same commit; scale check in docs-v2/testing/force-scale-check.md.

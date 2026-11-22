@@ -4,6 +4,7 @@
 
 **Revised 2026-11-21 (Force powers research; docs-v2/lore/batches/force-catalog-revision.md; D-338 to D-349).** Repo-only changes, not in the old claude.ai doc:
 - **Lore source changed (D-338).** The Force powers now rest on the six research files `Docs/SWRPG lore/SW_Force_Powers_Part1a.md` to `_Part3b.md`, which replace the Force powers sections of `SW_Force_Abilities_Forms_v3_complete.md`. The v3 file is still the source for the lightsaber forms (§5k) until lore batch 10. Part3b is a catalog check of this file; its findings are applied below, each marked "(Part3b xN)" or with its ruling.
+- **Lore batch 5 (D-358):** tradition powers mapped and added in §5l; flow-walking's outsider date amended.
 - **Rulings applied:** the Force created Anakin (D-339, §5j); flow-walking cannot change the past (D-340, §5i); Tutaminis and Force Absorb merged (D-341, §5c); sides (D-342); drops, and Purification kept as a crafting technique (D-343, §5h); lore-locks (D-344); Force-meld by era (D-345, §5c); the new forbidden class (D-346, §2-3); scale (D-347); new entries (D-348); "ShatterSense" renamed shatterpoint perception (D-349).
 - **Sources rule (D-338):** citations of *The Clone Wars* (2008) on Legends pages are accepted; only the 2014 *Lost Missions* material is excluded.
 - **New keys for Claude Code:** aliases `ForceAbsorb` → Tutaminis, `Kinetite` → Electric Judgment, `TelekineticBarrage` → Ballistakinesis; rejected names `CreateForceWraith` and `ForceTravel` (beside `Shadowstrike`); talent key `ShatterSense` → `shatterpointPerception`. New entries: `AltusSopor`, `LifeDetection`, `SenseForce`, `Vongsense`, `SummonStorm`, the lightning tiers, and the NPC-only `SithNecromancy` and `DarkPlague`.
@@ -600,7 +601,7 @@ The twelfth family, drafted 2026-11-20 and checked against Wookieepedia Legends.
 | Phase | Advanced | Sustained | 8 per round | Taught (rare); no Killik lock (D-344) | Neutral (reaching into a body to kill is judged) |
 | Dimension Shift | Advanced | Instant per object | 40 | Taught, can be rediscovered | Neutral |
 | Art of the Small | Advanced | Meditation; sustained to hide | 40, or 8 per round | Taught | Neutral |
-| Flow-Walking | Advanced | Meditation per walk | 40 | Lore-locked (Aing-Tii) | Neutral |
+| Flow-Walking | Advanced | Meditation per walk | 40 | Lore-locked (Aing-Tii); taught to an outsider by c. 30 ABY (Jacen Solo, D-358) | Neutral |
 | Force Storm (Wormhole) | Advanced | Ritual; scale up to a planet per storm (fleets too) | 200 | Lore-locked (Book of Anger, Darkstaff) | Dark, severe |
 
 **Dropped (D-343):** Force Travel. Its page carries Wookieepedia's non-canon Legends banner, like *Infinities* (Part3b b7). The old key is a rejected name.
@@ -737,6 +738,73 @@ The last pass, drafted 2026-11-20 and checked against Wookieepedia Legends (main
 All four questions approved on 2026-11-20. Change from the draft: the Strong, Medium and Fast styles became learnable forms (`StrongStyle`, `MediumStyle`, `FastStyle`), era-locked to after Luke founds the New Jedi Order, as the way early New Jedi Order students learn (Jared's decision, and it matches Wookieepedia: Luke's new Order had to rebuild lightsaber combat from scratch, and Kam Solusar taught the three rings of defense these styles are named for). New form keys: `TKSaber`, `Lightwhip`, `SaberPike`; `ZeroGravity` becomes environment training, not a form.
 
 **Zero-G confirmed (look-over item 6, 2026-11-21):** zero or low gravity is an environment modifier, a penalty that training in it reduces; it is not a form. Converting the code's `zeroG` form (its drill, matchup and terrain entry) and migrating saves is an integration item, not a spec change.
+
+## 5l. Tradition powers: mapping and additions (lore batch 5)
+
+Added 2026-11-21 (D-358; lore: `SW_Force_Traditions_AllEras_Part1.md` and `_Part2.md`, the cross-era tables and entries). The traditions files name powers by Wookieepedia page title. Each named power is mapped to its catalog entry below. Powers with no entry are added as **tradition-gated, marked "review"**: their tiers and costs are the §3 defaults, set without a family pass, and wait for Jared's review.
+
+**Lore-lock amendments (D-358):**
+- **Aing-Tii flow-walking** was taught to an outsider by c. 30 ABY (Jacen Solo, after the Yuuzhan Vong War). Fold space taught to outsiders stays from 43.5 ABY (Luke and Ben); decision [5] lets a Force-sensitive player learn it from the Aing-Tii inside that gate.
+- **Theran Force-listening:** the technique page credits Qui-Gon, Obi-Wan and Ahsoka (TCW, accepted under D-338) with using it, which confirms D-344's loosened lock.
+- **Darksight:** the Sorcerers of Rhand, plus the Nightsisters, who call it "heartshadow". This matches D-344.
+
+**Mapping (tradition: named power → catalog entry):**
+
+| Tradition (file) | Named power | Catalog entry |
+|---|---|---|
+| Guardians of the Breath (P1) | Healing; crop-growing | Force Heal (Others); Plant Surge |
+| Followers of Palawa (P1) | Decades-long ageless trance | Hibernation Trance (Palawa trance alias, §5g). Teräs Käsi is a martial art, not a power |
+| Legions of Lettow (P1) | Force-imbued blades | Force Weapon (held) |
+| Order of the Terrible Glare (P1) | Illusions; soul snares | Force Illusion. Soul snares (crystal prisms that trap a soul) are artifacts, not a power: story items, no entry |
+| Baran Do Sages (P1) | Precognition; white lightning; Force whirlwind; *ayna-seff* | Precognition; *hassat-durr* (a §5j gap, not added; "not of the dark side"); Force Whirlwind; *ayna-seff* (added below) |
+| Aing-Tii monks (P1) | Flow-walking; fold space ("Force teleportation"); Fighting-sight | Flow-Walking; Fold Space (alias `ForceTeleportation`); Fighting-sight (already an entry, §5d) |
+| Luka Sene (P1) | Farsight; Field Detection | Farsight; Field Detection (added below) |
+| Gand findsmen (P1) | Divination rituals | Farsight and Force Sense, framed as religious ritual (D-358 [3]). Gand martial arts: not a power |
+| Jal Shey (P1) | Force-imbued armour and gear | Force Imbuing, gear (added below) |
+| Wardens of the Sky (P1) | Unarmed Force martial art | Enhance Attribute and Force Speed, as a fighting style |
+| Sorcerers of Tund (P1) | Illusion; deception; shapeshifting | Force Illusion; Mind Trick; Masquerade (an application of Force Illusion) |
+| Krath (P1) | Sith magic (illusions) | Mindforms (Force Illusion with Sith Sorcery) |
+| Ysanna (P1) | Force ghost; projectile guidance | Force Ghost; Projectile Guidance (added below) |
+| Keetael (P1) | Force tracking; guided ranged attacks; visions | Life Detection (Life Sense application; Force Track itself is a §5j gap); Projectile Guidance; Farsight |
+| Voss Mystics (P1) | Prophecy; healing | Force Vision; Voss healing ritual |
+| Knights of Zakuul (P1) | Scion foresight | Force Vision and Precognition. Shield group tactics: combat, not a power |
+| Ember of Vahl (P1) | Flame trance; fire resistance; flaming weapons | Force Vision (meditation trance); Energy Resistance; Force Imbuing, gear |
+| Sorcerers of Rhand (P1) | Darksight | Darksight |
+| Matukai (P1) | Body-channelled Force | Body family (Enhance Attribute, Control Pain, Force Body) |
+| Zeison Sha (P1) | Telekinesis; discblade | Telekinesis; Saber Throw (discblade) |
+| Witches of Dathomir (P2) | "Spells"; rancor taming | The catalog's powers, cast as spells (D-358 [14]); Animal Bond |
+| Nightsisters (P2) | Illusion spells; spirit ichor; Force-imbued weapons; control web | Force Illusion (mindforms for Shadow Magic); Spirit Ichor, Force Imbuing (gear) and Control Web (added below) |
+| Disciples of Twilight (P2) | Light-bending; Cloak of Shadow; Shadow Armor | Force Cloak (light-bending; Cloak of Shadow is a section of the Force cloak page, so it maps there as the Disciples' variant); Shadow Armor (added below); Revelation (§5g) |
+| Shapers of Kro Var (P2) | Earth, fire, water and air shaping | Elemental Shaping (added below) |
+| Seyugi Dervishes (P2) | Target location | Life Detection (Life Sense application) |
+| Theran Listeners (P2) | Theran Force-listening | Theran Force-listening |
+| Bando Gora (P2) | Drug-and-Force mind control | Mind Control |
+| The Wyrd (P2) | Flight; storm summoning; lightning; Drain Knowledge | Force Flight; Summon Storm; Force Lightning; Mind Probe (Drain Knowledge is already its alias) |
+| Korunnai (P2) | Parasite expulsion | Parasite Expulsion (added below) |
+| Tyia (P2) | Stun by telekinesis | Force Stun; Telekinesis |
+| Fallanassi (P2) | Illusions; Meditation of Immersion | Force Illusion; Force Immersion (added below; until now cited only in §5f) |
+| Agents of Ossus (P2) | Concealment | Force Concealment |
+| Bosph ela b'Yentarr (P2) | Farseeing; hunting senses; healing | Farsight; Life Detection; Force Heal (Others) |
+| Kilian Rangers (P2) | Blaster deflection with shield gauntlets | Force Deflection (with gear) |
+| Mind Walkers (P2) | Travelling "beyond shadows" | Mind Walking |
+| Jensaarai, Imperial Knights (P2) | See the sub-group styles file | Ballistakinesis (Jensaarai, §5); forms in §5k |
+| Dai Bendu, Blazing Chain, Shasa, Mecrosa, Antarian Rangers, Potentium, Altisian Jedi, Iron Knights, Paladins (P1, P2) | None named, or non-Force skills | No entry |
+
+**Additions (tradition-gated, review):**
+
+| Ability | Tier (default) | Cost type | Base cost | Learning class | Alignment | Source |
+|---|---|---|---|---|---|---|
+| Field Detection | Complex | Instant | 25 | Tradition-locked (Luka Sene; a Luka Sene mentor) | Neutral | Perceiving energy fields; P1 Luka Sene |
+| *Ayna-seff* | Complex | Meditation | 25 per session | Tradition-locked (Baran Do; Jacen Solo learned it, 34 ABY) | Neutral | P1 Baran Do; Part3b a13 |
+| Projectile Guidance | Moderate | Instant per shot | 15 | Tradition-locked (Ysanna, who perfected it; Keetael) | Neutral | Guiding ranged weapons; P1 Ysanna, Keetael |
+| Force Imbuing (gear) | Complex | Ritual per item (crafting) | 125 | Tradition-locked (Jal Shey armour and gear; Nightsister weapons; Ember of Vahl flaming weapons) | Neutral (Nightsister and Vahl versions dark, standard) | P1 Jal Shey, Ember of Vahl; P2 Nightsisters. Force Weapon stays the held, in-combat version |
+| Control Web | Advanced | Group power; every participant pays, sustained | 8 per round each | Tradition-locked (Nightsisters; Lost Tribe Sith forced captives to teach it) | Dark, standard | Several Nightsisters together control creatures' minds; P2 Nightsisters |
+| Spirit Ichor | Advanced | Ritual | 200 | NPC and story only (Nightsister shamans) | Dark, standard | Channelled by shamans (the Water of Life); P2 Nightsisters |
+| Shadow Armor | Advanced | Sustained | 8 per round | Tradition-locked (Disciples of Twilight, c. 900 BBY on) | Neutral | Invisibility; P2 Disciples of Twilight (Shadow armor page) |
+| Elemental Shaping | Complex | Instant or sustained; scale = area | 25, or 5 per round | Tradition-locked (Shapers of Kro Var, c. 1000 BBY on) | Neutral | Earth, fire, water and air shaping; a tradition form of Alter Environment; P2 |
+| Parasite Expulsion | Complex | Instant | 25 | Unique (Kar Vastor); NPC only | Neutral | Drove brain parasites out of a body, a power unknown to the Jedi; Vastor paid with the loss of comprehensible speech; P2 Korunnai |
+| Force Immersion | Advanced | Meditation, then sustained | 40, then 8 per round | Tradition-locked (Fallanassi; Luke and Jacen briefly) | Neutral | Meditation of Immersion: invisibility; masters take objects and places with them; sees through cloaks and illusions; P2 Fallanassi; Part3b a12 |
+| Ta-Ree powers (Pyrospray, Shadowstrike and others) | per power | per power | — | NPC only; usable mainly inside the Kathol sector | Neutral | A twisted form of the Force after the Kathol Rift disaster; P1 Aing-Tii neighbours. `Shadowstrike` stays a rejected name for the player |
 
 ## 6. Family pass plan and repo files
 

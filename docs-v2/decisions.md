@@ -846,3 +846,27 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *[P2-9] The Lost Twenty:* only Masters who resigned voluntarily (Dooku the 20th, 32 BBY). Knights who left (Bardan Jusik) aren't counted; exiles and expulsions are separate.
   - *[P2-11] Ossus survivors:* the reconciliation is accepted. About half the Order survived, mostly the half that hadn't withdrawn to Ossus.
   - *Expulsion (design default):* in Republic eras, a hearing before the Council of Reconciliation with testimony. Outcomes: exile, stripped rank, or reassignment to the Service Corps.
+- **D-358 Force traditions: catalog mapping and M6 rulings (Jared, 2026-11-21; lore batch 5; lore: SW_Force_Traditions_AllEras_Part1.md and _Part2.md; force-catalog-m6.md §5l).**
+  - *[1] Power names:* every power the traditions files name is mapped to its catalog entry (§5l table). Powers with no entry are added as tradition-gated "review" entries at the §3 defaults: Field Detection, *ayna-seff*, Projectile Guidance, Force Imbuing (gear: Jal Shey, Nightsister and Ember of Vahl items), Control Web, Spirit Ichor (NPC/story), Shadow Armor, Elemental Shaping, Parasite Expulsion (unique, NPC), Force Immersion (Fallanassi) and the Ta-Ree powers (Kathol, NPC). Mapped instead of added, because an entry already covers them: Fighting-sight (§5d), the Wyrd's Drain Knowledge (Mind Probe's alias), Cloak of Shadow (a section of the Force cloak page).
+  - *Lore-lock amendments:* Aing-Tii flow-walking was taught to an outsider by c. 30 ABY (Jacen Solo, after the Yuuzhan Vong War); fold space taught to outsiders stays from 43.5 ABY (Luke and Ben). Theran Force-listening's page credits Qui-Gon, Obi-Wan and Ahsoka, confirming D-344's loosened lock. Darksight: Rhand plus the Nightsisters ("heartshadow"), matching D-344.
+  - *[3] Gand findsmen:* mechanically their divination is Force use (a sensing power), but they believe it isn't the Force; the narrator frames it as religious ritual, like the untrained Voss Mystics.
+  - *[4] Kel Dor telepathy:* a lie the Baran Do spread (the latest source, *Outcast*); not a technique.
+  - *[5] Aing-Tii fold space:* a Force-sensitive player character may learn it from the Aing-Tii, inside the catalog's era gate. Teaching it to non-Force-sensitives stays NPC-only (the Car'das precedent).
+  - *[9] Species abilities:* species traits, not tradition-taught powers: Miraluka Force sight, Neti hibernation, Qom Jha telepathic speech.
+  - *[14] Dathomiri spells:* the same catalog powers, but Allyan magic needs a chant, song or ritual: a visible and audible tell and a short casting time, and the witch can't cast while silenced or bound, except prodigies. Nightsister Shadow Magic (Gethzerion's line) needs no chant. Many witches are gifted in only some families of powers.
+  - *[17] Potentium:* dark-side techniques still taint, whatever the user believes. The intent discount (D-330) applies only under its own rules, with no extra exemption. Holding Potentium beliefs is heresy for reputation with the Jedi (M7).
+  - *[19] Gray Paladins:* a minimal-Force fighter archetype. The Force only augments physical skills; they use blasters, Teräs Käsi, Stava, throwing whorls and spinsticks, treating lightsabers as unreliable. Jedi NPCs see it as heterodox.
+- **D-359 Force traditions: history, NPCs and era spawning (Jared, 2026-11-21; lore batch 5; lore: SW_Force_Traditions_AllEras_Part1.md and _Part2.md; M7).**
+  - *[2] Legions of Lettow:* disputed in-universe. Jedi sources say Xendor attacked; Arden Lyn's account (via Inquisitor Torbin) says the Jedi raised an army first. The narrator presents both as disputed.
+  - *[6] Sorcerers of Tund:* founded c. 4250 BBY (in-universe date). Peña's 10,000 BBY intent stays [BTS], not used.
+  - *[7] Mecrosa vs Talzin:* c. 230 BBY accepted. Talzin is several centuries old, consistent with long-lived Nightsister matriarchs.
+  - *[8] Kashi Mer:* the dynasty ends in the 25,000 BBY supernova. The Guardians of the Breath survive scattered (still recorded in 990 BBY).
+  - *[10] Teepo's Paladins:* still active into the New Republic (*Essential Guide to Warfare*, the more specific source). The Gray Paladins' fate after the Purge is unknown.
+  - *[11] Corellian Jedi:* a sect of the Jedi Order with a Corellia-first loyalty flag, not a separate tradition.
+  - *[12] Nightsisters:* a recurring name for dark-side exile clans on Dathomir (known by 340 BBY; Talzin's covens in the late Republic). Gethzerion and Baritha founded their own clan in the late Republic.
+  - *[13] Zalem's Infinity Gate plot:* 32 BBY.
+  - *[15] Antarian Rangers:* a non-Force background. A rare Ranger may have limited sensitivity (the founder Kaskutal did), but there are no Ranger Force techniques.
+  - *[16] Iron Knights:* the *Complete Star Wars Encyclopedia* account (the Aqinos page) for all three conflicts. Aqinos was excommunicated before c. 60 BBY and then taught aboard the Chu'unthor; the Iron Knights fought for the Republic as High Marshals in the Clone Wars; Luke approached them in 13 ABY.
+  - *[18] Tyia:* an ancient tradition (Thuwisten seen across the galaxy for much of its history) that reached Revyia recently, c. 30 BBY.
+  - *Who exists in each era:* Part 2's narrator table is the spawn table for tradition NPCs. "Y" means present, "y" presumed present (optional), "?" or "–" absent unless a story event places them there.
+  - *Playable backgrounds and teachers:* the Game notes lists from both parts are recorded under architecture §15 as M7 candidates. Nothing is decided.
