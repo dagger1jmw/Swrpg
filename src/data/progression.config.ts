@@ -10,9 +10,10 @@ import type { AgeRow, RustRow } from './skills';
  * Shii-Cho as an Initiate, then the main form 2 h + second form 1 h from Padawan, with the 0.75
  * fundamentals transfer). Re-solved on the real day loop (D-431, 2026-11-22; npm run ksolve, the gated seed: 41 at 15.995
  * years) with the daily meditation block and the age-scaled Padawan hours: 12.30 (it was 11.683 from
- * docs-v2/calc/progression-sim.mjs, and 15.181 under D-102).
+ * docs-v2/calc/progression-sim.mjs, and 15.181 under D-102). D-456 (2026-11-23): re-solved after the rest-before-trim
+ * fix (the fill is no longer trimmed, so the Average trains more hours): 12.45 (12.30 gave 41 at 15.834, 12.47 gave 16.027).
  */
-export const K = 12.3;
+export const K = 12.45;
 export const CURVE_EXP = 1.75;
 
 /** progression-numbers §1. [min level, name]. */
@@ -120,23 +121,25 @@ export const PACE_WINDOW_DAYS = 365;
  * (K 12.30): the table times the 20-seed median ratio per age (npm run spread, 2026-11-22). The frozen ages of D-426 are
  * gone; the 4.0x stays defined against the Average. D-445: re-measured again with the Average in the Coruscant Temple (the
  * 20-seed medians moved 30: 444 -> 405, 90: 324 -> 300, 60: 505 -> 498; the rest within 1%).
+ * D-456 (2026-11-23): re-measured after the rest-before-trim fix (K 12.45): the dip at 30 is gone (405 -> 484), 90: 300 ->
+ * 338, 16: 604 -> 625, 60: 498 -> 480; the rest within 1.5%.
  */
 export const Y_AVG_FROZEN_AGES: readonly number[] = [];
 export const Y_AVG: readonly (readonly [number, number])[] = [
-  [4, 582],
-  [8, 611],
-  [12, 599],
-  [16, 604],
-  [20, 620],
-  [24, 560],
-  [30, 405],
-  [40, 468],
-  [50, 461],
-  [60, 498],
-  [70, 452],
-  [80, 446],
-  [90, 300],
-  [98, 204],
+  [4, 583],
+  [8, 609],
+  [12, 606],
+  [16, 625],
+  [20, 629],
+  [24, 558],
+  [30, 484],
+  [40, 472],
+  [50, 462],
+  [60, 480],
+  [70, 449],
+  [80, 448],
+  [90, 338],
+  [98, 207],
 ];
 
 // ---- Age and learning speed (§16) ----
@@ -383,8 +386,9 @@ export const MAJOR_NEXUS_FACTOR = 1.15;
  * changed for it. First guess (invented), tuned on the Luke accelerated-path harness check (tests/lifetime/lukeAccelerated).
  * D-431: x3.4 (was 3.2) after K moved to 12.30: at 3.2 Luke's Djem So was 53.3 at year 5 (target 55+); at 3.4 it is 56.0
  * (Force Control 61.0; 44.1 at year 3). The cap multiplier stays 3.2.
+ * D-456: x3.5 after K moved to 12.45 (at x3.4 Djem So was 55.4 at year 5, goal 56).
  */
-export const ACCELERATED_PATH = { mult: 3.4, capMult: 3.2 } as const;
+export const ACCELERATED_PATH = { mult: 3.5, capMult: 3.2 } as const;
 
 // ---- XP sources for the knowledge stats (Jared, D-427; M7). Every number here is invented and tagged. ----
 /**

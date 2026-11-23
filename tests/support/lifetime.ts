@@ -1,6 +1,6 @@
-﻿// Lifetime harness (M4; progression-targets Â§6 test 1, progression-numbers Â§20 test 1; D-49). Runs a
+// Lifetime harness (M4; progression-targets §6 test 1, progression-numbers §20 test 1; D-49). Runs a
 // calibration profile through the REAL game: a GameState from createInitialState, the player's routine
-// (routines feature + scheduler), and advanceByRoutine (the montage day loop, every Â§10 hook in order).
+// (routines feature + scheduler), and advanceByRoutine (the montage day loop, every §10 hook in order).
 // Rank changes at the profile's ages use the engine rankSet event (D-131, until M7). Combat (M5, D-143 B): each
 // scheduled fight is a real duel through the duel engine against a generated opponent at the scripted gap (a Force-
 // using duelist, or a group of trooper minions), with a rolled outcome; the player's wounds and Vitality go through
@@ -233,9 +233,9 @@ function setRoutine(p: LifeProfile, s: GameState, rank: string): GameState {
 }
 
 /** Per-run fight statistics (reported by the lifetime tests, D-143 J). */
-export const fightStats = { fights: 0, won: 0, lost: 0, wounds: 0, stabilized: 0, mortal: 0, withdrew: 0, sithWithdrew: 0, skipped: 0, precogFights: 0, precogDark: 0, precogDarkOpp: 0, precogOpp: 0 };
+export const fightStats = { fights: 0, won: 0, lost: 0, wounds: 0, stabilized: 0, mortal: 0, withdrew: 0, sithWithdrew: 0, skipped: 0, precogFights: 0, precogDark: 0, precogDarkOpp: 0, precogOpp: 0, combatDiscardedXp: 0 };
 
-/** A minion of a kind at a level (the kind's weapon, armor, coordination and Vitality; npc-generation Â§6, D-158). */
+/** A minion of a kind at a level (the kind's weapon, armor, coordination and Vitality; npc-generation §6, D-158). */
 function minionFighter(kindId: string, id: string, level: number, beskar: boolean): Fighter {
   const k = MINION_KINDS.find((x) => x.id === kindId) ?? MINION_KINDS[0]!;
   const v = 47 * k.vitalityMult;
@@ -461,6 +461,11 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
   const applied = applyEvents(REGISTRY, s, events, { source: 'engine' });
   if (applied.rejected.length) throw new Error(`fight rejected: ${applied.rejected[0]!.reason}`);
   s = applied.state;
+  // Combat XP the 4.0x clamp discards (reporting only; LifeResult.discarded counts training sessions).
+  for (const a of applied.applied) for (const n of a.notes) {
+    const m = /^4\.0x pace clamp: ([\d.]+) combat XP/.exec(n);
+    if (m) fightStats.combatDiscardedXp += Number(m[1]);
+  }
   // A Dying profile is always stabilized (Jared, D-143 B: a medic is present).
   if (s.health.dying) {
     s = applyEvents(REGISTRY, s, [{ type: 'woundsStabilized', by: 'a field medic' }], { source: 'engine' }).state;
@@ -640,6 +645,8 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       mainByYear.push(lvl);
       levelsByYear.push(Object.fromEntries(track.map((k) => [k, levelOf(s, k)])));
     }
+    // The clock is at the next wake: be where that day is spent before the hook looks (the seat changes on its date).
+    s = moveForAge(p, s, ageEnd);
     if (opts.onDay) s = opts.onDay(s, { day, age: ageEnd }) ?? s;
   }
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));

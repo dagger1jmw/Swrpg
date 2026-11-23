@@ -45,6 +45,10 @@ building: D-128 (defaults), D-129 (AI suggestions), D-130 (timed day segments), 
      (post-workout window x1.25).
   4. Meditation goes after the hardest block or at the end of the day (it restores mental).
   5. Insert 0.5 h rest between physical blocks whenever projected f_phys would pass 0.7.
+     A rest before a trim (D-456): a day that projects over its tiredness limit first takes every
+     rest between its physical blocks (they cost clock time, not training hours), and only a day
+     still over the limit is trimmed (rule 6). Without it, a fitter character skipped rests the
+     meter no longer called for and lost fill hours for it (the dip at 30, D-455).
   6. Projected tiredness limit at day end: easy f <= 0.7 | standard f <= 0.9 | push f <= 1.0.
      Fill hours are trimmed in proportion (D-120): each 0.5 h comes off the fill block with the
      largest remaining fraction of its planned hours, so the shares (and a form plan's split)

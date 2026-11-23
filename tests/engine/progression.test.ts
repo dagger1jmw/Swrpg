@@ -35,9 +35,9 @@ function day(blocks: BlockInput[], end: number, will = end) {
 }
 
 describe('curve and tiers (§1-2)', () => {
-  it('XP(L) = K * L^1.75 with K = 12.30 (D-431); levels are derived', () => {
-    expect(xpForLevel(41)).toBeCloseTo(12.3 * Math.pow(41, 1.75), 6);
-    expect(Math.round(xpForLevel(41))).toBe(8171);
+  it('XP(L) = K * L^1.75 with K = 12.45 (D-456); levels are derived', () => {
+    expect(xpForLevel(41)).toBeCloseTo(12.45 * Math.pow(41, 1.75), 6);
+    expect(Math.round(xpForLevel(41))).toBe(8271);
     expect(levelFloor(xpForLevel(41))).toBe(41);
     expect(levelFloor(xpForLevel(41) - 1)).toBe(40);
     expect(levelExact(xpForLevel(33.3))).toBeCloseTo(33.3, 9);
@@ -45,7 +45,7 @@ describe('curve and tiers (§1-2)', () => {
     expect(tierOf(21)).toBe('Apprentice');
     expect(tierOf(101)).toBe('Legendary');
     expect(thresholdsCrossed(20.5, 41.2)).toEqual([21, 41]);
-    expect(K).toBe(12.3);
+    expect(K).toBe(12.45);
   });
 
   it('the natural baseline adds in XP terms (§11a)', () => {
@@ -275,7 +275,7 @@ describe('M and the pace clamp (§5, test 24)', () => {
   it('test 24: the clamp holds 4.0x the Average at the same share', () => {
     const cap = paceCap(20, 0.5);
     expect(cap).toBeCloseTo(4 * yAvg(20), 9);
-    expect(yAvg(20)).toBe(620);
+    expect(yAvg(20)).toBe(629);
     const r = clampCredit(500, cap - 100, cap);
     expect(r.credited).toBeCloseTo(100, 9);
     expect(r.discarded).toBeCloseTo(400, 9);

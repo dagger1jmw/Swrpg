@@ -168,8 +168,9 @@ export function advanceByRoutine(registry: Registry<GameState>, initial: GameSta
       const at = state.clock.now.day * DAY + item.startSecond;
       if (at > t && !pass(at - t, 'rest', 'routine: break')) break;
       if (item.kind === 'rest') {
-        // §4 rule 5: rest between physical blocks only when f_phys has passed 0.7.
-        if (selectFatigue(state).p > 0.7 && !pass(item.hours * 3600, 'rest', 'routine: rest')) break;
+        // §4 rule 5: rest between physical blocks only when f_phys has passed 0.7; a rest the plan needs to stay under the
+        // tiredness limit is always taken (D-456: a rest before a trim).
+        if ((!item.conditional || selectFatigue(state).p > 0.7) && !pass(item.hours * 3600, 'rest', 'routine: rest')) break;
         continue;
       }
       if (!runBlock(item, routine.effort, log)) break;

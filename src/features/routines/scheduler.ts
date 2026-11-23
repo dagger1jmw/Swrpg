@@ -44,13 +44,19 @@ export interface PlannedBlock {
   startSecond: number;
 }
 
-/** 0.5 h rest between physical blocks; taken only when f_phys has passed 0.7 by then (§4 rule 5). */
+/**
+ * 0.5 h rest between physical blocks (§4 rule 5): a conditional rest is taken only when f_phys has passed 0.7 by then;
+ * an unconditional one (D-456: a rest before a trim) is one the plan needs to stay under the tiredness limit, taken always.
+ */
 export interface PlannedRest {
   kind: 'rest';
   hours: number;
-  conditional: true;
+  conditional: boolean;
   startSecond: number;
 }
+
+/** A rest slot in an ordered day: `forced` = taken whatever the meter (D-456). */
+type RestSlot = { rest: number; forced?: boolean };
 
 export type PlanItem = PlannedBlock | PlannedRest;
 
@@ -170,15 +176,15 @@ const isPhysical = (b: PlannedBlock): boolean => (ACTIVITY_BY_ID.get(b.activityI
 const isMeditation = (b: PlannedBlock): boolean => (ACTIVITY_BY_ID.get(b.activityId)?.load.m ?? 0) < 0;
 
 /** §3-4: sessions <= 2 h; physical first with a mental block after each, meditation last. */
-export function orderBlocks(blocks: readonly PlannedBlock[]): (PlannedBlock | { rest: number })[] {
+export function orderBlocks(blocks: readonly PlannedBlock[], forcedRests = false): (PlannedBlock | RestSlot)[] {
   const split: PlannedBlock[] = [];
   for (const b of blocks) for (let h = b.hours; h > 1e-9; h -= Math.min(2, h)) split.push({ ...b, hours: Math.min(2, h) });
   const phys = split.filter(isPhysical);
   const medit = split.filter((b) => !isPhysical(b) && isMeditation(b));
   const mental = split.filter((b) => !isPhysical(b) && !isMeditation(b));
-  const out: (PlannedBlock | { rest: number })[] = [];
+  const out: (PlannedBlock | RestSlot)[] = [];
   phys.forEach((b, i) => {
-    if (i > 0) out.push({ rest: STEP_HOURS });
+    if (i > 0) out.push(forcedRests ? { rest: STEP_HOURS, forced: true } : { rest: STEP_HOURS });
     out.push(b);
     const m = mental.shift();
     if (m) out.push(m);
@@ -187,14 +193,14 @@ export function orderBlocks(blocks: readonly PlannedBlock[]): (PlannedBlock | { 
 }
 
 /** Steps a day's sessions without crediting: the day-end f (the higher of f_phys and f_mental). */
-export function projectDay(ordered: readonly (PlannedBlock | { rest: number })[], start: Meters, caps: Capacities): { endF: number; curve: { hour: number; fp: number; fm: number }[] } {
+export function projectDay(ordered: readonly (PlannedBlock | RestSlot)[], start: Meters, caps: Capacities): { endF: number; curve: { hour: number; fp: number; fm: number }[] } {
   let m = start;
   let d: DayTraining = EMPTY_DAY;
   let hour = 0;
   const curve: { hour: number; fp: number; fm: number }[] = [{ hour: 0, fp: m.p / caps.p, fm: m.m / caps.m }];
   for (const o of ordered) {
     if ('rest' in o) {
-      if (m.p / caps.p <= 0.7) continue;
+      if (!o.forced && m.p / caps.p <= 0.7) continue;
       m = { p: Math.max(0, m.p - 0.75 * o.rest), m: Math.max(0, m.m - 1.0 * o.rest), f: m.f };
       d = { ...d, postWindow: 0, lastPhysicalHeavy: false };
       hour += o.rest;
@@ -212,7 +218,7 @@ export function projectDay(ordered: readonly (PlannedBlock | { rest: number })[]
 }
 
 /** Lays the ordered sessions out from the wake time, around the locked blocks (which never move). */
-function layout(ordered: readonly (PlannedBlock | { rest: number })[], locked: readonly PlannedBlock[], wake: number): PlanItem[] {
+function layout(ordered: readonly (PlannedBlock | RestSlot)[], locked: readonly PlannedBlock[], wake: number): PlanItem[] {
   const busy = locked.map((b) => [b.startSecond, b.startSecond + b.hours * 3600] as const);
   const items: PlanItem[] = [];
   let t = wake;
@@ -227,7 +233,7 @@ function layout(ordered: readonly (PlannedBlock | { rest: number })[], locked: r
   for (const o of ordered) {
     const len = ('rest' in o ? o.rest : o.hours) * 3600;
     const start = fit(len);
-    items.push('rest' in o ? { kind: 'rest', hours: o.rest, conditional: true, startSecond: start } : { ...o, startSecond: start });
+    items.push('rest' in o ? { kind: 'rest', hours: o.rest, conditional: !o.forced, startSecond: start } : { ...o, startSecond: start });
     t = start + len;
   }
   return [...items, ...locked].sort((x, y) => x.startSecond - y.startSecond);
@@ -373,10 +379,19 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
   const limit = TIREDNESS_LIMIT[routine.effort];
   let ordered = orderBlocks(blocks);
   let projected = projectDay([...ordered, ...locked], start, caps).endF;
+  // A rest before a trim (D-456): a day that projects over the limit first takes every rest between its physical blocks
+  // (they cost clock time, not training hours); only a day still over is trimmed. Without it, a fitter character skipped
+  // rests the meter no longer called for (f_phys just under 0.7) and lost fill hours for it (the dip at 30, D-455).
+  const forced = projected > limit + 1e-9;
+  if (forced) {
+    ordered = orderBlocks(blocks, true);
+    projected = projectDay([...ordered, ...locked], start, caps).endF;
+    notes.push('rests between physical blocks taken to stay under the tiredness limit (D-456)');
+  }
   // The fill is trimmed first. If the fixed Order blocks alone still pass the limit because the day started tired (a
   // fight at dawn), they are trimmed the same way, down to what they would reach on a fresh day: the Order excuses the
   // exertion, never an ordinary day's requirements (D-165). Player-locked blocks are never trimmed.
-  const freshFixed = projectDay(orderBlocks(blocks.filter((b) => !b.fill)).concat(locked), ZERO_METERS, caps).endF;
+  const freshFixed = projectDay(orderBlocks(blocks.filter((b) => !b.fill), forced).concat(locked), ZERO_METERS, caps).endF;
   const trimmed = { fill: 0, fixed: 0 };
   for (const pass of ['fill', 'fixed'] as const) {
     const target = pass === 'fill' ? limit : Math.max(limit, freshFixed);
@@ -389,7 +404,7 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
       if (i < 0) break;
       blocks[i] = { ...blocks[i]!, hours: blocks[i]!.hours - STEP_HOURS };
       trimmed[pass] += STEP_HOURS;
-      ordered = orderBlocks(blocks.filter((b) => b.hours > 0));
+      ordered = orderBlocks(blocks.filter((b) => b.hours > 0), forced);
       projected = projectDay([...ordered, ...locked], start, caps).endF;
     }
   }
@@ -397,9 +412,9 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
   // Force hours come off until the projected strain is within the effort's limit (force-xp-rework.md §4).
   let strain = { trimmed: 0, peak: 0, end: 0 };
   if (FORCE_XP_TRIAL.enabled) {
-    strain = strainTrim(s, blocks, (bs) => orderBlocks(bs), routine.effort, STEP_HOURS);
+    strain = strainTrim(s, blocks, (bs) => orderBlocks(bs, forced), routine.effort, STEP_HOURS);
     if (strain.trimmed > 0) {
-      ordered = orderBlocks(blocks.filter((b) => b.hours > 0));
+      ordered = orderBlocks(blocks.filter((b) => b.hours > 0), forced);
       projected = projectDay([...ordered, ...locked], start, caps).endF;
       notes.push(`Force XP trial: Force hours trimmed by ${strain.trimmed} h to keep projected strain under ${FORCE_XP_TRIAL.strainLimit[routine.effort]}`);
     }

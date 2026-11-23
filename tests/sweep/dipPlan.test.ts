@@ -1,4 +1,4 @@
-// Diagnosis probe 2 (item 2): conditional rests taken or skipped in the planner's projection, and the trims, per year.
+// Diagnosis probe 2 (item 2): rests taken or skipped (D-456: unconditional rests always taken) in the planner's projection, and the trims, per year.
 import { it } from 'vitest';
 import { selectCapacities } from '../../src/features/progression/selectors';
 import { selectMeters } from '../../src/features/health/selectors';
@@ -28,10 +28,10 @@ it('plan probe', () => {
       let p = selectMeters(s).p;
       for (const it of plan.items) {
         if (it.kind === 'rest') {
-          if (!(it as { conditional?: boolean }).conditional) continue;
+          const cond = (it as { conditional?: boolean }).conditional;
           r.rests += 1;
           r.pAtRest += p / caps.p;
-          if (p / caps.p > 0.7) {
+          if (!cond || p / caps.p > 0.7) {
             r.taken += 1;
             p = Math.max(0, p - 0.75 * (it as { hours: number }).hours);
           } else if (p / caps.p > 0.6) r.skippedNear += 1;

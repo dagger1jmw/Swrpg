@@ -82,7 +82,7 @@ describe('closed form (npc-generation §7)', () => {
     expect(ageIntegral('academic', 3, 50)).toBeCloseTo(47, 9);
   });
 
-  it('test 1: the reference table reproduces within +/-1 level (variance off; the paces measured on the day loop in the Temple, D-445; Knight at 25)', () => {
+  it('test 1: the reference table reproduces within +/-1 level (variance off; the paces measured on the day loop at the Order seats, D-445/D-456; Knight at 25)', () => {
     const near = (x: number, y: number) => expect(Math.abs(x - y), `${x} vs ${y}`).toBeLessThanOrEqual(1);
     const PLAN = { soresu: 2, ataru: 1 };
     const g = ARCHETYPE_BY_ID.get('jediGuardian')!.formPaces;
@@ -102,8 +102,8 @@ describe('closed form (npc-generation §7)', () => {
     near(forms(g, 4, 70), 89.0);
     near(forms(g, 3, 39, { padawanAge: 13, knightAge: 25, mult: () => 1.48 }), 80.6);
     near(forms(g, 9, 22.5, { padawanAge: 9, knightAge: 20, mult: () => 3.89 }), 79.7);
-    near(closedFormLevel({ row: 'technique', startAge: 17, age: 35, warYears: 5, phases: main(S, 'blaster', undefined, true) }), 49.1);
-    near(forms(w, 8, 35, { mult: () => 1.5 * 1.15, warYears: 10 }), 78.3);
+    near(closedFormLevel({ row: 'technique', startAge: 17, age: 35, warYears: 5, phases: main(S, 'blaster', undefined, true) }), 51.4); // D-456: the soldier's re-measured Blaster pace (1.27 -> 1.379)
+    near(forms(w, 8, 35, { mult: () => 1.5 * 1.15, warYears: 10 }), 80.1); // D-456: the Sith Warrior measured at its seats (Korriban, Dromund Kaas)
   });
 
   it('each phase pace is capped at 4.0', () => {
