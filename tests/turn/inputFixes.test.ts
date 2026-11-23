@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import type { Intent } from '../../src/ai/schemas/intent';
 import { PROMPTS } from '../../src/ai/prompts';
 import { STOP_SPAR_WORDS } from '../../src/data/combatWords';
-import type { DuelState } from '../../src/engine/duel';
 import { seedRng } from '../../src/engine/rng';
 import type { Wound } from '../../src/engine/wounds';
 import { applyEvents } from '../../src/state/applyEvents';
@@ -87,9 +86,10 @@ describe('a failed feint through the turn (D-199; the D-194 regression)', () => 
     s = applyEvents(REGISTRY, s, [{ type: 'combatStarted', opponentRefs: [id], minionGroups: [], stakes: 'lethal', terrainTags: ['flatFloor'] }], { source: 'ai' }).state;
     s = resolveTurn(REGISTRY, s, null, beat('narrate')).state;
     let failed = false;
-    // 200 seeds (40 before D-431: the re-measured paces moved both fighters' levels, and none of the first 40 failed).
-    for (let i = 0; i < 200 && !failed; i++) {
-      const seeded = { ...s, combat: { ...s.combat, active: { ...s.combat.active!, duel: { ...(s.combat.active!.duel as DuelState), rng: seedRng(`f${i}`) } } } };
+    // The fight's dice come from the game's RNG (meta.rngState), which the combat action copies into the duel; seeding
+    // duel.rng changed nothing, so every pass rolled the same (D-450). About half of feints against a Sith Lord fail.
+    for (let i = 0; i < 40 && !failed; i++) {
+      const seeded = { ...s, meta: { ...s.meta, rngState: seedRng(`f${i}`) } };
       const r = resolveTurn(REGISTRY, seeded, { ...fightIntent, sequence: [{ kind: 'tactic', tactic: 'feint' }, { kind: 'strike' }] }, { text: 'I feint high, then cut low at his leg.' });
       const notes = r.draft.combat!.notes.join('\n');
       if (!/step 1 feint: FAILED/.test(notes)) continue;

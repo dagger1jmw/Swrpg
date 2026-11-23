@@ -125,4 +125,9 @@ describe('Force choices against opponents outside the Force, from the first turn
     expect(kept.choices.map((c) => c.label)).toEqual(['Leap over them with a Force jump', 'Hurl a loose boulder at the nearest warrior']);
     expect(withoutForceOnImmune(s, [choice('Use a mind trick on the warriors')]).choices.map((c) => c.label)).toEqual(['Meet the attack with your weapon']);
   });
+  it('lightning and Electric Judgment reach the Vong, so those choices stay (D-447)', () => {
+    const s = { ...state('human'), combat: { active: null, pending: { ...state('human').combat.pending!, opponentRefs: [], minionGroups: [{ kind: 'yuuzhanVongWarrior', count: 3 }] } } } as unknown as GameState;
+    const kept = withoutForceOnImmune(s, [choice('Loose Electric Judgment on the warriors'), choice('Call Force lightning down on them'), choice('Force push the front rank back')]);
+    expect(kept.choices.map((c) => c.label)).toEqual(['Loose Electric Judgment on the warriors', 'Call Force lightning down on them']);
+  });
 });

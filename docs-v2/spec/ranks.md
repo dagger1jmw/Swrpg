@@ -129,12 +129,18 @@ The Order's rules on Force powers (D-346, D-436; src/data/orderPowerRules.ts)
   A forbidden power needs a Master's permission (forbiddenPermissionGranted: the character's
     master or a Jedi Master; the narrator or the player proposes it, the engine checks it).
     A Master may study it under controlled conditions in its study years (Electric Judgment
-    from 990 BBY). A dark-side power is never permitted (design default until alignment, M6).
+    from 990 BBY). A permission opens it in any era (Electric Judgment: the Plo Koon precedent,
+    D-449); Electric Judgment is open from 11 ABY (Luke's Praxeum, D-449). A dark-side power is
+    never permitted, even to a Master (Jared, D-448).
   Order teachers (the Temple's instructors, the master, a Jedi teacher, Jedi records) refuse a
     power the rules close. Learning it any other way (alone, a Sith text, a non-Order teacher)
     is covert: each session is discovered with chance 3% a session hour (at most 25%), and a
     discovery costs 15 points of standing, fading by 5 a year (invented). The narrator sees
     the rules, the permissions and what the Order knows in the state block.
+  Discoveries escalate (D-448; the code tracks, the narrator plays the consequence): the 1st
+    discovery brings the Master's reprimand, the 2nd a summons before the Council, the 3rd and
+    later the trials held back; any discovered dark-side power brings the Council's judgment
+    (possible expulsion). Each discovery's note names the step it newly reaches.
 
 ## 2. Sith path (story-driven, harsher)
   Academy acolyte (start age 8-16) -> Apprentice (chosen by a Sith Lord; same standing

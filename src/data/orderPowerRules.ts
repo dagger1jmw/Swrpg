@@ -22,7 +22,9 @@ export interface OrderPowerRule {
 
 /** The forbidden powers (D-346) and the dark-side powers in the code's catalog; every other ability is open. */
 export const ORDER_POWER_RULES: Readonly<Record<string, OrderPowerRule>> = {
-  electricJudgment: { status: 'forbidden', masterStudyFromYear: -990, untilYear: 5, source: 'D-346 (Part3b f7): forbidden to Knights; controlled study by Masters from 990 BBY; used openly by the New Jedi Order (from about 5 ABY: design default)' },
+  // D-449 (Jared): forbidden in the Old Order with the Master's-permission path in every era (the Plo Koon precedent: the
+  // Council had him record it on the Great Holocron); open from 11 ABY, Luke's Praxeum (the New Jedi Order uses it openly).
+  electricJudgment: { status: 'forbidden', masterStudyFromYear: -990, untilYear: 11, source: `D-346 (Part3b f7): forbidden to Knights; controlled study by Masters from 990 BBY; a Master's permission opens it (Plo Koon, recorded on the Great Holocron at the Council's request; Jared, D-449); open from 11 ABY, Luke's Praxeum (Jared, D-449)` },
   deadlySight: { status: 'forbidden', source: 'D-346 (Part3b f8): forbidden to Jedi Knights' },
   morichro: { status: 'forbidden', fromYear: -1000, source: 'D-346 (Part3b f10): forbidden by 1000 BBY, Yaddle the exception; lore-locked before (force-catalog-m6 §5)' },
   forceLightning: { status: 'darkSide', source: 'a dark-side power (skills.ts side dark); the Order never teaches it (design default, D-436)' },
@@ -34,3 +36,17 @@ export const ORDER_POWER_RULES: Readonly<Record<string, OrderPowerRule>> = {
  * a discovery costs `standingPenalty` points of Order standing, and the penalty fades by `decayPerYear` points a year.
  */
 export const COVERT_LEARNING = { perHour: 0.03, maxChance: 0.25, standingPenalty: 15, decayPerYear: 5 } as const;
+
+/** The narrator-facing escalation of discovered covert learning (D-448, Jared): the code tracks it; the narrator plays it. */
+export type CovertEscalationFlag = 'reprimand' | 'councilSummons' | 'trialsHeldBack' | 'councilJudgment';
+
+/**
+ * The escalation steps (D-448): by the count of discoveries, 1st the Master's reprimand, 2nd a Council summons, 3rd (and
+ * later) trials held back; any discovered dark-side power brings the Council's judgment (possible expulsion).
+ */
+export const COVERT_ESCALATION: readonly { flag: CovertEscalationFlag; atCount?: number; darkSide?: true; text: string }[] = [
+  { flag: 'reprimand', atCount: 1, text: "the Master's reprimand" },
+  { flag: 'councilSummons', atCount: 2, text: 'a summons before the Council' },
+  { flag: 'trialsHeldBack', atCount: 3, text: 'the trials held back' },
+  { flag: 'councilJudgment', darkSide: true, text: "the Council's judgment (possible expulsion)" },
+];

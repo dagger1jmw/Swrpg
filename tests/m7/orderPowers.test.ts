@@ -5,8 +5,10 @@ import { COVERT_LEARNING, ORDER_POWER_RULES } from '../../src/data/orderPowerRul
 import { absDayFromDate } from '../../src/engine/calendar';
 import { xpForLevel } from '../../src/engine/curve';
 import { resolveTraining } from '../../src/features/progression/training';
-import { covertDiscoveryChance, orderPowerVerdict } from '../../src/features/ranks/rules';
-import { selectStanding } from '../../src/features/ranks/selectors';
+import { makeEstimator } from '../../src/ai/tokenRatio';
+import { covertDiscoveryChance, covertEscalation, orderPowerVerdict } from '../../src/features/ranks/rules';
+import { selectCovertEscalation, selectStanding } from '../../src/features/ranks/selectors';
+import { stateBlock } from '../../src/turn/context';
 import { applyEvents } from '../../src/state/applyEvents';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
@@ -36,7 +38,10 @@ describe('the verdict (pure)', () => {
     expect(v({ permitted: true, orderTeacher: true })).toBe('open');
     expect(v({ rank: 'master', year: -900 })).toBe('open');
     expect(v({ rank: 'master' })).toBe('covert');
-    expect(v({ year: 10 })).toBe('open');
+    // D-449: still forbidden in 10 ABY (a permission opens it), open from 11 ABY (Luke's Praxeum).
+    expect(v({ year: 10 })).toBe('covert');
+    expect(v({ year: 10, permitted: true })).toBe('open');
+    expect(v({ year: 11 })).toBe('open');
     expect(v({ abilityId: 'morichro', name: 'Morichro', year: -3661 })).toBe('open');
     expect(v({ abilityId: 'morichro', name: 'Morichro', year: -900 })).toBe('covert');
   });
@@ -86,5 +91,29 @@ describe('in play', () => {
       t = { ...t, meta: { ...t.meta, rngState: r.rng } };
     }
     expect(found).toBe(true);
+  });
+});
+
+describe('the discovery escalation (D-448)', () => {
+  const d = (abilityId: string) => ({ abilityId });
+  const notesOf = (r: { applied: readonly { notes: readonly string[] }[] }): string => r.applied.flatMap((a) => a.notes).join('\n');
+  it('1st the reprimand, 2nd a Council summons, 3rd trials held back; a dark-side power brings the judgment', () => {
+    expect(covertEscalation([]).flags).toEqual([]);
+    expect(covertEscalation([d('morichro')]).flags).toEqual(['reprimand']);
+    expect(covertEscalation([d('morichro'), d('deadlySight')]).flags).toEqual(['reprimand', 'councilSummons']);
+    expect(covertEscalation([d('morichro'), d('morichro'), d('morichro'), d('morichro')])).toEqual({ count: 4, flags: ['reprimand', 'councilSummons', 'trialsHeldBack'] });
+    expect(covertEscalation([d('forceChoke')]).flags).toEqual(['reprimand', 'councilJudgment']);
+  });
+  it('the code tracks it; each new step is a note to narrate, and the state block lists what was reached', () => {
+    const one = applyEvents(REGISTRY, make('padawan'), [{ type: 'covertLearningDiscovered', abilityId: 'morichro' }], { source: 'engine' });
+    expect(notesOf(one)).toMatch(/consequence to narrate now: the Master's reprimand/);
+    const two = applyEvents(REGISTRY, one.state, [{ type: 'covertLearningDiscovered', abilityId: 'forceLightning' }], { source: 'engine' });
+    const notes = notesOf(two);
+    expect(notes).toMatch(/discovery 2/);
+    expect(notes).toMatch(/a summons before the Council; the Council's judgment/);
+    expect(notes).not.toMatch(/reprimand/);
+    expect(selectCovertEscalation(two.state).flags).toEqual(['reprimand', 'councilSummons', 'councilJudgment']);
+    const block = stateBlock(two.state, makeEstimator(4), undefined, [], '').text;
+    expect(block).toMatch(/discoveries 2, consequences reached: the Master's reprimand, a summons before the Council, the Council's judgment \(possible expulsion\)/);
   });
 });

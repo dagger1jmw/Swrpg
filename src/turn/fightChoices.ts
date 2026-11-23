@@ -46,9 +46,12 @@ export function outsideForceOpponents(s: GameState): string[] {
   return [...named, ...groups];
 }
 
-/** A choice that uses the Force on an opponent: push, choke, lightning, a mind trick (not a jump, a thrown object or a saber throw). */
-const FORCE_ON_TARGET = /\bmind[- ]?trick\b|\bforce[- ]?(?:push|choke|grip|lightning|blast|wave|shove)\b|\b(?:use|using|uses|with|through|call on|reach (?:out )?(?:with|into)) the force\b[^.]{0,40}\b(?:push|shove|choke|grip|lightning|blast|hurl (?:him|her|it|them)|throw (?:him|her|it|them)|knock|off (?:his|her|its|their) (?:balance|feet)|send (?:him|her|it|them))\b|\b(?:push|shove|choke|blast|hurl|throw|knock) (?:him|her|it|them|the \w+)\b[^.]{0,30}\b(?:with|through|using) the force\b/i;
-const FORCE_ON_TARGET_ABILITIES = new Set(['forcePush', 'forceChoke', 'forceLightning', 'mindTrick', 'forceGrip']);
+/**
+ * A choice that uses the Force on an opponent: push, choke, a mind trick (not a jump, a thrown object, a saber throw, or
+ * lightning and its variants such as Electric Judgment, which reach a foe outside the Force: D-447).
+ */
+const FORCE_ON_TARGET = /\bmind[- ]?trick\b|\bforce[- ]?(?:push|choke|grip|blast|wave|shove)\b|\b(?:use|using|uses|with|through|call on|reach (?:out )?(?:with|into)) the force\b[^.]{0,40}\b(?:push|shove|choke|grip|blast|hurl (?:him|her|it|them)|throw (?:him|her|it|them)|knock|off (?:his|her|its|their) (?:balance|feet)|send (?:him|her|it|them))\b|\b(?:push|shove|choke|blast|hurl|throw|knock) (?:him|her|it|them|the \w+)\b[^.]{0,30}\b(?:with|through|using) the force\b/i;
+const FORCE_ON_TARGET_ABILITIES = new Set(['forcePush', 'forceChoke', 'mindTrick', 'forceGrip']);
 
 /**
  * The choices with every Force action against an opponent outside the Force dropped (from the first turn of the fight,

@@ -401,7 +401,8 @@ export function renderDuelPanel(p: DuelPanelProps): HTMLElement | null {
               // Where the Force cannot work (D-216): nothing in a Force-null bubble; nothing that touches a foe outside the
               // Force directly (a thrown object or saber still hits; D-192).
               if (active.ctx.forceNegated) return el('button', { class: 'small act', text: `${label} (no Force here)`, attrs: { disabled: 'true', title: 'A Force-null bubble: the Force cannot be used here' } });
-              if (facing?.forceTraits?.includes('forceInvisible') && (kind === 'push' || kind === 'choke' || kind === 'lightning')) return el('button', { class: 'small act', text: `${label} (immune)`, attrs: { disabled: 'true', title: `${facing.name} cannot be touched through the Force; a thrown object can` } });
+              // Lightning (and its variants) still reaches them (D-447; SW_Force_Powers_Part2b F7).
+              if (facing?.forceTraits?.includes('forceInvisible') && (kind === 'push' || kind === 'choke')) return el('button', { class: 'small act', text: `${label} (immune)`, attrs: { disabled: 'true', title: `${facing.name} cannot be touched through the Force; a thrown object or lightning can` } });
               const risk = forceRisk.over ? ` (${Math.round(forceRisk.risk * 100)}% collapse)` : '';
               return act(`${label}${risk}`, { action: 'force', force: { kind, ...(kind === 'throw' ? { objectTag: throwable[0]![0] } : {}) } }, `small act${forceRisk.over ? ' risky' : ''}`, forceRisk.over ? forceRisk.text : undefined);
             }),

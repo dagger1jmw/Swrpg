@@ -11,7 +11,8 @@ import type { GameState } from '../../state/gameState';
 import { computeCreation, selectCharacter, selectExactAge, selectHumanAge } from '../character/selectors';
 import { selectHasFlag, selectFlags } from '../flags/selectors';
 import { selectLevelExact } from '../progression/selectors';
-import { NO_RECORD, bypassUnmet, knightTrialsDone, orderPowerVerdict, percentileOf, standing, trialBlock, unmetMinimums, type OrderPowerVerdict, type TrialRecord } from './rules';
+import type { CovertEscalationFlag } from '../../data/orderPowerRules';
+import { NO_RECORD, bypassUnmet, covertEscalation, knightTrialsDone, orderPowerVerdict, percentileOf, standing, trialBlock, unmetMinimums, type OrderPowerVerdict, type TrialRecord } from './rules';
 
 export const selectRank = (s: GameState): string => s.ranks.rank;
 export const selectRankName = (s: GameState): string => RANK_BY_ID.get(s.ranks.rank)?.name ?? s.ranks.rank;
@@ -116,6 +117,11 @@ export function selectStanding(s: GameState, size?: number): number {
 }
 
 export { covertDiscoveryChance } from './rules';
+
+/** The discovered covert learning and the escalation it has reached (D-448): the code tracks it; the narrator plays it. */
+export function selectCovertEscalation(s: GameState): { count: number; flags: CovertEscalationFlag[] } {
+  return covertEscalation(s.ranks.covertDiscoveries ?? []);
+}
 
 /** The Order's verdict on learning a power now (D-436), given whether the source is an Order teacher. */
 export function selectOrderPowerVerdict(s: GameState, abilityId: string, orderTeacher: boolean): OrderPowerVerdict {

@@ -135,7 +135,7 @@ export function forceDifficulty(kind: ForceActionKind, group: ForceGroup, target
 
 /**
  * One Force use on a target (D-192). Almost nothing resists the Force: a Force-null bubble stops it; a target outside the
- * Force cannot be touched by it except through a thrown object; a mind ability is a Willpower contest (a Force user adds
+ * Force cannot be touched by it except through a thrown object or lightning (D-447); a mind ability is a Willpower contest (a Force user adds
  * a share of their Force resistance; a droid or a lore-immune species cannot be affected); a grip or a Push on a Force
  * user is a Force resistance contest; an avoidable manifestation (Push, lightning, a thrown object) is dodged only by a
  * target that can react, and cover blocks lightning and thrown objects; a lightsaber catches lightning. Everything
@@ -145,7 +145,9 @@ export function forceContest(rng0: RngState, i: ForceContestInput): [ForceContes
   const none = (outcome: ForceOutcome): [ForceContestResult, RngState] => [{ user: null, resist: null, resistKind: null, dc: null, margin: 0, success: false, outcome }, rng0];
   const t = i.target;
   if (i.negated) return none('negated');
-  if (t?.traits.includes('forceInvisible') && i.kind !== 'throw' && i.kind !== 'saberThrow') return none('forceInvisible');
+  // Outside the Force (D-192, D-447): only a thrown object or lightning reaches the target (SW_Force_Powers_Part2b F7:
+  // lightning, with its variants such as Electric Judgment, and Force Net were the only powers known to affect the Vong).
+  if (t?.traits.includes('forceInvisible') && i.kind !== 'throw' && i.kind !== 'saberThrow' && i.kind !== 'lightning') return none('forceInvisible');
   if (i.group === 'mind' && t && (t.traits.includes('mindImmune') || t.traits.includes('droid'))) return none('immune');
   const [user, rngAfterUser] = basicRoll(rng0, i.level, i.modifiers);
   let rng = rngAfterUser;

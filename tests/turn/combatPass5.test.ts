@@ -190,7 +190,7 @@ describe('the other pass-5 minor issues', () => {
   });
   it('12: a fighter outside the Force is named in the block, with no Force choices against them', () => {
     const vong = fighter('n1', 'Yuuzhan Vong Warrior', { weapon: 'melee', form: null, outsideForce: true } as Partial<CombatFighterView>);
-    expect(describeCombat(combat('Daven Rook', vong)).join('\n')).toMatch(/Outside the Force: Yuuzhan Vong Warrior\. No Force push, choke, lightning or mind trick can touch them/);
+    expect(describeCombat(combat('Daven Rook', vong)).join('\n')).toMatch(/Outside the Force: Yuuzhan Vong Warrior\. No Force push, choke, grip or mind trick can touch them.*Force lightning or Electric Judgment still can/);
   });
   it('13: a chosen fate is stated in RESOLVED as the act, here and now', async () => {
     const { resolvedBlock } = await import('../../src/turn/context');

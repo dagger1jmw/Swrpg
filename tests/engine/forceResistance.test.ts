@@ -76,9 +76,12 @@ describe('Force negation (D-192)', () => {
   it('a Force-null bubble stops every use', () => {
     expect(contest('n', { negated: true }).outcome).toBe('negated');
   });
-  it('the Force-invisible cannot be touched directly, but a thrown object still hits', () => {
-    for (const kind of ['push', 'lightning', 'choke', 'mindTrick'] as const) expect(contest('v', { kind, group: kind === 'choke' ? 'grip' : kind === 'mindTrick' ? 'mind' : 'avoidable' }, { traits: ['forceInvisible'] }).outcome).toBe('forceInvisible');
+  it('the Force-invisible cannot be touched directly, but a thrown object and lightning still hit (D-447)', () => {
+    for (const kind of ['push', 'choke', 'mindTrick'] as const) expect(contest('v', { kind, group: kind === 'choke' ? 'grip' : kind === 'mindTrick' ? 'mind' : 'avoidable' }, { traits: ['forceInvisible'] }).outcome).toBe('forceInvisible');
     expect(outcomes(50, { kind: 'throw', objectSize: 'small' }, { traits: ['forceInvisible'] }).some((x) => x.outcome === 'success')).toBe(true);
+    // Lightning and its variants were the powers known to affect the Vong directly (SW_Force_Powers_Part2b F7).
+    expect(outcomes(60, { kind: 'lightning', group: 'avoidable' }, { traits: ['forceInvisible'] }).some((x) => x.outcome === 'success')).toBe(true);
+    expect(outcomes(60, { kind: 'lightning', group: 'avoidable' }, { traits: ['forceInvisible'] }).every((x) => x.outcome !== 'forceInvisible')).toBe(true);
   });
 });
 

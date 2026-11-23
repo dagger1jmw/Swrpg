@@ -74,8 +74,11 @@ describe('through the game (dev commands)', () => {
     expect(cannotStand(f)).toBe(false);
     expect(fighterAgility(f)).toBeCloseTo(f.agility * (1 - 0.35 * (1 - leg.adaptation)), 6);
     s = ok(s, '/fight 1 duelist at -30');
-    const d = (runDevCommand(REGISTRY, s, '/exchanges 3').state.combat.active?.duel) as DuelState | undefined;
-    expect(d?.exchange).toBe(3);
+    // The fight may end on its third exchange (a win), so the finished fight counts too.
+    const st = runDevCommand(REGISTRY, s, '/exchanges 3').state;
+    const d = (st.combat.active?.duel ?? st.combat.last!.duel) as DuelState;
+    expect(d.exchange).toBe(3);
+    expect(st.combat.last?.reason ?? null).not.toBe('incapacitated');
   });
   it('a severed leg with no prosthetic: the fight ends at once, lost, and the log gives the reason', async () => {
     let s = ok(await knight('noaid'), '/sever left leg');

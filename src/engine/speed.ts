@@ -1,5 +1,6 @@
 // Speed multiplier M (progression-numbers §5, §17; D-21, D-64) and the state-of-mind multiplier. Pure.
 import { ACCELERATED_PATH, CROSS_TALENT, GRIEF_MULT, M_CAP, STATE_MULT, TALENT_MULT, type StateOfMind, type TalentLevel } from '../data/progression.config';
+import { SPECIES_FORCE_TRAITS } from '../data/forceResistance.config';
 import { CATEGORY_RULES, SKILL_BY_ID, type TalentDomain } from '../data/skills';
 
 export type Talents = Partial<Record<TalentDomain, TalentLevel>>;
@@ -86,6 +87,14 @@ export function speedM(i: SpeedInput): { m: number; capped: boolean } {
 
 /** A Force skill (the Force stats and abilities): what a Force-rich place speeds up. */
 export const isForceSkill = (skillId: string): boolean => SKILL_BY_ID.get(skillId)?.category === 'force';
+/** The skills the Force trains (D-447): the Force skills and the Force abilities (powers). */
+export const isForceXpSkill = (skillId: string): boolean => isForceSkill(skillId) || SKILL_BY_ID.get(skillId)?.kind === 'forceAbility';
+/**
+ * Outside the Force (D-447, Jared; Legends: the Yuuzhan Vong were cut off from the Force, SW_Characters_15,
+ * SW_Midichlorians_Force_Potential): a species with the forceInvisible trait gains no Force XP and has no Force powers.
+ * Force effects can still reach them (lightning and its variants; combatForce.ts).
+ */
+export const isOutsideForce = (speciesId: string | null | undefined): boolean => (speciesId ? (SPECIES_FORCE_TRAITS[speciesId] ?? []) : []).includes('forceInvisible');
 /** What the accelerated path speeds up: the Force skills and the lightsaber forms. */
 export const isAcceleratedSkill = (skillId: string): boolean => isForceSkill(skillId) || SKILL_BY_ID.get(skillId)?.kind === 'form';
 

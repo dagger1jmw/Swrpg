@@ -231,7 +231,7 @@ export interface CombatFighterView {
   /** The weapon's and the armor's own names ("amphistaff", "vonduun crab armor"; pass 4 issue 12). */
   weaponName?: string;
   armorName?: string;
-  /** Outside the Force (D-192: the Yuuzhan Vong): no Push, Choke, lightning or mind trick touches them. */
+  /** Outside the Force (D-192, D-447: the Yuuzhan Vong): no Push, Choke or mind trick touches them; lightning and thrown objects do. */
   outsideForce?: boolean;
   /** What the body can no longer do (D-237): "cannot stand: severed left leg", "no right arm". Absent on older drafts. */
   lasting?: { cannotStand: boolean; missing: string[]; text: string[] };

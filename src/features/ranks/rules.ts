@@ -1,7 +1,7 @@
 // Rank rules (ranks.md §1-5, flag-registry.md §2-3; M7 §15, D-424). Pure: no DOM, no network, no state access; the
 // selectors feed them. Every promotion is a story event the player plays: code checks the requirements, rolls the
 // checks and applies the result; the AI only proposes.
-import { COVERT_LEARNING, ORDER_POWER_RULES } from '../../data/orderPowerRules';
+import { COVERT_ESCALATION, COVERT_LEARNING, ORDER_POWER_RULES, type CovertEscalationFlag } from '../../data/orderPowerRules';
 import { COUNCIL_BYPASS, DEED_POINTS, DEEDS_PAST, KNIGHT_TRIAL_IDS, PACE_MILESTONES, SELECTION, STANDING_WEIGHTS, TRIALS, TRIAL_RULES, type PaceMilestone, type TrialDef, type TrialId } from '../../data/ranks.config';
 import { KNIGHT_TRIALS } from '../../data/rankMinimums';
 import { basicRoll, dcForRating, type BasicRoll } from '../../engine/rolls';
@@ -66,6 +66,17 @@ export function orderPowerVerdict(i: { abilityId: string; name: string; year: nu
   const what = rule.status === 'forbidden' ? `forbidden by the Jedi Order (a Master's permission is needed)` : 'a dark-side power the Jedi Order never teaches';
   if (i.orderTeacher) return { kind: 'refused', reason: `${i.name} is ${what}` };
   return { kind: 'covert', reason: `${i.name} is ${what}: learning it covertly risks your standing in the Order` };
+}
+
+/**
+ * The escalation reached by these discoveries (D-448; COVERT_ESCALATION): the count steps (reprimand, Council summons,
+ * trials held back) and, once a dark-side power is among them, the Council's judgment. The code tracks; the narrator plays.
+ */
+export function covertEscalation(discoveries: readonly { abilityId: string }[]): { count: number; flags: CovertEscalationFlag[] } {
+  const count = discoveries.length;
+  const dark = discoveries.some((d) => ORDER_POWER_RULES[d.abilityId]?.status === 'darkSide');
+  const flags = COVERT_ESCALATION.filter((e) => (e.atCount !== undefined && count >= e.atCount) || (e.darkSide && dark)).map((e) => e.flag);
+  return { count, flags };
 }
 
 /** The chance a covert session is discovered (D-436): COVERT_LEARNING.perHour a session hour, at most maxChance. */

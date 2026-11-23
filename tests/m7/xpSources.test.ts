@@ -65,7 +65,7 @@ describe('study of texts', () => {
 });
 
 describe('teaching and mentoring', () => {
-  it('a Knight of 25+ takes a Padawan; teaching opens, with a review share in the main form', () => {
+  it("a Knight of 25+ takes a Padawan; teaching opens; the form XP is only the instructor's share (D-450)", () => {
     let s = make(30, 'knight');
     expect(resolveTraining(s, { activityId: 'teachingPadawan', hours: 1 }).ok).toBe(false);
     s = applyEvents(REGISTRY, s, [{ type: 'npcIntroduced', key: 'tmp:1', name: 'Tarin Vos', species: 'human', faction: 'jediOrder', role: 'padawan', ageApprox: 14, description: '' }], { source: 'ai' }).state;
@@ -74,7 +74,12 @@ describe('teaching and mentoring', () => {
     expect(s.ranks.apprenticeId).toBe(p);
     const r = resolveTraining(s, { activityId: 'teachingPadawan', hours: 1 });
     expect(r.ok).toBe(true);
-    if (r.ok) expect(Object.keys(r.card.credited)).toEqual(expect.arrayContaining(['forceKnowledge', 'soresu']));
+    if (r.ok) {
+      expect(Object.keys(r.card.credited)).toEqual(expect.arrayContaining(['forceKnowledge', 'soresu']));
+      // D-450: no review share on the same hours; the main form's XP is the instructor's share alone.
+      const share = Number(r.card.notes.find((n) => n.startsWith("instructor's share"))!.match(/\+([\d.]+) XP/)![1]);
+      expect(r.card.credited['soresu']).toBeCloseTo(share, 2);
+    }
     const k = applyEvents(REGISTRY, s, [{ type: 'apprenticeKnighted' }], { source: 'player' }).state;
     expect([k.ranks.apprenticeId, k.ranks.padawansKnighted]).toEqual([null, 1]);
   });

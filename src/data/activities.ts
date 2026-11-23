@@ -195,7 +195,7 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   act('forceLore', 'Force history and lore', 'study', T, 'casual', fixed('forceKnowledge'), { willpower: 0.3 }, ALWAYS),
   act('formTheory', 'Lightsaber history and form theory', 'study', T, 'standard', fixed('forceKnowledge'), { $knownForms: 0.2 }, ALWAYS),
   act('jediCode', 'Jedi Code and philosophy', 'study', T, 'standard', fixed('forceKnowledge'), { willpower: 0.4, meditation: 0.2 }, [{ kind: 'path', paths: ['jedi'] }]),
-  act('teachingPadawan', 'Teaching a Padawan', 'study', T, 'standard', fixed('forceKnowledge'), { willpower: 0.3, charisma: 0.3, $mainForm: 0.2 }, [{ kind: 'hasApprentice' }]), // D-427: "to teach is to learn", a review share in the main form (invented)
+  act('teachingPadawan', 'Teaching a Padawan', 'study', T, 'standard', fixed('forceKnowledge'), { willpower: 0.3, charisma: 0.3 }, [{ kind: 'hasApprentice' }]), // D-427; the form XP is the instructor's share (D-433), which replaced D-427's review share (D-450)
   act('academicStudy', 'Academic study', 'study', T, 'standard', fixed('intelligence'), { forceKnowledge: 0.1 }, ALWAYS),
   act('tacticsStudy', 'Tactics study', 'study', T, 'standard', fixed('tactics'), { intelligence: 0.4 }, ALWAYS),
 

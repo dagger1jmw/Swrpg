@@ -10,7 +10,7 @@ import { makeEstimator } from '../ai/tokenRatio';
 import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { orderSeatAt } from '../data/orderSeats';
-import { ORDER_POWER_RULES } from '../data/orderPowerRules';
+import { COVERT_ESCALATION, ORDER_POWER_RULES } from '../data/orderPowerRules';
 import { controlAt, leadersAt } from '../data/worldControl';
 import { onRecordAt, onRecordFor } from '../data/canonPlacements';
 import { describeTravel } from './travel';
@@ -38,7 +38,7 @@ import { PC_REF, selectAge, selectCharacter, selectCharacterName, selectIsTestCh
 import { pendingScenario } from './devScenario';
 import { selectFatigue } from '../features/health/selectors';
 import { selectGriefMult, selectSkillViews, selectStateOfMind, selectTierBeats } from '../features/progression/selectors';
-import { selectRankName } from '../features/ranks/selectors';
+import { selectCovertEscalation, selectRankName } from '../features/ranks/selectors';
 import { selectNow } from '../features/clock/selectors';
 import { selectCurrentLocationId, selectLocationChain, selectLocations } from '../features/locations/selectors';
 
@@ -231,7 +231,10 @@ function orderPowersLine(state: GameState): string | null {
   const permitted = (state.ranks.powerPermissions ?? []).map((id) => SKILL_BY_ID.get(id)?.name ?? id);
   const found = [...new Set((state.ranks.covertDiscoveries ?? []).map((d) => SKILL_BY_ID.get(d.abilityId)?.name ?? d.abilityId))];
   const penalty = Math.round(state.ranks.reputationPenalty ?? 0);
-  return `Order rules on powers: dark-side powers are never taught${forbidden.length ? `; forbidden without a Master's permission: ${forbidden.join(', ')}` : ''}${permitted.length ? `; permitted to you: ${permitted.join(', ')}` : ''}${found.length ? `; the Order knows of your covert study of ${found.join(', ')}${penalty > 0 ? ` (standing -${penalty})` : ''}` : ''}`;
+  // D-448: the escalation reached (the engine tracks it; the narrator plays the consequences in the story).
+  const esc = selectCovertEscalation(state);
+  const reached = esc.flags.map((f) => COVERT_ESCALATION.find((x) => x.flag === f)!.text);
+  return `Order rules on powers: dark-side powers are never taught${forbidden.length ? `; forbidden without a Master's permission: ${forbidden.join(', ')}` : ''}${permitted.length ? `; permitted to you: ${permitted.join(', ')}` : ''}${found.length ? `; the Order knows of your covert study of ${found.join(', ')}${penalty > 0 ? ` (standing -${penalty})` : ''}; discoveries ${esc.count}, consequences reached: ${reached.join(', ')}` : ''}`;
 }
 
 function captiveLine(state: GameState): string | null {
@@ -463,7 +466,7 @@ export function describeCombat(c: CombatDraft): string[] {
   if (intents.length) lines.push(`Intent: ${intents.join('; ')}.`);
   // Outside the Force (D-192; pass 5 issue 12: "Use a Force push to create space" offered against the Vong).
   const outside = c.fighters.filter((f) => f.outsideForce && !f.out).map((f) => f.name);
-  if (outside.length) lines.push(`Outside the Force: ${outside.join(', ')}. No Force push, choke, lightning or mind trick can touch them (a thrown object or a thrown saber still can): offer no such choice against them.`);
+  if (outside.length) lines.push(`Outside the Force: ${outside.join(', ')}. No Force push, choke, grip or mind trick can touch them, and they cannot be sensed; a thrown object, a thrown saber, Force lightning or Electric Judgment still can (D-447): offer no push, choke or mind trick against them.`);
   // Cover between shooters (D-243; pass 4 issue 7: the narrated beat in the ruins put nobody behind anything).
   if (c.cover) lines.push('Cover: the shooters on both sides fire from behind cover (the terrain has it); show them using it.');
   lines.push(...facts.lines);

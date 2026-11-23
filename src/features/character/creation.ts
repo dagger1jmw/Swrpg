@@ -19,7 +19,7 @@ import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar
 import { closedFormLevel, formXps, phasesFor, planSplit, type FormPlan } from '../../engine/closedForm';
 import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { humanEquivalentAge, naturalLevel, speciesAgeFromHuman, speciesLearning } from '../../engine/species';
-import { crossTalentMult, talentMult, type Talents } from '../../engine/speed';
+import { crossTalentMult, isForceXpSkill, isOutsideForce, talentMult, type Talents } from '../../engine/speed';
 
 export interface CreationInput {
   name: string;
@@ -340,6 +340,8 @@ export function computeCreation(input: CreationInput): CreationResult {
     });
     for (const [f, x] of Object.entries(xps)) if (x > 0) startingXp[f] = x;
   }
+  // Outside the Force (D-447): a Yuuzhan Vong has no Force skills or powers, whatever the archetype's paces.
+  if (isOutsideForce(input.speciesId)) for (const id of Object.keys(startingXp)) if (isForceXpSkill(id)) delete startingXp[id];
   for (const id of SKILL_IDS) {
     const n = naturalLevel(id, species.id, age);
     const raw = levelWithNatural(startingXp[id] ?? 0, n);

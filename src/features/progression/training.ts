@@ -154,7 +154,7 @@ function resolveSecondaries(s: GameState, a: ActivityDef, primaries: Record<stri
   const out: Record<string, number> = {};
   for (const [k, w] of Object.entries(a.secondaries)) {
     if (k === '$mainForm') {
-      // The main form taught (D-427: teaching's review share).
+      // The main form (no activity uses it since D-450 dropped teaching's review share; kept for the token).
       if (c.mainFormId && !(c.mainFormId in primaries)) out[c.mainFormId] = (out[c.mainFormId] ?? 0) + w;
     } else if (k === '$secondForm') {
       if (c.secondFormId && !(c.secondFormId in primaries)) out[c.secondFormId] = (out[c.secondFormId] ?? 0) + w;
