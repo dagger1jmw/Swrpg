@@ -14,7 +14,7 @@ import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../src/data/skills';
 import { ageIntegral } from '../../src/engine/ageFactor';
 import { referenceRate } from '../../src/engine/closedForm';
 import { runLifetime } from '../support/lifetime';
-import { schedule } from '../lifetime/profiles';
+import { schedule, TEMPLE_LIFE } from '../lifetime/profiles';
 
 export const PACE_YEARS = 60;
 /** The form plan of the measured lives (Soresu 2 h, Ataru 1 h, as npc test 7). */
@@ -52,6 +52,9 @@ export function measureArchetype(id: string): MeasuredPaces {
       secondForm: 'ataru',
       seed: a.id,
       ...(order ? { fights: schedule([{ from: 12, to: 200, perYear: 1, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 }]) } : {}),
+      // D-445: Jedi archetypes live in the Coruscant Temple (a light nexus site, x1.15 on Force skills), as the Average does,
+      // so a generated Jedi NPC matches a player of the same life. Sith archetypes have no home site yet (question to Jared).
+      ...(a.path === 'jedi' ? { places: TEMPLE_LIFE } : {}),
     },
     PACE_YEARS,
     { phaseXp: true },

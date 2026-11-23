@@ -90,6 +90,31 @@ export interface LifeProfile {
   trainingPath?: 'accelerated';
   /** Train at this place all life (a Force-rich site for the D-418 condition: "Dagobah"). */
   place?: string;
+  /**
+   * Where the life is spent by age (D-445): the Order's profiles live in the Coruscant Temple (a light nexus site, x1.15 on
+   * Force skills); Luke trains on Dagobah for his months there. Outside a span the life is in the field (no bonus).
+   */
+  places?: readonly { from: number; to: number; name: string; region: string }[];
+}
+
+/** A place with no Force bonus: a life with place spans is here outside them. */
+const FIELD = { name: 'the field', region: 'the field' } as const;
+
+/** Where the profile is at an age (D-445): its place span, else its all-life place, else the field (with spans) or nowhere. */
+function placeAt(p: LifeProfile, age: number): { name: string; region: string } | null {
+  const span = p.places?.find((x) => age >= x.from && age < x.to);
+  if (span) return span;
+  if (p.place) return { name: p.place, region: p.place };
+  return p.places ? FIELD : null;
+}
+
+/** Moves the character to the profile's place for this age, introducing it the first time (engine; D-445). */
+function moveForAge(p: LifeProfile, s: GameState, age: number): GameState {
+  const want = placeAt(p, age);
+  if (!want) return s;
+  const cur = s.locations.currentId ? s.locations.byId[s.locations.currentId]?.name : null;
+  if (cur === want.name) return s;
+  return applyEvents(REGISTRY, s, [{ type: 'locationIntroduced', name: want.name, kind: 'planet', region: want.region, description: 'training ground', moveHere: true }], { source: 'engine' }).state;
 }
 
 export interface LifeResult {
@@ -158,10 +183,7 @@ export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
     rank,
     ...(p.startingXp ? { startingXp: p.startingXp } : {}),
   });
-  const placed = p.place
-    ? applyEvents(REGISTRY, s, [{ type: 'locationIntroduced', name: p.place, kind: 'planet', region: p.place, description: 'training ground', moveHere: true }], { source: 'engine' }).state
-    : s;
-  return setRoutine(p, placed, rank);
+  return setRoutine(p, moveForAge(p, s, p.startAge), rank);
 }
 
 const LADDER = { jedi: ['initiate', 'padawan', 'knight'], sith: ['acolyte', 'apprentice', 'lord'] } as const;
@@ -486,6 +508,8 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       const want = rankFor(p, age);
       if (s.ranks.rank !== want) s = setRoutine(p, applyEvents(REGISTRY, s, [{ type: 'rankSet', rank: want }], { source: 'engine' }).state, want);
     }
+    // Where the life is today (D-445: the Temple, Dagobah, the field).
+    s = moveForAge(p, s, age);
     const before = { ...s.progression.skills };
     const dayRow = rowOf(age);
     const dayTransfer: Record<string, number> = {};

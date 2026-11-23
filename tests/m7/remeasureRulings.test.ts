@@ -59,9 +59,9 @@ describe('nexus extras (D-432)', () => {
     expect(forceBonusAt(['the Valley of the Dark Lords', 'Korriban'], -3661, 'dark', f)?.factor).toBe(NEXUS_SITE_FACTOR);
     expect(forceBonusAt(['Korriban'], -3661, 'dark', f)?.factor).toBe(FORCE_RICH_FACTOR);
     expect(forceBonusAt(['the Valley of the Dark Lords', 'Korriban'], -3661, 'light', f)).toBeNull();
-    // Dagobah is balanced, its cave dark: a Jedi gets the planet's factor in the cave, a Sith the cave's.
-    expect(forceBonusAt(['the cave on Dagobah', 'Dagobah'], -3661, 'light', f)?.nexus.id).toBe('dagobah');
-    expect(forceBonusAt(['the cave on Dagobah', 'Dagobah'], -3661, 'dark', f)?.nexus.id).toBe('dagobah-cave');
+    // Dagobah is balanced, its cave dark (from about 700 BBY, D-445): a Jedi gets the planet's factor in the cave, a Sith the cave's.
+    expect(forceBonusAt(['the cave on Dagobah', 'Dagobah'], 3, 'light', f)?.nexus.id).toBe('dagobah');
+    expect(forceBonusAt(['the cave on Dagobah', 'Dagobah'], 3, 'dark', f)?.nexus.id).toBe('dagobah-cave');
     expect(forceBonusAt(['Tython'], -3661, 'dark', f)?.factor).toBe(FORCE_RICH_FACTOR);
     expect(leaningMatches('balanced', 'balanced')).toBe(true);
     expect(leaningMatches('light', 'balanced')).toBe(false);

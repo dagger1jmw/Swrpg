@@ -118,7 +118,8 @@ export const PACE_WINDOW_DAYS = 365;
 /**
  * D-431 (Jared): re-measured for the Knight-at-25 Average with the daily meditation block and the age-scaled Padawan hours
  * (K 12.30): the table times the 20-seed median ratio per age (npm run spread, 2026-11-22). The frozen ages of D-426 are
- * gone; the 4.0x stays defined against the Average.
+ * gone; the 4.0x stays defined against the Average. D-445: re-measured again with the Average in the Coruscant Temple (the
+ * 20-seed medians moved 30: 444 -> 405, 90: 324 -> 300, 60: 505 -> 498; the rest within 1%).
  */
 export const Y_AVG_FROZEN_AGES: readonly number[] = [];
 export const Y_AVG: readonly (readonly [number, number])[] = [
@@ -128,14 +129,14 @@ export const Y_AVG: readonly (readonly [number, number])[] = [
   [16, 604],
   [20, 620],
   [24, 560],
-  [30, 444],
-  [40, 467],
-  [50, 460],
-  [60, 505],
-  [70, 448],
-  [80, 445],
-  [90, 324],
-  [98, 208],
+  [30, 405],
+  [40, 468],
+  [50, 461],
+  [60, 498],
+  [70, 452],
+  [80, 446],
+  [90, 300],
+  [98, 204],
 ];
 
 // ---- Age and learning speed (§16) ----

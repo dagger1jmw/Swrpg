@@ -59,6 +59,9 @@ export const ANAKIN_WAR_B1 = 80;
 export const ANAKIN_WAR_B2 = 20;
 export const ANAKIN_WAR_ELITE = 8;
 
+/** The Jedi Temple on Coruscant all life (D-445): a light nexus site from 5000 BBY. */
+export const TEMPLE_LIFE = [{ from: 0, to: 1000, name: 'the Jedi Temple', region: 'Coruscant' }] as const;
+
 /** Average: Jedi Guardian, the default template, standard effort; peacetime: one real skirmish a year from Knight (D-40). */
 export const AVERAGE: LifeProfile = {
   archetype: 'jediGuardian',
@@ -73,6 +76,9 @@ export const AVERAGE: LifeProfile = {
   mainForm: 'soresu',
   secondForm: 'ataru',
   seed: 'average',
+  // D-445 (Jared): the Order's home is built into the calibration: the life is spent in the Coruscant Temple, a light
+  // nexus site (x1.15 on Force skills for a Jedi).
+  places: TEMPLE_LIFE,
   // Peacetime: about one real mission a year from Padawan on (D-143 A), against a squad of line troopers. D-258: 0.95 a
   // year (was 1) brings the highest form's 41 back to 16.0 +/- 0.1 on the gated seed (15.99) after the morale rule; 0.85
   // and 0.9 drift a mission into the age-20 year, where its drill-bank release lifts that year's XP by 10-25%.
@@ -122,6 +128,9 @@ export const OBIWAN: LifeProfile = {
     ],
   },
   seed: 'obiwan',
+  // D-445 (Jared): the Order's home is built into the calibration: the life is spent in the Coruscant Temple, a light
+  // nexus site (x1.15 on Force skills for a Jedi).
+  places: TEMPLE_LIFE,
   // The Clone Wars years: wounding fights get a bacta tank (D-162).
   warAges: [[35, 38]],
   // Retuned in step 9 on the fixed seed and 5 more (D-159): spars are sessions of bouts (D-168), so few are needed and
@@ -178,6 +187,9 @@ export const ANAKIN: LifeProfile = {
     ],
   },
   seed: 'anakin',
+  // D-445 (Jared): the Order's home is built into the calibration: the life is spent in the Coruscant Temple, a light
+  // nexus site (x1.15 on Force skills for a Jedi).
+  places: TEMPLE_LIFE,
   // The Clone Wars years: wounding fights get a bacta tank (D-162).
   warAges: [[19, 22]],
   // Retuned in step 9 on the fixed seed and 5 more (D-159): near-daily sparring sessions with his master (D-168; a
@@ -247,6 +259,9 @@ export const LUKE: LifeProfile = {
     ],
   },
   seed: 'luke',
+  // D-445 (Jared): Dagobah, a Force-rich world (x1.10 on Force skills), for his months there only: three months in 3 ABY (age
+  // 22; the lore gives 3-4 ABY and no length: design default). The dark cave is a dark site: no bonus for a Jedi (D-432).
+  places: [{ from: 22, to: 22.25, name: 'Dagobah', region: 'Dagobah' }],
   // Both wars: wounding fights get a bacta tank (D-162).
   warAges: [
     [19, 24],

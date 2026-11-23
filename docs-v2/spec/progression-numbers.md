@@ -469,7 +469,13 @@ Conditions that change how fast a character trains, beyond talent, teacher and a
     and bond (+0.03, sec 19). Inside the 2.8 M cap and the 4.0x clamp.
   Force-rich place: Force skills (the Force stats and abilities) x1.10 at a Force-rich site
     (force-reserve.md sec 9 site types: light nexus, dark nexus, living Force site). Inside the
-    2.8 M cap and the 4.0x clamp. Invented (D-418).
+    2.8 M cap and the 4.0x clamp. Invented (D-418). A nexus site x1.15; the stronger of a site
+    and its planet wins; only on a matching or balanced leaning (D-432).
+    Built into the calibration (D-445): the Average, Obi-Wan and Anakin live in the Coruscant
+    Temple (a light nexus site, x1.15), and the Jedi archetypes' paces are measured there, so a
+    Jedi in the Temple trains at the calibrated pace and one elsewhere a little slower (Tython
+    x1.10 after the Order's move; the field x1). Luke trains on Dagobah (x1.10) for three months
+    at 22 (3 ABY; design default).
   Accelerated path: training cut to the essentials of using and channelling the Force and blade
     work. History, protocol and most doctrine are dropped (the Order's knowledge blocks leave the
     routine); only enough doctrine is kept to understand what being a Jedi means.

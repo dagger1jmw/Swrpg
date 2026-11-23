@@ -189,7 +189,8 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 - Also added in the same batch: Jedi Order ranks and Council, Jedi daily life, Sith academies, lightsabers and materials, weapons and armour.
 
 ## Force nexuses (D-425, 2026-11-22)
-- Dagobah: the cave now has a cited entry (SW_Dagobah, SW_Force_Nexus_Vergence: a dark nexus from 700 BBY). Dagobah as a Force-rich world is still uncited in Legends ([unclear] in the file). src/data/forceNexus.ts not yet re-read against the file.
+- Dagobah: the cave now has a cited entry (SW_Dagobah, SW_Force_Nexus_Vergence: a dark nexus from 700 BBY). Dagobah as a Force-rich world is still uncited in Legends ([unclear] in the file; it rests on Jared's ruling). src/data/forceNexus.ts re-read against the file (D-445): the cave from 700 BBY; the Canon "teems with life" wording dropped from the planet's source.
+- Luke's time on Dagobah: the lore gives 3-4 ABY and no length; the calibration uses three months in 3 ABY (design default, D-445). A Legends source for the length would replace it.
 - Ilum: the Crystal Caves are now cited as a light-associated site (SW_Ilum_Temple_CrystalCaves; SW_Force_Nexus_Vergence decision 5); not yet in src/data/forceNexus.ts. The Temple of Eedit likewise (start date [unclear]).
 - The Coruscant Jedi Temple's leaning (the lore gives "a Force nexus holy to the native Coruscanti", leaning unstated; light is inferred).
 

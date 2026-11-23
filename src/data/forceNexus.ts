@@ -38,8 +38,11 @@ export const FORCE_NEXUSES: readonly ForceNexus[] = [
   { id: 'vjun', name: 'Vjun', level: 'planet', planet: 'Vjun', nexus: true, leaning: 'dark', fromYear: -29, source: 'SW_DarkSide_Fall_Corruption_Redemption_Part2 (the 29 BBY slaughter made it a nexus)' },
   { id: 'valley-of-the-jedi', name: 'the Valley of the Jedi', level: 'site', planet: 'Ruusan', nexus: true, leaning: 'balanced', fromYear: -1000, source: 'SW_Legends_Galaxy_Timeline (1,000 BBY: a Force nexus where the spirits of the fallen Jedi and Sith are trapped)' },
   { id: 'jedi-temple-coruscant', name: 'the Jedi Temple', level: 'site', planet: 'Coruscant', nexus: true, leaning: 'light', fromYear: -5000, source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (the sacred spire, a Force nexus holy to the native Coruscanti; granted to the Jedi after the Great Hyperspace War); the leaning is not stated [inferred: the Jedi\'s seat]' },
-  { id: 'dagobah', name: 'Dagobah', level: 'planet', planet: 'Dagobah', nexus: false, leaning: 'balanced', source: 'Jared, D-425 (Legends: Force-rich because it teems with life; Yoda\'s exile); not in the lore files yet (research queue)' },
-  { id: 'dagobah-cave', name: 'the cave on Dagobah', level: 'site', planet: 'Dagobah', nexus: true, leaning: 'dark', source: 'Jared, D-425 (Legends: the dark-side cave of The Empire Strikes Back); not in the lore files yet (research queue)' },
+  // D-445: re-read against SW_Dagobah. The Force-rich status rests on Jared's ruling (Nov 22, 2026); the "because it teems
+  // with life" wording is Canon (The Clone Wars "Lost Missions", 2014), not Legends, so it is no longer cited here.
+  { id: 'dagobah', name: 'Dagobah', level: 'planet', planet: 'Dagobah', nexus: false, leaning: 'balanced', source: 'SW_Dagobah (ruling, Jared, Nov 22, 2026: apart from the cave, an extremely Force-rich world); D-425' },
+  // D-445: the cave formed about 700 BBY, when a Jedi killed a Bpfasshi Dark Jedi there (SW_Dagobah); not a dark nexus before.
+  { id: 'dagobah-cave', name: 'the cave on Dagobah', level: 'site', planet: 'Dagobah', nexus: true, leaning: 'dark', fromYear: -700, source: 'SW_Dagobah (the Dark Side Cave formed around 700 BBY); Jared, D-425' },
 ];
 
 const norm = (x: string): string => ` ${x.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim()} `;

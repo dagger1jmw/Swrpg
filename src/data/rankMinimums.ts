@@ -28,18 +28,20 @@ export interface RankDef {
  * after 13 years as a Padawan; the Knight minimums re-read by the D-51 rule at 24: highest form 47, Force Control 40,
  * Force Sense 36, Willpower 56 (the Average's levels at 24, rounded down). D-431/D-437: re-read after the re-measurement
  * (the age-scaled Padawan hours halve the Force Control hour to 16): the Average at 24 has highest form 47.4, Force Control
- * 38.1, Force Sense 37.1, Willpower 58.2, so 47 / 38 / 37 / 58.
+ * 38.1, Force Sense 37.1, Willpower 58.2, so 47 / 38 / 37 / 58. D-445: re-read again with the Temple in the calibration (x1.15 on
+ * Force skills): the Average at 24 has Force Control 41.4 and Force Sense 40.2 (Force Sense 37 was met at 21.8, outside the
+ * +/-2 years), so 47 / 41 / 40 / 58.
  * Master (D-437, Jared): main specialty 64, the Average's at 40 (63.9; 58 before, met at 33.7), typical age 40. The Sith
  * ladder mirrors it (ranks.md §2).
  */
 export const RANKS: readonly RankDef[] = [
   { id: 'initiate', name: 'Initiate', path: 'jedi', order: 0, minAge: 0, maxAge: 13, minimums: {} },
   { id: 'padawan', name: 'Padawan', path: 'jedi', order: 1, minAge: 10, minimums: { $highestForm: 24, forceControl: 14 }, typicalAge: 12 },
-  { id: 'knight', name: 'Knight', path: 'jedi', order: 2, minAge: 18, minimums: { $highestForm: 47, forceControl: 38, forceSense: 37, willpower: 58 }, typicalAge: 25 },
-  { id: 'master', name: 'Master', path: 'jedi', order: 3, minAge: 31, minimums: { $main: 64, $highestForm: 47, forceControl: 38, forceSense: 37, willpower: 58 }, typicalAge: 40 },
+  { id: 'knight', name: 'Knight', path: 'jedi', order: 2, minAge: 18, minimums: { $highestForm: 47, forceControl: 41, forceSense: 40, willpower: 58 }, typicalAge: 25 },
+  { id: 'master', name: 'Master', path: 'jedi', order: 3, minAge: 31, minimums: { $main: 64, $highestForm: 47, forceControl: 41, forceSense: 40, willpower: 58 }, typicalAge: 40 },
   { id: 'acolyte', name: 'Academy acolyte', path: 'sith', order: 0, minAge: 0, minimums: {} },
   { id: 'apprentice', name: 'Apprentice', path: 'sith', order: 1, minAge: 10, minimums: { $highestForm: 24, forceControl: 14 }, typicalAge: 12 },
-  { id: 'lord', name: 'Sith Lord', path: 'sith', order: 2, minAge: 18, minimums: { $highestForm: 47, forceControl: 38, forceSense: 37, willpower: 58 }, typicalAge: 25 },
+  { id: 'lord', name: 'Sith Lord', path: 'sith', order: 2, minAge: 18, minimums: { $highestForm: 47, forceControl: 41, forceSense: 40, willpower: 58 }, typicalAge: 25 },
   { id: 'none', name: 'No rank', path: 'outsider', order: 0, minAge: 0, minimums: {} },
   { id: 'career', name: 'Career', path: 'career', order: 0, minAge: 0, minimums: {} },
 ];

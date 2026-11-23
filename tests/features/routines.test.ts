@@ -135,13 +135,13 @@ describe('scheduler (training-routines §9)', () => {
   });
 
   it('test 10: 90 days of the standard routine for the Average profile match the yearly rate within +/-10%', () => {
-    // The Average Knight (age 30; at 25 the table still holds the Padawan years, D-431) on the default template, 300 of
-    // 368 days; Y_avg is its main-form XP a year.
-    const s0 = knight(30);
+    // The Average Knight (age 40: at 25 the table still holds the Padawan years, D-431; at 30 it holds the Temple life's dip,
+    // D-445) on the default template, 300 of 368 days; Y_avg is its main-form XP a year.
+    const s0 = knight(40);
     const s = applyEvents(REGISTRY, s0, [{ type: 'routineSet', routine: { ...s0.routines.active, daysPerWeek: (7 * 300) / 368 } }], { source: 'player' }).state;
     const r = advanceByRoutine(REGISTRY, s, { untilAbs: (s.clock.now.day + 90) * 86_400 + s.routines.active.wakeSecond, reason: 'montage', jump: false });
     const gained = (r.state.progression.skills['soresu']?.xp ?? 0) - (s.progression.skills['soresu']?.xp ?? 0);
-    const expected = (interp(Y_AVG, 30) * 90) / 368;
+    const expected = (interp(Y_AVG, 40) * 90) / 368;
     expect(Math.abs(gained / expected - 1), `${gained.toFixed(1)} vs ${expected.toFixed(1)}`).toBeLessThanOrEqual(0.1);
   });
 });
