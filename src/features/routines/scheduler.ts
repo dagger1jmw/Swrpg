@@ -17,6 +17,7 @@ import { weekday } from '../../engine/calendar';
 import { FORM_IDS, SKILL_BY_ID } from '../../data/skills';
 import { EMPTY_DAY, ZERO_METERS, afterSleep, stepBlock, type Capacities, type DayTraining, type Meters } from '../../engine/fatigue';
 import { interp } from '../../engine/interp';
+import { initiateSaberBlocks } from './curriculum';
 import type { GameState } from '../../state/gameState';
 import { selectCharacter, selectHumanAge, selectPath } from '../character/selectors';
 import { selectInjuredSkills, selectMeters } from '../health/selectors';
@@ -276,6 +277,14 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
     if (req.hours <= 0) continue;
     const source = sourceFor(req.instructor, routine, s, notes);
     const intensity: Intensity = 'standard';
+    if (req.primary === '$curriculum') {
+      // The Jedi Initiate lightsaber curriculum (D-459): the gate, Form I, the survey of Forms I-VI.
+      const cur = initiateSaberBlocks({ age, day, hours: req.hours, level: (id) => selectLevelExact(s, id) });
+      for (const b of cur.blocks) add({ activityId: b.activityId, skillId: b.skillId, hours: b.hours, source, intensity, fixed: true, locked: false, fill: false });
+      if (cur.phase === 'preGate') notes.push('Initiate saber classes not yet open (basic Force Control and study first, D-459): the hours go to Force Control, physical training and meditation');
+      used += req.hours;
+      continue;
+    }
     if (req.primary === '$planMaster' || req.primary === '$planSolo') {
       // The plan's forms by hours, largest first: the first 2 h with the master, the rest solo (D-118).
       let offset = req.primary === '$planMaster' ? 0 : PADAWAN_MASTER_HOURS;

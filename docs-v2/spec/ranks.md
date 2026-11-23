@@ -19,7 +19,7 @@ commitments in the routine (training-routines §1); the rest of the daily budget
 by the archetype shares (npc-generation §3). Activities: skills-and-activities.md §5.
 | Rank | Mandatory training per training day |
 |---|---|
-| Initiate | 2 h lightsaber forms + 1 h Force (0.5 h Force Control, 0.5 h Force Sense) + 1 h study (instructors) |
+| Initiate | 2 h lightsaber forms + 1 h Force (0.5 h Force Control, 0.5 h Force Sense) + 1 h study (instructors). The 2 h follow the lightsaber curriculum (D-459, Jared; The Jedi Path: courses in Forms I-VI with training sabers, Form VII excluded; post-Ruusan practice, the default for every era): before the saber gate (Force Control 13 and Force Knowledge 5, set from the Average at 6) the hours go to Force Control (1 h), physical training (0.5 h, rotating) and centering (0.5 h); from the gate Form I only; from 10 (the survey) Form I keeps 1 h and Forms II-VI rotate a day each through the other hour (Form V alternating Shien and Djem So by week). A survey form's first class starts it with the fundamentals transfer (D-119); its level carries into the Padawan years |
 | Padawan | 2 h with the master + 1 h solo (main form) + 1 h Force Control and 1 h Force Sense with the master (teacher factor applies). Scaled by age (D-431): the solo hour and the Force Control hour are 0.5 h to 16; Force Control is back to 1 h at 17 and the solo hour at 18 (4 h, 4.5 h, then 5 h), so a young Padawan's day ends under the standard tiredness limit with 0.5-1.5 h of free training |
 | Knight and above | none mandatory (missions instead) |
 | Sith acolyte (D-427) | the Initiate's hours with the Korriban content: 2 h Form I with the warblade, 0.5 h Force Control, 0.5 h centering, 1 h Sith Code and history (Overseers) |
@@ -36,6 +36,14 @@ Initiate Trials (eligibility to be chosen)
   the old 18 / 15 were met at 8.1 / 11.7). Re-run with D-67 decided (D-102): main form 24 at
   10.9 and Force Control 14 at 11.1, so the minimums stay. Played as a scene; checks at DC
   rating 20.
+  D-459 (Jared, the Initiate lightsaber curriculum): the dueling test is Form I (Shii-Cho) at
+  rating 20 plus basic competence in the other five forms (4 of Forms II-VI at level 16 or
+  more, Form V by its better variant: the Average's lowest after a survey year, 16.4 at 11,
+  rounded down); Force Control at rating 20 as before. The eligibility minimums by the D-51
+  rule from the Average on the curriculum (gated seed, K 11.5): Form I 24 stays (met at about
+  11.8, inside +/-2 years of 10); Force Control 14 -> 19 (the pre-gate hours bring 14 to about
+  6.2; the Average's level at 10 is 19.5). The Padawan row mirrors them; the Sith apprentice
+  row keeps 24 / 14 (the acolyte row has no curriculum).
 Padawan selection (playable window)
   From passing the Initiate Trials until age 13.
   Standing S (0-100) = 50% skill percentile for age + 30% notable deeds (engine-set deed

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { ACTIVITIES, ACTIVITY_BY_ID, DEFAULT_ACTIVITY, INTENSITIES, activityDef, isActivityId } from '../../src/data/activities';
 import { ARCHETYPES, focusShares, sharesFromWeights } from '../../src/data/archetypes';
 import { ORDER_REQUIREMENTS, REQUIREMENT_ROW } from '../../src/data/orderRequirements';
+import { INITIATE_CURRICULUM } from '../../src/data/initiateCurriculum';
 import { AGE_ROWS, RUST } from '../../src/data/progression.config';
 import { RANKS } from '../../src/data/rankMinimums';
 import { CATEGORY_RULES, SKILLS, SKILL_BY_ID, isSkillId, skillDef } from '../../src/data/skills';
@@ -92,7 +93,12 @@ describe('skills and activities (spec §6)', () => {
 
   it('order requirement rows use known activities', () => {
     for (const blocks of Object.values(ORDER_REQUIREMENTS)) {
-      for (const b of blocks) expect(b.activityId === '$formBasics' || isActivityId(b.activityId), b.activityId).toBe(true);
+      for (const b of blocks) expect(b.activityId === '$formBasics' || b.activityId === '$initiateSaber' || isActivityId(b.activityId), b.activityId).toBe(true);
+    }
+    // The Initiate lightsaber curriculum's activities (D-459).
+    for (const b of [...INITIATE_CURRICULUM.preGate, ...INITIATE_CURRICULUM.physicalRotation]) expect(b.activityId === '$physical' || isActivityId(b.activityId), b.activityId).toBe(true);
+    for (const f of INITIATE_CURRICULUM.surveyForms.flat()) {
+      expect(isActivityId(DEFAULT_ACTIVITY[f] ?? ''), f).toBe(true);
     }
     for (const row of Object.values(REQUIREMENT_ROW)) expect(ORDER_REQUIREMENTS[row]).toBeDefined();
   });

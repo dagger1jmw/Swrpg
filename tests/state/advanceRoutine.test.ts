@@ -42,12 +42,14 @@ describe('advanceByRoutine', () => {
     expect(training.length).toBe(12);
     for (const d of training) {
       const acts = d.sessions.map((x) => x.activityId);
-      expect(acts).toContain('shiiChoBasics');
+      // A new Initiate is before the saber gate (D-459): the saber hours go to Force Control, physical training and centering.
+      expect(acts).toContain('forceControlDrill');
+      expect(acts).toContain('basicCentering');
       expect(acts).toContain('forceLore');
       expect(d.hoursTrained).toBeGreaterThanOrEqual(4);
       expect(d.endF).toBeLessThan(1.1);
     }
-    expect(a.state.progression.skills['shiiCho']!.xp).toBeGreaterThan(0);
+    expect(a.state.progression.skills['forceControl']!.xp).toBeGreaterThan(0);
     expect(a.rejected).toEqual([]);
   });
 

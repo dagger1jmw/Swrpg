@@ -1,6 +1,9 @@
 // The rulings on the 2026-11-22 calibration report (Jared; D-431 to D-435): the age-scaled Padawan hours and the daily
 // meditation block, the Sith channelling block, the nexus extras, deeds past the fifth, Kel Dor, the instructor's share.
 import { describe, expect, it } from 'vitest';
+import { curriculumPhase } from '../../src/features/routines/curriculum';
+import { selectHumanAge } from '../../src/features/character/selectors';
+import { selectLevelExact } from '../../src/features/progression/selectors';
 import { CANON_BY_ID } from '../../src/data/canonNpcs';
 import { forceBonusAt, leaningMatches } from '../../src/data/forceNexus';
 import { ORDER_REQUIREMENTS, blockHours, orderHoursAt } from '../../src/data/orderRequirements';
@@ -42,7 +45,11 @@ describe('the Padawan day (D-431)', () => {
   });
   it('the daily meditation block runs for Padawans and Knights (and Sith on the same rows), not Initiates', () => {
     expect(DAILY_LIFE.meditation.fromRows).toEqual(['padawan', 'knight']);
-    expect(ids(make(9, 'initiate'))).not.toContain('basicCentering');
+    // An Initiate's only centering is the saber curriculum's before the gate (D-459), never the daily-life block.
+    const ini = make(9, 'initiate');
+    const pre = curriculumPhase({ age: selectHumanAge(ini), level: (k) => selectLevelExact(ini, k) }) === 'preGate';
+    const centering = planDay(ini, ini.routines.active, {}).items.filter((b) => 'activityId' in b && b.activityId === 'basicCentering');
+    expect(centering.reduce((a, b) => a + ('hours' in b ? b.hours : 0), 0)).toBe(pre ? 0.5 : 0);
     expect(ids(make(14, 'padawan'))).toContain('basicCentering');
     expect(ids(make(30, 'knight'))).toContain('basicCentering');
     expect(ids(make(14, 'apprentice', 'sith'))).toContain('basicCentering');

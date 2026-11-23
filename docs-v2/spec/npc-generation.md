@@ -114,6 +114,11 @@ main skill and summed to far more training than a day holds (Jedi Guardian 3.9x,
   then (progression-numbers sec 7a). R is now defined as K * 41^1.75 / A_ref (it was measured from
   the Average), so pace and level agree exactly. Jedi Guardian (K = 11.683): forms Initiate order
   1.091, fill 0.007 | Padawan master 1.203, solo 0.318, fill 0.012 | Knight+ fill 1.543.
+  Amended by D-459 (the Jedi Initiate lightsaber curriculum): a Jedi's Initiate form pace runs from
+  the saber gate age (6, the Average's) and is shared out by the curriculum: Form I alone to 10, then
+  Form I 0.5 and Forms II-VI 0.1 each (Form V's 0.1 split between Shien and Djem So); each survey form
+  starts at 10 with the fundamentals transfer, in rotation order (Niman last). The pace is measured
+  over those effective years. Sith acolytes keep every Initiate form hour on Form I.
   Custom focus (character creation sliders): a change of share Delta moves the skill's pace by
   Delta * 2 * (that archetype's main Knight+ pace) * fill, where fill is the phase's mean fill
   hours (standard budget minus Order hours, never below 0) over the 6 h Knight+ day: 1 for

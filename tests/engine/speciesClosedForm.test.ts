@@ -1,6 +1,7 @@
 // species.md §5 tests 1-5 and npc-generation §7 tests 1 and 8 (M3 step 3).
 import { describe, expect, it } from 'vitest';
 import { ARCHETYPE_BY_ID } from '../../src/data/archetypes';
+import { CLOSED_FORM_CURRICULUM } from '../../src/data/initiateCurriculum';
 import { FORM_TRANSFER_SHARE, K, PACE_CAP } from '../../src/data/progression.config';
 import { SPECIES, speciesDef } from '../../src/data/species';
 import { ageIntegral } from '../../src/engine/ageFactor';
@@ -87,23 +88,28 @@ describe('closed form (npc-generation §7)', () => {
     const PLAN = { soresu: 2, ataru: 1 };
     const g = ARCHETYPE_BY_ID.get('jediGuardian')!.formPaces;
     const w = ARCHETYPE_BY_ID.get('sithWarrior')!.formPaces;
+    // A Jedi's Initiate years follow the lightsaber curriculum (D-459); the Sith acolyte row does not.
+    const CUR = CLOSED_FORM_CURRICULUM;
     const forms = (paces: typeof g, startAge: number, age: number, extra: Partial<Parameters<typeof formXps>[0]> = {}): number =>
       levelExact(
         Math.max(
           0,
           ...Object.values(
-            formXps({ formPaces: paces, k: K, startAge, age, padawanAge: 12, knightAge: 25, onePhase: false, padawanPlan: PLAN, knightPlan: PLAN, mult: () => 1, transferShare: FORM_TRANSFER_SHARE, ...extra }),
+            formXps({ formPaces: paces, k: K, startAge, age, padawanAge: 12, knightAge: 25, onePhase: false, padawanPlan: PLAN, knightPlan: PLAN, mult: () => 1, transferShare: FORM_TRANSFER_SHARE, ...(paces === g ? { curriculum: CUR } : {}), ...extra }),
           ),
         ),
       );
-    near(forms(g, 4, 16), 33.9);
-    near(forms(g, 4, 30), 54.7);
-    near(forms(g, 4, 45), 69.5);
-    near(forms(g, 4, 70), 89.0);
-    near(forms(g, 3, 39, { padawanAge: 13, knightAge: 25, mult: () => 1.48 }), 80.6);
+    // D-459 (2026-11-23): the Initiate lightsaber curriculum, K 11.5, the paces re-measured (Padawan 16: 33.9 -> 30.1, the loop
+    // 30.3; Knight 30: 54.7 -> 53.8; Master 45: 69.5 -> 70.2; Elder 70: 89.0 -> 91.6; Obi-Wan 80.6 -> 78.6; the soldier
+    // 51.4 -> 53.9 and the Sith Warrior 80.1 -> 83.9 with K).
+    near(forms(g, 4, 16), 30.1);
+    near(forms(g, 4, 30), 53.8);
+    near(forms(g, 4, 45), 70.2);
+    near(forms(g, 4, 70), 91.6);
+    near(forms(g, 3, 39, { padawanAge: 13, knightAge: 25, mult: () => 1.48 }), 78.6);
     near(forms(g, 9, 22.5, { padawanAge: 9, knightAge: 20, mult: () => 3.89 }), 79.7);
-    near(closedFormLevel({ row: 'technique', startAge: 17, age: 35, warYears: 5, phases: main(S, 'blaster', undefined, true) }), 51.4); // D-456: the soldier's re-measured Blaster pace (1.27 -> 1.379)
-    near(forms(w, 8, 35, { mult: () => 1.5 * 1.15, warYears: 10 }), 80.1); // D-456: the Sith Warrior measured at its seats (Korriban, Dromund Kaas)
+    near(closedFormLevel({ row: 'technique', startAge: 17, age: 35, warYears: 5, phases: main(S, 'blaster', undefined, true) }), 53.9);
+    near(forms(w, 8, 35, { mult: () => 1.5 * 1.15, warYears: 10 }), 83.9);
   });
 
   it('each phase pace is capped at 4.0', () => {

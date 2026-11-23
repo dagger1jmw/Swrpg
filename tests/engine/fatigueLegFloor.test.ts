@@ -8,7 +8,6 @@ import type { LastingInjury } from '../../src/engine/lasting';
 import { applyEvents } from '../../src/state/applyEvents';
 import { REGISTRY } from '../../src/state/registry';
 import { paceFloorYears } from '../lifetime/checks';
-import { TARGETS } from '../lifetime/profiles';
 import { forceUser } from '../support/duelSim';
 import { devCharacter } from '../support/fightHarness';
 
@@ -49,10 +48,13 @@ describe('D-230: form drills count toward a lost leg', () => {
 });
 
 describe('D-235: the 4.0x floor uses the clamp\'s Y_avg table', () => {
-  it('Anakin (start 9): 41 no sooner than about 3.38 y; the floor rises with the tier and is below the old target / 4 for an early start', () => {
-    expect(paceFloorYears(9, 41)).toBeCloseTo(3.38, 1);
+  it('Anakin (start 9): 41 no sooner than about 3.08 y (D-459: K 11.5, the curriculum table); the floor rises with the tier', () => {
+    expect(paceFloorYears(9, 41)).toBeCloseTo(3.08, 1);
     const tiers = [21, 41, 61, 81, 101];
     for (let i = 1; i < tiers.length; i++) expect(paceFloorYears(9, tiers[i]!)).toBeGreaterThan(paceFloorYears(9, tiers[i - 1]!));
-    for (const t of tiers) expect(paceFloorYears(4, t)).toBeLessThan(TARGETS.average[t as 41] / 4);
+    // D-459: "below the Average's target / 4 for an age-4 start" no longer holds: the table has no form XP before the
+    // Initiate saber gate (about 5.7) and ramps linearly from 0 at 4 to 550 at 8, so that floor runs 2.9 / 5.4 / 8.5 y at
+    // 21 / 41 / 61 (targets / 4: 1.25 / 4.0 / 8.0). Reported; the Anakin floor above is unchanged in kind.
+    expect(paceFloorYears(4, 41)).toBeGreaterThan(paceFloorYears(9, 41));
   });
 });

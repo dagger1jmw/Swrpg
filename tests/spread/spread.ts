@@ -38,10 +38,11 @@ const within4x = (r: LifeResult): boolean => {
 /** The gates of each profile's lifetime test, per seed (same bands as tests/lifetime/*.test.ts). */
 export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, boolean>; values: Record<string, number> }> = {
   average: (r) => {
-    const yAvgDev = Math.max(...Y_AVG.filter(([a]) => !Y_AVG_FROZEN_AGES.includes(a)).map(([age, y]) => Math.abs((r.yearMain[age - 4] ?? 0) / y - 1)));
+    // A table age at 0 (D-459: no form XP before the Initiate saber gate) has no ratio.
+    const yAvgDev = Math.max(...Y_AVG.filter(([a, y]) => !Y_AVG_FROZEN_AGES.includes(a) && y > 0).map(([age, y]) => Math.abs((r.yearMain[age - 4] ?? 0) / y - 1)));
     const peace = Math.max(...r.yearMain.map((_, i) => share(r, i)));
     const at = (k: string): number => r.cross[k] ?? NaN;
-    const ranks = ['highestForm>=24', 'forceControl>=14'].every((k) => Math.abs(at(k) - 10) <= 2) && ['highestForm>=47', 'forceControl>=41', 'forceSense>=40', 'willpower>=58'].every((k) => Math.abs(at(k) - 24) <= 2) && Math.abs(at('highestForm>=64') - 40) <= 2;
+    const ranks = ['highestForm>=24', 'forceControl>=19'].every((k) => Math.abs(at(k) - 10) <= 2) && ['highestForm>=47', 'forceControl>=41', 'forceSense>=40', 'willpower>=58'].every((k) => Math.abs(at(k) - 24) <= 2) && Math.abs(at('highestForm>=64') - 40) <= 2;
     return {
       gates: {
         'K: 41 at 16.0 +/- 0.1 y': Math.abs((r.milestones[41] ?? 0) - 16.0) <= 0.1,
@@ -54,7 +55,7 @@ export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, bo
         'day-end tiredness < 1.1': r.maxDayEndFNoSeriousFight < 1.1,
       },
       // Per seed, reported; the gate is the 20-seed median per age (yAvgMedianGate).
-      values: { yAvgMaxDeviation: yAvgDev, peacetimeMaxShare: peace, ...Object.fromEntries(Y_AVG.map(([age, y]) => [`yAvgRatio@${age}`, (r.yearMain[age - 4] ?? 0) / y])), ...rateValues(r) },
+      values: { yAvgMaxDeviation: yAvgDev, peacetimeMaxShare: peace, ...Object.fromEntries(Y_AVG.filter(([, y]) => y > 0).map(([age, y]) => [`yAvgRatio@${age}`, (r.yearMain[age - 4] ?? 0) / y])), ...rateValues(r) },
     };
   },
   anakin: (r) => {
@@ -192,7 +193,7 @@ export function spreadRow(name: string, profile: LifeProfile, years: number, k: 
 /** The four profiles as the old per-profile files ran them (in their file order: anakin, average, luke, obiwan). */
 export const SPREAD_PROFILES: readonly { name: string; profile: LifeProfile; years: number; opts: Parameters<typeof runLifetime>[2] }[] = [
   { name: 'anakin', profile: ANAKIN, years: 70, opts: {} },
-  { name: 'average', profile: AVERAGE, years: 95, opts: { crossLevels: { highestForm: [24, 47, 64], forceControl: [14, 41], forceSense: [40], willpower: [58] }, paceRates: true } },
+  { name: 'average', profile: AVERAGE, years: 95, opts: { crossLevels: { highestForm: [24, 47, 64], forceControl: [19, 41], forceSense: [40], willpower: [58] }, paceRates: true } },
   { name: 'luke', profile: LUKE, years: 70, opts: { track: ['forceControl', 'perf:strength', 'perf:agility', 'perf:endurance'] } },
   { name: 'obiwan', profile: OBIWAN, years: 70, opts: {} },
 ];
@@ -228,7 +229,8 @@ export function yAvgMedianGate(rows: readonly { profile: string; values: Record<
     return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
   };
   let worst = { age: 0, ratio: 1 };
-  for (const [age] of Y_AVG) {
+  for (const [age, y] of Y_AVG) {
+    if (y <= 0) continue;
     const ratio = median(avg.map((r) => r.values[`yAvgRatio@${age}`] ?? 0));
     if (Math.abs(ratio - 1) > Math.abs(worst.ratio - 1)) worst = { age, ratio };
   }

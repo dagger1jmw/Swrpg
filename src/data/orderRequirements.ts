@@ -9,7 +9,10 @@ export interface RequirementBlock {
   activityId: string;
   hours: number;
   instructor: Instructor;
-  /** '$planMaster' / '$planSolo': forms of the Padawan form plan (D-118). The Initiate row is always Shii-Cho. */
+  /**
+   * '$planMaster' / '$planSolo': forms of the Padawan form plan (D-118). '$curriculum': the Jedi Initiate lightsaber
+   * curriculum (D-459: the saber gate, Form I, the survey of Forms I-VI; src/features/routines/curriculum.ts).
+   */
   primary?: string;
   intensity?: 'standard';
   /**
@@ -55,8 +58,9 @@ export const PADAWAN_FORCE_HOURS: readonly (readonly [number, number])[] = [
 ];
 
 export const ORDER_REQUIREMENTS: Readonly<Record<string, readonly RequirementBlock[]>> = {
+  // D-459 (Jared): the saber block follows the Initiate lightsaber curriculum (data/initiateCurriculum.ts).
   initiate: [
-    { activityId: 'shiiChoBasics', hours: 2, instructor: 'instructor' },
+    { activityId: '$initiateSaber', hours: 2, instructor: 'instructor', primary: '$curriculum' },
     { activityId: 'forceControlDrill', hours: 0.5, instructor: 'instructor', primary: 'forceControl' },
     { activityId: 'senseAwareness', hours: 0.5, instructor: 'instructor', intensity: 'standard' },
     { activityId: 'forceLore', hours: 1, instructor: 'instructor' },

@@ -138,7 +138,7 @@ export interface TrialRoll extends BasicRoll {
  * A trial's checks (ranks.md §1). `levelOf` gives the effective level of a skill (the Flesh trial's fatigue is applied by
  * the caller); the Spirit trial's DC is 10 + dark pressure / 5 + 4.
  */
-export function rollTrial(rng: RngState, def: TrialDef, levelOf: (skill: string) => number, darkPressure: number): { passed: boolean; rolls: TrialRoll[]; rng: RngState } {
+export function rollTrial(rng: RngState, def: TrialDef, levelOf: (skill: string) => number, darkPressure: number): { passed: boolean; rolls: TrialRoll[]; rng: RngState; competence?: { met: number; need: number; floor: number } } {
   let r = rng;
   const rolls: TrialRoll[] = [];
   for (const chk of def.checks) {
@@ -147,7 +147,14 @@ export function rollTrial(rng: RngState, def: TrialDef, levelOf: (skill: string)
     const dc = def.id === 'spirit' ? 10 + darkPressure / 5 + 4 : dcForRating(chk.rating);
     rolls.push({ ...roll, skill: chk.skill, dc, success: roll.total >= dc });
   }
-  return { passed: rolls.filter((x) => x.success).length >= def.need, rolls, rng: r };
+  const comp = def.competence ? competenceOf(def.competence, levelOf) : undefined;
+  return { passed: rolls.filter((x) => x.success).length >= def.need && (comp ? comp.met >= comp.need : true), rolls, rng: r, ...(comp ? { competence: comp } : {}) };
+}
+
+/** Basic competence (D-459): how many form groups reach the floor (a group reads its best form). */
+export function competenceOf(c: NonNullable<TrialDef['competence']>, levelOf: (skill: string) => number): { met: number; need: number; floor: number } {
+  const met = c.groups.filter((g) => Math.max(...g.map(levelOf)) >= c.floor).length;
+  return { met, need: c.need, floor: c.floor };
 }
 
 /** The Knight Trials done: each passed, or credited by a wartime heroic act (Courage and Flesh only; ranks.md §1). */

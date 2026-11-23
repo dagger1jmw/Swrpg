@@ -8,6 +8,7 @@ import { FORM_TRANSFER_SHARE, K } from '../../src/data/progression.config';
 import { CATEGORY_RULES, SKILL_BY_ID } from '../../src/data/skills';
 import { closedFormLevel, formXps, phasesFor } from '../../src/engine/closedForm';
 import { levelExact } from '../../src/engine/curve';
+import { CLOSED_FORM_CURRICULUM } from '../../src/data/initiateCurriculum';
 import { runLifetime } from '../support/lifetime';
 import { archetypeSeat, schedule } from './profiles';
 
@@ -27,6 +28,8 @@ function closedHighestForm(a: ArchetypeDef, startAge: number, age: number, order
     knightPlan: PLAN,
     mult: () => 1,
     transferShare: FORM_TRANSFER_SHARE,
+    // The Jedi Initiate lightsaber curriculum (D-459).
+    ...(a.path === 'jedi' ? { curriculum: CLOSED_FORM_CURRICULUM } : {}),
   });
   return levelExact(Math.max(0, ...Object.values(xp)));
 }

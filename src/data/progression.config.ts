@@ -12,8 +12,10 @@ import type { AgeRow, RustRow } from './skills';
  * years) with the daily meditation block and the age-scaled Padawan hours: 12.30 (it was 11.683 from
  * docs-v2/calc/progression-sim.mjs, and 15.181 under D-102). D-456 (2026-11-23): re-solved after the rest-before-trim
  * fix (the fill is no longer trimmed, so the Average trains more hours): 12.45 (12.30 gave 41 at 15.834, 12.47 gave 16.027).
+ * D-459 (2026-11-23): the Initiate lightsaber curriculum moves the Average's 41 to 18.51 years at 12.45; the solve wants
+ * K 10.21, under the 11.5 bound of the tuning rules, so K sits at the bound (the gap is reported, not tuned around).
  */
-export const K = 12.45;
+export const K = 11.5;
 export const CURVE_EXP = 1.75;
 
 /** progression-numbers §1. [min level, name]. */
@@ -124,21 +126,26 @@ export const PACE_WINDOW_DAYS = 365;
  * 338, 16: 604 -> 625, 60: 498 -> 480; the rest within 1.5%.
  */
 export const Y_AVG_FROZEN_AGES: readonly number[] = [];
+/**
+ * D-459 (2026-11-23): re-measured on the Initiate lightsaber curriculum with the per-hour clamp (K 11.5, 20-seed medians,
+ * the clamp open): no form XP before the saber gate (about 5.7), so 4: 0; 8: 609 -> 550, 12: 606 -> 662 (the survey's
+ * transfers), 20: 629 -> 595, 90: 338 -> 275, 98: 207 -> 226 (the old share rule had clamped the Average's last years).
+ */
 export const Y_AVG: readonly (readonly [number, number])[] = [
-  [4, 583],
-  [8, 609],
-  [12, 606],
-  [16, 625],
-  [20, 629],
-  [24, 558],
-  [30, 484],
-  [40, 472],
-  [50, 462],
-  [60, 480],
-  [70, 449],
-  [80, 448],
-  [90, 338],
-  [98, 207],
+  [4, 0],
+  [8, 550],
+  [12, 662],
+  [16, 627],
+  [20, 595],
+  [24, 562],
+  [30, 490],
+  [40, 469],
+  [50, 460],
+  [60, 461],
+  [70, 448],
+  [80, 445],
+  [90, 275],
+  [98, 226],
 ];
 
 // ---- Age and learning speed (§16) ----

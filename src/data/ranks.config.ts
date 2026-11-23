@@ -3,6 +3,8 @@
 // design defaults (D-424).
 
 /** The five Knight Trials (ranks.md §1). Each check is a skill against a difficulty rating (DC = 10 + rating / 10). */
+import { INITIATE_CURRICULUM } from './initiateCurriculum';
+
 export const KNIGHT_TRIAL_IDS = ['skill', 'courage', 'flesh', 'spirit', 'insight'] as const;
 export type KnightTrialId = (typeof KNIGHT_TRIAL_IDS)[number];
 export type TrialId = KnightTrialId | 'initiate';
@@ -23,6 +25,11 @@ export interface TrialDef {
   startF?: number;
   /** Wartime credit: a heroicAct flag counts as passing it (Courage and Flesh, ranks.md §1). */
   heroicCredit?: boolean;
+  /**
+   * Basic competence (not rolled): at least `need` of these form groups at `floor` or more (a group reads its best form).
+   * The Initiate Trials' Forms II-VI (D-459).
+   */
+  competence?: { groups: readonly (readonly string[])[]; need: number; floor: number };
   note: string;
 }
 
@@ -30,12 +37,16 @@ export const TRIALS: Readonly<Record<TrialId, TrialDef>> = {
   initiate: {
     id: 'initiate',
     name: 'the Initiate Trials',
+    // D-459 (Jared): the dueling test is Form I at rating 20 plus basic competence in the other five forms of the
+    // Initiate curriculum (4 of 5 at 16+: the Average's lowest of Forms II-VI after a survey year, 16.4 at 11, rounded
+    // down; measured 2026-11-23, gated seed, K 11.5); Force Control at rating 20 as before.
     checks: [
-      { skill: '$highestForm', rating: 20 },
+      { skill: 'shiiCho', rating: 20 },
       { skill: 'forceControl', rating: 20 },
     ],
     need: 2,
-    note: 'eligibility to be chosen as a Padawan (ranks.md §1: checks at rating 20)',
+    competence: { groups: INITIATE_CURRICULUM.surveyForms, need: 4, floor: 16 },
+    note: 'eligibility to be chosen as a Padawan (ranks.md §1: Form I and Force Control at rating 20; 4 of Forms II-VI at 16+)',
   },
   skill: {
     id: 'skill',

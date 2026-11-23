@@ -108,6 +108,12 @@ export interface FormLevelsInput {
   knightPoolDelta?: number;
   /** Called with every capped phase pace used (creation checks the 4.0x limit). */
   onPace?: (pace: number) => void;
+  /**
+   * The Jedi Initiate lightsaber curriculum (D-459): no form XP before the gate age, Form I alone to the survey age, then
+   * the Initiate form pace shared out by `shares` (Form I 0.5, Forms II-VI the rest), each survey form started (its
+   * fundamentals transfer) in `order`. Absent: every Initiate form hour on Shii-Cho (the Sith acolyte row).
+   */
+  curriculum?: { gateAge: number; surveyAge: number; shares: Readonly<Record<string, number>>; order: readonly string[] };
 }
 
 /**
@@ -141,10 +147,25 @@ export function formXps(i: FormLevelsInput): Record<string, number> {
   if (!i.onePhase) {
     const a = i.startAge;
     const b = Math.min(i.age, i.padawanAge);
-    if (b > a) {
+    const ini = i.formPaces.initiate ?? {};
+    const iniPace = (ini.order ?? 0) + (ini.fill ?? 0);
+    const cur = i.curriculum;
+    if (cur) {
+      const g = Math.max(a, cur.gateAge);
+      const sv = Math.max(g, cur.surveyAge);
+      if (Math.min(b, sv) > g) {
+        start(['shiiCho']);
+        paceNow = { shiiCho: add('shiiCho', iniPace, g, Math.min(b, sv)) };
+      }
+      if (b > sv) {
+        if (!started.has('shiiCho')) start(['shiiCho']);
+        for (const f of cur.order) start([f]);
+        paceNow = {};
+        for (const [f, w] of Object.entries(cur.shares)) paceNow[f] = add(f, iniPace * w, sv, b);
+      }
+    } else if (b > a) {
       start(['shiiCho']);
-      const ini = i.formPaces.initiate ?? {};
-      paceNow = { shiiCho: add('shiiCho', (ini.order ?? 0) + (ini.fill ?? 0), a, b) };
+      paceNow = { shiiCho: add('shiiCho', iniPace, a, b) };
     }
     const pa = Math.max(i.startAge, i.padawanAge);
     const pb = Math.min(i.age, i.knightAge);

@@ -13,6 +13,7 @@ import { K } from '../../src/data/progression.config';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../src/data/skills';
 import { ageIntegral } from '../../src/engine/ageFactor';
 import { referenceRate } from '../../src/engine/closedForm';
+import { INITIATE_CURRICULUM, surveyShares } from '../../src/data/initiateCurriculum';
 import { runLifetime } from '../support/lifetime';
 import { archetypeSeat, schedule } from '../lifetime/profiles';
 
@@ -77,9 +78,15 @@ export function measureArchetype(id: string): MeasuredPaces {
     const mainShare: Record<string, number> = ph === 'initiate' && order ? { order: 1, fill: 1 } : ph === 'padawan' ? { master: 1, solo: 0, fill: PACE_PLAN.soresu / 3 } : { fill: PACE_PLAN.soresu / 3 };
     const mainXp = Math.max(0, xp[mainForm] ?? 0);
     const toMain = Object.entries(xp).filter(([k, v]) => k.startsWith('src:') && v > 0).reduce((t, [k, v]) => t + v * (mainShare[k.slice(4)] ?? 0), 0);
+    // The Jedi Initiate lightsaber curriculum (D-459): Form I trains from the gate age, alone to the survey age, then with
+    // its survey share, so its pace is read over those effective years (the closed form's curriculum mirrors it).
+    const cur = ph === 'initiate' && a.path === 'jedi';
+    const g = Math.max(x, INITIATE_CURRICULUM.gateAge);
+    const sv = Math.min(y, Math.max(g, INITIATE_CURRICULUM.surveyFromAge));
+    const formYears = cur ? ageIntegral('technique', g, sv) + (surveyShares()['shiiCho'] ?? 0) * ageIntegral('technique', sv, y) : ageIntegral('technique', x, y);
     for (const [k, v] of Object.entries(xp)) {
       if (k.startsWith('src:')) {
-        if (v > 0 && toMain > 0) forms[k.slice(4)] = r3(((v * mainXp) / toMain) / ageIntegral('technique', x, y) / R);
+        if (v > 0 && toMain > 0 && formYears > 0) forms[k.slice(4)] = r3(((v * mainXp) / toMain) / formYears / R);
         continue;
       }
       if (FORM_IDS.includes(k) || v <= 0) continue;

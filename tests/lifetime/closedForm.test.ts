@@ -6,6 +6,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { ARCHETYPE_BY_ID } from '../../src/data/archetypes';
 import { FORM_TRANSFER_SHARE, K } from '../../src/data/progression.config';
 import { formXps } from '../../src/engine/closedForm';
+import { CLOSED_FORM_CURRICULUM } from '../../src/data/initiateCurriculum';
 import { levelExact } from '../../src/engine/curve';
 import { runLifetime, type LifeResult } from '../support/lifetime';
 import { AVERAGE } from './profiles';
@@ -25,7 +26,7 @@ describe('npc test 2: closed form vs the routine day loop', () => {
   it('within +/-2 levels at 10, 30 and 60 years (highest form)', () => {
     for (const years of [10, 30, 60]) {
       // The Average's rank ages (D-426: Knight at 25).
-      const xp = formXps({ formPaces: GUARDIAN.formPaces, k: K, startAge: 4, age: 4 + years, padawanAge: AVERAGE.padawanAge, knightAge: AVERAGE.knightAge, onePhase: false, padawanPlan: PLAN, knightPlan: PLAN, mult: () => 1, transferShare: FORM_TRANSFER_SHARE });
+      const xp = formXps({ formPaces: GUARDIAN.formPaces, k: K, startAge: 4, age: 4 + years, padawanAge: AVERAGE.padawanAge, knightAge: AVERAGE.knightAge, onePhase: false, padawanPlan: PLAN, knightPlan: PLAN, mult: () => 1, transferShare: FORM_TRANSFER_SHARE, curriculum: CLOSED_FORM_CURRICULUM });
       const closed = levelExact(Math.max(0, ...Object.values(xp)));
       const day = r.mainByYear[years - 1]!;
       expect(Math.abs(closed - day), `${years} years: day ${day.toFixed(2)} vs closed ${closed.toFixed(2)}`).toBeLessThanOrEqual(2);

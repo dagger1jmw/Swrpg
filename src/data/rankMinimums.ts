@@ -36,7 +36,8 @@ export interface RankDef {
  */
 export const RANKS: readonly RankDef[] = [
   { id: 'initiate', name: 'Initiate', path: 'jedi', order: 0, minAge: 0, maxAge: 13, minimums: {} },
-  { id: 'padawan', name: 'Padawan', path: 'jedi', order: 1, minAge: 10, minimums: { $highestForm: 24, forceControl: 14 }, typicalAge: 12 },
+  // D-459: Force Control 14 -> 19 with the Initiate curriculum (the D-51 rule; mirrors INITIATE_TRIALS).
+  { id: 'padawan', name: 'Padawan', path: 'jedi', order: 1, minAge: 10, minimums: { $highestForm: 24, forceControl: 19 }, typicalAge: 12 },
   { id: 'knight', name: 'Knight', path: 'jedi', order: 2, minAge: 18, minimums: { $highestForm: 47, forceControl: 41, forceSense: 40, willpower: 58 }, typicalAge: 25 },
   { id: 'master', name: 'Master', path: 'jedi', order: 3, minAge: 31, minimums: { $main: 64, $highestForm: 47, forceControl: 41, forceSense: 40, willpower: 58 }, typicalAge: 40 },
   { id: 'acolyte', name: 'Academy acolyte', path: 'sith', order: 0, minAge: 0, minimums: {} },
@@ -72,7 +73,13 @@ export const RANK_PHASE: Readonly<Record<string, 'initiate' | 'padawan' | 'knigh
 };
 
 /** Initiate Trials (ranks.md §1, D-66): checked in M7; kept here with the other minimums. */
-export const INITIATE_TRIALS = { minAge: 10, minimums: { $highestForm: 24, forceControl: 14 } } as const;
+/**
+ * D-459 (Jared: the Initiate lightsaber curriculum; thresholds by the D-51 rule from the Average, gated seed, K 11.5,
+ * 2026-11-23): Form I 24 stays (the Average meets it at about 11.8, inside +/-2 years of 10); Force Control 14 -> 19 (the
+ * pre-gate hours bring 14 to about 6.2, so it becomes the Average's level at 10, 19.5, rounded down). The Sith apprentice
+ * row keeps 24 / 14 (the acolyte row has no curriculum).
+ */
+export const INITIATE_TRIALS = { minAge: 10, minimums: { shiiCho: 24, forceControl: 19 } } as const;
 /** D-426 (Jared): at least 10 years as a Padawan (6 before); the Average is a Padawan from 12 to 25. */
 export const KNIGHT_TRIALS = { minAge: 18, padawanYears: 10 } as const;
 /** Calibration rank ages of the Average profile (progression-numbers §12; Sith use them until M7). */

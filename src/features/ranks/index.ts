@@ -91,7 +91,10 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
         const rec = r.passed ? { ...prev, passed: true, lastDay: day } : { ...prev, fails: prev.fails + 1, lastDay: day };
         const third = !r.passed && rec.fails >= TRIAL_RULES.maxFailures;
         const flag: GameEvent = { type: 'flagSet', flag: r.passed ? (t === 'initiate' ? 'initiateTrialsPassed' : `trialPassed:${t}`) : `trialFailed:${t}` };
-        const card = r.rolls.map((x) => `${x.skill} ${x.total.toFixed(1)} vs DC ${x.dc.toFixed(1)} ${x.success ? 'pass' : 'fail'}`).join('; ');
+        const card = [
+          ...r.rolls.map((x) => `${x.skill} ${x.total.toFixed(1)} vs DC ${x.dc.toFixed(1)} ${x.success ? 'pass' : 'fail'}`),
+          ...(r.competence ? [`Forms II-VI at ${r.competence.floor}+: ${r.competence.met} of 5 (need ${r.competence.need})`] : []),
+        ].join('; ');
         return {
           slice: { ...slice, trials: { ...slice.trials, [t]: rec }, pendingChoice: slice.pendingChoice || third },
           rng: r.rng,
