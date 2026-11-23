@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { CANON_BY_ID } from '../../src/data/canonNpcs';
 import { forceBonusAt, leaningMatches } from '../../src/data/forceNexus';
 import { ORDER_REQUIREMENTS, blockHours, orderHoursAt } from '../../src/data/orderRequirements';
-import { DAILY_LIFE, FORCE_RICH_FACTOR, INSTRUCTOR_SHARE, NEXUS_SITE_FACTOR } from '../../src/data/progression.config';
+import { DAILY_LIFE, FORCE_RICH_FACTOR, INSTRUCTOR_SHARE, MAJOR_NEXUS_FACTOR, NEXUS_SITE_FACTOR } from '../../src/data/progression.config';
 import { COUNCIL_BYPASS } from '../../src/data/ranks.config';
 import { SPECIES_BY_ID } from '../../src/data/species';
 import { absDayFromDate } from '../../src/engine/calendar';
@@ -54,22 +54,22 @@ describe('the Padawan day (D-431)', () => {
 });
 
 describe('nexus extras (D-432)', () => {
-  const f = { world: FORCE_RICH_FACTOR, site: NEXUS_SITE_FACTOR };
+  const f = { world: FORCE_RICH_FACTOR, major: MAJOR_NEXUS_FACTOR, site: NEXUS_SITE_FACTOR };
   it('a site x1.15, no stacking (the stronger wins), only on a matching or balanced leaning', () => {
     expect(forceBonusAt(['the Valley of the Dark Lords', 'Korriban'], -3661, 'dark', f)?.factor).toBe(NEXUS_SITE_FACTOR);
-    expect(forceBonusAt(['Korriban'], -3661, 'dark', f)?.factor).toBe(FORCE_RICH_FACTOR);
+    expect(forceBonusAt(['Korriban'], -3661, 'dark', f)?.factor).toBe(MAJOR_NEXUS_FACTOR); // D-451: a major nexus planet
     expect(forceBonusAt(['the Valley of the Dark Lords', 'Korriban'], -3661, 'light', f)).toBeNull();
     // Dagobah is balanced, its cave dark (from about 700 BBY, D-445): a Jedi gets the planet's factor in the cave, a Sith the cave's.
     expect(forceBonusAt(['the cave on Dagobah', 'Dagobah'], 3, 'light', f)?.nexus.id).toBe('dagobah');
     expect(forceBonusAt(['the cave on Dagobah', 'Dagobah'], 3, 'dark', f)?.nexus.id).toBe('dagobah-cave');
-    expect(forceBonusAt(['Tython'], -3661, 'dark', f)?.factor).toBe(FORCE_RICH_FACTOR);
+    expect(forceBonusAt(['Tython'], -3661, 'dark', f)?.factor).toBe(MAJOR_NEXUS_FACTOR);
     expect(leaningMatches('balanced', 'balanced')).toBe(true);
     expect(leaningMatches('light', 'balanced')).toBe(false);
   });
   it('the conditions read the character: a Jedi gets the Temple site, a Sith nothing there', () => {
     expect(selectTrainingConditions(goTo(make(14, 'padawan'), 'Jedi Temple', 'Coruscant')).forceFactor).toBe(NEXUS_SITE_FACTOR);
     expect(selectTrainingConditions(goTo(make(14, 'apprentice', 'sith'), 'Jedi Temple', 'Coruscant')).forceFactor).toBe(1);
-    expect(selectTrainingConditions(goTo(make(14, 'apprentice', 'sith'), 'Korriban', 'Outer Rim')).forceFactor).toBe(FORCE_RICH_FACTOR);
+    expect(selectTrainingConditions(goTo(make(14, 'apprentice', 'sith'), 'Korriban', 'Outer Rim')).forceFactor).toBe(MAJOR_NEXUS_FACTOR);
   });
 });
 

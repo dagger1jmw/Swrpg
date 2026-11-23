@@ -194,6 +194,9 @@ export function forceResistanceOf(levelOf: (id: string) => number): number {
 
 /** Force traits of an entity species (D-192, config). */
 export const speciesForceTraits = (speciesId: string | null | undefined): readonly ForceTrait[] => (speciesId ? (SPECIES_FORCE_TRAITS[speciesId] ?? []) : []);
+/** A character's Force traits (D-453): the species', less the outside-the-Force trait for a per-character exception (Onimi). */
+export const characterForceTraits = (speciesId: string | null | undefined, insideForce = false): readonly ForceTrait[] =>
+  insideForce ? speciesForceTraits(speciesId).filter((t) => t !== 'forceInvisible') : speciesForceTraits(speciesId);
 
 /** A duel fighter as a Force target (D-192). */
 export function forceTargetOf(f: Fighter, s: DuelState, ctx: DuelContext, attacker: SideId): ForceTarget {

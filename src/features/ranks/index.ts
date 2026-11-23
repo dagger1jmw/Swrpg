@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { COVERT_ESCALATION, COVERT_LEARNING, ORDER_POWER_RULES } from '../../data/orderPowerRules';
 import { RANK_BY_ID } from '../../data/rankMinimums';
 import { KNIGHT_TRIAL_IDS, PACE_MILESTONES, SELECTION, SERVICE_CORPS, TRIALS, TRIAL_RULES, type PaceMilestone, type TrialId } from '../../data/ranks.config';
-import { dateFromAbsDay, fromAbsSecond } from '../../engine/calendar';
+import { dateFromAbsDay, formatDate, fromAbsSecond } from '../../engine/calendar';
 import { efficiency } from '../../engine/fatigue';
 import { nextFloat } from '../../engine/rng';
 import type { GameState } from '../../state/gameState';
@@ -15,7 +15,7 @@ import { selectExactAge } from '../character/selectors';
 import { selectHasFlag } from '../flags/selectors';
 import { selectLevelExact } from '../progression/selectors';
 import { migrateRanksV1, ranksSliceSchema, type RanksSlice } from './ranks';
-import { covertEscalation, NO_RECORD, paceMilestonesDue, rollTrial, selectionChance } from './rules';
+import { covertEscalation, NO_RECORD, paceMilestonesDue, rollTrial, selectionChance, trialsHeldUntil } from './rules';
 import {
   selectAheadYears,
   selectBypassUnmet,
@@ -204,11 +204,14 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
         // D-448: the escalation the new discovery reaches; the code tracks it, the narrator plays the consequence.
         const reached = covertEscalation(covertDiscoveries).flags.filter((f) => !before.includes(f));
         const texts = reached.map((f) => COVERT_ESCALATION.find((x) => x.flag === f)!.text);
+        // D-454: from the 3rd discovery on the Knight Trials are held back a year more (the code decides).
+        const held = trialsHeldUntil(covertDiscoveries);
         return {
           slice: { ...slice, reputationPenalty: (slice.reputationPenalty ?? 0) + COVERT_LEARNING.standingPenalty, covertDiscoveries },
           notes: [
             `the Order learns of covert study of ${String(e['abilityId'])} (discovery ${covertDiscoveries.length}): standing -${COVERT_LEARNING.standingPenalty}`,
             ...(texts.length ? [`consequence to narrate now: ${texts.join('; ')}`] : []),
+            ...(held !== null && held > ctx.state.clock.now.day ? [`the Knight Trials are held back until ${formatDate(held)} (a year for each discovery from the third)`] : []),
           ],
         };
       },

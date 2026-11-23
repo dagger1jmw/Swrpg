@@ -1,7 +1,8 @@
 // Rank rules (ranks.md §1-5, flag-registry.md §2-3; M7 §15, D-424). Pure: no DOM, no network, no state access; the
 // selectors feed them. Every promotion is a story event the player plays: code checks the requirements, rolls the
 // checks and applies the result; the AI only proposes.
-import { COVERT_ESCALATION, COVERT_LEARNING, ORDER_POWER_RULES, type CovertEscalationFlag } from '../../data/orderPowerRules';
+import { COVERT_ESCALATION, COVERT_LEARNING, ORDER_POWER_RULES, TRIALS_HOLD, type CovertEscalationFlag } from '../../data/orderPowerRules';
+import { DAYS_PER_YEAR } from '../../engine/calendar';
 import { COUNCIL_BYPASS, DEED_POINTS, DEEDS_PAST, KNIGHT_TRIAL_IDS, PACE_MILESTONES, SELECTION, STANDING_WEIGHTS, TRIALS, TRIAL_RULES, type PaceMilestone, type TrialDef, type TrialId } from '../../data/ranks.config';
 import { KNIGHT_TRIALS } from '../../data/rankMinimums';
 import { basicRoll, dcForRating, type BasicRoll } from '../../engine/rolls';
@@ -79,6 +80,21 @@ export function covertEscalation(discoveries: readonly { abilityId: string }[]):
   return { count, flags };
 }
 
+/**
+ * The last day the Knight Trials are held back by covert discoveries (D-454; TRIALS_HOLD), or null: from the 3rd discovery
+ * on, each adds a year, counted from the later of its day and the hold already running. Eligible again from this day.
+ */
+export function trialsHeldUntil(discoveries: readonly { day: number }[]): number | null {
+  let until: number | null = null;
+  [...discoveries]
+    .sort((a, b) => a.day - b.day)
+    .forEach((d, i) => {
+      if (i + 1 < TRIALS_HOLD.fromCount) return;
+      until = Math.max(until ?? -Infinity, d.day) + Math.round(TRIALS_HOLD.yearsPerDiscovery * DAYS_PER_YEAR);
+    });
+  return until;
+}
+
 /** The chance a covert session is discovered (D-436): COVERT_LEARNING.perHour a session hour, at most maxChance. */
 export const covertDiscoveryChance = (hours: number): number => Math.min(COVERT_LEARNING.maxChance, COVERT_LEARNING.perHour * Math.max(0, hours));
 
@@ -88,7 +104,7 @@ export const selectionChance = (s: number): number => Math.max(0, Math.min(1, s 
 /** Why a trial may not be attempted now, or null (ranks.md §1: eligibility; retakes after 1 year; three failures end it). */
 export function trialBlock(
   trial: TrialId,
-  c: { rank: string; age: number; padawanYears: number; masterApproval: boolean; unmetKnight: readonly string[]; unmetInitiate: readonly string[]; corps: boolean },
+  c: { rank: string; age: number; padawanYears: number; masterApproval: boolean; unmetKnight: readonly string[]; unmetInitiate: readonly string[]; corps: boolean; heldUntil?: number | null },
   record: TrialRecord,
   today: number,
 ): string | null {
@@ -103,6 +119,8 @@ export function trialBlock(
   }
   if (c.rank !== 'padawan') return 'the Knight Trials are for Padawans';
   if (c.age < 18) return 'the Knight Trials open at age 18';
+  // D-454: held back after the 3rd covert discovery (a year each), lifting on its own.
+  if (c.heldUntil != null && today < c.heldUntil) return `the Knight Trials are held back after covert study was discovered (${c.heldUntil - today} days left)`;
   if (c.padawanYears < KNIGHT_TRIALS.padawanYears) return `${KNIGHT_TRIALS.padawanYears} years as a Padawan first (${c.padawanYears.toFixed(1)} so far)`;
   if (!c.masterApproval) return "the master's approval is needed (masterApproval)";
   if (c.unmetKnight.length) return `unmet Knight minimums: ${c.unmetKnight.join(', ')}`;

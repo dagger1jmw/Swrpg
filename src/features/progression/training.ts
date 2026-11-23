@@ -2,7 +2,7 @@
 // session and the engine events that apply it. Feature rule code: pure, reads other features
 // through selectors. An unknown or locked activity is rejected with a reason and never mapped to a
 // nearby one (D-07, skills-and-activities.md §2).
-import { FORCE_RICH_FACTOR, INSTRUCTOR_SHARE, INTENSITY, NEXUS_SITE_FACTOR, ORDER_SPARRING_CLASSES, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
+import { FORCE_RICH_FACTOR, INSTRUCTOR_SHARE, INTENSITY, MAJOR_NEXUS_FACTOR, NEXUS_SITE_FACTOR, ORDER_SPARRING_CLASSES, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
 import { forceFraction } from '../../engine/forceMeter';
 import { sparringE, splitDrillXp, type SparE } from '../../engine/appliedExperience';
 import { ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, type ActivityDef, type Intensity, type Unlock } from '../../data/activities';
@@ -281,7 +281,7 @@ export function selectCharacterLeaning(s: GameState): NexusLeaning {
 /** The special training conditions in force now (D-418, D-432): the accelerated path, and a Force-rich place's factor. */
 export function selectTrainingConditions(s: GameState): { accelerated: boolean; forceRich: boolean; forceFactor: number; site: string | null } {
   const names = selectLocationChain(s, selectCurrentLocationId(s)).flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean));
-  const bonus = forceBonusAt(names, dateFromAbsDay(selectNow(s).day).year, selectCharacterLeaning(s), { world: FORCE_RICH_FACTOR, site: NEXUS_SITE_FACTOR });
+  const bonus = forceBonusAt(names, dateFromAbsDay(selectNow(s).day).year, selectCharacterLeaning(s), { world: FORCE_RICH_FACTOR, major: MAJOR_NEXUS_FACTOR, site: NEXUS_SITE_FACTOR });
   return { accelerated: selectCharacter(s).trainingPath === 'accelerated', forceRich: bonus !== null, forceFactor: bonus?.factor ?? 1, site: bonus?.nexus.name ?? null };
 }
 

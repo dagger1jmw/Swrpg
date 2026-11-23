@@ -6,7 +6,7 @@ import { nextFloat, seedRng } from '../../engine/rng';
 import { CANON_BY_ID } from '../../data/canonNpcs';
 import { FORM_IDS } from '../../data/skills';
 import { DROID_MINION_KINDS, HEAVY_MINION_KINDS } from '../../data/forceResistance.config';
-import { forceResistanceOf, speciesForceTraits } from '../../engine/combatForce';
+import { characterForceTraits, forceResistanceOf, speciesForceTraits } from '../../engine/combatForce';
 import { stubLightPhilosophy, STUB_PLAYER_SHATTERPOINT_PERCEPTION } from '../../data/stubs';
 import { TERRAIN_BY_ID } from '../../data/terrain';
 import { TERRAIN_HAZARD_EVERY } from '../../data/combat.config';
@@ -184,7 +184,7 @@ export function buildNpcFighter(s: GameState, npcId: string, live = true): { fig
   // The subduing means a capture would use (D-262) and a Sith duelist's tactical withdrawal (D-263).
   const subdue = subdueFor({ archetype, weapon: loadout.weapon, weaponName, forceChoke: levels['forceChoke'], forceLightning: levels['forceLightning'] });
   const withdraw = withdrawChanceFor(archetype);
-  return { fighter: { ...fighter, forceTraits: speciesForceTraits(npc.speciesId), ...(blade ? { bladeColor: blade } : {}), ...(weaponName ? { weaponName } : {}), ...(armorName ? { armorName } : {}), morale, subdue, ...(withdraw > 0 ? { withdraw } : {}) }, rank: gen.rank, archetype };
+  return { fighter: { ...fighter, forceTraits: characterForceTraits(npc.speciesId, canon?.insideForce === true), ...(blade ? { bladeColor: blade } : {}), ...(weaponName ? { weaponName } : {}), ...(armorName ? { armorName } : {}), morale, subdue, ...(withdraw > 0 ? { withdraw } : {}) }, rank: gen.rank, archetype };
 }
 
 export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false, weapon: WeaponKind | null = null, number: number = index + 1): Fighter {

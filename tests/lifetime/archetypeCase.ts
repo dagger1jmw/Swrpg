@@ -9,7 +9,7 @@ import { CATEGORY_RULES, SKILL_BY_ID } from '../../src/data/skills';
 import { closedFormLevel, formXps, phasesFor } from '../../src/engine/closedForm';
 import { levelExact } from '../../src/engine/curve';
 import { runLifetime } from '../support/lifetime';
-import { schedule, TEMPLE_LIFE } from './profiles';
+import { archetypeSeat, schedule } from './profiles';
 
 const PLAN = { soresu: 2, ataru: 1 };
 const YEARS = 25;
@@ -51,8 +51,9 @@ export function archetypeCase(id: string): void {
         // Jedi and Sith archetypes keep the Average's one real mission a year from Padawan (D-143 A, D-159): without real
         // fights the drill ceiling holds every form at 40.
         ...(order ? { fights: schedule([{ from: 12, to: 200, perYear: 1, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 }]) } : {}),
-        // Jedi archetypes live in the Coruscant Temple, as their paces were measured (D-445).
-        ...(a.path === 'jedi' ? { places: TEMPLE_LIFE } : {}),
+        // D-445, D-451: Order archetypes live at their Order's seat by date, as the Average does, so a generated NPC matches a
+        // player of the same life (Jedi: the Coruscant Temple; Sith: the Korriban academy, then Dromund Kaas; profiles.ts).
+        ...archetypeSeat(a.path),
       },
       YEARS,
     );

@@ -2,7 +2,8 @@
 // initiate (age 4, 3,671) through the real game to 3,649, on the spread's 20 seeds. From 3,661 a probe checks, at
 // every new year, what the world tables give the game: the board (a canon link for every roster figure, made the way the
 // pipeline makes it), the Order seat, the leaders and control lines in the state block, and travel to every closed world.
-// The character lives in the Coruscant Temple and moves with the Order to Tython in 3,650. Gates: no crash, no canon
+// The character lives at the Order's seat by date (D-451, the harness's seat table): the Coruscant Temple, its ruins
+// 3,653-3,651, and the Temple on Tython from 3,650. Gates: no crash, no canon
 // link to an off-board figure, no trip to a closed world. World events don't exist yet (M8): the report lists the
 // dated events each year crosses, where they would fire.
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -65,20 +66,6 @@ interface YearRow {
 const mapNode = (place: string) => [...PLANETS, ...MENTION_ONLY].find((w) => w.name.toLowerCase() === place.toLowerCase() || w.name.toLowerCase().startsWith(`${place.toLowerCase()} `));
 const travel = (name: string): Intent => ({ actionType: 'travel', targets: [], references: [], unknownNames: [name] });
 const yearOf = (s: GameState): number => dateFromAbsDay(s.clock.now.day).year;
-
-function place(s: GameState, planet: { name: string; region: string }, building: string): GameState {
-  const r = applyEvents(
-    REGISTRY,
-    s,
-    [
-      { type: 'locationIntroduced', key: 'tmp:p', name: planet.name, kind: 'planet', region: planet.region, description: '', moveHere: false },
-      { type: 'locationIntroduced', key: 'tmp:b', name: building, kind: 'building', region: planet.name, parentRef: 'tmp:p', description: '', moveHere: true },
-    ],
-    { source: 'ai' },
-  );
-  if (r.rejected.length) throw new Error(`could not place the character: ${JSON.stringify(r.rejected)}`);
-  return r.state;
-}
 
 /** A canon link attempted the way the pipeline makes one: a new NPC by the exact name, then the lore index's match. */
 function tryLink(s: GameState, n: CanonNpc, year: number): 'linked' | 'refused' | 'noMatch' | 'notIntroduced' {
@@ -158,13 +145,9 @@ function runEra(seed: string): YearRow[] {
       const year = yearOf(s0);
       if (year === lastYear || year < -3661) return;
       lastYear = year;
-      let s = s0;
-      if (year === -3661) s = place(s, { name: 'Coruscant', region: 'Core Worlds' }, 'Jedi Temple');
-      if (year === -3650) s = place(s, { name: 'Tython', region: 'Deep Core' }, 'Jedi Temple on Tython');
-      const p = probe(s, board);
+      const p = probe(s0, board);
       board = p.board;
       rows.push(p.row);
-      return s;
     },
   });
   return rows;

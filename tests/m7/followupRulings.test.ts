@@ -8,14 +8,14 @@ import { isForceXpSkill, isOutsideForce } from '../../src/engine/speed';
 import type { CanonNpc } from '../../src/data/canon/types';
 import { canonLevelsAt } from '../../src/engine/canonStats';
 import { computeCreation, type CreationInput } from '../../src/features/character/creation';
-import { FORCE_RICH_FACTOR, NEXUS_SITE_FACTOR } from '../../src/data/progression.config';
+import { FORCE_RICH_FACTOR, MAJOR_NEXUS_FACTOR, NEXUS_SITE_FACTOR } from '../../src/data/progression.config';
 import { nexusSitesAt } from '../../src/data/forceNexus';
 import { selectTrainingConditions } from '../../src/features/progression/training';
 import { applyEvents } from '../../src/state/applyEvents';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
-import { AVERAGE, ANAKIN, LUKE, OBIWAN, TEMPLE_LIFE } from '../lifetime/profiles';
+import { AVERAGE, ANAKIN, LUKE, OBIWAN } from '../lifetime/profiles';
 import { TEST_START_DATE } from '../support/dates';
 
 const START = absDayFromDate(TEST_START_DATE);
@@ -86,9 +86,9 @@ describe('the Order home in the calibration (D-445)', () => {
     });
   const goTo = (s: GameState, name: string, region: string): GameState =>
     applyEvents(REGISTRY, s, [{ type: 'locationIntroduced', key: 'tmp:1', name, kind: 'planet', region, description: '', moveHere: true }], { source: 'ai' }).state;
-  it('the Coruscant Temple x1.15; Tython x1.10 after the move; Dagobah x1.10 (its dark cave gives a Jedi nothing more)', () => {
+  it('the Coruscant Temple x1.15; Tython x1.15 after the move (a major nexus, D-451); Dagobah x1.10 (its dark cave gives a Jedi nothing more)', () => {
     expect(selectTrainingConditions(goTo(jedi(-3661), 'the Jedi Temple', 'Coruscant')).forceFactor).toBe(NEXUS_SITE_FACTOR);
-    expect(selectTrainingConditions(goTo(jedi(-3650), 'Tython', 'Tython')).forceFactor).toBe(FORCE_RICH_FACTOR);
+    expect(selectTrainingConditions(goTo(jedi(-3650), 'Tython', 'Tython')).forceFactor).toBe(MAJOR_NEXUS_FACTOR);
     expect(selectTrainingConditions(goTo(jedi(3, 'outsider'), 'Dagobah', 'Dagobah')).forceFactor).toBe(FORCE_RICH_FACTOR);
     expect(selectTrainingConditions(goTo(jedi(3), 'the cave on Dagobah', 'Dagobah')).forceFactor).toBe(FORCE_RICH_FACTOR);
   });
@@ -96,8 +96,8 @@ describe('the Order home in the calibration (D-445)', () => {
     expect(nexusSitesAt(['the cave on Dagobah'], -800)).toEqual([]);
     expect(nexusSitesAt(['the cave on Dagobah'], -700).map((n) => n.id)).toEqual(['dagobah-cave']);
   });
-  it('the calibration profiles live in the Temple; Luke is on Dagobah for three months at 22', () => {
-    for (const p of [AVERAGE, OBIWAN, ANAKIN]) expect(p.places).toBe(TEMPLE_LIFE);
-    expect(LUKE.places).toEqual([{ from: 22, to: 22.25, name: 'Dagobah', region: 'Dagobah' }]);
+  it('the calibration profiles live at the Order seat by date (D-451); Luke is on Dagobah for one month at 22 (D-452)', () => {
+    for (const p of [AVERAGE, OBIWAN, ANAKIN]) expect(p.seat).toBe(true);
+    expect(LUKE.places).toEqual([{ from: 22, to: 22 + 1 / 12, name: 'Dagobah', region: 'Dagobah' }]);
   });
 });

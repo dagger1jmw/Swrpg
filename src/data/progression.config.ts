@@ -373,6 +373,8 @@ export const FORCE_RICH_FACTOR = 1.1;
  * the site's leaning matches the character's or is balanced (src/data/forceNexus.ts forceBonusAt). Invented.
  */
 export const NEXUS_SITE_FACTOR = 1.15;
+/** A major nexus planet (D-451, Jared: Tython balanced, Korriban and Dromund Kaas dark): x1.15, the same as a site. */
+export const MAJOR_NEXUS_FACTOR = 1.15;
 /**
  * The accelerated path (Jared, D-418): training cut to using and channelling the Force and blade work; history, protocol
  * and most doctrine dropped (the Order's knowledge blocks leave the routine), so the knowledge and doctrine stats stay

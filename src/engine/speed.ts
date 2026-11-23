@@ -94,7 +94,7 @@ export const isForceXpSkill = (skillId: string): boolean => isForceSkill(skillId
  * SW_Midichlorians_Force_Potential): a species with the forceInvisible trait gains no Force XP and has no Force powers.
  * Force effects can still reach them (lightning and its variants; combatForce.ts).
  */
-export const isOutsideForce = (speciesId: string | null | undefined): boolean => (speciesId ? (SPECIES_FORCE_TRAITS[speciesId] ?? []) : []).includes('forceInvisible');
+export const isOutsideForce = (speciesId: string | null | undefined, insideForce = false): boolean => !insideForce && (speciesId ? (SPECIES_FORCE_TRAITS[speciesId] ?? []) : []).includes('forceInvisible');
 /** What the accelerated path speeds up: the Force skills and the lightsaber forms. */
 export const isAcceleratedSkill = (skillId: string): boolean => isForceSkill(skillId) || SKILL_BY_ID.get(skillId)?.kind === 'form';
 

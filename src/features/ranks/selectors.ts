@@ -12,7 +12,7 @@ import { computeCreation, selectCharacter, selectExactAge, selectHumanAge } from
 import { selectHasFlag, selectFlags } from '../flags/selectors';
 import { selectLevelExact } from '../progression/selectors';
 import type { CovertEscalationFlag } from '../../data/orderPowerRules';
-import { NO_RECORD, bypassUnmet, covertEscalation, knightTrialsDone, orderPowerVerdict, percentileOf, standing, trialBlock, unmetMinimums, type OrderPowerVerdict, type TrialRecord } from './rules';
+import { NO_RECORD, bypassUnmet, covertEscalation, knightTrialsDone, orderPowerVerdict, percentileOf, standing, trialBlock, trialsHeldUntil, unmetMinimums, type OrderPowerVerdict, type TrialRecord } from './rules';
 
 export const selectRank = (s: GameState): string => s.ranks.rank;
 export const selectRankName = (s: GameState): string => RANK_BY_ID.get(s.ranks.rank)?.name ?? s.ranks.rank;
@@ -149,6 +149,12 @@ export function selectMasterApprovalUnmet(s: GameState): string[] {
   return out;
 }
 
+/** The last day the Knight Trials are held back by covert discoveries (D-454), or null when no hold is running now. */
+export function selectTrialsHeldUntil(s: GameState): number | null {
+  const until = trialsHeldUntil(s.ranks.covertDiscoveries ?? []);
+  return until !== null && s.clock.now.day < until ? until : null;
+}
+
 /** Why a trial cannot be attempted now, or null. */
 export function selectTrialBlock(s: GameState, t: TrialId): string | null {
   return trialBlock(
@@ -161,6 +167,7 @@ export function selectTrialBlock(s: GameState, t: TrialId): string | null {
       unmetKnight: selectUnmetFor(s, 'knight'),
       unmetInitiate: selectUnmetFor(s, 'padawan'),
       corps: s.ranks.corps !== null,
+      heldUntil: selectTrialsHeldUntil(s),
     },
     selectTrialRecord(s, t),
     s.clock.now.day,

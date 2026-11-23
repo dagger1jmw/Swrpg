@@ -8,6 +8,7 @@ import { FORM_IDS } from '../../data/skills';
 import { SPECIES_BY_ID } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay } from '../../engine/calendar';
 import { npcVariance, rollNpcInputs } from '../../engine/npcGen';
+import { isOutsideForce } from '../../engine/speed';
 import { canonLevelsAt, canonLevelsInCampaign, type CanonStatDeps } from '../../engine/canonStats';
 import { canonLivedAgeAt, canonRankAt } from '../../engine/canonRoster';
 import { ROLE_RANK } from '../../data/npcGen.config';
@@ -56,14 +57,17 @@ const levelCache = new Map<string, Readonly<Record<string, number>>>();
 const CACHE_MAX = 400;
 
 /** Closed-form levels for generation inputs at an age (character creation's closed form, with the NPC's variance). */
-export function npcLevelsFor(gen: NpcGen, speciesId: string, age: number, today: number, phases?: { padawanAge: number; knightAge: number }): Readonly<Record<string, number>> {
-  const key = JSON.stringify([gen, speciesId, Math.round(age * 100) / 100, phases ? [phases.padawanAge, phases.knightAge].map((x) => (Number.isFinite(x) ? x : -1)) : null]);
+export function npcLevelsFor(gen: NpcGen, speciesId: string, age: number, today: number, phases?: { padawanAge: number; knightAge: number }, insideForce = false): Readonly<Record<string, number>> {
+  const key = JSON.stringify([gen, speciesId, Math.round(age * 100) / 100, phases ? [phases.padawanAge, phases.knightAge].map((x) => (Number.isFinite(x) ? x : -1)) : null, insideForce]);
   const hit = levelCache.get(key);
   if (hit) return hit;
   const birthDay = Math.round(today - age * DAYS_PER_YEAR);
   const species = creationSpecies(speciesId);
+  // D-447, D-453: the outside-the-Force block reads the real species (an unknown species is built on the human body), with
+  // a canon figure's exception (Onimi).
+  const outsideForce = isOutsideForce(speciesId, insideForce);
   const startAge = Math.min(gen.startAge, Math.max(0, age - 0.01));
-  const base = { name: 'npc', birthDay, startDay: today, speciesId: species, path: gen.path, archetype: gen.archetype, trainingStartAge: startAge, talents: gen.talents, warYears: gen.warYears, dominantHand: 'right' as const, npc: true, variance: gen.minionGrade === null ? (k: string) => npcVariance(gen.seed, k) : undefined, ...(phases ? { phases } : {}) };
+  const base = { name: 'npc', birthDay, startDay: today, speciesId: species, path: gen.path, archetype: gen.archetype, trainingStartAge: startAge, talents: gen.talents, warYears: gen.warYears, dominantHand: 'right' as const, npc: true, variance: gen.minionGrade === null ? (k: string) => npcVariance(gen.seed, k) : undefined, ...(phases ? { phases } : {}), ...(outsideForce ? { outsideForce } : {}) };
   let r = computeCreation({ ...base, rank: gen.rank });
   if (!r.levels || Object.keys(r.levels).length === 0 || r.errors.length) {
     // The role's rank may not fit the age (a young "Knight"); fall back to the highest rank that fits.
@@ -117,7 +121,7 @@ function canonDeps(canon: CanonNpc, today: number, asOfBby = -Infinity): CanonSt
     const shape = canonShape(canon, bby, asOfBby);
     const gen: NpcGen = { archetype: canon.archetype, path: def.path, talents: {}, startAge: def.startAge, warYears: 0, rank: shape.rank, seed: variance ? `canon:${canon.canonId}` : `canon:${canon.archetype}`, minionGrade: variance ? null : 1 };
     const age = canon.fixed ? 60 : canonLivedAgeAt(canon, bby);
-    const lv = npcLevelsFor(gen, canon.speciesId, Math.max(def.startAge + 0.01, age), today, shape.phases);
+    const lv = npcLevelsFor(gen, canon.speciesId, Math.max(def.startAge + 0.01, age), today, shape.phases, canon.insideForce === true);
     lines.set(k, lv);
     return lv;
   };
@@ -137,8 +141,11 @@ export function canonProgressionLineAt(canon: CanonNpc, bby: number, today: numb
   const shape = canonShape(canon, bby, -Infinity);
   const gen: NpcGen = { archetype: canon.archetype, path: def.path, talents, startAge: def.startAge, warYears: 0, rank: shape.rank, seed: `canon:${canon.archetype}`, minionGrade: 1 };
   const age = canon.fixed ? 60 : canonLivedAgeAt(canon, bby);
-  return npcLevelsFor(gen, canon.speciesId, Math.max(def.startAge + 0.01, age), today, shape.phases);
+  return npcLevelsFor(gen, canon.speciesId, Math.max(def.startAge + 0.01, age), today, shape.phases, canon.insideForce === true);
 }
+
+/** A story NPC's per-character exception to the outside-the-Force block (D-453): its canon figure's flag (Onimi). */
+export const npcInsideForce = (n: { canonId?: string | null | undefined }): boolean => (n.canonId ? CANON_BY_ID.get(n.canonId)?.insideForce === true : false);
 
 /** A canon figure's levels at a date from its anchors (D-414), outside a campaign (tools and tests). */
 export function canonFigureLevelsAt(canon: CanonNpc, bby: number, today: number): Record<string, number> {

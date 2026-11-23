@@ -1,6 +1,6 @@
-// Lifetime harness (M4; progression-targets §6 test 1, progression-numbers §20 test 1; D-49). Runs a
+﻿// Lifetime harness (M4; progression-targets Â§6 test 1, progression-numbers Â§20 test 1; D-49). Runs a
 // calibration profile through the REAL game: a GameState from createInitialState, the player's routine
-// (routines feature + scheduler), and advanceByRoutine (the montage day loop, every §10 hook in order).
+// (routines feature + scheduler), and advanceByRoutine (the montage day loop, every Â§10 hook in order).
 // Rank changes at the profile's ages use the engine rankSet event (D-131, until M7). Combat (M5, D-143 B): each
 // scheduled fight is a real duel through the duel engine against a generated opponent at the scripted gap (a Force-
 // using duelist, or a group of trooper minions), with a rolled outcome; the player's wounds and Vitality go through
@@ -10,11 +10,13 @@
 // otherwise Order and military profiles get 30 days of medical care. Spars may be against 2-3 partners (D-163).
 import { TEST_YEAR } from './dates';
 import { FORM_IDS } from '../../src/data/skills';
-import { absDayFromDate, type CalendarDate } from '../../src/engine/calendar';
+import { absDayFromDate, dateFromAbsDay, type CalendarDate } from '../../src/engine/calendar';
+import { homeSeatAt } from '../../src/data/orderSeats';
+import { planetByName } from '../../src/data/galaxyMap';
 import { levelExact } from '../../src/engine/curve';
 import { selectCapacities, selectE, selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
 import type { Priority } from '../../src/features/routines/selectors';
-import { advanceByRoutine, nextWakeAbs } from '../../src/state/advanceRoutine';
+import { advanceByRoutine, nextWakeAbs, type DayLog } from '../../src/state/advanceRoutine';
 import { applyEvents } from '../../src/state/applyEvents';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
@@ -91,30 +93,58 @@ export interface LifeProfile {
   /** Train at this place all life (a Force-rich site for the D-418 condition: "Dagobah"). */
   place?: string;
   /**
-   * Where the life is spent by age (D-445): the Order's profiles live in the Coruscant Temple (a light nexus site, x1.15 on
-   * Force skills); Luke trains on Dagobah for his months there. Outside a span the life is in the field (no bonus).
+   * Where the life is spent by age (D-445): explicit spans (Luke's months on Dagobah). Outside a span the life is at its
+   * Order seat (`seat`), else in the field (no bonus).
    */
   places?: readonly { from: number; to: number; name: string; region: string }[];
+  /**
+   * The life is spent at its Order's home seat (D-451; src/data/orderSeats.ts homeSeatAt, by rank tier and year): `true`
+   * reads the run's own calendar (the Jedi Temple on Coruscant at the neutral TEST_YEAR; the move to Tython in an era
+   * run); `{ year }` reads the seat calendar as if the life's start age fell in that year (the Sith archetypes are
+   * measured in the Empire's Korriban era, since the Sith have no seat at the neutral TEST_YEAR).
+   */
+  seat?: true | { year: number };
 }
 
-/** A place with no Force bonus: a life with place spans is here outside them. */
+/** A place with no Force bonus: a life with place spans or a seat is here outside them. */
 const FIELD = { name: 'the field', region: 'the field' } as const;
 
-/** Where the profile is at an age (D-445): its place span, else its all-life place, else the field (with spans) or nowhere. */
-function placeAt(p: LifeProfile, age: number): { name: string; region: string } | null {
+type LifePlace = { name: string; region: string; planet?: string };
+
+const tierOf = (p: LifeProfile, age: number): 'initiate' | 'padawan' | 'knight' => {
+  const r = rankFor(p, age);
+  return r === 'initiate' || r === 'acolyte' ? 'initiate' : r === 'padawan' || r === 'apprentice' ? 'padawan' : 'knight';
+};
+
+/** Where the profile is at an age (D-445, D-451): its place span, else its Order seat, else its all-life place, else the field (with spans or a seat) or nowhere. */
+function placeAt(p: LifeProfile, s: GameState, age: number): LifePlace | null {
   const span = p.places?.find((x) => age >= x.from && age < x.to);
   if (span) return span;
+  if (p.seat && (p.path === 'jedi' || p.path === 'sith')) {
+    const year = p.seat === true ? dateFromAbsDay(s.clock.now.day).year : p.seat.year + Math.floor(age - p.startAge);
+    const home = homeSeatAt(p.path, tierOf(p, age), year);
+    return home ? { name: home.name, planet: home.planet, region: planetByName(home.planet)?.region ?? home.planet } : FIELD;
+  }
   if (p.place) return { name: p.place, region: p.place };
   return p.places ? FIELD : null;
 }
 
-/** Moves the character to the profile's place for this age, introducing it the first time (engine; D-445). */
+/** Moves the character to the profile's place for this age, introducing it the first time (engine; D-445, D-451). */
 function moveForAge(p: LifeProfile, s: GameState, age: number): GameState {
-  const want = placeAt(p, age);
+  const want = placeAt(p, s, age);
   if (!want) return s;
   const cur = s.locations.currentId ? s.locations.byId[s.locations.currentId]?.name : null;
   if (cur === want.name) return s;
-  return applyEvents(REGISTRY, s, [{ type: 'locationIntroduced', name: want.name, kind: 'planet', region: want.region, description: 'training ground', moveHere: true }], { source: 'engine' }).state;
+  // A seat is a building on its world (as the era profile placed it), so the world's control and travel read right.
+  const events: GameEvent[] = want.planet
+    ? [
+        { type: 'locationIntroduced', key: 'tmp:p', name: want.planet, kind: 'planet', region: want.region, description: 'home world', moveHere: false },
+        { type: 'locationIntroduced', key: 'tmp:b', name: want.name, kind: 'building', region: want.planet, parentRef: 'tmp:p', description: 'the Order seat', moveHere: true },
+      ]
+    : [{ type: 'locationIntroduced', name: want.name, kind: 'planet', region: want.region, description: 'training ground', moveHere: true }];
+  const r = applyEvents(REGISTRY, s, events, { source: 'engine' });
+  if (r.rejected.length) throw new Error(`could not move to ${want.name}: ${JSON.stringify(r.rejected[0])}`);
+  return r.state;
 }
 
 export interface LifeResult {
@@ -205,7 +235,7 @@ function setRoutine(p: LifeProfile, s: GameState, rank: string): GameState {
 /** Per-run fight statistics (reported by the lifetime tests, D-143 J). */
 export const fightStats = { fights: 0, won: 0, lost: 0, wounds: 0, stabilized: 0, mortal: 0, withdrew: 0, sithWithdrew: 0, skipped: 0, precogFights: 0, precogDark: 0, precogDarkOpp: 0, precogOpp: 0 };
 
-/** A minion of a kind at a level (the kind's weapon, armor, coordination and Vitality; npc-generation §6, D-158). */
+/** A minion of a kind at a level (the kind's weapon, armor, coordination and Vitality; npc-generation Â§6, D-158). */
 function minionFighter(kindId: string, id: string, level: number, beskar: boolean): Fighter {
   const k = MINION_KINDS.find((x) => x.id === kindId) ?? MINION_KINDS[0]!;
   const v = 47 * k.vitalityMult;
@@ -460,6 +490,8 @@ export interface LifetimeOpts {
   onDay?: (s: GameState, info: { day: number; age: number }) => GameState | void;
   /** Record LifeResult.phaseXp (the pace measurement, D-431). */
   phaseXp?: boolean;
+  /** Called with each day's routine log (diagnosis probes: which sessions ran, their hours and XP). */
+  onRoutineDays?: (days: readonly DayLog[], info: { day: number; age: number; state: GameState }) => void;
 }
 
 export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = {}): LifeResult {
@@ -556,6 +588,7 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       }
     }
     if (r) s = r.state;
+    if (r && opts.onRoutineDays) opts.onRoutineDays(r.days, { day, age, state: s });
     for (const d of r?.days ?? []) {
       if (d.endF > maxDayEndF) maxDay = { age, endF: d.endF, fought: fights.length > 0, notes: d.notes };
       maxDayEndF = Math.max(maxDayEndF, d.endF);

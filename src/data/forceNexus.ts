@@ -3,8 +3,10 @@
 // Lords, the cave on Dagobah). A site can sit inside a nexus planet and be stronger than the planet around it; a
 // Force-rich world without a planet-level nexus can still hold a nexus site. Each nexus has a leaning, tagged with its
 // source. Lore basis for the training bonus (Jared): on a Force-rich world you feel the Force more strongly, so you
-// progress faster while using it there (Legends: the Je'daii formed on Tython, the Sith train on Korriban, Dagobah is
-// Force-rich because it teems with life). Years are calendar years (negative = BBY); absent = every era.
+// progress faster while using it there (Legends: the Je'daii formed on Tython, the Sith train on Korriban). Three tiers
+// (D-451, Jared): a major nexus planet (Tython, Korriban, Dromund Kaas) x1.15, an ordinary nexus or Force-rich planet
+// x1.10, a site x1.15; the stronger wins, no stacking. Mortis is story-only: no multiplier and no map access. Years are
+// calendar years (negative = BBY); absent = every era.
 
 export type NexusLeaning = 'light' | 'dark' | 'balanced';
 
@@ -17,8 +19,12 @@ export interface ForceNexus {
   /** A planet-level nexus (true) or a Force-rich world without one (false: Dagobah). Sites are nexuses. */
   nexus: boolean;
   leaning: NexusLeaning;
-  /** Stronger than the planet around it (a site inside a nexus planet). */
+  /** Stronger than the planet around it (a site inside an ordinary nexus planet; D-451: a site inside a major one equals it). */
   strongerThanPlanet?: boolean;
+  /** A major nexus planet (D-451: Tython, Korriban, Dromund Kaas), x1.15 instead of the ordinary x1.10. */
+  major?: boolean;
+  /** Story only (D-451: Mortis): no training multiplier, never a place on the map. */
+  storyOnly?: boolean;
   fromYear?: number;
   /** The last year it gives its bonus (absent = no end on record): Malachor V's core imploded in 3951 BBY (D-440). */
   toYear?: number;
@@ -26,11 +32,14 @@ export interface ForceNexus {
 }
 
 export const FORCE_NEXUSES: readonly ForceNexus[] = [
-  { id: 'tython', name: 'Tython', level: 'planet', planet: 'Tython', nexus: true, leaning: 'balanced', source: 'SW_Legends_Galaxy_Timeline (Dawn of the Jedi: Tython is violently sensitive to Force imbalance; the Je\'daii practised balance there)' },
-  { id: 'korriban', name: 'Korriban', level: 'planet', planet: 'Korriban', nexus: true, leaning: 'dark', source: 'SW_DarkSide_Fall_Corruption_Redemption_Part1 (Korriban, and the Valley in particular, became nexuses because Sith Lords were there so long)' },
-  { id: 'valley-of-the-dark-lords', name: 'the Valley of the Dark Lords', level: 'site', planet: 'Korriban', nexus: true, leaning: 'dark', strongerThanPlanet: true, source: 'SW_DarkSide_Fall_Corruption_Redemption_Part1 (the Valley in particular)' },
+  { id: 'tython', name: 'Tython', level: 'planet', planet: 'Tython', nexus: true, major: true, leaning: 'balanced', source: 'SW_Legends_Galaxy_Timeline (Dawn of the Jedi: Tython is violently sensitive to Force imbalance; the Je\'daii practised balance there)' },
+  { id: 'korriban', name: 'Korriban', level: 'planet', planet: 'Korriban', nexus: true, major: true, leaning: 'dark', source: 'SW_DarkSide_Fall_Corruption_Redemption_Part1 (Korriban, and the Valley in particular, became nexuses because Sith Lords were there so long)' },
+  { id: 'valley-of-the-dark-lords', name: 'the Valley of the Dark Lords', level: 'site', planet: 'Korriban', nexus: true, leaning: 'dark', source: 'SW_DarkSide_Fall_Corruption_Redemption_Part1 (the Valley in particular); D-451: equals its major planet (x1.15)' },
   { id: 'byss', name: 'Byss', level: 'planet', planet: 'Byss', nexus: true, leaning: 'dark', fromYear: -19, source: 'SW_DarkSide_Fall_Corruption_Redemption_Part3 (Byss: a dark-side nexus created by Sidious\'s clones and alchemy; the year is a design default: the Empire\'s era)' },
-  { id: 'dromund-kaas', name: 'Dromund Kaas', level: 'planet', planet: 'Dromund Kaas', nexus: true, leaning: 'dark', source: 'SW_Dromund_Kaas_KaasCity_OldRepublic_Part1 (the storm-clouded sky from the Emperor\'s dark-side experiments; the dark side emanates from the Citadel)' },
+  { id: 'dromund-kaas', name: 'Dromund Kaas', level: 'planet', planet: 'Dromund Kaas', nexus: true, major: true, leaning: 'dark', source: 'SW_Dromund_Kaas_KaasCity_OldRepublic_Part1 (the storm-clouded sky from the Emperor\'s dark-side experiments; the dark side emanates from the Citadel)' },
+  // D-451: the Emperor's expansion after 4980 BBY made the Dark Temple a dark nexus (the year is the expansion's earliest);
+  // a site equal to its major planet (x1.15). Sealed c. 4606-3643 BBY: a story fact, not a bonus rule.
+  { id: 'dark-temple', name: 'the Dark Temple', level: 'site', planet: 'Dromund Kaas', nexus: true, leaning: 'dark', fromYear: -4980, source: 'SW_Dromund_Kaas_KaasCity_OldRepublic_Part1 (Dark Temple: the Emperor\'s experiments and entombments turned it into a dark-side nexus); D-451' },
   // D-440: a dark nexus before 3960 BBY, a wound in the Force 3960-3951 (the Trayus Core's upwelling still held), destroyed
   // in 3951 BBY (the core imploded, releasing its energies): no bonus after 3951. Any residual taint is [unclear], a story
   // hazard only (era rule malachor-v-wreckage).
@@ -43,10 +52,13 @@ export const FORCE_NEXUSES: readonly ForceNexus[] = [
   { id: 'dagobah', name: 'Dagobah', level: 'planet', planet: 'Dagobah', nexus: false, leaning: 'balanced', source: 'SW_Dagobah (ruling, Jared, Nov 22, 2026: apart from the cave, an extremely Force-rich world); D-425' },
   // D-445: the cave formed about 700 BBY, when a Jedi killed a Bpfasshi Dark Jedi there (SW_Dagobah); not a dark nexus before.
   { id: 'dagobah-cave', name: 'the cave on Dagobah', level: 'site', planet: 'Dagobah', nexus: true, leaning: 'dark', fromYear: -700, source: 'SW_Dagobah (the Dark Side Cave formed around 700 BBY); Jared, D-425' },
+  // D-451 (Jared): Mortis is a special exception: story only, no multiplier, no map access (it is not on the galaxy map).
+  // The Mortis arc is 2008 The Clone Wars material (SW_Characters_12_CloneWars: "borderline Legends").
+  { id: 'mortis', name: 'Mortis', level: 'planet', planet: 'Mortis', nexus: true, leaning: 'balanced', storyOnly: true, source: 'SW_Characters_12_CloneWars (the Force-vergence realm of Mortis); D-451' },
 ];
 
 const norm = (x: string): string => ` ${x.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim()} `;
-const inEra = (n: ForceNexus, year: number | undefined): boolean => year === undefined || ((n.fromYear === undefined || year >= n.fromYear) && (n.toYear === undefined || year <= n.toYear));
+const inEra = (n: ForceNexus, year: number | undefined): boolean => !n.storyOnly && (year === undefined || ((n.fromYear === undefined || year >= n.fromYear) && (n.toYear === undefined || year <= n.toYear)));
 
 /**
  * The Force-rich world here (D-425): a planet-level nexus or a Force-rich world among these place names (a location
@@ -65,12 +77,13 @@ export function nexusSitesAt(placeNames: readonly string[], year?: number): Forc
 export const leaningMatches = (place: NexusLeaning, character: NexusLeaning): boolean => place === 'balanced' || place === character;
 
 /**
- * The Force-skill training bonus here (D-432, Jared): a Force-rich world or nexus planet x`world`, a nexus site x`site`;
- * no stacking (the stronger of the site and its planet wins); only where the place's leaning matches the character's or
- * is balanced (a mismatched leaning gives no bonus for now; alignment effects come later).
+ * The Force-skill training bonus here (D-432, Jared; D-451 tiers): a Force-rich world or ordinary nexus planet x`world`,
+ * a major nexus planet x`major`, a nexus site x`site`; no stacking (the stronger of the site and its planet wins); only
+ * where the place's leaning matches the character's or is balanced (a mismatched leaning gives no bonus for now;
+ * alignment effects come later). A story-only nexus (Mortis) never gives one.
  */
-export function forceBonusAt(placeNames: readonly string[], year: number | undefined, leaning: NexusLeaning, factors: { world: number; site: number }): { nexus: ForceNexus; factor: number } | null {
+export function forceBonusAt(placeNames: readonly string[], year: number | undefined, leaning: NexusLeaning, factors: { world: number; major: number; site: number }): { nexus: ForceNexus; factor: number } | null {
   const world = forceRichWorldAt(placeNames, year);
-  const options = [...(world ? [{ nexus: world, factor: factors.world }] : []), ...nexusSitesAt(placeNames, year).map((n) => ({ nexus: n, factor: factors.site }))];
+  const options = [...(world ? [{ nexus: world, factor: world.major ? factors.major : factors.world }] : []), ...nexusSitesAt(placeNames, year).map((n) => ({ nexus: n, factor: factors.site }))];
   return options.filter((o) => leaningMatches(o.nexus.leaning, leaning)).sort((a, b) => b.factor - a.factor)[0] ?? null;
 }

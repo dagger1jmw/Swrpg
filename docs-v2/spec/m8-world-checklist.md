@@ -54,9 +54,26 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [ ] **9. Era rules for the Cold War years (timeline audit, D-408 [7]).**
 
   Every era rule but `places-and-populations` and `imperial-forces` ends by 3,653, because the M7 table was written for the war years. A campaign that crosses the Treaty loses the Coruscant, Nar Shaddaa, Tatooine, Jedi-life and Korriban rules. The Korriban rule ends in 3,654, though the Academy staff are placed to 3,644. Write the Cold War versions from the topical files (the Korriban, Coruscant and Nar Shaddaa Cold War sections), or extend the current ones where they still hold.
-- [ ] **10. An officer archetype with command and staff work (Jared, D-427 [9]).**
+- [ ] **10. An officer archetype with command and staff work (Jared, D-427 [9]; folded into item 12, D-455).**
 
   Tactics main, Intelligence second, Charisma. Commanding in a battle earns tactics XP the way fighting earns form XP (from the battle's stakes and outcome); staff work (planning, logistics) is an activity for Intelligence and Tactics. Today officers use the soldier archetype, and no source but study grows tactics (calibration report §4).
 - [ ] **11. Wartime postings and the Council's other roles (Jared, D-436 [12]).**
 
   Story-only for now: postings to the front (a Knight or Padawan sent to a war zone or attached to a fleet), and the Council's roles beyond the High Council seat (the Council of Reassignment's work, the Council of First Knowledge, the Reconciliation Council, wartime command of Jedi in the field). Revisit with the world events (items 8 and 9): a posting could follow a world event's front and set the routine and the fight schedule for its duration.
+- [ ] **12. XP sources for the non-Force skills, and three new archetypes (Jared's design notes, 2026-11-23; D-455).**
+
+  Design notes, not built yet. Every number is set and tagged when it is built. All XP comes through structured lines, never awarded by the narrator directly, and teachers multiply gains as they do everywhere else. Item 10 (the officer) is folded in here.
+  - **Intelligence:** academic study (Archives, libraries, universities); staff work (planning, logistics, intelligence analysis); negotiations and political work (you learn from them). Anything that grants Tactics XP also grants a small Intelligence share.
+  - **Tactics:**
+    - commanding in battle, from the battle's stakes and outcome, as form XP comes from fighting;
+    - studying historical campaigns and tactics;
+    - discussing tactics at any stage of life. A Padawan reviewing a war report with their master, asking questions or making suggestions, learns from the master (the teacher multiplier applies); discussing with a peer gives less;
+    - successful sequences in personal combat;
+    - cultural understanding, but only at Intelligence 80+ (the Thrawn model: you have to be smart enough to link culture to tactics).
+  - **Charisma:** every meaningful conversation gives some, on a curve low enough that everyone reaches a decent Charisma through ordinary social life. Persuasion gives a large amount on success and a small amount on failure. Training in politics, negotiation, diplomacy, rhetoric and the like gives more, so diplomats, senators and negotiators end up clearly higher.
+  - **Melee (close-quarters combat):** CQC training on military paths; CQC in the Jedi and Sith curricula; learning from martial cultures with culture-specific teachers (the Echani and the Mandalorians are placeholders until sourced; research queue); field use in fights, as with the other combat skills.
+  - **Stealth:** field use; stealth training as an activity; hunting.
+  - **Blaster:** training droids and target practice; teachers for more effective training; field use.
+  - **Archetypes:** add officer, senator/politician and scholar archetypes, so generated NPCs reflect these paths.
+  - **After building:** audit what trains Melee, Blaster and Stealth today, then re-measure the archetype paces and the canon NPC bands for Intelligence, Tactics, Charisma, Melee, Blaster and Stealth.
+  - **Research queue:** which martial cultures taught close combat to outsiders in Legends, to whom and when (docs-v2/lore/RESEARCH_QUEUE.md).

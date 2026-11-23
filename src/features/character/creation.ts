@@ -62,6 +62,11 @@ export interface CreationInput {
    * the 2.8 M cap and the 4.0x pace limit still apply. The campaign is flagged unbalanced.
    */
   ignoreTalentLimit?: boolean;
+  /**
+   * NPC generation (D-447, D-453): the figure is outside the Force (no Force XP or powers). The generator passes it because
+   * it builds an unknown species (the Yuuzhan Vong) on the human body; absent = read from `speciesId`.
+   */
+  outsideForce?: boolean;
 }
 
 export interface UnmetMinimum {
@@ -341,7 +346,7 @@ export function computeCreation(input: CreationInput): CreationResult {
     for (const [f, x] of Object.entries(xps)) if (x > 0) startingXp[f] = x;
   }
   // Outside the Force (D-447): a Yuuzhan Vong has no Force skills or powers, whatever the archetype's paces.
-  if (isOutsideForce(input.speciesId)) for (const id of Object.keys(startingXp)) if (isForceXpSkill(id)) delete startingXp[id];
+  if (input.outsideForce ?? isOutsideForce(input.speciesId)) for (const id of Object.keys(startingXp)) if (isForceXpSkill(id)) delete startingXp[id];
   for (const id of SKILL_IDS) {
     const n = naturalLevel(id, species.id, age);
     const raw = levelWithNatural(startingXp[id] ?? 0, n);

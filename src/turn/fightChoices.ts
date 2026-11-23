@@ -3,8 +3,8 @@
 // narrator's tactical suggestions); once it is over the choice list holds story choices only. Pure.
 import type { Choice } from '../ai/schemas/compose';
 import { MINION_KINDS } from '../data/npcGen.config';
-import { speciesForceTraits } from '../engine/combatForce';
-import { selectNpc } from '../features/npcs/selectors';
+import { characterForceTraits } from '../engine/combatForce';
+import { npcInsideForce, selectNpc } from '../features/npcs/selectors';
 import type { GameState } from '../state/gameState';
 import type { CombatDraft } from './combatTurn';
 
@@ -41,7 +41,7 @@ export function outsideForceOpponents(s: GameState): string[] {
   if (active?.opponents) return active.opponents.filter((o) => !o.out && o.forceTraits?.includes('forceInvisible')).map((o) => o.name);
   const p = s.combat.pending;
   if (!p) return [];
-  const named = p.opponentRefs.map((ref) => selectNpc(s, ref)).filter((n) => n && speciesForceTraits(n.speciesId).includes('forceInvisible')).map((n) => n!.name);
+  const named = p.opponentRefs.map((ref) => selectNpc(s, ref)).filter((n) => n && characterForceTraits(n.speciesId, npcInsideForce(n)).includes('forceInvisible')).map((n) => n!.name);
   const groups = p.minionGroups.filter((g) => MINION_KINDS.find((k) => k.id === g.kind)?.archetype === 'yuuzhanVongWarrior').map((g) => MINION_KINDS.find((k) => k.id === g.kind)!.label);
   return [...named, ...groups];
 }

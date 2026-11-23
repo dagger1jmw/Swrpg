@@ -9,10 +9,10 @@ import { addCalendarMonths } from '../engine/calendar';
 import { efficiency } from '../engine/fatigue';
 import { check, clampDifficulty, gradeMargin, isCheckRequired, type CheckCard } from '../engine/rolls';
 import { ABILITY_FORCE_GROUP } from '../data/forceResistance.config';
-import { forceContest, forceResistanceOf, FORCE_OUTCOME_TEXT, speciesForceTraits, type ForceTarget } from '../engine/combatForce';
+import { characterForceTraits, forceContest, forceResistanceOf, FORCE_OUTCOME_TEXT, type ForceTarget } from '../engine/combatForce';
 import type { RngState } from '../engine/rng';
 import { selectFatigue, selectIsDying, selectIsSpent, selectLastingPenalty, selectWoundPenalty, selectWounds } from '../features/health/selectors';
-import { selectNpc, selectNpcLevel } from '../features/npcs/selectors';
+import { npcInsideForce, selectNpc, selectNpcLevel } from '../features/npcs/selectors';
 import { selectLevelExact } from '../features/progression/selectors';
 import { STABILIZE_DIFFICULTY } from '../data/health.config';
 import type { DuelState } from '../engine/duel';
@@ -483,7 +483,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
 function mindContestCard(state: GameState, abilityId: string, npcId: string): { card: CheckCard; rng: RngState } {
   const npc = selectNpc(state, npcId)!;
   const lv = (id: string): number => selectNpcLevel(state, npcId, id);
-  const target: ForceTarget = { name: npc.name, willpower: lv('willpower'), agility: lv('agility'), forceResistance: forceResistanceOf(lv), traits: speciesForceTraits(npc.speciesId), bodySize: 'humanoid', inCover: false, canReact: true, saberLevel: 0 };
+  const target: ForceTarget = { name: npc.name, willpower: lv('willpower'), agility: lv('agility'), forceResistance: forceResistanceOf(lv), traits: characterForceTraits(npc.speciesId, npcInsideForce(npc)), bodySize: 'humanoid', inCover: false, canReact: true, saberLevel: 0 };
   const level = selectPerformance(state, abilityId);
   const [r, rng] = forceContest(state.meta.rngState, { kind: 'mindTrick', group: 'mind', level, modifiers: [], target, negated: false });
   const total = r.user?.total ?? 0;

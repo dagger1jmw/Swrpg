@@ -142,6 +142,10 @@ The Order's rules on Force powers (D-346, D-436; src/data/orderPowerRules.ts)
     discovery brings the Master's reprimand, the 2nd a summons before the Council, the 3rd and
     later the trials held back; any discovered dark-side power brings the Council's judgment
     (possible expulsion). Each discovery's note names the step it newly reaches.
+  The trials held back are enforced in code (D-454): from the 3rd discovery on, each discovery
+    delays Knight Trials eligibility by 1 year, counted from the later of the discovery and the
+    hold already running. The hold lifts on its own when nothing new is discovered. The narrator
+    is told the date; the state block shows it while it runs.
 
 ## 2. Sith path (story-driven, harsher)
   Academy acolyte (start age 8-16) -> Apprentice (chosen by a Sith Lord; same standing

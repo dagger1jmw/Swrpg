@@ -38,7 +38,7 @@ import { PC_REF, selectAge, selectCharacter, selectCharacterName, selectIsTestCh
 import { pendingScenario } from './devScenario';
 import { selectFatigue } from '../features/health/selectors';
 import { selectGriefMult, selectSkillViews, selectStateOfMind, selectTierBeats } from '../features/progression/selectors';
-import { selectCovertEscalation, selectRankName } from '../features/ranks/selectors';
+import { selectCovertEscalation, selectRankName, selectTrialsHeldUntil } from '../features/ranks/selectors';
 import { selectNow } from '../features/clock/selectors';
 import { selectCurrentLocationId, selectLocationChain, selectLocations } from '../features/locations/selectors';
 
@@ -234,7 +234,9 @@ function orderPowersLine(state: GameState): string | null {
   // D-448: the escalation reached (the engine tracks it; the narrator plays the consequences in the story).
   const esc = selectCovertEscalation(state);
   const reached = esc.flags.map((f) => COVERT_ESCALATION.find((x) => x.flag === f)!.text);
-  return `Order rules on powers: dark-side powers are never taught${forbidden.length ? `; forbidden without a Master's permission: ${forbidden.join(', ')}` : ''}${permitted.length ? `; permitted to you: ${permitted.join(', ')}` : ''}${found.length ? `; the Order knows of your covert study of ${found.join(', ')}${penalty > 0 ? ` (standing -${penalty})` : ''}; discoveries ${esc.count}, consequences reached: ${reached.join(', ')}` : ''}`;
+  // D-454: the hold on the Knight Trials, while it runs (the engine enforces it).
+  const held = selectTrialsHeldUntil(state);
+  return `Order rules on powers: dark-side powers are never taught${forbidden.length ? `; forbidden without a Master's permission: ${forbidden.join(', ')}` : ''}${permitted.length ? `; permitted to you: ${permitted.join(', ')}` : ''}${found.length ? `; the Order knows of your covert study of ${found.join(', ')}${penalty > 0 ? ` (standing -${penalty})` : ''}; discoveries ${esc.count}, consequences reached: ${reached.join(', ')}${held !== null ? `; the Knight Trials are held back until ${formatDate(held)} (enforced)` : ''}` : ''}`;
 }
 
 function captiveLine(state: GameState): string | null {

@@ -118,6 +118,12 @@ export interface CanonNpc extends CanonTimeline {
   bladeColor?: string;
   unmapped?: readonly string[];
   note?: string;
+  /**
+   * A per-character exception to the species' outside-the-Force block (D-453, Jared): Onimi, the one Force-sensitive
+   * Yuuzhan Vong in the lore. The species block stays; this figure gains Force XP, may have Force powers, and can be
+   * sensed and touched through the Force.
+   */
+  insideForce?: true;
   /** Canon IDs the figure had under the old lore file (lore batch 19: "Grand Master Zym" -> "Zym"); still resolve. */
   formerCanonIds?: readonly string[];
   /** Sourced facts from the lore files that the engine does not read yet (sex, homeworld, teachers, alignment). */

@@ -50,3 +50,10 @@ export const COVERT_ESCALATION: readonly { flag: CovertEscalationFlag; atCount?:
   { flag: 'trialsHeldBack', atCount: 3, text: 'the trials held back' },
   { flag: 'councilJudgment', darkSide: true, text: "the Council's judgment (possible expulsion)" },
 ];
+
+/**
+ * The trials held back, enforced (D-454, Jared): from the 3rd discovery on, each discovery delays Knight Trials
+ * eligibility by a year, counted from the later of the discovery and the hold already running; it lifts on its own when
+ * nothing new is discovered. The code decides; the narrator narrates.
+ */
+export const TRIALS_HOLD = { fromCount: 3, yearsPerDiscovery: 1 } as const;

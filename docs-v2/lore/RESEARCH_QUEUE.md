@@ -190,9 +190,17 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 
 ## Force nexuses (D-425, 2026-11-22)
 - Dagobah: the cave now has a cited entry (SW_Dagobah, SW_Force_Nexus_Vergence: a dark nexus from 700 BBY). Dagobah as a Force-rich world is still uncited in Legends ([unclear] in the file; it rests on Jared's ruling). src/data/forceNexus.ts re-read against the file (D-445): the cave from 700 BBY; the Canon "teems with life" wording dropped from the planet's source.
-- Luke's time on Dagobah: the lore gives 3-4 ABY and no length; the calibration uses three months in 3 ABY (design default, D-445). A Legends source for the length would replace it.
+- Luke's time on Dagobah: settled by Jared's ruling (D-452): one month in 3 ABY. No Legends figure exists; the Hoth-Bespin transit (about 1,150 light years on a class-10 backup hyperdrive) is under a day, so events set the time.
 - Ilum: the Crystal Caves are now cited as a light-associated site (SW_Ilum_Temple_CrystalCaves; SW_Force_Nexus_Vergence decision 5); not yet in src/data/forceNexus.ts. The Temple of Eedit likewise (start date [unclear]).
 - The Coruscant Jedi Temple's leaning (the lore gives "a Force nexus holy to the native Coruscanti", leaning unstated; light is inferred).
+
+## Order seats by date (D-451, 2026-11-23)
+- The Sith seat table (src/data/orderSeats.ts SITH_SEATS) has two undated ends: the Empire's hold on Dromund Kaas after 3630 BBY (the lore files stop there; 3,600 BBY is a design default) and the end of the One Sith on Korriban (from 27 ABY in SW_Korriban_Planet; no end in the lore files).
+- Where Vitiate's Empire trained its acolytes before it retook Korriban in 3681 BBY (no academy on record, so no acolyte seat 4980-3681).
+- The Jedi's return from Tython to Coruscant (3,600 BBY, a design default since D-397).
+
+## Martial cultures that taught close combat to outsiders (M8 design notes, D-455)
+- Which martial cultures taught close combat to outsiders in Legends (the Echani and the Mandalorians, and others), to whom, and at which dates. The Echani and the Mandalorians are placeholders until sourced. Answers become dated rows (D-438), not era sections.
 
 ## Species lifespans (D-434, 2026-11-22)
 - Kel Dor lifespan: the species file gives "venerable 70+" (a game stat), but Grand Master Zym, a Kel Dor, is about 120 in 3661 BBY. Raised to 150 as a house default (src/data/species.ts). Wanted: a cited Legends lifespan or the age of an old Kel Dor (Zym, Plo Koon's elders).

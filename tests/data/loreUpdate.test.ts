@@ -6,7 +6,7 @@ import { worldStateAt } from '../../src/data/galaxyMap';
 import { BACTA_KNOWN_FROM_YEAR, BACTA_STANDARD_FROM_YEAR, KOLTO_SUPPLY_EVENTS, healingFluidAt } from '../../src/data/health.config';
 import { controlAt, leadersAt } from '../../src/data/worldControl';
 
-const F = { world: 1.1, site: 1.15 };
+const F = { world: 1.1, major: 1.15, site: 1.15 };
 const rules = (bby: number, place: string): string[] => eraRulesAt(bby, [place], []).filter((r) => !r.always).map((r) => r.id);
 
 describe('Malachor V (D-440)', () => {
