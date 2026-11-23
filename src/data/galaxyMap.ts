@@ -85,7 +85,7 @@ export const WORLD_GATES: readonly WorldGate[] = [
   { place: 'Port Nowhere', fromBby: 3681, opensBby: 3653, closedTo: 'all', reason: 'Cold War or later', source: 'D-402 [7]' },
   { place: 'Ruhnuk', fromBby: 3663, opensBby: null, closedTo: 'all', reason: 'cut off by a nebula since 3,663', source: 'D-402 [7]; Timeline slice Part 1 (3,663)' },
   { place: 'Yavin 4', fromBby: 3681, opensBby: null, closedTo: 'all', reason: 'remote and unheard of', storyException: 'a story reason', source: 'D-402 [7]' },
-  { place: 'Ilum', fromBby: 3681, opensBby: 3640, closedTo: 'sithEmpire', reason: 'a Republic and Jedi staging world on difficult lanes, on the Republic\'s charts only', source: 'D-402 [8]' },
+  { place: 'Ilum', fromBby: 3681, opensBby: 3651, closedTo: 'sithEmpire', reason: 'a Republic and Jedi staging world on difficult lanes, on the Republic\'s charts only (the Empire learns of it and occupies it from c. 3,651)', source: 'D-402 [8]; D-443 (Jared: opens to the Empire from c. 3,651 [inferred])' },
 ];
 
 /** What a map world physically is from a year on (D-440): a destroyed world shows as debris, not a planet. */

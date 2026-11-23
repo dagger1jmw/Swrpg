@@ -42,7 +42,7 @@ Every lightsaber has a crystal at its heart that resonates to produce the blade.
 - **Uncertainty:** none.
 
 ## Catalog
-Kinds: **N** = natural (mined, grown or harvested), **S** = synthetic or crafted, **U** = unique named crystal. "Dates" lists only what the page states. "Earliest dated use" is taken from the earliest work in the page's appearance list where the page gives no date [inferred from appearance], using these story dates: *Tales of the Jedi* c. 4000 BBY; *KOTOR* 3956 BBY; *KOTOR II* 3951 BBY; *SWTOR* 3653 BBY onward; *The Force Unleashed* c. 2 BBY–1 ABY; *Star Wars Galaxies* (SWG) Galactic Civil War, c. 0–1 ABY.
+Kinds: **N** = natural (mined, grown or harvested), **S** = synthetic or crafted, **U** = unique named crystal. **NOT USED** = a game loot item with no story foundation (Star Wars Galaxies or *The Force Unleashed* only, a one- or two-sentence page, no origin): kept for the record, excluded from game data. **TYPE ONLY** = from the same games, but used as a natural crystal type from its source world, not as a named item. "Dates" lists only what the page states. "Earliest dated use" is taken from the earliest work in the page's appearance list where the page gives no date [inferred from appearance], using these story dates: *Tales of the Jedi* c. 4000 BBY; *KOTOR* 3956 BBY; *KOTOR II* 3951 BBY; *SWTOR* 3653 BBY onward; *The Force Unleashed* c. 2 BBY–1 ABY; *Star Wars Galaxies* (SWG) Galactic Civil War, c. 0–1 ABY.
 
 | Crystal | Kind | Source | Effect or colour | Dates | Citation |
 |---|---|---|---|---|---|
@@ -96,31 +96,31 @@ Kinds: **N** = natural (mined, grown or harvested), **S** = synthetic or crafted
 | Ghostfire crystal | N | Various Outer Rim worlds | Translucent | — | [link](https://starwars.fandom.com/wiki/Ghostfire_crystal/Legends) |
 | Bane's Heart | U | Darth Bane to Darth Zannah | Carmine | Given after the Seventh Battle of Ruusan (1000 BBY); later a Dark Jedi's, then Grievous's; recovered on Kashyyyk, 1 ABY | [link](https://starwars.fandom.com/wiki/Bane%27s_Heart_(crystal)) |
 | Compressed energy crystal (CEC) | S | — (also used in Ves Volette's light sculptures) | Pulsing blade with a thinner core | Earliest dated use *Coruscant Nights* / *The Force Unleashed* (c. 19–1 BBY) [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Compressed_energy_crystal) |
-| Katak | ? | Origin unknown; found in dark-siders' sabers | Drains life force from those nearby; lethal over long exposure | *The Force Unleashed* era [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Katak) |
-| Vexxtal | ? | Origin unknown; found in dark-siders' sabers | Leaves a corrupting aura on those it wounds | *The Force Unleashed* era [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Vexxtal) |
+| Katak | ? — NOT USED | Origin unknown; found in dark-siders' sabers | Drains life force from those nearby; lethal over long exposure | *The Force Unleashed* era [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Katak) |
+| Vexxtal | ? — NOT USED | Origin unknown; found in dark-siders' sabers | Leaves a corrupting aura on those it wounds | *The Force Unleashed* era [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Vexxtal) |
 | Focus crystal | N | Dagobah (found by Galen Marek's clone, 1 BBY); also Kasha from Cerea | Keeps the user in tune with the Force, especially when spending Force energy | 1 BBY | [link](https://starwars.fandom.com/wiki/Focus) |
-| Amplification | ? | Origin unknown | Silver; two used by Maulkiller | *The Force Unleashed II* era | [link](https://starwars.fandom.com/wiki/Amplification) |
-| Impact | S (CEC) | — | Yellow pair; more damage | Galen Marek's clone (c. 1 ABY) | [link](https://starwars.fandom.com/wiki/Impact) |
-| Incineration | S (CEC) | Salvation | Orange; sets targets alight | Galen Marek's clone (c. 1 ABY) | [link](https://starwars.fandom.com/wiki/Incineration) |
-| Corrosion | S (CEC) | — | Red; corrodes targets | Galen Marek's clone (c. 1 ABY) | [link](https://starwars.fandom.com/wiki/Corrosion) |
-| Life Drain | ? | — | Green; drains life | Galen Marek's clone (c. 1 ABY) | [link](https://starwars.fandom.com/wiki/Life_Drain) |
-| Lava crystal | N | Volcanic worlds such as Mustafar | Less focused; a lava-like blade that drips flame; rumoured very powerful | SWG (Galactic Civil War) [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Lava_crystal/Legends) |
-| Permafrost crystal | N | Hoth | Icy blue | One held by the township of Aurilia, Dathomir, in the Galactic Civil War | [link](https://starwars.fandom.com/wiki/Permafrost_crystal/Legends) |
-| Blackwing Crystal | N | Formed in contact with the Blackwing virus (a Sith bioweapon), Dathomir Quarantine Zone | Dark, smoky ash blade | 1 ABY | [link](https://starwars.fandom.com/wiki/Blackwing_Crystal) |
-| Bnar's Sacrifice | U | Ood Bnar's legacy crystal | Brown; tuned to one user only | SWG (Galactic Civil War) [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Bnar%27s_Sacrifice) |
-| Kenobi's Legacy | U | — | Blue; tuned to one user | SWG [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Kenobi%27s_Legacy) |
-| Bondara's Folly | U | Combined from crystal fragments by a spacer after Yavin | Light brown; tuned to one user | 1 ABY | [link](https://starwars.fandom.com/wiki/Bondara%27s_Folly) |
-| Cunning of Tyranus | U | — | Red; tuned to one user | SWG [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Cunning_of_Tyranus) |
-| Kun's Blood | U | — | Dark red; uncommon, powerful | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Kun%27s_Blood) |
-| Ulric's Redemption | U | — | Dark yellow; uncommon, powerful (named for Ulic Qel-Droma) | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Ulric%27s_Redemption) |
-| Dawn of Dagobah | U | — | Teal; minor poisoning | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Dawn_of_Dagobah) |
-| Baas's Wisdom | U | — | Navy blue; minor frostbite | Galactic Civil War [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Baas%27s_Wisdom) |
-| Allya's Redemption | U | — | Light green with yellow core; strong poisoning | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Allya%27s_Redemption) |
-| Allya's Exile | U | — | Scarlet; strong burning, like Sigil | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Allya%27s_Exile) |
-| Sunrider's Destiny | U | Given by Captain Sarguillo in Aurilia, Dathomir | Aquamarine (teal blade); tuned to one user | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Sunrider%27s_Destiny) |
-| Windu's Guile | N (Hurrikaine variant) | — | Violet; used by both Rebel and Imperial Force-sensitives | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Windu%27s_Guile) |
+| Amplification | ? — NOT USED | Origin unknown | Silver; two used by Maulkiller | *The Force Unleashed II* era | [link](https://starwars.fandom.com/wiki/Amplification) |
+| Impact | S (CEC) — NOT USED | — | Yellow pair; more damage | Galen Marek's clone (c. 1 ABY) | [link](https://starwars.fandom.com/wiki/Impact) |
+| Incineration | S (CEC) — NOT USED | Salvation | Orange; sets targets alight | Galen Marek's clone (c. 1 ABY) | [link](https://starwars.fandom.com/wiki/Incineration) |
+| Corrosion | S (CEC) — NOT USED | — | Red; corrodes targets | Galen Marek's clone (c. 1 ABY) | [link](https://starwars.fandom.com/wiki/Corrosion) |
+| Life Drain | ? — NOT USED | — | Green; drains life | Galen Marek's clone (c. 1 ABY) | [link](https://starwars.fandom.com/wiki/Life_Drain) |
+| Lava crystal | N — TYPE ONLY | Volcanic worlds such as Mustafar | Less focused; a lava-like blade that drips flame; rumoured very powerful | SWG (Galactic Civil War) [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Lava_crystal/Legends) |
+| Permafrost crystal | N — TYPE ONLY | Hoth | Icy blue | One held by the township of Aurilia, Dathomir, in the Galactic Civil War | [link](https://starwars.fandom.com/wiki/Permafrost_crystal/Legends) |
+| Blackwing Crystal | N — NOT USED | Formed in contact with the Blackwing virus (a Sith bioweapon), Dathomir Quarantine Zone | Dark, smoky ash blade | 1 ABY | [link](https://starwars.fandom.com/wiki/Blackwing_Crystal) |
+| Bnar's Sacrifice | U — NOT USED | Ood Bnar's legacy crystal | Brown; tuned to one user only | SWG (Galactic Civil War) [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Bnar%27s_Sacrifice) |
+| Kenobi's Legacy | U — NOT USED | — | Blue; tuned to one user | SWG [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Kenobi%27s_Legacy) |
+| Bondara's Folly | U — NOT USED | Combined from crystal fragments by a spacer after Yavin | Light brown; tuned to one user | 1 ABY | [link](https://starwars.fandom.com/wiki/Bondara%27s_Folly) |
+| Cunning of Tyranus | U — NOT USED | — | Red; tuned to one user | SWG [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Cunning_of_Tyranus) |
+| Kun's Blood | U — NOT USED | — | Dark red; uncommon, powerful | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Kun%27s_Blood) |
+| Ulric's Redemption | U — NOT USED | — | Dark yellow; uncommon, powerful (named for Ulic Qel-Droma) | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Ulric%27s_Redemption) |
+| Dawn of Dagobah | U — NOT USED | — | Teal; minor poisoning | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Dawn_of_Dagobah) |
+| Baas's Wisdom | U — NOT USED | — | Navy blue; minor frostbite | Galactic Civil War [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Baas%27s_Wisdom) |
+| Allya's Redemption | U — NOT USED | — | Light green with yellow core; strong poisoning | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Allya%27s_Redemption) |
+| Allya's Exile | U — NOT USED | — | Scarlet; strong burning, like Sigil | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Allya%27s_Exile) |
+| Sunrider's Destiny | U — NOT USED | Given by Captain Sarguillo in Aurilia, Dathomir | Aquamarine (teal blade); tuned to one user | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Sunrider%27s_Destiny) |
+| Windu's Guile | N (Hurrikaine variant) — TYPE ONLY (as Hurrikaine; the name is not used before Mace Windu's time) | — | Violet; used by both Rebel and Imperial Force-sensitives | Galactic Civil War | [link](https://starwars.fandom.com/wiki/Windu%27s_Guile) |
 | Enhancement jewel | S | Scavenged from Rebel equipment in the Great Temple, Yavin 4 | A spherical projector component used as a crystal by Lowbacca | 23 ABY | [link](https://starwars.fandom.com/wiki/Enhancement_jewel) |
-| Lambent | N | Harvested by the Yuuzhan Vong | Anakin Solo's crystal | Yuuzhan Vong War (c. 25–29 ABY) [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Lambent) |
+| Lambent | N (Yuuzhan Vong-grown; available only with Vong contact, c. 25 ABY on) | Harvested by the Yuuzhan Vong | Anakin Solo's crystal | Yuuzhan Vong War (c. 25–29 ABY) [inferred from appearance] | [link](https://starwars.fandom.com/wiki/Lambent) |
 
 ## Gray-area notes (moved from SW_Lightsabers_Crystals_Materials_AllEras)
 **Gray-area items in this table:**
@@ -142,13 +142,12 @@ Kinds: **N** = natural (mined, grown or harvested), **S** = synthetic or crafted
 
 ## Game notes (optional, suggestions only)
 - Per decision 1, natural crystals with no stated limit are obtainable at any date from their source world. The dated rows restrict: Ruusan crystals lost after c. 1000 BBY, Eralam and Sapith rare, rubat controlled, and the unique named crystals only from their dates.
-- *Suggestion:* Galaxies-only unique crystals (Kenobi's Legacy, Kun's Blood, Allya's, etc.) are named for people of their own past, so they work as rare finds in Galactic Civil War-era games only.
 - *Suggestion:* the Dantari, focus and meditation crystals ("recovering spent Force energy", "retaining energy") could give a Force-pool regeneration bonus. Kasha could feed the "centered" mechanic.
 
 ## Decisions needed
 1. **Availability rule for undated natural crystals:** DECIDED (Jared, Nov 22, 2026). Obtainable at any date from their source world. The appearance date is a citation aid, not a gate. Dated restrictions (lost, rare, controlled, extinct) still apply.
 2. **The existing crystal table:** DECIDED (Jared, Nov 22, 2026). Trimmed to a pointer; this file is the single source of truth.
-3. **Galaxies-only unique crystals:** include them in the catalog the game draws from, or treat them as flavour only? Best fit: include them, gated to the Galactic Civil War.
+3. **Galaxies and TFU game-item crystals:** DECIDED (Jared, Nov 22, 2026). The 19 named loot crystals with no story foundation are NOT USED (kept for the record). Permafrost, Lava and Windu's Guile are TYPE ONLY (natural crystals from their source worlds). Bane's Heart, focus crystals and compressed energy crystals are kept in full.
 
 ## Sources
 - Lightsaber crystal/Legends: https://starwars.fandom.com/wiki/Lightsaber_crystal/Legends

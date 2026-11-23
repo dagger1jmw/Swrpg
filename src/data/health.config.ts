@@ -319,9 +319,9 @@ export const MINION_OUT_AT: Severity = 'moderate';
  */
 export const BACTA_KNOWN_FROM_YEAR = -4100;
 /**
- * PENDING Jared's ruling: the year bacta becomes the standard. Provisional value: the lore file's best fit, bacta
- * standard by the New Sith Wars [inferred] (SW_Kolto_Bacta decision 1); kolto stays standard through the KOTOR and
- * SWTOR years either way.
+ * PENDING Jared's ruling: the year bacta becomes the standard. Placeholder: 2000 BBY, the lore file's best fit (the New
+ * Sith Wars [inferred]; SW_Kolto_Bacta decision 1). Supported range 3600-1000 BBY: kolto stays standard through the
+ * KOTOR and SWTOR years, and is the cheap option by Bane's era.
  */
 export const BACTA_STANDARD_FROM_YEAR = -2000;
 export const BACTA_SWITCH_PENDING = true;

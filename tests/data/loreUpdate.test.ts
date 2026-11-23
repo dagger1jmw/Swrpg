@@ -74,3 +74,13 @@ describe('the healing fluid by date (D-440)', () => {
     expect(controlAt(['Manaan'], 3625)[0]?.side).toBe('contested');
   });
 });
+
+describe('Ilum (D-443)', () => {
+  it('opens to the Empire from c. 3651 BBY, the gate only', async () => {
+    const { closedWorlds } = await import('../../src/data/galaxyMap');
+    expect(closedWorlds('sithEmpire', 3652).map((g) => g.place)).toContain('Ilum');
+    expect(closedWorlds('sithEmpire', 3651).map((g) => g.place)).not.toContain('Ilum');
+    expect(controlAt(['Ilum'], 3645)).toEqual([]); // no inferred Cold War control span (D-411 [5]); the gate carries the ruling
+    expect(controlAt(['Ilum'], 3640)[0]?.side).toBe('contested');
+  });
+});

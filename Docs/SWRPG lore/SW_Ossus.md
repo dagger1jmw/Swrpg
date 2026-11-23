@@ -101,7 +101,7 @@ All entries are from [Ossus/Legends](https://starwars.fandom.com/wiki/Ossus/Lege
 
 ## Decisions needed
 1. **Force-rich status:** Sunrider's "the Force permeates everything" is the only source line. It's a character's impression, not a statement about the planet. Options: (a) Force-rich ×1.10, like the nexus planets; (b) no bonus. My lean is (b), because no source names a nexus. Your call.
-2. **Era state:** treat it as an irradiated ruin world, known but unsettled, with possible Ysanna tribes [inferred], until the Jedi colony after 3636.
+2. **Status by date:** an irradiated ruin world, known but unsettled, from 3996 BBY, with possible Ysanna tribes [inferred]; the Jedi colony after 3636; evacuated after the 3628 invasion.
 
 ## Sources
 - Ossus/Legends: https://starwars.fandom.com/wiki/Ossus/Legends

@@ -198,8 +198,6 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 
 ## Open from the Nov 22 lore update (D-439)
 - Ossus: Force-rich or not (only a character's impression supports it).
-- Kolto's decline: no year in the sources; the switch-over year waits for Jared.
+- Kolto's decline: no year in the sources; the switch-over year waits for Jared (placeholder 2000 BBY; supported range 3600–1000 BBY).
 - Undated holocrons (excluded by default) and holocrons as a teaching source.
 - Malachor V after 3951 BBY: whether any dark presence lingers [unclear].
-- Ilum's Imperial occupation c. 3651–3640 (SW_Ilum_Temple_CrystalCaves decision 1) against the map gate (closed to the Empire until 3640).
-- SW_Ossus decision 2 is still headed "Era state" (wording only; the content is dated): reword in the next pass (D-438).

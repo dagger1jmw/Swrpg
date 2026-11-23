@@ -2,20 +2,19 @@
 // dated list (D-438): what is obtainable is resolved from the year and the place. Years are calendar years
 // (negative = BBY, positive = ABY).
 //
-// Rules (Jared, 2026-11-22; SW_Lightsaber_Crystals decisions 1-2):
+// Rules (Jared, 2026-11-22; SW_Lightsaber_Crystals decisions 1-3):
 // - A natural crystal with no dated limit is obtainable at any date from its source world(s). Its earliest dated use
 //   (`firstDatedUse`) is a citation only, never a gate.
-// - Dated limits restrict: `availableFrom` (synthetic, unique and unknown-origin crystals from their first dated year;
-//   a natural crystal only when its source itself is dated, e.g. the Blackwing virus), `lostAfter` (Ruusan), `rare`,
-//   `controlled`, `extinct` (the source creature).
-// - Natural and synthetic rows are crystal types (`item: 'type'`); unique rows are named items (`item: 'named'`).
-// - kind 'unknown': the four rows the file marks "?" (origin unknown); they are gated by their dated year like the
-//   non-natural rows.
-// - The file has no rows marked NOT USED or TYPE ONLY; a NOT USED row would be left out of this table.
-// - The Galaxies-only unique crystals are gated to the Galactic Civil War (c. 0 BBY), pending Jared's ruling
-//   (SW_Lightsaber_Crystals decision 3).
+// - Dated limits restrict: `availableFrom` (synthetic and unique crystals from their first dated year; a natural crystal
+//   only when its source is dated: Lambent, a Yuuzhan Vong harvest, from Vong contact c. 25 ABY), `lostAfter` (Ruusan),
+//   `rare`, `controlled`, `extinct` (the source creature).
+// - Rows the file marks NOT USED (19 Star Wars Galaxies and Force Unleashed loot crystals with no story foundation:
+//   Katak, Vexxtal, Amplification, Impact, Incineration, Corrosion, Life Drain, Blackwing and the 11 Galaxies named
+//   crystals) are left out of this table.
+// - TYPE ONLY rows (Lava, Permafrost, Windu's Guile) are natural crystal types from their source worlds, not named
+//   items. Natural and synthetic rows are types (`item: 'type'`); unique rows are named items (`item: 'named'`).
 
-export type CrystalKind = 'natural' | 'synthetic' | 'unique' | 'unknown';
+export type CrystalKind = 'natural' | 'synthetic' | 'unique';
 
 export interface CrystalLimits {
   /** Obtainable only from this year on. */
@@ -42,12 +41,13 @@ export interface Crystal {
   limits: CrystalLimits;
   /** The earliest dated use (citation aid only, never a gate for a natural crystal). */
   firstDatedUse?: number;
+  /** A TYPE ONLY row that is another type under a later name: the type it is, and the first year the name is used. */
+  typeOf?: { id: string; nameFrom: number };
   notes?: string;
   source: string;
 }
 
 const W = 'https://starwars.fandom.com/wiki/';
-const GCW = 0; // the Galactic Civil War (SWG, c. 0-1 ABY), for the Galaxies-only named crystals (pending decision 3)
 
 export const CRYSTALS: readonly Crystal[] = [
   { id: 'adegan', name: 'Adegan crystals (family)', kind: 'natural', item: 'type', worlds: ['Adega system'], origin: 'the Adega system', effect: 'Various colours; the commonest crystal of the Old Republic, used by Jedi for thousands of years.', limits: {}, source: `${W}Adegan_crystal/Legends` },
@@ -100,31 +100,12 @@ export const CRYSTALS: readonly Crystal[] = [
   { id: 'ghostfire', name: 'Ghostfire crystal', kind: 'natural', item: 'type', worlds: [], origin: 'various Outer Rim worlds', effect: 'Translucent.', limits: {}, source: `${W}Ghostfire_crystal/Legends` },
   { id: 'banes-heart', name: "Bane's Heart", kind: 'unique', item: 'named', worlds: [], origin: 'Darth Bane to Darth Zannah', effect: 'Carmine.', limits: { availableFrom: -1000 }, notes: 'Given after the Seventh Battle of Ruusan (1000 BBY); later a Dark Jedi\'s, then Grievous\'s; recovered on Kashyyyk, 1 ABY.', source: `${W}Bane%27s_Heart_(crystal)` },
   { id: 'compressed-energy', name: 'Compressed energy crystal (CEC)', kind: 'synthetic', item: 'type', worlds: [], origin: "not stated (also used in Ves Volette's light sculptures)", effect: 'Pulsing blade with a thinner core.', limits: { availableFrom: -19 }, notes: 'Earliest dated use Coruscant Nights (19 BBY).', source: `${W}Compressed_energy_crystal` },
-  { id: 'katak', name: 'Katak', kind: 'unknown', item: 'type', worlds: [], origin: "origin unknown; found in dark-siders' sabers", effect: 'Drains life force from those nearby; lethal over long exposure.', limits: { availableFrom: -2 }, notes: 'The Force Unleashed era (c. 2 BBY).', source: `${W}Katak` },
-  { id: 'vexxtal', name: 'Vexxtal', kind: 'unknown', item: 'type', worlds: [], origin: "origin unknown; found in dark-siders' sabers", effect: 'Leaves a corrupting aura on those it wounds.', limits: { availableFrom: -2 }, notes: 'The Force Unleashed era (c. 2 BBY).', source: `${W}Vexxtal` },
   { id: 'focus', name: 'Focus crystal', kind: 'natural', item: 'type', worlds: ['Dagobah', 'Cerea'], origin: "Dagobah (found by Galen Marek's clone, 1 BBY); also Kasha from Cerea", effect: 'Keeps the user in tune with the Force, especially when spending Force energy.', limits: {}, firstDatedUse: -1, source: `${W}Focus` },
-  { id: 'amplification', name: 'Amplification', kind: 'unknown', item: 'type', worlds: [], origin: 'origin unknown', effect: 'Silver; two used by Maulkiller.', limits: { availableFrom: 1 }, notes: 'The Force Unleashed II era (c. 1 ABY).', source: `${W}Amplification` },
-  { id: 'impact', name: 'Impact', kind: 'synthetic', item: 'type', worlds: [], origin: 'a compressed energy crystal', effect: 'Yellow pair; more damage.', limits: { availableFrom: 1 }, notes: "Galen Marek's clone (c. 1 ABY).", source: `${W}Impact` },
-  { id: 'incineration', name: 'Incineration', kind: 'synthetic', item: 'type', worlds: ['Salvation'], origin: 'a compressed energy crystal; Salvation', effect: 'Orange; sets targets alight.', limits: { availableFrom: 1 }, notes: "Galen Marek's clone (c. 1 ABY).", source: `${W}Incineration` },
-  { id: 'corrosion', name: 'Corrosion', kind: 'synthetic', item: 'type', worlds: [], origin: 'a compressed energy crystal', effect: 'Red; corrodes targets.', limits: { availableFrom: 1 }, notes: "Galen Marek's clone (c. 1 ABY).", source: `${W}Corrosion` },
-  { id: 'life-drain', name: 'Life Drain', kind: 'unknown', item: 'type', worlds: [], origin: 'not stated', effect: 'Green; drains life.', limits: { availableFrom: 1 }, notes: "Galen Marek's clone (c. 1 ABY).", source: `${W}Life_Drain` },
-  { id: 'lava', name: 'Lava crystal', kind: 'natural', item: 'type', worlds: ['Mustafar'], origin: 'volcanic worlds such as Mustafar', effect: 'Less focused; a lava-like blade that drips flame; rumoured very powerful.', limits: {}, firstDatedUse: 0, source: `${W}Lava_crystal/Legends` },
-  { id: 'permafrost', name: 'Permafrost crystal', kind: 'natural', item: 'type', worlds: ['Hoth'], origin: 'Hoth', effect: 'Icy blue.', limits: {}, firstDatedUse: 0, notes: 'One held by the township of Aurilia, Dathomir, in the Galactic Civil War.', source: `${W}Permafrost_crystal/Legends` },
-  { id: 'blackwing', name: 'Blackwing Crystal', kind: 'natural', item: 'type', worlds: ['Dathomir'], origin: 'formed in contact with the Blackwing virus (a Sith bioweapon), Dathomir Quarantine Zone', effect: 'Dark, smoky ash blade.', limits: { availableFrom: 1 }, notes: 'Its source, the Blackwing virus outbreak, is dated (1 ABY), so the date gates it.', source: `${W}Blackwing_Crystal` },
-  { id: 'bnars-sacrifice', name: "Bnar's Sacrifice", kind: 'unique', item: 'named', worlds: [], origin: "Ood Bnar's legacy crystal", effect: 'Brown; tuned to one user only.', limits: { availableFrom: GCW }, source: `${W}Bnar%27s_Sacrifice` },
-  { id: 'kenobis-legacy', name: "Kenobi's Legacy", kind: 'unique', item: 'named', worlds: [], origin: 'not stated', effect: 'Blue; tuned to one user.', limits: { availableFrom: GCW }, source: `${W}Kenobi%27s_Legacy` },
-  { id: 'bondaras-folly', name: "Bondara's Folly", kind: 'unique', item: 'named', worlds: [], origin: 'combined from crystal fragments by a spacer after Yavin', effect: 'Light brown; tuned to one user.', limits: { availableFrom: 1 }, source: `${W}Bondara%27s_Folly` },
-  { id: 'cunning-of-tyranus', name: 'Cunning of Tyranus', kind: 'unique', item: 'named', worlds: [], origin: 'not stated', effect: 'Red; tuned to one user.', limits: { availableFrom: GCW }, source: `${W}Cunning_of_Tyranus` },
-  { id: 'kuns-blood', name: "Kun's Blood", kind: 'unique', item: 'named', worlds: [], origin: 'not stated', effect: 'Dark red; uncommon, powerful.', limits: { availableFrom: GCW }, source: `${W}Kun%27s_Blood` },
-  { id: 'ulrics-redemption', name: "Ulric's Redemption", kind: 'unique', item: 'named', worlds: [], origin: 'not stated', effect: 'Dark yellow; uncommon, powerful (named for Ulic Qel-Droma).', limits: { availableFrom: GCW }, source: `${W}Ulric%27s_Redemption` },
-  { id: 'dawn-of-dagobah', name: 'Dawn of Dagobah', kind: 'unique', item: 'named', worlds: [], origin: 'not stated', effect: 'Teal; minor poisoning.', limits: { availableFrom: GCW }, source: `${W}Dawn_of_Dagobah` },
-  { id: 'baass-wisdom', name: "Baas's Wisdom", kind: 'unique', item: 'named', worlds: [], origin: 'not stated', effect: 'Navy blue; minor frostbite.', limits: { availableFrom: GCW }, source: `${W}Baas%27s_Wisdom` },
-  { id: 'allyas-redemption', name: "Allya's Redemption", kind: 'unique', item: 'named', worlds: [], origin: 'not stated', effect: 'Light green with a yellow core; strong poisoning.', limits: { availableFrom: GCW }, source: `${W}Allya%27s_Redemption` },
-  { id: 'allyas-exile', name: "Allya's Exile", kind: 'unique', item: 'named', worlds: [], origin: 'not stated', effect: 'Scarlet; strong burning, like Sigil.', limits: { availableFrom: GCW }, source: `${W}Allya%27s_Exile` },
-  { id: 'sunriders-destiny', name: "Sunrider's Destiny", kind: 'unique', item: 'named', worlds: ['Dathomir'], origin: 'given by Captain Sarguillo in Aurilia, Dathomir', effect: 'Aquamarine (teal blade); tuned to one user.', limits: { availableFrom: GCW }, source: `${W}Sunrider%27s_Destiny` },
-  { id: 'windus-guile', name: "Windu's Guile", kind: 'natural', item: 'type', worlds: ['Hurikane'], origin: 'a Hurrikaine variant', effect: 'Violet; used by both Rebel and Imperial Force-sensitives.', limits: {}, firstDatedUse: GCW, notes: 'A natural Hurrikaine variant, so not gated (decision 1), though the name is Mace Windu\'s: the narrator should not use the name before his time.', source: `${W}Windu%27s_Guile` },
+  { id: 'lava', name: 'Lava crystal', kind: 'natural', item: 'type', worlds: ['Mustafar'], origin: 'volcanic worlds such as Mustafar', effect: 'Less focused; a lava-like blade that drips flame; rumoured very powerful.', limits: {}, firstDatedUse: 0, notes: 'TYPE ONLY.', source: `${W}Lava_crystal/Legends` },
+  { id: 'permafrost', name: 'Permafrost crystal', kind: 'natural', item: 'type', worlds: ['Hoth'], origin: 'Hoth', effect: 'Icy blue.', limits: {}, firstDatedUse: 0, notes: 'TYPE ONLY. One held by the township of Aurilia, Dathomir, in the Galactic Civil War.', source: `${W}Permafrost_crystal/Legends` },
+  { id: 'windus-guile', name: "Windu's Guile", kind: 'natural', item: 'type', worlds: ['Hurikane'], origin: 'a Hurrikaine variant', effect: 'Violet; used by both Rebel and Imperial Force-sensitives.', limits: {}, typeOf: { id: 'hurrikaine', nameFrom: -72 }, notes: "TYPE ONLY: a Hurrikaine crystal, obtainable at any date as Hurrikaine; the name is not used before Mace Windu's time (from his birth, c. 72 BBY [inferred]).", source: `${W}Windu%27s_Guile` },
   { id: 'enhancement-jewel', name: 'Enhancement jewel', kind: 'synthetic', item: 'type', worlds: ['Yavin 4'], origin: 'scavenged from Rebel equipment in the Great Temple, Yavin 4', effect: 'A spherical projector component used as a crystal by Lowbacca.', limits: { availableFrom: 23 }, source: `${W}Enhancement_jewel` },
-  { id: 'lambent', name: 'Lambent', kind: 'natural', item: 'type', worlds: [], origin: 'harvested by the Yuuzhan Vong', effect: "Anakin Solo's crystal.", limits: {}, firstDatedUse: 25, notes: 'Natural, so not gated (decision 1), but it is a Yuuzhan Vong harvest: in practice only reachable once the Vong are in the galaxy (c. 25 ABY).', source: `${W}Lambent` },
+  { id: 'lambent', name: 'Lambent', kind: 'natural', item: 'type', worlds: [], origin: 'harvested by the Yuuzhan Vong', effect: "Anakin Solo's crystal.", limits: { availableFrom: 25 }, firstDatedUse: 25, notes: 'Yuuzhan Vong-grown: available only with Vong contact, c. 25 ABY on.', source: `${W}Lambent` },
 ];
 
 /** Why a crystal is or isn't obtainable in a year. */
@@ -144,6 +125,12 @@ export function crystalAvailability(c: Crystal, year: number): CrystalAvailabili
   if (l.availableFrom !== undefined && year < l.availableFrom) return { ...base, obtainable: false, reason: 'not yet available' };
   if (l.lostAfter !== undefined && year > l.lostAfter) return { ...base, obtainable: false, reason: 'lost' };
   return { ...base, obtainable: true };
+}
+
+/** The name a crystal goes by in `year`: a TYPE ONLY row's later name is not used before its time (Windu's Guile). */
+export function crystalNameAt(c: Crystal, year: number): string {
+  if (!c.typeOf || year >= c.typeOf.nameFrom) return c.name;
+  return CRYSTALS.find((x) => x.id === c.typeOf!.id)?.name ?? c.name;
 }
 
 /** The crystals obtainable in `year`. */
