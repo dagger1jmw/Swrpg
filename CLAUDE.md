@@ -20,6 +20,9 @@
    Long runs (spread, severs, test:lifetime) run in parallel across CPU cores. Tuning decisions always use the full 20 seeds, never a smaller sample. Report the runtime of every long run.
 7. Specs in `docs-v2/spec/` define targets and tests, not exact math. Never carry a formula over from `legacy/` just because it existed. If a cleaner formula hits the same targets and passes the same tests, propose it, log it in `docs-v2/decisions.md`, and wait for approval before switching. Prefer smooth (interpolated) curves over step tables.
 
+## Lore Files
+- HARD RULE (D-438): lore files are never built around a specific year or era window unless the file is explicitly scoped to one (e.g. the Coruscant and Kaas City era files). Every other lore file holds plain dated facts, which the game pulls as needed. No "in 3681–3600" sections and no era-state framing. Catalogs are single dated lists; the game resolves status from the start year. This applies to every future lore batch and research prompt.
+
 ## Documentation
 - Read the relevant feature spec in `docs-v2/spec/` before working.
 - Read `docs-v2/architecture.md` for design and `docs-v2/decisions.md` for design-change history.

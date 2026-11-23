@@ -4,7 +4,7 @@ Every lore file in `Docs/SWRPG lore/`, the canon source of truth for story facts
 
 Game-mechanics sections in these files (Game notes, tiers, numbers) are suggestions that docs-v2 specs may override; every override is logged in `docs-v2/decisions.md`. The runtime lore index for the narrator (D-81, `scripts/build-lore.ts`) reads only the character files, the timeline (the old file and its slices), the species files (sent only when a species is named) and the planets files (a world when the scene is there or it is named; a route when named).
 
-Last updated 2026-11-21.
+Last updated 2026-11-22 (the Nov 22 lore update, D-439). Every lore file holds plain dated facts unless its scope names an era window (CLAUDE.md hard rule, D-438).
 
 ## Character sheets (one file per era)
 
@@ -107,12 +107,37 @@ Last updated 2026-11-21.
 
 | Path | Scope |
 |---|---|
-| `Docs/SWRPG lore/SW_Lightsabers_Crystals_Materials_AllEras.md` | Lightsaber construction, crystals, blade colours, hilt variants and lightsaber-resistant materials, all eras |
+| `Docs/SWRPG lore/SW_Lightsabers_Crystals_Materials_AllEras.md` | Lightsaber construction, blade colours, hilt variants and lightsaber-resistant materials, all eras (its crystal table is now a pointer to SW_Lightsaber_Crystals, D-439) |
+| `Docs/SWRPG lore/SW_Lightsaber_Crystals.md` | Lightsaber crystals: one dated catalog of natural, synthetic and unique crystals with sources, effects and dated limits; the single source of truth for crystal types (game data: src/data/crystals.ts) |
+| `Docs/SWRPG lore/SW_Kolto_Bacta.md` | Kolto and bacta: sources, uses, kolto's undated decline, bacta known from c. 4100 BBY |
 | `Docs/SWRPG lore/SW_Weapons_Armor_AllEras.md` | Non-lightsaber weapons, armour, personal energy shields and anti-Jedi gear, all eras (focus on the Old Republic and Clone Wars) |
 | `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Index.md` | Yuuzhan Vong personal gear: index of the three parts |
 | `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Part1.md` | Yuuzhan Vong gear, Part 1: living weapons and armour |
 | `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Part2.md` | Yuuzhan Vong gear, Part 2: biots, tools, implants, the Embrace of Pain, counter-tech |
 | `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Part3.md` | Yuuzhan Vong gear, Part 3: the Force and the Vong, Vongsense, availability, decisions |
+
+## Places, Force sites and nexuses
+
+Plain dated facts (D-438); the game resolves each place's state from the date.
+
+| Path | Scope |
+|---|---|
+| `Docs/SWRPG lore/SW_Force_Nexus_Vergence.md` | Force nexuses, vergences and wounds in the Force: the dated nexus sites and their leanings (Tython, Korriban, Dromund Kaas, Malachor V, Dagobah's cave, the Coruscant spire, Ilum, Eedit and later sites) |
+| `Docs/SWRPG lore/SW_Malachor_V.md` | Malachor V: the Sith world and the Trayus Academy, the 3960 BBY wound, destruction in 3951 BBY, the wreckage field surveyed by 3640 BBY |
+| `Docs/SWRPG lore/SW_Tython.md` | Tython: the Je'daii, the cataclysm of 25,783 BBY, the lost centuries, the 3651 BBY rediscovery and the Order's seat, Kalikori (an illegal Twi'lek settlement) |
+| `Docs/SWRPG lore/SW_Korriban_Planet.md` | Korriban the planet: the Valley of the Dark Lords, its abandonments and reclamations, the Zakuul bombardment (c. 3636 BBY) |
+| `Docs/SWRPG lore/SW_Dromund_Kaas_History.md` | Dromund Kaas after 3653 BBY (explicitly era-scoped): the Cold War capital, the 3640 attack, Empress Acina's blockaded vassal state under Zakuul (c. 3636–3631 BBY); replaces SW_Dromund_Kaas_After3653 |
+| `Docs/SWRPG lore/SW_Ossus.md` | Ossus: the Jedi library world, the Cron Cluster supernova (3996 BBY), the Ysanna, Gnost-Dural's colony after 3636 BBY and the 3628 BBY invasion |
+| `Docs/SWRPG lore/SW_Dagobah.md` | Dagobah and the Dark Side Cave: the 700 BBY duel that made the cave a dark nexus, Yoda's exile |
+| `Docs/SWRPG lore/SW_Ilum_Temple_CrystalCaves.md` | Ilum: the Jedi Temple and the Crystal Caves (the nexus), dated control and access |
+| `Docs/SWRPG lore/SW_Temple_of_Eedit.md` | The Temple of Eedit on Devaron: a light-associated vergence site (founding date unclear) |
+
+## Force practice and Force objects
+
+| Path | Scope |
+|---|---|
+| `Docs/SWRPG lore/SW_Meditation.md` | Meditation, Jedi and Sith: methods, chambers, moving and healing meditation, meditation spheres |
+| `Docs/SWRPG lore/SW_Holocrons.md` | Holocrons: how they work, gatekeepers, Sith holocron making, and one dated catalog of named holocrons (game data: src/data/holocrons.ts) |
 
 ## Force traditions
 
