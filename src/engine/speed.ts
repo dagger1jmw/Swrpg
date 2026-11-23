@@ -1,5 +1,5 @@
 // Speed multiplier M (progression-numbers §5, §17; D-21, D-64) and the state-of-mind multiplier. Pure.
-import { ACCELERATED_PATH, CROSS_TALENT, FORCE_RICH_FACTOR, GRIEF_MULT, M_CAP, STATE_MULT, TALENT_MULT, type StateOfMind, type TalentLevel } from '../data/progression.config';
+import { ACCELERATED_PATH, CROSS_TALENT, GRIEF_MULT, M_CAP, STATE_MULT, TALENT_MULT, type StateOfMind, type TalentLevel } from '../data/progression.config';
 import { CATEGORY_RULES, SKILL_BY_ID, type TalentDomain } from '../data/skills';
 
 export type Talents = Partial<Record<TalentDomain, TalentLevel>>;
@@ -90,11 +90,12 @@ export const isForceSkill = (skillId: string): boolean => SKILL_BY_ID.get(skillI
 export const isAcceleratedSkill = (skillId: string): boolean => isForceSkill(skillId) || SKILL_BY_ID.get(skillId)?.kind === 'form';
 
 /**
- * M with the special conditions (D-418): a Force-rich place multiplies a Force skill's M inside the 2.8 cap; the
- * accelerated path multiplies a Force skill's or form's M on top of the cap (the only condition allowed past it).
+ * M with the special conditions (D-418, D-432): a Force-rich place's factor (1 elsewhere; forceBonusAt) multiplies a Force
+ * skill's M inside the 2.8 cap; the accelerated path multiplies a Force skill's or form's M on top of the cap (the only
+ * condition allowed past it).
  */
-export function conditionedM(m: number, skillId: string, c: { forceRich: boolean; accelerated: boolean }): number {
-  const place = c.forceRich && isForceSkill(skillId) ? FORCE_RICH_FACTOR : 1;
+export function conditionedM(m: number, skillId: string, c: { forceFactor: number; accelerated: boolean }): number {
+  const place = isForceSkill(skillId) ? c.forceFactor : 1;
   const accel = c.accelerated && isAcceleratedSkill(skillId) ? ACCELERATED_PATH.mult : 1;
   return Math.min(M_CAP, m * place) * accel;
 }

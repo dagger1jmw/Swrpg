@@ -241,7 +241,10 @@ export const SPECIES: readonly SpeciesDef[] = [
     source: DESIGN,
   },
   // ---- Lore batch 21 (D-399): the rest of the playable-ready species, the three thin playable ones, and the NPC-only ones.
-  plain('kel_dor', 'Kel Dor', 70, 18, gs(`venerable 70+ (game stat; ${P1}, Kel Dor)`), { notes: ['Needs a breath mask and goggles off Dorin (story)'] }),
+  // D-434 (Jared): raised from the game stat's 70 (venerable 70+) so Grand Master Zym, a Kel Dor of about 120 in 3661
+  // BBY (born about 3780 BBY, estimate), fits the band: at 150 he reads as a Human of about 81. House default; the Kel Dor
+  // lifespan is on the lore research queue.
+  plain('kel_dor', 'Kel Dor', 150, 18, { lifespan: 'house default', maturity: 'house default', basis: `house default 150 (D-434: Zym at about 120); the game stat says venerable 70+ (${P1}, Kel Dor); lore check queued` }, { notes: ['Needs a breath mask and goggles off Dorin (story)'] }),
   plain('trandoshan', 'Trandoshan', 60, 15, gs(`venerable 60+, adult 15 (UAA; ${P1}, Trandoshan)`, 'game stat'), {
     ageingSigns: [{ text: 'stop regrowing lost limbs at about 54 (mechanical once limb loss exists)', tag: 'game stat' }],
   }),

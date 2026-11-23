@@ -19,14 +19,14 @@ Every item is built and tested except **23, the browser smoke test (Jared's)**. 
 
 **Done before the rest of M7:** the date-agnostic refactor (D-412 to D-416; docs-v2/reports/date-agnostic-refactor.md): the roster's dated rank spans, date-keyed starts and the canon stat model, so ranks can build on them.
 
-**What's left in M7 beyond this checklist** (architecture §15 and the milestone table: "Ranks and milestones"; none of it started):
-- the rank ladders, trials and standing; Order requirements; the Council of Reassignment and the Council bypass; the flag registry sources for rank flags;
-- the Order schedule revisit (D-165: a 13-year-old Padawan's fixed day ends near f 0.97);
+**What's left in M7 beyond this checklist** (architecture §15 and the milestone table: "Ranks and milestones"; status 2026-11-22 in brackets):
+- the rank ladders, trials and standing; Order requirements; the Council of Reassignment and the Council bypass; the flag registry sources for rank flags [built, D-424 to D-430; deeds past five D-435];
+- the Order schedule revisit (D-165: a 13-year-old Padawan's fixed day ends near f 0.97) [built, D-431: age-scaled Padawan hours and the daily meditation block, K and the paces re-measured];
 - Order instruction by named masters (D-124);
-- the Jedi Council path, roles and wartime postings (D-356, D-357);
-- forbidden powers and Order reputation (D-346, built with standing);
-- teaching: the instructor's drill-XP share (D-163);
-- peacetime Sith Force growth and the Sith Order schedule (the M6/M7 note);
+- the Jedi Council path, roles and wartime postings (D-356, D-357) [the High Council seat built, D-430; postings and the other roles story-only, M8 checklist item 11];
+- forbidden powers and Order reputation (D-346, built with standing) [built, D-436];
+- teaching: the instructor's drill-XP share (D-163) [built, D-433: 10% of the student's drill XP];
+- peacetime Sith Force growth and the Sith Order schedule (the M6/M7 note) [the Sith rows built, D-427; the channelling block D-431];
 - design candidates still to be decided:
   - Force traditions as backgrounds, teachers and antagonists (D-359);
   - career paths (D-360 to D-362);

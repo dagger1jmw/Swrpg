@@ -3,6 +3,7 @@
 // is a story event the player plays: code checks the requirements, rolls the checks and applies the result; the AI only
 // proposes (promotionProposed), and a proposal with unmet requirements is rejected and logged (ranks.md test 7).
 import { z } from 'zod';
+import { COVERT_LEARNING, ORDER_POWER_RULES } from '../../data/orderPowerRules';
 import { RANK_BY_ID } from '../../data/rankMinimums';
 import { KNIGHT_TRIAL_IDS, PACE_MILESTONES, SELECTION, SERVICE_CORPS, TRIALS, TRIAL_RULES, type PaceMilestone, type TrialId } from '../../data/ranks.config';
 import { dateFromAbsDay, fromAbsSecond } from '../../engine/calendar';
@@ -173,6 +174,35 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
         return { slice: { ...slice, milestones: [...(slice.milestones ?? []), m] }, emit: [{ type: 'milestoneBeatQueued', id: `milestone:${m}`, label: PACE_MILESTONES[m].label }], notes: [`milestone: ${PACE_MILESTONES[m].label}`] };
       },
     },
+    /**
+     * A Master permits the character to learn a forbidden power (D-346, D-436): the story or the player proposes it; the
+     * engine checks it is a forbidden power for a Jedi and that the one permitting is a Jedi Master (the character's own
+     * master, or an NPC whose role is jediMaster).
+     */
+    forbiddenPermissionGranted: {
+      schema: z.object({ type: z.literal('forbiddenPermissionGranted'), abilityId: z.string(), byNpcRef: z.string() }),
+      sources: ['ai', 'player'],
+      narrative: (s) => s.character.path === 'jedi',
+      handle: (slice, e, ctx) => {
+        const id = String(e['abilityId']);
+        if (ctx.state.character.path !== 'jedi') return { reject: 'only the Jedi Order forbids powers' };
+        if (ORDER_POWER_RULES[id]?.status !== 'forbidden') return { reject: `${id} is not a forbidden power (D-346)` };
+        const ref = String(e['byNpcRef']);
+        const npc = ctx.state.npcs.byId[ref];
+        if (!npc || (npc.role !== 'jediMaster' && slice.masterId !== ref)) return { reject: 'only a Jedi Master can permit a forbidden power' };
+        if ((slice.powerPermissions ?? []).includes(id)) return { slice };
+        return { slice: { ...slice, powerPermissions: [...(slice.powerPermissions ?? []), id] }, notes: [`${npc.name} permits the study of ${id}`] };
+      },
+    },
+    /** Engine: the Order discovers covert learning of a forbidden or dark-side power (D-436): Order standing falls. */
+    covertLearningDiscovered: {
+      schema: z.object({ type: z.literal('covertLearningDiscovered'), abilityId: z.string() }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => ({
+        slice: { ...slice, reputationPenalty: (slice.reputationPenalty ?? 0) + COVERT_LEARNING.standingPenalty, covertDiscoveries: [...(slice.covertDiscoveries ?? []), { abilityId: String(e['abilityId']), day: ctx.state.clock.now.day }] },
+        notes: [`the Order learns of covert study of ${String(e['abilityId'])}: standing -${COVERT_LEARNING.standingPenalty}`],
+      }),
+    },
     /** Engine: chosen as a Padawan (the monthly selection roll, or a Knight's interest while in the Corps). */
     padawanChosen: {
       schema: z.object({ type: z.literal('padawanChosen') }),
@@ -204,6 +234,8 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
     const notices: string[] = [];
     let rng = s.meta.rngState;
     const age = selectExactAge(s);
+    // Standing lost to covert learning fades (D-436): COVERT_LEARNING.decayPerYear a year, a twelfth each month.
+    const fading = (slice.reputationPenalty ?? 0) > 0 ? { ...slice, reputationPenalty: Math.max(0, (slice.reputationPenalty ?? 0) - COVERT_LEARNING.decayPerYear / 12) } : slice;
     if (slice.rank === 'initiate' && !slice.corps) {
       if (age >= SELECTION.maxAge) {
         let u: number;
@@ -242,7 +274,7 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
       const p = selectPaceForAge(s);
       for (const m of paceMilestonesDue({ years: p.years, pace: p.pace, aheadYears: selectAheadYears(s), reached: slice.milestones ?? [] })) emit.push({ type: 'paceMilestoneReached', milestone: m });
     }
-    return emit.length ? { slice, emit, notices, rng } : { slice, rng };
+    return emit.length ? { slice: fading, emit, notices, rng } : { slice: fading, rng };
   },
   selectors: { rank: selectRank, rankName: selectRankName },
 };

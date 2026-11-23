@@ -25,6 +25,12 @@ export const ranksSliceSchema = z.object({
   milestones: z.array(z.string()).optional(),
   /** A seat on the High Council (ranks.md §1; D-430): granted on a story vacancy when the engine's checks hold. */
   councilSeat: z.boolean().optional(),
+  /** Forbidden powers (D-346) a Master has permitted the character to learn (D-436). */
+  powerPermissions: z.array(z.string()).optional(),
+  /** Order standing lost to discovered covert learning (D-436), fading over time. */
+  reputationPenalty: z.number().min(0).optional(),
+  /** Covert learning the Order discovered: the power and the day (D-436). */
+  covertDiscoveries: z.array(z.object({ abilityId: z.string(), day: z.number().int() })).optional(),
 });
 export type RanksSlice = z.infer<typeof ranksSliceSchema>;
 

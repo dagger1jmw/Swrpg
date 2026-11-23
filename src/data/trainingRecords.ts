@@ -19,6 +19,8 @@ export interface TrainingRecordDef {
   fromYear?: number;
   /** Only at these places (matched against the current location and its ancestors): the Archives in the Temple (D-427). */
   places?: readonly string[];
+  /** A Jedi or Sith text (D-436): Jedi texts teach only what the Order permits; archives take it from their paths. */
+  tradition?: 'jedi' | 'sith';
 }
 
 /** Design default: the New Jedi Order's academy and its recovered Form VII records, c. 11 ABY (D-352 [21], D-370). */
@@ -42,11 +44,11 @@ export const TRAINING_RECORDS: readonly TrainingRecordDef[] = [
   // The Archives stand in the Coruscant Temple and, after the Sacking, on Tython (the Order's seats, orderSeats.ts).
   { id: 'record:jediArchivesTemple', name: 'Jedi Archives: the full collection, studied in the Temple', kind: 'archive', paths: ['jedi'], levels: { forceKnowledge: 75, meditation: 50, forceSense: 40 }, places: ['Jedi Temple', 'Tython'] },
   { id: 'record:sithLibraryKorriban', name: 'the Sith Library of the Korriban Academy', kind: 'archive', paths: ['sith'], levels: { forceKnowledge: 70, forceOutput: 40 }, places: ['Korriban'] },
-  { id: 'journal:jediMaster', name: "A Jedi Master's journal", kind: 'journal', paths: [], levels: { forceKnowledge: 55, forceControl: 50, meditation: 50 } },
+  { id: 'journal:jediMaster', tradition: 'jedi', name: "A Jedi Master's journal", kind: 'journal', paths: [], levels: { forceKnowledge: 55, forceControl: 50, meditation: 50 } },
   // Legends: Obi-Wan Kenobi kept journals in his exile on Tatooine (19-0 BBY), which Luke read; the levels are invented.
-  { id: 'journal:obiWanKenobi', name: "Obi-Wan Kenobi's journal", kind: 'journal', paths: [], levels: { forceKnowledge: 70, meditation: 60, forceControl: 65, soresu: 70 }, fromYear: -19 },
-  { id: 'holocron:jediGatekeeper', name: 'A Jedi holocron with its gatekeeper', kind: 'holocron', paths: [], levels: { forceKnowledge: 85, meditation: 70, forceSense: 70 } },
-  { id: 'holocron:sithLord', name: "A Sith Lord's holocron", kind: 'holocron', paths: [], levels: { forceKnowledge: 80, forceOutput: 60, forceLightning: 55 } },
+  { id: 'journal:obiWanKenobi', tradition: 'jedi', name: "Obi-Wan Kenobi's journal", kind: 'journal', paths: [], levels: { forceKnowledge: 70, meditation: 60, forceControl: 65, soresu: 70 }, fromYear: -19 },
+  { id: 'holocron:jediGatekeeper', tradition: 'jedi', name: 'A Jedi holocron with its gatekeeper', kind: 'holocron', paths: [], levels: { forceKnowledge: 85, meditation: 70, forceSense: 70 } },
+  { id: 'holocron:sithLord', tradition: 'sith', name: "A Sith Lord's holocron", kind: 'holocron', paths: [], levels: { forceKnowledge: 80, forceOutput: 60, forceLightning: 55 } },
 ];
 
 export const TRAINING_RECORD_BY_ID: ReadonlyMap<string, TrainingRecordDef> = new Map(TRAINING_RECORDS.map((r) => [r.id, r]));

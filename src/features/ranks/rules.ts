@@ -1,7 +1,8 @@
 // Rank rules (ranks.md §1-5, flag-registry.md §2-3; M7 §15, D-424). Pure: no DOM, no network, no state access; the
 // selectors feed them. Every promotion is a story event the player plays: code checks the requirements, rolls the
 // checks and applies the result; the AI only proposes.
-import { COUNCIL_BYPASS, DEED_POINTS, KNIGHT_TRIAL_IDS, PACE_MILESTONES, SELECTION, STANDING_WEIGHTS, TRIALS, TRIAL_RULES, type PaceMilestone, type TrialDef, type TrialId } from '../../data/ranks.config';
+import { COVERT_LEARNING, ORDER_POWER_RULES } from '../../data/orderPowerRules';
+import { COUNCIL_BYPASS, DEED_POINTS, DEEDS_PAST, KNIGHT_TRIAL_IDS, PACE_MILESTONES, SELECTION, STANDING_WEIGHTS, TRIALS, TRIAL_RULES, type PaceMilestone, type TrialDef, type TrialId } from '../../data/ranks.config';
 import { KNIGHT_TRIALS } from '../../data/rankMinimums';
 import { basicRoll, dcForRating, type BasicRoll } from '../../engine/rolls';
 import type { RngState } from '../../engine/rng';
@@ -29,12 +30,46 @@ export function percentileOf(composite: number, population: readonly number[]): 
   return below / population.length;
 }
 
-/** Standing S, 0-100 (ranks.md §1): 50% skill percentile, 30% deeds, 20% relationships with Knights and Masters. */
+/** The deeds score (D-424, D-435): DEED_POINTS a deed to 100 at DEEDS_PAST.from, then diminishing returns toward 130. */
+export function deedScore(n: number): number {
+  if (n <= DEEDS_PAST.from) return Math.max(0, n) * DEED_POINTS;
+  return DEEDS_PAST.from * DEED_POINTS + DEEDS_PAST.extra * (1 - Math.exp(-(n - DEEDS_PAST.from) / DEEDS_PAST.scale));
+}
+
+/**
+ * Standing S (ranks.md §1): 50% skill percentile, 30% deeds, 20% relationships with Knights and Masters; up to 109 with
+ * deeds past the fifth (D-435).
+ */
 export function standing(i: { percentile: number; deeds: number; relationships: number }): number {
-  const deeds = Math.min(100, i.deeds * DEED_POINTS);
+  const deeds = deedScore(i.deeds);
   const rel = Math.max(0, Math.min(100, i.relationships));
   return STANDING_WEIGHTS.percentile * 100 * i.percentile + STANDING_WEIGHTS.deeds * deeds + STANDING_WEIGHTS.relationships * rel;
 }
+
+/** The Order's verdict on learning a power (D-436): open, refused by an Order teacher, or covert (allowed, at a risk). */
+export type OrderPowerVerdict = { kind: 'open'; note?: string } | { kind: 'refused'; reason: string } | { kind: 'covert'; reason: string };
+
+/**
+ * The Jedi Order's rules on a power (D-346, D-436; ORDER_POWER_RULES): only Jedi-path characters are bound. A forbidden
+ * power in force is open to a Master in its controlled-study years and to anyone with a Master's permission; a dark-side
+ * power never is. Otherwise an Order teacher (the Temple's instructors, a Jedi master, Jedi records) refuses it, and
+ * learning it any other way is covert.
+ */
+export function orderPowerVerdict(i: { abilityId: string; name: string; year: number; path: string; rank: string; permitted: boolean; orderTeacher: boolean }): OrderPowerVerdict {
+  const rule = ORDER_POWER_RULES[i.abilityId];
+  if (i.path !== 'jedi' || !rule || rule.status === 'open') return { kind: 'open' };
+  if (rule.status === 'forbidden') {
+    if ((rule.fromYear !== undefined && i.year < rule.fromYear) || (rule.untilYear !== undefined && i.year >= rule.untilYear)) return { kind: 'open' };
+    if (i.rank === 'master' && (rule.masterStudyFromYear === undefined || i.year >= rule.masterStudyFromYear)) return { kind: 'open', note: `${i.name}: a Master's controlled study (D-346)` };
+    if (i.permitted) return { kind: 'open', note: `${i.name}: learned with a Master's permission (D-346)` };
+  }
+  const what = rule.status === 'forbidden' ? `forbidden by the Jedi Order (a Master's permission is needed)` : 'a dark-side power the Jedi Order never teaches';
+  if (i.orderTeacher) return { kind: 'refused', reason: `${i.name} is ${what}` };
+  return { kind: 'covert', reason: `${i.name} is ${what}: learning it covertly risks your standing in the Order` };
+}
+
+/** The chance a covert session is discovered (D-436): COVERT_LEARNING.perHour a session hour, at most maxChance. */
+export const covertDiscoveryChance = (hours: number): number => Math.min(COVERT_LEARNING.maxChance, COVERT_LEARNING.perHour * Math.max(0, hours));
 
 /** The monthly chance a Knight or Master chooses an Initiate (S / 940; ranks.md §1, D-120). */
 export const selectionChance = (s: number): number => Math.max(0, Math.min(1, s / SELECTION.divisor));

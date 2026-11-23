@@ -57,3 +57,6 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [ ] **10. An officer archetype with command and staff work (Jared, D-427 [9]).**
 
   Tactics main, Intelligence second, Charisma. Commanding in a battle earns tactics XP the way fighting earns form XP (from the battle's stakes and outcome); staff work (planning, logistics) is an activity for Intelligence and Tactics. Today officers use the soldier archetype, and no source but study grows tactics (calibration report §4).
+- [ ] **11. Wartime postings and the Council's other roles (Jared, D-436 [12]).**
+
+  Story-only for now: postings to the front (a Knight or Padawan sent to a war zone or attached to a fleet), and the Council's roles beyond the High Council seat (the Council of Reassignment's work, the Council of First Knowledge, the Reconciliation Council, wartime command of Jedi in the field). Revisit with the world events (items 8 and 9): a posting could follow a world event's front and set the routine and the fight schedule for its duration.

@@ -36,6 +36,11 @@ export const ABILITY_FORCE_GROUP: Readonly<Record<string, ForceGroup>> = {
   forceHealSelf: 'unopposed',
   forceHealOthers: 'unopposed',
   revitalize: 'unopposed',
+  // The forbidden powers (D-436; their combat rules wait for the M6 catalog): bolts like lightning; a gaze that hits everyone
+  // in view (avoidable, as a ranged attack); Morichro is contested by Willpower (force-catalog-m6 §5), as a mind power.
+  electricJudgment: 'avoidable',
+  deadlySight: 'avoidable',
+  morichro: 'mind',
 };
 
 /** Traits that change Force resolution. */

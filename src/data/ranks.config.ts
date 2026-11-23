@@ -83,8 +83,15 @@ export type ServiceCorps = (typeof SERVICE_CORPS)[number];
 
 /** Standing S, 0-100 (ranks.md §1): 50% skill percentile, 30% deeds, 20% relationships with Knights and Masters. */
 export const STANDING_WEIGHTS = { percentile: 0.5, deeds: 0.3, relationships: 0.2 } as const;
-/** Each engine-set deed flag is worth this much of the deeds score, to 100 (design default, D-424). */
+/** Each engine-set deed flag is worth this much of the deeds score, to 100 at DEEDS_PAST.from deeds (design default, D-424). */
 export const DEED_POINTS = 20;
+/**
+ * Deeds past the fifth (D-435, Jared): they still count, with diminishing returns: the deeds score is
+ * 100 + extra x (1 - exp(-(n - from) / scale)), toward 130. Invented. Tuned so an average Padawan (the 15th-26th
+ * percentile among Padawans) never reaches the bypass's 75 even with perfect relationships (at most 72), while a strong
+ * one with sustained deeds can (the 60th percentile with relationships +40 at about 13 deeds).
+ */
+export const DEEDS_PAST = { from: 5, extra: 30, scale: 5 } as const;
 
 /** masterApproval (flag-registry §2): Padawan 6+ years, age 18+, relationship with the master +40 (friend), Knight minimums met. */
 export const MASTER_APPROVAL = { relationship: 40 } as const;

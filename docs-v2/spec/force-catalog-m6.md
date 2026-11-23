@@ -83,6 +83,7 @@ This keeps the tuning to a short list of overrides and the six reserve-spec defa
   - **Deadly Sight:** forbidden.
   - **Morichro:** forbidden by 1000 BBY; Yaddle is the exception.
 - The class sets who may learn the power. Its side, tier and costs are unchanged.
+- **Built (D-436, 2026-11-22):** src/data/orderPowerRules.ts holds each power's Order status (open, forbidden with its years, or dark side); the three forbidden powers are in the code's ability list (their combat effects wait for the catalog integration); Order teachers refuse a closed power, a Master's permission (forbiddenPermissionGranted) opens a forbidden one, and covert learning risks discovery and Order standing (ranks.md, the Order's rules on Force powers).
 
 ## 4. Audit findings (first pass)
 

@@ -10,6 +10,7 @@ import { makeEstimator } from '../ai/tokenRatio';
 import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { orderSeatAt } from '../data/orderSeats';
+import { ORDER_POWER_RULES } from '../data/orderPowerRules';
 import { controlAt, leadersAt } from '../data/worldControl';
 import { onRecordAt, onRecordFor } from '../data/canonPlacements';
 import { describeTravel } from './travel';
@@ -215,6 +216,22 @@ export function selectCaptors(state: GameState): { group: string; kind: string |
   return c;
 }
 
+/**
+ * The Jedi Order's rules on powers for a Jedi (D-346, D-436): the forbidden powers in force, the permissions held, and any
+ * covert study the Order has discovered. The engine enforces them; the narrator only knows them.
+ */
+function orderPowersLine(state: GameState): string | null {
+  if (state.character.path !== 'jedi') return null;
+  const year = dateFromAbsDay(state.clock.now.day).year;
+  const forbidden = Object.entries(ORDER_POWER_RULES)
+    .filter(([, r]) => r.status === 'forbidden' && (r.fromYear === undefined || year >= r.fromYear) && (r.untilYear === undefined || year < r.untilYear))
+    .map(([id]) => SKILL_BY_ID.get(id)?.name ?? id);
+  const permitted = (state.ranks.powerPermissions ?? []).map((id) => SKILL_BY_ID.get(id)?.name ?? id);
+  const found = [...new Set((state.ranks.covertDiscoveries ?? []).map((d) => SKILL_BY_ID.get(d.abilityId)?.name ?? d.abilityId))];
+  const penalty = Math.round(state.ranks.reputationPenalty ?? 0);
+  return `Order rules on powers: dark-side powers are never taught${forbidden.length ? `; forbidden without a Master's permission: ${forbidden.join(', ')}` : ''}${permitted.length ? `; permitted to you: ${permitted.join(', ')}` : ''}${found.length ? `; the Order knows of your covert study of ${found.join(', ')}${penalty > 0 ? ` (standing -${penalty})` : ''}` : ''}`;
+}
+
 function captiveLine(state: GameState): string | null {
   const c = selectCaptors(state);
   return c ? `CAPTIVE: the player character was captured by ${c.group}${c.kind ? ` (${c.names.join(', ')})` : ''}${c.weapon ? `, armed with ${c.weapon} and no other weapons` : ''} in the last fight. Name these captors, and no other kind of soldier or droid, until the story frees the character. A blow from a captor is a story event only: it does not wound the character.` : null;
@@ -276,6 +293,7 @@ export function stateBlock(
     `Date: ${formatDate(now.day)}`,
     `Jedi Order: ${orderSeatAt(dateFromAbsDay(now.day).year) ?? 'no standing Temple at this date'}`,
     ...rankLines(dateFromAbsDay(now.day).year),
+    ...(orderPowersLine(state) ? [orderPowersLine(state)!] : []),
     ...worldLines(-dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
     ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), namedCanonIds(state, focus, playerText, -dateFromAbsDay(now.day).year)),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,

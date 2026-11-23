@@ -115,6 +115,11 @@ export const SKILLS: readonly SkillDef[] = [
   ability('forceHealSelf', 'Force Heal (Self)', 'nonCombat', 'light'),
   ability('forceHealOthers', 'Force Heal (Others)', 'nonCombat', 'light'),
   ability('revitalize', 'Revitalize', 'nonCombat', 'light'),
+  // The forbidden powers (D-346; force-catalog-m6 §3, §5; D-436): in the catalog for the Order's rules; their combat
+  // effects are narrator-only until the M6 catalog integration gives them rules.
+  ability('electricJudgment', 'Electric Judgment', 'combat', 'light'),
+  ability('deadlySight', 'Deadly Sight', 'combat', 'dark'),
+  ability('morichro', 'Morichro', 'both', 'light'),
   career('blaster', 'Blaster', 'technique'),
   career('melee', 'Melee', 'technique'),
   career('piloting', 'Piloting', 'technique'),

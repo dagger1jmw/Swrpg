@@ -101,3 +101,4 @@ State of mind and alignment
   moralChoice { direction: light | dark, weight: 1-3, description }
 Rank
   promotionProposed { rank, grantedByRef, occasion }  -> engine checks requirements first
+  forbiddenPermissionGranted { abilityId, byNpcRef } -> engine checks: a forbidden power (D-346), a Jedi Master (D-436)

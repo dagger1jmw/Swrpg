@@ -179,3 +179,6 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 - Dagobah as a Force-rich world (teeming with life) and the dark-side cave as a nexus site: Jared's ruling from Legends (The Empire Strikes Back); not yet in the lore files. Wanted: a cited entry (planet and site, leaning).
 - Ilum: listed as a light nexus in force-reserve.md §9 but not in the lore files; left out of src/data/forceNexus.ts until cited.
 - The Coruscant Jedi Temple's leaning (the lore gives "a Force nexus holy to the native Coruscanti", leaning unstated; light is inferred).
+
+## Species lifespans (D-434, 2026-11-22)
+- Kel Dor lifespan: the species file gives "venerable 70+" (a game stat), but Grand Master Zym, a Kel Dor, is about 120 in 3661 BBY. Raised to 150 as a house default (src/data/species.ts). Wanted: a cited Legends lifespan or the age of an old Kel Dor (Zym, Plo Koon's elders).

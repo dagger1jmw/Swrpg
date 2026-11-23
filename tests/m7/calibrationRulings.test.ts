@@ -41,12 +41,12 @@ const canon = (id: string) => CANON_BY_ID.get(`lore:${id}`)!;
 
 describe('the accelerated path and Force-rich places (D-418)', () => {
   it('a Force-rich place speeds a Force skill inside the M cap; the accelerated path goes past it for Force skills and forms only', () => {
-    expect(conditionedM(1, 'forceControl', { forceRich: true, accelerated: false })).toBeCloseTo(FORCE_RICH_FACTOR);
-    expect(conditionedM(1, 'soresu', { forceRich: true, accelerated: false })).toBe(1);
-    expect(conditionedM(M_CAP, 'forceControl', { forceRich: true, accelerated: false })).toBe(M_CAP);
-    expect(conditionedM(M_CAP, 'soresu', { forceRich: false, accelerated: true })).toBeCloseTo(M_CAP * ACCELERATED_PATH.mult);
-    expect(conditionedM(1, 'forceKnowledge', { forceRich: true, accelerated: true })).toBe(1);
-    expect(conditionedM(1, 'intelligence', { forceRich: false, accelerated: true })).toBe(1);
+    expect(conditionedM(1, 'forceControl', { forceFactor: FORCE_RICH_FACTOR, accelerated: false })).toBeCloseTo(FORCE_RICH_FACTOR);
+    expect(conditionedM(1, 'soresu', { forceFactor: FORCE_RICH_FACTOR, accelerated: false })).toBe(1);
+    expect(conditionedM(M_CAP, 'forceControl', { forceFactor: FORCE_RICH_FACTOR, accelerated: false })).toBe(M_CAP);
+    expect(conditionedM(M_CAP, 'soresu', { forceFactor: 1, accelerated: true })).toBeCloseTo(M_CAP * ACCELERATED_PATH.mult);
+    expect(conditionedM(1, 'forceKnowledge', { forceFactor: FORCE_RICH_FACTOR, accelerated: true })).toBe(1);
+    expect(conditionedM(1, 'intelligence', { forceFactor: 1, accelerated: true })).toBe(1);
   });
   it('only the accelerated path raises the 4.0x clamp, and only for its skills', () => {
     expect(conditionedCap(100, 'djemSo', true)).toBeCloseTo(100 * ACCELERATED_PATH.capMult);

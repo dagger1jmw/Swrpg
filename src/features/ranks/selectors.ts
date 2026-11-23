@@ -4,14 +4,14 @@ import { archetypeDef } from '../../data/archetypes';
 import { WARS, TALENT_ROLL_ORDERS } from '../../data/npcGen.config';
 import { KNIGHT_TRIALS, RANK_BY_ID, ranksForPath } from '../../data/rankMinimums';
 import { COUNCIL_SEAT, MASTER_APPROVAL, SELECTION, TAKE_PADAWAN_AGE, type TrialId } from '../../data/ranks.config';
-import { FORM_IDS, TALENT_DOMAINS } from '../../data/skills';
+import { FORM_IDS, SKILL_BY_ID, TALENT_DOMAINS } from '../../data/skills';
 import { dateFromAbsDay } from '../../engine/calendar';
 import { nextFloat, seedRng } from '../../engine/rng';
 import type { GameState } from '../../state/gameState';
 import { computeCreation, selectCharacter, selectExactAge, selectHumanAge } from '../character/selectors';
 import { selectHasFlag, selectFlags } from '../flags/selectors';
 import { selectLevelExact } from '../progression/selectors';
-import { NO_RECORD, bypassUnmet, knightTrialsDone, percentileOf, standing, trialBlock, unmetMinimums, type TrialRecord } from './rules';
+import { NO_RECORD, bypassUnmet, knightTrialsDone, orderPowerVerdict, percentileOf, standing, trialBlock, unmetMinimums, type OrderPowerVerdict, type TrialRecord } from './rules';
 
 export const selectRank = (s: GameState): string => s.ranks.rank;
 export const selectRankName = (s: GameState): string => RANK_BY_ID.get(s.ranks.rank)?.name ?? s.ranks.rank;
@@ -111,7 +111,23 @@ export function selectSkillPercentile(s: GameState, size: number = SELECTION.pop
 
 /** Standing S, 0-100 (ranks.md §1). */
 export function selectStanding(s: GameState, size?: number): number {
-  return standing({ percentile: selectSkillPercentile(s, size), deeds: selectDeedCount(s), relationships: selectSeniorRelationships(s) });
+  // Less the standing lost to discovered covert learning (D-436).
+  return Math.max(0, standing({ percentile: selectSkillPercentile(s, size), deeds: selectDeedCount(s), relationships: selectSeniorRelationships(s) }) - (s.ranks.reputationPenalty ?? 0));
+}
+
+export { covertDiscoveryChance } from './rules';
+
+/** The Order's verdict on learning a power now (D-436), given whether the source is an Order teacher. */
+export function selectOrderPowerVerdict(s: GameState, abilityId: string, orderTeacher: boolean): OrderPowerVerdict {
+  return orderPowerVerdict({
+    abilityId,
+    name: SKILL_BY_ID.get(abilityId)?.name ?? abilityId,
+    year: dateFromAbsDay(s.clock.now.day).year,
+    path: s.character.path,
+    rank: s.ranks.rank,
+    permitted: (s.ranks.powerPermissions ?? []).includes(abilityId),
+    orderTeacher,
+  });
 }
 
 /** The master's approval conditions (flag-registry §2), the unmet ones. */

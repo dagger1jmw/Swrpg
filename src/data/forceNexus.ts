@@ -42,13 +42,27 @@ const inEra = (n: ForceNexus, year: number | undefined): boolean => year === und
 
 /**
  * The Force-rich world here (D-425): a planet-level nexus or a Force-rich world among these place names (a location
- * and its ancestors), in the year. Sites are data only for now (their bonus, stacking and leaning are open questions).
+ * and its ancestors), in the year. Sites: nexusSitesAt; the bonus with both levels and the leaning is forceBonusAt (D-432).
  */
 export function forceRichWorldAt(placeNames: readonly string[], year?: number): ForceNexus | null {
   return FORCE_NEXUSES.find((n) => n.level === 'planet' && inEra(n, year) && placeNames.some((p) => norm(p).includes(norm(n.planet)))) ?? null;
 }
 
-/** The nexus sites among these place names (data for the narrator and the open questions). */
+/** The nexus sites among these place names. */
 export function nexusSitesAt(placeNames: readonly string[], year?: number): ForceNexus[] {
   return FORCE_NEXUSES.filter((n) => n.level === 'site' && inEra(n, year) && placeNames.some((p) => norm(p).includes(norm(n.name.replace(/^the /, '')))));
+}
+
+/** Whether a place's leaning gives a character of this leaning its bonus (D-432): the same leaning, or a balanced place. */
+export const leaningMatches = (place: NexusLeaning, character: NexusLeaning): boolean => place === 'balanced' || place === character;
+
+/**
+ * The Force-skill training bonus here (D-432, Jared): a Force-rich world or nexus planet x`world`, a nexus site x`site`;
+ * no stacking (the stronger of the site and its planet wins); only where the place's leaning matches the character's or
+ * is balanced (a mismatched leaning gives no bonus for now; alignment effects come later).
+ */
+export function forceBonusAt(placeNames: readonly string[], year: number | undefined, leaning: NexusLeaning, factors: { world: number; site: number }): { nexus: ForceNexus; factor: number } | null {
+  const world = forceRichWorldAt(placeNames, year);
+  const options = [...(world ? [{ nexus: world, factor: factors.world }] : []), ...nexusSitesAt(placeNames, year).map((n) => ({ nexus: n, factor: factors.site }))];
+  return options.filter((o) => leaningMatches(o.nexus.leaning, leaning)).sort((a, b) => b.factor - a.factor)[0] ?? null;
 }

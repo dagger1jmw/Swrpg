@@ -2,7 +2,7 @@
 // session and the engine events that apply it. Feature rule code: pure, reads other features
 // through selectors. An unknown or locked activity is rejected with a reason and never mapped to a
 // nearby one (D-07, skills-and-activities.md §2).
-import { ORDER_SPARRING_CLASSES, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
+import { FORCE_RICH_FACTOR, INSTRUCTOR_SHARE, INTENSITY, NEXUS_SITE_FACTOR, ORDER_SPARRING_CLASSES, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
 import { forceFraction } from '../../engine/forceMeter';
 import { sparringE, splitDrillXp, type SparE } from '../../engine/appliedExperience';
 import { ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, type ActivityDef, type Intensity, type Unlock } from '../../data/activities';
@@ -28,19 +28,19 @@ import { levelExact, tierOf, levelWithNatural, xpForLevel } from '../../engine/c
 import { tirednessLabel } from '../../engine/fatigue';
 import { instructionFactor } from '../../engine/instruction';
 import { clampCredit, clampShare, inWindow, paceCap } from '../../engine/paceClamp';
-import type { RngState } from '../../engine/rng';
+import { nextFloat, type RngState } from '../../engine/rng';
 import { humanEquivalentAge, speciesLearning } from '../../engine/species';
 import { conditionedCap, conditionedM, crossTalentMult, isChannelEligible, speedM, stateMult, talentMult } from '../../engine/speed';
 import { selectCurrentLocationId, selectLocationChain } from '../locations/selectors';
-import { forceRichWorldAt } from '../../data/forceNexus';
+import { forceBonusAt, type NexusLeaning } from '../../data/forceNexus';
 import { speciesDef } from '../../data/species';
 import type { GameState } from '../../state/gameState';
 import type { GameEvent } from '../../state/types';
 import { selectCharacter, selectExactAge, selectHumanAge, selectPath } from '../character/selectors';
 import { selectNow } from '../clock/selectors';
 import { selectMeters } from '../health/selectors';
-import { selectNpc, selectNpcLevel } from '../npcs/selectors';
-import { selectRank } from '../ranks/selectors';
+import { selectNpc, selectNpcAgeOrDefault, selectNpcLevel } from '../npcs/selectors';
+import { covertDiscoveryChance, selectOrderPowerVerdict, selectRank } from '../ranks/selectors';
 import { selectRelationship } from '../relationships/selectors';
 import {
   selectBank,
@@ -269,11 +269,20 @@ export function speedFor(s: GameState, instruction: number): (skill: string) => 
   };
 }
 
-/** The special training conditions in force now (D-418): the accelerated path, and a Force-rich place. */
-export function selectTrainingConditions(s: GameState): { accelerated: boolean; forceRich: boolean; site: string | null } {
+/**
+ * The character's leaning for the place bonus (D-432): the path's until alignment exists (M6): a Jedi light, a Sith dark,
+ * anyone else balanced (a balanced place only). Design default.
+ */
+export function selectCharacterLeaning(s: GameState): NexusLeaning {
+  const path = selectCharacter(s).path;
+  return path === 'jedi' ? 'light' : path === 'sith' ? 'dark' : 'balanced';
+}
+
+/** The special training conditions in force now (D-418, D-432): the accelerated path, and a Force-rich place's factor. */
+export function selectTrainingConditions(s: GameState): { accelerated: boolean; forceRich: boolean; forceFactor: number; site: string | null } {
   const names = selectLocationChain(s, selectCurrentLocationId(s)).flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean));
-  const site = forceRichWorldAt(names, dateFromAbsDay(selectNow(s).day).year);
-  return { accelerated: selectCharacter(s).trainingPath === 'accelerated', forceRich: site !== null, site: site?.name ?? null };
+  const bonus = forceBonusAt(names, dateFromAbsDay(selectNow(s).day).year, selectCharacterLeaning(s), { world: FORCE_RICH_FACTOR, site: NEXUS_SITE_FACTOR });
+  return { accelerated: selectCharacter(s).trainingPath === 'accelerated', forceRich: bonus !== null, forceFactor: bonus?.factor ?? 1, site: bonus?.nexus.name ?? null };
 }
 
 /** Reviewing a recording of one's own fight: +5% XP to that skill for 3 days (progression-numbers §19, D-154). */
@@ -330,6 +339,12 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     }
   }
   const teaching = teacherId !== null || record !== undefined || source?.kind === 'instructor' || source?.kind === 'master';
+  // The Jedi Order's rules on powers (D-346, D-436): an Order teacher (the Temple's instructors, a Jedi master or Jedi
+  // teacher, Jedi records) refuses a forbidden or dark-side power; learning it any other way is covert.
+  const orderTeacher =
+    source?.kind === 'instructor' || source?.kind === 'master' || (teacherId !== null && selectNpc(s, teacherId)?.factionId === 'jediOrder') || (record !== undefined && (record.paths.includes('jedi') || record.tradition === 'jedi'));
+  const verdict = SKILL_BY_ID.get(primary)?.kind === 'forceAbility' ? selectOrderPowerVerdict(s, primary, orderTeacher) : ({ kind: 'open' } as { kind: 'open'; note?: string });
+  if (verdict.kind === 'refused') return { ok: false, reason: verdict.reason };
   const partnered = partnerId !== null || source?.kind === 'peers';
   // Fundamentals transfer (D-119): a lightsaber form's first session as the primary starts it at 0.75 x
   // the highest form's XP, once per form, outside the 4.0x clamp. The session then runs on top of it. Worked out
@@ -474,6 +489,35 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
       notes.push(`${SKILL_BY_ID.get(id)!.name}: drill ceiling ${selectDrillCeiling(s, id).toFixed(1)}: ${split.applied.toFixed(2)} XP applied, ${split.banked.toFixed(2)} banked${lost}`);
     }
   }
+  // The instructor's share (D-433, Jared): teaching a Padawan, the teacher gains INSTRUCTOR_SHARE.share of the student's
+  // drill XP in the drilled form (the session's form, else the teacher's main form), at most maxPerHour a session hour,
+  // inside the 4.0x clamp, counted as teaching. The student's drill XP is modelled: the session's effective hours at a
+  // standard drill, the student's age factor and the teacher's instruction factor (the student's level from the NPC).
+  const apprentice = a.id === 'teachingPadawan' ? s.ranks.apprenticeId : null;
+  const taughtForm = req.skillId && SKILL_BY_ID.get(req.skillId)?.kind === 'form' ? req.skillId : selectCharacter(s).mainFormId;
+  if (apprentice && taughtForm && selectNpc(s, apprentice)) {
+    const teacherLevel = selectLevelExact(s, taughtForm);
+    const studentLevel = selectNpcLevel(s, apprentice, taughtForm) ?? 0;
+    const teach = instructionFactor({ studentLevel, teacher: { level: teacherLevel, bond: (selectRelationship(s, apprentice)?.value ?? 0) >= 20, aptitude: STUB_TEACHER_APTITUDE } }).factor;
+    const studentXp = r.effectiveHours * INTENSITY.standard.xp * ageFactor('technique', selectNpcAgeOrDefault(s, apprentice)) * teach;
+    const share = Math.min(INSTRUCTOR_SHARE.share * studentXp, INSTRUCTOR_SHARE.maxPerHour * r.hours);
+    const had = r.credited[taughtForm] ?? 0;
+    const got = Math.max(0, clamp(taughtForm, had + share, r.hours).credited - had);
+    if (got > 0) {
+      credited[taughtForm] = (credited[taughtForm] ?? 0) + got;
+      notes.push(`instructor's share: +${got.toFixed(2)} XP to ${SKILL_BY_ID.get(taughtForm)?.name ?? taughtForm} (${Math.round(INSTRUCTOR_SHARE.share * 100)}% of the student's drill XP, counted as teaching)`);
+    }
+  }
+  // Covert learning (D-436): the session may be discovered (COVERT_LEARNING), which costs Order standing.
+  let rngAfter = r.rng;
+  let discovered = false;
+  if (verdict.kind === 'covert') {
+    notes.push(verdict.reason);
+    let u: number;
+    [u, rngAfter] = nextFloat(rngAfter);
+    discovered = u < covertDiscoveryChance(r.hours);
+    if (discovered) notes.push('the Order has learned of it: your standing falls');
+  } else if (verdict.kind === 'open' && verdict.note) notes.push(verdict.note);
   const round = (rec: Record<string, number>): Record<string, number> => Object.fromEntries(Object.entries(rec).map(([k, v]) => [k, Math.round(v * 100) / 100]));
   const levels = Object.keys(prim).map((id) => {
     const after = Math.floor(levelWithNatural(selectSkillXp(s, id) + (credited[id] ?? 0), selectNatural(s, id)) + 1e-9);
@@ -532,6 +576,7 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
       day: r.day,
     },
     { type: 'activityLoad', activityId: a.id, meters: r.meters },
+    ...(discovered ? [{ type: 'covertLearningDiscovered', abilityId: primary }] : []),
   ];
-  return { ok: true, card, events, rng: r.rng, hours: r.hours };
+  return { ok: true, card, events, rng: rngAfter, hours: r.hours };
 }
