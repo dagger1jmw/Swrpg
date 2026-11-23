@@ -23,6 +23,7 @@ import { pickDrillRating, type Effort } from '../../engine/challenge';
 import { FORCE_XP_TRIAL } from '../../engine/forceXpTrial';
 import { forceSessionRating, recordChallenge, trialMeditation } from './forceXpTrialHook';
 import { transferXp } from '../../engine/forms';
+import { saberGateOpen } from '../../data/initiateCurriculum';
 import { computeTrainingXp, type SessionSplit, type TrainingResult } from '../../engine/computeXp';
 import { levelExact, tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { tirednessLabel } from '../../engine/fatigue';
@@ -361,6 +362,9 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   if (typeof prim === 'string') return { ok: false, reason: `${a.name}: ${prim}` };
   for (const id of Object.keys(prim)) if (!SKILL_BY_ID.has(id)) return { ok: false, reason: `${a.name}: unknown skill ${id}` };
   const primary = Object.keys(prim)[0]!;
+  // The saber gate covers all of a Jedi Initiate's lightsaber training, free training included (D-459, D-460).
+  if (Object.keys(prim).some((id) => SKILL_BY_ID.get(id)?.kind === 'form') && selectPath(s) === 'jedi' && selectRank(s) === 'initiate' && !saberGateOpen((id) => selectLevelExact(s, id)))
+    return { ok: false, reason: `${a.name}: the Initiate saber classes are not open yet (basic Force Control and study first, D-459)` };
   const source: TrainingSource | null =
     req.source ?? (req.teacherId ? { kind: 'npc', id: req.teacherId } : req.partnerId ? { kind: 'partner', id: req.partnerId } : null);
   const teacherId = source?.kind === 'npc' ? source.id : null;
@@ -394,6 +398,16 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     const t = transferXp(id, formXp);
     if (t > 0) transfer[id] = t;
   }
+  // The Padawan specialty transfer (D-460, Jared): fundamentals carry into the form a Padawan specializes in. The main
+  // form's first session as a Jedi past Initiate starts it at max(its XP, 0.75 x Form I's XP), once, outside the clamp.
+  const main = selectCharacter(s).mainFormId;
+  let specialty: { form: string; xp: number } | null = null;
+  if (main && main in prim && !s.progression.specialtyTransfer && selectPath(s) === 'jedi' && selectRank(s) !== 'initiate') {
+    const x = Math.max(0, FORM_TRANSFER_SHARE * formXp('shiiCho') - (formXp(main) + (transfer[main] ?? 0)));
+    specialty = { form: main, xp: x };
+  }
+  const d119 = { ...transfer };
+  if (specialty && specialty.xp > 0) transfer[specialty.form] = (transfer[specialty.form] ?? 0) + specialty.xp;
   const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teaching, partner: partnered, transfer, vaapadTeacher: vaapadTeacherOf(s, teacherId), recordId: record?.id ?? null };
   const selfStudyStart: string[] = [];
   for (const u of a.unlock) {
@@ -408,10 +422,12 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   }
   const secondaries = resolveSecondaries(s, a, prim);
 
-  const transferNotes = Object.entries(transfer).map(
+  const transferNotes = Object.entries(d119).map(
     ([id, x]) =>
       `fundamentals transfer: ${SKILL_BY_ID.get(id)?.name ?? id} starts at ${Math.round(FORM_TRANSFER_SHARE * 100)}% of ${id === 'niman' ? 'the average of Forms I, III, IV and V' : 'the highest form'} (+${x.toFixed(1)} XP, outside the pace limit)`,
   );
+  if (specialty && specialty.xp > 0)
+    transferNotes.push(`specialty transfer: ${SKILL_BY_ID.get(specialty.form)?.name ?? specialty.form} starts at ${Math.round(FORM_TRANSFER_SHARE * 100)}% of Form I (+${specialty.xp.toFixed(1)} XP, outside the pace limit)`);
   if (Object.keys(transfer).length) {
     const skills = { ...s.progression.skills };
     for (const [id, x] of Object.entries(transfer)) skills[id] = { ...(skills[id] ?? { xp: 0, rust: 0, lastPracticedDay: null }), xp: formXp(id) + x };
@@ -604,7 +620,8 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
       credited,
       ...(Object.keys(banked).length ? { banked } : {}),
       practiceHours: r.practiceHours,
-      ...(Object.keys(transfer).length ? { transfer } : {}),
+      ...(Object.keys(d119).length ? { transfer: d119 } : {}),
+      ...(specialty ? { specialty } : {}),
       // D-126: forms started by self-study become self-taught; a taught session ends that.
       ...(selfStudyStart.length ? { selfTaughtStarted: selfStudyStart } : {}),
       ...(teaching ? { taught: Object.keys(prim).filter((id) => s.progression.selfTaught.includes(id)) } : {}),

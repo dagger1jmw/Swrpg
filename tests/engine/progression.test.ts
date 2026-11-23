@@ -36,9 +36,9 @@ function day(blocks: BlockInput[], end: number, will = end) {
 }
 
 describe('curve and tiers (§1-2)', () => {
-  it('XP(L) = K * L^1.75 with K = 11.5 (D-459, the tuning bound); levels are derived', () => {
-    expect(xpForLevel(41)).toBeCloseTo(11.5 * Math.pow(41, 1.75), 6);
-    expect(Math.round(xpForLevel(41))).toBe(7640);
+  it('XP(L) = K * L^1.75 with K = 11.64 (D-460); levels are derived', () => {
+    expect(xpForLevel(41)).toBeCloseTo(11.64 * Math.pow(41, 1.75), 6);
+    expect(Math.round(xpForLevel(41))).toBe(Math.round(11.64 * Math.pow(41, 1.75)));
     expect(levelFloor(xpForLevel(41))).toBe(41);
     expect(levelFloor(xpForLevel(41) - 1)).toBe(40);
     expect(levelExact(xpForLevel(33.3))).toBeCloseTo(33.3, 9);
@@ -46,7 +46,7 @@ describe('curve and tiers (§1-2)', () => {
     expect(tierOf(21)).toBe('Apprentice');
     expect(tierOf(101)).toBe('Legendary');
     expect(thresholdsCrossed(20.5, 41.2)).toEqual([21, 41]);
-    expect(K).toBe(11.5);
+    expect(K).toBe(11.64);
   });
 
   it('the natural baseline adds in XP terms (§11a)', () => {
@@ -280,7 +280,7 @@ describe('M and the pace clamp (§5, test 24)', () => {
     expect(paceCap('soresu', 20, 600)).toBeCloseTo(2 * cap, 9);
     // A form the Average does not train reads the Average's most-trained form; another untrained skill its whole rate.
     expect(rateRowFor('djemSo')).toBe(R_AVG['djemSo'] ?? R_AVG_FORM);
-    expect(yAvg(20)).toBe(595);
+    expect(yAvg(20)).toBe(634);
     const r = clampCredit(500, cap - 100, cap);
     expect(r.credited).toBeCloseTo(100, 9);
     expect(r.discarded).toBeCloseTo(400, 9);

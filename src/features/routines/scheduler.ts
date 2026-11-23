@@ -17,7 +17,7 @@ import { weekday } from '../../engine/calendar';
 import { FORM_IDS, SKILL_BY_ID } from '../../data/skills';
 import { EMPTY_DAY, ZERO_METERS, afterSleep, stepBlock, type Capacities, type DayTraining, type Meters } from '../../engine/fatigue';
 import { interp } from '../../engine/interp';
-import { initiateSaberBlocks } from './curriculum';
+import { curriculumPhase, initiateSaberBlocks } from './curriculum';
 import type { GameState } from '../../state/gameState';
 import { selectCharacter, selectHumanAge, selectPath } from '../character/selectors';
 import { selectInjuredSkills, selectMeters } from '../health/selectors';
@@ -337,6 +337,16 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
   for (const k of Object.keys(credit)) if (!(k in shares)) delete credit[k];
   const prio = new Map((routine.priorities ?? []).map((p) => [p.skillId, p]));
   const baseFill = routine.fillSource ?? defaultFillSource(s);
+  // The saber gate covers the Initiate's free training too (D-460): before it, fill form hours go where the saber class's
+  // hours go (Force Control, physical training, centering).
+  const gateClosed = selectPath(s) === 'jedi' && selectRank(s) === 'initiate' && curriculumPhase({ age, level: (id) => selectLevelExact(s, id) }) === 'preGate';
+  const gatedHours = gateClosed ? Object.entries(fill).filter(([k]) => isFormSkill(k)).reduce((x, [, h]) => x + h, 0) : 0;
+  if (gatedHours > 0) {
+    for (const k of Object.keys(fill)) if (isFormSkill(k)) delete fill[k];
+    for (const b of initiateSaberBlocks({ age, day, hours: gatedHours, level: (id) => selectLevelExact(s, id) }).blocks)
+      add({ activityId: b.activityId, skillId: b.skillId, hours: b.hours, source: availableSource(baseFill, s, notes, b.activityId), intensity: 'standard', fixed: false, locked: false, fill: true });
+    notes.push(`saber gate not yet passed (D-460): ${gatedHours} h of free form training go to Force Control, physical training and meditation`);
+  }
   for (const [skill, hours] of Object.entries(fill)) {
     const p = prio.get(skill);
     const act = activityFor(skill, p?.activityId);

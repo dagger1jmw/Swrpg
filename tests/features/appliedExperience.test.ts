@@ -42,7 +42,9 @@ describe('the drill ceiling in training (progression-numbers §7)', () => {
     expect(after.progression.skills['soresu']!.xp - s.progression.skills['soresu']!.xp).toBeCloseTo(credited, 9);
   });
   it('a taught Order class counts as sparring for E (D-143 A); sparring E stops at 15', () => {
-    let s = fresh('initiate', { shiiCho: xpForLevel(10) });
+    // Past the saber gate (D-459, D-460): basic Force Control and study.
+    const gate = { forceControl: xpForLevel(20), forceKnowledge: xpForLevel(10) };
+    let s = fresh('initiate', { shiiCho: xpForLevel(10), ...gate });
     for (let i = 0; i < 200; i++) {
       const plan = resolveTraining(s, { activityId: 'shiiChoBasics', hours: 1, source: { kind: 'instructor' } });
       if (!plan.ok) throw new Error(plan.reason);
@@ -50,7 +52,7 @@ describe('the drill ceiling in training (progression-numbers §7)', () => {
       s = advanceTime(REGISTRY, s, { seconds: 86_400, reason: 'next day', source: 'turnDraft' }).state;
     }
     expect(selectE(s, 'shiiCho')).toBeCloseTo(15, 3);
-    const solo = fresh('initiate', { shiiCho: xpForLevel(20) });
+    const solo = fresh('initiate', { shiiCho: xpForLevel(20), ...gate });
     const plan = resolveTraining(solo, { activityId: 'shiiChoBasics', hours: 1, source: { kind: 'solo' } });
     if (!plan.ok) throw new Error(plan.reason);
     expect(plan.events.find((e) => e.type === 'activityResolved')!['sparring']).toBeUndefined();

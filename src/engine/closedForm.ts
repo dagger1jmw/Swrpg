@@ -111,7 +111,8 @@ export interface FormLevelsInput {
   /**
    * The Jedi Initiate lightsaber curriculum (D-459): no form XP before the gate age, Form I alone to the survey age, then
    * the Initiate form pace shared out by `shares` (Form I 0.5, Forms II-VI the rest), each survey form started (its
-   * fundamentals transfer) in `order`. Absent: every Initiate form hour on Shii-Cho (the Sith acolyte row).
+   * fundamentals transfer) in `order`; at the Padawan start the plan's main form gets the specialty transfer (D-460).
+   * Absent: every Initiate form hour on Shii-Cho (the Sith acolyte row).
    */
   curriculum?: { gateAge: number; surveyAge: number; shares: Readonly<Record<string, number>>; order: readonly string[] };
 }
@@ -172,6 +173,10 @@ export function formXps(i: FormLevelsInput): Record<string, number> {
     if (pb > pa) {
       const split = planSplit(i.padawanPlan);
       start(Object.keys(split));
+      // The Padawan specialty transfer (D-460): with the curriculum, the plan's main form starts at max(its XP, the
+      // transfer share x Form I's XP) at the Padawan start.
+      const main = Object.keys(split)[0];
+      if (cur && main) xp[main] = Math.max(xp[main] ?? 0, i.transferShare * (xp['shiiCho'] ?? 0));
       const pad = i.formPaces.padawan ?? {};
       paceNow = {};
       for (const [f, w] of Object.entries(split)) paceNow[f] = add(f, (pad.master ?? 0) * w.master + (pad.solo ?? 0) * w.solo + (pad.fill ?? 0) * w.fill, pa, pb);

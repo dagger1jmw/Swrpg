@@ -13,9 +13,11 @@ import type { AgeRow, RustRow } from './skills';
  * docs-v2/calc/progression-sim.mjs, and 15.181 under D-102). D-456 (2026-11-23): re-solved after the rest-before-trim
  * fix (the fill is no longer trimmed, so the Average trains more hours): 12.45 (12.30 gave 41 at 15.834, 12.47 gave 16.027).
  * D-459 (2026-11-23): the Initiate lightsaber curriculum moves the Average's 41 to 18.51 years at 12.45; the solve wants
- * K 10.21, under the 11.5 bound of the tuning rules, so K sits at the bound (the gap is reported, not tuned around).
+ * K 10.21, under the 11.5 bound of the tuning rules, so K sat at the bound. D-460 (Jared): the Padawan specialty
+ * transfer, the gate over free training, Form I at 75% in the survey and the gate at 5 bring the solve back inside the
+ * bounds: 11.64 (11.5 gave 41 at 15.842, 11.66 gave 16.024, 11.64 gives 16.000 on the gated seed).
  */
-export const K = 11.5;
+export const K = 11.64;
 export const CURVE_EXP = 1.75;
 
 /** progression-numbers §1. [min level, name]. */
@@ -130,22 +132,26 @@ export const Y_AVG_FROZEN_AGES: readonly number[] = [];
  * D-459 (2026-11-23): re-measured on the Initiate lightsaber curriculum with the per-hour clamp (K 11.5, 20-seed medians,
  * the clamp open): no form XP before the saber gate (about 5.7), so 4: 0; 8: 609 -> 550, 12: 606 -> 662 (the survey's
  * transfers), 20: 629 -> 595, 90: 338 -> 275, 98: 207 -> 226 (the old share rule had clamped the Average's last years).
+ * D-460 (2026-11-23): re-measured the same way at K 11.64 with the gate at 5, Form I at 75% in the survey, the gate over
+ * free training and the Padawan specialty transfer (transfers excluded, as D-119's): 8: 550 -> 567, 12: 662 -> 620 (the
+ * Padawan main form starts higher, so its first-year drill gains are smaller), 20: 595 -> 634, 60: 461 -> 449; the rest
+ * within 2.5%.
  */
 export const Y_AVG: readonly (readonly [number, number])[] = [
   [4, 0],
-  [8, 550],
-  [12, 662],
-  [16, 627],
-  [20, 595],
-  [24, 562],
-  [30, 490],
-  [40, 469],
+  [8, 567],
+  [12, 620],
+  [16, 624],
+  [20, 634],
+  [24, 561],
+  [30, 487],
+  [40, 471],
   [50, 460],
-  [60, 461],
-  [70, 448],
-  [80, 445],
-  [90, 275],
-  [98, 226],
+  [60, 449],
+  [70, 452],
+  [80, 447],
+  [90, 268],
+  [98, 223],
 ];
 
 // ---- Age and learning speed (§16) ----

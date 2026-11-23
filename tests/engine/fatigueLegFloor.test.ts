@@ -48,8 +48,8 @@ describe('D-230: form drills count toward a lost leg', () => {
 });
 
 describe('D-235: the 4.0x floor uses the clamp\'s Y_avg table', () => {
-  it('Anakin (start 9): 41 no sooner than about 3.08 y (D-459: K 11.5, the curriculum table); the floor rises with the tier', () => {
-    expect(paceFloorYears(9, 41)).toBeCloseTo(3.08, 1);
+  it('Anakin (start 9): 41 no sooner than about 3.22 y (D-460: K 11.64, the re-measured table); the floor rises with the tier', () => {
+    expect(paceFloorYears(9, 41)).toBeCloseTo(3.22, 1);
     const tiers = [21, 41, 61, 81, 101];
     for (let i = 1; i < tiers.length; i++) expect(paceFloorYears(9, tiers[i]!)).toBeGreaterThan(paceFloorYears(9, tiers[i - 1]!));
     // D-459: "below the Average's target / 4 for an age-4 start" no longer holds: the table has no form XP before the

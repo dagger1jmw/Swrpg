@@ -55,6 +55,11 @@ export const progressionSliceSchema = z.object({
   nextSeq: z.number().int().min(1),
   /** Lightsaber forms whose fundamentals transfer has happened (once per form, D-119). */
   formsStarted: z.array(z.string()),
+  /**
+   * The Padawan specialty transfer (D-460): the form it went to once a Jedi Padawan trained the main form, 'creation' for
+   * a character created past Initiate (the closed form already holds it); absent or null = not yet.
+   */
+  specialtyTransfer: z.string().nullable().optional(),
   /** Forms started by self-study and not yet taught (D-126): their solo sessions drill one rating lower. */
   selfTaught: z.array(z.string()),
   /** Fights each skill was used in today (D-47; the third and later are halved). Reset at midnight. */

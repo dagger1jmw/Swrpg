@@ -102,14 +102,17 @@ describe('closed form (npc-generation §7)', () => {
     // D-459 (2026-11-23): the Initiate lightsaber curriculum, K 11.5, the paces re-measured (Padawan 16: 33.9 -> 30.1, the loop
     // 30.3; Knight 30: 54.7 -> 53.8; Master 45: 69.5 -> 70.2; Elder 70: 89.0 -> 91.6; Obi-Wan 80.6 -> 78.6; the soldier
     // 51.4 -> 53.9 and the Sith Warrior 80.1 -> 83.9 with K).
-    near(forms(g, 4, 16), 30.1);
-    near(forms(g, 4, 30), 53.8);
-    near(forms(g, 4, 45), 70.2);
-    near(forms(g, 4, 70), 91.6);
-    near(forms(g, 3, 39, { padawanAge: 13, knightAge: 25, mult: () => 1.48 }), 78.6);
+    // D-460 (2026-11-23): the gate at 5, Form I at 75% in the survey, the Padawan specialty transfer, K 11.64, the paces
+    // re-measured (Padawan 16: 30.1 -> 33.1, the loop 33.1; Knight 30: 53.8 -> 55.6; Master 45: 70.2 -> 71.6; Elder 70:
+    // 91.6 -> 92.5; Obi-Wan 78.6 -> 81.2; the soldier 53.9 -> 53.5 and the Sith Warrior 83.9 -> 83.4 with K).
+    near(forms(g, 4, 16), 33.1);
+    near(forms(g, 4, 30), 55.6);
+    near(forms(g, 4, 45), 71.6);
+    near(forms(g, 4, 70), 92.5);
+    near(forms(g, 3, 39, { padawanAge: 13, knightAge: 25, mult: () => 1.48 }), 81.2);
     near(forms(g, 9, 22.5, { padawanAge: 9, knightAge: 20, mult: () => 3.89 }), 79.7);
-    near(closedFormLevel({ row: 'technique', startAge: 17, age: 35, warYears: 5, phases: main(S, 'blaster', undefined, true) }), 53.9);
-    near(forms(w, 8, 35, { mult: () => 1.5 * 1.15, warYears: 10 }), 83.9);
+    near(closedFormLevel({ row: 'technique', startAge: 17, age: 35, warYears: 5, phases: main(S, 'blaster', undefined, true) }), 53.5);
+    near(forms(w, 8, 35, { mult: () => 1.5 * 1.15, warYears: 10 }), 83.4);
   });
 
   it('each phase pace is capped at 4.0', () => {

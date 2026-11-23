@@ -141,7 +141,13 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
   id: 'progression',
   version: 4,
   migrations: { 2: migrateProgressionV1, 3: migrateProgressionV2, 4: migrateProgressionV3 },
-  initialState: (ctx) => ({ ...emptyProgression(ctx.start.day, ctx.startingXp ?? {}), E: { ...(ctx.startingE ?? {}) }, CI: { ...(ctx.startingCI ?? {}) } }),
+  initialState: (ctx) => ({
+    ...emptyProgression(ctx.start.day, ctx.startingXp ?? {}),
+    E: { ...(ctx.startingE ?? {}) },
+    CI: { ...(ctx.startingCI ?? {}) },
+    // A character created past Initiate holds the Padawan specialty transfer in its closed-form levels (D-460).
+    ...(ctx.rank && ctx.rank !== 'initiate' && ctx.rank !== 'none' ? { specialtyTransfer: 'creation' } : {}),
+  }),
   // Saves from M1/M2: no training (natural baselines only).
   emptyState: (raw) => {
     const clock = raw['clock'] as { now?: { day?: unknown } } | undefined;
@@ -210,6 +216,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         practiceHours: record,
         /** Fundamentals transfer to forms started by this session (D-119): outside the pace window. */
         transfer: record.optional(),
+        /** The Padawan specialty transfer (D-460): the main form up to 0.75 x Form I's XP, once; outside the pace window. */
+        specialty: z.object({ form: z.string(), xp: z.number().min(0) }).optional(),
         /** Forms this session started by self-study (D-126). */
         selfTaughtStarted: z.array(z.string()).optional(),
         /** Self-taught forms this session trained with teaching (no longer self-taught). */
@@ -250,6 +258,16 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           formsStarted.push(id);
         }
         for (const id of e['primaries'] as string[]) if (SKILL_BY_ID.get(id)?.kind === 'form' && !formsStarted.includes(id)) formsStarted.push(id);
+        // D-460: the Padawan specialty transfer lands after the D-119 transfer, once in a life.
+        const sp = e['specialty'] as { form: string; xp: number } | undefined;
+        let specialtyTransfer = slice.specialtyTransfer ?? null;
+        if (sp) {
+          if (SKILL_BY_ID.get(sp.form)?.kind !== 'form') return { reject: `specialty transfer to ${sp.form}: lightsaber forms only` };
+          if (specialtyTransfer) return { reject: 'specialty transfer: already done' };
+          const prev = skills[sp.form] ?? { xp: 0, rust: 0, lastPracticedDay: null };
+          skills[sp.form] = { ...prev, xp: prev.xp + sp.xp };
+          specialtyTransfer = sp.form;
+        }
         const cr = creditXp({ ...slice, skills }, ctx.state, credited, practice, windowHours, day);
         skills = cr.slice.skills;
         // Training the skills a lasting injury affects adapts it (progression-numbers §18): health owns adaptation.
@@ -269,7 +287,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           stateOfMind = setState(stateOfMind, { kind: 'centered', intensity: 1, sinceDay: day, untilDay: day + 1 }, day);
         }
         const willpowerToday = Math.min(FATIGUE_WILLPOWER.dailyCap, slice.willpowerToday + Number(e['fatigueWillpower']));
-        return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow, today, stateOfMind, willpowerToday, formsStarted, selfTaught, bank, E }, emit, notes };
+        return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow, today, stateOfMind, willpowerToday, formsStarted, selfTaught, bank, E, ...(specialtyTransfer ? { specialtyTransfer } : {}) }, emit, notes };
       },
     },
     /**

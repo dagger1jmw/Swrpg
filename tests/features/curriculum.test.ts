@@ -32,25 +32,25 @@ describe('the Initiate saber curriculum (D-459)', () => {
     expect(initiateSaberBlocks({ age: 7, day: 3, hours: 2, level: lv(99, 99) }).blocks).toEqual([{ activityId: 'shiiChoBasics', skillId: 'shiiCho', hours: 2 }]);
   });
 
-  it('the survey: Form I keeps half; Forms II-VI rotate a day each (Form V alternating); about 10% each over time', () => {
+  it('the survey: Form I keeps 75% (D-460); Forms II-VI rotate a day each (Form V alternating); about 5% each over time', () => {
     const hours: Record<string, number> = {};
     // Days before 0 BBY are negative (the variant index needs a non-negative modulo).
     for (let d = -700; d < 700; d++) for (const b of initiateSaberBlocks({ age: 11, day: d, hours: 2, level: lv(99, 99) }).blocks) hours[b.skillId] = (hours[b.skillId] ?? 0) + b.hours;
     const total = Object.values(hours).reduce((a, b) => a + b, 0);
     expect(total).toBe(2800);
-    expect(hours['shiiCho']! / total).toBeCloseTo(0.5, 9);
-    for (const f of ['makashi', 'soresu', 'ataru', 'niman']) expect(hours[f]! / total).toBeCloseTo(0.1, 9);
-    expect((hours['shien']! + hours['djemSo']!) / total).toBeCloseTo(0.1, 9);
-    expect(hours['shien']! / total).toBeCloseTo(0.05, 2);
-    expect(hours['djemSo']! / total).toBeCloseTo(0.05, 2);
+    expect(hours['shiiCho']! / total).toBeCloseTo(0.75, 9);
+    for (const f of ['makashi', 'soresu', 'ataru', 'niman']) expect(hours[f]! / total).toBeCloseTo(0.05, 9);
+    expect((hours['shien']! + hours['djemSo']!) / total).toBeCloseTo(0.05, 9);
+    expect(hours['shien']! / total).toBeCloseTo(0.025, 2);
+    expect(hours['djemSo']! / total).toBeCloseTo(0.025, 2);
     expect(hours['juyo']).toBeUndefined();
-    expect(surveyShares()).toEqual({ shiiCho: 0.5, makashi: 0.1, soresu: 0.1, ataru: 0.1, shien: 0.05, djemSo: 0.05, niman: 0.1 });
+    expect(surveyShares()).toEqual({ shiiCho: 0.75, makashi: 0.05, soresu: 0.05, ataru: 0.05, shien: 0.025, djemSo: 0.025, niman: 0.05 });
   });
 
   it('the closed form follows it: no form XP before the gate age; Form I alone; the survey forms start with their transfer', () => {
     const base = { formPaces: { initiate: { order: 1 } }, k: K, startAge: 4, padawanAge: 12, knightAge: 25, onePhase: false, padawanPlan: { soresu: 2, ataru: 1 }, knightPlan: { soresu: 2, ataru: 1 }, mult: () => 1, transferShare: FORM_TRANSFER_SHARE };
     const cur = CLOSED_FORM_CURRICULUM;
-    expect(formXps({ ...base, age: 5.9, curriculum: cur })['shiiCho'] ?? 0).toBe(0);
+    expect(formXps({ ...base, age: INITIATE_CURRICULUM.gateAge - 0.1, curriculum: cur })['shiiCho'] ?? 0).toBe(0);
     const at9 = formXps({ ...base, age: 9, curriculum: cur });
     expect(at9['shiiCho']).toBeGreaterThan(0);
     expect(at9['makashi'] ?? 0).toBe(0);
@@ -59,7 +59,12 @@ describe('the Initiate saber curriculum (D-459)', () => {
     // Niman last: its transfer averages Forms I, III, IV and V, already started.
     expect(at10['niman']!).toBeGreaterThan(0.5 * at10['shiiCho']!);
     // Without the curriculum (the Sith acolyte row) every Initiate form hour is Shii-Cho from the start.
-    expect(formXps({ ...base, age: 5.9 })['shiiCho']!).toBeGreaterThan(0);
+    expect(formXps({ ...base, age: INITIATE_CURRICULUM.gateAge - 0.1 })['shiiCho']!).toBeGreaterThan(0);
+    // The Padawan specialty transfer (D-460): at the Padawan start the plan's main form starts at 0.75 x Form I.
+    const pre = formXps({ ...base, age: 12, curriculum: cur });
+    const post = formXps({ ...base, age: 12.0001, curriculum: cur });
+    expect(post['soresu']!).toBeCloseTo(FORM_TRANSFER_SHARE * pre['shiiCho']!, 0);
+    expect(post['ataru']!).toBeLessThan(0.7 * pre['shiiCho']!);
   });
 
   it('the Initiate Trials: Form I and Force Control rolls, and 4 of Forms II-VI at the floor (D-459)', () => {

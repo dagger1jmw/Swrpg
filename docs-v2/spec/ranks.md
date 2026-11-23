@@ -19,7 +19,7 @@ commitments in the routine (training-routines §1); the rest of the daily budget
 by the archetype shares (npc-generation §3). Activities: skills-and-activities.md §5.
 | Rank | Mandatory training per training day |
 |---|---|
-| Initiate | 2 h lightsaber forms + 1 h Force (0.5 h Force Control, 0.5 h Force Sense) + 1 h study (instructors). The 2 h follow the lightsaber curriculum (D-459, Jared; The Jedi Path: courses in Forms I-VI with training sabers, Form VII excluded; post-Ruusan practice, the default for every era): before the saber gate (Force Control 13 and Force Knowledge 5, set from the Average at 6) the hours go to Force Control (1 h), physical training (0.5 h, rotating) and centering (0.5 h); from the gate Form I only; from 10 (the survey) Form I keeps 1 h and Forms II-VI rotate a day each through the other hour (Form V alternating Shien and Djem So by week). A survey form's first class starts it with the fundamentals transfer (D-119); its level carries into the Padawan years |
+| Initiate | 2 h lightsaber forms + 1 h Force (0.5 h Force Control, 0.5 h Force Sense) + 1 h study (instructors). The 2 h follow the lightsaber curriculum (D-459, Jared; The Jedi Path: courses in Forms I-VI with training sabers, Form VII excluded; post-Ruusan practice, the default for every era): before the saber gate (Force Control 9 and Force Knowledge 4, set from the Average at 5, D-460) the hours go to Force Control (1 h), physical training (0.5 h, rotating) and centering (0.5 h); the gate covers all of an Initiate's lightsaber training, free training included (D-460); from the gate Form I only; from 10 (the survey) Form I keeps 1.5 h and Forms II-VI rotate a day each through the other 0.5 h (D-460; Form V alternating Shien and Djem So by week). A survey form's first class starts it with the fundamentals transfer (D-119); its level carries into the Padawan years, and the Padawan's main form gets the specialty transfer: on its first session as a Padawan it starts at max(its XP, 0.75 x Form I's XP), once (D-460) |
 | Padawan | 2 h with the master + 1 h solo (main form) + 1 h Force Control and 1 h Force Sense with the master (teacher factor applies). Scaled by age (D-431): the solo hour and the Force Control hour are 0.5 h to 16; Force Control is back to 1 h at 17 and the solo hour at 18 (4 h, 4.5 h, then 5 h), so a young Padawan's day ends under the standard tiredness limit with 0.5-1.5 h of free training |
 | Knight and above | none mandatory (missions instead) |
 | Sith acolyte (D-427) | the Initiate's hours with the Korriban content: 2 h Form I with the warblade, 0.5 h Force Control, 0.5 h centering, 1 h Sith Code and history (Overseers) |
@@ -44,6 +44,10 @@ Initiate Trials (eligibility to be chosen)
   11.8, inside +/-2 years of 10); Force Control 14 -> 19 (the pre-gate hours bring 14 to about
   6.2; the Average's level at 10 is 19.5). The Padawan row mirrors them; the Sith apprentice
   row keeps 24 / 14 (the acolyte row has no curriculum).
+  D-460 (Jared; the gate at 5, Form I at 75% in the survey, the specialty transfer; K 11.64):
+  the competence floor 16 -> 18 (the Average's lowest of Forms II-VI after a survey year, 18.0
+  at 11, rounded down). Form I 24 (met at about 10.3) and Force Control 19 (about 10.9, kept by
+  Jared's ruling) stay.
 Padawan selection (playable window)
   From passing the Initiate Trials until age 13.
   Standing S (0-100) = 50% skill percentile for age + 30% notable deeds (engine-set deed

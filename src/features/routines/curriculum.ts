@@ -2,10 +2,10 @@
 //   before the gate (basic Force Control and study minimums): the saber hours go to Force Control, physical training
 //     and meditation;
 //   from the gate: Form I (Shii-Cho) only;
-//   the survey (from the Initiate Trials' minimum age): Form I keeps half the hours, Forms II-VI rotate a day each
-//     through the other half (Form V alternating Shien and Djem So by week). Total hours unchanged.
+//   the survey (from the Initiate Trials' minimum age): Form I keeps 75% of the hours (D-460), Forms II-VI rotate a day
+//     each through the rest (Form V alternating Shien and Djem So by week). Total hours unchanged.
 import { DEFAULT_ACTIVITY } from '../../data/activities';
-import { INITIATE_CURRICULUM } from '../../data/initiateCurriculum';
+import { INITIATE_CURRICULUM, saberGateOpen } from '../../data/initiateCurriculum';
 import { STEP_HOURS } from '../../data/progression.config';
 
 export type CurriculumPhase = 'preGate' | 'formI' | 'survey';
@@ -23,8 +23,7 @@ export interface CurriculumInput {
 
 /** The phase of the curriculum the Initiate is in. */
 export function curriculumPhase(i: Pick<CurriculumInput, 'age' | 'level'>): CurriculumPhase {
-  const g = INITIATE_CURRICULUM.gate;
-  if (i.level('forceControl') < g.forceControl || i.level('forceKnowledge') < g.forceKnowledge) return 'preGate';
+  if (!saberGateOpen(i.level)) return 'preGate';
   return i.age >= INITIATE_CURRICULUM.surveyFromAge ? 'survey' : 'formI';
 }
 

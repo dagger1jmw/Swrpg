@@ -618,9 +618,13 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
     if (r?.rejected.length) throw new Error(`rejected: ${JSON.stringify(r.rejected[0])}`);
     for (const a of r?.applied ?? []) {
       if (a.event.type !== 'activityResolved') continue;
-      const tr = (a.event['transfer'] as Record<string, number> | undefined) ?? {};
+      const d119 = (a.event['transfer'] as Record<string, number> | undefined) ?? {};
+      for (const [f, x] of Object.entries(d119)) transfers[f] = { age, xp: x };
+      // The Padawan specialty transfer (D-460) is a transfer too: outside the yearly and phase XP (not in the D-119 log).
+      const tr = { ...d119 };
+      const sp = a.event['specialty'] as { form: string; xp: number } | undefined;
+      if (sp && sp.xp > 0) tr[sp.form] = (tr[sp.form] ?? 0) + sp.xp;
       for (const [f, x] of Object.entries(tr)) {
-        transfers[f] = { age, xp: x };
         dayTransfer[f] = (dayTransfer[f] ?? 0) + x;
         yearXp[f] = (yearXp[f] ?? 0) - x;
       }

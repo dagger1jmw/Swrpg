@@ -119,6 +119,9 @@ main skill and summed to far more training than a day holds (Jedi Guardian 3.9x,
   Form I 0.5 and Forms II-VI 0.1 each (Form V's 0.1 split between Shien and Djem So); each survey form
   starts at 10 with the fundamentals transfer, in rotation order (Niman last). The pace is measured
   over those effective years. Sith acolytes keep every Initiate form hour on Form I.
+  Amended by D-460: the gate age 5; Form I 0.75 and Forms II-VI 0.05 each in the survey; at the
+  Padawan start the plan's main form starts at max(its XP, 0.75 x Form I's XP) (the specialty
+  transfer).
   Custom focus (character creation sliders): a change of share Delta moves the skill's pace by
   Delta * 2 * (that archetype's main Knight+ pace) * fill, where fill is the phase's mean fill
   hours (standard budget minus Order hours, never below 0) over the 6 h Knight+ day: 1 for

@@ -38,15 +38,16 @@ export const TRIALS: Readonly<Record<TrialId, TrialDef>> = {
     id: 'initiate',
     name: 'the Initiate Trials',
     // D-459 (Jared): the dueling test is Form I at rating 20 plus basic competence in the other five forms of the
-    // Initiate curriculum (4 of 5 at 16+: the Average's lowest of Forms II-VI after a survey year, 16.4 at 11, rounded
-    // down; measured 2026-11-23, gated seed, K 11.5); Force Control at rating 20 as before.
+    // Initiate curriculum (4 of 5 at 18+: the Average's lowest of Forms II-VI after a survey year, rounded down; D-460:
+    // 18.0 at 11, measured 2026-11-23, gated seed, K 11.64, the gate at 5 and Form I at 75% in the survey; D-459 had
+    // 16.4 at K 11.5); Force Control at rating 20 as before.
     checks: [
       { skill: 'shiiCho', rating: 20 },
       { skill: 'forceControl', rating: 20 },
     ],
     need: 2,
-    competence: { groups: INITIATE_CURRICULUM.surveyForms, need: 4, floor: 16 },
-    note: 'eligibility to be chosen as a Padawan (ranks.md §1: Form I and Force Control at rating 20; 4 of Forms II-VI at 16+)',
+    competence: { groups: INITIATE_CURRICULUM.surveyForms, need: 4, floor: 18 },
+    note: 'eligibility to be chosen as a Padawan (ranks.md §1: Form I and Force Control at rating 20; 4 of Forms II-VI at 18+)',
   },
   skill: {
     id: 'skill',
