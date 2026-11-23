@@ -27,9 +27,9 @@ export function expectNotFasterThanAnakin(r: LifeResult): void {
 }
 
 /**
- * The fastest a tier can be reached under the D-48 clamp's own reference (Jared, D-235): XP at PACE_CAP x Y_avg(age)
- * a year (the clamp's cap at the Average's main share, AVERAGE_MAIN_SHARE) from the profile's start age, the same
- * Y_avg table the clamp uses, integrated day by day until the tier's XP. Years since the start.
+ * The fastest a tier can be reached at 4.0x the Average (Jared, D-235): XP at PACE_CAP x Y_avg(age) a year from the
+ * profile's start age, integrated day by day until the tier's XP. Years since the start. Since D-457 the clamp caps XP per
+ * hour of a skill; this yearly floor stays the lifetime check of the 4.0x ceiling.
  */
 export function paceFloorYears(startAge: number, tier: number): number {
   const need = xpForLevel(tier);

@@ -87,24 +87,31 @@ Speed multiplier M = talent * cross-talent * instruction (sec 15, 19) * age (sec
     (replaces the old fixed teacher factor)
   Experience: no multiplier. Wartime growth comes from combat XP, E and CI
     (docs/spec/combat-xp.md).
-  Absolute maximum overall pace: 4.0x the Average profile, enforced by a clamp (D-48):
-    per skill, over a rolling 365-day window, credited XP (training, combat and synergy)
-    cannot exceed
-      cap = 4.0 * Y_avg(age) * (character's share for that skill / Average main share)
-    where Y_avg(age) is the Average profile's main-skill XP for the 365 days starting at that
-    age (table below, interpolated), the character's share comes from their focus weights
-    (shares summing to 1), and the Average main share is 0.5 at every age (the Knight+
-    default main-specialty share, D-41). The excess is discarded and logged. Banked drill
+  Absolute maximum overall pace: 4.0x the Average profile, enforced by a clamp (D-48; the
+    rule since D-457, Jared: the ceiling limits prodigy speed, never focus): per skill, over a
+    rolling 365-day window, credited training XP (sessions, their synergy and fatigue
+    Willpower) cannot exceed
+      cap = 4.0 * R_avg(skill, age) * (the character's hours in that skill in the window)
+    where R_avg(skill, age) is the Average's XP per hour of training in that same skill for
+    the 365 days starting at that age (the 20-seed median of its window XP / window hours;
+    src/data/paceRates.ts, interpolated), and the window's hours are that skill's hours only
+    (a session's hours by XP share, D-109). Hours in other skills never change a skill's cap.
+    Fights are outside it (D-457): per exchange, combat XP differs from the Average's in the
+    same fight only by M (capped at 2.8, under 4.0); combat XP keeps its own limits
+    (combat-xp.md), and the lifetime 4.0x floor still counts it. A lightsaber form the Average does not train reads the
+    Average's most-trained form; any other skill it does not train reads the Average's
+    whole-training rate (design default). The excess is discarded and logged. Banked drill
     XP released after combat is excluded (it does not count toward the window).
+    Y_avg(age) below is no longer the cap: it stays the reference of the "within 4.0x"
+    lifetime floor (D-235) and the Average's yearly table gate.
     Y_avg(age), K = 11.683 (computed by docs-v2/calc/progression-sim.mjs, per 365 days; the
     most-trained form's XP; recomputed by D-118 / D-119 / D-120):
       age 4: 583 | 8: 608 | 12: 561 | 16: 532 | 20: 526 | 24: 434 | 30: 399 | 40: 458 |
       50: 434 | 60: 487 | 70: 431 | 80: 423 | 90: 322 | 98: 202
     (D-102 values, K = 15.18: 582 | 544 | 691 | 670 | 720 | 595 | 585 | 572 | 556 | 599 |
       544 | 544 | 425 | 304.)
-    The character's share (amended by D-104): max(the focus-weight share, the skill's share of
-      the character's training hours in the same 365-day window). A skill outside the focus
-      weights would otherwise have share 0 and a cap of 0, and the player's routine decides.
+    (The D-104 share rule, max(focus share, the skill's share of the window's training hours),
+      is replaced by D-457: it made training other skills shrink the main skill's cap.)
 
 Outcome roll per session (code rolls it, mean ~1.0):
   failure 15% x0.7 | partial 25% x0.9 | solid 38% x1.0 | strong 18% x1.2 |

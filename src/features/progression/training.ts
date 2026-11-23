@@ -2,7 +2,7 @@
 // session and the engine events that apply it. Feature rule code: pure, reads other features
 // through selectors. An unknown or locked activity is rejected with a reason and never mapped to a
 // nearby one (D-07, skills-and-activities.md §2).
-import { FORCE_RICH_FACTOR, INSTRUCTOR_SHARE, INTENSITY, MAJOR_NEXUS_FACTOR, NEXUS_SITE_FACTOR, ORDER_SPARRING_CLASSES, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
+import { ACCELERATED_PATH, FORCE_RICH_FACTOR, INSTRUCTOR_SHARE, INTENSITY, MAJOR_NEXUS_FACTOR, NEXUS_SITE_FACTOR, ORDER_SPARRING_CLASSES, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
 import { forceFraction } from '../../engine/forceMeter';
 import { sparringE, splitDrillXp, type SparE } from '../../engine/appliedExperience';
 import { ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, type ActivityDef, type Intensity, type Unlock } from '../../data/activities';
@@ -27,10 +27,10 @@ import { computeTrainingXp, type SessionSplit, type TrainingResult } from '../..
 import { levelExact, tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { tirednessLabel } from '../../engine/fatigue';
 import { instructionFactor } from '../../engine/instruction';
-import { clampCredit, clampShare, inWindow, paceCap } from '../../engine/paceClamp';
+import { clampCredit, inWindow, paceCap } from '../../engine/paceClamp';
 import { nextFloat, type RngState } from '../../engine/rng';
 import { humanEquivalentAge, speciesLearning } from '../../engine/species';
-import { conditionedCap, conditionedM, crossTalentMult, isChannelEligible, speedM, stateMult, talentMult } from '../../engine/speed';
+import { conditionedCap, conditionedM, crossTalentMult, isAcceleratedSkill, isChannelEligible, isForceSkill, speedM, stateMult, talentMult } from '../../engine/speed';
 import { selectCurrentLocationId, selectLocationChain } from '../locations/selectors';
 import { forceBonusAt, type NexusLeaning } from '../../data/forceNexus';
 import { speciesDef } from '../../data/species';
@@ -99,6 +99,8 @@ export interface TrainingCard {
   outcome: string;
   outcomeMult: number;
   instruction: { mode: string; factor: number; teacherId?: string; partnerId?: string };
+  /** Each primary's M and its parts (why a session is fast or slow; the clamp report reads it). */
+  speed: Record<string, SpeedParts>;
   /** XP credited per skill (rounded to 0.01). */
   credited: Record<string, number>;
   /**
@@ -245,18 +247,36 @@ function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
   }
 }
 
-/** M per skill (progression-numbers §5): talent x cross-talent x instruction x age x state x alignment x species, capped at 2.8. */
-export function speedFor(s: GameState, instruction: number): (skill: string) => number {
+/** The parts of a skill's M (progression-numbers §5, D-418): the multipliers before the 2.8 cap, the place and path after. */
+export interface SpeedParts {
+  talent: number;
+  crossTalent: number;
+  instruction: number;
+  age: number;
+  state: number;
+  species: number;
+  /** A Force-rich place (Force skills only; inside the 2.8 cap). */
+  place: number;
+  /** The accelerated path (past the cap). */
+  accelerated: number;
+  /** Reviewing a recording of one's own fight. */
+  review: number;
+  /** The M used: speedM's (capped) times the conditions and the review. */
+  m: number;
+}
+
+/** M per skill with its parts (progression-numbers §5): talent x cross-talent x instruction x age x state x alignment x species, capped at 2.8. */
+export function speedPartsFor(s: GameState, instruction: number): (skill: string) => SpeedParts | null {
   const c = selectCharacter(s);
   const h = selectHumanAge(s);
   const state = selectStateOfMind(s);
   const grief = selectGriefMult(s);
   const despair = selectDespairMult(s);
   const conditions = selectTrainingConditions(s);
-  return (skill: string): number => {
+  return (skill: string): SpeedParts | null => {
     const def = SKILL_BY_ID.get(skill);
-    if (!def) return 1;
-    const m = speedM({
+    if (!def) return null;
+    const parts = {
       talent: talentMult(c.talents, skill),
       crossTalent: crossTalentMult(c.talents, skill),
       instruction,
@@ -264,9 +284,28 @@ export function speedFor(s: GameState, instruction: number): (skill: string) => 
       state: stateMult(state, skill, { grief, despair, darkPressure: STUB_DARK_PRESSURE }),
       alignment: STUB_ALIGNMENT_MULT,
       species: speciesLearning(c.speciesId, skill),
-    }).m;
-    return conditionedM(m, skill, conditions) * reviewBuff(s, skill);
+    };
+    const m = speedM(parts).m;
+    const review = reviewBuff(s, skill);
+    return {
+      talent: parts.talent,
+      crossTalent: parts.crossTalent,
+      instruction,
+      age: parts.age,
+      state: parts.state,
+      species: parts.species,
+      place: isForceSkill(skill) ? conditions.forceFactor : 1,
+      accelerated: conditions.accelerated && isAcceleratedSkill(skill) ? ACCELERATED_PATH.mult : 1,
+      review,
+      m: conditionedM(m, skill, conditions) * review,
+    };
   };
+}
+
+/** M per skill (progression-numbers §5): talent x cross-talent x instruction x age x state x alignment x species, capped at 2.8. */
+export function speedFor(s: GameState, instruction: number): (skill: string) => number {
+  const parts = speedPartsFor(s, instruction);
+  return (skill: string): number => parts(skill)?.m ?? 1;
 }
 
 /**
@@ -292,23 +331,22 @@ function reviewBuff(s: GameState, skill: string): number {
 }
 
 /**
- * The D-48 clamp (D-104): share = max(focus share, the skill's share of training hours in the window);
- * a skill's hours are its share of each session's XP (D-109), this session's `hours` included.
+ * The D-48 clamp (D-457, Jared: the ceiling limits prodigy speed, never focus): a skill's cap is 4.0 x the Average's XP per
+ * hour in that skill at the window's start age x the character's hours in that skill in the window, this session's
+ * included (a session's hours by XP share, D-109). Hours in other skills never change it.
  */
-export function clampFor(s: GameState, hours: number): (skill: string, wanted: number, sessionHours: number) => { credited: number; discarded: number } {
+export function clampFor(s: GameState): (skill: string, wanted: number, sessionHours: number) => { credited: number; discarded: number } {
   const c = selectCharacter(s);
   const today = selectNow(s).day;
   const win = s.progression.paceWindow;
-  const hoursIn = (id: string): number => inWindow(win[id] ?? [], today).reduce((x, e) => x + e.hours, 0);
-  const totalHours = Object.keys(win).reduce((x, id) => x + hoursIn(id), 0) + hours;
   const windowAge = humanEquivalentAge(speciesDef(c.speciesId), selectExactAge(s) - 365 / 368);
   const accelerated = c.trainingPath === 'accelerated';
   return (skill, wanted, sessionHours) => {
-    const skillHours = hoursIn(skill) + sessionHours;
-    const share = clampShare(c.focusWeights[skill] ?? 0, skillHours, totalHours);
-    const used = inWindow(win[skill] ?? [], today).reduce((x, e) => x + e.xp, 0);
+    const entries = inWindow(win[skill] ?? [], today);
+    const skillHours = entries.reduce((x, e) => x + e.hours, 0) + sessionHours;
+    const used = entries.reduce((x, e) => x + e.xp, 0);
     // The accelerated path is the only condition allowed past the 4.0x ceiling (D-418).
-    return clampCredit(wanted, used, conditionedCap(paceCap(windowAge, share), skill, accelerated));
+    return clampCredit(wanted, used, conditionedCap(paceCap(skill, windowAge, skillHours), skill, accelerated));
   };
 }
 
@@ -441,8 +479,9 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   if (FORCE_XP_TRIAL.enabled && a.group === 'meditation') trialMeditation(s, hours);
 
   const state = selectStateOfMind(s);
-  const m = speedFor(s, instr.factor);
-  const clamp = clampFor(s, hours);
+  const parts = speedPartsFor(s, instr.factor);
+  const m = (skill: string): number => parts(skill)?.m ?? 1;
+  const clamp = clampFor(s);
 
   const caps = selectCapacities(s);
   const before: Record<string, number> = Object.fromEntries(Object.keys(prim).map((id) => [id, Math.floor(selectLevelExact(s, id) + 1e-9)]));
@@ -543,6 +582,7 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
     outcome: r.outcome.name,
     outcomeMult: r.outcome.mult,
     instruction: { mode: instr.mode, factor: Math.round(instr.factor * 1000) / 1000, ...(teacherId ? { teacherId } : {}), ...(partnerId ? { partnerId } : {}) },
+    speed: Object.fromEntries(Object.keys(prim).flatMap((id) => { const p = parts(id); return p ? [[id, p]] : []; })),
     credited: round(credited),
     totals,
     discarded: round(r.discarded),

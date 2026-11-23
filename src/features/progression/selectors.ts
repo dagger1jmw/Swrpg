@@ -107,7 +107,7 @@ export function selectSkillViews(s: GameState): SkillView[] {
 // nothing), so it is part of the feature's public selector surface for the turn layer.
 // The Force XP trial (harness only; off in the game): the day planner's strain trim and report.
 export { forceHours, recordPlan, strainTrim } from './forceXpTrialHook';
-export { resolveTraining, type TrainingCard, type TrainingPlan, type TrainingRequest, type TrainingSource } from './training';
+export { resolveTraining, type SpeedParts, type TrainingCard, type TrainingPlan, type TrainingRequest, type TrainingSource } from './training';
 
 // ---- Applied experience, combat integration, the drill ceiling (progression-numbers §7-8; M5) ----
 const groupOf = (id: string): string => SKILL_BY_ID.get(id)?.formGroup ?? id;

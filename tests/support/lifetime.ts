@@ -9,7 +9,8 @@
 // harness input): in a profile's war years a bacta tank for the worst new wound (x4; the tank days replace the routine),
 // otherwise Order and military profiles get 30 days of medical care. Spars may be against 2-3 partners (D-163).
 import { TEST_YEAR } from './dates';
-import { FORM_IDS } from '../../src/data/skills';
+import { FORM_IDS, SKILLS } from '../../src/data/skills';
+import { PACE_WINDOW_DAYS } from '../../src/data/progression.config';
 import { absDayFromDate, dateFromAbsDay, type CalendarDate } from '../../src/engine/calendar';
 import { homeSeatAt } from '../../src/data/orderSeats';
 import { planetByName } from '../../src/data/galaxyMap';
@@ -164,7 +165,12 @@ export interface LifeResult {
   maxDayEndF: number;
   /** The same over days with no serious or lethal fight (D-159 amended, Jared: the gate checks routine overload, not fight exhaustion). */
   maxDayEndFNoSeriousFight: number;
+  /** XP the 4.0x clamp discarded over the life, training and combat (D-457 fix: read where the clamp writes it). */
   discarded: number;
+  /** The same per skill. */
+  discardedBySkill: Record<string, number>;
+  /** With opts.paceRates: per year of the life (index = years since the start), each skill's pace-window XP and hours at the year's end. */
+  paceRates?: Record<string, { xp: number; hours: number; banked: number }>[];
   state: GameState;
   /** D-143 J reports: main-form E when the main milestones 41 and 61 are crossed; the share of drill XP banked. */
   eAtMilestone: Record<number, number>;
@@ -461,11 +467,8 @@ function realFight(s0: GameState, p: LifeProfile, f: Fight, n: number, age: numb
   const applied = applyEvents(REGISTRY, s, events, { source: 'engine' });
   if (applied.rejected.length) throw new Error(`fight rejected: ${applied.rejected[0]!.reason}`);
   s = applied.state;
-  // Combat XP the 4.0x clamp discards (reporting only; LifeResult.discarded counts training sessions).
-  for (const a of applied.applied) for (const n of a.notes) {
-    const m = /^4\.0x pace clamp: ([\d.]+) combat XP/.exec(n);
-    if (m) fightStats.combatDiscardedXp += Number(m[1]);
-  }
+  // Combat XP the 4.0x clamp discards (the fight's notes; LifeResult.discarded adds the training sessions').
+  for (const a of applied.applied) addDiscarded(lifeDiscard, discardedFromNotes(a.notes), (x) => (fightStats.combatDiscardedXp += x));
   // A Dying profile is always stabilized (Jared, D-143 B: a medic is present).
   if (s.health.dying) {
     s = applyEvents(REGISTRY, s, [{ type: 'woundsStabilized', by: 'a field medic' }], { source: 'engine' }).state;
@@ -495,12 +498,50 @@ export interface LifetimeOpts {
   onDay?: (s: GameState, info: { day: number; age: number }) => GameState | void;
   /** Record LifeResult.phaseXp (the pace measurement, D-431). */
   phaseXp?: boolean;
+  /** Record LifeResult.paceRates (the 4.0x per-hour table measurement, D-457). */
+  paceRates?: boolean;
   /** Called with each day's routine log (diagnosis probes: which sessions ran, their hours and XP). */
   onRoutineDays?: (days: readonly DayLog[], info: { day: number; age: number; state: GameState }) => void;
 }
 
+/** XP the clamp discarded per skill, from notes ("4.0x pace clamp: X XP to skill discarded", the combat form too). */
+export function discardedFromNotes(notes: readonly string[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const n of notes) {
+    const m = /^4\.0x pace clamp: ([\d.]+) (?:combat )?XP to (\S+) discarded/.exec(n);
+    if (m) out[m[2]!] = (out[m[2]!] ?? 0) + Number(m[1]);
+  }
+  return out;
+}
+
+/**
+ * XP the clamp discarded per skill in a routine's days: the session logs (where resolveTraining's card puts it; the
+ * applied events carry no clamp notes, which is why the counter read 0 before D-457).
+ */
+export function discardedFromDays(days: readonly DayLog[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const d of days) for (const ss of d.sessions) for (const [k, v] of Object.entries(ss.discarded ?? {})) out[k] = (out[k] ?? 0) + v;
+  return out;
+}
+
+function addDiscarded(into: Record<string, number>, add: Record<string, number>, total?: (x: number) => void): void {
+  for (const [k, v] of Object.entries(add)) {
+    into[k] = (into[k] ?? 0) + v;
+    total?.(v);
+  }
+}
+
+const SKILL_ID_BY_NAME = new Map(SKILLS.map((k) => [k.name, k.id]));
+
+/** The life being run: its discarded XP per skill (runLifetime resets it; realFight adds a fight's). */
+let lifeDiscard: Record<string, number> = {};
+
 export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = {}): LifeResult {
   const statsBefore = { ...fightStats };
+  lifeDiscard = {};
+  const paceRates: Record<string, { xp: number; hours: number; banked: number }>[] = [];
+  // Drill XP banked by the ceiling, by day (the per-hour table counts it: the ceiling is its own rule, D-45, D-457).
+  let bankLog: { day: number; k: string; x: number }[] = [];
   setPlayerCount(p.seed);
   setForceXpCount(p.seed);
   resetForceXpTrial();
@@ -521,7 +562,6 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
   let bankedTotal = 0;
   const eAtMilestone: Record<number, number> = {};
   const woundedDaysByAge: Record<number, number> = {};
-  let discarded = 0;
   let tankDays = 0;
   let tankDayCount = 0;
   let maxDay: LifeResult['maxDay'] = null;
@@ -584,8 +624,8 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
         dayTransfer[f] = (dayTransfer[f] ?? 0) + x;
         yearXp[f] = (yearXp[f] ?? 0) - x;
       }
-      for (const n of a.notes) if (n.startsWith('4.0x')) discarded += 1;
       const banked = (a.event['banked'] as Record<string, number> | undefined) ?? {};
+      if (opts.paceRates) for (const [k, x] of Object.entries(banked)) if (x > 0) bankLog.push({ day: s.clock.now.day, k, x });
       const cred = a.event['credited'] as Record<string, number>;
       for (const f of FORM_IDS) {
         drillTotal += (cred[f] ?? 0) + (banked[f] ?? 0);
@@ -593,6 +633,16 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       }
     }
     if (r) s = r.state;
+    if (r) addDiscarded(lifeDiscard, discardedFromDays(r.days));
+    // The drill ceiling's overflow past a full bank (its notes only): the per-hour table counts it with the banked XP.
+    if (r && opts.paceRates)
+      for (const d of r.days)
+        for (const ss of d.sessions)
+          for (const n of ss.notes ?? []) {
+            const m = /^(.+): drill ceiling [\d.]+: [\d.]+ XP applied, [\d.]+ banked, ([\d.]+) lost \(bank full\)/.exec(n);
+            const id = m ? SKILL_ID_BY_NAME.get(m[1]!) : undefined;
+            if (m && id) bankLog.push({ day: d.day, k: id, x: Number(m[2]) });
+          }
     if (r && opts.onRoutineDays) opts.onRoutineDays(r.days, { day, age, state: s });
     for (const d of r?.days ?? []) {
       if (d.endF > maxDayEndF) maxDay = { age, endF: d.endF, fought: fights.length > 0, notes: d.notes };
@@ -644,6 +694,19 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       yearFightXp = {};
       mainByYear.push(lvl);
       levelsByYear.push(Object.fromEntries(track.map((k) => [k, levelOf(s, k)])));
+      if (opts.paceRates) {
+        const today = s.clock.now.day - 1;
+        const row: Record<string, { xp: number; hours: number; banked: number }> = {};
+        bankLog = bankLog.filter((b) => b.day > today - PACE_WINDOW_DAYS);
+        for (const [k, es] of Object.entries(s.progression.paceWindow)) {
+          const inWin = es.filter((e) => e.day > today - PACE_WINDOW_DAYS && e.day <= today);
+          const xp = inWin.reduce((a, e) => a + e.xp, 0);
+          const hours = inWin.reduce((a, e) => a + e.hours, 0);
+          const banked = bankLog.filter((b) => b.k === k && b.day <= today).reduce((a, b) => a + b.x, 0);
+          if (xp > 0 || hours > 0) row[k] = { xp, hours, banked };
+        }
+        paceRates.push(row);
+      }
     }
     // The clock is at the next wake: be where that day is spent before the hook looks (the seat changes on its date).
     s = moveForAge(p, s, ageEnd);
@@ -652,5 +715,5 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));
   // This life's mortal wounds and Dying states (every Dying profile is stabilized, so the stabilizations count them).
   const fights = { mortal: fightStats.mortal - statsBefore.mortal, dying: fightStats.stabilized - statsBefore.stabilized, withdrew: fightStats.withdrew - statsBefore.withdrew, sithWithdrew: fightStats.sithWithdrew - statsBefore.sithWithdrew, skipped: fightStats.skipped - statsBefore.skipped, precogFights: fightStats.precogFights - statsBefore.precogFights, precogDark: fightStats.precogDark - statsBefore.precogDark, precogDarkOpp: fightStats.precogDarkOpp - statsBefore.precogDarkOpp, precogOpp: fightStats.precogOpp - statsBefore.precogOpp };
-  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, maxDayEndFNoSeriousFight, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge, fightStats: fights, ...(opts.phaseXp ? { phaseXp } : {}), ...(FORCE_XP_TRIAL.enabled || FORCE_XP_TRIAL.collect ? { forceXpTrial: summarizeForceXpTrial() } : {}) };
+  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, maxDayEndFNoSeriousFight, discarded: Object.values(lifeDiscard).reduce((a, b) => a + b, 0), discardedBySkill: { ...lifeDiscard }, ...(opts.paceRates ? { paceRates } : {}), state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge, fightStats: fights, ...(opts.phaseXp ? { phaseXp } : {}), ...(FORCE_XP_TRIAL.enabled || FORCE_XP_TRIAL.collect ? { forceXpTrial: summarizeForceXpTrial() } : {}) };
 }

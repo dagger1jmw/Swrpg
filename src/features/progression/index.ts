@@ -11,7 +11,7 @@ import { computeCombatXp, strongerDuelXp, type CombatSession } from '../../engin
 import { selectCharacter } from '../character/selectors';
 import { eGainFor, gainCI, gainE, releaseBank, releaseUntil, splitDrillXp } from '../../engine/appliedExperience';
 import { RECORDING_REVIEW } from '../../data/combat.config';
-import { clampFor, speedFor } from './training';
+import { speedFor } from './training';
 import { formatDate, fromAbsSecond } from '../../engine/calendar';
 import { levelWithNatural, thresholdsCrossed, tierOf, xpForLevel } from '../../engine/curve';
 import { FORM_IDS, isSkillId } from '../../data/skills';
@@ -58,6 +58,8 @@ function creditXp(
   practice: Record<string, number>,
   windowHours: Record<string, number>,
   day: number,
+  /** The credited XP enters the pace window (training); a fight's does not (D-457). */
+  paced = true,
 ): { slice: ProgressionSlice; emit: GameEvent[]; notes: string[] } {
   const skills = { ...slice.skills };
   const beats = [...slice.tierBeatsPending];
@@ -87,7 +89,7 @@ function creditXp(
   }
   // Pace window (D-48, D-104): today's credited XP and training hours per skill (hours by XP share, D-109).
   const paceWindow = { ...slice.paceWindow };
-  const touch = new Set([...Object.keys(credited), ...Object.keys(windowHours)]);
+  const touch = paced ? new Set([...Object.keys(credited), ...Object.keys(windowHours)]) : new Set<string>();
   for (const id of touch) {
     const entries = (paceWindow[id] ?? []).filter((w) => w.day > day - PACE_WINDOW_DAYS);
     const last = entries[entries.length - 1];
@@ -294,21 +296,20 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         const session = e as unknown as CombatSession;
         const used = new Set([...session.exchanges.map((v) => v.skillId), ...session.forceUses.map((v) => v.abilityId)]);
         for (const x of used) if (!SKILL_BY_ID.has(x)) return { reject: `unknown skill ${x}` };
-        // Real use in combat clears rust like practice (§13), and its time counts as the fight's hours for
-        // the D-104 clamp share (D-127): one exchange is about 7.5 s; stats split get a quarter of it.
+        // Real use in combat clears rust like practice (§13): one exchange is about 7.5 s; stats split get a quarter of it.
+        // A fight is outside the per-hour 4.0x clamp and its window (D-457): per exchange, combat XP differs from the
+        // Average's in the same fight only by M, capped at 2.8 under 4.0 (the accelerated path is allowed past, D-418);
+        // its few seconds of exchanges as window hours would cap it near 0. The lifetime 4.0x floor still counts it.
         const practice: Record<string, number> = {};
         for (const ex of session.exchanges) practice[ex.skillId] = (practice[ex.skillId] ?? 0) + EXCHANGE_HOURS;
         for (const u of session.forceUses) practice[u.abilityId] = (practice[u.abilityId] ?? 0) + EXCHANGE_HOURS;
-        const fightHours = (session.exchanges.length + session.forceUses.length) * EXCHANGE_HOURS;
-        const clamp = clampFor(ctx.state, fightHours);
-        const hoursFor = (k: string): number => practice[k] ?? fightHours * 0.25;
         const r = computeCombatXp({
           session,
           m: speedFor(ctx.state, 1),
           physicalWeights: combatPhysicalWeights,
           todayBeforeM: (k) => slice.combatXpToday[k] ?? 0,
           fightsToday: (k) => slice.fightsToday[k] ?? 0,
-          clamp: (k, wanted) => clamp(k, wanted, hoursFor(k)),
+          clamp: (_k, wanted) => ({ credited: wanted, discarded: 0 }),
         });
         const fightsToday = { ...slice.fightsToday };
         for (const k of used) fightsToday[k] = (fightsToday[k] ?? 0) + 1;
@@ -321,8 +322,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         // share of the fight's form XP to the opponent's form too, even an unknown one; x2 on the accelerated path.
         const learned = strongerDuelXp(session.stakes, Number(e['opponentGap'] ?? 0), typeof e['opponentForm'] === 'string' ? String(e['opponentForm']) : null, ceiling.credited, selectCharacter(ctx.state).trainingPath === 'accelerated');
         if (learned) ceiling.credited = { ...ceiling.credited, [learned.form]: (ceiling.credited[learned.form] ?? 0) + learned.xp };
-        const windowHours = Object.fromEntries(Object.keys(ceiling.credited).map((k) => [k, hoursFor(k)]));
-        const cr = creditXp({ ...slice, bank: ceiling.bank }, ctx.state, ceiling.credited, practice, windowHours, day);
+        const cr = creditXp({ ...slice, bank: ceiling.bank }, ctx.state, ceiling.credited, practice, {}, day, false);
         const total = Object.values(ceiling.credited).reduce((a, b) => a + b, 0);
         // E for the form groups fought with, CI per Force ability use (combat-xp §3); a skirmish or higher opens a new
         // 60-day bank release (D-45).

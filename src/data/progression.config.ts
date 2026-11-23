@@ -108,7 +108,6 @@ export const CROSS_TALENT = 1.1;
 export const M_CAP = 2.8;
 /** D-48 clamp. */
 export const PACE_CAP = 4.0;
-export const AVERAGE_MAIN_SHARE = 0.5;
 export const PACE_WINDOW_DAYS = 365;
 /**
  * Y_avg(age): the Average profile's most-trained form XP for the 365 days starting at that age

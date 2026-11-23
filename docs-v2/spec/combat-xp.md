@@ -21,7 +21,7 @@ Session shape for computeXp (D-55): combat is a branch of the one computeXp func
   outcome * M; no hours, no intensity, no fatigue efficiency, and the fight outcome above
   replaces the rolled session outcome (there is no outcome roll for combat). Section 2 caps,
   section 3 E/CI, the drill-ceiling rule for sparring (progression spec section 7, D-45)
-  and the 4.0x clamp (D-48) are applied by the same function.
+  and the clamp hook (D-48; a pass-through since D-457) are applied by the same function.
 
 ## 2. Limits
   Daily cap: 12 XP per skill before M (about 4 days of standard training).
@@ -30,7 +30,9 @@ Session shape for computeXp (D-55): combat is a branch of the one computeXp func
   progression slice (combat is null outside a fight) and are reset by the progression day
   hook (architecture §10).
   Sparring XP to a lightsaber form is ceiling-limited like drill XP (D-45).
-  Combat XP counts toward the 4.0x pace limit (progression spec section 5).
+  Combat XP is outside the per-hour 4.0x clamp and its window (D-457): per exchange it differs
+  from the Average's in the same fight only by M (capped at 2.8, under 4.0), and the daily cap
+  above limits it. The lifetime 4.0x floor (progression spec section 20 test 2) still counts it.
 
 ## 3. Applied experience (E) and combat integration (CI)
   E gains by stakes: spar 0.2 (peer) / 0.4 (master) per session | skirmish +3 | serious +6 |
@@ -75,7 +77,7 @@ Session shape for computeXp (D-55): combat is a branch of the one computeXp func
  2. Daily cap and the third-fight halving apply per skill.
  3. No XP from opponents more than 35 levels weaker; between 25 and 35 levels weaker the
     factor falls linearly from 0.3 to 0, with no step (D-65).
- 4. Combat XP is included in the 4.0x pace check.
+ 4. Combat XP is included in the lifetime 4.0x check (D-457: not in the per-hour clamp).
  5. Lifetime test meets the section 5 combat shares.
  6. M has no experience factor anywhere in code.
  7. The combat branch of computeXp reproduces section 6 exactly and never rolls a session

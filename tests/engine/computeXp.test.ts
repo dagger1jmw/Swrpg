@@ -5,7 +5,7 @@ import { M_CAP } from '../../src/data/progression.config';
 import { computeTrainingXp, splitShares, type TrainingInput } from '../../src/engine/computeXp';
 import { levelExact } from '../../src/engine/curve';
 import { EMPTY_DAY, ZERO_METERS, capacities } from '../../src/engine/fatigue';
-import { clampCredit, clampShare, inWindow, paceCap, type WindowEntry } from '../../src/engine/paceClamp';
+import { clampCredit, inWindow, paceCap, type WindowEntry } from '../../src/engine/paceClamp';
 import { seedRng, type RngState } from '../../src/engine/rng';
 
 function baseInput(over: Partial<TrainingInput> = {}): TrainingInput {
@@ -147,14 +147,16 @@ describe('computeXp (training branch)', () => {
 
   it('test 2: no input combination exceeds 4.0x the Average pace (rolling 365-day window, per skill)', () => {
     // Every multiplier at its maximum (M capped at 2.8), extreme intensity, 8 h a day of one skill,
-    // for two years; the clamp must hold the window under the cap every day.
+    // for two years; the clamp must hold each skill's window under 4.0x the Average's XP per hour in that skill x the
+    // window's hours in it, every day (D-457).
     const window: Record<string, WindowEntry[]> = {};
     const totals: Record<string, number> = {};
     let rng: RngState = seedRng('t2');
     const startAge = 20;
     for (let d = 0; d < 736; d++) {
       const age = startAge + d / 368;
-      const cap = paceCap(age - 365 / 368, clampShare(0.5, 1, 1));
+      const windowAge = age - 365 / 368;
+      const sum = (k: string, f: 'xp' | 'hours'): number => (window[k] ?? []).reduce((a, e) => a + e[f], 0);
       for (const k of Object.keys(window)) window[k] = inWindow(window[k]!, d);
       const before: Record<string, number> = Object.fromEntries(Object.entries(window).map(([k, e]) => [k, e.reduce((a, x) => a + x.xp, 0)]));
       for (let s = 0; s < 4; s++) {
@@ -167,22 +169,24 @@ describe('computeXp (training branch)', () => {
             challengeLevel: 2,
             drillRating: 14,
             caps: { p: 1e6, m: 1e6, f: 1e6 },
-            clamp: (skill, wanted, _h) => clampCredit(wanted, (window[skill] ?? []).reduce((a, e) => a + e.xp, 0), cap),
+            clamp: (skill, wanted, h) => clampCredit(wanted, sum(skill, 'xp'), paceCap(skill, windowAge, sum(skill, 'hours') + h)),
             xpOf: (sk) => totals[sk] ?? 0,
             levelOf: (sk) => levelExact(totals[sk] ?? 0),
           }),
         );
         rng = r.rng;
-        for (const [k, v] of Object.entries(r.credited)) {
-          (window[k] ??= []).push({ day: d, xp: v, hours: 0 });
+        for (const k of new Set([...Object.keys(r.credited), ...Object.keys(r.windowHours)])) {
+          const v = r.credited[k] ?? 0;
+          (window[k] ??= []).push({ day: d, xp: v, hours: r.windowHours[k] ?? 0 });
           totals[k] = (totals[k] ?? 0) + v;
         }
       }
       for (const [k, entries] of Object.entries(window)) {
-        // Y_avg falls with age, so credits made under an earlier, higher cap may stay in the window;
+        // The Average's rate changes with age, so credits made under an earlier, higher cap may stay in the window;
         // the clamp then credits nothing more. It never pushes a window above today's cap.
-        const sum = entries.reduce((a, e) => a + e.xp, 0);
-        expect(sum, `${k} day ${d}`).toBeLessThanOrEqual(Math.max(cap, before[k] ?? 0) + 1e-6);
+        const xp = entries.reduce((a, e) => a + e.xp, 0);
+        const cap = paceCap(k, windowAge, entries.reduce((a, e) => a + e.hours, 0));
+        expect(xp, `${k} day ${d}`).toBeLessThanOrEqual(Math.max(cap, before[k] ?? 0) + 1e-6);
       }
     }
   }, 60_000);

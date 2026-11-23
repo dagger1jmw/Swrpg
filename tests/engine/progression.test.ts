@@ -8,7 +8,8 @@ import { levelExact, levelFloor, levelWithNatural, thresholdsCrossed, tierOf, xp
 import { EMPTY_DAY, ZERO_METERS, capacities, capacity, efficiency, stepBlock, type BlockInput, type DayTraining, type Meters } from '../../src/engine/fatigue';
 import { instructionFactor, teacherFactor } from '../../src/engine/instruction';
 import { OUTCOME_MEAN, rollOutcome } from '../../src/engine/outcome';
-import { clampCredit, paceCap, yAvg } from '../../src/engine/paceClamp';
+import { clampCredit, paceCap, rateAvg, rateRowFor, yAvg } from '../../src/engine/paceClamp';
+import { R_AVG, R_AVG_FORM } from '../../src/data/paceRates';
 import { seedRng } from '../../src/engine/rng';
 import { removeRust, rustAfterDay, rustAfterUnused } from '../../src/engine/rust';
 import { crossTalentMult, speedM, stateMult, talentMult } from '../../src/engine/speed';
@@ -272,9 +273,13 @@ describe('M and the pace clamp (§5, test 24)', () => {
     expect(plain.m).toBe(1);
   });
 
-  it('test 24: the clamp holds 4.0x the Average at the same share', () => {
-    const cap = paceCap(20, 0.5);
-    expect(cap).toBeCloseTo(4 * yAvg(20), 9);
+  it('test 24: the clamp holds 4.0x the Average per hour in the same skill (D-457)', () => {
+    const cap = paceCap('soresu', 20, 300);
+    expect(cap).toBeCloseTo(4 * rateAvg('soresu', 20) * 300, 9);
+    // Twice the hours, twice the cap: the rate is the ceiling, not the share of the day.
+    expect(paceCap('soresu', 20, 600)).toBeCloseTo(2 * cap, 9);
+    // A form the Average does not train reads the Average's most-trained form; another untrained skill its whole rate.
+    expect(rateRowFor('djemSo')).toBe(R_AVG['djemSo'] ?? R_AVG_FORM);
     expect(yAvg(20)).toBe(629);
     const r = clampCredit(500, cap - 100, cap);
     expect(r.credited).toBeCloseTo(100, 9);

@@ -10,7 +10,7 @@
 // night lets the sleep finish, so the story resumes in the morning (Q48). Pure.
 import { formatDate } from '../engine/calendar';
 import { selectFatigue, selectMaxFraction } from '../features/health/selectors';
-import { resolveTraining } from '../features/progression/selectors';
+import { resolveTraining, type SpeedParts } from '../features/progression/selectors';
 import { planDay, selectActiveRoutine, selectFillCredit, type PlannedBlock } from '../features/routines/selectors';
 import { advanceTime } from './advanceTime';
 import { applyEvents, type AppliedEvent, type RejectedEvent, type UnknownRef } from './applyEvents';
@@ -32,6 +32,10 @@ export interface SessionLog {
   notes?: string[];
   /** A fill block (the budget's free hours) rather than a fixed one (Order, locked, daily life); pace measurement reads it. */
   fill?: boolean;
+  /** XP the 4.0x clamp discarded per skill (rounded to 0.01; the card's). */
+  discarded?: Record<string, number>;
+  /** The card's session factors (reports: intensity, effective hours, outcome, instruction, each primary's M parts). */
+  factors?: { intensity: string; effectiveHours: number; outcomeMult: number; instruction: number; speed: Record<string, SpeedParts> };
 }
 
 export interface DayLog {
@@ -132,7 +136,19 @@ export function advanceByRoutine(registry: Registry<GameState>, initial: GameSta
     // Teachers and partners grow closer through shared sessions (architecture §9, D-137).
     const npc = plan.card.instruction.teacherId ?? plan.card.instruction.partnerId;
     if (npc) apply([{ type: 'sharedTraining', npcId: npc, hours: plan.hours }]);
-    log.sessions.push({ activityId: b.activityId, skillId: b.skillId, hours: plan.hours, credited: plan.card.credited, outcome: plan.card.outcome, challenge: plan.card.challenge, notes: plan.card.notes, ...(b.fill ? { fill: true } : {}) });
+    const c = plan.card;
+    log.sessions.push({
+      activityId: b.activityId,
+      skillId: b.skillId,
+      hours: plan.hours,
+      credited: c.credited,
+      outcome: c.outcome,
+      challenge: c.challenge,
+      notes: c.notes,
+      ...(b.fill ? { fill: true } : {}),
+      ...(Object.keys(c.discarded).length ? { discarded: c.discarded } : {}),
+      factors: { intensity: c.intensity, effectiveHours: c.effectiveHours, outcomeMult: c.outcomeMult, instruction: c.instruction.factor, speed: c.speed },
+    });
     log.hoursTrained += plan.hours;
     return pass(plan.hours * 3600, 'activity', `routine: ${plan.card.activityName}`);
   };

@@ -2,6 +2,10 @@
 // the fixed seed and 19 more, every gate of tests/lifetime checked per seed, each seed printed as one "[spread] {json}"
 // line for docs-v2/testing/lifetime-spread.md. Not part of npm test or test:all; run with npm run spread (40+ minutes).
 import { Y_AVG, Y_AVG_FROZEN_AGES } from '../../src/data/progression.config';
+import { RATE_GATE_MIN_HOURS, RATE_MIN_HOURS } from '../../src/data/paceRates';
+import { rateRowFor } from '../../src/engine/paceClamp';
+import { interp } from '../../src/engine/interp';
+import { FORM_IDS } from '../../src/data/skills';
 import { runLifetime, type LifeProfile, type LifeResult } from '../support/lifetime';
 import { ANAKIN, AVERAGE, LUKE, OBIWAN, TARGETS } from '../lifetime/profiles';
 import type { Job } from '../support/parallelRuns';
@@ -50,7 +54,7 @@ export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, bo
         'day-end tiredness < 1.1': r.maxDayEndFNoSeriousFight < 1.1,
       },
       // Per seed, reported; the gate is the 20-seed median per age (yAvgMedianGate).
-      values: { yAvgMaxDeviation: yAvgDev, peacetimeMaxShare: peace, ...Object.fromEntries(Y_AVG.map(([age, y]) => [`yAvgRatio@${age}`, (r.yearMain[age - 4] ?? 0) / y])) },
+      values: { yAvgMaxDeviation: yAvgDev, peacetimeMaxShare: peace, ...Object.fromEntries(Y_AVG.map(([age, y]) => [`yAvgRatio@${age}`, (r.yearMain[age - 4] ?? 0) / y])), ...rateValues(r) },
     };
   },
   anakin: (r) => {
@@ -96,6 +100,86 @@ export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, bo
   },
 };
 
+/** The ages of the per-hour table (D-457): the Y_avg ages. */
+export const RATE_AGES: readonly number[] = Y_AVG.map(([a]) => a);
+
+/**
+ * The Average's pace-window XP and hours per skill for the 365 days starting at each table age (D-457), as row values
+ * `xp:<key>@<age>` and `hours:<key>@<age>`; key = a skill, '$form' (the year's most-trained form) or '$all' (all skills).
+ */
+function rateValues(r: LifeResult): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const age of RATE_AGES) {
+    const row = r.paceRates?.[age - r.startAge];
+    if (!row) continue;
+    // XP = the window's credited XP plus the drill XP the ceiling banked (the rate measures training speed; the drill
+    // ceiling is its own rule, D-45: the Average's ceilinged forms would otherwise read 75% slow).
+    const put = (k: string, v: { xp: number; hours: number }): void => {
+      out[`xp:${k}@${age}`] = v.xp;
+      out[`hours:${k}@${age}`] = v.hours;
+    };
+    let all = { xp: 0, hours: 0 };
+    for (const [k, w] of Object.entries(row)) {
+      const v = { xp: w.xp + w.banked, hours: w.hours };
+      put(k, v);
+      all = { xp: all.xp + v.xp, hours: all.hours + v.hours };
+    }
+    put('$all', all);
+    const form = FORM_IDS.filter((f) => row[f]).sort((a, b) => row[b]!.xp + row[b]!.banked - row[a]!.xp - row[a]!.banked)[0];
+    if (form) put('$form', { xp: row[form]!.xp + row[form]!.banked, hours: row[form]!.hours });
+  }
+  return out;
+}
+
+const medianOf = (xs: readonly number[]): number => {
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length ? (s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2) : 0;
+};
+
+/**
+ * The per-hour table from the Average's seeds (D-457): per key and age, the median over seeds of XP / hours (seeds with
+ * hours), kept where the median hours reach RATE_MIN_HOURS; with the median hours, for the report and the gate.
+ */
+export function rateTableFromRows(rows: readonly { profile: string; values: Record<string, number> }[]): Record<string, { age: number; rate: number; hours: number }[]> {
+  const avg = rows.filter((r) => r.profile === 'average');
+  const keys = new Set(avg.flatMap((r) => Object.keys(r.values).filter((k) => k.startsWith('hours:')).map((k) => k.slice(6, k.lastIndexOf('@')))));
+  const out: Record<string, { age: number; rate: number; hours: number }[]> = {};
+  for (const key of [...keys].sort()) {
+    for (const age of RATE_AGES) {
+      const hours = medianOf(avg.map((r) => r.values[`hours:${key}@${age}`] ?? 0));
+      if (hours < RATE_MIN_HOURS) continue;
+      const rates = avg.filter((r) => (r.values[`hours:${key}@${age}`] ?? 0) > 0).map((r) => r.values[`xp:${key}@${age}`]! / r.values[`hours:${key}@${age}`]!);
+      (out[key] ??= []).push({ age, rate: medianOf(rates), hours });
+    }
+  }
+  return out;
+}
+
+/** The per-hour table's calibration band (as Y_AVG_MEDIAN_BAND): the measured median within 5% of the table's. */
+export const RATE_MEDIAN_BAND = 0.05;
+
+/**
+ * The per-hour table gate (D-457): every measured (key, age) with median hours of at least RATE_GATE_MIN_HOURS, its
+ * 20-seed median rate against the committed table's row for that key (a skill without its own row reads its fallback).
+ */
+export function rateMedianGate(rows: readonly { profile: string; values: Record<string, number> }[]): { pass: boolean; worst: { key: string; age: number; ratio: number }; checked: number } {
+  const table = rateTableFromRows(rows);
+  let worst = { key: '', age: 0, ratio: 1 };
+  let checked = 0;
+  for (const [key, pts] of Object.entries(table)) {
+    if (key.startsWith('$')) continue;
+    const row = rateRowFor(key);
+    for (const p of pts) {
+      if (p.hours < RATE_GATE_MIN_HOURS) continue;
+      checked += 1;
+      const ratio = p.rate / interp(row, p.age);
+      if (Math.abs(ratio - 1) > Math.abs(worst.ratio - 1)) worst = { key, age: p.age, ratio };
+    }
+  }
+  return { pass: checked > 0 && Math.abs(worst.ratio - 1) <= RATE_MEDIAN_BAND, worst, checked };
+}
+
 /** One seed of one profile (k = 0 is the profile's own seed, then -s1 ... -s19): its spread row. */
 export function spreadRow(name: string, profile: LifeProfile, years: number, k: number, opts: Parameters<typeof runLifetime>[2] = {}): SeedRow & { profile: string } {
   const seed = k === 0 ? profile.seed : `${profile.seed}-s${k}`;
@@ -108,7 +192,7 @@ export function spreadRow(name: string, profile: LifeProfile, years: number, k: 
 /** The four profiles as the old per-profile files ran them (in their file order: anakin, average, luke, obiwan). */
 export const SPREAD_PROFILES: readonly { name: string; profile: LifeProfile; years: number; opts: Parameters<typeof runLifetime>[2] }[] = [
   { name: 'anakin', profile: ANAKIN, years: 70, opts: {} },
-  { name: 'average', profile: AVERAGE, years: 95, opts: { crossLevels: { highestForm: [24, 47, 64], forceControl: [14, 41], forceSense: [40], willpower: [58] } } },
+  { name: 'average', profile: AVERAGE, years: 95, opts: { crossLevels: { highestForm: [24, 47, 64], forceControl: [14, 41], forceSense: [40], willpower: [58] }, paceRates: true } },
   { name: 'luke', profile: LUKE, years: 70, opts: { track: ['forceControl', 'perf:strength', 'perf:agility', 'perf:endurance'] } },
   { name: 'obiwan', profile: OBIWAN, years: 70, opts: {} },
 ];
@@ -117,7 +201,10 @@ export const SPREAD_PROFILES: readonly { name: string; profile: LifeProfile; yea
 export const LIFE_COST: Readonly<Record<string, number>> = { luke: 32, anakin: 46, obiwan: 63, average: 74 };
 
 /** Every (profile, seed) as a job, in output order (profile, then seed). */
+// SPREAD_ONLY=average (comma list) runs only those profiles (a table measurement; the others' gates are not run).
+const ONLY = (process.env['SPREAD_ONLY'] ?? '').split(',').filter(Boolean);
 export const SPREAD_JOBS: readonly Job<SeedRow & { profile: string }>[] = SPREAD_PROFILES.flatMap((p, pi) =>
+  ONLY.length && !ONLY.includes(p.name) ? [] :
   Array.from({ length: SPREAD_SEEDS }, (_, k) => ({ order: pi * SPREAD_SEEDS + k, cost: LIFE_COST[p.name] ?? p.years, run: () => spreadRow(p.name, p.profile, p.years, k, p.opts) })),
 );
 
