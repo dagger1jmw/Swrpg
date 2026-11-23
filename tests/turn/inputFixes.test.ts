@@ -87,7 +87,8 @@ describe('a failed feint through the turn (D-199; the D-194 regression)', () => 
     s = applyEvents(REGISTRY, s, [{ type: 'combatStarted', opponentRefs: [id], minionGroups: [], stakes: 'lethal', terrainTags: ['flatFloor'] }], { source: 'ai' }).state;
     s = resolveTurn(REGISTRY, s, null, beat('narrate')).state;
     let failed = false;
-    for (let i = 0; i < 40 && !failed; i++) {
+    // 200 seeds (40 before D-431: the re-measured paces moved both fighters' levels, and none of the first 40 failed).
+    for (let i = 0; i < 200 && !failed; i++) {
       const seeded = { ...s, combat: { ...s.combat, active: { ...s.combat.active!, duel: { ...(s.combat.active!.duel as DuelState), rng: seedRng(`f${i}`) } } } };
       const r = resolveTurn(REGISTRY, seeded, { ...fightIntent, sequence: [{ kind: 'tactic', tactic: 'feint' }, { kind: 'strike' }] }, { text: 'I feint high, then cut low at his leg.' });
       const notes = r.draft.combat!.notes.join('\n');

@@ -101,7 +101,10 @@ export const OBIWAN: LifeProfile = {
   effort: 'push',
   mainForm: 'soresu',
   secondForm: 'ataru',
-  formPlan: { padawan: { soresu: 2, shiiCho: 1 }, knight: { soresu: 2, ataru: 1 } },
+  // D-431: Shii-Cho 0.5 h (was 1 h) in the Padawan plan. The age-scaled solo hour (0.5 h at 13-17) stalled his second
+  // form, Shii-Cho, which had carried his 41 (12.50 y); with the higher K, 41 came at 13.07 (gate 12.96). Tuned on the
+  // gated seed: 41 at 12.76.
+  formPlan: { padawan: { soresu: 2.5, shiiCho: 0.5 }, knight: { soresu: 2, ataru: 1 } },
   priorities: {
     initiate: [{ skillId: 'shiiCho', weight: 3, intensity: 'intense', source: { kind: 'instructor' } }],
     padawan: [

@@ -13,7 +13,7 @@ import { AVERAGE, TARGETS, gated } from './profiles';
 
 let avg: LifeResult;
 beforeAll(() => {
-  avg = runLifetime(gated(AVERAGE), 95, { crossLevels: { highestForm: [24, 47, 58], forceControl: [14, 40], forceSense: [36], willpower: [56] } });
+  avg = runLifetime(gated(AVERAGE), 95, { crossLevels: { highestForm: [24, 47, 64], forceControl: [14, 38], forceSense: [37], willpower: [58] } });
   console.info(`[report ${'average'}] milestones ${JSON.stringify(avg.milestones)} E@41/61 ${JSON.stringify(avg.eAtMilestone)} bank share ${(avg.bankShare * 100).toFixed(1)}% wounded days by age ${JSON.stringify(avg.woundedDaysByAge)} combat share by year ${JSON.stringify(avg.yearCombat.map((c, i) => Math.round((c / Math.max(1, avg.yearMain[i]!)) * 100)))}`);
 }, 600_000);
 
@@ -55,9 +55,10 @@ describe('Average lifetime (95 years through the routine day loop)', () => {
   it('ranks test 1: the Average meets each rank minimum within +/-2 years of the stated age', () => {
     const at = (key: string): number => avg.cross[key]!;
     for (const k of ['highestForm>=24', 'forceControl>=14']) expect(Math.abs(at(k) - 10), k).toBeLessThanOrEqual(2);
-    expect(RANK_BY_ID.get('knight')!.minimums).toEqual({ $highestForm: 47, forceControl: 40, forceSense: 36, willpower: 56 });
-    for (const k of ['highestForm>=47', 'forceControl>=40', 'forceSense>=36', 'willpower>=56']) expect(Math.abs(at(k) - 24), k).toBeLessThanOrEqual(2);
-    expect(Math.abs(at('highestForm>=58') - 35)).toBeLessThanOrEqual(2);
+    expect(RANK_BY_ID.get('knight')!.minimums).toEqual({ $highestForm: 47, forceControl: 38, forceSense: 37, willpower: 58 });
+    expect(RANK_BY_ID.get('master')!.minimums['$main']).toBe(64);
+    for (const k of ['highestForm>=47', 'forceControl>=38', 'forceSense>=37', 'willpower>=58']) expect(Math.abs(at(k) - 24), k).toBeLessThanOrEqual(2);
+    expect(Math.abs(at('highestForm>=64') - 40)).toBeLessThanOrEqual(2);
   });
 
   // D-159 amended (Jared, 2026-11-20): days with a serious fight are left out; the check is for training-routine

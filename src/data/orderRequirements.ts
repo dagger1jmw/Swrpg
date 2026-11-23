@@ -12,7 +12,47 @@ export interface RequirementBlock {
   /** '$planMaster' / '$planSolo': forms of the Padawan form plan (D-118). The Initiate row is always Shii-Cho. */
   primary?: string;
   intensity?: 'standard';
+  /**
+   * Hours by Human-equivalent age (D-431, Jared: the Padawan's fixed hours scale with age so a young Padawan's day fits
+   * under the tiredness limit with some free training time): interpolated, then rounded down to the 0.5 h step. Absent =
+   * `hours` at every age. `hours` is the adult value.
+   */
+  hoursByAge?: readonly (readonly [number, number])[];
 }
+
+/** A block's hours at a Human-equivalent age (D-431): `hoursByAge` interpolated and floored to 0.5 h, else `hours`. */
+export function blockHours(b: RequirementBlock, age: number): number {
+  const t = b.hoursByAge;
+  if (!t || !t.length) return b.hours;
+  let h = t[t.length - 1]![1];
+  if (age <= t[0]![0]) h = t[0]![1];
+  else
+    for (let i = 1; i < t.length; i++)
+      if (age <= t[i]![0]) {
+        const [a0, h0] = t[i - 1]!;
+        const [a1, h1] = t[i]!;
+        h = h0 + ((h1 - h0) * (age - a0)) / (a1 - a0);
+        break;
+      }
+  return Math.floor(h / 0.5 + 1e-9) * 0.5;
+}
+
+/** A row's fixed hours at a Human-equivalent age (D-431). */
+export const orderHoursAt = (row: string, age: number): number => (ORDER_REQUIREMENTS[row] ?? []).reduce((a, b) => a + blockHours(b, age), 0);
+
+/**
+ * The young Padawan's (and apprentice's) scaled hours (D-431, Jared; tuned on the Average's day 2026-11-22): 4 h at 12-16,
+ * the Force Control hour back to 1 h at 17 and the solo form hour at 18, so the fixed blocks end a standard day at f 0.86-0.89
+ * with 0.5-1.5 h of free training (5 h ended it at 0.92-1.01 to 16, with none). 5 h from 16 still ended 16-16.5 at 0.92.
+ */
+export const PADAWAN_SOLO_HOURS: readonly (readonly [number, number])[] = [
+  [12, 0.5],
+  [18, 1],
+];
+export const PADAWAN_FORCE_HOURS: readonly (readonly [number, number])[] = [
+  [12, 0.5],
+  [17, 1],
+];
 
 export const ORDER_REQUIREMENTS: Readonly<Record<string, readonly RequirementBlock[]>> = {
   initiate: [
@@ -25,8 +65,8 @@ export const ORDER_REQUIREMENTS: Readonly<Record<string, readonly RequirementBlo
   // ('$planMaster': the plan's forms by hours, largest first, for 2 h; '$planSolo': the next 1 h).
   padawan: [
     { activityId: 'padawanTraining', hours: 2, instructor: 'master', primary: '$planMaster' },
-    { activityId: '$formBasics', hours: 1, instructor: 'solo', primary: '$planSolo' },
-    { activityId: 'forceControlDrill', hours: 1, instructor: 'master', primary: 'forceControl' },
+    { activityId: '$formBasics', hours: 1, instructor: 'solo', primary: '$planSolo', hoursByAge: PADAWAN_SOLO_HOURS },
+    { activityId: 'forceControlDrill', hours: 1, instructor: 'master', primary: 'forceControl', hoursByAge: PADAWAN_FORCE_HOURS },
     { activityId: 'senseAwareness', hours: 1, instructor: 'master', intensity: 'standard' },
   ],
   knight: [],
@@ -42,10 +82,10 @@ export const ORDER_REQUIREMENTS: Readonly<Record<string, readonly RequirementBlo
   ],
   apprentice: [
     { activityId: 'padawanTraining', hours: 2, instructor: 'master', primary: '$planMaster' },
-    { activityId: '$formBasics', hours: 1, instructor: 'solo', primary: '$planSolo' },
-    { activityId: 'forceControlDrill', hours: 1, instructor: 'master', primary: 'forceControl' },
-    // Force awareness with the master (the measured Padawan paces keep it; a channeling block waits for re-measured paces).
-    { activityId: 'senseAwareness', hours: 1, instructor: 'master', intensity: 'standard' },
+    { activityId: '$formBasics', hours: 1, instructor: 'solo', primary: '$planSolo', hoursByAge: PADAWAN_SOLO_HOURS },
+    { activityId: 'forceControlDrill', hours: 1, instructor: 'master', primary: 'forceControl', hoursByAge: PADAWAN_FORCE_HOURS },
+    // Channelling with the master (D-431, Jared: the Force Output block is back; the paces are re-measured with it).
+    { activityId: 'outputDrill', hours: 1, instructor: 'master', primary: 'forceOutput' },
   ],
 };
 

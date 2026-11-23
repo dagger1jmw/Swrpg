@@ -30,6 +30,8 @@ export interface SessionLog {
   /** The challenge factor of the drill (a gap below -20 is an easy drill, training-routines §5). */
   challenge?: number;
   notes?: string[];
+  /** A fill block (the budget's free hours) rather than a fixed one (Order, locked, daily life); pace measurement reads it. */
+  fill?: boolean;
 }
 
 export interface DayLog {
@@ -130,7 +132,7 @@ export function advanceByRoutine(registry: Registry<GameState>, initial: GameSta
     // Teachers and partners grow closer through shared sessions (architecture §9, D-137).
     const npc = plan.card.instruction.teacherId ?? plan.card.instruction.partnerId;
     if (npc) apply([{ type: 'sharedTraining', npcId: npc, hours: plan.hours }]);
-    log.sessions.push({ activityId: b.activityId, skillId: b.skillId, hours: plan.hours, credited: plan.card.credited, outcome: plan.card.outcome, challenge: plan.card.challenge, notes: plan.card.notes });
+    log.sessions.push({ activityId: b.activityId, skillId: b.skillId, hours: plan.hours, credited: plan.card.credited, outcome: plan.card.outcome, challenge: plan.card.challenge, notes: plan.card.notes, ...(b.fill ? { fill: true } : {}) });
     log.hoursTrained += plan.hours;
     return pass(plan.hours * 3600, 'activity', `routine: ${plan.card.activityName}`);
   };

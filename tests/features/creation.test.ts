@@ -30,25 +30,25 @@ const top = (c: ReturnType<typeof computeCreation>): number => c.highestForm?.le
 const near = (a: number, b: number, tol = 1) => expect(Math.abs(a - b), `${a} vs ${b}`).toBeLessThanOrEqual(tol);
 
 describe('computed creation (character-creation §6)', () => {
-  it('test 1: a 24-year-old Average Jedi Knight (start 4) gets highest form 46.4 +/-1 (Soresu) and meets the Knight minimums', () => {
+  it('test 1: a 24-year-old Average Jedi Knight (start 4) gets highest form 47.4 +/-1 (Soresu; the day loop, D-431) and meets the Knight minimums', () => {
     const c = computeCreation(jedi(24, 'knight'));
     expect(c.errors).toEqual([]);
     expect(c.highestForm?.id).toBe('soresu');
-    near(top(c), 46.4);
+    near(top(c), 47.4);
     expect(c.unmet).toEqual([]);
     expect(c.ok).toBe(true);
     expect(c.levels['forceSense']!).toBeGreaterThanOrEqual(31);
     expect(c.levels['forceControl']!).toBeGreaterThanOrEqual(34);
     expect(c.levels['willpower']!).toBeGreaterThanOrEqual(53);
-    // docs-v2/calc: Shii-Cho 30.1, Soresu 46.4, Ataru 33.4 (Knight at 20.5); D-426, a Padawan to 24: Ataru 32.4.
-    near(c.levels['shiiCho']!, 30.1);
-    near(c.levels['ataru']!, 32.4);
+    // The day loop at 24 (gated seed, D-431): Shii-Cho 29.3, Soresu 47.4, Ataru 32.0 (the closed form 29.2 / 47.8 / 31.5).
+    near(c.levels['shiiCho']!, 29.3);
+    near(c.levels['ataru']!, 32.0);
   });
 
-  it('test 2: a 9-year-old Initiate (start 4) trains Shii-Cho only: 23.4 +/-1, the day loop at 5 years', () => {
+  it('test 2: a 9-year-old Initiate (start 4) trains Shii-Cho only: 22.6 +/-1, the day loop at 5 years', () => {
     const c = computeCreation(jedi(9, 'initiate'));
     expect(c.errors).toEqual([]);
-    near(c.levels['shiiCho']!, 23.4);
+    near(c.levels['shiiCho']!, 22.6);
     expect(Object.keys(c.startingXp).filter((k) => ['soresu', 'ataru', 'makashi'].includes(k))).toEqual([]);
     expect(c.mainFormId).toBe('shiiCho');
     expect(c.secondFormId).toBeNull();
@@ -127,10 +127,10 @@ describe('form plans and the fundamentals transfer (D-118, D-119)', () => {
   it('a 16-year-old Padawan has Shii-Cho, a main form and a second form all above 0', () => {
     const c = computeCreation(jedi(16, 'padawan'));
     expect(c.errors).toEqual([]);
-    // docs-v2/calc: Shii-Cho 30.1, Soresu 34.2, Ataru 28.0.
-    near(c.levels['shiiCho']!, 30.1);
-    near(c.levels['soresu']!, 34.2);
-    near(c.levels['ataru']!, 28.0);
+    // The day loop at 16 (D-431): Shii-Cho 29.3, Soresu 33.7, Ataru 26.8.
+    near(c.levels['shiiCho']!, 29.3);
+    near(c.levels['soresu']!, 33.7);
+    near(c.levels['ataru']!, 26.8);
     expect(c.mainFormId).toBe('soresu');
     expect(c.secondFormId).toBe('ataru');
     expect(c.highestForm?.id).toBe('soresu');
@@ -202,10 +202,11 @@ describe('focus sliders reach the closed form (play-test fix, D-115)', () => {
   it('the Order-fixed phases move only by their fill hours (budget minus Order hours, over the 6 h Knight day)', () => {
     expect(fillFactor('initiate', 4, 9)).toBe(0);
     expect(fillFactor('padawan', 12, 20.5)).toBeGreaterThan(0.1);
-    expect(fillFactor('padawan', 12, 20.5)).toBeLessThan(0.2);
+    // D-431: the young Padawan's 4 fixed hours leave more fill.
+    expect(fillFactor('padawan', 12, 20.5)).toBeLessThan(0.3);
     expect(fillFactor('knight', 20.5, 24)).toBe(1);
     // The default focus changes nothing (test 1 values hold).
-    near(top(computeCreation(jedi(24, 'knight', { focus: toward('$forms', defaultFocus(ARCHETYPE_BY_ID.get('jediGuardian')!)['$forms']!) }))), 46.4);
+    near(top(computeCreation(jedi(24, 'knight', { focus: toward('$forms', defaultFocus(ARCHETYPE_BY_ID.get('jediGuardian')!)['$forms']!) }))), 47.4);
   });
 });
 
@@ -239,7 +240,7 @@ describe('campaign creation (M3)', () => {
     expect(s.state.character).toMatchObject({ path: 'jedi', archetype: 'jediGuardian', mainFormId: 'soresu', secondFormId: 'ataru', trainingStartAge: 4 });
     expect(s.state.character.formPlan).toEqual({ padawan: { soresu: 2, ataru: 1 }, knight: { soresu: 2, ataru: 1 } });
     expect(s.state.ranks.rank).toBe('knight');
-    near(selectLevelExact(s.state, 'soresu'), 46.4);
+    near(selectLevelExact(s.state, 'soresu'), 47.4);
     expect(s.state.progression.formsStarted.sort()).toEqual(['ataru', 'shiiCho', 'soresu']);
     expect(s.state.memory.facts.some((f) => f.text.includes('Jedi Temple on Coruscant'))).toBe(true);
     // The forms pool (0.545) is shared out by the Knight plan's hours: Soresu 2/3, Ataru 1/3.

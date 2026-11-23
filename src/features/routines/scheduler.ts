@@ -11,7 +11,7 @@
 // teacher's block becomes solo. Injuries and the drill ceiling arrive with M5.
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY, isPhysicalActivity, type ActivityDef, type Intensity } from '../../data/activities';
 import { archetypeDef, focusShares, sharesFromWeights } from '../../data/archetypes';
-import { ORDER_REQUIREMENTS, REQUIREMENT_ROW, type Instructor } from '../../data/orderRequirements';
+import { ORDER_REQUIREMENTS, REQUIREMENT_ROW, blockHours, type Instructor } from '../../data/orderRequirements';
 import { BUDGET, DAILY_LIFE, STEP_HOURS, TIREDNESS_LIMIT } from '../../data/progression.config';
 import { weekday } from '../../engine/calendar';
 import { FORM_IDS, SKILL_BY_ID } from '../../data/skills';
@@ -264,7 +264,10 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
     const id = req.primary ?? (act?.primary.kind === 'skill' ? act.primary.skill : '');
     return SKILL_BY_ID.get(id)?.category === 'knowledge';
   };
-  for (const req of (ORDER_REQUIREMENTS[orderRowKey(s)] ?? []).filter((r) => !(accelerated && knowledgeBlock(r)))) {
+  for (const req0 of (ORDER_REQUIREMENTS[orderRowKey(s)] ?? []).filter((r) => !(accelerated && knowledgeBlock(r)))) {
+    // The block's hours at this age (D-431: the young Padawan's fixed hours are scaled down).
+    const req = { ...req0, hours: blockHours(req0, age) };
+    if (req.hours <= 0) continue;
     const source = sourceFor(req.instructor, routine, s, notes);
     const intensity: Intensity = 'standard';
     if (req.primary === '$planMaster' || req.primary === '$planSolo') {

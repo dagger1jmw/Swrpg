@@ -10,7 +10,7 @@ import { AVERAGE, schedule } from './profiles';
 export const SWORDMASTER = {
   ...AVERAGE,
   seed: 'swordmaster',
-  fights: schedule([{ from: 20.5, to: 200, perYear: 50, stakes: 'spar', gap: -10, partners: 3 }]),
+  fights: schedule([{ from: AVERAGE.knightAge, to: 200, perYear: 50, stakes: 'spar', gap: -10, partners: 3 }]),
 };
 
 let r: LifeResult;

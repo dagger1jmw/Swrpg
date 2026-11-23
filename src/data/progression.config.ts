@@ -8,9 +8,11 @@ import type { AgeRow, RustRow } from './skills';
 /**
  * Solved so the Average profile's highest form reaches 41 in exactly 16.0 years (D-118 / D-119:
  * Shii-Cho as an Initiate, then the main form 2 h + second form 1 h from Padawan, with the 0.75
- * fundamentals transfer; docs-v2/calc/progression-sim.mjs: 11.683; it was 15.181 under D-102).
+ * fundamentals transfer). Re-solved on the real day loop (D-431, 2026-11-22; npm run ksolve, the gated seed: 41 at 15.995
+ * years) with the daily meditation block and the age-scaled Padawan hours: 12.30 (it was 11.683 from
+ * docs-v2/calc/progression-sim.mjs, and 15.181 under D-102).
  */
-export const K = 11.683;
+export const K = 12.3;
 export const CURVE_EXP = 1.75;
 
 /** progression-numbers §1. [min level, name]. */
@@ -114,26 +116,26 @@ export const PACE_WINDOW_DAYS = 365;
  * mission (combat XP excluded), median of the fixed seed and 5 more.
  */
 /**
- * D-426: the table is the 4.0x ceiling's calibration and stays frozen (Jared: the ceiling is not recalibrated). Since the
- * Average became a Padawan to 25, its own medians differ at 20, 24 and 30 (20 seeds: 601, 545, 424 against 550, 450, 396);
- * the sanity checks skip those ages (Y_AVG_FROZEN_AGES).
+ * D-431 (Jared): re-measured for the Knight-at-25 Average with the daily meditation block and the age-scaled Padawan hours
+ * (K 12.30): the table times the 20-seed median ratio per age (npm run spread, 2026-11-22). The frozen ages of D-426 are
+ * gone; the 4.0x stays defined against the Average.
  */
-export const Y_AVG_FROZEN_AGES: readonly number[] = [20, 24, 30];
+export const Y_AVG_FROZEN_AGES: readonly number[] = [];
 export const Y_AVG: readonly (readonly [number, number])[] = [
   [4, 582],
-  [8, 607],
-  [12, 557],
-  [16, 531],
-  [20, 550],
-  [24, 450],
-  [30, 396],
-  [40, 471],
-  [50, 448],
-  [60, 487],
-  [70, 440],
-  [80, 436],
-  [90, 289],
-  [98, 197],
+  [8, 611],
+  [12, 599],
+  [16, 604],
+  [20, 620],
+  [24, 560],
+  [30, 444],
+  [40, 467],
+  [50, 460],
+  [60, 505],
+  [70, 448],
+  [80, 445],
+  [90, 324],
+  [98, 208],
 ];
 
 // ---- Age and learning speed (§16) ----
@@ -365,13 +367,21 @@ export const RECORDING_REVIEW_BONUS = 0.05;
  */
 export const FORCE_RICH_FACTOR = 1.1;
 /**
+ * A Force nexus site (D-432, Jared): Force skills train x this at a nexus site (the Valley of the Dark Lords, the Temple
+ * spire), inside the 2.8 M cap and the 4.0x clamp. No stacking with the planet's factor (the stronger wins), and only where
+ * the site's leaning matches the character's or is balanced (src/data/forceNexus.ts forceBonusAt). Invented.
+ */
+export const NEXUS_SITE_FACTOR = 1.15;
+/**
  * The accelerated path (Jared, D-418): training cut to using and channelling the Force and blade work; history, protocol
  * and most doctrine dropped (the Order's knowledge blocks leave the routine), so the knowledge and doctrine stats stay
  * low until later study. Force skills and lightsaber forms train x `mult` on top of the 2.8 M cap, and their 4.0x clamp
  * is raised x `capMult`: the only condition allowed past the 4.0x ceiling. The averages and the 4.0x calibration are not
  * changed for it. First guess (invented), tuned on the Luke accelerated-path harness check (tests/lifetime/lukeAccelerated).
+ * D-431: x3.4 (was 3.2) after K moved to 12.30: at 3.2 Luke's Djem So was 53.3 at year 5 (target 55+); at 3.4 it is 56.0
+ * (Force Control 61.0; 44.1 at year 3). The cap multiplier stays 3.2.
  */
-export const ACCELERATED_PATH = { mult: 3.2, capMult: 3.2 } as const;
+export const ACCELERATED_PATH = { mult: 3.4, capMult: 3.2 } as const;
 
 // ---- XP sources for the knowledge stats (Jared, D-427; M7). Every number here is invented and tagged. ----
 /**
@@ -381,13 +391,9 @@ export const ACCELERATED_PATH = { mult: 3.2, capMult: 3.2 } as const;
  * accelerated path except the meditation block (using the Force), which it keeps.
  */
 export const DAILY_LIFE = {
-  // From Knight on only for now: Knights were already centered on most days by the fill's Willpower meditation (D-133),
-  // so the block keeps the calibration; for Padawans it would center every day (x1.05 on all training) and move the K
-  // calibration (41 at 15.76 years on the gated seed), which needs K re-solved and the paces re-measured first.
-  // Built but off (no rows) pending Jared (D-427): every scheduled meditation centers the next day (x1.05, D-133), and a
-  // daily block makes Knights centered every day instead of most days, which moves the closed form off the day loop
-  // (Guardian at 60 years: 86.2 against 83.5) and needs the paces re-measured.
-  meditation: { hours: 0.5, activityId: 'basicCentering', fromRows: [] as readonly string[] },
+  // On from Padawan on (D-431, Jared: daily meditation is normal Jedi life, so the baseline is measured with it; centered
+  // stays as is, so Padawans and Knights are centered every training day). K, the paces and Y_AVG were re-measured with it.
+  meditation: { hours: 0.5, activityId: 'basicCentering', fromRows: ['padawan', 'knight'] as readonly string[] },
   knightStudy: { hours: 1, daysPerWeek: 3, activityId: { jedi: 'jediCode', sith: 'forceLore' } as Readonly<Record<string, string>> },
 } as const;
 /**
@@ -396,6 +402,11 @@ export const DAILY_LIFE = {
  * without a teacher). On the accelerated path the share is x`acceleratedMult` (Jared, D-427: duels count more there).
  */
 export const STRONGER_DUEL = { minGap: 10, share: 0.25, acceleratedMult: 2 } as const;
+/**
+ * The instructor's share (D-433, Jared; replaces the D-163 note): teaching a Padawan, the teacher gains `share` of the
+ * student's drill XP in the drilled form, at most `maxPerHour` XP a session hour, counted as teaching. Invented.
+ */
+export const INSTRUCTOR_SHARE = { share: 0.1, maxPerHour: 0.25 } as const;
 /** Natural Intelligence and Charisma by Human-equivalent age (D-427: schooling and life; invented), like Willpower's. */
 export const NATURAL_INTELLIGENCE: readonly (readonly [number, number])[] = [
   [4, 4],
@@ -413,18 +424,6 @@ export const NATURAL_CHARISMA: readonly (readonly [number, number])[] = [
   [30, 13],
   [60, 15],
 ];
-/**
- * The daily-life blocks in the NPC closed form (D-427): the paces they add for Order members, measured on the Average
- * Guardian's day loop (2026-11-22, the knowledge report: the XP each phase gained over the run without them, divided by
- * R x the age integral). Meditation from Padawan on; Force Knowledge (the Knight's study) from Knight on.
- */
-export const DAILY_LIFE_PACES: Readonly<Record<string, Readonly<Partial<Record<'initiate' | 'padawan' | 'knight', number>>>>> = {
-  forceKnowledge: { knight: 0.139 },
-};
-/** Per-archetype overrides of DAILY_LIFE_PACES (measured: the Consular gains more from the study, 0.189). */
-export const DAILY_LIFE_PACES_BY_ARCHETYPE: Readonly<Record<string, typeof DAILY_LIFE_PACES>> = {
-  jediConsular: { forceKnowledge: { knight: 0.189 } },
-};
 /**
  * Long lives in the NPC closed form (Jared, D-429): the Human-equivalent age counts at most a full life (100: the
  * species' own maturity and lifespan map it, species.md §1), and levels above `from` gain with diminishing returns toward

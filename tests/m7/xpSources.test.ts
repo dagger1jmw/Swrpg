@@ -28,15 +28,16 @@ const make = (age: number, rank: string, path: 'jedi' | 'sith' = 'jedi'): GameSt
 const goTo = (s: GameState, name: string): GameState => applyEvents(REGISTRY, s, [{ type: 'locationIntroduced', key: 'tmp:1', name, kind: 'planet', region: name, description: '', moveHere: true }], { source: 'ai' }).state;
 
 describe('daily-life blocks (outside the training budget)', () => {
-  it('the meditation block is off pending a decision (D-427); the Knight studies on 3 days of 7; none for Initiates or Padawans', () => {
+  it('meditation every training day from Padawan on (D-431); the Knight studies on 3 days of 7; nothing for Initiates', () => {
     const ids = (s: GameState, day: number) => dailyLifeBlocks(s, s.ranks.rank === 'initiate' ? 'initiate' : s.ranks.rank === 'padawan' ? 'padawan' : 'knight', day, false).map((b) => b.activityId);
     expect(ids(make(9, 'initiate'), 0)).toEqual([]);
-    expect(ids(make(15, 'padawan'), 0)).toEqual([]);
+    expect(ids(make(15, 'padawan'), 0)).toEqual(['basicCentering']);
     const knight = make(30, 'knight');
     const week = Array.from({ length: 7 }, (_, i) => at(-3661) + i).filter((d) => ids(knight, d).includes('jediCode'));
     expect(week).toHaveLength(3);
     expect(week.every((d) => weekday(d) % 2 === 0)).toBe(true);
-    expect(dailyLifeBlocks(knight, 'knight', week[0]!, true).map((b) => b.activityId)).toEqual([]);
+    // The accelerated path keeps the meditation block (using the Force) and drops the study.
+    expect(dailyLifeBlocks(knight, 'knight', week[0]!, true).map((b) => b.activityId)).toEqual(['basicCentering']);
     expect(ids(make(30, 'lord', 'sith'), week[0]!)).toContain('forceLore');
   });
 });

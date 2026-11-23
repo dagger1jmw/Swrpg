@@ -17,7 +17,13 @@ Amended by D-118 / D-119 (form plans and the fundamentals transfer): the targets
   highest lightsaber form; the Average trains Shii-Cho as an Initiate, then main Soresu 2 h + second
   Ataru 1 h from Padawan, and a new form starts at 0.75 x the highest form (sec 7a). K re-solved =
   11.683 (docs-v2/calc/progression-sim.mjs).
-Reference (K = 11.683): XP(21)=2,407  XP(41)=7,761  XP(61)=15,555  XP(81)=25,551
+Amended by D-431 (the daily meditation block from Padawan on, the age-scaled Padawan hours, the
+  Sith rows): K re-solved on the real day loop (npm run ksolve, the gated seed: 41 at 15.995 years)
+  = 12.30. The calc model no longer mirrors the routine (no daily-life blocks or scaled hours); the
+  archetype paces are measured on the day loop too (tests/paces).
+Reference (K = 12.30): XP(21)=2,534  XP(41)=8,171  XP(61)=16,377  XP(81)=26,900
+  XP(101)=39,579  XP(151)=80,005
+Before D-431 (K = 11.683): XP(21)=2,407  XP(41)=7,761  XP(61)=15,555  XP(81)=25,551
   XP(101)=37,594  XP(151)=75,991
 Before D-118 (K = 15.18): XP(21)=3,127  XP(41)=10,085  XP(61)=20,213  XP(81)=33,201
   XP(101)=48,850  XP(151)=98,744

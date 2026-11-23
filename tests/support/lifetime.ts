@@ -124,6 +124,12 @@ export interface LifeResult {
   startAge: number;
   /** The Force XP trial's report (harness only; present while FORCE_XP is collect or on). */
   forceXpTrial?: ForceXpTrialSummary;
+  /**
+   * Trained XP gained per rank row (initiate / padawan / knight; careers all knight), per skill, transfers excluded, and the
+   * form XP by source ('src:order' the Initiate forms class, 'src:master' the master session, 'src:solo' the solo hour,
+   * 'src:fill' the fill, fights and banked releases): the pace measurement (D-431) reads it. Present with opts.phaseXp.
+   */
+  phaseXp?: Record<'initiate' | 'padawan' | 'knight', Record<string, number>>;
 }
 
 const START_DAY = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
@@ -430,6 +436,8 @@ export interface LifetimeOpts {
   startDate?: CalendarDate;
   /** Called at the end of every day; a returned state replaces the life's state (e.g. a move with the Order, D-409). */
   onDay?: (s: GameState, info: { day: number; age: number }) => GameState | void;
+  /** Record LifeResult.phaseXp (the pace measurement, D-431). */
+  phaseXp?: boolean;
 }
 
 export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = {}): LifeResult {
@@ -465,6 +473,11 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
   const levelOf = (st: GameState, k: string): number =>
     k === 'highestForm' ? Math.max(0, ...FORM_IDS.map((f) => selectLevelExact(st, f))) : k.startsWith('perf:') ? selectPerformance(st, k.slice(5)) : selectLevelExact(st, k);
   const mainKeys = (): string[] => (isFormMain ? [...FORM_IDS] : [p.main]);
+  const phaseXp: NonNullable<LifeResult['phaseXp']> = { initiate: {}, padawan: {}, knight: {} };
+  const rowOf = (age: number): 'initiate' | 'padawan' | 'knight' => {
+    const r = rankFor(p, age);
+    return r === 'initiate' || r === 'acolyte' ? 'initiate' : r === 'padawan' || r === 'apprentice' ? 'padawan' : 'knight';
+  };
 
   for (let day = 0; day < total; day++) {
     const age = p.startAge + day / DAYS;
@@ -474,6 +487,8 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       if (s.ranks.rank !== want) s = setRoutine(p, applyEvents(REGISTRY, s, [{ type: 'rankSet', rank: want }], { source: 'engine' }).state, want);
     }
     const before = { ...s.progression.skills };
+    const dayRow = rowOf(age);
+    const dayTransfer: Record<string, number> = {};
     // Fights in the morning, before the day's routine: real duels (D-143 B).
     const scheduled = tankDays > 0 ? [] : (p.fights?.(age, day) ?? []);
     const fights: Fight[] = [];
@@ -505,6 +520,7 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       const tr = (a.event['transfer'] as Record<string, number> | undefined) ?? {};
       for (const [f, x] of Object.entries(tr)) {
         transfers[f] = { age, xp: x };
+        dayTransfer[f] = (dayTransfer[f] ?? 0) + x;
         yearXp[f] = (yearXp[f] ?? 0) - x;
       }
       for (const n of a.notes) if (n.startsWith('4.0x')) discarded += 1;
@@ -522,6 +538,27 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       if (!fights.some((f) => f.stakes === 'serious' || f.stakes === 'lethal')) maxDayEndFNoSeriousFight = Math.max(maxDayEndFNoSeriousFight, d.endF);
     }
     for (const k of mainKeys()) yearXp[k] = (yearXp[k] ?? 0) + (s.progression.skills[k]?.xp ?? 0) - (before[k]?.xp ?? 0);
+    if (opts.phaseXp) {
+      const px = phaseXp[dayRow];
+      let formTotal = 0;
+      for (const [k, v] of Object.entries(s.progression.skills)) {
+        const d = v.xp - (before[k]?.xp ?? 0) - (dayTransfer[k] ?? 0);
+        if (Math.abs(d) < 1e-12) continue;
+        px[k] = (px[k] ?? 0) + d;
+        if (FORM_IDS.includes(k)) formTotal += d;
+      }
+      let known = 0;
+      for (const d of r?.days ?? [])
+        for (const ss of d.sessions) {
+          const fx = FORM_IDS.reduce((a, f) => a + (ss.credited[f] ?? 0), 0);
+          if (fx <= 0) continue;
+          // Spillover into forms from the other fixed blocks (the Force drills) is shared like the fill.
+          const src = ss.fill ? 'fill' : dayRow === 'initiate' ? 'order' : ss.activityId === 'padawanTraining' ? 'master' : dayRow === 'padawan' && FORM_IDS.includes(ss.skillId) ? 'solo' : 'fill';
+          px['src:' + src] = (px['src:' + src] ?? 0) + fx;
+          known += fx;
+        }
+      px['src:fill'] = (px['src:fill'] ?? 0) + (formTotal - known);
+    }
 
     const ageEnd = p.startAge + (day + 1) / DAYS;
     const lvl = mainLevel(s);
@@ -551,5 +588,5 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));
   // This life's mortal wounds and Dying states (every Dying profile is stabilized, so the stabilizations count them).
   const fights = { mortal: fightStats.mortal - statsBefore.mortal, dying: fightStats.stabilized - statsBefore.stabilized, withdrew: fightStats.withdrew - statsBefore.withdrew, sithWithdrew: fightStats.sithWithdrew - statsBefore.sithWithdrew, skipped: fightStats.skipped - statsBefore.skipped, precogFights: fightStats.precogFights - statsBefore.precogFights, precogDark: fightStats.precogDark - statsBefore.precogDark, precogDarkOpp: fightStats.precogDarkOpp - statsBefore.precogDarkOpp, precogOpp: fightStats.precogOpp - statsBefore.precogOpp };
-  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, maxDayEndFNoSeriousFight, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge, fightStats: fights, ...(FORCE_XP_TRIAL.enabled || FORCE_XP_TRIAL.collect ? { forceXpTrial: summarizeForceXpTrial() } : {}) };
+  return { xp, milestones, yearMain, yearCombat, cross, mainByYear, levelsByYear, transfers, maxDayEndF, maxDayEndFNoSeriousFight, discarded, state: s, eAtMilestone, bankShare: drillTotal > 0 ? bankedTotal / drillTotal : 0, woundedDaysByAge, tankDays: tankDayCount, maxDay, startAge: p.startAge, fightStats: fights, ...(opts.phaseXp ? { phaseXp } : {}), ...(FORCE_XP_TRIAL.enabled || FORCE_XP_TRIAL.collect ? { forceXpTrial: summarizeForceXpTrial() } : {}) };
 }

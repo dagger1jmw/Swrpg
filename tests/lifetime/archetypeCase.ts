@@ -1,4 +1,4 @@
-// npc-generation test 7 (M3, now on the real loop): each archetype's default routine, run through the
+// npc-generation test 7 (M3, now on the real loop; Knight at 25 since D-426/D-431, as the paces are measured): each archetype's default routine, run through the
 // routine day loop for 25 years, matches its closed form within +/-2 levels in the main specialty (the
 // highest form for form archetypes), so no NPC or created character has a level the player could not
 // earn. Split over three files so vitest runs them in parallel.
@@ -21,7 +21,7 @@ function closedHighestForm(a: ArchetypeDef, startAge: number, age: number, order
     startAge,
     age,
     padawanAge: order ? 12 : startAge,
-    knightAge: order ? 20.5 : startAge,
+    knightAge: order ? 25 : startAge,
     onePhase: !order,
     padawanPlan: PLAN,
     knightPlan: PLAN,
@@ -42,7 +42,7 @@ export function archetypeCase(id: string): void {
         main: a.main === '$mainForm' ? '$highestForm' : a.main,
         startAge: a.startAge,
         padawanAge: order ? 12 : a.startAge,
-        knightAge: order ? 20.5 : a.startAge,
+        knightAge: order ? 25 : a.startAge,
         daysPerYear: 300,
         effort: 'standard',
         mainForm: 'soresu',
@@ -62,10 +62,11 @@ export function archetypeCase(id: string): void {
         row,
         startAge: a.startAge,
         age: a.startAge + YEARS,
-        phases: phasesFor({ initiate: a.paces.initiate?.[a.main], padawan: a.paces.padawan?.[a.main], knight: a.paces.knight?.[a.main] }, { padawanAge: 12, knightAge: 20.5 }, !order),
+        phases: phasesFor({ initiate: a.paces.initiate?.[a.main], padawan: a.paces.padawan?.[a.main], knight: a.paces.knight?.[a.main] }, { padawanAge: 12, knightAge: 25 }, !order),
       });
     }
     const day = r.mainByYear[YEARS - 1]!;
+    console.info(`[archetype] ${a.id}: day loop ${day.toFixed(2)} closed ${closed.toFixed(2)}`);
     expect(Math.abs(day - closed), `${a.id}: day loop ${day.toFixed(2)} vs closed ${closed.toFixed(2)}`).toBeLessThanOrEqual(2);
   }, 600_000);
 }

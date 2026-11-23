@@ -9,8 +9,8 @@ import { orderSeatAt } from '../../data/orderSeats';
 import { STUB_INSTRUCTOR_LEAD, STUB_MASTER_LEAD } from '../../data/stubs';
 import { gainE, sparringE } from '../../engine/appliedExperience';
 import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
-import { BUDGET, DAILY_LIFE_PACES, DAILY_LIFE_PACES_BY_ARCHETYPE, FORM_TRANSFER_SHARE, LONG_LIFE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
-import { ORDER_REQUIREMENTS } from '../../data/orderRequirements';
+import { BUDGET, FORM_TRANSFER_SHARE, LONG_LIFE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
+import { orderHoursAt } from '../../data/orderRequirements';
 import { interp } from '../../engine/interp';
 import { AVERAGE_RANK_AGES, KNIGHT_TRIALS, RANK_BY_ID, RANK_PHASE, type RankDef } from '../../data/rankMinimums';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID, SKILL_IDS, type TalentDomain } from '../../data/skills';
@@ -169,11 +169,8 @@ export function phaseAges(rank: string, path: CharacterPath, startAge: number, a
 
 /** The Knight+ standard day (budget 6 h, no Order hours) that the focus formula is measured on. */
 const REFERENCE_FILL_HOURS = BUDGET.standard[BUDGET.standard.length - 1]![1];
-const ORDER_HOURS: Record<Phase, number> = {
-  initiate: ORDER_REQUIREMENTS['initiate']!.reduce((a, b) => a + b.hours, 0),
-  padawan: ORDER_REQUIREMENTS['padawan']!.reduce((a, b) => a + b.hours, 0),
-  knight: 0,
-};
+/** The phase's fixed Order hours at a Human-equivalent age (D-431: the young Padawan's hours are scaled). */
+const orderHours = (phase: Phase, age: number): number => (phase === 'knight' ? 0 : orderHoursAt(phase, age));
 
 /** Mean fill hours (standard budget minus Order hours, never below 0) over [from, to], over the reference day. */
 export function fillFactor(phase: Phase, from: number, to: number): number {
@@ -183,7 +180,7 @@ export function fillFactor(phase: Phase, from: number, to: number): number {
   let sum = 0;
   for (let i = 0; i < steps; i++) {
     const x = from + ((i + 0.5) * (end - from)) / steps;
-    sum += Math.max(0, interp(BUDGET.standard, x) - ORDER_HOURS[phase]);
+    sum += Math.max(0, interp(BUDGET.standard, x) - orderHours(phase, x));
   }
   return sum / steps / REFERENCE_FILL_HOURS;
 }
@@ -304,9 +301,8 @@ export function computeCreation(input: CreationInput): CreationResult {
   const ownPace = (key: string, ph: Phase): number => Math.max(0, (a.paces[ph]?.[key] ?? 0) + ((focus[key] ?? 0) - (def[key] ?? 0)) * perShare * fill[ph]);
   for (const [skill, key] of keysBySkill) {
     const d = a.paces.knight?.[key] !== undefined || a.paces.padawan?.[key] !== undefined || a.paces.initiate?.[key] !== undefined ? undefined : derived[key];
-    // The daily-life blocks of an Order member (D-427): meditation from Padawan on, the Knight's study.
-    const life = (ph: Phase): number => (input.path === 'jedi' || input.path === 'sith' ? ((DAILY_LIFE_PACES_BY_ARCHETYPE[a.id] ?? DAILY_LIFE_PACES)[key]?.[ph] ?? 0) : 0);
-    const pace = (ph: Phase): number => (d ? d.share * ownPace(d.of, ph) : ownPace(key, ph)) + life(ph);
+    // The daily-life blocks (D-427) are in the measured paces since D-431 (measured on the day loop with them).
+    const pace = (ph: Phase): number => (d ? d.share * ownPace(d.of, ph) : ownPace(key, ph));
     const mult = talentMult(talents, skill) * crossTalentMult(talents, skill) * speciesLearning(species.id, skill) * (input.variance?.(skill) ?? 1);
     const phases = phasesFor({ initiate: pace('initiate'), padawan: pace('padawan'), knight: pace('knight') }, hAges, ages.onePhase);
     for (const ph of phases) if (ph.to > hStart && ph.from < h) maxPace = Math.max(maxPace, Math.min(4, ph.pace * mult));

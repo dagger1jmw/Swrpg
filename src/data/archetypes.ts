@@ -2,9 +2,10 @@
 // specialty 1.0, "physical w" = w each for Strength, Agility, Endurance; Willpower 0.4 for Jedi
 // and Sith, 0.2 for everyone else). Shares come from the weights; from Knight on (and for careers
 // all life) the main specialty takes 0.5 of the fill (D-41).
-// Phase paces are measured by docs-v2/calc/archetype-paces.mjs (K = 11.683, D-118 / D-119 / D-120; with the centered state, D-133) and
-// copied verbatim from its JSON output: credited XP per age-weighted year of the skill's own age row,
-// divided by R = K * 41^1.75 / A_ref (D-119). Physical paces are the trained part only (the natural
+// Phase paces are measured on the real day loop (D-431, 2026-11-22: tests/paces, npm run paces; K = 12.30, the daily
+// meditation block, the Knight's study, the age-scaled Padawan hours and the Sith rows) and copied verbatim from its JSON
+// output: trained XP per age-weighted year of the skill's own age row over 60 years of the archetype's routine (Padawan
+// 12, Knight 25), divided by R = K * 41^1.75 / A_ref (D-119). Before D-431 they came from docs-v2/calc/archetype-paces.mjs. Physical paces are the trained part only (the natural
 // baseline goes on top). Willpower includes fatigue Willpower.
 // Lightsaber forms are a pool (D-118): `formPaces` gives the pace of all form XP per phase and source
 // (Initiate: the Order Shii-Cho block and fill; Padawan: the master session, the solo hour and fill;
@@ -78,14 +79,14 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 4,
     startRange: JEDI_RANGE,
     paces: {
-      initiate: { forceControl: 0.42, forceSense: 0.402, strength: 0.142, agility: 0.107, endurance: 0.072, willpower: 0.946, meditation: 0.058, forceKnowledge: 0.338 },
-      padawan: { forceControl: 1.063, forceSense: 0.841, strength: 0.021, agility: 0.046, endurance: 0.029, willpower: 1.51, meditation: 0.12 },
-      knight: { forceControl: 0.485, forceSense: 0.441, strength: 0.238, agility: 0.246, endurance: 0.419, willpower: 1.196, meditation: 0.075 },
+      initiate: { strength: 0.135, agility: 0.102, endurance: 0.069, forceControl: 0.398, forceSense: 0.381, willpower: 0.878, meditation: 0.055, forceKnowledge: 0.323 },
+      padawan: { strength: 0.072, agility: 0.084, endurance: 0.089, forceControl: 0.981, forceSense: 0.924, willpower: 1.338, meditation: 0.227 },
+      knight: { strength: 0.277, agility: 0.282, endurance: 0.463, forceControl: 0.454, forceSense: 0.454, willpower: 1.06, meditation: 0.196, forceKnowledge: 0.131 },
     },
     formPaces: {
-      initiate: { order: 1.091, fill: 0.007 },
-      padawan: { master: 1.205, solo: 0.319, fill: 0.012 },
-      knight: { fill: 1.59 },
+      initiate: { fill: 0, order: 1.041 },
+      padawan: { fill: 0.115, master: 1.185, solo: 0.268 },
+      knight: { fill: 1.543 },
     },
   },
   {
@@ -97,14 +98,14 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 4,
     startRange: JEDI_RANGE,
     paces: {
-      initiate: { forceControl: 0.419, forceSense: 0.404, strength: 0.139, agility: 0.104, endurance: 0.069, willpower: 0.918, meditation: 0.061, forceKnowledge: 0.333, forceHealOthers: 0.003 },
-      padawan: { forceControl: 1.064, forceSense: 0.843, strength: 0.02, agility: 0.046, endurance: 0.027, willpower: 1.576, meditation: 0.128, forceKnowledge: 0.015, forceHealOthers: 0.004 },
-      knight: { forceControl: 0.101, forceSense: 0.314, strength: 0.155, agility: 0.146, endurance: 0.199, willpower: 1.146, meditation: 0.37, forceKnowledge: 1.716, forceHealOthers: 0.244 },
+      initiate: { strength: 0.131, agility: 0.099, endurance: 0.066, forceControl: 0.399, forceSense: 0.382, willpower: 0.869, meditation: 0.058, forceKnowledge: 0.317 },
+      padawan: { strength: 0.043, agility: 0.067, endurance: 0.057, forceControl: 0.911, forceSense: 0.924, willpower: 1.362, meditation: 0.291, forceKnowledge: 0.099 },
+      knight: { strength: 0.151, agility: 0.138, endurance: 0.191, forceControl: 0.074, forceSense: 0.329, willpower: 0.846, meditation: 0.551, forceKnowledge: 1.813 },
     },
     formPaces: {
-      initiate: { order: 1.092, fill: 0.001 },
-      padawan: { master: 1.208, solo: 0.32, fill: 0.005 },
-      knight: { fill: 0.158 },
+      initiate: { order: 1.034 },
+      padawan: { fill: 0.079, master: 1.157, solo: 0.221 },
+      knight: { fill: 0.151 },
     },
   },
   {
@@ -116,14 +117,14 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 4,
     startRange: JEDI_RANGE,
     paces: {
-      initiate: { forceControl: 0.419, forceSense: 0.402, strength: 0.141, agility: 0.107, endurance: 0.071, willpower: 0.938, meditation: 0.058, forceKnowledge: 0.335, intelligence: 0.001, charisma: 0, stealth: 0.003, investigation: 0.002 },
-      padawan: { forceControl: 1.061, forceSense: 0.841, strength: 0.02, agility: 0.047, endurance: 0.028, willpower: 1.539, meditation: 0.12, intelligence: 0.004, charisma: 0.001, stealth: 0.005, investigation: 0.016 },
-      knight: { forceControl: 0.356, forceSense: 0.437, strength: 0.17, agility: 0.227, endurance: 0.326, willpower: 1.163, meditation: 0.071, intelligence: 0.078, charisma: 0.031, stealth: 0.178, investigation: 0.329 },
+      initiate: { strength: 0.135, agility: 0.102, endurance: 0.068, forceControl: 0.398, forceSense: 0.381, willpower: 0.875, meditation: 0.054, forceKnowledge: 0.319, investigation: 0.002, intelligence: 0.001, charisma: 0, stealth: 0.004 },
+      padawan: { strength: 0.056, agility: 0.082, endurance: 0.07, forceControl: 0.959, forceSense: 0.944, willpower: 1.397, meditation: 0.227, investigation: 0.087, intelligence: 0.021, charisma: 0.008, stealth: 0.055 },
+      knight: { strength: 0.204, agility: 0.263, endurance: 0.377, forceControl: 0.339, forceSense: 0.454, willpower: 0.861, meditation: 0.197, investigation: 0.316, intelligence: 0.075, charisma: 0.03, stealth: 0.217, forceKnowledge: 0.133 },
     },
     formPaces: {
-      initiate: { order: 1.091, fill: 0.003 },
-      padawan: { master: 1.204, solo: 0.319, fill: 0.007 },
-      knight: { fill: 1.482 },
+      initiate: { order: 1.047 },
+      padawan: { fill: 0.082, master: 1.183, solo: 0.254 },
+      knight: { fill: 1.506 },
     },
   },
   {
@@ -135,14 +136,14 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 8,
     startRange: SITH_RANGE,
     paces: {
-      initiate: { forceControl: 0.422, forceSense: 0.404, forceOutput: 0.006, strength: 0.145, agility: 0.109, endurance: 0.077, willpower: 0.891, meditation: 0.058, forceKnowledge: 0.352 },
-      padawan: { forceControl: 1.06, forceSense: 0.823, forceOutput: 0.003, strength: 0.022, agility: 0.049, endurance: 0.03, willpower: 1.505, meditation: 0.117 },
-      knight: { forceControl: 0.174, forceSense: 0.097, forceOutput: 0.546, strength: 0.322, agility: 0.314, endurance: 0.49, willpower: 1.11, meditation: 0.027 },
+      initiate: { strength: 0.145, agility: 0.11, endurance: 0.078, forceControl: 0.407, forceSense: 0.072, willpower: 0.771, forceKnowledge: 0.547, meditation: 0.185, forceOutput: 0.008 },
+      padawan: { strength: 0.09, agility: 0.095, endurance: 0.107, forceControl: 0.994, forceSense: 0.165, willpower: 1.308, meditation: 0.094, forceOutput: 0.822 },
+      knight: { strength: 0.365, agility: 0.361, endurance: 0.555, forceControl: 0.166, forceSense: 0.117, willpower: 0.972, meditation: 0.139, forceOutput: 0.516, forceKnowledge: 0.092 },
     },
     formPaces: {
-      initiate: { order: 1.078, fill: 0.01 },
-      padawan: { master: 1.206, solo: 0.336, fill: 0.01 },
-      knight: { fill: 1.37 },
+      initiate: { fill: 0.002, order: 1.08 },
+      padawan: { fill: 0.094, master: 1.198, solo: 0.293 },
+      knight: { fill: 1.372 },
     },
   },
   {
@@ -154,14 +155,14 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 8,
     startRange: SITH_RANGE,
     paces: {
-      initiate: { forceControl: 0.423, forceSense: 0.404, forceOutput: 0.01, strength: 0.137, agility: 0.103, endurance: 0.068, willpower: 0.834, meditation: 0.058, forceKnowledge: 0.341, forceLightning: 0.009 },
-      padawan: { forceControl: 1.063, forceSense: 0.823, forceOutput: 0.003, strength: 0.02, agility: 0.047, endurance: 0.027, willpower: 1.58, meditation: 0.118, forceKnowledge: 0.015, forceLightning: 0.005 },
-      knight: { forceControl: 0.379, forceSense: 0.118, forceOutput: 1.586, strength: 0.005, agility: 0.012, endurance: 0.031, willpower: 0.913, meditation: 0.062, forceKnowledge: 0.3, forceLightning: 0.431 },
+      initiate: { strength: 0.133, agility: 0.1, endurance: 0.067, forceControl: 0.405, forceSense: 0.073, willpower: 0.729, forceKnowledge: 0.529, meditation: 0.187, forceOutput: 0.012 },
+      padawan: { strength: 0.019, agility: 0.045, endurance: 0.03, forceControl: 0.994, forceSense: 0.165, willpower: 1.304, meditation: 0.107, forceOutput: 0.851, forceKnowledge: 0.089 },
+      knight: { endurance: 0.03, forceControl: 0.294, forceSense: 0.124, willpower: 0.616, forceKnowledge: 0.527, meditation: 0.224, forceOutput: 1.503, strength: 0.005, agility: 0.012 },
     },
     formPaces: {
-      initiate: { order: 1.078, fill: 0.001 },
-      padawan: { master: 1.207, solo: 0.336, fill: 0.008 },
-      knight: { fill: 0.27 },
+      initiate: { order: 1.048 },
+      padawan: { fill: 0.043, master: 1.207, solo: 0.287 },
+      knight: { fill: 0.261 },
     },
   },
   {
@@ -173,7 +174,7 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 17,
     startRange: [16, 30],
     paces: {
-      knight: { forceControl: 0.004, strength: 0.283, agility: 0.523, endurance: 0.334, willpower: 0.832, meditation: 0.016, intelligence: 0.154, blaster: 1.326, tactics: 0.463 },
+      knight: { blaster: 1.27, agility: 0.609, willpower: 0.302, tactics: 0.441, intelligence: 0.147, endurance: 0.392, strength: 0.357, meditation: 0.021, forceControl: 0.005 },
     },
     formPaces: {
       knight: {},
@@ -188,7 +189,7 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 8,
     startRange: [6, 16],
     paces: {
-      knight: { forceControl: 0.003, strength: 0.28, agility: 0.529, endurance: 0.314, willpower: 0.912, meditation: 0.01, intelligence: 0.085, blaster: 1.292, melee: 0.156, tactics: 0.256 },
+      knight: { blaster: 1.232, agility: 0.585, willpower: 0.261, endurance: 0.386, strength: 0.352, melee: 0.196, tactics: 0.244, intelligence: 0.081, meditation: 0.014, forceControl: 0.003 },
     },
     formPaces: {
       knight: {},
@@ -196,7 +197,7 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
   },
   {
     // Jared, D-224 (combat pass 2 balance row 8): the warrior caste, the main enemy of the Yuuzhan Vong War era. The
-    // soldier's paces with melee (the amphistaff) as the weapon skill in place of the blaster, and no Force (the Vong
+    // soldier's routine with melee (the amphistaff) as the weapon skill in place of the blaster, and no Force (the Vong
     // are outside it, D-192). Not a player archetype; generated NPCs only.
     id: 'yuuzhanVongWarrior',
     name: 'Yuuzhan Vong warrior',
@@ -208,16 +209,16 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 14,
     startRange: [12, 17],
     paces: {
-      knight: { strength: 0.283, agility: 0.523, endurance: 0.334, willpower: 0.832, intelligence: 0.154, melee: 1.326, tactics: 0.463 },
+      // D-431: Force Control (0.005 on the loop, from the drills' secondaries) left out: the Vong are outside the Force (D-192).
+      knight: { melee: 1.239, strength: 0.465, agility: 0.403, endurance: 0.443, tactics: 0.404, intelligence: 0.135, willpower: 0.23, meditation: 0.02 },
     },
     formPaces: {
       knight: {},
     },
   },
   {
-    // Jared, D-422: the non-Force melee fighter (Mandalorian blade-fighters, Talz, Dashade, arena gladiators). The Yuuzhan
-    // Vong warrior's measured paces (the soldier's, with melee in place of the blaster; D-224), so no new pace is
-    // invented; heavier on the body than the soldier in its weights. Offered at character creation for non-Force melee paths (D-425).
+    // Jared, D-422: the non-Force melee fighter (Mandalorian blade-fighters, Talz, Dashade, arena gladiators); heavier on
+    // the body than the soldier in its weights; its paces measured on its own routine since D-431. Offered at character creation for non-Force melee paths (D-425).
     id: 'warrior',
     name: 'Warrior (melee)',
     path: 'career',
@@ -227,7 +228,7 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 14,
     startRange: [10, 20],
     paces: {
-      knight: { strength: 0.283, agility: 0.523, endurance: 0.334, willpower: 0.832, intelligence: 0.154, melee: 1.326, tactics: 0.463 },
+      knight: { melee: 1.228, strength: 0.466, agility: 0.382, endurance: 0.453, tactics: 0.211, intelligence: 0.07, willpower: 0.176, meditation: 0.02, forceControl: 0.005 },
     },
     formPaces: {
       knight: {},
@@ -242,7 +243,7 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 17,
     startRange: [14, 30],
     paces: {
-      knight: { forceControl: 0.013, agility: 0.359, willpower: 0.904, meditation: 0.051, intelligence: 0.365, charisma: 0.373, blaster: 0.752, piloting: 1.448 },
+      knight: { blaster: 0.715, agility: 0.342, willpower: 0.87, piloting: 1.378, intelligence: 0.347, charisma: 0.352, meditation: 0.049, forceControl: 0.012, strength: 0.009, endurance: 0.009 },
     },
     formPaces: {
       knight: {},
@@ -257,7 +258,7 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 17,
     startRange: [14, 30],
     paces: {
-      knight: { forceControl: 0.003, strength: 0.231, agility: 0.493, endurance: 0.295, willpower: 1.004, meditation: 0.011, intelligence: 0.029, blaster: 1.286, melee: 0.14, tracking: 0.2 },
+      knight: { blaster: 1.241, agility: 0.553, willpower: 0.296, tracking: 0.281, endurance: 0.405, intelligence: 0.041, strength: 0.305, melee: 0.184, meditation: 0.017, forceControl: 0.004 },
     },
     formPaces: {
       knight: {},
@@ -272,7 +273,7 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 16,
     startRange: [12, 40],
     paces: {
-      knight: { forceControl: 0.028, strength: 0.297, agility: 0.259, endurance: 0.339, willpower: 0.896, meditation: 0.112, forceKnowledge: 0.068, intelligence: 0.799, charisma: 0.182, profession: 1.68 },
+      knight: { agility: 0.251, endurance: 0.328, strength: 0.278, profession: 1.638, intelligence: 0.798, charisma: 0.22, willpower: 0.617, forceKnowledge: 0.07, meditation: 0.108, forceControl: 0.027 },
     },
     formPaces: {
       knight: {},
