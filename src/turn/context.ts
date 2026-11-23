@@ -16,7 +16,9 @@ import { onRecordAt, onRecordFor } from '../data/canonPlacements';
 import { describeTravel } from './travel';
 import { eraRulesAt } from '../data/eraRules';
 import { rankErasAt } from '../data/eraRanks';
-import { closedWorlds, mapSide } from '../data/galaxyMap';
+import { closedWorlds, mapSide, WORLD_STATES, worldStateAt } from '../data/galaxyMap';
+import { healingFluidAt } from '../data/health.config';
+import { holocronLine, holocronsAt } from '../data/holocrons';
 import { CANON_BY_ID } from '../data/canonNpcs';
 import { canonOffBoard, canonStatusAt } from '../engine/canonRoster';
 import { findCanonEntity } from '../lore/retrieve';
@@ -296,6 +298,7 @@ export function stateBlock(
     ...(orderPowersLine(state) ? [orderPowersLine(state)!] : []),
     ...worldLines(-dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
     ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), namedCanonIds(state, focus, playerText, -dateFromAbsDay(now.day).year)),
+    ...holocronLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), playerText),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,
     `Location: ${chain.length ? chain.map((l) => `${l.name} (${l.id})`).join(', in ') : 'not recorded yet (introduce it with locationIntroduced)'}`,
     `Present: ${present.length ? present.join(', ') : 'nobody recorded'}`,
@@ -533,14 +536,20 @@ export function careApplied(draft: TurnDraft): string[] {
   return out;
 }
 const CARE_TEXT: Readonly<Record<string, string>> = { medical: 'ordinary medical care (a medic, medpacs, a medcenter bed)', bacta: 'a bacta tank', forceHealer: 'a Force healer', stabilized: 'the wounds were stabilized' };
-function careLine(draft: TurnDraft): string {
+/** The tank care in the fluid of the date (D-440): a kolto tank before bacta's switch-over, a bacta tank after. */
+function careText(kind: string, year: number | undefined): string {
+  if (kind !== 'bacta' || year === undefined) return CARE_TEXT[kind] ?? kind;
+  const f = healingFluidAt(year);
+  return f.standard === 'kolto' ? `a kolto tank (kolto is the healing fluid of this date${f.bacta === 'rare import' ? '; bacta is a rare import' : ''})` : 'a bacta tank';
+}
+function careLine(draft: TurnDraft, year?: number): string {
   const care = [...new Set(careApplied(draft))];
   return care.length
-    ? `Care applied this turn: ${care.map((c) => CARE_TEXT[c] ?? c).join('; ')}. Describe no other treatment (no bacta, no Force healing) unless it is listed here.`
+    ? `Care applied this turn: ${care.map((c) => careText(c, year)).join('; ')}. Describe no other treatment (no bacta or kolto, no Force healing) unless it is listed here.`
     : 'Care applied this turn: none. Wounds heal only by rest and time: describe no bacta, kolto, medpacs, medics or Force healing treating the character.';
 }
 
-export function resolvedBlock(draft: TurnDraft, correction: readonly string[] = []): string {
+export function resolvedBlock(draft: TurnDraft, correction: readonly string[] = [], year?: number): string {
   const lines = ['RESOLVED (ground truth; narrate consistently with it)'];
   // A retry after the narration check (D-197): the contradictions to remove.
   if (correction.length) lines.push(`CORRECTION: your last narration of this turn contradicted RESOLVED and was discarded. Write it again without these errors: ${correction.join(' | ')}`);
@@ -558,7 +567,7 @@ export function resolvedBlock(draft: TurnDraft, correction: readonly string[] = 
   for (const a of draft.applied) for (const n of a.notes) if (n.startsWith(FATE_ACT_NOTE)) lines.push(`Fate chosen: the player character ${n.slice(FATE_ACT_NOTE.length)}, the beaten opponent of the fight just ended, here and now. Narrate exactly this act and its moment: no other fight, escape or rescue happens, and nobody else is harmed or appears.`);
   for (const n of draft.notices) lines.push(`Notice: ${n}`);
   // Healing is only the care the engine applied (D-197): no bacta, healer or medicine beyond this line.
-  if (draft.jump || draft.intent?.actionType === 'heal' || draft.intent?.healing || careApplied(draft).length) lines.push(careLine(draft));
+  if (draft.jump || draft.intent?.actionType === 'heal' || draft.intent?.healing || careApplied(draft).length) lines.push(careLine(draft, year));
   return lines.join('\n');
 }
 
@@ -671,7 +680,7 @@ export function buildNarrativeRequest(state: GameState, draft: TurnDraft, input:
   const arc = arcSection(state, est);
   const mem = memorySection(state, referenced, playerText, recent.fromTurn, est, caps.memory);
   const lore = loreSection(state, referenced, playerText, est, opts.lore ?? LORE_INDEX);
-  const resolved = resolvedBlock(draft, opts.correction ?? []);
+  const resolved = resolvedBlock(draft, opts.correction ?? [], dateFromAbsDay(selectNow(state).day).year);
   const playerLine = input.kind === 'opening' ? `OPENING${input.premise ? `\nPlayer premise: ${input.premise}` : ''}` : `PLAYER ACTION: ${describeInput(input)}`;
 
   const scenario = devScenarioBlock(state, input.kind === 'opening' ? (input.scenario ?? null) : pendingScenario(history), input.kind === 'opening');
@@ -833,7 +842,25 @@ function boardLines(state: GameState, bby: number, placeNames: readonly string[]
   const closed = closedWorlds(mapSide(own), bby);
   if (closed.length) lines.push(`Closed worlds this year (no known route, secret, or not yet existing; the character can't travel there without a story reason): ${closed.map((g) => g.place).join(', ')}`);
   for (const g of closed) if (placeNames.some((n) => ` ${n.toLowerCase()} `.includes(` ${g.place.toLowerCase()} `))) lines.push(`Closed world here: ${g.place}: ${g.reason}${g.storyException ? ` (allowed with a story reason: ${g.storyException})` : ''}`);
+  // Destroyed worlds (D-440): the map shows debris, not a planet, from the year on.
+  for (const w of WORLD_STATES) if (worldStateAt(w.place, bby) && placeNames.some((n) => ` ${n.toLowerCase()} `.includes(` ${w.place.toLowerCase()} `))) lines.push(`World state here: ${w.place} is an ${w.kind} in the ${w.system} (${w.reason}), not a planet.`);
   return lines;
+}
+
+/**
+ * The holocrons of the campaign's start year (D-441; src/data/holocrons.ts), resolved at the start date: those on
+ * record at the current place every turn, and the whole list when the player's words name holocrons or one of them.
+ * Undated holocrons are left out (pending Jared's ruling).
+ */
+function holocronLines(state: GameState, placeNames: readonly string[], playerText: string): string[] {
+  const list = holocronsAt(dateFromAbsDay(state.clock.startDay ?? state.clock.now.day).year);
+  if (!list.length) return [];
+  const text = ` ${normalizeText(playerText)} `;
+  const named = /\bholocrons?\b/i.test(playerText) || list.some((h) => text.includes(` ${normalizeText(h.name)} `));
+  if (named) return [`Holocrons on record at the campaign's start (holder or location then; nothing else is on record, and the story may have moved them since): ${list.map(holocronLine).join('; ')}`];
+  const places = placeNames.map((p) => normalizeText(p)).filter((p) => p.length > 3);
+  const here = list.filter((h) => h.holder && places.some((p) => ` ${normalizeText(h.holder!)} `.includes(` ${p} `)));
+  return here.length ? [`Holocrons on record at this place at the campaign's start: ${here.map(holocronLine).join('; ')}`] : [];
 }
 
 /** The era's rank names (architecture §15, D-308, D-405): one line per order in use. */

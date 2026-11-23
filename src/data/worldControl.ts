@@ -74,6 +74,9 @@ export const WORLD_CONTROL: readonly ControlSpan[] = [
   { place: 'Balmorra', fromBby: 3642, toBby: 3642, side: 'republic', note: 'freed from Imperial control by the Republic and the Balmorran resistance', source: `${S2} (3,642); D-408 [2], D-411 [5]` },
   { place: 'Corellia', fromBby: 3640, toBby: 3640, side: 'contested', note: 'invaded by Darth Decimus in the Battle of Corellia', source: `${S2} (3,640); D-408 [2], D-411 [5]` },
   { place: 'Ilum', fromBby: 3640, toBby: 3636, side: 'contested', note: 'contested for the rest of the Galactic War after the Battle of Ilum', source: `${S2} (3,640); D-408 [2]` },
+  // The Nov 22 lore update (D-440).
+  { place: 'Dromund Kaas', aliases: ['Kaas City'], fromBby: 3636, toBby: 3631, side: 'sithEmpire', note: 'the Sith Empire under Empress Acina, a vassal of Zakuul blockaded by the Eternal Fleet, not occupied; no longer the Dark Council\'s seat', source: 'SW_Dromund_Kaas_History (c. 3636 BBY; decision 1); D-440' },
+  { place: 'Manaan', fromBby: 3625, toBby: 3625, side: 'contested', note: 'the Sith Empire invades to seize its kolto', source: `${S2} (3,625); SW_Kolto_Bacta; D-440` },
 ];
 
 export interface LeaderSpan {
@@ -90,6 +93,7 @@ export interface LeaderSpan {
 export const FACTION_LEADERS: readonly LeaderSpan[] = [
   { office: 'Sith Emperor', holder: 'the Emperor (Vitiate), unseen on Dromund Kaas', fromBby: 3681, toBby: 3640, source: 'SW_SWTOR_Era_Power_Structures_Part1; Timeline slice Part 2 (3,640: his Voice is killed); D-408 [3]' },
   { office: 'Sith Emperor', holder: 'none in power: the Emperor\'s essence lies dormant and the Dark Council rules', fromBby: 3640, toBby: 3637, source: 'Timeline slice Part 2 (3,640; Darth Acina declares herself Empress in 3,636); D-408 [3]' },
+  { office: 'Sith Emperor', holder: 'Empress Acina (self-declared), sworn to Arcann of Zakuul and ruling from blockaded Dromund Kaas', fromBby: 3636, toBby: 3631, source: 'SW_Dromund_Kaas_History (c. 3636 BBY: about five years); D-440' },
   { office: 'Supreme Chancellor', holder: 'Berooken', fromBby: 3661, toBby: 3653, inferred: true, source: 'D-363; D-381 (elected "late in the war", no date)' },
   { office: 'Supreme Chancellor', holder: 'Dorian Janarus', fromBby: 3653, toBby: 3640, source: 'Timeline slice Part 2 (elected shortly after the Treaty in 3,653; re-elected 3,649 and 3,645; killed 3,640); D-408 [3]' },
   { office: 'Supreme Chancellor', holder: 'Leontyne Saresh', fromBby: 3640, toBby: 3632, source: 'Timeline slice Part 2 (3,640, 3,632); D-408 [3]' },

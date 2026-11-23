@@ -20,6 +20,8 @@ export interface ForceNexus {
   /** Stronger than the planet around it (a site inside a nexus planet). */
   strongerThanPlanet?: boolean;
   fromYear?: number;
+  /** The last year it gives its bonus (absent = no end on record): Malachor V's core imploded in 3951 BBY (D-440). */
+  toYear?: number;
   source: string;
 }
 
@@ -29,7 +31,10 @@ export const FORCE_NEXUSES: readonly ForceNexus[] = [
   { id: 'valley-of-the-dark-lords', name: 'the Valley of the Dark Lords', level: 'site', planet: 'Korriban', nexus: true, leaning: 'dark', strongerThanPlanet: true, source: 'SW_DarkSide_Fall_Corruption_Redemption_Part1 (the Valley in particular)' },
   { id: 'byss', name: 'Byss', level: 'planet', planet: 'Byss', nexus: true, leaning: 'dark', fromYear: -19, source: 'SW_DarkSide_Fall_Corruption_Redemption_Part3 (Byss: a dark-side nexus created by Sidious\'s clones and alchemy; the year is a design default: the Empire\'s era)' },
   { id: 'dromund-kaas', name: 'Dromund Kaas', level: 'planet', planet: 'Dromund Kaas', nexus: true, leaning: 'dark', source: 'SW_Dromund_Kaas_KaasCity_OldRepublic_Part1 (the storm-clouded sky from the Emperor\'s dark-side experiments; the dark side emanates from the Citadel)' },
-  { id: 'malachor-v', name: 'Malachor V', level: 'planet', planet: 'Malachor V', nexus: true, leaning: 'dark', source: 'SW_DarkSide_Fall_Corruption_Redemption_Part1 (the Trayus Academy, a dark-side site); force-reserve.md §9' },
+  // D-440: a dark nexus before 3960 BBY, a wound in the Force 3960-3951 (the Trayus Core's upwelling still held), destroyed
+  // in 3951 BBY (the core imploded, releasing its energies): no bonus after 3951. Any residual taint is [unclear], a story
+  // hazard only (era rule malachor-v-wreckage).
+  { id: 'malachor-v', name: 'Malachor V', level: 'planet', planet: 'Malachor V', nexus: true, leaning: 'dark', toYear: -3951, source: 'SW_Malachor_V; SW_Force_Nexus_Vergence (Malachor V, decision 2); D-440' },
   { id: 'vjun', name: 'Vjun', level: 'planet', planet: 'Vjun', nexus: true, leaning: 'dark', fromYear: -29, source: 'SW_DarkSide_Fall_Corruption_Redemption_Part2 (the 29 BBY slaughter made it a nexus)' },
   { id: 'valley-of-the-jedi', name: 'the Valley of the Jedi', level: 'site', planet: 'Ruusan', nexus: true, leaning: 'balanced', fromYear: -1000, source: 'SW_Legends_Galaxy_Timeline (1,000 BBY: a Force nexus where the spirits of the fallen Jedi and Sith are trapped)' },
   { id: 'jedi-temple-coruscant', name: 'the Jedi Temple', level: 'site', planet: 'Coruscant', nexus: true, leaning: 'light', fromYear: -5000, source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (the sacred spire, a Force nexus holy to the native Coruscanti; granted to the Jedi after the Great Hyperspace War); the leaning is not stated [inferred: the Jedi\'s seat]' },
@@ -38,7 +43,7 @@ export const FORCE_NEXUSES: readonly ForceNexus[] = [
 ];
 
 const norm = (x: string): string => ` ${x.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim()} `;
-const inEra = (n: ForceNexus, year: number | undefined): boolean => year === undefined || n.fromYear === undefined || year >= n.fromYear;
+const inEra = (n: ForceNexus, year: number | undefined): boolean => year === undefined || ((n.fromYear === undefined || year >= n.fromYear) && (n.toYear === undefined || year <= n.toYear));
 
 /**
  * The Force-rich world here (D-425): a planet-level nexus or a Force-rich world among these place names (a location

@@ -310,3 +310,35 @@ export const FATIGUE_PAST_CAPACITY = { atHardLimit: 0.4 } as const;
 export const MINION_FOLDS_WHEN_SPENT = true;
 /** A wound of this severity or worse takes a minion out of the fight. */
 export const MINION_OUT_AT: Severity = 'moderate';
+
+/**
+ * The healing fluid by date (D-440; SW_Kolto_Bacta). The engine's tank care kind is `bacta` (an immersion tank, x4);
+ * which fluid fills it is a dated fact: kolto (Manaan only) is the standard until its decline, which the sources leave
+ * undated; bacta (Thyferra) is known galaxy-wide from c. 4100 BBY, a rarer import before the switch-over and the
+ * standard after it, with kolto then a cheaper, less trusted alternative. Calendar years (negative = BBY).
+ */
+export const BACTA_KNOWN_FROM_YEAR = -4100;
+/**
+ * PENDING Jared's ruling: the year bacta becomes the standard. Provisional value: the lore file's best fit, bacta
+ * standard by the New Sith Wars [inferred] (SW_Kolto_Bacta decision 1); kolto stays standard through the KOTOR and
+ * SWTOR years either way.
+ */
+export const BACTA_STANDARD_FROM_YEAR = -2000;
+export const BACTA_SWITCH_PENDING = true;
+
+export interface HealingFluid {
+  /** The fluid in tanks and medpacs at this date. */
+  standard: 'kolto' | 'bacta';
+  bacta: 'unknown' | 'rare import' | 'standard';
+  kolto: 'standard' | 'cheaper alternative';
+}
+
+export function healingFluidAt(year: number): HealingFluid {
+  if (year >= BACTA_STANDARD_FROM_YEAR) return { standard: 'bacta', bacta: 'standard', kolto: 'cheaper alternative' };
+  return { standard: 'kolto', bacta: year >= BACTA_KNOWN_FROM_YEAR ? 'rare import' : 'unknown', kolto: 'standard' };
+}
+
+/** Dated kolto supply events for the economy work (D-440; not read by any rule yet). Calendar years. */
+export const KOLTO_SUPPLY_EVENTS: readonly { year: number; event: string; effect: 'scarcity'; source: string }[] = [
+  { year: -3625, event: 'the Sith Empire invades Manaan to seize its kolto', effect: 'scarcity', source: 'SW_Timeline_3700_3600BBY_Part2 (3,625); SW_Kolto_Bacta decision 2' },
+];

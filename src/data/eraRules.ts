@@ -108,6 +108,64 @@ export const ERA_RULES: readonly EraRule[] = [
     text: 'No aliens serve in the regular Imperial forces (formal admission comes after 3,640); field hospitals treat only favoured species. No Moff, admiral or general is named as "the" commander in these years; Imperial Intelligence\'s Keeper and Minister go by title only.',
     source: 'D-388 [1], [9], [10]',
   },
+  // The Nov 22 lore update (D-440): plain dated facts about places (D-438), sent when the place is in the location chain.
+  // A span ends at its last recorded year (D-411 [5]); -Infinity = a lasting fact with no end on record.
+  {
+    id: 'malachor-v-wreckage',
+    fromBby: 3951,
+    toBby: -Infinity,
+    places: ['Malachor V', 'Malachor system'],
+    text: 'Malachor V was destroyed in 3,951 BBY: it is a field of asteroids and wreckage in the Malachor system, with unstable gravity, Sith and Mandalorian Wars relics, and no Force nexus. Whether any dark presence lingers is unknown: use it only as a story hazard, never a training benefit.',
+    source: 'SW_Malachor_V (Timeline 3951; decisions 1-2); D-440',
+  },
+  {
+    id: 'malachor-v-surveyed',
+    fromBby: 3640,
+    toBby: -Infinity,
+    places: ['Malachor V', 'Malachor system'],
+    text: 'By 3,640 BBY surveys have found small pockets of life still active in the remains of Malachor V, and treasure hunters excavate it for artifacts.',
+    source: 'SW_Malachor_V (Timeline: by 3640 BBY); D-440',
+  },
+  {
+    id: 'tython-no-settlement',
+    fromBby: 25783,
+    toBby: -Infinity,
+    places: ['Tython'],
+    text: 'Tython is not open to ordinary settlement: the planet reacts to imbalance with Force storms and is unsafe for those who cannot sense the Force.',
+    source: 'SW_Tython (Summary; the cataclysm of 25,783 BBY); SW_Force_Nexus_Vergence decision 1; D-440',
+  },
+  {
+    id: 'tython-kalikori',
+    fromBby: 3651,
+    toBby: 3636,
+    places: ['Tython', 'Kalikori'],
+    text: "Kalikori is an illegal settlement of Twi'lek Pilgrims in the Tythonian hills that survives only through hardship, under constant Flesh Raider attack; it is not evidence that Tython is open to settlers.",
+    source: 'SW_Tython (Kalikori village; decision 2); D-440',
+  },
+  {
+    id: 'korriban-zakuul-bombardment',
+    fromBby: 3636,
+    toBby: -Infinity,
+    places: ['Korriban'],
+    text: "Zakuul's fleet bombarded Korriban's temples to rubble c. 3,636 BBY. They were later rebuilt (no date on record), and many artifacts are still buried.",
+    source: 'SW_Korriban_Planet (Timeline: the Eternal Empire conquest, c. 3636 BBY); D-440',
+  },
+  {
+    id: 'ossus-ruin',
+    fromBby: 3996,
+    toBby: 3628,
+    places: ['Ossus'],
+    text: 'Ossus has been an irradiated desert ruin since the Cron Cluster supernova of 3,996 BBY: known, but unsettled until a Jedi colony comes some time after 3,636.',
+    source: 'SW_Ossus (Summary; decision 2); D-440',
+  },
+  {
+    id: 'ossus-colony',
+    fromBby: 3636,
+    toBby: 3628,
+    places: ['Ossus'],
+    text: 'Some time after 3,636 BBY (the year is not on record) Gnost-Dural leads a Jedi colony to Ossus, fleeing Zakuul. In 3,628 Sith forces under Darth Malora attack, the Republic relieves it, and the colony is evacuated.',
+    source: 'SW_Ossus (the Jedi colony; Timeline after 3636, 3628); D-440',
+  },
 ];
 
 const norm = (s: string): string => s.toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim();

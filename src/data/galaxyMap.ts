@@ -88,6 +88,29 @@ export const WORLD_GATES: readonly WorldGate[] = [
   { place: 'Ilum', fromBby: 3681, opensBby: 3640, closedTo: 'sithEmpire', reason: 'a Republic and Jedi staging world on difficult lanes, on the Republic\'s charts only', source: 'D-402 [8]' },
 ];
 
+/** What a map world physically is from a year on (D-440): a destroyed world shows as debris, not a planet. */
+export interface WorldState {
+  place: string;
+  /** From this year (BBY, inclusive) on; no end on record. */
+  fromBby: number;
+  /** What the map shows instead of the planet. */
+  kind: 'asteroid and wreckage field';
+  /** Where the field lies. */
+  system: string;
+  reason: string;
+  source: string;
+}
+
+export const WORLD_STATES: readonly WorldState[] = [
+  { place: 'Malachor V', fromBby: 3951, kind: 'asteroid and wreckage field', system: 'Malachor system', reason: 'destroyed in 3,951 BBY when the Mass Shadow Generator was set off again', source: 'SW_Malachor_V (Timeline 3951; decision 2); D-440' },
+];
+
+/** The world's physical state on the map in `bby`, or null while it is still a planet. */
+export function worldStateAt(place: string, bby: number): WorldState | null {
+  const p = place.toLowerCase();
+  return WORLD_STATES.find((w) => w.place.toLowerCase() === p && bby <= w.fromBby) ?? null;
+}
+
 const SIDE_OF: Readonly<Record<string, MapSide>> = { republic: 'republic', jediOrder: 'republic', sithEmpire: 'sithEmpire', sith: 'sithEmpire' };
 
 /** The map side of a character's start faction (or path faction). */
