@@ -1,6 +1,6 @@
 // Closed-form skill level (npc-generation §1, D-43, D-105): measured phase paces and the exact
 // age-factor integral, on the Human-equivalent age. Mirrors docs-v2/calc/npc-closed-form.mjs. Pure.
-import { CLOSED_FORM, CURVE_EXP, PACE_CAP } from '../data/progression.config';
+import { CAREER_YOUTH_TO, CLOSED_FORM, CURVE_EXP, PACE_CAP } from '../data/progression.config';
 import type { AgeRow } from '../data/skills';
 import { ageFactor, ageIntegral } from './ageFactor';
 import { transferXp } from './forms';
@@ -39,13 +39,22 @@ export function closedFormLevel(input: ClosedFormInput): number {
   return CLOSED_FORM.referenceLevel * Math.pow(Math.max(0, s / A_REF), 1 / CURVE_EXP);
 }
 
-/** Phases from per-phase paces and rank ages (initiate before padawanAge, padawan before knightAge). */
+/**
+ * Phases from per-phase paces and rank ages (initiate before padawanAge, padawan before knightAge). One phase (careers,
+ * outsiders): the knight pace, after the youth pace to CAREER_YOUTH_TO when the archetype has one (D-461).
+ */
 export function phasesFor(
-  paces: { initiate?: number | undefined; padawan?: number | undefined; knight?: number | undefined },
+  paces: { initiate?: number | undefined; padawan?: number | undefined; knight?: number | undefined; youth?: number | undefined },
   ages: { padawanAge: number; knightAge: number },
   onePhase: boolean,
 ): PacePhase[] {
-  if (onePhase) return [{ from: -Infinity, to: Infinity, pace: paces.knight ?? 0 }];
+  if (onePhase)
+    return paces.youth === undefined
+      ? [{ from: -Infinity, to: Infinity, pace: paces.knight ?? 0 }]
+      : [
+          { from: -Infinity, to: CAREER_YOUTH_TO, pace: paces.youth },
+          { from: CAREER_YOUTH_TO, to: Infinity, pace: paces.knight ?? 0 },
+        ];
   return [
     { from: -Infinity, to: ages.padawanAge, pace: paces.initiate ?? 0 },
     { from: ages.padawanAge, to: ages.knightAge, pace: paces.padawan ?? 0 },

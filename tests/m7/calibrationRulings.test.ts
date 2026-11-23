@@ -167,10 +167,14 @@ describe('the stat scale (D-423, revised by D-429)', () => {
     const { bandValue, standingBand } = await import('../../src/data/canon/sheetScale');
     const kaedan = canon('jaric-kaedan');
     expect(standingBand(kaedan, kaedan.anchors[0]!.bby)).toBe(60);
-    // A Guardian Master: one band below the Master's 60 for Force Knowledge.
-    expect(kaedan.anchors[0]!.levels['forceKnowledge']).toBe(40);
+    // A Guardian Master: the measured Guardian band at a Master's standing (D-461: 23; D-429 had 40, one band below 60).
+    expect(kaedan.anchors[0]!.levels['forceKnowledge']).toBe(23);
     expect(bandValue('forceKnowledge', 30, 60, 'jediConsular')).toBe(30);
+    expect(bandValue('forceKnowledge', 99, 60, 'jediConsular')).toBe(79);
+    expect(bandValue('meditation', 99, 40, 'sithInquisitor')).toBe(17);
+    // The D-429 rule stays for careers, Intelligence and Tactics, and the ancient band (100).
     expect(bandValue('tactics', 90, 80, 'soldier')).toBe(80);
+    expect(bandValue('forceKnowledge', 120, 100, 'jediGuardian')).toBe(80);
   });
   it('the apex and focus figures carry hand-set game-scale lines', async () => {
     const { GAME_SCALE_LINES } = await import('../../src/data/canon/sheetScale');

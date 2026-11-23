@@ -4,7 +4,7 @@
 import { it } from 'vitest';
 import { ARCHETYPE_BY_ID } from '../../src/data/archetypes';
 import { CATEGORY_RULES, SKILL_BY_ID } from '../../src/data/skills';
-import { closedFormLevel } from '../../src/engine/closedForm';
+import { closedFormLevel, phasesFor } from '../../src/engine/closedForm';
 import { runLifetime } from '../support/lifetime';
 
 const ID = process.env['ARCH'] ?? 'mandalorian';
@@ -39,5 +39,10 @@ it(`pace fit ${ID}`, () => {
   const errsAt = (p: number): string => [1, 5, 10, 25, 40, 60].map((y) => `y${y} ${(closed(p, y) - r.mainByYear[y - 1]!).toFixed(2)}`).join(', ');
   console.info(`[fit] ${ID} measured pace ${pace}: ${errsAt(pace)}`);
   console.info(`[fit] ${ID} minimax pace ${best.p.toFixed(3)} (max error ${best.max.toFixed(2)}): ${errsAt(best.p)}`);
+  // The archetype's own phases (D-461: the career youth phase when it has one), year by year.
+  const own = (y: number): number =>
+    closedFormLevel({ row, startAge: a.startAge, age: a.startAge + y, phases: phasesFor({ knight: pace, ...(a.youthPaces ? { youth: a.youthPaces[a.main] } : {}) }, { padawanAge: a.startAge, knightAge: a.startAge }, true) });
+  const ownErr = Array.from({ length: 60 }, (_, i) => own(i + 1) - r.mainByYear[i]!);
+  console.info(`[fit] ${ID} own phases${a.youthPaces ? ` (youth ${a.youthPaces[a.main]} to 15, then ${pace})` : ''}: ${[1, 5, 7, 10, 25, 40, 60].map((y) => `y${y} ${ownErr[y - 1]!.toFixed(2)}`).join(', ')}; max |error| ${Math.max(...ownErr.map(Math.abs)).toFixed(2)}`);
   console.info(`[fit-runtime] ${((Date.now() - t0) / 1000).toFixed(0)} s`);
 }, 3_600_000);

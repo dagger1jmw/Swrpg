@@ -34,6 +34,12 @@ pace per rank phase (Initiate / Padawan / Knight+ for the Jedi and Sith paths; o
 careers and outsiders), because the day loop's main-skill rate differs by phase (Initiate 2 h of
 forms, Padawan 3 h+, Knight+ half of a full budget). With the D-43 form and D-67 decided, the
 day loop and the closed form differed by +2.3 at 5 years and -3.5 at 60 years.
+Amended by D-461 (Jared): a career that starts before 15 (CAREER_YOUTH_TO; the training
+budget reaches its adult hours at 15) has two phases: a youth pace from its start to 15, then
+its adult pace, both measured on the loop (archetype `youthPaces`; the Mandalorian, start 8,
+and the warrior and the Yuuzhan Vong warrior, start 14). The Mandalorian's single pace missed
+its loop by up to 2.96 levels over its life; with the youth phase, by at most 1.14. Sith
+acolytes will use it too (later).
 
   level(skill) = 41 * (A_eff / A_ref) ^ (1/1.75)
     A_eff = sum over phases of pace(skill, phase) * A(row, phase start, phase end), clipped

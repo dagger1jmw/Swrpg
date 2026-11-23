@@ -27,6 +27,11 @@ export interface ArchetypeDef {
   startRange: readonly [number, number];
   /** Measured closed-form paces per phase, lightsaber forms excluded. Careers have only 'knight' (one phase). */
   paces: Readonly<Partial<Record<Phase, Readonly<Record<string, number>>>>>;
+  /**
+   * The career youth phase (D-461): a career starting before CAREER_YOUTH_TO has these paces from its start to that age,
+   * then `paces.knight` (measured on the loop over the two spans). Absent: one phase.
+   */
+  youthPaces?: Readonly<Record<string, number>>;
   /** Pace of all lightsaber-form XP per phase and source (D-118); absent for archetypes without forms. */
   formPaces: Readonly<Partial<Record<Phase, Readonly<Partial<Record<FormSource, number>>>>>>;
 }
@@ -189,8 +194,9 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 8,
     startRange: [6, 16],
     paces: {
-      knight: { blaster: 1.425, agility: 0.665, willpower: 0.591, endurance: 0.43, strength: 0.371, melee: 0.189, tactics: 0.261, intelligence: 0.087, meditation: 0.014, forceControl: 0.004 },
+      knight: { blaster: 1.465, agility: 0.684, willpower: 0.608, endurance: 0.444, strength: 0.382, melee: 0.195, tactics: 0.27, intelligence: 0.09, meditation: 0.015, forceControl: 0.004 },
     },
+    youthPaces: { blaster: 1.166, agility: 0.534, willpower: 0.434, endurance: 0.336, strength: 0.293, melee: 0.151, tactics: 0.196, intelligence: 0.065, meditation: 0.009, forceControl: 0.002 },
     formPaces: {
       knight: {},
     },
@@ -209,8 +215,9 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 14,
     startRange: [12, 17],
     paces: {
-      knight: { melee: 1.397, strength: 0.54, agility: 0.464, endurance: 0.526, tactics: 0.464, intelligence: 0.155, willpower: 0.687, meditation: 0.017 },
+      knight: { melee: 1.4, strength: 0.543, agility: 0.466, endurance: 0.529, tactics: 0.465, intelligence: 0.155, willpower: 0.687, meditation: 0.017 },
     },
+    youthPaces: { melee: 1.212, strength: 0.421, agility: 0.373, endurance: 0.408, tactics: 0.431, intelligence: 0.144, willpower: 0.656, meditation: 0.013 },
     formPaces: {
       knight: {},
     },
@@ -227,8 +234,9 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 14,
     startRange: [10, 20],
     paces: {
-      knight: { melee: 1.33, strength: 0.628, agility: 0.447, endurance: 0.617, tactics: 0.223, intelligence: 0.074, willpower: 0.621, meditation: 0.016, forceControl: 0.004 },
+      knight: { melee: 1.332, strength: 0.632, agility: 0.449, endurance: 0.621, tactics: 0.223, intelligence: 0.074, willpower: 0.622, meditation: 0.016, forceControl: 0.004 },
     },
+    youthPaces: { melee: 1.213, strength: 0.437, agility: 0.362, endurance: 0.423, tactics: 0.2, intelligence: 0.067, willpower: 0.548, meditation: 0.012, forceControl: 0.003 },
     formPaces: {
       knight: {},
     },

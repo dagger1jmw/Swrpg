@@ -128,8 +128,9 @@ Knight
   Missions on their own; may take a Padawan once age 25+ and the Council approves.
 Master
   Requires: a Padawan trained to Knighthood, OR exceptional deeds plus a Council decision.
-  Skill minimum: main specialty >= 64, the Average's at 40 (63.9; D-437), plus the Knight minimums.
-    (58 before, met by the Average at 33.7.)
+  Skill minimum: main specialty >= 66, the Average's at 40 (66.6; D-461, re-set by the D-437
+    rule after D-460; 64 before, met at 37.46), plus the Knight minimums.
+    (D-437: 64, the Average's 63.9 at 40; 58 before that, met by the Average at 33.7.)
 High Council seat
   Requires: Master rank, a vacancy (story event), main specialty >= 70, and Council standing
     (deeds, relationships). Wartime appointments are possible as story events.

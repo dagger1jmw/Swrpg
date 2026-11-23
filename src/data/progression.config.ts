@@ -112,6 +112,13 @@ export const CROSS_TALENT = 1.1;
 export const M_CAP = 2.8;
 /** D-48 clamp. */
 export const PACE_CAP = 4.0;
+/**
+ * The career youth phase (D-461, Jared): a career that starts before this age gets one measured pace from its start to
+ * here, then its adult pace. The training budget reaches its adult hours at 15 (BUDGET: 4 h to 10, 6 h at 15 on
+ * standard), which a single pace cannot follow (the Mandalorian, start 8: about 1.04 at 9-11, 1.43 by 60). Sith acolytes
+ * will use it too (later).
+ */
+export const CAREER_YOUTH_TO = 15;
 export const PACE_WINDOW_DAYS = 365;
 /**
  * Y_avg(age): the Average profile's most-trained form XP for the 365 days starting at that age

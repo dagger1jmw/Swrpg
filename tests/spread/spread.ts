@@ -42,7 +42,7 @@ export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, bo
     const yAvgDev = Math.max(...Y_AVG.filter(([a, y]) => !Y_AVG_FROZEN_AGES.includes(a) && y > 0).map(([age, y]) => Math.abs((r.yearMain[age - 4] ?? 0) / y - 1)));
     const peace = Math.max(...r.yearMain.map((_, i) => share(r, i)));
     const at = (k: string): number => r.cross[k] ?? NaN;
-    const ranks = ['highestForm>=24', 'forceControl>=19'].every((k) => Math.abs(at(k) - 10) <= 2) && ['highestForm>=47', 'forceControl>=41', 'forceSense>=40', 'willpower>=58'].every((k) => Math.abs(at(k) - 24) <= 2) && Math.abs(at('highestForm>=64') - 40) <= 2;
+    const ranks = ['highestForm>=24', 'forceControl>=19'].every((k) => Math.abs(at(k) - 10) <= 2) && ['highestForm>=47', 'forceControl>=41', 'forceSense>=40', 'willpower>=58'].every((k) => Math.abs(at(k) - 24) <= 2) && Math.abs(at('highestForm>=66') - 40) <= 2;
     return {
       gates: {
         'K: 41 at 16.0 +/- 0.1 y': Math.abs((r.milestones[41] ?? 0) - 16.0) <= 0.1,
@@ -193,7 +193,7 @@ export function spreadRow(name: string, profile: LifeProfile, years: number, k: 
 /** The four profiles as the old per-profile files ran them (in their file order: anakin, average, luke, obiwan). */
 export const SPREAD_PROFILES: readonly { name: string; profile: LifeProfile; years: number; opts: Parameters<typeof runLifetime>[2] }[] = [
   { name: 'anakin', profile: ANAKIN, years: 70, opts: {} },
-  { name: 'average', profile: AVERAGE, years: 95, opts: { crossLevels: { highestForm: [24, 47, 64], forceControl: [19, 41], forceSense: [40], willpower: [58] }, paceRates: true } },
+  { name: 'average', profile: AVERAGE, years: 95, opts: { crossLevels: { highestForm: [24, 47, 66], forceControl: [19, 41], forceSense: [40], willpower: [58] }, paceRates: true } },
   { name: 'luke', profile: LUKE, years: 70, opts: { track: ['forceControl', 'perf:strength', 'perf:agility', 'perf:endurance'] } },
   { name: 'obiwan', profile: OBIWAN, years: 70, opts: {} },
 ];

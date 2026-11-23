@@ -240,9 +240,12 @@ Reference (Luke, 1h/day body ability): age 30: 89.7 | 40: 98.7 | 50: 103.6 |
 ## 12. Calibration profiles and targets
 Years of training to reach each tier (+/-20%), age in brackets:
   Average (start 4):   21: 5.0 (9)   41: 16.0 (20)  61: 32.1 (36)  81: 52.7 (57)  101: 77.5 (82)
-  Obi-Wan (start 3):   3.4 (6)   10.8 (14)  21.7 (25)  35.6 (39)  52.4 (55)
+  Obi-Wan (start 3):   3.5 (6.5) 10.8 (14)  21.7 (25)  35.6 (39)  52.4 (55)
   Anakin (start 9):    1.3 (10)  4.1 (13)   8.2 (17)   13.5 (22.5) 19.9 (29)
-  Luke (start 19):     2.1 (21)  6.9 (26)   13.9 (33)  22.8 (42)  33.6 (53); Force ~116 at 62
+  Luke (start 19):     2.1 (21)  5.5 (24.5) 13.9 (33)  22.8 (42)  33.6 (53); Force ~116 at 62
+  D-461 (Jared): Obi-Wan's 21 3.4 -> 3.5 (the lore-correct saber gate delays his first Form
+  I; the target is not canon-anchored); Luke's 41 6.9 -> 5.5, his measured 20-seed median
+  (5.46). These targets are design values (the v2 spec, 2026-11-16), not Legends anchors.
 Profile schedule structure (amended by D-40, D-41, D-42; supersedes the inputs below):
   Every profile runs the same structure: the Order requirements for its rank (ranks.md
   §1a) as fixed commitments, filled up to the D-25 training budget (training-routines §2)

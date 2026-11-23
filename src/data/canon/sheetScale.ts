@@ -5,7 +5,8 @@
 //  1. Most stats by one factor per archetype group (Jedi, Sith, careers): the median, over that group's non-fixed
 //     hand-set sheets, of the game's progression line for the figure (archetype, rank spans, lived age at the sheet's
 //     date, gifted talent: a notable figure) over the sheet value; capped at 1.0, so nothing is inflated.
-//  2. Force Knowledge, Meditation, Intelligence and Tactics from the band definitions (D-429): their low factors measure
+//  2. Force Knowledge, Meditation, Intelligence and Tactics from the band definitions (D-429; Force Knowledge and
+//     Meditation of the Order archetypes re-measured on the loop, D-461: KNOWLEDGE_BANDS): their low factors measure
 //     the missing XP sources, not the scale. Each takes the band of the figure's standing at the sheet's date (40 a
 //     Knight, Lord or officer; 60 a Master, Darth or general; 80 the Councils and the highest offices; 100 an ancient),
 //     one band lower outside the figure's focus, and never above the authored value. Re-measured once the sources exist.
@@ -63,8 +64,30 @@ function inFocus(stat: string, archetype: string): boolean {
   return false;
 }
 
-/** A band-set stat's game-scale value (D-429): the standing's band, one band lower outside the focus, at most as authored. */
+/**
+ * The canon Force Knowledge and Meditation bands, re-measured on the loop (D-461, Jared; D-429 [2]: "re-measured once the
+ * XP sources exist"). Per Order archetype, the 20-seed median of its npc-test-7 life (Padawan 12, Knight 25, the yearly
+ * mission, its Order's seat by date: the life generated NPCs reproduce) at the midpoint of each standing's span: 40 (a
+ * Knight or Lord, 25-40) read at 32.5, 60 (a Master or Darth, 40-60) at 50, 80 (the Councils, 60-80) at 70. Rounded.
+ * Measured 2026-11-23, K 11.64 (tests/sweep/bands). The focus rule is now in the numbers (Consulars and Inquisitors study
+ * more); a Consular's and an Inquisitor's differ too much to share a band (Force Knowledge at 50: 78.6 against 41.5).
+ */
+export const KNOWLEDGE_BANDS: Readonly<Record<string, Readonly<Record<'forceKnowledge' | 'meditation', Readonly<Record<number, number>>>>>> = {
+  jediGuardian: { forceKnowledge: { 40: 17, 60: 23, 80: 29 }, meditation: { 40: 20, 60: 28, 80: 36 } },
+  jediSentinel: { forceKnowledge: { 40: 17, 60: 23, 80: 29 }, meditation: { 40: 20, 60: 28, 80: 36 } },
+  jediConsular: { forceKnowledge: { 40: 42, 60: 79, 80: 107 }, meditation: { 40: 28, 60: 44, 80: 59 } },
+  sithWarrior: { forceKnowledge: { 40: 14, 60: 19, 80: 24 }, meditation: { 40: 14, 60: 21, 80: 27 } },
+  sithInquisitor: { forceKnowledge: { 40: 25, 60: 42, 80: 57 }, meditation: { 40: 17, 60: 27, 80: 36 } },
+};
+
+/**
+ * A band-set stat's game-scale value, at most as authored. Force Knowledge and Meditation of an Order archetype at a
+ * Knight, Master or Council standing: the measured band (D-461). Otherwise the D-429 rule: the standing's band, one band
+ * lower outside the focus (an ancient `fixed` figure, careers, Intelligence and Tactics).
+ */
 export function bandValue(stat: string, authored: number, band: number, archetype: string): number {
+  const measured = stat === 'forceKnowledge' || stat === 'meditation' ? KNOWLEDGE_BANDS[archetype]?.[stat]?.[band] : undefined;
+  if (measured !== undefined) return Math.max(0, Math.min(authored, measured));
   return Math.max(0, Math.min(authored, inFocus(stat, archetype) ? band : band - 20));
 }
 

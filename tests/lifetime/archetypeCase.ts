@@ -68,7 +68,8 @@ export function archetypeCase(id: string): void {
         row,
         startAge: a.startAge,
         age: a.startAge + YEARS,
-        phases: phasesFor({ initiate: a.paces.initiate?.[a.main], padawan: a.paces.padawan?.[a.main], knight: a.paces.knight?.[a.main] }, { padawanAge: 12, knightAge: 25 }, !order),
+        // The career youth phase (D-461).
+        phases: phasesFor({ initiate: a.paces.initiate?.[a.main], padawan: a.paces.padawan?.[a.main], knight: a.paces.knight?.[a.main], ...(a.youthPaces ? { youth: a.youthPaces[a.main] } : {}) }, { padawanAge: 12, knightAge: 25 }, !order),
       });
     }
     const day = r.mainByYear[YEARS - 1]!;

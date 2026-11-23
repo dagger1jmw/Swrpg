@@ -9,7 +9,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ARCHETYPE_BY_ID } from '../../src/data/archetypes';
-import { K } from '../../src/data/progression.config';
+import { CAREER_YOUTH_TO, K } from '../../src/data/progression.config';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../src/data/skills';
 import { ageIntegral } from '../../src/engine/ageFactor';
 import { referenceRate } from '../../src/engine/closedForm';
@@ -30,6 +30,8 @@ export interface MeasuredPaces {
   formPaces: Partial<Record<'initiate' | 'padawan' | 'knight', Record<string, number>>>;
   /** The main specialty's loop level at 25 years (npc test 7's check). */
   mainAt25: number;
+  /** The career youth phase's paces (D-461): from the start age to CAREER_YOUTH_TO. */
+  youthPaces?: Record<string, number>;
 }
 
 const r3 = (x: number): number => Math.round(x * 1000) / 1000;
@@ -37,6 +39,8 @@ const r3 = (x: number): number => Math.round(x * 1000) / 1000;
 export function measureArchetype(id: string): MeasuredPaces {
   const a = ARCHETYPE_BY_ID.get(id)!;
   const order = a.path === 'jedi' || a.path === 'sith';
+  // The career youth phase (D-461): a career starting before CAREER_YOUTH_TO is measured over two spans.
+  const youth = a.path === 'career' && a.startAge < CAREER_YOUTH_TO;
   const padawanAge = order ? PACE_RANK_AGES.padawan : a.startAge;
   const knightAge = order ? PACE_RANK_AGES.knight : a.startAge;
   const life = runLifetime(
@@ -58,11 +62,13 @@ export function measureArchetype(id: string): MeasuredPaces {
       ...archetypeSeat(a.path),
     },
     PACE_YEARS,
-    { phaseXp: true },
+    { phaseXp: true, ...(youth ? { youthTo: CAREER_YOUTH_TO } : {}) },
   );
   const R = referenceRate(K);
   const end = a.startAge + PACE_YEARS;
-  const ranges = { initiate: [a.startAge, Math.max(a.startAge, padawanAge)], padawan: [Math.max(a.startAge, padawanAge), Math.max(a.startAge, knightAge)], knight: [Math.max(a.startAge, knightAge), end] } as const;
+  const ranges = youth
+    ? ({ initiate: [a.startAge, CAREER_YOUTH_TO], padawan: [CAREER_YOUTH_TO, CAREER_YOUTH_TO], knight: [CAREER_YOUTH_TO, end] } as const)
+    : ({ initiate: [a.startAge, Math.max(a.startAge, padawanAge)], padawan: [Math.max(a.startAge, padawanAge), Math.max(a.startAge, knightAge)], knight: [Math.max(a.startAge, knightAge), end] } as const);
   const out: MeasuredPaces = { id, k: K, paces: {}, formPaces: {}, mainAt25: life.mainByYear[24] ?? 0 };
   for (const ph of ['initiate', 'padawan', 'knight'] as const) {
     const [x, y] = ranges[ph];
@@ -94,7 +100,8 @@ export function measureArchetype(id: string): MeasuredPaces {
       if (!def) continue;
       paces[k] = r3(v / ageIntegral(CATEGORY_RULES[def.category].ageRow, x, y) / R);
     }
-    out.paces[ph] = paces;
+    if (youth && ph === 'initiate') out.youthPaces = paces;
+    else out.paces[ph] = paces;
     if (Object.keys(forms).length) out.formPaces[ph] = forms;
   }
   mkdirSync(PACE_DIR, { recursive: true });

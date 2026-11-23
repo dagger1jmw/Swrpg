@@ -498,6 +498,8 @@ export interface LifetimeOpts {
   onDay?: (s: GameState, info: { day: number; age: number }) => GameState | void;
   /** Record LifeResult.phaseXp (the pace measurement, D-431). */
   phaseXp?: boolean;
+  /** A career's youth years (D-461): phaseXp puts the days before this age in the 'initiate' bucket. */
+  youthTo?: number;
   /** Record LifeResult.paceRates (the 4.0x per-hour table measurement, D-457). */
   paceRates?: boolean;
   /** Called with each day's routine log (diagnosis probes: which sessions ran, their hours and XP). */
@@ -574,6 +576,7 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
   const mainKeys = (): string[] => (isFormMain ? [...FORM_IDS] : [p.main]);
   const phaseXp: NonNullable<LifeResult['phaseXp']> = { initiate: {}, padawan: {}, knight: {} };
   const rowOf = (age: number): 'initiate' | 'padawan' | 'knight' => {
+    if (opts.youthTo !== undefined && p.path === 'career' && age < opts.youthTo) return 'initiate';
     const r = rankFor(p, age);
     return r === 'initiate' || r === 'acolyte' ? 'initiate' : r === 'padawan' || r === 'apprentice' ? 'padawan' : 'knight';
   };
