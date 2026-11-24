@@ -1813,3 +1813,9 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *Game-derived (ruling 13):* a line tagged [game-derived] is dropped whole, a "[game-derived: ...]" note on its own; both stay in the file for checklist item 12.
   - *The index* reads the martial set as `culture` chunks: sent only when named, only as far as their dates have come. Citations whose link holds parentheses no longer leave a stray ")" in the text (all files).
   - *Old files fixed:* Characters 02, 13, 15-18.
+- **D-485 Undated background rows, and the 3,700 BBY-4 ABY sets cleaned for the narrator (Jared, 2026-11-24; m8-lore-g).** Report: docs-v2/reports/m8-lore-g.md.
+  - *Background rows:* an era heading that ends ", undated" ("c. 3,600-2,001 BBY, undated") makes each row a `background` chunk. It is sent only inside its span, and only when its people, place or subject are named or the scene is there; the year alone never brings it in. Its section's overview is not sent. This answers m8-lore-f's question 1.
+  - *Research wording:* rewritten as plain lore, or moved into a [note: ...] tag in the same cell, which the index drops. Source cells are unchanged. It covered about 110 passages, not the 13 counted in m8-lore-f, and takes in story titles in brackets, 4-25 ABY and one 25 ABY row.
+  - *Parser:* a range may end in "c." ("c. 3,522-c. 3,400 BBY" was read as 3,400 only); a decimal or a file name no longer ends a sentence ("19.48 BBY" was read as 48 BBY); "(, citing ...)" and "(;;)" left by citations are dropped; "(Ruled ...)" asides in character entries are dropped.
+  - *Two eras named "The Long Peace"* (3,799-3,701 and 2,973-2,001 BBY) shared one overview; the first is now "Two Centuries of Peace". A test keeps era names distinct.
+  - *Not applied:* "Vitiate: Lord at 10". His page, citing *The Old Republic: Revan*, has his father's death at ten (5,103 BBY) and the lordship from Ragnos at thirteen (5,100 BBY). Asked in the report.

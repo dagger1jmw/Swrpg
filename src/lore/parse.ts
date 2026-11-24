@@ -7,7 +7,7 @@
 // abilities file is not indexed until M6.
 import { normalizeAlias, normalizeText, slugify, textMentions } from '../engine/aliases.ts';
 
-export type LoreChunkKind = 'character' | 'bench' | 'overview' | 'timeline' | 'note' | 'species' | 'planet' | 'route' | 'culture';
+export type LoreChunkKind = 'character' | 'bench' | 'overview' | 'timeline' | 'note' | 'species' | 'planet' | 'route' | 'culture' | 'background';
 
 export interface LoreChunk {
   id: string;
@@ -65,13 +65,14 @@ const num = (s: string): number => Math.floor(Number(s.replace(/,/g, '')));
 
 /**
  * Parses "3,681–3,653 BBY", "19 BBY – 4 ABY", "~3,630–3,625 BBY", "40 ABY", "between 3,636 and 3,630 BBY". Years with
- * or without the thousands comma ("3,681 BBY", "3681 BBY"). Null when no year.
+ * or without the thousands comma ("3,681 BBY", "3681 BBY"); a range's end may be "c." ("c. 3,522–c. 3,400 BBY", D-485).
+ * Null when no year.
  */
 export function parseYearRange(text: string): { from: number; to: number } | null {
   const clean = text.replace(/[*\\]/g, '');
   const range =
-    /([\d,]+(?:\.\d+)?)\s*(BBY|ABY)?\s*[–-]\s*[~≈]?\s*([\d,]+(?:\.\d+)?)\s*(BBY|ABY)/i.exec(clean) ??
-    /between\s+([\d,]+)\s*(BBY|ABY)?\s+and\s+([\d,]+)\s*(BBY|ABY)/i.exec(clean);
+    /([\d,]+(?:\.\d+)?)\s*(BBY|ABY)?\s*[–-]\s*(?:[~≈]|c\.)?\s*([\d,]+(?:\.\d+)?)\s*(BBY|ABY)/i.exec(clean) ??
+    /between\s+(?:c\.\s*)?([\d,]+)\s*(BBY|ABY)?\s+and\s+(?:c\.\s*)?([\d,]+)\s*(BBY|ABY)/i.exec(clean);
   if (range) {
     const u2 = range[4]!;
     const u1 = range[2] ?? u2;
@@ -122,11 +123,14 @@ export function dropMetaSentences(line: string): string {
   return kept ? prefix + kept : '';
 }
 
+/** A ruling's record in prose ("... (Ruled (Jared, 24 Nov 2026))"): kept in the file, not story (D-485). */
+const RULED_ASIDE = /\s*\(Ruled\b(?:[^()]|\([^()]*\))*\)/g;
+
 function proseLines(lines: readonly string[]): string {
   const out: string[] = [];
   for (const raw of lines) {
     if (isTableLine(raw) || isRule(raw) || MECHANICS.test(raw)) continue;
-    const l = cleanMarkdown(raw).trim();
+    const l = cleanMarkdown(raw).replace(RULED_ASIDE, '').trim();
     if (!l) {
       if (out.length && out[out.length - 1] !== '') out.push('');
       continue;
@@ -176,6 +180,8 @@ interface Era {
   title: string;
   from: number;
   to: number;
+  /** "— c. 3,600–2,001 BBY, undated": its rows are background, not the year's events (D-485). */
+  background?: boolean;
 }
 
 /** Research tags in the bot's timeline rows ("[conflict]", "[inferred]", "[Ruled ...]", "[S-canon]"): kept in the lore file, not sent as story. */
@@ -194,6 +200,12 @@ const TIMELINE_META =
 /** "Blank centuries: between ... the year pages record ...": what the research did not find, to the end of its line. */
 const BLANK_YEARS = /\s*\bBlank (?:centuries|stretches|years):.*$/gm;
 
+/** What a bracketed citation leaves behind: "()", "(;;)", "(, citing Labyrinth of Evil)". */
+const CITATION_SHELL = /\s*\([\s,;]*(?:citing\b[^()]*)?\)/gi;
+
+/** Sentences; a decimal or a file name ("19.48 BBY", "draft.md") does not end one (D-485). */
+const SENTENCE = /(?:[^.!?]|[.!?](?=[A-Za-z0-9]))+(?:[.!?]+["')\]]*)?|[.!?]+["')\]]*/g;
+
 /** A timeline cell or paragraph as story text: citations, research tags, file asides and "[conflict] ..." notes dropped. */
 function cleanTimelineText(s: string): string {
   return stripCitations(s)
@@ -202,6 +214,7 @@ function cleanTimelineText(s: string): string {
     .replace(/([.;])\s*\[conflict\][\s\S]*$/i, '$1')
     .replace(RESEARCH_TAG, '')
     .replace(FILE_ASIDE, '')
+    .replace(CITATION_SHELL, '')
     .replace(/\s+([.,;:])/g, '$1')
     .replace(/\s{2,}/g, ' ')
     .trim();
@@ -214,7 +227,7 @@ function cleanTimelineOverview(text: string): string {
     .split('\n')
     .map((line) => {
       if (!line.trim() || /^\s*-\s/.test(line)) return line.trim() ? cleanTimelineText(line) : line;
-      const sentences = stripCitations(line).match(/[^.!?]+[.!?]+["')\]]*|[^.!?]+$/g) ?? [line];
+      const sentences = stripCitations(line).replace(RESEARCH_TAG, '').replace(CITATION_SHELL, '').match(SENTENCE) ?? [line];
       return sentences
         .filter((s) => !TIMELINE_META.test(s))
         .map(cleanTimelineText)
@@ -241,13 +254,14 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
   let cols = { date: 0, event: 1, who: 4, place: 3 };
   const groups = new Map<string, { from: number; to: number; era: Era; rows: string[]; names: Set<string>; places: Set<string> }>();
   const order: string[] = [];
+  const background: { era: Era; date: string; event: string; names: string[]; places: string[] }[] = [];
   // For dating overview sentences (D-98): named events and "Year N" headings per era.
   const overviews: { era: Era; text: string }[] = [];
   const eventsByEra = new Map<string, { name: string; year: number }[]>();
   const yearNByEra = new Map<string, Map<number, number>>();
 
   const flushOverview = (): void => {
-    if (era && overview) {
+    if (era && overview && !era.background) {
       const text = cleanTimelineOverview(proseLines(overview));
       const same = overviews.find((o) => o.era.slug === era!.slug);
       if (text && same) same.text = `${same.text}\n${text}`;
@@ -281,7 +295,7 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
         const range = parseYearRange(title);
         if (range) {
           const name = cleanMarkdown(title.split(/\s+[—–-]\s+/)[0] ?? title).trim();
-          era = { slug: slugify(name), title: titleCase(name), from: range.from, to: range.to };
+          era = { slug: slugify(name), title: titleCase(name), from: range.from, to: range.to, ...(/,\s*undated\s*$/i.test(title) ? { background: true } : {}) };
           eraJustOpened = true;
         } else if (!eraJustOpened) {
           era = null; // a non-era section (document purpose, sim seeds, summary, ...): not lore
@@ -326,6 +340,10 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
         const event = pick(cols.event);
         const figures = pick(cols.who);
         const location = pick(cols.place);
+        if (era.background) {
+          background.push({ era, date, event, names: namesFromCell(figures), places: placesFromCell(location) });
+          continue;
+        }
         const range = parseYearRange(date) ?? { from: era.from, to: era.to };
         const bold = /\|[^|]*\|\s*\*\*([^*]+)\*\*/.exec(line);
         if (bold && parseYearRange(date)) {
@@ -384,6 +402,24 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
       text: `${g.era.title}, events of ${formatRange(g.from, g.to)}:\n${g.rows.join('\n')}`,
     });
   }
+
+  // Undated rows of a whole span (D-485): one chunk each, sent inside the span when its people, its place or its
+  // subject come up (lore/retrieve.ts). A row with a span of its own keeps the part inside the section's.
+  background.forEach((b, i) => {
+    const own = parseYearRange(b.date);
+    const inside = own && own.from < own.to && own.from <= b.era.to && own.to >= b.era.from ? own : b.era;
+    for (const p of b.places) vocabulary.add(p);
+    out.push({
+      id: `${fileKey}:${b.era.slug}:${i + 1}`,
+      kind: 'background',
+      title: `Background: ${b.event.split(/[:;,.]/)[0]!}`,
+      fromYear: Math.max(b.era.from, inside.from),
+      toYear: Math.min(b.era.to, inside.to),
+      names: [...new Set([...b.names, ...b.places])].sort(),
+      locations: [...new Set(b.places)].sort(),
+      text: `Background, no year known: ${b.event}`,
+    });
+  });
 }
 
 /** Words that put a sentence at the end of its era ("The war ends ...", "eventually", "later"). */
@@ -435,7 +471,7 @@ export function dateOverview(
   const out: { year: number; text: string }[] = [];
   let running = era.from;
   for (const line of text.split('\n')) {
-    const pieces = /^\s*-\s/.test(line) || !line.trim() ? [line] : (line.match(/[^.!?]+[.!?]+["')\]]*|[^.!?]+$/g) ?? [line]);
+    const pieces = /^\s*-\s/.test(line) || !line.trim() ? [line] : (line.match(SENTENCE) ?? [line]);
     pieces.forEach((piece, i) => {
       const y = own(piece);
       running = Math.max(running, y ?? running);
@@ -957,7 +993,7 @@ export function buildLoreIndex(files: readonly LoreFile[]): LoreIndex {
   const places = [...vocabulary].sort();
   for (const c of chunks) {
     // Timeline rows, planets and routes keep their own locations (a planet entry names many places; D-403).
-    if (c.kind === 'timeline' || c.kind === 'planet' || c.kind === 'route') continue;
+    if (c.kind === 'timeline' || c.kind === 'background' || c.kind === 'planet' || c.kind === 'route') continue;
     const norm = normalizeText(c.text);
     c.locations = places.filter((p) => textMentions(norm, p));
   }

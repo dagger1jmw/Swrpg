@@ -154,7 +154,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Tenebrae / Lord Vitiate — origin of the immortal Sith Emperor
 - **Sheet snapshot:** **Origin / early prime** — the young Lord Vitiate (NOT his later god-emperor apex; see note)
 - **Species / Affiliation / Rank:** Sith (human-presenting hybrid) · Sith Empire (Medriaas/Nathema) · Lord
-- **Lifespan:** Born ~5,113 BBY; severed his father Dramath's power and imprisoned his spirit (5,103 BBY); named Lord Vitiate by Marka Ragnos (5,100 BBY); performed the Nathema ritual in 4,999 BBY; led the exodus to Dromund Kaas (4,980 BBY); destroyed permanently ~3,630 BBY
+- **Lifespan:** Born ~5,113 BBY; severed his father Dramath's power and imprisoned his spirit (5,103 BBY); named Lord Vitiate by Marka Ragnos (5,100 BBY); performed the Nathema ritual in 4,999 BBY; led the exodus to Dromund Kaas (4,980 BBY); destroyed in 3,630 BBY, his last remnant (Tenebrae) in 3,626 BBY
 - **Summary:** Born on the fringe world Medriaas with a terrifyingly strong dark-side connection, the boy Tenebrae massacred thousands before age ten. He killed his true father Lord Dramath in a duel and imprisoned his spirit. Named Lord Vitiate by Marka Ragnos at thirteen, he withdrew to Nathema for a century — then, after Sadow's defeat, summoned the surviving Sith Lords, **mentally enslaved them, and drained the life of every Sith Lord and the entire planet**, making himself effectively immortal. As the self-proclaimed Sith Emperor he led a 20-year exodus to Dromund Kaas and founded the reconstituted Empire.
 
 | Core (origin) | Value | | Force (origin) | Value |

@@ -56,6 +56,7 @@ export function scoreChunk(c: LoreChunk, q: LoreQuery): { score: number; why: st
     if (c.toYear >= q.year) add(LORE_SCORES.timelineCurrent, 'this year');
     else add(Math.max(1, LORE_SCORES.timelinePast - LORE_SCORES.timelinePastDecayPerYear * (q.year - c.toYear)), `${q.year - c.toYear} years ago`);
   }
+  // A `background` row (undated, D-485) scores nothing by itself: only its names and places below bring it in.
   if (c.canonId && q.canonIds.includes(c.canonId)) add(LORE_SCORES.canonMatch, `canon ${c.canonId}`);
   for (const n of c.names) {
     if (q.names.includes(n)) add(LORE_SCORES.nameMatch, `names ${n}`);

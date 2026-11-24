@@ -326,12 +326,63 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
         }
       });
     }
-    // Left out of the index: spans of centuries that would be "this year" to every campaign inside them.
-    expect(bare).toEqual(['SW_Timeline_3600_2000BBY_Part1.md: ## UNDATED OR SPANNING THE WHOLE PERIOD']);
+    expect(bare).toEqual([]);
     expect(undated).toEqual([]);
     expect(parseYearRange('25.3 ABY (GrS 60:8)')).toEqual({ from: 25, to: 25 });
     expect(parseYearRange('26.5 ABY')).toEqual({ from: 26, to: 26 });
     expect(parseYearRange('between 45 and 127 ABY (no year)')).toEqual({ from: 45, to: 127 });
+    expect(parseYearRange('c. 3,522–c. 3,400 BBY')).toEqual({ from: -3522, to: -3400 });
+  });
+  it('undated rows of a span are background: inside the span, when named or on the spot, never by the year (D-485)', () => {
+    const bg = LORE_INDEX.chunks.filter((x) => x.kind === 'background');
+    expect(bg.length).toBe(7);
+    expect(bg.every((x) => x.fromYear >= -3600 && x.toYear === -2001)).toBe(true);
+    expect(bg.find((x) => /Rifle Worlds/.test(x.text))!.fromYear).toBe(-3000); // its own span starts inside the section's
+    expect(/Noga-ta|Phanius|Kappela|Wookieepedia|\[/.exec(bg.map((x) => x.text).join('\n'))?.[0]).toBeUndefined();
+    const base = { canonIds: [], names: [], locationNames: ['coruscant'], year: -3100 };
+    const sent = (o: { year?: number; locationNames?: string[]; playerText?: string } = {}) =>
+      retrieveLore(LORE_INDEX, { ...base, ...o }, 100000, est).included.filter((s) => s.chunk.kind === 'background');
+    expect(sent()).toEqual([]);
+    expect(sent({ playerText: normalizeText('I ask about the Barabel War') }).map((s) => s.chunk.title)).toEqual(['Background: The Barabel War']);
+    expect(sent({ locationNames: ['taanab'] }).map((s) => /Norulac/.test(s.text))).toEqual([true]);
+    // Outside the span (the default campaign year, and after it) it is not sent even when named.
+    for (const year of [-3661, -2000]) expect(sent({ year, playerText: normalizeText('I ask about the Barabel War'), locationNames: ['taanab'] })).toEqual([]);
+    expect(LORE_INDEX.chunks.some((x) => (x.kind === 'overview' || x.kind === 'timeline') && /Undated Or Spanning/.test(x.title))).toBe(false);
+  });
+  it('3,700 BBY-25 ABY: no research wording reaches the narrator, and eras of the same name do not merge (D-485)', () => {
+    const tl = LORE_INDEX.chunks.filter((x) => x.id.startsWith('tl:') && x.toYear >= -3700);
+    const hits = tl.flatMap((x) => {
+      const m = /Wookieepedia|\byear pages?\b|infobox|unreferenced|\b(?:the|its|his|her|own|Legends) page\b|pre-2008|\barticles? (?:says?|calls?|places?|dates?)|novelization|\bcomics\b|\(derived|conjectur|\bdated to\b|no source|next file|developer|\[(?:note|conflict|unclear|inferred|Ruled)|\(\s*[;,)]|citing The|\d\. \d\d BBY/i.exec(x.text);
+      return m ? [`${x.id}: ${m[0]}`] : [];
+    });
+    expect(hits).toEqual([]);
+    const people = LORE_INDEX.chunks.map((x) => x.text).join('\n');
+    expect(/\(Ruled\b/.exec(people)?.[0]).toBeUndefined();
+    // Parts of one era may carry different spans of it; two spans that do not meet are two eras.
+    const eras = new Map<string, { from: number; to: number }[]>();
+    for (const f of loreFiles().filter((x) => /^SW_Timeline_/.test(x.name)))
+      for (const m of f.content.matchAll(/^## ([^═=\n]+?)\s+[—–]\s+([^\n\r]*\d[^\n\r]*)$/gm)) {
+        const key = slugify(m[1]!);
+        eras.set(key, [...(eras.get(key) ?? []), parseYearRange(m[2]!)!]);
+      }
+    const apart = ([, s]: [string, { from: number; to: number }[]]): boolean => s.some((x) => s.some((y) => x.to < y.from));
+    expect([...eras].filter(apart).map(([k]) => k)).toEqual([]);
+    const at = (id: string) => LORE_INDEX.chunks.find((x) => x.id === id)!;
+    expect(at('tl:the-long-peace:overview').text).not.toMatch(/Revan/);
+    expect(at('tl:two-centuries-of-peace:overview').toYear).toBe(-3701);
+  });
+  it('the 3,996-3,950 BBY rulings and the Vitiate, Nihilus and Surik entries (m8-lore-g check)', () => {
+    const rows = LORE_INDEX.chunks.filter((x) => x.kind === 'timeline');
+    const at = (y: number): string => rows.filter((x) => x.fromYear <= y && y <= x.toYear).map((x) => x.text).join('\n');
+    expect(at(-3950)).toMatch(/where Revan kills Nyriss/);
+    expect(at(-3950)).toMatch(/kills two more conspirators/);
+    expect(at(-3950)).toMatch(/Old Sith Wars \(4,000–3,950 BBY\)/);
+    expect(at(-3950)).toMatch(/Surik leaves for the Unknown Regions/);
+    expect(rows.filter((x) => x.fromYear === -3997).every((x) => !/^Great Sith War/.test(x.title))).toBe(true);
+    const c = (re: RegExp): string => LORE_INDEX.chunks.filter((x) => re.test(x.id)).map((x) => x.text).join('\n');
+    expect(c(/^c06:meetra-surik/)).toMatch(/on her order Bao-Dur activated the Mass Shadow Generator/);
+    expect(c(/^c03:tenebrae/)).toMatch(/ritual in 4,999 BBY.*destroyed in 3,630 BBY, his last remnant \(Tenebrae\) in 3,626 BBY/);
+    expect(c(/^c08:darth-nihilus/)).toMatch(/every living thing on Katarr but Visas Marr/);
   });
   it('martial cultures: read when named, dated, and never the game-derived lines (D-484, ruling 13)', () => {
     const ma = LORE_INDEX.chunks.filter((x) => x.kind === 'culture');

@@ -34,7 +34,7 @@ Only the in-scope rows, 3,700–3,682 BBY, are rebuilt here; earlier rows of thi
 | 3,683 BBY | Jace Malcom joins the Republic Army as an officer | Leader | — | Jace Malcom | [3683 BBY](https://starwars.fandom.com/wiki/3683_BBY); [Jace Malcom](https://starwars.fandom.com/wiki/Jace_Malcom) |
 | 3,683 BBY | The Sith Lord Parnax disappears and is assumed dead | Death | — | Parnax | [3683 BBY](https://starwars.fandom.com/wiki/3683_BBY) |
 | 3,682 BBY | Fideltin Rusk is born on Mindor | Birth | Mindor | Fideltin Rusk | [3682 BBY](https://starwars.fandom.com/wiki/3682_BBY); [Fideltin Rusk](https://starwars.fandom.com/wiki/Fideltin_Rusk) |
-| c. 3,682–3,680 BBY [inferred] | Darth Marr (born 3,702 BBY) takes a Dark Council seat "in his early twenties", leading the Sphere of Defense; no page gives the year | Leader | Dromund Kaas | Darth Marr | [Darth Marr](https://starwars.fandom.com/wiki/Darth_Marr) |
+| c. 3,682–3,680 BBY [inferred] | Darth Marr (born 3,702 BBY) takes a Dark Council seat "in his early twenties", leading the Sphere of Defense [note: no page gives the year] | Leader | Dromund Kaas | Darth Marr | [Darth Marr](https://starwars.fandom.com/wiki/Darth_Marr) |
 | before 3,681 BBY | Imperial agents secure an alliance with the Chiss Ascendancy, the Empire's only true ally from the war's start; the formal treaty terms (kept secret) were negotiated during the war (ruling 18) | War | Chiss space | Imperial operatives, Chiss Ascendancy | [Great Galactic War §The Sith Empire prepares for war](https://starwars.fandom.com/wiki/Great_Galactic_War); [Chiss–Imperial treaty](https://starwars.fandom.com/wiki/Chiss%E2%80%93Imperial_treaty) |
 | before 3,681 BBY | The Empire installs puppet governments in Outer Rim systems and secretly controls Belkadan, Ruuria and Sernpidal in the Dalonbian sector | Control | Dalonbian sector | Imperial operatives | [Great Galactic War §The Sith Empire prepares for war](https://starwars.fandom.com/wiki/Great_Galactic_War) |
 | before 3,681 BBY | Imperial Navy war games become daily; the fleet gathers at staging points just outside Republic space | War | Unknown Regions border | Imperial Navy | [Great Galactic War §The Sith Empire prepares for war](https://starwars.fandom.com/wiki/Great_Galactic_War) |
@@ -160,7 +160,7 @@ A twenty-eight-year war between the Galactic Republic and the Sith Empire, from 
 
 #### 3,664 BBY — Year 17
 
-**State of the galaxy, 3,664 BBY.** The Mandalorians now raided for the Empire: Shae Vizla attacked a Republic political envoy (row 1). Imperial Intelligence took in Watcher X (row 2), and its Operation: Undertow is dated to this year or later [conflict] (row 3). The Geonosis campaign continued (3,665 BBY row). [Mandalorian attack on a Republic envoy](https://starwars.fandom.com/wiki/Mandalorian_attack_on_a_Republic_envoy); [Watcher X](https://starwars.fandom.com/wiki/Watcher_X)
+**State of the galaxy, 3,664 BBY.** The Mandalorians now raided for the Empire: Shae Vizla attacked a Republic political envoy (row 1). Imperial Intelligence took in Watcher X (row 2), and its Operation: Undertow began this year or soon after [conflict] (row 3). The Geonosis campaign continued (3,665 BBY row). [Mandalorian attack on a Republic envoy](https://starwars.fandom.com/wiki/Mandalorian_attack_on_a_Republic_envoy); [Watcher X](https://starwars.fandom.com/wiki/Watcher_X)
 
 | Date | Event | Type | Place | Who | Source |
 |---|---|---|---|---|---|
@@ -171,7 +171,7 @@ A twenty-eight-year war between the Galactic Republic and the Sith Empire, from 
 
 #### 3,663 BBY — Year 18
 
-**State of the galaxy, 3,663 BBY.** No battle is dated to this year. The SIS hired the droid T7-O1 to guard a Muun ambassador from GenoHaradan assassins (row 1), a bounty hunter murdered an Alderaanian noble (row 2), and mining on Ruhnuk stopped when a nebula enclosed the planet (row 3). The Mandalorian skirmishes with the Jedi that led into the blockade were under way (3,662 BBY row). [3663 BBY](https://starwars.fandom.com/wiki/3663_BBY)
+**State of the galaxy, 3,663 BBY.** No battle is recorded this year. The SIS hired the droid T7-O1 to guard a Muun ambassador from GenoHaradan assassins (row 1), a bounty hunter murdered an Alderaanian noble (row 2), and mining on Ruhnuk stopped when a nebula enclosed the planet (row 3). The Mandalorian skirmishes with the Jedi were under way (3,662 BBY row). [3663 BBY](https://starwars.fandom.com/wiki/3663_BBY)
 
 | Date | Event | Type | Place | Who | Source |
 |---|---|---|---|---|---|
@@ -182,7 +182,7 @@ A twenty-eight-year war between the Galactic Republic and the Sith Empire, from 
 
 #### 3,662 BBY — Year 19
 
-**State of the galaxy, 3,662 BBY.** The Jedi Temple file counts "three years" of Jedi–Mandalorian skirmishes before the blockade, which places them about 3,664–3,662 BBY [inferred] (row 1). No other event is dated to this year beyond births (row 2). The Geonosis and Balmorra fronts were still open (3,665 and 3,670 BBY rows). [Blockade of the Hydian Way](https://starwars.fandom.com/wiki/Blockade_of_the_Hydian_Way)
+**State of the galaxy, 3,662 BBY.** The skirmishes between Jedi and Mandalorians, under way since about 3,664 BBY, went on [note: the Jedi Temple file counts "three years" of them before the blockade] [inferred] (row 1). No battle is recorded this year [note: no other event beyond births, row 2]. The Geonosis and Balmorra fronts were still open (3,665 and 3,670 BBY rows). [Blockade of the Hydian Way](https://starwars.fandom.com/wiki/Blockade_of_the_Hydian_Way)
 
 | Date | Event | Type | Place | Who | Source |
 |---|---|---|---|---|---|
@@ -226,7 +226,7 @@ A twenty-eight-year war between the Galactic Republic and the Sith Empire, from 
 
 #### 3,659 BBY — Year 22
 
-**State of the galaxy, 3,659 BBY.** Hylo Visz, hero of the blockade, was rumored dead after trying to double-cross the Hutts (row 1). No battle is dated to this year; Geonosis and the Minos campaign were still running (3,665 and 3,654 BBY rows). [3659 BBY](https://starwars.fandom.com/wiki/3659_BBY)
+**State of the galaxy, 3,659 BBY.** Hylo Visz, hero of the blockade, was rumored dead after trying to double-cross the Hutts (row 1). No new battle is recorded this year; Geonosis and the Minos campaign were still running (3,665 and 3,654 BBY rows). [3659 BBY](https://starwars.fandom.com/wiki/3659_BBY)
 
 | Date | Event | Type | Place | Who | Source |
 |---|---|---|---|---|---|
@@ -234,7 +234,7 @@ A twenty-eight-year war between the Galactic Republic and the Sith Empire, from 
 
 #### 3,658 BBY — Year 23
 
-**State of the galaxy, 3,658 BBY.** The only dated event is Lema Xandret's defection from the Empire (row 1), which leads to the Sebaddon affair of 3,643 BBY (Part 2). The long fronts listed for 3,659 BBY continued. [3658 BBY](https://starwars.fandom.com/wiki/3658_BBY)
+**State of the galaxy, 3,658 BBY.** Lema Xandret defected from the Empire (row 1) [note: it leads to the Sebaddon affair of 3,643 BBY, Part 2; the only dated event]. The long fronts of 3,659 BBY continued. [3658 BBY](https://starwars.fandom.com/wiki/3658_BBY)
 
 | Date | Event | Type | Place | Who | Source |
 |---|---|---|---|---|---|
@@ -242,7 +242,7 @@ A twenty-eight-year war between the Galactic Republic and the Sith Empire, from 
 
 #### 3,657 BBY — Year 24
 
-**State of the galaxy, 3,657 BBY.** No war event is dated to this year (row 1 is a minor ship purchase). Geonosis and Minos remained open fronts (3,665 and 3,654 BBY rows). [3657 BBY](https://starwars.fandom.com/wiki/3657_BBY)
+**State of the galaxy, 3,657 BBY.** No new battle is recorded this year (row 1 is a minor ship purchase). Geonosis and Minos remained open fronts (3,665 and 3,654 BBY rows). [3657 BBY](https://starwars.fandom.com/wiki/3657_BBY)
 
 | Date | Event | Type | Place | Who | Source |
 |---|---|---|---|---|---|
@@ -250,7 +250,7 @@ A twenty-eight-year war between the Galactic Republic and the Sith Empire, from 
 
 #### 3,656 BBY — Year 25
 
-**State of the galaxy, 3,656 BBY.** Wookieepedia has no page for 3,656 BBY and no event found is dated to it (see Not found). The ranged campaigns (Geonosis, Minos) are the only fronts known to be active.
+**State of the galaxy, 3,656 BBY.** No event of note is recorded this year [note: Wookieepedia has no page for 3,656 BBY] (see Not found). The long campaigns (Geonosis, Minos) are the only fronts known to be active.
 
 | Date | Event | Type | Place | Who | Source |
 |---|---|---|---|---|---|
@@ -258,7 +258,7 @@ A twenty-eight-year war between the Galactic Republic and the Sith Empire, from 
 
 #### 3,655 BBY — Year 26
 
-**State of the galaxy, 3,655 BBY.** The only dated item is a hangar technician starting work at the Sith academy on Odacer-Faustin (row 1), which shows that academy running in the war's last years. The fronts listed for 3,659 BBY continued. [3655 BBY](https://starwars.fandom.com/wiki/3655_BBY)
+**State of the galaxy, 3,655 BBY.** The Sith academy on Odacer-Faustin was running (row 1) [note: the only dated item, a hangar technician starting work there]. The fronts of 3,659 BBY continued. [3655 BBY](https://starwars.fandom.com/wiki/3655_BBY)
 
 | Date | Event | Type | Place | Who | Source |
 |---|---|---|---|---|---|

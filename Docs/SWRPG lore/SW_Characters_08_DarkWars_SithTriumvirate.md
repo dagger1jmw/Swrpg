@@ -98,7 +98,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Force Abilities (game stats):** Force Drain 115 *(**planetary-scale devour** 98% — consumed all of Katarr; his signature and the highest drain rating in the timeline)* · Telekinesis 95 *(Force Push 85%, Force Throw 88% — tore the *Ravager* from Malachor's gravity well)* · Force Sense 96 *(senses Force-life to feed on)* · Force Body 80 *(sustains his hollow form)*
 - **Unique techniques:** **Planetary Force-devour** *(consuming the life-force and Force-energy of entire worlds and populations; his presence alone drains the living around him)*
 - **Signature Ability:** **Force devour (planetary scale)** — the single most destructive raw-drain power in the timeline; consumes entire worlds to feed an endless hunger.
-- **Notable Feats:** Survived Malachor V as a wound in the Force; tore his flagship from Malachor's gravity well by the Force alone; consumed the entire population of Katarr (including a Jedi convocation) in one act.
+- **Notable Feats:** Survived Malachor V as a wound in the Force; tore his flagship from Malachor's gravity well by the Force alone; killed every living thing on Katarr but Visas Marr (a Jedi conclave among the dead) in one act.
 - **Alignment:** Dark side (beyond ideology — pure hunger).
 - **Tier:** **Legendary** (Force drain / raw ForceOutput — 112); Veteran–Master duelist; near-mindless (INT 40).
 
