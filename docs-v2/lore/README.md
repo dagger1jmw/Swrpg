@@ -4,7 +4,7 @@ Every lore file in `Docs/SWRPG lore/`, the canon source of truth for story facts
 
 Game-mechanics sections in these files (Game notes, tiers, numbers) are suggestions that docs-v2 specs may override; every override is logged in `docs-v2/decisions.md`. The runtime lore index for the narrator (D-81, `scripts/build-lore.ts`) reads only the character files, the timeline (the old file and its slices), the species files (sent only when a species is named) and the planets files (a world when the scene is there or it is named; a route when named).
 
-Last updated 2026-11-23 (the economy set, Sith academies, weapon classes and named gear, starship classes and space tactics; the Jedi Path ruling, D-463; the economy rulings, D-464). Earlier: 2026-11-22 (the Nov 22 lore update, D-439). Every lore file holds plain dated facts unless its scope names an era window (CLAUDE.md hard rule, D-438).
+Last updated 2026-11-23 (D-465: droid classes; the galaxy timeline corrected against Legends Wookieepedia; the world-event tag maps and the M8 design notes listed; Nexus of Power treated as not Legends). Before that, 2026-11-23 (the economy set, Sith academies, weapon classes and named gear, starship classes and space tactics; the Jedi Path ruling, D-463; the economy rulings, D-464). Earlier: 2026-11-22 (the Nov 22 lore update, D-439). Every lore file holds plain dated facts unless its scope names an era window (CLAUDE.md hard rule, D-438).
 
 ## Character sheets (one file per era)
 
@@ -38,7 +38,7 @@ Last updated 2026-11-23 (the economy set, Sith academies, weapon classes and nam
 
 | Path | Scope |
 |---|---|
-| `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` | Complete galaxy timeline: scripted events and NPC deployment by era, all eras except 3,700–3,600 BBY (in the slice files below, lore batch 20) |
+| `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` | Complete galaxy timeline: scripted events and NPC deployment by era, all eras except 3,700–3,600 BBY (in the slice files below, lore batch 20). Corrected against Legends Wookieepedia on 23 Nov 2026 (D-465); rows marked "not re-checked" still need verifying |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part1.md` | Galaxy timeline, 3,700–3,653 BBY (replaces the old timeline's rows for these years; read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part2.md` | Galaxy timeline, 3,653 to c. 3,622 BBY (read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part3.md` | Galaxy timeline slice 1, Part 3: checks, conflicts and decisions (no entries) |
@@ -121,6 +121,7 @@ Last updated 2026-11-23 (the economy set, Sith academies, weapon classes and nam
 | `Docs/SWRPG lore/SW_Weapons_Armor_AllEras.md` | Non-lightsaber weapons, armour, personal energy shields and anti-Jedi gear, all eras (focus on the Old Republic and Clone Wars) |
 | `Docs/SWRPG lore/SW_Weapons_Classes_AllEras.md` | Weapon and armour classes, all eras, from the 84 class pages of the sorted list's Layer 1; adds the classes the older weapons file lacks (numbers are game stats, for scale) |
 | `Docs/SWRPG lore/SW_Weapons_Armor_Named.md` | Named weapons and armour from Old Republic sources (Mandalorian, Echani, Krath, Arkanian, Zabrak, Cathar items; about 150 pages), dated by their facts |
+| `Docs/SWRPG lore/SW_Droids_Classes.md` | Droids: the five classes, control (restraining bolts, memory wipes), droid rights, the Great Droid Revolution, and Old Republic droid models by affiliation and purpose (prices are game stats) |
 | `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Index.md` | Yuuzhan Vong personal gear: index of the three parts |
 | `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Part1.md` | Yuuzhan Vong gear, Part 1: living weapons and armour |
 | `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Part2.md` | Yuuzhan Vong gear, Part 2: biots, tools, implants, the Embrace of Pain, counter-tech |
@@ -148,6 +149,14 @@ Researched 23 Nov 2026. Source tiers on every line: in-universe (tier 1); game s
 | `Docs/SWRPG lore/SW_Economy_Prices_Ships_Weapons_Droids.md` | Tier 1 prices: ships and running costs, weapons, armour, droids; in-universe vs game-stat conflicts |
 | `Docs/SWRPG lore/SW_Economy_GamePriceLists_Part1.md` … `Part9.md` | Tier 2 game-stat prices and FFG [gray]: Parts 1–8 ships, vehicles, weapons, armour, droids, equipment; Part 9 goods and services, the full source list and the main Not used list |
 | `Docs/SWRPG lore/SW_Economy_CanonGapFill.md` | Tier 3 [canon] gap-fill prices (items with a Legends page but no Legends price); Canon figures that contradict Legends are under Not used |
+
+## Design data built on the lore (specs, not lore files)
+
+| Path | Scope |
+|---|---|
+| `docs-v2/spec/world-event-tags-draft.md` | World event tag map, 3661–3640 BBY: facts from the 3700–3600 BBY timeline slices, tags as design calls (reviewed by Jared; rulings in section 6) |
+| `docs-v2/spec/world-event-tags-1000BBY-4ABY-draft.md` | World event tag map, 1000 BBY–4 ABY (rulings in section 8; PP-0 alternatives open; rows marked LF come from the galaxy timeline and are not re-checked) |
+| `docs-v2/spec/m8-design-notes.md` | M8 design notes (exported from Claude Docs, revision 40; the Claude Docs version is the working copy) |
 
 ## Research lists (not lore files)
 

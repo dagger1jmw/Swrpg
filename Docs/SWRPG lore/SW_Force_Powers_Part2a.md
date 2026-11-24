@@ -302,7 +302,7 @@ This part covers the Alter discipline: telekinesis and every named variant (push
 - **Key facts:**
   - F2. Imbues an unpowered weapon with the Force for a time, so it strikes harder and can block lightsabers unharmed ([Force weapon](https://starwars.fandom.com/wiki/Force_weapon) (intro)).
   - F3. The Je'daii and later Jedi Force-imbued their swords with Vur Tepe; the Zeison Sha their discblades; Vodo-Siosk Baas his walking stick against Exar Kun; Felucian natives their jawbone swords; Vader and Starkiller charged their lightsabers ([Force weapon](https://starwars.fandom.com/wiki/Force_weapon) (intro)).
-  - [gray] The Je'daii detail is cited to the *Star Wars: Force and Destiny Core Rulebook* (FFG, 2015) together with Legends sources (*The New Essential Chronology*; *Nexus of Power*), which support the Jedi practice; it does not contradict Legends ([Force weapon](https://starwars.fandom.com/wiki/Force_weapon) (intro)).
+  - [gray] The Je'daii detail is cited to the *Star Wars: Force and Destiny Core Rulebook* (FFG, 2015) together with a Legends source (*The New Essential Chronology*), which supports the Jedi practice (D-465: the *Nexus of Power* citation removed, not Legends); it does not contradict Legends ([Force weapon](https://starwars.fandom.com/wiki/Force_weapon) (intro)).
   - F6. Neutral.
 - **Related:** F8. Sith alchemy's permanent weapon enchantments (Part 2b).
 - **Uncertainty:** [gray] as above.

@@ -505,9 +505,14 @@ This file covers the species a player or NPC can belong to in the Old Republic e
      - Height 1.6 m (game stat: UAA; infobox) [Devaronian/Legends](https://starwars.fandom.com/wiki/Devaronian/Legends).
   2. **Lifespan and ageing:** not stated. No source found. **Era example:** Gault Rennow, b. 3697 BBY, so 36 in 3661 BBY [inferred] [Gault Rennow](https://starwars.fandom.com/wiki/Gault_Rennow).
   3. **Strengths and weaknesses:** their bodies constantly purge toxins, so they are highly resistant to poison. Sulfur works on them as a stimulant [Devaronian/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Devaronian/Legends).
-  4. **Force:** Force-sensitivity is found more often among Devaronians than in other species [Devaronian/Legends §Society and culture](https://starwars.fandom.com/wiki/Devaronian/Legends) (Nexus of Power, a reference book).
+  4. **Force:** not stated in Legends (the one claim is from *Nexus of Power*; see Not used).
   5. **Culture and homeworld:** Devaron. Control in 3661 BBY: not stated.
   6. **Languages:** Basic and Devaronese (infobox) [Devaronian/Legends](https://starwars.fandom.com/wiki/Devaronian/Legends).
   7. **Era notes:** in 3661 BBY a Jedi strike force was wiped out near Devaron trying to break the Mandalorian blockade of the Hydian Way [Battle near Devaron](https://starwars.fandom.com/wiki/Battle_near_Devaron). Gault took part in breaking that blockade in 3660 BBY [Gault Rennow](https://starwars.fandom.com/wiki/Gault_Rennow).
 - **Related:** Mirialan (Hylo Visz).
 - **Uncertainty:** none.
+
+## Not used
+D-465 (Jared): *Nexus of Power* (FFG) is not Legends. Lines sourced only to it are under Not used; where another Legends source backs a fact, the fact stays and only the *Nexus of Power* citation is removed.
+
+- Devaronian: Force-sensitivity is found more often among Devaronians than in other species [Devaronian/Legends §Society and culture](https://starwars.fandom.com/wiki/Devaronian/Legends) (*Nexus of Power*, FFG, Mar 2016; no other source).
