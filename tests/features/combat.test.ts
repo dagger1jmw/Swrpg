@@ -141,7 +141,7 @@ describe('beats and conclusion', () => {
       expect(r.state.combat.active).not.toBeNull();
     }
     expect(ai(f, [{ type: 'combatEnded', reason: 'interrupted' }]).rejected[0]!.reason).toMatch(/needs a why/);
-    const ok = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'reinforcements', why: 'Republic reinforcements pour into the hangar' }, arrives('Captain Rex')]);
+    const ok = ai(f, [{ type: 'combatEnded', reason: 'interrupted', category: 'reinforcements', why: 'Republic reinforcements pour into the hangar' }, arrives('Commander Appo')]);
     expect(ok.rejected).toEqual([]);
     // Recorded as interrupted with its real state: never fled, never won (D-196).
     expect(ok.state.combat.last!.outcome).toBe('interrupted');

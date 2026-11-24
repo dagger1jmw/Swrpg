@@ -215,7 +215,11 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
   it('a ruling (D-477): its tag and the losing version are not sent, and a row it set aside is dropped', () => {
     const t = LORE_INDEX.chunks.filter((x) => x.kind === 'timeline' || x.kind === 'overview').map((x) => x.text).join('\n');
     expect(t).not.toMatch(/Ruled 24 Nov|\[S-canon|\[conflict/);
-    expect(t).toMatch(/Ahsoka Tano, Plo Koon's apprentice, is killed in Order 66/);
+    expect(t).toMatch(/Ahsoka Tano, Plo Koon's apprentice, is killed in Order 66 with Plo Koon's forces on Cato Neimoidia/);
+    // TCW-only characters do not exist (D-478): Appo has Rex's role, and Ahsoka is not Anakin's Padawan anywhere the narrator reads.
+    const all = LORE_INDEX.chunks.map((x) => x.text).join('\n');
+    expect(all).not.toMatch(/\bRex\b|Admiral Trench|\bTrench's|Loathsom|Mar Tuuk|Ziro|Ima-Gun|Syndulla|Nahdar|took \*{0,2}Ahsoka|Anakin's Padawan/);
+    expect(all).toMatch(/Commander Appo/);
     expect(t).toMatch(/Maul is born on Dathomir to Kycina/);
     expect(t).not.toMatch(/Battle of Jabiim dated to the war's first months|Torbin is killed by an assassin droid that crashes/);
     const at = (y: number): string => LORE_INDEX.chunks.filter((x) => x.kind === 'timeline' && x.fromYear === y && x.toYear === y).map((x) => x.text).join('\n');

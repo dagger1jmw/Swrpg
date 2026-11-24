@@ -37,7 +37,7 @@ Built, tested and pushed. Tag: `m8-item9c`. test:all: 1,617 of 1,617 (966 s); ty
 
 **By rule, the date the row already had** (year page against the galaxy timeline or another page): Expansion Zone ends 704; Yinchorr charted 500; Clan Vos 331; Varonat 242; Almas 177; Bakura 149; Elomin 120; Kursid c. 104; Mos Espa 80; Blix Annon 76; Jorus C'baoth 70; Shmi sold 66; Bitthaevrian War c. 65–60; Yinchorri seat 58; Vosa 52; Summertime War c. 52; *Katana* 45; Stark War 44; Poggle 33; Padmé elected 33; Lando's Cloud City news c. 2 ABY; Grievous rebuilt c. 29.
 
-## 4. Questions for you
+## 4. Questions for you (both answered: D-478)
 
 1. **Captain Rex:** the source rule lets TCW-only characters stand, but the file gives Rex's role to Appo. Which?
 2. **Where does Ahsoka die?** The design notes put her with Plo Koon's unit, so Cato Neimoidia with him?

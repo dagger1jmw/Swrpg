@@ -55,7 +55,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Prime — Jedi Knight and General, the Chosen One at his heroic height
 - **Species / Affiliation / Rank:** Human · Jedi Order / Republic Military · Jedi Knight, General
 - **Lifespan:** Born 41 BBY on Tatooine; knighted during the Clone Wars; fell to the dark side 19 BBY
-- **Summary:** The prophesied **Chosen One**, destined to bring balance to the Force, and the most naturally powerful Force-user of his generation. Trained by Obi-Wan, knighted early in the war, he became the galaxy-famed **"Hero With No Fear"** — a brilliant, daring General and starfighter ace whose raw power and dueling outstripped nearly every Jedi alive. He took **Ahsoka Tano** as his Padawan. A master of **Form V (Djem So)**, he killed Count Dooku and ended battle after battle — but his fierce attachment and fear of loss were the cracks through which Sidious destroyed him. At his Jedi peak his power was already approaching legendary apex; only his youth, recklessness, unresolved fear — and his own Jedi restraint — kept him from the full mastery the prophecy promised.
+- **Summary:** The prophesied **Chosen One**, destined to bring balance to the Force, and the most naturally powerful Force-user of his generation. Trained by Obi-Wan and knighted c. 20 BBY, he became the galaxy-famed **"Hero With No Fear"** — a brilliant, daring General and starfighter ace whose raw power and dueling outstripped nearly every Jedi alive. A master of **Form V (Djem So)**, he killed Count Dooku and ended battle after battle — but his fierce attachment and fear of loss were the cracks through which Sidious destroyed him. At his Jedi peak his power was already approaching legendary apex; only his youth, recklessness, unresolved fear — and his own Jedi restraint — kept him from the full mastery the prophecy promised.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -70,7 +70,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
   **Form ratings (game stats):** Shien/Djem So 94 (primary) · Ataru 88 · Shii-Cho 86 · Niman 84 · Soresu 80 · Juyo 80
 - **Force Abilities (game stats):** Telekinesis 95 *(Force Push 90%, Force Throw 88%)* · Force Body 92 *(**Force Speed** 92%)* · Force Sense 92 *(**Precognition / piloting instinct** 95%)* · Force Barrier 80 · Force Enrage 78 *(when he slips toward the dark)*
 - **Signature Ability:** **The Chosen One's raw power (walled off)** — the highest natural potential of his generation, kept substantially restrained: discipline, fear of his own strength, and emotional restraint cap his demonstrated Output (100) well below his true ceiling. Both jump on the Knightfall sheet.
-- **Notable Feats:** "Hero With No Fear" of the Clone Wars; killed Count Dooku; countless victories; trained Ahsoka Tano; **on Mortis briefly touched near-full potential** (subduing the Son); the Chosen One of prophecy.
+- **Notable Feats:** "Hero With No Fear" of the Clone Wars; killed Count Dooku; countless victories; **on Mortis briefly touched near-full potential** (subduing the Son); the Chosen One of prophecy.
 - **Alignment:** Light side (with a persistent, dangerous pull toward the dark).
 - **Tier:** **Legendary** (dueling / raw Force power) — apex-adjacent potential, not yet realized (and deliberately restrained).
 
@@ -134,10 +134,10 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ---
 
 ## Ahsoka Tano
-- **Sheet snapshot:** Prime (late-war) — Anakin's Padawan, Jedi Commander
-- **Species / Affiliation / Rank:** Togruta · Jedi Order · Padawan → Jedi Commander (later left the Order)
-- **Lifespan:** Anakin's Padawan through the Clone Wars; left the Jedi Order before the war's end
-- **Summary:** The spirited Togruta Padawan assigned to Anakin — headstrong, gifted, quick-witted, growing over the war into a formidable young warrior and commander. She fought across countless battles, developing an aggressive **Shien (reverse-grip Form V)** dual-wielding style. (Largely a Clone Wars-series figure straddling Legends/canon; included as a Clone Wars combatant.) She ultimately left the Order, disillusioned, before the war's end — which spared her from Order 66.
+- **Sheet snapshot:** Prime (late-war) — Plo Koon's Padawan, Jedi Commander (Ruled 24 Nov 2026)
+- **Species / Affiliation / Rank:** Togruta · Jedi Order · Padawan → Jedi Commander
+- **Lifespan:** 36 BBY – 19 BBY; Plo Koon's Padawan through the Clone Wars; killed in Order 66 with Plo Koon's forces on Cato Neimoidia (Ruled 24 Nov 2026, not lore: no source gives a place)
+- **Summary:** The spirited Togruta Padawan of Plo Koon — headstrong, gifted, quick-witted, growing over the war into a formidable young warrior and commander. She fought across countless battles, developing an aggressive **Shien (reverse-grip Form V)** dual-wielding style. She dies in Order 66 with her Master's forces. (A Clone Wars-series figure, the one TCW-only character ruled to exist.)
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -152,7 +152,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
   **Form ratings (game stats):** Shien (reverse-grip) 82 (primary) · *(Jar'Kai dual-wield 80)* · Ataru 80 · Shii-Cho 74
 - **Force Abilities (game stats):** Force Body 76 *(Force Speed 80%)* · Telekinesis 74 *(Force Push 68%)* · Force Sense 80 *(Precognition 75%)*
 - **Signature Ability:** **Reverse-grip dual-wielding** — a fast, acrobatic, unorthodox combat style; a gifted, rapidly growing young warrior-commander.
-- **Notable Feats:** Anakin's Padawan; Jedi Commander across many battles; left the Order before the war's end (surviving the purge).
+- **Notable Feats:** Plo Koon's Padawan; Jedi Commander across many battles.
 - **Alignment:** Light side.
 - **Tier:** Elite (rising; Padawan/Commander).
 
@@ -330,7 +330,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Quinlan Vos | Kiffar | Jedi Master; deep-cover agent | 76 | 82 | 76 | 80 | 78 | 80 | 84 | 70 | 78 | 82 | 78 | Ataru 82 · Djem So 78 | **Psychometry** 88 *(object-reading 90%)* · Force Sense 84 — walked the line with the dark |
 | Cin Drallig | Human | Jedi Battlemaster (saber instructor) | 72 | 84 | 74 | 84 | 72 | 78 | 80 | 74 | 80 | 84 | 78 | Soresu 86 · Ataru 82 · Makashi 82 | Force Body 80 — Temple's top combat instructor; killed by Knightfall Anakin |
 | Sev'rance Tann | Chiss | Dark Acolyte; Separatist general | 70 | 78 | 72 | 80 | 72 | 84 | 76 | 68 | 70 | 78 | 72 | Shien/Djem So 78 | Force Body 74 · Telekinesis 72 — brilliant Chiss tactician and Dark Jedi (INT 84) |
-| Captain Rex (CT-7567) | Human (clone) | Clone Captain, 501st Legion | 70 | 74 | 76 | 82 | 74 | 80 | — | — | — | — | — | Ranged 82 | N/A — elite clone; Anakin's right hand |
+| Commander Appo (CC-1119) | Human (clone) | Clone Commander, 501st Legion | 70 | 74 | 76 | 82 | 74 | 80 | — | — | — | — | — | Ranged 82 | N/A — elite clone; led the 501st under Vader in the raid on the Temple; killed by Roan Shryne on Kashyyyk (19 BBY) |
 | Commander Cody (CC-2224) | Human (clone) | Clone Marshal Commander; Obi-Wan's | 70 | 72 | 76 | 80 | 74 | 80 | — | — | — | — | — | Ranged 80 | N/A — carried out Order 66 against Obi-Wan |
 | Jango Fett | Human (Mandalorian) | Bounty hunter; clone template | 74 | 82 | 76 | 80 | 70 | 78 | — | — | — | — | — | Ranged/Melee 84 | N/A — clone-army genetic source; beheaded by Windu at Geonosis |
 | Durge | Gen'Dai | Separatist bounty hunter; near-immortal | 90 | 70 | 96 | 82 | 50 | 66 | — | — | — | — | — | Melee/Ranged 84 | N/A — ancient regenerating Gen'Dai; Dooku's enforcer |
@@ -368,7 +368,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 > - **Yoda** goes into exile on Dagobah (Era 13), later trains Luke.
 > - **Darth Sidious** declares himself **Emperor** at the war's end; his open-Emperor sheet (rising into the **Tier A apex cluster**) is **Era 13** (hidden-Chancellor stats in Era 11).
 > - **The Mortis Ones** are tied to the apex ceiling: a near-full-potential Anakin overcame the Son → realized-peak Luke ≥ the Ones → Abeloth alone clearly above peak Luke (Era 17).
-> - **Order 66** (Legends): executed via clone loyalty/conditioning. **No inhibitor chips.** **Ahsoka, Quinlan Vos, Shaak Ti** survive in Legends.
+> - **Order 66** (Legends): executed via clone loyalty/conditioning. **No inhibitor chips.** **Quinlan Vos, Shaak Ti** survive in Legends.
 
 > **CHANGE-NOTES (characters who fundamentally shift):**
 > - **Anakin Skywalker — dual sheets (Knight → Knightfall).** Restraint vs. full unleashing. Jedi: Output 100 / Control 92. Knightfall: **Output 120 (high legendary — the most we ever observed of Anakin, but still growing and short of full strength)**, Control still 90 (raw), Knowledge unchanged (86) — falling gave *power*, not *finesse* or *learning*. His *theoretical* full potential (~138, briefly glimpsed on Mortis when the realm unlocked it) was never freely realized — only Luke reached that ceiling. **Era 13 inverts it:** the suit cuts Output further, Control climbs far above. Progression: Knight (held back) → Knightfall (high Output / lagging Control / still growing) → suited Vader (reduced Output / honed Control).

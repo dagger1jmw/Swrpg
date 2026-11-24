@@ -261,6 +261,5 @@ Periods where a rule is silent because the files state nothing.
 
 ## From the lore rulings of 24 Nov 2026 (D-477)
 - **Maul's title:** Jared reads *Darth Plagueis* (Luceno, 2012) as Sidious giving Maul the title of Darth behind Plagueis's back; Darth Maul/Legends does not say so. Check against the novel.
-- **Ahsoka Tano in Order 66:** where she dies, and with which unit (the design notes have Plo Koon's; Plo Koon dies on Cato Neimoidia).
-- **TCW-only characters:** a full list of which contradict pre-2008 material and which stand (Captain Rex beside Commander Appo first).
+- **TCW-only characters** (they do not exist; D-478): a full list, checked page by page. Not yet checked, still named in [S-canon] rows: Rotta, Katuunko, Nuvo Vindi, Kharrus, Chi Cho, Queen Karina, Pong Krell, Pre Vizsla, Bo-Katan, Almec. Files outside the index that still make Ahsoka Anakin's Padawan: SW_Jedi_Training_AllEras_Part2, SW_Jedi_Ranks_Councils_Roles_AllEras_Part2, SW_Lightsaber_Forms_AllEras_Part1.
 - **Character files against the rulings:** SW_Characters_11 (Maul dies at Naboo), the Ventress, Grievous and Yaddle entries, and SW_Characters_10 (Kas'im and orbalisk armour).
