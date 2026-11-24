@@ -1,6 +1,6 @@
 import { DAYS_PER_YEAR, ageInYears } from '../../engine/calendar';
 import { speciesDef } from '../../data/species';
-import { humanEquivalentAge } from '../../engine/species';
+import { humanEquivalentAge, trainingAge } from '../../engine/species';
 import type { Talents } from '../../engine/speed';
 import type { GameState } from '../../state/gameState';
 import type { CharacterSlice } from './character';
@@ -17,6 +17,8 @@ export const selectAge = (s: GameState): number => ageInYears(s.character.birthD
 export const selectExactAge = (s: GameState): number => (s.clock.now.day - s.character.birthDay) / DAYS_PER_YEAR;
 /** Human-equivalent age h (species.md §1). */
 export const selectHumanAge = (s: GameState): number => humanEquivalentAge(speciesDef(s.character.speciesId), selectExactAge(s));
+/** Training age (D-474): real years from adulthood; what learning outside the body, routines and ranks read. */
+export const selectTrainingAge = (s: GameState): number => trainingAge(speciesDef(s.character.speciesId), selectExactAge(s));
 export const selectSpeciesId = (s: GameState): string => s.character.speciesId;
 export const selectCharacter = (s: GameState): CharacterSlice => s.character;
 export const selectTalents = (s: GameState): Talents => s.character.talents;

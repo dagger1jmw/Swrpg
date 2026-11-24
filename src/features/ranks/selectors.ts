@@ -5,10 +5,11 @@ import { WARS, TALENT_ROLL_ORDERS } from '../../data/npcGen.config';
 import { KNIGHT_TRIALS, RANK_BY_ID, ranksForPath } from '../../data/rankMinimums';
 import { COUNCIL_SEAT, MASTER_APPROVAL, SELECTION, TAKE_PADAWAN_AGE, type TrialId } from '../../data/ranks.config';
 import { FORM_IDS, SKILL_BY_ID, TALENT_DOMAINS } from '../../data/skills';
+import { speciesDef, trainingAge } from '../../data/species';
 import { dateFromAbsDay } from '../../engine/calendar';
 import { nextFloat, seedRng } from '../../engine/rng';
 import type { GameState } from '../../state/gameState';
-import { computeCreation, selectCharacter, selectExactAge, selectHumanAge } from '../character/selectors';
+import { computeCreation, selectCharacter, selectExactAge, selectTrainingAge } from '../character/selectors';
 import { selectHasFlag, selectFlags } from '../flags/selectors';
 import { selectLevelExact } from '../progression/selectors';
 import type { CovertEscalationFlag } from '../../data/orderPowerRules';
@@ -107,7 +108,7 @@ export function selectSkillPercentile(s: GameState, size: number = SELECTION.pop
   const composite = (selectHighestForm(s) + selectLevelExact(s, 'forceControl') + selectLevelExact(s, 'forceSense')) / 3;
   // Against NPCs of the same age and rank (an Initiate among Initiates, a Padawan among Padawans; D-430).
   const rank = s.ranks.rank === 'padawan' || s.ranks.rank === 'knight' || s.ranks.rank === 'master' ? s.ranks.rank : 'initiate';
-  return percentileOf(composite, initiatePopulation(s.meta.campaignId, selectHumanAge(s), size, rank));
+  return percentileOf(composite, initiatePopulation(s.meta.campaignId, selectTrainingAge(s), size, rank));
 }
 
 /** Standing S, 0-100 (ranks.md §1). */
@@ -232,8 +233,8 @@ export const selectCouncilSeatUnmet = (s: GameState, size?: number): string[] =>
  */
 export function selectPaceForAge(s: GameState): { years: number; pace: number } {
   const c = selectCharacter(s);
-  const start = c.trainingStartAge ?? 0;
-  const age = selectHumanAge(s);
+  const start = trainingAge(speciesDef(c.speciesId), c.trainingStartAge ?? 0);
+  const age = selectTrainingAge(s);
   const years = Math.max(0, age - start);
   if (c.trainingStartAge === null || years <= 0) return { years: 0, pace: 0 };
   const r = computeCreation({ name: 'avg', birthDay: 0, startDay: Math.round(age * 368), speciesId: 'human', path: c.path, archetype: c.archetype, rank: s.ranks.rank, trainingStartAge: Math.min(start, age - 0.01), talents: {}, dominantHand: 'right', npc: true } as Parameters<typeof computeCreation>[0]);

@@ -38,7 +38,7 @@ import { forceBonusAt, type NexusLeaning } from '../../data/forceNexus';
 import { speciesDef } from '../../data/species';
 import type { GameState } from '../../state/gameState';
 import type { GameEvent } from '../../state/types';
-import { selectCharacter, selectExactAge, selectHumanAge, selectPath } from '../character/selectors';
+import { selectCharacter, selectExactAge, selectPath, selectTrainingAge } from '../character/selectors';
 import { selectNow } from '../clock/selectors';
 import { selectMeters } from '../health/selectors';
 import { selectNpc, selectNpcAgeOrDefault, selectNpcLevel } from '../npcs/selectors';
@@ -271,7 +271,7 @@ export interface SpeedParts {
 /** M per skill with its parts (progression-numbers §5): talent x cross-talent x instruction x age x state x alignment x species, capped at 2.8. */
 export function speedPartsFor(s: GameState, instruction: number): (skill: string) => SpeedParts | null {
   const c = selectCharacter(s);
-  const h = selectHumanAge(s);
+  const t = selectTrainingAge(s);
   const body = selectAgeing(s).bodyAge;
   const state = selectStateOfMind(s);
   const grief = selectGriefMult(s);
@@ -285,7 +285,7 @@ export function speedPartsFor(s: GameState, instruction: number): (skill: string
       crossTalent: crossTalentMult(c.talents, skill),
       instruction,
       // An old body regains less (D-472): physical training reads the body's age and what is left of its peak.
-      age: isPhysicalStat(skill) ? ageFactor('physical', body) * (1 - bodyDecline(skill, body)) : ageFactor(CATEGORY_RULES[def.category].ageRow, h),
+      age: isPhysicalStat(skill) ? ageFactor('physical', body) * (1 - bodyDecline(skill, body)) : ageFactor(CATEGORY_RULES[def.category].ageRow, t),
       state: stateMult(state, skill, { grief, despair, darkPressure: STUB_DARK_PRESSURE }),
       alignment: STUB_ALIGNMENT_MULT,
       species: speciesLearning(c.speciesId, skill),
@@ -338,7 +338,8 @@ function reviewBuff(s: GameState, skill: string): number {
 /**
  * The D-48 clamp (D-457, Jared: the ceiling limits prodigy speed, never focus): a skill's cap is 4.0 x the Average's XP per
  * hour in that skill at the window's start age x the character's hours in that skill in the window, this session's
- * included (a session's hours by XP share, D-109). Hours in other skills never change it.
+ * included (a session's hours by XP share, D-109). Hours in other skills never change it. The table is read at the
+ * Human-equivalent age: what ages in it is the Average's body (its tiredness and its stats).
  */
 export function clampFor(s: GameState): (skill: string, wanted: number, sessionHours: number) => { credited: number; discarded: number } {
   const c = selectCharacter(s);

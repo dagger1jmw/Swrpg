@@ -11,6 +11,8 @@ export type TraitKind = (typeof TRAIT_KINDS)[number];
 export type TraitEffect =
   /** Added to the ceiling of a physical stat (training never passes it). */
   | { kind: 'cap'; stat: PhysicalStat; value: number }
+  /** The ceiling itself at its peak, where the lore sets a body apart (D-474); Strength has no other source than these two. */
+  | { kind: 'ceiling'; stat: PhysicalStat; value: number }
   /** A hide or shell: armor points under any armor worn. */
   | { kind: 'hide'; value: number }
   /** A hazard's damage, multiplied. */
@@ -35,10 +37,15 @@ type Row = readonly [TraitKind, string, (Omit<Partial<SpeciesTrait>, 'kind' | 't
 const of = (file: string, entry: string, rows: readonly Row[]): readonly SpeciesTrait[] => rows.map(([kind, text, extra]) => ({ kind, text, source: `${file}, ${entry}`, ...extra }));
 const D = { drawback: true } as const;
 const cap = (stat: PhysicalStat, value: number): TraitEffect => ({ kind: 'cap', stat, value });
+const ceiling = (stat: PhysicalStat, value: number): TraitEffect => ({ kind: 'ceiling', stat, value });
 
-/** By species-table id. The Wookiee, traited before this, gains only the drawback the design notes name. */
+/** By species-table id. Of the older twelve, the Wookiee has the drawback the design notes name and its ceilings, and the Mirialan its Agility (D-474). */
 export const SPECIES_TRAITS: Readonly<Record<string, readonly SpeciesTrait[]>> = {
-  wookiee: of(P1, 'Wookiee', [['social', 'cannot speak Basic, though they understand it', D]]),
+  wookiee: of(P1, 'Wookiee', [
+    ['body', 'renowned for great strength; climbing claws, strong backs and dexterous hands', { effects: [ceiling('strength', 120), ceiling('agility', 100)] }],
+    ['social', 'cannot speak Basic, though they understand it', D],
+  ]),
+  mirialan: of(P1, 'Mirialan', [['body', 'great agility and very quick reflexes', { effects: [ceiling('agility', 90)] }]]),
   kel_dor: of(P1, 'Kel Dor', [
     ['needs', 'off Dorin must wear an antiox mask and goggles; effectively blind without the goggles', D],
     ['senses', 'low-light vision, sees twice as far as normal (game stat)'],
@@ -46,7 +53,7 @@ export const SPECIES_TRAITS: Readonly<Record<string, readonly SpeciesTrait[]>> =
     ['force', 'silver irises are often seen as a mark of Force affinity'],
   ]),
   trandoshan: of(P1, 'Trandoshan', [
-    ['body', 'sturdier and much stronger than Humans', { effects: [cap('strength', 10), cap('endurance', 5)] }],
+    ['body', 'sturdier and much stronger than Humans', { effects: [ceiling('strength', 100), cap('endurance', 5)] }],
     ['body', 'cold-blooded; slowly regrows lost limbs until about 54 (game stat)'],
     ['senses', 'sensitive eyes that see far into the infrared'],
     ['force', 'Force-sensitivity is uncommon'],
@@ -98,7 +105,7 @@ export const SPECIES_TRAITS: Readonly<Record<string, readonly SpeciesTrait[]>> =
     ['force', 'many were Force-sensitive and joined the Jedi'],
   ]),
   houk: of(P2, 'Houk', [
-    ['body', 'among the strongest humanoids, rivalled only by Wookiees', { effects: [cap('strength', 15)] }],
+    ['body', 'among the strongest humanoids, rivalled only by Wookiees', { effects: [ceiling('strength', 115)] }],
     ['social', 'short-tempered; tends to solve problems violently', D],
   ]),
   talz: of(P2, 'Talz', [
@@ -114,6 +121,7 @@ export const SPECIES_TRAITS: Readonly<Record<string, readonly SpeciesTrait[]>> =
     ['force', 'one of the few species resistant to mind tricks', { effects: [{ kind: 'forceTrait', trait: 'mindResistant' }] }],
   ]),
   hutt: of(P2, 'Hutt', [
+    ['body', 'a huge, tough body (1,500 kg, game stat)', { effects: [ceiling('strength', 120)] }],
     ['resistances', 'resists many poisons, diseases and all but the most corrosive chemicals', { effects: [{ kind: 'hazard', type: 'poison', factor: 0.5 }] }],
     ['senses', 'sees ultraviolet light'],
     ['social', 'clan crime lords; owning slaves is a status symbol'],
@@ -179,9 +187,9 @@ export const SPECIES_TRAITS: Readonly<Record<string, readonly SpeciesTrait[]>> =
 /** The Human height the species files give (1.70-1.80 m), as one figure. */
 export const HUMAN_HEIGHT = 1.75;
 /**
- * Body scale by lore size (D-473): the middle of the stated height over a Human's. It scales Strength and Endurance; a
- * species' Agility ceiling is the Human one plus its own traits (invented rule: height says nothing about quickness). The
- * Hutt has no height, only a mass of 1,500 kg: 1.5 stays, invented.
+ * Body scale by lore size (D-473): the middle of the stated height over a Human's. Size never scales Agility or Strength
+ * (Jared, D-474: those ceilings come from what the lore states); it scales the Endurance ceiling alone. The Hutt has no
+ * height, only a mass of 1,500 kg: 1.5 stays, invented.
  */
 export const SPECIES_HEIGHT: Readonly<Record<string, { m: number; stated: string; tag: 'lore' | 'game stat' }>> = {
   kel_dor: { m: 1.7, stated: '1.4-2 m', tag: 'lore' },
@@ -221,6 +229,12 @@ const effectsOf = (speciesId: string): readonly TraitEffect[] => traitsOf(specie
 export function traitCapBonus(speciesId: string): Partial<Record<PhysicalStat, number>> {
   const out: Partial<Record<PhysicalStat, number>> = {};
   for (const e of effectsOf(speciesId)) if (e.kind === 'cap') out[e.stat] = (out[e.stat] ?? 0) + e.value;
+  return out;
+}
+/** The ceilings a species' traits set directly (D-474). */
+export function traitCeilings(speciesId: string): Partial<Record<PhysicalStat, number>> {
+  const out: Partial<Record<PhysicalStat, number>> = {};
+  for (const e of effectsOf(speciesId)) if (e.kind === 'ceiling') out[e.stat] = e.value;
   return out;
 }
 /** Armor points of the hide (0 = none). */

@@ -5,7 +5,7 @@ import { ageInYears, fromAbsSecond } from '../../engine/calendar';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule } from '../../state/types';
 import { characterSliceSchema, migrateCharacterV1, migrateCharacterV2, migrateCharacterV3, migrateCharacterV4, type CharacterSlice } from './character';
-import { PC_REF, selectAge, selectBirthDay, selectCharacterName, selectExactAge, selectHumanAge, selectSpeciesId } from './selectors';
+import { PC_REF, selectAge, selectBirthDay, selectCharacterName, selectExactAge, selectHumanAge, selectSpeciesId, selectTrainingAge } from './selectors';
 
 export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
   id: 'character',
@@ -78,5 +78,5 @@ export const characterFeature: FeatureModule<CharacterSlice, GameState> = {
     const after = ageInYears(slice.birthDay, newDay);
     return after > before ? { slice, notices: [`${slice.name} turns ${after}.`] } : { slice };
   },
-  selectors: { name: selectCharacterName, birthDay: selectBirthDay, age: selectAge, exactAge: selectExactAge, humanAge: selectHumanAge, species: selectSpeciesId },
+  selectors: { name: selectCharacterName, birthDay: selectBirthDay, age: selectAge, exactAge: selectExactAge, humanAge: selectHumanAge, trainingAge: selectTrainingAge, species: selectSpeciesId },
 };

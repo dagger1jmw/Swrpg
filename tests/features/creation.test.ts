@@ -116,11 +116,13 @@ describe('computed creation (character-creation §6)', () => {
     expect(ranksFor('career', 30).map((r) => r.id)).toEqual(['career']);
   });
 
-  it('species read on the Human-equivalent age: a Chiss of 5 trains like a child of 9', () => {
-    // A Chiss is adult at 10 (h 18): 5 is h 9; training from 20/9 is h 4 (species.md §1, D-472).
+  it('childhood runs at the species pace, training at real years (D-474): a Chiss of 5 is at the stage of 9, with 5/9 of the years', () => {
+    // A Chiss is adult at 10 (stage 18): 5 is stage 9; training from 20/9 is stage 4 (species.md §1).
     const w = computeCreation(jedi(5, 'initiate', { speciesId: 'chiss', trainingStartAge: 20 / 9 }));
     expect(w.errors).toEqual([]);
-    near(w.levels['shiiCho']!, computeCreation(jedi(9, 'initiate')).levels['shiiCho']!, 0.2);
+    const human = computeCreation(jedi(9, 'initiate'));
+    expect(w.startingXp['forceControl']! / human.startingXp['forceControl']!).toBeCloseTo(10 / 18, 6);
+    expect(w.levels['shiiCho']!).toBeLessThan(human.levels['shiiCho']!);
   });
 });
 

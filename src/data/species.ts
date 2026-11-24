@@ -12,7 +12,7 @@
 
 import { FULL_LIFE_H, PRIME_H } from './ageing.config';
 import type { PhysicalStat } from './skills';
-import { HUMAN_HEIGHT, SPECIES_HEIGHT, traitCapBonus } from './speciesTraits';
+import { HUMAN_HEIGHT, SPECIES_HEIGHT, traitCapBonus, traitCeilings } from './speciesTraits';
 
 export type LearningTarget =
   | { kind: 'skill'; skill: string }
@@ -50,12 +50,13 @@ export interface SpeciesDef {
   /** The lifespan comes from Jedi alone (Yoda's species), so the Force's stretch is already in it. */
   lifespanIncludesForce?: true;
   ageSource: AgeSource;
+  /** Body size against a Human's. Since D-474 it scales the Endurance ceiling alone. */
   bodyScale: number;
-  /** Scales the Agility ceiling alone (D-473); absent = bodyScale. */
-  agilityScale?: number;
   /** Where a non-1.0 body scale comes from (D-401 [12]; lore heights since D-473). */
   bodyScaleSource?: AgeTag;
   capBonus: Partial<Record<PhysicalStat, number>>;
+  /** A ceiling the lore gives, set directly at its peak (D-474; speciesTraits.ts); absent = the Human one plus capBonus. */
+  ceilings?: Partial<Record<PhysicalStat, number>>;
   learning: readonly LearningFactor[];
   /** Story and contest rules the engine does not compute yet, shown on the sheet. */
   notes: readonly string[];
@@ -85,7 +86,7 @@ const HD: AgeSource = { lifespan: 'invented', maturity: 'invented', basis: HUMAN
 function plain(id: string, name: string, lifespan: number, maturity: number, ageSource: AgeSource, extra: Partial<SpeciesDef> = {}): SpeciesDef {
   const height = SPECIES_HEIGHT[id];
   const scale = height ? { bodyScale: Math.round((height.m / HUMAN_HEIGHT) * 100) / 100, bodyScaleSource: height.tag } : { bodyScale: 1.0 };
-  return { id, name, lifespan, maturity, ageSource, ...scale, agilityScale: 1, capBonus: traitCapBonus(id), learning: [], notes: [], playable: true, source: TRAITS, ...extra };
+  return { id, name, lifespan, maturity, ageSource, ...scale, capBonus: traitCapBonus(id), ceilings: traitCeilings(id), learning: [], notes: [], playable: true, source: TRAITS, ...extra };
 }
 const gs = (basis: string, maturity: AgeTag = 'invented', unverified = false): AgeSource => ({ lifespan: 'game stat', maturity, basis, ...(unverified ? { unverified } : {}) });
 
@@ -139,6 +140,7 @@ export const SPECIES: readonly SpeciesDef[] = [
     ageSource: HD,
     bodyScale: 1.0,
     capBonus: {},
+    ceilings: traitCeilings('mirialan'),
     learning: [{ target: { kind: 'skill', skill: 'forceControl' }, factor: 1.05 }],
     notes: ['Force-attuned culture: Force Control learning x1.05'],
     playable: true,
@@ -250,9 +252,10 @@ export const SPECIES: readonly SpeciesDef[] = [
       basis: `soft cap about 400, rare cases beyond; adult 18 (UAA); prime about 200 (Visual Dictionary; D-399 [4], D-472; ${P1}, Wookiee)`,
     },
     bodyScale: 1.25,
-    capBonus: { strength: 20 },
+    capBonus: {},
+    ceilings: traitCeilings('wookiee'),
     learning: [],
-    notes: ['Great strength: Strength cap +20', 'Rage: anger takes hold more easily (story)'],
+    notes: ['Rage: anger takes hold more easily (story)'],
     playable: true,
     source: DESIGN,
   },
@@ -352,6 +355,16 @@ export const humanEquivalentAge = (species: SpeciesDef, age: number): number => 
 
 /** The inverse: the species age at which h is reached. */
 export const speciesAgeFromHuman = (species: SpeciesDef, h: number): number => alongCorners(ageCorners(species), h, 1, 0);
+
+/**
+ * Training age (Jared, D-474): training counts in real years; only the body follows the Human-equivalent age. Childhood
+ * runs at the species' own pace (adult reads 18), and from adulthood every year is a year: 18 + the years since. It sets
+ * rank ages, learning speed outside the body, the mind's natural levels and the knowledge bands.
+ */
+export const trainingAge = (species: SpeciesDef, age: number): number => (age <= species.maturity ? (age * HUMAN_MATURITY) / species.maturity : HUMAN_MATURITY + (age - species.maturity));
+
+/** The inverse: the species age at which a training age is reached. */
+export const ageFromTraining = (species: SpeciesDef, t: number): number => (t <= HUMAN_MATURITY ? (t * species.maturity) / HUMAN_MATURITY : species.maturity + (t - HUMAN_MATURITY));
 
 /**
  * The species-table id for an entity species id (canon figures and NPCs use camelCase ids; the table snake_case): the

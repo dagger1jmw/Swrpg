@@ -17,10 +17,10 @@ import { AVERAGE_RANK_AGES, KNIGHT_TRIALS, RANK_BY_ID, RANK_PHASE, type RankDef 
 import { CATEGORY_RULES, FORM_IDS, PHYSICAL_STATS, SKILL_BY_ID, SKILL_IDS, type TalentDomain } from '../../data/skills';
 import { SPECIES_BY_ID, speciesDef, speciesOfferedAt } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
-import { closedFormLevel, formXps, phasesFor, planSplit, type FormPlan } from '../../engine/closedForm';
+import { closedFormLevel, formXps, phasesFor, planSplit, type AgeYears, type FormPlan } from '../../engine/closedForm';
 import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { ageLoss, bodyAgeFromH } from '../../engine/ageing';
-import { humanEquivalentAge, naturalLevel, speciesAgeFromHuman, speciesLearning } from '../../engine/species';
+import { ageFromTraining, bodyCapAt, humanEquivalentAge, naturalLevel, speciesLearning, trainingAge, trainingAgeFactor, trainingIntegral } from '../../engine/species';
 import { crossTalentMult, isForceXpSkill, isOutsideForce, talentMult, type Talents } from '../../engine/speed';
 
 export interface CreationInput {
@@ -164,7 +164,7 @@ export function planOrder(plan: FormPlan): string[] {
     .map(([f]) => f);
 }
 
-/** Rank ages for the closed-form phases, all on the Human-equivalent age (species.md §1). */
+/** Rank ages for the closed-form phases, all on the training age (D-474). */
 export function phaseAges(rank: string, path: CharacterPath, startAge: number, age: number): { padawanAge: number; knightAge: number; onePhase: boolean } {
   if (path === 'outsider' || path === 'career') return { padawanAge: startAge, knightAge: startAge, onePhase: true };
   const phase = RANK_PHASE[rank] ?? 'initiate';
@@ -176,7 +176,7 @@ export function phaseAges(rank: string, path: CharacterPath, startAge: number, a
 
 /** The Knight+ standard day (budget 6 h, no Order hours) that the focus formula is measured on. */
 const REFERENCE_FILL_HOURS = BUDGET.standard[BUDGET.standard.length - 1]![1];
-/** The phase's fixed Order hours at a Human-equivalent age (D-431: the young Padawan's hours are scaled). */
+/** The phase's fixed Order hours at a training age (D-431: the young Padawan's hours are scaled). */
 const orderHours = (phase: Phase, age: number): number => (phase === 'knight' ? 0 : orderHoursAt(phase, age));
 
 /** Mean fill hours (standard budget minus Order hours, never below 0) over [from, to], over the reference day. */
@@ -203,11 +203,12 @@ export function computeCreation(input: CreationInput): CreationResult {
   const species = SPECIES_BY_ID.get(input.speciesId);
   const rankDef = RANK_BY_ID.get(input.rank);
   const age = ageAt(input.birthDay, input.startDay);
-  // Life-stage gates read the Human-equivalent age (species.md §1); unknown species fall back to Human.
+  // Training and rank ages read the training age (real years from adulthood, D-474), the body the Human-equivalent age
+  // (species.md §1); unknown species fall back to Human.
   // NPCs (D-429): a figure past its species' full life accrues no more (Zym, a Kel Dor of 120, read as 179 before).
-  const hRaw = species ? humanEquivalentAge(species, age) : age;
-  const hNow = input.npc ? Math.min(LONG_LIFE.maxHumanAge, hRaw) : hRaw;
-  const hStartIn = species ? humanEquivalentAge(species, input.trainingStartAge) : input.trainingStartAge;
+  const lived = input.npc && species ? Math.min(species.lifespan, age) : age;
+  const tNow = species ? trainingAge(species, lived) : age;
+  const tStartIn = species ? trainingAge(species, input.trainingStartAge) : input.trainingStartAge;
   if (!a) errors.push(`Unknown archetype ${input.archetype}.`);
   if (!species) errors.push(`Unknown species ${input.speciesId}.`);
   // D-399 [20], [21]: players pick from the species offered for the start year (NPCs may be any species in the table).
@@ -216,9 +217,9 @@ export function computeCreation(input: CreationInput): CreationResult {
   if (!rankDef) errors.push(`Unknown rank ${input.rank}.`);
   if (a && !PATH_ARCHETYPES[input.path].includes(a.id) && !(input.npc && NPC_ARCHETYPES[input.path].includes(a.id))) errors.push(`${a.name} is not an archetype of the ${input.path} path.`);
   if (rankDef && rankDef.path !== input.path) errors.push(`${rankDef.name} is not a rank of the ${input.path} path.`);
-  if (rankDef && !ranksFor(input.path, hNow).some((r) => r.id === rankDef.id)) errors.push(`${rankDef.name} does not fit age ${age.toFixed(1)}.`);
+  if (rankDef && !ranksFor(input.path, tNow).some((r) => r.id === rankDef.id)) errors.push(`${rankDef.name} does not fit age ${age.toFixed(1)}.`);
   const [lo, hi] = PATH_START_RANGE[input.path];
-  if (!(hStartIn >= lo - 1e-9 && hStartIn <= hi + 1e-9)) errors.push(`Training start age must be ${lo}-${hi} (Human-equivalent) for this path.`);
+  if (!(tStartIn >= lo - 1e-9 && tStartIn <= hi + 1e-9)) errors.push(`Training start age must be ${lo}-${hi} (Human-equivalent) for this path.`);
   if (input.trainingStartAge > age) errors.push('Training cannot start after the campaign start.');
   if (!input.ignoreTalentLimit && !input.npc && talentCost(input.talents) > TALENT_POINTS) errors.push(`Talents cost ${talentCost(input.talents)} points; the limit is ${TALENT_POINTS}.`);
   const padawanPlan: Record<string, number> = { ...(input.padawanPlan ?? defaultFormPlan(input.archetype)) };
@@ -269,10 +270,11 @@ export function computeCreation(input: CreationInput): CreationResult {
   const mainKey = isFormKey(a.main) ? FORMS_KEY : a.main;
   const mainKnightPace = mainKey === FORMS_KEY ? (a.formPaces.knight?.fill ?? 0) : (a.paces.knight?.[mainKey] ?? 0);
   const perShare = (def[mainKey] ?? 0) > 0 ? mainKnightPace / def[mainKey]! : 0;
-  const h = hNow;
-  const hStart = hStartIn;
+  const h = tNow;
+  const hStart = tStartIn;
+  const years: AgeYears | undefined = species.id === 'human' ? undefined : { integral: (row, x, y) => trainingIntegral(species, row, x, y), factor: (row, x) => trainingAgeFactor(species, row, x) };
   const ages0 = phaseAges(rankDef.id, input.path, hStart, h);
-  const he = (x: number): number => (Number.isFinite(x) ? humanEquivalentAge(species, x) : Infinity);
+  const he = (x: number): number => (Number.isFinite(x) ? trainingAge(species, x) : Infinity);
   const phasesIn = input.phases;
   const ages = phasesIn && !ages0.onePhase
     ? (() => {
@@ -319,7 +321,7 @@ export function computeCreation(input: CreationInput): CreationResult {
     const phases = phasesFor({ initiate: pace('initiate'), padawan: pace('padawan'), knight: pace('knight'), ...(youthPace !== undefined ? { youth: youthPace } : {}) }, hAges, ages.onePhase);
     for (const ph of phases) if (ph.to > hStart && ph.from < h) maxPace = Math.max(maxPace, Math.min(4, ph.pace * mult));
     const row = CATEGORY_RULES[SKILL_BY_ID.get(skill)!.category].ageRow;
-    const trained = closedFormLevel({ row, startAge: hStart, age: h, phases, mult, warYears });
+    const trained = closedFormLevel({ row, startAge: hStart, age: h, phases, mult, warYears, ...(years ? { years } : {}) });
     if (trained > 0) startingXp[skill] = xpForLevel(trained);
   }
   // Lightsaber forms (D-118, D-119): the form plans with the fundamentals transfer.
@@ -333,7 +335,7 @@ export function computeCreation(input: CreationInput): CreationResult {
     // The curriculum at the year of the survey (D-463: the forms that exist then).
     const curriculum = closedFormCurriculum(input.path, dateFromAbsDay(input.birthDay + Math.round(INITIATE_CURRICULUM.surveyFromAge * DAYS_PER_YEAR)).year);
     const formsAt = (age: number): Record<string, number> =>
-      formXps({ formPaces: a.formPaces, k: K, startAge: hStart, age, padawanAge: hAges.padawanAge, knightAge: hAges.knightAge, onePhase: ages.onePhase, padawanPlan, knightPlan, mult: formMult, transferShare: FORM_TRANSFER_SHARE, warYears, knightPoolDelta: ((focus[FORMS_KEY] ?? 0) - (def[FORMS_KEY] ?? 0)) * perShare * fill.knight, ...(curriculum ? { curriculum } : {}) });
+      formXps({ formPaces: a.formPaces, k: K, startAge: hStart, age, padawanAge: hAges.padawanAge, knightAge: hAges.knightAge, onePhase: ages.onePhase, padawanPlan, knightPlan, mult: formMult, transferShare: FORM_TRANSFER_SHARE, warYears, ...(years ? { years } : {}), knightPoolDelta: ((focus[FORMS_KEY] ?? 0) - (def[FORMS_KEY] ?? 0)) * perShare * fill.knight, ...(curriculum ? { curriculum } : {}) });
     const highestAt = (age: number): number => (age > hStart ? levelExact(Math.max(0, ...Object.values(formsAt(age)))) : 0);
     phaseEnd.initiate = highestAt(Math.min(h, hAges.padawanAge));
     phaseEnd.padawan = highestAt(Math.min(h, hAges.knightAge));
@@ -350,6 +352,7 @@ export function computeCreation(input: CreationInput): CreationResult {
       mult: formMult,
       transferShare: FORM_TRANSFER_SHARE,
       warYears,
+      ...(years ? { years } : {}),
       knightPoolDelta: ((focus[FORMS_KEY] ?? 0) - (def[FORMS_KEY] ?? 0)) * perShare * fill.knight,
       onPace: (p) => (maxPace = Math.max(maxPace, p)),
       ...(curriculum ? { curriculum } : {}),
@@ -364,10 +367,10 @@ export function computeCreation(input: CreationInput): CreationResult {
     const lv = input.npc ? softCapLevel(raw) : raw;
     if (lv > 0) levels[id] = lv;
   }
-  // An NPC's body past its prime (D-472); a player's ageing is the progression feature's (its selectors take it off).
+  // An NPC's body past its prime (D-472), under its species' ceilings (D-474); a player's ageing is the progression feature's (its selectors take it off).
   if (input.npc) {
-    const body = bodyAgeFromH(h, levels['forceControl'] ?? 0, species.lifespanIncludesForce === true);
-    for (const stat of PHYSICAL_STATS) if (levels[stat]) levels[stat] *= 1 - ageLoss(stat, body);
+    const body = bodyAgeFromH(Math.min(LONG_LIFE.maxHumanAge, humanEquivalentAge(species, age)), levels['forceControl'] ?? 0, species.lifespanIncludesForce === true);
+    for (const stat of PHYSICAL_STATS) if (levels[stat]) levels[stat] = Math.min(levels[stat] * (1 - ageLoss(stat, body)), bodyCapAt(species.id, stat, body));
   }
 
   // The highest form: every "main form" minimum reads it (D-118).
@@ -397,8 +400,9 @@ export function computeCreation(input: CreationInput): CreationResult {
       for (const [f, w] of Object.entries(split)) focusWeights[f] = (focusWeights[f] ?? 0) + share * w.fill;
     } else if (SKILL_BY_ID.has(key)) focusWeights[key] = (focusWeights[key] ?? 0) + share;
   }
+  const real = (from: number, to: number): number => (to > from ? ageFromTraining(species, to) - ageFromTraining(species, from) : 0);
   const facts = backstory(input, a, rankDef, h, storyException, unmet, { padawanPlan, knightPlan, mainFormId, hasForms });
-  const applied = startingApplied({ input, path: input.path, startAge: hStart, age: h, ages, warYears, startingXp, phaseEnd });
+  const applied = startingApplied({ real, path: input.path, startAge: hStart, age: h, ages, warYears, startingXp, phaseEnd });
   return {
     ok: unmet.length === 0 || storyException,
     errors,
@@ -428,7 +432,8 @@ export function computeCreation(input: CreationInput): CreationResult {
  * (at most +15). E applies to every form group the character has trained.
  */
 function startingApplied(i: {
-  input: CreationInput;
+  /** Real years between two training ages. */
+  real: (from: number, to: number) => number;
   path: CharacterPath;
   startAge: number;
   age: number;
@@ -441,15 +446,15 @@ function startingApplied(i: {
   let e = { E: 0, eSpar: 0 };
   const order = (i.path === 'jedi' || i.path === 'sith') && !i.ages.onePhase;
   if (order) {
-    const initYears = Math.max(0, Math.min(i.age, i.ages.padawanAge) - i.startAge);
-    const padYears = Math.max(0, Math.min(i.age, i.ages.knightAge) - Math.max(i.startAge, i.ages.padawanAge));
+    const initYears = i.real(i.startAge, Math.min(i.age, i.ages.padawanAge));
+    const padYears = i.real(Math.max(i.startAge, i.ages.padawanAge), Math.min(i.age, i.ages.knightAge));
     const sessions = (years: number): number => Math.min(2000, Math.round(years * ORDER_SESSIONS_PER_YEAR));
     // The Order classes as sparring (D-143 A) with the stub instructors and master ahead of the student (D-163).
     const init = sparringE(i.phaseEnd.initiate, i.phaseEnd.initiate + STUB_INSTRUCTOR_LEAD);
     const pad = sparringE(i.phaseEnd.padawan, i.phaseEnd.padawan + STUB_MASTER_LEAD);
     for (let k = 0; k < sessions(initYears) && e.eSpar < init.cap - 1e-6; k++) e = gainE(e, init.source, init.cap);
     for (let k = 0; k < sessions(padYears) && e.eSpar < pad.cap - 1e-6; k++) e = gainE(e, pad.source, pad.cap);
-    const missionYears = Math.max(0, i.age - Math.max(i.startAge, i.ages.knightAge));
+    const missionYears = i.real(Math.max(i.startAge, i.ages.knightAge), i.age);
     let added = 0;
     for (let k = 0; k < Math.floor(missionYears) && added < MISSION_E_MAX; k++) {
       const g = Math.min(MISSION_E_MAX - added, 1 * Math.max(0, 1 - e.E / 120));
@@ -471,7 +476,6 @@ function startingApplied(i: {
     for (let k = 0; k < Math.floor(i.warYears); k++) c += 1 * Math.max(0, 1 - c / 120);
     CI[id] = { CI: c, ciSpar: 0 };
   }
-  void i.input;
   return { E, CI };
 }
 
@@ -510,8 +514,8 @@ function backstory(input: CreationInput, a: ArchetypeDef, rank: RankDef, h: numb
   facts.push(`Trains as a ${a.name}${form ? `; main lightsaber form ${form}` : ''}.`);
   const phase = RANK_PHASE[rank.id];
   const spec = speciesDef(input.speciesId);
-  const hAges = phaseAges(rank.id, input.path, humanEquivalentAge(spec, input.trainingStartAge), h);
-  const ages = { padawanAge: speciesAgeFromHuman(spec, hAges.padawanAge), knightAge: speciesAgeFromHuman(spec, hAges.knightAge) };
+  const hAges = phaseAges(rank.id, input.path, trainingAge(spec, input.trainingStartAge), h);
+  const ages = { padawanAge: ageFromTraining(spec, hAges.padawanAge), knightAge: ageFromTraining(spec, hAges.knightAge) };
   if ((input.path === 'jedi' || input.path === 'sith') && phase !== 'initiate') facts.push(`Became ${input.path === 'jedi' ? 'a Padawan' : 'an apprentice'} at about age ${Math.round(ages.padawanAge)}.`);
   if ((input.path === 'jedi' || input.path === 'sith') && phase === 'knight') facts.push(`${input.path === 'jedi' ? 'Knighted' : 'Recognized as a Sith Lord'} at about age ${Math.round(ages.knightAge)}.`);
   if (forms.hasForms && (input.path === 'jedi' || input.path === 'sith')) {

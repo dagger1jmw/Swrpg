@@ -217,13 +217,15 @@ Human body cap by age (straight-line between points):
 Other species get their own tables (species.md: the Human table rescaled by age mapping and
   bodyScale, D-103). The species lifespans and maturities that feed the age mapping come from lore
   batch 21 (D-399; src/data/species.ts, each tagged lore / game stat / invented). The body-cap
-  maths is unchanged: the species bands reach it only through the Human-equivalent age h.
+  maths is unchanged: the species bands reach it only through the Human-equivalent age h. (D-474: size
+  scales Endurance alone, and a ceiling the lore gives is set directly; training and the mind read the
+  training age, species.md sec 1.)
   Force-sensitive longevity (D-399 [5]) is the Force Control stretch of species.md sec 1, in
   Human-equivalent years for every species (D-472: the scaled rule it waited for).
 
 ## 11a. Natural baseline (added by D-102; decides D-67)
 Untrained characters are not at 0 in body and will. Natural level N by Human-equivalent age h
-(species.md sec 1):
+(species.md sec 1; Willpower and the mind by the training age, D-474):
   Strength, Agility, Endurance: N = 0.5 * body cap(h) for the species (sec 11), at its peak from
     prime on (D-472: the age loss is taken off the level instead)
   Willpower: N = 4: 10 | 10: 18 | 16: 25 | 20: 30 | 30: 35 | 60: 40 (straight lines, flat outside)
@@ -237,7 +239,9 @@ Why: without it the Average profile's Endurance stayed near 5 to age 20, capacit
   not taken: it raised the max day-end f to 1.19 (fixed commitments are never trimmed), so
   Initiates would be overtrained daily, and it did not raise Force Sense.
 Reference (Luke, 1h/day body ability): age 30: 89.7 | 40: 98.7 | 50: 103.6 |
-  62: 105.6 (peak band 60-66) | 70: 103.6 | 80: 96.5. Average Jedi peaks ~87 near age 45.
+  62: 105.6 (peak band 60-66) | 70: 103.6 | 80: 96.5. Average Jedi peaks ~87 near age 45. (The old
+  curve's reference: with the Force Control stretch, D-472, his performance with the boost rises to
+  the end of the run, and the gate is on the body alone, sec 20 test 3.)
 
 ## 12. Calibration profiles and targets
 Years of training to reach each tier (+/-20%), age in brackets:
@@ -430,7 +434,9 @@ A lasting injury sets a base penalty P on the skills and stats it affects. Adapt
     95 years, the others 70 (D-49).
  2. No input combination exceeds 4.0x Average pace (banked releases excluded): the D-48 clamp
     discards credited XP above the cap in any rolling 365-day window, per skill, and logs it.
- 3. Luke's physical peak falls at ages 58-68 and his Force level is still rising at 60.
+ 3. Luke's body and Force, apart (D-474): Strength, Agility and Endurance without the Force boost have
+    each peaked by 68 and are declining slowly (at most 5% off the peak at 75); Force Control, Force
+    Sense and Force Speed are still rising at 63.
  4. Fatigue reference days (section 3 and 9 references) within +/-0.05. Amended by D-39: the
     single-stat cases use Willpower 30 (the original values came from a simplified run that
     did not state it); values recomputed from the full section 3 rules by

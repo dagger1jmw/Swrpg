@@ -15,7 +15,7 @@
 // docs-v2/reference/calibration-baseline-2026-11-22/. The generator is not tuned to the sheets.
 import { archetypeDef } from '../archetypes';
 import { SKILL_BY_ID } from '../skills';
-import { humanEquivalentAge, speciesDef, speciesTableId } from '../species';
+import { speciesDef, speciesTableId, trainingAge } from '../species';
 import type { CanonNpc, StatAnchor } from './types';
 
 export type SheetGroup = 'jedi' | 'sith' | 'career';
@@ -113,12 +113,12 @@ function curveAt(anchors: readonly (readonly [number, number])[], x: number): nu
 }
 
 /**
- * The age a canon figure's knowledge band is read at (D-462, D-465, Jared): its Human-equivalent age at the sheet's date,
- * from the roster's birth year whether the lore gives it or it is a D-412 estimate (a lore year replaces the estimate when
+ * The age a canon figure's knowledge band is read at (D-462, D-465, Jared): its training age at the sheet's date (real
+ * years from adulthood, D-474), from the roster's birth year whether the lore gives it or it is a D-412 estimate (a lore year replaces the estimate when
  * the lore supplies one). Every roster figure has a birth year; the standing midpoint stays as bandValue's fallback.
  */
 export function bandReadAge(n: Pick<CanonNpc, 'birthBby' | 'speciesId'>, bby: number): number {
-  return humanEquivalentAge(speciesDef(speciesTableId(n.speciesId)), Math.max(0, n.birthBby - bby));
+  return trainingAge(speciesDef(speciesTableId(n.speciesId)), Math.max(0, n.birthBby - bby));
 }
 
 /**

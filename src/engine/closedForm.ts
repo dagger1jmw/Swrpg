@@ -1,5 +1,5 @@
 // Closed-form skill level (npc-generation §1, D-43, D-105): measured phase paces and the exact
-// age-factor integral, on the Human-equivalent age. Mirrors docs-v2/calc/npc-closed-form.mjs. Pure.
+// age-factor integral, on the training age (D-474: real years; a Human's is its age). Mirrors docs-v2/calc/npc-closed-form.mjs. Pure.
 import { CAREER_YOUTH_TO, CLOSED_FORM, CURVE_EXP, PACE_CAP } from '../data/progression.config';
 import type { AgeRow } from '../data/skills';
 import { ageFactor, ageIntegral } from './ageFactor';
@@ -21,21 +21,30 @@ export interface ClosedFormInput {
   /** Talent, species, state: multiplies every phase pace (each phase capped at 4.0). */
   mult?: number;
   warYears?: number;
+  /** The species' age-weighted years and learning factor (engine/species); absent = a Human's. */
+  years?: AgeYears;
 }
+
+/** Age-weighted training years between two training ages, and the learning factor at one. */
+export interface AgeYears {
+  integral(row: AgeRow, a: number, b: number): number;
+  factor(row: AgeRow, t: number): number;
+}
+export const HUMAN_YEARS: AgeYears = { integral: ageIntegral, factor: ageFactor };
 
 /** level = 41 * ((sum of pace * A(row, phase within [start, age]) + 0.3 * war * pace now * a(age)) / A_ref)^(1/1.75). */
 export function closedFormLevel(input: ClosedFormInput): number {
-  const { row, startAge, age, phases, mult = 1, warYears = 0 } = input;
+  const { row, startAge, age, phases, mult = 1, warYears = 0, years = HUMAN_YEARS } = input;
   let s = 0;
   let paceNow = 0;
   for (const ph of phases) {
     const p = Math.min(PACE_CAP, ph.pace * mult);
     const a = Math.max(startAge, ph.from);
     const b = Math.min(age, ph.to);
-    if (b > a) s += p * ageIntegral(row, a, b);
+    if (b > a) s += p * years.integral(row, a, b);
     if (age > ph.from && age <= ph.to) paceNow = p;
   }
-  s += CLOSED_FORM.warFactor * warYears * paceNow * ageFactor(row, age);
+  s += CLOSED_FORM.warFactor * warYears * paceNow * years.factor(row, age);
   return CLOSED_FORM.referenceLevel * Math.pow(Math.max(0, s / A_REF), 1 / CURVE_EXP);
 }
 
@@ -101,7 +110,7 @@ export function planSplit(plan: FormPlan): Record<string, { master: number; solo
 export interface FormLevelsInput {
   formPaces: FormSourcePaces;
   k: number;
-  /** Human-equivalent ages. */
+  /** Training ages. */
   startAge: number;
   age: number;
   padawanAge: number;
@@ -113,6 +122,8 @@ export interface FormLevelsInput {
   mult(form: string): number;
   transferShare: number;
   warYears?: number;
+  /** As ClosedFormInput.years. */
+  years?: AgeYears;
   /** Knight+ / career pool pace change from the focus sliders (D-105 / D-115), added to the fill pace. */
   knightPoolDelta?: number;
   /** Called with every capped phase pace used (creation checks the 4.0x limit). */
@@ -133,6 +144,7 @@ export interface FormLevelsInput {
  */
 export function formXps(i: FormLevelsInput): Record<string, number> {
   const R = referenceRate(i.k);
+  const years = i.years ?? HUMAN_YEARS;
   const xp: Record<string, number> = {};
   const started = new Set<string>();
   const start = (forms: string[]): void => {
@@ -148,7 +160,7 @@ export function formXps(i: FormLevelsInput): Record<string, number> {
   const add = (f: string, pace: number, a: number, b: number): number => {
     const p = Math.min(PACE_CAP, pace * i.mult(f));
     if (b > a) {
-      xp[f] = (xp[f] ?? 0) + R * p * ageIntegral('technique', a, b);
+      xp[f] = (xp[f] ?? 0) + R * p * years.integral('technique', a, b);
       i.onPace?.(p);
     }
     return p;
@@ -199,6 +211,6 @@ export function formXps(i: FormLevelsInput): Record<string, number> {
     paceNow = {};
     for (const [f, w] of Object.entries(split)) paceNow[f] = add(f, pool * w.fill, ka, i.age);
   }
-  for (const [f, p] of Object.entries(paceNow)) xp[f] = (xp[f] ?? 0) + R * CLOSED_FORM.warFactor * (i.warYears ?? 0) * p * ageFactor('technique', i.age);
+  for (const [f, p] of Object.entries(paceNow)) xp[f] = (xp[f] ?? 0) + R * CLOSED_FORM.warFactor * (i.warYears ?? 0) * p * years.factor('technique', i.age);
   return xp;
 }

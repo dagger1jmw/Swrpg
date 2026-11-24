@@ -10,7 +10,7 @@ import { FORM_IDS, SKILL_BY_ID, TALENT_DOMAINS, type TalentDomain } from '../dat
 import { RANK_PHASE } from '../data/rankMinimums';
 import { SPECIES, speciesDef, speciesOfferedAt } from '../data/species';
 import { dateFromAbsDay } from '../engine/calendar';
-import { humanEquivalentAge, speciesAgeFromHuman } from '../engine/species';
+import { ageFromTraining, trainingAge } from '../engine/species';
 import { computeCreation, defaultFocus, defaultFormPlan, DEFAULT_FORM_PLAN, PADAWAN_PLAN_HOURS, ranksFor, talentCost, type CreationInput } from '../features/character/selectors';
 import { el, input } from './dom';
 import { formPlanEditor } from './formPlanEditor';
@@ -139,7 +139,7 @@ export function creationForm(): CreationForm {
   };
 
   /** Start ages are entered in species years; the path range and defaults are Human-equivalent (species.md §1). */
-  const toSpecies = (h: number): number => Math.round(speciesAgeFromHuman(speciesDef(species.value), h) * 2) / 2;
+  const toSpecies = (h: number): number => Math.round(ageFromTraining(speciesDef(species.value), h) * 2) / 2;
   const setStartBounds = (resetDefault: boolean): void => {
     const [lo, hi] = PATH_START_RANGE[path.value as CharacterPath];
     const sLo = toSpecies(lo);
@@ -154,7 +154,7 @@ export function creationForm(): CreationForm {
   const fillRanks = (): void => {
     const keep = rank.value;
     const age = last.birthDay !== null && last.startDay !== null ? (last.startDay - last.birthDay) / 368 : 0;
-    const h = humanEquivalentAge(speciesDef(species.value), Math.max(0, age));
+    const h = trainingAge(speciesDef(species.value), Math.max(0, age));
     const ranks = ranksFor(path.value as CharacterPath, h);
     rank.replaceChildren(...(ranks.length ? ranks.map((r) => option(r.id, r.name)) : [option('', 'no rank fits this age')]));
     if (ranks.some((r) => r.id === keep)) rank.value = keep;

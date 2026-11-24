@@ -19,7 +19,7 @@ import { EMPTY_DAY, ZERO_METERS, afterSleep, stepBlock, type Capacities, type Da
 import { interp } from '../../engine/interp';
 import { curriculumPhase, initiateSaberBlocks } from './curriculum';
 import type { GameState } from '../../state/gameState';
-import { selectCharacter, selectHumanAge, selectPath } from '../character/selectors';
+import { selectCharacter, selectPath, selectTrainingAge } from '../character/selectors';
 import { selectInjuredSkills, selectMeters } from '../health/selectors';
 import { selectNpc } from '../npcs/selectors';
 import { selectCapacities, selectDrillCeiling, selectLevelExact, selectOvertrainStreak, type TrainingSource } from '../progression/selectors';
@@ -244,7 +244,7 @@ function layout(ordered: readonly (PlannedBlock | RestSlot)[], locked: readonly 
 export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Record<string, number>>, opts: { fromSleep?: boolean } = {}): DayPlan {
   const notes: string[] = [];
   const day = s.clock.now.day;
-  const age = selectHumanAge(s);
+  const age = selectTrainingAge(s);
   const budget = interp(BUDGET[routine.effort], age);
   const credit: Record<string, number> = { ...fillCredit };
   const empty = (trainingDay: boolean, recovery: boolean): DayPlan => ({ trainingDay, recovery, items: [], budget, fillCredit: credit, projectedEndF: 0, notes });

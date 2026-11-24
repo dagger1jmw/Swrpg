@@ -9,7 +9,7 @@ import { FORM_IDS } from '../../src/data/skills';
 import { runLifetime, type LifeProfile, type LifeResult } from '../support/lifetime';
 import { ANAKIN, AVERAGE, LUKE, OBIWAN, TARGETS } from '../lifetime/profiles';
 import type { Job } from '../support/parallelRuns';
-import { within4xFloor } from '../lifetime/checks';
+import { LUKE_BODY, LUKE_FORCE, lukeLateLife, within4xFloor } from '../lifetime/checks';
 
 export const SPREAD_SEEDS = 20;
 export const TIERS = [21, 41, 61, 81, 101] as const;
@@ -85,18 +85,18 @@ export const GATES: Record<string, (r: LifeResult) => { gates: Record<string, bo
     };
   },
   luke: (r) => {
-    const PHYS = ['perf:strength', 'perf:agility', 'perf:endurance'];
     const fc = r.levelsByYear.map((o) => o['forceControl']!);
-    const mean = r.levelsByYear.map((o) => PHYS.reduce((a, k) => a + (o[k] ?? 0), 0) / PHYS.length);
-    const peakAge = 19 + mean.indexOf(Math.max(...mean)) + 1;
+    const late = lukeLateLife(r.levelsByYear, r.startAge);
     return {
       gates: {
         'milestones +/-20%': within20(r, TARGETS.luke),
         'not faster than Anakin; within 4.0x': notFasterThanAnakin(r) && within4x(r),
         'Force still rising at 40-42 y of training; > 100 at 62': fc[40]! > fc[39]! && fc[41]! > fc[40]! && fc[42]! > 100,
-        'physical peak at 58-68': peakAge >= 58 && peakAge <= 68,
+        // D-474: the old "physical peak at 58-68" split into the body and the Force.
+        'body (each stat) peaked by 68 and slowly declining': late.body,
+        'Force skills still rising at 63': late.force,
       },
-      values: { physicalPeakAge: peakAge },
+      values: Object.fromEntries(Object.entries(late.peaks).map(([k, v]) => [`peakAge ${k}`, v])),
     };
   },
 };
@@ -194,7 +194,7 @@ export function spreadRow(name: string, profile: LifeProfile, years: number, k: 
 export const SPREAD_PROFILES: readonly { name: string; profile: LifeProfile; years: number; opts: Parameters<typeof runLifetime>[2] }[] = [
   { name: 'anakin', profile: ANAKIN, years: 70, opts: {} },
   { name: 'average', profile: AVERAGE, years: 95, opts: { crossLevels: { highestForm: [24, 47, 67], forceControl: [19, 44], forceSense: [40], willpower: [58] }, paceRates: true } },
-  { name: 'luke', profile: LUKE, years: 70, opts: { track: ['forceControl', 'perf:strength', 'perf:agility', 'perf:endurance'] } },
+  { name: 'luke', profile: LUKE, years: 70, opts: { track: [...LUKE_FORCE, ...LUKE_BODY] } },
   { name: 'obiwan', profile: OBIWAN, years: 70, opts: {} },
 ];
 

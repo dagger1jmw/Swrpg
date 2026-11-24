@@ -15,7 +15,7 @@ import { absDayFromDate, dateFromAbsDay, type CalendarDate } from '../../src/eng
 import { homeSeatAt } from '../../src/data/orderSeats';
 import { planetByName } from '../../src/data/galaxyMap';
 import { levelExact } from '../../src/engine/curve';
-import { selectCapacities, selectE, selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
+import { selectCapacities, selectE, selectForceBoost, selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
 import type { Priority } from '../../src/features/routines/selectors';
 import { advanceByRoutine, nextWakeAbs, type DayLog } from '../../src/state/advanceRoutine';
 import { applyEvents } from '../../src/state/applyEvents';
@@ -66,6 +66,8 @@ export interface Fight {
 export interface LifeProfile {
   archetype: string;
   path: 'jedi' | 'sith' | 'outsider' | 'career';
+  /** Default Human (D-474: the long-lives probe). Ages are the species' own years. */
+  speciesId?: string;
   /** '$highestForm' or a skill id: the milestones' main specialty. */
   main: string;
   startAge: number;
@@ -212,6 +214,7 @@ export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
       secondFormId: p.secondForm,
       formPlan: plan,
       trainingStartAge: p.startAge,
+      ...(p.speciesId ? { speciesId: p.speciesId } : {}),
       ...(p.talents ? { talents: p.talents } : {}),
       ...(p.focusWeights ? { focusWeights: p.focusWeights } : {}),
       ...(p.trainingPath ? { trainingPath: p.trainingPath } : {}),
@@ -572,7 +575,7 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
   const track = opts.track ?? [];
   const crossLevels = opts.crossLevels ?? {};
   const levelOf = (st: GameState, k: string): number =>
-    k === 'highestForm' ? Math.max(0, ...FORM_IDS.map((f) => selectLevelExact(st, f))) : k.startsWith('perf:') ? selectPerformance(st, k.slice(5)) : selectLevelExact(st, k);
+    k === 'highestForm' ? Math.max(0, ...FORM_IDS.map((f) => selectLevelExact(st, f))) : k.startsWith('perf:') ? selectPerformance(st, k.slice(5)) : k.startsWith('body:') ? selectPerformance(st, k.slice(5)) - selectForceBoost(st) : selectLevelExact(st, k);
   const mainKeys = (): string[] => (isFormMain ? [...FORM_IDS] : [p.main]);
   const phaseXp: NonNullable<LifeResult['phaseXp']> = { initiate: {}, padawan: {}, knight: {} };
   const rowOf = (age: number): 'initiate' | 'padawan' | 'knight' => {

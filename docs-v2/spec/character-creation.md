@@ -28,7 +28,7 @@
   Every skill uses the NPC closed form (NPC spec section 1; phase paces per D-105) with the
   archetype's measured phase paces adjusted by the focus sliders (npc-generation §3),
   talents, species learning factors and war years, and the age-factor integral (D-43), read
-  on the species' Human-equivalent age (species.md). Variance is off for player characters.
+  on the species' training age (real years from adulthood; D-474, species.md sec 1). Variance is off for player characters.
   Every level is reachable in play with the same routine (D-44). The natural baseline is
   added on top (progression-numbers sec 11a). Physical stats are capped by the body cap for
   age and species, plus the Force boost.

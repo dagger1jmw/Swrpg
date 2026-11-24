@@ -19,13 +19,22 @@ Every species reuses the Human tables, rescaled. No separate curve per species.
     Strength, Endurance  30-35: 0 | 45: 2.5% | 55: 7.5% | 65: 15% | 75: 27.5% | 85: 43.75% | 100: 68.75% | 120: 90%
     Agility              30: 0 | 35: 1% | 45: 4.5% | 55: 11% | 65: 20% | 75: 33% | 85: 50% | 100: 76.5% | 120: 93%
     (Strength and Endurance keep the Human caps' old drop.) Nothing else declines.
-  Body cap = (Human growth cap(b) * bodyScale + capBonus) * (1 - decline(b)).
+  Body cap = (Human growth cap(b) + capBonus) * (1 - decline(b)), or the ceiling the lore gives, reached
+    along the Human growth table: ceiling * growth cap(b) / 80 * (1 - decline(b)). bodyScale scales the
+    Endurance growth cap alone (D-474, Jared: size never scales Agility, height is not strength).
+  Training counts in real years; only the body follows h (D-474, Jared). Training age t: childhood runs
+    at the species' pace (maturity -> 18), and from adulthood a year is a year: t = 18 + (a - maturity).
+    t sets rank ages, training budgets, the learning speed of everything but the physical stats, the
+    mind's natural levels and the canon knowledge bands. The closed form integrates over the years
+    actually lived (a Chiss childhood is 10 of them), with the physical row read at h. An NPC still
+    accrues no more past its species' full life (D-429). The 4.0x clamp's table is read at h: what ages
+    in it is the Average's body.
   Physical performance = min(level * (1 - loss), body cap) + Force boost. The loss grows with each
     day's decline; a full year's training of the stat (150 h) keeps 40% of it away. It never falls:
     neither training nor a later rise in Force Control takes it back. A life before play, and every
     NPC's, counts as half-trained. Physical training past prime reads the body's age and is cut by the
     stat's decline, so an old body regains less. Canon sheets stand at their own date.
-  Learning-speed age bands (progression-numbers sec 16) read h, not a (physical ones b, above).
+  Learning-speed age bands (progression-numbers sec 16) read t (D-474), the physical ones b.
   Rust, healing and everything else use the Human rules unless a trait says otherwise.
   Resist Aging (lore L-02): while maintained, h advances at 0.5x past maturity; lapsing
     makes h catch up at 2x until it reaches the true value.
@@ -55,7 +64,8 @@ Every species reuses the Human tables, rescaled. No separate curve per species.
 
 ## 3. Rules for traits
   Trait effects are limited to: a body-cap bonus (max +20), a learning factor on one
-  category or skill (x0.9..x1.1), a contest modifier (+/-1 or a percentage up to 10%), or a
+  category or skill (x0.9..x1.1), a contest modifier (+/-1 or a percentage up to 10%; +3 where the
+  lore gives strong resistance to mind tricks or the Force: D-474, Jared), or a
   narrative/story rule. Learning factors count inside the 2.8 cap and the 4.0x pace clamp.
   Every trait lives in src/data/species.ts with a source line or "design".
 
@@ -63,16 +73,18 @@ Every species reuses the Human tables, rescaled. No separate curve per species.
   Six kinds: body, senses, resistances, needs, social, Force. Every trait cites its species entry in
   SW_Species_OldRepublic_Part1-2; no source, no trait. Drawbacks only where the lore gives one. The
   lore gives the direction; every number is invented.
-  - Body scale = the middle of the lore height / 1.75 m. It scales the Strength and Endurance
-    ceilings; Agility takes the Human ceiling plus its own traits (the 12 older species keep one
-    scale for all three). No height: 1.0. The Hutt has only a mass: 1.5 stays, invented.
-  - Ceilings (training never passes them; they follow prime and decline): Trandoshan Strength +10,
-    Endurance +5; Houk Strength +15; Talz Strength +5, Endurance +5; Falleen Agility +5; Gektl
-    Endurance +5.
+  - Body scale = the middle of the lore height / 1.75 m. It scales the Endurance ceiling alone, for
+    every species (D-474). No height: 1.0. The Hutt has only a mass: 1.5 stays, invented.
+  - Ceilings (training never passes them; they follow prime and decline). Strength and Agility are the
+    Human 80 unless a cited entry says otherwise (D-474). Set directly: Wookiee Strength 120, Agility
+    100; Hutt Strength 120; Houk Strength 115; Trandoshan Strength 100; Mirialan Agility 90. Added:
+    Talz Strength +5, Endurance +5; Trandoshan and Gektl Endurance +5; Falleen Agility +5. (Twi'lek
+    and Cathar keep their design Agility +5.)
   - Hide: Weequay and Gand 2 armor points (a quarter of that against a lightsaber).
   - Hazards: poison x0.25 Devaronian, x0.5 Hutt; fire, impact and falls x0.75 Weequay.
   - The Force: Falleen +3 against the mind group, Dashade +3 against everything but a thrown object
-    (on the difficulty and on the target's roll; overrides the +/-1 limit above); Hutt minds immune.
+    (on the difficulty and on the target's roll); Hutt minds immune (Force abilities lore: mind tricks
+    do not work on Hutts).
   - The rest (senses, needs, social, and what has no engine yet) is told to the narrator and shown on
     the sheet; a dated social trait only in its years.
   - One figure against its species: insideForce (Onimi) and ownForceTraits on CanonNpc.
@@ -84,8 +96,8 @@ Every species reuses the Human tables, rescaled. No separate curve per species.
 
 ## 5. Required tests
  1. Human tables are unchanged by the scaling code (human maps h = a).
- 2. A 120-year-old Wookiee (adult 18, prime 200) maps to Human-equivalent age 24.7 and has that
-    age's Human body cap times 1.25, plus the Strength bonus.
+ 2. A 120-year-old Wookiee (adult 18, prime 200) maps to Human-equivalent age 24.7 and has its lore
+    ceilings (Strength 120, Agility 100; Endurance by size, 100).
  3. A Wookiee child of 9 maps to Human-equivalent age 9.
  4. Resist Aging halves h's advance past maturity and catches up at 2x after lapsing.
  5. No trait pushes a learning factor outside 0.9..1.1 or breaks the 4.0x pace clamp.
@@ -93,3 +105,5 @@ Every species reuses the Human tables, rescaled. No separate curve per species.
  7. D-472: the age map, the decline, the Force's stretch, training, NPCs (tests/m8/speciesAges.test.ts).
  8. D-473: traits sourced and in kind, body scales, ceilings, hide, hazards, the Force, exceptions
     (tests/m8/speciesTraits.test.ts).
+ 9. D-474: training in real years (a Wookiee of 200 by 182 of them), size out of Strength and Agility
+    (tests/m8/speciesAges.test.ts, tests/m8/speciesTraits.test.ts).

@@ -29,9 +29,11 @@ Years of training to reach a tier in the main specialty. Tolerance +/-20%.
 | Max: double prodigy + single focus + war (Anakin) | 9 | ~4 | ~8 | ~13 | ~20 | ~4x, the hard ceiling |
 | Late-start Force prodigy, broad focus (Luke) | 19 | ~7 | ~14 | ~23 | ~34 | ~2.3x |
 
-Extra Luke targets: still rising after 40 years of training; peak Force and peak effective
-physical performance in his early 60s (Fate of the Jedi, 43-44 ABY), with the physical peak
-coming from Force augmentation (progression-numbers.md sec 11).
+Extra Luke targets (D-474, Jared; replaces "peak Force and peak effective physical performance in his
+early 60s"): Fate of the Jedi (43-44 ABY, c. 63) is his last appearance, so nothing caps his growth in
+the Force. The Force: every Force skill he trains is still rising at 63, with no upper bound. The
+body: his Strength, Agility and Endurance (the stats as his body holds them, without the Force boost)
+have each peaked by 68 and are declining, slowly under the Force Control stretch.
 
 Canon anchors (Legends):
 - Anakin: a top-3 duelist and on the Council by 22-23, after starting at 9.
@@ -106,8 +108,8 @@ wartime pace comes from combat XP, E and CI (combat-xp.md sec 4).
    engine and the montage advance loop. Every milestone in section 2 is within +/-20%.
 2. No profile beats the max (Anakin) profile's pace at any tier; no input combination
    exceeds 4.0x the Average pace (banked releases excluded); the D-48 clamp enforces it.
-3. Luke: still gaining Force levels after 40 years of training; Force and effective physical
-   peaks at ages 58-68.
+3. Luke: still gaining Force levels after 40 years of training and at 63; Strength, Agility and
+   Endurance each peaked by 68 and slowly declining (D-474).
 4. Average profile: K solves to the 16.0-year Adept target within 0.1 year.
 5. Combat shares match combat-xp.md sec 5 (Anakin wartime 25-35%, peacetime under 10%).
 6. Crossing a tier never blocks XP or levels; it creates exactly one milestone beat.

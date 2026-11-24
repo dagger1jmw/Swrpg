@@ -5,7 +5,7 @@ import { archetypeDef } from '../../data/archetypes';
 import { CANON_BY_ID } from '../../data/canonNpcs';
 import { DEFAULT_AGE, DEFAULT_AGE_BY_ROLE } from '../../data/npcGen.config';
 import { FORM_IDS } from '../../data/skills';
-import { speciesDef, speciesTableId } from '../../data/species';
+import { ageFromTraining, speciesDef, speciesTableId, trainingAge } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay } from '../../engine/calendar';
 import { npcVariance, rollNpcInputs } from '../../engine/npcGen';
 import { ageLoss, bodyAge, isPhysicalStat } from '../../engine/ageing';
@@ -65,12 +65,13 @@ export function npcLevelsFor(gen: NpcGen, speciesId: string, age: number, today:
   // D-447, D-453: the outside-the-Force block reads the real species (an unknown species is built on the human body), with
   // a canon figure's exception (Onimi).
   const outsideForce = isOutsideForce(speciesId, insideForce);
-  const startAge = Math.min(gen.startAge, Math.max(0, age - 0.01));
+  // The archetype's start age is a training age: a Chiss or a Hutt child starts at its own years (D-474).
+  const startAge = Math.min(ageFromTraining(speciesDef(species), gen.startAge), Math.max(0, age - 0.01));
   const base = { name: 'npc', birthDay, startDay: today, speciesId: species, path: gen.path, archetype: gen.archetype, trainingStartAge: startAge, talents: gen.talents, warYears: gen.warYears, dominantHand: 'right' as const, npc: true, variance: gen.minionGrade === null ? (k: string) => npcVariance(gen.seed, k) : undefined, ...(phases ? { phases } : {}), ...(outsideForce ? { outsideForce } : {}) };
   let r = computeCreation({ ...base, rank: gen.rank });
   if (!r.levels || Object.keys(r.levels).length === 0 || r.errors.length) {
     // The role's rank may not fit the age (a young "Knight"); fall back to the highest rank that fits.
-    const fit = ranksFor(gen.path, age);
+    const fit = ranksFor(gen.path, trainingAge(speciesDef(species), age));
     const best = fit[fit.length - 1];
     if (best) r = computeCreation({ ...base, rank: best.id });
   }

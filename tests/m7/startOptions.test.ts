@@ -194,7 +194,7 @@ describe('era rules (D-401 [8])', () => {
 });
 
 describe('species rulings (D-401 [12], [13])', () => {
-  it('the size outliers have lore body scales (D-473); the Hutt, with no height, keeps 1.5', () => {
+  it('the size outliers have lore body scales (D-473; Endurance alone since D-474); the Hutt, with no height, keeps 1.5', () => {
     for (const [id, scale, tag] of [['hutt', 1.5, 'invented'], ['jawa', 0.57, 'game stat'], ['yodas_species', 0.4, 'lore'], ['talz', 1.29, 'lore'], ['houk', 1.26, 'game stat']] as const) {
       expect([SPECIES_BY_ID.get(id)!.bodyScale, SPECIES_BY_ID.get(id)!.bodyScaleSource], id).toEqual([scale, tag]);
     }

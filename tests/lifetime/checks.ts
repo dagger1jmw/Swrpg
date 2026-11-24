@@ -51,5 +51,28 @@ export function expectWithin4x(r: LifeResult): void {
   for (const t of TIERS) expect(r.milestones[t]!, `tier ${t}`).toBeGreaterThanOrEqual(floor[t]!);
 }
 
+/**
+ * Luke's two late-life gates (Jared, D-474), from the years' tracked levels (index i = age startAge + i + 1). The body: his
+ * Strength, Agility and Endurance (the stat as his body holds it, without the Force boost) have each peaked by 68 and are
+ * falling, slowly (at most 5% off the peak at 75). The Force: every Force skill he trains is still rising at his last
+ * appearance (63, Fate of the Jedi); no upper bound.
+ */
+export const LUKE_BODY = ['body:strength', 'body:agility', 'body:endurance'] as const;
+export const LUKE_FORCE = ['forceControl', 'forceSense', 'forceSpeed'] as const;
+export const LUKE_AGES = { bodyBy: 68, force: 63, slowAt: 75, slowLoss: 0.05 } as const;
+export function lukeLateLife(levelsByYear: readonly Readonly<Record<string, number>>[], startAge: number): { peaks: Record<string, number>; body: boolean; force: boolean } {
+  const at = (k: string, age: number): number => levelsByYear[age - startAge - 1]![k]!;
+  const peaks: Record<string, number> = {};
+  let body = true;
+  for (const k of LUKE_BODY) {
+    const row = levelsByYear.map((o) => o[k]!);
+    const peak = Math.max(...row);
+    peaks[k] = startAge + row.indexOf(peak) + 1;
+    if (peaks[k]! > LUKE_AGES.bodyBy || !(at(k, LUKE_AGES.bodyBy + 1) < at(k, LUKE_AGES.bodyBy)) || at(k, LUKE_AGES.slowAt) < peak * (1 - LUKE_AGES.slowLoss)) body = false;
+  }
+  const force = LUKE_FORCE.every((k) => at(k, LUKE_AGES.force) > at(k, LUKE_AGES.force - 1));
+  return { peaks, body, force };
+}
+
 /** Combat share of the main specialty's XP per training year (index = years since the start). */
 export const combatShare = (r: LifeResult, i: number): number => (r.yearMain[i]! > 0 ? r.yearCombat[i]! / r.yearMain[i]! : 0);

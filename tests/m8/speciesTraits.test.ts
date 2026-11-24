@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { SPECIES, TRAIT_LIMITS, speciesDef } from '../../src/data/species';
-import { HUMAN_HEIGHT, SPECIES_HEIGHT, SPECIES_TRAITS, TRAIT_KINDS, traitHazardFactor, traitHide, traitsOf } from '../../src/data/speciesTraits';
+import { HUMAN_HEIGHT, SPECIES_HEIGHT, SPECIES_TRAITS, TRAIT_KINDS, traitCapBonus, traitCeilings, traitHazardFactor, traitHide, traitsOf } from '../../src/data/speciesTraits';
 import { SPECIES_FORCE_TRAITS, TRAIT_RESISTANCE } from '../../src/data/forceResistance.config';
 import { characterForceTraits, forceContest, type ForceTarget } from '../../src/engine/combatForce';
 import { damageOf } from '../../src/engine/damage';
@@ -46,13 +46,26 @@ describe('body', () => {
     }
     expect([speciesDef('hutt').bodyScale, speciesDef('hutt').bodyScaleSource]).toEqual([1.5, 'invented']);
   });
-  it('size sets the Strength and Endurance ceilings, not Agility', () => {
-    expect(bodyCap('jawa', 'strength', 40)).toBeLessThan(0.6 * humanBodyCap(30));
-    expect(bodyCap('jawa', 'agility', 30)).toBeGreaterThan(75);
-    expect(bodyCap('hutt', 'agility', 400)).toBeLessThanOrEqual(80);
+  const peakOf = (id: string, stat: 'strength' | 'agility' | 'endurance') => Math.max(...[...Array(100).keys()].map((i) => bodyCap(id, stat, (speciesDef(id).lifespan * i) / 100)));
+  it('size scales neither Strength nor Agility, in any species (D-474): both are the Human ceiling unless the lore says otherwise', () => {
+    for (const s of SPECIES) for (const stat of ['strength', 'agility'] as const) {
+      const own = traitCeilings(s.id)[stat] ?? 80 + (s.capBonus[stat] ?? 0);
+      expect(peakOf(s.id, stat), `${s.id} ${stat}`).toBeCloseTo(own, 0);
+    }
+    for (const id of ['duros', 'cerean', 'jawa', 'yodas_species', 'ithorian', 'epicanthix', 'cathar', 'mon_calamari']) expect(peakOf(id, 'strength'), id).toBeCloseTo(80, 0);
+    expect(peakOf('hutt', 'agility')).toBeCloseTo(80, 0);
+    expect(peakOf('wookiee', 'agility')).toBeCloseTo(100, 0);
+    expect(peakOf('jawa', 'endurance')).toBeCloseTo(0.57 * 80, 0);
+  });
+  it('every Strength above the Human ceiling, and every ceiling set directly, rests on a cited body trait', () => {
+    expect(SPECIES.filter((s) => peakOf(s.id, 'strength') > 80.5).map((s) => s.id).sort()).toEqual(['houk', 'hutt', 'talz', 'trandoshan', 'wookiee']);
+    for (const s of SPECIES) {
+      expect(s.ceilings ?? {}, s.id).toEqual(traitCeilings(s.id));
+      if ((s.capBonus.strength ?? 0) > 0) expect(traitCapBonus(s.id).strength, s.id).toBe(s.capBonus.strength);
+    }
   });
   it('a Wookiee is the strongest, a Houk next, and no trained Human passes the Human ceiling', () => {
-    const peak = (id: string) => Math.max(...[...Array(100).keys()].map((i) => bodyCap(id, 'strength', (speciesDef(id).lifespan * i) / 100)));
+    const peak = (id: string) => peakOf(id, 'strength');
     const ranked = SPECIES.filter((s) => s.id !== 'hutt').map((s) => s.id).sort((a, b) => peak(b) - peak(a));
     expect(ranked.slice(0, 2)).toEqual(['wookiee', 'houk']);
     expect(peak('trandoshan')).toBeGreaterThan(peak('human') * 1.15);

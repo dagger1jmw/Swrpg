@@ -4,7 +4,9 @@ import { AGE_TRAINING, FORCE_EXTENSION, PRIME_H } from '../../src/data/ageing.co
 import { CANON_BY_ID } from '../../src/data/canonNpcs';
 import { SPECIES, speciesDef, speciesPrime } from '../../src/data/species';
 import { ageLoss, ageingStep, assumedAgeing, bodyAge, bodyAgeFromH, bodyDecline, forceExtension } from '../../src/engine/ageing';
-import { bodyCap, humanBodyCap, humanEquivalentAge, naturalLevel, physicalPerformance, speciesAgeFromHuman } from '../../src/engine/species';
+import { ageFromTraining, bodyCap, humanBodyCap, humanEquivalentAge, naturalLevel, physicalPerformance, speciesAgeFromHuman, trainingAge, trainingAgeFactor, trainingIntegral } from '../../src/engine/species';
+import { ageFactor, ageIntegral } from '../../src/engine/ageFactor';
+import { computeCreation } from '../../src/features/character/creation';
 import { canonFigureLevelsAt, npcLevelsFor } from '../../src/features/npcs/selectors';
 import { selectAgeing, selectBodyCap, selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
 import { speedPartsFor } from '../../src/features/progression/training';
@@ -151,6 +153,59 @@ describe('training', () => {
     const { ageing, ...old } = s.progression;
     void ageing;
     expect(progressionSliceSchema.safeParse(old).success).toBe(true);
+  });
+});
+
+describe('training counts in real years; only the body follows the Human-equivalent age (D-474)', () => {
+  const w = speciesDef('wookiee');
+  it('the training age: childhood at the species pace, then a year a year; the inverse holds', () => {
+    for (const s of SPECIES) {
+      expect(trainingAge(s, s.maturity), s.id).toBeCloseTo(18, 9);
+      expect(trainingAge(s, s.maturity + 37), s.id).toBeCloseTo(55, 9);
+      for (const t of [3, 12, 18, 40, 300]) expect(trainingAge(s, ageFromTraining(s, t)), s.id).toBeCloseTo(t, 9);
+    }
+    for (const a of [4, 17, 30, 64.5, 120]) expect(trainingAge(speciesDef('human'), a)).toBeCloseTo(a, 9);
+  });
+  it('a Human counts exactly as before', () => {
+    for (const row of ['technique', 'wisdom', 'physical', 'academic'] as const) for (const [a, b] of [[4, 12], [4, 30], [25, 98]] as const) {
+      expect(trainingIntegral(speciesDef('human'), row, a, b)).toBeCloseTo(ageIntegral(row, a, b), 9);
+      expect(trainingAgeFactor(speciesDef('human'), row, b)).toBeCloseTo(ageFactor(row, b), 9);
+    }
+  });
+  it('a Wookiee of 200 is trained by 182 adult years, a Talz of 52 by 34', () => {
+    expect(trainingIntegral(w, 'academic', 18, 200)).toBeCloseTo(182, 9);
+    expect(trainingIntegral(w, 'technique', 60, 200)).toBeCloseTo(0.9 * 140, 9);
+    expect(trainingIntegral(speciesDef('talz'), 'academic', 18, 52)).toBeCloseTo(34, 9);
+    // A childhood counts its own years: 10 for a Chiss, 200 for a Hutt.
+    expect(trainingIntegral(speciesDef('chiss'), 'academic', 0, 18)).toBeCloseTo(10, 9);
+    expect(trainingIntegral(speciesDef('hutt'), 'academic', 0, 18)).toBeCloseTo(200, 9);
+  });
+  it('physical training follows the body: a Wookiee of 18 to 200 trains at the factor of a Human of 18 to 30', () => {
+    expect(trainingIntegral(w, 'physical', 18, 200)).toBeCloseTo((ageIntegral('physical', 18, 30) * 182) / 12, 6);
+    expect(trainingAgeFactor(w, 'physical', 200)).toBeCloseTo(ageFactor('physical', 30), 9);
+    expect(trainingAgeFactor(w, 'technique', 200)).toBeCloseTo(0.9, 9);
+    // The numeric integral agrees across prime and the end of a full life.
+    let sum = 0;
+    for (let i = 0; i < 32_000; i++) sum += 0.01 * trainingAgeFactor(w, 'physical', 100 + 0.01 * i + 0.005);
+    expect(trainingIntegral(w, 'physical', 100, 420)).toBeCloseTo(sum, 2);
+  });
+  it('ranks and the mind go by the training age: a Wookiee is knighted at 25, with a 60-year-old mind at 60 and a young body', () => {
+    const knight = computeCreation({ name: 'W', birthDay: start - 200 * 368, startDay: start, speciesId: 'wookiee', path: 'jedi', archetype: 'jediGuardian', rank: 'knight', trainingStartAge: 4, talents: {}, dominantHand: 'right', storyException: true });
+    expect(knight.errors).toEqual([]);
+    expect(knight.facts.join(' ')).toMatch(/Knighted at about age 25/);
+    expect(naturalLevel('willpower', 'wookiee', 60)).toBe(naturalLevel('willpower', 'human', 60));
+    expect(humanEquivalentAge(w, 60)).toBeLessThan(21);
+  });
+  it('every species trains in the generator from its own childhood (a Chiss and a Hutt had no levels)', () => {
+    const gen = { archetype: 'jediGuardian', path: 'jedi' as const, talents: {}, startAge: 4, warYears: 0, rank: 'knight', seed: 'x', minionGrade: 1 };
+    for (const s of SPECIES) {
+      const l = npcLevelsFor(gen, s.id, s.maturity + 12, start);
+      expect(l['soresu'] ?? 0, s.id).toBeGreaterThan(40);
+    }
+    // Under the species' ceilings (D-474): a Wookiee's Endurance stops at 100.
+    expect(npcLevelsFor(gen, 'wookiee', 199, start)['endurance']).toBeCloseTo(100, 6);
+    // Past a full life a figure accrues no more (D-429).
+    expect(npcLevelsFor(gen, 'talz', 60, start)['soresu']).toBe(npcLevelsFor(gen, 'talz', 52, start)['soresu']);
   });
 });
 
