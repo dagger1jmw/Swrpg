@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { ORDER_SEATS, orderSeatAt } from '../../src/data/orderSeats';
 
 describe('Order seats (D-397)', () => {
-  it('Coruscant until the Sacking, relocating 3,653–3,651 BBY, Tython from 3,650 BBY', () => {
+  it('Coruscant until the Sacking, Tython with no Temple 3,653–3,648 BBY, the Tython Temple from 3,647 (D-476)', () => {
     expect(orderSeatAt(-3661)).toBe('the Jedi Temple on Coruscant');
-    expect(orderSeatAt(-3653)).toContain('ruined Jedi Temple on Coruscant');
-    expect(orderSeatAt(-3651)).toContain('relocating');
-    expect(orderSeatAt(-3650)).toBe('the Jedi Temple on Tython');
+    for (const y of [-3653, -3651, -3650, -3648]) expect(orderSeatAt(y)).toMatch(/^Tython .*not finished/);
+    expect(orderSeatAt(-3647)).toBe('the Jedi Temple on Tython');
+    expect(ORDER_SEATS.some((s) => /ruined/.test(s.seat ?? ''))).toBe(false);
     expect(ORDER_SEATS.find((s) => s.fromYear === -3653)?.relocating).toBe(true);
   });
   it('the seats tile the calendar without gaps', () => {

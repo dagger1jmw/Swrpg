@@ -72,8 +72,8 @@ describe('the major-nexus tier (D-451)', () => {
 describe('the order seats by date (D-451)', () => {
   it('Jedi: the Coruscant Temple, its ruins, Tython from 3,650, Coruscant again, none in the Purge, the Praxeum, Ossus', () => {
     expect(homeSeatAt('jedi', 'padawan', -3661)).toEqual({ name: 'the Jedi Temple', planet: 'Coruscant' });
-    expect(homeSeatAt('jedi', 'knight', -3651)?.name).toBe('the ruined Jedi Temple');
-    expect(homeSeatAt('jedi', 'knight', -3650)).toEqual({ name: 'the Jedi Temple on Tython', planet: 'Tython' });
+    expect(homeSeatAt('jedi', 'knight', -3651)).toEqual({ name: 'Tython', planet: 'Tython' });
+    expect(homeSeatAt('jedi', 'knight', -3647)).toEqual({ name: 'the Jedi Temple on Tython', planet: 'Tython' });
     expect(homeSeatAt('jedi', 'initiate', -1032)?.planet).toBe('Coruscant');
     expect(homeSeatAt('jedi', 'knight', -10)).toBeNull();
     expect(homeSeatAt('jedi', 'padawan', 12)?.planet).toBe('Yavin 4');

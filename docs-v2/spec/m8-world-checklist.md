@@ -80,6 +80,6 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [ ] **13. Ships and space combat (Jared, 2026-11-24; D-475).**
 
   Build from the design notes (docs-v2/spec/m8-design-notes.md: ships, space tactics and fleet battles; lore: SW_Starships_Classes.md, SW_Space_Tactics.md). Comes after items 5 to 7 in the build order (economy sets ship prices; droids cover astromechs and crews). It replaces the stopgaps: the blockade's force-through approach and the Coruscant ground-fight stand-in for breaking the occupying navy.
-- [ ] **14. Ground command (Jared, 2026-11-24; D-475).**
+- [ ] **14. Ground command (Jared, 2026-11-24; D-475, D-476).**
 
-  Guiding troops as a general, with locations and objectives, like the fleet battles. Design still to do (Jared, 2026-11-23). Wartime postings (item 11) stay story-only until it exists.
+  Guiding troops as a general, with locations and objectives, like the fleet battles. Designed 2026-11-24; build after item 13: docs-v2/spec/m8-design-notes.md, "Ground command (checklist item 14)". Wartime postings (item 11) stay story-only until it exists.

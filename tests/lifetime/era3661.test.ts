@@ -2,8 +2,8 @@
 // initiate (age 4, 3,671) through the real game to 3,649, on the spread's 20 seeds. From 3,661 a probe checks, at
 // every new year, what the world tables give the game: the board (a canon link for every roster figure, made the way the
 // pipeline makes it), the Order seat, the leaders and control lines in the state block, and travel to every closed world.
-// The character lives at the Order's seat by date (D-451, the harness's seat table): the Coruscant Temple, its ruins
-// 3,653-3,651, and the Temple on Tython from 3,650. Gates: no crash, no canon
+// The character lives at the Order's seat by date (D-451, the harness's seat table): the Coruscant Temple, then
+// Tython from 3,653 (D-476), its Temple from 3,647. Gates: no crash, no canon
 // link to an off-board figure, no trip to a closed world. World events don't exist yet (M8): the report lists the
 // dated events each year crosses, where they would fire.
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -195,23 +195,24 @@ describe('the 3,661 era Jedi (20 seeds, 3,661 to 3,649)', () => {
     }
   });
   // Each year is read on its first day; the Sacking falls in June 3,653 (D-467).
-  it('the Order seat moves on its dates: Coruscant into 3,653, relocating by 3,652, Tython from 3,650', () => {
+  it('the Order seat moves on its dates: Coruscant into 3,653, Tython with no Temple yet by 3,652 (D-476)', () => {
     const seat = Object.fromEntries(runs[0]!.rows.map((y) => [y.bby, y.seat]));
     for (const b of [3661, 3654, 3653]) expect(seat[b]).toBe('the Jedi Temple on Coruscant');
-    for (const b of [3652, 3651]) expect(seat[b]).toMatch(/relocating to Tython/);
-    for (const b of [3650, 3649]) expect(seat[b]).toBe('the Jedi Temple on Tython');
+    for (const b of [3652, 3651, 3650, 3649]) expect(seat[b]).toMatch(/^Tython .*not finished/);
   });
-  it('Tython is closed until its rediscovery in 3,651, then open; the character lives there from 3,650', () => {
+  // D-476 (Jared): the Order is on Tython from 3,653. The gate and the control table still date the rediscovery to 3,651: an open
+  // question (reports/m8-item9b.md), so in 3,652 the character lives on a world the tables call unknown.
+  it('the character lives on Tython from 3,653; the control table still calls it unknown until 3,651', () => {
     const ty = Object.fromEntries(runs[0]!.rows.map((y) => [y.bby, y.tython]));
-    expect(ty[3652]).toBe('closed');
-    expect(ty[3651]).toBe('open');
-    expect(ty[3650]).toBe('here');
+    expect(ty[3654]).toBe('closed');
+    // The harness's seat table is by the year: it moves the life on 1 January 3,653, the game's own seat in June.
+    for (const b of [3653, 3652, 3651, 3650]) expect(ty[b]).toBe('here');
   });
   it('the control and leaders lines change on their dates', () => {
     const y = Object.fromEntries(runs[0]!.rows.map((r) => [r.bby, r]));
     expect(y[3661]!.control).toEqual(['Coruscant: republic']);
-    expect(y[3653]!.control).toEqual(['Coruscant: republic']); // 1 January: before the Sacking (world3661.test.ts reads June)
-    expect(y[3652]!.control).toEqual(['Coruscant: republic']);
+    expect(y[3654]!.control).toEqual(['Coruscant: republic']);
+    expect(y[3652]!.control).toEqual(['Tython: unknown to the galaxy']);
     expect(y[3650]!.control).toEqual(['Tython: republic']);
     expect(y[3661]!.leaders).toMatch(/Mandalore: Mandalore the Lesser/);
     expect(y[3659]!.leaders).not.toMatch(/the Lesser/);

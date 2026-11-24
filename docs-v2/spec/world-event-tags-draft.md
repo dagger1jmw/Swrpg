@@ -71,9 +71,9 @@ Design data for the tag network in the M8 design notes ("World events: the tag n
 | E.3653.riots_after | 3653 | Coruscant riots after the Sacking (P1, 3653 row 10) | — | — | O.coruscant_occupied | O.coruscant_unrest |
 | E.3653.decimus | c. 3653 | Azamin assassinated; Decimus succeeds (P1, 3653 row 11) | Decimus: R; Azamin: C | — | — | O.decimus_council |
 | E.3653.hutt_treaty | 3653 | Hutt–Imperial treaty keeps the Hutt Cartel neutral (P1, 3653 row 13) | Hutt Cartel: R (as a body) | — | — | **O.hutt_neutral** |
-| E.3653.exchange_out | 3653 | Exchange beaten by the Shadow Syndicate, driven from the Corellian sector (P1, 3653 row 14) | — | — | — | O.exchange_weakened |
 | E.3653.ord_mantell_fleet | 3653 | A corrupt admiral sells Ord Mantell's fleet; the Republic all but abandons it (P1, 3653 row 15) | the admiral: R | The sale goes unexposed: crucial, medium | O.treaty_signed | O.ord_mantell_abandoned |
 | E.3653.senate_blame | 3653 | The Senate blames the Jedi for the loss (P1, 3653 row 17) | — | — | O.treaty_signed; O.temple_destroyed | O.senate_distrusts_jedi |
+| E.3653.temple_shelved | 3653 | The Senate votes to put off rebuilding the Coruscant Temple; Am-Ris tells Zym (SW_Coruscant_Jedi_Temple_OldRepublic_Part1; moved from 3650, D-476) | — | The Senate is hostile: crucial, medium | O.temple_destroyed; O.senate_distrusts_jedi | O.rebuilding_postponed |
 | E.3653.balmorra_ceded | after 3653 | Republic ends support for Balmorra; it stays Imperial (P1, 3653 row 18) | — | — | O.systems_ceded | O.balmorra_imperial |
 
 ## 3. The Cold War, 3653–3642, and the war's return, 3641–3640
@@ -83,7 +83,7 @@ Design data for the tag network in the M8 design notes ("World events: the tag n
 | E.3653.alderaan_secession | after 3653 | Gaul Panteer walks out; Alderaan secedes; the Alderaan Civil War (P2, Cold War row 2) | Gaul Panteer: R | Anger at the Treaty: crucial, low | O.treaty_signed | O.alderaan_civil_war |
 | E.3653.ord_mantell_war | after 3653 | Separatist War on Ord Mantell (P2, row 4) | — | — | O.ord_mantell_abandoned | O.ord_mantell_war |
 | E.3651.tython | 3651 | Satele rediscovers Tython and becomes Grand Master (P2, row 5) | Satele: R (another Jedi finds Tython and leads; her later arc changes) | — | O.grand_master_vacant (optional: Tython is found either way) | O.tython_found; O.grand_master_set (only if the vacancy came about) |
-| E.3650.temple_shelved | 3650 | Senate shelves the Coruscant Temple; the Order moves to Tython and starts building (P2, row 7) | — | The Senate is hostile: crucial, medium | O.temple_destroyed; O.senate_distrusts_jedi; O.tython_found | **O.order_on_tython** |
+| E.3650.tython_begun | 3650 | The Order starts building its Temple on Tython (P2, row 7; D-476) | — | — | O.rebuilding_postponed; O.tython_found | **O.order_on_tython** |
 | E.3650.trant_director | 3650 | Trant becomes SIS Director (P2, row 8) | Trant: R | — | O.trant_sis | O.trant_director |
 | E.3650.mindor | 3650 | An illegal Imperial incursion wipes out a Chagrian colony on Mindor (P2, row 9) | Fideltin Rusk: R | — | O.treaty_signed | — |
 | E.3649.janarus | 3649, 3645 | Janarus re-elected (P2, rows 11 and 16) | Janarus: R | — | O.janarus_chancellor | — |
@@ -97,6 +97,7 @@ Design data for the tag network in the M8 design notes ("World events: the tag n
 | E.3643.quesh | c. 3643 | Three Hutt families break the treaty to help the Republic on Quesh **[PP-2]** (P2, row 21) | the families: R | — | O.hutt_neutral | O.hutt_treaty_cracked |
 | E.3643.sebaddon | 3643 | Jet Nebula finds the Cinzia: the Sebaddon affair and the Hex droid crisis **[PP-2]** (P2, row 22) | Jet Nebula: R | — | O.xandret_defected | O.sebaddon_incident |
 | E.3643.flesh_raiders | 3643 | Bengel Morr's Flesh Raiders attack the Jedi on Tython (P2, row 23) | Hero of Tython: NPC (protagonist); Morr: R | — | O.order_on_tython | — |
+| E.3643.exchange_out | c. 3643 | Exchange beaten by the Shadow Syndicate, driven from the Corellian sector (P1, 3653 row 14; ruled c. 3643: D-384 [3], moved from 3653, D-476) | — | — | — | O.exchange_weakened |
 | E.3643.desolator | 3643 | Desolator crisis: Angral destroys Uphrades; Angral, Tarnis, Nefarid and Orgus Din die **[PP-2]** (P2, row 24) | **Angral: C** (it's his personal war; if he died earlier, this event diverges); Hero of Tython: NPC (protagonist); Orgus Din: R | Angral's superweapon is kept secret: crucial, medium | O.treaty_signed | O.uphrades_destroyed; O.angral_dead |
 | E.3643.esseles | 3643 | Kilran's Emperor's Glory attacks the Esseles (P2, row 26) | Kilran: R | — | — | — |
 | E.3643.council_changes | 3643 | Hadra succeeds Mekhis; Jadus fakes his death, Zhorrid takes his seat; Skotia murdered, Zash a Darth (P2, rows 27–28) | each: R | — | — | O.council_shift_3643 |

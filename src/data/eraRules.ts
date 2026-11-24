@@ -3,6 +3,7 @@
 // location chain or its faction is in play (the character's side, or someone present). Years are BBY as positive
 // numbers, both ends inclusive. Each rule is one or two short sentences, written as instructions.
 import type { FactionId } from './entities.config';
+import type { OutcomeLinks } from './worldControl';
 
 /** A day of a year. */
 export interface MonthDay {
@@ -12,11 +13,20 @@ export interface MonthDay {
 /** The Treaty of Coruscant is signed (3,653) and collapses (mid-3,641): the world network's dates (worldNetwork3661.ts). */
 export const TREATY_SIGNED: MonthDay = { month: 6, day: 23 };
 export const TREATY_COLLAPSE: MonthDay = { month: 6, day: 15 };
+/** The Senate's vote on the Temple (3,653), as the world network has it; the day is invented. */
+export const TEMPLE_VOTE: MonthDay = { month: 7, day: 10 };
+const BEFORE_VOTE: MonthDay = { month: 7, day: 9 };
 const BEFORE_TREATY: MonthDay = { month: 6, day: 22 };
 const BEFORE_COLLAPSE: MonthDay = { month: 6, day: 14 };
 
-export interface EraRule {
+/**
+ * Cold War rules follow the campaign, as the control table does (Jared, D-476): `dependsOn` and `endsWith` are the world
+ * network's outcomes, and the rules of one `subject` freeze together (a rule that does not start leaves the one before it
+ * in force). Absent: the lore's dates alone.
+ */
+export interface EraRule extends OutcomeLinks {
   id: string;
+  subject?: string;
   fromBby: number;
   toBby: number;
   /** The first day in fromBby and the last in toBby, for a boundary inside a year (D-475); absent = the whole year. */
@@ -59,6 +69,7 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'coruscant-security',
+    subject: 'coruscant-security',
     fromBby: 3681,
     toBby: 3653,
     toDate: BEFORE_TREATY,
@@ -68,6 +79,7 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'coruscant-places',
+    subject: 'coruscant-places',
     fromBby: 3681,
     toBby: 3653,
     toDate: BEFORE_TREATY,
@@ -77,6 +89,7 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'nar-shaddaa-districts',
+    subject: 'nar-shaddaa',
     fromBby: 3681,
     toBby: 3653,
     toDate: BEFORE_TREATY,
@@ -94,12 +107,23 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'jedi-life',
+    subject: 'order-home',
     fromBby: 3681,
     toBby: 3653,
     toDate: BEFORE_TREATY,
     factions: ['jediOrder'],
-    text: 'Jedi of this era: Padawans wear plain tunics and have no braid; a Padawan serves a sequence of Masters, with field postings to specialists, and Knighthood comes in the field. Recruits are normally young children; older recruits are exceptions.',
+    text: 'Jedi of this era: a Padawan serves a sequence of Masters, with field postings to specialists, and Knighthood comes in the field. Recruits are normally young children; older recruits are exceptions.',
     source: 'D-378 [1], [6]; D-379',
+  },
+  {
+    id: 'jedi-dress',
+    subject: 'jedi-dress',
+    fromBby: 3681,
+    toBby: 3653,
+    toDate: BEFORE_TREATY,
+    factions: ['jediOrder'],
+    text: 'Padawans wear plain tunics and have no braid.',
+    source: 'D-378 [1]',
   },
   {
     id: 'korriban-academy',
@@ -131,6 +155,8 @@ export const ERA_RULES: readonly EraRule[] = [
   // year boundaries, as the lore gives no month.
   {
     id: 'coruscant-treaty',
+    dependsOn: ['O.treaty_signed'],
+    endsWith: 'O.galactic_war',
     fromBby: 3653,
     fromDate: TREATY_SIGNED,
     toBby: 3641,
@@ -141,6 +167,9 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'coruscant-security-cold-war',
+    subject: 'coruscant-security',
+    dependsOn: ['O.coruscant_occupied', 'O.treaty_signed'],
+    endsWith: 'O.galactic_war',
     fromBby: 3653,
     fromDate: TREATY_SIGNED,
     toBby: 3641,
@@ -151,6 +180,8 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'coruscant-underworld-cold-war',
+    dependsOn: ['O.coruscant_occupied', 'O.coruscant_unrest'],
+    endsWith: 'O.galactic_war',
     fromBby: 3653,
     fromDate: TREATY_SIGNED,
     toBby: 3641,
@@ -161,6 +192,8 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'coruscant-places-cold-war',
+    subject: 'coruscant-places',
+    dependsOn: ['O.coruscant_occupied'],
     fromBby: 3653,
     fromDate: TREATY_SIGNED,
     toBby: 3640,
@@ -170,23 +203,31 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'coruscant-temple-ruins',
+    subject: 'coruscant-temple',
+    dependsOn: ['O.temple_destroyed'],
     fromBby: 3653,
     fromDate: TREATY_SIGNED,
-    toBby: 3651,
+    toBby: 3653,
+    toDate: BEFORE_VOTE,
     places: ['Coruscant'],
-    text: 'The Jedi Temple is a ruin: the four towers and the outside have fallen, but much of the inside is intact. Nothing is being rebuilt.',
-    source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (3653 BBY; The ruins); D-475',
+    text: 'The Jedi Temple is a ruin: the four towers and the outside have fallen, but much of the inside is intact.',
+    source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (3653 BBY; The ruins); D-475, D-476',
   },
   {
     id: 'coruscant-temple-shelved',
-    fromBby: 3650,
+    subject: 'coruscant-temple',
+    dependsOn: ['O.rebuilding_postponed'],
+    fromBby: 3653,
+    fromDate: TEMPLE_VOTE,
     toBby: 3640,
     places: ['Coruscant'],
-    text: 'The Jedi Temple stays a ruin: the Senate has put off rebuilding it indefinitely, and the Order\'s seat is on Tython.',
-    source: 'Timeline slice Part 2 (3,650 BBY); D-475',
+    text: 'The Jedi Temple stays a ruin: the Senate has voted to put off rebuilding it indefinitely, and the Order\'s home is Tython.',
+    source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (3653 BBY: the vote; Am-Ris tells Zym); D-476',
   },
   {
     id: 'coruscant-jedi-remaining',
+    dependsOn: ['O.order_on_tython'],
+    endsWith: 'O.galactic_war',
     fromBby: 3650,
     toBby: 3641,
     toDate: BEFORE_COLLAPSE,
@@ -196,6 +237,9 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'nar-shaddaa-cold-war',
+    subject: 'nar-shaddaa',
+    dependsOn: ['O.treaty_signed'],
+    endsWith: 'O.galactic_war',
     fromBby: 3653,
     fromDate: TREATY_SIGNED,
     toBby: 3641,
@@ -206,6 +250,8 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'nar-shaddaa-sis',
+    dependsOn: ['O.trant_sis'],
+    endsWith: 'O.trant_director',
     fromBby: 3654,
     toBby: 3651,
     places: ['Nar Shaddaa'],
@@ -214,6 +260,8 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'nar-shaddaa-shadow-town',
+    dependsOn: ['O.treaty_signed'],
+    endsWith: 'O.galactic_war',
     fromBby: 3649,
     toBby: 3641,
     toDate: BEFORE_COLLAPSE,
@@ -223,6 +271,8 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'nar-shaddaa-shadow-syndicate',
+    dependsOn: ['O.treaty_signed'],
+    endsWith: 'O.galactic_war',
     fromBby: 3643,
     toBby: 3641,
     toDate: BEFORE_COLLAPSE,
@@ -232,6 +282,7 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'tatooine-mos-ila',
+    subject: 'mos-ila',
     fromBby: 3681,
     toBby: 3653,
     toDate: BEFORE_TREATY,
@@ -241,6 +292,9 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'tatooine-cold-war',
+    subject: 'mos-ila',
+    dependsOn: ['O.treaty_signed'],
+    endsWith: 'O.galactic_war',
     fromBby: 3653,
     fromDate: TREATY_SIGNED,
     toBby: 3641,
@@ -250,16 +304,33 @@ export const ERA_RULES: readonly EraRule[] = [
     source: 'SW_NarShaddaa_HuttSpace_GGW_Part1 §C, §G; SW_Species_OldRepublic_Part2 (Miraluka); D-475',
   },
   {
-    id: 'jedi-homeless',
+    id: 'jedi-tython-no-temple',
+    subject: 'order-home',
+    dependsOn: ['O.temple_destroyed', 'O.treaty_signed'],
     fromBby: 3653,
     fromDate: TREATY_SIGNED,
     toBby: 3651,
     factions: ['jediOrder'],
-    text: 'The Order has left the ruined Coruscant Temple and has no home for now; the Republic blames the Jedi for losing the war. Satele Shan is seeking Tython (found in 3,651); the Order has not moved there yet.',
-    source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (Decision 8: homeless for a short period); Timeline slice Part 2 (3,651, 3,650 BBY); SW_Tython; D-475',
+    text: 'The Order has left the ruined Coruscant Temple for Tython, and has no Temple there yet. The Republic blames the Jedi for losing the war.',
+    source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (3653: "Jedi to Tython"); Timeline slice Part 1 (3,653 BBY); D-476',
+  },
+  {
+    id: 'jedi-dress-cold-war',
+    subject: 'jedi-dress',
+    dependsOn: ['O.treaty_signed'],
+    endsWith: 'O.galactic_war',
+    fromBby: 3653,
+    fromDate: TREATY_SIGNED,
+    toBby: 3641,
+    toDate: BEFORE_COLLAPSE,
+    factions: ['jediOrder'],
+    text: 'Padawans wear plain tunics and the Padawan braid (later-era default).',
+    source: 'SW_Jedi_Temple_Life_GGW_Part1 (decision 1: later-era default); D-476',
   },
   {
     id: 'jedi-tython-building',
+    subject: 'order-home',
+    dependsOn: ['O.order_on_tython'],
     fromBby: 3650,
     toBby: 3648,
     places: ['Tython'],
@@ -269,6 +340,8 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'jedi-tython-temple',
+    subject: 'order-home',
+    dependsOn: ['O.tython_temple'],
     fromBby: 3647,
     toBby: 3640,
     places: ['Tython'],
@@ -278,6 +351,8 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'jedi-training-cold-war',
+    dependsOn: ['O.order_on_tython'],
+    endsWith: 'O.galactic_war',
     fromBby: 3650,
     toBby: 3641,
     toDate: BEFORE_COLLAPSE,
@@ -287,6 +362,7 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'jedi-forge',
+    dependsOn: ['O.order_on_tython'],
     fromBby: 3650,
     toBby: 3643,
     factions: ['jediOrder'],
@@ -303,6 +379,8 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'korriban-cold-war',
+    dependsOn: ['O.treaty_signed'],
+    endsWith: 'O.galactic_war',
     fromBby: 3653,
     fromDate: TREATY_SIGNED,
     toBby: 3641,
@@ -313,6 +391,8 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'korriban-acolytes-late',
+    dependsOn: ['O.treaty_signed'],
+    endsWith: 'O.galactic_war',
     fromBby: 3643,
     toBby: 3641,
     toDate: BEFORE_COLLAPSE,
@@ -388,13 +468,11 @@ const dayOf = (d: MonthDay): number => d.month * 100 + d.day;
 export const eraRuleHolds = (r: EraRule, bby: number, date: MonthDay = { month: 1, day: 1 }): boolean =>
   bby <= r.fromBby && bby >= r.toBby && !(bby === r.fromBby && r.fromDate && dayOf(date) < dayOf(r.fromDate)) && !(bby === r.toBby && r.toDate && dayOf(date) > dayOf(r.toDate));
 
-/** The rules relevant at `bby` (and the day of it) for these place names and the factions in play. */
+/** Whether a rule is about these places or the factions in play. */
+export const eraRuleApplies = (r: EraRule, placeNames: readonly string[], factions: readonly string[]): boolean =>
+  r.always === true || (r.places ?? []).some((p) => placeNames.some((n) => mentions(n, p))) || (r.factions ?? []).some((f) => factions.includes(f));
+
+/** The rules relevant at `bby` (and the day of it) for these place names and the factions in play, by the lore's dates. */
 export function eraRulesAt(bby: number, placeNames: readonly string[], factions: readonly string[], date?: MonthDay): EraRule[] {
-  return ERA_RULES.filter(
-    (r) =>
-      eraRuleHolds(r, bby, date) &&
-      (r.always === true ||
-        (r.places ?? []).some((p) => placeNames.some((n) => mentions(n, p))) ||
-        (r.factions ?? []).some((f) => factions.includes(f))),
-  );
+  return ERA_RULES.filter((r) => eraRuleHolds(r, bby, date) && eraRuleApplies(r, placeNames, factions));
 }

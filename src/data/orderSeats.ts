@@ -10,7 +10,7 @@ export interface OrderSeat extends OutcomeLinks {
   seat: string | null;
   source: string;
   estimate?: string;
-  /** The Order is moving between seats (D-397: 3,653–3,650 BBY, the Coruscant Temple in ruins). */
+  /** The Order has moved and its Temple is not built yet (D-397, D-476: Tython, 3,653–3,648 BBY). */
   relocating?: boolean;
   /** Where an Order member lives and trains (D-451; the place's Force bonus comes from forceNexus.ts by name). */
   home?: HomePlace;
@@ -27,21 +27,22 @@ const TEMPLE: HomePlace = { name: 'the Jedi Temple', planet: 'Coruscant' };
 export const ORDER_SEATS: readonly OrderSeat[] = [
   { fromYear: -Infinity, toYear: -25000, seat: 'the Je\'daii temples on Tython', source: 'Timeline :76', home: { name: 'the Je\'daii temples', planet: 'Tython' } },
   { fromYear: -25000, toYear: -3653, seat: 'the Jedi Temple on Coruscant', source: 'Timeline :90; Timeline slice Part 1 (3,653 BBY, the Sacking)', home: TEMPLE },
+  // D-476 (Jared): the Order's home from 3,653 is Tython, with no Temple until 3,647; the ruined Coruscant Temple is never the seat.
   {
     fromYear: -3653,
-    toYear: -3650,
-    seat: 'the ruined Jedi Temple on Coruscant (the Order is relocating to Tython)',
-    source: 'Timeline slice Part 1 (3,653 BBY: the Temple destroyed in the Sacking); D-397',
+    toYear: -3647,
+    seat: 'Tython (the Order\'s new Temple there is not finished)',
+    source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (3653 BBY: "Jedi to Tython"); Timeline slice Part 2 (3,650 BBY: building begins; 3,647: finished); D-476',
     dependsOn: ['O.temple_destroyed'],
     relocating: true,
-    home: { name: 'the ruined Jedi Temple', planet: 'Coruscant' },
+    home: { name: 'Tython', planet: 'Tython' },
   },
   {
-    fromYear: -3650,
+    fromYear: -3647,
     toYear: -3600,
     seat: 'the Jedi Temple on Tython',
-    source: 'Timeline slice Part 2 (3,650 BBY: the Order relocates to Tython; the Temple there is finished in 3,647)',
-    dependsOn: ['O.order_on_tython'],
+    source: 'Timeline slice Part 2 (3,647 BBY: the Temple is finished); D-476',
+    dependsOn: ['O.tython_temple'],
     estimate: 'the return to Coruscant is not dated in the lore files; 3,600 BBY is a design default',
     home: { name: 'the Jedi Temple on Tython', planet: 'Tython' },
   },

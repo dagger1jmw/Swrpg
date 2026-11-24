@@ -194,16 +194,34 @@ Reworked with Jared on 24 Nov 2026. Source: W: Corellian Treaty (The Force Unlea
   3. **Galen survives the Death Star** (guard very high; ruled by Jared, 24 Nov 2026). The ending of *The Force Unleashed*, but Galen escapes too: the Alliance starts with two Jedi, Galen and Kota. Realistically needs a Force-using player in the rescue, such as an Order 66 survivor from PP-5, who is there through a tie to Bail Organa, Mon Mothma, Garm Bel Iblis or Rahm Kota.
 
 ### PP-7: Yavin (0 BBY)
-- **Hinge:** the Death Star is destroyed.
-- **Proposed alternatives:**
-  1. **The Death Star survives:** Yavin 4 is destroyed and the Alliance is shattered.
-  2. **The plans are never stolen:** more worlds die; the Alliance stays hidden and small.
+Reworked with Jared on 24 Nov 2026. Source: T: SW_Timeline_19BBY_4ABY_Part2–3 (Operation Skyhook, 2–0 BBY).
+- **What happened:** the plans were pieced together from several sources: Darkknell (Bel Iblis finds the first evidence), the listening post AX-235 (schematics intercepted; Biggs carries them out), Danuta (Kyle Katarn) and Toprawa (a convoy raid, combined with Danuta's set and transmitted to the *Tantive IV*). Vader captures Leia over Tatooine; the plans escape in R2-D2. Alderaan is destroyed; Leia escapes the Death Star with a homing beacon aboard, and the Death Star follows it to Yavin, where Luke destroys it.
+- **Hinge:** the plans reach the Alliance, and Luke destroys the Death Star.
+- **Not breakable:** Luke's shot itself. A player can't take Luke's role; a Rebel player can only fly cover for him.
+- **The steps:**
+  1. **The plans, gathered** (guard medium). Several sources, so breaking one isn't enough. *Who:* Imperial Intelligence, security at Danuta or Toprawa, or a traitor in a Rebel cell. Breaking Toprawa, or two of the three supply sources, means the plans never reach Leia.
+  2. **The droids.** *Who:* a stormtrooper aboard the *Tantive IV* who finds the droids before they reach the escape pod (guard very high; highly unlikely), or an Imperial searching Tatooine or someone at Mos Eisley who spots them (guard high). R2-D2 captured means the plans are lost.
+  3. **The homing beacon** (guard medium). *Who:* someone in Leia's rescue party suspicious of how easy the escape was. Finding it means the Death Star doesn't follow them to Yavin.
+  4. **The trench run** (guard very high). *Who:* an Imperial pilot in Vader's flight. Holding the trench before Han returns, or catching the *Falcon* on its way in, means Luke never gets his shot.
+- **Alderaan** is not a step of its own. It is saved only indirectly: the Empire recovers the plans (step 1 or 2), or Leia isn't captured, which needs a Jedi strong enough to beat Vader by 0 BBY (guard very high; the surviving Jedi near the Empire were out of practice, and those who kept training lived far from it).
+- **Alternatives** (approved by Jared, 24 Nov 2026):
+  1. **The Death Star survives** (step 4). Yavin 4 is destroyed with the Alliance leaders there; the Alliance is shattered.
+  2. **The plans never reach the Alliance** (step 1 or 2). The Death Star stays in service and more worlds die; the Alliance stays hidden and small.
+  3. **Yavin isn't found** (step 3). The Alliance keeps the plans and its base; no battle at Yavin on the recorded date. The Death Star keeps hunting, and the Alliance can attack it later at a time it chooses, directed by the narrator.
 
 ### PP-8: Endor (4 ABY)
-- **Hinge:** the Emperor dies.
-- **Proposed alternatives:**
-  1. **The Emperor survives:** the Empire endures and the Alliance is broken or driven underground.
-  2. **The Emperor dies but Vader lives:** a succession war with Vader as a contender.
+Reworked with Jared on 24 Nov 2026. Source: T: SW_Timeline_19BBY_4ABY_Part4.
+- **What happened:** the *Suprosa* raid and the fight at Kothlis bring the second Death Star's plans out, with many Bothan deaths; the Emperor secretly let it happen, to lure the Alliance to an unfinished station. At Endor, Han's strike team and the Ewoks destroy the shield generator; Ackbar's fleet, with Lando and Wedge, destroys the reactor. In the throne room the Emperor tortures Luke, and Vader throws him into the reactor shaft and dies redeemed.
+- **Hinge:** the Emperor dies at Endor.
+- **Almost unbreakable** (Jared): the Rebels win only because of the Ewoks. Not breakable: Luke giving himself up (no one can talk him out of it, and no Imperial will stand between Vader and the Emperor), the fleet battle as such, and the throne room, which always plays out the same.
+- **The steps:**
+  1. **The plans never reach the Alliance** (guard medium). From the Imperial side this needs a high-ranking Imperial, working against the Emperor's own design. From the Rebel side, the Bothan Spynet or Madine's commandos fail.
+  2. **The trap is uncovered** (guard very high). Needs in-world leads that the leak was set up; a player's own knowledge of the films never counts.
+  3. **Leia never reaches the Ewoks** (guard high). *Who:* a scout trooper who kills or captures Leia in the speeder chase. With no Ewok alliance, the strike team is rounded up at the bunker, the shield holds, and the fleet is destroyed.
+- **Alternatives:**
+  1. **The Emperor survives** (step 3). The fleet is destroyed, the Empire endures, and the Alliance is broken or driven underground.
+  2. **No Endor** (step 1, or step 2 if the Alliance stays away). No battle; the war goes on with both sides intact.
+- **Dropped (Jared, 24 Nov 2026):** "the Emperor dies but Vader lives". Vader never grows powerful enough to take on the Emperor himself, so without Luke the Emperor doesn't die at Vader's hand.
 
 ## 6. Convergence anchors
 
@@ -230,7 +248,8 @@ Events whose crucial tags don't depend on these plot points, so they still happe
 ## 8. Rulings (Jared, 23 Nov 2026)
 1. **Canon heroes are NPCs.** The SWTOR ruling extends to film and book heroes (Luke, Leia, Han, Galen Marek and others). After a divergence each takes a role similar to their own.
 2. **Maul.** Legends includes *The Clone Wars* seasons 1–6 (season 7 does not count) and *Son of Dathomir*. Maul survives Naboo and returns in 20 BBY (kept from TCW under ruling 6), and dies on Tatooine in 16 BBY (*Old Wounds*; ruled 24 Nov 2026): Obi-Wan hesitates and Owen Lars shoots him (corrected 24 Nov 2026, D-474). (Superseded in part by ruling 6: TCW is now secondary canon. Maul's survival is one of the TCW events kept.)
-3. **Plot points.** PP-3 to PP-8 and their alternatives were approved, then reworked one by one from 23 Nov 2026 into player-reachable steps (PP-3 to PP-6 done; PP-7 and PP-8 next). PP-0, the Ruusan Reformations, is added, with per-reform triggers approved (section 5).
+3. **Plot points.** PP-3 to PP-8 and their alternatives were approved, then reworked one by one from 23 Nov 2026 into player-reachable steps (PP-3 to PP-8 done). PP-0, the Ruusan Reformations, is added, with per-reform triggers approved (section 5).
 4. **The Force Unleashed** stays in the timeline, using the novelizations rather than the games, because the novels keep Galen Marek's power level grounded.
 5. **3640–1000 BBY** is to be mapped next.
 6. **Source priority for the Clone Wars (Jared, 24 Nov 2026).** *The Clone Wars* (2008) goes to the bottom of the lore priority, as secondary canon. Pre-2008 Legends Clone Wars material (the 2003 *Clone Wars* micro-series, the comics, the novels, Republic Commando) is primary. Where TCW retcons earlier material, the earlier material wins; TCW events that don't contradict it can still happen, adjusted (Mortis does, as *Fate of the Jedi* refers to it). Order 66 is one of the Republic military's contingency orders, with no inhibitor chip: clones obeyed through Kaminoan conditioning and their own choice, which is why some units refused. The specific differences (Grievous's strength, rank dates for Anakin and Obi-Wan, characters who exist only in TCW) are checked when the Clone Wars lore file is built.
+7. **Clone Wars and Maul rulings (Jared, 24 Nov 2026; full list in docs-v2/reports/lore-rulings-2026-11-24.md).** TCW material that adds to the lore without contradicting it stays: Sifo-Dyas's Pyke mission is accepted (PP-4 step 2 stands). Ahsoka Tano exists as Plo Koon's apprentice and dies in Order 66; the only way she survives is PP-5 alternative 2's warning race. Maul's origin follows *Darth Plagueis*: born 54 BBY on Dathomir to the Nightsister Kycina, given to Sidious, trained as an assassin with Plagueis's knowledge; Savage Opress, Talzin and Satine stay as part of his kept return. Rank dates follow the pre-2008 version (Obi-Wan a Master and on the Council after Haruun Kal, 22 BBY; Anakin knighted c. 20 BBY). Anakin is born 41 BBY.

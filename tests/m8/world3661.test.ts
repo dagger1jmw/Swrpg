@@ -215,11 +215,12 @@ describe('PP-1: the Sacking and the Treaty', () => {
     expect(status(s, 'E.3653.sacking')).toBe('adjusted');
     const then = selectTimelineHandoff(go(breakTag(game(at(3653, 6)), 'E.3653.temple_strike#cond.reach'), at(3653, 6, 24))).news.join('\n');
     expect(then).toMatch(/The Sacking of Coruscant .*"The strike on the Jedi Temple" brought about: weak ground control/);
-    // What only follows from that (the Senate's mind in 3,650) is not told before its date.
-    expect(net(s).tags['E.3650.temple_shelved#cond.hostile']?.cause).toBe('an earlier event');
+    // What only follows from that (the Senate's mind that July) is not told before its date.
+    expect(net(s).tags['E.3653.temple_shelved#cond.hostile']?.cause).toBe('an earlier event');
     expect(selectTimelineHandoff(s).news.join('\n')).not.toMatch(/BROKEN IN PLAY\] The Senate/);
     // The Order stays on Coruscant; Tython is still found.
-    expect(status(s, 'E.3650.temple_shelved')).toBe('cancelled');
+    expect(status(s, 'E.3653.temple_shelved')).toBe('cancelled');
+    expect(status(s, 'E.3650.tython_begun')).toBe('cancelled');
     expect(selectOrderSeat(s)).toBe('the Jedi Temple on Coruscant');
     expect(outcome(s, 'O.tython_found')).toBe('produced');
     // Zallow lives; Zym still dies after the Treaty.

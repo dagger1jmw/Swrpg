@@ -1,13 +1,14 @@
 import { CANON_DEATH_LINKS } from '../../data/canonDeathLinks';
 import { SECRET_OVERLAP } from '../../data/worldNetwork.config';
 import { CANON_BY_ID, CANON_NPCS, type CanonNpc } from '../../data/canonNpcs';
+import { ERA_RULES, eraRuleApplies, type EraRule, type MonthDay } from '../../data/eraRules';
 import { ORDER_SEATS, type OrderSeat } from '../../data/orderSeats';
 import type { BlockadeDef } from '../../data/blockades';
 import type { Runner } from '../../engine/blockade';
 import { FACTION_LEADERS, placeAmong, type LeaderSpan } from '../../data/worldControl';
 import { WORLD_NETWORK, type Lead, type RoleTag, type WorldNetwork } from '../../data/worldNetwork';
 import { normalizeText } from '../../engine/aliases';
-import { dateFromAbsDay } from '../../engine/calendar';
+import { DAYS_PER_YEAR, absDayFromDate, dateFromAbsDay, dayOfYear } from '../../engine/calendar';
 import { canonFactionAt, canonPresentAt, canonRankAt, canonRoleAt, withoutDeath } from '../../engine/canonRoster';
 import { datedFactsAt, type HeldReason } from '../../engine/datedFacts';
 import type { GameState } from '../../state/gameState';
@@ -185,6 +186,34 @@ export function selectOrderSeat(s: GameState, net: WorldNetwork = WORLD_NETWORK,
     ...(r.endsWith ? { endsWith: r.endsWith } : {}),
   }));
   return datedFactsAt(facts, nowBby(s), (o) => outcomeState(net, st, o))[0]?.fact.seat ?? null;
+}
+
+/** A day as a BBY number with a fraction, counting down: 1 January 3,653 BBY is 3653, its last day just above 3652. */
+const bbyAt = (bby: number, d: MonthDay, endOfDay = false): number => bby - (dayOfYear(absDayFromDate({ year: -bby, month: d.month, day: d.day })) + (endOfDay ? 1 - 1e-6 : 0)) / DAYS_PER_YEAR;
+const bbyOfDay = (absDay: number): number => {
+  const d = dateFromAbsDay(absDay);
+  return bbyAt(-d.year, d);
+};
+
+/**
+ * The era rules in force now (Jared, D-476): the lore's dates with the freeze, as the control table. A rule whose outcome
+ * was not produced does not switch on, and the rule before it on its subject holds; one whose end never came holds on, and
+ * one whose end came early ends that day.
+ */
+export function selectEraRules(s: GameState, names: readonly string[], factions: readonly string[], net: WorldNetwork = WORLD_NETWORK, table: readonly EraRule[] = ERA_RULES): EraRule[] {
+  const st = selectNetworkState(s, net);
+  const now = bbyOfDay(s.clock.now.day);
+  const facts = table.map((rule) => {
+    const from = bbyAt(rule.fromBby, rule.fromDate ?? { month: 1, day: 1 });
+    const to = rule.toBby === -Infinity ? -Infinity : rule.toDate ? bbyAt(rule.toBby, rule.toDate, true) : rule.toBby - 1 + 1e-6;
+    const end = rule.endsWith ? st.outcomes[rule.endsWith] : undefined;
+    const ended = end?.state === 'produced' ? bbyOfDay(end.day) : -Infinity;
+    return { rule, fromBby: from, toBby: ended > to ? ended + 1e-6 : to, ...(rule.dependsOn ? { dependsOn: rule.dependsOn } : {}), ...(rule.endsWith ? { endsWith: rule.endsWith } : {}) };
+  });
+  const inForce = new Set<EraRule>();
+  for (const subject of new Set(facts.map((f) => f.rule.subject ?? f.rule.id)))
+    for (const f of datedFactsAt(facts.filter((x) => (x.rule.subject ?? x.rule.id) === subject), now, (o) => outcomeState(net, st, o))) inForce.add(f.fact.rule);
+  return table.filter((r) => inForce.has(r) && eraRuleApplies(r, names, factions));
 }
 
 // ---- Blockades (D-469) ----

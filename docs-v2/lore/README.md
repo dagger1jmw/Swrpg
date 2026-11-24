@@ -172,7 +172,7 @@ Researched 23 Nov 2026. Source tiers on every line: in-universe (tier 1); game s
 |---|---|
 | `docs-v2/spec/world-event-tags-draft.md` | World event tag map, 3661–3640 BBY: facts from the 3700–3600 BBY timeline slices, tags as design calls (reviewed by Jared; rulings in section 6) |
 | `docs-v2/spec/world-event-tags-1000BBY-4ABY-draft.md` | World event tag map, 1000 BBY–4 ABY (rulings in section 8; PP-0 alternatives open; rows marked LF come from the galaxy timeline and are not re-checked) |
-| `docs-v2/spec/m8-design-notes.md` | M8 design notes (exported from Claude Docs, revision 40; the Claude Docs version is the working copy) |
+| `docs-v2/spec/m8-design-notes.md` | M8 design notes (exported from Claude Docs, revision 43; the Claude Docs version is the working copy) |
 
 ## Research lists (not lore files)
 

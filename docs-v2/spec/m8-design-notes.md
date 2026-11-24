@@ -1,6 +1,6 @@
 # SWRPG M8 design notes
 
-> Exported from the Claude Docs "SWRPG M8 design notes" (revision 42) on 24 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
+> Exported from the Claude Docs "SWRPG M8 design notes" (revision 43) on 24 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
 
 Nov 23, 2026 · @Jared Wright
 
@@ -679,6 +679,86 @@ C> Carrier x1
 - **Crew:** paid crew get wages; companions serve for a share or loyalty; unpaid crew lose loyalty and may leave.
 - **Ship renown:** famous ships are recognised (renown system), which helps and hurts; another reason to change an ID.
 - **Ruled:** breakdown risk (ruled by Jared, 2026-11-23): a roll when the ship is pushed (emergency jumps, overloaded systems, hard manoeuvres, running damaged), plus a small chance on every jump for badly worn or heavily over-modded ships. A well-kept stock ship almost never breaks down; the Ebon Hawk is temperamental.
+
+## Ground command (checklist item 14)
+
+Agreed by Jared (2026-11-24). Built on the fleet battles: the plan comes first, and execution is harder to change than in space. Works at every scale, from a squad leader planning a raid to an army.
+
+### When it applies
+
+- **Only from a planning scene** before the battle: a command centre, a briefing, or a council in the field before combat. Without a plan, the fight is ordinary combat and the troops follow their standing orders.
+- **Who plans:** by rank, as with fleets; the story can hand command to the player (the officers above them dead).
+- **Jedi plan alongside the officers.** A Jedi general sits in the planning with the unit's officers, and then leads from the front.
+
+### The plan
+
+Set in the planning scene, then fixed:
+
+- **Objectives:** a primary, and optionally a secondary.
+- **The manoeuvre:** frontal assault, flanking, envelopment, defence in depth, ambush, feint, siege or encirclement, infiltration or raid, or fighting withdrawal. Each has matchups against the others, as fleet formations do.
+- **Sectors:** which unit goes where, and who leads each.
+- **Support:** artillery, armour and air, where available.
+- **A reserve**, held back to commit later.
+- **Up to two contingencies** written in advance ("if X, do Y"); they carry out without penalty.
+
+### Before the battle
+
+Scouting and intelligence uncover the enemy's positions and likely plan (Stealth, Intelligence, recon units). Terrain and weather are modifiers.
+
+### The map: a grid with a terrain key
+
+- **A lettered and numbered grid** (columns A–F, rows 1–6 for a typical battle; larger when needed), each square one sector, kept within the keyboard-map width.
+- **A key below the map** lists each feature and its square: ridges, rivers, forests, structures, bridges and other chokepoints, and the objectives. Planning is done from it.
+- **Terrain matters:** cover, high ground, chokepoints, what armour can cross, and artillery lines of sight.
+- **Unscouted squares stay unknown** until recon reveals them; scouting changes both the map and the key.
+- **Known places use the lore:** a battle at a known site (Ruusan, Geonosis, Jabiim) takes its features from the lore files. Elsewhere the narrator generates them, tagged invented, and they stay fixed once shown.
+- **Redrawn only when something changes:** a unit moves, a sector falls, a feature is destroyed.
+
+```
+PLAN · Ruusan plains · Day 1, dawn
+    A    B    C    D    E    F
+1   .    ^    ^    ~    .    .
+2   .    ^    .    ~    #    r2
+3   i2   .    .    =    #    r3
+4   i3   .    *    ~    .    .
+5   a1   .    .    ~    .    T
+6   .    .    .    ~    .    .
+
+Units:  i infantry  a armour  r enemy  T Sith HQ
+Terrain:
+  B1–B2  ridge: high ground, cover, slows armour
+  D1–D6  river: impassable for armour except the bridge
+  D3     bridge (=): the only crossing; a chokepoint
+  E2–E3  fortified ruins (#): heavy cover, held by the enemy
+  C4     objective (*): supply cache
+  Unknown: F1–F6 not yet scouted
+```
+
+### The battle
+
+- **Runs in phases** of an hour or more. Each phase compares the two plans, adjusted for troop quality and morale (bond or fear, from the postings system), support, and the commander's Tactics roll.
+- **The player's own fight** on the front line is a modifier for their sector, as dogfights feed a fleet battle.
+
+### Changing the plan
+
+- **Officers keep direct lines to the Jedi and to every squad leader** (Jared). With a command post in contact, the plan can change in real time when needed, and the officers give tactical support: the overall picture, relayed reports, coordinated fire.
+- **A front-line commander** changes their own sector at once.
+- **Without a command post in contact** (cut off, jammed, or no officers), wider changes take a whole phase to spread and carry a penalty; only the plan and its contingencies hold.
+- **High-bond units improvise** in their own sector; fear-ruled units follow orders to the letter, even past the point where they make sense.
+
+### Jedi and Sith at the front
+
+- **They lead a sector in person:** their presence raises morale there, and they fight.
+- **Their own view is their sector;** the wider picture comes through the officers' lines.
+- **A player commanding from the post** (the officer archetype) sees the whole battle but doesn't fight or raise morale at the front.
+
+### Battle meditation
+
+The lore's own ground-command tool (Bastila Shan; the coordinator at Mizra; Kaan at Ruusan): a trained user improves the whole side's rolls. Its weakness is also lore: kill the coordinator and the side routs, as at Mizra.
+
+### Results
+
+Objectives taken or held, casualties and morale; a won or lost major battle for the world events. Planning a battle gives Tactics XP (item 12).
 
 ## Droids
 

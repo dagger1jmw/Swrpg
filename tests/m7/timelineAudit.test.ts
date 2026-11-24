@@ -16,8 +16,9 @@ describe('timeline audit 3,661-3,640 (D-408)', () => {
     expect(closedWorlds('republic', 3651).map((g) => g.place)).not.toContain('Tython');
     expect(controlAt(['Tython'], 3652)[0]?.side).toBe('unknown to the galaxy');
     expect(controlAt(['Tython'], 3651)[0]?.side).toBe('republic');
-    expect(orderSeatAt(-3651)).toMatch(/relocating/);
-    expect(orderSeatAt(-3650)).toBe('the Jedi Temple on Tython');
+    // D-476 (Jared): the Order's home is Tython from the Treaty; the gate still opens with the rediscovery (a question).
+    expect(orderSeatAt(-3651)).toMatch(/^Tython/);
+    expect(orderSeatAt(-3647)).toBe('the Jedi Temple on Tython');
   });
   it('no world is "unknown to the galaxy" while its gate is open, and no side is shut out of a world it holds', () => {
     for (const bby of YEARS) {
@@ -60,12 +61,12 @@ describe('timeline audit 3,661-3,640 (D-408)', () => {
   it('Coruscant has a controller every year', () => {
     for (const bby of YEARS) expect(controlAt(['Coruscant'], bby).length, String(bby)).toBeGreaterThan(0);
   });
-  it('Cold War spans end at their last recorded year, with nothing inferred after it (D-411 [5])', () => {
+  it('Cold War spans end at their last recorded year, with nothing inferred after it (D-411 [5]) but the Hutts on their own worlds (D-476)', () => {
     expect(controlAt(['Taris'], 3641)).toEqual([]);
     expect(controlAt(['Balmorra'], 3641)).toEqual([]);
     expect(controlAt(['Corellia'], 3639)).toEqual([]);
     expect(leadersAt(3639).some((l) => l.holder === 'Jace Malcom')).toBe(false);
-    expect(WORLD_CONTROL.filter((c) => c.fromBby <= 3653 && c.inferred)).toEqual([]);
+    expect(WORLD_CONTROL.filter((c) => c.fromBby <= 3653 && c.inferred).map((c) => c.place)).toEqual(['Nal Hutta', 'Nar Shaddaa']);
   });
   it('placed figures are on the board (or in prison) for every year they are placed', () => {
     for (const bby of YEARS) {
