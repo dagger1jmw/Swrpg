@@ -4,7 +4,7 @@ Every lore file in `Docs/SWRPG lore/`, the canon source of truth for story facts
 
 Game-mechanics sections in these files (Game notes, tiers, numbers) are suggestions that docs-v2 specs may override; every override is logged in `docs-v2/decisions.md`. The runtime lore index for the narrator (D-81, `scripts/build-lore.ts`) reads only the character files, the timeline (the old file and its slices), the species files (sent only when a species is named) and the planets files (a world when the scene is there or it is named; a route when named).
 
-Last updated 2026-11-22 (the Nov 22 lore update, D-439). Every lore file holds plain dated facts unless its scope names an era window (CLAUDE.md hard rule, D-438).
+Last updated 2026-11-23 (the economy set, Sith academies, weapon classes and named gear, starship classes and space tactics; the Jedi Path ruling, D-463; the economy rulings, D-464). Earlier: 2026-11-22 (the Nov 22 lore update, D-439). Every lore file holds plain dated facts unless its scope names an era window (CLAUDE.md hard rule, D-438).
 
 ## Character sheets (one file per era)
 
@@ -78,6 +78,13 @@ Last updated 2026-11-22 (the Nov 22 lore update, D-439). Every lore file holds p
 | `Docs/SWRPG lore/SW_Jedi_Ranks_Councils_Roles_AllEras_Part2.md` | Jedi ranks, councils and roles, all eras, Part 2: 1000 BBY to the Legacy era |
 | `Docs/SWRPG lore/SW_Jedi_Temple_Life_GGW_Part1.md` | Jedi life at the Coruscant Temple in the Great Galactic War (3681–3653 BBY, focus 3661 BBY) |
 
+**The Jedi Path ruling (D-463, Jared; replaces the narrower lore-batch-13 framing of D-378 [1], "post-Ruusan details as later-era defaults"):** *The Jedi Path* is the baseline curriculum for the academy-based Jedi Order in any era: what is taught (the Code and the Three Pillars, Force studies, classroom subjects, meditation, courses in Forms I–VI). Known era differences override it:
+- **Entry ages:** from infancy is post-Ruusan; earlier eras take teens or twenties.
+- **Strictness:** "progress or leave" and one Master, one Padawan are post-Ruusan; earlier Masters could have several students.
+- **The Initiate Trials' form:** pre-Ruusan, lightsaber construction is the second test; on Dantooine, facing the dark side.
+- **No academy stage:** the Je'daii, the early Order and the New Sith Wars.
+- **Lightsaber forms:** the Initiate survey covers the Forms I–VI that exist at the date (each form's earliest attested date, SW_Lightsaber_Forms_AllEras_Part1).
+
 ## Sith and other dark-side orders
 
 | Path | Scope |
@@ -87,6 +94,7 @@ Last updated 2026-11-22 (the Nov 22 lore update, D-439). Every lore file holds p
 | `Docs/SWRPG lore/SW_Sith_Training_AllEras_Part2.md` | Sith training and organization from the Rule of Two to the One Sith, and the non-Sith darksiders (1,000 BBY onward) |
 | `Docs/SWRPG lore/SW_Korriban_Academy_Part1.md` | Korriban Academy, Part 1: history, staff, acolytes, trials, graduation (3681–3640 BBY) |
 | `Docs/SWRPG lore/SW_Korriban_Academy_Part2.md` | Korriban Academy, Part 2: layout, dangers, daily life, other eras, timeline |
+| `Docs/SWRPG lore/SW_Sith_Academies_AllEras.md` | Every Sith academy on record and each Sith order's training methods, as dated facts (the general academy method, the Blademaster's role); companion to the Old Republic academy and Korriban files |
 
 ## Force potential
 
@@ -111,10 +119,42 @@ Last updated 2026-11-22 (the Nov 22 lore update, D-439). Every lore file holds p
 | `Docs/SWRPG lore/SW_Lightsaber_Crystals.md` | Lightsaber crystals: one dated catalog of natural, synthetic and unique crystals with sources, effects and dated limits; the single source of truth for crystal types (game data: src/data/crystals.ts) |
 | `Docs/SWRPG lore/SW_Kolto_Bacta.md` | Kolto and bacta: sources, uses, kolto's undated decline, bacta known from c. 4100 BBY |
 | `Docs/SWRPG lore/SW_Weapons_Armor_AllEras.md` | Non-lightsaber weapons, armour, personal energy shields and anti-Jedi gear, all eras (focus on the Old Republic and Clone Wars) |
+| `Docs/SWRPG lore/SW_Weapons_Classes_AllEras.md` | Weapon and armour classes, all eras, from the 84 class pages of the sorted list's Layer 1; adds the classes the older weapons file lacks (numbers are game stats, for scale) |
+| `Docs/SWRPG lore/SW_Weapons_Armor_Named.md` | Named weapons and armour from Old Republic sources (Mandalorian, Echani, Krath, Arkanian, Zabrak, Cathar items; about 150 pages), dated by their facts |
 | `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Index.md` | Yuuzhan Vong personal gear: index of the three parts |
 | `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Part1.md` | Yuuzhan Vong gear, Part 1: living weapons and armour |
 | `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Part2.md` | Yuuzhan Vong gear, Part 2: biots, tools, implants, the Embrace of Pain, counter-tech |
 | `Docs/SWRPG lore/SW_YuuzhanVong_Gear_Part3.md` | Yuuzhan Vong gear, Part 3: the Force and the Vong, Vongsense, availability, decisions |
+
+## Starships and space combat
+
+| Path | Scope |
+|---|---|
+| `Docs/SWRPG lore/SW_Starships_Classes.md` | Starship types and classes from Old Republic sources: 292 of 1,814 Legends class articles (those in an Old Republic–era work) |
+| `Docs/SWRPG lore/SW_Space_Tactics.md` | Starfighter and naval tactics: general, reusable methods (mostly *The Rebel Alliance Sourcebook*), dated where the lore dates them |
+
+## Economy
+
+Researched 23 Nov 2026. Source tiers on every line: in-universe (tier 1); game stat with game and date (tier 2); [gray] FFG to early 2016 (rule 7); [canon] gap-fill (tier 3, this topic only, in its own file). D-464 (Jared): lines sourced only to *Endless Vigil* (2016) and the [gray] *Nexus of Power* rows are under each file's Not used; CanonGapFill's 12 broken rows are deleted. The economy rulings are in D-464.
+
+| Path | Scope |
+|---|---|
+| `Docs/SWRPG lore/SW_Economy_Index.md` | Index of the economy set: files, source tiers, cross-references |
+| `Docs/SWRPG lore/SW_Economy_Currencies.md` | The credit and its names by era, aurodium, wartime and local currencies, Sith Empire currency, Hutt coins, scrip, exchange rates |
+| `Docs/SWRPG lore/SW_Economy_Wages_Bounties.md` | Wages, military pay, mercenary rates, bounties, guild and licence fees, smuggler cuts, broker fees, Jedi funding |
+| `Docs/SWRPG lore/SW_Economy_Institutions_Debt.md` | Taxes and tariffs, banks (Aargau, the Banking Clan), corporations and guilds, debt and loan sharks, the Exchange and Hutt Cartel, smuggling, black markets, slavery, the bacta trade |
+| `Docs/SWRPG lore/SW_Economy_Events.md` | Dated economic events and their effects on prices, Old Republic to 40 ABY |
+| `Docs/SWRPG lore/SW_Economy_Prices_Goods.md` | Tier 1 prices: food and drink, clothing, lodging, fares, medical care, information and forgeries, luxury goods, slaves (historical record) |
+| `Docs/SWRPG lore/SW_Economy_Prices_Ships_Weapons_Droids.md` | Tier 1 prices: ships and running costs, weapons, armour, droids; in-universe vs game-stat conflicts |
+| `Docs/SWRPG lore/SW_Economy_GamePriceLists_Part1.md` … `Part9.md` | Tier 2 game-stat prices and FFG [gray]: Parts 1–8 ships, vehicles, weapons, armour, droids, equipment; Part 9 goods and services, the full source list and the main Not used list |
+| `Docs/SWRPG lore/SW_Economy_CanonGapFill.md` | Tier 3 [canon] gap-fill prices (items with a Legends page but no Legends price); Canon figures that contradict Legends are under Not used |
+
+## Research lists (not lore files)
+
+| Path | Scope |
+|---|---|
+| `docs-v2/lore/SW_Weapons_Armor_CategoryIndex.md` | Weapons and armour: the Legends category index (the Weapons and Armor category trees), the full link reference |
+| `docs-v2/lore/SW_Weapons_Armor_Sorted.md` | Weapons and armour: the sorted research worklist (4,482 Legends articles in priority layers); source of the weapon classes and named gear files |
 
 ## Places, Force sites and nexuses
 
