@@ -96,7 +96,7 @@ export function cleanMarkdown(line: string): string {
     .replace(/^\s*>\s?/, '')
     .replace(/^\s*[*-]\s+/, '- ')
     .replace(/\*\*|__/g, '')
-    .replace(/(^|[\s(])\*(?=\S)|(?<=\S)\*(?=[\s).,;:'’-]|$)/g, '$1')
+    .replace(/(^|[\s("-])\*(?=\S)|(?<=\S)\*(?=[\s).,;:'’-]|$)/g, '$1')
     .replace(/\s+$/, '');
 }
 
@@ -179,7 +179,7 @@ interface Era {
 }
 
 /** Research tags in the bot's timeline rows ("[conflict]", "[inferred]", "[Ruled ...]", "[S-canon]"): kept in the lore file, not sent as story. */
-const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort|S-canon|Ruled|weak|unconfirmed|primary|dating derived)\b[^\]]*\]/gi;
+const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort|S-canon|Ruled|weak|unconfirmed|primary|dating derived|carried over)\b[^\]]*\]/gi;
 /** A row a ruling set aside ("[Ruled 24 Nov 2026: not used ...]", D-477): kept in the file as a record, never sent. */
 const RULED_OUT = /\[Ruled [^\]:]*: not used\b/i;
 /** Asides about the files rather than the story: "(see Ord Radama row)", "(SW_Republic_Military_GGW gives the range)", "(ruling 16)". */
@@ -780,6 +780,8 @@ export function fileKey(name: string): string | null {
   const c = /^SW_Characters_([0-9A-Za-z-]+?)_/.exec(name);
   if (c) return `c${c[1]!.toLowerCase()}`;
   if (/^SW_Legends_Galaxy_Timeline/.test(name)) return 'tl';
+  // The Mandalorian comparison's two timeline tables (D-482) join the timeline.
+  if (/^SW_Mandalorians_preTCW_vs_TCW/.test(name)) return 'tl';
   // The research bot's timeline slices (SW_Timeline_3700_3600BBY_Part1.md, lore batch 20) join the same timeline.
   if (/^SW_Timeline_.*_Part\d+\.md$/.test(name)) return 'tl';
   // Species files (SW_Species_OldRepublic_Part1.md -> sp-oldrepublic-p1; lore batch 21).

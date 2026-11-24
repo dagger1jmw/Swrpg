@@ -7,7 +7,7 @@
 
 Character reference for the long Republic peace and the **prequel era** — the thousand-year span after Ruusan in which the Sith worked in secret under the Rule of Two while the Republic slowly decayed, culminating in the Invasion of Naboo (32 BBY) and the eve of the Clone Wars (22 BBY). This is the era of **Darth Plagueis and Darth Sidious**, the Naboo crisis and **Darth Maul**, the prequel **Jedi Council** (Yoda, Mace Windu, Qui-Gon Jinn, young Obi-Wan), and **Count Dooku's** turn toward the dark. Drawn from the *Darth Plagueis* novel (Luceno), *The Phantom Menace*, *Attack of the Clones*, the *Jedi Apprentice/Quest* material, and supporting Legends sources.
 
-> **Continuity note (Legends, not Disney canon):** This doc follows **core Legends continuity**. Most importantly, **Darth Maul dies at the Battle of Naboo (32 BBY)** — killed by Obi-Wan Kenobi. The Clone Wars-era resurrection of Maul, Savage Opress, and the Maul/Mandalore/Satine arc are **Disney-canon (or late-EU) developments not part of core Legends** and are excluded here. The Clone Wars proper (Anakin's Knighthood, Grievous, Ventress, etc.) belong to **Era 12**.
+> **Continuity note (Legends, not Disney canon):** This doc follows **core Legends continuity**. **Darth Maul** is cut down by Obi-Wan Kenobi at Naboo (32 BBY), survives unknown to the galaxy and returns in 20 BBY with Savage Opress and Mother Talzin, takes the Sundari enclave on Mandalore, and dies on Tatooine in 16 BBY (Ruled 24 Nov 2026; Era 12). The Clone Wars proper (Anakin's Knighthood, Grievous, Ventress, etc.) belong to **Era 12**.
 
 Stats represent each character **at their prime**, on the **galaxy-wide Legends scale**.
 
@@ -109,8 +109,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Darth Maul
 - **Sheet snapshot:** Prime — Sith assassin, Sidious's first apprentice
 - **Species / Affiliation / Rank:** Dathomirian Zabrak (Iridonian) · Sith (Rule of Two) · Sith apprentice / assassin
-- **Lifespan:** Trained from childhood by Sidious; revealed and killed at the Battle of Naboo (32 BBY) by Obi-Wan Kenobi
-- **Summary:** Sidious's first apprentice — a Dathomirian Zabrak raised from childhood as a living weapon, conditioned into a creature of pure hatred, discipline, and lethal skill. Tattooed and horned, he was unleashed as an assassin: he tracked Qui-Gon and Obi-Wan to Naboo, killed **Qui-Gon Jinn** in the Theed duel, and was cut down by Obi-Wan — making Obi-Wan the first Jedi in ~1,000 years to defeat a Sith Lord. **In core Legends, Maul dies here at Naboo.** A spectacular acrobatic duelist with the double-bladed lightsaber, but shallow in the broader Force arts (bred to kill, not to rule).
+- **Lifespan:** Trained from childhood by Sidious; revealed and cut down at the Battle of Naboo (32 BBY) by Obi-Wan Kenobi; survives, returns in 20 BBY and dies on Tatooine in 16 BBY (Ruled 24 Nov 2026)
+- **Summary:** Sidious's first apprentice — a Dathomirian Zabrak raised from childhood as a living weapon, conditioned into a creature of pure hatred, discipline, and lethal skill. Tattooed and horned, he was unleashed as an assassin: he tracked Qui-Gon and Obi-Wan to Naboo, killed **Qui-Gon Jinn** in the Theed duel, and was cut down by Obi-Wan — making Obi-Wan the first Jedi in ~1,000 years to defeat a Sith Lord. He survives, unknown to the galaxy, until 20 BBY. A spectacular acrobatic duelist with the double-bladed lightsaber, but shallow in the broader Force arts (bred to kill, not to rule).
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -233,7 +233,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Force Abilities (game stats):** Force Body 74 *(Force Speed 76%)* · Telekinesis 72 *(Force Push 65%)* · Force Sense 76 *(Precognition 68%)*
 - **Unique techniques:** **Dark-side surge (one-off)** *(a brief, untrained channeling of rage at Naboo — notable as a one-time event, not a trained ability)*
 - **Signature Ability:** **Resolve under loss (the Sith-slayer of Naboo)** — the focus to recover his calm in his darkest moment and exploit a superior opponent's arrogance; the seed of the disciplined master he would become.
-- **Notable Feats:** Defeated Darth Maul at Naboo (first Jedi to kill a Sith in ~1,000 years) — as the weaker duelist, winning through Maul's arrogance and his own regained composure; knighted; took Anakin Skywalker as his apprentice.
+- **Notable Feats:** Defeated Darth Maul at Naboo (first Jedi to defeat a Sith in ~1,000 years) — as the weaker duelist, winning through Maul's arrogance and his own regained composure; knighted; took Anakin Skywalker as his apprentice.
 - **Alignment:** Light side (with a brief, dangerous dark-side surge during the Naboo duel).
 - **Tier:** Veteran (a capable but still-developing Padawan — clearly below the era's great duelists; his legendary Master self is Era 12).
 
@@ -314,7 +314,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 ---
 
-*Era 11 of the Star Wars Legends character-sheet series. Core Legends continuity (Maul dies at Naboo). Stats are prime-version, galaxy-wide scale, prequel Jedi skewing lower on average. **Now fully game-ready: ForceOutput + Intelligence on every block, numeric named-form ratings, and numeric Force Ability stats.** Chancellor-era Sidious is apex-adjacent (~112); his Emperor self rises into the Tier A apex cluster in Era 13.*
+*Era 11 of the Star Wars Legends character-sheet series. Core Legends continuity (Maul survives Naboo; Ruled 24 Nov 2026). Stats are prime-version, galaxy-wide scale, prequel Jedi skewing lower on average. **Now fully game-ready: ForceOutput + Intelligence on every block, numeric named-form ratings, and numeric Force Ability stats.** Chancellor-era Sidious is apex-adjacent (~112); his Emperor self rises into the Tier A apex cluster in Era 13.*
 
 > **Cross-era appearance notes:**
 > - **Darth Sidious** continues as the hidden Chancellor through the Clone Wars (Era 12) and declares the Empire as the open **Emperor** in Era 13 — rising into the Tier A apex cluster there.
@@ -328,5 +328,5 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 > - **Count Dooku — Jedi sheet here, Sith sheet in Era 12.** His fall to **Darth Tyranus** adds Force lightning and a red blade and shifts alignment, but core capability (legendary Makashi) stays roughly constant.
 > - **Darth Sidious — Chancellor-era here, Emperor in Era 13.** Same being; the later sheet reflects open rule, physical disfigurement, AND a rise into the **Tier A apex cluster** (his hidden prime understates his ceiling). His clone-resurrection "Reborn" incarnations are far later and among the most powerful dark-siders in Legends.
 > - **Obi-Wan Kenobi** — this Padawan sheet is deliberately well below the era's great duelists (Ataru primary; Soresu only beginning). He grows into a legendary defensive master by the Clone Wars (Era 12) and a serene elder hermit (Era 13). A clear example of large growth between sheets.
-> - **Darth Maul** — in **core Legends he dies here at Naboo**, so no later sheet. (The Clone Wars resurrection is Disney-canon/late-EU and excluded.)
+> - **Darth Maul** — cut down here at Naboo, he survives and returns in 20 BBY (Ruled 24 Nov 2026); no later sheet.
 > - **General scaling reminder:** prequel Jedi are intentionally lower on average — the individual greats (Yoda, Windu, Dooku) remain legendary, but rank-and-file Council members sit in the 78–86 Force range.

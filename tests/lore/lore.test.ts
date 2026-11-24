@@ -255,6 +255,28 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
     expect(LORE_INDEX.chunks.some((x) => x.id === 'tl:great-sith-war:-3997_-3997')).toBe(false);
     expect(LORE_INDEX.chunks.some((x) => x.id === 'tl:krath-holy-crusade:-3997_-3997')).toBe(true);
   });
+  it('the old timeline is retired where the sets cover it, and its lone events are carried over (D-481)', () => {
+    const tl = LORE_INDEX.chunks.filter((x) => x.id.startsWith('tl:'));
+    // One telling of each event: the old eras are gone, their own rows with them.
+    for (const era of ['great-hyperspace-war', 'sith-exile-old-republic-interwar', 'old-republic-founding-first-conflicts', 'golden-age-of-the-sith']) expect(tl.some((x) => x.id.startsWith(`tl:${era}:`)), era).toBe(false);
+    const text = tl.map((x) => x.text).join('\n');
+    for (const re of [/Xesh is convinced to turn on Daegen Lok/, /massive Force Storm/, /sought to destroy the Force itself/, /Spaarti cloning cylinders in the Mount Tantiss storehouse/]) expect(re.test(text), String(re)).toBe(true);
+    expect(/carried over from/.exec(text)?.[0]).toBeUndefined();
+    expect(tl.some((x) => x.id.startsWith('tl:yuuzhan-vong-war:'))).toBe(true); // 25 ABY onward stays
+  });
+  it('Mandalorians: clan Mandalore with the Sundari enclave (D-482)', () => {
+    const rows = LORE_INDEX.chunks.filter((x) => x.kind === 'timeline');
+    const at = (y: number): string => rows.filter((x) => x.fromYear === y && x.toYear === y).map((x) => x.text).join('\n');
+    const all = LORE_INDEX.chunks.map((x) => x.text).join('\n');
+    expect(/kills Vizsla on the surface/.test(at(-42))).toBe(true);
+    expect(/kills Vizsla|Vizsla \(killed\)/.test(at(-44))).toBe(false);
+    expect(/summons 100 trainers to Kamino, the Cuy'val Dar, 75 of them Mandalorians/.test(at(-32))).toBe(true);
+    expect(/Battle of New Holstice/.test(at(-22)) && /Battle of Zaadja/.test(at(-22))).toBe(true);
+    expect(/Battles of [^.]*(New Holstice|Zaadja)/.test(at(-21))).toBe(false);
+    expect(/Spar's Mandalorian Protectors take Sundari and drive Maul out/.test(at(-20))).toBe(true);
+    expect(/Fenn Shysa becomes Mand'alor/.test(at(-19))).toBe(true);
+    expect(/Siege of Mandalore|Takeover of Mandalore|rise to rule Mandalore|ruling New Mandalorians|Great Clan Wars: clan feuds|Maul dies at Naboo|Death Watch "dissolved"/.exec(all)?.[0]).toBeUndefined();
+  });
   it('the slices join the timeline', () => {
     expect(fileKey('SW_Timeline_3700_3600BBY_Part1.md')).toBe('tl');
     expect(fileKey('SW_Timeline_3700_3600BBY_Part3.md')).toBe('tl');

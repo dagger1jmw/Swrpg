@@ -160,7 +160,7 @@ export const OBIWAN: LifeProfile = {
     { from: 35, to: 36, perYear: 4, stakes: 'serious', gap: 0 },
     { from: 36, to: 37, perYear: 5, stakes: 'serious', gap: 0 },
     { from: 37, to: 38, perYear: 4, stakes: 'serious', gap: 0 },
-    // Their XP from other serious fights (D-258): Death Watch Mandalorian squads (Legends: Mandalore, the Clone Wars).
+    // Their XP from other serious fights (D-258): Mandalorian squads (the Protectors, who fight for the Confederacy; Death Watch is a small cell: D-482).
     { from: 35, to: 38, perYear: OBIWAN_MANDO, stakes: 'serious', gap: 0, opponent: 'mandalorian', count: 3 },
   ]),
 };

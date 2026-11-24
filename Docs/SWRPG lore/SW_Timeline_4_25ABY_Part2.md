@@ -90,6 +90,7 @@ The Thrawn campaign (Thrawn crisis; Thrawn called it the "Mount Tantiss campaign
 |---|---|---|---|---|---|
 | 9 ABY (GrS 44:3:5–44:4:15) | Raid on Saarn; Obroa-skai information raid; destruction of the Elomin task force | War | Saarn, Obroa-skai | Thrawn, Gilad Pellaeon | [9 ABY/Legends](https://starwars.fandom.com/wiki/9_ABY/Legends) |
 | 9 ABY | Thrawn's key assets came from the Emperor's storehouse in Mount Tantiss on Wayland, guarded by the mad clone Joruus C'baoth | Tech | Wayland | Thrawn, Joruus C'baoth | [Thrawn campaign](https://starwars.fandom.com/wiki/Thrawn_campaign) |
+| 9 ABY | Thrawn uses the Spaarti cloning cylinders in the Mount Tantiss storehouse to grow clone soldiers, and ysalamiri to block the Force [carried over from the old timeline, not re-checked] | Tech | Wayland | Thrawn, Joruus C'baoth | `SW_Legends_Galaxy_Timeline.md`, old row (no citation given there) |
 | 9 ABY (GrS 44:4:25–27) | Mission to Bimmisaari; attack on Bpfassh; **raid on Nomad City** | War | Bimmisaari, Bpfassh | Thrawn | [9 ABY/Legends](https://starwars.fandom.com/wiki/9_ABY/Legends) |
 | 9 ABY | Mission to Kashyyyk (Salporin dies); rescue on Myrkr | War | Kashyyyk, Myrkr | Salporin | [9 ABY/Legends](https://starwars.fandom.com/wiki/9_ABY/Legends) |
 | 9 ABY (GrS 44:5:17) | **Battle of Sluis Van** | War | Sluis Van | Thrawn | [9 ABY/Legends](https://starwars.fandom.com/wiki/9_ABY/Legends) |

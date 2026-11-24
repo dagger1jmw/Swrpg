@@ -38,7 +38,7 @@ Last updated 2026-11-24 (D-474: the five overnight timeline sets, 3,600 BBY–4 
 
 | Path | Scope |
 |---|---|
-| `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` | Complete galaxy timeline: scripted events and NPC deployment by era, all eras except 3,700–3,600 BBY (in the slice files below, lore batch 20). Corrected against Legends Wookieepedia on 23 Nov 2026 (D-465); rows marked "not re-checked" still need verifying |
+| `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` | Complete galaxy timeline: scripted events and NPC deployment by era, 2,000 BBY to 4 ABY and 25 ABY onward; every other year is in the sets below (lore batch 20; D-481). Corrected against Legends Wookieepedia on 23 Nov 2026 (D-465); rows marked "not re-checked" still need verifying |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part1.md` | Galaxy timeline, 3,700–3,653 BBY (replaces the old timeline's rows for these years; read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part2.md` | Galaxy timeline, 3,653 to c. 3,622 BBY (read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part3.md` | Galaxy timeline slice 1, Part 3: checks, conflicts and decisions (no entries) |
@@ -58,6 +58,12 @@ Last updated 2026-11-24 (D-474: the five overnight timeline sets, 3,600 BBY–4 
 | `Docs/SWRPG lore/SW_Timeline_19BBY_4ABY_Part2.md` | Galaxy timeline, Part 2: 9–1 BBY: smugglers, Starkiller and the Alliance. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_19BBY_4ABY_Part3.md` | Galaxy timeline, Part 3: 0 BBY–2 ABY: Yavin and after. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_19BBY_4ABY_Part4.md` | Galaxy timeline, Part 4: 3–4 ABY: Hoth to the New Republic; changes, conflicts and decisions. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_36453_5001BBY_Part1.md` to `_Part3.md` | Galaxy timeline, 36453–5001 BBY; the last part holds changes and sources. **Rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_5000_3997BBY_Part1.md` to `_Part3.md` | Galaxy timeline, 5000–3997 BBY; the last part holds changes and sources. **Rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_3996_3951BBY_Part1.md` to `_Part3.md` | Galaxy timeline, 3996–3951 BBY; the last part holds changes and sources. **Rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_3950_3701BBY_Part1.md` to `_Part3.md` | Galaxy timeline, 3950–3701 BBY; the last part holds changes and sources. **Rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_4_25ABY_Part1.md` to `_Part5.md` | Galaxy timeline, 4–25 ABY. **Rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Mandalorians_preTCW_vs_TCW.md` | Mandalorians, c. 60–19 BBY: pre-TCW and TCW records compared; ruled (option A, D-482). The index reads its two timeline tables |
 
 ## The Force and lightsaber combat
 

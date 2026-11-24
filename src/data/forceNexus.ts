@@ -32,7 +32,7 @@ export interface ForceNexus {
 }
 
 export const FORCE_NEXUSES: readonly ForceNexus[] = [
-  { id: 'tython', name: 'Tython', level: 'planet', planet: 'Tython', nexus: true, major: true, leaning: 'balanced', source: 'SW_Legends_Galaxy_Timeline (Dawn of the Jedi: Tython is violently sensitive to Force imbalance; the Je\'daii practised balance there)' },
+  { id: 'tython', name: 'Tython', level: 'planet', planet: 'Tython', nexus: true, major: true, leaning: 'balanced', source: 'SW_Timeline_36453_5001BBY_Part1 (Dawn of the Jedi: Tython is violently sensitive to Force imbalance; the Je\'daii practised balance there)' },
   { id: 'korriban', name: 'Korriban', level: 'planet', planet: 'Korriban', nexus: true, major: true, leaning: 'dark', source: 'SW_DarkSide_Fall_Corruption_Redemption_Part1 (Korriban, and the Valley in particular, became nexuses because Sith Lords were there so long)' },
   { id: 'valley-of-the-dark-lords', name: 'the Valley of the Dark Lords', level: 'site', planet: 'Korriban', nexus: true, leaning: 'dark', source: 'SW_DarkSide_Fall_Corruption_Redemption_Part1 (the Valley in particular); D-451: equals its major planet (x1.15)' },
   { id: 'byss', name: 'Byss', level: 'planet', planet: 'Byss', nexus: true, leaning: 'dark', fromYear: -19, source: 'SW_DarkSide_Fall_Corruption_Redemption_Part3 (Byss: a dark-side nexus created by Sidious\'s clones and alchemy; the year is a design default: the Empire\'s era)' },

@@ -133,7 +133,7 @@ What the existing files get wrong or leave unconfirmed, against the rows above.
 **`world-event-tags-1000BBY-4ABY-draft.md`**
 24. Section 2, E.24.separatists (LF): now verified, 24 BBY (Raxus Address). E.22.grievous (LF): verified, Hypori 13:9 GrS. E.20.outer_rim (LF): verified, 19.48 BBY.
 25. PP-4 step 2 (the Pyke mission on Oba Diah) rests only on *The Clone Wars* season 6 ("The Lost One", 2014), which rule 4a excludes [Ruled 24 Nov 2026: accepted, PP-4 step 2 stands]; the primary sources say only that Dooku killed Sifo-Dyas as his first test (Decisions needed).
-26. E.20.maul_returns and ruling 2's note "TCW seasons 1–6" need updating to "seasons 1–5 [S-canon]; season 6 excluded"; the arc's TCW-only characters need a decision [Ruled 24 Nov 2026: Savage Opress, Talzin and Satine are kept].
+26. E.20.maul_returns and ruling 2's note "TCW seasons 1–6" need updating to "seasons 1–5 [S-canon]; season 6 excluded"; the arc's TCW-only characters need a decision [Ruled 24 Nov 2026: Savage Opress, Talzin and Satine are kept; Maul takes Sundari only].
 27. PP-5 Part C ("only ARC troopers and commandos can refuse"): consistent with the 2008 Order 66 article, where the single recorded refusal is a commando unit and all other commandos and ARCs obeyed ([Order 66 rev. 2099370](https://starwars.fandom.com/wiki/Order_66/Legends?oldid=2099370)).
 
 ## Not found
@@ -168,7 +168,7 @@ What the existing files get wrong or leave unconfirmed, against the rows above.
 9. **Battle of Mygeeto length.** About two years (from early 21 BBY) vs a "weeks"-long assault in the Outer Rim Sieges framing; both can be true (a long siege with a final assault); confirm. **Ruled 24 Nov 2026 (default):** both.
 10. **Reflex Amendment year.** 21 BBY (its page) vs 20 BBY (year page). **Ruled 24 Nov 2026 (default):** 21 BBY (no best fit stated).
 11. **501st founding.** 22 BBY (current) vs "around 21 BBY" (2008); the 2008 date is primary under the coordinator's instruction, but the year page has the 501st at Geonosis. **Ruled 24 Nov 2026 (default):** 22 BBY (no best fit stated).
-12. **TCW-only characters list.** Rule 4a removes them; this file names the main ones but did not check every character's first appearance. A full list is needed before building NPC rosters. **Ruled (Jared, 24 Nov 2026), D-479:** TCW characters stay, named, when their events do not conflict with primary Legends; only Captain Rex is replaced (by Appo). Ahsoka is Plo Koon's apprentice. Satine, Pre Vizsla, Bo-Katan, Almec and the TCW Mandalore are on hold.
+12. **TCW-only characters list.** Rule 4a removes them; this file names the main ones but did not check every character's first appearance. A full list is needed before building NPC rosters. **Ruled (Jared, 24 Nov 2026), D-479:** TCW characters stay, named, when their events do not conflict with primary Legends; only Captain Rex is replaced (by Appo). Ahsoka is Plo Koon's apprentice. Satine, Pre Vizsla, Bo-Katan, Almec and the TCW Mandalore stay, inside the Sundari enclave (D-482).
 
 ## Sources
 Current pages (Wookieepedia, fetched 24 Nov 2026 through the API):

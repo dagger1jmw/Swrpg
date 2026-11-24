@@ -1797,3 +1797,10 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *Not applied:* that Nadd destroyed Sadow's spirit (5,000-3,997 item 7), which clashes with the accepted 3,950-3,701 item 7 (Ovair's duel destroys it). Flagged to Jared.
   - *Old files corrected:* the list is in docs-v2/reports/m8-lore-d.md.
   - *The parser:* a decimal year was read from its decimals ("32.5 BBY" as 5 BBY, "7.5 ABY" as 5 ABY) and is now cut to its year; [weak], [unconfirmed], [primary] and "(uncited)" notes and "Blank centuries" passages are not sent.
+- **D-481 Sadow's spirit, and the old timeline retired where the sets cover it (Jared, 2026-11-24; m8-lore-e).**
+  - *Sadow:* Nadd kills the body in 4,400 BBY; the spirit survives until Ovair's duel destroys it, c. 3,750 BBY. *Shadow of Revan*'s spirit (c. 3,630 BBY) is unresolved, noted on the duel row.
+  - *SW_Legends_Galaxy_Timeline.md* no longer holds 36,453-3,701 BBY or 4-25 ABY (138 rows, kept in docs-v2/lore/superseded/). Four events and one line no set had were carried over, marked "not re-checked" (docs-v2/reports/m8-lore-e.md). The old rows for 2,000 BBY-4 ABY were not part of the ruling and stay.
+- **D-482 Mandalorians, c. 60-19 BBY: option A (Jared, 2026-11-24; m8-lore-e).** docs-v2/reports/lore-rulings-mandalorians-2026-11-24.md applied; supersedes D-479's hold.
+  - *Framework:* clan Mandalore, capital Keldabe; Spar's Protectors the main Mandalorian force (Confederacy), Fenn Shysa *Mand'alor* from 19 BBY; the *Cuy'val Dar* (100 trainers, 75 Mandalorians) train the Republic's clones; Death Watch broken c. 42 BBY on Corellia, a small cell under Pre Vizsla after. Jango is a Mandalorian.
+  - *The New Mandalorians* (Satine, Almec, Bo-Katan) are the Sundari enclave, [S-canon]; the Excision only its region's history, the Clan Wars never planet-wide. Maul takes Sundari only; the Protectors take it back in 20 BBY (ruled, not lore).
+  - *The index* reads the two timeline tables of SW_Mandalorians_preTCW_vs_TCW.md; a row a set already tells is kept there as "not used here". SW_Characters_11 no longer has Maul die at Naboo.
