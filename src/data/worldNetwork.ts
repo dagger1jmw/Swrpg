@@ -1,14 +1,15 @@
 // The world-event tag network (M8 items 1 and 8; D-466; docs-v2/spec/world-events.md): the types an era's event data is
 // written in, and the shipped network. Facts (dates, who, what) come from the lore files; tags (replaceable or crucial,
-// guards) are design calls. Phase A ships the engine with no era data: WORLD_NETWORK is empty until Phase B. The Zod
+// guards) are design calls. The 3,661-3,640 data is in worldNetwork3661.ts. The Zod
 // schema and the cross-reference checks are in src/features/world/networkSchema.ts.
 import type { ActionType } from './checks.config';
 import type { FactionId, NpcRole } from './entities.config';
 import type { CombatStakes } from './progression.config';
 import type { ControlSide } from './worldControl';
+import { NETWORK_3661 } from './worldNetwork3661';
 
 /** How hard a condition is to break (the numbers are in worldNetwork.config.ts). */
-export const WORLD_GUARDS = ['low', 'medium', 'high'] as const;
+export const WORLD_GUARDS = ['low', 'medium', 'high', 'veryHigh'] as const;
 export type WorldGuard = (typeof WORLD_GUARDS)[number];
 
 /** How much a recorded fact weighs against a guard. */
@@ -39,7 +40,9 @@ export type StateTest =
   | { kind: 'control'; place: string; side: ControlSide; is?: boolean }
   /** A registered flag no AI source may set (checked by the schema). */
   | { kind: 'flag'; flag: string }
-  | { kind: 'outcome'; outcome: string; state: 'produced' | 'broken' };
+  | { kind: 'outcome'; outcome: string; state: 'produced' | 'broken' }
+  /** The player has the foreknowledge a condition asks for (its prerequisites are met); tag = "<event>#<condition>". */
+  | { kind: 'known'; tag: string };
 
 /** A player action whose check the engine rolled, or a fight the player won. */
 export type DeedTest =
@@ -51,6 +54,33 @@ export type WorldTest = (StateTest | DeedTest) & {
   strength?: TestStrength;
 };
 
+/**
+ * Foreknowledge (Jared, D-467): its own step at a medium guard (actions and won fights add up), or one recorded discovery
+ * fact (any state test). Once met it stays met.
+ */
+export interface Prerequisite {
+  /** Unique within the condition, "know.<name>". */
+  id: string;
+  text: string;
+  tests: readonly WorldTest[];
+}
+
+/**
+ * A scene outcome the engine records as the flag sceneOutcome:<id>: a rolled success against the guard's DC, or a won
+ * fight, that meets one of `on`. Open while its event is unsettled, inside its window, and while `requires` holds.
+ */
+export interface SceneDef {
+  id: string;
+  title: string;
+  event: string;
+  guard: WorldGuard;
+  fromYear: number;
+  /** Inclusive. Absent = until the event settles. */
+  toYear?: number;
+  on: readonly DeedTest[];
+  requires?: readonly StateTest[];
+}
+
 export interface RoleTag {
   /** Unique within the event, "role.<name>". */
   id: string;
@@ -58,6 +88,8 @@ export interface RoleTag {
   kind: 'replaceable' | 'crucial';
   /** The person; absent for a body, a fleet or a team. */
   canonId?: string;
+  /** A person the lore index has no entry for: the story NPC of exactly this name, dead by the engine's record. */
+  npcName?: string;
   /** A SWTOR or film protagonist: always an NPC, never the player (tag map section 6). */
   protagonist?: boolean;
   /** Who can stand in (replaceable roles): the side and the standings to look in. Defaults to the person's own. */
@@ -80,8 +112,8 @@ export interface ConditionTag {
   guard: WorldGuard;
   /** Facts and deeds that count towards breaking it. Empty = only its inputs can stop the event. */
   breakIf: readonly WorldTest[];
-  /** Needed before anything counts (foreknowledge): any one is enough, and it stays known. */
-  prerequisite?: readonly WorldTest[];
+  /** Foreknowledge needed before anything counts: one, or two distinct ones for a very high guard. */
+  prerequisites?: readonly Prerequisite[];
   /** Only while the event is under way (an occupation that must hold), or from a year on. Default: until it is settled. */
   window?: 'underway' | { fromYear: number };
   onBreak?: BreakEffect;
@@ -105,6 +137,8 @@ export interface ProducedOutcome {
    * the event's own tag ids or the outcomes it consumes.
    */
   when?: { intact?: readonly string[]; broken?: readonly string[] };
+  /** A place that changes hands when it is produced (an outcome the record does not have: Korriban taken). */
+  control?: { place: string; side: ControlSide; note: string };
 }
 
 export interface WorldEventDef {
@@ -180,6 +214,8 @@ export interface WorldNetwork {
   plotPoints: readonly PlotPointDef[];
   /** Outcomes already true when the network opens, with no event in it producing them. */
   standing: readonly { outcome: string; note: string }[];
+  /** Scene outcomes the network's flag tests read. */
+  scenes?: readonly SceneDef[];
 }
 
 /**
@@ -189,5 +225,5 @@ export interface WorldNetwork {
 export const WORLD_EVENT_STATUSES = ['waiting', 'underway', 'standing', 'recorded', 'substituted', 'adjusted', 'altered', 'cancelled'] as const;
 export type WorldEventStatus = (typeof WORLD_EVENT_STATUSES)[number];
 
-/** The shipped network: empty in Phase A (D-466); Phase B adds 3,661-3,640 BBY. */
-export const WORLD_NETWORK: WorldNetwork = { events: [], plotPoints: [], standing: [] };
+/** The shipped network: 3,661-3,640 BBY (Phase B, D-467). Other eras get their own files when their maps are approved. */
+export const WORLD_NETWORK: WorldNetwork = NETWORK_3661;

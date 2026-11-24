@@ -1,9 +1,11 @@
-import { CANON_BY_ID } from '../../data/canonNpcs';
+import { CANON_DEATH_LINKS } from '../../data/canonDeathLinks';
+import { CANON_BY_ID, CANON_NPCS, type CanonNpc } from '../../data/canonNpcs';
 import { ORDER_SEATS, type OrderSeat } from '../../data/orderSeats';
 import { FACTION_LEADERS, placeAmong, type LeaderSpan } from '../../data/worldControl';
 import { WORLD_NETWORK, type RoleTag, type WorldNetwork } from '../../data/worldNetwork';
+import { normalizeText } from '../../engine/aliases';
 import { dateFromAbsDay } from '../../engine/calendar';
-import { canonFactionAt, canonPresentAt, canonRankAt, canonRoleAt } from '../../engine/canonRoster';
+import { canonFactionAt, canonPresentAt, canonRankAt, canonRoleAt, withoutDeath } from '../../engine/canonRoster';
 import { datedFactsAt, type HeldReason } from '../../engine/datedFacts';
 import type { GameState } from '../../state/gameState';
 import { selectLastFight } from '../combat/selectors';
@@ -27,6 +29,17 @@ const nowBby = (s: GameState): number => -dateFromAbsDay(s.clock.now.day).year;
 /** The network state with everything before the campaign (or before this data existed) standing as recorded. */
 export const selectNetworkState = (s: GameState, net: WorldNetwork = WORLD_NETWORK): NetworkState => openNetwork(net, s.world.network, s.clock.now.day);
 
+/**
+ * A canon figure as this campaign has it (D-467): without the death on record while the event that causes it has not come
+ * about (it diverged, or it is late). Any other death stands on its date.
+ */
+export function selectCanonInCampaign(s: GameState, n: CanonNpc, net: WorldNetwork = WORLD_NETWORK): CanonNpc {
+  const link = CANON_DEATH_LINKS[n.canonId];
+  if (!link || n.deathBby === undefined) return n;
+  const state = outcomeState(net, selectNetworkState(s, net), link);
+  return state === 'broken' || state === 'pending' ? withoutDeath(n) : n;
+}
+
 const placeNames = (s: GameState, locationId: string | null): string[] => selectLocationChain(s, locationId).flatMap((l) => [l.name, ...l.aliases]);
 
 /** Who could stand in for a lost role: canon figures in office first (same title, then nearest in age), then known NPCs. */
@@ -39,7 +52,7 @@ function standIns(s: GameState, role: RoleTag, exclude: ReadonlySet<string>, los
   const title = gone ? canonRankAt(gone, bby)?.title : undefined;
   const born = gone?.birthBby ?? null;
   const seen = new Set<string>();
-  const canon = canonPresentAt(bby)
+  const canon = canonPresentAt(bby, CANON_NPCS.map((n) => selectCanonInCampaign(s, n)))
     .filter((n) => {
       if (seen.has(n.canonId) || exclude.has(n.canonId) || lost.has(n.canonId) || n.canonId === role.canonId) return false;
       seen.add(n.canonId);
@@ -58,7 +71,8 @@ function standIns(s: GameState, role: RoleTag, exclude: ReadonlySet<string>, los
 /** The people the player beat in the last fight, when it was a real fight and it was won. */
 function wonFight(s: GameState): WorldFacts['wonFight'] {
   const last = selectLastFight(s);
-  if (!last || last.outcome !== 'won' || last.stakes === 'spar') return null;
+  // Only a fight just fought: an old one must not count when a condition opens years later.
+  if (!last || last.outcome !== 'won' || last.stakes === 'spar' || s.clock.now.day - last.day > 1) return null;
   const duel = last.duel as { opponents?: { id: string; engagedElsewhere?: boolean; out?: unknown }[] } | undefined;
   // An opponent an ally fought the whole time is not the player's (D-212).
   const foes = (duel?.opponents ?? []).filter((o) => !(o.engagedElsewhere && !o.out)).flatMap((o) => (s.npcs.byId[o.id] ? [s.npcs.byId[o.id]!] : []));
@@ -83,6 +97,7 @@ export function selectWorldFacts(s: GameState): WorldFacts {
   return {
     bby: nowBby(s),
     npcLost: (id) => lost.get(id) ?? null,
+    storyNpcDead: (name) => selectNpcs(s).some((n) => n.status === 'deceased' && [n.name, ...n.aliases].some((x) => normalizeText(x) === normalizeText(name))),
     hasFlag: (f) => selectHasFlag(s, f),
     wonFight: wonFight(s),
     standIns: (role, exclude) => standIns(s, role, exclude, lost),

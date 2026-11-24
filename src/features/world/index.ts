@@ -17,7 +17,7 @@ import { selectPath } from '../character/selectors';
 import { selectNpcs } from '../npcs/selectors';
 import { selectRank } from '../ranks/selectors';
 import { selectOpenThreads } from '../threads/selectors';
-import { openNetwork, recordAction, reviewNetwork } from './network';
+import { openNetwork, recordAction, reviewNetwork, sceneFlag, scenesWon } from './network';
 import { handoffLines, selectTimelineHandoff, selectUntoldWorldEvents, selectWorldAction, selectWorldFacts, selectWorldLog } from './selectors';
 import { emptyWorld, migrateWorldV1, worldSliceSchema, type NetworkState, type WorldEvent, type WorldSlice } from './world';
 
@@ -149,7 +149,8 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
         const action = selectWorldAction(s, { actionType: e['actionType'] as ActionType, skillId: e['skillId'] as string | null, total: Number(e['total']), targets: e['targets'] as string[] });
         const day = s.clock.now.day;
         const r = recordAction(network, openNetwork(network, slice.network, day), selectWorldFacts(s), action, day);
-        return { slice: { ...slice, network: r.state }, notes: r.notes };
+        // A scene's outcome is a flag only the engine may set (flag-registry §4).
+        return { slice: { ...slice, network: r.state }, notes: r.notes, emit: r.scenes.map((id) => ({ type: 'flagSet', flag: sceneFlag(id) })) };
       },
     },
     /** Engine only: a place changes hands in this campaign (a battle the engine resolved). Never from the narrator. */
@@ -169,7 +170,9 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
     let interrupt: string | undefined;
     let next = slice;
     if (network.events.length || slice.network.cursorDay !== day) {
-      const review = reviewNetwork(network, slice.network, selectWorldFacts(ctx.state), day);
+      const facts = selectWorldFacts(ctx.state);
+      for (const id of scenesWon(network, openNetwork(network, slice.network, day), facts)) emit.push({ type: 'flagSet', flag: sceneFlag(id) });
+      const review = reviewNetwork(network, slice.network, facts, day);
       // Nothing decided: only the cursor (and partial progress) moves. Otherwise it goes through an event, for the record.
       if (!review.changes.length) next = { ...slice, network: review.state };
       else {

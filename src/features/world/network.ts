@@ -4,12 +4,12 @@
 //
 // Events are settled when play reaches their date (a divergence is decided then, not before, so the player can still
 // change more). Broken tags and broken outcomes are final: history is never reconnected.
-import { DIFFICULTY_RATING, type ActionType } from '../../data/checks.config';
+import type { ActionType } from '../../data/checks.config';
 import type { FactionId } from '../../data/entities.config';
 import { COMBAT_STAKES, type CombatStakes } from '../../data/progression.config';
 import { placeAmong, WORLD_CONTROL, type ControlSide, type ControlSpan } from '../../data/worldControl';
-import { ACTIONS_PER_CONDITION_PER_DAY, GRADE_POINTS, GUARD_RULES, PREREQUISITE_GUARD, STRENGTH_POINTS } from '../../data/worldNetwork.config';
-import type { ConditionTag, DeedTest, PlotAlternative, PlotPointDef, RoleTag, StateTest, WorldDate, WorldEventDef, WorldEventStatus, WorldExpr, WorldGuard, WorldNetwork, WorldTest } from '../../data/worldNetwork';
+import { ACTIONS_PER_CONDITION_PER_DAY, GRADE_POINTS, GUARD_RULES, PREREQUISITE_GUARD, PREREQUISITES_NEEDED, STRENGTH_POINTS } from '../../data/worldNetwork.config';
+import type { ConditionTag, PlotAlternative, PlotPointDef, RoleTag, SceneDef, StateTest, WorldDate, WorldEventDef, WorldEventStatus, WorldExpr, WorldGuard, WorldNetwork, WorldTest } from '../../data/worldNetwork';
 import { absDayFromDate } from '../../engine/calendar';
 import { datedFactsAt, type FactNow, type HeldReason, type OutcomeState } from '../../engine/datedFacts';
 import { dcForRating, gradeMargin } from '../../engine/rolls';
@@ -20,6 +20,8 @@ export interface WorldFacts {
   bby: number;
   /** A canon figure the engine recorded as dead or taken in this campaign; null = neither (or never met). */
   npcLost(canonId: string): 'dead' | 'captured' | null;
+  /** A story NPC of exactly this name whom the engine recorded as dead (people with no canon entry). */
+  storyNpcDead(name: string): boolean;
   hasFlag(flag: string): boolean;
   /** The last finished fight, when the player won it. */
   wonFight: { id: string; stakes: CombatStakes; canonIds: readonly string[]; factions: readonly FactionId[]; places: readonly string[] } | null;
@@ -58,6 +60,8 @@ interface NetworkIndex {
   producer: ReadonlyMap<string, string>;
   standing: ReadonlySet<string>;
   alternativeOutcomes: ReadonlySet<string>;
+  /** Outcomes the record does not have: produced only when a tag breaks. */
+  branches: ReadonlySet<string>;
   order: readonly WorldEventDef[];
   rank: ReadonlyMap<string, number>;
 }
@@ -89,6 +93,7 @@ function indexOf(net: WorldNetwork): NetworkIndex {
     producer,
     standing: new Set(net.standing.map((s) => s.outcome)),
     alternativeOutcomes: new Set(net.plotPoints.flatMap((p) => p.alternatives.flatMap((a) => a.effects?.produces ?? []))),
+    branches: new Set(net.events.flatMap((e) => e.produces.filter((p) => p.when?.broken).map((p) => p.outcome))),
     order,
     rank: new Map(order.map((e, i) => [e.id, i])),
   };
@@ -98,6 +103,7 @@ function indexOf(net: WorldNetwork): NetworkIndex {
 
 /** The events with every producer before its consumers (shorter than the network when they loop). */
 export const eventOrder = (net: WorldNetwork): readonly WorldEventDef[] => indexOf(net).order;
+export const isBranch = (net: WorldNetwork, outcome: string): boolean => indexOf(net).branches.has(outcome);
 export const eventDef = (net: WorldNetwork, id: string): WorldEventDef | null => indexOf(net).byId.get(id) ?? null;
 
 // ---- Reading the state ----
@@ -155,6 +161,8 @@ function stateTestHolds(net: WorldNetwork, st: NetworkState, f: WorldFacts, t: S
       return f.hasFlag(t.flag);
     case 'outcome':
       return outcomeState(net, st, t.outcome) === t.state;
+    case 'known':
+      return known(net, st, t.tag);
   }
 }
 
@@ -175,8 +183,7 @@ export function exprHolds(net: WorldNetwork, st: NetworkState, f: WorldFacts, e:
 
 // ---- Breaking tags ----
 
-const NO_PROGRESS: Progress = { points: 0, counted: [], prepared: false, actionDay: null, actionsThatDay: 0 };
-const isDeed = (t: WorldTest): t is WorldTest & DeedTest => t.kind === 'action' || t.kind === 'fight';
+const NO_PROGRESS: Progress = { points: 0, counted: [], known: {}, actionDay: null, actionsThatDay: 0 };
 
 function conditionOpen(st: NetworkState, e: WorldEventDef, c: ConditionTag, f: WorldFacts): boolean {
   if (isSettled(st, e) || st.tags[tagKey(e.id, c.id)]) return false;
@@ -190,21 +197,48 @@ const peopleMatch = (wanted: readonly string[] | undefined, at: readonly string[
 function actionMeets(t: WorldTest, a: WorldAction): boolean {
   if (t.kind !== 'action') return false;
   if (!t.actionTypes.includes(a.actionType)) return false;
-  if (t.skills && (a.skillId === null || !t.skills.includes(a.skillId))) return false;
+  // No skill named: the roll was made at level 0, and the DC decides.
+  if (t.skills && a.skillId !== null && !t.skills.includes(a.skillId)) return false;
   return placesMatch(t.places, a.places) && peopleMatch(t.canonIds, a.canonIds);
 }
 
-function fightMeets(t: WorldTest, w: NonNullable<WorldFacts['wonFight']>): boolean {
-  if (t.kind !== 'fight') return false;
+function fightMeets(t: WorldTest, w: WorldFacts['wonFight']): boolean {
+  if (t.kind !== 'fight' || !w) return false;
   if (COMBAT_STAKES.indexOf(w.stakes) < COMBAT_STAKES.indexOf(t.minStakes ?? 'skirmish')) return false;
   if (t.factions && !t.factions.some((x) => w.factions.includes(x))) return false;
   return placesMatch(t.places, w.places) && peopleMatch(t.canonIds, w.canonIds);
 }
 
-const guardMargin = (guard: WorldGuard, total: number): number => total - dcForRating(DIFFICULTY_RATING[GUARD_RULES[guard].difficulty]);
+const guardMargin = (guard: WorldGuard, total: number): number => total - dcForRating(GUARD_RULES[guard].rating);
+
+/** How many distinct prerequisites the condition needs, and whether they are met. */
+const prerequisitesNeeded = (c: ConditionTag): number => Math.max(PREREQUISITES_NEEDED[c.guard], c.prerequisites?.length ? 1 : 0);
+const prerequisitesMet = (c: ConditionTag, p: Progress): boolean => (c.prerequisites ?? []).filter((q) => p.known[q.id]?.met).length >= prerequisitesNeeded(c);
+
+function known(net: WorldNetwork, st: NetworkState, tag: string): boolean {
+  const [ev, id] = tag.split('#');
+  const c = eventDef(net, ev ?? '')?.conditions.find((x) => x.id === id);
+  return c !== undefined && prerequisitesMet(c, st.progress[tag] ?? NO_PROGRESS);
+}
 
 function breakTag(st: NetworkState, key: string, day: number, cause: string): NetworkState {
   return st.tags[key] ? st : { ...st, tags: { ...st.tags, [key]: { day, cause: cause.slice(0, 200), toldTurn: null } } };
+}
+
+/** Recorded facts and won fights counted once each: the points they add, and their marks. */
+function countFacts(net: WorldNetwork, st: NetworkState, f: WorldFacts, tests: readonly WorldTest[], counted: readonly string[]): { points: number; marks: string[]; fact: boolean } {
+  let points = 0;
+  let fact = false;
+  const marks: string[] = [];
+  tests.forEach((t, i) => {
+    if (t.kind === 'action') return;
+    const mark = t.kind === 'fight' ? `${i}:${f.wonFight?.id ?? ''}` : `${i}`;
+    if (counted.includes(mark) || !(t.kind === 'fight' ? fightMeets(t, f.wonFight) : stateTestHolds(net, st, f, t))) return;
+    points += STRENGTH_POINTS[t.strength ?? 'minor'];
+    marks.push(mark);
+    if (t.kind !== 'fight') fact = true;
+  });
+  return { points, marks, fact };
 }
 
 const LOST_TEXT = { dead: 'dead', captured: 'captured' } as const;
@@ -212,8 +246,10 @@ const LOST_TEXT = { dead: 'dead', captured: 'captured' } as const;
 /** Facts recorded in the game state, counted once each, against every open tag. */
 function latchTags(net: WorldNetwork, st0: NetworkState, f: WorldFacts, day: number, changes: NetworkChange[]): NetworkState {
   let st = st0;
-  const broke = (key: string, cause: string): void => {
+  const broke = (key: string, cause: string, silent = false): void => {
     st = breakTag(st, key, day, cause);
+    // What only follows from another event's outcome is told with its own event, on its date (D-467 [7]).
+    if (silent) st = { ...st, tags: { ...st.tags, [key]: { ...st.tags[key]!, toldTurn: 0 } } };
     changes.push({ kind: 'tag', id: key, note: `tag broken: ${key} (${cause})`, interrupt: false, seen: false });
   };
   for (const e of eventOrder(net)) {
@@ -221,7 +257,7 @@ function latchTags(net: WorldNetwork, st0: NetworkState, f: WorldFacts, day: num
     for (const r of e.roles) {
       const key = tagKey(e.id, r.id);
       if (st.tags[key]) continue;
-      const lost = r.canonId ? f.npcLost(r.canonId) : null;
+      const lost = (r.canonId ? f.npcLost(r.canonId) : null) ?? (r.npcName && f.storyNpcDead(r.npcName) ? 'dead' : null);
       if (lost) broke(key, `${r.label} ${LOST_TEXT[lost]}`);
       else if ((r.breakIf ?? []).some((t) => stateTestHolds(net, st, f, t))) broke(key, `${r.label} cannot act`);
     }
@@ -230,60 +266,89 @@ function latchTags(net: WorldNetwork, st0: NetworkState, f: WorldFacts, day: num
       const key = tagKey(e.id, c.id);
       let p = st.progress[key] ?? NO_PROGRESS;
       const before = p;
-      const met = (t: WorldTest): boolean => (t.kind === 'fight' ? f.wonFight !== null && fightMeets(t, f.wonFight) : !isDeed(t) && stateTestHolds(net, st, f, t));
-      if (c.prerequisite && !p.prepared && c.prerequisite.some(met)) p = { ...p, prepared: true };
-      if (!c.prerequisite || p.prepared) {
-        c.breakIf.forEach((t, i) => {
-          // A fight counts once per test and fight; a recorded fact once.
-          const mark = t.kind === 'fight' ? `${i}:${f.wonFight?.id ?? ''}` : `${i}`;
-          if (p.counted.includes(mark) || !met(t)) return;
-          p = { ...p, points: p.points + STRENGTH_POINTS[t.strength ?? 'minor'], counted: [...p.counted, mark] };
-        });
+      for (const q of c.prerequisites ?? []) {
+        const k = p.known[q.id] ?? { points: 0, met: false, counted: [] };
+        if (k.met) continue;
+        const got = countFacts(net, st, f, q.tests, k.counted);
+        if (!got.marks.length) continue;
+        const points = k.points + got.points;
+        // A recorded discovery is foreknowledge in itself; won fights add up like actions.
+        p = { ...p, known: { ...p.known, [q.id]: { points, met: got.fact || points >= GUARD_RULES[PREREQUISITE_GUARD].points, counted: [...k.counted, ...got.marks] } } };
+      }
+      if (prerequisitesMet(c, p)) {
+        const got = countFacts(net, st, f, c.breakIf, p.counted);
+        if (got.marks.length) p = { ...p, points: p.points + got.points, counted: [...p.counted, ...got.marks] };
       }
       if (p !== before) st = { ...st, progress: { ...st.progress, [key]: p } };
-      if (p.points >= GUARD_RULES[c.guard].points) broke(key, 'recorded facts');
+      if (!prerequisitesMet(c, p) || p.points < GUARD_RULES[c.guard].points) continue;
+      const inherited = c.breakIf.reduce((sum, t, i) => sum + (t.kind === 'outcome' && p.counted.includes(`${i}`) ? STRENGTH_POINTS[t.strength ?? 'minor'] : 0), 0);
+      broke(key, inherited === p.points ? 'an earlier event' : 'recorded facts', inherited === p.points);
     }
   }
   return st;
 }
 
-/** Whether any open condition's test (or prerequisite) is about this action. */
-export function actionMatters(net: WorldNetwork, st: NetworkState, f: WorldFacts, a: WorldAction): boolean {
-  return net.events.some((e) => e.conditions.some((c) => conditionOpen(st, e, c, f) && [...c.breakIf, ...(c.prerequisite ?? [])].some((t) => actionMeets(t, a))));
+/** Scenes whose outcome is not recorded yet and whose moment it is. */
+function openScenes(net: WorldNetwork, st: NetworkState, f: WorldFacts): SceneDef[] {
+  return (net.scenes ?? []).filter((s) => {
+    const e = eventDef(net, s.event);
+    if (!e || isSettled(st, e) || f.hasFlag(sceneFlag(s.id))) return false;
+    if (-f.bby < s.fromYear || (s.toYear !== undefined && -f.bby > s.toYear)) return false;
+    return (s.requires ?? []).every((t) => stateTestHolds(net, st, f, t));
+  });
 }
 
-/** A rolled action counted against every open condition it is about: the guard sets the DC and the points needed. */
-export function recordAction(net: WorldNetwork, st0: NetworkState, f: WorldFacts, a: WorldAction, day: number): { state: NetworkState; notes: string[] } {
+export const sceneFlag = (id: string): string => `sceneOutcome:${id}`;
+
+/** The scenes a won fight settles now (their flags are set by the handler). */
+export const scenesWon = (net: WorldNetwork, st: NetworkState, f: WorldFacts): string[] => openScenes(net, st, f).filter((s) => s.on.some((t) => fightMeets(t, f.wonFight))).map((s) => s.id);
+
+/** Whether any open scene, condition or prerequisite is about this action. */
+export function actionMatters(net: WorldNetwork, st: NetworkState, f: WorldFacts, a: WorldAction): boolean {
+  if (openScenes(net, st, f).some((s) => s.on.some((t) => actionMeets(t, a)))) return true;
+  return net.events.some((e) => e.conditions.some((c) => conditionOpen(st, e, c, f) && [...c.breakIf, ...(c.prerequisites ?? []).flatMap((q) => q.tests)].some((t) => actionMeets(t, a))));
+}
+
+/** A rolled action counted against every open scene and condition it is about: the guard sets the DC and the points needed. */
+export function recordAction(net: WorldNetwork, st0: NetworkState, f: WorldFacts, a: WorldAction, day: number): { state: NetworkState; notes: string[]; scenes: string[] } {
   let st = st0;
   const notes: string[] = [];
+  // A scene asks for foreknowledge the player had before this roll.
+  const scenes = openScenes(net, st0, f).filter((s) => s.on.some((t) => actionMeets(t, a)) && guardMargin(s.guard, a.total) >= 0).map((s) => s.id);
   for (const e of eventOrder(net)) {
     for (const c of e.conditions) {
       if (!conditionOpen(st, e, c, f)) continue;
       const key = tagKey(e.id, c.id);
       let p = st.progress[key] ?? NO_PROGRESS;
-      if (c.prerequisite && !p.prepared) {
-        if (!c.prerequisite.some((t) => actionMeets(t, a))) continue;
-        if (guardMargin(PREREQUISITE_GUARD, a.total) < 0) continue;
-        p = { ...p, prepared: true };
-        notes.push(`world: ${key}: the prerequisite is met`);
-      } else if (c.breakIf.some((t) => actionMeets(t, a))) {
-        const today = p.actionDay === day ? p.actionsThatDay : 0;
-        if (today >= ACTIONS_PER_CONDITION_PER_DAY) {
-          notes.push(`world: ${key}: already counted today`);
-          continue;
-        }
-        const grade = gradeMargin(guardMargin(c.guard, a.total));
-        p = { ...p, points: Math.max(0, p.points + GRADE_POINTS[grade]), actionDay: day, actionsThatDay: today + 1 };
-        notes.push(`world: ${key}: ${grade} against a ${c.guard} guard (${p.points} of ${GUARD_RULES[c.guard].points})`);
-      } else continue;
+      const ready = prerequisitesMet(c, p);
+      const learn = ready ? undefined : (c.prerequisites ?? []).find((q) => !p.known[q.id]?.met && q.tests.some((t) => actionMeets(t, a)));
+      if (!learn && !(ready && c.breakIf.some((t) => actionMeets(t, a)))) continue;
+      const today = p.actionDay === day ? p.actionsThatDay : 0;
+      if (today >= ACTIONS_PER_CONDITION_PER_DAY) {
+        notes.push(`world: ${key}: already counted today`);
+        continue;
+      }
+      const guard = learn ? PREREQUISITE_GUARD : c.guard;
+      const grade = gradeMargin(guardMargin(guard, a.total));
+      const need = GUARD_RULES[guard].points;
+      p = { ...p, actionDay: day, actionsThatDay: today + 1 };
+      if (learn) {
+        const k = p.known[learn.id] ?? { points: 0, met: false, counted: [] };
+        const points = Math.max(0, k.points + GRADE_POINTS[grade]);
+        p = { ...p, known: { ...p.known, [learn.id]: { ...k, points, met: points >= need } } };
+        notes.push(`world: ${key}: ${grade}, foreknowledge ${learn.id} (${points} of ${need})`);
+      } else {
+        p = { ...p, points: Math.max(0, p.points + GRADE_POINTS[grade]) };
+        notes.push(`world: ${key}: ${grade} against a ${c.guard} guard (${p.points} of ${need})`);
+      }
       st = { ...st, progress: { ...st.progress, [key]: p } };
-      if (p.points >= GUARD_RULES[c.guard].points) {
+      if (!learn && p.points >= need) {
         st = breakTag(st, key, day, `the player's action (${a.actionType})`);
         notes.push(`world: tag broken: ${key}`);
       }
     }
   }
-  return { state: st, notes };
+  return { state: st, notes, scenes };
 }
 
 // ---- Settling events: substitution, divergence, the ripple ----
@@ -311,7 +376,15 @@ function judge(net: WorldNetwork, st: NetworkState, e: WorldEventDef): Verdict {
     else adjusted = true;
   }
   for (const c of e.consumes) {
-    if (outcomeState(net, st, c.outcome) !== 'broken') continue;
+    const state = outcomeState(net, st, c.outcome);
+    // An optional input off the record changes the event by coming about, not by staying away.
+    if (!c.required && isBranch(net, c.outcome)) {
+      if (state !== 'produced') continue;
+      broken.push(c.outcome);
+      adjusted = true;
+      continue;
+    }
+    if (state !== 'broken') continue;
     broken.push(c.outcome);
     if (c.required) effects.push(c.onBreak ?? 'cancelled');
     else adjusted = true;
@@ -335,6 +408,7 @@ function settleOutcomes(net: WorldNetwork, st0: NetworkState, e: WorldEventDef, 
     let produced = !DIVERGED.includes(status);
     if (p.when && status !== 'cancelled') produced = !(p.when.intact ?? []).some(isBroken) && (!p.when.broken || p.when.broken.some(isBroken));
     st = setOutcome(st, p.outcome, produced ? 'produced' : 'broken', day);
+    if (produced && p.control) st = { ...st, control: [...st.control, { ...p.control, day }] };
   }
   return st;
 }

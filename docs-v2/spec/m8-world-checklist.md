@@ -10,7 +10,7 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 
 ## Items
 
-- [ ] **1. World events: the 3,661–3,660 chain, the Sacking and the Treaty (D-401 [7], D-405 [5]).**
+- [x] **1. World events: the 3,661–3,660 chain, the Sacking and the Treaty (D-401 [7], D-405 [5]).** *Built: D-466, D-467 (docs-v2/reports/m8-world-a.md, m8-world-b.md). Two of the D-379 hooks have no event in the tag map: the Council debate is a start thread, and the surrender talk is not built.*
 
   M7 applies the blockade as standing state at the 3,661 start (the control table, the leaders, the timeline's state row and the seeds; D-400). Nothing yet fires the events as play crosses the date:
   - the Battle on the Hydian Way, with Hylo Visz's smugglers breaking the blockade (3,660, D-393 [9]);
@@ -38,7 +38,7 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [ ] **7. Droids (D-405 [5]).**
 
   After medicine: droid models by era (the research queue's "Droids by era" gap; D-213's era minion kinds), companions, prices and their place in combat.
-- [ ] **8. Cold War world events, 3,653–3,640 (timeline audit, D-408 [6]).**
+- [x] **8. Cold War world events, 3,653–3,640 (timeline audit, D-408 [6]).** *Built: D-467 (docs-v2/reports/m8-world-b.md). Janarus's two re-elections are one event (3,649), as in the tag map.*
 
   The control and leader tables now change on the Cold War's recorded dates (D-408 [2], [3]), but nothing gives the narrator the scene. Candidates from the timeline slice Part 2, as scheduled world events (with item 1):
   - Alderaan's secession and the Alderaan Civil War (after 3,653);

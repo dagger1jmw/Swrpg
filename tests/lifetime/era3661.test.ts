@@ -194,10 +194,11 @@ describe('the 3,661 era Jedi (20 seeds, 3,661 to 3,649)', () => {
       }
     }
   });
-  it('the Order seat moves on its dates: Coruscant to 3,654, relocating 3,653-3,651, Tython from 3,650', () => {
+  // Each year is read on its first day; the Sacking falls in June 3,653 (D-467).
+  it('the Order seat moves on its dates: Coruscant into 3,653, relocating by 3,652, Tython from 3,650', () => {
     const seat = Object.fromEntries(runs[0]!.rows.map((y) => [y.bby, y.seat]));
-    for (const b of [3661, 3654]) expect(seat[b]).toBe('the Jedi Temple on Coruscant');
-    for (const b of [3653, 3651]) expect(seat[b]).toMatch(/relocating to Tython/);
+    for (const b of [3661, 3654, 3653]) expect(seat[b]).toBe('the Jedi Temple on Coruscant');
+    for (const b of [3652, 3651]) expect(seat[b]).toMatch(/relocating to Tython/);
     for (const b of [3650, 3649]) expect(seat[b]).toBe('the Jedi Temple on Tython');
   });
   it('Tython is closed until its rediscovery in 3,651, then open; the character lives there from 3,650', () => {
@@ -209,7 +210,7 @@ describe('the 3,661 era Jedi (20 seeds, 3,661 to 3,649)', () => {
   it('the control and leaders lines change on their dates', () => {
     const y = Object.fromEntries(runs[0]!.rows.map((r) => [r.bby, r]));
     expect(y[3661]!.control).toEqual(['Coruscant: republic']);
-    expect(y[3653]!.control).toEqual(['Coruscant: sithEmpire']);
+    expect(y[3653]!.control).toEqual(['Coruscant: republic']); // 1 January: before the Sacking (world3661.test.ts reads June)
     expect(y[3652]!.control).toEqual(['Coruscant: republic']);
     expect(y[3650]!.control).toEqual(['Tython: republic']);
     expect(y[3661]!.leaders).toMatch(/Mandalore: Mandalore the Lesser/);

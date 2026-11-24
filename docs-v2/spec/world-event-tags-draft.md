@@ -1,6 +1,6 @@
 # World event tag map, 3661–3640 BBY (draft for review)
 
-Design data for the tag network in the M8 design notes ("World events: the tag network and divergence"). Drafted by Claude, 23 Nov 2026. **Reviewed by Jared 2026-11-23 (rulings in section 6); ready for Claude Code.**
+Design data for the tag network in the M8 design notes ("World events: the tag network and divergence"). Drafted by Claude, 23 Nov 2026. **Reviewed by Jared 2026-11-23 (rulings in section 6); built in src/data/worldNetwork3661.ts (M8 Phase B, D-467).**
 
 - **Facts** (dates, who, what happened) come from SW_Timeline_3700_3600BBY Part 1 and Part 2; each event names its timeline row. No new lore is added.
 - **Tags are design calls**: which roles are replaceable, which conditions are crucial, and how hard they are to break. They are not lore.
@@ -16,6 +16,7 @@ Design data for the tag network in the M8 design notes ("World events: the tag n
 - **low:** one scene or a single good roll can break it;
 - **medium:** needs a deliberate effort (a mission, an investigation, a won fight);
 - **high:** needs foreknowledge or extraordinary action, such as uncovering a secret held at the top or killing a heavily protected figure.
+- **very high** (Jared, 2026-11-23): harder than high. Several steps that each must succeed, or a much harder feat.
 
 **Standing state.** Outcomes marked *(start)* are already true at the 3661 start (the M7 control table and D-400). Events can consume them.
 
@@ -60,7 +61,7 @@ Design data for the tag network in the M8 design notes ("World events: the tag n
 |---|---|---|---|---|---|---|
 | E.3653.druckenwell | 3653 | Battle of Druckenwell (P1, 3653 row 1) | — | — | — | — |
 | E.3653.alderaan_conference | 3653 | Peace conference on Alderaan (P1, 3653 row 2) | Paran Am-Ris: R; Dar'Nala: R; Satele: R | **The conference draws Republic and Jedi attention away from Coruscant: crucial, high** | O.peace_talks | O.republic_distracted |
-| E.3653.temple_strike | 3653 | Malgus and Adraas destroy the Jedi Temple and disable Coruscant's defence grid **[PP-1]** (P1, 3653 row 3) | **Malgus: C** (for the Temple strike); Adraas: R; the strike team: R | The Republic doesn't know: high. The strike team reaches the Temple: medium. The defence grid can be disabled: medium. (Breaking the Temple strike saves the Temple but does not by itself stop the Sacking; see PP-1) | O.republic_distracted | O.temple_destroyed (or O.temple_saved + O.weak_ground_control if broken); O.grid_down (unless that condition is broken); O.zallow_dead; O.malgus_alive |
+| E.3653.temple_strike | 3653 | Malgus and Adraas destroy the Jedi Temple and disable Coruscant's defence grid **[PP-1]** (P1, 3653 row 3) | **Malgus: C** (for the Temple strike); Adraas: R; the strike team: R | The Republic doesn't know: high. The strike team reaches the Temple: medium. The defence grid can be disabled: medium. (Breaking the Temple strike saves the Temple but does not by itself stop the Sacking; see PP-1) | O.republic_distracted | O.temple_destroyed (or O.temple_saved + O.weak_ground_control if broken); O.grid_down (unless that condition is broken); O.zallow_dead |
 | E.3653.sacking | 3653 | Angral's armada takes Coruscant; two days of martial law **[PP-1]** (P1, 3653 row 4) | Angral: R (another Lord of similar rank); the armada: R | **The Empire takes and holds Coruscant: crucial (the PP-1 hinge).** The grid is down: medium. If O.weak_ground_control, the occupation is contestable (see PP-1) | O.grid_down; O.weak_ground_control (optional) | O.coruscant_occupied; O.berooken_dead |
 | E.3653.treaty | 3653 | Treaty of Coruscant: the Republic signs, withdraws from many fronts, cedes systems **[PP-1]** (P1, 3653 row 5) | Republic delegation: R; Dark Council: R | The capital is held hostage: crucial, medium | O.coruscant_occupied; O.peace_talks | **O.treaty_signed**; O.systems_ceded |
 | E.3653.chancellor | 3653 | Berooken killed; Am-Ris interim; Janarus elected (P1, 3653 row 6) | Am-Ris: R; Janarus: R | — | O.berooken_dead | O.janarus_chancellor |
@@ -81,7 +82,7 @@ Design data for the tag network in the M8 design notes ("World events: the tag n
 |---|---|---|---|---|---|---|
 | E.3653.alderaan_secession | after 3653 | Gaul Panteer walks out; Alderaan secedes; the Alderaan Civil War (P2, Cold War row 2) | Gaul Panteer: R | Anger at the Treaty: crucial, low | O.treaty_signed | O.alderaan_civil_war |
 | E.3653.ord_mantell_war | after 3653 | Separatist War on Ord Mantell (P2, row 4) | — | — | O.ord_mantell_abandoned | O.ord_mantell_war |
-| E.3651.tython | 3651 | Satele rediscovers Tython and becomes Grand Master (P2, row 5) | Satele: R (another Jedi finds Tython and leads; her later arc changes) | — | O.grand_master_vacant | O.tython_found; O.grand_master_set |
+| E.3651.tython | 3651 | Satele rediscovers Tython and becomes Grand Master (P2, row 5) | Satele: R (another Jedi finds Tython and leads; her later arc changes) | — | O.grand_master_vacant (optional: Tython is found either way) | O.tython_found; O.grand_master_set (only if the vacancy came about) |
 | E.3650.temple_shelved | 3650 | Senate shelves the Coruscant Temple; the Order moves to Tython and starts building (P2, row 7) | — | The Senate is hostile: crucial, medium | O.temple_destroyed; O.senate_distrusts_jedi; O.tython_found | **O.order_on_tython** |
 | E.3650.trant_director | 3650 | Trant becomes SIS Director (P2, row 8) | Trant: R | — | O.trant_sis | O.trant_director |
 | E.3650.mindor | 3650 | An illegal Imperial incursion wipes out a Chagrian colony on Mindor (P2, row 9) | Fideltin Rusk: R | — | O.treaty_signed | — |
@@ -101,7 +102,7 @@ Design data for the tag network in the M8 design notes ("World events: the tag n
 | E.3643.council_changes | 3643 | Hadra succeeds Mekhis; Jadus fakes his death, Zhorrid takes his seat; Skotia murdered, Zash a Darth (P2, rows 27–28) | each: R | — | — | O.council_shift_3643 |
 | E.3642.balmorra_freed | 3642 | Balmorra freed by the Republic and the resistance **[PP-2]** (P2, row 31) | the resistance: R | — | O.balmorra_imperial | O.balmorra_republic |
 | E.3642.taris_invasion | 3642 | The Empire invades Taris, halting the resettlement **[PP-2]** (P2, row 32) | Saresh: R | — | O.taris_resettled | O.taris_imperial |
-| E.3642.maelstrom | 3642 | A Republic team frees Revan from the Maelstrom; the Foundry; Malgus takes the station; Kilran dies **[PP-2]** (P2, rows 33–34) | Revan: C; Malgus: C; strike team: R | Revan is still imprisoned: crucial (start); Malgus alive: crucial | O.malgus_alive | O.revan_free; O.foundry_malgus |
+| E.3642.maelstrom | 3642 | A Republic team frees Revan from the Maelstrom; the Foundry; Malgus takes the station; Kilran dies **[PP-2]** (P2, rows 33–34) | Revan: C; Malgus: C; strike team: R | Revan is still imprisoned: crucial (start) | — (Malgus himself is the crucial role) | O.revan_free; O.foundry_malgus |
 | E.3642.plan_zero | 3642–3641 | Destruction of the War Trust; Baras's Plan Zero **[PP-2]** (P2, rows 37–38) | Baras: C; Emperor's Wrath: NPC (protagonist) | — | — | O.plan_zero |
 | E.3641.treaty_collapse | mid-3641 | The Treaty officially collapses; the Galactic War begins **[PP-2]** (P2, Galactic War row 1) | — | See plot point PP-2 | O.treaty_signed | **O.galactic_war** |
 | E.3641.braga | 3641 | Tol Braga's strike team tries to capture the Emperor and is turned (P2, row 2) | Tol Braga: R | — | O.galactic_war | O.braga_turned |
@@ -111,7 +112,7 @@ Design data for the tag network in the M8 design notes ("World events: the tag n
 | E.3641.fronts | 3641 | Quesh war, Hoth, the Alderaan Civil War continues (P2, row 6) | — | — | O.galactic_war; O.alderaan_civil_war | — |
 | E.3640.karrid | 3640 | Karrid's renewed assault from the Ascendant Spear (P2, row 10) | Karrid: R | — | O.galactic_war | — |
 | E.3640.corellia | 3640 | Battle of Corellia; Decimus, Hadra and Acharon die (P2, row 11) | Decimus: R | — | O.galactic_war; O.decimus_council | O.corellia_contested |
-| E.3640.ilum | 3640 | Battle of Ilum: Malgus declares himself Emperor and is defeated (P2, rows 12–13) | **Malgus: C** | — | O.galactic_war; O.malgus_alive; O.foundry_malgus | O.malgus_defeated; O.ilum_contested |
+| E.3640.ilum | 3640 | Battle of Ilum: Malgus declares himself Emperor and is defeated (P2, rows 12–13) | **Malgus: C** | — | O.galactic_war; O.foundry_malgus | O.malgus_defeated; O.ilum_contested |
 | E.3640.voss | c. 3640 | The Emperor is trapped in the Dark Heart on Voss (P2, row 14) | the Emperor: C | — | — | O.emperor_trapped |
 | E.3640.voice | 3640 | Hero of Tython kills the Emperor's Voice; power passes to the Dark Council (P2, row 15) | Hero of Tython: NPC (protagonist) | — | O.galactic_war | O.dark_council_rules |
 | E.3640.council_deaths | 3640 | Thanaton killed (Nox takes his Sphere); Baras dies; Karrid dies; Acina heads Technology (P2, row 16) | each: R | — | O.baras_council | — |

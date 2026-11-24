@@ -81,7 +81,7 @@ describe('who controls what in 3,661 BBY (D-400)', () => {
   });
   it('matches a place inside a longer location name, and the Coruscant Sacking year', () => {
     expect(side('Jedi Temple, Coruscant')).toEqual(['republic']);
-    expect(side('Coruscant', 3653)).toEqual(['sithEmpire']);
+    expect(side('Coruscant', 3653)).toEqual(['sithEmpire', 'republic']); // taken and returned in the year (D-467)
   });
   it('the leaders in office', () => {
     const l = leadersAt(3661).map((x) => `${x.office}: ${x.holder}`);

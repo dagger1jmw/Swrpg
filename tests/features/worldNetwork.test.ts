@@ -71,10 +71,9 @@ const exposed = (s: GameState): GameState => engine(s, { type: 'flagSet', flag: 
 const AFTER_STRIKE = at(-3655, 3, 12);
 
 describe('the schema', () => {
-  it('the fixture and the shipped network pass every check; Phase A ships no era data', () => {
+  it('the fixture and the shipped network pass every check', () => {
     expect(networkProblems(FIXTURE)).toEqual([]);
     expect(networkProblems(WORLD_NETWORK)).toEqual([]);
-    expect(WORLD_NETWORK.events).toEqual([]);
   });
 
   it('refuses unknown references, AI-settable flags, open-ended tests, unguarded high conditions and loops', () => {
@@ -85,6 +84,13 @@ describe('the schema', () => {
     expect(bad({ ...x, consumes: [{ outcome: 'O.nothing', required: true }] })).toMatch(/consumes O.nothing, which nothing produces/);
     expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ kind: 'flag', flag: 'metCouncil' }] }] })).toMatch(/flag metCouncil can be set by the AI/);
     expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ kind: 'flag', flag: 'noSuchFlag' }] }] })).toMatch(/unregistered flag/);
+    expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ kind: 'flag', flag: 'sceneOutcome:nobody' }] }] })).toMatch(/no scene sets sceneOutcome:nobody/);
+    expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ kind: 'known', tag: 'E.3655.strike#cond.secret' }] }] })).toMatch(/has no foreknowledge to have/);
+    // A very high guard: two distinct prerequisites; one, none, or the same step twice will not do.
+    const step = (id: string, place: string): unknown => ({ id, text: 't', tests: [{ kind: 'action', actionTypes: ['investigate'], places: [place] }] });
+    const vh = (prerequisites: unknown[]): string => bad({ ...x, conditions: [{ ...cond, guard: 'veryHigh', breakIf: [{ kind: 'npc', canonId: 'lore:zym', state: 'dead', strength: 'decisive' }], ...(prerequisites.length ? { prerequisites } : {}) }] });
+    for (const p of [[], [step('know.a', 'Ziost')], [step('know.a', 'Ziost'), step('know.b', 'Ziost')]]) expect(vh(p)).toMatch(/needs 2 distinct prerequisites/);
+    expect(vh([step('know.a', 'Ziost'), step('know.b', 'Korriban')])).toBe('');
     expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ kind: 'action', actionTypes: ['investigate'] }] }] })).toMatch(/needs a place or a person/);
     expect(bad({ ...x, conditions: [{ ...cond, guard: 'high', breakIf: [{ kind: 'action', actionTypes: ['investigate'], places: ['Coruscant'] }] }] })).toMatch(/needs a prerequisite/);
     expect(bad({ ...x, produces: [{ outcome: 'O.city_taken' }] })).toMatch(/produced twice/);
@@ -217,7 +223,7 @@ describe('divergence and the ripple', () => {
   it('a broken tag is never reconnected: the dead stay lost and broken outcomes stay broken', () => {
     const s = go(kill(game(), 'lore:darth-malgus'), AFTER_STRIKE);
     const raw = net(s);
-    const facts: WorldFacts = { bby: 3655, npcLost: () => null, hasFlag: () => false, wonFight: null, standIns: () => [] };
+    const facts: WorldFacts = { bby: 3655, npcLost: () => null, storyNpcDead: () => false, hasFlag: () => false, wonFight: null, standIns: () => [] };
     const later = reviewNetwork(FIXTURE, raw, facts, at(-3650)).state;
     expect(later.tags['E.3655.strike#role.blade']).toBeDefined();
     expect(later.outcomes['O.blade_alive']!.state).toBe('broken');
@@ -324,7 +330,7 @@ describe('the freeze', () => {
     expect(datedFactsAt(facts, 4, () => 'broken')).toEqual([]);
   });
 
-  it('the shipped tables read the same through the campaign as through the dates (no links yet)', () => {
+  it('at the 3,661 start the shipped tables read the same through the campaign as through the dates', () => {
     const s = game(at(-3661), REGISTRY as Registry<GameState>);
     expect(selectControl(s, ['Coruscant']).map((c) => [c.side, c.held])).toEqual([['republic', null]]);
     expect(selectLeaders(s).every((l) => l.held === null)).toBe(true);
@@ -333,7 +339,7 @@ describe('the freeze', () => {
 });
 
 describe('guards and player actions', () => {
-  const facts = (over: Partial<WorldFacts> = {}): WorldFacts => ({ bby: 3655, npcLost: () => null, hasFlag: () => false, wonFight: null, standIns: () => [], ...over });
+  const facts = (over: Partial<WorldFacts> = {}): WorldFacts => ({ bby: 3655, npcLost: () => null, storyNpcDead: () => false, hasFlag: () => false, wonFight: null, standIns: () => [], ...over });
   const act = (over: Partial<WorldAction> = {}): WorldAction => ({ actionType: 'investigate', skillId: null, total: 17, places: ['Coruscant'], canonIds: [], ...over });
   const open = reviewNetwork(FIXTURE, emptyNetworkState(at(-3655)), facts(), at(-3655)).state;
   const SECRET = 'E.3655.strike#cond.secret';
@@ -363,23 +369,77 @@ describe('guards and player actions', () => {
     expect(reviewNetwork(FIXTURE, open, spar, at(-3655)).state.tags).toEqual({});
   });
 
-  it('a high guard needs foreknowledge before anything counts', () => {
+  it('a high guard needs foreknowledge first: its own step at a medium guard, over days', () => {
     const ask = act({ actionType: 'dialogue', places: [], canonIds: ['lore:darth-marr'], total: 40 });
+    const dig = act({ places: ['Kaas City'], total: 25 }); // strong against the medium guard: two of three
     let st = recordAction(FIXTURE, open, facts(), ask, at(-3655)).state;
     expect(st.progress[HIDDEN]).toBeUndefined();
-    st = recordAction(FIXTURE, st, facts(), act({ places: ['Kaas City'], total: 16 }), at(-3655)).state; // not good enough to learn it
-    expect(st.progress[HIDDEN]).toBeUndefined();
-    st = recordAction(FIXTURE, st, facts(), act({ places: ['Kaas City'], total: 17 }), at(-3655)).state;
-    expect(st.progress[HIDDEN]).toMatchObject({ prepared: true, points: 0 });
-    st = recordAction(FIXTURE, st, facts(), ask, at(-3655)).state;
+    st = recordAction(FIXTURE, st, facts(), dig, at(-3655)).state;
+    expect(st.progress[HIDDEN]).toMatchObject({ points: 0, known: { 'know.plot': { points: 2, met: false } } });
+    expect(recordAction(FIXTURE, st, facts(), dig, at(-3655)).state.progress[HIDDEN]!.known['know.plot']!.points).toBe(2); // once a day
+    expect(recordAction(FIXTURE, st, facts(), ask, at(-3655, 1, 2)).state.progress[HIDDEN]!.points).toBe(0); // not yet
+    st = recordAction(FIXTURE, st, facts(), dig, at(-3655, 1, 2)).state;
+    expect(st.progress[HIDDEN]!.known['know.plot']!.met).toBe(true);
+    st = recordAction(FIXTURE, st, facts(), ask, at(-3655, 1, 3)).state;
     expect(st.tags[HIDDEN]).toBeUndefined(); // exceptional: three of six
-    st = recordAction(FIXTURE, st, facts(), ask, at(-3655, 1, 2)).state;
+    st = recordAction(FIXTURE, st, facts(), ask, at(-3655, 1, 4)).state;
     expect(st.tags[HIDDEN]).toBeDefined();
+  });
+
+  it('a recorded discovery is foreknowledge in itself', () => {
+    const st = reviewNetwork(FIXTURE, open, facts({ npcLost: (id) => (id === 'lore:darth-jadus' ? 'captured' : null) }), at(-3655)).state;
+    expect(st.progress[HIDDEN]!.known['know.plot']!.met).toBe(true);
+    expect(st.tags[HIDDEN]).toBeUndefined();
+  });
+
+  describe('a very high guard', () => {
+    const VAULT = 'E.3650.plot#cond.vault';
+    const take = act({ actionType: 'forceUse', places: ['Ziost'], total: 60 }); // exceptional even against DC 21
+    const where = act({ places: ['Ziost'], total: 60 });
+    const captured = facts({ npcLost: (id) => (id === 'lore:darth-baras' ? 'captured' : null) });
+    const days = (st0: NetworkState, f: WorldFacts, a: WorldAction, from: number, n: number): NetworkState => {
+      let st = st0;
+      for (let i = 0; i < n; i++) st = recordAction(FIXTURE, st, f, a, at(-3655, 2, from + i)).state;
+      return st;
+    };
+    it('is DC 21 and 10 points, and cannot break without both prerequisites', () => {
+      expect(GUARD_RULES.veryHigh).toEqual({ rating: 110, points: 10 });
+      // Neither, then only one: no amount of work counts.
+      expect(days(open, facts(), take, 1, 10).tags[VAULT]).toBeUndefined();
+      const one = days(days(open, facts(), where, 1, 1), facts(), take, 11, 10);
+      expect(one.progress[VAULT]).toMatchObject({ points: 0, known: { 'know.where': { met: true } } });
+      expect(one.tags[VAULT]).toBeUndefined();
+      // Nor does a decisive fact, alone or with one prerequisite.
+      const vowrawn = facts({ npcLost: (id) => (id === 'lore:darth-vowrawn' ? 'dead' : null) });
+      expect(reviewNetwork(FIXTURE, one, vowrawn, at(-3655, 3, 1)).state.tags[VAULT]).toBeUndefined();
+      // Both: the work counts, several times over.
+      const both = reviewNetwork(FIXTURE, one, captured, at(-3655, 3, 1)).state;
+      expect(both.tags[VAULT]).toBeUndefined();
+      expect(days(both, captured, take, 22, 3).tags[VAULT]).toBeUndefined(); // three exceptional successes: 9 of 10
+      expect(days(both, captured, take, 22, 4).tags[VAULT]).toBeDefined();
+    });
+    it('a decisive fact alone is not enough even with both', () => {
+      const f = facts({ npcLost: (id) => (id === 'lore:darth-baras' ? 'captured' : id === 'lore:darth-vowrawn' ? 'dead' : null) });
+      const st = reviewNetwork(FIXTURE, days(open, facts(), where, 1, 1), f, at(-3655, 3, 1)).state;
+      expect(st.progress[VAULT]!.points).toBe(6);
+      expect(st.tags[VAULT]).toBeUndefined();
+    });
+  });
+
+  it('a scene outcome is a flag the engine sets from a rolled success, and it breaks the condition that reads it', () => {
+    let s = applyEvents(REG, game(), [{ type: 'locationIntroduced', name: 'Coruscant', kind: 'planet', region: 'Core Worlds', description: 'x', moveHere: true }], { source: 'ai' }).state;
+    const roll = (total: number) => ({ type: 'worldActionRecorded', actionType: 'forceUse', skillId: null, total, targets: [] });
+    expect(engine(s, roll(18)).flags.set).toEqual([]); // under DC 19
+    s = engine(s, roll(19));
+    expect(s.flags.set).toEqual(['sceneOutcome:strike-plan']);
+    s = go(s, at(-3655, 1, 2));
+    expect(net(s).tags[SECRET]?.cause).toBe('recorded facts');
+    expect(status(go(s, AFTER_STRIKE), 'E.3655.strike')).toBe('cancelled');
   });
 
   it('an action elsewhere, of another kind, or about a settled event counts for nothing', () => {
     expect(recordAction(FIXTURE, open, facts(), act({ places: ['Tython'], total: 40 }), at(-3655)).state).toBe(open);
-    expect(recordAction(FIXTURE, open, facts(), act({ actionType: 'forceUse', total: 40 }), at(-3655)).state).toBe(open);
+    expect(recordAction(FIXTURE, open, facts(), act({ actionType: 'heal', total: 40 }), at(-3655)).state).toBe(open);
     const done = reviewNetwork(FIXTURE, open, facts(), AFTER_STRIKE).state;
     expect(recordAction(FIXTURE, done, facts(), act({ total: 40 }), AFTER_STRIKE).state).toBe(done);
   });
@@ -432,7 +492,7 @@ describe('the narrator hand-off', () => {
     expect(line).not.toMatch(/changed by/);
   });
 
-  it('says nothing while the shipped network is empty', () => {
+  it('says nothing at the start of a campaign', () => {
     const s = game(at(-3661), REGISTRY as Registry<GameState>);
     expect(handoffLines(selectTimelineHandoff(s))).toEqual([]);
   });

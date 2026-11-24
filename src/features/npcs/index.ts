@@ -13,6 +13,7 @@ import { ARCHETYPE_BY_ID } from '../../data/archetypes';
 import { DEV_REFUSAL, selectIsTestCharacter } from '../character/selectors';
 import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { selectCurrentLocationId } from '../locations/selectors';
+import { selectCanonInCampaign } from '../world/selectors';
 import { dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { CANON_BY_ID } from '../../data/canonNpcs';
 import { canonOffBoard, canonStatusAt, prisonOf, type OffBoard } from '../../engine/canonRoster';
@@ -161,7 +162,8 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         if (!slice.byId[id]) return { reject: `unknown npc ${id}` };
         // Only a figure the lore puts on the board at this date is linked (D-400): not one dead, unborn, imprisoned or
         // out of sight then. The NPC stays as an ordinary story NPC.
-        const canon = CANON_BY_ID.get(String(e['canonId']));
+        const onRecord = CANON_BY_ID.get(String(e['canonId']));
+        const canon = onRecord ? selectCanonInCampaign(ctx.state, onRecord) : undefined;
         const bby = -dateFromAbsDay(selectNow(ctx.state).day).year;
         const off = canon ? canonOffBoard(canon, bby) : null;
         // An imprisoned figure links when the scene is at their prison, as a prisoner (D-401 [5]).

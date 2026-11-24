@@ -5,7 +5,7 @@ import { placeAmong } from '../../data/worldControl';
 import type { WorldEventDef, WorldEventStatus, WorldNetwork } from '../../data/worldNetwork';
 import { DIVERGENCES_SHOWN_MAX, TIMELINE_TOLD_MAX } from '../../data/worldNetwork.config';
 import { formatDate } from '../../engine/calendar';
-import { DIVERGED, outcomeState, tagKey } from './network';
+import { DIVERGED, isBranch, outcomeState, tagKey } from './network';
 import type { EventRecord, NetworkState } from './world';
 
 export interface Handoff {
@@ -29,7 +29,7 @@ const HEADINGS: Readonly<Record<WorldEventStatus, string>> = {
 const outcomeText = (id: string): string => id.slice(2).replace(/_/g, ' ');
 
 /** Why an event differs: broken conditions, people lost, inputs that never came (named by the event they belong to). */
-function differences(net: WorldNetwork, e: WorldEventDef, r: EventRecord): string[] {
+function differences(net: WorldNetwork, st: NetworkState, e: WorldEventDef, r: EventRecord): string[] {
   const replaced = new Set(r.substitutes.map((s) => s.role));
   return r.broken
     .filter((id) => !replaced.has(id))
@@ -39,7 +39,8 @@ function differences(net: WorldNetwork, e: WorldEventDef, r: EventRecord): strin
       const role = e.roles.find((x) => x.id === id);
       if (role) return `${role.label} is gone`;
       const from = net.events.find((x) => x.produces.some((p) => p.outcome === id));
-      return from ? `"${from.title}" did not bring about: ${outcomeText(id)}` : `no ${outcomeText(id)}`;
+      const verb = outcomeState(net, st, id) === 'produced' ? 'brought about' : 'did not bring about';
+      return from ? `"${from.title}" ${verb}: ${outcomeText(id)}` : `no ${outcomeText(id)}`;
     });
 }
 
@@ -52,12 +53,12 @@ function eventLine(net: WorldNetwork, st: NetworkState, e: WorldEventDef, r: Eve
   else parts.push(`${diverged ? 'on record' : 'what happened'}: ${e.summary}`);
   const stood = r.substitutes.map((s) => `${e.roles.find((x) => x.id === s.role)?.label ?? s.role} replaced by ${s.name ?? 'another of similar standing'}`);
   if (stood.length) parts.push(`roles: ${stood.join('; ')}`);
-  const why = differences(net, e, r);
+  const why = differences(net, st, e, r);
   if (why.length) parts.push(`changed by: ${why.join('; ')}`);
   if (diverged) {
     const still = e.produces.filter((p) => outcomeState(net, st, p.outcome) === 'produced').map((p) => outcomeText(p.outcome));
     // An outcome that only exists when something breaks was never on record.
-    const never = e.produces.filter((p) => !p.when?.broken && outcomeState(net, st, p.outcome) === 'broken').map((p) => outcomeText(p.outcome));
+    const never = e.produces.filter((p) => !isBranch(net, p.outcome) && outcomeState(net, st, p.outcome) === 'broken').map((p) => outcomeText(p.outcome));
     if (still.length) parts.push(`still true: ${still.join(', ')}`);
     if (never.length) parts.push(`never came: ${never.join(', ')}`);
   }

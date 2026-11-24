@@ -114,6 +114,22 @@ export function canonOffBoard(n: CanonNpc, bby: number): OffBoard | null {
   return s.kind === 'imprisoned' ? 'imprisoned' : 'unavailable';
 }
 
+const living = new WeakMap<CanonNpc, CanonNpc>();
+/**
+ * The figure without the death on record (D-467: the event that causes it diverged in this campaign, or the campaign's own
+ * NPC has outlived it): whatever they held at their death they still hold.
+ */
+export function withoutDeath(n: CanonNpc): CanonNpc {
+  if (n.deathBby === undefined) return n;
+  const hit = living.get(n);
+  if (hit) return hit;
+  const { deathBby, deathSource: _s, ...rest } = n;
+  const open = <T extends CanonSpan>(spans: readonly T[]): T[] => spans.map((x) => (x.toBby === deathBby ? { ...x, toBby: undefined } : x));
+  const out: CanonNpc = { ...rest, ranks: open(n.ranks), ...(n.status ? { status: open(n.status) } : {}) };
+  living.set(n, out);
+  return out;
+}
+
 /** Where the lore holds a figure prisoner in `bby` (a location span marked imprisoned), or null. */
 export function prisonOf(canonId: string, bby: number): CanonPlacement | null {
   return CANON_PLACEMENTS.find((p) => p.imprisoned && p.canonId === canonId && bby <= p.fromBby && bby >= p.toBby) ?? null;

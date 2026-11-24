@@ -18,10 +18,11 @@ import {
   type WorldTest,
 } from '../../data/worldNetwork';
 import { isValidDate } from '../../engine/calendar';
-import { eventOrder, worldDay } from './network';
+import { PREREQUISITES_NEEDED } from '../../data/worldNetwork.config';
+import { eventOrder, sceneFlag, worldDay } from './network';
 
 const outcomeId = z.string().regex(/^O\.[a-z0-9_]+$/);
-const eventId = z.string().regex(/^E\.~?[a-z0-9_]+\.[a-z0-9_]+$/);
+const eventId = z.string().regex(/^E\.[~<>]?[0-9]+\.[a-z0-9_]+$/);
 const plotPointId = z.string().regex(/^PP-\d+$/);
 const canonId = z.string().regex(/^lore:/);
 const text = z.string().min(1).max(300);
@@ -59,14 +60,27 @@ const fightTest = z.strictObject({
   minStakes: z.enum(COMBAT_STAKES).optional(),
   strength,
 });
-const stateTest = z.discriminatedUnion('kind', [npcTest, controlTest, flagTest, outcomeTest]);
-const worldTest = z.discriminatedUnion('kind', [npcTest, controlTest, flagTest, outcomeTest, actionTest, fightTest]);
+const knownTest = z.strictObject({ kind: z.literal('known'), tag: z.string(), strength });
+const stateTest = z.discriminatedUnion('kind', [npcTest, controlTest, flagTest, outcomeTest, knownTest]);
+const worldTest = z.discriminatedUnion('kind', [npcTest, controlTest, flagTest, outcomeTest, knownTest, actionTest, fightTest]);
+const prerequisite = z.strictObject({ id: z.string().regex(/^know\.[a-z0-9_]+$/), text, tests: list(worldTest) });
+const scene = z.strictObject({
+  id: z.string().regex(/^[a-z0-9-]+$/),
+  title: text,
+  event: eventId,
+  guard: z.enum(WORLD_GUARDS),
+  fromYear: z.number().int(),
+  toYear: z.number().int().optional(),
+  on: list(z.discriminatedUnion('kind', [actionTest, fightTest])),
+  requires: list(stateTest).optional(),
+});
 
 const roleTag = z.strictObject({
   id: z.string().regex(/^role\.[a-z0-9_]+$/),
   label: text,
   kind: z.enum(['replaceable', 'crucial']),
   canonId: canonId.optional(),
+  npcName: text.optional(),
   protagonist: z.boolean().optional(),
   faction: z.enum(FACTIONS).optional(),
   roles: list(z.enum(NPC_ROLES)).optional(),
@@ -81,7 +95,7 @@ const conditionTag = z.strictObject({
   crucial: z.boolean(),
   guard: z.enum(WORLD_GUARDS),
   breakIf: z.array(worldTest).readonly(),
-  prerequisite: list(worldTest).optional(),
+  prerequisites: list(prerequisite).optional(),
   window: z.union([z.literal('underway'), z.strictObject({ fromYear: z.number().int() })]).optional(),
   onBreak: z.enum(BREAK_EFFECTS).optional(),
 });
@@ -102,6 +116,7 @@ export const worldEventDefSchema = z.strictObject({
         outcome: outcomeId,
         at: z.enum(['start', 'end']).optional(),
         when: z.strictObject({ intact: list(z.string()).optional(), broken: list(z.string()).optional() }).optional(),
+        control: z.strictObject({ place: text, side: z.enum(CONTROL_SIDES), note: text }).optional(),
       }),
     )
     .readonly(),
@@ -146,6 +161,7 @@ export const worldNetworkSchema = z.strictObject({
   events: z.array(worldEventDefSchema).readonly(),
   plotPoints: z.array(z.strictObject({ id: plotPointId, title: text, events: list(eventId), appliesIf: expr.optional(), tracker: expr, alternatives: list(alternative) })).readonly(),
   standing: z.array(z.strictObject({ outcome: outcomeId, note: text })).readonly(),
+  scenes: z.array(scene).readonly().optional(),
 });
 
 interface Refs {
@@ -203,6 +219,11 @@ export function networkProblems(net: WorldNetwork): string[] {
       if (!def) out.push(`${where}: unregistered flag ${t.flag}`);
       // The narrator never breaks a tag directly: a flag it may set cannot count.
       else if (def.sources.includes('ai')) out.push(`${where}: flag ${t.flag} can be set by the AI`);
+      if (t.flag.startsWith('sceneOutcome:') && !(net.scenes ?? []).some((x) => sceneFlag(x.id) === t.flag)) out.push(`${where}: no scene sets ${t.flag}`);
+    }
+    if (t.kind === 'known') {
+      const [ev, tag] = t.tag.split('#');
+      if (!byId.get(ev ?? '')?.conditions.some((c) => c.id === tag && c.prerequisites?.length)) out.push(`${where}: ${t.tag} has no foreknowledge to have`);
     }
     if (t.kind === 'action') {
       for (const s of t.skills ?? []) if (!isSkillId(s)) out.push(`${where}: unknown skill ${s}`);
@@ -234,12 +255,19 @@ export function networkProblems(net: WorldNetwork): string[] {
     }
     for (const r of e.roles) {
       for (const t of r.breakIf ?? []) checkTest(`${e.id}#${r.id}`, t);
-      if (r.kind === 'crucial' && !r.canonId && !r.breakIf?.length) out.push(`${e.id}#${r.id}: a crucial role nothing can break`);
+      if (r.kind === 'crucial' && !r.canonId && !r.npcName && !r.breakIf?.length) out.push(`${e.id}#${r.id}: a crucial role nothing can break`);
       if (r.kind === 'replaceable' && r.onBreak) out.push(`${e.id}#${r.id}: a replaceable role never changes its event`);
     }
     for (const c of e.conditions) {
-      for (const t of [...c.breakIf, ...(c.prerequisite ?? [])]) checkTest(`${e.id}#${c.id}`, t);
-      if (c.guard === 'high' && c.breakIf.some((t) => t.kind === 'action') && !c.prerequisite) out.push(`${e.id}#${c.id}: a high guard an action can break needs a prerequisite (foreknowledge)`);
+      const pre = c.prerequisites ?? [];
+      for (const t of [...c.breakIf, ...pre.flatMap((q) => q.tests)]) checkTest(`${e.id}#${c.id}`, t);
+      for (const id of dupes(pre.map((q) => q.id))) out.push(`${e.id}#${c.id}: duplicate prerequisite ${id}`);
+      if (c.guard === 'high' && c.breakIf.some((t) => t.kind === 'action') && !pre.length) out.push(`${e.id}#${c.id}: a high guard an action can break needs a prerequisite (foreknowledge)`);
+      // Two steps that are really the same step are one: each needs a test the other does not have (D-467 [1]).
+      if (c.guard === 'veryHigh') {
+        const distinct = new Set(pre.map((q) => JSON.stringify([...q.tests].map((t) => JSON.stringify(t)).sort())));
+        if (distinct.size < PREREQUISITES_NEEDED.veryHigh) out.push(`${e.id}#${c.id}: a very high guard needs ${PREREQUISITES_NEEDED.veryHigh} distinct prerequisites`);
+      }
       if (c.window === 'underway' && !e.endDate) out.push(`${e.id}#${c.id}: open only while under way, but the event has no end date`);
     }
     // A replaceable role never changes anything downstream, so no outcome may depend on one.
@@ -247,6 +275,11 @@ export function networkProblems(net: WorldNetwork): string[] {
     for (const p of e.produces) {
       for (const ref of [...(p.when?.intact ?? []), ...(p.when?.broken ?? [])]) if (!refs.has(ref)) out.push(`${e.id}: ${p.outcome} depends on ${ref}, which is not a crucial role, a condition or an input of the event`);
     }
+  }
+  for (const id of dupes((net.scenes ?? []).map((x) => x.id))) out.push(`duplicate scene ${id}`);
+  for (const x of net.scenes ?? []) {
+    if (!byId.has(x.event)) out.push(`scene ${x.id}: unknown event ${x.event}`);
+    for (const t of [...x.on, ...(x.requires ?? [])]) checkTest(`scene ${x.id}`, t);
   }
   for (const p of net.plotPoints) {
     for (const id of p.events) if (!byId.has(id)) out.push(`${p.id}: unknown event ${id}`);

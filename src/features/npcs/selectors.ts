@@ -10,7 +10,7 @@ import { DAYS_PER_YEAR, dateFromAbsDay } from '../../engine/calendar';
 import { npcVariance, rollNpcInputs } from '../../engine/npcGen';
 import { isOutsideForce } from '../../engine/speed';
 import { canonLevelsAt, canonLevelsInCampaign, type CanonStatDeps } from '../../engine/canonStats';
-import { canonLivedAgeAt, canonRankAt } from '../../engine/canonRoster';
+import { canonLivedAgeAt, canonRankAt, withoutDeath } from '../../engine/canonRoster';
 import { ROLE_RANK } from '../../data/npcGen.config';
 import type { CanonNpc, RankSpan } from '../../data/canon/types';
 import { computeCreation, ranksFor } from '../character/selectors';
@@ -158,7 +158,9 @@ export function selectNpcLevels(s: GameState, id: string): Readonly<Record<strin
   const n = s.npcs.byId[id];
   if (!n) return {};
   if (n.devLevels) return n.devLevels;
-  const canon = n.canonId ? CANON_BY_ID.get(n.canonId) : undefined;
+  const onRecord = n.canonId ? CANON_BY_ID.get(n.canonId) : undefined;
+  // A figure in play past the death on record is alive in this campaign (D-467): it keeps what it held.
+  const canon = onRecord?.deathBby !== undefined && -dateFromAbsDay(s.clock.now.day).year < onRecord.deathBby ? withoutDeath(onRecord) : onRecord;
   if (canon) {
     // D-414: the figure's line is calculated once at the campaign's start date from its anchors (or the generator, with
     // no anchor), then grows by the normal NPC maths: the closed-form growth along its rank spans, with no later anchor

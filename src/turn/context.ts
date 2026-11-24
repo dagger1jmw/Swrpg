@@ -3,7 +3,7 @@
 // report for the debug view. Pure; never mutates state. Replaces the minimal M1 builder (D-74).
 import { CONTEXT_CAPS, JUMP_CAPS, JUMP_REPORT_MAX_EVENTS, JUMP_REPORT_MAX_SKILLS, HISTORY_NARRATIVE_MAX_CHARS, MAX_RAW_TURNS, SUMMARY_INPUT_CAP_TOKENS, type SectionName } from '../ai/context.config';
 import type { MontageReport } from '../state/montageReport';
-import { handoffLines, selectControl, selectLeaders, selectOrderSeat, selectTimelineHandoff, selectUntoldWorldEvents } from '../features/world/selectors';
+import { handoffLines, selectCanonInCampaign, selectControl, selectLeaders, selectOrderSeat, selectTimelineHandoff, selectUntoldWorldEvents } from '../features/world/selectors';
 import { PROMPTS } from '../ai/prompts';
 import type { CallType, Message } from '../ai/provider';
 import { makeEstimator } from '../ai/tokenRatio';
@@ -808,7 +808,15 @@ function boardLines(state: GameState, bby: number, placeNames: readonly string[]
   // (or held here); never a full list. A figure the campaign has diverged from (D-419) is left out: the lore's
   // whereabouts no longer apply to them.
   const diverged = new Set(selectNpcs(state).filter((n) => n.canonId && n.canonDiverged).map((n) => n.canonId!));
-  const onBoard = (canonId: string): boolean => !canonId || !CANON_BY_ID.get(canonId) || canonOffBoard(CANON_BY_ID.get(canonId)!, bby) === null;
+  // A figure whose recorded death did not come about in this campaign is on the board (D-467).
+  const figure = (canonId: string): ReturnType<typeof selectCanonInCampaign> | undefined => {
+    const n = CANON_BY_ID.get(canonId);
+    return n ? selectCanonInCampaign(state, n) : undefined;
+  };
+  const onBoard = (canonId: string): boolean => {
+    const n = canonId ? figure(canonId) : undefined;
+    return !n || canonOffBoard(n, bby) === null;
+  };
   const here = onRecordAt(placeNames, bby).filter((p) => !diverged.has(p.canonId) && (onBoard(p.canonId) || p.imprisoned));
   if (here.length) lines.push(`Canon figures here (on record this year; introduce them only as the story reaches them): ${here.map((p) => `${p.name}: ${p.doing}`).join('; ')}`);
   // D-420: the on-record whereabouts of any canon figure named this turn (the player's words, the people referenced).
@@ -816,7 +824,7 @@ function boardLines(state: GameState, bby: number, placeNames: readonly string[]
   const namedLines: string[] = [];
   for (const id of named) {
     if (hereIds.has(id) || diverged.has(id) || namedLines.length >= NAMED_ON_RECORD_MAX) continue;
-    const canon = CANON_BY_ID.get(id);
+    const canon = figure(id);
     if (!canon) continue;
     const off = canonOffBoard(canon, bby);
     if (off && off !== 'imprisoned') {
@@ -832,7 +840,7 @@ function boardLines(state: GameState, bby: number, placeNames: readonly string[]
   for (const n of selectNpcs(state)) {
     if (n.canonId || warned.length >= 3) continue;
     const hit = findCanonEntity(LORE_INDEX, normalizeAlias(n.name), -bby);
-    const canon = hit ? CANON_BY_ID.get(hit.canonId) : undefined;
+    const canon = hit ? figure(hit.canonId) : undefined;
     const off = canon ? canonOffBoard(canon, bby) : null;
     if (canon && off) warned.push(`${n.name} (${n.id}) is not the canon ${canon.name}, who is ${OFF_BOARD_TEXT[off]} this year; treat them as someone else, or correct the story`);
   }

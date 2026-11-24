@@ -39,8 +39,8 @@ export const progressSchema = z.object({
   points: z.number().int().min(0),
   /** Facts already counted: test indexes, or a test index and a fight id. */
   counted: z.array(z.string()),
-  /** The prerequisite was met (it stays known). */
-  prepared: z.boolean(),
+  /** Foreknowledge, by prerequisite id: its points, and whether it is met (it stays met). */
+  known: z.record(z.string(), z.object({ points: z.number().int().min(0), met: z.boolean(), counted: z.array(z.string()) })),
   actionDay: z.number().int().nullable(),
   actionsThatDay: z.number().int().min(0),
 });
