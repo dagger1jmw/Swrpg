@@ -3,7 +3,7 @@
 // notes give, not the numbers.
 import { describe, expect, it } from 'vitest';
 import { BLOCKADES, type BlockadeApproach, type BlockadeDef } from '../../src/data/blockades';
-import { AROUND_BY_AGE, CAPTIVE_DAYS, OBSERVE, TRAINED_RANGE_KM } from '../../src/data/blockade.config';
+import { AROUND_BY_AGE, OBSERVE, TRAINED_RANGE_KM } from '../../src/data/blockade.config';
 import { approachOptions, approachRating, aroundRating, blockadeAge, landingKnowledge, runBlockade, safeKm, sensorKm, watchBlockade, type Runner } from '../../src/engine/blockade';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { seedRng } from '../../src/engine/rng';
@@ -371,7 +371,7 @@ describe('the Hydian Way blockade in play', () => {
       const { result } = r.state.world.blockades.runs[0]!;
       seen.add(result);
       expect(r.state.clock.now.day, result).toBeGreaterThan(s.clock.now.day);
-      expect(r.state.world.blockades.captive !== null).toBe(result === 'captured');
+      expect(r.state.world.captivity !== null).toBe(result === 'captured');
       if (result === 'through') expect(r.state.world.blockades.shipOutside).not.toBeNull();
     }
     expect(seen.size).toBeGreaterThan(1);
@@ -390,7 +390,7 @@ describe('the Hydian Way blockade in play', () => {
     it('takes a prisoner, the ship and the cargo, and names the captors as a fight does', () => {
       const { r } = taken();
       const b = r.state.world.blockades;
-      expect(b.captive).toMatchObject({ group: 'Mandalorian warriors of the Mandalorian blockade of the Hydian Way', kind: 'mandalorian' });
+      expect(r.state.world.captivity).toMatchObject({ source: 'blockade', group: 'Mandalorian warriors of the Mandalorian blockade of the Hydian Way', kind: 'mandalorian' });
       expect([b.impounded?.blockadeId, b.shipOutside]).toEqual(['hydian-way-3661', null]);
       expect(b.ledger.map((l) => l.reason).join()).toMatch(/cargo seized/);
       expect(selectCaptors(r.state)).toMatchObject({ kind: 'mandalorian', blockade: true });
@@ -403,26 +403,16 @@ describe('the Hydian Way blockade in play', () => {
       expect(planTravel(r.state, go(['Alderaan']))).toMatchObject({ ok: false, reason: expect.stringMatching(/a prisoner of Mandalorian warriors/) });
       const cell = applyEvents(FAST, r.state, [{ type: 'locationIntroduced', name: 'Brig', kind: 'ship', region: 'Hydian Way', description: '', moveHere: true }], { source: 'ai' }).state;
       expect(selectCaptors(cell)).not.toBeNull();
-      expect(selectCaptors(pass(r.state, CAPTIVE_DAYS + 5))).toBeNull(); // at most this long
     });
-    it('the story ends it on a later turn, with or without the ship, and only for a prisoner the engine recorded', () => {
-      const { before, r } = taken();
-      const free = { type: 'captivityEnded', how: 'escaped', withShip: false };
-      expect(applyEvents(FAST, before, [free], { source: 'ai' }).applied).toEqual([]);
-      expect(applyEvents(FAST, r.state, [free], { source: 'ai' }).rejected.map((x) => x.reason).join()).toMatch(/taken this turn/);
-      const out = applyEvents(FAST, nextTurn(r.state), [free], { source: 'ai' }).state;
+    it('the narrator cannot end it; without the ship, trips are by civilian transport', () => {
+      const { r } = taken();
+      expect(applyEvents(FAST, nextTurn(r.state), [{ type: 'captivityEnded', how: 'escaped', withShip: false }], { source: 'ai' }).applied).toEqual([]);
+      const out = applyEvents(FAST, r.state, [{ type: 'captivityEnded', how: 'escaped', withShip: false }], { source: 'engine' }).state;
       expect([selectCaptors(out), out.world.blockades.impounded !== null]).toEqual([null, true]);
-      // Without the ship: a civilian transport, and nothing that needs a ship of one's own.
       expect(planTravel(out, go(['Alderaan']))).toMatchObject({ ok: true, shipClass: 3 });
-      const open = planTravel({ ...out, flags: { set: [] } }, go(['Malastare']))!.blockade!.options.filter((o) => o.available).map((o) => o.approach);
-      expect(open).toEqual([]);
-      const back = applyEvents(FAST, nextTurn(r.state), [{ ...free, how: 'released', withShip: true }], { source: 'ai' }).state;
-      expect(planTravel(back, go(['Alderaan']))).toMatchObject({ shipClass: 2 });
-    });
-    it('the narrator is offered the ending only while the character is held', () => {
-      const { before, r } = taken();
-      const offered = (s: GameState): boolean => REGISTRY.find((f) => f.id === 'world')!.events['captivityEnded']!.narrative!(s, { timeAdvancedByDraft: true });
-      expect([offered(before), offered(r.state)]).toEqual([false, true]);
+      expect(planTravel({ ...out, flags: { set: [] } }, go(['Malastare']))!.blockade!.options.filter((o) => o.available)).toEqual([]);
+      const back = applyEvents(FAST, r.state, [{ type: 'captivityEnded', how: 'released', withShip: false }], { source: 'engine' }).state;
+      expect(planTravel(back, go(['Alderaan']))).toMatchObject({ shipClass: 2 }); // let go, with the ship
     });
     it('taken on foot, the ship is not with them', () => {
       for (let i = 0; i < 200; i++) {
@@ -439,8 +429,10 @@ describe('the Hydian Way blockade in play', () => {
     env.state.world.blockades.runs[0].approach = 'talk';
     env.state.world.blockades.captive = { by: 'x', day: 1, locationId: null };
     delete env.state.world.blockades.impounded;
+    delete env.state.world.captivity;
+    delete env.state.world.captivityNews;
     const r = loadEnvelope(FAST, env);
-    expect(r.ok && [r.state.world.blockades.runs[0]!.approach, r.state.world.blockades.captive, r.state.world.blockades.impounded]).toEqual(['undercover', null, null]);
+    expect(r.ok && [r.state.world.blockades.runs[0]!.approach, r.state.world.captivity, r.state.world.blockades.impounded]).toEqual(['undercover', null, null]);
   });
   it('the save keeps it, and an older save (v2) has none', () => {
     const s = resolveTurn(FAST, fresh(), go(['Malastare'], 'aroundClose')).state;
@@ -449,6 +441,8 @@ describe('the Hydian Way blockade in play', () => {
     expect(r.ok && r.state.world.blockades).toEqual(s.world.blockades);
     env.featureVersions.world = 2;
     delete env.state.world.blockades;
+    delete env.state.world.captivity;
+    delete env.state.world.captivityNews;
     const old = loadEnvelope(FAST, env);
     expect(old.ok && old.state.world.blockades.runs).toEqual([]);
   });

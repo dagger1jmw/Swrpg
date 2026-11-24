@@ -3,7 +3,8 @@
 import { z } from 'zod';
 import { WORLD_EVENT_STATUSES } from '../../data/worldNetwork';
 import { CONTROL_SIDES } from '../../data/worldControl';
-import { blockadesSchema, emptyBlockades } from './blockades';
+import { blockadesSchema, emptyBlockades, migrateBlockadesV4 } from './blockades';
+import { captivityNewsSchema, captivitySchema } from './captivity';
 
 export const worldEventSchema = z.object({
   id: z.string(),
@@ -75,17 +76,27 @@ export const worldSliceSchema = z.object({
   network: networkStateSchema,
   /** Blockades (D-469): runs, what was learned by watching, the ledger. */
   blockades: blockadesSchema,
+  /** Held prisoner (D-471), and how the last captivity ended until a narration told it. */
+  captivity: captivitySchema.nullable(),
+  captivityNews: captivityNewsSchema.nullable(),
 });
 export type WorldSlice = z.infer<typeof worldSliceSchema>;
 
-export const emptyWorld = (startDay: number | null = null): WorldSlice => ({ log: [], nextSeq: 1, network: emptyNetworkState(startDay), blockades: emptyBlockades() });
+export const emptyWorld = (startDay: number | null = null): WorldSlice => ({ log: [], nextSeq: 1, network: emptyNetworkState(startDay), blockades: emptyBlockades(), captivity: null, captivityNews: null });
 
 /** v1 -> v2 (M8 Phase A): no network state; it opens at the save's date, and everything before stands as recorded. */
-export function migrateWorldV1(old: unknown): Omit<WorldSlice, 'blockades'> {
-  return { ...(old as Omit<WorldSlice, 'network' | 'blockades'>), network: emptyNetworkState() };
+type V1 = Omit<WorldSlice, 'network' | 'blockades' | 'captivity' | 'captivityNews'>;
+export function migrateWorldV1(old: unknown): V1 & { network: NetworkState } {
+  return { ...(old as V1), network: emptyNetworkState() };
 }
 
 /** v2 -> v3 (M8 Phase C): no blockade has been run or watched. */
-export function migrateWorldV2(old: unknown): WorldSlice {
-  return { ...(old as Omit<WorldSlice, 'blockades'>), blockades: emptyBlockades() };
+export function migrateWorldV2(old: unknown): Omit<WorldSlice, 'captivity' | 'captivityNews'> {
+  return { ...(old as Omit<WorldSlice, 'blockades' | 'captivity' | 'captivityNews'>), blockades: emptyBlockades() };
+}
+
+/** v4 -> v5 (D-471): one captivity record, the engine's own. */
+export function migrateWorldV4(old: unknown): WorldSlice {
+  const o = old as Omit<WorldSlice, 'captivity' | 'captivityNews'>;
+  return { ...o, blockades: migrateBlockadesV4(o.blockades), captivity: null, captivityNews: null };
 }

@@ -56,8 +56,8 @@ describe('captors after a fight (D-242)', () => {
     expect(s.combat.last!.captors).toMatchObject({ group: '4 line troopers', kind: 'trooper', standing: 4, names: ['Line trooper 1', 'Line trooper 2', 'Line trooper 3', 'Line trooper 4'] });
     expect(selectCaptors(s)).toMatchObject({ group: '4 line troopers' });
     expect(stateBlock(s, makeEstimator(4)).text).toMatch(/CAPTIVE: the player character was captured by 4 line troopers \(Line trooper 1, Line trooper 2, Line trooper 3, Line trooper 4\)/);
-    // Once moved (or a day later), the scene no longer carries it.
-    expect(selectCaptors(dev(s, '/place a holding cell on Coruscant'))).toBeNull();
+    // Moved to a cell they are still prisoners: only the engine ends a captivity (D-471).
+    expect(selectCaptors(dev(s, '/place a holding cell on Coruscant'))).toMatchObject({ group: '4 line troopers' });
   });
   it('the block of the surrender turn has the captors line', () => {
     const c = combat({ fighters: [fighter('pc', 'Mira Tane'), fighter('t1', 'Line trooper 1', { minion: true, weapon: 'blasterRifle', form: null })], ended: { outcome: 'lost', reason: 'surrendered', playerFate: 'captured', captors: { group: '4 line troopers', kind: 'trooper', standing: 4, names: ['Line trooper 1', 'Line trooper 2', 'Line trooper 3', 'Line trooper 4'] } } });

@@ -31,6 +31,7 @@ import { advanceByRoutine } from '../state/advanceRoutine';
 import { buildMontageReport, type MontageReport } from '../state/montageReport';
 import { applyEvents, type AppliedEvent, type RejectedEvent } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
+import { tryEscape } from './escape';
 import { planTravel, runTravelBlockade, watchTravelBlockade, type TravelOutcome } from './travel';
 import type { Registry, ResolvedAction } from '../state/types';
 
@@ -322,7 +323,15 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       if ('note' in act) report.push(act.note);
       if ('stabilize' in act && act.stabilize && selectIsDying(state)) apply([{ type: 'woundsStabilized', by: 'the captors' }]);
     }
-    const handled = [attempt, watch].some((a) => a && !('refused' in a));
+    // A prisoner's attempt to escape (D-471).
+    const escape = tryEscape(state, intent);
+    if (escape && 'refused' in escape) report.push(`escape: ${escape.refused}`);
+    else if (escape) {
+      checks.push(escape.card);
+      state = { ...state, meta: { ...state.meta, rngState: escape.rng } };
+      apply([...escape.events]);
+    }
+    const handled = [attempt, watch, escape].some((a) => a && !('refused' in a));
     if (attempt && !('refused' in attempt)) travel = attempt.travel;
     if (travel?.ok) {
       if (intent.requestedSpan) report.push(`travel time is the engine's (${travel.hours} h), not the requested span`);

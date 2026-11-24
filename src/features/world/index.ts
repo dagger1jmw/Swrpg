@@ -12,7 +12,7 @@ import type { GameState } from '../../state/gameState';
 import { CONTROL_SIDES, type ControlSide } from '../../data/worldControl';
 import { WORLD_NETWORK, type WorldNetwork } from '../../data/worldNetwork';
 import { ACTION_TYPES, type ActionType } from '../../data/checks.config';
-import { CAPTIVE_MIN_TURNS, OBSERVE } from '../../data/blockade.config';
+import { OBSERVE } from '../../data/blockade.config';
 import { BLOCKADE_APPROACHES, BLOCKADE_RESPONSES, BLOCKADES } from '../../data/blockades';
 import type { FeatureModule, GameEvent } from '../../state/types';
 import { selectPath } from '../character/selectors';
@@ -21,9 +21,10 @@ import { selectNpcs } from '../npcs/selectors';
 import { selectRank } from '../ranks/selectors';
 import { selectOpenThreads } from '../threads/selectors';
 import { openNetwork, recordAction, reviewNetwork, sceneFlag, scenesWon } from './network';
-import { handoffLines, selectTimelineHandoff, selectUntoldWorldEvents, selectWorldAction, selectWorldFacts, selectWorldLog } from './selectors';
-import { captiveOf, endCaptivity, migrateBlockadesV3, recordRun, recordWatch, type RunRecorded } from './blockades';
-import { emptyWorld, migrateWorldV1, migrateWorldV2, worldSliceSchema, type NetworkState, type WorldEvent, type WorldSlice } from './world';
+import { handoffLines, selectCaptivityNews, selectTimelineHandoff, selectUntoldWorldEvents, selectWorldAction, selectWorldFacts, selectWorldLog } from './selectors';
+import { applyEscape, beginCaptivity, CAPTIVITY_ENDS, captivityDay, END_TEXT, RANSOM_CREDITS, type CaptivityEnd } from './captivity';
+import { blockadeCaptors, migrateBlockadesV3, recordRun, recordWatch, type RunRecorded } from './blockades';
+import { emptyWorld, migrateWorldV1, migrateWorldV2, migrateWorldV4, worldSliceSchema, type NetworkState, type WorldEvent, type WorldSlice } from './world';
 
 function eligible(k: WorldEventKind, s: GameState, npcs: number, threads: number): boolean {
   if (k.paths && !k.paths.includes(selectPath(s))) return false;
@@ -82,8 +83,8 @@ function markTold(net: NetworkState, ids: ReadonlySet<string>, turn: number): Ne
 /** The world feature over a network: the shipped one in the game, a fixture in tests. */
 export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlice, GameState> => ({
   id: 'world',
-  version: 4,
-  migrations: { 2: migrateWorldV1, 3: migrateWorldV2, 4: (old) => ({ ...(old as WorldSlice), blockades: migrateBlockadesV3((old as WorldSlice).blockades) }) },
+  version: 5,
+  migrations: { 2: migrateWorldV1, 3: migrateWorldV2, 4: (old) => ({ ...(old as WorldSlice), blockades: migrateBlockadesV3((old as WorldSlice).blockades) }), 5: migrateWorldV4 },
   // A campaign opens with everything up to its start date standing as the lore records it.
   initialState: (ctx) => {
     const w = emptyWorld(ctx.start.day);
@@ -123,7 +124,8 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
       handle: (slice, e) => {
         const ids = new Set(e['ids'] as string[]);
         const turn = Number(e['turn']);
-        return { slice: { ...slice, log: slice.log.map((x) => (ids.has(x.id) ? { ...x, narratedTurn: turn } : x)), network: markTold(slice.network, ids, turn) } };
+        const news = slice.captivityNews && ids.has('captivity') && slice.captivityNews.toldTurn === null ? { ...slice.captivityNews, toldTurn: turn } : slice.captivityNews;
+        return { slice: { ...slice, captivityNews: news, log: slice.log.map((x) => (ids.has(x.id) ? { ...x, narratedTurn: turn } : x)), network: markTold(slice.network, ids, turn) } };
       },
     },
     /** Engine (the time hook): the network brought up to a day; what it decided is in the notes and the saved state. */
@@ -178,27 +180,72 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
       handle: (slice, e, ctx) => {
         const b = BLOCKADES.find((x) => x.id === e['blockadeId']);
         if (!b) return { reject: `unknown blockade ${String(e['blockadeId'])}` };
-        return { slice: { ...slice, blockades: recordRun(slice.blockades, e as unknown as RunRecorded, b, { day: ctx.state.clock.now.day, turn: selectTurnInPlay(ctx.state), nowAbs: toAbsSecond(ctx.state.clock.now) }) }, notes: [`blockade: ${b.name}: ${String(e['approach'])}, ${String(e['result'])}`] };
+        const day = ctx.state.clock.now.day;
+        const captors = blockadeCaptors(b, day);
+        const taken = e['result'] === 'captured' ? [{ type: 'captivityBegan', source: 'blockade', sourceId: b.id, names: [], ...captors, atAbs: toAbsSecond(ctx.state.clock.now) + Number(e['hours']) * 3600 }] : [];
+        return { emit: taken, slice: { ...slice, blockades: recordRun(slice.blockades, e as unknown as RunRecorded, b, { day, turn: selectTurnInPlay(ctx.state) }) }, notes: [`blockade: ${b.name}: ${String(e['approach'])}, ${String(e['result'])}`] };
       },
     },
-    /**
-     * The story ends a captivity at a blockade (D-470 [6]): the narrator reports it, the engine allows it only for a prisoner
-     * it recorded, on a later turn than the capture. It changes nothing else.
-     */
-    captivityEnded: {
+    /** Engine: the player is taken (a fight's fate roll, a blockade run). One record for both (D-471). */
+    captivityBegan: {
       schema: z.object({
-        type: z.literal('captivityEnded'),
-        how: z.enum(['released', 'escaped', 'rescued', 'ransomed', 'exchanged']).describe('How the player character came to be free'),
-        withShip: z.boolean().describe('True only when the character leaves in their own impounded ship'),
+        type: z.literal('captivityBegan'),
+        source: z.enum(['fight', 'blockade']),
+        sourceId: z.string(),
+        group: z.string().max(200),
+        kind: z.string().nullable(),
+        names: z.array(z.string()),
+        weapon: z.string().nullable(),
+        security: z.number().min(0),
+        atAbs: z.number(),
       }),
-      sources: ['ai', 'engine'],
-      narrative: (s) => captiveOf(s) !== null,
+      sources: ['engine'],
+      handle: (slice, e, ctx) => ({ slice: { ...slice, captivity: beginCaptivity({ ...(e as unknown as Parameters<typeof beginCaptivity>[0]), sinceFight: ctx.state.combat.last?.id ?? null }) }, notes: [`held by ${String(e['group'])} (security ${String(e['security'])})`] }),
+    },
+    /** Engine: an escape the player attempted, with the roll it made. */
+    captivityEscapeTried: {
+      schema: z.object({ type: z.literal('captivityEscapeTried'), success: z.boolean(), margin: z.number() }),
+      sources: ['engine'],
       handle: (slice, e, ctx) => {
-        const c = captiveOf(ctx.state);
-        if (!c) return { reject: 'the character is not a prisoner of a blockade' };
-        if (selectTurnInPlay(ctx.state) - c.turn < CAPTIVE_MIN_TURNS) return { reject: 'taken this turn: a captivity is not over in the same reply' };
-        return { slice: { ...slice, blockades: endCaptivity(slice.blockades, e['withShip'] === true) }, notes: [`no longer held by ${c.group} (${String(e['how'])}${e['withShip'] === true ? ', with the ship' : ''})`] };
+        if (!slice.captivity) return { reject: 'the character is not a prisoner' };
+        const day = ctx.state.clock.now.day;
+        if (day < slice.captivity.nextTryDay) return { reject: 'no attempt is possible yet' };
+        const r = applyEscape(slice.captivity, { success: e['success'] === true, margin: Number(e['margin']) }, day);
+        return r.free ? { slice, emit: [{ type: 'captivityEnded', how: 'escaped', withShip: r.withShip }] } : { slice: { ...slice, captivity: r.captivity }, notes: ['the escape failed; the captors are sharper for it'] };
       },
+    },
+    /** Engine only: a captivity ends. The narrator tells it and never decides it (D-471). */
+    captivityEnded: {
+      schema: z.object({ type: z.literal('captivityEnded'), how: z.enum(CAPTIVITY_ENDS), withShip: z.boolean() }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        if (!slice.captivity) return { reject: 'the character is not a prisoner' };
+        const how = e['how'] as CaptivityEnd;
+        const withShip = e['withShip'] === true;
+        // Let go or ransomed, the ship comes back too; broken out, it stays unless they took it.
+        const ship = withShip || how === 'released' || how === 'ransomed';
+        const had = slice.blockades.impounded !== null;
+        const text = `${END_TEXT[how]}: no longer held by ${slice.captivity.group}${had ? (ship ? '; their ship is theirs again' : '; their ship is still impounded') : ''}`;
+        return {
+          slice: {
+            ...slice,
+            captivity: null,
+            captivityNews: { text, toldTurn: null },
+            blockades: {
+              ...slice.blockades,
+              impounded: ship ? null : slice.blockades.impounded,
+              ledger: how === 'ransomed' ? [...slice.blockades.ledger, { day: ctx.state.clock.now.day, credits: RANSOM_CREDITS, reason: `ransom to ${slice.captivity.group}`.slice(0, 120) }].slice(-50) : slice.blockades.ledger,
+            },
+          },
+          notes: [text],
+        };
+      },
+    },
+    /** Engine: a captor's decision at the limit to move the prisoner on. */
+    captivityTransferred: {
+      schema: z.object({ type: z.literal('captivityTransferred') }),
+      sources: ['engine'],
+      handle: (slice) => (slice.captivity ? { slice: { ...slice, captivityNews: { text: `the player character has been moved to a more secure prison by ${slice.captivity.group}`, toldTurn: null } }, notes: ['transferred'] } : { reject: 'the character is not a prisoner' }),
     },
     /** Engine: hours of watching a blockade that counted. */
     blockadeWatched: {
@@ -226,8 +273,8 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
     const notices: string[] = [];
     let interrupt: string | undefined;
     let next = slice;
+    const facts = selectWorldFacts(ctx.state);
     if (network.events.length || slice.network.cursorDay !== day) {
-      const facts = selectWorldFacts(ctx.state);
       for (const id of scenesWon(network, openNetwork(network, slice.network, day), facts)) emit.push({ type: 'flagSet', flag: sceneFlag(id) });
       const review = reviewNetwork(network, slice.network, facts, day);
       // Nothing decided: only the cursor (and partial progress) moves. Otherwise it goes through an event, for the record.
@@ -242,9 +289,28 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
         }
       }
     }
-    if (!step.endsDay || !step.jump) return { slice: next, ...(emit.length ? { emit, notices } : {}) };
+    // Held (D-471): a real fight won while held frees the character; each day allies may come, and the limit decides.
+    let rng = ctx.state.meta.rngState;
+    const held = next.captivity;
+    if (held && step.toAbs > held.atAbs) {
+      const won = facts.wonFight;
+      if (won && won.id !== held.sinceFight && won.id !== held.sourceId) emit.push({ type: 'captivityEnded', how: 'foughtFree', withShip: false });
+      else if (step.endsDay && day > held.rescueDay) {
+        const r = captivityDay(ctx.state, held, day, rng);
+        rng = r.rng;
+        if ('ended' in r) {
+          emit.push({ type: 'captivityEnded', how: r.ended, withShip: false });
+          notices.push(`Captivity: ${END_TEXT[r.ended]}.`);
+          interrupt ??= END_TEXT[r.ended];
+        } else if ('transferred' in r) {
+          next = { ...next, captivity: r.transferred };
+          emit.push({ type: 'captivityTransferred' });
+        } else next = { ...next, captivity: r.captivity };
+      }
+    }
+    if (!step.endsDay || !step.jump) return { slice: next, rng, ...(emit.length ? { emit, notices } : {}) };
     // The event belongs to the day that begins at this midnight (the story resumes that morning).
-    const r = rollWorldEvent(ctx.state, ctx.state.meta.rngState, day);
+    const r = rollWorldEvent(ctx.state, rng, day);
     if (r.event) {
       emit.push({ type: 'worldEventRolled', ...r.event });
       notices.push(`World: ${r.event.summary}.`);
@@ -258,7 +324,7 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
     const rolled = untold.length
       ? [`WORLD EVENTS TO TELL (engine-rolled; narrate them, never invent outcomes beyond them): ${untold.map((e) => `${e.id} ${e.significant ? '[significant] ' : ''}${e.summary}${e.refs.length ? ` (${e.refs.join(', ')})` : ''}`).join('; ')}`]
       : [];
-    const lines = [...rolled, ...handoffLines(selectTimelineHandoff(s, network))];
+    const lines = [...rolled, ...handoffLines(selectTimelineHandoff(s, network)), ...selectCaptivityNews(s)];
     return lines.length ? lines.join('\n') : null;
   },
 });

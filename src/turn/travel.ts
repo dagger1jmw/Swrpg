@@ -17,7 +17,7 @@ import { blocks, inZone, planTrip, type TravelWorld, type TripPlan } from '../en
 import { selectCharacter } from '../features/character/selectors';
 import { selectNow } from '../features/clock/selectors';
 import { selectCurrentLocationId, selectLocationChain } from '../features/locations/selectors';
-import { selectBlockadeCaptive, selectBlockadeHeat, selectBlockadeRunner, selectCaptorsStabilize, selectPendingBlockade, selectShipImpounded, selectStandingBlockades } from '../features/world/selectors';
+import { selectCaptivity, selectBlockadeHeat, selectBlockadeRunner, selectCaptorsStabilize, selectPendingBlockade, selectShipImpounded, selectStandingBlockades } from '../features/world/selectors';
 import type { GameEvent } from '../state/types';
 import type { GameState } from '../state/gameState';
 
@@ -123,7 +123,7 @@ export function planTravel(state: GameState, intent: Intent): TravelOutcome | nu
   const trip = tripFor(state, intent);
   if (!trip) return null;
   const { from, to, ship } = trip;
-  const held = selectBlockadeCaptive(state);
+  const held = selectCaptivity(state);
   if (held) return { from: from.name, to: to.name, ship: ship.name, shipClass: ship.class, ok: false, reason: `the character is a prisoner of ${held.group}`, parts: [], notes: [] };
   const plan = trip.plan();
   const base = { from: from.name, to: to.name, ship: ship.name, shipClass: ship.class };

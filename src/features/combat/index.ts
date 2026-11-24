@@ -32,6 +32,7 @@ import { selectCI, selectLevelExact, selectPerformance } from '../progression/se
 import { selectRank } from '../ranks/selectors';
 import { buildContext, buildMinionFighter, buildNpcFighter, buildPlayerFighter, sparringModeFor } from './build';
 import { combatSliceSchema, emptyCombat, pendingFightSchema, type ActiveFight, type CombatSlice, type FightSummary, type PendingFight } from './combat';
+import { selectFightSecurity } from '../world/selectors';
 import { fateIsLive, selectActiveFight, selectCombat } from './selectors';
 
 const absNow = (s: GameState): number => s.clock.now.day * 86_400 + s.clock.now.second;
@@ -262,6 +263,8 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     if (playerFate === 'captured') {
       captors = captorsOf(duel, active, winner, s);
       notes.push(`captured by: ${captors.group}`);
+      // One captivity record for fights and blockades; the engine alone ends it (D-471).
+      emit.push({ type: 'captivityBegan', source: 'fight', sourceId: active.id, group: captors.group, kind: captors.kind, names: captors.names, weapon: captors.weapon ?? null, security: selectFightSecurity(captors.standing, captors.kind === null), atAbs: captors.atAbs });
     }
   }
   // The end card shows the state after the captors' care (pass 3: "Mira Tane: Dying" after "stabilized by the captors").

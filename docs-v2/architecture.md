@@ -288,7 +288,7 @@ As built in M4 (D-128, D-129): `active` = {priorities (null = archetype default)
 | factionState | per faction {control, morale} | engine |
 | renown | per faction (D-08 list) -100..+100 | engine |
 
-M4 builds `log` only: the rolled world events (last 50), each marked told once a narration carried it (D-136). M8 Phase A adds `network` (D-466; v2); Phase C adds `blockades` (runs, watching, heat, the ledger, captivity; D-469, D-470; v4). Factions and renown arrive later in M8.
+M4 builds `log` only: the rolled world events (last 50), each marked told once a narration carried it (D-136). M8 Phase A adds `network` (D-466; v2); Phase C adds `blockades` (runs, watching, heat, the ledger; D-469, D-470) and `captivity` (D-471; v5). Factions and renown arrive later in M8.
 
 **memory** (owner: memory)
 | Field | Type / range | Source |
@@ -420,7 +420,6 @@ tacticDeclared and healingReceived. They are intent fields now (above).
 | moralChoice {direction, weight 1-3, description} | alignment | cap 1 per turn; weight 3 dark + explicit player confirmation for a turn |
 | promotionProposed {rank, grantedByRef, occasion} | ranks | requirements checked; rejected and logged if unmet |
 | milestoneBeatAcknowledged {beatId} | progression | beat pending |
-| captivityEnded {how, withShip} | world | only for a prisoner of a blockade the engine recorded, on a later turn than the capture (D-470) |
 
 Summary-call event (source: summary call, D-57): chapterSummarized {chapterId,
 chapterSummary, arcSummary}, owner memory. It is applied through applyEvents in its own

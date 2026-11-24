@@ -48,7 +48,13 @@ Getting out uses the same approaches against the blockade as it is then. A ship 
 
 A failure takes a step on the blockade's own ladder: narrow, clear or bad; one step further when it was forced, one step milder at a trade blockade. Boarding carries a fine; being fired on is a crash hazard and a damaged ship.
 
-**A capture** (D-470) goes through the fight's captor rules: the blockaders' own kind holds the character (named to the narrator and checked in the narration as after a fight), a dying prisoner is stabilized unless that kind takes captives to kill them. Taken aboard, the ship is impounded and its cargo seized (a ledger line); taken on foot, the ship stays outside. A prisoner makes no trip. The narrator ends it with `captivityEnded` (released, escaped, rescued, ransomed, exchanged; with the ship or not), offered only to a prisoner the engine recorded and refused on the turn of the capture; at most 14 days otherwise. Without the ship, trips are by civilian transport (Class 3) and no approach that needs one's own ship is open.
+**A capture** (D-470) goes through the fight's captor rules: the blockaders' own kind holds the character (named to the narrator and checked in the narration as after a fight), a dying prisoner is stabilized unless that kind takes captives to kill them. Taken aboard, the ship is impounded and its cargo seized (a ledger line); taken on foot, the ship stays outside. A prisoner makes no trip. Without the ship, trips are by civilian transport (Class 3) and no approach that needs one's own ship is open.
+
+**Getting out** (D-471; src/data/captivity.config.ts, every number `invented`). Only the engine ends a captivity, after a fight as after a blockade; the narrator tells the result.
+- **Escape:** a check the player chooses to try (one a day), against the captors' security: a blockade's picket strength and alertness carry over; after a fight, the captors still standing and a named captor. The player's best way out, or the one they name (stealth, agility, strength, charisma, intelligence, mind trick, telekinesis). A clear failure tightens security; a bad one more, with three days before the next try. A decisive success (margin 8+) takes the impounded ship too.
+- **Rescue:** a small daily chance from the allies the player has: their side, their master, and up to six friends (more for a ship or crew trade), scaled by security.
+- **A real fight won while held** frees the character.
+- **Neither, by day 14:** released, ransomed (a debt in the ledger) or transferred (a new, harder term; once only). Release and ransom return the ship.
 
 Waits for the ships build: where an impounded ship is held, getting it back, its damage and repair, cargo and its value, and the prisoner's gear (items).
 
@@ -58,4 +64,4 @@ Costs and fines go to a ledger until the economy is built. A run's fame is recor
 
 ## 6. The save
 
-World slice v4: `blockades` {runs, watched, heat, pending, shipOutside, ledger, captive, impounded, shipDamagedDay}. A v3 save's "talk" runs become "undercover".
+World slice v5: `blockades` {runs, watched, heat, pending, shipOutside, ledger, impounded, shipDamagedDay}, `captivity` (the record, or null) and `captivityNews` (how it ended, until told). A v3 save's "talk" runs become "undercover"; a v4 save's `captive` becomes a captivity record.

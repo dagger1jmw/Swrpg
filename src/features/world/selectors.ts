@@ -18,7 +18,8 @@ import { selectLocationChain } from '../locations/selectors';
 import { selectFacts } from '../memory/selectors';
 import { selectNpcs } from '../npcs/selectors';
 import { selectThreads } from '../threads/selectors';
-import { captiveOf, heatNow, pendingFor, runnerFor, stabilizesCaptives, standingBlockades, type BlockadesState } from './blockades';
+import { escapeRating, escapeSkill, fightSecurity, type Captivity } from './captivity';
+import { heatNow, pendingFor, runnerFor, stabilizesCaptives, standingBlockades, type BlockadesState } from './blockades';
 import { timelineHandoff, untoldIds, type Handoff } from './handoff';
 import { actionMatters, controlNow, openNetwork, outcomeState, type ControlNow, type WorldAction, type WorldFacts } from './network';
 import type { NetworkState, Substitute, WorldEvent } from './world';
@@ -196,10 +197,20 @@ export const selectPendingBlockade = (s: GameState, id: string, to: string): Blo
 /** The character's own ship is held by blockaders, and their blockade still stands or has not given it back. */
 export const selectShipImpounded = (s: GameState): BlockadesState['impounded'] => s.world.blockades.impounded;
 export const selectCaptorsStabilize = (b: BlockadeDef): boolean => stabilizesCaptives(b);
-export const selectBlockadeCaptive = (s: GameState): BlockadesState['captive'] => captiveOf(s);
+/** Held prisoner (D-471): by a fight's winners or a blockade, until the engine ends it. */
+export const selectCaptivity = (s: GameState): Captivity | null => s.world.captivity;
+/** The security a fight's captors keep (the combat feature records it at the capture). */
+export const selectFightSecurity = (standing: number, named: boolean): number => fightSecurity(standing, named);
+/** An escape the player could try now: the rating to beat and the skill it would use; null when there is none to try. */
+export function selectEscape(s: GameState, named?: string): { rating: number; skillId: string } | null {
+  const c = s.world.captivity;
+  if (!c || s.combat.active || s.clock.now.day < c.nextTryDay) return null;
+  return { rating: escapeRating(c), skillId: escapeSkill(s, named) };
+}
+export const selectCaptivityNews = (s: GameState): string[] => (s.world.captivityNews && s.world.captivityNews.toldTurn === null ? [`Captivity (decided by the engine; narrate it exactly): ${s.world.captivityNews.text}.`] : []);
 
 /** What code decided about the timeline, for the narrator: news not told yet, and the divergences that stand. */
 export const selectTimelineHandoff = (s: GameState, net: WorldNetwork = WORLD_NETWORK): Handoff => timelineHandoff(net, selectNetworkState(s, net), placeNames(s, s.locations.currentId));
 
 /** Everything the narration being written is given to tell, marked told once it commits (D-136, D-466). */
-export const selectWorldIdsToTell = (s: GameState, net: WorldNetwork = WORLD_NETWORK): string[] => [...selectUntoldWorldEvents(s).map((e) => e.id), ...untoldIds(net, selectNetworkState(s, net))];
+export const selectWorldIdsToTell = (s: GameState, net: WorldNetwork = WORLD_NETWORK): string[] => [...selectUntoldWorldEvents(s).map((e) => e.id), ...untoldIds(net, selectNetworkState(s, net)), ...(selectCaptivityNews(s).length ? ['captivity'] : [])];

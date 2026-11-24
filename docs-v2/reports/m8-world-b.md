@@ -140,6 +140,12 @@ The dated rows of both maps load and join with the shipped network (a test). Wha
 12. **A decision that depends on which character is present in a scene** (PP-5; D-470).
 13. **Loyalty per clone unit** (PP-5): a condition holds or breaks for everyone at once.
 14. **A warning race after Sidious escapes** (PP-5): events cannot compete to come first.
+15. **Outcomes "about equally likely"** (PP-5, as reworked): the network picks the fitting alternative; it has no random choice between two that fit.
+16. **Trust and rank as conditions** (PP-5): standing with a named person, and the player's own rank (a Council seat, Grand Master).
+17. **Survivors as people** (PP-5): who lived through Order 66 changes later events one by one.
+18. **The player dying on the recorded path** (PP-5): the event is adjusted, not diverged.
+19. **An opposing player's success** (PP-6): an Imperial player breaks the hinge by winning.
+20. **Not a gap, but to know:** PP-6's alternatives 2 and 3 apply without the hinge breaking. A tracker expression covers that. Alternative 3 also needs a Force-using player with a tie to a named person (gap 6 and gap 16).
 
 **Updated 24 Nov 2026 (D-468).** The 1000 BBY map was replaced: the thought-bomb branch, R1–R3 and the reworked PP-3 and PP-4
 are now in the file, with the E.980.zannah and thought-bomb input fixes kept. The load check was re-run on it and passes.

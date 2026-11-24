@@ -3,7 +3,7 @@
 // report for the debug view. Pure; never mutates state. Replaces the minimal M1 builder (D-74).
 import { CONTEXT_CAPS, JUMP_CAPS, JUMP_REPORT_MAX_EVENTS, JUMP_REPORT_MAX_SKILLS, HISTORY_NARRATIVE_MAX_CHARS, MAX_RAW_TURNS, SUMMARY_INPUT_CAP_TOKENS, type SectionName } from '../ai/context.config';
 import type { MontageReport } from '../state/montageReport';
-import { handoffLines, selectBlockadeCaptive, selectCanonInCampaign, selectShipImpounded, selectControl, selectLeaders, selectOrderSeat, selectTimelineHandoff, selectUntoldWorldEvents } from '../features/world/selectors';
+import { handoffLines, selectCanonInCampaign, selectCaptivity, selectCaptivityNews, selectShipImpounded, selectControl, selectLeaders, selectOrderSeat, selectTimelineHandoff, selectUntoldWorldEvents } from '../features/world/selectors';
 import { PROMPTS } from '../ai/prompts';
 import type { CallType, Message } from '../ai/provider';
 import { makeEstimator } from '../ai/tokenRatio';
@@ -203,22 +203,11 @@ function healthLine(state: GameState): string {
 }
 
 /** A fight in progress (rolls §3): who is fighting whom, their status and the advantage. */
-/** How long after a capture the scene still carries the captors (D-242), unless the player has moved. Design default. */
-export const CAPTIVE_LINE_SECONDS = 24 * 3600;
-
-/**
- * The player's captors while they hold them (D-242): the last fight's, while the player is still their prisoner here, or a
- * blockade's, until the captivity ends (D-470). Null when free.
- */
+/** The player's captors while they are held (D-242, D-471): a fight's winners or a blockade's. Null when free. */
 export function selectCaptors(state: GameState): { group: string; kind: string | null; names: readonly string[]; weapon?: string | undefined; blockade?: true } | null {
-  const b = selectBlockadeCaptive(state);
-  if (b && !state.combat.active) return { group: b.group, kind: b.kind, names: [], ...(b.weapon ? { weapon: b.weapon } : {}), blockade: true };
-  const last = state.combat.last;
-  const c = last?.playerFate === 'captured' ? last.captors : null;
+  const c = selectCaptivity(state);
   if (!c || state.combat.active) return null;
-  const now = selectNow(state).day * 86_400 + selectNow(state).second;
-  if (now - c.atAbs > CAPTIVE_LINE_SECONDS || (c.locationId ?? null) !== (state.locations.currentId ?? null)) return null;
-  return c;
+  return { group: c.group, kind: c.kind, names: c.names, ...(c.weapon ? { weapon: c.weapon } : {}), ...(c.source === 'blockade' ? { blockade: true as const } : {}) };
 }
 
 /**
@@ -247,8 +236,8 @@ function captiveLine(state: GameState): string | null {
   if (!c) return null;
   const who = `${c.group}${c.kind && c.names.length ? ` (${c.names.join(', ')})` : ''}${c.weapon ? `, armed with ${c.weapon} and no other weapons` : ''}`;
   const ship = c.blockade && selectShipImpounded(state) ? ' Their ship is impounded and its cargo seized.' : '';
-  const end = c.blockade ? ' Until the story frees them (report it with captivityEnded, on a later turn) they go nowhere the captors do not take them.' : '';
-  return `CAPTIVE: the player character was captured by ${who} ${c.blockade ? 'at the blockade' : 'in the last fight'}. Name these captors, and no other kind of soldier or droid, until the story frees the character. A blow from a captor is a story event only: it does not wound the character.${ship}${end}`;
+  const end = ' Only the engine ends the captivity (an escape the player attempts, a rescue, or the captors\' decision): until RESOLVED or STATE says so they are not freed, and go nowhere the captors do not take them.';
+  return `CAPTIVE: the player character was captured by ${who} ${c.blockade ? 'at the blockade' : 'in the last fight'}. Name these captors, and no other kind of soldier or droid, until the character is free. A blow from a captor is a story event only: it does not wound the character.${ship}${end}`;
 }
 
 function combatLine(state: GameState): string | null {
@@ -401,7 +390,7 @@ function storyFlowLines(state: GameState): string[] {
     const list = untold.map((e) => `${e.significant ? '[significant] ' : ''}${e.summary}${e.refs.length ? ` (${e.refs.join(', ')})` : ''}`).join('; ');
     lines.push(`World events to tell (engine-rolled; narrate them, invent no outcome beyond them): ${list}`);
   }
-  lines.push(...handoffLines(selectTimelineHandoff(state)));
+  lines.push(...handoffLines(selectTimelineHandoff(state)), ...selectCaptivityNews(state));
   return lines;
 }
 

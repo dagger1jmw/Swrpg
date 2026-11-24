@@ -457,10 +457,7 @@ describe('guards and player actions', () => {
       expect(r.applied, e.type).toEqual([]);
       expect(r.rejected.length, e.type).toBe(1);
     }
-    // The one world event the narrator has ends a captivity (D-470): it touches no tag, and only a prisoner's turn offers it.
-    const offered = Object.entries(makeWorldFeature(FIXTURE).events).filter(([, d]) => d.narrative);
-    expect(offered.map(([type]) => type)).toEqual(['captivityEnded']);
-    expect(offered[0]![1].narrative!(game(), { timeAdvancedByDraft: true })).toBe(false);
+    expect(Object.values(makeWorldFeature(FIXTURE).events).some((d) => d.narrative)).toBe(false);
   });
 
   it('an action on a place with no lead recorded in play scores nothing (D-468)', () => {
@@ -545,7 +542,7 @@ describe('the save', () => {
     const s = go(game(), at(-3654, 2, 1));
     const env = JSON.parse(JSON.stringify(makeEnvelope(REG, s, 'now')));
     env.featureVersions.world = 1;
-    delete env.state.world.network;
+    for (const k of ['network', 'blockades', 'captivity', 'captivityNews']) delete env.state.world[k];
     const r = loadEnvelope(REG, env);
     expect(r.ok).toBe(true);
     if (!r.ok) return;

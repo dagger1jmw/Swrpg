@@ -31,7 +31,6 @@ Events
 - councilSeatProposed (only when the schema offers it): the story offers the character a vacant seat on the High Council; the engine checks the requirements.
 - forbiddenPermissionGranted (only when the schema offers it): a Jedi Master in the story permits the character to study a forbidden power (Electric Judgment, Deadly Sight, Morichro); byNpcRef is that Master. The engine refuses dark-side powers and anyone but a Jedi Master. Order teachers will not teach a forbidden power without it.
 - npcCanonDiverged (only when the schema offers it): a canon figure in VALID IDS has, in this story, been taken prisoner (captured), changed sides (turned), or lost their post or office (removed). Only for what the story has told; never for a death.
-- captivityEnded (only when the schema offers it): the player character, a prisoner of a blockade, is free in this story (released, escaped, rescued, ransomed, exchanged); withShip only when they leave in their own impounded ship.
 - relationshipChanged: when an NPC's attitude toward the player character clearly shifts. Small steps: 1 for a noticeable change, 3 only for something they will never forget. At most one per NPC per reply.
 - locationIntroduced: a place the story reaches or names that is not in VALID IDS. Give parentRef (the planet of a city, the building of a room) when it is in VALID IDS or introduced earlier in this reply. moveHere is true when the player character is now there.
 - locationChanged: the player character moves to a place already in VALID IDS.

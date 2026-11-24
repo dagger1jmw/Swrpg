@@ -27,8 +27,8 @@ export const sceneSchema = z.object({
   presentNpcRefs: z.array(z.string().max(80)).max(12).describe('IDs (or temp keys) of the non-player characters present at the end of this reply'),
 });
 
-/** `blockade` is set only by the engine's own choices (D-469); the AI's schema does not have it. */
-export type CompactIntent = z.infer<typeof compactIntentSchema> & { blockade?: BlockadeAction };
+/** `blockade` and `escape` are set only by the engine's own choices (D-469, D-471); the AI's schema does not have them. */
+export type CompactIntent = z.infer<typeof compactIntentSchema> & { blockade?: BlockadeAction; escape?: boolean };
 export type Choice = Omit<z.infer<typeof choiceSchema>, 'intent'> & { intent: CompactIntent };
 
 export interface NarrativeReply {

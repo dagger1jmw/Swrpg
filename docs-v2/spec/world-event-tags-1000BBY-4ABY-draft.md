@@ -160,17 +160,36 @@ Reworked with Jared on 24 Nov 2026. Sources: W: Grand Army of the Republic/Legen
   3. **Sifo-Dyas runs the army** (step 2; not a hinge break). The war goes ahead as recorded; the narrator directs a Grand Army led by a living Jedi Master who ordered it.
 
 ### PP-5: The fall of the Jedi and the Empire (19 BBY)
-- **Hinge:** Anakin turns, Sidious survives the arrest, and the clones obey Order 66. (Three high-guard conditions. Breaking any one diverges.)
-- **Proposed alternatives:**
-  1. **Sidious killed or arrested:** the Republic survives with a huge clone army and a power vacuum.
-  2. **Anakin doesn't turn but Sidious survives:** Order 66 still happens; Sidious has no Vader and looks for another apprentice.
-  3. **Order 66 fails:** a civil war between Jedi-led loyalists and Palpatine's government.
+Reworked with Jared on 24 Nov 2026. Order 66 follows ruling 6 (a contingency order, no chip).
+- **Hinge:** Anakin turns, Sidious survives the arrest, and Order 66 goes out.
+- **Part A: Anakin's fall.** Once it reaches Palpatine's office, his decision there is absolute. A player can only stop the slide before then:
+  1. **A trusted Council master as confidant** (guard very high). *Who:* a player on the Council by the Clone Wars, at about Yoda's or Mace's level, who has built real respect and trust with Anakin and shows it. Anakin brings his visions to them instead of Yoda; different advice can break tags or open another outcome. Unlikely: he doesn't even tell Obi-Wan.
+  2. **A fatherly advocate** (guard very high; usually the same person). Makes a case for Anakin on the Council alongside Obi-Wan, countering what Palpatine tells him (that the Council doesn't trust him, which is mostly true).
+  3. **Changing the rules on attachment** (guard very high). A player becomes Grand Master and argues successfully for allowing families again: a change to the post-Ruusan Order (ties to PP-0 R3).
+  4. **The marriage exposed** (usually makes it worse). While attachment is forbidden, Anakin leaves or is put out of the Order, likely guards Padmé or Palpatine, and Palpatine influences him more easily, offering the only way to save her. If step 3 has changed the rules, he can go to the Jedi openly about his visions, and they can help.
+- **Part B: the arrest** (guard very high). *Who:* a player close to Windu on the Council, going in place of Saesee Tiin or Agen Kolar (still four on one). Outcomes, about equally likely:
+  1. **The player survives until Anakin arrives** with Windu, and two Jedi standing deter what follows.
+  2. **Palpatine drops the lightsaber act and uses the Force:** (a) he kills Windu and the player before Anakin arrives; or (b) they survive until Anakin arrives, but the "weak old man" act is gone and Anakin is left conflicted.
+  **Anakin's choice in 1 and 2b:** if part A step 1 or 2 is broken **and** that trusted master is the one in the room, one is enough: he sides with the Jedi, hoping for standing and the rank of Master, believing the Jedi can help. If the trusted master isn't there, both steps are needed. If neither is broken, he takes Palpatine's side knowingly, likely ending the fight, resolved (Knightfall-level).
+- **Part C: Order 66.** Each clone unit's loyalty is tracked, but only ARC troopers and commandos can refuse. Most clones think it wrong, but their loyalty is to the Republic first, and few knew their Jedi general well beyond the commanders. A refusal saves that unit's Jedi; survivors are tracked as people. Order 66 has no alternative of its own.
+- **Recorded path:** Sidious and Anakin kill Windu (and the player, if present). History runs on as recorded; the event is adjusted.
+- **Alternatives:**
+  1. **Sidious killed or arrested.** Anakin sided with the Jedi or never arrived. The Republic survives with a huge clone army and a power vacuum.
+  2. **Sidious escapes, exposed.** He issues Order 66 at once, his only way out. Two or three surviving Jedi know he is a Sith Lord: they warn the Temple first, then race to send an emergency warning to Jedi across the galaxy (Order 66 was a known contingency). A partial Purge: Coruscant less bad, the field decided by whether the warning reaches each Jedi first. Variants: **(a)** Anakin escapes with him (Vader exists, and the Jedi know whom he serves); **(b)** Anakin sides with the Jedi and Sidious escapes alone (no Vader; Sidious looks for an apprentice).
 
 ### PP-6: The Alliance forms (2 BBY)
-- **Hinge:** the resistance cells unite. (In Legends this was itself a Sith ploy: Vader used Galen Marek to gather the senators.)
-- **Proposed alternatives:**
-  1. **The cells stay fragmented longer:** a slower, scattered rebellion; the Death Star plans may never be stolen.
-  2. **The Alliance forms without Vader's trap:** its leaders aren't captured; it's stronger earlier.
+Reworked with Jared on 24 Nov 2026. Source: W: Corellian Treaty (The Force Unleashed novelization version; ruling 4).
+- **What happened:** Garm Bel Iblis gathers Bail Organa and Mon Mothma on Corellia to draft the treaty. Galen Marek arranges the signing, but it is Vader's trap: Vader raids it and takes the three senators and Rahm Kota to the Emperor on the Death Star. Galen follows, nearly kills Vader and the Emperor, and dies buying their escape. The leaders found the Alliance on Kashyyyk with Leia, under the Marek family crest.
+- **Hinge:** the resistance leaders sign the treaty, survive Vader's trap and found the Alliance.
+- **The steps:**
+  1. **Galen's recruiting** (guard high; needs in-world leads). *Who:* someone in Kota's militia or a senator's resistance cell who learns whom Galen really serves. Exposing him means the leaders sign without Galen arranging it: no trap.
+  2. **The raid on Corellia** (guard high). *Who:* the leaders' security, Kota's militia, or someone who spots the Imperial build-up. Getting the leaders away means no captures.
+  3. **The Death Star rescue** (guard very high). *Who:* someone on the rescue with Juno Eclipse, or an Imperial aboard the Death Star. An Imperial player who stops the escape gets the leaders executed.
+- **What breaks the hinge:** step 3 going wrong for the rebels. Steps 1 and 2 change how the Alliance begins, not whether it does.
+- **Alternatives:**
+  1. **The cells stay fragmented longer** (the leaders executed). A slower, scattered resistance; a later, weaker rebellion only through play; the Death Star plans may never be stolen.
+  2. **The Alliance forms without Vader's trap** (step 1 or 2). No captures; stronger earlier; no Marek crest. Galen is an NPC who takes a role like his own, directed by the narrator.
+  3. **Galen survives the Death Star** (guard very high; ruled by Jared, 24 Nov 2026). The ending of *The Force Unleashed*, but Galen escapes too: the Alliance starts with two Jedi, Galen and Kota. Realistically needs a Force-using player in the rescue, such as an Order 66 survivor from PP-5, who is there through a tie to Bail Organa, Mon Mothma, Garm Bel Iblis or Rahm Kota.
 
 ### PP-7: Yavin (0 BBY)
 - **Hinge:** the Death Star is destroyed.
@@ -207,7 +226,7 @@ Events whose crucial tags don't depend on these plot points, so they still happe
 ## 8. Rulings (Jared, 23 Nov 2026)
 1. **Canon heroes are NPCs.** The SWTOR ruling extends to film and book heroes (Luke, Leia, Han, Galen Marek and others). After a divergence each takes a role similar to their own.
 2. **Maul.** Legends includes *The Clone Wars* seasons 1–6 (season 7 does not count) and *Son of Dathomir*. Maul survives Naboo and returns in 20 BBY (kept from TCW under ruling 6), and dies on Tatooine in 16 BBY at Obi-Wan's hand (*Old Wounds*; ruled 24 Nov 2026). (Superseded in part by ruling 6: TCW is now secondary canon. Maul's survival is one of the TCW events kept.)
-3. **Plot points.** PP-3 to PP-8 and their alternatives were approved, then reworked one by one from 23 Nov 2026 into player-reachable steps (PP-3 and PP-4 done; PP-5 to PP-8 next). PP-0, the Ruusan Reformations, is added, with per-reform triggers approved (section 5).
+3. **Plot points.** PP-3 to PP-8 and their alternatives were approved, then reworked one by one from 23 Nov 2026 into player-reachable steps (PP-3 to PP-6 done; PP-7 and PP-8 next). PP-0, the Ruusan Reformations, is added, with per-reform triggers approved (section 5).
 4. **The Force Unleashed** stays in the timeline, using the novelizations rather than the games, because the novels keep Galen Marek's power level grounded.
 5. **3640–1000 BBY** is to be mapped next.
 6. **Source priority for the Clone Wars (Jared, 24 Nov 2026).** *The Clone Wars* (2008) goes to the bottom of the lore priority, as secondary canon. Pre-2008 Legends Clone Wars material (the 2003 *Clone Wars* micro-series, the comics, the novels, Republic Commando) is primary. Where TCW retcons earlier material, the earlier material wins; TCW events that don't contradict it can still happen, adjusted (Mortis does, as *Fate of the Jedi* refers to it). Order 66 is one of the Republic military's contingency orders, with no inhibitor chip: clones obeyed through Kaminoan conditioning and their own choice, which is why some units refused. The specific differences (Grievous's strength, rank dates for Anakin and Obi-Wan, characters who exist only in TCW) are checked when the Clone Wars lore file is built.

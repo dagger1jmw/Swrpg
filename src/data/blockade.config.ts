@@ -80,9 +80,4 @@ export const RUN_FAME: Readonly<Record<BlockadeApproach, number>> = { ride: 0, u
 export const FAME_MARGIN = 12;
 export const WITNESSED: readonly BlockadeApproach[] = ['force'];
 
-/** A prisoner of a blockade is held at most this long if the story does not end it. */
-export const CAPTIVE_DAYS = 14;
-/** The story can end a captivity only on a later turn than the capture. */
-export const CAPTIVE_MIN_TURNS = 1;
-
 export const RUNS_KEPT = 20;
