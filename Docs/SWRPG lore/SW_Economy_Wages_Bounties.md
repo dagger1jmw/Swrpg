@@ -91,7 +91,7 @@ First version. It follows the PLANETS_TRAVEL conventions: game-stat labels, the 
 - [in-universe] c.3653–3640 BBY: under Mandalore the Vindicated, the Mandalorians were "the well-paid but cautious allies of the Sith". Source: W:Mandalorian/Legends (§Crusader's schism; SWTOR web holonet). Detail is in SW_Mandalorians_GGW_Part1.
 - [in-universe] c.60 BBY: Jaster Mereel's Supercommando Codex said Mandalorians should fight as "highly paid soldiers" and honourable mercenaries. Source: W:Mandalorian/Legends (§Cultural shift; §Mercenaries).
 - [in-universe] 44 BBY, Galidraan: Jango Fett's True Mandalorians went to the governor's estate to collect their payment, and found he had already called the Jedi. Source: W:Mandalorian/Legends (§The Mandalorian Civil War).
-- [in-universe] c.32–22 BBY, Bank of Aargau: Walon Vau invested his mercenary earnings and his Cuy'val Dar fee there. Source: W:Bank_of_Aargau/Legends.
+- [in-universe] c.30–22 BBY, Bank of Aargau: Walon Vau invested his mercenary earnings and his Cuy'val Dar fee there. Source: W:Bank_of_Aargau/Legends.
 - [in-universe] 19 ABY, Nhora systems: the Nhoras offered Dharus "the high sum of 30,000 credits per day" to lead their army as commander of the Dhashaan Shield mercenaries. Source: W:Dharus (*Specter of the Past*, 1997).
 - [in-universe] 19 ABY: Reggi asked 50,000 cr a month for the Soskin Guard to work for Calrissian; Lando refused. Source: W:Reggi_(Soskin_Guard) (*Specter of the Past*).
 - [in-universe] 24 ABY: Beviin was "well paid" by Nom Anor, and Fett took Yuuzhan Vong work because the Mandalorians "needed credits". Source: W:Mandalorian/Legends (§The Yuuzhan Vong invasion).

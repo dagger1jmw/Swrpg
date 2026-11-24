@@ -258,9 +258,9 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
   it('the old timeline is retired where the sets cover it, and its lone events are carried over (D-481)', () => {
     const tl = LORE_INDEX.chunks.filter((x) => x.id.startsWith('tl:'));
     // One telling of each event: the old eras are gone, their own rows with them.
-    for (const era of ['great-hyperspace-war', 'sith-exile-old-republic-interwar', 'old-republic-founding-first-conflicts', 'golden-age-of-the-sith']) expect(tl.some((x) => x.id.startsWith(`tl:${era}:`)), era).toBe(false);
+    for (const era of ['great-hyperspace-war', 'sith-exile-old-republic-interwar', 'old-republic-founding-first-conflicts', 'golden-age-of-the-sith', 'republic-era-great-peace', 'clone-wars']) expect(tl.some((x) => x.id.startsWith(`tl:${era}:`)), era).toBe(false);
     const text = tl.map((x) => x.text).join('\n');
-    for (const re of [/Xesh is convinced to turn on Daegen Lok/, /massive Force Storm/, /sought to destroy the Force itself/, /Spaarti cloning cylinders in the Mount Tantiss storehouse/]) expect(re.test(text), String(re)).toBe(true);
+    for (const re of [/Xesh is convinced to turn on Daegen Lok/, /massive Force Storm/, /sought to destroy the Force itself/, /Spaarti cloning cylinders in the Mount Tantiss storehouse/, /Darth Vectivus, director of the Jonex mining colony/, /The Jedi Council refuses to train Anakin/, /Vader reveals that he is Luke's father/]) expect(re.test(text), String(re)).toBe(true);
     expect(/carried over from/.exec(text)?.[0]).toBeUndefined();
     expect(tl.some((x) => x.id.startsWith('tl:yuuzhan-vong-war:'))).toBe(true); // 25 ABY onward stays
   });
@@ -270,9 +270,10 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
     const all = LORE_INDEX.chunks.map((x) => x.text).join('\n');
     expect(/kills Vizsla on the surface/.test(at(-42))).toBe(true);
     expect(/kills Vizsla|Vizsla \(killed\)/.test(at(-44))).toBe(false);
-    expect(/summons 100 trainers to Kamino, the Cuy'val Dar, 75 of them Mandalorians/.test(at(-32))).toBe(true);
-    expect(/Battle of New Holstice/.test(at(-22)) && /Battle of Zaadja/.test(at(-22))).toBe(true);
-    expect(/Battles of [^.]*(New Holstice|Zaadja)/.test(at(-21))).toBe(false);
+    expect(/summons 100 trainers to Kamino, the Cuy'val Dar, 75 of them Mandalorians/.test(at(-30))).toBe(true);
+    expect(/Cuy'val Dar/.test(at(-32))).toBe(false);
+    expect(/Battle of New Holstice/.test(at(-21)) && /Battle of Zaadja/.test(at(-21))).toBe(true);
+    expect(/New Holstice|Zaadja/.test(at(-22))).toBe(false);
     expect(/Spar's Mandalorian Protectors take Sundari and drive Maul out/.test(at(-20))).toBe(true);
     expect(/Fenn Shysa becomes Mand'alor/.test(at(-19))).toBe(true);
     expect(/Siege of Mandalore|Takeover of Mandalore|rise to rule Mandalore|ruling New Mandalorians|Great Clan Wars: clan feuds|Maul dies at Naboo|Death Watch "dissolved"/.exec(all)?.[0]).toBeUndefined();
@@ -367,7 +368,7 @@ describe('lore retrieval', () => {
   it('a 22 BBY campaign gets Clone Wars lore, not Great Galactic War lore', () => {
     const sel = retrieveLore(LORE_INDEX, { ...base, year: -22 }, 3000, est);
     const ids = sel.included.map((s) => s.chunk.id);
-    expect(ids).toContain('tl:clone-wars:overview');
+    expect(ids).toContain('tl:the-clone-wars-year-one:overview');
     expect(ids.some((id) => id.includes('great-galactic-war'))).toBe(false);
   });
   it('a canon NPC in the scene pulls their chunk to the top', () => {
@@ -394,7 +395,7 @@ describe('lore retrieval', () => {
     expect(at(-3642, 'tl:cold-war:overview')).toContain('year 11 ATC');
     expect(at(-3642, 'tl:galactic-war-second:overview')).not.toContain('collapsed midway');
     expect(at(-3641, 'tl:galactic-war-second:overview')).toContain('collapsed midway');
-    expect(at(-22, 'tl:clone-wars:overview')).not.toContain('Order 66');
+    expect(at(-22, 'tl:the-clone-wars-year-one:overview')).not.toContain('Order 66');
   });
   it('respects the cap', () => {
     const sel = retrieveLore(LORE_INDEX, { ...base, year: -3661 }, 400, est);

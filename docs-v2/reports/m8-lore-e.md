@@ -59,5 +59,36 @@ The comparison file is committed. The index reads its two timeline tables, with 
 
 ## 4. For you
 
-1. **New Holstice and Zaadja in 22 BBY, against two dates in the files.** The Zaadja page puts it eighteen months after Geonosis, which is 21 BBY, and the 21 BBY Battle of Aargonar (14:9) has the Republic retreat to New Holstice just before. I followed your ruling. **Keep 22?**
-2. **The old timeline's 2,000 BBY–4 ABY rows are still told twice.** You named only 36,453–3,701 and 4–25 ABY. **Retire those too?**
+1. (Answered: 21 BBY, section 5.) **New Holstice and Zaadja in 22 BBY, against two dates in the files.** The Zaadja page puts it eighteen months after Geonosis, which is 21 BBY, and the 21 BBY Battle of Aargonar (14:9) has the Republic retreat to New Holstice just before. I followed your ruling. **Keep 22?**
+2. (Answered: retired, section 5.) **The old timeline's 2,000 BBY–4 ABY rows are still told twice.** You named only 36,453–3,701 and 4–25 ABY. **Retire those too?**
+
+## 5. Your answers, applied (D-483)
+
+- **New Holstice and Zaadja: 21 BBY,** in the comparison file, the 32–19 set and the rulings file (item 2).
+- **The Cuy'val Dar: c. 30 BBY.** The 32 BBY row keeps Jango as template; the trainers have their own row. The Death Watch "battle circles" on Kamino (were 32–22) and Walon Vau's fee (c. 32–22, economy file) follow: 30–22.
+- **Old timeline, 2,000 BBY–4 ABY:** 122 rows retired. There were none left for 3,700–3,600 (lore batch 20 took them) and it never had any for 3,600–2,001.
+
+**Carried over, marked "carried over from the old timeline, not re-checked":**
+
+| Date | Event | Now in |
+|---|---|---|
+| after 980 BBY | Cognus takes a new apprentice; the Rule of Two goes on unrecorded | 1000–33, Part 1 |
+| after 980 BBY | Darth Vectivus | 1000–33, Part 1 |
+| c. 102 BBY | Dooku taken into the Order as an infant | 1000–33, Part 1 |
+| after 82 BBY | Dooku becomes a Jedi Master | 1000–33, Part 2 |
+| 32 BBY | the Council refuses Anakin; Qui-Gon vows to train him | 32–19, Part 1 |
+| after 29 BBY | Han Solo raised by Shrike and Dewlanna | 32–19, Part 1 |
+| 22 BBY | Quinlan Vos warns of the attack on Kamino | 32–19, Part 2 |
+| 19 BBY | Padmé's pregnancy and Anakin's visions | 32–19, Part 4 |
+| 19 BBY | Anakin tells the Jedi who the Sith Lord is | 32–19, Part 4 |
+| c. 3 BBY | Bothans and Ralltiir gather word of the battle station | 19 BBY–4 ABY, Part 2 |
+| 0 BBY | Rianna Saren on Despayre and Danuta | 19 BBY–4 ABY, Part 3 |
+| 0 BBY | Obi-Wan's voice and Han's return at Yavin | 19 BBY–4 ABY, Part 3 |
+| c. 1 ABY | Luke's first training, from Obi-Wan's spirit | 19 BBY–4 ABY, Part 3 |
+| 3 ABY | Vader reveals he is Luke's father; Luke loses his hand | 19 BBY–4 ABY, Part 4 |
+| 4 ABY | Yoda confirms it and hints at another Skywalker | 19 BBY–4 ABY, Part 4 |
+| 4 ABY | the Emperor's lightning; Anakin's death | 19 BBY–4 ABY, Part 4 |
+
+**Left out because a set contradicts them:** Dooku as Yoda's Padawan (Thame Cerulian's, 89 BBY), Jabiim in 22 BBY (21), Han saving Chewbacca c. 10 BBY (5), the "possibly Umbaran" Phanius, the Brotherhood's headquarters, and the "Project ruling on Maul" row.
+
+**What's left in the old file:** the title, "Document purpose", the NPC tag system, one line pointing to the sets, four eras of rows (Yuuzhan Vong War, Post-Vong and Dark Nest, Second Galactic Civil War, Legacy: 25–139 ABY) and the version note. Those rows go once the 25–44 and 45–138 ABY sets are ruled and committed. The two notes at its top, the purpose and the tags, describe the old layout's sensitivity ratings, which no longer apply to anything once the rows are gone.

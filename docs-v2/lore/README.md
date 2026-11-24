@@ -38,7 +38,7 @@ Last updated 2026-11-24 (D-474: the five overnight timeline sets, 3,600 BBY–4 
 
 | Path | Scope |
 |---|---|
-| `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` | Complete galaxy timeline: scripted events and NPC deployment by era, 2,000 BBY to 4 ABY and 25 ABY onward; every other year is in the sets below (lore batch 20; D-481). Corrected against Legends Wookieepedia on 23 Nov 2026 (D-465); rows marked "not re-checked" still need verifying |
+| `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` | Complete galaxy timeline: scripted events and NPC deployment by era, 25 ABY onward; every earlier year is in the sets below (lore batch 20; D-481; D-483). Corrected against Legends Wookieepedia on 23 Nov 2026 (D-465); rows marked "not re-checked" still need verifying |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part1.md` | Galaxy timeline, 3,700–3,653 BBY (replaces the old timeline's rows for these years; read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part2.md` | Galaxy timeline, 3,653 to c. 3,622 BBY (read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part3.md` | Galaxy timeline slice 1, Part 3: checks, conflicts and decisions (no entries) |

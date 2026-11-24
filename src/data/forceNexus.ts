@@ -45,7 +45,7 @@ export const FORCE_NEXUSES: readonly ForceNexus[] = [
   // hazard only (era rule malachor-v-wreckage).
   { id: 'malachor-v', name: 'Malachor V', level: 'planet', planet: 'Malachor V', nexus: true, leaning: 'dark', toYear: -3951, source: 'SW_Malachor_V; SW_Force_Nexus_Vergence (Malachor V, decision 2); D-440' },
   { id: 'vjun', name: 'Vjun', level: 'planet', planet: 'Vjun', nexus: true, leaning: 'dark', fromYear: -29, source: 'SW_DarkSide_Fall_Corruption_Redemption_Part2 (the 29 BBY slaughter made it a nexus)' },
-  { id: 'valley-of-the-jedi', name: 'the Valley of the Jedi', level: 'site', planet: 'Ruusan', nexus: true, leaning: 'balanced', fromYear: -1000, source: 'SW_Legends_Galaxy_Timeline (1,000 BBY: a Force nexus where the spirits of the fallen Jedi and Sith are trapped)' },
+  { id: 'valley-of-the-jedi', name: 'the Valley of the Jedi', level: 'site', planet: 'Ruusan', nexus: true, leaning: 'balanced', fromYear: -1000, source: 'SW_Timeline_2000_1000BBY_Part2 (1,000 BBY: a Force nexus where the spirits of the fallen Jedi and Sith are trapped)' },
   { id: 'jedi-temple-coruscant', name: 'the Jedi Temple', level: 'site', planet: 'Coruscant', nexus: true, leaning: 'light', fromYear: -5000, source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (the sacred spire, a Force nexus holy to the native Coruscanti; granted to the Jedi after the Great Hyperspace War); the leaning is not stated [inferred: the Jedi\'s seat]' },
   // D-445: re-read against SW_Dagobah. The Force-rich status rests on Jared's ruling (Nov 22, 2026); the "because it teems
   // with life" wording is Canon (The Clone Wars "Lost Missions", 2014), not Legends, so it is no longer cited here.
