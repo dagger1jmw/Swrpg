@@ -5,7 +5,7 @@ import { archetypeDef } from '../../data/archetypes';
 import { CANON_BY_ID } from '../../data/canonNpcs';
 import { DEFAULT_AGE, DEFAULT_AGE_BY_ROLE } from '../../data/npcGen.config';
 import { FORM_IDS } from '../../data/skills';
-import { SPECIES_BY_ID } from '../../data/species';
+import { speciesTableId } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay } from '../../engine/calendar';
 import { npcVariance, rollNpcInputs } from '../../engine/npcGen';
 import { isOutsideForce } from '../../engine/speed';
@@ -32,9 +32,7 @@ export const resolveNpcRef = (s: GameState, ref: string): string | null => {
 
 /** The species table id for an entity species id (camelCase -> the species table's snake_case); Human when unknown. */
 export function creationSpecies(id: string): string {
-  if (SPECIES_BY_ID.has(id)) return id;
-  const snake = id.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
-  return SPECIES_BY_ID.has(snake) ? snake : 'human';
+  return speciesTableId(id);
 }
 
 /** The NPC's age at the current date; unknown birth days use the role default (D-151). */

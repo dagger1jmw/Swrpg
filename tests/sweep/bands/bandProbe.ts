@@ -1,13 +1,14 @@
 // The canon Force Knowledge and Meditation bands re-measure (D-429 [2]: "re-measured once the XP sources exist"; Jared,
 // D-461). Each Order archetype's npc-test-7 life (Padawan 12, Knight 25, one mission a year from Padawan, its Order's
 // seat by date: the life generated NPCs reproduce), read at the midpoint of each standing's span: 32.5 (Knight / Lord,
-// 25-40), 50 (Master / Darth, 40-60), 70 (the Councils, 60-80). One JSON line per life; tests/sweep/bands/*.test.ts shard it.
+// 25-40), 50 (Master / Darth, 40-60), 70 (the Councils, 60-80); D-462: and across the life (20-100), so a canon figure's
+// band is read at its own age. One JSON line per life; tests/sweep/bands/*.test.ts shard it.
 import { it } from 'vitest';
 import { ARCHETYPE_BY_ID } from '../../../src/data/archetypes';
 import { runLifetime } from '../../support/lifetime';
 import { archetypeSeat, schedule } from '../../lifetime/profiles';
 
-export const BAND_AGES = [32.5, 50, 70] as const;
+export const BAND_AGES = [20, 25, 30, 32.5, 35, 40, 45, 50, 55, 60, 65, 70, 80, 90, 100] as const;
 const TRACK = ['forceKnowledge', 'meditation'];
 
 export function bandShard(id: string, seeds: readonly number[]): void {

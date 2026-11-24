@@ -9,6 +9,6 @@ const SEEDS = (process.env['SEEDS'] ?? '9').split(',').map(Number);
 for (const n of SEEDS)
   it(`rank crossings s${n}`, () => {
     const t0 = Date.now();
-    const r = runLifetime({ ...AVERAGE, seed: n === 0 ? AVERAGE.seed : `${AVERAGE.seed}-s${n}` }, 44, { crossLevels: { highestForm: [24, 47, 66], forceControl: [19, 41], forceSense: [40], willpower: [58] } });
+    const r = runLifetime({ ...AVERAGE, seed: n === 0 ? AVERAGE.seed : `${AVERAGE.seed}-s${n}` }, 44, { crossLevels: { highestForm: [24, 47, 67], forceControl: [19, 44], forceSense: [40], willpower: [58] } });
     console.info(`[cross] s${n} ${Object.entries(r.cross).map(([k, v]) => `${k} ${(v as number).toFixed(2)}`).join(' | ')} (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
   }, 3_600_000);

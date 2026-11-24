@@ -303,3 +303,25 @@ export function speciesOfferedAt(year: number): readonly SpeciesDef[] {
 
 /** species.md §3 limits, asserted by tests. */
 export const TRAIT_LIMITS = { maxCapBonus: 20, minLearning: 0.9, maxLearning: 1.1 } as const;
+
+export const HUMAN_MATURITY = 18;
+export const HUMAN_SPAN = 82;
+
+/**
+ * Human-equivalent age: childhood at the species' own pace, then 82 years spread over the rest of the lifespan (species.md
+ * §1, D-103). Lives here so the data layer can read it (the canon knowledge bands, D-462); src/engine/species re-exports it.
+ */
+export function humanEquivalentAge(species: SpeciesDef, age: number): number {
+  if (age < species.maturity) return (age * HUMAN_MATURITY) / species.maturity;
+  return HUMAN_MATURITY + ((age - species.maturity) * HUMAN_SPAN) / (species.lifespan - species.maturity);
+}
+
+/**
+ * The species-table id for an entity species id (canon figures and NPCs use camelCase ids; the table snake_case): the
+ * table's own id, its snake_case form, else 'human'. Shared by NPC generation and the canon knowledge bands (D-462).
+ */
+export function speciesTableId(id: string): string {
+  if (SPECIES_BY_ID.has(id)) return id;
+  const snake = id.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+  return SPECIES_BY_ID.has(snake) ? snake : 'human';
+}

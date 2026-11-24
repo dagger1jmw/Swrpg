@@ -6,7 +6,7 @@
 //     hand-set sheets, of the game's progression line for the figure (archetype, rank spans, lived age at the sheet's
 //     date, gifted talent: a notable figure) over the sheet value; capped at 1.0, so nothing is inflated.
 //  2. Force Knowledge, Meditation, Intelligence and Tactics from the band definitions (D-429; Force Knowledge and
-//     Meditation of the Order archetypes re-measured on the loop, D-461: KNOWLEDGE_BANDS): their low factors measure
+//     Meditation of the Order archetypes re-measured on the loop, D-461, as curves by age read at the figure's own age, D-462: KNOWLEDGE_BAND_CURVES): their low factors measure
 //     the missing XP sources, not the scale. Each takes the band of the figure's standing at the sheet's date (40 a
 //     Knight, Lord or officer; 60 a Master, Darth or general; 80 the Councils and the highest offices; 100 an ancient),
 //     one band lower outside the figure's focus, and never above the authored value. Re-measured once the sources exist.
@@ -15,6 +15,7 @@
 // docs-v2/reference/calibration-baseline-2026-11-22/. The generator is not tuned to the sheets.
 import { archetypeDef } from '../archetypes';
 import { SKILL_BY_ID } from '../skills';
+import { humanEquivalentAge, speciesDef, speciesTableId } from '../species';
 import type { CanonNpc, StatAnchor } from './types';
 
 export type SheetGroup = 'jedi' | 'sith' | 'career';
@@ -66,28 +67,70 @@ function inFocus(stat: string, archetype: string): boolean {
 
 /**
  * The canon Force Knowledge and Meditation bands, re-measured on the loop (D-461, Jared; D-429 [2]: "re-measured once the
- * XP sources exist"). Per Order archetype, the 20-seed median of its npc-test-7 life (Padawan 12, Knight 25, the yearly
- * mission, its Order's seat by date: the life generated NPCs reproduce) at the midpoint of each standing's span: 40 (a
- * Knight or Lord, 25-40) read at 32.5, 60 (a Master or Darth, 40-60) at 50, 80 (the Councils, 60-80) at 70. Rounded.
- * Measured 2026-11-23, K 11.64 (tests/sweep/bands). The focus rule is now in the numbers (Consulars and Inquisitors study
- * more); a Consular's and an Inquisitor's differ too much to share a band (Force Knowledge at 50: 78.6 against 41.5).
+ * XP sources exist"), as curves by age (D-462: read at the figure's own age). Per Order archetype, the 20-seed median of
+ * its npc-test-7 life (Padawan 12, Knight 25, the yearly mission, its Order's seat by date: the life generated NPCs
+ * reproduce), at Human-equivalent ages 20-100 (flat outside). Measured 2026-11-23, K 11.64
+ * (tests/sweep/bands). The focus rule is in the numbers (Consulars and Inquisitors study more); a Consular's and an
+ * Inquisitor's differ too much to share a band.
  */
-export const KNOWLEDGE_BANDS: Readonly<Record<string, Readonly<Record<'forceKnowledge' | 'meditation', Readonly<Record<number, number>>>>>> = {
-  jediGuardian: { forceKnowledge: { 40: 17, 60: 23, 80: 29 }, meditation: { 40: 20, 60: 28, 80: 36 } },
-  jediSentinel: { forceKnowledge: { 40: 17, 60: 23, 80: 29 }, meditation: { 40: 20, 60: 28, 80: 36 } },
-  jediConsular: { forceKnowledge: { 40: 42, 60: 79, 80: 107 }, meditation: { 40: 28, 60: 44, 80: 59 } },
-  sithWarrior: { forceKnowledge: { 40: 14, 60: 19, 80: 24 }, meditation: { 40: 14, 60: 21, 80: 27 } },
-  sithInquisitor: { forceKnowledge: { 40: 25, 60: 42, 80: 57 }, meditation: { 40: 17, 60: 27, 80: 36 } },
+export const KNOWLEDGE_BAND_CURVES: Readonly<Record<string, Readonly<Record<'forceKnowledge' | 'meditation', readonly (readonly [number, number])[]>>>> = {
+  jediGuardian: {
+    forceKnowledge: [[20, 14.2], [25, 14.2], [30, 16.0], [32.5, 16.8], [35, 17.7], [40, 19.4], [45, 21.2], [50, 23.0], [55, 24.6], [60, 26.2], [65, 27.6], [70, 29.1], [80, 31.8], [90, 34.3], [100, 36.5]],
+    meditation: [[20, 13.1], [25, 16.5], [30, 18.9], [32.5, 20.1], [35, 21.3], [40, 23.7], [45, 25.9], [50, 28.1], [55, 30.2], [60, 32.3], [65, 34.3], [70, 36.1], [80, 39.4], [90, 42.5], [100, 45.0]],
+  },
+  jediSentinel: {
+    forceKnowledge: [[20, 14.1], [25, 14.1], [30, 15.9], [32.5, 16.8], [35, 17.7], [40, 19.5], [45, 21.3], [50, 23.1], [55, 24.7], [60, 26.3], [65, 27.8], [70, 29.2], [80, 32.0], [90, 34.5], [100, 36.7]],
+    meditation: [[20, 13.2], [25, 16.4], [30, 18.9], [32.5, 20.0], [35, 21.3], [40, 23.6], [45, 25.8], [50, 27.9], [55, 30.0], [60, 32.1], [65, 34.0], [70, 35.9], [80, 39.3], [90, 42.5], [100, 45.1]],
+  },
+  jediConsular: {
+    forceKnowledge: [[20, 16.9], [25, 18.0], [30, 35.6], [32.5, 42.5], [35, 48.6], [40, 59.5], [45, 69.6], [50, 78.6], [55, 87.4], [60, 95.4], [65, 102.7], [70, 107.2], [80, 113.3], [90, 117.5], [100, 121.5]],
+    meditation: [[20, 15.1], [25, 18.8], [30, 25.1], [32.5, 27.8], [35, 30.4], [40, 35.1], [45, 39.6], [50, 44.1], [55, 48.1], [60, 51.9], [65, 55.6], [70, 59.0], [80, 65.7], [90, 71.5], [100, 77.0]],
+  },
+  sithWarrior: {
+    forceKnowledge: [[20, 11.9], [25, 11.9], [30, 13.3], [32.5, 13.9], [35, 14.6], [40, 15.9], [45, 17.2], [50, 18.5], [55, 19.7], [60, 21.1], [65, 22.4], [70, 23.6], [80, 25.8], [90, 27.7], [100, 29.4]],
+    meditation: [[20, 9.6], [25, 11.3], [30, 13.2], [32.5, 14.2], [35, 15.1], [40, 16.9], [45, 18.7], [50, 20.5], [55, 22.4], [60, 24.1], [65, 25.5], [70, 26.9], [80, 29.3], [90, 31.3], [100, 33.0]],
+  },
+  sithInquisitor: {
+    forceKnowledge: [[20, 14.3], [25, 15.4], [30, 22.2], [32.5, 25.1], [35, 27.7], [40, 32.6], [45, 37.1], [50, 41.5], [55, 45.7], [60, 49.5], [65, 53.1], [70, 56.6], [80, 63.4], [90, 69.5], [100, 75.0]],
+    meditation: [[20, 10.4], [25, 12.2], [30, 15.7], [32.5, 17.3], [35, 18.8], [40, 21.7], [45, 24.4], [50, 26.8], [55, 29.2], [60, 31.5], [65, 33.7], [70, 35.7], [80, 39.6], [90, 43.5], [100, 46.8]],
+  },
 };
+
+/** The read age of a standing without a known birth year: the midpoint of its span (D-461). */
+export const STANDING_MIDPOINT: Readonly<Record<number, number>> = { 40: 32.5, 60: 50, 80: 70 };
+
+/** Linear between the anchors, flat outside (the data layer's copy of engine/interp's rule, kept local: data imports no engine). */
+function curveAt(anchors: readonly (readonly [number, number])[], x: number): number {
+  if (x <= anchors[0]![0]) return anchors[0]![1];
+  for (let i = 1; i < anchors.length; i++) {
+    const [x1, y1] = anchors[i]!;
+    if (x <= x1) {
+      const [x0, y0] = anchors[i - 1]!;
+      return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0);
+    }
+  }
+  return anchors[anchors.length - 1]![1];
+}
+
+/**
+ * The age a canon figure's knowledge band is read at (D-462, Jared): its Human-equivalent age at the sheet's date when the
+ * roster's birth year comes from the lore; else null (an estimated birth year is a design default: the standing midpoint).
+ */
+export function bandReadAge(n: Pick<CanonNpc, 'birthBby' | 'birthSource' | 'speciesId'>, bby: number): number | null {
+  if (n.birthSource !== 'lore') return null;
+  return humanEquivalentAge(speciesDef(speciesTableId(n.speciesId)), Math.max(0, n.birthBby - bby));
+}
 
 /**
  * A band-set stat's game-scale value, at most as authored. Force Knowledge and Meditation of an Order archetype at a
- * Knight, Master or Council standing: the measured band (D-461). Otherwise the D-429 rule: the standing's band, one band
- * lower outside the focus (an ancient `fixed` figure, careers, Intelligence and Tactics).
+ * Knight, Master or Council standing: the archetype's measured curve (D-461), read at the figure's own age when known,
+ * else at the standing's midpoint (D-462). Otherwise the D-429 rule: the standing's band, one band lower outside the focus
+ * (an ancient `fixed` figure, careers, Intelligence and Tactics).
  */
-export function bandValue(stat: string, authored: number, band: number, archetype: string): number {
-  const measured = stat === 'forceKnowledge' || stat === 'meditation' ? KNOWLEDGE_BANDS[archetype]?.[stat]?.[band] : undefined;
-  if (measured !== undefined) return Math.max(0, Math.min(authored, measured));
+export function bandValue(stat: string, authored: number, band: number, archetype: string, age: number | null = null): number {
+  const curve = stat === 'forceKnowledge' || stat === 'meditation' ? KNOWLEDGE_BAND_CURVES[archetype]?.[stat] : undefined;
+  const mid = STANDING_MIDPOINT[band];
+  if (curve && mid !== undefined) return Math.max(0, Math.min(authored, Math.round(curveAt(curve, age ?? mid))));
   return Math.max(0, Math.min(authored, inFocus(stat, archetype) ? band : band - 20));
 }
 
@@ -113,10 +156,11 @@ export const GAME_SCALE_LINES: Readonly<Record<string, Readonly<Record<string, n
 };
 
 /** A sheet's levels in the game scale (rounded to 0.1). */
-export function sheetToGame(n: Pick<CanonNpc, 'canonId' | 'archetype' | 'ranks' | 'fixed'>, a: Pick<StatAnchor, 'bby' | 'levels'>): Record<string, number> {
+export function sheetToGame(n: Pick<CanonNpc, 'canonId' | 'archetype' | 'ranks' | 'fixed' | 'birthBby' | 'birthSource' | 'speciesId'>, a: Pick<StatAnchor, 'bby' | 'levels'>): Record<string, number> {
   const group = groupOf(n.archetype);
   const band = standingBand(n, a.bby);
+  const age = bandReadAge(n, a.bby);
   const out: Record<string, number> = {};
-  for (const [k, v] of Object.entries(a.levels)) out[k] = BAND_SET_STATS.includes(k) ? bandValue(k, v, band, n.archetype) : Math.round(v * sheetFactor(k, group) * 10) / 10;
+  for (const [k, v] of Object.entries(a.levels)) out[k] = BAND_SET_STATS.includes(k) ? bandValue(k, v, band, n.archetype, age) : Math.round(v * sheetFactor(k, group) * 10) / 10;
   return { ...out, ...(GAME_SCALE_LINES[n.canonId] ?? {}) };
 }

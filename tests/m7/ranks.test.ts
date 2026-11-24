@@ -24,7 +24,8 @@ const make = (o: { age: number; rank: string; xp?: Record<string, number>; year?
     rank: o.rank,
   });
 const xp = (levels: Record<string, number>) => Object.fromEntries(Object.entries(levels).map(([k, v]) => [k, xpForLevel(v)]));
-const KNIGHT_READY = xp({ soresu: 50, forceControl: 44, forceSense: 43, willpower: 62, endurance: 45 });
+// Force Control 47: clear of the Knight minimum 44 (D-462).
+const KNIGHT_READY = xp({ soresu: 50, forceControl: 47, forceSense: 43, willpower: 62, endurance: 45 });
 
 describe('rules (pure)', () => {
   it('standing weights: 50% percentile, 30% deeds, 20% relationships; selection is S / 940', () => {

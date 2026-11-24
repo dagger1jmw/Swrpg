@@ -16,12 +16,12 @@ export const gated = <P extends { seed: string }>(p: P): P => ({ ...p, seed: `${
 
 // D-461 (Jared): Obi-Wan's 21 3.4 -> 3.5 (not canon-anchored; the lore-correct saber gate delays his first Form I);
 // Luke's 41 6.9 -> 5.5, re-anchored to his measured 20-seed median (5.46): the targets were design values written into
-// the v2 spec (2026-11-16) with no Legends source.
+// the v2 spec (2026-11-16) with no Legends source. D-462: Luke's 21 2.1 -> 1.7 (his measured median, 1.69), the same way.
 export const TARGETS = {
   average: { 21: 5.0, 41: 16.0, 61: 32.1, 81: 52.7, 101: 77.5 },
   obiwan: { 21: 3.5, 41: 10.8, 61: 21.7, 81: 35.6, 101: 52.4 },
   anakin: { 21: 1.3, 41: 4.1, 61: 8.2, 81: 13.5, 101: 19.9 },
-  luke: { 21: 2.1, 41: 5.5, 61: 13.9, 81: 22.8, 101: 33.6 },
+  luke: { 21: 1.7, 41: 5.5, 61: 13.9, 81: 22.8, 101: 33.6 },
 } as const satisfies Record<string, Record<number, number>>;
 
 interface FightSpec extends Fight {

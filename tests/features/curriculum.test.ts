@@ -77,8 +77,44 @@ describe('the Initiate saber curriculum (D-459)', () => {
     const four = { makashi: floor, soresu: floor, ataru: floor, djemSo: floor };
     expect(rollTrial(seedRng('t'), def, levels(four), 0).passed).toBe(true);
     expect(rollTrial(seedRng('t'), def, levels({ makashi: floor, soresu: floor, ataru: floor, niman: floor - 0.1 }), 0).passed).toBe(false);
-    expect(rollTrial(seedRng('t'), def, levels(four), 0).competence).toEqual({ met: 4, need: 4, floor });
+    expect(rollTrial(seedRng('t'), def, levels(four), 0).competence).toEqual({ met: 4, need: 4, floor, of: 5 });
     // Form V counts once, by its better variant; Juyo is not in the curriculum.
     expect(rollTrial(seedRng('t'), def, levels({ makashi: floor, soresu: floor, shien: floor, djemSo: floor, juyo: 99 }), 0).passed).toBe(false);
+  });
+});
+
+describe('the survey covers the forms that exist at the date (D-463)', () => {
+  // 3990 BBY: Djem So exists (from 4000 BBY), Ataru (3976) and Shien (3959) do not yet.
+  const YEAR = -3990;
+  it('the day plan rotates only through the existing forms, the hours split across them', async () => {
+    const { absDayFromDate } = await import('../../src/engine/calendar');
+    const { surveyGroupsAt } = await import('../../src/data/initiateCurriculum');
+    expect(surveyGroupsAt(YEAR)).toEqual([['makashi'], ['soresu'], ['djemSo'], ['niman']]);
+    expect(surveyGroupsAt(-4100)).toEqual([['makashi'], ['soresu'], ['niman']]);
+    expect(surveyGroupsAt(-3661).flat()).toEqual(INITIATE_CURRICULUM.surveyForms.flat());
+    const d0 = absDayFromDate({ year: YEAR, month: 1, day: 1 });
+    const hours: Record<string, number> = {};
+    for (let d = d0; d < d0 + 360; d++) for (const b of initiateSaberBlocks({ age: 11, day: d, hours: 2, level: lv(99, 99) }).blocks) hours[b.skillId] = (hours[b.skillId] ?? 0) + b.hours;
+    expect(hours['ataru']).toBeUndefined();
+    expect(hours['shien']).toBeUndefined();
+    const total = Object.values(hours).reduce((a, b) => a + b, 0);
+    expect(hours['shiiCho']! / total).toBeCloseTo(0.75, 9);
+    for (const f of ['makashi', 'soresu', 'djemSo', 'niman']) expect(hours[f]! / total).toBeCloseTo(0.0625, 9);
+    expect(surveyShares(YEAR)).toEqual({ shiiCho: 0.75, makashi: 0.0625, soresu: 0.0625, djemSo: 0.0625, niman: 0.0625 });
+  });
+  it('the closed form starts only the existing forms; the Trials need all but one of the existing groups', async () => {
+    const { closedFormCurriculum } = await import('../../src/data/initiateCurriculum');
+    const cur = closedFormCurriculum('jedi', YEAR)!;
+    expect(cur.order).toEqual(['makashi', 'soresu', 'djemSo', 'niman']);
+    const base = { formPaces: { initiate: { order: 1 } }, k: K, startAge: 4, padawanAge: 12, knightAge: 25, onePhase: false, padawanPlan: { soresu: 2, djemSo: 1 }, knightPlan: { soresu: 2, djemSo: 1 }, mult: () => 1, transferShare: FORM_TRANSFER_SHARE };
+    const at11 = formXps({ ...base, age: 11, curriculum: cur });
+    expect(at11['ataru'] ?? 0).toBe(0);
+    expect(at11['shien'] ?? 0).toBe(0);
+    expect(at11['djemSo']!).toBeGreaterThan(0);
+    const { competenceOf } = await import('../../src/features/ranks/rules');
+    const c = TRIALS.initiate.competence!;
+    const lv3 = (k: string): number => (['makashi', 'soresu', 'djemSo'].includes(k) ? c.floor : 0);
+    expect(competenceOf(c, lv3, YEAR)).toEqual({ met: 3, need: 3, floor: c.floor, of: 4 });
+    expect(competenceOf(c, lv3, -3661)).toEqual({ met: 3, need: 4, floor: c.floor, of: 5 });
   });
 });

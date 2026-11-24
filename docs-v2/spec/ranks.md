@@ -81,10 +81,11 @@ Padawan
   Missions with the master; the master is the main teacher (progression spec sec 15).
 Knight Trials (five playable trials)
   D-426 (Jared, current rule): the Average is a Padawan from 12 and a Knight at 25. Eligible: at least
-    10 years as a Padawan, age 18+, the master's approval, and highest form >= 47, Force Control >= 41,
+    10 years as a Padawan, age 18+, the master's approval, and highest form >= 47, Force Control >= 44,
     Force Sense >= 40, Willpower >= 58 (the Average's levels at 24 by the D-51 rule, re-read after the
     Temple joined the calibration, D-445: Force Sense 37 was met at 21.8 and Force Control 38 at 22.1;
-    47 / 38 / 37 / 58 after D-431, 47 / 40 / 36 / 56 under D-426). The history below
+    47 / 38 / 37 / 58 after D-431, 47 / 40 / 36 / 56 under D-426; D-462: Force Control 41 -> 44, the
+    Average's 44.6 at 24 after D-460, 41 being met at 21.93-22.14; the Sith Lord row mirrors it). The history below
     is kept for reference.
   Eligible: at least 6 years as a Padawan, age 18+, the master's approval (engine flag
     masterApproval, flag-registry.md), and highest form >= 39, Force Control >= 34, Force Sense
@@ -128,8 +129,8 @@ Knight
   Missions on their own; may take a Padawan once age 25+ and the Council approves.
 Master
   Requires: a Padawan trained to Knighthood, OR exceptional deeds plus a Council decision.
-  Skill minimum: main specialty >= 66, the Average's at 40 (66.6; D-461, re-set by the D-437
-    rule after D-460; 64 before, met at 37.46), plus the Knight minimums.
+  Skill minimum: main specialty >= 67, the Average's at 40 (66.6, rounded to the nearest level by
+    the D-437 rule; D-462, after 66 in D-461 and 64 before, met at 37.46), plus the Knight minimums.
     (D-437: 64, the Average's 63.9 at 40; 58 before that, met by the Average at 33.7.)
 High Council seat
   Requires: Master rank, a vacancy (story event), main specialty >= 70, and Council standing

@@ -3,6 +3,7 @@
 // checks and applies the result; the AI only proposes.
 import { COVERT_ESCALATION, COVERT_LEARNING, ORDER_POWER_RULES, TRIALS_HOLD, type CovertEscalationFlag } from '../../data/orderPowerRules';
 import { DAYS_PER_YEAR } from '../../engine/calendar';
+import { formExistsAt } from '../../data/initiateCurriculum';
 import { COUNCIL_BYPASS, DEED_POINTS, DEEDS_PAST, KNIGHT_TRIAL_IDS, PACE_MILESTONES, SELECTION, STANDING_WEIGHTS, TRIALS, TRIAL_RULES, type PaceMilestone, type TrialDef, type TrialId } from '../../data/ranks.config';
 import { KNIGHT_TRIALS } from '../../data/rankMinimums';
 import { basicRoll, dcForRating, type BasicRoll } from '../../engine/rolls';
@@ -138,7 +139,7 @@ export interface TrialRoll extends BasicRoll {
  * A trial's checks (ranks.md §1). `levelOf` gives the effective level of a skill (the Flesh trial's fatigue is applied by
  * the caller); the Spirit trial's DC is 10 + dark pressure / 5 + 4.
  */
-export function rollTrial(rng: RngState, def: TrialDef, levelOf: (skill: string) => number, darkPressure: number): { passed: boolean; rolls: TrialRoll[]; rng: RngState; competence?: { met: number; need: number; floor: number } } {
+export function rollTrial(rng: RngState, def: TrialDef, levelOf: (skill: string) => number, darkPressure: number, year?: number): { passed: boolean; rolls: TrialRoll[]; rng: RngState; competence?: { met: number; need: number; floor: number; of: number } } {
   let r = rng;
   const rolls: TrialRoll[] = [];
   for (const chk of def.checks) {
@@ -147,14 +148,18 @@ export function rollTrial(rng: RngState, def: TrialDef, levelOf: (skill: string)
     const dc = def.id === 'spirit' ? 10 + darkPressure / 5 + 4 : dcForRating(chk.rating);
     rolls.push({ ...roll, skill: chk.skill, dc, success: roll.total >= dc });
   }
-  const comp = def.competence ? competenceOf(def.competence, levelOf) : undefined;
+  const comp = def.competence ? competenceOf(def.competence, levelOf, year) : undefined;
   return { passed: rolls.filter((x) => x.success).length >= def.need && (comp ? comp.met >= comp.need : true), rolls, rng: r, ...(comp ? { competence: comp } : {}) };
 }
 
-/** Basic competence (D-459): how many form groups reach the floor (a group reads its best form). */
-export function competenceOf(c: NonNullable<TrialDef['competence']>, levelOf: (skill: string) => number): { met: number; need: number; floor: number } {
-  const met = c.groups.filter((g) => Math.max(...g.map(levelOf)) >= c.floor).length;
-  return { met, need: c.need, floor: c.floor };
+/**
+ * Basic competence (D-459): how many form groups reach the floor (a group reads its best form). Only the forms that exist
+ * at the year count (D-463); with fewer groups, all but one are needed (4 of 5 when all exist).
+ */
+export function competenceOf(c: NonNullable<TrialDef['competence']>, levelOf: (skill: string) => number, year?: number): { met: number; need: number; floor: number; of: number } {
+  const groups = c.groups.map((g) => g.filter((f) => formExistsAt(f, year))).filter((g) => g.length > 0);
+  const met = groups.filter((g) => Math.max(...g.map(levelOf)) >= c.floor).length;
+  return { met, need: Math.min(c.need, Math.max(0, groups.length - 1)), floor: c.floor, of: groups.length };
 }
 
 /** The Knight Trials done: each passed, or credited by a wartime heroic act (Courage and Flesh only; ranks.md §1). */

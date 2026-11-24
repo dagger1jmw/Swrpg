@@ -2,18 +2,12 @@
 // Human-equivalent age h and bodyScale. Pure.
 import { FORCE_BOOST, HUMAN_BODY_CAP, NATURAL_CHARISMA, NATURAL_INTELLIGENCE, NATURAL_PHYSICAL_FACTOR, NATURAL_WILLPOWER } from '../data/progression.config';
 import { SKILL_BY_ID, type PhysicalStat } from '../data/skills';
-import { speciesDef, type SpeciesDef } from '../data/species';
+import { HUMAN_MATURITY, HUMAN_SPAN, humanEquivalentAge, speciesDef, type SpeciesDef } from '../data/species';
 import { FORCE_XP_TRIAL } from './forceXpTrial';
 import { interp } from './interp';
 
-const HUMAN_MATURITY = 18;
-const HUMAN_SPAN = 82;
-
-/** Human-equivalent age: childhood at the species' own pace, then 82 years spread over the rest of the lifespan. */
-export function humanEquivalentAge(species: SpeciesDef, age: number): number {
-  if (age < species.maturity) return (age * HUMAN_MATURITY) / species.maturity;
-  return HUMAN_MATURITY + ((age - species.maturity) * HUMAN_SPAN) / (species.lifespan - species.maturity);
-}
+/** Human-equivalent age (species.md §1, D-103); defined in src/data/species (the data layer reads it too). */
+export { humanEquivalentAge };
 
 /**
  * Resist Aging (lore L-02; the ability arrives in M6): while maintained, h advances at 0.5x past

@@ -5,7 +5,8 @@
 //   the survey (from the Initiate Trials' minimum age): Form I keeps 75% of the hours (D-460), Forms II-VI rotate a day
 //     each through the rest (Form V alternating Shien and Djem So by week). Total hours unchanged.
 import { DEFAULT_ACTIVITY } from '../../data/activities';
-import { INITIATE_CURRICULUM, saberGateOpen } from '../../data/initiateCurriculum';
+import { INITIATE_CURRICULUM, saberGateOpen, surveyGroupsAt } from '../../data/initiateCurriculum';
+import { dateFromAbsDay } from '../../engine/calendar';
 import { STEP_HOURS } from '../../data/progression.config';
 
 export type CurriculumPhase = 'preGate' | 'formI' | 'survey';
@@ -47,8 +48,10 @@ export function initiateSaberBlocks(i: CurriculumInput): { phase: CurriculumPhas
     return { phase, blocks: split(c.preGate.map((b) => (b.activityId === '$physical' ? { ...b, activityId: phys.activityId, skillId: phys.skillId } : b))) };
   }
   if (phase === 'formI') return { phase, blocks: [{ activityId: 'shiiChoBasics', skillId: 'shiiCho', hours: i.hours }] };
-  const n = c.surveyForms.length;
-  const group = c.surveyForms[((i.day % n) + n) % n]!;
+  // The forms that exist at the date (D-463): earlier eras rotate through fewer.
+  const groups = surveyGroupsAt(dateFromAbsDay(i.day).year);
+  const n = groups.length;
+  const group = groups[((i.day % n) + n) % n]!;
   // Form V's variant alternates by week (absolute days are negative before 0 BBY: a non-negative modulo).
   const mod = (x: number, m: number): number => ((x % m) + m) % m;
   const form = group[mod(Math.floor(i.day / 7), group.length)]!;

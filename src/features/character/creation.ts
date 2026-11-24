@@ -11,7 +11,7 @@ import { gainE, sparringE } from '../../engine/appliedExperience';
 import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
 import { BUDGET, CAREER_YOUTH_TO, FORM_TRANSFER_SHARE, LONG_LIFE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
 import { orderHoursAt } from '../../data/orderRequirements';
-import { closedFormCurriculum } from '../../data/initiateCurriculum';
+import { INITIATE_CURRICULUM, closedFormCurriculum } from '../../data/initiateCurriculum';
 import { interp } from '../../engine/interp';
 import { AVERAGE_RANK_AGES, KNIGHT_TRIALS, RANK_BY_ID, RANK_PHASE, type RankDef } from '../../data/rankMinimums';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID, SKILL_IDS, type TalentDomain } from '../../data/skills';
@@ -329,7 +329,8 @@ export function computeCreation(input: CreationInput): CreationResult {
   if (hasForms) {
     const formMult = (f: string): number => talentMult(talents, f) * crossTalentMult(talents, f) * speciesLearning(species.id, f) * (input.variance?.(f) ?? 1);
     // The Jedi Initiate lightsaber curriculum (D-459); the Sith acolyte row keeps Form I only.
-    const curriculum = closedFormCurriculum(input.path);
+    // The curriculum at the year of the survey (D-463: the forms that exist then).
+    const curriculum = closedFormCurriculum(input.path, dateFromAbsDay(input.birthDay + Math.round(INITIATE_CURRICULUM.surveyFromAge * DAYS_PER_YEAR)).year);
     const formsAt = (age: number): Record<string, number> =>
       formXps({ formPaces: a.formPaces, k: K, startAge: hStart, age, padawanAge: hAges.padawanAge, knightAge: hAges.knightAge, onePhase: ages.onePhase, padawanPlan, knightPlan, mult: formMult, transferShare: FORM_TRANSFER_SHARE, warYears, knightPoolDelta: ((focus[FORMS_KEY] ?? 0) - (def[FORMS_KEY] ?? 0)) * perShare * fill.knight, ...(curriculum ? { curriculum } : {}) });
     const highestAt = (age: number): number => (age > hStart ? levelExact(Math.max(0, ...Object.values(formsAt(age)))) : 0);

@@ -85,7 +85,7 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
         // Flesh starts the scene fatigued: efficiency at f 0.8 (rolls.md §1: x(1 - 0.25 (1 - e)), e(0.8) = 0.367).
         const fatigue = def.startF !== undefined ? 1 - 0.25 * (1 - efficiency(def.startF)) : 1;
         const levelOf = (skill: string): number => (skill.startsWith('$') ? selectMinimumLevel(ctx.state, skill) : selectLevelExact(ctx.state, skill)) * fatigue;
-        const r = rollTrial(ctx.state.meta.rngState, def, levelOf, 0);
+        const r = rollTrial(ctx.state.meta.rngState, def, levelOf, 0, dateFromAbsDay(ctx.state.clock.now.day).year);
         const day = ctx.state.clock.now.day;
         const prev = slice.trials[t] ?? NO_RECORD;
         const rec = r.passed ? { ...prev, passed: true, lastDay: day } : { ...prev, fails: prev.fails + 1, lastDay: day };
@@ -93,7 +93,7 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
         const flag: GameEvent = { type: 'flagSet', flag: r.passed ? (t === 'initiate' ? 'initiateTrialsPassed' : `trialPassed:${t}`) : `trialFailed:${t}` };
         const card = [
           ...r.rolls.map((x) => `${x.skill} ${x.total.toFixed(1)} vs DC ${x.dc.toFixed(1)} ${x.success ? 'pass' : 'fail'}`),
-          ...(r.competence ? [`Forms II-VI at ${r.competence.floor}+: ${r.competence.met} of 5 (need ${r.competence.need})`] : []),
+          ...(r.competence ? [`Forms II-VI at ${r.competence.floor}+: ${r.competence.met} of ${r.competence.of} (need ${r.competence.need})`] : []),
         ].join('; ');
         return {
           slice: { ...slice, trials: { ...slice.trials, [t]: rec }, pendingChoice: slice.pendingChoice || third },
