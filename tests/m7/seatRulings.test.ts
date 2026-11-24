@@ -72,13 +72,14 @@ describe('the major-nexus tier (D-451)', () => {
 describe('the order seats by date (D-451)', () => {
   it('Jedi: the Coruscant Temple, its ruins, Tython from 3,650, Coruscant again, none in the Purge, the Praxeum, Ossus', () => {
     expect(homeSeatAt('jedi', 'padawan', -3661)).toEqual({ name: 'the Jedi Temple', planet: 'Coruscant' });
-    expect(homeSeatAt('jedi', 'knight', -3651)).toEqual({ name: 'Tython', planet: 'Tython' });
+    expect(homeSeatAt('jedi', 'knight', -3651)).toBeNull(); // scattered (D-477)
+    expect(homeSeatAt('jedi', 'knight', -3650)).toEqual({ name: 'Tython', planet: 'Tython' });
     expect(homeSeatAt('jedi', 'knight', -3647)).toEqual({ name: 'the Jedi Temple on Tython', planet: 'Tython' });
     expect(homeSeatAt('jedi', 'initiate', -1032)?.planet).toBe('Coruscant');
     expect(homeSeatAt('jedi', 'knight', -10)).toBeNull();
     expect(homeSeatAt('jedi', 'padawan', 12)?.planet).toBe('Yavin 4');
     expect(homeSeatAt('jedi', 'padawan', 40)?.planet).toBe('Ossus');
-    expect(ORDER_SEATS.filter((s) => s.seat !== null).every((s) => s.home)).toBe(true);
+    expect(ORDER_SEATS.filter((s) => s.seat !== null && !s.homeless).every((s) => s.home)).toBe(true);
   });
   it('Sith: the Korriban academy for acolytes and Dromund Kaas for Lords while the Empire holds them; none while abandoned', () => {
     expect(homeSeatAt('sith', 'initiate', -3661)).toEqual({ name: 'the Sith Academy', planet: 'Korriban' });

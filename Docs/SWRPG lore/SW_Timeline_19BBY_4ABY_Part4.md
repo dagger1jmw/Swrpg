@@ -140,25 +140,25 @@ Checked against `SW_Legends_Galaxy_Timeline.md` (DARK TIMES / IMPERIAL ERA and G
 - The Purge's survivors list (pre-2008 page) is a ready pool of hidden Jedi NPCs for 19–0 BBY.
 
 ## Decisions needed
-1. **End of the Great Jedi Purge**: 0 BBY (current page) or 1 BBY (pre-2008 page). The 0 BBY end ties to Vader's killing of An'ya Kuro.
-2. **Maul's death in 16 BBY**: *Old Wounds* has Owen Lars shoot Maul after Kenobi hesitates; the current Legends page and the design map say Kenobi kills him. Which version does the narrator use? And keep or drop the 0 BBY Kalakar Six "Maul" (a clone or vision on Wookieepedia, a doppelgänger in 2008)?
-3. **Ghorman Massacre**: c. 19 BBY (its page, most sources) or 18 BBY (year page); and was Tarkin first made Moff before the Clone Wars ended (his page) or after Ghorman (Ghorman page, *Essential Chronology*)?
-4. **Grand Inquisitor Torbin's death**: 16 BBY (pre-2008) or 4 BBY (current pages, tied to Arden Lyn). The 4 BBY date fits the Arden Lyn story.
-5. **Ashka Boda's death**: 19 BBY (*Jedi vs. Sith*) or around 10 BBY (pre-2008 Purge article).
-6. **Death Star site**: Despayre from 19 BBY (year page) or Geonosis → Seswenna → Patriim → Horuz in 3 BBY (Death Star page, *Essential Atlas*). The latter fits more sources.
-7. **Lando and the *Falcon***: won from Cix Trouvee in 5 BBY (*Millennium Falcon* novel, *Essential Guide to Warfare*) or by sabacc in 4 BBY (*Essential Atlas*).
-8. **Lando and Cloud City**: 1 ABY (year page) or c. 2 ABY (his article's order).
-9. **Declaration of Rebellion**: ratified at the Corellian System Meetings (its page) or proclaimed on Kashyyyk after the Death Star escape (*TFU*, Kota's page); both 2 BBY.
-10. **Start of the Galactic Civil War**: 2 BBY (Wookieepedia) or left open (*Complete Encyclopedia*).
-11. **Battle of Ylesia**: 1 BBY (infobox) or 0 BBY (lead text, *New Essential Chronology*).
-12. **Bombing of the Treitamma Political Center**: before the Corellian Treaty (Bel Iblis's page) or 0 BBY (event page).
-13. ***The Force Unleashed II*** (1 BBY): include the clone Starkiller, Vader's capture at Kamino and Kota's Cato Neimoidia captivity (they come from the game and its novelization), or stop at the first novel's ending?
-14. **Lord Tion's death**: 0 BBY (his page) vs the Ralltiir subjugation's 35:2 = 1 BBY reckoning.
-15. **Tarkin's death date**: 35:3:7 (his page) vs Yavin 35:3:8 (Yavin page).
-16. **Firrerreo genocide**: 0 BBY or 0 ABY (both year pages list it).
-17. **Game-only campaigns** (*Empire at War*, *Rogue Squadron*, *X-Wing*, *TIE Fighter*, *Galaxies*, *Force Commander*, *Battlefront*): keep as background rows (as here) or drop?
-18. ***Star Wars: Demolition*** (4 ABY, Jabba's palace): include or exclude?
-19. **Irek Ismaren's birth**: 4 BBY or 2 BBY.
+1. **End of the Great Jedi Purge**: 0 BBY (current page) or 1 BBY (pre-2008 page). The 0 BBY end ties to Vader's killing of An'ya Kuro. **Ruled 24 Nov 2026 (default):** 0 BBY (no best fit stated).
+2. **Maul's death in 16 BBY**: *Old Wounds* has Owen Lars shoot Maul after Kenobi hesitates; the current Legends page and the design map say Kenobi kills him. Which version does the narrator use? And keep or drop the 0 BBY Kalakar Six "Maul" (a clone or vision on Wookieepedia, a doppelgänger in 2008)? **Ruled 24 Nov 2026:** 16 BBY; Owen Lars shoots him. The Kalakar Six figure stays as a clone or doppelgänger (default; no best fit stated).
+3. **Ghorman Massacre**: c. 19 BBY (its page, most sources) or 18 BBY (year page); and was Tarkin first made Moff before the Clone Wars ended (his page) or after Ghorman (Ghorman page, *Essential Chronology*)? **Ruled 24 Nov 2026 (default):** c. 19 BBY; Tarkin made Moff after it (no best fit stated for the second).
+4. **Grand Inquisitor Torbin's death**: 16 BBY (pre-2008) or 4 BBY (current pages, tied to Arden Lyn). The 4 BBY date fits the Arden Lyn story. **Ruled 24 Nov 2026 (default):** 4 BBY.
+5. **Ashka Boda's death**: 19 BBY (*Jedi vs. Sith*) or around 10 BBY (pre-2008 Purge article). **Ruled 24 Nov 2026 (default):** 19 BBY (no best fit stated).
+6. **Death Star site**: Despayre from 19 BBY (year page) or Geonosis → Seswenna → Patriim → Horuz in 3 BBY (Death Star page, *Essential Atlas*). The latter fits more sources. **Ruled 24 Nov 2026 (default):** Geonosis, Seswenna, Patriim, then the Horuz system in 3 BBY.
+7. **Lando and the *Falcon***: won from Cix Trouvee in 5 BBY (*Millennium Falcon* novel, *Essential Guide to Warfare*) or by sabacc in 4 BBY (*Essential Atlas*). **Ruled 24 Nov 2026 (default):** 5 BBY, from Cix Trouvee (no best fit stated; two sources to one).
+8. **Lando and Cloud City**: 1 ABY (year page) or c. 2 ABY (his article's order). **Ruled 24 Nov 2026 (default):** 1 ABY (no best fit stated).
+9. **Declaration of Rebellion**: ratified at the Corellian System Meetings (its page) or proclaimed on Kashyyyk after the Death Star escape (*TFU*, Kota's page); both 2 BBY. **Ruled 24 Nov 2026 (default):** the Corellian System Meetings, 2 BBY (no best fit stated).
+10. **Start of the Galactic Civil War**: 2 BBY (Wookieepedia) or left open (*Complete Encyclopedia*). **Ruled 24 Nov 2026 (default):** 2 BBY (no best fit stated).
+11. **Battle of Ylesia**: 1 BBY (infobox) or 0 BBY (lead text, *New Essential Chronology*). **Ruled 24 Nov 2026 (default):** 1 BBY (no best fit stated).
+12. **Bombing of the Treitamma Political Center**: before the Corellian Treaty (Bel Iblis's page) or 0 BBY (event page). **Ruled 24 Nov 2026 (default):** before the Corellian Treaty (no best fit stated).
+13. ***The Force Unleashed II*** (1 BBY): include the clone Starkiller, Vader's capture at Kamino and Kota's Cato Neimoidia captivity (they come from the game and its novelization), or stop at the first novel's ending? **Ruled 24 Nov 2026 (default):** kept, from the novelization (no best fit stated).
+14. **Lord Tion's death**: 0 BBY (his page) vs the Ralltiir subjugation's 35:2 = 1 BBY reckoning. **Ruled 24 Nov 2026 (default):** 0 BBY (no best fit stated).
+15. **Tarkin's death date**: 35:3:7 (his page) vs Yavin 35:3:8 (Yavin page). **Ruled 24 Nov 2026 (default):** 35:3:8 with the Battle of Yavin (no best fit stated).
+16. **Firrerreo genocide**: 0 BBY or 0 ABY (both year pages list it). **Ruled 24 Nov 2026 (default):** 0 BBY (no best fit stated).
+17. **Game-only campaigns** (*Empire at War*, *Rogue Squadron*, *X-Wing*, *TIE Fighter*, *Galaxies*, *Force Commander*, *Battlefront*): keep as background rows (as here) or drop? **Ruled 24 Nov 2026 (default):** kept as background rows.
+18. ***Star Wars: Demolition*** (4 ABY, Jabba's palace): include or exclude? **Ruled 24 Nov 2026 (default):** left out, as the file has it (no best fit stated).
+19. **Irek Ismaren's birth**: 4 BBY or 2 BBY. **Ruled 24 Nov 2026 (default):** 4 BBY (no best fit stated).
 
 ## Sources
 All Wookieepedia pages cited in Parts 1–4 (fetched 24 Nov 2026 through the MediaWiki API; revisions marked `oldid` are the last before August 2008):

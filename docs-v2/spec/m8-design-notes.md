@@ -1,6 +1,6 @@
 # SWRPG M8 design notes
 
-> Exported from the Claude Docs "SWRPG M8 design notes" (revision 43) on 24 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
+> Exported from the Claude Docs "SWRPG M8 design notes" (revision 49) on 24 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
 
 Nov 23, 2026 · @Jared Wright
 
@@ -759,6 +759,44 @@ The lore's own ground-command tool (Bastila Shan; the coordinator at Mizra; Kaan
 ### Results
 
 Objectives taken or held, casualties and morale; a won or lost major battle for the world events. Planning a battle gives Tactics XP (item 12).
+
+## Order 66: the warning race (PP-5 alternative 2)
+
+Agreed by Jared (2026-11-24). Fires only when Sidious escapes his office alive and exposed, leaving two or three surviving Jedi who know he is a Sith Lord (world-event-tags-1000BBY-4ABY-draft.md, PP-5 alternative 2).
+
+### Two clocks
+
+- **Palpatine's clock:** he can only send instructions from a HoloNet relay or a starship transceiver. Most likely he contacts Mas Amedda, who has easier access to either, to send the order. The engine sets the time from how he escaped and where the nearest relay or transceiver is: minutes, not hours.
+- **The Jedi's clock:** the survivors can most likely use the comm in Palpatine's own office, at once. Otherwise they reach the Temple and send the warning from there (in Legends, Kenobi and Yoda later recode the Temple's recall beacon; here the Temple's systems send the warning instead). The time depends on their wounds, transport and whether the office comm still works.
+- **The player is one of the survivors,** so their actions move the Jedi's clock: thinking to use the office comm, getting transport, fighting through, reaching the Temple.
+
+### Who wins sets the picture
+
+- **Warning first:** Jedi everywhere have a little time to break away from their clones before the order lands; many survive.
+- **Order first:** in the field it plays out mostly as recorded, but the Temple is warned once the survivors reach it, and Jedi who weren't with clone units can still be reached.
+
+### On Coruscant
+
+- **The Coruscant Guard and the 501st get the order early,** because it is now a race. The 501st is on Coruscant and receives it alongside the Guard (Jared).
+- **Palpatine's next move** (engine-weighted, narrator-told): an emergency session of the Senate to turn the Republic against the Jedi (more likely), or an immediate attack on the Temple with the Coruscant Guard and the 501st (less likely).
+- **Who leads an attack on the Temple depends on Anakin** (Jared): in variant 2a (Anakin escapes with Sidious), Vader leads the 501st against the Temple as in the recorded raid, though the Temple has been warned. In variant 2b (Sidious escapes alone, Anakin sides with the Jedi), there is no Vader to lead it, so an attack uses the Coruscant Guard and the 501st together.
+
+### Each Jedi's fate
+
+- **An engine roll per Jedi** (numbers invented), adjusted for: where they were (with a clone unit, at the Temple, on a mission without clones, travelling); their unit (ARC troopers and commandos with a high bond can refuse); **danger sense** (Force sense and skill, a real factor: in Legends several survivors sensed it coming); combat ability if it comes to a fight; and whether the warning reached them before the order.
+- **Canon survivors are guaranteed** (Jared), unless a player kills them: they survived the worst case. Jedi recorded as dead can survive. This is where Ahsoka's chance comes from (with Plo Koon's unit).
+- **Results go to the narrator as a list** of who survived and where. Every survivor is tracked as a person and feeds later events (more Jedi in hiding, a different Purge).
+
+### After the escape (agreed by Jared, 2026-11-24)
+
+- **Order 66 goes first,** through Mas Amedda, within minutes. The clones act on it at once; their loyalty can only shift later, if the Senate turns.
+- **The Senate session takes hours** to gather and open; by then the order has done most of its damage.
+- **The Jedi defend the Temple.** No Council-level Jedi leaves to testify while two clone legions attack it.
+- **Palpatine most likely wins the Senate.** Outcomes, weighted: the Senate backs him (the default: Jedi outlawed, the Empire comes, later and contested); the Senate splits (unlikely: civil war, loyal systems and clone units on each side); the Senate removes him (very unlikely: most clones stand down, Palpatine hides as a hunted Sith). The long odds come from someone speaking for the Jedi without taking a fighter from the Temple: the Delegation of 2000, Padmé, or a player not needed in the defence (a senator, an aide, a late-arriving Jedi), with evidence found in play. Clones follow the Senate's verdict, since their loyalty is to the Republic first.
+- **The Separatist Council:** if Palpatine holds the Senate, he kills the Council himself as soon as he can (variant 2b has no Vader to send). Ending the war is still in his interest: it frees him to hunt the Jedi and build the Empire. If he loses the Senate, the Council lives and the narrator directs the war.
+- **Variant 2a:** the warning names Anakin as a traitor. He knows the Jedi's codes, the Temple's defences and who is posted where, so his raid is better aimed, but every warned Jedi knows to avoid him.
+- **Variant 2b:** Padmé most likely lives (in the lore she dies of Anakin's fall); the twins are born to living parents. The narrator directs it; no forced death.
+- **Palpatine stays dangerous:** the Coruscant Guard, Mas Amedda, the loyalist senators and his secrecy as Sidious remain. He is a Sith in hiding when exposed, directed by the narrator, with no fixed plan written for him.
 
 ## Droids
 

@@ -32,8 +32,8 @@ describe('3,653: the Treaty (3,654 vs 3,652, and either side of it)', () => {
   });
   it('Jedi life', () => {
     for (const b of [3654, 3653]) expect(jedi(b)).toEqual(['jedi-life', 'jedi-dress']);
-    expect(jedi(3653, LATE)).toEqual(['jedi-tython-no-temple', 'jedi-dress-cold-war']);
-    expect(jedi(3652)).toEqual(['jedi-tython-no-temple', 'jedi-dress-cold-war']);
+    expect(jedi(3653, LATE)).toEqual(['jedi-dress', 'jedi-homeless']);
+    expect(jedi(3652)).toEqual(['jedi-dress', 'jedi-homeless']);
   });
 });
 
@@ -59,8 +59,8 @@ describe('3,650: building begins on Tython (3,651 vs 3,649)', () => {
     for (const b of [3650, 3649]) expect(at(b, 'Coruscant')).toEqual(expect.arrayContaining(['coruscant-jedi-remaining', 'coruscant-treaty']));
   });
   it('Jedi life', () => {
-    expect(jedi(3651)).toEqual(['jedi-tython-no-temple', 'jedi-dress-cold-war']);
-    for (const b of [3650, 3649]) expect(jedi(b)).toEqual(['jedi-dress-cold-war', 'jedi-tython-building', 'jedi-training-cold-war', 'jedi-forge']);
+    expect(jedi(3651)).toEqual(['jedi-dress', 'jedi-homeless']);
+    for (const b of [3650, 3649]) expect(jedi(b)).toEqual(['jedi-dress', 'jedi-tython-building', 'jedi-training-cold-war', 'jedi-forge']);
   });
   it('Nar Shaddaa: the SIS bureau chief leaves; Shadow Town from 3,649', () => {
     expect(at(3651, 'Nar Shaddaa')).toContain('nar-shaddaa-sis');
@@ -77,8 +77,8 @@ describe('3,650: building begins on Tython (3,651 vs 3,649)', () => {
 
 describe('3,647: the Tython Temple is finished (3,648 vs 3,646)', () => {
   it('the Order and Tython', () => {
-    expect(jedi(3648)).toEqual(['jedi-dress-cold-war', 'jedi-tython-building', 'jedi-training-cold-war', 'jedi-forge']);
-    for (const b of [3647, 3646]) expect(jedi(b)).toEqual(['jedi-dress-cold-war', 'jedi-tython-temple', 'jedi-training-cold-war', 'jedi-forge']);
+    expect(jedi(3648)).toEqual(['jedi-dress', 'jedi-tython-building', 'jedi-training-cold-war', 'jedi-forge']);
+    for (const b of [3647, 3646]) expect(jedi(b)).toEqual(['jedi-dress', 'jedi-tython-temple', 'jedi-training-cold-war', 'jedi-forge']);
     expect(at(3648, 'Tython')).toContain('jedi-tython-building');
     expect(at(3646, 'Tython')).toContain('jedi-tython-temple');
   });
@@ -101,7 +101,7 @@ describe('mid-3,641: the Treaty collapses (early vs late)', () => {
     expect(late('Korriban')).toEqual([]);
   });
   it('Jedi life', () => {
-    expect(jedi(3641)).toEqual(['jedi-dress-cold-war', 'jedi-tython-temple', 'jedi-training-cold-war']);
+    expect(jedi(3641)).toEqual(['jedi-dress', 'jedi-tython-temple', 'jedi-training-cold-war']);
     expect(jedi(3641, LATE)).toEqual(['jedi-tython-temple']);
   });
   it('the last day is the day before the collapse', () => {
@@ -138,7 +138,7 @@ describe('dates', () => {
     expect(date('E.3641.treaty_collapse')).toMatchObject(TREATY_COLLAPSE);
   });
   it('no war rule and Cold War rule of the same place contradict each other on one day', () => {
-    for (const [war, cold] of [['coruscant-security', 'coruscant-security-cold-war'], ['coruscant-places', 'coruscant-places-cold-war'], ['nar-shaddaa-districts', 'nar-shaddaa-cold-war'], ['tatooine-mos-ila', 'tatooine-cold-war'], ['jedi-life', 'jedi-tython-no-temple'], ['jedi-dress', 'jedi-dress-cold-war'], ['coruscant-temple-ruins', 'coruscant-temple-shelved'], ['jedi-tython-no-temple', 'jedi-tython-building'], ['jedi-tython-building', 'jedi-tython-temple']] as const) {
+    for (const [war, cold] of [['coruscant-security', 'coruscant-security-cold-war'], ['coruscant-places', 'coruscant-places-cold-war'], ['nar-shaddaa-districts', 'nar-shaddaa-cold-war'], ['tatooine-mos-ila', 'tatooine-cold-war'], ['jedi-life', 'jedi-homeless'], ['coruscant-temple-ruins', 'coruscant-temple-shelved'], ['jedi-homeless', 'jedi-tython-building'], ['jedi-tython-building', 'jedi-tython-temple']] as const) {
       const r = (id: string) => ERA_RULES.find((x) => x.id === id)!;
       for (let bby = 3655; bby >= 3640; bby--) for (let month = 1; month <= 12; month++) for (const day of [1, 14, 15, 22, 23]) expect(eraRuleHolds(r(war), bby, { month, day }) && eraRuleHolds(r(cold), bby, { month, day }), `${war} ${cold} ${bby}/${month}/${day}`).toBe(false);
     }
@@ -197,13 +197,33 @@ describe('the rules follow the campaign (D-476)', () => {
     const s = go(breakTag(game(day(3653)), 'E.3653.temple_strike#cond.reach'), day(3649));
     expect(now(s, 'Coruscant')).toEqual(expect.arrayContaining(['coruscant-treaty', 'coruscant-security-cold-war']));
     for (const r of ['coruscant-temple-ruins', 'coruscant-temple-shelved', 'coruscant-jedi-remaining']) expect(now(s, 'Coruscant')).not.toContain(r);
-    expect(now(s, null, ['jediOrder'])).toEqual(['jedi-life', 'jedi-dress-cold-war']);
+    expect(now(s, null, ['jediOrder'])).toEqual(['jedi-life', 'jedi-dress']);
     expect(selectOrderSeat(s)).toBe('the Jedi Temple on Coruscant');
   });
-  it('the Senate agrees to rebuild: the Temple stays a ruin, never shelved, and nothing is built on Tython', () => {
-    const s = go(breakTag(go(game(day(3653)), day(3653, 7, 5)), 'E.3653.temple_shelved#cond.hostile'), day(3648));
-    expect(now(s, 'Coruscant').filter((r) => r.startsWith('coruscant-temple'))).toEqual(['coruscant-temple-ruins']);
-    expect(now(s, null, ['jediOrder'])).toEqual(['jedi-tython-no-temple', 'jedi-dress-cold-war']);
+  it('the Senate agrees to rebuild: the Order stays and lives in the Temple during repairs; Tython is found, not moved to (D-477)', () => {
+    const s = go(breakTag(go(game(day(3653)), day(3653, 7, 5)), 'E.3653.temple_shelved#cond.hostile'), day(3653, 7, 20));
+    for (const [y, x] of [[3653, s], [3652, go(s, day(3652, 2, 1))], [3648, go(s, day(3648))], [3645, go(s, day(3645))]] as const) {
+      expect(selectOrderSeat(x), String(y)).toBe('the Jedi Temple on Coruscant (under repair)');
+      expect(now(x, null, ['jediOrder']), String(y)).toEqual(['jedi-dress', 'jedi-temple-repairs']);
+      expect(now(x, 'Coruscant').filter((r) => /temple|remaining/.test(r)), String(y)).toEqual(['jedi-temple-repairs']);
+    }
+    const net = selectNetworkState(go(s, day(3648)));
+    expect([net.outcomes['O.tython_found']?.state, net.outcomes['O.order_on_tython']?.state]).toEqual(['produced', 'broken']);
+  });
+  it('the Order has no seat from the Treaty until it is on Tython in 3,650; before the Treaty it has the Temple', () => {
+    let s = go(game(day(3655)), day(3653, 6, 1));
+    expect(selectOrderSeat(s)).toBe('the Jedi Temple on Coruscant');
+    for (const [y, m] of [[3653, 8], [3652, 2], [3651, 6]] as const) {
+      s = go(s, day(y, m));
+      expect(selectOrderSeat(s), `${y}`).toMatch(/scattered and without a seat/);
+    }
+    expect(selectOrderSeat(go(s, day(3650, 2)))).toMatch(/^Tython .*not finished/);
+    expect(selectOrderSeat(go(s, day(3647, 2)))).toBe('the Jedi Temple on Tython');
+  });
+  it('a branch rule never comes from the lore dates alone', () => {
+    const branches = ERA_RULES.filter((r) => r.branch);
+    expect(branches.map((r) => r.id)).toEqual(['jedi-temple-repairs']);
+    for (const r of branches) for (let b = 3655; b >= 3640; b--) expect(eraRuleHolds(r, b, LATE)).toBe(false);
   });
   it('the Treaty falls early or never: the Cold War rules end that day, or hold', () => {
     const s = go(game(day(3655)), day(3645, 3, 1));
@@ -235,9 +255,10 @@ describe('the other answers of D-476', () => {
       expect(controlAt([p], 3639)).toEqual([]);
     }
   });
-  it('Padawan dress: no braid in the war (D-378), tunics and the braid in the Cold War (later-era default)', () => {
-    expect(ERA_RULES.find((r) => r.id === 'jedi-dress')!.text).toMatch(/no braid/);
-    expect(ERA_RULES.find((r) => r.id === 'jedi-dress-cold-war')!.text).toMatch(/plain tunics and the Padawan braid \(later-era default\)/);
+  it('Padawan dress: plain tunics and no braid through the Cold War; nothing changes on the day of the Treaty (D-477)', () => {
+    for (const [b, d] of [[3661, EARLY], [3653, { month: 6, day: 22 }], [3653, { month: 6, day: 23 }], [3647, EARLY], [3641, EARLY]] as const) expect(jedi(b, d)).toContain('jedi-dress');
+    expect(ERA_RULES.filter((r) => /braid/.test(r.text)).map((r) => r.id)).toEqual(['jedi-dress']);
+    expect(jedi(3641, LATE)).not.toContain('jedi-dress');
   });
 });
 

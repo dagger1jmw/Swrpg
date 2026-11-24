@@ -212,6 +212,18 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
   ]);
   const chunk = (id: string) => built.chunks.find((c) => c.id === id)!;
 
+  it('a ruling (D-477): its tag and the losing version are not sent, and a row it set aside is dropped', () => {
+    const t = LORE_INDEX.chunks.filter((x) => x.kind === 'timeline' || x.kind === 'overview').map((x) => x.text).join('\n');
+    expect(t).not.toMatch(/Ruled 24 Nov|\[S-canon|\[conflict/);
+    expect(t).toMatch(/Ahsoka Tano, Plo Koon's apprentice, is killed in Order 66/);
+    expect(t).toMatch(/Maul is born on Dathomir to Kycina/);
+    expect(t).not.toMatch(/Battle of Jabiim dated to the war's first months|Torbin is killed by an assassin droid that crashes/);
+    const at = (y: number): string => LORE_INDEX.chunks.filter((x) => x.kind === 'timeline' && x.fromYear === y && x.toYear === y).map((x) => x.text).join('\n');
+    expect(at(-3653)).toMatch(/votes to postpone rebuilding the Coruscant Jedi Temple/);
+    expect(at(-3653)).not.toMatch(/Shadow Syndicate/);
+    expect(at(-3643)).toMatch(/The Exchange is beaten by the Shadow Syndicate/);
+    expect(at(-41)).toMatch(/Anakin Skywalker is born/);
+  });
   it('the slices join the timeline', () => {
     expect(fileKey('SW_Timeline_3700_3600BBY_Part1.md')).toBe('tl');
     expect(fileKey('SW_Timeline_3700_3600BBY_Part3.md')).toBe('tl');

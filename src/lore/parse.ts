@@ -177,8 +177,10 @@ interface Era {
   to: number;
 }
 
-/** Research tags in the bot's timeline rows ("[conflict]", "[inferred]", ...): kept in the lore file, not sent as story. */
-const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort)\b[^\]]*\]/gi;
+/** Research tags in the bot's timeline rows ("[conflict]", "[inferred]", "[Ruled ...]", "[S-canon]"): kept in the lore file, not sent as story. */
+const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort|S-canon|Ruled)\b[^\]]*\]/gi;
+/** A row a ruling set aside ("[Ruled 24 Nov 2026: not used ...]", D-477): kept in the file as a record, never sent. */
+const RULED_OUT = /\[Ruled [^\]:]*: not used\b/i;
 /** Asides about the files rather than the story: "(see Ord Radama row)", "(SW_Republic_Military_GGW gives the range)", "(ruling 16)". */
 const FILE_ASIDE =
   /\s*\([^()]*\b(?:SW_\w+|files?|slice|rows?|see|page|pages|Wookieepedia|ruling|lore batch|D-\d+|Decisions? needed|Part \d)\b[^()]*\)/gi;
@@ -304,7 +306,7 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
       if (isTableLine(line)) {
         flushOverview();
         const cs = cells(line);
-        if (isSeparatorRow(cs)) continue;
+        if (isSeparatorRow(cs) || RULED_OUT.test(line)) continue;
         if (/^date$/i.test(cs[0] ?? '')) {
           const at = (re: RegExp, fallback: number): number => {
             const i = cs.findIndex((c) => re.test(c));

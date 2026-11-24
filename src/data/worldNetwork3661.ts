@@ -350,7 +350,8 @@ const SACKING: WorldEventDef[] = [
     places: ['Coruscant'],
     conditions: [cond('hostile', 'The Senate is hostile', 'The Senate agrees to rebuild the Coruscant Temple', 'medium', [talk('paran-am-ris', 'dorian-janarus', 'leontyne-saresh'), { kind: 'outcome', outcome: 'O.senate_distrusts_jedi', state: 'broken', strength: 'major' }], { window: { fromYear: -3653 } })],
     consumes: needs('O.temple_destroyed', 'O.senate_distrusts_jedi'),
-    produces: gives('O.rebuilding_postponed'),
+    // If the Senate agrees to rebuild, the Order stays on Coruscant and lives in the Temple during repairs (D-477).
+    produces: [...gives('O.rebuilding_postponed'), { outcome: 'O.temple_rebuilding', when: { broken: ['cond.hostile'] } }],
     source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (3653 BBY); P2, Cold War row 7',
   }),
   ev({ id: 'E.3653.balmorra_ceded', title: 'Balmorra is left to the Empire', summary: 'The Republic ends its support for Balmorra, which stays under Imperial control.', date: on(3653, 11), places: ['Balmorra'], consumes: needs('O.systems_ceded'), produces: gives('O.balmorra_imperial'), source: 'P1, after 3653 (row 18)' }),

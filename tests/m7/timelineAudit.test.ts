@@ -16,8 +16,8 @@ describe('timeline audit 3,661-3,640 (D-408)', () => {
     expect(closedWorlds('republic', 3651).map((g) => g.place)).not.toContain('Tython');
     expect(controlAt(['Tython'], 3652)[0]?.side).toBe('unknown to the galaxy');
     expect(controlAt(['Tython'], 3651)[0]?.side).toBe('republic');
-    // D-476 (Jared): the Order's home is Tython from the Treaty; the gate still opens with the rediscovery (a question).
-    expect(orderSeatAt(-3651)).toMatch(/^Tython/);
+    expect(orderSeatAt(-3651)).toMatch(/without a seat/); // D-477
+    expect(orderSeatAt(-3650)).toMatch(/^Tython/);
     expect(orderSeatAt(-3647)).toBe('the Jedi Temple on Tython');
   });
   it('no world is "unknown to the galaxy" while its gate is open, and no side is shut out of a world it holds', () => {

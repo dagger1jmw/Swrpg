@@ -10,8 +10,10 @@ export interface OrderSeat extends OutcomeLinks {
   seat: string | null;
   source: string;
   estimate?: string;
-  /** The Order has moved and its Temple is not built yet (D-397, D-476: Tython, 3,653–3,648 BBY). */
+  /** The Order has moved and its Temple is not built yet (D-397, D-477: Tython, 3,650–3,648 BBY). */
   relocating?: boolean;
+  /** The Order has no home at all (D-477: 3,653–3,651 BBY). */
+  homeless?: boolean;
   /** Where an Order member lives and trains (D-451; the place's Force bonus comes from forceNexus.ts by name). */
   home?: HomePlace;
 }
@@ -27,13 +29,22 @@ const TEMPLE: HomePlace = { name: 'the Jedi Temple', planet: 'Coruscant' };
 export const ORDER_SEATS: readonly OrderSeat[] = [
   { fromYear: -Infinity, toYear: -25000, seat: 'the Je\'daii temples on Tython', source: 'Timeline :76', home: { name: 'the Je\'daii temples', planet: 'Tython' } },
   { fromYear: -25000, toYear: -3653, seat: 'the Jedi Temple on Coruscant', source: 'Timeline :90; Timeline slice Part 1 (3,653 BBY, the Sacking)', home: TEMPLE },
-  // D-476 (Jared): the Order's home from 3,653 is Tython, with no Temple until 3,647; the ruined Coruscant Temple is never the seat.
+  // D-477 (Jared; corrects D-476 [4]): from the Treaty until 3,651 the Order has no home ("homeless for a short period", lore
+  // batch 13); Satele Shan finds Tython in 3,651, and the seat is there from 3,650, with its Temple from 3,647.
   {
     fromYear: -3653,
+    toYear: -3650,
+    seat: 'none: the Order is scattered and without a seat',
+    source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (decision 8: "homeless for a short period"); SW_Tython (decision 1: 3651); D-477',
+    dependsOn: ['O.temple_destroyed', 'O.treaty_signed'],
+    homeless: true,
+  },
+  {
+    fromYear: -3650,
     toYear: -3647,
     seat: 'Tython (the Order\'s new Temple there is not finished)',
-    source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (3653 BBY: "Jedi to Tython"); Timeline slice Part 2 (3,650 BBY: building begins; 3,647: finished); D-476',
-    dependsOn: ['O.temple_destroyed'],
+    source: 'SW_Tython (decision 1); Timeline slice Part 2 (3,650 BBY: building begins; 3,647: finished); D-477',
+    dependsOn: ['O.order_on_tython'],
     relocating: true,
     home: { name: 'Tython', planet: 'Tython' },
   },
@@ -59,6 +70,20 @@ export const ORDER_SEATS: readonly OrderSeat[] = [
   },
   { fromYear: 128, toYear: Infinity, seat: null, source: 'Timeline :614 (Massacre at Ossus)' },
 ];
+
+/** Seats only a diverged campaign has (D-477, Jared): read before ORDER_SEATS, never by the lore's dates alone. */
+export const ORDER_SEAT_BRANCHES: readonly OrderSeat[] = [
+  {
+    fromYear: -3653,
+    toYear: -3600,
+    seat: 'the Jedi Temple on Coruscant (under repair)',
+    source: 'D-477: if the Senate agrees to rebuild, the Order stays and lives in the Temple during repairs',
+    dependsOn: ['O.temple_rebuilding'],
+    home: TEMPLE,
+  },
+];
+
+export const orderHomelessAt = (year: number): boolean => ORDER_SEATS.some((s) => s.homeless === true && year >= s.fromYear && year < s.toYear);
 
 export function orderSeatAt(year: number): string | null {
   return ORDER_SEATS.find((s) => year >= s.fromYear && year < s.toYear)?.seat ?? null;

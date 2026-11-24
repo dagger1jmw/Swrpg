@@ -42,22 +42,22 @@ Last updated 2026-11-24 (D-474: the five overnight timeline sets, 3,600 BBY–4 
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part1.md` | Galaxy timeline, 3,700–3,653 BBY (replaces the old timeline's rows for these years; read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part2.md` | Galaxy timeline, 3,653 to c. 3,622 BBY (read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part3.md` | Galaxy timeline slice 1, Part 3: checks, conflicts and decisions (no entries) |
-| `Docs/SWRPG lore/SW_Timeline_3600_2000BBY_Part1.md` | Galaxy timeline, Part 1: c. 3,600–2,001 BBY: the end of the Sith Wars to the eve of the Fourth Great Schism. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_3600_2000BBY_Part2.md` | Galaxy timeline, Part 2: changes, conflicts and decisions. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_2000_1000BBY_Part1.md` | Galaxy timeline, Part 1: 2,000–1,000 BBY: the Fourth Great Schism to the Republic Dark Age. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_2000_1000BBY_Part2.md` | Galaxy timeline, Part 2: 1,010–1,000 BBY: the Light and Darkness War, Ruusan and the Rule of Two. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_2000_1000BBY_Part3.md` | Galaxy timeline, Part 3: changes, conflicts and decisions. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_1000_33BBY_Part1.md` | Galaxy timeline, Part 1: 999–33 BBY: the Rule of Two and the early Great Peace. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_1000_33BBY_Part2.md` | Galaxy timeline, Part 2: Plagueis, Senator Palpatine and the Mandalorian Civil War. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_1000_33BBY_Part3.md` | Galaxy timeline, Part 3: the Valorum years, Yinchorr and Eriadu; changes, conflicts and decisions. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_32_19BBY_Part1.md` | Galaxy timeline, Part 1: the Naboo crisis, the interwar years and the Separatist crisis. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_32_19BBY_Part2.md` | Galaxy timeline, Part 2: the Clone Wars, year one (22–21 BBY). **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_32_19BBY_Part3.md` | Galaxy timeline, Part 3: the Clone Wars, years two and three (21–19 BBY). **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_32_19BBY_Part4.md` | Galaxy timeline, Part 4: the end of the Clone Wars, Order 66 and the New Order (19 BBY); changes, conflicts and decisions. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_19BBY_4ABY_Part1.md` | Galaxy timeline, Part 1: the Dark Times (19–10 BBY). **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_19BBY_4ABY_Part2.md` | Galaxy timeline, Part 2: 9–1 BBY: smugglers, Starkiller and the Alliance. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_19BBY_4ABY_Part3.md` | Galaxy timeline, Part 3: 0 BBY–2 ABY: Yavin and after. **Draft for review** (24 Nov 2026; read by the lore index) |
-| `Docs/SWRPG lore/SW_Timeline_19BBY_4ABY_Part4.md` | Galaxy timeline, Part 4: 3–4 ABY: Hoth to the New Republic; changes, conflicts and decisions. **Draft for review** (24 Nov 2026; read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_3600_2000BBY_Part1.md` | Galaxy timeline, Part 1: c. 3,600–2,001 BBY: the end of the Sith Wars to the eve of the Fourth Great Schism. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_3600_2000BBY_Part2.md` | Galaxy timeline, Part 2: changes, conflicts and decisions. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_2000_1000BBY_Part1.md` | Galaxy timeline, Part 1: 2,000–1,000 BBY: the Fourth Great Schism to the Republic Dark Age. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_2000_1000BBY_Part2.md` | Galaxy timeline, Part 2: 1,010–1,000 BBY: the Light and Darkness War, Ruusan and the Rule of Two. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_2000_1000BBY_Part3.md` | Galaxy timeline, Part 3: changes, conflicts and decisions. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_1000_33BBY_Part1.md` | Galaxy timeline, Part 1: 999–33 BBY: the Rule of Two and the early Great Peace. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_1000_33BBY_Part2.md` | Galaxy timeline, Part 2: Plagueis, Senator Palpatine and the Mandalorian Civil War. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_1000_33BBY_Part3.md` | Galaxy timeline, Part 3: the Valorum years, Yinchorr and Eriadu; changes, conflicts and decisions. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_32_19BBY_Part1.md` | Galaxy timeline, Part 1: the Naboo crisis, the interwar years and the Separatist crisis. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_32_19BBY_Part2.md` | Galaxy timeline, Part 2: the Clone Wars, year one (22–21 BBY). **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_32_19BBY_Part3.md` | Galaxy timeline, Part 3: the Clone Wars, years two and three (21–19 BBY). **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_32_19BBY_Part4.md` | Galaxy timeline, Part 4: the end of the Clone Wars, Order 66 and the New Order (19 BBY); changes, conflicts and decisions. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_19BBY_4ABY_Part1.md` | Galaxy timeline, Part 1: the Dark Times (19–10 BBY). **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_19BBY_4ABY_Part2.md` | Galaxy timeline, Part 2: 9–1 BBY: smugglers, Starkiller and the Alliance. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_19BBY_4ABY_Part3.md` | Galaxy timeline, Part 3: 0 BBY–2 ABY: Yavin and after. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_19BBY_4ABY_Part4.md` | Galaxy timeline, Part 4: 3–4 ABY: Hoth to the New Republic; changes, conflicts and decisions. **Draft, rulings of 24 Nov 2026 applied** (read by the lore index) |
 
 ## The Force and lightsaber combat
 
@@ -172,7 +172,7 @@ Researched 23 Nov 2026. Source tiers on every line: in-universe (tier 1); game s
 |---|---|
 | `docs-v2/spec/world-event-tags-draft.md` | World event tag map, 3661–3640 BBY: facts from the 3700–3600 BBY timeline slices, tags as design calls (reviewed by Jared; rulings in section 6) |
 | `docs-v2/spec/world-event-tags-1000BBY-4ABY-draft.md` | World event tag map, 1000 BBY–4 ABY (rulings in section 8; PP-0 alternatives open; rows marked LF come from the galaxy timeline and are not re-checked) |
-| `docs-v2/spec/m8-design-notes.md` | M8 design notes (exported from Claude Docs, revision 43; the Claude Docs version is the working copy) |
+| `docs-v2/spec/m8-design-notes.md` | M8 design notes (exported from Claude Docs, revision 49; the Claude Docs version is the working copy) |
 
 ## Research lists (not lore files)
 

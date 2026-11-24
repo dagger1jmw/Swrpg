@@ -5,7 +5,7 @@
 // progression selectors. Lightsaber forms follow the form plans: Initiates train only Shii-Cho; from
 // Padawan the plan splits the 2 h master session and the 1 h solo hour among any forms, and each form's
 // first phase starts it at 0.75 x the highest form (the fundamentals transfer). Variance is off.
-import { orderSeatAt } from '../../data/orderSeats';
+import { orderHomelessAt, orderSeatAt } from '../../data/orderSeats';
 import { STUB_INSTRUCTOR_LEAD, STUB_MASTER_LEAD } from '../../data/stubs';
 import { gainE, sparringE } from '../../engine/appliedExperience';
 import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
@@ -486,6 +486,7 @@ const MISSION_E_MAX = 15;
 
 /** The Order's seat by start date (src/data/orderSeats.ts; L-03, D-155: every era). */
 function templeFor(year: number): string {
+  if (orderHomelessAt(year)) return 'one of the places the scattered Order met';
   return orderSeatAt(year) ?? 'a hidden enclave of surviving Jedi';
 }
 

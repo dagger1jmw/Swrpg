@@ -2,7 +2,7 @@ import { CANON_DEATH_LINKS } from '../../data/canonDeathLinks';
 import { SECRET_OVERLAP } from '../../data/worldNetwork.config';
 import { CANON_BY_ID, CANON_NPCS, type CanonNpc } from '../../data/canonNpcs';
 import { ERA_RULES, eraRuleApplies, type EraRule, type MonthDay } from '../../data/eraRules';
-import { ORDER_SEATS, type OrderSeat } from '../../data/orderSeats';
+import { ORDER_SEATS, ORDER_SEAT_BRANCHES, type OrderSeat } from '../../data/orderSeats';
 import type { BlockadeDef } from '../../data/blockades';
 import type { Runner } from '../../engine/blockade';
 import { FACTION_LEADERS, placeAmong, type LeaderSpan } from '../../data/worldControl';
@@ -176,7 +176,7 @@ export function selectLeaders(s: GameState, net: WorldNetwork = WORLD_NETWORK, t
 }
 
 /** The Jedi Order's seat now, with the freeze; null = none. */
-export function selectOrderSeat(s: GameState, net: WorldNetwork = WORLD_NETWORK, table: readonly OrderSeat[] = ORDER_SEATS): string | null {
+export function selectOrderSeat(s: GameState, net: WorldNetwork = WORLD_NETWORK, table: readonly OrderSeat[] = [...ORDER_SEAT_BRANCHES, ...ORDER_SEATS]): string | null {
   const st = selectNetworkState(s, net);
   const facts = table.map((r) => ({
     fromBby: -r.fromYear,

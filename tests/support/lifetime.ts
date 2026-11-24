@@ -12,7 +12,7 @@ import { TEST_YEAR } from './dates';
 import { FORM_IDS, SKILLS } from '../../src/data/skills';
 import { PACE_WINDOW_DAYS } from '../../src/data/progression.config';
 import { absDayFromDate, dateFromAbsDay, type CalendarDate } from '../../src/engine/calendar';
-import { homeSeatAt } from '../../src/data/orderSeats';
+import { homeSeatAt, orderHomelessAt } from '../../src/data/orderSeats';
 import { planetByName } from '../../src/data/galaxyMap';
 import { levelExact } from '../../src/engine/curve';
 import { selectCapacities, selectE, selectForceBoost, selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
@@ -125,7 +125,8 @@ function placeAt(p: LifeProfile, s: GameState, age: number): LifePlace | null {
   if (span) return span;
   if (p.seat && (p.path === 'jedi' || p.path === 'sith')) {
     const year = p.seat === true ? dateFromAbsDay(s.clock.now.day).year : p.seat.year + Math.floor(age - p.startAge);
-    const home = homeSeatAt(p.path, tierOf(p, age), year);
+    // The Order scattered and without a seat (D-477): the life stays on Coruscant, off the Temple's nexus.
+    const home = p.path === 'jedi' && orderHomelessAt(year) ? { name: 'Coruscant', planet: 'Coruscant' } : homeSeatAt(p.path, tierOf(p, age), year);
     return home ? { name: home.name, planet: home.planet, region: planetByName(home.planet)?.region ?? home.planet } : FIELD;
   }
   if (p.place) return { name: p.place, region: p.place };

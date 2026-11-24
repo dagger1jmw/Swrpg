@@ -115,29 +115,29 @@ An index of the period blocks, oldest first.
 - Suggestion: Kerra Holt's 1,032 BBY sequence (Influx → Chelloa → Darkknell → Gazzari → Byllura → Syned → Aquilaris → Darkknell → Skarpos → Vanahame) is fully ordered by the battle boxes and could seed a Grumani-sector arc.
 
 ## Decisions needed
-1. **Already ruled, confirm kept:** Army of Light founded 1,010 BBY (vs c. 1,002 BBY) and Brotherhood headquarters on Korriban (vs Roon); both still recorded as [conflict] in Part 2.
-2. **Third Battle of Ruusan:** 1,002 BBY (war timeline, 1,002 BBY year page) vs 1,001 BBY (battle page, *Essential Guide to Warfare*). 1,002 BBY fits the "seven battles over two years" span and the Bormea campaign that year; 1,001 BBY fits the "by 1,001 BBY poised to take Coruscant" line.
-3. **Fourth Battle of Ruusan:** 1,001 BBY (war timeline) vs c. 1,000 BBY (battle page); both year pages list it.
-4. **Kashyyyk and Hsskhor:** 1,003 BBY (battle and year pages; the 3,640–1,000 map uses 1,003) vs c. 1,002 BBY (war timeline).
-5. **Harpori, Balowa and Kaox Krul's death:** Harpori 1,003 vs 1,000 BBY; Balowa 1,002 vs 1,000 BBY; Krul's page says he died "just before the Ruusan campaign" yet dates it 1,000 BBY. 1,002 BBY for Balowa fits "before Ruusan".
-6. **Battle of Hoth:** 1,004 BBY before Dromund Kaas (*Dark Forces Saga*) vs any time 1,004–1,000 BBY (*Atlas*).
-7. **Who broke the Sith blockade:** Bane's order to Admiral Nyras (*Path of Destruction*) vs Farfalla's Knights storming it (*Jedi vs. Sith*). Wookieepedia tells both; the game may need one or both (Bane's order matters to PP-13 in the event map).
-8. **Fifth Battle and the "Skirmish on Ruusan":** treat the *Jedi vs. Sith* skirmish (Charny's charge; Saleeh, Gale, Chayka and the Vlahus die) as the Fifth Battle, or keep them separate [unclear].
-9. **Wud Mortull's death:** 1,010 BBY on an unnamed planet vs the Fifth Battle of Ruusan (1,000 BBY).
-10. **Laa's death:** after the Force storm (Zannah's and Bane's pages) vs at the Seventh Battle (year page).
-11. **Valorum's precedent:** first non-Jedi Chancellor "in over four centuries" (fits the 1,400 BBY row) vs "for six hundred years".
-12. **The Return:** began 1,058 BBY vs 1,051 BBY.
-13. **Valley of the Jedi:** date the memorial's approval after 990 BBY (Othone's page) and move the old 1,000 BBY row; confirm.
-14. **Zeison Sha:** existing order joined by NSW refugees (Zeison Sha page) vs founded by them (galactic timeline); affects E.2000.zeison_sha in the event map.
-15. **1,500 BBY victories:** Gap Nine (year page, battle pages, war article) vs Hiit (galactic timeline). Gap Nine has three pages behind it.
-16. **Mizra Jedi:** captured (battle page) vs converted to the dark side (war article).
-17. **Uba bombardment:** a Republic orbital strike (year and event pages) vs a Jedi intervention (war article); the event page also flags *KOTOR II* and *The New Essential Chronology* as conflicting.
-18. **Duel on Kiffex:** c. 1,032 BBY (year page) vs c. 1,030 BBY (duel page).
-19. ***Sayings* printing:** c. 1,489 BBY vs c. 1,500 BBY.
-20. **Dessel's start in the mines:** 1,013 BBY (year page) vs 1,010 BBY (age sixteen from a 1,026 BBY birth).
-21. **Bane and the thought bomb:** *Path of Destruction* (Bane supplies it to destroy the Brotherhood) vs *Bane of the Sith* (Bane warns Kaan off and flees, meaning to revive the Brotherhood). Wookieepedia follows the newer novel; confirm.
-22. **Darth Ruin's death:** keep "c. 2,000 BBY" from the infobox, or make it "after 2,000 BBY, undated" as the war article reads.
-23. **Event map edits:** apply the three corrections above to `world-event-tags-3640-1000BBY-draft.md` (E.2000.zeison_sha, E.1003.bane_joins, E.1001.bane_lehon), and fix the Kas'im orbalisk line in the character file.
+1. **Already ruled, confirm kept:** Army of Light founded 1,010 BBY (vs c. 1,002 BBY) and Brotherhood headquarters on Korriban (vs Roon); both still recorded as [conflict] in Part 2. **Ruled 24 Nov 2026:** 1,010 BBY and Korriban, kept (Jared, 23 Nov 2026).
+2. **Third Battle of Ruusan:** 1,002 BBY (war timeline, 1,002 BBY year page) vs 1,001 BBY (battle page, *Essential Guide to Warfare*). 1,002 BBY fits the "seven battles over two years" span and the Bormea campaign that year; 1,001 BBY fits the "by 1,001 BBY poised to take Coruscant" line. **Ruled 24 Nov 2026 (default):** 1,002 BBY.
+3. **Fourth Battle of Ruusan:** 1,001 BBY (war timeline) vs c. 1,000 BBY (battle page); both year pages list it. **Ruled 24 Nov 2026 (default):** 1,001 BBY (no best fit stated).
+4. **Kashyyyk and Hsskhor:** 1,003 BBY (battle and year pages; the 3,640–1,000 map uses 1,003) vs c. 1,002 BBY (war timeline). **Ruled 24 Nov 2026 (default):** 1,003 BBY.
+5. **Harpori, Balowa and Kaox Krul's death:** Harpori 1,003 vs 1,000 BBY; Balowa 1,002 vs 1,000 BBY; Krul's page says he died "just before the Ruusan campaign" yet dates it 1,000 BBY. 1,002 BBY for Balowa fits "before Ruusan". **Ruled 24 Nov 2026 (default):** Harpori 1,003, Balowa and Krul's death 1,002 BBY (Harpori follows from Balowa; no best fit stated for it).
+6. **Battle of Hoth:** 1,004 BBY before Dromund Kaas (*Dark Forces Saga*) vs any time 1,004–1,000 BBY (*Atlas*). **Ruled 24 Nov 2026 (default):** 1,004 BBY, before Dromund Kaas (no best fit stated).
+7. **Who broke the Sith blockade:** Bane's order to Admiral Nyras (*Path of Destruction*) vs Farfalla's Knights storming it (*Jedi vs. Sith*). Wookieepedia tells both; the game may need one or both (Bane's order matters to PP-13 in the event map). **Ruled 24 Nov 2026:** both: Bane's order opens the blockade and Farfalla's Knights storm through the gap.
+8. **Fifth Battle and the "Skirmish on Ruusan":** treat the *Jedi vs. Sith* skirmish (Charny's charge; Saleeh, Gale, Chayka and the Vlahus die) as the Fifth Battle, or keep them separate [unclear]. **Ruled 24 Nov 2026 (default):** kept separate (no best fit stated).
+9. **Wud Mortull's death:** 1,010 BBY on an unnamed planet vs the Fifth Battle of Ruusan (1,000 BBY). **Ruled 24 Nov 2026 (default):** 1,010 BBY, the unnamed planet (no best fit stated).
+10. **Laa's death:** after the Force storm (Zannah's and Bane's pages) vs at the Seventh Battle (year page). **Ruled 24 Nov 2026 (default):** after the Force storm (no best fit stated; two pages to one).
+11. **Valorum's precedent:** first non-Jedi Chancellor "in over four centuries" (fits the 1,400 BBY row) vs "for six hundred years". **Ruled 24 Nov 2026 (default):** "over four centuries".
+12. **The Return:** began 1,058 BBY vs 1,051 BBY. **Ruled 24 Nov 2026 (default):** 1,058 BBY (no best fit stated; two pages to one).
+13. **Valley of the Jedi:** date the memorial's approval after 990 BBY (Othone's page) and move the old 1,000 BBY row; confirm. **Ruled 24 Nov 2026 (default):** approved after 990 BBY.
+14. **Zeison Sha:** existing order joined by NSW refugees (Zeison Sha page) vs founded by them (galactic timeline); affects E.2000.zeison_sha in the event map. **Ruled 24 Nov 2026 (default):** an existing order, joined by the refugees (no best fit stated).
+15. **1,500 BBY victories:** Gap Nine (year page, battle pages, war article) vs Hiit (galactic timeline). Gap Nine has three pages behind it. **Ruled 24 Nov 2026 (default):** Gap Nine.
+16. **Mizra Jedi:** captured (battle page) vs converted to the dark side (war article). **Ruled 24 Nov 2026 (default):** captured (no best fit stated).
+17. **Uba bombardment:** a Republic orbital strike (year and event pages) vs a Jedi intervention (war article); the event page also flags *KOTOR II* and *The New Essential Chronology* as conflicting. **Ruled 24 Nov 2026 (default):** a Republic orbital strike (no best fit stated; two pages to one).
+18. **Duel on Kiffex:** c. 1,032 BBY (year page) vs c. 1,030 BBY (duel page). **Ruled 24 Nov 2026 (default):** c. 1,032 BBY (no best fit stated).
+19. ***Sayings* printing:** c. 1,489 BBY vs c. 1,500 BBY. **Ruled 24 Nov 2026 (default):** c. 1,489 BBY (no best fit stated).
+20. **Dessel's start in the mines:** 1,013 BBY (year page) vs 1,010 BBY (age sixteen from a 1,026 BBY birth). **Ruled 24 Nov 2026 (default):** 1,013 BBY (no best fit stated).
+21. **Bane and the thought bomb:** *Path of Destruction* (Bane supplies it to destroy the Brotherhood) vs *Bane of the Sith* (Bane warns Kaan off and flees, meaning to revive the Brotherhood). Wookieepedia follows the newer novel; confirm. **Ruled 24 Nov 2026 (default):** *Path of Destruction*.
+22. **Darth Ruin's death:** keep "c. 2,000 BBY" from the infobox, or make it "after 2,000 BBY, undated" as the war article reads. **Ruled 24 Nov 2026 (default):** after 2,000 BBY, undated (no best fit stated).
+23. **Event map edits:** apply the three corrections above to `world-event-tags-3640-1000BBY-draft.md` (E.2000.zeison_sha, E.1003.bane_joins, E.1001.bane_lehon), and fix the Kas'im orbalisk line in the character file. **Ruled 24 Nov 2026:** the map is corrected (D-474); the character file is not touched here.
 24. **Format:** same as lore batch 20 (date "2,000 BBY", Type column, period subheadings under the old era heading, no "Downstream" column). Confirm the period subheadings ("#### 1,500–1,231 BBY — ...") parse.
 
 ## Sources

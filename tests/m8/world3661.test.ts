@@ -132,7 +132,7 @@ describe('the recorded timeline', () => {
     expect(Object.keys(st.events).length).toBe(WORLD_NETWORK.events.length);
     expect([st.tags, st.plotPoints, st.shifts, st.control]).toEqual([{}, {}, {}, []]);
     const branches = Object.entries(st.outcomes).filter(([, o]) => o.state === 'broken').map(([id]) => id).sort();
-    expect(branches).toEqual(['O.korriban_fallen', 'O.temple_saved', 'O.weak_ground_control']); // only what needs a broken tag
+    expect(branches).toEqual(['O.korriban_fallen', 'O.temple_rebuilding', 'O.temple_saved', 'O.weak_ground_control']); // only what needs a broken tag
   });
 
   it('control, leaders and the seat read as the dated tables at each year\'s end', () => {

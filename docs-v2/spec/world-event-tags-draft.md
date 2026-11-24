@@ -73,7 +73,7 @@ Design data for the tag network in the M8 design notes ("World events: the tag n
 | E.3653.hutt_treaty | 3653 | Hutt–Imperial treaty keeps the Hutt Cartel neutral (P1, 3653 row 13) | Hutt Cartel: R (as a body) | — | — | **O.hutt_neutral** |
 | E.3653.ord_mantell_fleet | 3653 | A corrupt admiral sells Ord Mantell's fleet; the Republic all but abandons it (P1, 3653 row 15) | the admiral: R | The sale goes unexposed: crucial, medium | O.treaty_signed | O.ord_mantell_abandoned |
 | E.3653.senate_blame | 3653 | The Senate blames the Jedi for the loss (P1, 3653 row 17) | — | — | O.treaty_signed; O.temple_destroyed | O.senate_distrusts_jedi |
-| E.3653.temple_shelved | 3653 | The Senate votes to put off rebuilding the Coruscant Temple; Am-Ris tells Zym (SW_Coruscant_Jedi_Temple_OldRepublic_Part1; moved from 3650, D-476) | — | The Senate is hostile: crucial, medium | O.temple_destroyed; O.senate_distrusts_jedi | O.rebuilding_postponed |
+| E.3653.temple_shelved | 3653 | The Senate votes to put off rebuilding the Coruscant Temple; Am-Ris tells Zym (SW_Coruscant_Jedi_Temple_OldRepublic_Part1; moved from 3650, D-476) | — | The Senate is hostile: crucial, medium | O.temple_destroyed; O.senate_distrusts_jedi | O.rebuilding_postponed; O.temple_rebuilding (only if the Senate agrees to rebuild: the Order stays and lives in the Temple during repairs, D-477) |
 | E.3653.balmorra_ceded | after 3653 | Republic ends support for Balmorra; it stays Imperial (P1, 3653 row 18) | — | — | O.systems_ceded | O.balmorra_imperial |
 
 ## 3. The Cold War, 3653–3642, and the war's return, 3641–3640

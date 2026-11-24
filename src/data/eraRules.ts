@@ -27,6 +27,8 @@ const BEFORE_COLLAPSE: MonthDay = { month: 6, day: 14 };
 export interface EraRule extends OutcomeLinks {
   id: string;
   subject?: string;
+  /** Only a diverged campaign has it (D-477); the lore's dates alone never do. */
+  branch?: true;
   fromBby: number;
   toBby: number;
   /** The first day in fromBby and the last in toBby, for a boundary inside a year (D-475); absent = the whole year. */
@@ -117,13 +119,12 @@ export const ERA_RULES: readonly EraRule[] = [
   },
   {
     id: 'jedi-dress',
-    subject: 'jedi-dress',
     fromBby: 3681,
-    toBby: 3653,
-    toDate: BEFORE_TREATY,
+    toBby: 3641,
+    toDate: BEFORE_COLLAPSE,
     factions: ['jediOrder'],
     text: 'Padawans wear plain tunics and have no braid.',
-    source: 'D-378 [1]',
+    source: 'D-378 [1]; D-477 (through the Cold War)',
   },
   {
     id: 'korriban-academy',
@@ -205,6 +206,7 @@ export const ERA_RULES: readonly EraRule[] = [
     id: 'coruscant-temple-ruins',
     subject: 'coruscant-temple',
     dependsOn: ['O.temple_destroyed'],
+    endsWith: 'O.temple_rebuilding',
     fromBby: 3653,
     fromDate: TREATY_SIGNED,
     toBby: 3653,
@@ -221,7 +223,7 @@ export const ERA_RULES: readonly EraRule[] = [
     fromDate: TEMPLE_VOTE,
     toBby: 3640,
     places: ['Coruscant'],
-    text: 'The Jedi Temple stays a ruin: the Senate has voted to put off rebuilding it indefinitely, and the Order\'s home is Tython.',
+    text: 'The Jedi Temple stays a ruin: the Senate has voted to put off rebuilding it indefinitely.',
     source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (3653 BBY: the vote; Am-Ris tells Zym); D-476',
   },
   {
@@ -304,28 +306,29 @@ export const ERA_RULES: readonly EraRule[] = [
     source: 'SW_NarShaddaa_HuttSpace_GGW_Part1 §C, §G; SW_Species_OldRepublic_Part2 (Miraluka); D-475',
   },
   {
-    id: 'jedi-tython-no-temple',
+    id: 'jedi-homeless',
     subject: 'order-home',
     dependsOn: ['O.temple_destroyed', 'O.treaty_signed'],
+    endsWith: 'O.temple_rebuilding',
     fromBby: 3653,
     fromDate: TREATY_SIGNED,
     toBby: 3651,
     factions: ['jediOrder'],
-    text: 'The Order has left the ruined Coruscant Temple for Tython, and has no Temple there yet. The Republic blames the Jedi for losing the war.',
-    source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (3653: "Jedi to Tython"); Timeline slice Part 1 (3,653 BBY); D-476',
+    text: 'The Order is scattered and without a seat: its Coruscant Temple is a ruin and it has no other home yet. The Republic blames the Jedi for losing the war. Satele Shan finds Tython in 3,651.',
+    source: 'SW_Coruscant_Jedi_Temple_OldRepublic_Part1 (decision 8: homeless for a short period); SW_Tython (decision 1); Timeline slice Part 1 (3,653 BBY); D-477',
   },
   {
-    id: 'jedi-dress-cold-war',
-    subject: 'jedi-dress',
-    dependsOn: ['O.treaty_signed'],
-    endsWith: 'O.galactic_war',
+    id: 'jedi-temple-repairs',
+    subject: 'order-home',
+    branch: true,
+    dependsOn: ['O.temple_rebuilding'],
     fromBby: 3653,
-    fromDate: TREATY_SIGNED,
-    toBby: 3641,
-    toDate: BEFORE_COLLAPSE,
+    fromDate: TEMPLE_VOTE,
+    toBby: 3640,
+    places: ['Coruscant'],
     factions: ['jediOrder'],
-    text: 'Padawans wear plain tunics and the Padawan braid (later-era default).',
-    source: 'SW_Jedi_Temple_Life_GGW_Part1 (decision 1: later-era default); D-476',
+    text: 'The Senate has agreed to rebuild the Coruscant Temple: the Order stays, and lives in the damaged Temple during the repairs. If Tython is found, the Order does not move there.',
+    source: 'D-477 (Jared)',
   },
   {
     id: 'jedi-tython-building',
@@ -466,7 +469,7 @@ const mentions = (text: string, name: string): boolean => (` ${norm(text)} `).in
 const dayOf = (d: MonthDay): number => d.month * 100 + d.day;
 /** Whether a rule holds in a year, on a day of it (no day = the start of the year, as the control table reads it). */
 export const eraRuleHolds = (r: EraRule, bby: number, date: MonthDay = { month: 1, day: 1 }): boolean =>
-  bby <= r.fromBby && bby >= r.toBby && !(bby === r.fromBby && r.fromDate && dayOf(date) < dayOf(r.fromDate)) && !(bby === r.toBby && r.toDate && dayOf(date) > dayOf(r.toDate));
+  r.branch !== true && bby <= r.fromBby && bby >= r.toBby && !(bby === r.fromBby && r.fromDate && dayOf(date) < dayOf(r.fromDate)) && !(bby === r.toBby && r.toDate && dayOf(date) > dayOf(r.toDate));
 
 /** Whether a rule is about these places or the factions in play. */
 export const eraRuleApplies = (r: EraRule, placeNames: readonly string[], factions: readonly string[]): boolean =>
