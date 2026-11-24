@@ -29,6 +29,10 @@ Status key: **Replaced** = a decided spec covers it fully. **Partly replaced** =
 | phase1-answers.md | Answers to the 65 Phase 1 open questions |
 | lore-checks.md | Legends lore results for the LORE CHECK answers (L-01 to L-18) |
 | v170-audit.md | Earlier audit of V170 vs v2 (verified in bugs.md §4) |
+| m8-world-checklist.md | M8 world checklist: the open items (blockade, economy, medicine, droids, XP sources and more) |
+| m8-design-notes.md | M8 design notes: blockades, weapon proficiency, species traits and ages, world events, wartime postings, equipment, economy, renown, the Sith acolyte curriculum, medicine, ships, droids (exported from Claude Docs, revision 40, 2026-11-23; the Claude Docs version is the working copy; D-465) |
+| world-event-tags-draft.md | World event tag map, 3661–3640 BBY (design data for the tag network in the design notes; reviewed by Jared 2026-11-23, rulings in its section 6) |
+| world-event-tags-1000BBY-4ABY-draft.md | World event tag map, 1000 BBY–4 ABY (reviewed by Jared 2026-11-23, rulings in its section 8; the PP-0 alternatives are still open; LF rows not re-checked) |
 
 ## Legacy audit (Phase 1)
 

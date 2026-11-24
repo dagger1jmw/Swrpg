@@ -113,18 +113,18 @@ function curveAt(anchors: readonly (readonly [number, number])[], x: number): nu
 }
 
 /**
- * The age a canon figure's knowledge band is read at (D-462, Jared): its Human-equivalent age at the sheet's date when the
- * roster's birth year comes from the lore; else null (an estimated birth year is a design default: the standing midpoint).
+ * The age a canon figure's knowledge band is read at (D-462, D-465, Jared): its Human-equivalent age at the sheet's date,
+ * from the roster's birth year whether the lore gives it or it is a D-412 estimate (a lore year replaces the estimate when
+ * the lore supplies one). Every roster figure has a birth year; the standing midpoint stays as bandValue's fallback.
  */
-export function bandReadAge(n: Pick<CanonNpc, 'birthBby' | 'birthSource' | 'speciesId'>, bby: number): number | null {
-  if (n.birthSource !== 'lore') return null;
+export function bandReadAge(n: Pick<CanonNpc, 'birthBby' | 'speciesId'>, bby: number): number {
   return humanEquivalentAge(speciesDef(speciesTableId(n.speciesId)), Math.max(0, n.birthBby - bby));
 }
 
 /**
  * A band-set stat's game-scale value, at most as authored. Force Knowledge and Meditation of an Order archetype at a
- * Knight, Master or Council standing: the archetype's measured curve (D-461), read at the figure's own age when known,
- * else at the standing's midpoint (D-462). Otherwise the D-429 rule: the standing's band, one band lower outside the focus
+ * Knight, Master or Council standing: the archetype's measured curve (D-461), read at the figure's own age (D-462,
+ * D-465), else at the standing's midpoint. Otherwise the D-429 rule: the standing's band, one band lower outside the focus
  * (an ancient `fixed` figure, careers, Intelligence and Tactics).
  */
 export function bandValue(stat: string, authored: number, band: number, archetype: string, age: number | null = null): number {
@@ -156,7 +156,7 @@ export const GAME_SCALE_LINES: Readonly<Record<string, Readonly<Record<string, n
 };
 
 /** A sheet's levels in the game scale (rounded to 0.1). */
-export function sheetToGame(n: Pick<CanonNpc, 'canonId' | 'archetype' | 'ranks' | 'fixed' | 'birthBby' | 'birthSource' | 'speciesId'>, a: Pick<StatAnchor, 'bby' | 'levels'>): Record<string, number> {
+export function sheetToGame(n: Pick<CanonNpc, 'canonId' | 'archetype' | 'ranks' | 'fixed' | 'birthBby' | 'speciesId'>, a: Pick<StatAnchor, 'bby' | 'levels'>): Record<string, number> {
   const group = groupOf(n.archetype);
   const band = standingBand(n, a.bby);
   const age = bandReadAge(n, a.bby);

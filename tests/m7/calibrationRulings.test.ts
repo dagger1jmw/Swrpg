@@ -167,8 +167,9 @@ describe('the stat scale (D-423, revised by D-429)', () => {
     const { bandValue, standingBand } = await import('../../src/data/canon/sheetScale');
     const kaedan = canon('jaric-kaedan');
     expect(standingBand(kaedan, kaedan.anchors[0]!.bby)).toBe(60);
-    // A Guardian Master: the measured Guardian band at a Master's standing (D-461: 23; D-429 had 40, one band below 60).
-    expect(kaedan.anchors[0]!.levels['forceKnowledge']).toBe(23);
+    // A Guardian Master: the measured Guardian curve read at his own age (D-465: estimated birth 3715 BBY, 47 at the 3668
+    // BBY sheet: 22; D-461 read the Master's midpoint 50: 23; D-429 had 40, one band below 60).
+    expect(kaedan.anchors[0]!.levels['forceKnowledge']).toBe(22);
     expect(bandValue('forceKnowledge', 30, 60, 'jediConsular')).toBe(30);
     expect(bandValue('forceKnowledge', 99, 60, 'jediConsular')).toBe(79);
     expect(bandValue('meditation', 99, 40, 'sithInquisitor')).toBe(17);
