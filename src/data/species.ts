@@ -1,14 +1,16 @@
 // Species table (spec/species.md, D-103; lore batch 21, D-399). Legends only.
-// Ages: `lifespan` is the age a species reaches at the end of a full life (Human-equivalent age 100) and `maturity` its
-// age of adulthood (Human-equivalent 18); engine/species.ts rescales every Human table by them. Each carries a source
-// tag (ageSource): 'lore' (a novel, comic, game text or codex), 'game stat' (an RPG sourcebook; UAA = Ultimate Alien
-// Anthology) or 'house default' (our choice: the Human bands for species with no source, D-399 [2]). Where lore and a
+// Ages (D-472): `maturity` is the age of adulthood (Human-equivalent 18), `prime` the body's peak (Human-equivalent 30) and
+// `lifespan` the end of a full life (Human-equivalent 100), joined by straight lines; engine/species.ts rescales every Human
+// table by them. Each carries a source tag (ageSource): 'lore' (a novel, comic, game text or codex), 'game stat' (an RPG
+// sourcebook; UAA = Ultimate Alien Anthology) or 'invented' (our choice: the Human bands for species with no source,
+// D-399 [2]; was 'house default'). A prime with no source sits at the same share of adult life as a Human's 30. Where lore and a
 // game book disagree, lore wins. From the bands in SW_Species_OldRepublic_Part1-3: `lifespan` is the stated average
 // lifespan when lore gives one, else the game book's venerable age or stated maximum, else the Human 100.
 // Traits are design (species.md §3): a body-cap bonus on a physical stat (max +20), a learning factor on one category,
 // skill or ability side (x0.9..x1.1), a contest modifier, or a story rule. Species added in lore batch 21 have no
 // traits yet (M8).
 
+import { FULL_LIFE_H, PRIME_H } from './ageing.config';
 import type { PhysicalStat } from './skills';
 
 export type LearningTarget =
@@ -23,11 +25,13 @@ export interface LearningFactor {
 }
 
 /** Where an ageing number comes from (lore batch 21, D-399). */
-export type AgeTag = 'lore' | 'game stat' | 'house default';
+export type AgeTag = 'lore' | 'game stat' | 'invented';
 
 export interface AgeSource {
   lifespan: AgeTag;
   maturity: AgeTag;
+  /** Absent = 'invented'. */
+  prime?: AgeTag;
   /** What the numbers rest on, citing the species file. */
   basis: string;
   /** Infobox ages whose sources could not be checked (D-399 [19]). */
@@ -38,10 +42,15 @@ export interface SpeciesDef {
   id: string;
   name: string;
   lifespan: number;
+  /** Adult (Human-equivalent 18). */
   maturity: number;
+  /** The body's peak (Human-equivalent 30); the decline counts from here. Absent = defaultPrime. */
+  prime?: number;
+  /** The lifespan comes from Jedi alone (Yoda's species), so the Force's stretch is already in it. */
+  lifespanIncludesForce?: true;
   ageSource: AgeSource;
   bodyScale: number;
-  /** Where a non-1.0 body scale comes from (D-401 [12]: clear size outliers, house default until the M8 traits). */
+  /** Where a non-1.0 body scale comes from (D-401 [12]: clear size outliers, invented until the M8 traits). */
   bodyScaleSource?: AgeTag;
   capBonus: Partial<Record<PhysicalStat, number>>;
   learning: readonly LearningFactor[];
@@ -66,14 +75,14 @@ const DESIGN = 'design (species.md §2)';
 const NO_TRAITS = 'no traits yet (lore batch 21; traits are design, M8)';
 const P1 = 'SW_Species_OldRepublic_Part1';
 const P2 = 'SW_Species_OldRepublic_Part2';
-const HUMAN_BANDS = 'no lifespan source: the Human bands as a house default (D-399 [2])';
-const HD: AgeSource = { lifespan: 'house default', maturity: 'house default', basis: HUMAN_BANDS };
+const HUMAN_BANDS = 'no lifespan source: the Human bands as an invented default (D-399 [2])';
+const HD: AgeSource = { lifespan: 'invented', maturity: 'invented', basis: HUMAN_BANDS };
 
 /** A species with no traits yet (lore batch 21). */
 function plain(id: string, name: string, lifespan: number, maturity: number, ageSource: AgeSource, extra: Partial<SpeciesDef> = {}): SpeciesDef {
   return { id, name, lifespan, maturity, ageSource, bodyScale: 1.0, capBonus: {}, learning: [], notes: [], playable: true, source: NO_TRAITS, ...extra };
 }
-const gs = (basis: string, maturity: AgeTag = 'house default', unverified = false): AgeSource => ({ lifespan: 'game stat', maturity, basis, ...(unverified ? { unverified } : {}) });
+const gs = (basis: string, maturity: AgeTag = 'invented', unverified = false): AgeSource => ({ lifespan: 'game stat', maturity, basis, ...(unverified ? { unverified } : {}) });
 
 export const SPECIES: readonly SpeciesDef[] = [
   {
@@ -81,7 +90,7 @@ export const SPECIES: readonly SpeciesDef[] = [
     name: 'Human',
     lifespan: 100,
     maturity: 18,
-    ageSource: { lifespan: 'game stat', maturity: 'house default', basis: `average 100–120 (Saga Edition Core Rulebook); adulthood set by culture (${P1}, Human)` },
+    ageSource: { lifespan: 'game stat', maturity: 'invented', basis: `average 100–120 (Saga Edition Core Rulebook); adulthood set by culture (${P1}, Human)` },
     bodyScale: 1.0,
     capBonus: {},
     learning: [],
@@ -108,7 +117,7 @@ export const SPECIES: readonly SpeciesDef[] = [
     name: 'Zabrak',
     lifespan: 80,
     maturity: 18,
-    ageSource: { lifespan: 'lore', maturity: 'house default', basis: `average lifespan 80 (SWTOR codex, D-399 [6]); horns at puberty (${P1}, Zabrak)` },
+    ageSource: { lifespan: 'lore', maturity: 'invented', basis: `average lifespan 80 (SWTOR codex, D-399 [6]); horns at puberty (${P1}, Zabrak)` },
     bodyScale: 1.0,
     capBonus: {},
     // D-113 (Jared): the old "+5 Willpower cap" becomes Willpower learning x1.05.
@@ -227,11 +236,13 @@ export const SPECIES: readonly SpeciesDef[] = [
     id: 'wookiee',
     name: 'Wookiee',
     lifespan: 400,
-    maturity: 60,
+    maturity: 18,
+    prime: 200,
     ageSource: {
       lifespan: 'lore',
-      maturity: 'house default',
-      basis: `soft cap about 400, rare cases beyond; prime about 200 (D-399 [4]; ${P1}, Wookiee). Maturity 60 is the earlier design value: the books' adult 18 and the prime at 200 cannot both fit the linear age map (question for Jared)`,
+      maturity: 'game stat',
+      prime: 'lore',
+      basis: `soft cap about 400, rare cases beyond; adult 18 (UAA); prime about 200 (Visual Dictionary; D-399 [4], D-472; ${P1}, Wookiee)`,
     },
     bodyScale: 1.25,
     capBonus: { strength: 20 },
@@ -242,9 +253,9 @@ export const SPECIES: readonly SpeciesDef[] = [
   },
   // ---- Lore batch 21 (D-399): the rest of the playable-ready species, the three thin playable ones, and the NPC-only ones.
   // D-434 (Jared): raised from the game stat's 70 (venerable 70+) so Grand Master Zym, a Kel Dor of about 120 in 3661
-  // BBY (born about 3780 BBY, estimate), fits the band: at 150 he reads as a Human of about 81. House default; the Kel Dor
+  // BBY (born about 3780 BBY, estimate), fits the band: at 150 he reads as a Human of about 81. Invented; the Kel Dor
   // lifespan is on the lore research queue.
-  plain('kel_dor', 'Kel Dor', 150, 18, { lifespan: 'house default', maturity: 'house default', basis: `house default 150 (D-434: Zym at about 120); the game stat says venerable 70+ (${P1}, Kel Dor); lore check queued` }, { notes: ['Needs a breath mask and goggles off Dorin (story)'] }),
+  plain('kel_dor', 'Kel Dor', 150, 18, { lifespan: 'invented', maturity: 'invented', basis: `invented 150 (D-434: Zym at about 120); the game stat says venerable 70+ (${P1}, Kel Dor); lore check queued` }, { notes: ['Needs a breath mask and goggles off Dorin (story)'] }),
   plain('trandoshan', 'Trandoshan', 60, 15, gs(`venerable 60+, adult 15 (UAA; ${P1}, Trandoshan)`, 'game stat'), {
     ageingSigns: [{ text: 'stop regrowing lost limbs at about 54 (mechanical once limb loss exists)', tag: 'game stat' }],
   }),
@@ -260,11 +271,11 @@ export const SPECIES: readonly SpeciesDef[] = [
   plain('kaleesh', 'Kaleesh', 80, 18, gs(`maximum 80 (game stat; ${P2}, Kaleesh)`), { knownFrom: -3641, notes: ['Only recently contacted by the Galactic War; offered from 3,641 [inferred] (D-402 [10], D-405 [1])'] }),
   plain('nikto', 'Nikto', 100, 18, HD),
   plain('weequay', 'Weequay', 90, 18, gs(`maximum 90 (game stat; ${P2}, Weequay)`)),
-  plain('talz', 'Talz', 52, 18, gs(`maximum 52 (game stat; ${P2}, Talz)`), { bodyScale: 1.25, bodyScaleSource: 'house default' as const }),
-  plain('epicanthix', 'Epicanthix', 130, 18, { lifespan: 'lore', maturity: 'house default', basis: `up to 130 (novel; ${P2}, Epicanthix)` }),
+  plain('talz', 'Talz', 52, 18, gs(`maximum 52 (game stat; ${P2}, Talz)`), { bodyScale: 1.25, bodyScaleSource: 'invented' as const }),
+  plain('epicanthix', 'Epicanthix', 130, 18, { lifespan: 'lore', maturity: 'invented', basis: `up to 130 (novel; ${P2}, Epicanthix)` }),
   plain('falleen', 'Falleen', 250, 18, gs(`most live to about 250, rarely 400 (UAA, WEG; D-399 [3]; ${P2}, Falleen)`)),
-  plain('hutt', 'Hutt', 1000, 200, { lifespan: 'lore', maturity: 'lore', basis: `adult at 200, lives over 1,000 (${P2}, Hutt)` }, { bodyScale: 1.5, bodyScaleSource: 'house default' as const }),
-  plain('jawa', 'Jawa', 80, 18, gs(`maximum 80 (game stat; ${P2}, Jawa)`), { bodyScale: 0.6, bodyScaleSource: 'house default' as const }),
+  plain('hutt', 'Hutt', 1000, 200, { lifespan: 'lore', maturity: 'lore', basis: `adult at 200, lives over 1,000 (${P2}, Hutt)` }, { bodyScale: 1.5, bodyScaleSource: 'invented' as const }),
+  plain('jawa', 'Jawa', 80, 18, gs(`maximum 80 (game stat; ${P2}, Jawa)`), { bodyScale: 0.6, bodyScaleSource: 'invented' as const }),
   plain('dashade', 'Dashade', 85, 18, gs(`average 85 (game stat; "many centuries" in the infobox; ${P2}, Dashade)`)),
   plain('chagrian', 'Chagrian', 76, 18, gs(`maximum 76 (game stat; ${P2}, Chagrian)`)),
   plain('selkath', 'Selkath', 100, 18, gs(`maximum 100 (game stat; ${P2}, Selkath)`)),
@@ -272,13 +283,13 @@ export const SPECIES: readonly SpeciesDef[] = [
   plain('ithorian', 'Ithorian', 85, 18, gs(`average 85 (game stat; ${P2}, Ithorian)`)),
   plain('arkanian', 'Arkanian', 103, 15, gs(`venerable 103+, adult 15 (UAA; ${P2}, Arkanian)`, 'game stat')),
   plain('zeltron', 'Zeltron', 80, 18, gs(`maximum 80 (game stat; ${P2}, Zeltron)`)),
-  plain('gran', 'Gran', 79, 18, gs(`maximum 79 (infobox, source unchecked: unverified; ${P2}, Gran)`, 'house default', true)),
+  plain('gran', 'Gran', 79, 18, gs(`maximum 79 (infobox, source unchecked: unverified; ${P2}, Gran)`, 'invented', true)),
   plain('voss', 'Voss', 100, 18, HD, { knownFrom: -3645, notes: ['Unknown to the galaxy until the rediscovery c. 3,645 BBY (D-399 [15])'] }),
   // NPC-only (thin, D-399 [20]).
-  plain('houk', 'Houk', 100, 18, HD, { playable: false, bodyScale: 1.25, bodyScaleSource: 'house default' as const }),
+  plain('houk', 'Houk', 100, 18, HD, { playable: false, bodyScale: 1.25, bodyScaleSource: 'invented' as const }),
   plain('gormak', 'Gormak', 100, 18, HD, { playable: false, knownFrom: -3645 }),
   plain('gektl', 'Gektl', 100, 18, HD, { playable: false }),
-  plain('yodas_species', "Yoda's species", 900, 18, { lifespan: 'lore', maturity: 'house default', basis: `Yoda died at 900 (${P2}, Yoda's species)` }, { playable: false, bodyScale: 0.5, bodyScaleSource: 'house default' as const }),
+  plain('yodas_species', "Yoda's species", 900, 18, { lifespan: 'lore', maturity: 'invented', basis: `Yoda died at 900 (${P2}, Yoda's species)` }, { playable: false, lifespanIncludesForce: true, bodyScale: 0.5, bodyScaleSource: 'invented' as const }),
   plain('sarkhai', 'Sarkhai', 100, 18, HD, { playable: false }),
   plain('echani', 'Echani', 100, 18, HD, { playable: false }),
   plain('aqualish', 'Aqualish', 80, 17, gs(`venerable 80+, adult 17 (infobox, source unchecked: unverified; ${P2}, Aqualish)`, 'game stat', true), { playable: false }),
@@ -305,16 +316,37 @@ export function speciesOfferedAt(year: number): readonly SpeciesDef[] {
 export const TRAIT_LIMITS = { maxCapBonus: 20, minLearning: 0.9, maxLearning: 1.1 } as const;
 
 export const HUMAN_MATURITY = 18;
-export const HUMAN_SPAN = 82;
+export const HUMAN_SPAN = FULL_LIFE_H - HUMAN_MATURITY;
+
+/** A prime with no source: at the same share of adult life as a Human's (invented; the two lines are then one straight line). */
+export const defaultPrime = (maturity: number, lifespan: number): number => maturity + ((lifespan - maturity) * (PRIME_H - HUMAN_MATURITY)) / HUMAN_SPAN;
+export const speciesPrime = (s: Pick<SpeciesDef, 'prime' | 'maturity' | 'lifespan'>): number => s.prime ?? defaultPrime(s.maturity, s.lifespan);
+
+/** The age map's corners: birth, adult, prime and the end of a full life against their Human-equivalent ages (species.md §1, D-472). */
+const ageCorners = (s: SpeciesDef): readonly (readonly [number, number])[] => [
+  [0, 0],
+  [s.maturity, HUMAN_MATURITY],
+  [speciesPrime(s), PRIME_H],
+  [s.lifespan, FULL_LIFE_H],
+];
+
+/** Straight lines through the corners, the last one carried on past a full life; `from` and `to` pick the direction. */
+function alongCorners(corners: readonly (readonly [number, number])[], x: number, from: 0 | 1, to: 0 | 1): number {
+  let i = 1;
+  while (i < corners.length - 1 && x > corners[i]![from]) i++;
+  const a = corners[i - 1]!;
+  const b = corners[i]!;
+  return a[to] + ((x - a[from]) * (b[to] - a[to])) / (b[from] - a[from]);
+}
 
 /**
- * Human-equivalent age: childhood at the species' own pace, then 82 years spread over the rest of the lifespan (species.md
- * §1, D-103). Lives here so the data layer can read it (the canon knowledge bands, D-462); src/engine/species re-exports it.
+ * Human-equivalent age: adult reads 18, prime 30, a full life 100, in straight lines (species.md §1, D-103, D-472). Lives
+ * here so the data layer can read it (the canon knowledge bands, D-462); src/engine/species re-exports it.
  */
-export function humanEquivalentAge(species: SpeciesDef, age: number): number {
-  if (age < species.maturity) return (age * HUMAN_MATURITY) / species.maturity;
-  return HUMAN_MATURITY + ((age - species.maturity) * HUMAN_SPAN) / (species.lifespan - species.maturity);
-}
+export const humanEquivalentAge = (species: SpeciesDef, age: number): number => alongCorners(ageCorners(species), age, 0, 1);
+
+/** The inverse: the species age at which h is reached. */
+export const speciesAgeFromHuman = (species: SpeciesDef, h: number): number => alongCorners(ageCorners(species), h, 1, 0);
 
 /**
  * The species-table id for an entity species id (canon figures and NPCs use camelCase ids; the table snake_case): the

@@ -6,7 +6,9 @@ import { drillCeiling } from '../../engine/appliedExperience';
 import { capacities, type Capacities } from '../../engine/fatigue';
 import { lastingPenalty, type LastingInjury } from '../../engine/lasting';
 import { CAPACITY_ENDURANCE_KINDS } from '../../data/health.config';
-import { bodyCap, forceBoost, naturalLevel } from '../../engine/species';
+import { assumedAgeing, bodyAge, type Ageing } from '../../engine/ageing';
+import { bodyCapAt, forceBoost, naturalLevel, physicalPerformance } from '../../engine/species';
+import { speciesDef } from '../../data/species';
 import type { StateOfMind, TierName } from '../../data/progression.config';
 import type { GameState } from '../../state/gameState';
 import { selectExactAge, selectSpeciesId } from '../character/selectors';
@@ -35,13 +37,19 @@ export function selectBodyAbilityLevel(s: GameState): number {
 }
 
 export const selectForceBoost = (s: GameState): number => forceBoost(selectLevelExact(s, 'forceControl'), selectBodyAbilityLevel(s));
-export const selectBodyCap = (s: GameState, stat: PhysicalStat): number => bodyCap(selectSpeciesId(s), stat, selectExactAge(s));
+/** The body age now (D-472): the species' age map, slowed after prime by Force Control. */
+export const selectBodyAgeNow = (s: GameState): number => bodyAge(speciesDef(selectSpeciesId(s)), selectExactAge(s), selectLevelExact(s, 'forceControl'));
+/** The body's ageing: the tracked record, or the one a life before play leaves. */
+export const selectAgeing = (s: GameState): Ageing => s.progression.ageing ?? assumedAgeing(selectBodyAgeNow(s));
+export const selectBodyCap = (s: GameState, stat: PhysicalStat): number => bodyCapAt(selectSpeciesId(s), stat, selectAgeing(s).bodyAge);
 
-/** Physical performance = min(level, body cap) + Force boost; other skills are their level. */
+/** Physical performance = min(level less the age loss, body cap) + Force boost; other skills are their level. */
 export function selectPerformance(s: GameState, id: string): number {
   const level = selectLevelExact(s, id);
   if (SKILL_BY_ID.get(id)?.category !== 'physical') return level;
-  return Math.min(level, selectBodyCap(s, id as PhysicalStat)) + selectForceBoost(s);
+  const stat = id as PhysicalStat;
+  const a = selectAgeing(s);
+  return physicalPerformance(id, level, bodyCapAt(selectSpeciesId(s), stat, a.bodyAge), selectForceBoost(s), a.loss[stat]);
 }
 
 /** Level for rolls before wounds and fatigue: performance x (1 - rust). */

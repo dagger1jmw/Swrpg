@@ -5,9 +5,10 @@ import { archetypeDef } from '../../data/archetypes';
 import { CANON_BY_ID } from '../../data/canonNpcs';
 import { DEFAULT_AGE, DEFAULT_AGE_BY_ROLE } from '../../data/npcGen.config';
 import { FORM_IDS } from '../../data/skills';
-import { speciesTableId } from '../../data/species';
+import { speciesDef, speciesTableId } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay } from '../../engine/calendar';
 import { npcVariance, rollNpcInputs } from '../../engine/npcGen';
+import { ageLoss, bodyAge, isPhysicalStat } from '../../engine/ageing';
 import { isOutsideForce } from '../../engine/speed';
 import { canonLevelsAt, canonLevelsInCampaign, type CanonStatDeps } from '../../engine/canonStats';
 import { canonLivedAgeAt, canonRankAt, withoutDeath } from '../../engine/canonRoster';
@@ -108,6 +109,12 @@ function canonShape(canon: CanonNpc, bby: number, asOfBby: number): { rank: stri
   return { rank, phases: { padawanAge, knightAge } };
 }
 
+/** A canon figure's body age at a date (D-472): its lived age, slowed by the Force Control of its nearest sheet (or the generator's line). */
+export function canonBodyAge(canon: CanonNpc, bby: number, lineForceControl: number): number {
+  const near = canon.anchors.filter((a) => a.levels['forceControl'] !== undefined).sort((a, b) => Math.abs(a.bby - bby) - Math.abs(b.bby - bby))[0];
+  return bodyAge(speciesDef(speciesTableId(canon.speciesId)), canonLivedAgeAt(canon, bby), near?.levels['forceControl'] ?? lineForceControl);
+}
+
 /** The engine's dependencies for one canon figure (memoized per date): the generator line, growth G and lived age. */
 function canonDeps(canon: CanonNpc, today: number, asOfBby = -Infinity): CanonStatDeps {
   const def = archetypeDef(canon.archetype);
@@ -127,6 +134,7 @@ function canonDeps(canon: CanonNpc, today: number, asOfBby = -Infinity): CanonSt
     lineAt: (bby) => line(bby, true),
     growthAt: (bby) => Math.max(0, ...Object.entries(line(bby, false)).filter(([k]) => FORM_IDS.includes(k) || k === def.main).map(([, v]) => v)),
     livedAgeAt: (bby) => canonLivedAgeAt(canon, bby),
+    retentionAt: (stat, bby) => (isPhysicalStat(stat) ? 1 - ageLoss(stat, canonBodyAge(canon, bby, line(bby, false)['forceControl'] ?? 0)) : 1),
   };
 }
 
@@ -176,7 +184,7 @@ export function selectNpcLevels(s: GameState, id: string): Readonly<Record<strin
     // Jared, D-419: after the start the figure keeps its canon promotions, unless the campaign has diverged for it
     // (killed, captured, turned, removed from its post): from that day only the rank spans begun by then shape its growth.
     const growth = n.canonDiverged ? canonDeps(canon, today, Math.min(startBby, -dateFromAbsDay(n.canonDiverged.day).year)).growthAt : deps.growthAt;
-    return canonLevelsInCampaign(start, growth, startBby, Math.min(nowBby, startBby));
+    return canonLevelsInCampaign(start, growth, startBby, Math.min(nowBby, startBby), deps.retentionAt);
   }
   const gen = selectNpcGen(s, id);
   return gen ? npcLevelsFor(gen, n.speciesId, selectNpcAgeOrDefault(s, id), s.clock.now.day) : {};

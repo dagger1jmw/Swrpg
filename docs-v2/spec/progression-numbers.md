@@ -212,18 +212,20 @@ Force boost = min(45, 0.3 * max(0, ForceControl - 40) + 0.2 * Force body-ability
 Human body cap by age (straight-line between points):
   5:15 | 9:25 | 12:35 | 15:50 | 18:65 | 22-35:80 | 45:78 | 55:74 | 65:68 | 75:58 |
   85:45 | 100:25
+  (D-472: the fall after prime is now the decline curve of species.md sec 1, the same numbers for
+  Strength and Endurance, sooner for Agility, read at the body age; the trained level falls too.)
 Other species get their own tables (species.md: the Human table rescaled by age mapping and
   bodyScale, D-103). The species lifespans and maturities that feed the age mapping come from lore
-  batch 21 (D-399; src/data/species.ts, each tagged lore / game stat / house default). The body-cap
+  batch 21 (D-399; src/data/species.ts, each tagged lore / game stat / invented). The body-cap
   maths is unchanged: the species bands reach it only through the Human-equivalent age h.
-  Design item (D-399 [5], not code): Force-sensitive longevity, up to about 200 (about 300 with
-  elite medicine), for Humans and Human-baseline species only; species with their own lifespan data
-  wait for a scaled rule (m6-integration-checklist.md item 33).
+  Force-sensitive longevity (D-399 [5]) is the Force Control stretch of species.md sec 1, in
+  Human-equivalent years for every species (D-472: the scaled rule it waited for).
 
 ## 11a. Natural baseline (added by D-102; decides D-67)
 Untrained characters are not at 0 in body and will. Natural level N by Human-equivalent age h
 (species.md sec 1):
-  Strength, Agility, Endurance: N = 0.5 * body cap(h) for the species (sec 11)
+  Strength, Agility, Endurance: N = 0.5 * body cap(h) for the species (sec 11), at its peak from
+    prime on (D-472: the age loss is taken off the level instead)
   Willpower: N = 4: 10 | 10: 18 | 16: 25 | 20: 30 | 30: 35 | 60: 40 (straight lines, flat outside)
   Every other skill: N = 0
 Training adds on top in XP terms: level = floor(((K * N^1.75 + trained XP) / K)^(1/1.75)).

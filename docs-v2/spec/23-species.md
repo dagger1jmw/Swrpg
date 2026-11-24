@@ -71,9 +71,9 @@ The lore source for species is `Docs/SWRPG lore/SW_Species_OldRepublic_Part1.md`
 Every lifespan and maturity in `src/data/species.ts` carries a tag in `ageSource`:
 - `lore`: stated in a novel, comic, game text or codex;
 - `game stat`: from an RPG sourcebook (mostly the Ultimate Alien Anthology, UAA). Infobox ages whose source could not be checked also carry `unverified` (Aqualish, Gran);
-- `house default`: our own choice.
+- `invented`: our own choice (was `house default`; D-472).
 
-Game-book age bands are the default ageing tables where no lore exists; where lore gives a figure, lore wins. The 15 species with no lifespan source use the Human bands as a house default (lifespan 100, maturity 18): Sith Purebloods, Twi'leks, Mirialans, Rattataki, Mon Calamari, Rodians, Nikto, Devaronians, Houk, Sullustans, Voss, Gormak, Gektl, Echani and Sarkhai. Revisit a species if a source turns up.
+Game-book age bands are the default ageing tables where no lore exists; where lore gives a figure, lore wins. The 15 species with no lifespan source use the Human bands as an invented default (lifespan 100, maturity 18): Sith Purebloods, Twi'leks, Mirialans, Rattataki, Mon Calamari, Rodians, Nikto, Devaronians, Houk, Sullustans, Voss, Gormak, Gektl, Echani and Sarkhai. Revisit a species if a source turns up.
 
 **How the bands become the two numbers** (`lifespan` = the age at Human-equivalent 100, `maturity` = the age at Human-equivalent 18; species.md §1): lifespan is the stated average lifespan when lore gives one, else the game book's venerable age or stated maximum, else the Human 100. Maturity is the book's adult age where given, else 18.
 
@@ -113,44 +113,44 @@ One line each, giving:
 
 | Species | Lifespan / maturity | Force | Languages | 3,661 BBY standing | Naming | Cite |
 |---|---|---|---|---|---|---|
-| Human | 100 game stat / 18 house | no rate stated | Basic and many others | most common in both powers; a favoured "master race" in the Empire | — | P1 |
-| Sith Pureblood | 100 house / 18 house | non-sensitives "extremely rare" | Sith | Empire only: the privileged caste; Korriban is Imperial | — | P1 |
+| Human | 100 game stat / 18 invented | no rate stated | Basic and many others | most common in both powers; a favoured "master race" in the Empire | — | P1 |
+| Sith Pureblood | 100 invented / 18 invented | non-sensitives "extremely rare" | Sith | Empire only: the privileged caste; Korriban is Imperial | — | P1 |
 | Chiss | 80 game stat / 10 lore | rare; Force use forbidden at home | Cheunh; trade languages | the Ascendancy is the Empire's ally | — | P1 |
-| Twi'lek | 100 house / 18 house | lekku possibly sensitive; no tradition | Twi'leki (Ryl), lekku sign | Ryloth Hutt-controlled [inferred]; many slaves in the Empire | — | P1 |
-| Zabrak | 80 lore / 18 house | no rate stated | Zabraki, Basic | Iridonia contested between both powers | — | P1 |
-| Mirialan (thin) | 100 house / 18 house | religious Force belief | Mirialan, Basic | Mirial a refuge, Republic-aligned [inferred] | — | P1 |
-| Miraluka | 84 game stat / 18 house | whole species | Miralukese | Alpheridies: not stated | — | P1 |
+| Twi'lek | 100 invented / 18 invented | lekku possibly sensitive; no tradition | Twi'leki (Ryl), lekku sign | Ryloth Hutt-controlled [inferred]; many slaves in the Empire | — | P1 |
+| Zabrak | 80 lore / 18 invented | no rate stated | Zabraki, Basic | Iridonia contested between both powers | — | P1 |
+| Mirialan (thin) | 100 invented / 18 invented | religious Force belief | Mirialan, Basic | Mirial a refuge, Republic-aligned [inferred] | — | P1 |
+| Miraluka | 84 game stat / 18 invented | whole species | Miralukese | Alpheridies: not stated | — | P1 |
 | Cathar | 90 game stat / 18 game stat | often Jedi | Catharese | most sided with the Republic | — | P1 |
-| Rattataki (thin) | 100 house / 18 house | many among Vich's captives | Rattataki | Rattatak partly Sith-occupied | — | P1 |
+| Rattataki (thin) | 100 invented / 18 invented | many among Vich's captives | Rattataki | Rattatak partly Sith-occupied | — | P1 |
 | Togruta | 95 game stat / 18 game stat | special affinity | Togruti | Shili: not stated | — | P1 |
-| Kel Dor | 70 game stat / 18 house | silver eyes mark affinity | Kel Dor, Basic | Dorin: not stated | given names copy the sounds of Dorin's atmosphere | P1 |
-| Mon Calamari | 100 house / 18 house | no rate stated | Mon Calamarian, Basic | Republic member | — | P1 |
-| Wookiee | 400 lore / 60 house | no rate stated | Shyriiwook and others; cannot speak Basic | Kashyyyk: not stated (joined the Republic) | — | P1 |
+| Kel Dor | 70 game stat / 18 invented | silver eyes mark affinity | Kel Dor, Basic | Dorin: not stated | given names copy the sounds of Dorin's atmosphere | P1 |
+| Mon Calamari | 100 invented / 18 invented | no rate stated | Mon Calamarian, Basic | Republic member | — | P1 |
+| Wookiee | 400 lore / 18 game stat, prime 200 lore | no rate stated | Shyriiwook and others; cannot speak Basic | Kashyyyk: not stated (joined the Republic) | — | P1 |
 | Trandoshan | 60 game stat / 15 game stat | uncommon | Dosh | Trandosha: not stated | — | P1 |
-| Rodian | 100 house / 18 house | no era rate | Rodese, Basic, Huttese | not stated (annexed by the Empire in 3,653) | — | P1 |
+| Rodian | 100 invented / 18 invented | no era rate | Rodese, Basic, Huttese | not stated (annexed by the Empire in 3,653) | — | P1 |
 | Duros | 70 game stat / 15 game stat | no rate stated | Durese | Duro: not stated; a favoured species in Imperial field hospitals | — | P1 |
 | Bothan | 85 game stat / 17 game stat | no rate stated | Bothese, Botha, Wrendui | Bothawui Republic-defended | — | P1 |
 | Cerean | 70 game stat / 15 game stat | about Human [gray] | Cerean, Basic | Cerea: not stated | — | P1 |
-| Nautolan | 70 game stat / 18 house | respected; no Force culture | Anselmian, Basic | Glee Anselm: not stated | — | P1 |
-| Devaronian | 100 house / 18 house | higher than other species | Basic, Devaronese | Devaron: not stated | — | P1 |
-| Gand | 95 game stat / 18 house | the findsmen | Gand | Gand: not stated | — | P2 |
-| Kaleesh (from 3,641; D-402 [10]) | 80 game stat / 18 house | a blessing; no Jedi known | Kaleesh | Kalee in Wild Space, only recently contacted | — | P2 |
-| Nikto | 100 house / 18 house | no rate stated | Nikto | Kintan, Hutt Space [inferred] | — | P2 |
-| Weequay | 90 game stat / 18 house | many; some Jedi | Sriluurian | Sriluur: not stated | — | P2 |
-| Talz | 52 game stat / 18 house | not stated | chirps and buzzes | not stated (a Cold War Senator) | — | P2 |
-| Epicanthix | 130 lore / 18 house | mind shielding | Epicant | Panatha: not stated | — | P2 |
-| Falleen | 250 game stat / 18 house | resist mind tricks | Falleen | not stated | — | P2 |
+| Nautolan | 70 game stat / 18 invented | respected; no Force culture | Anselmian, Basic | Glee Anselm: not stated | — | P1 |
+| Devaronian | 100 invented / 18 invented | higher than other species | Basic, Devaronese | Devaron: not stated | — | P1 |
+| Gand | 95 game stat / 18 invented | the findsmen | Gand | Gand: not stated | — | P2 |
+| Kaleesh (from 3,641; D-402 [10]) | 80 game stat / 18 invented | a blessing; no Jedi known | Kaleesh | Kalee in Wild Space, only recently contacted | — | P2 |
+| Nikto | 100 invented / 18 invented | no rate stated | Nikto | Kintan, Hutt Space [inferred] | — | P2 |
+| Weequay | 90 game stat / 18 invented | many; some Jedi | Sriluurian | Sriluur: not stated | — | P2 |
+| Talz | 52 game stat / 18 invented | not stated | chirps and buzzes | not stated (a Cold War Senator) | — | P2 |
+| Epicanthix | 130 lore / 18 invented | mind shielding | Epicant | Panatha: not stated | — | P2 |
+| Falleen | 250 game stat / 18 invented | resist mind tricks | Falleen | not stated | — | P2 |
 | Hutt | 1,000 lore / 200 lore | rare; mind-shielded | Huttese | Nal Hutta neutral | personal, clan and family names (Zorba Desilijic Tiure) | P2 |
-| Jawa | 80 game stat / 18 house | not stated | Jawaese | Tatooine: not stated | — | P2 |
-| Voss (thin; from c. 3,645) | 100 house / 18 house | high rate; the Mystics | Voss, Basic | independent and unknown to outsiders | — | P2 |
-| Dashade | 85 game stat / 18 house | resistant | Dashadi | near-extinct (Urkupp destroyed in 3,996) | — | P2 |
-| Chagrian | 76 game stat / 18 house | not stated | Chagri | Champala: not stated | — | P2 |
-| Selkath | 100 game stat / 18 house | not stated | Selkatha | Manaan neutral | — | P2 |
-| Sullustan | 100 house / 18 house | not stated | Sullustese | Sullust: not stated | — | P2 |
-| Ithorian | 85 game stat / 18 house | many; priest-healers | Ithorese | Ithor: not stated | — | P2 |
+| Jawa | 80 game stat / 18 invented | not stated | Jawaese | Tatooine: not stated | — | P2 |
+| Voss (thin; from c. 3,645) | 100 invented / 18 invented | high rate; the Mystics | Voss, Basic | independent and unknown to outsiders | — | P2 |
+| Dashade | 85 game stat / 18 invented | resistant | Dashadi | near-extinct (Urkupp destroyed in 3,996) | — | P2 |
+| Chagrian | 76 game stat / 18 invented | not stated | Chagri | Champala: not stated | — | P2 |
+| Selkath | 100 game stat / 18 invented | not stated | Selkatha | Manaan neutral | — | P2 |
+| Sullustan | 100 invented / 18 invented | not stated | Sullustese | Sullust: not stated | — | P2 |
+| Ithorian | 85 game stat / 18 invented | many; priest-healers | Ithorese | Ithor: not stated | — | P2 |
 | Arkanian | 103 game stat / 15 game stat | not stated | Arkanian | Republic | — | P2 |
-| Zeltron | 80 game stat / 18 house | empathic telepathy | Basic | Zeltros: not stated | — | P2 |
-| Gran | 79 game stat, unverified / 18 house | not stated | Gran | Kinyen: not stated | — | P2 |
+| Zeltron | 80 game stat / 18 invented | empathic telepathy | Basic | Zeltros: not stated | — | P2 |
+| Gran | 79 game stat, unverified / 18 invented | not stated | Gran | Kinyen: not stated | — | P2 |
 
 ## The ten thin species, and why
 A species is thin when at least two of these are missing: body numbers, lifespan, culture and era (see each entry's readiness mark in P1 and P2).

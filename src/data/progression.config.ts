@@ -281,7 +281,7 @@ export const CENTERED_MEDITATION_HOURS = 0.5;
 export const DISTRACTED = { deadlineDays: 3, streakDays: 2 } as const;
 
 // ---- Physical performance and natural baseline (§11, §11a) ----
-/** Human body cap by age (straight lines between points). */
+/** Human body cap by age up to the peak (straight lines between points); after prime it falls by BODY_DECLINE (ageing.config, D-472). */
 export const HUMAN_BODY_CAP: readonly (readonly [number, number])[] = [
   [5, 15],
   [9, 25],
@@ -289,13 +289,6 @@ export const HUMAN_BODY_CAP: readonly (readonly [number, number])[] = [
   [15, 50],
   [18, 65],
   [22, 80],
-  [35, 80],
-  [45, 78],
-  [55, 74],
-  [65, 68],
-  [75, 58],
-  [85, 45],
-  [100, 25],
 ];
 /** Force boost = min(45, 0.3 * max(0, FC - 40) + 0.2 * Force body-ability level). */
 export const FORCE_BOOST = { max: 45, fcFrom: 40, fcPer: 0.3, bodyPer: 0.2 } as const;

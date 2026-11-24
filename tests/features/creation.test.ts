@@ -89,7 +89,7 @@ describe('computed creation (character-creation §6)', () => {
     const focusAll = { $forms: 1, forceControl: 0, forceSense: 0, strength: 0, agility: 0, endurance: 0, willpower: 0 };
     for (const talents of [{ combat: 'exceptional' as const }, { combat: 'prodigy' as const, force: 'gifted' as const }, { force: 'exceptional' as const }]) {
       for (const species of ['human', 'miraluka', 'mirialan', 'wookiee']) {
-        const c = computeCreation(jedi(species === 'wookiee' ? 120 : 30, 'knight', { talents, speciesId: species, focus: focusAll, storyException: true, trainingStartAge: species === 'wookiee' ? 40 / 3 : 4 }));
+        const c = computeCreation(jedi(species === 'wookiee' ? 120 : 30, 'knight', { talents, speciesId: species, focus: focusAll, storyException: true, trainingStartAge: 4 }));
         expect(c.errors).toEqual([]);
         expect(c.maxPace).toBeLessThanOrEqual(4);
       }
@@ -116,9 +116,9 @@ describe('computed creation (character-creation §6)', () => {
     expect(ranksFor('career', 30).map((r) => r.id)).toEqual(['career']);
   });
 
-  it('species read on the Human-equivalent age: a Wookiee of 30 trains like a child of 9', () => {
-    // A Wookiee child of 30 is h 9; training from species age 13.3 is h 4 (species.md §1).
-    const w = computeCreation(jedi(30, 'initiate', { speciesId: 'wookiee', trainingStartAge: 40 / 3 }));
+  it('species read on the Human-equivalent age: a Chiss of 5 trains like a child of 9', () => {
+    // A Chiss is adult at 10 (h 18): 5 is h 9; training from 20/9 is h 4 (species.md §1, D-472).
+    const w = computeCreation(jedi(5, 'initiate', { speciesId: 'chiss', trainingStartAge: 20 / 9 }));
     expect(w.errors).toEqual([]);
     near(w.levels['shiiCho']!, computeCreation(jedi(9, 'initiate')).levels['shiiCho']!, 0.2);
   });

@@ -30,6 +30,7 @@ import { tirednessLabel } from '../../engine/fatigue';
 import { instructionFactor } from '../../engine/instruction';
 import { clampCredit, inWindow, paceCap } from '../../engine/paceClamp';
 import { nextFloat, type RngState } from '../../engine/rng';
+import { bodyDecline, isPhysicalStat } from '../../engine/ageing';
 import { humanEquivalentAge, speciesLearning } from '../../engine/species';
 import { conditionedCap, conditionedM, crossTalentMult, isAcceleratedSkill, isChannelEligible, isForceSkill, speedM, stateMult, talentMult } from '../../engine/speed';
 import { selectCurrentLocationId, selectLocationChain } from '../locations/selectors';
@@ -51,6 +52,7 @@ import {
   selectE,
   selectGriefMult,
   selectLevelExact,
+  selectAgeing,
   selectNatural,
   selectPerformance,
   selectRust,
@@ -270,6 +272,7 @@ export interface SpeedParts {
 export function speedPartsFor(s: GameState, instruction: number): (skill: string) => SpeedParts | null {
   const c = selectCharacter(s);
   const h = selectHumanAge(s);
+  const body = selectAgeing(s).bodyAge;
   const state = selectStateOfMind(s);
   const grief = selectGriefMult(s);
   const despair = selectDespairMult(s);
@@ -281,7 +284,8 @@ export function speedPartsFor(s: GameState, instruction: number): (skill: string
       talent: talentMult(c.talents, skill),
       crossTalent: crossTalentMult(c.talents, skill),
       instruction,
-      age: ageFactor(CATEGORY_RULES[def.category].ageRow, h),
+      // An old body regains less (D-472): physical training reads the body's age and what is left of its peak.
+      age: isPhysicalStat(skill) ? ageFactor('physical', body) * (1 - bodyDecline(skill, body)) : ageFactor(CATEGORY_RULES[def.category].ageRow, h),
       state: stateMult(state, skill, { grief, despair, darkPressure: STUB_DARK_PRESSURE }),
       alignment: STUB_ALIGNMENT_MULT,
       species: speciesLearning(c.speciesId, skill),

@@ -203,10 +203,19 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 - Which martial cultures taught close combat to outsiders in Legends (the Echani and the Mandalorians, and others), to whom, and at which dates. The Echani and the Mandalorians are placeholders until sourced. Answers become dated rows (D-438), not era sections.
 
 ## Species lifespans (D-434, 2026-11-22)
-- Kel Dor lifespan: the species file gives "venerable 70+" (a game stat), but Grand Master Zym, a Kel Dor, is about 120 in 3661 BBY. Raised to 150 as a house default (src/data/species.ts). Wanted: a cited Legends lifespan or the age of an old Kel Dor (Zym, Plo Koon's elders).
+- Kel Dor lifespan: the species file gives "venerable 70+" (a game stat), but Grand Master Zym, a Kel Dor, is about 120 in 3661 BBY. Raised to 150, tagged invented (src/data/species.ts). Wanted: a cited Legends lifespan or the age of an old Kel Dor (Zym, Plo Koon's elders).
 
 ## Open from the Nov 22 lore update (D-439)
 - Ossus: Force-rich or not (only a character's impression supports it).
 - Kolto's decline: no year in the sources; the switch-over year waits for Jared (placeholder 2000 BBY; supported range 3600–1000 BBY).
 - Undated holocrons (excluded by default) and holocrons as a teaching source.
 - Malachor V after 3951 BBY: whether any dark presence lingers [unclear].
+
+## Species ages (M8 item 2, D-472, 2026-11-24)
+- **No lifespan source** (the Human 100 stands, tagged invented): Sith Pureblood, Twi'lek, Mirialan, Rattataki, Mon Calamari, Rodian, Nikto, Devaronian, Houk, Sullustan, Voss, Gormak, Gektl, Echani, Sarkhai.
+- **Kel Dor:** still 150, invented (above).
+- **A prime age** for any species but the Wookiee; and an adult age for the species still at 18 with no source (Human, Zabrak, Miraluka, Kel Dor, Nautolan, Gand, Kaleesh, Weequay, Talz, Epicanthix, Falleen, Jawa, Dashade, Chagrian, Selkath, Ithorian, Zeltron, Gran, Yoda's species, and the 15 above).
+- **Yoda's species apart from the Jedi:** every known member was a Jedi, so its lifespan without the Force is unknown.
+- **Vandar Tokare:** no birth year, species entry or age in the lore files, so he could not be checked against the curve.
+- **How much Force Control lengthens a life:** the files give only "up to 200" for Forceful Humans. Wanted: ages of old Human Masters with a known mastery.
+- **The order stats fail in:** the lore has no source for Agility falling before Strength (a design choice).

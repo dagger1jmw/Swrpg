@@ -196,7 +196,7 @@ describe('era rules (D-401 [8])', () => {
 describe('species rulings (D-401 [12], [13])', () => {
   it('clear size outliers have house-default body scales', () => {
     for (const [id, scale] of [['hutt', 1.5], ['jawa', 0.6], ['yodas_species', 0.5], ['talz', 1.25], ['houk', 1.25]] as const) {
-      expect([SPECIES_BY_ID.get(id)!.bodyScale, SPECIES_BY_ID.get(id)!.bodyScaleSource], id).toEqual([scale, 'house default']);
+      expect([SPECIES_BY_ID.get(id)!.bodyScale, SPECIES_BY_ID.get(id)!.bodyScaleSource], id).toEqual([scale, 'invented']);
     }
     expect(SPECIES_BY_ID.get('kel_dor')!.bodyScale).toBe(1);
   });

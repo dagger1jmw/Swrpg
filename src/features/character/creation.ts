@@ -14,11 +14,12 @@ import { orderHoursAt } from '../../data/orderRequirements';
 import { INITIATE_CURRICULUM, closedFormCurriculum } from '../../data/initiateCurriculum';
 import { interp } from '../../engine/interp';
 import { AVERAGE_RANK_AGES, KNIGHT_TRIALS, RANK_BY_ID, RANK_PHASE, type RankDef } from '../../data/rankMinimums';
-import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID, SKILL_IDS, type TalentDomain } from '../../data/skills';
+import { CATEGORY_RULES, FORM_IDS, PHYSICAL_STATS, SKILL_BY_ID, SKILL_IDS, type TalentDomain } from '../../data/skills';
 import { SPECIES_BY_ID, speciesDef, speciesOfferedAt } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { closedFormLevel, formXps, phasesFor, planSplit, type FormPlan } from '../../engine/closedForm';
 import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
+import { ageLoss, bodyAgeFromH } from '../../engine/ageing';
 import { humanEquivalentAge, naturalLevel, speciesAgeFromHuman, speciesLearning } from '../../engine/species';
 import { crossTalentMult, isForceXpSkill, isOutsideForce, talentMult, type Talents } from '../../engine/speed';
 
@@ -362,6 +363,11 @@ export function computeCreation(input: CreationInput): CreationResult {
     const raw = levelWithNatural(startingXp[id] ?? 0, n);
     const lv = input.npc ? softCapLevel(raw) : raw;
     if (lv > 0) levels[id] = lv;
+  }
+  // An NPC's body past its prime (D-472); a player's ageing is the progression feature's (its selectors take it off).
+  if (input.npc) {
+    const body = bodyAgeFromH(h, levels['forceControl'] ?? 0, species.lifespanIncludesForce === true);
+    for (const stat of PHYSICAL_STATS) if (levels[stat]) levels[stat] *= 1 - ageLoss(stat, body);
   }
 
   // The highest form: every "main form" minimum reads it (D-118).

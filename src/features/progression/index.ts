@@ -23,7 +23,9 @@ import { selectNow } from '../clock/selectors';
 import { selectLasting, selectMaxFraction } from '../health/selectors';
 import { selectOpenThreads } from '../threads/selectors';
 import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressionV1, migrateProgressionV2, migrateProgressionV3, progressionSliceSchema, type ProgressionSlice, type StateOfMindRecord } from './progression';
-import { selectCapacities, selectLevelExact, selectNatural, selectSkillViews, selectStateOfMind, selectTierBeats } from './selectors';
+import { ageingStep } from '../../engine/ageing';
+import { PRIME_H } from '../../data/ageing.config';
+import { selectAgeing, selectBodyAgeNow, selectCapacities, selectLevelExact, selectNatural, selectSkillViews, selectStateOfMind, selectTierBeats } from './selectors';
 
 const EMOTIONS = ['grief', 'fear', 'anger', 'hatred', 'calm', 'pride', 'despair'] as const;
 const record = z.record(z.string(), z.number().min(0));
@@ -474,8 +476,12 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
       }
     }
 
+    // The body past its prime (D-472): the loss grows with each day's decline, slowed by the last year's training.
+    const bodyNow = selectBodyAgeNow(s);
+    const ageing = bodyNow > PRIME_H || next.ageing ? ageingStep(selectAgeing(s), bodyNow, (stat) => (next.paceWindow[stat] ?? []).reduce((h, w) => h + w.hours, 0)) : null;
+
     return {
-      slice: { ...next, skills, bank, overtrainStreak: streak, stateOfMind, grief, willpowerToday: 0, today: EMPTY_TODAY, fightsToday: {}, combatXpToday: {} },
+      slice: { ...next, ...(ageing ? { ageing } : {}), skills, bank, overtrainStreak: streak, stateOfMind, grief, willpowerToday: 0, today: EMPTY_TODAY, fightsToday: {}, combatXpToday: {} },
       ...(notices.length ? { notices } : {}),
     };
   },

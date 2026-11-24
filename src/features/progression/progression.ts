@@ -77,6 +77,11 @@ export const progressionSliceSchema = z.object({
   /** Recording review (§19): +5% XP to one skill until untilDay; at most once per 7 days. */
   reviewBuff: z.object({ skillId: z.string(), untilDay: z.number().int() }).nullable(),
   lastReviewDay: z.number().int().nullable(),
+  /** The body past its prime (D-472): the oldest body age reached and the share of each physical stat lost. Absent or null = not yet tracked. */
+  ageing: z
+    .object({ bodyAge: z.number().min(0), loss: z.object({ strength: z.number().min(0).max(1), agility: z.number().min(0).max(1), endurance: z.number().min(0).max(1) }) })
+    .nullable()
+    .optional(),
 });
 export type ProgressionSlice = z.infer<typeof progressionSliceSchema>;
 

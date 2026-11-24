@@ -113,7 +113,7 @@ describe('species (species.md §5)', () => {
       expect(s.bodyScale).toBeGreaterThan(0);
       expect(s.source.length).toBeGreaterThan(0);
       // Lore batch 21 (D-399): every age number carries a source tag and a basis.
-      for (const tag of [s.ageSource.lifespan, s.ageSource.maturity]) expect(['lore', 'game stat', 'house default']).toContain(tag);
+      for (const tag of [s.ageSource.lifespan, s.ageSource.maturity]) expect(['lore', 'game stat', 'invented']).toContain(tag);
       expect(s.ageSource.basis.length).toBeGreaterThan(0);
     }
   });
@@ -130,7 +130,7 @@ describe('species (species.md §5)', () => {
   it('lore batch 21 (D-399): rulings 2-6, 19 in the age data', () => {
     const d = (id: string) => SPECIES.find((s) => s.id === id)!;
     for (const id of ['sith_pureblood', 'twilek', 'mirialan', 'rattataki', 'mon_calamari', 'rodian', 'voss', 'nikto', 'devaronian', 'houk', 'sullustan', 'gormak', 'gektl', 'echani', 'sarkhai']) {
-      expect([d(id).lifespan, d(id).maturity, d(id).ageSource.lifespan], id).toEqual([100, 18, 'house default']);
+      expect([d(id).lifespan, d(id).maturity, d(id).ageSource.lifespan], id).toEqual([100, 18, 'invented']);
     }
     expect([d('falleen').lifespan, d('wookiee').lifespan, d('zabrak').lifespan, d('zabrak').ageSource.lifespan]).toEqual([250, 400, 80, 'lore']);
     expect([d('hutt').lifespan, d('hutt').maturity]).toEqual([1000, 200]);

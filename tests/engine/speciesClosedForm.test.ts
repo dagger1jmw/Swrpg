@@ -20,16 +20,16 @@ describe('species (species.md §5)', () => {
     for (const a of [5, 9, 20, 40, 90]) expect(bodyCap('human', 'strength', a)).toBeCloseTo(humanBodyCap(a), 9);
   });
 
-  it('test 2: a 120-year-old Wookiee maps to h 32.5 with that cap x 1.25 plus the Strength bonus', () => {
+  it('test 2: a 120-year-old Wookiee (adult 18, prime 200; D-472) maps to h 24.7 with that cap x 1.25 plus the Strength bonus', () => {
     const w = speciesDef('wookiee');
-    // 18 + 60 * 82 / 340 = 32.47 (the spec rounds to 32.5).
-    expect(humanEquivalentAge(w, 120)).toBeCloseTo(32.5, 1);
+    // 18 + 102 * 12 / 182 = 24.73.
+    expect(humanEquivalentAge(w, 120)).toBeCloseTo(24.73, 2);
     expect(bodyCap('wookiee', 'strength', 120)).toBeCloseTo(80 * 1.25 + 20, 9);
     expect(bodyCap('wookiee', 'agility', 120)).toBeCloseTo(80 * 1.25, 9);
   });
 
-  it('test 3: a Wookiee child of 30 maps to h 9', () => {
-    expect(humanEquivalentAge(speciesDef('wookiee'), 30)).toBeCloseTo(9, 9);
+  it('test 3: a Wookiee child of 9 maps to h 9, as childhood runs at the Human pace (adult 18; D-472)', () => {
+    expect(humanEquivalentAge(speciesDef('wookiee'), 9)).toBeCloseTo(9, 9);
   });
 
   it('test 4: Resist Aging halves the advance past maturity and catches up at 2x after lapsing', () => {
