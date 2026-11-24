@@ -31,7 +31,8 @@ import type { CheckCard } from '../engine/rolls';
 import { ACTIVITIES } from '../data/activities';
 import { archetypeDef } from '../data/archetypes';
 import { SKILL_BY_ID, SKILL_IDS } from '../data/skills';
-import { speciesDef } from '../data/species';
+import { speciesDef, speciesTableId } from '../data/species';
+import { traitsOf } from '../data/speciesTraits';
 import { PC_REF, selectAge, selectCharacter, selectCharacterName, selectIsTestCharacter } from '../features/character/selectors';
 import { pendingScenario } from './devScenario';
 import { selectFatigue } from '../features/health/selectors';
@@ -185,6 +186,17 @@ function characterLine(state: GameState): string {
   return `${speciesDef(c.speciesId).name}, ${PATH_LABEL[c.path] ?? c.path}, rank ${selectRankName(state)}, ${trained}`;
 }
 
+/** The species traits the narrator must respect (D-473): the player's and those present, each species once, at most four. */
+function speciesLines(state: GameState): string[] {
+  const year = dateFromAbsDay(selectNow(state).day).year;
+  const ids = new Set([selectCharacter(state).speciesId, ...selectPresentNpcIds(state).map((id) => speciesTableId(state.npcs.byId[id]?.speciesId ?? 'human'))]);
+  return [...ids]
+    .map((id) => ({ id, traits: traitsOf(id, year) }))
+    .filter((x) => x.traits.length > 0)
+    .slice(0, 4)
+    .map((x) => `Species ${speciesDef(x.id).name}: ${x.traits.map((t) => t.text).join('; ')}`);
+}
+
 /** Tiredness labels and the state of mind (labels only; numbers stay in the engine). */
 function conditionLine(state: GameState): string {
   const f = selectFatigue(state);
@@ -287,6 +299,7 @@ export function stateBlock(
   const base = [
     'STATE',
     `Character: ${selectCharacterName(state)} (${PC_REF}), age ${selectAge(state)}, ${characterLine(state)}`,
+    ...speciesLines(state),
     conditionLine(state),
     healthLine(state),
     ...(combatLine(state) ? [combatLine(state)!] : []),

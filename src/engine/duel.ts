@@ -45,6 +45,7 @@ import {
 } from '../data/combat.config';
 import { FORM_MATCHUPS, FORM_STAMINA, type MatchupSituation } from '../data/formMatchups';
 import { LOCATION_WEIGHTS, MINION_FOLDS_WHEN_SPENT, NONSABER_MORTAL, PHYSICAL_COLLAPSE, SEVERING, SEVERITIES, SPENT_LEVEL_FACTOR, WEAPON_BASE, WOUND_FIGHTING, type ArmorKind, type BodyPart, type Severity, type WeaponKind } from '../data/health.config';
+import { traitHide } from '../data/speciesTraits';
 import { BLASTER_WEAPONS, RANGED_WEAPONS, SLUG_SPREAD, SLUG_SPREAD_DEFENSE } from '../data/weapons';
 import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityOf, severs } from './damage';
 import { fatigueLevelFactor } from './fatigue';
@@ -77,6 +78,8 @@ export interface Fighter {
   weaponName?: string;
   /** The armor's own name ("vonduun crab armor"), for the panel and the narrator. */
   armorName?: string;
+  /** The species-table id, for the body's own traits (hide, hazards; D-473). */
+  speciesId?: string;
   forceSense: number;
   willpower: number;
   agility: number;
@@ -449,7 +452,7 @@ export function damageFighter(
   /** The striker's intent (D-260): kill and disarm weights replace the base roll (capture subdues instead: subdueFighter). */
   intent: StrikeIntent | null = null,
 ): { f: Fighter; hit: Omit<Hit, 'by' | 'avoided'>; rng: RngState } {
-  const D = damageOf({ weapon, quality, armor: f.armor, saberResistant: f.saberResistant });
+  const D = damageOf({ weapon, quality, armor: f.armor, saberResistant: f.saberResistant, hide: hideOf(f) });
   // A limb severed earlier in the fight cannot be hit again; a prosthetic takes the hit instead of the body: Vitality
   // only, no wound, no sever (equipment damage arrives with M8; D-164).
   const limbs = limbState(f.wounds, f.lasting);
@@ -491,6 +494,8 @@ export function damageFighter(
   return { f: next, hit: { quality, D, part, W, severity, vitalityLost: dmg.vitalityLost, severed, ...(onProsthetic ? { prosthetic: true } : {}) }, rng: rngS };
 }
 
+const hideOf = (f: Fighter): number => (f.speciesId ? traitHide(f.speciesId) : 0);
+
 /**
  * A subduing hit (D-262): Vitality only, never a wound, a location or a sever. D = the means' base (a stun bolt: its
  * blaster's) x hit quality, less armor unless the means goes around it (a net, binders, a choke). A minion folds when
@@ -498,7 +503,7 @@ export function damageFighter(
  */
 export function subdueFighter(f: Fighter, quality: HitQuality, weapon: WeaponKind, mode: SubdueMode): { f: Fighter; hit: Omit<Hit, 'by' | 'avoided'> } {
   const base = mode === 'stunBolt' ? WEAPON_BASE[weapon] : SUBDUE.base[mode];
-  const D = damageOf({ weapon: 'unarmed', quality, armor: SUBDUE.ignoresArmor.includes(mode) ? 'none' : f.armor, saberResistant: false, base });
+  const D = damageOf({ weapon: 'unarmed', quality, armor: SUBDUE.ignoresArmor.includes(mode) ? 'none' : f.armor, saberResistant: false, hide: SUBDUE.ignoresArmor.includes(mode) ? 0 : hideOf(f), base });
   const vitality = Math.max(0, f.vitality - D);
   const next: Fighter = { ...f, vitality, out: f.out || (f.minion && MINION_FOLDS_WHEN_SPENT && vitality <= 0) };
   return { f: next, hit: { quality, D, part: 'torso', W: 0, severity: null, vitalityLost: f.vitality - vitality, severed: false, stun: mode } };

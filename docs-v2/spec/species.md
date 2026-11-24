@@ -59,6 +59,24 @@ Every species reuses the Human tables, rescaled. No separate curve per species.
   narrative/story rule. Learning factors count inside the 2.8 cap and the 4.0x pace clamp.
   Every trait lives in src/data/species.ts with a source line or "design".
 
+### 3a. Lore traits (D-473: the 33 species of lore batch 21; src/data/speciesTraits.ts)
+  Six kinds: body, senses, resistances, needs, social, Force. Every trait cites its species entry in
+  SW_Species_OldRepublic_Part1-2; no source, no trait. Drawbacks only where the lore gives one. The
+  lore gives the direction; every number is invented.
+  - Body scale = the middle of the lore height / 1.75 m. It scales the Strength and Endurance
+    ceilings; Agility takes the Human ceiling plus its own traits (the 12 older species keep one
+    scale for all three). No height: 1.0. The Hutt has only a mass: 1.5 stays, invented.
+  - Ceilings (training never passes them; they follow prime and decline): Trandoshan Strength +10,
+    Endurance +5; Houk Strength +15; Talz Strength +5, Endurance +5; Falleen Agility +5; Gektl
+    Endurance +5.
+  - Hide: Weequay and Gand 2 armor points (a quarter of that against a lightsaber).
+  - Hazards: poison x0.25 Devaronian, x0.5 Hutt; fire, impact and falls x0.75 Weequay.
+  - The Force: Falleen +3 against the mind group, Dashade +3 against everything but a thrown object
+    (on the difficulty and on the target's roll; overrides the +/-1 limit above); Hutt minds immune.
+  - The rest (senses, needs, social, and what has no engine yet) is told to the narrator and shown on
+    the sheet; a dated social trait only in its years.
+  - One figure against its species: insideForce (Onimi) and ownForceTraits on CanonNpc.
+
 ## 4. Character creation and NPCs
   Species is a creation choice (character-creation.md sec 1); default human.
   NPC generation uses the NPC's species for age scaling and body caps.
@@ -73,3 +91,5 @@ Every species reuses the Human tables, rescaled. No separate curve per species.
  5. No trait pushes a learning factor outside 0.9..1.1 or breaks the 4.0x pace clamp.
  6. Every species row has a lifespan, maturity, bodyScale and a source or "design" note.
  7. D-472: the age map, the decline, the Force's stretch, training, NPCs (tests/m8/speciesAges.test.ts).
+ 8. D-473: traits sourced and in kind, body scales, ceilings, hide, hazards, the Force, exceptions
+    (tests/m8/speciesTraits.test.ts).

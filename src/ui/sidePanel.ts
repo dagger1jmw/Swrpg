@@ -7,12 +7,14 @@ import type { TurnInput, TurnRecord } from '../turn/record';
 import { ACTIVITIES, ACTIVITY_BY_ID, INTENSITIES, type ActivityDef } from '../data/activities';
 import { archetypeDef } from '../data/archetypes';
 import { FORM_IDS, SKILLS, SKILL_BY_ID } from '../data/skills';
+import { PRIME_H } from '../data/ageing.config';
 import { speciesDef } from '../data/species';
+import { traitsOf } from '../data/speciesTraits';
 import { selectCharacter } from '../features/character/selectors';
 import { selectFatigue } from '../features/health/selectors';
-import { selectGriefMult, selectSkillViews, selectStateOfMind, selectTierBeats, type SkillView } from '../features/progression/selectors';
+import { selectAgeing, selectGriefMult, selectSkillViews, selectStateOfMind, selectTierBeats, type SkillView } from '../features/progression/selectors';
 import { selectRankName } from '../features/ranks/selectors';
-import { formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
+import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { selectAge, selectBirthDay, selectCharacterName } from '../features/character/selectors';
 import { selectNow } from '../features/clock/selectors';
 import { selectCurrentLocationId, selectLocationChain, selectLocations } from '../features/locations/selectors';
@@ -264,6 +266,8 @@ function character(p: SidePanelProps): HTMLElement[] {
   const chain = selectLocationChain(s, selectCurrentLocationId(s));
   const present = selectPresentNpcIds(s).map((id) => nameOf(s, id));
   const c = selectCharacter(s);
+  const ageing = selectAgeing(s);
+  const speciesTraits = [...speciesDef(c.speciesId).notes, ...traitsOf(c.speciesId, dateFromAbsDay(now.day).year).map((t) => t.text)];
   const f = selectFatigue(s);
   const grief = selectGriefMult(s);
   const beats = selectTierBeats(s);
@@ -274,6 +278,8 @@ function character(p: SidePanelProps): HTMLElement[] {
     el('div', { class: 'card' }, [
       el('div', { class: 'card-title' }, [el('strong', { text: selectCharacterName(s) }), el('span', { class: 'rel', text: `age ${selectAge(s)}` })]),
       kv('Species', speciesDef(c.speciesId).name),
+      speciesTraits.length ? kv('Traits', speciesTraits.join('; ')) : null,
+      ageing.bodyAge > PRIME_H ? kv('Body', `past its prime: reads as a Human of ${Math.round(ageing.bodyAge)}`) : null,
       kv('Path', `${c.path}, ${archetypeDef(c.archetype).name}`),
       kv('Rank', selectRankName(s)),
       kv('Training', c.trainingStartAge === null ? 'untrained' : `since age ${c.trainingStartAge}`),

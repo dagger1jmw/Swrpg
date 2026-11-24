@@ -3,6 +3,7 @@
 // at a campaign date is computed (src/engine/canonRoster.ts): born, not yet dead, not unavailable, and old enough
 // for the role they hold at that date. Nothing here favours any start year.
 import type { FactionId, NpcRole, SpeciesId } from '../entities.config';
+import type { ForceTrait } from '../forceResistance.config';
 import type { WeaponKind } from '../health.config';
 
 export type YearSource = 'lore' | 'estimate';
@@ -124,6 +125,8 @@ export interface CanonNpc extends CanonTimeline {
    * sensed and touched through the Force.
    */
   insideForce?: true;
+  /** A figure that breaks another of its species' Force traits (D-473; the Onimi pattern): the traits it lacks or has, and the lore for it. */
+  ownForceTraits?: { without?: readonly ForceTrait[]; with?: readonly ForceTrait[]; why: string };
   /** Canon IDs the figure had under the old lore file (lore batch 19: "Grand Master Zym" -> "Zym"); still resolve. */
   formerCanonIds?: readonly string[];
   /** Sourced facts from the lore files that the engine does not read yet (sex, homeworld, teachers, alignment). */

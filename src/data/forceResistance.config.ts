@@ -43,8 +43,13 @@ export const ABILITY_FORCE_GROUP: Readonly<Record<string, ForceGroup>> = {
   morichro: 'mind',
 };
 
-/** Traits that change Force resolution. */
-export type ForceTrait = 'droid' | 'mindImmune' | 'forceInvisible';
+/**
+ * Traits that change Force resolution. 'mindResistant': harder to reach with the mind group; 'forceResistant': harder to
+ * affect with anything but a thrown object (D-473).
+ */
+export type ForceTrait = 'droid' | 'mindImmune' | 'forceInvisible' | 'mindResistant' | 'forceResistant';
+/** What the two resistances add to the difficulty and to the target's roll (D-473, `invented`). */
+export const TRAIT_RESISTANCE = 3;
 
 /**
  * Species traits (lore). Force abilities lore, Mind Trick: "does not work on ... beings without conventional minds
@@ -55,6 +60,9 @@ export const SPECIES_FORCE_TRAITS: Readonly<Record<string, readonly ForceTrait[]
   droid: ['droid', 'mindImmune'],
   hutt: ['mindImmune'],
   toydarian: ['mindImmune'],
+  // SW_Species_OldRepublic_Part2: the Falleen "one of the few species resistant to mind tricks"; the Dashade partly Force-resistant (D-473).
+  falleen: ['mindResistant'],
+  dashade: ['forceResistant'],
   yuuzhanVong: ['forceInvisible', 'mindImmune'],
 };
 

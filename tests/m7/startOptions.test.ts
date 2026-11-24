@@ -194,11 +194,11 @@ describe('era rules (D-401 [8])', () => {
 });
 
 describe('species rulings (D-401 [12], [13])', () => {
-  it('clear size outliers have house-default body scales', () => {
-    for (const [id, scale] of [['hutt', 1.5], ['jawa', 0.6], ['yodas_species', 0.5], ['talz', 1.25], ['houk', 1.25]] as const) {
-      expect([SPECIES_BY_ID.get(id)!.bodyScale, SPECIES_BY_ID.get(id)!.bodyScaleSource], id).toEqual([scale, 'invented']);
+  it('the size outliers have lore body scales (D-473); the Hutt, with no height, keeps 1.5', () => {
+    for (const [id, scale, tag] of [['hutt', 1.5, 'invented'], ['jawa', 0.57, 'game stat'], ['yodas_species', 0.4, 'lore'], ['talz', 1.29, 'lore'], ['houk', 1.26, 'game stat']] as const) {
+      expect([SPECIES_BY_ID.get(id)!.bodyScale, SPECIES_BY_ID.get(id)!.bodyScaleSource], id).toEqual([scale, tag]);
     }
-    expect(SPECIES_BY_ID.get('kel_dor')!.bodyScale).toBe(1);
+    expect(SPECIES_BY_ID.get('kel_dor')!.bodyScale).toBe(0.97);
   });
   it('the ten figures carry their species', () => {
     const sp = (id: string) => CANON_BY_ID.get(`lore:${id}`)!.speciesId;

@@ -10,6 +10,9 @@ import { GAME_SCALE_LINES, KNOWLEDGE_BAND_CURVES, STANDING_MIDPOINT, bandReadAge
 /** The youngest read age that fits a standing (a Knight or Lord, a Master or Darth, the Councils). */
 const MIN_AGE: Readonly<Record<number, number>> = { 40: 18, 60: 35, 80: 45 };
 
+/** Estimates Jared looked at and kept (2026-11-24; D-473): Zash 80, Ragate 75. Listed as reviewed, no longer flagged. */
+const REVIEWED: readonly string[] = ['Darth Zash', 'Ragate'];
+
 it('band effect', () => {
   const focus = (a: string): boolean => a === 'jediConsular' || a === 'sithInquisitor';
   const vsOld: Record<string, number[]> = {};
@@ -44,9 +47,9 @@ it('band effect', () => {
       const held = c.ranks.filter((r) => r.fromBby >= a.bby && (r.toBby === undefined || r.toBby <= a.bby)).map((r) => r.title).join(', ') || '-';
       anchors++;
       figures.add(c.canonId);
-      const line = `${c.name} | ${c.archetype} | birth ${c.birthBby} BBY (${c.birthSource}) | sheet ${a.bby} BBY | read age ${age.toFixed(1)} (D-462: ${age462 === null ? `midpoint ${STANDING_MIDPOINT[band]}` : age462.toFixed(1)}) | standing ${band} (${held}) | ${cells.join(', ')}${flags.length ? ` | FLAG: ${flags.join('; ')}` : ''}`;
+      const line = `${c.name} | ${c.archetype} | birth ${c.birthBby} BBY (${c.birthSource}) | sheet ${a.bby} BBY | read age ${age.toFixed(1)} (D-462: ${age462 === null ? `midpoint ${STANDING_MIDPOINT[band]}` : age462.toFixed(1)}) | standing ${band} (${held}) | ${cells.join(', ')}${flags.length ? ` | ${REVIEWED.includes(c.name) ? 'reviewed, kept' : 'FLAG'}: ${flags.join('; ')}` : ''}`;
       console.info(`[band-figure] ${line}`);
-      if (flags.length) flagged.push(c.name);
+      if (flags.length && !REVIEWED.includes(c.name)) flagged.push(c.name);
     }
   }
   const med = (xs: number[]): number => { const s = [...xs].sort((x, y) => x - y); const m = Math.floor(s.length / 2); return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2; };

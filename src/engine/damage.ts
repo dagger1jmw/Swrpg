@@ -30,6 +30,8 @@ export interface HitInput {
   quality: HitQuality;
   armor: ArmorKind;
   saberResistant: boolean;
+  /** A hide or shell under the armor (a species trait, D-473), in armor points. */
+  hide?: number;
   /** Overrides the weapon base (Force attacks: Lightning = 0.4 x Force Output x effort). */
   base?: number;
 }
@@ -37,7 +39,8 @@ export interface HitInput {
 /** D = weapon base x hit quality - armor (min 0); against sabers armor counts x0.25 unless saber-resistant. */
 export function damageOf(i: HitInput): number {
   const base = i.base ?? WEAPON_BASE[i.weapon];
-  const armor = ARMOR_VALUE[i.armor] * (isSaber(i.weapon) && !i.saberResistant ? SABER_ARMOR_FACTOR : 1);
+  const cut = isSaber(i.weapon) ? SABER_ARMOR_FACTOR : 1;
+  const armor = ARMOR_VALUE[i.armor] * (i.saberResistant ? 1 : cut) + (i.hide ?? 0) * cut;
   return Math.max(0, base * HIT_MULT[i.quality] - armor);
 }
 

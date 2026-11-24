@@ -29,7 +29,8 @@ export function humanBodyCap(body: number, stat: PhysicalStat = 'strength'): num
 /** Body cap for a physical stat at a body age: (Human cap * bodyScale + the species' capBonus), all of it declining after prime. */
 export function bodyCapAt(speciesId: string, stat: PhysicalStat, body: number): number {
   const s = speciesDef(speciesId);
-  return (interp(HUMAN_BODY_CAP, body) * s.bodyScale + (s.capBonus[stat] ?? 0)) * (1 - bodyDecline(stat, body));
+  const scale = stat === 'agility' ? (s.agilityScale ?? s.bodyScale) : s.bodyScale;
+  return (interp(HUMAN_BODY_CAP, body) * scale + (s.capBonus[stat] ?? 0)) * (1 - bodyDecline(stat, body));
 }
 
 /** Body cap for a physical stat at an age, with the Force Control that slows the body's ageing. */

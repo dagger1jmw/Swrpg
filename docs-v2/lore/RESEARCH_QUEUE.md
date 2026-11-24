@@ -219,3 +219,15 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 - **Vandar Tokare:** no birth year, species entry or age in the lore files, so he could not be checked against the curve.
 - **How much Force Control lengthens a life:** the files give only "up to 200" for Forceful Humans. Wanted: ages of old Human Masters with a known mastery.
 - **The order stats fail in:** the lore has no source for Agility falling before Strength (a design choice).
+
+## Species traits (M8 item 3, D-473, 2026-11-24)
+- **No height:** Hutt (only a mass of 1,500 kg), Voss, Gormak, Gektl, Echani, Sarkhai (and Mirialan, Rattataki, Sith Pureblood among the older twelve).
+- **Thin entries** (one trait or little more): Epicanthix, Yoda's species, Sarkhai, Aqualish, Gormak, Gektl, Voss, Nikto, Bothan.
+- **Epicanthix mind shield:** how common it is, and whether Ula Vii has it (the species file names only Darth Chratis as the one it defeated).
+- **Amphibious species drying out** (Nautolan, Selkath, Chagrian, Mon Calamari): the design notes name it, the files do not. Not built.
+- **How far the resistances go:** Dashade and the Force, Falleen and mind tricks, Devaronian and Hutt poisons, Weequay and Gand hides. Directions only in the files.
+- **Hutt quickness,** and any species' quickness but the Falleen's.
+- **What Selkath venom does;** how strong an Ithorian bellow is; how long a Kel Dor lasts in vacuum.
+- **How other cultures treat each species,** dated: only the Imperial slave and field-hospital lines, the Gand on Coruscant, and the Hutts' standing are sourced.
+- **Force-sensitivity rates:** words only (many, uncommon, rare); no figures.
+- **Nikto subspecies:** what each one's adaptation is.

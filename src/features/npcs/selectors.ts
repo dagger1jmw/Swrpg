@@ -153,6 +153,9 @@ export function canonProgressionLineAt(canon: CanonNpc, bby: number, today: numb
 /** A story NPC's per-character exception to the outside-the-Force block (D-453): its canon figure's flag (Onimi). */
 export const npcInsideForce = (n: { canonId?: string | null | undefined }): boolean => (n.canonId ? CANON_BY_ID.get(n.canonId)?.insideForce === true : false);
 
+/** A story NPC's other exceptions to its species' Force traits (D-473). */
+export const npcOwnForceTraits = (n: { canonId?: string | null | undefined }): CanonNpc['ownForceTraits'] => (n.canonId ? CANON_BY_ID.get(n.canonId)?.ownForceTraits : undefined);
+
 /** A canon figure's levels at a date from its anchors (D-414), outside a campaign (tools and tests). */
 export function canonFigureLevelsAt(canon: CanonNpc, bby: number, today: number): Record<string, number> {
   return canonLevelsAt(canon, bby, canonDeps(canon, today));

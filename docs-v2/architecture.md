@@ -165,6 +165,7 @@ test 2 generalized).
 | bank[formId] | >= 0, drill XP over the ceiling, capped at 15 levels of XP | engine |
 | bankReleaseUntil | absolute day or null (60-day release after a skirmish or higher, D-45) | engine |
 | formsStarted, selfTaught | form ids (the fundamentals transfer once per form, D-119; self-study D-126) | engine |
+| ageing | {bodyAge, loss{strength, agility, endurance}} past prime, absent until then (species.md §1; D-472) | engine |
 | stateOfMind | {kind: StateOfMind enum (progression-numbers §17), intensity 1-3, sinceDay, easesByDay} | engine (AI proposes emotionalEvent; D-54) |
 | grief | {intensity 1-3, sinceDay, easesByDay} or null; lingers under any stateOfMind (D-46) | engine |
 | fightsToday | per skill count, reset by the day hook (moved from combat, D-47) | engine |

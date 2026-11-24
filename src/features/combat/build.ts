@@ -5,6 +5,7 @@ import { MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
 import { nextFloat, seedRng } from '../../engine/rng';
 import { CANON_BY_ID } from '../../data/canonNpcs';
 import { FORM_IDS } from '../../data/skills';
+import { speciesTableId } from '../../data/species';
 import { DROID_MINION_KINDS, HEAVY_MINION_KINDS } from '../../data/forceResistance.config';
 import { characterForceTraits, forceResistanceOf, speciesForceTraits } from '../../engine/combatForce';
 import { stubLightPhilosophy, STUB_PLAYER_SHATTERPOINT_PERCEPTION } from '../../data/stubs';
@@ -93,6 +94,7 @@ export function buildPlayerFighter(s: GameState): Fighter {
     pendingManeuver: null,
     forceResistance: forceResistanceOf((id) => selectLevelExact(s, id)),
     forceTraits: speciesForceTraits(c.speciesId),
+    speciesId: c.speciesId,
     weaponHand: c.dominantHand,
   };
 }
@@ -184,7 +186,7 @@ export function buildNpcFighter(s: GameState, npcId: string, live = true): { fig
   // The subduing means a capture would use (D-262) and a Sith duelist's tactical withdrawal (D-263).
   const subdue = subdueFor({ archetype, weapon: loadout.weapon, weaponName, forceChoke: levels['forceChoke'], forceLightning: levels['forceLightning'] });
   const withdraw = withdrawChanceFor(archetype);
-  return { fighter: { ...fighter, forceTraits: characterForceTraits(npc.speciesId, canon?.insideForce === true), ...(blade ? { bladeColor: blade } : {}), ...(weaponName ? { weaponName } : {}), ...(armorName ? { armorName } : {}), morale, subdue, ...(withdraw > 0 ? { withdraw } : {}) }, rank: gen.rank, archetype };
+  return { fighter: { ...fighter, forceTraits: characterForceTraits(npc.speciesId, canon?.insideForce === true, canon?.ownForceTraits), speciesId: speciesTableId(npc.speciesId), ...(blade ? { bladeColor: blade } : {}), ...(weaponName ? { weaponName } : {}), ...(armorName ? { armorName } : {}), morale, subdue, ...(withdraw > 0 ? { withdraw } : {}) }, rank: gen.rank, archetype };
 }
 
 export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false, weapon: WeaponKind | null = null, number: number = index + 1): Fighter {

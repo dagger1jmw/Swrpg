@@ -12,6 +12,7 @@ import {
   FORCE_RESISTANCE_SKILLS,
   FORCE_USER_MIN_LEVEL,
   SPECIES_FORCE_TRAITS,
+  TRAIT_RESISTANCE,
   LIGHTNING_DIFFICULTY,
   MIND_FORCE_RESIST_SHARE,
   MIND_TRICK_COMBAT,
@@ -22,6 +23,7 @@ import {
   type ForceTrait,
 } from '../data/forceResistance.config';
 import { OBJECT_SIZE_RULES, type ObjectSize } from '../data/terrain';
+import { traitHazardFactor } from '../data/speciesTraits';
 import { applyDamage, damageOf, hazardDamage, rollLocation, severityOf } from './damage';
 import { applyForceLoad, forceLoadPerUse, rollCollapse } from './forceMeter';
 import { basicRoll, dcForRating, type BasicRoll, type Modifier } from './rolls';
@@ -151,7 +153,11 @@ export function forceContest(rng0: RngState, i: ForceContestInput): [ForceContes
   if (i.group === 'mind' && t && (t.traits.includes('mindImmune') || t.traits.includes('droid'))) return none('immune');
   const [user, rngAfterUser] = basicRoll(rng0, i.level, i.modifiers);
   let rng = rngAfterUser;
-  const dc = forceDifficulty(i.kind, i.group, t, i.objectSize);
+  const base = forceDifficulty(i.kind, i.group, t, i.objectSize);
+  // A species' own resistance (D-473): the mind group for the mind-resistant, everything but a thrown object for the Force-resistant.
+  const touches = t && i.group !== 'object' && i.group !== 'unopposed' && i.kind !== 'throw' && i.kind !== 'saberThrow' && i.kind !== 'recall';
+  const trait = touches && (t.traits.includes('forceResistant') || (i.group === 'mind' && t.traits.includes('mindResistant'))) ? TRAIT_RESISTANCE : 0;
+  const dc = base === null ? null : base + trait;
   const done = (outcome: ForceOutcome, resist: BasicRoll | null, resistKind: ForceContestResult['resistKind']): [ForceContestResult, RngState] => {
     const against = Math.max(dc ?? -Infinity, resist?.total ?? -Infinity);
     return [{ user, resist, resistKind, dc, margin: user.total - (Number.isFinite(against) ? against : 0), success: outcome === 'success', outcome }, rng];
@@ -159,7 +165,7 @@ export function forceContest(rng0: RngState, i: ForceContestInput): [ForceContes
   if (user.natural === 'nat1') return done('natural1', null, null);
   if (dc !== null && user.total < dc) return done('skillTooLow', null, null);
   if (!t || i.group === 'object' || i.group === 'unopposed') return done('success', null, null);
-  const defense: Modifier[] = i.targetDefense ? [{ source: 'adapted to the pattern', value: i.targetDefense }] : [];
+  const defense: Modifier[] = [...(i.targetDefense ? [{ source: 'adapted to the pattern', value: i.targetDefense }] : []), ...(trait ? [{ source: 'species resistance', value: trait }] : [])];
   let resist: BasicRoll;
   if (i.group === 'mind') {
     const fr = t.forceResistance > 0 ? [{ source: 'Force resistance', value: (t.forceResistance * MIND_FORCE_RESIST_SHARE) / 10 }] : [];
@@ -194,9 +200,14 @@ export function forceResistanceOf(levelOf: (id: string) => number): number {
 
 /** Force traits of an entity species (D-192, config). */
 export const speciesForceTraits = (speciesId: string | null | undefined): readonly ForceTrait[] => (speciesId ? (SPECIES_FORCE_TRAITS[speciesId] ?? []) : []);
-/** A character's Force traits (D-453): the species', less the outside-the-Force trait for a per-character exception (Onimi). */
-export const characterForceTraits = (speciesId: string | null | undefined, insideForce = false): readonly ForceTrait[] =>
-  insideForce ? speciesForceTraits(speciesId).filter((t) => t !== 'forceInvisible') : speciesForceTraits(speciesId);
+/**
+ * A character's Force traits (D-453): the species', less the outside-the-Force trait for a per-character exception (Onimi),
+ * with any other trait this one figure lacks or has against its species (D-473).
+ */
+export const characterForceTraits = (speciesId: string | null | undefined, insideForce = false, own?: { without?: readonly ForceTrait[]; with?: readonly ForceTrait[] }): readonly ForceTrait[] => {
+  const out = speciesForceTraits(speciesId).filter((t) => !(insideForce && t === 'forceInvisible') && !own?.without?.includes(t));
+  return [...out, ...(own?.with ?? []).filter((t) => !out.includes(t))];
+};
 
 /** A duel fighter as a Force target (D-192). */
 export function forceTargetOf(f: Fighter, s: DuelState, ctx: DuelContext, attacker: SideId): ForceTarget {
@@ -453,7 +464,7 @@ function forceActionOnly(s0: DuelState, input: ForceActionInput, day: number, ct
       } else {
         const rules = OBJECT_SIZE_RULES[input.objectSize ?? 'small'];
         const h = hazardDamage(rules.hazard, rules.severity);
-        D = h.D;
+        D = h.D * (target.speciesId ? traitHazardFactor(target.speciesId, rules.hazard) : 1);
         bypass = h.bypass;
       }
       const [part, r2] = rollLocation(rng, LOCATION_WEIGHTS);

@@ -7,11 +7,12 @@
 // game book disagree, lore wins. From the bands in SW_Species_OldRepublic_Part1-3: `lifespan` is the stated average
 // lifespan when lore gives one, else the game book's venerable age or stated maximum, else the Human 100.
 // Traits are design (species.md §3): a body-cap bonus on a physical stat (max +20), a learning factor on one category,
-// skill or ability side (x0.9..x1.1), a contest modifier, or a story rule. Species added in lore batch 21 have no
-// traits yet (M8).
+// skill or ability side (x0.9..x1.1), a contest modifier, or a story rule. The species added in lore batch 21 have theirs in
+// speciesTraits.ts (D-473), with their body scale by lore height.
 
 import { FULL_LIFE_H, PRIME_H } from './ageing.config';
 import type { PhysicalStat } from './skills';
+import { HUMAN_HEIGHT, SPECIES_HEIGHT, traitCapBonus } from './speciesTraits';
 
 export type LearningTarget =
   | { kind: 'skill'; skill: string }
@@ -50,7 +51,9 @@ export interface SpeciesDef {
   lifespanIncludesForce?: true;
   ageSource: AgeSource;
   bodyScale: number;
-  /** Where a non-1.0 body scale comes from (D-401 [12]: clear size outliers, invented until the M8 traits). */
+  /** Scales the Agility ceiling alone (D-473); absent = bodyScale. */
+  agilityScale?: number;
+  /** Where a non-1.0 body scale comes from (D-401 [12]; lore heights since D-473). */
   bodyScaleSource?: AgeTag;
   capBonus: Partial<Record<PhysicalStat, number>>;
   learning: readonly LearningFactor[];
@@ -72,15 +75,17 @@ export interface SpeciesDef {
 }
 
 const DESIGN = 'design (species.md §2)';
-const NO_TRAITS = 'no traits yet (lore batch 21; traits are design, M8)';
+const TRAITS = 'speciesTraits.ts (the lore traits and heights; D-473)';
 const P1 = 'SW_Species_OldRepublic_Part1';
 const P2 = 'SW_Species_OldRepublic_Part2';
 const HUMAN_BANDS = 'no lifespan source: the Human bands as an invented default (D-399 [2])';
 const HD: AgeSource = { lifespan: 'invented', maturity: 'invented', basis: HUMAN_BANDS };
 
-/** A species with no traits yet (lore batch 21). */
+/** A species of lore batch 21: traits, ceilings and body scale from speciesTraits.ts (D-473). */
 function plain(id: string, name: string, lifespan: number, maturity: number, ageSource: AgeSource, extra: Partial<SpeciesDef> = {}): SpeciesDef {
-  return { id, name, lifespan, maturity, ageSource, bodyScale: 1.0, capBonus: {}, learning: [], notes: [], playable: true, source: NO_TRAITS, ...extra };
+  const height = SPECIES_HEIGHT[id];
+  const scale = height ? { bodyScale: Math.round((height.m / HUMAN_HEIGHT) * 100) / 100, bodyScaleSource: height.tag } : { bodyScale: 1.0 };
+  return { id, name, lifespan, maturity, ageSource, ...scale, agilityScale: 1, capBonus: traitCapBonus(id), learning: [], notes: [], playable: true, source: TRAITS, ...extra };
 }
 const gs = (basis: string, maturity: AgeTag = 'invented', unverified = false): AgeSource => ({ lifespan: 'game stat', maturity, basis, ...(unverified ? { unverified } : {}) });
 
@@ -255,7 +260,7 @@ export const SPECIES: readonly SpeciesDef[] = [
   // D-434 (Jared): raised from the game stat's 70 (venerable 70+) so Grand Master Zym, a Kel Dor of about 120 in 3661
   // BBY (born about 3780 BBY, estimate), fits the band: at 150 he reads as a Human of about 81. Invented; the Kel Dor
   // lifespan is on the lore research queue.
-  plain('kel_dor', 'Kel Dor', 150, 18, { lifespan: 'invented', maturity: 'invented', basis: `invented 150 (D-434: Zym at about 120); the game stat says venerable 70+ (${P1}, Kel Dor); lore check queued` }, { notes: ['Needs a breath mask and goggles off Dorin (story)'] }),
+  plain('kel_dor', 'Kel Dor', 150, 18, { lifespan: 'invented', maturity: 'invented', basis: `invented 150 (D-434: Zym at about 120); the game stat says venerable 70+ (${P1}, Kel Dor); lore check queued` }),
   plain('trandoshan', 'Trandoshan', 60, 15, gs(`venerable 60+, adult 15 (UAA; ${P1}, Trandoshan)`, 'game stat'), {
     ageingSigns: [{ text: 'stop regrowing lost limbs at about 54 (mechanical once limb loss exists)', tag: 'game stat' }],
   }),
@@ -263,19 +268,19 @@ export const SPECIES: readonly SpeciesDef[] = [
   plain('duros', 'Duros', 70, 15, gs(`venerable 70+, adult 15 (UAA; ${P1}, Duros)`, 'game stat')),
   plain('bothan', 'Bothan', 85, 17, gs(`venerable 85+, adult 17 (UAA; ${P1}, Bothan)`, 'game stat')),
   plain('cerean', 'Cerean', 70, 15, gs(`venerable 70+, adult 15 (UAA; ${P1}, Cerean)`, 'game stat')),
-  plain('nautolan', 'Nautolan', 70, 18, gs(`maximum 70 (game stat; ${P1}, Nautolan)`), { notes: ['Amphibious (story)'] }),
+  plain('nautolan', 'Nautolan', 70, 18, gs(`maximum 70 (game stat; ${P1}, Nautolan)`)),
   plain('devaronian', 'Devaronian', 100, 18, HD),
-  plain('gand', 'Gand', 95, 18, gs(`venerable 95+ (game stat; the same book's average of 61 does not fit it; ${P2}, Gand)`), { notes: ['Lunged Gand need breathing gear (story)'] }),
+  plain('gand', 'Gand', 95, 18, gs(`venerable 95+ (game stat; the same book's average of 61 does not fit it; ${P2}, Gand)`)),
   // D-402 [10]: Kalee is in Wild Space and the Kaleesh were "only recently contacted by the Galactic War" (SW_Planets_Travel_OldRepublic_Part2,
   // Kalee), which does not put contact before 3,661: gated like the Voss, open from the Galactic War (3,641).
   plain('kaleesh', 'Kaleesh', 80, 18, gs(`maximum 80 (game stat; ${P2}, Kaleesh)`), { knownFrom: -3641, notes: ['Only recently contacted by the Galactic War; offered from 3,641 [inferred] (D-402 [10], D-405 [1])'] }),
   plain('nikto', 'Nikto', 100, 18, HD),
   plain('weequay', 'Weequay', 90, 18, gs(`maximum 90 (game stat; ${P2}, Weequay)`)),
-  plain('talz', 'Talz', 52, 18, gs(`maximum 52 (game stat; ${P2}, Talz)`), { bodyScale: 1.25, bodyScaleSource: 'invented' as const }),
+  plain('talz', 'Talz', 52, 18, gs(`maximum 52 (game stat; ${P2}, Talz)`)),
   plain('epicanthix', 'Epicanthix', 130, 18, { lifespan: 'lore', maturity: 'invented', basis: `up to 130 (novel; ${P2}, Epicanthix)` }),
   plain('falleen', 'Falleen', 250, 18, gs(`most live to about 250, rarely 400 (UAA, WEG; D-399 [3]; ${P2}, Falleen)`)),
   plain('hutt', 'Hutt', 1000, 200, { lifespan: 'lore', maturity: 'lore', basis: `adult at 200, lives over 1,000 (${P2}, Hutt)` }, { bodyScale: 1.5, bodyScaleSource: 'invented' as const }),
-  plain('jawa', 'Jawa', 80, 18, gs(`maximum 80 (game stat; ${P2}, Jawa)`), { bodyScale: 0.6, bodyScaleSource: 'invented' as const }),
+  plain('jawa', 'Jawa', 80, 18, gs(`maximum 80 (game stat; ${P2}, Jawa)`)),
   plain('dashade', 'Dashade', 85, 18, gs(`average 85 (game stat; "many centuries" in the infobox; ${P2}, Dashade)`)),
   plain('chagrian', 'Chagrian', 76, 18, gs(`maximum 76 (game stat; ${P2}, Chagrian)`)),
   plain('selkath', 'Selkath', 100, 18, gs(`maximum 100 (game stat; ${P2}, Selkath)`)),
@@ -286,10 +291,10 @@ export const SPECIES: readonly SpeciesDef[] = [
   plain('gran', 'Gran', 79, 18, gs(`maximum 79 (infobox, source unchecked: unverified; ${P2}, Gran)`, 'invented', true)),
   plain('voss', 'Voss', 100, 18, HD, { knownFrom: -3645, notes: ['Unknown to the galaxy until the rediscovery c. 3,645 BBY (D-399 [15])'] }),
   // NPC-only (thin, D-399 [20]).
-  plain('houk', 'Houk', 100, 18, HD, { playable: false, bodyScale: 1.25, bodyScaleSource: 'invented' as const }),
+  plain('houk', 'Houk', 100, 18, HD, { playable: false }),
   plain('gormak', 'Gormak', 100, 18, HD, { playable: false, knownFrom: -3645 }),
   plain('gektl', 'Gektl', 100, 18, HD, { playable: false }),
-  plain('yodas_species', "Yoda's species", 900, 18, { lifespan: 'lore', maturity: 'invented', basis: `Yoda died at 900 (${P2}, Yoda's species)` }, { playable: false, lifespanIncludesForce: true, bodyScale: 0.5, bodyScaleSource: 'invented' as const }),
+  plain('yodas_species', "Yoda's species", 900, 18, { lifespan: 'lore', maturity: 'invented', basis: `Yoda died at 900 (${P2}, Yoda's species)` }, { playable: false, lifespanIncludesForce: true }),
   plain('sarkhai', 'Sarkhai', 100, 18, HD, { playable: false }),
   plain('echani', 'Echani', 100, 18, HD, { playable: false }),
   plain('aqualish', 'Aqualish', 80, 17, gs(`venerable 80+, adult 17 (infobox, source unchecked: unverified; ${P2}, Aqualish)`, 'game stat', true), { playable: false }),

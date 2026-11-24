@@ -3,6 +3,7 @@
 // it rolls each hazardous tag: below the tag's chance it takes the hazard by the health rules (hazardDamage: a fall
 // lands by the fall location weights). Pure.
 import { PART_TEXT } from './duel';
+import { traitHazardFactor } from '../data/speciesTraits';
 import { FALL_LOCATION_WEIGHTS, LOCATION_WEIGHTS, type HazardType } from '../data/health.config';
 import { applyDamage, hazardDamage, rollLocation, severityOf } from './damage';
 import type { DuelState, Fighter } from './duel';
@@ -25,7 +26,8 @@ export interface TerrainHazard {
 }
 
 function hurtBy(f: Fighter, h: TerrainHazard, rng: RngState, day: number, prefix = 'terrain'): { f: Fighter; rng: RngState; note: string } {
-  const { D, bypass } = hazardDamage(h.type, h.severity);
+  const { D: full, bypass } = hazardDamage(h.type, h.severity);
+  const D = full * (f.speciesId ? traitHazardFactor(f.speciesId, h.type) : 1);
   const [part, r] = rollLocation(rng, h.type === 'fall' ? FALL_LOCATION_WEIGHTS : LOCATION_WEIGHTS);
   const raw = applyDamage(f.vitality, D, bypass);
   const dmg = h.minorOnly ? { ...raw, W: Math.min(MINOR_MAX_W, Math.max(1, raw.W)) } : raw;
