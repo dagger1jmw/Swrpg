@@ -862,7 +862,7 @@ function boardLines(state: GameState, bby: number, placeNames: readonly string[]
   const own = c.start?.faction ?? PATH_FACTION[c.path];
   if (own) factions.add(own);
   for (const id of selectPresentNpcIds(state)) { const f = state.npcs.byId[id]?.factionId; if (f) factions.add(f); }
-  for (const r of eraRulesAt(bby, placeNames, [...factions])) lines.push(`Era rule: ${r.text}`);
+  for (const r of eraRulesAt(bby, placeNames, [...factions], dateFromAbsDay(state.clock.now.day))) lines.push(`Era rule: ${r.text}`);
   // Closed worlds for the character's side (D-402 [5]-[8]): names only, plus the reason when the scene is at one.
   const closed = closedWorlds(mapSide(own), bby);
   if (closed.length) lines.push(`Closed worlds this year (no known route, secret, or not yet existing; the character can't travel there without a story reason): ${closed.map((g) => g.place).join(', ')}`);

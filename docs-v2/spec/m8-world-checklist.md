@@ -51,7 +51,7 @@ Items arrive here when a decision hands them to M8. Each says where it came from
   - Balmorra freed (3,642), and the Maelstrom raid that frees Revan (3,642);
   - the Treaty's collapse in mid-3,641, and the invasion of Belsavis that frees the Dread Masters (3,641);
   - and, in 3,640: Corellia, Ilum, the Emperor's Voice, Janarus's death, and Saresh and Malcom taking office.
-- [ ] **9. Era rules for the Cold War years (timeline audit, D-408 [7]).**
+- [x] **9. Era rules for the Cold War years (timeline audit, D-408 [7]).** *Built: D-475 (src/data/eraRules.ts; docs-v2/reports/m8-item9.md). The gaps are in docs-v2/lore/RESEARCH_QUEUE.md; the Galactic War years are later work.*
 
   Every era rule but `places-and-populations` and `imperial-forces` ends by 3,653, because the M7 table was written for the war years. A campaign that crosses the Treaty loses the Coruscant, Nar Shaddaa, Tatooine, Jedi-life and Korriban rules. The Korriban rule ends in 3,654, though the Academy staff are placed to 3,644. Write the Cold War versions from the topical files (the Korriban, Coruscant and Nar Shaddaa Cold War sections), or extend the current ones where they still hold.
 - [ ] **10. An officer archetype with command and staff work (Jared, D-427 [9]; folded into item 12, D-455).**
@@ -77,3 +77,9 @@ Items arrive here when a decision hands them to M8. Each says where it came from
   - **Archetypes:** add officer, senator/politician and scholar archetypes, so generated NPCs reflect these paths.
   - **After building:** audit what trains Melee, Blaster and Stealth today, then re-measure the archetype paces and the canon NPC bands for Intelligence, Tactics, Charisma, Melee, Blaster and Stealth.
   - **Research queue:** which martial cultures taught close combat to outsiders in Legends, to whom and when (docs-v2/lore/RESEARCH_QUEUE.md).
+- [ ] **13. Ships and space combat (Jared, 2026-11-24; D-475).**
+
+  Build from the design notes (docs-v2/spec/m8-design-notes.md: ships, space tactics and fleet battles; lore: SW_Starships_Classes.md, SW_Space_Tactics.md). Comes after items 5 to 7 in the build order (economy sets ship prices; droids cover astromechs and crews). It replaces the stopgaps: the blockade's force-through approach and the Coruscant ground-fight stand-in for breaking the occupying navy.
+- [ ] **14. Ground command (Jared, 2026-11-24; D-475).**
+
+  Guiding troops as a general, with locations and objectives, like the fleet battles. Design still to do (Jared, 2026-11-23). Wartime postings (item 11) stay story-only until it exists.

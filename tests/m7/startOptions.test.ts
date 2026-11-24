@@ -182,7 +182,7 @@ describe('imprisoned figures at their prison (D-401 [5])', () => {
 describe('era rules (D-401 [8])', () => {
   it('sent for the place or a faction in play only', () => {
     expect(eraRulesAt(3661, ['Coruscant'], []).map((r) => r.id)).toEqual(['places-and-populations', 'coruscant-shortage', 'coruscant-security', 'coruscant-places']);
-    expect(eraRulesAt(3661, ['Tatooine'], ['jediOrder']).map((r) => r.id)).toEqual(['places-and-populations', 'tatooine-rule', 'jedi-life']);
+    expect(eraRulesAt(3661, ['Tatooine'], ['jediOrder']).map((r) => r.id)).toEqual(['places-and-populations', 'tatooine-rule', 'jedi-life', 'tatooine-mos-ila']);
     expect(eraRulesAt(3661, ['Alderaan'], ['republic']).map((r) => r.id)).toEqual(['places-and-populations']);
   });
   it('a Jedi on Coruscant gets the Jedi and Coruscant rules in the state block', () => {

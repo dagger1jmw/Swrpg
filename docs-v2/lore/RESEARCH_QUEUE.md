@@ -247,3 +247,15 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 - **How other cultures treat each species,** dated: only the Imperial slave and field-hospital lines, the Gand on Coruscant, and the Hutts' standing are sourced.
 - **Force-sensitivity rates:** words only (many, uncommon, rare); no figures.
 - **Nikto subspecies:** what each one's adaptation is.
+
+## Era rules for the Cold War (M8 item 9, D-475, 2026-11-24)
+Periods where a rule is silent because the files state nothing.
+- **Coruscant, late 3,641–3,640:** security, the underworld and daily life once the Treaty collapses. The files stop at the Cold War (mostly c. 3,643).
+- **Coruscant, 3,653–3,641:** the year Black Sun and the Justicars' Brigade form; when the CSF changes to its blue-grey uniform; whether the Underworld Police exist; which lower-level sectors were lost and until when; what Liston Spaceport is after "until after the war"; rationing, curfews and prices; the market taxi station and kiosks (era unclear).
+- **Coruscant Temple:** when the Senate shelves the rebuilding. The Temple file puts the vote in 3,653 (Am-Ris tells Zym), timeline slice Part 2 in 3,650 (used; Jared's boundary).
+- **Nar Shaddaa, 3,653–3,650 and late 3,641–3,640:** when Shadow Town is founded (first dated by Ako Domi, 3,649 [unclear]); when the Bounty Brokers Association and the Republic Embassy open; who runs the SIS bureau after Trant (3,650); daily life after the Treaty collapses.
+- **Nar Shaddaa, the Exchange's defeat by the Shadow Syndicate:** c. 3,643 (D-384 [3]) or 3,653 (timeline slice Part 1, and the world network's E.3653.exchange_out). [conflict]; no rule states it.
+- **Tatooine:** when the Empire deposes the Exchange at Mos Ila; who holds it in the Cold War; Anchorhead's status; anything after mid-3,641.
+- **Jedi life, 3,653–3,650:** where Padawans and Initiates live and train while the Order is homeless; dress in the Cold War (the plain tunics and no braid are ruled only to 3,653); Knighthood practice before c. 3,643; Initiates and quarters on Tython; a Tython timetable; whether the Forge rite goes on after 3,643.
+- **Jedi life, late 3,641–3,640:** training in the Galactic War's first years.
+- **Korriban:** acolyte dress on record (the dark robes are invented, and end in 3,644 with the staff placements); when Harkun and Zash take their posts; when slaves and aliens are first admitted ([conflict]: the war or the Cold War); Academy practice from mid-3,641 (only Harkun's last class of 3,640 is on record).
