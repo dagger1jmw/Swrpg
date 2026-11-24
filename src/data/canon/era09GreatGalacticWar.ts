@@ -227,7 +227,9 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: 'human',
     faction: 'sithEmpire',
     archetype: 'sithInquisitor',
-    birthBby: 3720,
+    // D-465 follow-up (Jared): 3720 -> 3695 (brown-haired in Rise of the Hutt Cartel, c. 3643; grey by Knights of the
+    // Eternal Throne; died 3629): 3720 made her 75 while still brown-haired. Still an estimate.
+    birthBby: 3695,
     birthSource: 'estimate',
     deathBby: 3629,
     deathSource: 'lore',
@@ -240,7 +242,9 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: 'other',
     faction: 'sith',
     archetype: 'sithInquisitor',
-    birthBby: 3723,
+    // D-465 follow-up (Jared): 3723 -> 3710 (the Emperor's apprentice early in the Great Galactic War, died 3678: about 32
+    // at the 3678 sheet reads better than 45). A design estimate, not lore.
+    birthBby: 3710,
     birthSource: 'estimate',
     unmapped: ['Sith Sorcery 76'],
     deathBby: 3678,

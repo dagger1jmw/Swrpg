@@ -489,48 +489,48 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3705,
-        "toBby": 3696,
+        "fromBby": 3680,
+        "toBby": 3671,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3695,
-        "toBby": 3681,
+        "fromBby": 3670,
+        "toBby": 3656,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3680,
+        "fromBby": 3655,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
+    "birthBasis": "D-465 follow-up (Jared): 3695, from her appearance (brown-haired c. 3643 in Rise of the Hutt Cartel, grey by Knights of the Eternal Throne, died 3629); was 3720 (D-412, D-417). The rank spans are re-derived from it (Lord 25, Darth 40)"
   },
   "lore:exal-kressh": {
     "ranks": [
       {
         "role": "sithAcolyte",
         "title": "acolyte",
-        "fromBby": 3708,
-        "toBby": 3699,
+        "fromBby": 3695,
+        "toBby": 3686,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Sith Lord",
-        "fromBby": 3698,
+        "fromBby": 3685,
         "source": "estimate: typical rank ages (D-412)",
         "estimate": true
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review) (re-derived with the Sith ladder mirroring the Jedi: Lord 25, Darth 40; D-417)"
+    "birthBasis": "D-465 follow-up (Jared): 3710, a design estimate (the Emperor's apprentice early in the Great Galactic War, died 3678: about 32 at her 3678 sheet); was 3723 (D-412, D-417). The rank spans are re-derived from it (Lord 25)"
   },
   "lore:eleena-daru": {
     "ranks": [
