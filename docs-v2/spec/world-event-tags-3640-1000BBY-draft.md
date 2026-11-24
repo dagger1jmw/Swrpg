@@ -5,7 +5,7 @@ The years between the two existing maps: the end of the Galactic War, the Eterna
 **Sources and accuracy**
 - **W:** checked against the Legends Wookieepedia page named (fetched 23 Nov 2026 through the API).
 - **LT:** taken from SW_Timeline_3700_3600BBY_Part2.md (lore batch 20, each row cited to Wookieepedia year or event pages). Not re-checked today, but already sourced.
-- **LF:** taken from SW_Legends_Galaxy_Timeline.md and **not re-checked**. Lower confidence.
+- **LF:** taken from the old SW_Legends_Galaxy_Timeline.md (retired, D-484; its rows are in docs-v2/lore/superseded/, and the era sets SW_Timeline_* replace them) and **not re-checked**. Lower confidence.
 - **T:** the overnight timeline drafts in Docs/SWRPG lore (SW_Timeline_3600_2000BBY, SW_Timeline_2000_1000BBY; 24 Nov 2026, drafts for review), each row cited to Wookieepedia.
 - **W-TL:** the Legends Wookieepedia page *Timeline of galactic history/Legends* (one line, no event article checked).
 - **Tags are design calls**, not lore: replaceable or crucial, the guards, and the plot point alternatives.

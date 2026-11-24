@@ -32,7 +32,7 @@ Audited: `legacy/index.html` (V170, commit 8bef4a1). All line numbers were check
 | New-game birthday | `{day:1, month:6, year: year+age, era:'BBY'}` | legacy/index.html:3383, 3403 |
 | Sim advance | `advanceInGameDate(date, days)` once per simulated chunk | legacy/index.html:12053 |
 | Canon calendar rule | "Track days, months, and years. Characters age in real time." | SW_Legends_RPG_Master_Prompt_v7_1.md "Time System" (line 118-120) |
-| Canon dating | Ruusan Reformation (1,000 BBY) sets that year as year zero; BBY/ABY adopted ~25 ABY | SW_Legends_Galaxy_Timeline.md lines 585, 771 |
+| Canon dating | Ruusan Reformation (1,000 BBY) sets that year as year zero; BBY/ABY adopted ~25 ABY | SW_Timeline_2000_1000BBY_Part2, SW_Timeline_4_25ABY_Part5 (the old SW_Legends_Galaxy_Timeline.md, retired, D-484) |
 
 ### Every place that writes the date or time
 | Line | Writer | Field |

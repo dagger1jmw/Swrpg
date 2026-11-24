@@ -4,7 +4,7 @@ The post-Ruusan Republic, the Clone Wars and the Empire, plus the links that tie
 
 **Sources and accuracy**
 - **W:** checked against the Legends Wookieepedia page named (fetched 23 Nov 2026).
-- **LF:** taken from SW_Legends_Galaxy_Timeline.md and **not re-checked**. Lower confidence: verify before building if the event matters to a plot point.
+- **LF:** taken from the old SW_Legends_Galaxy_Timeline.md (retired, D-484; its rows are in docs-v2/lore/superseded/, and the era sets SW_Timeline_* replace them) and **not re-checked**. Lower confidence: verify before building if the event matters to a plot point.
 - **T:** the overnight timeline drafts in Docs/SWRPG lore (SW_Timeline_2000_1000BBY, 1000_33BBY, 32_19BBY, 19BBY_4ABY; 24 Nov 2026, drafts for review), each row cited to Wookieepedia.
 - **Film:** the event happens on screen in a Star Wars film.
 - **Tags are design calls**, not lore: replaceable or crucial, the guards, and the plot point alternatives.

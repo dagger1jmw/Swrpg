@@ -39,7 +39,7 @@ Kolto is a natural healing liquid found only in Manaan's oceans and sold by the 
   - **Kavam:** a liquid chemical that can be synthesised and is also produced naturally by Vratix glands [Kavam/Legends](https://starwars.fandom.com/wiki/Kavam/Legends).
   - **How it works:** the bacterial particles seek out wounds and drive rapid tissue regrowth without scarring. It's effective against almost every injury and illness across a huge range of species [older Wookieepedia text, via The Full Wiki](http://misc.thefullwiki.org/Bacta).
   - **The Vratix and the humans:** human settlers on Thyferra exploited the Vratix's addiction to making bacta and sold it to the public [Vratix, archivum](https://starwars.archivum.wiki/article/Vratix).
-- **Related:** the later Bacta Cartel (Xucphra and Zaltin) and the Bacta War (7–8 ABY, SW_Legends_Galaxy_Timeline).
+- **Related:** the later Bacta Cartel (Xucphra and Zaltin) and the Bacta War (7–8 ABY, SW_Timeline_4_25ABY).
 - **Uncertainty:** how common bacta is before kolto's decline [unclear]. It's known from c. 4100 BBY, but kolto is the standard in the KOTOR and SWTOR sources.
 
 ## Timeline

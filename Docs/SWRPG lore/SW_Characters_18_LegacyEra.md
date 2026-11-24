@@ -8,7 +8,7 @@
 
 Character reference for the **Legacy era** — the far future of the Star Wars Legends timeline, \~130 years after the Battle of Yavin, when **Darth Krayt's One Sith** have conquered the galaxy and a reluctant Skywalker descendant, **Cade Skywalker**, is drawn into the fight against them. It is the era of the **Sith–Imperial War**, the **Massacre at Ossus**, the divided Empire (Krayt's Sith regime vs. the exiled **Emperor Roan Fel** and his Imperial Knights), the scattered remnants of the New Jedi Order, and the **Galactic Alliance Remnant**. Drawn from the *Star Wars: Legacy* comic series and supporting Legends sources. **This is the chronological end-point of the main Legends saga covered by this series.**
 
-> \*\*Continuity note (Legends):\*\* Core Legends. \*\*Darth Krayt\*\* is \*\*A'Sharad Hett\*\* — a Tusken-raised Jedi of the Old Republic and Clone Wars (survivor of Order 66, once dueled Obi-Wan on Tatooine), tortured and implanted by the Yuuzhan Vong, who fell to the dark side and founded the \*\*One Sith\*\* (an order of \*many\* Sith, abandoning Bane's Rule of Two). He is \~200 years old via the Force, Vong implants, and stasis. He is the \*\*last of the reserved apex-tier beings.\*\* The Skywalker line endures through \*\*Cade\*\*, a descendant (several generations down) of Luke Skywalker, whose \*\*Force ghost\*\* guides him.
+> \*\*Continuity note (Legends):\*\* Core Legends. \*\*Darth Krayt\*\* is \*\*A'Sharad Hett\*\* — a Tusken-raised Jedi of the Old Republic and Clone Wars (survivor of Order 66, once dueled Obi-Wan on Tatooine), tortured and implanted by the Yuuzhan Vong, who fell to the dark side and founded the \*\*One Sith\*\* (an order of \*many\* Sith, abandoning Bane's Rule of Two). Born in 47 BBY, he is over 170 years old in 130 ABY, via the Force, Vong implants, and stasis. He is the \*\*last of the reserved apex-tier beings.\*\* The Skywalker line endures through \*\*Cade\*\*, a descendant of Luke and Ben Skywalker, whose \*\*Force ghost\*\* guides him.
 
 Stats represent each character **at their prime for this era**, on the **galaxy-wide Legends scale**.
 
@@ -62,8 +62,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Sheet snapshot:** APEX PRIME — Dark Lord of the Sith, Emperor of the galaxy, founder of the One Sith
 * **Species / Affiliation / Rank:** Human · One Sith / Sith Empire · Dark Lord of the Sith; Emperor
-* **Lifespan:** Born \~40 BBY as A'Sharad Hett; \~200 years old via Force/Vong implants/stasis; killed for the last time by Cade Skywalker (\~138 ABY)
-* **Summary:** Once **A'Sharad Hett** — a Tusken-raised Jedi of the Old Republic, a Clone Wars Jedi Master who survived Order 66, and the man who dueled Obi-Wan Kenobi on Tatooine before being cast out of both Tusken and Jedi society. Captured, tortured, and implanted by the **Yuuzhan Vong**, he turned to the dark side to survive, studied under the holocron of the ancient Sith Lord **XoXaan**, and emerged as **Darth Krayt** — founder of the **One Sith**, a hidden order of *many* Sith that abandoned Bane's Rule of Two. Over a century in the shadows he built his army, allied with the Fel Empire to crush the Galactic Alliance in the **Sith–Imperial War** (the **Massacre at Ossus** gutted the Jedi), then **betrayed Roan Fel and seized the galactic throne** as Sith Emperor. By the Legacy era he is the most powerful Force-user *alive* and the best swordsman of his age — but his **Vong implants are killing him**, forcing him to hunt the Skywalker healer **Cade**. Killed and resurrected more than once (and rebuilt in a Vong-tech body), he was destroyed for good by Cade Skywalker. The last apex being — Tier A, a near-equal of peak Luke, dwarfed only by the off-the-scale Abeloth.
+* **Lifespan:** Born in 47 BBY as A'Sharad Hett; over 170 years old in 130 ABY, via Force/Vong implants/stasis; killed by Darth Wyyrlok on Had Abbadon (137 ABY), returned, and killed for good by Cade Skywalker (138 ABY)
+* **Summary:** Once **A'Sharad Hett** — a Tusken-raised Jedi of the Old Republic, a Clone Wars Jedi Master who survived Order 66, and the man who dueled Obi-Wan Kenobi on Tatooine before being cast out of both Tusken and Jedi society. Captured, tortured, and implanted by the **Yuuzhan Vong**, he turned to the dark side to survive, studied under the holocron of the ancient Sith Lord **XoXaan**, and emerged as **Darth Krayt** — founder of the **One Sith**, a hidden order of *many* Sith that abandoned Bane's Rule of Two. Over a century in the shadows he built his army, allied (from 128 ABY) with the Fel Empire's Moffs, against Emperor Roan Fel's will, to crush the Galactic Alliance in the **Sith–Imperial War** (the **Massacre at Ossus** gutted the Jedi), then **betrayed Roan Fel and seized the galactic throne** as Sith Emperor. By the Legacy era he is the most powerful Force-user *alive* and the best swordsman of his age — but his **Vong implants are killing him**, forcing him to hunt the Skywalker healer **Cade**. Darth Wyyrlok killed him on Had Abbadon in 137 ABY; he returned in 138 ABY and was destroyed for good by Cade Skywalker. The last apex being — Tier A, a near-equal of peak Luke, dwarfed only by the off-the-scale Abeloth.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -79,7 +79,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Force Abilities (game stats):** Telekinesis 118 *(Force Crush/Push 92%)* · Force Lightning 120 *(**Chain Lightning** 95%)* · Sith Alchemy 116 *(**Sith sorcery** from XoXaan 92%)* · Mind Control 110 *(92%)* · Force Sense 110 *(Precognition 90%)*
 * **Unique techniques:** **Force/Vong/stasis life-extension** *(\~200-year lifespan; survives death repeatedly, rebuilt in a Yuuzhan-Vong-tech body — but the implants are slowly killing him)*
 * **Signature Ability:** **Dark Lord of the One Sith** — apex mastery on both axes (Output 132 / Control 130) plus vast Sith knowledge (116); founder and god-emperor of an order of many Sith; the most powerful Force-user and best duelist *of his age*. **Weakness:** his Vong-implanted body is slowly killing him.
-* **Notable Feats:** Survived Order 66 and the Vong; founded the One Sith over a century in hiding; engineered the Sith–Imperial War and the Massacre at Ossus; seized the galactic throne; near-equal of peak Luke (allied to drive off Abeloth, Era 17); killed and resurrected repeatedly — ended at last by Cade Skywalker.
+* **Notable Feats:** Survived Order 66 and the Vong; founded the One Sith over a century in hiding; sabotaged the Ossus Project, joined the Sith–Imperial War and the Massacre at Ossus; seized the galactic throne; near-equal of peak Luke (allied to drive off Abeloth, Era 17); killed once and returned (137–138 ABY) — ended for good by Cade Skywalker.
 * **Alignment:** Dark side.
 * **Tier:** **LEGENDARY — Tier A apex (\~132).** The last reserved apex being; near-equal of peak Luke (138), below him, and dwarfed by Transcendent Abeloth.
 
@@ -92,7 +92,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Sheet snapshot:** Prime — Krayt's chief adviser and "Voice"; master of Sith lore
 * **Species / Affiliation / Rank:** Chagrian · One Sith · Darth; the Voice of the Emperor (regent/lieutenant)
 * **Lifespan:** Krayt's most loyal lieutenant through the Legacy era; the latest of a line of Wyyrloks
-* **Summary:** The latest **Darth Wyyrlok**, a Chagrian and Krayt's most trusted adviser, lore-keeper, and **regent** — the "Voice" who ruled the Sith Empire in Krayt's name during his stasis. A master of Sith sorcery, alchemy, and ancient lore (steeped in XoXaan's teachings), he is the administrative and arcane backbone of the One Sith. When he came to believe Krayt's dying body endangered the Sith's reign, he **struck Krayt down himself** and ruled in his stead — only for Krayt to return. More a sorcerer-statesman than a frontline duelist, though formidable.
+* **Summary:** The latest **Darth Wyyrlok**, a Chagrian and Krayt's most trusted adviser, lore-keeper, and **regent** — the "Voice" who ruled the Sith Empire in Krayt's name during his stasis. A master of Sith sorcery, alchemy, and ancient lore (steeped in XoXaan's teachings), he is the administrative and arcane backbone of the One Sith. When he came to believe Krayt's dying body endangered the Sith's reign, he **struck Krayt down himself** and ruled as Regent and de facto Emperor, keeping the death secret — until Krayt returned and killed him (138 ABY). More a sorcerer-statesman than a frontline duelist, though formidable.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -118,8 +118,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Sheet snapshot:** Prime — Twi'lek Sith assassin, Krayt's Hand
 * **Species / Affiliation / Rank:** Lethan Twi'lek · One Sith · Darth; Hand of Krayt (assassin)
-* **Lifespan:** Bred and raised from birth as a Sith by the One Sith; an elite Hand in the Legacy era
-* **Summary:** One of the iconic faces of the era — a red-skinned **Lethan Twi'lek** covered in black Sith tattoos, raised from infancy as a weapon of the One Sith and serving as one of Krayt's **Hands** (elite assassins/agents). Fanatically devoted to Krayt, she was tasked with **seducing Cade Skywalker to the dark side** — and the two developed a genuine, dangerous attraction. A fast, deadly, acrobatic duelist who beheaded a Jedi Master on Krayt's order. Cade repeatedly wounded and nearly killed her.
+* **Lifespan:** Trained by Darth Ruyn; Sith Lady and Hand of Krayt from 137 ABY
+* **Summary:** One of the iconic faces of the era — a red-skinned **Lethan Twi'lek** covered in black Sith tattoos, trained by the Sith Darth Ruyn and serving as one of Krayt's **Hands** (elite assassins/agents). Fanatically devoted to Krayt, she was tasked with **seducing Cade Skywalker to the dark side** — and the two developed a genuine, dangerous attraction. A fast, deadly, acrobatic duelist who beheaded her own teacher, Darth Ruyn, on Krayt's order. Cade repeatedly wounded and nearly killed her.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -133,8 +133,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Lightsaber Forms / Bladework:** A fast, acrobatic, aggressive duelist (red blade), bred for lethal close combat and assassination; combines saberwork with Force speed.
 **Form ratings (game stats):** Ataru 88 (primary) · Jar'Kai 82 · Shii-Cho 78
 * **Force Abilities (game stats):** Force Body 84 *(**Force Speed** 88%)* · Telekinesis 80 *(Force Push 74%)* · Force Sense 82 *(Precognition 80%)*
-* **Signature Ability:** **Krayt's Hand** — an elite Sith assassin raised from birth; fast, acrobatic, and deadly, tasked with turning Cade Skywalker.
-* **Notable Feats:** Beheaded a Jedi on Krayt's order; tasked with seducing Cade to the dark side; among the most prominent of Krayt's Hands.
+* **Signature Ability:** **Krayt's Hand** — an elite Sith assassin; fast, acrobatic, and deadly, tasked with turning Cade Skywalker.
+* **Notable Feats:** Beheaded her teacher Darth Ruyn on Krayt's order; tasked with seducing Cade to the dark side; among the most prominent of Krayt's Hands.
 * **Alignment:** Dark side.
 * **Tier:** Elite (Sith Hand/assassin).
 
@@ -142,10 +142,10 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 ## Darth Nihl
 
-* **Sheet snapshot:** Prime — Nagai Sith warrior, Krayt's enforcer (later Hand/Wrath)
+* **Sheet snapshot:** Prime — Nagai Sith warrior, Krayt's enforcer (Fist, then Hand)
 * **Species / Affiliation / Rank:** Nagai · One Sith · Darth; Hand/enforcer of Krayt
 * **Lifespan:** A brutal Sith warrior through the Legacy era; rises in Krayt's service
-* **Summary:** A towering **Nagai** Sith and one of Krayt's deadliest warriors — brutal, proud, and a superb duelist who led much of the Massacre at Ossus and served as an enforcer and Hand. He lost an arm to Cade Skywalker (replaced with a Yuuzhan Vong graft) and remained a relentless hunter of the Skywalker and the Jedi throughout the era. Pure martial Sith power.
+* **Summary:** A towering **Nagai** Sith and one of Krayt's deadliest warriors — brutal, proud, and a superb duelist who led much of the Massacre at Ossus and served as Krayt's Fist, then (from 130 ABY) as a Hand, until he lost the title in 137 ABY; he killed Kol Skywalker at Ossus. He lost an arm to Cade Skywalker (replaced with a Yuuzhan Vong graft) and remained a relentless hunter of the Skywalker and the Jedi throughout the era. Pure martial Sith power.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -160,7 +160,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 **Form ratings (game stats):** Shien/Djem So 88 (primary) · Juyo 84 · Shii-Cho 80
 * **Force Abilities (game stats):** Force Body 86 *(**Enhance Attribute** 90%)* · Force Enrage 84 · Telekinesis 82 *(Force Push 78%)*
 * **Signature Ability:** **Sith enforcer** — a brutal, dominant warrior-Sith; among Krayt's deadliest blades and hunters.
-* **Notable Feats:** Led much of the Massacre at Ossus; enforcer and Hand of Krayt; relentless hunter of Cade; lost and Vong-replaced an arm.
+* **Notable Feats:** Led the Massacre at Ossus and killed Kol Skywalker; enforcer and Hand of Krayt; relentless hunter of Cade; lost and Vong-replaced an arm; after Krayt's death led the One Sith into hiding as Dark Lord.
 * **Alignment:** Dark side.
 * **Tier:** Elite–high (Sith warrior).
 
@@ -175,7 +175,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Sheet snapshot:** Prime — the reluctant Skywalker heir; bounty hunter, ex-Jedi, the galaxy's hope
 * **Species / Affiliation / Rank:** Human · ex-Jedi → bounty hunter/pirate → Jedi again · Skywalker line (descendant of Luke)
 * **Lifespan:** Born \~115 ABY; central figure of the Legacy era; kills Darth Krayt (\~138 ABY)
-* **Summary:** A descendant (several generations down) of **Luke Skywalker** — a Jedi youngling who survived the **Massacre at Ossus** (where his father, Jedi Master **Kol Skywalker**, was killed), then abandoned the Order in grief and became a hard-drinking, spice-addicted **bounty hunter and pirate**, running from his name. He carries the **immense latent power of the Skywalker line** and a **unique Force gift: healing and resurrection** — able to mend mortal wounds and pull the dying (even the dead) back, a power so rare that **Darth Krayt** hunted him to cure his own failing body. Conflicted, self-destructive, and tempted by the dark side (and by Darth Talon), Cade nonetheless resisted Krayt, refused to become his healer-slave, and ultimately **killed Darth Krayt**, ending the Sith Emperor. Apex *potential* never fully realized — his refusal to fully embrace the Force (and his self-destruction) cap him below his bloodline's ceiling — but a legendary figure all the same, guided by Luke's Force ghost.
+* **Summary:** A descendant of **Luke and Ben Skywalker** — Wolf Sazen's Padawan, who survived the **Massacre at Ossus** (where his father, Jedi Master **Kol Skywalker**, head of the High Council, was killed by Darth Nihl), then abandoned the Order in grief and became a hard-drinking, **bounty hunter and pirate**, running from his name. He carries the **immense latent power of the Skywalker line** and a **unique Force gift: healing and resurrection** — able to mend mortal wounds and pull the dying (even the dead) back, a power so rare that **Darth Krayt** hunted him to cure his own failing body. Conflicted, self-destructive, and tempted by the dark side (and by Darth Talon), Cade nonetheless resisted Krayt, refused to become his healer-slave, and ultimately **killed Darth Krayt**, ending the Sith Emperor, who in their last fight had killed him and brought him back with dark transfer, hoping the experience of resurrection would bend him to the dark side. Apex *potential* never fully realized — his refusal to fully embrace the Force (and his self-destruction) cap him below his bloodline's ceiling — but a legendary figure all the same, guided by Luke's Force ghost.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -202,7 +202,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Sheet snapshot:** Prime — deposed Emperor of the Fel Empire; master duelist, leader of the loyalists
 * **Species / Affiliation / Rank:** Human · Fel Empire (loyalist faction) · Emperor; trained as an Imperial Knight
 * **Lifespan:** Reigning Emperor before Krayt's coup; leads the loyalist resistance through the Legacy era
-* **Summary:** The hereditary **Emperor of the (reformed) Fel Empire**, who allied with Krayt's Sith to defeat the Galactic Alliance — only to be **betrayed and deposed** when Krayt seized the throne. Driven into hiding, Fel led the **loyalist Imperial faction and the Imperial Knights** (Force-users sworn to the Emperor, neither Jedi nor Sith) in a three-way war against Krayt's Sith Empire and the Galactic Alliance Remnant. Unusually for an emperor, he is himself a **superb duelist**, trained in the Imperial Knight tradition.
+* **Summary:** The hereditary **Emperor of the (reformed) Fel Empire**, whose Moffs went to war with the Galactic Alliance and allied with Krayt's Sith against his will — and who was **betrayed and deposed** when Krayt seized the throne (130 ABY). Driven into hiding, Fel led the **loyalist Imperial faction and the Imperial Knights** (Force-users sworn to the Emperor, neither Jedi nor Sith) in a three-way war against Krayt's Sith Empire and the Galactic Alliance Remnant. Unusually for an emperor, he is himself a **superb duelist**, trained in the Imperial Knight tradition. In 138 ABY he fell to the dark side and Antares Draco killed him, as his oath required.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -217,7 +217,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 **Form ratings (game stats):** Shien/Djem So 86 (primary) · Makashi 82 · Soresu 82
 * **Force Abilities (game stats):** Force Body 82 *(Force Speed 82%)* · Telekinesis 78 *(Force Push 72%)* · Force Sense 80
 * **Signature Ability:** **Warrior-Emperor** — a rare head of state who is also a master duelist; leads the Imperial Knights and the loyalist resistance against Krayt's Sith.
-* **Notable Feats:** Emperor of the Fel Empire; allied with then betrayed by Krayt; led the loyalist faction and Imperial Knights in the three-way war.
+* **Notable Feats:** Emperor of the Fel Empire; drawn into the Sith–Imperial War by his Moffs; betrayed by Krayt; led the loyalist faction and Imperial Knights in the three-way war.
 * **Alignment:** Gray/light-leaning (Imperial Knight tradition; anti-Sith).
 * **Tier:** High (Imperial Knight duelist / leader).
 
@@ -227,8 +227,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Sheet snapshot:** Prime — Jedi Master, Cade's mentor
 * **Species / Affiliation / Rank:** Zabrak · New Jedi Order (remnant) · Jedi Master
-* **Lifespan:** A Jedi Master through the Legacy era; survived Ossus; mentor to Cade
-* **Summary:** A towering **Zabrak** Jedi Master, Kol Skywalker's former Padawan and Cade's master, who survived the Massacre at Ossus (losing an arm) and spent years trying to bring the wayward Cade back to the Jedi. Steady, principled, and powerful, he was mortally wounded and then **resurrected by Cade's healing power** — a pivotal moment in Cade's arc.
+* **Lifespan:** A Jedi Master through the Legacy era; survived Ossus; mentor to Cade; killed on Coruscant in 138 ABY
+* **Summary:** A towering **Zabrak** Jedi Master, Kol Skywalker's former Padawan and Cade's master, who survived the Massacre at Ossus (losing an arm) and spent years trying to bring the wayward Cade back to the Jedi. Steady, principled, and powerful, he was mortally wounded and then **brought back by Cade's healing power** — a pivotal moment in Cade's arc. In 138 ABY he and Darth Stryfe killed each other on Coruscant.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -243,7 +243,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 **Form ratings (game stats):** Shien/Djem So 88 (primary) · Soresu 84 · Shii-Cho 80
 * **Force Abilities (game stats):** Force Body 84 *(Enhance Attribute 86%)* · Telekinesis 84 *(Force Push 80%)* · Force Sense 84
 * **Signature Ability:** **Steadfast mentor** — a powerful, principled Jedi Master who never gave up on Cade; survived Ossus and was resurrected by Cade's gift.
-* **Notable Feats:** Survived the Massacre at Ossus; mentored Cade Skywalker; resurrected by Cade after a mortal wound; fought through the war against the One Sith.
+* **Notable Feats:** Survived the Massacre at Ossus; mentored Cade Skywalker; resurrected by Cade after a mortal wound; fought through the war against the One Sith; he and Darth Stryfe killed each other on Coruscant (138 ABY).
 * **Alignment:** Light side.
 * **Tier:** Master (Jedi).
 
@@ -268,7 +268,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Name|Species|Role|STR|AGI|END|WIL|CHA|INT|FSense|Med|FKnow|FCtrl|FOut|Top Forms / Combat|Top Force Abilities|
 |-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
 |Darth Maladi|Devaronian|Sith scientist/torturer; head of Sith Intelligence|54|60|60|84|70|90|78|70|86|82|76|Shii-Cho 70|Sith Alchemy 86 *(bio-weapons/poisons 90%)* — couldn't break Cade|
-|Darth Stryfe|Human|Sith Hand; Krayt loyalist warrior|80|78|78|82|66|74|78|68|72|82|84|Djem So 84 · Shii-Cho 78|Force Body 82 · Force Enrage 80 — brutal enforcer/Hand|
+|Darth Stryfe|Human|Krayt's Fist, then Hand from 137 ABY; loyalist warrior|80|78|78|82|66|74|78|68|72|82|84|Djem So 84 · Shii-Cho 78|Force Body 82 · Force Enrage 80 — brutal enforcer; he and Wolf Sazen killed each other on Coruscant (138 ABY)|
 |Darth Wredd|Human|Sith (later era; "one Sith vs. one Sith")|74|80|74|82|70|78|80|70|74|84|86|Ataru 84 · Djem So 82|Telekinesis 84 · Force Lightning 82 — rogue Sith of the later Legacy stories|
 |Moff Morlish Veed|Human|Grand Moff; Sith-aligned military head|48|52|56|82|78|84|—|—|—|—|—|Command 72|N/A — ambitious non-Force Imperial collaborator|
 
@@ -276,14 +276,14 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 |Name|Species|Role|STR|AGI|END|WIL|CHA|INT|FSense|Med|FKnow|FCtrl|FOut|Top Forms / Combat|Top Force Abilities|
 |-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|Kol Skywalker|Human|Jedi Master; Cade's father — **KILLED at Ossus**|78|80|76|90|82|82|90|80|82|92|96|Djem So 92 · Soresu 86|Telekinesis 94 · Force Heal 86 — led the Order; strong Skywalker; died at Ossus|
+|Kol Skywalker|Human|Head of the Jedi High Council; Cade's father — **KILLED at Ossus**|78|80|76|90|82|82|90|80|82|92|96|Djem So 92 · Soresu 86|Telekinesis 94 · Force Heal 86 — strong Skywalker; killed at Ossus by Darth Nihl (130 ABY)|
 |Shado Vao|Twi'lek|Jedi; Cade's friend and ally|72|80|72|82|76|78|82|72|74|84|82|Ataru 84 · Shii-Cho 78|Force Body 82 · Telekinesis 80 — Wolf Sazen's ally; steadfast Jedi|
 |Master K'Kruhk|Whiphid|Ancient Jedi Master (lived \~200 years)|84|70|86|90|74|82|84|84|86|86|84|Soresu 88 · Shii-Cho 82|Force Body 86 · Force Barrier 84 — survived from the Clone Wars; sheltered younglings|
 |T'ra Saa|Neti|Ancient Neti Jedi Master|70|64|86|92|76|86|88|88|90|86|82|Niman 80|**Plant/Neti shaping** 90 *(near-immortal)* · Force Sense 88 — vast age and wisdom|
 |Antares Draco|Human|Imperial Knight; loyal to Roan Fel|76|80|74|84|76|78|80|72|72|84|80|Djem So 84 · Makashi 80|Force Body 82 · Telekinesis 78 — leader of the Imperial Knights|
 |Marasiah Fel|Human|Princess; Imperial Knight; Roan's heir|62|78|66|84|82|80|78|70|70|80|76|Ataru 80 · Shii-Cho 74|Force Body 78 · Force Sense 78 — heir to the Fel Empire|
 |Azlyn Rae|Human|Imperial Knight; Cade's childhood love|60|80|66|82|76|76|78|70|70|80|76|Ataru 80 · Shii-Cho 74|Force Body 78 · Telekinesis 74 — secretly survived; tied to Cade's past|
-|Hosk Trey'lis|Duros|Jedi healer (captured by the Sith)|50|56|56|80|70|78|80|80|80|80|66|Shii-Cho 64|Force Heal 84 — failed to cure Krayt; Cade tried to rescue him|
+|Hosk Trey'lis|Bothan|Jedi healer (captured by the Sith)|50|56|56|80|70|78|80|80|80|80|66|Shii-Cho 64|Force Heal 84 — turned in by Cade's crew, whom Cade then tried to free; killed by Krayt (137 ABY)|
 
 ### Cade's crew, allies \& family
 
@@ -293,7 +293,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Deliah Blue|Zeltron|Cade's crewmate/mechanic and love interest|56|70|60|78|82|76|— · Ranged 64|Brilliant mechanic; minor Zeltron empath-charm|
 |Morrigan Corde|Human|Imperial agent; Cade's mother|58|76|64|84|80|86|— · Ranged 80|Shot Krayt to save Cade; secret-keeper; ex-wife of Kol|
 |Admiral Gar Stazi|Duros|Leader of the Galactic Alliance Remnant fleet|50|54|60|86|80|88|— · Naval command 88|Holds the Alliance together; brilliant naval commander|
-|Bantha Rawk (Skywalker kin)|Human|Cade's adoptive-family contact on Vendaxa|64|60|66|78|70|72|latent · Melee 64|Hidden Skywalker-line homestead|
+|Nat Skywalker ("Bantha" Rawk)|Human|Kol's older brother, Cade's uncle; former Jedi Master living on Iego|64|60|66|78|70|72|latent · Melee 64|Helped Cade build the *Mynock*; died on Taivas saving Cade (138 ABY)|
 
 \---
 

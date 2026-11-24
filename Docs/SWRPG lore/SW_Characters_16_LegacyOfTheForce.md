@@ -7,7 +7,7 @@
 
 Character reference for the **Second Galactic Civil War** — the tragedy in which **Jacen Solo**, the war-hero of the Yuuzhan Vong conflict (Era 15), is manipulated by the Dark Lady **Lumiya** into falling to the dark side and becoming **Darth Caedus**, plunging the galaxy into civil war and forcing his own family to destroy him. It is the era of **Mara Jade's death**, **Luke Skywalker near his lifetime peak**, and **Jaina Solo** — the Sword of the Jedi — fulfilling her destiny by killing her twin brother. Drawn from the *Legacy of the Force* novel series and supporting Legends sources.
 
-> **Continuity note (Legends):** Core Legends — Legends-only. The galaxy is governed by the **Galactic Alliance**; the conflict pits it against a **Confederation** of secessionist worlds, with the **Imperial Remnant** (under Pellaeon, then Jagged Fel) and the **Mandalorians** (under Mandalore Boba Fett) as major players. The **Lost Tribe of the Sith / Abeloth** (Fate of the Jedi, ~43 ABY, Era 17) and **Darth Krayt's One Sith / Cade Skywalker** (Legacy era, ~130 ABY, Era 18) lie ahead.
+> **Continuity note (Legends):** Core Legends — Legends-only. The galaxy is governed by the **Galactic Alliance**; the conflict pits it against a **Confederation** of secessionist worlds, with the **Imperial Remnant** (on Caedus's side until Uroro Station in 41 ABY; Pellaeon killed at Second Fondor, Jagged Fel Head of State at the end of the war) and the **Mandalorians** (under Mandalore Boba Fett) as major players. The **Lost Tribe of the Sith / Abeloth** (Fate of the Jedi, ~43 ABY, Era 17) and **Darth Krayt's One Sith / Cade Skywalker** (Legacy era, ~130 ABY, Era 18) lie ahead.
 
 Stats represent each character **at their prime for this era**, on the **galaxy-wide Legends scale**.
 
@@ -79,7 +79,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Jaina Solo — the Sword of the Jedi (Caedus-slayer)
 - **Sheet snapshot:** Prime — Jedi Knight/Master forged into the one who kills Darth Caedus
 - **Species / Affiliation / Rank:** Human · New Jedi Order / Mandalorian-trained · Jedi; the Sword of the Jedi
-- **Lifespan:** Born 9 ABY; kills her twin Caedus at ~40 ABY; later Jedi Master and wife of Jagged Fel
+- **Lifespan:** Born 9 ABY; kills her twin Caedus in 41 ABY at Uroro Station; later Jedi Master and wife of Jagged Fel
 - **Summary:** Jacen's twin, the **Sword of the Jedi** (Era 15), who in this war must do the unthinkable: hunt and kill her own brother. Recognizing that her Jedi training alone wasn't enough to beat Caedus, she sought out **Mandalore Boba Fett**, who (with his people) trained her in tactics, ranged combat, and a killer's pragmatism — an edge no Jedi-versus-Jedi duel would give her. In the final confrontation she defeated and killed **Darth Caedus** — who, in death, returned to the light as Jacen and used his last thought to save his daughter Allana. The defining act of her life.
 
 | Core | Value | | Force | Value |
@@ -95,7 +95,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
   **Form ratings (game stats):** Shien/Djem So 90 (primary, single-blade) · Ataru 88 · Jar'Kai 88 *(highly trained — dual-wield)* · Shii-Cho 82 · *(+ Mandalorian tactics/ranged 84)*
 - **Force Abilities (game stats):** Force Body 88 *(combat sense 88%, Force Speed 85%)* · Force Sense 88 *(**piloting precognition** 90%)* · Force Meld 86 *(twin-bond coordination 88%)* · Telekinesis 86
 - **Signature Ability:** **The Sword of the Jedi** — the Order's destined warrior; combined Jedi mastery with Mandalorian training to defeat a more raw-powerful Sith (her own twin).
-- **Notable Feats:** Trained by Boba Fett and the Mandalorians; killed Darth Caedus in single combat, ending the war; named to the Jedi High Council.
+- **Notable Feats:** Trained by Boba Fett and the Mandalorians; killed Darth Caedus in single combat, ending the war (Uroro Station, 41 ABY).
 - **Alignment:** Light side.
 - **Tier:** Legendary-adjacent (warrior-pilot; the Caedus-slayer).
 
@@ -104,7 +104,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Ben Skywalker
 - **Sheet snapshot:** Prime — Luke and Mara's son; Caedus's apprentice, then his enemy
 - **Species / Affiliation / Rank:** Human · New Jedi Order · Jedi (apprenticed to Jacen, then turned against him)
-- **Lifespan:** Born ~26–27 ABY (Era 15); a teenager in this era; a major Jedi in Fate of the Jedi (~43 ABY)
+- **Lifespan:** Born 26.5 ABY (Era 15); a teenager in this era; a major Jedi in Fate of the Jedi (~43 ABY)
 - **Summary:** The son of Luke Skywalker and Mara Jade, born during the Vong War. A gifted, headstrong teenager, he idolized his cousin Jacen and became his apprentice — only to be drawn into Caedus's darkness, used as an assassin, before discovering that **Caedus had murdered his mother**. He broke from Caedus, helped expose him, and stood with the Jedi against him, maturing rapidly into a formidable young Jedi. Resourceful, brave, and Skywalker-strong in the Force.
 
 | Core | Value | | Force | Value |
@@ -157,9 +157,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 ## Darth Caedus (Jacen Solo, fallen)
 - **Sheet snapshot:** Prime — Dark Lord of the Sith, dictator of the Galactic Alliance; near-apex
-- **Species / Affiliation / Rank:** Human · Sith (Lumiya's apprentice, then Dark Lord) · Dark Lord of the Sith; Galactic Alliance Chief of State (dictator)
-- **Lifespan:** Born 9 ABY; falls to the dark side ~40 ABY; killed by Jaina Solo the same year
-- **Summary:** The fall of the New Jedi Order's greatest young hero. Manipulated by the Dark Lady **Lumiya** — who convinced him only a Sith could impose the peace the galaxy needed, and that he must sacrifice what he loved most — Jacen Solo descended into darkness, **murdered his aunt Mara Jade**, and was reborn as **Darth Caedus**. He seized dictatorial control of the Galactic Alliance, tortured his apprentice-cousin **Ben**, took the fallen **Tahiri Veila** as his Sith apprentice, and waged brutal war on his own family. As Jacen he was already **second only to Luke among the Jedi as a swordsman** (Era 15); as Caedus that elite dueling fused with a dark-amplified command of the Force said to **surpass even his grandfather Darth Vader's** — including **flow-walking** (perceiving and walking through past/future), battle meditation, immense telekinesis, and Force lightning. He pressed even Luke (who was holding back and trying to end the fight fast), landing real hits before being killed by his twin **Jaina** — returning to the light as Jacen in his final moment to save his daughter Allana. A genuinely tragic near-apex Sith.
+- **Species / Affiliation / Rank:** Human · Sith (Lumiya's apprentice, then Dark Lord) · Dark Lord of the Sith; Galactic Alliance joint Chief of State with Cha Niathal (40–41 ABY), then sole ruler
+- **Lifespan:** Born 9 ABY; falls to the dark side in 40 ABY; killed by Jaina Solo in 41 ABY
+- **Summary:** The fall of the New Jedi Order's greatest young hero. Manipulated by the Dark Lady **Lumiya** — who convinced him only a Sith could impose the peace the galaxy needed, and that he must sacrifice what he loved most — Jacen Solo descended into darkness, **murdered his aunt Mara Jade**, and was reborn as **Darth Caedus**. With Admiral Niathal he overthrew Cal Omas and became joint Chief of State of the Galactic Alliance, then its sole ruler, tortured his apprentice-cousin **Ben**, took the fallen **Tahiri Veila** as his Sith apprentice, and waged brutal war on his own family. As Jacen he was already **second only to Luke among the Jedi as a swordsman** (Era 15); as Caedus that elite dueling fused with a dark-amplified command of the Force said to **surpass even his grandfather Darth Vader's** — including **flow-walking** (perceiving and walking through past/future), battle meditation, immense telekinesis, and Force lightning. He pressed even Luke (who was holding back and trying to end the fight fast), landing real hits before being killed by his twin **Jaina** — returning to the light as Jacen in his final moment to save his daughter Allana. A genuinely tragic near-apex Sith.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -186,8 +186,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Lumiya (Shira Brie) — Dark Lady of the Sith
 - **Sheet snapshot:** Prime — the Dark Lady who resurrected the Rule of Two and engineered Jacen's fall
 - **Species / Affiliation / Rank:** Human (cyborg) · Sith · Dark Lady of the Sith
-- **Lifespan:** Vader's secret apprentice (Era 13) → carried the Sith torch for decades → killed by Luke (~40 ABY)
-- **Summary:** Once **Shira Brie**, an Imperial agent and Vader's secret trainee, horribly maimed and rebuilt as a cyborg, who took up the mantle of **Dark Lady of the Sith** and spent decades as the keeper of the Sith flame in the shadows. Her masterstroke was resurrecting the **Rule of Two** and selecting the perfect apprentice to destroy the Jedi from within: **Jacen Solo**, grandson of Vader. She orchestrated the war and Jacen's fall — partly as revenge on Luke. When Jacen murdered Mara, Lumiya took the blame to Luke's face to buy her apprentice time; Luke pursued and **decapitated her**. A skilled duelist with her signature **lightwhip**, and a master manipulator.
+- **Lifespan:** Vader's secret apprentice (Era 13) → carried the Sith torch for decades → killed by Luke (Terephon, 40 ABY)
+- **Summary:** Once **Shira Brie**, an Imperial agent and Vader's secret trainee, horribly maimed and rebuilt as a cyborg, who took up the mantle of **Dark Lady of the Sith** and spent decades as the keeper of the Sith flame in the shadows. Her masterstroke was resurrecting the **Rule of Two** and selecting the perfect apprentice to destroy the Jedi from within: **Jacen Solo**, grandson of Vader. She inflamed the quarrel between the Alliance and Corellia and orchestrated Jacen's fall — partly as revenge on Luke. When Jacen murdered Mara, Lumiya took the blame to Luke's face to buy her apprentice time; Luke found her on Terephon and **killed her**; she let herself die, her plan complete. A skilled duelist with her signature **lightwhip**, and a master manipulator.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -213,7 +213,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Prime (this era) — Jedi turned Sith apprentice to Darth Caedus
 - **Species / Affiliation / Rank:** Human (Vong-shaped) · New Jedi Order → Sith apprentice · Dark Jedi
 - **Lifespan:** A Young Jedi Knight (Era 15); falls to Caedus ~40 ABY; later redeemed
-- **Summary:** Anakin Solo's childhood love (Era 15), shaped with a Yuuzhan Vong persona during the war, who never recovered from Anakin's death. Caedus exploited that wound — using **flow-walking** to dangle visions of revisiting Anakin's past — to seduce her to the dark side as his **Sith apprentice**. She committed dark deeds in his service (including the murder of Imperial leader Pellaeon, in some accounts) before his fall and her own eventual path toward redemption. A capable, fast duelist twisted by grief.
+- **Summary:** Anakin Solo's childhood love (Era 15), shaped with a Yuuzhan Vong persona during the war, who never recovered from Anakin's death. Caedus exploited that wound — using **flow-walking** to dangle visions of revisiting Anakin's past — to seduce her to the dark side as his **Sith apprentice**. She committed dark deeds in his service (she killed the Imperial leader Pellaeon at the Second Battle of Fondor, 41 ABY) before his fall and her own eventual path toward redemption. A capable, fast duelist twisted by grief.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -228,7 +228,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
   **Form ratings (game stats):** Ataru 82 (primary) · Shii-Cho 76 · Jar'Kai 76
 - **Force Abilities (game stats):** Force Body 80 *(Force Speed 82%)* · Telekinesis 76 · Force Sense 80
 - **Signature Ability:** **Grief turned to darkness** — a gifted Jedi seduced through her unhealed loss of Anakin Solo; Caedus's Sith apprentice.
-- **Notable Feats:** Anakin Solo's love; Vong-shaped survivor; fell to become Caedus's apprentice; involved in Pellaeon's death; later redeemed.
+- **Notable Feats:** Anakin Solo's love; Vong-shaped survivor; fell to become Caedus's apprentice; killed Pellaeon (41 ABY); arrested at the war's end; later redeemed.
 - **Alignment:** Dark side (this era) → later redeemed.
 - **Tier:** Elite (Dark Jedi apprentice).
 
@@ -256,7 +256,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Lightsaber Forms / Bladework:** *(none — master of the full Mandalorian arsenal and unarmed combat; trained Jaina to fight Force-users; Melee/Ranged combat rating ≈ 84)*
 - **Force Abilities (game stats):** N/A — not Force-sensitive.
 - **Signature Ability:** **Mand'alor** — the galaxy's most legendary warrior-hunter, now leading the Mandalorians; a tactician who knows how to kill Jedi and Sith, and taught Jaina to do the same.
-- **Notable Feats:** Survived the Sarlacc and decades of war; became Mandalore; trained Jaina Solo to defeat Darth Caedus; led the Mandalorians against Caedus.
+- **Notable Feats:** Survived the Sarlacc and decades of war; became Mandalore; trained Jaina Solo to defeat Darth Caedus; led the Mandalorians in the Jedi Coalition against Caedus.
 - **Alignment:** N/A (Mandalore; allied against Caedus).
 - **Tier:** Elite–legendary (non-Force warrior/leader).
 
@@ -283,12 +283,12 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ### Dark side, military & others
 | Name | Species | Role | STR | AGI | END | WIL | CHA | INT | Force / Combat | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Alema Rar | Twi'lek | Dark Jedi (Nightsister-tainted); recurring villain | 64 | 84 | 68 | 78 | 72 | 72 | FOut 82 · Ataru 82 · Nightsister magick 78 | Myrkr survivor turned obsessive Dark Jedi; hunted down and killed |
+| Alema Rar | Twi'lek | Dark Jedi (Nightsister-tainted); recurring villain | 64 | 84 | 68 | 78 | 72 | 72 | FOut 82 · Ataru 82 · Nightsister magick 78 | Myrkr survivor turned obsessive Dark Jedi; killed by Jagged Fel at the Home (40 ABY) |
 | Cha Niathal | Mon Calamari | GA Admiral; Caedus's co-ruler then opponent | 50 | 52 | 58 | 84 | 78 | 86 | — · Naval command 84 | Honorable officer; turned against Caedus |
-| Gilad Pellaeon | Human | Imperial Remnant head — **KILLED (~40 ABY)** | 50 | 52 | 58 | 86 | 82 | 86 | — · Naval command 84 | Murdered for refusing Caedus's orders |
-| Jagged Fel | Human | Imperial pilot/leader; Jaina's love | 60 | 80 | 66 | 84 | 80 | 84 | — · Piloting 86 | Becomes Imperial Head of State; marries Jaina |
+| Gilad Pellaeon | Human | Grand Admiral, recalled in 41 ABY — **KILLED (41 ABY)** | 50 | 52 | 58 | 86 | 82 | 86 | — · Naval command 84 | Killed by Tahiri Veila at the Second Battle of Fondor for refusing Caedus's orders |
+| Jagged Fel | Human | Imperial pilot/leader; Jaina's love | 60 | 80 | 66 | 84 | 80 | 84 | — · Piloting 86 | Installed as Imperial Head of State at the war's end (41 ABY); marries Jaina in 44 ABY |
 | Mirta Gev | Human (Mand.) | Boba Fett's granddaughter; bounty hunter | 64 | 76 | 68 | 80 | 70 | 76 | — · Melee/Ranged 76 | Reconnects Fett to his family; Mandalorian warrior |
-| Natasi Daala | Human | Returns to galactic politics (GA Chief of State after) | 50 | 54 | 58 | 84 | 72 | 80 | — · Command 70 | Former Imperial warlord; rises post-war (Fate of the Jedi) |
+| Natasi Daala | Human | Returns at the Second Battle of Fondor (41 ABY); GA Chief of State after the war | 50 | 54 | 58 | 84 | 72 | 80 | — · Command 70 | Former Imperial warlord; rises post-war (Fate of the Jedi) |
 
 ---
 

@@ -1807,3 +1807,9 @@ Spec and decision changes only; no code. Each changed spec's export header lists
 - **D-483 Answers to m8-lore-e (Jared, 2026-11-24).**
   - *New Holstice and Zaadja are in 21 BBY* (D-482 had 22); the Protectors still enter the war before 20 BBY. *The Cuy'val Dar start c. 30 BBY* (lore-rulings-2026-11-24c, 18).
   - *The old timeline's 2,000 BBY-4 ABY rows are retired* (122 rows, kept in docs-v2/lore/superseded/; 3,700-3,600 went in lore batch 20 and it had none for 3,600-2,001). Sixteen events no set had were carried over, marked "not re-checked" (docs-v2/reports/m8-lore-e.md, section 5). It still holds 25-139 ABY, whose sets are not yet ruled or committed.
+- **D-484 The 25-44 and 45-138 ABY sets, martial cultures, and the old timeline retired (Jared, 2026-11-24; m8-lore-f).** docs-v2/reports/lore-rulings-2026-11-24c.md applied; details and date picks in docs-v2/reports/m8-lore-f.md.
+  - *Timeline:* only the era sets (36,453 BBY-138 ABY) and the Mandalorian tables feed the narrator. SW_Legends_Galaxy_Timeline.md is in docs-v2/lore/superseded/, its NPC tags in docs-v2/spec/npc-tags.md (read by nothing). The three sets' Decisions lists are empty.
+  - *Date picks of mine:* Esfandia 29 ABY (its own page; the agent's 28 was from the book's year), Welk 35 ABY (his own page cites *The Joiner King*), the last organised Yuuzhan Vong 30 ABY. Undated gap rows now sit at the end of their span ("before 122 ABY"), so the narrator does not know them early.
+  - *Game-derived (ruling 13):* a line tagged [game-derived] is dropped whole, a "[game-derived: ...]" note on its own; both stay in the file for checklist item 12.
+  - *The index* reads the martial set as `culture` chunks: sent only when named, only as far as their dates have come. Citations whose link holds parentheses no longer leave a stray ")" in the text (all files).
+  - *Old files fixed:* Characters 02, 13, 15-18.

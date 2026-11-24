@@ -78,7 +78,7 @@ Audited: `legacy/index.html` (V170). All line numbers were checked against the f
 4. What escalation do you want for overdue story threads? (Today every thread becomes "must address" after 3 days.)
 
 ## Moved from the lore timeline (lore batch 20, D-395)
-These two blocks were in `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` (after GALACTIC WAR (SECOND)). They are game mechanics, not lore, so they moved here. No code reads either block: the lore index skipped them as non-era sections and nothing in `src/` uses them. They are inputs for the galaxy simulation and Legacy Change specs, which do not exist yet ("Replaced by" above). The old text is also kept in `docs-v2/lore/superseded/SW_Legends_Galaxy_Timeline_3700-3600BBY_old-rows.md`.
+These two blocks were in `SW_Legends_Galaxy_Timeline.md` (retired, D-484; after GALACTIC WAR (SECOND)). They are game mechanics, not lore, so they moved here. No code reads either block: the lore index skipped them as non-era sections and nothing in `src/` uses them. They are inputs for the galaxy simulation and Legacy Change specs, which do not exist yet ("Replaced by" above). The old text is also kept in `docs-v2/lore/superseded/SW_Legends_Galaxy_Timeline_3700-3600BBY_old-rows.md`.
 
 ### Legacy Change framework (as written in the timeline, unchanged)
 

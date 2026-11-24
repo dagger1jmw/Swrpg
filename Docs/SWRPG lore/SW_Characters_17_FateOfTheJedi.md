@@ -8,7 +8,7 @@
 
 Character reference for the **Fate of the Jedi** era — the last great crisis of the Skywalker generation, in which the ancient cosmic dark-side entity **Abeloth**, the Bringer of Chaos, awakens and threatens the galaxy; **Luke Skywalker** is exiled from the Order he founded and journeys with his son **Ben** to uncover the truth behind Jacen's fall; and the long-hidden **Lost Tribe of the Sith** re-enters galactic history. Drawn from the *Fate of the Jedi* novel series and supporting Legends sources.
 
-> \*\*Continuity note (Legends):\*\* Core Legends — Legends-only. Set \~3 years after the Second Galactic Civil War (Era 16). \*\*Natasi Daala\*\* is now Chief of State of the Galactic Alliance and openly hostile to the Jedi; she exiles Luke. \*\*Abeloth\*\* is one of \*\*the Ones\*\* — the cosmic Force family of Mortis (Father, Son, Daughter, Era 12) — who became a monstrous dark entity after drinking from the \*\*Font of Power\*\* and bathing in the \*\*Pool of Knowledge\*\*, which she then fed on for \~100,000 years of imprisonment. Her climactic defeat comes at the \*\*end of this era (44 ABY)\*\* in the \*\*Realm Beyond Shadows / Lake of Apparitions\*\*, where \*\*Luke Skywalker allied with the hidden Sith Lord Darth Krayt\*\* to Mind-Walk and battle her, while her physical avatars were destroyed simultaneously — and even their \*combined\* power only drove her back, not destroyed her. (\*\*Darth Krayt's full prime sheet is the Legacy era, Era 18\*\*; he appears here as the "Dark Man.")
+> \*\*Continuity note (Legends):\*\* Core Legends — Legends-only. Set \~3 years after the Second Galactic Civil War (Era 16). \*\*Natasi Daala\*\* is now Chief of State of the Galactic Alliance and openly hostile to the Jedi; she exiles Luke. \*\*Abeloth\*\* was a mortal woman, "the Servant" and then "the Mother" of \*\*the Ones\*\* — the cosmic Force family of Mortis (Father, Son, Daughter, Era 12) — who became a monstrous dark entity after drinking from the \*\*Font of Power\*\* and bathing in the \*\*Pool of Knowledge\*\*, more than 100,000 years ago. She is destroyed at the \*\*end of this era (44 ABY)\*\* in several fights at once: \*\*Ben Skywalker and Vestara Khai\*\* kill her body at the Font of Power, \*\*Luke Skywalker and the hidden Sith Lord Darth Krayt\*\* fight her beyond shadows, and \*\*Saba Sebatyne\*\* fights her at the Jedi Temple's computer core. The Jedi Council expects her to return one day. (\*\*Darth Krayt's full prime sheet is the Legacy era, Era 18\*\*; he appears here as the "Dark Man.")
 
 Stats represent each character **at their prime for this era**, on the **galaxy-wide Legends scale**.
 
@@ -36,7 +36,7 @@ Initiate 0–20 · Padawan 21–40 · Knight 41–60 · Master 61–80 · Grandm
 This era is the **top of the entire Legends hierarchy.** Two beings define it:
 
 * **Luke Skywalker reaches his absolute apex here (\~138)** — the strongest *realized mortal* Force-user in history, second only to Abeloth. This is the full peak the whole rising→founder→Grand Master→near-apex arc (Eras 13–16) was building toward: the fully realized Chosen-One potential, on the light side, honed by a lifetime of war and study.
-* **Abeloth is not on the scale at all.** She is a **Transcendent (151+)** cosmic entity, explicitly stated to be on the order of **a dozen times stronger than Luke** in the Force. Even Luke at his absolute peak could only **barely keep her from crushing his throat** with everything he had; each of her **galaxy-spread, diluted avatars** taxed him to his limit (and that was with her consciousness fragmented across the galaxy, not concentrated); and she had fed on the **Font of Power and Pool of Knowledge for \~100,000 years.** No single being — not even apex Luke — could defeat her. It took **Luke and Darth Krayt, two apex Force-users, combined** to drive her back (and even then they only *exiled* her; the Jedi feared she could return).
+* **Abeloth is not on the scale at all.** She is a **Transcendent (151+)** cosmic entity, explicitly stated to be on the order of **a dozen times stronger than Luke** in the Force. Even Luke at his absolute peak could only **barely keep her from crushing his throat** with everything he had; each of her **galaxy-spread, diluted avatars** taxed him to his limit (and that was with her consciousness fragmented across the galaxy, not concentrated); and she had fed on the **Font of Power and Pool of Knowledge for \~100,000 years.** No single being — not even apex Luke — could defeat her. It took several fights at once to destroy her in 44 ABY: Ben Skywalker and Vestara Khai at the Font of Power, Luke and Darth Krayt beyond shadows, and Saba Sebatyne at the Temple (the Jedi expect her to return one day).
 
 > \*\*APEX CEILING (per Era 09, updated):\*\* \*\*Abeloth ≈ 185 — TRANSCENDENT, off the scale\*\* (a dozen times Luke; nominal floor, effectively beyond measurement). Then a huge gap to the mortal apex: \*\*peak Luke ≈ 138\*\* (this era) · reborn-Emperor ≈ 135 · Vitiate ≈ 134 · Krayt ≈ 132 · living-Emperor ≈ 130 · then Knightfall Anakin ≈ 120, Bane ≈ 114. Abeloth stands alone above them all.
 
@@ -64,9 +64,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Abeloth — the Bringer of Chaos (TRANSCENDENT — off the scale)
 
 * **Sheet snapshot:** TRANSCENDENT — an immortal cosmic dark-side entity, beyond all mortal measure; the apex of all Legends
-* **Species / Affiliation / Rank:** "One" (cosmic Force-wielder; originally mortal) · herself · the Bringer of Chaos
-* **Lifespan:** Ancient beyond measure; imprisoned and feeding on the Font and Pool for \~100,000 years; awakens \~43 ABY; recurs and "dies" repeatedly; exiled (not destroyed) at the end of this era
-* **Summary:** **The single most powerful Force entity in galactic history** — the apex of the entire timeline, in a category no other being approaches. Once the mortal caretaker ("the Mother") in the household of **the Ones** — the godlike Force family of Mortis — she sought to extend her mortal life by drinking from the forbidden **Font of Power** and bathing in the **Pool of Knowledge**, warping into a monstrous immortal: **Abeloth, the Bringer of Chaos.** Bound and imprisoned, she **fed on the Font and the Pool for the entire \~100,000 years of her captivity**, swelling to a power that beggars the scale. She is stated to be on the order of **a dozen times stronger than Luke Skywalker** in the Force — and Luke at his *absolute apex* could only **barely keep her from crushing his throat**, with everything he had. She operates through **many avatars at once** across the galaxy; even those **diluted, fragmented** avatars each pushed apex Luke to his utter limit to defeat. A shapeshifter whose true form bristles with tentacles and impossible reach, she inflicts galactic-range **Force psychosis**, possesses hosts, warps reality, and is functionally **unkillable** by any ordinary means. No single being could face her whole: she was driven back at last only by **Luke and Darth Krayt — two apex Force-users — combined**, in the Realm Beyond Shadows while her avatars were destroyed simultaneously. Even then, she was only **exiled**, not destroyed; the Jedi feared her return.
+* **Species / Affiliation / Rank:** originally a mortal woman, "the Mother" of the Ones; cosmic Force entity · herself · the Bringer of Chaos
+* **Lifespan:** Ancient beyond measure; imprisoned and feeding on the Font and Pool for \~100,000 years; awakens \~43 ABY; recurs and "dies" repeatedly; destroyed in 44 ABY, though the Jedi Council expects her to return
+* **Summary:** **The single most powerful Force entity in galactic history** — the apex of the entire timeline, in a category no other being approaches. Once a mortal servant, then "the Mother", in the household of **the Ones** — the godlike Force family of Mortis — she sought to extend her mortal life by drinking from the forbidden **Font of Power** and bathing in the **Pool of Knowledge**, warping into a monstrous immortal: **Abeloth, the Bringer of Chaos.** Bound and imprisoned, she **fed on the Font and the Pool for the entire \~100,000 years of her captivity**, swelling to a power that beggars the scale. She is stated to be on the order of **a dozen times stronger than Luke Skywalker** in the Force — and Luke at his *absolute apex* could only **barely keep her from crushing his throat**, with everything he had. She operates through **many avatars at once** across the galaxy; even those **diluted, fragmented** avatars each pushed apex Luke to his utter limit to defeat. A shapeshifter whose true form bristles with tentacles and impossible reach, she inflicts galactic-range **Force psychosis**, possesses hosts, warps reality, and is functionally **unkillable** by any ordinary means. No single being could face her whole: she was destroyed at last in several fights at once: Ben Skywalker and Vestara Khai at the Font of Power, Luke and Darth Krayt beyond shadows, and Saba Sebatyne at the Temple. The Jedi Council expects her to return one day.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -82,19 +82,19 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Lightsaber Forms / Bladework:** *(not a duelist — a cosmic Force entity)* She fights through overwhelming raw Force power, tentacled multi-limbed assault, possession, illusion, and reality-warping. She can seize, lightning-blast, and throttle multiple apex opponents at once, and act through several bodies across the galaxy simultaneously.
 * **Force Abilities (game stats):** **ForceOutput / raw might 185** *(Transcendent — throttled apex Luke through his full resistance; Force Crush/Lightning/throw far beyond mortal scale, 99%)* · **Unique: Multipresence 175** *(many simultaneous avatars across the galaxy — Mastered)* · **Unique: Inflict Force psychosis 170** *(remote madness on Force-users galaxy-wide — Mastered)* · Possession 165 *(seizes and rides hosts)* · Force Drain 168 *(feeds on life and the Force)* · Shapeshifting / near-immortality *(unique)*
 * **Unique techniques:** **Font of Power \& Pool of Knowledge ascension** *(100,000 years feeding on the two artifacts that made her)* · **Multipresence \& near-immortality** *(many avatars at once; "killed" repeatedly, always returns; destroyable only by metaphysical means)*
-* **Signature Ability:** **Off-the-scale cosmic apex** — raw Force power roughly a dozen times peak Luke's; multipresent, near-immortal, galaxy-maddening. No single being can defeat her; it took two apex Force-users (Luke + Krayt) together merely to exile her.
-* **Notable Feats:** Fed on the Font and Pool for 100,000 years; nearly crushed apex Luke's throat with a gesture; each diluted avatar matched apex Luke; inflicted galaxy-wide Force psychosis; manipulated the Lost Tribe and the Galactic Alliance; "killed" and resurrected repeatedly; driven back only by Luke and Darth Krayt combined.
+* **Signature Ability:** **Off-the-scale cosmic apex** — raw Force power roughly a dozen times peak Luke's; multipresent, near-immortal, galaxy-maddening. No single being could defeat her; it took several fights at once.
+* **Notable Feats:** Fed on the Font and Pool for 100,000 years; nearly crushed apex Luke's throat with a gesture; each diluted avatar matched apex Luke; inflicted galaxy-wide Force psychosis; manipulated the Lost Tribe and the Galactic Alliance; "killed" and resurrected repeatedly; ruled the Galactic Alliance as Rokari Kem (44 ABY); destroyed only by Ben Skywalker and Vestara Khai at the Font of Power, Luke and Darth Krayt beyond shadows, and Saba Sebatyne at the Temple.
 * **Alignment:** Dark side (primordial chaos).
 * **Tier:** **TRANSCENDENT (151+) — OFF THE SCALE.** The singular apex of all Legends; in a band of her own, far above peak Luke and every other being in the timeline.
 
-> \*\*Cross-era note:\*\* Abeloth is \*\*exiled, not destroyed,\*\* at the end of this era. The Jedi sought the \*\*Dagger of Mortis\*\* as insurance against her return, but it was never recovered in any published story. She remains the one being the entire power hierarchy is measured against.
+> \*\*Cross-era note:\*\* Abeloth is destroyed at the end of this era, but the Jedi expect her to return. The Jedi sought the \*\*Dagger of Mortis\*\* as insurance against her return, but it was never recovered in any published story. She remains the one being the entire power hierarchy is measured against.
 
 \---
 
 ## Darth Krayt (the "Dark Man") — pointer
 
 * **Sheet snapshot:** *Pointer entry* — the hidden apex Sith Lord who allied with Luke to drive off Abeloth (full stats in Era 18)
-* **Summary:** Born **A'Sharad Hett**, a Jedi of the Old Republic (Tusken-raised son of Sharad Hett), survivor of Order 66, later tortured and implanted by the Yuuzhan Vong, who studied the dark side to survive and became **Darth Krayt**, founder of the hidden **One Sith**. One of the longest-lived figures in the saga (\~200 years). In this era he operates in secret — he is the **"Dark Man"** of Jacen Solo's visions (Era 16) — and, learning of Abeloth's threat, risked exposure to **aid Luke Skywalker**. The two Mind-Walked and battled Abeloth together in the **Realm Beyond Shadows**, driving her back. Luke regarded him as a near-equal in power — and it took **both** of them, at their apex, merely to exile the off-the-scale Abeloth.
+* **Summary:** Born **A'Sharad Hett**, a Jedi of the Old Republic (Tusken-raised son of Sharad Hett), survivor of Order 66, later tortured and implanted by the Yuuzhan Vong, who studied the dark side to survive and became **Darth Krayt**, founder of the hidden **One Sith**. One of the longest-lived figures in the saga (over 170 years old by 130 ABY). In this era he operates in secret — he is the **"Dark Man"** of Jacen Solo's visions (Era 16) — and, learning of Abeloth's threat, risked exposure to **aid Luke Skywalker**. The two Mind-Walked and battled Abeloth together in the **Realm Beyond Shadows**, while Ben and Vestara killed her body at the Font of Power. Luke regarded him as a near-equal in power, and did not learn who he was.
 * **Stats:** Use the **Era 18 (Legacy era) Darth Krayt sheet** — a **Tier A apex Sith Lord (\~132)**; here he appears at roughly that power, secretly, decades before his open conquest.
 * **Tier:** **LEGENDARY — Tier A apex (full sheet Era 18).**
 * **Cross-era note:** Krayt's open rise, the One Sith, and Cade Skywalker are the **Legacy era (Era 18)** — the last apex-tier figure to be built.
@@ -110,7 +110,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Sheet snapshot:** ABSOLUTE APEX — exiled Grand Master at his lifetime peak; the strongest realized mortal Force-user in history
 * **Species / Affiliation / Rank:** Human · Jedi Order (exiled) · Grand Master (in exile)
 * **Lifespan:** Born 19 BBY; at his absolute lifetime peak here; exiled \~43 ABY; confronts Abeloth across this era
-* **Summary:** **Luke at his absolute apex** — the culmination of his entire life (rising farmboy → founder → wartime Grand Master → near-apex Legacy-era Master → now, fully realized). The **strongest realized mortal Force-user in galactic history, second only to Abeloth.** Exiled from the Order by Chief of State Daala (who blamed him for Jacen's fall), he turned exile into a quest, retracing Jacen's path to uncover **Abeloth**. Across the era he confronted and re-defeated Abeloth's diluted avatars — each one taxing him to his absolute limit — navigated a treacherous alliance with the **Lost Tribe of the Sith**, and survived Abeloth nearly crushing his throat by the Force, holding her off only with everything he had. He could not defeat the whole Abeloth alone; in the end it took his alliance with **Darth Krayt**, two apex Force-users together, to drive her back. Wise, serene, and unmatched among all mortals.
+* **Summary:** **Luke at his absolute apex** — the culmination of his entire life (rising farmboy → founder → wartime Grand Master → near-apex Legacy-era Master → now, fully realized). The **strongest realized mortal Force-user in galactic history, second only to Abeloth.** Exiled from the Order by Chief of State Daala in 43 ABY (charged with failing to prevent the harm Jacen did), he turned exile into a quest, retracing Jacen's path to uncover **Abeloth**. Across the era he confronted and re-defeated Abeloth's diluted avatars — each one taxing him to his absolute limit — navigated a treacherous alliance with the **Lost Tribe of the Sith**, and survived Abeloth nearly crushing his throat by the Force, holding her off only with everything he had. He could not defeat the whole Abeloth alone; in the end he fought her beyond shadows beside **Darth Krayt** while Ben and Vestara killed her body. Wise, serene, and unmatched among all mortals.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -126,7 +126,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Force Abilities (game stats):** **Telekinesis 132** *(**apex-tier** — crushes capital-scale targets, moved a black hole, debris cyclones; Force Push/Lift/Crush 98%)* · Force Heal 102 *(Mastered 98%)* · Force Barrier 100 *(Force Absorb 95% — held off Abeloth's throat-crush)* · Force Sense 102 *(Precognition 96%)* · Mind-Walking 100 *(meditative travel to the Realm Beyond Shadows — used vs Abeloth)* · broad esoteric mastery
 * **Unique techniques:** **Total mastery \& Mind-Walking** *(the widest, deepest command of the Force of any mortal; Mind-Walked into the Realm Beyond Shadows to battle Abeloth with Krayt)*
 * **Signature Ability:** **The fully realized Jedi (absolute apex)** — raw output and control unmatched by any being **except Abeloth**; fused with master-of-everything martial skill and a lifetime of wisdom. The realized ceiling of the Chosen-One potential, on the light side.
-* **Notable Feats:** Founded and rebuilt the Jedi Order; near-apex through three wars; uncovered Abeloth; defeated her avatars repeatedly (each to his limit); survived her throat-crush; allied with Darth Krayt to drive her back at the Realm Beyond Shadows.
+* **Notable Feats:** Founded and rebuilt the Jedi Order; near-apex through three wars; uncovered Abeloth; defeated her avatars repeatedly (each to his limit); survived her throat-crush; fought her beyond shadows beside Darth Krayt as she was destroyed (44 ABY).
 * **Alignment:** Light side.
 * **Tier:** **LEGENDARY — ABSOLUTE MORTAL APEX (\~138).** The strongest realized mortal in Legends, second only to the Transcendent Abeloth.
 
@@ -138,7 +138,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Sheet snapshot:** Prime — Jedi Knight, Luke's son and partner in the Abeloth hunt
 * **Species / Affiliation / Rank:** Human · Jedi Order · Jedi Knight
-* **Lifespan:** Born \~26–27 ABY; a young Jedi Knight in this era; Skywalker line
+* **Lifespan:** Born 26.5 ABY; a young Jedi Knight in this era; Skywalker line
 * **Summary:** Luke and Mara's son, grown from the troubled teen of the Caedus war (Era 16) into a capable, resourceful **Jedi Knight** who accompanies his father throughout the Abeloth crisis. He fell for the Sith girl **Vestara Khai** — a relationship central to Abeloth's scheme (she sought to recreate the Ones through them). Brave, sharp, and rapidly maturing into one of the Order's strong young Knights.
 
 |Core|Value||Force|Value|
@@ -154,7 +154,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 **Form ratings (game stats):** Shien/Djem So 84 (primary) · Ataru 82 · Shii-Cho 78
 * **Force Abilities (game stats):** Force Sense 86 *(Precognition 82%)* · Telekinesis 82 *(Force Push 76%)* · Force Body 82 *(Force Speed 82%)*
 * **Signature Ability:** **Skywalker Knight** — strong inherited potential realized into a capable Jedi Knight; resourceful and brave, his father's right hand against Abeloth.
-* **Notable Feats:** Partnered Luke throughout the Abeloth hunt; navigated his fraught romance with Vestara Khai; a rising pillar of the Order.
+* **Notable Feats:** Partnered Luke throughout the Abeloth hunt; resisted the Font of Power and, with Vestara, killed Abeloth's body there (44 ABY); navigated his fraught romance with Vestara Khai; a rising pillar of the Order.
 * **Alignment:** Light side.
 * **Tier:** High (Master-tier potential, strong Knight).
 
@@ -180,7 +180,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 **Form ratings (game stats):** Ataru 82 (primary) · Shii-Cho 76 · Jar'Kai 74
 * **Force Abilities (game stats):** Force Body 78 *(Force Speed 80%)* · Telekinesis 74 · Force Sense 80
 * **Signature Ability:** **Divided heart** — a gifted young Sith genuinely torn between her Tribe and the light (and Ben); central to Abeloth's plan to recreate the Ones.
-* **Notable Feats:** Sole survivor of the strike against Luke; allied with (and fell for) the Skywalkers; saw Abeloth's true form; a key, conflicted figure of the era.
+* **Notable Feats:** Sole survivor of the strike against Luke; allied with (and fell for) the Skywalkers; saw Abeloth's true form; killed High Lord Taalon (Pydyr) and her father Gavar Khai (Dromund Kaas); with Ben killed Abeloth's body at the Font of Power (44 ABY); a key, conflicted figure of the era.
 * **Alignment:** Dark side (Lost Tribe) — wavering toward the light.
 * **Tier:** Elite (young Sith, rising).
 
@@ -194,7 +194,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Sheet snapshot:** Prime — Keshiri High Lord of the Lost Tribe; begins transforming into an Abeloth-like being
 * **Species / Affiliation / Rank:** Keshiri · Lost Tribe of the Sith · High Lord (Circle of Lords)
-* **Lifespan:** A leader of the Lost Tribe \~43.5–44 ABY; dies after submerging in the Pool of Knowledge
+* **Lifespan:** A leader of the Lost Tribe \~43.5–44 ABY; killed by Vestara Khai on Pydyr (44 ABY)
 * **Summary:** A powerful **Keshiri** High Lord who led the fleet pursuing Vestara and proposed the **feigned alliance** with Luke against Abeloth — intending to betray the Jedi and force Abeloth to serve the Sith. Uniquely resistant to Abeloth's illusions, he grew obsessed; after submerging in the **Pool of Knowledge**, he began **transforming into an Abeloth-like entity**, becoming unstable and monstrous before he was killed.
 
 |Core|Value||Force|Value|
@@ -211,7 +211,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Force Abilities (game stats):** Force Lightning 86 *(Chain Lightning 80%)* · Telekinesis 82 *(Force Push 76%)* · Sith Alchemy 80 · *(post-Pool: unstable Abeloth-like power surge)*
 * **Unique techniques:** **Pool of Knowledge transformation** *(began mutating toward an Abeloth-like entity, gaining unstable power)*
 * **Signature Ability:** **High Lord \& the Pool's curse** — a powerful Sith leader and schemer who began mutating into an Abeloth-like being after the Pool of Knowledge, gaining unstable power before death.
-* **Notable Feats:** Led the Lost Tribe fleet; engineered the feigned Sith–Jedi alliance; resisted Abeloth's illusions; transformed via the Pool of Knowledge; killed before fully turning.
+* **Notable Feats:** Led the Lost Tribe fleet; engineered the feigned Sith–Jedi alliance; resisted Abeloth's illusions; transformed via the Pool of Knowledge; killed by Vestara Khai on Pydyr before fully turning.
 * **Alignment:** Dark side.
 * **Tier:** High Master (rising/unstable).
 
@@ -226,7 +226,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Sheet snapshot:** Prime — Chief of State of the Galactic Alliance; anti-Jedi hardliner
 * **Species / Affiliation / Rank:** Human · Galactic Alliance · Chief of State (former Imperial admiral)
 * **Lifespan:** Former Imperial warlord (Era 14); rises to GA Chief of State; deposed during this era
-* **Summary:** The former Imperial admiral and warlord (Era 14) who improbably rose to **Chief of State of the Galactic Alliance**. Authoritarian, ruthless, and distrustful of the Jedi, she **exiled Luke Skywalker** and waged a political and legal war on the Order (prosecuting Jedi, freezing psychosis-afflicted Knights in carbonite) — the era's chief *political* antagonist, as Abeloth was the cosmic one. Eventually deposed in a Jedi-backed coup.
+* **Summary:** The former Imperial admiral and warlord (Era 14) who improbably rose to **Chief of State of the Galactic Alliance**. Authoritarian, ruthless, and distrustful of the Jedi, she **exiled Luke Skywalker** and waged a political and legal war on the Order (prosecuting Jedi, freezing psychosis-afflicted Knights in carbonite) — the era's chief *political* antagonist, as Abeloth was the cosmic one. Deposed and arrested in the Jedi coup of 44 ABY (Plan Delta), she escaped, failed to overthrow Jagged Fel, and lost the Imperial election of 44 ABY to Vitor Reige.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -240,7 +240,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Lightsaber Forms / Bladework:** *(none — politician/commander; command rating ≈ 70)*
 * **Force Abilities (game stats):** N/A — not Force-sensitive.
 * **Signature Ability:** **Iron-fisted Chief of State** — a hardline ruler and former admiral who turned the machinery of the state against the Jedi; ruthless will and political cunning.
-* **Notable Feats:** Rose from Imperial warlord to GA Chief of State; exiled Luke Skywalker; prosecuted and imprisoned Jedi; deposed in a coup.
+* **Notable Feats:** Rose from Imperial warlord to GA Chief of State; exiled Luke Skywalker; prosecuted and imprisoned Jedi; deposed in the coup of 44 ABY; lost the Imperial election of 44 ABY to Vitor Reige.
 * **Alignment:** N/A (authoritarian; anti-Jedi).
 * **Tier:** Elite (non-Force leader).
 
@@ -254,7 +254,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 |Name|Species|Role|STR|AGI|END|WIL|CHA|INT|FSense|Med|FKnow|FCtrl|FOut|Top Forms / Combat|Top Force Abilities|
 |-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|Jaina Solo|Human|Jedi Master (Council); Sword of the Jedi|66|88|76|94|80|84|88|78|80|96|96|Djem So 92 (single; Jar'Kai 90)|Force Body 90 · Force Meld 88 — Caedus-slayer; senior Master|
+|Jaina Solo|Human|Jedi Knight, confirmed a Master in 44 ABY; Sword of the Jedi|66|88|76|94|80|84|88|78|80|96|96|Djem So 92 (single; Jar'Kai 90)|Force Body 90 · Force Meld 88 — Caedus-slayer; marries Jagged Fel in 44 ABY|
 |Saba Sebatyne|Barabel|Acting Grand Master (during Luke's exile)|84|82|84|88|72|80|84|80|82|88|88|Shien 90 · Juyo 84|Force Body 86 *(Speed 85%)* — led the Order; fierce Master|
 |Kyp Durron|Human|Jedi Master (Council)|66|80|72|86|76|80|88|74|78|90|110|Djem So 86 · Ataru 82|Telekinesis 112 · Force Lightning 90 — raw-Output powerhouse|
 |Corran Horn|Human|Jedi Master; father of an afflicted Knight|64|76|70|86|78|84|82|76|74|86|70|Ataru 82 · Soresu 76|Mind Trick 90 · Tutaminis 88 · TK 60 — Halcyon profile; son Valin afflicted|
@@ -268,10 +268,10 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 |Name|Species|Role|STR|AGI|END|WIL|CHA|INT|Force / Combat|Notes|
 |-|-|-|-|-|-|-|-|-|-|-|
-|Grand Lord Darish Vol|Keshiri/Human|Supreme leader of the Lost Tribe|64|70|70|88|84|86|FOut 86 / FKnow 88 · Makashi 84|Ruler of the Tribe on Kesh|
+|Grand Lord Darish Vol|Keshiri/Human|Supreme leader of the Lost Tribe|64|70|70|88|84|86|FOut 86 / FKnow 88 · Makashi 84|Ruler of the Tribe on Kesh; killed by Abeloth (44 ABY)|
 |Lady Olaris Rhea|Human|Sith Master; led the first strike|66|78|70|84|76|80|FOut 86 / FCtrl 84 · Ataru 84|Vestara's master; killed in the Maw|
 |Lord Viun Gaalan|Keshiri|Sith Lord; led the Dathomir mission|68|74|72|84|78|82|FOut 86 / FCtrl 84 · Djem So 84|Captured Nightsisters; driven off by the Skywalkers|
-|Gavar Khai|Human|Sith Saber; Vestara's father|70|80|74|84|74|78|FOut 86 / FCtrl 84 · Shien 86|Torn over his daughter's defection|
+|Gavar Khai|Human|Sith Saber; Vestara's father|70|80|74|84|74|78|FOut 86 / FCtrl 84 · Shien 86|Defected to Abeloth; killed by his daughter Vestara on Dromund Kaas (44 ABY)|
 |"Ship"|Sith meditation sphere|Ancient Sith artifact/AI; served Abeloth|60|70|90|84|50|84|FKnow 86 / FCtrl 82 · battle-magic|Sentient Sith Meditation Sphere; manipulated Tribe \& Jedi|
 |Han Solo|Human|Hero; grandfather to Allana|62|70|64|82|86|82|— · Ranged 80|Helps shelter Allana ("Amelia")|
 |Leia Organa Solo|Human|Jedi Master; diplomat|54|70|64|96|92|90|FCtrl 88 / FOut 84 · Ataru 80|Active Jedi Master and elder stateswoman|
@@ -298,17 +298,17 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 \---
 
-*Era 17 of the Star Wars Legends character-sheet series. Legends-only era. Stats are prime-for-this-era, galaxy-wide scale. **Now fully game-ready: numeric named-form ratings and numeric Force Ability stats** (Intelligence and ForceOutput were already in use). <b>Abeloth is off the scale — Transcendent (151+), a dozen times peak Luke, in a tier of her own.</b> <b>Luke reaches his absolute mortal apex here (\~138), strongest realized mortal Force-user in history, second only to Abeloth.</b> It took Luke and Darth Krayt combined merely to exile her.*
+*Era 17 of the Star Wars Legends character-sheet series. Legends-only era. Stats are prime-for-this-era, galaxy-wide scale. **Now fully game-ready: numeric named-form ratings and numeric Force Ability stats** (Intelligence and ForceOutput were already in use). <b>Abeloth is off the scale — Transcendent (151+), a dozen times peak Luke, in a tier of her own.</b> <b>Luke reaches his absolute mortal apex here (\~138), strongest realized mortal Force-user in history, second only to Abeloth.</b> It took several fights at once to destroy her.*
 
 > \*\*Cross-era appearance notes:\*\*
-> - \*\*Abeloth\*\* is \*\*exiled, not destroyed,\*\* at the Realm Beyond Shadows (44 ABY) — by Luke + Darth Krayt together, with her avatars destroyed simultaneously. The Dagger of Mortis was sought as insurance but never recovered. She remains the apex the whole hierarchy is measured against.
+> - \*\*Abeloth\*\* is destroyed in 44 ABY by Ben Skywalker and Vestara Khai at the Font of Power, Luke and Darth Krayt beyond shadows, and Saba Sebatyne at the Temple; the Jedi expect her to return. The Dagger of Mortis was sought as insurance but never recovered. She remains the apex the whole hierarchy is measured against.
 > - \*\*Darth Krayt\*\* appears here secretly as the \*\*"Dark Man"\*\* (Jacen's vision, Era 16); his \*\*open rise, the One Sith, and Cade Skywalker are the Legacy era (Era 18)\*\* — his full apex sheet, the last to be built.
 > - \*\*Luke Skywalker (absolute apex)\*\* dies in the years after; appears later as a Force-walker/ghost. This is his peak-power sheet — the calibration point for the whole APEX CEILING.
 > - \*\*Ben Skywalker, Jaina Solo\*\* carry forward; the Skywalker–Solo line continues to the distant \*\*Legacy era\*\* (Cade is their descendant).
 > - \*\*Allana\*\* (Jacen's daughter) grows up to be important in the post-FotJ stories.
 
 > \*\*CHANGE-NOTES (characters who fundamentally shift):\*\*
-> - \*\*★ Abeloth — pushed OFF THE SCALE (Transcendent 151+, \~185).\*\* Previously sat at \~142 just above Luke; now correctly a \*\*dozen times peak Luke\*\*, in a tier of her own. She nearly crushed apex Luke's throat through his full resistance; her \*diluted, galaxy-spread avatars\* each pushed him to his limit; she fed on the Font of Power and Pool of Knowledge for \~100,000 years. \*\*No single being could defeat her\*\* — it took Luke and Darth Krayt combined merely to \*exile\* her. Her ability ratings run past 150; the numbers are a nominal floor, not a ceiling.
+> - \*\*★ Abeloth — pushed OFF THE SCALE (Transcendent 151+, \~185).\*\* Previously sat at \~142 just above Luke; now correctly a \*\*dozen times peak Luke\*\*, in a tier of her own. She nearly crushed apex Luke's throat through his full resistance; her \*diluted, galaxy-spread avatars\* each pushed him to his limit; she fed on the Font of Power and Pool of Knowledge for \~100,000 years. \*\*No single being could defeat her\*\* — it took several fights at once to destroy her. Her ability ratings run past 150; the numbers are a nominal floor, not a ceiling.
 > - \*\*★ Luke Skywalker — ABSOLUTE APEX (\~138) reached here.\*\* The true peak the whole arc built toward (Era 13 rising → 14 founder → 15 NJO → 16 near-apex → \*\*17 apex\*\*): Output 138 / Control 130, raised physicals (STR 92 / AGI 102 / END 94), master of all seven forms + martial arts. Strongest realized mortal Force-user in history, second only to Abeloth — exactly as the APEX CEILING reserves. Even so, he could not face the whole Abeloth alone.
 > - \*\*Force psychosis \& multipresence\*\* — the era's two defining mechanics, with multipresence noted as \*diluting\* Abeloth (her avatars are fragments, yet still apex-Luke-level each).
 > - \*\*Darth Krayt\*\* appears as the hidden \*\*"Dark Man,"\*\* allying with Luke to drive off Abeloth — resolving the Dark-Man thread from Jacen's fall (Era 16). His \*\*open rise and full apex sheet are the Legacy era (Era 18)\*\* — the last reserved apex being.

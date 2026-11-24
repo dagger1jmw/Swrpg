@@ -745,7 +745,7 @@ Legends gives 12 months and 368 days (D-03). The rest is a design choice:
 | Rule | Value |
 |---|---|
 | Months | numbered 1-12; months 1-8 have 31 days, months 9-12 have 30 (248 + 120 = 368) |
-| Years | signed: BBY negative, ABY positive; year 0 exists, as in the lore timeline (0 BBY = 0 ABY, the year of the Battle of Yavin, Timeline :470-473), shown as "0 BBY/ABY" |
+| Years | signed: BBY negative, ABY positive; year 0 exists, as in the lore timeline (0 BBY = 0 ABY, the year of the Battle of Yavin), shown as "0 BBY/ABY" |
 | Absolute day | day 0 = day 1 of month 1 of 1 ABY; year y starts at day 368 * (y - 1) (so year 0 is days -368..-1 and 1 BBY, y = -1, is days -736..-369) |
 | Weeks | 7-day weeks run continuously across years; absolute day 0 is weekday 1, weekday = ((day mod 7) + 7) mod 7 + 1 |
 | Labels | numbered months and weekdays (Q47); time-of-day labels derived from now.second |

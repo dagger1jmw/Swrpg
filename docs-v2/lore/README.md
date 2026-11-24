@@ -2,9 +2,9 @@
 
 Every lore file in `Docs/SWRPG lore/`, the canon source of truth for story facts (CLAUDE.md Golden Rule 3). Canon here means Star Wars Legends only. The files stay in `Docs/SWRPG lore/`; this index and the research queue (`RESEARCH_QUEUE.md`, next to this file: origins, citations, redo briefs, gaps) live in `docs-v2/lore/`, because nothing new is written into `Docs/`.
 
-Game-mechanics sections in these files (Game notes, tiers, numbers) are suggestions that docs-v2 specs may override; every override is logged in `docs-v2/decisions.md`. The runtime lore index for the narrator (D-81, `scripts/build-lore.ts`) reads only the character files, the timeline (the old file and its slices), the species files (sent only when a species is named) and the planets files (a world when the scene is there or it is named; a route when named).
+Game-mechanics sections in these files (Game notes, tiers, numbers) are suggestions that docs-v2 specs may override; every override is logged in `docs-v2/decisions.md`. The runtime lore index for the narrator (D-81, `scripts/build-lore.ts`) reads only the character files, the timeline era sets, the species files (sent only when a species is named), the planets files (a world when the scene is there or it is named; a route when named) and the martial-cultures set (a style, weapon, school or order when it is named; never its [game-derived] lines).
 
-Last updated 2026-11-24 (D-474: the five overnight timeline sets, 3,600 BBY–4 ABY, drafts for review). Before that, 2026-11-23 (D-465: droid classes; the galaxy timeline corrected against Legends Wookieepedia; the world-event tag maps and the M8 design notes listed; Nexus of Power treated as not Legends). Before that, 2026-11-23 (the economy set, Sith academies, weapon classes and named gear, starship classes and space tactics; the Jedi Path ruling, D-463; the economy rulings, D-464). Earlier: 2026-11-22 (the Nov 22 lore update, D-439). Every lore file holds plain dated facts unless its scope names an era window (CLAUDE.md hard rule, D-438).
+Last updated 2026-11-24 (D-484: the 25–44 and 45–138 ABY sets and the martial-cultures set ruled and indexed; the old timeline file retired). Before that, the same day (D-474: the five overnight timeline sets, 3,600 BBY–4 ABY, drafts for review). Before that, 2026-11-23 (D-465: droid classes; the galaxy timeline corrected against Legends Wookieepedia; the world-event tag maps and the M8 design notes listed; Nexus of Power treated as not Legends). Before that, 2026-11-23 (the economy set, Sith academies, weapon classes and named gear, starship classes and space tactics; the Jedi Path ruling, D-463; the economy rulings, D-464). Earlier: 2026-11-22 (the Nov 22 lore update, D-439). Every lore file holds plain dated facts unless its scope names an era window (CLAUDE.md hard rule, D-438).
 
 ## Character sheets (one file per era)
 
@@ -38,7 +38,6 @@ Last updated 2026-11-24 (D-474: the five overnight timeline sets, 3,600 BBY–4 
 
 | Path | Scope |
 |---|---|
-| `Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md` | Complete galaxy timeline: scripted events and NPC deployment by era, 25 ABY onward; every earlier year is in the sets below (lore batch 20; D-481; D-483). Corrected against Legends Wookieepedia on 23 Nov 2026 (D-465); rows marked "not re-checked" still need verifying |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part1.md` | Galaxy timeline, 3,700–3,653 BBY (replaces the old timeline's rows for these years; read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part2.md` | Galaxy timeline, 3,653 to c. 3,622 BBY (read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_3700_3600BBY_Part3.md` | Galaxy timeline slice 1, Part 3: checks, conflicts and decisions (no entries) |
@@ -63,7 +62,11 @@ Last updated 2026-11-24 (D-474: the five overnight timeline sets, 3,600 BBY–4 
 | `Docs/SWRPG lore/SW_Timeline_3996_3951BBY_Part1.md` to `_Part3.md` | Galaxy timeline, 3996–3951 BBY; the last part holds changes and sources. **Rulings of 24 Nov 2026 applied** (read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_3950_3701BBY_Part1.md` to `_Part3.md` | Galaxy timeline, 3950–3701 BBY; the last part holds changes and sources. **Rulings of 24 Nov 2026 applied** (read by the lore index) |
 | `Docs/SWRPG lore/SW_Timeline_4_25ABY_Part1.md` to `_Part5.md` | Galaxy timeline, 4–25 ABY. **Rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_25_44ABY_Part1.md` to `_Part4.md` | Galaxy timeline, 25–44 ABY; Part 1 opens with who led each government, Part 4 holds changes and sources. **Rulings of 24 Nov 2026 applied** (read by the lore index) |
+| `Docs/SWRPG lore/SW_Timeline_45_138ABY_Part1.md` to `_Part3.md` | Galaxy timeline, 45–138 ABY (one 139 ABY row closes it); Part 3 holds changes and sources. **Rulings of 24 Nov 2026 applied** (read by the lore index) |
 | `Docs/SWRPG lore/SW_Mandalorians_preTCW_vs_TCW.md` | Mandalorians, c. 60–19 BBY: pre-TCW and TCW records compared; ruled (option A, D-482). The index reads its two timeline tables |
+
+The old single-file timeline, `SW_Legends_Galaxy_Timeline.md`, is retired (D-484): it and its old rows are in `docs-v2/lore/superseded/`, and its NPC tags in `docs-v2/spec/npc-tags.md`. Rows marked "carried over from the old timeline" come from it.
 
 ## The Force and lightsaber combat
 
@@ -232,6 +235,7 @@ Plain dated facts (D-438); the game resolves each place's state from the date.
 | `Docs/SWRPG lore/SW_Dromund_Kaas_KaasCity_OldRepublic_Part2.md` | Dromund Kaas, Part 2: daily life, other Imperial worlds, NPCs |
 | `Docs/SWRPG lore/SW_Coruscant_City_GGW_Part1.md` | Coruscant the city in the Great Galactic War (focus 3661 BBY): riots, blockade, Senate, security, underworld |
 | `Docs/SWRPG lore/SW_Mandalorians_GGW_Part1.md` | The Mandalorians in the Great Galactic War: the Lesser, the clans, the blockade, the schism, culture |
+| `Docs/SWRPG lore/SW_Martial_Cultures_AllEras_Part1.md` to `_Part3.md` | Martial cultures, all eras: unarmed and melee styles (Part 1); armed traditions and warrior cultures (Part 2); clone, academy, guard, bounty-hunter and assassin training, with the back sections (Part 3). **Rulings of 24 Nov 2026 applied**; [game-derived] lines are for checklist item 12, never the narrator (read by the lore index) |
 | `Docs/SWRPG lore/SW_NarShaddaa_HuttSpace_GGW_Part1.md` | Nar Shaddaa and Hutt Space in the Great Galactic War: the Cartel, the treaty, the underworld |
 | `Docs/SWRPG lore/SW_Republic_Military_GGW_Part1.md` | The Republic Military in the Great Galactic War: command, Army, Special Forces, Navy, SIS, ranks and medals |
 | `Docs/SWRPG lore/SW_Imperial_Military_Intelligence_GGW_Part1.md` | The Imperial Military and Imperial Intelligence in the Great Galactic War: command, ranks, ships, Watchers and Fixers |

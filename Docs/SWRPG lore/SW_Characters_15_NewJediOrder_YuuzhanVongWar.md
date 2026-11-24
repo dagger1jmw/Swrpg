@@ -55,9 +55,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 ## Luke Skywalker (NJO — Grand Master)
 - **Sheet snapshot:** Prime (this era) — Grand Master of the New Jedi Order, near-apex and climbing
-- **Species / Affiliation / Rank:** Human · New Jedi Order · Grand Master
-- **Lifespan:** Born 19 BBY; leads the Order through the war; father of Ben Skywalker (born ~26–27 ABY)
-- **Summary:** The Grand Master who must hold the Jedi together through the worst war in galactic history — against an enemy his Force-senses cannot even perceive. Luke navigated the Order through political persecution, the staggering losses of the war, and his own search for how to fight a Force-blind foe, ultimately helping discover **Zonama Sekot** and personally killing **Supreme Overlord Shimrra** in the war's climactic battle on Coruscant. By now the most powerful and complete Jedi alive, still growing toward his ultimate apex. He and Mara had a son, **Ben**, during the war.
+- **Species / Affiliation / Rank:** Human · New Jedi Order · Jedi Master, leader of the Order (formally Grand Master from 36 ABY)
+- **Lifespan:** Born 19 BBY; leads the Order through the war; father of Ben Skywalker (born 26.5 ABY)
+- **Summary:** The leader of the Order, who must hold the Jedi together through the worst war in galactic history — against an enemy his Force-senses cannot even perceive. Luke navigated the Order through political persecution, the staggering losses of the war, and his own search for how to fight a Force-blind foe, ultimately helping discover **Zonama Sekot** and killing **Supreme Overlord Shimrra**, at the head of three Jedi, in the war's climactic battle on Coruscant. By now the most powerful and complete Jedi alive, still growing toward his ultimate apex. He and Mara had a son, **Ben**, during the war.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -99,7 +99,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Force Abilities (game stats):** **Unifying-Force perception 100** *(senses the Vong *indirectly* by reading the Force around their void — Mastered 92%)* · Telekinesis 100 *(Force Push 88%)* · Force Sense 96 *(Precognition 90%)* · Force Heal 88
 - **Unique techniques:** **Oneness with the Force** *(total unity with the Force at the war's climax)* · **unifying-Force perception** *(the only reliable way to perceive the Force-blind Vong)*
 - **Signature Ability:** **Oneness & the unifying Force** — achieved total unity with the Force; perceives the "absence" of the Vong by sensing the Force around them; a philosophically transformed, legendary-tier Jedi.
-- **Notable Feats:** Survived the Embrace of Pain and Vergere's teaching; led the Myrkr strike team after Anakin's death and killed the voxyn queen; achieved Oneness; killed Onimi and helped end the war.
+- **Notable Feats:** Survived the Embrace of Pain and Vergere's teaching; took over the Myrkr strike team after Anakin's death and killed the voxyn queen (27 ABY); escaped Yuuzhan'tar with Vergere the same year; achieved Oneness; killed Onimi and helped end the war.
 - **Alignment:** Light side (this era) → falls to the dark as **Darth Caedus** (Era 16).
 - **Tier:** **Legendary** (Force depth / unifying-Force perception).
 
@@ -111,7 +111,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Prime (this era) — ace pilot and warrior, named Sword of the Jedi
 - **Species / Affiliation / Rank:** Human · New Jedi Order · Jedi Knight; Rogue/Twin Suns Squadron pilot
 - **Lifespan:** Born 9 ABY; war hero; later Jedi Master and the one who kills Darth Caedus (Era 16)
-- **Summary:** The younger Solo twin — her father's mechanical aptitude and her mother's Force-sensitivity combined into a fierce warrior and superb starfighter pilot. Hardened by the war and her brother Anakin's death (which briefly pushed her toward the dark side), she became its fiercest Jedi blade. The Vong came to fear her as an avatar of their trickster goddess **Yun-Harla**, and the Jedi exploited this. Luke named her the **Sword of the Jedi** — destined to a life of conflict. She helped kill Warmaster Tsavong Lah at Ebaq 9. Aggressive, brave, and brilliant in a cockpit.
+- **Summary:** The younger Solo twin — her father's mechanical aptitude and her mother's Force-sensitivity combined into a fierce warrior and superb starfighter pilot. Hardened by the war and her brother Anakin's death (which briefly pushed her toward the dark side), she became its fiercest Jedi blade. The Vong came to fear her as an avatar of their trickster goddess **Yun-Harla**, and the Jedi exploited this. Luke named her the **Sword of the Jedi** — destined to a life of conflict. In 28 ABY she killed Warmaster Tsavong Lah at Ebaq 9, fighting beside Lowbacca and Tesar Sebatyne. Aggressive, brave, and brilliant in a cockpit.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -126,7 +126,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
   **Form ratings (game stats):** Shien/Djem So 88 (primary, single-blade) · Ataru 86 · Jar'Kai 86 *(highly trained — dual-wield)* · Shii-Cho 80
 - **Force Abilities (game stats):** Force Body 86 *(**combat sense** 88%, Force Speed 85%)* · Force Sense 86 *(**piloting precognition** 90%)* · Force Meld 85 *(twin/sibling coordination 88%)* · Telekinesis 84
 - **Signature Ability:** **Sword of the Jedi** — the Order's fiercest warrior-pilot; an avatar of fear to the enemy (the "Yun-Harla" gambit); equally lethal in a cockpit or a duel.
-- **Notable Feats:** Named Sword of the Jedi; impersonated the goddess Yun-Harla; helped kill Tsavong Lah at Ebaq 9; ace pilot across the war's worst battles.
+- **Notable Feats:** Named Sword of the Jedi by Luke (28 ABY); impersonated the goddess Yun-Harla; killed Tsavong Lah at Ebaq 9; ace pilot across the war's worst battles.
 - **Alignment:** Light side (with a grief-driven brush with the dark after Anakin's death).
 - **Tier:** Legendary-adjacent (warrior-pilot).
 
@@ -135,7 +135,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Anakin Solo (NJO)
 - **Sheet snapshot:** Prime — the gifted youngest Solo; dies a hero at Myrkr
 - **Species / Affiliation / Rank:** Human · New Jedi Order · Jedi Knight (Skywalker–Solo line)
-- **Lifespan:** Born 10 ABY; killed at the Mission to Myrkr (~27 ABY) at about 17
+- **Lifespan:** Born 10 ABY; killed at the Mission to Myrkr (27 ABY) at about 17
 - **Summary:** The youngest Solo child and, by many accounts, the most naturally gifted — bold, decisive, and immensely strong in the Force, named for his grandfather. He led the volunteer **strike team to Myrkr** to destroy the voxyn queen. Gravely wounded, he fought a rearguard action against overwhelming Vong forces so his team could escape — and in his final moments became a **blinding pillar of light**, unleashing all his power to annihilate the voxyn tissue and the enemies around him as he became one with the Force. His death forced Jacen into leadership, pushed Jaina toward the dark, and devastated the Order. Originally intended as the central hero of the era.
 
 | Core | Value | | Force | Value |
@@ -161,8 +161,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Mara Jade Skywalker (NJO)
 - **Sheet snapshot:** Prime (this era) — Jedi Master, fighting a Vong-engineered disease; mother of Ben
 - **Species / Affiliation / Rank:** Human · New Jedi Order · Jedi Master; Luke's wife
-- **Lifespan:** Jedi Master through the war; mother of Ben Skywalker (~26–27 ABY)
-- **Summary:** Luke's wife and one of the Order's strongest Masters, who fought much of the war while battling a **Yuuzhan Vong-engineered disease** (coomb spores) that attacked her body and threatened her pregnancy — which she held at bay through sheer Force-willed control until she gave birth to their son **Ben Skywalker**, after which she largely purged it. Even ill, she remained a deadly combatant and a pillar of the Order. (Her murder by Jacen/Caedus comes in Era 16.)
+- **Lifespan:** Jedi Master through the war; mother of Ben Skywalker (26.5 ABY)
+- **Summary:** Luke's wife and one of the Order's strongest Masters, who fought much of the war while battling a **Yuuzhan Vong-engineered disease** (coomb spores) that attacked her body and threatened her pregnancy — which she held at bay with the Force when others died of it in weeks. **Vergere's** tears healed her for a time in 26 ABY; she was cured completely later, with the help of her husband and their son **Ben Skywalker**, born in 26.5 ABY aboard the *Errant Venture*. Even ill, she remained a deadly combatant and a pillar of the Order. (Her murder by Jacen/Caedus comes in Era 16.)
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -187,7 +187,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Vergere
 - **Sheet snapshot:** Prime — enigmatic Fosh ex-Jedi who lived among the Yuuzhan Vong
 - **Species / Affiliation / Rank:** Fosh · former Jedi (Old Republic) → independent · Force-user, "familiar" to Vong priestesses
-- **Lifespan:** A Jedi from before the Clone Wars; lived ~50+ years among the Vong; sacrifices herself at Ebaq 9 (~27 ABY)
+- **Lifespan:** A Jedi from before the Clone Wars; lived ~50+ years among the Vong; sacrifices herself at Ebaq 9 (28 ABY)
 - **Summary:** One of the most mysterious figures in Jedi history — a bird-like **Fosh** who had been a Jedi Knight in the final years of the Old Republic, vanished with the Yuuzhan Vong decades before their invasion, and lived among them ever since. Ambiguous, manipulative, and profoundly knowledgeable, she became the unconventional teacher of **Jacen Solo** in captivity, dismantling his black-and-white view of the Force and teaching the **unifying Force** philosophy. Her true allegiance was always uncertain — she served Vong priestesses, sabotaged the genocidal Alpha Red bioweapon, and ultimately **sacrificed herself** at Ebaq 9. Her healing **tears** and her teachings echoed for years. Not a raw combatant — her power is subtlety, knowledge, and manipulation.
 
 | Core | Value | | Force | Value |
@@ -267,8 +267,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Warmaster Tsavong Lah
 - **Sheet snapshot:** Prime — the fanatical military mastermind of the invasion
 - **Species / Affiliation / Rank:** Yuuzhan Vong (warrior caste) · Warmaster (supreme military commander) · ✗ Force-invisible
-- **Lifespan:** Led the invasion's military from 25 ABY; killed by Jaina Solo at Ebaq 9 (~27 ABY)
-- **Summary:** The Warmaster who commanded the Vong war machine — a brilliant, brutal, fanatically devout strategist who conquered world after world and developed a personal obsession with the Jedi (especially the Solo twins). He sacrificed his own body parts (grafted creature-limbs) as offerings to his war-god Yun-Yammka. Lured into a trap at **Ebaq 9**, he was killed in a duel with **Jaina Solo**. A peerless non-Force commander and warrior.
+- **Lifespan:** Led the invasion's military from 25 ABY; killed by Jaina Solo at Ebaq 9 (28 ABY)
+- **Summary:** The Warmaster who commanded the Vong war machine — a brilliant, brutal, fanatically devout strategist who conquered world after world and developed a personal obsession with the Jedi (especially the Solo twins). He sacrificed his own body parts (grafted creature-limbs) as offerings to his war-god Yun-Yammka. Lured into a trap at **Ebaq 9**, he was killed by **Jaina Solo**, who fought beside Lowbacca and Tesar Sebatyne. A peerless non-Force commander and warrior.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -282,7 +282,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Lightsaber Forms / Bladework:** *(non-Force martial master — amphistaff and grafted bio-weapon limbs, vonduun crab armor; Melee combat rating ≈ 90)* A supreme Vong warrior and the finest military strategist of the invasion. Lethal to Jedi precisely because they cannot sense him.
 - **Force Abilities (game stats):** N/A — ✗ Force-invisible.
 - **Signature Ability:** **Warmaster** — supreme strategic command plus elite personal combat; a Jedi-hunter obsessed with the Solos.
-- **Notable Feats:** Commanded the conquest of much of the galaxy; took Coruscant; obsessively hunted the Jedi — killed in single combat by Jaina Solo at Ebaq 9.
+- **Notable Feats:** Commanded the conquest of much of the galaxy; took Coruscant; obsessively hunted the Jedi — killed by Jaina Solo at Ebaq 9.
 - **Alignment:** Dark/hostile.
 - **Tier:** Legendary (non-Force strategist/warrior).
 
@@ -291,7 +291,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Nom Anor
 - **Sheet snapshot:** Prime — master spy, executor, and schemer
 - **Species / Affiliation / Rank:** Yuuzhan Vong (intendant caste) · executor/spy; later heretic leader · ✗ Force-invisible
-- **Lifespan:** Infiltrated the galaxy for years before the war; active throughout; dies in the final battle (~29 ABY)
+- **Lifespan:** Infiltrated the galaxy for years before the war; active throughout; dies in the final battle (29 ABY)
 - **Summary:** The Vong's premier spy and agent provocateur, who spent years infiltrating the galaxy *before* the invasion — sowing discord, founding front-cults, and gathering intelligence — and served as executor and schemer throughout. Cynical and self-serving beneath his zealotry, he survived countless reversals by treachery and adaptation, eventually leading the Shamed One **heresy** when it suited him. A non-Force manipulator of great cunning; he died in the war's final battle.
 
 | Core | Value | | Force | Value |
@@ -337,9 +337,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ### The Yuuzhan Vong & others
 | Name | Species | Role | STR | AGI | END | WIL | CHA | INT | Force | Top Combat | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| Nas Choka | Yuuzhan Vong | Warmaster (Lah's successor); ends the war | 82 | 74 | 82 | 86 | 80 | 86 | ✗ Force-invisible | Melee/command 86 | Surrendered to Zonama Sekot after Shimrra's death |
+| Nas Choka | Yuuzhan Vong | Warmaster (Lah's successor); ends the war | 82 | 74 | 82 | 86 | 80 | 86 | ✗ Force-invisible | Melee/command 86 | Fought the Alliance to the end; surrendered after Shimrra's death (29 ABY) |
 | Czulkang Lah | Yuuzhan Vong | Master strategist; Tsavong's aged father | 70 | 60 | 70 | 88 | 78 | 90 | ✗ Force-invisible | Command 88 | One of the greatest Vong commanders |
-| Nen Yim | Yuuzhan Vong | Heretical Master Shaper | 50 | 58 | 58 | 84 | 70 | 90 | ✗ Force-invisible | none | Brilliant shaper; questioned the gods; killed by Shimrra |
+| Nen Yim | Yuuzhan Vong | Heretical Master Shaper | 50 | 58 | 58 | 84 | 70 | 90 | ✗ Force-invisible | none | Brilliant shaper; questioned the gods; died on Zonama Sekot (29 ABY) |
 | Harrar | Yuuzhan Vong | High Priest of Yun-Harla | 58 | 62 | 64 | 82 | 84 | 86 | ✗ Force-invisible | Melee 64 | Priest who came to doubt; aided the peace |
 | Shedao Shai | Yuuzhan Vong | Commander; honor-duelist | 84 | 80 | 82 | 84 | 74 | 78 | ✗ Force-invisible | Amphistaff 88 | Dueled Corran Horn over Ithor |
 | Han Solo | Human | Galactic Alliance general/hero | 64 | 74 | 68 | 82 | 86 | 80 | — | Ranged 82 | Lost Chewbacca early; grief-stricken then resolute |
@@ -347,7 +347,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Chewbacca | Wookiee | Han's co-pilot — **KILLED at Sernpidal (25 ABY)** | 92 | 64 | 90 | 82 | 66 | 74 | — | Melee 84 | Died saving Anakin Solo when the moon Dobido was dropped on Sernpidal (Vector Prime) |
 | Wedge Antilles | Human | Galactic Alliance general; ace | 58 | 80 | 66 | 84 | 78 | 84 | — | Piloting 88 | Came out of retirement; master strategist-pilot |
 | Admiral Ackbar | Mon Calamari | Strategist (came out of retirement) | 48 | 48 | 54 | 84 | 78 | 90 | — | Naval command 80 | Devised the Ebaq 9 trap that killed Tsavong Lah |
-| Gilad Pellaeon | Human | Imperial Remnant Supreme Commander (ally) | 52 | 54 | 60 | 84 | 82 | 86 | — | Naval command 84 | Brought the Remnant into the war against the Vong |
+| Gilad Pellaeon | Human | Imperial Remnant Supreme Commander (ally) | 52 | 54 | 60 | 84 | 82 | 86 | — | Naval command 84 | Fought at Ithor (25 ABY); brought the Remnant into the Alliance after Bastion was attacked (28 ABY) |
 | Cal Omas | Human | Chief of State, Galactic Alliance | 40 | 46 | 50 | 82 | 84 | 84 | — | none | First GA Chief of State; allied with the Jedi |
 | Danni Quee | Human | Scientist; cracked Vong bio-tech | 44 | 56 | 52 | 78 | 74 | 88 | latent | none | Key researcher (yammosk/voxyn countermeasures) |
 

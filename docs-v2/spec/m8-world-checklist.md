@@ -76,7 +76,10 @@ Items arrive here when a decision hands them to M8. Each says where it came from
   - **Blaster:** training droids and target practice; teachers for more effective training; field use.
   - **Archetypes:** add officer, senator/politician and scholar archetypes, so generated NPCs reflect these paths.
   - **After building:** audit what trains Melee, Blaster and Stealth today, then re-measure the archetype paces and the canon NPC bands for Intelligence, Tactics, Charisma, Melee, Blaster and Stealth.
-  - **Research queue:** which martial cultures taught close combat to outsiders in Legends, to whom and when (docs-v2/lore/RESEARCH_QUEUE.md).
+  - **Martial cultures (research done, D-484):** `Docs/SWRPG lore/SW_Martial_Cultures_AllEras_Part1-3.md`, inputs for the skills and the archetypes:
+    - *Part 3's training tables* (sections 1 to 8): who trains, where, for how long, what is taught, and entry. Lengths the sources give: Raithal one year, Royal Guard one year, Carida stormtrooper programme two (full course four), Prefsbelt IV three, flight school on Carida two, clone regulars ten years of accelerated life, commandos close to ten; *verd'goten* ages 8 to 13; hrrtayyk about 12.
+    - *Who teaches outsiders:* Echani (military versions only; the full art stays in the castes, ruled), Teräs Käsi (a Follower of Palawa or one of their graduates), Stava (after 9 ABY, ruled), K'tara (Alliance SpecForces), Hijkata (Senate Guard), Mandalorians (open membership).
+    - *[game-derived] lines* (Matukai powers, Teräs Käsi meditation healing and strike power, K'thri techniques, Gand moves, prices and weights): ideas for mechanics only. They are not lore and never reach the narrator; any number is set here, when the item is built.
 - [ ] **13. Ships and space combat (Jared, 2026-11-24; D-475).**
 
   Build from the design notes (docs-v2/spec/m8-design-notes.md: ships, space tactics and fleet battles; lore: SW_Starships_Classes.md, SW_Space_Tactics.md). Comes after items 5 to 7 in the build order (economy sets ship prices; droids cover astromechs and crews). It replaces the stopgaps: the blockade's force-through approach and the Coruscant ground-fight stand-in for breaking the occupying navy.

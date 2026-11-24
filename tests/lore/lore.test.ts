@@ -165,9 +165,9 @@ Not lore.
 ### Overview
 Old years.
 
-| Date | Event | Key Figures | Location | Downstream |
-|---|---|---|---|---|
-| **3,700 BBY** | Old row | Ann Ode | Here | LOW |
+| Date | Event | Type | Place | Who | Source |
+|---|---|---|---|---|---|
+| **3,700 BBY** | Old row | War | Here | Ann Ode | [p](https://x.org) |
 `;
   const slice = `# Galaxy Timeline, c. 3,700–3,600 BBY (Part 1 of 3)
 
@@ -211,7 +211,7 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
 `;
   const built = buildLoreIndex([
     { name: 'SW_Timeline_3700_3600BBY_Part1.md', content: slice },
-    { name: 'SW_Legends_Galaxy_Timeline.md', content: old },
+    { name: 'SW_Timeline_3600_2000BBY_Part1.md', content: old },
   ]);
   const chunk = (id: string) => built.chunks.find((c) => c.id === id)!;
 
@@ -262,7 +262,98 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
     const text = tl.map((x) => x.text).join('\n');
     for (const re of [/Xesh is convinced to turn on Daegen Lok/, /massive Force Storm/, /sought to destroy the Force itself/, /Spaarti cloning cylinders in the Mount Tantiss storehouse/, /Darth Vectivus, director of the Jonex mining colony/, /The Jedi Council refuses to train Anakin/, /Vader reveals that he is Luke's father/]) expect(re.test(text), String(re)).toBe(true);
     expect(/carried over from/.exec(text)?.[0]).toBeUndefined();
-    expect(tl.some((x) => x.id.startsWith('tl:yuuzhan-vong-war:'))).toBe(true); // 25 ABY onward stays
+  });
+  it('25-138 ABY: the rulings, the carried rows and no research notes (D-484)', () => {
+    const rows = LORE_INDEX.chunks.filter((x) => x.kind === 'timeline');
+    const at = (y: number): string => rows.filter((x) => x.fromYear === y && x.toYear === y).map((x) => x.text).join('\n');
+    const tl = LORE_INDEX.chunks.filter((x) => x.id.startsWith('tl:') && x.toYear >= 25);
+    const has = (y: number, re: RegExp): void => expect(re.test(at(y)), `${y} ${re}`).toBe(true);
+    const not = (y: number, re: RegExp): void => expect(re.test(at(y)), `${y} not ${re}`).toBe(false);
+    has(27, /Ganner Rhysode dies on Coruscant/); not(28, /Ganner Rhysode/);
+    has(29, /Battle of Esfandia/);
+    has(35, /the Dark Jedi Welk/); has(36, /The New Essential Chronology is published/);
+    has(41, /Natasi Daala, believed dead, returns at the Second Battle of Fondor/); not(40, /Daala/);
+    has(44, /Admiral Vitor Reige beats Daala/); has(32, /Metalorn/);
+    has(122, /The Ossus Project begins/); has(128, /The One Sith offer to ally/); not(127, /offer to ally/);
+    has(130, /head of the Jedi High Council, is killed by Nihl/);
+    has(137, /save 20% of the inhabitants/); has(137, /Regent and de facto Emperor, Krayt's death kept secret/);
+    has(138, /Mission to Daluuj/); has(138, /Mission to Korriban/); has(138, /brings him back with dark transfer/);
+    for (const [y, re] of [[25, /Chewbacca dies saving Anakin Solo/], [25, /Corran Horn is blamed/], [25, /sparks the war between Osarian and Rhommamool/], [40, /sacrifice someone he loves/], [41, /must ask Jaina/], [130, /abandons the Force/], [139, /Jao Assam cuts off his hands/]] as const) has(y, re);
+    const text = tl.map((x) => x.text).join('\n');
+    expect(/Wookieepedia|Ruled|\[(?:conflict|unclear|note|carried|gray)|great-great|Jedi Grand Master|crowned|unreferenced|year page/.exec(text)?.[0]).toBeUndefined();
+    // The undated Fel and Skywalker years stay ahead of the narrator: nothing of Cade's line before it can be known.
+    expect(rows.filter((x) => x.fromYear < 115 && x.fromYear >= 45).some((x) => /Cade|Kol Skywalker|Roan Fel/.test(x.text))).toBe(false);
+  });
+  it('the timeline comes only from the era sets; every old-timeline year has one (D-484)', () => {
+    const files = loreFiles().filter((f) => fileKey(f.name) === 'tl');
+    expect(files.filter((f) => !/^SW_Timeline_|^SW_Mandalorians_preTCW_vs_TCW/.test(f.name)).map((f) => f.name)).toEqual([]);
+    expect(Object.keys(RAW).some((p) => /SW_Legends_Galaxy_Timeline/.test(p))).toBe(false);
+    // Each set's span, from its file name ("3700_3600BBY", "19BBY_4ABY").
+    const spans = [...new Set(files.map((f) => /^SW_Timeline_(\d+)(BBY|ABY)?_(\d+)(BBY|ABY)_Part/.exec(f.name)?.slice(1, 5).join('|')).filter((x): x is string => !!x))].map((x) => {
+      const [a, ua, b, ub] = x.split('|') as [string, string, string, string];
+      return parseYearRange(`${a} ${ua || ub} – ${b} ${ub}`)!;
+    });
+    const OLD = import.meta.glob('/docs-v2/lore/superseded/SW_Legends_Galaxy_Timeline*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+    expect(Object.keys(OLD).length).toBe(5);
+    const years = new Set<number>();
+    let rows = 0;
+    for (const content of Object.values(OLD))
+      for (const line of content.split(/\r?\n/)) {
+        const date = /^\|\s*([^|]+?)\s*\|/.exec(line)?.[1];
+        const r = date ? parseYearRange(date) : null;
+        if (!r) continue;
+        rows++;
+        for (const y of [r.from, r.to]) if (y >= -36453 && y <= 138) years.add(y);
+      }
+    expect(rows).toBeGreaterThan(300);
+    const lone = [...years].filter((y) => !spans.some((s) => s.from <= y && y <= s.to));
+    expect(lone).toEqual([]);
+    // And an era the narrator reads: none of those years is outside every era heading of the sets.
+    const eras = LORE_INDEX.chunks.filter((x) => x.kind === 'overview' || x.kind === 'timeline');
+    expect([...years].filter((y) => !eras.some((x) => x.fromYear <= y && y <= x.toYear + 10))).toEqual([]);
+  });
+  it('every era heading of the sets carries a year, and ABY and decimal dates parse (D-484)', () => {
+    const bare: string[] = [];
+    const undated: string[] = [];
+    for (const { name, content } of loreFiles().filter((f) => /^SW_Timeline_/.test(f.name))) {
+      const lines = content.split(/\r?\n/);
+      lines.forEach((l, i) => {
+        if (/^##\s+[═=]+\s*$/.test(l) && /^##\s+[^═=]/.test(lines[i + 1] ?? '') && !parseYearRange(lines[i + 1]!)) bare.push(`${name}: ${lines[i + 1]}`);
+        const date = /^\|\s*([^|]+?)\s*\|/.exec(l)?.[1];
+        if (/25_44ABY|45_138ABY/.test(name) && date && /\d/.test(date)) {
+          const r = parseYearRange(date);
+          if (!r || r.from < 25 || r.to > 139) undated.push(`${name}: ${date}`);
+        }
+      });
+    }
+    // Left out of the index: spans of centuries that would be "this year" to every campaign inside them.
+    expect(bare).toEqual(['SW_Timeline_3600_2000BBY_Part1.md: ## UNDATED OR SPANNING THE WHOLE PERIOD']);
+    expect(undated).toEqual([]);
+    expect(parseYearRange('25.3 ABY (GrS 60:8)')).toEqual({ from: 25, to: 25 });
+    expect(parseYearRange('26.5 ABY')).toEqual({ from: 26, to: 26 });
+    expect(parseYearRange('between 45 and 127 ABY (no year)')).toEqual({ from: 45, to: 127 });
+  });
+  it('martial cultures: read when named, dated, and never the game-derived lines (D-484, ruling 13)', () => {
+    const ma = LORE_INDEX.chunks.filter((x) => x.kind === 'culture');
+    expect(ma.length).toBeGreaterThan(60);
+    const text = ma.map((x) => `${x.title} ${x.text}`).join('\n');
+    expect(/game-derived|kouhun|Soft to Solid|slugthrowers|stops bleeding|Attack Flurry|Piercing Touch|Striking Mist|Bantha rush|Nerve strike|whirlwind|credits|Wookieepedia|\[/.exec(text)?.[0]).toBeUndefined();
+    const of = (t: string) => ma.find((x) => x.title === t)!;
+    expect(/a Human world the Epicanthix conquered/.test(of('Followers of Palawa').text)).toBe(true);
+    expect(/Outsiders learn military versions/.test(of('Echani art').text)).toBe(true);
+    expect(/never more than about a thousand/.test(of("Emperor's Royal Guard and its offshoots").text)).toBe(true);
+    expect(/After 9 ABY it spread to outsiders/.test(of('Stava').text)).toBe(true);
+    expect(/may train ordinary clones/.test(of('Advanced Recon Commandos').text)).toBe(true);
+    expect(/joint locks/.test(of('Jedi Temple hand-to-hand training').text) && /joint locks/.test(of('Broken Gate').text)).toBe(true);
+    // Only when named, and only as far as the year has come.
+    const base = { canonIds: [], names: [], locationNames: ['bunduki', 'coruscant'], year: -3661 };
+    const sent = (playerText = '') => retrieveLore(LORE_INDEX, { ...base, playerText }, 3000, est).included.filter((s) => s.chunk.kind === 'culture');
+    expect(sent()).toEqual([]);
+    const echani = sent(normalizeText('I ask the Echani to teach me'));
+    expect(echani.map((s) => s.chunk.title)).toEqual(['Echani']);
+    expect(/Begali Uprising|Raskta Lsu/.test(echani[0]!.text)).toBe(false);
+    // A common word is not a name.
+    expect(sent(normalizeText('I raise my hands and ask where the guard is'))).toEqual([]);
   });
   it('Mandalorians: clan Mandalore with the Sundari enclave (D-482)', () => {
     const rows = LORE_INDEX.chunks.filter((x) => x.kind === 'timeline');
@@ -281,7 +372,7 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
   it('the slices join the timeline', () => {
     expect(fileKey('SW_Timeline_3700_3600BBY_Part1.md')).toBe('tl');
     expect(fileKey('SW_Timeline_3700_3600BBY_Part3.md')).toBe('tl');
-    expect(fileKey('OLD_SW_Legends_Galaxy_Timeline.md')).toBeNull();
+    expect(fileKey('SW_Legends_Galaxy_Timeline.md')).toBeNull(); // retired (D-484)
   });
   it('merges an era the old file also opens, and drops file notes and citations from overviews', () => {
     expect(chunk('tl:old-era:overview').text).toBe('Old Era, 3,700 BBY to 3,690 BBY. Old years.\nIn these years a route was charted.');

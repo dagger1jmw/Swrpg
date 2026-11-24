@@ -7,7 +7,7 @@
 // abilities file is not indexed until M6.
 import { normalizeAlias, normalizeText, slugify, textMentions } from '../engine/aliases.ts';
 
-export type LoreChunkKind = 'character' | 'bench' | 'overview' | 'timeline' | 'note' | 'species' | 'planet' | 'route';
+export type LoreChunkKind = 'character' | 'bench' | 'overview' | 'timeline' | 'note' | 'species' | 'planet' | 'route' | 'culture';
 
 export interface LoreChunk {
   id: string;
@@ -179,12 +179,14 @@ interface Era {
 }
 
 /** Research tags in the bot's timeline rows ("[conflict]", "[inferred]", "[Ruled ...]", "[S-canon]"): kept in the lore file, not sent as story. */
-const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort|S-canon|Ruled|weak|unconfirmed|primary|dating derived|carried over)\b[^\]]*\]/gi;
+const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort|S-canon|Ruled|weak|unconfirmed|primary|dating derived|carried over|note|game-derived)\b[^\]]*\]/gi;
 /** A row a ruling set aside ("[Ruled 24 Nov 2026: not used ...]", D-477): kept in the file as a record, never sent. */
 const RULED_OUT = /\[Ruled [^\]:]*: not used\b/i;
+/** A line known only from tabletop or MMO rules (D-484, ruling 13): an idea for the mechanics, never sent. A note inside the tag ("[game-derived: ...]") is dropped on its own, by RESEARCH_TAG. */
+const GAME_DERIVED = /\[game-derived\]/i;
 /** Asides about the files rather than the story: "(see Ord Radama row)", "(SW_Republic_Military_GGW gives the range)", "(ruling 16)". */
 const FILE_ASIDE =
-  /\s*\([^()]*\b(?:SW_\w+|files?|slice|rows?|see|page|pages|Wookieepedia|ruling|lore batch|D-\d+|Decisions? needed|Part \d|uncited|unreferenced|conjectural title|galactic timeline)\b[^()]*\)/gi;
+  /\s*\([^()]*\b(?:SW_\w+|files?|slice|rows?|see|page|pages|Wookieepedia|ruling|lore batch|D-\d+|Decisions? needed|Part \d|uncited|unreferenced|infobox|conjectural title|conjectural name|name conjectural|galactic timeline)\b[^()]*\)/gi;
 /** Overview sentences about the file itself (lore batch 20's slice): "the rows below keep only dates", "the old file has ...". */
 const TIMELINE_META =
   /\bold file\b|\bthis slice\b|\bparser\b|Decisions needed|\brows? (?:below|here)\b|\bin-scope\b|\brebuilt here\b|\btable\b|\bSW_\w+|`|\byear pages?\b|\bLegends year\b/i;
@@ -225,11 +227,10 @@ function cleanTimelineOverview(text: string): string {
 }
 
 /**
- * The galaxy timeline (D-81): the old SW_Legends_Galaxy_Timeline.md plus the research bot's slices
- * (SW_Timeline_3700_3600BBY_Part1-3, lore batch 20), read as one timeline so era ids stay stable. Era headings ("## NAME
- * — 3,681–3,653 BBY"), "### Overview", "#### 3,661 BBY — Year 20" headings and event tables in either layout: the old
- * columns (Date | Event | Key Figures | Location | Downstream) or the slice's (Date | Event | Type | Place | Who |
- * Source), found by header. The slice's "State of the galaxy" paragraphs under a year heading become that year's first
+ * The galaxy timeline (D-81): the era sets (SW_Timeline_*_PartN) and the Mandalorian comparison's tables, read as one
+ * timeline so era ids stay stable; the old single file is retired (D-484). Era headings ("## NAME — 3,681–3,653 BBY"),
+ * "### Overview", "#### 3,661 BBY — Year 20" headings and event tables (Date | Event | Type | Place | Who | Source),
+ * their columns found by header. The "State of the galaxy" paragraphs under a year heading become that year's first
  * row. An era split across files merges its overviews and rows.
  */
 function parseTimeline(fileKey: string, contents: readonly string[], out: LoreChunk[], vocabulary: Set<string>): void {
@@ -237,7 +238,7 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
   let eraJustOpened: boolean; // both reset at the start of each file
   let overview: string[] | null = null;
   let yearHeading: { from: number; to: number; label: string } | null;
-  let cols = { date: 0, event: 1, who: 2, place: 3 };
+  let cols = { date: 0, event: 1, who: 4, place: 3 };
   const groups = new Map<string, { from: number; to: number; era: Era; rows: string[]; names: Set<string>; places: Set<string> }>();
   const order: string[] = [];
   // For dating overview sentences (D-98): named events and "Year N" headings per era.
@@ -311,13 +312,13 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
       if (isTableLine(line)) {
         flushOverview();
         const cs = cells(line);
-        if (isSeparatorRow(cs) || RULED_OUT.test(line)) continue;
+        if (isSeparatorRow(cs) || RULED_OUT.test(line) || GAME_DERIVED.test(line)) continue;
         if (/^date$/i.test(cs[0] ?? '')) {
           const at = (re: RegExp, fallback: number): number => {
             const i = cs.findIndex((c) => re.test(c));
             return i >= 0 ? i : fallback;
           };
-          cols = { date: 0, event: at(/^event/i, 1), who: at(/^(who|key figures)/i, -1), place: at(/^(place|location)/i, -1) };
+          cols = { date: 0, event: at(/^event/i, 1), who: at(/^who/i, -1), place: at(/^place/i, -1) };
           continue;
         }
         const pick = (i: number): string => (i >= 0 ? cleanTimelineText(cs[i] ?? '') : '');
@@ -447,7 +448,7 @@ export function dateOverview(
 
 function titleCase(s: string): string {
   if (s !== s.toUpperCase()) return s;
-  return s.toLowerCase().replace(/(^|[\s/(-])([a-z])/g, (_m, a: string, b: string) => a + b.toUpperCase());
+  return s.toLowerCase().replace(/(^|[\s/(–-])([a-z])/g, (_m, a: string, b: string) => a + b.toUpperCase());
 }
 
 export function formatYear(y: number): string {
@@ -480,7 +481,7 @@ export function parseCharacterHeading(heading: string): { name: string; aliases:
 const stripLinks = (s: string): string => s.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/\s{2,}/g, ' ');
 /** Citations (links to sources) dropped from story text: "... killed [Zym §Biography](https://...)." -> "... killed." */
 const stripCitations = (s: string): string =>
-  s.replace(/\s*\[[^\]]*\]\(https?:[^)]*\)/g, '').replace(/\s+([.,;:])/g, '$1').replace(/\s{2,}/g, ' ');
+  s.replace(/\s*\[[^\]]*\]\(https?:(?:[^()]|\([^()]*\))*\)/g, '').replace(/\s+([.,;:])/g, '$1').replace(/\s{2,}/g, ' ');
 
 /** Entry types that are people (or a named group of people) in the bot's template. */
 const PERSON_TYPE = /^\s*-\s*\*\*Type:\*\*\s*(character|characters|class protagonist|group\b)/i;
@@ -687,6 +688,130 @@ function parsePlanetFile(fileKey: string, content: string, out: LoreChunk[]): vo
   }
 }
 
+/** A martial entry with no recorded start holds for the whole timeline. */
+const TIMELINE_START = -36453;
+const TIMELINE_END = 139;
+/** Named periods in the martial files' undated text, with the year each begins. */
+const PERIODS: readonly (readonly [RegExp, number])[] = [
+  [/Fel Empire/, 127],
+  [/Yuuzhan Vong|New Jedi Order/, 25],
+  [/New Republic/, 4],
+  [/Galactic Civil War|Rebel Alliance/, -2],
+  [/Palpatine|Royal Guard|stormtrooper|Darth Vader|Imperial era/i, -19],
+  [/Clone Wars/, -22],
+  [/Mandalorian Wars/, -3976],
+];
+/** When a sentence of a martial entry becomes true: its latest year, else the period it names, else the entry's start. */
+function martialYear(text: string, start: number): number {
+  const years = [...text.matchAll(/[\d,]+(?:\.\d+)?\s*(?:BBY|ABY)\b/gi)].map((m) => parseYearRange(m[0])!.from);
+  if (years.length) return Math.max(start, ...years);
+  return Math.max(start, PERIODS.find(([re]) => re.test(text))?.[1] ?? start);
+}
+/** When an entry or a row begins: its first year, else the earliest period its Era text names; null when it has no recorded start. */
+function eraStart(era: string): number | null {
+  if (/\ball eras\b|not dated|no start|thousands of years|centuries of/i.test(era)) return null;
+  const year = /[\d,]+(?:\.\d+)?\s*(?:BBY|ABY)\b/i.exec(era);
+  // "Republic era to 19 BBY" ends in 19 BBY; its start is the period's, if it names one.
+  if (year && !/\b(?:to|until|dissolved|through)\s+(?:c\.\s*)?$/i.test(era.slice(0, year.index))) return parseYearRange(era)!.from;
+  return [...PERIODS].reverse().find(([re]) => re.test(era))?.[1] ?? null;
+}
+/** Tables whose every row is a tradition, style, weapon or school of its own. */
+const NAMED_TABLE = /^(item|style or move|tradition|weapon|institution|academy)$/i;
+const MARTIAL_META = /^\s*-\s*\*\*(Type|Era|Related|Uncertainty|Canon note):\*\*|^\s*-\s*\*\*Key facts:\*\*\s*$|\bsee Part \d|^\s*-?\s*See Part|cross-reference/i;
+
+/**
+ * The martial-cultures set (SW_Martial_Cultures_AllEras_Part1-3, D-484): each numbered `###` entry under "## Entries",
+ * each bold sub-heading inside one ("**GenoHaradan**") and each row of a named table ("Style or move", "Academy", ...)
+ * becomes a `culture` chunk, sent only when it is named and only as far as its sentences' years have come (D-98's
+ * mechanism). [game-derived] lines, sources, game-stat columns and the Mandalorian cross-reference add nothing; the back
+ * sections (its timeline table repeats the era sets' rows) are not read.
+ */
+function parseMartialFile(fileKey: string, content: string, out: LoreChunk[]): void {
+  const seen = new Set<string>();
+  interface Line {
+    text: string;
+    from?: number;
+  }
+  const add = (rawName: string, start: number, lines: readonly Line[]): void => {
+    const heading = cleanMarkdown(stripLinks(rawName)).replace(/^\d+\.\s+/, '').replace(/,\s*details$/, '').trim();
+    const name = heading.replace(/\s*\((?!martial art\))[^)]*\)/g, '').replace(/^The\s+/i, '').trim();
+    const raw = name.split(/\s*;\s*/);
+    for (const m of heading.matchAll(/\(([^)]*)\)/g)) if (!/^martial art$/.test(m[1]!)) raw.push(...m[1]!.replace(/["“”]/g, '').split(/[;,]/));
+    // Full names, titles kept: "Emperor's Hands" must not answer to "hands".
+    const names = [...new Set(raw.map((r) => normalizeText(r.replace(/["“”]/g, ''))))].filter((a) => a.length >= 4 && !/^(brief|selected)$/.test(a));
+    const plain = (l: string): string =>
+      dropMetaSentences(cleanTimelineText(cleanMarkdown(l)).replace(/(?:\s*·)+\s*(?=[.;]|$)/g, '').trim().replace(/\bc\. (?=\d)/g, 'about ').replace(/\bvs\. /g, 'vs ').replace(/\(b\. /g, '(born '));
+    const body = lines.map((l) => ({ ...l, text: plain(l.text) })).filter((l) => l.text && !/^-?\s*$/.test(l.text));
+    const base = `${fileKey}:${slugify(name)}`;
+    if (!name || !body.length || seen.has(base)) return;
+    seen.add(base);
+    const head = `${name} (martial tradition)`;
+    const pieces = body.flatMap(({ text, from }) => {
+      const ps = text.match(/(?:[^.!?]|[.!?](?!\s|$))+[.!?]*/g) ?? [text];
+      return ps.map((p, i) => ({ year: martialYear(p, Math.max(start, from ?? start)), text: `${p.trim()}${i === ps.length - 1 ? '\n' : ' '}` }));
+    });
+    out.push({ id: base, kind: 'culture', title: name, fromYear: start, toYear: TIMELINE_END, names, locations: [], text: `${head}\n${body.map((l) => l.text).join('\n')}`, parts: [{ year: start, text: `${head}\n` }, ...pieces] });
+  };
+
+  let inEntries = false;
+  let cur: { name: string; start: number; lines: Line[] } | null = null;
+  let entryStart = TIMELINE_START;
+  let skip = false;
+  let header: string[] | null = null;
+  const flush = (): void => {
+    if (cur) add(cur.name, cur.start, cur.lines);
+    cur = null;
+  };
+  for (const line of content.split(/\r?\n/)) {
+    const h = /^(#{2,3})\s+(.*)$/.exec(line);
+    if (h) {
+      flush();
+      header = null;
+      if (h[1] === '##') inEntries = /^Entries\b/.test(h[2]!);
+      else if (inEntries && /^\d+\.\s/.test(h[2]!)) {
+        entryStart = TIMELINE_START;
+        skip = /see the Mandalorian files/i.test(h[2]!);
+        if (!skip) cur = { name: h[2]!, start: entryStart, lines: [] };
+      }
+      continue;
+    }
+    if (!inEntries || skip || GAME_DERIVED.test(line) || RULED_OUT.test(line)) continue;
+    const sub = /^\*\*([^:]+?)\*\*\s*$/.exec(line);
+    if (sub) {
+      flush();
+      header = null;
+      cur = { name: sub[1]!, start: entryStart, lines: [] };
+      continue;
+    }
+    const era = /^\s*-\s*\*\*Era:\*\*\s*(.*)$/.exec(line);
+    if (era && cur) {
+      cur.start = eraStart(era[1]!) ?? entryStart;
+      if (/^\d+\./.test(cur.name)) entryStart = cur.start;
+    }
+    if (isTableLine(line)) {
+      const cs = cells(stripCitations(line));
+      if (!header) {
+        header = cs;
+        continue;
+      }
+      if (isSeparatorRow(cs)) continue;
+      const head = header;
+      const kept = cs.map((c, i) => ({ h: head[i] ?? '', c })).filter(({ h: hh, c }, i) => i > 0 && c && c !== '—' && !/^(source|game stat)/i.test(hh) && (head[0] === 'Institution' || !/^era\b/i.test(hh)));
+      if (kept.every(({ c }) => /^See Part \d/i.test(c))) continue;
+      const eraCell = cs[head.findIndex((hh) => /^era\b/i.test(hh))] ?? '';
+      const text = kept.map(({ h: hh, c }) => `${hh}: ${c.replace(/\.$/, '')}.`).join(' ');
+      if (NAMED_TABLE.test(head[0] ?? '')) {
+        add(cs[0] ?? '', Math.max(entryStart, eraStart(eraCell) ?? entryStart), [{ text }]);
+      } else (cur as { lines: Line[] } | null)?.lines.push({ text: `- ${cs[0] ?? ''}. ${text}`, from: martialYear(eraCell, entryStart) });
+      continue;
+    }
+    header = null;
+    if (isRule(line) || MARTIAL_META.test(line)) continue;
+    (cur as { lines: Line[] } | null)?.lines.push({ text: line });
+  }
+  flush();
+}
+
 function parseCharacterFile(fileKey: string, content: string, out: LoreChunk[], entities: LoreEntity[]): void {
   if (parseBotCharacterFile(fileKey, content, out, entities)) return;
   const lines = content.split(/\r?\n/);
@@ -771,7 +896,7 @@ function parseCharacterFile(fileKey: string, content: string, out: LoreChunk[], 
 // ---------------------------------------------------------------- index
 
 /**
- * Short stable file key: SW_Characters_09B_... -> c09b; the timeline -> tl. Research-bot sets split into parts get a
+ * Short stable file key: SW_Characters_09B_... -> c09b; the timeline sets -> tl. Research-bot sets split into parts get a
  * key per part (SW_Characters_09_GGW_ColdWar_Part3a.md -> c09p3a, _Index.md -> c09i), so chunk ids stay unique.
  */
 export function fileKey(name: string): string | null {
@@ -779,10 +904,9 @@ export function fileKey(name: string): string | null {
   if (part) return `c${part[1]!.toLowerCase()}${part[2] === 'Index' ? 'i' : part[2]!.slice(4).toLowerCase().replace(/^/, 'p')}`;
   const c = /^SW_Characters_([0-9A-Za-z-]+?)_/.exec(name);
   if (c) return `c${c[1]!.toLowerCase()}`;
-  if (/^SW_Legends_Galaxy_Timeline/.test(name)) return 'tl';
   // The Mandalorian comparison's two timeline tables (D-482) join the timeline.
   if (/^SW_Mandalorians_preTCW_vs_TCW/.test(name)) return 'tl';
-  // The research bot's timeline slices (SW_Timeline_3700_3600BBY_Part1.md, lore batch 20) join the same timeline.
+  // The era sets (SW_Timeline_3700_3600BBY_Part1.md, lore batch 20) are the timeline.
   if (/^SW_Timeline_.*_Part\d+\.md$/.test(name)) return 'tl';
   // Species files (SW_Species_OldRepublic_Part1.md -> sp-oldrepublic-p1; lore batch 21).
   const sp = /^SW_Species_([0-9A-Za-z]+)_Part(\d+)\.md$/.exec(name);
@@ -790,6 +914,9 @@ export function fileKey(name: string): string | null {
   // Planets and travel files (SW_Planets_Travel_OldRepublic_Part1.md -> pl-oldrepublic-p1; lore batch 22).
   const pl = /^SW_Planets_Travel_([0-9A-Za-z]+)_Part(\d+)\.md$/.exec(name);
   if (pl) return `pl-${pl[1]!.toLowerCase()}-p${pl[2]}`;
+  // Martial cultures (SW_Martial_Cultures_AllEras_Part1.md -> ma-alleras-p1; D-484).
+  const ma = /^SW_Martial_Cultures_([0-9A-Za-z]+)_Part(\d+)\.md$/.exec(name);
+  if (ma) return `ma-${ma[1]!.toLowerCase()}-p${ma[2]}`;
   return null;
 }
 
@@ -798,14 +925,13 @@ export function buildLoreIndex(files: readonly LoreFile[]): LoreIndex {
   const chunks: LoreChunk[] = [];
   const entities: LoreEntity[] = [];
   const vocabulary = new Set<string>();
-  // The old timeline first, then the slices in name order (an era the old file still opens keeps its place).
   const timeline = sorted.filter((f) => fileKey(f.name) === 'tl');
-  timeline.sort((a, b) => Number(!/^SW_Legends_Galaxy_Timeline/.test(a.name)) - Number(!/^SW_Legends_Galaxy_Timeline/.test(b.name)));
   if (timeline.length) parseTimeline('tl', timeline.map((f) => f.content), chunks, vocabulary);
   for (const f of sorted) {
     const key = fileKey(f.name);
     if (key?.startsWith('sp-')) parseSpeciesFile(key, f.content, chunks);
     else if (key?.startsWith('pl-')) parsePlanetFile(key, f.content, chunks);
+    else if (key?.startsWith('ma-')) parseMartialFile(key, f.content, chunks);
     else if (key && key !== 'tl') parseCharacterFile(key, f.content, chunks, entities);
   }
   // Research-bot sets (c09p1, c09p2, ...): an alias two figures of the same set share (Scourge's old title "Emperor's

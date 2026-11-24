@@ -58,7 +58,7 @@ Every flag above is resolved. Each decision is logged with its reason in decisio
 
 ### L-01 — Hydian Way blockade (Q2)
 - **Answer:** the blockade **begins in 3,661 BBY** (Year 20 of the Great Galactic War) and is **broken in 3,660 BBY** (Year 21), when Hylo Visz leads a convoy and the Republic Navy joins after an SIS tip.
-- **Source:** SW_Legends_Galaxy_Timeline.md:381 (begins), :382 (Battle near Devaron, Jedi squadrons wiped out), :383 and :385 (Coruscant riots begin, Temple rationing), :391 (blockade broken, 3,660), :392 (riots end, rationing eases).
+- **Source:** the old SW_Legends_Galaxy_Timeline.md (retired, D-484):381 (begins), :382 (Battle near Devaron, Jedi squadrons wiped out), :383 and :385 (Coruscant riots begin, Temple rationing), :391 (blockade broken, 3,660), :392 (riots end, rationing eases).
 - **Legends check:** this is SWTOR material, so it is Legends. The Phase 1 finding (BUG-028) was judged against this Legends timeline, not Disney canon, and stands.
 - **Precise cause of BUG-028:** the timeline's seed block is headed "FACTION STATE SEEDS (3,660 BBY)" and labelled "Year 21 … blockade just broken" (:475-479). It is internally consistent; legacy copied that 3,660 seed into the 3,661 start.
 - **For Q2 (start date is a creation choice):** a start in 3,661 BBY opens during the blockade; a start in 3,660 or later opens after it breaks.

@@ -121,7 +121,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Sheet snapshot:** Prime — Dark Side Adept, master of Teräs Käsi
 * **Species / Affiliation / Rank:** Human · Followers of Palawa → Legions of Lettow · Xendor's right hand
 * **Lifespan:** Active \~24,500 BBY; in a Force trance \~24,496 years; reawakened in 4 BBY
-* **Summary:** A master of the lethal martial art Teräs Käsi and Xendor's lover and second-in-command. Cornered on Irkalla by Awdrysta Pina, she destroyed his blade with a Kashi Mer talisman — but the dying Pina used morichro to stop her heart, sending her into a preserving trance lasting nearly 24,500 years. *(This sheet covers her First Great Schism prime.)*
+* **Summary:** A master of the lethal martial art Teräs Käsi and Xendor's lover and second-in-command. Cornered on Irkalla by Awdrysta Pina, she killed him with a Kashi Mer talisman, but the dying Pina stopped her heart (the technique is linked to morichro), which put her in a trance lasting nearly 24,500 years. *(This sheet covers her First Great Schism prime.)*
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -132,12 +132,12 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Charisma|70||ForceOutput|76|
 |Intelligence|74||||
 
-* **Lightsaber Forms / Bladework:** The era's premier **unarmed/melee** combatant. Her **Teräs Käsi** is a Force-assisted martial art of precise strikes, joint-breaks, and lethal speed — built to fight and kill Force-users barehanded. Devastating in close quarters.
+* **Lightsaber Forms / Bladework:** The era's premier **unarmed/melee** combatant. Her **Teräs Käsi** is a physical and meditative martial art of precise strikes, joint-breaks, and lethal speed — built to fight Jedi. Devastating in close quarters.
 **Bladework rating (game stats):** 92 *(unarmed Teräs Käsi — represents her melee combat skill)*
 * **Force Abilities (game stats):** Battlemind 85 *(combat clarity for Teräs Käsi)* · Force Body 85 *(Force Speed 82%, Enhance Attribute 82%)* · Force Sense 74 *(Precognition 82% — reads strikes barehanded)* · Telekinesis 65 *(Force Push 60%, Force Grip 45%)*
-* **Unique techniques:** **Teräs Käsi mastery** *(supreme Force-assisted unarmed martial art)*
-* **Signature Ability:** **Teräs Käsi mastery** — capable of fighting and killing Force-users barehanded, augmented by Battlemind and Force valor.
-* **Notable Feats:** Co-led the Legions of Lettow; destroyed Awdrysta Pina's katana with a talisman and mortally wounded him; survived a heart-stopping morichro strike via a \~24,500-year trance.
+* **Unique techniques:** **Teräs Käsi mastery** *(a physical and meditative art built to fight Jedi)*
+* **Signature Ability:** **Teräs Käsi mastery** — capable of fighting and killing Force-users barehanded.
+* **Notable Feats:** Co-led the Legions of Lettow; killed Grand Master Awdrysta Pina with the Kashi Mer talisman; he stopped her heart as he died, which left her in a trance of \~24,500 years.
 * **Alignment:** Dark side.
 * **Tier:** Elite–legendary (martial combat / Teräs Käsi); Master-tier raw Force.
 

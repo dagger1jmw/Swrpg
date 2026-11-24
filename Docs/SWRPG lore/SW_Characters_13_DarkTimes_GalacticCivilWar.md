@@ -175,7 +175,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Sheet snapshot:** Reawakened prime — the 25,000-year-old Teräs Käsi master, now an Emperor's Hand
 * **Species / Affiliation / Rank:** Human · Galactic Empire (Emperor's Hand) → rogue · master of Teräs Käsi
-* **Lifespan:** Active \~24,500 BBY (Era 02); in a morichro Force-trance \~24,496 years; reawakened 4 BBY; eventually hunted down and killed by Palpatine
+* **Lifespan:** Active \~24,500 BBY (Era 02); in the trance Grand Master Pina put her in \~24,496 years; reawakened 4 BBY; eventually hunted down and killed by Palpatine
 * **Summary:** The First Great Schism warrior and lover of Xendor (Era 02), placed into a heart-stopped Force-trance by Grand Master Awdrysta Pina \~24,500 years ago. In **4 BBY**, three of Palpatine's Inquisitors located her body and the Kashi Mer talisman in the Unknown Regions; the talisman's proximity **reawakened and rejuvenated her**. She killed one Inquisitor and fought off another before Grand Inquisitor Torbin maimed her, sparing her to serve as an **Emperor's Hand**. She served Palpatine for a time — lured by his false promise to resurrect Xendor — then turned rogue, aided a plot to abduct the Emperor, and was ultimately hunted down and killed. Even maimed and 25 millennia displaced, she remained a supreme master of the lethal martial art **Teräs Käsi**, able to fight and kill Force-users barehanded. *(Her Era 02 prime is the fuller version; this is her diminished, cybernetically-altered reawakened self.)*
 
 |Core|Value||Force|Value|
@@ -189,8 +189,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Lightsaber Forms / Bladework:** *(none — a Teräs Käsi unarmed/melee master, not a saber duelist; Unarmed-combat rating ≈ 92)*
 * **Force Abilities (game stats):** Force Body 80 *(**Battlemind** 85%, Force Valor 80%)* · Morichro 80 *(life-suspending Force-trance — her 24,500-year longevity)* · Force Sense 74
-* **Unique techniques:** **Teräs Käsi + morichro longevity** *(Force-assisted unarmed art able to kill lightsaber-wielders barehanded; near-unkillable longevity via the ancient morichro trance)*
-* **Signature Ability:** **Teräs Käsi mastery** — supreme practitioner of the Force-assisted unarmed martial art, able to fight and kill lightsaber-wielders barehanded, augmented by Battlemind and Force valor.
+* **Unique techniques:** **Teräs Käsi** *(a physical and meditative art built to fight Jedi)*. Her long trance was done to her: the dying Grand Master Pina stopped her heart; it is not a technique of hers
+* **Signature Ability:** **Teräs Käsi mastery** — supreme practitioner of the physical and meditative art built to fight Jedi, able to fight and kill lightsaber-wielders barehanded.
 * **Notable Feats:** Reawakened after \~24,496 years; killed an Inquisitor; served as an Emperor's Hand; turned rogue and aided a plot against Palpatine; among her targets was the young Luke Skywalker.
 * **Alignment:** Dark side (coerced; ultimately rogue).
 * **Tier:** Elite–legendary (Teräs Käsi martial combat); Master-tier Force. *(Diminished from her Era 02 prime by the maiming.)*

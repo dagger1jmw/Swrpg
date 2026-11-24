@@ -23,6 +23,7 @@ Status key: **Replaced** = a decided spec covers it fully. **Partly replaced** =
 | alignment-m6.md | M6 alignment: values, deeds, temptation, thresholds, the fall and redemption, Force philosophies (§9) (exported 2026-11-21; M6 build reference; supersedes alignment.md) |
 | m6-integration-checklist.md | M6 integration checklist: where the M6 specs touch built M5 systems (blockers, integration items, small connections, re-measure list) (exported 2026-11-21; M6 build reference) |
 | npc-generation.md | NPC levels from age and pace, canon NPCs |
+| npc-tags.md | NPC deployment tags from the retired timeline file (design data; not built, read by nothing) |
 | ai-events.md | Event catalog the AI may emit |
 | ranks.md | Jedi and Sith rank ladders, trials, Order requirements, milestones |
 | character-creation.md | Creation choices, computed starting stats, validation |
