@@ -1,5 +1,6 @@
 # m8-lore-g: undated background, narrator wording, the item 3 check (2026-11-24; D-485)
-nnpm test 1,577 of 1,577 (24 s); typecheck and lint clean.
+
+npm test 1,577 of 1,577 (24 s); typecheck and lint clean.
 
 ## 1. The undated section (3,600–2,001 BBY)
 
