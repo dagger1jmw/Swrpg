@@ -283,12 +283,12 @@ As built in M4 (D-128, D-129): `active` = {priorities (null = archetype default)
 **world** (owner: world)
 | Field | Type / range | Source |
 |---|---|---|
-| firedTimelineEvents[] | timeline event ids | engine |
+| log[] | rolled world events (last 50; D-136) | engine |
+| network | the tag network's state: settled events, broken tags, progress against guards, outcomes, plot points, moved events, places changed (D-466; spec/world-events.md; replaces firedTimelineEvents and notices) | engine |
 | factionState | per faction {control, morale} | engine |
 | renown | per faction (D-08 list) -100..+100 | engine |
-| notices[] | pending galaxy news for the AI | engine |
 
-M4 builds `log` only: the rolled world events (last 50), each marked told once a narration carried it (D-136). Timeline events, factions and renown arrive in M8.
+M4 builds `log` only: the rolled world events (last 50), each marked told once a narration carried it (D-136). M8 Phase A adds `network` (D-466; v2). Factions and renown arrive later in M8.
 
 **memory** (owner: memory)
 | Field | Type / range | Source |

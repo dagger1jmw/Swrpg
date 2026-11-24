@@ -3,15 +3,13 @@
 // report for the debug view. Pure; never mutates state. Replaces the minimal M1 builder (D-74).
 import { CONTEXT_CAPS, JUMP_CAPS, JUMP_REPORT_MAX_EVENTS, JUMP_REPORT_MAX_SKILLS, HISTORY_NARRATIVE_MAX_CHARS, MAX_RAW_TURNS, SUMMARY_INPUT_CAP_TOKENS, type SectionName } from '../ai/context.config';
 import type { MontageReport } from '../state/montageReport';
-import { selectUntoldWorldEvents } from '../features/world/selectors';
+import { handoffLines, selectControl, selectLeaders, selectOrderSeat, selectTimelineHandoff, selectUntoldWorldEvents } from '../features/world/selectors';
 import { PROMPTS } from '../ai/prompts';
 import type { CallType, Message } from '../ai/provider';
 import { makeEstimator } from '../ai/tokenRatio';
 import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
-import { orderSeatAt } from '../data/orderSeats';
 import { COVERT_ESCALATION, ORDER_POWER_RULES } from '../data/orderPowerRules';
-import { controlAt, leadersAt } from '../data/worldControl';
 import { onRecordAt, onRecordFor } from '../data/canonPlacements';
 import { describeTravel } from './travel';
 import { eraRulesAt } from '../data/eraRules';
@@ -298,10 +296,10 @@ export function stateBlock(
     skillsLine(state),
     ...beatsLines(state),
     `Date: ${formatDate(now.day)}`,
-    `Jedi Order: ${orderSeatAt(dateFromAbsDay(now.day).year) ?? 'no standing Temple at this date'}`,
+    `Jedi Order: ${selectOrderSeat(state) ?? 'no standing Temple at this date'}`,
     ...rankLines(dateFromAbsDay(now.day).year),
     ...(orderPowersLine(state) ? [orderPowersLine(state)!] : []),
-    ...worldLines(-dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
+    ...worldLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
     ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), namedCanonIds(state, focus, playerText, -dateFromAbsDay(now.day).year)),
     ...holocronLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), playerText),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,
@@ -393,6 +391,7 @@ function storyFlowLines(state: GameState): string[] {
     const list = untold.map((e) => `${e.significant ? '[significant] ' : ''}${e.summary}${e.refs.length ? ` (${e.refs.join(', ')})` : ''}`).join('; ');
     lines.push(`World events to tell (engine-rolled; narrate them, invent no outcome beyond them): ${list}`);
   }
+  lines.push(...handoffLines(selectTimelineHandoff(state)));
   return lines;
 }
 
@@ -756,15 +755,16 @@ export function buildSummaryRequest(state: GameState, chapter: Chapter, records:
 
 /**
  * The powers at this date (M7, D-400; src/data/worldControl.ts): who leads them, and who controls the current place and
- * its ancestors. Only what the lore states; inferred readings are marked. Nothing when the date has no entries.
+ * its ancestors. Only what the lore states, with this campaign's changes and the freeze (D-466); inferred readings are
+ * marked. Nothing when the date has no entries.
  */
-function worldLines(bby: number, placeNames: readonly string[]): string[] {
-  const tag = (inferred?: boolean): string => (inferred ? ' [inferred]' : '');
-  const leaders = leadersAt(bby);
-  const control = controlAt(placeNames, bby);
+function worldLines(state: GameState, placeNames: readonly string[]): string[] {
+  const tag = (inferred: boolean | undefined, held: string | null): string => `${inferred ? ' [inferred]' : ''}${held === 'frozen' ? ' [held: history changed here]' : held === 'changed' ? ' [changed in this campaign]' : ''}`;
+  const leaders = selectLeaders(state);
+  const control = selectControl(state, placeNames);
   return [
-    ...(leaders.length ? [`Leaders: ${leaders.map((l) => `${l.office}: ${l.holder}${tag(l.inferred)}`).join('; ')}`] : []),
-    ...control.map((c) => `Control: ${c.place}: ${c.side} (${c.note})${tag(c.inferred)}`),
+    ...(leaders.length ? [`Leaders: ${leaders.map((l) => `${l.office}: ${l.holder}${tag(l.inferred, l.held)}`).join('; ')}`] : []),
+    ...control.map((c) => `Control: ${c.place}: ${c.side} (${c.note})${tag(c.inferred, c.held)}`),
   ];
 }
 

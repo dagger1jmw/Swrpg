@@ -6,18 +6,20 @@
 // recorded changes to 3,640 from the timeline slice Part 2 (D-408); other eras get their own entries when their lore is
 // in (D-155). A span ends at its last recorded year and is blank after it (D-411 [5]: never held to an inferred end).
 
-export type ControlSide =
-  | 'republic'
-  | 'sithEmpire'
-  | 'hutts'
-  | 'mandalorians'
-  | 'chiss'
-  | 'contested'
-  | 'neutral'
-  | 'independent'
-  | 'unknown to the galaxy';
+export const CONTROL_SIDES = ['republic', 'sithEmpire', 'hutts', 'mandalorians', 'chiss', 'contested', 'neutral', 'independent', 'unknown to the galaxy'] as const;
+export type ControlSide = (typeof CONTROL_SIDES)[number];
 
-export interface ControlSpan {
+/**
+ * A dated fact tied to the world-event network (D-466): in a campaign it only starts once every outcome in `dependsOn`
+ * was produced, and it lasts until `endsWith` is produced. If one is broken, the fact before it holds (the freeze).
+ * Absent, or an outcome the network does not know: the lore's dates apply. Phase B adds the links.
+ */
+export interface OutcomeLinks {
+  dependsOn?: readonly string[];
+  endsWith?: string;
+}
+
+export interface ControlSpan extends OutcomeLinks {
   /** The place as the lore names it; matched against location names (normalized, whole words). */
   place: string;
   aliases?: readonly string[];
@@ -79,7 +81,7 @@ export const WORLD_CONTROL: readonly ControlSpan[] = [
   { place: 'Manaan', fromBby: 3625, toBby: 3625, side: 'contested', note: 'the Sith Empire invades to seize its kolto', source: `${S2} (3,625); SW_Kolto_Bacta; D-440` },
 ];
 
-export interface LeaderSpan {
+export interface LeaderSpan extends OutcomeLinks {
   /** The office, as the narrator should name it. */
   office: string;
   holder: string;
@@ -112,9 +114,14 @@ export const FACTION_LEADERS: readonly LeaderSpan[] = [
 const norm = (s: string): string => s.toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim();
 const mentions = (text: string, name: string): boolean => new RegExp(`(^| )${norm(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}( |$)`).test(norm(text));
 
+/** Whether a place (with its aliases) is among these names, by whole words. */
+export function placeAmong(place: string, aliases: readonly string[], placeNames: readonly string[]): boolean {
+  return placeNames.some((p) => [place, ...aliases].some((n) => mentions(p, n)));
+}
+
 /** The control spans at `bby` for any of these place names (a location and its ancestors), in table order. */
 export function controlAt(placeNames: readonly string[], bby: number): ControlSpan[] {
-  return WORLD_CONTROL.filter((c) => bby <= c.fromBby && bby >= c.toBby && placeNames.some((p) => [c.place, ...(c.aliases ?? [])].some((n) => mentions(p, n))));
+  return WORLD_CONTROL.filter((c) => bby <= c.fromBby && bby >= c.toBby && placeAmong(c.place, c.aliases ?? [], placeNames));
 }
 
 /** The leaders in office at `bby`. */

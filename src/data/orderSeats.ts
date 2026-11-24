@@ -1,7 +1,9 @@
 // Where the Jedi Order is based, by campaign year (Docs/SWRPG lore/SW_Legends_Galaxy_Timeline.md; D-02 generalized
 // by D-155: every era, not only the Old Republic). Years are calendar years (negative = BBY). `estimate` marks a
 // boundary the lore files do not date (a design default, a question for Jared).
-export interface OrderSeat {
+import type { OutcomeLinks } from './worldControl';
+
+export interface OrderSeat extends OutcomeLinks {
   fromYear: number;
   /** Exclusive. */
   toYear: number;

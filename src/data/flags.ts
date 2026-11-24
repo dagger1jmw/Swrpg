@@ -31,6 +31,7 @@ export const FLAGS: readonly FlagDef[] = [
   { id: 'forbiddenAccess', param: true, sources: ['engine'], section: 'engine', readBy: 'learning forbidden abilities (Q27)' },
   { id: 'staleness', sources: ['engine'], section: 'engine', readBy: 'choices must include a forward jump' },
   { id: 'settlingIn', sources: ['engine'], section: 'engine', readBy: 'pacing' },
+  { id: 'sceneOutcome', param: true, sources: ['engine'], section: 'engine', readBy: 'world-event conditions (spec/world-events.md; D-466)' },
   // §5 Player background flags (set at creation)
   { id: 'homeworld', param: true, sources: ['player'], section: 'background', readBy: 'backstory facts, context' },
   { id: 'warYears', param: true, sources: ['player'], section: 'background', readBy: 'character creation E/CI, closed form' },

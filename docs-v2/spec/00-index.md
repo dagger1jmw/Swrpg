@@ -31,6 +31,7 @@ Status key: **Replaced** = a decided spec covers it fully. **Partly replaced** =
 | v170-audit.md | Earlier audit of V170 vs v2 (verified in bugs.md §4) |
 | m8-world-checklist.md | M8 world checklist: the open items (blockade, economy, medicine, droids, XP sources and more) |
 | m8-design-notes.md | M8 design notes: blockades, weapon proficiency, species traits and ages, world events, wartime postings, equipment, economy, renown, the Sith acolyte curriculum, medicine, ships, droids (exported from Claude Docs, revision 40, 2026-11-23; the Claude Docs version is the working copy; D-465) |
+| world-events.md | World events as built: the tag network (tags, guards, the ripple, the freeze, plot points, the narrator hand-off) |
 | world-event-tags-draft.md | World event tag map, 3661–3640 BBY (design data for the tag network in the design notes; reviewed by Jared 2026-11-23, rulings in its section 6) |
 | world-event-tags-1000BBY-4ABY-draft.md | World event tag map, 1000 BBY–4 ABY (reviewed by Jared 2026-11-23, rulings in its section 8; the PP-0 alternatives are still open; LF rows not re-checked) |
 
@@ -51,7 +52,7 @@ Status key: **Replaced** = a decided spec covers it fully. **Partly replaced** =
 | 11-alignment.md | Equilibrium, drift, dark pressure, Will of the Force | Replaced | alignment |
 | 12-milestones-rank-life-stage.md | Jedi/Sith milestones, rank, life stage | Replaced | ranks, ai-events `promotionProposed`, training-routines (Order requirements) |
 | 13-calendar-and-time.md | GSC calendar, clock, birthdays, age, date writers | Needs spec | Calendar shape decided in v170-audit; names and clock module need a spec |
-| 14-world-state-and-events.md | World state, galaxy events, story threads, story flags | Needs spec | ai-events for event application only |
+| 14-world-state-and-events.md | World state, galaxy events, story threads, story flags | Partly: galaxy events and Legacy Changes by world-events.md (D-466) | ai-events for event application only |
 | 15-story-memory.md | Campaign summary, recentHistory, sync blocks | Needs spec | None |
 | 16-lore-injection.md | LORE_DATABASE, era lore, context building | Needs spec, keep as data | npc-generation and force-catalog for numbers; lore selection needs a spec |
 | 17-training-simulator.md | Sim activities, drills, mandatory rows, day loop, transition scene | Replaced, keep as data | training-routines, progression-numbers, health, alignment |

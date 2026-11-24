@@ -23,6 +23,7 @@ import { CONTINUE_WORDS, STOP_SPAR_WORDS } from '../data/combatWords';
 import type { CombatActionInput } from './record';
 import { selectPacingLevel } from '../features/pacing/selectors';
 import { selectPerformance, selectRust } from '../features/progression/selectors';
+import { selectActionMatters, selectWorldAction } from '../features/world/selectors';
 import { resolveTraining, type TrainingCard, type TrainingRequest } from '../features/progression/selectors';
 import { DEFAULT_TRAINING_HOURS } from './expandChoice';
 import { advanceTime } from '../state/advanceTime';
@@ -432,6 +433,9 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       checks.push(card);
       report.push(...notes);
       state = { ...state, meta: { ...state.meta, rngState: next } };
+      // A rolled action counts against the world conditions it is about (D-466); nothing is recorded otherwise.
+      const deed = { actionType: intent.actionType, skillId: validSkill ? skillId : null, total: card.total, targets: [...new Set([...intent.targets, ...intent.references])] };
+      if (selectActionMatters(state, selectWorldAction(state, deed))) apply([{ type: 'worldActionRecorded', ...deed }]);
     }
 
     // Training: one computeXp session, applied through engine events before its time passes (M3).

@@ -279,7 +279,7 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         if (!npc) return { reject: `unknown npc ${id}` };
         if (npc.status === 'deceased') return { slice };
         // A canon figure killed in the campaign diverges from its canon spans (D-419).
-        const diverged = npc.canonId && !npc.canonDiverged ? { canonDiverged: { day: selectNow(ctx.state).day, reason: 'killed' as const } } : {};
+        const diverged = npc.canonId && !npc.canonDiverged ? { canonDiverged: { day: selectNow(ctx.state).day, reason: 'killed' as const, recordedBy: 'engine' as const } } : {};
         return { slice: update(slice, id, { status: 'deceased', ...diverged }), notes: [`${npc.name} dies (${String(e['cause'])})`] };
       },
     },
@@ -304,9 +304,14 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         const npc = slice.byId[id];
         if (!npc) return { reject: `unknown npc ${id}` };
         if (!npc.canonId) return { reject: `${id} is not a canon figure: nothing to diverge from` };
-        if (npc.canonDiverged) return { slice };
+        const recordedBy = ctx.source === 'ai' ? ('narrator' as const) : ('engine' as const);
+        // The first divergence stands, but the engine's own record replaces a narrator's report (its day stays).
+        if (npc.canonDiverged) {
+          if (recordedBy !== 'engine' || npc.canonDiverged.recordedBy === 'engine' || npc.canonDiverged.reason === 'killed') return { slice };
+          return { slice: update(slice, id, { canonDiverged: { day: npc.canonDiverged.day, reason: e['reason'] as 'captured' | 'turned' | 'removed', recordedBy } }) };
+        }
         const reason = e['reason'] as 'captured' | 'turned' | 'removed';
-        return { slice: update(slice, id, { canonDiverged: { day: selectNow(ctx.state).day, reason } }), notes: [`${npc.name} leaves the canon course (${reason}): no later canon promotions`] };
+        return { slice: update(slice, id, { canonDiverged: { day: selectNow(ctx.state).day, reason, recordedBy } }), notes: [`${npc.name} leaves the canon course (${reason}): no later canon promotions`] };
       },
     },
     // Player: resolves a review-queue name to an existing NPC.

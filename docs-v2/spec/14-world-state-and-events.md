@@ -60,7 +60,16 @@ Audited: `legacy/index.html` (V170). All line numbers were checked against the f
 ## Replaced by
 - Event application in general: Replaced by ai-events.md (AI returns schema-checked events; code applies them).
 - NPC stats and growth: Replaced by npc-generation.md.
-- Galaxy simulation, story threads, Legacy Changes and story flags as systems: **None — needs a v2 spec.**
+- Galaxy events and Legacy Changes: Replaced by world-events.md (D-466).
+- Faction simulation, story threads and story flags as systems: **None — needs a v2 spec.**
+
+## Superseded by the tag network (D-466, M8 Phase A; world-events.md)
+- **The Legacy Change framework** (kept below as written) is superseded as a system. Its three levels become the ripple: an *Era Change* is an altered event whose outcomes still come; a *Faction Change* and a *Legacy Change* are a diverged event and the events its broken outcomes reach. The size of a change comes from the network, not from a label.
+- **The CRITICAL / HIGH / MEDIUM / LOW tags** and "scan all scripted events tagged CRITICAL" are replaced by crucial and replaceable tags and by the outcomes each event consumes.
+- **Status `modified` / `cancelled`** become `altered` / `cancelled` (plus substituted and adjusted).
+- **`galaxyEventQueue` and the "Legacy Change detected" notice** are replaced by the hand-off's untold news; **`lineageRecord`** and **`legacyChanges`** by the saved network state (broken tags, diverged events, chosen alternatives).
+- **Open questions 1 to 3 below are answered:** (1) code-driven: events fire on their date unless their tags break; the weighted background rolls (D-136) stay beside it. (2) Legacy Changes come back as the network; the old record does not. (3) Flags that can break a tag are engine-only. Question 4 (overdue story threads) is not part of this.
+- **Not superseded:** the faction seeds keyframe (numbers for factions and renown, later in M8).
 
 ## Open questions for Jared
 1. Do you want a code-driven galaxy simulation (canon events firing on date unless changed), or only AI-proposed background events?

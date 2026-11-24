@@ -277,6 +277,7 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     recorded: active.sparring !== null,
     skillId: duel.a.skillId,
     day: selectNow(s).day,
+    locationId: s.locations.currentId,
     duel,
     session: active.session ?? null,
   };

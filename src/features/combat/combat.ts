@@ -89,6 +89,8 @@ export const fightSummarySchema = z.object({
   /** The form fought with (recording review). */
   skillId: z.string(),
   day: z.number().int(),
+  /** Where it was fought (D-466: a won fight can count against a world condition at its place). Absent in older saves. */
+  locationId: z.string().nullable().optional(),
   /** The final duel state (the last turn's roll cards and narration). Engine-made. */
   duel: z.any().optional(),
   /** A sparring session's bouts and how it ended (D-168). */

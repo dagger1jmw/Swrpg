@@ -53,9 +53,10 @@ export const npcSchema = z.object({
   /**
    * A canon figure the campaign has diverged from (D-419): killed, captured, turned or removed from their post, and the
    * day. From that day the figure keeps no later canon promotions (its growth follows only the rank spans begun by then)
-   * and the lore's later whereabouts no longer apply. One-way; absent = the figure follows its canon spans.
+   * and the lore's later whereabouts no longer apply. One-way; absent = the figure follows its canon spans. recordedBy
+   * (D-466): only what the engine recorded (a death, a capture in a fight) breaks a world-event role; absent = narrator.
    */
-  canonDiverged: z.object({ day: z.number().int(), reason: z.enum(['killed', 'captured', 'turned', 'removed']) }).optional(),
+  canonDiverged: z.object({ day: z.number().int(), reason: z.enum(['killed', 'captured', 'turned', 'removed']), recordedBy: z.enum(['engine', 'narrator']).optional() }).optional(),
 });
 
 export const npcsSliceSchema = z.object({ byId: z.record(z.string(), npcSchema) });

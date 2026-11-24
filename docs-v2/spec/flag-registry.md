@@ -45,6 +45,7 @@ a promotion the player plays as a scene. The AI narrates; it cannot trigger it.
 | forbiddenAccess:<abilityId> | engine | a registered Sith text item is gained, or a teacher who knows the ability is the character's teacher (Q27) | learning forbidden abilities |
 | staleness | engine | the pacing day hook (architecture §8) | choices must include a forward jump |
 | settlingIn | engine | arrival at a new major location or life stage (architecture §8) | pacing |
+| sceneOutcome:<id> | engine | a feature handler resolves a scene a world-event condition names (D-466; nothing sets one yet) | world-event conditions (world-events.md) |
 
 ## 5. Player background flags (set at creation)
 | Flag | Sources | Read by |

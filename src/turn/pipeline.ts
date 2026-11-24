@@ -44,7 +44,7 @@ import { fightMinionRef, refResolver, resolveIntentRefs } from './refs';
 import { resolveTurn, type Resolution } from './resolve';
 import { skipAheadChoice } from './skipAhead';
 import { choicesAfterTurn, outsideForceOpponents, withoutForceOnImmune } from './fightChoices';
-import { selectUntoldWorldEvents } from '../features/world/selectors';
+import { selectWorldIdsToTell } from '../features/world/selectors';
 
 export interface TurnDeps {
   registry: Registry<GameState>;
@@ -452,8 +452,8 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   }
   state = { ...state, meta: { ...state.meta, turn: state.meta.turn + 1 } };
 
-  // World events this narration was given are now told (D-136).
-  const told = selectUntoldWorldEvents(resolved).map((e) => e.id);
+  // World events and timeline news this narration was given are now told (D-136, D-466).
+  const told = selectWorldIdsToTell(resolved);
   if (told.length) {
     const w = applyEvents(deps.registry, state, [{ type: 'worldEventsTold', ids: told, turn: state.meta.turn }], { source: 'engine' });
     state = w.state;
