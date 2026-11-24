@@ -76,7 +76,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Prime — Jedi Master, teacher of Exar Kun
 - **Species / Affiliation / Rank:** Krevaaki · Jedi Order · Master
 - **Lifespan:** Active through the Great Sith War; killed by Exar Kun on Coruscant (3,996 BBY)
-- **Summary:** A wise, respected Master who carried a staff-cane and trained many students on Dantooine — including, to his grief, Exar Kun. He confronted his fallen apprentice in the Senate Hall and died against Kun's new double-bladed lightsaber. His spirit later returned at Yavin 4 to help destroy Kun.
+- **Summary:** A wise, respected Master who carried a staff-cane and trained many students on Dantooine — including, to his grief, Exar Kun. He confronted his fallen apprentice in the Senate Hall and died against Kun's new double-bladed lightsaber. 
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -100,9 +100,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 ## Arca Jeth
 - **Sheet snapshot:** Prime — Jedi Master and Watchman of Onderon
-- **Species / Affiliation / Rank:** Arkanian · Jedi Order · Master, Watchman of the Onderon system
+- **Species / Affiliation / Rank:** Arkanian–Sephi hybrid · Jedi Order · Master, Watchman of the Onderon system
 - **Lifespan:** Active through the Beast Wars and Freedon Nadd Uprising; murdered by the Krath before the war
-- **Summary:** Trained Ulic and Cay Qel-Droma and Tott Doneeta. As Watchman of Onderon he ended the 300-year Beast Wars with battle meditation and banished Freedon Nadd's influence from Iziz. His death at Krath hands drove Ulic on his fateful infiltration mission.
+- **Summary:** Trained Ulic and Cay Qel-Droma and Tott Doneeta. As Watchman of Onderon he ended the 400-year Beast Wars with battle meditation and banished Freedon Nadd's influence from Iziz. His death at Krath hands drove Ulic on his fateful infiltration mission.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -154,7 +154,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Prime — Jedi Knight, Ulic's younger brother
 - **Species / Affiliation / Rank:** Human · Jedi Order · Knight
 - **Lifespan:** Active 4,000–3,996 BBY; killed by his brother Ulic at the Battle of Ossus
-- **Summary:** An Alderaanian Jedi trained under Arca Jeth, a gifted mechanic who replaced his own lost limbs with cybernetics. He never stopped loving his brother even after Ulic's fall — and was struck down by Ulic's own hand at Ossus, a fratricide that began Ulic's redemption.
+- **Summary:** An Alderaanian Jedi trained under Arca Jeth, a gifted mechanic who replaced his own lost left arm with a prosthetic. He never stopped loving his brother even after Ulic's fall — and was struck down by Ulic's own hand at Ossus, a fratricide that began Ulic's redemption.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -179,7 +179,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Prime — Jedi Knight, beast-speaker
 - **Species / Affiliation / Rank:** Twi'lek · Jedi Order · Knight
 - **Lifespan:** Active 4,000–3,996 BBY; survived the war
-- **Summary:** A former slave found and trained by Arca Jeth, with a rare innate gift for communicating with and bonding beasts — decisive in the Beast Wars when he won over the Boma and drexl creatures.
+- **Summary:** A former slave found and trained by Arca Jeth, with a rare innate gift for communicating with and bonding beasts — on Onderon the three Jedi tamed wild bomas on the way to Fortress Kira.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -208,7 +208,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Pre-fall prime — gifted, prideful Jedi Knight descending into the dark
 - **Species / Affiliation / Rank:** Human · Jedi Order (student of Vodo-Siosk Baas) · Knight
 - **Lifespan:** This snapshot ~3,997 BBY, before Marka Ragnos crowns him Dark Lord
-- **Summary:** The most gifted and most arrogant of Baas's students, consumed by curiosity about the forbidden history of the Sith. He stole the Tedryn Holocron, learned of Freedon Nadd, and struck out against his master's wishes. Even before his fall he was an exceptional duelist — uniquely, already trained across all seven classic forms, with Niman his favored discipline.
+- **Summary:** The most gifted and most arrogant of Baas's students, consumed by curiosity about the forbidden history of the Sith. He secretly opened his Master's Tedryn Holocron and was caught and rebuked, learned of Freedon Nadd, and struck out against his master's wishes. Even before his fall he was an exceptional duelist — uniquely, already trained across all seven classic forms, with Niman his favored discipline.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -223,7 +223,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
   **Form ratings (game stats):** Shii-Cho 80 · Makashi 78 · Soresu 70 · Ataru 84 · Shien/Djem So 76 · **Niman 86** · Juyo 72
 - **Force Abilities (game stats):** Telekinesis 82 *(Force Push 78%, Force Throw 65%)* · Force Body 80 *(Force Speed 80%, Enhance Attribute 62%)* · Force Sense 82 *(Precognition 75%)* · Mind Trick 55 *(Force Persuasion 50%)*
 - **Signature Ability:** **Voracious Force-talent** — a once-in-a-generation aptitude across combat and Force study, paired with a reckless hunger for forbidden knowledge.
-- **Notable Feats:** Baas's most gifted student; stole the Tedryn Holocron; tracked Nadd's secrets across Onderon, Dxun, and Korriban.
+- **Notable Feats:** Baas's most gifted student; secretly read the Tedryn Holocron; tracked Nadd's secrets across Onderon, Dxun, and Korriban.
 - **Alignment:** Light → falling.
 - **Tier:** Elite — high-Master dueling on the cusp of legendary; already all-seven-forms trained.
 
@@ -249,7 +249,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Force Abilities (game stats):** Sith Alchemy 105 *(Midi-chlorian Manipulation 95%)* · Telekinesis 98 *(Force Push 90%, Force Throw 85%)* · Force Lightning 88 *(Chain Lightning 80%, Force Storm 60%)* · Force Body 95 *(Force Speed 95%, Enhance Attribute 82%)* · Mind Probe 85 *(Mind Control 78%)* · Force Sense 92 *(Precognition 88%)*
 - **Unique techniques:** **Spirit-binding** *(bound his spirit to Yavin 4, surviving ~4,000 years)* · **Sith battle-magic** *(mass life-drain to power his last defense)*
 - **Signature Ability:** **Sith sorcery & spirit-binding** — mastery of Sith alchemy and battle-magic culminating in draining an entire population and binding his own spirit to survive bodily death for four millennia.
-- **Notable Feats:** Anointed Dark Lord by Ragnos's ghost; founded the Brotherhood; invented the saberstaff; killed Vodo-Siosk Baas and Chancellor Sidrona; engineered the Cron Supernova; bound his spirit to Yavin 4 (menacing Luke's students ~3,500 years later).
+- **Notable Feats:** Anointed Dark Lord by Ragnos's ghost; founded the Brotherhood; invented the saberstaff; killed Vodo-Siosk Baas and Chancellor Sidrona; engineered the Cron Supernova; bound his spirit to Yavin 4 (menacing Luke's students about 4,000 years later, in 11 ABY).
 - **Alignment:** Dark side (absolute).
 - **Tier:** **Legendary** (dueling / Sith sorcery / will).
 
@@ -263,7 +263,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Pre-fall prime — heroic Jedi Knight, Arca Jeth's finest student
 - **Species / Affiliation / Rank:** Human · Jedi Order · Knight
 - **Lifespan:** This snapshot ~4,000–3,997 BBY, before his fall
-- **Summary:** An Alderaanian Jedi trained under Arca Jeth and regarded as his finest student — a natural leader, formidable duelist, and courageous Knight. He ended the Beast Wars, fought the Freedon Nadd Uprising, fell in love with Nomi Sunrider, and recklessly proposed the Krath infiltration that consumed him.
+- **Summary:** An Alderaanian Jedi trained under Arca Jeth and regarded as his finest student — a natural leader, formidable duelist, and courageous Knight. He fought in the Beast Wars (Arca Jeth's battle meditation won the last battle) and the Freedon Nadd Uprising, fell in love with Nomi Sunrider, and recklessly proposed the Krath infiltration that consumed him.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -278,7 +278,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
   **Form ratings (game stats):** Shii-Cho 78 · Makashi 70 · Ataru 74 · Shien/Djem So 78
 - **Force Abilities (game stats):** Telekinesis 80 *(Force Push 78%)* · Force Body 80 *(Force Speed 80%, Enhance Attribute 65%)* · Force Sense 82 *(Precognition 78%)* · Battle Meditation 60 *(Force Valor 55%)*
 - **Signature Ability:** **Natural war-leader** — a charismatic, courageous commander whom others instinctively followed.
-- **Notable Feats:** Ended the Beast Wars; fought the Freedon Nadd Uprising; Arca Jeth's finest student.
+- **Notable Feats:** Fought in the Beast Wars and the Freedon Nadd Uprising; Arca Jeth's finest student.
 - **Alignment:** Light side (about to fall).
 - **Tier:** Elite (Jedi Knight / duelist / leader).
 
@@ -315,7 +315,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 ## Mandalore the Indomitable
 - **Sheet snapshot:** Prime — Mandalore, leader of the Mandalorian Crusaders
-- **Species / Affiliation / Rank:** Human (Mandalorian) · Mandalorian Crusaders · Mandalore (the title)
+- **Species / Affiliation / Rank:** Taung (Mandalorian) · Mandalorian Crusaders · Mandalore (the title)
 - **Lifespan:** Active in the Great Sith War (3,996 BBY); died on Dxun shortly after
 - **Summary:** Led the Crusaders during the war. After Ulic bested him in single combat, he pledged the clans to Ulic's cause, fighting with Basilisk war droids. A warrior of immense prowess bound by an honorable code. He died on Dxun, his mask passing down the Mandalorian line.
 
@@ -391,7 +391,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Freedon Nadd
 - **Sheet snapshot:** Prime — fallen Jedi, Dark Lord of Onderon (as a living being)
 - **Species / Affiliation / Rank:** Human · Jedi → Sith · Dark Lord of the Sith, King of Onderon
-- **Lifespan:** Lived ~4,400–4,350 BBY; persisted as a Dark Lord spirit for centuries afterward
+- **Lifespan:** Fell in 4,400 BBY and ruled Onderon for more than a hundred years (died after c. 4,300 BBY); persisted as a Dark Lord spirit for centuries afterward
 - **Summary:** A fallen Jedi who sought Naga Sadow's dark knowledge, became a Sith Lord, and conquered Onderon. Long after death his spirit manipulated events for centuries — setting the Keto cousins on the Sith path, foretelling Ulic's fall, and trying to use Exar Kun to regain a body, only for Kun to destroy his spirit. *(This sheet is his living prime.)*
 
 | Core | Value | | Force | Value |

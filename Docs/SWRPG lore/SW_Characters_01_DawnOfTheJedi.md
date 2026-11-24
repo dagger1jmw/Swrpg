@@ -386,7 +386,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Predor Tul'kar
 - **Sheet snapshot:** Prime — Rakatan Predor, Xesh's master
 - **Species / Affiliation / Rank:** Rakata · Infinite Empire · Predor
-- **Lifespan:** Active early in the invasion; killed by Xesh (under Skal'nas's control) aboard the *Devourer*
+- **Lifespan:** Active early in the invasion; killed by Xesh in the chaos after the *Devourer* was wrecked (25,793 BBY)
 - **Summary:** Discovered Xesh's potential and trained him as a Force Hound, valuing him so highly he would defy even Skal'nas to keep him. Cruel and arrogant, he was murdered by his own prized Force Hound.
 
 | Core | Value | | Force | Value |
@@ -526,7 +526,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Naro & Calleh | Selkath | Mated Temple Masters of Mahara Kesh (Healing) | 50 | 56 | 56 | 80 | 74 | 80 | 78 | 84 | 82 | 80 | 66 | *(none)* | Force Heal 84 *(self/other)* · Meditation 82 |
 | Master Ruhr | (unspecified) | Temple Master of Padawan Kesh (academy) | 56 | 60 | 60 | 78 | 76 | 82 | 76 | 80 | 80 | 72 | 72 | 55 | Battle Meditation 72 · Telekinesis 68 |
 | Dam-Powl | Cathar | Acting alchemy Master, Anil Kesh | 64 | 66 | 66 | 80 | 70 | 84 | 78 | 80 | 84 | 82 | 76 | 55 | Sith Alchemy 80 *(Midi 60%)* · Force Heal 75 |
-| Predor Ore'mun | Rakata | Skal'nas's spy | 70 | 66 | 72 | 70 | 60 | 70 | 72 | 55 | 66 | 72 | 62 | 68 | Telekinesis 65 · Force Sense 72 *(Farsight 60%)* |
+| Ore'mun | Rakata | Skal'nas's spy; killed by Tul'kar on Tatooine (25,793 BBY) | 70 | 66 | 72 | 70 | 60 | 70 | 72 | 55 | 66 | 72 | 62 | 68 | Telekinesis 65 · Force Sense 72 *(Farsight 60%)* |
 
 ---
 

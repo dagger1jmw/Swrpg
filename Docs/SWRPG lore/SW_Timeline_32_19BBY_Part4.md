@@ -168,7 +168,7 @@ What the existing files get wrong or leave unconfirmed, against the rows above.
 9. **Battle of Mygeeto length.** About two years (from early 21 BBY) vs a "weeks"-long assault in the Outer Rim Sieges framing; both can be true (a long siege with a final assault); confirm. **Ruled 24 Nov 2026 (default):** both.
 10. **Reflex Amendment year.** 21 BBY (its page) vs 20 BBY (year page). **Ruled 24 Nov 2026 (default):** 21 BBY (no best fit stated).
 11. **501st founding.** 22 BBY (current) vs "around 21 BBY" (2008); the 2008 date is primary under the coordinator's instruction, but the year page has the 501st at Geonosis. **Ruled 24 Nov 2026 (default):** 22 BBY (no best fit stated).
-12. **TCW-only characters list.** Rule 4a removes them; this file names the main ones but did not check every character's first appearance. A full list is needed before building NPC rosters. **Ruled 24 Nov 2026:** TCW-only characters do not exist; Ahsoka is the ruled exception (with Savage Opress, Talzin and Satine kept in Maul's return). Events and lore that add without contradicting stay. No full list yet.
+12. **TCW-only characters list.** Rule 4a removes them; this file names the main ones but did not check every character's first appearance. A full list is needed before building NPC rosters. **Ruled (Jared, 24 Nov 2026), D-479:** TCW characters stay, named, when their events do not conflict with primary Legends; only Captain Rex is replaced (by Appo). Ahsoka is Plo Koon's apprentice. Satine, Pre Vizsla, Bo-Katan, Almec and the TCW Mandalore are on hold.
 
 ## Sources
 Current pages (Wookieepedia, fetched 24 Nov 2026 through the API):

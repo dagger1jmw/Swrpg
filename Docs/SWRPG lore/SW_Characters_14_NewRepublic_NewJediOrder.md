@@ -79,7 +79,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Prime (this era) — former Emperor's Hand redeemed into a Jedi Master; Luke's partner and wife
 - **Species / Affiliation / Rank:** Human · New Jedi Order / Smugglers' Alliance (Karrde's org) · Jedi Knight → Master
 - **Lifespan:** Emperor's Hand until Endor (Era 13); redeemed and trained through this era; marries Luke ~19 ABY
-- **Summary:** Palpatine's former assassin (Era 13), freed of the Emperor's dying compulsion to kill Luke when she instead fought beside him and killed the Luuke clone. She built a new life as a trader under Talon Karrde, then trained as a Jedi under Luke — her Imperial combat skills and iron will making her a fast, formidable student. Sharp-tongued, fiercely independent, and lethal, she rose to **Jedi Master** and became Luke's partner and wife, a cornerstone of the New Order. A skilled duelist and a powerful, disciplined Force-user.
+- **Summary:** Palpatine's former assassin (Era 13), freed of the Emperor's dying compulsion to kill Luke when she instead fought beside him and killed the Luuke clone. She built a new life as a trader under Talon Karrde, then trained briefly at the Praxeum, under Luke and Kyle Katarn — her Imperial combat skills and iron will making her a fast, formidable student. Sharp-tongued, fiercely independent, and lethal, she rose to **Jedi Master** and became Luke's partner and wife, a cornerstone of the New Order. A skilled duelist and a powerful, disciplined Force-user.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -275,8 +275,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ### Imperial Remnant & dark side
 | Name | Species | Role / Affiliation | STR | AGI | END | WIL | CHA | INT | FSense | Med | FKnow | FCtrl | FOut | Top Forms / Combat | Top Force Abilities |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Gilad Pellaeon | Human | Captain → Admiral; leader of the Imperial Remnant | 54 | 56 | 62 | 84 | 82 | 84 | — | — | — | — | — | Naval command 84 | N/A — Thrawn's successor; honorable; signs the Bastion Accords (19 ABY) |
-| Admiral Daala | Human | Imperial warlord; commander at the Maw | 52 | 56 | 60 | 82 | 70 | 74 | — | — | — | — | — | Naval command 72 | N/A — ruthless; tried to unify the warlords; Kyp destroyed much of her fleet |
+| Gilad Pellaeon | Human | Captain → Vice Admiral (10 ABY) → Fleet Admiral and Supreme Commander (19 ABY); leader of the Imperial Remnant | 54 | 56 | 62 | 84 | 82 | 84 | — | — | — | — | — | Naval command 84 | N/A — Thrawn's successor; honorable; signs the Bastion Accords (19 ABY) |
+| Admiral Daala | Human | Imperial warlord; commander at the Maw | 52 | 56 | 60 | 82 | 70 | 74 | — | — | — | — | — | Naval command 72 | N/A — ruthless; executed thirteen warlords at Tsoss Beacon (12 ABY); Kyp destroyed the Hydra and the Basilisk, the Manticore was lost at Mon Calamari |
 | Rukh | Noghri | Thrawn's bodyguard/assassin | 80 | 88 | 78 | 78 | 50 | 58 | — | — | — | — | — | Stealth/melee 86 | N/A — assassinated Thrawn at Bilbringi when the Noghri learned of the betrayal |
 | Lumiya (Shira Brie) | Human | Dark Lady of the Sith; Vader's secret apprentice | 64 | 80 | 70 | 84 | 78 | 84 | 80 | 70 | 78 | 82 | 80 | Lightwhip 84 · Makashi 76 | Force Lightning 78 · Telekinesis 76 — central to Legacy of the Force (Era 16) |
 | Desann | Chistori | Dark Jedi; sought Valley of the Jedi power | 88 | 74 | 84 | 82 | 70 | 74 | 78 | 66 | 74 | 80 | 90 | Djem So 84 · Shii-Cho 78 | Force Body 88 *(Enhance Attribute 90%)* · Force Enrage 82 — massive reptilian Dark Jedi; defeated by Kyle Katarn |

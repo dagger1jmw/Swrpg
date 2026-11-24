@@ -6,6 +6,8 @@ Legends lore reference for SWRPG. Researched Nov 24, 2026. Sources: Wookieepedia
 Part 2 continues the timeline from Part 1 and covers 1,010–1,000 BBY: the founding of the Brotherhood of Darkness and the Army of Light, every battle of the Light and Darkness War that Wookieepedia lists, Darth Bane's path (Apatros, the Gloom Walkers on Kashyyyk and Phaseera, the Korriban academy, Lehon, Ambria, Ruusan), all seven battles of Ruusan with what is known of each, the thought bomb, the Rule of Two and the Ruusan Reformations, then the undated rows of the whole war. The pages disagree on several dates (Third and Fourth Ruusan, Kashyyyk, Hsskhor, Harpori, Balowa, Battle of Hoth) and on who broke the Sith blockade; every case is tagged [conflict] here and listed in Part 3.
 
 ## Entries (continued)
+
+## NEW SITH WARS — 2,000–1,000 BBY (continued)
 Same columns and Type values as Part 1. Wookieepedia's own order of the Ruusan events is used where it gives one (for example, its battle boxes put the Duel on Lehon between the Fifth and Sixth battles).
 
 #### 1,010–1,003 BBY — The Brotherhood of Darkness and the Army of Light

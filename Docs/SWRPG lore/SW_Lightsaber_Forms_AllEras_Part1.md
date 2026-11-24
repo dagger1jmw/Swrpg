@@ -262,7 +262,7 @@ Covers the seven classic Jedi forms (Shii-Cho, Makashi, Soresu, Ataru, Shien/Dje
 | Yoda | Late Republic | Mastered it "to its highest level" | [Form IV/Legends §Applications](https://starwars.fandom.com/wiki/Form_IV/Legends) |
 | Qui-Gon Jinn | Late Republic | Notable user | [Form IV/Legends §Intro](https://starwars.fandom.com/wiki/Form_IV/Legends) |
 | Obi-Wan Kenobi | Late Republic | Mastered it under Qui-Gon, then shifted to Soresu | [Form IV/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_IV/Legends) |
-| Anakin Skywalker | Clone Wars | Studied it briefly as a Padawan; later proficient; taught Ahsoka | [Form IV/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_IV/Legends) |
+| Anakin Skywalker | Clone Wars | Studied it briefly as a Padawan; later proficient [Ruled (Jared, 24 Nov 2026): "taught Ahsoka" dropped; she is Plo Koon's apprentice] | [Form IV/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_IV/Legends) |
 | Darth Maul | Late Republic | Practitioner | [Form IV/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_IV/Legends) |
 | Kas'im; Set Harth | New Sith Wars | Practitioners (Kas'im used a dual-saber variant) | [Form IV/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_IV/Legends) |
 | Scourge | Old Republic (Cold War) | Used it to beat two acolytes | [Form IV/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_IV/Legends) |
@@ -305,7 +305,7 @@ Covers the seven classic Jedi forms (Shii-Cho, Makashi, Soresu, Ataru, Shien/Dje
 
 #### Shien variants
 - **Reverse (horizontal) Shien grip:** the hilt is held backward, for long sweeping strikes against several enemies, "whipping the blade forward with the movement of throwing a punch". It was rare and "almost a matter of controversy" among masters. [Form V/Legends §Shien](https://starwars.fandom.com/wiki/Form_V/Legends)
-  - Users: Adi Gallia (both grips), Ahsoka Tano (Anakin discouraged it), Luminara Unduli (sometimes), Nikkos Tyris (who taught it to his followers, i.e. the Jensaarai), Revan, Quinlan Vos, Galen Marek, Starkiller, the Dark Apprentice. [Form V/Legends §Shien](https://starwars.fandom.com/wiki/Form_V/Legends)
+  - Users: Adi Gallia (both grips), Ahsoka Tano (Plo Koon's apprentice, Ruled (Jared, 24 Nov 2026)), Luminara Unduli (sometimes), Nikkos Tyris (who taught it to his followers, i.e. the Jensaarai), Revan, Quinlan Vos, Galen Marek, Starkiller, the Dark Apprentice. [Form V/Legends §Shien](https://starwars.fandom.com/wiki/Form_V/Legends)
   - Kenobi used basic Shien with the reverse grip to deflect bolts on Naboo, before he learned Soresu. [Form V/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_V/Legends)
   - The Imperial Saber Guard "strongly favored" Shien-style reverse grips. [Lightsaber combat/Legends §Developments during the Great Jedi Purge](https://starwars.fandom.com/wiki/Lightsaber_combat/Legends)
 - **Sith Shien:** a Sith variant is named, but how it differed is not specified. [Form V/Legends §Shien](https://starwars.fandom.com/wiki/Form_V/Legends) [unclear]
@@ -400,7 +400,7 @@ Covers the seven classic Jedi forms (Shii-Cho, Makashi, Soresu, Ataru, Shien/Dje
 | Johun Othone | New Sith Wars | Battlefield user; skills later faded | [Form VI/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_VI/Legends) |
 | Kas'im | New Sith Wars | Full mastery; taught it | [Form VI/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_VI/Legends) |
 | Darth Sidious | Late Republic | "May have mastered" it; well versed in the dual-blade variant; taught Maul | [Form VI/Legends §Practitioners [unclear]](https://starwars.fandom.com/wiki/Form_VI/Legends) |
-| Obi-Wan Kenobi; Anakin Skywalker | Late Republic | Studied it; Anakin advanced enough to teach Ahsoka the lower levels | [Form VI/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_VI/Legends) |
+| Obi-Wan Kenobi; Anakin Skywalker | Late Republic | Studied it; Anakin advanced enough to teach the lower levels [Ruled (Jared, 24 Nov 2026): the page's pupil, Ahsoka, is Plo Koon's apprentice] | [Form VI/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_VI/Legends) |
 | Dooku | Late Republic | Considerable skill; taught Grievous | [Form VI/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_VI/Legends) |
 | Cin Drallig | Late Republic | Its most prolific instructor (thousands of students) | [Form VI/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_VI/Legends) |
 | Sarrissa Jeng, Sar Labooda, Joclad Danva | Clone Wars | Died at Geonosis (Danva: renowned duelist, Jar'Kai master) | [Form VI/Legends §Practitioners](https://starwars.fandom.com/wiki/Form_VI/Legends) |

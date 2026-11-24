@@ -94,7 +94,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Sheet snapshot:** Prime — founder and General of the Legions of Lettow
 * **Species / Affiliation / Rank:** Human · Legions of Lettow · General
 * **Lifespan:** Active \~24,500 BBY; killed at the Battle of Columus
-* **Summary:** A Jedi Knight who left the Order to found an academy studying alternative Force traditions. The resulting war was the First Great Schism — the first open conflict between light and dark. Killed at Columus by Grand Master Awdrysta Pina; his legacy inspired the Exiles 17,500 years later.
+* **Summary:** A Jedi Knight who left the Order to found an academy studying alternative Force traditions. The resulting war was the First Great Schism — the first open conflict between light and dark. Killed at Columus by Grand Master Awdrysta Pina.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -146,7 +146,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Awdrysta Pina — Jedi Grand Master
 
 * **Sheet snapshot:** Prime — Jedi Grand Master during the First Great Schism
-* **Species / Affiliation / Rank:** Tchuukthai · Jedi Order · Grand Master
+* **Species / Affiliation / Rank:** Human · Jedi Order · Grand Master
 * **Lifespan:** Active \~24,500 BBY; died of wounds on Irkalla after defeating Arden Lyn
 * **Summary:** The Jedi Grand Master who led the Order to victory in the First Great Schism. He slew Xendor at Columus, then cornered Arden Lyn on Irkalla. Mortally wounded, he spent his dying breath performing the rare morichro technique to stop her heart — ending the war.
 
@@ -179,7 +179,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Sheet snapshot:** Prime — High General → first Dark Lord of the Sith
 * **Species / Affiliation / Rank:** Human · Dark Jedi Exiles → Sith Empire · High General → Dark Lord (Jen'ari)
 * **Lifespan:** Led the Hundred-Year Darkness; founded the Sith Empire \~6,900 BBY; spirit redeemed by Revan \~3,956 BBY
-* **Summary:** Leader of the Dark Jedi who waged the century-long Hundred-Year Darkness. He slew over a dozen Jedi at Corbos, was exiled, and — guided by Sorzus Syn to Korriban — beheaded the Sith King Hakagram Graush with the king's own war-sword, convinced the Sith the Exiles were gods, and became the first Dark Lord. His restless spirit was finally redeemed by Revan thousands of years later.
+* **Summary:** Leader of the Dark Jedi who waged the century-long Hundred-Year Darkness. He was defeated at Corbos, where more than a dozen Jedi died, was exiled, and on Korriban beheaded the Sith King Hakagram Graush with the king's own war-sword, convinced the Sith the Exiles were gods, and became the first Dark Lord. His restless spirit was finally redeemed by Revan thousands of years later.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -190,11 +190,11 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Charisma|90||ForceOutput|92|
 |Intelligence|88||||
 
-* **Lightsaber Forms / Bladework:** A powerful Dark Jedi swordsman and battlefield general who fought with both a proto-saber and the captured Sith war-sword of King Graush. Aggressive, dominant, tireless — he personally cut down more than a dozen Jedi at Corbos.
+* **Lightsaber Forms / Bladework:** A powerful Dark Jedi swordsman and battlefield general who fought with both a proto-saber and the captured Sith war-sword of King Graush. Aggressive, dominant, tireless.
 **Bladework rating (game stats):** 88
 * **Force Abilities (game stats):** Force Lightning 85 *(Chain Lightning 82%)* · Telekinesis 88 *(Force Push 82%, Force Throw 82%)* · Mind Probe 85 *(Mind Control 82% — convinced an entire species the Exiles were gods)* · Force Body 85 *(Enhance Attribute 82%, Force Speed 62%)* · Force Sense 84 *(Battle Precognition 62%)*
 * **Signature Ability:** **Dominion of the first Dark Lord** — battlefield Force power plus the political mastery to subjugate an entire species.
-* **Notable Feats:** Led the Dark Jedi through the Hundred-Year Darkness; slew over a dozen Jedi at Corbos; beheaded Hakagram Graush; became the first Dark Lord of the Sith.
+* **Notable Feats:** Led the Dark Jedi through the Hundred-Year Darkness; beheaded Hakagram Graush; became the first Dark Lord of the Sith.
 * **Alignment:** Dark side (spirit later redeemed).
 * **Tier:** **Legendary** (founder-tier dark Force power / leadership).
 
@@ -203,9 +203,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Sorzus Syn — architect of Sith alchemy and lore
 
 * **Sheet snapshot:** Prime — Dark Jedi alchemist, founding Sith Lord
-* **Species / Affiliation / Rank:** Human (female) · Dark Jedi Exiles → Sith Empire · Sith Lord
+* **Species / Affiliation / Rank:** Humanoid (female) · Dark Jedi Exiles → Sith Empire · Sith Lord
 * **Lifespan:** Hundred-Year Darkness veteran; founded the Sith Order \~6,900 BBY; created her own holocron late in life
-* **Summary:** The intellectual architect of the Sith tradition. A master of flesh-shaping alchemy who grew living weapons and biological plagues, she guided the Exiles to Korriban, recorded the foundational Sith teachings, forged the three Great Amulets, discovered Sith-human alchemical crossbreeding, and authored a holocron studied down to Darth Bane's era.
+* **Summary:** The intellectual architect of the Sith tradition. A master of flesh-shaping alchemy who grew living weapons and biological plagues, she gathered the rumours that the Sith kingdom existed, recorded the foundational Sith teachings, forged the three Great Amulets, discovered Sith-human alchemical crossbreeding, and authored a holocron studied down to Darth Bane's era.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -257,7 +257,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## XoXaan — Marchioness, famed Sith healer
 
 * **Sheet snapshot:** Prime — Dark Jedi commander of the Black Legions, founding Sith Lord
-* **Species / Affiliation / Rank:** Human (female) · Dark Jedi Exiles → Sith Empire · Marchioness; later a Shadow Hand
+* **Species / Affiliation / Rank:** Humanoid (female) · Dark Jedi Exiles → Sith Empire · Marchioness; later a Shadow Hand
 * **Lifespan:** Hundred-Year Darkness veteran; founding Sith Lord \~6,900 BBY; revered into the Legacy era
 * **Summary:** Marchioness and commander of the Black Legions who charged at Corbos. One of Ajunta Pall's Shadow Hands and renowned as one of the greatest Sith healers in history — her lore endured so long that Darth Krayt, 4,000 years later, revered her as his "first and greatest Sith teacher."
 
@@ -285,7 +285,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 * **Sheet snapshot:** Prime — Dark Jedi Admiral, founding Sith Lord
 * **Species / Affiliation / Rank:** Human · Dark Jedi Exiles → Sith Empire · Baron / Admiral
-* **Lifespan:** Hundred-Year Darkness veteran; founding Sith Lord \~6,900 BBY; later sealed in stasis, surviving into the Lost Tribe era
+* **Lifespan:** Hundred-Year Darkness veteran; founding Sith Lord \~6,900 BBY; sealed in his own oubliette on Kesh by his followers (c. 6,900 BBY), freed and killed there in 2,974 BBY
 * **Summary:** The Exiles' last surviving fleet admiral and a key architect of Sith philosophy — he preached living only for oneself. He created **oubliettes** inflicting a conscious living death and built one to imprison his rival Karness Muur. Restless and ambitious, he repeatedly sought to return to the stars for revenge.
 
 |Core|Value||Force|Value|
@@ -342,7 +342,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
 |Dathka Graush|Sith|Earlier Sith warlord-king (\~7,000 BBY)|76|66|78|86|70|84|78|72|88|84|84|80|Sith Sorcery 84 · Sith Alchemy 80 *(Midi 70%)* · Force Lightning 78|
 |Yshaar Kael|Sith|Betrayer of Adas|70|70|70|72|64|64|70|60|68|70|68|72|Telekinesis 68 · Force Lightning 60|
-|Danzigorro Potts|Human|Jedi Padawan, sole survivor of Columus|50|56|54|70|60|66|64|66|62|60|56|55|Telekinesis 58 · Force Sense 64|
+|Danzigorro Potts|Human|Jedi Padawan; died of wounds at Columus after recording the Columus Data Card|50|56|54|70|60|66|64|66|62|60|56|55|Telekinesis 58 · Force Sense 64|
 |The 7 lesser Exiles|Various|Minor Dark Jedi lords (the Jen'jidai)|60|62|64|80|65|76|74|70|80|80|78|65|Sith Alchemy 75 · Force Lightning 70 · Telekinesis 70|
 |Kissai priest caste|Sith|Sith priesthood of Korriban|45|50|52|70|60|72|68|66|78|64|64|40|Sith Sorcery 70 · Sith Alchemy 60|
 

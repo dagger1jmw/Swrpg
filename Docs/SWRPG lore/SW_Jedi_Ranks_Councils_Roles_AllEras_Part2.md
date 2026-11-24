@@ -201,7 +201,7 @@ Part 2 of 2, covering 1000 BBY to c. 138 ABY: the four Coruscant Councils of the
 | Dooku | 32 BBY | resigned, retired to Serenno and claimed his title of Count; the 20th of the Lost | [Dooku/Legends §Leaving the Order](https://starwars.fandom.com/wiki/Dooku/Legends); [Lost Twenty/Legends §History](https://starwars.fandom.com/wiki/Lost_Twenty/Legends) |
 | Bardan Jusik | Clone Wars | a Knight who left; not counted among the Lost because not a Master | [Lost Twenty/Legends §History](https://starwars.fandom.com/wiki/Lost_Twenty/Legends) |
 | Codi Ty | Clone Wars | stripped of his rank as Commander and apprentice and exiled after an unsanctioned mission against Grievous | [Jedi Commander/Legends §Notable Jedi Commanders](https://starwars.fandom.com/wiki/Jedi_Commander/Legends) |
-| Ahsoka Tano | late Clone Wars (*TCW* season 5, "The Wrong Jedi") | expelled by the Council under pressure from Tarkin and the Senate so she could face a military tribunal; after acquittal she was offered return and declined | [Ahsoka Tano/Legends §Trial and aftermath](https://starwars.fandom.com/wiki/Ahsoka_Tano/Legends); [Ahsoka Tano/Legends §Personality and traits](https://starwars.fandom.com/wiki/Ahsoka_Tano/Legends) |
+| Ahsoka Tano | late Clone Wars (*TCW* season 5, "The Wrong Jedi") | [Ruled (Jared, 24 Nov 2026): not used; she is Plo Koon's apprentice and never leaves the Order, dying in Order 66 at Cato Neimoidia (Ruled, not lore)] On the page: expelled by the Council under pressure from Tarkin and the Senate so she could face a military tribunal; after acquittal she was offered return and declined | [Ahsoka Tano/Legends §Trial and aftermath](https://starwars.fandom.com/wiki/Ahsoka_Tano/Legends); [Ahsoka Tano/Legends §Personality and traits](https://starwars.fandom.com/wiki/Ahsoka_Tano/Legends) |
 | Swarm War Jedi | 36 ABY | Luke ordered Jedi who could not put the Order first to resign; Tahiri Veila, Lowbacca and Tesar Sebatyne were exiled temporarily to Dagobah | [Jedi High Council (New Jedi Order) §Masters' Council](https://starwars.fandom.com/wiki/Jedi_High_Council_%28New_Jedi_Order%29); [Exile (punishment)/Legends §Examples of exile](https://starwars.fandom.com/wiki/Exile_%28punishment%29/Legends) |
 | Corran Horn | early NJO | left the Order and later returned | [New Jedi Order §Philosophies](https://starwars.fandom.com/wiki/New_Jedi_Order) |
 | Kenth Hamner | 44 ABY | removed as acting Grand Master by the Council (a no-confidence vote led by Saba Sebatyne) and confined; killed after attacking | [Master of the Order/Legends §History](https://starwars.fandom.com/wiki/Master_of_the_Order/Legends); [Jedi High Council (New Jedi Order) §Post-Second Galactic Civil War](https://starwars.fandom.com/wiki/Jedi_High_Council_%28New_Jedi_Order%29) |
@@ -213,7 +213,6 @@ Part 2 of 2, covering 1000 BBY to c. 138 ABY: the four Coruscant Councils of the
     - only Masters who left (*New Essential Guide to Characters*).
 
     The Masters-only reading fits Jusik's case. [Lost Twenty/Legends §Behind the scenes](https://starwars.fandom.com/wiki/Lost_Twenty/Legends); [Lost Twenty/Legends §History](https://starwars.fandom.com/wiki/Lost_Twenty/Legends)
-  - [unclear] Ahsoka's departure has no year on the page.
   - The Lost Missions episode "Destiny" (2014, Canon) is cited on that page for a related vision; it is not used here.
 
 ### Dark Times (19 BBY–4 ABY)
@@ -336,8 +335,7 @@ Part 2 of 2, covering 1000 BBY to c. 138 ABY: the four Coruscant Councils of the
 - **Late Republic:**
   - a stated total for the Order;
   - the leaders of the three smaller Councils (only the Caretaker of First Knowledge is defined);
-  - members of the Council of Reassignment;
-  - the date of Ahsoka's expulsion.
+  - members of the Council of Reassignment.
 - **Dark Times:** any governing body or rank promotions (the sources say none).
 - **NJO:**
   - an exact date for the Masters' Council's founding (see [conflict]);

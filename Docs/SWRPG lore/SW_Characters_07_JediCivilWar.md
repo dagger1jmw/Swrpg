@@ -137,7 +137,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Bastila Shan
 - **Sheet snapshot:** Prime — Jedi Sentinel, battle-meditation prodigy
 - **Species / Affiliation / Rank:** Human · Jedi Order · Padawan → Knight → Master (Jedi Sentinel)
-- **Lifespan:** Born ~3,979 BBY on Talravin; pivotal in the Jedi Civil War (3,959–3,956 BBY); survived the subsequent purge; later a Master and ancestor of the Shan line
+- **Lifespan:** Born roughly ten years after Meetra Surik (year not given), on Talravin; pivotal in the Jedi Civil War (3,959–3,956 BBY); survived the subsequent purge; later a Master and ancestor of the Shan line
 - **Summary:** A Jedi Sentinel prodigy whose mastery — at a remarkably young age — of the rare art of **battle meditation** made her the single most strategically valuable Jedi in the war: able to bolster an entire fleet's morale and coordination while shattering the enemy's will, deciding battles by thought alone. The sole survivor of the strike team that captured Darth Revan, she saved his life and formed a deep Force bond with him, then guided the mind-wiped Revan toward the Star Forge. She fell in love with him; was captured and tortured to the dark side by Malak; was redeemed by Revan; and turned the Battle of Rakata Prime with her battle meditation. She married Revan, bore Vaner Shan, and became the **ancestor of Satele and Theron Shan** — and of the player-character bloodline in your campaign. Her dueling (a yellow double-bladed saber) is solid but secondary; her war-winning gift is the Force.
 
 | Core | Value | | Force | Value |
@@ -217,7 +217,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 ## Carth Onasi
 - **Sheet snapshot:** Prime — Republic soldier and ace pilot
-- **Species / Affiliation / Rank:** Human · Republic Military · veteran soldier/pilot → Admiral
+- **Species / Affiliation / Rank:** Human · Republic Navy · Commander (3,958–3,956 BBY; lieutenant from 3,964) → Admiral
 - **Lifespan:** Active through the Mandalorian Wars and Jedi Civil War; promoted to Admiral afterward
 - **Summary:** A loyal, battle-scarred Republic war hero and one of its finest pilots, embittered by the betrayal of his mentor Saul Karath and the loss of his family. He escaped the Sith with the amnesiac Revan, helped find Bastila on Taris, and became a steadfast member of the *Ebon Hawk* crew through to the Star Forge. Later an Admiral of the Republic Navy.
 

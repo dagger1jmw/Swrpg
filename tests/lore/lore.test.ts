@@ -44,6 +44,9 @@ describe('lore parsing', () => {
   it('reads years with or without the thousands comma, and "between X and Y" (lore batch 20)', () => {
     expect(parseYearRange('3681 BBY')).toEqual(parseYearRange('3,681 BBY'));
     expect(parseYearRange('3681–3653 BBY')).toEqual({ from: -3681, to: -3653 });
+    // A decimal year is cut to its year, not read from its decimals (D-480).
+    expect(parseYearRange('32.5 BBY')).toEqual({ from: -32, to: -32 });
+    expect(parseYearRange('6.5–7 ABY')).toEqual({ from: 6, to: 7 });
     expect(parseYearRange('between 3,636 and 3,630 BBY')).toEqual({ from: -3636, to: -3630 });
   });
   it('parses character headings with parentheticals and alias lists', () => {
@@ -78,7 +81,7 @@ describe('lore parsing', () => {
   it('reads the 3,700–3,600 BBY slice in place of the old rows, with no research notes (lore batch 20)', () => {
     const tl = built.chunks.filter((c) => c.id.startsWith('tl:'));
     expect(tl.some((c) => /\[(conflict|inferred|unclear)|https?:|SW_\w|\(rows? \d/.test(c.text))).toBe(false);
-    expect(tl.some((c) => c.text.includes('Dustig Trace'))).toBe(false); // an old unsourced row, removed
+    expect(tl.some((c) => /Dustig Trace absorbed/.test(c.text))).toBe(false); // an old unsourced row, removed
     const rhenVar = tl.find((c) => c.text.includes('Battle of Rhen Var'))!;
     expect([rhenVar.fromYear, rhenVar.toYear]).toEqual([-3654, -3653]); // ruling 16: not a front in 3,661
     expect(tl.find((c) => c.id === 'tl:cold-war:-3642_-3642')!.text).toContain('Balmorra is freed'); // ruling 15
@@ -216,9 +219,10 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
     const t = LORE_INDEX.chunks.filter((x) => x.kind === 'timeline' || x.kind === 'overview').map((x) => x.text).join('\n');
     expect(t).not.toMatch(/Ruled 24 Nov|\[S-canon|\[conflict/);
     expect(t).toMatch(/Ahsoka Tano, Plo Koon's apprentice, is killed in Order 66 with Plo Koon's forces on Cato Neimoidia/);
-    // TCW-only characters do not exist (D-478): Appo has Rex's role, and Ahsoka is not Anakin's Padawan anywhere the narrator reads.
+    // TCW characters stay, named, but Captain Rex, whose role is Appo's (D-479); Ahsoka is not Anakin's Padawan anywhere the narrator reads.
     const all = LORE_INDEX.chunks.map((x) => x.text).join('\n');
-    expect(all).not.toMatch(/\bRex\b|Admiral Trench|\bTrench's|Loathsom|Mar Tuuk|Ziro|Ima-Gun|Syndulla|Nahdar|took \*{0,2}Ahsoka|Anakin's Padawan/);
+    expect(/\bRex\b|took \*{0,2}Ahsoka|Anakin's Padawan/.exec(all)?.[0]).toBeUndefined();
+    for (const n of ['Admiral Trench', 'Whorm Loathsom', 'Mar Tuuk', 'Ziro the Hutt', 'Ima-Gun Di', 'Cham Syndulla', 'Nahdar Vebb', 'Pong Krell', 'Savage Opress', 'Mother Talzin']) expect(all.includes(n), n).toBe(true);
     expect(all).toMatch(/Commander Appo/);
     expect(t).toMatch(/Maul is born on Dathomir to Kycina/);
     expect(t).not.toMatch(/Battle of Jabiim dated to the war's first months|Torbin is killed by an assassin droid that crashes/);
@@ -227,6 +231,29 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
     expect(at(-3653)).not.toMatch(/Shadow Syndicate/);
     expect(at(-3643)).toMatch(/The Exchange is beaten by the Shadow Syndicate/);
     expect(at(-41)).toMatch(/Anakin Skywalker is born/);
+  });
+  it('the sets of 24 Nov 2026 are in the index, as ruled (D-480)', () => {
+    const rows = LORE_INDEX.chunks.filter((x) => x.kind === 'timeline');
+    const at = (y: number): string => rows.filter((x) => x.fromYear === y && x.toYear === y).map((x) => x.text).join('\n');
+    const t = LORE_INDEX.chunks.filter((x) => x.kind === 'timeline' || x.kind === 'overview').map((x) => x.text).join('\n');
+    const has = (text: string, re: RegExp): boolean => re.test(text);
+    expect(/Ruled \(Jared|Decisions needed|First Imperial Civil War|\[weak|Blank centuries|activated by General Meetra Surik|nearly six billion/.exec(t)?.[0]).toBeUndefined();
+    expect(has(at(-25053), /Corellian and Duros engineers/)).toBe(true);
+    expect(has(at(-6900), /Dreypa's own followers seal him in his oubliette/)).toBe(true);
+    expect(has(at(-5000), /Sadow emerges victorious|Who won at the funeral/)).toBe(false);
+    expect(has(at(-4999), /Ritual of Nathema/)).toBe(true);
+    expect(has(at(-3996), /a Sith strategic victory and a tactical defeat/)).toBe(true);
+    expect(has(at(-3960), /On Surik's order Bao-Dur then activates the Mass Shadow Generator/)).toBe(true);
+    expect(has(at(-3950), /Revan kills Nyriss/)).toBe(true);
+    expect(has(at(-3750), /Duel on Coruscant/)).toBe(true);
+    expect(has(at(6), /Liberation of Coruscant/)).toBe(true);
+    expect(has(at(7), /Ton Phanan died on Halmad/)).toBe(true);
+    // Two sections with no year in their heading never reached the index: the series' first year, and the road to Ruusan.
+    expect(has(at(-22), /Battle of Christophsis: Admiral Trench blockades/)).toBe(true);
+    expect(has(at(-1010), /Brotherhood of Darkness/)).toBe(true);
+    // 3,997 BBY is the Krath Holy Crusade's; the Great Sith War is 3,996 BBY alone.
+    expect(LORE_INDEX.chunks.some((x) => x.id === 'tl:great-sith-war:-3997_-3997')).toBe(false);
+    expect(LORE_INDEX.chunks.some((x) => x.id === 'tl:krath-holy-crusade:-3997_-3997')).toBe(true);
   });
   it('the slices join the timeline', () => {
     expect(fileKey('SW_Timeline_3700_3600BBY_Part1.md')).toBe('tl');

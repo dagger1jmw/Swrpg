@@ -261,5 +261,6 @@ Periods where a rule is silent because the files state nothing.
 
 ## From the lore rulings of 24 Nov 2026 (D-477)
 - **Maul's title:** Jared reads *Darth Plagueis* (Luceno, 2012) as Sidious giving Maul the title of Darth behind Plagueis's back; Darth Maul/Legends does not say so. Check against the novel.
-- **TCW-only characters** (they do not exist; D-478): a full list, checked page by page. Not yet checked, still named in [S-canon] rows: Rotta, Katuunko, Nuvo Vindi, Kharrus, Chi Cho, Queen Karina, Pong Krell, Pre Vizsla, Bo-Katan, Almec. Files outside the index that still make Ahsoka Anakin's Padawan: SW_Jedi_Training_AllEras_Part2, SW_Jedi_Ranks_Councils_Roles_AllEras_Part2, SW_Lightsaber_Forms_AllEras_Part1.
+- **TCW Mandalore on hold (D-479):** Satine, Pre Vizsla, Bo-Katan, Almec and the TCW Mandalore stay as they are until the pre-TCW vs TCW Mandalorian comparison is ruled. Other TCW characters stay where nothing in primary Legends conflicts.
 - **Character files against the rulings:** SW_Characters_11 (Maul dies at Naboo), the Ventress, Grievous and Yaddle entries, and SW_Characters_10 (Kas'im and orbalisk armour).
+- **Sadow's spirit (D-480, for Jared and the SWTOR-era tag map):** two accepted rulings clash. 5,000–3,997 item 7: Nadd kills Sadow in 4,400 BBY and destroys the spirit with him. 3,950–3,701 item 7: Ovair's duel (c. 3,750 BBY) destroys the spirit, and Nadd destroying it stays out of the timeline. The rows follow the second. *Shadow of Revan* then shows the spirit after both.

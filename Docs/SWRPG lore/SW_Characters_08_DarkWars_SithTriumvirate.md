@@ -53,7 +53,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Darth Traya (Kreia)
 - **Sheet snapshot:** Prime — Dark Lord of the Sith, head of the Triumvirate; the Lord of Betrayal
 - **Species / Affiliation / Rank:** Human (female) · Jedi Order → Sith Triumvirate · Jedi Master/Historian → Dark Lord of the Sith
-- **Lifespan:** A Jedi Master before the Mandalorian Wars (one of Revan's teachers); fell and became Darth Traya; betrayed and exiled by her own apprentices; reclaimed the title; died at Malachor V (3,950 BBY)
+- **Lifespan:** A Jedi Master before the Mandalorian Wars (one of Revan's teachers); fell and became Darth Traya; betrayed and exiled by her own apprentices; reclaimed the title; died at Malachor V (3,951 BBY)
 - **Summary:** Once **Kreia**, a contemplative Jedi Master, historian, and one of Revan's teachers, she was exiled by the Council when her students followed Revan to war. Retracing Revan's path to Malachor V, she fell and became **Darth Traya**, gathering the Force-wounds Sion and Nihilus as apprentices to form the Triumvirate — only to be betrayed and cast out by them, then reclaim her mantle. Her true goal was singular and heretical: she had come to **hate the Force itself**, and sought to kill it, to free the galaxy from its will. A master manipulator who guided and tested Meetra Surik even while opposing her. Her combat is Master-tier; her true weapons are knowledge, prophecy, and betrayal.
 
 | Core | Value | | Force | Value |
@@ -82,7 +82,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Prime — Dark Lord of the Sith, a living wound in the Force
 - **Species / Affiliation / Rank:** Human (former; now a robed void) · Sith Triumvirate · Dark Lord of the Sith
 - **Lifespan:** A Mandalorian-Wars survivor of Malachor V; rose to power in the Dark Wars; destroyed at the Battle of Telos IV (3,951 BBY)
-- **Summary:** Once a being who lost everything at Malachor V, he survived the Mass Shadow Generator's detonation — an experience that transformed him into a **wound in the Force** with an insatiable hunger to consume Force energy. Taught by Kreia to feed that hunger, he became **Darth Nihilus, the Lord of Hunger** — barely a person anymore, just a robed void of need that drains the life and Force from everything around it. He consumed the entire Force-sensitive population of Katarr in a single act, and his mere presence aboard his flagship *Ravager* killed his own crew. His power to devour is legendary and world-ending — but he is so hollowed-out that he is a less refined duelist than his raw power suggests, and vulnerable to those (like Surik) immune to his hunger.
+- **Summary:** Once a being who lost everything at Malachor V, he survived the Mass Shadow Generator's detonation — an experience that transformed him into a **wound in the Force** with an insatiable hunger to consume Force energy. Taught by Kreia to feed that hunger, he became **Darth Nihilus, the Lord of Hunger** — barely a person anymore, just a robed void of need that drains the life and Force from everything around it. He killed every living thing on Katarr but Visas Marr in a single act, and his mere presence aboard his flagship *Ravager* killed his own crew. His power to devour is legendary and world-ending — but he is so hollowed-out that he is a less refined duelist than his raw power suggests, and vulnerable to those (like Surik) immune to his hunger.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -107,7 +107,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Darth Sion — the Lord of Pain
 - **Sheet snapshot:** Prime — Dark Lord of the Sith, the immortal corpse-warrior
 - **Species / Affiliation / Rank:** Human (former; now a reanimated ruin) · Sith Triumvirate · Dark Lord of the Sith
-- **Lifespan:** An ancient Sith warrior who died many times; active through the Dark Wars; finally let himself die at Malachor V (3,950 BBY)
+- **Lifespan:** An ancient Sith warrior who died many times; active through the Dark Wars; finally let himself die at Malachor V (3,951 BBY)
 - **Summary:** An ancient Sith warrior whose body is **literally in pieces** — every bone broken, muscle torn, skin scorched and rotted — kept alive and held together by nothing but his **hatred and pain channeled through the dark side**. He feels agony every waking moment and turns it into power and an essentially **unkillable** body: cut him down and his rage reassembles him. Trained by Kreia, he became **Darth Sion, the Lord of Pain**, a brutal duelist obsessed with destroying the Jedi. He hunted Surik across the galaxy and could only be defeated by breaking his *will* to keep suffering.
 
 | Core | Value | | Force | Value |
@@ -154,7 +154,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Force Abilities (game stats):** Battle Meditation 88 *(Force Valor 82%)* · Force Sense 88 *(Battle Precognition 80%, Precognition 75%)* · Telekinesis 84 *(Force Push 78%)* · Force Body 78 *(Force Speed 75%)* · Force Heal 80 *(self/other 72%)*
 - **Unique techniques:** **Force-bond mastery ("the Wound made whole")** *(forges deep Force connections — draws others into the Force, teaches and empowers allies, awakens latent Force-sensitives — and is immune to Force-drain; the inverse let her sever her own connection at Malachor)*
 - **Signature Ability:** **Force-bond mastery** — an unmatched gift for forging deep Force connections, empowering allies, and awakening latent Force-sensitives; her wound-in-the-Force nature makes her immune to Force-drain.
-- **Notable Feats:** Activated the Mass Shadow Generator at Malachor V; survived as a wound in the Force; reconnected and retrained herself; redeemed Visas Marr; broke Darth Sion's will; destroyed Darth Nihilus (immune to his hunger); confronted Darth Traya at Malachor; trained a new circle of Jedi.
+- **Notable Feats:** Ordered the Mass Shadow Generator fired at Malachor V; survived as a wound in the Force; reconnected and retrained herself; redeemed Visas Marr; broke Darth Sion's will; destroyed Darth Nihilus (immune to his hunger); confronted Darth Traya at Malachor; trained a new circle of Jedi.
 - **Alignment:** Light side.
 - **Tier:** **Legendary** (Force-bond / empowerment specialist); elite duelist; Master-tier overall Force.
 
@@ -352,7 +352,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 > **Cross-era appearance notes:**
 > - **Meetra Surik** survives the Triumvirate and departs to find Revan. In 3,950 BBY she tracks him to **Dromund Kaas**, allies with **Lord Scourge**, and the three attack the **Sith Emperor (Vitiate)**. Scourge — having foreseen the Emperor would be killed by a *different* Jedi — betrays them and stabs Surik, killing her and leading to Revan's capture. As a **Force ghost** she sustains the imprisoned Revan for ~300 years (SWTOR era). Appearance note only.
-> - **Mandalore the Preserver** continues rebuilding the clans toward the Mandalorian resurgence of the Great Galactic War era (Era 09).
+> - **Mandalore the Preserver** continues rebuilding the clans, but they stay fragmented for nearly three centuries; the Great Galactic War resurgence comes under Mandalore the Lesser, made Mandalore by Imperial Intelligence c. 3,667 BBY (Era 09).
 > - **HK-47, T3-M4, G0-T0** persist into the SWTOR era.
 > - **Revan** spends most of this era held prisoner by Darth Nyriss on Dromund Kaas. At the era's close (3,950 BBY), Surik frees him and they attack the Sith Emperor — the attempt fails, Surik is killed by Scourge, and Revan is captured and placed in stasis for ~300 years. His Prisoner incarnation is flagged for Era 09.
 

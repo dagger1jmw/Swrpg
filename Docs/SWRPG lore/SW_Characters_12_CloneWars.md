@@ -137,7 +137,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Prime (late-war) — Plo Koon's Padawan, Jedi Commander (Ruled 24 Nov 2026)
 - **Species / Affiliation / Rank:** Togruta · Jedi Order · Padawan → Jedi Commander
 - **Lifespan:** 36 BBY – 19 BBY; Plo Koon's Padawan through the Clone Wars; killed in Order 66 with Plo Koon's forces on Cato Neimoidia (Ruled 24 Nov 2026, not lore: no source gives a place)
-- **Summary:** The spirited Togruta Padawan of Plo Koon — headstrong, gifted, quick-witted, growing over the war into a formidable young warrior and commander. She fought across countless battles, developing an aggressive **Shien (reverse-grip Form V)** dual-wielding style. She dies in Order 66 with her Master's forces. (A Clone Wars-series figure, the one TCW-only character ruled to exist.)
+- **Summary:** The spirited Togruta Padawan of Plo Koon — headstrong, gifted, quick-witted, growing over the war into a formidable young warrior and commander. She fought across countless battles, developing an aggressive **Shien (reverse-grip Form V)** dual-wielding style. She dies in Order 66 with her Master's forces. (A Clone Wars-series figure; as Plo Koon's apprentice by ruling.)
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|

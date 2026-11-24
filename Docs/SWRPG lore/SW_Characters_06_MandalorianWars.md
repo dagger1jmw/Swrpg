@@ -50,7 +50,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Revan (I) — the Revanchist (Jedi Knight / Supreme Commander)
 - **Sheet snapshot:** Mandalorian-Wars prime — Jedi Knight, leader of the Revanchists, Supreme Commander of the Republic
 - **Species / Affiliation / Rank:** Human · Jedi Order → Republic Military · Jedi Knight, Supreme Commander
-- **Lifespan:** Born ~3,994 BBY; led the Revanchists from ~3,963 BBY; won Malachor V in 3,960 BBY, then fell to the dark side in the Unknown Regions (see Era 07)
+- **Lifespan:** Born ~3,994 BBY; led the Revanchists from 3,964 BBY; won Malachor V in 3,960 BBY, then fell to the dark side in the Unknown Regions (see Era 07)
 - **Summary:** A charismatic, brilliant Jedi Knight and the most vocal critic of the Council's refusal to enter the Mandalorian Wars. Defying the Order, he donned the mask of a fallen Mandalorian, rallied a third of the Jedi to his "Revanchist" banner, and was made Supreme Commander. A strategic genius who turned the Mandalorians' own tactics against them, he liberated Taris, won at Althir, and forced the final confrontation at Malachor V — where he slew Mandalore the Ultimate in single combat and authorized the Mass Shadow Generator. Trained in close combat by the Echani and a master of both single-blade and dual-blade lightsaber forms, he was already one of the finest duelists of the age before his fall. He wielded a violet blade as a Jedi.
 
 | Core | Value | | Force | Value |
@@ -115,7 +115,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Mandalorian-Wars prime — Jedi Knight / General under Revan
 - **Species / Affiliation / Rank:** Human · Jedi Order → Republic Military · Jedi Knight → General
 - **Lifespan:** Padawan/Knight during the Mandalorian Wars; cut herself off from the Force at Malachor V (3,960 BBY); returned from exile in 3,951 BBY (her post-exile arc is Era 08)
-- **Summary:** A Padawan who, like Revan, defied the Council to fight the Mandalorians, rising to Jedi General. Revan trusted her to command a third of the fleet and to personally activate the Mass Shadow Generator at Malachor V. The psychic backlash of feeling hundreds of thousands die at once led her to instinctively **sever her own connection to the Force** to survive — making her unique: the one Jedi who went to war and neither fell nor was destroyed. *(Her later, Force-reawakened self that dismantles the Sith Triumvirate is statted in Era 08.)*
+- **Summary:** A Padawan who, like Revan, defied the Council to fight the Mandalorians, rising to Jedi General. Revan gave her half his forces at Malachor V, where on her order Bao-Dur activated the Mass Shadow Generator (Ruled (Jared, 24 Nov 2026)). The psychic backlash of feeling hundreds of thousands die at once led her to instinctively **sever her own connection to the Force** to survive — making her unique: the one Jedi who went to war and neither fell nor was destroyed. *(Her later, Force-reawakened self that dismantles the Sith Triumvirate is statted in Era 08.)*
 
 | Core | Value | | Force (wartime) | Value |
 |---|---|---|---|---|
@@ -131,7 +131,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Force Abilities (game stats):** Battle Meditation 86 *(Force Valor 82%)* · Force Sense 84 *(Battle Precognition 78%, Precognition 72%)* · Telekinesis 80 *(Force Push 75%)* · Force Body 78 *(Force Speed 75%)* · Force Barrier 70
 - **Unique techniques:** **Force connection-forging** *(rare gift to form deep Force bonds and "enlighten"/empower allies — and its inverse, severing herself from the Force entirely at Malachor)*
 - **Signature Ability:** **Force connection-forging** — forms deep Force bonds and empowers those around her; later able to teach and rebuild Force-sensitives. At Malachor she demonstrated the inverse — severing herself from the Force.
-- **Notable Feats:** Jedi General under Revan; activated the Mass Shadow Generator at Malachor V; the only war Jedi to return neither fallen nor dead; severed and (later) re-formed her own Force connection.
+- **Notable Feats:** Jedi General under Revan; ordered the Mass Shadow Generator fired at Malachor V; the only war Jedi to return neither fallen nor dead; severed and (later) re-formed her own Force connection.
 - **Alignment:** Light side.
 - **Tier:** Elite–Master (dueling / Force-bond mastery / leadership).
 
@@ -225,8 +225,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Cassus Fett
 - **Sheet snapshot:** Prime — Mandalorian field marshal and strategist
 - **Species / Affiliation / Rank:** Human (Mandalorian) · Mandalorian Neo-Crusaders · Mandalore's primary strategist / field marshal
-- **Lifespan:** Active through the Mandalorian Wars; survived the war (fate afterward unrecorded)
-- **Summary:** Mandalore the Ultimate's most trusted strategist and the architect of the Neo-Crusader doctrine — and one of the deadliest warriors of the age. He won victories even as the tide turned (Jaga's Cluster) and made ruthless calls (the nuclear bombardments of Serroco and Jebble). The most infamous figure of the Cathar genocide. His bloodline echoes down to the most famous Fett of all, millennia later.
+- **Lifespan:** Active through the Mandalorian Wars; survived the war; presumed dead by the Jedi Civil War
+- **Summary:** Mandalore the Ultimate's most trusted strategist and the architect of the Neo-Crusader doctrine — and one of the deadliest warriors of the age. He won victories even as the tide turned (Jaga's Cluster) and made ruthless calls (the nuclear bombardment of Jebble; Serroco was Mandalore the Ultimate's decision). The most infamous figure of the Cathar genocide. His bloodline echoes down to the most famous Fett of all, millennia later.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -241,7 +241,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
   **Form ratings (game stats):** *(none — non-saber warrior; Melee/Ranged combat rating ≈ 84)*
 - **Force Abilities (game stats):** N/A — not Force-sensitive.
 - **Signature Ability:** **Mandalorian war-doctrine & field command** — designed the Neo-Crusader army and led it to victory after victory; a brilliant, merciless tactician and elite personal combatant.
-- **Notable Feats:** Architect of the Neo-Crusaders; victory at Jaga's Cluster; ordered the bombardments of Serroco and Jebble; central figure of the Cathar genocide.
+- **Notable Feats:** Architect of the Neo-Crusaders; victory at Jaga's Cluster; ordered the bombardment of Jebble; central figure of the Cathar genocide.
 - **Alignment:** N/A (Mandalorian creed).
 - **Tier:** Elite (non-Force warrior-strategist); legendary-tier military **Intelligence** (88) for a mortal.
 

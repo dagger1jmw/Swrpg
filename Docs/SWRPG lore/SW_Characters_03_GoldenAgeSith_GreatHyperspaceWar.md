@@ -76,9 +76,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 ## Naga Sadow — Dark Lord who waged the Great Hyperspace War
 - **Sheet snapshot:** Prime — master Sith alchemist, Dark Lord of the Sith
-- **Species / Affiliation / Rank:** Sith (mostly Human-featured) · Sith Empire · Viceroy of Khar Shian → Dark Lord
-- **Lifespan:** Seized the Dark Lordship and waged the Great Hyperspace War in 5,000 BBY; fled to Yavin 4 and died there centuries later
-- **Summary:** A master Sith alchemist and sorcerer who seized on the Daragons' arrival to win the Dark Lordship over Ludo Kressh. He launched the Great Hyperspace War, relying on surprise, Force illusions, and his **meditation sphere** to direct his fleets. His overconfidence undid him; he fled to Yavin 4, where his Massassi worshipped him. His surviving order seeded Vitiate's rebuilt Empire.
+- **Species / Affiliation / Rank:** Human–Sith hybrid (from Ziost) · Sith Empire · Viceroy of Khar Shian → Dark Lord
+- **Lifespan:** Seized the Dark Lordship and waged the Great Hyperspace War in 5,000 BBY; fled to Yavin 4, entered suspended animation and was killed by Freedon Nadd c. 4,400 BBY
+- **Summary:** A master Sith alchemist and sorcerer who seized on the Daragons' arrival to win the Dark Lordship over Ludo Kressh. He launched the Great Hyperspace War, relying on surprise, Force illusions, and his **meditation sphere** to direct his fleets. His overconfidence undid him; he fled to Yavin 4, where his Massassi worshipped him.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -104,7 +104,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Prime — Sith Lord, Sadow's great rival
 - **Species / Affiliation / Rank:** Sith (half-breed) · Sith Empire · Sith Lord; father of Kressh the Younger
 - **Lifespan:** Killed during the Great Hyperspace War (5,000 BBY) when Sadow rammed a ship into his flagship
-- **Summary:** A powerful, conservative Sith Lord and Sadow's bitter rival. An isolationist who correctly judged the Daragons a threat, he faked his own death to expose Sadow's treachery — but his schemes failed and Sadow killed him.
+- **Summary:** A powerful, conservative Sith Lord and Sadow's bitter rival. An isolationist who correctly judged the Daragons a threat, he discovered Sadow's treachery, attacked him at Khar Delba and lost, then faked his own death; Sadow killed him at Korriban.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -119,7 +119,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
   **Bladework rating (game stats):** 78
 - **Force Abilities (game stats):** Battlemind 82 *(combat-clarity amplification)* · Force Body 80 *(Force Speed 82%, Enhance Attribute 82%)* · Sith Alchemy 65 *(devised a protective device for his son)* · Force Lightning 60 *(Chain Lightning 55%)* · Telekinesis 80 *(Force Push 82%)*
 - **Signature Ability:** **Battlemind & dark-side amplification** — amplified his speed, strength, and rage; a proficient Sith alchemist and sorcerer.
-- **Notable Feats:** Contested Sadow for the Dark Lordship; faked his own death and ambushed Sadow's fortress; nearly defeated Sadow in their final fleet duel.
+- **Notable Feats:** Contested Sadow for the Dark Lordship; attacked Sadow's decoy citadel at Khar Delba; faked his own death; nearly defeated Sadow in their final fleet duel.
 - **Alignment:** Dark side.
 - **Tier:** High Master (Sith warrior / sorcerer).
 
@@ -128,7 +128,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Simus — Sith Council elder, Sadow's master
 - **Sheet snapshot:** Prime — Sith Lord and teacher
 - **Species / Affiliation / Rank:** Sith · Sith Empire · Sith Lord / warlord, Sith Council member
-- **Lifespan:** Active under Ragnos's reign; reduced to a disembodied living head sustained by sorcery
+- **Lifespan:** Active under Ragnos's reign; reduced to a disembodied living head sustained by sorcery; killed by Sadow on Ziost in 5,000 BBY to frame the Republic
 - **Summary:** The Sith warlord who trained Naga Sadow. By the late Golden Age he was a living, talking severed head sustained by Sith alchemy — continuing to advise and scheme.
 
 | Core | Value | | Force | Value |
@@ -154,7 +154,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Tenebrae / Lord Vitiate — origin of the immortal Sith Emperor
 - **Sheet snapshot:** **Origin / early prime** — the young Lord Vitiate (NOT his later god-emperor apex; see note)
 - **Species / Affiliation / Rank:** Sith (human-presenting hybrid) · Sith Empire (Medriaas/Nathema) · Lord
-- **Lifespan:** Born ~5,113 BBY; killed his father ~5,100 BBY; named Lord Vitiate at 13; performed the Nathema ritual ~5,000 BBY; led the exodus to Dromund Kaas (4,980 BBY); destroyed permanently ~3,630 BBY
+- **Lifespan:** Born ~5,113 BBY; severed his father Dramath's power and imprisoned his spirit (5,103 BBY); named Lord Vitiate by Marka Ragnos (5,100 BBY); performed the Nathema ritual in 4,999 BBY; led the exodus to Dromund Kaas (4,980 BBY); destroyed permanently ~3,630 BBY
 - **Summary:** Born on the fringe world Medriaas with a terrifyingly strong dark-side connection, the boy Tenebrae massacred thousands before age ten. He killed his true father Lord Dramath in a duel and imprisoned his spirit. Named Lord Vitiate by Marka Ragnos at thirteen, he withdrew to Nathema for a century — then, after Sadow's defeat, summoned the surviving Sith Lords, **mentally enslaved them, and drained the life of every Sith Lord and the entire planet**, making himself effectively immortal. As the self-proclaimed Sith Emperor he led a 20-year exodus to Dromund Kaas and founded the reconstituted Empire.
 
 | Core (origin) | Value | | Force (origin) | Value |
@@ -185,9 +185,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 ## Odan-Urr — Jedi scholar and battle-meditation prodigy
 - **Sheet snapshot:** Prime — Jedi Master, sage, and Keeper of lore
-- **Species / Affiliation / Rank:** Draethos · Jedi Order · Knight (this era) → revered Master and lore-keeper
+- **Species / Affiliation / Rank:** Draethos · Jedi Order · Padawan (5,000 BBY) → revered Master and lore-keeper
 - **Lifespan:** Young Jedi during the Great Hyperspace War (5,000 BBY); long-lived Draethos, slain by Exar Kun ~3,996 BBY
-- **Summary:** A bookish Draethos scholar whose precognitive visions gave the first warning of the Sith invasion. At Kirrek he and Memit Nadill used **battle meditation** to turn the tide. He befriended Jori Daragon, gave her a lightsaber, and became one of history's great loremasters, founding the great Jedi library. *(Appears again in Era 05.)*
+- **Summary:** A bookish Draethos scholar whose precognitive visions gave the first warning of the Sith invasion. At Kirrek in the Unification Wars he and Memit Nadill used **battle meditation** to turn the tide; in the war's own battle of Kirrek his meditation seemed to have no effect and Ooroo's sacrifice won. He befriended Jori Daragon, gave her a lightsaber, and became one of history's great loremasters, founding the great Jedi library. *(Appears again in Era 05.)*
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -203,7 +203,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Force Abilities (game stats):** Battle Meditation 90 *(Force Valor 82% — turned the Battle of Kirrek)* · Force Sense 88 *(**Precognition** 82% — foresaw the Sith invasion)* · Telekinesis 60 · Meditation discipline 82
 - **Unique techniques:** **Loremaster** *(one of history's greatest Jedi loremasters; founded the Great Library)*
 - **Signature Ability:** **Battle meditation** — bolstering allies and breaking enemies, paired with strong precognitive visions.
-- **Notable Feats:** Foresaw the Sith invasion; helped win Kirrek; became a great loremaster; lived nearly 600 years.
+- **Notable Feats:** Foresaw the Sith invasion; helped win Kirrek; became a great loremaster; lived over a thousand years.
 - **Alignment:** Light side.
 - **Tier:** High Master (Force knowledge / battle meditation); standard-tier combatant.
 
@@ -211,7 +211,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 ## Memit Nadill — Jedi Master, adviser to Empress Teta
 - **Sheet snapshot:** Prime — Jedi Master and war adviser
-- **Species / Affiliation / Rank:** Human · Jedi Order · Master; chief Jedi adviser to Empress Teta
+- **Species / Affiliation / Rank:** Green-skinned humanoid with head tendrils (species not given) · Jedi Order · Master; chief Jedi adviser to Empress Teta
 - **Lifespan:** Active during the Unification Wars and the Great Hyperspace War (5,000 BBY)
 - **Summary:** Empress Teta's most trusted Jedi adviser and a battle-meditation practitioner alongside Odan-Urr. A more experienced warrior-Jedi than the scholarly Odan-Urr, he carried the first warning of the invasion to Coruscant.
 
@@ -228,7 +228,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
   **Bladework rating (game stats):** 70
 - **Force Abilities (game stats):** Battle Meditation 80 *(Force Valor 82% — co-won Kirrek)* · Telekinesis 75 *(Force Push 62%)* · Force Sense 82 *(Precognition 60%)* · Force Barrier 60
 - **Signature Ability:** **Battle meditation** — co-wielded with Odan-Urr to turn Kirrek; a seasoned battlefield Jedi and statesman.
-- **Notable Feats:** Adviser to Empress Teta; rescued the Daragons; carried the warning to Coruscant; helped win Kirrek.
+- **Notable Feats:** Adviser to Empress Teta; carried the warning to Coruscant; helped win Kirrek.
 - **Alignment:** Light side.
 - **Tier:** Master (Force / battle meditation).
 
@@ -236,9 +236,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 ## Master Ooroo — Celegian Jedi sage
 - **Sheet snapshot:** Prime — Jedi Master, teacher of Odan-Urr
-- **Species / Affiliation / Rank:** Celegian (ammonia-breathing, in a sealed globe) · Jedi Order · Master
+- **Species / Affiliation / Rank:** Celegian (breathing cyanogen, in a crystalline tank) · Jedi Order · Master
 - **Lifespan:** Active during the Great Hyperspace War; died at the Battle of Kirrek (5,000 BBY)
-- **Summary:** A telepathic, ammonia-dwelling Master and mentor to Odan-Urr. Powerful despite his physical fragility, he defeated a massed force of Massassi at Kirrek but sacrificed his life doing so.
+- **Summary:** A telepathic, cyanogen-breathing Master and mentor to Odan-Urr. Powerful despite his physical fragility, he killed a massed force of Massassi at Kirrek by shattering his tank and releasing the gas, at the cost of his life.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -313,7 +313,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Jori Daragon — hyperspace scout, the Republic's warning
 - **Sheet snapshot:** Prime — hyperspace explorer and war heroine
 - **Species / Affiliation / Rank:** Human · independent hyperspace scout · pilot
-- **Lifespan:** Triggered the war in 5,000 BBY; survived it; died later of natural causes
+- **Lifespan:** Triggered the war in 5,000 BBY; survived it; died later
 - **Summary:** The other half of the Daragon team. She delivered the warning that let the Republic mount a last-ditch defense. Odan-Urr recognized her Force potential and gave her a lightsaber. She survived the war and inherited Aarrba's repair dock.
 
 | Core | Value | | Force | Value |

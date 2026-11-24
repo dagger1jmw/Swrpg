@@ -60,7 +60,8 @@ export const LORE_INDEX_VERSION = 1;
 const unitSign = (u: string): number => (u.toUpperCase() === 'ABY' ? 1 : -1);
 /** Signed year; 0 BBY is year 0 (never -0). */
 const signed = (n: number, u: string): number => (n === 0 ? 0 : n * unitSign(u));
-const num = (s: string): number => Number(s.replace(/,/g, ''));
+/** "32.5 BBY" is in 32 BBY, "7.5 ABY" in 7 ABY: a decimal year is cut to its year (D-480). */
+const num = (s: string): number => Math.floor(Number(s.replace(/,/g, '')));
 
 /**
  * Parses "3,681–3,653 BBY", "19 BBY – 4 ABY", "~3,630–3,625 BBY", "40 ABY", "between 3,636 and 3,630 BBY". Years with
@@ -69,7 +70,7 @@ const num = (s: string): number => Number(s.replace(/,/g, ''));
 export function parseYearRange(text: string): { from: number; to: number } | null {
   const clean = text.replace(/[*\\]/g, '');
   const range =
-    /([\d,]+)\s*(BBY|ABY)?\s*[–-]\s*[~≈]?\s*([\d,]+)\s*(BBY|ABY)/i.exec(clean) ??
+    /([\d,]+(?:\.\d+)?)\s*(BBY|ABY)?\s*[–-]\s*[~≈]?\s*([\d,]+(?:\.\d+)?)\s*(BBY|ABY)/i.exec(clean) ??
     /between\s+([\d,]+)\s*(BBY|ABY)?\s+and\s+([\d,]+)\s*(BBY|ABY)/i.exec(clean);
   if (range) {
     const u2 = range[4]!;
@@ -78,7 +79,7 @@ export function parseYearRange(text: string): { from: number; to: number } | nul
     const b = signed(num(range[3]!), u2);
     return { from: Math.min(a, b), to: Math.max(a, b) };
   }
-  const single = /([\d,]+)\s*(BBY|ABY)/i.exec(clean);
+  const single = /([\d,]+(?:\.\d+)?)\s*(BBY|ABY)/i.exec(clean);
   if (single) {
     const y = signed(num(single[1]!), single[2]!);
     return { from: y, to: y };
@@ -95,7 +96,7 @@ export function cleanMarkdown(line: string): string {
     .replace(/^\s*>\s?/, '')
     .replace(/^\s*[*-]\s+/, '- ')
     .replace(/\*\*|__/g, '')
-    .replace(/(^|[\s(])\*(?=\S)|(?<=\S)\*(?=[\s).,;:]|$)/g, '$1')
+    .replace(/(^|[\s(])\*(?=\S)|(?<=\S)\*(?=[\s).,;:'’-]|$)/g, '$1')
     .replace(/\s+$/, '');
 }
 
@@ -178,15 +179,18 @@ interface Era {
 }
 
 /** Research tags in the bot's timeline rows ("[conflict]", "[inferred]", "[Ruled ...]", "[S-canon]"): kept in the lore file, not sent as story. */
-const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort|S-canon|Ruled)\b[^\]]*\]/gi;
+const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort|S-canon|Ruled|weak|unconfirmed|primary|dating derived)\b[^\]]*\]/gi;
 /** A row a ruling set aside ("[Ruled 24 Nov 2026: not used ...]", D-477): kept in the file as a record, never sent. */
 const RULED_OUT = /\[Ruled [^\]:]*: not used\b/i;
 /** Asides about the files rather than the story: "(see Ord Radama row)", "(SW_Republic_Military_GGW gives the range)", "(ruling 16)". */
 const FILE_ASIDE =
-  /\s*\([^()]*\b(?:SW_\w+|files?|slice|rows?|see|page|pages|Wookieepedia|ruling|lore batch|D-\d+|Decisions? needed|Part \d)\b[^()]*\)/gi;
+  /\s*\([^()]*\b(?:SW_\w+|files?|slice|rows?|see|page|pages|Wookieepedia|ruling|lore batch|D-\d+|Decisions? needed|Part \d|uncited|unreferenced|conjectural title|galactic timeline)\b[^()]*\)/gi;
 /** Overview sentences about the file itself (lore batch 20's slice): "the rows below keep only dates", "the old file has ...". */
 const TIMELINE_META =
   /\bold file\b|\bthis slice\b|\bparser\b|Decisions needed|\brows? (?:below|here)\b|\bin-scope\b|\brebuilt here\b|\btable\b|\bSW_\w+|`|\byear pages?\b|\bLegends year\b/i;
+
+/** "Blank centuries: between ... the year pages record ...": what the research did not find, to the end of its line. */
+const BLANK_YEARS = /\s*\bBlank (?:centuries|stretches|years):.*$/gm;
 
 /** A timeline cell or paragraph as story text: citations, research tags, file asides and "[conflict] ..." notes dropped. */
 function cleanTimelineText(s: string): string {
@@ -204,6 +208,7 @@ function cleanTimelineText(s: string): string {
 /** Overview prose: citations and file-meta sentences dropped (lines kept; list lines stay whole). */
 function cleanTimelineOverview(text: string): string {
   return text
+    .replace(BLANK_YEARS, '')
     .split('\n')
     .map((line) => {
       if (!line.trim() || /^\s*-\s/.test(line)) return line.trim() ? cleanTimelineText(line) : line;
@@ -409,7 +414,7 @@ export function dateOverview(
 
   const own = (s: string): number | null => {
     let years: number[] = [];
-    for (const m of s.matchAll(/([\d,]+)\s*(BBY|ABY)\b/gi)) {
+    for (const m of s.matchAll(/([\d,]+(?:\.\d+)?)\s*(BBY|ABY)\b/gi)) {
       const r = parseYearRange(m[0]);
       if (r) years.push(r.to);
     }

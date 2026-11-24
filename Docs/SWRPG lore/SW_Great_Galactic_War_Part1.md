@@ -39,7 +39,7 @@ Legends lore reference for SWRPG. Researched Nov 21, 2026. Sources: Wookieepedia
     - the Jedi left Coruscant for Tython;
     - "roughly half the galaxy" ended under Sith rule.
   - **Planning:**
-    - The Emperor planned the invasion from as early as 3960 BBY. Revan's efforts delayed it.
+    - The Emperor planned the invasion from as early as 3960 BBY. Revan's efforts, through his mental link with the Emperor, delayed it for almost three centuries; Gnost-Dural's journal speaks of "two and a half centuries of military build-up".
     - After a long build-up, Imperial agents secured the Chiss alliance and installed puppet governments in Outer Rim systems. The Chiss Ascendancy was the Empire's ally from the war's start; the formal treaty terms were negotiated during the war (lore batch 20, ruling 18).
     - The Belkadan, Ruuria and Sernpidal systems were secretly under Imperial control before the first shot.
 
@@ -48,7 +48,7 @@ Legends lore reference for SWRPG. Researched Nov 21, 2026. Sources: Wookieepedia
   - **Republic leadership:**
     - Grand Master Zym led the Jedi Council in agreeing to fight for the Senate. [Zym §Biography](https://starwars.fandom.com/wiki/Zym)
     - Supreme Chancellor Berooken was in office in the "latter days" of the war. [Berooken](https://starwars.fandom.com/wiki/Berooken)
-    - Chancellors before Berooken: see Not found.
+    - Chancellors before Berooken: Tol Cressa, last attested in 3,946 BBY; none is named between the two.
 - **Related:** government structures, offices and treaty terms in SW_SWTOR_Era_Power_Structures_Part1.md / Part2.md; the Jedi Council and Grand Masters in SW_Jedi_Ranks_Councils_Roles_AllEras_Part1.md
 - **Uncertainty:** [conflict] On the galaxy share at the treaty, see Decisions needed.
 

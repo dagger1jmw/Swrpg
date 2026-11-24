@@ -125,7 +125,7 @@ This is Part 1 of 2: the Sith Empire's power structure from the Great Galactic W
   - **How seats were lost** [Dark Council §Early history](https://starwars.fandom.com/wiki/Dark_Council); [Dark Council §Conspiracy against the Emperor](https://starwars.fandom.com/wiki/Dark_Council):
     - **Purges:**
       - Darth Lokess's plot, in the Empire's first centuries: the eleven others died on the Citadel steps.
-      - The Nyriss conspiracy, c. 3950 BBY: the Emperor killed all twelve and appointed twelve new members.
+      - The Nyriss conspiracy, 3950 BBY: the Emperor killed nine, the Imperial Guard two and Revan Darth Nyriss; twelve new members were appointed [Ruled (Jared, 24 Nov 2026)].
     - **Executions:** around 4043 BBY the other ten executed Darths Qalar and Victun after their Kaggath destroyed the Citadel.
   - **After the Great War:** only seven Councilors survived. The Council ruled the new territories from the Citadel on Dromund Kaas. [Dark Council §Great Galactic War](https://starwars.fandom.com/wiki/Dark_Council)
   - **Galactic War:**
@@ -411,7 +411,7 @@ Each Sphere was also called the "Pyramid of …" and most also the "Ministry of 
 | Date | Event | Citation |
 |---|---|---|
 | 4980 BBY | Vitiate founds the Dark Council on Dromund Kaas and withdraws into seclusion | [Tenebrae §Rebuilding an empire](https://starwars.fandom.com/wiki/Tenebrae) |
-| c. 3950 BBY | The Nyriss conspiracy: the Emperor kills all twelve Councilors and appoints new ones; the first Voice is used [conflict: possibly 3954 BBY]; Scourge is made the Emperor's Wrath | [Dark Council §Conspiracy against the Emperor](https://starwars.fandom.com/wiki/Dark_Council); [Emperor's Voice (Sith Empire) §Behind the scenes](https://starwars.fandom.com/wiki/Emperor's_Voice_%28Sith_Empire%29); [Emperor's Wrath §History](https://starwars.fandom.com/wiki/Emperor's_Wrath) |
+| c. 3950 BBY | The Nyriss conspiracy: all twelve Councilors die (nine by the Emperor, two by the Imperial Guard, Nyriss by Revan) and new ones are appointed [Ruled (Jared, 24 Nov 2026)]; the first Voice is used [conflict: possibly 3954 BBY]; Scourge is made the Emperor's Wrath | [Dark Council §Conspiracy against the Emperor](https://starwars.fandom.com/wiki/Dark_Council); [Emperor's Voice (Sith Empire) §Behind the scenes](https://starwars.fandom.com/wiki/Emperor's_Voice_%28Sith_Empire%29); [Emperor's Wrath §History](https://starwars.fandom.com/wiki/Emperor's_Wrath) |
 | 3678 BBY | The Council grants Teneb Kel the title Darth Thanaton; the Children of the Emperor are first created c. 3678 BBY | [Dark Council §Great Galactic War](https://starwars.fandom.com/wiki/Dark_Council); [Children of the Emperor](https://starwars.fandom.com/wiki/Children_of_the_Emperor) |
 | 3643 BBY | Jadus fakes his death, Zhorrid succeeds him (Imperial Intelligence); Hadra succeeds Mekhis (Technology); SpecForce defections under Tavus | [Plan Zero](https://starwars.fandom.com/wiki/Plan_Zero); [Dark Council §Darth Vitiate's Dark Council](https://starwars.fandom.com/wiki/Dark_Council); [Republic Special Forces Division §History](https://starwars.fandom.com/wiki/Republic_Special_Forces_Division) |
 | 3642–3641 BBY | Plan Zero (corrected from 3643 BBY, lore batch 20, ruling 21) | [Plan Zero](https://starwars.fandom.com/wiki/Plan_Zero); [3642 BBY](https://starwars.fandom.com/wiki/3642_BBY); [3641 BBY](https://starwars.fandom.com/wiki/3641_BBY) |

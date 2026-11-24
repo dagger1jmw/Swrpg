@@ -31,7 +31,7 @@ Tython is a Deep Core world so tied to the Force that it reacts to imbalance wit
 - **Key facts:**
   - Eight Tho Yor ships brought Force-sensitive pilgrims to Tython, where a ninth, far larger Tho Yor waited above a stone pinnacle, and the Je'daii Order formed there [Je'daii Order, archivum](https://starwars.archivum.wiki/article/Je%27daii_Order).
   - **The Force Wars:** a ten-year series of conflicts on Tython, more than seven centuries before the Republic's founding [Force Wars](https://starwars.fandom.com/wiki/Force_Wars). After the Rakatan threat was defeated, the Je'daii split between followers of the Ashla and the Bogan. The Ashla Je'daii founded the Jedi Order under a High Council [Force Wars](https://starwars.fandom.com/wiki/Force_Wars).
-  - **The cataclysm:** in 25,783 BBY a cataclysm destroyed Tython's biosphere and made it uninhabitable. The surviving Ashla Je'daii fled to the Rim and settled on Ossus 730 years later [Force Wars](https://starwars.fandom.com/wiki/Force_Wars).
+  - **The cataclysm:** in 25,783 BBY a cataclysm destroyed Tython's biosphere and made it uninhabitable. The surviving Ashla Je'daii fled to the Rim and settled on Ossus c. 25,783 BBY (the Republic's founding, 25,053 BBY, came 730 years later) [Force Wars](https://starwars.fandom.com/wiki/Force_Wars).
   - **Lost:** the Jedi left for Ossus, and Tython was lost as the Deep Core erased the hyperlanes. The savage Flesh Raiders evolved on the empty world [Tython, 2014 snapshot](https://webarchive.library.unt.edu/unt/csid/20140911225948/http://starwars.wikia.com/wiki/Tython).
 - **Related:** SW_Characters_01_DawnOfTheJedi; SW_Force_Traditions_AllEras.
 - **Uncertainty:** none.
@@ -84,7 +84,7 @@ Tython is a Deep Core world so tied to the Force that it reacts to imbalance wit
 |---|---|---|
 | c. 36,453 BBY | The Tho Yor bring Force-sensitive pilgrims; the Je'daii form | [Je'daii Order, archivum](https://starwars.archivum.wiki/article/Je%27daii_Order) |
 | More than seven centuries before the Republic | The Force Wars (ten years); the Ashla Je'daii found the Jedi Order | [Force Wars](https://starwars.fandom.com/wiki/Force_Wars) |
-| 25,783 BBY | A cataclysm destroys the biosphere; the survivors flee and settle Ossus 730 years later | [Force Wars](https://starwars.fandom.com/wiki/Force_Wars) |
+| 25,783 BBY | A cataclysm destroys the biosphere; the survivors flee and settle Ossus c. 25,783 BBY | [Force Wars](https://starwars.fandom.com/wiki/Force_Wars) |
 | Afterwards | The lanes are erased and Tython is lost; the Flesh Raiders evolve | [Tython, 2014 snapshot](https://webarchive.library.unt.edu/unt/csid/20140911225948/http://starwars.wikia.com/wiki/Tython) |
 | 3653 BBY | The Coruscant Temple is destroyed; Satele Shan sets out to find Tython | [SWTOR codex](https://swtor.jedipedia.net/en/plc/ancient-jedi-statue) |
 | c. 3652–3651 BBY | Rediscovery; the Order begins its move (the game uses 3651 for the gate, with the seat on Tython from 3650) | [Flesh Raider uprising, archivum](https://starwars.archivum.wiki/article/flesh_raider_uprising); batch 20 |
