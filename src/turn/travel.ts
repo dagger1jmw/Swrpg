@@ -17,7 +17,7 @@ import { blocks, inZone, planTrip, type TravelWorld, type TripPlan } from '../en
 import { selectCharacter } from '../features/character/selectors';
 import { selectNow } from '../features/clock/selectors';
 import { selectCurrentLocationId, selectLocationChain } from '../features/locations/selectors';
-import { selectBlockadeHeat, selectBlockadeRunner, selectPendingBlockade, selectStandingBlockades } from '../features/world/selectors';
+import { selectBlockadeCaptive, selectBlockadeHeat, selectBlockadeRunner, selectCaptorsStabilize, selectPendingBlockade, selectShipImpounded, selectStandingBlockades } from '../features/world/selectors';
 import type { GameEvent } from '../state/types';
 import type { GameState } from '../state/gameState';
 
@@ -108,7 +108,8 @@ function tripFor(state: GameState, intent: Intent): Trip | null {
   const bby = -dateFromAbsDay(selectNow(state).day).year;
   const name = dest.name;
   const closed = closedWorlds(mapSide(faction), bby).find((g) => g.place.toLowerCase() === name.toLowerCase() || name.toLowerCase().startsWith(`${g.place.toLowerCase()} `));
-  const shipId = (c.start && START_SHIPS[c.start.optionId]) ?? DEFAULT_SHIP;
+  // With the character's own ship impounded, trips are by a civilian transport until ships are data (D-470 [6]).
+  const shipId = selectShipImpounded(state) ? 'civilianTransport' : ((c.start && START_SHIPS[c.start.optionId]) ?? DEFAULT_SHIP);
   const ship = HYPERDRIVE_CLASSES[shipId]!;
   const standing = selectStandingBlockades(state);
   const from = travelWorld(origin.world, standing, origin.station);
@@ -122,6 +123,8 @@ export function planTravel(state: GameState, intent: Intent): TravelOutcome | nu
   const trip = tripFor(state, intent);
   if (!trip) return null;
   const { from, to, ship } = trip;
+  const held = selectBlockadeCaptive(state);
+  if (held) return { from: from.name, to: to.name, ship: ship.name, shipClass: ship.class, ok: false, reason: `the character is a prisoner of ${held.group}`, parts: [], notes: [] };
   const plan = trip.plan();
   const base = { from: from.name, to: to.name, ship: ship.name, shipClass: ship.class };
   if (plan.ok) return { ...base, ok: true, hours: plan.hours, parts: plan.parts, notes: plan.notes };
@@ -142,6 +145,8 @@ export interface BlockadeTurn {
   rng: RngState;
   events: readonly GameEvent[];
   seconds: number;
+  /** Taken alive: the captors stabilize a dying prisoner (D-225). */
+  stabilize: boolean;
 }
 
 /** One approach played: the checks, what it cost, and either the trip or how it was stopped. Null when it is not open. */
@@ -184,6 +189,8 @@ export function runTravelBlockade(state: GameState, intent: Intent, travel: Trav
       credits: run.credits,
       turnsInto: run.turnsInto,
       penalty: run.penalty,
+      hours,
+      onFoot: run.onFoot,
     },
     ...(run.hazard ? [{ type: 'hazardResolved', hazard: run.hazard.type, severity: run.hazard.severity, cause: run.hazard.type === 'crash' ? `fired on by ${b.name}` : 'the trek on foot' }] : []),
   ];
@@ -193,9 +200,9 @@ export function runTravelBlockade(state: GameState, intent: Intent, travel: Trav
     ...(through ? { hours } : { reason: `${b.name}: ${run.notes[0] ?? run.result}` }),
     parts: [...plan.parts.filter((p) => !/detour/.test(p)), `+ ${Math.round(run.extraHours)} h (${APPROACH_LABEL[approach].toLowerCase()})`],
     notes: plan.notes,
-    run: { approach, result: run.result, notes: run.notes, turnsInto: run.turnsInto },
+    run: { approach, result: run.result, notes: run.result === 'captured' ? [...run.notes, run.onFoot ? 'taken prisoner on foot; the ship is not with them' : 'taken prisoner; the ship is impounded and its cargo seized'] : run.notes, turnsInto: run.turnsInto },
   };
-  return { travel: outcome, cards: run.cards, rng: run.rng, events, seconds: Math.round(hours * 3600) };
+  return { travel: outcome, cards: run.cards, rng: run.rng, events, seconds: Math.round(hours * 3600), stabilize: run.result === 'captured' && selectCaptorsStabilize(b) };
 }
 
 /** Watching a blockade from inside its strip: counts towards knowing exactly where it is safe to land. */

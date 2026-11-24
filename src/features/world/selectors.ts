@@ -1,4 +1,5 @@
 import { CANON_DEATH_LINKS } from '../../data/canonDeathLinks';
+import { SECRET_OVERLAP } from '../../data/worldNetwork.config';
 import { CANON_BY_ID, CANON_NPCS, type CanonNpc } from '../../data/canonNpcs';
 import { ORDER_SEATS, type OrderSeat } from '../../data/orderSeats';
 import type { BlockadeDef } from '../../data/blockades';
@@ -17,7 +18,7 @@ import { selectLocationChain } from '../locations/selectors';
 import { selectFacts } from '../memory/selectors';
 import { selectNpcs } from '../npcs/selectors';
 import { selectThreads } from '../threads/selectors';
-import { captiveOf, heatNow, pendingFor, runnerFor, standingBlockades, type BlockadesState } from './blockades';
+import { captiveOf, heatNow, pendingFor, runnerFor, stabilizesCaptives, standingBlockades, type BlockadesState } from './blockades';
 import { timelineHandoff, untoldIds, type Handoff } from './handoff';
 import { actionMatters, controlNow, openNetwork, outcomeState, type ControlNow, type WorldAction, type WorldFacts } from './network';
 import type { NetworkState, Substitute, WorldEvent } from './world';
@@ -91,16 +92,29 @@ function wonFight(s: GameState): WorldFacts['wonFight'] {
   };
 }
 
-/** A lead on record (D-468): a figure met, a site visited, or a fact or thread about one of the lead's people or places. */
-function leadOnRecord(s: GameState, l: Lead): boolean {
+// A lead (D-468): a figure met, a site visited, or a fact or thread about one of the lead's places.
+const significant = (t: string): string[] => [...new Set(normalizeText(t).split(/[^a-z0-9']+/).filter((w) => w.length > 3))];
+
+/** Whether a text states what is to come outright: most of the significant words of one of the secrets (D-470 [4]). */
+export function statesSecret(text: string, secrets: readonly string[]): boolean {
+  const said = new Set(significant(text));
+  return secrets.some((x) => {
+    const words = significant(x);
+    return words.length > 1 && words.filter((w) => said.has(w)).length / words.length >= SECRET_OVERLAP;
+  });
+}
+
+/** A lead on record, learned in a scene (backstory is not): it points to a place or a person, and never states the secret. */
+function leadOnRecord(s: GameState, l: Lead, secrets: readonly string[]): boolean {
   const people = selectNpcs(s).filter((n) => n.canonId !== null && (l.canonIds ?? []).includes(n.canonId));
   if (people.length) return true;
   const visited = Object.values(s.locations.byId);
   if ((l.sites ?? []).some((site) => visited.some((x) => x.firstVisitDay !== null && placeAmong(site, [], [x.name, ...x.aliases])))) return true;
   if (!l.places?.length) return false;
   const here = new Set(visited.filter((x) => l.places!.some((p) => placeAmong(p, [], [x.name, ...x.aliases]))).map((x) => x.id));
-  const threads = selectThreads(s).filter((t) => t.entityRefs.some((r) => here.has(r)));
-  return threads.length > 0 || selectFacts(s).some((x) => here.has(x.aboutRef));
+  // A start option's threads are backstory until play takes them up (D-470 [4]).
+  const threads = selectThreads(s).filter((t) => t.lastTurn > 1 && t.entityRefs.some((r) => here.has(r)) && !statesSecret(`${t.title} ${t.stakes}`, secrets));
+  return threads.length > 0 || selectFacts(s).some((x) => x.turn > 0 && here.has(x.aboutRef) && !statesSecret(x.text, secrets));
 }
 
 /** What the engine has recorded, for the network's tests. */
@@ -117,7 +131,7 @@ export function selectWorldFacts(s: GameState): WorldFacts {
     npcLost: (id) => lost.get(id) ?? null,
     storyNpcDead: (name) => selectNpcs(s).some((n) => n.status === 'deceased' && [n.name, ...n.aliases].some((x) => normalizeText(x) === normalizeText(name))),
     hasFlag: (f) => selectHasFlag(s, f),
-    hasLead: (l) => leadOnRecord(s, l),
+    hasLead: (l, secrets) => leadOnRecord(s, l, secrets),
     wonFight: wonFight(s),
     standIns: (role, exclude) => standIns(s, role, exclude, lost),
   };
@@ -179,6 +193,9 @@ export const selectStandingBlockades = (s: GameState): BlockadeDef[] => standing
 export const selectBlockadeRunner = (s: GameState, b: BlockadeDef): Runner => runnerFor(s, b);
 export const selectBlockadeHeat = (s: GameState, id: string): number => heatNow(s.world.blockades, id, s.clock.now.day);
 export const selectPendingBlockade = (s: GameState, id: string, to: string): BlockadesState['pending'] => pendingFor(s.world.blockades, id, to, selectTurnInPlay(s));
+/** The character's own ship is held by blockaders, and their blockade still stands or has not given it back. */
+export const selectShipImpounded = (s: GameState): BlockadesState['impounded'] => s.world.blockades.impounded;
+export const selectCaptorsStabilize = (b: BlockadeDef): boolean => stabilizesCaptives(b);
 export const selectBlockadeCaptive = (s: GameState): BlockadesState['captive'] => captiveOf(s);
 
 /** What code decided about the timeline, for the narrator: news not told yet, and the divergences that stand. */

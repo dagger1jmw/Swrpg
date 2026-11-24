@@ -320,6 +320,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       state = { ...state, meta: { ...state.meta, rngState: act.rng } };
       apply([...act.events]);
       if ('note' in act) report.push(act.note);
+      if ('stabilize' in act && act.stabilize && selectIsDying(state)) apply([{ type: 'woundsStabilized', by: 'the captors' }]);
     }
     const handled = [attempt, watch].some((a) => a && !('refused' in a));
     if (attempt && !('refused' in attempt)) travel = attempt.travel;

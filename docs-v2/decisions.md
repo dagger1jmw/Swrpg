@@ -1719,3 +1719,12 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - New flags, engine only and with no setter yet: blockadeTactics, blockadePapers:<id>, shipSystem:<system>, fleetCommand.
   - Costs and fines go to a ledger until the economy; fame is recorded for renown.
   - The check engine takes any rating (checkRating), not only the five difficulties.
+- **D-470 Answers to m8-world-c (Jared, 2026-11-24).**
+  - *[1] Odds:* accepted for now; revisit after playtests. "Talk through" is renamed **undercover** everywhere (approach id, choices, intent wording, spec, tests; v3 saves migrate): the default intelligence and military route (fake IDs, codes, cover stories, through connections). Checks, costs and odds unchanged.
+  - *[2]* The Mandalorians count as a trained military. At 60 days and more it changes nothing; it only closes the holes of the first days.
+  - *[3]* 60 days on 1 January 3661 is kept, `invented`: a known stretch (Legends gives the year of the launch, no month), a game convenience that keeps the M7 start's hunger and riots.
+  - *[4] Leads:* a recorded fact or thread about a place counts, with a limit: learned in a scene, pointing to a place or a person, never a future event's secret stated outright. Built: turn-0 backstory and a start option's threads (until play takes them up) do not count; a text that repeats 60% (`invented`) of the significant words of the event's title, summary or a condition does not count. The narrator's contract says the same. Being there still does not count.
+  - *[5]* Sneaking, papers and fleets stay closed until ships, items and command are built.
+  - *[6] Captures* go through the fight's captor rules (D-242, D-225): prisoner, ship impounded, cargo seized. New narrator event captivityEnded, legal only for a prisoner the engine recorded and on a later turn. What waits for the ships build is in spec/blockades.md section 5.
+  - *Proposals A-I:* accepted as invented starting numbers. Forcing through needs an ace pilot (Piloting 90) by design; a specialised stealth ship will lower it once ships are built.
+  - *Maps and notes:* world-event-tags-1000BBY-4ABY-draft.md committed as found on disk (E.16.maul_dies and the plot-point status line); it does not hold the PP-5 rework yet. The M8 design notes re-exported at revision 42, the latest there is (the prompt names 43); both named changes are in it.

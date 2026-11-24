@@ -10,7 +10,7 @@ import type { WorldDate } from './worldNetwork';
  * The six approaches. Going around has two endings: slipping in close by ship, or landing outside patrol range and going in
  * on foot.
  */
-export const BLOCKADE_APPROACHES = ['ride', 'talk', 'smuggle', 'sneak', 'aroundClose', 'aroundOnFoot', 'force'] as const;
+export const BLOCKADE_APPROACHES = ['ride', 'undercover', 'smuggle', 'sneak', 'aroundClose', 'aroundOnFoot', 'force'] as const;
 export type BlockadeApproach = (typeof BLOCKADE_APPROACHES)[number];
 /** What a player can ask for at a blockade: an approach, or watching it. */
 export const BLOCKADE_ACTIONS = [...BLOCKADE_APPROACHES, 'observe'] as const;
@@ -66,6 +66,8 @@ export interface BlockadeDef {
   ageOnFirstDay?: number;
   /** A trained military leaves no holes in its first days. */
   disciplined: boolean;
+  /** The minion kind that holds a prisoner (npcGen.config MINION_KINDS). */
+  captors: string;
   /** Sensor coverage in km: at first, in full, and the days over which most of it grows. */
   sensors: { startKm: number; fullKm: number; growthDays: number };
   states: readonly BlockadeState[];
@@ -91,9 +93,13 @@ export const BLOCKADES: readonly BlockadeDef[] = [
     start: { year: -3661 },
     startsWith: 'O.blockade_active',
     endsWith: 'O.blockade_broken',
-    // The 3,661 start opens with it standing and Coruscant already hungry (D-400).
+    // A known stretch, invented (Jared, D-470): Legends says only that the blockade was launched in 3,661 BBY, with no month
+    // ("Blockade of the Hydian Way"). Counting it as 60 days old on 1 January is a game convenience that keeps the 3,661
+    // start's hunger and riots (D-400).
     ageOnFirstDay: 60,
-    disciplined: false,
+    // Professional warrior clans with Imperial backing (Jared, D-470).
+    disciplined: true,
+    captors: 'mandalorian',
     sensors: { startKm: 60, fullKm: 160, growthDays: 120 },
     states: [{ from: { year: -3661 }, level: 3, strength: 3, alertness: 3, patrolKm: 110, groundPatrols: 2, corruptibility: 1, response: ['turnedBack', 'boarded', 'firedOn', 'captured'] }],
     passes: ['mandalorians', 'sithEmpire', 'sith'],

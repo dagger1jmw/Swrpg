@@ -23,8 +23,8 @@ export interface WorldFacts {
   /** A story NPC of exactly this name whom the engine recorded as dead (people with no canon entry). */
   storyNpcDead(name: string): boolean;
   hasFlag(flag: string): boolean;
-  /** A lead's figures, places or sites are on record in play (its `facts` are read by the network). */
-  hasLead(lead: Lead): boolean;
+  /** A lead's figures, places or sites are on record in play (its `facts` are read by the network); `secrets` = what is to come. */
+  hasLead(lead: Lead, secrets: readonly string[]): boolean;
   /** The last finished fight, when the player won it. */
   wonFight: { id: string; stakes: CombatStakes; canonIds: readonly string[]; factions: readonly FactionId[]; places: readonly string[] } | null;
   /** People who could stand in for a lost role, best first. */
@@ -218,10 +218,12 @@ const prerequisitesNeeded = (c: ConditionTag): number => Math.max(PREREQUISITES_
 const prerequisitesMet = (c: ConditionTag, p: Progress): boolean => (c.prerequisites ?? []).filter((q) => p.known[q.id]?.met).length >= prerequisitesNeeded(c);
 
 /** Whether an action starts from something recorded in play (D-468): the person it is on, or one of the leads. */
-function hasLead(net: WorldNetwork, st: NetworkState, f: WorldFacts, a: WorldAction, tests: readonly WorldTest[], leads: readonly Lead[] | undefined): boolean {
+function hasLead(net: WorldNetwork, st: NetworkState, f: WorldFacts, a: WorldAction, e: WorldEventDef, tests: readonly WorldTest[], leads: readonly Lead[] | undefined): boolean {
   const met = tests.filter((t) => actionMeets(t, a));
   if (met.some((t) => t.kind === 'action' && t.canonIds)) return true;
-  return (leads ?? []).some((l) => f.hasLead(l) || (l.facts ?? []).some((t) => stateTestHolds(net, st, f, t)));
+  // What the record says will happen: a lead may point to a place or a person, never state this (D-470 [4]).
+  const secrets = [e.title, e.summary, ...e.conditions.map((c) => c.text)];
+  return (leads ?? []).some((l) => f.hasLead(l, secrets) || (l.facts ?? []).some((t) => stateTestHolds(net, st, f, t)));
 }
 
 function known(net: WorldNetwork, st: NetworkState, tag: string): boolean {
@@ -325,7 +327,7 @@ export function recordAction(net: WorldNetwork, st0: NetworkState, f: WorldFacts
   // A scene asks for foreknowledge the player had before this roll.
   const foreknown = (s: SceneDef): boolean => (s.requires ?? []).some((t) => t.kind === 'known');
   const scenes = openScenes(net, st0, f)
-    .filter((s) => s.on.some((t) => actionMeets(t, a)) && guardMargin(s.guard, a.total) >= 0 && (foreknown(s) || hasLead(net, st0, f, a, s.on, s.leads)))
+    .filter((s) => s.on.some((t) => actionMeets(t, a)) && guardMargin(s.guard, a.total) >= 0 && (foreknown(s) || hasLead(net, st0, f, a, eventDef(net, s.event)!, s.on, s.leads)))
     .map((s) => s.id);
   for (const e of eventOrder(net)) {
     for (const c of e.conditions) {
@@ -336,7 +338,7 @@ export function recordAction(net: WorldNetwork, st0: NetworkState, f: WorldFacts
       const learn = ready ? undefined : (c.prerequisites ?? []).find((q) => !p.known[q.id]?.met && q.tests.some((t) => actionMeets(t, a)));
       if (!learn && !(ready && c.breakIf.some((t) => actionMeets(t, a)))) continue;
       // Foreknowledge already held is the lead for what follows it.
-      const led = learn ? hasLead(net, st, f, a, learn.tests, learn.leads) : Boolean(c.prerequisites?.length) || hasLead(net, st, f, a, c.breakIf, c.leads);
+      const led = learn ? hasLead(net, st, f, a, e, learn.tests, learn.leads) : Boolean(c.prerequisites?.length) || hasLead(net, st, f, a, e, c.breakIf, c.leads);
       if (!led) {
         notes.push(`world: ${key}: no lead recorded in play; nothing counts`);
         continue;

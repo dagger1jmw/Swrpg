@@ -1,6 +1,6 @@
 # SWRPG M8 design notes
 
-> Exported from the Claude Docs "SWRPG M8 design notes" (revision 41) on 24 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
+> Exported from the Claude Docs "SWRPG M8 design notes" (revision 42) on 24 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
 
 Nov 23, 2026 · @Jared Wright
 
@@ -13,7 +13,7 @@ One general system for getting past any blockade at any date; the Hydian Way blo
 | Approach | Difficulty | What it needs |
 | --- | --- | --- |
 | Ride under protection | Lowest chance of being stopped | A convoy or business the blockaders leave alone (e.g. Hutt-backed shipping in 3661), or papers from a permitted party. More expensive or tied to a business deal. Overlaps with smuggling and forged ID |
-| Talk through | Hard | Fake identities and codes, standard military and intelligence tradecraft. Needs connections to obtain; not a bluff anyone can make |
+| Undercover (renamed from "talk through", 24 Nov 2026) | Hard | Fake identities and codes, standard military and intelligence tradecraft. Needs connections to obtain; not a bluff anyone can make |
 | Smuggling | Very hard | Paying a smuggler or network that knows the blockade. Expensive |
 | Sneak through | Extremely hard | Specialised tech (sensor masking, stealth systems) plus precise timing of patrol gaps. Without the tech it isn't an option |
 | Go around | Scales with the blockade's age (below) | Drop out of hyperspace beyond sensor range, travel sublight around the blockade, and either slip in close or land outside patrol range and go in on foot |

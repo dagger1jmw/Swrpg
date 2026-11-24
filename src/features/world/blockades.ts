@@ -1,8 +1,11 @@
 // Blockades in the world slice (M8 item 4; D-469): what the campaign has recorded about them, which of them stand now, and
 // what the character brings to one. The rules are in src/engine/blockade.ts.
 import { z } from 'zod';
-import { CONTACT, HEAT, RUNS_KEPT, TRAINED_STARTS } from '../../data/blockade.config';
+import { CAPTIVE_DAYS, CONTACT, HEAT, RUNS_KEPT, TRAINED_STARTS } from '../../data/blockade.config';
 import { BLOCKADE_APPROACHES, BLOCKADE_RESPONSES, BLOCKADES, type BlockadeDef } from '../../data/blockades';
+import { CAPTOR_RULES } from '../../data/combat.config';
+import { MINION_KINDS, minionKindPlural } from '../../data/npcGen.config';
+import { WEAPON_NAMES } from '../../data/weapons';
 import { WORLD_NETWORK, type WorldNetwork } from '../../data/worldNetwork';
 import { blockadeStartDay, safeKm, type Runner } from '../../engine/blockade';
 import type { LevelInputs } from '../../engine/rolls';
@@ -43,12 +46,15 @@ export const blockadesSchema = z.object({
   shipOutside: z.object({ blockadeId: z.string(), day: z.number().int() }).nullable(),
   /** Credits owed, paid or fined (the economy reads it once it is built). */
   ledger: z.array(z.object({ day: z.number().int(), credits: z.number().int(), reason: z.string().max(120) })),
-  captive: z.object({ by: z.string(), day: z.number().int(), locationId: z.string().nullable() }).nullable(),
+  /** Held by the blockaders, in the same shape as a fight's captors (D-242), until the story ends it or CAPTIVE_DAYS pass. */
+  captive: z.object({ blockadeId: z.string(), group: z.string(), kind: z.string().nullable(), weapon: z.string().nullable(), atAbs: z.number(), turn: z.number().int().min(0) }).nullable(),
+  /** The character's own ship, held by the blockaders (until ships are data: trips are by civilian transport meanwhile). */
+  impounded: z.object({ blockadeId: z.string(), day: z.number().int() }).nullable(),
   shipDamagedDay: z.number().int().nullable(),
 });
 export type BlockadesState = z.infer<typeof blockadesSchema>;
 
-export const emptyBlockades = (): BlockadesState => ({ runs: [], watched: {}, heat: {}, pending: null, shipOutside: null, ledger: [], captive: null, shipDamagedDay: null });
+export const emptyBlockades = (): BlockadesState => ({ runs: [], watched: {}, heat: {}, pending: null, shipOutside: null, ledger: [], captive: null, impounded: null, shipDamagedDay: null });
 
 export interface RunRecorded {
   blockadeId: string;
@@ -61,11 +67,26 @@ export interface RunRecorded {
   credits: number;
   turnsInto: BlockadeRunRecord['approach'][];
   penalty: number;
+  /** Hours the attempt takes: a prisoner is taken at its end. */
+  hours: number;
+  /** Taken on foot: the ship is not with them. */
+  onFoot: boolean;
 }
 
+const captorKind = (b: BlockadeDef) => MINION_KINDS.find((k) => k.id === b.captors);
+const captorGroup = (b: BlockadeDef): string => `${minionKindPlural(b.captors)} of ${b.name}`;
+const captorWeapon = (b: BlockadeDef): string | null => {
+  const k = captorKind(b);
+  return k ? (k.weaponName ? `${k.weaponName}s` : WEAPON_NAMES[k.weapon]) : null;
+};
+/** Captors want a prisoner alive (D-225), unless their kind takes captives to kill them. */
+export const stabilizesCaptives = (b: BlockadeDef): boolean => CAPTOR_RULES[captorKind(b)?.archetype ?? '']?.capturesToExecute !== true;
+
 /** A resolved run written into the state. */
-export function recordRun(st: BlockadesState, r: RunRecorded, b: BlockadeDef, at: { day: number; turn: number; locationId: string | null }): BlockadesState {
-  const { day, turn, locationId } = at;
+export function recordRun(st: BlockadesState, r: RunRecorded, b: BlockadeDef, at: { day: number; turn: number; nowAbs: number }): BlockadesState {
+  const { day, turn, nowAbs } = at;
+  const captured = r.result === 'captured';
+  const aboard = captured && !r.onFoot;
   const caught = r.result !== 'through';
   const heat = st.heat[b.id];
   const points = heat && heat.untilDay >= day ? heat.points : 0;
@@ -74,9 +95,15 @@ export function recordRun(st: BlockadesState, r: RunRecorded, b: BlockadeDef, at
     runs: [...st.runs, { blockadeId: r.blockadeId, day, approach: r.approach, direction: r.direction, to: r.to, result: r.result, fame: r.fame, witnessed: r.witnessed }].slice(-RUNS_KEPT),
     heat: caught ? { ...st.heat, [b.id]: { points: Math.min(HEAT.max, points + HEAT.perCatch), untilDay: day + HEAT.days } } : st.heat,
     pending: r.turnsInto.length ? { blockadeId: b.id, to: r.to, options: r.turnsInto, penalty: r.penalty, turn } : null,
-    shipOutside: r.result !== 'through' ? st.shipOutside : r.approach === 'aroundOnFoot' && r.direction === 'in' ? { blockadeId: b.id, day } : r.direction === 'out' ? null : st.shipOutside,
-    ledger: r.credits > 0 ? [...st.ledger, { day, credits: r.credits, reason: `${b.name}: ${r.approach}` }].slice(-50) : st.ledger,
-    captive: r.result === 'captured' ? { by: b.runBy, day, locationId } : r.result === 'through' ? null : st.captive,
+    shipOutside: aboard ? null : captured && r.direction === 'in' ? { blockadeId: b.id, day } : r.result !== 'through' ? st.shipOutside : r.approach === 'aroundOnFoot' && r.direction === 'in' ? { blockadeId: b.id, day } : r.direction === 'out' ? null : st.shipOutside,
+    ledger: [
+      ...st.ledger,
+      ...(r.credits > 0 ? [{ day, credits: r.credits, reason: `${b.name}: ${r.approach}` }] : []),
+      // The value waits for the economy and cargo as data.
+      ...(aboard ? [{ day, credits: 0, reason: `${b.name}: cargo seized` }] : []),
+    ].slice(-50),
+    captive: captured ? { blockadeId: b.id, group: captorGroup(b), kind: b.captors, weapon: captorWeapon(b), atAbs: nowAbs + r.hours * 3600, turn } : st.captive,
+    impounded: aboard ? { blockadeId: b.id, day } : st.impounded,
     shipDamagedDay: r.result === 'firedOn' ? day : st.shipDamagedDay,
   };
 }
@@ -144,6 +171,7 @@ export function runnerFor(s: GameState, b: BlockadeDef): Runner {
     protector: selectHasFlag(s, `blockadePapers:${b.id}`) ? 'papers from a permitted party' : inTraffic ? `${inTraffic.name} can place the character with ${b.protectedTraffic[0]?.label ?? 'permitted traffic'}` : null,
     contact: fixer ? `${fixer.name} can get identities and codes` : null,
     smuggler: own ? { name: 'the character knows the trade', level: ownLevel } : pilot ? { name: pilot.name, level: Math.max(selectNpcLevel(s, pilot.id, 'piloting'), selectNpcLevel(s, pilot.id, 'stealth')) } : null,
+    noShip: st.impounded !== null,
     masking: selectHasFlag(s, 'shipSystem:masking'),
     fleet: selectHasFlag(s, 'fleetCommand'),
     shipOutside: st.shipOutside?.blockadeId === b.id ? { days: Math.max(0, day - st.shipOutside.day) } : null,
@@ -165,9 +193,25 @@ export const heatNow = (st: BlockadesState, id: string, day: number): number => 
 export const pendingFor = (st: BlockadesState, id: string, to: string, turn: number): NonNullable<BlockadesState['pending']> | null =>
   st.pending && st.pending.blockadeId === id && st.pending.to === to && turn - st.pending.turn <= 1 ? st.pending : null;
 
-/** How long a captive line stands while the character has not moved on. */
-export const CAPTIVE_DAYS = 14;
+/** The prisoner's state while it lasts: until the story ends it, or CAPTIVE_DAYS. */
 export const captiveOf = (s: GameState): BlockadesState['captive'] => {
   const c = s.world.blockades.captive;
-  return c && c.locationId === s.locations.currentId && s.clock.now.day - c.day <= CAPTIVE_DAYS ? c : null;
+  const now = s.clock.now.day * 86_400 + s.clock.now.second;
+  return c && now - c.atAbs <= CAPTIVE_DAYS * 86_400 ? c : null;
 };
+
+/** The end of a captivity: the ship comes too, or stays impounded. */
+export const endCaptivity = (st: BlockadesState, withShip: boolean): BlockadesState => ({ ...st, captive: null, impounded: withShip ? null : st.impounded });
+
+/** v3 saves named one approach "talk" and kept a thinner captive (D-470). */
+export function migrateBlockadesV3(old: unknown): BlockadesState {
+  const rename = (a: unknown): unknown => (a === 'talk' ? 'undercover' : a);
+  const o = old as Omit<BlockadesState, 'impounded'> & { runs: { approach: string }[]; pending: { options: string[] } | null };
+  return {
+    ...o,
+    runs: o.runs.map((r) => ({ ...r, approach: rename(r.approach) })),
+    pending: o.pending ? { ...o.pending, options: o.pending.options.map(rename) } : null,
+    captive: null,
+    impounded: null,
+  } as BlockadesState;
+}

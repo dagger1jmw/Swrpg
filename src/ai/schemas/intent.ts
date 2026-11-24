@@ -51,7 +51,7 @@ export const intentSchema = z.object({
   healing: z.object({ source: z.enum(['medical', 'bacta', 'forceHealer']), healerRef: z.string().max(80).optional() }).optional().describe('Only for heal'),
   risk: z.object({ type: z.enum(HAZARD_TYPES), severityHint: z.number().int().min(1).max(3) }).optional().describe('A hazard the player\'s own action causes'),
   sequence: z.array(sequenceStepSchema).max(SEQUENCE_SCHEMA_MAX).optional().describe('Combat only: the steps the player chains in order (at most 5)'),
-  blockade: z.enum(BLOCKADE_ACTIONS).optional().describe('Only when the player says how they mean to get past a blockade (ride, talk, smuggle, sneak, aroundClose, aroundOnFoot, force) or that they watch it (observe)'),
+  blockade: z.enum(BLOCKADE_ACTIONS).optional().describe('Only when the player says how they mean to get past a blockade (ride, undercover, smuggle, sneak, aroundClose, aroundOnFoot, force) or that they watch it (observe)'),
   aim: z.enum(BODY_PARTS).optional().describe('Combat only: the body part the player says the next strike goes for ("go for his head": head)'),
 });
 

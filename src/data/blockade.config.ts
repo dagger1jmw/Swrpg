@@ -4,12 +4,12 @@
 import type { BlockadeApproach, BlockadeLevel, BlockadeResponse } from './blockades';
 
 /** At a military blockade of middling strength and alertness. Going around follows AROUND_BY_AGE instead. */
-export const APPROACH_RATING: Readonly<Record<Exclude<BlockadeApproach, 'aroundClose' | 'aroundOnFoot'>, number>> = { ride: 20, talk: 70, smuggle: 90, sneak: 110, force: 130 };
+export const APPROACH_RATING: Readonly<Record<Exclude<BlockadeApproach, 'aroundClose' | 'aroundOnFoot'>, number>> = { ride: 20, undercover: 70, smuggle: 90, sneak: 110, force: 130 };
 export const LEVEL_RATING: Readonly<Record<BlockadeLevel, number>> = { 1: -30, 2: -15, 3: 0 };
 /** Per point of alertness over 3 (every approach) and of strength over 3 (by ship, without leave). */
 export const ALERTNESS_RATING = 5;
 export const STRENGTH_RATING = 5;
-/** Per point of corruptibility, for what money can ease (riding along, talking, smuggling). */
+/** Per point of corruptibility, for what money can ease (riding along, undercover, smuggling). */
 export const CORRUPTIBILITY_RATING = -5;
 
 /** Going around, by the blockade's age in days at a military blockade: medium, very hard, hardest. Interpolated. */
@@ -47,7 +47,10 @@ export const SHIP_FOUND_PER_DAY = 0.01;
 /** Danger sense: the least Force Sense that can feel a patrol coming, and its rating. It warns; it never knows where to land. */
 export const DANGER_SENSE = { minLevel: 20, rating: 60 } as const;
 
-/** Forcing a way through: one of the best pilots in existence, or a fleet. */
+/**
+ * Forcing a way through: an ace pilot by design, to outfly the pursuers and not be hit, or a fleet (Jared, D-470). A
+ * specialised stealth ship will lower it once ships are built.
+ */
 export const FORCE_THROUGH_PILOTING = 90;
 /** The least relationship (0-100) with a contact: friendly for papers and codes; any known smuggler takes pay. */
 export const CONTACT = { friendly: 20, hired: 0 } as const;
@@ -55,26 +58,31 @@ export const CONTACT = { friendly: 20, hired: 0 } as const;
 export const TRADECRAFT_BONUS = { trained: 2, contact: 2 } as const;
 
 /** Credits, owed or paid (kept in the ledger until the economy is built), at a military blockade; × level / 3. */
-export const APPROACH_COST: Readonly<Record<BlockadeApproach, number>> = { ride: 2000, talk: 1500, smuggle: 5000, sneak: 0, aroundClose: 0, aroundOnFoot: 0, force: 0 };
+export const APPROACH_COST: Readonly<Record<BlockadeApproach, number>> = { ride: 2000, undercover: 1500, smuggle: 5000, sneak: 0, aroundClose: 0, aroundOnFoot: 0, force: 0 };
 export const BOARDED_FINE = 1000;
 
 /** Hours beyond the trip itself: arranging it, and the sublight way around. */
-export const APPROACH_HOURS: Readonly<Record<BlockadeApproach, number>> = { ride: 48, talk: 24, smuggle: 72, sneak: 12, aroundClose: 72, aroundOnFoot: 72, force: 0 };
+export const APPROACH_HOURS: Readonly<Record<BlockadeApproach, number>> = { ride: 48, undercover: 24, smuggle: 72, sneak: 12, aroundClose: 72, aroundOnFoot: 72, force: 0 };
 
 /** Responses that end the attempt but leave another way open, what it can turn into, and the rating it adds. */
 export const TURNS_INTO: Readonly<Partial<Record<BlockadeResponse, { penalty: number; options: Readonly<Record<BlockadeApproach, readonly BlockadeApproach[]>> }>>> = {
   turnedBack: {
     penalty: 10,
-    options: { ride: ['talk'], talk: ['force'], smuggle: ['talk', 'force'], sneak: ['talk', 'force'], aroundClose: ['talk', 'force'], aroundOnFoot: [], force: [] },
+    options: { ride: ['undercover'], undercover: ['force'], smuggle: ['undercover', 'force'], sneak: ['undercover', 'force'], aroundClose: ['undercover', 'force'], aroundOnFoot: [], force: [] },
   },
-  boarded: { penalty: 20, options: { ride: ['force'], talk: ['force'], smuggle: ['force'], sneak: ['force'], aroundClose: ['force'], aroundOnFoot: [], force: [] } },
+  boarded: { penalty: 20, options: { ride: ['force'], undercover: ['force'], smuggle: ['force'], sneak: ['force'], aroundClose: ['force'], aroundOnFoot: [], force: [] } },
 };
 /** A caught ship sharpens the line for a while. */
 export const HEAT = { perCatch: 1, days: 14, max: 2 } as const;
 
 /** Fame of a run that gets through, × level / 3; +1 for a decisive margin. Only a witnessed run counts (renown is not built). */
-export const RUN_FAME: Readonly<Record<BlockadeApproach, number>> = { ride: 0, talk: 1, smuggle: 1, sneak: 3, aroundClose: 2, aroundOnFoot: 2, force: 5 };
+export const RUN_FAME: Readonly<Record<BlockadeApproach, number>> = { ride: 0, undercover: 1, smuggle: 1, sneak: 3, aroundClose: 2, aroundOnFoot: 2, force: 5 };
 export const FAME_MARGIN = 12;
 export const WITNESSED: readonly BlockadeApproach[] = ['force'];
+
+/** A prisoner of a blockade is held at most this long if the story does not end it. */
+export const CAPTIVE_DAYS = 14;
+/** The story can end a captivity only on a later turn than the capture. */
+export const CAPTIVE_MIN_TURNS = 1;
 
 export const RUNS_KEPT = 20;

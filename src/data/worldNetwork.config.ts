@@ -42,6 +42,9 @@ export const PREREQUISITE_GUARD: WorldGuard = 'medium';
 /** Distinct prerequisites a guard needs before anything counts (D-467 [1], [6]). A condition that lists one needs at least one. */
 export const PREREQUISITES_NEEDED: Readonly<Record<WorldGuard, number>> = { low: 0, medium: 0, high: 1, veryHigh: 2 };
 
+/** A fact or thread that repeats this share of the significant words of what is to come states the secret outright: no lead. invented */
+export const SECRET_OVERLAP = 0.6;
+
 /** The narrator gets at most this many new timeline entries a turn; the rest wait. invented */
 export const TIMELINE_TOLD_MAX = 10;
 /** ...and is reminded of at most this many past divergences (the newest). invented */

@@ -6,13 +6,13 @@
 // (network.ts), and the AI only ever narrates what it decided.
 import { z } from 'zod';
 import { WORLD_EVENT_CHANCE, WORLD_EVENT_KINDS, WORLD_LOG_MAX, type WorldEventKind } from '../../data/worldEvents.config';
-import { fromAbsSecond } from '../../engine/calendar';
+import { fromAbsSecond, toAbsSecond } from '../../engine/calendar';
 import { nextFloat, type RngState } from '../../engine/rng';
 import type { GameState } from '../../state/gameState';
 import { CONTROL_SIDES, type ControlSide } from '../../data/worldControl';
 import { WORLD_NETWORK, type WorldNetwork } from '../../data/worldNetwork';
 import { ACTION_TYPES, type ActionType } from '../../data/checks.config';
-import { OBSERVE } from '../../data/blockade.config';
+import { CAPTIVE_MIN_TURNS, OBSERVE } from '../../data/blockade.config';
 import { BLOCKADE_APPROACHES, BLOCKADE_RESPONSES, BLOCKADES } from '../../data/blockades';
 import type { FeatureModule, GameEvent } from '../../state/types';
 import { selectPath } from '../character/selectors';
@@ -22,7 +22,7 @@ import { selectRank } from '../ranks/selectors';
 import { selectOpenThreads } from '../threads/selectors';
 import { openNetwork, recordAction, reviewNetwork, sceneFlag, scenesWon } from './network';
 import { handoffLines, selectTimelineHandoff, selectUntoldWorldEvents, selectWorldAction, selectWorldFacts, selectWorldLog } from './selectors';
-import { recordRun, recordWatch, type RunRecorded } from './blockades';
+import { captiveOf, endCaptivity, migrateBlockadesV3, recordRun, recordWatch, type RunRecorded } from './blockades';
 import { emptyWorld, migrateWorldV1, migrateWorldV2, worldSliceSchema, type NetworkState, type WorldEvent, type WorldSlice } from './world';
 
 function eligible(k: WorldEventKind, s: GameState, npcs: number, threads: number): boolean {
@@ -82,8 +82,8 @@ function markTold(net: NetworkState, ids: ReadonlySet<string>, turn: number): Ne
 /** The world feature over a network: the shipped one in the game, a fixture in tests. */
 export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlice, GameState> => ({
   id: 'world',
-  version: 3,
-  migrations: { 2: migrateWorldV1, 3: migrateWorldV2 },
+  version: 4,
+  migrations: { 2: migrateWorldV1, 3: migrateWorldV2, 4: (old) => ({ ...(old as WorldSlice), blockades: migrateBlockadesV3((old as WorldSlice).blockades) }) },
   // A campaign opens with everything up to its start date standing as the lore records it.
   initialState: (ctx) => {
     const w = emptyWorld(ctx.start.day);
@@ -171,12 +171,33 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
         credits: z.number().int().min(0),
         turnsInto: z.array(z.enum(BLOCKADE_APPROACHES)),
         penalty: z.number(),
+        hours: z.number().min(0),
+        onFoot: z.boolean(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
         const b = BLOCKADES.find((x) => x.id === e['blockadeId']);
         if (!b) return { reject: `unknown blockade ${String(e['blockadeId'])}` };
-        return { slice: { ...slice, blockades: recordRun(slice.blockades, e as unknown as RunRecorded, b, { day: ctx.state.clock.now.day, turn: selectTurnInPlay(ctx.state), locationId: ctx.state.locations.currentId }) }, notes: [`blockade: ${b.name}: ${String(e['approach'])}, ${String(e['result'])}`] };
+        return { slice: { ...slice, blockades: recordRun(slice.blockades, e as unknown as RunRecorded, b, { day: ctx.state.clock.now.day, turn: selectTurnInPlay(ctx.state), nowAbs: toAbsSecond(ctx.state.clock.now) }) }, notes: [`blockade: ${b.name}: ${String(e['approach'])}, ${String(e['result'])}`] };
+      },
+    },
+    /**
+     * The story ends a captivity at a blockade (D-470 [6]): the narrator reports it, the engine allows it only for a prisoner
+     * it recorded, on a later turn than the capture. It changes nothing else.
+     */
+    captivityEnded: {
+      schema: z.object({
+        type: z.literal('captivityEnded'),
+        how: z.enum(['released', 'escaped', 'rescued', 'ransomed', 'exchanged']).describe('How the player character came to be free'),
+        withShip: z.boolean().describe('True only when the character leaves in their own impounded ship'),
+      }),
+      sources: ['ai', 'engine'],
+      narrative: (s) => captiveOf(s) !== null,
+      handle: (slice, e, ctx) => {
+        const c = captiveOf(ctx.state);
+        if (!c) return { reject: 'the character is not a prisoner of a blockade' };
+        if (selectTurnInPlay(ctx.state) - c.turn < CAPTIVE_MIN_TURNS) return { reject: 'taken this turn: a captivity is not over in the same reply' };
+        return { slice: { ...slice, blockades: endCaptivity(slice.blockades, e['withShip'] === true) }, notes: [`no longer held by ${c.group} (${String(e['how'])}${e['withShip'] === true ? ', with the ship' : ''})`] };
       },
     },
     /** Engine: hours of watching a blockade that counted. */

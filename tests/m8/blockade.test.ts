@@ -3,7 +3,7 @@
 // notes give, not the numbers.
 import { describe, expect, it } from 'vitest';
 import { BLOCKADES, type BlockadeApproach, type BlockadeDef } from '../../src/data/blockades';
-import { AROUND_BY_AGE, OBSERVE, TRAINED_RANGE_KM } from '../../src/data/blockade.config';
+import { AROUND_BY_AGE, CAPTIVE_DAYS, OBSERVE, TRAINED_RANGE_KM } from '../../src/data/blockade.config';
 import { approachOptions, approachRating, aroundRating, blockadeAge, landingKnowledge, runBlockade, safeKm, sensorKm, watchBlockade, type Runner } from '../../src/engine/blockade';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { seedRng } from '../../src/engine/rng';
@@ -18,12 +18,14 @@ import { createInitialState } from '../../src/state/registryTools';
 import type { Registry } from '../../src/state/types';
 import { makeEstimator } from '../../src/ai/tokenRatio';
 import type { Intent } from '../../src/ai/schemas/intent';
-import { stateBlock } from '../../src/turn/context';
+import { selectCaptors, stateBlock } from '../../src/turn/context';
 import { expandChoice } from '../../src/turn/expandChoice';
 import { resolveTurn } from '../../src/turn/resolve';
 import { blockadeChoices, describeTravel, planTravel } from '../../src/turn/travel';
 
+/** The Hydian Way blockade, and the same with an untrained line (the young blockade of the design notes' table). */
 const HYDIAN = BLOCKADES[0]!;
+const LOOSE: BlockadeDef = { ...HYDIAN, disciplined: false };
 const START = absDayFromDate({ year: -3661, month: 1, day: 1 });
 const lv = (level: number): LevelInputs => ({ level, woundPenalty: 0, rust: 0, vitalitySpent: false, fatigueEfficiency: 1 });
 const runner = (over: Partial<Runner> = {}, level = 40): Runner => ({
@@ -34,6 +36,7 @@ const runner = (over: Partial<Runner> = {}, level = 40): Runner => ({
   smuggler: null,
   masking: false,
   fleet: false,
+  noShip: false,
   shipOutside: null,
   ...over,
   levels: { charisma: lv(level), intelligence: lv(level), piloting: lv(level), stealth: lv(level), endurance: lv(level), tracking: lv(level), forceSense: lv(0), ...(over.levels ?? {}) },
@@ -47,37 +50,39 @@ const odds = (approach: BlockadeApproach, r: Runner, b: BlockadeDef = HYDIAN, da
 const level = (l: 1 | 2 | 3): BlockadeDef => ({ ...HYDIAN, states: [{ ...HYDIAN.states[0]!, level: l }] });
 
 describe('how hard each approach is', () => {
-  it('follows the design table: protection, talking, smuggling, sneaking, forcing', () => {
+  it('follows the design table: protection, undercover, smuggling, sneaking, forcing', () => {
     const r = (a: BlockadeApproach): number => approachRating(HYDIAN, a, START);
-    expect(r('ride')).toBeLessThan(r('talk'));
-    expect(r('talk')).toBeLessThan(r('smuggle'));
+    expect(r('ride')).toBeLessThan(r('undercover'));
+    expect(r('undercover')).toBeLessThan(r('smuggle'));
     expect(r('smuggle')).toBeLessThan(r('sneak'));
     expect(r('sneak')).toBeLessThan(r('force'));
   });
   it('the level makes every approach harder', () => {
-    for (const a of ['ride', 'talk', 'smuggle', 'sneak', 'aroundClose', 'aroundOnFoot', 'force'] as const) {
+    for (const a of ['ride', 'undercover', 'smuggle', 'sneak', 'aroundClose', 'aroundOnFoot', 'force'] as const) {
       const at = ([1, 2, 3] as const).map((l) => approachRating(level(l), a, START + 200));
       expect(at[0]!, a).toBeLessThan(at[1]!);
       expect(at[1]!, a).toBeLessThan(at[2]!);
     }
   });
   it('going around hardens with age, smoothly: medium, very hard, hardest', () => {
-    expect([aroundRating(HYDIAN, 3, 0), aroundRating(HYDIAN, 3, 365)]).toEqual([AROUND_BY_AGE[0]![1], AROUND_BY_AGE[4]![1]]);
+    expect([aroundRating(LOOSE, 3, 0), aroundRating(LOOSE, 3, 365)]).toEqual([AROUND_BY_AGE[0]![1], AROUND_BY_AGE[4]![1]]);
     let last = -1;
     for (let d = 0; d <= 400; d += 5) {
-      const now = aroundRating(HYDIAN, 3, d);
+      const now = aroundRating(LOOSE, 3, d);
       expect(now).toBeGreaterThanOrEqual(last);
       last = now;
     }
   });
   it('level matters more than age at the low end: a trade blockade barely tightens', () => {
-    const tighten = (l: 1 | 2 | 3): number => aroundRating(HYDIAN, l, 365) - aroundRating(HYDIAN, l, 0);
+    const tighten = (l: 1 | 2 | 3): number => aroundRating(LOOSE, l, 365) - aroundRating(LOOSE, l, 0);
     expect(tighten(1)).toBeLessThan(tighten(3) / 5);
     expect(tighten(2)).toBeLessThan(tighten(3));
   });
   it('a trained military leaves no holes in its first days', () => {
-    expect(aroundRating({ ...HYDIAN, disciplined: true }, 3, 0)).toBeGreaterThan(aroundRating(HYDIAN, 3, 0) + 20);
-    expect(aroundRating({ ...HYDIAN, disciplined: true }, 3, 365)).toBe(aroundRating(HYDIAN, 3, 365));
+    expect(HYDIAN.disciplined).toBe(true); // the Mandalorians (D-470)
+    expect(aroundRating(HYDIAN, 3, 0)).toBeGreaterThan(aroundRating(LOOSE, 3, 0) + 20);
+    expect(aroundRating(HYDIAN, 3, 365)).toBe(aroundRating(LOOSE, 3, 365));
+    expect(blockadeAge(HYDIAN, START)).toBe(60);
   });
   it('sensor coverage grows the longer it stands; alertness, strength and money count', () => {
     expect(sensorKm(HYDIAN, 0)).toBe(HYDIAN.sensors.startKm);
@@ -85,9 +90,9 @@ describe('how hard each approach is', () => {
     expect(sensorKm(HYDIAN, 5000)).toBeCloseTo(HYDIAN.sensors.fullKm, 3);
     const s = HYDIAN.states[0]!;
     const w = (x: Partial<typeof s>): BlockadeDef => ({ ...HYDIAN, states: [{ ...s, ...x }] });
-    expect(approachRating(w({ alertness: 5 }), 'talk', START)).toBeGreaterThan(approachRating(HYDIAN, 'talk', START));
+    expect(approachRating(w({ alertness: 5 }), 'undercover', START)).toBeGreaterThan(approachRating(HYDIAN, 'undercover', START));
     expect(approachRating(w({ strength: 5 }), 'sneak', START)).toBeGreaterThan(approachRating(HYDIAN, 'sneak', START));
-    expect(approachRating(w({ strength: 5 }), 'talk', START)).toBe(approachRating(HYDIAN, 'talk', START));
+    expect(approachRating(w({ strength: 5 }), 'undercover', START)).toBe(approachRating(HYDIAN, 'undercover', START));
     expect(approachRating(w({ corruptibility: 5 }), 'smuggle', START)).toBeLessThan(approachRating(HYDIAN, 'smuggle', START));
     expect(approachRating(w({ corruptibility: 5 }), 'sneak', START)).toBe(approachRating(HYDIAN, 'sneak', START));
   });
@@ -96,7 +101,7 @@ describe('how hard each approach is', () => {
     const naboo: BlockadeDef = { ...HYDIAN, id: 'test-32', start: { year: -32 }, ageOnFirstDay: 0, zone: { worlds: ['Naboo'] }, states: [{ ...s, from: { year: -32 }, level: 1 }, { ...s, from: { year: -32, month: 3 }, level: 3 }] };
     const day = (m: number) => absDayFromDate({ year: -32, month: m, day: 5 });
     expect(blockadeAge(naboo, day(1))).toBe(4);
-    expect(approachRating(naboo, 'talk', day(1))).toBeLessThan(approachRating(naboo, 'talk', day(4)));
+    expect(approachRating(naboo, 'undercover', day(1))).toBeLessThan(approachRating(naboo, 'undercover', day(4)));
   });
 });
 
@@ -109,8 +114,8 @@ describe('what each approach needs', () => {
   });
   it('papers or a friend, a contact or tradecraft, a smuggler, the tech, a fleet or one of the best pilots', () => {
     expect(open(runner({ protector: 'x' }))).toContain('ride');
-    expect(open(runner({ contact: 'x' }))).toContain('talk');
-    expect(open(runner({ trained: true }))).toContain('talk');
+    expect(open(runner({ contact: 'x' }))).toContain('undercover');
+    expect(open(runner({ trained: true }))).toContain('undercover');
     expect(open(runner({ smuggler: { name: 'x', level: 50 } }))).toContain('smuggle');
     expect(open(runner({ masking: true }))).toContain('sneak');
     expect(open(runner({ fleet: true }))).toContain('force');
@@ -118,7 +123,7 @@ describe('what each approach needs', () => {
     expect(open(runner({}, 80))).not.toContain('force');
   });
   it('out uses the same approaches; a ship left outside means walking back to it', () => {
-    expect(open(runner({ protector: 'x', contact: 'y' }), 'out')).toEqual(['ride', 'talk', 'aroundClose']);
+    expect(open(runner({ protector: 'x', contact: 'y' }), 'out')).toEqual(['ride', 'undercover', 'aroundClose']);
     expect(open(runner({ protector: 'x', shipOutside: { days: 4 } }), 'out')).toEqual(['aroundOnFoot']);
     expect(open(runner(), 'through')).toEqual(['aroundClose']);
   });
@@ -155,15 +160,15 @@ describe('knowing where it is safe to land', () => {
     expect(worst(seer)).toBeLessThan(worst(runner()));
     const felt = Array.from({ length: 400 }, (_, i) => runBlockade(seedRng(`s${i}`), { blockade: HYDIAN, day: START + 60, approach: 'aroundClose', runner: seer, direction: 'in' })).find((x) => x.notes.some((n) => /Force warned/.test(n)))!;
     expect(felt.cards.map((c) => c.label)).toContain('Danger sense');
-    // Talk, papers and a hired pilot are not patrols to feel coming.
-    expect(runBlockade(seedRng('t'), { blockade: HYDIAN, day: START, approach: 'talk', runner: { ...seer, contact: 'x' }, direction: 'in' }).cards.map((c) => c.label)).not.toContain('Danger sense');
+    // A cover story, papers and a hired pilot are not patrols to feel coming.
+    expect(runBlockade(seedRng('t'), { blockade: HYDIAN, day: START, approach: 'undercover', runner: { ...seer, contact: 'x' }, direction: 'in' }).cards.map((c) => c.label)).not.toContain('Danger sense');
   });
 });
 
 describe('a run', () => {
   it('protection is the safest and forcing the hardest, at the same skill', () => {
     const r = runner({ protector: 'x', contact: 'y', smuggler: { name: 'z', level: 60 }, masking: true, fleet: true }, 60);
-    const o = (['ride', 'talk', 'smuggle', 'sneak', 'force'] as const).map((a) => odds(a, r));
+    const o = (['ride', 'undercover', 'smuggle', 'sneak', 'force'] as const).map((a) => odds(a, r));
     for (let i = 1; i < o.length; i++) expect(o[i]!, String(i)).toBeLessThanOrEqual(o[i - 1]!);
     expect(o[0]!).toBeGreaterThan(0.6);
   });
@@ -196,7 +201,7 @@ describe('a run', () => {
     expect(odds('aroundClose', r, HYDIAN, START + 400, 'out')).toBeLessThan(odds('aroundClose', r, HYDIAN, START, 'out'));
   });
   it('a failure follows the blockade\'s own ladder, and a failed bluff can become a run, once and harder', () => {
-    const runs = Array.from({ length: 400 }, (_, i) => runBlockade(seedRng(`l${i}`), { blockade: HYDIAN, day: START, approach: 'talk', runner: runner({ contact: 'x' }, 20), direction: 'in' }));
+    const runs = Array.from({ length: 400 }, (_, i) => runBlockade(seedRng(`l${i}`), { blockade: HYDIAN, day: START, approach: 'undercover', runner: runner({ contact: 'x' }, 20), direction: 'in' }));
     const by = (r: string) => runs.filter((x) => x.result === r);
     for (const r of ['turnedBack', 'boarded', 'firedOn']) expect(by(r).length, r).toBeGreaterThan(0);
     expect(by('turnedBack')[0]!).toMatchObject({ turnsInto: ['force'], penalty: 10 });
@@ -208,7 +213,7 @@ describe('a run', () => {
   });
   it('a trade blockade answers more mildly, and a run\'s fame follows the approach and the level', () => {
     const r = runner({ contact: 'x' }, 5);
-    const worst = (b: BlockadeDef): boolean => Array.from({ length: 300 }, (_, i) => runBlockade(seedRng(`m${i}`), { blockade: b, day: START, approach: 'talk', runner: r, direction: 'in' }).result).includes('firedOn');
+    const worst = (b: BlockadeDef): boolean => Array.from({ length: 300 }, (_, i) => runBlockade(seedRng(`m${i}`), { blockade: b, day: START, approach: 'undercover', runner: r, direction: 'in' }).result).includes('firedOn');
     expect([worst(level(1)), worst(HYDIAN)]).toEqual([false, true]);
     const ace = runner({ fleet: true, protector: 'x' }, 120);
     const win = (a: BlockadeApproach, b = HYDIAN) => Array.from({ length: 300 }, (_, i) => runBlockade(seedRng(`a${i}`), { blockade: b, day: START, approach: a, runner: ace, direction: 'in' })).find((x) => x.result === 'through')!;
@@ -288,10 +293,10 @@ describe('the Hydian Way blockade in play', () => {
   it('contacts open approaches: a friend among Hutt-backed shippers, and an official who gets codes', () => {
     const open = (s: GameState): string[] => planTravel(s, go(['Malastare']))!.blockade!.options.filter((o) => o.available).map((o) => o.approach);
     expect(open(befriend(fresh(), 'Dara Voss', 'underworld', 'merchant'))).toContain('ride');
-    expect(open(befriend(fresh(), 'Captain Orl', 'republic', 'officer'))).toContain('talk');
+    expect(open(befriend(fresh(), 'Captain Orl', 'republic', 'officer'))).toContain('undercover');
     const met = applyEvents(FAST, fresh(), [{ type: 'npcIntroduced', name: 'Tam Renn', species: 'human', faction: 'underworld', role: 'smuggler', ageApprox: 30, description: '' }], { source: 'ai' }).state;
     expect(open(met)).toContain('smuggle');
-    expect(open(fresh({ optionId: 'sis-agent', path: 'career', archetype: 'soldier' }))).toContain('talk'); // trained
+    expect(open(fresh({ optionId: 'sis-agent', path: 'career', archetype: 'soldier' }))).toContain('undercover'); // trained
     expect(open(applyEvents(FAST, fresh(), [{ type: 'flagSet', flag: 'shipSystem:masking' }], { source: 'engine' }).state)).toContain('sneak');
   });
   it('those who pass freely are not stopped', () => {
@@ -325,7 +330,7 @@ describe('the Hydian Way blockade in play', () => {
     const s = befriend(fresh(), 'Captain Orl', 'republic', 'officer');
     let failed: GameState | null = null;
     for (let i = 0; i < 60 && !failed; i++) {
-      const r = resolveTurn(FAST, { ...s, meta: { ...s.meta, rngState: seedRng(`p${i}`) } }, go(['Malastare'], 'talk'));
+      const r = resolveTurn(FAST, { ...s, meta: { ...s.meta, rngState: seedRng(`p${i}`) } }, go(['Malastare'], 'undercover'));
       if (r.draft.travel!.run!.turnsInto.length) {
         failed = r.state;
         expect(describeTravel(r.draft.travel!)).toMatch(/can still turn into: force a way through/);
@@ -367,11 +372,76 @@ describe('the Hydian Way blockade in play', () => {
       seen.add(result);
       expect(r.state.clock.now.day, result).toBeGreaterThan(s.clock.now.day);
       expect(r.state.world.blockades.captive !== null).toBe(result === 'captured');
-      expect(r.state.world.blockades.shipOutside !== null).toBe(result === 'through');
-      if (result === 'captured') expect(stateBlock({ ...r.state, clock: s.clock }, makeEstimator(4)).text).toMatch(/CAPTIVE: the player character was captured at a blockade/);
+      if (result === 'through') expect(r.state.world.blockades.shipOutside).not.toBeNull();
     }
     expect(seen.size).toBeGreaterThan(1);
   }, 60_000);
+  describe('a capture (D-470 [6])', () => {
+    /** Forced through and taken, aboard the ship. */
+    const taken = (): { before: GameState; r: ReturnType<typeof resolveTurn> } => {
+      const before = applyEvents(FAST, fresh(), [{ type: 'flagSet', flag: 'fleetCommand' }], { source: 'engine' }).state;
+      for (let i = 0; i < 60; i++) {
+        const r = resolveTurn(FAST, { ...before, meta: { ...before.meta, rngState: seedRng(`cap${i}`) } }, go(['Malastare'], 'force'));
+        if (r.state.world.blockades.runs[0]!.result === 'captured') return { before, r };
+      }
+      throw new Error('no capture in 60 seeds');
+    };
+    const nextTurn = (s: GameState): GameState => ({ ...s, meta: { ...s.meta, turn: s.meta.turn + 1 } });
+    it('takes a prisoner, the ship and the cargo, and names the captors as a fight does', () => {
+      const { r } = taken();
+      const b = r.state.world.blockades;
+      expect(b.captive).toMatchObject({ group: 'Mandalorian warriors of the Mandalorian blockade of the Hydian Way', kind: 'mandalorian' });
+      expect([b.impounded?.blockadeId, b.shipOutside]).toEqual(['hydian-way-3661', null]);
+      expect(b.ledger.map((l) => l.reason).join()).toMatch(/cargo seized/);
+      expect(selectCaptors(r.state)).toMatchObject({ kind: 'mandalorian', blockade: true });
+      expect(stateBlock(r.state, makeEstimator(4)).text).toMatch(/CAPTIVE: the player character was captured by Mandalorian warriors of .* at the blockade\. Name these captors.*Their ship is impounded/);
+      expect(describeTravel(r.draft.travel!)).toMatch(/taken prisoner; the ship is impounded and its cargo seized/);
+      expect(r.draft.travel!.run!.turnsInto).toEqual([]);
+    });
+    it('a prisoner goes nowhere; wherever they are held, they stay one until it ends', () => {
+      const { r } = taken();
+      expect(planTravel(r.state, go(['Alderaan']))).toMatchObject({ ok: false, reason: expect.stringMatching(/a prisoner of Mandalorian warriors/) });
+      const cell = applyEvents(FAST, r.state, [{ type: 'locationIntroduced', name: 'Brig', kind: 'ship', region: 'Hydian Way', description: '', moveHere: true }], { source: 'ai' }).state;
+      expect(selectCaptors(cell)).not.toBeNull();
+      expect(selectCaptors(pass(r.state, CAPTIVE_DAYS + 5))).toBeNull(); // at most this long
+    });
+    it('the story ends it on a later turn, with or without the ship, and only for a prisoner the engine recorded', () => {
+      const { before, r } = taken();
+      const free = { type: 'captivityEnded', how: 'escaped', withShip: false };
+      expect(applyEvents(FAST, before, [free], { source: 'ai' }).applied).toEqual([]);
+      expect(applyEvents(FAST, r.state, [free], { source: 'ai' }).rejected.map((x) => x.reason).join()).toMatch(/taken this turn/);
+      const out = applyEvents(FAST, nextTurn(r.state), [free], { source: 'ai' }).state;
+      expect([selectCaptors(out), out.world.blockades.impounded !== null]).toEqual([null, true]);
+      // Without the ship: a civilian transport, and nothing that needs a ship of one's own.
+      expect(planTravel(out, go(['Alderaan']))).toMatchObject({ ok: true, shipClass: 3 });
+      const open = planTravel({ ...out, flags: { set: [] } }, go(['Malastare']))!.blockade!.options.filter((o) => o.available).map((o) => o.approach);
+      expect(open).toEqual([]);
+      const back = applyEvents(FAST, nextTurn(r.state), [{ ...free, how: 'released', withShip: true }], { source: 'ai' }).state;
+      expect(planTravel(back, go(['Alderaan']))).toMatchObject({ shipClass: 2 });
+    });
+    it('the narrator is offered the ending only while the character is held', () => {
+      const { before, r } = taken();
+      const offered = (s: GameState): boolean => REGISTRY.find((f) => f.id === 'world')!.events['captivityEnded']!.narrative!(s, { timeAdvancedByDraft: true });
+      expect([offered(before), offered(r.state)]).toEqual([false, true]);
+    });
+    it('taken on foot, the ship is not with them', () => {
+      for (let i = 0; i < 200; i++) {
+        const x = runBlockade(seedRng(`foot${i}`), { blockade: HYDIAN, day: START, approach: 'aroundOnFoot', runner: runner({ trained: true }, 20), direction: 'in' });
+        if (x.result === 'captured') return void expect(x.onFoot).toBe(true);
+      }
+      throw new Error('no capture on foot in 200 seeds');
+    });
+  });
+  it('a v3 save\'s "talk" run is "undercover" now', () => {
+    const s = resolveTurn(FAST, fresh(), go(['Malastare'], 'aroundClose')).state;
+    const env = JSON.parse(JSON.stringify(makeEnvelope(FAST, s, 'now')));
+    env.featureVersions.world = 3;
+    env.state.world.blockades.runs[0].approach = 'talk';
+    env.state.world.blockades.captive = { by: 'x', day: 1, locationId: null };
+    delete env.state.world.blockades.impounded;
+    const r = loadEnvelope(FAST, env);
+    expect(r.ok && [r.state.world.blockades.runs[0]!.approach, r.state.world.blockades.captive, r.state.world.blockades.impounded]).toEqual(['undercover', null, null]);
+  });
   it('the save keeps it, and an older save (v2) has none', () => {
     const s = resolveTurn(FAST, fresh(), go(['Malastare'], 'aroundClose')).state;
     const env = JSON.parse(JSON.stringify(makeEnvelope(FAST, s, 'now')));

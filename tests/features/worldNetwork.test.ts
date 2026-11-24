@@ -457,7 +457,10 @@ describe('guards and player actions', () => {
       expect(r.applied, e.type).toEqual([]);
       expect(r.rejected.length, e.type).toBe(1);
     }
-    expect(Object.values(makeWorldFeature(FIXTURE).events).some((d) => d.narrative)).toBe(false);
+    // The one world event the narrator has ends a captivity (D-470): it touches no tag, and only a prisoner's turn offers it.
+    const offered = Object.entries(makeWorldFeature(FIXTURE).events).filter(([, d]) => d.narrative);
+    expect(offered.map(([type]) => type)).toEqual(['captivityEnded']);
+    expect(offered[0]![1].narrative!(game(), { timeAdvancedByDraft: true })).toBe(false);
   });
 
   it('an action on a place with no lead recorded in play scores nothing (D-468)', () => {
@@ -473,7 +476,15 @@ describe('guards and player actions', () => {
     expect(points(here)).toBe(0);
     expect(points(meet(here, 'lore:darth-angral').s)).toBe(2);
     expect(points(applyEvents(REG, here, [{ type: 'factLearned', aboutRef: 'Coruscant', fact: 'Someone is measuring the Temple gates', importance: 'major' }], { source: 'ai' }).state)).toBe(2);
-    expect(points(applyEvents(REG, here, [{ type: 'threadOpened', title: 'Strange cargo', stakes: 'x', entityRefs: ['Coruscant'] }], { source: 'ai' }).state)).toBe(2);
+    const opened = (s: GameState, title: string): GameState => applyEvents(REG, s, [{ type: 'threadOpened', title, stakes: 'x', entityRefs: ['Coruscant'] }], { source: 'ai' }).state;
+    const later: GameState = { ...here, meta: { ...here.meta, turn: 5 } };
+    expect(points(opened(later, 'Strange cargo'))).toBe(2);
+    expect(points(opened(here, 'Strange cargo'))).toBe(0); // a start option's thread: backstory until play takes it up
+    // Never what is to come, stated outright; nor what was not learned in a scene (D-470 [4]).
+    expect(points(applyEvents(REG, here, [{ type: 'factLearned', aboutRef: 'Coruscant', fact: 'Nobody knows the strike is coming to the city', importance: 'major' }], { source: 'ai' }).state)).toBe(0);
+    expect(points(opened(later, 'The strike as recorded'))).toBe(0);
+    const told = applyEvents(REG, here, [{ type: 'factLearned', aboutRef: 'Coruscant', fact: 'Someone is measuring the Temple gates', importance: 'major' }], { source: 'ai' }).state;
+    expect(points({ ...told, memory: { ...told.memory, facts: told.memory.facts.map((f) => ({ ...f, turn: 0 })) } })).toBe(0);
     const vault = applyEvents(REG, here, [{ type: 'locationIntroduced', name: 'Old Vault', kind: 'building', region: 'Coruscant', parentRef: 'Coruscant', description: 'x', moveHere: true }], { source: 'ai' }).state;
     expect(points(vault)).toBe(2);
   });

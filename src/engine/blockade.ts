@@ -83,6 +83,8 @@ export interface Runner {
   /** Sensor masking or a stealth system on the ship. */
   masking: boolean;
   fleet: boolean;
+  /** The character's ship is impounded: nothing that needs their own ship is open. */
+  noShip: boolean;
   /** The ship was left outside on the way in: the way out starts on foot. */
   shipOutside: { days: number } | null;
   levels: Readonly<Record<'charisma' | 'intelligence' | 'piloting' | 'stealth' | 'endurance' | 'tracking' | 'forceSense', LevelInputs>>;
@@ -98,7 +100,7 @@ export interface ApproachOption {
 
 export const APPROACH_LABEL: Readonly<Record<BlockadeApproach, string>> = {
   ride: 'Ride under protection',
-  talk: 'Talk through with false identities and codes',
+  undercover: 'Go undercover: false identities, codes and a cover story',
   smuggle: 'Pay a smuggler who knows the blockade',
   sneak: 'Sneak through the pickets',
   aroundClose: 'Go around and slip in close',
@@ -135,15 +137,17 @@ export function approachOptions(b: BlockadeDef, day: number, r: Runner, directio
   if (r.shipOutside) {
     return BLOCKADE_APPROACHES.map((a) => (a === 'aroundOnFoot' ? of(a, true, 'the ship was left outside: walk back to it') : of(a, false, 'the ship is outside the blockade')));
   }
+  const ship = (available: boolean): boolean => available && !r.noShip;
+  const lost = 'the character\'s ship is impounded';
   const traffic = b.protectedTraffic.map((t) => t.label).join(', ') || 'a permitted party';
   return [
     of('ride', r.protector !== null, r.protector ?? `needs papers from a permitted party, or a friend in ${traffic}`),
-    of('talk', r.contact !== null || r.trained, r.contact ?? (r.trained ? 'trained tradecraft' : 'needs a friend in the services or the underworld who can get identities and codes')),
+    of('undercover', r.contact !== null || r.trained, r.contact ?? (r.trained ? 'trained tradecraft' : 'needs a friend in the services or the underworld who can get identities and codes')),
     of('smuggle', r.smuggler !== null, r.smuggler ? r.smuggler.name : 'needs a smuggler to hire'),
-    of('sneak', r.masking, r.masking ? 'the ship has sensor masking' : 'needs sensor masking or a stealth system'),
-    of('aroundClose', true, 'out beyond sensor range and back in at sublight'),
-    of('aroundOnFoot', direction === 'in', direction === 'in' ? landingText(landingKnowledge(b, day, r)) : direction === 'out' ? 'only when the ship stands outside the blockade' : 'only for a landing'),
-    of('force', r.fleet || r.levels.piloting.level >= FORCE_THROUGH_PILOTING, r.fleet ? 'a fleet' : r.levels.piloting.level >= FORCE_THROUGH_PILOTING ? 'one of the best pilots alive' : 'needs a fleet, or one of the best pilots in existence'),
+    of('sneak', ship(r.masking), r.noShip ? lost : r.masking ? 'the ship has sensor masking' : 'needs sensor masking or a stealth system'),
+    of('aroundClose', ship(true), r.noShip ? lost : 'out beyond sensor range and back in at sublight'),
+    of('aroundOnFoot', ship(direction === 'in'), r.noShip ? lost : direction === 'in' ? landingText(landingKnowledge(b, day, r)) : direction === 'out' ? 'only when the ship stands outside the blockade' : 'only for a landing'),
+    of('force', r.fleet || ship(r.levels.piloting.level >= FORCE_THROUGH_PILOTING), r.fleet ? 'a fleet' : r.levels.piloting.level >= FORCE_THROUGH_PILOTING ? (r.noShip ? lost : 'an ace pilot') : 'needs a fleet, or an ace pilot'),
   ];
 }
 
@@ -167,6 +171,8 @@ export interface BlockadeRun {
   hazard: { type: 'crash' | 'exposure'; severity: 1 | 2 } | null;
   /** The ship was found while it stood outside. */
   shipFound: boolean;
+  /** Caught on foot, away from the ship. */
+  onFoot: boolean;
   /** Facts for the narrator. Never a patrol or sensor figure the character does not know. */
   notes: string[];
   rng: RngState;
@@ -259,6 +265,7 @@ export function runBlockade(rng: RngState, i: RunInput): BlockadeRun {
   let margin = 0;
   let exposure = false;
   let shipFound = false;
+  let onFoot = false;
 
   const attempt = (label: string, skillId: string, level: LevelInputs, rating: number, mods: readonly Modifier[] = []): void => {
     const card = roll(c, label, skillId, level, rating, mods);
@@ -270,7 +277,10 @@ export function runBlockade(rng: RngState, i: RunInput): BlockadeRun {
     extraHours += t.days * 24;
     exposure = t.exposure;
     // Caught on foot, with no ship to run in: taken.
-    if (t.caught) sev = 3;
+    if (t.caught) {
+      sev = 3;
+      onFoot = true;
+    }
     else c.notes.push(`${t.days} day${t.days === 1 ? '' : 's'} on foot`);
   };
 
@@ -278,13 +288,13 @@ export function runBlockade(rng: RngState, i: RunInput): BlockadeRun {
     case 'ride':
       attempt('Riding under protection', 'charisma', r.levels.charisma, base);
       break;
-    case 'talk': {
+    case 'undercover': {
       const mods: Modifier[] = [
         ...(r.trained ? [{ source: 'trained tradecraft', value: TRADECRAFT_BONUS.trained }] : []),
         ...(r.contact ? [{ source: r.contact, value: TRADECRAFT_BONUS.contact }] : []),
       ];
       const useWits = r.levels.intelligence.level > r.levels.charisma.level;
-      attempt('Talking through the blockade', useWits ? 'intelligence' : 'charisma', useWits ? r.levels.intelligence : r.levels.charisma, base, mods);
+      attempt('Undercover through the blockade', useWits ? 'intelligence' : 'charisma', useWits ? r.levels.intelligence : r.levels.charisma, base, mods);
       break;
     }
     case 'smuggle':
@@ -343,7 +353,7 @@ export function runBlockade(rng: RngState, i: RunInput): BlockadeRun {
   if (sev === null) {
     const fame = Math.round(RUN_FAME[approach] * scale) + (RUN_FAME[approach] > 0 && margin >= FAME_MARGIN ? 1 : 0);
     c.notes.unshift(`through (${APPROACH_LABEL[approach].toLowerCase()})`);
-    return { approach, result: 'through', cards: c.cards, extraHours, credits, turnsInto: [], penalty: 0, fame, witnessed: WITNESSED.includes(approach), hazard: exposure ? { type: 'exposure', severity: 1 } : null, shipFound, notes: c.notes, rng: c.rng };
+    return { approach, result: 'through', cards: c.cards, extraHours, credits, turnsInto: [], penalty: 0, fame, witnessed: WITNESSED.includes(approach), hazard: exposure ? { type: 'exposure', severity: 1 } : null, shipFound, onFoot, notes: c.notes, rng: c.rng };
   }
   // A trade blockade answers a step more mildly than its worst; force met by force goes a step further.
   const step = Math.min(s.response.length - 1, Math.max(0, sev + (approach === 'force' ? 1 : 0) - (s.level === 1 ? 1 : 0)));
@@ -363,6 +373,7 @@ export function runBlockade(rng: RngState, i: RunInput): BlockadeRun {
     witnessed: false,
     hazard: result === 'firedOn' ? { type: 'crash', severity: approach === 'force' ? 2 : 1 } : exposure ? { type: 'exposure', severity: 1 } : null,
     shipFound,
+    onFoot,
     notes: c.notes,
     rng: c.rng,
   };

@@ -137,6 +137,9 @@ The dated rows of both maps load and join with the shipped network (a test). Wha
 9. **A role that moves** to another survivor when a protagonist dies (PP-9 step 3, PP-10 step 2).
 10. **Steps over an undated span** (PP-12 before 2000): a condition window is a year or "while under way".
 11. **Not a gap, but to know:** a very high guard fails the data check until it names its two steps (E.3636.eternal_empire).
+12. **A decision that depends on which character is present in a scene** (PP-5; D-470).
+13. **Loyalty per clone unit** (PP-5): a condition holds or breaks for everyone at once.
+14. **A warning race after Sidious escapes** (PP-5): events cannot compete to come first.
 
 **Updated 24 Nov 2026 (D-468).** The 1000 BBY map was replaced: the thought-bomb branch, R1–R3 and the reworked PP-3 and PP-4
 are now in the file, with the E.980.zannah and thought-bomb input fixes kept. The load check was re-run on it and passes.
