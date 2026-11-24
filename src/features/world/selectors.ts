@@ -1,17 +1,23 @@
 import { CANON_DEATH_LINKS } from '../../data/canonDeathLinks';
 import { CANON_BY_ID, CANON_NPCS, type CanonNpc } from '../../data/canonNpcs';
 import { ORDER_SEATS, type OrderSeat } from '../../data/orderSeats';
+import type { BlockadeDef } from '../../data/blockades';
+import type { Runner } from '../../engine/blockade';
 import { FACTION_LEADERS, placeAmong, type LeaderSpan } from '../../data/worldControl';
-import { WORLD_NETWORK, type RoleTag, type WorldNetwork } from '../../data/worldNetwork';
+import { WORLD_NETWORK, type Lead, type RoleTag, type WorldNetwork } from '../../data/worldNetwork';
 import { normalizeText } from '../../engine/aliases';
 import { dateFromAbsDay } from '../../engine/calendar';
 import { canonFactionAt, canonPresentAt, canonRankAt, canonRoleAt, withoutDeath } from '../../engine/canonRoster';
 import { datedFactsAt, type HeldReason } from '../../engine/datedFacts';
 import type { GameState } from '../../state/gameState';
+import { selectTurnInPlay } from '../clock/selectors';
 import { selectLastFight } from '../combat/selectors';
 import { selectHasFlag } from '../flags/selectors';
 import { selectLocationChain } from '../locations/selectors';
+import { selectFacts } from '../memory/selectors';
 import { selectNpcs } from '../npcs/selectors';
+import { selectThreads } from '../threads/selectors';
+import { captiveOf, heatNow, pendingFor, runnerFor, standingBlockades, type BlockadesState } from './blockades';
 import { timelineHandoff, untoldIds, type Handoff } from './handoff';
 import { actionMatters, controlNow, openNetwork, outcomeState, type ControlNow, type WorldAction, type WorldFacts } from './network';
 import type { NetworkState, Substitute, WorldEvent } from './world';
@@ -85,6 +91,18 @@ function wonFight(s: GameState): WorldFacts['wonFight'] {
   };
 }
 
+/** A lead on record (D-468): a figure met, a site visited, or a fact or thread about one of the lead's people or places. */
+function leadOnRecord(s: GameState, l: Lead): boolean {
+  const people = selectNpcs(s).filter((n) => n.canonId !== null && (l.canonIds ?? []).includes(n.canonId));
+  if (people.length) return true;
+  const visited = Object.values(s.locations.byId);
+  if ((l.sites ?? []).some((site) => visited.some((x) => x.firstVisitDay !== null && placeAmong(site, [], [x.name, ...x.aliases])))) return true;
+  if (!l.places?.length) return false;
+  const here = new Set(visited.filter((x) => l.places!.some((p) => placeAmong(p, [], [x.name, ...x.aliases]))).map((x) => x.id));
+  const threads = selectThreads(s).filter((t) => t.entityRefs.some((r) => here.has(r)));
+  return threads.length > 0 || selectFacts(s).some((x) => here.has(x.aboutRef));
+}
+
 /** What the engine has recorded, for the network's tests. */
 export function selectWorldFacts(s: GameState): WorldFacts {
   const lost = new Map<string, 'dead' | 'captured'>();
@@ -99,6 +117,7 @@ export function selectWorldFacts(s: GameState): WorldFacts {
     npcLost: (id) => lost.get(id) ?? null,
     storyNpcDead: (name) => selectNpcs(s).some((n) => n.status === 'deceased' && [n.name, ...n.aliases].some((x) => normalizeText(x) === normalizeText(name))),
     hasFlag: (f) => selectHasFlag(s, f),
+    hasLead: (l) => leadOnRecord(s, l),
     wonFight: wonFight(s),
     standIns: (role, exclude) => standIns(s, role, exclude, lost),
   };
@@ -152,6 +171,15 @@ export function selectOrderSeat(s: GameState, net: WorldNetwork = WORLD_NETWORK,
   }));
   return datedFactsAt(facts, nowBby(s), (o) => outcomeState(net, st, o))[0]?.fact.seat ?? null;
 }
+
+// ---- Blockades (D-469) ----
+
+/** The blockades standing now: dated, and tied to their world events. */
+export const selectStandingBlockades = (s: GameState): BlockadeDef[] => standingBlockades(selectNetworkState(s), s.clock.now.day);
+export const selectBlockadeRunner = (s: GameState, b: BlockadeDef): Runner => runnerFor(s, b);
+export const selectBlockadeHeat = (s: GameState, id: string): number => heatNow(s.world.blockades, id, s.clock.now.day);
+export const selectPendingBlockade = (s: GameState, id: string, to: string): BlockadesState['pending'] => pendingFor(s.world.blockades, id, to, selectTurnInPlay(s));
+export const selectBlockadeCaptive = (s: GameState): BlockadesState['captive'] => captiveOf(s);
 
 /** What code decided about the timeline, for the narrator: news not told yet, and the divergences that stand. */
 export const selectTimelineHandoff = (s: GameState, net: WorldNetwork = WORLD_NETWORK): Handoff => timelineHandoff(net, selectNetworkState(s, net), placeNames(s, s.locations.currentId));

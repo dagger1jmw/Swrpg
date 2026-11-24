@@ -35,7 +35,7 @@ function conditionsIn(cell: string): ConditionTag[] {
     const guard = (m[3] === 'very high' ? 'veryHigh' : (m[3] ?? 'medium')) as WorldGuard;
     const text = m[1]!.trim().slice(0, 200) || 'condition';
     // No breaking tests yet: those are drafted when an era is built. A very high guard gets two placeholder steps.
-    const steps = ['one', 'two'].map((n) => ({ id: `know.${n}`, text: `step ${n}`, tests: [{ kind: 'action' as const, actionTypes: ['investigate' as const], places: [`step ${n}`] }] }));
+    const steps = ['one', 'two'].map((n) => ({ id: `know.${n}`, text: `step ${n}`, tests: [{ kind: 'action' as const, actionTypes: ['investigate' as const], places: [`step ${n}`] }], leads: [{ places: [`step ${n}`] }] }));
     out.push({ id: `cond.${slug(text)}`, text, brokenText: text, crucial: m[2] === 'crucial', guard, breakIf: [], ...(guard === 'veryHigh' ? { prerequisites: steps } : {}) });
   }
   return uniq(out);

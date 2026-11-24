@@ -1,7 +1,8 @@
 // Travel between worlds (m7-start-checklist.md item 26; D-402 [3], D-405). Pure: given two map worlds, the date, the
 // traveller's side and ship class, the trip's hours or the reason it can't be made. Numbers in data/travel.config.ts
 // (all invented).
-import { ASTEROID_FACTOR, BLOCKADE, CLIMB_OUT_HOURS, DEEP_CORE, MAELSTROM_SUBLIGHT_HOURS, OFF_LANE, REGION_RATES, type RegionRate } from '../data/travel.config';
+import type { BlockadeDef } from '../data/blockades';
+import { ASTEROID_FACTOR, CLIMB_OUT_HOURS, DEEP_CORE, MAELSTROM_SUBLIGHT_HOURS, OFF_LANE, REGION_RATES, type RegionRate } from '../data/travel.config';
 
 export interface TravelWorld {
   name: string;
@@ -9,16 +10,18 @@ export interface TravelWorld {
   grid: string;
   /** A station or ship (shorter climb-out) rather than a planet or moon. */
   station?: boolean;
-  /** On the blockaded route (the Hydian Way; from the map's route data, D-406). */
-  onBlockadeRoute?: boolean;
+  /** The blockaded routes it lies on (from the map's route data, D-406). */
+  onRoutes?: readonly string[];
 }
 
 export interface TripInput {
   from: TravelWorld;
   to: TravelWorld;
-  /** Campaign year as BBY (positive). */
-  bby: number;
-  /** The traveller's faction (for the blockade). */
+  /** The blockades standing now (M8 item 4, D-469). */
+  blockades?: readonly BlockadeDef[];
+  /** The blockade this trip runs (its approach was played): it neither refuses the trip nor lengthens it. */
+  runs?: string;
+  /** The traveller's faction (for a blockade). */
   faction: string;
   shipClass: number;
   offLane?: boolean;
@@ -28,7 +31,7 @@ export interface TripInput {
 
 export type TripPlan =
   | { ok: true; hours: number; squares: number; rate: string; parts: readonly string[]; notes: readonly string[] }
-  | { ok: false; reason: string };
+  | { ok: false; reason: string; blockadeId?: string };
 
 /** "L-9" -> { col: 11, row: 9 }; null for a missing or Canon-only grid. */
 export function parseGrid(grid: string): { col: number; row: number; letter: string } | null {
@@ -52,17 +55,25 @@ function regionRate(region: string): { index: number; label: string; rate: Regio
   return i < 0 ? null : { index: i, label: REGION_RATES[i]!.label, rate: REGION_RATES[i]!.rate, deep: false };
 }
 
-function inBlockadeCorridor(grid: string): boolean {
-  const g = parseGrid(grid);
-  return !!g && (BLOCKADE.columns as readonly string[]).includes(g.letter) && g.row >= BLOCKADE.rowFrom && g.row <= BLOCKADE.rowTo;
+/** Whether a world lies in the blockade's strip, or is one of the worlds it closes. */
+export function inZone(b: BlockadeDef, w: TravelWorld): boolean {
+  if (b.zone.worlds?.includes(w.name)) return true;
+  const g = parseGrid(w.grid);
+  if (!g || !b.zone.columns || b.zone.rowFrom === undefined || b.zone.rowTo === undefined) return false;
+  return b.zone.columns.includes(g.letter) && g.row >= b.zone.rowFrom && g.row <= b.zone.rowTo;
 }
 
+/** Whether the world itself is closed by it: a listed world, or one on the route inside the strip. */
+export const blocks = (b: BlockadeDef, w: TravelWorld): boolean => b.zone.worlds?.includes(w.name) === true || (inZone(b, w) && b.zone.route !== undefined && (w.onRoutes ?? []).includes(b.zone.route));
+
 /** A trip along the blockaded route through the strip: both ends on it, with the strip's rows between them. */
-function alongRouteThrough(from: TravelWorld, to: TravelWorld): boolean {
+function alongRouteThrough(bl: BlockadeDef, from: TravelWorld, to: TravelWorld): boolean {
   const a = parseGrid(from.grid);
   const b = parseGrid(to.grid);
-  if (!from.onBlockadeRoute || !to.onBlockadeRoute || !a || !b) return false;
-  return Math.min(a.row, b.row) <= BLOCKADE.rowTo && Math.max(a.row, b.row) >= BLOCKADE.rowFrom;
+  const { route, rowFrom, rowTo } = bl.zone;
+  if (!route || rowFrom === undefined || rowTo === undefined || !a || !b) return false;
+  if (!(from.onRoutes ?? []).includes(route) || !(to.onRoutes ?? []).includes(route)) return false;
+  return Math.min(a.row, b.row) <= rowTo && Math.max(a.row, b.row) >= rowFrom;
 }
 
 const round = (h: number): number => Math.round(h * 4) / 4;
@@ -70,24 +81,19 @@ const round = (h: number): number => Math.round(h * 4) / 4;
 /**
  * A trip's hours. Hop time = the slower region's minimum, plus its per-square time for each grid square beyond the first
  * (D-405); × the ship's class; × 3 for a Deep Core end; × 1.5 for an asteroid field end; × 4 and a plot off the lanes.
- * Climb-out is added at both ends. The Maelstrom is sublight only. Closed worlds refuse the trip; the blockade refuses
- * the Hydian Way inside the strip and adds a detour for the strip's other worlds (D-406).
+ * Climb-out is added at both ends. The Maelstrom is sublight only. Closed worlds refuse the trip; a blockade refuses its
+ * worlds and its route through the strip, and adds a detour for the strip's other worlds (D-406, D-469).
  */
 export function planTrip(t: TripInput): TripPlan {
   if (t.closedReason) return { ok: false, reason: `${t.to.name} is closed to this character: ${t.closedReason}` };
-  const blockadeYear = t.bby <= BLOCKADE.fromBby && t.bby >= BLOCKADE.toBby;
-  const inZone = blockadeYear && (inBlockadeCorridor(t.from.grid) || inBlockadeCorridor(t.to.grid));
-  const passes = (BLOCKADE.passes as readonly string[]).includes(t.faction);
-  if (blockadeYear && !passes) {
-    const routeEnd = [t.from, t.to].find((w) => w.onBlockadeRoute && inBlockadeCorridor(w.grid));
-    if (routeEnd || alongRouteThrough(t.from, t.to)) {
-      return {
-        ok: false,
-        reason: `the Mandalorian blockade closes the Hydian Way between Devaron and the Minos Cluster${routeEnd ? ` (${routeEnd.name} is on it)` : ''}; running it is a story event, not a routine trip`,
-      };
-    }
+  const others = (t.blockades ?? []).filter((b) => !(b.passes as readonly string[]).includes(t.faction) && b.id !== t.runs);
+  for (const b of others) {
+    const end = [t.from, t.to].find((w) => blocks(b, w));
+    if (end || alongRouteThrough(b, t.from, t.to)) return { ok: false, reason: `${b.closes}${end ? ` (${end.name} is on it)` : ''}`, blockadeId: b.id };
   }
-  const notes: string[] = inZone ? [BLOCKADE.zoneNote] : [];
+  const zones = (t.blockades ?? []).filter((b) => inZone(b, t.from) || inZone(b, t.to));
+  const detours = zones.filter((b) => others.includes(b));
+  const notes: string[] = zones.map((b) => b.zoneNote);
   const climb = (w: TravelWorld): number => (w.station ? CLIMB_OUT_HOURS.station : CLIMB_OUT_HOURS.planet);
   const parts: string[] = [];
   if (/maelstrom/i.test(t.to.name) || /maelstrom/i.test(t.from.name)) {
@@ -111,9 +117,9 @@ export function planTrip(t: TripInput): TripPlan {
     hours *= ASTEROID_FACTOR;
     parts.push(`× ${ASTEROID_FACTOR} asteroid field`);
   }
-  if (inZone && !passes) {
-    hours *= BLOCKADE.detourFactor;
-    parts.push(`× ${BLOCKADE.detourFactor} detour around the blockade`);
+  for (const b of detours) {
+    hours *= b.detourFactor;
+    parts.push(`× ${b.detourFactor} detour around the blockade`);
   }
   if (t.offLane) {
     hours = hours * OFF_LANE.factor + OFF_LANE.plotHours;

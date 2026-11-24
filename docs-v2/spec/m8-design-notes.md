@@ -1,6 +1,6 @@
 # SWRPG M8 design notes
 
-> Exported from the Claude Docs "SWRPG M8 design notes" (revision 40) on 23 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
+> Exported from the Claude Docs "SWRPG M8 design notes" (revision 41) on 24 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
 
 Nov 23, 2026 · @Jared Wright
 
@@ -133,7 +133,7 @@ Events follow the recorded timeline unless the player breaks a tag the event dep
 | Tag kind | What it records | Example (the Sacking of Coruscant, 3653 BBY) |
 | --- | --- | --- |
 | Role | Who carries it out, marked replaceable or crucial | Angral leading the armada: replaceable (another Lord of similar rank takes over) |
-| Condition | What must hold for the event to happen as recorded, marked crucial or not, with a guard (how hard it is to break) | The Republic doesn't know: crucial, heavily guarded. The Alderaan conference as cover. The strike team on the Temple |
+| Condition | What must hold for the event to happen as recorded, marked crucial or not, with a guard (how hard it is to break: low, medium, high or very high; very high, ruled 23 Nov 2026, takes several steps that each must succeed, or a much harder feat) | The Republic doesn't know: crucial, heavily guarded. The Alderaan conference as cover. The strike team on the Temple |
 | Outcome | What the event produces; later events consume these, linking the network | Coruscant occupied, the Temple destroyed, the Treaty signed |
 
 ### The ripple

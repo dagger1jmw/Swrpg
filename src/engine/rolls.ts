@@ -108,9 +108,15 @@ export interface CheckInput {
 }
 
 export function check(rng: RngState, input: CheckInput): [CheckCard, RngState] {
+  return checkRating(rng, { ...input, rating: DIFFICULTY_RATING[input.difficulty] });
+}
+
+/** A check against any rating (a blockade's own, D-469); the card names the nearest difficulty. */
+export function checkRating(rng: RngState, input: Omit<CheckInput, 'difficulty'> & { rating: number; difficulty?: Difficulty }): [CheckCard, RngState] {
   const eff = effectiveLevel(input.levelInputs);
   const [roll, next] = basicRoll(rng, eff, input.modifiers);
-  const rating = DIFFICULTY_RATING[input.difficulty];
+  const { rating } = input;
+  const nearest = [...DIFFICULTIES].sort((a, b) => Math.abs(DIFFICULTY_RATING[a] - rating) - Math.abs(DIFFICULTY_RATING[b] - rating))[0]!;
   const dc = dcForRating(rating);
   const margin = roll.total - dc;
   return [
@@ -119,7 +125,7 @@ export function check(rng: RngState, input: CheckInput): [CheckCard, RngState] {
       kind: 'check',
       label: input.label,
       skillId: input.skillId,
-      difficulty: input.difficulty,
+      difficulty: input.difficulty ?? nearest,
       rating,
       dc,
       margin,

@@ -31,7 +31,7 @@ import { advanceByRoutine } from '../state/advanceRoutine';
 import { buildMontageReport, type MontageReport } from '../state/montageReport';
 import { applyEvents, type AppliedEvent, type RejectedEvent } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
-import { planTravel, type TravelOutcome } from './travel';
+import { planTravel, runTravelBlockade, watchTravelBlockade, type TravelOutcome } from './travel';
 import type { Registry, ResolvedAction } from '../state/types';
 
 /** Sleep with no stated duration (health spec: 7 h+ is a full night). */
@@ -306,14 +306,35 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     if (spanSeconds === null && isJumpLevel(intent.requestedPacing)) spanSeconds = DEFAULT_JUMP_DAYS[intent.requestedPacing] * 86_400;
     // Travel between map worlds (M7, D-405): the engine's trip time, or no time when the trip is refused.
     travel = planTravel(state, intent);
+    // Running a blockade (M8 item 4, D-469): the approach is played before the trip's time passes.
+    const attempt = travel && !travel.ok ? runTravelBlockade(state, intent, travel) : null;
+    const watch = travel ? null : watchTravelBlockade(state, intent, spanSeconds !== null ? spanSeconds / 3600 : null);
+    for (const act of [attempt, watch]) {
+      if (!act) continue;
+      if ('refused' in act) {
+        report.push(`blockade: ${act.refused}`);
+        if (travel?.blockade) travel = { ...travel, reason: `${travel.reason}; ${act.refused}` };
+        continue;
+      }
+      checks.push(...act.cards);
+      state = { ...state, meta: { ...state.meta, rngState: act.rng } };
+      apply([...act.events]);
+      if ('note' in act) report.push(act.note);
+    }
+    const handled = [attempt, watch].some((a) => a && !('refused' in a));
+    if (attempt && !('refused' in attempt)) travel = attempt.travel;
     if (travel?.ok) {
       if (intent.requestedSpan) report.push(`travel time is the engine's (${travel.hours} h), not the requested span`);
       spanSeconds = Math.round(travel.hours! * 3600);
       report.push(`travel ${travel.from} to ${travel.to}: ${travel.hours} h (${travel.parts.join(', ')})`);
+    } else if (travel?.run && attempt && !('refused' in attempt)) {
+      report.push(`blockade: ${travel.from} to ${travel.to}: ${travel.reason}`);
+      spanSeconds = attempt.seconds;
     } else if (travel) {
       report.push(`travel refused: ${travel.reason}`);
       spanSeconds = null;
     }
+    if (watch && !('refused' in watch)) spanSeconds = watch.seconds;
 
     // Montage and time skip (M4): the routine runs day by day to the target morning; checks and a
     // single training session do not apply (the routine is the training, D-139).
@@ -405,7 +426,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       const card = mindContestCard(state, intent.forceAbility, mindTarget);
       checks.push(card.card);
       state = { ...state, meta: { ...state.meta, rngState: card.rng } };
-    } else if (isCheckRequired(intent.actionType, intent.targets.length)) {
+    } else if (!handled && isCheckRequired(intent.actionType, intent.targets.length)) {
       const { difficulty, clampedFrom } = clampDifficulty(intent.actionType, intent.proposedDifficulty);
       const notes: string[] = [];
       if (clampedFrom) notes.push(`difficulty ${clampedFrom} clamped to ${difficulty} for ${intent.actionType}`);

@@ -1,6 +1,6 @@
 # World event tag map, 1000 BBY – 4 ABY (draft for review)
 
-The post-Ruusan Republic, the Clone Wars and the Empire, plus the links that tie them together. Same format and rules as world-event-tags-draft.md (3661–3640). Drafted by Claude, 23 Nov 2026. **Reviewed by Jared 23 Nov 2026 (rulings in section 8); PP-0 alternatives still to approve.**
+The post-Ruusan Republic, the Clone Wars and the Empire, plus the links that tie them together. Same format and rules as world-event-tags-draft.md (3661–3640). Drafted by Claude, 23 Nov 2026. **Reviewed by Jared 23 Nov 2026 (rulings in section 8); PP-0 triggers approved (section 5).**
 
 **Sources and accuracy**
 - **W:** checked against the Legends Wookieepedia page named (fetched 23 Nov 2026).
@@ -114,30 +114,49 @@ These chains run through all three eras. A break anywhere along one changes ever
 
 ## 5. Major plot points (proposed)
 
-The design notes allow authored alternatives only for massive, story-changing events. Jared approved PP-3 to PP-8 and their alternatives on 23 Nov 2026 and added PP-0, the Ruusan Reformations. **PP-0's alternatives are drafts for Jared to approve or replace.**
+The design notes allow authored alternatives only for massive, story-changing events. Jared approved PP-3 to PP-8 and their alternatives on 23 Nov 2026 and added PP-0, the Ruusan Reformations. **PP-0's per-reform triggers were approved by Jared on 23 Nov 2026.**
 
 ### PP-0: The Ruusan Reformations (1000 BBY)
-- **Hinge:** the Senate ratifies the Reformations: the Republic Military is dissolved, the Jedi come under the Chancellor and the Judicial Department, and Jedi are trained from infancy.
-- **Why it matters:** it is the root of cross-era links 1, 2, 3 and 11. Jared's ruling: Anakin is much less likely to fall without it.
-- **What I could not confirm:** that the Reformations themselves banned Jedi marriage and attachment. The Legends page on the Reformations does not say so, and the ban was already in force in the Old Republic era (in SWTOR the Jedi Knight can only marry Kira in secret). What the Reformations verifiably add is training from infancy. The Corellian Jedi stayed largely independent of the Council and kept their own customs. Needs a ruling: does the game treat the attachment ban as older than Ruusan (the lore) or as part of PP-0?
-- **Proposed alternatives:**
-  1. **The Republic keeps a standing army:** the Naboo crisis can be answered, the Military Creation Act and the clone army have no reason to exist, and PP-4 diverges.
-  2. **The Jedi stay independent of the Chancellor:** Jedi do not become clone generals; Order 66 has no command structure to exploit.
-  3. **Training from infancy is not adopted:** more Jedi keep family ties (closer to the Corellian Jedi); an Anakin found at nine is normal rather than an exception, and his fall is much less likely.
+Approved by Jared on 23 Nov 2026 (recorded in the M8 handoff; written into this map on 24 Nov 2026).
+- **Hinge:** the Senate ratifies the Reformations. Each reform turns separately, by its own trigger, so a campaign can lose one reform and keep the others.
+- **The attachment ban is older than Ruusan** (ruled). It was already in force in the Old Republic era. Ruusan added the enforcement: infant training and central Council control.
+- **Per-reform triggers:**
+  - **R1, the army** (the Republic Military dissolved; O.no_standing_military). It diverges only if the Sith are found alive within about 100 years of Ruusan. Then the Republic keeps or rebuilds a standing army, the Military Creation Act and the clone army have no reason to exist, and PP-4 diverges.
+  - **R2, Jedi independence** (the Jedi under the Chancellor and the Judicial Department; O.jedi_under_judiciary). It diverges if a high-standing player character sides with Valenthyne Farfalla. The Jedi stay independent of the Chancellor, don't become clone generals, and Order 66 has no command structure to work through.
+  - **R3, infant training** (O.jedi_from_birth). It diverges only if the thought bomb does not detonate **and** one other major tag is broken. More Jedi keep family ties (closer to the Corellian Jedi), an Anakin found at nine is normal rather than an exception, and his fall is much less likely.
+- **The thought-bomb branch:** if the thought bomb doesn't destroy the Brotherhood, two Sith lineages exist at once (Bane's and the Brotherhood's survivors), and the Rule of Two is much harder to keep hidden. This links to PP-13 alternative 2 in the 3640–1000 map.
+- **No Reformations at all:** PP-13 alternative 1 (the Brotherhood wins Ruusan) means no Reformations, so R1–R3 all stand diverged.
+- **Schema note (Phase B report, gap 3):** each trigger becomes its own plot point in code (PP-0.R1 to PP-0.R3 are not valid ids yet).
 
-### PP-3: Palpatine becomes Chancellor (32 BBY)
-- **Hinge:** Palpatine is elected Chancellor while his identity stays secret.
-- **Proposed alternatives:**
-  1. **Valorum survives the vote:** Sidious looks for another crisis; Palpatine's rise is delayed, not stopped (convergence).
-  2. **Another candidate wins** (Bail Antilles or Ainlee Teem): Palpatine stays a Senator and works from there.
-  3. **Sidious is exposed:** the Jedi hunt the Sith openly; the Grand Plan collapses.
+### PP-3: Palpatine becomes Chancellor (33–32 BBY)
+Reworked with Jared on 23 Nov 2026 to the 3640–1000 map's pattern: each hinge breaks only through steps a player can reach, and nothing re-stages history. Source: W: Supreme Chancellor election, 32 BBY/Legends; W: Eriadu Trade Summit.
+- **Hinge:** Valorum falls to a Vote of No Confidence, and the Senate elects Palpatine while his identity stays secret.
+- **Odds (Jared):** every step is clear and possible, but needs the player in a very specific place, so the odds are low. A player can't simply deploy there. A Jedi has to be chosen from the qualified Jedi, a Senate aide has to work for the right committee, and so on. Each step names who the player has to be.
+- **The steps:**
+  1. **Eriadu, 33–32.5 BBY** (guard high). The Nebula Front stages two "attempts" on Valorum, on Coruscant and at the summit. At the summit the whole Trade Federation Directorate except Gunray is murdered, in a plan Palpatine orchestrated. *Who:* a Jedi chosen for Valorum's escort, Senate or Judicial security at the summit, or someone inside the Nebula Front. Foiling the murders, or showing that the Front was manipulated, keeps the summit from collapsing and Valorum from looking helpless.
+  2. **The aurodium frame** (guard medium). Gold stolen at Dorvalla turns up in Valorum's account. Bail Antilles charges him with corruption, and the Senate bars him from using the Jedi or the Judicial Forces without its consent. *Who:* an investigator, banking official, or aide to the Internal Activities Committee or the Supreme Court. Tracing the money clears Valorum.
+  3. **The Naboo stall** (guard medium). Lott Dod stalls every Senate procedure while Naboo is blockaded. *Who:* a senator, a committee aide, or a Jedi carrying a report to the Senate. Forcing action keeps Valorum from looking weak.
+  4. **The Queen's motion** (guard medium). Palpatine persuades Amidala that only a new Chancellor can save Naboo, and she moves the vote. *Who:* a handmaiden, Royal Security, or a Jedi on her escort. Counselling her against it breaks the step. Her sympathy is what carries Palpatine, so a motion moved by anyone else does not replace hers.
+- **What breaks the hinge:** step 4, or any two of steps 1–3.
+- **Alternatives:**
+  1. **Valorum survives** (ruled by Jared, 23 Nov 2026). He finishes his term, which has only months left. The scheduled election that follows is ordinary politics, not a re-staged event, and Bail Antilles is the frontrunner, so this usually leads into alternative 2. Palpatine can still stand, but wins only if play allows it.
+  2. **Another candidate wins:** Bail Antilles (the frontrunner) or Ainlee Teem. Palpatine stays a senator and works from there.
+  3. **Sidious is exposed** (guard very high; ruled by Jared, 23 Nov 2026: "almost impossibly difficult"). It takes many steps, and every one needs an **in-world reason** to suspect Palpatine. A player's own knowledge of the films never counts: an investigation with no lead found in play scores nothing. Possible leads come only from play: the Trade Federation's contact "Darth Sidious", Maul's trail, or Hego Damask's dealings. The Jedi then hunt the Sith openly and the Grand Plan collapses.
 
-### PP-4: The Clone Wars begin (22 BBY)
-- **Hinge:** the Republic accepts the clone army and goes to war with the Confederacy.
-- **Proposed alternatives:**
-  1. **No clone army:** the Separatists leave and the Republic fractures without a war, or fights with hastily raised planetary forces.
-  2. **A negotiated settlement:** secession is accepted; a cold peace between two governments.
-  3. **War without clones:** a slower war; the Jedi are not generals, so Order 66 has no army to use.
+### PP-4: The Clone Wars begin (32–22 BBY)
+Reworked with Jared on 24 Nov 2026. Sources: W: Grand Army of the Republic/Legends; W: Sifo-Dyas/Legends; W: Military Creation Act; W: Kamino/Legends. Order 66 follows the source-priority ruling (section 8, ruling 6): it is a standing contingency order, not a chip.
+- **Hinge:** the Republic adopts the clone army and goes to war with the Confederacy.
+- **The steps:**
+  1. **The order, 32 BBY** (guard high). Hego Damask (Plagueis) steers Sifo-Dyas, already off the Council for ideas judged too extreme, into ordering the army from Kamino, and funds it. *Who:* a Jedi close to Sifo-Dyas, someone inside Damask Holdings, or a Kaminoan contact. Stopping the order means there is never a clone army.
+  2. **Sifo-Dyas on the Pyke mission** (guard high; not crucial). Valorum sends him to negotiate with the Pyke Syndicate on Oba Diah, a mission he keeps from the Council, and Dooku betrays and kills him. *Who:* someone on that mission (a Jedi, Valorum's staff or security). If he lives, Tyranus never takes over the project and Sifo-Dyas runs it. This changes who controls the army, not whether it is adopted, and it does not decide Order 66 (that is PP-5's per-unit condition).
+  3. **Kamino erased from the Archives** (guard medium). *Who:* Archives staff under Jocasta Nu. Noticing the gap early gives the Jedi an in-world lead to look into the army before 22, which counts toward step 5.
+  4. **The emergency powers vote, 22 BBY** (guard high). Amidala and the Loyalist Committee oppose the Military Creation Act. After the attempts on her life she is sent to Naboo, and Jar Jar proposes the powers in her absence. *Who:* a senator, Amidala's staff or her security. Keeping her on Coruscant, or swinging enough of the Senate, blocks the motion.
+  5. **The army's origin exposed** (guard very high). Exposing a Sith hand behind the army before the vote needs in-world leads found in play (Kamino's erasure, the name Tyranus, the dead Master's order); then the Senate refuses the clones.
+- **What breaks the hinge:** step 1, 4 or 5. Step 2 changes the army's leadership only.
+- **Alternatives:**
+  1. **No clone army** (step 1). The Separatists leave; the Republic fractures without a war, or fights with planetary forces raised in a hurry.
+  2. **The Senate rejects the clones** (step 4 or 5). Secession is accepted with a cold peace between two governments, or a slow war without clones; the Jedi are not generals.
+  3. **Sifo-Dyas runs the army** (step 2; not a hinge break). The war goes ahead as recorded; the narrator directs a Grand Army led by a living Jedi Master who ordered it.
 
 ### PP-5: The fall of the Jedi and the Empire (19 BBY)
 - **Hinge:** Anakin turns, Sidious survives the arrest, and the clones obey Order 66. (Three high-guard conditions. Breaking any one diverges.)
@@ -190,3 +209,4 @@ Events whose crucial tags don't depend on these plot points, so they still happe
 3. **Plot points.** PP-3 to PP-8 and their alternatives are approved. PP-0, the Ruusan Reformations, is added (alternatives still to approve; see the attachment question under PP-0).
 4. **The Force Unleashed** stays in the timeline, using the novelizations rather than the games, because the novels keep Galen Marek's power level grounded.
 5. **3640–1000 BBY** is to be mapped next.
+6. **Source priority for the Clone Wars (Jared, 24 Nov 2026).** *The Clone Wars* (2008) goes to the bottom of the lore priority, as secondary canon. Pre-2008 Legends Clone Wars material (the 2003 *Clone Wars* micro-series, the comics, the novels, Republic Commando) is primary. Where TCW retcons earlier material, the earlier material wins; TCW events that don't contradict it can still happen, adjusted (Mortis does, as *Fate of the Jedi* refers to it). Order 66 is one of the Republic military's contingency orders, with no inhibitor chip: clones obeyed through Kaminoan conditioning and their own choice, which is why some units refused. The specific differences (Grievous's strength, rank dates for Anakin and Obi-Wan, characters who exist only in TCW) are checked when the Clone Wars lore file is built.

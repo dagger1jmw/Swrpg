@@ -31,6 +31,7 @@ Status key: **Replaced** = a decided spec covers it fully. **Partly replaced** =
 | v170-audit.md | Earlier audit of V170 vs v2 (verified in bugs.md §4) |
 | m8-world-checklist.md | M8 world checklist: the open items (blockade, economy, medicine, droids, XP sources and more) |
 | m8-design-notes.md | M8 design notes: blockades, weapon proficiency, species traits and ages, world events, wartime postings, equipment, economy, renown, the Sith acolyte curriculum, medicine, ships, droids (exported from Claude Docs, revision 40, 2026-11-23; the Claude Docs version is the working copy; D-465) |
+| blockades.md | Running a blockade as built: the approaches, levels and age, landing knowledge, the trek, failure (numbers invented, waiting for rulings) |
 | world-events.md | World events as built: the tag network (tags, guards, the ripple, the freeze, plot points, the narrator hand-off) |
 | world-event-tags-3640-1000BBY-draft.md | World event tag map, 3640–1000 BBY (reviewed draft, Jared's rulings in its section 10; not encoded) |
 | world-event-tags-draft.md | World event tag map, 3661–3640 BBY (design data for the tag network in the design notes; reviewed by Jared 2026-11-23, rulings in its section 6) |

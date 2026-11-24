@@ -99,8 +99,9 @@ export const SITH_SEATS: readonly SithSeat[] = [
     source: 'SW_Korriban_Planet (3637 Republic invasion, c. 3636 Zakuul bombardment; the temples rebuilt later, undated); SW_Dromund_Kaas_History (c. 3636-3630 BBY: Empress Acina rules from Kaas)',
     estimate: 'the lore files stop at 3630 BBY; the Empire is taken to hold Dromund Kaas to 3,600 BBY (a design default, as the Jedi return to Coruscant)',
   },
-  // The Brotherhood of Darkness seizes Korriban and runs the academy (Qordis); its headquarters are on Roon.
-  { fromYear: -1010, toYear: -1000, acolytes: KORRIBAN_ACADEMY, lords: { name: 'the Brotherhood headquarters', planet: 'Roon' }, source: 'Timeline :319-320 (c. 1,010 BBY); SW_Korriban_Planet (New Sith Wars); Characters_10 (Qordis heads the academy)' },
+  // The Brotherhood of Darkness seizes Korriban and runs the academy (Qordis); its headquarters are there too
+  // (ruled 23 Nov 2026; D-468, D-451 follow-up: the New Sith Wars article says Roon).
+  { fromYear: -1010, toYear: -1000, acolytes: KORRIBAN_ACADEMY, lords: { name: 'the Brotherhood headquarters', planet: 'Korriban' }, source: 'Timeline :319-320 (c. 1,010 BBY); SW_Korriban_Planet (New Sith Wars); Characters_10 (Qordis heads the academy)' },
   { fromYear: 27, toYear: Infinity, acolytes: { name: 'Korriban', planet: 'Korriban' }, lords: { name: 'Korriban', planet: 'Korriban' }, source: 'SW_Korriban_Planet (27 ABY: Darth Krayt founds the One Sith there)', estimate: 'the end of the One Sith on Korriban is not in the lore files' },
 ];
 

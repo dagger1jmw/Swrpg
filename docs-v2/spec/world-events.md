@@ -16,7 +16,7 @@ Code: `src/data/worldNetwork.ts` (types, the shipped network), `worldNetwork3661
 | Scene | a scene outcome the engine records as the flag `sceneOutcome:<id>`: a rolled success against its guard's DC, or a won fight, while its event is open, its years hold and what it requires holds |
 | Plot point (`PP-<n>`) | its events, when it applies, the tracker, the authored alternatives (requirement, criteria with weights, effects) |
 
-`networkProblems()` must return nothing before a network ships: unknown references, an outcome produced twice, a loop, a flag the AI may set, an action or fight test with no place or person, a high guard an action can break without foreknowledge, a very high guard without two distinct prerequisites, a scene flag no scene sets, an outcome that depends on a replaceable role, an alternative that produces an outcome of the recorded timeline.
+`networkProblems()` must return nothing before a network ships: unknown references, an outcome produced twice, a loop, a flag the AI may set, an action or fight test with no place or person, a place-only action with no lead, a high guard an action can break without foreknowledge, a very high guard without two distinct prerequisites, a scene flag no scene sets, an outcome that depends on a replaceable role, an alternative that produces an outcome of the recorded timeline.
 
 Dates known only to the year fall on the first day of that year, as the control table reads them. A month or day the lore does not give is marked `placed: 'invented'`.
 
@@ -42,7 +42,9 @@ A role breaks when its figure is dead or captured. A condition breaks when its p
 
 Points: an exceptional success 3, strong or decisive 2, narrow or clear 1, a bad failure -1 (never below 0); one counted action per condition per day. A recorded fact or won fight: minor 1, major 3, decisive 6, counted once. A prerequisite (foreknowledge) is its own step at a medium guard: 3 points at DC 17 from actions and won fights, or one recorded discovery fact (any state test). Once met it stays met. Every number is `invented`; low, medium and high are accepted for now (D-467 [1]).
 
-Tests match who and where, and the kind of action, not what was said. A condition an ordinary visit could break by chance asks for foreknowledge even below a high guard.
+**Leads (D-468).** An investigation or foreknowledge action counts only when it starts from a lead recorded in play: a discovery fact, a figure met, or a site found. A player's out-of-game knowledge never counts, and an action with no recorded lead scores nothing. In the data, a place-only action test names its leads: figures (met, or with a fact or thread recorded about them), places (a fact or thread recorded about them; being there is not a lead), sites visited, or recorded facts. An action on a person starts from meeting them; one after foreknowledge starts from what is known. Found items join once items are built. The data checks refuse a place-only action test with no lead.
+
+Tests match who and where, and the kind of action, not what was said. An accidental break of a low or medium condition is fine: it is still the player's doing.
 
 Broken is final. Nothing removes a broken tag or turns a broken outcome back.
 

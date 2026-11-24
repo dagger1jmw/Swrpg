@@ -32,8 +32,8 @@ const HOLD_BANE: ConditionTag = {
   crucial: true,
   guard: 'veryHigh',
   prerequisites: [
-    { id: 'know.bomb', text: 'What Kaan means to do', tests: [{ kind: 'action', actionTypes: ['investigate'], places: ['Ruusan'] }] },
-    { id: 'know.bane', text: 'Where Bane is', tests: [{ kind: 'action', actionTypes: ['forceUse'], places: ['Ruusan'] }, { kind: 'npc', canonId: 'lore:qordis', state: 'captured' }] },
+    { id: 'know.bomb', text: 'What Kaan means to do', tests: [{ kind: 'action', actionTypes: ['investigate'], places: ['Ruusan'] }], leads: [{ places: ['Ruusan'] }] },
+    { id: 'know.bane', text: 'Where Bane is', tests: [{ kind: 'action', actionTypes: ['forceUse'], places: ['Ruusan'] }, { kind: 'npc', canonId: 'lore:qordis', state: 'captured' }], leads: [{ canonIds: ['lore:darth-bane'] }] },
   ],
   breakIf: [{ kind: 'fight', canonIds: ['lore:darth-bane'], minStakes: 'lethal', strength: 'decisive' }, { kind: 'action', actionTypes: ['forceUse'], places: ['Ruusan'] }],
 };

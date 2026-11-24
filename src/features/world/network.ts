@@ -9,7 +9,7 @@ import type { FactionId } from '../../data/entities.config';
 import { COMBAT_STAKES, type CombatStakes } from '../../data/progression.config';
 import { placeAmong, WORLD_CONTROL, type ControlSide, type ControlSpan } from '../../data/worldControl';
 import { ACTIONS_PER_CONDITION_PER_DAY, GRADE_POINTS, GUARD_RULES, PREREQUISITE_GUARD, PREREQUISITES_NEEDED, STRENGTH_POINTS } from '../../data/worldNetwork.config';
-import type { ConditionTag, PlotAlternative, PlotPointDef, RoleTag, SceneDef, StateTest, WorldDate, WorldEventDef, WorldEventStatus, WorldExpr, WorldGuard, WorldNetwork, WorldTest } from '../../data/worldNetwork';
+import type { ConditionTag, Lead, PlotAlternative, PlotPointDef, RoleTag, SceneDef, StateTest, WorldDate, WorldEventDef, WorldEventStatus, WorldExpr, WorldGuard, WorldNetwork, WorldTest } from '../../data/worldNetwork';
 import { absDayFromDate } from '../../engine/calendar';
 import { datedFactsAt, type FactNow, type HeldReason, type OutcomeState } from '../../engine/datedFacts';
 import { dcForRating, gradeMargin } from '../../engine/rolls';
@@ -23,6 +23,8 @@ export interface WorldFacts {
   /** A story NPC of exactly this name whom the engine recorded as dead (people with no canon entry). */
   storyNpcDead(name: string): boolean;
   hasFlag(flag: string): boolean;
+  /** A lead's figures, places or sites are on record in play (its `facts` are read by the network). */
+  hasLead(lead: Lead): boolean;
   /** The last finished fight, when the player won it. */
   wonFight: { id: string; stakes: CombatStakes; canonIds: readonly string[]; factions: readonly FactionId[]; places: readonly string[] } | null;
   /** People who could stand in for a lost role, best first. */
@@ -215,6 +217,13 @@ const guardMargin = (guard: WorldGuard, total: number): number => total - dcForR
 const prerequisitesNeeded = (c: ConditionTag): number => Math.max(PREREQUISITES_NEEDED[c.guard], c.prerequisites?.length ? 1 : 0);
 const prerequisitesMet = (c: ConditionTag, p: Progress): boolean => (c.prerequisites ?? []).filter((q) => p.known[q.id]?.met).length >= prerequisitesNeeded(c);
 
+/** Whether an action starts from something recorded in play (D-468): the person it is on, or one of the leads. */
+function hasLead(net: WorldNetwork, st: NetworkState, f: WorldFacts, a: WorldAction, tests: readonly WorldTest[], leads: readonly Lead[] | undefined): boolean {
+  const met = tests.filter((t) => actionMeets(t, a));
+  if (met.some((t) => t.kind === 'action' && t.canonIds)) return true;
+  return (leads ?? []).some((l) => f.hasLead(l) || (l.facts ?? []).some((t) => stateTestHolds(net, st, f, t)));
+}
+
 function known(net: WorldNetwork, st: NetworkState, tag: string): boolean {
   const [ev, id] = tag.split('#');
   const c = eventDef(net, ev ?? '')?.conditions.find((x) => x.id === id);
@@ -314,7 +323,10 @@ export function recordAction(net: WorldNetwork, st0: NetworkState, f: WorldFacts
   let st = st0;
   const notes: string[] = [];
   // A scene asks for foreknowledge the player had before this roll.
-  const scenes = openScenes(net, st0, f).filter((s) => s.on.some((t) => actionMeets(t, a)) && guardMargin(s.guard, a.total) >= 0).map((s) => s.id);
+  const foreknown = (s: SceneDef): boolean => (s.requires ?? []).some((t) => t.kind === 'known');
+  const scenes = openScenes(net, st0, f)
+    .filter((s) => s.on.some((t) => actionMeets(t, a)) && guardMargin(s.guard, a.total) >= 0 && (foreknown(s) || hasLead(net, st0, f, a, s.on, s.leads)))
+    .map((s) => s.id);
   for (const e of eventOrder(net)) {
     for (const c of e.conditions) {
       if (!conditionOpen(st, e, c, f)) continue;
@@ -323,6 +335,12 @@ export function recordAction(net: WorldNetwork, st0: NetworkState, f: WorldFacts
       const ready = prerequisitesMet(c, p);
       const learn = ready ? undefined : (c.prerequisites ?? []).find((q) => !p.known[q.id]?.met && q.tests.some((t) => actionMeets(t, a)));
       if (!learn && !(ready && c.breakIf.some((t) => actionMeets(t, a)))) continue;
+      // Foreknowledge already held is the lead for what follows it.
+      const led = learn ? hasLead(net, st, f, a, learn.tests, learn.leads) : Boolean(c.prerequisites?.length) || hasLead(net, st, f, a, c.breakIf, c.leads);
+      if (!led) {
+        notes.push(`world: ${key}: no lead recorded in play; nothing counts`);
+        continue;
+      }
       const today = p.actionDay === day ? p.actionsThatDay : 0;
       if (today >= ACTIONS_PER_CONDITION_PER_DAY) {
         notes.push(`world: ${key}: already counted today`);

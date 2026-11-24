@@ -21,7 +21,8 @@ export function expandChoice(choice: Choice, resolve: RefResolver): { intent: In
     if (id !== null) targets.push(id);
     else {
       unknownNames.push(targetRef);
-      notes.push(`choice targetRef ${targetRef} is not a valid ID; dropped`);
+      // A blockade choice names its world (the engine's own choice, D-469); it need not be a known place yet.
+      if (choice.intent.blockade === undefined) notes.push(`choice targetRef ${targetRef} is not a valid ID; dropped`);
     }
   }
   const skill = skillId !== undefined && skillId.trim() ? skillId.trim() : undefined;
@@ -39,6 +40,7 @@ export function expandChoice(choice: Choice, resolve: RefResolver): { intent: In
     references: [],
     unknownNames,
     ...(skill !== undefined ? { skillId: skill } : {}),
+    ...(choice.intent.blockade !== undefined ? { blockade: choice.intent.blockade } : {}),
     ...(choice.pacingHint !== undefined ? { requestedPacing: choice.pacingHint } : {}),
     ...(jump && choice.spanDays !== undefined ? { requestedSpan: { amount: choice.spanDays, unit: 'days' } } : {}),
     ...(activity && !jump ? { activity, requestedSpan: { amount: DEFAULT_TRAINING_HOURS, unit: 'hours' } } : {}),

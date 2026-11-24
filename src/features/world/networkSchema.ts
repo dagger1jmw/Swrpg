@@ -11,6 +11,7 @@ import {
   TEST_STRENGTHS,
   WORLD_EVENT_STATUSES,
   WORLD_GUARDS,
+  type Lead,
   type StateTest,
   type WorldEventDef,
   type WorldExpr,
@@ -63,7 +64,11 @@ const fightTest = z.strictObject({
 const knownTest = z.strictObject({ kind: z.literal('known'), tag: z.string(), strength });
 const stateTest = z.discriminatedUnion('kind', [npcTest, controlTest, flagTest, outcomeTest, knownTest]);
 const worldTest = z.discriminatedUnion('kind', [npcTest, controlTest, flagTest, outcomeTest, knownTest, actionTest, fightTest]);
-const prerequisite = z.strictObject({ id: z.string().regex(/^know\.[a-z0-9_]+$/), text, tests: list(worldTest) });
+const lead = z
+  .strictObject({ canonIds: list(canonId).optional(), places: list(text).optional(), sites: list(text).optional(), facts: list(stateTest).optional() })
+  .refine((l) => Object.values(l).some((x) => x !== undefined), 'an empty lead');
+const leads = list(lead).optional();
+const prerequisite = z.strictObject({ id: z.string().regex(/^know\.[a-z0-9_]+$/), text, tests: list(worldTest), leads });
 const scene = z.strictObject({
   id: z.string().regex(/^[a-z0-9-]+$/),
   title: text,
@@ -73,6 +78,7 @@ const scene = z.strictObject({
   toYear: z.number().int().optional(),
   on: list(z.discriminatedUnion('kind', [actionTest, fightTest])),
   requires: list(stateTest).optional(),
+  leads,
 });
 
 const roleTag = z.strictObject({
@@ -95,6 +101,7 @@ const conditionTag = z.strictObject({
   crucial: z.boolean(),
   guard: z.enum(WORLD_GUARDS),
   breakIf: z.array(worldTest).readonly(),
+  leads,
   prerequisites: list(prerequisite).optional(),
   window: z.union([z.literal('underway'), z.strictObject({ fromYear: z.number().int() })]).optional(),
   onBreak: z.enum(BREAK_EFFECTS).optional(),
@@ -231,6 +238,11 @@ export function networkProblems(net: WorldNetwork): string[] {
     }
     if (t.kind === 'fight' && !t.places && !t.canonIds) out.push(`${where}: a fight test needs a place or a person, or any fight would count`);
   };
+  // D-468: an action on a place alone starts from a lead recorded in play, or scores nothing.
+  const checkLeads = (where: string, tests: readonly WorldTest[], own: readonly Lead[] | undefined): void => {
+    if (!own?.length && tests.some((t) => t.kind === 'action' && !t.canonIds)) out.push(`${where}: an action on a place needs a lead recorded in play`);
+    for (const l of own ?? []) for (const t of l.facts ?? []) checkTest(`${where} lead`, t);
+  };
   const checkExpr = (where: string, e: WorldExpr): void => {
     const r = exprRefs(e);
     for (const o of r.outcomes) if (!known(o)) out.push(`${where}: unknown outcome ${o}`);
@@ -261,6 +273,8 @@ export function networkProblems(net: WorldNetwork): string[] {
     for (const c of e.conditions) {
       const pre = c.prerequisites ?? [];
       for (const t of [...c.breakIf, ...pre.flatMap((q) => q.tests)]) checkTest(`${e.id}#${c.id}`, t);
+      if (!pre.length) checkLeads(`${e.id}#${c.id}`, c.breakIf, c.leads);
+      for (const q of pre) checkLeads(`${e.id}#${c.id} ${q.id}`, q.tests, q.leads);
       for (const id of dupes(pre.map((q) => q.id))) out.push(`${e.id}#${c.id}: duplicate prerequisite ${id}`);
       if (c.guard === 'high' && c.breakIf.some((t) => t.kind === 'action') && !pre.length) out.push(`${e.id}#${c.id}: a high guard an action can break needs a prerequisite (foreknowledge)`);
       // Two steps that are really the same step are one: each needs a test the other does not have (D-467 [1]).
@@ -280,6 +294,7 @@ export function networkProblems(net: WorldNetwork): string[] {
   for (const x of net.scenes ?? []) {
     if (!byId.has(x.event)) out.push(`scene ${x.id}: unknown event ${x.event}`);
     for (const t of [...x.on, ...(x.requires ?? [])]) checkTest(`scene ${x.id}`, t);
+    if (!(x.requires ?? []).some((t) => t.kind === 'known')) checkLeads(`scene ${x.id}`, x.on, x.leads);
   }
   for (const p of net.plotPoints) {
     for (const id of p.events) if (!byId.has(id)) out.push(`${p.id}: unknown event ${id}`);

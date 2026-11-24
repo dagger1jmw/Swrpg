@@ -3,6 +3,7 @@
 // (D-12); this file only composes them.
 import { z, type ZodType } from 'zod';
 import { ACTION_TYPES } from '../../data/checks.config';
+import type { BlockadeAction } from '../../data/blockades';
 import { PACING_LEVELS } from '../../data/pacing.config';
 import type { BaseState, GameEvent, NarrativeTurnInfo, Registry } from '../../state/types';
 
@@ -26,8 +27,9 @@ export const sceneSchema = z.object({
   presentNpcRefs: z.array(z.string().max(80)).max(12).describe('IDs (or temp keys) of the non-player characters present at the end of this reply'),
 });
 
-export type Choice = z.infer<typeof choiceSchema>;
-export type CompactIntent = z.infer<typeof compactIntentSchema>;
+/** `blockade` is set only by the engine's own choices (D-469); the AI's schema does not have it. */
+export type CompactIntent = z.infer<typeof compactIntentSchema> & { blockade?: BlockadeAction };
+export type Choice = Omit<z.infer<typeof choiceSchema>, 'intent'> & { intent: CompactIntent };
 
 export interface NarrativeReply {
   narrative: string;

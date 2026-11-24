@@ -44,6 +44,7 @@ import { fightMinionRef, refResolver, resolveIntentRefs } from './refs';
 import { resolveTurn, type Resolution } from './resolve';
 import { skipAheadChoice } from './skipAhead';
 import { choicesAfterTurn, outsideForceOpponents, withoutForceOnImmune } from './fightChoices';
+import { blockadeChoices } from './travel';
 import { selectWorldIdsToTell } from '../features/world/selectors';
 
 export interface TurnDeps {
@@ -476,6 +477,8 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   // them, from the turn that starts the fight (pending or active).
   const immune = withoutForceOnImmune(state, fc.choices);
   const choices = immune.choices;
+  // A blockade in the way: code offers what is open (D-469).
+  choices.push(...blockadeChoices(draft.travel));
   const skip = skipAheadChoice(state, choices);
   const skipNotes: string[] = fc.dropped ? [`fight over: ${fc.dropped} tactical choice(s) dropped (D-181)`] : [];
   if (immune.dropped) skipNotes.push(`outside the Force (${outsideForceOpponents(state).join(', ')}): ${immune.dropped} Force choice(s) dropped`);

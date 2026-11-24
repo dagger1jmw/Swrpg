@@ -55,6 +55,22 @@ export type WorldTest = (StateTest | DeedTest) & {
 };
 
 /**
+ * What can start an investigation (Jared, D-468): something recorded in play. A player's out-of-game knowledge never
+ * counts, so an action on a place with no lead scores nothing. (An action on a person the character has met starts from
+ * that meeting, and one after foreknowledge starts from what is known.)
+ */
+export interface Lead {
+  /** Any of these figures met, or a fact or story thread recorded about one. */
+  canonIds?: readonly string[];
+  /** A fact or story thread recorded about one of these places (being there is not a lead). */
+  places?: readonly string[];
+  /** A particular site found (visited), not a world or a city. */
+  sites?: readonly string[];
+  /** A recorded discovery. */
+  facts?: readonly StateTest[];
+}
+
+/**
  * Foreknowledge (Jared, D-467): its own step at a medium guard (actions and won fights add up), or one recorded discovery
  * fact (any state test). Once met it stays met.
  */
@@ -63,6 +79,7 @@ export interface Prerequisite {
   id: string;
   text: string;
   tests: readonly WorldTest[];
+  leads?: readonly Lead[];
 }
 
 /**
@@ -79,6 +96,7 @@ export interface SceneDef {
   toYear?: number;
   on: readonly DeedTest[];
   requires?: readonly StateTest[];
+  leads?: readonly Lead[];
 }
 
 export interface RoleTag {
@@ -112,6 +130,8 @@ export interface ConditionTag {
   guard: WorldGuard;
   /** Facts and deeds that count towards breaking it. Empty = only its inputs can stop the event. */
   breakIf: readonly WorldTest[];
+  /** Needed by an action on a place alone, when no foreknowledge comes first. */
+  leads?: readonly Lead[];
   /** Foreknowledge needed before anything counts: one, or two distinct ones for a very high guard. */
   prerequisites?: readonly Prerequisite[];
   /** Only while the event is under way (an occupation that must hold), or from a year on. Default: until it is settled. */

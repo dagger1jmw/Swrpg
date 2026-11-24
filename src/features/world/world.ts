@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { WORLD_EVENT_STATUSES } from '../../data/worldNetwork';
 import { CONTROL_SIDES } from '../../data/worldControl';
+import { blockadesSchema, emptyBlockades } from './blockades';
 
 export const worldEventSchema = z.object({
   id: z.string(),
@@ -72,12 +73,19 @@ export const worldSliceSchema = z.object({
   log: z.array(worldEventSchema),
   nextSeq: z.number().int().min(1),
   network: networkStateSchema,
+  /** Blockades (D-469): runs, what was learned by watching, the ledger. */
+  blockades: blockadesSchema,
 });
 export type WorldSlice = z.infer<typeof worldSliceSchema>;
 
-export const emptyWorld = (startDay: number | null = null): WorldSlice => ({ log: [], nextSeq: 1, network: emptyNetworkState(startDay) });
+export const emptyWorld = (startDay: number | null = null): WorldSlice => ({ log: [], nextSeq: 1, network: emptyNetworkState(startDay), blockades: emptyBlockades() });
 
 /** v1 -> v2 (M8 Phase A): no network state; it opens at the save's date, and everything before stands as recorded. */
-export function migrateWorldV1(old: unknown): WorldSlice {
-  return { ...(old as Omit<WorldSlice, 'network'>), network: emptyNetworkState() };
+export function migrateWorldV1(old: unknown): Omit<WorldSlice, 'blockades'> {
+  return { ...(old as Omit<WorldSlice, 'network' | 'blockades'>), network: emptyNetworkState() };
+}
+
+/** v2 -> v3 (M8 Phase C): no blockade has been run or watched. */
+export function migrateWorldV2(old: unknown): WorldSlice {
+  return { ...(old as Omit<WorldSlice, 'blockades'>), blockades: emptyBlockades() };
 }

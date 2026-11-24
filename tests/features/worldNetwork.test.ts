@@ -87,7 +87,8 @@ describe('the schema', () => {
     expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ kind: 'flag', flag: 'sceneOutcome:nobody' }] }] })).toMatch(/no scene sets sceneOutcome:nobody/);
     expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ kind: 'known', tag: 'E.3655.strike#cond.secret' }] }] })).toMatch(/has no foreknowledge to have/);
     // A very high guard: two distinct prerequisites; one, none, or the same step twice will not do.
-    const step = (id: string, place: string): unknown => ({ id, text: 't', tests: [{ kind: 'action', actionTypes: ['investigate'], places: [place] }] });
+    const step = (id: string, place: string): unknown => ({ id, text: 't', tests: [{ kind: 'action', actionTypes: ['investigate'], places: [place] }], leads: [{ places: [place] }] });
+    expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ kind: 'action', actionTypes: ['investigate'], places: ['Ziost'] }] }] })).toMatch(/an action on a place needs a lead recorded in play/);
     const vh = (prerequisites: unknown[]): string => bad({ ...x, conditions: [{ ...cond, guard: 'veryHigh', breakIf: [{ kind: 'npc', canonId: 'lore:zym', state: 'dead', strength: 'decisive' }], ...(prerequisites.length ? { prerequisites } : {}) }] });
     for (const p of [[], [step('know.a', 'Ziost')], [step('know.a', 'Ziost'), step('know.b', 'Ziost')]]) expect(vh(p)).toMatch(/needs 2 distinct prerequisites/);
     expect(vh([step('know.a', 'Ziost'), step('know.b', 'Korriban')])).toBe('');
@@ -223,7 +224,7 @@ describe('divergence and the ripple', () => {
   it('a broken tag is never reconnected: the dead stay lost and broken outcomes stay broken', () => {
     const s = go(kill(game(), 'lore:darth-malgus'), AFTER_STRIKE);
     const raw = net(s);
-    const facts: WorldFacts = { bby: 3655, npcLost: () => null, storyNpcDead: () => false, hasFlag: () => false, wonFight: null, standIns: () => [] };
+    const facts: WorldFacts = { bby: 3655, npcLost: () => null, storyNpcDead: () => false, hasFlag: () => false, hasLead: () => true, wonFight: null, standIns: () => [] };
     const later = reviewNetwork(FIXTURE, raw, facts, at(-3650)).state;
     expect(later.tags['E.3655.strike#role.blade']).toBeDefined();
     expect(later.outcomes['O.blade_alive']!.state).toBe('broken');
@@ -339,7 +340,7 @@ describe('the freeze', () => {
 });
 
 describe('guards and player actions', () => {
-  const facts = (over: Partial<WorldFacts> = {}): WorldFacts => ({ bby: 3655, npcLost: () => null, storyNpcDead: () => false, hasFlag: () => false, wonFight: null, standIns: () => [], ...over });
+  const facts = (over: Partial<WorldFacts> = {}): WorldFacts => ({ bby: 3655, npcLost: () => null, storyNpcDead: () => false, hasFlag: () => false, hasLead: () => true, wonFight: null, standIns: () => [], ...over });
   const act = (over: Partial<WorldAction> = {}): WorldAction => ({ actionType: 'investigate', skillId: null, total: 17, places: ['Coruscant'], canonIds: [], ...over });
   const open = reviewNetwork(FIXTURE, emptyNetworkState(at(-3655)), facts(), at(-3655)).state;
   const SECRET = 'E.3655.strike#cond.secret';
@@ -428,6 +429,7 @@ describe('guards and player actions', () => {
 
   it('a scene outcome is a flag the engine sets from a rolled success, and it breaks the condition that reads it', () => {
     let s = applyEvents(REG, game(), [{ type: 'locationIntroduced', name: 'Coruscant', kind: 'planet', region: 'Core Worlds', description: 'x', moveHere: true }], { source: 'ai' }).state;
+    s = applyEvents(REG, s, [{ type: 'factLearned', aboutRef: 'Coruscant', fact: 'A plan is being drawn', importance: 'major' }], { source: 'ai' }).state;
     const roll = (total: number) => ({ type: 'worldActionRecorded', actionType: 'forceUse', skillId: null, total, targets: [] });
     expect(engine(s, roll(18)).flags.set).toEqual([]); // under DC 19
     s = engine(s, roll(19));
@@ -458,8 +460,27 @@ describe('guards and player actions', () => {
     expect(Object.values(makeWorldFeature(FIXTURE).events).some((d) => d.narrative)).toBe(false);
   });
 
+  it('an action on a place with no lead recorded in play scores nothing (D-468)', () => {
+    const r = recordAction(FIXTURE, open, facts({ hasLead: () => false }), act({ total: 60 }), at(-3655));
+    expect(r.state).toBe(open);
+    expect(r.notes.join()).toMatch(/no lead recorded in play/);
+  });
+
+  it('a lead is a figure met, a fact or thread about the place, or a site found; being there is not', () => {
+    const roll = { type: 'worldActionRecorded', actionType: 'investigate', skillId: null, total: 25, targets: [] };
+    const here = applyEvents(REG, game(), [{ type: 'locationIntroduced', name: 'Coruscant', kind: 'planet', region: 'Core Worlds', description: 'x', moveHere: true }], { source: 'ai' }).state;
+    const points = (s: GameState): number => net(engine(s, roll)).progress[SECRET]?.points ?? 0;
+    expect(points(here)).toBe(0);
+    expect(points(meet(here, 'lore:darth-angral').s)).toBe(2);
+    expect(points(applyEvents(REG, here, [{ type: 'factLearned', aboutRef: 'Coruscant', fact: 'Someone is measuring the Temple gates', importance: 'major' }], { source: 'ai' }).state)).toBe(2);
+    expect(points(applyEvents(REG, here, [{ type: 'threadOpened', title: 'Strange cargo', stakes: 'x', entityRefs: ['Coruscant'] }], { source: 'ai' }).state)).toBe(2);
+    const vault = applyEvents(REG, here, [{ type: 'locationIntroduced', name: 'Old Vault', kind: 'building', region: 'Coruscant', parentRef: 'Coruscant', description: 'x', moveHere: true }], { source: 'ai' }).state;
+    expect(points(vault)).toBe(2);
+  });
+
   it('a rolled action at the scene is recorded through its event', () => {
     let s = applyEvents(REG, game(), [{ type: 'locationIntroduced', name: 'Coruscant', kind: 'planet', region: 'Core Worlds', description: 'x', moveHere: true }], { source: 'ai' }).state;
+    s = meet(s, 'lore:darth-angral').s;
     s = engine(s, { type: 'worldActionRecorded', actionType: 'investigate', skillId: null, total: 40, targets: [] });
     expect(net(s).progress[SECRET]!.points).toBe(3);
     expect(net(s).tags[SECRET]).toBeDefined();

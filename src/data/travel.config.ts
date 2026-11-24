@@ -50,24 +50,3 @@ export const HYPERDRIVE_CLASSES: Readonly<Record<string, { name: string; class: 
 /** The ship a character travels in until ships are data (M8): a smuggler start flies its own modified ship. */
 export const DEFAULT_SHIP = 'commonFreighter';
 export const START_SHIPS: Readonly<Record<string, string>> = { 'underworld-smuggler': 'smugglerShip' };
-
-/**
- * The Hydian Way blockade (D-402 [3], [16]; narrowed in D-406). "Between Devaron and the Minos Cluster" is read as the
- * grid strip from Devaron's square (M-13) south to the Minos Cluster (M-20): columns L-N, rows 14-21 (an invented
- * reading of a stretch of space). In 3,661 (open from the start of 3,660, as the control table has it; D-411 [2]), for anyone but Mandalorians and Imperials:
- * - refused: a routine trip with an end on the Hydian Way inside the strip, or a trip along the Hydian Way through it
- *   (both ends Hydian Way worlds, with the strip's rows between them);
- * - other worlds in the strip are reachable, with the hop time × `detourFactor` (invented) for the detour.
- * Anyone with an end in the strip gets the narrator's `zoneNote`. Running the blockade is a story event (M8 item 4).
- */
-export const BLOCKADE = {
-  fromBby: 3661,
-  toBby: 3661,
-  route: 'Hydian Way',
-  columns: ['L', 'M', 'N'],
-  rowFrom: 14,
-  rowTo: 21,
-  passes: ['mandalorians', 'sithEmpire', 'sith'],
-  detourFactor: 1.5,
-  zoneNote: 'blockade zone: patrols, shortages, scarce passage',
-} as const;

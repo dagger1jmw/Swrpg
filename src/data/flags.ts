@@ -32,6 +32,11 @@ export const FLAGS: readonly FlagDef[] = [
   { id: 'staleness', sources: ['engine'], section: 'engine', readBy: 'choices must include a forward jump' },
   { id: 'settlingIn', sources: ['engine'], section: 'engine', readBy: 'pacing' },
   { id: 'sceneOutcome', param: true, sources: ['engine'], section: 'engine', readBy: 'world-event conditions (spec/world-events.md; D-466)' },
+  // Blockades (D-469): training, papers, a ship's systems and a fleet; nothing sets them yet but a start option's training.
+  { id: 'blockadeTactics', sources: ['engine'], section: 'engine', readBy: 'running a blockade (trained range)' },
+  { id: 'blockadePapers', param: true, sources: ['engine'], section: 'engine', readBy: 'running a blockade (riding under protection)' },
+  { id: 'shipSystem', param: true, sources: ['engine'], section: 'engine', readBy: 'running a blockade (sneaking through)' },
+  { id: 'fleetCommand', sources: ['engine'], section: 'engine', readBy: 'running a blockade (forcing through)' },
   // §5 Player background flags (set at creation)
   { id: 'homeworld', param: true, sources: ['player'], section: 'background', readBy: 'backstory facts, context' },
   { id: 'warYears', param: true, sources: ['player'], section: 'background', readBy: 'character creation E/CI, closed form' },

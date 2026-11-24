@@ -3,7 +3,7 @@
 // report for the debug view. Pure; never mutates state. Replaces the minimal M1 builder (D-74).
 import { CONTEXT_CAPS, JUMP_CAPS, JUMP_REPORT_MAX_EVENTS, JUMP_REPORT_MAX_SKILLS, HISTORY_NARRATIVE_MAX_CHARS, MAX_RAW_TURNS, SUMMARY_INPUT_CAP_TOKENS, type SectionName } from '../ai/context.config';
 import type { MontageReport } from '../state/montageReport';
-import { handoffLines, selectCanonInCampaign, selectControl, selectLeaders, selectOrderSeat, selectTimelineHandoff, selectUntoldWorldEvents } from '../features/world/selectors';
+import { handoffLines, selectBlockadeCaptive, selectCanonInCampaign, selectControl, selectLeaders, selectOrderSeat, selectTimelineHandoff, selectUntoldWorldEvents } from '../features/world/selectors';
 import { PROMPTS } from '../ai/prompts';
 import type { CallType, Message } from '../ai/provider';
 import { makeEstimator } from '../ai/tokenRatio';
@@ -11,7 +11,7 @@ import { normalizeAlias, normalizeText } from '../engine/aliases';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { COVERT_ESCALATION, ORDER_POWER_RULES } from '../data/orderPowerRules';
 import { onRecordAt, onRecordFor } from '../data/canonPlacements';
-import { describeTravel } from './travel';
+import { blockadeLines, describeTravel } from './travel';
 import { eraRulesAt } from '../data/eraRules';
 import { rankErasAt } from '../data/eraRanks';
 import { closedWorlds, mapSide, WORLD_STATES, worldStateAt } from '../data/galaxyMap';
@@ -293,6 +293,7 @@ export function stateBlock(
     healthLine(state),
     ...(combatLine(state) ? [combatLine(state)!] : []),
     ...(captiveLine(state) ? [captiveLine(state)!] : []),
+    ...(selectBlockadeCaptive(state) ? [`CAPTIVE: the player character was captured at a blockade, by ${selectBlockadeCaptive(state)!.by}. Name no other captors until the story frees the character.`] : []),
     skillsLine(state),
     ...beatsLines(state),
     `Date: ${formatDate(now.day)}`,
@@ -300,6 +301,7 @@ export function stateBlock(
     ...rankLines(dateFromAbsDay(now.day).year),
     ...(orderPowersLine(state) ? [orderPowersLine(state)!] : []),
     ...worldLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
+    ...blockadeLines(state),
     ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), namedCanonIds(state, focus, playerText, -dateFromAbsDay(now.day).year)),
     ...holocronLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), playerText),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,

@@ -126,21 +126,21 @@ The dated rows of both maps load and join with the shipped network (a test). Wha
 1. **Undated events** (E.?.empire_vanishes, E.?.tython_ruined), and an outcome that must come before a date
    (O.sith_empire_gone before 2000).
 2. **A plot point with no alternatives** (PP-11, narrator-directed).
-3. **Several alternatives at once.** PP-0's reforms turn one by one, so each trigger has to be its own plot point; ids such
-   as PP-0.R1 are not allowed yet.
+3. **Several alternatives at once.** PP-0's reforms turn one by one (R1–R3, now written in the map), so each trigger has to
+   be its own plot point; ids such as PP-0.R1 are not allowed yet.
 4. **A guard that rises** when an earlier step went another way (E.3630.zakuul is very high without the Gravestone; PP-10).
 5. **An event that ends an outcome** (E.3630.zakuul ends O.zakuul_dominant).
-6. **Who the player must be:** a Sith player character (PP-12 alternative 3), a Force user (PP-13 alternative 3), or aboard
-   a given ship or fleet (PP-9 step 4, PP-13 alternative 1).
+6. **Who the player must be:** a Sith player character (PP-12 alternative 3), a Force user (PP-13 alternative 3), aboard a
+   given ship or fleet (PP-9 step 4, PP-13 alternative 1), or in the post each PP-3 and PP-4 step names.
 7. **Time in a condition:** "if the Sith are found alive within about 100 years of Ruusan" (PP-0 R1).
 8. **Believed or not:** PP-12's check on the player's standing and the strength of the evidence.
 9. **A role that moves** to another survivor when a protagonist dies (PP-9 step 3, PP-10 step 2).
 10. **Steps over an undated span** (PP-12 before 2000): a condition window is a year or "while under way".
 11. **Not a gap, but to know:** a very high guard fails the data check until it names its two steps (E.3636.eternal_empire).
 
-**The repo's copy of the 1000 BBY map has no thought-bomb branch and no R1–R3 triggers.** The 3640–1000 map describes both,
-so I tested those constructs from its text. The repo file looks like an older export; please re-export it. The two fixes you
-asked for (E.980.zannah and the thought bomb's inputs) are made in the repo copy, so carry them into the source too.
+**Updated 24 Nov 2026 (D-468).** The 1000 BBY map was replaced: the thought-bomb branch, R1–R3 and the reworked PP-3 and PP-4
+are now in the file, with the E.980.zannah and thought-bomb input fixes kept. The load check was re-run on it and passes.
+R1–R3 still need gap 3. PP-3's and PP-4's in-world leads are no longer a gap: the lead rule (D-468) covers them.
 
 ## 6. Found while building
 

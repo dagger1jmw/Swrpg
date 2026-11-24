@@ -29,6 +29,7 @@ export const FIXTURE: WorldNetwork = {
           crucial: true,
           guard: 'medium',
           breakIf: [{ kind: 'action', actionTypes: ['investigate'], places: ['Coruscant'] }, { kind: 'flag', flag: 'sceneOutcome:strike-plan', strength: 'major' }],
+          leads: [{ canonIds: ['lore:darth-angral'] }, { places: ['Coruscant'] }, { sites: ['Old Vault'] }],
           onBreak: 'cancelled',
         },
         { id: 'cond.gate', text: 'The gate opens', brokenText: 'The gate is held', crucial: false, guard: 'low', breakIf: [{ kind: 'control', place: 'The Gate', side: 'republic' }] },
@@ -82,7 +83,7 @@ export const FIXTURE: WorldNetwork = {
           brokenText: 'The plot is exposed',
           crucial: true,
           guard: 'high',
-          prerequisites: [{ id: 'know.plot', text: 'What is planned', tests: [{ kind: 'action', actionTypes: ['investigate'], places: ['Kaas City'] }, { kind: 'npc', canonId: 'lore:darth-jadus', state: 'captured' }] }],
+          prerequisites: [{ id: 'know.plot', text: 'What is planned', tests: [{ kind: 'action', actionTypes: ['investigate'], places: ['Kaas City'] }, { kind: 'npc', canonId: 'lore:darth-jadus', state: 'captured' }], leads: [{ places: ['Kaas City'] }] }],
           breakIf: [{ kind: 'action', actionTypes: ['dialogue'], canonIds: ['lore:darth-marr'] }],
         },
         {
@@ -92,7 +93,7 @@ export const FIXTURE: WorldNetwork = {
           crucial: false,
           guard: 'veryHigh',
           prerequisites: [
-            { id: 'know.where', text: 'Where it is', tests: [{ kind: 'action', actionTypes: ['investigate'], places: ['Ziost'] }] },
+            { id: 'know.where', text: 'Where it is', tests: [{ kind: 'action', actionTypes: ['investigate'], places: ['Ziost'] }], leads: [{ places: ['Ziost'] }] },
             { id: 'know.key', text: 'Who has the key', tests: [{ kind: 'npc', canonId: 'lore:darth-baras', state: 'captured' }] },
             { id: 'know.name', text: 'Its name', tests: [{ kind: 'fight', places: ['Ziost'], strength: 'major' }] },
           ],
@@ -103,7 +104,7 @@ export const FIXTURE: WorldNetwork = {
       produces: [{ outcome: 'O.plot_done' }],
     }),
   ],
-  scenes: [{ id: 'strike-plan', title: 'The plan is read', event: 'E.3655.strike', guard: 'high', fromYear: -3655, on: [{ kind: 'action', actionTypes: ['forceUse'], places: ['Coruscant'] }, { kind: 'fight', canonIds: ['lore:darth-angral'] }] }],
+  scenes: [{ id: 'strike-plan', title: 'The plan is read', event: 'E.3655.strike', guard: 'high', fromYear: -3655, on: [{ kind: 'action', actionTypes: ['forceUse'], places: ['Coruscant'] }, { kind: 'fight', canonIds: ['lore:darth-angral'] }], leads: [{ places: ['Coruscant'] }] }],
   plotPoints: [
     {
       id: 'PP-9',

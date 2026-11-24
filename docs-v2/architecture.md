@@ -288,7 +288,7 @@ As built in M4 (D-128, D-129): `active` = {priorities (null = archetype default)
 | factionState | per faction {control, morale} | engine |
 | renown | per faction (D-08 list) -100..+100 | engine |
 
-M4 builds `log` only: the rolled world events (last 50), each marked told once a narration carried it (D-136). M8 Phase A adds `network` (D-466; v2). Factions and renown arrive later in M8.
+M4 builds `log` only: the rolled world events (last 50), each marked told once a narration carried it (D-136). M8 Phase A adds `network` (D-466; v2); Phase C adds `blockades` (runs, watching, heat, the ledger; D-469; v3). Factions and renown arrive later in M8.
 
 **memory** (owner: memory)
 | Field | Type / range | Source |

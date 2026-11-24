@@ -244,7 +244,7 @@ Events whose crucial tags do not depend on these plot points, so they still happ
 - The second to sixth Battles of Ruusan in detail.
 
 ## 10. Not ruled yet (for Jared)
-0. ~~Guard levels~~ Ruled 23 Nov 2026: a fifth level, very high (several steps, or harder in general).
+0. ~~Guard levels~~ Ruled 23 Nov 2026: a fourth level, very high (several steps, or harder in general).
 1. ~~PP-9 to PP-13~~ Ruled 23 Nov 2026 through Jared's comments and answers (recorded in each plot point). Nothing is left open.
 2. ~~PP-11~~ Ruled 23 Nov 2026: narrator-directed decline, no invented date.
 3. ~~Brotherhood HQ and Army of Light date~~ Ruled 23 Nov 2026: Korriban and 1010 (the infoboxes).

@@ -118,6 +118,8 @@ describe('the data follows world-event-tags-draft.md', () => {
     const inOrder = (...ids: string[]): void => ids.slice(1).forEach((id, i) => expect(day(id), `${ids[i]!} < ${id}`).toBeGreaterThan(day(ids[i]!)));
     inOrder('E.3661.blockade', 'E.3661.devaron', 'E.3661.satele_recall', 'E.3661.belsavis_shange', 'E.3661.raxxus', 'E.3661.theron', 'E.3661.rim_campaign', 'E.3660.hydian_battle', 'E.3660.riots_end', 'E.3660.ord_radama', 'E.3660.ashas_serenno', 'E.3660.ziost', 'E.3660.korriban', 'E.3660.great_hunt');
     inOrder('E.3654.peace_offer', 'E.3653.alderaan_conference', 'E.3653.temple_strike', 'E.3653.sacking', 'E.3653.treaty', 'E.3653.zym', 'E.3653.chancellor');
+    inOrder('E.3643.quesh', 'E.3643.sebaddon', 'E.3643.flesh_raiders', 'E.3643.desolator', 'E.3643.esseles', 'E.3643.council_changes', 'E.3642.balmorra_freed', 'E.3642.taris_invasion', 'E.3642.maelstrom', 'E.3642.plan_zero');
+    inOrder('E.3640.corellia', 'E.3640.ilum', 'E.3640.voss', 'E.3640.voice', 'E.3640.council_deaths', 'E.3640.janarus_dies', 'E.3640.karrid'); // Karrid last (D-468 [3])
     for (const e of WORLD_NETWORK.events) if (e.date.month) expect(e.date.placed, e.id).toBeDefined();
   });
 });
@@ -262,7 +264,10 @@ describe('PP-1: the Sacking and the Treaty', () => {
     const open = (): GameState => breakTag(game(at(3653)), 'E.3653.temple_strike#cond.grid');
     expect(alt(open())).toBe('attrition');
     expect(alt(kill(open(), 'darth-marr', 'darth-vowrawn', 'rans'))).toBe('victors-treaty');
-    expect(alt(kill(open(), 'darth-marr', 'darth-vowrawn', 'darth-angral'))).toBe('total-defeat');
+    const three = kill(open(), 'darth-marr', 'darth-vowrawn', 'darth-angral');
+    expect(alt(three)).toBe('victors-treaty'); // not enough without the capital (D-468 [5])
+    expect(alt(engine(three, { type: 'locationControlChanged', place: 'Dromund Kaas', side: 'republic', note: 'taken in play' }))).toBe('total-defeat');
+    expect(alt(engine(open(), { type: 'locationControlChanged', place: 'Dromund Kaas', side: 'republic', note: 'taken in play' }))).toBe('attrition'); // nor the capital alone
   });
 });
 
@@ -282,6 +287,14 @@ describe('PP-2: the Treaty\'s collapse', () => {
     expect(net(late).events['E.3641.treaty_collapse']!.day).toBe(at(3641, 6, 15) + 3 * 368);
     expect(status(late, 'E.3640.corellia')).toBe('adjusted');
   }, 20_000);
+
+  it('any four of the seven delay it: Quesh, Balmorra and Taris can be prevented too (D-468 [2])', () => {
+    const keys = ['E.3643.quesh#cond.deal', 'E.3642.balmorra_freed#cond.rising', 'E.3642.taris_invasion#cond.landing', 'E.3643.desolator#cond.secret'];
+    const s = go(keys.reduce(breakTag, game(at(3645))), at(3640, 6));
+    expect(['O.hutt_treaty_cracked', 'O.balmorra_republic', 'O.taris_imperial', 'O.uphrades_destroyed'].map((o) => outcome(s, o))).toEqual(['broken', 'broken', 'broken', 'broken']);
+    expect(net(s).plotPoints['PP-2']?.alternative).toBe('delayed');
+    expect(selectControl(s, ['Balmorra', 'Taris']).map((c) => [c.place, c.side, c.held])).toEqual([['Balmorra', 'sithEmpire', 'frozen'], ['Taris', 'republic', 'frozen']]);
+  });
 
   it('two extra incidents bring it early', () => {
     const s = engine(game(at(3646)), { type: 'flagSet', flag: 'sceneOutcome:treaty-incident-balmorra' }, { type: 'flagSet', flag: 'sceneOutcome:treaty-incident-taris' });
@@ -316,7 +329,7 @@ describe('rulings', () => {
   });
 
   it('SWTOR protagonists are named as NPCs', () => {
-    const s = go(game(at(3644, 6)), at(3643, 1, 2));
+    const s = go(game(at(3643, 3, 20)), at(3643, 4, 2));
     expect(selectTimelineHandoff(s).news.join('\n')).toMatch(/the Hero of Tython: an NPC, never the player character/);
   });
 });

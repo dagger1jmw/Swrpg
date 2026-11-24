@@ -35,7 +35,9 @@ function start(on: number, seed = 'net'): GameState {
     character: { name: 'Kael', birthDay: on - 25 * 368, path: 'jedi', archetype: 'jediGuardian', mainFormId: 'soresu', secondFormId: 'ataru', trainingStartAge: 4 },
     rank: 'knight',
   });
-  return applyEvents(REGISTRY, state, [{ type: 'locationIntroduced', name: 'Coruscant', kind: 'planet', region: 'Core Worlds', description: 'The capital.', moveHere: true }], { source: 'ai' }).state;
+  const s = applyEvents(REGISTRY, state, [{ type: 'locationIntroduced', name: 'Coruscant', kind: 'planet', region: 'Core Worlds', description: 'The capital.', moveHere: true }], { source: 'ai' }).state;
+  // A lead recorded in play (D-468).
+  return applyEvents(REGISTRY, s, [{ type: 'factLearned', aboutRef: 'Coruscant', fact: 'Strangers have been counting the patrols', importance: 'major' }], { source: 'ai' }).state;
 }
 const investigate = { actionType: 'investigate', targets: [], references: [], unknownNames: [] };
 

@@ -12,14 +12,18 @@ import type { GameState } from '../../state/gameState';
 import { CONTROL_SIDES, type ControlSide } from '../../data/worldControl';
 import { WORLD_NETWORK, type WorldNetwork } from '../../data/worldNetwork';
 import { ACTION_TYPES, type ActionType } from '../../data/checks.config';
+import { OBSERVE } from '../../data/blockade.config';
+import { BLOCKADE_APPROACHES, BLOCKADE_RESPONSES, BLOCKADES } from '../../data/blockades';
 import type { FeatureModule, GameEvent } from '../../state/types';
 import { selectPath } from '../character/selectors';
+import { selectTurnInPlay } from '../clock/selectors';
 import { selectNpcs } from '../npcs/selectors';
 import { selectRank } from '../ranks/selectors';
 import { selectOpenThreads } from '../threads/selectors';
 import { openNetwork, recordAction, reviewNetwork, sceneFlag, scenesWon } from './network';
 import { handoffLines, selectTimelineHandoff, selectUntoldWorldEvents, selectWorldAction, selectWorldFacts, selectWorldLog } from './selectors';
-import { emptyWorld, migrateWorldV1, worldSliceSchema, type NetworkState, type WorldEvent, type WorldSlice } from './world';
+import { recordRun, recordWatch, type RunRecorded } from './blockades';
+import { emptyWorld, migrateWorldV1, migrateWorldV2, worldSliceSchema, type NetworkState, type WorldEvent, type WorldSlice } from './world';
 
 function eligible(k: WorldEventKind, s: GameState, npcs: number, threads: number): boolean {
   if (k.paths && !k.paths.includes(selectPath(s))) return false;
@@ -78,8 +82,8 @@ function markTold(net: NetworkState, ids: ReadonlySet<string>, turn: number): Ne
 /** The world feature over a network: the shipped one in the game, a fixture in tests. */
 export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlice, GameState> => ({
   id: 'world',
-  version: 2,
-  migrations: { 2: migrateWorldV1 },
+  version: 3,
+  migrations: { 2: migrateWorldV1, 3: migrateWorldV2 },
   // A campaign opens with everything up to its start date standing as the lore records it.
   initialState: (ctx) => {
     const w = emptyWorld(ctx.start.day);
@@ -151,6 +155,38 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
         const r = recordAction(network, openNetwork(network, slice.network, day), selectWorldFacts(s), action, day);
         // A scene's outcome is a flag only the engine may set (flag-registry §4).
         return { slice: { ...slice, network: r.state }, notes: r.notes, emit: r.scenes.map((id) => ({ type: 'flagSet', flag: sceneFlag(id) })) };
+      },
+    },
+    /** Engine (the turn's resolve step): a blockade run as it came out. */
+    blockadeRunRecorded: {
+      schema: z.object({
+        type: z.literal('blockadeRunRecorded'),
+        blockadeId: z.string(),
+        approach: z.enum(BLOCKADE_APPROACHES),
+        direction: z.enum(['in', 'out', 'through']),
+        to: z.string(),
+        result: z.enum(['through', ...BLOCKADE_RESPONSES]),
+        fame: z.number().int().min(0),
+        witnessed: z.boolean(),
+        credits: z.number().int().min(0),
+        turnsInto: z.array(z.enum(BLOCKADE_APPROACHES)),
+        penalty: z.number(),
+      }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        const b = BLOCKADES.find((x) => x.id === e['blockadeId']);
+        if (!b) return { reject: `unknown blockade ${String(e['blockadeId'])}` };
+        return { slice: { ...slice, blockades: recordRun(slice.blockades, e as unknown as RunRecorded, b, { day: ctx.state.clock.now.day, turn: selectTurnInPlay(ctx.state), locationId: ctx.state.locations.currentId }) }, notes: [`blockade: ${b.name}: ${String(e['approach'])}, ${String(e['result'])}`] };
+      },
+    },
+    /** Engine: hours of watching a blockade that counted. */
+    blockadeWatched: {
+      schema: z.object({ type: z.literal('blockadeWatched'), blockadeId: z.string(), counted: z.number().min(0), noticed: z.boolean() }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        const b = BLOCKADES.find((x) => x.id === e['blockadeId']);
+        if (!b) return { reject: `unknown blockade ${String(e['blockadeId'])}` };
+        return { slice: { ...slice, blockades: recordWatch(slice.blockades, b, ctx.state.clock.now.day, Number(e['counted']), e['noticed'] === true, OBSERVE.hoursNeeded) } };
       },
     },
     /** Engine only: a place changes hands in this campaign (a battle the engine resolved). Never from the narrator. */
