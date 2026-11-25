@@ -280,5 +280,6 @@ Periods where a rule is silent because the files state nothing.
 - **Careers' physical paces:** the table in src/data/archetypes.ts is 5 to 10% above the day loop's (soldier Agility 0.683 against 0.623); D-472's ageing is the likely cause. Re-measure in a later run (npm run paces).
 - **The generated line for old characters** (forms and Willpower): lowered in D-497 (NPC training hours from 50).
 - **The generated line's Force Control** (D-497, Jared): 14 to 56 below almost every canon sheet at every age (now a little more past 50, since D-497's hours touch it too). For a later calibration run; nothing changed.
-- **In-campaign growth of figures not yet trained at the start** (found in D-503; a bug in play): report m8-calibration-fix10.md. Some twenty careers reach levels of 700 to 2,800 in a campaign from 3,681 or 3,661.
-- **Young sheeted figures** (sheets at 28 to 36: the Barsenthor, Nox, the Hero, the Wrath, Cipher Nine, Kira Carsen) grow to 110-175 before their training years end: report m8-calibration-fix10.md.
+- **In-campaign growth of figures not yet trained at the start:** fixed (D-504).
+- **Young sheeted figures:** capped at 15 over the sheet (D-504).
+- **Long-lived figures without a sheet** bank decades in skills other than Willpower (Bowdaar and Suudaa Nemro, 135): report m8-calibration-fix11.md.

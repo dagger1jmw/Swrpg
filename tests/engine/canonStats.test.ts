@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import type { CanonNpc } from '../../src/data/canon/types';
 import { canonLivedAgeAt } from '../../src/engine/canonRoster';
-import { canonLevelsAt, canonLevelsInCampaign, eventFactor, type CanonStatDeps } from '../../src/engine/canonStats';
+import { canonLevelsAt, canonLevelsDiverged, eventFactor, type CanonStatDeps } from '../../src/engine/canonStats';
 
 // Born 3,700; G grows with lived age; the generator's line is 0.6 × G for every stat.
 const figure = (over: Partial<CanonNpc> = {}): CanonNpc => ({
@@ -81,10 +81,14 @@ describe('canon stats from anchors (D-414)', () => {
     const n = figure({ anchors: [sheet], fixed: 'immortal' });
     expect(canonLevelsAt(n, 3690, deps(n))).toEqual(sheet.levels);
   });
-  it('in a campaign the line is set once at the start, then grows by the growth curve', () => {
+  it('a figure off its canon course grows from that day by its own growth, with no runaway (D-504)', () => {
     const start = { shiiCho: 50 };
     const g = (bby: number) => 3700 - bby;
-    expect(canonLevelsInCampaign(start, g, 3661, 3661)).toEqual(start);
-    expect(canonLevelsInCampaign(start, g, 3661, 3651).shiiCho).toBeCloseTo(50 * 49 / 39);
+    expect(canonLevelsDiverged(start, { shiiCho: 50 }, g, g, 3661, 3661)).toEqual(start);
+    expect(canonLevelsDiverged(start, { shiiCho: 90 }, g, g, 3661, 3651).shiiCho).toBeCloseTo(50 * 49 / 39);
+    expect(canonLevelsDiverged(start, { shiiCho: 55 }, g, g, 3661, 3651).shiiCho).toBe(55);
+    expect(canonLevelsDiverged(start, { shiiCho: 55 }, (b) => g(b) / 1.1, g, 3661, 3651).shiiCho).toBeCloseTo(55 * 1.1);
+    // Barely trained that day: no runaway multiplication.
+    expect(canonLevelsDiverged(start, { shiiCho: 60 }, () => 30, (b) => (b === 3661 ? 0.1 : 30), 3661, 3651).shiiCho).toBe(60);
   });
 });

@@ -11,10 +11,10 @@ import { DAYS_PER_YEAR, dateFromAbsDay } from '../../engine/calendar';
 import { npcVariance, rollNpcInputs } from '../../engine/npcGen';
 import { ageLoss, bodyAge, isPhysicalStat } from '../../engine/ageing';
 import { PRIME_H } from '../../data/ageing.config';
-import { NPC_WILLPOWER_STOP_AGE } from '../../data/npcHours';
+import { CLASS_HEROES, PAST_SHEET } from '../../data/canon/growthCap';
 import { bodyCapAt } from '../../engine/species';
 import { isOutsideForce } from '../../engine/speed';
-import { canonLevelsAt, canonLevelsInCampaign, cappedFrom, type CanonStatDeps } from '../../engine/canonStats';
+import { canonLevelsAt, canonLevelsDiverged, type CanonStatDeps } from '../../engine/canonStats';
 import { canonFallBby, canonLivedAgeAt, canonRankAt, withoutDeath } from '../../engine/canonRoster';
 import { ROLE_RANK } from '../../data/npcGen.config';
 import type { CanonNpc, RankSpan } from '../../data/canon/types';
@@ -120,15 +120,16 @@ export function canonBodyAge(canon: CanonNpc, bby: number, lineForceControl: num
   return bodyAge(speciesDef(speciesTableId(canon.speciesId)), canonLivedAgeAt(canon, bby), near?.levels['forceControl'] ?? lineForceControl);
 }
 
-/** When a canon figure has trained as many years as a Human of its path has by 50 (D-500), BBY, by its lived age. */
-export function canonTrainedBy(canon: CanonNpc): number {
-  const species = speciesDef(speciesTableId(canon.speciesId));
-  const def = archetypeDef(canon.archetype);
-  const stop = ageFromTraining(species, def.startAge) + NPC_WILLPOWER_STOP_AGE - def.startAge;
-  let bby = Math.floor(canon.birthBby - stop);
-  // Stasis years are not lived.
-  for (let k = 0; k < 5000 && canonLivedAgeAt(canon, bby) < stop - 1; k++) bby--;
-  return bby;
+/** The cap past a figure's sheet (D-503, D-504): from the sheet, or from when one sheeted in training becomes a full member. */
+function pastSheet(canon: CanonNpc, sheetBby: number): { from: number; most: number } {
+  const early = CLASS_HEROES.includes(canon.canonId) || canonLivedAgeAt(canon, sheetBby) < PAST_SHEET.earlyBefore;
+  return { from: canonFullMemberBy(canon, sheetBby), most: early ? PAST_SHEET.early : PAST_SHEET.most };
+}
+/** The sheet's date, or the first rank after it that is no trainee's; a trainee for life is never one. */
+export function canonFullMemberBy(canon: Pick<CanonNpc, 'ranks' | 'deathBby'>, sheetBby: number): number {
+  const at = canonRankAt(canon as CanonNpc, sheetBby);
+  if (!at || KNIGHT_PHASE(at)) return sheetBby;
+  return Math.max(-Infinity, ...canon.ranks.filter((r) => r.fromBby < sheetBby && KNIGHT_PHASE(r)).map((r) => r.fromBby));
 }
 
 /** The dark powers of a figure who was a Jedi: none before the fall (Jared, D-503). */
@@ -157,7 +158,7 @@ function canonDeps(canon: CanonNpc, today: number, asOfBby = -Infinity): CanonSt
     return lv;
   };
   return {
-    trainedBy: canonTrainedBy(canon),
+    pastSheet: (sheetBby) => pastSheet(canon, sheetBby),
     // A figure with a sheet takes the plain line for what its sheet leaves to the game: no luck of the draw (D-494).
     lineAt: (bby) => line(bby, canon.anchors.length === 0),
     growthAt: (bby) => Math.max(0, ...Object.entries(line(bby, false)).filter(([k]) => FORM_IDS.includes(k) || k === def.main).map(([, v]) => v)),
@@ -204,31 +205,16 @@ export function selectNpcLevels(s: GameState, id: string): Readonly<Record<strin
   // A figure in play past the death on record is alive in this campaign (D-467): it keeps what it held.
   const canon = onRecord?.deathBby !== undefined && -dateFromAbsDay(s.clock.now.day).year < onRecord.deathBby ? withoutDeath(onRecord) : onRecord;
   if (canon) {
-    // D-414: the figure's line is calculated once at the campaign's start date from its anchors (or the generator, with
-    // no anchor), then grows by the normal NPC maths: the closed-form growth along its rank spans, with no later anchor
-    // pulling it back, so the story can change its course. A figure not yet in training at the start is calculated when
-    // their training starts. An old save without a start day uses today.
+    // D-504: a figure on its canon course is what its sheets, ranks and lived age make it at the date, whenever the campaign
+    // began. One that has diverged (killed, captured, turned, removed from its post; D-419) grows from what it was that day, by
+    // the rank spans begun by then.
     const today = s.clock.now.day;
     const nowBby = -dateFromAbsDay(today).year;
-    const def = archetypeDef(canon.archetype);
-    const startBby = Math.min(-dateFromAbsDay(s.clock.startDay ?? today).year, canon.birthBby - Math.ceil(def.startAge));
-    const deps = canonDeps(canon, today);
-    const start = canonLevelsAt(canon, startBby, deps);
-    if (canon.fixed) return withForceSpeed(canon, canon.archetype, start);
-    // Jared, D-419: after the start the figure keeps its canon promotions, unless the campaign has diverged for it
-    // (killed, captured, turned, removed from its post): from that day only the rank spans begun by then shape its growth.
-    const growth = n.canonDiverged ? canonDeps(canon, today, Math.min(startBby, -dateFromAbsDay(n.canonDiverged.day).year)).growthAt : deps.growthAt;
-    const now = Math.min(nowBby, startBby);
-    const capFrom = (stat: string): number | null => (canon.anchors.length ? cappedFrom(canon, stat, canonTrainedBy(canon)) : null);
-    const levels = withForceSpeed(canon, canon.archetype, canonLevelsInCampaign(start, growth, startBby, now, deps.retentionAt, capFrom));
-    const fall = canonFallBby(canon);
-    if (fall === null) return levels;
-    // A fallen Jedi's dark powers come with the fall the lore records, unless the campaign has diverged before it.
-    const fell = now <= fall && !(n.canonDiverged && -dateFromAbsDay(n.canonDiverged.day).year > fall);
-    if (!fell) return withoutDarkPowers(levels);
-    if (startBby <= fall) return levels;
-    const atFall = canonLevelsAt(canon, now, deps);
-    return { ...levels, ...Object.fromEntries(DARK_POWERS.filter((k) => atFall[k] !== undefined).map((k) => [k, atFall[k]!])) };
+    const onCourse = canonFigureLevelsAt(canon, nowBby, today);
+    if (!n.canonDiverged || canon.fixed) return onCourse;
+    const left = -dateFromAbsDay(n.canonDiverged.day).year;
+    const course = canonDeps(canon, today);
+    return canonLevelsDiverged(canonFigureLevelsAt(canon, left, n.canonDiverged.day), onCourse, course.growthAt, canonDeps(canon, today, left).growthAt, left, nowBby, course.retentionAt);
   }
   const gen = selectNpcGen(s, id);
   const levels = gen ? npcLevelsFor(gen, n.speciesId, selectNpcAgeOrDefault(s, id), s.clock.now.day) : {};

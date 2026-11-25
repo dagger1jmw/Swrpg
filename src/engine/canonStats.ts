@@ -23,10 +23,10 @@ export interface CanonStatDeps {
   /** The share of its peak the figure's body keeps at a date (D-472); physical stats only, 1 for the rest. */
   retentionAt?: (stat: string, bby: number) => number;
   /**
-   * When the figure has trained its years (D-500's stop), BBY: past its last sheet and this, a stat rises only so far (D-503).
-   * Absent = no cap.
+   * The cap past a figure's last sheet (D-503, D-504): for a sheet at a date, from when it counts (the sheet, or when a Padawan
+   * or an apprentice became a full member) and the most a stat gains. Absent = no cap.
    */
-  trainedBy?: number;
+  pastSheet?: (sheetBby: number) => { from: number; most: number };
   /** The body's cap for a physical stat at a date (D-494): the figure's species and body age. Absent = no cap. */
   capAt?: (stat: string, bby: number) => number | null;
 }
@@ -34,26 +34,26 @@ export interface CanonStatDeps {
 const EPS = 1e-9;
 
 /** What a stat may have gained so many years past its last sheet: front-loaded, then it holds (D-503). */
-export const pastSheetGain = (years: number): number => PAST_SHEET.most * (1 - (1 - Math.min(1, Math.max(0, years) / PAST_SHEET.years)) ** 2);
+export const pastSheetGain = (years: number, most: number = PAST_SHEET.most): number => most * (1 - (1 - Math.min(1, Math.max(0, years) / PAST_SHEET.years)) ** 2);
 
-/** From when a stat's growth is capped, BBY: its last sheet (an unlisted stat: the last complete one), or the trained years if later. */
-export function cappedFrom(n: Pick<CanonNpc, 'anchors'>, stat: string, trainedBy: number): number | null {
+/** The cap on a stat's growth: by its last sheet (an unlisted stat: the last complete one). */
+function capOf(n: Pick<CanonNpc, 'anchors'>, stat: string, deps: Pick<CanonStatDeps, 'pastSheet'>): { from: number; most: number } | null {
   const own = n.anchors.filter((a) => a.levels[stat] !== undefined);
   const list = own.length ? own : n.anchors.filter((a) => a.complete);
-  return list.length ? Math.min(trainedBy, ...list.map((a) => a.bby)) : null;
+  return list.length && deps.pastSheet ? deps.pastSheet(Math.min(...list.map((a) => a.bby))) : null;
 }
 
 /** The generator's line as a sheeted figure takes it: past its last sheet it rises no further than the cap. */
 function cappedLine(n: CanonNpc, bby: number, deps: CanonStatDeps): Readonly<Record<string, number>> {
   const line = deps.lineAt(bby);
-  if (deps.trainedBy === undefined || !n.anchors.some((a) => a.complete)) return line;
+  if (!deps.pastSheet || !n.anchors.some((a) => a.complete)) return line;
   const at = new Map<number, Readonly<Record<string, number>>>();
   return Object.fromEntries(
     Object.entries(line).map(([s, v]) => {
-      const from = cappedFrom(n, s, deps.trainedBy!);
-      if (from === null || bby >= from) return [s, v];
-      if (!at.has(from)) at.set(from, deps.lineAt(from));
-      return [s, Math.min(v, (at.get(from)![s] ?? 0) + pastSheetGain(from - bby))];
+      const cap = capOf(n, s, deps);
+      if (!cap || bby >= cap.from) return [s, v];
+      if (!at.has(cap.from)) at.set(cap.from, deps.lineAt(cap.from));
+      return [s, Math.min(v, (at.get(cap.from)![s] ?? 0) + pastSheetGain(cap.from - bby, cap.most))];
     }),
   );
 }
@@ -107,8 +107,8 @@ const OWN_FORM_EDGE = 0.1;
 function capped(n: CanonNpc, stat: string, bby: number, sheet: number, sheetBby: number, deps: CanonStatDeps): number {
   const g0 = Math.max(EPS, deps.growthAt(sheetBby));
   const grown = (d: number): number => (sheet * deps.growthAt(d)) / g0;
-  const from = deps.trainedBy === undefined ? null : cappedFrom(n, stat, deps.trainedBy);
-  return from === null || bby >= from ? grown(bby) : Math.min(grown(bby), grown(from) + pastSheetGain(from - bby));
+  const cap = capOf(n, stat, deps);
+  return !cap || bby >= cap.from ? grown(bby) : Math.min(grown(bby), grown(cap.from) + pastSheetGain(cap.from - bby, cap.most));
 }
 
 /**
@@ -157,25 +157,19 @@ export function canonLevelsAt(n: CanonNpc, bby: number, deps: CanonStatDeps): Re
 }
 
 /**
- * A canon NPC's levels during a campaign (D-414 "when a campaign starts"): the line is calculated once at the start
- * date from the anchors, and from then on it grows by the normal NPC maths (the closed-form growth as of the start,
- * `growthAfterStart`), so the story can change the figure's course. With no start on record, the start is now.
+ * A canon figure that has left its canon course (D-419; D-504): it grows from what it was on that day by the growth its own
+ * ranks by then give it. It never passes its canon course by more than its own growth passes the canon one, so someone barely
+ * trained that day is never multiplied up. A figure on its course needs none of this: it is the same in every campaign.
  */
-export function canonLevelsInCampaign(start: Readonly<Record<string, number>>, growthAfterStart: (bby: number) => number, startBby: number, nowBby: number, retentionAt: (stat: string, bby: number) => number = () => 1, capFrom: (stat: string) => number | null = () => null): Record<string, number> {
-  if (nowBby === startBby) return { ...start };
-  const g0 = growthAfterStart(startBby);
-  const r = g0 > EPS ? growthAfterStart(nowBby) / g0 : 1;
-  const grown = (v: number, bby: number): number => (g0 > EPS ? (v * growthAfterStart(bby)) / g0 : v);
+export function canonLevelsDiverged(atDivergence: Readonly<Record<string, number>>, onCourse: Readonly<Record<string, number>>, courseGrowth: (bby: number) => number, growthAfter: (bby: number) => number, divergedBby: number, nowBby: number, retentionAt: (stat: string, bby: number) => number = () => 1): Record<string, number> {
+  if (nowBby >= divergedBby) return { ...onCourse };
+  const g0 = growthAfter(divergedBby);
+  const r = g0 > EPS ? growthAfter(nowBby) / g0 : 1;
+  const own = Math.max(1, growthAfter(nowBby) / Math.max(EPS, courseGrowth(nowBby)));
   return Object.fromEntries(
-    Object.entries(start).map(([k, v]) => {
-      const from = capFrom(k);
-      let level = v * r;
-      if (from !== null && nowBby < from) {
-        // The cap runs from the last sheet (or the trained years), whether the campaign starts before it or after (D-503).
-        const base = Math.min(from, startBby);
-        level = Math.min(level, grown(v, base) + pastSheetGain(from - nowBby) - pastSheetGain(from - base));
-      }
-      return [k, (level * retentionAt(k, nowBby)) / Math.max(EPS, retentionAt(k, startBby))];
+    Object.entries(atDivergence).map(([k, v]) => {
+      const aged = (v * retentionAt(k, nowBby)) / Math.max(EPS, retentionAt(k, divergedBby));
+      return [k, Math.min(aged * r, Math.max(aged, (onCourse[k] ?? 0) * own))];
     }),
   );
 }

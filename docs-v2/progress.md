@@ -313,3 +313,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-25: m8-calibration-fix8 (D-501): Consulars, Guardians and Inquisitors ruled as they are; Darth Karrid's sheet drafted; the side effect listed. Report: reports/m8-calibration-fix8.md.
 - 2026-11-25: m8-calibration-fix9 (D-502): Darth Karrid's history, birth, lightning and forms corrected against her page; Rictus and Hadra stay. Report: reports/m8-calibration-fix9.md.
 - 2026-11-25: m8-calibration-fix10 (D-503): canon growth past the last sheet capped at 5 over 20 years, Karrid's Niman 75, no dark powers before a Jedi's fall; an in-campaign growth bug found and queued. Report: reports/m8-calibration-fix10.md.
+- 2026-11-25: m8-calibration-fix11 (D-504): canon figures the same in every campaign (the runaway growth fixed), the cap past a sheet from the sheet (15 for early-career ones), a safety test. Report: reports/m8-calibration-fix11.md.

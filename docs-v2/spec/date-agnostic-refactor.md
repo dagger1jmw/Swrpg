@@ -32,7 +32,7 @@ Jared, 2026-11-22. This is a design brief for Claude Code, written by the lore a
 - **Rank spans shape the curve:** a figure anchored as a Master isn't a Master-level fighter during their Padawan span.
 - **Dated events apply on their dates:** injuries, lost limbs, falls, redemptions, imprisonment and stasis. A figure doesn't age or train in stasis.
 - **Figures with no hand-set anchor:** the generator builds their complete line from archetype and rank at a chosen date, and the same maths runs from there.
-- **When a campaign starts:** each figure's line is calculated once at the start date. After that the NPC progresses through the normal game systems, so the player can change their course.
+- **When a campaign starts:** each figure's line is calculated once at the start date. After that the NPC progresses through the normal game systems, so the player can change their course. (Amended by D-504, Jared: a figure on its canon course has the same line at a date in every campaign, from its sheets, ranks and lived age; one the story takes off it grows from that day by its own ranks. Past the last sheet growth is capped: D-503, D-504.)
 
 ## 3. How anchors are found (no heavy research pass)
 1. **Works table:** build `src/data/canon/works.ts` listing each era work (novels, comics, games, flashpoints and class stories) with its in-universe date or range. Take it from the lore files: the timeline slice and the character files name most works. Mark any work whose date you can't find.
