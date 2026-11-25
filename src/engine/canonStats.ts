@@ -10,6 +10,7 @@
 // (D-472), measured from its anchor's date. Stasis years count toward neither age nor growth (the
 // callers measure age as lived age). A figure with no anchor for a stat takes the generator's line.
 import type { CanonNpc, StatAnchor } from '../data/canon/types';
+import { PAST_SHEET } from '../data/canon/growthCap';
 import { FORM_IDS } from '../data/skills';
 
 export interface CanonStatDeps {
@@ -21,11 +22,41 @@ export interface CanonStatDeps {
   livedAgeAt: (bby: number) => number;
   /** The share of its peak the figure's body keeps at a date (D-472); physical stats only, 1 for the rest. */
   retentionAt?: (stat: string, bby: number) => number;
+  /**
+   * When the figure has trained its years (D-500's stop), BBY: past its last sheet and this, a stat rises only so far (D-503).
+   * Absent = no cap.
+   */
+  trainedBy?: number;
   /** The body's cap for a physical stat at a date (D-494): the figure's species and body age. Absent = no cap. */
   capAt?: (stat: string, bby: number) => number | null;
 }
 
 const EPS = 1e-9;
+
+/** What a stat may have gained so many years past its last sheet: front-loaded, then it holds (D-503). */
+export const pastSheetGain = (years: number): number => PAST_SHEET.most * (1 - (1 - Math.min(1, Math.max(0, years) / PAST_SHEET.years)) ** 2);
+
+/** From when a stat's growth is capped, BBY: its last sheet (an unlisted stat: the last complete one), or the trained years if later. */
+export function cappedFrom(n: Pick<CanonNpc, 'anchors'>, stat: string, trainedBy: number): number | null {
+  const own = n.anchors.filter((a) => a.levels[stat] !== undefined);
+  const list = own.length ? own : n.anchors.filter((a) => a.complete);
+  return list.length ? Math.min(trainedBy, ...list.map((a) => a.bby)) : null;
+}
+
+/** The generator's line as a sheeted figure takes it: past its last sheet it rises no further than the cap. */
+function cappedLine(n: CanonNpc, bby: number, deps: CanonStatDeps): Readonly<Record<string, number>> {
+  const line = deps.lineAt(bby);
+  if (deps.trainedBy === undefined || !n.anchors.some((a) => a.complete)) return line;
+  const at = new Map<number, Readonly<Record<string, number>>>();
+  return Object.fromEntries(
+    Object.entries(line).map(([s, v]) => {
+      const from = cappedFrom(n, s, deps.trainedBy!);
+      if (from === null || bby >= from) return [s, v];
+      if (!at.has(from)) at.set(from, deps.lineAt(from));
+      return [s, Math.min(v, (at.get(from)![s] ?? 0) + pastSheetGain(from - bby))];
+    }),
+  );
+}
 
 /** The product of the event factors for `stat` from events on or before `bby` (an event's year counts). */
 export function eventFactor(n: CanonNpc, stat: string, bby: number): number {
@@ -72,14 +103,22 @@ function floored(n: CanonNpc, bby: number, levels: Readonly<Record<string, numbe
 /** A figure's own form over any other (invented): enough to be the one it fights with. */
 const OWN_FORM_EDGE = 0.1;
 
+/** A stat's level past its last anchor, its events and the body's age taken out: the curve's growth, held by the cap (D-503). */
+function capped(n: CanonNpc, stat: string, bby: number, sheet: number, sheetBby: number, deps: CanonStatDeps): number {
+  const g0 = Math.max(EPS, deps.growthAt(sheetBby));
+  const grown = (d: number): number => (sheet * deps.growthAt(d)) / g0;
+  const from = deps.trainedBy === undefined ? null : cappedFrom(n, stat, deps.trainedBy);
+  return from === null || bby >= from ? grown(bby) : Math.min(grown(bby), grown(from) + pastSheetGain(from - bby));
+}
+
 /**
  * The figure's stats at `bby` from its anchors (D-414). `fixed` figures keep their first complete anchor unchanged
  * (immortal or ancient beings, npc-generation §5).
  */
 export function canonLevelsAt(n: CanonNpc, bby: number, deps: CanonStatDeps): Record<string, number> {
   const sheet = n.anchors.find((a) => a.complete);
-  const line = deps.lineAt(bby);
-  if (n.fixed && sheet) return floored(n, bby, sheet.levels, line, deps);
+  if (n.fixed && sheet) return floored(n, bby, sheet.levels, deps.lineAt(bby), deps);
+  const line = cappedLine(n, bby, deps);
   const gNow = deps.growthAt(bby);
   // Dated events and, for a physical stat, the body's age (the generator's line has its own).
   const factor = (s: string, d: number): number => eventFactor(n, s, d) * (deps.retentionAt?.(s, d) ?? 1);
@@ -106,7 +145,7 @@ export function canonLevelsAt(n: CanonNpc, bby: number, deps: CanonStatDeps): Re
       const r = ratio(prev) + Math.min(1, Math.max(0, t)) * (ratio(next) - ratio(prev));
       v = gNow * r * factor(s, bby);
     } else if (prev) {
-      v = gNow * ratio(prev) * factor(s, bby);
+      v = capped(n, s, bby, prev.levels[s]! / Math.max(EPS, factor(s, prev.bby)), prev.bby, deps) * factor(s, bby);
     } else {
       // Backward from the nearest later anchor: never below the archetype's baseline for that age.
       v = Math.max(gNow * ratio(next!) * factor(s, bby), base);
@@ -122,9 +161,21 @@ export function canonLevelsAt(n: CanonNpc, bby: number, deps: CanonStatDeps): Re
  * date from the anchors, and from then on it grows by the normal NPC maths (the closed-form growth as of the start,
  * `growthAfterStart`), so the story can change the figure's course. With no start on record, the start is now.
  */
-export function canonLevelsInCampaign(start: Readonly<Record<string, number>>, growthAfterStart: (bby: number) => number, startBby: number, nowBby: number, retentionAt: (stat: string, bby: number) => number = () => 1): Record<string, number> {
+export function canonLevelsInCampaign(start: Readonly<Record<string, number>>, growthAfterStart: (bby: number) => number, startBby: number, nowBby: number, retentionAt: (stat: string, bby: number) => number = () => 1, capFrom: (stat: string) => number | null = () => null): Record<string, number> {
   if (nowBby === startBby) return { ...start };
   const g0 = growthAfterStart(startBby);
   const r = g0 > EPS ? growthAfterStart(nowBby) / g0 : 1;
-  return Object.fromEntries(Object.entries(start).map(([k, v]) => [k, (v * r * retentionAt(k, nowBby)) / Math.max(EPS, retentionAt(k, startBby))]));
+  const grown = (v: number, bby: number): number => (g0 > EPS ? (v * growthAfterStart(bby)) / g0 : v);
+  return Object.fromEntries(
+    Object.entries(start).map(([k, v]) => {
+      const from = capFrom(k);
+      let level = v * r;
+      if (from !== null && nowBby < from) {
+        // The cap runs from the last sheet (or the trained years), whether the campaign starts before it or after (D-503).
+        const base = Math.min(from, startBby);
+        level = Math.min(level, grown(v, base) + pastSheetGain(from - nowBby) - pastSheetGain(from - base));
+      }
+      return [k, (level * retentionAt(k, nowBby)) / Math.max(EPS, retentionAt(k, startBby))];
+    }),
+  );
 }

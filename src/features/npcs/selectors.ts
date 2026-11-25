@@ -5,16 +5,17 @@ import type { GameState } from '../../state/gameState';
 import { archetypeDef } from '../../data/archetypes';
 import { CANON_BY_ID } from '../../data/canonNpcs';
 import { DEFAULT_AGE, DEFAULT_AGE_BY_ROLE } from '../../data/npcGen.config';
-import { FORM_IDS } from '../../data/skills';
+import { FORM_IDS, SKILLS } from '../../data/skills';
 import { ageFromTraining, speciesDef, speciesTableId, trainingAge } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay } from '../../engine/calendar';
 import { npcVariance, rollNpcInputs } from '../../engine/npcGen';
 import { ageLoss, bodyAge, isPhysicalStat } from '../../engine/ageing';
 import { PRIME_H } from '../../data/ageing.config';
+import { NPC_WILLPOWER_STOP_AGE } from '../../data/npcHours';
 import { bodyCapAt } from '../../engine/species';
 import { isOutsideForce } from '../../engine/speed';
-import { canonLevelsAt, canonLevelsInCampaign, type CanonStatDeps } from '../../engine/canonStats';
-import { canonLivedAgeAt, canonRankAt, withoutDeath } from '../../engine/canonRoster';
+import { canonLevelsAt, canonLevelsInCampaign, cappedFrom, type CanonStatDeps } from '../../engine/canonStats';
+import { canonFallBby, canonLivedAgeAt, canonRankAt, withoutDeath } from '../../engine/canonRoster';
 import { ROLE_RANK } from '../../data/npcGen.config';
 import type { CanonNpc, RankSpan } from '../../data/canon/types';
 import { computeCreation, ranksFor } from '../character/selectors';
@@ -119,6 +120,27 @@ export function canonBodyAge(canon: CanonNpc, bby: number, lineForceControl: num
   return bodyAge(speciesDef(speciesTableId(canon.speciesId)), canonLivedAgeAt(canon, bby), near?.levels['forceControl'] ?? lineForceControl);
 }
 
+/** When a canon figure has trained as many years as a Human of its path has by 50 (D-500), BBY, by its lived age. */
+export function canonTrainedBy(canon: CanonNpc): number {
+  const species = speciesDef(speciesTableId(canon.speciesId));
+  const def = archetypeDef(canon.archetype);
+  const stop = ageFromTraining(species, def.startAge) + NPC_WILLPOWER_STOP_AGE - def.startAge;
+  let bby = Math.floor(canon.birthBby - stop);
+  // Stasis years are not lived.
+  for (let k = 0; k < 5000 && canonLivedAgeAt(canon, bby) < stop - 1; k++) bby--;
+  return bby;
+}
+
+/** The dark powers of a figure who was a Jedi: none before the fall (Jared, D-503). */
+const DARK_POWERS: readonly string[] = SKILLS.filter((s) => s.kind === 'forceAbility' && s.side === 'dark').map((s) => s.id);
+function withoutDarkPowers(levels: Readonly<Record<string, number>>): Record<string, number> {
+  return Object.fromEntries(Object.entries(levels).map(([k, v]) => [k, DARK_POWERS.includes(k) ? 0 : v]));
+}
+const beforeFall = (canon: CanonNpc, bby: number): boolean => {
+  const fall = canonFallBby(canon);
+  return fall !== null && bby > fall;
+};
+
 /** The engine's dependencies for one canon figure (memoized per date): the generator line, growth G and lived age. */
 function canonDeps(canon: CanonNpc, today: number, asOfBby = -Infinity): CanonStatDeps {
   const def = archetypeDef(canon.archetype);
@@ -135,6 +157,7 @@ function canonDeps(canon: CanonNpc, today: number, asOfBby = -Infinity): CanonSt
     return lv;
   };
   return {
+    trainedBy: canonTrainedBy(canon),
     // A figure with a sheet takes the plain line for what its sheet leaves to the game: no luck of the draw (D-494).
     lineAt: (bby) => line(bby, canon.anchors.length === 0),
     growthAt: (bby) => Math.max(0, ...Object.entries(line(bby, false)).filter(([k]) => FORM_IDS.includes(k) || k === def.main).map(([, v]) => v)),
@@ -165,7 +188,8 @@ export const npcOwnForceTraits = (n: { canonId?: string | null | undefined }): C
 
 /** A canon figure's levels at a date from its anchors (D-414), outside a campaign (tools and tests). */
 export function canonFigureLevelsAt(canon: CanonNpc, bby: number, today: number): Record<string, number> {
-  return { ...withForceSpeed(canon, canon.archetype, canonLevelsAt(canon, bby, canonDeps(canon, today))) };
+  const levels = { ...withForceSpeed(canon, canon.archetype, canonLevelsAt(canon, bby, canonDeps(canon, today))) };
+  return beforeFall(canon, bby) ? withoutDarkPowers(levels) : levels;
 }
 
 /**
@@ -194,7 +218,17 @@ export function selectNpcLevels(s: GameState, id: string): Readonly<Record<strin
     // Jared, D-419: after the start the figure keeps its canon promotions, unless the campaign has diverged for it
     // (killed, captured, turned, removed from its post): from that day only the rank spans begun by then shape its growth.
     const growth = n.canonDiverged ? canonDeps(canon, today, Math.min(startBby, -dateFromAbsDay(n.canonDiverged.day).year)).growthAt : deps.growthAt;
-    return withForceSpeed(canon, canon.archetype, canonLevelsInCampaign(start, growth, startBby, Math.min(nowBby, startBby), deps.retentionAt));
+    const now = Math.min(nowBby, startBby);
+    const capFrom = (stat: string): number | null => (canon.anchors.length ? cappedFrom(canon, stat, canonTrainedBy(canon)) : null);
+    const levels = withForceSpeed(canon, canon.archetype, canonLevelsInCampaign(start, growth, startBby, now, deps.retentionAt, capFrom));
+    const fall = canonFallBby(canon);
+    if (fall === null) return levels;
+    // A fallen Jedi's dark powers come with the fall the lore records, unless the campaign has diverged before it.
+    const fell = now <= fall && !(n.canonDiverged && -dateFromAbsDay(n.canonDiverged.day).year > fall);
+    if (!fell) return withoutDarkPowers(levels);
+    if (startBby <= fall) return levels;
+    const atFall = canonLevelsAt(canon, now, deps);
+    return { ...levels, ...Object.fromEntries(DARK_POWERS.filter((k) => atFall[k] !== undefined).map((k) => [k, atFall[k]!])) };
   }
   const gen = selectNpcGen(s, id);
   const levels = gen ? npcLevelsFor(gen, n.speciesId, selectNpcAgeOrDefault(s, id), s.clock.now.day) : {};

@@ -33,6 +33,22 @@ export function canonRoleAt(n: CanonNpc, bby: number): NpcRole {
   return canonRankAt(n, bby)?.role ?? 'civilian';
 }
 
+const JEDI_ROLES: readonly string[] = ['initiate', 'padawan', 'jediKnight', 'jediMaster'];
+const DARK_ROLES: readonly string[] = ['sithLord', 'sithAcolyte', 'darkJedi', 'darkAcolyte', 'inquisitor'];
+/**
+ * When a figure who was a Jedi fell, BBY (Jared, D-503): its dated fall, else its first dark rank after a Jedi one. Null: no
+ * Jedi before it, or no fall.
+ */
+export function canonFallBby(n: Pick<CanonNpc, 'ranks' | 'events'>): number | null {
+  const jedi = n.ranks.filter((r) => JEDI_ROLES.includes(r.role)).map((r) => r.fromBby);
+  if (!jedi.length) return null;
+  const first = Math.max(...jedi);
+  const fall = (n.events ?? []).filter((e) => e.kind === 'fall' && e.bby <= first).map((e) => e.bby);
+  if (fall.length) return Math.max(...fall);
+  const dark = n.ranks.filter((r) => DARK_ROLES.includes(r.role) && r.fromBby < first).map((r) => r.fromBby);
+  return dark.length && !n.ranks.some((r) => DARK_ROLES.includes(r.role) && r.fromBby >= first) ? Math.max(...dark) : null;
+}
+
 /** The side served at `bby`: the rank span's, else the entry's. */
 export function canonFactionAt(n: CanonNpc, bby: number): FactionId {
   return canonRankAt(n, bby)?.faction ?? n.faction;

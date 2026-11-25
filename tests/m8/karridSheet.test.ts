@@ -1,4 +1,4 @@
-// Darth Karrid's drafted sheet (Jared, 2026-11-25; D-501, D-502).
+// Darth Karrid's drafted sheet (Jared, 2026-11-25; D-501 to D-503).
 import { describe, expect, it } from 'vitest';
 import { CANON_BY_ID, CANON_NPCS } from '../../src/data/canonNpcs';
 import { absDayFromDate } from '../../src/engine/calendar';
@@ -35,7 +35,11 @@ describe("Darth Karrid's sheet", () => {
     expect([best(l), n.speciesId, n.archetype]).toEqual(['niman', 'falleen', 'sithInquisitor']);
     expect(l['forceLightning']).toBeCloseTo(82, 6);
     expect(l['forceControl']).toBeCloseTo(84, 6);
-    expect(l['niman']).toBeCloseTo(80, 6);
+    expect(l['niman']).toBeCloseTo(75, 6);
+    // She could not beat Gnost-Dural alone (lore): 3 to 5 below his best form that year.
+    const g = at('gnost-dural', 3640);
+    expect(g[best(g)]! - l['niman']!).toBeGreaterThanOrEqual(3);
+    expect(g[best(g)]! - l['niman']!).toBeLessThanOrEqual(5);
     // Soresu is a Jedi's off-form, as any the Initiate survey taught.
     expect(l['soresu']!).toBeLessThan(25);
     expect(l['forceSpeed']!).toBeGreaterThan(50);
