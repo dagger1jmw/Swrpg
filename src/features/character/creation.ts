@@ -18,7 +18,8 @@ import { CATEGORY_RULES, FORM_IDS, PHYSICAL_STATS, SKILL_BY_ID, SKILL_IDS, type 
 import { SPECIES_BY_ID, speciesDef, speciesOfferedAt } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { HUMAN_YEARS, closedFormLevel, formXps, phasesFor, planSplit, type AgeYears, type FormPlan } from '../../engine/closedForm';
-import { npcNaturalLevel, npcWillpowerShare, npcYears } from '../../engine/npcHours';
+import { NPC_WILLPOWER_PACE } from '../../data/npcHours';
+import { npcNaturalLevel, npcWillpowerStop, npcYears, yearsUntil } from '../../engine/npcHours';
 import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { trackedSenseXp } from '../../engine/forceSense';
 import { ageLoss, bodyAgeFromH } from '../../engine/ageing';
@@ -279,8 +280,9 @@ export function computeCreation(input: CreationInput): CreationResult {
   const full: AgeYears | undefined = species.id === 'human' ? undefined : { integral: (row, x, y) => trainingIntegral(species, row, x, y), factor: (row, x) => trainingAgeFactor(species, row, x) };
   // An NPC's training day falls from about 50 on (D-497); the player's never does.
   const years = input.npc ? npcYears(species, full ?? HUMAN_YEARS) : full;
-  // Its Willpower training stops there (D-499), except in the line under a canon sheet's Willpower.
-  const willpowerYears = input.npc && !input.sheetedWillpower ? npcYears(species, full ?? HUMAN_YEARS, npcWillpowerShare) : years;
+  // Its Willpower training stops after so many years (D-499, D-500), except in the line under a canon sheet's Willpower.
+  const ownWillpower = input.npc === true && !input.sheetedWillpower;
+  const willpowerYears = ownWillpower ? yearsUntil(years ?? HUMAN_YEARS, npcWillpowerStop(species, input.trainingStartAge, a.startAge)) : years;
   const ages0 = phaseAges(rankDef.id, input.path, hStart, h);
   const he = (x: number): number => (Number.isFinite(x) ? trainingAge(species, x) : Infinity);
   const phasesIn = input.phases;
@@ -327,7 +329,7 @@ export function computeCreation(input: CreationInput): CreationResult {
     const d = a.paces.knight?.[key] !== undefined || a.paces.padawan?.[key] !== undefined || a.paces.initiate?.[key] !== undefined ? undefined : derived[key];
     // The daily-life blocks (D-427) are in the measured paces since D-431 (measured on the day loop with them).
     const pace = (ph: Phase): number => (d ? d.share * ownPace(d.of, ph) : ownPace(key, ph));
-    const mult = talentMult(talents, skill) * crossTalentMult(talents, skill) * speciesLearning(species.id, skill) * (input.variance?.(skill) ?? 1);
+    const mult = talentMult(talents, skill) * crossTalentMult(talents, skill) * speciesLearning(species.id, skill) * (input.variance?.(skill) ?? 1) * (ownWillpower && skill === 'willpower' ? (NPC_WILLPOWER_PACE[a.id] ?? 1) : 1);
     const youthPace = youth ? (d ? d.share * ownYouth(d.of) : ownYouth(key)) : undefined;
     const phases = phasesFor({ initiate: pace('initiate'), padawan: pace('padawan'), knight: pace('knight'), ...(youthPace !== undefined ? { youth: youthPace } : {}) }, hAges, ages.onePhase);
     for (const ph of phases) if (ph.to > hStart && ph.from < h) maxPace = Math.max(maxPace, Math.min(4, ph.pace * mult));
