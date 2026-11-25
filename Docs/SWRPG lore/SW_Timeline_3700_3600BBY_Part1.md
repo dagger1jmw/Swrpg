@@ -9,7 +9,7 @@ This three-part file rebuilds the c. 3,700–3,600 BBY slice of `SW_Legends_Gala
 How to read the tables: the era headings, the ═ rule lines, "### Overview" and the "#### <year> — Year N" subheadings are kept from the old file so the developer's parser can read them. The columns are the new ones requested: Date | Event | Type | Place | Who | Source. Type is one of: War (battles, campaigns, treaties), Control (a key world changes hands), Leader (leadership change), Order (Jedi or Sith institutions, academies, councils), Birth, Death, Tech (technology and culture), Background (plagues, disasters, riots, crimes). Births and deaths come from `SW_Characters_09_GGW_ColdWar_Index` and its parts (no new research), cited to the same Wookieepedia pages. Class-story protagonists appear by title only. Where a topic file already tells the story, the row gives only the date and points to that file. The year labels follow Year = 3,681 − year: 3,681 BBY is Year 0, when the war begins (lore batch 20, ruling 2).
 
 ## ════════════════════════════════════════════
-## OLD REPUBLIC RECOVERY — 3,950–3,681 BBY
+## THE EVE OF WAR — 3,700–3,681 BBY
 ## ════════════════════════════════════════════
 
 ### Overview

@@ -371,6 +371,28 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
     expect(rows(-5103)).not.toMatch(/Lord Vitiate/);
     expect(rows(-5100)).toMatch(/thirteen, goes before Marka Ragnos/);
   });
+  it('36,453-3,701 BBY: no research wording reaches the narrator; undated centuries are background; decades and "c." parse (D-487)', () => {
+    const tl = LORE_INDEX.chunks.filter((x) => x.id.startsWith('tl:') && x.fromYear < -3700);
+    const hits = tl.flatMap((x) => {
+      const m =
+        /Wookieepedia|\byear pages?\b|infobox|unreferenced|\b(?:the|its|his|her|own|Legends) page\b|\barticle\b|sourcebook|\bSWTOR\b|\bKOTOR\b|\bJvS\b|TEGtW|Encyclopedia\b|\(Atlas\)|Into the Void|Force Storm \d|derived|conjectur|counted back|another source|[Oo]lder sources|\bdated (?:to|only|from)\b|novel's|no source|not stated|\[(?:note|conflict|unclear|inferred|Ruled)|\(\s*[;,)]|\d\. \d\d BBY|\bBlank (?:years|centuries|stretches)\b|\.\.|\bBTC\)/.exec(x.text);
+      return m ? [`${x.id}: ${m[0]}`] : [];
+    });
+    expect(hits).toEqual([]);
+    expect(parseYearRange('11,600s BBY')).toEqual({ from: -11699, to: -11600 });
+    expect(parseYearRange('5,130s BBY')).toEqual({ from: -5139, to: -5130 });
+    // Every dated or undated row lands on its own years; none falls back to a whole era of centuries as "this year".
+    const wide = tl.filter((x) => x.kind === 'timeline' && x.toYear - x.fromYear >= 1000);
+    expect(wide.map((x) => `${x.fromYear}..${x.toYear}`)).toEqual(['-30000..-27000']); // the Gree-Kwa war "of millennia"
+    const bg = LORE_INDEX.chunks.filter((x) => x.kind === 'background');
+    expect(bg.some((x) => /Belsavis/.test(x.text) && x.fromYear === -35000)).toBe(true);
+    expect(bg.every((x) => !x.names.includes('order') && !x.names.includes('republic'))).toBe(true);
+    // Overviews: every sentence can be sent inside its own era, and a "c." date does not cut one in two.
+    for (const o of tl.filter((x) => x.kind === 'overview')) {
+      expect(o.parts!.filter((p) => p.year > o.toYear).map((p) => p.text), o.id).toEqual([]);
+      expect(o.parts!.filter((p) => /\bc\.\s*$/.test(p.text)).map((p) => p.text), o.id).toEqual([]);
+    }
+  });
   it('planets, species and the 3,661 BBY roster: no source tags or remarks reach the narrator (D-486)', () => {
     const chunks = LORE_INDEX.chunks.filter((x) => /^(pl-|sp-|c09p)/.test(x.id));
     const hits = chunks.flatMap((x) => {
@@ -402,7 +424,7 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
     // Parts of one era may carry different spans of it; two spans that do not meet are two eras.
     const eras = new Map<string, { from: number; to: number }[]>();
     for (const f of loreFiles().filter((x) => /^SW_Timeline_/.test(x.name)))
-      for (const m of f.content.matchAll(/^## ([^═=\n]+?)\s+[—–]\s+([^\n\r]*\d[^\n\r]*)$/gm)) {
+      for (const m of f.content.replace(/\r\n/g, '\n').matchAll(/^## ([^═=\n]+?)\s+[—–]\s+([^\n]*\d[^\n]*)$/gm)) {
         const key = slugify(m[1]!);
         eras.set(key, [...(eras.get(key) ?? []), parseYearRange(m[2]!)!]);
       }

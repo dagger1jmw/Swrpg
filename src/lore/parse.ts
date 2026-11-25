@@ -70,6 +70,14 @@ const num = (s: string): number => Math.floor(Number(s.replace(/,/g, '')));
  */
 export function parseYearRange(text: string): { from: number; to: number } | null {
   const clean = text.replace(/[*\\]/g, '');
+  const decade = /([\d,]+)s\s*(BBY|ABY)/i.exec(clean); // "11,600s BBY", "5,130s BBY" (D-487)
+  if (decade) {
+    const n = num(decade[1]!);
+    const last = n + (n % 100 === 0 ? 99 : 9);
+    const a = signed(n, decade[2]!);
+    const b = signed(last, decade[2]!);
+    return { from: Math.min(a, b), to: Math.max(a, b) };
+  }
   const range =
     /([\d,]+(?:\.\d+)?)\s*(BBY|ABY)?\s*[–-]\s*(?:[~≈]|c\.)?\s*([\d,]+(?:\.\d+)?)\s*(BBY|ABY)/i.exec(clean) ??
     /between\s+(?:c\.\s*)?([\d,]+)\s*(BBY|ABY)?\s+and\s+(?:c\.\s*)?([\d,]+)\s*(BBY|ABY)/i.exec(clean);
@@ -184,6 +192,9 @@ interface Era {
   background?: boolean;
 }
 
+/** An undated row over this many years or more is background; a shorter one (a war, a reign) stays an event of its span. */
+const UNDATED_BACKGROUND_YEARS = 100;
+
 /** Research tags in the bot's timeline rows ("[conflict]", "[inferred]", "[Ruled ...]", "[S-canon]"): kept in the lore file, not sent as story. */
 const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort|S-canon|Ruled|weak|unconfirmed|primary|dating derived|carried over|note|game-derived|both inferred|date range only|other era)\b[^\]]*\]/gi;
 /** A row a ruling set aside ("[Ruled 24 Nov 2026: not used ...]", D-477): kept in the file as a record, never sent. */
@@ -203,8 +214,8 @@ const BLANK_YEARS = /\s*\bBlank (?:centuries|stretches|years):.*$/gm;
 /** What a bracketed citation leaves behind: "()", "(;;)", "(, citing Labyrinth of Evil)". */
 const CITATION_SHELL = /\s*\([\s,;]*(?:citing\b[^()]*)?\)/gi;
 
-/** Sentences; a decimal or a file name ("19.48 BBY", "draft.md") does not end one (D-485). */
-const SENTENCE = /(?:[^.!?]|[.!?](?=[A-Za-z0-9]))+(?:[.!?]+["')\]]*)?|[.!?]+["')\]]*/g;
+/** Sentences; a decimal, a file name ("19.48 BBY", "draft.md") or the "c." of "c. 5,100 BBY" does not end one (D-485, D-487). */
+const SENTENCE = /(?:[^.!?]|[.!?](?=[A-Za-z0-9])|(?<=\b[Cc])\.(?=\s\d))+(?:[.!?]+["')\]]*)?|[.!?]+["')\]]*/g;
 
 /** A timeline cell or paragraph as story text: citations, research tags, file asides and "[conflict] ..." notes dropped. */
 function cleanTimelineText(s: string): string {
@@ -344,7 +355,13 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
           background.push({ era, date, event, names: namesFromCell(figures), places: placesFromCell(location) });
           continue;
         }
-        const range = parseYearRange(date) ?? { from: era.from, to: era.to };
+        const own = parseYearRange(date);
+        const range = own ?? { from: era.from, to: era.to };
+        // "undated (25,053–6,900 BBY)": a row that may fall anywhere in centuries is background, as in an undated section (D-487).
+        if (/\bundated\b/i.test(date) && (!own || own.from < own.to) && range.to - range.from >= UNDATED_BACKGROUND_YEARS) {
+          background.push({ era: { ...era, ...range }, date, event, names: namesFromCell(figures), places: placesFromCell(location) });
+          continue;
+        }
         const bold = /\|[^|]*\|\s*\*\*([^*]+)\*\*/.exec(line);
         if (bold && parseYearRange(date)) {
           const list = eventsByEra.get(era.slug) ?? [];
@@ -410,6 +427,7 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
     const own = parseYearRange(b.date);
     if (own && own.from < own.to && (own.from > b.era.to || own.to < b.era.from)) return; // outside the span: its own era's file has it
     const inside = own && own.from < own.to ? own : b.era;
+    // Names too general to be a subject ("Jedi Order" is the alias "order") do not bring the row in.
     for (const p of b.places) vocabulary.add(p);
     out.push({
       id: `${fileKey}:${b.era.slug}:${i + 1}`,
@@ -417,7 +435,7 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
       title: `Background: ${b.event.split(/[:;,.]/)[0]!}`,
       fromYear: Math.max(b.era.from, inside.from),
       toYear: Math.min(b.era.to, inside.to),
-      names: [...new Set([...b.names, ...b.places])].sort(),
+      names: [...new Set([...b.names, ...b.places])].filter((n) => !/^(?:order|republic|galactic republic|council|colonists|republic space)$/.test(n)).sort(),
       locations: [...new Set(b.places)].sort(),
       text: `Background, no year known: ${b.event}`,
     });
@@ -453,9 +471,9 @@ export function dateOverview(
 
   const own = (s: string): number | null => {
     let years: number[] = [];
-    for (const m of s.matchAll(/([\d,]+(?:\.\d+)?)\s*(BBY|ABY)\b/gi)) {
+    for (const m of s.matchAll(/(?:([\d,]+(?:\.\d+)?)\s*(?:BBY|ABY)?\s*[–-]\s*(?:c\.\s*)?)?[\d,]+(?:\.\d+)?s?\s*(?:BBY|ABY)\b/gi)) {
       const r = parseYearRange(m[0]);
-      if (r) years.push(r.to);
+      if (r) years.push(...(m[1] ? [r.from, r.to] : [r.to]));
     }
     // A sentence naming the era's own span ("a war from 3,681 BBY to 3,653 BBY") describes the era, which the
     // chunk's head already dates: it belongs at the start, not at the era's end.
@@ -465,7 +483,8 @@ export function dateOverview(
       if (y !== undefined) years.push(y);
     }
     const norm = normalizeText(s);
-    for (const k of keys) if (textMentions(norm, k.key)) years.push(k.year);
+    // A place or event named beside an explicit year ("In 25,805 BBY ... invades Tython") does not date the sentence (D-487).
+    if (!years.length) for (const k of keys) if (textMentions(norm, k.key)) years.push(k.year);
     if (ERA_END.test(s)) years.push(era.to);
     return years.length ? Math.max(...years) : null;
   };
@@ -476,9 +495,10 @@ export function dateOverview(
     const pieces = /^\s*-\s/.test(line) || !line.trim() ? [line] : (line.match(SENTENCE) ?? [line]);
     pieces.forEach((piece, i) => {
       const y = own(piece);
-      running = Math.max(running, y ?? running);
+      // A sentence about a year after the era is never sent in it, and holds nothing behind it back (D-487).
+      if (y === null || y <= era.to) running = Math.max(running, y ?? running);
       const last = i === pieces.length - 1;
-      out.push({ year: running, text: `${piece.trim()}${last ? '\n' : ' '}` });
+      out.push({ year: Math.max(running, y ?? running), text: `${piece.trim()}${last ? '\n' : ' '}` });
     });
   }
   return out.filter((p) => p.text.trim());
@@ -728,7 +748,7 @@ function datedEventPieces(text: string, eraFrom: number): { year: number; text: 
   const out: { year: number; text: string }[] = [];
   for (const line of text.split('\n')) {
     if (!line.trim()) continue;
-    const pieces = line.match(/[^.!?]+(?:[.!?]+(?=\s|$)["')\]]*)?/g) ?? [line];
+    const pieces = line.match(SENTENCE) ?? [line];
     pieces.forEach((piece, i) => {
       const m = LEADING_DATE.exec(piece.trim());
       const year = m ? -Number(m[1]!.replace(/,/g, '')) : eraFrom;
