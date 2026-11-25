@@ -310,3 +310,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-25: m8-calibration-fix5 (D-498): NPC natural Willpower slows past 50, High Masters struck aside about one time in five, Knights hold Malgus for a corridor 10%, ship shields and weapons lore committed and indexed. Report: reports/m8-calibration-fix5.md.
 - 2026-11-25: m8-calibration-fix6 (D-499): one clock confirmed, marks removed; Willpower training of NPCs without a sheet stops at 50. Report: reports/m8-calibration-fix6.md.
 - 2026-11-25: m8-calibration-fix7 (D-500): old NPCs' Willpower stops by years trained, Inquisitors' Willpower pace x1.4 for NPCs without a sheet, two tag-map review notes committed. Report: reports/m8-calibration-fix7.md.
+- 2026-11-25: m8-calibration-fix8 (D-501): Consulars, Guardians and Inquisitors ruled as they are; Darth Karrid's sheet drafted; the side effect listed. Report: reports/m8-calibration-fix8.md.

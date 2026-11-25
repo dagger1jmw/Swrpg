@@ -1925,3 +1925,8 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *Inquisitors without a sheet:* Willpower training at 1.4 times the measured pace (invented; NPCs only, since the player's is measured on the loop). In the 5-below-to-3-above window: Acina, Vowrawn, Ragate, Zash and Mekhis; under it Baras (7), Kressh (14), Jadus (16), Nox (21). No single pace holds more than five.
   - Sheeted figures are unaffected: 228 dated readings, every stat the same.
   - *Committed:* the review notes of the 4-44 ABY and 5,000-3,662 BBY tag maps (lore chat); their rulings are already in the maps.
+- **D-501 Answers to m8-calibration-fix7; Darth Karrid's sheet (Jared, 2026-11-25; m8-calibration-fix8).** Report: reports/m8-calibration-fix8.md.
+  - *Consulars:* no change. The unsheeted line at 85 is inside the Consular sheets' 82-88; Zym, Tol Braga and Darnala are above it because they are standouts. Guardians 1-8 above their sheets, and Kao Cen Darach's line at 89 against 86, are accepted.
+  - *Inquisitors:* five of nine is accepted. Baras, Kressh, Jadus and Nox are Dark Council-level and play at their own sheets; the 1.4 pace is not tuned toward them.
+  - *Darth Karrid:* a drafted sheet at her death (3,640 BBY), Willpower 87, every number invented, for review; no Force lightning until she leaves the Jedi (3,658, estimate). Her rank spans are unchanged.
+  - *Side effect (reported, unchanged):* past Karrid, two unsheeted named figures rose more than 8, both from the Inquisitor pace: Rictus (72 to 82) and Hadra (70 to 79). None from the years-trained stop.

@@ -2,7 +2,7 @@
 // Docs/SWRPG lore/SW_Characters_09_GGW_ColdWar_Index.md and Part1-3b. Facts (species, sex, homeworld, birth and death,
 // teachers, forms and powers, alignment) come from the lore files; archetype and estimated birth years are design
 // (birthSource 'estimate', re-estimated from each figure's rank facts in D-412; the basis is in era09Timeline.ts, with
-// the rank, status and location spans). No levels are hand set (`anchors: []`): the generator builds each line from
+// the rank, status and location spans). No levels are hand set (`anchors: []`) but Karrid's (D-501): the generator builds each line from
 // archetype and rank at the campaign's date (D-414), until a hand-set anchor is added.
 import type { CanonNpc } from './types';
 
@@ -559,7 +559,11 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       teachers: "trained by Gnost-Dural, then Malgus",
       source: "SW_Characters_09_GGW_ColdWar_Part2.md › Other Dark Councilors and senior Sith (table)"
     },
-    anchors: [],
+    note: "a sheet drafted for review (Jared, D-501): every number is invented, set beside Acina's, Nox's, Baras's and Vowrawn's. From lore: Falleen; a Jedi under Gnost-Dural, then Malgus's apprentice; command of the Ascendant Spear through spinal and cranial implants; Niman; Force lightning; extensive knowledge of technology; a strategic mastermind and ruthless commander; ambitious, arrogant; killed Darth Gravus",
+    // D-501: Willpower 87 (Jared's target, 86-88, below Malgus's 94). Agility from the Falleen's quick reflexes, Charisma from
+    // their pheromones, Intelligence from her technology and strategy; Soresu from Gnost-Dural's teaching. All invented.
+    // A Jedi until 3,658: no Force lightning until Malgus trains her.
+    anchors: [{ bby: 3658, complete: false, basis: 'sheet', sources: 'a Jedi Padawan until then (era09Timeline.ts, estimate); D-501', levels: { forceLightning: 0 } }, { bby: 3640, complete: true, basis: 'sheet', sources: 'drafted from her lore for review (Jared, D-501); numbers invented', levels: { strength: 60, agility: 74, endurance: 66, willpower: 87, charisma: 84, intelligence: 88, forceSense: 82, meditation: 72, forceKnowledge: 80, forceControl: 84, forceOutput: 84, niman: 80, soresu: 74, shiiCho: 72, forceLightning: 82, telekinesis: 78 } }],
   },
   {
     canonId: "lore:darth-hadra",

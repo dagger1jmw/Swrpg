@@ -276,6 +276,7 @@ Periods where a rule is silent because the files state nothing.
 
 ## Calibration queue (D-496, 2026-11-25)
 
+- **Darth Karrid (D-501):** read from a mirror of her Wookieepedia page (starwars.archivum.wiki/article/darth_karrid; the wiki refused automated reads), so check against the page: Niman, Force lightning, spinal and cranial implants, Gravus executed at Leritor. [conflict] The page has her infiltrating the Empire as Malgus's apprentice in the Cold War (from 3,653), its introduction late in the Great Galactic War; the roster's estimate is 3,657.
 - **Careers' physical paces:** the table in src/data/archetypes.ts is 5 to 10% above the day loop's (soldier Agility 0.683 against 0.623); D-472's ageing is the likely cause. Re-measure in a later run (npm run paces).
 - **The generated line for old characters** (forms and Willpower): lowered in D-497 (NPC training hours from 50).
 - **The generated line's Force Control** (D-497, Jared): 14 to 56 below almost every canon sheet at every age (now a little more past 50, since D-497's hours touch it too). For a later calibration run; nothing changed.
