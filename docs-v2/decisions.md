@@ -1840,3 +1840,12 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *Character files:* cross-era notes, "(Era 13)", sheet references and stat figures in brackets ("Control 94", "rating ≈ 86") are dropped by the reader, as D-81 meant. The files keep them.
   - *Headings:* a dash inside a heading's brackets no longer ends the name. "Luke Skywalker (NJO — Grand Master)" was indexed as "Luke Skywalker (NJO", so Luke could not be found by his name from 19 BBY to 44 ABY, nor Obi-Wan in two eras, Mara Jade, Tahiri Veila or the reborn Palpatine in one each.
   - *Dates:* "(undated)" and "(no year)" are left out of the date the narrator sees.
+- **D-489 The 5,000-3,662 BBY tag map reviewed; design rules for every tag map (Jared, 2026-11-24; m8-tagmap-14).** world-event-tags-5000-3662BBY-draft_Part1, _Part2 and the new _Part3 (plot points moved there). Still a spec under review: nothing reads it and it is not encoded. Supersedes D-486's line on the two drafts.
+  - *The design rules (Part 1) apply to every tag map:*
+    - *Three tests for every step:* is it realistic for a PC to be there; what standing and power does the PC need (rank, trust and fighting strength); what kind of PC (side, role, ties).
+    - *Top duelists, two tiers:* a fight with one needs at least a Master. A regular Master only holds one off briefly, never wins. Beating one, or holding one off for long, needs a Yoda- or Mace-level character ("top tier"): a power bar on top of the guard, so a PC below it fails however the rolls go.
+    - *No premonitions:* a vision or "sense in the Force" never justifies a step or counts as a lead.
+    - *Closed systems are unbreakable:* a scene no PC would realistically be in changes only through an earlier step.
+  - *Plot points:* PP-14 to PP-21 approved with the changes in Part 3, section 16. The map's own unbreakable moments are listed in Part 1.
+  - *The other maps:* the 3,661-3,640, 3,640-1,000 and 1,000 BBY-4 ABY maps have not been re-checked against these rules, and the encoded 3,661 network is unchanged.
+  - *Still open:* section 16's seven items (the joins, the Odacer link, births, Tython, the Korriban counterinvasion battle, Sadow's spirit c. 3,630 BBY, local rows as colour).
