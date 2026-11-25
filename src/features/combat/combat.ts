@@ -127,9 +127,10 @@ export const holdSchema = z.object({
   locationId: z.string().nullable(),
   setting: z.enum(HOLD_SETTINGS),
   gap: z.number(),
-  worth: z.number(),
   exchanges: z.number().int().min(0),
-  end: z.enum(['fell', 'slipped', 'drivenOff', 'foeDown', 'stalemate']),
+  /** The fight's clock (D-497). Absent in a hold saved before. */
+  seconds: z.number().min(0).optional(),
+  end: z.enum(['fell', 'past', 'slipped', 'drivenOff', 'foeDown', 'stalemate']),
   /** What became of the holder. */
   holder: z.enum(['dead', 'captured', 'left', 'standing']),
   hits: z.array(z.string()),
@@ -149,6 +150,8 @@ export const pursuitSchema = z.object({
   day: z.number().int(),
   search: z.number(),
   concealed: z.boolean(),
+  /** What the pursuer can call on in the search (D-497). Absent in older saves: a service. */
+  support: z.enum(['service', 'order', 'organisation', 'lone']).optional(),
 });
 export type Pursuit = z.infer<typeof pursuitSchema>;
 

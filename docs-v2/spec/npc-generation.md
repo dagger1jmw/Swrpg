@@ -15,6 +15,10 @@ Padawan 16: 34.2 | Knight 30: 53.6 | Master 45: 68.4 | Elder 70: 87.8 | Obi-Wan 
 check 79.7 | trooper sergeant 50.3 (blaster) | Sith warrior 75.5. Test 2 is now checked against the
 src routine day loop (tests/lifetime/average.test.ts).
 
+Amended by D-497 (Jared): an NPC's training day falls from about 50 (data/npcHours.ts: Human-equivalent 50 full, 60 half,
+70 a quarter, 80 on 15%; invented), so past 50 the values here are the full day's. An average Guardian Master of 72: best
+form 86, Willpower 100 (were 94 and 109). The player's hours are unchanged.
+
 | NPC                                                                   | Old | D-43 | Level in main skill |
 | --------------------------------------------------------------------- | --- | ---- | ------------------- |
 | Padawan, age 16 (trained since 4)                                     | 35  | 35.3 | 34.2                |

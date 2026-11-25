@@ -2,7 +2,7 @@
 // a duel reads. Narration only; the engine's result is in features/combat/holds.ts. Pure.
 import type { Choice } from '../ai/schemas/compose';
 import { DUEL_PACE } from '../data/duelPace';
-import { STEP_LABELS, type EscapeStep, type HoldSetting } from '../data/holds';
+import { STEP_LABELS, SUPPORT_LABELS, type EscapeStep, type HoldSetting } from '../data/holds';
 import type { HoldTurn } from '../features/combat/selectors';
 import { selectNpc } from '../features/npcs/selectors';
 import type { GameState } from '../state/gameState';
@@ -13,7 +13,7 @@ const RESULT = { done: 'done', late: 'NOT DONE (the time ran out)', notHere: 'NO
 
 /** The hold turn's ground truth: the duel and the escape, told together. */
 export function describeHold(h: HoldTurn): string[] {
-  const held = h.bought === null ? (h.end === 'drivenOff' ? `${h.foe} breaks off and withdraws: nobody follows` : h.end === 'foeDown' ? `${h.foe} is beaten: nobody follows` : `${h.holder} and ${h.foe} are still fighting, neither past the other, and nobody follows`) : `after ${h.exchanges} exchange${h.exchanges === 1 ? '' : 's'}, about ${Math.round(h.bought)} seconds, ${h.end === 'slipped' ? `${h.foe} breaks away from ${h.holder} and is past them, unbeaten` : `${h.foe} is past ${h.holder}`}`;
+  const held = h.bought === null ? (h.end === 'drivenOff' ? `${h.foe} breaks off and withdraws: nobody follows` : h.end === 'foeDown' ? `${h.foe} is beaten: nobody follows` : `${h.holder} and ${h.foe} are still fighting, neither past the other, and nobody follows`) : `after ${h.exchanges} exchange${h.exchanges === 1 ? '' : 's'}, about ${Math.round(h.bought)} seconds, ${h.end === 'slipped' ? `${h.foe} breaks away from ${h.holder} and is past them, unbeaten` : h.end === 'past' ? `${h.foe} strikes ${h.holder} aside and is past them` : `${h.foe} is past ${h.holder}`}`;
   const fate = h.holderFate === 'dead' ? `${h.holder} is killed` : h.holderFate === 'captured' ? `${h.holder} is beaten and taken alive` : h.holderFate === 'left' ? `${h.holder} is beaten and left where they fell` : `${h.holder} is still standing`;
   const lines = [
     `HOLD (ground truth; the engine's, and fixed before the player said what they do): ${h.holder} holds ${h.foe} off while the player character gets away (${PLACE[h.setting]}). Tell the duel and the escape together, as they happen, from this and nothing else; the player learns the outcome through your narration.`,
@@ -38,7 +38,7 @@ export function holdLine(s: GameState): string | null {
 }
 
 export function pursuitLine(s: GameState): string | null {
-  const list = (s.combat.pursuits ?? []).map((p) => `${selectNpc(s, p.foeId)?.name ?? p.foeId} ${p.kind === 'barred' ? 'is cutting through a closed door after the player character' : 'has lost the player character and is searching'}`);
+  const list = (s.combat.pursuits ?? []).map((p) => `${selectNpc(s, p.foeId)?.name ?? p.foeId} ${p.kind === 'barred' ? 'is cutting through a closed door after the player character' : `has lost the player character and is searching${p.support && p.support !== 'lone' ? `, ${SUPPORT_LABELS[p.support]}` : ''}`}`);
   return list.length ? `PURSUED: ${list.join('; ')}. Only the engine says when they come through or find the trail.` : null;
 }
 

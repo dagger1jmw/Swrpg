@@ -283,15 +283,15 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   }
   // The end card shows the state after the captors' care (pass 3: "Mira Tane: Dying" after "stabilized by the captors").
   const shown = playerDown || surrendered ? markStabilized(duel, emit) : duel;
-  // Standing up to a top or apex duelist (D-489; D-496): the time bought is the exchanges lasted, each worth less the wider
-  // the gap. It counts as a hold when it is what those who flee need there (the recorded place); never a win.
+  // Standing up to a top or apex duelist (D-489; D-496): the time bought is the fight's clock until the duelist had the way
+  // past (D-497). It counts as a hold when it is what those who flee need there (the recorded place); never a win.
   const tier = selectDuelTier(s);
   const stood = active.stakes === 'spar' || outcome === 'won' ? [] : duel.opponents.flatMap((o) => {
     const npcId = active.meta[o.id]?.npcId ?? null;
     const bar = npcId ? selectDuelistBar(s, selectNpc(s, npcId)?.canonId ?? null) : null;
     if (!npcId || o.engagedElsewhere || (bar !== 'top' && bar !== 'apex')) return [];
     const planned = active.planned?.includes(npcId) === true;
-    return [{ npcId, length: holdAgainst(tier === 'below' && planned ? 'master' : tier, bar), hold: playerHold(s, npcId, duel.a.level, duel.exchange) }];
+    return [{ npcId, length: holdAgainst(tier === 'below' && planned ? 'master' : tier, bar), hold: playerHold(s, npcId, duel.a.level, active.id, duel.log.filter((r) => !r.duringForce).map((r) => r.seconds)) }];
   });
   const heldOff = stood.flatMap((x) => (x.length && x.hold.enough ? [{ npcId: x.npcId, length: x.length }] : []));
   // Against several at once, the time is what the first of them to get past gave.
@@ -1052,7 +1052,7 @@ function pursuitsAfter(slice: CombatSlice, step: { toAbs: number; endsDay: boole
     }
     if (!step.endsDay) next.push(p);
     else if (day - p.day > TRAIL.days) continue;
-    else if (nextFloat(seedRng(`${s.meta.campaignId}:trail:${p.foeId}:${day}`))[0] < trailChance(p.search, p.concealed)) notices.push(`${foe.name} has found the player character's trail again.`);
+    else if (nextFloat(seedRng(`${s.meta.campaignId}:trail:${p.foeId}:${day}`))[0] < trailChance(p.search, p.concealed, p.support)) notices.push(`${foe.name} has found the player character's trail again.`);
     else next.push(p);
   }
   return { slice: { ...slice, pursuits: next }, emit, notices };

@@ -1,13 +1,19 @@
-// Holds against a duelist and getting away (Jared, 2026-11-25; D-496; docs-v2/spec/holds.md). Every number is invented
+// Holds against a duelist and getting away (Jared, 2026-11-25; D-496, D-497; docs-v2/spec/holds.md). Every number is invented
 // unless it says otherwise.
 import type { LocationKind } from './entities.config';
 
 /**
- * What one exchange of a hold is worth in seconds, by how far the duelist's ability is above the holder's (the mean of the
- * gaps in combat, Force Control and Willpower). About 3 s between equals (Jared); the more one-sided, the less each
- * exchange keeps the duelist: they drive the holder back, look past them, keep moving. The exchanges are the duel's own.
+ * The chance each exchange that the duelist gets past the holder, by how far the duelist's ability is above theirs (the
+ * mean of the gaps in combat, Force Control and Willpower). One clock (D-497): an exchange is 5-10 s here as everywhere,
+ * so a hold's time is the fight's own clock up to then. Tuned to the shares of D-496's table.
  */
-export const EXCHANGE_WORTH: readonly (readonly [number, number])[] = [[2, 3], [12, 1.7], [24, 0.85], [45, 0.3], [70, 0.15]];
+export const PAST_CHANCE: readonly (readonly [number, number])[] = [[2, 0.012], [12, 0.055], [20, 0.1], [24, 0.21], [31, 0.28], [38, 0.53], [45, 0.75], [70, 0.95]];
+/** Against an apex duelist (or one beyond) the gap counts for this much more (D-497: steeper). */
+export const APEX_GAP = 1.15;
+/** Getting past is a blow: the duelist strikes the holder down or aside. Its margin: the least, a die's worth, and a share of the gap. */
+export const PAST_BLOW = { least: 8, die: 12, perGap: 0.3 } as const;
+/** What an exchange takes on the clock on average (rolls §3: 5-10 s), for a hold saved before D-497. */
+export const EXCHANGE_MEAN_SECONDS = 7.5;
 
 /**
  * Where it happens, read from the recorded location. interior: aboard a ship or a station, with blast doors. building: plain
@@ -107,6 +113,25 @@ export const LOSE_PURSUER = {
 
 /** The trail afterwards: each day, the chance the pursuer finds it again, by their best of Tracking and Force Sense, for so many days. */
 export const TRAIL = { days: 7, perDay: 0.03, perLevel: 0.0006, concealed: 0.4 } as const;
+
+/**
+ * Who else is looking (D-497): the share of that chance by what the pursuer can call on. Malgus, a lord of the Empire with
+ * its Intelligence behind him, keeps his 8% a day; a lone hunter has half the chance of one so backed.
+ */
+export const SEARCH_SUPPORT = { service: 1, order: 0.85, organisation: 0.7, lone: 0.5 } as const;
+export type SearchSupport = keyof typeof SEARCH_SUPPORT;
+/** Factions with an intelligence service, and the roles that can set it looking (the rest of the faction: an organisation). */
+export const SERVICE_FACTIONS: readonly string[] = ['sithEmpire', 'republic'];
+export const SERVICE_ROLES: readonly string[] = ['sithLord', 'inquisitor', 'officer', 'official', 'politician', 'jediMaster'];
+/** The Orders: their watchers, seers and holdings. */
+export const ORDER_FACTIONS: readonly string[] = ['jediOrder', 'sith'];
+/** The years the Sith are only two (D-320): no Order behind either. */
+export const SITH_OF_TWO = { fromYear: -1000, toYear: 25 } as const;
+/** Clans, cartels and syndicates. */
+export const ORGANISATION_FACTIONS: readonly string[] = ['mandalorians', 'underworld'];
+/** On their own whatever their faction: a hunter for pay, a masterless darksider. */
+export const LONE_ROLES: readonly string[] = ['bountyHunter', 'darkJedi', 'darkAcolyte'];
+export const SUPPORT_LABELS: Readonly<Record<SearchSupport, string>> = { service: 'with an intelligence service to call on', order: 'with an Order to call on', organisation: 'with their own people to call on', lone: 'alone' };
 
 /** The most exchanges an NPC's hold is played (a stalemate after that: the duelist was held). */
 export const HOLD_MAX_EXCHANGES = 200;

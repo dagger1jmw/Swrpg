@@ -1,14 +1,15 @@
 // Holds against a duelist and getting away (Jared, 2026-11-25; D-496; docs-v2/spec/holds.md).
 import { describe, expect, it } from 'vitest';
+import { EXCHANGE_SECONDS } from '../../src/data/combat.config';
 import { CANON_BY_ID } from '../../src/data/canonNpcs';
 import { DUEL_PACE } from '../../src/data/duelPace';
-import { EXCHANGE_WORTH, HOLD_NEED, type EscapeStep, type HoldSetting } from '../../src/data/holds';
+import { HOLD_NEED, PAST_CHANCE, SEARCH_SUPPORT, type EscapeStep, type HoldSetting } from '../../src/data/holds';
 import { absDayFromDate, toAbsSecond } from '../../src/engine/calendar';
 import { levelExact, xpForLevel } from '../../src/engine/curve';
-import { abilityGap, barrierSeconds, boughtSeconds, chase, exchangeWorth, holdSetting, losePursuer, planEscape, runPace, runSustain, senseRange, trailChance, type Pursuer, type Runner } from '../../src/engine/holds';
+import { abilityGap, barrierSeconds, boughtSeconds, chase, holdSetting, losePursuer, pastChance, planEscape, runPace, runSustain, searchSupport, senseRange, standSeconds, trailChance, type Pursuer, type Runner } from '../../src/engine/holds';
 import { seedRng } from '../../src/engine/rng';
 import { computeCreation } from '../../src/features/character/selectors';
-import { beginHold, resolveHoldTurn } from '../../src/features/combat/holds';
+import { beginHold, npcPursuer, npcSupport, resolveHoldTurn } from '../../src/features/combat/holds';
 import { applyEvents } from '../../src/state/applyEvents';
 import { advanceTime } from '../../src/state/advanceTime';
 import type { GameState } from '../../src/state/gameState';
@@ -75,17 +76,57 @@ const share = (holder: Levels, foe: 'malgus' | 'sidious', setting: HoldSetting):
   for (let i = 0; i < N; i++) {
     const s = set(game(`h${i}`, setting, {}, { year: foe === 'sidious' ? -25 : -3653 }), holder, foe);
     const { hold } = beginHold(s, VEN(s), FOE(s), null);
-    const b = boughtSeconds(hold, hold.worth);
+    const b = boughtSeconds(hold);
     if (b === null || b >= HOLD_NEED[setting]) n++;
   }
   return n / N;
 };
 
 describe('the hold', () => {
-  it('an exchange is worth about 3 s between equals and less the wider the gap', () => {
-    expect([exchangeWorth(-10), exchangeWorth(0)]).toEqual([3, 3]);
-    for (let i = 1; i < EXCHANGE_WORTH.length; i++) expect(EXCHANGE_WORTH[i]![1]).toBeLessThan(EXCHANGE_WORTH[i - 1]![1]);
+  it('the duelist gets past sooner the wider the gap, and an apex duelist sooner still', () => {
+    expect(pastChance(-10, false)).toBe(pastChance(0, true));
+    for (let i = 1; i < PAST_CHANCE.length; i++) expect(PAST_CHANCE[i]![1]).toBeGreaterThan(PAST_CHANCE[i - 1]![1]);
+    for (const gap of [5, 15, 25, 35, 45]) expect(pastChance(gap, true), `${gap}`).toBeGreaterThan(pastChance(gap, false));
     expect(abilityGap({ combat: 70, forceControl: 60, willpower: 70 }, { combat: 92, forceControl: 88, willpower: 94 })).toBeCloseTo(74 / 3, 6);
+  });
+
+  it('one clock: an exchange of a hold is 5-10 s, as everywhere (D-497)', () => {
+    for (let i = 0; i < 60; i++) {
+      const s = set(game(`h${i}`), MASTER, 'malgus');
+      const { hold } = beginHold(s, VEN(s), FOE(s), null);
+      expect(hold.seconds!).toBeGreaterThanOrEqual(hold.exchanges * EXCHANGE_SECONDS.min);
+      expect(hold.seconds!).toBeLessThanOrEqual(hold.exchanges * EXCHANGE_SECONDS.max);
+      const b = boughtSeconds(hold);
+      if (b !== null) expect(b).toBe(hold.seconds);
+    }
+    // A hold saved before D-497 has its exchanges only.
+    expect(boughtSeconds({ exchanges: 4, end: 'fell' })).toBe(30);
+    // The player's own stand: the same clock, to the exchange the way past opened.
+    const clock = [5, 10, 7, 8];
+    expect(standSeconds(clock, 0, seedRng('x'))).toBe(30);
+    expect(standSeconds(clock, 1, seedRng('x'))).toBe(5);
+    expect([5, 15, 22, 30]).toContain(standSeconds(clock, 0.4, seedRng('y')));
+  });
+
+  it('a duelist who gets past has struck the holder down or aside', () => {
+    const ends: Record<string, number> = {};
+    for (let i = 0; i < N; i++) {
+      const s = set(game(`h${i}`), MASTER, 'malgus');
+      const { hold } = beginHold(s, VEN(s), FOE(s), null);
+      ends[hold.end] = (ends[hold.end] ?? 0) + 1;
+      if (hold.end === 'past') {
+        expect(hold.holder).toBe('standing');
+        expect(hold.hits[hold.hits.length - 1]).toContain('Darth Foe');
+      }
+      if (hold.end === 'fell') expect(hold.holder).not.toBe('standing');
+    }
+    expect(ends['fell']!).toBeGreaterThan(N * 0.8);
+  });
+
+  it('a High Master holds a top duelist for a corridor most of the time, and an apex one far less often', () => {
+    const high = line(60);
+    expect(share(high, 'malgus', 'interior')).toBeGreaterThan(0.65);
+    expect(share(high, 'sidious', 'interior')).toBeLessThan(0.3);
   });
 
   it('about half of regular Masters hold a top duelist long enough to matter; the rest are cut down sooner, some at once', () => {
@@ -96,10 +137,10 @@ describe('the hold', () => {
     for (let i = 0; i < N; i++) {
       const s = set(game(`h${i}`), MASTER, 'malgus');
       const { hold } = beginHold(s, VEN(s), FOE(s), null);
-      const b = boughtSeconds(hold, hold.worth);
+      const b = boughtSeconds(hold);
       if (b !== null) times.push(b);
     }
-    expect(Math.min(...times)).toBeLessThan(5);
+    expect(Math.min(...times)).toBeLessThanOrEqual(10);
   });
 
   it('a corridor is bought more often than a hangar; a Master near the duelist does better in each; against an apex everyone does worse', () => {
@@ -214,6 +255,21 @@ describe('open ground', () => {
     expect(runSustain({ forceSpeed: 50, endurance: 80 })).toBeGreaterThan(runSustain({ forceSpeed: 50, endurance: 20 }));
     expect(trailChance(84, true)).toBeLessThan(trailChance(84, false));
   });
+  it('a pursuer with a service behind them searches better than a lone hunter (D-497)', () => {
+    const t = (faction: string, role: string, over: { cutOff?: boolean; scattered?: boolean } = {}) => searchSupport({ faction, role, cutOff: false, scattered: false, ...over });
+    expect([t('sithEmpire', 'sithLord'), t('republic', 'officer'), t('sithEmpire', 'soldier'), t('jediOrder', 'jediKnight'), t('jediOrder', 'jediKnight', { scattered: true }), t('mandalorians', 'soldier'), t('mandalorians', 'bountyHunter'), t('independent', 'other'), t('sithEmpire', 'sithLord', { cutOff: true })]).toEqual(['service', 'service', 'organisation', 'order', 'lone', 'organisation', 'lone', 'lone', 'lone']);
+    expect(SEARCH_SUPPORT.service > SEARCH_SUPPORT.order && SEARCH_SUPPORT.order > SEARCH_SUPPORT.organisation && SEARCH_SUPPORT.organisation > SEARCH_SUPPORT.lone).toBe(true);
+    // Malgus keeps his 8% a day.
+    const s = set(game('mal'), MASTER, 'malgus');
+    expect(npcSupport(s, FOE(s))).toBe('service');
+    const daily = trailChance(npcPursuer(s, FOE(s)).search, false, npcSupport(s, FOE(s)));
+    expect(daily).toBeGreaterThan(0.075);
+    expect(daily).toBeLessThan(0.085);
+    expect(trailChance(npcPursuer(s, FOE(s)).search, false, 'lone')).toBeCloseTo(daily / 2, 6);
+    // Two Sith in hiding have no Order behind them.
+    const bane = game('bane', 'interior', {}, { year: -990 });
+    expect(npcSupport(patch(bane, FOE(bane), { factionId: 'sith', canonId: null }), FOE(bane))).toBe('lone');
+  });
 });
 
 const begin = (s: GameState, source: 'ai' | 'engine' = 'ai') => applyEvents(REGISTRY, s, [{ type: 'holdBegun', holderRef: VEN(s), foeRef: FOE(s) }], { source });
@@ -246,7 +302,7 @@ describe('an NPC holds while the player gets away', () => {
       const s = set(game(`t${i}`), MASTER, 'malgus');
       const b = begin(s).state;
       const hold = b.combat.hold!;
-      const bought = boughtSeconds(hold, hold.worth);
+      const bought = boughtSeconds(hold);
       const r = resolveTurn(REGISTRY, b, intent(['reachExit', 'sealDoor', 'wreckConsole']));
       const t = r.draft.hold!;
       expect(r.state.combat.hold).toBeNull();

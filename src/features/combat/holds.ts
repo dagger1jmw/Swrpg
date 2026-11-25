@@ -1,15 +1,17 @@
 // Holds in the campaign (Jared, 2026-11-25; D-496; docs-v2/spec/holds.md): reading the place and the people, resolving an
 // NPC's hold when it begins (hidden), and the player's escape against it. Pure; the events that use these are in index.ts.
 import { FATE_ROLL } from '../../data/combat.config';
-import { HOLD_NEED, type EscapeStep, type HoldSetting } from '../../data/holds';
+import { orderHomelessAt } from '../../data/orderSeats';
+import { HOLD_NEED, SITH_OF_TWO, type EscapeStep, type HoldSetting, type SearchSupport } from '../../data/holds';
 import { namedForceBody } from '../../data/canon/sheetScale';
 import { CANON_BY_ID } from '../../data/canonNpcs';
 import { archetypeDef } from '../../data/archetypes';
 import { FORM_IDS } from '../../data/skills';
 import { dateFromAbsDay, toAbsSecond } from '../../engine/calendar';
-import { abilityGap, barrierSeconds, boughtSeconds, chase, exchangeWorth, holdSetting, losePursuer, planEscape, pursuerTier, runHoldDuel, type Ability, type ChaseResult, type LoseResult, type PlanResult, type Pursuer, type PursuerStrength, type Runner } from '../../engine/holds';
+import { abilityGap, barrierSeconds, boughtSeconds, chase, holdSetting, losePursuer, pastChance, planEscape, pursuerTier, runHoldDuel, searchSupport, standSeconds, type Ability, type ChaseResult, type LoseResult, type PlanResult, type Pursuer, type PursuerStrength, type Runner } from '../../engine/holds';
+import { canonFactionAt, canonRoleAt } from '../../engine/canonRoster';
 import type { DuelState, Fighter } from '../../engine/duel';
-import { nextFloat, type RngState } from '../../engine/rng';
+import { nextFloat, seedRng, type RngState } from '../../engine/rng';
 import { npcPerformance } from '../../engine/species';
 import { canBeat, duelTier } from '../../engine/who';
 import { duelistBar } from '../../data/duelists';
@@ -57,10 +59,18 @@ export function playerHoldGap(s: GameState, foeId: string, combat: number): numb
 /** Without the Force even a planned stand is a Master's at best (invented). */
 const PLANNER_GAP = 12;
 
-/** What the player's own stand bought, when their fight with a top or apex duelist is over. */
-export function playerHold(s: GameState, foeId: string, combat: number, exchanges: number): { npcId: string; seconds: number; need: number; setting: HoldSetting; enough: boolean } {
+const isApex = (s: GameState, id: string): boolean => {
+  const t = pursuerTier(barOf(s, id), selectNpcTier(s, id));
+  return t === 'apex' || t === 'beyond';
+};
+
+/**
+ * What the player's own stand bought, when their fight with a top or apex duelist is over: the fight's clock until the
+ * duelist had the way past them, by the same chance each exchange as an NPC's hold (seeded by the fight; D-497).
+ */
+export function playerHold(s: GameState, foeId: string, combat: number, fightId: string, exchanges: readonly number[]): { npcId: string; seconds: number; need: number; setting: HoldSetting; enough: boolean } {
   const setting = selectHoldSetting(s);
-  const seconds = Math.round(exchanges * exchangeWorth(playerHoldGap(s, foeId, combat)) * 10) / 10;
+  const seconds = standSeconds(exchanges, pastChance(playerHoldGap(s, foeId, combat), isApex(s, foeId)), seedRng(`${s.meta.campaignId}:past:${fightId}:${foeId}`));
   return { npcId: foeId, seconds, need: HOLD_NEED[setting], setting, enough: seconds >= HOLD_NEED[setting] };
 }
 
@@ -72,7 +82,7 @@ export function beginHold(s: GameState, holderId: string, foeId: string, foeNow:
   const tier = selectNpcTier(s, holderId);
   const foe = { ...(foeNow ?? buildNpcFighter(s, foeId).fighter), engagedElsewhere: false, out: false, aboveBar: !canBeat(tier, barOf(s, foeId)) };
   const gap = abilityGap(npcAbility(s, holderId), npcAbility(s, foeId));
-  const d = runHoldDuel({ ...holder, aim: null }, foe, buildContext(s, [], 'lethal', null), selectNow(s).day, s.meta.rngState);
+  const d = runHoldDuel({ ...holder, aim: null }, foe, buildContext(s, [], 'lethal', null), selectNow(s).day, s.meta.rngState, pastChance(gap, isApex(s, foeId)), gap);
   let rng = d.duel.rng;
   let fate: Hold['holder'] = 'standing';
   if (d.end === 'fell') {
@@ -88,7 +98,7 @@ export function beginHold(s: GameState, holderId: string, foeId: string, foeNow:
   }
   const foeAfter = d.duel.opponents[0]!;
   return {
-    hold: { holderId, foeId, atAbs: toAbsSecond(s.clock.now), locationId: s.locations.currentId, setting: selectHoldSetting(s), gap: Math.round(gap * 10) / 10, worth: exchangeWorth(gap), exchanges: d.exchanges, end: d.end, holder: fate, hits: d.hits, health: { holder: healthOf(d.duel.a), foe: healthOf(foeAfter) }, foeDead: foeAfter.dead },
+    hold: { holderId, foeId, atAbs: toAbsSecond(s.clock.now), locationId: s.locations.currentId, setting: selectHoldSetting(s), gap: Math.round(gap * 10) / 10, exchanges: d.exchanges, seconds: d.seconds, end: d.end, holder: fate, hits: d.hits, health: { holder: healthOf(d.duel.a), foe: healthOf(foeAfter) }, foeDead: foeAfter.dead },
     rng,
     generate: [holderId, foeId].filter((id) => !selectNpc(s, id)!.gen),
   };
@@ -119,6 +129,19 @@ export function npcPursuer(s: GameState, id: string): Pursuer {
   return { forceSpeed: Math.max(l['forceSpeed'] ?? 0, body), endurance: npcPerformance(l, 'endurance', body), forceSense: l['forceSense'] ?? 0, search: Math.max(l['tracking'] ?? 0, l['forceSense'] ?? 0) };
 }
 
+/**
+ * What a pursuer can call on (D-497): a canon figure by the faction and role the lore gives it at the date, unless the
+ * campaign has cut it off (turned, captured, removed from its post); anyone else by their record.
+ */
+export function npcSupport(s: GameState, id: string): SearchSupport {
+  const n = selectNpc(s, id)!;
+  const canon = n.canonId ? CANON_BY_ID.get(n.canonId) : undefined;
+  const year = dateFromAbsDay(s.clock.now.day).year;
+  const faction = canon ? canonFactionAt(canon, -year) : n.factionId;
+  const scattered = faction === 'sith' ? year >= SITH_OF_TWO.fromYear && year < SITH_OF_TWO.toYear : orderHomelessAt(year);
+  return searchSupport({ faction, role: canon ? canonRoleAt(canon, -year) : n.role, cutOff: n.canonDiverged !== undefined, scattered });
+}
+
 export interface HoldTurn {
   /** Where, who, and the duel's result in words for the narrator. */
   holder: string;
@@ -147,7 +170,7 @@ export interface HoldTurn {
 export function resolveHoldTurn(s: GameState, hold: Hold, stated: readonly EscapeStep[]): HoldTurn {
   const holder = selectNpc(s, hold.holderId);
   const foe = selectNpc(s, hold.foeId);
-  const bought = boughtSeconds(hold, hold.worth);
+  const bought = boughtSeconds(hold);
   const strength = pursuerStrength(s, hold.foeId);
   const plan = planEscape(stated, hold.setting, bought, strength);
   const runner = playerRunner(s);
@@ -172,7 +195,7 @@ export function resolveHoldTurn(s: GameState, hold: Hold, stated: readonly Escap
   const day = selectNow(s).day;
   const chain = selectLocationChain(s, hold.locationId);
   const within = chain.find((l) => l.kind !== 'room') ?? chain[0];
-  const pursuit: Pursuit | null = !followed || plan.end === 'away' || !escaped ? null : { foeId: hold.foeId, kind: door !== null ? 'barred' : 'trail', untilAbs: door !== null ? toAbsSecond(s.clock.now) + seconds + door : null, withinId: within?.id ?? null, day, search: pursuer.search, concealed: hidden };
+  const pursuit: Pursuit | null = !followed || plan.end === 'away' || !escaped ? null : { foeId: hold.foeId, kind: door !== null ? 'barred' : 'trail', untilAbs: door !== null ? toAbsSecond(s.clock.now) + seconds + door : null, withinId: within?.id ?? null, day, search: pursuer.search, concealed: hidden, support: npcSupport(s, hold.foeId) };
   const events: GameEvent[] = [
     { type: 'npcHealthSynced', npcRef: hold.holderId, health: hold.health.holder },
     { type: 'npcHealthSynced', npcRef: hold.foeId, health: hold.health.foe },

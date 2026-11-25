@@ -277,4 +277,5 @@ Periods where a rule is silent because the files state nothing.
 ## Calibration queue (D-496, 2026-11-25)
 
 - **Careers' physical paces:** the table in src/data/archetypes.ts is 5 to 10% above the day loop's (soldier Agility 0.683 against 0.623); D-472's ageing is the likely cause. Re-measure in a later run (npm run paces).
-- **The generated line for old characters** (forms and Willpower): report m8-calibration-fix3.md section 2; nothing changed.
+- **The generated line for old characters** (forms and Willpower): lowered in D-497 (NPC training hours from 50).
+- **The generated line's Force Control** (D-497, Jared): 14 to 56 below almost every canon sheet at every age (now a little more past 50, since D-497's hours touch it too). For a later calibration run; nothing changed.

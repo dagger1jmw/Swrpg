@@ -17,7 +17,8 @@ import { AVERAGE_RANK_AGES, KNIGHT_TRIALS, RANK_BY_ID, RANK_PHASE, type RankDef 
 import { CATEGORY_RULES, FORM_IDS, PHYSICAL_STATS, SKILL_BY_ID, SKILL_IDS, type TalentDomain } from '../../data/skills';
 import { SPECIES_BY_ID, speciesDef, speciesOfferedAt } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
-import { closedFormLevel, formXps, phasesFor, planSplit, type AgeYears, type FormPlan } from '../../engine/closedForm';
+import { HUMAN_YEARS, closedFormLevel, formXps, phasesFor, planSplit, type AgeYears, type FormPlan } from '../../engine/closedForm';
+import { npcYears } from '../../engine/npcHours';
 import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { trackedSenseXp } from '../../engine/forceSense';
 import { ageLoss, bodyAgeFromH } from '../../engine/ageing';
@@ -273,7 +274,9 @@ export function computeCreation(input: CreationInput): CreationResult {
   const perShare = (def[mainKey] ?? 0) > 0 ? mainKnightPace / def[mainKey]! : 0;
   const h = tNow;
   const hStart = tStartIn;
-  const years: AgeYears | undefined = species.id === 'human' ? undefined : { integral: (row, x, y) => trainingIntegral(species, row, x, y), factor: (row, x) => trainingAgeFactor(species, row, x) };
+  const full: AgeYears | undefined = species.id === 'human' ? undefined : { integral: (row, x, y) => trainingIntegral(species, row, x, y), factor: (row, x) => trainingAgeFactor(species, row, x) };
+  // An NPC's training day falls from about 50 on (D-497); the player's never does.
+  const years = input.npc ? npcYears(species, full ?? HUMAN_YEARS) : full;
   const ages0 = phaseAges(rankDef.id, input.path, hStart, h);
   const he = (x: number): number => (Number.isFinite(x) ? trainingAge(species, x) : Infinity);
   const phasesIn = input.phases;

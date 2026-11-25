@@ -412,7 +412,7 @@ function netMods(m: Mods, extra: readonly Modifier[]): Modifier[] {
 }
 const STATE_OF_MIND_SOURCE = 'state of mind: ';
 
-function qualityOf(margin: number): HitQuality | null {
+export function qualityOf(margin: number): HitQuality | null {
   for (const [min, q] of STRIKE_QUALITY) if (margin >= min) return q;
   return null;
 }

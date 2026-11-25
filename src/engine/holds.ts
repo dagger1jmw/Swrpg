@@ -1,15 +1,16 @@
 // Holds against a duelist and getting away (Jared, 2026-11-25; D-496; docs-v2/spec/holds.md). Pure.
-//  - A hold is the exchanges the holder lasts, each worth a set time by how close the two are (exchangeWorth).
+//  - A hold is the fight's own clock (5-10 s an exchange, D-497) until the holder is beaten or the duelist gets past them
+//    (pastChance, by how close the two are).
 //  - The setting comes from the recorded location (holdSetting); an escape is a plan whose steps cost time (planEscape).
 //  - On foot the chase is played out second by second (chase), and losing the pursuer is a contest (losePursuer).
 import type { DuelistBar } from '../data/duelists';
 import type { LocationKind } from '../data/entities.config';
-import { BARRIER_SECONDS, CONSOLE_SHARE, EXCHANGE_WORTH, HANGAR_WORDS, HOLD_MAX_EXCHANGES, INDOOR_KINDS, LOSE_PURSUER, NO_SABER_MULT, PURSUIT, RIP_SHARE, STEP_NEEDS, STEP_SECONDS, STEP_SETTINGS, STREET_KINDS, TRAIL, VESSEL_KINDS, type EscapeStep, type HoldSetting } from '../data/holds';
+import { APEX_GAP, BARRIER_SECONDS, CONSOLE_SHARE, EXCHANGE_MEAN_SECONDS, HANGAR_WORDS, HOLD_MAX_EXCHANGES, INDOOR_KINDS, LONE_ROLES, LOSE_PURSUER, NO_SABER_MULT, ORDER_FACTIONS, ORGANISATION_FACTIONS, PAST_BLOW, PAST_CHANCE, PURSUIT, RIP_SHARE, SEARCH_SUPPORT, SERVICE_FACTIONS, SERVICE_ROLES, STEP_NEEDS, STEP_SECONDS, STEP_SETTINGS, STREET_KINDS, TRAIL, VESSEL_KINDS, type EscapeStep, type HoldSetting, type SearchSupport } from '../data/holds';
 import type { DuelTier } from '../data/who';
-import { hitText, runUntilBeat, startDuel, type DuelContext, type DuelState, type Fighter } from './duel';
+import { damageFighter, hitText, qualityOf, runUntilBeat, settleEnd, startDuel, type DuelContext, type DuelState, type Fighter } from './duel';
 import { interp } from './interp';
 import { basicRoll } from './rolls';
-import type { RngState } from './rng';
+import { nextFloat, type RngState } from './rng';
 import { isDying, type Wound } from './wounds';
 
 /** What a hold compares: the strongest fighting skill, Force Control and Willpower (the tiers' own measure). */
@@ -22,8 +23,20 @@ export interface Ability {
 /** How far the duelist's ability is above the holder's; negative when the holder is the better. */
 export const abilityGap = (holder: Ability, foe: Ability): number => (foe.combat - holder.combat + foe.forceControl - holder.forceControl + foe.willpower - holder.willpower) / 3;
 
-/** Seconds each exchange of the hold buys. */
-export const exchangeWorth = (gap: number): number => interp(EXCHANGE_WORTH, gap);
+/** The chance in one exchange that the duelist gets past. `apex`: an apex duelist, or one beyond. */
+export const pastChance = (gap: number, apex: boolean): number => interp(PAST_CHANCE, gap > 0 && apex ? gap * APEX_GAP : gap);
+
+/** A stand already fought: the clock of each exchange until the duelist has the way past (all of it, if they never do). */
+export function standSeconds(exchanges: readonly number[], past: number, rng: RngState): number {
+  let t = 0;
+  for (const secs of exchanges) {
+    t += secs;
+    const [u, r] = nextFloat(rng);
+    rng = r;
+    if (u < past) return t;
+  }
+  return t;
+}
 
 /** The setting of a place: the recorded location, nearest first, with what it is in. */
 export function holdSetting(chain: readonly { kind: LocationKind; name: string; aliases: readonly string[] }[]): HoldSetting {
@@ -42,35 +55,52 @@ export function holdSetting(chain: readonly { kind: LocationKind; name: string; 
 // ---- the duel of an NPC's hold ----
 
 export interface HoldDuel {
-  /** Exchanges the holder lasted. */
+  /** Exchanges the holder lasted, and the fight's clock for them. */
   exchanges: number;
+  seconds: number;
   /**
-   * fell: the duelist is past them. slipped: above the holder's bar and pressed, the duelist broke away from them and is past
+   * fell: beaten, and the duelist is past them. past: struck aside and on their feet. slipped: above the holder's bar and pressed, the duelist broke away from them and is past
    * them (a Master only buys time). drivenOff: the duelist withdrew. foeDown: beaten. stalemate: held to the end.
    */
-  end: 'fell' | 'slipped' | 'drivenOff' | 'foeDown' | 'stalemate';
+  end: 'fell' | 'past' | 'slipped' | 'drivenOff' | 'foeDown' | 'stalemate';
   holderDies: boolean;
   /** Each hit in order, in the log's words. */
   hits: string[];
   duel: DuelState;
 }
 
-/** The whole duel at once, with the fight's own rules and dice. */
-export function runHoldDuel(holder: Fighter, foe: Fighter, ctx: DuelContext, day: number, rng: RngState): HoldDuel {
+/**
+ * The whole duel at once, with the fight's own rules and dice, until it ends or the duelist gets past: that is a blow, and
+ * whether the holder is still up after it is the wound's to say.
+ */
+export function runHoldDuel(holder: Fighter, foe: Fighter, ctx: DuelContext, day: number, rng: RngState, past: number, gap: number): HoldDuel {
   let s = startDuel(holder, [foe], rng);
-  while (!s.end && s.exchange < HOLD_MAX_EXCHANGES) {
+  let through = false;
+  let blow: string | null = null;
+  while (!s.end && !through && s.exchange < HOLD_MAX_EXCHANGES) {
     const at = s.exchange;
-    s = runUntilBeat(s, ctx, day, 'toEnd', HOLD_MAX_EXCHANGES - s.exchange).state;
-    if (s.exchange === at) break;
+    s = runUntilBeat(s, ctx, day, 'toEnd', 1).state;
+    if (s.end || s.exchange === at) break;
+    const [u, r] = nextFloat(s.rng);
+    s = { ...s, rng: r };
+    through = u < past;
+    if (!through) continue;
+    const [v, r2] = nextFloat(s.rng);
+    const margin = Math.round(PAST_BLOW.least + v * PAST_BLOW.die + Math.max(0, gap) * PAST_BLOW.perGap);
+    const by = s.opponents[0]!;
+    const d = damageFighter(s.a, qualityOf(margin)!, margin, by.weapon, ctx, r2, day, s.a.wounds.length + 1, false, null, 'kill');
+    blow = `#${s.exchange} ${by.name} ${hitText(d.hit, holder.name)}`;
+    s = settleEnd({ ...s, a: d.f, rng: d.rng });
   }
   const after = s.opponents[0]!;
-  const end = s.end?.winner === 'B' ? 'fell' : s.end?.winner === 'A' ? (after.yielded === 'withdrew' || after.yielded === 'fled' ? 'drivenOff' : 'foeDown') : s.end?.reason === 'brokeOff' ? 'slipped' : 'stalemate';
+  const end = s.end?.winner === 'B' ? 'fell' : s.end?.winner === 'A' ? (after.yielded === 'withdrew' || after.yielded === 'fled' ? 'drivenOff' : 'foeDown') : s.end?.reason === 'brokeOff' ? 'slipped' : through ? 'past' : 'stalemate';
   const hits = s.log.filter((r) => r.hit && !r.hit.avoided).map((r) => `#${r.n} ${r.hit!.by === 'A' ? `${holder.name} ${hitText(r.hit!, foe.name)}` : `${foe.name} ${hitText(r.hit!, holder.name)}`}`);
-  return { exchanges: s.exchange, end, holderDies: end === 'fell' && (s.a.dead || isDying(s.a.wounds as Wound[])), hits, duel: s };
+  if (blow) hits.push(blow);
+  return { exchanges: s.exchange, seconds: s.seconds, end, holderDies: end === 'fell' && (s.a.dead || isDying(s.a.wounds as Wound[])), hits, duel: s };
 }
 
 /** The time a hold bought; null = no limit (the duelist withdrew, was beaten or was held to the end). */
-export const boughtSeconds = (d: Pick<HoldDuel, 'exchanges' | 'end'>, worth: number): number | null => (d.end === 'fell' || d.end === 'slipped' ? d.exchanges * worth : null);
+export const boughtSeconds = (d: Pick<HoldDuel, 'exchanges' | 'end'> & { seconds?: number | undefined }): number | null => (d.end === 'fell' || d.end === 'past' || d.end === 'slipped' ? (d.seconds ?? d.exchanges * EXCHANGE_MEAN_SECONDS) : null);
 
 // ---- barriers ----
 
@@ -232,5 +262,13 @@ export function losePursuer(runner: Runner, foe: Pursuer, x: { evasive: boolean;
   return { lost: a.total > b.total, runner: a.total, pursuer: b.total, rng: r2 };
 }
 
-/** The chance the pursuer finds the trail again on one day. */
-export const trailChance = (search: number, concealed: boolean): number => (TRAIL.perDay + TRAIL.perLevel * Math.max(0, search)) * (concealed ? TRAIL.concealed : 1);
+/** The chance the pursuer finds the trail again on one day, by what they can call on. */
+export const trailChance = (search: number, concealed: boolean, support: SearchSupport = 'service'): number => (TRAIL.perDay + TRAIL.perLevel * Math.max(0, search)) * (concealed ? TRAIL.concealed : 1) * SEARCH_SUPPORT[support];
+
+/** What a pursuer can call on, from their faction, their role, whether they have been cut off from it, and whether their Order is scattered. */
+export function searchSupport(x: { faction: string; role: string; cutOff: boolean; scattered: boolean }): SearchSupport {
+  if (x.cutOff || LONE_ROLES.includes(x.role)) return 'lone';
+  if (SERVICE_FACTIONS.includes(x.faction)) return SERVICE_ROLES.includes(x.role) ? 'service' : 'organisation';
+  if (ORDER_FACTIONS.includes(x.faction)) return x.scattered ? 'lone' : 'order';
+  return ORGANISATION_FACTIONS.includes(x.faction) ? 'organisation' : 'lone';
+}

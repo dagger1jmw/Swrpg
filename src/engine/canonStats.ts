@@ -111,7 +111,8 @@ export function canonLevelsAt(n: CanonNpc, bby: number, deps: CanonStatDeps): Re
       // Backward from the nearest later anchor: never below the archetype's baseline for that age.
       v = Math.max(gNow * ratio(next!) * factor(s, bby), base);
     }
-    out[s] = Math.max(0, v);
+    // At an anchor the curve gives back the anchor: no rounding error either side of a tier's line.
+    out[s] = Math.max(0, Math.round(v * 1e9) / 1e9);
   }
   return n.anchors.length ? floored(n, bby, out, line, deps) : out;
 }

@@ -43,6 +43,23 @@ function focusHolds(n: Pick<CanonNpc, 'canonId' | 'archetype'>, stat: string): b
 /** The Force Body a sheet names (no skill of its own until the Force catalog is built). */
 export const namedForceBody = (n: Pick<CanonNpc, 'unmapped'>): number => Math.max(0, ...(n.unmapped ?? []).map((u) => Number(/^Force Body (\d+)/.exec(u)?.[1] ?? 0)));
 
+/**
+ * Force Speed for a canon Force user whose sheet lists neither it nor a Force Body (Jared, 2026-11-25; D-497): read from the
+ * mean of Force Control and Force Output, rising by tier (Adept 41-60, Master 61-80, High Master 81-100, Legendary 101+).
+ * Every anchor is invented; the sheets that list it run at 65 to 86% of that mean, and one that does not stays under most.
+ */
+export const FORCE_SPEED_FROM_POWER: readonly (readonly [number, number])[] = [[0, 0], [40, 20], [60, 36], [80, 53], [100, 70], [120, 86], [150, 110]];
+export function forceSpeedFromPower(levels: Readonly<Record<string, number>>): number {
+  const control = levels['forceControl'] ?? 0;
+  return Math.round(curveAt(FORCE_SPEED_FROM_POWER, (control + (levels['forceOutput'] ?? control)) / 2) * 10) / 10;
+}
+
+/** The levels with a derived Force Speed, for a Force user on record who has none. */
+export function withForceSpeed(n: Pick<CanonNpc, 'unmapped'> | null, archetype: string, levels: Readonly<Record<string, number>>): Readonly<Record<string, number>> {
+  if (levels['forceSpeed'] || !levels['forceControl'] || archetypeDef(archetype).path === 'outsider' || !usesForce(archetype) || (n && namedForceBody(n) > 0)) return levels;
+  return { ...levels, forceSpeed: forceSpeedFromPower(levels) };
+}
+
 /** The figure's Force body ability: its sheet's Force Speed or Force Jump, or the Force Body it names. */
 function bodyAbility(n: Pick<CanonNpc, 'unmapped'>, levels: Readonly<Record<string, number>>): number {
   return Math.max(levels['forceSpeed'] ?? 0, levels['forceJump'] ?? 0, namedForceBody(n));
@@ -162,9 +179,11 @@ export function sheetToGame(n: Pick<CanonNpc, 'canonId' | 'archetype' | 'ranks' 
   const band = standingBand(n, a.bby);
   const age = bandReadAge(n, a.bby);
   const out: Record<string, number> = {};
-  for (const [k, v] of Object.entries(a.levels)) {
+  // The derived Force Speed is in the body's boost like a listed one, so the stats in combat stay as written.
+  const levels = withForceSpeed(n, n.archetype, a.levels);
+  for (const [k, v] of Object.entries(levels)) {
     const kind = SKILL_BY_ID.get(k)?.kind;
-    if (PHYSICAL.includes(k)) out[k] = Math.round(sheetBody(n, a.levels, v) * 10) / 10;
+    if (PHYSICAL.includes(k)) out[k] = Math.round(sheetBody(n, levels, v) * 10) / 10;
     else if (k === 'charisma') out[k] = Math.round(curveAt(CHARISMA_SCALE, v) * 10) / 10;
     else if (AS_WRITTEN.includes(k) || kind === 'form' || kind === 'forceAbility' || focusHolds(n, k)) out[k] = v;
     else if (BAND_SET_STATS.includes(k)) out[k] = bandValue(k, v, band, n.archetype, age);

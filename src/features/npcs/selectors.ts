@@ -1,3 +1,4 @@
+import { withForceSpeed } from '../../data/canon/sheetScale';
 import { uniqueAliasMatch } from '../../engine/aliases';
 import { ageInYears } from '../../engine/calendar';
 import type { GameState } from '../../state/gameState';
@@ -164,7 +165,7 @@ export const npcOwnForceTraits = (n: { canonId?: string | null | undefined }): C
 
 /** A canon figure's levels at a date from its anchors (D-414), outside a campaign (tools and tests). */
 export function canonFigureLevelsAt(canon: CanonNpc, bby: number, today: number): Record<string, number> {
-  return canonLevelsAt(canon, bby, canonDeps(canon, today));
+  return { ...withForceSpeed(canon, canon.archetype, canonLevelsAt(canon, bby, canonDeps(canon, today))) };
 }
 
 /**
@@ -189,14 +190,16 @@ export function selectNpcLevels(s: GameState, id: string): Readonly<Record<strin
     const startBby = Math.min(-dateFromAbsDay(s.clock.startDay ?? today).year, canon.birthBby - Math.ceil(def.startAge));
     const deps = canonDeps(canon, today);
     const start = canonLevelsAt(canon, startBby, deps);
-    if (canon.fixed) return start;
+    if (canon.fixed) return withForceSpeed(canon, canon.archetype, start);
     // Jared, D-419: after the start the figure keeps its canon promotions, unless the campaign has diverged for it
     // (killed, captured, turned, removed from its post): from that day only the rank spans begun by then shape its growth.
     const growth = n.canonDiverged ? canonDeps(canon, today, Math.min(startBby, -dateFromAbsDay(n.canonDiverged.day).year)).growthAt : deps.growthAt;
-    return canonLevelsInCampaign(start, growth, startBby, Math.min(nowBby, startBby), deps.retentionAt);
+    return withForceSpeed(canon, canon.archetype, canonLevelsInCampaign(start, growth, startBby, Math.min(nowBby, startBby), deps.retentionAt));
   }
   const gen = selectNpcGen(s, id);
-  return gen ? npcLevelsFor(gen, n.speciesId, selectNpcAgeOrDefault(s, id), s.clock.now.day) : {};
+  const levels = gen ? npcLevelsFor(gen, n.speciesId, selectNpcAgeOrDefault(s, id), s.clock.now.day) : {};
+  // A figure the lore knows with no sheet in the game (Sidious) is a canon Force user too (D-497).
+  return gen && n.canonId ? withForceSpeed(null, gen.archetype, levels) : levels;
 }
 
 export const selectNpcLevel = (s: GameState, id: string, skillId: string): number => selectNpcLevels(s, id)[skillId] ?? 0;
