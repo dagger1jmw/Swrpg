@@ -32,6 +32,7 @@ Status key: **Replaced** = a decided spec covers it fully. **Partly replaced** =
 | v170-audit.md | Earlier audit of V170 vs v2 (verified in bugs.md §4) |
 | m8-world-checklist.md | M8 world checklist: the open items (blockade, economy, medicine, droids, XP sources and more) |
 | m8-design-notes.md | M8 design notes: blockades, weapon proficiency, species traits and ages, world events, wartime postings, equipment, economy, renown, the Sith acolyte curriculum, medicine, ships, droids (exported from Claude Docs, revision 40, 2026-11-23; the Claude Docs version is the working copy; D-465) |
+| combat-scales.md | Space and ground combat rolls as built: the opposed roll and track at every scale, ships as combatants (shields, ion, projectors, weapons), dogfights, fleet battles, ground battles (D-505) |
 | blockades.md | Running a blockade as built: the approaches, levels and age, landing knowledge, the trek, failure (numbers invented, waiting for rulings) |
 | world-events.md | World events as built: the tag network (tags, guards, the ripple, the freeze, plot points, the narrator hand-off) |
 | world-event-tags-3640-1000BBY-draft.md | World event tag map, 3640–1000 BBY (reviewed draft, Jared's rulings in its section 10; D-489's rules applied, section 11; not encoded) |

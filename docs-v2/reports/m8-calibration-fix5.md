@@ -60,12 +60,13 @@ Only the Knights' row was tuned. The apex duelists now have their own curve, the
 - **Committed** as written, with `[note: ...]` tags: the rulings, and that SW_Starships_Classes.md does exist (decision 10 says it does not; it was missing from the researcher's uploads only).
 - **In the lore index** (docs-v2/lore/README.md, Starships and space combat) and named in checklist item 13. The narrator does not read it, as with the other two ship files.
 - **Ruled and recorded:** one shield pool per facing, which torpedoes and missiles partly bypass.
+- **Closed, 25 Nov 2026 (D-505):** m8-combat-scales arrived; the other nine are recorded in the file and built in spec/combat-scales.md. What follows is as it stood.
 - **Not recorded:** the other nine. "As in m8-combat-scales" names nothing in the repository, its history or its branches. The file's own decisions 2 to 10 point at it.
 - **Checked:** Legends only. Its Canon-only and post-2015 items are listed as not used. [S-canon] items (the thermal shield, the *Malevolence*) and [gray] counts are still in the body; decisions 4 and 8 are about them. No year framing (D-438).
 
 ## For you
 
-1. **m8-combat-scales:** paste it, or the nine rulings, and I will record them.
+1. **m8-combat-scales:** done (D-505).
 2. **Willpower of old figures without a sheet:** leave the line, or a faster fall for Willpower alone?
 3. **One clock:** confirmed (Jared, D-499).
 

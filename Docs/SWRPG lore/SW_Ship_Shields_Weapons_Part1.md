@@ -1,14 +1,14 @@
 # Starship Shields and Weapons (Part 1 of 2: shields, weapons, interactions)
 
-Legends lore reference for SWRPG. Researched 25 Nov 2026 by Claude through the Wookieepedia API (Legends pages). Sources: Wookieepedia (Legends), as cited per entry. [note: ruled by Jared, 25 Nov 2026; see Part 2, Decisions needed. D-498]
+Legends lore reference for SWRPG. Researched 25 Nov 2026 by Claude through the Wookieepedia API (Legends pages). Sources: Wookieepedia (Legends), as cited per entry. [note: ruled by Jared, 25 Nov 2026; see Part 2, Decisions. D-498, D-505]
 
 **Files in this set**
 - Part 1 (this file): how shields work, how they recharge and fail, shield generators as targets, weapons by type, weapon-versus-shield interactions, relative firepower.
-- Part 2: armament profiles by era and class, carriers versus warships, how capital-ship duels are decided, and the back sections (Not found, Canon only, Not used, Game notes, Decisions needed, Sources, checklist) for the whole set.
+- Part 2: carriers versus warships, how capital-ship duels are decided, and the back sections (Not found, Canon only, Not used, Game notes, Decisions needed, Sources, checklist) for the whole set.
 
 **Cross-references (not redone here)**
 - `SW_Space_Tactics.md` already covers the nova flare, the exchange, capping the T, the brawl, broadsides, the Ackbar Slash, trench runs and hull skimming. This file only adds what those tactics imply about shields and weapons.
-- `SW_Starships_Classes.md` was named in the brief but is **not in the uploads folder** (only `SW_Space_Tactics.md` exists under `Docs/SWRPG lore/`). Class profiles in Part 2 were therefore researched fresh.
+- `SW_Starships_Classes.md` holds the class tables (merged there 25 Nov 2026, D-505).
 
 **Source tiers used in this file**
 - In-universe reference books (*Essential Guide to Weapons and Technology* = EGWT, its *New* edition = NEGWT, *Essential Guide to Warfare* = EGW, the *Incredible Cross-Sections* books = ICS, *Behind the Magic*, *Essential Guide to Vehicles and Vessels*) are treated as plain lore.
@@ -149,7 +149,7 @@ No Legends source found gives a seconds-or-minutes recharge figure for a capital
 | *Munificent* twin turbolaser | Could melt a 1,000 km ice moon or pierce the shields of a 10 km Grade III battle station; four *Munificents* could easily outgun a *Venator* (ROTS ICS) | Technical guide | [Turbolaser/Legends, "History"](https://starwars.fandom.com/wiki/Turbolaser/Legends) |
 | DBY-827 vs ISD main battery | The *Venator*'s heavy turbolasers "rivaled the main battery on the later" ISD I | Unreferenced sentence | [Venator-class Star Destroyer/Legends](https://starwars.fandom.com/wiki/Venator-class_Star_Destroyer/Legends) [unclear] |
 | Concussion missile vs turbolaser | A concussion missile's damage could exceed a single-shot turbolaser's (*Star Wars PocketModel* card) | Card game | [Concussion missile/Legends](https://starwars.fandom.com/wiki/Concussion_missile/Legends) [last resort] |
-| Shield ratings (game stats, *X-Wing Alliance* unless noted) | TIE/LN 0 SBD/9 RU; A-wing 50/14; X-wing 50/20; Y-wing 75/40; B-wing 100/60; TIE Defender 100/14; CR90 400/188; Lancer 576/304; Nebulon-B 960/448; Ton-Falk 1600/912; Dreadnaught 1920/1056; Immobilizer 418 2240/960; *Victory I* 3200/1520; ISD 4800/2272 (SBD page); *Executor* 96,000 SBD (SBD page) | **Game stats** | [SBD/Legends](https://starwars.fandom.com/wiki/SBD/Legends) and each class page (Part 2) |
+| Shield ratings (game stats, *X-Wing Alliance* unless noted) | TIE/LN 0 SBD/9 RU; A-wing 50/14; X-wing 50/20; Y-wing 75/40; B-wing 100/60; TIE Defender 100/14; CR90 400/188; Lancer 576/304; Nebulon-B 960/448; Ton-Falk 1600/912; Dreadnaught 1920/1056; Immobilizer 418 2240/960; *Victory I* 3200/1520; ISD 4800/2272 (SBD page); *Executor* 96,000 SBD (SBD page) | **Game stats** | [SBD/Legends](https://starwars.fandom.com/wiki/SBD/Legends) and each class page (`SW_Starships_Classes.md`) |
 | Quad turbolaser vs quad laser | Quad turbolasers "magnitudes more powerful" | Unreferenced | [Quad turbolaser cannon/Legends](https://starwars.fandom.com/wiki/Quad_turbolaser_cannon/Legends) [unclear] |
 
 Superweapons (not ship-to-ship scale, listed so the developer knows they were seen): the CIS **agrocite cannon** destroyed a *Venator* in one shot at Khorm, 22 BBY ([Agrocite cannon](https://starwars.fandom.com/wiki/Agrocite_cannon); [Battle of Khorm/Legends](https://starwars.fandom.com/wiki/Battle_of_Khorm/Legends)) [S-canon: Dark Horse *The Clone Wars* comic 7–9]; the *Devastation*'s Force-crystal ion pulse cannons [S-canon] ([Devastation](https://starwars.fandom.com/wiki/Devastation)).

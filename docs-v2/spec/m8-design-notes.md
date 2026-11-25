@@ -574,7 +574,7 @@ A poisoned wound (darts, anti-Jedi gear, venom) carries a toxin. It's treated wi
 
 ## Ships and space combat
 
-Ships are data the code owns, like gear in spec 22. Gemini narrates; the code decides speed, damage, cargo and outcomes. Lore: SW\_Starships\_Classes.md (classes, modifications, rulings) and SW\_Space\_Tactics.md (tactics).
+Ships are data the code owns, like gear in spec 22. Gemini narrates; the code decides speed, damage, cargo and outcomes. Lore: SW\_Starships\_Classes.md (classes, modifications, rulings) and SW\_Space\_Tactics.md (tactics). Rolls, shields, damage and the tracks as built: [combat-scales.md](combat-scales.md) (D-505).
 
 ### Ships as data
 
@@ -682,7 +682,7 @@ C> Carrier x1
 
 ## Ground command (checklist item 14)
 
-Agreed by Jared (2026-11-24). Built on the fleet battles: the plan comes first, and execution is harder to change than in space. Works at every scale, from a squad leader planning a raid to an army.
+Agreed by Jared (2026-11-24). Built on the fleet battles: the plan comes first, and execution is harder to change than in space. Works at every scale, from a squad leader planning a raid to an army. Sector rolls, matchups, breakthroughs and morale as built: [combat-scales.md](combat-scales.md) (D-505).
 
 ### When it applies
 
