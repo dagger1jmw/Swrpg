@@ -2592,29 +2592,46 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "padawan",
         "title": "Padawan",
-        "fromBby": 3671,
-        "toBby": 3658,
+        "fromBby": 3665,
+        "toBby": 3653,
         "faction": "jediOrder",
-        "source": "Kana Terrid, trained by Gnost-Dural (Part2)",
+        "source": "Kana Terrid, trained by Gnost-Dural; a Jedi until the Cold War (D-502)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "apprentice",
-        "fromBby": 3657,
-        "toBby": 3650,
-        "source": "a Sith under Malgus in the late war (Part2)",
+        "fromBby": 3652,
+        "toBby": 3646,
+        "source": "sent into the Sith by Gnost-Dural in the Cold War as a Jedi double agent, as Darth Malgus's apprentice; no year on record, early in it (invented, D-502)",
+        "estimate": true
+      },
+      {
+        "role": "sithLord",
+        "title": "apprentice",
+        "fromBby": 3645,
+        "toBby": 3644,
+        "source": "fallen: she came to believe the Sith tenets and passed Republic intelligence to the Empire; no year on record, later in the Cold War (invented, D-502)",
         "estimate": true
       },
       {
         "role": "sithLord",
         "title": "Darth",
-        "fromBby": 3649,
-        "source": "Darth Karrid; commanded the Ascendant Spear; head of Technology after Hadra (3,640) (Part2)",
+        "fromBby": 3643,
+        "source": "Darth Karrid; commanded the Ascendant Spear; head of Technology after Hadra (3,640) (Part2); the year invented (D-502)",
         "estimate": true
       }
     ],
-    "birthBasis": "Gnost-Dural's Padawan, a Sith under Malgus in the late war, a Darth by 3,640 (brief §4)"
+    "events": [
+      {
+        "bby": 3645,
+        "kind": "fall",
+        "note": "the Jedi double agent Kana Terrid falls to the dark side under Malgus",
+        "source": "her Wookieepedia page (checked 25 Nov 2026); the year is invented, later in the Cold War (D-502)",
+        "estimate": true
+      }
+    ],
+    "birthBasis": "born during the Great Galactic War (3,681-3,653 BBY), so at most 41 in 3,640; 3,678 is invented inside that (D-502)"
   },
   "lore:darth-hadra": {
     "ranks": [

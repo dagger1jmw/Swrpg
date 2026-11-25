@@ -1930,3 +1930,8 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *Inquisitors:* five of nine is accepted. Baras, Kressh, Jadus and Nox are Dark Council-level and play at their own sheets; the 1.4 pace is not tuned toward them.
   - *Darth Karrid:* a drafted sheet at her death (3,640 BBY), Willpower 87, every number invented, for review; no Force lightning until she leaves the Jedi (3,658, estimate). Her rank spans are unchanged.
   - *Side effect (reported, unchanged):* past Karrid, two unsheeted named figures rose more than 8, both from the Inquisitor pace: Rictus (72 to 82) and Hadra (70 to 79). None from the years-trained stop.
+- **D-502 Darth Karrid corrected against her page; Rictus and Hadra (Jared, 2026-11-25; m8-calibration-fix9).** Report: reports/m8-calibration-fix9.md.
+  - *History:* a Jedi to 3,653; from 3,652 Malgus's apprentice as a Jedi double agent (invented, early in the Cold War); her fall in 3,645 (invented, later in it); a Darth from 3,643 (invented). Replaces the 3,657 apprenticeship, the 3,658 departure and the 3,649 Darth. The mirror's "late in the Great Galactic War" is the outlier. Reading: as a double agent she stands on the roster as the Sith she appears to be.
+  - *Birth:* 3,678 (invented, in the war's years), so 38 at her sheet (was 44).
+  - *Force Lightning* 0 until the fall. *Soresu* 20, a Jedi's off-form level (the Initiate survey's). *Niman* stays 80, below Gnost-Dural's best form in every year in the game (96.9 in 3,640; his 3,655 sheet says 74).
+  - *Rictus and Hadra* stay as they are. The queued source check is done.

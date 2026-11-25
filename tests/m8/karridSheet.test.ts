@@ -1,8 +1,9 @@
-// Darth Karrid's drafted sheet (Jared, 2026-11-25; D-501).
+// Darth Karrid's drafted sheet (Jared, 2026-11-25; D-501, D-502).
 import { describe, expect, it } from 'vitest';
 import { CANON_BY_ID, CANON_NPCS } from '../../src/data/canonNpcs';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { FORM_IDS } from '../../src/data/skills';
+import { canonFactionAt, canonRankAt } from '../../src/engine/canonRoster';
 import { canonFigureLevelsAt } from '../../src/features/npcs/selectors';
 
 const n = CANON_BY_ID.get('lore:darth-karrid')!;
@@ -35,17 +36,42 @@ describe("Darth Karrid's sheet", () => {
     expect(l['forceLightning']).toBeCloseTo(82, 6);
     expect(l['forceControl']).toBeCloseTo(84, 6);
     expect(l['niman']).toBeCloseTo(80, 6);
+    // Soresu is a Jedi's off-form, as any the Initiate survey taught.
+    expect(l['soresu']!).toBeLessThan(25);
     expect(l['forceSpeed']!).toBeGreaterThan(50);
     expect(Math.max(...FORM_IDS.map((f) => l[f] ?? 0))).toBeLessThan(88);
   });
 
-  it('she grows into it: below it as a Padawan in 3,661 and a Darth in 3,649, every stat', () => {
+  it('a Jedi until the Cold War, then a double agent, then fallen; born in the Great Galactic War (D-502)', () => {
+    expect(n.birthBby).toBeLessThanOrEqual(3681);
+    expect(n.birthBby).toBeGreaterThan(3653);
+    expect(n.birthBby - 3640).toBeLessThanOrEqual(41);
+    expect([canonRankAt(n, 3653)?.title, canonFactionAt(n, 3653)]).toEqual(['Padawan', 'jediOrder']);
+    const apprentice = n.ranks.filter((x) => x.title === 'apprentice');
+    expect(Math.max(...apprentice.map((x) => x.fromBby))).toBeLessThan(3653);
+    const fall = n.events!.find((e) => e.kind === 'fall')!;
+    expect(fall.bby).toBeLessThan(Math.max(...apprentice.map((x) => x.fromBby)));
+    expect(n.ranks.every((x) => x.estimate) && fall.estimate).toBe(true);
+  });
+
+  it('no Force lightning before her fall, and some after it', () => {
+    const fall = n.events!.find((e) => e.kind === 'fall')!.bby;
+    for (let b = 3664; b >= fall; b--) expect(at('darth-karrid', b)['forceLightning'], `${b}`).toBe(0);
+    expect(at('darth-karrid', fall - 2)['forceLightning']!).toBeGreaterThan(0);
+  });
+
+  it("her Niman is below Gnost-Dural's best form, every year", () => {
+    for (let b = 3664; b >= 3640; b--) {
+      const g = at('gnost-dural', b);
+      expect(at('darth-karrid', b)['niman']!, `${b}`).toBeLessThan(g[best(g)]!);
+    }
+  });
+
+  it('she grows into it: below it as a Padawan in 3,661 and an apprentice in 3,649, every stat', () => {
     const young = at('darth-karrid', 3661);
     const mid = at('darth-karrid', 3649);
     const full = at('darth-karrid', 3640);
-    // No Force lightning while she is a Jedi; it comes with Malgus.
-    expect([young['forceLightning'], at('darth-karrid', 3658)['forceLightning']]).toEqual([0, 0]);
-    for (const k of ['willpower', 'forceControl', 'forceOutput', 'niman', 'forceLightning']) {
+    for (const k of ['willpower', 'forceControl', 'forceOutput', 'niman']) {
       expect(young[k]!, k).toBeLessThan(mid[k]!);
       expect(mid[k]!, k).toBeLessThanOrEqual(full[k]!);
     }
