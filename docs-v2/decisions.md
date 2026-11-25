@@ -1849,3 +1849,20 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *Plot points:* PP-14 to PP-21 approved with the changes in Part 3, section 16. The map's own unbreakable moments are listed in Part 1.
   - *The other maps:* the 3,661-3,640, 3,640-1,000 and 1,000 BBY-4 ABY maps have not been re-checked against these rules, and the encoded 3,661 network is unchanged.
   - *Still open:* section 16's seven items (the joins, the Odacer link, births, Tython, the Korriban counterinvasion battle, Sadow's spirit c. 3,630 BBY, local rows as colour).
+- **D-490 Rulings on the rules check of the three tag maps (Jared, 2026-11-24; m8-world-d, part 1).** On docs-v2/reports/tagmap-rules-check.md:
+  - *D-489 overrides the earlier guards and power bars:* B14, B20 to B26 and C14 as the report suggests.
+  - *B7 (PP-9, the escape from Arcann's flagship):* closed. The alternative it fed comes only from B6's "gets away".
+  - *C21 (PP-6, the Death Star rescue):* the Emperor's chamber is closed; the step is the hangar and the prisoners' way out.
+  - *C22 (PP-6, Galen survives):* a named exception only for a top-tier player (an Order 66 survivor at Yoda's or Mace's level); otherwise only an earlier change (Galen never goes up, or the prisoners are not taken there).
+  - *Every other finding:* the report's suggested fix, with the missing prerequisites (one for high, two for very high).
+  - *Top duelists by map:* 5,000-3,662: Sadow, Kun, Ulic, Revan, Malak, Nihilus, Sion, Kreia, Scourge, Surik; the Emperor beyond any duelist. 3,661-3,640: Malgus, Marr, Revan, the Emperor, Satele, Zallow, Zym. 3,640-1,000: Arcann, Thexan, Vaylin, the Outlander, Malgus, Revan, Bane, Kas'im; Valkorion beyond any duelist. 1,000 BBY-4 ABY: Vader, Dooku, Maul, Sidious, Plagueis, Yoda, Mace, Anakin, Obi-Wan, Galen Marek; Grievous at least a Master.
+- **D-491 D-489's rules in the engine (m8-world-d, part 2; A1 to A6).** As built: spec/world-events.md §2. Numbers invented, waiting for rulings (reports/m8-world-d.md).
+  - *Who (A1):* `who` on conditions, prerequisites and scenes, read from game state (side, archetype, rank, standing, trust, post, place, tier, engine flag). The data checks refuse anything the player can break without one.
+  - *The power bar (A2):* on the person, in the fight engine, not only in the network's credit: crediting alone would leave Malgus dead in the fight and alive in the timeline. A fighter above the player's bar breaks off instead of being beaten (`aboveBar`, engine/powerBar.ts). Guarded figures out of reach (Angral, Baras, Azamin) the same.
+  - *Overrides:* a fight "won" by a foe who withdrew or fled no longer counts as beating that person (D-466's won fights, D-263's withdrawals); a foe an ally finished is no longer credited (narrows D-212's reading for world events).
+  - *No premonitions (A3, A4):* a Force sense roll never counts in any test; facts and threads from visions are no leads. Adds an optional `vision` to factLearned, which can only take a lead away.
+  - *Mind trick (A5):* out of every test, also for ordinary people (the report kept it for a few): nobody on the network's lists is both worth persuading and unguarded. *The Force on a place (A6):* removed.
+  - *Closed:* events and roles can be marked closed.
+- **D-492 The rulings in the maps and the encoded rows (m8-world-d, part 3).** The three maps carry D-490 in place and in a new section each (3,661: section 7; 3,640-1,000: 11; 1,000-4: 9). Not encoded but the 3,661 rows. The 4-44 ABY map (Part1-3) is committed as a draft under review (PP-22 to PP-35); nothing reads it.
+  - *Design calls in the encoded rows, for Jared:* end dates so a battle can be under way (Devaron, Korriban, Quesh, Balmorra, Taris, Belsavis); three proof scenes (the peace offer's orders, the strike team's orders, Korriban's plans); one added condition (those in the Temple, A16), so the network has 32.
+  - *Design calls in the maps, for Jared:* every prerequisite the report did not name; PP-9 alternative 2 after B7 (the Outlander who gets away never stood before Valkorion, so does not carry the spirit).
