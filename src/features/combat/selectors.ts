@@ -20,6 +20,7 @@ export const selectPlanTriedToday = (s: GameState, npcId: string, kind: string):
 /** Whether the player's plan against this figure holds here and now (D-493). */
 export const selectPlanReady = (s: GameState, npcId: string): boolean => planReady((s.combat.plans ?? []).map((p) => ({ ...p, here: p.locationId === s.locations.currentId })), npcId, s.clock.now.day);
 export const selectFates = (s: GameState): CombatSlice['fates'] => s.combat.fates.filter((f) => fateIsLive(s, f));
+export { npcPursuer, resolveHoldTurn, selectConcealment, selectHoldSetting, selectNpcTier, type HoldTurn } from './holds';
 export type { ActiveFight, FightSummary, PendingFight } from './combat';
 /** The level the player fights at with their loadout's skill (a form, the blaster, melee or Agility). */
 export const selectPlayerFightingLevel = (s: GameState): number => buildPlayerFighter(s).level;

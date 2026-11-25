@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { CANON_BY_ID, CANON_NPCS } from '../../src/data/canonNpcs';
 import { readdirSync, readFileSync } from 'node:fs';
-import { duelistBar, HOLD, PLAN } from '../../src/data/duelists';
+import { duelistBar, PLAN } from '../../src/data/duelists';
 import { FORM_IDS } from '../../src/data/skills';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { xpForLevel } from '../../src/engine/curve';
@@ -33,6 +33,7 @@ describe('the tiers against canon figures (Jared, D-494, D-495)', () => {
     'Sidious (Chancellor)': [l(98, 118, 120), 'apex'],
     'Palpatine (Emperor)': [l(98, 128, 128), 'apex'],
     'Krayt': [l(102, 128, 110), 'apex'],
+    'Bane': [l(104, 110, 114), 'apex'],
     'Vader (Dark Times)': [l(106, 110, 104), 'top'],
     'Vader II': [l(104, 108, 102), 'top'],
     'Mace Windu': [l(100, 92, 94), 'top'],
@@ -162,7 +163,7 @@ describe('non-Force fighters and planning', () => {
       expect(last.outcome).not.toBe('won');
       expect(f.npcs.byId[foe(f)]!.status).not.toBe('deceased');
       expect(f.combat.plans).toEqual([]); // spent
-      if (last.exchanges >= HOLD.minExchanges) expect(last.heldOff).toEqual([{ npcId: foe(f), length: 'brief' }]);
+      expect(last.heldOff).toEqual(last.hold!.enough ? [{ npcId: foe(f), length: 'brief' }] : undefined);
       if (last.heldOff) {
         held++;
         expect(selectWorldFacts(f).heldFight).toMatchObject({ brief: ['lore:darth-malgus'], long: [] });

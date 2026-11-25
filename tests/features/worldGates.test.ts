@@ -171,7 +171,8 @@ describe('A2: the power bar', () => {
     const list = (year: number): string[] => [...new Set(DUELISTS.filter((d) => d.bar === 'top' && year >= d.fromYear && year <= d.toYear).map((d) => d.canonId.slice(5)))].sort();
     expect(list(-3655)).toEqual(['darth-malgus', 'darth-marr', 'revan', 'satele-shan', 'scourge', 'ven-zallow', 'zym']);
     expect(list(-3630)).toEqual(['arcann', 'darth-malgus', 'revan', 'the-outlander', 'thexan', 'vaylin']);
-    expect(list(-1000)).toEqual(['darth-bane', 'kasim']);
+    expect(list(-1000)).toEqual(['kasim']);
+    expect(duelistBar('lore:darth-bane', -990)).toBe('apex'); // D-496
     expect(list(-20)).toEqual(['anakin-skywalker', 'count-dooku', 'darth-maul', 'darth-plagueis', 'darth-vader', 'mace-windu', 'obi-wan-kenobi']);
     expect(['yoda', 'darth-sidious', 'sheev-palpatine', 'emperor-palpatine'].map((x) => duelistBar(`lore:${x}`, -20))).toEqual(['apex', 'apex', 'apex', 'apex']); // D-494
     expect([duelistBar('lore:abeloth', 44), duelistBar('lore:darth-krayt', 137)]).toEqual(['beyond', 'beyond']);

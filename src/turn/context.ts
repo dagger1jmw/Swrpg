@@ -22,6 +22,7 @@ import { findCanonEntity } from '../lore/retrieve';
 import { FATE_ACT_NOTE, NARRATION_LENGTH, STRIKE_AT, SUBDUE_TEXT, type SubdueMode } from '../data/combat.config';
 import { selectIsDying, selectIsSpent, selectLasting, selectStatusLabel, selectWounds } from '../features/health/selectors';
 import type { CombatDraft } from './combatTurn';
+import { describeHold, duelPace, holdLine, pursuitLine } from './holdFacts';
 import { combatFacts, fightHighlights, narrationParagraphs, weaponText } from './combatFacts';
 import { partText } from '../engine/duel';
 import { lastingState, type LastingInjury, type LastingState } from '../engine/lasting';
@@ -303,6 +304,8 @@ export function stateBlock(
     healthLine(state),
     ...(combatLine(state) ? [combatLine(state)!] : []),
     ...(captiveLine(state) ? [captiveLine(state)!] : []),
+    ...(holdLine(state) ? [holdLine(state)!] : []),
+    ...(pursuitLine(state) ? [pursuitLine(state)!] : []),
     skillsLine(state),
     ...beatsLines(state),
     `Date: ${formatDate(now.day)}`,
@@ -481,6 +484,8 @@ export function describeCombat(c: CombatDraft): string[] {
   if (outside.length) lines.push(`Outside the Force: ${outside.join(', ')}. No Force push, choke, grip or mind trick can touch them, and they cannot be sensed; a thrown object, a thrown saber, Force lightning or Electric Judgment still can (D-447): offer no push, choke or mind trick against them.`);
   // Cover between shooters (D-243; pass 4 issue 7: the narrated beat in the ruins put nobody behind anything).
   if (c.cover) lines.push('Cover: the shooters on both sides fire from behind cover (the terrain has it); show them using it.');
+  const pace = duelPace(c);
+  if (pace) lines.push(pace);
   lines.push(...facts.lines);
   // A long passage (D-242, D-271; passes 3 and 5: 46 and 51 exchanges told as their aftermath): the highlights that
   // carry the fight's arc, and how long to tell it.
@@ -522,6 +527,8 @@ export function describeCombat(c: CombatDraft): string[] {
     lines.push(`Sparring session: ${s.won + s.lost + s.unfinished} bouts so far, ${s.won} won, ${s.lost} lost${s.unfinished ? `, ${s.unfinished} unfinished` : ''}${s.ended ? `; the session ended (${s.ended === 'exchanges' ? 'time' : s.ended})` : ''}. ${c.ended ? 'Summarize the whole session from the highlights above: bouts won and lost, the telling moments' : c.beat === 'boutEnded' ? `Narrate the bout that just ended. The session goes on (D-181): after a short breather bout ${s.won + s.lost + s.unfinished + 1} begins. Do not send combatEnded` : `Bout ${s.won + s.lost + s.unfinished + 1} is in progress`}${s.injuries.length ? `, and the accident: ${s.injuries.join('; ')}` : ''}.`);
   }
   if (c.ended) lines.push(`The fight is over: ${c.ended.outcome} (${c.ended.reason === 'brokeOff' ? 'the opponent, whom the player character cannot beat, broke off and got away standing; neither beaten nor shamed' : c.ended.reason})${c.ended.playerFate ? `; the opponent's choice: ${c.ended.playerFate}` : ''}. The choices are story choices again (what the character does next), not tactical moves.`);
+  // The time the stand bought (D-496): the engine's, for whoever was getting away.
+  if (c.ended?.hold) lines.push(`Time bought: the player character kept ${c.fighters.find((f) => f.id === c.ended!.hold!.npcId)?.name ?? 'the duelist'} for about ${Math.round(c.ended.hold.seconds)} seconds of fighting; whoever was getting away here needed about ${c.ended.hold.need}. ${c.ended.hold.enough ? 'It was enough: they are away.' : 'It was not enough: they had only that time, and are not clear.'} If nobody was getting away, say nothing of it.`);
   // Who took the player (D-242; pass 3: "the remaining war droids" seized a Padawan whom line troopers had captured).
   if (c.ended?.captors) lines.push(`Captured by: ${c.ended.captors.group}${c.ended.captors.kind ? ` (${c.ended.captors.names.join(', ')}, still standing)` : ''}. Name these captors and no others.`);
   // Only for a fight still going (pass 5 issue 6: every ended fight without captors got this line too).
@@ -569,6 +576,7 @@ export function resolvedBlock(draft: TurnDraft, correction: readonly string[] = 
   // A retry after the narration check (D-197): the contradictions to remove.
   if (correction.length) lines.push(`CORRECTION: your last narration of this turn contradicted RESOLVED and was discarded. Write it again without these errors: ${correction.join(' | ')}`);
   if (draft.combat) lines.push(...describeCombat(draft.combat));
+  if (draft.hold) lines.push(...describeHold(draft.hold));
   if (draft.intent) lines.push(`Player action type: ${draft.intent.actionType}`);
   if (draft.checks.length === 0) lines.push('Checks: none required. Do not invent a success or failure that would need a roll.');
   for (const c of draft.checks) lines.push(describeCheck(c));
@@ -685,7 +693,7 @@ export function devScenarioBlock(state: GameState, scenario: string | null, open
 
 export function buildNarrativeRequest(state: GameState, draft: TurnDraft, input: TurnInput, history: readonly TurnRecord[], opts: BuildOptions): BuiltRequest {
   const est = makeEstimator(opts.ratio);
-  const system = narrativeSystemPrompt(state, input.kind === 'opening', draft.pacingLevel, draft.combat !== null || state.combat.active !== null);
+  const system = narrativeSystemPrompt(state, input.kind === 'opening', draft.pacingLevel, draft.combat !== null || draft.hold !== undefined || state.combat.active !== null);
   const caps = draft.jump ? JUMP_CAPS : CONTEXT_CAPS;
   const referenced = draft.intent ? [...draft.intent.targets, ...draft.intent.references] : [];
   const playerText = playerTextOf(input);

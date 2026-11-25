@@ -520,8 +520,9 @@ Conditions that change how fast a character trains, beyond talent, teacher and a
 ## 22. Force Sense keeps pace with Force Control (added by D-495)
 Force Sense is a core stat of every Force user (Jedi, Sith and outsiders; no career):
   each XP credited to Force Control also gives Force Sense share * XP
-  share = clamp((Force Control level - Force Sense level - 5) / 5, 0, 1)   (5 and 10 levels: invented)
-So Force Sense is never more than 10 levels behind Force Control (and a routine that keeps it within 5,
+  share = clamp((Force Control level - Force Sense level - free) / (gap - free), 0, 1)
+  gap 5 (Jared, D-496), free 3; the Sith, whose routine has no sensing practice: gap 2, free 0 (invented)
+So Force Sense is never more than 5 levels behind Force Control (and a routine that keeps it within 3,
 as every Jedi's does, is unchanged): below it, a point of XP is worth
 more. Its own training adds to it, so seers and Consulars lead. The XP is on top of the session: no
 hours move, and it is outside the 4.0x clamp and the pace window (like the form transfers). Practice

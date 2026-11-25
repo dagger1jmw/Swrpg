@@ -33,7 +33,13 @@ import { selectRank } from '../ranks/selectors';
 import { buildContext, buildMinionFighter, buildNpcFighter, buildPlayerFighter, sparringModeFor } from './build';
 import { combatSliceSchema, emptyCombat, pendingFightSchema, type ActiveFight, type CombatSlice, type FightSummary, type PendingFight } from './combat';
 import { holdAgainst } from '../../engine/who';
-import { HOLD, PLAN, PLAN_KINDS } from '../../data/duelists';
+import { PLAN, PLAN_KINDS } from '../../data/duelists';
+import { beginHold, playerHold } from './holds';
+import { trailChance } from '../../engine/holds';
+import { TRAIL } from '../../data/holds';
+import { seedRng } from '../../engine/rng';
+import { selectLocationChain } from '../locations/selectors';
+import { pursuitSchema, type Pursuit } from './combat';
 import { selectCanBeat, selectCanPlan, selectDuelistBar, selectDuelTier, selectFightSecurity } from '../world/selectors';
 import { fateIsLive, selectActiveFight, selectCombat, selectPlanReady } from './selectors';
 
@@ -277,14 +283,20 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   }
   // The end card shows the state after the captors' care (pass 3: "Mira Tane: Dying" after "stabilized by the captors").
   const shown = playerDown || surrendered ? markStabilized(duel, emit) : duel;
-  // Holding a top duelist off (D-489): a Master buys a short delay, the top tier a long one; never a win.
+  // Standing up to a top or apex duelist (D-489; D-496): the time bought is the exchanges lasted, each worth less the wider
+  // the gap. It counts as a hold when it is what those who flee need there (the recorded place); never a win.
   const tier = selectDuelTier(s);
-  const heldOff = active.stakes === 'spar' || outcome === 'won' || duel.exchange < HOLD.minExchanges ? [] : duel.opponents.flatMap((o) => {
+  const stood = active.stakes === 'spar' || outcome === 'won' ? [] : duel.opponents.flatMap((o) => {
     const npcId = active.meta[o.id]?.npcId ?? null;
-    const length = npcId && !o.engagedElsewhere ? holdAgainst(tier === 'below' && active.planned?.includes(npcId) ? 'master' : tier, selectDuelistBar(s, selectNpc(s, npcId)?.canonId ?? null)) : null;
-    return npcId && length ? [{ npcId, length }] : [];
+    const bar = npcId ? selectDuelistBar(s, selectNpc(s, npcId)?.canonId ?? null) : null;
+    if (!npcId || o.engagedElsewhere || (bar !== 'top' && bar !== 'apex')) return [];
+    const planned = active.planned?.includes(npcId) === true;
+    return [{ npcId, length: holdAgainst(tier === 'below' && planned ? 'master' : tier, bar), hold: playerHold(s, npcId, duel.a.level, duel.exchange) }];
   });
-  for (const h of heldOff) notes.push(`${selectNpc(s, h.npcId)?.name ?? h.npcId} held off: a ${h.length === 'brief' ? 'short' : 'long'} delay (${duel.seconds} s), not a win`);
+  const heldOff = stood.flatMap((x) => (x.length && x.hold.enough ? [{ npcId: x.npcId, length: x.length }] : []));
+  // Against several at once, the time is what the first of them to get past gave.
+  const hold = [...stood].sort((x, y) => x.hold.seconds - y.hold.seconds)[0]?.hold;
+  if (hold) notes.push(`${selectNpc(s, hold.npcId)?.name ?? hold.npcId} held for about ${Math.round(hold.seconds)} s (${hold.need} s needed here): ${hold.enough ? 'enough' : 'not enough'}; not a win`);
   const last = {
     id: active.id,
     stakes: active.stakes,
@@ -300,6 +312,7 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     duel,
     session: active.session ?? null,
     ...(heldOff.length ? { heldOff } : {}),
+    ...(hold ? { hold } : {}),
   };
   // A plan is spent by the fight it was for.
   const plans = (slice.plans ?? []).filter((p) => !duel.opponents.some((o) => o.id === p.npcId));
@@ -884,6 +897,69 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         return { slice: { ...slice, plans }, notes: [`plan against ${selectNpc(ctx.state, npcId)?.name ?? npcId}: ${PLAN.labels[line.kind].toLowerCase()} ${line.success ? 'laid' : 'not laid'}`] };
       },
     },
+    /**
+     * AI: someone steps in and engages a foe so the player can get away (D-496). The engine resolves their whole duel now
+     * and keeps it hidden: nothing here says how it went. The player's next turn is the escape.
+     */
+    holdBegun: {
+      schema: z.object({
+        type: z.literal('holdBegun'),
+        holderRef: z.string().describe('The non-player character who steps in, here now'),
+        foeRef: z.string().describe('Whom they engage so the player character can get away, here now'),
+      }),
+      sources: ['ai', 'engine'],
+      // After the rest of the reply, so someone who arrives in it can step in.
+      phase: 'last',
+      narrative: (s) => !s.combat.hold && s.combat.active?.session == null && (s.combat.active !== null || s.combat.pending !== null || s.pacing.scene.presentNpcIds.length > 0),
+      refFields: ['holderRef', 'foeRef'],
+      refKinds: npcRefKinds,
+      targetField: 'holderRef',
+      handle: (slice, e, ctx) => {
+        const s = ctx.state;
+        const holderId = String(e['holderRef']);
+        const foeId = String(e['foeRef']);
+        if (slice.hold) return { reject: 'a hold is already under way' };
+        if (holderId === foeId) return { reject: 'nobody holds themselves off' };
+        for (const id of [holderId, foeId]) {
+          const n = selectNpc(s, id);
+          if (!n || n.status !== 'active') return { reject: `${id} is not able to fight` };
+          if (n.lastSeenDay !== selectNow(s).day || (n.lastLocationId !== null && n.lastLocationId !== s.locations.currentId)) return { reject: `${n.name} is not here` };
+        }
+        const active = slice.active;
+        if (active?.session) return { reject: 'not in a sparring session' };
+        const duel = active ? (active.duel as DuelState) : null;
+        const inFight = duel?.opponents.find((o) => o.id === foeId) ?? null;
+        if (inFight?.out) return { reject: `${inFight.name} is out of the fight` };
+        if (duel?.opponents.some((o) => o.id === holderId)) return { reject: `${holderId} is on the other side` };
+        const r = beginHold(s, holderId, foeId, inFight);
+        const next: CombatSlice = { ...slice, hold: r.hold };
+        const emit: GameEvent[] = r.generate.map((id) => ({ type: 'npcGenerated', npcRef: id }));
+        const notes = [`${selectNpc(s, holderId)!.name} engages ${selectNpc(s, foeId)!.name}: the player character can get away (the hold is resolved and hidden until it is told)`];
+        // The foe leaves the player's own fight; the last one to leave it ends it.
+        if (active && duel && inFight) {
+          const opponents = duel.opponents.map((o) => (o.id === foeId ? { ...o, engagedElsewhere: true } : o));
+          if (opponents.some((o) => !o.out && !o.engagedElsewhere)) return { slice: { ...next, active: { ...active, duel: { ...duel, opponents } } }, emit, notes, rng: r.rng };
+          const c = conclude(next, s, { ...active, duel: { ...duel, rng: r.rng, opponents } }, 'interrupted', `${selectNpc(s, holderId)!.name} steps in`);
+          return { slice: c.slice, emit: [...emit, ...c.emit], notes: [...notes, ...c.notes], rng: c.rng };
+        }
+        // A fight with the foe still to begin does not.
+        if (slice.pending?.opponentRefs.includes(foeId)) {
+          const refs = slice.pending.opponentRefs.filter((x) => x !== foeId);
+          next.pending = refs.length || slice.pending.minionGroups.length ? { ...slice.pending, opponentRefs: refs } : null;
+        }
+        return { slice: next, emit, notes, rng: r.rng };
+      },
+    },
+    /** Engine (the hold turn): the hold has been played out against the escape; what follows the player, if anything. */
+    holdTold: {
+      schema: z.object({ type: z.literal('holdTold'), escaped: z.boolean(), pursuit: pursuitSchema.nullable() }),
+      sources: ['engine'],
+      handle: (slice, e) => {
+        const p = e['pursuit'] as Pursuit | null;
+        const rest = (slice.pursuits ?? []).filter((x) => x.foeId !== slice.hold?.foeId);
+        return { slice: { ...slice, hold: null, pursuits: p ? [...rest, p] : rest }, notes: [`the escape: ${e['escaped'] ? 'got away' : 'overtaken'}`] };
+      },
+    },
     /** AI: an opponent turns to fight an ally, or back (D-143 E); engine-checked against the fight. */
     opponentEngagement: {
       schema: z.object({ type: z.literal('opponentEngagement'), opponentRef: z.string(), engagedElsewhere: z.boolean() }),
@@ -930,13 +1006,15 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
    * past FATE_CHOICE_EXPIRY, or once the player has left the place, the choice is gone and the player learns it. A
    * downed opponent is left where they fell; one left dying dies of the wounds (as "Spare (leave dying)" says).
    */
-  onTimeAdvanced: (slice, step, ctx) => {
-    if (!slice.fates.length || slice.active) return { slice };
+  onTimeAdvanced: (slice0, step, ctx) => {
+    const followed = pursuitsAfter(slice0, step, ctx.state);
+    const slice = followed.slice;
+    if (!slice.fates.length || slice.active) return followed;
     const here = ctx.state.locations.currentId;
     const lapsed = slice.fates.filter((f) => f.atAbs !== undefined && (step.toAbs - f.atAbs > FATE_CHOICE_EXPIRY.seconds || (f.locationId ?? null) !== here));
-    if (!lapsed.length) return { slice };
-    const emit: GameEvent[] = [];
-    const notices: string[] = [];
+    if (!lapsed.length) return followed;
+    const emit: GameEvent[] = [...followed.emit];
+    const notices: string[] = [...followed.notices];
     for (const f of lapsed) {
       const name = ctx.state.npcs.byId[f.npcId]?.name ?? f.npcId;
       if (f.dying) {
@@ -948,6 +1026,37 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
   },
   selectors: { combat: selectCombat, active: selectActiveFight },
 };
+
+/**
+ * Those who follow the player (D-496): a pursuer behind a door comes through in their time, onto the player if they are
+ * still in there and else onto the trail; a pursuer on the trail may find it again, each day for some days. Seeded.
+ */
+function pursuitsAfter(slice: CombatSlice, step: { toAbs: number; endsDay: boolean }, s: GameState): { slice: CombatSlice; emit: GameEvent[]; notices: string[] } {
+  const list = slice.pursuits ?? [];
+  if (!list.length) return { slice, emit: [], notices: [] };
+  const emit: GameEvent[] = [];
+  const notices: string[] = [];
+  const within = (id: string | null): boolean => selectLocationChain(s, s.locations.currentId).some((l) => l.id === id);
+  const day = Math.floor(step.toAbs / 86_400);
+  const next: Pursuit[] = [];
+  for (const p of list) {
+    const foe = selectNpc(s, p.foeId);
+    if (!foe || foe.status !== 'active') continue;
+    if (p.kind === 'barred') {
+      if (step.toAbs < (p.untilAbs ?? 0) || slice.active || slice.pending) next.push(p);
+      else if (within(p.withinId)) {
+        notices.push(`${foe.name} comes through the door.`);
+        emit.push({ type: 'combatStarted', opponentRefs: [p.foeId], stakes: 'lethal', terrainTags: [] });
+      } else next.push({ ...p, kind: 'trail', untilAbs: null, withinId: null });
+      continue;
+    }
+    if (!step.endsDay) next.push(p);
+    else if (day - p.day > TRAIL.days) continue;
+    else if (nextFloat(seedRng(`${s.meta.campaignId}:trail:${p.foeId}:${day}`))[0] < trailChance(p.search, p.concealed)) notices.push(`${foe.name} has found the player character's trail again.`);
+    else next.push(p);
+  }
+  return { slice: { ...slice, pursuits: next }, emit, notices };
+}
 
 /** The beat after a Force action or a sequence: noEffect (quiet, no exchange) when nothing was attempted (D-194). */
 function beatFor(before: DuelState, after: DuelState, beat: 'forceAction' | 'sequence', lines: readonly string[]): [string, boolean] {

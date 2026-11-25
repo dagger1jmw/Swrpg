@@ -273,3 +273,8 @@ Periods where a rule is silent because the files state nothing.
 - **Maul's title:** Jared reads *Darth Plagueis* (Luceno, 2012) as Sidious giving Maul the title of Darth behind Plagueis's back; Darth Maul/Legends does not say so. Check against the novel.
 - **Character files against the rulings:** the Ventress, Grievous and Yaddle entries, and SW_Characters_10 (Kas'im and orbalisk armour).
 - **Sadow's spirit (D-481, for the SWTOR-era tag map):** Nadd kills the body in 4,400 BBY and Ovair's duel destroys the spirit c. 3,750 BBY (ruled). *SWTOR: Shadow of Revan* shows the spirit c. 3,630 BBY: unresolved.
+
+## Calibration queue (D-496, 2026-11-25)
+
+- **Careers' physical paces:** the table in src/data/archetypes.ts is 5 to 10% above the day loop's (soldier Agility 0.683 against 0.623); D-472's ageing is the likely cause. Re-measure in a later run (npm run paces).
+- **The generated line for old characters** (forms and Willpower): report m8-calibration-fix3.md section 2; nothing changed.

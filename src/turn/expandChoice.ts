@@ -41,6 +41,7 @@ export function expandChoice(choice: Choice, resolve: RefResolver): { intent: In
     unknownNames,
     ...(skill !== undefined ? { skillId: skill } : {}),
     ...(choice.intent.escape !== undefined ? { escape: choice.intent.escape } : {}),
+    ...(choice.intent.escapePlan !== undefined ? { escapePlan: choice.intent.escapePlan } : {}),
     ...(choice.intent.blockade !== undefined ? { blockade: choice.intent.blockade } : {}),
     ...(choice.pacingHint !== undefined ? { requestedPacing: choice.pacingHint } : {}),
     ...(jump && choice.spanDays !== undefined ? { requestedSpan: { amount: choice.spanDays, unit: 'days' } } : {}),

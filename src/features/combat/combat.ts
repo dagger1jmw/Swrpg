@@ -4,6 +4,7 @@
 import { z } from 'zod';
 import { NPC_FATES, SPARRING_MODES } from '../../data/combat.config';
 import { PLAN_KINDS } from '../../data/duelists';
+import { HOLD_SETTINGS } from '../../data/holds';
 import { HAZARD_TYPES, WEAPON_KINDS } from '../../data/health.config';
 import { MINION_KIND_IDS } from '../../data/npcGen.config';
 import { COMBAT_OUTCOMES, COMBAT_STAKES } from '../../data/progression.config';
@@ -96,6 +97,8 @@ export const fightSummarySchema = z.object({
   locationId: z.string().nullable().optional(),
   /** Top duelists held off (D-491): a short delay (a Master) or a long one (the top tier), never a win. */
   heldOff: z.array(z.object({ npcId: z.string(), length: z.enum(['brief', 'long']) })).optional(),
+  /** The time the player's stand bought against a top or apex duelist (D-496), and what those who fled needed there. */
+  hold: z.object({ npcId: z.string(), seconds: z.number().min(0), need: z.number(), setting: z.enum(HOLD_SETTINGS), enough: z.boolean() }).optional(),
   /** The final duel state (the last turn's roll cards and narration). Engine-made. */
   duel: z.any().optional(),
   /** A sparring session's bouts and how it ended (D-168). */
@@ -113,7 +116,46 @@ export type FightSummary = z.infer<typeof fightSummarySchema>;
 /** One line of a plan against a top duelist, laid by a rolled check (D-493); only the engine writes it. */
 export const planLineSchema = z.object({ npcId: z.string(), kind: z.enum(PLAN_KINDS), locationId: z.string().nullable(), day: z.number().int(), success: z.boolean() });
 
+/**
+ * An NPC holding a foe off while the player gets away (D-496): the whole duel, resolved when they engaged and hidden from
+ * the player and the narrator until it is told. Engine-made; nothing outside the hold turn reads it.
+ */
+export const holdSchema = z.object({
+  holderId: z.string(),
+  foeId: z.string(),
+  atAbs: z.number(),
+  locationId: z.string().nullable(),
+  setting: z.enum(HOLD_SETTINGS),
+  gap: z.number(),
+  worth: z.number(),
+  exchanges: z.number().int().min(0),
+  end: z.enum(['fell', 'slipped', 'drivenOff', 'foeDown', 'stalemate']),
+  /** What became of the holder. */
+  holder: z.enum(['dead', 'captured', 'left', 'standing']),
+  hits: z.array(z.string()),
+  /** The wounds both took, as npcHealthSynced carries them. */
+  health: z.object({ holder: z.any(), foe: z.any() }),
+  foeDead: z.boolean(),
+});
+export type Hold = z.infer<typeof holdSchema>;
+
+/** A pursuer behind a closed door, or one who lost the trail and may find it again (D-496). */
+export const pursuitSchema = z.object({
+  foeId: z.string(),
+  kind: z.enum(['barred', 'trail']),
+  /** barred: when they are through, and the vessel or building they share with the player. */
+  untilAbs: z.number().nullable(),
+  withinId: z.string().nullable(),
+  day: z.number().int(),
+  search: z.number(),
+  concealed: z.boolean(),
+});
+export type Pursuit = z.infer<typeof pursuitSchema>;
+
 export const combatSliceSchema = z.object({
+  /** Both absent in older saves. */
+  hold: holdSchema.nullable().optional(),
+  pursuits: z.array(pursuitSchema).optional(),
   /** Absent in older saves. */
   plans: z.array(planLineSchema).optional(),
   pending: pendingFightSchema.nullable(),

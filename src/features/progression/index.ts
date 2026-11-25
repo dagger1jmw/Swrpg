@@ -72,7 +72,7 @@ function creditXp(
   // Force Sense comes with Force Control (D-495): outside the pace window and the clamp, like the transfers, and practised with it.
   const forceUser = selectPath(s) !== 'career';
   const xpOf = (id: string): number => skills[id]?.xp ?? 0;
-  const sense = forceUser ? senseGain(xpOf('forceSense') + (credited['forceSense'] ?? 0), xpOf('forceControl') + (credited['forceControl'] ?? 0), credited['forceControl'] ?? 0) : 0;
+  const sense = forceUser ? senseGain(xpOf('forceSense') + (credited['forceSense'] ?? 0), xpOf('forceControl') + (credited['forceControl'] ?? 0), credited['forceControl'] ?? 0, selectPath(s) === 'sith') : 0;
   const gains = sense > 0 ? { ...credited, forceSense: (credited['forceSense'] ?? 0) + sense } : credited;
   const drilled = forceUser && (practice['forceControl'] ?? 0) > 0 ? { ...practice, forceSense: Math.max(practice['forceSense'] ?? 0, practice['forceControl']!) } : practice;
   for (const [id, xp] of Object.entries(gains)) {

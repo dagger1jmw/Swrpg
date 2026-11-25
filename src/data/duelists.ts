@@ -35,7 +35,8 @@ export const DUELISTS: readonly DuelistSpan[] = [
   ...span('master', -3661, -3640, 'D-490: rules check A28', 'darth-baras'),
   ...span('top', -3639, -1001, MAP_B, 'darth-malgus', 'revan', 'arcann', 'thexan', 'vaylin', 'the-outlander'),
   ...span('beyond', -3639, -1001, MAP_B, 'vitiate', 'valkorion'),
-  ...span('top', -1002, -980, MAP_B, 'darth-bane', 'kasim'),
+  ...span('apex', -1002, -980, 'D-496: an apex duelist', 'darth-bane'),
+  ...span('top', -1002, -980, MAP_B, 'kasim'),
   ...span('top', -100, 4, MAP_C, 'darth-plagueis', 'mace-windu', 'count-dooku'),
   ...span('apex', -100, 4, 'D-494: the apex duelists', 'yoda', 'darth-sidious', 'sheev-palpatine', 'emperor-palpatine'),
   ...span('top', -32, 4, MAP_C, 'darth-maul'),
@@ -87,5 +88,3 @@ export const PLAN = {
   labels: { ambush: 'Lay an ambush', trap: 'Lay a trap', ground: 'Prepare the ground' } as Readonly<Record<PlanKind, string>>,
 } as const;
 
-/** A hold counts when the fight lasted this long (invented): fewer exchanges bought nobody any time. */
-export const HOLD = { minExchanges: 6 } as const;

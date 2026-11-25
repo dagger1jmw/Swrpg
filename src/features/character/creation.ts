@@ -332,7 +332,7 @@ export function computeCreation(input: CreationInput): CreationResult {
   }
   // Force Sense keeps pace with Force Control for every Force user (D-495): the loop's rule in closed form.
   if (input.path !== 'career' && stretch.forceControl) {
-    const tracked = trackedSenseXp(stretch.forceControl.map((control, i) => ({ control, own: stretch.forceSense?.[i] ?? 0 })));
+    const tracked = trackedSenseXp(stretch.forceControl.map((control, i) => ({ control, own: stretch.forceSense?.[i] ?? 0 })), input.path === 'sith');
     if (tracked > 0) startingXp['forceSense'] = tracked;
   }
   // Lightsaber forms (D-118, D-119): the form plans with the fundamentals transfer.

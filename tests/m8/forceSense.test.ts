@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ARCHETYPES, archetypeDef } from '../../src/data/archetypes';
 import { CANON_NPCS } from '../../src/data/canonNpcs';
 import { FORCE_SENSE_TRACK } from '../../src/data/progression.config';
+import { RANK_BY_ID } from '../../src/data/rankMinimums';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { levelExact, xpForLevel } from '../../src/engine/curve';
 import { senseGain, senseShare, trackedSenseXp } from '../../src/engine/forceSense';
@@ -16,13 +17,14 @@ import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 
-const { gap: GAP, free: FREE } = FORCE_SENSE_TRACK;
+const { gap: GAP, free: FREE, sith: SITH } = FORCE_SENSE_TRACK;
 const TODAY = absDayFromDate({ year: -3661, month: 1, day: 1 });
 const FORCE = ARCHETYPES.filter((a) => a.path !== 'career');
 
 describe('the rule', () => {
   it('a share of Force Control XP, none while it keeps up, all of it at the gap', () => {
     expect([senseShare(50, 50), senseShare(60, 50), senseShare(50 - FREE, 50), senseShare(50 - (FREE + GAP) / 2, 50), senseShare(50 - GAP, 50), senseShare(0, 50)]).toEqual([0, 0, 0, 0.5, 1, 1]);
+    expect([senseShare(50, 50, true), senseShare(49, 50, true), senseShare(50 - SITH.gap, 50, true)]).toEqual([0, 0.5, 1]);
     expect(senseGain(0, 100, 0)).toBe(0);
     expect(senseGain(xpForLevel(40), xpForLevel(50), 7)).toBeCloseTo(7, 9);
   });
@@ -68,7 +70,9 @@ describe('generated Force users', () => {
           expect(l['forceControl']! - (l['forceSense'] ?? 0), `${id} ${rank} ${age} ${i}`).toBeLessThanOrEqual(GAP + 1e-6);
         }
     // Nothing like the old 22 for a Warrior of Malgus's age.
-    if (id === 'sithWarrior') expect(at(id, 'lord', 45, 'm')['forceSense']!).toBeGreaterThan(30);
+    if (id === 'sithWarrior') expect(at(id, 'lord', 45, 'm')['forceSense']!).toBeGreaterThan(35);
+    // A Lord at 25 meets the Lord's Force Sense (D-496); no variance.
+    if (sith) expect(computeCreation({ name: 'l', birthDay: TODAY - 25 * 368, startDay: TODAY, speciesId: 'human', path: 'sith', archetype: id, rank: 'lord', trainingStartAge: archetypeDef(id).startAge, talents: {}, dominantHand: 'right', npc: true } as Parameters<typeof computeCreation>[0]).levels['forceSense']!).toBeGreaterThanOrEqual(RANK_BY_ID.get('lord')!.minimums['forceSense']!);
   });
   it('outsiders too', () => {
     const r = computeCreation({ name: 'o', birthDay: TODAY - 40 * 368, startDay: TODAY, speciesId: 'human', path: 'outsider', archetype: 'jediGuardian', rank: 'none', trainingStartAge: 20, talents: {}, dominantHand: 'right' } as Parameters<typeof computeCreation>[0]);

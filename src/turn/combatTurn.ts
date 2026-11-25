@@ -249,7 +249,7 @@ export interface CombatDraft {
   /** A quiet beat: no AI call; the feed shows the roll cards and `quietLine`. */
   quiet: boolean;
   quietLine: string | null;
-  ended: { outcome: string; reason: string; playerFate: string | null; captors?: { group: string; kind: string | null; standing: number; names: string[] } } | null;
+  ended: { outcome: string; reason: string; playerFate: string | null; captors?: { group: string; kind: string | null; standing: number; names: string[] }; hold?: FightSummary['hold'] } | null;
   /** A sparring session (D-168): bouts won, lost and unfinished, how it ended, and any real injury. */
   session: { won: number; lost: number; unfinished: number; ended: string | null; injuries: string[] } | null;
   advantage: number;
@@ -352,7 +352,7 @@ export function combatDraft(before: GameState, after: GameState, started: boolea
     quiet: !narrated,
     // Nothing attempted (D-194): the reason is the quiet line ("droids can't be mind-tricked").
     quietLine: narrated ? null : beat === 'noEffect' ? noEffectLine(notes) : quietLineFor(beat, duel, records),
-    ended: endedNow ? { outcome: last!.outcome, reason: last!.reason, playerFate: last!.playerFate, ...(last!.captors ? { captors: last!.captors } : {}) } : null,
+    ended: endedNow ? { outcome: last!.outcome, reason: last!.reason, playerFate: last!.playerFate, ...(last!.captors ? { captors: last!.captors } : {}), ...(last!.hold ? { hold: last!.hold } : {}) } : null,
     session: sess
       ? { won: sess.bouts.filter((b) => b.winner === 'A').length, lost: sess.bouts.filter((b) => b.winner === 'B').length, unfinished: sess.bouts.filter((b) => b.winner === null).length, ended: sess.ended, injuries }
       : null,

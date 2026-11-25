@@ -275,12 +275,12 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Strength | 90 | | ForceSense | 84 |
 | Agility | 80 | | Meditation | 72 |
 | Endurance | 94 | | ForceKnowledge | 82 |
-| Willpower | 96 | | ForceControl | 95 |
+| Willpower | 96 | | ForceControl | 88 |
 | Charisma | 84 | | ForceOutput | 92 |
 | Intelligence | 82 | | | |
 
 - **Lightsaber Forms / Bladework:** The same overwhelming, physically dominant power style, now even more cybernetically reinforced; cold, patient ferocity, having survived being "killed" more than once. A Djem So juggernaut.
-  **Form ratings (game stats):** Shien/Djem So 92 (primary) · Shii-Cho 82 · Juyo 80 · Ataru 76
+  **Form ratings (game stats):** Shien/Djem So 92 (primary) · Shii-Cho 82 · Juyo 80 · Ataru 76 [note: Ruled, Jared 25 Nov 2026: Force Control 88 (was 95), below his combat, as in every snapshot; Force Output 92 and Willpower 96 stay. D-496]
 - **Force Abilities (game stats):** Telekinesis 88 *(Force Push 85%, **Force Choke** 82%)* · Force Lightning 85 *(Chain Lightning 80%)* · Force Body 88 *(Enhance Attribute 90%, cybernetic-augmented)* · Force Barrier 78
 - **Signature Ability:** **The Returned** — survived apparent death repeatedly through cybernetics and sheer will; an unkillable schemer pursuing a galaxy-remaking vision.
 - **Notable Feats:** Survived Ilum; rebuilt as Acina's secret enforcer; broke his own control chip; central antagonist/wildcard of Ossus, Onslaught, and Legacy of the Sith.
@@ -370,7 +370,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Valkorion (= Vitiate) | Eternal Empire | **LEGENDARY — APEX** (below peak Luke) | (see Era 09: FKnow 134 / WIL 135; drain ability 145) | Makashi 80 |
 | Vaylin | Eternal Empire | **Legendary** | **ForceOutput 108** / Telekinesis 108 (raw might); INT 70 | Juyo 86 |
 | Arcann | Eternal Empire | **Legendary**-adjacent | FCtrl 92 / FOut 88 / END 88 | Djem So 88 |
-| Darth Malgus (returned) | Sith (rogue) | **Legendary**-adjacent | END 94 / WIL 96 / FCtrl 95 / FOut 92 | Djem So 92 |
+| Darth Malgus (returned) | Sith (rogue) | **Legendary**-adjacent | END 94 / WIL 96 / FCtrl 88 / FOut 92 | Djem So 92 |
 | Thexan | Eternal Empire | Elite | FCtrl 88 / AGI 84 | Djem So 84 |
 | Senya Tirall | Knights of Zakuul / Alliance | Elite | WIL 88 / AGI 82 | Soresu 80 (pike/saber) |
 | Empress Acina / Emperor Vowrawn | Sith Empire | High Master | FKnow 86 / CHA 88 / INT 86 | Makashi 78 |

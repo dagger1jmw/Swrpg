@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { INTENSITIES } from '../../data/activities';
 import { ACTION_TYPES, DIFFICULTIES } from '../../data/checks.config';
 import { PLAN_KINDS } from '../../data/duelists';
+import { ESCAPE_STEPS } from '../../data/holds';
 import { BLOCKADE_ACTIONS } from '../../data/blockades';
 import { PACING_LEVELS } from '../../data/pacing.config';
 import { MANEUVERS, STANCES, TACTICS } from '../../data/combat.config';
@@ -54,6 +55,7 @@ export const intentSchema = z.object({
   sequence: z.array(sequenceStepSchema).max(SEQUENCE_SCHEMA_MAX).optional().describe('Combat only: the steps the player chains in order (at most 5)'),
   escape: z.boolean().optional().describe('Only when the player character is a prisoner (the STATE says CAPTIVE) and tries to escape'),
   plan: z.object({ kind: z.enum(PLAN_KINDS), foeRef: z.string().max(80) }).optional().describe('Only when the player prepares in advance for a fight with a named person: lays an ambush, sets a trap or prepares the ground'),
+  escapePlan: z.array(z.enum(ESCAPE_STEPS)).max(8).optional().describe('Only when STATE says HOLD: what the player does to get away, in order (empty when they do not try)'),
   blockade: z.enum(BLOCKADE_ACTIONS).optional().describe('Only when the player says how they mean to get past a blockade (ride, undercover, smuggle, sneak, aroundClose, aroundOnFoot, force) or that they watch it (observe)'),
   aim: z.enum(BODY_PARTS).optional().describe('Combat only: the body part the player says the next strike goes for ("go for his head": head)'),
 });

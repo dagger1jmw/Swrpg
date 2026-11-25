@@ -33,6 +33,7 @@ import { applyEvents, type AppliedEvent, type RejectedEvent } from '../state/app
 import type { GameState } from '../state/gameState';
 import { tryEscape } from './escape';
 import { tryPlan } from './planning';
+import { resolveHoldTurn, type HoldTurn } from '../features/combat/selectors';
 import { planTravel, runTravelBlockade, watchTravelBlockade, type TravelOutcome } from './travel';
 import type { Registry, ResolvedAction } from '../state/types';
 
@@ -62,6 +63,8 @@ export interface TurnDraft {
   readonly combat: CombatDraft | null;
   /** A trip between map worlds (M7, D-405): its engine time, or why it was refused; absent when no trip. */
   readonly travel?: TravelOutcome;
+  /** An NPC's hold told with the player's escape (D-496); absent otherwise. */
+  readonly hold?: HoldTurn;
   /** The level the narration is written at (the jump's level for a jump). */
   readonly pacingLevel: PacingLevel;
   readonly notices: readonly string[];
@@ -189,6 +192,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   let travel: TravelOutcome | null = null;
   let combat: CombatDraft | null = null;
   let narrationLevel: PacingLevel | null = null;
+  let hold: HoldTurn | null = null;
 
   const finish = (): Resolution => {
     const draft: TurnDraft = Object.freeze({
@@ -199,6 +203,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       jump,
       combat,
       ...(travel ? { travel } : {}),
+      ...(hold ? { hold } : {}),
       pacingLevel: narrationLevel ?? selectPacingLevel(state),
       notices: Object.freeze(notices),
       report: Object.freeze(report),
@@ -231,7 +236,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   }
   // A fight intent starts a duel directly: its single entry point (D-29); fights are duels, not a check (M5).
   const npcTargets = intent ? intent.targets.filter((t) => selectNpc(state, t) !== null) : [];
-  if (!state.combat.active && intent?.actionType === 'fight' && npcTargets.length) {
+  if (!state.combat.active && !state.combat.hold && intent?.actionType === 'fight' && npcTargets.length) {
     startNotes.push(...apply([{ type: 'fightBegun', fromPending: false, opponentRefs: npcTargets, stakes: 'serious' }]).flatMap((a) => a.notes));
     started = state.combat.active !== null;
   }
@@ -290,6 +295,22 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       notices.push(...adv.notices);
       timeAdvanced = { seconds: adv.secondsAdvanced, requested: seconds, reason: 'combat' };
     }
+    narrationLevel = 'moment';
+    return finish();
+  }
+
+  // Someone is holding a foe off (D-496): this turn is the escape, whatever the player does with it. The duel was resolved
+  // when they engaged; the plan meets it now.
+  if (state.combat.hold && intent) {
+    hold = resolveHoldTurn(state, state.combat.hold, intent.escapePlan ?? []);
+    state = { ...state, meta: { ...state.meta, rngState: hold.rng } };
+    const adv = advanceTime(registry, state, { seconds: hold.seconds, reason: 'escape', source: 'turnDraft', requested: hold.seconds, occupation: 'activity' });
+    state = adv.state;
+    applied.push(...adv.applied);
+    rejected.push(...adv.rejected);
+    notices.push(...adv.notices);
+    timeAdvanced = { seconds: adv.secondsAdvanced, requested: hold.seconds, reason: 'escape' };
+    apply([...hold.events]);
     narrationLevel = 'moment';
     return finish();
   }

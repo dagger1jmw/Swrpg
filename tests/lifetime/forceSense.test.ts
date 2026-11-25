@@ -39,7 +39,8 @@ it.each(ARCHETYPES.filter((a) => a.path !== 'career').map((a) => a.id))(
       const l = r.levelsByYear[age - start - 1]!;
       console.info(`[forceSense] ${id} ${rank} (${age}): Force Control ${l['forceControl']!.toFixed(1)}, Force Sense ${l['forceSense']!.toFixed(1)}`);
       expect(l['forceControl']! - l['forceSense']!, `${id} ${rank}`).toBeLessThanOrEqual(FORCE_SENSE_TRACK.gap);
-      expect(l['forceSense']!, `${id} ${rank}`).toBeGreaterThan(25);
+      // The Lord's and the Knight's minimum (D-496).
+      expect(l['forceSense']!, `${id} ${rank}`).toBeGreaterThanOrEqual(40);
     }
   },
   600_000,
