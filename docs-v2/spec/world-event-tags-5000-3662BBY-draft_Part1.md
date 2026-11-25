@@ -44,7 +44,7 @@ A prerequisite is always a lead found in play (a figure met, a site found, a fac
 
 ## Design rules from review (Jared, 24 Nov 2026)
 
-These apply to every step in this map (the duelist rule to every map).
+These apply to every step in every tag map (D-489).
 
 **Three tests for every step.**
 1. *Is it realistic for a PC to be there?*
