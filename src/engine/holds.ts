@@ -3,9 +3,10 @@
 //    (pastChance, by how close the two are).
 //  - The setting comes from the recorded location (holdSetting); an escape is a plan whose steps cost time (planEscape).
 //  - On foot the chase is played out second by second (chase), and losing the pursuer is a contest (losePursuer).
+import { STRIKE_MIN_MARGIN } from '../data/combat.config';
 import type { DuelistBar } from '../data/duelists';
 import type { LocationKind } from '../data/entities.config';
-import { APEX_GAP, BARRIER_SECONDS, CONSOLE_SHARE, EXCHANGE_MEAN_SECONDS, HANGAR_WORDS, HOLD_MAX_EXCHANGES, INDOOR_KINDS, LONE_ROLES, LOSE_PURSUER, NO_SABER_MULT, ORDER_FACTIONS, ORGANISATION_FACTIONS, PAST_BLOW, PAST_CHANCE, PURSUIT, RIP_SHARE, SEARCH_SUPPORT, SERVICE_FACTIONS, SERVICE_ROLES, STEP_NEEDS, STEP_SECONDS, STEP_SETTINGS, STREET_KINDS, TRAIL, VESSEL_KINDS, type EscapeStep, type HoldSetting, type SearchSupport } from '../data/holds';
+import { BARRIER_SECONDS, CONSOLE_SHARE, EXCHANGE_MEAN_SECONDS, HANGAR_WORDS, HOLD_MAX_EXCHANGES, INDOOR_KINDS, LONE_ROLES, LOSE_PURSUER, NO_SABER_MULT, ORDER_FACTIONS, ORGANISATION_FACTIONS, PAST_BLOW, PAST_CHANCE, PAST_CHANCE_APEX, PURSUIT, RIP_SHARE, SEARCH_SUPPORT, SERVICE_FACTIONS, SERVICE_ROLES, STEP_NEEDS, STEP_SECONDS, STEP_SETTINGS, STREET_KINDS, TRAIL, VESSEL_KINDS, type EscapeStep, type HoldSetting, type SearchSupport } from '../data/holds';
 import type { DuelTier } from '../data/who';
 import { damageFighter, hitText, qualityOf, runUntilBeat, settleEnd, startDuel, type DuelContext, type DuelState, type Fighter } from './duel';
 import { interp } from './interp';
@@ -24,7 +25,7 @@ export interface Ability {
 export const abilityGap = (holder: Ability, foe: Ability): number => (foe.combat - holder.combat + foe.forceControl - holder.forceControl + foe.willpower - holder.willpower) / 3;
 
 /** The chance in one exchange that the duelist gets past. `apex`: an apex duelist, or one beyond. */
-export const pastChance = (gap: number, apex: boolean): number => interp(PAST_CHANCE, gap > 0 && apex ? gap * APEX_GAP : gap);
+export const pastChance = (gap: number, apex: boolean): number => Math.max(interp(PAST_CHANCE, gap), apex ? interp(PAST_CHANCE_APEX, gap) : 0);
 
 /** A stand already fought: the clock of each exchange until the duelist has the way past (all of it, if they never do). */
 export function standSeconds(exchanges: readonly number[], past: number, rng: RngState): number {
@@ -86,7 +87,7 @@ export function runHoldDuel(holder: Fighter, foe: Fighter, ctx: DuelContext, day
     through = u < past;
     if (!through) continue;
     const [v, r2] = nextFloat(s.rng);
-    const margin = Math.round(PAST_BLOW.least + v * PAST_BLOW.die + Math.max(0, gap) * PAST_BLOW.perGap);
+    const margin = Math.max(STRIKE_MIN_MARGIN, Math.round(interp(PAST_BLOW.least, gap) + v * PAST_BLOW.die));
     const by = s.opponents[0]!;
     const d = damageFighter(s.a, qualityOf(margin)!, margin, by.weapon, ctx, r2, day, s.a.wounds.length + 1, false, null, 'kill');
     blow = `#${s.exchange} ${by.name} ${hitText(d.hit, holder.name)}`;

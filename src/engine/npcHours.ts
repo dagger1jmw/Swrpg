@@ -1,9 +1,10 @@
-// An NPC's training years (Jared, 2026-11-25; D-497): the species' age-weighted years, each counted by the share of a full
+// An NPC's growth past about 50 (Jared, 2026-11-25; D-497, D-498). Its training years: the species' age-weighted years, each counted by the share of a full
 // training day the NPC still keeps at that Human-equivalent age (data/npcHours.ts). Pure.
 import { NPC_TRAINING_HOURS } from '../data/npcHours';
 import { ageFromTraining, humanEquivalentAge, speciesAgeFromHuman, trainingAge, type SpeciesDef } from '../data/species';
 import type { AgeYears } from './closedForm';
 import { interp } from './interp';
+import { naturalLevel } from './species';
 
 /** The share of a full training day at a Human-equivalent age. */
 export const npcHoursShare = (h: number): number => interp(NPC_TRAINING_HOURS, h);
@@ -31,4 +32,20 @@ export function npcYears(species: SpeciesDef, base: AgeYears): AgeYears {
       return sum;
     },
   };
+}
+
+/**
+ * An NPC's natural baseline (D-498): Willpower's own growth past the curve's first age slows on the training day's schedule.
+ * Every other stat's is the player's.
+ */
+export function npcNaturalLevel(skillId: string, species: SpeciesDef, age: number): number {
+  const full = (a: number): number => naturalLevel(skillId, species.id, a);
+  const from = speciesAgeFromHuman(species, NPC_TRAINING_HOURS[0]![0]);
+  if (skillId !== 'willpower' || age <= from) return full(age);
+  let level = full(from);
+  for (let a = from; a < age; a += STEP) {
+    const b = Math.min(age, a + STEP);
+    level += (full(b) - full(a)) * npcHoursShare(humanEquivalentAge(species, (a + b) / 2));
+  }
+  return level;
 }

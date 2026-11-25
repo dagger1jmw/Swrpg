@@ -18,7 +18,7 @@ import { CATEGORY_RULES, FORM_IDS, PHYSICAL_STATS, SKILL_BY_ID, SKILL_IDS, type 
 import { SPECIES_BY_ID, speciesDef, speciesOfferedAt } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { HUMAN_YEARS, closedFormLevel, formXps, phasesFor, planSplit, type AgeYears, type FormPlan } from '../../engine/closedForm';
-import { npcYears } from '../../engine/npcHours';
+import { npcNaturalLevel, npcYears } from '../../engine/npcHours';
 import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { trackedSenseXp } from '../../engine/forceSense';
 import { ageLoss, bodyAgeFromH } from '../../engine/ageing';
@@ -376,7 +376,7 @@ export function computeCreation(input: CreationInput): CreationResult {
   // Outside the Force (D-447): a Yuuzhan Vong has no Force skills or powers, whatever the archetype's paces.
   if (input.outsideForce ?? isOutsideForce(input.speciesId)) for (const id of Object.keys(startingXp)) if (isForceXpSkill(id)) delete startingXp[id];
   for (const id of SKILL_IDS) {
-    const n = naturalLevel(id, species.id, age);
+    const n = input.npc ? npcNaturalLevel(id, species, age) : naturalLevel(id, species.id, age);
     const raw = levelWithNatural(startingXp[id] ?? 0, n);
     const lv = input.npc ? softCapLevel(raw) : raw;
     if (lv > 0) levels[id] = lv;

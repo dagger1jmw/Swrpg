@@ -9,8 +9,8 @@ import { SPECIES_BY_ID, speciesAgeFromHuman } from '../../src/data/species';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { HUMAN_YEARS } from '../../src/engine/closedForm';
 import { runPace } from '../../src/engine/holds';
-import { npcHoursShare, npcYears } from '../../src/engine/npcHours';
-import { npcPerformance } from '../../src/engine/species';
+import { npcHoursShare, npcNaturalLevel, npcYears } from '../../src/engine/npcHours';
+import { naturalLevel, npcPerformance } from '../../src/engine/species';
 import { computeCreation } from '../../src/features/character/selectors';
 import { canonFigureLevelsAt } from '../../src/features/npcs/selectors';
 
@@ -32,6 +32,24 @@ describe('NPC training hours', () => {
     for (const age of [60, 70, 80, 90]) {
       expect(main(age, true), `${age}`).toBeLessThan(main(age, false));
       expect(main(age, true), `${age}`).toBeGreaterThan(main(age - 5, true));
+    }
+  });
+
+  it("an NPC's natural Willpower slows on the same schedule past 50 (D-498); nothing else natural does", () => {
+    const human = SPECIES_BY_ID.get('human')!;
+    for (const age of [10, 30, 50]) expect(npcNaturalLevel('willpower', human, age), `${age}`).toBe(naturalLevel('willpower', 'human', age));
+    const grown = npcNaturalLevel('willpower', human, 60) - npcNaturalLevel('willpower', human, 50);
+    const full = naturalLevel('willpower', 'human', 60) - naturalLevel('willpower', 'human', 50);
+    // Full at 50, half at 60: three quarters of it over the ten years.
+    expect(grown / full).toBeCloseTo(0.75, 2);
+    for (const age of [55, 65, 80]) for (const k of ['intelligence', 'charisma', 'strength']) expect(npcNaturalLevel(k, human, age)).toBe(naturalLevel(k, 'human', age));
+  });
+
+  it('a sheeted figure of the old is at its own Willpower in the game', () => {
+    for (const id of ['ven-zallow', 'darth-vindican', 'darth-angral', 'bela-kiwiiks', 'orgus-din']) {
+      const n = CANON_BY_ID.get(`lore:${id}`)!;
+      const a = n.anchors.find((x) => x.complete)!;
+      expect(canonFigureLevelsAt(n, a.bby, absDayFromDate({ year: -a.bby, month: 1, day: 1 }))['willpower'], id).toBeCloseTo(a.levels['willpower']!, 6);
     }
   });
 

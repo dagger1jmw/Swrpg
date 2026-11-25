@@ -1,17 +1,21 @@
-# Holds and getting away (D-496, D-497; Jared, 25 Nov 2026)
+# Holds and getting away (D-496 to D-498; Jared, 25 Nov 2026)
 
 Someone stands up to a duelist so that others can get away. Every number is invented unless marked Jared's. Data: src/data/holds.ts. Rules: src/engine/holds.ts. Campaign: src/features/combat/holds.ts. Words: src/turn/holdFacts.ts.
 
 ## 1. The hold
 - **One clock (D-497; Jared to confirm):** an exchange is 5 to 10 s here as everywhere (rolls.md section 3). A hold's time is the fight's own clock.
 - **The duel's own dice decide each exchange.** It ends when the holder is beaten, or when the duelist gets past them.
-- **Getting past:** a chance each exchange, by the ability gap (the duelist's lead over the holder: the mean of combat, Force Control and Willpower). Against an apex duelist, or one beyond, the gap counts 1.15 times:
+- **Getting past:** a chance each exchange, by the ability gap (the duelist's lead over the holder: the mean of combat, Force Control and Willpower). Against an apex duelist, or one beyond, steeper and never less:
 
 | Gap | 2 or less | 12 | 20 | 24 | 31 | 38 | 45 | 70 |
 |---|---|---|---|---|---|---|---|---|
+| Chance an exchange | 1.2% | 5.5% | 10% | 21% | 28% | 66% | 80% | 95% |
+
+| Gap, apex | 2 or less | 10.4 | 17.4 | 20.9 | 27 | 33 | 39.1 | 60.9 |
+|---|---|---|---|---|---|---|---|---|
 | Chance an exchange | 1.2% | 5.5% | 10% | 21% | 28% | 53% | 75% | 95% |
 
-- **Getting past is a blow.** The duelist strikes the holder down or aside: a hit of margin 8 to 20 plus 0.3 a point of gap, through the fight's own damage. Down: section 4's fates. Still up: on their feet, and the duelist is past.
+- **Getting past is a blow.** The duelist strikes the holder down or aside: a hit through the fight's own damage, its margin up to 12 over a least that rises with the gap (0: 5, 14 to 21: 9.5, 24: 12, 40: 20). One nearer the duelist is more often only struck aside: a High Master about one time in five (Jared, D-498). Down: section 4's fates. Still up: on their feet, and the duelist is past.
 - A duelist above the holder's bar who is pressed breaks away and is past them: the holder still only bought that time.
 - A duelist who withdraws, is beaten, or is held to the end (200 exchanges) does not follow at all.
 

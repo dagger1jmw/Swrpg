@@ -71,7 +71,7 @@ const set = (s: GameState, holder: Levels, foe: 'malgus' | 'sidious' | 'thug'): 
 };
 /** Of so many holds, the share that buy what the setting needs. */
 const N = 120;
-const share = (holder: Levels, foe: 'malgus' | 'sidious', setting: HoldSetting): number => {
+const share = (holder: Levels, foe: 'malgus' | 'sidious', setting: HoldSetting, N = 120): number => {
   let n = 0;
   for (let i = 0; i < N; i++) {
     const s = set(game(`h${i}`, setting, {}, { year: foe === 'sidious' ? -25 : -3653 }), holder, foe);
@@ -86,7 +86,8 @@ describe('the hold', () => {
   it('the duelist gets past sooner the wider the gap, and an apex duelist sooner still', () => {
     expect(pastChance(-10, false)).toBe(pastChance(0, true));
     for (let i = 1; i < PAST_CHANCE.length; i++) expect(PAST_CHANCE[i]![1]).toBeGreaterThan(PAST_CHANCE[i - 1]![1]);
-    for (const gap of [5, 15, 25, 35, 45]) expect(pastChance(gap, true), `${gap}`).toBeGreaterThan(pastChance(gap, false));
+    for (let gap = 0; gap <= 70; gap++) expect(pastChance(gap, true), `${gap}`).toBeGreaterThanOrEqual(pastChance(gap, false));
+    for (const gap of [5, 15, 25, 33]) expect(pastChance(gap, true), `${gap}`).toBeGreaterThan(pastChance(gap, false));
     expect(abilityGap({ combat: 70, forceControl: 60, willpower: 70 }, { combat: 92, forceControl: 88, willpower: 94 })).toBeCloseTo(74 / 3, 6);
   });
 
@@ -121,6 +122,30 @@ describe('the hold', () => {
       if (hold.end === 'fell') expect(hold.holder).not.toBe('standing');
     }
     expect(ends['fell']!).toBeGreaterThan(N * 0.8);
+  });
+
+  it('a Knight buys a corridor against Malgus in about one hold in ten (D-498)', () => {
+    const r = computeCreation({ name: 'x', birthDay: 0, startDay: 30 * 368, speciesId: 'human', path: 'jedi', archetype: 'jediGuardian', rank: 'knight', trainingStartAge: 4, talents: {}, dominantHand: 'right', npc: true } as Parameters<typeof computeCreation>[0]);
+    const knight = Object.fromEntries(Object.entries(r.startingXp).map(([k, v]) => [k, levelExact(v)]));
+    const s = share(knight, 'malgus', 'interior', 500);
+    expect(s).toBeGreaterThan(0.06);
+    expect(s).toBeLessThan(0.14);
+  });
+
+  it('a High Master comes out of a hold against Malgus struck aside and standing about one time in five (D-498); a regular Master rarely', () => {
+    const aside = (l: Levels): number => {
+      let n = 0;
+      for (let i = 0; i < 300; i++) {
+        const s = set(game(`a${i}`), l, 'malgus');
+        const { hold } = beginHold(s, VEN(s), FOE(s), null);
+        if (hold.end === 'past' && hold.holder === 'standing') n++;
+      }
+      return n / 300;
+    };
+    const high = aside(line(60));
+    expect(high).toBeGreaterThan(0.13);
+    expect(high).toBeLessThan(0.28);
+    expect(aside(MASTER)).toBeLessThan(0.1);
   });
 
   it('a High Master holds a top duelist for a corridor most of the time, and an apex one far less often', () => {

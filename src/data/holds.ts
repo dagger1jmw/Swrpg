@@ -7,11 +7,14 @@ import type { LocationKind } from './entities.config';
  * mean of the gaps in combat, Force Control and Willpower). One clock (D-497): an exchange is 5-10 s here as everywhere,
  * so a hold's time is the fight's own clock up to then. Tuned to the shares of D-496's table.
  */
-export const PAST_CHANCE: readonly (readonly [number, number])[] = [[2, 0.012], [12, 0.055], [20, 0.1], [24, 0.21], [31, 0.28], [38, 0.53], [45, 0.75], [70, 0.95]];
-/** Against an apex duelist (or one beyond) the gap counts for this much more (D-497: steeper). */
-export const APEX_GAP = 1.15;
-/** Getting past is a blow: the duelist strikes the holder down or aside. Its margin: the least, a die's worth, and a share of the gap. */
-export const PAST_BLOW = { least: 8, die: 12, perGap: 0.3 } as const;
+export const PAST_CHANCE: readonly (readonly [number, number])[] = [[2, 0.012], [12, 0.055], [20, 0.1], [24, 0.21], [31, 0.28], [38, 0.66], [45, 0.8], [70, 0.95]];
+/** Against an apex duelist, or one beyond: steeper (D-497), and never less than the chance above. */
+export const PAST_CHANCE_APEX: readonly (readonly [number, number])[] = [[2, 0.012], [10.4, 0.055], [17.4, 0.1], [20.9, 0.21], [27, 0.28], [33, 0.53], [39.1, 0.75], [60.9, 0.95]];
+/**
+ * Getting past is a blow: the duelist strikes the holder down or aside. Its margin is a die's worth over a least that rises
+ * with the gap (D-498), so one nearer the duelist is more often only struck aside.
+ */
+export const PAST_BLOW = { die: 12, least: [[0, 5], [14, 9.5], [21, 9.5], [24, 12], [40, 20]] as readonly (readonly [number, number])[] } as const;
 /** What an exchange takes on the clock on average (rolls §3: 5-10 s), for a hold saved before D-497. */
 export const EXCHANGE_MEAN_SECONDS = 7.5;
 
