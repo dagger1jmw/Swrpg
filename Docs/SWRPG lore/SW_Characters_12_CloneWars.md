@@ -28,7 +28,7 @@ Initiate 0–20 · Padawan 21–40 · Knight 41–60 · Master 61–80 · Grandm
 The Clone Wars **war-tempered** the surviving prequel Jedi. The standouts are now genuinely legendary: **Anakin** (most powerful Jedi of the age), **Obi-Wan** (legendary Soresu master), **Dooku/Tyranus** (legendary Makashi + lightning). **Grievous** is a legendary *non-Force* duelist. Yoda, Mace Windu, and Sidious carry their legendary tiers from Era 11.
 
 ### Apex-ladder application (per Era 09 APEX CEILING)
-- **Knightfall Anakin** reaches **ForceOutput 120 — high legendary**, sitting *below* the Tier A apex cluster (Vitiate ~134, Krayt ~132). This is the **highest level ever observed from Anakin**, but he was **still growing and not at full strength**. His *theoretical* full potential (~138 — the ceiling only Luke ever freely realized) was never reached; his Control also lags (90).
+- **Knightfall Anakin** reaches **ForceOutput 120 — high legendary**, sitting *below* the Tier A apex cluster (Vitiate ~134, Krayt  FC 128 / FO 126). This is the **highest level ever observed from Anakin**, but he was **still growing and not at full strength**. His *theoretical* full potential (~138 — the ceiling only Luke ever freely realized) was never reached; his Control also lags (90).
 - On **Mortis**, the Force-nexus realm briefly *revealed* that latent potential — letting him approach ~138 and subdue the Son — but that was the realm unlocking his ceiling, not his normal real-world level (Knightfall ~120). The ruling holds: a near-full-potential Chosen One overcame the Son, so **realized-peak Luke ≥ the Mortis Ones**, with **Abeloth the sole clear superior to peak Luke.**
 
 ### NEW IN THIS PASS — game-ready numeric stats + Intelligence
@@ -154,7 +154,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 # THE MORTIS ONES (the embodiments of the Force)
 
-> **Apex-ceiling ruling (read first):** The Father, Son, and Daughter are **abstract embodiments of the Force itself**, bound to the Force-vergence realm of **Mortis**. Their listed figures reflect that cosmic nature, which on Mortis reads in the **Ω band**. **But per the project's APEX CEILING:** on Mortis the realm *briefly revealed* Anakin's latent full potential (~138 — higher than his real-world observed Knightfall peak of ~120), and that near-full-potential Anakin **overcame the Son**. Since the Chosen One's full potential equals what **peak Luke** freely realized, the Ones are treated as **matched/overcome by a realized-peak Chosen One**, i.e. **peak Luke (~138) ≥ the Ones**, with **Abeloth (~145) the sole being clearly above peak Luke.** Treat the high numbers below as *Mortis-bound Force-embodiment* power, not a free-roaming combat ranking above Luke. *(Mortis arc is 2008 Clone Wars material — borderline Legends; included to anchor the apex ruling.)*
+> **Apex-ceiling ruling (read first):** The Father, Son, and Daughter are **abstract embodiments of the Force itself**, bound to the Force-vergence realm of **Mortis**. Their listed figures reflect that cosmic nature, which on Mortis reads in the **Ω band**. **But per the project's APEX CEILING:** on Mortis the realm *briefly revealed* Anakin's latent full potential (~138 — higher than his real-world observed Knightfall peak of ~120), and that near-full-potential Anakin **overcame the Son**. Since the Chosen One's full potential equals what **peak Luke** freely realized, the Ones are treated as **matched/overcome by a realized-peak Chosen One**, i.e. **peak Luke (~138) ≥ the Ones**, with **Abeloth (≈185) the sole being clearly above peak Luke.** [note: Ruled, Jared 25 Nov 2026: Abeloth is about 185 everywhere; "Luke at or above the Ones" is Jared's design call (Anakin made the Son and the Daughter kneel in the Father's test; in the last fight the Son overpowered Anakin, Obi-Wan and Ahsoka). D-495] Treat the high numbers below as *Mortis-bound Force-embodiment* power, not a free-roaming combat ranking above Luke. *(Mortis arc is 2008 Clone Wars material — borderline Legends; included to anchor the apex ruling.)*
 
 ---
 
@@ -314,7 +314,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Name | Species | Role / Affiliation | STR | AGI | END | WIL | CHA | INT | FSense | Med | FKnow | FCtrl | FOut | Top Forms / Combat | Top Force Abilities |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Mace Windu | Human | Jedi Master, Council head; Vaapad (see Era 11) | 78 | 88 | 80 | 94 | 84 | 86 | 88 | 84 | 86 | 92 | 88 | Vaapad 100 [note: Ruled, Jared 25 Nov 2026: Vaapad 100. D-494] | Shatterpoint 95 · Telekinesis 88 — nearly killed Sidious; betrayed by Anakin (19 BBY) |
-| Yoda | (Yoda's species) | Grand Master (see Era 11) | 60 | 92 | 80 | 104 | 90 | 96 | 100 | 102 | 102 | 104 | 96 | Ataru 100 (shoto) | Telekinesis 102 · Force Barrier 92 *(absorbed Sidious's lightning)* — dueled Dooku & Sidious [note: Ruled, Jared 25 Nov 2026: Force Control 104. D-494] |
+| Yoda | (Yoda's species) | Grand Master (see Era 11) | 60 | 92 | 80 | 115 | 90 | 96 | 100 | 102 | 102 | 122 | 112 | Ataru 100 (shoto) | Telekinesis 102 · Force Barrier 92 *(absorbed Sidious's lightning)* — dueled Dooku & Sidious [note: Ruled, Jared 25 Nov 2026: Force Control 122, Force Output 112, Willpower 115. D-495] |
 | Plo Koon | Kel Dor | Jedi Master/General, Council | 72 | 78 | 74 | 84 | 76 | 80 | 84 | 78 | 80 | 84 | 80 | Shii-Cho 80 · Ataru 76 | **Electric Judgment** 82 · Force Sense 84 — killed in Order 66 |
 | Kit Fisto | Nautolan | Jedi Master/General, Council | 76 | 84 | 78 | 82 | 78 | 78 | 82 | 76 | 78 | 84 | 80 | Shii-Cho 84 · Ataru 80 | Force Body 82 *(underwater 90%)* — died confronting Sidious with Windu |
 | Aayla Secura | Twi'lek | Jedi Master/General | 68 | 86 | 72 | 82 | 80 | 78 | 80 | 72 | 74 | 82 | 74 | Ataru 84 · Shii-Cho 76 | Force Body 78 · Mind Trick 76 — killed in Order 66 on Felucia |
@@ -341,7 +341,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | The Daughter (Mortis) | Mortis (light) | **Ω — Mortis-bound** | Force Heal 138 / FOut 136 | *(cosmic; no saber)* |
 | Anakin (Knightfall/fallen) | Sith | **Legendary — high (Output)** | **FOut 120** / WIL 72 / AGI 98 — Control only 90; still growing [note: Ruled, Jared 25 Nov 2026: Willpower 72, as his stat block (was 100). D-494] | Djem So 98 |
 | Anakin Skywalker (Knight) | Jedi Order | **Legendary** (held back) | FOut 100 / FCtrl 92 / AGI 92 | Djem So 94 |
-| Yoda | Jedi Order | **Legendary** | FCtrl 104 / Med 102 / FKnow 102 / FOut 96 | Ataru 100 |
+| Yoda | Jedi Order | **Legendary** | FCtrl 122 / Med 102 / FKnow 102 / FOut 112 | Ataru 100 |
 | Mace Windu | Jedi Order | **Legendary** (dueling) | FCtrl 92 / WIL 94 (Vaapad) | Vaapad 100 |
 | Count Dooku (Tyranus) | Sith / Separatists | **Legendary** (dueling) | FCtrl 94 / FKnow 92 / INT 90 (finesse, not Output) | Makashi 96 |
 | Obi-Wan Kenobi (Clone Wars) | Jedi Order | **Legendary** (Soresu) | FCtrl 92 / WIL 92 / INT 88 — Output only 80 | Soresu 96 |

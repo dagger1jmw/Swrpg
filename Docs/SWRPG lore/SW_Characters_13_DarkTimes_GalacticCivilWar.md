@@ -31,12 +31,13 @@ Initiate 0–20 · Padawan 21–40 · Knight 41–60 · Master 61–80 · Grandm
 
 ### Apex-ladder application (per Era 09 APEX CEILING)
 
-* **Emperor Palpatine (living)** now rises into the **Tier A apex cluster (\~130 ceiling)** — the apex realization of the Rule of Two, the most powerful living Sith of the modern age. Below Vitiate (\~134), Krayt (\~132), and peak Luke (\~138); above everyone else in this era. His **Dark Empire clone** (Era 14) climbs higher still, but stays below peak Luke.
+* **Emperor Palpatine (living)** now rises into the **Tier A apex cluster (\~130 ceiling)** — the apex realization of the Rule of Two, the most powerful living Sith of the modern age. Below Vitiate (\~134) and peak Luke (\~138) [note: Ruled, Jared 25 Nov 2026: Krayt is by the stat block, Force Control 128 and Force Output 126, so no longer listed above the Emperor (128 / 130). D-495]; above everyone else in this era. His **Dark Empire clone** (Era 14) climbs higher still, but stays below peak Luke.
 * **The Output↔Control inversion (Anakin → Vader):**
 
   * **Knightfall Anakin** (Era 12): Output **120**, Control **90** — the highest *observed* Anakin (still growing), raw/unhoned.
-  * **Vader ANH** (here): Output **108**, Control **106** — the suit caps raw power below Knightfall, discipline rises.
-  * **Vader RotJ-peak** (here): Output **112**, Control **114** — his most honed and precise, still below his organic-peak output.
+  * **Vader, Dark Times** (here): Output **104**, Control **110** — the peak of the suited Sith. [note: Ruled, Jared 25 Nov 2026: a new sheet, his peak form. D-495]
+  * **Vader ANH** (here): Output **90**, Control **107** — the suit caps raw power below Knightfall, discipline rises.
+  * **Vader ESB/RotJ** (here): Output **102**, Control **108** — just below the Dark Times peak, still below his organic-peak output.
 * **Galen Marek** is a near-apex *raw-output* prodigy (Output 116) — just under the Chosen One's observed Knightfall peak — with comparatively raw Control (94).
 * **Luke** is explicitly *rising / pre-prime*. His apex Grand Master prime (\~138, strongest realized mortal) is **Era 17**, not here.
 
@@ -73,15 +74,41 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Intelligence|100||||
 
 * **Lightsaber Forms / Bladework:** A **master of all seven classic forms** (favoring the ferocious **Form VII / Juyo**), capable of blinding, lethal swordplay when he deigns to fight — but he overwhelmingly prefers sorcery, lightning, and manipulation, treating the blade as theater or last resort. In the rare cases he fought openly he was devastating.
-**Form ratings (game stats):** Juyo 100 (favored) · Makashi 96 · Soresu 95 · Ataru 95 · Niman 94 · Shien/Djem So 94 · Shii-Cho 92
+**Form ratings (game stats):** Juyo 98 (favored) · Makashi 96 · Soresu 95 · Ataru 95 · Niman 94 · Shien/Djem So 94 · Shii-Cho 92 [note: Ruled, Jared 25 Nov 2026: Juyo 98, Force Control 128, Force Output 130. D-495]
 * **Force Abilities (game stats):** **Force Lightning 130** *(**Chain Lightning** 98%, <b>Force Storm</b> 95% — among the deadliest powers in the galaxy)* · Sith Alchemy 122 *(**Sith sorcery** 95%)* · Mind Probe 115 *(**mind domination** 95%)* · Telekinesis 115 *(Force Push 92%)* · Force Sense 110 *(**foresight / Precognition** 95%)*
 * **Unique techniques:** **The Grand Plan / total domination** *(decades of galactic-scale political and Force manipulation; mass mind-control and foresight)*
 * **Signature Ability:** **Total mastery + Force lightning** — apex on every Force axis at once (Output 130 / Control 128 / Knowledge 120); the complete dark-side master, his lightning among the deadliest powers in the galaxy and his manipulation unmatched.
 * **Notable Feats:** Founded and ruled the Empire; orchestrated the Jedi's near-total extermination; commanded Vader and a host of dark-side servants; nearly turned Luke at Endor — killed only by the redeemed Vader.
 * **Alignment:** Dark side.
-* **Tier:** **LEGENDARY — Tier A apex cluster (\~130).** The most dangerous living Sith of the modern age; below only the true apex (Vitiate \~134, Krayt \~132) and peak Luke (\~138).
+* **Tier:** **LEGENDARY — Tier A apex cluster (\~130).** The most dangerous living Sith of the modern age; below only the true apex (Vitiate \~134) and peak Luke (\~138).
 
 > \\\\\\\*\\\\\\\*Cross-era note:\\\\\\\*\\\\\\\* Killed at Endor (4 ABY) but returns in cloned bodies during the \\\\\\\*\\\\\\\*Dark Empire\\\\\\\*\\\\\\\* crisis (\\\\\\\~10–11 ABY, Era 14) — there at his most unleashed (climbing toward the top of Tier A, but still below peak Luke, who helps end him); destroyed permanently by Empatojayos Brand.
+
+\---
+
+## Darth Vader (Dark Times) — the peak of the suited Sith
+
+* **Sheet snapshot:** Prime — the Jedi-hunter of the Dark Times, c. 19–1 BBY, peaking toward the end [note: Ruled, Jared 25 Nov 2026: a new sheet, his peak form: Djem So 106, Force Control 110, Force Output 104, Willpower 104. Every other number is invented: two above Vader II's. D-495]
+* **Species / Affiliation / Rank:** Human cyborg · Sith / Galactic Empire · Dark Lord of the Sith
+* **Lifespan:** Entombed in the armor 19 BBY; this is the top of the two decades that follow
+* **Summary:** Vader at the height of the hunt for the surviving Jedi, in constant practice against trained opponents. Vader (I), of A New Hope, is below this sheet in every stat, after years without a true duel; Vader (II), of The Empire Strikes Back and Return of the Jedi, climbs back to just below it.
+
+|Core|Value||Force|Value|
+|-|-|-|-|-|
+|Strength|102||ForceSense|94|
+|Agility|80||Meditation|80|
+|Endurance|100||ForceKnowledge|92|
+|Willpower|104||ForceControl|110|
+|Charisma|82||ForceOutput|104|
+|Intelligence|94||||
+
+* **Lightsaber Forms / Bladework:** The suit-adapted **Form V (Djem So)** at its strongest.
+**Form ratings (game stats):** Shien/Djem So 106 (suit-adapted) · Makashi 94 · Soresu 92 · Shii-Cho 90
+* **Force Abilities (game stats):** **Force Choke 104** *(remote telekinetic grip)* · Telekinesis 106 *(Force Push 94%)* · Force Body 104 *(Enhance Attribute, suit-assisted 94%)* · Force Sense 94 *(Precognition 90%)*
+* **Signature Ability:** **The Jedi-hunter** — overpowering suited bladework with honed Control.
+* **Notable Feats:** Hunted the surviving Jedi across the Dark Times.
+* **Alignment:** Dark side.
+* **Tier:** **Legendary**, just under the apex duel tier.
 
 \---
 
@@ -102,9 +129,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Intelligence|88||||
 
 * **Lightsaber Forms / Bladework:** A heavily modified **Form V (Djem So)** adapted to the suit — trading his old acrobatic speed for relentless, overpowering, methodical pressure. He uses cybernetic strength and Force power to batter and corner opponents, conserving motion (the armor limits agility) while crushing through any guard, interlacing telekinesis (Force choke, hurling objects) with blade-work. Against the elderly Ben Kenobi he dueled cautiously; he was far deadlier against lesser foes, cutting down Jedi survivors for two decades.
-**Form ratings (game stats):** Shien/Djem So 100 (suit-adapted) · Shii-Cho 86 · Soresu 84 · Makashi 82
+**Form ratings (game stats):** Shien/Djem So 100 (suit-adapted) · Shii-Cho 86 · Soresu 84 · Makashi 82 [note: Ruled, Jared 25 Nov 2026: below the Dark Times sheet in every stat; the block (Force Control 107, Force Output 90) is the rating, not the 106 / 108 of the old table. D-495]
 * **Force Abilities (game stats):** **Force Choke 100** *(remote telekinetic grip — Mastered 92%)* · Telekinesis 100 *(Force Push 88%)* · Force Body 100 *(Enhance Attribute, suit-assisted 92%)* · Force Sense 90 *(Precognition 82%)*
-* **Signature Ability:** **The armored juggernaut** — suit-enhanced strength and near-invulnerable durability, with cold, honed Control (106) far exceeding his raw Knightfall self — but raw Output (108) capped below it by the life-support's drain on his power.
+* **Signature Ability:** **The armored juggernaut** — suit-enhanced strength and near-invulnerable durability, with cold, honed Control (107) far exceeding his raw Knightfall self — but raw Output (90) capped below it by the life-support's drain on his power.
 * **Notable Feats:** Hunted the Jedi survivors across the Dark Times; trained the secret apprentice Galen Marek; killed Ben Kenobi aboard the Death Star; Supreme Commander of the Imperial Fleet.
 * **Alignment:** Dark side.
 * **Tier:** **Legendary** (dueling / will / durability); raw Output reduced from his organic peak.
@@ -116,21 +143,21 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Sheet snapshot:** Prime — Vader at his most honed, The Empire Strikes Back through Return of the Jedi
 * **Species / Affiliation / Rank:** Human cyborg · Sith / Galactic Empire · Dark Lord of the Sith
 * **Lifespan:** His combat and Force peak as Vader, \~3–4 ABY; redeemed and dies at Endor 4 ABY
-* **Summary:** By the time he hunts the Rebels to Hoth, Bespin, and Endor, Vader is at the **peak of his powers as a suited Sith** — sharper, more active, and more dangerous than his ANH self. The reawakening of Anakin (discovering Luke is his son) reignites something in him, and his dueling reaches its most honed: he dominated Luke at Bespin (toying with him, then taking his hand) and fought him at his most controlled at Endor. His raw **Output (105)** is still capped by the suit below the Knightfall organic peak (120), but his **Control (114)** is at its absolute height — two decades of refinement making him a precise, overwhelming master. His arc ends in redemption: turning on the Emperor to save his son, dying as Anakin Skywalker.
+* **Summary:** By the time he hunts the Rebels to Hoth, Bespin, and Endor, Vader is again close to the **peak of his powers as a suited Sith** (the Dark Times sheet) — sharper, more active, and more dangerous than his ANH self. The reawakening of Anakin (discovering Luke is his son) reignites something in him, and his dueling reaches its most honed: he dominated Luke at Bespin (toying with him, then taking his hand) and fought him at his most controlled at Endor. His raw **Output (102)** is still capped by the suit below the Knightfall organic peak (120), but his **Control (108)** is just below its Dark Times height — two decades of refinement making him a precise, overwhelming master. His arc ends in redemption: turning on the Emperor to save his son, dying as Anakin Skywalker.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
 |Strength|100||ForceSense|92|
 |Agility|78||Meditation|78|
 |Endurance|99||ForceKnowledge|90|
-|Willpower|102||ForceControl|116|
-|Charisma|80||ForceOutput|105|
+|Willpower|102||ForceControl|108|
+|Charisma|80||ForceOutput|102|
 |Intelligence|92||||
 
 * **Lightsaber Forms / Bladework:** The honed apex of suited **Form V (Djem So)** — every strike measured, overpowering, and surgically precise, blending crushing physical power with refined telekinetic control (he hurled debris at Luke on Bespin while dueling, and choked or disarmed at will). He could dismantle a far younger, faster opponent through sheer control and power, as he did to Luke twice — beaten only when Luke's *rage* (drawing on the dark side) briefly overwhelmed him at Endor, after which Luke pulled back. The most *disciplined* Vader, the inverse of Knightfall Anakin: lower Output, far higher Control.
-**Form ratings (game stats):** Shien/Djem So 104 (suit-adapted apex) · Shii-Cho 88 · Soresu 90 · Makashi 92
+**Form ratings (game stats):** Shien/Djem So 104 (suit-adapted apex) · Shii-Cho 88 · Soresu 90 · Makashi 92 [note: Ruled, Jared 25 Nov 2026: 3-4 ABY: combat 104, Force Control 108, Force Output 102, Willpower 102; above Vader I, just below the Dark Times peak. D-495]
 * **Force Abilities (game stats):** **Force Choke 102** *(remote telekinetic grip — Mastered 95%)* · Telekinesis 104 *(Force Push 92%; hurled debris while dueling)* · Force Body 102 *(Enhance Attribute, suit-assisted 92%)* · Force Sense 92 *(Precognition 88%)*
-* **Signature Ability:** **Honed armored mastery** — Vader's combat and Force control at their absolute peak (Control 114); a precise, overwhelming juggernaut whose raw output, though immense, never returns to his pre-suit organic apex.
+* **Signature Ability:** **Honed armored mastery** — Vader's combat and Force control just below their Dark Times peak (Control 108); a precise, overwhelming juggernaut whose raw output, though immense, never returns to his pre-suit organic apex.
 * **Notable Feats:** Defeated Luke at Bespin (took his hand, revealed their kinship); dueled Luke at Endor; turned on the Emperor to save his son, destroying Sidious and dying redeemed as Anakin Skywalker.
 * **Alignment:** Dark side → redeemed at the very end.
 * **Tier:** **Legendary** (dueling / will / durability) — his most disciplined incarnation.
@@ -259,14 +286,15 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Strength|40||ForceSense|100|
 |Agility|54||Meditation|102|
 |Endurance|56||ForceKnowledge|102|
-|Willpower|104||ForceControl|100|
-|Charisma|88||ForceOutput|92|
+|Willpower|115||ForceControl|122|
+|Charisma|88||ForceOutput|112|
 |Intelligence|96||||
 
 * **Lightsaber Forms / Bladework:** *(none here — far too aged to duel; his legendary Ataru dueling prime is Eras 11–12)*
+**Form ratings (game stats):** Ataru 100 [note: Ruled, Jared 25 Nov 2026: the exile keeps Ataru 100, Force Control 122, Force Output 112, Willpower 115; the body's own numbers, which are what age took, are unchanged. D-495]
 * **Force Abilities (game stats):** Telekinesis 102 *(**Force Lift** 98% — raised a starfighter from the bog effortlessly)* · Force Sense 100 *(Precognition 95%)* · Meditation discipline 102 · Force Barrier 92
 * **Unique techniques:** **Force-spirit transcendence** *(became a conscious Force spirit on death)*
-* **Signature Ability:** **Grand Master of the Force** — the deepest, most refined Force mastery alive (Control 100, Knowledge 102), output still immense despite his age; supreme wisdom across nine centuries.
+* **Signature Ability:** **Grand Master of the Force** — the deepest, most refined Force mastery alive (Control 122, Knowledge 102), output still immense despite his age; supreme wisdom across nine centuries.
 * **Notable Feats:** Survived Order 66; hid on Dagobah; trained Luke Skywalker; lifted Luke's X-wing from the swamp; died at \~900 and became a Force spirit.
 * **Alignment:** Light side.
 * **Tier:** **Legendary** (Force depth / control / wisdom); physically frail with age.
@@ -290,7 +318,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Intelligence|84||||
 
 * **Lightsaber Forms / Bladework:** By RotJ, a developing **Form V** style (his father's lineage) — capable and improving fast, holding his own against Vader at Endor and even briefly overwhelming him when Luke gave in to rage — but largely self- and briefly-trained, far from the polished master he will become. His raw Output (92) already outstrips his Control (82) and Knowledge (68): a powerful, undertrained prodigy.
-**Form ratings (game stats):** Shien/Djem So 82 (developing) · Shii-Cho 76 · Ataru 74
+**Form ratings (game stats):** Shien/Djem So 82 (developing) · Shii-Cho 76 · Ataru 74 [note: Ruled, Jared 25 Nov 2026: Djem So 82 at Endor, no sheet split; the cut that took Vader's hand is a brief rage boost, not a rating. D-495]
 * **Force Abilities (game stats):** Telekinesis 84 *(Force Pull 80% — summoned his saber)* · Force Sense 86 *(**Precognition / piloting instinct** 88%)* · Force Body 78 *(Force Speed 76%)* · Mind Trick 70 *(Force Persuasion 65%)*
 * **Signature Ability:** **The new hope (raw potential)** — immense inherited Skywalker Force potential only partly realized; his Output already runs ahead of his training, and his ceiling is apex-tier (reached in Era 17).
 * **Notable Feats:** Destroyed the first Death Star; trained under Ben and Yoda; faced Vader at Bespin and Endor; resisted the Emperor; redeemed his father; declared himself a Jedi Knight.
@@ -424,11 +452,12 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 |Character|Affiliation|Primary Tier|Standout Stat(s)|Peak Form / Combat|
 |-|-|-|-|-|
-|Emperor Palpatine|Empire/Sith|**LEGENDARY — Tier A apex (\~130)**|FOut 130 / FCtrl 128 / WIL 128 / FKnow 120|Juyo 100 (all 7)|
+|Emperor Palpatine|Empire/Sith|**LEGENDARY — Tier A apex (\~130)**|FOut 130 / FCtrl 128 / WIL 128 / FKnow 120|Juyo 98 (all 7)|
 |Galen Marek (Starkiller)|Sith → light|**Legendary — high (Output)**|**FOut 116** / Telekinesis 118 — Control only 94|Shien 86|
-|Darth Vader (RotJ-peak)|Empire/Sith|**Legendary**|FCtrl 114 / FOut 112 / END 99|Djem So 104|
-|Darth Vader (ANH-era)|Empire/Sith|**Legendary**|FCtrl 106 / FOut 108 / END 98|Djem So 100|
-|Yoda (Dagobah)|Jedi|**Legendary**|FKnow 102 / Med 102 / FCtrl 100|*(too aged to duel)*|
+|Darth Vader (Dark Times)|Empire/Sith|**Legendary**|FCtrl 110 / FOut 104 / WIL 104|Djem So 106|
+|Darth Vader (RotJ-peak)|Empire/Sith|**Legendary**|FCtrl 108 / FOut 102 / WIL 102 / END 99|Djem So 104|
+|Darth Vader (ANH-era)|Empire/Sith|**Legendary**|FCtrl 107 / FOut 90 / END 98|Djem So 100|
+|Yoda (Dagobah)|Jedi|**Legendary**|FKnow 102 / Med 102 / FCtrl 122 / WIL 115|*(too aged to duel)*|
 |Ben Kenobi|Jedi|High Master|FSense 92 / Med 92 / FCtrl 90 / INT 90|Soresu 88|
 |Jerec|Empire/Dark Jedi|High Master|FCtrl 90 / FOut 88 (Makashi)|Makashi 88|
 |Arden Lyn (reawakened)|Empire → rogue|Elite–legendary (martial)|AGI 88 / WIL 90 (Teräs Käsi)|Unarmed 92|
@@ -453,8 +482,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 > - \\\\\\\*\\\\\\\*Grand Admiral Thrawn\\\\\\\*\\\\\\\* and \\\\\\\*\\\\\\\*Kyle Katarn\\\\\\\*\\\\\\\* rise in the New Republic era (Era 14) — flagged here.
 
 > \\\\\\\*\\\\\\\*CHANGE-NOTES (characters who fundamentally shift):\\\\\\\*\\\\\\\*
-> - \\\\\\\*\\\\\\\*Emperor Palpatine — now placed in the Tier A apex cluster (\\\\\\\~130).\\\\\\\*\\\\\\\* The Era 11 forward-note is realized here: his hidden-Chancellor self understated his ceiling; the open Emperor is the apex realization of the Rule of Two — Force Lightning 130, all seven forms mastered, supreme Control/Knowledge. Below Vitiate (134)/Krayt (132)/peak Luke (138); above everyone else this era. His \\\\\\\*\\\\\\\*Dark Empire clone\\\\\\\*\\\\\\\* (Era 14) climbs higher within Tier A, still under peak Luke.
-> - \\\\\\\*\\\\\\\*Darth Vader — dual sheets (ANH · RotJ), completing the Anakin chain and the Output↔Control inversion.\\\\\\\*\\\\\\\* Both are \\\\\\\*lower Output\\\\\\\* than Knightfall Anakin (now \\\\\\\*\\\\\\\*120\\\\\\\*\\\\\\\*, revised down from 135) but \\\\\\\*far higher Control\\\\\\\* (106→114 vs 90). The suit caps his raw power while two decades hone his precision. RotJ Vader is his most \\\\\\\*disciplined\\\\\\\*, not his most \\\\\\\*powerful in raw terms\\\\\\\* — that was the pre-suit Knightfall self.
+> - \\\\\\\*\\\\\\\*Emperor Palpatine — now placed in the Tier A apex cluster (\\\\\\\~130).\\\\\\\*\\\\\\\* The Era 11 forward-note is realized here: his hidden-Chancellor self understated his ceiling; the open Emperor is the apex realization of the Rule of Two — Force Lightning 130, all seven forms mastered, supreme Control/Knowledge. Below Vitiate (134)/peak Luke (138); above everyone else this era. His \\\\\\\*\\\\\\\*Dark Empire clone\\\\\\\*\\\\\\\* (Era 14) climbs higher within Tier A, still under peak Luke.
+> - \\\\\\\*\\\\\\\*Darth Vader — dual sheets (ANH · RotJ), completing the Anakin chain and the Output↔Control inversion.\\\\\\\*\\\\\\\* Both are \\\\\\\*lower Output\\\\\\\* than Knightfall Anakin (now \\\\\\\*\\\\\\\*120\\\\\\\*\\\\\\\*, revised down from 135) but \\\\\\\*far higher Control\\\\\\\* (110 at the Dark Times peak, 107 by ANH, 108 by RotJ, vs 90). The suit caps his raw power while two decades hone his precision. RotJ Vader is his most \\\\\\\*disciplined\\\\\\\*, not his most \\\\\\\*powerful in raw terms\\\\\\\* — that was the pre-suit Knightfall self.
 > - \\\\\\\*\\\\\\\*Galen Marek (Starkiller)\\\\\\\*\\\\\\\* — Output set to \\\\\\\*\\\\\\\*116\\\\\\\*\\\\\\\*, just under the Chosen One's observed Knightfall peak (120), so Anakin stays the era's raw-output king. Still a near-apex telekinetic prodigy (Telekinesis 118, Star-Destroyer pulls) with lagging Control (94); "could rival Palpatine" reframed as Sith flattery, since the Emperor's realized power (130) far exceeds his.
 > - \\\\\\\*\\\\\\\*Obi-Wan → Ben Kenobi\\\\\\\*\\\\\\\* — third and final sheet (Padawan Era 11 → Clone Wars Master Era 12 → elder exile here). Output drops (76) while Control/finesse endures (90); achieves spirit transcendence.
 > - \\\\\\\*\\\\\\\*Luke Skywalker\\\\\\\*\\\\\\\* — explicitly \\\\\\\*rising, pre-prime\\\\\\\* (Output 92 ahead of Control 82). \\\\\\\*\\\\\\\*Apex prime (\\\\\\\~138) reserved for Era 17.\\\\\\\*\\\\\\\*

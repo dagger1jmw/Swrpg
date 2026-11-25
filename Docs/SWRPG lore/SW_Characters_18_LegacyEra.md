@@ -25,9 +25,9 @@ Initiate 0–20 · Padawan 21–40 · Knight 41–60 · Master 61–80 · Grandm
 
 ### Era Notes on Scaling — ★ KRAYT COMPLETES THE APEX ROSTER ★
 
-This era's apex figure is **Darth Krayt**, a **Tier A apex (\~132)** Sith Lord — the most powerful Force-user *alive in his own time* and the **best swordsman of his age** (peak Luke being long dead by now). He is a **near-equal of peak Luke** — the two allied to drive off **Abeloth** in Era 17 — but sits a step **below** peak Luke (\~138), and like every being in the timeline he is utterly dwarfed by the off-the-scale Transcendent **Abeloth (\~185)**. His one true weakness is his **failing body** (the Yuuzhan Vong implants keeping him alive are also killing him), which drives the plot — he hunts **Cade Skywalker** for Cade's unique Force-healing power. **Cade** has enormous **Skywalker latent potential** but is undertrained, self-destructive, and conflicted — apex *potential* never fully realized, though his unique **healing/resurrection** gift sets him apart.
+This era's apex figure is **Darth Krayt**, a **Tier A apex** Sith Lord — the most powerful Force-user *alive in his own time* and the **best swordsman of his age** (peak Luke being long dead by now). He is a **near-equal of peak Luke** — the two allied to drive off **Abeloth** in Era 17 — but sits a step **below** peak Luke (\~138), and like every being in the timeline he is utterly dwarfed by the off-the-scale Transcendent **Abeloth (\~185)**. His one true weakness is his **failing body** (the Yuuzhan Vong implants keeping him alive are also killing him), which drives the plot — he hunts **Cade Skywalker** for Cade's unique Force-healing power. **Cade** has enormous **Skywalker latent potential** but is undertrained, self-destructive, and conflicted — apex *potential* never fully realized, though his unique **healing/resurrection** gift sets him apart.
 
-> \*\*APEX CEILING (per Era 09 — now complete):\*\* \*\*Abeloth ≈ 185 (Transcendent, off the scale, Era 17)\*\* stands alone. Then the mortal apex: \*\*peak Luke ≈ 138 (Era 17)\*\* · reborn-Emperor ≈ 135 · Vitiate ≈ 134 · \*\*Darth Krayt ≈ 132 (here)\*\* · living-Emperor ≈ 130 · then Knightfall Anakin ≈ 120, Bane ≈ 114. With Krayt built, \*\*every apex-tier being in the series now has a sheet.\*\*
+> \*\*APEX CEILING (per Era 09 — now complete):\*\* \*\*Abeloth ≈ 185 (Transcendent, off the scale, Era 17)\*\* stands alone. Then the mortal apex: \*\*peak Luke ≈ 138 (Era 17)\*\* · reborn-Emperor ≈ 135 · Vitiate ≈ 134 · living-Emperor ≈ 130 · \*\*Darth Krayt FC 128 / FO 126\*\* · then Knightfall Anakin ≈ 120, Bane ≈ 114. With Krayt built, \*\*every apex-tier being in the series now has a sheet.\*\*
 
 ### Multi-sheet payoff
 
@@ -67,13 +67,13 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Intelligence|96||||
 
 * **Lightsaber Forms / Bladework:** The **best swordsman of his age** — a complete master of all seven forms refined over \~200 years, blending Old-Republic Jedi technique with Sith ferocity and overwhelming Force power, interlaced with lightning, telekinesis, and XoXaan's sorcery. He matched peak Luke in the Realm Beyond Shadows (Era 17) and overpowered nearly every opponent of his era; only his failing body and, ultimately, Cade Skywalker brought him down.
-**Form ratings (game stats):** Shien/Djem So 102 (primary) · Makashi 100 · Soresu 100 · Ataru 98 · Niman 98 · Juyo 98 · Shii-Cho 96 · *(Jar'Kai 98)* — **master of all seven (best of his age)**
+**Form ratings (game stats):** Niman 102 (primary) · Jar'Kai 102 (primary) · Makashi 100 · Soresu 100 · Shien/Djem So 98 · Ataru 98 · Juyo 98 · Shii-Cho 96 — **master of all seven (best of his age)** [note: Ruled, Jared 25 Nov 2026: forms Niman and Jar'Kai; Djem So takes Niman's old number, invented; the stat block (Force Control 128, Force Output 126) stands, with no headline figure. D-495]
 * **Force Abilities (game stats):** Telekinesis 118 *(Force Crush/Push 92%)* · Force Lightning 120 *(**Chain Lightning** 95%)* · Sith Alchemy 116 *(**Sith sorcery** from XoXaan 92%)* · Mind Control 110 *(92%)* · Force Sense 110 *(Precognition 90%)*
 * **Unique techniques:** **Force/Vong/stasis life-extension** *(\~200-year lifespan; survives death repeatedly, rebuilt in a Yuuzhan-Vong-tech body — but the implants are slowly killing him)*
-* **Signature Ability:** **Dark Lord of the One Sith** — apex mastery on both axes (Output 132 / Control 130) plus vast Sith knowledge (116); founder and god-emperor of an order of many Sith; the most powerful Force-user and best duelist *of his age*. **Weakness:** his Vong-implanted body is slowly killing him.
+* **Signature Ability:** **Dark Lord of the One Sith** — apex mastery on both axes (Output 126 / Control 128) plus vast Sith knowledge (116); founder and god-emperor of an order of many Sith; the most powerful Force-user and best duelist *of his age*. **Weakness:** his Vong-implanted body is slowly killing him.
 * **Notable Feats:** Survived Order 66 and the Vong; founded the One Sith over a century in hiding; sabotaged the Ossus Project, joined the Sith–Imperial War and the Massacre at Ossus; seized the galactic throne; near-equal of peak Luke (allied to drive off Abeloth, Era 17); killed once and returned (137–138 ABY) — ended for good by Cade Skywalker.
 * **Alignment:** Dark side.
-* **Tier:** **LEGENDARY — Tier A apex (\~132).** The last reserved apex being; near-equal of peak Luke (138), below him, and dwarfed by Transcendent Abeloth.
+* **Tier:** **LEGENDARY — Tier A apex (FC 128 / FO 126).** The last reserved apex being; near-equal of peak Luke (138), below him, and dwarfed by Transcendent Abeloth.
 
 > \*\*Cross-era note:\*\* Same being as the \*\*"Dark Man"\*\* pointer in Era 17 (ally vs. Abeloth) and Jacen Solo's visions (Era 16). His Old Republic/Clone Wars self (A'Sharad Hett, Padawan of Ki-Adi-Mundi, who dueled Obi-Wan) predates his fall by \~130 years.
 
@@ -293,7 +293,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 |Character|Affiliation|Primary Tier|Standout Stat(s)|Peak Form / Combat|
 |-|-|-|-|-|
-|Darth Krayt|One Sith|**LEGENDARY — Tier A apex (\~132)**|FOut 132 / FCtrl 130 / FKnow 116 (best swordsman of his age)|Djem So 102 (all 7)|
+|Darth Krayt|One Sith|**LEGENDARY — Tier A apex**|FOut 126 / FCtrl 128 / FKnow 116 (best swordsman of his age)|Niman / Jar'Kai 102 (all 7)|
 |Luke Skywalker (Force ghost)|Jedi (spirit)|**LEGENDARY — MORTAL APEX** (mentor)|see Era 17 (FOut 138 / FCtrl 130)|Djem So 104 (all 7 + martial)|
 |Cade Skywalker|Jedi / ex-bounty hunter|**Legendary-adjacent** (apex potential)|FOut 104 + unique healing/resurrection 110|Djem So 90|
 |Darth Wyyrlok (III)|One Sith|High Master / legendary (sorcery)|FKnow 100 / INT 94|Makashi 84|
@@ -308,7 +308,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 \---
 
-*Era 18 of the Star Wars Legends character-sheet series — the chronological end-point of the main Legends saga. Stats are prime-for-this-era, galaxy-wide scale. **Now fully game-ready: numeric named-form ratings and numeric Force Ability stats** (Intelligence and ForceOutput were already in use). <b>Darth Krayt completes the apex roster (Tier A, \~132)</b> — near-equal of peak Luke, below him, and dwarfed by the off-the-scale Abeloth.*
+*Era 18 of the Star Wars Legends character-sheet series — the chronological end-point of the main Legends saga. Stats are prime-for-this-era, galaxy-wide scale. **Now fully game-ready: numeric named-form ratings and numeric Force Ability stats** (Intelligence and ForceOutput were already in use). <b>Darth Krayt completes the apex roster (Tier A)</b> — near-equal of peak Luke, below him, and dwarfed by the off-the-scale Abeloth.*
 
 > \*\*Cross-era appearance notes:\*\*
 > - \*\*Darth Krayt\*\* = \*\*A'Sharad Hett\*\*, whose Old Republic/Clone Wars self (Padawan of Ki-Adi-Mundi; dueled Obi-Wan on Tatooine) predates the Legacy era by \~130 years. He appeared as the hidden \*\*"Dark Man"\*\* pointer in Era 17 (ally vs. Abeloth) and Era 16 (Jacen's visions). This is his full apex sheet.
@@ -317,8 +317,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 > - The Legacy era is the \*\*furthest point forward\*\* this series covers; later Legends material (the \*Legacy\* "Vol. 2"/Ania Solo era) continues the line but introduces no new apex beings.
 
 > \*\*CHANGE-NOTES (characters who fundamentally shift):\*\*
-> - \*\*★ Darth Krayt — the last apex being, now built (Tier A, \~132).\*\* Apex on both axes (Output 132 / Control 130) plus vast Sith lore; the most powerful Force-user and best swordsman \*of his age\*, a near-equal of peak Luke (138) — but below him, and dwarfed by Transcendent Abeloth (\~185). His failing Vong-implanted body is the plot-driving weakness. Same being as A'Sharad Hett and the "Dark Man" (Eras 16–17).
+> - \*\*★ Darth Krayt — the last apex being, now built (Tier A).\*\* Apex on both axes (Output 126 / Control 128) plus vast Sith lore; the most powerful Force-user and best swordsman \*of his age\*, a near-equal of peak Luke (138) — but below him, and dwarfed by Transcendent Abeloth (\~185). His failing Vong-implanted body is the plot-driving weakness. Same being as A'Sharad Hett and the "Dark Man" (Eras 16–17).
 > - \*\*Cade Skywalker\*\* — the Skywalker heir with \*\*apex potential left unrealized\*\* but a \*\*unique healing/resurrection gift (110)\*\* that defines him and drives the plot. Killed Krayt.
-> - \*\*APEX ROSTER COMPLETE.\*\* With Krayt built, every apex-tier being now has a full v3 + numeric sheet: Abeloth (Transcendent, off-scale), peak Luke (138), reborn-Emperor (135), Vitiate (134), Krayt (132), living-Emperor (130), Knightfall Anakin (120 observed), Bane (114), and the per-era legendaries.
+> - \*\*APEX ROSTER COMPLETE.\*\* With Krayt built, every apex-tier being now has a full v3 + numeric sheet: Abeloth (Transcendent, off-scale), peak Luke (138), reborn-Emperor (135), Vitiate (134), living-Emperor (130), Krayt (FC 128 / FO 126), Knightfall Anakin (120 observed), Bane (114), and the per-era legendaries.
 > - \*\*End of the main timeline.\*\* Era 18 is the chronological finale. \*\*The series now spans Eras 01–18 (plus 09B), every sheet carrying the six core stats (incl. Intelligence), five Force stats (incl. ForceOutput), numeric lightsaber-form ratings, and numeric Force-ability stats — all governed by the single APEX CEILING anchored on Abeloth (off-scale) and peak Luke (138).\*\*
 

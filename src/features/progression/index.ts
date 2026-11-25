@@ -8,7 +8,7 @@ import { SKILL_BY_ID, CATEGORY_RULES, PHYSICAL_STATS } from '../../data/skills';
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY } from '../../data/activities';
 import { COMBAT_OUTCOMES, COMBAT_STAKES, COMBAT_XP } from '../../data/progression.config';
 import { computeCombatXp, strongerDuelXp, type CombatSession } from '../../engine/combatXp';
-import { selectCharacter } from '../character/selectors';
+import { selectCharacter, selectPath } from '../character/selectors';
 import { eGainFor, gainCI, gainE, releaseBank, releaseUntil, splitDrillXp } from '../../engine/appliedExperience';
 import { RECORDING_REVIEW } from '../../data/combat.config';
 import { speedFor } from './training';
@@ -16,6 +16,7 @@ import { formatDate, fromAbsSecond } from '../../engine/calendar';
 import { levelWithNatural, thresholdsCrossed, tierOf, xpForLevel } from '../../engine/curve';
 import { FORM_IDS, isSkillId } from '../../data/skills';
 import { DEV_REFUSAL, selectIsTestCharacter } from '../character/selectors';
+import { senseGain } from '../../engine/forceSense';
 import { removeRust, rustAfterDay } from '../../engine/rust';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent } from '../../state/types';
@@ -68,7 +69,13 @@ function creditXp(
   let seq = slice.nextSeq;
   const emit: GameEvent[] = [];
   const notes: string[] = [];
-  for (const [id, xp] of Object.entries(credited)) {
+  // Force Sense comes with Force Control (D-495): outside the pace window and the clamp, like the transfers, and practised with it.
+  const forceUser = selectPath(s) !== 'career';
+  const xpOf = (id: string): number => skills[id]?.xp ?? 0;
+  const sense = forceUser ? senseGain(xpOf('forceSense') + (credited['forceSense'] ?? 0), xpOf('forceControl') + (credited['forceControl'] ?? 0), credited['forceControl'] ?? 0) : 0;
+  const gains = sense > 0 ? { ...credited, forceSense: (credited['forceSense'] ?? 0) + sense } : credited;
+  const drilled = forceUser && (practice['forceControl'] ?? 0) > 0 ? { ...practice, forceSense: Math.max(practice['forceSense'] ?? 0, practice['forceControl']!) } : practice;
+  for (const [id, xp] of Object.entries(gains)) {
     if (xp <= 0) continue;
     const prev = skills[id] ?? { xp: 0, rust: 0, lastPracticedDay: null };
     const natural = selectNatural(s, id);
@@ -85,7 +92,7 @@ function creditXp(
       emit.push({ type: 'factLearned', aboutRef: 'pc', fact: `Reached ${tierOf(t)} level (${t}) in ${name}.`, importance: t >= 41 ? 'major' : 'minor' });
     }
   }
-  for (const [id, h] of Object.entries(practice)) {
+  for (const [id, h] of Object.entries(drilled)) {
     const prev = skills[id] ?? { xp: 0, rust: 0, lastPracticedDay: null };
     skills[id] = { ...prev, rust: removeRust(prev.rust, h), lastPracticedDay: day };
   }

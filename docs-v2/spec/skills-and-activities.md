@@ -178,10 +178,11 @@ civilian archetypes need.
 The game's progression is the reference scale. Each band says roughly what a level means, from
 the calibration profiles (progression-targets §2) and the closed-form lines by archetype and age
 (no talent unless stated; "gifted" = x1.25 pace, "ceiling" = prodigy in every domain). Canon
-sheets are on this scale too (Jared, D-494; src/data/canon/sheetScale.ts): forms, Force abilities,
-Force Control, Force Output, Willpower and the archetype's focus as written; the Force taken out
-of Strength, Agility and Endurance; the rest as the game builds it; never below the game's own
-line. Bands are guides, not
+sheets are on this scale too (Jared, D-494, D-495; src/data/canon/sheetScale.ts): forms, Force
+abilities, Force Control, Force Output, Force Sense, Willpower and the archetype's focus as written
+(Force Knowledge and Meditation for seers, scholars and ritualists); Charisma by one rising curve;
+the Force taken out of Strength, Agility and Endurance (a fight gives it back); the rest as the
+game builds it; never below the game's own line, nor lifted above the sheet by it. Bands are guides, not
 gates; a figure's archetype focus decides which stats reach the high bands.
 
 | Stat | 40 | 60 | 80 | 100 | 120 |

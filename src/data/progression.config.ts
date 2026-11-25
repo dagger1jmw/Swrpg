@@ -292,6 +292,11 @@ export const HUMAN_BODY_CAP: readonly (readonly [number, number])[] = [
 ];
 /** Force boost = min(45, 0.3 * max(0, FC - 40) + 0.2 * Force body-ability level). */
 export const FORCE_BOOST = { max: 45, fcFrom: 40, fcPer: 0.3, bodyPer: 0.2 } as const;
+/**
+ * Force Sense keeps pace with Force Control for every Force user (Jared, 2026-11-25; D-495; both numbers are invented): never more
+ * than `gap` levels behind it, and left to its own training up to `free` behind (engine/forceSense.ts).
+ */
+export const FORCE_SENSE_TRACK = { free: 5, gap: 10 } as const;
 /** Natural baseline (§11a, D-102): physical = 0.5 * body cap(h); Willpower by age; others 0. */
 export const NATURAL_PHYSICAL_FACTOR = 0.5;
 export const NATURAL_WILLPOWER: readonly (readonly [number, number])[] = [

@@ -65,8 +65,8 @@ export const GUARDED: readonly { canonId: string; fromYear: number; toYear: numb
   { canonId: 'lore:darth-azamin', fromYear: -3661, toYear: -3640, who: [{ posts: ['council-staff', 'imperial-intelligence'] }, { sides: ['sithEmpire', 'sith'], minRank: 'knight' }], source: 'A28: Azamin needs a "who"' },
 ];
 
-/** The tiers' levels (Jared, D-494), on the game's scale: the strongest fighting skill, Force Control and Willpower. */
-export const TIER_LEVELS = { top: { combat: 88, forceControl: 85, willpower: 90 }, apex: { combat: 98, forceControl: 100, willpower: 100 } } as const;
+/** The tiers' levels (Jared, D-494; the apex's as ruled in D-495), on the game's scale: the strongest fighting skill, Force Control and Willpower. */
+export const TIER_LEVELS = { top: { combat: 88, forceControl: 85, willpower: 90 }, apex: { combat: 98, forceControl: 110, willpower: 105 } } as const;
 /**
  * Planning (Jared, 2026-11-25; D-493): a non-Force fighter never reaches Master in an outright fight. The most skilled
  * bounty hunters and Mandalorians reach it only for a hold, with a plan recorded in play: `lines` different kinds laid

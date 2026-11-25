@@ -223,6 +223,8 @@ Other species get their own tables (species.md: the Human table rescaled by age 
   Force-sensitive longevity (D-399 [5]) is the Force Control stretch of species.md sec 1, in
   Human-equivalent years for every species (D-472: the scaled rule it waited for).
 
+NPC Force users have the same boost in a fight (D-495; their levels already hold the cap and the age).
+
 ## 11a. Natural baseline (added by D-102; decides D-67)
 Untrained characters are not at 0 in body and will. Natural level N by Human-equivalent age h
 (species.md sec 1; Willpower and the mind by the training age, D-474):
@@ -514,3 +516,15 @@ Conditions that change how fast a character trains, beyond talent, teacher and a
     and the blade, stats spec bands) in about 4 years. Harness check:
     tests/lifetime/lukeAccelerated.test.ts (20-seed medians at x3.2: Force Control 54.4 and Djem
     So 48.8 at 4 years, 62.9 and 56.3 at 5). The numbers are first tuning, for Jared to adjust.
+
+## 22. Force Sense keeps pace with Force Control (added by D-495)
+Force Sense is a core stat of every Force user (Jedi, Sith and outsiders; no career):
+  each XP credited to Force Control also gives Force Sense share * XP
+  share = clamp((Force Control level - Force Sense level - 5) / 5, 0, 1)   (5 and 10 levels: invented)
+So Force Sense is never more than 10 levels behind Force Control (and a routine that keeps it within 5,
+as every Jedi's does, is unchanged): below it, a point of XP is worth
+more. Its own training adds to it, so seers and Consulars lead. The XP is on top of the session: no
+hours move, and it is outside the 4.0x clamp and the pace window (like the form transfers). Practice
+of Force Control counts as practice of Force Sense for rust. The closed form (NPCs, creation) sums
+the same rule over the rank phases (src/engine/forceSense.ts). The Force Sense paces in
+src/data/archetypes.ts stay the routine's own hours, without this.

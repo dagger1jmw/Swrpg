@@ -367,7 +367,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 | Character | Affiliation | Primary Tier | Standout Stat(s) | Peak Form / Combat |
 |---|---|---|---|---|
-| Valkorion (= Vitiate) | Eternal Empire | **LEGENDARY — APEX** (below peak Luke) | (see Era 09: FKnow 134 / WIL 135; drain ability 145) | Makashi 92 |
+| Valkorion (= Vitiate) | Eternal Empire | **LEGENDARY — APEX** (below peak Luke) | (see Era 09: FKnow 134 / WIL 135; drain ability 145) | Makashi 80 |
 | Vaylin | Eternal Empire | **Legendary** | **ForceOutput 108** / Telekinesis 108 (raw might); INT 70 | Juyo 86 |
 | Arcann | Eternal Empire | **Legendary**-adjacent | FCtrl 92 / FOut 88 / END 88 | Djem So 88 |
 | Darth Malgus (returned) | Sith (rogue) | **Legendary**-adjacent | END 94 / WIL 96 / FCtrl 95 / FOut 92 | Djem So 92 |

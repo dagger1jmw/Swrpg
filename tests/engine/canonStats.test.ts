@@ -45,11 +45,14 @@ describe('canon stats from anchors (D-414)', () => {
     expect(mid).toBeGreaterThan(75);
     expect(mid).toBeLessThan(90);
   });
-  it('going backward is clamped at the archetype baseline for that age', () => {
+  it('going backward is clamped at the archetype baseline for that age, never above what the sheet sets (D-495)', () => {
     const weak = { bby: 3660, complete: true, basis: 'sheet' as const, sources: 'test', levels: { forceControl: 20, shiiCho: 20, strength: 20 } };
     const n = figure({ anchors: [weak] });
     const d = deps(n);
-    expect(canonLevelsAt(n, 3680, d).shiiCho).toBeCloseTo(0.6 * d.growthAt(3680));
+    expect(0.6 * d.growthAt(3665)).toBeGreaterThan(20);
+    expect(canonLevelsAt(n, 3665, d).forceControl).toBeCloseTo(20);
+    const unset = figure({ anchors: [{ ...weak, levels: { shiiCho: 20 } }] });
+    expect(canonLevelsAt(unset, 3665, d).forceControl).toBeCloseTo(0.6 * d.growthAt(3665));
   });
   it('a stat no anchor shows takes the generator line; with no anchors the whole line is generated', () => {
     const n = figure();

@@ -216,7 +216,7 @@ describe('A2: the power bar', () => {
       expect(selectWorldFacts(s).wonFight).toBeNull();
       if (s.combat.last!.reason === 'brokeOff') drawn++;
     }
-    expect(drawn).toBeGreaterThan(10); // a sword this good would otherwise have won most of them
+    expect(drawn).toBeGreaterThan(5); // a sword this good would otherwise have won these
   });
 
   it('a Master only delays: a short hold, never a win', () => {

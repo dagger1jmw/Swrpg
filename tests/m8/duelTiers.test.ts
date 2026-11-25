@@ -1,4 +1,4 @@
-// The duel tiers against canon figures (D-494), and planning against a top duelist (D-493).
+// The duel tiers against canon figures (D-494, D-495), and planning against a top duelist (D-493).
 import { describe, expect, it } from 'vitest';
 import { CANON_BY_ID, CANON_NPCS } from '../../src/data/canonNpcs';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -26,13 +26,19 @@ const line = (l: Readonly<Record<string, number>>): Line => ({ combat: Math.max(
 const tierOf = (x: Line): string => duelTier({ forceUser: true, masterRank: true, meetsMasterSkills: true, ...x });
 const l = (combat: number, forceControl: number, willpower: number): Line => ({ combat, forceControl, willpower });
 
-describe('the tiers against canon figures (Jared, D-494)', () => {
+describe('the tiers against canon figures (Jared, D-494, D-495)', () => {
   // The character sheets as ruled (Docs/SWRPG lore/SW_Characters_11 to _13): best form, Force Control, Willpower.
   const SHEETS: Record<string, readonly [Line, string]> = {
-    'Yoda': [l(100, 104, 104), 'apex'],
-    'Sidious (Chancellor)': [l(98, 104, 112), 'apex'],
-    'Palpatine (Emperor)': [l(100, 128, 128), 'apex'],
+    'Yoda': [l(100, 122, 115), 'apex'],
+    'Sidious (Chancellor)': [l(98, 118, 120), 'apex'],
+    'Palpatine (Emperor)': [l(98, 128, 128), 'apex'],
+    'Krayt': [l(102, 128, 110), 'apex'],
+    'Vader (Dark Times)': [l(106, 110, 104), 'top'],
+    'Vader II': [l(104, 108, 102), 'top'],
     'Mace Windu': [l(100, 92, 94), 'top'],
+    'Revan (freed)': [l(94, 94, 106), 'top'],
+    'Exar Kun': [l(110, 102, 105), 'top'],
+    'Luke (Endor)': [l(82, 82, 92), 'master'],
     'Dooku': [l(96, 94, 94), 'top'],
     'Obi-Wan': [l(96, 92, 92), 'top'],
     'Anakin (Knight)': [l(94, 92, 90), 'top'],
@@ -50,8 +56,18 @@ describe('the tiers against canon figures (Jared, D-494)', () => {
     const e12 = read('SW_Characters_12_CloneWars.md');
     expect(e11).toMatch(/Juyo 98 \(favored\)/);
     expect(e11).toMatch(/Vaapad\/Juyo 100 \(creator/);
-    expect(e11).toMatch(/\| Willpower \| 112 \| \| ForceControl \| 104 \|/);
-    expect(e11).toMatch(/\| Willpower \| 104 \| \| ForceControl \| 104 \|/);
+    expect(e11).toMatch(/\| Willpower \| 120 \| \| ForceControl \| 118 \|/);
+    expect(e11).toMatch(/\| Willpower \| 115 \| \| ForceControl \| 122 \|/);
+    // The three Vader sheets: the Dark Times peak above Vader II above Vader I, in every stat.
+    const e13 = read('SW_Characters_13_DarkTimes_GalacticCivilWar.md');
+    const block = (head: string): number[] => {
+      const t = e13.slice(e13.indexOf(`## Darth Vader (${head})`)).split(/\r?\n/).filter((x) => /^\|[A-Z]\w+\|\d/.test(x)).slice(0, 6).join('');
+      return [...t.matchAll(/\|(?:Strength|Agility|Endurance|Willpower|Charisma|Intelligence|ForceSense|Meditation|ForceKnowledge|ForceControl|ForceOutput)\|(\d+)/g)].map((m) => Number(m[1]));
+    };
+    const [dt, v1, v2] = [block('Dark Times'), block('I'), block('II')];
+    expect([dt.length, v1.length, v2.length]).toEqual([11, 11, 11]);
+    dt.forEach((x, i) => expect([x > v2[i]!, v2[i]! > v1[i]!]).toEqual([true, true]));
+    expect(e13).toMatch(/Shien\/Djem So 106 \(suit-adapted\)/);
     const fisto = (t: string): string => /^\| Kit Fisto \|.*?\| ((?:\d+ \| ){11})/m.exec(t)![1]!;
     expect(fisto(e11)).toBe(fisto(e12));
     expect(e12).toMatch(/FOut 120\*\* \/ WIL 72/);

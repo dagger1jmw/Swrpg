@@ -2,7 +2,7 @@
 // Human-equivalent age h and bodyScale. Pure.
 import { FORCE_BOOST, HUMAN_BODY_CAP, NATURAL_CHARISMA, NATURAL_INTELLIGENCE, NATURAL_PHYSICAL_FACTOR, NATURAL_WILLPOWER } from '../data/progression.config';
 import { FULL_LIFE_H, PRIME_H } from '../data/ageing.config';
-import { SKILL_BY_ID, type PhysicalStat } from '../data/skills';
+import { SKILLS, SKILL_BY_ID, type PhysicalStat } from '../data/skills';
 import { HUMAN_MATURITY, ageFromTraining, humanEquivalentAge, speciesAgeFromHuman, speciesDef, trainingAge, type SpeciesDef } from '../data/species';
 import type { AgeRow } from '../data/skills';
 import { ageFactor, ageIntegral } from './ageFactor';
@@ -96,6 +96,17 @@ export function naturalLevel(skillId: string, speciesId: string, age: number): n
 export function forceBoost(forceControl: number, bodyAbilityLevel: number): number {
   const fc = FORCE_XP_TRIAL.enabled ? Math.min(forceControl, FORCE_XP_TRIAL.physicalBoostFcCap) : forceControl;
   return Math.min(FORCE_BOOST.max, FORCE_BOOST.fcPer * Math.max(0, fc - FORCE_BOOST.fcFrom) + FORCE_BOOST.bodyPer * Math.max(0, bodyAbilityLevel));
+}
+
+const BODY_ABILITIES: readonly string[] = SKILLS.filter((s) => s.bodyAbility).map((s) => s.id);
+
+/**
+ * An NPC's physical stat as it performs (D-495): its level, which already holds the body's cap and its age, plus the same
+ * Force boost the player has. Nobody without the Force has any. `forceBody`: a canon sheet's Force Body, which has no skill
+ * of its own yet (the boost its sheet's stat was lowered by).
+ */
+export function npcPerformance(levels: Readonly<Record<string, number>>, stat: string, forceBody = 0): number {
+  return (levels[stat] ?? 0) + forceBoost(levels['forceControl'] ?? 0, Math.max(forceBody, ...BODY_ABILITIES.map((id) => levels[id] ?? 0)));
 }
 
 /** Physical performance = min(level less the age loss, body cap) + Force boost (§11, D-472). Other skills pass through. */

@@ -247,6 +247,26 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 \---
 
+## Karness Muur (II) — the spirit of the Talisman
+
+* **Sheet snapshot:** A spirit bound in the Muur Talisman, acting through its bearer (the Dark Times, with Celeste Morne; 127–137 ABY), destroyed on Had Abbadon 137 ABY [note: Ruled, Jared 25 Nov 2026: a spirit sheet at about Chancellor Sidious's level (Vader's judgement, Dark Times 12). Every number is invented, at or a little under Sidious's Era 11 sheet; the living sheet above is the living prime. D-495]
+
+|Core|Value||Force|Value|
+|-|-|-|-|-|
+|Strength|*(the bearer's)*||ForceSense|98|
+|Agility|*(the bearer's)*||Meditation|94|
+|Endurance|*(the bearer's)*||ForceKnowledge|106|
+|Willpower|118||ForceControl|116|
+|Charisma|72||ForceOutput|122|
+|Intelligence|90||||
+
+* **Lightsaber Forms / Bladework:** None of its own; the bearer's.
+* **Force Abilities (game stats):** Sith Alchemy 108 · Force Lightning 112 · Mind Probe 100 *(talisman-driven domination)* · Telekinesis 100
+* **Alignment:** Dark side.
+* **Tier:** **Legendary** (a spirit at about Chancellor Sidious's level).
+
+\---
+
 ## XoXaan — Marchioness, famed Sith healer
 
 * **Sheet snapshot:** Prime — Dark Jedi commander of the Black Legions, founding Sith Lord

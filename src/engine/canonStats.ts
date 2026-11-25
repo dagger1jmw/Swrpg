@@ -40,34 +40,36 @@ function anchorsFor(n: CanonNpc, stat: string): StatAnchor[] {
 }
 
 /**
- * The floor and the body's cap (Jared, D-494). No stat is below what the game would generate for the archetype, rank and
- * age, and no physical stat is above what the species' body can hold. A figure's main form stays its best: where another
- * form's line would be higher, the figure's is raised just past it.
+ * The floor of a stat at a date (Jared, D-494, D-495): what the game would generate for the archetype, rank and age, but
+ * never above what the sheet sets (the nearest sheet that has the stat). A stat the sheet leaves unset has the plain floor.
+ */
+function floorAt(n: CanonNpc, stat: string, bby: number, line: Readonly<Record<string, number>>): number {
+  const set = n.anchors
+    .filter((a) => a.complete && (a.authored ?? a.levels)[stat] !== undefined)
+    .sort((a, b) => Math.abs(a.bby - bby) - Math.abs(b.bby - bby))[0];
+  return Math.min(line[stat] ?? 0, set ? (set.authored ?? set.levels)[stat]! : Infinity) * eventFactor(n, stat, bby);
+}
+
+/**
+ * The floor and the body's cap (Jared, D-494, D-495). No physical stat is above what the species' body can hold. A
+ * figure's main form stays its best: a form its sheet does not have is held just under it.
  */
 function floored(n: CanonNpc, bby: number, levels: Readonly<Record<string, number>>, line: Readonly<Record<string, number>>, deps: CanonStatDeps): Record<string, number> {
   const out: Record<string, number> = {};
-  const sheet = n.anchors.find((a) => a.complete);
-  const held = (s: string): number => (FLOOR_TO_SHEET.includes(n.canonId) ? Math.min(line[s] ?? 0, (sheet?.authored ?? sheet?.levels)?.[s] ?? Infinity) : (line[s] ?? 0));
   for (const s of new Set([...Object.keys(levels), ...Object.keys(line)])) {
     const cap = deps.capAt?.(s, bby) ?? null;
     const v = levels[s] ?? (line[s] ?? 0) * eventFactor(n, s, bby);
-    out[s] = Math.max(cap === null ? v : Math.min(v, cap), held(s) * eventFactor(n, s, bby));
+    out[s] = Math.max(cap === null ? v : Math.min(v, cap), floorAt(n, s, bby, line));
   }
   const fights = FORM_IDS.filter((f) => f !== 'jarKai');
   // The sheet's own order settles a tie.
   const listed = [...new Set(n.anchors.flatMap((a) => Object.keys(a.levels)))].filter((f) => fights.includes(f));
   const written = (f: string): number => Math.max(0, ...n.anchors.map((a) => (a.authored ?? a.levels)[f] ?? 0));
   const own = [...listed].sort((a, b) => written(b) - written(a))[0];
-  const other = Math.max(0, ...fights.filter((f) => f !== own).map((f) => out[f] ?? 0));
-  if (own && out[own]! < other) out[own] = other + OWN_FORM_EDGE;
+  if (own) for (const f of fights) if (f !== own && (out[f] ?? 0) >= out[own]!) out[f] = Math.max(0, out[own]! - OWN_FORM_EDGE);
   return out;
 }
-/**
- * Floored to the sheet and no further (D-494): Oteg, of Yoda's species. The line for so long a life runs past the apex (Soresu 132, Force Control
- * 122), and Jared placed the sheet among the Council Masters (D-421).
- */
-const FLOOR_TO_SHEET: readonly string[] = ['lore:oteg'];
-/** A figure's own form over the generator's default at the same level (invented): enough to be the one it fights with. */
+/** A figure's own form over any other (invented): enough to be the one it fights with. */
 const OWN_FORM_EDGE = 0.1;
 
 /**
@@ -84,7 +86,7 @@ export function canonLevelsAt(n: CanonNpc, bby: number, deps: CanonStatDeps): Re
   const stats = new Set<string>([...Object.keys(line), ...n.anchors.flatMap((a) => Object.keys(a.levels))]);
   const out: Record<string, number> = {};
   for (const s of stats) {
-    const base = (line[s] ?? 0) * eventFactor(n, s, bby);
+    const base = floorAt(n, s, bby, line);
     const list = anchorsFor(n, s);
     if (!list.length) {
       out[s] = base;

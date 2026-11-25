@@ -83,18 +83,18 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Strength | 70 | | ForceSense | 100 |
 | Agility | 84 | | Meditation | 96 |
 | Endurance | 80 | | ForceKnowledge | 108 |
-| Willpower | 112 | | ForceControl | 104 |
-| Charisma | 108 | | ForceOutput | 108 |
+| Willpower | 120 | | ForceControl | 118 |
+| Charisma | 108 | | ForceOutput | 125 |
 | Intelligence | 100 | | | |
 
 - **Lightsaber Forms / Bladework:** A **master of all seven classic forms** — he *favors* **Form VII (Juyo)**, fighting with blindingly fast, aggressive, almost playful ferocity, but he is fully expert in every form and switches fluidly to counter any opponent. He vastly prefers manipulation, lightning, and sorcery, treating the saber as a last resort — but when forced to fight he is devastating, interlacing strikes with telekinesis and lightning. (His most famous duels are Era 13.)
-  **Form ratings (game stats):** Juyo 98 (favored) · Makashi 96 · Soresu 95 · Ataru 95 · Niman 94 · Shien/Djem So 94 · Shii-Cho 92 · *(Jar'Kai 94)* [note: Ruled, Jared 25 Nov 2026: Juyo 98 (Windu won the blade duel) and Force Control 104, below Force Output 108. D-494]
+  **Form ratings (game stats):** Juyo 98 (favored) · Makashi 96 · Soresu 95 · Ataru 95 · Niman 94 · Shien/Djem So 94 · Shii-Cho 92 · *(Jar'Kai 94)* [note: Ruled, Jared 25 Nov 2026: Juyo 98 (Windu won the blade duel), Force Control 118, Force Output 125, Willpower 120. D-495]
 - **Force Abilities (game stats):** **Force Lightning 112** *(**Chain Lightning** 95%, **Force Storm** 92% — his signature, the most feared lightning in Legends)* · Sith Alchemy 108 *(**Sith sorcery** 95% — master; holds nearly all surviving Sith lore with Tenebrous & Plagueis)* · Mind Probe 100 *(**mass mind-manipulation** 95%)* · Telekinesis 100 *(Force Push 92%)* · Force Sense 100 *(**foresight / Precognition** 95%)*
 - **Unique techniques:** **The Grand Plan** *(decades-long galactic-scale political and Force manipulation, concealing his nature from the entire Jedi Order)*
 - **Signature Ability:** **The Grand Plan & total manipulation** — the supreme political and Force manipulator of the age, backed by legendary Force lightning and Sith sorcery.
 - **Notable Feats:** Murdered Plagueis; manipulated the Naboo crisis to become Supreme Chancellor; directed Maul and Dooku; engineered the Separatist crisis and the Clone Wars — all toward the Empire.
 - **Alignment:** Dark side.
-- **Tier:** **Legendary** (sorcery / lightning / will / manipulation) — **apex-adjacent** (ceiling ~112), the most dangerous Sith of the modern age.
+- **Tier:** **Legendary** (sorcery / lightning / will / manipulation) — **apex** (duel tier: apex), the most dangerous Sith of the modern age.
 
 > **Cross-era note:** Hidden Chancellor-era prime. His open **Emperor** incarnation (post-Order 66, disfigured, ruling openly) is **Era 13**, where he rises into the **Tier A apex cluster** (calibrated with near-potential Anakin and Vader). His Reborn/Dark Empire clone incarnations — among the most powerful dark-siders in Legends — are far later still.
 
@@ -140,12 +140,12 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Strength | 60 | | ForceSense | 100 |
 | Agility | 92 | | Meditation | 102 |
 | Endurance | 80 | | ForceKnowledge | 102 |
-| Willpower | 104 | | ForceControl | 104 |
-| Charisma | 90 | | ForceOutput | 96 |
+| Willpower | 115 | | ForceControl | 122 |
+| Charisma | 90 | | ForceOutput | 112 |
 | Intelligence | 96 | | | |
 
 - **Lightsaber Forms / Bladework:** Compensates for his size with overwhelming **Force-augmented speed and acrobatics**, wielding a green shoto in a whirlwind, gravity-defying style — leaping, spinning, redirecting his tiny mass at blinding speed. He fought Dooku to a standstill and battled Sidious himself to a stalemate. His dueling is legendary, but he considers the blade a last resort.
-  **Form ratings (game stats):** Ataru 100 (primary, shoto) · Shii-Cho 90 · Soresu 88 · Makashi 88 · Niman 86 [note: Ruled, Jared 25 Nov 2026: Force Control 104, at least level with Sidious; Force Output 96 in both eras. D-494]
+  **Form ratings (game stats):** Ataru 100 (primary, shoto) · Shii-Cho 90 · Soresu 88 · Makashi 88 · Niman 86 [note: Ruled, Jared 25 Nov 2026: Ataru 100, Force Control 122, Force Output 112, Willpower 115, in 32-19 BBY and in exile. D-495]
 - **Force Abilities (game stats):** Telekinesis 102 *(Force Push/Lift 95% — held back colossal masses)* · Force Sense 100 *(**Precognition** 95%)* · Meditation discipline 102 · Force Body 95 *(Force Speed 95%)* · Force Barrier 92 *(**Force Absorb** 88% — caught Sidious's lightning bare-handed)*
 - **Unique techniques:** **Force-spirit transcendence** *(retained consciousness after death — learned from Qui-Gon's discovery)*
 - **Signature Ability:** **Grand Master of the Force** — the deepest, broadest Force mastery of the age, paired with nine centuries of wisdom; the greatest duelist of his time despite his size.
@@ -292,8 +292,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 | Character | Affiliation | Primary Tier | Standout Stat(s) | Peak Form / Combat |
 |---|---|---|---|---|
-| Darth Sidious (Chancellor-era) | Sith | **Legendary** (apex-adjacent) | WIL 112 / FCtrl 104 / FKnow 108 / CHA 108 / FOut 108 | Juyo 98 (all 7 mastered) |
-| Yoda | Jedi Order | **Legendary** | Med 102 / FKnow 102 / WIL 104 / FCtrl 104 | Ataru 100 |
+| Darth Sidious (Chancellor-era) | Sith | **Legendary** (apex) | WIL 120 / FCtrl 118 / FKnow 108 / CHA 108 / FOut 125 | Juyo 98 (all 7 mastered) |
+| Yoda | Jedi Order | **Legendary** | Med 102 / FKnow 102 / WIL 115 / FCtrl 122 | Ataru 100 |
 | Darth Plagueis | Sith | **Legendary** | FKnow 102 / **INT 100** (midi-chlorian sorcery) | Makashi 80 |
 | Mace Windu | Jedi Order | **Legendary** (dueling) | WIL 94 / FCtrl 92 (Vaapad) | Vaapad 100 |
 | Count Dooku (Jedi) | Jedi Order | **Legendary** (dueling) | AGI 90 / INT 88 (Makashi) | Makashi 96 |

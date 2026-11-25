@@ -21,7 +21,7 @@ Initiate 0–20 · Padawan 21–40 · Knight 41–60 · Master 61–80 · Grandm
 - **ForceOutput** = raw power/magnitude (distinct from ForceControl, finesse). Bane's orbalisk-amplified dark power is his standout.
 
 ### Where Bane sits in the apex hierarchy
-Bane is **one of the greatest Sith in history** — but per the Era 09 APEX CEILING, he sits at the **top of standard legendary (ceiling ~114), just below the Tier A apex cluster** (Vitiate ~134, Krayt ~132, near-potential Anakin ~135). The true god-tier Sith (the planet-draining Vitiate; the near-immortal, all-Sith-uniting Krayt) edge above even the Sith'ari. His **orbalisk armor** is the force-multiplier that lets him punch at that ceiling.
+Bane is **one of the greatest Sith in history** — but per the Era 09 APEX CEILING, he sits at the **top of standard legendary (ceiling ~114), just below the Tier A apex cluster** (Vitiate ~134, Krayt  FC 128 / FO 126, near-potential Anakin ~135). The true god-tier Sith (the planet-draining Vitiate; the near-immortal, all-Sith-uniting Krayt) edge above even the Sith'ari. His **orbalisk armor** is the force-multiplier that lets him punch at that ceiling.
 
 ### NEW IN THIS PASS — game-ready numeric stats + v3 stats
 - **ForceOutput and Intelligence** added to every block (this sheet predated the v3 stats).
@@ -75,12 +75,12 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Strength | 60 | | ForceSense | 88 |
 | Agility | 76 | | Meditation | 80 |
 | Endurance | 66 | | ForceKnowledge | 96 |
-| Willpower | 94 | | ForceControl | 96 |
+| Willpower | 105 | | ForceControl | 96 |
 | Charisma | 80 | | ForceOutput | 92 |
 | Intelligence | 92 | | | |
 
 - **Lightsaber Forms / Bladework:** Wields a **double-bladed saber** in a committed **Form III (Soresu)** defensive style — her small frame and modest strength made pure aggression a losing game, so she specialized in tireless, airtight defense instead. This was deliberate: Soresu let her **weather a stronger opponent's onslaught and conserve energy until she could bring her sorcery to bear** — exactly how she ultimately beat Bane on Ambria, turtling through his power attacks until she could unleash her dark-side sorcery on him. Her dueling is otherwise unremarkable; the defense is the whole point.
-  **Form ratings (game stats):** Soresu 86 (primary — defensive specialist) · Niman 76 *(double-blade handling)* · Ataru 74 · Shii-Cho 72
+  **Form ratings (game stats):** Soresu 86 (primary — defensive specialist) · Niman 76 *(double-blade handling)* · Ataru 74 · Shii-Cho 72 [note: Ruled, Jared 25 Nov 2026: Willpower 105 (she won the contest of wills on Ambria; was 94). D-495]
 - **Force Abilities (game stats):** Mind Probe 105 *(**mind-domination / drive-insane** 95%)* · Mind Trick 100 *(**Force Illusion** 95% — overwhelming, convincing phantasms)* · Force Lightning 90 *(Chain Lightning 85%)* · Telekinesis 85 *(Force Push 78%)*
 - **Unique techniques:** **Mind-attack sorcery** *(weaponizing the Force against the mind — shattering psyches and inducing madness; drove the Jedi Darovit insane)*
 - **Signature Ability:** **Sith sorcery (mind-attack & illusion)** — a master of weaponizing the Force against the mind; far more dangerous through sorcery than through her saber. Her **Soresu defense is the delivery system**: outlast a stronger foe with airtight defense, then break them with sorcery (her winning strategy against Bane).

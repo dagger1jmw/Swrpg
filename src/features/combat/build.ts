@@ -4,6 +4,7 @@ import { SITH_ACADEMIES, SPARRING_DEFAULT_BY_RANK, moraleFor, subdueFor, withdra
 import { MINION_KINDS, beskarChanceAt } from '../../data/npcGen.config';
 import { nextFloat, seedRng } from '../../engine/rng';
 import { CANON_BY_ID } from '../../data/canonNpcs';
+import { namedForceBody } from '../../data/canon/sheetScale';
 import { FORM_IDS } from '../../data/skills';
 import { speciesTableId } from '../../data/species';
 import { DROID_MINION_KINDS, HEAVY_MINION_KINDS } from '../../data/forceResistance.config';
@@ -19,6 +20,7 @@ import type { MatchupSituation } from '../../data/formMatchups';
 import { dateFromAbsDay } from '../../engine/calendar';
 import type { DuelContext, Fighter } from '../../engine/duel';
 import { capacities } from '../../engine/fatigue';
+import { npcPerformance } from '../../engine/species';
 import { minionInputs, minionWeaponLevel } from '../../engine/npcGen';
 import { maxVitality, maxVitalityWithLasting } from '../../engine/vitality';
 import type { Wound } from '../../engine/wounds';
@@ -99,18 +101,20 @@ export function buildPlayerFighter(s: GameState): Fighter {
   };
 }
 
-function fighterFromLevels(id: string, name: string, levels: Readonly<Record<string, number>>, loadout: Loadout, opts: { minion: boolean; vitalityLost: number; wounds: readonly Wound[]; lasting: readonly LastingInjury[]; shatterpoint: number; lightSide: boolean }): Fighter {
+function fighterFromLevels(id: string, name: string, levels: Readonly<Record<string, number>>, loadout: Loadout, opts: { minion: boolean; vitalityLost: number; wounds: readonly Wound[]; lasting: readonly LastingInjury[]; shatterpoint: number; lightSide: boolean; forceBody?: number }): Fighter {
   const lv = (k: string): number => levels[k] ?? 0;
   const { skillId, form } = fightingSkill(loadout, lv, null);
+  // The Force in the body, as the player's is (D-495).
+  const body = (k: string): number => npcPerformance(levels, k, opts.forceBody);
   // A lost leg cuts the meters' capacity for an NPC too (D-252).
-  const caps = capacities(capacityEndurance(lv('endurance'), opts.lasting), lv('willpower'), lv('forceControl'));
+  const caps = capacities(capacityEndurance(body('endurance'), opts.lasting), lv('willpower'), lv('forceControl'));
   // The lasting injuries' Endurance penalty (D-255), for an NPC as for the player.
-  const maxV = maxVitalityWithLasting(maxVitality({ endurance: lv('endurance'), strength: lv('strength'), bodyAbility: Math.max(lv('forceSpeed'), lv('forceJump')) }), lastingPenalty(opts.lasting, 'endurance'));
+  const maxV = maxVitalityWithLasting(maxVitality({ endurance: body('endurance'), strength: body('strength'), bodyAbility: Math.max(lv('forceSpeed'), lv('forceJump')) }), lastingPenalty(opts.lasting, 'endurance'));
   return {
     id,
     name,
     skillId,
-    level: lv(skillId),
+    level: skillId === 'agility' ? body(skillId) : lv(skillId),
     rust: 0,
     form,
     weapon: loadout.weapon,
@@ -118,8 +122,8 @@ function fighterFromLevels(id: string, name: string, levels: Readonly<Record<str
     saberResistant: loadout.saberResistant,
     forceSense: lv('forceSense'),
     willpower: lv('willpower'),
-    agility: lv('agility'),
-    endurance: lv('endurance'),
+    agility: body('agility'),
+    endurance: body('endurance'),
     shatterpoint: opts.shatterpoint,
     lightSide: opts.lightSide,
     minion: opts.minion,
@@ -175,6 +179,7 @@ export function buildNpcFighter(s: GameState, npcId: string, live = true): { fig
     lasting: (npc.health?.lasting ?? []) as LastingInjury[],
     shatterpoint: canon?.specialTalents?.includes('shatterpointPerception') ? (levels['forceSense'] ?? 0) : 0,
     lightSide: gen.path === 'jedi',
+    ...(canon ? { forceBody: namedForceBody(canon) } : {}),
   });
   const blade = loadout.weapon === 'lightsaber' ? (canon?.bladeColor ?? bladeColorFor(gen.path, archetype, gen.seed)) : null;
   // The weapon's and the armor's own names from the description, or the Vong caste's (pass 4 issue 12).

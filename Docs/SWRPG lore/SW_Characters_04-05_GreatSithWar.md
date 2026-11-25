@@ -239,7 +239,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Intelligence | 92 | | | |
 
 - **Lightsaber Forms / Bladework:** One of the **greatest lightsaber duelists in Sith history** and the **inventor of the double-bladed lightsaber (saberstaff)**. He fuses acrobatic aggression with Sith ferocity and sorcery — spinning two-ended attacks interlaced with Force speed, telekinetic strikes, and Sith magic mid-duel. **Master of all seven classic forms; his signature is Form VI (Niman)**, which he wielded with a lethality few in history ever matched, using its balanced versatility to flow seamlessly between offense, defense, and Force attacks.
-  **Form ratings (game stats):** Shii-Cho 98 · Makashi 100 · Soresu 96 · Ataru 102 · Shien/Djem So 100 · **Niman 110** · Juyo 98
+  **Form ratings (game stats):** Shii-Cho 98 · Makashi 100 · Soresu 96 · Ataru 102 · Shien/Djem So 100 · **Niman 110 [note: Ruled, Jared 25 Nov 2026: Niman 110 stays. D-495]** · Juyo 98
 - **Force Abilities (game stats):** Sith Alchemy 105 *(Midi-chlorian Manipulation 95%)* · Telekinesis 98 *(Force Push 90%, Force Throw 85%)* · Force Lightning 88 *(Chain Lightning 80%, Force Storm 60%)* · Force Body 95 *(Force Speed 95%, Enhance Attribute 82%)* · Mind Probe 85 *(Mind Control 78%)* · Force Sense 92 *(Precognition 88%)*
 - **Unique techniques:** **Spirit-binding** *(bound his spirit to Yavin 4, surviving ~4,000 years)* · **Sith battle-magic** *(mass life-drain to power his last defense)*
 - **Signature Ability:** **Sith sorcery & spirit-binding** — mastery of Sith alchemy and battle-magic culminating in draining an entire population and binding his own spirit to survive bodily death for four millennia.

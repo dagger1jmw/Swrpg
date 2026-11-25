@@ -53,9 +53,10 @@ These apply to every step in every tag map (D-489).
 
 Jared's examples: the Death Star throne room is unbreakable except by the Emperor's or Vader's death earlier, because no PC would be there; the Ewoks on Endor break only if Leia is taken out on the speeder or earlier; Anakin's fall needs a High Council-level Jedi in good standing and in Anakin's trust.
 
-**Top duelists (standing rule, all maps).** Any fight with a top duelist needs at least a Master. In this map the top duelists are Sadow, Kun, Ulic, Revan, Malak, Nihilus, Sion and Kreia (Vader and others in later eras; Yoda and Sidious are apex duelists, a tier above, which no one on this map is listed in: D-494); the review also puts beating Surik and saving Darach from Malgus in the top tier. Two tiers:
+**Top duelists (standing rule, all maps).** Any fight with a top duelist needs at least a Master. In this map the top duelists are Sadow, Kun, Ulic, Revan, Malak, Nihilus, Sion and Kreia (Vader and others in later eras; Yoda and Sidious are apex duelists, a tier above, which no one on this map is listed in: D-494); the review also puts beating Surik and saving Darach from Malgus in the top tier. Three tiers:
 - **A regular Master** only holds one off briefly, like Kit Fisto against Sidious: enough to buy a moment, never to win.
 - **Top tier:** beating one, or holding one off for long, needs a Mace-level character (combat 88, Force Control 85, Willpower 90: D-494). In this map "top tier" marks such a route. It is a power bar on top of the guard, not a guard level of its own: a PC below it fails however the rolls go.
+- **Apex tier (Jared, 25 Nov 2026, D-494, D-495):** above the top duelists: combat 98, Force Control 110, Willpower 105. Yoda and Sidious; the Dark Times Vader, Mace and the freed Revan are just under it. Only another apex beats an apex duelist; a top-tier fighter only buys time; a Master does not even hold one off. No apex duelist on this map.
 
 **No premonitions.** A vision, premonition or "sense in the Force" is never used to justify a step or counted as a lead. That would be the narrator changing the story. (Scourge's vision in the throne room is lore, not a lead a PC can have earlier.)
 

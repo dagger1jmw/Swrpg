@@ -19,6 +19,7 @@ import { SPECIES_BY_ID, speciesDef, speciesOfferedAt } from '../../data/species'
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { closedFormLevel, formXps, phasesFor, planSplit, type AgeYears, type FormPlan } from '../../engine/closedForm';
 import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
+import { trackedSenseXp } from '../../engine/forceSense';
 import { ageLoss, bodyAgeFromH } from '../../engine/ageing';
 import { ageFromTraining, bodyCapAt, humanEquivalentAge, naturalLevel, speciesLearning, trainingAge, trainingAgeFactor, trainingIntegral } from '../../engine/species';
 import { crossTalentMult, isForceXpSkill, isOutsideForce, talentMult, type Talents } from '../../engine/speed';
@@ -305,6 +306,9 @@ export function computeCreation(input: CreationInput): CreationResult {
   const startingXp: Record<string, number> = {};
   const levels: Record<string, number> = {};
   let maxPace = 0;
+  // The ends of the rank phases lived, for Force Sense's closed form (D-495).
+  const stretchEnds = [...new Set([hAges.padawanAge, hAges.knightAge, h].filter((x) => x > hStart && x <= h))].sort((x, y) => x - y);
+  const stretch: { forceSense?: number[]; forceControl?: number[] } = {};
   // Focus sliders move a phase's pace by Delta share x the Knight+ pace per share (D-105), scaled by the phase's share
   // of fill hours (D-115: the Order-fixed phases move by their fill only).
   const ownPace = (key: string, ph: Phase): number => Math.max(0, (a.paces[ph]?.[key] ?? 0) + ((focus[key] ?? 0) - (def[key] ?? 0)) * perShare * fill[ph]);
@@ -321,8 +325,15 @@ export function computeCreation(input: CreationInput): CreationResult {
     const phases = phasesFor({ initiate: pace('initiate'), padawan: pace('padawan'), knight: pace('knight'), ...(youthPace !== undefined ? { youth: youthPace } : {}) }, hAges, ages.onePhase);
     for (const ph of phases) if (ph.to > hStart && ph.from < h) maxPace = Math.max(maxPace, Math.min(4, ph.pace * mult));
     const row = CATEGORY_RULES[SKILL_BY_ID.get(skill)!.category].ageRow;
-    const trained = closedFormLevel({ row, startAge: hStart, age: h, phases, mult, warYears, ...(years ? { years } : {}) });
-    if (trained > 0) startingXp[skill] = xpForLevel(trained);
+    const trainedAt = (age: number, war: number): number => xpForLevel(closedFormLevel({ row, startAge: hStart, age, phases, mult, warYears: war, ...(years ? { years } : {}) }));
+    const trained = trainedAt(h, warYears);
+    if (trained > 0) startingXp[skill] = trained;
+    if (skill === 'forceSense' || skill === 'forceControl') stretch[skill] = stretchEnds.map((x) => trainedAt(x, x === h ? warYears : 0));
+  }
+  // Force Sense keeps pace with Force Control for every Force user (D-495): the loop's rule in closed form.
+  if (input.path !== 'career' && stretch.forceControl) {
+    const tracked = trackedSenseXp(stretch.forceControl.map((control, i) => ({ control, own: stretch.forceSense?.[i] ?? 0 })));
+    if (tracked > 0) startingXp['forceSense'] = tracked;
   }
   // Lightsaber forms (D-118, D-119): the form plans with the fundamentals transfer.
   const hasForms = Object.keys(a.weights).some(isFormKey) || input.path === 'jedi' || input.path === 'sith';

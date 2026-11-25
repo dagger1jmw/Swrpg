@@ -161,19 +161,30 @@ describe('the stat scale (D-423, revised by D-429)', () => {
     const g = malgus.anchors[0]!.levels;
     expect(malgus.anchors[0]!.scale).toBe('game');
     for (const [k, v] of [['djemSo', 92], ['juyo', 80], ['forceControl', 88], ['forceOutput', 90], ['willpower', 94], ['telekinesis', 88], ['forceLightning', 85]] as const) expect(g[k], k).toBe(v);
-    // Force Sense is not a Warrior's focus, nor Charisma anyone's here: the game builds them.
-    expect([g['forceSense'], g['charisma']]).toEqual([undefined, undefined]);
-    expect(canon('satele-shan').anchors[0]!.levels['forceSense']).toBe(92);
-    expect(canon('darth-baras').anchors[0]!.levels['forceSense']).toBe(84); // listed among his abilities
+    // Force Sense is every Force user's (D-495).
+    expect([g['forceSense'], canon('satele-shan').anchors[0]!.levels['forceSense'], canon('darth-baras').anchors[0]!.levels['forceSense']]).toEqual([84, 92, 84]);
+    // Knowledge and meditation as written where the focus holds them, else the measured curves.
+    for (const [id, fk, med] of [['satele-shan', 90, 94], ['revan', 98, 90], ['vitiate', 134, 124], ['zym', 88, 90], ['ragate', 80, 70]] as const) expect([canon(id).anchors[0]!.levels['forceKnowledge'], canon(id).anchors[0]!.levels['meditation']], id).toEqual([fk, med]);
+    expect([g['forceKnowledge']! < 30, g['meditation']! < 30]).toEqual([true, true]);
     // Strength 90 in combat, less the boost Force Control 88 and Force Body 86 give: 0.3 x 48 + 0.2 x 86 = 31.6.
     expect(g['strength']).toBeCloseTo(58.4, 1);
     expect(sheetBody({ archetype: 'soldier' }, {}, 100)).toBeCloseTo(80, 9);
     expect(sheetBody({ archetype: 'soldier' }, {}, 40)).toBe(40);
-    // A smuggler's tongue and a soldier's command are their focus.
-    expect(sheetToGame({ ...canon('darth-malgus'), archetype: 'smuggler' }, { bby: 3653, levels: { charisma: 88 } })).toEqual({ charisma: 88 });
+    // A smuggler's tongue goes by the one Charisma curve (D-495); a soldier's command is the focus.
+    expect(sheetToGame({ ...canon('darth-malgus'), archetype: 'smuggler' }, { bby: 3653, levels: { charisma: 88 } })).toEqual({ charisma: 78.4 });
     expect(sheetToGame({ ...canon('darth-malgus'), archetype: 'soldier' }, { bby: 3653, levels: { tactics: 70 } })).toEqual({ tactics: 70 });
   });
-  it('no figure with a sheet is below the line the game would generate, nor above its body (D-494)', async () => {
+  it('Charisma keeps the sheets\' order, and the great leaders stay high (D-495)', async () => {
+    const { CHARISMA_SCALE } = await import('../../src/data/canon/sheetScale');
+    for (let i = 1; i < CHARISMA_SCALE.length; i++) expect(CHARISMA_SCALE[i]![1]).toBeGreaterThan(CHARISMA_SCALE[i - 1]![1]);
+    const { canonFigureLevelsAt } = await import('../../src/features/npcs/selectors');
+    const all = CANON_NPCS.flatMap((n) => n.anchors.filter((a) => a.complete && a.authored?.['charisma'] !== undefined).map((a) => ({ id: n.canonId, sheet: a.authored!['charisma']!, game: canonFigureLevelsAt(n, a.bby, at(-a.bby))['charisma']! }))).sort((x, y) => x.sheet - y.sheet);
+    expect(all.length).toBeGreaterThan(40);
+    for (let i = 1; i < all.length; i++) if (all[i]!.sheet > all[i - 1]!.sheet) expect(all[i]!.game, `${all[i]!.id} ${all[i - 1]!.id}`).toBeGreaterThan(all[i - 1]!.game);
+    const of = (id: string): number => all.find((x) => x.id === `lore:${id}`)!.game;
+    expect([of('vitiate') > 110, of('revan') > 80, of('satele-shan') > 75, of('darth-marr') > 70]).toEqual([true, true, true, true]);
+  });
+  it('the floor is never above the sheet, and lifts what the sheet leaves unset; nothing is above its body (D-494, D-495)', async () => {
     const { canonFigureLevelsAt, canonBodyAge, canonProgressionLineAt } = await import('../../src/features/npcs/selectors');
     const { bodyCapAt } = await import('../../src/engine/species');
     const { speciesTableId } = await import('../../src/data/species');
@@ -182,7 +193,14 @@ describe('the stat scale (D-423, revised by D-429)', () => {
         const today = at(-a.bby);
         const now = canonFigureLevelsAt(n, a.bby, today);
         const bare = canonProgressionLineAt(n, a.bby, today);
-        if (n.canonId !== 'lore:oteg' && !n.events?.length) for (const [k, v] of Object.entries(bare)) expect(now[k]!, `${n.canonId} ${k}`).toBeGreaterThanOrEqual(v - 1e-6);
+        const sheet = a.authored ?? a.levels;
+        const own0 = Math.max(0, ...FORM_IDS.filter((k) => k !== 'jarKai').map((k) => (sheet[k] !== undefined ? now[k]! : 0)));
+        if (!n.events?.length)
+          for (const [k, v] of Object.entries(bare)) {
+            if (FORM_IDS.includes(k) && sheet[k] === undefined && own0 > 0) expect(now[k]!, `${n.canonId} ${k}`).toBeLessThan(own0); // held under its own forms
+            else expect(now[k]!, `${n.canonId} ${k}`).toBeGreaterThanOrEqual(Math.min(v, sheet[k] ?? Infinity) - 1e-6);
+            if (sheet[k] !== undefined) expect(now[k]!, `${n.canonId} ${k} over the sheet`).toBeLessThanOrEqual(sheet[k]! + 1e-6);
+          }
         // The figure's own best form is its best.
         const own = Object.keys(a.levels).filter((k) => FORM_IDS.includes(k) && k !== 'jarKai');
         if (own.length) expect(Math.max(...own.map((k) => now[k]!)), n.canonId).toBe(Math.max(...FORM_IDS.filter((k) => k !== 'jarKai').map((k) => now[k] ?? 0)));

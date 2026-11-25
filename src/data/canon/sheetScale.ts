@@ -1,15 +1,14 @@
-// The sheet scale (Jared, 2026-11-25; D-494; skills-and-activities.md §7). Supersedes D-423's conversion and D-429's factors
+// The sheet scale (Jared, 2026-11-25; D-494, D-495; skills-and-activities.md §7). Supersedes D-423's conversion and D-429's factors
 // and hand-set lines. A hand-set sheet (lore batch 19, the D-421 lines) is on the game's own tier line (Adept 41-60, Master
 // 61-80, High Master 81-100, Legendary 101+). At load (CANON_NPCS) a sheet becomes its game levels like this:
-//  1. Main-specialty stats as written: every form, the Force abilities, Force Control, Force Output, Willpower; Force Sense
-//     for a figure whose focus includes it; whatever else the archetype's focus holds (its weights).
+//  1. Main-specialty stats as written: every form, the Force abilities, Force Control, Force Output, Force Sense, Willpower;
+//     Force Knowledge and Meditation for a figure whose focus includes them; whatever else the archetype's weights hold.
 //  2. Strength, Agility and Endurance come down: the sheets wrote them as they are in combat, with the Force in them
 //     (sheetBody). The species' cap at the figure's age is applied with the date (engine/canonStats.ts).
-//  3. Force Knowledge and Meditation from D-461's measured curves by age, Intelligence and Tactics outside the focus from the
-//     D-429 bands; never above the sheet.
-//  4. Anything else outside the focus (a Sith Warrior's Force Sense, a Jedi's Charisma) is left out: the game builds it, as
-//     it does for any figure of that archetype, rank and age.
-//  5. Nothing ends below what the game would generate (the floor, engine/canonStats.ts).
+//  3. Force Knowledge and Meditation outside the focus from D-461's measured curves by age, Intelligence and Tactics outside
+//     it from the D-429 bands; never above the sheet. Charisma by one curve for everyone (CHARISMA_SCALE).
+//  4. Anything else outside the focus is left out: the game builds it, as it does for any figure of that archetype, rank and age.
+//  5. Nothing ends below what the game would generate, but never above the sheet (the floor, engine/canonStats.ts).
 // The authored numbers stay in the roster files (an anchor's `authored`).
 import { archetypeDef } from '../archetypes';
 import { FORCE_BOOST } from '../progression.config';
@@ -20,21 +19,33 @@ import type { CanonNpc, StatAnchor } from './types';
 /** Jedi and others trained in the Force, or not (a career). */
 const usesForce = (archetype: string): boolean => archetypeDef(archetype).path !== 'career';
 
-/** Stats always taken as written (D-494). */
-const AS_WRITTEN: readonly string[] = ['willpower', 'forceControl', 'forceOutput'];
-/** Sith whose sheets make Force Sense a specialty (listed among their abilities, or Legendary): the rest of the focus is the archetype's. */
-const SENSE_FOCUS: readonly string[] = ['lore:vitiate', 'lore:darth-baras', 'lore:darth-angral', 'lore:dread-masters', 'lore:ragate'];
+/** Stats always taken as written (D-494; Force Sense for every Force user, D-495). */
+const AS_WRITTEN: readonly string[] = ['willpower', 'forceControl', 'forceOutput', 'forceSense'];
+/**
+ * Figures whose focus includes Force Knowledge and Meditation beyond their archetype's weights (D-495; the list past Jared's
+ * three is a reading of the sheets): Satele, Revan and Vitiate; then the seers and ritualists of the Sith Inquisitors (the
+ * Dread Masters, Ragate's rite, Zash's and Kressh's sorcery, Mekhis's and Nox's alchemy). Scholars are Consulars.
+ */
+export const KNOWLEDGE_FOCUS: readonly string[] = ['lore:satele-shan', 'lore:revan', 'lore:vitiate', 'lore:dread-masters', 'lore:ragate', 'lore:darth-zash', 'lore:exal-kressh', 'lore:darth-mekhis', 'lore:darth-nox'];
+/**
+ * A sheet's Charisma on the game's scale (D-495; the anchors are invented): one rising curve for everyone, so the sheets'
+ * order holds. The sheets bunch at 70-90; the game's own untrained Charisma is 15 and a career of it about 30, so the
+ * ordinary comes down and the great leaders and manipulators stay high.
+ */
+export const CHARISMA_SCALE: readonly (readonly [number, number])[] = [[0, 0], [40, 25], [60, 40], [75, 55], [90, 82], [100, 95], [122, 118], [150, 150]];
 const PHYSICAL: readonly string[] = ['strength', 'agility', 'endurance'];
 
-/** Whether a stat belongs to the figure's focus: its archetype's weights, or Force Sense where its own sheet says so. */
+/** Whether a stat belongs to the figure's focus: its archetype's weights, or Force Knowledge and Meditation by the list. */
 function focusHolds(n: Pick<CanonNpc, 'canonId' | 'archetype'>, stat: string): boolean {
-  return stat in archetypeDef(n.archetype).weights || (stat === 'forceSense' && SENSE_FOCUS.includes(n.canonId));
+  return stat in archetypeDef(n.archetype).weights || ((stat === 'forceKnowledge' || stat === 'meditation') && KNOWLEDGE_FOCUS.includes(n.canonId));
 }
+
+/** The Force Body a sheet names (no skill of its own until the Force catalog is built). */
+export const namedForceBody = (n: Pick<CanonNpc, 'unmapped'>): number => Math.max(0, ...(n.unmapped ?? []).map((u) => Number(/^Force Body (\d+)/.exec(u)?.[1] ?? 0)));
 
 /** The figure's Force body ability: its sheet's Force Speed or Force Jump, or the Force Body it names. */
 function bodyAbility(n: Pick<CanonNpc, 'unmapped'>, levels: Readonly<Record<string, number>>): number {
-  const named = (n.unmapped ?? []).map((u) => Number(/^Force Body (\d+)/.exec(u)?.[1] ?? 0));
-  return Math.max(levels['forceSpeed'] ?? 0, levels['forceJump'] ?? 0, ...named, 0);
+  return Math.max(levels['forceSpeed'] ?? 0, levels['forceJump'] ?? 0, namedForceBody(n));
 }
 
 /**
@@ -154,7 +165,7 @@ export function sheetToGame(n: Pick<CanonNpc, 'canonId' | 'archetype' | 'ranks' 
   for (const [k, v] of Object.entries(a.levels)) {
     const kind = SKILL_BY_ID.get(k)?.kind;
     if (PHYSICAL.includes(k)) out[k] = Math.round(sheetBody(n, a.levels, v) * 10) / 10;
-    else if (k === 'forceKnowledge' || k === 'meditation') out[k] = bandValue(k, v, band, n.archetype, age);
+    else if (k === 'charisma') out[k] = Math.round(curveAt(CHARISMA_SCALE, v) * 10) / 10;
     else if (AS_WRITTEN.includes(k) || kind === 'form' || kind === 'forceAbility' || focusHolds(n, k)) out[k] = v;
     else if (BAND_SET_STATS.includes(k)) out[k] = bandValue(k, v, band, n.archetype, age);
   }
