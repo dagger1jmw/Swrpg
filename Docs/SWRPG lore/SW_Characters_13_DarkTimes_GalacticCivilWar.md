@@ -213,7 +213,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Charisma|78||ForceOutput|72|
 |Intelligence|84||||
 
-* **Lightsaber Forms / Bladework:** Skilled with blade and blaster — fast and aggressive — though her saber mastery deepens markedly in Era 14.
+* **Lightsaber Forms / Bladework:** Skilled with blade and blaster — fast and aggressive — though her saber mastery deepens markedly later.
 **Form ratings (game stats):** Ataru 76 · Shii-Cho 72 · *(Jar'Kai 74)*
 * **Force Abilities (game stats):** Force Sense 78 *(**combat sense** 80%)* · Telekinesis 74 *(Force Push 68%)* · Mind Probe 70 *(telepathic link to the Emperor 80%)*
 * **Signature Ability:** **Emperor's Hand** — an elite Force-assisted assassin and infiltrator, personally trained by Palpatine and telepathically linked to him; lethal across blade, blaster, and stealth.
@@ -232,7 +232,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Sheet snapshot:** Late prime — the aged hermit of Tatooine, guardian of Luke
 * **Species / Affiliation / Rank:** Human · Jedi Order (in hiding) · Master; hermit
 * **Lifespan:** Born 57 BBY; in exile on Tatooine 19–0 BBY; struck down by Vader aboard the Death Star (0 BBY), persists as a Force spirit
-* **Summary:** The legendary Clone Wars General (Era 12), now decades older — a weathered desert hermit watching over the young Luke from afar. Age has cost him much of his physical edge (his duel with Vader aboard the Death Star is a slow, measured contest between two warriors past their primes), but his **Force attunement and wisdom have only deepened** — he had learned the path to becoming a Force spirit from Qui-Gon, and chose to let Vader strike him down, becoming "more powerful than you can possibly imagine" as a guiding spirit. Serene, wise, and at peace with the Force. His Legends Tatooine exile (19–0 BBY) was largely uneventful.
+* **Summary:** The legendary Clone Wars General (Era 12), now decades older — a weathered desert hermit watching over the young Luke from afar. Age has cost him much of his physical edge (his duel with Vader aboard the Death Star is a slow, measured contest between two warriors past their primes), but his **Force attunement and wisdom have only deepened** — he had learned the path to becoming a Force spirit from Qui-Gon, and chose to let Vader strike him down, becoming "more powerful than you can possibly imagine" as a guiding spirit. Serene, wise, and at peace with the Force. His Tatooine exile (19–0 BBY) was largely uneventful.
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|
@@ -367,7 +367,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 * **Sheet snapshot:** Prime — the galaxy's most feared bounty hunter
 * **Species / Affiliation / Rank:** Human (unaltered clone of Jango Fett) · independent · bounty hunter
 * **Lifespan:** Active across the Galactic Civil War era and well beyond (survives the Sarlacc in Legends)
-* **Summary:** The unaltered clone "son" of Jango Fett, raised as a warrior and grown into the most legendary bounty hunter in the galaxy — wearing Mandalorian armor and employed by the Empire and the Hutts to hunt the galaxy's most dangerous quarry (most famously capturing Han Solo). Resourceful, ruthless, and supremely skilled with his armor's arsenal. Non-Force, but able to survive encounters with Jedi and Sith. (In Legends he survives the Sarlacc and lives on for decades.)
+* **Summary:** The unaltered clone "son" of Jango Fett, raised as a warrior and grown into the most legendary bounty hunter in the galaxy — wearing Mandalorian armor and employed by the Empire and the Hutts to hunt the galaxy's most dangerous quarry (most famously capturing Han Solo). Resourceful, ruthless, and supremely skilled with his armor's arsenal. Non-Force, but able to survive encounters with Jedi and Sith. (He survives the Sarlacc and lives on for decades.)
 
 |Core|Value||Force|Value|
 |-|-|-|-|-|

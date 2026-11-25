@@ -53,7 +53,7 @@ The first well-remembered years after the Sith wars. The Coruscant Temple grows 
 ## ════════════════════════════════════════════════════
 
 ### Overview
-Local events only: a new independent territory in the Outer Rim, the Hapes Consortium closing itself off, rediscovered and newly prospected worlds, and on Kesh (Wild Space, cut off from the galaxy) the last generation of the Lost Tribe of Sith's near-thousand-year Time of the Rot (3,960–3,000 BBY) [Time of the Rot](https://starwars.fandom.com/wiki/Time_of_the_Rot). [note: the developer has ruled the Kesh chain narrator colour only, not shipped as event data (world-event-tags-3640-1000BBY-draft.md, ruling of 23 Nov 2026); the rows are kept here as lore]
+Local events only: a new independent territory in the Outer Rim, the Hapes Consortium closing itself off, rediscovered and newly prospected worlds, and on Kesh (Wild Space, cut off from the galaxy) the last generation of the Lost Tribe of Sith's near-thousand-year Time of the Rot [note: 3,960–3,000 BBY] [Time of the Rot](https://starwars.fandom.com/wiki/Time_of_the_Rot). [note: the developer has ruled the Kesh chain narrator colour only, not shipped as event data (world-event-tags-3640-1000BBY-draft.md, ruling of 23 Nov 2026); the rows are kept here as lore]
 
 | Date | Event | Type | Place | Who | Source |
 |---|---|---|---|---|---|
@@ -149,7 +149,7 @@ The Lost Tribe reaches and annexes Kesh's second continent. Alanciar had been on
 ## ════════════════════════════════════════════════════
 
 ### Overview
-The near-millennium of relative peace after the last Alsakan Conflict [New Sith Wars §Schism](https://starwars.fandom.com/wiki/New_Sith_Wars). In it the modern Jedi Archives are built, the battleship era ends, the Mining Guild claims Ruusan, and a plague kills the children of Alphoresis. By 2,000 BBY the Sith were "commonly believed to have been destroyed for centuries" [Fourth Great Schism](https://starwars.fandom.com/wiki/Fourth_Great_Schism). [note: no Supreme Chancellor is named between Vedij (c.3,017 BBY) and Genarra (c.1,032 BBY)] [Template:Chancellor](https://starwars.fandom.com/wiki/Template:Chancellor)
+The near-millennium of relative peace after the last Alsakan Conflict [New Sith Wars §Schism](https://starwars.fandom.com/wiki/New_Sith_Wars). In it the modern Jedi Archives are built, the battleship era ends, the Mining Guild claims Ruusan, and a plague kills the children of Alphoresis. The Sith are commonly believed to be long destroyed [note: by 2,000 BBY "commonly believed to have been destroyed for centuries"] [Fourth Great Schism](https://starwars.fandom.com/wiki/Fourth_Great_Schism). [note: no Supreme Chancellor is named between Vedij (c.3,017 BBY) and Genarra (c.1,032 BBY)] [Template:Chancellor](https://starwars.fandom.com/wiki/Template:Chancellor)
 
 | Date | Event | Type | Place | Who | Source |
 |---|---|---|---|---|---|

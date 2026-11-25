@@ -370,7 +370,8 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
         }
         const g = groupFor(era, range);
         const extra = [figures, location].filter((c) => c && c !== '—');
-        g.rows.push(`- ${date}: ${event}${extra.length ? ` (${extra.join('; ')})` : ''}`);
+        const shown = date.replace(/\s*\*?\((?:undated|no date|no year)\b[^()]*\)\*?/i, '').replace(/^undated\b,?\s*/i, '');
+        g.rows.push(`- ${shown ? `${shown}: ` : ''}${event}${extra.length ? ` (${extra.join('; ')})` : ''}`);
         for (const n of namesFromCell(figures)) g.names.add(n);
         for (const p of placesFromCell(location)) {
           g.places.add(p);
@@ -522,7 +523,8 @@ export function formatRange(from: number, to: number): string {
 
 /** "## Revan (V) — the freed prisoner" -> name "Revan"; "(Bestia, Brontes, ...)" lists become aliases. */
 export function parseCharacterHeading(heading: string): { name: string; aliases: string[] } {
-  const raw = cleanMarkdown(heading).trim();
+  // A dash inside brackets ("Luke Skywalker (NJO — Grand Master)") does not end the name (D-488).
+  const raw = cleanMarkdown(heading).trim().replace(/\([^)]*\)/g, (p) => p.replace(/\s*[—–]\s*/g, ' '));
   const head = raw.split(/\s+[—–]\s+/)[0] ?? raw;
   const paren = /\(([^)]*)\)/.exec(head);
   const name = head.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
@@ -545,7 +547,7 @@ const stripCitations = (s: string): string =>
 const RESEARCH_FIELD = /^\s*-\s*\*\*(?:Uncertainty|Not used|Cross-reference|Related|Key facts):?\*\*/i;
 /** What the research looked for and did not find ("birth not stated", "no source found"), one clause at a time. */
 const ABSENCE =
-  /\b(?:not (?:stated|given|on record)|none (?:listed|stated|found|specific|at scale)|no (?:death|fall|birth)\b.*\b(?:recorded|given|stated)|no source found|nothing on record|not named|none named|no numbers?\b|no (?:era|species) rate)\b|^population: other-era figure only$/i;
+  /\b(?:not (?:stated|given|on record)|none (?:listed|stated|found|specific|at scale)|no (?:death|fall|birth)\b.*\b(?:recorded|given|stated)|no source found|no Legends grid|nothing on record|not named|none named|no numbers?\b|no (?:era|species) rate)\b|^population: other-era figure only$/i;
 /** Labels that name the sources: "Places (era-sourced)", "government (SWTOR-era refs)". The places are mostly on record late. */
 const SOURCE_LABEL: readonly (readonly [RegExp, string])[] = [
   [/\*\*4\. Places \(era-sourced\):\*\*(?=.*\[unconfirmed in window)/, '**4. Places (most known from about 3643 BBY on):**'],
@@ -568,12 +570,12 @@ function datedPair(value: string): string {
   return [says(a) ? `In 3661 BBY: ${a.trim()}.` : '', says(b) ? `In 3653 BBY: ${b.trim()}.` : ''].filter(Boolean).join(' ');
 }
 
-/** Drops the clauses that only say what is not known; a label left with nothing goes too. */
-function dropAbsences(line: string): string {
-  if (!ABSENCE.test(line)) return line;
+/** Drops the clauses `what` matches (what is not known, by default); a label left with nothing goes too. */
+function dropAbsences(line: string, what: RegExp = ABSENCE): string {
+  if (!what.test(line)) return line;
   const label = /^\s*-?\s*(?:\d[\d–-]*\.\s*)?[A-Z0-9][^.;:]{0,40}:\s+/.exec(line)?.[0] ?? '';
   const sentences = (line.slice(label.length).match(SENTENCE) ?? []).map((s) => {
-    const clauses = s.trim().replace(/[.]$/, '').split(/;\s+/).filter((c) => !ABSENCE.test(c));
+    const clauses = s.trim().replace(/[.]$/, '').split(/;\s+/).filter((c) => !what.test(c));
     return clauses.length ? `${clauses.join('; ')}.` : '';
   });
   const kept = sentences.filter(Boolean).join(' ');
@@ -593,7 +595,7 @@ function researchLines(lines: readonly string[]): string[] {
       const indent = /^\s*/.exec(l)![0];
       let t = l;
       for (const [re, to] of SOURCE_LABEL) t = t.replace(re, to);
-      t = cleanTimelineText(t.replace(/\*\*/g, '')).replace(BOOK_ASIDE, '').replace(/;?\s*\b(?:grid|sector —)(?=;)/g, '').replace(/\bpopulation: other-era figure only(?:;\s*|(?=\.)|$)/, '').replace(/(Places[^:]*:) None;/, '$1').replace(/'{2,}/g, '');
+      t = cleanTimelineText(t.replace(/\*\*/g, '')).replace(BOOK_ASIDE, '').replace(/;?\s*\b(?:grid no Legends grid|(?<!no Legends )grid|sector —|system —|region —)(?=[;.])/g, '').replace(/:;\s*/g, ': ').replace(/\bpopulation: other-era figure only(?:;\s*|(?=\.)|$)/, '').replace(/(Places[^:]*:) None;/, '$1').replace(/'{2,}/g, '');
       const pair = /^(-\s*)3661 BBY \/ 3653 BBY:\s*(.* \/ .*)$/.exec(t);
       t = pair ? datedPair(pair[2]!) && pair[1]! + datedPair(pair[2]!) : dropAbsences(t);
       t = t.replace(/;(?=\s*[.;])/g, '').replace(/\.\s+\.(?=\s|$)|\.\.(?=\s|$)/g, '.');
@@ -860,7 +862,7 @@ function parseMartialFile(fileKey: string, content: string, out: LoreChunk[]): v
     // Full names, titles kept: "Emperor's Hands" must not answer to "hands".
     const names = [...new Set(raw.map((r) => normalizeText(r.replace(/["“”]/g, ''))))].filter((a) => a.length >= 4 && !/^(brief|selected)$/.test(a));
     const plain = (l: string): string =>
-      dropMetaSentences(cleanTimelineText(cleanMarkdown(l)).replace(/(?:\s*·)+\s*(?=[.;]|$)/g, '').trim().replace(/\bc\. (?=\d)/g, 'about ').replace(/\bvs\. /g, 'vs ').replace(/\(b\. /g, '(born '));
+      dropMetaSentences(cleanTimelineText(cleanMarkdown(l)).replace(/(?:\s*·)+\s*(?=[.;]|$)/g, '').trim().replace(/\bc\. (?=\d)/g, 'about ').replace(/\bvs\. /g, 'vs ').replace(/\(b\. /g, '(born ')).replace(/\.\s*\.(?=\s|$)/g, '.');
     const body = lines.map((l) => ({ ...l, text: plain(l.text) })).filter((l) => l.text && !/^-?\s*$/.test(l.text));
     const base = `${fileKey}:${slugify(name)}`;
     if (!name || !body.length || seen.has(base)) return;
@@ -916,7 +918,7 @@ function parseMartialFile(fileKey: string, content: string, out: LoreChunk[]): v
       }
       if (isSeparatorRow(cs)) continue;
       const head = header;
-      const kept = cs.map((c, i) => ({ h: head[i] ?? '', c })).filter(({ h: hh, c }, i) => i > 0 && c && c !== '—' && !/^(source|game stat)/i.test(hh) && (head[0] === 'Institution' || !/^era\b/i.test(hh)));
+      const kept = cs.map((c, i) => ({ h: (head[i] ?? '').replace(/^What sources say$/, 'What is known'), c })).filter(({ h: hh, c }, i) => i > 0 && c && c !== '—' && !/^not stated$/i.test(c) && !/^(source|game stat)/i.test(hh) && (head[0] === 'Institution' || !/^era\b/i.test(hh)));
       if (kept.every(({ c }) => /^See Part \d/i.test(c))) continue;
       const eraCell = cs[head.findIndex((hh) => /^era\b/i.test(hh))] ?? '';
       const text = kept.map(({ h: hh, c }) => `${hh}: ${c.replace(/\.$/, '')}.`).join(' ');
@@ -930,6 +932,29 @@ function parseMartialFile(fileKey: string, content: string, out: LoreChunk[]): v
     (cur as { lines: Line[] } | null)?.lines.push({ text: line });
   }
   flush();
+}
+
+/** Parts of a bracket in a character file that speak of the files or the stats: "(Era 13)", "(core Legends)", "(INT 90)", "(~138)", "(Melee combat rating ≈ 86)". */
+const SHEET_PART =
+  /\bEras? \d|\bsheets?\b|≈ ?\d|^(?:core |survives .* in )?Legends$|^(?:(?:INT|CHA|WIL|Output|Control|Knowledge|FKnow|ForceKnowledge|FCtrl|FOut)\.? \d{2,3}(?:\s*\/\s*)?)+$|^~?\d{2,3}$|^~\d{3}\b(?!.*(?:BBY|ABY))/;
+/** The same in running text: the clause goes. */
+const SHEET_CLAUSE = /\bsheets?\b|\bEras? \d|\bTier [A-F]\b|\bAPEX CEILING\b/;
+
+/** A character file's line as story (D-488): cross-era notes, era and sheet references, stat figures and source words dropped. */
+function sheetLine(raw: string): string {
+  const l = cleanMarkdown(raw.replace(/\\+([*~&_#>[\]()|-])/g, '$1'));
+  if (/^\W*cross-era note\b/i.test(l)) return '';
+  const plain = l
+    .replace(RESEARCH_TAG, '')
+    // A bracketed sentence about the file: "(This is his Emperor self; the clone is in Era 14 (Reborn).)".
+    .replace(/\s*\((?=[A-Z])(?:[^()]|\([^()]*\))*\.\s*\)/g, (whole) => (SHEET_CLAUSE.test(whole) ? '' : whole))
+    .replace(/\s*\(([^()]*)\)/g, (whole, inner: string) => {
+      const parts = inner.split(/[,;]\s+/);
+      const kept = parts.filter((p) => !SHEET_PART.test(p.trim()));
+      return kept.length === parts.length ? whole : kept.length ? ` (${kept.join(', ')})` : '';
+    })
+    .replace(/\s+([.,;:])/g, '$1');
+  return dropAbsences(plain, SHEET_CLAUSE);
 }
 
 function parseCharacterFile(fileKey: string, content: string, out: LoreChunk[], entities: LoreEntity[]): void {
@@ -965,13 +990,13 @@ function parseCharacterFile(fileKey: string, content: string, out: LoreChunk[], 
   for (const s of sections) {
     if (s.level === 2 && s.body.some((l) => /lifespan/i.test(l))) {
       const { name, aliases } = parseCharacterHeading(s.heading);
-      const text = proseLines(s.body);
+      const text = proseLines(s.body.filter((l) => !isTableLine(l) && !MECHANICS.test(l)).map(sheetLine));
       const canonId = `lore:${slugify(name)}`;
       const id = uniqueId(`${fileKey}:${slugify(name)}`);
       out.push({ id, kind: 'character', title: name, fromYear: from, toYear: to, canonId, names: aliases, locations: [], text: `${name}\n${text}` });
       entities.push({ canonId, name, aliases, fromYear: from, toYear: to, chunkId: id });
     } else if (s.level === 3 && /game-relevant note/i.test(s.heading)) {
-      const text = proseLines(s.body);
+      const text = proseLines(s.body.filter((l) => !isTableLine(l)).map(sheetLine));
       if (text) {
         out.push({
           id: uniqueId(`${fileKey}:note`),
@@ -1006,7 +1031,7 @@ function parseCharacterFile(fileKey: string, content: string, out: LoreChunk[], 
       const note = last.includes(' — ') ? last.split(' — ').slice(1).join(' — ') : '';
       const canonId = `lore:${slugify(name)}`;
       const id = uniqueId(`${fileKey}:${slugify(name)}`);
-      const text = `${name} (${species}): ${role}.${note ? ` ${note.replace(/\s*\*?\([^)]*%\)\*?/g, '')}.` : ''}`.replace(/\.\./g, '.');
+      const text = sheetLine(`${name} (${species.replace(/^\((.*)\)$/, '$1')}): ${role}.${note ? ` ${note.replace(/\s*\*?\([^)]*%\)\*?/g, '')}.` : ''}`).replace(/\.\./g, '.');
       out.push({ id, kind: 'bench', title: name, fromYear: from, toYear: to, canonId, names: aliases, locations: [], text });
       entities.push({ canonId, name, aliases, fromYear: from, toYear: to, chunkId: id });
     }

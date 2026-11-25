@@ -393,6 +393,47 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
       expect(o.parts!.filter((p) => /\bc\.\s*$/.test(p.text)).map((p) => p.text), o.id).toEqual([]);
     }
   });
+  it('no set sends research wording or bracketed story titles to the narrator (m8-lore-j, D-488)', () => {
+    // Fails on any new lore whose remarks are not in a [note: ...] tag. Put the remark in the tag; don't loosen the list.
+    const RESEARCH: readonly RegExp[] = [
+      /Wookieepedia|\bfandom\b|\binfobox|\byear[ -]?pages?\b|\btag map\b/i,
+      /\b[Tt]he (?:old )?(?:page|article|row|slice)\b(?<!the Slice|The Slice)|\b(?:its|his|her|their|own|Legends|planet|species|timeline) page\b|\bpage'?s\b/,
+      /lore batch|\b[Rr]uling \d|\bRuled\b|\bD-\d{2,3}\b|\bSW_\w|\.md\b|\bDecisions? needed|\bparser\b|\b[Dd]eveloper\b|\bthis (?:slice|file|doc|sheet|entry)\b|\bsheets?\b(?= (?:covers|is|for|of|Era)|\.)/,
+      /\[(?:inferred|conflict|unclear|note|BTS|gray|S-canon|weak|last resort|unconfirmed|primary|carried over|game-derived|both|Ruled)/i,
+      /unreferenced|uncited|sourcebook|behind[- ]the[- ]scenes|\bconjectur|\([Dd]erived|\bdate derived|counted back|\bno source\b|\b(?:another|[Oo]lder) sources?\b|\bsources (?:say|give|differ|conflict|place|date)|\bper (?:the )?(?:\w+ )?(?:page|article|novel|comic)|\bdated (?:to|only|from|by)\b|\bnot (?:stated|on record)\b|\bin-universe\b|\b[Rr]etcon|\bforum post\b|George Lucas|\bcanon(?:ical)?\b|\bDisney|\bLegends\b|\bWEG\b|\bFFG\b|\bSWTOR\b|\bKOTOR\b|\bgame stats?\b|\bUncertainty:|\bEras? \d{1,2}\b|\bTier [A-F]\b/,
+      /\(\s*[;,)]|;[.;]|\.\.(?!\.)|\d\. \d\d BBY/,
+    ];
+    // A bracket that names a publication, or a comic with its issue.
+    const TITLE =
+      /\([^()]*(?:\b(?:Star Wars|Into the Void|Dark Empire \d|Insider|Campaign Guide|Essential Guide|Essential Atlas|Essential Chronology|Encyclopedia|Databank|HoloNet News|Adventure Journal|Fact File|Galaxy at War|Galaxy of Intrigue|Roleplaying|Rulebook|Handbook|Sourcebook|JvS|TEGtW|NEGWT|LotF|FotJ|NEC|comics?|novels?|novelization|radio drama|TV series)\b|\((?:Empire|Republic|Legacy|Tales|Rebellion|Force War|Force Storm|Jango Fett|Crimson Empire|Knight Errant|Invasion|Dark Times|Purge) \d)[^()]*\)|\((?:Empire|Republic|Legacy|Tales|Rebellion|Force War|Force Storm|Crimson Empire|Knight Errant|Invasion|Dark Times) \d[^()]*\)/;
+    const ALLOWED = /\((?:New Jedi Order|the Star Wars)\b/;
+    const hits = LORE_INDEX.chunks.flatMap((c) =>
+      `${c.title}\n${c.text}`.split('\n').flatMap((l) => {
+        const m = RESEARCH.map((re) => re.exec(l)).find(Boolean) ?? (ALLOWED.test(l) ? null : TITLE.exec(l));
+        return m ? [`${c.id}: ${m[0]} | ${l.slice(Math.max(0, m.index - 40), m.index + 60)}`] : [];
+      }),
+    );
+    expect(hits).toEqual([]);
+    // In the files: an italic bracket in a narrator cell is a story title unless it is a word of the world.
+    const WORDS = /^(?:Jen'jidai|Jen'ari|Ani'la Akaan|ba'slan shev'la|Vode An|Exactor|Executrix|Candra|Good Omen|Mon Remonda)$/; // words and ships
+    const titles = loreFiles()
+      .filter((x) => /^SW_(?:Timeline|Martial|Mandalorians_preTCW)/.test(x.name))
+      .flatMap((x) => {
+        let on = false;
+        return x.content.split(/\r?\n/).flatMap((l) => {
+          if (/^## /.test(l)) on = /^## .*\b(?:BBY|ABY)\b/.test(l) || (/^## [═=\s]*$/.test(l) && on);
+          if (!on || !l.startsWith('|') || /\[Ruled[^\]]*: not used/.test(l)) return [];
+          const cells = l.split(' | ').slice(0, -1).join(' | ').replace(/\[[^\]]*\]/g, '');
+          return [...cells.matchAll(/\(\*([^*()]+)\*[^()]{0,80}\)/g)].filter((m) => !WORDS.test(m[1]!)).map((m) => `${x.name}: ${m[0]}`);
+        });
+      });
+    expect(titles).toEqual([]);
+    // Every set: each overview sentence can be sent inside its era.
+    for (const o of LORE_INDEX.chunks.filter((c) => c.kind === 'overview')) expect(o.parts!.filter((p) => p.year > o.toYear).map((p) => p.text), o.id).toEqual([]);
+    // A name with a dash inside its brackets is still the name ("Luke Skywalker (NJO — Grand Master)").
+    for (const y of [5, 15, 26, 40, 43]) expect(LORE_INDEX.entities.some((e) => e.canonId === 'lore:luke-skywalker' && e.fromYear <= y && y <= e.toYear && e.aliases.includes('luke skywalker')), String(y)).toBe(true);
+    expect(LORE_INDEX.entities.filter((e) => /[()]/.test(e.name)).map((e) => e.name)).toEqual([]);
+  });
   it('planets, species and the 3,661 BBY roster: no source tags or remarks reach the narrator (D-486)', () => {
     const chunks = LORE_INDEX.chunks.filter((x) => /^(pl-|sp-|c09p)/.test(x.id));
     const hits = chunks.flatMap((x) => {

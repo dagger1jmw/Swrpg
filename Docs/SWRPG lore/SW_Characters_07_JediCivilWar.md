@@ -64,7 +64,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Charisma | 98 | | ForceOutput | 96 |
 | Intelligence | 100 | | | |
 
-- **Lightsaber Forms / Bladework:** As Dark Lord, Revan retains **Niman (Form VI) as his primary form** and his hallmark total adaptability — but his fall sharpened it with dark-side ferocity. He now leans heavily on full **Jar'Kai dual-wielding** and weaves the savage unpredictability of **Juyo** into his attacks (the form behind his jaw-severing strike on Malak), along with **Force lightning channeled through the blade**. His Echani-trained reading of opponents lets him dismantle technique-bound duelists; he wields a crimson blade and fights to dominate and end fights fast. Canonically capable of defeating Darth Malak in single combat.
+- **Lightsaber Forms / Bladework:** As Dark Lord, Revan retains **Niman (Form VI) as his primary form** and his hallmark total adaptability — but his fall sharpened it with dark-side ferocity. He now leans heavily on full **Jar'Kai dual-wielding** and weaves the savage unpredictability of **Juyo** into his attacks (the form behind his jaw-severing strike on Malak), along with **Force lightning channeled through the blade**. His Echani-trained reading of opponents lets him dismantle technique-bound duelists; he wields a crimson blade and fights to dominate and end fights fast. Capable of defeating Darth Malak in single combat.
   **Form ratings (game stats):** **Niman 100** (primary) · Juyo 92 · Ataru 95 · Shien/Djem So 96 · Makashi 90 · Soresu 90 · Shii-Cho 90 · *(Jar'Kai dual-blade / Echani: 94)*
 - **Force Abilities (game stats):** Force Lightning 90 *(Chain Lightning 85%, Force Storm 62%)* · Battle Meditation 95 *(Force Valor 88%)* · Telekinesis 92 *(Force Push 88%, Force Throw 85%)* · Force Sense 94 *(Battle Precognition 90%)* · Force Drain 82 *(life-drain 75%)* · Force Body 85 *(Force Speed 88%)* · Mind Probe 85 *(Mind Control 78%)*
 - **Signature Ability:** **Strategic genius & dark mastery** — the same war-winning strategic mind, now backed by the Star Forge and the full dark-side arsenal (lightning, life-drain) atop his light-side breadth.
@@ -281,7 +281,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Lightsaber Forms / Bladework:** *(none — ranged weapons specialist; Ranged combat rating ≈ 88, assassin rifle & blasters)*
 - **Force Abilities (game stats):** N/A — droid.
 - **Signature Ability:** **Jedi-hunter assassin protocols** — purpose-built combat and assassination programming optimized for killing Force-users.
-- **Notable Feats:** Built by Revan as a precision Jedi-hunter; survived and operated across centuries (reactivated as late as the SWTOR era); one of the deadliest assassin droids ever made.
+- **Notable Feats:** Built by Revan as a precision Jedi-hunter; survived and operated across centuries (reactivated as late as the Galactic War); one of the deadliest assassin droids ever made.
 - **Alignment:** N/A (loyal to his master/programming).
 - **Tier:** Elite (non-Force combat droid); very high **Intelligence** (88) for lethal cunning.
 
@@ -295,7 +295,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Mission Vao | Twi'lek | Teenage scoundrel/slicer; Revan's crew | 48 | 72 | 54 | 66 | 72 | 74 | — | — | — | — | — | Ranged/Stealth 60 | N/A — non-Force; expert slicer |
 | Zaalbar | Wookiee | Warrior/marksman; Mission's sworn friend | 92 | 60 | 90 | 74 | 58 | 60 | — | — | — | — | — | Melee/Bowcaster 82 | N/A — non-Force; immense strength |
-| T3-M4 | Droid | Astromech/utility droid of the Ebon Hawk | 40 | 55 | 70 | 60 | 45 | 80 | — | — | — | — | — | Utility/Slicing 75 | N/A — ace slicer droid; survives into SWTOR |
+| T3-M4 | Droid | Astromech/utility droid of the Ebon Hawk | 40 | 55 | 70 | 60 | 45 | 80 | — | — | — | — | — | Utility/Slicing 75 | N/A — ace slicer droid; survives into the Galactic War |
 | Vrook Lamar | Human | Jedi Master, Dantooine Council (see Era 06) | 64 | 66 | 70 | 90 | 74 | 82 | 84 | 88 | 86 | 84 | 78 | Soresu 82 | Force Sense 84 · Battle Meditation 78 |
 | Vandar Tokare | Yoda's species | Jedi Master, Dantooine Council | 56 | 64 | 60 | 90 | 78 | 88 | 88 | 90 | 88 | 84 | 80 | Ataru 80 · Shii-Cho 74 | Force Sense 88 · Battle Meditation 82 *(Valor 78%)* |
 | Zhar Lestin | Twi'lek | Jedi Master, Dantooine Council | 60 | 66 | 64 | 84 | 78 | 80 | 82 | 84 | 82 | 80 | 76 | Shii-Cho 72 · Soresu 70 | Telekinesis 78 · Force Sense 82 — oversaw Revan's retraining |

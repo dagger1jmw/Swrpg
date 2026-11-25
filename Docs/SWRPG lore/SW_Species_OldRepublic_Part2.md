@@ -177,7 +177,7 @@ Part 2 continues the species entries: 25 further species with named era individu
      - Mass 1,500 kg (game stat: UAA; infobox) [Hutt/Legends](https://starwars.fandom.com/wiki/Hutt/Legends).
   2. **Lifespan and ageing:**
      - A young Hutt can leave the brood pouch early: Jabba removed Rotta at most ten years old [Hutt/Legends §Life cycle](https://starwars.fandom.com/wiki/Hutt/Legends).
-     - Adult by 200 years, at about 500 kg and Human-sized [Hutt/Legends §Life cycle](https://starwars.fandom.com/wiki/Hutt/Legends) (Databank).
+     - Adult by 200 years, at about 500 kg and Human-sized [Hutt/Legends §Life cycle](https://starwars.fandom.com/wiki/Hutt/Legends) [note: Databank].
      - They can live over a thousand years [Hutt/Legends §Life cycle](https://starwars.fandom.com/wiki/Hutt/Legends) [note: novel Fate of the Jedi: Allies; 1,000 years in the infobox] [Hutt/Legends](https://starwars.fandom.com/wiki/Hutt/Legends).
      - **Era examples:**
        - Karagga was over 800 years old and had been Supreme Mogul for nearly two centuries by the Cold War [Karagga §Biography](https://starwars.fandom.com/wiki/Karagga).

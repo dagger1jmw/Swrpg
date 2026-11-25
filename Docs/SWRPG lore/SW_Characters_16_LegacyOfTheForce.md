@@ -52,7 +52,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Sheet snapshot:** Near-apex prime — Grand Master of the Jedi Order, just short of his absolute peak
 - **Species / Affiliation / Rank:** Human · New Jedi Order · Grand Master
 - **Lifespan:** Born 19 BBY; near his lifetime peak here (~40 ABY); reaches his absolute apex in Fate of the Jedi (~43 ABY, Era 17)
-- **Summary:** Luke at the near-summit of his lifelong ascent — from undertrained farmboy (Era 13) to founder (Era 14) to wartime Grand Master (Era 15) to, now, the most powerful Jedi of his age and one of the most powerful in galactic history. His mastery is effectively total — raw **Output** and refined **Control** unmatched by any living being and, across all Legends, second only to Abeloth. The war strikes him personally: his nephew Jacen falls and **murders Mara**, Luke's wife. In grief Luke kills the Dark Lady **Lumiya** (whom he wrongly blamed) — an act that **clouded his vision of the future**, which is why he did not face Caedus to the end himself and entrusted that duty to Jaina. **Crucially, this is not yet his full power:** the Luke who soon battles **Abeloth** (Era 17) is stronger still. Against Caedus he was a near-apex Luke trying to end the fight fast, not an all-out one — which is how Caedus held the line and landed hits, even though Luke was the clearly superior fighter.
+- **Summary:** Luke at the near-summit of his lifelong ascent — from undertrained farmboy (Era 13) to founder (Era 14) to wartime Grand Master (Era 15) to, now, the most powerful Jedi of his age and one of the most powerful in galactic history. His mastery is effectively total — raw **Output** and refined **Control** unmatched by any living being and second only to Abeloth. The war strikes him personally: his nephew Jacen falls and **murders Mara**, Luke's wife. In grief Luke kills the Dark Lady **Lumiya** (whom he wrongly blamed) — an act that **clouded his vision of the future**, which is why he did not face Caedus to the end himself and entrusted that duty to Jaina. **Crucially, this is not yet his full power:** the Luke who soon battles **Abeloth** (Era 17) is stronger still. Against Caedus he was a near-apex Luke trying to end the fight fast, not an all-out one — which is how Caedus held the line and landed hits, even though Luke was the clearly superior fighter.
 
 | Core | Value | | Force | Value |
 |---|---|---|---|---|
@@ -129,7 +129,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 ## Leia Organa Solo (Jedi Master)
 - **Sheet snapshot:** Prime — Jedi Master, diplomat, and grieving mother who fights her own son
 - **Species / Affiliation / Rank:** Human · New Jedi Order · Jedi Knight/Master (Skywalker line)
-- **Lifespan:** Trained as a Jedi across the NJO and after; an active Jedi Master in this era
+- **Lifespan:** Trained as a Jedi through the Yuuzhan Vong War and after; an active Jedi Master in this era
 - **Summary:** Anakin Skywalker's daughter, Luke's twin sister — now a fully trained **Jedi Knight/Master** as well as the galaxy's most experienced stateswoman. In this war she endures the unthinkable: her son Jacen becomes a Sith Lord, and she and Han must oppose him. She fought Caedus directly (with Han at her side), trained partly with Saba Sebatyne, and stood as a pillar of the resistance against her own child. Formidable in the Force, though she came to it later in life than Luke.
 
 | Core | Value | | Force | Value |

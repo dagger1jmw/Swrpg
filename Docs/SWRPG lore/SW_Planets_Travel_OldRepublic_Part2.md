@@ -574,7 +574,7 @@ Continues SW_Planets_Travel_OldRepublic_Part1.md. Legends lore reference for SWR
 - **Type:** celestial body · **Status:** thin
 - **1. Location:** region Outer Rim Territories; grid J-21 (The Essential Atlas, 2009); sector Kallea sector; system Imynusoph system; routes: Hydian Way ; Hydian Spur (in 3694 BBY). [Imynusoph §infobox](https://starwars.fandom.com/wiki/Imynusoph/Legends)
 - **2. Control 3661:** Not stated; outside galactic governments even by 0 ABY [Imynusoph/Legends §Intro](https://starwars.fandom.com/wiki/Imynusoph/Legends) [other era].
-  - c. 3694 BBY: per the in-universe opera The Kallea Cycle, site of rumoured treasure and of Banu Hydia's death [unclear: legend, not record] [Imynusoph/Legends §Intro](https://starwars.fandom.com/wiki/Imynusoph/Legends)
+  - c. 3694 BBY: site, the opera The Kallea Cycle tells, of rumoured treasure and of Banu Hydia's death [unclear: legend, not record] [Imynusoph/Legends §Intro](https://starwars.fandom.com/wiki/Imynusoph/Legends)
   - 3694 BBY: Hydian Spur charted from Imynusoph to Terminus [Hydian Spur](https://starwars.fandom.com/wiki/Hydian_Spur)
 - **3. World:** population: Less than 1 million (Imynusoph system) (25 ABY); native species: Imyni (in ''The Kallea Cycle''). [Imynusoph §infobox](https://starwars.fandom.com/wiki/Imynusoph/Legends)
 - **4. Places (era-sourced):** none listed with era sources.
