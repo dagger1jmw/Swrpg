@@ -9,16 +9,19 @@ import { naturalLevel } from './species';
 /** The share of a full training day at a Human-equivalent age. */
 export const npcHoursShare = (h: number): number => interp(NPC_TRAINING_HOURS, h);
 
+/** Willpower's: nothing after the first age (D-499). */
+export const npcWillpowerShare = (h: number): number => (h <= NPC_TRAINING_HOURS[0]![0] ? 1 : 0);
+
 /** Human-equivalent years between the points the curve is read at. */
 const STEP = 1;
 
 /** The years of `base` with the training day falling past the curve's first age. Before it nothing changes. */
-export function npcYears(species: SpeciesDef, base: AgeYears): AgeYears {
+export function npcYears(species: SpeciesDef, base: AgeYears, share: (h: number) => number = npcHoursShare): AgeYears {
   const from = NPC_TRAINING_HOURS[0]![0];
   const to = NPC_TRAINING_HOURS[NPC_TRAINING_HOURS.length - 1]![0];
   const cuts: number[] = [];
   for (let h = from; h <= to; h += STEP) cuts.push(trainingAge(species, speciesAgeFromHuman(species, h)));
-  const shareAt = (t: number): number => npcHoursShare(humanEquivalentAge(species, ageFromTraining(species, t)));
+  const shareAt = (t: number): number => share(humanEquivalentAge(species, ageFromTraining(species, t)));
   return {
     factor: (row, t) => base.factor(row, t),
     integral: (row, a, b) => {

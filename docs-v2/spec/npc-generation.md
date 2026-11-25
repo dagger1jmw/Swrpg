@@ -18,6 +18,8 @@ src routine day loop (tests/lifetime/average.test.ts).
 Amended by D-497 (Jared): an NPC's training day falls from about 50 (data/npcHours.ts: Human-equivalent 50 full, 60 half,
 70 a quarter, 80 on 15%; invented), so past 50 the values here are the full day's. An average Guardian Master of 72: best
 form 86, Willpower 100 (were 94 and 109). The player's hours are unchanged.
+Amended by D-499 (Jared): the Willpower training of an NPC without a sheet stops at Human-equivalent 50; an average
+Guardian Master has 90 from then on (was 100 at 72). The line under a canon sheet's Willpower is as before.
 Amended by D-498 (Jared): its natural Willpower grows on the same schedule past 50 (the natural curve is nearly flat by
 then: at most 0.3 of a level of the total).
 

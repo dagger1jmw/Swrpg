@@ -82,7 +82,7 @@ Player beats (Moment pacing): the player does not act every exchange. The engine
   that form. Words with no move ask back: no exchange, the beat buttons and a short line.
   Form change (Q32, copied by D-63): changing lightsaber form is allowed at a player beat and
   costs 1 advantage step (the track moves 1 toward the opponent).
-Time: the clock advances 5-10 seconds per exchange (rolled). One clock (D-497): the same in a hold (holds.md) and between
+Time: the clock advances 5-10 seconds per exchange (rolled). One clock (Jared, D-499): the same in a hold (holds.md) and between
 any duelists; how fast a duel reads is narration only.
 
 Duration targets: equal Force users median 30-40 exchanges (about 3-6 minutes);

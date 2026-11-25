@@ -3,7 +3,7 @@
 Someone stands up to a duelist so that others can get away. Every number is invented unless marked Jared's. Data: src/data/holds.ts. Rules: src/engine/holds.ts. Campaign: src/features/combat/holds.ts. Words: src/turn/holdFacts.ts.
 
 ## 1. The hold
-- **One clock (D-497; Jared to confirm):** an exchange is 5 to 10 s here as everywhere (rolls.md section 3). A hold's time is the fight's own clock.
+- **One clock (Jared, D-499):** an exchange is 5 to 10 s here as everywhere (rolls.md section 3). A hold's time is the fight's own clock.
 - **The duel's own dice decide each exchange.** It ends when the holder is beaten, or when the duelist gets past them.
 - **Getting past:** a chance each exchange, by the ability gap (the duelist's lead over the holder: the mean of combat, Force Control and Willpower). Against an apex duelist, or one beyond, steeper and never less:
 

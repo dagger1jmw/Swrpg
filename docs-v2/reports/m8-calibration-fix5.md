@@ -4,7 +4,7 @@ Decision D-498. Holds: [spec/holds.md](../spec/holds.md).
 
 | Item | Result |
 |---|---|
-| 1. One clock | As built in D-497; still marked "Jared to confirm", as the prompt has it |
+| 1. One clock | As built in D-497 (confirmed by Jared, D-499) |
 | 2. Old NPCs' natural Willpower | Built; **it does not bring the line to the sheets** (section 1) |
 | 3. High Masters | Struck aside and standing in 17 to 20% of holds |
 | 4. Knights | A corridor against Malgus in 11% of holds |
@@ -67,7 +67,7 @@ Only the Knights' row was tuned. The apex duelists now have their own curve, the
 
 1. **m8-combat-scales:** paste it, or the nine rulings, and I will record them.
 2. **Willpower of old figures without a sheet:** leave the line, or a faster fall for Willpower alone?
-3. **One clock:** confirmed?
+3. **One clock:** confirmed (Jared, D-499).
 
 ## Numbers I invented
 

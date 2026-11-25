@@ -12,7 +12,7 @@ import { runPace } from '../../src/engine/holds';
 import { npcHoursShare, npcNaturalLevel, npcYears } from '../../src/engine/npcHours';
 import { naturalLevel, npcPerformance } from '../../src/engine/species';
 import { computeCreation } from '../../src/features/character/selectors';
-import { canonFigureLevelsAt } from '../../src/features/npcs/selectors';
+import { canonFigureLevelsAt, canonProgressionLineAt, npcLevelsFor } from '../../src/features/npcs/selectors';
 
 const line = (age: number, npc: boolean, speciesId = 'human'): Record<string, number> => {
   const r = computeCreation({ name: 'x', birthDay: 0, startDay: Math.round(age * 368), speciesId, path: 'jedi', archetype: 'jediGuardian', rank: 'master', trainingStartAge: 4, talents: {}, dominantHand: 'right', ...(npc ? { npc: true } : {}) } as Parameters<typeof computeCreation>[0]);
@@ -43,6 +43,38 @@ describe('NPC training hours', () => {
     // Full at 50, half at 60: three quarters of it over the ten years.
     expect(grown / full).toBeCloseTo(0.75, 2);
     for (const age of [55, 65, 80]) for (const k of ['intelligence', 'charisma', 'strength']) expect(npcNaturalLevel(k, human, age)).toBe(naturalLevel(k, 'human', age));
+  });
+
+  it("an old figure without a sheet gains no Willpower from training past 50 (D-499); the player's goes on", () => {
+    const gen = (archetype: 'jediGuardian' | 'sithWarrior' | 'jediConsular' | 'soldier', age: number): number => {
+      const def = archetypeDef(archetype);
+      return npcLevelsFor({ archetype, path: def.path, talents: {}, startAge: def.startAge, warYears: 0, rank: def.path === 'career' ? 'career' : def.path === 'sith' ? 'lord' : 'master', seed: 'x', minionGrade: 1 }, 'human', age, 0)['willpower']!;
+    };
+    for (const a of ['jediGuardian', 'sithWarrior', 'jediConsular', 'soldier'] as const) {
+      expect(gen(a, 50) - gen(a, 45), a).toBeGreaterThan(2);
+      // Only the natural baseline's own small growth is left, and it ends at 60.
+      expect(gen(a, 60) - gen(a, 50), a).toBeLessThan(1);
+      expect(gen(a, 90), a).toBeCloseTo(gen(a, 60), 6);
+    }
+    expect(line(60, true)['willpower']!).toBeCloseTo(line(50, true)['willpower']!, 4);
+    expect(line(60, false)['willpower']!).toBeGreaterThan(line(50, false)['willpower']! * 1.05);
+    // Everything else still grows on the falling day.
+    for (const k of ['soresu', 'forceControl', 'forceSense']) expect(line(60, true)[k]!, k).toBeGreaterThan(line(50, true)[k]!);
+    // Against comparable sheets: 1 to 8 above, no longer 10 to 18.
+    for (const id of ['ven-zallow', 'darth-vindican', 'darth-angral', 'bela-kiwiiks', 'orgus-din']) {
+      const n = CANON_BY_ID.get(`lore:${id}`)!;
+      const a = n.anchors.find((x) => x.complete)!;
+      const over = canonProgressionLineAt(n, a.bby, absDayFromDate({ year: -a.bby, month: 1, day: 1 }))['willpower']! - a.levels['willpower']!;
+      expect(over, id).toBeGreaterThan(0);
+      expect(over, id).toBeLessThan(8.5);
+    }
+  });
+
+  it("the line under a sheet's Willpower is as it was, so a sheeted figure is the same at every date (D-499)", () => {
+    const at = (id: string, bby: number): number => canonFigureLevelsAt(CANON_BY_ID.get(`lore:${id}`)!, bby, absDayFromDate({ year: -bby, month: 1, day: 1 }))['willpower']!;
+    expect(at('kao-cen-darach', 3691)).toBeCloseTo(86, 1);
+    expect(at('darnala', 3665)).toBeCloseTo(86, 1);
+    expect(at('ragate', 3663)).toBeCloseTo(76.09, 1);
   });
 
   it('a sheeted figure of the old is at its own Willpower in the game', () => {

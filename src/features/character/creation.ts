@@ -18,7 +18,7 @@ import { CATEGORY_RULES, FORM_IDS, PHYSICAL_STATS, SKILL_BY_ID, SKILL_IDS, type 
 import { SPECIES_BY_ID, speciesDef, speciesOfferedAt } from '../../data/species';
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { HUMAN_YEARS, closedFormLevel, formXps, phasesFor, planSplit, type AgeYears, type FormPlan } from '../../engine/closedForm';
-import { npcNaturalLevel, npcYears } from '../../engine/npcHours';
+import { npcNaturalLevel, npcWillpowerShare, npcYears } from '../../engine/npcHours';
 import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { trackedSenseXp } from '../../engine/forceSense';
 import { ageLoss, bodyAgeFromH } from '../../engine/ageing';
@@ -54,6 +54,8 @@ export interface CreationInput {
   storyException?: boolean;
   /** Per-skill pace variance (NPC generation, npc-generation §1: exp(N(0, 0.12))); off for player characters. */
   variance?: ((skillId: string) => number) | undefined;
+  /** NPC generation: the line under a canon figure whose sheet has its Willpower (D-499: sheeted figures are unaffected). */
+  sheetedWillpower?: boolean;
   /** NPC generation: skip the talent limit and the rank-minimum validation (levels are what they are). */
   npc?: boolean;
   /**
@@ -277,6 +279,8 @@ export function computeCreation(input: CreationInput): CreationResult {
   const full: AgeYears | undefined = species.id === 'human' ? undefined : { integral: (row, x, y) => trainingIntegral(species, row, x, y), factor: (row, x) => trainingAgeFactor(species, row, x) };
   // An NPC's training day falls from about 50 on (D-497); the player's never does.
   const years = input.npc ? npcYears(species, full ?? HUMAN_YEARS) : full;
+  // Its Willpower training stops there (D-499), except in the line under a canon sheet's Willpower.
+  const willpowerYears = input.npc && !input.sheetedWillpower ? npcYears(species, full ?? HUMAN_YEARS, npcWillpowerShare) : years;
   const ages0 = phaseAges(rankDef.id, input.path, hStart, h);
   const he = (x: number): number => (Number.isFinite(x) ? trainingAge(species, x) : Infinity);
   const phasesIn = input.phases;
@@ -328,7 +332,8 @@ export function computeCreation(input: CreationInput): CreationResult {
     const phases = phasesFor({ initiate: pace('initiate'), padawan: pace('padawan'), knight: pace('knight'), ...(youthPace !== undefined ? { youth: youthPace } : {}) }, hAges, ages.onePhase);
     for (const ph of phases) if (ph.to > hStart && ph.from < h) maxPace = Math.max(maxPace, Math.min(4, ph.pace * mult));
     const row = CATEGORY_RULES[SKILL_BY_ID.get(skill)!.category].ageRow;
-    const trainedAt = (age: number, war: number): number => xpForLevel(closedFormLevel({ row, startAge: hStart, age, phases, mult, warYears: war, ...(years ? { years } : {}) }));
+    const own = skill === 'willpower' ? willpowerYears : years;
+    const trainedAt = (age: number, war: number): number => xpForLevel(closedFormLevel({ row, startAge: hStart, age, phases, mult, warYears: war, ...(own ? { years: own } : {}) }));
     const trained = trainedAt(h, warYears);
     if (trained > 0) startingXp[skill] = trained;
     if (skill === 'forceSense' || skill === 'forceControl') stretch[skill] = stretchEnds.map((x) => trainedAt(x, x === h ? warYears : 0));

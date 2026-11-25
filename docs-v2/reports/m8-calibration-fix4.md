@@ -7,7 +7,7 @@ Decision D-497. Holds: [spec/holds.md](../spec/holds.md).
 | 1. Sith Force Sense 2 | Accepted; nothing changed |
 | 2. Old-age line | NPC training hours fall from 50; the line's Force Control is queued |
 | 3. Apex | Steeper: a High Master holds Sidious for a corridor 13% of the time (was 57%) |
-| 4. One clock | Built, **for Jared to confirm** |
+| 4. One clock | Built (confirmed by Jared, D-499) |
 | 5. Force Speed | Derived for canon Force users |
 | 6. Trail | 7 days and Malgus's 8% kept; resources added |
 
@@ -88,7 +88,7 @@ A figure's anchor now gives back its own value. Satele's form of 88 read as 87.9
 
 ## For you
 
-1. **One clock:** confirm it, with the duelist getting past by chance and a blow.
+1. **One clock:** confirmed (Jared, D-499), with the duelist getting past by chance and a blow.
 2. **Old Willpower** still 10 to 18 above the sheets past 60: leave it, or should natural growth of it slow for NPCs too?
 3. **High Masters against top duelists:** is 7 to 10% on their feet after a hold right? It was 16 to 44%.
 4. **A Knight holds Malgus for a corridor 23% of the time** (was 10%; 22 to 24% against Marr, as before). Lower it?

@@ -59,8 +59,8 @@ const levelCache = new Map<string, Readonly<Record<string, number>>>();
 const CACHE_MAX = 400;
 
 /** Closed-form levels for generation inputs at an age (character creation's closed form, with the NPC's variance). */
-export function npcLevelsFor(gen: NpcGen, speciesId: string, age: number, today: number, phases?: { padawanAge: number; knightAge: number }, insideForce = false): Readonly<Record<string, number>> {
-  const key = JSON.stringify([gen, speciesId, Math.round(age * 100) / 100, phases ? [phases.padawanAge, phases.knightAge].map((x) => (Number.isFinite(x) ? x : -1)) : null, insideForce]);
+export function npcLevelsFor(gen: NpcGen, speciesId: string, age: number, today: number, phases?: { padawanAge: number; knightAge: number }, insideForce = false, sheetedWillpower = false): Readonly<Record<string, number>> {
+  const key = JSON.stringify([gen, speciesId, Math.round(age * 100) / 100, phases ? [phases.padawanAge, phases.knightAge].map((x) => (Number.isFinite(x) ? x : -1)) : null, insideForce, sheetedWillpower]);
   const hit = levelCache.get(key);
   if (hit) return hit;
   const birthDay = Math.round(today - age * DAYS_PER_YEAR);
@@ -70,7 +70,7 @@ export function npcLevelsFor(gen: NpcGen, speciesId: string, age: number, today:
   const outsideForce = isOutsideForce(speciesId, insideForce);
   // The archetype's start age is a training age: a Chiss or a Hutt child starts at its own years (D-474).
   const startAge = Math.min(ageFromTraining(speciesDef(species), gen.startAge), Math.max(0, age - 0.01));
-  const base = { name: 'npc', birthDay, startDay: today, speciesId: species, path: gen.path, archetype: gen.archetype, trainingStartAge: startAge, talents: gen.talents, warYears: gen.warYears, dominantHand: 'right' as const, npc: true, variance: gen.minionGrade === null ? (k: string) => npcVariance(gen.seed, k) : undefined, ...(phases ? { phases } : {}), ...(outsideForce ? { outsideForce } : {}) };
+  const base = { name: 'npc', birthDay, startDay: today, speciesId: species, path: gen.path, archetype: gen.archetype, trainingStartAge: startAge, talents: gen.talents, warYears: gen.warYears, dominantHand: 'right' as const, npc: true, variance: gen.minionGrade === null ? (k: string) => npcVariance(gen.seed, k) : undefined, ...(phases ? { phases } : {}), ...(outsideForce ? { outsideForce } : {}), ...(sheetedWillpower ? { sheetedWillpower } : {}) };
   let r = computeCreation({ ...base, rank: gen.rank });
   if (!r.levels || Object.keys(r.levels).length === 0 || r.errors.length) {
     // The role's rank may not fit the age (a young "Knight"); fall back to the highest rank that fits.
@@ -130,7 +130,7 @@ function canonDeps(canon: CanonNpc, today: number, asOfBby = -Infinity): CanonSt
     const shape = canonShape(canon, bby, asOfBby);
     const gen: NpcGen = { archetype: canon.archetype, path: def.path, talents: {}, startAge: def.startAge, warYears: 0, rank: shape.rank, seed: variance ? `canon:${canon.canonId}` : `canon:${canon.archetype}`, minionGrade: variance ? null : 1 };
     const age = canon.fixed ? 60 : canonLivedAgeAt(canon, bby);
-    const lv = npcLevelsFor(gen, canon.speciesId, Math.max(def.startAge + 0.01, age), today, shape.phases, canon.insideForce === true);
+    const lv = npcLevelsFor(gen, canon.speciesId, Math.max(def.startAge + 0.01, age), today, shape.phases, canon.insideForce === true, canon.anchors.some((a) => a.levels['willpower'] !== undefined));
     lines.set(k, lv);
     return lv;
   };
