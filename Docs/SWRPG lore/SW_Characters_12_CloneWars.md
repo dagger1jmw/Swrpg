@@ -11,14 +11,8 @@ Character reference for the **Clone Wars** — the galaxy-spanning war between t
 
 Stats represent each character **at their prime**, on the **galaxy-wide Legends scale**.
 
-### Stat Scale (galaxy-wide, all of Legends)
-| Band | Range | Meaning |
-|---|---|---|
-| Novice / civilian | 10–40 | Untrained or non-combatant |
-| Trained | 40–60 | Competent Knight-equivalent, rank-and-file warrior |
-| Veteran / elite | 60–85 | Seasoned Knight, skilled commander |
-| Master | 85–100 | Master-tier; ceiling for nearly all Force users |
-| **Legendary** | **100–150** | Mastery far beyond any normal Jedi or Sith. **Per-stat, not blanket.** See the **APEX CEILING** in Era 09 for the 126–150 sub-bands. |
+### Stat Scale
+[note: Ruled, Jared 25 Nov 2026: the band table that stood here (Trained 40-60, Veteran 60-85, Master 85-100, Legendary 100-150) was an error and is dropped. The tier line below is the scale. D-494]
 
 ### Stat tiers (matches game engine)
 Initiate 0–20 · Padawan 21–40 · Knight 41–60 · Master 61–80 · Grandmaster 81–100 · Legendary 101–150 · Transcendent 151+
@@ -319,8 +313,8 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 | Name | Species | Role / Affiliation | STR | AGI | END | WIL | CHA | INT | FSense | Med | FKnow | FCtrl | FOut | Top Forms / Combat | Top Force Abilities |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Mace Windu | Human | Jedi Master, Council head; Vaapad (see Era 11) | 78 | 88 | 80 | 94 | 84 | 86 | 88 | 84 | 86 | 92 | 88 | Vaapad 98 | Shatterpoint 95 · Telekinesis 88 — nearly killed Sidious; betrayed by Anakin (19 BBY) |
-| Yoda | (Yoda's species) | Grand Master (see Era 11) | 60 | 92 | 80 | 104 | 90 | 96 | 100 | 102 | 102 | 100 | 96 | Ataru 100 (shoto) | Telekinesis 102 · Force Barrier 92 *(absorbed Sidious's lightning)* — dueled Dooku & Sidious |
+| Mace Windu | Human | Jedi Master, Council head; Vaapad (see Era 11) | 78 | 88 | 80 | 94 | 84 | 86 | 88 | 84 | 86 | 92 | 88 | Vaapad 100 [note: Ruled, Jared 25 Nov 2026: Vaapad 100. D-494] | Shatterpoint 95 · Telekinesis 88 — nearly killed Sidious; betrayed by Anakin (19 BBY) |
+| Yoda | (Yoda's species) | Grand Master (see Era 11) | 60 | 92 | 80 | 104 | 90 | 96 | 100 | 102 | 102 | 104 | 96 | Ataru 100 (shoto) | Telekinesis 102 · Force Barrier 92 *(absorbed Sidious's lightning)* — dueled Dooku & Sidious [note: Ruled, Jared 25 Nov 2026: Force Control 104. D-494] |
 | Plo Koon | Kel Dor | Jedi Master/General, Council | 72 | 78 | 74 | 84 | 76 | 80 | 84 | 78 | 80 | 84 | 80 | Shii-Cho 80 · Ataru 76 | **Electric Judgment** 82 · Force Sense 84 — killed in Order 66 |
 | Kit Fisto | Nautolan | Jedi Master/General, Council | 76 | 84 | 78 | 82 | 78 | 78 | 82 | 76 | 78 | 84 | 80 | Shii-Cho 84 · Ataru 80 | Force Body 82 *(underwater 90%)* — died confronting Sidious with Windu |
 | Aayla Secura | Twi'lek | Jedi Master/General | 68 | 86 | 72 | 82 | 80 | 78 | 80 | 72 | 74 | 82 | 74 | Ataru 84 · Shii-Cho 76 | Force Body 78 · Mind Trick 76 — killed in Order 66 on Felucia |
@@ -345,10 +339,10 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | The Father (Mortis) | Mortis (Force entity) | **Ω — Mortis-bound** (≤ peak Luke as combatant) | FSense 145 / FOut 144 / WIL 145 | *(cosmic; no saber)* |
 | The Son (Mortis) | Mortis (dark) | **Ω — Mortis-bound** (overcome by near-peak Anakin) | FOut 140 / FCtrl 136 | *(beast-forms)* |
 | The Daughter (Mortis) | Mortis (light) | **Ω — Mortis-bound** | Force Heal 138 / FOut 136 | *(cosmic; no saber)* |
-| Anakin (Knightfall/fallen) | Sith | **Legendary — high (Output)** | **FOut 120** / WIL 100 / AGI 98 — Control only 90; still growing | Djem So 98 |
+| Anakin (Knightfall/fallen) | Sith | **Legendary — high (Output)** | **FOut 120** / WIL 72 / AGI 98 — Control only 90; still growing [note: Ruled, Jared 25 Nov 2026: Willpower 72, as his stat block (was 100). D-494] | Djem So 98 |
 | Anakin Skywalker (Knight) | Jedi Order | **Legendary** (held back) | FOut 100 / FCtrl 92 / AGI 92 | Djem So 94 |
-| Yoda | Jedi Order | **Legendary** | FCtrl 100 / Med 102 / FKnow 102 / FOut 96 | Ataru 100 |
-| Mace Windu | Jedi Order | **Legendary** (dueling) | FCtrl 92 / WIL 94 (Vaapad) | Vaapad 98 |
+| Yoda | Jedi Order | **Legendary** | FCtrl 104 / Med 102 / FKnow 102 / FOut 96 | Ataru 100 |
+| Mace Windu | Jedi Order | **Legendary** (dueling) | FCtrl 92 / WIL 94 (Vaapad) | Vaapad 100 |
 | Count Dooku (Tyranus) | Sith / Separatists | **Legendary** (dueling) | FCtrl 94 / FKnow 92 / INT 90 (finesse, not Output) | Makashi 96 |
 | Obi-Wan Kenobi (Clone Wars) | Jedi Order | **Legendary** (Soresu) | FCtrl 92 / WIL 92 / INT 88 — Output only 80 | Soresu 96 |
 | General Grievous | Separatists | **Legendary** (non-Force) | AGI 92 / STR 88 | Four-saber 92 |

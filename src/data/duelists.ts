@@ -5,9 +5,10 @@ import type { Who } from './who';
 
 /**
  * master: a regular Master or better can beat them. top: below Master the player cannot win, a Master only holds them off
- * briefly, and only the top tier beats them or holds long. beyond: nobody beats them.
+ * briefly, and a top-tier fighter beats them or holds long. apex (D-494): only another apex beats them; a top-tier fighter
+ * only holds them off briefly. beyond: nobody beats them.
  */
-export const DUELIST_BARS = ['master', 'top', 'beyond'] as const;
+export const DUELIST_BARS = ['master', 'top', 'apex', 'beyond'] as const;
 export type DuelistBar = (typeof DUELIST_BARS)[number];
 
 export interface DuelistSpan {
@@ -35,11 +36,14 @@ export const DUELISTS: readonly DuelistSpan[] = [
   ...span('top', -3639, -1001, MAP_B, 'darth-malgus', 'revan', 'arcann', 'thexan', 'vaylin', 'the-outlander'),
   ...span('beyond', -3639, -1001, MAP_B, 'vitiate', 'valkorion'),
   ...span('top', -1002, -980, MAP_B, 'darth-bane', 'kasim'),
-  ...span('top', -100, 4, MAP_C, 'darth-plagueis', 'yoda', 'mace-windu', 'count-dooku', 'darth-sidious', 'sheev-palpatine', 'emperor-palpatine'),
+  ...span('top', -100, 4, MAP_C, 'darth-plagueis', 'mace-windu', 'count-dooku'),
+  ...span('apex', -100, 4, 'D-494: the apex duelists', 'yoda', 'darth-sidious', 'sheev-palpatine', 'emperor-palpatine'),
   ...span('top', -32, 4, MAP_C, 'darth-maul'),
   ...span('top', -22, 4, MAP_C, 'obi-wan-kenobi', 'anakin-skywalker', 'darth-vader'),
   ...span('top', -3, 4, MAP_C, 'galen-marek'),
   ...span('master', -22, -19, MAP_C, 'general-grievous'),
+  ...span('beyond', 43, 44, 'D-494: beyond any duelist, as listed in the 4-44 ABY map', 'abeloth'),
+  ...span('beyond', 130, 138, 'D-494: beyond any duelist, as listed in the 45-138 ABY map', 'darth-krayt'),
 ];
 
 /** Figures on the lists who have no entry of their own in the lore index. */
@@ -61,8 +65,8 @@ export const GUARDED: readonly { canonId: string; fromYear: number; toYear: numb
   { canonId: 'lore:darth-azamin', fromYear: -3661, toYear: -3640, who: [{ posts: ['council-staff', 'imperial-intelligence'] }, { sides: ['sithEmpire', 'sith'], minRank: 'knight' }], source: 'A28: Azamin needs a "who"' },
 ];
 
-/** The top tier's levels (invented; Mace: Vaapad 98, Force Control 92, Willpower 94; Yoda: Ataru 100, Force about 100). */
-export const TOP_TIER = { combat: 95, forceControl: 90, willpower: 90 } as const;
+/** The tiers' levels (Jared, D-494), on the game's scale: the strongest fighting skill, Force Control and Willpower. */
+export const TIER_LEVELS = { top: { combat: 88, forceControl: 85, willpower: 90 }, apex: { combat: 98, forceControl: 100, willpower: 100 } } as const;
 /**
  * Planning (Jared, 2026-11-25; D-493): a non-Force fighter never reaches Master in an outright fight. The most skilled
  * bounty hunters and Mandalorians reach it only for a hold, with a plan recorded in play: `lines` different kinds laid

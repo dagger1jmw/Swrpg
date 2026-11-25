@@ -7,14 +7,8 @@
 
 Character reference for the Dawn of the Jedi era, drawn from the *Dawn of the Jedi* comic trilogy (*Force Storm*, *The Prisoner of Bogan*, *Force War*) and the novel *Into the Void*. Stats represent each character **at their prime**, on a **galaxy-wide Legends scale** (consistent across every era doc). Scale down for younger/weaker versions as needed in play.
 
-### Stat Scale (galaxy-wide, all of Legends)
-| Band | Range | Meaning |
-|---|---|---|
-| Novice / civilian | 10–40 | Untrained or non-combatant |
-| Trained | 40–60 | Competent Knight-equivalent, rank-and-file warrior |
-| Veteran / elite | 60–85 | Seasoned Knight, skilled commander |
-| Master | 85–100 | Master-tier; the ceiling for nearly all Force users |
-| **Legendary** | **100–150** | Mastery far beyond what any normal Jedi or Sith achieves. **Per-stat, not blanket.** |
+### Stat Scale
+[note: Ruled, Jared 25 Nov 2026: the band table that stood here (Trained 40-60, Veteran 60-85, Master 85-100, Legendary 100-150) was an error and is dropped. The tier line below is the scale. D-494]
 
 ### Stat tiers (matches game engine)
 Initiate 0–20 · Padawan 21–40 · Knight 41–60 · Master 61–80 · Grandmaster 81–100 · Legendary 101–150 · Transcendent 151+

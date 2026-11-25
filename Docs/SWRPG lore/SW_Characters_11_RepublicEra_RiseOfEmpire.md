@@ -11,14 +11,8 @@ Character reference for the long Republic peace and the **prequel era** — the 
 
 Stats represent each character **at their prime**, on the **galaxy-wide Legends scale**.
 
-### Stat Scale (galaxy-wide, all of Legends)
-| Band | Range | Meaning |
-|---|---|---|
-| Novice / civilian | 10–40 | Untrained or non-combatant |
-| Trained | 40–60 | Competent Knight-equivalent, rank-and-file warrior |
-| Veteran / elite | 60–85 | Seasoned Knight, skilled commander |
-| Master | 85–100 | Master-tier; ceiling for nearly all Force users |
-| **Legendary** | **100–150** | Mastery far beyond any normal Jedi or Sith. **Per-stat, not blanket.** See the **APEX CEILING** in Era 09 for the 126–150 sub-bands. |
+### Stat Scale
+[note: Ruled, Jared 25 Nov 2026: the band table that stood here (Trained 40-60, Veteran 60-85, Master 85-100, Legendary 100-150) was an error and is dropped. The tier line below is the scale. D-494]
 
 ### Stat tiers (matches game engine)
 Initiate 0–20 · Padawan 21–40 · Knight 41–60 · Master 61–80 · Grandmaster 81–100 · Legendary 101–150 · Transcendent 151+
@@ -89,12 +83,12 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Strength | 70 | | ForceSense | 100 |
 | Agility | 84 | | Meditation | 96 |
 | Endurance | 80 | | ForceKnowledge | 108 |
-| Willpower | 112 | | ForceControl | 110 |
+| Willpower | 112 | | ForceControl | 104 |
 | Charisma | 108 | | ForceOutput | 108 |
 | Intelligence | 100 | | | |
 
 - **Lightsaber Forms / Bladework:** A **master of all seven classic forms** — he *favors* **Form VII (Juyo)**, fighting with blindingly fast, aggressive, almost playful ferocity, but he is fully expert in every form and switches fluidly to counter any opponent. He vastly prefers manipulation, lightning, and sorcery, treating the saber as a last resort — but when forced to fight he is devastating, interlacing strikes with telekinesis and lightning. (His most famous duels are Era 13.)
-  **Form ratings (game stats):** Juyo 100 (favored) · Makashi 96 · Soresu 95 · Ataru 95 · Niman 94 · Shien/Djem So 94 · Shii-Cho 92 · *(Jar'Kai 94)*
+  **Form ratings (game stats):** Juyo 98 (favored) · Makashi 96 · Soresu 95 · Ataru 95 · Niman 94 · Shien/Djem So 94 · Shii-Cho 92 · *(Jar'Kai 94)* [note: Ruled, Jared 25 Nov 2026: Juyo 98 (Windu won the blade duel) and Force Control 104, below Force Output 108. D-494]
 - **Force Abilities (game stats):** **Force Lightning 112** *(**Chain Lightning** 95%, **Force Storm** 92% — his signature, the most feared lightning in Legends)* · Sith Alchemy 108 *(**Sith sorcery** 95% — master; holds nearly all surviving Sith lore with Tenebrous & Plagueis)* · Mind Probe 100 *(**mass mind-manipulation** 95%)* · Telekinesis 100 *(Force Push 92%)* · Force Sense 100 *(**foresight / Precognition** 95%)*
 - **Unique techniques:** **The Grand Plan** *(decades-long galactic-scale political and Force manipulation, concealing his nature from the entire Jedi Order)*
 - **Signature Ability:** **The Grand Plan & total manipulation** — the supreme political and Force manipulator of the age, backed by legendary Force lightning and Sith sorcery.
@@ -146,12 +140,12 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Strength | 60 | | ForceSense | 100 |
 | Agility | 92 | | Meditation | 102 |
 | Endurance | 80 | | ForceKnowledge | 102 |
-| Willpower | 104 | | ForceControl | 100 |
-| Charisma | 90 | | ForceOutput | 95 |
+| Willpower | 104 | | ForceControl | 104 |
+| Charisma | 90 | | ForceOutput | 96 |
 | Intelligence | 96 | | | |
 
 - **Lightsaber Forms / Bladework:** Compensates for his size with overwhelming **Force-augmented speed and acrobatics**, wielding a green shoto in a whirlwind, gravity-defying style — leaping, spinning, redirecting his tiny mass at blinding speed. He fought Dooku to a standstill and battled Sidious himself to a stalemate. His dueling is legendary, but he considers the blade a last resort.
-  **Form ratings (game stats):** Ataru 100 (primary, shoto) · Shii-Cho 90 · Soresu 88 · Makashi 88 · Niman 86
+  **Form ratings (game stats):** Ataru 100 (primary, shoto) · Shii-Cho 90 · Soresu 88 · Makashi 88 · Niman 86 [note: Ruled, Jared 25 Nov 2026: Force Control 104, at least level with Sidious; Force Output 96 in both eras. D-494]
 - **Force Abilities (game stats):** Telekinesis 102 *(Force Push/Lift 95% — held back colossal masses)* · Force Sense 100 *(**Precognition** 95%)* · Meditation discipline 102 · Force Body 95 *(Force Speed 95%)* · Force Barrier 92 *(**Force Absorb** 88% — caught Sidious's lightning bare-handed)*
 - **Unique techniques:** **Force-spirit transcendence** *(retained consciousness after death — learned from Qui-Gon's discovery)*
 - **Signature Ability:** **Grand Master of the Force** — the deepest, broadest Force mastery of the age, paired with nine centuries of wisdom; the greatest duelist of his time despite his size.
@@ -177,7 +171,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Intelligence | 86 | | | |
 
 - **Lightsaber Forms / Bladework:** The **creator and sole true master of Form VII: Vaapad** — so aggressive and psychologically dangerous that few dared learn it; it channels the user's own darkness and the opponent's malice into a relentless, almost precognitive offense that grows stronger against more powerful foes. Wields a signature purple blade. The finest blade in the Order after Yoda; bested Sidious in their duel (before Anakin's betrayal turned it).
-  **Form ratings (game stats):** Vaapad/Juyo 98 (creator & sole master) · Shii-Cho 88 · Soresu 86 · Ataru 84
+  **Form ratings (game stats):** Vaapad/Juyo 100 (creator & sole master) · Shii-Cho 88 · Soresu 86 · Ataru 84 [note: Ruled, Jared 25 Nov 2026: Vaapad 100. D-494]
 - **Force Abilities (game stats):** Telekinesis 88 *(Force Push 82%)* · Force Sense 88 *(Battle Precognition 85%)* · Force Body 84 *(Force Speed 82%)* · Force Barrier 80
 - **Unique techniques:** **Shatterpoint perception** *(perceiving the fracture-points in people, objects, and events where a precise strike has maximal effect — Mastered 92%)*
 - **Signature Ability:** **Vaapad & shatterpoint** — sole master of the most aggressive form, plus the rare shatterpoint sight.
@@ -279,9 +273,9 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Darth Tenebrous (Rugess Nome) | Bith | Sith Lord; Plagueis's master; starship designer | 60 | 80 | 64 | 88 | 74 | 92 | 84 | 80 | 96 | 88 | 84 | Makashi 92 · Soresu 86 · Ataru 84 | Sith Alchemy 95 *(**Sith sorcery** master; keeper of surviving Sith lore)* · Force Lightning 82 — **exceptionally skilled duelist, superior to Plagueis at the blade**; "maxi-chlorian" research; killed by Plagueis (INT 92) |
 | Ki-Adi-Mundi | Cerean | Jedi Master, Council; Makashi user | 66 | 72 | 68 | 84 | 76 | 82 | 82 | 80 | 82 | 80 | 78 | Makashi 80 · Shii-Cho 74 | Telekinesis 78 · Force Sense 82 — binary-brained Cerean |
 | Plo Koon | Kel Dor | Jedi Master, Council | 70 | 76 | 72 | 84 | 76 | 80 | 84 | 78 | 80 | 82 | 84 | Shii-Cho 80 · Ataru 76 | **Electric Judgment** 82 *(Force lightning variant 78%)* · Force Sense 84 — skilled pilot/duelist |
-| Kit Fisto | Nautolan | Jedi Master, Council | 74 | 82 | 76 | 82 | 78 | 78 | 82 | 76 | 78 | 82 | 82 | Shii-Cho 84 · Ataru 80 | Force Body 82 *(underwater 90%)* · Telekinesis 78 — amphibious; strong Form I |
+| Kit Fisto | Nautolan | Jedi Master, Council | 76 | 84 | 78 | 82 | 78 | 78 | 82 | 76 | 78 | 84 | 80 | Shii-Cho 84 · Ataru 80 | Force Body 82 *(underwater 90%)* · Telekinesis 78 — amphibious; strong Form I [note: Ruled, Jared 25 Nov 2026: one value across eras 11 and 12 (era 12). D-494] |
 | Adi Gallia | Tholothian | Jedi Master, Council | 62 | 76 | 66 | 82 | 76 | 80 | 82 | 76 | 78 | 80 | 78 | Ataru 78 · Shii-Cho 74 | Force Sense 82 · Telekinesis 76 — well-connected Coruscanti |
-| Saesee Tiin | Iktotchi | Jedi Master, Council; ace pilot | 76 | 74 | 76 | 82 | 70 | 78 | 84 | 74 | 74 | 78 | 80 | Djem So 78 · Shii-Cho 74 | Force Sense 84 *(telepathy 82%)* · Force Body 78 — superb starfighter pilot |
+| Saesee Tiin | Iktotchi | Jedi Master, Council; ace pilot | 76 | 74 | 76 | 82 | 70 | 78 | 84 | 82 | 82 | 86 | 80 | Djem So 78 · Shii-Cho 74 | Force Sense 84 *(telepathy 82%)* · Force Body 78 — superb starfighter pilot [note: Ruled, Jared 25 Nov 2026: Force Control 86, Meditation 82, Force Knowledge 82 (above Kit Fisto). D-494] |
 | Eeth Koth | Zabrak | Jedi Master, Council | 70 | 72 | 74 | 84 | 72 | 78 | 80 | 78 | 78 | 78 | 78 | Shii-Cho 76 · Soresu 74 | Force Body 80 *(pain tolerance 85%)* · Telekinesis 74 — Iridonian Zabrak |
 | Yaddle | Yoda's species | Jedi Master, Council | 52 | 70 | 66 | 92 | 80 | 86 | 88 | 88 | 88 | 86 | 82 | Shii-Cho 72 | Force Sense 88 · Meditation 88 *(rare Force-light technique 80%)* — ancient, wise; killed by Dooku (Legends) |
 | Yarael Poof | Quermian | Jedi Master, Council | 56 | 70 | 60 | 84 | 74 | 84 | 84 | 80 | 84 | 80 | 76 | Makashi 74 | Mind Trick 84 *(**illusion** 85%)* · Force Sense 84 — master of illusion |
@@ -298,10 +292,10 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 | Character | Affiliation | Primary Tier | Standout Stat(s) | Peak Form / Combat |
 |---|---|---|---|---|
-| Darth Sidious (Chancellor-era) | Sith | **Legendary** (apex-adjacent) | WIL 112 / FCtrl 110 / FKnow 108 / CHA 108 / FOut 108 | Juyo 100 (all 7 mastered) |
-| Yoda | Jedi Order | **Legendary** | Med 102 / FKnow 102 / WIL 104 / FCtrl 100 | Ataru 100 |
+| Darth Sidious (Chancellor-era) | Sith | **Legendary** (apex-adjacent) | WIL 112 / FCtrl 104 / FKnow 108 / CHA 108 / FOut 108 | Juyo 98 (all 7 mastered) |
+| Yoda | Jedi Order | **Legendary** | Med 102 / FKnow 102 / WIL 104 / FCtrl 104 | Ataru 100 |
 | Darth Plagueis | Sith | **Legendary** | FKnow 102 / **INT 100** (midi-chlorian sorcery) | Makashi 80 |
-| Mace Windu | Jedi Order | **Legendary** (dueling) | WIL 94 / FCtrl 92 (Vaapad) | Vaapad 98 |
+| Mace Windu | Jedi Order | **Legendary** (dueling) | WIL 94 / FCtrl 92 (Vaapad) | Vaapad 100 |
 | Count Dooku (Jedi) | Jedi Order | **Legendary** (dueling) | AGI 90 / INT 88 (Makashi) | Makashi 96 |
 | Darth Maul | Sith | **Legendary** (dueling) | AGI 96 / FOut 82 (saberstaff); **INT 64** | Saberstaff 94 / Juyo 92 |
 | Qui-Gon Jinn | Jedi Order | Master | FSense 86 / FCtrl 84 | Ataru 86 |

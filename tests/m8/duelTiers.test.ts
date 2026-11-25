@@ -1,12 +1,14 @@
-// m8-world-d2 (D-493): the tier numbers against canon figures, and planning against a top duelist.
+// The duel tiers against canon figures (D-494), and planning against a top duelist (D-493).
 import { describe, expect, it } from 'vitest';
 import { CANON_BY_ID, CANON_NPCS } from '../../src/data/canonNpcs';
-import { duelistBar, HOLD, PLAN, TOP_TIER } from '../../src/data/duelists';
+import { readdirSync, readFileSync } from 'node:fs';
+import { duelistBar, HOLD, PLAN } from '../../src/data/duelists';
 import { FORM_IDS } from '../../src/data/skills';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { xpForLevel } from '../../src/engine/curve';
 import type { DuelState } from '../../src/engine/duel';
-import { canPlan, planReady } from '../../src/engine/who';
+import { canPlan, duelTier, planReady } from '../../src/engine/who';
+import { canonFigureLevelsAt } from '../../src/features/npcs/selectors';
 import { selectPlanReady } from '../../src/features/combat/selectors';
 import { selectCanPlan, selectDuelTier, selectWorldFacts } from '../../src/features/world/selectors';
 import { applyEvents } from '../../src/state/applyEvents';
@@ -21,45 +23,50 @@ interface Line {
   willpower: number;
 }
 const line = (l: Readonly<Record<string, number>>): Line => ({ combat: Math.max(0, ...FORM_IDS.map((f) => l[f] ?? 0)), forceControl: l['forceControl'] ?? 0, willpower: l['willpower'] ?? 0 });
-const clears = (x: Line): boolean => x.combat >= TOP_TIER.combat && x.forceControl >= TOP_TIER.forceControl && x.willpower >= TOP_TIER.willpower;
+const tierOf = (x: Line): string => duelTier({ forceUser: true, masterRank: true, meetsMasterSkills: true, ...x });
 const l = (combat: number, forceControl: number, willpower: number): Line => ({ combat, forceControl, willpower });
 
-describe('the tier numbers against canon figures (a check, reported; the numbers stay as they are)', () => {
-  // The character sheets (Docs/SWRPG lore/SW_Characters_11 to _13): best form, Force Control, Willpower.
-  const SHEETS: Record<string, Line> = {
-    'Yoda': l(100, 100, 104),
-    'Mace Windu': l(98, 92, 94),
-    'Sidious (Chancellor)': l(100, 110, 112),
-    'Palpatine (Emperor)': l(100, 128, 128),
-    'Vader (Yavin)': l(100, 107, 88),
-    'Vader (Endor)': l(104, 116, 102),
-    'Kit Fisto': l(84, 84, 82),
-    'Plo Koon': l(80, 84, 84),
-    'Ki-Adi-Mundi': l(80, 82, 84),
-    'Shaak Ti': l(80, 82, 84),
-    'Saesee Tiin': l(78, 78, 82),
-    'Eeth Koth': l(76, 78, 84),
-    'Even Piell': l(78, 78, 84),
-    'Adi Gallia': l(78, 80, 82),
-    'Oppo Rancisis': l(76, 80, 86),
-    'Yarael Poof': l(74, 80, 84),
-    'Luminara Unduli': l(80, 82, 84),
-    'Cin Drallig': l(86, 84, 84),
+describe('the tiers against canon figures (Jared, D-494)', () => {
+  // The character sheets as ruled (Docs/SWRPG lore/SW_Characters_11 to _13): best form, Force Control, Willpower.
+  const SHEETS: Record<string, readonly [Line, string]> = {
+    'Yoda': [l(100, 104, 104), 'apex'],
+    'Sidious (Chancellor)': [l(98, 104, 112), 'apex'],
+    'Palpatine (Emperor)': [l(100, 128, 128), 'apex'],
+    'Mace Windu': [l(100, 92, 94), 'top'],
+    'Dooku': [l(96, 94, 94), 'top'],
+    'Obi-Wan': [l(96, 92, 92), 'top'],
+    'Anakin (Knight)': [l(94, 92, 90), 'top'],
+    'Kit Fisto': [l(84, 84, 82), 'master'],
+    'Saesee Tiin': [l(78, 86, 82), 'master'],
+    'Plo Koon': [l(80, 84, 84), 'master'],
+    'Cin Drallig': [l(86, 84, 84), 'master'],
   };
-  const MUST = ['Yoda', 'Mace Windu', 'Sidious (Chancellor)', 'Palpatine (Emperor)', 'Vader (Yavin)', 'Vader (Endor)'];
-  it('on the sheets: who must clear it, and who must not', () => {
-    const wrong = Object.entries(SHEETS).filter(([n, x]) => clears(x) !== MUST.includes(n)).map(([n]) => n);
-    expect(wrong).toEqual(['Vader (Yavin)']); // Willpower 88
+  it('on the sheets', () => {
+    for (const [n, [x, t]] of Object.entries(SHEETS)) expect(tierOf(x), n).toBe(t);
   });
-  it('on this roster: Revan clears it and Malgus does not, on either scale; no other Master does', () => {
-    const anchor = (id: string): { levels: Record<string, number>; authored: Record<string, number> } => CANON_BY_ID.get(id)!.anchors.find((a) => a.complete) as never;
-    const both = (id: string): boolean[] => [clears(line(anchor(id).authored)), clears(line(anchor(id).levels))];
-    expect(both('lore:revan')).toEqual([true, true]);
-    expect(both('lore:darth-malgus')).toEqual([false, false]);
-    expect([line(anchor('lore:darth-malgus').authored), line(anchor('lore:darth-malgus').levels)]).toEqual([l(92, 95, 94), l(88, 70, 94)]);
-    // Nobody who is not on a list clears it.
-    const cleared = CANON_NPCS.filter((n) => n.anchors.some((a) => a.complete && clears(line(a.levels)))).map((n) => n.canonId);
-    expect([...new Set(cleared)].sort()).toEqual(['lore:revan', 'lore:vitiate']);
+  it('the sheet files hold the numbers used here', () => {
+    const read = (f: string): string => readFileSync(`Docs/SWRPG lore/${f}`, 'utf8');
+    const e11 = read('SW_Characters_11_RepublicEra_RiseOfEmpire.md');
+    const e12 = read('SW_Characters_12_CloneWars.md');
+    expect(e11).toMatch(/Juyo 98 \(favored\)/);
+    expect(e11).toMatch(/Vaapad\/Juyo 100 \(creator/);
+    expect(e11).toMatch(/\| Willpower \| 112 \| \| ForceControl \| 104 \|/);
+    expect(e11).toMatch(/\| Willpower \| 104 \| \| ForceControl \| 104 \|/);
+    const fisto = (t: string): string => /^\| Kit Fisto \|.*?\| ((?:\d+ \| ){11})/m.exec(t)![1]!;
+    expect(fisto(e11)).toBe(fisto(e12));
+    expect(e12).toMatch(/FOut 120\*\* \/ WIL 72/);
+    for (const f of readdirSync('Docs/SWRPG lore').filter((x) => /^(?:OLD_)?SW_Characters_.*\.md$/.test(x))) expect(read(f), f).not.toMatch(/\| ?Master ?\| ?85.100/);
+  });
+  it('on the roster, in the game', () => {
+    const now = (id: string): string => {
+      const n = CANON_BY_ID.get(id)!;
+      const a = n.anchors.find((x) => x.complete)!;
+      return tierOf(line(canonFigureLevelsAt(n, a.bby, absDayFromDate({ year: -a.bby, month: 1, day: 1 }))));
+    };
+    const top = CANON_NPCS.filter((n) => n.anchors.some((a) => a.complete)).filter((n) => ['top', 'apex'].includes(now(n.canonId))).map((n) => n.canonId.slice(5)).sort();
+    expect(top).toEqual(['darth-malgus', 'darth-marr', 'emperor-wrath', 'hero-of-tython', 'revan', 'satele-shan', 'scourge']);
+    expect(['lore:darth-malgus', 'lore:satele-shan', 'lore:revan'].map(now)).toEqual(['top', 'top', 'top']);
+    expect(['lore:kao-cen-darach', 'lore:ven-zallow'].map(now)).toEqual(['master', 'master']);
   });
 });
 

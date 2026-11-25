@@ -36,8 +36,10 @@ describe('canon figures at any date (D-414)', () => {
     expect(pad.forceControl!).toBeLessThan(knight.forceControl!);
     expect(knight.forceControl!).toBeLessThan(master.forceControl!);
   });
-  it('fixed figures (Vitiate) keep their sheet at any date', () => {
+  it('fixed figures (Vitiate) keep their sheet at any date, over the generated line (D-494)', () => {
     const v = get('vitiate');
-    expect(at(v, 3681)).toEqual({ ...v.anchors[0]!.levels });
+    expect(at(v, 3681)).toEqual(at(v, 3645));
+    for (const [k, x] of Object.entries(v.anchors[0]!.levels)) expect(at(v, 3681)[k]!, k).toBeGreaterThanOrEqual(Math.min(x, 80));
+    for (const k of ['forceControl', 'forceOutput', 'willpower', 'makashi', 'telekinesis']) expect(at(v, 3681)[k], k).toBe(v.anchors[0]!.levels[k]);
   });
 });

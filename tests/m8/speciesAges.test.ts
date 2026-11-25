@@ -7,7 +7,7 @@ import { ageLoss, ageingStep, assumedAgeing, bodyAge, bodyAgeFromH, bodyDecline,
 import { ageFromTraining, bodyCap, humanBodyCap, humanEquivalentAge, naturalLevel, physicalPerformance, speciesAgeFromHuman, trainingAge, trainingAgeFactor, trainingIntegral } from '../../src/engine/species';
 import { ageFactor, ageIntegral } from '../../src/engine/ageFactor';
 import { computeCreation } from '../../src/features/character/creation';
-import { canonFigureLevelsAt, npcLevelsFor } from '../../src/features/npcs/selectors';
+import { canonFigureLevelsAt, canonProgressionLineAt, npcLevelsFor } from '../../src/features/npcs/selectors';
 import { selectAgeing, selectBodyCap, selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
 import { speedPartsFor } from '../../src/features/progression/training';
 import { advanceTime } from '../../src/state/advanceTime';
@@ -220,7 +220,11 @@ describe('NPCs and canon figures', () => {
     const orgus = CANON_BY_ID.get('lore:orgus-din')!;
     const a = orgus.anchors.find((x) => x.complete)!;
     const now = canonFigureLevelsAt(orgus, a.bby, start);
-    for (const k of ['strength', 'agility', 'endurance']) if (a.levels[k] !== undefined) expect(now[k]).toBeCloseTo(a.levels[k]!, 6);
+    // The sheet, or the line the game would generate where that is higher (D-494).
+    const line = canonProgressionLineAt(orgus, a.bby, start);
+    for (const k of ['strength', 'agility', 'endurance']) if (a.levels[k] !== undefined) expect(now[k]!, k).toBeGreaterThanOrEqual(Math.min(a.levels[k]!, line[k]!) - 1e-6);
+    expect(now['forceControl']).toBeCloseTo(a.levels['forceControl']!, 6);
+    expect(now['djemSo']!).toBeGreaterThanOrEqual(a.levels['djemSo']!);
     const later = canonFigureLevelsAt(orgus, a.bby - 15, start);
     expect((later['agility'] ?? 0) / Math.max(1, now['agility'] ?? 1)).toBeLessThan((later['forceControl'] ?? 0) / Math.max(1, now['forceControl'] ?? 1));
   });

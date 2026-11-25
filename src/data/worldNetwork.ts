@@ -48,7 +48,7 @@ export type StateTest =
 /** A player action whose check the engine rolled, or a fight the player won. */
 export type DeedTest =
   | { kind: 'action'; actionTypes: readonly ActionType[]; skills?: readonly string[]; places?: readonly string[]; canonIds?: readonly string[] }
-  /** hold: not a win but time bought against a top duelist (D-491): a Master's short delay, or the top tier's long one. */
+  /** hold: not a win but time bought against a top duelist (D-491): a short delay one tier below the duelist, a long one at their tier. */
   | { kind: 'fight'; canonIds?: readonly string[]; factions?: readonly FactionId[]; places?: readonly string[]; minStakes?: CombatStakes; hold?: 'brief' | 'long' };
 
 export type WorldTest = (StateTest | DeedTest) & {

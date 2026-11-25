@@ -258,7 +258,9 @@ Events whose crucial tags don't depend on these plot points, so they still happe
 
 The four rules apply to every row: the three tests for every step, the top-duelist bar, no premonitions, closed systems unbreakable. D-489 overrides the earlier guard and bar of PP-5 part B (C14); C21 and C22 are ruled in PP-6; the rest follows the rules check (docs-v2/reports/tagmap-rules-check.md, C1 to C30).
 
-- **Top duelists:** Vader, Dooku, Maul, Sidious, Plagueis, Yoda, Mace, Anakin, Obi-Wan, Galen Marek. A fight with one needs at least a Master, who only holds one off briefly; beating one, or holding long, is top tier (Yoda's or Mace's level). **Grievous:** at least a Master. This also holds wherever a lost crucial role alone breaks an event.
+- **Apex duelists (Jared, 25 Nov 2026, D-494):** Yoda, Sidious. Only another apex (combat 98, Force Control 100, Willpower 100) beats one; a top-tier fighter only buys time; a Master does not even hold one off.
+- **Top duelists:** Vader (hand-set when his era is built), Dooku, Maul, Plagueis, Mace, Anakin, Obi-Wan, Galen Marek. A fight with one needs at least a Master, who only holds one off briefly; beating one, or holding long, is top tier (combat 88, Force Control 85, Willpower 90: Mace's, Dooku's or Malgus's level).
+- **Where Sidious is the foe (PP-5 part B, PP-6 alternative 3),** "top tier" there now only buys time against him; winning takes an apex. PP-5's outcomes 1 and 2b are a hold (the player stands with Windu until Anakin comes), so they stay top tier. **Grievous:** at least a Master. This also holds wherever a lost crucial role alone breaks an event.
 - **Closed:** E.32.plagueis_killed, the duel aboard the *Invisible Hand* (E.19.coruscant), E.19.mustafar, E.0.kenobi, the Emperor's chamber on the first Death Star (PP-6, with C22's one named exception), the throne room at Endor (E.4.endor).
 - **Rows with no plot point step:**
 

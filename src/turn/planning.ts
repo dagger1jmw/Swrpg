@@ -25,7 +25,8 @@ export function tryPlan(state: GameState, intent: Intent): PlanTurn | { refused:
   if (!plan) return null;
   const foe = selectNpc(state, plan.foeRef);
   if (!foe) return { refused: 'nobody known to plan against' };
-  if (selectDuelistBar(state, foe.canonId) !== 'top') return { refused: `no plan is needed to face ${foe.name}` };
+  const bar = selectDuelistBar(state, foe.canonId);
+  if (bar !== 'top') return { refused: bar === 'apex' || bar === 'beyond' ? `no plan would be enough against ${foe.name}` : `no plan is needed to face ${foe.name}` };
   if (!selectCanPlan(state)) return { refused: 'only the most skilled bounty hunters and Mandalorians can plan for such a foe' };
   if (selectPlanTriedToday(state, foe.id, plan.kind)) return { refused: 'already tried today' };
   const skills = PLAN.skills[plan.kind];

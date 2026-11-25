@@ -7,8 +7,8 @@ import type { WorldPostId } from './worldPosts';
 export const RANK_STEPS = { padawan: 1, knight: 2, master: 3 } as const;
 export type RankStep = keyof typeof RANK_STEPS;
 
-/** The player's fighting tier against a top duelist (D-489). */
-export const DUEL_TIERS = ['below', 'master', 'top'] as const;
+/** The player's fighting tier (D-489; apex added by D-494). */
+export const DUEL_TIERS = ['below', 'master', 'top', 'apex'] as const;
 export type DuelTier = (typeof DUEL_TIERS)[number];
 
 /** Every part given must hold. A gate is a list of these: any one that holds opens it. */

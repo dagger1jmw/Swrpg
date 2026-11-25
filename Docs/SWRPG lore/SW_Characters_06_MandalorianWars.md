@@ -9,14 +9,8 @@ Character reference for the **Mandalorian Wars** — the brutal sixteen-year con
 
 Stats represent each character **at their prime**, on the **galaxy-wide Legends scale**.
 
-### Stat Scale (galaxy-wide, all of Legends)
-| Band | Range | Meaning |
-|---|---|---|
-| Novice / civilian | 10–40 | Untrained or non-combatant |
-| Trained | 40–60 | Competent Knight-equivalent, rank-and-file warrior |
-| Veteran / elite | 60–85 | Seasoned Knight, skilled commander |
-| Master | 85–100 | Master-tier; ceiling for nearly all Force users |
-| **Legendary** | **100–150** | Mastery far beyond any normal Jedi or Sith. **Per-stat, not blanket.** |
+### Stat Scale
+[note: Ruled, Jared 25 Nov 2026: the band table that stood here (Trained 40-60, Veteran 60-85, Master 85-100, Legendary 100-150) was an error and is dropped. The tier line below is the scale. D-494]
 
 ### Stat tiers (matches game engine)
 Initiate 0–20 · Padawan 21–40 · Knight 41–60 · Master 61–80 · Grandmaster 81–100 · Legendary 101–150 · Transcendent 151+

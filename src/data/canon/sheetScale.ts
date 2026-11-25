@@ -1,49 +1,61 @@
-// The stat scale (Jared, 2026-11-22; D-423 as revised by D-429; skills-and-activities.md §7 bands). The game's
-// progression is the reference scale. The hand-set canon sheets (lore batch 19 and the D-421 lines) were written on
-// their own, flatter scale: most values sit at 76-88 whatever the figure's focus. They are converted into the game scale
-// at load (CANON_NPCS), in three ways:
-//  1. Most stats by one factor per archetype group (Jedi, Sith, careers): the median, over that group's non-fixed
-//     hand-set sheets, of the game's progression line for the figure (archetype, rank spans, lived age at the sheet's
-//     date, gifted talent: a notable figure) over the sheet value; capped at 1.0, so nothing is inflated.
-//  2. Force Knowledge, Meditation, Intelligence and Tactics from the band definitions (D-429; Force Knowledge and
-//     Meditation of the Order archetypes re-measured on the loop, D-461, as curves by age read at the figure's own age, D-462: KNOWLEDGE_BAND_CURVES): their low factors measure
-//     the missing XP sources, not the scale. Each takes the band of the figure's standing at the sheet's date (40 a
-//     Knight, Lord or officer; 60 a Master, Darth or general; 80 the Councils and the highest offices; 100 an ancient),
-//     one band lower outside the figure's focus, and never above the authored value. Re-measured once the sources exist.
-//  3. The apex and focus figures carry hand-set game-scale lines (GAME_SCALE_LINES) over the converted sheet.
-// The authored numbers stay in the roster files (an anchor's `authored`); the baseline is in
-// docs-v2/reference/calibration-baseline-2026-11-22/. The generator is not tuned to the sheets.
+// The sheet scale (Jared, 2026-11-25; D-494; skills-and-activities.md §7). Supersedes D-423's conversion and D-429's factors
+// and hand-set lines. A hand-set sheet (lore batch 19, the D-421 lines) is on the game's own tier line (Adept 41-60, Master
+// 61-80, High Master 81-100, Legendary 101+). At load (CANON_NPCS) a sheet becomes its game levels like this:
+//  1. Main-specialty stats as written: every form, the Force abilities, Force Control, Force Output, Willpower; Force Sense
+//     for a figure whose focus includes it; whatever else the archetype's focus holds (its weights).
+//  2. Strength, Agility and Endurance come down: the sheets wrote them as they are in combat, with the Force in them
+//     (sheetBody). The species' cap at the figure's age is applied with the date (engine/canonStats.ts).
+//  3. Force Knowledge and Meditation from D-461's measured curves by age, Intelligence and Tactics outside the focus from the
+//     D-429 bands; never above the sheet.
+//  4. Anything else outside the focus (a Sith Warrior's Force Sense, a Jedi's Charisma) is left out: the game builds it, as
+//     it does for any figure of that archetype, rank and age.
+//  5. Nothing ends below what the game would generate (the floor, engine/canonStats.ts).
+// The authored numbers stay in the roster files (an anchor's `authored`).
 import { archetypeDef } from '../archetypes';
+import { FORCE_BOOST } from '../progression.config';
 import { SKILL_BY_ID } from '../skills';
 import { speciesDef, speciesTableId, trainingAge } from '../species';
 import type { CanonNpc, StatAnchor } from './types';
 
-export type SheetGroup = 'jedi' | 'sith' | 'career';
+/** Jedi and others trained in the Force, or not (a career). */
+const usesForce = (archetype: string): boolean => archetypeDef(archetype).path !== 'career';
 
-/** Factors per group (measured 2026-11-22 on the hand-set sheets; the median ratio, capped at 1.0). */
-export const SHEET_TO_GAME_BY_GROUP: Readonly<Record<SheetGroup, Readonly<Record<string, number>>>> = {
-  jedi: { strength: 0.72, agility: 0.63, endurance: 0.71, willpower: 1.0, charisma: 0.19, forceSense: 0.73, forceControl: 0.71, forceOutput: 0.71, $forms: 0.9, $abilities: 0.51, blaster: 0.6, stealth: 0.6, melee: 0.24 },
-  sith: { strength: 0.62, agility: 0.6, endurance: 0.6, willpower: 1.0, charisma: 0.18, forceSense: 0.46, forceControl: 0.57, forceOutput: 0.75, $forms: 0.8, $abilities: 0.5, blaster: 0.6, stealth: 0.6, melee: 0.24 },
-  career: { strength: 0.68, agility: 0.72, endurance: 0.67, willpower: 0.77, charisma: 0.19, forceSense: 0.5, forceControl: 0.6, forceOutput: 0.6, $forms: 0.8, $abilities: 0.5, blaster: 0.6, stealth: 0.6, melee: 0.24 },
-};
-/** The stats set from the bands, not a factor (D-429). */
-export const BAND_SET_STATS: readonly string[] = ['forceKnowledge', 'meditation', 'intelligence', 'tactics'];
+/** Stats always taken as written (D-494). */
+const AS_WRITTEN: readonly string[] = ['willpower', 'forceControl', 'forceOutput'];
+/** Sith whose sheets make Force Sense a specialty (listed among their abilities, or Legendary): the rest of the focus is the archetype's. */
+const SENSE_FOCUS: readonly string[] = ['lore:vitiate', 'lore:darth-baras', 'lore:darth-angral', 'lore:dread-masters', 'lore:ragate'];
+const PHYSICAL: readonly string[] = ['strength', 'agility', 'endurance'];
 
-export const groupOf = (archetype: string): SheetGroup => {
-  const p = archetypeDef(archetype).path;
-  return p === 'jedi' || p === 'outsider' ? 'jedi' : p === 'sith' ? 'sith' : 'career';
-};
-
-/** A stat's factor in a group: its own, its kind's (forms, Force abilities), else 1 (unmeasured stays as authored). */
-export function sheetFactor(stat: string, group: SheetGroup = 'jedi'): number {
-  const g = SHEET_TO_GAME_BY_GROUP[group];
-  const own = g[stat];
-  if (own !== undefined) return own;
-  const kind = SKILL_BY_ID.get(stat)?.kind;
-  if (kind === 'form') return g['$forms']!;
-  if (kind === 'forceAbility') return g['$abilities']!;
-  return 1;
+/** Whether a stat belongs to the figure's focus: its archetype's weights, or Force Sense where its own sheet says so. */
+function focusHolds(n: Pick<CanonNpc, 'canonId' | 'archetype'>, stat: string): boolean {
+  return stat in archetypeDef(n.archetype).weights || (stat === 'forceSense' && SENSE_FOCUS.includes(n.canonId));
 }
+
+/** The figure's Force body ability: its sheet's Force Speed or Force Jump, or the Force Body it names. */
+function bodyAbility(n: Pick<CanonNpc, 'unmapped'>, levels: Readonly<Record<string, number>>): number {
+  const named = (n.unmapped ?? []).map((u) => Number(/^Force Body (\d+)/.exec(u)?.[1] ?? 0));
+  return Math.max(levels['forceSpeed'] ?? 0, levels['forceJump'] ?? 0, ...named, 0);
+}
+
+/**
+ * A career's written physical stat against the trained range (invented): above CAREER_BODY.from the sheet's range to 100 is
+ * drawn in to the Human cap of 80, so a 100 on the sheet is the body at its limit.
+ */
+export const CAREER_BODY = { from: 40, per: 2 / 3 } as const;
+
+/**
+ * A physical stat's trained level (D-494). A Force-user's sheet wrote the stat in combat with the Force in it, so the Force
+ * boost the game gives in play (progression-numbers §11, from the sheet's own Force Control and Force body ability) comes
+ * off: no number of its own. A career has no boost and is drawn into the trained range.
+ */
+export function sheetBody(n: Pick<CanonNpc, 'archetype' | 'unmapped'>, levels: Readonly<Record<string, number>>, written: number): number {
+  if (!usesForce(n.archetype)) return written <= CAREER_BODY.from ? written : CAREER_BODY.from + (written - CAREER_BODY.from) * CAREER_BODY.per;
+  const boost = Math.min(FORCE_BOOST.max, FORCE_BOOST.fcPer * Math.max(0, (levels['forceControl'] ?? 0) - FORCE_BOOST.fcFrom) + FORCE_BOOST.bodyPer * bodyAbility(n, levels));
+  return Math.max(0, written - boost);
+}
+
+/** The stats read from the curves and bands when outside the focus (D-429, D-461). */
+export const BAND_SET_STATS: readonly string[] = ['forceKnowledge', 'meditation', 'intelligence', 'tactics'];
 
 const TIER_80 = ['Grand Master', 'High Council member', 'Dark Councilor', 'Sith Emperor', 'Supreme Commander', 'Supreme Chancellor', 'Mandalore', 'minister', 'Minister'];
 const TIER_60 = ['Jedi Master', 'Darth', 'general', 'Overseer', 'senator', 'crime lord', 'admiral', 'Grand Moff', 'Moff'];
@@ -134,33 +146,17 @@ export function bandValue(stat: string, authored: number, band: number, archetyp
   return Math.max(0, Math.min(authored, inFocus(stat, archetype) ? band : band - 20));
 }
 
-/**
- * Hand-set game-scale lines for the apex and focus figures (Jared, D-429): written on the game's bands (skills-and-
- * activities §7: 80 the elite of an era, 100 legendary, 120 apex), over the converted sheet. Invented.
- */
-export const GAME_SCALE_LINES: Readonly<Record<string, Readonly<Record<string, number>>>> = {
-  'lore:vitiate': { forceOutput: 125, forceControl: 120, forceSense: 120, forceKnowledge: 125, meditation: 115, willpower: 135, intelligence: 100, charisma: 90, makashi: 100, niman: 98, soresu: 95, shiiCho: 93, telekinesis: 115, forcePush: 109, forceLightning: 120 },
-  'lore:scourge': { djemSo: 98, shien: 98, juyo: 90, shiiCho: 90, ataru: 85, soresu: 85, forceControl: 80, forceSense: 70, forceOutput: 85, forceKnowledge: 50, meditation: 40, willpower: 100, telekinesis: 72, forceLightning: 70 },
-  'lore:darth-malgus': { djemSo: 88, shien: 88, juyo: 76, shiiCho: 74, ataru: 70, forceControl: 70, forceSense: 58, forceOutput: 75, forceKnowledge: 35, meditation: 28, willpower: 94, telekinesis: 64, forceChoke: 58, forceLightning: 66, forceBarrier: 58 },
-  'lore:darth-marr': { soresu: 88, djemSo: 84, shien: 84, shiiCho: 78, makashi: 72, forceControl: 78, forceSense: 70, forceOutput: 75, forceKnowledge: 55, meditation: 50, willpower: 100, forceBarrier: 74, forceAbsorb: 60, telekinesis: 66, forceLightning: 62 },
-  'lore:dread-masters': { forceOutput: 100, forceControl: 92, forceSense: 95, forceKnowledge: 95, meditation: 85, battleMeditation: 105, willpower: 100, intelligence: 75, makashi: 62, shiiCho: 58, soresu: 58, telekinesis: 70 },
-  'lore:satele-shan': { ataru: 86, soresu: 80, niman: 78, shiiCho: 76, forceControl: 86, forceSense: 88, forceOutput: 72, forceKnowledge: 72, meditation: 80, battleMeditation: 90, forceBarrier: 86, forceAbsorb: 72, forceSpeed: 68, telekinesis: 76, forcePush: 60, willpower: 105 },
-  'lore:revan': { niman: 105, ataru: 100, djemSo: 100, shien: 100, soresu: 96, makashi: 96, shiiCho: 96, juyo: 94, jarKai: 100, forceControl: 105, forceSense: 100, forceOutput: 95, forceKnowledge: 100, meditation: 90, battleMeditation: 95, telekinesis: 95, forcePush: 85, forceLightning: 85, forceSpeed: 75, willpower: 110, intelligence: 90 },
-  // The Consular-type Masters: Force Knowledge and Meditation at their focus bands.
-  'lore:zym': { forceKnowledge: 110, meditation: 100, forceSense: 92, forceControl: 72, forceOutput: 60, battleMeditation: 85, soresu: 60, shiiCho: 54, telekinesis: 60, willpower: 120, intelligence: 60 },
-  'lore:darnala': { forceKnowledge: 88, meditation: 72, forceSense: 78, forceControl: 62, forceOutput: 58, battleMeditation: 75, soresu: 60, makashi: 56, willpower: 102 },
-  'lore:ngani-zho': { forceKnowledge: 95, meditation: 82, forceSense: 80, forceControl: 60, forceOutput: 55, soresu: 56, shiiCho: 52, willpower: 115 },
-  'lore:tol-braga': { forceKnowledge: 98, meditation: 85, forceSense: 82, forceControl: 66, forceOutput: 60, battleMeditation: 80, forceBarrier: 70, soresu: 60, niman: 58, willpower: 118 },
-  'lore:gnost-dural': { forceKnowledge: 85, meditation: 60, forceSense: 65, forceControl: 58, forceOutput: 52, soresu: 56, djemSo: 52, juyo: 50, shiiCho: 48, telekinesis: 55, forceSpeed: 40, intelligence: 55, willpower: 90 },
-  'lore:the-barsenthor': { forceKnowledge: 70, meditation: 66, forceSense: 72, forceControl: 70, forceOutput: 60, forceHealOthers: 75, forceBarrier: 68, soresu: 62, niman: 60, shiiCho: 56, telekinesis: 64, willpower: 85 },
-};
-
-/** A sheet's levels in the game scale (rounded to 0.1). */
-export function sheetToGame(n: Pick<CanonNpc, 'canonId' | 'archetype' | 'ranks' | 'fixed' | 'birthBby' | 'speciesId'>, a: Pick<StatAnchor, 'bby' | 'levels'>): Record<string, number> {
-  const group = groupOf(n.archetype);
+/** A sheet's levels on the game's scale (rounded to 0.1). A stat left out is the game's own to build. */
+export function sheetToGame(n: Pick<CanonNpc, 'canonId' | 'archetype' | 'ranks' | 'fixed' | 'birthBby' | 'speciesId' | 'unmapped'>, a: Pick<StatAnchor, 'bby' | 'levels'>): Record<string, number> {
   const band = standingBand(n, a.bby);
   const age = bandReadAge(n, a.bby);
   const out: Record<string, number> = {};
-  for (const [k, v] of Object.entries(a.levels)) out[k] = BAND_SET_STATS.includes(k) ? bandValue(k, v, band, n.archetype, age) : Math.round(v * sheetFactor(k, group) * 10) / 10;
-  return { ...out, ...(GAME_SCALE_LINES[n.canonId] ?? {}) };
+  for (const [k, v] of Object.entries(a.levels)) {
+    const kind = SKILL_BY_ID.get(k)?.kind;
+    if (PHYSICAL.includes(k)) out[k] = Math.round(sheetBody(n, a.levels, v) * 10) / 10;
+    else if (k === 'forceKnowledge' || k === 'meditation') out[k] = bandValue(k, v, band, n.archetype, age);
+    else if (AS_WRITTEN.includes(k) || kind === 'form' || kind === 'forceAbility' || focusHolds(n, k)) out[k] = v;
+    else if (BAND_SET_STATS.includes(k)) out[k] = bandValue(k, v, band, n.archetype, age);
+  }
+  return out;
 }

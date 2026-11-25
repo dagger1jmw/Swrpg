@@ -76,8 +76,8 @@ export interface StatAnchor {
   /** 'sheet': hand set; 'draft': generated from archetype and rank for review (D-415). */
   basis: 'sheet' | 'draft';
   /**
-   * The scale the levels are written in (D-423). A hand-set sheet is written on the sheet scale unless marked 'game';
-   * the roster converts it into the game scale at load (src/data/canon/sheetScale.ts) and keeps the authored numbers.
+   * 'game' once read by the sheet rule (D-494, src/data/canon/sheetScale.ts, at load): main-specialty stats as written,
+   * physical stats without the Force in them, the rest as the game builds it. The authored numbers are kept.
    */
   scale?: 'sheet' | 'game';
   /** The authored sheet levels, kept after the conversion (reports and tests). */

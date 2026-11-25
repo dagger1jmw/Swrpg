@@ -9,6 +9,8 @@ import { ageFromTraining, speciesDef, speciesTableId, trainingAge } from '../../
 import { DAYS_PER_YEAR, dateFromAbsDay } from '../../engine/calendar';
 import { npcVariance, rollNpcInputs } from '../../engine/npcGen';
 import { ageLoss, bodyAge, isPhysicalStat } from '../../engine/ageing';
+import { PRIME_H } from '../../data/ageing.config';
+import { bodyCapAt } from '../../engine/species';
 import { isOutsideForce } from '../../engine/speed';
 import { canonLevelsAt, canonLevelsInCampaign, type CanonStatDeps } from '../../engine/canonStats';
 import { canonLivedAgeAt, canonRankAt, withoutDeath } from '../../engine/canonRoster';
@@ -132,10 +134,13 @@ function canonDeps(canon: CanonNpc, today: number, asOfBby = -Infinity): CanonSt
     return lv;
   };
   return {
-    lineAt: (bby) => line(bby, true),
+    // A figure with a sheet takes the plain line for what its sheet leaves to the game: no luck of the draw (D-494).
+    lineAt: (bby) => line(bby, canon.anchors.length === 0),
     growthAt: (bby) => Math.max(0, ...Object.entries(line(bby, false)).filter(([k]) => FORM_IDS.includes(k) || k === def.main).map(([, v]) => v)),
     livedAgeAt: (bby) => canonLivedAgeAt(canon, bby),
     retentionAt: (stat, bby) => (isPhysicalStat(stat) ? 1 - ageLoss(stat, canonBodyAge(canon, bby, line(bby, false)['forceControl'] ?? 0)) : 1),
+    // An immortal's body is held at its prime (D-494).
+    capAt: (stat, bby) => (isPhysicalStat(stat) ? bodyCapAt(creationSpecies(canon.speciesId), stat, canon.fixed ? PRIME_H : canonBodyAge(canon, bby, line(bby, false)['forceControl'] ?? 0)) : null),
   };
 }
 

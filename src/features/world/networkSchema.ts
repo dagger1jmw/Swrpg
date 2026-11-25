@@ -22,7 +22,7 @@ import { isValidDate } from '../../engine/calendar';
 import { DUELISTS } from '../../data/duelists';
 import { ARCHETYPES } from '../../data/archetypes';
 import { WORLD_POST_IDS, type WorldPostId } from '../../data/worldPosts';
-import type { Who } from '../../data/who';
+import { DUEL_TIERS, type Who } from '../../data/who';
 import { PREREQUISITES_NEEDED } from '../../data/worldNetwork.config';
 import { eventOrder, sceneFlag, worldDay } from './network';
 
@@ -56,7 +56,7 @@ const who = list(
       trustOf: list(canonId).optional(),
       posts: list(z.enum(WORLD_POST_IDS as [WorldPostId, ...WorldPostId[]])).optional(),
       at: list(text).optional(),
-      minTier: z.enum(['below', 'master', 'top']).optional(),
+      minTier: z.enum(DUEL_TIERS).optional(),
       flags: list(z.string()).optional(),
     })
     .refine((w) => Object.values(w).some((x) => x !== undefined), 'an empty gate'),

@@ -12,15 +12,8 @@ Character reference for the **SWTOR era** — the **Great Galactic War** (3,681�
 
 Stats represent each character **at their prime**, on the **galaxy-wide Legends scale**.
 
-### Stat Scale (galaxy-wide, all of Legends)
-
-|Band|Range|Meaning|
-|-|-|-|
-|Novice / civilian|10–40|Untrained or non-combatant|
-|Trained|40–60|Competent Knight-equivalent, rank-and-file warrior|
-|Veteran / elite|60–85|Seasoned Knight, skilled commander|
-|Master|85–100|Master-tier; ceiling for nearly all Force users|
-|**Legendary**|**100–150**|Mastery far beyond any normal Jedi or Sith. **Per-stat, not blanket.**|
+### Stat Scale
+[note: Ruled, Jared 25 Nov 2026: the band table that stood here (Trained 40-60, Veteran 60-85, Master 85-100, Legendary 100-150) was an error and is dropped. The tier line below is the scale. D-494]
 
 ### Stat tiers (matches game engine)
 
@@ -92,7 +85,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Intelligence|120||||
 
 * **Lightsaber Forms / Bladework:** A genuinely accomplished swordsman, but his threat is sorcery and mass Force-drain on a scale that makes dueling almost an afterthought. Favors the precise Makashi and the Force-integrated Niman.
-**Form ratings (game stats):** Makashi 92 · Niman 90 · Soresu 88 · Shii-Cho 86
+**Form ratings (game stats):** Makashi 80 · Niman 78 · Soresu 76 · Shii-Cho 74 [note: Ruled, Jared 25 Nov 2026: Makashi 80, below Malgus (blade "adequate", rarely used); the other forms brought down with it, invented. D-494]
 * **Force Abilities (game stats):** **Force Drain 145** *(**galactic/planetary life-drain** 99% — drained Nathema and all of Ziost; the single most destructive ability in the timeline)* · Sith Alchemy 132 *(spatial sorcery — reshaped Dromund Kaas's sky; immortality rituals — Midi-chlorian Manipulation 95%)* · Mind Probe 130 *(**Mind Control** 98% — dominated 8,000 Sith Lords at once)* · Telekinesis 122 *(Force Push 95%)* · Force Lightning 118 *(Chain Lightning 92%, Force Storm 85%)*
 * **Unique techniques:** **Immortality / body-possession \& spirit-persistence** *(resurrection, body-hopping across hosts, persistence as a disembodied spirit — drained Ziost with no body at all)*
 * **Signature Ability:** **Galaxy-scale life-drain \& immortality** — consumes the life-force and the Force itself from entire planetary populations, even as a disembodied spirit; paired with mass mind-domination and near-unkillable spirit-persistence.
@@ -121,7 +114,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Intelligence|78||||
 
 * **Lightsaber Forms / Bladework:** A powerful, disciplined warrior — strong, fast, relentlessly aggressive, with centuries of experience and an immortal's fearlessness. Fights with controlled ferocity (not berserker rage), exploiting endless stamina and his inability to be permanently killed to outlast foes. A Djem So power-duelist with Juyo edge.
-**Form ratings (game stats):** Shien/Djem So 88 · Juyo 82 · Shii-Cho 82 · Ataru 78
+**Form ratings (game stats):** Soresu 88 · Juyo 82 · Ataru 78 [note: Ruled, Jared 25 Nov 2026: the forms named on his page, Soresu, Juyo and Ataru; Soresu takes the 88, invented. D-494]
 * **Force Abilities (game stats):** Force Body 90 *(Enhance Attribute 85%, Remove Fatigue 90%)* · Force Enrage 80 · Telekinesis 80 *(Force Push 75%)* · Force Lightning 78 *(Chain Lightning 70%)*
 * **Unique techniques:** **Imposed immortality** *(unending life granted by the Emperor at the cost of perpetual pain; cannot age or die by ordinary means)*
 * **Signature Ability:** **Imposed immortality** — fights without self-preservation and endures across centuries; cannot be permanently killed by ordinary means.
@@ -143,12 +136,12 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Strength|90||ForceSense|84|
 |Agility|82||Meditation|70|
 |Endurance|92||ForceKnowledge|80|
-|Willpower|94||ForceControl|95|
+|Willpower|94||ForceControl|88|
 |Charisma|86||ForceOutput|90|
 |Intelligence|80||||
 
 * **Lightsaber Forms / Bladework:** **Overwhelming, physically dominant aggression** — a powerhouse style built on raw strength and Force-augmented power attacks, blending saber strikes with Force pushes, chokes, and lightning to crush foes. Fights with the cold confidence of a warrior who survived being blown apart and rebuilt. Wields a crimson blade. A pure Djem So juggernaut. Disarmed and beat Satele Shan one-on-one on Alderaan (only a grenade saved her).
-**Form ratings (game stats):** Shien/Djem So 92 (primary) · Shii-Cho 82 · Juyo 80 · Ataru 76
+**Form ratings (game stats):** Shien/Djem So 92 (primary) · Shii-Cho 82 · Juyo 80 · Ataru 76 [note: Ruled, Jared 25 Nov 2026: Djem So 92, Force Control 88 (was 95), Force Output 90, Willpower 94. D-494]
 * **Force Abilities (game stats):** Telekinesis 88 *(Force Push 85%, **Force Choke** 82%)* · Force Lightning 85 *(Chain Lightning 80%)* · Force Body 86 *(Enhance Attribute 88%)* · Force Barrier 78
 * **Signature Ability:** **Unbreakable war-juggernaut** — immense Force-augmented power and indomitable will hardened by survived catastrophic injury; breaks armies and Jedi alike.
 * **Notable Feats:** Recaptured Korriban; killed Kao Cen Darach; led the Sacking of Coruscant and the assault on the Jedi Temple; survived being blown apart; declared his own breakaway Empire.
@@ -174,7 +167,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Intelligence|84||||
 
 * **Lightsaber Forms / Bladework:** A disciplined, powerful duelist who fights like the defensive bulwark he is — controlled, relentless, nearly impossible to break, channeling the dark side into endurance and crushing counterattacks rather than reckless aggression. A Soresu master with Djem So counterpunch. Wields a crimson blade behind his iconic mask and heavy armor.
-**Form ratings (game stats):** Soresu 88 (primary) · Shien/Djem So 84 · Shii-Cho 80 · Makashi 76
+**Form ratings (game stats):** Soresu 88 (primary) · Shien/Djem So 84 · Shii-Cho 80 · Makashi 76 [note: Ruled, Jared 25 Nov 2026: the sheet's forms kept, invented (no form is named for him). D-494]
 * **Force Abilities (game stats):** Force Barrier 88 *(Force Absorb 80%)* · Telekinesis 84 *(Force Push 80%)* · Force Lightning 78 *(Chain Lightning 70%)* · Force Body 82 *(Remove Fatigue 82%)*
 * **Signature Ability:** **Bulwark of the Empire** — an indomitable defensive will and command presence; personally halted Republic offensives and held the Empire together.
 * **Notable Feats:** Dark Councilor from his early twenties; drove back Republic armies; one of only seven Councilors to survive the Great War; forged a truce with Satele to defeat the returned Revan; died facing the Eternal Empire.
@@ -200,11 +193,11 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Agility|88||Meditation|94|
 |Endurance|76||ForceKnowledge|90|
 |Willpower|96||ForceControl|94|
-|Charisma|88||ForceOutput|82|
+|Charisma|88||ForceOutput|90|
 |Intelligence|84||||
 
 * **Lightsaber Forms / Bladework:** A fluid, acrobatic, Force-speed-driven style — Ataru athleticism fused with deep Force control, leaning on telekinesis, Force barriers, and battlefield awareness as much as the blade. Renowned for a Force barrier strong enough to hold back a Sith Lord's full Force push.
-**Form ratings (game stats):** Ataru 88 (primary) · Soresu 82 · Niman 80 · Shii-Cho 78
+**Form ratings (game stats):** Ataru 88 (primary) · Soresu 82 · Niman 80 · Shii-Cho 78 [note: Ruled, Jared 25 Nov 2026: Force Output 90 (was 82): her Force powers beat Malgus at Alderaan. D-494]
 * **Force Abilities (game stats):** Battle Meditation 92 *(Force Valor 88% — the Shan inheritance from Bastila)* · Force Barrier 92 *(**Force Absorb** 85% — held back a Sith's full push)* · Force Sense 92 *(Battle Precognition 82%)* · Force Body 85 *(Force Speed 90%)* · Telekinesis 85 *(Force Push 80%)*
 * **Signature Ability:** **Battle meditation \& Shan-bloodline depth** — master of the war-deciding battle-meditation art plus an exceptional command of Force barrier and Force speed; her connection runs as deep as her legendary ancestry.
 * **Notable Feats:** Turned the Battle of Alderaan and helped defeat Malgus; became Grand Master; led the Order through two wars; allied with Marr to defeat the returned Revan; mother of Theron Shan.
@@ -227,12 +220,12 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Strength|84||ForceSense|94|
 |Agility|94||Meditation|90|
 |Endurance|86||ForceKnowledge|98|
-|Willpower|100||ForceControl|100|
+|Willpower|106||ForceControl|94|
 |Charisma|90||ForceOutput|92|
 |Intelligence|100||||
 
 * **Lightsaber Forms / Bladework:** Even fractured, Revan keeps **Niman (Form VI) as his primary form** and his hallmark total adaptability — single or dual blades, seamless offense-to-defense, Echani-honed reading of opponents — now edged with the instability of his broken mind, freely drawing on both light and dark. Centuries of stasis did not dull the deadliest duelist of the Old Republic.
-**Form ratings (game stats):** **Niman 100** (primary) · Ataru 95 · Shien/Djem So 94 · Juyo 88 · Soresu 90 · Makashi 90 · Shii-Cho 90 · *(Jar'Kai dual-blade / Echani: 94)*
+**Form ratings (game stats):** **Niman 94** (primary) · Ataru 89 · Shien/Djem So 88 · Juyo 82 · Soresu 84 · Makashi 84 · Shii-Cho 84 · *(Jar'Kai dual-blade / Echani: 88)* [note: Ruled, Jared 25 Nov 2026: freed (c. 3,642-3,637 BBY): Niman 94, Force Control 94, Willpower 106; the other forms brought down by the same 6, invented; a prime-era sheet is unchanged. D-494]
 * **Force Abilities (game stats):** Battle Meditation 92 *(Force Valor 85%)* · Force Sense 94 *(Battle Precognition 90%)* · Telekinesis 92 *(Force Push 88%, Force Throw 85%)* · Force Lightning 85 *(Chain Lightning 78%)* · Force Body 85 *(Force Speed 88%)* · Force Drain 78 *(life-drain 70%)*
 * **Unique techniques:** **Light-and-dark mastery (fractured)** *(integrated Jedi+Sith knowledge at apex level, but his split psyche makes him unpredictable and willing to cross lines his whole self would not)*
 * **Signature Ability:** **Light-and-dark mastery (fractured)** — apex integrated technique, destabilized by his broken mind.
@@ -343,7 +336,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Intelligence|90||||
 
 * **Lightsaber Forms / Bladework:** Capable but relies on power and cunning over finesse — a heavy, controlling style.
-**Form ratings (game stats):** Shii-Cho 72 · Makashi 70 · Soresu 68
+**Form ratings (game stats):** Soresu 84 · Shien 82 [note: Ruled, Jared 25 Nov 2026: best form 84 (held his own against Satele and Angral), with the forms on his page; Shien 82 invented. D-494]
 * **Force Abilities (game stats):** Mind Probe 85 *(**Mind Control** 82%)* · Force Lightning 78 *(Chain Lightning 70%)* · Telekinesis 78 *(Force Push 72%)* · Force Sense 84
 * **Signature Ability:** **Master manipulator** — an unmatched schemer and spymaster who trapped the Sith Emperor himself and ruled as his false Voice.
 * **Notable Feats:** Engineered the binding of the Emperor on Voss; posed as the Voice of the Emperor; built a vast spy network — defeated only by his own former apprentice.
@@ -678,7 +671,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Name|Species|Role / Affiliation|STR|AGI|END|WIL|CHA|INT|FSense|Med|FKnow|FCtrl|FOut|Top Forms / Combat|Top Force Abilities|
 |-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
 |Darth Vindican|Human|Sith Lord; Malgus's master|76|74|76|80|70|76|78|70|78|82|80|Djem So 80 · Juyo 74|Force Lightning 78 · Telekinesis 76 — killed by Malgus|
-|Kao Cen Darach|Zabrak|Jedi Battlemaster; Satele's master-figure|78|84|76|86|74|80|84|80|80|84|82|Ataru 86 · Shii-Cho 80|Force Body 84 *(Speed 85%)* · Force Sense 84 — died buying Satele's escape (3,681 BBY)|
+|Kao Cen Darach|Zabrak|Jedi Battlemaster; Satele's master-figure|78|84|76|86|74|80|84|80|80|84|82|Jar'Kai 86 · Ataru 80 · Shii-Cho 80 [note: Ruled, Jared 25 Nov 2026: Jar'Kai, as the roster has. D-494]|Force Body 84 *(Speed 85%)* · Force Sense 84 — died buying Satele's escape (3,681 BBY)|
 |Master Dar'Nala|Twi'lek|Jedi Master; Satele's master|62|70|66|86|80|82|84|84|84|82|80|Soresu 78 · Makashi 74|Battle Meditation 80 · Force Sense 84 — hawkish; turned against the Treaty|
 |Master Ngani Zho|Human|Jedi Master; Satele's first master|56|58|60|84|76|82|82|84|82|76|74|Soresu 72 · Shii-Cho 68|Meditation 84 · Force Sense 82 — eccentric, wise; killed by Malgus|
 |Master Gnost-Dural|Kel Dor|Jedi Master, Keeper of the Archives|58|62|64|82|76|90|80|80|92|78|74|Soresu 70 · Shii-Cho 66|Force Sense 80 · Meditation 80 — historian/chronicler (INT 90)|
@@ -691,7 +684,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 |Darth Acina|Human|Dark Councilor (later Empress)|64|68|68|88|82|86|82|80|86|86|84|Makashi 78 · Soresu 74|Force Lightning 82 · Telekinesis 80 — technologist; Empress in Era 12|
 |Exal Kressh|Human|Vitiate's first student; Kressh line|64|72|66|82|74|80|82|76|82|84|82|Djem So 78 · Makashi 74|Force Lightning 80 · Sith Sorcery 76 — fled and opposed the Emperor|
 |Grand Moff Kilran|Human|Imperial fleet commander, "Butcher of Coruscant"|50|50|56|80|78|86|—|—|—|—|—|Command/Naval 70|N/A — non-Force; brilliant naval strategist (INT 86)|
-|Ven Zallow|Human|Jedi Master; led the Temple defense at the Sacking|70|78|72|84|76|80|82|78|80|82|82|Djem So 80 · Ataru 78|Force Body 80 · Telekinesis 80 — killed by Malgus at the Sacking|
+|Ven Zallow|Human|Jedi Master; led the Temple defense at the Sacking|70|78|72|84|76|80|82|78|80|82|82|Djem So 80 · Ataru 78 [note: Ruled, Jared 25 Nov 2026: the sheet's forms kept, invented. D-494]|Force Body 80 · Telekinesis 80 — killed by Malgus at the Sacking|
 |Jaric Kaedan|Human|Jedi Master/Battlemaster; Council|74|80|74|84|74|80|82|78|80|84|84|Djem So 82 · Ataru 80|Force Body 82 · Force Sense 82 — led the strike that captured the Dread Masters|
 |Tol Braga|Kel Dor|Jedi Master; sought to redeem the Emperor|62|66|66|86|80|82|84|84|84|82|80|Soresu 78 · Niman 74|Battle Meditation 80 · Force Barrier 82 — led the doomed redemption mission; fell|
 |Syo Bakarn|Human|Jedi Master, Council member|60|64|64|84|78|82|82|84|84|80|78|Soresu 74|Meditation 84 · Force Sense 82 — senior Council figure|
@@ -709,19 +702,19 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 |Character|Affiliation|Primary Tier|Standout Stat(s)|Peak Form / Combat|
 |-|-|-|-|-|
-|**Vitiate (Sith Emperor)**|Sith Empire|**LEGENDARY — APEX (below peak Luke)**|FKnow 134 / WIL 135 / FCtrl 130 / FOut 130 (drain ability 145)|Makashi 92|
-|Revan (freed/mad)|Order of Revan|**Legendary**|WIL 100 / FCtrl 100 / **INT 100**|**Niman 100**|
+|**Vitiate (Sith Emperor)**|Sith Empire|**LEGENDARY — APEX (below peak Luke)**|FKnow 134 / WIL 135 / FCtrl 130 / FOut 130 (drain ability 145)|Makashi 80|
+|Revan (freed/mad)|Order of Revan|**Legendary**|WIL 106 / FCtrl 94 / **INT 100**|**Niman 94**|
 |Darth Jadus|Sith Empire|**Legendary**|FCtrl 98 / FKnow 96 / FOut 96 (2nd to the Emperor)|Makashi 80|
 |Satele Shan|Jedi Order|**Legendary**|Med 94 / FCtrl 94 / WIL 96|Ataru 88|
 |The Dread Masters (×6, unified)|Sith Empire|**Legendary** (as six)|Meditation 100 (fear battle-med)|Makashi 74|
 |Darth Nox|Sith Inquisitor|**Legendary**|FKnow 94 / FCtrl 94|Niman 80|
 |The Barsen'thor|Jedi Consular|**Legendary**|FKnow 92 / Med 92 (Force-plague cure)|Soresu 76|
-|Lord Scourge|Sith Empire|**Legendary**-adjacent|END 98 / WIL 96 (immortal)|Djem So 88|
+|Lord Scourge|Sith Empire|**Legendary**-adjacent|END 98 / WIL 96 (immortal)|Soresu 88|
 |Darth Marr|Sith Empire|**Legendary**-adjacent|WIL 96 / FCtrl 92|Soresu 88|
-|Darth Malgus|Sith Empire|**Legendary**-adjacent|FCtrl 95 / FOut 90 / STR 90|Djem So 92|
+|Darth Malgus|Sith Empire|**Legendary**-adjacent|FCtrl 88 / FOut 90 / STR 90|Djem So 92|
 |Emperor's Wrath|Sith Warrior|**Legendary**-adjacent|STR 92 / WIL 92 / FOut 90|Djem So 92|
 |Hero of Tython|Jedi Knight|**Legendary**-adjacent|AGI 90 / WIL 92 / FCtrl 90|Ataru 90|
-|Darth Baras|Sith Empire|High Master|FKnow 88 / **INT 90**|Shii-Cho 72|
+|Darth Baras|Sith Empire|High Master|FKnow 88 / **INT 90**|Soresu 84|
 |Grand Master Zym|Jedi Order|High Master|Meditation 90|Soresu 76|
 |Darth Angral|Sith Empire|Master|ForceControl 88|Djem So 82|
 |Master Orgus Din|Jedi Order|Master|ForceControl 84|Djem So 78|
@@ -746,7 +739,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 
 > \*\*CHANGE-NOTES (characters who fundamentally shift):\*\*
 > - \*\*Vitiate — APEX sheet delivered AND recalibrated below peak Luke.\*\* From his Era 03 origin (low-legendary, WIL 105/FCtrl 102), 1,400 years made him the apex dark-side being. \*\*Per your ruling, he is now the apex \*specialist\* (ceiling \~134), not above peak Luke (\~138).\*\* His overall profile sits in Tier A (alongside Krayt \~132; Knightfall Anakin's observed \~120 and Bane's \~114 sit just below); only his \*\*galactic life-drain ability (145)\*\* reaches the very top — the most destructive single power in the timeline, but a specialist ability, not an overall power level. His \*\*Valkorion\*\* incarnation (Era 12) holds this same recalibrated tier. \*\*This is the project's master power anchor — see the APEX CEILING table at the top.\*\*
-> - \*\*Revan — fifth/final incarnation (freed/mad).\*\* Not raw power (he stays legendary, \*\*Niman 100\*\* primary) but \*\*sanity and wholeness\*\* — 300 years of stasis fractured his mind, splitting his light/dark halves. Combat undiminished; judgment broken. Chain complete across Eras 06–09.
+> - \*\*Revan — fifth/final incarnation (freed/mad).\*\* Not raw power (he stays legendary, \*\*Niman 94\*\* primary) but \*\*sanity and wholeness\*\* — 300 years of stasis fractured his mind, splitting his light/dark halves. Combat undiminished; judgment broken. Chain complete across Eras 06–09.
 > - \*\*Satele Shan — prime sheet, with a critical game-year caveat.\*\* Full sheet is her \*\*Grand Master peak\*\*. In 3,661 BBY she is a \*\*38-year-old Jedi Knight/war hero, NOT Grand Master\*\* — scale down. The most important "scale-down" note for your specific game.
 > - \*\*Darth Malgus — single prime sheet, game-year caveat.\*\* In 3,661 BBY a rising Sith Lord, not yet at his Sacking peak. Scale down slightly.
 > - \*\*Lord Scourge\*\* debuts here (set up by his betrayal of Surik in Era 08). His imposed immortality is the defining mechanical trait.

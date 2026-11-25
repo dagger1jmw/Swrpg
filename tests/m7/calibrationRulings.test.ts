@@ -3,7 +3,8 @@
 import { describe, expect, it } from 'vitest';
 import { makeEstimator } from '../../src/ai/tokenRatio';
 import { ARCHETYPE_BY_ID } from '../../src/data/archetypes';
-import { CANON_BY_ID } from '../../src/data/canonNpcs';
+import { CANON_BY_ID, CANON_NPCS } from '../../src/data/canonNpcs';
+import { FORM_IDS } from '../../src/data/skills';
 import { onRecordAt, onRecordFor } from '../../src/data/canonPlacements';
 import { RANK_TYPICAL_AGE } from '../../src/data/canon/rankAges';
 import { ACCELERATED_PATH, FORCE_RICH_FACTOR, M_CAP } from '../../src/data/progression.config';
@@ -154,14 +155,40 @@ describe('the data rulings (D-417, D-421, D-422)', () => {
 });
 
 describe('the stat scale (D-423, revised by D-429)', () => {
-  it('per-group factors (capped at 1.0), the authored numbers kept, forms and abilities by kind', async () => {
-    const { SHEET_TO_GAME_BY_GROUP, sheetFactor } = await import('../../src/data/canon/sheetScale');
-    for (const g of Object.values(SHEET_TO_GAME_BY_GROUP)) for (const f of Object.values(g)) expect(f).toBeLessThanOrEqual(1);
-    const kaedan = canon('jaric-kaedan').anchors[0]!;
-    expect(kaedan.scale).toBe('game');
-    expect(kaedan.levels['juyo']).toBeCloseTo(kaedan.authored!['juyo']! * sheetFactor('juyo', 'jedi'), 1);
-    expect(sheetFactor('juyo', 'sith')).toBe(SHEET_TO_GAME_BY_GROUP.sith['$forms']);
-    expect(sheetFactor('forceChoke', 'sith')).toBe(SHEET_TO_GAME_BY_GROUP.sith['$abilities']);
+  it('main-specialty stats as written; the Force comes out of the physical ones; the rest is the game\'s (D-494)', async () => {
+    const { sheetToGame, sheetBody } = await import('../../src/data/canon/sheetScale');
+    const malgus = canon('darth-malgus');
+    const g = malgus.anchors[0]!.levels;
+    expect(malgus.anchors[0]!.scale).toBe('game');
+    for (const [k, v] of [['djemSo', 92], ['juyo', 80], ['forceControl', 88], ['forceOutput', 90], ['willpower', 94], ['telekinesis', 88], ['forceLightning', 85]] as const) expect(g[k], k).toBe(v);
+    // Force Sense is not a Warrior's focus, nor Charisma anyone's here: the game builds them.
+    expect([g['forceSense'], g['charisma']]).toEqual([undefined, undefined]);
+    expect(canon('satele-shan').anchors[0]!.levels['forceSense']).toBe(92);
+    expect(canon('darth-baras').anchors[0]!.levels['forceSense']).toBe(84); // listed among his abilities
+    // Strength 90 in combat, less the boost Force Control 88 and Force Body 86 give: 0.3 x 48 + 0.2 x 86 = 31.6.
+    expect(g['strength']).toBeCloseTo(58.4, 1);
+    expect(sheetBody({ archetype: 'soldier' }, {}, 100)).toBeCloseTo(80, 9);
+    expect(sheetBody({ archetype: 'soldier' }, {}, 40)).toBe(40);
+    // A smuggler's tongue and a soldier's command are their focus.
+    expect(sheetToGame({ ...canon('darth-malgus'), archetype: 'smuggler' }, { bby: 3653, levels: { charisma: 88 } })).toEqual({ charisma: 88 });
+    expect(sheetToGame({ ...canon('darth-malgus'), archetype: 'soldier' }, { bby: 3653, levels: { tactics: 70 } })).toEqual({ tactics: 70 });
+  });
+  it('no figure with a sheet is below the line the game would generate, nor above its body (D-494)', async () => {
+    const { canonFigureLevelsAt, canonBodyAge, canonProgressionLineAt } = await import('../../src/features/npcs/selectors');
+    const { bodyCapAt } = await import('../../src/engine/species');
+    const { speciesTableId } = await import('../../src/data/species');
+    for (const n of CANON_NPCS) {
+      for (const a of n.anchors.filter((x) => x.complete)) {
+        const today = at(-a.bby);
+        const now = canonFigureLevelsAt(n, a.bby, today);
+        const bare = canonProgressionLineAt(n, a.bby, today);
+        if (n.canonId !== 'lore:oteg' && !n.events?.length) for (const [k, v] of Object.entries(bare)) expect(now[k]!, `${n.canonId} ${k}`).toBeGreaterThanOrEqual(v - 1e-6);
+        // The figure's own best form is its best.
+        const own = Object.keys(a.levels).filter((k) => FORM_IDS.includes(k) && k !== 'jarKai');
+        if (own.length) expect(Math.max(...own.map((k) => now[k]!)), n.canonId).toBe(Math.max(...FORM_IDS.filter((k) => k !== 'jarKai').map((k) => now[k] ?? 0)));
+        if (!n.fixed) for (const k of ['strength', 'agility', 'endurance'] as const) expect(now[k]!, `${n.canonId} ${k}`).toBeLessThanOrEqual(Math.max(bare[k] ?? 0, bodyCapAt(speciesTableId(n.speciesId), k, canonBodyAge(n, a.bby, 0))) + 1e-6);
+      }
+    }
   });
   it('Force Knowledge, Meditation, Intelligence and Tactics come from the bands, never above the authored value', async () => {
     const { bandValue, standingBand } = await import('../../src/data/canon/sheetScale');
@@ -177,11 +204,15 @@ describe('the stat scale (D-423, revised by D-429)', () => {
     expect(bandValue('tactics', 90, 80, 'soldier')).toBe(80);
     expect(bandValue('forceKnowledge', 120, 100, 'jediGuardian')).toBe(80);
   });
-  it('the apex and focus figures carry hand-set game-scale lines', async () => {
-    const { GAME_SCALE_LINES } = await import('../../src/data/canon/sheetScale');
-    for (const id of Object.keys(GAME_SCALE_LINES)) expect(CANON_BY_ID.has(id), id).toBe(true);
-    expect(canon('vitiate').anchors[0]!.levels['forceOutput']).toBe(125);
-    expect(canon('zym').anchors[0]!.levels['forceKnowledge']).toBe(110);
+  it('the ruled sheets (Jared, D-494)', () => {
+    const l = (id: string): Readonly<Record<string, number>> => canon(id).anchors[0]!.levels;
+    expect([l('revan')['niman'], l('revan')['forceControl'], l('revan')['willpower']]).toEqual([94, 94, 106]);
+    expect(Math.max(...FORM_IDS.map((f) => l('revan')[f] ?? 0))).toBe(94);
+    expect(Math.max(...FORM_IDS.map((f) => l('vitiate')[f] ?? 0))).toBe(80);
+    expect(l('satele-shan')['forceOutput']).toBe(90);
+    expect([l('darth-baras')['soresu'], l('darth-baras')['shien'], l('darth-baras')['makashi']]).toEqual([84, 82, undefined]);
+    expect([l('scourge')['soresu'], l('scourge')['juyo'], l('scourge')['ataru'], l('scourge')['djemSo']]).toEqual([88, 82, 78, undefined]);
+    expect(l('kao-cen-darach')['jarKai']).toBe(86);
   });
   it('the Sith no longer default to Soresu: Warriors Djem So and Shien, Inquisitors Makashi and Niman', async () => {
     const { defaultFormPlan } = await import('../../src/features/character/creation');

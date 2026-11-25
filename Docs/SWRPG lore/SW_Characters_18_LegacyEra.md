@@ -12,16 +12,8 @@ Character reference for the **Legacy era** — the far future of the Star Wars L
 
 Stats represent each character **at their prime for this era**, on the **galaxy-wide Legends scale**.
 
-### Stat Scale (galaxy-wide, all of Legends)
-
-|Band|Range|Meaning|
-|-|-|-|
-|Novice / civilian|10–40|Untrained or non-combatant|
-|Trained|40–60|Competent Knight-equivalent, rank-and-file warrior|
-|Veteran / elite|60–85|Seasoned Knight, skilled commander|
-|Master|85–100|Master-tier; ceiling for nearly all Force users|
-|**Legendary**|**100–150**|Mastery far beyond any normal Jedi or Sith. **Per-stat, not blanket.** See the **APEX CEILING** in Era 09 for the 126–150 sub-bands.|
-|**Transcendent**|**151+**|**Off the scale** — cosmic entities beyond mortal measure. **Abeloth alone** (Era 17).|
+### Stat Scale
+[note: Ruled, Jared 25 Nov 2026: the band table that stood here (Trained 40-60, Veteran 60-85, Master 85-100, Legendary 100-150) was an error and is dropped. The tier line below is the scale. D-494]
 
 ### Stat tiers (matches game engine)
 

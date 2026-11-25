@@ -73,15 +73,15 @@ describe('canon NPCs in play (D-152, D-155)', () => {
     let p = introduce(fresh(-3643), 'Satele Shan', 'jediMaster', 56);
     const pid = idOf(p, 'Satele Shan');
     p = applyEvents(REGISTRY, p, [{ type: 'npcCanonLinked', npcRef: pid, canonId: 'lore:satele-shan' }], { source: 'engine' }).state;
-    // Her hand-set game-scale line's Ataru 86 (D-429).
-    expect(selectNpcLevel(p, pid, 'ataru')).toBeCloseTo(86, 0);
+    // Her sheet's Ataru 88, as written (D-494).
+    expect(selectNpcLevel(p, pid, 'ataru')).toBeCloseTo(88, 0);
   });
   it('fixed canon entries (Vitiate) do not scale', () => {
     let s = introduce(fresh(LORE_TEST_YEAR), 'Vitiate', 'sithLord', 900, 'sithEmpire');
     const id = idOf(s, 'Vitiate');
     s = applyEvents(REGISTRY, s, [{ type: 'npcCanonLinked', npcRef: id, canonId: 'lore:vitiate' }], { source: 'engine' }).state;
-    // His hand-set game-scale line's Force Control 120 (D-429).
-    expect(selectNpcLevel(s, id, 'forceControl')).toBe(120);
+    // His sheet's Force Control 130, as written (D-494).
+    expect(selectNpcLevel(s, id, 'forceControl')).toBe(130);
   });
 });
 

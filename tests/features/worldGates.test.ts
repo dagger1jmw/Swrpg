@@ -1,7 +1,7 @@
 // D-489's rules in the engine (m8-world-d, D-491): who the player is, the power bar, no premonitions, closed events.
 import { describe, expect, it } from 'vitest';
 import { CANON_BY_ID } from '../../src/data/canonNpcs';
-import { DUELISTS, DUELISTS_WITHOUT_ENTRY, duelistBar, GUARDED, TOP_TIER } from '../../src/data/duelists';
+import { DUELISTS, DUELISTS_WITHOUT_ENTRY, duelistBar, GUARDED, TIER_LEVELS } from '../../src/data/duelists';
 import { START_OPTIONS } from '../../src/data/startOptions';
 import { WORLD_TRUST, type Who } from '../../src/data/who';
 import { WORLD_POST_IDS, worldPost } from '../../src/data/worldPosts';
@@ -172,7 +172,9 @@ describe('A2: the power bar', () => {
     expect(list(-3655)).toEqual(['darth-malgus', 'darth-marr', 'revan', 'satele-shan', 'scourge', 'ven-zallow', 'zym']);
     expect(list(-3630)).toEqual(['arcann', 'darth-malgus', 'revan', 'the-outlander', 'thexan', 'vaylin']);
     expect(list(-1000)).toEqual(['darth-bane', 'kasim']);
-    expect(list(-20)).toEqual(['anakin-skywalker', 'count-dooku', 'darth-maul', 'darth-plagueis', 'darth-sidious', 'darth-vader', 'emperor-palpatine', 'mace-windu', 'obi-wan-kenobi', 'sheev-palpatine', 'yoda']);
+    expect(list(-20)).toEqual(['anakin-skywalker', 'count-dooku', 'darth-maul', 'darth-plagueis', 'darth-vader', 'mace-windu', 'obi-wan-kenobi']);
+    expect(['yoda', 'darth-sidious', 'sheev-palpatine', 'emperor-palpatine'].map((x) => duelistBar(`lore:${x}`, -20))).toEqual(['apex', 'apex', 'apex', 'apex']); // D-494
+    expect([duelistBar('lore:abeloth', 44), duelistBar('lore:darth-krayt', 137)]).toEqual(['beyond', 'beyond']);
     expect(list(-2)).toContain('galen-marek');
     expect(list(-4000)).toEqual(['darth-nihilus', 'darth-sion', 'darth-traya', 'exar-kun', 'malak', 'meetra-surik', 'naga-sadow', 'revan', 'scourge', 'ulic-qel-droma']);
     expect(duelistBar('lore:vitiate', -3655)).toBe('beyond'); // D-493
@@ -185,9 +187,11 @@ describe('A2: the power bar', () => {
 
   it('the tiers', () => {
     const t = (over: object): string => duelTier({ forceUser: true, masterRank: false, meetsMasterSkills: false, combat: 99, forceControl: 99, willpower: 99, ...over });
-    expect([t({}), t({ meetsMasterSkills: true, combat: TOP_TIER.combat - 1 }), t({ masterRank: true, forceControl: TOP_TIER.forceControl - 1 }), t({ masterRank: true })]).toEqual(['below', 'master', 'master', 'top']);
-    expect((['below', 'master', 'top'] as const).map((x) => (['master', 'top', 'beyond'] as const).map((b) => canBeat(x, b)))).toEqual([[false, false, false], [true, false, false], [true, true, false]]);
-    expect((['below', 'master', 'top'] as const).map((x) => [holdAgainst(x, 'top'), holdAgainst(x, 'beyond'), holdAgainst(x, null)])).toEqual([[null, null, null], ['brief', null, null], ['long', null, null]]);
+    const { top, apex } = TIER_LEVELS;
+    expect([t({}), t({ meetsMasterSkills: true, combat: top.combat - 1 }), t({ masterRank: true, forceControl: top.forceControl - 1 }), t({ masterRank: true, ...top }), t({ masterRank: true, ...apex, forceControl: apex.forceControl - 1 }), t({ masterRank: true, ...apex })]).toEqual(['below', 'master', 'master', 'top', 'top', 'apex']);
+    const all = ['below', 'master', 'top', 'apex'] as const;
+    expect(all.map((x) => (['master', 'top', 'apex', 'beyond'] as const).map((b) => canBeat(x, b)))).toEqual([[false, false, false, false], [true, false, false, false], [true, true, false, false], [true, true, true, false]]);
+    expect(all.map((x) => [holdAgainst(x, 'top'), holdAgainst(x, 'apex'), holdAgainst(x, 'beyond'), holdAgainst(x, null)])).toEqual([[null, null, null, null], ['brief', null, null, null], ['long', 'brief', null, null], ['long', 'long', null, null]]);
     expect([selectDuelTier(game('knight', SWORD)), selectDuelTier(game('knight', MASTER)), selectDuelTier(game('master')), selectDuelTier(game('master', TOP)), selectDuelTier(game('knight', TOP))]).toEqual(['below', 'master', 'master', 'top', 'top']);
   });
 

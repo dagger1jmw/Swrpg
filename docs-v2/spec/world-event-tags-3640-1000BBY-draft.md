@@ -267,7 +267,7 @@ Events whose crucial tags do not depend on these plot points, so they still happ
 
 The four rules apply to every row: the three tests for every step, the top-duelist bar, no premonitions, closed systems unbreakable. D-489 overrides the earlier guards and bars (B14, B20 to B26); the rest follows the rules check (docs-v2/reports/tagmap-rules-check.md, B1 to B26).
 
-- **Top duelists:** Arcann, Thexan, Vaylin, the Outlander, Malgus, Revan, Bane, Kas'im. A fight with one needs at least a Master, who only holds one off briefly; beating one, or holding long, is top tier (Yoda's or Mace's level). **Valkorion is beyond any duelist:** no fight with him can be won.
+- **Top duelists:** Arcann, Thexan, Vaylin, the Outlander, Malgus, Revan, Bane, Kas'im. A fight with one needs at least a Master, who only holds one off briefly; beating one, or holding long, is top tier (combat 88, Force Control 85, Willpower 90: Mace's, Dooku's or Malgus's level). No apex duelist on this map (D-494). **Valkorion is beyond any duelist:** no fight with him can be won.
 - **Closed:** E.3636.ziost (once it starts), E.3636.thexan, E.3636.eternal_empire, E.3636.conquest, E.3630.zakuul (the fight in the Commander's mind), E.3626.tenebrae. No step inside them exists; only an earlier change reaches them.
 - **Rows with no plot point step:**
 

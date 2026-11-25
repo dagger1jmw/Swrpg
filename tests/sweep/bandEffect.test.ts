@@ -5,7 +5,7 @@
 // age that looks wrong for the standing, so the estimate can be checked).
 import { it } from 'vitest';
 import { CANON_BY_ID } from '../../src/data/canonNpcs';
-import { GAME_SCALE_LINES, KNOWLEDGE_BAND_CURVES, STANDING_MIDPOINT, bandReadAge, bandValue, standingBand } from '../../src/data/canon/sheetScale';
+import { KNOWLEDGE_BAND_CURVES, STANDING_MIDPOINT, bandReadAge, bandValue, standingBand } from '../../src/data/canon/sheetScale';
 
 /** The youngest read age that fits a standing (a Knight or Lord, a Master or Darth, the Councils). */
 const MIN_AGE: Readonly<Record<number, number>> = { 40: 18, 60: 35, 80: 45 };
@@ -32,7 +32,7 @@ it('band effect', () => {
       const flags: string[] = [];
       for (const stat of ['forceKnowledge', 'meditation'] as const) {
         const au = a.authored[stat];
-        if (au === undefined || GAME_SCALE_LINES[c.canonId]?.[stat] !== undefined) continue;
+        if (au === undefined) continue;
         const oldV = Math.max(0, Math.min(au, focus(c.archetype) ? band : band - 20));
         const v462 = bandValue(stat, au, band, c.archetype, age462);
         const newV = a.levels[stat]!;
