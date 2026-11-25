@@ -27,7 +27,7 @@ import { actionMatters, controlNow, openNetwork, outcomeState, type ControlNow, 
 import type { NetworkState, Substitute, WorldEvent } from './world';
 
 export { handoffLines } from './handoff';
-export { selectCanBeat, selectDuelistBar, selectDuelTier, selectWorldPlayer } from './player';
+export { selectCanBeat, selectCanPlan, selectDuelistBar, selectDuelTier, selectWorldPlayer } from './player';
 
 export const selectWorldLog = (s: GameState): readonly WorldEvent[] => s.world.log;
 /** World events the story has not told yet (they go into the next narration). */

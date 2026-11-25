@@ -3,6 +3,7 @@
 // last fight for narration and the UI. fightsToday and the day's combat XP stay in progression (D-47).
 import { z } from 'zod';
 import { NPC_FATES, SPARRING_MODES } from '../../data/combat.config';
+import { PLAN_KINDS } from '../../data/duelists';
 import { HAZARD_TYPES, WEAPON_KINDS } from '../../data/health.config';
 import { MINION_KIND_IDS } from '../../data/npcGen.config';
 import { COMBAT_OUTCOMES, COMBAT_STAKES } from '../../data/progression.config';
@@ -71,6 +72,8 @@ export const activeFightSchema = z.object({
   hidden: z.boolean(),
   /** A spar's session of bouts (D-168); null for a real fight. */
   session: sparSessionSchema.nullable().default(null),
+  /** Top duelists the player's plan held for when the fight began (D-493). */
+  planned: z.array(z.string()).optional(),
   /** A truce the narrator offered (D-181): the player accepts it with a beat button; any other action declines it. */
   truceOffer: z.string().nullable().default(null),
 });
@@ -107,7 +110,12 @@ export const fightSummarySchema = z.object({
 });
 export type FightSummary = z.infer<typeof fightSummarySchema>;
 
+/** One line of a plan against a top duelist, laid by a rolled check (D-493); only the engine writes it. */
+export const planLineSchema = z.object({ npcId: z.string(), kind: z.enum(PLAN_KINDS), locationId: z.string().nullable(), day: z.number().int(), success: z.boolean() });
+
 export const combatSliceSchema = z.object({
+  /** Absent in older saves. */
+  plans: z.array(planLineSchema).optional(),
   pending: pendingFightSchema.nullable(),
   active: activeFightSchema.nullable(),
   /** Incapacitated named NPCs whose fate the player chooses (spare, capture, kill). */

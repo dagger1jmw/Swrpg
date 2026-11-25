@@ -5,13 +5,14 @@ import type { FactionId } from '../../data/entities.config';
 import { RANK_BY_ID, rankDef } from '../../data/rankMinimums';
 import { RANK_STEPS, type DuelTier, type WorldPlayer } from '../../data/who';
 import { dateFromAbsDay } from '../../engine/calendar';
-import { canBeat, duelTier, isTrust, postsHeld, whoHolds } from '../../engine/who';
+import { canBeat, canPlan, duelTier, isTrust, postsHeld, whoHolds } from '../../engine/who';
 import type { GameState } from '../../state/gameState';
 import { selectCharacter } from '../character/selectors';
 import { selectHasFlag } from '../flags/selectors';
 import { selectLocationChain } from '../locations/selectors';
 import { selectNpcs } from '../npcs/selectors';
 import { selectLevelExact } from '../progression/selectors';
+import { archetypeDef } from '../../data/archetypes';
 import { selectHighestForm, selectMinimumLevel, selectRank, selectSide, selectStanding } from '../ranks/selectors';
 
 const yearNow = (s: GameState): number => dateFromAbsDay(s.clock.now.day).year;
@@ -19,11 +20,17 @@ const yearNow = (s: GameState): number => dateFromAbsDay(s.clock.now.day).year;
 /** The strongest fighting skill: a form, melee or blaster. */
 const selectCombatLevel = (s: GameState): number => Math.max(selectHighestForm(s), selectLevelExact(s, 'melee'), selectLevelExact(s, 'blaster'));
 
+/** A Jedi, a Sith or another trained in the Force; never a career character (D-493). */
+const isForceUser = (s: GameState): boolean => archetypeDef(selectCharacter(s).archetype).path !== 'career';
+
+/** Whether the player could plan for a top duelist (D-493). */
+export const selectCanPlan = (s: GameState): boolean => canPlan({ forceUser: isForceUser(s), archetype: selectCharacter(s).archetype, combat: selectCombatLevel(s) });
+
 /** The player's tier against a top duelist (D-489). */
 export function selectDuelTier(s: GameState): DuelTier {
   const combat = selectCombatLevel(s);
   const meets = Object.entries(RANK_BY_ID.get('master')!.minimums).every(([key, min]) => (key === '$main' ? combat : selectMinimumLevel(s, key)) >= min);
-  return duelTier({ masterRank: selectRank(s) === 'master' || s.ranks.councilSeat === true, meetsMasterSkills: meets, combat, forceControl: selectLevelExact(s, 'forceControl'), willpower: selectLevelExact(s, 'willpower') });
+  return duelTier({ forceUser: isForceUser(s), masterRank: selectRank(s) === 'master' || s.ranks.councilSeat === true, meetsMasterSkills: meets, combat, forceControl: selectLevelExact(s, 'forceControl'), willpower: selectLevelExact(s, 'willpower') });
 }
 
 /** Trusted by a canon figure met in this campaign. */

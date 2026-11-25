@@ -33,9 +33,9 @@ import { selectRank } from '../ranks/selectors';
 import { buildContext, buildMinionFighter, buildNpcFighter, buildPlayerFighter, sparringModeFor } from './build';
 import { combatSliceSchema, emptyCombat, pendingFightSchema, type ActiveFight, type CombatSlice, type FightSummary, type PendingFight } from './combat';
 import { holdAgainst } from '../../engine/who';
-import { HOLD } from '../../data/duelists';
-import { selectCanBeat, selectDuelistBar, selectDuelTier, selectFightSecurity } from '../world/selectors';
-import { fateIsLive, selectActiveFight, selectCombat } from './selectors';
+import { HOLD, PLAN, PLAN_KINDS } from '../../data/duelists';
+import { selectCanBeat, selectCanPlan, selectDuelistBar, selectDuelTier, selectFightSecurity } from '../world/selectors';
+import { fateIsLive, selectActiveFight, selectCombat, selectPlanReady } from './selectors';
 
 const absNow = (s: GameState): number => s.clock.now.day * 86_400 + s.clock.now.second;
 const npcRefKinds = { opponentRef: ['npc'], opponentRefs: ['npc'], engagedElsewhereRefs: ['npc'], wantAliveRefs: ['npc'], npcRef: ['npc'] } as const;
@@ -115,6 +115,9 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
       notes.push(`ambush: perception ${d.total.toFixed(1)} vs stealth ${a.total.toFixed(1)}; the opponent strikes first`);
     } else notes.push(`ambush spotted: perception ${d.total.toFixed(1)} vs stealth ${a.total.toFixed(1)}`);
   }
+  // A plan holds unless the foe struck first (D-493).
+  const planned = surprise !== 'B' && spec.stakes !== 'spar' && selectCanPlan(s) ? spec.opponentRefs.filter((id) => selectDuelistBar(s, selectNpc(s, id)?.canonId ?? null) === 'top' && selectPlanReady(s, id)) : [];
+  for (const id of planned) notes.push(`the plan against ${selectNpc(s, id)!.name} holds: prepared, the character can buy time, not win`);
   // Throwable objects: a seeded supply per terrain tag (D-146).
   const objects: Record<string, number> = {};
   const objectSizes: Record<string, ObjectSize> = {};
@@ -152,6 +155,7 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
     // A spar is a session of bouts up to 34 exchanges (D-168).
     session: spec.stakes === 'spar' ? newSession() : null,
     truceOffer: null,
+    ...(planned.length ? { planned } : {}),
   };
   notes.push(`fight ${fightId}: ${spec.stakes}${sparring ? ` (${sparring})` : ''} against ${opponents.map((o) => o.name).join(', ') || 'nobody'}`);
   return { active, rng: duel.rng, notes, emit: [...emit, { type: 'pacingSet', level: 'moment' }] };
@@ -277,7 +281,7 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   const tier = selectDuelTier(s);
   const heldOff = active.stakes === 'spar' || outcome === 'won' || duel.exchange < HOLD.minExchanges ? [] : duel.opponents.flatMap((o) => {
     const npcId = active.meta[o.id]?.npcId ?? null;
-    const length = npcId && !o.engagedElsewhere ? holdAgainst(tier, selectDuelistBar(s, selectNpc(s, npcId)?.canonId ?? null)) : null;
+    const length = npcId && !o.engagedElsewhere ? holdAgainst(tier === 'below' && active.planned?.includes(npcId) ? 'master' : tier, selectDuelistBar(s, selectNpc(s, npcId)?.canonId ?? null)) : null;
     return npcId && length ? [{ npcId, length }] : [];
   });
   for (const h of heldOff) notes.push(`${selectNpc(s, h.npcId)?.name ?? h.npcId} held off: a ${h.length === 'brief' ? 'short' : 'long'} delay (${duel.seconds} s), not a win`);
@@ -297,7 +301,9 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     session: active.session ?? null,
     ...(heldOff.length ? { heldOff } : {}),
   };
-  return { slice: { ...slice, active: null, fates, last: { ...last, duel: shown, captors } }, emit, notes, rng };
+  // A plan is spent by the fight it was for.
+  const plans = (slice.plans ?? []).filter((p) => !duel.opponents.some((o) => o.id === p.npcId));
+  return { slice: { ...slice, active: null, fates, ...(slice.plans ? { plans } : {}), last: { ...last, duel: shown, captors } }, emit, notes, rng };
 }
 
 /**
@@ -860,6 +866,22 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         if (idx < 0) return { reject: 'no such opponent in the fight' };
         if (duel.target === idx) return { slice };
         return { slice: { ...slice, active: { ...active, duel: { ...duel, target: idx } } }, notes: [`target: ${duel.opponents[idx]!.name}`] };
+      },
+    },
+    /** Engine (the turn's resolve step): one line of a plan against a top duelist, as the check came out (D-493). */
+    planTried: {
+      schema: z.object({ type: z.literal('planTried'), npcRef: z.string(), kind: z.enum(PLAN_KINDS), success: z.boolean(), total: z.number() }),
+      sources: ['engine'],
+      targetField: 'npcRef',
+      refFields: ['npcRef'],
+      refKinds: npcRefKinds,
+      handle: (slice, e, ctx) => {
+        const day = selectNow(ctx.state).day;
+        const npcId = String(e['npcRef']);
+        const line = { npcId, kind: e['kind'] as (typeof PLAN_KINDS)[number], locationId: ctx.state.locations.currentId, day, success: e['success'] === true };
+        // Stale lines go; what is left is at most a few days of tries.
+        const plans = [...(slice.plans ?? []).filter((p) => day - p.day <= PLAN.days), line];
+        return { slice: { ...slice, plans }, notes: [`plan against ${selectNpc(ctx.state, npcId)?.name ?? npcId}: ${PLAN.labels[line.kind].toLowerCase()} ${line.success ? 'laid' : 'not laid'}`] };
       },
     },
     /** AI: an opponent turns to fight an ally, or back (D-143 E); engine-checked against the fight. */

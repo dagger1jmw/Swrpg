@@ -1866,3 +1866,10 @@ Spec and decision changes only; no code. Each changed spec's export header lists
 - **D-492 The rulings in the maps and the encoded rows (m8-world-d, part 3).** The three maps carry D-490 in place and in a new section each (3,661: section 7; 3,640-1,000: 11; 1,000-4: 9). Not encoded but the 3,661 rows. The 4-44 ABY map (Part1-3) is committed as a draft under review (PP-22 to PP-35); nothing reads it.
   - *Design calls in the encoded rows, for Jared:* end dates so a battle can be under way (Devaron, Korriban, Quesh, Balmorra, Taris, Belsavis); three proof scenes (the peace offer's orders, the strike team's orders, Korriban's plans); one added condition (those in the Temple, A16), so the network has 32.
   - *Design calls in the maps, for Jared:* every prerequisite the report did not name; PP-9 alternative 2 after B7 (the Outlander who gets away never stood before Valkorion, so does not carry the spirit).
+- **D-493 Answers to m8-world-d (Jared, 2026-11-25; m8-world-d2).** Report: reports/m8-world-d2.md.
+  - *Tier numbers:* kept as invented starting numbers, checked against canon figures (tests/m8/duelTiers.test.ts). Malgus and the Yavin-era Vader land on the wrong side; nothing is changed.
+  - *Without the Force:* never Master in an outright fight with a top duelist, never top tier. Only the most skilled bounty hunters and Mandalorians, and only with planning recorded in play, reach it, and then only to buy time (a delay, never a win). As proposed: lines the engine rolls and records (world-events.md section 2); gear waits for equipment. The plan does not open "at least a Master" figures (Grievous, Baras): a win against them stays a Force user's.
+  - *The Emperor* is beyond any duelist in 3,661-3,640 too. Overrides D-490's 3,661 list.
+  - *Scourge* is on the 3,661-3,640 top-duelist list.
+  - *PP-9 after B7:* the timing decides. The Outlander's ship away before Arcann's strike: no spirit; after: the spirit. Overrides D-492's PP-9 alternative 2.
+  - *The three proof scenes and the added prerequisites:* accepted as starting points, listed for review in the report.

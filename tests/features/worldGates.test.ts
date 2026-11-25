@@ -169,12 +169,13 @@ const act = (over: Partial<WorldAction> = {}): WorldAction => ({ actionType: 'in
 describe('A2: the power bar', () => {
   it('the lists: who is a top duelist when', () => {
     const list = (year: number): string[] => [...new Set(DUELISTS.filter((d) => d.bar === 'top' && year >= d.fromYear && year <= d.toYear).map((d) => d.canonId.slice(5)))].sort();
-    expect(list(-3655)).toEqual(['darth-malgus', 'darth-marr', 'revan', 'satele-shan', 'ven-zallow', 'vitiate', 'zym']);
+    expect(list(-3655)).toEqual(['darth-malgus', 'darth-marr', 'revan', 'satele-shan', 'scourge', 'ven-zallow', 'zym']);
     expect(list(-3630)).toEqual(['arcann', 'darth-malgus', 'revan', 'the-outlander', 'thexan', 'vaylin']);
     expect(list(-1000)).toEqual(['darth-bane', 'kasim']);
     expect(list(-20)).toEqual(['anakin-skywalker', 'count-dooku', 'darth-maul', 'darth-plagueis', 'darth-sidious', 'darth-vader', 'emperor-palpatine', 'mace-windu', 'obi-wan-kenobi', 'sheev-palpatine', 'yoda']);
     expect(list(-2)).toContain('galen-marek');
     expect(list(-4000)).toEqual(['darth-nihilus', 'darth-sion', 'darth-traya', 'exar-kun', 'malak', 'meetra-surik', 'naga-sadow', 'revan', 'scourge', 'ulic-qel-droma']);
+    expect(duelistBar('lore:vitiate', -3655)).toBe('beyond'); // D-493
     expect([duelistBar('lore:vitiate', -4000), duelistBar('lore:valkorion', -3632), duelistBar('lore:general-grievous', -20), duelistBar('lore:darth-baras', -3645), duelistBar('lore:darth-angral', -3645), duelistBar(null, -3645)]).toEqual(['beyond', 'beyond', 'master', 'master', null, null]);
     const known = new Set([...CANON_BY_ID.keys(), ...LORE_INDEX.entities.map((e) => e.canonId)]);
     for (const d of [...DUELISTS, ...GUARDED]) expect(known.has(d.canonId) || DUELISTS_WITHOUT_ENTRY.includes(d.canonId), d.canonId).toBe(true);
@@ -183,7 +184,7 @@ describe('A2: the power bar', () => {
   });
 
   it('the tiers', () => {
-    const t = (over: object): string => duelTier({ masterRank: false, meetsMasterSkills: false, combat: 99, forceControl: 99, willpower: 99, ...over });
+    const t = (over: object): string => duelTier({ forceUser: true, masterRank: false, meetsMasterSkills: false, combat: 99, forceControl: 99, willpower: 99, ...over });
     expect([t({}), t({ meetsMasterSkills: true, combat: TOP_TIER.combat - 1 }), t({ masterRank: true, forceControl: TOP_TIER.forceControl - 1 }), t({ masterRank: true })]).toEqual(['below', 'master', 'master', 'top']);
     expect((['below', 'master', 'top'] as const).map((x) => (['master', 'top', 'beyond'] as const).map((b) => canBeat(x, b)))).toEqual([[false, false, false], [true, false, false], [true, true, false]]);
     expect((['below', 'master', 'top'] as const).map((x) => [holdAgainst(x, 'top'), holdAgainst(x, 'beyond'), holdAgainst(x, null)])).toEqual([[null, null, null], ['brief', null, null], ['long', null, null]]);

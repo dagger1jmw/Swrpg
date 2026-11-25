@@ -32,6 +32,7 @@ import { buildMontageReport, type MontageReport } from '../state/montageReport';
 import { applyEvents, type AppliedEvent, type RejectedEvent } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
 import { tryEscape } from './escape';
+import { tryPlan } from './planning';
 import { planTravel, runTravelBlockade, watchTravelBlockade, type TravelOutcome } from './travel';
 import type { Registry, ResolvedAction } from '../state/types';
 
@@ -331,7 +332,15 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       state = { ...state, meta: { ...state.meta, rngState: escape.rng } };
       apply([...escape.events]);
     }
-    const handled = [attempt, watch, escape].some((a) => a && !('refused' in a));
+    // A line of a plan against a top duelist (D-493).
+    const laid = tryPlan(state, intent);
+    if (laid && 'refused' in laid) report.push(`plan: ${laid.refused}`);
+    else if (laid) {
+      checks.push(laid.card);
+      state = { ...state, meta: { ...state.meta, rngState: laid.rng } };
+      apply([...laid.events]);
+    }
+    const handled = [attempt, watch, escape, laid].some((a) => a && !('refused' in a));
     if (attempt && !('refused' in attempt)) travel = attempt.travel;
     if (travel?.ok) {
       if (intent.requestedSpan) report.push(`travel time is the engine's (${travel.hours} h), not the requested span`);

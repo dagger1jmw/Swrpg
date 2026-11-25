@@ -29,7 +29,8 @@ const MAP_C = 'D-490: the 1,000 BBY-4 ABY list';
 export const DUELISTS: readonly DuelistSpan[] = [
   ...span('top', -5000, -3662, MAP_D, 'naga-sadow', 'exar-kun', 'ulic-qel-droma', 'revan', 'malak', 'darth-nihilus', 'darth-sion', 'darth-traya', 'scourge', 'meetra-surik'),
   ...span('beyond', -5000, -3662, MAP_D, 'vitiate', 'tenebrae-lord-vitiate'),
-  ...span('top', -3661, -3640, MAP_A, 'darth-malgus', 'darth-marr', 'revan', 'vitiate', 'satele-shan', 'ven-zallow', 'zym'),
+  ...span('top', -3661, -3640, MAP_A, 'darth-malgus', 'darth-marr', 'revan', 'satele-shan', 'scourge', 'ven-zallow', 'zym'),
+  ...span('beyond', -3661, -3640, 'D-493: the Emperor is beyond any duelist here too', 'vitiate'),
   ...span('master', -3661, -3640, 'D-490: rules check A28', 'darth-baras'),
   ...span('top', -3639, -1001, MAP_B, 'darth-malgus', 'revan', 'arcann', 'thexan', 'vaylin', 'the-outlander'),
   ...span('beyond', -3639, -1001, MAP_B, 'vitiate', 'valkorion'),
@@ -62,5 +63,25 @@ export const GUARDED: readonly { canonId: string; fromYear: number; toYear: numb
 
 /** The top tier's levels (invented; Mace: Vaapad 98, Force Control 92, Willpower 94; Yoda: Ataru 100, Force about 100). */
 export const TOP_TIER = { combat: 95, forceControl: 90, willpower: 90 } as const;
+/**
+ * Planning (Jared, 2026-11-25; D-493): a non-Force fighter never reaches Master in an outright fight. The most skilled
+ * bounty hunters and Mandalorians reach it only for a hold, with a plan recorded in play: `lines` different kinds laid
+ * against that foe, at that place, in the last `days`. Every number is invented. Gear suited to the foe is a fourth kind
+ * once equipment is built (it would be read from what the character carries).
+ */
+export const PLAN_KINDS = ['ambush', 'trap', 'ground'] as const;
+export type PlanKind = (typeof PLAN_KINDS)[number];
+export const PLAN = {
+  archetypes: ['bountyHunter', 'mandalorian'] as readonly string[],
+  /** The strongest fighting skill: 90 is an exceptional hunter near 40, a gifted one near 52. */
+  combat: 90,
+  /** Each line is a check against this rating (DC 17, the medium guard's). */
+  rating: 70,
+  lines: 2,
+  days: 3,
+  skills: { ambush: ['stealth', 'tracking'], trap: ['tactics', 'investigation'], ground: ['tactics', 'tracking'] } as Readonly<Record<PlanKind, readonly string[]>>,
+  labels: { ambush: 'Lay an ambush', trap: 'Lay a trap', ground: 'Prepare the ground' } as Readonly<Record<PlanKind, string>>,
+} as const;
+
 /** A hold counts when the fight lasted this long (invented): fewer exchanges bought nobody any time. */
 export const HOLD = { minExchanges: 6 } as const;
