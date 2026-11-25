@@ -34,10 +34,11 @@ Status key: **Replaced** = a decided spec covers it fully. **Partly replaced** =
 | m8-design-notes.md | M8 design notes: blockades, weapon proficiency, species traits and ages, world events, wartime postings, equipment, economy, renown, the Sith acolyte curriculum, medicine, ships, droids (exported from Claude Docs, revision 40, 2026-11-23; the Claude Docs version is the working copy; D-465) |
 | blockades.md | Running a blockade as built: the approaches, levels and age, landing knowledge, the trek, failure (numbers invented, waiting for rulings) |
 | world-events.md | World events as built: the tag network (tags, guards, the ripple, the freeze, plot points, the narrator hand-off) |
-| world-event-tags-3640-1000BBY-draft.md | World event tag map, 3640–1000 BBY (reviewed draft, Jared's rulings in its section 10; not encoded) |
+| world-event-tags-3640-1000BBY-draft.md | World event tag map, 3640–1000 BBY (reviewed draft, Jared's rulings in its section 10; D-489's rules applied, section 11; not encoded) |
 | world-event-tags-5000-3662BBY-draft_Part1.md, _Part2.md, _Part3.md | World event tag map, 5000–3662 BBY (reviewed by Jared 2026-11-24: PP-14 to PP-21, the design rules in Part 1, rulings and what is still open in section 16, Part 3; a spec under review, nothing reads it, not encoded) |
-| world-event-tags-draft.md | World event tag map, 3661–3640 BBY (design data for the tag network in the design notes; reviewed by Jared 2026-11-23, rulings in its section 6) |
-| world-event-tags-1000BBY-4ABY-draft.md | World event tag map, 1000 BBY–4 ABY (reviewed by Jared 2026-11-23, rulings in its section 8; the PP-0 alternatives are still open; LF rows not re-checked) |
+| world-event-tags-draft.md | World event tag map, 3661–3640 BBY (encoded in src/data/worldNetwork3661.ts; reviewed by Jared 2026-11-23, rulings in its section 6; who can break what in section 7, D-490) |
+| world-event-tags-1000BBY-4ABY-draft.md | World event tag map, 1000 BBY–4 ABY (reviewed by Jared 2026-11-23, rulings in its section 8; D-489's rules applied, section 9; the PP-0 alternatives are still open; LF rows not re-checked; not encoded) |
+| world-event-tags-4-44ABY-draft_Part1.md, _Part2.md, _Part3.md | World event tag map, 4–44 ABY (draft under review by Jared: PP-22 to PP-35; nothing reads it, not encoded) |
 
 ## Legacy audit (Phase 1)
 

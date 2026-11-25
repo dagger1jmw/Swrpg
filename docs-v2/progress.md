@@ -301,3 +301,4 @@ Each is the most conservative option that fits the specs and decisions; no formu
 - 2026-11-24: Jagged Fel check (D-488): the Emperor row held back to 121 ABY like the overview; Head of the Remnant reaches the narrator in every year from 41 to 121 ABY; tested.
 - 2026-11-24: m8-tagmap-14 (D-489): the reviewed 5,000-3,662 BBY tag map (three parts) committed as a spec under review; its design rules recorded for every tag map.
 - 2026-11-24: m8-tagmap-14b: the design rules in the 5,000-3,662 BBY map read "every tag map"; section 14's fixed rows marked done; the other three maps checked against D-489 (85 findings, nothing changed). Report: reports/tagmap-rules-check.md.
+- 2026-11-25: m8-world-d (D-490 to D-492): D-489's rules in the engine (who the player is, the power bar in the fight, no premonitions, closed events), the 3,661 conditions gated, the rulings on the rules check in the three maps, the 4-44 ABY draft committed under review. Report: reports/m8-world-d.md.
