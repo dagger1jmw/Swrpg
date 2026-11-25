@@ -356,7 +356,10 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
           continue;
         }
         const own = parseYearRange(date);
-        const range = own ?? { from: era.from, to: era.to };
+        const range = own ? { ...own } : { from: era.from, to: era.to };
+        // A send-guard in the date cell ("[note: send-guard: 121 ABY ...]"): the row keeps its date and is sent from that year (D-488).
+        const guard = /\bsend-guard: ([\d,]+ (?:BBY|ABY))/.exec(cs[cols.date] ?? '');
+        if (guard) range.from = Math.min(range.to, Math.max(range.from, parseYearRange(guard[1]!)!.from));
         // "undated (25,053–6,900 BBY)": a row that may fall anywhere in centuries is background, as in an undated section (D-487).
         if (/\bundated\b/i.test(date) && (!own || own.from < own.to) && range.to - range.from >= UNDATED_BACKGROUND_YEARS) {
           background.push({ era: { ...era, ...range }, date, event, names: namesFromCell(figures), places: placesFromCell(location) });

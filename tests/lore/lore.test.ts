@@ -434,6 +434,14 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
     for (const y of [5, 15, 26, 40, 43]) expect(LORE_INDEX.entities.some((e) => e.canonId === 'lore:luke-skywalker' && e.fromYear <= y && y <= e.toYear && e.aliases.includes('luke skywalker')), String(y)).toBe(true);
     expect(LORE_INDEX.entities.filter((e) => /[()]/.test(e.name)).map((e) => e.name)).toEqual([]);
   });
+  it('Jagged Fel: head of the Remnant in every year from 41 to 121 ABY, Emperor only from 121 (send-guard, D-488)', () => {
+    for (let year = 41; year <= 121; year++) {
+      const text = retrieveLore(LORE_INDEX, { canonIds: [], names: [], locationNames: [], year }, 100000, est).included.map((s) => s.text).join('\n');
+      // 45 ABY is Reige's year: Fel is named as the Head of State before him.
+      expect(/Fel[^.\n]*(?:Head of State|heads it again|head of the Remnant)|(?:Head of State)[^.\n]*Fel/.test(text), `Head of State, ${year}`).toBe(true);
+      expect(/Fel[^.\n]*(?:title of Emperor|first Emperor)|Emperor Jagged Fel/.test(text), `Emperor, ${year}`).toBe(year >= 121);
+    }
+  });
   it('planets, species and the 3,661 BBY roster: no source tags or remarks reach the narrator (D-486)', () => {
     const chunks = LORE_INDEX.chunks.filter((x) => /^(pl-|sp-|c09p)/.test(x.id));
     const hits = chunks.flatMap((x) => {
