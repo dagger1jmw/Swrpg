@@ -8,6 +8,7 @@ import { FALL_LOCATION_WEIGHTS, LOCATION_WEIGHTS, type HazardType } from '../dat
 import { applyDamage, hazardDamage, rollLocation, severityOf } from './damage';
 import type { DuelState, Fighter } from './duel';
 import { nextFloat, type RngState } from './rng';
+import { barWound, breakOff } from './powerBar';
 import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, type Wound } from './wounds';
 
 /** The top of the minor band (W 1-9, health §5). */
@@ -35,11 +36,14 @@ function hurtBy(f: Fighter, h: TerrainHazard, rng: RngState, day: number, prefix
   let out: Fighter = { ...f, vitality: dmg.vitality, out: f.out || (f.minion && dmg.vitality <= 0) };
   if (sev) {
     const w: Wound = { id: `${f.id}:w${f.wounds.length + 1}`, part, severity: sev, W: dmg.W, stabilized: false, healProgress: 0, day, source: `${prefix}: ${h.label}` };
-    out = { ...out, wounds: [...f.wounds, w], dead: f.dead || killsWhileDying(f.wounds, w), out: out.out || (f.minion && takesMinionOut(sev)) };
+    // Nobody above the power bar dies of the ground in a fight with the player (D-491).
+    const held = f.aboveBar ? barWound(f, w) : { wound: w, breaksOff: false };
+    if (held.wound) out = { ...out, wounds: [...f.wounds, held.wound], dead: f.dead || killsWhileDying(f.wounds, held.wound), out: out.out || (f.minion && takesMinionOut(sev)) };
+    if (held.breaksOff) out = breakOff(out);
   }
   if (isDying(out.wounds) || isIncapacitated(out.wounds)) out = { ...out, out: true };
   const what = prefix === 'hazard' ? `is caught by the ${h.type} (${h.label})` : h.note ? `${h.note} on the ${h.label}` : `${h.type === 'fall' ? 'falls' : 'is caught'} on the ${h.label}`;
-  return { f: out, rng: r, note: `${prefix}: ${f.name} ${what}${sev ? ` (${sev} ${PART_TEXT[part] ?? part})` : ' (only stamina lost)'}` };
+  return { f: out, rng: r, note: `${prefix}: ${f.name} ${what}${out.wounds.length > f.wounds.length ? ` (${out.wounds[out.wounds.length - 1]!.severity} ${PART_TEXT[part] ?? part})` : ' (only stamina lost)'}` };
 }
 
 /**

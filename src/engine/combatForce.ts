@@ -30,6 +30,7 @@ import { basicRoll, dcForRating, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
 import { cannotDuel, currentTarget, damageFighter, resolveExchange, minionHitNote, engaged, fighterAgility, fighterEffectiveLevel, hasSaber, isRanged, settleEnd, type DuelContext, type DuelState, type ExchangeRecord, type Fighter, type SideId } from './duel';
 import { STRIKE_QUALITY, type HitQuality } from '../data/combat.config';
+import { barWound, breakOff } from './powerBar';
 import { isDying, isIncapacitated, killsWhileDying, takesMinionOut, type Wound } from './wounds';
 
 /** Integration line = 25 + CI; G = level - line (no penalty when G <= 0). */
@@ -474,9 +475,11 @@ function forceActionOnly(s0: DuelState, input: ForceActionInput, day: number, ct
       updatedTarget = { ...target, vitality: dmg.vitality, out: target.out || (target.minion && dmg.vitality <= 0) };
       if (sev) {
         const w: Wound = { id: `${target.id}:w${target.wounds.length + 1}`, part, severity: sev, W: dmg.W, stabilized: false, healProgress: 0, day, source: `force:${abilityId}` };
-        updatedTarget = { ...updatedTarget, wounds: [...target.wounds, w], dead: target.dead || killsWhileDying(target.wounds, w), out: updatedTarget.out || (target.minion && takesMinionOut(sev)) };
-      }
-      damage = { D, W: dmg.W, part, severity: sev };
+        const held = target.aboveBar ? barWound(target, w) : { wound: w, breaksOff: false };
+        if (held.wound) updatedTarget = { ...updatedTarget, wounds: [...target.wounds, held.wound], dead: target.dead || killsWhileDying(target.wounds, held.wound), out: updatedTarget.out || (target.minion && takesMinionOut(sev)) };
+        if (held.breaksOff) updatedTarget = breakOff(updatedTarget);
+        damage = { D, W: held.wound?.W ?? 0, part, severity: held.wound?.severity ?? null };
+      } else damage = { D, W: dmg.W, part, severity: sev };
     }
   }
   if (isDying(updatedTarget.wounds) || isIncapacitated(updatedTarget.wounds) || cannotDuel(updatedTarget)) updatedTarget = { ...updatedTarget, out: true };

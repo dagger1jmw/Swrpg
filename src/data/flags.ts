@@ -32,6 +32,7 @@ export const FLAGS: readonly FlagDef[] = [
   { id: 'staleness', sources: ['engine'], section: 'engine', readBy: 'choices must include a forward jump' },
   { id: 'settlingIn', sources: ['engine'], section: 'engine', readBy: 'pacing' },
   { id: 'sceneOutcome', param: true, sources: ['engine'], section: 'engine', readBy: 'world-event conditions (spec/world-events.md; D-466)' },
+  { id: 'worldPost', param: true, sources: ['engine'], section: 'engine', readBy: 'who can break a world-event condition (data/worldPosts.ts; D-491); nothing sets it until postings are built' },
   // Blockades (D-469): training, papers, a ship's systems and a fleet; nothing sets them yet but a start option's training.
   { id: 'blockadeTactics', sources: ['engine'], section: 'engine', readBy: 'running a blockade (trained range)' },
   { id: 'blockadePapers', param: true, sources: ['engine'], section: 'engine', readBy: 'running a blockade (riding under protection)' },

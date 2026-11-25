@@ -404,7 +404,7 @@ tacticDeclared and healingReceived. They are intent fields now (above).
 | npcIntroduced {key?, name, species, faction, role, ageApprox, description} | npcs | enums registered; exact alias match to existing/canon first |
 | npcStatusChanged {npcRef, state: active / dormant / departed} | npcs | the AI may not set deceased; deceased comes only from the health model (a resolved fight or hazard), a player choice at incapacitation, or a code-run Legends timeline event (engine source); deceased is one-way; `witnessed` removed (D-33); active added (D-65) |
 | relationshipChanged {npcRef, delta -3..+3, reason} | relationships | npc exists; cap 1 per NPC per turn |
-| factLearned {aboutRef, fact, importance} | memory | ref exists; cap 5 per turn |
+| factLearned {aboutRef, fact, importance, vision?} | memory | ref exists; cap 5 per turn |
 | threadOpened {key?, title, stakes, deadlineHint?, entityRefs[]} | threads | refs exist |
 | threadProgressed {threadRef, note} | threads | open thread |
 | threadResolved {threadRef, outcome} | threads | open thread |

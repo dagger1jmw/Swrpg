@@ -31,11 +31,13 @@ const HOLD_BANE: ConditionTag = {
   brokenText: 'Bane is held within the thought bomb\'s reach',
   crucial: true,
   guard: 'veryHigh',
+  // B26: top tier; an Army of Light Jedi or a Brotherhood Sith at the cave.
+  who: [{ sides: ['jediOrder', 'sith'], minTier: 'top', at: ['Ruusan'] }],
   prerequisites: [
     { id: 'know.bomb', text: 'What Kaan means to do', tests: [{ kind: 'action', actionTypes: ['investigate'], places: ['Ruusan'] }], leads: [{ places: ['Ruusan'] }] },
-    { id: 'know.bane', text: 'Where Bane is', tests: [{ kind: 'action', actionTypes: ['forceUse'], places: ['Ruusan'] }, { kind: 'npc', canonId: 'lore:qordis', state: 'captured' }], leads: [{ canonIds: ['lore:darth-bane'] }] },
+    { id: 'know.bane', text: 'Where Bane is', tests: [{ kind: 'action', actionTypes: ['investigate'], places: ['Valley of the Jedi'] }, { kind: 'npc', canonId: 'lore:qordis', state: 'captured' }], leads: [{ canonIds: ['lore:darth-bane'] }] },
   ],
-  breakIf: [{ kind: 'fight', canonIds: ['lore:darth-bane'], minStakes: 'lethal', strength: 'decisive' }, { kind: 'action', actionTypes: ['forceUse'], places: ['Ruusan'] }],
+  breakIf: [{ kind: 'fight', canonIds: ['lore:darth-bane'], minStakes: 'lethal', hold: 'long', strength: 'decisive' }, { kind: 'action', actionTypes: ['forceUse'], places: ['Ruusan'] }],
 };
 
 /** The thought-bomb branch: the bomb does not destroy the Brotherhood, and two Sith lineages go on. */
@@ -74,9 +76,17 @@ const ALL: WorldNetwork = {
 describe('the maps that are not shipped', () => {
   it('very high guards in the maps load with their two steps, and are refused without', () => {
     const high = LATER.events.filter((e) => e.conditions.some((c) => c.guard === 'veryHigh'));
-    expect(high.map((e) => e.id)).toContain('E.3636.eternal_empire');
+    expect(high.map((e) => e.id)).toEqual(['E.3637.yavin4', 'E.1000.bane_lehon']);
     const bare = { ...ALL, events: ALL.events.map((e) => (high.includes(e) ? { ...e, conditions: e.conditions.map(({ prerequisites: _p, ...c }) => c) } : e)) };
-    expect(networkProblems(bare).join('\n')).toMatch(/E\.3636\.eternal_empire.*needs 2 distinct prerequisites/);
+    expect(networkProblems(bare).join('\n')).toMatch(/E\.3637\.yavin4.*needs 2 distinct prerequisites/);
+  });
+
+  it('the closed systems of the maps are closed, with no condition of their own (D-490)', () => {
+    const closed = (m: { events: WorldEventDef[] }): string[] => m.events.filter((e) => e.closed).map((e) => e.id);
+    expect(closed(LATER)).toEqual(['E.3636.ziost', 'E.3636.thexan', 'E.3636.eternal_empire', 'E.3636.conquest', 'E.3630.zakuul', 'E.3626.tenebrae']);
+    expect(closed(LAST)).toEqual(['E.32.plagueis_killed', 'E.19.mustafar', 'E.0.kenobi']);
+    for (const e of [...LATER.events, ...LAST.events]) if (e.closed) expect(e.conditions, e.id).toEqual([]);
+    expect(closed(load('world-event-tags-draft.md'))).toEqual(['E.3640.voss', 'E.3640.voice']);
   });
 
   it('every dated row of both maps loads', () => {

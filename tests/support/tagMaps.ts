@@ -36,7 +36,7 @@ function conditionsIn(cell: string): ConditionTag[] {
     const text = m[1]!.trim().slice(0, 200) || 'condition';
     // No breaking tests yet: those are drafted when an era is built. A very high guard gets two placeholder steps.
     const steps = ['one', 'two'].map((n) => ({ id: `know.${n}`, text: `step ${n}`, tests: [{ kind: 'action' as const, actionTypes: ['investigate' as const], places: [`step ${n}`] }], leads: [{ places: [`step ${n}`] }] }));
-    out.push({ id: `cond.${slug(text)}`, text, brokenText: text, crucial: m[2] === 'crucial', guard, breakIf: [], ...(guard === 'veryHigh' ? { prerequisites: steps } : {}) });
+    out.push({ id: `cond.${slug(text)}`, text, brokenText: text, crucial: m[2] === 'crucial', guard, breakIf: [], ...(guard === 'veryHigh' ? { prerequisites: steps, who: [{ sides: ['republic' as const] }] } : {}) });
   }
   return uniq(out);
 }
@@ -75,6 +75,8 @@ export function rowToEvent(r: MapRow): WorldEventDef | null {
     ...(endYear !== null && endYear > year ? { endDate: { year: endYear } } : {}),
     roles: rolesIn(r.roles),
     conditions: conditionsIn(r.conditions),
+    // D-490: "(closed ..." in an empty conditions cell.
+    ...(/^— \(closed/.test(r.conditions) ? { closed: true } : {}),
     consumes: outcomesIn(r.consumes).map((outcome) => ({ outcome, required: true })),
     // "O.x ends": an event that ends an outcome, which the schema cannot say (a gap the tests list).
     produces: outcomesIn(r.produces.replace(/O\.[a-z0-9_]+ ends/g, '')).map((outcome) => ({ outcome })),

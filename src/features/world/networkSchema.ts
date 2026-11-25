@@ -19,6 +19,10 @@ import {
   type WorldTest,
 } from '../../data/worldNetwork';
 import { isValidDate } from '../../engine/calendar';
+import { DUELISTS } from '../../data/duelists';
+import { ARCHETYPES } from '../../data/archetypes';
+import { WORLD_POST_IDS, type WorldPostId } from '../../data/worldPosts';
+import type { Who } from '../../data/who';
 import { PREREQUISITES_NEEDED } from '../../data/worldNetwork.config';
 import { eventOrder, sceneFlag, worldDay } from './network';
 
@@ -41,10 +45,26 @@ const worldDate = z
   .refine((d) => isValidDate({ year: d.year, month: d.month ?? 1, day: d.day ?? 1 }), 'not a calendar date');
 
 const strength = z.enum(TEST_STRENGTHS).optional();
-const npcTest = z.strictObject({ kind: z.literal('npc'), canonId, state: z.enum(['dead', 'captured', 'lost']), strength });
-const controlTest = z.strictObject({ kind: z.literal('control'), place: text, side: z.enum(CONTROL_SIDES), is: z.boolean().optional(), strength });
-const flagTest = z.strictObject({ kind: z.literal('flag'), flag: z.string(), strength });
-const outcomeTest = z.strictObject({ kind: z.literal('outcome'), outcome: outcomeId, state: z.enum(['produced', 'broken']), strength });
+const during = z.boolean().optional();
+const who = list(
+  z
+    .strictObject({
+      sides: list(z.enum(FACTIONS)).optional(),
+      archetypes: list(z.string()).optional(),
+      minRank: z.enum(['padawan', 'knight', 'master']).optional(),
+      minStanding: z.number().min(0).max(100).optional(),
+      trustOf: list(canonId).optional(),
+      posts: list(z.enum(WORLD_POST_IDS as [WorldPostId, ...WorldPostId[]])).optional(),
+      at: list(text).optional(),
+      minTier: z.enum(['below', 'master', 'top']).optional(),
+      flags: list(z.string()).optional(),
+    })
+    .refine((w) => Object.values(w).some((x) => x !== undefined), 'an empty gate'),
+).optional();
+const npcTest = z.strictObject({ kind: z.literal('npc'), canonId, state: z.enum(['dead', 'captured', 'lost']), strength, during });
+const controlTest = z.strictObject({ kind: z.literal('control'), place: text, side: z.enum(CONTROL_SIDES), is: z.boolean().optional(), strength, during });
+const flagTest = z.strictObject({ kind: z.literal('flag'), flag: z.string(), strength, during });
+const outcomeTest = z.strictObject({ kind: z.literal('outcome'), outcome: outcomeId, state: z.enum(['produced', 'broken']), strength, during });
 const actionTest = z.strictObject({
   kind: z.literal('action'),
   actionTypes: list(z.enum(ACTION_TYPES)),
@@ -52,6 +72,7 @@ const actionTest = z.strictObject({
   places: list(text).optional(),
   canonIds: list(canonId).optional(),
   strength,
+  during,
 });
 const fightTest = z.strictObject({
   kind: z.literal('fight'),
@@ -59,16 +80,18 @@ const fightTest = z.strictObject({
   factions: list(z.enum(FACTIONS)).optional(),
   places: list(text).optional(),
   minStakes: z.enum(COMBAT_STAKES).optional(),
+  hold: z.enum(['brief', 'long']).optional(),
   strength,
+  during,
 });
-const knownTest = z.strictObject({ kind: z.literal('known'), tag: z.string(), strength });
+const knownTest = z.strictObject({ kind: z.literal('known'), tag: z.string(), strength, during });
 const stateTest = z.discriminatedUnion('kind', [npcTest, controlTest, flagTest, outcomeTest, knownTest]);
 const worldTest = z.discriminatedUnion('kind', [npcTest, controlTest, flagTest, outcomeTest, knownTest, actionTest, fightTest]);
 const lead = z
   .strictObject({ canonIds: list(canonId).optional(), places: list(text).optional(), sites: list(text).optional(), facts: list(stateTest).optional() })
   .refine((l) => Object.values(l).some((x) => x !== undefined), 'an empty lead');
 const leads = list(lead).optional();
-const prerequisite = z.strictObject({ id: z.string().regex(/^know\.[a-z0-9_]+$/), text, tests: list(worldTest), leads });
+const prerequisite = z.strictObject({ id: z.string().regex(/^know\.[a-z0-9_]+$/), text, tests: list(worldTest), leads, who });
 const scene = z.strictObject({
   id: z.string().regex(/^[a-z0-9-]+$/),
   title: text,
@@ -79,6 +102,7 @@ const scene = z.strictObject({
   on: list(z.discriminatedUnion('kind', [actionTest, fightTest])),
   requires: list(stateTest).optional(),
   leads,
+  who,
 });
 
 const roleTag = z.strictObject({
@@ -88,6 +112,7 @@ const roleTag = z.strictObject({
   canonId: canonId.optional(),
   npcName: text.optional(),
   protagonist: z.boolean().optional(),
+  closed: z.boolean().optional(),
   faction: z.enum(FACTIONS).optional(),
   roles: list(z.enum(NPC_ROLES)).optional(),
   breakIf: z.array(stateTest).readonly().optional(),
@@ -102,6 +127,7 @@ const conditionTag = z.strictObject({
   guard: z.enum(WORLD_GUARDS),
   breakIf: z.array(worldTest).readonly(),
   leads,
+  who,
   prerequisites: list(prerequisite).optional(),
   window: z.union([z.literal('underway'), z.strictObject({ fromYear: z.number().int() })]).optional(),
   onBreak: z.enum(BREAK_EFFECTS).optional(),
@@ -128,6 +154,7 @@ export const worldEventDefSchema = z.strictObject({
     )
     .readonly(),
   plotPoint: plotPointId.optional(),
+  closed: z.boolean().optional(),
   interrupts: z.boolean().optional(),
   source: text,
 });
@@ -219,7 +246,11 @@ export function networkProblems(net: WorldNetwork): string[] {
   const fromAlternatives = net.plotPoints.flatMap((p) => p.alternatives.flatMap((a) => a.effects?.produces ?? []));
   const known = (o: string): boolean => producer.has(o) || standing.has(o) || fromAlternatives.includes(o);
 
+  // D-489: no premonitions; a fight with a top duelist is the figure's own (the power bar is on the person).
+  const top = new Set(DUELISTS.map((d) => d.canonId));
   const checkTest = (where: string, t: WorldTest): void => {
+    if (t.kind === 'action' && t.skills?.includes('forceSense')) out.push(`${where}: Force sense never counts (no premonitions)`);
+    if (t.kind === 'fight' && t.hold && !(t.canonIds ?? []).some((id) => top.has(id))) out.push(`${where}: only a top duelist is held off`);
     if (t.kind === 'outcome' && !known(t.outcome)) out.push(`${where}: unknown outcome ${t.outcome}`);
     if (t.kind === 'flag') {
       const def = flagDef(t.flag);
@@ -242,6 +273,19 @@ export function networkProblems(net: WorldNetwork): string[] {
   const checkLeads = (where: string, tests: readonly WorldTest[], own: readonly Lead[] | undefined): void => {
     if (!own?.length && tests.some((t) => t.kind === 'action' && !t.canonIds)) out.push(`${where}: an action on a place needs a lead recorded in play`);
     for (const l of own ?? []) for (const t of l.facts ?? []) checkTest(`${where} lead`, t);
+  };
+  // D-491: whatever the player can do to a condition asks who the player is.
+  const asksPlayer = (t: WorldTest): boolean => t.kind === 'action' || t.kind === 'fight' || t.kind === 'npc';
+  const checkWho = (where: string, w: readonly Who[] | undefined): void => {
+    for (const x of w ?? []) {
+      for (const a of x.archetypes ?? []) if (!ARCHETYPES.some((y) => y.id === a)) out.push(`${where}: unknown archetype ${a}`);
+      for (const fl of x.flags ?? []) {
+        const def = flagDef(fl);
+        if (!def) out.push(`${where}: unregistered flag ${fl}`);
+        else if (def.sources.includes('ai')) out.push(`${where}: flag ${fl} can be set by the AI`);
+        if (fl.startsWith('sceneOutcome:') && !(net.scenes ?? []).some((y) => sceneFlag(y.id) === fl)) out.push(`${where}: no scene sets ${fl}`);
+      }
+    }
   };
   const checkExpr = (where: string, e: WorldExpr): void => {
     const r = exprRefs(e);
@@ -273,6 +317,11 @@ export function networkProblems(net: WorldNetwork): string[] {
     for (const c of e.conditions) {
       const pre = c.prerequisites ?? [];
       for (const t of [...c.breakIf, ...pre.flatMap((q) => q.tests)]) checkTest(`${e.id}#${c.id}`, t);
+      checkWho(`${e.id}#${c.id}`, c.who);
+      for (const q of pre) checkWho(`${e.id}#${c.id} ${q.id}`, q.who);
+      if (!c.who && (c.breakIf.some(asksPlayer) || pre.some((q) => !q.who && q.tests.some(asksPlayer)))) out.push(`${e.id}#${c.id}: the player can break it, so it must say who the player is`);
+      if (e.closed && [...c.breakIf, ...pre.flatMap((q) => q.tests)].some(asksPlayer)) out.push(`${e.id}#${c.id}: a closed event has no step inside it`);
+      if ([...c.breakIf, ...pre.flatMap((q) => q.tests)].some((t) => t.during) && !e.endDate) out.push(`${e.id}#${c.id}: a test during the event, but the event has no end date`);
       if (!pre.length) checkLeads(`${e.id}#${c.id}`, c.breakIf, c.leads);
       for (const q of pre) checkLeads(`${e.id}#${c.id} ${q.id}`, q.tests, q.leads);
       for (const id of dupes(pre.map((q) => q.id))) out.push(`${e.id}#${c.id}: duplicate prerequisite ${id}`);
@@ -293,6 +342,9 @@ export function networkProblems(net: WorldNetwork): string[] {
   for (const id of dupes((net.scenes ?? []).map((x) => x.id))) out.push(`duplicate scene ${id}`);
   for (const x of net.scenes ?? []) {
     if (!byId.has(x.event)) out.push(`scene ${x.id}: unknown event ${x.event}`);
+    else if (byId.get(x.event)!.closed) out.push(`scene ${x.id}: a closed event has no step inside it`);
+    checkWho(`scene ${x.id}`, x.who);
+    if (!x.who) out.push(`scene ${x.id}: it must say who the player is`);
     for (const t of [...x.on, ...(x.requires ?? [])]) checkTest(`scene ${x.id}`, t);
     if (!(x.requires ?? []).some((t) => t.kind === 'known')) checkLeads(`scene ${x.id}`, x.on, x.leads);
   }

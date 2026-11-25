@@ -5,6 +5,7 @@
 import type { ActionType } from './checks.config';
 import type { FactionId, NpcRole } from './entities.config';
 import type { CombatStakes } from './progression.config';
+import type { Who } from './who';
 import type { ControlSide } from './worldControl';
 import { NETWORK_3661 } from './worldNetwork3661';
 
@@ -47,11 +48,14 @@ export type StateTest =
 /** A player action whose check the engine rolled, or a fight the player won. */
 export type DeedTest =
   | { kind: 'action'; actionTypes: readonly ActionType[]; skills?: readonly string[]; places?: readonly string[]; canonIds?: readonly string[] }
-  | { kind: 'fight'; canonIds?: readonly string[]; factions?: readonly FactionId[]; places?: readonly string[]; minStakes?: CombatStakes };
+  /** hold: not a win but time bought against a top duelist (D-491): a Master's short delay, or the top tier's long one. */
+  | { kind: 'fight'; canonIds?: readonly string[]; factions?: readonly FactionId[]; places?: readonly string[]; minStakes?: CombatStakes; hold?: 'brief' | 'long' };
 
 export type WorldTest = (StateTest | DeedTest) & {
   /** Weight of a state fact or a won fight (default minor). An action's weight comes from its roll. */
   strength?: TestStrength;
+  /** Counts only while the event is under way (inside the battle itself, D-491). */
+  during?: boolean;
 };
 
 /**
@@ -80,6 +84,8 @@ export interface Prerequisite {
   text: string;
   tests: readonly WorldTest[];
   leads?: readonly Lead[];
+  /** Who can learn it. Absent = the condition's own `who`. */
+  who?: readonly Who[];
 }
 
 /**
@@ -97,6 +103,8 @@ export interface SceneDef {
   on: readonly DeedTest[];
   requires?: readonly StateTest[];
   leads?: readonly Lead[];
+  /** Who the player must be (D-491). */
+  who?: readonly Who[];
 }
 
 export interface RoleTag {
@@ -113,6 +121,8 @@ export interface RoleTag {
   /** Who can stand in (replaceable roles): the side and the standings to look in. Defaults to the person's own. */
   faction?: FactionId;
   roles?: readonly NpcRole[];
+  /** Out of every player's reach (a prisoner in a sealed system): losing the figure never counts (D-491). */
+  closed?: boolean;
   /** Extra ways to lose the role; being dead or captured always counts when `canonId` is set. */
   breakIf?: readonly StateTest[];
   /** A crucial role only. Default 'altered'. */
@@ -132,6 +142,11 @@ export interface ConditionTag {
   breakIf: readonly WorldTest[];
   /** Needed by an action on a place alone, when no foreknowledge comes first. */
   leads?: readonly Lead[];
+  /**
+   * Who the player must be for a deed, or a figure taken, to count (D-491). Required wherever the player can break it. What
+   * the world does (outcomes, control, scene flags, foreknowledge already had) is not gated.
+   */
+  who?: readonly Who[];
   /** Foreknowledge needed before anything counts: one, or two distinct ones for a very high guard. */
   prerequisites?: readonly Prerequisite[];
   /** Only while the event is under way (an occupation that must hold), or from a year on. Default: until it is settled. */
@@ -177,6 +192,11 @@ export interface WorldEventDef {
   produces: readonly ProducedOutcome[];
   /** The plot point it feeds ("PP-n"). */
   plotPoint?: string;
+  /**
+   * A closed system (D-489): no step inside it exists. No deed counts against its conditions, no scene belongs to it, and a
+   * figure lost once it has begun changes nothing; only what it consumes, and who was lost before it, reach it.
+   */
+  closed?: boolean;
   /** Stops a montage or a time skip (galaxy-shaking events). */
   interrupts?: boolean;
   /** The timeline row. */

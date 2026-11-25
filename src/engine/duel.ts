@@ -56,6 +56,7 @@ import { basicRoll, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
 import { effectiveSeverity, isDying, isIncapacitated, killsWhileDying, takesMinionOut, woundPenalty, type Wound } from './wounds';
 import type { ForceActionRecord } from './combatForce';
+import { barEnd, barWound, breakOff } from './powerBar';
 import { FORCE_USER_MIN_LEVEL, type BodySize, type ForceTrait } from '../data/forceResistance.config';
 import { rollBoutHazards, type TerrainHazard } from './terrainHazard';
 
@@ -140,6 +141,8 @@ export interface Fighter {
   withdraw?: number;
   /** Withdrawal checks already rolled in this fight (D-268: at most TACTICAL_WITHDRAWAL.maxChecks). */
   withdrawChecks?: number;
+  /** Above the player's power bar (D-491, engine/powerBar.ts): never beaten, only made to break off. Absent = no bar. */
+  aboveBar?: boolean;
   /** Left the fight by morale (D-256): fled, or surrendered (a named one's fate is the player's choice); or withdrew (D-263). */
   yielded?: 'fled' | 'surrendered' | 'withdrew';
   /** The M6 precognition trial's pool (engine/precogTrial.ts): set only while the harness-only trial flag is on. */
@@ -216,7 +219,7 @@ export interface ExchangeRecord {
 
 export type DuelEnd =
   | { winner: SideId; reason: 'incapacitated' | 'dying' | 'dead' | 'allOut' | 'spent' | 'point' | 'exhausted' | 'opponentsDefeated' | 'yielded' | 'captured' }
-  | { winner: null; reason: 'stopped' | 'stalemate' };
+  | { winner: null; reason: 'stopped' | 'stalemate' | 'brokeOff' };
 
 export interface DuelState {
   /** Terrain accident rolls so far and the exchange of the last (D-185); absent on older duels. */
@@ -483,10 +486,18 @@ export function damageFighter(
   // Minions (combatStarted groups) fold when Spent as well as on a moderate wound (health §9 as amended by D-157).
   let next: Fighter = { ...f, vitality: dmg.vitality, out: f.out || (f.minion && MINION_FOLDS_WHEN_SPENT && dmg.vitality <= 0) };
   if (severity) {
-    const wound: Wound = { id: `${f.id}:w${woundSeq}`, part, severity, W, stabilized: false, healProgress: 0, day, source: 'combat', ...(severed ? { severed: true } : {}) };
-    const dies = killsWhileDying(f.wounds, wound);
-    next = { ...next, wounds: [...f.wounds, wound], dead: next.dead || dies };
-    if (f.minion && takesMinionOut(severity)) next = { ...next, out: true };
+    const full: Wound = { id: `${f.id}:w${woundSeq}`, part, severity, W, stabilized: false, healProgress: 0, day, source: 'combat', ...(severed ? { severed: true } : {}) };
+    // A fighter above the power bar takes it lighter and breaks off (D-491); the card shows the wound as taken.
+    const held = f.aboveBar ? barWound(f, full) : { wound: full, breaksOff: false };
+    const wound = held.wound;
+    if (held.breaksOff) {
+      severed = false;
+      severity = wound?.severity ?? null;
+      W = wound?.W ?? 0;
+    }
+    if (wound) next = { ...next, wounds: [...f.wounds, wound], dead: next.dead || killsWhileDying(f.wounds, wound) };
+    if (held.breaksOff) next = breakOff(next);
+    if (f.minion && severity && takesMinionOut(severity)) next = { ...next, out: true };
   }
   void ctx;
   // A prosthetic took it (pass 5 issue 10: the card read "critical hit · no wound" with no place or reason).
@@ -627,7 +638,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   if (initial.end) return initial;
   let s = initial;
   const targetNow = currentTarget(s);
-  if (!targetNow) return { ...s, end: { winner: 'A', reason: 'allOut' } };
+  if (!targetNow) return barEnd({ ...s, end: { winner: 'A', reason: 'allOut' } });
   const notes: string[] = [];
   // Start of exchange: Force insight for either side.
   for (const side of ['A', 'B'] as const) {
@@ -911,7 +922,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     for (const id of checks) {
       const f = ops.find((o) => o.id === id)!;
       const p = f.morale;
-      if (!p || f.dead || f.out) continue;
+      if (!p || f.dead || f.out || f.aboveBar) continue;
       const chance = MORALE.breakChance[p.group];
       if (chance <= 0) continue;
       let u: number;
@@ -936,6 +947,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     notes.push(`no outcome after ${FIGHT_SAFETY_CAP.exchanges} exchanges: an exhausted stalemate, both sides Spent`);
   }
 
+  if (next.opponents.some((o) => o.id === B.id && o.aboveBar && o.out && o.yielded === 'withdrew') && !notes.some((n) => n.includes('withdraws:'))) notes.push(`${B.name} breaks off and gets away: the player cannot beat them, out of the fight`);
   const rec: ExchangeRecord = {
     n: s.exchange + 1,
     kind: striker === null ? 'buildUp' : 'strike',
@@ -956,7 +968,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     ...(extras.step !== undefined ? { step: extras.step } : {}),
     ...(defendOnly ? { duringForce: true } : {}),
   };
-  return {
+  return barEnd({
     ...next,
     advantage: advAfter,
     exchange: s.exchange + 1,
@@ -966,7 +978,7 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
     end,
     log: [...s.log, rec],
     target: Math.max(0, next.opponents.findIndex((o) => o.id === (currentTarget(next)?.id ?? ''))),
-  };
+  });
 }
 
 /** The note for a hit on a minion (D-194): cuts down only when it is out; wounds or grazes when it fights on. */
@@ -986,7 +998,7 @@ export function settleEnd(s: DuelState): DuelState {
   }
   const opps = s.opponents.map((o) => (!o.out && (o.dead || isDying(o.wounds) || isIncapacitated(o.wounds) || cannotDuel(o) || collapsedFromExhaustion(o)) ? { ...o, out: true } : o));
   const next = { ...s, opponents: opps };
-  if (engaged(next).length === 0) return { ...next, end: { winner: 'A', reason: allDownReason(next, 'allOut') } };
+  if (engaged(next).length === 0) return barEnd({ ...next, end: { winner: 'A', reason: allDownReason(next, 'allOut') } });
   // Spent against a capturing opponent after a Force action or a sequence step (D-262).
   if (capturedNow(next)) return { ...next, a: { ...next.a, out: true }, end: { winner: 'B', reason: 'captured' } };
   return { ...next, target: Math.max(0, opps.findIndex((o) => o.id === (currentTarget(next)?.id ?? ''))) };

@@ -45,6 +45,7 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
         aboutRef: z.string().describe('ID (or temp key) of who or what the fact is about; "pc" for the player character'),
         fact: z.string().min(1).max(MEMORY_LIMITS.fact).describe('One lasting fact worth remembering, in one sentence'),
         importance: z.enum(['minor', 'major']),
+        vision: z.boolean().optional().describe('True when it came from a vision, a dream or a feeling in the Force, not from evidence'),
       }),
       // engine: tier-beat facts from progression (M3).
       sources: ['ai', 'engine'],
@@ -61,6 +62,7 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
           turn: selectTurnInPlay(ctx.state),
           day: selectNow(ctx.state).day,
           importance: e['importance'] as 'minor' | 'major',
+          ...(e['vision'] === true ? { vision: true } : {}),
         };
         return { slice: { ...slice, facts: [...slice.facts, fact], nextSeq: slice.nextSeq + 1 } };
       },

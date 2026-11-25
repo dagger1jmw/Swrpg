@@ -8,6 +8,8 @@ export const factSchema = z.object({
   turn: z.number().int().min(0),
   day: z.number().int(),
   importance: z.enum(['minor', 'major']),
+  /** It came from a vision, a dream or a feeling in the Force (D-491): never a lead. */
+  vision: z.boolean().optional(),
 });
 
 const range = z.tuple([z.number().int(), z.number().int()]);

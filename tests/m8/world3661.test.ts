@@ -7,6 +7,7 @@ import { controlAt, FACTION_LEADERS, leadersAt, WORLD_CONTROL } from '../../src/
 import { WORLD_NETWORK } from '../../src/data/worldNetwork';
 import { absDayFromDate, SECONDS_PER_DAY } from '../../src/engine/calendar';
 import { canonOffBoard, canonRankAt } from '../../src/engine/canonRoster';
+import { whoHolds } from '../../src/engine/who';
 import { networkProblems } from '../../src/features/world/networkSchema';
 import { outcomeState, worldDay } from '../../src/features/world/network';
 import { selectNpcLevels } from '../../src/features/npcs/selectors';
@@ -19,6 +20,7 @@ import { createInitialState } from '../../src/state/registryTools';
 import type { Registry } from '../../src/state/types';
 import { resolveTurn } from '../../src/turn/resolve';
 import { mapRows, outcomesIn } from '../support/tagMaps';
+import type { FactionId } from '../../src/data/entities.config';
 
 const at = (bby: number, month = 1, day = 1): number => absDayFromDate({ year: -bby, month, day });
 /** Only the world's time hook, so years pass quickly. */
@@ -80,11 +82,12 @@ describe('the data follows world-event-tags-draft.md', () => {
     }
   });
 
-  it('every condition of the map is there with its guard, and every condition has a test that can break it', () => {
+  it('every condition of the map is there with its guard, none has another, and every condition has a test that can break it', () => {
     for (const r of rows) {
       const guards = [...r.conditions.matchAll(/(not crucial|crucial|:)[,:]?\s*(very high|high|medium|low)/g)].map((m) => m[2]);
       const mine = byId.get(r.id)!.conditions;
-      for (const g of new Set(guards)) expect(mine.some((c) => c.guard === g), `${r.id} ${g}`).toBe(true);
+      for (const g of new Set(guards)) expect(mine.some((c) => c.guard === (g === 'very high' ? 'veryHigh' : g)), `${r.id} ${g}`).toBe(true);
+      for (const c of mine) if (c.breakIf.some((t) => t.kind !== 'outcome')) expect(guards, `${r.id}#${c.id}`).toContain(c.guard === 'veryHigh' ? 'very high' : c.guard);
       for (const c of mine) expect(c.breakIf.length, `${r.id}#${c.id}`).toBeGreaterThan(0);
     }
   });
@@ -228,17 +231,29 @@ describe('PP-1: the Sacking and the Treaty', () => {
     expect(canonOffBoard(selectCanonInCampaign(s, CANON_BY_ID.get('lore:zym')!), 3650)).toBe('dead');
   });
 
-  it('a thin occupation opens the hinge: two won fights on Coruscant break it', () => {
-    let s = go(breakTag(game(at(3653)), 'E.3653.temple_strike#cond.reach'), at(3653, 6, 21));
+  it('a thin occupation opens the hinge: a commander who knows where the armada is thin can break it, and nobody else', () => {
+    const weak = go(breakTag(game(at(3653)), 'E.3653.temple_strike#cond.reach'), at(3653, 6, 21));
+    let s: GameState = { ...weak, flags: { ...weak.flags, set: [...weak.flags.set, 'worldPost:republic-command'] } };
     const key = 'E.3653.sacking#cond.hold';
     expect(net(s).progress[key]!.known['know.contestable']!.met).toBe(true);
     const place = applyEvents(REG, s, [{ type: 'locationIntroduced', name: 'Coruscant', kind: 'planet', region: 'Core Worlds', description: 'x', moveHere: true }], { source: 'ai' }).state;
     const foe = applyEvents(REG, place, [{ type: 'npcIntroduced', name: 'Lord Vess', species: 'human', faction: 'sithEmpire', role: 'sithLord', ageApprox: 40, description: '' }], { source: 'ai' }).state;
     const foeId = Object.values(foe.npcs.byId).find((n) => n.name === 'Lord Vess')!.id;
     const won = (x: GameState, id: string): GameState => ({ ...x, combat: { ...x.combat, last: { id, stakes: 'lethal', outcome: 'won', reason: 'test', exchanges: 3, seconds: 20, playerFate: null, recorded: false, skillId: 'soresu', day: x.clock.now.day, locationId: x.locations.currentId, duel: { opponents: [{ id: foeId }] } } } });
-    s = advanceTime(REG, won(foe, 'fight:1'), { seconds: 3600, reason: 't', source: 'turnDraft' }).state;
+    const fights = (x0: GameState, n: number, tag: string): GameState => {
+      let x = x0;
+      for (let i = 0; i < n; i++) x = advanceTime(REG, won(x, `${tag}:${i}`), { seconds: 600, reason: 't', source: 'turnDraft' }).state;
+      return x;
+    };
+    // Street fights alone, with no word of the armada, do nothing.
+    expect(net(fights(foe, 6, 'blind')).tags[key]).toBeUndefined();
+    const led: GameState = { ...foe, world: { ...foe.world, network: { ...net(foe), progress: { ...net(foe).progress, [key]: { ...net(foe).progress[key]!, known: { ...net(foe).progress[key]!.known, 'know.fleet': { points: 3, met: true, counted: [] } } } } } } };
+    // Nor for someone with no force to lead.
+    const alone: GameState = { ...led, flags: { ...led.flags, set: led.flags.set.filter((f) => !f.startsWith('worldPost:')) } };
+    expect(net(fights(alone, 6, 'alone')).progress[key]!.points).toBe(0);
+    s = fights(led, 3, 'led');
     expect(net(s).tags[key]).toBeUndefined();
-    s = advanceTime(REG, won(s, 'fight:2'), { seconds: 3600, reason: 't', source: 'turnDraft' }).state;
+    s = fights(s, 1, 'last');
     expect(net(s).tags[key]).toBeDefined();
     expect(outcome(s, 'O.coruscant_occupied')).toBe('broken');
     expect(net(s).plotPoints['PP-1']).toBeDefined();
@@ -359,24 +374,41 @@ describe('recorded deaths', () => {
 });
 
 describe('a scene outcome, end to end', () => {
-  it('foreknowledge, then a warning believed in a real turn: the engine sets the flag and the strike comes closer to failing', () => {
-    const TAG = 'E.3653.temple_strike#cond.unaware';
-    let s = game(at(3654, 8));
-    // Foreknowledge by a recorded discovery: Darth Angral taken.
-    const angral = meet(s, 'lore:darth-angral');
-    s = go(engine(angral.s, { type: 'npcCanonDiverged', npcRef: angral.id, reason: 'captured' }), at(3654, 8, 2));
-    expect(net(s).progress[TAG]!.known['know.strike']!.met).toBe(true);
+  /** A Sith of Malgus's strike team, about to defect: the post by flag, as a built posting would set it. */
+  const defector = (): GameState => {
+    const day = at(3654, 8);
+    const s = createInitialState<GameState>(REG, {
+      campaignId: 'c1',
+      branchId: 'b1',
+      seed: 's',
+      start: { day, second: 8 * 3600 },
+      character: { name: 'Vael', birthDay: day - 25 * 368, path: 'sith', archetype: 'sithWarrior', mainFormId: 'djemSo', trainingStartAge: 6 },
+      rank: 'apprentice',
+    });
+    return { ...s, flags: { ...s.flags, set: ['worldPost:strike-team'] } };
+  };
+  const TAG = 'E.3653.temple_strike#cond.unaware';
+  const turn = (s: GameState, intent: object): GameState => go(resolveTurn(REG, s, { targets: [], references: [], unknownNames: [], ...intent } as never).state, s.clock.now.day + 1);
+
+  it('the orders seen, carried out and believed: the engine sets the flags and the strike comes closer to failing', () => {
+    let s = meet(defector(), 'lore:adraas').s;
+    s = applyEvents(REG, s, [{ type: 'locationIntroduced', name: 'Korriban', kind: 'planet', region: 'x', description: 'x', moveHere: true }], { source: 'ai' }).state;
+    for (let i = 0; i < 200 && !(s.flags.set.includes('sceneOutcome:strike-proof') && net(s).progress[TAG]?.known['know.strike']?.met); i++) s = turn(s, { actionType: 'investigate', skillId: 'investigation' });
+    expect(s.flags.set).toContain('sceneOutcome:strike-proof');
+    s = go(s, s.clock.now.day + 1);
+    expect(net(s).progress[TAG]!.known['know.proof']!.met).toBe(true);
     const zym = meet(s, 'lore:zym');
     s = zym.s;
-    const warn = { actionType: 'dialogue', targets: [zym.id], references: [], unknownNames: [], skillId: 'charisma' };
-    let turns = 0;
-    while (!s.flags.set.includes('sceneOutcome:coruscant-warned') && turns < 200) {
-      s = go(resolveTurn(REG, s, warn as never).state, s.clock.now.day + 1);
-      turns++;
-    }
+    for (let i = 0; i < 200 && !s.flags.set.includes('sceneOutcome:coruscant-warned') && s.clock.now.day < at(3653, 6, 1); i++) s = turn(s, { actionType: 'dialogue', targets: [zym.id], skillId: 'charisma' });
     expect(s.flags.set).toContain('sceneOutcome:coruscant-warned');
     s = go(s, s.clock.now.day + 1);
     expect(net(s).progress[TAG]!.points).toBeGreaterThanOrEqual(3); // the flag is a major fact
+  }, 20_000);
+  it('a Jedi on Coruscant cannot learn the target, whatever they sense or ask', () => {
+    let s = meet(game(at(3654, 8)), 'lore:adraas').s;
+    s = applyEvents(REG, s, [{ type: 'locationIntroduced', name: 'Korriban', kind: 'planet', region: 'x', description: 'x', moveHere: true }], { source: 'ai' }).state;
+    for (let i = 0; i < 20; i++) s = turn(s, { actionType: 'investigate', skillId: i % 2 ? 'forceSense' : 'investigation' });
+    expect(net(s).progress[TAG]).toBeUndefined();
   });
   it('without foreknowledge the same warning counts for nothing', () => {
     let s = game(at(3654, 8));
@@ -385,6 +417,27 @@ describe('a scene outcome, end to end', () => {
     for (let i = 0; i < 30; i++) s = go(resolveTurn(REG, s, { actionType: 'dialogue', targets: [zym.id], references: [], unknownNames: [], skillId: 'charisma' } as never).state, s.clock.now.day + 1);
     expect(s.flags.set).toEqual([]);
     expect(net(s).progress['E.3653.temple_strike#cond.unaware']).toBeUndefined();
+  });
+  it('the same proof in the hands of a nobody on the wrong side opens nothing, and the 31 gates name somebody', () => {
+    const conds = WORLD_NETWORK.events.flatMap((e) => e.conditions.map((c) => ({ key: `${e.id}#${c.id}`, c, e })));
+    const asks = conds.filter(({ c }) => c.breakIf.some((t) => ['action', 'fight', 'npc'].includes(t.kind)));
+    expect(conds.length).toBe(32); // the map's 31 and the Temple's people (A16)
+    expect(conds.length - asks.length).toBe(2); // the Treaty's hostage and the grid: only an earlier outcome
+    for (const { key, c } of asks) expect(c.who?.length, key).toBeGreaterThan(0);
+    // A shop clerk: no side in any of it, no post. Only the open ones are left.
+    const clerk = { side: 'civilian' as FactionId, archetype: 'civilian', rankStep: 0, standing: () => 0, tier: 'below' as const, posts: [], places: [], trusts: () => false, hasFlag: () => false };
+    expect(asks.filter(({ c }) => whoHolds(c.who, clerk)).map((x) => x.key)).toEqual([]);
+    expect(WORLD_NETWORK.scenes!.filter((x) => whoHolds(x.who, clerk)).map((x) => x.id)).toEqual(['visz-stopped']);
+    expect(WORLD_NETWORK.events.filter((e) => e.closed).map((e) => e.id)).toEqual(['E.3640.voss', 'E.3640.voice']);
+  });
+  it('a Master\'s moment against Malgus saves people, not the Temple', () => {
+    const started = go(game(at(3653)), at(3653, 6, 20));
+    const m = meet(started, 'lore:darth-malgus');
+    const place = applyEvents(REG, m.s, [{ type: 'locationIntroduced', name: 'Jedi Temple', kind: 'building', region: 'Coruscant', description: 'x', moveHere: true }], { source: 'ai' }).state;
+    const held: GameState = { ...place, combat: { ...place.combat, last: { id: 'f1', stakes: 'lethal', outcome: 'stalemate', reason: 'brokeOff', exchanges: 9, seconds: 70, playerFate: null, recorded: false, skillId: 'soresu', day: place.clock.now.day, locationId: place.locations.currentId, heldOff: [{ npcId: m.id, length: 'brief' }], duel: { opponents: [{ id: m.id }] } } } };
+    const s = go(held, at(3653, 6, 24));
+    expect(Object.keys(net(s).tags)).toEqual(['E.3653.temple_strike#cond.people']);
+    expect([status(s, 'E.3653.temple_strike'), outcome(s, 'O.temple_destroyed'), outcome(s, 'O.zallow_dead')]).toEqual(['adjusted', 'produced', 'produced']);
   });
   it('the narrator cannot set it', () => {
     expect(applyEvents(REG, game(at(3654, 8)), [{ type: 'flagSet', flag: 'sceneOutcome:coruscant-warned' }], { source: 'ai' }).applied).toEqual([]);

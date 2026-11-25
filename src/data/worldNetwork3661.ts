@@ -3,6 +3,9 @@
 // `source`). Design calls, not lore: which roles are crucial, the guards, every breaking test (`breakIf`,
 // `prerequisites`, scenes; listed in docs-v2/reports/m8-world-b.md), and every month and day marked 'invented' (the lore
 // gives none for the 3,661-3,660 and 3,654-3,653 chains but the order; "mid-3,641" is its own).
+import { FACTIONS, type FactionId } from './entities.config';
+import type { Who } from './who';
+import type { WorldPostId } from './worldPosts';
 import type { ConditionTag, DeedTest, Lead, RoleTag, StateTest, WorldDate, WorldEventDef, WorldExpr, WorldNetwork, WorldTest } from './worldNetwork';
 
 // ---- Shorthand ----
@@ -22,14 +25,18 @@ const wants = (...outcomes: string[]) => outcomes.map((outcome) => ({ outcome, r
 const gives = (...outcomes: string[]) => outcomes.map((outcome) => ({ outcome }));
 const lore = (...ids: string[]): string[] => ids.map((i) => `lore:${i}`);
 
-const SLEUTH = ['investigation', 'intelligence', 'stealth', 'forceSense'];
-const SPEECH = ['charisma', 'intelligence', 'mindTrick'];
+// No Force sense (no premonitions, D-489); no mind trick: the people worth persuading are Force-users, guarded by them, or
+// Hutts (rules check A5).
+const SLEUTH = ['investigation', 'intelligence', 'stealth'];
+const SPEECH = ['charisma', 'intelligence'];
 /** The player investigates at a place. */
 const look = (...places: string[]): DeedTest => ({ kind: 'action', actionTypes: ['investigate'], skills: SLEUTH, places });
 /** The player persuades (or works on) a person. */
 const talk = (...ids: string[]): DeedTest => ({ kind: 'action', actionTypes: ['dialogue'], skills: SPEECH, canonIds: lore(...ids) });
-/** The player uses the Force on a place. */
-const force = (...places: string[]): DeedTest => ({ kind: 'action', actionTypes: ['forceUse'], places });
+/** The player leads the fighting at a place, while it lasts. */
+const command = (...places: string[]): WorldTest => ({ kind: 'action', actionTypes: ['dialogue', 'investigate', 'other'], skills: ['tactics'], places, during: true });
+/** ...or a person's forces. */
+const commandWith = (...ids: string[]): WorldTest => ({ kind: 'action', actionTypes: ['dialogue', 'investigate'], skills: ['tactics', 'intelligence'], canonIds: lore(...ids), during: true });
 /** What can start an inquiry: these people met (or a fact or thread about them). */
 const about = (...ids: string[]): Lead => ({ canonIds: lore(...ids) });
 /** A fact or thread recorded about a place. */
@@ -37,13 +44,31 @@ const word = (...places: string[]): Lead => ({ places });
 /** A recorded discovery. */
 const given = (...facts: StateTest[]): Lead => ({ facts });
 const COUNCIL = about('darth-malgus', 'darth-angral', 'darth-marr', 'darth-vowrawn', 'darth-baras', 'darth-azamin', 'darth-decimus');
-const imperial = (strength: 'minor' | 'major' | 'decisive', ...places: string[]): WorldTest => ({ kind: 'fight', places, factions: ['sithEmpire', 'sith'], minStakes: 'serious', strength });
-const republic = (strength: 'minor' | 'major' | 'decisive', ...places: string[]): WorldTest => ({ kind: 'fight', places, factions: ['republic', 'jediOrder'], minStakes: 'serious', strength });
+/** A won fight with one side at a place, in the battle itself. */
+const won = (factions: readonly FactionId[], strength: 'minor' | 'major' | 'decisive', ...places: string[]): WorldTest => ({ kind: 'fight', places, factions, minStakes: 'serious', strength, during: true });
+const imperial = (strength: 'minor' | 'major' | 'decisive', ...places: string[]): WorldTest => won(['sithEmpire', 'sith'], strength, ...places);
+const republic = (strength: 'minor' | 'major' | 'decisive', ...places: string[]): WorldTest => won(['republic', 'jediOrder'], strength, ...places);
 const beat = (id: string, strength: 'minor' | 'major' | 'decisive' = 'major'): WorldTest => ({ kind: 'fight', canonIds: lore(id), minStakes: 'serious', strength });
 const taken = (id: string, strength: 'minor' | 'major' | 'decisive' = 'major'): WorldTest => ({ kind: 'npc', canonId: `lore:${id}`, state: 'captured', strength });
 const flag = (id: string): StateTest => ({ kind: 'flag', flag: `sceneOutcome:${id}` });
 const scene = (id: string, strength: 'minor' | 'major' | 'decisive' = 'major'): WorldTest => ({ ...flag(id), strength });
 const knows = (tag: string): WorldTest => ({ kind: 'known', tag });
+
+// ---- Who the player must be (D-491; rules check A1 and A7-A29). ----
+
+const REP: readonly FactionId[] = ['republic', 'jediOrder'];
+const IMP: readonly FactionId[] = ['sithEmpire', 'sith'];
+const ANYONE: Who = { sides: FACTIONS };
+const REPUBLIC: Who = { sides: REP };
+const KNIGHT: Who = { sides: ['jediOrder'], minRank: 'knight' };
+const LORD: Who = { sides: IMP, minRank: 'knight' };
+const post = (...posts: WorldPostId[]): Who => ({ posts });
+/** Inside the Dark Council's or the strike team's own people: the only ones who see its orders. */
+const INSIDER = post('council-staff', 'strike-team', 'angral-fleet', 'imperial-intelligence');
+const PEACE_PROOF = 'sceneOutcome:peace-proof';
+const STRIKE_PROOF = 'sceneOutcome:strike-proof';
+/** Believed (as PP-15): a Knight's standing, or physical proof in hand. */
+const believed = (...proofs: string[]): Who[] => [KNIGHT, { flags: proofs }];
 
 const cond = (id: string, text: string, brokenText: string, guard: ConditionTag['guard'], breakIf: readonly WorldTest[], more: Partial<ConditionTag> = {}): ConditionTag => ({ id: `cond.${id}`, text, brokenText, crucial: true, guard, breakIf, ...more });
 const minor = (...a: Parameters<typeof cond>): ConditionTag => ({ ...cond(...a), crucial: false });
@@ -53,6 +78,7 @@ const ev = (d: Draft): WorldEventDef => ({ roles: [], conditions: [], consumes: 
 
 const FORESEEN = 'E.3653.temple_strike#cond.unaware';
 const HYDIAN = ['Hydian Way', 'Devaron'];
+const HUTTS = ['suudaa-nemro', 'tassaa-bareesh', 'karagga-the-unyielding'];
 const KAAS = ['Dromund Kaas', 'Kaas City'];
 
 // ---- 1. War years, 3,661-3,654 ----
@@ -64,9 +90,10 @@ const WAR: WorldEventDef[] = [
     title: 'The battle near Devaron',
     summary: 'A Jedi strike on the blockade near Devaron fails.',
     date: on(3661, 3, 10),
+    endDate: on(3661, 3, 12),
     places: ['Devaron', 'Hydian Way'],
     roles: [R('the Jedi strike leader', 'gnost-dural')],
-    conditions: [cond('blockade_holds', 'The blockade holds against the Jedi strike', 'The Jedi strike near Devaron breaks through the pickets', 'medium', [{ kind: 'action', actionTypes: ['dialogue', 'investigate'], skills: ['tactics', 'intelligence'], canonIds: lore('gnost-dural') }, { kind: 'fight', places: HYDIAN, factions: ['mandalorians'], minStakes: 'serious', strength: 'major' }], { window: { fromYear: -3661 } })],
+    conditions: [cond('blockade_holds', 'The blockade holds against the Jedi strike', 'The Jedi strike near Devaron breaks through the pickets', 'medium', [commandWith('gnost-dural'), won(['mandalorians'], 'minor', 'Devaron')], { window: { fromYear: -3661 }, who: [KNIGHT, post('republic-command')] })],
     consumes: needs('O.blockade_active'),
     produces: gives('O.devaron_failed'),
     source: 'P1, 3661 row 2',
@@ -78,7 +105,7 @@ const WAR: WorldEventDef[] = [
     // Standing at the 3,661 start, as the M7 start has them (D-400): the rows of a year are not dated against each other.
     date: on(3661),
     places: ['Coruscant'],
-    conditions: [cond('supply_cut', 'The blockade cuts the supply', 'Supplies reach Coruscant through the blockade', 'low', [{ kind: 'fight', places: HYDIAN, factions: ['mandalorians'], minStakes: 'serious' }], { window: { fromYear: -3661 } })],
+    conditions: [cond('supply_cut', 'The blockade cuts the supply', 'Supplies reach Coruscant through the blockade', 'low', [{ kind: 'fight', places: HYDIAN, factions: ['mandalorians'], minStakes: 'serious' }], { window: { fromYear: -3661 }, who: [{ sides: ['republic', 'jediOrder', 'underworld'] }] })],
     consumes: needs('O.blockade_active'),
     produces: gives('O.coruscant_riots'),
     source: 'P1, 3661 row 3',
@@ -91,7 +118,7 @@ const WAR: WorldEventDef[] = [
     date: on(3661, 6),
     places: ['Belsavis'],
     roles: [R('the SIS team'), N('Prince Shange')],
-    conditions: [minor('secret', 'The capture is secret', 'Word of Prince Shange\'s capture is out', 'medium', [look('Belsavis')], { leads: [word('Belsavis'), about('marcus-trant', 'ngani-zho')] })],
+    conditions: [minor('secret', 'The capture is secret', 'Word of Prince Shange\'s capture is out', 'medium', [look('Belsavis')], { who: [post('sis', 'belsavis-staff')], leads: [word('Belsavis'), about('marcus-trant', 'ngani-zho')] })],
     produces: gives('O.shange_imprisoned'),
     source: 'P1, 3661 row 5',
   }),
@@ -107,8 +134,8 @@ const WAR: WorldEventDef[] = [
     // Ruling 4: Visz breaks it unless Visz fails or is killed first; only then another captain takes the place and the fame.
     roles: [R('Hylo Visz', 'hylo-visz', { faction: 'underworld', roles: ['smuggler'], breakIf: [flag('visz-stopped')] }), R('the Republic Navy')],
     conditions: [
-      cond('hutt_backing', 'The Hutts back the run', 'The Hutts withdraw their backing for the blockade run', 'medium', [{ kind: 'action', actionTypes: ['dialogue', 'investigate'], skills: [...SPEECH, 'investigation'], places: ['Nal Hutta', 'Nar Shaddaa'] }], { window: { fromYear: -3661 }, prerequisites: [{ id: 'know.run', text: 'That the Hutts are paying for a run at the blockade', tests: [look('Nal Hutta', 'Nar Shaddaa', ...HYDIAN), talk('hylo-visz')], leads: [about('hylo-visz', 'zale-barrows', 'gault-rennow'), word('Nal Hutta', 'Nar Shaddaa', 'Hydian Way')] }] }),
-      minor('pickets', 'The Mandalorian pickets can be beaten', 'The Mandalorian pickets are ready for the run', 'medium', [talk('mandalore-the-lesser')], { window: { fromYear: -3661 } }),
+      cond('hutt_backing', 'The Hutts back the run', 'The Hutts withdraw their backing for the blockade run', 'medium', [talk(...HUTTS)], { window: { fromYear: -3661 }, who: [post('hutt-service', 'hutt-envoy')], prerequisites: [{ id: 'know.run', text: 'That the Hutts are paying for a run at the blockade', tests: [look('Nal Hutta', 'Nar Shaddaa', ...HYDIAN), talk('hylo-visz')], leads: [about('hylo-visz', 'zale-barrows', 'gault-rennow'), word('Nal Hutta', 'Nar Shaddaa', 'Hydian Way')] }] }),
+      minor('pickets', 'The Mandalorian pickets can be beaten', 'The Mandalorian pickets are ready for the run', 'medium', [talk('mandalore-the-lesser')], { window: { fromYear: -3661 }, who: [post('mandalorian-command', 'mandalorian-liaison')] }),
     ],
     consumes: needs('O.blockade_active'),
     produces: gives('O.blockade_broken', 'O.visz_famous'),
@@ -121,7 +148,7 @@ const WAR: WorldEventDef[] = [
     summary: 'The riots on Coruscant end as the blockade falls and supplies return.',
     date: on(3660, 2, 1),
     places: ['Coruscant'],
-    conditions: [cond('supply_restored', 'Supply is restored', 'The relief convoys do not get through', 'low', [{ kind: 'fight', places: HYDIAN, factions: ['republic', 'underworld'], minStakes: 'serious' }], { window: { fromYear: -3660 } })],
+    conditions: [cond('supply_restored', 'Supply is restored', 'The relief convoys do not get through', 'medium', [{ kind: 'fight', places: HYDIAN, factions: ['republic', 'underworld'], minStakes: 'serious' }], { window: { fromYear: -3660 }, who: [post('raiders', 'mandalorian-command', 'imperial-command')] })],
     consumes: needs('O.blockade_broken', 'O.coruscant_riots'),
     produces: gives('O.riots_ended'),
     source: 'P1, 3660 row 2',
@@ -134,9 +161,10 @@ const WAR: WorldEventDef[] = [
     title: 'The Battle of Korriban',
     summary: 'A Jedi-led assault on Korriban fails; it stays Imperial.',
     date: on(3660, 8),
+    endDate: on(3660, 8, 21),
     places: ['Korriban'],
     roles: [R('the Jedi leaders')],
-    conditions: [cond('defences', 'Korriban\'s defences hold', 'Korriban\'s defences fall', 'high', [imperial('major', 'Korriban'), force('Korriban')], { window: { fromYear: -3660 }, prerequisites: [{ id: 'know.defences', text: 'How Korriban is defended', tests: [look('Korriban'), taken('spindrall')], leads: [word('Korriban'), COUNCIL] }] })],
+    conditions: [cond('defences', 'Korriban\'s defences hold', 'Korriban\'s defences fall', 'veryHigh', [command('Korriban')], { window: { fromYear: -3660 }, who: [KNIGHT, post('republic-command'), { sides: IMP, flags: ['sceneOutcome:korriban-plans'] }], prerequisites: [{ id: 'know.defences', text: 'How Korriban is defended', tests: [scene('korriban-plans'), taken('spindrall')] }, { id: 'know.assault', text: 'Where the assault is to land', tests: [look('Coruscant', 'Jedi Temple'), look('Korriban')], leads: [word('Korriban')] }] })],
     consumes: needs('O.rim_campaign'),
     produces: [...gives('O.korriban_imperial'), { outcome: 'O.korriban_fallen', when: { broken: ['cond.defences'] }, control: { place: 'Korriban', side: 'republic', note: 'taken by the Republic and the Jedi in this campaign' } }],
     source: 'P1, 3660 row 7',
@@ -148,7 +176,7 @@ const WAR: WorldEventDef[] = [
     date: circa(on(3660, 10)),
     places: ['Geonosis'],
     roles: [R('Artus Lok', 'mandalore-the-vindicated', { faction: 'mandalorians', roles: ['bountyHunter', 'officer'] }), C('Mandalore the Lesser', 'mandalore-the-lesser')],
-    conditions: [minor('discredited', 'The Lesser is discredited after the blockade', 'The Lesser keeps the clans\' respect', 'low', [{ kind: 'outcome', outcome: 'O.blockade_broken', state: 'broken' }, talk('mandalore-the-lesser')], { window: { fromYear: -3660 } })],
+    conditions: [minor('discredited', 'The Lesser is discredited after the blockade', 'The Lesser keeps the clans\' respect', 'low', [{ kind: 'outcome', outcome: 'O.blockade_broken', state: 'broken' }, talk('mandalore-the-lesser')], { window: { fromYear: -3660 }, who: [{ sides: ['mandalorians'] }, post('mandalorian-liaison')] })],
     consumes: wants('O.blockade_broken'),
     produces: gives('O.new_mandalore'),
     source: 'P1, 3660 row 8',
@@ -162,7 +190,7 @@ const WAR: WorldEventDef[] = [
     date: on(3659),
     places: ['Nal Hutta', 'Nar Shaddaa'],
     roles: [C('Hylo Visz', 'hylo-visz', { breakIf: [flag('visz-stopped')] })],
-    conditions: [cond('betrayal', 'Visz is alive and betrays the Hutts', 'Visz stays loyal to the Hutts', 'low', [talk('hylo-visz')], { window: { fromYear: -3660 }, prerequisites: [{ id: 'know.betrayal', text: 'That Visz means to cheat the Hutts', tests: [look('Nal Hutta', 'Nar Shaddaa')], leads: [about('hylo-visz', 'gault-rennow')] }] })],
+    conditions: [cond('betrayal', 'Visz is alive and betrays the Hutts', 'Visz stays loyal to the Hutts', 'low', [talk('hylo-visz')], { window: { fromYear: -3660 }, who: [post('visz-crew', 'hutt-service')], prerequisites: [{ id: 'know.betrayal', text: 'That Visz means to cheat the Hutts', tests: [look('Nal Hutta', 'Nar Shaddaa')], leads: [about('hylo-visz', 'gault-rennow')] }] })],
     consumes: needs('O.visz_famous'),
     produces: gives('O.visz_gone'),
     source: 'P1, 3659 row 1',
@@ -173,7 +201,7 @@ const WAR: WorldEventDef[] = [
     summary: 'Lema Xandret defects from the Sith Empire.',
     date: on(3658),
     roles: [N('Lema Xandret')],
-    conditions: [cond('escape', 'The escape succeeds', 'Lema Xandret does not get away', 'medium', [look(...KAAS)], { window: { fromYear: -3659 }, prerequisites: [{ id: 'know.xandret', text: 'That Xandret means to run', tests: [look(...KAAS), talk('darth-baras')], leads: [about('darth-baras', 'shullis-khamarr'), word(...KAAS)] }] })],
+    conditions: [cond('escape', 'The escape succeeds', 'Lema Xandret does not get away', 'medium', [look(...KAAS)], { window: { fromYear: -3659 }, who: [post('imperial-intelligence', 'sith-household', 'council-staff')], prerequisites: [{ id: 'know.xandret', text: 'That Xandret means to run', tests: [look(...KAAS)], leads: [about('shullis-khamarr'), word(...KAAS)] }] })],
     produces: gives('O.xandret_defected'),
     source: 'P1, 3658 row 1',
   }),
@@ -186,9 +214,13 @@ const WAR: WorldEventDef[] = [
     places: ['Coruscant'],
     roles: [R('the Dark Council')],
     conditions: [
-      cond('deception', 'The peace offer is a deception', 'The peace offer is exposed as a deception', 'high', [talk('berooken', 'paran-am-ris', 'zym', 'rans'), taken('darth-angral', 'decisive')], {
+      cond('deception', 'The peace offer is a deception', 'The peace offer is exposed as a deception', 'veryHigh', [talk('berooken', 'paran-am-ris', 'zym', 'rans')], {
         window: { fromYear: -3655 },
-        prerequisites: [{ id: 'know.deception', text: 'What the Dark Council means by the offer', tests: [look(...KAAS, 'Korriban'), taken('darth-malgus'), taken('darth-angral'), taken('darth-vowrawn')], leads: [COUNCIL] }],
+        who: believed(PEACE_PROOF),
+        prerequisites: [
+          { id: 'know.deception', text: 'What the Dark Council means by the offer', tests: [look(...KAAS, 'Korriban')], leads: [COUNCIL, word(...KAAS)], who: [INSIDER, post('sis')] },
+          { id: 'know.proof', text: 'Proof of it carried out', tests: [scene('peace-proof')] },
+        ],
       }),
     ],
     produces: gives('O.peace_talks'),
@@ -214,7 +246,8 @@ const SACKING: WorldEventDef[] = [
     conditions: [
       cond('attention', 'The conference draws Republic and Jedi attention away from Coruscant', 'Coruscant is watched despite the conference', 'high', [talk('zym', 'satele-shan', 'darnala', 'berooken', 'rans'), scene('coruscant-warned')], {
         window: { fromYear: -3654 },
-        prerequisites: [{ id: 'know.cover', text: 'That the conference is a cover', tests: [look('Alderaan'), knows('E.3654.peace_offer#cond.deception'), knows(FORESEEN)], leads: [about('darnala', 'paran-am-ris', 'satele-shan'), word('Alderaan')] }],
+        who: [{ posts: ['conference-delegation'], minRank: 'knight' }, { posts: ['conference-delegation', 'sis'], flags: [PEACE_PROOF, STRIKE_PROOF] }],
+        prerequisites: [{ id: 'know.cover', text: 'That the conference is a cover', who: [post('conference-delegation', 'sis')], tests: [look('Alderaan'), knows('E.3654.peace_offer#cond.deception'), knows(FORESEEN)], leads: [about('darnala', 'paran-am-ris', 'satele-shan'), word('Alderaan')] }],
       }),
     ],
     consumes: needs('O.peace_talks'),
@@ -231,15 +264,28 @@ const SACKING: WorldEventDef[] = [
     places: ['Coruscant', 'Jedi Temple'],
     roles: [C('Darth Malgus', 'darth-malgus'), R('Lord Adraas', 'adraas'), R('the strike team')],
     conditions: [
-      cond('unaware', 'The Republic does not know', 'The Republic knows a strike on Coruscant is coming', 'high', [talk('zym', 'ven-zallow', 'berooken', 'rans', 'satele-shan'), scene('coruscant-warned')], {
+      cond('unaware', 'The Republic does not know', 'The Republic knows a strike on Coruscant is coming', 'veryHigh', [talk('zym', 'ven-zallow', 'berooken', 'rans', 'satele-shan'), scene('coruscant-warned')], {
         window: { fromYear: -3654 },
         onBreak: 'cancelled',
-        prerequisites: [{ id: 'know.strike', text: 'That Coruscant itself is the target', tests: [look(...KAAS, 'Korriban', 'Alderaan'), taken('darth-malgus'), taken('darth-angral'), taken('adraas')], leads: [COUNCIL, about('adraas', 'eleena-daru')] }],
+        who: believed(PEACE_PROOF, STRIKE_PROOF),
+        // As PP-21: the target is known only to Angral's fleet and Malgus's team.
+        prerequisites: [
+          { id: 'know.strike', text: 'That Coruscant itself is the target', tests: [look(...KAAS, 'Korriban'), knows('E.3654.peace_offer#cond.deception')], leads: [about('darth-angral', 'darth-malgus', 'adraas', 'eleena-daru')], who: [post('strike-team', 'angral-fleet')] },
+          { id: 'know.proof', text: 'Proof of it in hand', tests: [scene('strike-proof'), scene('peace-proof')] },
+        ],
       }),
-      // Saving the Temple alone: it does not stop the Sacking (PP-1).
-      cond('reach', 'The strike team reaches the Temple', 'The strike team is stopped at the Jedi Temple', 'medium', [imperial('major', 'Jedi Temple'), beat('darth-malgus'), beat('adraas')], { window: { fromYear: -3653 } }),
-      minor('grid', 'The defence grid can be disabled', 'Coruscant\'s defence grid stays up', 'medium', [{ kind: 'action', actionTypes: ['investigate'], skills: [...SLEUTH, 'tactics'], places: ['Coruscant'] }, imperial('major', 'Coruscant')], {
+      // Saving the Temple alone: it does not stop the Sacking (PP-1). The shuttle is refused or brought down before it lands;
+      // in the Temple only Malgus's own loss stops it (a crucial role, and a top duelist).
+      cond('reach', 'The strike team reaches the Temple', 'The strike team is stopped at the Jedi Temple', 'high', [{ kind: 'action', actionTypes: ['investigate', 'dialogue', 'other'], skills: [...SLEUTH, 'tactics'], places: ['Coruscant', 'Jedi Temple'] }], {
         window: { fromYear: -3653 },
+        who: [post('republic-security', 'temple-security')],
+        prerequisites: [{ id: 'know.shuttle', text: 'That a shuttle is coming that must not land', tests: [knows(FORESEEN), look('Coruscant', 'Jedi Temple')], leads: [about('adraas', 'eleena-daru'), word('Jedi Temple')] }],
+      }),
+      // A won fight there, or a Master's moment against Malgus, saves people, not the Temple.
+      minor('people', 'Those in the Temple are trapped', 'Part of those in the Temple get out', 'medium', [imperial('major', 'Jedi Temple'), { kind: 'fight', canonIds: lore('darth-malgus'), places: ['Coruscant', 'Jedi Temple'], minStakes: 'serious', hold: 'brief', strength: 'major', during: true }], { window: { fromYear: -3653 }, who: [REPUBLIC] }),
+      minor('grid', 'The defence grid can be disabled', 'Coruscant\'s defence grid stays up', 'high', [{ kind: 'action', actionTypes: ['investigate'], skills: [...SLEUTH, 'tactics'], places: ['Coruscant'] }, imperial('major', 'Coruscant')], {
+        window: { fromYear: -3653 },
+        who: [post('republic-security', 'sis'), KNIGHT],
         prerequisites: [{ id: 'know.grid', text: 'That the grid is a target', tests: [knows(FORESEEN), look('Alderaan')], leads: [about('adraas', 'eleena-daru'), word('Alderaan')] }],
       }),
     ],
@@ -265,9 +311,14 @@ const SACKING: WorldEventDef[] = [
     roles: [R('Darth Angral', 'darth-angral'), R('the armada')],
     conditions: [
       // The PP-1 hinge. Contestable only where the Empire's ground control is weak.
-      cond('hold', 'The Empire takes and holds Coruscant', 'The Empire\'s hold on Coruscant is broken', 'high', [imperial('major', 'Coruscant'), beat('darth-angral', 'decisive'), { kind: 'control', place: 'Coruscant', side: 'republic', strength: 'decisive' }], {
-        window: 'underway',
-        prerequisites: [{ id: 'know.contestable', text: 'That the occupation is thin on the ground', tests: [{ kind: 'outcome', outcome: 'O.weak_ground_control', state: 'produced' }] }],
+      cond('hold', 'The Empire takes and holds Coruscant', 'The Empire\'s hold on Coruscant is broken', 'veryHigh', [imperial('major', 'Coruscant'), command('Coruscant'), { ...beat('darth-angral', 'decisive'), during: true }, { kind: 'control', place: 'Coruscant', side: 'republic', strength: 'decisive', during: true }], {
+        window: { fromYear: -3653 },
+        // A force to lead: a commander, or a Master whom the Temple's survivors follow.
+        who: [post('republic-command'), { sides: ['jediOrder'], minRank: 'master' }],
+        prerequisites: [
+          { id: 'know.contestable', text: 'That the occupation is thin on the ground', tests: [{ kind: 'outcome', outcome: 'O.weak_ground_control', state: 'produced' }] },
+          { id: 'know.fleet', text: 'Where the armada is thin', tests: [{ kind: 'action', actionTypes: ['investigate', 'dialogue'], skills: [...SLEUTH, 'tactics'], places: ['Coruscant'] }], leads: [about('darth-angral'), word('Coruscant')] },
+        ],
       }),
       cond('grid_down', 'The defence grid is down', 'The defence grid meets the armada', 'medium', [{ kind: 'outcome', outcome: 'O.grid_down', state: 'broken', strength: 'major' }], { window: { fromYear: -3653 } }),
     ],
@@ -299,7 +350,7 @@ const SACKING: WorldEventDef[] = [
     date: on(3653, 7, 15),
     places: ['Coruscant'],
     roles: [C('Zym', 'zym'), R('Braden', 'braden', { faction: 'independent', roles: ['bountyHunter'] })],
-    conditions: [cond('unguarded', 'Zym is unguarded after the Treaty', 'Zym is guarded', 'medium', [talk('zym'), beat('braden')], { window: { fromYear: -3653 }, prerequisites: [{ id: 'know.bounty', text: 'That someone wants Zym dead', tests: [look('Coruscant'), taken('braden')], leads: [about('braden', 'zym')] }] })],
+    conditions: [cond('unguarded', 'Zym is unguarded after the Treaty', 'Zym is guarded', 'medium', [talk('zym'), beat('braden')], { window: { fromYear: -3653 }, who: [{ sides: ['jediOrder'] }, post('temple-security', 'republic-security', 'senate')], prerequisites: [{ id: 'know.bounty', text: 'That someone wants Zym dead', tests: [look('Coruscant'), taken('braden')], leads: [about('braden', 'zym')] }] })],
     consumes: needs('O.treaty_signed'),
     produces: gives('O.grand_master_vacant'),
     source: 'P1, 3653 row 7',
@@ -312,9 +363,9 @@ const SACKING: WorldEventDef[] = [
     places: ['Dantooine', 'Coruscant'],
     roles: [R('Dar\'Nala', 'darnala'), R('Ven Zallow', 'ven-zallow'), R('Eleena Daru', 'eleena-daru'), R('Lord Adraas', 'adraas')],
     conditions: [
-      minor('darnala', 'Dar\'Nala dies on Dantooine', 'Dar\'Nala lives', 'medium', [talk('darnala'), imperial('major', 'Dantooine')], { window: { fromYear: -3653 } }),
-      minor('eleena', 'Eleena Daru dies', 'Eleena Daru lives', 'medium', [talk('eleena-daru'), beat('darth-malgus')], { window: { fromYear: -3653 } }),
-      minor('adraas', 'Adraas dies', 'Adraas lives', 'medium', [talk('adraas')], { window: { fromYear: -3653 } }),
+      minor('darnala', 'Dar\'Nala dies on Dantooine', 'Dar\'Nala lives', 'medium', [talk('darnala'), { ...imperial('major', 'Dantooine'), during: false }], { window: { fromYear: -3653 }, who: [REPUBLIC] }),
+      minor('eleena', 'Eleena Daru dies', 'Eleena Daru lives', 'high', [talk('eleena-daru')], { window: { fromYear: -3653 }, who: [{ trustOf: lore('eleena-daru') }, post('strike-team')], prerequisites: [{ id: 'know.eleena', text: 'That Eleena would have to leave Malgus', tests: [talk('eleena-daru')] }] }),
+      minor('adraas', 'Adraas dies', 'Adraas lives', 'medium', [talk('adraas')], { window: { fromYear: -3653 }, who: [post('adraas-household')] }),
     ],
     consumes: needs('O.temple_destroyed'),
     produces: [
@@ -335,7 +386,7 @@ const SACKING: WorldEventDef[] = [
     date: on(3653, 10, 10),
     places: ['Ord Mantell'],
     roles: [R('the admiral')],
-    conditions: [cond('unexposed', 'The sale goes unexposed', 'The sale of Ord Mantell\'s fleet is exposed', 'medium', [look('Ord Mantell')], { window: { fromYear: -3653 }, leads: [word('Ord Mantell'), about('corso-riggs')] })],
+    conditions: [cond('unexposed', 'The sale goes unexposed', 'The sale of Ord Mantell\'s fleet is exposed', 'medium', [look('Ord Mantell')], { window: { fromYear: -3653 }, who: [post('republic-command', 'republic-investigator', 'sis')], prerequisites: [{ id: 'know.sale', text: 'Evidence of the sale', tests: [look('Ord Mantell')], leads: [word('Ord Mantell'), about('corso-riggs')] }] })],
     consumes: needs('O.treaty_signed'),
     produces: gives('O.ord_mantell_abandoned'),
     source: 'P1, 3653 row 15',
@@ -348,7 +399,7 @@ const SACKING: WorldEventDef[] = [
     summary: 'The Senate votes to put off rebuilding the Coruscant Jedi Temple indefinitely; Interim Chancellor Am-Ris tells Grand Master Zym.',
     date: on(3653, 7, 10),
     places: ['Coruscant'],
-    conditions: [cond('hostile', 'The Senate is hostile', 'The Senate agrees to rebuild the Coruscant Temple', 'medium', [talk('paran-am-ris', 'dorian-janarus', 'leontyne-saresh'), { kind: 'outcome', outcome: 'O.senate_distrusts_jedi', state: 'broken', strength: 'major' }], { window: { fromYear: -3653 } })],
+    conditions: [cond('hostile', 'The Senate is hostile', 'The Senate agrees to rebuild the Coruscant Temple', 'high', [talk('paran-am-ris', 'dorian-janarus', 'leontyne-saresh'), { kind: 'outcome', outcome: 'O.senate_distrusts_jedi', state: 'broken', strength: 'decisive' }], { window: { fromYear: -3653 }, who: [post('senate'), { sides: ['jediOrder'], minRank: 'master' }], prerequisites: [{ id: 'know.votes', text: 'Which votes can be moved', tests: [look('Coruscant'), { kind: 'outcome', outcome: 'O.senate_distrusts_jedi', state: 'broken' }], leads: [about('paran-am-ris', 'dorian-janarus', 'leontyne-saresh'), word('Coruscant')] }] })],
     consumes: needs('O.temple_destroyed', 'O.senate_distrusts_jedi'),
     // If the Senate agrees to rebuild, the Order stays on Coruscant and lives in the Temple during repairs (D-477).
     produces: [...gives('O.rebuilding_postponed'), { outcome: 'O.temple_rebuilding', when: { broken: ['cond.hostile'] } }],
@@ -371,7 +422,7 @@ const COLD_WAR: WorldEventDef[] = [
     date: { year: -3652, placed: 'invented' },
     places: ['Alderaan'],
     roles: [R('Gaul Panteer', 'silara-panteer-and-gaul-panteer')],
-    conditions: [cond('anger', 'Anger at the Treaty', 'Alderaan is kept in the Republic', 'low', [talk('silara-panteer-and-gaul-panteer')], { window: { fromYear: -3653 }, prerequisites: [{ id: 'know.walkout', text: 'That Panteer means to walk out', tests: [look('Alderaan', 'Coruscant')], leads: [about('silara-panteer-and-gaul-panteer'), word('Alderaan')] }] })],
+    conditions: [cond('anger', 'Anger at the Treaty', 'Alderaan is kept in the Republic', 'medium', [talk('silara-panteer-and-gaul-panteer')], { window: { fromYear: -3653 }, who: [post('alderaan-house', 'senate'), KNIGHT], prerequisites: [{ id: 'know.walkout', text: 'That Panteer means to walk out', tests: [look('Alderaan', 'Coruscant')], leads: [about('silara-panteer-and-gaul-panteer'), word('Alderaan')] }] })],
     consumes: needs('O.treaty_signed'),
     produces: gives('O.alderaan_civil_war'),
     source: 'P2, Cold War row 2',
@@ -409,7 +460,7 @@ const COLD_WAR: WorldEventDef[] = [
   ev({ id: 'E.3645.odacer_sickness', title: 'The Sickness at Odacer-Faustin', summary: 'The Sickness breaks out at the Odacer-Faustin academy; a Sith warship crashes on Geonosis.', date: on(3645), places: ['Odacer-Faustin', 'Geonosis'], roles: [N('Darth Scabrous')], consumes: needs('O.odacer_academy'), source: 'P2, Cold War row 17' }),
   ev({ id: 'E.3645.blackstar', title: 'Blackstar Squad on Hutta', summary: 'Republic Special Forces\' Blackstar Squad is sent on a covert mission to Hutta.', date: on(3645), places: ['Nal Hutta'], consumes: needs('O.hutt_neutral'), source: 'P2, Cold War row 18' }),
   ev({ id: 'E.3644.krikthasi', title: 'The Krikthasi Massacre', summary: 'The Krikthasi Massacre on Balmorra.', date: on(3644), places: ['Balmorra'], consumes: needs('O.balmorra_imperial'), source: 'P2, Cold War row 19' }),
-  ev({ id: 'E.3643.quesh', title: 'Hutt families break the treaty on Quesh', summary: 'Three Hutt families break the Hutt-Imperial treaty by helping the Republic on Quesh.', date: circa(on(3643, 1, 20)), places: ['Quesh'], roles: [R('the Hutt families')], conditions: [cond('deal', 'The Hutt families\' deal with the Republic goes ahead', 'The Hutt families\' deal on Quesh falls through', 'medium', [talk('suudaa-nemro'), look('Quesh'), republic('major', 'Quesh')], { window: { fromYear: -3645 }, prerequisites: [{ id: 'know.deal', text: 'That Hutt families are dealing with the Republic', tests: [look('Nal Hutta', 'Nar Shaddaa', 'Quesh'), talk('suudaa-nemro')], leads: [about('suudaa-nemro'), word('Nal Hutta', 'Quesh')] }] })], consumes: needs('O.hutt_neutral'), produces: gives('O.hutt_treaty_cracked'), plotPoint: 'PP-2', source: 'P2, Cold War row 21' }),
+  ev({ id: 'E.3643.quesh', title: 'Hutt families break the treaty on Quesh', summary: 'Three Hutt families break the Hutt-Imperial treaty by helping the Republic on Quesh.', date: circa(on(3643, 1, 20)), endDate: circa(on(3643, 2, 10)), places: ['Quesh'], roles: [R('the Hutt families')], conditions: [cond('deal', 'The Hutt families\' deal with the Republic goes ahead', 'The Hutt families\' deal on Quesh falls through', 'medium', [talk('suudaa-nemro'), look('Quesh'), republic('minor', 'Quesh')], { window: { fromYear: -3645 }, who: [post('imperial-command', 'imperial-intelligence', 'hutt-envoy', 'hutt-service')], prerequisites: [{ id: 'know.deal', text: 'That Hutt families are dealing with the Republic', tests: [look('Nal Hutta', 'Nar Shaddaa', 'Quesh'), talk('suudaa-nemro')], leads: [about('suudaa-nemro'), word('Nal Hutta', 'Quesh')] }] })], consumes: needs('O.hutt_neutral'), produces: gives('O.hutt_treaty_cracked'), plotPoint: 'PP-2', source: 'P2, Cold War row 21' }),
   ev({ id: 'E.3643.sebaddon', title: 'The Sebaddon affair', summary: 'Jet Nebula finds the Cinzia: the Sebaddon affair and the Hex droid crisis.', date: on(3643, 3), places: ['Sebaddon', 'Nal Hutta'], roles: [R('Jet Nebula')], consumes: needs('O.xandret_defected'), produces: gives('O.sebaddon_incident'), plotPoint: 'PP-2', source: 'P2, Cold War row 22' }),
   ev({ id: 'E.3643.flesh_raiders', title: 'The Flesh Raiders attack on Tython', summary: 'Flesh Raiders under the Dark Jedi Bengel Morr attack the Jedi on Tython and are defeated by the Hero of Tython.', date: on(3643, 4), places: ['Tython'], roles: [H('the Hero of Tython', 'hero-of-tython'), R('Bengel Morr', 'bengel-morr')], consumes: needs('O.order_on_tython'), source: 'P2, Cold War row 23' }),
   ev({
@@ -419,7 +470,7 @@ const COLD_WAR: WorldEventDef[] = [
     date: on(3643, 6),
     places: ['Uphrades', 'Coruscant', 'Tython'],
     roles: [C('Darth Angral', 'darth-angral'), H('the Hero of Tython', 'hero-of-tython'), R('Orgus Din', 'orgus-din')],
-    conditions: [cond('secret', 'Angral\'s superweapon is kept secret', 'Angral\'s superweapon is exposed', 'medium', [look('Uphrades', 'Coruscant'), talk('tarnis', 'nefarid'), taken('tarnis'), taken('nefarid')], { window: { fromYear: -3645 }, prerequisites: [{ id: 'know.desolator', text: 'That Angral is building a weapon', tests: [look('Coruscant', 'Tython', 'Uphrades', ...KAAS), taken('tarnis'), taken('nefarid')], leads: [about('darth-angral', 'tarnis', 'nefarid', 'orgus-din'), word('Uphrades')] }] })],
+    conditions: [cond('secret', 'Angral\'s superweapon is kept secret', 'Angral\'s superweapon is exposed', 'high', [look('Uphrades', 'Coruscant'), talk('tarnis', 'nefarid'), taken('tarnis'), taken('nefarid')], { window: { fromYear: -3645 }, who: [KNIGHT, post('sis')], prerequisites: [{ id: 'know.desolator', text: 'That Angral is building a weapon', tests: [look('Coruscant', 'Tython', 'Uphrades'), taken('tarnis'), taken('nefarid')], who: [{ sides: ['jediOrder'] }, post('sis')], leads: [about('darth-angral', 'tarnis', 'nefarid', 'orgus-din'), word('Uphrades')] }] })],
     consumes: needs('O.treaty_signed'),
     produces: gives('O.uphrades_destroyed', 'O.angral_dead'),
     plotPoint: 'PP-2',
@@ -430,16 +481,17 @@ const COLD_WAR: WorldEventDef[] = [
   ev({ id: 'E.3643.exchange_out', title: 'The Exchange is driven from the Corellian sector', summary: 'The Shadow Syndicate beats the Exchange and drives it out of the Corellian sector.', date: circa(on(3643, 8)), places: ['Nar Shaddaa'], produces: gives('O.exchange_weakened'), source: 'P1, 3653 row 14; SW_NarShaddaa_HuttSpace_GGW_Part1 decision 3; D-476' }),
   ev({ id: 'E.3643.esseles', title: 'The attack on the Esseles', summary: 'Rycus Kilran\'s Emperor\'s Glory attacks the Republic cruiser Esseles.', date: on(3643, 9), roles: [R('Rycus Kilran', 'rycus-kilran')], source: 'P2, Cold War row 26' }),
   ev({ id: 'E.3643.council_changes', title: 'Changes on the Dark Council', summary: 'Darth Hadra succeeds Mekhis; Darth Jadus fakes his death and Zhorrid takes the seat; Skotia is murdered and Zash becomes a Darth.', date: on(3643, 10), places: KAAS, roles: [R('Darth Hadra', 'darth-hadra'), R('Darth Mekhis', 'darth-mekhis'), R('Darth Jadus', 'darth-jadus'), R('Darth Skotia', 'darth-skotia'), R('Darth Zash', 'darth-zash')], produces: gives('O.council_shift_3643'), source: 'P2, Cold War rows 27-28' }),
-  ev({ id: 'E.3642.balmorra_freed', title: 'Balmorra is freed', summary: 'The Republic and the Balmorran resistance free Balmorra.', date: on(3642, 2), places: ['Balmorra'], roles: [R('the Balmorran resistance')], conditions: [cond('rising', 'The resistance and the Republic can take Balmorra', 'The rising on Balmorra is broken', 'high', [republic('major', 'Balmorra'), look('Balmorra')], { window: { fromYear: -3644 }, prerequisites: [{ id: 'know.rising', text: 'That the resistance and the Republic mean to rise together', tests: [look('Balmorra'), taken('zenith')], leads: [about('zenith', 'darth-lachris'), word('Balmorra')] }] })], consumes: needs('O.balmorra_imperial'), produces: gives('O.balmorra_republic'), plotPoint: 'PP-2', source: 'P2, Cold War row 31' }),
-  ev({ id: 'E.3642.taris_invasion', title: 'The invasion of Taris', summary: 'The Empire invades and occupies Taris, halting the resettlement.', date: on(3642, 4), places: ['Taris'], roles: [R('Leontyne Saresh', 'leontyne-saresh')], conditions: [cond('landing', 'The Empire can land on Taris', 'The invasion of Taris is thrown back', 'medium', [imperial('major', 'Taris'), talk('leontyne-saresh')], { window: { fromYear: -3643 }, prerequisites: [{ id: 'know.landing', text: 'That the Empire is coming for Taris', tests: [look(...KAAS, 'Taris'), taken('rycus-kilran')], leads: [about('rycus-kilran', 'leontyne-saresh'), word('Taris'), COUNCIL] }] })], consumes: needs('O.taris_resettled'), produces: gives('O.taris_imperial'), plotPoint: 'PP-2', source: 'P2, Cold War row 32' }),
+  ev({ id: 'E.3642.balmorra_freed', title: 'Balmorra is freed', summary: 'The Republic and the Balmorran resistance free Balmorra.', date: on(3642, 2), endDate: on(3642, 2, 25), places: ['Balmorra'], roles: [R('the Balmorran resistance')], conditions: [cond('rising', 'The resistance and the Republic can take Balmorra', 'The rising on Balmorra is broken', 'high', [republic('major', 'Balmorra'), command('Balmorra'), look('Balmorra')], { window: { fromYear: -3644 }, who: [post('imperial-command'), LORD], prerequisites: [{ id: 'know.rising', text: 'That the resistance and the Republic mean to rise together', tests: [look('Balmorra'), taken('zenith')], leads: [about('zenith', 'darth-lachris'), word('Balmorra')] }] })], consumes: needs('O.balmorra_imperial'), produces: gives('O.balmorra_republic'), plotPoint: 'PP-2', source: 'P2, Cold War row 31' }),
+  ev({ id: 'E.3642.taris_invasion', title: 'The invasion of Taris', summary: 'The Empire invades and occupies Taris, halting the resettlement.', date: on(3642, 4), endDate: on(3642, 4, 25), places: ['Taris'], roles: [R('Leontyne Saresh', 'leontyne-saresh')], conditions: [cond('landing', 'The Empire can land on Taris', 'The invasion of Taris is thrown back', 'high', [imperial('major', 'Taris'), command('Taris'), talk('leontyne-saresh')], { window: { fromYear: -3643 }, who: [post('republic-command'), KNIGHT], prerequisites: [{ id: 'know.landing', text: 'That the Empire is coming for Taris', tests: [look('Taris'), taken('rycus-kilran')], who: [post('republic-command', 'sis'), KNIGHT], leads: [about('rycus-kilran', 'leontyne-saresh'), word('Taris')] }] })], consumes: needs('O.taris_resettled'), produces: gives('O.taris_imperial'), plotPoint: 'PP-2', source: 'P2, Cold War row 32' }),
   ev({
     id: 'E.3642.maelstrom',
     title: 'Revan is freed from the Maelstrom',
     summary: 'A Republic strike team frees Revan from the Maelstrom Prison; the Foundry; Malgus takes the station; Kilran dies.',
     date: on(3642, 6),
     places: ['Maelstrom Nebula', 'the Foundry'],
-    roles: [C('Revan', 'revan'), C('Darth Malgus', 'darth-malgus'), R('the strike team'), R('Rycus Kilran', 'rycus-kilran')],
-    conditions: [cond('imprisoned', 'Revan is still imprisoned', 'Revan is no longer in the Maelstrom Prison', 'high', [force('Maelstrom'), imperial('major', 'Maelstrom')], { window: { fromYear: -3645 }, prerequisites: [{ id: 'know.prison', text: 'Where Revan is held', tests: [look(...KAAS), taken('rycus-kilran')], leads: [about('rycus-kilran', 'revan'), word('Maelstrom', 'Maelstrom Nebula')] }] })],
+    // Killing the prisoner is out of everyone's reach (A27).
+    roles: [C('Revan', 'revan', { closed: true }), C('Darth Malgus', 'darth-malgus'), R('the strike team'), R('Rycus Kilran', 'rycus-kilran')],
+    conditions: [cond('imprisoned', 'Revan is still imprisoned', 'Revan is no longer in the Maelstrom Prison', 'veryHigh', [look('Maelstrom')], { window: { fromYear: -3645 }, who: [post('maelstrom-team', 'maelstrom-jailer')], prerequisites: [{ id: 'know.prison', text: 'Where Revan is held', tests: [look(...KAAS), taken('rycus-kilran')], leads: [about('rycus-kilran'), word('Maelstrom', 'Maelstrom Nebula')], who: [post('sis', 'imperial-intelligence', 'maelstrom-jailer'), KNIGHT] }, { id: 'know.cell', text: 'How the prison holds Revan', tests: [look('Maelstrom')], leads: [word('Maelstrom', 'Maelstrom Nebula'), given({ kind: 'npc', canonId: 'lore:rycus-kilran', state: 'captured' })] }] })],
     produces: [
       { outcome: 'O.revan_free', when: { intact: ['role.revan', 'cond.imprisoned'] } },
       { outcome: 'O.foundry_malgus', when: { intact: ['role.darth_malgus'] } },
@@ -457,9 +509,10 @@ const COLD_WAR: WorldEventDef[] = [
     title: 'The invasion of Belsavis',
     summary: 'The Empire invades the Belsavis prison and frees the Dread Masters.',
     date: on(3641, 10),
+    endDate: on(3641, 10, 25),
     places: ['Belsavis'],
     roles: [R('the Dread Masters', 'dread-masters')],
-    conditions: [cond('held', 'The prison still holds them', 'The Dread Masters are out of the Empire\'s reach', 'medium', [imperial('major', 'Belsavis'), look('Belsavis')], { window: { fromYear: -3641 }, prerequisites: [{ id: 'know.invasion', text: 'That the Empire is coming for the Dread Masters', tests: [look(...KAAS), imperial('major', 'Belsavis')], leads: [COUNCIL, word('Belsavis'), given({ kind: 'outcome', outcome: 'O.galactic_war', state: 'produced' })] }] })],
+    conditions: [cond('held', 'The prison still holds them', 'The Dread Masters are out of the Empire\'s reach', 'high', [imperial('major', 'Belsavis'), command('Belsavis'), look('Belsavis')], { window: { fromYear: -3641 }, who: [post('republic-command', 'belsavis-staff'), KNIGHT], prerequisites: [{ id: 'know.invasion', text: 'That the Empire is coming for the Dread Masters', tests: [look('Belsavis')], leads: [word('Belsavis'), given({ kind: 'outcome', outcome: 'O.galactic_war', state: 'produced' })] }] })],
     // Shange and Raxxus are held there too; the Dread Masters do not need them (optional: D-467).
     consumes: [...needs('O.galactic_war'), ...wants('O.shange_imprisoned', 'O.raxxus_imprisoned')],
     produces: gives('O.dread_masters_free'),
@@ -472,8 +525,8 @@ const COLD_WAR: WorldEventDef[] = [
   ev({ id: 'E.3640.karrid', title: 'Karrid\'s assault', summary: 'The Empire launches a renewed assault, led by Darth Karrid from the Ascendant Spear.', date: on(3640, 11), roles: [R('Darth Karrid', 'darth-karrid')], consumes: needs('O.galactic_war'), source: 'P2, Galactic War row 10' }),
   ev({ id: 'E.3640.corellia', title: 'The Battle of Corellia', summary: 'Darth Decimus invades Corellia; Decimus, Hadra and Acharon die there.', date: on(3640, 2), places: ['Corellia'], roles: [R('Darth Decimus', 'darth-decimus')], consumes: needs('O.galactic_war', 'O.decimus_council'), produces: gives('O.corellia_contested'), source: 'P2, Galactic War row 11' }),
   ev({ id: 'E.3640.ilum', title: 'The Battle of Ilum', summary: 'Malgus declares himself Emperor at Ilum and is defeated.', date: on(3640, 4), places: ['Ilum'], roles: [C('Darth Malgus', 'darth-malgus')], consumes: needs('O.galactic_war', 'O.foundry_malgus'), produces: gives('O.malgus_defeated', 'O.ilum_contested'), interrupts: true, source: 'P2, Galactic War rows 12-13' }),
-  ev({ id: 'E.3640.voss', title: 'The Emperor on Voss', summary: 'The Emperor goes to Voss in disguise and is trapped in the Dark Heart.', date: circa(on(3640, 5)), places: ['Voss'], roles: [C('the Emperor', 'vitiate')], produces: gives('O.emperor_trapped'), source: 'P2, Galactic War row 14' }),
-  ev({ id: 'E.3640.voice', title: 'The Emperor\'s Voice is killed', summary: 'In a Republic assault on Dromund Kaas the Hero of Tython kills the Emperor\'s Voice; power passes to the Dark Council.', date: on(3640, 7), places: KAAS, roles: [H('the Hero of Tython', 'hero-of-tython')], consumes: needs('O.galactic_war'), produces: gives('O.dark_council_rules'), interrupts: true, source: 'P2, Galactic War row 15' }),
+  ev({ id: 'E.3640.voss', title: 'The Emperor on Voss', summary: 'The Emperor goes to Voss in disguise and is trapped in the Dark Heart.', date: circa(on(3640, 5)), places: ['Voss'], roles: [C('the Emperor', 'vitiate')], closed: true, produces: gives('O.emperor_trapped'), source: 'P2, Galactic War row 14' }),
+  ev({ id: 'E.3640.voice', title: 'The Emperor\'s Voice is killed', summary: 'In a Republic assault on Dromund Kaas the Hero of Tython kills the Emperor\'s Voice; power passes to the Dark Council.', date: on(3640, 7), places: KAAS, roles: [H('the Hero of Tython', 'hero-of-tython')], closed: true, consumes: needs('O.galactic_war'), produces: gives('O.dark_council_rules'), interrupts: true, source: 'P2, Galactic War row 15' }),
   ev({ id: 'E.3640.council_deaths', title: 'Deaths on the Dark Council', summary: 'Thanaton is killed and Darth Nox takes the Sphere of Ancient Knowledge; Baras dies; Karrid dies over Duro and Acina heads the Sphere of Technology.', date: on(3640, 8), endDate: on(3640, 12), places: ['Korriban', 'Duro'], roles: [R('Darth Thanaton', 'darth-thanaton'), H('Darth Nox', 'darth-nox'), R('Darth Baras', 'darth-baras'), R('Darth Karrid', 'darth-karrid'), R('Darth Acina', 'darth-acina')], consumes: needs('O.baras_council'), produces: gives('O.council_deaths_3640'), source: 'P2, Galactic War row 16' }),
   ev({ id: 'E.3640.janarus_dies', title: 'Chancellor Janarus is killed', summary: 'Janarus is killed aboard the Founder; Leontyne Saresh becomes Chancellor and Jace Malcom Supreme Commander.', date: on(3640, 9), places: ['the Founder'], roles: [C('Dorian Janarus', 'dorian-janarus'), R('Leontyne Saresh', 'leontyne-saresh'), R('Jace Malcom', 'jace-malcom')], consumes: needs('O.janarus_chancellor'), produces: gives('O.saresh_chancellor'), source: 'P2, Galactic War rows 17-18' }),
 ];
@@ -499,9 +552,13 @@ export const NETWORK_3661: WorldNetwork = {
   events: [...WAR, ...SACKING, ...COLD_WAR],
   scenes: [
     // Wired end to end (D-467): the player, knowing Coruscant is the target, gets the warning believed.
-    { id: 'coruscant-warned', title: 'Coruscant is warned', event: 'E.3653.temple_strike', guard: 'high', fromYear: -3654, on: [talk('zym', 'ven-zallow', 'berooken', 'rans')], requires: [{ kind: 'known', tag: FORESEEN }] },
+    { id: 'coruscant-warned', title: 'Coruscant is warned', event: 'E.3653.temple_strike', guard: 'high', fromYear: -3654, who: believed(PEACE_PROOF, STRIKE_PROOF), on: [talk('zym', 'ven-zallow', 'berooken', 'rans')], requires: [{ kind: 'known', tag: FORESEEN }] },
+    // Physical proof, carried out by someone who sees the orders (D-491: A13, A15, as PP-15 and PP-21; the scenes are invented).
+    { id: 'peace-proof', title: 'The Dark Council\'s orders are carried out', event: 'E.3654.peace_offer', guard: 'high', fromYear: -3655, who: [INSIDER, post('sis')], on: [look(...KAAS, 'Korriban')], leads: [COUNCIL, word(...KAAS)] },
+    { id: 'strike-proof', title: 'The strike team\'s orders are carried out', event: 'E.3653.temple_strike', guard: 'high', fromYear: -3654, who: [post('strike-team', 'angral-fleet')], on: [look(...KAAS, 'Korriban')], leads: [about('darth-angral', 'darth-malgus', 'adraas', 'eleena-daru')] },
+    { id: 'korriban-plans', title: 'Korriban\'s defence plans are carried out', event: 'E.3660.korriban', guard: 'high', fromYear: -3661, who: [{ sides: IMP, minRank: 'padawan' }, post('imperial-command', 'sis')], on: [look('Korriban')], leads: [word('Korriban')] },
     // Ruling 4: Visz fails before breaking the blockade.
-    { id: 'visz-stopped', title: 'Hylo Visz is stopped', event: 'E.3660.hydian_battle', guard: 'medium', fromYear: -3661, on: [{ kind: 'fight', canonIds: lore('hylo-visz'), minStakes: 'serious' }] },
+    { id: 'visz-stopped', title: 'Hylo Visz is stopped', event: 'E.3660.hydian_battle', guard: 'medium', fromYear: -3661, who: [ANYONE], on: [{ kind: 'fight', canonIds: lore('hylo-visz'), minStakes: 'serious' }] },
     // PP-2: extra incidents added through play.
     ...INCIDENT_PLACES.map((place) => ({
       id: incident(place),
@@ -509,6 +566,8 @@ export const NETWORK_3661: WorldNetwork = {
       event: 'E.3641.treaty_collapse',
       guard: 'medium' as const,
       fromYear: -3652,
+      // It can be blamed on a side.
+      who: [post('serving', 'republic-command', 'imperial-command'), { sides: ['jediOrder'], minRank: 'padawan' }, { sides: IMP, minRank: 'padawan' }] satisfies Who[],
       on: [{ kind: 'fight' as const, places: [place], factions: ['republic', 'jediOrder', 'sithEmpire', 'sith'] as const, minStakes: 'lethal' as const }],
       requires: [{ kind: 'outcome' as const, outcome: 'O.treaty_signed', state: 'produced' as const }],
     })),

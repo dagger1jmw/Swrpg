@@ -1,5 +1,5 @@
 import { CANON_DEATH_LINKS } from '../../data/canonDeathLinks';
-import { SECRET_OVERLAP } from '../../data/worldNetwork.config';
+import { FORESEEN_WORDS, SECRET_OVERLAP } from '../../data/worldNetwork.config';
 import { CANON_BY_ID, CANON_NPCS, type CanonNpc } from '../../data/canonNpcs';
 import { ERA_RULES, eraRuleApplies, type EraRule, type MonthDay } from '../../data/eraRules';
 import { ORDER_SEATS, ORDER_SEAT_BRANCHES, type OrderSeat } from '../../data/orderSeats';
@@ -21,11 +21,13 @@ import { selectNpcs } from '../npcs/selectors';
 import { selectThreads } from '../threads/selectors';
 import { escapeRating, escapeSkill, fightSecurity, type Captivity } from './captivity';
 import { heatNow, pendingFor, runnerFor, stabilizesCaptives, standingBlockades, type BlockadesState } from './blockades';
+import { selectCanBeat, selectWorldPlayer } from './player';
 import { timelineHandoff, untoldIds, type Handoff } from './handoff';
 import { actionMatters, controlNow, openNetwork, outcomeState, type ControlNow, type WorldAction, type WorldFacts } from './network';
 import type { NetworkState, Substitute, WorldEvent } from './world';
 
 export { handoffLines } from './handoff';
+export { selectCanBeat, selectDuelistBar, selectDuelTier, selectWorldPlayer } from './player';
 
 export const selectWorldLog = (s: GameState): readonly WorldEvent[] => s.world.log;
 /** World events the story has not told yet (they go into the next narration). */
@@ -82,17 +84,29 @@ function wonFight(s: GameState): WorldFacts['wonFight'] {
   const last = selectLastFight(s);
   // Only a fight just fought: an old one must not count when a condition opens years later.
   if (!last || last.outcome !== 'won' || last.stakes === 'spar' || s.clock.now.day - last.day > 1) return null;
-  const duel = last.duel as { opponents?: { id: string; engagedElsewhere?: boolean; out?: unknown }[] } | undefined;
-  // An opponent an ally fought the whole time is not the player's (D-212).
-  const foes = (duel?.opponents ?? []).filter((o) => !(o.engagedElsewhere && !o.out)).flatMap((o) => (s.npcs.byId[o.id] ? [s.npcs.byId[o.id]!] : []));
+  const duel = last.duel as { opponents?: { id: string; engagedElsewhere?: boolean; yielded?: string }[] } | undefined;
+  // An opponent an ally fought is not the player's, finished or not (D-212, D-491); one who got away was not beaten.
+  const mine = (duel?.opponents ?? []).filter((o) => !o.engagedElsewhere && s.npcs.byId[o.id]).map((o) => ({ n: s.npcs.byId[o.id]!, gone: o.yielded === 'fled' || o.yielded === 'withdrew' }));
+  const foes = mine.map((x) => x.n);
   return {
     id: last.id,
     stakes: last.stakes,
-    canonIds: foes.flatMap((n) => (n.canonId ? [n.canonId] : [])),
+    canonIds: mine.flatMap(({ n, gone }) => (n.canonId && !gone && selectCanBeat(s, n.canonId) ? [n.canonId] : [])),
     factions: foes.map((n) => n.factionId),
     places: placeNames(s, last.locationId ?? null),
   };
 }
+
+/** The top duelists held off in the last fight (D-491): time bought, whoever went on to win it. */
+function heldFight(s: GameState): NonNullable<WorldFacts['heldFight']> | null {
+  const last = selectLastFight(s);
+  if (!last?.heldOff?.length || s.clock.now.day - last.day > 1) return null;
+  const ids = (length: 'brief' | 'long'): string[] => last.heldOff!.filter((h) => h.length === length).flatMap((h) => s.npcs.byId[h.npcId]?.canonId ?? []);
+  return { id: last.id, stakes: last.stakes, places: placeNames(s, last.locationId ?? null), brief: ids('brief'), long: ids('long') };
+}
+
+/** A vision, a dream or a feeling in the Force is never a lead (D-489). */
+const foreseen = (text: string): boolean => FORESEEN_WORDS.test(text);
 
 // A lead (D-468): a figure met, a site visited, or a fact or thread about one of the lead's places.
 const significant = (t: string): string[] => [...new Set(normalizeText(t).split(/[^a-z0-9']+/).filter((w) => w.length > 3))];
@@ -115,26 +129,34 @@ function leadOnRecord(s: GameState, l: Lead, secrets: readonly string[]): boolea
   if (!l.places?.length) return false;
   const here = new Set(visited.filter((x) => l.places!.some((p) => placeAmong(p, [], [x.name, ...x.aliases]))).map((x) => x.id));
   // A start option's threads are backstory until play takes them up (D-470 [4]).
-  const threads = selectThreads(s).filter((t) => t.lastTurn > 1 && t.entityRefs.some((r) => here.has(r)) && !statesSecret(`${t.title} ${t.stakes}`, secrets));
-  return threads.length > 0 || selectFacts(s).some((x) => x.turn > 0 && here.has(x.aboutRef) && !statesSecret(x.text, secrets));
+  const threads = selectThreads(s).filter((t) => t.lastTurn > 1 && t.entityRefs.some((r) => here.has(r)) && !foreseen(`${t.title} ${t.stakes}`) && !statesSecret(`${t.title} ${t.stakes}`, secrets));
+  return threads.length > 0 || selectFacts(s).some((x) => x.turn > 0 && x.vision !== true && here.has(x.aboutRef) && !foreseen(x.text) && !statesSecret(x.text, secrets));
 }
 
 /** What the engine has recorded, for the network's tests. */
 export function selectWorldFacts(s: GameState): WorldFacts {
   const lost = new Map<string, 'dead' | 'captured'>();
+  const lostDay = new Map<string, number>();
   for (const n of selectNpcs(s)) {
     if (!n.canonId) continue;
     if (n.status === 'deceased') lost.set(n.canonId, 'dead');
     // A capture counts only when the engine recorded it: the narrator's own report never breaks a tag (D-466).
     else if (n.canonDiverged?.reason === 'captured' && n.canonDiverged.recordedBy === 'engine') lost.set(n.canonId, 'captured');
+    if (n.canonDiverged) lostDay.set(n.canonId, n.canonDiverged.day);
   }
+  let player: WorldFacts['player'] | undefined;
   return {
     bby: nowBby(s),
-    npcLost: (id) => lost.get(id) ?? null,
+    // Read only when a gate asks (most days none does).
+    get player() {
+      return (player ??= selectWorldPlayer(s));
+    },
+    npcLost: (id, before) => (before !== undefined && (lostDay.get(id) ?? before) >= before ? null : (lost.get(id) ?? null)),
     storyNpcDead: (name) => selectNpcs(s).some((n) => n.status === 'deceased' && [n.name, ...n.aliases].some((x) => normalizeText(x) === normalizeText(name))),
     hasFlag: (f) => selectHasFlag(s, f),
     hasLead: (l, secrets) => leadOnRecord(s, l, secrets),
     wonFight: wonFight(s),
+    heldFight: heldFight(s),
     standIns: (role, exclude) => standIns(s, role, exclude, lost),
   };
 }

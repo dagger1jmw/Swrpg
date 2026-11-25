@@ -22,6 +22,7 @@ import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
 import type { Registry } from '../../src/state/types';
 import { FIXTURE } from '../support/worldFixture';
+import { playerAs } from '../support/worldPlayer';
 
 const at = (year: number, month = 1, day = 1): number => absDayFromDate({ year, month, day });
 /** The full registry over a network. */
@@ -80,7 +81,7 @@ describe('the schema', () => {
     const strike = FIXTURE.events[1]!;
     const bad = (e: unknown, more: Partial<WorldNetwork> = {}): string => networkProblems({ ...FIXTURE, events: [...FIXTURE.events, e as never], ...more }).join('\n');
     const x = { ...strike, id: 'E.3649.x', produces: [], roles: [], conditions: [], consumes: [] };
-    const cond = { id: 'cond.x', text: 't', brokenText: 'b', crucial: true, guard: 'low' };
+    const cond = { id: 'cond.x', text: 't', brokenText: 'b', crucial: true, guard: 'low', who: [{ sides: ['jediOrder'] }] };
     expect(bad({ ...x, consumes: [{ outcome: 'O.nothing', required: true }] })).toMatch(/consumes O.nothing, which nothing produces/);
     expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ kind: 'flag', flag: 'metCouncil' }] }] })).toMatch(/flag metCouncil can be set by the AI/);
     expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ kind: 'flag', flag: 'noSuchFlag' }] }] })).toMatch(/unregistered flag/);
@@ -97,6 +98,18 @@ describe('the schema', () => {
     expect(bad({ ...x, produces: [{ outcome: 'O.city_taken' }] })).toMatch(/produced twice/);
     expect(bad({ ...x, roles: [{ id: 'role.a', label: 'a', kind: 'replaceable', canonId: 'lore:darth-marr' }], produces: [{ outcome: 'O.x', when: { intact: ['role.a'] } }] })).toMatch(/not a crucial role/);
     expect(bad({ ...x, guard: 1 })).toMatch(/schema/);
+    // D-491: whom it asks for, no premonitions, and nothing inside a closed event.
+    const { who: _w, ...ungated } = cond;
+    const deed = { kind: 'action', actionTypes: ['dialogue'], canonIds: ['lore:darth-marr'] };
+    expect(bad({ ...x, conditions: [{ ...ungated, breakIf: [deed] }] })).toMatch(/it must say who the player is/);
+    expect(bad({ ...x, conditions: [{ ...ungated, breakIf: [{ kind: 'control', place: 'Coruscant', side: 'republic' }] }] })).toBe('');
+    expect(bad({ ...x, conditions: [{ ...cond, who: [{}], breakIf: [deed] }] })).toMatch(/an empty gate/);
+    expect(bad({ ...x, conditions: [{ ...cond, who: [{ posts: ['no-such-post'] }], breakIf: [deed] }] })).toMatch(/schema/);
+    expect(bad({ ...x, conditions: [{ ...cond, who: [{ flags: ['metCouncil'] }], breakIf: [deed] }] })).toMatch(/flag metCouncil can be set by the AI/);
+    expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ ...deed, skills: ['forceSense'] }] }] })).toMatch(/no premonitions/);
+    expect(bad({ ...x, closed: true, conditions: [{ ...cond, breakIf: [deed] }] })).toMatch(/a closed event has no step inside it/);
+    expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ ...deed, during: true }] }] })).toMatch(/no end date/);
+    expect(bad({ ...x, conditions: [{ ...cond, breakIf: [{ kind: 'fight', places: ['Coruscant'], hold: 'brief' }] }] })).toMatch(/only a top duelist is held off/);
     // An alternative can never bring back what the recorded timeline produces.
     const pp = FIXTURE.plotPoints[0]!;
     expect(networkProblems({ ...FIXTURE, plotPoints: [{ ...pp, alternatives: [{ ...pp.alternatives[0]!, effects: { produces: ['O.pact'] } }] }] }).join('\n')).toMatch(/a broken tag is never reconnected/);
@@ -224,7 +237,7 @@ describe('divergence and the ripple', () => {
   it('a broken tag is never reconnected: the dead stay lost and broken outcomes stay broken', () => {
     const s = go(kill(game(), 'lore:darth-malgus'), AFTER_STRIKE);
     const raw = net(s);
-    const facts: WorldFacts = { bby: 3655, npcLost: () => null, storyNpcDead: () => false, hasFlag: () => false, hasLead: () => true, wonFight: null, standIns: () => [] };
+    const facts: WorldFacts = { bby: 3655, player: playerAs(), npcLost: () => null, storyNpcDead: () => false, hasFlag: () => false, hasLead: () => true, wonFight: null, standIns: () => [] };
     const later = reviewNetwork(FIXTURE, raw, facts, at(-3650)).state;
     expect(later.tags['E.3655.strike#role.blade']).toBeDefined();
     expect(later.outcomes['O.blade_alive']!.state).toBe('broken');
@@ -340,7 +353,7 @@ describe('the freeze', () => {
 });
 
 describe('guards and player actions', () => {
-  const facts = (over: Partial<WorldFacts> = {}): WorldFacts => ({ bby: 3655, npcLost: () => null, storyNpcDead: () => false, hasFlag: () => false, hasLead: () => true, wonFight: null, standIns: () => [], ...over });
+  const facts = (over: Partial<WorldFacts> = {}): WorldFacts => ({ bby: 3655, player: playerAs(), npcLost: () => null, storyNpcDead: () => false, hasFlag: () => false, hasLead: () => true, wonFight: null, standIns: () => [], ...over });
   const act = (over: Partial<WorldAction> = {}): WorldAction => ({ actionType: 'investigate', skillId: null, total: 17, places: ['Coruscant'], canonIds: [], ...over });
   const open = reviewNetwork(FIXTURE, emptyNetworkState(at(-3655)), facts(), at(-3655)).state;
   const SECRET = 'E.3655.strike#cond.secret';

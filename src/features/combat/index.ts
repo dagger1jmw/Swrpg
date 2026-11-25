@@ -32,7 +32,9 @@ import { selectCI, selectLevelExact, selectPerformance } from '../progression/se
 import { selectRank } from '../ranks/selectors';
 import { buildContext, buildMinionFighter, buildNpcFighter, buildPlayerFighter, sparringModeFor } from './build';
 import { combatSliceSchema, emptyCombat, pendingFightSchema, type ActiveFight, type CombatSlice, type FightSummary, type PendingFight } from './combat';
-import { selectFightSecurity } from '../world/selectors';
+import { holdAgainst } from '../../engine/who';
+import { HOLD } from '../../data/duelists';
+import { selectCanBeat, selectDuelistBar, selectDuelTier, selectFightSecurity } from '../world/selectors';
 import { fateIsLive, selectActiveFight, selectCombat } from './selectors';
 
 const absNow = (s: GameState): number => s.clock.now.day * 86_400 + s.clock.now.second;
@@ -52,7 +54,9 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
     // loadout has a subduing means (D-262), else the archetype's kill or disarm.
     const intent = strikeIntentFor(b.archetype, spec.stakes, (spec.wantAlive ?? []).includes(id), b.fighter.subdue ?? null);
     if ((spec.wantAlive ?? []).includes(id) && intent !== 'capture' && spec.stakes !== 'spar') notes.push(`${b.fighter.name} has no way to subdue (${b.fighter.weaponName ?? b.fighter.weapon}): strikes to ${intent}`);
-    opponents.push({ ...b.fighter, intent, engagedElsewhere: spec.engagedElsewhere.includes(id) });
+    // The power bar (D-491): whom this player cannot beat breaks off instead. Real fights only; a spar is a lesson.
+    const aboveBar = spec.stakes !== 'spar' && !selectCanBeat(s, selectNpc(s, id)!.canonId);
+    opponents.push({ ...b.fighter, intent, engagedElsewhere: spec.engagedElsewhere.includes(id), ...(aboveBar ? { aboveBar: true } : {}) });
     meta[id] = { npcId: id, minionKind: null, rank: b.rank };
     if (!selectNpc(s, id)!.gen) emit.push({ type: 'npcGenerated', npcRef: id });
   }
@@ -269,6 +273,14 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   }
   // The end card shows the state after the captors' care (pass 3: "Mira Tane: Dying" after "stabilized by the captors").
   const shown = playerDown || surrendered ? markStabilized(duel, emit) : duel;
+  // Holding a top duelist off (D-489): a Master buys a short delay, the top tier a long one; never a win.
+  const tier = selectDuelTier(s);
+  const heldOff = active.stakes === 'spar' || outcome === 'won' || duel.exchange < HOLD.minExchanges ? [] : duel.opponents.flatMap((o) => {
+    const npcId = active.meta[o.id]?.npcId ?? null;
+    const length = npcId && !o.engagedElsewhere ? holdAgainst(tier, selectDuelistBar(s, selectNpc(s, npcId)?.canonId ?? null)) : null;
+    return npcId && length ? [{ npcId, length }] : [];
+  });
+  for (const h of heldOff) notes.push(`${selectNpc(s, h.npcId)?.name ?? h.npcId} held off: a ${h.length === 'brief' ? 'short' : 'long'} delay (${duel.seconds} s), not a win`);
   const last = {
     id: active.id,
     stakes: active.stakes,
@@ -283,6 +295,7 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
     locationId: s.locations.currentId,
     duel,
     session: active.session ?? null,
+    ...(heldOff.length ? { heldOff } : {}),
   };
   return { slice: { ...slice, active: null, fates, last: { ...last, duel: shown, captors } }, emit, notes, rng };
 }
@@ -312,7 +325,7 @@ function markStabilized(duel: DuelState, emit: readonly GameEvent[]): DuelState 
 }
 
 /** Outcome of a duel end for side A. */
-const outcomeOf = (d: DuelState): CombatOutcome => (d.end?.winner === 'A' ? 'won' : d.end?.winner === 'B' ? 'lost' : d.end?.reason === 'stalemate' ? 'stalemate' : 'fled');
+const outcomeOf = (d: DuelState): CombatOutcome => (d.end?.winner === 'A' ? 'won' : d.end?.winner === 'B' ? 'lost' : d.end?.reason === 'stalemate' || d.end?.reason === 'brokeOff' ? 'stalemate' : 'fled');
 
 /**
  * The rest of a sparring session resolved in code, like a montage (D-168): every remaining bout to its end, then the

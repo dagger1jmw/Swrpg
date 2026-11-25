@@ -45,6 +45,9 @@ export const PREREQUISITES_NEEDED: Readonly<Record<WorldGuard, number>> = { low:
 /** A fact or thread that repeats this share of the significant words of what is to come states the secret outright: no lead. invented */
 export const SECRET_OVERLAP = 0.6;
 
+/** Words that mark a fact or thread as a vision or a feeling in the Force: never a lead (D-489). The list is invented. */
+export const FORESEEN_WORDS = /\b(?:visions?|premonitions?|foresee[ns]?|foresaw|foresight|foretold|dream(?:s|ed|t)?|nightmares?|prophec(?:y|ies)|(?:sens|feel|felt|stirr?)\w*\b[^.]*\b(?:in|through) the Force|disturbance in the Force|the Force (?:warns?|whispers?|shows?|tells?))\b/i;
+
 /** The narrator gets at most this many new timeline entries a turn; the rest wait. invented */
 export const TIMELINE_TOLD_MAX = 10;
 /** ...and is reminded of at most this many past divergences (the newest). invented */

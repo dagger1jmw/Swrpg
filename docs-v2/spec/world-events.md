@@ -1,22 +1,22 @@
 # World events: the tag network (as built, M8)
 
-Design: m8-design-notes.md, "World events: the tag network and divergence". Event data: world-event-tags-draft.md (3661–3640 BBY), world-event-tags-1000BBY-4ABY-draft.md. Decisions: D-466 (the engine), D-467 (Jared's answers; the 3661–3640 data). The 3640–1000 and 1000 BBY–4 ABY maps are not shipped.
+Design: m8-design-notes.md, "World events: the tag network and divergence". Event data: world-event-tags-draft.md (3661–3640 BBY), world-event-tags-1000BBY-4ABY-draft.md. Decisions: D-466 (the engine), D-467 (Jared's answers; the 3661–3640 data). D-490 to D-492 (D-489's rules: who, the power bar, no premonitions, closed systems). The 5000–3662, 3640–1000, 1000 BBY–4 ABY and 4–44 ABY maps are not shipped.
 
-Code: `src/data/worldNetwork.ts` (types, the shipped network), `worldNetwork3661.ts` (3661–3640), `canonDeathLinks.ts` (recorded deaths), `worldNetwork.config.ts` (numbers, all `invented`), `src/features/world/` (`network.ts` rules, `networkSchema.ts` data checks, `handoff.ts` narrator summary, `selectors.ts`), `src/engine/datedFacts.ts` (the freeze). Tests: `tests/features/worldNetwork.test.ts`, `tests/turn/worldNetworkTurn.test.ts`, `tests/m8/`.
+Code: `src/data/worldNetwork.ts` (types, the shipped network), `worldNetwork3661.ts` (3661–3640), `canonDeathLinks.ts` (recorded deaths), `worldNetwork.config.ts` (numbers, all `invented`), `who.ts`, `worldPosts.ts`, `duelists.ts` (the gates and the power bar), `src/engine/who.ts`, `src/engine/powerBar.ts`, `src/features/world/player.ts`, `src/features/world/` (`network.ts` rules, `networkSchema.ts` data checks, `handoff.ts` narrator summary, `selectors.ts`), `src/engine/datedFacts.ts` (the freeze). Tests: `tests/features/worldNetwork.test.ts`, `tests/features/worldGates.test.ts`, `tests/turn/worldNetworkTurn.test.ts`, `tests/m8/`.
 
 ## 1. The data
 
 | Part | Holds |
 |---|---|
-| Event (`E.<year>.<name>`) | title, one-line summary, date (end date for campaigns and occupations), places, roles, conditions, consumed and produced outcomes, plot point, whether it stops a montage, its timeline row |
-| Role | replaceable or crucial; the canon figure; who can stand in; protagonist (always an NPC) |
-| Condition | what must hold, what the narrator may say once broken, crucial or not, guard, the tests that count, optional prerequisites (foreknowledge) and window (only while under way, or from a year) |
+| Event (`E.<year>.<name>`) | title, one-line summary, date (end date for campaigns and occupations), places, roles, conditions, consumed and produced outcomes, plot point, whether it is closed, whether it stops a montage, its timeline row |
+| Role | replaceable or crucial; the canon figure; who can stand in; protagonist (always an NPC); closed (out of every player's reach) |
+| Condition | what must hold, what the narrator may say once broken, crucial or not, guard, who the player must be, the tests that count (each can be only during the event), optional prerequisites (foreknowledge) and window (only while under way, or from a year) |
 | Consumed outcome | required, or optional (the event goes ahead adjusted) |
 | Produced outcome (`O.<name>`) | produced unless the event diverges; or by its own rule (`when`: tags intact or broken), which also applies to an altered event; at the event's start or end |
-| Scene | a scene outcome the engine records as the flag `sceneOutcome:<id>`: a rolled success against its guard's DC, or a won fight, while its event is open, its years hold and what it requires holds |
+| Scene | a scene outcome the engine records as the flag `sceneOutcome:<id>`: a rolled success against its guard's DC, or a won fight, while its event is open, its years hold, the player fits its "who" and what it requires holds |
 | Plot point (`PP-<n>`) | its events, when it applies, the tracker, the authored alternatives (requirement, criteria with weights, effects) |
 
-`networkProblems()` must return nothing before a network ships: unknown references, an outcome produced twice, a loop, a flag the AI may set, an action or fight test with no place or person, a place-only action with no lead, a high guard an action can break without foreknowledge, a very high guard without two distinct prerequisites, a scene flag no scene sets, an outcome that depends on a replaceable role, an alternative that produces an outcome of the recorded timeline.
+`networkProblems()` must return nothing before a network ships: unknown references, an outcome produced twice, a loop, a flag the AI may set, an action or fight test with no place or person, a place-only action with no lead, a high guard an action can break without foreknowledge, a very high guard without two distinct prerequisites, a scene flag no scene sets, an outcome that depends on a replaceable role, an alternative that produces an outcome of the recorded timeline, a condition or scene the player can affect with no "who", an empty gate, a gate on a flag the AI may set, Force sense in a test, a step inside a closed event, a hold against someone who is no top duelist.
 
 Dates known only to the year fall on the first day of that year, as the control table reads them. A month or day the lore does not give is marked `placed: 'invented'`.
 
@@ -47,6 +47,24 @@ Points: an exceptional success 3, strong or decisive 2, narrow or clear 1, a bad
 Tests match who and where, and the kind of action, not what was said. An accidental break of a low or medium condition is fine: it is still the player's doing.
 
 Broken is final. Nothing removes a broken tag or turns a broken outcome back.
+
+### Who, the power bar, premonitions, closed systems (D-489; D-491)
+
+**Who.** A condition, prerequisite or scene says who the player must be: a list of entries, any one of which opens it, every part of an entry holding. Parts: side, archetype, rank (Padawan / Knight or Lord / Master, or a Lord with a Master's strength), standing, trust of a named figure, a post (posting, crew, household), a place they are in now, fighting tier, an engine-only flag (proof carried out of a scene). A deed, a won fight or a figure taken counts only when the player fits; what the world does (outcomes, control, scene flags, foreknowledge already had) is not gated. A prerequisite without its own "who" takes the condition's. The narrator sets none of it:
+- **Trust:** relationship 40 or more with a figure known 30 days or more (`invented`), or the master's or apprentice's bond.
+- **Posts** (`worldPosts.ts`): held by a start option, by trust (or the bond) of the figure whose people these are, or by the engine-only flag `worldPost:<id>`. Nothing sets the flag until wartime postings are built, so a post with neither a start nor a tie cannot be held yet.
+- **Belief test:** a Knight's standing, or physical proof (a scene's flag).
+
+**The power bar** (`duelists.ts`: Jared's lists by map). Top duelist: below Master the player cannot win; a Master holds them off briefly; the top tier beats them or holds long. Beyond any duelist: nobody wins. "At least a Master": Grievous, Baras. The bar is on the person and holds in the fight itself (real fights only, not spars): a fighter above it is never killed, put down, maimed or driven to surrender. A blow that would do it lands as a lighter wound, they break off, and the fight is a stalemate, not a win. So no role breaks, no fate choice opens and nothing is credited. Guarded figures (Angral, Baras, Azamin) are treated the same when the player is not placed to reach them.
+- **The player's tier** (`invented`): Master = the rank, a Council seat, or every skill of the Master row with combat (best form, melee or blaster) in place of the main specialty; top = a Master with combat 95, Force Control 90 and Willpower 90.
+- **A hold:** a fight of 6 exchanges or more (`invented`) against a top duelist, not won. Brief for a Master, long for the top tier. It is recorded with the fight; a test can ask for one (`hold`). It is never a win and moves no date.
+- **Credit:** only foes the player fought. One an ally fought is never credited, finished or not; a named foe who fled or withdrew was not beaten.
+
+**No premonitions.** A roll on Force sense never counts, whatever a test asks for. A fact or thread that came from a vision is no lead: the narrator marks it (`vision`), or its words give it away (a word list, `invented`). Both can only take a lead away. Danger sense stays a warning (blockades.md).
+
+**Closed events.** No step inside exists: no deed, fight, hold or capture counts, no scene belongs to it, and a figure lost once it has begun changes nothing. It still reads its inputs, and a crucial figure lost before it began still breaks it.
+
+**During.** A test marked so counts only while the event is under way (the battle itself); the foreknowledge for it can be learned before.
 
 ## 3. Settling an event
 

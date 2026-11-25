@@ -7,26 +7,41 @@
 import type { ActionType } from '../../data/checks.config';
 import type { FactionId } from '../../data/entities.config';
 import { COMBAT_STAKES, type CombatStakes } from '../../data/progression.config';
+import type { Who, WorldPlayer } from '../../data/who';
 import { placeAmong, WORLD_CONTROL, type ControlSide, type ControlSpan } from '../../data/worldControl';
 import { ACTIONS_PER_CONDITION_PER_DAY, GRADE_POINTS, GUARD_RULES, PREREQUISITE_GUARD, PREREQUISITES_NEEDED, STRENGTH_POINTS } from '../../data/worldNetwork.config';
 import type { ConditionTag, Lead, PlotAlternative, PlotPointDef, RoleTag, SceneDef, StateTest, WorldDate, WorldEventDef, WorldEventStatus, WorldExpr, WorldGuard, WorldNetwork, WorldTest } from '../../data/worldNetwork';
 import { absDayFromDate } from '../../engine/calendar';
 import { datedFactsAt, type FactNow, type HeldReason, type OutcomeState } from '../../engine/datedFacts';
 import { dcForRating, gradeMargin } from '../../engine/rolls';
+import { whoHolds } from '../../engine/who';
 import type { EventRecord, NetworkState, Progress, Substitute } from './world';
+
+/** A finished fight as the network sees it: the foes the player fought to the end (never one an ally finished). */
+export interface FoughtFight {
+  id: string;
+  stakes: CombatStakes;
+  canonIds: readonly string[];
+  factions: readonly FactionId[];
+  places: readonly string[];
+}
 
 /** What the engine recorded, as far as the network needs it. */
 export interface WorldFacts {
   bby: number;
-  /** A canon figure the engine recorded as dead or taken in this campaign; null = neither (or never met). */
-  npcLost(canonId: string): 'dead' | 'captured' | null;
+  /** Who the player is (D-491). */
+  player: WorldPlayer;
+  /** A canon figure the engine recorded as dead or taken in this campaign (before a day, if given); null = neither (or never met). */
+  npcLost(canonId: string, before?: number): 'dead' | 'captured' | null;
   /** A story NPC of exactly this name whom the engine recorded as dead (people with no canon entry). */
   storyNpcDead(name: string): boolean;
   hasFlag(flag: string): boolean;
   /** A lead's figures, places or sites are on record in play (its `facts` are read by the network); `secrets` = what is to come. */
   hasLead(lead: Lead, secrets: readonly string[]): boolean;
   /** The last finished fight, when the player won it. */
-  wonFight: { id: string; stakes: CombatStakes; canonIds: readonly string[]; factions: readonly FactionId[]; places: readonly string[] } | null;
+  wonFight: FoughtFight | null;
+  /** The last finished fight, when the player held top duelists off in it: those figures, by how long. */
+  heldFight?: { id: string; stakes: CombatStakes; places: readonly string[]; brief: readonly string[]; long: readonly string[] } | null;
   /** People who could stand in for a lost role, best first. */
   standIns(role: RoleTag, exclude: ReadonlySet<string>): readonly Omit<Substitute, 'role'>[];
 }
@@ -196,16 +211,29 @@ function conditionOpen(st: NetworkState, e: WorldEventDef, c: ConditionTag, f: W
 const placesMatch = (wanted: readonly string[] | undefined, at: readonly string[]): boolean => !wanted || wanted.some((p) => placeAmong(p, [], at));
 const peopleMatch = (wanted: readonly string[] | undefined, at: readonly string[]): boolean => !wanted || wanted.some((id) => at.includes(id));
 
+/** No premonitions (D-489): a feeling in the Force is never an inquiry, a lead or a deed, whatever the test asks for. */
+const PREMONITION_SKILL = 'forceSense';
+
 function actionMeets(t: WorldTest, a: WorldAction): boolean {
-  if (t.kind !== 'action') return false;
+  if (t.kind !== 'action' || a.skillId === PREMONITION_SKILL) return false;
   if (!t.actionTypes.includes(a.actionType)) return false;
   // No skill named: the roll was made at level 0, and the DC decides.
   if (t.skills && a.skillId !== null && !t.skills.includes(a.skillId)) return false;
   return placesMatch(t.places, a.places) && peopleMatch(t.canonIds, a.canonIds);
 }
 
-function fightMeets(t: WorldTest, w: WorldFacts['wonFight']): boolean {
-  if (t.kind !== 'fight' || !w) return false;
+/** The fight a test is about: one won, or one in which a top duelist was held off. */
+const fightFor = (t: WorldTest, f: WorldFacts): string => (t.kind === 'fight' ? ((t.hold ? f.heldFight?.id : f.wonFight?.id) ?? '') : '');
+
+function fightMeets(t: WorldTest, f: WorldFacts): boolean {
+  if (t.kind !== 'fight') return false;
+  if (t.hold) {
+    const h = f.heldFight;
+    if (!h || COMBAT_STAKES.indexOf(h.stakes) < COMBAT_STAKES.indexOf(t.minStakes ?? 'skirmish')) return false;
+    return placesMatch(t.places, h.places) && peopleMatch(t.canonIds, t.hold === 'long' ? h.long : [...h.brief, ...h.long]);
+  }
+  const w = f.wonFight;
+  if (!w) return false;
   if (COMBAT_STAKES.indexOf(w.stakes) < COMBAT_STAKES.indexOf(t.minStakes ?? 'skirmish')) return false;
   if (t.factions && !t.factions.some((x) => w.factions.includes(x))) return false;
   return placesMatch(t.places, w.places) && peopleMatch(t.canonIds, w.canonIds);
@@ -216,6 +244,16 @@ const guardMargin = (guard: WorldGuard, total: number): number => total - dcForR
 /** How many distinct prerequisites the condition needs, and whether they are met. */
 const prerequisitesNeeded = (c: ConditionTag): number => Math.max(PREREQUISITES_NEEDED[c.guard], c.prerequisites?.length ? 1 : 0);
 const prerequisitesMet = (c: ConditionTag, p: Progress): boolean => (c.prerequisites ?? []).filter((q) => p.known[q.id]?.met).length >= prerequisitesNeeded(c);
+
+/**
+ * Whether a test counts for this player here (D-491): nothing the player does counts in a closed event or for someone who
+ * is not placed for it, and a test of the battle itself counts only while it is under way.
+ */
+function testOpen(st: NetworkState, e: WorldEventDef, who: readonly Who[] | undefined, f: WorldFacts, t: WorldTest): boolean {
+  if (t.during && st.events[e.id]?.status !== 'underway') return false;
+  if (t.kind !== 'action' && t.kind !== 'fight' && t.kind !== 'npc') return true;
+  return !e.closed && whoHolds(who, f.player);
+}
 
 /** Whether an action starts from something recorded in play (D-468): the person it is on, or one of the leads. */
 function hasLead(net: WorldNetwork, st: NetworkState, f: WorldFacts, a: WorldAction, e: WorldEventDef, tests: readonly WorldTest[], leads: readonly Lead[] | undefined): boolean {
@@ -237,14 +275,14 @@ function breakTag(st: NetworkState, key: string, day: number, cause: string): Ne
 }
 
 /** Recorded facts and won fights counted once each: the points they add, and their marks. */
-function countFacts(net: WorldNetwork, st: NetworkState, f: WorldFacts, tests: readonly WorldTest[], counted: readonly string[]): { points: number; marks: string[]; fact: boolean } {
+function countFacts(net: WorldNetwork, st: NetworkState, f: WorldFacts, e: WorldEventDef, who: readonly Who[] | undefined, tests: readonly WorldTest[], counted: readonly string[]): { points: number; marks: string[]; fact: boolean } {
   let points = 0;
   let fact = false;
   const marks: string[] = [];
   tests.forEach((t, i) => {
     if (t.kind === 'action') return;
-    const mark = t.kind === 'fight' ? `${i}:${f.wonFight?.id ?? ''}` : `${i}`;
-    if (counted.includes(mark) || !(t.kind === 'fight' ? fightMeets(t, f.wonFight) : stateTestHolds(net, st, f, t))) return;
+    const mark = t.kind === 'fight' ? `${i}:${fightFor(t, f)}` : `${i}`;
+    if (counted.includes(mark) || !(t.kind === 'fight' ? fightMeets(t, f) : stateTestHolds(net, st, f, t)) || !testOpen(st, e, who, f, t)) return;
     points += STRENGTH_POINTS[t.strength ?? 'minor'];
     marks.push(mark);
     if (t.kind !== 'fight') fact = true;
@@ -268,7 +306,10 @@ function latchTags(net: WorldNetwork, st0: NetworkState, f: WorldFacts, day: num
     for (const r of e.roles) {
       const key = tagKey(e.id, r.id);
       if (st.tags[key]) continue;
-      const lost = (r.canonId ? f.npcLost(r.canonId) : null) ?? (r.npcName && f.storyNpcDead(r.npcName) ? 'dead' : null);
+      if (r.closed) continue;
+      // A closed event is reached only by who was lost before it began.
+      const before = e.closed ? startDue(st, e) : undefined;
+      const lost = (r.canonId ? f.npcLost(r.canonId, before) : null) ?? (r.npcName && f.storyNpcDead(r.npcName) ? 'dead' : null);
       if (lost) broke(key, `${r.label} ${LOST_TEXT[lost]}`);
       else if ((r.breakIf ?? []).some((t) => stateTestHolds(net, st, f, t))) broke(key, `${r.label} cannot act`);
     }
@@ -280,14 +321,14 @@ function latchTags(net: WorldNetwork, st0: NetworkState, f: WorldFacts, day: num
       for (const q of c.prerequisites ?? []) {
         const k = p.known[q.id] ?? { points: 0, met: false, counted: [] };
         if (k.met) continue;
-        const got = countFacts(net, st, f, q.tests, k.counted);
+        const got = countFacts(net, st, f, e, q.who ?? c.who, q.tests, k.counted);
         if (!got.marks.length) continue;
         const points = k.points + got.points;
         // A recorded discovery is foreknowledge in itself; won fights add up like actions.
         p = { ...p, known: { ...p.known, [q.id]: { points, met: got.fact || points >= GUARD_RULES[PREREQUISITE_GUARD].points, counted: [...k.counted, ...got.marks] } } };
       }
       if (prerequisitesMet(c, p)) {
-        const got = countFacts(net, st, f, c.breakIf, p.counted);
+        const got = countFacts(net, st, f, e, c.who, c.breakIf, p.counted);
         if (got.marks.length) p = { ...p, points: p.points + got.points, counted: [...p.counted, ...got.marks] };
       }
       if (p !== before) st = { ...st, progress: { ...st.progress, [key]: p } };
@@ -303,7 +344,7 @@ function latchTags(net: WorldNetwork, st0: NetworkState, f: WorldFacts, day: num
 function openScenes(net: WorldNetwork, st: NetworkState, f: WorldFacts): SceneDef[] {
   return (net.scenes ?? []).filter((s) => {
     const e = eventDef(net, s.event);
-    if (!e || isSettled(st, e) || f.hasFlag(sceneFlag(s.id))) return false;
+    if (!e || e.closed || isSettled(st, e) || f.hasFlag(sceneFlag(s.id)) || !whoHolds(s.who, f.player)) return false;
     if (-f.bby < s.fromYear || (s.toYear !== undefined && -f.bby > s.toYear)) return false;
     return (s.requires ?? []).every((t) => stateTestHolds(net, st, f, t));
   });
@@ -312,12 +353,12 @@ function openScenes(net: WorldNetwork, st: NetworkState, f: WorldFacts): SceneDe
 export const sceneFlag = (id: string): string => `sceneOutcome:${id}`;
 
 /** The scenes a won fight settles now (their flags are set by the handler). */
-export const scenesWon = (net: WorldNetwork, st: NetworkState, f: WorldFacts): string[] => openScenes(net, st, f).filter((s) => s.on.some((t) => fightMeets(t, f.wonFight))).map((s) => s.id);
+export const scenesWon = (net: WorldNetwork, st: NetworkState, f: WorldFacts): string[] => openScenes(net, st, f).filter((s) => s.on.some((t) => fightMeets(t, f))).map((s) => s.id);
 
 /** Whether any open scene, condition or prerequisite is about this action. */
 export function actionMatters(net: WorldNetwork, st: NetworkState, f: WorldFacts, a: WorldAction): boolean {
   if (openScenes(net, st, f).some((s) => s.on.some((t) => actionMeets(t, a)))) return true;
-  return net.events.some((e) => e.conditions.some((c) => conditionOpen(st, e, c, f) && [...c.breakIf, ...(c.prerequisites ?? []).flatMap((q) => q.tests)].some((t) => actionMeets(t, a))));
+  return net.events.some((e) => e.conditions.some((c) => conditionOpen(st, e, c, f) && [...c.breakIf.map((t) => ({ t, who: c.who })), ...(c.prerequisites ?? []).flatMap((q) => q.tests.map((t) => ({ t, who: q.who ?? c.who })))].some((x) => actionMeets(x.t, a) && testOpen(st, e, x.who, f, x.t))));
 }
 
 /** A rolled action counted against every open scene and condition it is about: the guard sets the DC and the points needed. */
@@ -335,8 +376,8 @@ export function recordAction(net: WorldNetwork, st0: NetworkState, f: WorldFacts
       const key = tagKey(e.id, c.id);
       let p = st.progress[key] ?? NO_PROGRESS;
       const ready = prerequisitesMet(c, p);
-      const learn = ready ? undefined : (c.prerequisites ?? []).find((q) => !p.known[q.id]?.met && q.tests.some((t) => actionMeets(t, a)));
-      if (!learn && !(ready && c.breakIf.some((t) => actionMeets(t, a)))) continue;
+      const learn = ready ? undefined : (c.prerequisites ?? []).find((q) => !p.known[q.id]?.met && q.tests.some((t) => actionMeets(t, a) && testOpen(st, e, q.who ?? c.who, f, t)));
+      if (!learn && !(ready && c.breakIf.some((t) => actionMeets(t, a) && testOpen(st, e, c.who, f, t)))) continue;
       // Foreknowledge already held is the lead for what follows it.
       const led = learn ? hasLead(net, st, f, a, e, learn.tests, learn.leads) : Boolean(c.prerequisites?.length) || hasLead(net, st, f, a, e, c.breakIf, c.leads);
       if (!led) {

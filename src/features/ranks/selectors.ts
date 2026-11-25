@@ -41,14 +41,14 @@ export function selectYearsInRank(s: GameState): number {
   return (s.clock.now.day - since) / 368;
 }
 
-/** The character's side for wartime (the start option's faction, else the path's). */
-function sideOf(s: GameState): string | null {
+/** The character's side (the start option's faction, else the path's). */
+export function selectSide(s: GameState): string | null {
   const c = selectCharacter(s);
   return c.start?.faction ?? (c.path === 'jedi' ? 'jediOrder' : c.path === 'sith' ? 'sithEmpire' : null);
 }
 /** Wartime for the character's side (the WARS table, npcGen.config). */
 export function selectWartime(s: GameState): boolean {
-  const side = sideOf(s);
+  const side = selectSide(s);
   const year = dateFromAbsDay(s.clock.now.day).year;
   return side !== null && WARS.some((w) => w.factions.includes(side) && year >= -w.fromBby && year <= -w.toBby);
 }

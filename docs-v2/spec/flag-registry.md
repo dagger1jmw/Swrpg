@@ -46,6 +46,7 @@ a promotion the player plays as a scene. The AI narrates; it cannot trigger it.
 | staleness | engine | the pacing day hook (architecture §8) | choices must include a forward jump |
 | settlingIn | engine | arrival at a new major location or life stage (architecture §8) | pacing |
 | sceneOutcome:<id> | engine | a world-event scene's check or fight resolves (src/data/worldNetwork3661.ts scenes; D-466, D-467) | world-event conditions (world-events.md) |
+| worldPost:<id> | engine | nothing yet (wartime postings; src/data/worldPosts.ts lists the ids; D-491) | who can break a world-event condition (world-events.md) |
 | blockadeTactics | engine | military or intelligence training in blockade tactics (a start option's training counts without it; nothing else sets it yet, D-469) | running a blockade |
 | blockadePapers:<blockadeId> | engine | papers from a permitted party (nothing sets it yet) | running a blockade |
 | shipSystem:<system> | engine | a ship's fitted system, such as masking (ships are not data yet) | running a blockade |

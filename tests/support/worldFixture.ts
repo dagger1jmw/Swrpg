@@ -2,6 +2,8 @@
 // pact in the 3,650s BBY (the year only has to have a canon roster, for substitution).
 import type { WorldEventDef, WorldNetwork } from '../../src/data/worldNetwork';
 
+/** Anyone the fixture's tests play: a Jedi. */
+const JEDI = [{ sides: ['jediOrder'] }] as const;
 const base = { roles: [], conditions: [], consumes: [], produces: [], source: 'test fixture' } as const;
 const ev = (e: Partial<WorldEventDef> & Pick<WorldEventDef, 'id' | 'title' | 'date'>): WorldEventDef => ({ ...base, summary: `${e.title} as recorded.`, ...e });
 
@@ -29,6 +31,7 @@ export const FIXTURE: WorldNetwork = {
           crucial: true,
           guard: 'medium',
           breakIf: [{ kind: 'action', actionTypes: ['investigate'], places: ['Coruscant'] }, { kind: 'flag', flag: 'sceneOutcome:strike-plan', strength: 'major' }],
+          who: JEDI,
           leads: [{ canonIds: ['lore:darth-angral'] }, { places: ['Coruscant'] }, { sites: ['Old Vault'] }],
           onBreak: 'cancelled',
         },
@@ -83,6 +86,7 @@ export const FIXTURE: WorldNetwork = {
           brokenText: 'The plot is exposed',
           crucial: true,
           guard: 'high',
+          who: JEDI,
           prerequisites: [{ id: 'know.plot', text: 'What is planned', tests: [{ kind: 'action', actionTypes: ['investigate'], places: ['Kaas City'] }, { kind: 'npc', canonId: 'lore:darth-jadus', state: 'captured' }], leads: [{ places: ['Kaas City'] }] }],
           breakIf: [{ kind: 'action', actionTypes: ['dialogue'], canonIds: ['lore:darth-marr'] }],
         },
@@ -92,6 +96,7 @@ export const FIXTURE: WorldNetwork = {
           brokenText: 'The vault is open',
           crucial: false,
           guard: 'veryHigh',
+          who: JEDI,
           prerequisites: [
             { id: 'know.where', text: 'Where it is', tests: [{ kind: 'action', actionTypes: ['investigate'], places: ['Ziost'] }], leads: [{ places: ['Ziost'] }] },
             { id: 'know.key', text: 'Who has the key', tests: [{ kind: 'npc', canonId: 'lore:darth-baras', state: 'captured' }] },
@@ -99,12 +104,12 @@ export const FIXTURE: WorldNetwork = {
           ],
           breakIf: [{ kind: 'action', actionTypes: ['forceUse'], places: ['Ziost'] }, { kind: 'npc', canonId: 'lore:darth-vowrawn', state: 'dead', strength: 'decisive' }],
         },
-        { id: 'cond.calm', text: 'The capital is calm', brokenText: 'The capital rises', crucial: false, guard: 'low', breakIf: [{ kind: 'fight', places: ['Kaas City'] }] },
+        { id: 'cond.calm', text: 'The capital is calm', brokenText: 'The capital rises', crucial: false, guard: 'low', who: JEDI, breakIf: [{ kind: 'fight', places: ['Kaas City'] }] },
       ],
       produces: [{ outcome: 'O.plot_done' }],
     }),
   ],
-  scenes: [{ id: 'strike-plan', title: 'The plan is read', event: 'E.3655.strike', guard: 'high', fromYear: -3655, on: [{ kind: 'action', actionTypes: ['forceUse'], places: ['Coruscant'] }, { kind: 'fight', canonIds: ['lore:darth-angral'] }], leads: [{ places: ['Coruscant'] }] }],
+  scenes: [{ id: 'strike-plan', title: 'The plan is read', event: 'E.3655.strike', guard: 'high', fromYear: -3655, on: [{ kind: 'action', actionTypes: ['forceUse'], places: ['Coruscant'] }, { kind: 'fight', canonIds: ['lore:darth-angral'] }], leads: [{ places: ['Coruscant'] }], who: JEDI }],
   plotPoints: [
     {
       id: 'PP-9',

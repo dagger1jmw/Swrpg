@@ -184,6 +184,10 @@ Sparring sessions (Jared, D-168): a spar is a session of bouts up to 34 exchange
     withdraws. Target: 20-30% of the player's won duels against Sith end this way (measured by
     npm run sweep). The last opponent withdrawing ends the fight won ("the opponents broke").
     Real fights only.
+  Power bar (D-489, D-491; world-events.md section 2): an opponent above the player's tier is never killed, put down,
+    maimed, worn out or driven to surrender. A blow that would do it lands as a lighter wound (severe at most, less when
+    the load has no room) and they break off; the fight ends as a stalemate ("brokeOff"), never won, and no fate is
+    offered. Real fights only.
   Disengage (tactic): d20 + Agility / 10 (+ position) against d20 + the current opponent's
     skill / 10; a win ends the fight as fled (engine/duel.ts disengageContest). The lifetime
     harness plays its profiles as sensible Jedi who use it when severely wounded, near Spent
