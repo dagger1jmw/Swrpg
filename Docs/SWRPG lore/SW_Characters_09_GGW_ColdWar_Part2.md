@@ -48,10 +48,10 @@ The fields are the same as in Part 1: ID, Life, Ranks, Teachers/students, Forms/
 - **Era:** 3700 BBY – after 3622 BBY
 - **Key facts:**
   - ID: male Human, born Veradun on Dromund Kaas [Darth Malgus §Early life](https://starwars.fandom.com/wiki/Darth_Malgus). Wore a respirator mask after jaw wounds at Alderaan [Darth Malgus §Revenge and the third lesson](https://starwars.fandom.com/wiki/Darth_Malgus).
-  - Life: born 3700 BBY (stated) [Darth Malgus §Early life](https://starwars.fandom.com/wiki/Darth_Malgus); no death in the infobox [Darth Malgus](https://starwars.fandom.com/wiki/Darth_Malgus).
+  - Life: born 3700 BBY (stated) [Darth Malgus §Early life](https://starwars.fandom.com/wiki/Darth_Malgus); no death recorded [Darth Malgus](https://starwars.fandom.com/wiki/Darth_Malgus).
   - Ranks: apprentice of Vindican in 3681 BBY [Darth Vindican §Biography](https://starwars.fandom.com/wiki/Darth_Vindican); Sith Lord after Korriban; Darth around 3667 BBY [Darth Malgus §The Battle of Alderaan](https://starwars.fandom.com/wiki/Darth_Malgus).
   - Teachers/students: Master Vindican [Darth Vindican](https://starwars.fandom.com/wiki/Darth_Vindican); student Kana Terrid (Darth Karrid) [Darth Karrid](https://starwars.fandom.com/wiki/Darth_Karrid).
-  - Forms/powers: the page names Jar'Kai, Force lightning, Force push, Force scream and Force speed [Darth Malgus §Force abilities](https://starwars.fandom.com/wiki/Darth_Malgus); [Darth Malgus §Lightsaber training](https://starwars.fandom.com/wiki/Darth_Malgus).
+  - Forms/powers: Jar'Kai, Force lightning, Force push, Force scream and Force speed [Darth Malgus §Force abilities](https://starwars.fandom.com/wiki/Darth_Malgus); [Darth Malgus §Lightsaber training](https://starwars.fandom.com/wiki/Darth_Malgus).
   - Alignment: dark side; his visible injury is the Alderaan respirator [Darth Malgus](https://starwars.fandom.com/wiki/Darth_Malgus).
   - 3661 BBY / 3653 BBY: in 3660 BBY he and Venemal led the Rim Campaign and the attack on Ord Radama [Rim Campaign](https://starwars.fandom.com/wiki/Rim_Campaign); [Battle of Ord Radama](https://starwars.fandom.com/wiki/Battle_of_Ord_Radama). 3661 BBY itself is not stated. In 3653 BBY he led the infiltration of the Jedi Temple during the Sacking, with Adraas as his second [Darth Malgus §Sacking of Coruscant](https://starwars.fandom.com/wiki/Darth_Malgus).
   - Feats: killed Kao Cen Darach and finished off Vindican (3681 BBY) [Darth Vindican §Biography](https://starwars.fandom.com/wiki/Darth_Vindican); killed Ven Zallow (3653 BBY) [Ven Zallow](https://starwars.fandom.com/wiki/Ven_Zallow); took Livien Magnus [Darth Malgus §Ord Radama](https://starwars.fandom.com/wiki/Darth_Malgus).
@@ -77,7 +77,7 @@ The fields are the same as in Part 1: ID, Life, Ranks, Teachers/students, Forms/
 - **Type:** character (Dark Lord; self-styled Voice of the Emperor)
 - **Era:** 3697 BBY – 3640 BBY
 - **Key facts:**
-  - ID: male Human; brother of Darth Ekkage [Darth Baras](https://starwars.fandom.com/wiki/Darth_Baras). Behind-the-scenes note: dark-side aging turned his skin pallid and his eyes from brown to red [Darth Baras §Behind the scenes](https://starwars.fandom.com/wiki/Darth_Baras) [BTS].
+  - ID: male Human; brother of Darth Ekkage [Darth Baras](https://starwars.fandom.com/wiki/Darth_Baras). Dark-side aging turned his skin pallid and his eyes from brown to red [Darth Baras §Behind the scenes](https://starwars.fandom.com/wiki/Darth_Baras) [BTS].
   - Life: born 3697 BBY; died 3640 BBY on Korriban (infobox) [Darth Baras](https://starwars.fandom.com/wiki/Darth_Baras).
   - Ranks: apprentice of Darth Vengean; ambassador at the Alderaan talks; key to the Treaty [Darth Baras](https://starwars.fandom.com/wiki/Darth_Baras).
   - Teachers/students: Master Vengean (infobox) [Darth Vengean](https://starwars.fandom.com/wiki/Darth_Vengean); apprentice the Emperor's Wrath [Empire's Wrath](https://starwars.fandom.com/wiki/Empire%27s_Wrath).
@@ -113,7 +113,7 @@ The fields are the same as in Part 1: ID, Life, Ranks, Teachers/students, Forms/
   - Teachers/students: his daughter, his only known apprentice [Darth Jadus §Imperial Intelligence](https://starwars.fandom.com/wiki/Darth_Jadus).
   - Forms/powers: teleportation, Force choke, lightning, corruption and healing. Intelligence rated him second only to the Emperor, and the Emperor agreed [Darth Jadus §Powers and abilities](https://starwars.fandom.com/wiki/Darth_Jadus). People near him felt physical pain [Darth Jadus §Powers and abilities](https://starwars.fandom.com/wiki/Darth_Jadus).
   - Alignment: dark side.
-  - 3661 BBY / 3653 BBY: not stated. He was about 27 in 3661 BBY [inferred, if the speculated 3688 BBY is used].
+  - 3661 BBY / 3653 BBY: about 27 in 3661 BBY [inferred, if the speculated 3688 BBY is used].
   - Feats: held the burning Dominator together through the Force [Darth Jadus §An epoch of terror](https://starwars.fandom.com/wiki/Darth_Jadus).
 - **Related:** Cipher Nine; SW_Imperial_Military_Intelligence_GGW_Part1.
 - **Uncertainty:** the birth year is speculative.
@@ -166,7 +166,7 @@ The fields are the same as in Part 1: ID, Life, Ranks, Teachers/students, Forms/
 - **Type:** character (Dark Councilor; later Emperor)
 - **Era:** 3716 BBY – after 3629 BBY
 - **Key facts:**
-  - ID: male Sith Pureblood [Darth Vowrawn](https://starwars.fandom.com/wiki/Darth_Vowrawn). Eye colour differs between the codex (orange) and the game (red) [Darth Vowrawn §Behind the scenes](https://starwars.fandom.com/wiki/Darth_Vowrawn) [BTS].
+  - ID: male Sith Pureblood [Darth Vowrawn](https://starwars.fandom.com/wiki/Darth_Vowrawn). [BTS: eye colour differs between the codex (orange) and the game (red).] [Darth Vowrawn §Behind the scenes](https://starwars.fandom.com/wiki/Darth_Vowrawn).
   - Life: born 3716 BBY (infobox) [Darth Vowrawn](https://starwars.fandom.com/wiki/Darth_Vowrawn). Aged 76 in 3640 BBY [Darth Rictus §Biography](https://starwars.fandom.com/wiki/Darth_Rictus).
   - Ranks: Dark Council, Production and Logistics; later Civil Administration under Acina; then Sith Emperor [Darth Vowrawn](https://starwars.fandom.com/wiki/Darth_Vowrawn).
   - Alignment: dark side; hedonist [Darth Vowrawn §Biography](https://starwars.fandom.com/wiki/Darth_Vowrawn).
@@ -221,7 +221,7 @@ The fields are the same as in Part 1: ID, Life, Ranks, Teachers/students, Forms/
 | Styrak | "Corrupter of Darvannis" | close to Raptus in power; slain on Darvannis | 3638 BBY, Darvannis | [Styrak](https://starwars.fandom.com/wiki/Styrak) |
 | Tyrans | "Tactician of the Masters" | black-and-white blade | 3638 BBY, Oricon | [Tyrans](https://starwars.fandom.com/wiki/Tyrans) |
 
-Death years are from the infoboxes (c9/ibox.tsv).
+[note: death years are from the infoboxes (c9/ibox.tsv).]
 
 ### Emperor's Wrath (class-story protagonist; title only)
 - **Type:** character (player character of the Sith Warrior story)
@@ -240,7 +240,7 @@ Death years are from the infoboxes (c9/ibox.tsv).
 - **Type:** character (Sith Inquisitor; sorcerer)
 - **Era:** Great Galactic War – c. 3643 BBY (original body)
 - **Key facts:**
-  - ID: female Human. Infobox: eyes brown, later yellow (dark side); skin fair, "later gangrenous"; hair blond, later white (infobox) [Darth Zash](https://starwars.fandom.com/wiki/Darth_Zash).
+  - ID: female Human. Eyes brown, later yellow (dark side); skin fair, "later gangrenous"; hair blond, later white (infobox) [Darth Zash](https://starwars.fandom.com/wiki/Darth_Zash).
   - Life: birth not stated. Her original body died c. 3643 BBY on Dromund Kaas; her possessed body was a Dashade (infobox) [Darth Zash](https://starwars.fandom.com/wiki/Darth_Zash).
   - Ranks: Lord Zash, a supervisor of acolyte training at the Korriban academy [Darth Zash](https://starwars.fandom.com/wiki/Darth_Zash). She became a Darth after Skotia's murder in 3643 BBY [Darth Thanaton §Fighting for tradition](https://starwars.fandom.com/wiki/Darth_Thanaton).
   - Teachers/students: apprentices Darth Nox, Corrin and Kaal (infobox) [Darth Zash](https://starwars.fandom.com/wiki/Darth_Zash).

@@ -16,7 +16,7 @@ Continues SW_Planets_Travel_OldRepublic_Part1.md. Legends lore reference for SWR
 ### Zakuul
 - **Type:** celestial body, class Terrestrial · **Status:** full
 - **1. Location:** region Wild Space; grid no Legends grid (infobox marks it Canon-only); sector —; system —; routes: none listed. [Zakuul §infobox](https://starwars.fandom.com/wiki/Zakuul)
-- **2. Control 3661:** Eternal Empire (Valkorion) in Wild Space; no contact with the galaxy recorded before 3636 BBY [3636 BBY](https://starwars.fandom.com/wiki/3636_BBY).
+- **2. Control 3661:** Eternal Empire (Valkorion) in Wild Space; no contact with the galaxy before 3636 BBY [3636 BBY](https://starwars.fandom.com/wiki/3636_BBY).
   - 3636 BBY: Eternal Empire emerges [3636 BBY](https://starwars.fandom.com/wiki/3636_BBY)
   - 3630 BBY: Battle of Zakuul; Alliance conquers it [3630 BBY](https://starwars.fandom.com/wiki/3630_BBY)
 - **3. World:** terrain: Swamps and bogs; Forests; Fields; Urban; atmosphere: Type I (breathable); language: Galactic Basic Standard; other species in SWTOR-era sources: Humans; government (SWTOR-era refs): Eternal Empire; Zakuulan government. [Zakuul §infobox](https://starwars.fandom.com/wiki/Zakuul)
@@ -197,7 +197,7 @@ Continues SW_Planets_Travel_OldRepublic_Part1.md. Legends lore reference for SWR
 ### Bomodon
 - **Type:** celestial body, class Terrestrial · **Status:** thin
 - **1. Location:** region Mid Rim ; Trailing Sectors; grid O-15 (The Essential Atlas, 2009); sector Churba sector; system Bomodon system; routes: none listed. [Bomodon §infobox](https://starwars.fandom.com/wiki/Bomodon)
-- **2. Control 3661:** [unclear] Occupied by the Empire early in the war; Garza's platoon fought a ten-month campaign from 3674 BBY [3674 BBY](https://starwars.fandom.com/wiki/3674_BBY); [Bomodon §Intro](https://starwars.fandom.com/wiki/Bomodon). Holder at 3661 not stated.
+- **2. Control 3661:** Occupied by the Empire early in the war; Garza's platoon fought a ten-month campaign from 3674 BBY [3674 BBY](https://starwars.fandom.com/wiki/3674_BBY); [Bomodon §Intro](https://starwars.fandom.com/wiki/Bomodon). [unclear: holder at 3661 not stated.]
   - 3674–3673 BBY: Battle of Bomodon [3673 BBY](https://starwars.fandom.com/wiki/3673_BBY)
 - **3. World:** native species: Bomodon. [Bomodon §infobox](https://starwars.fandom.com/wiki/Bomodon)
 - **4. Places (era-sourced):** none listed with era sources.
@@ -328,7 +328,7 @@ Continues SW_Planets_Travel_OldRepublic_Part1.md. Legends lore reference for SWR
 ### Dathomir
 - **Type:** celestial body, class "M" ; Terrestrial · **Status:** thin
 - **1. Location:** region Outer Rim Territories ; New Territories; grid O-6 (The Essential Atlas, 2009); sector Quelii sector; system Dathomir system; routes: none listed. [Dathomir §infobox](https://starwars.fandom.com/wiki/Dathomir/Legends)
-- **2. Control 3661:** [unclear] battle site [Dathomir/Legends §Old Republic era](https://starwars.fandom.com/wiki/Dathomir/Legends); [BTS] mention removed from SWTOR website in 2011 [Battle of Dathomir (Great Galactic War)](https://starwars.fandom.com/wiki/Battle_of_Dathomir_(Great_Galactic_War)).
+- **2. Control 3661:** [unclear] battle site [Dathomir/Legends §Old Republic era](https://starwars.fandom.com/wiki/Dathomir/Legends); [BTS: mention removed from SWTOR website in 2011] [Battle of Dathomir (Great Galactic War)](https://starwars.fandom.com/wiki/Battle_of_Dathomir_(Great_Galactic_War)).
 - **3. World:** climate: Temperate; terrain: Deserts; Forests; Jungle; Mountains; atmosphere: Type I (breathable); gravity: 90% standard; population: 5,200: ; 97% Human ; 3% other; native species: Dathomirian ; Kwa (historically) ; Kwi (Subspecies of the Kwa); language: Galactic Basic Standard ; Paecian. [Dathomir §infobox](https://starwars.fandom.com/wiki/Dathomir/Legends)
 - **4. Places (era-sourced):** none listed with era sources.
 - **5. Role 3661:** CONTESTED
@@ -401,7 +401,7 @@ Continues SW_Planets_Travel_OldRepublic_Part1.md. Legends lore reference for SWR
 - **Type:** celestial body · **Status:** thin
 - **1. Location:** region Outer Rim Territories ; Trans-Hydian; grid Q-5 (Essential Atlas Online Companion, 2009); sector Esstran sector ; Sith Worlds; system Drezzi system; routes: none listed. [Drezzi §infobox](https://starwars.fandom.com/wiki/Drezzi)
 - **2. Control 3661:** Not on record for 3661 [unclear].
-  - undated: SIS-directed agitation by Rane Kovach [Drezzi §Intro](https://starwars.fandom.com/wiki/Drezzi)
+  - [note: undated] SIS-directed agitation by Rane Kovach [Drezzi §Intro](https://starwars.fandom.com/wiki/Drezzi)
 - **3. World:** government (SWTOR-era refs): Monarchy. [Drezzi §infobox](https://starwars.fandom.com/wiki/Drezzi)
 - **4. Places (era-sourced):** none listed with era sources.
 - **5. Role 3661:** OFFSTAGE
@@ -436,7 +436,7 @@ Continues SW_Planets_Travel_OldRepublic_Part1.md. Legends lore reference for SWR
 ### Eliad
 - **Type:** celestial body, class Terrestrial · **Status:** thin
 - **1. Location:** region Outer Rim Territories; grid M-20 (no source in infobox); sector Minos Cluster; system Eliad system; routes: none listed. [Eliad §infobox](https://starwars.fandom.com/wiki/Eliad)
-- **2. Control 3661:** [unclear] Jedi held positions here in the Minos Cluster campaign [Great Galactic War §Republic response](https://starwars.fandom.com/wiki/Great_Galactic_War); [3680 BBY](https://starwars.fandom.com/wiki/3680_BBY); holder at 3661 not stated (Minos largely Imperial [Great Galactic War §Battles for the Outer Rim](https://starwars.fandom.com/wiki/Great_Galactic_War)).
+- **2. Control 3661:** Jedi held positions here in the Minos Cluster campaign [Great Galactic War §Republic response](https://starwars.fandom.com/wiki/Great_Galactic_War); [3680 BBY](https://starwars.fandom.com/wiki/3680_BBY); the Minos Cluster is largely Imperial [unclear: holder at 3661 not stated] [Great Galactic War §Battles for the Outer Rim](https://starwars.fandom.com/wiki/Great_Galactic_War).
   - 3680 BBY: Battle of Eliad [3680 BBY](https://starwars.fandom.com/wiki/3680_BBY)
 - **3. World:** climate: Temperate; terrain: Mountains; Plains; Valleys; Plateaus; atmosphere: Type I (breathable); population: 6 million (c. Galactic Empire; native species: Human; language: Galactic Basic Standard. [Eliad §infobox](https://starwars.fandom.com/wiki/Eliad)
 - **4. Places (era-sourced):** Eliad spaceport [unconfirmed in window for 3661: on record from SWTOR-era sources, mostly c. 3643–3622 BBY].
@@ -526,7 +526,7 @@ Continues SW_Planets_Travel_OldRepublic_Part1.md. Legends lore reference for SWR
 ### Geonosis
 - **Type:** celestial body, class Terrestrial · **Status:** thin
 - **1. Location:** region Outer Rim Territories ; The Slice; grid R-16 (no source in infobox); sector Arkanis sector; system Geonosis system; routes: The Crystal Passage. [Geonosis §infobox](https://starwars.fandom.com/wiki/Geonosis/Legends)
-- **2. Control 3661:** Active front: Republic–Imperial ground campaign on Geonosis, dated between 3665 BBY and 3653 BBY [Geonosis campaign §Intro](https://starwars.fandom.com/wiki/Geonosis_campaign); also the arena world where Imperial Intelligence raised Mandalore the Lesser [Geonosis/Legends §Great Galactic War](https://starwars.fandom.com/wiki/Geonosis/Legends).
+- **2. Control 3661:** Active front: Republic–Imperial ground campaign on Geonosis, some time between 3665 BBY and 3653 BBY [Geonosis campaign §Intro](https://starwars.fandom.com/wiki/Geonosis_campaign); also the arena world where Imperial Intelligence raised Mandalore the Lesser [Geonosis/Legends §Great Galactic War](https://starwars.fandom.com/wiki/Geonosis/Legends).
   - 3667 BBY: gladiator hailed as Mandalore in a Geonosian arena [3667 BBY](https://starwars.fandom.com/wiki/3667_BBY)
   - 3665–3653 BBY [date range only]: Geonosis campaign (Republic squad incl. Fideltin Rusk) [Geonosis campaign §Intro](https://starwars.fandom.com/wiki/Geonosis_campaign)
   - c. 3660 BBY: Mandalore the Lesser killed on Geonosis during the Great Hunt [3660 BBY](https://starwars.fandom.com/wiki/3660_BBY)

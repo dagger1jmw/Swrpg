@@ -54,7 +54,8 @@ describe('the planets files in the lore index (D-403)', () => {
   });
   it('drops citations, population figures and cross-references', () => {
     expect(planet.text).not.toMatch(/https?:|2 billion|Cross-reference/);
-    expect(planet.text).toContain('population: other-era figure only; language: Basic.');
+    expect(planet.text).not.toMatch(/population/);
+    expect(planet.text).toContain('language: Basic.');
   });
   it('sends only what has happened by the current year', () => {
     expect(chunkTextAt(planet, -3661)).not.toContain('sacked');

@@ -50,7 +50,7 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
   - Life: birth not stated. Died 3681 BBY on the Korriban orbital station (infobox) [Kao Cen Darach](https://starwars.fandom.com/wiki/Kao_Cen_Darach). Malgus killed him with Vindican's own weapon [Darth Vindican §Biography](https://starwars.fandom.com/wiki/Darth_Vindican).
   - Ranks: "legendary" Knight, later Battlemaster, the Order's premier lightsaber instructor, based on Coruscant before the war [Kao Cen Darach §Career as a Jedi](https://starwars.fandom.com/wiki/Kao_Cen_Darach).
   - Teachers/students: taught Satele Shan [Kao Cen Darach](https://starwars.fandom.com/wiki/Kao_Cen_Darach); recruited the young Shol Bestros [Shol Bestros §Biography](https://starwars.fandom.com/wiki/Shol_Bestros).
-  - Forms/powers: the page names Jar'Kai [Kao Cen Darach §Powers and abilities](https://starwars.fandom.com/wiki/Kao_Cen_Darach). He fought with two lightsabers against Vindican, and pushed him with the Force [Darth Vindican §Biography](https://starwars.fandom.com/wiki/Darth_Vindican).
+  - Forms/powers: Jar'Kai [Kao Cen Darach §Powers and abilities](https://starwars.fandom.com/wiki/Kao_Cen_Darach). He fought with two lightsabers against Vindican, and pushed him with the Force [Darth Vindican §Biography](https://starwars.fandom.com/wiki/Darth_Vindican).
   - Alignment: light side.
   - 3661 BBY / 3653 BBY: dead (since 3681 BBY).
   - Feats: held off Vindican and Malgus so that Satele, Malcom and Okarr could escape [Kao Cen Darach](https://starwars.fandom.com/wiki/Kao_Cen_Darach); badly wounded Vindican [Darth Vindican §Biography](https://starwars.fandom.com/wiki/Darth_Vindican).
@@ -61,12 +61,12 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
 - **Type:** character (Jedi Master; fell)
 - **Era:** Great Galactic War – 3653 BBY
 - **Key facts:**
-  - ID: female Togruta [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala). Infobox gives her eyes as "black, red (dark side)" (infobox) [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala).
+  - ID: female Togruta [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala). Eyes black, red under the dark side (infobox) [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala).
   - Life: birth not stated. Died 3653 BBY on Dantooine (infobox) [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala), killed by the Wookiee Dalborra while trying to kill Baras [Dar'Nala §Failure on Dantooine](https://starwars.fandom.com/wiki/Dar%27Nala).
   - Ranks: Jedi Master during the war; Satele's Master until Satele was knighted in the "latter stages" of the war [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala).
   - Teachers/students: apprentice Satele Shan [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala).
   - Forms/powers: dominated the mind of the Wookiee Dalborra; skilled with a lightsaber; no form named [Dar'Nala §Powers and abilities](https://starwars.fandom.com/wiki/Dar%27Nala).
-  - Alignment: she opposed the Treaty, faked her death, and arranged killings to keep the wars going [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala). The red "dark side" eye colour is in the infobox [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala).
+  - Alignment: she opposed the Treaty, faked her death, and arranged killings to keep the wars going [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala). [note: the red "dark side" eye colour is in the infobox.] [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala).
   - 3661 BBY / 3653 BBY: in 3661 BBY not stated. In 3653 BBY she represented the Order at the Alderaan conference [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala), then worked against the Treaty until she died on Dantooine [Dar'Nala §Failure on Dantooine](https://starwars.fandom.com/wiki/Dar%27Nala).
   - Feats: led the Jedi side of the Alderaan delegation [Dar'Nala](https://starwars.fandom.com/wiki/Dar%27Nala).
 - **Related:** Satele Shan; Fortris Gall; Darth Baras (Part2); Harron Tavus (Part3a).
@@ -92,7 +92,7 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
 - **Era:** Great Galactic War – 3643 BBY (later a Force spirit)
 - **Key facts:**
   - ID: male Human from Rishi, known as the "Plain Jedi" [Orgus Din](https://starwars.fandom.com/wiki/Orgus_Din). Brown eyes; bald, later gray (infobox) [Orgus Din](https://starwars.fandom.com/wiki/Orgus_Din).
-  - Life: no birth year on the page or in the infobox [Orgus Din](https://starwars.fandom.com/wiki/Orgus_Din). Died 3643 BBY aboard the Oppressor in the Alderaan system (infobox) [Orgus Din](https://starwars.fandom.com/wiki/Orgus_Din); Angral killed him personally [Orgus Din §Hunting the Republic superweapons](https://starwars.fandom.com/wiki/Orgus_Din).
+  - Life: birth not stated [Orgus Din](https://starwars.fandom.com/wiki/Orgus_Din). Died 3643 BBY aboard the Oppressor in the Alderaan system (infobox) [Orgus Din](https://starwars.fandom.com/wiki/Orgus_Din); Angral killed him personally [Orgus Din §Hunting the Republic superweapons](https://starwars.fandom.com/wiki/Orgus_Din).
   - Ranks: Jedi Master by the later war years [Orgus Din §Great Galactic War](https://starwars.fandom.com/wiki/Orgus_Din); on the High Council on Tython in the Cold War [Orgus Din §A New Apprentice](https://starwars.fandom.com/wiki/Orgus_Din).
   - Teachers/students: Fortris Gall, Bengel Morr, the Hero of Tython and several others (infobox) [Orgus Din](https://starwars.fandom.com/wiki/Orgus_Din).
   - Forms/powers: none named. After death he appeared as a Force ghost and helped the Hero break the Emperor's telepathic control [Orgus Din §Powers and abilities](https://starwars.fandom.com/wiki/Orgus_Din).
@@ -112,7 +112,7 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
   - Teachers/students: was advised by Shol Bestros [Gnost-Dural §Apprenticeship](https://starwars.fandom.com/wiki/Gnost-Dural). His students were Kana Terrid (later Darth Karrid) and, informally, Tau Idair (infobox) [Gnost-Dural](https://starwars.fandom.com/wiki/Gnost-Dural).
   - Forms/powers: telekinesis and Force speed; master of Soresu, Djem So and Juyo [Gnost-Dural §Powers and abilities](https://starwars.fandom.com/wiki/Gnost-Dural).
   - Alignment: light side.
-  - 3661 BBY / 3653 BBY: not stated. After years at the front he returned to the Temple Archives to research [Gnost-Dural §Great Galactic War](https://starwars.fandom.com/wiki/Gnost-Dural), but no date is given.
+  - 3661 BBY / 3653 BBY: not stated. After years at the front he returned to the Temple Archives to research [Gnost-Dural §Great Galactic War](https://starwars.fandom.com/wiki/Gnost-Dural) [note: no date is given].
   - Feats: hunted the Ascendant Spear with Theron Shan in 3640 BBY [Gnost-Dural §Jedi Master](https://starwars.fandom.com/wiki/Gnost-Dural).
 - **Related:** Darth Karrid (Part2); Shol Bestros.
 - **Uncertainty:** none.
@@ -140,7 +140,7 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
   - Life: born before 3653 BBY (infobox) [Aryn Leneer](https://starwars.fandom.com/wiki/Aryn_Leneer); no death recorded. Active in 3626 BBY [Aryn Leneer §Return of an old foe](https://starwars.fandom.com/wiki/Aryn_Leneer).
   - Ranks: Jedi Knight; former Padawan of Ven Zallow [Aryn Leneer](https://starwars.fandom.com/wiki/Aryn_Leneer).
   - Teachers/students: Master Ven Zallow (infobox) [Aryn Leneer](https://starwars.fandom.com/wiki/Aryn_Leneer).
-  - Forms/powers: noted for "Force empathy" [Aryn Leneer](https://starwars.fandom.com/wiki/Aryn_Leneer). The page names Force lightning only in the section on her quest for revenge [Aryn Leneer §A quest for vengeance](https://starwars.fandom.com/wiki/Aryn_Leneer).
+  - Forms/powers: noted for "Force empathy" [Aryn Leneer](https://starwars.fandom.com/wiki/Aryn_Leneer). She used Force lightning in her quest for revenge [Aryn Leneer §A quest for vengeance](https://starwars.fandom.com/wiki/Aryn_Leneer).
   - Alignment: light side, but she disobeyed the Council to hunt Malgus, and the Council disowned her [Aryn Leneer](https://starwars.fandom.com/wiki/Aryn_Leneer).
   - 3661 BBY / 3653 BBY: in 3661 BBY not stated. In 3653 BBY she was on Alderaan, sensed Zallow's death [Satele Shan §Hero of the Republic](https://starwars.fandom.com/wiki/Satele_Shan), left against orders, and dueled Malgus, who spared her [Aryn Leneer](https://starwars.fandom.com/wiki/Aryn_Leneer).
   - Feats: survived a duel with Malgus [Aryn Leneer](https://starwars.fandom.com/wiki/Aryn_Leneer).
@@ -152,7 +152,7 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
 - **Era:** c. 3678 BBY – by 3640 BBY
 - **Key facts:**
   - ID: male Human Corellian; "the Wise Son of Corellia", "the Quiet Healer" [Syo Bakarn §Helping rebuild](https://starwars.fandom.com/wiki/Syo_Bakarn). Blue eyes (infobox) [Syo Bakarn](https://starwars.fandom.com/wiki/Syo_Bakarn).
-  - Life: [conflict] born "around 3678 BBY" [Syo Bakarn §Seeds planted](https://starwars.fandom.com/wiki/Syo_Bakarn) vs "Before 3678 BBY" (infobox) [Syo Bakarn](https://starwars.fandom.com/wiki/Syo_Bakarn). Died "by 3640 BBY (presumed)" (infobox) [Syo Bakarn](https://starwars.fandom.com/wiki/Syo_Bakarn).
+  - Life: born c. 3678 BBY [conflict: "around 3678 BBY" in the text or "before 3678 BBY" in the infobox] [Syo Bakarn §Seeds planted](https://starwars.fandom.com/wiki/Syo_Bakarn) [Syo Bakarn](https://starwars.fandom.com/wiki/Syo_Bakarn). Died "by 3640 BBY (presumed)" (infobox) [Syo Bakarn](https://starwars.fandom.com/wiki/Syo_Bakarn).
   - Ranks: healer in the war; Knight by about 3653 BBY [Syo Bakarn §Helping rebuild](https://starwars.fandom.com/wiki/Syo_Bakarn); High Council member on Tython after the Treaty [Syo Bakarn](https://starwars.fandom.com/wiki/Syo_Bakarn).
   - Teachers/students: Ngani Zho and an unidentified Master; informal teacher of the Barsen'thor (infobox) [Syo Bakarn](https://starwars.fandom.com/wiki/Syo_Bakarn).
   - Forms/powers: none named.
@@ -170,7 +170,7 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
   - Life: born "well before 3663 BBY" (infobox) [Bela Kiwiiks](https://starwars.fandom.com/wiki/Bela_Kiwiiks); no death recorded.
   - Ranks: Jedi Master by 3663 BBY [Bela Kiwiiks §Biography](https://starwars.fandom.com/wiki/Bela_Kiwiiks). She is called a Knight at Rhen Var [Bela Kiwiiks](https://starwars.fandom.com/wiki/Bela_Kiwiiks) [conflict, see Uncertainty]. Appointed to the High Council after Satele became Grand Master in 3651 BBY [Bela Kiwiiks §Biography](https://starwars.fandom.com/wiki/Bela_Kiwiiks).
   - Teachers/students: Master Ngani Zho; Padawan Kira Carsen (infobox) [Bela Kiwiiks](https://starwars.fandom.com/wiki/Bela_Kiwiiks).
-  - Forms/powers: the page names Force visions [Bela Kiwiiks §Biography](https://starwars.fandom.com/wiki/Bela_Kiwiiks).
+  - Forms/powers: Force visions [Bela Kiwiiks §Biography](https://starwars.fandom.com/wiki/Bela_Kiwiiks).
   - Alignment: light side.
   - 3661 BBY / 3653 BBY: a Jedi Master fighting with the Republic Military in 3661 BBY [inferred from 3663 BBY]. In 3653 BBY she was at Rhen Var and then the Sacking aftermath [Bela Kiwiiks](https://starwars.fandom.com/wiki/Bela_Kiwiiks).
   - Feats: one of Zho's four students on the Council [Bela Kiwiiks](https://starwars.fandom.com/wiki/Bela_Kiwiiks).
@@ -182,12 +182,12 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
 - **Era:** before 3680 BBY – 3640 BBY
 - **Key facts:**
   - ID: male Human born in the Outer Rim; "the Order's Watchman" [Jaric Kaedan](https://starwars.fandom.com/wiki/Jaric_Kaedan). Brown eyes (infobox) [Jaric Kaedan](https://starwars.fandom.com/wiki/Jaric_Kaedan).
-  - Life: born "Before 3680 BBY" (infobox) [Jaric Kaedan](https://starwars.fandom.com/wiki/Jaric_Kaedan). SW_Jedi_Temple_Life_GGW_Part1 cites his page as "sometime before the year 3691 BBY". Killed by a Sith strike team at the Battle of Ilum, 3640 BBY [Jaric Kaedan](https://starwars.fandom.com/wiki/Jaric_Kaedan).
+  - Life: born before 3691 BBY [note: the infobox has "Before 3680 BBY"] [Jaric Kaedan](https://starwars.fandom.com/wiki/Jaric_Kaedan). [note: SW_Jedi_Temple_Life_GGW_Part1 cites his page as "sometime before the year 3691 BBY".] Killed by a Sith strike team at the Battle of Ilum, 3640 BBY [Jaric Kaedan](https://starwars.fandom.com/wiki/Jaric_Kaedan).
   - Ranks: found by the Order at age twelve [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan); Knight under Ngani Zho during the war [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan); High Council after the Treaty [Jaric Kaedan](https://starwars.fandom.com/wiki/Jaric_Kaedan).
   - Teachers/students: Ngani Zho; Padawan Nae Nuuv [Jaric Kaedan](https://starwars.fandom.com/wiki/Jaric_Kaedan).
-  - Forms/powers: master of "Juyo-Kos", a variant of Form VII [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan); the page names battle meditation [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan).
+  - Forms/powers: master of "Juyo-Kos", a variant of Form VII [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan); battle meditation [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan).
   - Alignment: light side.
-  - 3661 BBY / 3653 BBY: in 3661 BBY not stated (a Knight [inferred]). In 3653 BBY he was at Rhen Var [Satele Shan §Hero of the Republic](https://starwars.fandom.com/wiki/Satele_Shan).
+  - 3661 BBY / 3653 BBY: in 3661 BBY a Knight [inferred: not stated]. In 3653 BBY he was at Rhen Var [Satele Shan §Hero of the Republic](https://starwars.fandom.com/wiki/Satele_Shan).
   - Feats: led the 3668 BBY strike that captured the six Dread Masters [Jaric Kaedan §Biography](https://starwars.fandom.com/wiki/Jaric_Kaedan); [Capture of the Dread Masters](https://starwars.fandom.com/wiki/Capture_of_the_Dread_Masters).
 - **Related:** Dread Masters (Part2); SW_Imperial_Military_Intelligence_GGW_Part1.
 - **Uncertainty:** the two birth bounds do not conflict; the page text's "before 3691 BBY" is the tighter one.
@@ -217,7 +217,7 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
   - Teachers/students: Master Tol Braga (infobox) [Sajar](https://starwars.fandom.com/wiki/Sajar).
   - Forms/powers: none named in the digest.
   - Alignment: Sith, then redeemed before 3653 BBY [Sajar §Early life](https://starwars.fandom.com/wiki/Sajar); slipped back toward the dark side on Quesh in 3642 BBY [Sajar](https://starwars.fandom.com/wiki/Sajar).
-  - 3661 BBY / 3653 BBY: in 3661 BBY not stated (on the Dark Council or redeemed; the switch is dated only "before 3653 BBY"). In 3653 BBY not stated.
+  - 3661 BBY / 3653 BBY: not stated [note: on the Dark Council or redeemed in 3661 BBY; the switch is dated only "before 3653 BBY"].
   - Feats: shared his knowledge of the Empire with the Jedi Council [Sajar §Early life](https://starwars.fandom.com/wiki/Sajar).
 - **Related:** Tol Braga; Dark Council [Dark Council](https://starwars.fandom.com/wiki/Dark_Council).
 - **Uncertainty:** [unclear] the date he changed sides.
@@ -243,9 +243,9 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
 - **Key facts:**
   - ID: male Human, believed born in the Outer Rim [Revan/Legends](https://starwars.fandom.com/wiki/Revan/Legends). His eyes turned yellow under the dark side [Revan/Legends §Appearance and early life](https://starwars.fandom.com/wiki/Revan/Legends).
   - Life: born c. 3994 BBY (infobox) [Revan/Legends](https://starwars.fandom.com/wiki/Revan/Legends). Died c. 3642 BBY at the Foundry (temporarily) and again in 3637 BBY on Yavin 4; as a spirit he was absorbed into Satele Shan's mind in 3626 BBY (infobox) [Revan/Legends](https://starwars.fandom.com/wiki/Revan/Legends).
-  - Ranks: none in this window; prisoner of the Empire [Revan/Legends §Freedom and fall](https://starwars.fandom.com/wiki/Revan/Legends).
-  - Forms/powers: the page names Force vision, battle meditation, telekinesis, Force sense and Force lightning in various sections [Revan/Legends §Force powers](https://starwars.fandom.com/wiki/Revan/Legends).
-  - Alignment: not characterized here; the narrative is in SW_Great_Galactic_War_Part3.
+  - Ranks: prisoner of the Empire [Revan/Legends §Freedom and fall](https://starwars.fandom.com/wiki/Revan/Legends).
+  - Forms/powers: Force vision, battle meditation, telekinesis, Force sense and Force lightning [Revan/Legends §Force powers](https://starwars.fandom.com/wiki/Revan/Legends).
+  - Alignment: [note: not characterized here; the narrative is in SW_Great_Galactic_War_Part3.]
   - 3661 BBY / 3653 BBY: a prisoner throughout [Revan/Legends §Freedom and fall](https://starwars.fandom.com/wiki/Revan/Legends); in 3653 BBY still captive [Revan/Legends §Freedom and fall](https://starwars.fandom.com/wiki/Revan/Legends).
   - Feats: as a spirit in 3626 BBY he guided Kira Carsen and Scourge [Revan/Legends §Thwarting resurrection](https://starwars.fandom.com/wiki/Revan/Legends).
 - **Related:** Scourge; Vitiate (Part2); Satele Shan.
@@ -270,12 +270,12 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
 - **Type:** character (Jedi Master)
 - **Era:** Cold War – c. 3643 BBY
 - **Key facts:**
-  - ID: male Human; undercover alias "Lord Retrost"; Baras's personal nemesis [Nomen Karr](https://starwars.fandom.com/wiki/Nomen_Karr). Infobox eyes: "Blue, orange (dark side)" (infobox) [Nomen Karr](https://starwars.fandom.com/wiki/Nomen_Karr).
+  - ID: male Human; undercover alias "Lord Retrost"; Baras's personal nemesis [Nomen Karr](https://starwars.fandom.com/wiki/Nomen_Karr). Blue eyes [note: the infobox has "Blue, orange (dark side)"; the orange may reflect a player-choice path] [Nomen Karr](https://starwars.fandom.com/wiki/Nomen_Karr).
   - Life: birth not stated; died c. 3643 BBY on Nal Hutta (infobox) [Nomen Karr](https://starwars.fandom.com/wiki/Nomen_Karr).
   - Ranks: one of the Order's "most seasoned veterans" in the Cold War [Nomen Karr](https://starwars.fandom.com/wiki/Nomen_Karr).
   - Teachers/students: Somminick Timmns and Jaesa Willsaam (infobox) [Nomen Karr](https://starwars.fandom.com/wiki/Nomen_Karr).
-  - Forms/powers: excelled at Soresu; the page also names Form IV, Force push and Force choke [Nomen Karr §Powers and abilities](https://starwars.fandom.com/wiki/Nomen_Karr).
-  - Alignment: touched the dark side behind Imperial lines but stayed true to the Code [Nomen Karr](https://starwars.fandom.com/wiki/Nomen_Karr). The orange dark-side eyes are a game-path variant [unclear].
+  - Forms/powers: excelled at Soresu; also Form IV, Force push and Force choke [Nomen Karr §Powers and abilities](https://starwars.fandom.com/wiki/Nomen_Karr).
+  - Alignment: touched the dark side behind Imperial lines but stayed true to the Code [Nomen Karr](https://starwars.fandom.com/wiki/Nomen_Karr). [unclear: the orange dark-side eyes are a game-path variant.]
   - 3661 BBY / 3653 BBY: not stated.
   - Feats: fought Baras to a stalemate on Nal Hutta [Nomen Karr](https://starwars.fandom.com/wiki/Nomen_Karr).
 - **Related:** Jaesa Willsaam; Darth Baras.
@@ -287,11 +287,11 @@ How to read an entry. "ID" gives names and titles, species, sex and homeworld. "
 - **Key facts:**
   - ID: male Human [Warren Sedoru](https://starwars.fandom.com/wiki/Warren_Sedoru).
   - Life: born "several decades before 3681 BBY" [Warren Sedoru §Biography](https://starwars.fandom.com/wiki/Warren_Sedoru); no death given.
-  - Ranks: became one of the Order's most acclaimed Knights [Warren Sedoru §Biography](https://starwars.fandom.com/wiki/Warren_Sedoru). The page intro calls him a Padawan [Warren Sedoru](https://starwars.fandom.com/wiki/Warren_Sedoru), while the Vitiate page calls him a Jedi Master by c. 3642 BBY [Tenebrae §The Jedi threat](https://starwars.fandom.com/wiki/Tenebrae) [conflict].
+  - Ranks: became one of the Order's most acclaimed Knights [Warren Sedoru §Biography](https://starwars.fandom.com/wiki/Warren_Sedoru). A Jedi Master by c. 3642 BBY [Tenebrae §The Jedi threat](https://starwars.fandom.com/wiki/Tenebrae) [conflict: his page's intro calls him a Padawan, the Vitiate page a Jedi Master by c. 3642 BBY] [Warren Sedoru](https://starwars.fandom.com/wiki/Warren_Sedoru).
   - Teachers/students: Master Tol Braga [Tol Braga](https://starwars.fandom.com/wiki/Tol_Braga).
   - Forms/powers: "among the strongest and most resolute Jedi of his time" [Warren Sedoru §Powers and abilities](https://starwars.fandom.com/wiki/Warren_Sedoru).
   - Alignment: light side; after his war injuries his Force connection weakened, and in 3653 BBY he turned to peace [Warren Sedoru §Biography](https://starwars.fandom.com/wiki/Warren_Sedoru).
-  - 3661 BBY / 3653 BBY: in 3661 BBY not stated. In 3653 BBY see the Biography line above.
+  - 3661 BBY / 3653 BBY: in 3661 BBY not stated. [note: for 3653 BBY see the Ranks line above.]
   - Feats: recovered the cloaking-device prototype on Balmorra with the Hero [Tenebrae §The Jedi threat](https://starwars.fandom.com/wiki/Tenebrae).
 - **Related:** Tol Braga.
 - **Uncertainty:** [conflict] on his rank, as above.

@@ -62,7 +62,7 @@ Fields per entry: ID (species, sex, homeworld); life (birth and death and how ea
 - **Type:** characters (Queen of Alderaan; Crown Prince and senator)
 - **Key facts:**
   - ID: both Human, from Alderaan (infobox) [Silara Panteer](https://starwars.fandom.com/wiki/Silara_Panteer); [Gaul Panteer](https://starwars.fandom.com/wiki/Gaul_Panteer).
-  - Life: Silara was born "well before 3667 BBY". Both died "several years after 3653 BBY" on Alderaan (infobox); game default c. 3650 BBY [inferred] (lore batch 20) [Silara Panteer](https://starwars.fandom.com/wiki/Silara_Panteer); [Gaul Panteer](https://starwars.fandom.com/wiki/Gaul_Panteer). Gaul was murdered by assassins, and Silara died soon after in a shuttle crash, which led to the Alderaan Civil War [Silara Panteer](https://starwars.fandom.com/wiki/Silara_Panteer).
+  - Life: Silara was born "well before 3667 BBY". Both died "several years after 3653 BBY" on Alderaan (infobox), c. 3650 BBY [inferred: the game default] (lore batch 20) [Silara Panteer](https://starwars.fandom.com/wiki/Silara_Panteer); [Gaul Panteer](https://starwars.fandom.com/wiki/Gaul_Panteer). Gaul was murdered by assassins, and Silara died soon after in a shuttle crash, which led to the Alderaan Civil War [Silara Panteer](https://starwars.fandom.com/wiki/Silara_Panteer).
   - Ranks: Silara was queen from some time before 3667 BBY [Silara Panteer §Biography](https://starwars.fandom.com/wiki/Silara_Panteer). Gaul was Alderaan's senator by 3653 BBY and voted to secede after the Treaty [Silara Panteer §Biography](https://starwars.fandom.com/wiki/Silara_Panteer); [Gaul Panteer §Biography](https://starwars.fandom.com/wiki/Gaul_Panteer).
   - 3661 BBY / 3653 BBY: Silara queen, Gaul's office not stated / Silara queen; Gaul senator who led the secession [Silara Panteer §Biography](https://starwars.fandom.com/wiki/Silara_Panteer).
 - **Related:** Malgus at Alderaan, 3667 BBY (Part2).
@@ -139,7 +139,7 @@ Fields per entry: ID (species, sex, homeworld); life (birth and death and how ea
 - **Type:** character (SIS agent)
 - **Key facts:**
   - ID: male Human; son of Satele Shan and Jace Malcom; not Force-sensitive (lead) [Theron Shan](https://starwars.fandom.com/wiki/Theron_Shan).
-  - Life: born 3666 BBY (infobox) [Theron Shan](https://starwars.fandom.com/wiki/Theron_Shan). His page also says he was conceived after Korriban in 3681 BBY, which conflicts with its own Behind-the-scenes note that the novel puts it after Alderaan in 3667 BBY [Theron Shan §Early childhood](https://starwars.fandom.com/wiki/Theron_Shan); [Theron Shan §Behind the scenes](https://starwars.fandom.com/wiki/Theron_Shan).
+  - Life: born 3666 BBY (infobox) [Theron Shan](https://starwars.fandom.com/wiki/Theron_Shan). [conflict: his page also says he was conceived after Korriban in 3681 BBY, which conflicts with its own Behind-the-scenes note that the novel puts it after Alderaan in 3667 BBY] [Theron Shan §Early childhood](https://starwars.fandom.com/wiki/Theron_Shan); [Theron Shan §Behind the scenes](https://starwars.fandom.com/wiki/Theron_Shan).
   - Teachers: raised as an initiate by Ngani Zho (infobox) [Theron Shan](https://starwars.fandom.com/wiki/Theron_Shan); released from Jedi training once Zho saw he was not Force-sensitive [Theron Shan §Early childhood](https://starwars.fandom.com/wiki/Theron_Shan).
   - 3661 BBY / 3653 BBY: about 5, in Zho's care / about 13 [both inferred from 3666 BBY].
   - Feats: a leading SIS field agent by 3643 BBY [Theron Shan §Investigating the Vesla system](https://starwars.fandom.com/wiki/Theron_Shan).

@@ -192,8 +192,8 @@ Continues SW_Planets_Travel_OldRepublic_Part2.md. Legends lore reference for SWR
 ### Mandellia
 - **Type:** celestial body · **Status:** thin
 - **1. Location:** region Outer Rim Territories; grid no Legends grid (infobox marks it Canon-only); sector —; system —; routes: none listed. [Mandellia §infobox](https://starwars.fandom.com/wiki/Mandellia)
-- **2. Control 3661:** Dead world: pirate population wiped out by Nok Drayen in the early years of the war [Mandellia §Intro](https://starwars.fandom.com/wiki/Mandellia). Exact year [unclear].
-  - early war (undated): pirate haven; ~10,000 people killed by Nok Drayen's stolen Imperial nerve toxin [Mandellia §Intro](https://starwars.fandom.com/wiki/Mandellia)
+- **2. Control 3661:** Dead world: pirate population wiped out by Nok Drayen in the early years of the war [Mandellia §Intro](https://starwars.fandom.com/wiki/Mandellia). [unclear: exact year.]
+  - early war [note: undated]: pirate haven; ~10,000 people killed by Nok Drayen's stolen Imperial nerve toxin [Mandellia §Intro](https://starwars.fandom.com/wiki/Mandellia)
 - **3. World:** population: Around 10,000 (formerly). [Mandellia §infobox](https://starwars.fandom.com/wiki/Mandellia)
 - **4. Places (era-sourced):** none listed with era sources.
 - **5. Role 3661:** DEAD WORLD
@@ -309,7 +309,7 @@ Continues SW_Planets_Travel_OldRepublic_Part2.md. Legends lore reference for SWR
 ### Odacer-Faustin
 - **Type:** celestial body · **Status:** thin
 - **1. Location:** region Outer Rim Territories; grid Q-5 (Essential Atlas Online Companion, 2009); sector Esstran sector; system Odacer-Faustin system; routes: none listed. [Odacer-Faustin §infobox](https://starwars.fandom.com/wiki/Odacer-Faustin)
-- **2. Control 3661:** Sith Empire academy world in the Cold War [Odacer-Faustin §History](https://starwars.fandom.com/wiki/Odacer-Faustin); [unclear] for 3661 (first dated student 3655 BBY [3655 BBY](https://starwars.fandom.com/wiki/3655_BBY)).
+- **2. Control 3661:** Sith Empire academy world in the Cold War [Odacer-Faustin §History](https://starwars.fandom.com/wiki/Odacer-Faustin); [unclear: for 3661; first dated student 3655 BBY] [3655 BBY](https://starwars.fandom.com/wiki/3655_BBY).
   - 3655 BBY: Pergus Frode at the academy [3655 BBY](https://starwars.fandom.com/wiki/3655_BBY)
   - 3645 BBY: outbreak of the Sickness [3645 BBY](https://starwars.fandom.com/wiki/3645_BBY)
 - **3. World:** climate: Cold, snow; terrain: Snowy, rocky. [Odacer-Faustin §infobox](https://starwars.fandom.com/wiki/Odacer-Faustin)
@@ -520,7 +520,7 @@ Continues SW_Planets_Travel_OldRepublic_Part2.md. Legends lore reference for SWR
 ### Saleucami
 - **Type:** celestial body, class Terrestrial · **Status:** thin
 - **1. Location:** region Outer Rim Territories ; The Slice; grid S-8 (The Essential Atlas, 2009); sector Suolriep sector; system Saleucami system; routes: Talcene Transit. [Saleucami §infobox](https://starwars.fandom.com/wiki/Saleucami/Legends)
-- **2. Control 3661:** Strategically held Outer Rim trade hub [Saleucami/Legends §Intro](https://starwars.fandom.com/wiki/Saleucami/Legends); holder not named [unclear].
+- **2. Control 3661:** Strategically held Outer Rim trade hub [Saleucami/Legends §Intro](https://starwars.fandom.com/wiki/Saleucami/Legends) [unclear: holder not named].
 - **3. World:** climate: Hot; terrain: Caves; Desert; Mountains; Volcanoes; population: 1.4 billion: ; 36% Wroonian ; 8% Weequay ; 8% Gran ; 6% Humans ; 4% Twi'leks ; 38% other; language: Basic ; Wroonian. [Saleucami §infobox](https://starwars.fandom.com/wiki/Saleucami/Legends)
 - **4. Places (era-sourced):** none listed with era sources.
 - **5. Role 3661:** REP [unclear]
@@ -638,7 +638,7 @@ Continues SW_Planets_Travel_OldRepublic_Part2.md. Legends lore reference for SWR
   - 3623 BBY: Shae Vizla's team attacks a Hidden Chain base [3623 BBY](https://starwars.fandom.com/wiki/3623_BBY)
 - **3. World:** climate: Hot and arid; terrain: Desert; Mesas; Canyons; atmosphere: Type I (breathable); population: 80,000–200,000: ; 70% Humans ; 5% Tusken Raiders ; 5% Jawas ; 20% other ; 5,000–10,000 settlers (Historic) ; Unknown indigenous population; native species: Tusken Raider ; Kumumgah ; Jawas ; Mongo Beefhead ; Cliffborer worm (intelligent descendants); language: Bocce ; Galactic Basic Standard ; Huttese ; Jawaese ; Tusken ; Historic: ; Kumumgah language ; Rakata. [Tatooine §infobox](https://starwars.fandom.com/wiki/Tatooine/Legends)
 - **4. Places (era-sourced):** none listed with era sources.
-  - Note: SWTOR shows Republic and Imperial outposts in the Cold War; places listed below are Cold War-era.
+  - Republic and Imperial outposts stand here in the Cold War [note: shown in SWTOR; places listed below are Cold War-era].
 - **5. Role 3661:** OFFSTAGE (no record)
 - **6. Gating:** Open (Corellian Run/Triellus per infobox).
 ### Teth

@@ -84,7 +84,7 @@ See Parts 1 and 2.
 | Sadow: fled to Yavin 4 "and died there centuries later"; "His surviving order seeded Vitiate's rebuilt Empire" | He put himself in suspended animation and was killed by Freedon Nadd c. 4,400 BBY. The second claim is unsourced: the rebuilt Empire came from Vitiate's exodus | [Naga Sadow/Legends](https://starwars.fandom.com/wiki/Naga_Sadow/Legends); [Sith exodus](https://starwars.fandom.com/wiki/Sith_exodus) |
 | Ludo Kressh: "faked his own death to expose Sadow's treachery" | He discovered Sadow's treachery first, attacked and lost at Khar Delba, then faked his death by sending his empty flagship to be shot down | [Ludo Kressh](https://starwars.fandom.com/wiki/Ludo_Kressh) |
 | Simus: no death recorded | Killed by Sadow on Ziost in 5,000 BBY with a Republic blaster to frame the Republic | [Simus](https://starwars.fandom.com/wiki/Simus) |
-| Vitiate: "killed his father ~5,100 BBY"; "named Lord Vitiate at 13"; ritual "~5,000 BBY" | He severed Dramath's power and imprisoned his spirit by age ten (5,103 BBY); the age at which he was named is not on the pages read; the ritual was 4,999 BBY | [Tenebrae](https://starwars.fandom.com/wiki/Tenebrae); [Nathema](https://starwars.fandom.com/wiki/Nathema); [Ritual of Nathema](https://starwars.fandom.com/wiki/Ritual_of_Nathema) |
+| Vitiate: "killed his father ~5,100 BBY"; "named Lord Vitiate at 13"; ritual "~5,000 BBY" | He severed Dramath's power and imprisoned his spirit by age ten (5,103 BBY); he was named at thirteen, in 5,100 BBY [Ruled (Jared, 24 Nov 2026)]; the ritual was 4,999 BBY | [Tenebrae](https://starwars.fandom.com/wiki/Tenebrae); [Nathema](https://starwars.fandom.com/wiki/Nathema); [Ritual of Nathema](https://starwars.fandom.com/wiki/Ritual_of_Nathema) |
 | Odan-Urr: rank "Knight (this era)" | A Padawan in 5,000 BBY | [Odan-Urr/Legends](https://starwars.fandom.com/wiki/Odan-Urr/Legends) |
 | Odan-Urr: "At Kirrek he and Memit Nadill used battle meditation to turn the tide" | True of the Unification Wars battle of Kirrek; in the war's Kirrek battle his meditation "did not seem to have any effect" and Ooroo's sacrifice won | [Battle of Kirrek (Unification Wars)](https://starwars.fandom.com/wiki/Battle_of_Kirrek_%28Unification_Wars%29); [Battle of Kirrek (Great Hyperspace War)](https://starwars.fandom.com/wiki/Battle_of_Kirrek_%28Great_Hyperspace_War%29) |
 | Odan-Urr: "lived nearly 600 years" | Over a thousand years old when killed in 3,996 BBY | [Odan-Urr/Legends](https://starwars.fandom.com/wiki/Odan-Urr/Legends) |
@@ -116,7 +116,7 @@ See Parts 1 and 2.
 - Dates for the Hyabb-Twith Campaigns and the Nelori Marauders beyond "before 4,000 BBY".
 - Any 4,000–3,997 BBY battle list on the Krath Holy Crusade page beyond those used here.
 - Details of the "Battles above Tatooine" (5,000 BBY year page only) and of Halkans (3,997 BBY deaths list only).
-- Whether Vitiate was named Lord at thirteen (a claim in the character file).
+- [Ruled (Jared, 24 Nov 2026): settled, at thirteen in 5,100 BBY] Whether Vitiate was named Lord at thirteen (a claim in the character file).
 
 ## Canon only, not used
 - 4,300 BBY (Canon page: Final Assault on Csilla) and 4,260 BBY (Canon page: the Chiss exodus, from *Star Wars: Timelines*, 2023): https://starwars.fandom.com/wiki/4300_BBY ; https://starwars.fandom.com/wiki/4260_BBY . Checked: the 4,300 BBY/Legends page covers Noab Hulis and Chamma only, and no Legends page gives these Chiss events.

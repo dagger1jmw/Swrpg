@@ -289,8 +289,8 @@ export const ERA_RULES: readonly EraRule[] = [
     toBby: 3653,
     toDate: BEFORE_TREATY,
     places: ['Tatooine'],
-    text: 'The Exchange holds Mos Ila, founded during the war, which may be newly founded or not yet taken [unclear].',
-    source: 'D-384 [8]',
+    text: 'The Exchange holds Mos Ila, founded during the war, which may be newly founded or not yet taken.',
+    source: 'D-384 [8] [unclear]',
   },
   {
     id: 'tatooine-cold-war',

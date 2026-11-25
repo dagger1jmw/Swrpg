@@ -15,11 +15,11 @@ Part 2 continues the species entries: 25 further species with named era individu
      - An exoskeleton with regenerative properties [Gand/Legends](https://starwars.fandom.com/wiki/Gand/Legends). Their natural armour lets them shrug off crippling injuries [Gand/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Gand/Legends).
      - Lunged Gands need breathing gear off Gand, like Kel Dors. Lungless Gands do not breathe and are immune to poison gas [Gand/Legends](https://starwars.fandom.com/wiki/Gand/Legends).
      - Height 1.5 m (females) and 1.8 m (males); mass 70 kg and 80 kg (game stat: Scum and Villainy; infobox) [Gand/Legends](https://starwars.fandom.com/wiki/Gand/Legends).
-  2. **Lifespan and ageing:** 61 years, with some living past 95 (game stat: Scum and Villainy; infobox) [Gand/Legends](https://starwars.fandom.com/wiki/Gand/Legends). **Era example:** Yuun, b. 3670 BBY (character file) or 3668 BBY (Gand planet page) [conflict] [Yuun (Gand)](https://starwars.fandom.com/wiki/Yuun_%28Gand%29)[Gand (planet)/Legends §History](https://starwars.fandom.com/wiki/Gand_%28planet%29/Legends).
+  2. **Lifespan and ageing:** 61 years, with some living past 95 (game stat: Scum and Villainy; infobox) [Gand/Legends](https://starwars.fandom.com/wiki/Gand/Legends). **Era example:** Yuun, b. 3670 BBY [note: the character file] [conflict: 3668 BBY on the Gand planet page] [Yuun (Gand)](https://starwars.fandom.com/wiki/Yuun_%28Gand%29)[Gand (planet)/Legends §History](https://starwars.fandom.com/wiki/Gand_%28planet%29/Legends).
   3. **Strengths and weaknesses:** durability. Weakness: lunged Gands depend on breathing gear.
   4. **Force:**
      - The findsmen are a Force-sensitive religious tradition of bounty hunters unique to the Gand. Some can communicate telepathically with any species within 60 m [Gand/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Gand/Legends).
-     - For more, see SW_Force_Traditions_AllEras.
+     - [note: for more, see SW_Force_Traditions_AllEras.]
   5. **Culture and homeworld:**
      - Gand. Its society had an active slave trade and penal system, and findsmen tracked runaways [Gand/Legends §Society and culture](https://starwars.fandom.com/wiki/Gand/Legends).
      - Control in 3661 BBY: not stated.
@@ -38,7 +38,7 @@ Part 2 continues the species entries: 25 further species with named era individu
      - Tall and reptilian, with scales, tusks and long nostrils, usually hidden behind traditional masks [Kaleesh/Legends](https://starwars.fandom.com/wiki/Kaleesh/Legends)[Kaleesh/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Kaleesh/Legends).
      - Thermal pits under the eyes let them see in the dark. Five claws on each foot [Kaleesh/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Kaleesh/Legends).
      - Height 1.6–1.8 m; mass 80 kg and 75 kg (game stat: Clone Wars Campaign Guide; infobox) [Kaleesh/Legends](https://starwars.fandom.com/wiki/Kaleesh/Legends).
-  2. **Lifespan and ageing:** up to 80 years (game stat: Clone Wars Campaign Guide; infobox) [Kaleesh/Legends](https://starwars.fandom.com/wiki/Kaleesh/Legends). **Era example:** Xalek (Xivhkalrainik), b. 3665 BBY (character file) or 3664 BBY (Kalee page) [conflict] [Xivhkalrainik](https://starwars.fandom.com/wiki/Xivhkalrainik)[Kalee/Legends §History](https://starwars.fandom.com/wiki/Kalee/Legends). He was a Sith apprentice by the Galactic War.
+  2. **Lifespan and ageing:** up to 80 years (game stat: Clone Wars Campaign Guide; infobox) [Kaleesh/Legends](https://starwars.fandom.com/wiki/Kaleesh/Legends). **Era example:** Xalek (Xivhkalrainik), b. 3665 BBY [note: the character file] [conflict: 3664 BBY on the Kalee page] [Xivhkalrainik](https://starwars.fandom.com/wiki/Xivhkalrainik)[Kalee/Legends §History](https://starwars.fandom.com/wiki/Kalee/Legends). He was a Sith apprentice by the Galactic War.
   3. **Strengths and weaknesses:** recognised by both sides as proud, honourable and deadly warriors [Kaleesh/Legends §The Old Republic](https://starwars.fandom.com/wiki/Kaleesh/Legends).
   4. **Force:** no Kaleesh Jedi are known. Kaleesh tradition treats Force-sensitivity as a blessing from the ancestors [Kaleesh/Legends §Society and culture](https://starwars.fandom.com/wiki/Kaleesh/Legends).
   5. **Culture and homeworld:**
@@ -57,7 +57,7 @@ Part 2 continues the species entries: 25 further species with named era individu
 - **Era:** whole era
 - **Key facts:**
   1. **Body:**
-     - Leathery skin, sometimes with spikes and horns. The average adult is 1.8 m [Nikto/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Nikto/Legends); 1.6–1.9 m and 60 kg in the infobox [Nikto/Legends](https://starwars.fandom.com/wiki/Nikto/Legends).
+     - Leathery skin, sometimes with spikes and horns. The average adult is 1.8 m [Nikto/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Nikto/Legends); 1.6–1.9 m and 60 kg (infobox) [Nikto/Legends](https://starwars.fandom.com/wiki/Nikto/Legends).
      - Five subspecies known to the galaxy, plus the water-breathing Numol'elrul, each shaped by radiation-driven mutation to its own environment [Nikto/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Nikto/Legends).
   2. **Lifespan and ageing:** not stated. No source found.
   3. **Strengths and weaknesses:** subspecies adaptations [Nikto/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Nikto/Legends).
@@ -65,7 +65,7 @@ Part 2 continues the species entries: 25 further species with named era individu
   5. **Culture and homeworld:**
      - Kintan, in Hutt Space [Nikto/Legends](https://starwars.fandom.com/wiki/Nikto/Legends).
      - The Hutts used the Nikto to hold Hutt Space and build their criminal empire [Nikto/Legends §Allegiance to the Hutts](https://starwars.fandom.com/wiki/Nikto/Legends).
-     - **In 3661 BBY:** Hutt Space; Hutt control is [inferred].
+     - **In 3661 BBY:** Hutt Space, under Hutt control [inferred].
   6. **Languages:** Nikto (infobox) [Nikto/Legends](https://starwars.fandom.com/wiki/Nikto/Legends).
   7. **Era notes:**
      - In the Cold War the Kintan Kings, a Nikto group, worked against the Republic. Nikto settlers on Taris were targeted by the Empire's Mandalorian allies.
@@ -113,7 +113,7 @@ Part 2 continues the species entries: 25 further species with named era individu
      - Large, furry and 2–2.5 m tall [Talz/Legends §Biology and culture](https://starwars.fandom.com/wiki/Talz/Legends); mass 90 kg (infobox) [Talz/Legends](https://starwars.fandom.com/wiki/Talz/Legends).
      - Two pairs of eyes: one for day and a larger pair for night [Talz/Legends](https://starwars.fandom.com/wiki/Talz/Legends)[Talz/Legends §Biology and culture](https://starwars.fandom.com/wiki/Talz/Legends).
      - Fierce claws, but most Talz are gentle [Talz/Legends §Biology and culture](https://starwars.fandom.com/wiki/Talz/Legends).
-  2. **Lifespan and ageing:** up to 52 years (game stat: Force Unleashed Campaign Guide; infobox) [Talz/Legends](https://starwars.fandom.com/wiki/Talz/Legends). This is the shortest figure in this file.
+  2. **Lifespan and ageing:** up to 52 years (game stat: Force Unleashed Campaign Guide; infobox) [Talz/Legends](https://starwars.fandom.com/wiki/Talz/Legends). [note: the shortest figure in this file.]
   3. **Strengths and weaknesses:** built for cold and for heavy labour [Talz/Legends §History](https://starwars.fandom.com/wiki/Talz/Legends).
   4. **Force:** not stated.
   5. **Culture and homeworld:**
@@ -137,7 +137,7 @@ Part 2 continues the species entries: 25 further species with named era individu
   5. **Culture and homeworld:**
      - Panatha, in the Pacanth Reach. A warrior culture of mountain clan-fortresses [Epicanthix](https://starwars.fandom.com/wiki/Epicanthix)[Epicanthix §History](https://starwars.fandom.com/wiki/Epicanthix).
      - Their life is both practical and aesthetic; hair is tied in ceremonial styles [Epicanthix §Culture](https://starwars.fandom.com/wiki/Epicanthix).
-     - Control in 3661 BBY: not stated. Their Palpatine-era "first contact" is post-era [Epicanthix §History](https://starwars.fandom.com/wiki/Epicanthix).
+     - Control in 3661 BBY: not stated. [note: their Palpatine-era "first contact" is post-era] [Epicanthix §History](https://starwars.fandom.com/wiki/Epicanthix).
   6. **Languages:** Epicant (infobox) [Epicanthix](https://starwars.fandom.com/wiki/Epicanthix).
   7. **Era notes:** the Imperial Minister of Intelligence sought Epicanthix as spies for this talent, for example Ula Vii [Epicanthix §Characteristics](https://starwars.fandom.com/wiki/Epicanthix). Ula Vii posed as Stantorrs's aide c. 3643 BBY [Ula Vii](https://starwars.fandom.com/wiki/Ula_Vii).
 - **Related:** Hutt (similar shielding).
@@ -154,7 +154,7 @@ Part 2 continues the species entries: 25 further species with named era individu
      - Height 1.4–1.6 m (infobox) [Falleen/Legends](https://starwars.fandom.com/wiki/Falleen/Legends).
   2. **Lifespan and ageing:** long-lived.
      - Prose: average 250 years (game stat: UAA) [Falleen/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Falleen/Legends).
-     - Infobox: up to 250, up to 400 in rare cases (WEG Shadows of the Empire Sourcebook) [Falleen/Legends](https://starwars.fandom.com/wiki/Falleen/Legends). [conflict] average or maximum?
+     - Up to 250, up to 400 in rare cases [note: infobox; WEG Shadows of the Empire Sourcebook] [Falleen/Legends](https://starwars.fandom.com/wiki/Falleen/Legends). [conflict: average or maximum?]
   3. **Strengths and weaknesses:** very quick reflexes. Pheromones make them nearly irresistible. They are one of the few species resistant to mind tricks [Falleen/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Falleen/Legends).
   4. **Force:** mind-trick resistance as above. No rate stated.
   5. **Culture and homeworld:**
@@ -178,7 +178,7 @@ Part 2 continues the species entries: 25 further species with named era individu
   2. **Lifespan and ageing:**
      - A young Hutt can leave the brood pouch early: Jabba removed Rotta at most ten years old [Hutt/Legends §Life cycle](https://starwars.fandom.com/wiki/Hutt/Legends).
      - Adult by 200 years, at about 500 kg and Human-sized [Hutt/Legends §Life cycle](https://starwars.fandom.com/wiki/Hutt/Legends) (Databank).
-     - They can live over a thousand years [Hutt/Legends §Life cycle](https://starwars.fandom.com/wiki/Hutt/Legends) (novel Fate of the Jedi: Allies); 1,000 years in the infobox [Hutt/Legends](https://starwars.fandom.com/wiki/Hutt/Legends).
+     - They can live over a thousand years [Hutt/Legends §Life cycle](https://starwars.fandom.com/wiki/Hutt/Legends) [note: novel Fate of the Jedi: Allies; 1,000 years in the infobox] [Hutt/Legends](https://starwars.fandom.com/wiki/Hutt/Legends).
      - **Era examples:**
        - Karagga was over 800 years old and had been Supreme Mogul for nearly two centuries by the Cold War [Karagga §Biography](https://starwars.fandom.com/wiki/Karagga).
        - Suudaa Nem'ro lived c. 4241–c. 3641 BBY, so about 600 at death [inferred] (character file) [Suudaa Nem'ro](https://starwars.fandom.com/wiki/Suudaa_Nem%27ro).
@@ -226,7 +226,7 @@ Part 2 continues the species entries: 25 further species with named era individu
   3. **Strengths and weaknesses:** a high rate of Force-sensitivity [Voss (species) §Biology and appearance](https://starwars.fandom.com/wiki/Voss_%28species%29). Reserved, speaking little except at funerals and in hardship [Voss (species) §Society and culture](https://starwars.fandom.com/wiki/Voss_%28species%29).
   4. **Force:**
      - Society is guided by the visions of the Voss Mystics, held to be infallible. The Voss have no formal knowledge of the Force and no interest in learning from Jedi or Sith [Voss (species) §Voss Mystics](https://starwars.fandom.com/wiki/Voss_%28species%29).
-     - For more, see SW_Force_Traditions_AllEras.
+     - [note: for more, see SW_Force_Traditions_AllEras.]
   5. **Culture and homeworld:**
      - Voss-Ka, a fortified mountain city, vastly outnumbered by the Gormak [Voss (species) §Society and culture](https://starwars.fandom.com/wiki/Voss_%28species%29).
      - **In 3661 BBY:** independent and unknown to outsiders. The galaxy rediscovered Voss by accident c. 3645 BBY [Voss (species) §Cold War](https://starwars.fandom.com/wiki/Voss_%28species%29).
@@ -289,11 +289,11 @@ Part 2 continues the species entries: 25 further species with named era individu
 - **Type:** species (unnamed). **thin** (no culture; only Jedi known)
 - **Era:** whole era
 - **Key facts:**
-  1. **Body:** most stand under 70 cm [Yoda's species/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Yoda%27s_species/Legends); 0.7 m in the infobox [Yoda's species/Legends](https://starwars.fandom.com/wiki/Yoda%27s_species/Legends).
+  1. **Body:** most stand under 70 cm [Yoda's species/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Yoda%27s_species/Legends) [note: 0.7 m in the infobox] [Yoda's species/Legends](https://starwars.fandom.com/wiki/Yoda%27s_species/Legends).
   2. **Lifespan and ageing:**
      - "Many hundreds" of years. The average is unknown because every known member was a Jedi, and Jedi generally live longer [Yoda's species/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Yoda%27s_species/Legends).
      - Yoda died of natural causes at 900 [Yoda's species/Legends §Known members](https://starwars.fandom.com/wiki/Yoda%27s_species/Legends).
-     - **Era example:** Oteg was trained by the Order two centuries before the war began [Oteg §Biography](https://starwars.fandom.com/wiki/Oteg), so in training c. 3881 BBY [inferred]. The character file gives his birth as before 3843 BBY.
+     - **Era example:** Oteg was trained by the Order two centuries before the war began [Oteg §Biography](https://starwars.fandom.com/wiki/Oteg), so in training c. 3881 BBY [inferred]. [note: the character file gives his birth as before 3843 BBY.]
   3. **Strengths and weaknesses:** not stated beyond longevity.
   4. **Force:** all known members were Jedi [Yoda's species/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Yoda%27s_species/Legends).
   5. **Culture and homeworld:** homeworld unknown [Human/Legends §Origin](https://starwars.fandom.com/wiki/Human/Legends).

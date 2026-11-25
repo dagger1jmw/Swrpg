@@ -4811,9 +4811,9 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
         "place": "Nal Hutta",
         "fromBby": 3681,
         "toBby": 3653,
-        "doing": "Supreme Mogul of the Hutt Cartel [inferred], ruling from his palace on Nal Hutta",
+        "doing": "Supreme Mogul of the Hutt Cartel, ruling from his palace on Nal Hutta",
         "placed": true,
-        "source": "SW_NarShaddaa_HuttSpace_GGW_Part1 (entry B: \"ruled from a palace on Nal Hutta\"); D-385"
+        "source": "SW_NarShaddaa_HuttSpace_GGW_Part1 (entry B: \"ruled from a palace on Nal Hutta\"; the office in these years is inferred); D-385"
       }
     ],
     "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"

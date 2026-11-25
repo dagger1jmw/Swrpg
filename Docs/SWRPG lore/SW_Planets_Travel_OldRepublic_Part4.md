@@ -41,7 +41,7 @@ Continues SW_Planets_Travel_OldRepublic_Part3.md. Legends lore reference for SWR
 - **Type:** celestial body, class Terrestrial · **Status:** thin
 - **1. Location:** region Outer Rim Territories; grid N-19 (The Essential Atlas, 2009); sector Tarabba sector; system Utapau system; routes: none listed. [Utapau §infobox](https://starwars.fandom.com/wiki/Utapau/Legends)
 - **2. Control 3661:** [unclear] battleground; Republic defeated there [Great Galactic War §Battles for the Outer Rim](https://starwars.fandom.com/wiki/Great_Galactic_War).
-  - after 3681 BBY (undated): battle [Battle of Utapau (Great Galactic War)](https://starwars.fandom.com/wiki/Battle_of_Utapau_(Great_Galactic_War))
+  - after 3681 BBY [note: undated]: battle [Battle of Utapau (Great Galactic War)](https://starwars.fandom.com/wiki/Battle_of_Utapau_(Great_Galactic_War))
 - **3. World:** climate: Temperate, windy and arid; terrain: Scrublands; Savanna; Canyons; Sinkholes; Desert surface; Grottoes; atmosphere: Type I (breathable); population: 95 million: ; 30% Pau'ans ; 70% Utai; native species: Pau'ans ; Utai; language: Utapese ; Utai language ; Galactic Basic Standard. [Utapau §infobox](https://starwars.fandom.com/wiki/Utapau/Legends)
 - **4. Places (era-sourced):** none listed with era sources.
 - **5. Role 3661:** CONTESTED
@@ -109,7 +109,7 @@ Continues SW_Planets_Travel_OldRepublic_Part3.md. Legends lore reference for SWR
 - **3. World:** climate: Temperate to tropical; terrain: Jungle; Rainforests; atmosphere: Type I (breathable); population: Varies from zero to about 1,000 (95% Humans, 5% others); language: Yuuzhan Vong ; Previously: ; Massassi ; Critokian ; Galactic Basic Standard. [Yavin 4 §infobox](https://starwars.fandom.com/wiki/Yavin_4/Legends)
 - **4. Places (era-sourced):** Massassi village; Coalition Command Post; Forgotten Terrace; Prowler's Trail [unconfirmed in window for 3661: on record from SWTOR-era sources, mostly c. 3643–3622 BBY].
 - **5. Role 3661:** UNKNOWN [inferred]
-- **6. Gating:** Remote; no 3661 record.
+- **6. Gating:** Remote [note: no 3661 record].
 ### Yavin Prime
 - **Type:** celestial body, class Gas giant · **Status:** thin
 - **1. Location:** region Outer Rim Territories; grid P-6 (The Essential Atlas, 2009); sector Gordian Reach; system Yavin system; routes: Yavin Bypass. [Yavin Prime §infobox](https://starwars.fandom.com/wiki/Yavin_Prime/Legends)

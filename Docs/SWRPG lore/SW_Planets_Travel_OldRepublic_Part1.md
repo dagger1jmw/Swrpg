@@ -232,7 +232,7 @@ Control column is shortened; see each entry for citations. Grid = Legends infobo
 - **Type:** celestial body, class Terrestrial · **Status:** full
 - **1. Location:** region Colonies ; The Slice; grid M-10 (Essential Atlas Online Companion, 2009); sector —; system Balmorra system; routes: none listed. [Balmorra §infobox](https://starwars.fandom.com/wiki/Balmorra/Legends)
 - **2. Control 3661:** Contested: Imperial invasion early in the war, Balmorran resistance plus a dwindling Republic force [Great Galactic War §Battle of Balmorra](https://starwars.fandom.com/wiki/Great_Galactic_War); [Balmorra/Legends §Republic era](https://starwars.fandom.com/wiki/Balmorra/Legends).
-  - early war (undated): Imperial invasion; protracted struggle [Great Galactic War §Battle of Balmorra](https://starwars.fandom.com/wiki/Great_Galactic_War)
+  - early war [note: undated]: Imperial invasion; protracted struggle [Great Galactic War §Battle of Balmorra](https://starwars.fandom.com/wiki/Great_Galactic_War)
   - during the war: Republic gradually withdraws forces [Balmorra/Legends §Republic era](https://starwars.fandom.com/wiki/Balmorra/Legends)
   - 3653 BBY: treaty ends official Republic support; resistance continues [Balmorra/Legends §Republic era](https://starwars.fandom.com/wiki/Balmorra/Legends)
   - 3642 BBY: freed from Imperial control [3642 BBY](https://starwars.fandom.com/wiki/3642_BBY)
@@ -287,7 +287,7 @@ Control column is shortened; see each entry for citations. Grid = Legends infobo
 - **3. World:** climate: Variably wet, heavily electrified; terrain: Swamp; Jungle; Oceans; atmosphere: Type I (breathable); population: Pre–Cold War: Millions ; 10 ABY: 10,000 (70% Human, 30% other); native species: Sith (possible propaganda); language: Galactic Basic Standard; other species in SWTOR-era sources: Sith; Humans; government (SWTOR-era refs): Empire. [Dromund Kaas §infobox](https://starwars.fandom.com/wiki/Dromund_Kaas/Legends)
 - **4. Places (era-sourced):** Kaas City (capital); Dark Temple; Imperial Citadel; Sith Academy [unconfirmed in window for 3661: on record from SWTOR-era sources, mostly c. 3643–3622 BBY].
 - **5. Role 3661:** IMP-CORE
-- **6. Gating:** Republic: name known from 3668 BBY [Great Galactic War §Capture of the Dread Masters](https://starwars.fandom.com/wiki/Great_Galactic_War); first recorded Republic assault 3640 BBY [Dromund Kaas/Legends §Intro](https://starwars.fandom.com/wiki/Dromund_Kaas/Legends).
+- **6. Gating:** Republic: name known from 3668 BBY [Great Galactic War §Capture of the Dread Masters](https://starwars.fandom.com/wiki/Great_Galactic_War); first Republic assault 3640 BBY [Dromund Kaas/Legends §Intro](https://starwars.fandom.com/wiki/Dromund_Kaas/Legends).
 - **Cross-reference:** Planet, Kaas City and society: see SW_Dromund_Kaas_Part1/Part2.
 ### Hoth
 - **Type:** celestial body, class Terrestrial · **Status:** full
@@ -304,7 +304,7 @@ Control column is shortened; see each entry for citations. Grid = Legends infobo
 - **Type:** celestial body, class Terrestrial · **Status:** full
 - **1. Location:** region Unknown Regions; grid G-7 (The Essential Atlas, 2009); sector 7G sector; system Ilum system; routes: Metellos–Ilum hyperlane. [Ilum §infobox](https://starwars.fandom.com/wiki/Ilum/Legends)
 - **2. Control 3661:** Republic and Jedi; used as a staging ground because its location and lanes were hard to navigate [Battle of Ilum (Great Galactic War)](https://starwars.fandom.com/wiki/Battle_of_Ilum_(Great_Galactic_War)). A Sith attack occurred sometime in 3681–3653 BBY [BTS: SWTOR website 2008, removed 2011] [Battle of Ilum (Great Galactic War)](https://starwars.fandom.com/wiki/Battle_of_Ilum_(Great_Galactic_War)).
-  - 3681–3653 BBY (undated): Sith attack [Battle of Ilum (Great Galactic War)](https://starwars.fandom.com/wiki/Battle_of_Ilum_(Great_Galactic_War))
+  - 3681–3653 BBY [note: undated]: Sith attack [Battle of Ilum (Great Galactic War)](https://starwars.fandom.com/wiki/Battle_of_Ilum_(Great_Galactic_War))
   - 3640 BBY: Battle of Ilum [3640 BBY](https://starwars.fandom.com/wiki/3640_BBY)
   - 3623 BBY: Alliance reconnaissance of the Emperor's Fortress [3623 BBY](https://starwars.fandom.com/wiki/3623_BBY)
 - **3. World:** climate: Frigid; planet 90% ice; terrain: Caverns; Ice flows; Icy mountains; Snow; atmosphere: Type I (breathable); population: Imperial Era: 5,200: ; 45% support crew ; 30% temporary researchers ; 20% military ; 5% other. [Ilum §infobox](https://starwars.fandom.com/wiki/Ilum/Legends)
@@ -350,7 +350,7 @@ Control column is shortened; see each entry for citations. Grid = Legends infobo
 ### Manaan
 - **Type:** celestial body, class Waterworld · **Status:** full
 - **1. Location:** region Inner Rim ; The Slice; grid O-11 (The Essential Atlas, 2009); sector —; system Pyrshak system; routes: none listed. [Manaan §infobox](https://starwars.fandom.com/wiki/Manaan/Legends)
-- **2. Control 3661:** Neutral Selkath, but surface cities destroyed by the Empire during the Great Galactic War [Manaan/Legends §Autonomy](https://starwars.fandom.com/wiki/Manaan/Legends); [Great Galactic War §Battles for the Outer Rim](https://starwars.fandom.com/wiki/Great_Galactic_War). [unclear] whether this was before or after 3661.
+- **2. Control 3661:** Neutral Selkath, but surface cities destroyed by the Empire during the Great Galactic War [Manaan/Legends §Autonomy](https://starwars.fandom.com/wiki/Manaan/Legends); [Great Galactic War §Battles for the Outer Rim](https://starwars.fandom.com/wiki/Great_Galactic_War). [unclear: whether this was before or after 3661.]
   - 3681–3671 BBY [inferred from 'Battles for the Outer Rim' sequence]: surface cities destroyed [Great Galactic War §Battles for the Outer Rim](https://starwars.fandom.com/wiki/Great_Galactic_War)
   - 3637 BBY: Revanite operation [3637 BBY](https://starwars.fandom.com/wiki/3637_BBY)
   - 3625 BBY: Imperial invasion for kolto [3625 BBY](https://starwars.fandom.com/wiki/3625_BBY)
@@ -391,7 +391,7 @@ Control column is shortened; see each entry for citations. Grid = Legends infobo
 - **3. World:** terrain: Fertile agricultural fields (pre–4999 BBY); Barren plains (4999 BBY–3630 BBY); Forests (post 3630 BBY); atmosphere: Type I (breathable for humans); population: Millions (pre–4999 BBY) ; Several dozens (post–4999 BBY); other species in SWTOR-era sources: Sith (pre–4999 BBY); None (4999 BBY–3630 BBY); government (SWTOR-era refs): Autocracy (pre–4999 BBY). [Nathema §infobox](https://starwars.fandom.com/wiki/Nathema)
 - **4. Places (era-sourced):** At least one city; Dozens of villages; Sanitarium; Verdant Valley; Vitiate's palace [unconfirmed in window for 3661: on record from SWTOR-era sources, mostly c. 3643–3622 BBY].
 - **5. Role 3661:** HIDDEN
-- **6. Gating:** Gated: no routes on record until the Alliance era.
+- **6. Gating:** Gated: no known routes until the Alliance era.
 ### Odessen
 - **Type:** celestial body · **Status:** full
 - **1. Location:** region Wild Space; grid no Legends grid (infobox marks it Canon-only); sector —; system —; routes: none listed. [Odessen §infobox](https://starwars.fandom.com/wiki/Odessen)
@@ -430,7 +430,7 @@ Control column is shortened; see each entry for citations. Grid = Legends infobo
 ### Serenno
 - **Type:** celestial body, class Terrestrial · **Status:** full
 - **1. Location:** region Outer Rim Territories; grid P-5 (Essential Atlas Online Companion, 2009); sector D'Astan sector; system Serenno system; routes: Spurs of Celanon. [Serenno §infobox](https://starwars.fandom.com/wiki/Serenno/Legends)
-- **2. Control 3661:** [conflict] Republic-held with Jedi Master Ven Zallow's base until taken by Malgus: 'about 3661 BBY' [Serenno/Legends §The Old Republic](https://starwars.fandom.com/wiki/Serenno/Legends) vs 'c. 3660 BBY' [Battle of Serenno](https://starwars.fandom.com/wiki/Battle_of_Serenno); [3660 BBY](https://starwars.fandom.com/wiki/3660_BBY).
+- **2. Control 3661:** Republic-held with Jedi Master Ven Zallow's base until taken by Malgus, c. 3660 BBY [conflict: 'about 3661 BBY' or 'c. 3660 BBY'] [Serenno/Legends §The Old Republic](https://starwars.fandom.com/wiki/Serenno/Legends); [Battle of Serenno](https://starwars.fandom.com/wiki/Battle_of_Serenno); [3660 BBY](https://starwars.fandom.com/wiki/3660_BBY).
   - c. 3661/3660 BBY: captured by the Empire; dissent massacred [Great Galactic War §The Imperial advance continues](https://starwars.fandom.com/wiki/Great_Galactic_War)
 - **3. World:** terrain: Rainforests; Misty rivers; Mountains; Savannahs; Oceans; atmosphere: Type I (breathable); language: Galactic Basic Standard. [Serenno §infobox](https://starwars.fandom.com/wiki/Serenno/Legends)
 - **4. Places (era-sourced):** none listed with era sources.
@@ -440,7 +440,7 @@ Control column is shortened; see each entry for citations. Grid = Legends infobo
 - **Type:** celestial body, class Terrestrial · **Status:** full
 - **1. Location:** region Outer Rim Territories ; New Territories; grid N-7 (Essential Atlas Online Companion, 2009); sector Ojoster sector ; Taris subsector; system Taris system; routes: Mandalorian Road. [Taris §infobox](https://starwars.fandom.com/wiki/Taris/Legends)
 - **2. Control 3661:** Republic claim over a ruined, unresettled world [inferred: recolonization only began during the Cold War] [Taris/Legends §Rehabitation](https://starwars.fandom.com/wiki/Taris/Legends).
-  - Great Galactic War, undated: Jedi rebuilding plans foiled by the Sith [Taris/Legends §Intro](https://starwars.fandom.com/wiki/Taris/Legends)
+  - Great Galactic War [note: undated]: Jedi rebuilding plans foiled by the Sith [Taris/Legends §Intro](https://starwars.fandom.com/wiki/Taris/Legends)
   - 3648 BBY: Taris Resettlement Initiative begins [3648 BBY](https://starwars.fandom.com/wiki/3648_BBY)
   - 3642 BBY: Empire occupies Taris, halting resettlement [3642 BBY](https://starwars.fandom.com/wiki/3642_BBY)
 - **3. World:** climate: Temperate; terrain: Urban sprawl; Oceans; atmosphere: Type I (breathable); population: 60 billion (4156 BBY) ; 6 billion (3956 BBY) ; 30% Human, 70% other ; 1 billion (3 ABY); native species: Nekghoul; language: Galactic Basic Standard; other species in SWTOR-era sources: Aqualish; Bith; Cathar; Drovian; Duros; Gamorrean (+12 more on the page); government (SWTOR-era refs): Republic. [Taris §infobox](https://starwars.fandom.com/wiki/Taris/Legends)

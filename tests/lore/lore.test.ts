@@ -147,7 +147,7 @@ Legends lore reference. [A source](https://example.org/x)
   it('reads minor-figure tables by their headers, and skips group headings, master indexes and verdict tables', () => {
     const bo = built.chunks.find((c) => c.canonId === 'lore:bo-tarn')!;
     expect(bo.kind).toBe('bench');
-    expect(bo.text).toBe('Bo Tarn (male Zabrak): Knight at Alderaan. In 3661 BBY / 3653 BBY: active / dead.');
+    expect(bo.text).toBe('Bo Tarn (male Zabrak): Knight at Alderaan. In 3661 BBY: active. In 3653 BBY: dead.');
     expect(built.chunks.map((c) => c.title).sort()).toEqual(['Ana Vel', 'Bo Tarn']);
   });
 });
@@ -334,7 +334,7 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
     expect(parseYearRange('c. 3,522–c. 3,400 BBY')).toEqual({ from: -3522, to: -3400 });
   });
   it('undated rows of a span are background: inside the span, when named or on the spot, never by the year (D-485)', () => {
-    const bg = LORE_INDEX.chunks.filter((x) => x.kind === 'background');
+    const bg = LORE_INDEX.chunks.filter((x) => x.kind === 'background' && /^tl:undated-or-spanning/.test(x.id));
     expect(bg.length).toBe(7);
     expect(bg.every((x) => x.fromYear >= -3600 && x.toYear === -2001)).toBe(true);
     expect(bg.find((x) => /Rifle Worlds/.test(x.text))!.fromYear).toBe(-3000); // its own span starts inside the section's
@@ -348,6 +348,47 @@ A war from 3,689 BBY to 3,680 BBY [W](https://x.org); [V](https://y.org). The ro
     // Outside the span (the default campaign year, and after it) it is not sent even when named.
     for (const year of [-3661, -2000]) expect(sent({ year, playerText: normalizeText('I ask about the Barabel War'), locationNames: ['taanab'] })).toEqual([]);
     expect(LORE_INDEX.chunks.some((x) => (x.kind === 'overview' || x.kind === 'timeline') && /Undated Or Spanning/.test(x.title))).toBe(false);
+  });
+  it('the undated 3,950-3,701 BBY rows are background too, and rows later than the span are left to their own set (D-486)', () => {
+    const bg = LORE_INDEX.chunks.filter((x) => x.kind === 'background' && /^tl:undated-within-the-span/.test(x.id));
+    expect(bg.length).toBe(17);
+    expect(bg.every((x) => x.fromYear >= -3950 && x.toYear <= -3701)).toBe(true);
+    const text = bg.map((x) => x.text).join('\n');
+    // Nothing tells how or when the span ends, and the three rows after 3,701 BBY are not here.
+    expect(/Tasiele|Tol Braga|Chiss|Darth Marr|centuries|Wookieepedia|Gnost-Dural|\[|\b36\d\d/.exec(text)?.[0]).toBeUndefined();
+    const sent = (year: number, o: { locationNames?: string[]; playerText?: string } = {}) =>
+      retrieveLore(LORE_INDEX, { canonIds: [], names: [], locationNames: [], year, ...o }, 100000, est).included.filter((s) => s.chunk.kind === 'background').map((s) => s.text);
+    expect(sent(-3850)).toEqual([]);
+    expect(sent(-3850, { locationNames: ['korriban'] }).some((t) => /guards abandoned Korriban/.test(t))).toBe(true);
+    expect(sent(-3850, { playerText: normalizeText('What became of HK-47?') }).some((t) => /HK-47/.test(t))).toBe(true);
+    expect(sent(-3661, { locationNames: ['korriban'], playerText: normalizeText('What became of HK-47?') })).toEqual([]);
+    expect(sent(-3850, { locationNames: ['zakuul'] })).toEqual([]); // the Eternal Empire stands only from 3,756 BBY for certain
+    expect(sent(-3740, { locationNames: ['zakuul'] }).length).toBe(1);
+    const rows = (y: number): string => LORE_INDEX.chunks.filter((x) => x.kind === 'timeline' && x.fromYear === y && x.toYear === y).map((x) => x.text).join('\n');
+    expect(rows(-3699)).toMatch(/Tasiele Shan/);
+    expect(rows(-3681)).toMatch(/Tol Braga/);
+    // Vitiate: his father at about ten (5,103), Lord at thirteen (5,100).
+    expect(rows(-5103)).not.toMatch(/Lord Vitiate/);
+    expect(rows(-5100)).toMatch(/thirteen, goes before Marka Ragnos/);
+  });
+  it('planets, species and the 3,661 BBY roster: no source tags or remarks reach the narrator (D-486)', () => {
+    const chunks = LORE_INDEX.chunks.filter((x) => /^(pl-|sp-|c09p)/.test(x.id));
+    const hits = chunks.flatMap((x) => {
+      const m =
+        /\[(?:inferred|conflict|unclear|BTS|gray|unconfirmed|note|both|date range|other era)|\binfobox|Wookieepedia|\b(?:the|his|her) page\b|\bpage'?s\b|lore batch|\bruling \d|\bD-\d{3}|\bSW_\w|\bnot stated|no source found|not on record|not given|era-sourced|SWTOR|game stat|Uncertainty|playable-ready|character file|Essential Atlas|undated|other-era figure|none (?:found|specific)|;[.;]|\.\.|''/im.exec(x.text);
+      return m ? [`${x.id}: ${m[0]}`] : [];
+    });
+    expect(hits).toEqual([]);
+    const at = (id: string): string => LORE_INDEX.chunks.find((x) => x.id === id)!.text;
+    // The story around a remark stays.
+    expect(at('c09p3b:broysc')).toMatch(/died c\. 3641 BBY on the Wrath's interceptor\. In 3653 BBY: Druckenwell\.$/);
+    expect(at('c09p1:zym')).toMatch(/in 3661 BBY he was Grand Master\. In 3653 BBY/);
+    expect(at('sp-oldrepublic-p1:twilek')).toMatch(/5\. Culture and homeworld:\n- Ryloth/);
+    expect(at('sp-oldrepublic-p1:twilek')).toMatch(/The Hutts hold it in 3661 BBY\./);
+    expect(at('pl-oldrepublic-p1:corellia')).toMatch(/2\. Control in 3661 BBY: Republic\./);
+    // The places known mostly from the later sources are still offered in 3,661 BBY, and say so.
+    const hoth = LORE_INDEX.chunks.find((x) => x.id === 'pl-oldrepublic-p1:hoth')!;
+    expect(hoth.parts!.filter((p) => p.year <= -3661).map((p) => p.text).join('')).toMatch(/Places \(most known from about 3643 BBY on\): Dorn Base/);
   });
   it('3,700 BBY-25 ABY: no research wording reaches the narrator, and eras of the same name do not merge (D-485)', () => {
     const tl = LORE_INDEX.chunks.filter((x) => x.id.startsWith('tl:') && x.toYear >= -3700);

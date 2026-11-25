@@ -333,7 +333,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "control": [
    {
     "bby": 3661,
-    "text": "[unclear] Occupied by the Empire early in the war; Garza's platoon fought a ten-month campaign from 3674 BBY;. Holder at 3661 not stated"
+    "text": "Occupied by the Empire early in the war; Garza's platoon fought a ten-month campaign from 3674 BBY;. [unclear: holder at 3661 not stated."
    }
   ],
   "role": "OFFSTAGE",
@@ -618,7 +618,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "control": [
    {
     "bby": 3661,
-    "text": "[unclear] battle site; [BTS] mention removed from SWTOR website in 2011)"
+    "text": "[unclear] battle site; [BTS: mention removed from SWTOR website in 2011])"
    }
   ],
   "role": "CONTESTED",
@@ -762,7 +762,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   ],
   "role": "IMP-CORE",
   "gated": false,
-  "gating": "Republic: name known from 3668 BBY; first recorded Republic assault 3640 BBY.",
+  "gating": "Republic: name known from 3668 BBY; first Republic assault 3640 BBY.",
   "full": true
  },
  {
@@ -822,7 +822,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "control": [
    {
     "bby": 3661,
-    "text": "[unclear] Jedi held positions here in the Minos Cluster campaign;; holder at 3661 not stated (Minos largely Imperial)"
+    "text": "Jedi held positions here in the Minos Cluster campaign;; the Minos Cluster is largely Imperial [unclear: holder at 3661 not stated]"
    }
   ],
   "role": "CONTESTED (Minos)",
@@ -974,7 +974,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "control": [
    {
     "bby": 3661,
-    "text": "Active front: Republic–Imperial ground campaign on Geonosis, dated between 3665 BBY and 3653 BBY; also the arena world where Imperial Intelligence raised Mandalore the Lesser"
+    "text": "Active front: Republic–Imperial ground campaign on Geonosis, some time between 3665 BBY and 3653 BBY; also the arena world where Imperial Intelligence raised Mandalore the Lesser"
    }
   ],
   "role": "CONTESTED (front line)",
@@ -1562,7 +1562,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "control": [
    {
     "bby": 3661,
-    "text": "Neutral Selkath, but surface cities destroyed by the Empire during the Great Galactic War;. [unclear] whether this was before or after 3661"
+    "text": "Neutral Selkath, but surface cities destroyed by the Empire during the Great Galactic War;. [unclear: whether this was before or after 3661."
    }
   ],
   "role": "NEUTRAL (devastated)",
@@ -1592,7 +1592,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "control": [
    {
     "bby": 3661,
-    "text": "Dead world: pirate population wiped out by Nok Drayen in the early years of the war. Exact year [unclear]"
+    "text": "Dead world: pirate population wiped out by Nok Drayen in the early years of the war. [unclear: exact year."
    }
   ],
   "role": "DEAD WORLD",
@@ -1778,7 +1778,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   ],
   "role": "HIDDEN",
   "gated": true,
-  "gating": "Gated: no routes on record until the Alliance era.",
+  "gating": "Gated: no known routes until the Alliance era.",
   "full": true
  },
  {
@@ -1847,7 +1847,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "control": [
    {
     "bby": 3661,
-    "text": "Sith Empire academy world in the Cold War; [unclear] for 3661 (first dated student 3655 BBY)"
+    "text": "Sith Empire academy world in the Cold War; [unclear: for 3661; first dated student 3655 BBY]"
    }
   ],
   "role": "IMP",
@@ -2248,7 +2248,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "control": [
    {
     "bby": 3661,
-    "text": "Strategically held Outer Rim trade hub; holder not named [unclear]"
+    "text": "Strategically held Outer Rim trade hub [unclear: holder not named]"
    }
   ],
   "role": "REP [unclear]",
@@ -2320,7 +2320,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "control": [
    {
     "bby": 3661,
-    "text": "[conflict] Republic-held with Jedi Master Ven Zallow's base until taken by Malgus: 'about 3661 BBY' vs 'c. 3660 BBY';"
+    "text": "Republic-held with Jedi Master Ven Zallow's base until taken by Malgus, c. 3660 BBY [conflict: 'about 3661 BBY' or 'c. 3660 BBY'];;"
    }
   ],
   "role": "FRONT LINE",
@@ -2737,7 +2737,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "control": [],
   "role": "UNKNOWN [inferred]",
   "gated": false,
-  "gating": "Remote; no 3661 record.",
+  "gating": "Remote [note: no 3661 record].",
   "full": false
  },
  {
@@ -2774,7 +2774,7 @@ export const PLANETS: readonly GeneratedPlanet[] = [
   "control": [
    {
     "bby": 3661,
-    "text": "Eternal Empire (Valkorion) in Wild Space; no contact with the galaxy recorded before 3636 BBY"
+    "text": "Eternal Empire (Valkorion) in Wild Space; no contact with the galaxy before 3636 BBY"
    }
   ],
   "role": "WILD (Eternal Empire)",
@@ -5280,7 +5280,7 @@ export const ROUTES_ATTESTED: readonly GeneratedRoute[] = [
   "control": [
    {
     "bby": 3661,
-    "text": "Hutt, neutral [inferred from Nal Hutta, Part A]. Nar Shaddaa's infobox also lists the Oktos Route, Rycar's Run and Shag Pabol. (The Pabol Hutta is Canon-sourced; see Canon only.)"
+    "text": "Hutt, neutral [inferred from Nal Hutta, Part A]. The Oktos Route, Rycar's Run and Shag Pabol also serve Nar Shaddaa. [note: the Pabol Hutta is Canon-sourced; see Canon only.]"
    }
   ],
   "attested": true,

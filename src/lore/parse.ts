@@ -185,7 +185,7 @@ interface Era {
 }
 
 /** Research tags in the bot's timeline rows ("[conflict]", "[inferred]", "[Ruled ...]", "[S-canon]"): kept in the lore file, not sent as story. */
-const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort|S-canon|Ruled|weak|unconfirmed|primary|dating derived|carried over|note|game-derived)\b[^\]]*\]/gi;
+const RESEARCH_TAG = /\s*\[(?:conflict|unclear|inferred|BTS|gray|last resort|S-canon|Ruled|weak|unconfirmed|primary|dating derived|carried over|note|game-derived|both inferred|date range only|other era)\b[^\]]*\]/gi;
 /** A row a ruling set aside ("[Ruled 24 Nov 2026: not used ...]", D-477): kept in the file as a record, never sent. */
 const RULED_OUT = /\[Ruled [^\]:]*: not used\b/i;
 /** A line known only from tabletop or MMO rules (D-484, ruling 13): an idea for the mechanics, never sent. A note inside the tag ("[game-derived: ...]") is dropped on its own, by RESEARCH_TAG. */
@@ -404,10 +404,12 @@ function parseTimeline(fileKey: string, contents: readonly string[], out: LoreCh
   }
 
   // Undated rows of a whole span (D-485): one chunk each, sent inside the span when its people, its place or its
-  // subject come up (lore/retrieve.ts). A row with a span of its own keeps the part inside the section's.
+  // subject come up (lore/retrieve.ts). A row with a span of its own keeps the part inside the section's, and is not
+  // sent when no part is.
   background.forEach((b, i) => {
     const own = parseYearRange(b.date);
-    const inside = own && own.from < own.to && own.from <= b.era.to && own.to >= b.era.from ? own : b.era;
+    if (own && own.from < own.to && (own.from > b.era.to || own.to < b.era.from)) return; // outside the span: its own era's file has it
+    const inside = own && own.from < own.to ? own : b.era;
     for (const p of b.places) vocabulary.add(p);
     out.push({
       id: `${fileKey}:${b.era.slug}:${i + 1}`,
@@ -519,6 +521,68 @@ const stripLinks = (s: string): string => s.replace(/\[([^\]]*)\]\([^)]*\)/g, '$
 const stripCitations = (s: string): string =>
   s.replace(/\s*\[[^\]]*\]\(https?:(?:[^()]|\([^()]*\))*\)/g, '').replace(/\s+([.,;:])/g, '$1').replace(/\s{2,}/g, ' ');
 
+/** Fields of the roster, species and planet entries that speak of the research, not the world (D-486). */
+const RESEARCH_FIELD = /^\s*-\s*\*\*(?:Uncertainty|Not used|Cross-reference|Related|Key facts):?\*\*/i;
+/** What the research looked for and did not find ("birth not stated", "no source found"), one clause at a time. */
+const ABSENCE =
+  /\b(?:not (?:stated|given|on record)|none (?:listed|stated|found|specific|at scale)|no (?:death|fall|birth)\b.*\b(?:recorded|given|stated)|no source found|nothing on record|not named|none named|no numbers?\b|no (?:era|species) rate)\b|^population: other-era figure only$/i;
+/** Labels that name the sources: "Places (era-sourced)", "government (SWTOR-era refs)". The places are mostly on record late. */
+const SOURCE_LABEL: readonly (readonly [RegExp, string])[] = [
+  [/\*\*4\. Places \(era-sourced\):\*\*(?=.*\[unconfirmed in window)/, '**4. Places (most known from about 3643 BBY on):**'],
+  [/\*\*4\. Places \(era-sourced\):\*\*/, '**4. Places:**'],
+  [/\bother species in SWTOR-era sources:/, 'other species:'],
+  [/\bgovernment \(SWTOR-era refs\):/, 'government:'],
+  [/\s*·\s*\*\*Status:\*\*.*$/, ''],
+  [/(\*\*Type:\*\*\s*species\b[^.]*)\..*$/i, '$1.'],
+  [/\*\*Control 3661:\*\*/, '**Control in 3661 BBY:**'],
+  [/\*\*2\. Control 3661:\*\*/, '**2. Control in 3661 BBY:**'],
+];
+/** Book titles behind a figure: "grid M-10 (The Essential Atlas, 2009)". */
+const BOOK_ASIDE = /\s*\((?:The )?Essential Atlas[^()]*\)|\s*\(stated\)|\s*\([^()]*\bnot (?:stated|given)[^()]*\)|\s*\((?:no record|other source)\)/g;
+/** A figure's or a place's two dated columns: "3661 BBY / 3653 BBY: not stated / Druckenwell" -> "In 3653 BBY: Druckenwell." */
+function datedPair(value: string): string {
+  const v = value.trim().replace(/\.$/, '');
+  const [a, b, ...rest] = v.split(' / ');
+  const says = (x: string | undefined): x is string => !!x && !/^[—-]$/.test(x.trim()) && !ABSENCE.test(x);
+  if (b === undefined || rest.length) return dropAbsences(v === '—' ? '' : `In 3661 BBY / 3653 BBY: ${v}.`);
+  return [says(a) ? `In 3661 BBY: ${a.trim()}.` : '', says(b) ? `In 3653 BBY: ${b.trim()}.` : ''].filter(Boolean).join(' ');
+}
+
+/** Drops the clauses that only say what is not known; a label left with nothing goes too. */
+function dropAbsences(line: string): string {
+  if (!ABSENCE.test(line)) return line;
+  const label = /^\s*-?\s*(?:\d[\d–-]*\.\s*)?[A-Z0-9][^.;:]{0,40}:\s+/.exec(line)?.[0] ?? '';
+  const sentences = (line.slice(label.length).match(SENTENCE) ?? []).map((s) => {
+    const clauses = s.trim().replace(/[.]$/, '').split(/;\s+/).filter((c) => !ABSENCE.test(c));
+    return clauses.length ? `${clauses.join('; ')}.` : '';
+  });
+  const kept = sentences.filter(Boolean).join(' ');
+  if (!kept) return '';
+  // "In 3661 BBY: not stated. After the war ..." keeps the second sentence without the label it doesn't answer.
+  return (!sentences[0] && /3661/.test(label) ? (/^\s*-\s/.exec(label)?.[0] ?? '') : label) + kept;
+}
+
+/**
+ * Body lines of a roster, species or planet entry as story: fields about the research, citations, source tags and
+ * remarks on what is not recorded are dropped (D-486). The files keep them.
+ */
+function researchLines(lines: readonly string[]): string[] {
+  return lines
+    .filter((l) => !RESEARCH_FIELD.test(l))
+    .map((l) => {
+      const indent = /^\s*/.exec(l)![0];
+      let t = l;
+      for (const [re, to] of SOURCE_LABEL) t = t.replace(re, to);
+      t = cleanTimelineText(t.replace(/\*\*/g, '')).replace(BOOK_ASIDE, '').replace(/;?\s*\b(?:grid|sector —)(?=;)/g, '').replace(/\bpopulation: other-era figure only(?:;\s*|(?=\.)|$)/, '').replace(/(Places[^:]*:) None;/, '$1').replace(/'{2,}/g, '');
+      const pair = /^(-\s*)3661 BBY \/ 3653 BBY:\s*(.* \/ .*)$/.exec(t);
+      t = pair ? datedPair(pair[2]!) && pair[1]! + datedPair(pair[2]!) : dropAbsences(t);
+      t = t.replace(/;(?=\s*[.;])/g, '').replace(/\.\s+\.(?=\s|$)|\.\.(?=\s|$)/g, '.');
+      // A label whose value was all remarks goes; a heading over a list ("5. Culture and homeworld:") stays.
+      return /:\s*\.?$/.test(t) && !/:(?:\*\*)?\s*$/.test(l) ? '' : t && indent + t;
+    })
+    .filter((l) => l.trim());
+}
+
 /** Entry types that are people (or a named group of people) in the bot's template. */
 const PERSON_TYPE = /^\s*-\s*\*\*Type:\*\*\s*(character|characters|class protagonist|group\b)/i;
 
@@ -572,7 +636,7 @@ function parseBotCharacterFile(fileKey: string, content: string, out: LoreChunk[
   for (const s of sections) {
     if (s.body.some((l) => PERSON_TYPE.test(l))) {
       const { name } = parseCharacterHeading(stripLinks(s.heading));
-      const body = s.body.filter((l) => !PERSON_TYPE.test(l) && !/^\s*-\s*\*\*(Era|Related|Key facts):\*\*/i.test(l)).map(stripCitations);
+      const body = researchLines(s.body.filter((l) => !PERSON_TYPE.test(l) && !/^\s*-\s*\*\*Era:\*\*/i.test(l)));
       add('character', s.heading, `${name}\n${proseLines(body)}`);
     }
     let header: string[] | null = null;
@@ -581,7 +645,7 @@ function parseBotCharacterFile(fileKey: string, content: string, out: LoreChunk[
         header = null;
         continue;
       }
-      const cs = cells(line).map((c, i) => (i === 0 ? stripLinks(c) : stripCitations(c)));
+      const cs = cells(line).map((c, i) => (i === 0 ? stripLinks(c) : cleanTimelineText(c)));
       if (!header) {
         header = cs;
         continue;
@@ -594,10 +658,10 @@ function parseBotCharacterFile(fileKey: string, content: string, out: LoreChunk[
       const rawName = cs[0] ?? '';
       if (!rawName || /generic/i.test(rawName)) continue;
       const { name } = parseCharacterHeading(rawName);
-      const species = speciesCol >= 0 ? cs[speciesCol] ?? '' : '';
+      const species = speciesCol >= 0 ? (cs[speciesCol] ?? '').split(/,\s*/).filter((x) => !ABSENCE.test(x)).join(', ') : '';
       const role = cs[roleCol] ?? '';
-      const status = statusCol >= 0 && cs[statusCol] && cs[statusCol] !== '—' ? ` In 3661 BBY / 3653 BBY: ${cs[statusCol]}.` : '';
-      add('bench', rawName, `${name}${species ? ` (${species})` : ''}: ${role}.${status}`.replace(/\.\./g, '.'));
+      const status = statusCol >= 0 && cs[statusCol] ? datedPair(cs[statusCol]!) : '';
+      add('bench', rawName, `${name}${species ? ` (${species})` : ''}: ${role}.${status && ` ${status}`}`.replace(/\.\./g, '.'));
     }
   }
   return true;
@@ -637,7 +701,7 @@ function parseSpeciesFile(fileKey: string, content: string, out: LoreChunk[]): v
     if (/^sith$/i.test(name)) raw.push('pureblood');
     const base = [...new Set(raw.map(normalizeAlias).filter((a) => a.length >= 3 && !AMBIGUOUS_SPECIES_NAMES.has(a)))];
     const names = [...new Set(base.flatMap((a) => (a.endsWith('s') ? [a] : [a, `${a}s`])))];
-    const body = s.body.filter((l) => !/^\s*-\s*\*\*(Related|Key facts):\*\*/i.test(l)).map(stripCitations);
+    const body = researchLines(s.body);
     out.push({
       id: `${fileKey}:${slugify(name)}`,
       kind: 'species',
@@ -706,7 +770,7 @@ function parsePlanetFile(fileKey: string, content: string, out: LoreChunk[]): vo
     const id = `${fileKey}:${slugify(name)}`;
     if (!name || seen.has(id)) continue;
     seen.add(id);
-    const body = s.body.filter((l) => !isTableLine(l) && !/^\s*-\s*\*\*Cross-reference:\*\*/.test(l)).map((l) => stripCitations(l).replace(POPULATION, 'population: other-era figure only'));
+    const body = researchLines(s.body.filter((l) => !isTableLine(l)).map((l) => stripCitations(l).replace(POPULATION, 'population: other-era figure only')));
     const norm = normalizeText(name);
     const head = `${name} (${isPlanet ? 'world' : 'hyperspace route'})`;
     const prose = proseLines(body);

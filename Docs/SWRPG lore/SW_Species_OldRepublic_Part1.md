@@ -51,7 +51,7 @@ This file covers the species a player or NPC can belong to in the Old Republic e
   3. **Strengths and weaknesses:**
      - None are stated as species traits.
      - Human societies can change very quickly to suit conditions [Human/Legends §Society and culture](https://starwars.fandom.com/wiki/Human/Legends).
-  4. **Force:** no species rate is stated. The page links long life to a strong connection with the Force [Human/Legends §Life cycle](https://starwars.fandom.com/wiki/Human/Legends).
+  4. **Force:** no species rate is stated. Long life goes with a strong connection to the Force [Human/Legends §Life cycle](https://starwars.fandom.com/wiki/Human/Legends).
   5. **Culture and homeworld:**
      - Homeworld unknown; most believe it was a Core World, possibly Coruscant [Human/Legends §Origin](https://starwars.fandom.com/wiki/Human/Legends).
      - They worked every profession: spacers, mercenaries, smugglers, merchants, soldiers, farmers and crime lords [Human/Legends](https://starwars.fandom.com/wiki/Human/Legends).
@@ -89,11 +89,11 @@ This file covers the species a player or NPC can belong to in the Old Republic e
      - Korriban was retaken by the Empire as a top priority at the war's start and was an Imperial centre of learning after the Treaty [Korriban/Legends §Great Galactic War](https://starwars.fandom.com/wiki/Korriban/Legends)[Korriban/Legends §Cold War](https://starwars.fandom.com/wiki/Korriban/Legends).
      - Purebloods were born into privilege and prepared from childhood for the Korriban academy [Sith (species)/Legends §Cold War](https://starwars.fandom.com/wiki/Sith_%28species%29/Legends).
      - By 3642 BBY an estimated 97.8% of the Empire had some Sith ancestry, usually too little to show [Sith (species)/Legends §Hybridization](https://starwars.fandom.com/wiki/Sith_%28species%29/Legends).
-  6. **Languages:** Sith (infobox) [Sith (species)/Legends](https://starwars.fandom.com/wiki/Sith_%28species%29/Legends). The page does not say whether Purebloods of this era spoke Basic.
+  6. **Languages:** Sith (infobox) [Sith (species)/Legends](https://starwars.fandom.com/wiki/Sith_%28species%29/Legends). [note: the page does not say whether Purebloods of this era spoke Basic.]
   7. **Era notes:**
      - The Emperor kept many Purebloods in his inner circle [Sith (species)/Legends §Cold War](https://starwars.fandom.com/wiki/Sith_%28species%29/Legends).
-     - **Sith hybrid:** Exal Kressh is listed as a hybrid showing only red skin, yellow eyes and Force-sensitivity [Sith (species)/Legends §Hybridization](https://starwars.fandom.com/wiki/Sith_%28species%29/Legends). The same page's Cold War section calls her "a Pureblood" [Sith (species)/Legends §Cold War](https://starwars.fandom.com/wiki/Sith_%28species%29/Legends) [conflict] (see Part 3).
-     - No separate "Sith hybrid" page was found.
+     - **Sith hybrid:** Exal Kressh was a hybrid showing only red skin, yellow eyes and Force-sensitivity [Sith (species)/Legends §Hybridization](https://starwars.fandom.com/wiki/Sith_%28species%29/Legends). [conflict: the same page's Cold War section calls her "a Pureblood" (see Part 3).] [Sith (species)/Legends §Cold War](https://starwars.fandom.com/wiki/Sith_%28species%29/Legends)
+     - [note: no separate "Sith hybrid" page was found.]
 - **Related:** Human; Korriban Academy file (Purebloods favoured by Harkun; Ffon Althe).
 - **Uncertainty:** [conflict] Exal Kressh's label.
 
@@ -103,12 +103,12 @@ This file covers the species a player or NPC can belong to in the Old Republic e
 - **Key facts:**
   1. **Body:**
      - Blue skin [Chiss/Legends](https://starwars.fandom.com/wiki/Chiss/Legends). A fully grown Chiss stands 1.6–2.1 m [Chiss/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Chiss/Legends).
-     - The infobox lists glowing red eyes and above-average night vision (infobox) [Chiss/Legends](https://starwars.fandom.com/wiki/Chiss/Legends).
+     - Glowing red eyes and above-average night vision (infobox) [Chiss/Legends](https://starwars.fandom.com/wiki/Chiss/Legends).
      - Most are in very good shape, attributed to an active metabolism [Chiss/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Chiss/Legends).
   2. **Lifespan and ageing:**
      - Chiss grow faster than Humans: at 10 a Chiss has the physical maturity of a 20-year-old Human [Chiss/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Chiss/Legends). This comes from an in-universe "University of Sanbra" article in Star Wars Gamer, not from a stat block.
      - Up to 80 years. Child 1–10, middle age 51–62, old 63–79, venerable 80 (game stat: Alien Anthology and UAA) [Chiss/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Chiss/Legends).
-  3. **Strengths and weaknesses:** the page links fast growth to an emotional maturity "many times above" that of Humans [Chiss/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Chiss/Legends). No physical weakness is stated.
+  3. **Strengths and weaknesses:** their fast growth brings an emotional maturity "many times above" that of Humans [Chiss/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Chiss/Legends). [note: no physical weakness is stated.]
   4. **Force:** the few Force-sensitive Chiss could not develop their talent at home. Any Chiss found using the Force inside the Ascendancy was executed [Chiss/Legends §Chiss and the Force](https://starwars.fandom.com/wiki/Chiss/Legends).
   5. **Culture and homeworld:**
      - Csilla, in the Unknown Regions [Chiss/Legends](https://starwars.fandom.com/wiki/Chiss/Legends).
@@ -121,7 +121,7 @@ This file covers the species a player or NPC can belong to in the Old Republic e
      - The only formal ally of the Empire in the Great Galactic War and the Cold War. They escaped the subjugation most alien species suffered.
      - Some served as Imperial Agents or bounty hunters, and a few rare Chiss held official Imperial military rank.
      - Chiss agents were loaned to the Imperial forces on Hoth for cold-weather training [Chiss/Legends §The Ascendancy](https://starwars.fandom.com/wiki/Chiss/Legends).
-     - The character files have no named Chiss with a dated role. The Human Raina Temple served in the Chiss forces [Raina Temple](https://starwars.fandom.com/wiki/Raina_Temple).
+     - [note: the character files have no named Chiss with a dated role.] The Human Raina Temple served in the Chiss forces [Raina Temple](https://starwars.fandom.com/wiki/Raina_Temple).
 - **Related:** Imperial Military file (Chiss in field hospitals; Hoth enclave).
 - **Uncertainty:** the age bands are game stats. The "10 = 20" maturity line is in-universe prose in a game magazine.
 
@@ -140,7 +140,7 @@ This file covers the species a player or NPC can belong to in the Old Republic e
   5. **Culture and homeworld:**
      - Ryloth [Twi'lek/Legends](https://starwars.fandom.com/wiki/Twi%27lek/Legends).
      - Slavery was the main currency of Ryloth and was tolerated by the Republic. Females were prized by slavers as dancers and status symbols [Twi'lek/Legends §Society and culture](https://starwars.fandom.com/wiki/Twi%27lek/Legends).
-     - **In 3661 BBY:** the Twi'lek clans regained Ryloth from the Hutts only "sometime after 3643 BBY" [Twi'lek/Legends §Homeworld reclaimed](https://starwars.fandom.com/wiki/Twi%27lek/Legends). Hutt control in 3661 BBY is therefore [inferred].
+     - **In 3661 BBY:** the Twi'lek clans regained Ryloth from the Hutts only "sometime after 3643 BBY" [Twi'lek/Legends §Homeworld reclaimed](https://starwars.fandom.com/wiki/Twi%27lek/Legends). The Hutts hold it in 3661 BBY [inferred].
      - **Names:** Twi'leks run names together so that they carry a meaning in Twi'leki. Wedge Antilles became "Wedgan'tilles", "Slayer of Stars" [Twi'lek/Legends §Twi'lek names](https://starwars.fandom.com/wiki/Twi%27lek/Legends).
   6. **Languages:** Twi'leki (also called Ryl or Rylothean) mixes spoken words with lekku movement and was as widespread as Basic. Pure Lekku sign is used only by Twi'leks [Twi'lek/Legends §Language](https://starwars.fandom.com/wiki/Twi%27lek/Legends).
   7. **Era notes:**
@@ -196,7 +196,7 @@ This file covers the species a player or NPC can belong to in the Old Republic e
   5. **Culture and homeworld:**
      - Mirial [Mirialan/Legends](https://starwars.fandom.com/wiki/Mirialan/Legends).
      - Mirial sided with the Sith during the Jedi Civil War and returned to the Republic after Malak's death [Mirial/Legends §History](https://starwars.fandom.com/wiki/Mirial/Legends).
-     - **In 3661 BBY:** a refuge for Outer Rim refugees from the war's start [Mirial/Legends §History](https://starwars.fandom.com/wiki/Mirial/Legends)[Mirialan/Legends §History](https://starwars.fandom.com/wiki/Mirialan/Legends). Republic alignment is [inferred].
+     - **In 3661 BBY:** a refuge for Outer Rim refugees from the war's start [Mirial/Legends §History](https://starwars.fandom.com/wiki/Mirial/Legends)[Mirialan/Legends §History](https://starwars.fandom.com/wiki/Mirialan/Legends). Aligned with the Republic [inferred].
   6. **Languages:** Mirialan and Basic (infobox) [Mirialan/Legends](https://starwars.fandom.com/wiki/Mirialan/Legends).
   7. **Era notes:**
      - In the Cold War a tectonic gap on Mirial revealed an underground city [Mirial/Legends §History](https://starwars.fandom.com/wiki/Mirial/Legends).
@@ -213,13 +213,13 @@ This file covers the species a player or NPC can belong to in the Old Republic e
   1. **Body:**
      - No working eyes. They perceive through Force sight instead and can "see" the Force radiating from Jedi and Sith [Miraluka/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Miraluka/Legends).
      - Height 1.8 m (game stat: Knights of the Old Republic Campaign Guide; infobox) [Miraluka/Legends](https://starwars.fandom.com/wiki/Miraluka/Legends).
-  2. **Lifespan and ageing:** up to 84 years (game stat: UAA; infobox) [Miraluka/Legends](https://starwars.fandom.com/wiki/Miraluka/Legends). No prose figure.
+  2. **Lifespan and ageing:** up to 84 years (game stat: UAA; infobox) [Miraluka/Legends](https://starwars.fandom.com/wiki/Miraluka/Legends). [note: no prose figure.]
   3. **Strengths and weaknesses:** the strength of each Miraluka's link to the Force varies [Miraluka/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Miraluka/Legends). They have little interest in technology [Miraluka/Legends §Society and culture](https://starwars.fandom.com/wiki/Miraluka/Legends).
   4. **Force:**
      - The whole species is Force-sensitive [Miraluka/Legends](https://starwars.fandom.com/wiki/Miraluka/Legends).
      - Their homeworld's infrared light made them lose their eyesight over generations, and Force sight took over [Miraluka/Legends §History](https://starwars.fandom.com/wiki/Miraluka/Legends).
      - They are shocked by life not connected to the Force [Miraluka/Legends §Society and culture](https://starwars.fandom.com/wiki/Miraluka/Legends).
-     - For the Luka Sene, see SW_Force_Traditions_AllEras_Part1.
+     - [note: for the Luka Sene, see SW_Force_Traditions_AllEras_Part1.]
   5. **Culture and homeworld:**
      - Their adopted homeworld is Alpheridies. Most are content farmers there with little interest in leaving [Miraluka/Legends §Society and culture](https://starwars.fandom.com/wiki/Miraluka/Legends)[Miraluka/Legends §Miraluka in the galaxy](https://starwars.fandom.com/wiki/Miraluka/Legends).
      - Alpheridies fell to the Sith in the Jedi Civil War [Alpheridies/Legends §History](https://starwars.fandom.com/wiki/Alpheridies/Legends). Control in 3661 BBY: not stated.
@@ -239,9 +239,9 @@ This file covers the species a player or NPC can belong to in the Old Republic e
 - **Key facts:**
   1. **Body:**
      - Fur and thick manes. Retractable claws deliver powerful killing blows [Cathar/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Cathar/Legends).
-     - Average height 1.5–1.9 m [Cathar/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Cathar/Legends); 1.8 m (males) and 1.6 m (females) in the infobox [Cathar/Legends](https://starwars.fandom.com/wiki/Cathar/Legends).
+     - Average height 1.5–1.9 m [Cathar/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Cathar/Legends); 1.8 m (males) and 1.6 m (females) (infobox) [Cathar/Legends](https://starwars.fandom.com/wiki/Cathar/Legends).
      - Born in litters [Cathar/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Cathar/Legends).
-  2. **Lifespan and ageing:** adult from 18, old from 66, venerable from 90 (game stat: UAA; full bands in Part 3) [Cathar/Legends](https://starwars.fandom.com/wiki/Cathar/Legends). No prose figure.
+  2. **Lifespan and ageing:** adult from 18, old from 66, venerable from 90 (game stat: UAA; full bands in Part 3) [Cathar/Legends](https://starwars.fandom.com/wiki/Cathar/Legends). [note: no prose figure.]
   3. **Strengths and weaknesses:** the claws are their natural weapon. The males were thought too uncontrollable to enslave [Cathar/Legends](https://starwars.fandom.com/wiki/Cathar/Legends).
   4. **Force:** Force-sensitive Cathar often became Jedi, although the Jedi way often ran against their nature. The stories of Crado and Sylvar were known to all Cathar [Cathar/Legends §Cathar in the galaxy](https://starwars.fandom.com/wiki/Cathar/Legends).
   5. **Culture and homeworld:**
@@ -249,7 +249,7 @@ This file covers the species a player or NPC can belong to in the Old Republic e
      - Cathar females were prized as slaves [Cathar/Legends](https://starwars.fandom.com/wiki/Cathar/Legends).
      - The Mandalorians killed over 90% of the species at the Battle of Cathar, and the survivors later resettled [Cathar/Legends §History](https://starwars.fandom.com/wiki/Cathar/Legends).
      - **In 3661 BBY:** most Cathar sided with the Republic [Cathar/Legends §History](https://starwars.fandom.com/wiki/Cathar/Legends); homeworld control otherwise not stated.
-  6. **Languages:** Catharese, with some words growled [Cathar/Legends §Society and culture](https://starwars.fandom.com/wiki/Cathar/Legends). In the games, Cathar speak Basic with a heavy accent [BTS] [Cathar/Legends §Behind the scenes](https://starwars.fandom.com/wiki/Cathar/Legends).
+  6. **Languages:** Catharese, with some words growled [Cathar/Legends §Society and culture](https://starwars.fandom.com/wiki/Cathar/Legends). They speak Basic with a heavy accent [BTS] [Cathar/Legends §Behind the scenes](https://starwars.fandom.com/wiki/Cathar/Legends).
   7. **Era notes:**
      - By the Cold War many lived on Ord Mantell. Others tried to settle on Taris and were attacked by the Empire just before fighting resumed in the Galactic War.
      - Imperial Non-human Relations leaked that the Republic SIS had secretly held a Cathar prisoner on Belsavis for twenty years. This dented Cathar support for the Republic.
@@ -272,7 +272,7 @@ This file covers the species a player or NPC can belong to in the Old Republic e
   6. **Languages:** Rattataki (infobox) [Rattataki/Legends](https://starwars.fandom.com/wiki/Rattataki/Legends).
   7. **Era notes:**
      - Shortly after the war began, Vich captured hundreds of tribes as a private army. After his failed insurrection most were killed or enslaved; some acolytes were rumoured to have defected and been trained by the Sith [Rattataki/Legends §History](https://starwars.fandom.com/wiki/Rattataki/Legends).
-     - Korriban detail: see SW_Korriban_Academy.
+     - [note: Korriban detail: see SW_Korriban_Academy.]
      - **Named example:** Kaliyo Djannis, b. c. 3672 BBY, aged about 11 in 3661 BBY [inferred] [Kaliyo Djannis](https://starwars.fandom.com/wiki/Kaliyo_Djannis).
 - **Related:** Korriban Academy and Dromund Kaas files.
 - **Uncertainty:** none.
@@ -317,7 +317,7 @@ This file covers the species a player or NPC can belong to in the Old Republic e
   4. **Force:**
      - Most have black eyes. Silver irises are often seen as a mark of Force affinity [Kel Dor/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Kel_Dor/Legends).
      - The idea of Kel Dor telepathy was a lie spread by the Baran Do sages [Kel Dor/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Kel_Dor/Legends).
-     - For the Baran Do, see SW_Force_Traditions_AllEras_Part1.
+     - [note: for the Baran Do, see SW_Force_Traditions_AllEras_Part1.]
   5. **Culture and homeworld:**
      - Dorin. Technology strongly shapes their society [Kel Dor/Legends §Society and culture](https://starwars.fandom.com/wiki/Kel_Dor/Legends).
      - Given names copy the sounds of Dorin's atmospheric phenomena [Kel Dor/Legends §Naming traditions](https://starwars.fandom.com/wiki/Kel_Dor/Legends).
@@ -364,7 +364,7 @@ This file covers the species a player or NPC can belong to in the Old Republic e
      - Lifespan of several standard centuries [Wookiee/Legends §Life cycle](https://starwars.fandom.com/wiki/Wookiee/Legends); "more than 400 standard years" (infobox) [Wookiee/Legends](https://starwars.fandom.com/wiki/Wookiee/Legends). They do not live as long as the millennial Gen'Dai [Wookiee/Legends §Life cycle](https://starwars.fandom.com/wiki/Wookiee/Legends).
      - Males take an initiation that begins young adulthood around age 12 [Wookiee/Legends §Life cycle](https://starwars.fandom.com/wiki/Wookiee/Legends).
      - Full adults from 18 (game stat: UAA) [Wookiee/Legends §Life cycle](https://starwars.fandom.com/wiki/Wookiee/Legends).
-     - Considered in their prime around 200 (Star Wars: The Visual Dictionary, not a game book) [Wookiee/Legends §Life cycle](https://starwars.fandom.com/wiki/Wookiee/Legends).
+     - Considered in their prime around 200 [note: Star Wars: The Visual Dictionary, not a game book] [Wookiee/Legends §Life cycle](https://starwars.fandom.com/wiki/Wookiee/Legends).
      - **Era example:** Bowdaar, b. 3838 BBY, so about 177 in 3661 BBY [inferred]. He fought over 10,000 arena matches across more than a century [Bowdaar §Biography](https://starwars.fandom.com/wiki/Bowdaar).
   3. **Strengths and weaknesses:** renowned for great strength, intelligence, loyalty and a short temper [Wookiee/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Wookiee/Legends). Usually gentle, but prone to devastating rages [Wookiee/Legends](https://starwars.fandom.com/wiki/Wookiee/Legends).
   4. **Force:** Senate politicians spoke of the "wisdom of the Wookiees" and saw them as in touch with the Force [Wookiee/Legends §Early history](https://starwars.fandom.com/wiki/Wookiee/Legends). No rate is stated.
@@ -414,7 +414,7 @@ This file covers the species a player or NPC can belong to in the Old Republic e
      - Height 1.5–1.7 m (infobox) [Rodian/Legends](https://starwars.fandom.com/wiki/Rodian/Legends).
   2. **Lifespan and ageing:** not stated. No source found.
   3. **Strengths and weaknesses:** a hunting culture [Rodian/Legends §Off their homeworld](https://starwars.fandom.com/wiki/Rodian/Legends). Their scent overwhelms most Humans [Rodian/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Rodian/Legends).
-  4. **Force:** the page's Force-sensitives section is post-era. No era rate.
+  4. **Force:** [note: the page's Force-sensitives section is post-era; no era rate.]
   5. **Culture and homeworld:**
      - Rodia. Its clans warred and enslaved one another [Rodian/Legends §Culture and history](https://starwars.fandom.com/wiki/Rodian/Legends).
      - Rodians off-world worked as bounty hunters, mercenaries or slavers [Rodian/Legends §Off their homeworld](https://starwars.fandom.com/wiki/Rodian/Legends).
@@ -468,12 +468,12 @@ This file covers the species a player or NPC can belong to in the Old Republic e
   1. **Body:** tall, tapering skulls up to 20 cm above the forehead hold binary brains fed by an extra heart [Cerean/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Cerean/Legends). Height 2 m (infobox) [Cerean/Legends](https://starwars.fandom.com/wiki/Cerean/Legends).
   2. **Lifespan and ageing:** adult 15–49, old 61–69, venerable 70+ (game stat: UAA) [Cerean/Legends](https://starwars.fandom.com/wiki/Cerean/Legends).
   3. **Strengths and weaknesses:** extraordinary thinking; they can focus on many things at once [Cerean/Legends](https://starwars.fandom.com/wiki/Cerean/Legends).
-  4. **Force:** about as common as in baseline Humans. Their binary brains may let some explore both light and dark [gray: cited to the Force and Destiny Core Rulebook, 2015] [Cerean/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Cerean/Legends).
+  4. **Force:** [gray: about as common as in baseline Humans; their binary brains may let some explore both light and dark; cited to the Force and Destiny Core Rulebook, 2015] [Cerean/Legends §Biology and appearance](https://starwars.fandom.com/wiki/Cerean/Legends).
   5. **Culture and homeworld:**
      - Cerea: a low-tech, isolationist world where offworld technology is allowed only in Outsider Citadels.
      - The government is matriarchal [Cerean/Legends §Society and culture](https://starwars.fandom.com/wiki/Cerean/Legends).
      - Control in 3661 BBY: not stated.
-  6. **Languages:** Cerean and Basic (infobox; origin and language cite Force and Destiny [gray]) [Cerean/Legends](https://starwars.fandom.com/wiki/Cerean/Legends).
+  6. **Languages:** [gray: Cerean and Basic (infobox; origin and language cite Force and Destiny)] [Cerean/Legends](https://starwars.fandom.com/wiki/Cerean/Legends).
   7. **Era notes:** Paran Am-Ris was active c. 3653 BBY [Paran Am-Ris](https://starwars.fandom.com/wiki/Paran_Am-Ris).
 - **Related:** none.
 - **Uncertainty:** [gray] on the Force rate and language. No pre-2014 Legends backing was found for the Force rate.
