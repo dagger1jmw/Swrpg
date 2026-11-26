@@ -183,7 +183,10 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
         const day = ctx.state.clock.now.day;
         const captors = blockadeCaptors(b, day);
         const taken = e['result'] === 'captured' ? [{ type: 'captivityBegan', source: 'blockade', sourceId: b.id, names: [], ...captors, atAbs: toAbsSecond(ctx.state.clock.now) + Number(e['hours']) * 3600 }] : [];
-        return { emit: taken, slice: { ...slice, blockades: recordRun(slice.blockades, e as unknown as RunRecorded, b, { day, turn: selectTurnInPlay(ctx.state) }) }, notes: [`blockade: ${b.name}: ${String(e['approach'])}, ${String(e['result'])}`] };
+        // The run's passage, papers or fine come out of the wallet; what it cannot cover is owed (the economy, M8 item 5).
+        const credits = Number(e['credits']);
+        const charged = credits > 0 ? [{ type: 'creditsCharged', credits, reason: `${b.name}: ${String(e['approach'])}`.slice(0, 120), lender: 'hutt' }] : [];
+        return { emit: [...charged, ...taken], slice: { ...slice, blockades: recordRun(slice.blockades, e as unknown as RunRecorded, b, { day, turn: selectTurnInPlay(ctx.state) }) }, notes: [`blockade: ${b.name}: ${String(e['approach'])}, ${String(e['result'])}`] };
       },
     },
     /** Engine: the player is taken (a fight's fate roll, a blockade run). One record for both (D-471). */
@@ -227,6 +230,7 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
         const had = slice.blockades.impounded !== null;
         const text = `${END_TEXT[how]}: no longer held by ${slice.captivity.group}${had ? (ship ? '; their ship is theirs again' : '; their ship is still impounded') : ''}`;
         return {
+          ...(how === 'ransomed' ? { emit: [{ type: 'creditsCharged', credits: RANSOM_CREDITS, reason: `ransom to ${slice.captivity.group}`.slice(0, 120), lender: 'hutt' }] } : {}),
           slice: {
             ...slice,
             captivity: null,

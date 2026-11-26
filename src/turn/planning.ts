@@ -9,7 +9,8 @@ import { selectPlanTriedToday } from '../features/combat/selectors';
 import { selectFatigue, selectIsSpent, selectLastingPenalty, selectWoundPenalty } from '../features/health/selectors';
 import { selectNpc } from '../features/npcs/selectors';
 import { selectPerformance, selectRust } from '../features/progression/selectors';
-import { selectCanPlan, selectDuelistBar } from '../features/world/selectors';
+import { selectCanBeat, selectCanPlan, selectDuelistBar } from '../features/world/selectors';
+import { planOpens } from '../engine/who';
 import type { GameEvent } from '../state/types';
 import type { GameState } from '../state/gameState';
 
@@ -26,7 +27,10 @@ export function tryPlan(state: GameState, intent: Intent): PlanTurn | { refused:
   const foe = selectNpc(state, plan.foeRef);
   if (!foe) return { refused: 'nobody known to plan against' };
   const bar = selectDuelistBar(state, foe.canonId);
-  if (bar !== 'top') return { refused: bar === 'apex' || bar === 'beyond' ? `no plan would be enough against ${foe.name}` : `no plan is needed to face ${foe.name}` };
+  // Lore ruling 3 (25 Nov 2026): a plan can win against a Master-level foe and buys time against a top duelist.
+  const opens = planOpens(bar);
+  if (opens === null) return { refused: bar === 'apex' || bar === 'beyond' ? `no plan would be enough against ${foe.name}` : `no plan is needed to face ${foe.name}` };
+  if (opens === 'win' && selectCanBeat(state, foe.canonId)) return { refused: `no plan is needed to face ${foe.name}` };
   if (!selectCanPlan(state)) return { refused: 'only the most skilled bounty hunters and Mandalorians can plan for such a foe' };
   if (selectPlanTriedToday(state, foe.id, plan.kind)) return { refused: 'already tried today' };
   const skills = PLAN.skills[plan.kind];

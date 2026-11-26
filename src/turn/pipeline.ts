@@ -457,8 +457,11 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
 
   // World events and timeline news this narration was given are now told (D-136, D-466).
   const told = selectWorldIdsToTell(resolved);
-  if (told.length) {
-    const w = applyEvents(deps.registry, state, [{ type: 'worldEventsTold', ids: told, turn: state.meta.turn }], { source: 'engine' });
+  // The money lines this narration was shown (the economy, M8 item 5).
+  const moneyTold = resolved.economy.log.filter((x) => x.toldTurn === null).length;
+  const tellEvents = [...(told.length ? [{ type: 'worldEventsTold', ids: told, turn: state.meta.turn }] : []), ...(moneyTold ? [{ type: 'economyTold', count: moneyTold, turn: state.meta.turn }] : [])];
+  if (tellEvents.length) {
+    const w = applyEvents(deps.registry, state, tellEvents, { source: 'engine' });
     state = w.state;
     appliedAll.push(...w.applied);
     rejected.push(...w.rejected);

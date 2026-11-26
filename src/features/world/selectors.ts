@@ -21,13 +21,13 @@ import { selectNpcs } from '../npcs/selectors';
 import { selectThreads } from '../threads/selectors';
 import { escapeRating, escapeSkill, fightSecurity, type Captivity } from './captivity';
 import { heatNow, pendingFor, runnerFor, stabilizesCaptives, standingBlockades, type BlockadesState } from './blockades';
-import { selectCanBeat, selectWorldPlayer } from './player';
+import { selectCanBeatNpc, selectWorldPlayer } from './player';
 import { timelineHandoff, untoldIds, type Handoff } from './handoff';
 import { actionMatters, controlNow, openNetwork, outcomeState, type ControlNow, type WorldAction, type WorldFacts } from './network';
 import type { NetworkState, Substitute, WorldEvent } from './world';
 
 export { handoffLines } from './handoff';
-export { selectCanBeat, selectCanPlan, selectDuelistBar, selectDuelTier, selectWorldPlayer } from './player';
+export { selectCanBeat, selectCanBeatNpc, selectCanPlan, selectDuelistBar, selectDuelTier, selectPlanWins, selectWorldPlayer } from './player';
 
 export const selectWorldLog = (s: GameState): readonly WorldEvent[] => s.world.log;
 /** World events the story has not told yet (they go into the next narration). */
@@ -91,7 +91,7 @@ function wonFight(s: GameState): WorldFacts['wonFight'] {
   return {
     id: last.id,
     stakes: last.stakes,
-    canonIds: mine.flatMap(({ n, gone }) => (n.canonId && !gone && selectCanBeat(s, n.canonId) ? [n.canonId] : [])),
+    canonIds: mine.flatMap(({ n, gone }) => (n.canonId && !gone && selectCanBeatNpc(s, n.id) ? [n.canonId] : [])),
     factions: foes.map((n) => n.factionId),
     places: placeNames(s, last.locationId ?? null),
   };

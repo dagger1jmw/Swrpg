@@ -29,7 +29,7 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [x] **4. Running the Hydian Way blockade (the Visz storyline; D-405 [5]).** *Built as one general system: D-469, D-470 (docs-v2/reports/m8-world-c.md, m8-world-c2.md; spec/blockades.md). Its numbers are accepted as invented starting numbers, to be revisited after playtests.*
 
   The travel system refuses a routine trip to a Hydian Way world inside the blockade strip (Eriadu, Malastare), or along the Hydian Way through it, in 3,661–3,660, for anyone but Mandalorians and Imperials; the strip's other worlds take a ×1.5 detour (src/data/travel.config.ts BLOCKADE; D-405 [2], D-406). Running it is a story event: Hutt backing, the Mandalorian pickets (hail, warn, intercept), the risk, and the 3,660 breakthrough by Hylo Visz's smugglers and the Republic Navy (D-380 [4], [10]; SW_Mandalorians_GGW_Part1, Game notes; SW_NarShaddaa_HuttSpace_GGW_Part1). Design the run (stakes, checks, consequences) and tie it to item 1's 3,660 event.
-- [ ] **5. Economy and prices (D-405 [5]).**
+- [x] **5. Economy and prices (D-405 [5]).** *Built: D-510 (spec/economy.md; docs-v2/reports/m8-economy.md). Every number not on record is invented (the spec's section 11); ship running costs wait for item 13, medicine prices for item 6.*
 
   Credits, prices and pay for the era, including the Coruscant food-price index of 3,661–3,660 (D-381 hook; numbers `invented`), Hutt debts and Exchange debt (D-385 hook) and bounty payouts. **Lore research due Monday;** design follows the research batch.
 - [ ] **6. Medicine and bacta (D-405 [5]).**

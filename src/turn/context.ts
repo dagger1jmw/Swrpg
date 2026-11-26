@@ -12,6 +12,7 @@ import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engi
 import { COVERT_ESCALATION, ORDER_POWER_RULES } from '../data/orderPowerRules';
 import { onRecordAt, onRecordFor } from '../data/canonPlacements';
 import { blockadeLines, describeTravel } from './travel';
+import { selectEconomyLines } from '../features/economy/selectors';
 import { rankErasAt } from '../data/eraRanks';
 import { closedWorlds, mapSide, WORLD_STATES, worldStateAt } from '../data/galaxyMap';
 import { healingFluidAt } from '../data/health.config';
@@ -314,6 +315,7 @@ export function stateBlock(
     ...(orderPowersLine(state) ? [orderPowersLine(state)!] : []),
     ...worldLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
     ...blockadeLines(state),
+    ...selectEconomyLines(state),
     ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), namedCanonIds(state, focus, playerText, -dateFromAbsDay(now.day).year)),
     ...holocronLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), playerText),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,

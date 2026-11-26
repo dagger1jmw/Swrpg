@@ -5,7 +5,7 @@ import type { FactionId } from '../../data/entities.config';
 import { RANK_BY_ID, rankDef } from '../../data/rankMinimums';
 import { RANK_STEPS, type DuelTier, type WorldPlayer } from '../../data/who';
 import { dateFromAbsDay } from '../../engine/calendar';
-import { canBeat, canPlan, duelTier, isTrust, postsHeld, whoHolds } from '../../engine/who';
+import { canBeat, canPlan, duelTier, isTrust, planOpens, planReady, postsHeld, whoHolds } from '../../engine/who';
 import type { GameState } from '../../state/gameState';
 import { selectCharacter } from '../character/selectors';
 import { selectHasFlag } from '../flags/selectors';
@@ -69,3 +69,13 @@ export function selectCanBeat(s: GameState, canonId: string | null): boolean {
   const p = selectWorldPlayer(s);
   return canBeat(p.tier, bar) && guards.every((g) => whoHolds(g.who, p));
 }
+
+/** Whether the player's ready plan against this NPC wins the fight (lore ruling 3, 25 Nov 2026): a Master-level foe only. */
+export function selectPlanWins(s: GameState, npcId: string): boolean {
+  const n = s.npcs.byId[npcId];
+  if (!n || planOpens(selectDuelistBar(s, n.canonId)) !== 'win' || !selectCanPlan(s)) return false;
+  return planReady((s.combat.plans ?? []).map((p) => ({ ...p, here: p.locationId === s.locations.currentId })), npcId, s.clock.now.day);
+}
+
+/** selectCanBeat for a known NPC: a ready plan also opens a Master-level foe to the best non-Force fighters. */
+export const selectCanBeatNpc = (s: GameState, npcId: string): boolean => selectCanBeat(s, s.npcs.byId[npcId]?.canonId ?? null) || selectPlanWins(s, npcId);

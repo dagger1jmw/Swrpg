@@ -2,6 +2,7 @@
 import type { CharacterSlice } from '../features/character/character';
 import type { ClockSlice } from '../features/clock/clock';
 import type { CombatSlice } from '../features/combat/combat';
+import type { EconomySlice } from '../features/economy/economy';
 import type { FlagsSlice } from '../features/flags/flags';
 import type { HealthSlice } from '../features/health/health';
 import type { LocationsSlice } from '../features/locations/locations';
@@ -32,5 +33,6 @@ export type GameState = {
   threads: ThreadsSlice;
   ranks: RanksSlice;
   world: WorldSlice;
+  economy: EconomySlice;
   pacing: PacingSlice;
 };

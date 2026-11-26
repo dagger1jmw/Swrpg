@@ -3,10 +3,12 @@
 // reports birthdays). Then the §10 list: routines, health, progression, alignment, npcs and
 // relationships, threads, ranks, world, pacing; the interruption check is advanceTime itself.
 // Locations, memory and flags have no day hook and sit with clock and character (M2, M5). Later milestones
-// insert their features at their §10 slot.
+// insert their features at their §10 slot. The economy (M8 item 5) runs after the world, so a day's living is charged where
+// the character is once the world has moved on, and before pacing.
 import { characterFeature } from '../features/character';
 import { clockFeature } from '../features/clock';
 import { combatFeature } from '../features/combat';
+import { economyFeature } from '../features/economy';
 import { flagsFeature } from '../features/flags';
 import { healthFeature } from '../features/health';
 import { locationsFeature } from '../features/locations';
@@ -37,6 +39,7 @@ export const REGISTRY: Registry<GameState> = [
   threadsFeature,
   ranksFeature,
   worldFeature,
+  economyFeature,
   pacingFeature,
 ];
 
@@ -57,5 +60,6 @@ export const HOOK_ORDER: readonly string[] = [
   'threads',
   'ranks',
   'world',
+  'economy',
   'pacing',
 ];

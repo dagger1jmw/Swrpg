@@ -373,6 +373,8 @@ Cost: re-measure the D-267 mortal-wound targets and the duel lengths, and rewrit
 
 ## Economy
 
+As built: [economy.md](economy.md) (M8 item 5, D-510).
+
 The economy runs on the lore files SW\_Economy\_\* (in Docs/SWRPG lore/, with the rulings already made). The code owns every credit. The narrator reports what happens (bought X, was paid, paid a bribe); the code looks up the price, applies the modifiers and changes the balance. Any amount the narrator invents is ignored.
 
 ### Prices

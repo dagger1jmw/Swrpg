@@ -559,12 +559,12 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
       teachers: "trained by Gnost-Dural, then Malgus",
       source: "SW_Characters_09_GGW_ColdWar_Part2.md › Other Dark Councilors and senior Sith (table)"
     },
-    note: "a sheet drafted for review (Jared, D-501): every number is invented, set beside Acina's, Nox's, Baras's and Vowrawn's. From lore: Falleen; a Jedi under Gnost-Dural, then Malgus's apprentice; command of the Ascendant Spear through spinal and cranial implants; Niman; Force lightning; extensive knowledge of technology; a strategic mastermind and ruthless commander; ambitious, arrogant; killed Darth Gravus",
+    note: "a drafted sheet (Jared, D-501), kept as ruled (lore ruling 4, 25 Nov 2026): every number is invented, set beside Acina's, Nox's, Baras's and Vowrawn's. From lore: Falleen; a Jedi under Gnost-Dural, then Malgus's apprentice; command of the Ascendant Spear through spinal and cranial implants; Niman; Force lightning; extensive knowledge of technology; a strategic mastermind and ruthless commander; ambitious, arrogant; killed Darth Gravus",
     // D-501: Willpower 87 (Jared's target, 86-88, below Malgus's 94). Agility from the Falleen's quick reflexes, Charisma from
     // their pheromones, Intelligence from her technology and strategy; Soresu at a Jedi's off-form level (the Initiate survey). All invented. At 38 (D-502).
     // No Force lightning until her fall (3,645, invented; D-502). Niman is 3-5 below Gnost-Dural's best form in 3,640 (78.7; D-503): she could not beat
     // him alone, having spent most of her time learning to control the Ascendant Spear (lore).
-    anchors: [{ bby: 3645, complete: false, basis: 'sheet', sources: 'her fall (era09Timeline.ts, invented); D-502', levels: { forceLightning: 0 } }, { bby: 3640, complete: true, basis: 'sheet', sources: 'drafted from her lore for review (Jared, D-501); numbers invented', levels: { strength: 60, agility: 74, endurance: 66, willpower: 87, charisma: 84, intelligence: 88, forceSense: 82, meditation: 72, forceKnowledge: 80, forceControl: 84, forceOutput: 84, niman: 75, soresu: 20, shiiCho: 72, forceLightning: 82, telekinesis: 78 } }],
+    anchors: [{ bby: 3645, complete: false, basis: 'sheet', sources: 'her fall (era09Timeline.ts, invented); D-502', levels: { forceLightning: 0 } }, { bby: 3640, complete: true, basis: 'sheet', sources: 'drafted from her lore (Jared, D-501), kept as ruled (lore ruling 4, 25 Nov 2026); numbers invented', levels: { strength: 60, agility: 74, endurance: 66, willpower: 87, charisma: 84, intelligence: 88, forceSense: 82, meditation: 72, forceKnowledge: 80, forceControl: 84, forceOutput: 84, niman: 75, soresu: 20, shiiCho: 72, forceLightning: 82, telekinesis: 78 } }],
   },
   {
     canonId: "lore:darth-hadra",
@@ -2378,7 +2378,8 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Vrath Xizor",
     speciesId: "human",
     faction: "underworld",
-    archetype: "civilian",
+    // A mercenary and ex-Imperial sniper: the soldier's career (m8-economy; was civilian, D-509's list).
+    archetype: "soldier",
     birthBby: 3680,
     birthSource: "estimate",
     deathBby: 3653,

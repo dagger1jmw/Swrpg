@@ -38,6 +38,10 @@ export const FLAGS: readonly FlagDef[] = [
   { id: 'blockadePapers', param: true, sources: ['engine'], section: 'engine', readBy: 'running a blockade (riding under protection)' },
   { id: 'shipSystem', param: true, sources: ['engine'], section: 'engine', readBy: 'running a blockade (sneaking through)' },
   { id: 'fleetCommand', sources: ['engine'], section: 'engine', readBy: 'running a blockade (forcing through)' },
+  // The economy (M8 item 5): a Jedi's conduct with money, and a lender's bounty on the debtor. Renown (spec 24) reads them once built.
+  { id: 'jediRewardReputation', sources: ['engine'], section: 'engine', readBy: 'renown once built; context (a Jedi known to keep rewards)' },
+  { id: 'jediWealth', sources: ['engine'], section: 'engine', readBy: 'renown and alignment once built; context (attachment to wealth)' },
+  { id: 'debtBounty', param: true, sources: ['engine'], section: 'engine', readBy: 'world reactions: a lender bounty on the debtor (by lender)' },
   // §5 Player background flags (set at creation)
   { id: 'homeworld', param: true, sources: ['player'], section: 'background', readBy: 'backstory facts, context' },
   { id: 'warYears', param: true, sources: ['player'], section: 'background', readBy: 'character creation E/CI, closed form' },

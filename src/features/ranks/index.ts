@@ -219,6 +219,12 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
         };
       },
     },
+    /** Engine: Order standing lost for conduct (the economy, M8 item 5: a reputation for keeping rewards, amassing wealth). */
+    orderStandingLost: {
+      schema: z.object({ type: z.literal('orderStandingLost'), cause: z.string().max(120), points: z.number().min(0).max(50) }),
+      sources: ['engine'],
+      handle: (slice, e) => ({ slice: { ...slice, reputationPenalty: (slice.reputationPenalty ?? 0) + Number(e['points']) }, notes: [`Order standing -${Number(e['points'])}: ${String(e['cause'])}`] }),
+    },
     /** Engine: chosen as a Padawan (the monthly selection roll, or a Knight's interest while in the Corps). */
     padawanChosen: {
       schema: z.object({ type: z.literal('padawanChosen') }),

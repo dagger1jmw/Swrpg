@@ -40,7 +40,7 @@ import { TRAIL } from '../../data/holds';
 import { seedRng } from '../../engine/rng';
 import { selectLocationChain } from '../locations/selectors';
 import { pursuitSchema, type Pursuit } from './combat';
-import { selectCanBeat, selectCanPlan, selectDuelistBar, selectDuelTier, selectFightSecurity } from '../world/selectors';
+import { selectCanBeat, selectCanPlan, selectDuelistBar, selectDuelTier, selectFightSecurity, selectPlanWins } from '../world/selectors';
 import { fateIsLive, selectActiveFight, selectCombat, selectPlanReady } from './selectors';
 
 const absNow = (s: GameState): number => s.clock.now.day * 86_400 + s.clock.now.second;
@@ -124,6 +124,10 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
   // A plan holds unless the foe struck first (D-493).
   const planned = surprise !== 'B' && spec.stakes !== 'spar' && selectCanPlan(s) ? spec.opponentRefs.filter((id) => selectDuelistBar(s, selectNpc(s, id)?.canonId ?? null) === 'top' && selectPlanReady(s, id)) : [];
   for (const id of planned) notes.push(`the plan against ${selectNpc(s, id)!.name} holds: prepared, the character can buy time, not win`);
+  // Lore ruling 3 (25 Nov 2026): against a Master-level foe a plan that holds lets the character win.
+  const winning = surprise !== 'B' && spec.stakes !== 'spar' ? spec.opponentRefs.filter((id) => selectPlanWins(s, id)) : [];
+  for (const id of winning) notes.push(`the plan against ${selectNpc(s, id)!.name} holds: prepared, the character can win`);
+  const fightOpps = winning.length ? sparOpps.map((o) => (winning.includes(o.id) ? { ...o, aboveBar: false } : o)) : sparOpps;
   // Throwable objects: a seeded supply per terrain tag (D-146).
   const objects: Record<string, number> = {};
   const objectSizes: Record<string, ObjectSize> = {};
@@ -135,7 +139,7 @@ function startFight(s: GameState, spec: PendingFight, fightId: string): { active
     objects[t] = n;
     objectSizes[t] = tag.objects.size;
   }
-  const duel0 = startDuel(player, sparOpps, rng, surprise);
+  const duel0 = startDuel(player, fightOpps, rng, surprise);
   // The first bout's terrain accidents (D-144, D-184); a real fight is one bout. Health syncs like any duel damage.
   const hz = rollBoutHazards(duel0, ctx.hazards ?? [], selectNow(s).day);
   const duel = hz.duel;

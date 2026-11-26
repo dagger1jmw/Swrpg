@@ -56,6 +56,13 @@ export const canPlan = (x: { forceUser: boolean; archetype: string; combat: numb
 export const planReady = (lines: readonly { npcId: string; kind: string; day: number; here: boolean; success: boolean }[], npcId: string, day: number): boolean =>
   new Set(lines.filter((l) => l.success && l.npcId === npcId && l.here && day - l.day <= PLAN.days).map((l) => l.kind)).size >= PLAN.lines;
 
+/**
+ * What a ready plan does against a figure with this bar (lore ruling 3, 25 Nov 2026; amends D-493): against a Master-level
+ * foe (Grievous, Baras) the best bounty hunters and Mandalorians can win; against a top duelist they only buy time; an
+ * apex duelist or one beyond any duelist no plan touches.
+ */
+export const planOpens = (bar: DuelistBar | null): 'win' | 'time' | null => (bar === 'master' ? 'win' : bar === 'top' ? 'time' : null);
+
 /** Whether a fighter of this tier can beat a figure with this bar. */
 export const canBeat = (tier: DuelTier, bar: DuelistBar | null): boolean => bar === null || (bar !== 'beyond' && DUEL_TIERS.indexOf(tier) >= DUEL_TIERS.indexOf(bar));
 
