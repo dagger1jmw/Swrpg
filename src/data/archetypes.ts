@@ -15,6 +15,9 @@
 export type CharacterPath = 'jedi' | 'sith' | 'outsider' | 'career';
 export type Phase = 'initiate' | 'padawan' | 'knight';
 
+/** The crime lord's career paces (D-509; invented, set against Tassaa Bareesh and Suudaa Nemro). */
+export const CRIME_LORD_PACE = { charisma: 1.1, intelligence: 1.0, profession: 0.9, tactics: 0.7 } as const;
+
 export interface ArchetypeDef {
   id: string;
   name: string;
@@ -286,6 +289,24 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
       knight: {},
     },
   },
+  {
+    // A crime lord (Jared, D-509): runs a cartel or a criminal empire, by dealing, presence and planning, with others to do
+    // the fighting. Generated and canon NPCs only. The civilian's measured day with the hours moved from the trade to
+    // dealing and command: Charisma, Intelligence, Profession and Tactics as a career. Every pace invented.
+    id: 'crimeLord',
+    name: 'Crime lord',
+    path: 'career',
+    main: 'charisma',
+    weights: { charisma: 1.0, intelligence: 0.8, profession: 0.6, tactics: 0.5, willpower: 0.3, blaster: 0.1 },
+    startAge: 16,
+    startRange: [14, 40],
+    paces: {
+      knight: { charisma: CRIME_LORD_PACE.charisma, intelligence: CRIME_LORD_PACE.intelligence, profession: CRIME_LORD_PACE.profession, tactics: CRIME_LORD_PACE.tactics, willpower: 0.651, agility: 0.15, endurance: 0.25, strength: 0.2, blaster: 0.2, meditation: 0.06 },
+    },
+    formPaces: {
+      knight: {},
+    },
+  },
 ];
 
 export const ARCHETYPE_BY_ID: ReadonlyMap<string, ArchetypeDef> = new Map(ARCHETYPES.map((a) => [a.id, a]));
@@ -311,7 +332,7 @@ export const NPC_ARCHETYPES: Record<CharacterPath, readonly string[]> = {
   jedi: [],
   sith: [],
   outsider: [],
-  career: ['yuuzhanVongWarrior'],
+  career: ['yuuzhanVongWarrior', 'crimeLord'],
 };
 
 /** Training start range per path (character-creation §1); outsiders may start late, like Luke. */

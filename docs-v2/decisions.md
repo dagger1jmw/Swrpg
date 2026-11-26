@@ -1971,3 +1971,7 @@ Spec and decision changes only; no code. Each changed spec's export header lists
   - *Willpower's stop (fixes D-500 for long childhoods):* counted, like every other skill (D-507), from the start of training or adulthood with a childhood at the Human's pace. It had stopped a Hutt child's Willpower at training age 8 (a Hutt Master 43, now 90). Humans unchanged.
   - *Life experience (D-507):* the drift toward 75, about 63% of the gap in 150 years, +30 at most, from 20, is ruled.
   - *lore-rulings-2026-11-25.md:* kept in the repository, not applied; Jared confirms its rulings separately.
+- **D-509 Crime lords (Jared, 2026-11-25; m8-fix15).** Report: reports/m8-fix15.md.
+  - *A crime-lord archetype* (crimeLord; NPCs only): a career that trains Charisma, Intelligence, Profession and Tactics (paces 1.1, 1.0, 0.9, 0.7; invented), the civilian's day with the trade's hours moved to dealing and command; no arms of its own.
+  - *Tassaa Bareesh and Suudaa Nemro* are crime lords (were civilians): Tassaa Charisma 70 / 76 and Intelligence 63 / 69 in 3,661 / 3,640 (was 33 / 35 and 57 / 62); Nemro 76 and 75 (was 65 and 74). Both at Master.
+  - *Others on the civilian archetype*, listed and unchanged: Karagga (a leader, but his sheet sets his stats), Guss Tuno and Vrath Xizor (not leaders).

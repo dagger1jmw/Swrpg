@@ -2287,7 +2287,8 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Suudaa Nem'ro",
     speciesId: "hutt",
     faction: "underworld",
-    archetype: "civilian",
+    // A crime lord (Jared, D-509); was civilian.
+    archetype: "crimeLord",
     birthBby: 4241,
     birthSource: "lore",
     deathBby: 3641,
@@ -2305,7 +2306,8 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Tassaa Bareesh",
     speciesId: "hutt",
     faction: "underworld",
-    archetype: "civilian",
+    // A crime lord (Jared, D-509); was civilian.
+    archetype: "crimeLord",
     birthBby: 3900,
     birthSource: "estimate",
     note: "birth year: invented (Jared, D-508): about 240 in 3,661, an adult Hutt (adult at 200) through the Cold War; replaces 3,800, which left her a child to 3,600",

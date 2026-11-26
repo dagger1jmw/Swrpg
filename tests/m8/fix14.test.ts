@@ -41,7 +41,8 @@ describe('the roster (D-508)', () => {
     expect(canonLivedAgeAt(t, 3661)).toBeGreaterThan(speciesDef('hutt').maturity);
     for (const bby of [3661, 3640]) {
       const l = canonFigureLevelsAt(t, bby, day(bby));
-      expect(l['profession']!, String(bby)).toBeGreaterThan(75);
+      // A crime lord since D-509: the trade is not her main line any more.
+      expect(l['profession']!, String(bby)).toBeGreaterThan(50);
       expect(l['intelligence']!).toBeGreaterThan(50);
     }
   });

@@ -24,6 +24,8 @@ export const LOADOUT_BY_ARCHETYPE: Readonly<Record<string, Loadout>> = {
   smuggler: { weapon: 'blasterPistol', armor: 'none', saberResistant: false },
   bountyHunter: { weapon: 'blasterPistol', armor: 'light', saberResistant: false },
   civilian: NONE,
+  // A crime lord keeps guards to fight for them (D-509).
+  crimeLord: NONE,
   // The amphistaff and vonduun crab armor, both lightsaber-resistant (Characters_15 :34; D-224).
   yuuzhanVongWarrior: { weapon: 'melee', armor: 'heavy', saberResistant: true },
   // The melee warrior (D-422): a blade or a heavy close weapon, light armor; canon armor or weapon overrides it.
