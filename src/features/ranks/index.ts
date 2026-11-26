@@ -19,6 +19,7 @@ import { SERVICE_LADDER_BY_ID, SERVICE_LADDER_IDS, ladderExists } from '../../da
 import { PROGRAMME_BY_ID } from '../../data/trainingProgrammes';
 import { serviceEntryCheck, servicePromotionCheck } from '../../engine/serviceRanks';
 import { programmeEndDay, programmeEntry } from '../../engine/programmes';
+import { PROGRAMME_TACTICS } from '../../data/tactics';
 import { DAYS_PER_YEAR } from '../../engine/calendar';
 import { selectCharacter } from '../character/selectors';
 import type { SpeciesId } from '../../data/entities.config';
@@ -358,14 +359,18 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
     // A training programme runs its length, then ends with its graduation (m8-skills, D-513).
     let slice = sliceIn;
     const graduated: string[] = [];
+    const taught: GameEvent[] = [];
     if (slice.programme && day >= slice.programme.endDay) {
       const p = PROGRAMME_BY_ID.get(slice.programme.id);
       graduated.push(`${p?.name ?? slice.programme.id} is over: ${p?.graduation ?? 'graduated'}.`);
+      // The tactics the programme teaches (m8-ship-life part G: flight school, an officer academy, army training).
+      const sets = PROGRAMME_TACTICS[slice.programme.id] ?? [];
+      if (sets.length) taught.push({ type: 'tacticsLearned', sets: [...sets], source: `training: ${p?.name ?? slice.programme.id}` });
       const { programme: _done, ...rest } = slice;
       slice = rest;
     }
-    if (dateFromAbsDay(day).day !== 1) return { slice, ...(graduated.length ? { notices: graduated } : {}) };
-    const emit: GameEvent[] = [];
+    if (dateFromAbsDay(day).day !== 1) return { slice, ...(graduated.length ? { notices: graduated } : {}), ...(taught.length ? { emit: taught } : {}) };
+    const emit: GameEvent[] = [...taught];
     const notices: string[] = [...graduated];
     let rng = s.meta.rngState;
     const age = selectExactAge(s);

@@ -1,4 +1,4 @@
-// Side panel (D-100): tabs Character, People (with the review queue, architecture §7), Places,
+// Side panel (D-100): tabs Character, Possessions and Tactics (m8-ship-life), People (with the review queue, architecture §7), Places,
 // Threads, Memory, Debug (M2 debug view). Rendering and player actions only: reads state through
 // selectors, sends player events back to the app.
 import type { ContextReport, SectionReport } from '../turn/context';
@@ -29,8 +29,10 @@ import { renderHealthCard } from './healthCard';
 import { KNIGHT_TRIAL_IDS, TRIALS, type TrialId } from '../data/ranks.config';
 import { selectMayTakePadawan, selectStanding, selectTrialBlock } from '../features/ranks/selectors';
 import { el } from './dom';
+import { renderPossessions } from './possessionsTab';
+import { renderTactics } from './tacticsTab';
 
-export type PanelTab = 'character' | 'people' | 'places' | 'threads' | 'memory' | 'debug';
+export type PanelTab = 'character' | 'possessions' | 'tactics' | 'people' | 'places' | 'threads' | 'memory' | 'debug';
 
 export interface SidePanelProps {
   state: GameState;
@@ -53,7 +55,7 @@ export interface SidePanelProps {
   openRoutine(): void;
 }
 
-export const PANEL_TABS: Record<PanelTab, string> = { character: 'Character', people: 'People', places: 'Places', threads: 'Threads', memory: 'Memory', debug: 'Debug' };
+export const PANEL_TABS: Record<PanelTab, string> = { character: 'Character', possessions: 'Possessions', tactics: 'Tactics', people: 'People', places: 'Places', threads: 'Threads', memory: 'Memory', debug: 'Debug' };
 
 const nameOf = (s: GameState, id: string): string =>
   id === 'pc' ? s.character.name : (s.npcs.byId[id]?.name ?? s.locations.byId[id]?.name ?? s.threads.byId[id]?.title ?? id);
@@ -77,7 +79,11 @@ export function renderSidePanel(p: SidePanelProps): HTMLElement {
   const body =
     p.tab === 'character'
       ? character(p)
-      : p.tab === 'people'
+      : p.tab === 'possessions'
+        ? renderPossessions(p.state)
+        : p.tab === 'tactics'
+          ? renderTactics(p.state)
+          : p.tab === 'people'
         ? [...(reviewCount ? [el('h3', { text: `Needs review (${reviewCount})` }), ...review(p), el('h3', { text: 'People' })] : []), ...people(p)]
         : p.tab === 'places'
           ? places(p)

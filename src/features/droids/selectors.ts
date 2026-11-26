@@ -98,3 +98,23 @@ export function selectDroidLines(s: GameState): string[] {
   }
   return lines;
 }
+
+/** The Possessions tab's card for each droid (m8-ship-life part F): model, condition, modules, memory, bolt, where. */
+export function selectDroidCards(s: GameState): { id: string; name: string; model: string; condition: string; modules: string; memory: string; bolt: string; where: string }[] {
+  const day = today(s);
+  return selectDroids(s).map((u) => {
+    const m = modelOf(u);
+    const hurt = DROID_LOCATIONS.filter((l) => (u.systems[l] ?? 'working') !== 'working').map((l) => `${l} ${u.systems[l]}`);
+    const years = Math.max(0, (day - u.wipedDay) / 365.25);
+    return {
+      id: u.id,
+      name: u.name,
+      model: m.name,
+      condition: `${droidStatus(u, nowSec(s))}${hurt.length ? ` (${hurt.join(', ')})` : ''}`,
+      modules: [...u.modules.map((x) => `${x.skill} +${x.gain}`), ...u.reprogrammed.map((x) => `reprogrammed: ${x}`)].join(', ') || 'factory',
+      memory: `${years < 1 ? `${Math.round(years * 12)} months` : `${Math.round(years * 10) / 10} years`} since the last wipe; personality ${personalityStage(personalityP(u, day))}`,
+      bolt: u.bolt ? 'restraining bolt fitted' : 'no bolt',
+      where: u.impounded ? 'impounded' : 'with the character',
+    };
+  });
+}

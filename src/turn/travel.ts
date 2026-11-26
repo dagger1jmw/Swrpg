@@ -13,7 +13,16 @@ import { APPROACH_LABEL, approachOptions, blockadeStateAt, runBlockade, watchBlo
 import { dateFromAbsDay } from '../engine/calendar';
 import type { CheckCard } from '../engine/rolls';
 import type { RngState } from '../engine/rng';
-import { blocks, inZone, planTrip, type TravelWorld, type TripPlan } from '../engine/travel';
+import { blocks, gridDistance, inZone, planTrip, type TravelWorld, type TripPlan } from '../engine/travel';
+import { ASTROGATION, BERTH_BY_LIFESTYLE, CONSUMABLE_CREW_DAY, PASSAGE } from '../data/shipLife.config';
+import { RUNNING_COSTS, SHIP_FEES } from '../data/shipPrices';
+import { zoneOfRegion } from '../engine/economy';
+import { classLife, driveOf, legDc, offRouteLegs, overCapacity, passagePrice, rollBreakdown, rollLegs, runCustoms, shipEffects } from '../engine/shipLife';
+import { shipClass } from '../engine/ships';
+import { nextFloat } from '../engine/rng';
+import { selectAstromech } from '../features/droids/selectors';
+import { selectPerformance } from '../features/progression/selectors';
+import { selectShip, selectShipAt, selectShipCondition } from '../features/ships/selectors';
 import { selectCharacter } from '../features/character/selectors';
 import { selectNow } from '../features/clock/selectors';
 import { selectCurrentLocationId, selectLocationChain } from '../features/locations/selectors';
@@ -45,6 +54,10 @@ export interface TravelOutcome {
   blockade?: TravelBlockade;
   /** The run as it came out, for the narrator. */
   run?: { approach: BlockadeApproach; result: string; notes: readonly string[]; turnsInto: readonly BlockadeApproach[] };
+  /** The character's own ship flown (m8-ship-life); absent = passage on a liner (or a transport after an impound). */
+  shipId?: string;
+  /** Off the charted routes (Wild Space, the Unknown Regions): short jumps and an astrogation roll a leg. */
+  offRoute?: boolean;
 }
 
 const WORLDS: readonly MapNode[] = [...PLANETS, ...MENTION_ONLY];
@@ -85,9 +98,12 @@ interface Trip {
   from: TravelWorld;
   to: TravelWorld;
   plan: (leave?: string) => TripPlan;
-  ship: { name: string; class: number };
+  ship: { name: string; class: number; id?: string };
   standing: readonly BlockadeDef[];
+  offRoute: boolean;
 }
+
+const OFF_ROUTE = /wild space|unknown regions/i;
 
 function tripFor(state: GameState, intent: Intent): Trip | null {
   if (intent.actionType !== 'travel') return null;
@@ -108,14 +124,17 @@ function tripFor(state: GameState, intent: Intent): Trip | null {
   const bby = -dateFromAbsDay(selectNow(state).day).year;
   const name = dest.name;
   const closed = closedWorlds(mapSide(faction), bby).find((g) => g.place.toLowerCase() === name.toLowerCase() || name.toLowerCase().startsWith(`${g.place.toLowerCase()} `));
-  // With the character's own ship impounded, trips are by a civilian transport until ships are data (D-470 [6]).
-  const shipId = selectShipImpounded(state) ? 'civilianTransport' : ((c.start && START_SHIPS[c.start.optionId]) ?? DEFAULT_SHIP);
-  const ship = HYPERDRIVE_CLASSES[shipId]!;
+  // The character's own ship docked here (m8-ship-life; its drive with its upgrades), else passage on a liner; with the ship
+  // impounded at a blockade, a civilian transport (D-470 [6]). A save without ships keeps the old start ship (D-405).
+  const own = selectShipImpounded(state) ? null : selectShipAt(state, origin.world.name);
+  const legacy = (state as { ships?: unknown }).ships === undefined ? HYPERDRIVE_CLASSES[(c.start && START_SHIPS[c.start.optionId]) ?? DEFAULT_SHIP]! : null;
+  const ship: Trip['ship'] = own ? { name: own.name, class: driveOf(own.classId, own.mods) ?? PASSAGE.drive, id: own.id } : selectShipImpounded(state) ? HYPERDRIVE_CLASSES['civilianTransport']! : (legacy ?? { name: 'passage on a liner', class: PASSAGE.drive });
   const standing = selectStandingBlockades(state);
   const from = travelWorld(origin.world, standing, origin.station);
   const to = travelWorld(dest, standing);
-  const base = { from, to, faction, shipClass: ship.class, ...(closed ? { closedReason: `${closed.reason}${closed.storyException ? ` (only with a story reason: ${closed.storyException})` : ''}` } : {}) };
-  return { from, to, ship, standing, plan: (leave) => planTrip({ ...base, blockades: standing, ...(leave ? { runs: leave } : {}) }) };
+  const offRoute = OFF_ROUTE.test(dest.region) || OFF_ROUTE.test(origin.world.region);
+  const base = { from, to, faction, shipClass: ship.class, ...(offRoute ? { offLane: true } : {}), ...(closed ? { closedReason: `${closed.reason}${closed.storyException ? ` (only with a story reason: ${closed.storyException})` : ''}` } : {}) };
+  return { from, to, ship, standing, offRoute, plan: (leave) => planTrip({ ...base, blockades: standing, ...(leave ? { runs: leave } : {}) }) };
 }
 
 /** The trip a travel intent asks for, or null when it names no map world to go to (the narrator sets the time). */
@@ -123,13 +142,14 @@ export function planTravel(state: GameState, intent: Intent): TravelOutcome | nu
   const trip = tripFor(state, intent);
   if (!trip) return null;
   const { from, to, ship } = trip;
+  if (trip.offRoute && !ship.id) return { from: from.name, to: to.name, ship: ship.name, shipClass: ship.class, ok: false, reason: "no liner flies off the charted routes: it takes the character's own ship", parts: [], notes: [] };
   const held = selectCaptivity(state);
   if (held) return { from: from.name, to: to.name, ship: ship.name, shipClass: ship.class, ok: false, reason: `the character is a prisoner of ${held.group}`, parts: [], notes: [] };
   // A blockade just forced in a ship battle (D-517): the trip goes on past it.
   const day0 = selectNow(state).day;
   const forced = state.world.blockades.runs.find((r) => r.approach === 'force' && r.result === 'through' && r.to === to.name && day0 - r.day <= 1);
   const plan = forced ? trip.plan(forced.blockadeId) : trip.plan();
-  const base = { from: from.name, to: to.name, ship: ship.name, shipClass: ship.class };
+  const base = { from: from.name, to: to.name, ship: ship.name, shipClass: ship.class, ...(ship.id ? { shipId: ship.id } : {}), ...(trip.offRoute ? { offRoute: true } : {}) };
   if (plan.ok) return { ...base, ok: true, hours: plan.hours, parts: plan.parts, notes: plan.notes };
   const b = trip.standing.find((x) => x.id === plan.blockadeId);
   if (!b) return { ...base, ok: false, reason: plan.reason, parts: [], notes: [] };
@@ -267,4 +287,116 @@ export function describeTravel(t: TravelOutcome): string {
   }
   const ways = t.blockade ? ` Ways past it (offer only the open ones; invent no other): ${t.blockade.options.map((o) => `${o.label} [${o.available ? 'open' : 'not open'}: ${o.note}]`).join('; ')}.` : '';
   return `Travel refused: ${t.from} to ${t.to}: ${t.reason}. The character has not made the trip; narrate why not.${ways}`;
+}
+
+export interface ShipTrip {
+  travel: TravelOutcome;
+  events: readonly GameEvent[];
+  rng: RngState;
+}
+
+/** The character's astrogation off the charted routes: the better of Piloting and Intelligence (a reading: there is no skill). */
+const astrogationLevel = (state: GameState): number => Math.max(selectPerformance(state, 'piloting'), selectPerformance(state, 'intelligence'));
+
+/**
+ * What a trip costs and risks (m8-ship-life, D-519; spec ship-life section 5): passage for those without a ship (by distance and
+ * the lifestyle's berth; free when the Order or the service provides transport), or in the character's own ship: an astrogation
+ * roll a leg off the charted routes (a failure a reversion, a bad one a misjump), a breakdown roll a jump for a worn or
+ * over-modded ship, fuel a jump, the arrival fee, supplies used and restocked, and a customs check on arrival. Issued ships cost
+ * the character nothing to run (the issuer pays).
+ */
+export function shipTrip(state: GameState, intent: Intent, t: TravelOutcome): ShipTrip {
+  const from = byName.get(t.from.toLowerCase());
+  const to = byName.get(t.to.toLowerCase());
+  const squares = from && to ? (gridDistance(from.grid, to.grid) ?? 1) : 1;
+  const events: GameEvent[] = [];
+  let rng = state.meta.rngState;
+  const parts = [...t.parts];
+  const notes = [...t.notes];
+  const own = t.shipId ? selectShip(state, t.shipId) : null;
+  if (!own) {
+    const lifestyle = state.economy.lifestyle;
+    if (lifestyle === 'provided') parts.push('transport provided');
+    else {
+      const berth = BERTH_BY_LIFESTYLE[lifestyle] ?? 'standard';
+      const credits = passagePrice(squares, berth);
+      events.push({ type: 'creditsCharged', credits, reason: `passage ${t.from} to ${t.to} (${berth} berth)`.slice(0, 120), lender: 'bank' });
+      parts.push(`passage: a ${berth} berth, ${credits} cr`);
+    }
+    return { travel: { ...t, parts, notes }, events, rng };
+  }
+  const cls = shipClass(own.classId);
+  const fx = shipEffects(own.classId, own.mods);
+  const issued = own.hold === 'issued';
+  let extra = 0;
+  const legs = t.offRoute ? offRouteLegs(squares) : 1;
+  if (t.offRoute) {
+    const aid = fx.astrogation + (selectAstromech(state)?.hooks.copilot ?? 0) + (ASTROGATION.calculators[state.character.speciesId] ?? 0);
+    const dc = Math.max(legDc(from?.region ?? ''), legDc(to?.region ?? ''));
+    const r = rollLegs(rng, astrogationLevel(state), aid, legs, dc);
+    rng = r.rng;
+    extra += r.extraHours;
+    const failed = r.legs.filter((l) => !l.ok).length;
+    parts.push(`${legs} short jumps off the charted routes (astrogation against ${dc}${aid ? `, +${aid} from charts, a droid or the mind` : ''}): ${failed ? `${failed} short reversions, +${r.extraHours} h` : 'all clean'}`);
+    if (r.misjump) {
+      events.push({ type: 'hazardResolved', hazard: 'crash', severity: ASTROGATION.misjumpSeverity, cause: 'a misjump off the charted routes (a mass shadow)' });
+      notes.push('a misjump: the ship reverted hard near a mass shadow');
+    }
+  }
+  // A worn or over-modded ship may break down on a jump (Jared's ruling); a well-kept stock ship almost never does.
+  const cond = selectShipCondition(state, own.id);
+  const damaged = Object.values(cond?.systems ?? {}).some((v) => v === 'damaged' || v === 'disabled');
+  for (let j = 0; j < legs; j++) {
+    const [b, r] = rollBreakdown(rng, { wear: own.wear, over: overCapacity(own.classId, own.mods), damaged, patched: own.patched }, damaged ? 'runningDamaged' : 'jump');
+    rng = r;
+    const systems: Record<string, 'damaged'> = Object.fromEntries(b.patchesFailed.map((x) => [x, 'damaged' as const]));
+    if (b.broke && b.system) systems[b.system] = 'damaged';
+    if (Object.keys(systems).length) events.push({ type: 'shipConditionSet', shipId: own.id, classId: own.classId, name: own.name, systems });
+    if (b.broke) {
+      extra += b.hours;
+      notes.push(`${own.name}'s ${b.system} broke down in transit (+${b.hours} h)`);
+      parts.push(`+ ${b.hours} h breakdown (${b.system})`);
+      break;
+    }
+  }
+  const run = RUNNING_COSTS[cls.kind];
+  const hours = Math.round((t.hours! + extra) * 4) / 4;
+  const days = hours / 24;
+  const life = classLife(own.classId);
+  const aboard = Math.max(1, own.crew.length + 1);
+  // Supplies by the class's listed duration: a trip that outlasts them cannot be made; what it used is restocked on arrival.
+  if (days > own.supplies) return { travel: { ...t, ok: false, reason: `the trip (${Math.round(days * 10) / 10} days) outlasts ${own.name}'s supplies (${Math.round(own.supplies * 10) / 10} days)`, parts, notes }, events: [], rng: state.meta.rngState };
+  const restock = Math.round(CONSUMABLE_CREW_DAY * aboard * Math.min(life.consumablesDays, days));
+  if (!issued) {
+    events.push({ type: 'creditsCharged', credits: run.fuelPerJump * legs + SHIP_FEES.arrival, reason: `fuel (${legs} jump${legs === 1 ? '' : 's'}) and the arrival fee at ${t.to}`.slice(0, 120), lender: 'bank' });
+    if (restock > 0) events.push({ type: 'creditsCharged', credits: restock, reason: `supplies restocked at ${t.to}`.slice(0, 120), lender: 'bank' });
+  }
+  parts.push(issued ? `${own.name} is issued: fuel and supplies are the issuer's` : `fuel ${run.fuelPerJump * legs} cr, arrival ${SHIP_FEES.arrival} cr, supplies ${restock} cr`);
+  events.push({ type: 'shipTraveled', shipId: own.id, to: t.to, jumps: legs, days, resupplied: true });
+  // Customs on arrival (design notes, Customs and scans).
+  const zone = (to ? zoneOfRegion(to.region) : null) ?? 'mid';
+  const military = notes.some((n) => /blockade/.test(n));
+  const [corruptU, r1] = nextFloat(rng);
+  const [c, r2] = runCustoms(r1, {
+    zone,
+    atWar: military,
+    flagged: own.flagged,
+    standing: state.character.path === 'jedi' ? 'jedi' : null,
+    renown: own.renown,
+    inspector: military ? 'military' : zone === 'core' ? 'police' : 'port',
+    transponder: own.transponder,
+    reportedStolen: own.reportedStolen,
+    effects: fx,
+    contrabandUnits: own.cargo.filter((k) => k.contraband).reduce((n, k) => n + k.units, 0),
+    contrabandHidden: own.cargo.filter((k) => k.contraband && k.hidden).reduce((n, k) => n + k.units, 0),
+    bluff: selectPerformance(state, 'charisma'),
+    run: intent.blockade === 'force',
+    corruptU,
+  });
+  rng = r2;
+  if (c.checked) {
+    events.push({ type: 'customsChecked', shipId: own.id, world: t.to, outcome: c.outcome, found: c.found, fine: c.fine, bribe: c.bribe, flag: c.flag, inspector: military ? 'military' : zone === 'core' ? 'police' : 'port' });
+    notes.push(`customs at ${t.to}: ${c.outcome}${c.found.length ? ` (${c.found.join('; ')})` : ''}`);
+  }
+  return { travel: { ...t, hours, parts, notes }, events, rng };
 }

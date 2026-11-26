@@ -181,7 +181,7 @@ describe('currencies', () => {
     expect(ai(rep, [{ type: 'trade', dir: 'buy', item: 'medpac' }]).applied).toEqual([]);
     // Border or neutral space takes both at face value.
     const border = withWallet(at(fresh({ year: -3650 }), 'Ord Mantell', 'Mid Rim'), { imperial: 5000 });
-    expect(ai(border, [{ type: 'trade', dir: 'buy', item: 'medpac' }]).applied.length).toBe(1);
+    expect(ai(border, [{ type: 'trade', dir: 'buy', item: 'medpac' }]).applied.filter((a) => a.event.type === 'trade').length).toBe(1);
   });
   it('a money changer works only off the core worlds and takes 10-20%', () => {
     const core = withWallet(at(fresh({ year: -3650 }), 'Corellia', 'Core Worlds'), { imperial: 1000 });
@@ -241,7 +241,7 @@ describe('the Jedi and money', () => {
   it('the Order keeps a Jedi: no money of their own, room and board provided, gear from the quartermaster', () => {
     const s = jedi();
     expect(s.economy).toMatchObject({ wallet: { republic: 0, imperial: 0, hutt: 0 }, lifestyle: 'provided', job: { kind: 'order' } });
-    expect(ai(s, [{ type: 'trade', dir: 'issue', item: 'medpac' }]).applied.length).toBe(1);
+    expect(ai(s, [{ type: 'trade', dir: 'issue', item: 'medpac' }]).applied.filter((a) => a.event.type === 'trade').length).toBe(1);
     expect(ai(s, [{ type: 'trade', dir: 'issue', item: 'thermal detonator' }]).applied).toEqual([]);
     // Mission funds go apart and are returned; a Padawan's are held by the Master.
     const f = ai(s, [{ type: 'money', kind: 'missionFunds', size: 'small' }]).state;

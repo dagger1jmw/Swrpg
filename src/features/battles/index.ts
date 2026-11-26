@@ -5,7 +5,7 @@
 import { z } from 'zod';
 import { RUN_FAME } from '../../data/blockade.config';
 import { BLOCKADE_APPROACHES } from '../../data/blockades';
-import { BATTLE_MORALE, BATTLE_ROLES, BATTLE_TRIGGERS, BOARDING, CASUALTY_SHARE, COMMAND_SIZE_BY_SHIPS, CREW_BY_KIND, FIELD_REPAIR_HOURS, FIELD_REPAIR_RATING, FIGHT_PATCH_HOURS } from '../../data/shipBattles.config';
+import { AFTERMATH, BATTLE_MORALE, BATTLE_ROLES, BATTLE_TRIGGERS, BOARDING, CASUALTY_SHARE, COMMAND_SIZE_BY_SHIPS, CREW_BY_KIND, FIELD_REPAIR_HOURS, FIELD_REPAIR_RATING, FIGHT_PATCH_HOURS } from '../../data/shipBattles.config';
 import { FORMATIONS, MANOEUVRES, REPAIR_DC, SHIP_SYSTEMS } from '../../data/shipCombat.config';
 import { FACINGS } from '../../data/ships';
 import { FACTIONS } from '../../data/entities.config';
@@ -16,9 +16,16 @@ import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent, HandleResult } from '../../state/types';
 import { selectNow } from '../clock/selectors';
 import { selectPerformance } from '../progression/selectors';
-import { selectCaptivity } from '../world/selectors';
+import { selectCaptivity, selectFightSecurity } from '../world/selectors';
+import { selectNpc } from '../npcs/selectors';
+import { selectKnownTactics, selectRecognisedTactics } from '../tactics/selectors';
+import { npcTactics } from '../tactics';
+import { SHIP_RENOWN } from '../../data/shipLife.config';
+import { selectPresentNpcIds } from '../pacing/selectors';
+import { nextFloat, type RngState } from '../../engine/rng';
+import { toAbsSecond } from '../../engine/calendar';
 import { battlesSliceSchema, emptyBattles, type BattleRecord, type BattlesSlice, type ShipCondition } from './battles';
-import { boardingFought, buildBattle, commandSize, isMajor, outcomeOf, playOut, runToEnd, stepBattle, type Battle, type BattleOrders, type StepCtx, type StepResult } from './rules';
+import { boardingFought, buildBattle, commandSize, isMajor, knows, outcomeOf, playOut, runToEnd, stepBattle, type Battle, type BattleOrders, type StepCtx, type StepResult } from './rules';
 import { selectBattleLines } from './selectors';
 import { blockadeById, opposite, parseProposal, playerFaction, setupFromBlockade, setupFromProposal, troopsFor, yearOf, type Proposal } from './setup';
 
@@ -51,8 +58,71 @@ function condition(b: Battle, day: number): ShipCondition | null {
   return { id: s.id, classId: s.classId, name: s.name, hull: Math.max(0, s.hull), systems, burnt: Object.fromEntries(Object.entries(s.burnt).map(([k, v]) => [k, v ?? 0])), ammo: Object.fromEntries(Object.entries(s.ammo).map(([k, v]) => [k, v])), day };
 }
 
+/** Who holds the field when it ends: the winner; with no winner, each side keeps its own (a reading). */
+export const fieldHolder = (b: Battle): 'player' | 'enemy' => (b.end?.winner === 'enemy' ? 'enemy' : 'player');
+
+/**
+ * After the battle (m8-ship-life Part A3-A5, D-518). A player whose part ended adrift (abandoned, ejected, disabled, left early)
+ * is picked up when their side holds the field; when the enemy holds it, an escape roll or capture. A named NPC aboard a ship
+ * destroyed or abandoned rolls to survive (AFTERMATH); a canon figure is protected (only the player breaks tags).
+ */
+export function aftermath(b: Battle, s: GameState, rng0: RngState): { emit: GameEvent[]; lines: string[]; rng: RngState } {
+  let rng = rng0;
+  const emit: GameEvent[] = [];
+  const lines: string[] = [];
+  const adrift = b.left === 'abandoned' || b.left === 'ejected' || b.left === 'disabled' || b.left === 'evacuatedEarly';
+  if (adrift) {
+    if (fieldHolder(b) === 'player') lines.push(`${b.player.name} hold the field; the player character is picked up.`);
+    else {
+      const [roll, r] = basicRoll(rng, Math.max(selectPerformance(s, 'piloting'), selectPerformance(s, 'stealth')), []);
+      rng = r;
+      if (roll.total >= AFTERMATH.escapeDc) lines.push(`${b.enemy.name} hold the field; the player character slips away unseen and is picked up later.`);
+      else {
+        lines.push(`${b.enemy.name} hold the field; the player character is found and taken prisoner.`);
+        emit.push({ type: 'captivityBegan', source: 'battle', sourceId: b.id, group: b.enemy.name.slice(0, 200), kind: null, names: [], weapon: null, security: selectFightSecurity(AFTERMATH.captors, false), atAbs: toAbsSecond(s.clock.now) });
+      }
+    }
+  }
+  // Named NPCs aboard the ships lost: each commander on the ship it began aboard, and the people present on the player's own.
+  const ships = b.fleet ? [...b.fleet.a.ships, ...b.fleet.b.ships] : b.dog ? [b.dog.a.ship] : [];
+  const lostHow = (id: string | null | undefined): 'destroyed' | 'abandoned' | null => {
+    const x = ships.find((e) => e.id === id);
+    if (!x) return null;
+    if (x.destroyed || (x.id === b.ownShipId && b.left === 'ejected')) return 'destroyed';
+    if (x.gone && x.hull <= 0) return 'abandoned';
+    return null;
+  };
+  const aboard = new Map<string, { ship: string; how: 'destroyed' | 'abandoned' }>();
+  const own = ships.find((e) => e.id === b.ownShipId);
+  const ownLost = lostHow(b.ownShipId);
+  if (own && ownLost && shipClass(own.classId).kind !== 'fighter') for (const id of selectPresentNpcIds(s)) aboard.set(id, { ship: own.name, how: ownLost });
+  for (const [who, info] of [['player', b.player], ['enemy', b.enemy]] as const) {
+    const at = b.flagAtStart?.[who];
+    const how = lostHow(at);
+    const name = ships.find((e) => e.id === at)?.name;
+    if (info.commander.npcId && !info.commanderGone && how && name) aboard.set(info.commander.npcId, { ship: name, how });
+  }
+  for (const [id, { ship, how }] of aboard) {
+    const n = selectNpc(s, id);
+    if (!n || n.status === 'deceased') continue;
+    // Canon figures stay protected by the tag-map rules: only the player breaks tags.
+    if (n.canonId) {
+      lines.push(`${n.name} survives the loss of ${ship}.`);
+      continue;
+    }
+    const [u, r] = nextFloat(rng);
+    rng = r;
+    if (u < AFTERMATH.survive[how]) lines.push(`${n.name} survives the loss of ${ship}.`);
+    else {
+      lines.push(`${n.name} is lost with ${ship}.`);
+      emit.push({ type: 'npcDied', npcRef: id, cause: `lost with ${ship} (${how})`.slice(0, 200) });
+    }
+  }
+  return { emit, lines, rng };
+}
+
 /** The end of a battle: the record, the events it raises, XP through the code lines, the damage that carries over. */
-function conclude(slice: BattlesSlice, s: GameState, b: Battle): { slice: BattlesSlice; emit: GameEvent[]; notes: string[] } {
+function conclude(slice: BattlesSlice, s: GameState, b: Battle): { slice: BattlesSlice; emit: GameEvent[]; notes: string[]; rng: RngState; lines: string[] } {
   const day = selectNow(s).day;
   const outcome = outcomeOf(b);
   const major = isMajor(b);
@@ -96,8 +166,25 @@ function conclude(slice: BattlesSlice, s: GameState, b: Battle): { slice: Battle
   const ships = { ...slice.ships };
   if (cond) ships[cond.id] = cond;
   else delete ships[b.ownShipId];
-  const notes = [`battle ${b.id} ended: ${outcome} (${b.end?.reason ?? 'time'})${major ? ', a major battle' : ''}; casualties ${record.casualties.player} / ${record.casualties.enemy}`];
+  const after = aftermath(b, s, s.meta.rngState);
+  emit.push(...after.emit);
+  // What each side was seen to use: the character recognises it from now on (m8-ship-life part G).
+  if (b.seenUsed?.enemy.length) emit.push({ type: 'tacticsSeen', ids: b.seenUsed.enemy, by: 'enemy' });
+  if (b.seenUsed?.ally.length) emit.push({ type: 'tacticsSeen', ids: b.seenUsed.ally, by: 'ally' });
+  // The character's own ship (the ships feature): lost with the battle, or renown from a battle won in it.
+  const owned = (s as { ships?: { ships: Record<string, unknown> } }).ships?.ships[b.ownShipId];
+  if (owned) {
+    const all = b.fleet ? [...b.fleet.a.ships, ...b.fleet.b.ships] : b.run ? [b.run.flyer.ship] : b.dog ? [b.dog.a.ship] : [];
+    const own = all.find((x) => x.id === b.ownShipId);
+    const taken = own ? b.tally.captured.player.includes(own.name) || b.end?.reason === 'captured' : false;
+    const how = !own ? null : own.destroyed || (b.left === 'ejected' && b.tally.destroyed.player.includes(own.name)) ? 'destroyed' : taken ? 'captured' : own.gone && own.hull <= 0 ? 'abandoned' : null;
+    if (how) emit.push({ type: 'shipLost', shipId: b.ownShipId, how });
+    else if (outcome === 'won') emit.push({ type: 'shipRenown', shipId: b.ownShipId, points: (major ? SHIP_RENOWN.majorBattleWon : SHIP_RENOWN.battleWon) + (b.blockade ? SHIP_RENOWN.blockadeRun : 0) });
+  }
+  const notes = [`battle ${b.id} ended: ${outcome} (${b.end?.reason ?? 'time'})${major ? ', a major battle' : ''}; casualties ${record.casualties.player} / ${record.casualties.enemy}`, ...after.lines];
   return {
+    rng: after.rng,
+    lines: after.lines,
     slice: {
       ...slice,
       active: null,
@@ -135,7 +222,9 @@ function settle(slice: BattlesSlice, s: GameState, r: StepResult, wrap = true): 
   const step = { lines: r.lines, big: r.big, wrap: b.end && wrap ? wrapUp(b) : null, seconds: r.seconds };
   if (b.end) {
     const c = conclude({ ...slice, step }, s, b);
-    return { slice: c.slice, emit: [...emit, ...c.emit], notes: [...notes, ...c.notes] };
+    // The aftermath goes into the wrap-up the narrator tells.
+    const told = c.slice.step && c.slice.step.wrap && c.lines.length ? { ...c.slice, step: { ...c.slice.step, wrap: `${c.slice.step.wrap} ${c.lines.join(' ')}` } } : c.slice;
+    return { slice: told, emit: [...emit, ...c.emit], notes: [...notes, ...c.notes], rng: c.rng };
   }
   return { slice: { ...slice, active: b, step }, emit, notes };
 }
@@ -188,9 +277,10 @@ function blocked(s: GameState): string | null {
   return null;
 }
 
-function start(slice: BattlesSlice, made: { setup: Parameters<typeof buildBattle>[0] } | { reject: string }): R {
+function start(slice: BattlesSlice, made: { setup: Parameters<typeof buildBattle>[0] } | { reject: string }, s: GameState): R {
   if ('reject' in made) return { reject: made.reject };
-  const b = buildBattle(made.setup);
+  // Tactics as knowledge (m8-ship-life part G): what the player knows and recognises, and what the enemy's crews know.
+  const b = { ...buildBattle(made.setup), tactics: { known: [...selectKnownTactics(s)], recognised: [...selectRecognisedTactics(s)] }, enemyTactics: [...npcTactics(made.setup.enemy.kind)], seenUsed: { enemy: [], ally: [] } };
   const line = `${b.kind === 'fleet' ? 'Fleet battle' : 'Dogfight'} begins: ${b.player.name} against ${b.enemy.name} (${b.role}${b.forceId ? ', a standing force' : ''}).`;
   return { slice: { ...slice, active: { ...b, log: [line] }, seq: slice.seq + 1, step: { lines: [line], big: [], wrap: null, seconds: 0 } }, notes: [line] };
 }
@@ -220,6 +310,8 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
         role: z.enum(BATTLE_ROLES).optional(),
         commandHanded: z.string().max(120).optional(),
         commanderRef: z.string().optional(),
+        /** A customs chase (m8-ship-life): the pursuers may be the player's own side's authorities. */
+        chase: z.boolean().optional(),
       }),
       // Never in the narrative schema itself: the narrator sends combatStarted with `ships`, and the combat feature emits this.
       sources: ['engine', 'dev'],
@@ -231,8 +323,9 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
         const mine = playerFaction(ctx.state);
         const p: Proposal | null = typeof e['what'] === 'string' ? parseProposal(e['what'], mine, yearOf(ctx.state)) : e['enemy'] ? ({ scale: 'dogfight', trigger: 'sighted', enemyFaction: opposite(mine), ...(e as object) } as Proposal) : null;
         if (!p) return { reject: 'a ship battle needs its enemy (enemy: ...)' };
-        if (sameSide(p.enemyFaction, mine)) return { reject: "the enemy is the player's own side" };
-        return start(slice, setupFromProposal(ctx.state, p, `battle-${slice.seq}`));
+        if (typeof e['enemyFaction'] === 'string') p.enemyFaction = e['enemyFaction'];
+        if (sameSide(p.enemyFaction, mine) && e['chase'] !== true) return { reject: "the enemy is the player's own side" };
+        return start(slice, setupFromProposal(ctx.state, p, `battle-${slice.seq}`), ctx.state);
       },
     },
     /** Engine: the force-through approach of a blockade run, as a ship battle (replaces the stopgap piloting check). */
@@ -244,7 +337,7 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
         if (why) return { reject: why };
         const b = blockadeById(String(e['blockadeId']));
         if (!b) return { reject: `unknown blockade ${String(e['blockadeId'])}` };
-        return start(slice, setupFromBlockade(ctx.state, b, String(e['to']), e['direction'] as 'in' | 'out' | 'through', e['fleet'] === true, `battle-${slice.seq}`));
+        return start(slice, setupFromBlockade(ctx.state, b, String(e['to']), e['direction'] as 'in' | 'out' | 'through', e['fleet'] === true, `battle-${slice.seq}`), ctx.state);
       },
     },
     /**
@@ -261,6 +354,8 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
         const auto = e['auto'];
         if (auto === false) return { slice: { ...slice, active: { ...b, auto: false }, step: { lines: ['You take the controls back.'], big: [], wrap: null, seconds: 0 } }, notes: ['battle: control taken back'] };
         const orders = (e['orders'] ?? {}) as BattleOrders;
+        // Only known tactics can be ordered (m8-ship-life part G).
+        if (ctx.source === 'player') for (const t of [orders.manoeuvre, orders.approach, orders.formation]) if (t && !knows(b, t)) return { reject: `${t} is not a tactic the character knows` };
         const r = auto === true || b.auto ? playOut(b, stepCtx(ctx.state)) : stepBattle(b, orders, stepCtx(ctx.state));
         return settle(slice, ctx.state, r);
       },
@@ -273,6 +368,25 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
         const b = slice.active as Battle | null;
         if (!b?.boarding) return { reject: 'no boarding is waiting on a fight' };
         return settle(slice, ctx.state, boardingFought(b, e['won'] === true));
+      },
+    },
+    /**
+     * Engine (the ships feature, m8-ship-life): a ship's condition changed outside a battle: a breakdown or a failed patch
+     * (systems damaged), or a shipyard repair (restore: hull and systems whole, projectors and warheads replaced).
+     */
+    shipConditionSet: {
+      schema: z.object({ type: z.literal('shipConditionSet'), shipId: z.string(), classId: z.string(), name: z.string().max(80), systems: z.record(z.string(), z.enum(['damaged', 'disabled', 'destroyed'])).optional(), restore: z.boolean().optional() }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        const id = String(e['shipId']);
+        if (e['restore'] === true) {
+          const { [id]: _whole, ...ships } = slice.ships;
+          return { slice: { ...slice, ships } };
+        }
+        const was = slice.ships[id];
+        const cls = shipClass(String(e['classId']));
+        const cond: ShipCondition = was ?? { id, classId: cls.id, name: String(e['name']).slice(0, 80), hull: cls.hull, systems: {}, burnt: {}, ammo: {}, day: selectNow(ctx.state).day };
+        return { slice: { ...slice, ships: { ...slice.ships, [id]: { ...cond, systems: { ...cond.systems, ...(e['systems'] as ShipCondition['systems']) } } } } };
       },
     },
     /** Player: field repairs after a battle (Repair against REPAIR_DC, an hour a system; droids at their programmed skill). */
@@ -292,6 +406,7 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
         let systems = { ...cond.systems };
         const emit: GameEvent[] = [];
         const notes: string[] = [];
+        const patched: string[] = [];
         for (const [sys] of broken) {
           const [roll, r] = basicRoll(rng, level, []);
           rng = r;
@@ -301,8 +416,11 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
             systems = Object.fromEntries(Object.entries(ship.systems).filter(([, v]) => v !== 'working')) as typeof systems;
           }
           notes.push(`field repair: ${sys} ${ok ? 'patched' : 'not this time'}`);
+          if (ok) patched.push(sys);
           if (by === 'player') emit.push({ type: 'playXpEarned', source: 'repair', hours: FIELD_REPAIR_HOURS, rating: FIELD_REPAIR_RATING, success: ok, inFight: false, why: `a field repair (${sys})` });
         }
+        // A field patch is temporary (m8-ship-life): the ships feature remembers it, and it may give way when the ship is pushed.
+        if (patched.length) emit.push({ type: 'shipPatched', shipId: cond.id, systems: patched });
         return { slice: { ...slice, ships: { ...slice.ships, [cond.id]: { ...cond, systems } }, step: { lines: notes, big: [], wrap: null, seconds: broken.length * FIELD_REPAIR_HOURS * 3600 } }, emit, notes, rng };
       },
     },

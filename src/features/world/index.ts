@@ -193,7 +193,7 @@ export const makeWorldFeature = (network: WorldNetwork): FeatureModule<WorldSlic
     captivityBegan: {
       schema: z.object({
         type: z.literal('captivityBegan'),
-        source: z.enum(['fight', 'blockade']),
+        source: z.enum(['fight', 'blockade', 'battle', 'customs']),
         sourceId: z.string(),
         group: z.string().max(200),
         kind: z.string().nullable(),

@@ -1,6 +1,6 @@
 # Ship battles in play (as built; M8 checklist item 13, part 1 of 2)
 
-Design: [m8-design-notes.md](m8-design-notes.md), "Ships and space combat" (dogfights, fleet battles, tactics menu, battle map, damage and repair). Engines: [combat-scales.md](combat-scales.md) (D-505). Decisions: D-517 (this file), D-516 (the m8-traits fixes that came with it). Report: docs-v2/reports/m8-ship-battles.md. **Every number not from lore, a game book or Jared is invented; section 10 lists them all.** Part 2 (m8-ship-life: ownership, travel, customs, modifications, shipyard repairs, breakdowns, crew wages) finishes item 13.
+Design: [m8-design-notes.md](m8-design-notes.md), "Ships and space combat" (dogfights, fleet battles, tactics menu, battle map, damage and repair). Engines: [combat-scales.md](combat-scales.md) (D-505). Decisions: D-517 (this file), D-516 (the m8-traits fixes that came with it). Report: docs-v2/reports/m8-ship-battles.md. **Every number not from lore, a game book or Jared is invented; section 10 lists them all.** Part 2, [ship-life.md](ship-life.md) (m8-ship-life, D-519: ownership, travel, customs, modifications, shipyard repairs, breakdowns, crew wages, the Possessions and Tactics tabs, tactics as knowledge), finishes item 13; its Part A (D-518) changed the readings of section 9.
 
 Code:
 - Data: `src/data/shipBattles.config.ts` (every battle number; who flies each class; crew sizes; the standing forces; the blockade pickets).
@@ -66,13 +66,16 @@ Destroyed, disabled, broken off, withdrawn (the fleet engine's withdraw formatio
 - **XP through the code lines** (m8-skills): Gunnery for the player's own shots (`gunneryXp`); **Piloting as field use** (a new `piloting` source: each piloting roll is an exchange of combat XP, 0.25 x the challenge of the gap x stakes x outcome, all to Piloting, the daily cap); Repair for repairs the player makes in the fight (a quarter hour each) and after it; Tactics from fleet command (`commandXp`, size by the ships: a ship, a squadron from 3, a task force from 8, a fleet from 20).
 - **Damage carries over:** hull, systems, burnt projectors and warheads of the ship the player flew stay with it into the next battle. **Field repairs** after a battle: an hour a damaged or disabled system, Repair against 14 (the player's own, for Repair XP), one step better; destroyed systems wait for a shipyard (m8-ship-life).
 
-## 9. Readings (for Jared)
+## 9. Readings (ruled by Jared, 26 Nov 2026; D-518)
 
-- Quiet turns are code-written (no AI call); the narrator speaks only at the big moments and the end. A setting to narrate every turn is easy to add.
-- Abandoning ship ends the player's part even when they commanded the fleet from it (no transfer of the flag to another ship mid-battle).
-- A disabled fighter in a fleet battle counts as lost to the player (a hazard as a shot-down pilot).
-- A battle's casualties never kill named NPCs on their own: a commander's fate stays a story matter.
+- Quiet turns are code-written (no AI call); the narrator speaks only at the big moments and the end (kept). A setting, off by default, narrates every turn (`narrateEveryBattleTurn`; each turn is then a request).
+- Abandoning ship ends the player's part even when they commanded the fleet from it (approved). The fleet fights on under the next senior captain (the better of the fleet's ordinary crews and the first officer's Tactics) with the flagship-lost penalty. Afterwards the player's fate follows who holds the field (the winner; with no winner, each side its own): their side holds it, they are picked up; the enemy holds it, an escape roll (the better of Piloting and Stealth against 15) or capture (captivity, source `battle`).
+- A disabled fighter counts as lost to its pilot (approved); the pilot's recovery or capture follows who holds the field, as above. The same for a pilot who ejected and a Sith or Imperial commander who left early.
+- Casualties never kill named NPCs on their own (approved), but a named NPC aboard a ship that is destroyed or abandoned rolls to survive (50% destroyed, 85% abandoned): the commanders on the ships they began aboard, and the people present aboard the player's own ship. Canon figures stay protected by the tag-map rules (only the player breaks tags).
 - The Galactic Empire's ships read as `sithEmpire` and the Alliance's as `republic` (the factions list has no other names).
+- The Hydian pickets use Fury-class ships (the Terminus enters service in 3,653); the invented numbers of section 10 stand as defaults to tune in play (ruled).
+- Tactics as knowledge (D-519): the menu offers only the tactics the character knows; NPCs fly what their crew kind knows; a recognised manoeuvre or formation flown against the player gives +1 (ship-life.md section 10).
+- The player's own ship is one of the ships slice's (its id, name and mods; ship-life.md section 2).
 
 ## 10. Every invented number
 
@@ -97,5 +100,6 @@ Destroyed, disabled, broken off, withdrawn (the fleet engine's withdraw formatio
 | Angral's armada: 2 Harrowers, 6 Terminus, 4 Fury, 48 Supremacy, 12 Extinction (the lore names the armada, no counts) | `STANDING_FORCES` |
 | The Hydian pickets: Fury-class for cruisers (0.6 a strength point), Supremacy fighters (1.2) | `BLOCKADE_PICKETS` |
 | What a major battle is | `isMajor` |
+| After a battle (D-518): the next senior captain's Tactics; escape DC 15; 3 captors; survival 50% / 85% | `commandPassesOn`, `AFTERMATH` |
 
 From the engines and not new here: every roll, hit, shield, damage and formation number (combat-scales, D-505), and the XP rules (m8-skills, D-513; the Piloting line reuses combat XP's exchange rule).

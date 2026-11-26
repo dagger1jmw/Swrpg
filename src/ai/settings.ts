@@ -31,6 +31,11 @@ export const settingsSchema = z.object({
   modelLists: z.object({ intent: modelListSchema, narrative: modelListSchema, summary: modelListSchema, ooc: modelListSchema }),
   limits: z.record(z.string(), limitsSchema),
   autoRetry: z.boolean(),
+  /**
+   * Ship battles (m8-ship-life Part A2, D-518): narrate every battle turn through the narrator, not only the big moments and
+   * the end. Off by default (each turn is then an AI call); absent in settings saved before it.
+   */
+  narrateEveryBattleTurn: z.boolean().optional(),
 });
 
 export type Settings = z.infer<typeof settingsSchema>;
@@ -65,6 +70,7 @@ export function defaultSettings(): Settings {
     modelLists: structuredClone(DEFAULT_MODEL_LISTS) as Settings['modelLists'],
     limits: structuredClone(DEFAULT_LIMITS) as Settings['limits'],
     autoRetry: true,
+    narrateEveryBattleTurn: false,
   };
 }
 

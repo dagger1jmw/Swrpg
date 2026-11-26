@@ -14,6 +14,8 @@ import { onRecordAt, onRecordFor } from '../data/canonPlacements';
 import { blockadeLines, describeTravel } from './travel';
 import { selectDroidLines } from '../features/droids/selectors';
 import { selectBattleLines } from '../features/battles/selectors';
+import { selectShipLines } from '../features/ships/selectors';
+import { selectTacticLines } from '../features/tactics/selectors';
 import { selectTraitLines } from '../features/traits/selectors';
 import { selectEconomyLines } from '../features/economy/selectors';
 import { rankErasAt } from '../data/eraRanks';
@@ -322,6 +324,9 @@ export function stateBlock(
     ...selectDroidLines(state),
     // A ship battle (m8-ship-battles, D-517): what the engine has, and crews that remember.
     ...selectBattleLines(state),
+    // Ships and tactics (m8-ship-life, D-519): the character's ships, customs and ship news; how to report a tactic learned.
+    ...selectShipLines(state),
+    ...selectTacticLines(state),
     // Starting traits (M8 item 16): the character's and the present NPCs', each with its narrator note.
     ...selectTraitLines(state, selectPresentNpcIds(state)),
     ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), namedCanonIds(state, focus, playerText, -dateFromAbsDay(now.day).year)),

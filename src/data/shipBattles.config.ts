@@ -73,6 +73,18 @@ export const EVACUATION = {
   abandonedRegard: -3,
 } as const;
 
+/**
+ * After a battle (m8-ship-life Part A3-A5, D-518). The player's part ended adrift (a ship abandoned, ejected, a fighter disabled,
+ * left early): their side holds the field, they are picked up; the enemy holds it, an escape roll (the better of Piloting and
+ * Stealth against `escapeDc`) or capture by `captors` of the enemy's side. A named NPC aboard a ship destroyed or abandoned rolls
+ * to survive; a canon figure is protected (tag-map rules: only the player breaks tags). Every number invented.
+ */
+export const AFTERMATH = {
+  escapeDc: 15,
+  captors: 3,
+  survive: { destroyed: 0.5, abandoned: 0.85 },
+} as const;
+
 /** Sides whose commanders may leave a ship early (Jared: Sith and Imperial). */
 export const EARLY_EVACUATION_SIDES: readonly string[] = ['sith', 'sithEmpire', 'empire'];
 

@@ -38,6 +38,11 @@ import {
   type StartMoney,
 } from '../../data/economy.config';
 import { PRICE_BY_ID, resolvePriceId } from '../../data/economyPrices';
+import { CREW, SHIP_FINANCE } from '../../data/shipLife.config';
+import { SHIP_SPECS } from '../../data/ships';
+import { SHIP_CLASSES, shipClass } from '../../engine/ships';
+import { matchShipClass } from '../../engine/shipLife';
+import { selectShips } from '../ships/selectors';
 import { addCalendarMonths, dateFromAbsDay, SECONDS_PER_DAY } from '../../engine/calendar';
 import {
   bribeAmount,
@@ -54,6 +59,8 @@ import {
   payFor,
   receive,
   sellPrice,
+  shipPrice,
+  usedShipPrice,
   type Acceptance,
   type Loan,
   type Wallet,
@@ -197,12 +204,80 @@ function jediConsequences(s: GameState, slice: EconomySlice, notes: string[]): G
   return emit;
 }
 const walletWorth = (w: Wallet): number => w.republic + w.imperial + w.hutt * 0.625;
+const specOf = (classId: string) => SHIP_SPECS.find((x) => x.id === classId)!;
+const newShipPrice = (classId: string): number => shipPrice(specOf(classId)).price;
 
 // ---------------------------------------------------------------- handlers
 
 type R = HandleResult<EconomySlice>;
 
+/**
+ * A ship bought, sold or fenced (m8-ship-life, D-519): the item names a class ("a used Dynamic-class freighter", "an Aurek on
+ * credit"). Priced from the ship price curve (shipPrices, economy.md 2c) at the local market, military classes only on the black
+ * market, haggled as any trade; financed: a deposit from the wallet and the rest a loan (a bank's if it would lend, else a
+ * Hutt's). The ships feature records the ship (shipAcquired, shipSold). Null when the words name no ship.
+ */
+function tradeShip(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState>): R | null {
+  const s = ctx.state;
+  const words = String(e['item']);
+  const year = dateFromAbsDay(today(ctx)).year;
+  const m = matchShipClass(words, year, SHIP_CLASSES, (c) => newShipPrice(c.id));
+  if (!m) return null;
+  if ('reject' in m) return { reject: m.reject };
+  const cls = shipClass(m.classId);
+  const dir = String(e['dir']);
+  const day = today(ctx);
+  if (dir === 'issue') return { slice, emit: [{ type: 'shipAct', what: `issued ${words}` }] };
+  const military = cls.kind !== 'freighter' && cls.role !== 'freighter';
+  const used = /\b(used|second-?hand|old)\b/i.test(words);
+  const npcId = typeof e['npcRef'] === 'string' ? (e['npcRef'] as string) : null;
+  let rng = s.meta.rngState;
+  const notes: string[] = [];
+  let margin: number | null = null;
+  if (e['haggle'] === true) {
+    const c = charismaContest(s, rng, npcId);
+    rng = c.rng;
+    margin = c.margin;
+    notes.push(c.note);
+  }
+  if (dir === 'sell') {
+    const ship = selectShips(s).filter((x) => x.classId === m.classId && !x.impounded).sort((a, b) => Number(b.id === s.ships.activeId) - Number(a.id === s.ships.activeId))[0];
+    if (!ship) return { reject: `no ${cls.name} owned to sell` };
+    if (ship.hold === 'issued') return { reject: `${ship.name} belongs to ${ship.issuer ?? 'its issuer'}: an issued ship is not the character's to sell` };
+    const fence = ship.hold === 'stolen' || e['stolen'] === true || ship.transponder !== 'real';
+    const total = sellPrice({ base: usedShipPrice(specOf(m.classId)), kind: military ? 'military' : 'manufactured' }, selectMarket(s).zone, fence ? 'fence' : 'dealer', margin);
+    const cur = selectLocalCurrency(s);
+    notes.push(`sold ${ship.name} (${cls.name}) to ${fence ? 'a fence' : 'a dealer'} for ${fmt(total)} cr`);
+    return { slice: { ...slice, wallet: receive(slice.wallet, total, cur), log: logged(slice, day, total, cur, `sold ${ship.name} to ${fence ? 'a fence' : 'a dealer'}`) }, rng, notes, emit: [{ type: 'shipSold', shipId: ship.id }] };
+  }
+  const base = used ? usedShipPrice(specOf(m.classId)) : newShipPrice(m.classId);
+  const total = buyPrice(listPrice({ base, kind: military ? 'military' : 'manufactured', legality: military ? 'restricted' : 'legal' }, selectMarket(s)), margin);
+  const a = selectAcceptance(s);
+  const financed = /\b(on credit|financ\w*|on finance|on a loan|on loan)\b/i.test(words);
+  let next: EconomySlice;
+  if (financed) {
+    const deposit = Math.round(total * SHIP_FINANCE.deposit);
+    const wallet = pay(slice.wallet, deposit, a);
+    if (!wallet) return { reject: `cannot pay the deposit on ${cls.name}: ${fmt(deposit)} cr (a fifth of ${fmt(total)} cr)` };
+    const principal = total - deposit;
+    const lender: Lender = principal <= selectMonthlyIncome(s) * BANK_INCOME_MONTHS ? 'bank' : 'hutt';
+    const loan: Loan = { id: `loan-${slice.nextLoan}`, lender, principal, balance: principal, currency: a.prefer, startDay: day, nextDueDay: addCalendarMonths(day, 1), missed: 0, stage: 'current' };
+    next = { ...slice, wallet, loans: [...slice.loans, loan], nextLoan: slice.nextLoan + 1, log: logged(slice, day, -deposit, a.prefer, `deposit on ${cls.name}; ${fmt(principal)} cr financed by ${LOAN_TERMS[lender].name}`) };
+    notes.push(`bought ${cls.name}${used ? ' (used)' : ''} for ${fmt(total)} cr: ${fmt(deposit)} cr down, ${fmt(principal)} cr financed by ${LOAN_TERMS[lender].name} (${fmt(monthlyDue(loan))} cr a month)`);
+  } else {
+    const wallet = pay(slice.wallet, total, a);
+    if (!wallet) return { reject: `cannot afford ${cls.name}: ${fmt(total)} cr here${military ? ' on the black market' : ''} (finance it: "on credit")` };
+    next = { ...slice, wallet, log: logged(slice, day, -total, a.prefer, `bought ${cls.name}${used ? ' (used)' : ''}${military ? ' (black market)' : ''}`) };
+    notes.push(`bought ${cls.name}${used ? ' (used)' : ''} for ${fmt(total)} cr${military ? ' on the black market' : ''}`);
+  }
+  // A ship a Jedi buys is a personal holding at its price; issued ships and ships taken in play never are (D-511, Jared).
+  if (selectIsJedi(s)) next = { ...next, possessions: next.possessions + total };
+  return { slice: next, rng, notes, emit: [{ type: 'shipAcquired', classId: m.classId, how: financed ? 'financed' : used ? 'boughtUsed' : 'bought', ...(used ? { wear: 0.3 } : {}) }, ...jediConsequences(s, next, notes)] };
+}
+
 function handleTrade(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState>): R {
+  const ship = tradeShip(slice, e, ctx);
+  if (ship) return ship;
   const s = ctx.state;
   const id = resolvePriceId(String(e['item']));
   let item = id ? PRICE_BY_ID.get(id) : undefined;
@@ -236,7 +311,7 @@ function handleTrade(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState>
     const jedi = j.kind === 'order' && (JEDI_MONEY.quartermaster.includes(item.id) || (['knight', 'master'].includes(selectRank(s)) && JEDI_MONEY.quartermasterKnight.includes(item.id)));
     const kit = j.kind === 'military' && MILITARY_KIT[gradeBand(j.grade)].includes(item.id);
     if (!jedi && !kit) return { reject: `${item.name} is not issued to this character` };
-    return { slice: { ...slice, log: logged(slice, day, 0, 'republic', `issued: ${item.name}${qty > 1 ? ` x${qty}` : ''} (${jedi ? 'the quartermaster' : 'military kit'})`) }, notes: [`issued free: ${item.name}`] };
+    return { slice: { ...slice, log: logged(slice, day, 0, 'republic', `issued: ${item.name}${qty > 1 ? ` x${qty}` : ''} (${jedi ? 'the quartermaster' : 'military kit'})`) }, notes: [`issued free: ${item.name}`], emit: [{ type: 'itemAcquired', priceId: item.id, qty, issued: true }] };
   }
   let rng = s.meta.rngState;
   const notes: string[] = [];
@@ -255,7 +330,7 @@ function handleTrade(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState>
     const cur = selectLocalCurrency(s);
     const next = { ...slice, wallet: receive(slice.wallet, total, cur), log: logged(slice, day, total, cur, `sold ${item.name}${qty > 1 ? ` x${qty}` : ''} to ${fence ? 'a fence' : 'a dealer'}`) };
     notes.push(`sold ${item.name} x${qty} to ${fence ? 'a fence' : 'a dealer'} for ${fmt(total)} cr`);
-    return { slice: next, rng, notes, emit: [...droidEmit, ...jediConsequences(s, next, notes)] };
+    return { slice: next, rng, notes, emit: [...droidEmit, ...(droid ? [] : [{ type: 'itemRemoved', priceId: item.id, qty }]), ...jediConsequences(s, next, notes)] };
   }
   // Buying.
   const list = listPrice(item, selectMarket(s));
@@ -278,7 +353,7 @@ function handleTrade(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState>
   notes.push(`bought ${item.name} x${qty} for ${fmt(total)} cr${item.legality === 'restricted' ? ' on the black market' : ''}`);
   // A tool kit goes to the droids slice, which holds the character's mechanical work (m8-skills, D-513).
   const kit: GameEvent[] = item.id === 'toolKit' ? [{ type: 'toolKitAcquired' }] : [];
-  return { slice: next, rng, notes, emit: [...droidEmit, ...kit, ...jediConsequences(s, next, notes)] };
+  return { slice: next, rng, notes, emit: [...droidEmit, ...kit, ...(droid ? [] : [{ type: 'itemAcquired', priceId: item.id, qty }]), ...jediConsequences(s, next, notes)] };
 }
 
 /** Pay by size: small, fair, large (lavish counts as large). */
@@ -299,8 +374,11 @@ function handleEarned(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState
     return { slice: { ...slice, orderFunds: slice.orderFunds + amount, log: logged(slice, day, amount, 'republic', "the Order's mission funds (to be returned)") }, rng, notes: [`mission funds from the Order: ${fmt(amount)} cr`] };
   }
   const cur = payerCurrency(s, npcId);
-  const notes: string[] = [`paid (${kind}, tier ${tier}${kind === 'job' ? `, ${risk} risk` : ''}): ${fmt(amount)} ${CURRENCY_NAMES[cur]}`];
-  let next: EconomySlice = { ...slice, wallet: receive(slice.wallet, amount, cur), log: logged(slice, day, amount, cur, `${kind} paid`) };
+  // Crew who serve for a share take their cut of smuggling, contract and bounty pay (m8-ship-life; CREW.share, invented).
+  const sharers = kind === 'smuggling' || kind === 'contract' || kind === 'bounty' ? selectShips(s).reduce((n, x) => n + x.crew.filter((c) => c.pay === 'share').length, 0) : 0;
+  const cut = Math.round(amount * Math.min(0.5, CREW.share * sharers));
+  const notes: string[] = [`paid (${kind}, tier ${tier}${kind === 'job' ? `, ${risk} risk` : ''}): ${fmt(amount)} ${CURRENCY_NAMES[cur]}${cut ? `; the crew's shares take ${fmt(cut)}` : ''}`];
+  let next: EconomySlice = { ...slice, wallet: receive(slice.wallet, amount - cut, cur), log: logged(slice, day, amount - cut, cur, `${kind} paid${cut ? ' (less the crew shares)' : ''}`) };
   if (kind === 'reward' && selectIsJedi(s)) {
     const witness = selectJediWitness(s);
     next = { ...next, rewards: [...next.rewards, { day, credits: amount, known: witness !== null }].slice(-50) };
@@ -557,6 +635,34 @@ export const economyFeature: FeatureModule<EconomySlice, GameState> = {
         if (grade === null) return { slice: { ...slice, job: { kind: 'none' }, lifestyle: slice.lifestyle === 'provided' ? 'modest' : slice.lifestyle }, notes: ['military service ends'] };
         const currency = (e['currency'] as 'republic' | 'imperial' | undefined) ?? selectHomeCurrency(ctx.state);
         return { slice: { ...slice, job: { kind: 'military', grade, currency }, lifestyle: 'provided' }, notes: [`military service: ${grade}, ${fmt(MILITARY_PAY[grade])} ${CURRENCY_NAMES[currency]} a month`] };
+      },
+    },
+    /**
+     * Engine (the ships' day hook; m8-ship-life): running costs on the calendar: crew wages, docking, upkeep. Each is paid if the
+     * wallet covers it; an unpaid wage costs the crew member's loyalty (crewUnpaid), missed upkeep wears the ship
+     * (shipUpkeepMissed), other unpaid costs (docking) are owed (bank terms).
+     */
+    shipCostsDue: {
+      schema: z.object({ type: z.literal('shipCostsDue'), items: z.array(z.object({ credits: z.number().int().min(0), reason: z.string().max(120), shipId: z.string().optional(), crewId: z.string().optional(), upkeep: z.boolean().optional() })).max(60) }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        const day = today(ctx);
+        let next = slice;
+        const emit: GameEvent[] = [];
+        let owed = 0;
+        for (const it of e['items'] as { credits: number; reason: string; shipId?: string; crewId?: string; upkeep?: boolean }[]) {
+          if (it.credits <= 0) continue;
+          const wallet = pay(next.wallet, it.credits, TRANSFER);
+          if (wallet) next = { ...next, wallet, log: logged(next, day, -it.credits, 'republic', it.reason) };
+          else if (it.crewId && it.shipId) emit.push({ type: 'crewUnpaid', shipId: it.shipId, crewId: it.crewId });
+          else if (it.upkeep && it.shipId) emit.push({ type: 'shipUpkeepMissed', shipId: it.shipId });
+          else owed += it.credits;
+        }
+        if (owed > 0) {
+          const r = settle(next, ctx.state, owed, 'ship running costs', 'bank', day, 'the port authorities');
+          if ('slice' in r) return { slice: r.slice, emit, notes: r.notes ?? [] };
+        }
+        return { slice: next, emit };
       },
     },
     /** Engine: a sum owed now (a blockade's passage or fine, a ransom): paid as far as the wallet goes, the rest a debt. */

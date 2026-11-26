@@ -13,6 +13,7 @@ import {
   BOARDING,
   EARLY_EVACUATION_SIDES,
   EVACUATION,
+  GENERIC_CREW,
   MANOEUVRE_WEAK,
   NARRATION,
   SURRENDER,
@@ -23,6 +24,7 @@ import {
 } from '../../data/shipBattles.config';
 import { BREAK_UP, DOGFIGHT, FLEET, FORMATIONS, FORMATION_BEATS, FORMATION_LABEL, MANOEUVRE, MANOEUVRES, PLANNED_CHANGES, REPAIR_DC, ROUND_MINUTES, TURN_SECONDS, type Formation, type Manoeuvre, type ShipSystem } from '../../data/shipCombat.config';
 import type { Facing } from '../../data/ships';
+import { COMMAND_BASICS } from '../../data/tactics';
 
 // ---- the battle ----
 
@@ -99,7 +101,7 @@ export interface Battle {
   /** The player's ship: their fighter or freighter, or the capital ship they are aboard. */
   ownShipId: string;
   /** Freighter crew and wingmen on the player's flyer (dogfights). */
-  flyer: { wingman: boolean; forceOrDroid: boolean; engineer: boolean; gunners: number[]; repairBy: 'player' | 'droid' | 'crew' | null };
+  flyer: { wingman: boolean; forceOrDroid: boolean; engineer: boolean; gunners: number[]; repairBy: 'player' | 'droid' | 'crew' | null; mods?: { source: string; value: number }[] };
   dog: Dogfight | null;
   run: AttackRun | null;
   queue: QueuedFighter[];
@@ -115,6 +117,22 @@ export interface Battle {
   out: boolean;
   /** The player left a crew to fight on (a Sith or Imperial choice). */
   leftCrew: boolean;
+  /**
+   * How the player's part ended (m8-ship-life Part A3-A4, D-518): abandoned a ship, ejected from a fighter shot down, a fighter
+   * or freighter disabled and drifting, left early, back to the hangar, or taken in a boarding. Who holds the field decides what
+   * becomes of the first four (picked up, or capture or escape). Absent in battles saved before it.
+   */
+  left?: 'abandoned' | 'ejected' | 'disabled' | 'evacuatedEarly' | 'returned' | 'captured';
+  /** The ships each side's commander began aboard (a named NPC aboard a ship lost rolls to survive; D-518). */
+  flagAtStart?: { player: string | null; enemy: string | null };
+  /**
+   * Tactics as knowledge (m8-ship-life part G, D-519): what the player knows (the menu offers only these) and recognises (known
+   * or seen: the +1 of a known enemy formation), what the enemy's pilots and commanders know, and what each side was seen to
+   * use (recorded at the end). Absent in battles saved before it: everything open, as before.
+   */
+  tactics?: { known: string[]; recognised: string[] };
+  enemyTactics?: string[];
+  seenUsed?: { enemy: string[]; ally: string[] };
   xp: BattleXp;
   tally: BattleTally;
   /** Code-written lines, newest last. */
@@ -265,6 +283,7 @@ export function buildBattle(s: BattleSetup): Battle {
       fleet: null,
       queue: rest.map((x) => ({ classId: x.classId, name: x.name, crew: x.crew })),
       dog: startDogfight(flyerOf(base.flyer, own), { ship: first! }, s.rng, { range: s.trigger === 'ambush' ? 'close' : 'medium', track: ambush, year: s.year }),
+      flagAtStart: { player: own.id, enemy: null },
     };
     return redraw(b);
   }
@@ -272,7 +291,7 @@ export function buildBattle(s: BattleSetup): Battle {
   const a = fleetSideOf(s.player, s.playerShips, s.playerWings ?? [], s.playerFormation ?? 'exchange', !s.playerCommands);
   const e = fleetSideOf(s.enemy, s.enemyShips, s.enemyWings ?? [], s.enemyFormation ?? 'exchange', true);
   const fleet: FleetBattle = { a: { ...a, intel: s.trigger !== 'ambush' && a.intel }, b: { ...e, intel: s.trigger === 'ambush' }, track: ambush, range: s.trigger === 'ambush' ? 'close' : 'medium', round: 0, year: s.year, rng: s.rng, log: [], end: null };
-  return redraw({ ...base, fleet, dog: null, queue: [] });
+  return redraw({ ...base, fleet, dog: null, queue: [], flagAtStart: { player: s.playerCommands ? s.ownShipId : a.flagId, enemy: e.flagId } });
 }
 
 function fleetSideOf(info: Omit<SideInfo, 'commanderGone'>, ships: ShipState[], wings: FleetSide['wings'], formation: Formation, mayWithdraw: boolean): FleetSide {
@@ -296,7 +315,7 @@ function fleetSideOf(info: Omit<SideInfo, 'commanderGone'>, ships: ShipState[], 
   };
 }
 
-const flyerOf = (f: Battle['flyer'], ship: ShipState): Flyer => ({ ship, wingman: f.wingman, forceOrDroid: f.forceOrDroid, engineer: f.engineer, gunners: f.gunners });
+const flyerOf = (f: Battle['flyer'], ship: ShipState): Flyer => ({ ship, wingman: f.wingman, forceOrDroid: f.forceOrDroid, engineer: f.engineer, gunners: f.gunners, ...(f.mods?.length ? { modifiers: f.mods } : {}) });
 
 // ---- reading it ----
 
@@ -377,6 +396,8 @@ function dogfightOptions(b: Battle, d: Dogfight): MenuOption[] {
   const pilot = b.role === 'pilot';
   if (pilot) {
     for (const id of MANOEUVRES) {
+      // Only the tactics the character knows are offered (m8-ship-life part G).
+      if (!knows(b, id)) continue;
       const def = MANOEUVRE[id];
       const can = flown({ manoeuvre: id }, d.a, lead, d.terrain) === id;
       const counters = MANOEUVRES.filter((m) => (MANOEUVRE[m].against?.[id] ?? 0) > 0).map((m) => MANOEUVRE[m].label);
@@ -480,6 +501,15 @@ function earlyEvacOption(b: Battle): MenuOption[] {
 }
 
 /** The tactics menu for this turn or round. */
+/** The player knows this tactic (old battles without the record: everything is open). */
+export const knows = (b: Battle, id: string): boolean => !b.tactics || id === 'fly' || b.tactics.known.includes(id) || (COMMAND_BASICS.includes(id) && b.role === 'commander');
+const npcMay = (b: Battle, id: string): boolean => !b.enemyTactics || id === 'fly' || b.enemyTactics.includes(id);
+const seen = (b: Battle, who: 'enemy' | 'ally', id: string | undefined): Battle => {
+  if (!id || id === 'fly') return b;
+  const u = b.seenUsed ?? { enemy: [], ally: [] };
+  return u[who].includes(id) ? b : { ...b, seenUsed: { ...u, [who]: [...u[who], id] } };
+};
+
 export function battleMenu(b: Battle): BattleMenu {
   const known: string[] = [];
   if (b.dog) {
@@ -491,15 +521,17 @@ export function battleMenu(b: Battle): BattleMenu {
   }
   if (b.run) {
     known.push(`${b.run.target.name}: ${shipClass(b.run.target.classId).name}; ${shieldsText(b.run.target)}`);
-    return { title: 'Attack run', now: `${['Long range', 'Medium range', 'Close', 'Under the guns'][b.run.step]} · your ship: ${shieldsText(b.run.flyer.ship)}`, known, options: runOptions(b.run), watching: false };
+    return { title: 'Attack run', now: `${['Long range', 'Medium range', 'Close', 'Under the guns'][b.run.step]} · your ship: ${shieldsText(b.run.flyer.ship)}`, known, options: runOptions(b.run).filter((o) => o.group !== 'approach' || knows(b, o.orders.approach ?? 'pass')), watching: false };
   }
   const f = b.fleet!;
   for (const s of f.b.ships.filter(inFight)) known.push(`${s.name} (${shipClass(s.classId).name}): ${damageState(s)}`);
-  if (f.a.intel) known.push(`their formation: ${FORMATION_LABEL[f.b.reform ? 'brawl' : formationNow(f.b)]}${f.b.reform ? ' (reforming)' : ''}`);
+  const theirNow = f.b.reform ? 'brawl' : formationNow(f.b);
+  if (f.a.intel) known.push(`their formation: ${FORMATION_LABEL[theirNow]}${f.b.reform ? ' (reforming)' : ''}`);
+  else if (b.tactics?.recognised.includes(theirNow)) known.push(`their formation: ${FORMATION_LABEL[theirNow]} (recognised: +${FLEET.intel})`);
   else known.push('their formation: not known (scouts or sensor ships would show it)');
   const now = `Round ${f.round} · ${FORMATION_LABEL[formationNow(f.a)]}${f.a.reform ? ` (reforming, ${f.a.reform.rounds} round${f.a.reform.rounds === 1 ? '' : 's'})` : ''} · range ${f.range}`;
   if (fliesInFleet(b) && !b.out) return { title: 'Fleet battle: your engagement', now, known, options: engageOptions(b), watching: false };
-  if (commanding(b)) return { title: 'Fleet battle: your command', now, known, options: [...fleetOptions(f), ...earlyEvacOption(b)], watching: false };
+  if (commanding(b)) return { title: 'Fleet battle: your command', now, known, options: [...fleetOptions(f).filter((o) => o.group !== 'formation' || knows(b, o.orders.formation ?? 'exchange')), ...earlyEvacOption(b)], watching: false };
   return { title: b.out ? 'Fleet battle: it goes on without you' : `Fleet battle: under ${b.player.commander.name}`, now, known, options: earlyEvacOption(b), watching: true };
 }
 
@@ -523,12 +555,14 @@ const fleetOrdersOf = (o: BattleOrders): FleetOrders => ({
 /** The player's orders handed to the code: the moves an NPC with the character's own skills would choose. */
 export function autoOrders(b: Battle): BattleOrders {
   if (b.dog) {
-    const o = autoDogOrders(b.dog, 'A');
+    const raw = autoDogOrders(b.dog, 'A');
+    const o = raw.manoeuvre && !knows(b, raw.manoeuvre) ? { ...raw, manoeuvre: (MANOEUVRE[raw.manoeuvre].use === 'defensive' && knows(b, 'break') ? 'break' : 'fly') as Manoeuvre } : raw;
     const sys = b.flyer.repairBy ? (['weapons', 'engines', 'generator', 'sensors'] as const).find((x) => ['damaged', 'disabled'].includes(systemState(b.dog!.a.ship, x))) : undefined;
     return { ...(o.manoeuvre ? { manoeuvre: o.manoeuvre } : {}), ...(o.shot ? { shot: o.shot } : {}), ...(o.snap ? { snap: o.snap } : {}), ...(sys ? { repair: sys } : {}) };
   }
   if (b.run) {
-    const o = autoRunOrders(b.run);
+    const raw = autoRunOrders(b.run);
+    const o = raw.approach && !knows(b, raw.approach) ? { ...raw, approach: 'pass' as const } : raw;
     return { ...(o.approach ? { approach: o.approach } : {}), ...(o.shot ? { shot: o.shot } : {}), ...(o.aim ? { aim: o.aim } : {}) };
   }
   if (fliesInFleet(b) && !b.out) {
@@ -540,7 +574,7 @@ export function autoOrders(b: Battle): BattleOrders {
   }
   if (b.fleet) {
     const o = autoFleetOrders(b.fleet, 'A');
-    return { ...(o.change ? { formation: o.change } : {}), ...(o.focus !== undefined ? { focus: o.focus } : {}), ...(o.move ? { move: o.move } : {}), ...(o.launch ? { launch: true } : {}), ...(o.roll ? { roll: true } : {}), ...(o.warheads ? { warheads: true } : {}) };
+    return { ...(o.change && knows(b, o.change) ? { formation: o.change } : {}), ...(o.focus !== undefined ? { focus: o.focus } : {}), ...(o.move ? { move: o.move } : {}), ...(o.launch ? { launch: true } : {}), ...(o.roll ? { roll: true } : {}), ...(o.warheads ? { warheads: true } : {}) };
   }
   return {};
 }
@@ -579,7 +613,14 @@ function dogStep(w: Work, o: BattleOrders): void {
     return;
   }
   const mine = b.role === 'gunner' ? { ...autoDogOrders(d, 'A'), ...(o.shot === 'none' ? { shot: 'none' as const } : {}) } : dogOrdersOf(o);
-  const next = dogfightTurn(d, mine, autoDogOrders(d, 'B'));
+  // The enemy pilot flies only what its training gives (m8-ship-life part G); a manoeuvre the player recognises is worth +1.
+  const raw = autoDogOrders(d, 'B');
+  const theirs = raw.manoeuvre && !npcMay(b, raw.manoeuvre) ? { ...raw, manoeuvre: (MANOEUVRE[raw.manoeuvre].use === 'defensive' && npcMay(b, 'break') ? 'break' : 'fly') as Manoeuvre } : raw;
+  const spotted = theirs.manoeuvre && theirs.manoeuvre !== 'fly' && b.tactics?.recognised.includes(theirs.manoeuvre);
+  const dd = spotted ? { ...d, a: { ...d.a, modifiers: [...(d.a.modifiers ?? []), { source: 'recognised their manoeuvre', value: FLEET.intel }] } } : d;
+  const turned = dogfightTurn(dd, mine, theirs);
+  const next = spotted ? { ...turned, a: { ...turned.a, modifiers: d.a.modifiers ?? [] } } : turned;
+  b = seen(b, 'enemy', theirs.manoeuvre);
   const t = next.log[next.log.length - 1]!;
   w.seconds += TURN_SECONDS;
   // XP lines: the player's own rolls (D-513 gunnery; piloting as field use).
@@ -636,7 +677,7 @@ function dogStep(w: Work, o: BattleOrders): void {
   if (w.b.kind === 'fleet') return endEngagement(w, true);
   // Destroyed: the pilot ejects or the crew abandons the wreck. Disabled: it drifts, at the enemy's mercy.
   if (next.end.reason === 'destroyed') playerShipLost(w, mineOut);
-  else w.b = { ...w.b, out: true };
+  else w.b = { ...w.b, out: true, left: 'disabled' };
   finish(w, 'enemy', next.end.reason === 'destroyed' ? 'destroyed' : 'disabled', `${mineOut.name} is ${next.end.reason === 'destroyed' ? 'lost' : 'disabled'}.`);
 }
 
@@ -645,9 +686,23 @@ function playerShipLost(w: Work, s: ShipState): void {
   const c = shipClass(s.classId);
   const [u, r] = nextFloat(rngOf(w.b));
   w.b = setRng(w.b, r);
-  w.b = { ...w.b, out: true, tally: { ...w.b.tally, destroyed: { ...w.b.tally.destroyed, player: [...w.b.tally.destroyed.player, s.name] } } };
+  w.b = { ...w.b, out: true, left: c.kind === 'fighter' ? 'ejected' : 'abandoned', tally: { ...w.b.tally, destroyed: { ...w.b.tally.destroyed, player: [...w.b.tally.destroyed.player, s.name] } } };
+  commandPassesOn(w);
   if (c.kind === 'fighter') w.hazard = { severity: 2, cause: `${s.name} shot down` };
   else w.hazard = u < BREAK_UP.chance ? { severity: EVACUATION.lastOffSeverity, cause: `${s.name} breaking up` } : { severity: 1, cause: `abandoning ${s.name}` };
+}
+
+/**
+ * The player commanding leaves the flagship (abandoned or lost with it; m8-ship-life Part A3, D-518, approved): command passes
+ * to the next senior captain, on another ship, at the better of the fleet's ordinary crews and the first officer's Tactics (a
+ * reading; invented). The fleet engine already gives the flagship-lost penalty when the flagship falls.
+ */
+function commandPassesOn(w: Work): void {
+  if (w.b.kind !== 'fleet' || w.b.role !== 'commander' || w.b.command !== 'player' || !w.b.fleet) return;
+  const tactics = Math.max(GENERIC_CREW[w.b.player.kind] ?? GENERIC_CREW['navy']!, w.b.player.firstOfficer.tactics);
+  const next = { name: 'the next senior captain', npcId: null, tactics, traits: [], jedi: false };
+  w.b = { ...w.b, command: 'npc', player: { ...w.b.player, commander: next }, fleet: { ...w.b.fleet, a: { ...w.b.fleet.a, tactics } } };
+  w.big.push(`Command passes to ${next.name}.`);
 }
 
 /** A pilot's engagement in a fleet battle ends: the fleet rolls its round. */
@@ -666,7 +721,7 @@ function endEngagement(w: Work, lost: boolean, kill?: ShipState): void {
   if (lost) {
     const own = w.b.fleet!.a.ships.find((s) => s.id === w.b.ownShipId);
     if (own) playerShipLost(w, own);
-    else w.b = { ...w.b, out: true };
+    else w.b = { ...w.b, out: true, left: 'disabled' };
     w.big.push('Your fighter is out of the battle.');
   }
   fleetStep(w, {});
@@ -679,8 +734,15 @@ function fleetStep(w: Work, o: BattleOrders, ctx?: StepCtx): void {
   const mods = fliesInFleet(b) ? [{ source: "the player's dogfights", value: dogfightModifier(b.kills, b.beaten, FLEET.dogfightMax) }] : [];
   f = { ...f, a: { ...f.a, modifiers: [...f.a.modifiers.filter((m) => m.source !== "the player's dogfights"), ...mods.filter((m) => m.value !== 0)], ...(o.withdraw ? { mayWithdraw: true } : {}) } };
   const mine = commanding(b) ? fleetOrdersOf(o) : autoFleetOrders(f, 'A');
+  // A formation the player recognises (known or seen) is worth the +1 of a known enemy formation (m8-ship-life part G).
+  const theirF = f.b.reform ? 'brawl' : formationNow(f.b);
+  const intel0 = f.a.intel;
+  if (!intel0 && b.tactics?.recognised.includes(theirF)) f = { ...f, a: { ...f.a, intel: true } };
   const before = f;
-  const next = fleetRound(f, mine, autoFleetOrders(f, 'B'));
+  const rolled = fleetRound(f, mine, autoFleetOrders(f, 'B'));
+  const next = rolled.a.intel === intel0 ? rolled : { ...rolled, a: { ...rolled.a, intel: intel0 } };
+  b = seen(b, 'enemy', theirF);
+  if (!commanding(b)) b = seen(b, 'ally', formationNow(f.a));
   const rec = next.log[next.log.length - 1]!;
   w.seconds += ROUND_MINUTES * 60 - (fliesInFleet(b) ? b.turnsThisRound * TURN_SECONDS : 0);
   b = { ...b, fleet: next, turnsThisRound: 0, kills: fliesInFleet(b) ? 0 : b.kills, beaten: false };
@@ -830,7 +892,8 @@ function hulks(w: Work): void {
       if (side === 'a' && s.id === w.b.ownShipId && !w.b.out) {
         const [u, r] = nextFloat(rngOf(w.b));
         w.b = setRng(w.b, r);
-        w.b = { ...w.b, out: true };
+        w.b = { ...w.b, out: true, left: 'abandoned' };
+        commandPassesOn(w);
         // Last off (Jared): the commander gets off last, if at all.
         w.hazard = w.b.role === 'commander' && u < BREAK_UP.chance ? { severity: EVACUATION.lastOffSeverity, cause: `last off ${s.name} as it breaks up` } : { severity: 1, cause: `abandoning ${s.name}` };
       }
@@ -925,7 +988,7 @@ function engage(w: Work, o: BattleOrders): void {
   const own = f.a.ships.find((s) => s.id === w.b.ownShipId);
   if (!own) return;
   if (o.returnToHangar) {
-    w.b = { ...w.b, out: true };
+    w.b = { ...w.b, out: true, left: 'returned' };
     w.lines.push(`${own.name} turns for home; the battle goes on under ${w.b.player.commander.name}.`);
     return;
   }
@@ -947,7 +1010,7 @@ function engage(w: Work, o: BattleOrders): void {
 function evacuateEarly(w: Work): void {
   const s = ownShip(w.b);
   if (!s) return;
-  w.b = { ...w.b, out: true, leftCrew: true, command: 'firstOfficer', player: { ...w.b.player, commanderGone: true } };
+  w.b = { ...w.b, out: true, left: 'evacuatedEarly', leftCrew: true, command: 'firstOfficer', player: { ...w.b.player, commanderGone: true } };
   if (w.b.fleet) w.b = { ...w.b, fleet: { ...w.b.fleet, a: { ...w.b.fleet.a, tactics: w.b.player.firstOfficer.tactics, shaken: { ...w.b.fleet.a.shaken, [s.id]: EVACUATION.abandonedShakenRounds } } } };
   w.big.push(`You leave ${s.name}; ${w.b.player.firstOfficer.name} and the crew fight on.`);
 }
@@ -1034,7 +1097,7 @@ export function boardingFought(battle: Battle, won: boolean): StepResult {
   } else w.big.push(take ? `The boarding of ${name} fails.` : `The boarders on ${name} are beaten off.`);
   if (!take && !won) {
     // The player is out of the fight: a commander's command passes to the first officer.
-    w.b = { ...w.b, out: true, ...(w.b.role === 'commander' ? { command: 'firstOfficer' as const } : {}) };
+    w.b = { ...w.b, out: true, left: 'captured', ...(w.b.role === 'commander' ? { command: 'firstOfficer' as const } : {}) };
     if (w.b.fleet && w.b.role === 'commander') w.b = { ...w.b, fleet: { ...w.b.fleet, a: { ...w.b.fleet.a, tactics: w.b.player.firstOfficer.tactics } } };
     if (!w.b.fleet) finish(w, 'enemy', 'captured', `${name} is taken.`);
   }

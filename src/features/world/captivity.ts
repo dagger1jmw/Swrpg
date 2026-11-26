@@ -29,7 +29,7 @@ export const CAPTIVITY_ENDS = ['escaped', 'rescued', 'foughtFree', 'released', '
 export type CaptivityEnd = (typeof CAPTIVITY_ENDS)[number];
 
 export const captivitySchema = z.object({
-  source: z.enum(['fight', 'blockade']),
+  source: z.enum(['fight', 'blockade', 'battle', 'customs']),
   /** The fight or the blockade. */
   sourceId: z.string(),
   group: z.string(),

@@ -25,6 +25,40 @@ import { selectNpcTraitIds } from '../traits/selectors';
 import { selectNetworkState } from '../world/selectors';
 import type { BattleSetup, Commander, SideInfo } from './rules';
 import type { ShipCondition } from './battles';
+import { shipEffects } from '../../engine/shipLife';
+import { hereWorld } from '../ships';
+import { selectShipAt } from '../ships/selectors';
+import type { OwnedShip } from '../ships/selectors';
+
+/**
+ * The character's own ship for a battle (m8-ship-life): one of the ships slice's, usable here (docked at this world or with no
+ * dock on record), of the class the words name, else the active one. Its id carries the condition the battles slice keeps.
+ */
+export function ownedForBattle(s: GameState, classId: string | null): OwnedShip | null {
+  const sl = (s as { ships?: { ships: Record<string, OwnedShip> } }).ships;
+  if (!sl) return null;
+  const world = hereWorld(s);
+  const here = Object.values(sl.ships).filter((x) => !x.impounded && (x.dockedAt === null || world === null || x.dockedAt.toLowerCase() === world.toLowerCase()));
+  if (classId) return here.find((x) => x.classId === classId) ?? null;
+  // The active ship if it is here (a fighter without a hyperdrive too), else one that can travel from here.
+  return here.find((x) => x.id === (s as { ships?: { activeId: string | null } }).ships?.activeId) ?? selectShipAt(s, world) ?? here[0] ?? null;
+}
+
+/** A ship state for the character's own ship: the owned record's id and name, its mods (shields, hull), then its damage. */
+export function ownShipState(fallbackId: string, classId: string, crew: Crew, fallbackName: string, owned: OwnedShip | null, cond: ShipCondition | undefined): ShipState {
+  let ship = newShip(owned?.id ?? fallbackId, classId, crew, owned?.name ?? fallbackName);
+  if (owned) {
+    const fx = shipEffects(classId, owned.mods);
+    ship = { ...ship, hull: Math.round(ship.hull * fx.hullX), shields: Object.fromEntries(Object.entries(ship.shields).map(([k, v]) => [k, (v ?? 0) * fx.shieldX])) };
+  }
+  return withCondition(ship, cond);
+}
+
+/** The engine mods' edge on a pilot's rolls (handling; m8-ship-life). */
+const modEdge = (owned: OwnedShip | null): { source: string; value: number }[] => {
+  const h = owned ? shipEffects(owned.classId, owned.mods).handling : 0;
+  return h ? [{ source: 'ship modifications', value: h }] : [];
+};
 
 export const yearOf = (s: GameState): number => dateFromAbsDay(s.clock.now.day).year;
 
@@ -257,10 +291,11 @@ export function setupFromProposal(s: GameState, p: Proposal, id: string): { setu
   const enemyCrew = genericCrew(enemyKind);
   const cap = (n: number): number => Math.min(40, n);
   // The player's own ship: named in the proposal, else the last one flown, read with its damage.
-  const lastCond = s.battles.lastShipId ? s.battles.ships[s.battles.lastShipId] : undefined;
   const ownWords = p.playerShip ? parseShips(p.playerShip, mine, year) : null;
   if (ownWords?.errors.length) return { reject: ownWords.errors.join('; ') };
-  const ownClassId = ownWords?.ships[0]?.classId ?? (lastCond && shipInService(cls(lastCond.classId), year) ? lastCond.classId : null);
+  const owned = ownedForBattle(s, ownWords?.ships[0]?.classId ?? null);
+  const lastCond = owned ? s.battles.ships[owned.id] : s.battles.lastShipId ? s.battles.ships[s.battles.lastShipId] : undefined;
+  const ownClassId = owned?.classId ?? ownWords?.ships[0]?.classId ?? (lastCond && shipInService(cls(lastCond.classId), year) ? lastCond.classId : null);
   const commanderNpc = p.commanderRef && selectNpc(s, p.commanderRef) ? p.commanderRef : null;
   const enemyCmd = commanderOf(s, againstForce ? (Object.values(s.npcs.byId).find((n) => n.canonId === force!.commanderCanonId)?.id ?? null) : commanderNpc, againstForce ? force!.commander : 'the enemy commander', enemyKind);
   const enemy = sideOf(againstForce ? force!.name : `the ${enemyFaction === 'sithEmpire' ? 'Imperial' : enemyFaction} ships`, enemyFaction, enemyKind, enemyCmd);
@@ -273,10 +308,10 @@ export function setupFromProposal(s: GameState, p: Proposal, id: string): { setu
     const foes = parsed.ships.filter((x) => isSmall(x.classId));
     if (!foes.length) return { reject: 'a dogfight is fought against fighters or freighters; capital ships make it a fleet battle' };
     const pf = playerFlyer(s, cls(ownClassId));
-    const ownShip = withCondition(newShip(`${id}:own`, ownClassId, pf.crew, shortName(cls(ownClassId))), lastCond);
+    const ownShip = ownShipState(`${id}:own`, ownClassId, pf.crew, shortName(cls(ownClassId)), owned, lastCond);
     const enemyShips = buildShips(`${id}:e`, foes.map((x) => ({ ...x, count: Math.min(24, x.count) })), enemyCrew, (c, i) => `${shortName(c)} ${i + 1}`);
     const allies = p.allies ? parseShips(p.allies, mine, year).ships : [];
-    const flyer = { ...pf.flyer, wingman: allies.some((x) => cls(x.classId).kind === 'fighter') };
+    const flyer = { ...pf.flyer, wingman: allies.some((x) => cls(x.classId).kind === 'fighter'), mods: modEdge(owned) };
     const role: BattleRole = p.role === 'gunner' && cls(ownClassId).kind === 'freighter' ? 'gunner' : 'pilot';
     const player = sideOf(selectCharacter(s).name, mine, 'navy', commanderOf(s, null, selectCharacter(s).name, 'navy'));
     return { setup: { id, kind: 'dogfight', role, trigger: p.trigger, stakes, ...place, year, player, enemy, playerShips: [ownShip], enemyShips, ownShipId: ownShip.id, flyer, rng, playerCommands: false } };
@@ -303,7 +338,7 @@ export function setupFromProposal(s: GameState, p: Proposal, id: string): { setu
   const playerCmd = commands ? { name: me, npcId: null, tactics: selectPerformance(s, 'tactics'), traits: [], jedi: selectCharacter(s).path === 'jedi' } : commanderOf(s, null, 'the fleet commander', 'navy');
   const player = sideOf(commands ? `${me}'s fleet` : `the ${mine === 'jediOrder' ? 'Republic' : mine} fleet`, mine, 'navy', playerCmd);
   let ownShipId = playerShips[0]!.id;
-  if (role === 'commander' || role === 'crew') playerShips[0] = withCondition(playerShips[0]!, lastCond);
+  if (role === 'commander' || role === 'crew') playerShips[0] = owned && owned.classId === playerShips[0]!.classId ? ownShipState(playerShips[0]!.id, owned.classId, playerShips[0]!.crew, playerShips[0]!.name, owned, lastCond) : withCondition(playerShips[0]!, lastCond);
   if (role === 'pilot' && ownClassId && ownIsFighter) {
     const pf = playerFlyer(s, cls(ownClassId));
     const fighter = withCondition(newShip(`${id}:own`, ownClassId, pf.crew, shortName(cls(ownClassId))), lastCond);
@@ -357,16 +392,18 @@ export function setupFromBlockade(s: GameState, b: BlockadeDef, to: string, dire
   const rng = seedRng(`${s.meta.campaignId}:${id}:${s.meta.turn}`);
   const loc = selectCurrentLocation(s);
   const place = { placeId: loc?.id ?? null, placeName: b.name };
-  const lastCond = s.battles.lastShipId ? s.battles.ships[s.battles.lastShipId] : undefined;
+  const ownedB = ownedForBattle(s, null);
+  const ownedSmall = ownedB && ['fighter', 'freighter'].includes(SHIP_CLASSES.find((c) => c.id === ownedB.classId)?.kind ?? '') ? ownedB : null;
+  const lastCond = ownedSmall ? s.battles.ships[ownedSmall.id] : s.battles.lastShipId ? s.battles.ships[s.battles.lastShipId] : undefined;
   const cls = (cid: string): ShipClass => SHIP_CLASSES.find((c) => c.id === cid)!;
   if (!fleet) {
     // An ace alone: the pickets' fighters, one after another; breaking off is getting through.
-    const ownId = lastCond && shipInService(cls(lastCond.classId), year) && ['fighter', 'freighter'].includes(cls(lastCond.classId).kind) ? lastCond.classId : (classesFor(mine, year, ['freighter'])[0]?.id ?? SHIP_CLASSES.find((c) => shipInService(c, year) && c.kind === 'freighter')?.id ?? classesFor(mine, year, ['fighter'])[0]?.id);
+    const ownId = ownedSmall ? ownedSmall.classId : lastCond && shipInService(cls(lastCond.classId), year) && ['fighter', 'freighter'].includes(cls(lastCond.classId).kind) ? lastCond.classId : (classesFor(mine, year, ['freighter'])[0]?.id ?? SHIP_CLASSES.find((c) => shipInService(c, year) && c.kind === 'freighter')?.id ?? classesFor(mine, year, ['fighter'])[0]?.id);
     if (!ownId || !fighter) return { reject: 'no ship class is on record for this date to run the line in' };
     const pf = playerFlyer(s, cls(ownId));
-    const own = withCondition(newShip(`${id}:own`, ownId, pf.crew, shortName(cls(ownId))), lastCond);
+    const own = ownShipState(`${id}:own`, ownId, pf.crew, shortName(cls(ownId)), ownedSmall, lastCond);
     const enemyShips = buildShips(`${id}:e`, [{ classId: fighter, count: Math.min(12, fightersN) }], crew, (c, i) => `${shortName(c)} ${i + 1}`);
-    return { setup: { id, kind: 'dogfight', role: 'pilot', trigger: 'blockade', stakes: 'lethal', ...place, year, player, enemy, playerShips: [own], enemyShips, ownShipId: own.id, flyer: pf.flyer, rng, playerCommands: false, blockade: { id: b.id, to, direction } } };
+    return { setup: { id, kind: 'dogfight', role: 'pilot', trigger: 'blockade', stakes: 'lethal', ...place, year, player, enemy, playerShips: [own], enemyShips, ownShipId: own.id, flyer: { ...pf.flyer, mods: modEdge(ownedSmall) }, rng, playerCommands: false, blockade: { id: b.id, to, direction } } };
   }
   if (!capital) return { reject: 'no capital ship class is on record for the pickets in this year' };
   const allies = classesFor(mine, year, ['frigate', 'corvette', 'heavyCruiser']);

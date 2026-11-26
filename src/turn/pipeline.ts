@@ -16,6 +16,7 @@ import { composeNarrativeSchema, narrativeEventTypes, type NarrativeReply } from
 import { intentSchema, normalizeIntent, type Intent } from '../ai/schemas/intent';
 import { summaryReplySchema } from '../ai/schemas/summary';
 import type { Settings } from '../ai/settings';
+import { selectShipsUntold } from '../features/ships/selectors';
 import { ratioFor, type TokenRatios } from '../ai/tokenRatio';
 import { SUMMARY_RETRIES_PER_CLOSE } from '../data/memory.config';
 import { PACING_OUTPUT_CAPS } from '../data/pacing.config';
@@ -344,7 +345,8 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   // A quiet beat (D-145): no AI call. The feed shows the roll cards and one code-template line; no events, no choices
   // (the beat buttons are the choices).
   // A battle turn with no big moment (m8-ship-battles, D-517): the code's line or two, no AI call; the menu is the choice.
-  const quietBattle = draft.battle !== undefined && draft.battle.quiet;
+  // The narrate-every-turn setting (m8-ship-life Part A2, D-518; off by default) sends every battle turn to the narrator.
+  const quietBattle = draft.battle !== undefined && draft.battle.quiet && settings.narrateEveryBattleTurn !== true;
   const quiet = draft.combat?.quiet === true || quietBattle;
   if (!reply && quiet) reply = { narrative: quietBattle ? draft.battle!.lines.join(' ') : (draft.combat!.quietLine ?? ''), choices: [], scene: { moodTags: [], presentNpcRefs: [] }, events: [] };
   if (!reply) {
@@ -461,7 +463,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   const told = selectWorldIdsToTell(resolved);
   // The money lines this narration was shown (the economy, M8 item 5).
   const moneyTold = resolved.economy.log.filter((x) => x.toldTurn === null).length;
-  const tellEvents = [...(told.length ? [{ type: 'worldEventsTold', ids: told, turn: state.meta.turn }] : []), ...(moneyTold ? [{ type: 'economyTold', count: moneyTold, turn: state.meta.turn }] : [])];
+  const tellEvents = [...(told.length ? [{ type: 'worldEventsTold', ids: told, turn: state.meta.turn }] : []), ...(moneyTold ? [{ type: 'economyTold', count: moneyTold, turn: state.meta.turn }] : []), ...(!quiet && selectShipsUntold(resolved) ? [{ type: 'shipsTold' }] : [])];
   if (tellEvents.length) {
     const w = applyEvents(deps.registry, state, tellEvents, { source: 'engine' });
     state = w.state;

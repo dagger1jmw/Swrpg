@@ -27,8 +27,28 @@ function withDrafts(n: CanonNpc): CanonNpc {
   return { ...n, anchors: [...n.anchors, ...extra].sort((a, b) => b.bby - a.bby), ...(holds.length ? { holds: [...(n.holds ?? []), ...holds] } : {}) };
 }
 
+/**
+ * A draft's `authored` numbers are the lore sheet's own (m8-ship-life, D-518): where the roster's sheet of the same date leaves
+ * one out, it goes onto that sheet before the conversion, so the scale rule reads it like any other sheet number (a main
+ * specialty as written). Cipher Nine's sheet gives "Ranged/Stealth ≈ 84"; the roster took it as Blaster only and her Stealth
+ * fell to the field agent's line (35.2).
+ */
+function withAuthored(n: CanonNpc): CanonNpc {
+  const drafts = SKILL_DRAFTS.filter((d) => d.canonId === n.canonId && Object.keys(d.authored).length);
+  if (!drafts.length) return n;
+  const anchors = n.anchors.map((a) => {
+    const d = drafts.find((x) => -x.year === a.bby);
+    if (!d || a.basis !== 'sheet' || !a.complete || a.scale === 'game') return a;
+    const missing = Object.fromEntries(Object.entries(d.authored).filter(([k]) => a.levels[k] === undefined));
+    return Object.keys(missing).length ? { ...a, levels: { ...a.levels, ...missing } } : a;
+  });
+  return { ...n, anchors };
+}
+
 /** Every canon entry across all eras (one entry per figure per era file), with its sheets in the game scale (D-423). */
-export const CANON_NPCS: readonly CanonNpc[] = CANON_ERAS.flatMap((e) => e.npcs).map((n) => withDrafts(n.anchors.length ? { ...n, anchors: n.anchors.map((a) => toGame(n, a)) } : n));
+export const CANON_NPCS: readonly CanonNpc[] = CANON_ERAS.flatMap((e) => e.npcs)
+  .map(withAuthored)
+  .map((n) => withDrafts(n.anchors.length ? { ...n, anchors: n.anchors.map((a) => toGame(n, a)) } : n));
 
 /**
  * Canon entries by lore canon ID. A figure appears in one era file per era it belongs to; the first era wins here.

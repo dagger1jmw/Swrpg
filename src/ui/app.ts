@@ -827,6 +827,8 @@ export class App {
 
     const autoRetry = input({ type: 'checkbox' });
     autoRetry.checked = s.autoRetry;
+    const narrateBattles = input({ type: 'checkbox' });
+    narrateBattles.checked = s.narrateEveryBattleTurn === true;
 
     const save = (): void => {
       const k = validateApiKey(keyInput.value);
@@ -834,7 +836,7 @@ export class App {
         err.textContent = k.error;
         return;
       }
-      let next: Settings = { ...this.settings, apiKey: k.key, autoRetry: autoRetry.checked };
+      let next: Settings = { ...this.settings, apiKey: k.key, autoRetry: autoRetry.checked, narrateEveryBattleTurn: narrateBattles.checked };
       for (const f of modelFields) next = withModelList(next, f.ct, f.inp.value.split(','));
       const num = (i: HTMLInputElement): number | undefined => {
         const n = Number(i.value);
@@ -875,6 +877,7 @@ export class App {
       ]),
       el('h3', { text: 'Behavior' }),
       el('label', { class: 'check' }, [autoRetry, ' Retry once automatically when a reply is cut off (uses one extra request)']),
+      el('label', { class: 'check' }, [narrateBattles, ' Narrate every ship-battle turn (otherwise only big moments and the end; each turn becomes a request)']),
       err,
       el('div', { class: 'row actions' }, [el('button', { text: 'Save', on: { click: save } })]),
     ];

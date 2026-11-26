@@ -11,6 +11,9 @@ import type { LocationsSlice } from '../features/locations/locations';
 import type { MemorySlice } from '../features/memory/memory';
 import type { NpcsSlice } from '../features/npcs/npcs';
 import type { PacingSlice } from '../features/pacing/pacing';
+import type { PossessionsSlice } from '../features/possessions/possessions';
+import type { ShipsSlice } from '../features/ships/ships';
+import type { TacticsSlice } from '../features/tactics/tactics';
 import type { ProgressionSlice } from '../features/progression/progression';
 import type { RanksSlice } from '../features/ranks/ranks';
 import type { RelationshipsSlice } from '../features/relationships/relationships';
@@ -40,5 +43,8 @@ export type GameState = {
   droids: DroidsSlice;
   traits: TraitsSlice;
   battles: BattlesSlice;
+  ships: ShipsSlice;
+  tactics: TacticsSlice;
+  possessions: PossessionsSlice;
   pacing: PacingSlice;
 };

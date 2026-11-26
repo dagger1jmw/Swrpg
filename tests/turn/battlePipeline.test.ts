@@ -50,4 +50,26 @@ describe('battle turns through the pipeline', () => {
     expect(quiet).toBeGreaterThan(0);
     expect(loud).toBeGreaterThan(0);
   });
+  it('the narrate-every-turn setting (m8-ship-life Part A2, off by default) sends every battle turn to the narrator', async () => {
+    expect(defaultSettings().narrateEveryBattleTurn).toBe(false);
+    const provider = createFixtureProvider(Array.from({ length: 80 }, () => ({ data: narrativeInvestigate })));
+    const store = { quota: {} as QuotaState, usage: EMPTY_USAGE_LOG as UsageLog };
+    const getSettings = (): Settings => ({ ...defaultSettings(), apiKey: 'k'.repeat(30), narrateEveryBattleTurn: true });
+    const router = createModelRouter({ getLists: () => getSettings().modelLists, getLimits: () => getSettings().limits, getUsage: () => store.usage, getQuota: () => store.quota, setQuota: (q) => (store.quota = q), now: () => 0 });
+    let ms = Date.UTC(2026, 10, 26);
+    const requests: string[] = [];
+    const deps: TurnDeps = { registry: REGISTRY, provider, router, storage: createMemoryStorage(), getSettings, wallClock: () => ({ ms: (ms += 1000), iso: new Date(ms).toISOString() }), onRequest: (r) => requests.push(r.messages.map((m) => m.text).join('\n')) };
+    const base = createInitialState<GameState>(REGISTRY, { campaignId: 'c', branchId: 'b', seed: 'bp', start: { day: START, second: 8 * 3600 }, character: { name: 'Kael', birthDay: START - 30 * 368, path: 'jedi', archetype: 'jediGuardian', mainFormId: 'soresu', trainingStartAge: 4 }, rank: 'knight' });
+    const state = applyEvents(REGISTRY, base, [{ type: 'shipBattleProposed', what: 'enemy: two Imperial Supremacy fighters; mine: Aurek' }], { source: 'dev' }).state;
+    let session: Session = { state, history: [], campaign: { campaignId: 'c', name: 'Kael', createdAt: 'x', lastPlayedAt: 'x' } };
+    let quietButNarrated = 0;
+    for (let i = 0; i < 12 && session.state.battles.active; i++) {
+      const before = requests.length;
+      const r = await playTurn(deps, session, { kind: 'battle', label: 'Fly', orders: { manoeuvre: 'fly', shot: 'guns', snap: true } });
+      session = r.session;
+      expect(requests.length).toBeGreaterThan(before);
+      if (r.record.draft.battle!.quiet) quietButNarrated++;
+    }
+    expect(quietButNarrated).toBeGreaterThan(0);
+  });
 });

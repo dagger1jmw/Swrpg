@@ -36,7 +36,7 @@ import { tryEscape } from './escape';
 import { tryPlan } from './planning';
 import { resolveHoldTurn, type HoldTurn } from '../features/combat/selectors';
 import { carePlan } from './medicine';
-import { planTravel, runTravelBlockade, watchTravelBlockade, type TravelOutcome } from './travel';
+import { planTravel, runTravelBlockade, shipTrip, watchTravelBlockade, type TravelOutcome } from './travel';
 import type { GameEvent, Registry, ResolvedAction } from '../state/types';
 import { selectCheckTraitMod, selectNpcMindTrickResist } from '../features/traits/selectors';
 import { selectActiveBattle, selectBattleStep, selectBattleWaitsOnFight, selectLastEndedBattle } from '../features/battles/selectors';
@@ -415,6 +415,13 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     }
     const handled = [attempt, watch, escape, laid].some((a) => a && !('refused' in a));
     if (attempt && !('refused' in attempt)) travel = attempt.travel;
+    // The ship's part of a trip (m8-ship-life, D-519): passage, or the own ship's legs, breakdowns, costs and customs.
+    if (travel?.ok) {
+      const leg = shipTrip(state, intent, travel);
+      state = { ...state, meta: { ...state.meta, rngState: leg.rng } };
+      travel = leg.travel;
+      if (travel.ok) apply([...leg.events]);
+    }
     if (travel?.ok) {
       if (intent.requestedSpan) report.push(`travel time is the engine's (${travel.hours} h), not the requested span`);
       spanSeconds = Math.round(travel.hours! * 3600);

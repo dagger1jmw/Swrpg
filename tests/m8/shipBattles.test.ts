@@ -192,7 +192,9 @@ describe('the tactics menu shows the right moves, and its costs match the engine
     expect(battleMenu(tail).options.find((o) => o.label === 'Torpedo lock')!.available).toBe(true);
   });
   it('a fleet in command: each formation with what it beats and loses to, the reform cost, rolling\'s cost in guns', () => {
-    const b = selectActiveBattle(propose(fresh({ flags: ['fleetCommand'] }), 'enemy: two Imperial Harrower dreadnoughts; allies: four Thranta corvettes; role: commander').state)!;
+    // An officer-trained commander (m8-ship-life: the menu offers only known tactics).
+    const trained = applyEvents(FAST, fresh({ flags: ['fleetCommand'] }), [{ type: 'tacticsLearned', sets: ['officerAcademy'], source: 'an officer academy' }], { source: 'engine' }).state;
+    const b = selectActiveBattle(propose(trained, 'enemy: two Imperial Harrower dreadnoughts; allies: four Thranta corvettes; role: commander').state)!;
     const m = battleMenu(b);
     const slash = m.options.find((o) => o.group === 'formation' && o.label.startsWith(FORMATION_LABEL.slash))!;
     expect(slash.strong).toBe(`beats ${FORMATION_BEATS.slash.map((x) => FORMATION_LABEL[x]).join(', ')}`);
