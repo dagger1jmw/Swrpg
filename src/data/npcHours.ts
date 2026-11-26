@@ -10,6 +10,23 @@ export const NPC_TRAINING_HOURS: readonly (readonly [number, number])[] = [[50, 
 export const NPC_TRAINING_HOURS_UNSHEETED: readonly (readonly [number, number])[] = [...NPC_TRAINING_HOURS, [90, 0]];
 
 /**
+ * Long life counts for the mind (Jared, D-507): past the stop, a long-lived NPC without a sheet keeps gaining experience in its
+ * mental and social stats only, by real years. Each drifts toward `target` (the middle of Master, 61-80), `tau` years to cover
+ * about 63% of the way, never more than `cap` in all and never down. Only a skill it already has at `from` or more, so nothing
+ * never practised appears. Long-lived: a lifespan over `lifespan` (the Human's is 100). Every number invented.
+ */
+export const LIFE_EXPERIENCE = {
+  skills: ['intelligence', 'charisma', 'profession', 'investigation', 'tactics', 'medicine'] as readonly string[],
+  target: 75,
+  tau: 150,
+  cap: 30,
+  from: 20,
+  lifespan: 150,
+  /** The training age at which the training day ends (the curve's last point). */
+  stopAt: 90,
+} as const;
+
+/**
  * Willpower's training gains stop for an NPC without a sheet once it has trained as many years as a Human of its path has
  * by this age (Jared, D-499, D-500: years trained, whatever the species; a sheet's Willpower is its own).
  */

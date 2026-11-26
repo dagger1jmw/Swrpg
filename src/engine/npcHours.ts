@@ -1,6 +1,6 @@
 // An NPC's growth past about 50 (Jared, 2026-11-25; D-497, D-498). Its training years: the species' age-weighted years, each counted by the share of a full
 // training day the NPC still keeps at that Human-equivalent age (data/npcHours.ts). Pure.
-import { NPC_TRAINING_HOURS, NPC_TRAINING_HOURS_UNSHEETED, NPC_WILLPOWER_STOP_AGE } from '../data/npcHours';
+import { LIFE_EXPERIENCE, NPC_TRAINING_HOURS, NPC_TRAINING_HOURS_UNSHEETED, NPC_WILLPOWER_STOP_AGE } from '../data/npcHours';
 import { ageFromTraining, humanEquivalentAge, speciesAgeFromHuman, trainingAge, type SpeciesDef } from '../data/species';
 import type { AgeYears } from './closedForm';
 import { interp } from './interp';
@@ -47,14 +47,16 @@ export function npcYears(species: SpeciesDef, base: AgeYears): AgeYears {
  * The years of `base` for an NPC without a sheet (D-506): the training day by years trained, read from the NPC's own start
  * (`startTraining`, a training age, and `startAge`, its real age then), and none past the curve's end.
  */
-export function npcYearsTrained(species: SpeciesDef, base: AgeYears, startTraining: number, startAge: number): AgeYears {
-  // Years trained are real years (D-474), from the NPC's own start.
-  const h0 = humanEquivalentAge(species, startAge);
-  const hAt = (t: number): number => h0 + Math.max(0, ageFromTraining(species, t) - startAge);
+export function npcYearsTrained(_species: SpeciesDef, base: AgeYears, startTraining: number, startAge: number): AgeYears {
+  // Years trained from the start of training or adulthood (D-507): a childhood counts at the Human's pace (the training age), so
+  // a Hutt's 150 years of it do not use up the allowance; adult years are real years.
+  void startAge;
+  const h0 = startTraining;
+  const hAt = (t: number): number => h0 + Math.max(0, t - startTraining);
   const from = NPC_TRAINING_HOURS_UNSHEETED[0]![0];
   const to = NPC_TRAINING_HOURS_UNSHEETED[NPC_TRAINING_HOURS_UNSHEETED.length - 1]![0];
   const cuts: number[] = [];
-  for (let h = from; h <= to; h += STEP) if (h > h0) cuts.push(Math.max(startTraining, trainingAge(species, startAge + h - h0)));
+  for (let h = from; h <= to; h += STEP) if (h > h0) cuts.push(startTraining + h - h0);
   const shareAt = (t: number): number => interp(NPC_TRAINING_HOURS_UNSHEETED, hAt(t));
   return {
     factor: (row, t) => base.factor(row, t),
@@ -70,6 +72,18 @@ export function npcYearsTrained(species: SpeciesDef, base: AgeYears, startTraini
       return sum;
     },
   };
+}
+
+/**
+ * A long-lived NPC's experience past the training stop (D-507): what a mental or social stat at `level` gains by `age` (real
+ * years). Nothing for the short-lived, before the stop, for a stat it does not have, or for one already at the target.
+ */
+export function lifeExperience(species: SpeciesDef, skillId: string, level: number, age: number): number {
+  const x = LIFE_EXPERIENCE;
+  if (species.lifespan <= x.lifespan || !x.skills.includes(skillId) || level < x.from || level >= x.target) return 0;
+  const years = age - ageFromTraining(species, x.stopAt);
+  if (years <= 0) return 0;
+  return Math.min(x.cap, (x.target - level) * (1 - Math.exp(-years / x.tau)));
 }
 
 /**

@@ -87,3 +87,7 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [ ] **14. Ground command (Jared, 2026-11-24; D-475, D-476).**
 
   Guiding troops as a general, with locations and objectives, like the fleet battles. Designed 2026-11-24; build after item 13: docs-v2/spec/m8-design-notes.md, "Ground command (checklist item 14)". The sector rolls, matchups, breakthroughs and morale are built as pure engine (combat-scales.md, D-505); the plan's scene, the map, scouting, the reserve and contingencies are not. Wartime postings (item 11) stay story-only until it exists.
+- [ ] **15. Calibration queue (Jared, D-507).**
+
+  Not to build now; each waits for its own ruling.
+  - **A self-taught pace:** a canon student recorded as cut off from any order (no Temple, no Academy, no master) trains more slowly than the Temple pace. A master's death alone does not count: the Order reassigns the Padawan (D-507).

@@ -19,7 +19,7 @@ import { SPECIES_BY_ID, speciesDef, speciesOfferedAt } from '../../data/species'
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { HUMAN_YEARS, closedFormLevel, formXps, phasesFor, planSplit, type AgeYears, type FormPlan } from '../../engine/closedForm';
 import { NPC_WILLPOWER_PACE } from '../../data/npcHours';
-import { npcNaturalLevel, npcWillpowerStop, npcYears, yearsUntil, npcYearsTrained } from '../../engine/npcHours';
+import { npcNaturalLevel, npcWillpowerStop, npcYears, yearsUntil, npcYearsTrained, lifeExperience } from '../../engine/npcHours';
 import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { trackedSenseXp } from '../../engine/forceSense';
 import { ageLoss, bodyAgeFromH } from '../../engine/ageing';
@@ -391,6 +391,8 @@ export function computeCreation(input: CreationInput): CreationResult {
     const lv = input.npc ? softCapLevel(raw) : raw;
     if (lv > 0) levels[id] = lv;
   }
+  // Long life counts for the mind (D-507): past the stop, an NPC without a sheet keeps a slow experience gain, mind only.
+  if (input.npc && !input.sheeted) for (const id of Object.keys(levels)) levels[id] = levels[id]! + lifeExperience(species, id, levels[id]!, age);
   // An NPC's body past its prime (D-472), under its species' ceilings (D-474); a player's ageing is the progression feature's (its selectors take it off).
   if (input.npc) {
     const body = bodyAgeFromH(Math.min(LONG_LIFE.maxHumanAge, humanEquivalentAge(species, age)), levels['forceControl'] ?? 0, species.lifespanIncludesForce === true);
