@@ -42,6 +42,23 @@ export const relationshipsFeature: FeatureModule<RelationshipsSlice, GameState> 
         };
       },
     },
+    /**
+     * Engine: a bond from the character's past, set without a scene (a trait's tie or a formative quiz's person; M8 item 16).
+     * Not a social line: no Charisma XP (the quiz never gives skill numbers).
+     */
+    relationshipSeeded: {
+      schema: z.object({ type: z.literal('relationshipSeeded'), npcRef: z.string(), value: z.number().min(-RELATIONSHIP_RANGE).max(RELATIONSHIP_RANGE), reason: z.string().max(LIMITS.reason) }),
+      sources: ['engine'],
+      refFields: ['npcRef'],
+      refKinds: { npcRef: ['npc'] },
+      handle: (slice, e, ctx) => {
+        const id = String(e['npcRef']);
+        if (!selectNpc(ctx.state, id)) return { reject: `unknown npc ${id}` };
+        const prev = slice.byNpcId[id]?.value ?? 0;
+        const value = Math.max(-RELATIONSHIP_RANGE, Math.min(RELATIONSHIP_RANGE, prev + Number(e['value'])));
+        return { slice: { byNpcId: { ...slice.byNpcId, [id]: { value, lastDay: selectNow(ctx.state).day, lastReason: String(e['reason']) } } }, notes: [`${id} relationship ${prev} -> ${value} (from the past)`] };
+      },
+    },
     /** Hours of a routine session shared with a teacher or partner (D-137); routines emit it in jumps. */
     sharedTraining: {
       schema: z.object({ type: z.literal('sharedTraining'), npcId: z.string(), hours: z.number().min(0).max(24) }),

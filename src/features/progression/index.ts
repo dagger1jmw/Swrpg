@@ -490,7 +490,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
             playToday[key] = (playToday[key] ?? 0) + x;
           }
         }
-        const m = speedFor(ctx.state, 1);
+        // XP from play takes the traits' play factor (Ambitious, Disgraced, the rival's spur; spec/traits.md section 3).
+        const m = speedFor(ctx.state, 1, { play: true });
         const credited: Record<string, number> = Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v * m(k)]));
         const cr = creditXp(slice, ctx.state, credited, {}, {}, day, false);
         const total = Object.entries(credited).map(([k, v]) => `${SKILL_BY_ID.get(k)?.name ?? k} +${v.toFixed(2)}`).join(', ');

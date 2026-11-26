@@ -41,6 +41,12 @@ export const npcIntroducedSchema = z.object({
 
 const npcRefKinds = { npcRef: ['npc'] } as const;
 
+/** A trait's tie to this person ends when they die (M8 item 16): emitted only when the character holds such a tie. */
+function tieEndedFor(s: GameState, name: string): GameEvent[] {
+  const held = (s as { traits?: { held: readonly { tieName?: string }[] } }).traits?.held ?? [];
+  return held.some((h) => h.tieName?.toLowerCase() === name.toLowerCase()) ? [{ type: 'tieEnded', name }] : [];
+}
+
 function introduce(slice: NpcsSlice, e: GameEvent, state: GameState): { slice: NpcsSlice; id: string; existing: boolean; note: string | null } {
   const name = String(e['name']).trim();
   const existing = uniqueAliasMatch(Object.values(slice.byId), (n) => [n.name, ...n.aliases], name);
@@ -96,8 +102,8 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
   events: {
     npcIntroduced: {
       schema: npcIntroducedSchema,
-      // dev: a dev sandbox opponent or partner (D-180).
-      sources: ['ai', 'dev'],
+      // dev: a dev sandbox opponent or partner (D-180). engine: a trait's tie or a formative quiz's person (M8 item 16).
+      sources: ['ai', 'dev', 'engine'],
       phase: 'create',
       narrative: () => true,
       handle: (slice, e, ctx) => {
@@ -330,7 +336,8 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
             if (r.note) notes.push(r.note);
           }
         }
-        return { slice: next, notes };
+        const ties = tieEndedFor(ctx.state, npc.name);
+        return { slice: next, notes, ...(ties.length ? { emit: ties } : {}) };
       },
     },
     /**

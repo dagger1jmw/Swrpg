@@ -23,6 +23,11 @@
     still apply) and flags the campaign unbalanced on the character sheet.
   Background flags: war years experienced, notable deeds, master or teacher (generated or
     chosen from canon NPCs where the lore allows), home world, family
+  Traits and formative events (M8 item 16, D-515; traits.md): one origin, one temperament, one
+    scar or tie, an optional flaw-heavy fourth, filtered by path, species, homeworld and date;
+    an older start takes the formative quiz (4-8 scenes) before play, a youngling start at the
+    first long skip. Answers give facts, leanings, people, standing and small alignment nudges,
+    never stats or skills.
 
 ## 2. Starting stats (computed, not allocated)
   Every skill uses the NPC closed form (NPC spec section 1; phase paces per D-105) with the

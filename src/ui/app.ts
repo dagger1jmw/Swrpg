@@ -37,7 +37,7 @@ import { applyEvents } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
 import type { GameEvent, Registry } from '../state/types';
 import { START_OPTION_BY_ID, startOptionsFor, startPremiseAt, startThreadsAt } from '../data/startOptions';
-import { createCampaign, DEFAULT_START_AGE, DEFAULT_START_DATE, DEFAULT_START_SECOND, loadEarlierSave, openingPending, resumeCampaign, validateNewCampaign } from '../turn/campaign';
+import { createCampaign, creationQuizInput, creationTraitContext, DEFAULT_START_AGE, DEFAULT_START_DATE, DEFAULT_START_SECOND, loadEarlierSave, openingPending, resumeCampaign, validateNewCampaign, type NewCampaignInput } from '../turn/campaign';
 import type { SaveMeta } from '../persist/saveHistory';
 import { EarlierSaves } from './earlierSaves';
 import { devFlag, TEST_START_ARCHETYPES, testStartInput, testStartRankOptions, type TestStartArchetype, type TestStartRank } from '../turn/testStart';
@@ -48,6 +48,10 @@ import { describeInput, type TurnInput, type TurnRecord } from '../turn/record';
 import type { TrainingOutcome } from '../turn/resolve';
 import { SKILL_BY_ID } from '../data/skills';
 import { creationForm } from './creationForm';
+import { quizScreens, traitsStep } from './traitsUi';
+import { quizPlan, type TraitContext } from '../features/traits/selectors';
+import { selectQuizInput, selectQuizPlan, selectTraitContext } from '../features/traits/selectors';
+import { TRAIT_BY_ID } from '../data/traits';
 import { clear, el, input, paragraphs } from './dom';
 import { renderSidePanel, type PanelTab } from './sidePanel';
 import { renderCombatDraft, renderDuelPanel } from './duelPanel';
@@ -92,7 +96,7 @@ export interface AppDeps {
   now: () => number;
 }
 
-type Modal = 'settings' | 'campaign' | 'routine';
+type Modal = 'settings' | 'campaign' | 'routine' | 'quiz';
 
 interface FailedTurn {
   input: TurnInput;
@@ -120,6 +124,8 @@ export class App {
   private readonly router: ModelRouter;
   private tokenRatios: TokenRatios;
   private modal: Modal | null = null;
+  /** The in-game formative quiz's screens while open (they keep their own state between renders). */
+  private quizView: HTMLElement | null = null;
   /** Docked panel shown (wide) or drawer open (narrow). */
   private panelOpen: boolean;
   private panelTab: PanelTab = 'character';
@@ -578,6 +584,10 @@ export class App {
     if (view && last && !openingPending(session!) && !this.busy && !this.failed) {
       choiceItems = view.storyChoices.map((c) => el('button', { class: 'choice', text: c.label, on: { click: () => void this.runTurn({ kind: 'choice', choice: c }) } }));
     }
+    // A youngling's formative quiz, due after the first long skip (M8 item 16): offered until taken or declined.
+    if (session && !this.busy && !this.failed && !session.state.combat.active && selectQuizPlan(session.state)?.events.length) {
+      choiceItems = [el('button', { class: 'choice', text: 'Formative years: play the skipped years as scenes', on: { click: () => this.openQuiz() } }), ...choiceItems];
+    }
     // Death ends the campaign (D-154): an ending card instead of choices; loading an older save starts a new branch.
     if (session?.state.health.death) {
       const ending = el('section', { class: 'box choices ending' }, [
@@ -715,6 +725,31 @@ export class App {
     });
   }
 
+  /** The in-game formative quiz (a youngling's skipped years; M8 item 16). The code re-draws the scenes and decides. */
+  private openQuiz(): void {
+    if (!this.session) return;
+    const s = this.session.state;
+    const q = selectQuizInput(s);
+    const plan = selectQuizPlan(s);
+    if (!q || !plan) return;
+    const created = (k: string[]): string => s.traits.held.find((h) => h.source === 'creation' && k.includes(TRAIT_BY_ID.get(h.id)?.kind ?? ''))?.id ?? '';
+    const finish = async (events: GameEvent[]): Promise<void> => {
+      this.quizView = null;
+      this.modal = null;
+      await this.playerEvents(events);
+      this.render();
+    };
+    this.quizView = quizScreens(plan, {
+      seed: q.seed,
+      ctx: selectTraitContext(s),
+      origin: q.origin,
+      current: { temperament: created(['temperament']), scarOrTie: created(['scar', 'tie']) },
+      onDone: (d) => void finish([{ type: 'formativeQuizTaken', answers: d.answers, ...(d.traits ? { traits: d.traits } : {}) }]),
+      onDecline: () => void finish([{ type: 'formativeQuizTaken', answers: [] }]),
+    });
+    this.openModal('quiz');
+  }
+
   private renderModal(m: Modal): HTMLElement {
     const required = this.requiredModal();
     const close = (): void => {
@@ -724,6 +759,13 @@ export class App {
     };
     const tab = (id: Modal, label: string): HTMLButtonElement =>
       el('button', { class: id === m ? 'tab active' : 'tab', text: label, attrs: { role: 'tab', 'aria-selected': String(id === m) }, on: { click: () => this.openModal(id) } });
+    if (m === 'quiz') {
+      const dialog = el('div', { class: 'box modal', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Formative years' } }, [
+        el('div', { class: 'box-head' }, [el('strong', { text: 'Formative years' }), el('button', { class: 'icon', text: '×', attrs: { 'aria-label': 'Close' }, on: { click: close } })]),
+        el('div', { class: 'box-body modal-body', attrs: { 'data-scroll': 'modal-quiz' } }, this.quizView ? [this.quizView] : []),
+      ]);
+      return el('div', { class: 'modal-layer', on: { click: (e) => e.target === e.currentTarget && close() } }, [dialog]);
+    }
     if (m === 'routine') {
       const dialog = el('div', { class: 'box modal', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Training routine' } }, [
         el('div', { class: 'box-head' }, [el('strong', { text: 'Training routine' }), el('button', { class: 'icon', text: '×', attrs: { 'aria-label': 'Close' }, on: { click: close } })]),
@@ -929,6 +971,11 @@ export class App {
     const ageLine = el('p', { class: 'hint' });
     const err = el('div', { class: 'error' });
     const cf = creationForm();
+    // Starting traits and the formative quiz (M8 item 16).
+    const traitCtx = (): TraitContext | null => creationTraitContext({ name: name.value, birthDate: birth.read(), startDate: startD.read(), startSecond: 0, creation: cf.read(), ...(startPick.value ? { start: { optionId: startPick.value, imperialBorn: imperialBorn.checked } } : {}) });
+    const ts = traitsStep(traitCtx);
+    const quizBox = el('div');
+    let formative: NewCampaignInput['formative'] | undefined;
     // Start options (D-401 [2]): mechanical starts for the start date, or a free start. Choosing one fills the premise.
     const startPick = el('select', { attrs: { 'aria-label': 'Start' } });
     const imperialBorn = input({ type: 'checkbox' });
@@ -966,15 +1013,49 @@ export class App {
       ageLine.textContent = ok ? `Age at the start: ${ageInYears(absDayFromDate(b), absDayFromDate(s))}` : '';
       cf.update(ok ? absDayFromDate(b) : null, ok ? absDayFromDate(s) : null, name.value);
       fillStarts();
+      ts.refresh();
+      formative = undefined;
     };
     for (const i of [...birth.all, ...startD.all, name]) i.addEventListener('input', updateAge);
     updateAge();
 
     const begin = async (): Promise<void> => {
-      const req = { name: name.value, birthDate: birth.read(), startDate: startD.read(), startSecond: readTime(), premise: premise.value, creation: cf.read(), ...(startPick.value ? { start: { optionId: startPick.value, imperialBorn: imperialBorn.checked } } : {}) };
+      const traits = ts.read();
+      const req: NewCampaignInput = { name: name.value, birthDate: birth.read(), startDate: startD.read(), startSecond: readTime(), premise: premise.value, creation: cf.read(), ...(startPick.value ? { start: { optionId: startPick.value, imperialBorn: imperialBorn.checked } } : {}), ...(traits ? { traits } : {}), ...(formative ? { formative } : {}) };
+      if (!traits) {
+        err.textContent = 'Choose the traits: one origin, one temperament, one scar or tie.';
+        return;
+      }
       const errors = validateNewCampaign(req);
       if (errors.length) {
         err.textContent = errors.join(' ');
+        return;
+      }
+      // The formative quiz for an older start, before the story begins (once; Skip declines it).
+      const q = creationQuizInput(req);
+      const plan = q && formative === undefined ? quizPlan(q) : null;
+      const ctx = traitCtx();
+      if (q && plan?.events.length && ctx) {
+        err.textContent = '';
+        quizBox.replaceChildren(
+          quizScreens(plan, {
+            seed: q.seed,
+            ctx,
+            origin: traits.origin,
+            current: { temperament: traits.temperament, scarOrTie: traits.scarOrTie },
+            onDone: (d) => {
+              formative = { answers: d.answers, ...(d.traits ? { traits: d.traits } : {}) };
+              quizBox.replaceChildren(el('p', { class: 'hint', text: 'Formative years done. Beginning...' }));
+              void begin();
+            },
+            onDecline: () => {
+              formative = 'declined';
+              quizBox.replaceChildren();
+              void begin();
+            },
+          }),
+        );
+        quizBox.scrollIntoView?.({ block: 'start' });
         return;
       }
       try {
@@ -1002,9 +1083,11 @@ export class App {
       el('div', { class: 'field' }, [el('label', { text: 'Start' }), startPick]),
       startNote,
       el('label', { class: 'check' }, [imperialBorn, document.createTextNode(' Imperial-born (a Sith Pureblood outside the Empire must be)')]),
-      ...cf.fields,
+      el('div', { on: { change: () => ts.refresh() } }, cf.fields),
+      ...ts.fields,
       el('div', { class: 'field' }, [el('label', { text: 'Premise' }), premise]),
       err,
+      quizBox,
       el('div', { class: 'row actions' }, [
         el('button', { text: this.session ? 'Begin (replaces the current campaign)' : 'Begin', on: { click: () => void begin() } }),
       ]),

@@ -38,6 +38,7 @@ import { resolveHoldTurn, type HoldTurn } from '../features/combat/selectors';
 import { carePlan } from './medicine';
 import { planTravel, runTravelBlockade, watchTravelBlockade, type TravelOutcome } from './travel';
 import type { GameEvent, Registry, ResolvedAction } from '../state/types';
+import { selectCheckTraitMod, selectNpcMindTrickResist } from '../features/traits/selectors';
 
 /** Sleep with no stated duration (health spec: 7 h+ is a full night). */
 export const DEFAULT_SLEEP_SECONDS = 8 * 3600;
@@ -478,6 +479,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       // M3: real skill levels, rust and e(f_phys) (the D-56 stubs are gone); an unknown skill rolls at level 0.
       const validSkill = skillId !== null && isSkillId(skillId);
       if (skillId !== null && !validSkill) notes.push(`unknown skill ${skillId}: level 0`);
+      const traitMod = selectCheckTraitMod(state, { skillId: validSkill ? skillId : null, ...(intent.situation ? { situation: intent.situation } : {}), npcTargets });
       const [card, next] = check(state.meta.rngState, {
         label: ACTION_LABELS[intent.actionType],
         skillId,
@@ -489,7 +491,8 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
           vitalitySpent: selectIsSpent(state),
           fatigueEfficiency: efficiency(selectFatigue(state).p),
         },
-        modifiers: [],
+        // Starting traits (M8 item 16): +-1-2 in the trait's situation and with the kinds of NPC it names, +-2 in all.
+        modifiers: traitMod.total ? [{ source: traitMod.label, value: traitMod.total }] : [],
         difficulty,
         notes,
       });
@@ -575,7 +578,9 @@ function mindContestCard(state: GameState, abilityId: string, npcId: string): { 
   const lv = (id: string): number => selectNpcLevel(state, npcId, id);
   const target: ForceTarget = { name: npc.name, willpower: lv('willpower'), agility: lv('agility'), forceResistance: forceResistanceOf(lv), traits: characterForceTraits(npc.speciesId, npcInsideForce(npc), npcOwnForceTraits(npc)), bodySize: 'humanoid', inCover: false, canReact: true, saberLevel: 0 };
   const level = selectPerformance(state, abilityId);
-  const [r, rng] = forceContest(state.meta.rngState, { kind: 'mindTrick', group: 'mind', level, modifiers: [], target, negated: false });
+  // The target's traits (M8 item 16): a Stubborn mind resists a trick (+2 to its side, shown as -2 on the user's roll).
+  const resist = selectNpcMindTrickResist(state, npcId);
+  const [r, rng] = forceContest(state.meta.rngState, { kind: 'mindTrick', group: 'mind', level, modifiers: resist ? [{ source: `${npc.name}'s traits`, value: -resist }] : [], target, negated: false });
   const total = r.user?.total ?? 0;
   const against = r.resist?.total ?? total + 1;
   const card: CheckCard = {

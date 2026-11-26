@@ -1,6 +1,8 @@
 // New campaign and resume. A new campaign commits its turn-0 state immediately, so the autosave
 // always holds the current campaign (legacy save bug 4: New Game undone by a reload).
-import { absDayFromDate, isValidDate, type CalendarDate } from '../engine/calendar';
+import { absDayFromDate, DAYS_PER_YEAR, isValidDate, type CalendarDate } from '../engine/calendar';
+import { traitCreationEvents } from '../features/traits';
+import { isYounglingStart, onCoruscant3653, quizAnswerErrors, quizPlan, quizTrack, traitChoiceErrors, type QuizAnswer, type QuizInput, type TraitChoice, type TraitContext } from '../features/traits/selectors';
 import { computeCreation, type CreationInput, type CreationResult } from '../features/character/selectors';
 import { loadEnvelope, makeEnvelope } from '../persist/envelope';
 import { AUTOSAVE_SLOT, type CampaignRecord, type Storage } from '../persist/storage';
@@ -24,6 +26,13 @@ export interface NewCampaignInput {
   creation?: Omit<CreationInput, 'name' | 'birthDay' | 'startDay'>;
   /** A start option (D-401 [2]): its id, and whether the character is Imperial-born (D-401 [10]). Absent = a free start. */
   start?: { optionId: string; imperialBorn: boolean };
+  /**
+   * Starting traits (M8 item 16; spec/traits.md): one origin, one temperament, one scar or tie, an optional flaw-heavy fourth.
+   * Absent = no traits and no quiz (a programmatic or dev start; the creation screen always sends them).
+   */
+  traits?: TraitChoice;
+  /** The formative quiz at creation: the answers and the traits accepted from its suggestions, or declined. */
+  formative?: { answers: QuizAnswer[]; traits?: { temperament?: string; scarOrTie?: string; fourth?: string } } | 'declined';
   /** A dev-only test start (D-178): CI for the known combat Force abilities, and the testCharacter mark. */
   test?: { ci: number; abilities: readonly string[]; scenario?: string; grants?: Readonly<Record<string, string>> };
 }
@@ -68,8 +77,60 @@ export function validateNewCampaign(input: NewCampaignInput): string[] {
     if (c) {
       errors.push(...c.errors);
       errors.push(...startErrors(input));
+      errors.push(...traitErrors(input));
       if (!c.ok && c.unmet.length) errors.push(`The rank's skill minimums are not met (${c.unmet.map((u) => `${u.skillId} ${u.have}/${u.need}`).join(', ')}): ${c.options.join('; ')}.`);
     }
+  }
+  return errors;
+}
+
+/** What the trait gates read for a new campaign. */
+export function creationTraitContext(input: NewCampaignInput): TraitContext | null {
+  const cr = input.creation;
+  if (!cr || !isValidDate(input.birthDate) || !isValidDate(input.startDate)) return null;
+  return {
+    path: cr.path,
+    speciesId: cr.speciesId,
+    archetype: cr.archetype,
+    birthYear: input.birthDate.year,
+    startYear: input.startDate.year,
+    trainingStartAge: cr.trainingStartAge,
+    ...(cr.warYears ? { warYears: cr.warYears } : {}),
+    ...(input.traits?.homeworld ? { homeworld: input.traits.homeworld } : {}),
+    ...(input.start?.imperialBorn ? { imperialBorn: true } : {}),
+    ...(input.traits?.origin ? { origin: input.traits.origin } : {}),
+  };
+}
+
+/** The quiz's seed for a new campaign: the same inputs always draw the same scenes (character-creation test 6). */
+export const creationQuizSeed = (input: NewCampaignInput): string => `${input.name.trim()}|${absDayFromDate(input.birthDate)}|${absDayFromDate(input.startDate)}|${input.creation?.path ?? ''}`;
+
+/** Whether the quiz waits for the first long skip (a youngling start) instead of running at creation. */
+export function quizDeferred(input: NewCampaignInput): boolean {
+  const cr = input.creation;
+  if (!cr) return false;
+  return isYounglingStart(cr.path, cr.rank, (absDayFromDate(input.startDate) - absDayFromDate(input.birthDate)) / DAYS_PER_YEAR);
+}
+
+/** The creation quiz's inputs (childhood to the start age), or null (no traits, a youngling start, or nothing to cover). */
+export function creationQuizInput(input: NewCampaignInput): QuizInput | null {
+  const ctx = creationTraitContext(input);
+  if (!ctx || !input.traits || quizDeferred(input)) return null;
+  const age = (absDayFromDate(input.startDate) - absDayFromDate(input.birthDate)) / DAYS_PER_YEAR;
+  return { track: quizTrack(ctx.path, ctx.archetype), fromAge: 0, toAge: age, birthYear: ctx.birthYear, origin: input.traits.origin, forceSensitive: ctx.path !== 'career', atCoruscant3653: onCoruscant3653(ctx), seed: creationQuizSeed(input) };
+}
+
+/** Errors in a new campaign's traits and quiz answers. */
+export function traitErrors(input: NewCampaignInput): string[] {
+  if (!input.traits) return [];
+  const ctx = creationTraitContext(input);
+  if (!ctx) return [];
+  const errors = traitChoiceErrors(input.traits, ctx);
+  const f = input.formative;
+  if (f && f !== 'declined') {
+    const q = creationQuizInput(input);
+    if (!q) errors.push('No formative quiz runs at creation for this start (a youngling takes it at the first long skip).');
+    else errors.push(...quizAnswerErrors(quizPlan(q), f.answers).map((x) => `Quiz: ${x}.`));
   }
   return errors;
 }
@@ -170,6 +231,9 @@ export async function createCampaign(
       ...(startOption ? { start: { optionId: startOption.id, faction: startOption.faction, imperialBorn: input.start?.imperialBorn === true } } : {}),
     },
     ...(c ? { startingXp: xp, startingE: c.startingE, startingCI: input.test ? testCI(c.startingCI, xp, input.test) : c.startingCI, rank: cr!.rank, backstoryFacts: c.facts } : {}),
+    ...(input.traits && cr
+      ? { traits: { choice: input.traits, quiz: quizDeferred(input) ? ('pending' as const) : input.formative && input.formative !== 'declined' ? ('creation' as const) : ('declined' as const), seed: creationQuizSeed(input), startAge: (absDayFromDate(input.startDate) - absDayFromDate(input.birthDate)) / DAYS_PER_YEAR } }
+      : {}),
   });
   // A start option seeds its places and threads as engine events (D-401 [2]); every one must apply.
   let state = initial;
@@ -178,6 +242,16 @@ export async function createCampaign(
     const r = applyEvents(registry, state, startEvents(startOption, -input.startDate.year, role ? [role] : []), { source: 'engine' });
     if (r.rejected.length) throw new Error(`The start could not be seeded: ${r.rejected.map((x) => x.reason).join('; ')}`);
     state = r.state;
+  }
+  // Starting traits (M8 item 16): the ties' people, then the formative quiz taken at creation; every one must apply.
+  if (input.traits) {
+    const f = input.formative;
+    const events: unknown[] = [...traitCreationEvents(state), ...(f && f !== 'declined' && !quizDeferred(input) ? [{ type: 'formativeQuizTaken', answers: f.answers, ...(f.traits ? { traits: f.traits } : {}) }] : [])];
+    if (events.length) {
+      const r = applyEvents(registry, state, events, { source: 'engine' });
+      if (r.rejected.length) throw new Error(`The traits could not be seeded: ${r.rejected.map((x) => x.reason).join('; ')}`);
+      state = r.state;
+    }
   }
   const premise = input.premise?.trim() ?? '';
   const scenario = input.test?.scenario?.trim() ?? '';

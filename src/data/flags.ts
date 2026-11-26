@@ -46,6 +46,15 @@ export const FLAGS: readonly FlagDef[] = [
   { id: 'homeworld', param: true, sources: ['player'], section: 'background', readBy: 'backstory facts, context' },
   { id: 'warYears', param: true, sources: ['player'], section: 'background', readBy: 'character creation E/CI, closed form' },
   { id: 'family', param: true, sources: ['player'], section: 'background', readBy: 'backstory facts' },
+  // The formative quiz (M8 item 16; spec/traits.md section 7): what a childhood scene left behind. Knowing of a technique is never the power.
+  { id: 'knowsOfTechnique', param: true, sources: ['engine'], section: 'background', readBy: 'context (knows of the technique, cannot use it); the Force catalog once built' },
+  { id: 'visionKeptSecret', sources: ['engine'], section: 'background', readBy: 'context (a dark vision never told)' },
+  { id: 'darkEncounterKeptSecret', sources: ['engine'], section: 'background', readBy: 'context (a dark-side encounter never told)' },
+  { id: 'keptReward', sources: ['engine'], section: 'background', readBy: 'context; the economy Jedi reward rule once it reads the past' },
+  { id: 'freedSlaves', sources: ['engine'], section: 'background', readBy: 'context; renown once built (slave-born NPCs react well)' },
+  { id: 'spiritBargain', sources: ['engine'], section: 'background', readBy: 'context; alignment (M6)' },
+  { id: 'hiddenRelic', sources: ['engine'], section: 'background', readBy: 'context (a relic taken from a tomb and hidden)' },
+  { id: 'hiddenGift', sources: ['engine'], section: 'background', readBy: 'context (a Force gift hidden since childhood)' },
   // §6 Story flags (ai allowed; no mechanical effect)
   { id: 'metCouncil', sources: ['ai', 'engine'], section: 'story', readBy: 'story content' },
   { id: 'visitedArchives', sources: ['ai', 'engine'], section: 'story', readBy: 'story content' },

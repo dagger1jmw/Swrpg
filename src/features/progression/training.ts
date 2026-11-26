@@ -44,6 +44,7 @@ import { speciesDef } from '../../data/species';
 import type { GameState } from '../../state/gameState';
 import type { GameEvent } from '../../state/types';
 import { selectCharacter, selectExactAge, selectPath, selectTrainingAge } from '../character/selectors';
+import { selectTraitLearning } from '../traits/selectors';
 import { selectNow } from '../clock/selectors';
 import { selectMeters } from '../health/selectors';
 import { selectNpc, selectNpcAgeOrDefault, selectNpcLevel } from '../npcs/selectors';
@@ -281,13 +282,16 @@ export interface SpeedParts {
   accelerated: number;
   /** Reviewing a recording of one's own fight. */
   review: number;
+  /** The starting traits' learning factor (spec/traits.md section 3; inside the cap). */
+  traits: number;
   /** The M used: speedM's (capped) times the conditions and the review. */
   m: number;
 }
 
 /** M per skill with its parts (progression-numbers §5): talent x cross-talent x instruction x age x state x alignment x species, capped at 2.8. */
-export function speedPartsFor(s: GameState, instruction: number): (skill: string) => SpeedParts | null {
+export function speedPartsFor(s: GameState, instruction: number, opts: { play?: boolean } = {}): (skill: string) => SpeedParts | null {
   const c = selectCharacter(s);
+  const traitLearn = selectTraitLearning(s);
   const t = selectTrainingAge(s);
   const body = selectAgeing(s).bodyAge;
   const state = selectStateOfMind(s);
@@ -306,6 +310,7 @@ export function speedPartsFor(s: GameState, instruction: number): (skill: string
       state: stateMult(state, skill, { grief, despair, darkPressure: STUB_DARK_PRESSURE }),
       alignment: STUB_ALIGNMENT_MULT,
       species: speciesLearning(c.speciesId, skill),
+      traits: traitLearn(skill, opts.play === true),
     };
     const m = speedM(parts).m;
     const review = reviewBuff(s, skill);
@@ -319,14 +324,15 @@ export function speedPartsFor(s: GameState, instruction: number): (skill: string
       place: isForceSkill(skill) ? conditions.forceFactor : 1,
       accelerated: conditions.accelerated && isAcceleratedSkill(skill) ? ACCELERATED_PATH.mult : 1,
       review,
+      traits: parts.traits,
       m: conditionedM(m, skill, conditions) * review,
     };
   };
 }
 
 /** M per skill (progression-numbers §5): talent x cross-talent x instruction x age x state x alignment x species, capped at 2.8. */
-export function speedFor(s: GameState, instruction: number): (skill: string) => number {
-  const parts = speedPartsFor(s, instruction);
+export function speedFor(s: GameState, instruction: number, opts: { play?: boolean } = {}): (skill: string) => number {
+  const parts = speedPartsFor(s, instruction, opts);
   return (skill: string): number => parts(skill)?.m ?? 1;
 }
 

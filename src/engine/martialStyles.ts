@@ -115,6 +115,8 @@ export interface EdgeSituation {
   oppSaber: boolean;
   opponents: number;
   footing: number;
+  /** The fighter carries a cortosis shield (Darth Desolous's style; Jared, 26 Nov 2026: the edge only with one). */
+  cortosisShield?: boolean;
 }
 
 /** The style's situational edge on a roll (a proposal; +1 from STYLE.edgeFrom), or 0. */
@@ -145,7 +147,7 @@ export function styleEdge(kind: StyleEdgeKind, p: number, x: EdgeSituation): num
     case 'vsSeveral':
       return x.opponents >= 2 ? v : 0;
     case 'vsSaber':
-      return x.oppSaber && x.roll !== 'strikeBy' ? v : 0;
+      return x.oppSaber && x.cortosisShield === true && x.roll !== 'strikeBy' ? v : 0;
     case 'none':
       return 0;
   }

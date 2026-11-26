@@ -336,29 +336,30 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
   },
   // ---- m8-skills (D-513; spec/skills-m8.md section 7). Weights invented; paces measured on the day loop (tests/paces). ----
   {
-    // The line officer (checklist item 10): Tactics, then Intelligence, then Charisma; a smaller Blaster share. Intelligence by
-    // staff work (planning, logistics), Tactics by study and command.
+    // The line officer (checklist item 10): Tactics, then Intelligence, then Charisma; a smaller Blaster share (Jared, 26 Nov
+    // 2026: a Blaster pace of about 0.35, officers near 30). Intelligence by staff work (planning, logistics), Tactics by study
+    // and command.
     id: 'officer',
     name: 'Officer',
     path: 'career',
     main: 'tactics',
-    weights: { tactics: 1.0, intelligence: 0.6, charisma: 0.5, blaster: 0.25, strength: 0.15, agility: 0.15, endurance: 0.15, willpower: 0.2 },
+    weights: { tactics: 1.0, intelligence: 0.6, charisma: 0.5, blaster: 0.48, strength: 0.15, agility: 0.15, endurance: 0.15, willpower: 0.2 },
     startAge: 18,
     startRange: [17, 30],
-    paces: { knight: { blaster: 0.202, agility: 0.172, willpower: 0.693, tactics: 1.662, intelligence: 0.969, charisma: 0.281, meditation: 0.038, forceControl: 0.01, endurance: 0.174, strength: 0.148 } },
+    paces: { knight: { blaster: 0.344, agility: 0.184, willpower: 0.643, tactics: 1.646, intelligence: 0.91, endurance: 0.154, strength: 0.132, charisma: 0.261, meditation: 0.034, forceControl: 0.008 } },
     formPaces: { knight: {} },
     activities: { intelligence: 'staffWork' },
   },
   {
-    // The naval officer: the officer's line with Piloting and a Gunnery share.
+    // The naval officer: the officer's line with Piloting and a Gunnery share; Blaster raised in proportion to the officer's.
     id: 'navalOfficer',
     name: 'Naval officer',
     path: 'career',
     main: 'tactics',
-    weights: { tactics: 1.0, intelligence: 0.6, piloting: 0.4, charisma: 0.4, gunnery: 0.2, blaster: 0.15, strength: 0.1, agility: 0.1, endurance: 0.1, willpower: 0.2 },
+    weights: { tactics: 1.0, intelligence: 0.6, piloting: 0.4, charisma: 0.4, gunnery: 0.2, blaster: 0.28, strength: 0.1, agility: 0.1, endurance: 0.1, willpower: 0.2 },
     startAge: 18,
     startRange: [17, 30],
-    paces: { knight: { tactics: 1.575, intelligence: 0.894, willpower: 0.786, gunnery: 0.079, agility: 0.134, meditation: 0.032, forceControl: 0.008, blaster: 0.106, endurance: 0.106, strength: 0.092, charisma: 0.188, piloting: 0.17 } },
+    paces: { knight: { tactics: 1.586, intelligence: 0.88, willpower: 0.761, gunnery: 0.076, agility: 0.145, endurance: 0.1, strength: 0.084, charisma: 0.181, piloting: 0.16, meditation: 0.031, forceControl: 0.008, blaster: 0.185 } },
     formPaces: { knight: {} },
     activities: { intelligence: 'staffWork' },
   },
@@ -377,18 +378,20 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     activities: { intelligence: 'staffWork', investigation: 'tradecraft' },
   },
   {
-    // The intelligence officer, field agent line (Jared): Stealth, Charisma, Blaster and Melee, then Investigation
-    // (tradecraft).
+    // The intelligence officer, field agent line (Jared): Stealth first; Intelligence by staff work to about a line officer's
+    // (Jared, 26 Nov 2026: both intelligence lines beat a line officer on most stats; only Tactics trails) with a Tactics share,
+    // so field agents land around 25-35 Tactics; Charisma, Blaster and Melee, Investigation by tradecraft. The large Intelligence
+    // and Tactics weights take the fill from Blaster, Melee and Investigation (m8-traits report, Part A). Weights invented.
     id: 'intelAgent',
     name: 'Intelligence officer (field agent)',
     path: 'career',
     main: 'stealth',
-    weights: { stealth: 1.0, charisma: 0.8, blaster: 0.8, melee: 0.6, investigation: 0.5, intelligence: 0.2, strength: 0.35, agility: 0.35, endurance: 0.35, willpower: 0.2 },
+    weights: { stealth: 1.0, charisma: 2.0, blaster: 0.8, melee: 0.6, investigation: 0.5, intelligence: 5.6, tactics: 2.2, strength: 0.35, agility: 0.35, endurance: 0.35, willpower: 0.2 },
     startAge: 18,
     startRange: [17, 30],
-    paces: { knight: { stealth: 1.53, agility: 0.506, willpower: 0.47, charisma: 0.428, intelligence: 0.173, investigation: 0.243, blaster: 0.251, melee: 0.188, strength: 0.166, endurance: 0.181, forceKnowledge: 0.032, meditation: 0.013, forceControl: 0.003 } },
+    paces: { knight: { stealth: 1.473, agility: 0.374, willpower: 0.404, intelligence: 0.956, tactics: 0.582, blaster: 0.079, charisma: 0.296, melee: 0.06, strength: 0.06, endurance: 0.065, investigation: 0.059, meditation: 0.005, forceControl: 0.001 } },
     formPaces: { knight: {} },
-    activities: { investigation: 'tradecraft' },
+    activities: { intelligence: 'staffWork', investigation: 'tradecraft' },
   },
   {
     // Senator or politician (Jared): Charisma, then Intelligence; little combat. Generation and stat lines only: a Senate

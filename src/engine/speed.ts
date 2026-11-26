@@ -76,10 +76,12 @@ export interface SpeedInput {
   alignment: number;
   /** Species learning factor (species.md §3: inside the 2.8 cap). */
   species: number;
+  /** Starting traits' learning factor (0.8-1.2; spec/traits.md section 3: inside the 2.8 cap). Absent = 1. */
+  traits?: number;
 }
 
 export function speedM(i: SpeedInput): { m: number; capped: boolean } {
-  const raw = i.talent * i.crossTalent * i.instruction * i.age * i.state * i.alignment * i.species;
+  const raw = i.talent * i.crossTalent * i.instruction * i.age * i.state * i.alignment * i.species * (i.traits ?? 1);
   return raw > M_CAP ? { m: M_CAP, capped: true } : { m: raw, capped: false };
 }
 

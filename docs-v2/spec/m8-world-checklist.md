@@ -91,6 +91,11 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 
   Not to build now; each waits for its own ruling.
   - **A self-taught pace:** a canon student recorded as cut off from any order (no Temple, no Academy, no master) trains more slowly than the Temple pace. A master's death alone does not count: the Order reassigns the Padawan (D-507).
-- [ ] **16. Starting traits and formative events (Jared, 25 Nov 2026).**
+  - **Midi-chlorian counts as one curve (Jared, 26 Nov 2026; D-322 amended):** consider letting the count set both the Force ceiling and the Force learning pace on one smooth curve, replacing the separate potential tier. Fixed: Anakin 27,700 (the maximum), the average Jedi 10,000, the minimum 7,000. Yoda stays under 20,000 (*The Phantom Menace*: Anakin's "over 20,000" is higher than Yoda's); suggested Yoda about 19,800 and Palpatine just below him (about 19,000). The "Anakin twice the Emperor" pool ratio is dropped as a hard rule (a Lucas statement, not Legends); Vader at about 80% of the Emperor stays (Legends). The curve must be flat at the top: about 19,000 reaches about 130, and Luke's 27,700 reaches his 138.
+  - **Yoda's Force Control 122 -> 128 (Jared):** level with the Emperor; Sidious keeps the edge in Force Output.
+  - **A Rule of Two bonus (Jared):** Bane's line (Bane and Zannah down to Plagueis, Sidious and his apprentices, about 1,000 BBY-4 ABY) learns Force skills faster (one master, one apprentice, all Sith knowledge open to study), with a small capped step per generation, tuned so Palpatine reaches his sheets on his count. A player apprenticed to a Bane-line master gets it too.
+  - **A Force Output lean (Jared):** generated dark-side lines lean toward Force Output, Jedi lines toward Control and Sense. A default lean only, never a cap or a rebalance: Output still grows from use (a Jedi who fights with Force powers grows it), and canon sheets win.
+  - **Oteg:** his generated Force Control is 115.7, above the apex line (110): a long life pushes past apex (m8-skills report section 7).
+- [x] **16. Starting traits and formative events (Jared, 25 Nov 2026).** *Built: D-515 (spec/traits.md; docs-v2/reports/m8-traits.md), with the m8-skills review fixes (D-514). The alignment pressures wait for M6; the canon trait assignments are for Jared's review.*
 
   Designed in the design notes ("Starting traits and formative events"); build after item 12.

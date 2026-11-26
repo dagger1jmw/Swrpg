@@ -11,6 +11,7 @@ import { MANEUVERS, STANCES, TACTICS } from '../../data/combat.config';
 import { BODY_PARTS, HAZARD_TYPES } from '../../data/health.config';
 import { CARE_PLACES, SURGERY_PROCEDURES } from '../../data/medicine.config';
 import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.config';
+import { INTENT_SITUATIONS } from '../../data/traits';
 
 /** One step of a typed combat sequence (D-146): a stance, a feint or taunt, a maneuver, a Force action, or a strike. */
 export const sequenceStepSchema = z.object({
@@ -69,6 +70,7 @@ export const intentSchema = z.object({
   escapePlan: z.array(z.enum(ESCAPE_STEPS)).max(8).optional().describe('Only when STATE says HOLD: what the player does to get away, in order (empty when they do not try)'),
   blockade: z.enum(BLOCKADE_ACTIONS).optional().describe('Only when the player says how they mean to get past a blockade (ride, undercover, smuggle, sneak, aroundClose, aroundOnFoot, force) or that they watch it (observe)'),
   aim: z.enum(BODY_PARTS).optional().describe('Combat only: the body part the player says the next strike goes for ("go for his head": head)'),
+  situation: z.enum(INTENT_SITUATIONS).optional().describe('Only for a rolled check that is clearly one of these situations (character traits apply to it)'),
 });
 
 export type Intent = z.infer<typeof intentSchema>;

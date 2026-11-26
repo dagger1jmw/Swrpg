@@ -34,6 +34,9 @@ import { capacityEndurance, selectCapacities, selectGriefMult, selectLevelExact,
 import { selectRank } from '../ranks/selectors';
 import { selectStyles } from '../progression/selectors';
 import { fightStyle } from '../../engine/martialStyles';
+import { selectNpcTraitHoldings, selectTraitHoldings } from '../traits/selectors';
+import { traitRollMod, type TraitHolding } from '../traits/selectors';
+import type { FighterTraitEdges } from '../../engine/duel';
 
 /** The fighting skill for a loadout: the best of the given forms for sabers, blaster, melee, or Agility unarmed. */
 function fightingSkill(loadout: Loadout, levelOf: (id: string) => number, preferredForm: string | null): { skillId: string; form: string | null } {
@@ -64,6 +67,7 @@ export function buildPlayerFighter(s: GameState): Fighter {
   const { skillId, form } = fightingSkill(loadout, (id) => selectLevelExact(s, id), c.mainFormId);
   const caps = selectCapacities(s);
   const blade = loadout.weapon === 'lightsaber' ? bladeColorFor(selectPath(s), selectArchetype(s), c.name) : null;
+  const playerEdges = traitEdges(selectTraitHoldings(s));
   return {
     ...(blade ? { bladeColor: blade } : {}),
     id: 'pc',
@@ -103,7 +107,19 @@ export function buildPlayerFighter(s: GameState): Fighter {
     speciesId: c.speciesId,
     weaponHand: c.dominantHand,
     ...styleFor(selectStyles(s), loadout.weapon, skillId, selectLevelExact(s, 'melee')),
+    ...(playerEdges ? { traits: playerEdges } : {}),
   };
+}
+
+/** A fighter's trait edges (M8 item 16; spec/traits.md section 3): each held to +-2; none when no trait has one. */
+export function traitEdges(held: readonly TraitHolding[]): FighterTraitEdges | null {
+  const e: FighterTraitEdges = {
+    pressAttack: traitRollMod(held, ['pressAttack']).total,
+    defence: traitRollMod(held, ['defence']).total,
+    suddenStart: traitRollMod(held, ['suddenStart']).total,
+    taunt: traitRollMod(held, ['taunt', 'provocation']).total,
+  };
+  return e.pressAttack || e.defence || e.suddenStart || e.taunt ? e : null;
 }
 
 /** The melee style fought with (m8-skills, D-513): only for melee or unarmed fighting on Melee, never sabers or blasters. */
@@ -205,7 +221,9 @@ export function buildNpcFighter(s: GameState, npcId: string, live = true): { fig
   // The subduing means a capture would use (D-262) and a Sith duelist's tactical withdrawal (D-263).
   const subdue = subdueFor({ archetype, weapon: loadout.weapon, weaponName, forceChoke: levels['forceChoke'], forceLightning: levels['forceLightning'] });
   const withdraw = withdrawChanceFor(archetype);
-  return { fighter: { ...fighter, forceTraits: characterForceTraits(npc.speciesId, canon?.insideForce === true, canon?.ownForceTraits), speciesId: speciesTableId(npc.speciesId), ...(blade ? { bladeColor: blade } : {}), ...(weaponName ? { weaponName } : {}), ...(armorName ? { armorName } : {}), morale, subdue, ...(withdraw > 0 ? { withdraw } : {}) }, rank: gen.rank, archetype };
+  const edges = traitEdges(selectNpcTraitHoldings(s, npcId));
+  const shield = /cortosis shield/i.test(npc.description);
+  return { fighter: { ...fighter, ...(edges ? { traits: edges } : {}), ...(shield ? { cortosisShield: true } : {}), forceTraits: characterForceTraits(npc.speciesId, canon?.insideForce === true, canon?.ownForceTraits), speciesId: speciesTableId(npc.speciesId), ...(blade ? { bladeColor: blade } : {}), ...(weaponName ? { weaponName } : {}), ...(armorName ? { armorName } : {}), morale, subdue, ...(withdraw > 0 ? { withdraw } : {}) }, rank: gen.rank, archetype };
 }
 
 export function buildMinionFighter(s: GameState, kindId: string, grade: number, index: number, fightId: string, beskar = false, weapon: WeaponKind | null = null, number: number = index + 1): Fighter {

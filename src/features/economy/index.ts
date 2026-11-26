@@ -63,6 +63,7 @@ import { efficiency } from '../../engine/fatigue';
 import { basicRoll, checkRating, type LevelInputs } from '../../engine/rolls';
 import { nextFloat, type RngState } from '../../engine/rng';
 import type { GameState } from '../../state/gameState';
+import { traitStartMoney } from '../traits/selectors';
 import type { ApplyCtx, FeatureModule, GameEvent, HandleResult, InitCtx } from '../../state/types';
 import { selectPath } from '../character/selectors';
 import { selectDroidForSale } from '../droids/selectors';
@@ -104,13 +105,20 @@ function jobFrom(m: StartMoney): Job {
 
 export function initialEconomy(ctx: InitCtx): EconomySlice {
   const m = startMoney(ctx);
+  // Starting traits (M8 item 16; spec/traits.md section 3): a noble's purse, the underlevels' or a refugee's thin one, an old
+  // debt's money with its creditor (a Hutt loan on the economy's debt rules for what the debt added).
+  const t = ctx.traits?.choice;
+  const ids = t ? [t.origin, t.temperament, t.scarOrTie, ...(t.fourth ? [t.fourth] : [])] : [];
+  const credits = Math.round(m.credits * traitStartMoney(ids));
+  const debt = ids.includes('oldDebt') ? Math.max(0, credits - Math.round(m.credits * traitStartMoney(ids.filter((i) => i !== 'oldDebt')))) : 0;
+  const day = ctx.start.day;
   return {
-    wallet: receive(emptyWallet(), m.credits, m.currency),
+    wallet: receive(emptyWallet(), credits, m.currency),
     orderFunds: 0,
     lifestyle: m.lifestyle,
     job: jobFrom(m),
-    loans: [],
-    nextLoan: 1,
+    loans: debt > 0 ? [{ id: 'loan-1', lender: 'hutt', principal: debt, balance: debt, currency: m.currency, startDay: day, nextDueDay: addCalendarMonths(day, 1), missed: 0, stage: 'current' }] : [],
+    nextLoan: debt > 0 ? 2 : 1,
     rewards: [],
     possessions: 0,
     looted: {},

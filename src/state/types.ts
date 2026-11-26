@@ -166,6 +166,16 @@ export interface InitCtx {
   rank?: string;
   /** Backstory facts from computed creation (character-creation §4), recorded as memory facts about pc. */
   backstoryFacts?: readonly string[];
+  /**
+   * Starting traits (M8 item 16; spec/traits.md): the choice, how the formative quiz runs (taken at creation, pending for a
+   * youngling start, or declined), its seed and the start age. Absent = no traits and no quiz.
+   */
+  traits?: {
+    choice: { origin: string; temperament: string; scarOrTie: string; fourth?: string; homeworld?: string; mentorField?: string };
+    quiz: 'creation' | 'pending' | 'declined';
+    seed: string;
+    startAge: number;
+  };
 }
 
 /** What a span of time is spent on (M3): health recovers meters only on rest steps (D-52). */

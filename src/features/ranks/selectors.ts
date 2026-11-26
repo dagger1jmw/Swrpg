@@ -1,5 +1,6 @@
 // Ranks selectors (ranks.md §1-5; M7 §15, D-424): the rank, the skill minimums still unmet, standing, eligibility and the
 // promotion check every rank change goes through. Pure reads of state.
+import { selectFormativeStanding } from '../traits/selectors';
 import { archetypeDef } from '../../data/archetypes';
 import { WARS, TALENT_ROLL_ORDERS } from '../../data/npcGen.config';
 import { KNIGHT_TRIALS, RANK_BY_ID, ranksForPath } from '../../data/rankMinimums';
@@ -111,10 +112,15 @@ export function selectSkillPercentile(s: GameState, size: number = SELECTION.pop
   return percentileOf(composite, initiatePopulation(s.meta.campaignId, selectTrainingAge(s), size, rank));
 }
 
+/** Standing points per step of the formative quiz's Order standing (invented; spec/traits.md section 9). */
+export const QUIZ_ORDER_STANDING = 2;
+
 /** Standing S, 0-100 (ranks.md §1). */
 export function selectStanding(s: GameState, size?: number): number {
-  // Less the standing lost to discovered covert learning (D-436).
-  return Math.max(0, standing({ percentile: selectSkillPercentile(s, size), deeds: selectDeedCount(s), relationships: selectSeniorRelationships(s) }) - (s.ranks.reputationPenalty ?? 0));
+  // Less the standing lost to discovered covert learning (D-436); plus the little standing a Jedi's formative quiz gave with
+  // the Order (M8 item 16: QUIZ_ORDER_STANDING points a step, at most +-4 steps).
+  const quiz = s.character.path === 'jedi' ? selectFormativeStanding(s, 'order') * QUIZ_ORDER_STANDING : 0;
+  return Math.max(0, standing({ percentile: selectSkillPercentile(s, size), deeds: selectDeedCount(s), relationships: selectSeniorRelationships(s) }) - (s.ranks.reputationPenalty ?? 0) + quiz);
 }
 
 export { covertDiscoveryChance } from './rules';

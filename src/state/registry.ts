@@ -5,7 +5,7 @@
 // Locations, memory and flags have no day hook and sit with clock and character (M2, M5). Later milestones
 // insert their features at their §10 slot. The economy (M8 item 5) runs after the world, so a day's living is charged where
 // the character is once the world has moved on, and before pacing. Droids (M8 item 7) follow the economy: their only hook
-// recharges shields.
+// recharges shields. Traits (M8 item 16) follow: their only hook brings a youngling's formative quiz due after a long skip.
 import { characterFeature } from '../features/character';
 import { clockFeature } from '../features/clock';
 import { combatFeature } from '../features/combat';
@@ -22,6 +22,7 @@ import { ranksFeature } from '../features/ranks';
 import { relationshipsFeature } from '../features/relationships';
 import { routinesFeature } from '../features/routines';
 import { threadsFeature } from '../features/threads';
+import { traitsFeature } from '../features/traits';
 import { worldFeature } from '../features/world';
 import type { GameState } from './gameState';
 import type { Registry } from './types';
@@ -43,6 +44,7 @@ export const REGISTRY: Registry<GameState> = [
   worldFeature,
   economyFeature,
   droidsFeature,
+  traitsFeature,
   pacingFeature,
 ];
 
@@ -65,5 +67,6 @@ export const HOOK_ORDER: readonly string[] = [
   'world',
   'economy',
   'droids',
+  'traits',
   'pacing',
 ];

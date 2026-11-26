@@ -13,6 +13,7 @@ import { COVERT_ESCALATION, ORDER_POWER_RULES } from '../data/orderPowerRules';
 import { onRecordAt, onRecordFor } from '../data/canonPlacements';
 import { blockadeLines, describeTravel } from './travel';
 import { selectDroidLines } from '../features/droids/selectors';
+import { selectTraitLines } from '../features/traits/selectors';
 import { selectEconomyLines } from '../features/economy/selectors';
 import { rankErasAt } from '../data/eraRanks';
 import { closedWorlds, mapSide, WORLD_STATES, worldStateAt } from '../data/galaxyMap';
@@ -318,6 +319,8 @@ export function stateBlock(
     ...blockadeLines(state),
     ...selectEconomyLines(state),
     ...selectDroidLines(state),
+    // Starting traits (M8 item 16): the character's and the present NPCs', each with its narrator note.
+    ...selectTraitLines(state, selectPresentNpcIds(state)),
     ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), namedCanonIds(state, focus, playerText, -dateFromAbsDay(now.day).year)),
     ...holocronLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), playerText),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,

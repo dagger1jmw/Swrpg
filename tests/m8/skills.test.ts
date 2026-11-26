@@ -400,12 +400,13 @@ describe('archetypes (spec §7)', () => {
     expect(an['investigation']!).toBeGreaterThan(ag['investigation']!);
     expect(ag['stealth']!).toBeGreaterThan(an['stealth'] ?? 0);
     expect(ag['melee']!).toBeGreaterThan(an['melee'] ?? 0);
-    expect(ag['blaster']!).toBeGreaterThan(an['blaster']!);
-    // Both lines trail the officer in Tactics.
-    expect(an['tactics'] ?? 0).toBeLessThan(o['tactics']!);
-    expect(ag['tactics'] ?? 0).toBeLessThan(o['tactics']!);
-    // The service is ahead or level on every other stat the officer trains (the better of its two lines).
-    for (const k of ['intelligence', 'charisma', 'investigation', 'stealth', 'blaster', 'melee', 'strength', 'agility', 'endurance']) expect(Math.max(an[k] ?? 0, ag[k] ?? 0) + 0.5, k).toBeGreaterThanOrEqual(o[k] ?? 0);
+    // Each line on its own (Jared, 26 Nov 2026; m8-traits Part A): it trails the officer in Tactics, and is level or ahead of
+    // the officer in Intelligence and Charisma. (The field agent no longer out-shoots the analyst: its Intelligence and Tactics
+    // shares take the fill from Blaster; reported.)
+    for (const [line, x] of [['analyst', an], ['field agent', ag]] as const) {
+      expect(x['tactics'] ?? 0, `${line} tactics`).toBeLessThan(o['tactics']!);
+      for (const k of ['intelligence', 'charisma']) expect((x[k] ?? 0) + 0.5, `${line} ${k}`).toBeGreaterThanOrEqual(o[k] ?? 0);
+    }
   });
   it('a politician\'s Charisma reaches the diplomats\' 60-80 in mid-career; little combat', () => {
     const p = at('politician', 50);

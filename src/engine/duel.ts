@@ -77,6 +77,14 @@ export interface FighterStyle {
   anticipation: number;
 }
 
+/** A fighter's trait edges (M8 item 16). */
+export interface FighterTraitEdges {
+  pressAttack: number;
+  defence: number;
+  suddenStart: number;
+  taunt: number;
+}
+
 export interface Fighter {
   id: string;
   name: string;
@@ -145,6 +153,14 @@ export interface Fighter {
    * situational edge, Teräs Käsi's speed on the build-up contest and its anticipation (a precognition-like defence in melee).
    */
   style?: FighterStyle;
+  /**
+   * Starting traits' combat edges (M8 item 16; spec/traits.md section 3), already held to +-2 by the builder: pressing an
+   * attack in an aggressive stance (Hot-headed), defending (Reckless), the first exchange of a sudden fight (Patient), and
+   * resisting a taunt (Proud). Roll modifiers only: they never move the duel tiers.
+   */
+  traits?: FighterTraitEdges;
+  /** Carries a cortosis shield (an NPC whose description names one; the player once items exist). Darth Desolous's edge needs it. */
+  cortosisShield?: boolean;
   /** A weapon in the other hand (D-244): a fighter who loses the weapon arm fights on with it. None until items (M8). */
   offHandWeapon?: WeaponKind | null;
   /** The saber thrown and dropped (D-193): the fighter is unarmed until a recall restores these. */
@@ -337,6 +353,18 @@ export function fighterEffectiveLevel(f: Fighter): number {
   return (f.level + (f.style?.bonus ?? 0)) * offHand * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * fat;
 }
 
+/** A fighter's trait edges on one roll (M8 item 16): held to +-2 together. */
+function traitMods(f: Fighter, roll: 'buildUp' | 'strikeBy' | 'strikeAgainst', exchange: number, surprise: boolean): Modifier[] {
+  const t = f.traits;
+  if (!t) return [];
+  let v = 0;
+  if (roll === 'buildUp' && f.stance === 'aggressive') v += t.pressAttack;
+  if (roll === 'strikeAgainst') v += t.defence;
+  if (exchange === 0 && surprise) v += t.suddenStart;
+  v = Math.max(-2, Math.min(2, v));
+  return v ? [{ source: 'traits', value: v }] : [];
+}
+
 /** A style's modifiers on one roll (m8-skills, D-513): the edge, and Teräs Käsi's speed on a melee build-up contest. */
 function styleMods(f: Fighter, opp: Fighter, ctx: DuelContext, exchange: number, roll: 'buildUp' | 'strikeBy' | 'strikeAgainst', surprise: boolean, opponents: number): Modifier[] {
   const st = f.style;
@@ -353,6 +381,7 @@ function styleMods(f: Fighter, opp: Fighter, ctx: DuelContext, exchange: number,
     oppSaber: hasSaber(opp),
     opponents,
     footing: ctx.footing ?? 0,
+    cortosisShield: f.cortosisShield === true,
   });
   if (edge) out.push({ source: `${st.id} (style edge)`, value: edge });
   if (roll === 'buildUp' && st.speed > 0 && !isRanged(opp) && !isRanged(f)) out.push({ source: `${st.id} speed`, value: Math.round(st.speed * 10) / 10 });
@@ -730,8 +759,8 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   const exNo = s.log.length;
   const nOpp = engaged(s).length;
   if (striker === null) {
-    [rollA, rng] = basicRoll(rng, effA, [...netMods(baseA, extras.a ?? []), ...styleMods(A, B, ctx, exNo, 'buildUp', false, nOpp)]);
-    [rollB, rng] = basicRoll(rng, effB, [...netMods(baseB, extras.bDefense ?? []), ...styleMods(B, A, ctx, exNo, 'buildUp', false, 1)]);
+    [rollA, rng] = basicRoll(rng, effA, [...netMods(baseA, extras.a ?? []), ...styleMods(A, B, ctx, exNo, 'buildUp', false, nOpp), ...traitMods(A, 'buildUp', exNo, false)]);
+    [rollB, rng] = basicRoll(rng, effB, [...netMods(baseB, extras.bDefense ?? []), ...styleMods(B, A, ctx, exNo, 'buildUp', false, 1), ...traitMods(B, 'buildUp', exNo, false)]);
     margin = rollA.total - rollB.total;
   } else {
     // An aimed strike costs AIMED_STRIKE.attackPenalty on the strike roll (D-171).
@@ -740,8 +769,9 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       ...(striker === 'A' ? modsA.attack : modsB.attack),
       ...(aiming ? [{ source: `aimed at the ${partText(aiming)}`, value: AIMED_STRIKE.attackPenalty }] : []),
       ...(striker === 'A' ? styleMods(A, B, ctx, exNo, 'strikeBy', surprise, nOpp) : styleMods(B, A, ctx, exNo, 'strikeBy', surprise, 1)),
+      ...traitMods(striker === 'A' ? A : B, 'strikeBy', exNo, surprise),
     ];
-    const def = [...(striker === 'A' ? modsB.defense : modsA.defense), ...(striker === 'A' ? styleMods(B, A, ctx, exNo, 'strikeAgainst', surprise, 1) : styleMods(A, B, ctx, exNo, 'strikeAgainst', surprise, nOpp))];
+    const def = [...(striker === 'A' ? modsB.defense : modsA.defense), ...(striker === 'A' ? styleMods(B, A, ctx, exNo, 'strikeAgainst', surprise, 1) : styleMods(A, B, ctx, exNo, 'strikeAgainst', surprise, nOpp)), ...traitMods(striker === 'A' ? B : A, 'strikeAgainst', exNo, surprise)];
     // Build-up rolls use attack AND defense (net); a strike uses attack vs defense.
     if (striker === 'A') {
       [rollA, rng] = basicRoll(rng, effA, atk);

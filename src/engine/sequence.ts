@@ -145,7 +145,9 @@ export function runSequence(
       // Opening contest (rolls §5): d20 + trick level / 10 vs d20 + Willpower or Force Sense / 10.
       const target = duel.opponents[duel.target]!;
       const [u, r1] = basicRoll(duel.rng, force.trickLevel, bonus);
-      const [d, r2] = basicRoll(r1, Math.max(target.willpower, target.forceSense), defense);
+      // A taunt meets the target's traits (M8 item 16): a Proud fighter rises to it (-2 on resisting).
+      const tauntTrait = step.tactic === 'taunt' && target.traits?.taunt ? [{ source: `${target.name}'s traits`, value: target.traits.taunt }] : [];
+      const [d, r2] = basicRoll(r1, Math.max(target.willpower, target.forceSense), [...defense, ...tauntTrait]);
       success = u.total >= d.total && u.natural !== 'nat1';
       // A first use jumps toward the strike, at most FIRST_USE_MAX_GAIN steps in one move (D-220).
       const gain = success ? (firstUse ? Math.min(FIRST_USE_MAX_GAIN, Math.max(CIRCUMSTANCE.openingAdvantage, STRIKE_AT - duel.advantage)) : CIRCUMSTANCE.openingAdvantage) : 0;

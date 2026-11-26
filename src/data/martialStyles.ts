@@ -28,7 +28,7 @@ export type StyleWeapons = 'unarmed' | 'armed' | 'both';
  * - vsArmed: every roll fighting unarmed against an armed opponent
  * - footing: cancels up to 1 of bad footing (balance)
  * - vsSeveral: every roll against two or more opponents (arena fighting)
- * - vsSaber: defence against a lightsaber (a cortosis shield)
+ * - vsSaber: defence against a lightsaber, only while carrying a cortosis shield (Jared, 26 Nov 2026)
  */
 export type StyleEdgeKind = 'longFight' | 'opening' | 'tireless' | 'vsRanged' | 'surprise' | 'strike' | 'counter' | 'armoured' | 'vsArmed' | 'footing' | 'vsSeveral' | 'vsSaber' | 'none';
 
@@ -416,7 +416,7 @@ export const MARTIAL_STYLES: readonly MartialStyle[] = [
     weapons: 'armed',
     maxBonus: STYLE.maxBonus,
     edge: 'vsSaber',
-    edgeWhy: 'a cortosis shield with a melee weapon, made to fight Jedi (duel tiers still rule)',
+    edgeWhy: 'a cortosis shield with a melee weapon, made to fight Jedi; the edge only while carrying the shield (Jared, 26 Nov 2026; duel tiers still rule)',
     teaching: T({ note: 'any trained holder' }),
     source: `${P2} §9`,
   },

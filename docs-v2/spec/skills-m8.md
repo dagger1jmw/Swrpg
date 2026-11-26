@@ -64,7 +64,7 @@ Every source below is a structured event from code (`playXpEarned`, `styleFought
 - **Growth** is fast next to skills: p = 1 - e^(-h / 108) over effective hours (session hours x the teacher's factor): about 75% at 150 hours, 99% at 500. A fight counts as 0.5 / 1 / 2 / 3 hours by stakes. **Higher Melee learns faster:** x(1 + 0.5 s(Melee / 100)), s a smoothstep: +50% at Melee 100.
 - **Fading:** after 30 days unused, toward half the peak with a 730-day time constant (about 0.8 after a year, half after many); below the peak, practice regrows three times as fast.
 - **The bonus:** up to +5 on the skill scale at 100% (linear), Teräs Käsi up to +10. No style costs nothing. **Stacking:** effective skill = skill x weapon proficiency factor + style bonus (`stackedSkill`; weapon proficiency is not built, so it is 1). A fighter uses the held style with the highest bonus that covers the weapon in hand: unarmed styles only unarmed, weapon styles only armed, `both` either; never with a saber or a blaster.
-- **The edge:** each style has one situational edge from its lore, +1 on the roll it names from 50% proficiency (the proposals, for Jared):
+- **The edge:** each style has one situational edge from its lore, +1 on the roll it names from 50% proficiency (approved by Jared, 26 Nov 2026, with Darth Desolous's only while carrying a cortosis shield and the Gand findsmen's to become partial armour bypass with the realistic damage rules; D-514):
 
 | Style | Culture, dates | Weapons | Proposed edge |
 | --- | --- | --- | --- |
@@ -86,10 +86,10 @@ Every source below is a structured event from code (`playXpEarned`, `styleFought
 | Tal-Gun | Xagobah; the Clone Wars | unarmed | a generic opening edge (no technique in the lore) |
 | Jeswandi | the Bothans | unarmed | composure: +1 defence against strikes |
 | the Forbelean Defense | the Chiss | unarmed | intercept and deflect: +1 defence against strikes |
-| the Gand findsmen's art | Gand findsmen | unarmed | punches through armour: +1 on strikes |
+| the Gand findsmen's art | Gand findsmen | unarmed | punches through armour: +1 on strikes now; partial armour bypass when the realistic damage rules are built (Jared, 26 Nov 2026; see Teräs Käsi's strike power) |
 | Thrar'kor | Trandoshans | armed | an opening edge (no detail in the lore) |
 | Petranaki | Geonosian arenas; 22 BBY | armed | +1 on every roll against two or more |
-| Darth Desolous's style | Pau'an; after c. 3,522 BBY | armed | the cortosis shield: +1 defence against a lightsaber |
+| Darth Desolous's style | Pau'an; after c. 3,522 BBY | armed | the cortosis shield: +1 defence against a lightsaber, only while carrying one (Jared, 26 Nov 2026) |
 
 - **Teräs Käsi (Jared):** no bonus against Force users. Up to +10 at 100%. Speed: +2 x proficiency on the build-up contest against a melee opponent. Strike power for the realistic damage rules (when built; `terasKasiStrike`): the share of a blaster pistol's class from 50% proficiency to all at 100%, and 50% of light and 25% of medium armour ignored at 100%. **Anticipation:** at 100% and Melee 81+ half the precognitive defence a Force user of that tier gets from Force Sense (min(0.5, Melee / 200), read at the fighter's Melee), at Melee 101+ all of it; against melee strikes only, never a surprise; it is no Force power (no Force load, works in a Force-null bubble); the higher of it and the fighter's own precognition applies, never both. Its power and speed come from RPG books and game guides: mechanics only, never narrator lore.
 - **Not built:** game-derived powers (Matukai, Teräs Käsi meditation healing): possible perks later.
@@ -120,10 +120,10 @@ Senatorial apprenticeships stay story-only.
 
 | Archetype | Focus (weights) | Start |
 | --- | --- | --- |
-| Officer | Tactics 1, Intelligence 0.6 (staff work), Charisma 0.5, Blaster 0.25, body 0.15 each | 18 (17-30) |
-| Naval officer | the officer's line with Piloting 0.4 and Gunnery 0.2 | 18 |
+| Officer | Tactics 1, Intelligence 0.6 (staff work), Charisma 0.5, Blaster 0.48 (Jared, 26 Nov: a Blaster pace of about 0.35; was 0.25), body 0.15 each | 18 (17-30) |
+| Naval officer | the officer's line with Piloting 0.4 and Gunnery 0.2; Blaster 0.28 (in proportion) | 18 |
 | Intelligence officer: analyst | Intelligence 1 (staff work), Investigation 0.9 (tradecraft), Charisma 0.6, Blaster 0.35, Tactics 0.2, body 0.2 each | 18 (17-35) |
-| Intelligence officer: field agent | Stealth 1, Charisma 0.8, Blaster 0.8, Melee 0.6, Investigation 0.5 (tradecraft), Intelligence 0.2, body 0.35 each | 18 |
+| Intelligence officer: field agent | Stealth 1, Intelligence 5.6 (staff work), Tactics 2.2, Charisma 2.0, Blaster 0.8, Melee 0.6, Investigation 0.5 (tradecraft), body 0.35 each (Jared, 26 Nov: Intelligence to about an officer's, a Tactics share; m8-traits, D-514) | 18 |
 | Senator or politician | Charisma 1 (negotiation), Intelligence 0.7, Investigation 0.15, Tactics 0.1, Blaster 0.05 | 18 (16-40) |
 | Scholar | Intelligence 1, Investigation 0.6, Force Knowledge 0.2, Charisma 0.2, Medicine 0.1 | 16 (14-40) |
 | Starfighter pilot | Piloting 1, Gunnery 0.8, body, Intelligence and Blaster small, Repair 0.2 | 18 |
@@ -131,11 +131,11 @@ Senatorial apprenticeships stay story-only.
 | Engineer or mechanic | Repair 1, Intelligence 0.6, Piloting 0.2, small Gunnery and Blaster | 16 (12-35) |
 
 - **Paces** are measured on the day loop (`npm run paces`; report section 4) and copied into `archetypes.ts`. The soldier's and smuggler's were re-measured with their new shares; the Jedi and Sith paces were scaled by the measured effect of the Melee weight (their tables are not verbatim loop copies since D-495); the Sith apprentice phase is unchanged.
-- **The intelligence lines:** the analyst leads in Intelligence and Investigation, the field agent in Stealth, Melee and Blaster; both trail a line officer in Tactics. The service (the better of its two lines) is level or ahead of the officer on every other stat the officer trains; the field agent alone trails the officer in Intelligence (the analyst's job). A character can change lines (its archetype); an NPC is generated on one (role `official`: civilian 60%, analyst 25%, field agent 15%).
+- **The intelligence lines (Jared, 26 Nov 2026; D-514):** the analyst leads in Intelligence and Investigation, the field agent in Stealth and Melee. Each line trails a line officer only in Tactics and is level or ahead of the officer in Intelligence and Charisma (tested per line). The field agent's Intelligence (staff work, pace 0.956 against the officer's 0.910 and the analyst's 1.584) and Tactics (0.582) shares take the fill from its Blaster, Melee and Investigation (0.079, 0.060, 0.059): it no longer out-shoots the analyst (m8-traits report, Part A). A character can change lines (its archetype); an NPC is generated on one (role `official`: civilian 60%, analyst 25%, field agent 15%).
 - **Generated NPCs by role:** officer 70% officer, 30% naval officer; pilot 70% starfighter pilot, 30% smuggler; politician and scholar their own.
 - **A Senate seat** is a story event, not a rank: the politician archetype is generation and stat lines only.
 - **Canon figures** on the new archetypes (report section 5 lists each and what moved): the Republic and Imperial commanders on officer or naval officer, the Chancellors, senators and ministers on politician, Imperial Intelligence and the SIS on the two intelligence lines. Their sheets set what they set; the archetype sets the rest.
-- **Draft sheets** (`skillDrafts.ts`, for Jared's review, applied to nobody): Thrawn, Tarkin, Mon Mothma, Malavai Quinn, Ysanne and Armand Isard, Airen Cracken, Cipher Nine, Watcher Two; Gunnery anchors Wedge Antilles, a Rogue Squadron pilot, Han Solo and Chewbacca; Repair anchors Chewbacca, Bao-Dur, T3-M4, R2-D2.
+- **Draft sheets** (`skillDrafts.ts`; approved by Jared, 26 Nov 2026, with Quinn Tactics 70, Thrawn Investigation 105, R2-D2 Repair 90, and Galena Rans's bomber wing career added; D-514). Applied as partial anchors on the game scale for the roster figures (Quinn, Cipher Nine, Shara Jenn, Galena Rans); the rest are stored for when their figures are added: Thrawn, Tarkin, Mon Mothma, Malavai Quinn, Ysanne and Armand Isard, Airen Cracken, Cipher Nine, Watcher Two; Gunnery anchors Wedge Antilles, a Rogue Squadron pilot, Han Solo and Chewbacca; Repair anchors Chewbacca, Bao-Dur, T3-M4, R2-D2.
 
 ## 8. Rank ladders
 
@@ -151,7 +151,7 @@ Joining needs the first rung's minimum; a promotion is proposed by the AI or the
 
 ## 9. Not built here
 
-The fleet and ground battles' calls to `commandXp` and `gunneryXp` (combat-scales has no turn loop yet); the realistic damage rules (Teräs Käsi's strike power waits for them); weapon proficiency (the stacking takes 1); field operations as a scene (the `fieldOp` source is ready); NPC style knowledge for canon figures (a teacher's art is named with `npcStyleSet`).
+The fleet and ground battles' calls to `commandXp` and `gunneryXp` (combat-scales has no turn loop yet); the realistic damage rules (Teräs Käsi's strike power waits for them, and the Gand findsmen's partial armour bypass beside it); weapon proficiency (the stacking takes 1); field operations as a scene (the `fieldOp` source is ready); NPC style knowledge for canon figures (a teacher's art is named with `npcStyleSet`).
 
 ## 10. Every invented number
 

@@ -975,6 +975,8 @@ Sources: power from *Threats of the Galaxy* and *Hero's Guide* (RPG books); spee
 
 ## Starting traits and formative events (character creation)
 
+As built: [traits.md](traits.md) (M8 item 16, D-515).
+
 Agreed by Jared, 25 Nov 2026. Traits give a character a personality and a history the code can use; formative events build them in play-like scenes before the campaign starts. Both extend character-creation.md (talents, background flags, backstory facts, philosophy), which has no personality today. Catalogs are drafted with Jared; numbers are set and tagged at build time.
 
 ### Traits

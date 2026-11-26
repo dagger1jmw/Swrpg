@@ -1336,7 +1336,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Harron Tavus",
     speciesId: "human",
     faction: "republic",
-    archetype: "officer",
+    archetype: "soldier",
     birthBby: 3680,
     birthSource: "estimate",
     facts: {
@@ -1467,7 +1467,7 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Fideltin Rusk",
     speciesId: "chagrian",
     faction: "republic",
-    archetype: "officer",
+    archetype: "soldier",
     birthBby: 3680,
     birthSource: "lore",
     facts: {
