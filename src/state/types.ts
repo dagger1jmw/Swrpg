@@ -112,7 +112,10 @@ export interface EventDef<Slice, S extends BaseState = BaseState> {
   narrative?: (state: S, turn: NarrativeTurnInfo) => boolean;
   /** The schema part the event belongs to (ai/schemas/parts.ts; D-520); absent = the core, sent every turn. */
   part?: string;
-  /** Fields sent only when their part applies (D-520): left out of the wire schema otherwise; still valid when present. */
+  /**
+   * Fields sent only when their part applies (D-520): left out of the wire schema otherwise; still valid when present. A dotted
+   * path reaches a field of an array's items ("minionGroups.wantAlive", m8-fixes A2).
+   */
   partFields?: Readonly<Record<string, string | readonly string[]>>;
   phase?: EventPhase;
   /** Field holding the event's target, for de-duplication, per-target caps and resolved-action checks. */

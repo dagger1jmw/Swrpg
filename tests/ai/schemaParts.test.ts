@@ -122,3 +122,51 @@ describe('the narrative schema in parts (m8-ground Part A, D-520)', () => {
     expect(after(x.state, { ...x.turn, parts })).toEqual(after(x.state, x.turn));
   });
 });
+
+describe('the approved m8-ground schema changes (m8-fixes A1, A2)', () => {
+  const wireEvent = (s: GameState, turn: NarrativeTurnInfo, type: string): Record<string, unknown> | undefined => {
+    const w = toGeminiSchema(composeNarrativeSchema(REGISTRY, s, turn).wire) as { properties: { events: { items: { anyOf?: { properties: Record<string, unknown> }[] } } } };
+    return (w.properties.events.items.anyOf ?? []).find((x) => (x.properties['type'] as { enum: string[] }).enum[0] === type)?.properties;
+  };
+
+  it('A1: species as words: exact names and the word list resolve, an unknown word is "other" and queued for review, never refused', () => {
+    const k = base();
+    expect(JSON.stringify(wireEvent(k, { timeAdvancedByDraft: false }, 'npcIntroduced')!['species'])).not.toContain('enum');
+    const intro = (name: string, species?: string): GameState => {
+      const r = applyEvents(REGISTRY, k, [{ type: 'npcIntroduced', name, ...(species !== undefined ? { species } : {}), faction: 'civilian', role: 'civilian', description: '' }], { source: 'ai' });
+      expect(r.rejected).toEqual([]);
+      return r.state;
+    };
+    const npc = (s: GameState, name: string) => Object.values(s.npcs.byId).find((n) => n.name === name)!;
+    expect(npc(intro('Ana', "Twi'lek"), 'Ana').speciesId).toBe('twilek');
+    expect(npc(intro('Bo', 'Mon Calamari'), 'Bo').speciesId).toBe('monCalamari');
+    expect(npc(intro('Cy', 'kelDor'), 'Cy').speciesId).toBe('kelDor');
+    expect(npc(intro('Di', 'Zabraks'), 'Di').speciesId).toBe('zabrak');
+    expect(npc(intro('Ed', 'an Iridonian'), 'Ed').speciesId).toBe('zabrak');
+    expect(npc(intro('Fa'), 'Fa').speciesId).toBe('unknown');
+    const odd = intro('Gal Tren', 'Kiffar');
+    expect(npc(odd, 'Gal Tren').speciesId).toBe('other');
+    const item = odd.memory.review.find((r) => r.kind === 'species')!;
+    expect(item).toMatchObject({ name: 'Kiffar', status: 'open', npcId: npc(odd, 'Gal Tren').id });
+    // The player settles it from the review queue.
+    const set = applyEvents(REGISTRY, odd, [{ type: 'npcSpeciesSet', npcRef: item.npcId!, species: 'human' }, { type: 'reviewResolved', reviewId: item.id, resolution: 'mapped', entityRef: item.npcId! }], { source: 'player' });
+    expect(set.rejected).toEqual([]);
+    expect(npc(set.state, 'Gal Tren').speciesId).toBe('human');
+  });
+
+  it('A2: the capture fields go only with a cue (a bounty hunter, a bounty, a flagged ship, or the player\'s words)', () => {
+    const k = base();
+    const fields = (s: GameState, text: string): string => JSON.stringify(wireEvent(s, { timeAdvancedByDraft: false, text }, 'combatStarted') ?? {});
+    expect(fields(k, 'I walk on')).not.toContain('wantAlive');
+    expect(fields(k, 'I want him taken alive')).toContain('wantAliveRefs');
+    expect(fields(k, 'I want him taken alive')).toMatch(/minionGroups.*wantAlive/);
+    expect(fields(k, 'the bounty on my head')).toContain('wantAliveRefs');
+    expect(fields(meet(k, [{ name: 'Vorn Kast', role: 'bountyHunter', faction: 'underworld' }]), 'I wait')).toContain('wantAliveRefs');
+    const owed = { ...k, economy: { ...k.economy, loans: [{ id: 'l1', lender: k.economy.loans[0]?.lender ?? 'hutt', principal: 1000, balance: 1000, currency: 'republic', startDay: 0, nextDueDay: 0, missed: 3, stage: 'bounty' }] } } as unknown as GameState;
+    expect(fields(owed, 'I wait')).toContain('wantAliveRefs');
+    // Left out of the wire, still valid when sent (the parse schema is the full one).
+    const r = applyEvents(REGISTRY, k, [{ type: 'combatStarted', opponentRefs: [], minionGroups: [{ kind: 'thug', count: 2, wantAlive: true }], stakes: 'serious', terrainTags: [] }], { source: 'ai' });
+    expect(r.rejected).toEqual([]);
+    expect(r.state.combat.pending?.minionGroups[0]).toMatchObject({ wantAlive: true });
+  });
+});

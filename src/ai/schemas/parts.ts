@@ -13,7 +13,7 @@ import { selectNpc } from '../../features/npcs/selectors';
 import { selectShipAt, selectShips } from '../../features/ships/selectors';
 import { selectActiveBattle, selectGroundBattle, selectGroundPlanning, selectMayPlanGround } from '../../features/battles/selectors';
 
-export const SCHEMA_PARTS = ['core', 'people', 'goods', 'ship', 'training', 'command', 'fight', 'battle'] as const;
+export const SCHEMA_PARTS = ['core', 'people', 'goods', 'ship', 'training', 'command', 'fight', 'battle', 'capture'] as const;
 export type SchemaPart = (typeof SCHEMA_PARTS)[number];
 
 export const PART_LABEL: Readonly<Record<SchemaPart, string>> = {
@@ -25,12 +25,15 @@ export const PART_LABEL: Readonly<Record<SchemaPart, string>> = {
   command: 'a planning scene or ground battle, a character who can command, an officer present, or the player speaks of battle plans',
   fight: 'a fight is on or about to start',
   battle: 'a ship or ground battle is being fought',
+  capture: 'a cue to take someone alive: a bounty on the character, a bounty hunter here, a ship flagged by customs, or the player speaks of capture',
 };
 
 // The player's own words that put a situation on the table this turn (whole words, case-insensitive).
 const GOODS_WORDS = /\b(?:buy|buys|bought|sell|sells|sold|purchase\w*|pay|pays|paid|payment|price|prices|cost|costs|credits?|funds|haggle\w*|barter\w*|trade|trades|traded|trader|deal|bribe\w*|fine|fined|loan|debt|debts|repay\w*|wages?|job|jobs|hire|hired|rent|rents|lodging|steal|stole|stolen|rob|robbed|loot\w*|extort\w*|exchange|money|shop|shops|store|stores|stored|market|vendor|merchant|reward|bounty|contract|stash\w*|locker|fetch\w*|stow\w*|item|items|gear)\b/i;
 const SHIP_WORDS = /\b(?:ships?|starships?|freighters?|shuttles?|fighters?|cruisers?|corvettes?|frigates?|destroyers?|hyperdrive|hyperspace|cockpit|hangar|docks?|docking|docked|spaceport|starport|port|customs|transponder|cargo|crew|pilot|piloting|fly|flying|launch|orbit|blockade|salvage\w*|shipyard)\b/i;
 const TRAINING_WORDS = /\b(?:train|trains|trained|training|practi[cs]e\w*|lessons?|drills?|spar|spars|sparring|katas?|study|studies|studied|studying|teach\w*|taught|tutor\w*|routine|meditat\w*|exercises?|curriculum|instruct\w*|manual|tactics?)\b/i;
+/** The player's words that put a capture on the table (m8-fixes A2: the player's own words count as a cue). */
+const CAPTURE_WORDS = /\b(?:alive|captur\w*|captive\w*|kidnap\w*|abduct\w*|arrest\w*|subdu\w*|bounty|bounties|wanted|prisoners?|hostages?|stun\w*|binders|surrender\w*|take (?:me|him|her|them|us) in|bring (?:me|him|her|them|us) in)\b/i;
 const COMMAND_WORDS = /\b(?:battles?|battle plan|planning|briefing|council of war|war council|command|troops|army|armies|battalions?|regiments?|platoons?|legions?|siege|assault|offensive|front line|frontline|objectives?|scouting|recon|artillery|walkers?)\b/i;
 const TRAINING_PLACE = /temple|academy|enclave|dojo|training|salle|barracks|praxeum/i;
 const PORT_PLACE = /spaceport|starport|\bport\b|docks?\b|docking|hangar|landing pad|shipyard|orbital/i;
@@ -99,6 +102,11 @@ export const PART_APPLIES: Readonly<Record<Exclude<SchemaPart, 'core'>, (s: Game
   },
   fight: (s) => (inFight(s) ? 1 : NO),
   battle: (s) => (inBattle(s) ? 1 : NO),
+  // m8-fixes A2 (Jared's approval of m8-ground proposal 2): combatStarted's capture fields only with a cue.
+  capture: (s, turn) => score(
+    presentRoles(s).includes('bountyHunter') || s.economy.loans.some((l) => l.stage === 'bounty') || selectShips(s).some((x) => x.flagged),
+    words(turn, CAPTURE_WORDS),
+  ),
 };
 
 /**
@@ -122,7 +130,7 @@ export function activeParts<S extends BaseState>(state: S, turn: NarrativeTurnIn
       return NO;
     }
   };
-  for (const part of ['people', 'fight', 'battle'] as const) if (strength(part)) out.add(part);
+  for (const part of ['people', 'fight', 'battle', 'capture'] as const) if (strength(part)) out.add(part);
   const ranked = ACTIVITY_PARTS.map((p, i) => ({ p, i, x: strength(p as Exclude<SchemaPart, 'core'>) }))
     .filter((r) => r.x > 0)
     .sort((a, b) => b.x - a.x || a.i - b.i)

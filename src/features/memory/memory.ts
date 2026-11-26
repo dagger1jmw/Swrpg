@@ -34,6 +34,10 @@ export const reviewItemSchema = z.object({
   context: z.string().max(MEMORY_LIMITS.reviewContext),
   status: z.enum(['open', 'mapped', 'created', 'dismissed']),
   entityId: z.string().nullable(),
+  /** What is under review (m8-fixes A1): a name that matches nobody (absent), or an NPC's species word the code could not read. */
+  kind: z.enum(['name', 'species']).optional(),
+  /** For a species item: the NPC it belongs to (kept as "other" until the player picks a species or dismisses it). */
+  npcId: z.string().optional(),
 });
 
 export const memorySliceSchema = z.object({

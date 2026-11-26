@@ -23,7 +23,7 @@ import { selectLocationChain } from '../locations/selectors';
 
 /** How an off-board reason reads in a rejection (D-400). */
 const OFF_BOARD_WORDS: Readonly<Record<OffBoard, string>> = { unborn: 'not yet born', dead: 'dead', unavailable: 'out of sight', imprisoned: 'imprisoned' };
-import { inferSpecies } from '../../data/speciesWords';
+import { inferSpecies, speciesFromWords } from '../../data/speciesWords';
 import { roleForYear } from '../../data/npcGen.config';
 import { migrateNpcsV1, npcHealthSchema, npcsSliceSchema, type Npc, type NpcHealth, type NpcsSlice } from './npcs';
 import { resolveNpcRef, selectNpcAgeOrDefault, selectNpcGen, selectNpcLevels, selectNpcs } from './selectors';
@@ -32,7 +32,9 @@ export const npcIntroducedSchema = z.object({
   type: z.literal('npcIntroduced'),
   key: z.string().optional(),
   name: z.string().min(1).max(LIMITS.name).describe('With any title'),
-  species: z.enum(SPECIES),
+  // Plain words the code resolves (m8-fixes A1, m8-ground proposal 1): an exact species name, then the D-239 word list; a word
+  // the code cannot read keeps the NPC as "other" and goes to the review queue (about 650 characters less than the id list).
+  species: z.string().max(40).optional().describe("Plain words, e.g. Twi'lek"),
   faction: z.enum(FACTIONS),
   role: z.enum(NPC_ROLES),
   ageApprox: z.number().int().min(0).max(MAX_AGE_APPROX).optional(),
@@ -47,14 +49,19 @@ function tieEndedFor(s: GameState, name: string): GameEvent[] {
   return held.some((h) => h.tieName?.toLowerCase() === name.toLowerCase()) ? [{ type: 'tieEnded', name }] : [];
 }
 
-function introduce(slice: NpcsSlice, e: GameEvent, state: GameState): { slice: NpcsSlice; id: string; existing: boolean; note: string | null } {
+function introduce(slice: NpcsSlice, e: GameEvent, state: GameState): { slice: NpcsSlice; id: string; existing: boolean; note: string | null; unreadSpecies: string | null } {
   const name = String(e['name']).trim();
   const existing = uniqueAliasMatch(Object.values(slice.byId), (n) => [n.name, ...n.aliases], name);
-  if (existing) return { slice, id: existing.id, existing: true, note: null };
+  if (existing) return { slice, id: existing.id, existing: true, note: null, unreadSpecies: null };
   const today = selectNow(state).day;
+  const year = dateFromAbsDay(today).year;
+  // The species words (m8-fixes A1): an exact name or the word list; a word nobody can read is "other" until reviewed.
+  const words = typeof e['species'] === 'string' ? e['species'] : '';
+  const read = speciesFromWords(words, year);
   // The species from the name and description when the narrator left it out (D-239): the rules that hang on it
   // (Force immunity, the Vong archetype and capture rule) need it.
-  const inferred = inferSpecies({ name, description: String(e['description'] ?? ''), given: String(e['species']), year: dateFromAbsDay(today).year });
+  const inferred = inferSpecies({ name, description: String(e['description'] ?? ''), given: read.species ?? 'other', year });
+  const unreadSpecies = read.species === null && inferred.species === 'other' ? words.trim() : null;
   const id = mintId('npc', normalizeAlias(name), (x) => x in slice.byId);
   const age = e['ageApprox'];
   const npc: Npc = {
@@ -75,7 +82,7 @@ function introduce(slice: NpcsSlice, e: GameEvent, state: GameState): { slice: N
     gen: null,
     health: null,
   };
-  return { slice: { ...slice, byId: { ...slice.byId, [id]: npc } }, id, existing: false, note: inferred.note };
+  return { slice: { ...slice, byId: { ...slice.byId, [id]: npc } }, id, existing: false, note: inferred.note, unreadSpecies };
 }
 
 const update = (slice: NpcsSlice, id: string, patch: Partial<Npc>): NpcsSlice => ({ ...slice, byId: { ...slice.byId, [id]: { ...slice.byId[id]!, ...patch } } });
@@ -116,7 +123,25 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         }
         const r = introduce(slice, e, ctx.state);
         const notes = r.existing ? [`"${String(e['name'])}" matched existing ${r.id} by exact alias; not created again`] : r.note ? [r.note] : [];
+        // An unread species word goes to the review queue (Jared: queued, never refused); the NPC is "other" meanwhile.
+        if (r.unreadSpecies) {
+          notes.push(`"${String(e['name'])}": species "${r.unreadSpecies}" not recognised; kept as other and queued for review`);
+          return { slice: r.slice, mintedId: r.id, notes, emit: [{ type: 'reviewQueued', name: r.unreadSpecies.slice(0, 80), context: `species of ${String(e['name']).slice(0, 80)} (npcIntroduced)`, kind: 'species', npcId: r.id }] };
+        }
         return { slice: r.slice, mintedId: r.id, ...(notes.length ? { notes } : {}) };
+      },
+    },
+    // A player settles an NPC's species from the review queue (m8-fixes A1).
+    npcSpeciesSet: {
+      schema: z.object({ type: z.literal('npcSpeciesSet'), npcRef: z.string(), species: z.enum(SPECIES) }),
+      sources: ['player'],
+      refFields: ['npcRef'],
+      refKinds: npcRefKinds,
+      targetField: 'npcRef',
+      handle: (slice, e) => {
+        const id = String(e['npcRef']);
+        if (!slice.byId[id]) return { reject: `unknown NPC ${id}` };
+        return { slice: update(slice, id, { speciesId: e['species'] as Npc['speciesId'] }) };
       },
     },
     // A player creates an NPC from the review queue (name only; the rest unknown until the story says).

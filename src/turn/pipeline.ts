@@ -302,6 +302,7 @@ function reviewFollowUps(registry: Registry<GameState>, state: GameState, unknow
     if (resolve(name) === null) out.push({ type: 'reviewQueued', name: name.slice(0, 80), context: `player input (${intent!.actionType})` });
   }
   for (const r of selectOpenReview(state)) {
+    if (r.kind === 'species') continue; // a species word is settled by the player, never by a name match
     const id = resolve(r.name);
     if (id !== null) out.push({ type: 'reviewResolved', reviewId: r.id, resolution: 'mapped', entityRef: id });
   }

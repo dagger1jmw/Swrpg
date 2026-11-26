@@ -38,8 +38,12 @@ describe('npcs', () => {
   });
   it('rejects unregistered enums and AI deaths', () => {
     const s = ai(fresh(), [orren]).state;
+    // An unread species word is not refused (m8-fixes A1): the NPC is "other" and the word goes to review.
+    const g = ai(s, [{ ...orren, key: undefined, name: 'Y', species: 'gungan' }]);
+    expect(g.rejected).toEqual([]);
+    expect(g.state.memory.review.some((x) => x.kind === 'species' && x.name === 'gungan')).toBe(true);
     const r = ai(s, [
-      { ...orren, name: 'X', species: 'gungan' },
+      { ...orren, name: 'X', faction: 'gungans' },
       { type: 'npcStatusChanged', npcRef: 'npc:orren-vash', state: 'deceased' },
     ]);
     expect(r.applied).toHaveLength(0);

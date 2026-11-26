@@ -3,7 +3,8 @@
 // that hang on a species (Force immunity, the Vong archetype and capture rule, droid traits) need the species field;
 // when the narrator leaves it out, the name and description give it.
 import type { WeaponKind } from './health.config';
-import type { SpeciesId } from './entities.config';
+import { SPECIES as SPECIES_IDS, type SpeciesId } from './entities.config';
+import { SPECIES as SPECIES_TABLE } from './species';
 
 export interface SpeciesWord {
   species: SpeciesId;
@@ -70,6 +71,36 @@ export function inferSpecies(input: { name: string; description: string; given: 
   const where = byName ? 'name' : 'description';
   if (!inEra(hit, input.year)) return { species: input.given, note: `"${input.name}": ${hit.species} from the ${where}, but none are met in the galaxy in ${input.year < 0 ? `${-input.year} BBY` : `${input.year} ABY`}; species kept as ${input.given}` };
   return { species: hit.species, note: `"${input.name}": species ${hit.species} from the ${where} (the narrator sent ${input.given}) (D-239)` };
+}
+
+/** A species word folded for matching: lower case, letters only, a plural "s" dropped ("Twi'leks" -> "twilek"). */
+const fold = (w: string): string => w.toLowerCase().replace(/[^a-z]/g, '');
+const EXACT: ReadonlyMap<string, SpeciesId> = (() => {
+  const m = new Map<string, SpeciesId>();
+  for (const id of SPECIES_IDS) m.set(fold(id), id);
+  // The species table's own names ("Twi'lek", "Mon Calamari", "Yoda's species") by their entity id (camelCase of the table id).
+  for (const d of SPECIES_TABLE) {
+    const camel = d.id.replace(/_([a-z])/g, (_x, c: string) => c.toUpperCase());
+    if ((SPECIES_IDS as readonly string[]).includes(camel)) m.set(fold(d.name), camel as SpeciesId);
+  }
+  return m;
+})();
+
+/**
+ * npcIntroduced's species as words (m8-fixes A1, Jared's approval of m8-ground proposal 1): the narrator writes the species
+ * in plain words and the code resolves them: an exact name (an id or the species table's name, plural or not), then the
+ * D-239 word list, else none (`species: null`; the caller files the word for review and keeps the NPC as "other").
+ * Empty words are "unknown".
+ */
+export function speciesFromWords(words: string | undefined, year: number): { species: SpeciesId | null; how: 'exact' | 'words' | 'empty' | 'none' } {
+  const w = (words ?? '').trim();
+  if (!w) return { species: 'unknown', how: 'empty' };
+  const f = fold(w);
+  const exact = EXACT.get(f) ?? (f.endsWith('s') ? EXACT.get(f.slice(0, -1)) : undefined);
+  if (exact) return { species: exact, how: 'exact' };
+  const hit = SPECIES_WORDS.find((x) => x.words.test(w) && inEra(x, year));
+  if (hit) return { species: hit.species, how: 'words' };
+  return { species: null, how: 'none' };
 }
 
 /**

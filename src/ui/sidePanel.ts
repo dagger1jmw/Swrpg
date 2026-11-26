@@ -8,7 +8,9 @@ import { ACTIVITIES, ACTIVITY_BY_ID, INTENSITIES, type ActivityDef } from '../da
 import { archetypeDef } from '../data/archetypes';
 import { FORM_IDS, SKILLS, SKILL_BY_ID } from '../data/skills';
 import { PRIME_H } from '../data/ageing.config';
-import { speciesDef } from '../data/species';
+import { SPECIES_BY_ID, speciesDef } from '../data/species';
+import { SPECIES as SPECIES_IDS } from '../data/entities.config';
+import type { ReviewItem } from '../features/memory/selectors';
 import { traitsOf } from '../data/speciesTraits';
 import { selectCharacter } from '../features/character/selectors';
 import { selectFatigue } from '../features/health/selectors';
@@ -445,7 +447,32 @@ function review(p: SidePanelProps): HTMLElement[] {
     ...selectNpcs(s).map((n) => ({ id: n.id, label: `${n.name} (person)`, kind: 'npc' as const })),
     ...selectLocations(s).map((l) => ({ id: l.id, label: `${l.name} (place)`, kind: 'loc' as const })),
   ];
-  return items.map((r) => {
+  return items.map((r) => (r.kind === 'species' ? speciesReview(p, r) : nameReview(p, r, entities)));
+}
+
+/** An NPC's species word the code could not read (m8-fixes A1): pick the species, or dismiss to keep "other". */
+function speciesReview(p: SidePanelProps, r: ReviewItem): HTMLElement {
+  const npc = r.npcId ? p.state.npcs.byId[r.npcId] : undefined;
+  const select = el('select', { attrs: { 'aria-label': `Species for ${npc?.name ?? r.name}` } }, [
+    el('option', { text: 'Species...', attrs: { value: '' } }),
+    ...SPECIES_IDS.filter((x) => x !== 'unknown' && x !== 'other').map((x) => el('option', { text: speciesLabel(x), attrs: { value: x } })),
+  ]);
+  const set = el('button', { class: 'secondary', text: 'Set species', on: { click: () => {
+    if (!select.value || !npc) return;
+    p.playerEvents([{ type: 'npcSpeciesSet', npcRef: npc.id, species: select.value }, { type: 'reviewResolved', reviewId: r.id, resolution: 'mapped', entityRef: npc.id }]);
+  } } });
+  const dismiss = el('button', { class: 'secondary', text: 'Keep as other', on: { click: () => p.playerEvents([{ type: 'reviewResolved', reviewId: r.id, resolution: 'dismissed' }]) } });
+  set.disabled = p.busy || !npc;
+  dismiss.disabled = p.busy;
+  return el('div', { class: 'card' }, [
+    el('div', { class: 'card-title' }, [el('strong', { text: `Species "${r.name}"` })]),
+    el('div', { class: 'hint', text: `turn ${r.turn} · ${npc ? `${npc.name}, kept as "other" until settled` : r.context}` }),
+    el('div', { class: 'row' }, [select, set, dismiss]),
+  ]);
+}
+
+function nameReview(p: SidePanelProps, r: ReviewItem, entities: readonly { id: string; label: string; kind: 'npc' | 'loc' }[]): HTMLElement {
+  {
     const select = el('select', { attrs: { 'aria-label': `Map ${r.name} to` } }, [
       el('option', { text: 'Map to...', attrs: { value: '' } }),
       ...entities.map((e) => el('option', { text: e.label, attrs: { value: e.id } })),
@@ -472,7 +499,7 @@ function review(p: SidePanelProps): HTMLElement[] {
         btn('Dismiss', () => p.playerEvents([{ type: 'reviewResolved', reviewId: r.id, resolution: 'dismissed' }])),
       ]),
     ]);
-  });
+  }
 }
 
 // ---------------------------------------------------------------- debug
@@ -539,4 +566,10 @@ function debug(p: SidePanelProps): HTMLElement[] {
     );
   }
   return out;
+}
+
+/** A species id's readable name (the species table's, else the id spelled out). */
+function speciesLabel(id: string): string {
+  const snake = id.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+  return SPECIES_BY_ID.get(id)?.name ?? SPECIES_BY_ID.get(snake)?.name ?? id.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase());
 }

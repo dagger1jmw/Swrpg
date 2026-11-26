@@ -88,12 +88,22 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
     },
     // Engine: an unknown name the player resolves in the People tab (architecture §7).
     reviewQueued: {
-      schema: z.object({ type: z.literal('reviewQueued'), name: z.string().min(1).max(80), context: z.string().max(MEMORY_LIMITS.reviewContext) }),
+      schema: z.object({
+        type: z.literal('reviewQueued'),
+        name: z.string().min(1).max(80),
+        context: z.string().max(MEMORY_LIMITS.reviewContext),
+        // m8-fixes A1: an NPC's species word the code could not read (the NPC kept as "other" meanwhile).
+        kind: z.enum(['name', 'species']).optional(),
+        npcId: z.string().optional(),
+      }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
         const name = String(e['name']).trim();
-        if (slice.review.some((r) => r.status === 'open' && normalizeAlias(r.name) === normalizeAlias(name))) return { slice, notes: [`"${name}" is already awaiting review`] };
-        const item: ReviewItem = { id: `review:${slice.nextSeq}`, name, turn: selectTurnInPlay(ctx.state), context: String(e['context']), status: 'open', entityId: null };
+        const kind = e['kind'] === 'species' ? 'species' : undefined;
+        const npcId = typeof e['npcId'] === 'string' ? e['npcId'] : undefined;
+        const same = (r: ReviewItem): boolean => r.status === 'open' && normalizeAlias(r.name) === normalizeAlias(name) && (r.kind === 'species') === (kind === 'species') && r.npcId === npcId;
+        if (slice.review.some(same)) return { slice, notes: [`"${name}" is already awaiting review`] };
+        const item: ReviewItem = { id: `review:${slice.nextSeq}`, name, turn: selectTurnInPlay(ctx.state), context: String(e['context']), status: 'open', entityId: null, ...(kind ? { kind } : {}), ...(npcId ? { npcId } : {}) };
         return { slice: { ...slice, review: [...slice.review, item], nextSeq: slice.nextSeq + 1 } };
       },
     },

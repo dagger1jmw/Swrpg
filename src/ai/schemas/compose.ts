@@ -45,11 +45,36 @@ function sent<S extends BaseState>(def: EventDef<unknown, S>, state: S, turn: Na
   return def.narrative !== undefined && parts.has(def.part ?? 'core') && def.narrative(state, turn);
 }
 
+/**
+ * An object schema without these fields. A dotted path ("minionGroups.wantAlive", m8-fixes A2) reaches into an (optional) array of
+ * objects: the field is left out of each item, the array's own checks kept.
+ */
+function omitFields(schema: z.ZodObject, fields: readonly string[]): z.ZodObject {
+  const top = fields.filter((f) => !f.includes('.'));
+  let out = top.length ? schema.omit(Object.fromEntries(top.map((f) => [f, true])) as never) : schema;
+  const nested = new Map<string, string[]>();
+  for (const f of fields.filter((x) => x.includes('.'))) {
+    const [head, ...rest] = f.split('.');
+    nested.set(head!, [...(nested.get(head!) ?? []), rest.join('.')]);
+  }
+  for (const [head, inner] of nested) {
+    const field = (out.shape as Record<string, ZodType>)[head];
+    if (!field) continue;
+    const optional = field instanceof z.ZodOptional;
+    const arr = (optional ? (field as z.ZodOptional<ZodType>).unwrap() : field) as z.ZodArray<z.ZodObject>;
+    if (!(arr instanceof z.ZodArray) || !(arr.element instanceof z.ZodObject)) continue;
+    const item = omitFields(arr.element, inner);
+    const rebuilt = arr.clone({ ...arr._zod.def, element: item } as never) as ZodType;
+    out = out.extend({ [head]: optional ? rebuilt.optional() : rebuilt });
+  }
+  return out;
+}
+
 /** The event's wire schema this turn: its situational fields only when their part applies (D-520). */
 function wireOf<S extends BaseState>(def: EventDef<unknown, S>, parts: ReadonlySet<string>): ZodType {
   const drop = Object.entries(def.partFields ?? {}).filter(([, part]) => !(typeof part === 'string' ? [part] : part).some((x) => parts.has(x))).map(([field]) => field);
   if (!drop.length) return def.schema;
-  return (def.schema as unknown as z.ZodObject).omit(Object.fromEntries(drop.map((f) => [f, true])) as never);
+  return omitFields(def.schema as unknown as z.ZodObject, drop);
 }
 
 /** The event types legal this turn, in registry order. */

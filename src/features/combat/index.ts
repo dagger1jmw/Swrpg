@@ -462,7 +462,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
       narrative: (s) => s.combat.active === null && s.combat.pending === null,
       // Situational fields (D-520): a battle between ships only where ships are; a master's sparring stakes in training; allies
       // fighting elsewhere only when someone is here.
-      partFields: { ships: ['ship', 'command'], sparringMode: 'training', engagedElsewhereRefs: 'people' },
+      // The capture fields go only with a cue (m8-fixes A2): a bounty, a bounty hunter, a flagged ship, or the player's words.
+      partFields: { ships: ['ship', 'command'], sparringMode: 'training', engagedElsewhereRefs: 'people', wantAliveRefs: 'capture', 'minionGroups.wantAlive': 'capture' },
       refFields: ['opponentRefs', 'engagedElsewhereRefs', 'wantAliveRefs'],
       refKinds: npcRefKinds,
       handle: (slice, e) => {

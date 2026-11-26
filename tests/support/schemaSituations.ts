@@ -104,5 +104,8 @@ export function situations(): Situation[] {
     { name: 'a ground battle', state: groundBattle, turn: turn('Hold the line') },
     { name: 'the largest combination', state: worst, turn: turn('I buy her a gift and then train with my master', { intentAction: 'train' }) },
     { name: 'everything at once', state: everything, turn: turn('I buy fuel for my ship, train with my master in tactics and plan the battle', { intentAction: 'train' }) },
+    // m8-fixes A2: the capture fields' cues (a bounty hunter here; the player's own words).
+    { name: 'a bounty hunter here', state: meet(rich, [{ name: 'Vorn Kast', role: 'bountyHunter', faction: 'underworld' }]), turn: turn('I keep my hand near my saber') },
+    { name: 'the player speaks of capture', state: rich, turn: turn('I want him taken alive') },
   ];
 }
