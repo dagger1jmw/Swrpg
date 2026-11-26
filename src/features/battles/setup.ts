@@ -26,6 +26,7 @@ import { selectNetworkState } from '../world/selectors';
 import type { BattleSetup, Commander, SideInfo } from './rules';
 import type { ShipCondition } from './battles';
 import { shipEffects } from '../../engine/shipLife';
+import { MOD_BATTLE } from '../../data/shipLife.config';
 import { hereWorld } from '../ships';
 import { selectShipAt } from '../ships/selectors';
 import type { OwnedShip } from '../ships/selectors';
@@ -50,6 +51,9 @@ export function ownShipState(fallbackId: string, classId: string, crew: Crew, fa
   if (owned) {
     const fx = shipEffects(classId, owned.mods);
     ship = { ...ship, hull: Math.round(ship.hull * fx.hullX), shields: Object.fromEntries(Object.entries(ship.shields).map(([k, v]) => [k, (v ?? 0) * fx.shieldX])) };
+    // Mods in battle (m8-ground Part B2, D-521): weapon mods add barrels and weight, a jammer helps against locks, sensors read them.
+    const w = Math.min(2, fx.weapons);
+    if (w > 0 || fx.jammer > 0 || fx.scan > 0) ship = { ...ship, kit: { barrels: MOD_BATTLE.barrels[w] ?? 0, heavy: MOD_BATTLE.heavy[w] ?? 1, jammer: fx.jammer, sensors: fx.scan } };
   }
   return withCondition(ship, cond);
 }

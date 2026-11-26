@@ -13,13 +13,13 @@ import { resolveLocationRef, selectCurrentLocationId, selectLocations } from './
 
 export const locationIntroducedSchema = z.object({
   type: z.literal('locationIntroduced'),
-  key: z.string().optional().describe('Same-turn temp key like tmp:2'),
+  key: z.string().optional(),
   name: z.string().min(1).max(LIMITS.name),
   kind: z.enum(LOCATION_KINDS),
-  region: z.string().max(LIMITS.region).describe('Planet or sector, e.g. "Coruscant"'),
-  parentRef: z.string().optional().describe('ID (or temp key) of the place this one is inside, e.g. the planet of a city'),
+  region: z.string().max(LIMITS.region).describe('Planet or sector'),
+  parentRef: z.string().optional().describe('The place this is inside'),
   description: z.string().max(LIMITS.description),
-  moveHere: z.boolean().describe('True when the player character is now at this place'),
+  moveHere: z.boolean().describe('The player is now here'),
 });
 
 function moveTo(slice: LocationsSlice, id: string, day: number): LocationsSlice {
@@ -79,7 +79,7 @@ export const locationsFeature: FeatureModule<LocationsSlice, GameState> = {
       },
     },
     locationChanged: {
-      schema: z.object({ type: z.literal('locationChanged'), locationRef: z.string().describe('ID of the place the player character moved to') }),
+      schema: z.object({ type: z.literal('locationChanged'), locationRef: z.string() }),
       sources: ['ai', 'dev'],
       targetField: 'locationRef',
       refFields: ['locationRef'],

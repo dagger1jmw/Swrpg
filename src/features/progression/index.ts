@@ -27,7 +27,7 @@ import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressio
 import { ageingStep } from '../../engine/ageing';
 import { PRIME_H } from '../../data/ageing.config';
 import { selectAgeing, selectBodyAgeNow, selectCapacities, selectLevelExact, selectNatural, selectSkillViews, selectStateOfMind, selectTierBeats } from './selectors';
-import { commandXp, fieldOpXp, gunneryXp, persuasionXp, pilotingXp, repairXp, socialLineXp, stealthXp, strikeTacticsXp, type XpMap } from '../../engine/playXp';
+import { commandXp, fieldFightXp, fieldOpXp, gunneryXp, persuasionXp, pilotingXp, repairXp, socialLineXp, stealthXp, strikeTacticsXp, type XpMap } from '../../engine/playXp';
 import { styleGain } from '../../engine/martialStyles';
 import { STYLE, STYLE_BY_ID } from '../../data/martialStyles';
 import { COMMAND, PLAY_STAKES, type CommandOutcome, type CommandSize, type PlayStakes } from '../../data/skillXp.config';
@@ -408,7 +408,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
     playXpEarned: {
       schema: z.object({
         type: z.literal('playXpEarned'),
-        source: z.enum(['socialLine', 'persuasion', 'command', 'strikes', 'gunnery', 'piloting', 'repair', 'fieldOp', 'stealth']),
+        source: z.enum(['socialLine', 'persuasion', 'command', 'strikes', 'gunnery', 'piloting', 'repair', 'fieldOp', 'stealth', 'fieldFight']),
         stakes: z.string().optional(),
         outcome: z.string().optional(),
         size: z.string().optional(),
@@ -483,6 +483,16 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
             capped = true;
             break;
           }
+          case 'fieldFight': {
+            // The player's own fighting at the front of a ground battle (m8-ground, D-522): field use of their best combat skill.
+            const st = combatStakes(e['stakes']);
+            const out = String(e['outcome'] ?? 'drawn') as CommandOutcome;
+            if (!st || !(out in COMMAND.outcome)) return { reject: 'field fighting needs the stakes and the outcome of the battle' };
+            const skill = ['blaster', 'melee', ...FORM_IDS].reduce((best, k) => (selectLevelExact(ctx.state, k) > selectLevelExact(ctx.state, best) ? k : best), 'blaster');
+            raw = fieldFightXp((e['gaps'] as number[] | undefined) ?? [], st, out, skill);
+            capped = true;
+            break;
+          }
           case 'repair': {
             raw = repairXp({ hours: Number(e['hours'] ?? 0), rating: Number(e['rating'] ?? 30), level: selectLevelExact(ctx.state, 'repair'), success: e['success'] !== false, inFight: e['inFight'] === true });
             break;
@@ -549,7 +559,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
     emotionalEvent: {
       schema: z.object({
         type: z.literal('emotionalEvent'),
-        emotion: z.enum(EMOTIONS).describe('The emotion that takes hold of the player character'),
+        emotion: z.enum(EMOTIONS),
         intensity: z.number().int().min(1).max(3),
         cause: z.string().min(1).max(200),
       }),
@@ -586,7 +596,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
       },
     },
     milestoneBeatAcknowledged: {
-      schema: z.object({ type: z.literal('milestoneBeatAcknowledged'), beatId: z.string().describe('The id of a pending milestone beat the scene acknowledged') }),
+      schema: z.object({ type: z.literal('milestoneBeatAcknowledged'), beatId: z.string() }),
       sources: ['ai'],
       targetField: 'beatId',
       narrative: (s) => s.progression.tierBeatsPending.length > 0,

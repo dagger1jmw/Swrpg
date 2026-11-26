@@ -39,7 +39,8 @@ import { carePlan } from './medicine';
 import { planTravel, runTravelBlockade, shipTrip, watchTravelBlockade, type TravelOutcome } from './travel';
 import type { GameEvent, Registry, ResolvedAction } from '../state/types';
 import { selectCheckTraitMod, selectNpcMindTrickResist } from '../features/traits/selectors';
-import { selectActiveBattle, selectBattleStep, selectBattleWaitsOnFight, selectLastEndedBattle } from '../features/battles/selectors';
+import { selectActiveBattle, selectBattleStep, selectBattleWaitsOnFight, selectGroundBattle, selectGroundWaitsOnFight, selectLastEndedBattle, selectLastGround } from '../features/battles/selectors';
+import type { GroundInput } from './record';
 
 /** A battle turn for the narrator (Jared's brief E): quiet when nothing big happened (the code's line or two, no AI call). */
 export interface BattleDraft {
@@ -55,8 +56,27 @@ function battleDraftOf(state: GameState, extra: readonly string[] = []): BattleD
   const step = selectBattleStep(state);
   if (!step) return null;
   const b = selectActiveBattle(state) ?? selectLastEndedBattle(state);
+  const g = selectGroundBattle(state) ?? selectLastGround(state);
   const big = [...extra, ...step.big];
-  return { lines: step.lines, big, wrap: step.wrap, quiet: big.length === 0 && step.wrap === null, map: b?.map ?? null };
+  return { lines: step.lines, big, wrap: step.wrap, quiet: big.length === 0 && step.wrap === null, map: g?.map ?? b?.map ?? null };
+}
+
+/** A ground command input as the battles feature's events (m8-ground, D-522). */
+function groundEvents(g: GroundInput): unknown[] {
+  switch (g.act) {
+    case 'order':
+      return [{ type: 'groundOrdered', ...(g.orders ? { orders: g.orders } : {}) }];
+    case 'auto':
+      return [{ type: 'groundOrdered', auto: true }];
+    case 'takeBack':
+      return [{ type: 'groundOrdered', auto: false }];
+    case 'scout':
+      return [{ type: 'groundScouted', how: g.how ?? 'recon' }];
+    case 'begin':
+      return [...(g.plan || g.atPost !== undefined ? [{ type: 'groundPlanSet', ...(g.plan ? { plan: g.plan } : {}), ...(g.atPost !== undefined ? { atPost: g.atPost } : {}) }] : []), { type: 'groundBattleBegun' }];
+    case 'standDown':
+      return [{ type: 'groundPlanningEnded' }];
+  }
 }
 
 /** Sleep with no stated duration (health spec: 7 h+ is a full night). */
@@ -201,7 +221,7 @@ function isSparringActivityIntent(intent: Intent | null): boolean {
   return id !== undefined && ACTIVITY_BY_ID.get(id)?.sparring === true;
 }
 
-export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput; text?: string; battle?: { orders?: Readonly<Record<string, unknown>>; auto?: boolean; repairs?: boolean } } = {}): Resolution {
+export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput; text?: string; battle?: { orders?: Readonly<Record<string, unknown>>; auto?: boolean; repairs?: boolean; ground?: GroundInput } } = {}): Resolution {
   let state = initial;
   const report: string[] = [];
   const applied: AppliedEvent[] = [];
@@ -254,21 +274,26 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   // A ship battle that waits on a boarding fight no longer under way: its result goes back into the battle (D-517).
   const waits = selectBattleWaitsOnFight(state);
   if (waits && !state.combat.active) apply([{ type: 'boardingFought', won: state.combat.last?.id === waits && state.combat.last.outcome === 'won' }]);
+  // A ground battle that waits on the player's own fight in their sector (m8-ground, D-522): its result counts next phase.
+  const groundWaits = selectGroundWaitsOnFight(state);
+  if (groundWaits && !state.combat.active) apply([{ type: 'groundFightFought', won: state.combat.last?.id === groundWaits && state.combat.last.outcome === 'won' }]);
   // A ship battle's turn or round (m8-ship-battles, D-517): one step from the tactics menu, or let it play out. The engine's
   // seconds pass (a dogfight turn 5 s, a fleet round 3 min; field repairs an hour a system).
   if (opts.battle) {
     const b = opts.battle;
-    const done = apply([b.repairs ? { type: 'fieldRepairsMade' } : { type: 'battleOrdered', ...(b.orders ? { orders: b.orders } : {}), ...(b.auto !== undefined ? { auto: b.auto } : {}) }], 'player');
+    const done = apply(b.ground ? groundEvents(b.ground) : [b.repairs ? { type: 'fieldRepairsMade' } : { type: 'battleOrdered', ...(b.orders ? { orders: b.orders } : {}), ...(b.auto !== undefined ? { auto: b.auto } : {}) }], 'player');
     if (done.length) {
       battle = battleDraftOf(state);
       const seconds = Math.round(selectBattleStep(state)?.seconds ?? 0);
+      const why = b.ground ? (b.ground.act === 'scout' ? 'scouting' : 'ground battle') : b.repairs ? 'field repairs' : 'ship battle';
       if (seconds > 0) {
-        const adv = advanceTime(registry, state, { seconds, reason: b.repairs ? 'field repairs' : 'ship battle', source: 'turnDraft', requested: seconds, occupation: b.repairs ? 'activity' : 'combat' });
+        // A ground phase is an hour and a half (1.5 h): the character's time passes as activity, not as a duel's seconds.
+        const adv = advanceTime(registry, state, { seconds, reason: why, source: 'turnDraft', requested: seconds, occupation: b.repairs || b.ground ? 'activity' : 'combat' });
         state = adv.state;
         applied.push(...adv.applied);
         rejected.push(...adv.rejected);
         notices.push(...adv.notices);
-        timeAdvanced = { seconds: adv.secondsAdvanced, requested: seconds, reason: b.repairs ? 'field repairs' : 'ship battle' };
+        timeAdvanced = { seconds: adv.secondsAdvanced, requested: seconds, reason: why };
       }
     }
     narrationLevel = 'moment';
@@ -335,6 +360,11 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     // A boarding fight just ended: its result goes back into the ship battle (D-517), told with the fight's end.
     if (selectBattleWaitsOnFight(state) === fightId && !state.combat.active) {
       apply([{ type: 'boardingFought', won: state.combat.last?.id === fightId && state.combat.last.outcome === 'won' }]);
+      battle = battleDraftOf(state);
+    }
+    // The player's own fight in a ground battle's sector just ended (m8-ground, D-522): back to the battle.
+    if (selectGroundWaitsOnFight(state) === fightId && !state.combat.active) {
+      apply([{ type: 'groundFightFought', won: state.combat.last?.id === fightId && state.combat.last.outcome === 'won' }]);
       battle = battleDraftOf(state);
     }
     // Talking in a fight (D-216): the quiet line says what ends a fight instead of only asking what the player does.

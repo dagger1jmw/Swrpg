@@ -91,8 +91,11 @@ export const tacticsFeature: FeatureModule<TacticsSlice, GameState> = {
      * practised. Practice moves a seen tactic to known after PRACTICE_TO_KNOW sessions; teaching or study makes it known at once.
      */
     tacticStudied: {
-      schema: z.object({ type: z.literal('tacticStudied'), what: z.string().max(120) }),
-      sources: ['engine', 'player', 'dev'],
+      // Its own AI event since m8-ground (D-520): the schema's parts made the room; the droid event's "tactic:" words still route here.
+      schema: z.object({ type: z.literal('tacticStudied'), what: z.string().max(120).describe('Taught, studied or practised, by name') }),
+      sources: ['ai', 'engine', 'player', 'dev'],
+      narrative: () => true,
+      part: 'training',
       handle: (slice, e, ctx): R => {
         const words = String(e['what']).toLowerCase().replace(/^\s*tactics?\s*:\s*/, '');
         const id = tacticFromWords(words);

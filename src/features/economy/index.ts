@@ -594,6 +594,7 @@ export const economyFeature: FeatureModule<EconomySlice, GameState> = {
       }),
       sources: ['ai', 'player', 'engine'],
       narrative: () => true,
+      part: 'goods',
       refFields: ['npcRef'],
       refKinds: { npcRef: ['npc'] },
       handle: handleTrade,
@@ -615,6 +616,7 @@ export const economyFeature: FeatureModule<EconomySlice, GameState> = {
       }),
       sources: ['ai', 'player', 'engine'],
       narrative: () => true,
+      part: 'goods',
       refFields: ['npcRef'],
       refKinds: { npcRef: ['npc'] },
       handle: handleDeal,
@@ -624,6 +626,7 @@ export const economyFeature: FeatureModule<EconomySlice, GameState> = {
       schema: z.object({ type: z.literal('living'), lifestyle: z.enum(LIFESTYLES).optional(), job: z.enum(['none', ...WAGE_TIERS]).optional() }),
       sources: ['ai', 'player', 'engine'],
       narrative: () => true,
+      part: 'goods',
       handle: handleLiving,
     },
     /** Engine or player: military service, by grade, or its end. */

@@ -42,10 +42,10 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
     factLearned: {
       schema: z.object({
         type: z.literal('factLearned'),
-        aboutRef: z.string().describe('ID (or temp key) of who or what the fact is about; "pc" for the player character'),
-        fact: z.string().min(1).max(MEMORY_LIMITS.fact).describe('One lasting fact worth remembering, in one sentence'),
+        aboutRef: z.string().describe('"pc" for the player character'),
+        fact: z.string().min(1).max(MEMORY_LIMITS.fact).describe('One sentence'),
         importance: z.enum(['minor', 'major']),
-        vision: z.boolean().optional().describe('True when it came from a vision, a dream or a feeling in the Force, not from evidence'),
+        vision: z.boolean().optional().describe('From a vision or the Force'),
       }),
       // engine: tier-beat facts from progression (M3).
       sources: ['ai', 'engine'],

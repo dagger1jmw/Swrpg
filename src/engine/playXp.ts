@@ -67,6 +67,16 @@ export function pilotingXp(gaps: readonly number[], stakes: CombatStakes, outcom
   return xp > 0 ? { piloting: xp } : {};
 }
 
+/**
+ * The player's own fighting at the front of a ground battle (m8-ground, D-522: "field XP for the player's own fighting"): each
+ * phase's own fight is an exchange of combat XP on piloting's rule (0.25 x the challenge of the gap x stakes x outcome), to the
+ * combat skill they fight with.
+ */
+export function fieldFightXp(gaps: readonly number[], stakes: CombatStakes, outcome: CommandOutcome, skill: string): XpMap {
+  const xp = pilotingXp(gaps, stakes, outcome)['piloting'] ?? 0;
+  return xp > 0 ? { [skill]: xp } : {};
+}
+
 /** Repair from a job in a fight or during upkeep (travel, docking): by hours, the job's challenge, success and the fight. */
 export function repairXp(job: { hours: number; rating: number; level: number; success: boolean; inFight: boolean }): XpMap {
   const xp = REPAIR_JOB.perHour * Math.max(0, job.hours) * challengeFactor(job.rating - job.level) * (job.success ? 1 : REPAIR_JOB.failure) * (job.inFight ? REPAIR_JOB.inFight : 1);

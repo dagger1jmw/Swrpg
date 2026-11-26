@@ -9,7 +9,7 @@ const sideLists = z.object({ player: z.array(z.string().max(80)).max(200), enemy
 export const battleRecordSchema = z.object({
   id: z.string(),
   day: z.number().int(),
-  kind: z.enum(['dogfight', 'fleet']),
+  kind: z.enum(['dogfight', 'fleet', 'ground']),
   role: z.string(),
   trigger: z.string(),
   placeName: z.string().max(80),
@@ -29,6 +29,8 @@ export const battleRecordSchema = z.object({
   leftCrew: z.boolean(),
   blockadeId: z.string().optional(),
   forceId: z.string().optional(),
+  /** A ground battle's objectives at the end (m8-ground, D-522): taken or held, and by whom. */
+  objectives: z.array(z.object({ square: z.string(), holder: z.enum(['player', 'enemy']), primary: z.boolean() })).max(12).optional(),
 });
 export type BattleRecord = z.infer<typeof battleRecordSchema>;
 
@@ -61,7 +63,13 @@ export const battlesSliceSchema = z.object({
   reputation: z.array(z.object({ day: z.number().int(), crew: z.string().max(80), side: z.string(), kind: z.literal('abandonedCrew') })).max(50),
   /** Dark-side choices stored for the alignment system (M6), as the economy keeps theft. */
   darkChoices: z.array(z.object({ day: z.number().int(), kind: z.literal('abandonedCrew'), ship: z.string().max(80) })).max(50),
+  /** Ground command (m8-ground, D-522): an open planning scene (features/battles/ground.ts GroundPlanning), or none. */
+  planning: z.any().nullable().default(null),
+  /** The ground battle in progress (GroundState), saved whole so a game saved mid-battle loads into the same phase. */
+  ground: z.any().nullable().default(null),
+  /** The ground battle that ended last (for the panel's wrap-up). */
+  lastGround: z.any().nullable().default(null),
 });
 export type BattlesSlice = z.infer<typeof battlesSliceSchema>;
 
-export const emptyBattles = (): BattlesSlice => ({ active: null, last: null, step: null, seq: 0, history: [], ships: {}, lastShipId: null, reputation: [], darkChoices: [] });
+export const emptyBattles = (): BattlesSlice => ({ active: null, last: null, step: null, seq: 0, history: [], ships: {}, lastShipId: null, reputation: [], darkChoices: [], planning: null, ground: null, lastGround: null });

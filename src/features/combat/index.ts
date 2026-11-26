@@ -447,19 +447,22 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
     combatStarted: {
       schema: z.object({
         type: z.literal('combatStarted'),
-        opponentRefs: z.array(z.string()).max(6).describe('Named opponents (npc ids or temp keys)'),
-        minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(99), wantAlive: z.boolean().optional().describe('This group is sent to take the player character alive (stun, nets, binders)') })).max(4).optional().describe('Unnamed opponents by kind and count'),
+        opponentRefs: z.array(z.string()).max(6),
+        minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(99), wantAlive: z.boolean().optional().describe('Sent to take the player alive') })).max(4).optional(),
         stakes: z.enum(COMBAT_STAKES),
         terrainTags: z.array(z.enum(TERRAIN_IDS as [string, ...string[]])).max(5),
-        ambushClaim: z.boolean().optional().describe('The opponents attack from hiding'),
-        engagedElsewhereRefs: z.array(z.string()).max(6).optional().describe('Opponents fighting an ally, not the player'),
-        sparringMode: z.enum(SPARRING_MODES).optional().describe('Spar only, a story event: the master calls harsher stakes for this session (academy: Sith live blades and real wounds)'),
-        wantAliveRefs: z.array(z.string()).max(6).optional().describe('Opponents who want the player character alive (sent to bring them in, a bounty for a live capture): they subdue (stun, nets, binders, Force Choke) instead of killing'),
+        ambushClaim: z.boolean().optional(),
+        engagedElsewhereRefs: z.array(z.string()).max(6).optional(),
+        sparringMode: z.enum(SPARRING_MODES).optional().describe("Spar only: a master's harsher stakes"),
+        wantAliveRefs: z.array(z.string()).max(6).optional().describe('Opponents who want the player alive: they subdue, not kill'),
         // A battle between ships, in plain words (m8-ship-battles, D-517): one field, so the response schema stays under its cap.
         ships: z.string().max(200).optional(),
       }),
       sources: ['ai', 'engine'],
       narrative: (s) => s.combat.active === null && s.combat.pending === null,
+      // Situational fields (D-520): a battle between ships only where ships are; a master's sparring stakes in training; allies
+      // fighting elsewhere only when someone is here.
+      partFields: { ships: ['ship', 'command'], sparringMode: 'training', engagedElsewhereRefs: 'people' },
       refFields: ['opponentRefs', 'engagedElsewhereRefs', 'wantAliveRefs'],
       refKinds: npcRefKinds,
       handle: (slice, e) => {
@@ -732,14 +735,15 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
     combatEnded: {
       schema: z.object({
         type: z.literal('combatEnded'),
-        reason: z.enum(['fled', 'surrendered', 'interrupted', 'truce']).describe('The narrator may send only interrupted'),
-        category: z.enum(INTERRUPT_CATEGORIES).optional().describe('Required with interrupted, and the cause must be in the same reply: reinforcements and thirdParty (someone arrives: npcIntroduced, or sceneUpdated adding them), environmentCollapse (hazardOccurred), alarmOrAuthorities (alarmRaised, or the authorities arriving)'),
-        why: z.string().min(1).max(200).optional().describe('Required with interrupted: the outside event itself, in a few words. Never a description of the fight'),
+        reason: z.enum(['fled', 'surrendered', 'interrupted', 'truce']).describe('Only interrupted'),
+        category: z.enum(INTERRUPT_CATEGORIES).optional().describe('With interrupted; its cause in the same reply'),
+        why: z.string().min(1).max(200).optional().describe('With interrupted: the outside event'),
       }),
       sources: ['ai', 'engine'],
       // Applied after the rest of the reply, so the handler sees the event that caused an interruption (D-196).
       phase: 'last',
       narrative: (s) => s.combat.active !== null,
+      part: 'fight',
       handle: (slice, e, ctx) => {
         if (!slice.active) return { reject: 'no fight in progress' };
         const reason = String(e['reason']);
@@ -864,9 +868,10 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
      * needs in the same reply. It changes no state; the note keeps it in the transcript.
      */
     alarmRaised: {
-      schema: z.object({ type: z.literal('alarmRaised'), why: z.string().min(1).max(200).describe('What raises the alarm, in a few words') }),
+      schema: z.object({ type: z.literal('alarmRaised'), why: z.string().min(1).max(200) }),
       sources: ['ai'],
       narrative: (s) => s.combat.active !== null,
+      part: 'fight',
       handle: (slice, e) => ({ slice, notes: [`alarm raised: ${String(e['why'])}`] }),
     },
     /**
@@ -874,10 +879,11 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
      * declines it. Not in a sparring session (its bouts end it).
      */
     truceOffered: {
-      schema: z.object({ type: z.literal('truceOffered'), why: z.string().min(1).max(200).describe('Who offers it and on what terms, in a few words') }),
+      schema: z.object({ type: z.literal('truceOffered'), why: z.string().min(1).max(200).describe('Who offers it, on what terms') }),
       // dev: /truce makes the opponent offer one, for testing (D-215).
       sources: ['ai', 'dev'],
       narrative: (s) => s.combat.active !== null && !s.combat.active.session,
+      part: 'fight',
       handle: (slice, e) => {
         if (!slice.active) return { reject: 'no fight in progress' };
         if (slice.active.session) return { reject: 'a sparring session ends by its bouts or when the player stops' };
@@ -924,13 +930,14 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
     holdBegun: {
       schema: z.object({
         type: z.literal('holdBegun'),
-        holderRef: z.string().describe('The non-player character who steps in, here now'),
-        foeRef: z.string().describe('Whom they engage so the player character can get away, here now'),
+        holderRef: z.string().describe('Who steps in'),
+        foeRef: z.string().describe('Whom they hold off'),
       }),
       sources: ['ai', 'engine'],
       // After the rest of the reply, so someone who arrives in it can step in.
       phase: 'last',
       narrative: (s) => !s.combat.hold && s.combat.active?.session == null && (s.combat.active !== null || s.combat.pending !== null || s.pacing.scene.presentNpcIds.length > 0),
+      part: 'people',
       refFields: ['holderRef', 'foeRef'],
       refKinds: npcRefKinds,
       targetField: 'holderRef',
@@ -985,6 +992,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
       schema: z.object({ type: z.literal('opponentEngagement'), opponentRef: z.string(), engagedElsewhere: z.boolean() }),
       sources: ['ai', 'engine'],
       narrative: (s) => s.combat.active !== null,
+      part: 'fight',
       refFields: ['opponentRef'],
       refKinds: npcRefKinds,
       targetField: 'opponentRef',

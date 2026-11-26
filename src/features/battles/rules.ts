@@ -6,6 +6,7 @@ import { autoRunOrders, breakOffRun, runApproach, runTurn, startRun, type Attack
 import { autoDogOrders, breakOff, dogfightModifier, dogfightTurn, flown, positionOf, startDogfight, type DogOrders, type Dogfight, type Flyer } from '../../engine/dogfight';
 import { autoFleetOrders, changeFormation, fleetMap, fleetRound, formationMatchup, formationNow, fullStrength, shipStrength, sideStrength, type FleetBattle, type FleetOrders, type FleetSide } from '../../engine/fleetBattle';
 import { canAct, damageState, inFight, isSmallKind, newShip, shipClass, systemState, type Crew, type ShipState } from '../../engine/ships';
+import { MOD_BATTLE } from '../../data/shipLife.config';
 import { nextFloat, type RngState } from '../../engine/rng';
 import { basicRoll } from '../../engine/rolls';
 import {
@@ -241,7 +242,9 @@ export interface BattleSetup {
 
 /** A battle built from a checked setup. An ambush starts the ambusher ahead. */
 export function buildBattle(s: BattleSetup): Battle {
-  const ambush = s.trigger === 'ambush' ? -2 : 0;
+  // A sensor suite on the player's own ship spots an ambush sooner and reads the enemy's formation (m8-ground Part B2, D-521).
+  const sensors = (s.playerShips.find((x) => x.id === s.ownShipId)?.kit?.sensors ?? 0) > 0;
+  const ambush = s.trigger === 'ambush' ? -2 + (sensors ? MOD_BATTLE.ambushSpotted : 0) : 0;
   const base = {
     id: s.id,
     kind: s.kind,
@@ -290,7 +293,7 @@ export function buildBattle(s: BattleSetup): Battle {
   // An NPC commander may withdraw a beaten side; a player in command withdraws only by order.
   const a = fleetSideOf(s.player, s.playerShips, s.playerWings ?? [], s.playerFormation ?? 'exchange', !s.playerCommands);
   const e = fleetSideOf(s.enemy, s.enemyShips, s.enemyWings ?? [], s.enemyFormation ?? 'exchange', true);
-  const fleet: FleetBattle = { a: { ...a, intel: s.trigger !== 'ambush' && a.intel }, b: { ...e, intel: s.trigger === 'ambush' }, track: ambush, range: s.trigger === 'ambush' ? 'close' : 'medium', round: 0, year: s.year, rng: s.rng, log: [], end: null };
+  const fleet: FleetBattle = { a: { ...a, intel: sensors || (s.trigger !== 'ambush' && a.intel) }, b: { ...e, intel: s.trigger === 'ambush' }, track: ambush, range: s.trigger === 'ambush' ? 'close' : 'medium', round: 0, year: s.year, rng: s.rng, log: [], end: null };
   return redraw({ ...base, fleet, dog: null, queue: [], flagAtStart: { player: s.playerCommands ? s.ownShipId : a.flagId, enemy: e.flagId } });
 }
 

@@ -30,13 +30,13 @@ import { resolveNpcRef, selectNpcAgeOrDefault, selectNpcGen, selectNpcLevels, se
 
 export const npcIntroducedSchema = z.object({
   type: z.literal('npcIntroduced'),
-  key: z.string().optional().describe('Same-turn temp key like tmp:1, so later events in this reply can refer to this NPC'),
-  name: z.string().min(1).max(LIMITS.name).describe('The name the character is known by, with any title'),
+  key: z.string().optional(),
+  name: z.string().min(1).max(LIMITS.name).describe('With any title'),
   species: z.enum(SPECIES),
   faction: z.enum(FACTIONS),
   role: z.enum(NPC_ROLES),
-  ageApprox: z.number().int().min(0).max(MAX_AGE_APPROX).optional().describe('Approximate age in standard years'),
-  description: z.string().max(LIMITS.description).describe('Appearance and manner in one or two sentences'),
+  ageApprox: z.number().int().min(0).max(MAX_AGE_APPROX).optional(),
+  description: z.string().max(LIMITS.description).describe('Looks and manner, 1-2 sentences'),
 });
 
 const npcRefKinds = { npcRef: ['npc'] } as const;
@@ -349,13 +349,15 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
       schema: z.object({
         type: z.literal('npcCanonDiverged'),
         npcRef: z.string(),
-        reason: z.enum(['captured', 'turned', 'removed']).describe('captured; turned (changed sides); removed (lost their post or office)'),
+        reason: z.enum(['captured', 'turned', 'removed']).describe('turned: changed sides; removed: lost their post'),
       }),
       sources: ['ai', 'engine'],
       targetField: 'npcRef',
       refFields: ['npcRef'],
       refKinds: npcRefKinds,
-      narrative: (s) => selectNpcs(s).some((n) => n.canonId !== null),
+      // A canon figure in the scene (D-520): their fate diverges where the story has them.
+      narrative: (s) => s.pacing.scene.presentNpcIds.some((id) => s.npcs.byId[id]?.canonId != null),
+      part: 'people',
       handle: (slice, e, ctx) => {
         const id = String(e['npcRef']);
         const npc = slice.byId[id];
@@ -379,13 +381,15 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
       schema: z.object({
         type: z.literal('npcTrainingChanged'),
         npcRef: z.string(),
-        reason: z.enum(['apprenticeshipBroken', 'joinedOrder']).describe('apprenticeshipBroken: the master and apprentice part; joinedOrder: they join another order'),
+        reason: z.enum(['apprenticeshipBroken', 'joinedOrder']),
       }),
       sources: ['ai', 'engine'],
       targetField: 'npcRef',
       refFields: ['npcRef'],
       refKinds: npcRefKinds,
-      narrative: (s) => selectNpcs(s).some((n) => n.canonId !== null),
+      // A canon figure in the scene (D-520): their fate diverges where the story has them.
+      narrative: (s) => s.pacing.scene.presentNpcIds.some((id) => s.npcs.byId[id]?.canonId != null),
+      part: 'people',
       handle: (slice, e, ctx) => {
         const id = String(e['npcRef']);
         const npc = slice.byId[id];

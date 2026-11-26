@@ -56,6 +56,7 @@ import { clear, el, input, paragraphs } from './dom';
 import { renderSidePanel, type PanelTab } from './sidePanel';
 import { renderCombatDraft, renderDuelPanel } from './duelPanel';
 import { renderBattlePanel } from './battlePanel';
+import { renderGroundPanel, type GroundPanelProps } from './groundPanel';
 import { fightCalls, fightView } from '../turn/fightChoices';
 import { commitDevCommand, isDevCommand } from '../turn/devCommands';
 import { withSimulatedOverload, type SimulatedOverload } from '../ai/simulateOverload';
@@ -139,6 +140,8 @@ export class App {
   private duelSplit = 0.5;
   /** The ship battle menu's picks for the next turn, by group (m8-ship-battles, D-517). */
   private battlePicks: Record<string, number> = {};
+  /** The ground plan being set on the map in a planning scene (m8-ground, D-522), until the battle begins. */
+  private groundDraft: GroundPanelProps['draft'] = null;
   /** The player pressed "Take the controls" while a played-out turn was in flight (D-517). */
   private takeBack = false;
   /** The last dev command's refusal or failure (D-180), shown in the status line. */
@@ -383,10 +386,21 @@ export class App {
       void this.runTurn({ kind: 'battle', label: 'Take the controls', auto: false });
       return;
     }
+    // A ground battle the same way (m8-ground, D-522).
+    if (this.takeBack && this.session?.state.battles.ground?.auto) {
+      this.takeBack = false;
+      void this.runTurn({ kind: 'battle', label: 'Take control', ground: { act: 'takeBack' } });
+      return;
+    }
     this.takeBack = false;
     if (!this.failed && this.session?.state.battles.active?.auto && !this.session.state.combat.active) {
       setTimeout(() => {
         if (this.session?.state.battles.active?.auto && !this.busy && !this.takeBack && !this.session.state.combat.active) void this.runTurn({ kind: 'battle', label: 'Let it play out', auto: true });
+      }, 900);
+    }
+    if (!this.failed && this.session?.state.battles.ground?.auto && !this.session.state.battles.ground.end && !this.session.state.combat.active) {
+      setTimeout(() => {
+        if (this.session?.state.battles.ground?.auto && !this.busy && !this.takeBack && !this.session.state.combat.active) void this.runTurn({ kind: 'battle', label: 'Let it play out', ground: { act: 'auto' } });
       }, 900);
     }
   }
@@ -638,7 +652,8 @@ export class App {
       : null;
     // A ship battle (D-517): its panel holds the turn's choices; story choices wait until it is over.
     const battle = session && !session.state.combat.active ? renderBattlePanel({ state: session.state, busy: this.busy, act: (input) => void this.runTurn(input), picks: this.battlePicks, pick: (group, index) => ((index === null ? delete this.battlePicks[group] : (this.battlePicks[group] = index)), this.render()), takingControl: this.takeBack, takeControl: () => (this.busy ? ((this.takeBack = true), this.render()) : void this.runTurn({ kind: 'battle', label: 'Take the controls', auto: false })) }) : null;
-    if (session?.state.battles.active) choiceItems = [];
+    const ground = session && !session.state.combat.active ? renderGroundPanel({ state: session.state, busy: this.busy, act: (input) => void this.runTurn(input), draft: this.groundDraft, setDraft: (d) => ((this.groundDraft = d), this.render()), takingControl: this.takeBack, takeControl: () => (this.busy ? ((this.takeBack = true), this.render()) : void this.runTurn({ kind: 'battle', label: 'Take control', ground: { act: 'takeBack' } })) }) : null;
+    if (session?.state.battles.active || session?.state.battles.ground) choiceItems = [];
     const choices = choiceItems.length ? el('section', { class: 'box choices' }, [el('div', { class: 'box-body', attrs: { 'data-scroll': 'choices' } }, choiceItems)]) : null;
 
     // In a fight the story and the duel panel split the column (50/50 by default); a handle between them resizes it.
@@ -677,7 +692,7 @@ export class App {
       });
       return el('main', { class: 'main' }, [feed, handle, duel, choices, this.renderInput()]);
     }
-    return el('main', { class: 'main' }, [feed, battle, duel, choices, this.renderInput()]);
+    return el('main', { class: 'main' }, [feed, battle, ground, duel, choices, this.renderInput()]);
   }
 
   private renderInput(): HTMLElement {
@@ -877,7 +892,7 @@ export class App {
       ]),
       el('h3', { text: 'Behavior' }),
       el('label', { class: 'check' }, [autoRetry, ' Retry once automatically when a reply is cut off (uses one extra request)']),
-      el('label', { class: 'check' }, [narrateBattles, ' Narrate every ship-battle turn (otherwise only big moments and the end; each turn becomes a request)']),
+      el('label', { class: 'check' }, [narrateBattles, ' Narrate every battle turn, ship or ground (otherwise only big moments and the end; each turn becomes a request)']),
       err,
       el('div', { class: 'row actions' }, [el('button', { text: 'Save', on: { click: save } })]),
     ];

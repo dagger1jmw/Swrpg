@@ -39,6 +39,10 @@ function sanitize(node: Json): Json {
       continue;
     }
     if (!SUPPORTED_KEYWORDS.has(key)) continue;
+    // additionalProperties: false is left out of the wire (m8-ground, D-520): Gemini emits only the properties listed, and Zod
+    // still parses every reply and every event, stripping anything extra; it cost 29 characters an object (about 1,100 in the
+    // largest narrative schema).
+    if (key === 'additionalProperties' && value === false) continue;
     // Zod's safe-integer bounds are noise.
     if ((key === 'minimum' || key === 'maximum') && typeof value === 'number' && Math.abs(value) >= Number.MAX_SAFE_INTEGER) continue;
     // `items: false` after prefixItems (tuples) is not in the subset.

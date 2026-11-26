@@ -8,7 +8,7 @@ import type { Facing } from '../data/ships';
 import type { Flyer } from './dogfight';
 import { interp } from './interp';
 import { basicRoll, type Modifier } from './rolls';
-import { applyFire, freshest, hitSystem, inFight, passMinutes, pointDefenceOf, settleHull, shipClass, systemState, type ShipState } from './ships';
+import { applyFire, freshest, gunFire, hitSystem, inFight, passMinutes, pointDefenceOf, settleHull, shipClass, systemState, type ShipState } from './ships';
 import { contest, hitQuality } from './track';
 import type { RngState } from './rng';
 
@@ -91,7 +91,7 @@ function strikeVolley(f: Flyer, what: 'guns' | 'torpedo'): { damage: number; kin
     return damage > 0 ? { damage, kind: 'warhead', spent } : null;
   }
   const guns = c.weapons.filter((m) => !m.turret && (m.arcs.fore ?? 0) > 0 && SHIP_WEAPON.get(m.weapon)!.kind === 'energy');
-  const damage = guns.reduce((t, m) => t + (m.arcs.fore ?? 1) * m.barrels * SHIP_WEAPON.get(m.weapon)!.damage * (SHIP_WEAPON.get(m.weapon)!.vsCapital ?? 1), 0);
+  const damage = guns.reduce((t, m) => t + (m.arcs.fore ?? 1) * gunFire(f.ship, m, SHIP_WEAPON.get(m.weapon)!) * (SHIP_WEAPON.get(m.weapon)!.vsCapital ?? 1), 0);
   return damage > 0 ? { damage: damage * (systemState(f.ship, 'weapons') === 'working' ? 1 : 0.6), kind: 'energy', spent: {} } : null;
 }
 

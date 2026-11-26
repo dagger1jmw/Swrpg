@@ -39,6 +39,7 @@ export const DEV_HELP: readonly string[] = [
   '/fight <count> <kind or level> [at <gap>] [terrain <tags>] [stakes spar|skirmish|serious|lethal] [mode training|controlled|academy] [weapon <kind>] [alive]: a fight now, with the duel panel. alive: the opponents want you alive and subdue when they can (D-262). weapon (minion groups): scattergun, slugpistol, slugrifle, pistol, rifle, heavy, melee, saber. Kinds: duelist, a minion kind (b1, b2, militia, thug, brawler, trooper, elite, mandalorian, droideka, beast, acolyte), a level, or canon:<name>. Examples: /fight 1 duelist at -10, /fight 6 b1 terrain forest, /fight 1 canon:malgus stakes lethal',
   '/spar <partner level, at <gap>, or canon:<name>> [mode training|controlled|academy]: a sparring session, played out',
   '/battle enemy: <ships>; [allies: <ships>;] [mine: <ship>;] [role: pilot|gunner|commander|crew;] [command: <why>;] [ambush]: a ship battle now, checked like a narrator proposal (D-517). Examples: /battle enemy: three Imperial Supremacy fighters; mine: Aurek, /battle enemy: two Harrower dreadnoughts; allies: four Thranta corvettes; command: the admiral is dead',
+  '/ground <site> | <enemy forces> [| <our forces>] [| <details>]: a ground battle\'s planning scene now, checked like a narrator proposal (D-522). Example: /ground the Ruusan plains | six Sith infantry, armour, artillery | four clone infantry, armour, artillery | terrain: a ridge, a river with a bridge; weather: fog',
   '/wound <location> <severity>: a wound (torso, head, left arm, right leg, left hand ...; minor, moderate, severe, critical, mortal). /heal [all]: wounds and Vitality back (all: lasting injuries too). Fatigue is separate: /fatigue physical 0 (and force, mental)',
   '/set <skill> <level>, /e <form> <value>, /ci <ability> <value>: stats directly',
   '/fatigue <physical|mental|force> <value>: a fatigue meter as a fraction of capacity (0 fresh, 1 at capacity, up to 5; the body collapses past 4 in a fight)',
@@ -386,6 +387,16 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       apply([{ type: 'shipBattleProposed', what }], 'dev');
       if (refused()) return fail(refused()!);
       return out(true, `ship battle begun: ${what}`);
+    }
+
+    case 'ground': {
+      // m8-ground (D-522): a planning scene now, from the narrator's words (site | enemy | ours | details), checked by the code.
+      const parts = args.join(' ').split('|').map((x) => x.trim());
+      const [site, enemy, ours, details] = parts;
+      if (!site || !enemy) return fail('/ground <site> | <enemy forces> [| <our forces>] [| <details: defending; terrain: ...; weather: fog; jammed>]');
+      apply([{ type: 'groundBattlePlanned', site, enemy, ...(ours ? { ours } : {}), ...(details ? { details } : {}) }], 'dev');
+      if (refused()) return fail(refused()!);
+      return out(true, `ground planning scene opened at ${site}: set the plan in the panel`);
     }
 
     case 'truce': {

@@ -36,13 +36,14 @@ import { makeEnvelope } from '../persist/envelope';
 import type { CampaignRecord, Storage, TranscriptEntry } from '../persist/storage';
 import { applyEvents, type AppliedEvent, type RejectedEvent, type UnknownRef } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
-import type { GameEvent, Registry } from '../state/types';
-import { buildIntentRequest, buildNarrativeRequest, buildSummaryRequest, lastingStates, selectCaptors, type BuiltRequest, type ContextReport } from './context';
+import type { GameEvent, NarrativeTurnInfo, Registry } from '../state/types';
+import { activeParts } from '../ai/schemas/parts';
+import { buildIntentRequest, buildNarrativeRequest, buildSummaryRequest, lastingStates, playerTextOf, selectCaptors, type BuiltRequest, type ContextReport } from './context';
 import { MINION_KINDS } from '../data/npcGen.config';
 import { expandChoice } from './expandChoice';
 import type { CallRecord, TurnInput, TurnRecord } from './record';
 import { fightMinionRef, refResolver, resolveIntentRefs } from './refs';
-import { resolveTurn, type Resolution } from './resolve';
+import { resolveTurn, type Resolution, type TurnDraft } from './resolve';
 import { skipAheadChoice } from './skipAhead';
 import { choicesAfterTurn, outsideForceOpponents, withoutForceOnImmune } from './fightChoices';
 import { blockadeChoices } from './travel';
@@ -285,7 +286,7 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
   // A combat beat button (M5, D-145) skips the intent call; its action resolves in step b.
   // The player's own words reach step b for the natural combat words (D-179).
   const text = input.kind === 'typed' ? input.text : input.kind === 'choice' ? input.choice.label : undefined;
-  const resolution = resolveTurn(deps.registry, session.state, intent, input.kind === 'beat' ? { beat: input.action } : input.kind === 'battle' ? { battle: { ...(input.orders ? { orders: input.orders } : {}), ...(input.auto !== undefined ? { auto: input.auto } : {}), ...(input.repairs ? { repairs: true } : {}) } } : text !== undefined ? { text } : {});
+  const resolution = resolveTurn(deps.registry, session.state, intent, input.kind === 'beat' ? { beat: input.action } : input.kind === 'battle' ? { battle: { ...(input.orders ? { orders: input.orders } : {}), ...(input.auto !== undefined ? { auto: input.auto } : {}), ...(input.repairs ? { repairs: true } : {}), ...(input.ground ? { ground: input.ground } : {}) } } : text !== undefined ? { text } : {});
   return { input, intent, resolution, calls, intentNotes, ...(intentReport ? { intentReport } : {}) };
 }
 
@@ -333,6 +334,12 @@ export function chapterTurns(history: readonly TurnRecord[]): ChapterTurn[] {
   }));
 }
 
+/** What the schema composer knows of this turn (D-15, D-30, D-520): time, the player's words, the intent, and so the parts. */
+export function narrativeTurnInfo(state: GameState, draft: TurnDraft, input: TurnInput): NarrativeTurnInfo {
+  const base: NarrativeTurnInfo = { timeAdvancedByDraft: draft.timeAdvanced !== null, text: playerTextOf(input), ...(draft.intent ? { intentAction: draft.intent.actionType } : {}) };
+  return { ...base, parts: activeParts(state, base) };
+}
+
 /** c + d: narrate (with the one truncation retry), validate, apply, commit. Safe to retry. */
 export async function narrateTurn(deps: TurnDeps, session: Session, pending: PendingTurn): Promise<{ session: Session; record: TurnRecord }> {
   const calls: CallRecord[] = [...pending.calls];
@@ -349,8 +356,9 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   const quietBattle = draft.battle !== undefined && draft.battle.quiet && settings.narrateEveryBattleTurn !== true;
   const quiet = draft.combat?.quiet === true || quietBattle;
   if (!reply && quiet) reply = { narrative: quietBattle ? draft.battle!.lines.join(' ') : (draft.combat!.quietLine ?? ''), choices: [], scene: { moodTags: [], presentNpcRefs: [] }, events: [] };
+  // The turn's schema parts (D-520): worked out once, for the schema sent and for the events the reply may carry.
+  const turnInfo = narrativeTurnInfo(resolved, draft, pending.input);
   if (!reply) {
-    const turnInfo = { timeAdvancedByDraft: draft.timeAdvanced !== null };
     const schemas = composeNarrativeSchema(deps.registry, resolved, turnInfo);
     const req = buildNarrativeRequest(resolved, draft, pending.input, session.history, buildOpts(deps, 'narrative', schemas.wire));
     deps.onRequest?.({ callType: 'narrative', ...req });
@@ -425,7 +433,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
 
   // d. Validate and apply the narrative events (AI source), then the scene object. Only the event
   // types legal this turn pass (D-15); e.g. timeElapsed is refused when the draft advanced time (D-30).
-  const legal = new Set(narrativeEventTypes(deps.registry, resolved, { timeAdvancedByDraft: draft.timeAdvanced !== null }));
+  const legal = new Set(narrativeEventTypes(deps.registry, resolved, turnInfo));
   const notLegal: RejectedEvent[] = [];
   // A fight this turn, or a hazard the engine already resolved this turn (a terrain fall, an intent's risk): the narrator's
   // hazardOccurred would apply the same accident twice or wound the player outside the fight's rules (D-212). While the
@@ -489,8 +497,10 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   // A blockade in the way: code offers what is open (D-469).
   choices.push(...blockadeChoices(draft.travel), ...escapeChoices(state), ...holdChoices(state));
   // While a ship battle goes on the tactics menu holds the choices (m8-ship-battles, D-517).
-  if (state.battles.active) choices.splice(0);
-  const skip = state.battles.active ? null : skipAheadChoice(state, choices);
+  // A ground battle likewise (m8-ground, D-522): its panel holds the phase's orders.
+  const inBattle = state.battles.active !== null || state.battles.ground !== null;
+  if (inBattle) choices.splice(0);
+  const skip = inBattle ? null : skipAheadChoice(state, choices);
   const skipNotes: string[] = fc.dropped ? [`fight over: ${fc.dropped} tactical choice(s) dropped (D-181)`] : [];
   if (immune.dropped) skipNotes.push(`outside the Force (${outsideForceOpponents(state).join(', ')}): ${immune.dropped} Force choice(s) dropped`);
   if (skip) {

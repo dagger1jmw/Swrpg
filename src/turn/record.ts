@@ -18,7 +18,17 @@ export type TurnInput =
   /** A dev sandbox command (D-180; dev mode, test campaigns only): handled in code, no AI call. */
   | { kind: 'dev'; text: string }
   /** A ship battle's turn or round from the tactics menu (m8-ship-battles, D-517): skips the intent call; quiet turns make no call. */
-  | { kind: 'battle'; label: string; orders?: BattleOrdersInput; auto?: boolean; repairs?: boolean };
+  | { kind: 'battle'; label: string; orders?: BattleOrdersInput; auto?: boolean; repairs?: boolean; ground?: GroundInput };
+
+/** A ground command input (m8-ground, D-522): a phase's orders, let it play out or take back; in the planning scene, scout, begin
+ * (with the plan as set on the map) or stand down. */
+export interface GroundInput {
+  act: 'order' | 'auto' | 'takeBack' | 'scout' | 'begin' | 'standDown';
+  orders?: Readonly<Record<string, unknown>>;
+  how?: 'recon' | 'intelligence';
+  plan?: Readonly<Record<string, unknown>>;
+  atPost?: boolean;
+}
 
 /** The battle orders a menu sends (the battles feature's BattleOrders). */
 export type BattleOrdersInput = Readonly<Record<string, unknown>>;

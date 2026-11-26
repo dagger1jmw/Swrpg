@@ -32,11 +32,11 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
     threadOpened: {
       schema: z.object({
         type: z.literal('threadOpened'),
-        key: z.string().optional().describe('Same-turn temp key like tmp:3'),
-        title: z.string().min(1).max(LIMITS.threadTitle).describe('A short name for the story thread, e.g. "The missing holocron"'),
-        stakes: z.string().max(LIMITS.threadStakes).describe('What is at stake if it goes well or badly'),
-        deadlineHint: z.enum(DEADLINE_HINTS).optional().describe('Only when the story sets a time pressure'),
-        entityRefs: z.array(z.string()).max(8).describe('IDs (or temp keys) of the people and places involved'),
+        key: z.string().optional(),
+        title: z.string().min(1).max(LIMITS.threadTitle).describe('Short name'),
+        stakes: z.string().max(LIMITS.threadStakes),
+        deadlineHint: z.enum(DEADLINE_HINTS).optional().describe('Only with time pressure'),
+        entityRefs: z.array(z.string()).max(8),
       }),
       // engine: a start option opens its threads (D-401 [2]).
       sources: ['ai', 'engine'],

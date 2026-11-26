@@ -97,6 +97,12 @@ export type EventPhase = 'create' | 'time' | 'other' | 'last';
 export interface NarrativeTurnInfo {
   /** The TurnDraft advanced time, so timeElapsed is left out of the schema (D-30). */
   timeAdvancedByDraft: boolean;
+  /** The player's own words this turn (the input's text or label), read for the situational parts (D-520). */
+  text?: string;
+  /** The resolved intent's action type, when the turn had one (D-520). */
+  intentAction?: string;
+  /** The schema parts already worked out for this turn (ai/schemas/parts.ts); absent = worked out from the state (D-520). */
+  parts?: ReadonlySet<string>;
 }
 
 export interface EventDef<Slice, S extends BaseState = BaseState> {
@@ -104,6 +110,10 @@ export interface EventDef<Slice, S extends BaseState = BaseState> {
   sources: readonly EventSource[];
   /** Present when the AI may send this event in the narrative reply; true = legal this turn. */
   narrative?: (state: S, turn: NarrativeTurnInfo) => boolean;
+  /** The schema part the event belongs to (ai/schemas/parts.ts; D-520); absent = the core, sent every turn. */
+  part?: string;
+  /** Fields sent only when their part applies (D-520): left out of the wire schema otherwise; still valid when present. */
+  partFields?: Readonly<Record<string, string | readonly string[]>>;
   phase?: EventPhase;
   /** Field holding the event's target, for de-duplication, per-target caps and resolved-action checks. */
   targetField?: string;

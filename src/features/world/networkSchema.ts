@@ -86,7 +86,7 @@ const fightTest = z.strictObject({
 });
 const battleTest = z.strictObject({
   kind: z.literal('battle'),
-  scale: z.enum(['dogfight', 'fleet']).optional(),
+  scale: z.enum(['dogfight', 'fleet', 'ground']).optional(),
   factions: list(z.enum(FACTIONS)).optional(),
   places: list(text).optional(),
   result: z.enum(['won', 'lost']).optional(),

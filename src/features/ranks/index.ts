@@ -71,6 +71,7 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
       schema: z.object({ type: z.literal('promotionProposed'), rank: z.enum(RANK_IDS), reason: z.string().max(200).optional() }),
       sources: ['ai', 'player'],
       narrative: (s) => s.ranks.rank !== 'none' && s.ranks.rank !== 'career',
+      part: 'people',
       handle: (slice, e, ctx) => {
         const to = String(e['rank']);
         const c = selectPromotionCheck(ctx.state, to);
@@ -168,6 +169,7 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
       schema: z.object({ type: z.literal('councilSeatProposed'), reason: z.string().max(200).optional() }),
       sources: ['ai', 'player'],
       narrative: (s) => s.ranks.rank === 'master' && !s.ranks.councilSeat,
+      part: 'people',
       handle: (slice, e, ctx) => {
         if (slice.councilSeat) return { slice };
         const unmet = selectCouncilSeatUnmet(ctx.state);
@@ -194,6 +196,7 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
       schema: z.object({ type: z.literal('forbiddenPermissionGranted'), abilityId: z.string(), byNpcRef: z.string() }),
       sources: ['ai', 'player'],
       narrative: (s) => s.character.path === 'jedi',
+      part: 'people',
       handle: (slice, e, ctx) => {
         const id = String(e['abilityId']);
         if (ctx.state.character.path !== 'jedi') return { reject: 'only the Jedi Order forbids powers' };
@@ -291,6 +294,7 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
       schema: z.object({ type: z.literal('servicePromotionProposed'), reason: z.string().max(200).optional() }),
       sources: ['ai', 'player'],
       narrative: (s) => s.ranks.service !== undefined,
+      part: 'people',
       handle: (slice, e, ctx) => {
         const sv = slice.service;
         if (!sv) return { reject: 'not in any service' };

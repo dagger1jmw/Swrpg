@@ -42,7 +42,7 @@ Every combat-scales class has a price. Recorded: X-wing 150,000, Y-wing 135,000,
 
 Old Republic examples: Aurek 110,000; Dynamic freighter 86,100; XS freighter 615,000; Defender corvette 2.43 million; Thranta 17.1 million; Hammerhead 21.2 million; Terminus 25.6 million; Interdictor cruiser 67.1 million; Harrower and Valor 112.3 million; Centurion 232 million.
 
-Running costs by ship kind (`RUNNING_COSTS`): docking a day (a freighter 30 cr, Docking Bay 87), fuel a jump, upkeep a month as a share of the price. Fees on record: 100 cr on arrival (Ahto City, Anchorhead), 600 cr leaving an Exchange dock, 10 cr a ton for hyperspace coordinates. Repairs: 2%, 10% and 30% of the price for light, heavy and crippling damage. Item 13 charges them; nothing does yet.
+Running costs by ship kind (`RUNNING_COSTS`): docking a day (a freighter 30 cr, Docking Bay 87), fuel a jump, upkeep a month as a share of the price (freighters and light ships 0.1%, Jared, D-521; warships their own shares). Fees on record: 100 cr on arrival (Ahto City, Anchorhead), 600 cr leaving an Exchange dock, 10 cr a ton for hyperspace coordinates. Repairs: 2%, 10% and 30% of the price for light, heavy and crippling damage. Item 13 charges them; nothing does yet.
 
 ## 3. Selling
 

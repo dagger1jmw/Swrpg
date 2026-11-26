@@ -9,7 +9,7 @@ import { selectLastAdvance, selectNow } from './selectors';
 
 export const timeElapsedSchema = z.object({
   type: z.literal('timeElapsed'),
-  seconds: z.number().int().min(0).describe('In-game seconds that passed in this reply'),
+  seconds: z.number().int().min(0).describe('Seconds passed'),
   reason: z.string().max(200),
 });
 

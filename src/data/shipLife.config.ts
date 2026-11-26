@@ -148,6 +148,14 @@ export const SHIP_MODS: readonly ModDef[] = [
 ];
 export const MOD_BY_ID: ReadonlyMap<string, ModDef> = new Map(SHIP_MODS.map((m) => [m.id, m]));
 
+/**
+ * Mods in battle (Jared, 26 Nov 2026; m8-ground Part B2; numbers invented): weapon mods add a barrel to every gun mount (upgraded
+ * guns), and military-grade weapons add a barrel and heavier guns on the mount (x1.3); a jammer is +2 on the evasion roll against
+ * a torpedo lock, beside decoys (+4); a sensor suite reads the enemy: +1 on the dogfight position roll, the enemy formation known in
+ * a fleet battle, and an ambush spotted sooner (the ambusher starts 1 up the track, not 2).
+ */
+export const MOD_BATTLE = { barrels: { 1: 1, 2: 1 } as Readonly<Record<number, number>>, heavy: { 1: 1, 2: 1.3 } as Readonly<Record<number, number>>, jammer: 2, sensorsPosition: 1, ambushSpotted: 1 } as const;
+
 /** Installing a mod (invented): a factory kit costs this much more and needs no roll; a shipyard charges labour on the parts. */
 export const MOD_INSTALL = {
   kitX: 1.5,

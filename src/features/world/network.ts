@@ -41,7 +41,7 @@ export interface WorldFacts {
   /** The last finished fight, when the player won it. */
   wonFight: FoughtFight | null;
   /** The last ship battle, fought today or yesterday (m8-ship-battles, D-517), won or lost. */
-  battle?: { id: string; scale: 'dogfight' | 'fleet'; outcome: 'won' | 'drawn' | 'lost'; factions: readonly string[]; places: readonly string[]; major: boolean } | null;
+  battle?: { id: string; scale: 'dogfight' | 'fleet' | 'ground'; outcome: 'won' | 'drawn' | 'lost'; factions: readonly string[]; places: readonly string[]; major: boolean } | null;
   /** The last finished fight, when the player held top duelists off in it: those figures, by how long. */
   heldFight?: { id: string; stakes: CombatStakes; places: readonly string[]; brief: readonly string[]; long: readonly string[] } | null;
   /** People who could stand in for a lost role, best first. */

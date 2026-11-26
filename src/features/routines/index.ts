@@ -81,14 +81,15 @@ export const routinesFeature: FeatureModule<RoutinesSlice, GameState> = {
       schema: z.object({
         type: z.literal('routineRequested'),
         priorities: z
-          .array(z.object({ skillId: z.string().describe('A skill id from the character sheet'), weight: z.enum(WEIGHT_NAMES) }))
+          .array(z.object({ skillId: z.string(), weight: z.enum(WEIGHT_NAMES) }))
           .min(1)
           .max(8),
         effort: z.enum(EFFORTS),
-        spanHint: z.string().max(LIMITS.reason).describe('For how long, in words, e.g. "until the trials"'),
+        spanHint: z.string().max(LIMITS.reason).describe('How long, in words'),
       }),
       sources: ['ai'],
       narrative: (s) => s.routines.suggested === null,
+      part: 'training',
       handle: (slice, e, ctx) => {
         const prios = e['priorities'] as { skillId: string; weight: (typeof WEIGHT_NAMES)[number] }[];
         for (const p of prios) if (!isSkillId(p.skillId)) return { reject: `unknown skill ${p.skillId}` };

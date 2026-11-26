@@ -327,6 +327,27 @@ fight; montage events only in montage; promotion only when ranks says a proposal
 This keeps schema tokens down and stays within Gemini's schema-complexity limits. A test
 generates every variant and checks its size against a config cap.
 
+**Schema parts (D-520, m8-ground).** On top of legality, every AI event belongs to a part
+(`EventDef.part`; `src/ai/schemas/parts.ts`). The **core** goes every turn: time, pacing,
+scene end, movement (locations), people (npcIntroduced, npcStatusChanged), relationships,
+facts, flags, threads, emotions, trait moments, milestone beats, hazards, the droid event and
+combat starting. The situational parts go when their situation holds: **people** (someone
+present: canon divergence, rank proposals, a hold), **goods** (someone to deal with or the
+player's words of buying, paying or storing: trade, money, living, itemMoved), **ship** (aboard
+a ship, at a port, the character's ship here, a travel turn or ship words: shipAct), **training**
+(a train or study turn, the master present, a training place or training words:
+routineRequested, tacticStudied), **command** (a planning scene, an officer or soldier present,
+or words of battle plans: groundBattlePlanned), **fight** (a fight on or pending) and **battle**
+(a ship or ground battle; no events of its own). The activity parts (goods, ship, training,
+command) go one at a time: the scene itself first, then what the player's words name, then what
+the state shows. A field can be situational too (`EventDef.partFields`: combatStarted's `ships`,
+`sparringMode`, `engagedElsewhereRefs`): left out of the wire unless its part applies, still
+valid when sent. The turn's parts are worked out once (`narrativeTurnInfo`) and used both for
+the schema and for which events the reply may carry. The wire leaves out
+`additionalProperties: false` (Zod still parses every reply and event). Tests:
+`tests/ai/schemaParts.test.ts` (every situation under the cap; no situation loses an event it
+needs).
+
 ### Intent call schema
 This section is the single source for the AI schemas; `spec/ai-events.md` is superseded
 history (D-31).

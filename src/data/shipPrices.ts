@@ -42,13 +42,14 @@ export interface RunningCosts {
   dockingPerDay: number;
   /** Fuel for one hyperspace jump. */
   fuelPerJump: number;
-  /** Routine upkeep a month, as a share of the ship's price. */
+  /** Routine upkeep a month, as a share of the ship's price (freighters 0.1%, Jared; warships unchanged). */
   upkeepShare: number;
 }
 
 export const RUNNING_COSTS: Readonly<Record<ShipKind, RunningCosts>> = {
   fighter: { dockingPerDay: 15, fuelPerJump: 50, upkeepShare: 0.01 },
-  freighter: { dockingPerDay: 30, fuelPerJump: 200, upkeepShare: 0.01 },
+  // Freighters and light ships about 0.1% of their value a month (Jared, 26 Nov 2026; m8-ground Part B1, D-521): the start XS about 615 cr.
+  freighter: { dockingPerDay: 30, fuelPerJump: 200, upkeepShare: 0.001 },
   corvette: { dockingPerDay: 200, fuelPerJump: 2000, upkeepShare: 0.008 },
   frigate: { dockingPerDay: 1000, fuelPerJump: 10_000, upkeepShare: 0.006 },
   heavyCruiser: { dockingPerDay: 3000, fuelPerJump: 40_000, upkeepShare: 0.005 },

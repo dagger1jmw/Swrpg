@@ -28,6 +28,9 @@ import { battlesSliceSchema, emptyBattles, type BattleRecord, type BattlesSlice,
 import { boardingFought, buildBattle, commandSize, isMajor, knows, outcomeOf, playOut, runToEnd, stepBattle, type Battle, type BattleOrders, type StepCtx, type StepResult } from './rules';
 import { selectBattleLines } from './selectors';
 import { blockadeById, opposite, parseProposal, playerFaction, setupFromBlockade, setupFromProposal, troopsFor, yearOf, type Proposal } from './setup';
+import { CONTINGENCY_ACTIONS, CONTINGENCY_TRIGGERS, GROUND_BATTLE_MORALE, GROUND_MAJOR_UNITS, GROUND_SIZE_BY_UNITS, MEN_PER_UNIT } from '../../data/groundCommand.config';
+import { beginGround, drawMap, groundFightFought, lossShare, objectivesHeld, playOutGround, scout, stepGround, tacticOfPlan, type GroundCtx, type GroundOrders, type GroundPlan, type GroundPlanning, type GroundState, type GroundStep } from './ground';
+import { planningFromProposal, playerCombat, proposalFromWords, scoutLevel } from './groundSetup';
 
 type R = HandleResult<BattlesSlice>;
 
@@ -285,6 +288,123 @@ function start(slice: BattlesSlice, made: { setup: Parameters<typeof buildBattle
   return { slice: { ...slice, active: { ...b, log: [line] }, seq: slice.seq + 1, step: { lines: [line], big: [], wrap: null, seconds: 0 } }, notes: [line] };
 }
 
+// ---- ground command (m8-ground, M8 checklist item 14; D-522; spec/ground-command.md) ----
+
+/** Why a ground planning scene or battle cannot start now. */
+function groundBlocked(s: GameState): string | null {
+  if (s.battles.ground) return 'a ground battle is already being fought';
+  return blocked(s);
+}
+
+/** The phase's inputs from the state: the player's fight level, the commanders' Tactics. */
+function groundCtx(s: GameState, g: GroundState): GroundCtx {
+  const p = g.planning;
+  return { playerCombat: playerCombat(s), commanderTactics: { player: p.role === 'commander' ? selectPerformance(s, 'tactics') : p.ours.commander.tactics, enemy: p.enemy.commander.tactics } };
+}
+
+const groundSize = (units: number): string => [...GROUND_SIZE_BY_UNITS].reverse().find(([n]) => units >= n)?.[1] ?? 'squad';
+
+/** A short wrap-up of a ground battle (the narrator tells it). */
+export function groundWrapUp(g: GroundState): string {
+  const won = g.end?.winner === 'player';
+  const held = objectivesHeld(g);
+  const obj = held.map((o) => `${o.square}${o.primary ? ' (primary)' : ''} ${o.holder === 'player' ? (g.planning.defending ? 'held' : 'taken') : g.planning.defending ? 'lost' : "still the enemy's"}`).join(', ');
+  const how = { objectives: 'the sectors settled', collapse: 'the line collapsed', time: 'night and exhaustion ended it', withdrawn: 'the order to withdraw', routed: 'one side broke and fled' }[g.end?.reason ?? 'time'];
+  return `${won ? 'Victory' : g.end?.winner === 'enemy' ? 'Defeat' : 'No victory'}: ${how}. Objectives: ${obj || 'none'}. Losses: ours ${Math.round(lossShare(g, 'A') * 100)}%, theirs ${Math.round(lossShare(g, 'B') * 100)}%.`;
+}
+
+/** The end of a ground battle: the record, the events it raises, command and field XP, the tactics seen. */
+function concludeGround(slice: BattlesSlice, s: GameState, g: GroundState, step: GroundStep): R {
+  const day = selectNow(s).day;
+  const p = g.planning;
+  const outcome: 'won' | 'drawn' | 'lost' = g.end?.winner === 'player' ? 'won' : g.end?.winner === 'enemy' ? 'lost' : 'drawn';
+  const units = p.ours.units.length + p.enemy.units.length;
+  const major = units >= GROUND_MAJOR_UNITS || p.map.siteId !== null;
+  const size = groundSize(p.ours.units.length);
+  const men = MEN_PER_UNIT[size] ?? 100;
+  const held = objectivesHeld(g);
+  const record: BattleRecord = {
+    id: g.id,
+    day,
+    kind: 'ground',
+    role: p.role,
+    trigger: 'planned',
+    placeName: p.site.slice(0, 80),
+    placeId: p.placeId,
+    against: p.enemy.name.slice(0, 80),
+    factions: { player: p.ours.faction, enemy: p.enemy.faction },
+    outcome,
+    reason: g.end?.reason ?? 'time',
+    major,
+    destroyed: { player: [], enemy: [] },
+    captured: { player: [], enemy: [] },
+    evacuated: { player: [], enemy: [] },
+    fighters: { player: 0, enemy: 0 },
+    casualties: { player: Math.round(lossShare(g, 'A') * p.ours.units.length * men), enemy: Math.round(lossShare(g, 'B') * p.enemy.units.length * men) },
+    morale: GROUND_BATTLE_MORALE[outcome] * (major ? 2 : 1),
+    leftCrew: false,
+    objectives: held.map((o) => ({ square: o.square, holder: o.holder, primary: o.primary })),
+  };
+  const emit: GameEvent[] = [];
+  const stakes = 'lethal';
+  // Command XP (Tactics, with the Intelligence share): planning and commanding; a sector leader for their sector.
+  if (p.role === 'commander') emit.push({ type: 'playXpEarned', source: 'command', stakes, outcome, size, why: 'planning and commanding a ground battle' });
+  else if (p.role === 'leader' && g.playerSector !== null) emit.push({ type: 'playXpEarned', source: 'command', stakes, outcome, size: 'company', why: 'leading a sector' });
+  // Field XP for the player's own fighting at the front.
+  if (g.xp.gaps.length) emit.push({ type: 'playXpEarned', source: 'fieldFight', gaps: g.xp.gaps.slice(-500), stakes, outcome, why: 'fighting at the front' });
+  // What the enemy was seen to use (m8-ship-life part G): recognised from now on.
+  emit.push({ type: 'tacticsSeen', ids: [tacticOfPlan(p.enemy.plan)], by: 'enemy' });
+  // Named leaders who fell (never a canon figure: only the player breaks tags).
+  for (const id of g.fallen.filter((x) => !x.startsWith('seen:'))) {
+    const n = selectNpc(s, id);
+    if (n && !n.canonId && n.status !== 'deceased') emit.push({ type: 'npcDied', npcRef: id, cause: `fell leading a sector at ${p.site}`.slice(0, 200) });
+  }
+  const notes = [`ground battle ${g.id} ended: ${outcome} (${g.end?.reason ?? 'time'})${major ? ', a major battle' : ''}; casualties ${record.casualties.player} / ${record.casualties.enemy}`];
+  return {
+    slice: { ...slice, ground: null, lastGround: g, planning: null, history: [...slice.history, record].slice(-30), step: { lines: step.lines, big: step.big, wrap: groundWrapUp(g), seconds: step.seconds } },
+    emit,
+    notes,
+  };
+}
+
+/** After a ground step: the personal fight hand-off, hazards to the player, the end. */
+function settleGround(slice: BattlesSlice, s: GameState, r: GroundStep): R {
+  let g = r.ground;
+  const emit: GameEvent[] = [];
+  if (r.handoff) {
+    const fightId = `fight-${s.combat.seq}`;
+    g = { ...g, fight: { fightId, result: null, offered: true } };
+    emit.push({ type: 'fightBegun', fromPending: false, minionGroups: [{ kind: r.handoff.kind, count: r.handoff.count }], stakes: 'lethal', terrainTags: ['open', 'cover'] });
+  }
+  // Hazards to the player as they happen (a sector collapsing round them).
+  const was = (slice.ground as GroundState | null)?.hazards.length ?? 0;
+  for (const h of g.hazards.slice(was)) emit.push({ type: 'hazardResolved', hazard: 'explosion', severity: Math.min(3, Math.max(1, h.severity)), cause: h.cause.slice(0, 200) });
+  const notes = [...r.lines, ...r.big].slice(0, 12);
+  if (g.end) {
+    const c = concludeGround(slice, s, g, r);
+    if ('reject' in c) return c;
+    return { ...c, emit: [...emit, ...(c.emit ?? [])], notes: [...notes, ...(c.notes ?? [])] };
+  }
+  return { slice: { ...slice, ground: g, step: { lines: r.lines, big: r.big, wrap: null, seconds: r.seconds } }, emit, notes };
+}
+
+const contingencySchema = z.object({ when: z.enum(CONTINGENCY_TRIGGERS), sector: z.string().max(3).optional(), then: z.enum(CONTINGENCY_ACTIONS), manoeuvre: z.string().max(40).optional() });
+const groundPlanSchema = z.object({
+  primary: z.string().max(3).nullable(),
+  secondary: z.string().max(3).nullable(),
+  manoeuvre: z.string().max(40).nullable(),
+  sectors: z.array(z.object({ square: z.string().max(3), units: z.array(z.string().max(8)).max(24), leader: z.string().max(80).nullable() })).max(8),
+  support: z.object({ artillery: z.string().max(3).nullable(), armour: z.string().max(3).nullable(), air: z.string().max(3).nullable() }),
+  reserve: z.array(z.string().max(8)).max(24),
+  contingencies: z.array(contingencySchema).max(4),
+});
+const groundOrdersSchema = z.object({ manoeuvre: z.string().max(40).optional(), commit: z.string().max(3).optional(), move: z.object({ unit: z.string().max(8), to: z.string().max(3) }).optional(), fallBack: z.boolean().optional(), fightInPerson: z.boolean().optional(), withdraw: z.boolean().optional() });
+
+const asPlan = (x: unknown): GroundPlan => {
+  const p = x as z.infer<typeof groundPlanSchema>;
+  return { ...p, contingencies: p.contingencies.map((c) => ({ when: c.when, then: c.then, ...(c.sector ? { sector: c.sector } : {}), ...(c.manoeuvre ? { manoeuvre: c.manoeuvre } : {}) })) };
+};
+
 export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
   id: 'battles',
   version: 1,
@@ -358,6 +478,119 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
         if (ctx.source === 'player') for (const t of [orders.manoeuvre, orders.approach, orders.formation]) if (t && !knows(b, t)) return { reject: `${t} is not a tactic the character knows` };
         const r = auto === true || b.auto ? playOut(b, stepCtx(ctx.state)) : stepBattle(b, orders, stepCtx(ctx.state));
         return settle(slice, ctx.state, r);
+      },
+    },
+    /**
+     * AI: a planning scene before a ground battle (a command centre, a briefing, a council in the field), with the forces in plain
+     * words. The code reads them, decides who plans (rank, or the story's hand-over), draws the map and has the enemy plan and
+     * deploy; the battle begins only when the player gives the word. Without a planning scene a fight is ordinary combat.
+     */
+    groundBattlePlanned: {
+      // Plain words, as combatStarted's ships (D-520): the forces and one details line the code reads.
+      schema: z.object({
+        type: z.literal('groundBattlePlanned'),
+        site: z.string().min(1).max(60),
+        enemy: z.string().min(1).max(200).describe('Enemy forces, e.g. "six Sith infantry, armour, artillery"'),
+        ours: z.string().max(200).optional(),
+        details: z.string().max(300).optional().describe('e.g. "defending; terrain: a ridge, a river with a bridge; weather: fog; commander: <name>; meditator: <name>; command: <why handed>; jammed"'),
+      }),
+      sources: ['ai', 'engine', 'dev'],
+      part: 'command',
+      narrative: (s) => !s.battles?.planning && !s.battles?.ground && !s.battles?.active && s.combat.active === null && s.combat.pending === null,
+      handle: (slice, e, ctx) => {
+        const why = groundBlocked(ctx.state);
+        if (why) return { reject: why };
+        if (slice.planning) return { reject: 'a planning scene is already open' };
+        const p = proposalFromWords(ctx.state, String(e['site']), String(e['enemy']), typeof e['ours'] === 'string' ? e['ours'] : undefined, typeof e['details'] === 'string' ? e['details'] : '');
+        const mine = playerFaction(ctx.state);
+        if (p.enemyFaction && sameSide(p.enemyFaction, mine)) return { reject: "the enemy is the player's own side" };
+        const made = planningFromProposal(ctx.state, p, `ground-${slice.seq}`);
+        if ('reject' in made) return { reject: made.reject };
+        const pl = made.planning;
+        const line = `Planning: a battle at ${pl.site}, ${pl.ours.name} against ${pl.enemy.name}; ${pl.role === 'commander' ? 'the player plans it' : `${pl.ours.commander.name} plans it`}.`;
+        return { slice: { ...slice, planning: pl, seq: slice.seq + 1, step: { lines: [line], big: [], wrap: null, seconds: 0 } }, notes: [line] };
+      },
+    },
+    /** Player: the plan as set in the planning scene (the commander only); fixed when the battle begins. */
+    groundPlanSet: {
+      schema: z.object({ type: z.literal('groundPlanSet'), plan: groundPlanSchema.optional(), atPost: z.boolean().optional() }),
+      sources: ['player', 'dev'],
+      handle: (slice, e) => {
+        const p = slice.planning as GroundPlanning | null;
+        if (!p) return { reject: 'no planning scene is open' };
+        if (slice.ground) return { reject: 'the plan is fixed once the battle begins' };
+        if (p.role !== 'commander') return { reject: `${p.ours.commander.name} sets the plan` };
+        const atPost = typeof e['atPost'] === 'boolean' ? (e['atPost'] as boolean) : p.atPost;
+        let plan = e['plan'] ? asPlan(e['plan']) : p.plan;
+        // Moving to the post takes the player out of any sector they were leading.
+        if (atPost) plan = { ...plan, sectors: plan.sectors.map((x) => (x.leader === 'player' ? { ...x, leader: null } : x)) };
+        return { slice: { ...slice, planning: { ...p, plan, atPost } }, notes: ['the plan is updated'] };
+      },
+    },
+    /** Player: scouting before the battle (Stealth, Intelligence, recon units): reveals squares and perhaps the enemy's plan. */
+    groundScouted: {
+      schema: z.object({ type: z.literal('groundScouted'), how: z.enum(['recon', 'intelligence']) }),
+      sources: ['player', 'dev'],
+      handle: (slice, e, ctx) => {
+        const p = slice.planning as GroundPlanning | null;
+        if (!p || slice.ground) return { reject: 'scouting is done in the planning scene, before the battle' };
+        const how = e['how'] as 'recon' | 'intelligence';
+        const r = scout(p, how, scoutLevel(ctx.state, how), ctx.state.meta.rngState);
+        return { slice: { ...slice, planning: r.planning, step: { lines: [r.line], big: [], wrap: null, seconds: r.line.startsWith('no time') ? 0 : 3600 } }, notes: [r.line], rng: r.rng };
+      },
+    },
+    /** Player: the word is given: the plan is fixed and the battle begins (only from an open planning scene). */
+    groundBattleBegun: {
+      schema: z.object({ type: z.literal('groundBattleBegun') }),
+      sources: ['player', 'dev'],
+      handle: (slice, _e, ctx) => {
+        const p = slice.planning as GroundPlanning | null;
+        if (!p) return { reject: 'a ground battle begins only from a planning scene' };
+        if (slice.ground) return { reject: 'a ground battle is already being fought' };
+        const why = blocked(ctx.state);
+        if (why) return { reject: why };
+        const g = beginGround(p, ctx.state.meta.rngState);
+        if ('reject' in g) return { reject: g.reject };
+        const line = `The battle at ${p.site} begins: ${p.ours.name} against ${p.enemy.name}.`;
+        return { slice: { ...slice, ground: { ...g, log: [line] }, step: { lines: [line], big: [line], wrap: null, seconds: 0 } }, notes: [line] };
+      },
+    },
+    /** Player: stand down: the planning scene closes without a battle. */
+    groundPlanningEnded: {
+      schema: z.object({ type: z.literal('groundPlanningEnded') }),
+      sources: ['player', 'dev'],
+      handle: (slice) => (slice.planning && !slice.ground ? { slice: { ...slice, planning: null, step: { lines: ['The planning ends without a battle.'], big: [], wrap: null, seconds: 0 } } } : { reject: 'no planning scene is open' }),
+    },
+    /** Player: one phase with orders, or "let it play out" (auto) and taking control back. The code ends the battle. */
+    groundOrdered: {
+      schema: z.object({ type: z.literal('groundOrdered'), orders: groundOrdersSchema.optional(), auto: z.boolean().optional() }),
+      sources: ['player', 'engine'],
+      handle: (slice, e, ctx) => {
+        const g = slice.ground as GroundState | null;
+        if (!g) return { reject: 'no ground battle is being fought' };
+        if (g.fight?.fightId && ctx.state.combat.active) return { reject: 'the fight in your sector comes first' };
+        if (e['auto'] === false) return { slice: { ...slice, ground: { ...g, auto: false }, step: { lines: ['You take control back.'], big: [], wrap: null, seconds: 0 } }, notes: ['ground battle: control taken back'] };
+        const orders = (e['orders'] ?? {}) as GroundOrders;
+        if (orders.manoeuvre && ctx.source === 'player') {
+          if (g.planning.role !== 'commander') return { reject: 'only the commander changes the plan' };
+          if (!g.planning.known.includes(orders.manoeuvre)) return { reject: `${orders.manoeuvre} is not a tactic the character knows` };
+        }
+        if ((orders.commit || orders.move || orders.withdraw) && g.planning.role !== 'commander') return { reject: 'only the commander gives that order' };
+        if (orders.fallBack && !g.battle.sectors.some((x) => x.square === g.playerSector && x.a.leader?.name === g.planning.me.name)) return { reject: 'only the one leading the sector orders it back' };
+        const r = e['auto'] === true || g.auto ? playOutGround(g, groundCtx(ctx.state, g)) : stepGround(g, orders, groundCtx(ctx.state, g));
+        return settleGround(slice, ctx.state, r);
+      },
+    },
+    /** Engine: the player's personal fight in their sector ended (the combat feature's result): it counts for the next phase. */
+    groundFightFought: {
+      schema: z.object({ type: z.literal('groundFightFought'), won: z.boolean() }),
+      sources: ['engine'],
+      handle: (slice, e) => {
+        const g = slice.ground as GroundState | null;
+        if (!g?.fight?.fightId) return { reject: 'no fight is waiting in the ground battle' };
+        const next = groundFightFought(g, e['won'] === true);
+        const line = e['won'] === true ? 'Your fight is won; your sector takes heart.' : 'Your fight goes badly; your sector wavers.';
+        return { slice: { ...slice, ground: { ...next, map: drawMap(next.planning, next, `BATTLE · ${next.planning.site} · phase ${next.battle.phase}`) }, step: { lines: [line], big: [], wrap: null, seconds: 0 } }, notes: [line] };
       },
     },
     /** Engine: the personal boarding fight ended (the combat feature's result), back into the ship battle. */

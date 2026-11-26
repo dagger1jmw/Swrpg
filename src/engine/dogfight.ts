@@ -4,7 +4,8 @@ import { DOGFIGHT, MANOEUVRE, REPAIR_DC, SHIP_WEAPON, TRACKING_MOD, TURN_SECONDS
 import type { Facing, Mount } from '../data/ships';
 import { interp } from './interp';
 import { basicRoll, type Modifier } from './rolls';
-import { angleShields, applyFire, hitSystem, inFight, isSmallKind, passMinutes, patchSystem, rechargePerMinute, shipClass, settleHull, systemState, type ShipState } from './ships';
+import { angleShields, applyFire, gunFire, hitSystem, inFight, isSmallKind, passMinutes, patchSystem, rechargePerMinute, shipClass, settleHull, systemState, type ShipState } from './ships';
+import { MOD_BATTLE } from '../data/shipLife.config';
 import { clampTrack, contest, hitQuality, moveTrack, striker } from './track';
 import type { RngState } from './rng';
 
@@ -120,13 +121,14 @@ export function pilotingMods(f: Flyer, o: DogOrders, move: Manoeuvre, theirs: Ma
     ...mod('power to engines', o.boost === 'engines' ? DOGFIGHT.boost.engines : o.weaken === 'engines' ? DOGFIGHT.boost.enginesWeak : 0),
     ...mod('no engineer', shifting ? DOGFIGHT.noEngineer : 0),
     ...mod('the Force', interp(DOGFIGHT.forceSense, f.ship.crew.forceSense)),
+    ...mod('a sensor suite reads them', f.ship.kit?.sensors ? MOD_BATTLE.sensorsPosition : 0),
     ...mod(MANOEUVRE[move].label, MANOEUVRE[move].mod + (MANOEUVRE[move].against?.[theirs] ?? 0)),
     ...(f.modifiers ?? []),
   ];
 }
 
 const fixedGuns = (f: Flyer, kind: 'energy' | 'ion'): Mount[] => shipClass(f.ship.classId).weapons.filter((m) => !m.turret && (m.arcs.fore ?? 0) > 0 && SHIP_WEAPON.get(m.weapon)!.kind === kind);
-const volleyDamage = (mounts: readonly Mount[]): number => mounts.reduce((t, m) => t + (m.arcs.fore ?? m.arcs.all ?? m.arcs.aft ?? 1) * m.barrels * SHIP_WEAPON.get(m.weapon)!.damage, 0);
+const volleyDamage = (mounts: readonly Mount[], ship: ShipState): number => mounts.reduce((t, m) => t + (m.arcs.fore ?? m.arcs.all ?? m.arcs.aft ?? 1) * gunFire(ship, m, SHIP_WEAPON.get(m.weapon)!), 0);
 const torpedoMount = (f: Flyer): number => shipClass(f.ship.classId).weapons.findIndex((m, i) => SHIP_WEAPON.get(m.weapon)!.kind === 'warhead' && (f.ship.ammo[i] ?? 0) > 0);
 
 interface Aim {
@@ -156,7 +158,7 @@ function aims(f: Flyer, o: DogOrders, lead: number, range: RangeBand, jinking: b
     } else {
       const ion = fixedGuns(f, 'ion');
       const use = guns === 'ion' && ion.length > 0 ? ion : fixedGuns(f, 'energy');
-      if (use.length > 0) out.push({ what: guns === 'ion' && ion.length > 0 ? 'ion' : 'guns', kind: guns === 'ion' && ion.length > 0 ? 'ion' : 'energy', level: f.ship.crew.gunnery, mods: at, damage: volleyDamage(use) * power * hurt, ammo: null });
+      if (use.length > 0) out.push({ what: guns === 'ion' && ion.length > 0 ? 'ion' : 'guns', kind: guns === 'ion' && ion.length > 0 ? 'ion' : 'energy', level: f.ship.crew.gunnery, mods: at, damage: volleyDamage(use, f.ship) * power * hurt, ammo: null });
     }
   }
   const turrets = shipClass(f.ship.classId).weapons.filter((m) => m.turret);
@@ -170,7 +172,7 @@ function aims(f: Flyer, o: DogOrders, lead: number, range: RangeBand, jinking: b
     });
     if (!m || guns === 'none') return;
     const w = SHIP_WEAPON.get(m.weapon)!;
-    out.push({ what: 'turret', kind: w.kind, level, mods: [...common, ...mod('turret', DOGFIGHT.turret), ...mod('tracking', TRACKING_MOD[w.tracking])], damage: m.barrels * w.damage * power * hurt, ammo: null });
+    out.push({ what: 'turret', kind: w.kind, level, mods: [...common, ...mod('turret', DOGFIGHT.turret), ...mod('tracking', TRACKING_MOD[w.tracking])], damage: gunFire(f.ship, m, w) * power * hurt, ammo: null });
   });
   return out;
 }
@@ -190,7 +192,7 @@ function evasionMods(f: Flyer, o: DogOrders, jinking: boolean): Modifier[] {
 function fireShot(aim: Aim, by: 'A' | 'B', target: Flyer, o: DogOrders, jinking: boolean, lead: number, year: number, rng: RngState): { shot: Shot; target: Flyer; rng: RngState } {
   const c = shipClass(target.ship.classId);
   const torpedo = aim.what === 'torpedo';
-  const last: Modifier[] = torpedo ? [...mod('a lock', DOGFIGHT.torpedo.evasion), ...mod('decoys', c.decoys ? DOGFIGHT.torpedo.decoys : 0), ...mod('a big target', c.kind === 'freighter' ? DOGFIGHT.torpedo.freighter : 0)] : [];
+  const last: Modifier[] = torpedo ? [...mod('a lock', DOGFIGHT.torpedo.evasion), ...mod('decoys', c.decoys ? DOGFIGHT.torpedo.decoys : 0), ...mod('a jammer', target.ship.kit?.jammer ? MOD_BATTLE.jammer : 0), ...mod('a big target', c.kind === 'freighter' ? DOGFIGHT.torpedo.freighter : 0)] : [];
   const [roll, r1] = contest(rng, { level: aim.level, modifiers: aim.mods }, { level: target.ship.crew.piloting, modifiers: [...evasionMods(target, o, jinking), ...last] });
   let next = r1;
   const facing: Facing = lead === 0 && aim.what !== 'turret' ? 'fore' : lead >= 0 ? 'aft' : 'fore';

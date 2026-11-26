@@ -164,7 +164,26 @@ export const crewFromLevels = (lv: Readonly<Record<string, number>>): Crew => ({
 /** A turret gunner's level (m8-skills, D-513): Gunnery, in place of the Blaster stand-in. Blaster stays personal arms. */
 export const gunnerLevel = (lv: Readonly<Record<string, number>>): number => lv['gunnery'] ?? 0;
 
+/**
+ * A modified ship's battle kit (m8-ground Part B2, D-521; data/shipLife.config.ts MOD_BATTLE): weapon mods add barrels to every gun
+ * mount and military-grade guns hit harder; a jammer helps against torpedo locks; a sensor suite reads the enemy.
+ */
+export interface ShipKit {
+  barrels: number;
+  heavy: number;
+  jammer: number;
+  sensors: number;
+}
+
+/** A gun mount's fire per arc with the ship's kit: extra barrels and heavier guns for energy and ion guns, never warheads. */
+export function gunFire(s: { kit?: ShipKit } | null | undefined, m: Mount, w: { damage: number; kind: string }): number {
+  const kit = w.kind === 'warhead' ? undefined : s?.kit;
+  return (m.barrels + (kit?.barrels ?? 0)) * w.damage * (kit?.heavy ?? 1);
+}
+
 export interface ShipState {
+  /** Battle kit from the owner's mods (absent on a stock ship). */
+  kit?: ShipKit;
   id: string;
   name: string;
   classId: string;
@@ -481,7 +500,7 @@ export function volleyOf(s: ShipState, arcs: readonly Arc[], range: RangeBand, s
       if (warheads && left > 0) out.warheads.push({ mount: i, count: Math.min(left, n), damage: w.damage });
       return;
     }
-    const dmg = n * m.barrels * w.damage * guns * gunPower(s.power.guns, m.settings ?? false) * trackingOf(w) * (size === 'fighter' ? 1 : size === 'small' ? Math.sqrt(w.vsCapital ?? 1) : (w.vsCapital ?? 1));
+    const dmg = n * gunFire(s, m, w) * guns * gunPower(s.power.guns, m.settings ?? false) * trackingOf(w) * (size === 'fighter' ? 1 : size === 'small' ? Math.sqrt(w.vsCapital ?? 1) : (w.vsCapital ?? 1));
     if (w.kind === 'ion') out.ion += dmg;
     else if (w.turbolaser) out.turbolaser += dmg;
     else out.energy += dmg;
