@@ -16,7 +16,8 @@ export const yearsUntil = (base: AgeYears, stop: number): AgeYears => ({ factor:
  * The training age at which an NPC's Willpower stops (D-500): it has trained, in real years from its own start, as many as a
  * Human who starts at `pathStart` has by the stop age.
  */
-export const npcWillpowerStop = (species: SpeciesDef, startAge: number, pathStart: number): number => trainingAge(species, startAge + NPC_WILLPOWER_STOP_AGE - pathStart);
+// Years from the start of training or adulthood, a childhood at the Human's pace (D-508): the training age at the start, plus the years.
+export const npcWillpowerStop = (species: SpeciesDef, startAge: number, pathStart: number): number => trainingAge(species, startAge) + NPC_WILLPOWER_STOP_AGE - pathStart;
 
 /** Human-equivalent years between the points the curve is read at. */
 const STEP = 1;

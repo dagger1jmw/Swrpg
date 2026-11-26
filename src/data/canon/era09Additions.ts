@@ -1530,7 +1530,8 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Bowdaar",
     speciesId: "wookiee",
     faction: "republic",
-    archetype: "civilian",
+    // A melee warrior (Jared, D-508): a century as a gladiator, over 10,000 bouts; was civilian.
+    archetype: "warrior",
     birthBby: 3838,
     birthSource: "lore",
     facts: {
@@ -2305,9 +2306,9 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     speciesId: "hutt",
     faction: "underworld",
     archetype: "civilian",
-    birthBby: 3800,
+    birthBby: 3900,
     birthSource: "estimate",
-    note: "birth year: design estimate, a long-lived Hutt crime lord by the Cold War",
+    note: "birth year: invented (Jared, D-508): about 240 in 3,661, an adult Hutt (adult at 200) through the Cold War; replaces 3,800, which left her a child to 3,600",
     facts: {
       sex: "female",
       group: "Underworld / Hutt",

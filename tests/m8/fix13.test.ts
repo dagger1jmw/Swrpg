@@ -44,7 +44,8 @@ describe('long life counts for the mind (D-507)', () => {
       }
     }
     expect(at('suudaa-nemro', 3661)['strength']).toBeLessThan(80);
-    expect(at('bowdaar', 3641)['charisma']).toBeGreaterThan(at('bowdaar', 3681)['charisma']!);
+    // Bowdaar, a warrior since D-508: his Intelligence grows with the years, his body does not.
+    expect(at('bowdaar', 3641)['intelligence']).toBeGreaterThan(at('bowdaar', 3681)['intelligence']!);
     expect(at('bowdaar', 3641)['strength']).toBeCloseTo(at('bowdaar', 3681)['strength']!, 0);
   });
 });

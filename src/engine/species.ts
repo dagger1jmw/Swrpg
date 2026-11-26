@@ -20,13 +20,14 @@ export function trainingAgeFactor(species: SpeciesDef, row: AgeRow, t: number): 
 
 /**
  * Age-weighted training between two training ages, in real years (D-474): the integral of the row's factor over the
- * years lived. A childhood longer or shorter than a Human's counts its own years; the body's row follows h. For a Human
+ * years lived. A childhood shorter than a Human's counts its own years, a longer one a Human's (D-508); the body's row follows h. For a Human
  * it is ageIntegral.
  */
 export function trainingIntegral(species: SpeciesDef, row: AgeRow, a: number, b: number): number {
   if (!(b > a)) return 0;
   const mid = Math.min(b, Math.max(a, HUMAN_MATURITY));
-  const w = species.maturity / HUMAN_MATURITY;
+  // A childhood counts its own years, but never more than a Human child's (Jared, D-508): a Hutt's 200 years train as 18.
+  const w = Math.min(1, species.maturity / HUMAN_MATURITY);
   const child = mid > a ? w * ageIntegral(row, a, mid) : 0;
   if (!(b > mid)) return child;
   if (row !== 'physical') return w === 1 ? ageIntegral(row, a, b) : child + ageIntegral(row, mid, b);

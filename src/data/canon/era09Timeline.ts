@@ -4851,12 +4851,12 @@ export const ERA_09_TIMELINE: Readonly<Record<string, CanonTimeline>> = {
       {
         "role": "criminal",
         "title": "criminal",
-        "fromBby": 3780,
-        "source": "estimate: typical rank ages (D-412)",
+        "fromBby": 3700,
+        "source": "estimate: from adulthood (a Hutt is adult at 200), with her birth moved to 3,900 (D-508)",
         "estimate": true
       }
     ],
-    "birthBasis": "kept: an estimate consistent with the rank facts (D-412 review)"
+    "birthBasis": "invented (Jared, D-508): about 240 in 3,661, an adult through the Cold War"
   },
   "lore:nok-drayen": {
     "ranks": [

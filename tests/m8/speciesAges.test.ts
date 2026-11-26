@@ -176,9 +176,9 @@ describe('training counts in real years; only the body follows the Human-equival
     expect(trainingIntegral(w, 'academic', 18, 200)).toBeCloseTo(182, 9);
     expect(trainingIntegral(w, 'technique', 60, 200)).toBeCloseTo(0.9 * 140, 9);
     expect(trainingIntegral(speciesDef('talz'), 'academic', 18, 52)).toBeCloseTo(34, 9);
-    // A childhood counts its own years: 10 for a Chiss, 200 for a Hutt.
+    // A childhood counts its own years, but no more than a Human's (D-508): 10 for a Chiss, 18 for a Hutt (was 200).
     expect(trainingIntegral(speciesDef('chiss'), 'academic', 0, 18)).toBeCloseTo(10, 9);
-    expect(trainingIntegral(speciesDef('hutt'), 'academic', 0, 18)).toBeCloseTo(200, 9);
+    expect(trainingIntegral(speciesDef('hutt'), 'academic', 0, 18)).toBeCloseTo(18, 9);
   });
   it('physical training follows the body: a Wookiee of 18 to 200 trains at the factor of a Human of 18 to 30', () => {
     expect(trainingIntegral(w, 'physical', 18, 200)).toBeCloseTo((ageIntegral('physical', 18, 30) * 182) / 12, 6);
