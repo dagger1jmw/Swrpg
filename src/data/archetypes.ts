@@ -44,7 +44,15 @@ export interface ArchetypeDef {
    * Intelligence by staff work, a politician's Charisma by negotiation, a field agent's Investigation by tradecraft).
    */
   activities?: Readonly<Record<string, string>>;
+  /**
+   * The main specialty's share of the Knight+ / career fill (D-41: 0.5 for every archetype). Set per archetype only where
+   * a ruling says so: the field agent's 0.35 (Jared, 26 Nov 2026; m8-ship-battles Part A, D-516).
+   */
+  mainShare?: number;
 }
+
+/** The main specialty's share of the fill (D-41), or the archetype's own (D-516). */
+export const mainShareOf = (a: Pick<ArchetypeDef, 'mainShare'>): number => a.mainShare ?? 0.5;
 
 /**
  * Force abilities an Order-trained archetype learns (D-191). The measured paces have no ability rows: the routine's
@@ -380,16 +388,18 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
   {
     // The intelligence officer, field agent line (Jared): Stealth first; Intelligence by staff work to about a line officer's
     // (Jared, 26 Nov 2026: both intelligence lines beat a line officer on most stats; only Tactics trails) with a Tactics share,
-    // so field agents land around 25-35 Tactics; Charisma, Blaster and Melee, Investigation by tradecraft. The large Intelligence
-    // and Tactics weights take the fill from Blaster, Melee and Investigation (m8-traits report, Part A). Weights invented.
+    // so field agents land around 25-35 Tactics; Charisma, Blaster and Melee, Investigation by tradecraft. Its own main share
+    // of 0.35 (Jared, 26 Nov 2026; D-516) gives the hours back to Blaster, Melee and Investigation that the Intelligence and
+    // Tactics shares took in m8-traits. Weights invented, fitted on the day loop.
     id: 'intelAgent',
     name: 'Intelligence officer (field agent)',
     path: 'career',
     main: 'stealth',
-    weights: { stealth: 1.0, charisma: 2.0, blaster: 0.8, melee: 0.6, investigation: 0.5, intelligence: 5.6, tactics: 2.2, strength: 0.35, agility: 0.35, endurance: 0.35, willpower: 0.2 },
+    mainShare: 0.35,
+    weights: { stealth: 1.0, charisma: 1.9, blaster: 3.25, melee: 1.75, investigation: 1.75, intelligence: 5.9, tactics: 2.35, strength: 0.32, agility: 0.32, endurance: 0.32, willpower: 0.2 },
     startAge: 18,
     startRange: [17, 30],
-    paces: { knight: { stealth: 1.473, agility: 0.374, willpower: 0.404, intelligence: 0.956, tactics: 0.582, blaster: 0.079, charisma: 0.296, melee: 0.06, strength: 0.06, endurance: 0.065, investigation: 0.059, meditation: 0.005, forceControl: 0.001 } },
+    paces: { knight: { stealth: 1.142, agility: 0.358, willpower: 0.296, intelligence: 0.943, tactics: 0.587, blaster: 0.345, charisma: 0.299, melee: 0.181, strength: 0.071, endurance: 0.069, investigation: 0.231, meditation: 0.004, forceControl: 0.001 } },
     formPaces: { knight: {} },
     activities: { intelligence: 'staffWork', investigation: 'tradecraft' },
   },

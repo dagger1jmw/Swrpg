@@ -6,6 +6,8 @@
 // insert their features at their §10 slot. The economy (M8 item 5) runs after the world, so a day's living is charged where
 // the character is once the world has moved on, and before pacing. Droids (M8 item 7) follow the economy: their only hook
 // recharges shields. Traits (M8 item 16) follow: their only hook brings a youngling's formative quiz due after a long skip.
+// Ship battles (M8 item 13) have no day hook: a battle is played turn by turn.
+import { battlesFeature } from '../features/battles';
 import { characterFeature } from '../features/character';
 import { clockFeature } from '../features/clock';
 import { combatFeature } from '../features/combat';
@@ -45,6 +47,7 @@ export const REGISTRY: Registry<GameState> = [
   economyFeature,
   droidsFeature,
   traitsFeature,
+  battlesFeature,
   pacingFeature,
 ];
 
@@ -68,5 +71,6 @@ export const HOOK_ORDER: readonly string[] = [
   'economy',
   'droids',
   'traits',
+  'battles',
   'pacing',
 ];

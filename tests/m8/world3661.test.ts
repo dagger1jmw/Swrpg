@@ -245,15 +245,31 @@ describe('PP-1: the Sacking and the Treaty', () => {
       for (let i = 0; i < n; i++) x = advanceTime(REG, won(x, `${tag}:${i}`), { seconds: 600, reason: 't', source: 'turnDraft' }).state;
       return x;
     };
+    // Breaking the occupying navy is a fleet battle won against the armada (m8-ship-battles, D-517; a won ground fight stood in).
+    const battle = (x: GameState, id: string): GameState => ({
+      ...x,
+      battles: {
+        ...x.battles,
+        history: [...x.battles.history, { id, day: x.clock.now.day, kind: 'fleet', role: 'commander', trigger: 'attack', placeName: 'Coruscant', placeId: x.locations.currentId, against: "Darth Angral's armada", factions: { player: 'republic', enemy: 'sithEmpire' }, outcome: 'won', reason: 'destroyed', major: true, destroyed: { player: [], enemy: ['Terminus 1'] }, captured: { player: [], enemy: [] }, evacuated: { player: [], enemy: [] }, fighters: { player: 0, enemy: 0 }, casualties: { player: 0, enemy: 540 }, morale: 10, leftCrew: false }],
+      },
+    });
+    const battles = (x0: GameState, n: number, tag: string): GameState => {
+      let x = x0;
+      for (let i = 0; i < n; i++) x = advanceTime(REG, battle(x, `${tag}:${i}`), { seconds: 600, reason: 't', source: 'turnDraft' }).state;
+      return x;
+    };
     // Street fights alone, with no word of the armada, do nothing.
     expect(net(fights(foe, 6, 'blind')).tags[key]).toBeUndefined();
     const led: GameState = { ...foe, world: { ...foe.world, network: { ...net(foe), progress: { ...net(foe).progress, [key]: { ...net(foe).progress[key]!, known: { ...net(foe).progress[key]!.known, 'know.fleet': { points: 3, met: true, counted: [] } } } } } } };
     // Nor for someone with no force to lead.
     const alone: GameState = { ...led, flags: { ...led.flags, set: led.flags.set.filter((f) => !f.startsWith('worldPost:')) } };
     expect(net(fights(alone, 6, 'alone')).progress[key]!.points).toBe(0);
-    s = fights(led, 3, 'led');
+    // Ground fights no longer stand in for the battle against the armada (D-517).
+    expect(net(fights(led, 6, 'ground')).tags[key]).toBeUndefined();
+    expect(net(battles(alone, 6, 'alone')).progress[key]!.points).toBe(0);
+    s = battles(led, 3, 'led');
     expect(net(s).tags[key]).toBeUndefined();
-    s = fights(s, 1, 'last');
+    s = battles(s, 1, 'last');
     expect(net(s).tags[key]).toBeDefined();
     expect(outcome(s, 'O.coruscant_occupied')).toBe('broken');
     expect(net(s).plotPoints['PP-1']).toBeDefined();

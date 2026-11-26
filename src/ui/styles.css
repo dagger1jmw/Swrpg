@@ -503,3 +503,14 @@ button.act.risky { border: 1px solid var(--bad); }
 .step-line.failed { color: var(--warn); }
 .step-line.skipped { opacity: 0.7; font-style: italic; }
 .warn-line.initiative { font-weight: 600; }
+
+/* Ship battles (m8-ship-battles, D-517) */
+.battle .battle-map { flex: 0 0 auto; min-height: 5.5rem; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.8rem; line-height: 1.2; white-space: pre; overflow-x: auto; margin: 4px 0; padding: 6px; border: 1px solid var(--line); border-radius: 6px; }
+.battle .battle-now { margin: 0 0 4px; font-weight: 600; }
+.battle .battle-group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 4px 0; }
+.battle .battle-group .chosen { outline: 2px solid currentColor; }
+.battle .battle-group .unavailable { opacity: 0.5; }
+.battle .battle-detail { margin: 0 0 4px 0.5rem; }
+.battle .battle-go { display: flex; gap: 6px; margin-top: 6px; }
+.battle .battle-log { margin: 4px 0; }
+.battle .duel-body > * { flex-shrink: 0; }

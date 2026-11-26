@@ -10,14 +10,16 @@ import { canonAbsence } from '../../src/engine/canonRoster';
 import { absDayFromDate } from '../../src/engine/calendar';
 import { canonFigureLevelsAt } from '../../src/features/npcs/selectors';
 
-export const REMEASURE_STATS = ['intelligence', 'tactics', 'charisma', 'melee', 'blaster', 'stealth', 'gunnery', 'repair', 'forceControl'] as const;
+export const REMEASURE_STATS = ['intelligence', 'tactics', 'charisma', 'melee', 'blaster', 'stealth', 'investigation', 'piloting', 'gunnery', 'repair', 'forceControl'] as const;
 
 const day = (bby: number): number => absDayFromDate({ year: -bby, month: 1, day: 1 });
 
 it('canon non-Force skills (report)', () => {
   const out: Record<string, { name: string; archetype: string; dates: Record<string, Record<string, number>> }> = {};
   for (const n of CANON_NPCS) {
-    const dates = n.anchors.length ? [...new Set(n.anchors.map((a) => a.bby))] : [Math.max(n.deathBby ?? -Infinity, n.birthBby - 45)];
+    // EXTRA_BBY=3655,3650 adds dates for every figure (a line across a career; m8-ship-battles, D-516).
+    const extra = (process.env['EXTRA_BBY'] ?? '').split(',').filter(Boolean).map(Number).filter((y) => (n.deathBby === undefined || y >= n.deathBby) && y <= n.birthBby);
+    const dates = [...new Set([...(n.anchors.length ? n.anchors.map((a) => a.bby) : [Math.max(n.deathBby ?? -Infinity, n.birthBby - 45)]), ...extra])];
     const rows: Record<string, Record<string, number>> = {};
     for (const bby of dates) {
       if (canonAbsence(n, bby) === 'unborn') continue;

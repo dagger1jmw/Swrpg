@@ -10,7 +10,7 @@
 // Automatic adjustments (§6): an overtraining streak of 2+ makes the day a recovery day; an absent
 // teacher's block becomes solo. Injuries and the drill ceiling arrive with M5.
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY, isPhysicalActivity, type ActivityDef, type Intensity } from '../../data/activities';
-import { archetypeDef, focusShares, sharesFromWeights } from '../../data/archetypes';
+import { archetypeDef, focusShares, mainShareOf, sharesFromWeights } from '../../data/archetypes';
 import { PROGRAMME_BY_ID } from '../../data/trainingProgrammes';
 import { programmeShares } from '../../engine/programmes';
 import { ORDER_REQUIREMENTS, REQUIREMENT_ROW, blockHours, type Instructor } from '../../data/orderRequirements';
@@ -133,7 +133,7 @@ export function fillShares(s: GameState, routine: Routine, row: 'initiate' | 'pa
   const c = selectCharacter(s);
   const a = archetypeDef(c.archetype);
   if (row === 'knight' && Object.keys(c.focusWeights).length) return { ...c.focusWeights };
-  const sh = row === 'knight' ? focusShares(a.weights, a.main, 0.5) : sharesFromWeights(a.weights);
+  const sh = row === 'knight' ? focusShares(a.weights, a.main, mainShareOf(a)) : sharesFromWeights(a.weights);
   // The forms pool ($mainForm + $secondForm): Shii-Cho for Initiates, else the form plan's proportions (D-118).
   const out: Record<string, number> = {};
   let pool = 0;

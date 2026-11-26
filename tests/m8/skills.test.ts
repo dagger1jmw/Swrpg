@@ -401,8 +401,9 @@ describe('archetypes (spec §7)', () => {
     expect(ag['stealth']!).toBeGreaterThan(an['stealth'] ?? 0);
     expect(ag['melee']!).toBeGreaterThan(an['melee'] ?? 0);
     // Each line on its own (Jared, 26 Nov 2026; m8-traits Part A): it trails the officer in Tactics, and is level or ahead of
-    // the officer in Intelligence and Charisma. (The field agent no longer out-shoots the analyst: its Intelligence and Tactics
-    // shares take the fill from Blaster; reported.)
+    // the officer in Intelligence and Charisma. The field agent's own main share (0.35; m8-ship-battles Part A, D-516) gives
+    // Blaster back: it out-shoots the analyst again.
+    expect(ag['blaster']!).toBeGreaterThan(an['blaster'] ?? 0);
     for (const [line, x] of [['analyst', an], ['field agent', ag]] as const) {
       expect(x['tactics'] ?? 0, `${line} tactics`).toBeLessThan(o['tactics']!);
       for (const k of ['intelligence', 'charisma']) expect((x[k] ?? 0) + 0.5, `${line} ${k}`).toBeGreaterThanOrEqual(o[k] ?? 0);

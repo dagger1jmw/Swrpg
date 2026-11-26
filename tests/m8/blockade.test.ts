@@ -377,14 +377,15 @@ describe('the Hydian Way blockade in play', () => {
     expect(seen.size).toBeGreaterThan(1);
   }, 60_000);
   describe('a capture (D-470 [6])', () => {
-    /** Forced through and taken, aboard the ship. */
+    /** Forcing through is a ship battle now (m8-ship-battles, D-517): lost by surrender, the ship and its people are taken. */
     const taken = (): { before: GameState; r: ReturnType<typeof resolveTurn> } => {
       const before = applyEvents(FAST, fresh(), [{ type: 'flagSet', flag: 'fleetCommand' }], { source: 'engine' }).state;
-      for (let i = 0; i < 60; i++) {
-        const r = resolveTurn(FAST, { ...before, meta: { ...before.meta, rngState: seedRng(`cap${i}`) } }, go(['Malastare'], 'force'));
-        if (r.state.world.blockades.runs[0]!.result === 'captured') return { before, r };
-      }
-      throw new Error('no capture in 60 seeds');
+      const started = resolveTurn(FAST, before, go(['Malastare'], 'force'));
+      expect(started.state.battles.active).not.toBeNull();
+      expect(started.state.world.blockades.runs).toEqual([]);
+      const r = resolveTurn(FAST, started.state, null, { battle: { orders: { surrender: true } } });
+      expect(r.state.world.blockades.runs[0]!.result).toBe('captured');
+      return { before, r };
     };
     const nextTurn = (s: GameState): GameState => ({ ...s, meta: { ...s.meta, turn: s.meta.turn + 1 } });
     it('takes a prisoner, the ship and the cargo, and names the captors as a fight does', () => {
@@ -395,8 +396,8 @@ describe('the Hydian Way blockade in play', () => {
       expect(b.ledger.map((l) => l.reason).join()).toMatch(/cargo seized/);
       expect(selectCaptors(r.state)).toMatchObject({ kind: 'mandalorian', blockade: true });
       expect(stateBlock(r.state, makeEstimator(4)).text).toMatch(/CAPTIVE: the player character was captured by Mandalorian warriors of .* at the blockade\. Name these captors.*Their ship is impounded/);
-      expect(describeTravel(r.draft.travel!)).toMatch(/taken prisoner; the ship is impounded and its cargo seized/);
-      expect(r.draft.travel!.run!.turnsInto).toEqual([]);
+      expect(r.draft.battle!.wrap).toMatch(/Defeat: surrendered/);
+      expect(r.state.world.blockades.pending).toBeNull();
     });
     it('a prisoner goes nowhere; wherever they are held, they stay one until it ends', () => {
       const { r } = taken();

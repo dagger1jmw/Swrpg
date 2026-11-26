@@ -814,7 +814,7 @@ interface FeatureModule<S> {
 - `src/engine/` keeps the shared math; `src/features/` holds the features.
 
 Feature list: clock, pacing, character, progression, health, combat, force, alignment, npcs,
-relationships, locations, threads, flags, items, ranks, routines, world, memory.
+relationships, locations, threads, flags, items, ranks, routines, world, memory; M8 adds economy, droids, traits and battles (ship battles, D-517; spec/ship-battles.md).
 
 ---
 

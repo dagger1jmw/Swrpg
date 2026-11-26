@@ -284,7 +284,7 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
   // A combat beat button (M5, D-145) skips the intent call; its action resolves in step b.
   // The player's own words reach step b for the natural combat words (D-179).
   const text = input.kind === 'typed' ? input.text : input.kind === 'choice' ? input.choice.label : undefined;
-  const resolution = resolveTurn(deps.registry, session.state, intent, input.kind === 'beat' ? { beat: input.action } : text !== undefined ? { text } : {});
+  const resolution = resolveTurn(deps.registry, session.state, intent, input.kind === 'beat' ? { beat: input.action } : input.kind === 'battle' ? { battle: { ...(input.orders ? { orders: input.orders } : {}), ...(input.auto !== undefined ? { auto: input.auto } : {}), ...(input.repairs ? { repairs: true } : {}) } } : text !== undefined ? { text } : {});
   return { input, intent, resolution, calls, intentNotes, ...(intentReport ? { intentReport } : {}) };
 }
 
@@ -343,8 +343,10 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
 
   // A quiet beat (D-145): no AI call. The feed shows the roll cards and one code-template line; no events, no choices
   // (the beat buttons are the choices).
-  const quiet = draft.combat?.quiet === true;
-  if (!reply && quiet) reply = { narrative: draft.combat!.quietLine ?? '', choices: [], scene: { moodTags: [], presentNpcRefs: [] }, events: [] };
+  // A battle turn with no big moment (m8-ship-battles, D-517): the code's line or two, no AI call; the menu is the choice.
+  const quietBattle = draft.battle !== undefined && draft.battle.quiet;
+  const quiet = draft.combat?.quiet === true || quietBattle;
+  if (!reply && quiet) reply = { narrative: quietBattle ? draft.battle!.lines.join(' ') : (draft.combat!.quietLine ?? ''), choices: [], scene: { moodTags: [], presentNpcRefs: [] }, events: [] };
   if (!reply) {
     const turnInfo = { timeAdvancedByDraft: draft.timeAdvanced !== null };
     const schemas = composeNarrativeSchema(deps.registry, resolved, turnInfo);
@@ -484,7 +486,9 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   const choices = immune.choices;
   // A blockade in the way: code offers what is open (D-469).
   choices.push(...blockadeChoices(draft.travel), ...escapeChoices(state), ...holdChoices(state));
-  const skip = skipAheadChoice(state, choices);
+  // While a ship battle goes on the tactics menu holds the choices (m8-ship-battles, D-517).
+  if (state.battles.active) choices.splice(0);
+  const skip = state.battles.active ? null : skipAheadChoice(state, choices);
   const skipNotes: string[] = fc.dropped ? [`fight over: ${fc.dropped} tactical choice(s) dropped (D-181)`] : [];
   if (immune.dropped) skipNotes.push(`outside the Force (${outsideForceOpponents(state).join(', ')}): ${immune.dropped} Force choice(s) dropped`);
   if (skip) {
@@ -496,6 +500,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     turn: state.meta.turn,
     input: pending.input,
     draft: {
+      ...(draft.battle ? { battle: draft.battle } : {}),
       intent: draft.intent,
       checks: draft.checks,
       training: draft.training,

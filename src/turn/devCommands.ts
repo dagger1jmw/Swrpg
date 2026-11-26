@@ -38,6 +38,7 @@ export { pendingScenario } from './devScenario';
 export const DEV_HELP: readonly string[] = [
   '/fight <count> <kind or level> [at <gap>] [terrain <tags>] [stakes spar|skirmish|serious|lethal] [mode training|controlled|academy] [weapon <kind>] [alive]: a fight now, with the duel panel. alive: the opponents want you alive and subdue when they can (D-262). weapon (minion groups): scattergun, slugpistol, slugrifle, pistol, rifle, heavy, melee, saber. Kinds: duelist, a minion kind (b1, b2, militia, thug, brawler, trooper, elite, mandalorian, droideka, beast, acolyte), a level, or canon:<name>. Examples: /fight 1 duelist at -10, /fight 6 b1 terrain forest, /fight 1 canon:malgus stakes lethal',
   '/spar <partner level, at <gap>, or canon:<name>> [mode training|controlled|academy]: a sparring session, played out',
+  '/battle enemy: <ships>; [allies: <ships>;] [mine: <ship>;] [role: pilot|gunner|commander|crew;] [command: <why>;] [ambush]: a ship battle now, checked like a narrator proposal (D-517). Examples: /battle enemy: three Imperial Supremacy fighters; mine: Aurek, /battle enemy: two Harrower dreadnoughts; allies: four Thranta corvettes; command: the admiral is dead',
   '/wound <location> <severity>: a wound (torso, head, left arm, right leg, left hand ...; minor, moderate, severe, critical, mortal). /heal [all]: wounds and Vitality back (all: lasting injuries too). Fatigue is separate: /fatigue physical 0 (and force, mental)',
   '/set <skill> <level>, /e <form> <value>, /ci <ability> <value>: stats directly',
   '/fatigue <physical|mental|force> <value>: a fatigue meter as a fraction of capacity (0 fresh, 1 at capacity, up to 5; the body collapses past 4 in a fight)',
@@ -376,6 +377,15 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       draft = { combat: combatDraft(before, state, true, report), pacingLevel: selectPacingLevel(state) };
       kind = active.sparring ? `${stakes} (${active.sparring})` : stakes;
       return out(true, `${cmd === 'spar' ? 'sparring session' : 'fight'} begun: ${who}, ${kind}${tags.length ? `, terrain ${tags.join(', ')}` : ''}`);
+    }
+
+    case 'battle': {
+      // m8-ship-battles (D-517): the narrator's plain words, as combatStarted's ships field carries them; the code checks them.
+      const what = args.join(' ').trim();
+      if (!what) return fail('/battle enemy: <ships>; [allies: <ships>;] [mine: <ship>;] [role: <role>;] [command: <why>;] [ambush]');
+      apply([{ type: 'shipBattleProposed', what }], 'dev');
+      if (refused()) return fail(refused()!);
+      return out(true, `ship battle begun: ${what}`);
     }
 
     case 'truce': {

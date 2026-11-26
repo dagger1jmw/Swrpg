@@ -1,3 +1,4 @@
+import { selectRecentBattle } from '../battles/selectors';
 import { CANON_DEATH_LINKS } from '../../data/canonDeathLinks';
 import { FORESEEN_WORDS, SECRET_OVERLAP } from '../../data/worldNetwork.config';
 import { CANON_BY_ID, CANON_NPCS, type CanonNpc } from '../../data/canonNpcs';
@@ -97,6 +98,12 @@ function wonFight(s: GameState): WorldFacts['wonFight'] {
   };
 }
 
+/** The last ship battle, fought today or yesterday (m8-ship-battles, D-517): an old one must not count years later. */
+function recentBattle(s: GameState): NonNullable<WorldFacts['battle']> | null {
+  const r = selectRecentBattle(s);
+  return r ? { id: r.id, scale: r.kind, outcome: r.outcome, factions: [r.factions.enemy], places: [...placeNames(s, r.placeId), r.placeName], major: r.major } : null;
+}
+
 /** The top duelists held off in the last fight (D-491): time bought, whoever went on to win it. */
 function heldFight(s: GameState): NonNullable<WorldFacts['heldFight']> | null {
   const last = selectLastFight(s);
@@ -156,6 +163,7 @@ export function selectWorldFacts(s: GameState): WorldFacts {
     hasFlag: (f) => selectHasFlag(s, f),
     hasLead: (l, secrets) => leadOnRecord(s, l, secrets),
     wonFight: wonFight(s),
+    battle: recentBattle(s),
     heldFight: heldFight(s),
     standIns: (role, exclude) => standIns(s, role, exclude, lost),
   };

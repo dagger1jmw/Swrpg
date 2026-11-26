@@ -455,6 +455,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         engagedElsewhereRefs: z.array(z.string()).max(6).optional().describe('Opponents fighting an ally, not the player'),
         sparringMode: z.enum(SPARRING_MODES).optional().describe('Spar only, a story event: the master calls harsher stakes for this session (academy: Sith live blades and real wounds)'),
         wantAliveRefs: z.array(z.string()).max(6).optional().describe('Opponents who want the player character alive (sent to bring them in, a bounty for a live capture): they subdue (stun, nets, binders, Force Choke) instead of killing'),
+        // A battle between ships, in plain words (m8-ship-battles, D-517): one field, so the response schema stays under its cap.
+        ships: z.string().max(200).optional(),
       }),
       sources: ['ai', 'engine'],
       narrative: (s) => s.combat.active === null && s.combat.pending === null,
@@ -462,6 +464,9 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
       refKinds: npcRefKinds,
       handle: (slice, e) => {
         if (slice.active) return { reject: 'a fight is already in progress' };
+        // A ship battle (D-517): the battles feature checks the words against the dated classes and builds it, or refuses.
+        const ships = typeof e['ships'] === 'string' ? e['ships'].trim() : '';
+        if (ships) return { slice, emit: [{ type: 'shipBattleProposed', what: ships }], notes: ['a ship battle proposed (the battles feature checks it)'] };
         const notes: string[] = [];
         const groups = ((e['minionGroups'] as { kind: string; count: number; wantAlive?: boolean }[] | undefined) ?? []).map((g) => {
           const count = Math.min(MINION_COUNT.max, Math.max(MINION_COUNT.min, g.count));

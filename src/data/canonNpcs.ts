@@ -22,7 +22,9 @@ function withDrafts(n: CanonNpc): CanonNpc {
   const drafts = SKILL_DRAFTS.filter((d) => d.canonId === n.canonId);
   if (!drafts.length) return n;
   const extra: StatAnchor[] = drafts.map((d) => ({ bby: -d.year, complete: false, basis: 'sheet', scale: 'game', levels: { ...d.draft }, sources: `approved draft sheet (Jared, 26 Nov 2026; skillDrafts.ts): ${d.name}` }));
-  return { ...n, anchors: [...n.anchors, ...extra].sort((a, b) => b.bby - a.bby) };
+  // A career the draft stands for that ends (D-516): its stats hold from then.
+  const holds = drafts.flatMap((d) => (d.heldFrom ? [{ fromBby: -d.heldFrom.year, stats: d.heldFrom.stats, note: d.heldFrom.note }] : []));
+  return { ...n, anchors: [...n.anchors, ...extra].sort((a, b) => b.bby - a.bby), ...(holds.length ? { holds: [...(n.holds ?? []), ...holds] } : {}) };
 }
 
 /** Every canon entry across all eras (one entry per figure per era file), with its sheets in the game scale (D-423). */

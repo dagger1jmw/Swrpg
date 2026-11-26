@@ -125,6 +125,12 @@ export function canonLevelsAt(n: CanonNpc, bby: number, deps: CanonStatDeps): Re
   const stats = new Set<string>([...Object.keys(line), ...n.anchors.flatMap((a) => Object.keys(a.levels))]);
   const out: Record<string, number> = {};
   for (const s of stats) {
+    // A skill left behind (D-516): its value on the day the career ended, and no growth after it.
+    const hold = (n.holds ?? []).find((h) => h.stats.includes(s) && bby < h.fromBby);
+    if (hold) {
+      out[s] = canonLevelsAt({ ...n, holds: (n.holds ?? []).filter((h) => h !== hold) }, hold.fromBby, deps)[s] ?? 0;
+      continue;
+    }
     const base = floorAt(n, s, bby, line);
     const list = anchorsFor(n, s);
     if (!list.length) {

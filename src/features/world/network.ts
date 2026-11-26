@@ -40,6 +40,8 @@ export interface WorldFacts {
   hasLead(lead: Lead, secrets: readonly string[]): boolean;
   /** The last finished fight, when the player won it. */
   wonFight: FoughtFight | null;
+  /** The last ship battle, fought today or yesterday (m8-ship-battles, D-517), won or lost. */
+  battle?: { id: string; scale: 'dogfight' | 'fleet'; outcome: 'won' | 'drawn' | 'lost'; factions: readonly string[]; places: readonly string[]; major: boolean } | null;
   /** The last finished fight, when the player held top duelists off in it: those figures, by how long. */
   heldFight?: { id: string; stakes: CombatStakes; places: readonly string[]; brief: readonly string[]; long: readonly string[] } | null;
   /** People who could stand in for a lost role, best first. */
@@ -223,9 +225,24 @@ function actionMeets(t: WorldTest, a: WorldAction): boolean {
 }
 
 /** The fight a test is about: one won, or one in which a top duelist was held off. */
-const fightFor = (t: WorldTest, f: WorldFacts): string => (t.kind === 'fight' ? ((t.hold ? f.heldFight?.id : f.wonFight?.id) ?? '') : '');
+const fightFor = (t: WorldTest, f: WorldFacts): string => (t.kind === 'fight' ? ((t.hold ? f.heldFight?.id : f.wonFight?.id) ?? '') : t.kind === 'battle' ? (f.battle?.id ?? '') : '');
+/** A deed the player did: a fight or a ship battle (counted once each, by the fight's or the battle's id). */
+const isDeed = (t: WorldTest): boolean => t.kind === 'fight' || t.kind === 'battle';
+
+/** A ship battle meets a test (D-517): its result, scale, the factions fought and the place. */
+function battleMeets(t: WorldTest, f: WorldFacts): boolean {
+  if (t.kind !== 'battle') return false;
+  const b = f.battle;
+  if (!b) return false;
+  if (b.outcome !== (t.result ?? 'won')) return false;
+  if (t.scale && b.scale !== t.scale) return false;
+  if (t.major && !b.major) return false;
+  if (t.factions && !t.factions.some((x) => b.factions.includes(x))) return false;
+  return placesMatch(t.places, b.places);
+}
 
 function fightMeets(t: WorldTest, f: WorldFacts): boolean {
+  if (t.kind === 'battle') return battleMeets(t, f);
   if (t.kind !== 'fight') return false;
   if (t.hold) {
     const h = f.heldFight;
@@ -251,7 +268,7 @@ const prerequisitesMet = (c: ConditionTag, p: Progress): boolean => (c.prerequis
  */
 function testOpen(st: NetworkState, e: WorldEventDef, who: readonly Who[] | undefined, f: WorldFacts, t: WorldTest): boolean {
   if (t.during && st.events[e.id]?.status !== 'underway') return false;
-  if (t.kind !== 'action' && t.kind !== 'fight' && t.kind !== 'npc') return true;
+  if (t.kind !== 'action' && t.kind !== 'fight' && t.kind !== 'battle' && t.kind !== 'npc') return true;
   return !e.closed && whoHolds(who, f.player);
 }
 
@@ -281,11 +298,11 @@ function countFacts(net: WorldNetwork, st: NetworkState, f: WorldFacts, e: World
   const marks: string[] = [];
   tests.forEach((t, i) => {
     if (t.kind === 'action') return;
-    const mark = t.kind === 'fight' ? `${i}:${fightFor(t, f)}` : `${i}`;
-    if (counted.includes(mark) || !(t.kind === 'fight' ? fightMeets(t, f) : stateTestHolds(net, st, f, t)) || !testOpen(st, e, who, f, t)) return;
+    const mark = isDeed(t) ? `${i}:${fightFor(t, f)}` : `${i}`;
+    if (counted.includes(mark) || !(isDeed(t) ? fightMeets(t, f) : stateTestHolds(net, st, f, t as StateTest)) || !testOpen(st, e, who, f, t)) return;
     points += STRENGTH_POINTS[t.strength ?? 'minor'];
     marks.push(mark);
-    if (t.kind !== 'fight') fact = true;
+    if (!isDeed(t)) fact = true;
   });
   return { points, marks, fact };
 }

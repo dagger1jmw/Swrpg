@@ -27,7 +27,7 @@ import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressio
 import { ageingStep } from '../../engine/ageing';
 import { PRIME_H } from '../../data/ageing.config';
 import { selectAgeing, selectBodyAgeNow, selectCapacities, selectLevelExact, selectNatural, selectSkillViews, selectStateOfMind, selectTierBeats } from './selectors';
-import { commandXp, fieldOpXp, gunneryXp, persuasionXp, repairXp, socialLineXp, stealthXp, strikeTacticsXp, type XpMap } from '../../engine/playXp';
+import { commandXp, fieldOpXp, gunneryXp, persuasionXp, pilotingXp, repairXp, socialLineXp, stealthXp, strikeTacticsXp, type XpMap } from '../../engine/playXp';
 import { styleGain } from '../../engine/martialStyles';
 import { STYLE, STYLE_BY_ID } from '../../data/martialStyles';
 import { COMMAND, PLAY_STAKES, type CommandOutcome, type CommandSize, type PlayStakes } from '../../data/skillXp.config';
@@ -408,7 +408,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
     playXpEarned: {
       schema: z.object({
         type: z.literal('playXpEarned'),
-        source: z.enum(['socialLine', 'persuasion', 'command', 'strikes', 'gunnery', 'repair', 'fieldOp', 'stealth']),
+        source: z.enum(['socialLine', 'persuasion', 'command', 'strikes', 'gunnery', 'piloting', 'repair', 'fieldOp', 'stealth']),
         stakes: z.string().optional(),
         outcome: z.string().optional(),
         size: z.string().optional(),
@@ -416,6 +416,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         gap: z.number().optional(),
         strikes: z.number().int().min(0).max(200).optional(),
         margins: z.array(z.number()).max(500).optional(),
+        /** Piloting rolls in a battle: the opponent's level less the pilot's (m8-ship-battles). */
+        gaps: z.array(z.number()).max(500).optional(),
         hours: z.number().min(0).max(24).optional(),
         rating: z.number().optional(),
         inFight: z.boolean().optional(),
@@ -470,6 +472,14 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
             const st = combatStakes(e['stakes']);
             if (!st) return { reject: 'gunnery needs the battle\'s stakes' };
             raw = gunneryXp((e['margins'] as number[] | undefined) ?? [], st);
+            capped = true;
+            break;
+          }
+          case 'piloting': {
+            const st = combatStakes(e['stakes']);
+            const out = String(e['outcome'] ?? 'drawn') as CommandOutcome;
+            if (!st || !(out in COMMAND.outcome)) return { reject: 'piloting needs the stakes and the outcome of the battle' };
+            raw = pilotingXp((e['gaps'] as number[] | undefined) ?? [], st, out);
             capped = true;
             break;
           }

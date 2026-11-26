@@ -53,6 +53,13 @@ export interface LocationSpan extends CanonSpan {
 }
 
 /** A dated event that changes the figure's stats from its date on (an injury, a lost limb, a fall, a redemption). */
+/** A career left behind (D-516): the stats hold from a date. */
+export interface StatHold {
+  fromBby: number;
+  stats: readonly string[];
+  note: string;
+}
+
 export interface StatEvent {
   bby: number;
   kind: 'injury' | 'limbLoss' | 'fall' | 'redemption' | 'other';
@@ -108,6 +115,11 @@ export interface CanonNpc extends CanonTimeline {
   deathSource?: YearSource;
   /** Stat anchors, oldest first; none = the generator builds the line from archetype and rank (D-414). */
   anchors: readonly StatAnchor[];
+  /**
+   * Skills left behind (D-516): from `fromBby` on, these stats hold at their value on that date and grow no further (Galena
+   * Rans's Piloting and Gunnery after her flying career, Jared, 26 Nov 2026).
+   */
+  holds?: readonly StatHold[];
   /** Present = the levels do not scale with age; the justification (npc-generation §5). */
   fixed?: string;
   specialTalents?: readonly string[];

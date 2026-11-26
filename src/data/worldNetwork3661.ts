@@ -47,6 +47,8 @@ const COUNCIL = about('darth-malgus', 'darth-angral', 'darth-marr', 'darth-vowra
 /** A won fight with one side at a place, in the battle itself. */
 const won = (factions: readonly FactionId[], strength: 'minor' | 'major' | 'decisive', ...places: string[]): WorldTest => ({ kind: 'fight', places, factions, minStakes: 'serious', strength, during: true });
 const imperial = (strength: 'minor' | 'major' | 'decisive', ...places: string[]): WorldTest => won(['sithEmpire', 'sith'], strength, ...places);
+/** A fleet battle won against the Empire's ships at a place, while the event is under way (m8-ship-battles, D-517). */
+const navalWin = (strength: 'minor' | 'major' | 'decisive', ...places: string[]): WorldTest => ({ kind: 'battle', scale: 'fleet', factions: ['sithEmpire', 'sith'], places, strength, during: true });
 const republic = (strength: 'minor' | 'major' | 'decisive', ...places: string[]): WorldTest => won(['republic', 'jediOrder'], strength, ...places);
 const beat = (id: string, strength: 'minor' | 'major' | 'decisive' = 'major'): WorldTest => ({ kind: 'fight', canonIds: lore(id), minStakes: 'serious', strength });
 const taken = (id: string, strength: 'minor' | 'major' | 'decisive' = 'major'): WorldTest => ({ kind: 'npc', canonId: `lore:${id}`, state: 'captured', strength });
@@ -310,8 +312,9 @@ const SACKING: WorldEventDef[] = [
     places: ['Coruscant'],
     roles: [R('Darth Angral', 'darth-angral'), R('the armada')],
     conditions: [
-      // The PP-1 hinge. Contestable only where the Empire's ground control is weak.
-      cond('hold', 'The Empire takes and holds Coruscant', 'The Empire\'s hold on Coruscant is broken', 'veryHigh', [imperial('major', 'Coruscant'), command('Coruscant'), { ...beat('darth-angral', 'decisive'), during: true }, { kind: 'control', place: 'Coruscant', side: 'republic', strength: 'decisive', during: true }], {
+      // The PP-1 hinge. Contestable only where the Empire's ground control is weak. Breaking the occupying navy is a fleet battle
+      // against the armada (D-517; a won ground fight stood in for it before).
+      cond('hold', 'The Empire takes and holds Coruscant', 'The Empire\'s hold on Coruscant is broken', 'veryHigh', [navalWin('major', 'Coruscant'), command('Coruscant'), { ...beat('darth-angral', 'decisive'), during: true }, { kind: 'control', place: 'Coruscant', side: 'republic', strength: 'decisive', during: true }], {
         window: { fromYear: -3653 },
         // A force to lead: a commander, or a Master whom the Temple's survivors follow.
         who: [post('republic-command'), { sides: ['jediOrder'], minRank: 'master' }],

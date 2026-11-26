@@ -84,9 +84,19 @@ const fightTest = z.strictObject({
   strength,
   during,
 });
+const battleTest = z.strictObject({
+  kind: z.literal('battle'),
+  scale: z.enum(['dogfight', 'fleet']).optional(),
+  factions: list(z.enum(FACTIONS)).optional(),
+  places: list(text).optional(),
+  result: z.enum(['won', 'lost']).optional(),
+  major: z.boolean().optional(),
+  strength,
+  during,
+});
 const knownTest = z.strictObject({ kind: z.literal('known'), tag: z.string(), strength, during });
 const stateTest = z.discriminatedUnion('kind', [npcTest, controlTest, flagTest, outcomeTest, knownTest]);
-const worldTest = z.discriminatedUnion('kind', [npcTest, controlTest, flagTest, outcomeTest, knownTest, actionTest, fightTest]);
+const worldTest = z.discriminatedUnion('kind', [npcTest, controlTest, flagTest, outcomeTest, knownTest, actionTest, fightTest, battleTest]);
 const lead = z
   .strictObject({ canonIds: list(canonId).optional(), places: list(text).optional(), sites: list(text).optional(), facts: list(stateTest).optional() })
   .refine((l) => Object.values(l).some((x) => x !== undefined), 'an empty lead');
@@ -268,6 +278,7 @@ export function networkProblems(net: WorldNetwork): string[] {
       if (!t.places && !t.canonIds) out.push(`${where}: an action test needs a place or a person, or any check would count`);
     }
     if (t.kind === 'fight' && !t.places && !t.canonIds) out.push(`${where}: a fight test needs a place or a person, or any fight would count`);
+    if (t.kind === 'battle' && !t.places) out.push(`${where}: a battle test needs a place, or any battle would count`);
   };
   // D-468: an action on a place alone starts from a lead recorded in play, or scores nothing.
   const checkLeads = (where: string, tests: readonly WorldTest[], own: readonly Lead[] | undefined): void => {
@@ -275,7 +286,7 @@ export function networkProblems(net: WorldNetwork): string[] {
     for (const l of own ?? []) for (const t of l.facts ?? []) checkTest(`${where} lead`, t);
   };
   // D-491: whatever the player can do to a condition asks who the player is.
-  const asksPlayer = (t: WorldTest): boolean => t.kind === 'action' || t.kind === 'fight' || t.kind === 'npc';
+  const asksPlayer = (t: WorldTest): boolean => t.kind === 'action' || t.kind === 'fight' || t.kind === 'battle' || t.kind === 'npc';
   const checkWho = (where: string, w: readonly Who[] | undefined): void => {
     for (const x of w ?? []) {
       for (const a of x.archetypes ?? []) if (!ARCHETYPES.some((y) => y.id === a)) out.push(`${where}: unknown archetype ${a}`);

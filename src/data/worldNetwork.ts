@@ -49,7 +49,12 @@ export type StateTest =
 export type DeedTest =
   | { kind: 'action'; actionTypes: readonly ActionType[]; skills?: readonly string[]; places?: readonly string[]; canonIds?: readonly string[] }
   /** hold: not a win but time bought against a top duelist (D-491): a short delay one tier below the duelist, a long one at their tier. */
-  | { kind: 'fight'; canonIds?: readonly string[]; factions?: readonly FactionId[]; places?: readonly string[]; minStakes?: CombatStakes; hold?: 'brief' | 'long' };
+  | { kind: 'fight'; canonIds?: readonly string[]; factions?: readonly FactionId[]; places?: readonly string[]; minStakes?: CombatStakes; hold?: 'brief' | 'long' }
+  /**
+   * A ship battle the player fought (m8-ship-battles, D-517): won (or lost) against these factions at these places; `major`
+   * asks for a major battle (a fleet battle with capital ships on both sides, or a standing force).
+   */
+  | { kind: 'battle'; scale?: 'dogfight' | 'fleet'; factions?: readonly FactionId[]; places?: readonly string[]; result?: 'won' | 'lost'; major?: boolean };
 
 export type WorldTest = (StateTest | DeedTest) & {
   /** Weight of a state fact or a won fight (default minor). An action's weight comes from its roll. */

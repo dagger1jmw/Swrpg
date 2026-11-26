@@ -1,4 +1,5 @@
 // GameState is composed of feature slices (architecture §2). Each field has exactly one owner.
+import type { BattlesSlice } from '../features/battles/battles';
 import type { CharacterSlice } from '../features/character/character';
 import type { ClockSlice } from '../features/clock/clock';
 import type { CombatSlice } from '../features/combat/combat';
@@ -38,5 +39,6 @@ export type GameState = {
   economy: EconomySlice;
   droids: DroidsSlice;
   traits: TraitsSlice;
+  battles: BattlesSlice;
   pacing: PacingSlice;
 };

@@ -39,6 +39,25 @@ import { carePlan } from './medicine';
 import { planTravel, runTravelBlockade, watchTravelBlockade, type TravelOutcome } from './travel';
 import type { GameEvent, Registry, ResolvedAction } from '../state/types';
 import { selectCheckTraitMod, selectNpcMindTrickResist } from '../features/traits/selectors';
+import { selectActiveBattle, selectBattleStep, selectBattleWaitsOnFight, selectLastEndedBattle } from '../features/battles/selectors';
+
+/** A battle turn for the narrator (Jared's brief E): quiet when nothing big happened (the code's line or two, no AI call). */
+export interface BattleDraft {
+  lines: readonly string[];
+  big: readonly string[];
+  wrap: string | null;
+  quiet: boolean;
+  map: string | null;
+}
+
+/** The battle's last step as the turn tells it. */
+function battleDraftOf(state: GameState, extra: readonly string[] = []): BattleDraft | null {
+  const step = selectBattleStep(state);
+  if (!step) return null;
+  const b = selectActiveBattle(state) ?? selectLastEndedBattle(state);
+  const big = [...extra, ...step.big];
+  return { lines: step.lines, big, wrap: step.wrap, quiet: big.length === 0 && step.wrap === null, map: b?.map ?? null };
+}
 
 /** Sleep with no stated duration (health spec: 7 h+ is a full night). */
 export const DEFAULT_SLEEP_SECONDS = 8 * 3600;
@@ -68,6 +87,8 @@ export interface TurnDraft {
   readonly travel?: TravelOutcome;
   /** An NPC's hold told with the player's escape (D-496); absent otherwise. */
   readonly hold?: HoldTurn;
+  /** A ship battle's turn or round (m8-ship-battles, D-517): the code's lines, the big moments, the wrap-up; absent otherwise. */
+  readonly battle?: BattleDraft;
   /** The level the narration is written at (the jump's level for a jump). */
   readonly pacingLevel: PacingLevel;
   readonly notices: readonly string[];
@@ -180,7 +201,7 @@ function isSparringActivityIntent(intent: Intent | null): boolean {
   return id !== undefined && ACTIVITY_BY_ID.get(id)?.sparring === true;
 }
 
-export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput; text?: string } = {}): Resolution {
+export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput; text?: string; battle?: { orders?: Readonly<Record<string, unknown>>; auto?: boolean; repairs?: boolean } } = {}): Resolution {
   let state = initial;
   const report: string[] = [];
   const applied: AppliedEvent[] = [];
@@ -194,6 +215,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   let combat: CombatDraft | null = null;
   let narrationLevel: PacingLevel | null = null;
   let hold: HoldTurn | null = null;
+  let battle: BattleDraft | null = null;
 
   const finish = (): Resolution => {
     const draft: TurnDraft = Object.freeze({
@@ -205,6 +227,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       combat,
       ...(travel ? { travel } : {}),
       ...(hold ? { hold } : {}),
+      ...(battle ? { battle } : {}),
       pacingLevel: narrationLevel ?? selectPacingLevel(state),
       notices: Object.freeze(notices),
       report: Object.freeze(report),
@@ -228,6 +251,29 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
 
   // Deferred events from the previous turn come first (architecture §3, D-29): hazards, then a pending fight.
   for (const h of state.health.pendingHazards) apply([{ type: 'hazardResolved', hazard: h.hazard, severity: h.severity, cause: h.cause, fromPending: true }]);
+  // A ship battle that waits on a boarding fight no longer under way: its result goes back into the battle (D-517).
+  const waits = selectBattleWaitsOnFight(state);
+  if (waits && !state.combat.active) apply([{ type: 'boardingFought', won: state.combat.last?.id === waits && state.combat.last.outcome === 'won' }]);
+  // A ship battle's turn or round (m8-ship-battles, D-517): one step from the tactics menu, or let it play out. The engine's
+  // seconds pass (a dogfight turn 5 s, a fleet round 3 min; field repairs an hour a system).
+  if (opts.battle) {
+    const b = opts.battle;
+    const done = apply([b.repairs ? { type: 'fieldRepairsMade' } : { type: 'battleOrdered', ...(b.orders ? { orders: b.orders } : {}), ...(b.auto !== undefined ? { auto: b.auto } : {}) }], 'player');
+    if (done.length) {
+      battle = battleDraftOf(state);
+      const seconds = Math.round(selectBattleStep(state)?.seconds ?? 0);
+      if (seconds > 0) {
+        const adv = advanceTime(registry, state, { seconds, reason: b.repairs ? 'field repairs' : 'ship battle', source: 'turnDraft', requested: seconds, occupation: b.repairs ? 'activity' : 'combat' });
+        state = adv.state;
+        applied.push(...adv.applied);
+        rejected.push(...adv.rejected);
+        notices.push(...adv.notices);
+        timeAdvanced = { seconds: adv.secondsAdvanced, requested: seconds, reason: b.repairs ? 'field repairs' : 'ship battle' };
+      }
+    }
+    narrationLevel = 'moment';
+    return finish();
+  }
   let started = false;
   // The fight's start notes (terrain accidents of the first bout, D-184) reach the narration with the exchanges.
   const startNotes: string[] = [];
@@ -286,6 +332,11 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     const secondsAfter = after.combat.active ? (after.combat.active.duel as { seconds: number }).seconds : after.combat.last?.id === fightId ? ((after.combat.last.duel as { seconds: number } | undefined)?.seconds ?? secondsBefore) : secondsBefore;
     const seconds = Math.max(0, secondsAfter - secondsBefore);
     combat = combatDraft(before, after, started, [...startNotes, ...notes]);
+    // A boarding fight just ended: its result goes back into the ship battle (D-517), told with the fight's end.
+    if (selectBattleWaitsOnFight(state) === fightId && !state.combat.active) {
+      apply([{ type: 'boardingFought', won: state.combat.last?.id === fightId && state.combat.last.outcome === 'won' }]);
+      battle = battleDraftOf(state);
+    }
     // Talking in a fight (D-216): the quiet line says what ends a fight instead of only asking what the player does.
     if (combat && combat.beat === 'clarify' && opts.text && saysSpeech(opts.text)) combat = { ...combat, quietLine: SPEECH_LINE };
     if (seconds > 0) {

@@ -13,6 +13,7 @@ import { COVERT_ESCALATION, ORDER_POWER_RULES } from '../data/orderPowerRules';
 import { onRecordAt, onRecordFor } from '../data/canonPlacements';
 import { blockadeLines, describeTravel } from './travel';
 import { selectDroidLines } from '../features/droids/selectors';
+import { selectBattleLines } from '../features/battles/selectors';
 import { selectTraitLines } from '../features/traits/selectors';
 import { selectEconomyLines } from '../features/economy/selectors';
 import { rankErasAt } from '../data/eraRanks';
@@ -319,6 +320,8 @@ export function stateBlock(
     ...blockadeLines(state),
     ...selectEconomyLines(state),
     ...selectDroidLines(state),
+    // A ship battle (m8-ship-battles, D-517): what the engine has, and crews that remember.
+    ...selectBattleLines(state),
     // Starting traits (M8 item 16): the character's and the present NPCs', each with its narrator note.
     ...selectTraitLines(state, selectPresentNpcIds(state)),
     ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), namedCanonIds(state, focus, playerText, -dateFromAbsDay(now.day).year)),
@@ -589,12 +592,26 @@ function careLine(draft: TurnDraft, year?: number): string {
     : 'Care applied this turn: none. Wounds heal only by rest and time: describe no bacta, kolto, medpacs, medics or Force healing treating the character.';
 }
 
+/**
+ * A ship battle's step (m8-ship-battles, D-517; Jared's brief E): the engine decided all of it. The big moments are told
+ * fuller; the wrap-up closes the battle. Nothing outside these lines happens in the battle.
+ */
+export function describeBattle(b: NonNullable<TurnDraft['battle']>): string[] {
+  const out = ['BATTLE (resolved by the engine; describe only this, in its order; never add a hit, a loss, a position or an end it does not state):'];
+  for (const l of b.lines) out.push(`- ${l}`);
+  if (b.big.length) out.push(`Big moments (tell each fully, a short paragraph at most): ${b.big.join(' | ')}`);
+  if (b.wrap) out.push(`The battle is over. Close with a short wrap-up of it: ${b.wrap}`);
+  else out.push('The battle goes on: end the narration at this moment; the player chooses the next move from the tactics menu, so offer no choices about the battle.');
+  return out;
+}
+
 export function resolvedBlock(draft: TurnDraft, correction: readonly string[] = [], year?: number): string {
   const lines = ['RESOLVED (ground truth; narrate consistently with it)'];
   // A retry after the narration check (D-197): the contradictions to remove.
   if (correction.length) lines.push(`CORRECTION: your last narration of this turn contradicted RESOLVED and was discarded. Write it again without these errors: ${correction.join(' | ')}`);
   if (draft.combat) lines.push(...describeCombat(draft.combat));
   if (draft.hold) lines.push(...describeHold(draft.hold));
+  if (draft.battle) lines.push(...describeBattle(draft.battle));
   if (draft.intent) lines.push(`Player action type: ${draft.intent.actionType}`);
   if (draft.checks.length === 0) lines.push('Checks: none required. Do not invent a success or failure that would need a roll.');
   for (const c of draft.checks) lines.push(describeCheck(c));
@@ -694,7 +711,7 @@ export function narrativeSystemPrompt(state: GameState, opening: boolean, level:
 
 /** The player's own words for this turn (scanned for names; D-85). */
 export function playerTextOf(input: TurnInput): string {
-  return input.kind === 'typed' || input.kind === 'dev' ? input.text : input.kind === 'choice' ? input.choice.label : input.kind === 'action' || input.kind === 'beat' ? input.label : input.premise;
+  return input.kind === 'typed' || input.kind === 'dev' ? input.text : input.kind === 'choice' ? input.choice.label : input.kind === 'action' || input.kind === 'beat' || input.kind === 'battle' ? input.label : input.premise;
 }
 
 /**

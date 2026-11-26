@@ -16,7 +16,12 @@ export type TurnInput =
   /** A combat beat button (M5, D-145): a combat action; skips the intent call; quiet beats make no call at all. */
   | { kind: 'beat'; action: CombatActionInput; label: string }
   /** A dev sandbox command (D-180; dev mode, test campaigns only): handled in code, no AI call. */
-  | { kind: 'dev'; text: string };
+  | { kind: 'dev'; text: string }
+  /** A ship battle's turn or round from the tactics menu (m8-ship-battles, D-517): skips the intent call; quiet turns make no call. */
+  | { kind: 'battle'; label: string; orders?: BattleOrdersInput; auto?: boolean; repairs?: boolean };
+
+/** The battle orders a menu sends (the battles feature's BattleOrders). */
+export type BattleOrdersInput = Readonly<Record<string, unknown>>;
 
 /** The combat action a beat button sends (the combat feature's combatAction event, without its type). */
 export interface CombatActionInput {
@@ -76,5 +81,6 @@ export function describeInput(input: TurnInput): string {
   if (input.kind === 'action') return input.label;
   if (input.kind === 'beat') return input.label;
   if (input.kind === 'dev') return input.text;
+  if (input.kind === 'battle') return input.label;
   return input.premise ? `(Opening) ${input.premise}` : '(Opening)';
 }

@@ -22,6 +22,8 @@ export interface SkillDraft {
   source: string;
   /** The roster figure the draft is applied to as a partial anchor (game scale; the draft stats only). Absent = stored. */
   canonId?: string;
+  /** The career the draft stands for ends (D-516): from this year on its listed stats hold and grow no further. */
+  heldFrom?: { year: number; stats: readonly string[]; note: string };
 }
 
 const C13 = 'SW_Characters_13_DarkTimes_GalacticCivilWar';
@@ -41,7 +43,7 @@ export const SKILL_DRAFTS: readonly SkillDraft[] = [
   { name: 'Watcher Two (Shara Jenn)', year: -3642, archetype: 'intelAnalyst', authored: {}, draft: { intelligence: 80, investigation: 75, charisma: 55, tactics: 40, blaster: 30 }, age: null, source: `${P3B} (Cipher Nine's handler; Keeper from 3,642); no lore sheet`, canonId: 'lore:shara-jenn' },
   // Galena Rans's earlier career (Jared, 26 Nov 2026): a bomber wing commander in the Republic Navy (the 439th bomber wing,
   // SW_Characters_09_GGW_ColdWar_Part3a). The numbers are Jared's; the date (3,655 BBY, in the Great War at about 30) is invented.
-  { name: 'Galena Rans (bomber wing commander)', year: -3655, archetype: 'navalOfficer', authored: {}, draft: { piloting: 60, gunnery: 50, tactics: 45, blaster: 35 }, age: 30, source: 'SW_Characters_09_GGW_ColdWar_Part3a ("veteran of the 439th bomber wing"); the numbers are from Jared', canonId: 'lore:galena-rans' },
+  { name: 'Galena Rans (bomber wing commander)', year: -3655, archetype: 'navalOfficer', authored: {}, draft: { piloting: 60, gunnery: 50, tactics: 45, blaster: 35 }, age: 30, source: 'SW_Characters_09_GGW_ColdWar_Part3a ("veteran of the 439th bomber wing"); the numbers are from Jared', canonId: 'lore:galena-rans', heldFrom: { year: -3653, stats: ['piloting', 'gunnery'], note: 'her flying career ends with the Great Galactic War (Jared, 26 Nov 2026; D-516)' } },
   // ---- Gunnery anchors ----
   { name: 'Wedge Antilles', year: 4, archetype: 'starfighterPilot', authored: { intelligence: 80, charisma: 74, willpower: 82, piloting: 88 }, draft: { gunnery: 86, tactics: 50, repair: 35, blaster: 50 }, age: 25, source: `${C13} supporting table ("Piloting 88"; both Death Star runs)` },
   { name: 'a Rogue Squadron pilot', year: 7, archetype: 'starfighterPilot', authored: {}, draft: { piloting: 75, gunnery: 72, repair: 30, blaster: 40 }, age: 30, source: `${C14} (Rogue Squadron); no sheet` },

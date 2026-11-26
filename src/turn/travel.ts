@@ -125,7 +125,10 @@ export function planTravel(state: GameState, intent: Intent): TravelOutcome | nu
   const { from, to, ship } = trip;
   const held = selectCaptivity(state);
   if (held) return { from: from.name, to: to.name, ship: ship.name, shipClass: ship.class, ok: false, reason: `the character is a prisoner of ${held.group}`, parts: [], notes: [] };
-  const plan = trip.plan();
+  // A blockade just forced in a ship battle (D-517): the trip goes on past it.
+  const day0 = selectNow(state).day;
+  const forced = state.world.blockades.runs.find((r) => r.approach === 'force' && r.result === 'through' && r.to === to.name && day0 - r.day <= 1);
+  const plan = forced ? trip.plan(forced.blockadeId) : trip.plan();
   const base = { from: from.name, to: to.name, ship: ship.name, shipClass: ship.class };
   if (plan.ok) return { ...base, ok: true, hours: plan.hours, parts: plan.parts, notes: plan.notes };
   const b = trip.standing.find((x) => x.id === plan.blockadeId);
@@ -161,6 +164,13 @@ export function runTravelBlockade(state: GameState, intent: Intent, travel: Trav
   const plan = trip.plan(b.id);
   if (!plan.ok) return { refused: plan.reason };
   const day = selectNow(state).day;
+  // Forcing a way through is a ship battle now (m8-ship-battles, D-517; replaces the stopgap piloting check): a fleet's, or an
+  // ace pilot's against the pickets' fighters. The battle's end records the run; a run won lets the trip go on.
+  if (approach === 'force') {
+    const runner = selectBlockadeRunner(state, b);
+    const outcome: TravelOutcome = { ...travel, ok: false, reason: `${b.name}: forcing a way through (a ship battle)`, parts: plan.parts, notes: plan.notes };
+    return { travel: outcome, cards: [], rng: state.meta.rngState, events: [{ type: 'shipBattleStarted', blockadeId: b.id, to: travel.to, direction: travel.blockade.direction, fleet: runner.fleet }], seconds: 0, stabilize: false };
+  }
   const run = runBlockade(state.meta.rngState, {
     blockade: b,
     day,

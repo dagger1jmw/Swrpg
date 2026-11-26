@@ -19,6 +19,7 @@ import {
 } from '../data/skillXp.config';
 import { COMBAT_XP, type CombatStakes } from '../data/progression.config';
 import { challengeFactor } from './challenge';
+import { combatChallenge } from './combatXp';
 import { interp } from './interp';
 
 export type XpMap = Record<string, number>;
@@ -53,6 +54,17 @@ export const strikeTacticsXp = (strikes: number, stakes: CombatStakes): XpMap =>
 export function gunneryXp(margins: readonly number[], stakes: CombatStakes): XpMap {
   const xp = margins.reduce((a, m) => a + GUNNERY_SHOT.perShot * interp(GUNNERY_SHOT.margin, m), 0) * COMBAT_XP.stakes[stakes];
   return xp > 0 ? { gunnery: xp } : {};
+}
+
+/**
+ * Piloting from flying in a battle (m8-ship-battles, D-517: "Piloting from dogfights as field use"): each piloting roll is an
+ * exchange of combat XP (combat-xp §1: 0.25 x the challenge of the gap x stakes x outcome), all to Piloting. gap = the
+ * opponent's level less the pilot's. Won, drawn and lost read as combat's won, truce and lost.
+ */
+export function pilotingXp(gaps: readonly number[], stakes: CombatStakes, outcome: CommandOutcome): XpMap {
+  const out = outcome === 'won' ? COMBAT_XP.outcome.won : outcome === 'lost' ? COMBAT_XP.outcome.lost : COMBAT_XP.outcome.truce;
+  const xp = gaps.reduce((a, g) => a + COMBAT_XP.perExchange * combatChallenge(g), 0) * COMBAT_XP.stakes[stakes] * out;
+  return xp > 0 ? { piloting: xp } : {};
 }
 
 /** Repair from a job in a fight or during upkeep (travel, docking): by hours, the job's challenge, success and the fight. */

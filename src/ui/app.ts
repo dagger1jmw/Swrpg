@@ -55,6 +55,7 @@ import { TRAIT_BY_ID } from '../data/traits';
 import { clear, el, input, paragraphs } from './dom';
 import { renderSidePanel, type PanelTab } from './sidePanel';
 import { renderCombatDraft, renderDuelPanel } from './duelPanel';
+import { renderBattlePanel } from './battlePanel';
 import { fightCalls, fightView } from '../turn/fightChoices';
 import { commitDevCommand, isDevCommand } from '../turn/devCommands';
 import { withSimulatedOverload, type SimulatedOverload } from '../ai/simulateOverload';
@@ -136,6 +137,10 @@ export class App {
   private moreOpen: { fightId: string; open: boolean } | null = null;
   /** The duel panel's share of the main column in a fight (0.25-0.75; default 0.5), remembered per device. */
   private duelSplit = 0.5;
+  /** The ship battle menu's picks for the next turn, by group (m8-ship-battles, D-517). */
+  private battlePicks: Record<string, number> = {};
+  /** The player pressed "Take the controls" while a played-out turn was in flight (D-517). */
+  private takeBack = false;
   /** The last dev command's refusal or failure (D-180), shown in the status line. */
   private devNote: string | null = null;
   /** Full request texts, this session only (D-87). */
@@ -346,6 +351,7 @@ export class App {
     this.failed = null;
     this.feedStick = true;
     if (turnInput.kind === 'typed') this.draft = '';
+    if (turnInput.kind === 'battle') this.battlePicks = {};
     this.render();
     const deps = this.turnDeps();
     let closed = false;
@@ -371,6 +377,18 @@ export class App {
       this.render();
     }
     if (closed) await this.runSummaries();
+    // "Let it play out" (D-517): the code plays on, a chunk at a time, until the player takes the controls back.
+    if (this.takeBack && this.session?.state.battles.active?.auto) {
+      this.takeBack = false;
+      void this.runTurn({ kind: 'battle', label: 'Take the controls', auto: false });
+      return;
+    }
+    this.takeBack = false;
+    if (!this.failed && this.session?.state.battles.active?.auto && !this.session.state.combat.active) {
+      setTimeout(() => {
+        if (this.session?.state.battles.active?.auto && !this.busy && !this.takeBack && !this.session.state.combat.active) void this.runTurn({ kind: 'battle', label: 'Let it play out', auto: true });
+      }, 900);
+    }
   }
 
   /** Shows the jump's days ticking by (about 4 seconds for any length) while the GM writes. */
@@ -618,6 +636,9 @@ export class App {
           },
         })
       : null;
+    // A ship battle (D-517): its panel holds the turn's choices; story choices wait until it is over.
+    const battle = session && !session.state.combat.active ? renderBattlePanel({ state: session.state, busy: this.busy, act: (input) => void this.runTurn(input), picks: this.battlePicks, pick: (group, index) => ((index === null ? delete this.battlePicks[group] : (this.battlePicks[group] = index)), this.render()), takingControl: this.takeBack, takeControl: () => (this.busy ? ((this.takeBack = true), this.render()) : void this.runTurn({ kind: 'battle', label: 'Take the controls', auto: false })) }) : null;
+    if (session?.state.battles.active) choiceItems = [];
     const choices = choiceItems.length ? el('section', { class: 'box choices' }, [el('div', { class: 'box-body', attrs: { 'data-scroll': 'choices' } }, choiceItems)]) : null;
 
     // In a fight the story and the duel panel split the column (50/50 by default); a handle between them resizes it.
@@ -656,7 +677,7 @@ export class App {
       });
       return el('main', { class: 'main' }, [feed, handle, duel, choices, this.renderInput()]);
     }
-    return el('main', { class: 'main' }, [feed, duel, choices, this.renderInput()]);
+    return el('main', { class: 'main' }, [feed, battle, duel, choices, this.renderInput()]);
   }
 
   private renderInput(): HTMLElement {

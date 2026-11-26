@@ -27,11 +27,12 @@ Every source below is a structured event from code (`playXpEarned`, `styleFought
 | --- | --- | --- |
 | Social line | 0.6 x stakes; the n-th line of the day earns 1 / (1 + 0.5 (n - 1)). Logged by code when a rolled social exchange with an NPC is made (the check's difficulty is the stakes) or a relationship changes (|delta| 1 minor, 2 notable, 3 major) | Charisma |
 | Persuasion | 1.0 x outcome (success 1.0, failure 0.25) x stakes x the challenge curve on the opponent's level (the higher of its Charisma and Willpower) less the persuader's Charisma. A rolled Charisma check in a dialogue with an NPC | Charisma |
-| Command | 3 x stakes (combat's 0.5 / 1 / 1.5 / 2) x outcome (won 1, drawn 0.75, lost 0.5) x size (squad 1 to army or fleet 2.5); the daily cap. `commandXp` is what the fleet and ground battles will call (not wired into play yet) | Tactics, Intelligence 0.2 of it |
+| Command | 3 x stakes (combat's 0.5 / 1 / 1.5 / 2) x outcome (won 1, drawn 0.75, lost 0.5) x size (squad 1 to army or fleet 2.5); the daily cap. Paid at a fleet battle's end to its commander (D-517); the ground battles come with item 14 | Tactics, Intelligence 0.2 of it |
 | Strikes | 0.05 x stakes per strike earned at +3 on the advantage track (not a surprise strike) | Tactics, Intelligence 0.2 |
 | Discussing tactics | the `tacticsDiscussion` activity: with a teacher, the teacher's multiplier; with a peer, half the base rate (`peerRate`); never alone | Tactics, Intelligence 0.2 |
 | Cultural insight | the `cultureStudy` activity (Intelligence 80+): Tactics as study, and the hours against that culture: +1 at 20 h, +2 at 100 h (at most +2), on fleet and ground rolls (`insight` on the side) | Tactics, Intelligence 0.4 |
 | Gunnery | 0.08 per shot x the margin curve (-12: 0.4, 0: 1.0, +12: 1.2) x stakes; the daily cap | Gunnery |
+| Piloting (D-517) | each piloting roll in a ship battle is an exchange of combat XP: 0.25 x the challenge of the gap x stakes x outcome (won 1.0, drawn as a truce 1.0, lost 1.2), all to Piloting; the daily cap | Piloting |
 | Repair | 0.5 per hour of the job x the challenge curve (the job's rating less the level) x success (failure 0.4) x 1.5 in a fight. Droid repairs and upgrades the character does itself | Repair |
 | Field operations | 3 x stakes x outcome, as command, on the tradecraft split (Investigation 0.75, Stealth and Charisma 0.125) | Investigation, Stealth, Charisma |
 | Stealth in the field | 0.5 x success (failure 0.5) x stakes x the challenge curve (the check's rating less the level). A rolled Stealth check | Stealth |
@@ -123,7 +124,7 @@ Senatorial apprenticeships stay story-only.
 | Officer | Tactics 1, Intelligence 0.6 (staff work), Charisma 0.5, Blaster 0.48 (Jared, 26 Nov: a Blaster pace of about 0.35; was 0.25), body 0.15 each | 18 (17-30) |
 | Naval officer | the officer's line with Piloting 0.4 and Gunnery 0.2; Blaster 0.28 (in proportion) | 18 |
 | Intelligence officer: analyst | Intelligence 1 (staff work), Investigation 0.9 (tradecraft), Charisma 0.6, Blaster 0.35, Tactics 0.2, body 0.2 each | 18 (17-35) |
-| Intelligence officer: field agent | Stealth 1, Intelligence 5.6 (staff work), Tactics 2.2, Charisma 2.0, Blaster 0.8, Melee 0.6, Investigation 0.5 (tradecraft), body 0.35 each (Jared, 26 Nov: Intelligence to about an officer's, a Tactics share; m8-traits, D-514) | 18 |
+| Intelligence officer: field agent | Stealth 1 with its own main share of 0.35 (Jared, 26 Nov; D-516), Intelligence 5.9 (staff work), Blaster 3.25, Tactics 2.35, Charisma 1.9, Melee 1.75, Investigation 1.75 (tradecraft), body 0.32 each (Intelligence to about an officer's, a Tactics share; m8-traits D-514, refitted in m8-ship-battles D-516) | 18 |
 | Senator or politician | Charisma 1 (negotiation), Intelligence 0.7, Investigation 0.15, Tactics 0.1, Blaster 0.05 | 18 (16-40) |
 | Scholar | Intelligence 1, Investigation 0.6, Force Knowledge 0.2, Charisma 0.2, Medicine 0.1 | 16 (14-40) |
 | Starfighter pilot | Piloting 1, Gunnery 0.8, body, Intelligence and Blaster small, Repair 0.2 | 18 |
@@ -131,7 +132,7 @@ Senatorial apprenticeships stay story-only.
 | Engineer or mechanic | Repair 1, Intelligence 0.6, Piloting 0.2, small Gunnery and Blaster | 16 (12-35) |
 
 - **Paces** are measured on the day loop (`npm run paces`; report section 4) and copied into `archetypes.ts`. The soldier's and smuggler's were re-measured with their new shares; the Jedi and Sith paces were scaled by the measured effect of the Melee weight (their tables are not verbatim loop copies since D-495); the Sith apprentice phase is unchanged.
-- **The intelligence lines (Jared, 26 Nov 2026; D-514):** the analyst leads in Intelligence and Investigation, the field agent in Stealth and Melee. Each line trails a line officer only in Tactics and is level or ahead of the officer in Intelligence and Charisma (tested per line). The field agent's Intelligence (staff work, pace 0.956 against the officer's 0.910 and the analyst's 1.584) and Tactics (0.582) shares take the fill from its Blaster, Melee and Investigation (0.079, 0.060, 0.059): it no longer out-shoots the analyst (m8-traits report, Part A). A character can change lines (its archetype); an NPC is generated on one (role `official`: civilian 60%, analyst 25%, field agent 15%).
+- **The intelligence lines (Jared, 26 Nov 2026; D-514):** the analyst leads in Intelligence and Investigation, the field agent in Stealth and Melee. Each line trails a line officer only in Tactics and is level or ahead of the officer in Intelligence and Charisma (tested per line). The field agent's main share is 0.35 (D-516; every other archetype keeps 0.5), so its Intelligence (pace 0.943 against the officer's 0.910) and Tactics (0.587) no longer take the fill from Blaster, Melee and Investigation (0.345, 0.181, 0.231); it out-shoots the analyst again. A character can change lines (its archetype); an NPC is generated on one (role `official`: civilian 60%, analyst 25%, field agent 15%).
 - **Generated NPCs by role:** officer 70% officer, 30% naval officer; pilot 70% starfighter pilot, 30% smuggler; politician and scholar their own.
 - **A Senate seat** is a story event, not a rank: the politician archetype is generation and stat lines only.
 - **Canon figures** on the new archetypes (report section 5 lists each and what moved): the Republic and Imperial commanders on officer or naval officer, the Chancellors, senators and ministers on politician, Imperial Intelligence and the SIS on the two intelligence lines. Their sheets set what they set; the archetype sets the rest.
@@ -151,7 +152,7 @@ Joining needs the first rung's minimum; a promotion is proposed by the AI or the
 
 ## 9. Not built here
 
-The fleet and ground battles' calls to `commandXp` and `gunneryXp` (combat-scales has no turn loop yet); the realistic damage rules (Teräs Käsi's strike power waits for them, and the Gand findsmen's partial armour bypass beside it); weapon proficiency (the stacking takes 1); field operations as a scene (the `fieldOp` source is ready); NPC style knowledge for canon figures (a teacher's art is named with `npcStyleSet`).
+The ground battles' call to `commandXp` (item 14; the fleet and dogfight calls are wired, D-517); the realistic damage rules (Teräs Käsi's strike power waits for them, and the Gand findsmen's partial armour bypass beside it); weapon proficiency (the stacking takes 1); field operations as a scene (the `fieldOp` source is ready); NPC style knowledge for canon figures (a teacher's art is named with `npcStyleSet`).
 
 ## 10. Every invented number
 

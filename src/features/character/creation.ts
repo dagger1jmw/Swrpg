@@ -9,7 +9,7 @@ import { orderHomelessAt, orderSeatAt } from '../../data/orderSeats';
 import { playerDroidRefusal } from '../../engine/droids';
 import { STUB_INSTRUCTOR_LEAD, STUB_MASTER_LEAD } from '../../data/stubs';
 import { gainE, sparringE } from '../../engine/appliedExperience';
-import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
+import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, mainShareOf, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
 import { BUDGET, CAREER_YOUTH_TO, FORM_TRANSFER_SHARE, LONG_LIFE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
 import { orderHoursAt } from '../../data/orderRequirements';
 import { INITIATE_CURRICULUM, closedFormCurriculum } from '../../data/initiateCurriculum';
@@ -200,9 +200,9 @@ export function fillFactor(phase: Phase, from: number, to: number): number {
   return sum / steps / REFERENCE_FILL_HOURS;
 }
 
-/** Default focus shares for an archetype (main 0.5 of the Knight+ / career fill, D-41), forms pooled. */
+/** Default focus shares for an archetype (main 0.5 of the Knight+ / career fill, D-41; or its own, D-516), forms pooled. */
 export function defaultFocus(a: ArchetypeDef): Record<string, number> {
-  return poolWeights(focusShares(a.weights, a.main, 0.5));
+  return poolWeights(focusShares(a.weights, a.main, mainShareOf(a)));
 }
 
 export function computeCreation(input: CreationInput): CreationResult {
