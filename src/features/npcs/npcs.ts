@@ -57,9 +57,19 @@ export const npcSchema = z.object({
    * (D-466): only what the engine recorded (a death, a capture in a fight) breaks a world-event role; absent = narrator.
    */
   canonDiverged: z.object({ day: z.number().int(), reason: z.enum(['killed', 'captured', 'turned', 'removed']), recordedBy: z.enum(['engine', 'narrator']).optional() }).optional(),
+  /**
+   * A recorded change to a canon figure's training (Jared, D-506): its master killed before or during the apprenticeship, the
+   * apprenticeship broken, or another order joined. It takes the figure off its canon line from that day (its levels follow the
+   * ranks begun by then); unlike canonDiverged it leaves the lore's whereabouts and world-event roles alone. One-way.
+   */
+  canonTraining: z.object({ day: z.number().int(), reason: z.enum(['masterKilled', 'apprenticeshipBroken', 'joinedOrder']), recordedBy: z.enum(['engine', 'narrator']) }).optional(),
 });
 
-export const npcsSliceSchema = z.object({ byId: z.record(z.string(), npcSchema) });
+export const npcsSliceSchema = z.object({
+  byId: z.record(z.string(), npcSchema),
+  /** Training changes of canon figures not in play yet (D-506), applied when one is linked to its canon figure. */
+  canonTraining: z.record(z.string(), z.object({ day: z.number().int(), reason: z.enum(['masterKilled', 'apprenticeshipBroken', 'joinedOrder']), recordedBy: z.enum(['engine', 'narrator']) })).optional(),
+});
 
 export type Npc = z.infer<typeof npcSchema>;
 export type NpcsSlice = z.infer<typeof npcsSliceSchema>;

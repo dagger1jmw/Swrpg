@@ -16,6 +16,7 @@ import { selectCurrentLocationId } from '../locations/selectors';
 import { selectCanonInCampaign } from '../world/selectors';
 import { dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { CANON_BY_ID } from '../../data/canonNpcs';
+import { cutShortBy } from '../../data/canon/apprenticeships';
 import { canonOffBoard, canonStatusAt, prisonOf, type OffBoard } from '../../engine/canonRoster';
 import { selectLocationChain } from '../locations/selectors';
 
@@ -67,10 +68,20 @@ function introduce(slice: NpcsSlice, e: GameEvent, state: GameState): { slice: N
     gen: null,
     health: null,
   };
-  return { slice: { byId: { ...slice.byId, [id]: npc } }, id, existing: false, note: inferred.note };
+  return { slice: { ...slice, byId: { ...slice.byId, [id]: npc } }, id, existing: false, note: inferred.note };
 }
 
-const update = (slice: NpcsSlice, id: string, patch: Partial<Npc>): NpcsSlice => ({ byId: { ...slice.byId, [id]: { ...slice.byId[id]!, ...patch } } });
+const update = (slice: NpcsSlice, id: string, patch: Partial<Npc>): NpcsSlice => ({ ...slice, byId: { ...slice.byId, [id]: { ...slice.byId[id]!, ...patch } } });
+
+type TrainingChange = NonNullable<Npc['canonTraining']>;
+/** A canon figure's training changes (D-506): on its NPC if it is in play, else kept for when it is. The first change stands. */
+function changeTraining(slice: NpcsSlice, canonId: string, change: TrainingChange): { slice: NpcsSlice; note: string | null } {
+  const npc = Object.values(slice.byId).find((n) => n.canonId === canonId);
+  const name = npc?.name ?? CANON_BY_ID.get(canonId)?.name ?? canonId;
+  if (npc) return npc.canonTraining ? { slice, note: null } : { slice: update(slice, npc.id, { canonTraining: change }), note: `${name}'s training changes (${change.reason}): off the canon line` };
+  if (slice.canonTraining?.[canonId]) return { slice, note: null };
+  return { slice: { ...slice, canonTraining: { ...slice.canonTraining, [canonId]: change } }, note: `${name}'s training changes (${change.reason}): off the canon line` };
+}
 
 export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
   id: 'npcs',
@@ -175,7 +186,9 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         }
         const why = canon ? canonStatusAt(canon, bby) : null;
         if (canon && off) return { reject: `${canon.name} is ${OFF_BOARD_WORDS[off]} in ${formatYear(-bby)}${why ? ` (lore: ${why.note})` : ''}: not linked to canon` };
-        return { slice: update(slice, id, { canonId: String(e['canonId']) }), notes: [`${id} is canon ${String(e['canonId'])}`] };
+        // A training change recorded before the figure came into play goes with it (D-506).
+        const waiting = slice.canonTraining?.[String(e['canonId'])];
+        return { slice: update(slice, id, { canonId: String(e['canonId']), ...(waiting && !slice.byId[id]!.canonTraining ? { canonTraining: waiting } : {}) }), notes: [`${id} is canon ${String(e['canonId'])}`] };
       },
     },
     // Engine: emitted by the scene update for everyone present.
@@ -281,8 +294,19 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         if (!npc) return { reject: `unknown npc ${id}` };
         if (npc.status === 'deceased') return { slice };
         // A canon figure killed in the campaign diverges from its canon spans (D-419).
-        const diverged = npc.canonId && !npc.canonDiverged ? { canonDiverged: { day: selectNow(ctx.state).day, reason: 'killed' as const, recordedBy: 'engine' as const } } : {};
-        return { slice: update(slice, id, { status: 'deceased', ...diverged }), notes: [`${npc.name} dies (${String(e['cause'])})`] };
+        const day = selectNow(ctx.state).day;
+        const diverged = npc.canonId && !npc.canonDiverged ? { canonDiverged: { day, reason: 'killed' as const, recordedBy: 'engine' as const } } : {};
+        let next = update(slice, id, { status: 'deceased', ...diverged });
+        const notes = [`${npc.name} dies (${String(e['cause'])})`];
+        // A master killed before or during an apprenticeship changes the student's training (D-506).
+        if (npc.canonId) {
+          for (const x of cutShortBy(npc.canonId, -dateFromAbsDay(day).year)) {
+            const r = changeTraining(next, x.student, { day, reason: 'masterKilled', recordedBy: 'engine' });
+            next = r.slice;
+            if (r.note) notes.push(r.note);
+          }
+        }
+        return { slice: next, notes };
       },
     },
     /**
@@ -314,6 +338,30 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         }
         const reason = e['reason'] as 'captured' | 'turned' | 'removed';
         return { slice: update(slice, id, { canonDiverged: { day: selectNow(ctx.state).day, reason, recordedBy } }), notes: [`${npc.name} leaves the canon course (${reason}): no later canon promotions`] };
+      },
+    },
+    /**
+     * A recorded change to a canon figure's training (Jared, D-506): the apprenticeship broken, or another order joined. The
+     * narrator reports one it has told; a master's death is the engine's own (npcDied). Off the canon line from this day.
+     */
+    npcTrainingChanged: {
+      schema: z.object({
+        type: z.literal('npcTrainingChanged'),
+        npcRef: z.string(),
+        reason: z.enum(['apprenticeshipBroken', 'joinedOrder']).describe('apprenticeshipBroken: the master and apprentice part; joinedOrder: they join another order'),
+      }),
+      sources: ['ai', 'engine'],
+      targetField: 'npcRef',
+      refFields: ['npcRef'],
+      refKinds: npcRefKinds,
+      narrative: (s) => selectNpcs(s).some((n) => n.canonId !== null),
+      handle: (slice, e, ctx) => {
+        const id = String(e['npcRef']);
+        const npc = slice.byId[id];
+        if (!npc) return { reject: `unknown npc ${id}` };
+        if (!npc.canonId) return { reject: `${id} is not a canon figure: no canon training to change` };
+        const r = changeTraining(slice, npc.canonId, { day: selectNow(ctx.state).day, reason: e['reason'] as 'apprenticeshipBroken' | 'joinedOrder', recordedBy: ctx.source === 'ai' ? 'narrator' : 'engine' });
+        return { slice: r.slice, ...(r.note ? { notes: [r.note] } : {}) };
       },
     },
     // Player: resolves a review-queue name to an existing NPC.

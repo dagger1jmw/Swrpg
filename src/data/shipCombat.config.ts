@@ -253,6 +253,16 @@ export const FLEET = {
   commandLostRounds: 2,
   commandLost: -2,
   dogfightMax: 2,
+  /**
+   * Battle meditation in a fleet (Jared, D-506; Bastila's was a fleet's): on the side's Tactics roll by the meditator's
+   * Meditation level (invented: the ground scale, D-505).
+   */
+  meditation: [[10, 0], [40, 1], [80, 2], [120, 3]] as Curve,
+  /**
+   * The meditator killed or broken: every crew checks, as on the ground (d20 + crew level / 10 against this). Failed by less
+   * than routMargin: shaken (guns at `shaken` for shakenRounds); by more, the ship breaks off. Invented.
+   */
+  meditatorCheck: { dc: 18, routMargin: 4, shaken: 0.6, shakenRounds: 2 },
   /** Fighters: kills a round per point of fire over toughness; point defence the same; warheads each drops a round. */
   fighterKill: 0.35,
   pdKill: 0.2,

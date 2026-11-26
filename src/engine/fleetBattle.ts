@@ -87,6 +87,10 @@ export interface FleetSide {
   modifiers: readonly Modifier[];
   mayWithdraw: boolean;
   withdrawn: boolean;
+  /** A battle meditator with the fleet (D-506), and their Meditation. */
+  meditation: { name: string; level: number; alive: boolean } | null;
+  /** Ships whose crews are shaken, and the rounds it lasts. */
+  shaken: Readonly<Record<string, number>>;
 }
 
 export interface FleetOrders {
@@ -149,6 +153,8 @@ export const fleetSide = (name: string, ships: ShipState[], over: Partial<FleetS
   modifiers: [],
   mayWithdraw: false,
   withdrawn: false,
+  meditation: null,
+  shaken: {},
   ...over,
 });
 
@@ -196,6 +202,7 @@ export function commandMods(me: FleetSide, them: FleetSide): Modifier[] {
   if (me.intel) add('the enemy formation is known', FLEET.intel);
   add('crews', Math.round(interp(FLEET.crew, crewLevel(me)) * 10) / 10);
   if (me.commandLost > 0) add('the flagship is lost', FLEET.commandLost);
+  if (me.meditation?.alive) add('battle meditation', Math.round(interp(FLEET.meditation, me.meditation.level) * 10) / 10);
   return [...out, ...me.modifiers];
 }
 
@@ -236,7 +243,7 @@ interface Landed {
 const shownFacing = (s: ShipState, rolled: boolean, range: RangeBand): Facing => (rolled ? freshest(s) : bestAspect(shipClass(s.classId), range) === 'bow' ? 'fore' : 'port');
 
 /** Guns of a ship now: crippled and bridgeless ships fire little; rolling costs guns. */
-const gunsNow = (s: ShipState, rolling: boolean): number => (!canAct(s) ? 0 : (rolling ? FLEET.rolled : 1) * (shipClass(s.classId).domes > 0 && s.bridge <= 0 ? 0.2 : damageState(s) === 'crippled' ? 0.5 : 1));
+const gunsNow = (s: ShipState, rolling: boolean, shaken = false): number => (!canAct(s) ? 0 : (shaken ? FLEET.meditatorCheck.shaken : 1) * (rolling ? FLEET.rolled : 1) * (shipClass(s.classId).domes > 0 && s.bridge <= 0 ? 0.2 : damageState(s) === 'crippled' ? 0.5 : 1));
 
 /** Whether a ship rolls this round: its shown facing is well under the freshest one. */
 const wantsRoll = (s: ShipState, o: FleetOrders, range: RangeBand): boolean => o.roll === true && canAct(s) && (s.shields[shownFacing(s, false, range)] ?? 0) < FLEET.rollAt * (s.shields[freshest(s)] ?? 0);
@@ -249,7 +256,7 @@ function sideFire(me: FleetSide, them: FleetSide, o: FleetOrders, theirs: FleetO
   const enemies = them.ships.filter(inFight);
   const pincer = !me.reform && formationNow(me) === 'pincer';
   me.ships.forEach((s, i) => {
-    const guns = gunsNow(s, wantsRoll(s, o, b.range));
+    const guns = gunsNow(s, wantsRoll(s, o, b.range), (me.shaken[s.id] ?? 0) > 0);
     const target = targetOf(i, enemies, o.focus);
     if (guns <= 0 || !target) return;
     const c = shipClass(s.classId);
@@ -488,6 +495,7 @@ function settleSide(before: FleetSide, after: FleetSide, o: FleetOrders, year: n
   if (lost === 'the flagship') f = { ...f, commandLost: FLEET.commandLostRounds, flagId: f.ships.filter(inFight).sort((x, y) => shipStrength(y) - shipStrength(x))[0]?.id ?? null };
   else if (f.commandLost > 0) f = { ...f, commandLost: f.commandLost - 1 };
   // This round counts: a one-round reform is done when it ends.
+  f = { ...f, shaken: Object.fromEntries(Object.entries(f.shaken).filter(([, n]) => n > 1).map(([k, n]) => [k, n - 1])) };
   if (f.reform) f = { ...f, reform: f.reform.rounds <= 1 ? null : { ...f.reform, rounds: f.reform.rounds - 1 } };
   let next = rng;
   const ships = f.ships.map((s) => {
@@ -574,6 +582,35 @@ export function fleetRound(b: FleetBattle, oa: FleetOrders = {}, ob: FleetOrders
           : null;
   const rec: FleetRound = { n: b.round + 1, margin, trackBefore: b.track, trackAfter: track, range: battle.range, strike: landed ? side : null, mods: { a: modsA, b: modsB }, notes };
   return { ...b, a: sa, b: sb, track, range: battle.range, round: b.round + 1, rng, log: [...b.log, rec], end };
+}
+
+/**
+ * The fleet's battle meditator is killed or broken (D-506): the gift is gone, and every crew checks at once, as a ground army
+ * does (Mizra). A shaken crew fires less for two rounds; one that breaks takes its ship out of the fight.
+ */
+export function loseFleetMeditator(b: FleetBattle, side: 'A' | 'B', how: 'killed' | 'broken' = 'killed'): FleetBattle {
+  const me = side === 'A' ? b.a : b.b;
+  if (!me.meditation?.alive) return b;
+  let rng = b.rng;
+  const notes = [`${me.meditation.name} is ${how}: every crew of ${me.name} checks`];
+  const shaken: Record<string, number> = { ...me.shaken };
+  const ships = me.ships.map((s) => {
+    if (!inFight(s)) return s;
+    const [roll, r] = basicRoll(rng, s.crew.gunnery, []);
+    rng = r;
+    const by = roll.total - FLEET.meditatorCheck.dc;
+    if (by >= 0) return s;
+    if (by > -FLEET.meditatorCheck.routMargin) {
+      shaken[s.id] = FLEET.meditatorCheck.shakenRounds;
+      notes.push(`${s.name}'s crew is shaken`);
+      return s;
+    }
+    notes.push(`${s.name} breaks off`);
+    return { ...s, gone: true };
+  });
+  const next: FleetSide = { ...me, ships, shaken, meditation: { ...me.meditation, alive: false } };
+  const log = b.log.length ? [...b.log.slice(0, -1), { ...b.log[b.log.length - 1]!, notes: [...b.log[b.log.length - 1]!.notes, ...notes] }] : b.log;
+  return { ...b, rng, log, [side === 'A' ? 'a' : 'b']: next };
 }
 
 /** A commander's own choice, for NPCs: launch, close unless the fleet is carriers, hit the weakest ship that still fights. */

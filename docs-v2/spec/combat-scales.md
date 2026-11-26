@@ -52,7 +52,7 @@ Hull does not come back in a fight. Damaged under 75%, crippled under 30% (or th
 **Power:** lasers x1.25 (weak x0.75), shields' recovery x2 (weak none), engines +1 (weak -1). **Freighters:** a gunner a turret, any direction, at -5; without an engineer, shifting power costs the pilot -1; a tech or droid patches systems.
 
 ## 4. Fleet battles
-- **Tactics:** + formation (+/-2, Jared) + 1 if the enemy formation is known (Jared) + crews 0 to +2 (Jared; levels 20, 50, 80) - 2 reforming (- 1 more with gaps) - 2 for two rounds after the flagship is lost + the player's dogfights (half a point a kill, -1 beaten, at most 2).
+- **Tactics:** + formation (+/-2, Jared) + 1 if the enemy formation is known (Jared) + crews 0 to +2 (Jared; levels 20, 50, 80) + battle meditation (section 8) - 2 reforming (- 1 more with gaps) - 2 for two rounds after the flagship is lost + the player's dogfights (half a point a kill, -1 beaten, at most 2).
 - **Formations** beat each other as the notes say; where they do not: exchange beats the feigned retreat, the brawl beats the pincer, the pincer beats withdraw, the feigned retreat beats slash, brawl and pincer. A brawl swings the margin by up to 6 either way.
 - **Reforming:** a Tactics roll of 14 makes it one round, less makes it two, with gaps. The fake into a line and the feigned retreat into capping the T or a pincer are free.
 - **Fire:** one round is one effective volley of every gun in range and arc. The share that lands: 5% at a margin of -12, 16% at 0, 29% at +12; close x1.15, medium x0.9, long x0.6 (Mon Calamari targeting x2 at long). Fire ordered onto one ship lands x1.35. A strike round: x1.5 at a margin of 4, 2.25 at 10, 3 at 16 (half the extra when the fire is spread).
@@ -99,4 +99,12 @@ Equal crews (50), no fighters, 400 battles each: won / lost, rounds.
 **Ground** (the attacker takes a held sector in 12 phases): even 41%; cover 32%; heavy cover and high ground 17%; chokepoint 23%; Tactics 70 v 50 67%; the better plan 83%; meditation (90) 70%; three to one 78%; armour v infantry 93% in the open, 31% in a town; armour v anti-armour in cover 45%; commandos v guns 96%; air v anti-air 21%. A meditator killed: 45% of line units rout, 17% shaken (Mizra).
 
 ## 7. Not built here
-The turn loop, menus, narration blocks, saved state, the events a battle raises, and XP; the tactics menu; boarding; hull skimming and trench runs as a player's own manoeuvre (strike fighters have it in their numbers); modifications; the ground grid map, scouting, the reserve and contingencies. Gunnery and Repair are levels the caller passes: neither is a skill yet.
+The turn loop, menus, narration blocks, saved state, the events a battle raises, and XP; the tactics menu; boarding; hull skimming and trench runs as a player's own manoeuvre (strike fighters have it in their numbers); modifications; the ground grid map, scouting, the reserve and contingencies.
+
+**Gunnery and Repair** (Jared, D-506) become their own skills in checklist item 12: pilots train Gunnery alongside Piloting; Blaster stays personal arms. Until then the caller passes Piloting for a pilot's shots and Blaster for a turret gunner's; Repair is the level the caller has (none in play yet).
+
+## 8. Rulings (Jared, D-506)
+- **The invented numbers** here are accepted as defaults, to be tuned in play.
+- **Mon Calamari at long range** stay as they are: an Imperial Star Destroyer is the heavier ship one-on-one.
+- **Battle meditation in a fleet:** on the side's Tactics roll by the meditator's Meditation level, on the ground's scale (+1 at 40, +2 at 80, +3 at 120; invented). Killing or breaking the meditator: every crew checks (d20 + crew level / 10 against 18; invented): failed by less than 4, shaken (its guns x0.6 for two rounds), by more, the ship breaks off. Crews of 50 break off about 40% of the time, a little over the ground's 45% of line units (`loseFleetMeditator`).
+- **Hangars on record:** the Venator's and the Thranta's are in SW_Starships_Classes.md.

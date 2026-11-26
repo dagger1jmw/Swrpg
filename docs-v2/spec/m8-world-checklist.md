@@ -75,6 +75,7 @@ Items arrive here when a decision hands them to M8. Each says where it came from
   - **Stealth:** field use; stealth training as an activity; hunting.
   - **Blaster:** training droids and target practice; teachers for more effective training; field use.
   - **Archetypes:** add officer, senator/politician and scholar archetypes, so generated NPCs reflect these paths.
+  - **Gunnery and Repair (Jared, D-506):** two new skills. Pilots train Gunnery alongside Piloting (Blaster stays personal arms); Repair as ruled 2026-11-23 (ships, mods, droids). Until they exist, ship combat (combat-scales.md) takes Piloting for a pilot's shots and Blaster for a turret gunner's.
   - **After building:** audit what trains Melee, Blaster and Stealth today, then re-measure the archetype paces and the canon NPC bands for Intelligence, Tactics, Charisma, Melee, Blaster and Stealth.
   - **Martial cultures (research done, D-484):** `Docs/SWRPG lore/SW_Martial_Cultures_AllEras_Part1-3.md`, inputs for the skills and the archetypes:
     - *Part 3's training tables* (sections 1 to 8): who trains, where, for how long, what is taught, and entry. Lengths the sources give: Raithal one year, Royal Guard one year, Carida stormtrooper programme two (full course four), Prefsbelt IV three, flight school on Carida two, clone regulars ten years of accelerated life, commandos close to ten; *verd'goten* ages 8 to 13; hrrtayyk about 12.

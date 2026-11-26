@@ -202,8 +202,8 @@ describe('training counts in real years; only the body follows the Human-equival
       const l = npcLevelsFor(gen, s.id, s.maturity + 12, start);
       expect(l['soresu'] ?? 0, s.id).toBeGreaterThan(40);
     }
-    // Under the species' ceilings (D-474): a Wookiee's Endurance stops at 100.
-    expect(npcLevelsFor(gen, 'wookiee', 199, start)['endurance']).toBeCloseTo(100, 6);
+    // Under the species' ceilings (D-474): a Wookiee's Endurance stops at 100 (the line under a sheet; without one it stops training first, D-506).
+    expect(npcLevelsFor(gen, 'wookiee', 199, start, undefined, false, false, true)['endurance']).toBeCloseTo(100, 6);
     // Past a full life a figure accrues no more (D-429).
     expect(npcLevelsFor(gen, 'talz', 60, start)['soresu']).toBe(npcLevelsFor(gen, 'talz', 52, start)['soresu']);
   });

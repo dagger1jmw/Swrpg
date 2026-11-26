@@ -3,7 +3,7 @@
 export const PAST_SHEET = { most: 5, early: 15, years: 20, earlyBefore: 30 } as const;
 
 /**
- * The class heroes have an early-career sheet whatever age it is read at (a reading: the ruling names them, and their birth
- * years, 28 to 35 at the sheet, are estimates).
+ * The class heroes keep the early-career cap (ruled, Jared, D-506): each is sheeted at the start of a story that keeps climbing
+ * for two decades. The reason is the early-career sheet, not the age line (their births, 28 to 35 at the sheet, are estimates).
  */
 export const CLASS_HEROES: readonly string[] = ['lore:hero-of-tython', 'lore:the-barsenthor', 'lore:emperor-wrath', 'lore:darth-nox', 'lore:cipher-nine', 'lore:the-grand-champion', 'lore:voidhound', 'lore:meteor'];

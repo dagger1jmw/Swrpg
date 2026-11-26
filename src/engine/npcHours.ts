@@ -1,6 +1,6 @@
 // An NPC's growth past about 50 (Jared, 2026-11-25; D-497, D-498). Its training years: the species' age-weighted years, each counted by the share of a full
 // training day the NPC still keeps at that Human-equivalent age (data/npcHours.ts). Pure.
-import { NPC_TRAINING_HOURS, NPC_WILLPOWER_STOP_AGE } from '../data/npcHours';
+import { NPC_TRAINING_HOURS, NPC_TRAINING_HOURS_UNSHEETED, NPC_WILLPOWER_STOP_AGE } from '../data/npcHours';
 import { ageFromTraining, humanEquivalentAge, speciesAgeFromHuman, trainingAge, type SpeciesDef } from '../data/species';
 import type { AgeYears } from './closedForm';
 import { interp } from './interp';
@@ -34,6 +34,35 @@ export function npcYears(species: SpeciesDef, base: AgeYears): AgeYears {
       if (!(b > cuts[0]!)) return base.integral(row, a, b);
       let sum = a < cuts[0]! ? base.integral(row, a, cuts[0]!) : 0;
       let x = Math.max(a, cuts[0]!);
+      for (const c of [...cuts.filter((t) => t > x && t < b), b]) {
+        if (c > x) sum += base.integral(row, x, c) * shareAt((x + c) / 2);
+        x = Math.max(x, c);
+      }
+      return sum;
+    },
+  };
+}
+
+/**
+ * The years of `base` for an NPC without a sheet (D-506): the training day by years trained, read from the NPC's own start
+ * (`startTraining`, a training age, and `startAge`, its real age then), and none past the curve's end.
+ */
+export function npcYearsTrained(species: SpeciesDef, base: AgeYears, startTraining: number, startAge: number): AgeYears {
+  // Years trained are real years (D-474), from the NPC's own start.
+  const h0 = humanEquivalentAge(species, startAge);
+  const hAt = (t: number): number => h0 + Math.max(0, ageFromTraining(species, t) - startAge);
+  const from = NPC_TRAINING_HOURS_UNSHEETED[0]![0];
+  const to = NPC_TRAINING_HOURS_UNSHEETED[NPC_TRAINING_HOURS_UNSHEETED.length - 1]![0];
+  const cuts: number[] = [];
+  for (let h = from; h <= to; h += STEP) if (h > h0) cuts.push(Math.max(startTraining, trainingAge(species, startAge + h - h0)));
+  const shareAt = (t: number): number => interp(NPC_TRAINING_HOURS_UNSHEETED, hAt(t));
+  return {
+    factor: (row, t) => base.factor(row, t),
+    integral: (row, a, b) => {
+      const first = cuts[0] ?? -Infinity;
+      if (!(b > first)) return base.integral(row, a, b) * (cuts.length ? 1 : shareAt((a + b) / 2));
+      let sum = a < first ? base.integral(row, a, first) : 0;
+      let x = Math.max(a, first);
       for (const c of [...cuts.filter((t) => t > x && t < b), b]) {
         if (c > x) sum += base.integral(row, x, c) * shareAt((x + c) / 2);
         x = Math.max(x, c);

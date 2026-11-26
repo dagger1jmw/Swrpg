@@ -19,7 +19,7 @@ import { SPECIES_BY_ID, speciesDef, speciesOfferedAt } from '../../data/species'
 import { DAYS_PER_YEAR, dateFromAbsDay, formatYear } from '../../engine/calendar';
 import { HUMAN_YEARS, closedFormLevel, formXps, phasesFor, planSplit, type AgeYears, type FormPlan } from '../../engine/closedForm';
 import { NPC_WILLPOWER_PACE } from '../../data/npcHours';
-import { npcNaturalLevel, npcWillpowerStop, npcYears, yearsUntil } from '../../engine/npcHours';
+import { npcNaturalLevel, npcWillpowerStop, npcYears, yearsUntil, npcYearsTrained } from '../../engine/npcHours';
 import { levelExact, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { trackedSenseXp } from '../../engine/forceSense';
 import { ageLoss, bodyAgeFromH } from '../../engine/ageing';
@@ -57,6 +57,8 @@ export interface CreationInput {
   variance?: ((skillId: string) => number) | undefined;
   /** NPC generation: the line under a canon figure whose sheet has its Willpower (D-499: sheeted figures are unaffected). */
   sheetedWillpower?: boolean;
+  /** NPC generation: the line under a canon sheet keeps the training day by Human-equivalent age (D-506 is for NPCs without one). */
+  sheeted?: boolean;
   /** NPC generation: skip the talent limit and the rank-minimum validation (levels are what they are). */
   npc?: boolean;
   /**
@@ -279,7 +281,8 @@ export function computeCreation(input: CreationInput): CreationResult {
   const hStart = tStartIn;
   const full: AgeYears | undefined = species.id === 'human' ? undefined : { integral: (row, x, y) => trainingIntegral(species, row, x, y), factor: (row, x) => trainingAgeFactor(species, row, x) };
   // An NPC's training day falls from about 50 on (D-497); the player's never does.
-  const years = input.npc ? npcYears(species, full ?? HUMAN_YEARS) : full;
+  // Without a sheet, every trained skill reads it by years trained and stops (D-506).
+  const years = input.npc ? (input.sheeted ? npcYears(species, full ?? HUMAN_YEARS) : npcYearsTrained(species, full ?? HUMAN_YEARS, hStart, input.trainingStartAge)) : full;
   // Its Willpower training stops after so many years (D-499, D-500), except in the line under a canon sheet's Willpower.
   const ownWillpower = input.npc === true && !input.sheetedWillpower;
   const willpowerYears = ownWillpower ? yearsUntil(years ?? HUMAN_YEARS, npcWillpowerStop(species, input.trainingStartAge, a.startAge)) : years;

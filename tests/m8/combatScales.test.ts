@@ -4,7 +4,7 @@ import { GROUND_UNITS, PLANS } from '../../src/data/ground.config';
 import { MINION_KIND_IDS } from '../../src/data/npcGen.config';
 import { BURNOUT_SHARE, DOGFIGHT, FLEET, FORMATIONS, GUNS_MAX, MANOEUVRE, MANOEUVRES, POWER_EVEN, SHIP_WEAPON } from '../../src/data/shipCombat.config';
 import { autoDogOrders, breakOff, dogfightModifier, dogfightTurn, flown, runDogfight, startDogfight, type DogOrders } from '../../src/engine/dogfight';
-import { autoFleetOrders, changeFormation, commandMods, fighterToughness, fleetMap, fleetRound, fleetSide, formationMatchup, runFleet, startFleet, warheadLoad, wingsOf, type FleetBattle, type FleetOrders, type Wing } from '../../src/engine/fleetBattle';
+import { autoFleetOrders, loseFleetMeditator, changeFormation, commandMods, fighterToughness, fleetMap, fleetRound, fleetSide, formationMatchup, runFleet, startFleet, warheadLoad, wingsOf, type FleetBattle, type FleetOrders, type Wing } from '../../src/engine/fleetBattle';
 import { canFightHere, effectOn, groundForce, groundPhase, groundUnit, killLeader, killMeditator, moraleCheck, planMatchup, runGround, sector, sectorLevel, sectorMods, sectorSide, setDroidControl, standing, startGround, unitDef, unitFire, unitMatchup, unitQuality, type GroundForce, type GroundUnit, type Sector } from '../../src/engine/groundBattle';
 import { seedRng } from '../../src/engine/rng';
 import { angleShields, applyFire, bearing, bestAspect, bridgeExposed, canBeBoarded, damageState, facingsOf, freshest, hitTower, inFight, newShip, passMinutes, rechargePerMinute, setPower, SHIP_CLASSES, shipClass, shipInService, totalShields, towerExposed, volleyOf, warheadBypass } from '../../src/engine/ships';
@@ -401,6 +401,35 @@ describe('fleet battles (section D)', () => {
     const them = fleetSide('B', ships(['isd1'], 'b', 20), { formation: 'slash' });
     expect(commandMods(me, them).map((m) => m.value)).toEqual([2, 1, 2, -2, 1]);
     expect(commandMods(them, me).map((m) => m.value)).toEqual([-2]);
+  });
+  it('battle meditation in a fleet: on the Tactics roll by the Meditation level; losing the meditator forces every crew to check (D-506)', () => {
+    const me = fleetSide('A', ships(['isd1'], 'a'), { formation: 'exchange' });
+    const them = fleetSide('B', ships(['isd1'], 'b'), { formation: 'exchange' });
+    const med = (level: number): number => commandMods({ ...me, meditation: { name: 'Bastila', level, alive: true } }, them).find((m) => m.source === 'battle meditation')?.value ?? 0;
+    expect([med(10), med(40), med(80), med(120)]).toEqual([0, 1, 2, 3]);
+    expect(med(60)).toBeCloseTo(1.5);
+    expect(commandMods({ ...me, meditation: { name: 'Bastila', level: 90, alive: false } }, them).some((m) => m.source === 'battle meditation')).toBe(false);
+    let shaken = 0;
+    let gone = 0;
+    let crews = 0;
+    for (let i = 0; i < 100; i++) {
+      const b = startFleet({ ...me, ships: ships(Array<string>(6).fill('hammerhead'), 'a'), meditation: { name: 'Bastila', level: 90, alive: true } }, them, seedRng(`bm${i}`), { year: -3960 });
+      const after = loseFleetMeditator(b, 'A');
+      expect(after.a.meditation?.alive).toBe(false);
+      expect(after.b).toEqual(b.b);
+      crews += 6;
+      shaken += Object.keys(after.a.shaken).length;
+      gone += after.a.ships.filter((s) => s.gone).length;
+      expect(loseFleetMeditator(after, 'A')).toBe(after);
+    }
+    expect(gone / crews).toBeGreaterThan(0.25);
+    expect(gone / crews).toBeLessThan(0.6);
+    expect(shaken / crews).toBeGreaterThan(0.1);
+    // A shaken crew fires less, for two rounds.
+    const base = startFleet(fleetSide('A', ships(['isd1'], 'a')), fleetSide('B', ships(['isd1'], 'b')), seedRng('sk'), { year: 4 });
+    const hit = (b: FleetBattle): number => 4800 + 2272 - (sum(fleetRound(b, { focus: 'b0' }, { holdFire: true }).b.ships[0]!.shields) + fleetRound(b, { focus: 'b0' }, { holdFire: true }).b.ships[0]!.hull);
+    expect(hit({ ...base, a: { ...base.a, shaken: { a0: 2 } } })).toBeLessThan(hit(base) * 0.7);
+    expect(fleetRound({ ...base, a: { ...base.a, shaken: { a0: 2 } } }).a.shaken).toEqual({ a0: 1 });
   });
   it('reforming takes one or two rounds at a penalty with no bonus; planned changes are free', () => {
     const f = fleetSide('A', ships(['isd1', 'isd1'], 'a'), { formation: 'exchange', tactics: 90 });
