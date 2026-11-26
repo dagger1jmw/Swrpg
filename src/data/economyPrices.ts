@@ -3,6 +3,7 @@
 // first, game stat as the backup, D-464); `tier` says which, and `invented` marks a base no source gives (filled from the class
 // table's damage order or a neighbouring item). The credit is stable across eras: dates move prices only through events
 // (economy.config.ts PRICE_EVENTS). The equipment catalog (spec 22) prices its items through `priceId` on these rows.
+import { DROID_MODELS } from './droidModels';
 import type { ArmorKind, WeaponKind } from './health.config';
 
 /** How location moves the price: manufactured goods follow it in full, food and services half (economy.config LOCATION). */
@@ -122,9 +123,21 @@ export const PRICE_CATALOG: readonly PriceEntry[] = [
   P('medDroid', 'a medical droid', 'manufactured', 2000, 'lore', `${PS}: MD-series c. 2,000 cr`),
   // ---- Contraband ----
   P('spice', 'a dose of spice', 'luxury', 100, 'invented', `${PG} lists spice as goods with no usable unit price`, R),
+  // ---- Droid models (checklist item 7, D-512): one row for each model sold (data/droidModels.ts holds the dates and sources;
+  // the generic rows above stand for the date's model of their kind). Military and assassin models only on the black market.
+  ...DROID_MODELS.filter((m) => m.price !== null && !m.generic).map((m) =>
+    P(`droid:${m.id}`, `a ${m.name}`, 'manufactured', m.price!, m.priceTier === 'game' ? 'game' : m.priceTier === 'lore' ? 'lore' : 'invented', `droidModels.ts: ${m.source}`, m.restricted ? R : {}),
+  ),
 ];
 
 export const PRICE_BY_ID: ReadonlyMap<string, PriceEntry> = new Map(PRICE_CATALOG.map((p) => [p.id, p]));
+
+/** A droid model's designation alone ("a T3", "an R2 unit", "an HK") names its row (D-512). */
+const DROID_DESIGNATIONS: Readonly<Record<string, string>> = Object.fromEntries(
+  DROID_MODELS.filter((m) => m.price !== null && !m.generic)
+    .map((m) => [m.name.split(' ')[0]!.toLowerCase(), `droid:${m.id}`] as const)
+    .filter(([w]) => /\d/.test(w) || w === 'hk'),
+);
 
 /**
  * Plain words the narrator may use, mapped to a catalog row (an item it names maps to a generic class and never gets a price
@@ -155,6 +168,8 @@ export const PRICE_WORDS: Readonly<Record<string, string>> = {
 const STOP = new Set(['a', 'an', 'the', 'of', 'for', 'or', 'set', 'some']);
 const words = (t: string): string[] => t.toLowerCase().replace(/[^a-z0-9\- ]+/g, ' ').split(/\s+/).filter(Boolean);
 const PHRASES: readonly (readonly [readonly string[], string])[] = [
+  // A droid's designation first: "a T7 astromech" is the T7, not the generic astromech (equal lengths keep this order).
+  ...Object.entries(DROID_DESIGNATIONS).map(([k, id]) => [words(k), id] as const),
   ...PRICE_CATALOG.map((p) => [words(p.name.replace(/\(.*\)/, '')).filter((w) => !STOP.has(w)), p.id] as const),
   ...Object.entries(PRICE_WORDS).map(([k, id]) => [words(k), id] as const),
 ]

@@ -65,7 +65,7 @@ describe('the healing fluid by date (D-440)', () => {
   it('kolto is standard, bacta unknown before c. 4100 BBY and a rare import after, until the (pending) switch-over', () => {
     expect(healingFluidAt(BACTA_KNOWN_FROM_YEAR - 1)).toEqual({ standard: 'kolto', bacta: 'unknown', kolto: 'standard' });
     expect(healingFluidAt(-3661)).toEqual({ standard: 'kolto', bacta: 'rare import', kolto: 'standard' });
-    expect(healingFluidAt(BACTA_STANDARD_FROM_YEAR)).toEqual({ standard: 'bacta', bacta: 'standard', kolto: 'cheaper alternative' });
+    expect(healingFluidAt(BACTA_STANDARD_FROM_YEAR)).toEqual({ standard: 'bacta', bacta: 'standard', kolto: 'rare' });
     expect(healingFluidAt(0).standard).toBe('bacta');
   });
 

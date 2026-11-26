@@ -9,21 +9,23 @@ const get = (id: string) => CANON_BY_ID.get(`lore:${id}`)!;
 const DATES = [3681, 3667, 3661, 3653, 3643, 3640, 3630];
 
 describe('rank spans (D-412)', () => {
-  it('every rank starts at an age the role allows, and a first Padawan or acolyte span starts by 30 (adult converts noted)', () => {
+  it('every estimated rank starts at an age the role allows, and a first Padawan or acolyte span starts by 30 (adult converts noted)', () => {
     const bad: string[] = [];
+    const early: string[] = [];
     for (const n of CANON_NPCS) {
-      // On record younger than the role minimum: Thanaton a Lord and Darth from 3,678 (born 3,695, lore); the Barsen'thor
-      // made a Master by the Council in the game's story (3,640).
-      const early = ['lore:darth-thanaton', 'lore:the-barsenthor'];
+      // A rank date on record beats the role minimum (D-512): only estimated spans are held to it.
       for (const r of n.ranks) {
         const age = n.birthBby - r.fromBby;
-        if (age < (ROLE_MIN_AGE[r.role] ?? 0) && !early.includes(n.canonId)) bad.push(`${n.name}: ${r.title} at ${age}`);
+        if (age < (ROLE_MIN_AGE[r.role] ?? 0)) (r.estimate ? bad : early).push(`${n.name}: ${r.title} at ${age}`);
       }
       const first = n.ranks.find((r) => r.role === 'padawan' || r.role === 'sithAcolyte');
       const converts = ['lore:sajar', 'lore:praven'];
       if (first && !converts.includes(n.canonId) && n.birthBby - first.fromBby > 30) bad.push(`${n.name}: first ${first.title} at ${n.birthBby - first.fromBby}`);
     }
     expect(bad).toEqual([]);
+    // On record younger than the role minimum: Thanaton a Lord and Darth from 3,678 (born 3,695); the Barsen'thor a Master
+    // at 28 (3,640); Luke a Master at 30 (the Praxeum, c. 11 ABY).
+    expect(early).toEqual(['Darth Thanaton: Sith Lord at 16', 'Darth Thanaton: Darth at 17', "The Barsen'thor: Jedi Master at 28", 'Luke Skywalker: Jedi Master at 30']);
   });
   it('an estimated birth year carries its basis', () => {
     for (const n of CANON_NPCS) if (n.birthSource === 'estimate') expect(n.birthBasis, n.name).toBeTruthy();

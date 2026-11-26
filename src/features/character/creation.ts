@@ -6,6 +6,7 @@
 // Padawan the plan splits the 2 h master session and the 1 h solo hour among any forms, and each form's
 // first phase starts it at 0.75 x the highest form (the fundamentals transfer). Variance is off.
 import { orderHomelessAt, orderSeatAt } from '../../data/orderSeats';
+import { playerDroidRefusal } from '../../engine/droids';
 import { STUB_INSTRUCTOR_LEAD, STUB_MASTER_LEAD } from '../../data/stubs';
 import { gainE, sparringE } from '../../engine/appliedExperience';
 import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
@@ -217,7 +218,10 @@ export function computeCreation(input: CreationInput): CreationResult {
   const tNow = species ? trainingAge(species, lived) : age;
   const tStartIn = species ? trainingAge(species, input.trainingStartAge) : input.trainingStartAge;
   if (!a) errors.push(`Unknown archetype ${input.archetype}.`);
-  if (!species) errors.push(`Unknown species ${input.speciesId}.`);
+  // Players can't play a droid (Jared, D-512): droids are companions and NPCs only.
+  const droid = playerDroidRefusal(input.speciesId, input.npc === true);
+  if (droid) errors.push(droid);
+  else if (!species) errors.push(`Unknown species ${input.speciesId}.`);
   // D-399 [20], [21]: players pick from the species offered for the start year (NPCs may be any species in the table).
   else if (!input.npc && !speciesOfferedAt(dateFromAbsDay(input.startDay).year).some((s) => s.id === species.id))
     errors.push(species.playable ? `${species.name} are not known to the galaxy in ${formatYear(dateFromAbsDay(input.startDay).year)}.` : `${species.name} are not offered at character creation.`);

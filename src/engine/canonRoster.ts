@@ -102,9 +102,10 @@ export function canonAbsence(n: CanonNpc, bby: number): Absence | null {
   const off = canonOffBoard(n, bby);
   if (off === 'unborn' || off === 'dead') return off;
   if (off) return 'unavailable';
-  // Present means present in a role: a child before their first rank span (or too young for it) is not.
+  // Present means present in a role: a child before their first rank span (or too young for it) is not. A rank date the
+  // lore records beats the role's minimum age (Jared, 2026-11-25; D-512): only an estimated span is held to it.
   const rank = canonRankAt(n, bby);
-  if (!rank || canonAgeAt(n, bby) < (ROLE_MIN_AGE[rank.role] ?? 0)) return 'tooYoung';
+  if (!rank || (rank.estimate && canonAgeAt(n, bby) < (ROLE_MIN_AGE[rank.role] ?? 0))) return 'tooYoung';
   return null;
 }
 

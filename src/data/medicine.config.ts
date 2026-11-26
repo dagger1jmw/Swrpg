@@ -169,15 +169,15 @@ export const MEDICAL_PRICE = {
 } as const;
 
 /**
- * A tank a day by fluid (invented): the standard fluid of the date at `standard`, the other at `rare` (bacta before the
- * switch-over, a dearer import from Thyferra) or `cheap` (kolto after it, the cheaper option). Bacta is the dearer of the two
- * before the switch-over and the cheaper standard after it.
+ * A tank a day by fluid (Jared, 25 Nov 2026: "about 400 a day for bacta, 600 for kolto, in every era"): bacta is the cheaper
+ * in every era. What changes by date is only which fluid can be had where (`RARE_FLUID_AT`).
  */
-export const TANK_DAY = { standard: 400, rare: 1200, cheap: 300 } as const;
+export const TANK_DAY = { bacta: 400, kolto: 600 } as const;
 /**
- * Where a bacta tank can be had before the switch-over, when bacta is a rare import (invented): Core worlds and the Temple's
- * Halls of Healing. Elsewhere a bacta tank asked for is a kolto tank. After the switch-over bacta is everywhere a tank is.
+ * Where the date's rare fluid can be had (Jared, 25 Nov 2026; the places are invented): before the switch-over bacta is the
+ * rare one, after it kolto. Either way the rare fluid is had only on Core worlds and at the Temple's Halls of Healing;
+ * elsewhere a tank of it asked for is a tank of the date's standard fluid.
  */
-export const BACTA_RARE_AT = { zones: ['core'] as readonly string[], places: ['temple'] as readonly CarePlace[] } as const;
+export const RARE_FLUID_AT = { zones: ['core'] as readonly string[], places: ['temple'] as readonly CarePlace[] } as const;
 /** Hours a tank needs at least (bacta: minor in 6 hours, health §7). */
 export const TANK_MIN_HOURS = 6;

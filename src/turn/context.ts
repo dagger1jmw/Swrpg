@@ -12,6 +12,7 @@ import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engi
 import { COVERT_ESCALATION, ORDER_POWER_RULES } from '../data/orderPowerRules';
 import { onRecordAt, onRecordFor } from '../data/canonPlacements';
 import { blockadeLines, describeTravel } from './travel';
+import { selectDroidLines } from '../features/droids/selectors';
 import { selectEconomyLines } from '../features/economy/selectors';
 import { rankErasAt } from '../data/eraRanks';
 import { closedWorlds, mapSide, WORLD_STATES, worldStateAt } from '../data/galaxyMap';
@@ -316,6 +317,7 @@ export function stateBlock(
     ...worldLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
     ...blockadeLines(state),
     ...selectEconomyLines(state),
+    ...selectDroidLines(state),
     ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), namedCanonIds(state, focus, playerText, -dateFromAbsDay(now.day).year)),
     ...holocronLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), playerText),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,
@@ -575,7 +577,7 @@ const CARE_TEXT: Readonly<Record<string, string>> = {
 function careText(kind: string, year: number | undefined): string {
   if ((kind !== 'bacta' && kind !== 'kolto') || year === undefined) return CARE_TEXT[kind] ?? kind;
   const f = healingFluidAt(year);
-  return `${CARE_TEXT[kind]!} (${f.standard} is the standard healing fluid of this date${f.bacta === 'rare import' ? '; bacta is a rare, dearer import' : ''})`;
+  return `${CARE_TEXT[kind]!} (${f.standard} is the standard healing fluid of this date${f.bacta === 'rare import' ? '; bacta is a rare import, had only in the Core and at the Temple' : f.kolto === 'rare' ? '; kolto is rare, had only in the Core and at the Temple' : ''})`;
 }
 function careLine(draft: TurnDraft, year?: number): string {
   const care = [...new Set(careApplied(draft))];

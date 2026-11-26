@@ -58,12 +58,14 @@ import {
   type Loan,
   type Wallet,
 } from '../../engine/economy';
+import { modelForPriceRow, modelRefusal, priceRowOf } from '../../engine/droids';
 import { efficiency } from '../../engine/fatigue';
 import { basicRoll, checkRating, type LevelInputs } from '../../engine/rolls';
 import { nextFloat, type RngState } from '../../engine/rng';
 import type { GameState } from '../../state/gameState';
 import type { ApplyCtx, FeatureModule, GameEvent, HandleResult, InitCtx } from '../../state/types';
 import { selectPath } from '../character/selectors';
+import { selectDroidForSale } from '../droids/selectors';
 import { selectHasFlag } from '../flags/selectors';
 import { selectFatigue, selectIsSpent, selectLastingPenalty, selectWoundPenalty } from '../health/selectors';
 import { selectNpcLevel } from '../npcs/selectors';
@@ -195,12 +197,32 @@ type R = HandleResult<EconomySlice>;
 function handleTrade(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState>): R {
   const s = ctx.state;
   const id = resolvePriceId(String(e['item']));
-  const item = id ? PRICE_BY_ID.get(id) : undefined;
+  let item = id ? PRICE_BY_ID.get(id) : undefined;
   if (!item) return { reject: `no price for "${String(e['item'])}": name a common good or service in plain words` };
-  const qty = Math.max(1, Math.min(20, Number(e['qty'] ?? 1)));
+  let qty = Math.max(1, Math.min(20, Number(e['qty'] ?? 1)));
   const dir = String(e['dir']);
   const day = today(ctx);
   const npcId = typeof e['npcRef'] === 'string' ? (e['npcRef'] as string) : null;
+  // Droids (D-512): a generic row is the date's model of its kind; a model must be made in this year; a sale needs an owned
+  // droid (a stolen one goes to a fence). The droids feature records the unit (droidAcquired, droidSold).
+  const droid = modelForPriceRow(item.id, dateFromAbsDay(day).year);
+  const droidEmit: GameEvent[] = [];
+  if (droid) {
+    if (dir === 'issue') return { reject: 'droids are not issued' };
+    if (dir === 'buy') {
+      const refusal = modelRefusal(droid, dateFromAbsDay(day).year, true);
+      if (refusal) return { reject: refusal };
+      item = PRICE_BY_ID.get(priceRowOf(droid)) ?? item;
+      for (let i = 0; i < qty; i++) droidEmit.push({ type: 'droidAcquired', modelId: droid.id });
+    } else {
+      const unit = selectDroidForSale(s, item.id);
+      if (!unit) return { reject: `no ${droid.name} owned to sell` };
+      if (unit.stolen && e['stolen'] !== true) return handleTrade(slice, { ...e, stolen: true }, ctx);
+      qty = 1;
+      item = PRICE_BY_ID.get(priceRowOf({ id: unit.modelId })) ?? item;
+      droidEmit.push({ type: 'droidSold', unitId: unit.id });
+    }
+  }
   if (dir === 'issue') {
     const j = slice.job;
     const jedi = j.kind === 'order' && (JEDI_MONEY.quartermaster.includes(item.id) || (['knight', 'master'].includes(selectRank(s)) && JEDI_MONEY.quartermasterKnight.includes(item.id)));
@@ -225,7 +247,7 @@ function handleTrade(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState>
     const cur = selectLocalCurrency(s);
     const next = { ...slice, wallet: receive(slice.wallet, total, cur), log: logged(slice, day, total, cur, `sold ${item.name}${qty > 1 ? ` x${qty}` : ''} to ${fence ? 'a fence' : 'a dealer'}`) };
     notes.push(`sold ${item.name} x${qty} to ${fence ? 'a fence' : 'a dealer'} for ${fmt(total)} cr`);
-    return { slice: next, rng, notes, emit: jediConsequences(s, next, notes) };
+    return { slice: next, rng, notes, emit: [...droidEmit, ...jediConsequences(s, next, notes)] };
   }
   // Buying.
   const list = listPrice(item, selectMarket(s));
@@ -237,7 +259,7 @@ function handleTrade(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState>
   if (!wallet) return { reject: `cannot afford ${item.name} x${qty}: ${fmt(total)} cr here${item.legality === 'restricted' ? ' on the black market' : ''}` };
   const own = total - fromFunds;
   // A droid (or a ship) taken in play is never a personal holding (D-511); issued gear and mission funds never reach here.
-  const counts = jedi && own > 0 && (item.kind === 'manufactured' || item.kind === 'military' || item.kind === 'luxury') && !JEDI_MONEY.notHoldings.includes(item.id);
+  const counts = jedi && own > 0 && (item.kind === 'manufactured' || item.kind === 'military' || item.kind === 'luxury') && !JEDI_MONEY.notHoldings.includes(item.id) && !droid;
   const next: EconomySlice = {
     ...slice,
     wallet,
@@ -246,7 +268,7 @@ function handleTrade(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState>
     log: logged(slice, day, -total, a.hutt && slice.wallet.hutt > wallet.hutt ? 'hutt' : a.prefer, `bought ${item.name}${qty > 1 ? ` x${qty}` : ''}${item.legality === 'restricted' ? ' (black market)' : ''}${fromFunds ? ' (mission funds)' : ''}`),
   };
   notes.push(`bought ${item.name} x${qty} for ${fmt(total)} cr${item.legality === 'restricted' ? ' on the black market' : ''}`);
-  return { slice: next, rng, notes, emit: jediConsequences(s, next, notes) };
+  return { slice: next, rng, notes, emit: [...droidEmit, ...jediConsequences(s, next, notes)] };
 }
 
 /** Pay by size: small, fair, large (lavish counts as large). */

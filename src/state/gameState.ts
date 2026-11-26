@@ -2,6 +2,7 @@
 import type { CharacterSlice } from '../features/character/character';
 import type { ClockSlice } from '../features/clock/clock';
 import type { CombatSlice } from '../features/combat/combat';
+import type { DroidsSlice } from '../features/droids/droids';
 import type { EconomySlice } from '../features/economy/economy';
 import type { FlagsSlice } from '../features/flags/flags';
 import type { HealthSlice } from '../features/health/health';
@@ -34,5 +35,6 @@ export type GameState = {
   ranks: RanksSlice;
   world: WorldSlice;
   economy: EconomySlice;
+  droids: DroidsSlice;
   pacing: PacingSlice;
 };

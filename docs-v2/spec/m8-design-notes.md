@@ -1,6 +1,6 @@
 # SWRPG M8 design notes
 
-> Exported from the Claude Docs "SWRPG M8 design notes" (revision 60) on 25 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
+> Exported from the Claude Docs "SWRPG M8 design notes" (revision 68) on 25 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
 
 Nov 23, 2026 · @Jared Wright
 
@@ -512,7 +512,7 @@ The Sith archetypes pass their gates today. Once this is built, Claude Code re-m
 
 ## Medicine
 
-**Built: docs-v2/spec/medicine.md (D-511).**
+As built: [medicine.md](medicine.md) (M8 item 6, D-511). Ruled after the build (Jared, 25 Nov 2026): bacta is cheaper than kolto in every era (tank about 400 a day against kolto's 600); what changes by date is availability (before the switch-over bacta only on Core worlds and at the Temple; after it, kolto is rare).
 
 Builds on health.md §7 (base healing times and rate multipliers stay), SW\_Kolto\_Bacta.md and the wound depth rules above. The code sets care levels, times, outcomes and costs; the narrator describes them.
 
@@ -804,6 +804,8 @@ Agreed by Jared (2026-11-24). Fires only when Sidious escapes his office alive a
 
 ## Droids
 
+As built: [droids.md](droids.md) (M8 item 7, D-512).
+
 Agreed by Jared (2026-11-23). Lore: SW\_Droids\_Classes.md (classes, restraining bolts, memory wipes, legal status, the Great Droid Revolution, Ionize, Old Republic models with prices).
 
 ### Droids as data
@@ -968,3 +970,203 @@ Audit what trains Melee, Blaster and Stealth today, then re-measure the archetyp
 - Duel tiers still rule.
 
 Sources: power from *Threats of the Galaxy* and *Hero's Guide* (RPG books); speed and anticipation from the game guides and *The Clone Wars Campaign Guide*: mechanics inputs only, never narrator lore.
+
+## Starting traits and formative events (character creation)
+
+Agreed by Jared, 25 Nov 2026. Traits give a character a personality and a history the code can use; formative events build them in play-like scenes before the campaign starts. Both extend character-creation.md (talents, background flags, backstory facts, philosophy), which has no personality today. Catalogs are drafted with Jared; numbers are set and tagged at build time.
+
+### Traits
+
+- **What a trait is:** a backstory fact with a small mechanical hook and a narrator note. Every trait cuts both ways. Example, *Hot-headed*: +1 in the advantage-track contest when pressing an attack; −2 Willpower against provocation; more dark pressure when angered.
+- **Four kinds:** origin (how you were raised: Temple-raised, Coruscant underlevels, noble house, military family, farm world, slave-born, refugee); temperament (patient, hot-headed, curious, stubborn, compassionate, ambitious, reckless, cautious); scars and experience (war veteran, massacre survivor, betrayed, lost family, former prisoner); ties (a rival, a debt, a contact, a protector, a family you still see).
+- **At the start:** one origin, one temperament, one scar or tie; an optional fourth with a flaw-heavy trait.
+- **Weight:** small. ±1–2 on rolls in the trait's situation, ±10–20% learning speed on linked activities, reaction shifts with specific factions or kinds of NPC. Never touches the duel tiers or the 4.0× pace cap. Separate from talents: no aptitude traits (a "gifted pilot" is a talent).
+- **Dated and gated:** traits are dated data, filtered by path, species, homeworld and era ("Sacking of Coruscant survivor" only for someone alive there in 3,653; Temple-raised Jedi choose from a narrower origin list). Ties link to a generated NPC, or a canon one where the lore allows.
+- **Change in play:** slowly, through recorded events only: a fear overcome after facing it several times; a betrayal or massacre adds a scar; a tie ends when the person dies. The narrator may suggest a change; the code decides.
+- **Jedi and alignment:** some traits press on Jedi teaching ("Attached to family" raises attachment pressure; "Compassionate" eases dark pressure from mercy), through the alignment system.
+- **NPCs:** canon figures get traits from the lore (Anakin impatient and attached; Obi-Wan patient and dry-witted); generated NPCs get one or two at random. The narrator plays them consistently; the effects apply to NPCs too.
+- **Choosing:** from a list filtered as above, with a "suggest from my backstory" option and the formative events' suggestions.
+- **Catalog:** about 35–40 traits to start, drafted with Jared, built as data.
+
+### Formative events (the growing-up quiz)
+
+- **What it is:** short "this happened, what did you do?" scenes covering the years before play. Example: an initiate finds an Archives text describing a dark-side technique: ask a Master, look for more, or try it (a choke, yes; lightning, never, beyond an initiate). A friend wants to prank an instructor: join, stay out, or report him. Sneaking out at night to cause mischief around the Temple.
+- **When:** the beginning stage only, once. A character starting older gets one round at creation covering childhood to the start age; a youngling start plays the first days, and when the player skips ahead (to the Trials, say) the quiz covers the skipped years. Never again after that.
+- **How many:** one or two per stage covered (Initiate, early Padawan, late Padawan): 4–8 scenes.
+- **Fit:** events are dated data by path, age and date (Jedi Temple scenes; Sith academy rivalry and cruelty; cadet barracks and a first battle; street gangs and survival). Options fit what a child can do. A youngling in 3,653 may live through the Sacking.
+- **What an answer does (never combat stats or skill numbers):** a backstory fact the narrator can use later; trait leanings, with traits suggested at the end for the player to accept or swap; a small alignment and dark-pressure nudge (about ±2 an event, ±10 overall; trying the choke adds a little dark pressure and a "knows of the technique" flag, not the power); relationships (the friend becomes an NPC with bond or rivalry from what you did; reporting him earns an instructor's trust and a peer's resentment); a little standing with the Order, academy or unit.
+- **Answers:** 3 or 4 fixed choices, plus an optional one-line note of the player's own for narrator colour only. The code decides every effect.
+- **NPCs** don't take it.
+- **Pool:** about 30 events to start, drafted with Jared (the Jedi youngling and Padawan set first, then Sith, military and civilian), built as data.
+
+### Trait catalog (agreed by Jared, 25 Nov 2026; numbers are placeholders, tuned and tagged at build)
+
+44 traits: 12 origins, 14 temperaments, 10 scars, 8 ties. A starting character takes one origin, one temperament and one scar or tie.
+
+**Origins** (filtered by path, species, homeworld and date). **Temple-raised needs arrival at the Temple before age 10;** a Jedi who arrived at 10 or older takes an ordinary origin for the life before.
+
+| Trait | Good side | Bad side | Narrator note |
+| --- | --- | --- | --- |
+| Temple-raised (Jedi; arrived before 10) | Jedi Code and lore study +10%; trusted inside the Temple | −2 with criminals and the street; naive about money | Sheltered, formal, knows no other home |
+| Coruscant underlevels | +1 Stealth and Investigation in cities; street contacts | Upper-level NPCs cool; low start money | Streetwise, wary of uniforms |
+| Noble house | +2 Charisma with elites; start money | Commoners and criminals distrust; family obligations | Polished; upholds a name |
+| Military family | Tactics study +10%; +1 Willpower against fear | −1 improvising outside doctrine | Respects rank |
+| Farm or frontier world | Endurance training +10%; +1 tracking and survival in the wild | −1 with Core etiquette and elites | Plain-spoken, practical |
+| Slave-born (where slavery exists on the date) | +2 Willpower against domination and pain | Slavers may recognise you; distrust of authority | Freedom above all |
+| Refugee | +1 adapting to new places; extra languages | Trust comes slowly; low start money | Has lost a home once |
+| Spacer-born | Piloting and Repair learning +10% | −1 Charisma with planetside authorities | At home aboard a ship |
+| Imperial-born (Sith Empire) | Knows Imperial custom; Imperials react better | Republic suspicion | Raised under the Emperor's order |
+| Academy-raised (Sith) | +2 Willpower against pain | Bonds form more slowly | Trusts no one completely |
+| Mandalorian clan-born | Melee and armour learning +10%; clan ties | Outsiders wary; bound by clan honour | Measures people by deeds |
+| Criminal family | Fences pay a little more; underworld contacts | Law enforcement reacts badly | Knows how deals work |
+
+**Temperaments** (can shift in play)
+
+| Trait | Good side | Bad side | Narrator note |
+| --- | --- | --- | --- |
+| Hot-headed | +1 on the advantage track when pressing an attack | −2 Willpower against provocation; more dark pressure when angry | Quick to anger and act |
+| Patient | Meditation +10%; +2 Willpower against provocation | −1 in the first exchange of a sudden fight | Waits, watches, then moves |
+| Curious | Study and Investigation +10–15% | More temptation hooks (forbidden knowledge) | Asks one question too many |
+| Stubborn | +2 against persuasion and mind tricks | −1 in negotiations needing compromise | Hard to move once decided |
+| Compassionate | Mercy eases dark pressure; +1 with the suffering | More attachment pressure; −2 against pity ploys | Can't walk past someone in need |
+| Ambitious | XP from deeds and standing gains +10% | Elders and rivals wary of your eagerness. Not a dark trait in itself (Jared): ambition can mean striving to be a great Jedi; dark pressure comes only from dark acts done for it (sabotage, betrayal) | Wants to rise, and shows it |
+| Reckless | +1 on bold, risky moves | −1 on defence; more injuries | Acts first |
+| Cautious | +1 spotting traps and ambushes | −1 on bold moves; slow under pressure | Plans for the worst |
+| Witty | +1 in social contests | Formal and proud NPCs take offence | Jokes when tense |
+| Disciplined | Drills +5%; less training fatigue | −1 when things turn chaotic | Keeps the routine |
+| Proud | +2 Willpower against intimidation | −2 against taunts in a duel; can't back down | Never shows weakness |
+| Loyal | Bonds with companions grow faster | Can be worked through friends; betrayal cuts deeper | Stands by their people |
+| Reserved | Meditation and Stealth +5% | Relationships grow more slowly | Quiet, hard to read |
+| Idealistic | +2 Willpower against despair | A broken ideal can become a scar | Believes things can be better |
+
+**Scars and experience** (filtered by date and what the character lived through)
+
+| Trait | Good side | Bad side | Narrator note |
+| --- | --- | --- | --- |
+| War veteran (needs war years) | +2 Willpower against fear in battle | Nightmares: a little more fatigue; −1 under bombardment | Has seen the front |
+| Massacre survivor (dated: the Sacking, Ossus, Order 66) | +1 spotting ambushes | Hatred: dark pressure around those responsible | Survived when others didn't |
+| Betrayed by a friend | +2 sensing lies and deception | Trust and bonds grow more slowly | Doesn't forget |
+| Lost family | +2 Willpower (resolve) | Grief: dark pressure at reminders; an attachment test for Jedi | Carries the loss |
+| Former prisoner | +2 Willpower against interrogation and hardship | −1 when confined or captured again | Knows what a cell is like |
+| Brush with the dark side | +2 sensing dark-side users | Dark pressure starts a little higher; teachers keep watch | Knows the pull from inside |
+| Outcast or exile | +1 self-reliance when alone | The group you left is hostile | Belongs nowhere fully |
+| First kill, young | Steadier in a first lethal fight | Guilt; weighs on a Jedi's alignment | Remembers the face |
+| Disgraced (a public failure) | XP +5% from proving yourself | Lower starting standing | Has something to prove |
+| Disaster survivor (a crash, plague, dead world) | +1 against despair; endurance in hardship | A trigger fear tied to the disaster | Lived through the worst day |
+
+**Ties** (each a real NPC: generated, or canon where the lore allows)
+
+| Trait | Good side | Bad side | Narrator note |
+| --- | --- | --- | --- |
+| Rival | XP +10% after the rival outdoes you | Works against you when they can | Always measuring against you |
+| Old debt | Start money, gear or a ship | A creditor (economy debt rules) | Someone is owed |
+| Contact | Information and leads in their trade | Favours owed back | Knows a person who knows |
+| Protector or patron | Intercedes once in a crisis | Obligation; their enemies become yours | Someone powerful watches over you |
+| Family you still see | A safe haven and support | Leverage for enemies; attachment pressure for Jedi | Home still exists |
+| Ward (a sibling, an orphan) | +2 Willpower defending them | They can be threatened or taken | Someone depends on you |
+| Forbidden bond (a Jedi's secret attachment) | Strong motive; Willpower when they're in danger | Heavy attachment pressure; must stay secret | A love the Order wouldn't allow |
+| Outside mentor | Teacher's bonus in their field | Their reputation follows you | Taught by someone the Order didn't choose |
+
+### Formative events: Jedi Initiate set (ages about 5–13; agreed by Jared, 25 Nov 2026)
+
+Key: *leans* = traits suggested at the end; A = alignment nudge; S = standing with the Order. A character covering the Initiate years draws 2–4; some depend on age (the Gathering, the selection).
+
+| # | Event | Choices and effects |
+| --- | --- | --- |
+| 1 | **The forbidden text.** An Archives text describes a dark-side technique (a choke). | Take it to a Master: leans Disciplined or Idealistic; S +1; A +1. Look for more in secret: leans Curious; flag "knows of the technique"; A −1. Try it on a training droid: leans Curious or Reckless; same flag; dark pressure +2; A −2. Put it back and forget it: no lean. |
+| 2 | **The prank.** A friend wants to prank your instructor. | Join in: leans Witty or Loyal; bond up; if caught (a roll), S −1. Stay out: leans Cautious or Reserved. Report him: leans Disciplined; the instructor trusts you; the friend turns rival. Talk him out of it: leans Patient or Compassionate; small bond. |
+| 3 | **Out after curfew.** A friend wants to sneak out at night. | Go and cause mischief: leans Reckless or Witty; bond up; if caught, S −1. Go but only explore (find somewhere hidden in the Temple): leans Curious; a backstory fact. Refuse: leans Disciplined. |
+| 4 | **Lost and mocked.** A clanmate beats you sparring and gloats. | Train harder alone: leans Disciplined or Proud; the clanmate can become a Rival tie. Strike back in anger: leans Hot-headed; dark pressure +1; A −1. Ask the instructor what went wrong: leans Patient. Laugh it off: leans Witty. |
+| 5 | **A friend falling behind.** A clanmate may go to the Service Corps. | Help them at your own cost: leans Compassionate or Loyal; strong bond. Focus on yourself: leans Ambitious. Tell a Master: leans Disciplined. |
+| 6 | **The Gathering.** A vision in the crystal cave frightens you. | Face it and press on: leans Idealistic or Proud. Leave, then try again: leans Patient or Cautious. It shows something dark and you never tell: leans Reserved; flag "a vision kept secret". |
+| 7 | **A tie from outside.** Word from your birth family (if you remember them), or a friendship the Masters warn about deepens. | Keep in touch in secret: leans Loyal; attachment pressure; points to the Forbidden bond or Family tie. Tell the Masters and let go: leans Disciplined; A +1. Ask openly what's allowed: leans Idealistic. |
+| 8 | **Not yet chosen.** Nearly 13 and no Knight has taken you. | Shine at the tournament: leans Ambitious or Proud. Meditate and trust the Force: leans Patient. Approach a Knight yourself: leans Witty or Ambitious; shapes who your master becomes. |
+| 9 | *Dated:* **The Sacking of Coruscant** (3,653, only if at the Temple). | Hide the younger ones: leans Compassionate or Loyal. Fight: leans Reckless or Hot-headed. Flee as ordered: leans Disciplined. All three give the Massacre survivor scar. |
+
+### Formative events: Jedi Padawan set (ages about 13–20; agreed by Jared, 25 Nov 2026)
+
+Same key. A character covering the Padawan years draws 3–5.
+
+| # | Event | Choices and effects |
+| --- | --- | --- |
+| 1 | **Your master's flaw.** You see your master break a rule (a lie to the Council, too much force, a hidden attachment). | Confront them privately: leans Idealistic or Stubborn; the bond is tested. Report it to the Council: leans Disciplined; S +1; the bond cools. Keep their secret: leans Loyal; bond up. Copy them: leans Reckless; A −1. |
+| 2 | **The pirate who surrenders.** You disarm a pirate who just killed a villager. | Take him in alive: leans Disciplined or Compassionate; A +1. Let him go: leans Compassionate. Strike him down in anger: leans Hot-headed; A −2; dark pressure +2; the First kill scar. |
+| 3 | **The grateful stranger.** A local offers a rich reward. | Decline: leans Disciplined or Idealistic. Accept quietly: no temperament lean; a hidden mark under the economy's Jedi reward rule. Accept and give it to the needy: leans Compassionate; a backstory fact. |
+| 4 | **Falling for someone** on a mission world, or a fellow Padawan. | End it: leans Disciplined; A +1. Keep it secret: the Forbidden bond tie; attachment pressure. Tell your master: leans Idealistic; their reaction becomes a backstory fact. |
+| 5 | **The order to withdraw**, leaving villagers behind. | Obey: leans Disciplined; a backstory fact. Disobey and save them: leans Compassionate or Reckless; S −1; the bond with your master is tested. Find a third way: leans Witty or Cautious; a short roll decides how well it worked. |
+| 6 | **Your mistake.** People die on a mission because of something you did. | Confess everything: leans Idealistic; S −1 now, trust later. Blame circumstances: leans Proud; A −1. Bury yourself in training: leans Disciplined or Reserved. If public: the Disgraced scar. |
+| 7 | **The dark warrior.** A dark-side user beats you and offers to teach you. | Refuse and meditate it away: leans Patient; A +1. Win the rematch through anger: leans Hot-headed; dark pressure +3; the Brush with the dark side scar. Run and tell no one: leans Cautious or Reserved; flag "a dark encounter kept secret". |
+| 8 | **The rival Padawan** is chosen ahead of you for an honour. | Beat them fairly next time: leans Ambitious or Proud; can become a Rival tie. Congratulate them: leans Patient or Compassionate; a friendship. Undermine them: leans Ambitious; A −2 (for the act); Rival tie. |
+| 9 | **Injustice the Republic tolerates:** slavery ignored for a treaty. | Follow orders: leans Disciplined. Free them in secret: leans Idealistic or Reckless; S −1 if found out; Slave-born NPCs react well. Take it to the Council: leans Idealistic; S +1. |
+| 10 | *Dated:* **Your first battle**, if the Padawan years fall in a war. | Lead from the front: leans Reckless or Proud. Protect the wounded: leans Compassionate. Hold the line as ordered: leans Disciplined. All three give the War veteran scar. |
+
+### Formative events: Sith acolyte set (Korriban, ages about 8–18; agreed by Jared, 25 Nov 2026)
+
+Same key; S = standing with your overseer, later your Lord. Sith start at alignment −30, so a light choice moves toward the light, and several can seed a redemption.
+
+| # | Event | Choices and effects |
+| --- | --- | --- |
+| 1 | **The rival's plot.** An acolyte means to frame you for a theft. | Strike first and frame him: leans Ambitious or Cautious; A −1; S +1. Expose him to the overseer: leans Disciplined; S +1; he becomes a Rival tie. Confront him openly: leans Proud or Hot-headed; a duel (a roll). Warn him off quietly: leans Witty; he owes you. |
+| 2 | **The slave who helps.** A slave sneaks you food after a punishment. | Protect them in return: leans Compassionate; A +2; a Ward tie; S −1 if seen. Ignore it: leans Reserved. Report them for favour: leans Ambitious; A −2; S +1. |
+| 3 | **The tomb's whisper.** A spirit offers power during a tomb trial. | Bargain with it: leans Ambitious or Curious; dark pressure +3; flag "a spirit's bargain". Take only what you came for: leans Disciplined or Cautious. Take a relic and hide it: leans Curious or Reserved; flag "a hidden relic". |
+| 4 | **Ambushed.** A rival attacks in the dark and you win. | Kill him: leans Hot-headed or Proud; A −2; the First kill scar. Spare him and own him: leans Witty or Cautious; an ally or Contact tie. Drag him before the overseer: leans Disciplined; S +1. |
+| 5 | **The lesson in pain.** An overseer orders you to torture a prisoner. | Obey: leans Disciplined; A −3; S +1. Refuse: leans Idealistic or Stubborn; A +2; S −2; punished (Former prisoner or Betrayed scar, by roll). Fake it convincingly: leans Witty or Compassionate; A +1; caught on a roll. |
+| 6 | **The runaway.** A fellow acolyte tries to flee. | Help them escape: leans Compassionate or Loyal; A +2; S −2 if caught. Turn them in: leans Ambitious or Disciplined; A −1; S +1. Look away: leans Reserved or Cautious. |
+| 7 | **The forbidden holocron** holds a technique beyond your rank. | Hand it to the overseer: leans Disciplined; S +1. Study it in secret: leans Curious or Ambitious; flag "knows of the technique". Trade it to a Lord: leans Witty or Ambitious; a Protector or patron tie. |
+| 8 | **Chosen as an apprentice.** A Lord is choosing. | Show ruthlessness: leans Hot-headed or Proud; A −1. Show cunning: leans Witty or Cautious. Show restraint and control: leans Patient or Disciplined. Shapes which Lord takes you. |
+| 9 | *Dated:* **Your first battle**, if the academy years fall in a war. | Lead the charge: leans Reckless or Proud. Kill without hesitation: leans Disciplined; A −1. Save a comrade: leans Loyal; A +1. All three give the War veteran scar. |
+
+### Formative events: military set (cadet and early service, ages about 14–20; agreed by Jared, 25 Nov 2026)
+
+Same key; S = standing with your unit or command. Republic or Imperial academies, Carida, Prefsbelt and the like.
+
+| # | Event | Choices and effects |
+| --- | --- | --- |
+| 1 | **The hazing.** Senior cadets torment a struggling recruit. | Join in: leans Proud or Ambitious; A −1. Step in and stop it: leans Compassionate or Idealistic; the recruit becomes a friend or Ward; the seniors resent you. Report it: leans Disciplined; S +1; the seniors resent you. Stay out: leans Reserved or Cautious. |
+| 2 | **The stolen exam.** A squadmate has the answers. | Use them: leans Ambitious or Reckless; caught on a roll (Disgraced scar). Report it: leans Disciplined or Idealistic; S +1; the squad distrusts you. Refuse quietly and study: leans Disciplined or Proud. |
+| 3 | **The unfair punishment.** The whole squad punished for one cadet's mistake. | Take the blame: leans Loyal; strong squad bond; S −1. Keep quiet and endure: leans Disciplined or Patient. Protest: leans Stubborn or Idealistic; the instructor marks you (a roll). |
+| 4 | **The exercise gone wrong.** A squadmate badly hurt. | Finish the objective: leans Disciplined or Ambitious; S +1; the squadmate cools. Carry them back: leans Loyal or Compassionate; strong bond; the exercise failed. Improvise and do both: leans Witty or Reckless; a roll decides. |
+| 5 | **The illegal order.** First posting: force ordered against unarmed civilians. | Obey: leans Disciplined; A −3. Refuse: leans Idealistic or Stubborn; A +2; S −2; possibly the Outcast or exile scar. Stall and find another way: leans Witty or Cautious; A +1; a roll decides. |
+| 6 | **The barracks black market.** A sergeant offers you a cut. | Take it: leans Ambitious; a Contact tie; caught on a roll. Report it: leans Disciplined; S +1; enemies in the ranks. Buy but stay out of the trade: leans Witty. |
+| 7 | **The friend who wants to desert.** | Help them go: leans Loyal or Compassionate; S −2 if found out. Talk them into staying: leans Patient or Loyal; bond up. Report them: leans Disciplined; S +1; they become a Rival or hate you. |
+| 8 | **The patron's offer.** A highborn officer offers advancement for loyalty. | Accept: the Protector or patron tie. Decline: leans Proud or Idealistic. Accept and keep your own counsel: leans Witty or Cautious; the patron tie, which can turn later. |
+| 9 | *Dated:* **Your first battle**, if service falls in a war. | Lead from the front: leans Reckless or Proud. Protect the wounded: leans Compassionate. Hold the line: leans Disciplined. All three give the War veteran scar. |
+
+### Formative events: civilian set (childhood to about 18; agreed by Jared, 25 Nov 2026)
+
+Same key; S = standing in your community (the street, your house, your crew). A civilian draws 3–5: mostly from their upbringing's list, plus one or two from "Anyone".
+
+**Street kid** (underlevels, slums, Nar Shaddaa)
+
+| # | Event | Choices and effects |
+| --- | --- | --- |
+| 1 | **The gang's test.** Steal from a shopkeeper who's been kind to you, and the gang takes you in. | Do it: leans Ambitious or Reckless; a Contact tie in the gang; A −1. Refuse: leans Idealistic or Stubborn; the gang makes life hard. Fake it and warn the shopkeeper: leans Witty or Compassionate; a roll decides; the shopkeeper becomes a Protector or Contact. |
+| 2 | **The security sweep.** You and a friend are caught; one can run. | Take the fall: leans Loyal; the Former prisoner scar; strong bond. Run yourself: leans Cautious; the friend may resent you. Talk your way out: leans Witty; a roll decides. |
+| 3 | **The hungry younger kid** on your street. | Share what you have: leans Compassionate; a Ward tie. Teach them to survive: leans Patient or Loyal; a Ward or Contact tie. Keep your food: leans Reserved or Cautious. |
+| 4 | **The crime lord's errand.** A Hutt's agent pays well to carry a package. | Do it: leans Ambitious; an Old debt or Contact tie in the underworld. Refuse: leans Cautious. Open it first: leans Curious; a roll decides what you learn and who learns you looked. |
+
+**Noble child** (great houses, Alderaan, Imperial nobility)
+
+| # | Event | Choices and effects |
+| --- | --- | --- |
+| 5 | **The servant's mistake.** A servant breaks an heirloom and begs you not to tell. | Cover for them: leans Compassionate or Loyal; the servant becomes a Contact. Tell your parents: leans Disciplined; S +1. Use it as leverage: leans Witty or Ambitious; A −1; the servant owes and resents you. |
+| 6 | **The arranged match** to secure an alliance. | Accept: leans Disciplined or Loyal; S +1. Defy them: leans Stubborn or Idealistic; S −2; possibly the Outcast or exile scar. Agree, then quietly undermine it: leans Witty or Cautious; a roll decides. |
+| 7 | **The rival heir** insults you at court. | Answer with wit: leans Witty; a Rival tie. Challenge them to a duel: leans Proud or Hot-headed; a roll; a Rival tie. Rise above it: leans Patient or Reserved; S +1. |
+| 8 | **The family secret.** Your family's wealth rests on something shameful. | Confront them: leans Idealistic; S −1; family strained. Stay silent: leans Loyal or Reserved. Use it later: leans Ambitious; flag "knows the family secret". |
+
+**Spacer kid** (raised aboard freighters and stations)
+
+| # | Event | Choices and effects |
+| --- | --- | --- |
+| 9 | **The pirate boarding.** | Hide the crew's valuables: leans Cautious or Witty. Fight: leans Reckless or Hot-headed; the First kill scar on a roll. Bargain: leans Witty; a pirate becomes a Contact. |
+| 10 | **The engine failure** deep in space, the adults hurt. | Fix it yourself: leans Disciplined or Curious; a backstory fact (good with machines). Call for help on an open channel: leans Cautious; strangers may answer. Steady the crew while you work: leans Patient; strong crew bond. |
+| 11 | **Port freedom.** A night alone on a wild port world. | Explore the city: leans Curious or Reckless; a backstory fact; a Contact on a roll. Stay aboard: leans Cautious or Reserved. Find work for a few credits: leans Ambitious or Witty. |
+
+**Anyone**
+
+| # | Event | Choices and effects |
+| --- | --- | --- |
+| 12 | *Dated:* **A disaster** your world lived through (plague, bombardment, invasion). | Help others escape: leans Compassionate or Loyal. Save your family first: leans Loyal; the Family you still see tie. Survive alone: leans Reserved or Cautious. All three give the Disaster survivor scar, or Lost family on a bad roll. |
+| 13 | **A Force moment** (Force-sensitive outsiders): you sense danger, move an object, know a lie. | Hide it: leans Reserved or Cautious; flag "hidden gift". Tell someone you trust: leans Loyal or Idealistic; that person becomes a tie. Use it for advantage: leans Ambitious or Witty; A −1. |
+
+**The pool is complete:** 52 events (Initiate 9, Padawan 10, Sith 9, military 9, civilian 13 with 2 shared).

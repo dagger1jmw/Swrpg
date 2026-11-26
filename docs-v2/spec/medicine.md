@@ -10,7 +10,7 @@ Care levels, healing times, outcomes and costs are code; the narrator describes 
 
 - **The intent** (schema-checked) names the care: `healing.source` is `treat` (first aid), `admit` (a facility), `tank`, `surgery`, `antidote` or `forceHealer`, with `at` (field, medcenter, temple, military, ship), `fluid` for a tank the player names, `procedure` and `aid` for surgery, and `healerRef` for a named healer. The old `medical` and `bacta` still read as `admit` and `tank`.
 - **The care plan** (`carePlan`) turns it into engine events: `careStarted` (field, medical, kolto, bacta, Force healer), `toxinsPurged`, `surgeryDone` (with the roll already made), `prostheticRepaired`, and `creditsCharged` for the bill. Combat sends `prostheticDamaged`. All are engine-only; the narrator never sets health.
-- **RESOLVED** tells the narrator the care applied ("a kolto tank (the patient does nothing else meanwhile) (kolto is the standard healing fluid of this date; bacta is a rare, dearer import)"), and the narration check still refuses bacta, kolto or Force healing nobody applied.
+- **RESOLVED** tells the narrator the care applied ("a kolto tank (the patient does nothing else meanwhile) (kolto is the standard healing fluid of this date; bacta is a rare import, had only in the Core and at the Temple)"), and the narration check still refuses bacta, kolto or Force healing nobody applied.
 
 ## 2. Levels of care
 
@@ -25,7 +25,7 @@ Rate multipliers on health §7's base times. Force healing stacks on any of them
 | Bacta tank | x5 | Design default: bacta is the more effective |
 
 - **Tanks** apply at once for their hours and run until every wound they can heal would heal (a course), never longer than the turn's span. A patient in a tank does nothing else (a jump with a tank is rest).
-- **Which fluid** (`tankFluid`): the date's standard (health.config `healingFluidAt`: kolto before the switch-over, the 2,000 BBY placeholder; bacta after). Before it, bacta is a rare import, had only on Core worlds and at the Temple; a bacta tank asked for elsewhere is kolto, and the report says so.
+- **Which fluid** (`tankFluid`): the date's standard (health.config `healingFluidAt`: kolto before the switch-over, the 2,000 BBY placeholder; bacta after). The other fluid is rare (Jared, 25 Nov 2026): before the switch-over bacta, after it kolto. The rare fluid is had only on Core worlds and at the Temple (`RARE_FLUID_AT`); a tank of it asked for elsewhere is the standard fluid, and the report says so.
 - **Each wound keeps the best care it had** and that care's operator, for the treatment roll (§5).
 
 ## 3. Untreated wounds
@@ -90,7 +90,7 @@ For what needs a surgeon: fitting a prosthetic, internal injuries, removing a to
 ## 9. Cost and access
 
 - **Free** for a Jedi with the Temple's healers and for a soldier in a military medbay. Their medpacs and antidotes are issued (the quartermaster, military kit), so field care costs them nothing anywhere.
-- **Everyone else pays**, through the economy's `creditsCharged` (a shortfall is owed on bank terms): a medpac used (500, the catalog), a medic's visit (500, the catalog's doctor), a facility (the doctor's 500 and 150 a day), a tank by the day (the date's standard fluid 400; bacta before the switch-over 1,200; kolto after it 300), surgery (prosthetic 3,000, internal 5,000, extract 1,500, plus the prosthetic), an antidote (250), prosthetic repairs. Services take half the location swing and the dated events as the economy prices them.
+- **Everyone else pays**, through the economy's `creditsCharged` (a shortfall is owed on bank terms): a medpac used (500, the catalog), a medic's visit (500, the catalog's doctor), a facility (the doctor's 500 and 150 a day), a tank by the day (bacta 400, kolto 600, in every era: bacta is the cheaper fluid in every era, Jared, 25 Nov 2026; the date changes only availability), surgery (prosthetic 3,000, internal 5,000, extract 1,500, plus the prosthetic), an antidote (250), prosthetic repairs. Services take half the location swing and the dated events as the economy prices them.
 
 ## 10. Not built here
 
@@ -101,7 +101,7 @@ For what needs a surgeon: fitting a prosthetic, internal injuries, removing a to
 
 ## 11. Tests
 
-`tests/m8/medicine.test.ts`: each care level heals at its multiplier; field care stabilizes (by the check) and removes the untreated risks but does not speed healing; bacta beats kolto, and is dearer and rarer before the switch-over; an untreated blade wound can infect and a severe one bleeds, a blaster wound much less; a severed muscle heals without surgery and a cut to the bone needs setting; a skilled bacta-tank operator mostly gives clean or scar on a critical wound, and an untreated wound falls back to 10 / 35 / 70%; surgery needs a facility and skill, and a miss gives a weaker result; a prosthetic hit becomes equipment damage; an antidote or a Force purge clears a toxin; Jedi and soldiers are treated free in their own facilities, and the economy charges everyone else. Also the run's other items: Krayt apex, Luke's line, Vrath Xizor, Jedi wealth.
+`tests/m8/medicine.test.ts`: each care level heals at its multiplier; field care stabilizes (by the check) and removes the untreated risks but does not speed healing; bacta beats kolto and is cheaper in every era (400 against 600), rare before the switch-over, kolto rare after it; an untreated blade wound can infect and a severe one bleeds, a blaster wound much less; a severed muscle heals without surgery and a cut to the bone needs setting; a skilled bacta-tank operator mostly gives clean or scar on a critical wound, and an untreated wound falls back to 10 / 35 / 70%; surgery needs a facility and skill, and a miss gives a weaker result; a prosthetic hit becomes equipment damage; an antidote or a Force purge clears a toxin; Jedi and soldiers are treated free in their own facilities, and the economy charges everyone else. Also the run's other items: Krayt apex, Luke's line, Vrath Xizor, Jedi wealth.
 
 ## 12. Every invented number
 
@@ -119,8 +119,7 @@ For what needs a surgeon: fitting a prosthetic, internal injuries, removing a to
 | Prosthetics available in every year | `PROSTHETIC_PRICE` |
 | Toxin: no healing, 20% of max Vitality a day, worsening 10% a day; the Force purge read as Force Heal 10 (+ Meditation 15 for oneself) | `TOXIN`, `FORCE_PURGE` |
 | Facility 150 a day; surgery 3,000 / 5,000 / 1,500; repairs 10% / 30% of the price | `MEDICAL_PRICE` |
-| Tank a day: standard 400, bacta as a rare import 1,200, kolto after the switch-over 300 | `TANK_DAY` |
-| Bacta before the switch-over only on Core worlds and at the Temple | `BACTA_RARE_AT` |
+| The rare fluid of the date (bacta before the switch-over, kolto after it) only on Core worlds and at the Temple (the places invented; the rarity is Jared's ruling) | `RARE_FLUID_AT` |
 | A tank course at least 6 hours (health §7's minor in 6 hours) | `TANK_MIN_HOURS` |
 | Antidote 250 (the middle of the bio-antidote's 75-500 game range) | catalog `antidote` |
 | A shortfall on a medical bill owed on bank terms | `carePlan` |

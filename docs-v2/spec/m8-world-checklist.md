@@ -35,7 +35,7 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [x] **6. Medicine and bacta (D-405 [5]).** *Built: D-511 (spec/medicine.md; docs-v2/reports/m8-medicine.md). Every number not from lore is invented (the spec's section 12). Combat assigns wound depth once realistic damage is built.*
 
   After the economy: kolto (Manaan) and bacta in this era, medcenters, prices and availability, building on the M5 healing rules (health.md: medical, bacta, Force healing).
-- [ ] **7. Droids (D-405 [5]).**
+- [x] **7. Droids (D-405 [5]).** *Built: D-512 (spec/droids.md; docs-v2/reports/m8-droids.md). Every number not from lore is invented (the spec's section 11). The duel engine does not yet use droid systems for droid opponents; the astromech hooks wait for item 13, the Repair stand-in for item 12.*
 
   After medicine: droid models by era (the research queue's "Droids by era" gap; D-213's era minion kinds), companions, prices and their place in combat.
 - [x] **8. Cold War world events, 3,653–3,640 (timeline audit, D-408 [6]).** *Built: D-467 (docs-v2/reports/m8-world-b.md). Janarus's two re-elections are one event (3,649), as in the tag map.*
@@ -91,3 +91,6 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 
   Not to build now; each waits for its own ruling.
   - **A self-taught pace:** a canon student recorded as cut off from any order (no Temple, no Academy, no master) trains more slowly than the Temple pace. A master's death alone does not count: the Order reassigns the Padawan (D-507).
+- [ ] **16. Starting traits and formative events (Jared, 25 Nov 2026).**
+
+  Designed in the design notes ("Starting traits and formative events"); build after item 12.

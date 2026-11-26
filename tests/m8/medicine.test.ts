@@ -95,22 +95,28 @@ describe('levels of care (spec §2)', () => {
 });
 
 describe('kolto and bacta by date (spec §2)', () => {
-  it('before the switch-over bacta is a rarer, dearer import; after it bacta is the standard and cheaper', () => {
+  it('bacta is the cheaper fluid in every era; the date changes only which one is rare (Jared, 25 Nov 2026)', () => {
     const mid = { zone: 'mid', place: 'medcenter' as const };
     expect(tankFluid(-3661, undefined, mid)).toBe('kolto');
     expect(tankFluid(-3661, 'bacta', mid)).toBe('kolto');
     expect(tankFluid(-3661, 'bacta', { zone: 'core', place: 'medcenter' })).toBe('bacta');
     expect(tankFluid(-3661, 'bacta', { zone: 'outer', place: 'temple' })).toBe('bacta');
     expect(tankFluid(-19, undefined, mid)).toBe('bacta');
-    expect(tankDayPrice(-3661, 'bacta')).toBeGreaterThan(tankDayPrice(-3661, 'kolto'));
-    expect(tankDayPrice(-19, 'bacta')).toBeLessThan(tankDayPrice(-3661, 'bacta'));
-    expect([tankDayPrice(-3661, 'kolto'), tankDayPrice(-3661, 'bacta'), tankDayPrice(-19, 'bacta'), tankDayPrice(-19, 'kolto')]).toEqual([TANK_DAY.standard, TANK_DAY.rare, TANK_DAY.standard, TANK_DAY.cheap]);
+    // After the switch-over kolto is the rare one: only in the Core and at the Temple.
+    expect(tankFluid(-19, 'kolto', mid)).toBe('bacta');
+    expect(tankFluid(-19, 'kolto', { zone: 'core', place: 'medcenter' })).toBe('kolto');
+    expect(tankFluid(-19, 'kolto', { zone: 'outer', place: 'temple' })).toBe('kolto');
+    for (const y of [-3661, -2500, -1000, -19, 40]) {
+      expect(tankDayPrice(y, 'bacta')).toBeLessThan(tankDayPrice(y, 'kolto'));
+      expect([tankDayPrice(y, 'bacta'), tankDayPrice(y, 'kolto')]).toEqual([400, 600]);
+    }
+    expect(TANK_DAY).toEqual({ bacta: 400, kolto: 600 });
   });
   it('the care plan gives the date\'s tank and charges for it', () => {
     const s = withWounds(fresh(), [wound({ severity: 'critical', W: 40 })]);
     const p = carePlan(s, { source: 'tank', fluid: 'bacta' }, null, { dying: false });
     expect(p.events[0]).toMatchObject({ type: 'careStarted', kind: 'kolto' });
-    expect(p.report.join(' ')).toMatch(/bacta is a rare import/);
+    expect(p.report.join(' ')).toMatch(/bacta is rare here and now: a kolto tank instead/);
     expect(charged(p.events)).toBeGreaterThan(0);
   });
 });

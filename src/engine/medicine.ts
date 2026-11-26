@@ -3,7 +3,6 @@
 import { healingFluidAt, SEVERITIES, type Severity, type WeaponKind } from '../data/health.config';
 import {
   AID_DAMAGE_W,
-  BACTA_RARE_AT,
   CARE_BONUS,
   CARE_LEVELS,
   CARE_MULT,
@@ -13,6 +12,7 @@ import {
   NO_CAUTERIZE_SPECIES,
   PROSTHETIC_PRICE,
   SURGERY,
+  RARE_FLUID_AT,
   TANK_DAY,
   TEARING_CAUSES,
   TOXIN,
@@ -40,23 +40,19 @@ export const betterCare = (a: CareLevel | undefined, b: CareLevel): CareLevel =>
 export const careMultiplier = (c: CareLevel): number => CARE_MULT[c];
 
 /**
- * The tank a patient gets: the fluid asked for, else the date's standard. Before the switch-over bacta is a rare import, had
- * only in the Core and at the Temple; elsewhere the tank is kolto.
+ * The tank a patient gets: the fluid asked for, else the date's standard. The other fluid is rare (bacta before the
+ * switch-over, kolto after it; Jared, 25 Nov 2026), had only in the Core and at the Temple; elsewhere the tank is the standard.
  */
 export function tankFluid(year: number, asked: 'kolto' | 'bacta' | undefined, where: { zone: string; place: CarePlace }): 'kolto' | 'bacta' {
   const f = healingFluidAt(year);
   const want = asked ?? f.standard;
-  if (want === 'kolto' || f.bacta === 'standard') return want;
-  if (f.bacta === 'unknown') return 'kolto';
-  return BACTA_RARE_AT.zones.includes(where.zone) || BACTA_RARE_AT.places.includes(where.place) ? 'bacta' : 'kolto';
+  if (want === f.standard) return want;
+  if (want === 'bacta' && f.bacta === 'unknown') return f.standard;
+  return RARE_FLUID_AT.zones.includes(where.zone) || RARE_FLUID_AT.places.includes(where.place) ? want : f.standard;
 }
 
-/** A tank's daily price by fluid and date: the standard fluid, bacta as a rare import before the switch-over, kolto cheap after. */
-export function tankDayPrice(year: number, fluid: 'kolto' | 'bacta'): number {
-  const f = healingFluidAt(year);
-  if (fluid === f.standard) return TANK_DAY.standard;
-  return fluid === 'bacta' ? TANK_DAY.rare : TANK_DAY.cheap;
-}
+/** A tank's daily price by fluid (Jared, 25 Nov 2026): bacta 400, kolto 600, in every era; the date changes only availability. */
+export const tankDayPrice = (_year: number, fluid: 'kolto' | 'bacta'): number => TANK_DAY[fluid];
 
 /** Whether care here is free (Jared): Jedi with the Temple's healers, soldiers in a military medbay. */
 export const careIsFree = (place: CarePlace, who: { jedi: boolean; soldier: boolean }): boolean => (place === 'temple' && who.jedi) || (place === 'military' && who.soldier);

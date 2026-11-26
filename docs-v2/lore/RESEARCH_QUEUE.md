@@ -180,7 +180,7 @@ Ordered by priority. Each brief is a one-paragraph prompt for the research bot.
 - **Economy, credits and prices by era.** The M8 items and credits spec (22-equipment-and-items.md) has no lore source for prices, wages or what a Master spends on a Padawan (D-295). Priority 3.
 - **Factions, governments and renown by era.** 14-world-state-and-events.md and 24-legacy-renown-lineage.md: who controls which worlds when, faction relations, and how fame works in each era. Partly in the timeline. Priority 3.
 - **Master–apprentice lineages and family legacy.** 24-legacy-renown-lineage.md has no lore file for teaching lineages or Force-sensitive families. Priority 3.
-- **Droids by era.** D-213's era minion kinds (war droids, B1s, droidekas) were checked against the timeline and character files only; no file covers droid models by era. Priority 3.
+- **Droids by era.** Partly filled by M8 item 7 (D-512; src/data/droidModels.ts): the Old Republic models from SW_Droids_Classes.md and the models the economy files price and date. Still open: models (with dates and prices) for c. 3,600-150 BBY (no protocol, astromech or medical model at all; generic stand-ins fill them), the New Republic to Legacy eras (25-130 ABY: only the Roving Eye), the SWTOR models' prices, and the dates of the R-series astromechs and 3PO line (invented now). Priority 3.
 
 ## Research-bot errors to check for
 

@@ -317,7 +317,7 @@ export const MINION_OUT_AT: Severity = 'moderate';
  * The healing fluid by date (D-440; SW_Kolto_Bacta). The engine's tank care kind is `bacta` (an immersion tank, x4);
  * which fluid fills it is a dated fact: kolto (Manaan only) is the standard until its decline, which the sources leave
  * undated; bacta (Thyferra) is known galaxy-wide from c. 4100 BBY, a rarer import before the switch-over and the
- * standard after it, with kolto then a cheaper, less trusted alternative. Calendar years (negative = BBY).
+ * standard after it, with kolto then rare (Jared, 25 Nov 2026: bacta is the cheaper fluid in every era). Calendar years (negative = BBY).
  */
 export const BACTA_KNOWN_FROM_YEAR = -4100;
 /**
@@ -332,11 +332,11 @@ export interface HealingFluid {
   /** The fluid in tanks and medpacs at this date. */
   standard: 'kolto' | 'bacta';
   bacta: 'unknown' | 'rare import' | 'standard';
-  kolto: 'standard' | 'cheaper alternative';
+  kolto: 'standard' | 'rare';
 }
 
 export function healingFluidAt(year: number): HealingFluid {
-  if (year >= BACTA_STANDARD_FROM_YEAR) return { standard: 'bacta', bacta: 'standard', kolto: 'cheaper alternative' };
+  if (year >= BACTA_STANDARD_FROM_YEAR) return { standard: 'bacta', bacta: 'standard', kolto: 'rare' };
   return { standard: 'kolto', bacta: year >= BACTA_KNOWN_FROM_YEAR ? 'rare import' : 'unknown', kolto: 'standard' };
 }
 

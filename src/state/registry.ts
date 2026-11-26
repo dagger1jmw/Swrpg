@@ -4,10 +4,12 @@
 // relationships, threads, ranks, world, pacing; the interruption check is advanceTime itself.
 // Locations, memory and flags have no day hook and sit with clock and character (M2, M5). Later milestones
 // insert their features at their §10 slot. The economy (M8 item 5) runs after the world, so a day's living is charged where
-// the character is once the world has moved on, and before pacing.
+// the character is once the world has moved on, and before pacing. Droids (M8 item 7) follow the economy: their only hook
+// recharges shields.
 import { characterFeature } from '../features/character';
 import { clockFeature } from '../features/clock';
 import { combatFeature } from '../features/combat';
+import { droidsFeature } from '../features/droids';
 import { economyFeature } from '../features/economy';
 import { flagsFeature } from '../features/flags';
 import { healthFeature } from '../features/health';
@@ -40,6 +42,7 @@ export const REGISTRY: Registry<GameState> = [
   ranksFeature,
   worldFeature,
   economyFeature,
+  droidsFeature,
   pacingFeature,
 ];
 
@@ -61,5 +64,6 @@ export const HOOK_ORDER: readonly string[] = [
   'ranks',
   'world',
   'economy',
+  'droids',
   'pacing',
 ];

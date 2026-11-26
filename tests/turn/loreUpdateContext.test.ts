@@ -52,7 +52,7 @@ describe('Malachor V and the healing fluid (D-440)', () => {
   it('a tank is a kolto tank in 3661 BBY and a bacta tank in 19 BBY', () => {
     // The engine picks the fluid (D-511: medicine's tankFluid); the line names it and the date's standard.
     const d = (kind: string) => ({ intent: null, checks: [], training: null, timeAdvanced: null, jump: null, combat: null, pacingLevel: 'moment', notices: [], report: [], resolvedActions: [], rngAfter: seedRng('x'), applied: [{ event: { type: 'careStarted', kind, hours: 6 }, notes: [] }], rejected: [] }) as unknown as TurnDraft;
-    expect(resolvedBlock(d('kolto'), [], -3661)).toMatch(/Care applied this turn: a kolto tank \(the patient does nothing else meanwhile\) \(kolto is the standard healing fluid of this date; bacta is a rare, dearer import\)/);
-    expect(resolvedBlock(d('bacta'), [], -19)).toMatch(/Care applied this turn: a bacta tank \(the patient does nothing else meanwhile\) \(bacta is the standard healing fluid of this date\)\./);
+    expect(resolvedBlock(d('kolto'), [], -3661)).toMatch(/Care applied this turn: a kolto tank \(the patient does nothing else meanwhile\) \(kolto is the standard healing fluid of this date; bacta is a rare import, had only in the Core and at the Temple\)/);
+    expect(resolvedBlock(d('bacta'), [], -19)).toMatch(/Care applied this turn: a bacta tank \(the patient does nothing else meanwhile\) \(bacta is the standard healing fluid of this date; kolto is rare, had only in the Core and at the Temple\)\./);
   });
 });

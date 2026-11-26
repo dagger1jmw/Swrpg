@@ -90,7 +90,7 @@ export function carePlan(s: GameState, h: HealingIntent, spanHours: number | nul
       if (!wounds.length) return { events, report: ['a tank: no wounds to heal'], rng: null };
       const zone = selectMarket(s).zone;
       const fluid = tankFluid(year, h.fluid, { zone, place });
-      if (h.fluid === 'bacta' && fluid === 'kolto') report.push('bacta is a rare import here and now: a kolto tank instead');
+      if (h.fluid && h.fluid !== fluid) report.push(`${h.fluid} is rare here and now: a ${fluid} tank instead`);
       const need = tankHours(s, careMultiplier(fluid));
       const hours = spanHours !== null ? Math.min(spanHours, need) : need;
       events.push({ type: 'careStarted', kind: fluid, hours, operator });
