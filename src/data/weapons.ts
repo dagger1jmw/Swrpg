@@ -24,6 +24,8 @@ export const LOADOUT_BY_ARCHETYPE: Readonly<Record<string, Loadout>> = {
   smuggler: { weapon: 'blasterPistol', armor: 'none', saberResistant: false },
   bountyHunter: { weapon: 'blasterPistol', armor: 'light', saberResistant: false },
   civilian: NONE,
+  // A sniper's long rifle and light armour (D-511, design default).
+  sniper: { weapon: 'blasterRifle', armor: 'light', saberResistant: false },
   // A crime lord keeps guards to fight for them (D-509).
   crimeLord: NONE,
   // The amphistaff and vonduun crab armor, both lightsaber-resistant (Characters_15 :34; D-224).

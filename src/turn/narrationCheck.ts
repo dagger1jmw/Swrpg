@@ -681,7 +681,7 @@ function healingIssues(narrative: string, draft: TurnDraft): NarrationIssue[] {
   const out: NarrationIssue[] = [];
   for (const s of sentencesOf(narrative)) {
     if (HEALING_NOT_APPLIED_TALK.test(s)) continue;
-    if (!care.has('bacta') && BACTA.test(s)) out.push({ kind: 'healingNotApplied', text: 'no bacta or kolto was applied this turn: describe no bacta treatment', sentence: s });
+    if (!care.has('bacta') && !care.has('kolto') && BACTA.test(s)) out.push({ kind: 'healingNotApplied', text: 'no bacta or kolto was applied this turn: describe no bacta treatment', sentence: s });
     else if (!care.has('forceHealer') && FORCE_HEAL.test(s)) out.push({ kind: 'healingNotApplied', text: 'no Force healing was applied this turn: describe none', sentence: s });
   }
   return out;

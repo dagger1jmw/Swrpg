@@ -34,6 +34,7 @@ import type { GameState } from '../state/gameState';
 import { tryEscape } from './escape';
 import { tryPlan } from './planning';
 import { resolveHoldTurn, type HoldTurn } from '../features/combat/selectors';
+import { carePlan } from './medicine';
 import { planTravel, runTravelBlockade, watchTravelBlockade, type TravelOutcome } from './travel';
 import type { Registry, ResolvedAction } from '../state/types';
 
@@ -143,8 +144,6 @@ export function resolveJump(registry: Registry<GameState>, initial: GameState, l
   return { run, report, days };
 }
 
-/** Default care spans (D-160): medical 7 days, a bacta tank 6 h, a Force healer 1 h. */
-const CARE_DEFAULT_HOURS = { medical: 7 * 24, bacta: 6, forceHealer: 1 } as const;
 
 /** The session a train / study intent asks for: its activity, or the default activity of its skill. */
 export function trainingRequest(intent: Intent): Omit<TrainingRequest, 'hours'> | null {
@@ -386,13 +385,12 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       const target = jumpTargetDay(state.clock.now.day, jumpSpan.seconds, intent.requestedSpan, jumpSpan.clampedFrom !== undefined);
       // Rest and care over days (D-199): the care period starts first, and the days are rest and recovery, not training.
       const resting = intent.actionType === 'rest' || intent.actionType === 'heal' || intent.actionType === 'sleep' || intent.healing !== undefined;
-      if ((intent.actionType === 'heal' || intent.healing) && selectWounds(state).length && !selectIsDying(state)) {
-        const source = intent.healing?.source ?? 'medical';
-        const healer = intent.healing?.healerRef && selectNpc(state, intent.healing.healerRef) ? intent.healing.healerRef : null;
-        const hours = source === 'medical' ? jumpSpan.seconds / 3600 : source === 'bacta' ? CARE_DEFAULT_HOURS.bacta : CARE_DEFAULT_HOURS.forceHealer;
-        const healerLevel = source === 'forceHealer' ? (healer ? selectNpcLevel(state, healer, 'forceHealOthers') : selectLevelExact(state, 'forceHealSelf')) : undefined;
-        if (source !== 'forceHealer' || (healerLevel ?? 0) >= 1) apply([{ type: 'careStarted', kind: source, hours, ...(healerLevel !== undefined ? { healerLevel } : {}) }]);
-        else report.push('no Force healer: no Force healing applied');
+      // Care over the jump (medicine.md, D-511): the events, the surgery roll and the bill come from the care plan.
+      if ((intent.actionType === 'heal' || intent.healing) && (selectWounds(state).length || state.health.lasting.length) && !selectIsDying(state)) {
+        const plan = carePlan(state, intent.healing ?? { source: 'admit' }, jumpSpan.seconds / 3600, { dying: false });
+        if (plan.rng) state = { ...state, meta: { ...state.meta, rngState: plan.rng } };
+        report.push(...plan.report);
+        if (plan.events.length) apply(plan.events);
       }
       const j = resolveJump(registry, state, level, target, reason, resting);
       if (resting) report.push('rest and recovery: no training on these days');
@@ -437,8 +435,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     if (intent.actionType === 'heal' || intent.forceAbility === 'forceHealSelf') {
       const healer = intent.healing?.healerRef && selectNpc(state, intent.healing.healerRef) ? intent.healing.healerRef : null;
       const selfForce = intent.forceAbility === 'forceHealSelf' && selectLevelExact(state, 'forceHealSelf') >= 1;
-      const source = intent.healing?.source ?? (selfForce ? 'forceHealer' : 'medical');
-      const hours = spanSeconds !== null ? spanSeconds / 3600 : CARE_DEFAULT_HOURS[source];
+      const source = intent.healing?.source ?? (selfForce ? 'forceHealer' : 'treat');
       if (selectIsDying(state)) {
         const skill = healer ? (source === 'forceHealer' ? 'forceHealOthers' : 'medicine') : selfForce ? 'forceHealSelf' : 'medicine';
         const level = healer ? selectNpcLevel(state, healer, skill) : selectPerformance(state, skill);
@@ -453,9 +450,13 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
         checks.push(card);
         state = { ...state, meta: { ...state.meta, rngState: next } };
         if (card.success) apply([{ type: 'woundsStabilized', by: healer ? selectNpc(state, healer)!.name : skill === 'forceHealSelf' ? 'Force healing' : 'a medpac' }]);
-      } else {
-        const healerLevel = source === 'forceHealer' ? (healer ? selectNpcLevel(state, healer, 'forceHealOthers') : selectLevelExact(state, 'forceHealSelf')) : undefined;
-        apply([{ type: 'careStarted', kind: source, hours, ...(healerLevel !== undefined ? { healerLevel } : {}) }]);
+      }
+      // Care (medicine.md, D-511): after a stabilizing check, field care still dresses the wounds; otherwise the full plan.
+      if (!selectIsDying(state) && !state.health.death) {
+        const plan = carePlan(state, intent.healing ?? { source: source === 'forceHealer' ? 'forceHealer' : 'treat', ...(healer ? { healerRef: healer } : {}) }, spanSeconds !== null ? spanSeconds / 3600 : null, { dying: false });
+        if (plan.rng) state = { ...state, meta: { ...state.meta, rngState: plan.rng } };
+        report.push(...plan.report);
+        if (plan.events.length) apply(plan.events);
       }
     }
 

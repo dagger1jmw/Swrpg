@@ -311,6 +311,8 @@ export const MORALE_BY_ARCHETYPE: Readonly<Record<string, MoraleProfile>> = {
   smuggler: { group: 'early', surrender: 0.3 },
   bountyHunter: { group: 'early', surrender: 0.3 },
   soldier: { group: 'average', surrender: 0.6 },
+  // A sniper: a mercenary's morale (D-511, design default).
+  sniper: { group: 'early', surrender: 0.3 },
   mandalorian: { group: 'late', surrender: 0.3 },
   jediGuardian: { group: 'late', surrender: 0.8 },
   jediConsular: { group: 'late', surrender: 0.8 },

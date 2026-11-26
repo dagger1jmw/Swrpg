@@ -110,6 +110,10 @@ export const PRICE_CATALOG: readonly PriceEntry[] = [
   P('binders', 'binders', 'manufactured', 75, 'game', `${GL}: Biodegradable Binders 75 cr`),
   P('cyberImplant', 'a cybernetic implant', 'manufactured', 7500, 'lore', `${PG}: Beemon package implant up to 7,500 cr (c. 3,956)`),
   P('bactaTank', 'a bacta tank', 'manufactured', 100000, 'lore', `${PG}: a bacta tank alone c. 100,000 cr [unclear]; medicine is checklist item 6`),
+  // ---- Medicine (checklist item 6, D-511; services are priced in medicine.config MEDICAL_PRICE) ----
+  P('antidote', 'an antidote', 'manufactured', 250, 'game', `${GL} Part 7: bio-antidote package 75-500 cr (KOTOR, c. 3,951); the middle of the range`),
+  P('prosthetic', 'a basic prosthetic limb', 'manufactured', 2000, 'game', `${GL} Part 8: Repli-Limb prosthetic arm or leg 2,000 cr (WEG 1998)`),
+  P('prostheticHand', 'a basic prosthetic hand', 'manufactured', 1000, 'game', `${GL} Part 8: Repli-Limb prosthetic hand 1,000 cr (WEG 1998)`),
   // ---- Vehicles and droids (droids are checklist item 7) ----
   P('speeder', 'a landspeeder', 'manufactured', 10000, 'lore', `${PS}: Vanush Thriin's lot 10,000 cr a vehicle (c. 3,643)`),
   P('speederBike', 'a speeder bike', 'manufactured', 11500, 'lore', `${PS}: 88-R Nightscreamer at least 11,500 cr`),
@@ -136,6 +140,8 @@ export const PRICE_WORDS: Readonly<Record<string, string>> = {
   vest: 'blastVest', shield: 'personalShield', medkit: 'medpac', medpac: 'medpac', comm: 'comlink', comlink: 'comlink', 'glow rod': 'glowrod', glowrod: 'glowrod',
   'breath mask': 'breathMask', macrobinoculars: 'macrobinoculars', binoculars: 'macrobinoculars', datapad: 'datapad', pack: 'backpack', backpack: 'backpack',
   belt: 'utilityBelt', binders: 'binders', cuffs: 'binders', implant: 'cyberImplant', cybernetic: 'cyberImplant', 'bacta tank': 'bactaTank',
+  'kolto tank': 'bactaTank', 'kolto medpac': 'medpac', 'kolto pack': 'medpac', antidote: 'antidote', antitoxin: 'antidote', antivenom: 'antidote',
+  prosthetic: 'prosthetic', 'prosthetic arm': 'prosthetic', 'prosthetic leg': 'prosthetic', 'prosthetic hand': 'prostheticHand', 'cybernetic arm': 'cyberImplant',
   speeder: 'speeder', landspeeder: 'speeder', 'speeder bike': 'speederBike', swoop: 'speederBike', 'protocol droid': 'protocolDroid', astromech: 'astromech',
   'medical droid': 'medDroid', droid: 'protocolDroid', lightsaber: 'lightsaber', saber: 'lightsaber', spice: 'spice', glitterstim: 'spice',
   meal: 'meal', dinner: 'meal', lunch: 'meal', breakfast: 'meal', food: 'meal', stew: 'meal', snack: 'streetFood', 'street food': 'streetFood', drink: 'drink',

@@ -144,7 +144,7 @@ describe('the narrator block and the fallback (D-197)', () => {
   it('a montage is told the care that was applied, or none', () => {
     const jump = { level: 'montage', report: { level: 'montage', fromLabel: 'a', toLabel: 'b', daysCompleted: 7, requestedDays: 7, trainingDays: 0, restDays: 7, hoursTrained: 0, interrupted: null, skills: [], breakthroughs: 0, rust: { gained: [] }, relationships: [], events: [], adjustments: [] } } as never;
     expect(resolvedBlock(draft(null, { jump }))).toMatch(/Care applied this turn: none\. Wounds heal only by rest and time/);
-    expect(resolvedBlock(draft(null, { jump, applied: [{ event: { type: 'careStarted', kind: 'medical', hours: 168 }, notes: [] }] as never }))).toMatch(/Care applied this turn: ordinary medical care/);
+    expect(resolvedBlock(draft(null, { jump, applied: [{ event: { type: 'careStarted', kind: 'medical', hours: 168 }, notes: [] }] as never }))).toMatch(/Care applied this turn: a medical facility/);
     expect(PROMPTS.pacing.montage).toMatch(/describe only the care RESOLVED lists/);
   });
 });

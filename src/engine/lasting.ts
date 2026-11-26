@@ -9,6 +9,7 @@ import {
   type BodyPart,
   type LastingKind,
 } from '../data/health.config';
+import { AID_DAMAGED_SHARE, TREATMENT, type AidCondition } from '../data/medicine.config';
 import { skillTargets, type Wound } from './wounds';
 
 export interface LastingInjury {
@@ -21,6 +22,10 @@ export interface LastingInjury {
   adaptedToday: number;
   adaptDay: number;
   day: number;
+  /** A minor lasting injury (the treatment roll, D-511): TREATMENT.minorPenaltyShare of the kind's penalties. */
+  minor?: boolean;
+  /** A fitted aid's condition (D-511): damaged halves its adaptation; broken counts as no aid. */
+  aidCondition?: AidCondition;
 }
 
 export const aidCap = (l: LastingInjury): number => AID_CAP[l.aid];
@@ -51,17 +56,21 @@ export function limbState(wounds: readonly Wound[], lasting: readonly LastingInj
   const gone = new Set<BodyPart>();
   const prosthetic = new Set<BodyPart>();
   for (const w of wounds) if (w.severed) add(gone, w.part);
-  for (const l of lasting) if (LOST_KINDS.includes(l.kind)) add(prosthetic, l.part);
+  // A broken prosthetic (D-511) takes no hits for the body: the limb counts as gone until it is repaired.
+  for (const l of lasting) if (LOST_KINDS.includes(l.kind)) add(l.aidCondition === 'broken' ? gone : prosthetic, l.part);
   for (const p of gone) prosthetic.delete(p);
   return { gone, prosthetic };
 }
 
-/** Effective penalty of one injury on a skill: the largest matching P x (1 - A). */
+/** The adaptation that counts: a damaged aid's at AID_DAMAGED_SHARE, a broken aid's none (D-511). */
+export const effectiveAdaptation = (l: Pick<LastingInjury, 'adaptation' | 'aidCondition'>): number => (l.aidCondition === 'broken' ? 0 : l.aidCondition === 'damaged' ? l.adaptation * AID_DAMAGED_SHARE : l.adaptation);
+
+/** Effective penalty of one injury on a skill: the largest matching P x (1 - A); a minor injury a share of it (D-511). */
 export function lastingPenaltyOf(l: LastingInjury, skillId: string): number {
   const targets = skillTargets(skillId);
   let p = 0;
   for (const [t, v] of Object.entries(LASTING_PENALTIES[l.kind])) if (targets.has(t)) p = Math.max(p, v ?? 0);
-  return p * (1 - l.adaptation);
+  return p * (l.minor ? TREATMENT.minorPenaltyShare : 1) * (1 - effectiveAdaptation(l));
 }
 
 /** Combined lasting penalty on a skill (multiplicative across injuries). */
@@ -102,9 +111,11 @@ export function lastingState(wounds: readonly Wound[], lasting: readonly Lasting
   const fresh = new Set<BodyPart>();
   const old = new Set<BodyPart>();
   // A severed limb that already has a prosthetic on record (health gives the faction's aid at once, D-164) is not missing.
-  const fitted = new Set(lasting.filter((l) => LOST_KINDS.includes(l.kind) && l.aid !== 'none' && l.aid !== 'scarTissue').map((l) => l.part));
+  // A broken prosthetic (D-511) works no better than none until it is repaired.
+  const works = (l: LastingInjury): boolean => isFittedAid(l.aid) && l.aidCondition !== 'broken';
+  const fitted = new Set(lasting.filter((l) => LOST_KINDS.includes(l.kind) && works(l)).map((l) => l.part));
   for (const w of wounds) if (w.severed && !fitted.has(w.part)) fresh.add(w.part);
-  for (const l of lasting) if (LOST_KINDS.includes(l.kind) && (l.aid === 'none' || l.aid === 'scarTissue') && !fresh.has(l.part)) old.add(l.part);
+  for (const l of lasting) if (LOST_KINDS.includes(l.kind) && !works(l) && !fresh.has(l.part)) old.add(l.part);
   const text: string[] = [];
   const missing: BodyPart[] = [];
   for (const [set, word] of [[fresh, 'severed'], [old, 'no']] as const) {

@@ -1,6 +1,6 @@
 # SWRPG M8 design notes
 
-> Exported from the Claude Docs "SWRPG M8 design notes" (revision 49) on 24 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
+> Exported from the Claude Docs "SWRPG M8 design notes" (revision 60) on 25 Nov 2026. The Claude Docs version is the working copy; this file is re-exported when it changes.
 
 Nov 23, 2026 · @Jared Wright
 
@@ -410,7 +410,7 @@ The economy runs on the lore files SW\_Economy\_\* (in Docs/SWRPG lore/, with th
 
 - **Accepting a reward now and then,** if seen or found out: at most a reprimand from someone in the Order, or the judgement of the Jedi you're with.
 - **If it keeps happening:** a reputation for it with other Jedi (renown, spec 24).
-- **Real consequences come from amassing wealth and buying many material things.** That's attachment, against the Order's teaching on possessions. It brings serious standing consequences with the Order, as world reactions and not a single penalty (pairs with renown and alignment).
+- **Real consequences come from amassing wealth and buying many material things.** That's attachment, against the Order's teaching on possessions. What counts (Jared, 25 Nov 2026): personal holdings over 25,000 cr. Order-issued gear, mission funds and Order ships never count, and neither does a personal ship or droid taken in play (a Jedi who beats a smuggler and escapes in his ship, droid aboard, keeps them). It brings serious standing consequences with the Order, as world reactions and not a single penalty (pairs with renown and alignment).
 - **This kind of Jedi is the player's choice.** Among NPCs it's tied to alignment, kept simple: a less firmly light-aligned Jedi NPC might keep a reward occasionally, and that's all. It's rare, and a normal playthrough might show one Jedi accepting once. No NPC Jedi amasses wealth.
 
 ### Living costs (Jared: yes, easier to track over long stretches)
@@ -511,6 +511,8 @@ Acolyte deaths are real. Generated Sith NPCs come from the survivors, and a play
 The Sith archetypes pass their gates today. Once this is built, Claude Code re-measures the Sith paces and gates, as it did for the Jedi curriculum.
 
 ## Medicine
+
+**Built: docs-v2/spec/medicine.md (D-511).**
 
 Builds on health.md §7 (base healing times and rate multipliers stay), SW\_Kolto\_Bacta.md and the wound depth rules above. The code sets care levels, times, outcomes and costs; the narrator describes them.
 
@@ -860,3 +862,109 @@ Agreed by Jared (2026-11-23).
 - After the Cron Supernova (3996 BBY) it is arid and toxic; its only natives are the Ysanna, descendants of surviving Jedi who forgot the Force and treat it as magic. The Jedi value it as a ruin and dig site.
 - **Its value in the game:** the Great Jedi Library ruins, artifacts and holocrons, the Ysanna, the toxic environment. No training bonus.
 - The later SWTOR Jedi colony on Ossus is a world event if the campaign reaches it, still with no bonus.
+
+## Non-Force skills and archetypes (checklist items 10 and 12)
+
+Agreed by Jared, 25 Nov 2026. Every XP source is a structured line from code, never the narrator. Teachers multiply gains as everywhere else, and every number is set and tagged at build time. Item 10 (the officer) is folded in.
+
+### XP from play
+
+- **Charisma:** a conversation earns XP only when code logs a social line (something at stake, or a relationship changes); more lines the same day earn less. Target: an ordinary sociable adult reaches about 30–40 by age 30; diplomats 60–80.
+- **Persuasion:** success 1.0, failure 0.25, scaled by the stakes and the opponent's level.
+- **Tactics from command:** stakes × outcome × size of command. A loss still teaches, at about half, as with form XP. The fleet and ground battles (combat-scales) supply the events.
+- **Tactics from personal combat:** each strike earned by reaching +3 on the advantage track gives a small Tactics share.
+- **Discussing tactics:** with a master, the full teacher multiplier; with a peer, half the base rate.
+- **Cultural insight (Intelligence 80+, the Thrawn model):** studying a culture's art or history gives Tactics and an insight bonus against that culture's forces: +1, at most +2, in fleet and ground rolls.
+- **Intelligence:** academic study, staff work and negotiations, plus 0.2 of any Tactics XP earned in the field (study already gives 0.4).
+- **Melee, Blaster, Stealth:** field use in fights, as with the other combat skills; teachers make training more effective.
+
+### New activities
+
+| Activity | Primary | Secondary | Open to |
+| --- | --- | --- | --- |
+| Staff work (planning, logistics, intelligence analysis) | Intelligence | Tactics 0.5 | Officers, staff postings, intelligence services |
+| Negotiation and political work | Charisma | Intelligence 0.3 | Anyone; you learn win or lose |
+| Hunting (physical load) | Stealth | Tracking | Anyone |
+| Tradecraft | Investigation | Stealth 0.3, Charisma 0.3 | Intelligence services |
+| Melee style training | Melee | The style's proficiency | Needs a teacher or a recorded source |
+
+Intelligence field operations earn XP from their stakes and outcome, as commanding does. The Jedi and Sith curricula get a Melee weight in the order requirements (Padawans and acolytes).
+
+### Melee styles
+
+- **One Melee skill does the real work.** Styles (Echani, Teräs Käsi, Stava, K'tara, Hijkata, Mandalorian and the rest from SW\_Martial\_Cultures Part 3, each dated and tied to its culture) are proficiencies on top, 0–100%, built like weapon proficiency.
+- **A style must be trained to be had.** Starting one needs a teacher or a recorded source (a manual or a holocron of that art); the rulings on who teaches outsiders apply. After that, training and fighting both grow it. Training a style also gives Melee XP.
+- **Almost no overlap:** each style is learned on its own.
+- **Higher Melee learns styles faster:** up to +50% at Melee 100, on a smooth curve.
+- **No style costs nothing:** you fight at plain Melee. A style adds up to +5 on the skill scale at 100%, plus one situational edge from its lore (Echani reading an opponent, Mandalorian fighting armoured with mixed weapons). **Teräs Käsi is the exception, a flat higher bonus (Jared): the Followers of Palawa created it to fight the Jedi, but it gets no bonus against Force users. Its masters strike as hard as a blaster pistol or slugthrower and punch through body armour, and its practitioners are extremely fast.**
+- **Stacking:** weapon proficiency multiplies the skill; the style adds to it. Some styles are unarmed-only (Teräs Käsi), some cover weapons (Echani, Mandalorian).
+- **Fading:** as weapons, slowly to about half the peak, back quickly with use.
+- **Game-derived powers** (Matukai, Teräs Käsi meditation healing and strike power and the like): not built now; possible style perks later.
+- **Duel tiers still rule:** no style lets a non-Force fighter beat a top duelist.
+
+### Training programmes
+
+- Dated programmes a character can enrol in, each with entry rules and curriculum weights. Lengths from the sources: Carida stormtrooper programme 2 years (full course 4), Carida flight school 2, Prefsbelt IV 3, Royal Guard 1, Raithal 1, verd'goten ages 8–13, hrrtayyk about 12; clone regulars and commandos as in the lore.
+- Where the sources give no length: officer academies 3–4 years, universities 4. Senatorial apprenticeships stay story-only.
+
+### Archetypes
+
+| Archetype | Focus |
+| --- | --- |
+| Officer | Tactics, then Intelligence, then Charisma; a smaller Blaster share; Piloting for naval officers |
+| Intelligence officer: analyst | Intelligence and Investigation, then Charisma |
+| Intelligence officer: field agent | Stealth, Charisma, Blaster and Melee, then Investigation |
+| Senator or politician | Charisma, then Intelligence; little combat |
+| Scholar | Intelligence, then Investigation; Force Knowledge where it fits |
+
+- **Intelligence officers** are the spy networks (Imperial Intelligence, the SIS, Alliance and New Republic Intelligence, the Bothan SpyNet). They are ahead of a line officer on most stats, behind only on Tactics. Analyst and field agent are two lines: a character can move from one to the other, but NPCs are generated on one.
+- **Senators:** the archetype covers generation and stat lines only. A Senate seat is a story event (an election, an appointment), not a rank.
+- **Canon anchors:** the existing canon sheets; add sheets where a key figure has none (Thrawn, Tarkin, Mon Mothma, Malavai Quinn, Ysanne and Armand Isard, Airen Cracken, Cipher Nine, Watcher Two).
+
+### Rank ladders
+
+ranks.md §3 says only that non-Force careers earn faction ranks by service, skill and deeds. Each faction now gets ladders as dated data, with lore titles where a faction's differ: army lieutenant → captain → major → colonel → general; navy ensign → captain → commodore → admiral; intelligence agent → handler → section chief → director. Promotion takes years of service, a skill minimum and recorded deeds.
+
+### Gunnery and Repair
+
+Two new non-Force skills (combat-scales D-505 and fix12 D-506; scope from the lore chat, 25 Nov 2026). Until they exist, the combat rules stand in Piloting for a pilot's shots and Blaster for a turret gunner.
+
+**Gunnery (ruled): any weapon fired from a mount.**
+
+- A starfighter's lasers, ion cannons and torpedoes (fired by the pilot); freighter turrets; capital-ship turbolaser, ion cannon and point-defence batteries.
+- Guns on ground vehicles (tank cannons, AT-AT guns); fixed emplacements (anti-orbital and artillery batteries); crew-served tripod guns such as the E-Web.
+- Weapons a person carries, heavy ones included (repeating blasters, rocket launchers, flamethrowers), stay under the personal weapon-type proficiencies. Blaster stays personal arms.
+
+**Repair (ruled, Jared, 25 Nov 2026): anything mechanical, in combat too.**
+
+- Ship, vehicle and droid maintenance and field repairs.
+- Restoring knocked-out systems mid-fight (the freighter engineer, astromech repairs); swapping a burnt-out shield projector; bringing a ship back after an ion hit.
+- Repairing weapon and armour condition (equipment spec).
+- Modifying and upgrading anything mechanical (droids, ships, vehicles, gear) is Repair's work too, opening up at higher levels: upgrading a droid is a Repair job. Slicing (computers and security) stays separate.
+
+|  | Gunnery | Repair |
+| --- | --- | --- |
+| Trained by | Pilots, alongside Piloting (every sortie trains both); gunners, vehicle crews and artillery as their career | Mechanics, engineers and military techs as their career |
+| XP from use (combat XP rules) | Shots taken in a battle, scaled by margin and stakes | Repairs made in a fight, or during upkeep (travel, docking) |
+| Activities | Simulator and gunnery range, with teachers | Repair and maintenance work |
+| Secondary weights | Agility 0.3, Intelligence 0.2 | Intelligence 0.3 |
+| Needs | A mounted weapon | A tool kit and spare parts for anything beyond quick fixes; parts come from the economy (item 5) |
+| Canon anchors | Wedge Antilles and the Rogue Squadron pilots; Han and Chewbacca on the Falcon's quad guns | Chewbacca, Bao-Dur, T3-M4, R2-D2 |
+
+- **Archetypes and careers:** add or adjust starfighter pilot, ship gunner, and engineer or mechanic; the soldier, naval officer and smuggler lines take a share. Droids: astromechs repair, and some droids crew guns (droids section).
+- **Generated NPCs:** both join the training schedules, and the years-trained stop applies.
+- **Build step:** once both skills exist, the combat-scales caller uses them in place of the Piloting and Blaster stand-ins.
+
+### After the build
+
+Audit what trains Melee, Blaster and Stealth today, then re-measure the archetype paces and the canon NPC ranges for Intelligence, Tactics, Charisma, Melee, Blaster, Stealth, Gunnery and Repair.
+
+**Teräs Käsi in numbers (confirmed by Jared, 25 Nov 2026):**
+
+- Style bonus up to +10 at 100% (other styles +5).
+- A master's strikes count as blaster-pistol damage in the realistic damage rules and partly ignore light and medium body armour, scaling up with proficiency.
+- Speed: +2 on the melee contest that moves the advantage track.
+- **Anticipation at mastery** (the art trains senses to anticipate strikes with ease): a precognition-like defence that works the way Force Sense's precognitive defence does, in melee and at close range only. Master (proficiency 100% and Melee 81+, High Master tier): half the defence a Force user of that tier gets from Force Sense. Grandmaster (Melee 101+, Legendary tier): the full equivalent. It doesn't stack with the fighter's own Force Sense; the higher one applies.
+- Duel tiers still rule.
+
+Sources: power from *Threats of the Galaxy* and *Hero's Guide* (RPG books); speed and anticipation from the game guides and *The Clone Wars Campaign Guide*: mechanics inputs only, never narrator lore.

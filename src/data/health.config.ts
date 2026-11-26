@@ -177,7 +177,9 @@ export const HEAL_DAYS: Record<Exclude<Severity, 'minor'>, number> & { stabilize
  * medical care (no stacking); a Force healer multiplies on top: x(1 + healer level / 50). Training the
  * injured part x0.5. The combined multiplier is capped at x6.
  */
-export const HEAL_MULT = { medical: 2, bacta: 4, forceHealerPerLevel: 1 / 50, trainingInjured: 0.5, cap: 6 } as const;
+// D-511 (medicine.config CARE_MULT, which the rules read): the immersion tank splits by fluid, kolto x4 (health §7's tank) and
+// bacta x5 (Jared's design default: bacta is the more effective).
+export const HEAL_MULT = { medical: 2, kolto: 4, bacta: 5, forceHealerPerLevel: 1 / 50, trainingInjured: 0.5, cap: 6 } as const;
 /** Bacta: minor in 6 hours, moderate in 1 day (health §7) follow from x4 on the base times. */
 export const LASTING_CHANCE: Partial<Record<Severity, number>> & { stabilizedMortal: number } = { severe: 0.1, critical: 0.35, mortal: 0.7, stabilizedMortal: 0.7 };
 /** Training the injured part risks making it worse (health §7): chance per day of training it (D-143 design default). */

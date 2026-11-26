@@ -51,7 +51,8 @@ import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityO
 import { fatigueLevelFactor } from './fatigue';
 import { addFixedLoad, forceFraction, forceWithin } from './forceMeter';
 import { PRECOG_TRIAL, precogUpkeep, trialPool, type PrecogTrialState } from './precogTrial';
-import { lastingPenalty, lastingState, limbState, type LastingInjury } from './lasting';
+import { isFittedAid, lastingPenalty, lastingState, limbState, type LastingInjury } from './lasting';
+import { aidHit, causeOfWeapon, withCondition } from './medicine';
 import { basicRoll, type BasicRoll, type Modifier } from './rolls';
 import { nextFloat, nextInt, type RngState } from './rng';
 import { effectiveSeverity, isDying, isIncapacitated, killsWhileDying, takesMinionOut, woundPenalty, type Wound } from './wounds';
@@ -486,7 +487,9 @@ export function damageFighter(
   // Minions (combatStarted groups) fold when Spent as well as on a moderate wound (health §9 as amended by D-157).
   let next: Fighter = { ...f, vitality: dmg.vitality, out: f.out || (f.minion && MINION_FOLDS_WHEN_SPENT && dmg.vitality <= 0) };
   if (severity) {
-    const full: Wound = { id: `${f.id}:w${woundSeq}`, part, severity, W, stabilized: false, healProgress: 0, day, source: 'combat', ...(severed ? { severed: true } : {}) };
+    // What made it (D-511): the untreated risks read it once the fight is over.
+    const cause = causeOfWeapon(weapon);
+    const full: Wound = { id: `${f.id}:w${woundSeq}`, part, severity, W, stabilized: false, healProgress: 0, day, source: 'combat', ...(severed ? { severed: true } : {}), ...(cause ? { cause } : {}) };
     // A fighter above the power bar takes it lighter and breaks off (D-491); the card shows the wound as taken.
     const held = f.aboveBar ? barWound(f, full) : { wound: full, breaksOff: false };
     const wound = held.wound;
@@ -500,8 +503,14 @@ export function damageFighter(
     if (f.minion && severity && takesMinionOut(severity)) next = { ...next, out: true };
   }
   void ctx;
-  // A prosthetic took it (pass 5 issue 10: the card read "critical hit · no wound" with no place or reason).
+  // A prosthetic took it (pass 5 issue 10: the card read "critical hit · no wound" with no place or reason). The hit is
+  // equipment damage (D-511; health §5 left it to M8): the wound it would have done damages or breaks the aid.
   const onProsthetic = !vitalityOnly && limbs.prosthetic.has(part);
+  if (onProsthetic) {
+    const would = applyDamage(f.vitality, D, bypassFraction(weapon, quality, margin), false, !isSaber(weapon)).W;
+    const lasting = next.lasting.map((l) => (l.part === part || (part.endsWith('Hand') && l.part === part.replace('Hand', 'Arm'))) && isFittedAid(l.aid) ? { ...l, ...withCondition(aidHit(would, l.aidCondition)) } : l);
+    next = { ...next, lasting };
+  }
   return { f: next, hit: { quality, D, part, W, severity, vitalityLost: dmg.vitalityLost, severed, ...(onProsthetic ? { prosthetic: true } : {}) }, rng: rngS };
 }
 

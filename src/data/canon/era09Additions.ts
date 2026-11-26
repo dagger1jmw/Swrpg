@@ -2378,8 +2378,9 @@ export const ERA_09_ADDITIONS: readonly Omit<CanonNpc, 'ranks'>[] = [
     name: "Vrath Xizor",
     speciesId: "human",
     faction: "underworld",
-    // A mercenary and ex-Imperial sniper: the soldier's career (m8-economy; was civilian, D-509's list).
-    archetype: "soldier",
+    // A mercenary and ex-Imperial sniper: the soldier's career (m8-economy; was civilian, D-509's list), weighted to
+    // marksmanship (D-511: the soldier's line left his Blaster at 38 in 3,653; the sniper's gives 47).
+    archetype: "sniper",
     birthBby: 3680,
     birthSource: "estimate",
     deathBby: 3653,

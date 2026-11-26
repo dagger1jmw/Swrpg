@@ -9,6 +9,7 @@ import { BLOCKADE_ACTIONS } from '../../data/blockades';
 import { PACING_LEVELS } from '../../data/pacing.config';
 import { MANEUVERS, STANCES, TACTICS } from '../../data/combat.config';
 import { BODY_PARTS, HAZARD_TYPES } from '../../data/health.config';
+import { CARE_PLACES, SURGERY_PROCEDURES } from '../../data/medicine.config';
 import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.config';
 
 /** One step of a typed combat sequence (D-146): a stance, a feint or taunt, a maneuver, a Force action, or a strike. */
@@ -50,7 +51,17 @@ export const intentSchema = z.object({
   tactic: z.enum(TACTICS).optional().describe('Only for a combat tactic the player states'),
   forceAbility: z.string().max(40).optional().describe('The Force ability used (forcePush, forceChoke, forceLightning, telekinesis, forceHealSelf, ...)'),
   effort: z.enum(['light', 'standard', 'heavy', 'allOut']).optional(),
-  healing: z.object({ source: z.enum(['medical', 'bacta', 'forceHealer']), healerRef: z.string().max(80).optional() }).optional().describe('Only for heal'),
+  healing: z
+    .object({
+      source: z.enum(['treat', 'admit', 'tank', 'surgery', 'antidote', 'forceHealer', 'medical', 'bacta']),
+      healerRef: z.string().max(80).optional(),
+      at: z.enum(CARE_PLACES).optional(),
+      fluid: z.enum(['kolto', 'bacta']).optional(),
+      procedure: z.enum(SURGERY_PROCEDURES).optional(),
+      aid: z.enum(['basic', 'cybernetic']).optional(),
+    })
+    .optional()
+    .describe('Only for heal or rest with care: treat (medpac or medic), admit (a facility), tank, surgery, antidote, forceHealer'),
   risk: z.object({ type: z.enum(HAZARD_TYPES), severityHint: z.number().int().min(1).max(3) }).optional().describe('A hazard the player\'s own action causes'),
   sequence: z.array(sequenceStepSchema).max(SEQUENCE_SCHEMA_MAX).optional().describe('Combat only: the steps the player chains in order (at most 5)'),
   escape: z.boolean().optional().describe('Only when the player character is a prisoner (the STATE says CAPTIVE) and tries to escape'),

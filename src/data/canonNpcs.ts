@@ -2,12 +2,13 @@
 // the same level of detail, added over time (architecture §15). The Old Republic era came first only because it is
 // Jared's preferred start; nothing in the system favours a year.
 import { ERA_09 } from './canon/era09GreatGalacticWar';
+import { ERA_LUKE } from './canon/lukeSkywalker';
 import { sheetToGame } from './canon/sheetScale';
 import type { CanonEra, CanonNpc, StatAnchor } from './canon/types';
 
 export type { CanonEra, CanonNpc, CanonTimeline, RankSpan, StatusSpan, LocationSpan, StatAnchor } from './canon/types';
 
-export const CANON_ERAS: readonly CanonEra[] = [ERA_09];
+export const CANON_ERAS: readonly CanonEra[] = [ERA_09, ERA_LUKE];
 
 /** A hand-set sheet in the game scale (D-423): converted from the sheet scale, the authored levels kept. */
 const toGame = (n: CanonNpc, a: StatAnchor): StatAnchor => (a.basis === 'sheet' && a.scale !== 'game' ? { ...a, levels: sheetToGame(n, a), scale: 'game', authored: a.levels } : a);

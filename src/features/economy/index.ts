@@ -236,7 +236,8 @@ function handleTrade(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState>
   const wallet = pay(slice.wallet, total - fromFunds, a);
   if (!wallet) return { reject: `cannot afford ${item.name} x${qty}: ${fmt(total)} cr here${item.legality === 'restricted' ? ' on the black market' : ''}` };
   const own = total - fromFunds;
-  const counts = jedi && own > 0 && (item.kind === 'manufactured' || item.kind === 'military' || item.kind === 'luxury');
+  // A droid (or a ship) taken in play is never a personal holding (D-511); issued gear and mission funds never reach here.
+  const counts = jedi && own > 0 && (item.kind === 'manufactured' || item.kind === 'military' || item.kind === 'luxury') && !JEDI_MONEY.notHoldings.includes(item.id);
   const next: EconomySlice = {
     ...slice,
     wallet,

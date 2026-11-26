@@ -9,9 +9,12 @@ import { traitHazardFactor } from '../../data/speciesTraits';
 import { stubProsthetic } from '../../data/stubs';
 import { applyDamage, hazardDamage, rollLocation, severityOf } from '../../engine/damage';
 import { afterSleep, rest, sleepCarry } from '../../engine/fatigue';
-import { healMultiplier, healsOvernight, isHealed, lastingChance, progressHealing } from '../../engine/healing';
+import { healMultiplier, healsOvernight, progressHealing, type CareKind } from '../../engine/healing';
 import { adapt, isFittedAid, lastingAffects, lastingKindFor, type LastingInjury } from '../../engine/lasting';
-import { nextFloat, type RngState } from '../../engine/rng';
+import { causeOfHazard } from '../../engine/medicine';
+import { AID_CONDITIONS, SURGERY_PROCEDURES, type CareLevel, type SurgeryProcedure } from '../../data/medicine.config';
+import { SEVERITIES } from '../../data/health.config';
+import { healAll, markCare, riskDay, surgery } from './medicine';
 import { dyingMinutes, isDying, killsWhileDying, stabilize, type Wound } from '../../engine/wounds';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent } from '../../state/types';
@@ -177,7 +180,11 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
         const d = applyDamage(vit, h.D, h.bypass, false, true);
         const sevName = severityOf(d.W);
         const lost = Math.min(selectMaxVitality(ctx.state), slice.vitalityLost + d.vitalityLost);
-        const wounds: Wound[] = sevName ? [{ id: 'new', part: part as BodyPart, severity: sevName, W: d.W, stabilized: false, healProgress: 0, day: selectNow(ctx.state).day, source: `hazard:${type}` }] : [];
+        // What made it (D-511): a poison leaves its toxin in the wound; a severe or worse blast leaves shrapnel.
+        const cause = causeOfHazard(type);
+        const deep = sevName !== null && SEVERITIES.indexOf(sevName) >= SEVERITIES.indexOf('severe');
+        const extra = { ...(cause ? { cause } : {}), ...(type === 'poison' ? { toxin: 'poison' as const } : {}), ...(type === 'explosion' && deep ? { fragments: true } : {}) };
+        const wounds: Wound[] = sevName ? [{ id: 'new', part: part as BodyPart, severity: sevName, W: d.W, stabilized: false, healProgress: 0, day: selectNow(ctx.state).day, source: `hazard:${type}`, ...extra }] : [];
         const pendingHazards = e['fromPending'] ? slice.pendingHazards.slice(1) : slice.pendingHazards;
         const r = addWounds({ ...slice, vitalityLost: lost, pendingHazards }, ctx.state, wounds, String(e['cause']));
         return { slice: r.slice, emit: r.emit, notes: [`${type} (severity ${sev}): D ${h.D.toFixed(1)}${sevName ? '' : ', no wound'}`, ...r.notes], rng };
@@ -194,26 +201,85 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
       },
     },
     /**
-     * Healing care (health §7, D-150): medical care x2 for its days; a bacta tank x4 for its hours (it replaces medical
-     * care); a Force healer x(1 + level / 50) on top for the session. Bacta and Force healing apply at once.
+     * Healing care (health §7, D-150; medicine.md §2, D-511): field care dresses every wound (no faster healing, no untreated
+     * risks, a bone set); medical care x2 for its days; a kolto tank x4 or a bacta tank x5 for its hours (it replaces medical
+     * care); a Force healer x(1 + level / 50) on top for the session. Tanks and Force healing apply at once, and a wound they
+     * heal takes its treatment roll. Each wound keeps the best care it had and that care's operator.
      */
     careStarted: {
       schema: z.object({
         type: z.literal('careStarted'),
-        kind: z.enum(['medical', 'bacta', 'forceHealer']),
+        kind: z.enum(['field', 'medical', 'kolto', 'bacta', 'forceHealer']),
         hours: z.number().min(0).max(24 * 120),
         healerLevel: z.number().min(0).optional(),
+        /** The operator's Medicine (D-511): the named healer's, the character's, or the place's staff. */
+        operator: z.number().min(0).optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
         if (slice.death) return { reject: 'the character is dead' };
         const kind = String(e['kind']);
         const hours = Number(e['hours']);
-        if (kind === 'medical') return { slice: { ...slice, care: { kind: 'medical', untilAbs: absNow(ctx.state) + hours * 3600 } }, notes: [`under medical care for ${(hours / 24).toFixed(1)} days (x2 healing)`] };
+        const operator = e['operator'] === undefined ? undefined : Number(e['operator']);
+        const level: CareLevel | null = kind === 'field' ? 'field' : kind === 'medical' ? 'facility' : kind === 'kolto' ? 'kolto' : kind === 'bacta' ? 'bacta' : null;
+        // Any care but a Force healer's dresses the wounds (treated, infection cleared, a bone set) and is kept for the roll.
+        const dressed = level ? (slice.wounds as Wound[]).map((w) => markCare(w, level, operator)) : (slice.wounds as Wound[]);
+        if (kind === 'field') return { slice: { ...slice, wounds: dressed }, notes: ['field care: wounds dressed, bleeding stopped, bones set; no faster healing (D-511)'] };
+        if (kind === 'medical') return { slice: { ...slice, wounds: dressed, care: { kind: 'medical', untilAbs: absNow(ctx.state) + hours * 3600, ...(operator !== undefined ? { operator } : {}) } }, notes: [`under medical care for ${(hours / 24).toFixed(1)} days (x2 healing)`] };
         const medical = slice.care !== null && slice.care.untilAbs > absNow(ctx.state);
-        const mult = healMultiplier({ care: kind === 'bacta' ? 'bacta' : medical ? 'medical' : 'none', healerLevel: kind === 'forceHealer' ? Number(e['healerLevel'] ?? 0) : null });
-        const wounds = (slice.wounds as Wound[]).map((w) => progressHealing(w, hours / 24, mult));
-        return { slice: { ...slice, wounds: wounds.filter((w) => !isHealed(w)) }, notes: [`${kind === 'bacta' ? 'bacta tank' : 'Force healing'} for ${hours} h (x${mult.toFixed(2)} healing)`] };
+        const care: CareKind = kind === 'bacta' || kind === 'kolto' ? kind : medical ? 'medical' : 'none';
+        const mult = healMultiplier({ care, healerLevel: kind === 'forceHealer' ? Number(e['healerLevel'] ?? 0) : null });
+        const r = healAll({ ...slice, wounds: dressed }, ctx.state, (w) => progressHealing(w, hours / 24, mult), ctx.state.meta.rngState, selectNow(ctx.state).day);
+        const what = kind === 'forceHealer' ? 'Force healing' : `${kind} tank`;
+        return { slice: r.slice, notes: [`${what} for ${hours} h (x${mult.toFixed(2)} healing)`, ...r.notices], ...(r.rolled ? { rng: r.rng } : {}) };
+      },
+    },
+    /** A toxin cleared from every wound (D-511): an antidote (a medpac or a facility) or a Force purge. */
+    toxinsPurged: {
+      schema: z.object({ type: z.literal('toxinsPurged'), by: z.string().max(80) }),
+      sources: ['engine'],
+      handle: (slice, e) => {
+        if (!(slice.wounds as Wound[]).some((w) => w.toxin)) return { reject: 'no toxin in any wound' };
+        return { slice: { ...slice, wounds: (slice.wounds as Wound[]).map(({ toxin: _t, ...w }) => w) }, notes: [`toxin purged by ${String(e['by'])}`] };
+      },
+    },
+    /**
+     * Surgery (D-511; the roll is the resolver's): a prosthetic fitted, an internal injury repaired, a toxin source or shrapnel
+     * extracted. Success the full benefit, `weaker` a lesser one, `worse` a complication.
+     */
+    surgeryDone: {
+      schema: z.object({
+        type: z.literal('surgeryDone'),
+        procedure: z.enum(SURGERY_PROCEDURES),
+        result: z.enum(['success', 'weaker', 'worse']),
+        aid: z.enum(['basicProsthetic', 'qualityCybernetic']).optional(),
+        operator: z.number().min(0),
+      }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        if (slice.death) return { reject: 'the character is dead' };
+        return surgery(slice, ctx.state, e['procedure'] as SurgeryProcedure, e['result'] as 'success' | 'weaker' | 'worse', (e['aid'] as 'basicProsthetic' | 'qualityCybernetic' | undefined) ?? 'basicProsthetic', Number(e['operator']));
+      },
+    },
+    /** A hit on a prosthetic (D-511): the aid damaged or broken (combat sync). */
+    prostheticDamaged: {
+      schema: z.object({ type: z.literal('prostheticDamaged'), part: z.enum(['leftArm', 'rightArm', 'leftHand', 'rightHand', 'leftLeg', 'rightLeg']), condition: z.enum(AID_CONDITIONS) }),
+      sources: ['engine'],
+      handle: (slice, e) => {
+        const part = String(e['part']);
+        const i = slice.lasting.findIndex((l) => l.part === part && isFittedAid(l.aid));
+        if (i < 0) return { reject: `no prosthetic on the ${part}` };
+        const lasting = slice.lasting.map((l, j) => (j === i ? { ...l, aidCondition: e['condition'] as (typeof AID_CONDITIONS)[number] } : l));
+        return { slice: { ...slice, lasting }, notes: [`the prosthetic ${partText(part as BodyPart)} is ${String(e['condition'])}`] };
+      },
+    },
+    /** Damaged or broken prosthetics repaired at a facility (D-511). */
+    prostheticRepaired: {
+      schema: z.object({ type: z.literal('prostheticRepaired') }),
+      sources: ['engine'],
+      handle: (slice) => {
+        if (!slice.lasting.some((l) => l.aidCondition)) return { reject: 'no damaged prosthetic' };
+        return { slice: { ...slice, lasting: slice.lasting.map(({ aidCondition: _c, ...l }) => l) }, notes: ['prosthetics repaired'] };
       },
     },
     /** Training the skills a lasting injury affects (progression-numbers §18): +1% per effective hour, at most 3% a day. */
@@ -271,42 +337,17 @@ export const healthFeature: FeatureModule<HealthSlice, GameState> = {
     }
     if (next.care && step.toAbs >= next.care.untilAbs) next = { ...next, care: null };
     if (!step.endsDay) return { slice: next };
-    // Day by day (health §7): healing progress at the day's multiplier; a healed severe-or-worse wound may leave a
-    // lasting injury (severe 10%, critical 35%, stabilized mortal 70%).
+    // Day by day (health §7; medicine.md §3, §5, D-511): first the untreated risks and toxins, then healing progress at the
+    // day's multiplier; a healed severe-or-worse wound takes its treatment roll (or health §7's baseline when it had no care).
     const day = Math.floor(step.toAbs / 86_400);
     const medical = slice.care !== null;
     const mult = healMultiplier({ care: medical ? 'medical' : 'none' });
-    let rng: RngState = ctx.state.meta.rngState;
-    let rolled = false;
-    const kept: Wound[] = [];
-    const lasting = [...next.lasting] as LastingInjury[];
-    let seq = next.woundSeq;
-    for (const w0 of next.wounds as Wound[]) {
-      if (w0.severity === 'mortal' && !w0.stabilized) {
-        kept.push(w0);
-        continue;
-      }
-      const w = progressHealing(w0, 1, mult);
-      if (!isHealed(w)) {
-        kept.push(w);
-        continue;
-      }
-      const chance = lastingChance(w);
-      if (chance > 0) {
-        const [u, r] = nextFloat(rng);
-        rng = r;
-        rolled = true;
-        if (u < chance) {
-          lasting.push({ id: `pc:l${seq}`, kind: lastingKindFor(w), part: w.part, adaptation: 0, aid: 'scarTissue', adaptedToday: 0, adaptDay: -1, day });
-          seq += 1;
-          notices.push(`A ${w.severity} wound to the ${partText(w.part)} has healed, but left a lasting injury.`);
-          continue;
-        }
-      }
-      notices.push(`A ${w.severity} wound to the ${partText(w.part)} has healed.`);
-    }
-    next = { ...next, wounds: kept, lasting, woundSeq: seq };
-    return { slice: next, ...(notices.length ? { notices } : {}), ...(emit.length ? { emit } : {}), ...(rolled ? { rng } : {}) };
+    const risk = riskDay(next, selectSpeciesId(ctx.state), day, selectMaxVitality(ctx.state), ctx.state.meta.rngState);
+    const healed = healAll(risk.slice, ctx.state, (w) => progressHealing(w, 1, mult), risk.rng, day);
+    next = healed.slice;
+    notices.push(...risk.notices, ...healed.notices);
+    const rolled = risk.rolled || healed.rolled;
+    return { slice: next, ...(notices.length ? { notices } : {}), ...(emit.length ? { emit } : {}), ...(rolled ? { rng: healed.rng } : {}) };
   },
   selectors: { meters: selectMeters, fatigue: selectFatigue, vitality: selectVitality, status: selectStatusLabel },
 };

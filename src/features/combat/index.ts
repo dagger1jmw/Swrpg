@@ -181,6 +181,11 @@ function syncEmits(s: GameState, before: DuelState, after: DuelState, meta: Acti
     // Backlash mental load (health §2, through forceMeter.ts) reaches the character with the other meters (D-194).
     out.push({ type: 'healthSynced', vitalityLost: lost, addWounds: newWounds, meters: { p: a.meters.p, f: a.meters.f, ...(a.meters.m !== undefined ? { m: a.meters.m } : {}) }, cause: 'duel' });
   }
+  // A hit on a prosthetic is equipment damage (D-511): the aid's new condition reaches health.
+  for (const l of a.lasting) {
+    const was = before.a.lasting.find((x) => x.id === l.id);
+    if (l.aidCondition && l.aidCondition !== was?.aidCondition) out.push({ type: 'prostheticDamaged', part: l.part, condition: l.aidCondition });
+  }
   for (const o of after.opponents) {
     const m = meta[o.id];
     const prev = before.opponents.find((x) => x.id === o.id);

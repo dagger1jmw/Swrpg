@@ -50,8 +50,9 @@ describe('Malachor V and the healing fluid (D-440)', () => {
     expect(t).toMatch(/Era rule: Malachor V was destroyed in 3,951 BBY/);
   });
   it('a tank is a kolto tank in 3661 BBY and a bacta tank in 19 BBY', () => {
-    const d = { intent: null, checks: [], training: null, timeAdvanced: null, jump: null, combat: null, pacingLevel: 'moment', notices: [], report: [], resolvedActions: [], rngAfter: seedRng('x'), applied: [{ event: { type: 'careStarted', kind: 'bacta', hours: 6 }, notes: [] }], rejected: [] } as unknown as TurnDraft;
-    expect(resolvedBlock(d, [], -3661)).toMatch(/Care applied this turn: a kolto tank \(kolto is the healing fluid of this date; bacta is a rare import\)/);
-    expect(resolvedBlock(d, [], -19)).toMatch(/Care applied this turn: a bacta tank\./);
+    // The engine picks the fluid (D-511: medicine's tankFluid); the line names it and the date's standard.
+    const d = (kind: string) => ({ intent: null, checks: [], training: null, timeAdvanced: null, jump: null, combat: null, pacingLevel: 'moment', notices: [], report: [], resolvedActions: [], rngAfter: seedRng('x'), applied: [{ event: { type: 'careStarted', kind, hours: 6 }, notes: [] }], rejected: [] }) as unknown as TurnDraft;
+    expect(resolvedBlock(d('kolto'), [], -3661)).toMatch(/Care applied this turn: a kolto tank \(the patient does nothing else meanwhile\) \(kolto is the standard healing fluid of this date; bacta is a rare, dearer import\)/);
+    expect(resolvedBlock(d('bacta'), [], -19)).toMatch(/Care applied this turn: a bacta tank \(the patient does nothing else meanwhile\) \(bacta is the standard healing fluid of this date\)\./);
   });
 });

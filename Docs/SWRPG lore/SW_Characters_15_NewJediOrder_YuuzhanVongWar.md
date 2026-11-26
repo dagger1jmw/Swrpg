@@ -58,7 +58,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 | Strength | 88 | | ForceSense | 98 |
 | Agility | 98 | | Meditation | 94 |
 | Endurance | 90 | | ForceKnowledge | 96 |
-| Willpower | 104 | | ForceControl | 120 |
+| Willpower | 105 | | ForceControl | 120 |
 | Charisma | 88 | | ForceOutput | 128 |
 | Intelligence | 88 | | | |
 
@@ -68,7 +68,7 @@ Each sheet: **Core Stats** (6) · **Force Stats** (5) · **Lightsaber Forms/Blad
 - **Unique techniques:** **Total mastery & environmental telekinesis** *(the widest command of Force arts of any living Jedi; bypassed Vong Force-invisibility by hurling the ground/objects around them rather than the Vong directly)*
 - **Signature Ability:** **The fully realized Jedi** — effectively Anakin's full Chosen-One potential realized *without* the old Order's limits, on the light side: raw Force output and control **unmatched by any being outside Abeloth**, fused with master-of-everything martial skill. Honed by decades of unbroken war, study, and rebuilding the Order.
 - **Notable Feats:** Held the Order together through the war and the Republic's persecution; faced Vong hordes alone; crushed war machines and redirected the battlefield itself telekinetically; discovered Zonama Sekot; **killed Supreme Overlord Shimrra in single combat**; father of Ben Skywalker.
-- **Alignment:** Light side.
+- **Alignment:** Light side. [note: Ruled, Jared 25 Nov 2026: Willpower 104 -> 105, so the sheet meets the apex line (combat 98, Force Control 110, Willpower 105); Luke is apex from 25 ABY. D-511]
 - **Tier:** **Legendary — near-apex (ascending).** Output/Control unmatched among the living and second only to Abeloth across all Legends; full apex (~138) peaks in Era 17.
 
 ---

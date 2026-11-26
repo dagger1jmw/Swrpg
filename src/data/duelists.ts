@@ -44,7 +44,12 @@ export const DUELISTS: readonly DuelistSpan[] = [
   ...span('top', -3, 4, MAP_C, 'galen-marek'),
   ...span('master', -22, -19, MAP_C, 'general-grievous'),
   ...span('beyond', 43, 44, 'D-494: beyond any duelist, as listed in the 4-44 ABY map', 'abeloth'),
-  ...span('beyond', 130, 138, 'D-494: beyond any duelist, as listed in the 45-138 ABY map', 'darth-krayt'),
+  // Luke (the 4-44 ABY map as ruled 25 Nov 2026; D-511): a top duelist from his return from Byss, apex from 25 ABY (the 45-138
+  // ABY review: apex in 45 ABY too).
+  ...span('top', 10, 24, 'the 4-44 ABY map: a top duelist from his return from Byss (D-511)', 'luke-skywalker'),
+  ...span('apex', 25, 45, 'the 4-44 ABY map: apex from 25 ABY; the 45-138 ABY review: apex in 45 (D-511)', 'luke-skywalker'),
+  // Krayt: apex, not beyond any duelist (lore rulings 25 Nov 2026, item 2; the 45-138 ABY review, map-wide A; D-511).
+  ...span('apex', 130, 138, 'lore rulings 2026-11-25 item 2: an apex duelist (Cade kills him); was beyond any duelist (D-494)', 'darth-krayt'),
 ];
 
 /** Figures on the lists who have no entry of their own in the lore index. */

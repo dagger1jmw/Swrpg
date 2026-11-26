@@ -57,7 +57,7 @@ describe('a typed rest with care (D-199)', () => {
   it('"I rest for a week while a medic treats my arm": a care period, rest and recovery days, faster healing', async () => {
     const s = await wounded();
     // The intent the prompt asks for: rest, healing medical, a span of one week.
-    const care = resolveTurn(REGISTRY, s, { actionType: 'rest', targets: [], references: [], unknownNames: [], healing: { source: 'medical' }, requestedSpan: week, requestedPacing: 'montage' }, { text: 'I rest for a week while a medic treats my arm' });
+    const care = resolveTurn(REGISTRY, s, { actionType: 'rest', targets: [], references: [], unknownNames: [], healing: { source: 'admit' }, requestedSpan: week, requestedPacing: 'montage' }, { text: 'I rest for a week while a medic treats my arm' });
     const rep = care.draft.jump!.report;
     expect(rep.trainingDays).toBe(0);
     expect(rep.hoursTrained).toBe(0);
@@ -74,7 +74,7 @@ describe('a typed rest with care (D-199)', () => {
     expect(r.draft.jump!.report.trainingDays).toBeGreaterThan(0);
   });
   it('the intent prompt maps resting while treated to rest with healing', () => {
-    expect(PROMPTS.intent).toMatch(/I rest for a week while a medic treats my arm.*actionType rest, healing source medical, requestedSpan 1 weeks/);
+    expect(PROMPTS.intent).toMatch(/I rest for a week in the medcenter.*actionType rest, healing source admit, at medcenter, requestedSpan 1 weeks/);
   });
 });
 

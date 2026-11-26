@@ -554,17 +554,28 @@ export function careApplied(draft: TurnDraft): string[] {
   const out: string[] = [];
   for (const a of draft.applied) {
     const e = a.event as { type?: string; kind?: string; by?: string };
-    if (e.type === 'careStarted') out.push(e.kind === 'bacta' ? 'bacta' : e.kind === 'forceHealer' ? 'forceHealer' : 'medical');
+    if (e.type === 'careStarted') out.push(e.kind === 'bacta' || e.kind === 'kolto' || e.kind === 'forceHealer' || e.kind === 'field' ? e.kind : 'medical');
     if (e.type === 'woundsStabilized') out.push('stabilized');
+    if (e.type === 'toxinsPurged') out.push('antidote');
+    if (e.type === 'surgeryDone') out.push('surgery');
   }
   return out;
 }
-const CARE_TEXT: Readonly<Record<string, string>> = { medical: 'ordinary medical care (a medic, medpacs, a medcenter bed)', bacta: 'a bacta tank', forceHealer: 'a Force healer', stabilized: 'the wounds were stabilized' };
-/** The tank care in the fluid of the date (D-440): a kolto tank before bacta's switch-over, a bacta tank after. */
+const CARE_TEXT: Readonly<Record<string, string>> = {
+  field: 'field care (a medpac or a medic: wounds dressed, bleeding stopped, pain dulled briefly; it does not speed healing)',
+  medical: 'a medical facility (a medcenter, a medbay or the Halls of Healing)',
+  kolto: 'a kolto tank (the patient does nothing else meanwhile)',
+  bacta: 'a bacta tank (the patient does nothing else meanwhile)',
+  forceHealer: 'a Force healer',
+  stabilized: 'the wounds were stabilized',
+  antidote: 'the toxin was purged (an antidote or the Force)',
+  surgery: 'surgery (its result is in the notes)',
+};
+/** The tank care in the fluid the engine chose (D-440, D-511), with the date's standard fluid named. */
 function careText(kind: string, year: number | undefined): string {
-  if (kind !== 'bacta' || year === undefined) return CARE_TEXT[kind] ?? kind;
+  if ((kind !== 'bacta' && kind !== 'kolto') || year === undefined) return CARE_TEXT[kind] ?? kind;
   const f = healingFluidAt(year);
-  return f.standard === 'kolto' ? `a kolto tank (kolto is the healing fluid of this date${f.bacta === 'rare import' ? '; bacta is a rare import' : ''})` : 'a bacta tank';
+  return `${CARE_TEXT[kind]!} (${f.standard} is the standard healing fluid of this date${f.bacta === 'rare import' ? '; bacta is a rare, dearer import' : ''})`;
 }
 function careLine(draft: TurnDraft, year?: number): string {
   const care = [...new Set(careApplied(draft))];

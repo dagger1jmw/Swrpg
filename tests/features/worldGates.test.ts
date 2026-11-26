@@ -175,7 +175,7 @@ describe('A2: the power bar', () => {
     expect(duelistBar('lore:darth-bane', -990)).toBe('apex'); // D-496
     expect(list(-20)).toEqual(['anakin-skywalker', 'count-dooku', 'darth-maul', 'darth-plagueis', 'darth-vader', 'mace-windu', 'obi-wan-kenobi']);
     expect(['yoda', 'darth-sidious', 'sheev-palpatine', 'emperor-palpatine'].map((x) => duelistBar(`lore:${x}`, -20))).toEqual(['apex', 'apex', 'apex', 'apex']); // D-494
-    expect([duelistBar('lore:abeloth', 44), duelistBar('lore:darth-krayt', 137)]).toEqual(['beyond', 'beyond']);
+    expect([duelistBar('lore:abeloth', 44), duelistBar('lore:darth-krayt', 137)]).toEqual(['beyond', 'apex']);
     expect(list(-2)).toContain('galen-marek');
     expect(list(-4000)).toEqual(['darth-nihilus', 'darth-sion', 'darth-traya', 'exar-kun', 'malak', 'meetra-surik', 'naga-sadow', 'revan', 'scourge', 'ulic-qel-droma']);
     expect(duelistBar('lore:vitiate', -3655)).toBe('beyond'); // D-493

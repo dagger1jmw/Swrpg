@@ -465,7 +465,7 @@ describe('lore rulings of 25 Nov 2026 applied with the economy', () => {
     expect(t && 'card' in t).toBe(true);
   });
   it('Vrath Xizor is a soldier (a mercenary and ex-Imperial sniper); Karrid\'s sheet is ruled, not for review', () => {
-    expect(CANON_BY_ID.get('lore:vrath-xizor')!.archetype).toBe('soldier');
+    expect(CANON_BY_ID.get('lore:vrath-xizor')!.archetype).toBe('sniper');
     const k = CANON_BY_ID.get('lore:darth-karrid')!;
     expect(JSON.stringify(k)).not.toMatch(/for review/);
   });

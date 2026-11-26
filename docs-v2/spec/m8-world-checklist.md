@@ -32,7 +32,7 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [x] **5. Economy and prices (D-405 [5]).** *Built: D-510 (spec/economy.md; docs-v2/reports/m8-economy.md). Every number not on record is invented (the spec's section 11); ship running costs wait for item 13, medicine prices for item 6.*
 
   Credits, prices and pay for the era, including the Coruscant food-price index of 3,661–3,660 (D-381 hook; numbers `invented`), Hutt debts and Exchange debt (D-385 hook) and bounty payouts. **Lore research due Monday;** design follows the research batch.
-- [ ] **6. Medicine and bacta (D-405 [5]).**
+- [x] **6. Medicine and bacta (D-405 [5]).** *Built: D-511 (spec/medicine.md; docs-v2/reports/m8-medicine.md). Every number not from lore is invented (the spec's section 12). Combat assigns wound depth once realistic damage is built.*
 
   After the economy: kolto (Manaan) and bacta in this era, medcenters, prices and availability, building on the M5 healing rules (health.md: medical, bacta, Force healing).
 - [ ] **7. Droids (D-405 [5]).**

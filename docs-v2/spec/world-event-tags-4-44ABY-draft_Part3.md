@@ -187,7 +187,7 @@ Numbered after the other maps (PP-0 to PP-21). Written to the reworked pattern: 
 
 ### PP-31: Ebaq to the Sekot Accords (28–29 ABY)
 - **Hinge:** Ebaq turns the war, Zonama Sekot returns, Shimrra and Onimi die and the Vong go into exile (O.ebaq_victory, O.shimrra_dead, O.vong_war_ended).
-- **Unbreakable:** Luke's fight with Shimrra in the citadel (Luke a top duelist, with two Jedi), and with it Onimi's attack (Rev PP-31).
+- **Unbreakable:** Luke's fight with Shimrra in the citadel (Luke an apex duelist from 25 ABY, with two Jedi), and with it Onimi's attack (Rev PP-31).
 - **Who the player can be:** a Galactic Alliance staff officer or pilot, a Jedi on Luke's expedition, a Chiss commander, a Shamed One of the heresy, an NRI officer in Scaur's cell, a Chiss biotechnician. A collaborator in Lah's service isn't realistic: Lah would never trust an infidel with his intelligence. Luke, Jacen, Jaina, Ackbar and the Vong leaders are NPCs.
 - **The steps:**
   1. **Ebaq** (E.28.ebaq, very high; prerequisites: (a) a post on the Alliance staff that knows the Redoubt is a lie, and (b) a channel to the Vong). *There:* an Alliance staff traitor who leaks it. Breaking it (alternative 2).
@@ -202,7 +202,7 @@ Numbered after the other maps (PP-0 to PP-21). Written to the reworked pattern: 
 
 ### PP-32: The Swarm War (35–36 ABY)
 - **Hinge:** Lomi Plo dies at Tenupe, the Dark Nest is destroyed and the Killiks go back into the Unknown Regions (O.lomi_plo_dead, O.killiks_exiled).
-- **Unbreakable:** Luke's duel with Lomi Plo (two top duelists).
+- **Unbreakable:** Luke's duel with Lomi Plo (Luke apex, Lomi Plo a top duelist).
 - **Who the player can be:** a Jedi Knight (possibly Joined, or one who escaped the Gorog), one of Jacen's party, a Chiss defender or commander, an Alliance commander, a smuggler. Luke, Jacen, Jaina, Zekk, Raynar and Lomi Plo are NPCs; Jacen is a top duelist from 29 ABY.
 - **The steps:**
   1. **The Dark Nest found** (E.35.dark_nest, very high; prerequisites: (a) direct contact with the Gorog (an escaped Joiner, or a Jedi among them), and (b) standing with the Masters' Council, since Lomi Plo hides in doubt). Early exposure (alternative 1).
@@ -290,7 +290,7 @@ Events whose crucial tags do not depend on these plot points, so they still happ
 | Wookieepedia, Liberation of Coruscant (GCW): 7 ABY | Ruled 6 ABY | R-b 1; W (checked today) |
 | SW_Timeline_25_44ABY P4, "Changes": SW_Characters_15–17 "not in the uploads folder" | They are now in Docs/SWRPG lore; R-c asks for them to be compared. Spot-checked here (the next two rows; the Abeloth and Grand Master-date fixes to Ch17 and Ch15 were made in m8-lore-f) | Ch15–Ch17 |
 | SW_Characters_16: Lumiya "High Master" tier | Lumiya is a top duelist for this era: a fight with her is top tier | Rev PP-33 (ruled in review, §7). Fix Ch16's tier |
-| SW_Characters_16: Caedus "surpasses Vader" and Luke "near-apex ~134" | Consistent with the duelist rule; no change | Ch16 |
+| SW_Characters_16: Caedus "surpasses Vader" and Luke "near-apex ~134" | Luke: apex from 25 ABY (Jared, 25 Nov 2026); Caedus stays a top duelist | Ch16; Jared |
 | SW_Timeline_25_44ABY P3: Daala's return 40 or 41 ABY | 41 ABY, at the Second Battle of Fondor | R-c 1 |
 | SW_Timeline_25_44ABY P2: Jacen's escape and Ganner's death 27 or 28 ABY | 27 ABY | R-c 1 |
 | SW_Timeline_25_44ABY P3: Welk's death 35 ABY or with the Swarm War's end | Best fit unclear; the map uses 35 ABY (the year page) inside E.35.dark_nest | R-c 1 (pick listed) |
@@ -320,7 +320,7 @@ Events whose crucial tags do not depend on these plot points, so they still happ
 ## 7. Ruled in review, and still open
 
 ### Ruled in review (Jared, 24–25 Nov 2026)
-1. **Design rules (D-489):** three tests for every step with Jared's examples, the two-tier top-duelist rule with this map's list (C'baoth, Lumiya and Jacen from 29 ABY in it; Luke and Mara together top tier; Tahiri and Alema at least Knight-level to stop by force), no premonitions, closed systems unbreakable (Part 1).
+1. **Design rules (D-489):** three tests for every step with Jared's examples, the two-tier top-duelist rule with this map's list (C'baoth, Lumiya and Jacen from 29 ABY in it; Luke and Mara together top tier (19 ABY); Luke apex from 25 ABY and Krayt apex (Jared, 25 Nov 2026); Tahiri and Alema at least Knight-level to stop by force), no premonitions, closed systems unbreakable (Part 1).
 2. **Non-Force fighters (25 Nov 2026):** never Master level against a top duelist in an outright fight; only the most skilled bounty hunters and Mandalorians reach it, and only with planning recorded in play; they buy time, never win (Part 1).
 3. **PP-22:** Borleias and Thyferra need command rank to change; the *Lusankya* is unbreakable as a search; "Isard taken" only through her capture at Thyferra; most of it rests on a very capable NRI agent or a Rogue Squadron PC.
 4. **PP-23:** Selaggis through a trusted Wraith who gets Han's task force to act (a lone crewman can only defect); Zsinj warned off Dathomir, high, by a Nightsister Gethzerion trusts; Han's shot unbreakable; the coven's escape medium (new step 4).

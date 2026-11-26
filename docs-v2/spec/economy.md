@@ -69,7 +69,7 @@ Paid as calendar time passes, in the day hook, so a time jump pays out too.
 
 - **The Order keeps a Jedi:** room and board (lifestyle `provided`), basic gear from the quartermaster (and armour from Knight), no pay. Mission funds (`money` kind `missionFunds`) go to a separate purse that pays mission purchases first and is returned (`returnFunds`). A Padawan's are held by the Master.
 - **Accepting a reward** (`money` kind `reward`) has no mechanical effect unless another Jedi sees it (a Jedi present in the scene, decided by the code) or the Order finds out (`orderLearns`). Then it scales with the pattern: now and then, at most a reprimand (a note for the narrator); three known in two years, a reputation among the Jedi (flag `jediRewardReputation`, for renown once built) and Order standing -5.
-- **Amassing wealth:** personal wealth (wallet and goods bought, the Order's funds aside) of 10,000 cr is attachment: flag `jediWealth` and Order standing -15, a world reaction (`orderStandingLost` in ranks), alongside alignment.
+- **Amassing wealth:** personal holdings (wallet and goods bought) over 25,000 cr are attachment (Jared, D-511; was 10,000): flag `jediWealth` and Order standing -15, a world reaction (`orderStandingLost` in ranks), alongside alignment. Order-issued gear, mission funds and Order ships never count, and neither does a personal ship or droid taken in play (`JEDI_MONEY.notHoldings`).
 - **Theft and extortion** (`money` kind `steal` / `extort`) take what the NPC carries and are recorded as dark-side choices (`darkChoices`) for the alignment system to read once it is built. Honest work for pay is open to a stranded Jedi.
 - **NPC Jedi** decline rewards; the GM prompt says so. A share (3%) are less firmly light, by the NPC's own seed: the state block names one present as someone who might keep a reward now and then. No NPC Jedi amasses wealth.
 
@@ -113,7 +113,7 @@ A lifestyle tier is charged each day where the character is: poor 20, modest 50 
 | Bribe sizes 0.1 / 0.5 / 1 / 3 months; rating 50, +3 per doubling | `BRIBE_SIZES`, `BRIBE_CHECK` |
 | Monthly pay by NPC role; honest shares by role | `ROLE_PAY`, `HONEST_SHARE` |
 | What NPCs carry (months of pay by role, floors, crime lord x10) | `CARRIED_MONTHS`, `CARRIED_FLOOR`, `ARCHETYPE_CARRIED_X` |
-| Jedi: pattern 3 in two years, standing -5; wealth 10,000, standing -15; quartermaster lists; 3% of NPC Jedi might keep a reward | `JEDI_MONEY` |
+| Jedi: pattern 3 in two years, standing -5; wealth 25,000 (Jared, D-511), standing -15; quartermaster lists; 3% of NPC Jedi might keep a reward | `JEDI_MONEY` |
 | Start money, job and lifestyle by start option | `START_MONEY`, `PATH_MONEY` |
 | Ship price curves' powers (fighter 1, freighter 1.5; the capital 1.79 fits two recorded ships); used ship 50% | `SHIP_PRICE_CURVE`, `SHIP_USED_SHARE` |
 | Running costs but the freighter's docking; repair shares | `RUNNING_COSTS`, `REPAIR_SHARE` |
@@ -122,6 +122,6 @@ A lifestyle tier is charged each day where the character is: poor 20, modest 50 
 
 ## 12. Not built here
 
-- Charging ship running costs (item 13), medicine prices and bacta availability (item 6), droid prices beyond three catalog rows (item 7).
+- Charging ship running costs (item 13), droid prices beyond three catalog rows (item 7). Medicine prices and bacta availability: medicine.md (item 6, D-511).
 - Renown (spec 24) reads `jediRewardReputation`, `jediWealth` and `debtBounty:*` once built; alignment reads `darkChoices`.
 - The narrator gets no per-item price list: a price comes back after a purchase. A price quote before buying would need a check-style resolve step.

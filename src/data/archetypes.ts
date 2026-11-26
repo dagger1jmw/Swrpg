@@ -17,6 +17,8 @@ export type Phase = 'initiate' | 'padawan' | 'knight';
 
 /** The crime lord's career paces (D-509; invented, set against Tassaa Bareesh and Suudaa Nemro). */
 export const CRIME_LORD_PACE = { charisma: 1.1, intelligence: 1.0, profession: 0.9, tactics: 0.7 } as const;
+/** The sniper's career paces (D-511; invented, set against Vrath Xizor): the soldier's day with drill and staff hours moved to marksmanship and fieldcraft. */
+export const SNIPER_PACE = { blaster: 2.2, stealth: 0.45 } as const;
 
 export interface ArchetypeDef {
   id: string;
@@ -307,6 +309,24 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
       knight: {},
     },
   },
+  {
+    // A sniper (Jared, D-511): the soldier's career weighted to marksmanship, for Vrath Xizor, the ex-Imperial sniper.
+    // Generated and canon NPCs only. The soldier's measured day with the drill and staff hours moved to the range and to
+    // fieldcraft: Blaster and Stealth up, Strength, Endurance and Tactics down. Every pace invented.
+    id: 'sniper',
+    name: 'Sniper',
+    path: 'career',
+    main: 'blaster',
+    weights: { blaster: 1.0, stealth: 0.5, agility: 0.5, willpower: 0.4, endurance: 0.3, strength: 0.2, tactics: 0.3 },
+    startAge: 17,
+    startRange: [16, 30],
+    paces: {
+      knight: { blaster: SNIPER_PACE.blaster, stealth: SNIPER_PACE.stealth, agility: 0.683, willpower: 0.621, tactics: 0.3, intelligence: 0.155, endurance: 0.3, strength: 0.25, meditation: 0.021, forceControl: 0.005 },
+    },
+    formPaces: {
+      knight: {},
+    },
+  },
 ];
 
 export const ARCHETYPE_BY_ID: ReadonlyMap<string, ArchetypeDef> = new Map(ARCHETYPES.map((a) => [a.id, a]));
@@ -332,7 +352,7 @@ export const NPC_ARCHETYPES: Record<CharacterPath, readonly string[]> = {
   jedi: [],
   sith: [],
   outsider: [],
-  career: ['yuuzhanVongWarrior', 'crimeLord'],
+  career: ['yuuzhanVongWarrior', 'crimeLord', 'sniper'],
 };
 
 /** Training start range per path (character-creation §1); outsiders may start late, like Luke. */

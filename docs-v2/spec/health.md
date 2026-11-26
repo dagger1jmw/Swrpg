@@ -99,8 +99,9 @@ Force meter (replaces Force strain):
     capturing fighter's subduing hits have no location and never sever (D-262).
   Lost and prosthetic limbs (D-164): a limb severed earlier in the same fight cannot be hit
     again (it leaves the location roll; a lost arm takes its hand). A limb lost before the fight
-    carries its prosthetic: a hit there costs Vitality only (no wound, no sever) until M8 makes
-    it equipment damage. A limb is never severed twice.
+    carries its prosthetic: a hit there costs Vitality only (no wound, no sever); since M8 (D-511, medicine.md §7) the
+    wound it would have done damages the prosthetic (W 10+) or breaks it (W 20+): damaged halves its adaptation, broken
+    counts as no aid until repaired. A limb is never severed twice.
   Fighting on (D-198): a fighter whose leg is severed, or who has lost a leg with no prosthetic,
     cannot stand or duel: out of the fight (a prosthetic or cybernetic leg is exempt, also while
     the severed wound heals: D-245). A lost or prosthetic leg slows form strikes and cuts the
@@ -135,12 +136,14 @@ Force meter (replaces Force strain):
 ## 7. Healing
   Base healing time at rest: minor overnight (7h+ sleep) | moderate 7 days | severe 21 days |
     critical 45 days | stabilized mortal 90 days
-  Rate multipliers (combine): medical care x2 | bacta tank x4 (minor 6 hours, moderate 1 day) |
-    Force healing x(1 + healer level / 50) | training the injured part x0.5 (with a risk of
-    making it worse)
+  Rate multipliers (combine): medical care x2 | kolto tank x4 (minor 6 hours, moderate 1 day) |
+    bacta tank x5 (D-511) | Force healing x(1 + healer level / 50) | training the injured part x0.5
+    (with a risk of making it worse). Field care x1 (D-511). The levels of care, the untreated
+    risks, wound depth, surgery and toxins: medicine.md.
   Healing runs day by day through the clock's onTimeAdvanced.
   Chance of a lasting injury when it heals: severe 10% | critical 35% | mortal 70%
-    (then progression spec section 18 adaptation applies).
+    (then progression spec section 18 adaptation applies). Since D-511 this is the untreated
+    baseline: a wound that had care takes the treatment roll instead (medicine.md §5).
 
 ## 8. Pain suppression (temporary, costs Force)
   Control Pain: removes min(60%, level/150) of wound penalties; Force load 0.1/min.

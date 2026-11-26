@@ -3,6 +3,7 @@
 // stored as the damage taken below the derived maximum (`vitalityLost`), so a higher Endurance raises it at once.
 import { z } from 'zod';
 import { AIDS, BODY_PARTS, HAZARD_TYPES, LASTING_KINDS, SEVERITIES } from '../../data/health.config';
+import { AID_CONDITIONS, CARE_LEVELS, TOXINS, WOUND_CAUSES, WOUND_DEPTHS } from '../../data/medicine.config';
 
 export const metersSchema = z.object({ p: z.number().min(0), m: z.number().min(0), f: z.number().min(0) });
 
@@ -16,6 +17,17 @@ export const woundSchema = z.object({
   day: z.number().int(),
   source: z.string().max(80),
   severed: z.boolean().optional(),
+  // Medicine (D-511): all optional, so older saves load unchanged.
+  cause: z.enum(WOUND_CAUSES).optional(),
+  depth: z.enum(WOUND_DEPTHS).optional(),
+  set: z.boolean().optional(),
+  treated: z.boolean().optional(),
+  infected: z.boolean().optional(),
+  care: z.enum(CARE_LEVELS).optional(),
+  operator: z.number().min(0).optional(),
+  toxin: z.enum(TOXINS).optional(),
+  fragments: z.boolean().optional(),
+  operated: z.boolean().optional(),
 });
 
 export const lastingSchema = z.object({
@@ -27,6 +39,10 @@ export const lastingSchema = z.object({
   adaptedToday: z.number().min(0),
   adaptDay: z.number().int(),
   day: z.number().int(),
+  /** A minor lasting injury (the treatment roll, D-511): a share of the kind's penalties. */
+  minor: z.boolean().optional(),
+  /** A fitted aid's condition after hits (D-511): damaged or broken; absent = sound. */
+  aidCondition: z.enum(AID_CONDITIONS).optional(),
 });
 
 export const healthSliceSchema = z.object({
@@ -42,13 +58,18 @@ export const healthSliceSchema = z.object({
   dying: z.object({ sinceAbs: z.number(), untilAbs: z.number() }).nullable(),
   /** Set once, by the engine (D-149): the dying timer ran out or a second mortal wound landed while Dying. */
   death: z.object({ atAbs: z.number(), cause: z.string().max(200) }).nullable(),
-  /** Medical care in force until untilAbs (x2 healing, D-150). Bacta and Force healing apply per session. */
-  care: z.object({ kind: z.literal('medical'), untilAbs: z.number() }).nullable(),
+  /**
+   * A medical facility's care in force until untilAbs (x2 healing, D-150), with its operator's Medicine (D-511). Tanks and
+   * Force healing apply per session; field care marks the wounds.
+   */
+  care: z.object({ kind: z.literal('medical'), untilAbs: z.number(), operator: z.number().min(0).optional() }).nullable(),
   /** Active pain suppression (M6 abilities). */
   suppression: z.array(z.object({ abilityId: z.string(), sinceAbs: z.number() })),
   woundSeq: z.number().int().min(1),
   /** Deferred hazardOccurred (D-29): resolved at the start of the next turn's step b. */
   pendingHazards: z.array(z.object({ hazard: z.enum(HAZARD_TYPES), severity: z.number().int().min(1).max(3), cause: z.string().max(200) })),
+  /** Scars healed wounds left (the treatment roll, D-511): cosmetic only. Absent on older saves. */
+  scars: z.array(z.object({ part: z.enum(BODY_PARTS), day: z.number().int(), from: z.string().max(80) })).max(40).optional(),
 });
 
 export type HealthSlice = z.infer<typeof healthSliceSchema>;

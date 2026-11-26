@@ -202,8 +202,13 @@ export const JEDI_MONEY = {
   patternCount: 3,
   /** Order standing lost when the pattern is known (invented). */
   patternStanding: 5,
-  /** Personal wealth (wallet and goods bought, the Order's funds aside) that counts as amassing it (invented). */
-  wealth: 10_000,
+  /**
+   * Personal holdings past this count as amassing wealth (Jared, D-511: 25,000, was 10,000). Order-issued gear, mission funds and
+   * Order ships never count, and neither does a personal ship or droid taken in play (`notHoldings`).
+   */
+  wealth: 25_000,
+  /** Catalog rows a Jedi may come to own in play that are never personal holdings (D-511): droids; ships are not sold through `trade`. */
+  notHoldings: ['protocolDroid', 'astromech', 'medDroid'] as readonly string[],
   /** Order standing lost for amassing wealth (invented, as covert learning's 15). */
   wealthStanding: 15,
   /** Basic gear the quartermaster issues to any Jedi; armour too from Knight (invented). */

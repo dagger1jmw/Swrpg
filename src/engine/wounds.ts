@@ -19,6 +19,7 @@ import {
   type Severity,
 } from '../data/health.config';
 import { SKILL_BY_ID } from '../data/skills';
+import type { CareLevel, Toxin, WoundCause, WoundDepth } from '../data/medicine.config';
 
 export interface Wound {
   id: string;
@@ -34,6 +35,25 @@ export interface Wound {
   source: string;
   /** The limb was severed (health §5): the wound is the cauterized stump; the loss is a lasting injury. */
   severed?: boolean;
+  // ---- Medicine (M8 item 6, D-511; all optional, absent on older saves and wounds) ----
+  /** What made it (the untreated risks): blade, claw, slug, shrapnel tear; blaster and saber burn. */
+  cause?: WoundCause;
+  /** How deep a cut goes: a partial cut heals as severe, a severed muscle or a bone as critical. */
+  depth?: WoundDepth;
+  /** A cut to the bone has been set (it heals only once set). */
+  set?: boolean;
+  /** Field care or better has dressed it: no untreated risks. */
+  treated?: boolean;
+  infected?: boolean;
+  /** The best care it has had, and that care's operator (Medicine), for the treatment roll. */
+  care?: CareLevel;
+  operator?: number;
+  /** A toxin in the wound: it does not heal until an antidote or a Force purge. */
+  toxin?: Toxin;
+  /** Shrapnel left in it: it heals at half rate until extracted. */
+  fragments?: boolean;
+  /** A successful internal surgery: it heals as one band lighter. */
+  operated?: boolean;
 }
 
 /** A stabilized mortal counts as critical for load and status. */

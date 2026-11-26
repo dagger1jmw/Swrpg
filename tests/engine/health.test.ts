@@ -155,13 +155,14 @@ describe('healing (health §7, D-150)', () => {
     expect(days(wound({ severity: 'critical', W: 40 }), healMultiplier({ care: 'none' }))).toBe(45);
     expect(days(wound({ severity: 'mortal', W: 60, stabilized: true }), healMultiplier({ care: 'none' }))).toBe(90);
     expect(days(wound({ severity: 'moderate', W: 12 }), healMultiplier({ care: 'medical' }))).toBe(3.5);
-    // Bacta: a minor wound in 6 hours at x4 (health §7).
-    expect(days(wound({ severity: 'minor' }), healMultiplier({ care: 'bacta' })) * 24).toBe(6);
+    // A kolto tank: a minor wound in 6 hours at x4 (health §7's tank); bacta x5 (D-511) in 4.8.
+    expect(days(wound({ severity: 'minor' }), healMultiplier({ care: 'kolto' })) * 24).toBe(6);
+    expect(days(wound({ severity: 'minor' }), healMultiplier({ care: 'bacta' })) * 24).toBeCloseTo(4.8);
     expect(healMultiplier({ care: 'medical', healerLevel: 50 })).toBe(4);
     expect(healMultiplier({ care: 'medical', trainingInjured: true })).toBe(1);
   });
   it('bacta replaces medical care (no stacking); a Force healer multiplies on top; the cap is x6', () => {
-    expect(healMultiplier({ care: 'bacta' })).toBe(4);
+    expect([healMultiplier({ care: 'kolto' }), healMultiplier({ care: 'bacta' })]).toEqual([4, 5]);
     expect(healMultiplier({ care: 'bacta', healerLevel: 100 })).toBe(6);
   });
   it('progress accumulates day by day; minor wounds heal overnight on 7h+ sleep', () => {
