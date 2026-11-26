@@ -46,6 +46,8 @@ rust row (§13) and its body-cap rule (§11).
 | Investigation | academic | |
 | Tactics | academic | |
 | Medicine | academic | stabilizing (health §6), medical care (health §7) |
+| Gunnery | technique | any weapon fired from a mount (D-513; skills-m8.md §2) |
+| Repair | technique | anything mechanical, droid jobs included (D-513) |
 | Profession:<kind> | technique | civilian archetype (npc-generation §3) |
 
 Unknown skill ids are rejected; there are no aliases to nearby skills (D-07).
@@ -153,7 +155,19 @@ Saberstaff and Shii-Cho. Flag any the lore contradicts.
 | Profession work | study or physical by kind | Profession:<kind> | Intelligence 0.2 |
 | Social practice (negotiation, performance, persuasion drills) | study (0.05, 1.0) | Charisma | Intelligence 0.3, Willpower 0.2 |
 
-These career activities have no bank entry; their weights are a design choice (D-53).
+| Gunnery range and simulator (D-513) | study (0.05, 1.0) | Gunnery | Agility 0.3, Intelligence 0.2 |
+| Repair and maintenance work (D-513) | 0.6 / 0.6 | Repair | Intelligence 0.3 |
+| Staff work (D-513; officers, staff postings, intelligence) | study | Intelligence | Tactics 0.5 |
+| Negotiation and political work (D-513) | study | Charisma | Intelligence 0.3 |
+| Hunting (D-513) | physical | Stealth | Tracking |
+| Tradecraft (D-513; intelligence services) | study | Investigation | Stealth 0.3, Charisma 0.3 |
+| Melee style training (D-513; a teacher or a recorded source) | physical | Melee (and the style) | Strength 0.4, Agility 0.4, Endurance 0.2 |
+| Discussing tactics (D-513; a teacher or a partner; a peer at half rate) | study (casual) | Tactics | Intelligence 0.2 |
+| Studying a culture's art and history (D-513; Intelligence 80+) | study | Tactics | Intelligence 0.4 |
+| Warblade training (Korriban acolytes, D-513) | saber drill | Shii-Cho | Shii-Cho basics' weights plus Melee 0.2 |
+
+These career activities have no bank entry; their weights are a design choice (D-53, D-513). The Padawan's session with the master
+carries a Melee weight of 0.1 (D-513). The rules for the D-513 activities are in skills-m8.md.
 Social practice was added in M3 (D-106): no activity trained Charisma, which the smuggler and
 civilian archetypes need.
 

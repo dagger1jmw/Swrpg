@@ -51,6 +51,8 @@ import { applyDamage, bypassFraction, damageOf, isSaber, rollLocation, severityO
 import { fatigueLevelFactor } from './fatigue';
 import { addFixedLoad, forceFraction, forceWithin } from './forceMeter';
 import { PRECOG_TRIAL, precogUpkeep, trialPool, type PrecogTrialState } from './precogTrial';
+import { styleEdge } from './martialStyles';
+import type { StyleEdgeKind } from '../data/martialStyles';
 import { isFittedAid, lastingPenalty, lastingState, limbState, type LastingInjury } from './lasting';
 import { aidHit, causeOfWeapon, withCondition } from './medicine';
 import { basicRoll, type BasicRoll, type Modifier } from './rolls';
@@ -62,6 +64,18 @@ import { FORCE_USER_MIN_LEVEL, type BodySize, type ForceTrait } from '../data/fo
 import { rollBoutHazards, type TerrainHazard } from './terrainHazard';
 
 export type SideId = 'A' | 'B';
+
+/** A fighter's melee style in a fight (m8-skills, D-513). */
+export interface FighterStyle {
+  id: string;
+  p: number;
+  bonus: number;
+  edge: StyleEdgeKind;
+  /** Added to the build-up roll against a melee opponent (Teräs Käsi). */
+  speed: number;
+  /** The anticipation chance against a melee strike (Teräs Käsi at mastery); never stacked with Force Sense. */
+  anticipation: number;
+}
 
 export interface Fighter {
   id: string;
@@ -126,6 +140,11 @@ export interface Fighter {
   bodySize?: BodySize;
   /** The hand the weapon is held in (D-198); absent = right. */
   weaponHand?: 'left' | 'right';
+  /**
+   * The melee style fought with (m8-skills, D-513; engine/martialStyles): its bonus on the skill (added to the level), its
+   * situational edge, Teräs Käsi's speed on the build-up contest and its anticipation (a precognition-like defence in melee).
+   */
+  style?: FighterStyle;
   /** A weapon in the other hand (D-244): a fighter who loses the weapon arm fights on with it. None until items (M8). */
   offHandWeapon?: WeaponKind | null;
   /** The saber thrown and dropped (D-193): the fighter is unarmed until a recall restores these. */
@@ -314,7 +333,30 @@ export function fighterEffectiveLevel(f: Fighter): number {
   const lasting = lastingPenalty(f.lasting, f.skillId);
   // Fatigue keeps biting past 1.0 x capacity, down to 0.4 at the hard limit (D-234).
   const fat = fatigueLevelFactor(f.caps.p > 0 ? f.meters.p / f.caps.p : 0);
-  return f.level * offHand * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * fat;
+  // m8-skills (D-513): the style adds to the skill (weapon proficiency would multiply it; not built yet).
+  return (f.level + (f.style?.bonus ?? 0)) * offHand * (1 - wound) * (1 - lasting) * (1 - f.rust) * (f.vitality <= 0 ? SPENT_LEVEL_FACTOR : 1) * fat;
+}
+
+/** A style's modifiers on one roll (m8-skills, D-513): the edge, and Teräs Käsi's speed on a melee build-up contest. */
+function styleMods(f: Fighter, opp: Fighter, ctx: DuelContext, exchange: number, roll: 'buildUp' | 'strikeBy' | 'strikeAgainst', surprise: boolean, opponents: number): Modifier[] {
+  const st = f.style;
+  if (!st) return [];
+  const out: Modifier[] = [];
+  const edge = styleEdge(st.edge, st.p, {
+    exchange,
+    roll,
+    surprise,
+    armoured: f.saberResistant === true || f.armor === 'medium' || f.armor === 'heavy',
+    unarmed: f.weapon === 'unarmed',
+    oppArmed: opp.weapon !== 'unarmed',
+    oppRanged: isRanged(opp),
+    oppSaber: hasSaber(opp),
+    opponents,
+    footing: ctx.footing ?? 0,
+  });
+  if (edge) out.push({ source: `${st.id} (style edge)`, value: edge });
+  if (roll === 'buildUp' && st.speed > 0 && !isRanged(opp) && !isRanged(f)) out.push({ source: `${st.id} speed`, value: Math.round(st.speed * 10) / 10 });
+  return out;
 }
 
 /**
@@ -594,14 +636,18 @@ export const CARD_ONLY_NOTE = 'card: ';
 export const precogCardNote = (name: string, avoided: boolean): string => `${CARD_ONLY_NOTE}${name}: precognition${avoided ? '' : ' (the strike still lands)'}: ${PRECOG.load} Force load`;
 
 /** Precognitive defense (rolls §3): chance min(0.5, FS/200) +0.10 centered; 0.4 Force load; never vs surprise or above meter 1.0. */
-function precog(f: Fighter, surprise: boolean, rng: RngState): { used: boolean; avoided: boolean; rng: RngState } {
-  if (f.forceSense <= 0 || surprise) return { used: false, avoided: false, rng };
-  if (!forceWithin(f.meters.f, f.caps.f, PRECOG.maxForceMeter)) return { used: false, avoided: false, rng };
+function precog(f: Fighter, surprise: boolean, rng: RngState, x: { force: boolean; meleeAttack: boolean } = { force: true, meleeAttack: false }): { used: boolean; avoided: boolean; rng: RngState; anticipation?: boolean } {
+  if (surprise) return { used: false, avoided: false, rng };
+  // Teräs Käsi's anticipation (m8-skills, D-513): no Force, so no Force load and no meter limit; in melee only. The higher of
+  // it and the fighter's own precognition applies, never both.
+  const anticipation = x.meleeAttack ? (f.style?.anticipation ?? 0) : 0;
+  const forceOk = x.force && f.forceSense > 0 && forceWithin(f.meters.f, f.caps.f, PRECOG.maxForceMeter) && !(PRECOG_TRIAL.enabled && f.precogTrial?.dark);
   // The M6 trial (harness only, off by default): senses dark at running on will.
-  if (PRECOG_TRIAL.enabled && f.precogTrial?.dark) return { used: false, avoided: false, rng };
-  const chance = Math.min(PRECOG.maxChance, f.forceSense * PRECOG.perForceSense) + (f.stateOfMind === 'centered' ? PRECOG.centeredBonus : 0);
+  const own = forceOk ? Math.min(PRECOG.maxChance, f.forceSense * PRECOG.perForceSense) + (f.stateOfMind === 'centered' ? PRECOG.centeredBonus : 0) : 0;
+  if (own <= 0 && anticipation <= 0) return { used: false, avoided: false, rng };
   const [u, r] = nextFloat(rng);
-  return { used: true, avoided: u < chance, rng: r };
+  if (anticipation > own) return { used: true, avoided: u < anticipation, rng: r, anticipation: true };
+  return { used: true, avoided: u < own, rng: r };
 }
 
 /**
@@ -681,15 +727,21 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
   let rollA: BasicRoll;
   let rollB: BasicRoll;
   let margin: number;
+  const exNo = s.log.length;
+  const nOpp = engaged(s).length;
   if (striker === null) {
-    [rollA, rng] = basicRoll(rng, effA, netMods(baseA, extras.a ?? []));
-    [rollB, rng] = basicRoll(rng, effB, netMods(baseB, extras.bDefense ?? []));
+    [rollA, rng] = basicRoll(rng, effA, [...netMods(baseA, extras.a ?? []), ...styleMods(A, B, ctx, exNo, 'buildUp', false, nOpp)]);
+    [rollB, rng] = basicRoll(rng, effB, [...netMods(baseB, extras.bDefense ?? []), ...styleMods(B, A, ctx, exNo, 'buildUp', false, 1)]);
     margin = rollA.total - rollB.total;
   } else {
     // An aimed strike costs AIMED_STRIKE.attackPenalty on the strike roll (D-171).
     const aiming = (striker === 'A' ? A : B).aim;
-    const atk = [...(striker === 'A' ? modsA.attack : modsB.attack), ...(aiming ? [{ source: `aimed at the ${partText(aiming)}`, value: AIMED_STRIKE.attackPenalty }] : [])];
-    const def = striker === 'A' ? modsB.defense : modsA.defense;
+    const atk = [
+      ...(striker === 'A' ? modsA.attack : modsB.attack),
+      ...(aiming ? [{ source: `aimed at the ${partText(aiming)}`, value: AIMED_STRIKE.attackPenalty }] : []),
+      ...(striker === 'A' ? styleMods(A, B, ctx, exNo, 'strikeBy', surprise, nOpp) : styleMods(B, A, ctx, exNo, 'strikeBy', surprise, 1)),
+    ];
+    const def = [...(striker === 'A' ? modsB.defense : modsA.defense), ...(striker === 'A' ? styleMods(B, A, ctx, exNo, 'strikeAgainst', surprise, 1) : styleMods(A, B, ctx, exNo, 'strikeAgainst', surprise, nOpp))];
     // Build-up rolls use attack AND defense (net); a strike uses attack vs defense.
     if (striker === 'A') {
       [rollA, rng] = basicRoll(rng, effA, atk);
@@ -754,10 +806,12 @@ export function resolveExchange(initial: DuelState, ctx: DuelContext, day: numbe
       notes.push(`${atkF.name}: ${pm}`);
     } else if (band(margin) >= STRIKE_MIN_MARGIN) {
       const quality = qualityOf(band(margin))!;
-      // Precognition fails inside a Force-null bubble and against a striker outside the Force (D-192).
-      const pc = ctx.forceNegated || atkF.forceTraits?.includes('forceInvisible') ? { used: false, avoided: false, rng } : precog(defF, surprise, rng);
+      // Precognition fails inside a Force-null bubble and against a striker outside the Force (D-192); a Teräs Käsi master's
+      // anticipation is no Force power and works there too, in melee (m8-skills, D-513).
+      const pc = precog(defF, surprise, rng, { force: !(ctx.forceNegated || atkF.forceTraits?.includes('forceInvisible')), meleeAttack: !isRanged(atkF) });
       rng = pc.rng;
-      if (pc.used) {
+      if (pc.used && pc.anticipation) notes.push(`${defF.name}: Teräs Käsi anticipation${pc.avoided ? '' : ' (the strike still lands)'}`);
+      else if (pc.used) {
         // Under the M6 trial the cost is the per-exchange upkeep instead of a load per trigger.
         if (!PRECOG_TRIAL.enabled) defF = { ...defF, meters: { ...defF.meters, f: addFixedLoad(defF.meters.f, PRECOG.load) } };
         // Why the Force meter rises with no Force action (Jared, D-222; pass 2 balance row 6): said on the card.

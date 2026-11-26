@@ -142,6 +142,8 @@ export interface GroundForce {
   name: string;
   plan: Plan;
   meditation: { name: string; level: number; alive: boolean } | null;
+  /** The commander's cultural insight against the enemy's culture (m8-skills, D-513: +1, at most +2). */
+  insight?: number;
   /** A command post in contact with the sectors (officers' lines). */
   contact: boolean;
   /** Droids only: the control signal. */
@@ -249,6 +251,7 @@ export function sectorMods(s: Sector, who: 'A' | 'B', mine: GroundForce, theirs:
   const leads = me.leader?.alive && me.leader.forceUser;
   add('morale', Math.round(interp(MORALE_MOD, clamp(meanOf(me, (u) => (isDroid(unitDef(u.unit)) ? 60 : u.morale)) + (leads ? FORCE_USER.morale : 0), 0, 100)) * 10) / 10);
   if (mine.meditation?.alive) add('battle meditation', Math.round(interp(MEDITATION, mine.meditation.level) * 10) / 10);
+  if (mine.insight) add('cultural insight', Math.min(2, Math.max(0, mine.insight)));
   if (me.ownFight) add('your own fight', OWN_FIGHT[me.ownFight]);
   const duel = (x: SectorSide): number => (x.leader?.alive && x.leader.forceUser ? FORCE_USER.duel[x.leader.tier ?? 'below'] : 0);
   add('a duelist at the front', Math.max(0, duel(me) - duel(them)));

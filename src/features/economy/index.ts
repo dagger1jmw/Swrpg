@@ -268,7 +268,9 @@ function handleTrade(slice: EconomySlice, e: GameEvent, ctx: ApplyCtx<GameState>
     log: logged(slice, day, -total, a.hutt && slice.wallet.hutt > wallet.hutt ? 'hutt' : a.prefer, `bought ${item.name}${qty > 1 ? ` x${qty}` : ''}${item.legality === 'restricted' ? ' (black market)' : ''}${fromFunds ? ' (mission funds)' : ''}`),
   };
   notes.push(`bought ${item.name} x${qty} for ${fmt(total)} cr${item.legality === 'restricted' ? ' on the black market' : ''}`);
-  return { slice: next, rng, notes, emit: [...droidEmit, ...jediConsequences(s, next, notes)] };
+  // A tool kit goes to the droids slice, which holds the character's mechanical work (m8-skills, D-513).
+  const kit: GameEvent[] = item.id === 'toolKit' ? [{ type: 'toolKitAcquired' }] : [];
+  return { slice: next, rng, notes, emit: [...droidEmit, ...kit, ...jediConsequences(s, next, notes)] };
 }
 
 /** Pay by size: small, fair, large (lavish counts as large). */

@@ -11,6 +11,8 @@
 // teacher's block becomes solo. Injuries and the drill ceiling arrive with M5.
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY, isPhysicalActivity, type ActivityDef, type Intensity } from '../../data/activities';
 import { archetypeDef, focusShares, sharesFromWeights } from '../../data/archetypes';
+import { PROGRAMME_BY_ID } from '../../data/trainingProgrammes';
+import { programmeShares } from '../../engine/programmes';
 import { ORDER_REQUIREMENTS, REQUIREMENT_ROW, blockHours, type Instructor } from '../../data/orderRequirements';
 import { BUDGET, DAILY_LIFE, STEP_HOURS, TIREDNESS_LIMIT } from '../../data/progression.config';
 import { weekday } from '../../engine/calendar';
@@ -125,6 +127,9 @@ export function fillShares(s: GameState, routine: Routine, row: 'initiate' | 'pa
     for (const p of routine.priorities) out[p.skillId] = (out[p.skillId] ?? 0) + p.weight / tot;
     return out;
   }
+  // A training programme's curriculum while enrolled (m8-skills, D-513; data/trainingProgrammes.ts).
+  const enrolled = s.ranks.programme ? PROGRAMME_BY_ID.get(s.ranks.programme.id) : undefined;
+  if (enrolled) return programmeShares(enrolled);
   const c = selectCharacter(s);
   const a = archetypeDef(c.archetype);
   if (row === 'knight' && Object.keys(c.focusWeights).length) return { ...c.focusWeights };
@@ -349,7 +354,8 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
   }
   for (const [skill, hours] of Object.entries(fill)) {
     const p = prio.get(skill);
-    const act = activityFor(skill, p?.activityId);
+    // m8-skills (D-513): the archetype names the activity for some skills (an officer's Intelligence by staff work).
+    const act = activityFor(skill, p?.activityId ?? archetypeDef(selectCharacter(s).archetype).activities?.[skill]);
     if (!act || !SKILL_BY_ID.has(skill)) {
       notes.push(`fill: nothing trains ${skill}; skipped`);
       continue;

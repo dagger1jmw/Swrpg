@@ -16,6 +16,11 @@ import {
   STUB_TEACHER_APTITUDE,
 } from '../../data/stubs';
 import { TRAINING_RECORD_BY_ID } from '../../data/trainingRecords';
+import { STYLE_BY_ID, STYLE_IDS } from '../../data/martialStyles';
+import type { SpeciesId } from '../../data/entities.config';
+import { serviceBranchOf } from '../../data/serviceRanks';
+import { styleAccess } from '../../engine/martialStyles';
+import { insightOpen } from '../../engine/playXp';
 import { dateFromAbsDay } from '../../engine/calendar';
 import { VAAPAD_MASTER_LEVEL, vaapadAccess, type VaapadTeacher } from './formAccess';
 import { ageFactor } from '../../engine/ageFactor';
@@ -87,6 +92,10 @@ export interface TrainingRequest {
   source?: TrainingSource | undefined;
   /** The routine's effort picks the drill band (training-routines §3); default from the intensity. */
   drillEffort?: Effort | undefined;
+  /** m8-skills (D-513): the melee style a style-training session trains (data/martialStyles.ts). */
+  styleId?: string | undefined;
+  /** m8-skills (D-513): the culture a culture-study session reads (a faction id; cultural insight). */
+  culture?: string | undefined;
 }
 
 export interface TrainingCard {
@@ -186,6 +195,8 @@ interface UnlockCtx {
   vaapadTeacher: VaapadTeacher | null;
   /** This session's training record, if any. */
   recordId: string | null;
+  /** m8-skills (D-513): why this session cannot train its melee style (styleSource), or null when it can. */
+  styleRefusal: string | null;
 }
 
 /** A named NPC teacher as a Vaapad teacher (D-370): Windu (teaching is his permission), Bulq, or a Vaapad master. */
@@ -247,6 +258,12 @@ function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
       return s.ranks.apprenticeId ? null : 'needs a Padawan of your own (apprenticeTaken)';
     case 'partner':
       return ctx.partner ? null : 'needs a training partner present';
+    case 'partnerOrTeacher':
+      return ctx.partner || ctx.teacher ? null : 'needs someone to talk it through with (a teacher, a partner or peers)';
+    case 'service':
+      return u.archetypes.includes(selectCharacter(s).archetype) || (s.ranks.service && u.branches.includes(serviceBranchOf(s.ranks.service.ladderId))) ? null : 'only for officers, staff postings and the intelligence services';
+    case 'styleSource':
+      return ctx.styleRefusal;
   }
 }
 
@@ -413,7 +430,23 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   }
   const d119 = { ...transfer };
   if (specialty && specialty.xp > 0) transfer[specialty.form] = (transfer[specialty.form] ?? 0) + specialty.xp;
-  const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teaching, partner: partnered, transfer, vaapadTeacher: vaapadTeacherOf(s, teacherId), recordId: record?.id ?? null };
+  // m8-skills (D-513): a melee style starts only with a teacher or a recorded source of it (the who-teaches-outsiders
+  // rulings); once held, training and fighting grow it.
+  const styleId = a.style ? (req.styleId ?? null) : null;
+  let styleRefusal: string | null = null;
+  if (a.style) {
+    if (!styleId || !STYLE_BY_ID.has(styleId)) styleRefusal = `name the style to train (${STYLE_IDS.join(', ')})`;
+    else if ((s.progression.styles?.[styleId]?.p ?? 0) <= 0) {
+      const npc = teacherId ? selectNpc(s, teacherId) : null;
+      styleRefusal = styleAccess(styleId, {
+        year: dateFromAbsDay(selectNow(s).day).year,
+        student: { species: selectCharacter(s).speciesId as SpeciesId, forceSensitive: selectPath(s) !== 'career' },
+        teacher: npc ? { species: npc.speciesId, faction: npc.factionId, holds: npc.styles?.[styleId] ?? 0 } : null,
+        record: record?.styles?.includes(styleId) ?? false,
+      });
+    }
+  }
+  const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teaching, partner: partnered, transfer, vaapadTeacher: vaapadTeacherOf(s, teacherId), recordId: record?.id ?? null, styleRefusal };
   const selfStudyStart: string[] = [];
   for (const u of a.unlock) {
     const fail = unlockFails(u, ctx);
@@ -538,6 +571,11 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   // The drill ceiling on lightsaber forms (progression-numbers §7; D-45): below 25 + E the XP applies in full; past it
   // 25% applies and 75% is banked (cap 15 levels). Applied here so the card, the event and the save agree.
   const credited: Record<string, number> = { ...r.credited };
+  // m8-skills (D-513): talking tactics over with a peer teaches at half the base rate (Jared); a master's multiplier applies.
+  if (a.peerRate !== undefined && !teaching) {
+    for (const k of Object.keys(credited)) credited[k] = credited[k]! * a.peerRate;
+    notes.push(`with a peer, not a teacher: x${a.peerRate} XP`);
+  }
   const banked: Record<string, number> = {};
   for (const [id, x] of Object.entries(r.credited)) {
     if (SKILL_BY_ID.get(id)?.kind !== 'form' || x <= 0) continue;
@@ -615,6 +653,12 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   // partner's, the Order stubs'; peers are even). Order classes count only when taught (D-143 A).
   const taughtClass = ORDER_SPARRING_CLASSES.includes(a.id) && (source?.kind === 'instructor' || source?.kind === 'master' || teacherId !== null);
   const sparE: SparE | undefined = a.sparring || taughtClass ? sparringE(studentLevel, tLevel ?? pLevel ?? studentLevel) : undefined;
+  // m8-skills (D-513): the style's proficiency grows by the session's effective hours times the teacher's factor (Melee
+  // speeds it, engine/martialStyles); culture study at Intelligence 80+ adds insight hours against the culture's forces.
+  const styleGainEvent = styleId && !styleRefusal ? { id: styleId, hours: Math.round(r.effectiveHours * instr.factor * 1000) / 1000 } : null;
+  if (styleGainEvent) notes.push(`${STYLE_BY_ID.get(styleId!)!.name}: ${styleGainEvent.hours.toFixed(2)} h of style practice`);
+  const insightEvent = a.insight && req.culture && insightOpen(selectLevelExact(s, 'intelligence')) ? { culture: req.culture, hours: r.hours } : null;
+  if (a.insight && !insightEvent) notes.push(req.culture ? 'cultural insight needs Intelligence 80' : 'name the culture studied for cultural insight');
   const events: GameEvent[] = [
     {
       type: 'activityResolved',
@@ -636,6 +680,8 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
       // as sparring when taught (D-143 A: the Initiate forms class with instructors, the Padawan master session).
       ...(sparE ? { sparring: sparE.source, sparCap: sparE.cap } : {}),
       day: r.day,
+      ...(styleGainEvent ? { style: styleGainEvent } : {}),
+      ...(insightEvent ? { insight: insightEvent } : {}),
     },
     { type: 'activityLoad', activityId: a.id, meters: r.meters },
     ...(discovered ? [{ type: 'covertLearningDiscovered', abilityId: primary }] : []),

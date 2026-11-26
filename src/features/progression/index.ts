@@ -27,6 +27,11 @@ import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressio
 import { ageingStep } from '../../engine/ageing';
 import { PRIME_H } from '../../data/ageing.config';
 import { selectAgeing, selectBodyAgeNow, selectCapacities, selectLevelExact, selectNatural, selectSkillViews, selectStateOfMind, selectTierBeats } from './selectors';
+import { commandXp, fieldOpXp, gunneryXp, persuasionXp, repairXp, socialLineXp, stealthXp, strikeTacticsXp, type XpMap } from '../../engine/playXp';
+import { styleGain } from '../../engine/martialStyles';
+import { STYLE, STYLE_BY_ID } from '../../data/martialStyles';
+import { COMMAND, PLAY_STAKES, type CommandOutcome, type CommandSize, type PlayStakes } from '../../data/skillXp.config';
+import type { CombatStakes } from '../../data/progression.config';
 
 const EMOTIONS = ['grief', 'fear', 'anger', 'hatred', 'calm', 'pride', 'despair'] as const;
 const record = z.record(z.string(), z.number().min(0));
@@ -109,6 +114,11 @@ function creditXp(
     paceWindow[id] = entries;
   }
   return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow }, emit, notes };
+}
+
+/** A skill's level from a skills map not yet in the state (the session's own XP counted). */
+function levelOf(s: GameState, skills: ProgressionSlice['skills'], id: string): number {
+  return levelWithNatural(skills[id]?.xp ?? 0, selectNatural(s, id));
 }
 
 const formGroup = (id: string): string | null => {
@@ -239,6 +249,10 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         /** Sparring for E (partner sparring, or a taught Order class, D-143 A): peer or stronger partner, and the cap (D-163). */
         sparring: z.enum(['sparPeer', 'sparStronger']).optional(),
         sparCap: z.number().min(0).max(120).optional(),
+        /** m8-skills (D-513): a style-training session's style and its effective practice hours (teacher factor in). */
+        style: z.object({ id: z.string(), hours: z.number().min(0) }).optional(),
+        /** m8-skills (D-513): culture study at Intelligence 80+: the culture and the hours (cultural insight). */
+        insight: z.object({ culture: z.string().max(60), hours: z.number().min(0) }).optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
@@ -296,7 +310,23 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           stateOfMind = setState(stateOfMind, { kind: 'centered', intensity: 1, sinceDay: day, untilDay: day + 1 }, day);
         }
         const willpowerToday = Math.min(FATIGUE_WILLPOWER.dailyCap, slice.willpowerToday + Number(e['fatigueWillpower']));
-        return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow, today, stateOfMind, willpowerToday, formsStarted, selfTaught, bank, E, ...(specialtyTransfer ? { specialtyTransfer } : {}) }, emit, notes };
+        // m8-skills (D-513): the style's proficiency and the culture's insight hours.
+        const st = e['style'] as { id: string; hours: number } | undefined;
+        let styles = slice.styles;
+        if (st) {
+          if (!STYLE_BY_ID.has(st.id)) return { reject: `unknown style ${st.id}` };
+          const before = slice.styles?.[st.id];
+          const next = styleGain(before, st.hours, levelOf(ctx.state, skills, 'melee'), day);
+          styles = { ...(slice.styles ?? {}), [st.id]: next };
+          notes.push(`${STYLE_BY_ID.get(st.id)!.name}: ${Math.round((before?.p ?? 0) * 100)}% -> ${Math.round(next.p * 100)}%`);
+        }
+        const ins = e['insight'] as { culture: string; hours: number } | undefined;
+        const insight = ins ? { ...(slice.insight ?? {}), [ins.culture]: (slice.insight?.[ins.culture] ?? 0) + ins.hours } : slice.insight;
+        return {
+          slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow, today, stateOfMind, willpowerToday, formsStarted, selfTaught, bank, E, ...(specialtyTransfer ? { specialtyTransfer } : {}), ...(styles ? { styles } : {}), ...(insight ? { insight } : {}) },
+          emit,
+          notes,
+        };
       },
     },
     /**
@@ -367,6 +397,129 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           // The surrender factor on the line (D-242; pass 3: the 0.5 of D-227 was applied but not shown).
           notes: [...(learned ? [`learned from a stronger opponent: +${learned.xp.toFixed(2)} XP to ${SKILL_BY_ID.get(learned.form)?.name ?? learned.form}`] : []), `combat XP ${total.toFixed(2)} (${session.stakes}, ${session.outcome}${session.surrendered ? `, surrendered x${COMBAT_XP.surrendered}` : ''})`, ...r.notes, ...ceiling.notes, ...cr.notes, ...releaseNote],
         };
+      },
+    },
+    /**
+     * XP from play for the non-Force skills (m8-skills, D-513; engine/playXp): a structured line from code, never the
+     * narrator. Social lines (falling off through the day), persuasion, command, strikes earned on the advantage track,
+     * shots from a mount, repairs, intelligence field operations and stealth in the field. Outside the pace window, as a
+     * fight's XP is (D-457); command and gunnery share combat's daily cap.
+     */
+    playXpEarned: {
+      schema: z.object({
+        type: z.literal('playXpEarned'),
+        source: z.enum(['socialLine', 'persuasion', 'command', 'strikes', 'gunnery', 'repair', 'fieldOp', 'stealth']),
+        stakes: z.string().optional(),
+        outcome: z.string().optional(),
+        size: z.string().optional(),
+        success: z.boolean().optional(),
+        gap: z.number().optional(),
+        strikes: z.number().int().min(0).max(200).optional(),
+        margins: z.array(z.number()).max(500).optional(),
+        hours: z.number().min(0).max(24).optional(),
+        rating: z.number().optional(),
+        inFight: z.boolean().optional(),
+        why: z.string().max(120).optional(),
+      }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        const day = selectNow(ctx.state).day;
+        const src = String(e['source']);
+        const combatStakes = (x: unknown): CombatStakes | null => (COMBAT_STAKES as readonly string[]).includes(String(x)) ? (String(x) as CombatStakes) : null;
+        const playStakes = (x: unknown): PlayStakes | null => (PLAY_STAKES as readonly string[]).includes(String(x)) ? (String(x) as PlayStakes) : null;
+        let socialToday = slice.socialToday ?? 0;
+        let raw: XpMap = {};
+        let capped = false;
+        const emit: GameEvent[] = [];
+        switch (src) {
+          case 'socialLine': {
+            const st = playStakes(e['stakes']);
+            if (!st) return { reject: 'a social line needs its stakes (minor, notable, major, critical)' };
+            socialToday += 1;
+            raw = socialLineXp(st, socialToday);
+            break;
+          }
+          case 'persuasion':
+          case 'stealth': {
+            const st = playStakes(e['stakes']);
+            if (!st || typeof e['success'] !== 'boolean') return { reject: `${src} needs stakes and success` };
+            raw = (src === 'persuasion' ? persuasionXp : stealthXp)(e['success'] as boolean, st, Number(e['gap'] ?? 0));
+            break;
+          }
+          case 'command':
+          case 'fieldOp': {
+            const st = combatStakes(e['stakes']);
+            const out = String(e['outcome']) as CommandOutcome;
+            if (!st || !(out in COMMAND.outcome)) return { reject: `${src} needs stakes and an outcome (won, drawn, lost)` };
+            if (src === 'command') {
+              const size = String(e['size']) as CommandSize;
+              if (!(size in COMMAND.size)) return { reject: `command needs a size (${Object.keys(COMMAND.size).join(', ')})` };
+              raw = commandXp(st, out, size);
+              capped = true;
+            } else raw = fieldOpXp(st, out);
+            if (out === 'won' && ctx.state.ranks.service) emit.push({ type: 'serviceDeedRecorded', why: String(e['why'] ?? (src === 'command' ? 'a battle won in command' : 'an operation carried out')).slice(0, 120) });
+            break;
+          }
+          case 'strikes': {
+            const st = combatStakes(e['stakes']);
+            if (!st) return { reject: 'strikes need the fight\'s stakes' };
+            raw = strikeTacticsXp(Number(e['strikes'] ?? 0), st);
+            break;
+          }
+          case 'gunnery': {
+            const st = combatStakes(e['stakes']);
+            if (!st) return { reject: 'gunnery needs the battle\'s stakes' };
+            raw = gunneryXp((e['margins'] as number[] | undefined) ?? [], st);
+            capped = true;
+            break;
+          }
+          case 'repair': {
+            raw = repairXp({ hours: Number(e['hours'] ?? 0), rating: Number(e['rating'] ?? 30), level: selectLevelExact(ctx.state, 'repair'), success: e['success'] !== false, inFight: e['inFight'] === true });
+            break;
+          }
+        }
+        // Daily caps (combat's 12 XP before M per skill) for command and gunnery.
+        const playToday = { ...(slice.playToday ?? {}) };
+        const before: XpMap = {};
+        for (const [k, v] of Object.entries(raw)) {
+          const key = `${src}:${k}`;
+          const room = capped ? Math.max(0, COMMAND.dailyCap - (playToday[key] ?? 0)) : Infinity;
+          const x = Math.min(v, room);
+          if (x > 0) {
+            before[k] = x;
+            playToday[key] = (playToday[key] ?? 0) + x;
+          }
+        }
+        const m = speedFor(ctx.state, 1);
+        const credited: Record<string, number> = Object.fromEntries(Object.entries(before).map(([k, v]) => [k, v * m(k)]));
+        const cr = creditXp(slice, ctx.state, credited, {}, {}, day, false);
+        const total = Object.entries(credited).map(([k, v]) => `${SKILL_BY_ID.get(k)?.name ?? k} +${v.toFixed(2)}`).join(', ');
+        return { slice: { ...cr.slice, socialToday, playToday }, emit: [...cr.emit, ...emit], notes: [`${src}${e['why'] ? ` (${String(e['why'])})` : ''}: ${total || 'no XP'}`, ...cr.notes] };
+      },
+    },
+    /** Engine: a fight fought with a melee style grows it (real combat counts for more than drills; m8-skills, D-513). */
+    styleFought: {
+      schema: z.object({ type: z.literal('styleFought'), styleId: z.string(), stakes: z.enum(COMBAT_STAKES) }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        const id = String(e['styleId']);
+        const m = STYLE_BY_ID.get(id);
+        const held = slice.styles?.[id];
+        if (!m || !held) return { reject: `no style ${id} held` };
+        const day = selectNow(ctx.state).day;
+        const next = styleGain(held, STYLE.fightHours[String(e['stakes'])] ?? 1, selectLevelExact(ctx.state, 'melee'), day);
+        return { slice: { ...slice, styles: { ...slice.styles, [id]: next } }, notes: [`${m.name}: ${Math.round(held.p * 100)}% -> ${Math.round(next.p * 100)}% (fought with it)`] };
+      },
+    },
+    /** Engine and dev: a style at a proficiency (a created character's background, a test). */
+    styleSet: {
+      schema: z.object({ type: z.literal('styleSet'), styleId: z.string(), p: z.number().min(0).max(1) }),
+      sources: ['engine', 'dev'],
+      handle: (slice, e, ctx) => {
+        const id = String(e['styleId']);
+        if (!STYLE_BY_ID.has(id)) return { reject: `unknown style ${id}` };
+        const p = Number(e['p']);
+        return { slice: { ...slice, styles: { ...(slice.styles ?? {}), [id]: { p, peak: Math.max(p, slice.styles?.[id]?.peak ?? 0), lastDay: selectNow(ctx.state).day } } } };
       },
     },
     /** Reviewing a recording of one's own fight (progression-numbers §19): +5% XP to that skill for 3 days, once per 7. */
@@ -488,7 +641,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
     const ageing = bodyNow > PRIME_H || next.ageing ? ageingStep(selectAgeing(s), bodyNow, (stat) => (next.paceWindow[stat] ?? []).reduce((h, w) => h + w.hours, 0)) : null;
 
     return {
-      slice: { ...next, ...(ageing ? { ageing } : {}), skills, bank, overtrainStreak: streak, stateOfMind, grief, willpowerToday: 0, today: EMPTY_TODAY, fightsToday: {}, combatXpToday: {} },
+      slice: { ...next, ...(ageing ? { ageing } : {}), skills, bank, overtrainStreak: streak, stateOfMind, grief, willpowerToday: 0, today: EMPTY_TODAY, fightsToday: {}, combatXpToday: {}, ...(next.socialToday ? { socialToday: 0 } : {}), ...(next.playToday ? { playToday: {} } : {}) },
       ...(notices.length ? { notices } : {}),
     };
   },

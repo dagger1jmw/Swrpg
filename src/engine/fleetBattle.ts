@@ -89,6 +89,8 @@ export interface FleetSide {
   withdrawn: boolean;
   /** A battle meditator with the fleet (D-506), and their Meditation. */
   meditation: { name: string; level: number; alive: boolean } | null;
+  /** The commander's cultural insight against the enemy's culture (m8-skills, D-513: +1, at most +2; engine/playXp insightBonus). */
+  insight?: number;
   /** Ships whose crews are shaken, and the rounds it lasts. */
   shaken: Readonly<Record<string, number>>;
 }
@@ -203,6 +205,7 @@ export function commandMods(me: FleetSide, them: FleetSide): Modifier[] {
   add('crews', Math.round(interp(FLEET.crew, crewLevel(me)) * 10) / 10);
   if (me.commandLost > 0) add('the flagship is lost', FLEET.commandLost);
   if (me.meditation?.alive) add('battle meditation', Math.round(interp(FLEET.meditation, me.meditation.level) * 10) / 10);
+  if (me.insight) add('cultural insight', Math.min(2, Math.max(0, me.insight)));
   return [...out, ...me.modifiers];
 }
 

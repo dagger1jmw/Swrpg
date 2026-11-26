@@ -1,6 +1,7 @@
 // npcs feature (architecture §2, M2: identity only; generation inputs and health arrive in M5).
 // New NPCs enter only through npcIntroduced (AI) or a player's review-queue resolution.
 import { z } from 'zod';
+import { STYLE_BY_ID } from '../../data/martialStyles';
 import { FACTIONS, LIMITS, MAX_AGE_APPROX, NPC_AI_STATES, NPC_ROLES, SPECIES } from '../../data/entities.config';
 import { mintId, normalizeAlias, uniqueAliasMatch } from '../../engine/aliases';
 import { DAYS_PER_YEAR } from '../../engine/calendar';
@@ -263,6 +264,29 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         const ratio = Number(e['level']) / best;
         const devLevels = Object.fromEntries(Object.entries(generated).map(([k, v]) => [k, Math.min(120, Math.round(v * ratio * 10) / 10)]));
         return { slice: update(slice, id, { devLevels }), notes: [`${npc.name}: levels set for a best form of ${String(e['level'])} (x${ratio.toFixed(2)})`] };
+      },
+    },
+    /**
+     * A melee style an NPC holds and can teach (m8-skills, D-513): the player names a teacher's art (a Royal Guard's military
+     * Echani, a Follower's Teräs Käsi), or the engine sets one. Proficiency 0-1; 0 removes it.
+     */
+    npcStyleSet: {
+      schema: z.object({ type: z.literal('npcStyleSet'), npcRef: z.string(), styleId: z.string(), p: z.number().min(0).max(1) }),
+      sources: ['player', 'engine', 'dev'],
+      targetField: 'npcRef',
+      refFields: ['npcRef'],
+      refKinds: npcRefKinds,
+      handle: (slice, e) => {
+        const id = String(e['npcRef']);
+        const npc = slice.byId[id];
+        if (!npc) return { reject: `unknown npc ${id}` };
+        const styleId = String(e['styleId']);
+        const style = STYLE_BY_ID.get(styleId);
+        if (!style) return { reject: `unknown style ${styleId}` };
+        const p = Number(e['p']);
+        const { [styleId]: _old, ...others } = npc.styles ?? {};
+        const styles = p > 0 ? { ...others, [styleId]: p } : others;
+        return { slice: update(slice, id, { styles }), notes: [`${npc.name}: ${style.name} ${Math.round(p * 100)}%`] };
       },
     },
     /** Engine: a duel segment's result for a named NPC (health §9: the same model as the player). */

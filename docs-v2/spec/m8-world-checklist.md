@@ -54,13 +54,13 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [x] **9. Era rules for the Cold War years (timeline audit, D-408 [7]).** *Built: D-475 (src/data/eraRules.ts; docs-v2/reports/m8-item9.md). The gaps are in docs-v2/lore/RESEARCH_QUEUE.md; the Galactic War years are later work.*
 
   Every era rule but `places-and-populations` and `imperial-forces` ends by 3,653, because the M7 table was written for the war years. A campaign that crosses the Treaty loses the Coruscant, Nar Shaddaa, Tatooine, Jedi-life and Korriban rules. The Korriban rule ends in 3,654, though the Academy staff are placed to 3,644. Write the Cold War versions from the topical files (the Korriban, Coruscant and Nar Shaddaa Cold War sections), or extend the current ones where they still hold.
-- [ ] **10. An officer archetype with command and staff work (Jared, D-427 [9]; folded into item 12, D-455).**
+- [x] **10. An officer archetype with command and staff work (Jared, D-427 [9]; folded into item 12, D-455).** *Built with item 12: D-513 (spec/skills-m8.md; docs-v2/reports/m8-skills.md).*
 
   Tactics main, Intelligence second, Charisma. Commanding in a battle earns tactics XP the way fighting earns form XP (from the battle's stakes and outcome); staff work (planning, logistics) is an activity for Intelligence and Tactics. Today officers use the soldier archetype, and no source but study grows tactics (calibration report §4).
 - [ ] **11. Wartime postings and the Council's other roles (Jared, D-436 [12]).**
 
   Story-only for now: postings to the front (a Knight or Padawan sent to a war zone or attached to a fleet), and the Council's roles beyond the High Council seat (the Council of Reassignment's work, the Council of First Knowledge, the Reconciliation Council, wartime command of Jedi in the field). Revisit with the world events (items 8 and 9): a posting could follow a world event's front and set the routine and the fight schedule for its duration.
-- [ ] **12. XP sources for the non-Force skills, and three new archetypes (Jared's design notes, 2026-11-23; D-455).**
+- [x] **12. XP sources for the non-Force skills, and three new archetypes (Jared's design notes, 2026-11-23; D-455).** *Built: D-513 (spec/skills-m8.md; docs-v2/reports/m8-skills.md). Gunnery and Repair, XP from play, the new activities, melee styles, programmes, nine archetypes and the rank ladders. Not wired: the fleet and ground battles' calls to commandXp and gunneryXp (no turn loop for them yet).*
 
   Design notes, not built yet. Every number is set and tagged when it is built. All XP comes through structured lines, never awarded by the narrator directly, and teachers multiply gains as they do everywhere else. Item 10 (the officer) is folded in here.
   - **Intelligence:** academic study (Archives, libraries, universities); staff work (planning, logistics, intelligence analysis); negotiations and political work (you learn from them). Anything that grants Tactics XP also grants a small Intelligence share.
@@ -87,7 +87,7 @@ Items arrive here when a decision hands them to M8. Each says where it came from
 - [ ] **14. Ground command (Jared, 2026-11-24; D-475, D-476).**
 
   Guiding troops as a general, with locations and objectives, like the fleet battles. Designed 2026-11-24; build after item 13: docs-v2/spec/m8-design-notes.md, "Ground command (checklist item 14)". The sector rolls, matchups, breakthroughs and morale are built as pure engine (combat-scales.md, D-505); the plan's scene, the map, scouting, the reserve and contingencies are not. Wartime postings (item 11) stay story-only until it exists.
-- [ ] **15. Calibration queue (Jared, D-507).**
+- [ ] **15. Calibration queue (Jared, D-507).** *(Item 15; "Starting traits and formative events" is item 16, as recorded in D-512 and D-513.)*
 
   Not to build now; each waits for its own ruling.
   - **A self-taught pace:** a canon student recorded as cut off from any order (no Temple, no Academy, no master) trains more slowly than the Temple pace. A master's death alone does not count: the Order reassigns the Padawan (D-507).

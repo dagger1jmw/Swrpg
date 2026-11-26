@@ -156,6 +156,13 @@ export interface Crew {
   forceSense: number;
 }
 export const crewOf = (level: number): Crew => ({ piloting: level, gunnery: level, repair: level, forceSense: 0 });
+/**
+ * A named figure's crew from its levels (m8-skills, D-513): Piloting to fly, Gunnery for the pilot's shots (it replaces the
+ * Piloting stand-in of D-505/D-506), Repair for repairs, Force Sense for the Force's help. Untrained skills are 0.
+ */
+export const crewFromLevels = (lv: Readonly<Record<string, number>>): Crew => ({ piloting: lv['piloting'] ?? 0, gunnery: lv['gunnery'] ?? 0, repair: lv['repair'] ?? 0, forceSense: lv['forceSense'] ?? 0 });
+/** A turret gunner's level (m8-skills, D-513): Gunnery, in place of the Blaster stand-in. Blaster stays personal arms. */
+export const gunnerLevel = (lv: Readonly<Record<string, number>>): number => lv['gunnery'] ?? 0;
 
 export interface ShipState {
   id: string;

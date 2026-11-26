@@ -28,6 +28,17 @@ export const LOADOUT_BY_ARCHETYPE: Readonly<Record<string, Loadout>> = {
   sniper: { weapon: 'blasterRifle', armor: 'light', saberResistant: false },
   // A crime lord keeps guards to fight for them (D-509).
   crimeLord: NONE,
+  // m8-skills (D-513; design defaults): officers and staff carry a sidearm; a field agent a pistol and light armour; a
+  // politician and a scholar nothing; a pilot, a gunner and a mechanic a sidearm.
+  officer: { weapon: 'blasterPistol', armor: 'light', saberResistant: false },
+  navalOfficer: { weapon: 'blasterPistol', armor: 'none', saberResistant: false },
+  intelAnalyst: { weapon: 'blasterPistol', armor: 'none', saberResistant: false },
+  intelAgent: { weapon: 'blasterPistol', armor: 'light', saberResistant: false },
+  politician: NONE,
+  scholar: NONE,
+  starfighterPilot: { weapon: 'blasterPistol', armor: 'none', saberResistant: false },
+  shipGunner: { weapon: 'blasterPistol', armor: 'light', saberResistant: false },
+  engineer: { weapon: 'blasterPistol', armor: 'none', saberResistant: false },
   // The amphistaff and vonduun crab armor, both lightsaber-resistant (Characters_15 :34; D-224).
   yuuzhanVongWarrior: { weapon: 'melee', armor: 'heavy', saberResistant: true },
   // The melee warrior (D-422): a blade or a heavy close weapon, light armor; canon armor or weapon overrides it.

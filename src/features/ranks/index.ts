@@ -15,6 +15,13 @@ import { selectExactAge } from '../character/selectors';
 import { selectHasFlag } from '../flags/selectors';
 import { selectLevelExact } from '../progression/selectors';
 import { migrateRanksV1, ranksSliceSchema, type RanksSlice } from './ranks';
+import { SERVICE_LADDER_BY_ID, SERVICE_LADDER_IDS, ladderExists } from '../../data/serviceRanks';
+import { PROGRAMME_BY_ID } from '../../data/trainingProgrammes';
+import { serviceEntryCheck, servicePromotionCheck } from '../../engine/serviceRanks';
+import { programmeEndDay, programmeEntry } from '../../engine/programmes';
+import { DAYS_PER_YEAR } from '../../engine/calendar';
+import { selectCharacter } from '../character/selectors';
+import type { SpeciesId } from '../../data/entities.config';
 import { covertEscalation, NO_RECORD, paceMilestonesDue, rollTrial, selectionChance, trialsHeldUntil } from './rules';
 import {
   selectAheadYears,
@@ -240,20 +247,126 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
       sources: ['engine'],
       handle: (slice, e) => (slice.corps ? { slice } : { slice: { ...slice, corps: e['corps'] as RanksSlice['corps'] }, notes: [`the Council of Reassignment: the ${String(e['corps'])} Corps`] }),
     },
+    // ---- non-Force careers (m8-skills, D-513; ranks.md section 3a) ----
+    /** Joining a service on its first rung (the player, or the engine for a start): the entry minimum must hold. */
+    serviceJoined: {
+      schema: z.object({ type: z.literal('serviceJoined'), ladderId: z.enum(SERVICE_LADDER_IDS as [string, ...string[]]) }),
+      sources: ['player', 'engine'],
+      handle: (slice, e, ctx) => {
+        const l = SERVICE_LADDER_BY_ID.get(String(e['ladderId']))!;
+        const year = dateFromAbsDay(ctx.state.clock.now.day).year;
+        if (!ladderExists(l, year)) return { reject: `${l.faction} does not exist in this year` };
+        const c = serviceEntryCheck(l, (k) => selectLevelExact(ctx.state, k));
+        if (!c.ok) return { reject: `cannot join ${l.faction}: ${c.reasons.join('; ')}` };
+        const rung = l.rungs[0]!;
+        return {
+          slice: { ...slice, service: { ladderId: l.id, rung: 0, since: ctx.state.clock.now.day, deeds: 0 } },
+          emit: [{ type: 'militaryServiceSet', grade: rung.pay }],
+          notes: [`joined ${l.faction} as ${rung.title}`],
+        };
+      },
+    },
+    /** Leaving the service. */
+    serviceLeft: {
+      schema: z.object({ type: z.literal('serviceLeft') }),
+      sources: ['player', 'engine'],
+      handle: (slice) => {
+        if (!slice.service) return { reject: 'not in any service' };
+        const { service: _gone, ...rest } = slice;
+        return { slice: rest, emit: [{ type: 'militaryServiceSet', grade: null }], notes: ['left the service'] };
+      },
+    },
+    /** Engine: a recorded deed in service (a battle won in command, a serious fight won, an operation carried out). */
+    serviceDeedRecorded: {
+      schema: z.object({ type: z.literal('serviceDeedRecorded'), why: z.string().max(120) }),
+      sources: ['engine'],
+      handle: (slice, e) => (slice.service ? { slice: { ...slice, service: { ...slice.service, deeds: slice.service.deeds + 1 } }, notes: [`a deed on the service record: ${String(e['why'])}`] } : { slice }),
+    },
+    /**
+     * A promotion the story reached (the AI or the player proposes; the engine checks years in rank, the skill minimum and
+     * recorded deeds, and applies it when met, else rejects it with what is missing).
+     */
+    servicePromotionProposed: {
+      schema: z.object({ type: z.literal('servicePromotionProposed'), reason: z.string().max(200).optional() }),
+      sources: ['ai', 'player'],
+      narrative: (s) => s.ranks.service !== undefined,
+      handle: (slice, e, ctx) => {
+        const sv = slice.service;
+        if (!sv) return { reject: 'not in any service' };
+        const l = SERVICE_LADDER_BY_ID.get(sv.ladderId);
+        if (!l) return { reject: `unknown service ${sv.ladderId}` };
+        const c = servicePromotionCheck(l, sv.rung, { yearsInRank: (ctx.state.clock.now.day - sv.since) / DAYS_PER_YEAR, level: (k) => selectLevelExact(ctx.state, k), deeds: sv.deeds });
+        if (!c.ok) return { reject: `promotion refused: ${c.reasons.join('; ')}` };
+        const to = l.rungs[sv.rung + 1]!;
+        return {
+          slice: { ...slice, service: { ...sv, rung: sv.rung + 1, since: ctx.state.clock.now.day } },
+          emit: [{ type: 'militaryServiceSet', grade: to.pay }],
+          notes: [`promoted: ${l.rungs[sv.rung]!.title} -> ${to.title}${e['reason'] ? ` (${String(e['reason'])})` : ''}`],
+        };
+      },
+    },
+    /** Engine: a story appointment to a story-only rung (Supreme Commander, a Moff, Grand Admiral). */
+    serviceAppointed: {
+      schema: z.object({ type: z.literal('serviceAppointed'), title: z.string().max(60) }),
+      sources: ['engine'],
+      handle: (slice, e, ctx) => {
+        const sv = slice.service;
+        if (!sv) return { reject: 'not in any service' };
+        const l = SERVICE_LADDER_BY_ID.get(sv.ladderId)!;
+        const i = l.rungs.findIndex((r) => r.storyOnly && r.title === String(e['title']));
+        if (i < 0) return { reject: `${String(e['title'])} is not an appointment in ${l.faction}` };
+        return { slice: { ...slice, service: { ...sv, rung: i, since: ctx.state.clock.now.day } }, notes: [`appointed ${l.rungs[i]!.title}`] };
+      },
+    },
+    /** Enrolling in a training programme: its entry rules; it runs its length, then ends with its graduation. */
+    programmeEnrolled: {
+      schema: z.object({ type: z.literal('programmeEnrolled'), programmeId: z.string() }),
+      sources: ['player', 'engine'],
+      handle: (slice, e, ctx) => {
+        const p = PROGRAMME_BY_ID.get(String(e['programmeId']));
+        if (!p) return { reject: `unknown programme ${String(e['programmeId'])}` };
+        if (slice.programme) return { reject: `already enrolled in ${PROGRAMME_BY_ID.get(slice.programme.id)?.name ?? slice.programme.id}` };
+        const s = ctx.state;
+        const c = selectCharacter(s);
+        const why = programmeEntry(p, { age: selectExactAge(s), year: dateFromAbsDay(s.clock.now.day).year, species: c.speciesId as SpeciesId, archetype: c.archetype });
+        if (why) return { reject: why };
+        const endDay = programmeEndDay(p, s.clock.now.day);
+        return { slice: { ...slice, programme: { id: p.id, startDay: s.clock.now.day, endDay } }, notes: [`enrolled: ${p.name} (${p.where}), to ${formatDate(endDay)}`] };
+      },
+    },
+    /** Leaving a programme before its end (washed out or withdrawn). */
+    programmeLeft: {
+      schema: z.object({ type: z.literal('programmeLeft') }),
+      sources: ['player', 'engine'],
+      handle: (slice) => {
+        if (!slice.programme) return { reject: 'not enrolled in any programme' };
+        const { programme: _gone, ...rest } = slice;
+        return { slice: rest, notes: ['left the programme before its end'] };
+      },
+    },
   },
   /**
    * Monthly (the first day of a month): the Padawan selection roll for an Initiate who passed the Trials (S / 940), the
    * Council of Reassignment at 13, a Knight's interest in the Corps (2% a month), the master's approval and the Council
    * bypass. Engine flags and events only.
    */
-  onTimeAdvanced: (slice, step, ctx) => {
-    if (!step.endsDay) return { slice };
+  onTimeAdvanced: (sliceIn, step, ctx) => {
+    if (!step.endsDay) return { slice: sliceIn };
     const s = ctx.state;
     // The day that starts at the end of this step: checks run on the first of each month.
     const day = fromAbsSecond(step.toAbs).day;
-    if (dateFromAbsDay(day).day !== 1) return { slice };
+    // A training programme runs its length, then ends with its graduation (m8-skills, D-513).
+    let slice = sliceIn;
+    const graduated: string[] = [];
+    if (slice.programme && day >= slice.programme.endDay) {
+      const p = PROGRAMME_BY_ID.get(slice.programme.id);
+      graduated.push(`${p?.name ?? slice.programme.id} is over: ${p?.graduation ?? 'graduated'}.`);
+      const { programme: _done, ...rest } = slice;
+      slice = rest;
+    }
+    if (dateFromAbsDay(day).day !== 1) return { slice, ...(graduated.length ? { notices: graduated } : {}) };
     const emit: GameEvent[] = [];
-    const notices: string[] = [];
+    const notices: string[] = [...graduated];
     let rng = s.meta.rngState;
     const age = selectExactAge(s);
     // Standing lost to covert learning fades (D-436): COVERT_LEARNING.decayPerYear a year, a twelfth each month.
@@ -296,7 +409,7 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
       const p = selectPaceForAge(s);
       for (const m of paceMilestonesDue({ years: p.years, pace: p.pace, aheadYears: selectAheadYears(s), reached: slice.milestones ?? [] })) emit.push({ type: 'paceMilestoneReached', milestone: m });
     }
-    return emit.length ? { slice: fading, emit, notices, rng } : { slice: fading, rng };
+    return emit.length ? { slice: fading, emit, notices, rng } : { slice: fading, rng, ...(notices.length ? { notices } : {}) };
   },
   selectors: { rank: selectRank, rankName: selectRankName },
 };

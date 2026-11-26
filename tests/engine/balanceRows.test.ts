@@ -113,7 +113,8 @@ describe('row 8, D-224: a Yuuzhan Vong warrior archetype', () => {
     const base = { campaignSeed: 'c', age: 30, year: 26, faction: 'unknown' };
     expect(rollNpcInputs({ ...base, npcId: 'v1', role: 'other', species: 'yuuzhanVong' }).archetype).toBe('yuuzhanVongWarrior');
     expect(rollNpcInputs({ ...base, npcId: 'v2', role: 'soldier', species: 'yuuzhanVong' }).archetype).toBe('yuuzhanVongWarrior');
-    expect(rollNpcInputs({ ...base, npcId: 'v3', role: 'scholar', species: 'yuuzhanVong' }).archetype).toBe('civilian');
+    // A Vong scholar is not a warrior: the scholar archetype since m8-skills (D-513; was the civilian).
+    expect(rollNpcInputs({ ...base, npcId: 'v3', role: 'scholar', species: 'yuuzhanVong' }).archetype).toBe('scholar');
     expect(rollNpcInputs({ ...base, npcId: 'h1', role: 'other', species: 'human' }).archetype).toBe('civilian');
     expect(LOADOUT_BY_ARCHETYPE['yuuzhanVongWarrior']).toEqual({ weapon: 'melee', armor: 'heavy', saberResistant: true });
     const def = archetypeDef('yuuzhanVongWarrior');

@@ -376,7 +376,7 @@ export const DRILL_CEILING = {
   releaseDays: 60,
 } as const;
 /** Order classes that count as sparring for E when taught (D-143 A); peer or stronger by the teacher's level (D-163). */
-export const ORDER_SPARRING_CLASSES: readonly string[] = ['shiiChoBasics', 'padawanTraining'];
+export const ORDER_SPARRING_CLASSES: readonly string[] = ['shiiChoBasics', 'padawanTraining', 'apprenticeTraining', 'warbladeTraining'];
 /** Reviewing a recording of one's own fight (progression-numbers §19). */
 export const RECORDING_REVIEW_BONUS = 0.05;
 

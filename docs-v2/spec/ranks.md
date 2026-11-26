@@ -175,6 +175,18 @@ The Order's rules on Force powers (D-346, D-436; src/data/orderPowerRules.ts)
   Non-Force careers (soldier, smuggler, Mandalorian, bounty hunter...): faction ranks earned
     by years of service, skill minimums matched to the NPC archetype curve, and deeds.
 
+## 3a. Service ladders (D-513; spec/skills-m8.md section 8)
+  Each faction's army, navy and intelligence branch is a dated ladder (src/data/serviceRanks.ts) with
+  the lore's titles where they differ: the Republic Army lieutenant -> captain -> major -> colonel ->
+  general (Supreme Commander an appointment); navies ensign -> lieutenant -> captain -> commodore ->
+  admiral; the SIS field agent -> handler -> Bureau Chief -> Director of SIS; Imperial Intelligence
+  (Sith Empire) Cipher agent -> Watcher -> Keeper -> Minister of Intelligence; the Sith Empire's Moffs
+  and Grand Moffs and the Empire's Grand Admiral are appointments. A promotion takes years in the rung
+  below, a skill minimum (Tactics; for intelligence the best of Intelligence, Investigation and
+  Stealth) and recorded deeds (engine flags: a battle won in command, an operation, a serious fight
+  won); the AI or the player proposes it (servicePromotionProposed) and the engine applies it, with
+  the rung's military pay. Story-only rungs come only by serviceAppointed (engine). Numbers invented.
+
 ## 4. Milestones (recalibrated)
   Built (D-430): checked monthly after 3 years of training; the Average reference is the closed form for
   the character's archetype, rank and start age with no talent; each milestone fires once as a beat.

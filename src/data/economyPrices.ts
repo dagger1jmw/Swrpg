@@ -109,6 +109,8 @@ export const PRICE_CATALOG: readonly PriceEntry[] = [
   P('backpack', 'a backpack', 'manufactured', 75, 'game', `${GL}: Mk. IV Modular Backpack 75 cr [gray]`),
   P('utilityBelt', 'a utility belt', 'manufactured', 50, 'invented', 'no ordinary belt price; Calrissian\'s is a unique 3,000'),
   P('binders', 'binders', 'manufactured', 75, 'game', `${GL}: Biodegradable Binders 75 cr`),
+  // m8-skills (D-513): the tool kit Repair needs for the character's own jobs.
+  P('toolKit', 'a tool kit', 'manufactured', 200, 'game', `${GL}: Droid tool kit and Vehicle Tool Kit 200 cr (WEG 1987); 60-Piece Ship's Engineering tool kit 350 cr (FFG 2014)`),
   P('cyberImplant', 'a cybernetic implant', 'manufactured', 7500, 'lore', `${PG}: Beemon package implant up to 7,500 cr (c. 3,956)`),
   P('bactaTank', 'a bacta tank', 'manufactured', 100000, 'lore', `${PG}: a bacta tank alone c. 100,000 cr [unclear]; medicine is checklist item 6`),
   // ---- Medicine (checklist item 6, D-511; services are priced in medicine.config MEDICAL_PRICE) ----
@@ -152,7 +154,7 @@ export const PRICE_WORDS: Readonly<Record<string, string>> = {
   armor: 'armorLight', armour: 'armorLight', 'combat armor': 'armorMedium', 'combat armour': 'armorMedium', 'heavy armor': 'armorHeavy', 'heavy armour': 'armorHeavy',
   vest: 'blastVest', shield: 'personalShield', medkit: 'medpac', medpac: 'medpac', comm: 'comlink', comlink: 'comlink', 'glow rod': 'glowrod', glowrod: 'glowrod',
   'breath mask': 'breathMask', macrobinoculars: 'macrobinoculars', binoculars: 'macrobinoculars', datapad: 'datapad', pack: 'backpack', backpack: 'backpack',
-  belt: 'utilityBelt', binders: 'binders', cuffs: 'binders', implant: 'cyberImplant', cybernetic: 'cyberImplant', 'bacta tank': 'bactaTank',
+  belt: 'utilityBelt', binders: 'binders', cuffs: 'binders', 'tool kit': 'toolKit', toolkit: 'toolKit', tools: 'toolKit', 'repair kit': 'toolKit', implant: 'cyberImplant', cybernetic: 'cyberImplant', 'bacta tank': 'bactaTank',
   'kolto tank': 'bactaTank', 'kolto medpac': 'medpac', 'kolto pack': 'medpac', antidote: 'antidote', antitoxin: 'antidote', antivenom: 'antidote',
   prosthetic: 'prosthetic', 'prosthetic arm': 'prosthetic', 'prosthetic leg': 'prosthetic', 'prosthetic hand': 'prostheticHand', 'cybernetic arm': 'cyberImplant',
   speeder: 'speeder', landspeeder: 'speeder', 'speeder bike': 'speederBike', swoop: 'speederBike', 'protocol droid': 'protocolDroid', astromech: 'astromech',

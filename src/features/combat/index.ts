@@ -4,7 +4,7 @@
 // ends without wounds (fled, surrendered, interrupted, truce), and which opponents are fighting an ally.
 import { sparGroupLevel } from '../../engine/appliedExperience';
 import { z } from 'zod';
-import { strikeIntentFor, INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, CAPTOR_RULES, FATE_ACT_NOTE, FATE_BY_STAKES, FATE_CHOICE_EXPIRY, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
+import { STRIKE_AT, strikeIntentFor, INTERRUPT_CATEGORIES, INTERRUPT_CAUSES, INTERRUPT_FIGHTER_WORDS, INTERRUPT_RESTATES, CAPTOR_RULES, FATE_ACT_NOTE, FATE_BY_STAKES, FATE_CHOICE_EXPIRY, FATE_ROLL, HEROIC_ACT, MANEUVERS, NPC_FATES, SPARRING_MODES, STANCES, TACTICS, FORM_CHANGE_COST, isNarratedBeat, type BeatReason, type FateKind, type InterruptCategory, type InterruptCause, type NpcFate } from '../../data/combat.config';
 import { afterBout, newSession, runSession, sessionOutcome, type SparSessionState } from '../../engine/sparSession';
 import { hazardOnAll, rollBoutHazards } from '../../engine/terrainHazard';
 import { BODY_PARTS, WEAPON_KINDS, type BodyPart, type HazardType, type WeaponKind } from '../../data/health.config';
@@ -228,6 +228,12 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   const strongest = [...faced].sort((x, y) => y.level - x.level)[0];
   const opponentForm = strongest && FORM_IDS.includes(strongest.skillId) ? strongest.skillId : null;
   if (exchanges.length || forceUses.length) emit.push({ type: 'fightResolved', stakes: active.stakes, outcome, exchanges, forceUses, opponentGap, ...(opponentForm ? { opponentForm } : {}), ...(reason === 'surrendered' ? { surrendered: true } : {}) });
+  // m8-skills (D-513): strikes earned by reaching +3 on the advantage track teach a little Tactics; a style fought with grows;
+  // a serious or lethal fight won is a deed on a service record.
+  const earned = duel.log.filter((r) => r.kind === 'strike' && r.striker === 'A' && !r.surprise && r.advBefore >= STRIKE_AT).length;
+  if (earned > 0) emit.push({ type: 'playXpEarned', source: 'strikes', strikes: earned, stakes: active.stakes });
+  if (duel.a.style && strikes.length) emit.push({ type: 'styleFought', styleId: duel.a.style.id, stakes: active.stakes });
+  if (outcome === 'won' && (active.stakes === 'serious' || active.stakes === 'lethal') && s.ranks.service) emit.push({ type: 'serviceDeedRecorded', why: `a ${active.stakes} fight won` });
   // heroicAct (flag-registry §2): a won lethal fight against an opponent 10+ stronger or of rank Sith Lord / Master.
   if (active.stakes === 'lethal' && outcome === 'won') {
     const heroic = faced.some((o) => o.level - duel.a.level >= HEROIC_ACT.gapAtLeast || HEROIC_ACT.ranks.includes(active.meta[o.id]?.rank ?? ''));
@@ -1052,7 +1058,9 @@ function pursuitsAfter(slice: CombatSlice, step: { toAbs: number; endsDay: boole
     const foe = selectNpc(s, p.foeId);
     if (!foe || foe.status !== 'active') continue;
     if (p.kind === 'barred') {
-      if (step.toAbs < (p.untilAbs ?? 0) || slice.active || slice.pending) next.push(p);
+      // A barred pursuer without a time comes through at once. Not `?? 0`: second 0 is year 1, so in a BBY campaign (negative
+      // seconds) it would wait behind the door forever (m8-skills BBY timer sweep, D-513).
+      if (step.toAbs < (p.untilAbs ?? -Infinity) || slice.active || slice.pending) next.push(p);
       else if (within(p.withinId)) {
         notices.push(`${foe.name} comes through the door.`);
         emit.push({ type: 'combatStarted', opponentRefs: [p.foeId], stakes: 'lethal', terrainTags: [] });

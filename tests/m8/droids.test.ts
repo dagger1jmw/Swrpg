@@ -126,8 +126,9 @@ describe('skills (spec §3)', () => {
       }
     }
     expect(ok).toBeGreaterThan(0);
-    // No credits, no job.
-    const broke = { ...s, economy: { ...s.economy, wallet: { republic: 10, imperial: 0, hutt: 0 } } };
+    // The character's own work needs a tool kit (m8-skills, D-513); then no credits, no job.
+    expect(ai(s, [{ type: 'droid', what: 'installed a basic repair module' }]).rejected[0]?.reason).toMatch(/tool kit/);
+    const broke = { ...s, droids: { ...s.droids, toolKit: true }, economy: { ...s.economy, wallet: { republic: 10, imperial: 0, hutt: 0 } } };
     expect(ai(broke, [{ type: 'droid', what: 'installed a basic repair module' }]).rejected[0]?.reason).toMatch(/cannot afford/);
   });
 });

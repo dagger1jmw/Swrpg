@@ -45,6 +45,8 @@ export const npcSchema = z.object({
   health: npcHealthSchema.nullable(),
   /** Dev sandbox only (D-180): fixed levels that replace the generated ones (a test opponent at a set level). */
   devLevels: z.record(z.string(), z.number().min(0)).optional(),
+  /** Melee styles the NPC holds and can teach (m8-skills, D-513): proficiency 0-1 by style id (npcStyleSet). */
+  styles: z.record(z.string(), z.number().min(0).max(1)).optional(),
   /**
    * The role whose rank and default age the NPC keeps after an era correction (D-320): a Sith acolyte made a Dark Jedi
    * keeps the acolyte's rank, so the correction never changes balance. Absent = the role itself.

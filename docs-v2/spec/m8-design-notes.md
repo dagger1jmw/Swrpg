@@ -867,6 +867,8 @@ Agreed by Jared (2026-11-23).
 
 ## Non-Force skills and archetypes (checklist items 10 and 12)
 
+As built: [skills-m8.md](skills-m8.md) (M8 items 10 and 12, D-513).
+
 Agreed by Jared, 25 Nov 2026. Every XP source is a structured line from code, never the narrator. Teachers multiply gains as everywhere else, and every number is set and tagged at build time. Item 10 (the officer) is folded in.
 
 ### XP from play

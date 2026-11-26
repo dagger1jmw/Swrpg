@@ -10,7 +10,7 @@ import type { CharacterPath } from './archetypes';
 export interface TrainingRecordDef {
   id: string;
   name: string;
-  kind: 'archive' | 'holocron' | 'journal';
+  kind: 'archive' | 'holocron' | 'journal' | 'manual';
   /** Paths whose archives hold it (archive records); holocrons work for anyone holding one. */
   paths: readonly CharacterPath[];
   /** Fixed teaching level per covered skill. */
@@ -21,6 +21,8 @@ export interface TrainingRecordDef {
   places?: readonly string[];
   /** A Jedi or Sith text (D-436): Jedi texts teach only what the Order permits; archives take it from their paths. */
   tradition?: 'jedi' | 'sith';
+  /** m8-skills (D-513): melee styles the record teaches (a manual or a holocron of that art can start one). */
+  styles?: readonly string[];
 }
 
 /** Design default: the New Jedi Order's academy and its recovered Form VII records, c. 11 ABY (D-352 [21], D-370). */
@@ -49,6 +51,12 @@ export const TRAINING_RECORDS: readonly TrainingRecordDef[] = [
   { id: 'journal:obiWanKenobi', tradition: 'jedi', name: "Obi-Wan Kenobi's journal", kind: 'journal', paths: [], levels: { forceKnowledge: 70, meditation: 60, forceControl: 65, soresu: 70 }, fromYear: -19 },
   { id: 'holocron:jediGatekeeper', tradition: 'jedi', name: 'A Jedi holocron with its gatekeeper', kind: 'holocron', paths: [], levels: { forceKnowledge: 85, meditation: 70, forceSense: 70 } },
   { id: 'holocron:sithLord', tradition: 'sith', name: "A Sith Lord's holocron", kind: 'holocron', paths: [], levels: { forceKnowledge: 80, forceOutput: 60, forceLightning: 55 } },
+  // Recorded sources of melee styles (m8-skills, D-513; every entry and level invented: the lore names no such manual). A
+  // record starts a style as a teacher does; possession is trusted until items exist.
+  { id: 'manual:echaniMilitary', name: 'A special-forces manual of the military Echani art', kind: 'manual', paths: [], levels: { melee: 40 }, fromYear: -3976, styles: ['echaniMilitary'] },
+  { id: 'manual:ktara', name: "An Alliance SpecForces K'tara training manual", kind: 'manual', paths: [], levels: { melee: 40 }, fromYear: -2, styles: ['ktara'] },
+  { id: 'manual:mandalorian', name: 'A Mandalorian training record', kind: 'manual', paths: [], levels: { melee: 40, blaster: 40 }, styles: ['mandalorian'] },
+  { id: 'holocron:terasKasi', name: "A Follower of Palawa's holocron of Teräs Käsi", kind: 'holocron', paths: [], levels: { melee: 60 }, fromYear: -24500, styles: ['terasKasi'] },
 ];
 
 export const TRAINING_RECORD_BY_ID: ReadonlyMap<string, TrainingRecordDef> = new Map(TRAINING_RECORDS.map((r) => [r.id, r]));

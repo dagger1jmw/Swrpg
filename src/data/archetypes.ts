@@ -39,6 +39,11 @@ export interface ArchetypeDef {
   youthPaces?: Readonly<Record<string, number>>;
   /** Pace of all lightsaber-form XP per phase and source (D-118); absent for archetypes without forms. */
   formPaces: Readonly<Partial<Record<Phase, Readonly<Partial<Record<FormSource, number>>>>>>;
+  /**
+   * m8-skills (D-513): the activity the routine's fill trains a skill with, where it is not the skill's default (an officer's
+   * Intelligence by staff work, a politician's Charisma by negotiation, a field agent's Investigation by tradecraft).
+   */
+  activities?: Readonly<Record<string, string>>;
 }
 
 /**
@@ -90,8 +95,8 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startRange: JEDI_RANGE,
     paces: {
       initiate: { endurance: 0.082, strength: 0.138, agility: 0.109, forceControl: 0.566, forceSense: 0.466, willpower: 0.767, meditation: 0.085, forceKnowledge: 0.398 },
-      padawan: { endurance: 0.126, strength: 0.093, agility: 0.117, forceControl: 1.252, forceSense: 1.197, willpower: 1.599, meditation: 0.245 },
-      knight: { endurance: 0.487, strength: 0.289, agility: 0.297, forceControl: 0.563, forceSense: 0.559, willpower: 1.059, meditation: 0.212, forceKnowledge: 0.139 },
+      padawan: { endurance: 0.126, strength: 0.093, agility: 0.117, forceControl: 1.218, forceSense: 1.197, willpower: 1.577, meditation: 0.245, melee: 0.052 },
+      knight: { endurance: 0.487, strength: 0.289, agility: 0.296, forceControl: 0.563, forceSense: 0.559, willpower: 1.063, meditation: 0.212, forceKnowledge: 0.139 },
     },
     formPaces: {
       initiate: { fill: 0.008, order: 1.121 },
@@ -109,7 +114,7 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startRange: JEDI_RANGE,
     paces: {
       initiate: { endurance: 0.078, strength: 0.132, agility: 0.104, forceControl: 0.57, forceSense: 0.47, willpower: 0.76, meditation: 0.09, forceKnowledge: 0.392 },
-      padawan: { endurance: 0.073, strength: 0.056, agility: 0.079, forceControl: 1.119, forceSense: 1.147, willpower: 1.478, meditation: 0.314, forceKnowledge: 0.12 },
+      padawan: { endurance: 0.073, strength: 0.056, agility: 0.079, forceControl: 1.084, forceSense: 1.147, willpower: 1.456, meditation: 0.314, forceKnowledge: 0.12, melee: 0.052 },
       knight: { endurance: 0.197, strength: 0.153, agility: 0.14, forceControl: 0.089, forceSense: 0.394, willpower: 0.894, meditation: 0.58, forceKnowledge: 1.916 },
     },
     formPaces: {
@@ -127,9 +132,9 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 4,
     startRange: JEDI_RANGE,
     paces: {
-      initiate: { endurance: 0.081, strength: 0.136, agility: 0.108, forceControl: 0.571, forceSense: 0.464, willpower: 0.764, meditation: 0.084, forceKnowledge: 0.397, investigation: 0.003, intelligence: 0.001, charisma: 0, stealth: 0.004 },
-      padawan: { endurance: 0.096, strength: 0.071, agility: 0.112, forceControl: 1.216, forceSense: 1.182, willpower: 1.598, meditation: 0.241, investigation: 0.093, intelligence: 0.022, charisma: 0.009, stealth: 0.067 },
-      knight: { endurance: 0.397, strength: 0.21, agility: 0.274, forceControl: 0.415, forceSense: 0.553, willpower: 0.923, meditation: 0.207, investigation: 0.337, intelligence: 0.08, charisma: 0.032, stealth: 0.225, forceKnowledge: 0.141 },
+      initiate: { endurance: 0.081, strength: 0.136, agility: 0.108, forceControl: 0.571, forceSense: 0.464, willpower: 0.764, meditation: 0.084, forceKnowledge: 0.397, investigation: 0.003, intelligence: 0.001, charisma: 0.0, stealth: 0.004 },
+      padawan: { endurance: 0.096, strength: 0.071, agility: 0.112, forceControl: 1.182, forceSense: 1.182, willpower: 1.577, meditation: 0.241, investigation: 0.093, intelligence: 0.022, charisma: 0.009, stealth: 0.067, melee: 0.052 },
+      knight: { endurance: 0.397, strength: 0.21, agility: 0.274, forceControl: 0.414, forceSense: 0.553, willpower: 0.926, meditation: 0.206, investigation: 0.337, intelligence: 0.08, charisma: 0.032, stealth: 0.225, forceKnowledge: 0.141 },
     },
     formPaces: {
       initiate: { fill: 0.001, order: 1.122 },
@@ -146,9 +151,9 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 8,
     startRange: SITH_RANGE,
     paces: {
-      initiate: { strength: 0.154, agility: 0.117, endurance: 0.082, forceControl: 0.494, forceSense: 0.088, willpower: 0.813, forceKnowledge: 0.578, meditation: 0.196, forceOutput: 0.009 },
+      initiate: { strength: 0.131, agility: 0.1, endurance: 0.071, forceControl: 0.485, forceSense: 0.086, willpower: 0.816, forceKnowledge: 0.578, meditation: 0.195, forceOutput: 0.009, melee: 0.061 },
       padawan: { strength: 0.112, agility: 0.136, endurance: 0.147, forceControl: 1.233, forceSense: 0.209, willpower: 1.601, meditation: 0.093, forceOutput: 1.095 },
-      knight: { strength: 0.362, agility: 0.353, endurance: 0.564, forceControl: 0.206, forceSense: 0.155, willpower: 1.242, meditation: 0.133, forceKnowledge: 0.095, forceOutput: 0.639 },
+      knight: { strength: 0.362, agility: 0.353, endurance: 0.563, forceControl: 0.206, forceSense: 0.155, willpower: 1.249, meditation: 0.133, forceKnowledge: 0.095, forceOutput: 0.639 },
     },
     formPaces: {
       initiate: { fill: 0.003, order: 1.145 },
@@ -165,7 +170,7 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     startAge: 8,
     startRange: SITH_RANGE,
     paces: {
-      initiate: { strength: 0.141, agility: 0.105, endurance: 0.07, forceControl: 0.491, forceSense: 0.088, willpower: 0.768, forceKnowledge: 0.558, meditation: 0.197, forceOutput: 0.015 },
+      initiate: { strength: 0.118, agility: 0.089, endurance: 0.059, forceControl: 0.482, forceSense: 0.086, willpower: 0.773, forceKnowledge: 0.558, meditation: 0.197, forceOutput: 0.015, melee: 0.059 },
       padawan: { strength: 0.021, agility: 0.048, endurance: 0.033, forceControl: 1.231, forceSense: 0.207, willpower: 1.442, meditation: 0.114, forceOutput: 1.082, forceKnowledge: 0.099 },
       knight: { endurance: 0.031, forceControl: 0.356, forceSense: 0.15, willpower: 0.648, forceKnowledge: 0.556, meditation: 0.236, forceOutput: 1.815, strength: 0.005, agility: 0.012 },
     },
@@ -180,11 +185,12 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     name: 'Republic / Imperial soldier',
     path: 'career',
     main: 'blaster',
-    weights: { blaster: 1.0, tactics: 0.6, strength: 0.6, agility: 0.6, endurance: 0.6, willpower: 0.2 },
+    // m8-skills (D-513): the soldier line takes a Gunnery share (crew-served guns, the E-Web) and a Repair share (field kit).
+    weights: { blaster: 1.0, tactics: 0.6, strength: 0.6, agility: 0.6, endurance: 0.6, gunnery: 0.15, repair: 0.1, willpower: 0.2 },
     startAge: 17,
     startRange: [16, 30],
     paces: {
-      knight: { blaster: 1.477, agility: 0.683, willpower: 0.621, tactics: 0.465, intelligence: 0.155, endurance: 0.448, strength: 0.372, meditation: 0.021, forceControl: 0.005 },
+      knight: { blaster: 1.475, agility: 0.617, willpower: 0.58, tactics: 0.426, intelligence: 0.171, gunnery: 0.108, endurance: 0.382, strength: 0.313, meditation: 0.019, forceControl: 0.005, repair: 0.045 },
     },
     formPaces: {
       knight: {},
@@ -251,11 +257,12 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
     name: 'Smuggler / scoundrel',
     path: 'career',
     main: 'piloting',
-    weights: { piloting: 1.0, blaster: 0.7, charisma: 0.6, willpower: 0.2 },
+    // m8-skills (D-513): the smuggler line takes Gunnery (the freighter's turrets) and Repair (keeping the ship flying) shares.
+    weights: { piloting: 1.0, blaster: 0.7, charisma: 0.6, gunnery: 0.15, repair: 0.15, willpower: 0.2 },
     startAge: 17,
     startRange: [14, 30],
     paces: {
-      knight: { blaster: 0.755, agility: 0.361, willpower: 0.906, piloting: 1.458, intelligence: 0.367, charisma: 0.375, meditation: 0.051, forceControl: 0.013, strength: 0.01, endurance: 0.01 },
+      knight: { blaster: 0.6, agility: 0.311, willpower: 0.905, piloting: 1.474, intelligence: 0.413, charisma: 0.339, gunnery: 0.068, meditation: 0.042, forceControl: 0.011, repair: 0.122, strength: 0.008, endurance: 0.008 },
     },
     formPaces: {
       knight: {},
@@ -327,6 +334,125 @@ export const ARCHETYPES: readonly ArchetypeDef[] = [
       knight: {},
     },
   },
+  // ---- m8-skills (D-513; spec/skills-m8.md section 7). Weights invented; paces measured on the day loop (tests/paces). ----
+  {
+    // The line officer (checklist item 10): Tactics, then Intelligence, then Charisma; a smaller Blaster share. Intelligence by
+    // staff work (planning, logistics), Tactics by study and command.
+    id: 'officer',
+    name: 'Officer',
+    path: 'career',
+    main: 'tactics',
+    weights: { tactics: 1.0, intelligence: 0.6, charisma: 0.5, blaster: 0.25, strength: 0.15, agility: 0.15, endurance: 0.15, willpower: 0.2 },
+    startAge: 18,
+    startRange: [17, 30],
+    paces: { knight: { blaster: 0.202, agility: 0.172, willpower: 0.693, tactics: 1.662, intelligence: 0.969, charisma: 0.281, meditation: 0.038, forceControl: 0.01, endurance: 0.174, strength: 0.148 } },
+    formPaces: { knight: {} },
+    activities: { intelligence: 'staffWork' },
+  },
+  {
+    // The naval officer: the officer's line with Piloting and a Gunnery share.
+    id: 'navalOfficer',
+    name: 'Naval officer',
+    path: 'career',
+    main: 'tactics',
+    weights: { tactics: 1.0, intelligence: 0.6, piloting: 0.4, charisma: 0.4, gunnery: 0.2, blaster: 0.15, strength: 0.1, agility: 0.1, endurance: 0.1, willpower: 0.2 },
+    startAge: 18,
+    startRange: [17, 30],
+    paces: { knight: { tactics: 1.575, intelligence: 0.894, willpower: 0.786, gunnery: 0.079, agility: 0.134, meditation: 0.032, forceControl: 0.008, blaster: 0.106, endurance: 0.106, strength: 0.092, charisma: 0.188, piloting: 0.17 } },
+    formPaces: { knight: {} },
+    activities: { intelligence: 'staffWork' },
+  },
+  {
+    // The intelligence officer, analyst line (Jared): Intelligence and Investigation, then Charisma. Analysis is staff
+    // work; casework is tradecraft. Ahead of a line officer on most stats, behind on Tactics.
+    id: 'intelAnalyst',
+    name: 'Intelligence officer (analyst)',
+    path: 'career',
+    main: 'intelligence',
+    weights: { intelligence: 1.0, investigation: 0.9, charisma: 0.6, blaster: 0.35, tactics: 0.2, strength: 0.2, agility: 0.2, endurance: 0.2, willpower: 0.2 },
+    startAge: 18,
+    startRange: [17, 35],
+    paces: { knight: { blaster: 0.197, agility: 0.162, willpower: 0.625, intelligence: 1.584, tactics: 0.567, endurance: 0.163, strength: 0.139, investigation: 0.403, stealth: 0.067, charisma: 0.286, meditation: 0.026, forceControl: 0.007 } },
+    formPaces: { knight: {} },
+    activities: { intelligence: 'staffWork', investigation: 'tradecraft' },
+  },
+  {
+    // The intelligence officer, field agent line (Jared): Stealth, Charisma, Blaster and Melee, then Investigation
+    // (tradecraft).
+    id: 'intelAgent',
+    name: 'Intelligence officer (field agent)',
+    path: 'career',
+    main: 'stealth',
+    weights: { stealth: 1.0, charisma: 0.8, blaster: 0.8, melee: 0.6, investigation: 0.5, intelligence: 0.2, strength: 0.35, agility: 0.35, endurance: 0.35, willpower: 0.2 },
+    startAge: 18,
+    startRange: [17, 30],
+    paces: { knight: { stealth: 1.53, agility: 0.506, willpower: 0.47, charisma: 0.428, intelligence: 0.173, investigation: 0.243, blaster: 0.251, melee: 0.188, strength: 0.166, endurance: 0.181, forceKnowledge: 0.032, meditation: 0.013, forceControl: 0.003 } },
+    formPaces: { knight: {} },
+    activities: { investigation: 'tradecraft' },
+  },
+  {
+    // Senator or politician (Jared): Charisma, then Intelligence; little combat. Generation and stat lines only: a Senate
+    // seat is a story event. Charisma by negotiation and political work.
+    id: 'politician',
+    name: 'Senator or politician',
+    path: 'career',
+    main: 'charisma',
+    weights: { charisma: 1.0, intelligence: 0.7, investigation: 0.15, tactics: 0.1, willpower: 0.3, blaster: 0.05 },
+    startAge: 18,
+    startRange: [16, 40],
+    paces: { knight: { charisma: 1.49, intelligence: 1.205, forceKnowledge: 0.223, willpower: 1.168, meditation: 0.082, forceControl: 0.02, investigation: 0.108, blaster: 0.061, agility: 0.012, tactics: 0.069 } },
+    formPaces: { knight: {} },
+    activities: { charisma: 'negotiation' },
+  },
+  {
+    // The scholar (Jared): Intelligence, then Investigation; Force Knowledge where it fits (the Force's history and
+    // lore are open to anyone).
+    id: 'scholar',
+    name: 'Scholar',
+    path: 'career',
+    main: 'intelligence',
+    weights: { intelligence: 1.0, investigation: 0.6, forceKnowledge: 0.2, charisma: 0.2, medicine: 0.1, willpower: 0.2 },
+    startAge: 16,
+    startRange: [14, 40],
+    paces: { knight: { intelligence: 1.552, forceKnowledge: 0.601, investigation: 0.56, charisma: 0.192, willpower: 1.118, meditation: 0.055, forceControl: 0.014, medicine: 0.069 } },
+    formPaces: { knight: {} },
+  },
+  {
+    // The starfighter pilot (Jared, D-506: pilots train Gunnery alongside Piloting; every sortie trains both).
+    id: 'starfighterPilot',
+    name: 'Starfighter pilot',
+    path: 'career',
+    main: 'piloting',
+    weights: { piloting: 1.0, gunnery: 0.8, repair: 0.2, blaster: 0.2, agility: 0.3, endurance: 0.2, intelligence: 0.2, willpower: 0.2 },
+    startAge: 18,
+    startRange: [16, 30],
+    paces: { knight: { agility: 0.544, endurance: 0.196, strength: 0.07, piloting: 1.617, intelligence: 0.534, blaster: 0.152, willpower: 0.688, gunnery: 0.499, forceKnowledge: 0.033, repair: 0.138, meditation: 0.036, forceControl: 0.009 } },
+    formPaces: { knight: {} },
+  },
+  {
+    // The ship gunner: turrets, batteries, vehicle and emplacement guns as a career.
+    id: 'shipGunner',
+    name: 'Ship gunner',
+    path: 'career',
+    main: 'gunnery',
+    weights: { gunnery: 1.0, repair: 0.3, blaster: 0.3, agility: 0.3, strength: 0.2, endurance: 0.2, tactics: 0.1, willpower: 0.2 },
+    startAge: 18,
+    startRange: [16, 30],
+    paces: { knight: { agility: 0.67, endurance: 0.309, strength: 0.265, gunnery: 1.677, intelligence: 0.347, blaster: 0.293, willpower: 0.296, repair: 0.282, meditation: 0.05, forceControl: 0.012, tactics: 0.088 } },
+    formPaces: { knight: {} },
+  },
+  {
+    // The engineer or mechanic (ships, vehicles, droids): Repair as a career, Intelligence beside it.
+    id: 'engineer',
+    name: 'Engineer or mechanic',
+    path: 'career',
+    main: 'repair',
+    weights: { repair: 1.0, intelligence: 0.6, piloting: 0.2, gunnery: 0.1, blaster: 0.1, strength: 0.2, endurance: 0.1, willpower: 0.2 },
+    startAge: 16,
+    startRange: [12, 35],
+    paces: { knight: { strength: 0.22, endurance: 0.172, repair: 1.484, intelligence: 0.983, blaster: 0.11, agility: 0.066, willpower: 0.481, forceKnowledge: 0.152, piloting: 0.119, meditation: 0.042, forceControl: 0.011, gunnery: 0.065 } },
+    formPaces: { knight: {} },
+  },
 ];
 
 export const ARCHETYPE_BY_ID: ReadonlyMap<string, ArchetypeDef> = new Map(ARCHETYPES.map((a) => [a.id, a]));
@@ -342,7 +468,7 @@ export const PATH_ARCHETYPES: Record<CharacterPath, readonly string[]> = {
   jedi: ['jediGuardian', 'jediConsular', 'jediSentinel'],
   sith: ['sithWarrior', 'sithInquisitor'],
   outsider: ['jediGuardian', 'jediConsular', 'jediSentinel'],
-  career: ['soldier', 'mandalorian', 'warrior', 'smuggler', 'bountyHunter', 'civilian'],
+  career: ['soldier', 'mandalorian', 'warrior', 'smuggler', 'bountyHunter', 'civilian', 'officer', 'navalOfficer', 'intelAnalyst', 'intelAgent', 'politician', 'scholar', 'starfighterPilot', 'shipGunner', 'engineer'],
 };
 /**
  * Archetypes that only generated NPCs take (not on the creation form), by path (D-246). Creation accepts them for an NPC

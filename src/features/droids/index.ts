@@ -3,7 +3,8 @@
 // numbers; the code picks the model for the date, rolls the job or the hit, charges the economy and changes the droid. New
 // droids are bought and sold through the economy's `trade` (which sends droidAcquired and droidSold here).
 import { z } from 'zod';
-import { DROID_SHIELD, DROID_SKILLS, ION_POWER, REGARD, REPAIR_STAND_IN, WIPE_PRICE, type DroidHow, type DroidSkill } from '../../data/droids.config';
+import { TOOL_KIT } from '../../data/droids.config';
+import { DROID_SHIELD, DROID_SKILLS, ION_POWER, REGARD, REPAIR_SKILL, UPGRADE_HOURS, WIPE_PRICE, type DroidHow, type DroidSkill } from '../../data/droids.config';
 import { DROID_MODEL_BY_ID } from '../../data/droidModels';
 import { HIT_MULT, WEAPON_BASE } from '../../data/health.config';
 import { dateFromAbsDay, SECONDS_PER_DAY } from '../../engine/calendar';
@@ -130,12 +131,12 @@ const nowSec = (s: GameState): number => s.clock.now.day * SECONDS_PER_DAY + s.c
 const yearOf = (s: GameState): number => dateFromAbsDay(today(s)).year;
 const fmt = (n: number): string => Math.round(n).toLocaleString('en-US');
 
-/** The character's level for a droid job: the Repair stand-in (droids.config REPAIR_STAND_IN) with the usual penalties. */
+/** The character's level for a droid job: Repair (droids.config REPAIR_SKILL; m8-skills, D-513) with the usual penalties. */
 function standIn(s: GameState): LevelInputs {
   return {
-    level: selectPerformance(s, REPAIR_STAND_IN),
-    woundPenalty: 1 - (1 - selectWoundPenalty(s, REPAIR_STAND_IN)) * (1 - selectLastingPenalty(s, REPAIR_STAND_IN)),
-    rust: selectRust(s, REPAIR_STAND_IN),
+    level: selectPerformance(s, REPAIR_SKILL),
+    woundPenalty: 1 - (1 - selectWoundPenalty(s, REPAIR_SKILL)) * (1 - selectLastingPenalty(s, REPAIR_SKILL)),
+    rust: selectRust(s, REPAIR_SKILL),
     vitalitySpent: selectIsSpent(s),
     fatigueEfficiency: efficiency(selectFatigue(s).p),
   };
@@ -147,8 +148,8 @@ function jobRoll(s: GameState, rng: RngState, label: string, rating: number, sho
   const level = jobLevel(own.level, shop);
   const byShop = level > own.level;
   const inputs = byShop ? { level, woundPenalty: 0, rust: 0, vitalitySpent: false, fatigueEfficiency: 1 } : own;
-  const [card, r] = checkRating(rng, { label, skillId: REPAIR_STAND_IN, levelInputs: inputs, modifiers: [], rating });
-  return { success: card.success, rng: r, byShop, note: `${label} (${byShop ? "the shop's technician" : `the character's ${REPAIR_STAND_IN}, the Repair stand-in`}): ${card.total.toFixed(1)} vs DC ${card.dc}, ${card.success ? 'success' : 'failure'}` };
+  const [card, r] = checkRating(rng, { label, skillId: REPAIR_SKILL, levelInputs: inputs, modifiers: [], rating });
+  return { success: card.success, rng: r, byShop, note: `${label} (${byShop ? "the shop's technician" : "the character's Repair"}): ${card.total.toFixed(1)} vs DC ${card.dc}, ${card.success ? 'success' : 'failure'}` };
 }
 
 const canPay = (s: GameState, credits: number): boolean => pay(s.economy.wallet, credits, selectAcceptance(s)) !== null;
@@ -279,15 +280,18 @@ function handleDroid(slice: DroidsSlice, e: GameEvent, ctx: ApplyCtx<GameState>)
       const tier = ADVANCED.test(what) ? 'advanced' : 'basic';
       const job = upgradeJob(u, act === 'upgrade' ? { kind: 'module', skill: sk, tier } : { kind: 'reprogram', skill: sk }, shop, day);
       if (job.refusal) return { reject: job.refusal };
+      if (!shop && !slice.toolKit) return { reject: `${act === 'upgrade' ? 'fitting a module' : 'reprogramming'} needs a tool kit (a droid tool kit, ${TOOL_KIT.price} cr), or a shop` };
       if (!canPay(s, jobCost(job.price, shop, true))) return { reject: `cannot afford the job: ${fmt(jobCost(job.price, shop, true))} cr` };
       const roll = jobRoll(s, rng, `${act === 'upgrade' ? `${tier} ${sk} module` : `reprogramming for ${sk}`} on ${u.name}`, job.rating, shop);
       rng = roll.rng;
       const cost = jobCost(job.price, shop, roll.success);
       const next = roll.success ? (act === 'upgrade' ? withModule(u, sk, tier) : withReprogram(u, sk)) : u;
+      // The character's own work teaches Repair (m8-skills, D-513); a shop's technician's does not.
+      const learned: GameEvent[] = roll.byShop ? [] : [{ type: 'playXpEarned', source: 'repair', hours: act === 'upgrade' ? UPGRADE_HOURS[tier] : UPGRADE_HOURS.reprogram, rating: job.rating, success: roll.success, inFight: false, why: `work on ${u.name}` }];
       return {
         slice: replace(slice, next),
         rng,
-        emit: [charge(cost, `${act === 'upgrade' ? `a ${tier} ${sk} module` : 'reprogramming'} for ${u.name}${shop ? ' (shop)' : ''}`)],
+        emit: [charge(cost, `${act === 'upgrade' ? `a ${tier} ${sk} module` : 'reprogramming'} for ${u.name}${shop ? ' (shop)' : ''}`), ...learned],
         notes: [roll.note, roll.success ? `${u.name}: ${act === 'upgrade' ? `${sk} +${tier === 'advanced' ? 10 : 5}` : `now programmed for ${sk}`} (${fmt(cost)} cr)` : `the job fails: ${fmt(cost)} cr of parts and labour lost`],
       };
     }
@@ -308,6 +312,11 @@ function handleDroid(slice: DroidsSlice, e: GameEvent, ctx: ApplyCtx<GameState>)
           notes.push(`${loc} (${job.from}): a big job, it needs a droid shop`);
           continue;
         }
+        // The character's own repairs need a tool kit (m8-skills, D-513); a reboot above is a quick fix and needs none.
+        if (!shop && !slice.toolKit) {
+          notes.push(`${loc}: repairing it needs a tool kit (a droid tool kit, ${TOOL_KIT.price} cr) or a shop`);
+          continue;
+        }
         if (!canPay(s, jobCost(job.price, shop, true))) {
           notes.push(`${loc}: cannot afford the parts (${fmt(jobCost(job.price, shop, true))} cr)`);
           continue;
@@ -316,6 +325,7 @@ function handleDroid(slice: DroidsSlice, e: GameEvent, ctx: ApplyCtx<GameState>)
         rng = roll.rng;
         const cost = jobCost(job.price, shop, roll.success);
         emit.push(charge(cost, `repairing ${u.name}'s ${loc}${shop ? ' (shop)' : ''}`));
+        if (!roll.byShop) emit.push({ type: 'playXpEarned', source: 'repair', hours: job.hours, rating: job.rating, success: roll.success, inFight: false, why: `repairing ${u.name}` });
         notes.push(roll.note);
         if (roll.success) {
           // A destroyed processor is a new one: the memory goes with it.
@@ -346,6 +356,12 @@ export const droidsFeature: FeatureModule<DroidsSlice, GameState> = {
   emptyState: () => ({ units: [], nextId: 1 }),
   stateSchema: droidsSliceSchema,
   events: {
+    /** Engine: a tool kit bought or issued (economy trade; m8-skills, D-513). */
+    toolKitAcquired: {
+      schema: z.object({ type: z.literal('toolKitAcquired') }),
+      sources: ['engine'],
+      handle: (slice) => (slice.toolKit ? { slice } : { slice: { ...slice, toolKit: true }, notes: ['a tool kit for repairs and upgrades'] }),
+    },
     /**
      * AI: something happened to a droid, in plain words (the code reads them; one field keeps the response schema under its
      * cap): "bought a second-hand T3", "salvaged an astromech named Patch", "wiped Patch's memory", "fitted a restraining bolt",

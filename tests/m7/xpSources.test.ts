@@ -47,7 +47,8 @@ describe('the Sith required-training rows (Korriban, then apprenticeship)', () =
     expect(REQUIREMENT_ROW['acolyte']).toBe('acolyte');
     expect(ORDER_REQUIREMENTS['acolyte']!.reduce((a, b) => a + b.hours, 0)).toBe(ORDER_REQUIREMENTS['initiate']!.reduce((a, b) => a + b.hours, 0));
     expect(ORDER_REQUIREMENTS['apprentice']!.reduce((a, b) => a + b.hours, 0)).toBe(ORDER_REQUIREMENTS['padawan']!.reduce((a, b) => a + b.hours, 0));
-    expect(ORDER_REQUIREMENTS['acolyte']!.map((b) => b.activityId)).toEqual(['shiiChoBasics', 'forceControlDrill', 'basicCentering', 'forceLore']);
+    // The warblade class is Shii-Cho basics with a Melee weight (m8-skills, D-513).
+    expect(ORDER_REQUIREMENTS['acolyte']!.map((b) => b.activityId)).toEqual(['warbladeTraining', 'forceControlDrill', 'basicCentering', 'forceLore']);
     expect(orderRowKey(make(12, 'acolyte', 'sith'))).toBe('acolyte');
   });
 });

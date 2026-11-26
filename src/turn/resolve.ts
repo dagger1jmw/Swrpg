@@ -1,6 +1,7 @@
 // Step b of the turn (architecture §4): RESOLVE. Pure. Produces the frozen TurnDraft once; every
 // retry of the narration reuses it, so dice are never re-rolled.
 import { CHECK_RULES, type ActionType } from '../data/checks.config';
+import { DIFFICULTY_STAKES } from '../data/skillXp.config';
 import { JUMP_LEVELS, PACING_LEVELS, PACING_RANGES, type JumpLevel, type PacingLevel } from '../data/pacing.config';
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY } from '../data/activities';
 import { isSkillId } from '../data/skills';
@@ -36,7 +37,7 @@ import { tryPlan } from './planning';
 import { resolveHoldTurn, type HoldTurn } from '../features/combat/selectors';
 import { carePlan } from './medicine';
 import { planTravel, runTravelBlockade, watchTravelBlockade, type TravelOutcome } from './travel';
-import type { Registry, ResolvedAction } from '../state/types';
+import type { GameEvent, Registry, ResolvedAction } from '../state/types';
 
 /** Sleep with no stated duration (health spec: 7 h+ is a full night). */
 export const DEFAULT_SLEEP_SECONDS = 8 * 3600;
@@ -495,6 +496,10 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       checks.push(card);
       report.push(...notes);
       state = { ...state, meta: { ...state.meta, rngState: next } };
+      // XP from play (m8-skills, D-513): the code logs the line, never the narrator. A rolled social exchange with an NPC is
+      // a social line (a Charisma roll is a persuasion, by the target's level); a Stealth roll is Stealth used in the field.
+      const play = playXpFromCheck(state, { actionType: intent.actionType, skillId: validSkill ? skillId : null, difficulty, success: card.success, rating: card.rating, npcTargets });
+      if (play.length) apply(play);
       // A rolled action counts against the world conditions it is about (D-466); nothing is recorded otherwise.
       const deed = { actionType: intent.actionType, skillId: validSkill ? skillId : null, total: card.total, targets: [...new Set([...intent.targets, ...intent.references])] };
       if (selectActionMatters(state, selectWorldAction(state, deed))) apply([{ type: 'worldActionRecorded', ...deed }]);
@@ -543,6 +548,25 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
     // reply did not introduce them (pipeline, D-94).
   }
   return finish();
+}
+
+/**
+ * XP from play for a rolled check (m8-skills, D-513; engine/playXp): a social exchange with an NPC logs a social line, or a
+ * persuasion when the roll is Charisma (success 1.0, failure 0.25, by the target's Charisma or Willpower against the
+ * character's Charisma); a Stealth roll is field use (by the check's rating). The check's difficulty is the stakes.
+ */
+export function playXpFromCheck(state: GameState, c: { actionType: string; skillId: string | null; difficulty: string; success: boolean; rating: number; npcTargets: readonly string[] }): GameEvent[] {
+  const stakes = DIFFICULTY_STAKES[c.difficulty] ?? 'notable';
+  const out: GameEvent[] = [];
+  const target = c.npcTargets[0];
+  if (c.actionType === 'dialogue' && target) {
+    if (c.skillId === 'charisma') {
+      const resist = Math.max(selectNpcLevel(state, target, 'charisma'), selectNpcLevel(state, target, 'willpower'));
+      out.push({ type: 'playXpEarned', source: 'persuasion', success: c.success, stakes, gap: resist - selectLevelExact(state, 'charisma'), why: 'persuasion' });
+    } else out.push({ type: 'playXpEarned', source: 'socialLine', stakes, why: 'a conversation with something at stake' });
+  }
+  if (c.skillId === 'stealth') out.push({ type: 'playXpEarned', source: 'stealth', success: c.success, stakes, gap: c.rating - selectLevelExact(state, 'stealth'), why: 'stealth in the field' });
+  return out;
 }
 
 /** A mind ability on an NPC as a contest (D-192), shown as a check card whose DC is the target's roll. */

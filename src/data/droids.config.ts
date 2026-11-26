@@ -61,10 +61,18 @@ export const FAILED_PARTS_LOST = 0.5;
 /** A shop's technician (invented: an Adept) and its labour as a share of the parts (invented). */
 export const SHOP = { technician: 45, labour: 0.5 } as const;
 /**
- * The Repair stand-in until checklist item 12 adds the Repair skill (invented): the character's Intelligence. One constant,
- * so item 12 swaps it for Repair.
+ * The skill that rolls droid jobs (m8-skills, D-513): Repair, which replaced the Intelligence stand-in of D-512. The
+ * character's own jobs (not at a shop) need a tool kit (TOOL_KIT); the parts are the job's price, as before.
  */
-export const REPAIR_STAND_IN = 'intelligence';
+export const REPAIR_SKILL = 'repair';
+/**
+ * A tool kit (m8-skills, D-513): a droid or vehicle tool kit, 200 cr (SW_Economy_GamePriceLists Part 7 and 9, game stat,
+ * WEG 1987; a ship's engineering kit 350 cr, Part 6). Needed for any job the character does outside a shop; a reboot after
+ * an ion overload is a quick fix and needs nothing.
+ */
+export const TOOL_KIT = { price: 200 } as const;
+/** The hours of the character's own upgrade work, for Repair XP (invented). */
+export const UPGRADE_HOURS = { basic: 2, advanced: 6, reprogram: 6 } as const;
 
 /** What a droid learns while its memory is not wiped (invented): up to +10 on its programmed skills, 63% of it in 6 years. */
 export const LEARNING = { most: 10, years: 6 } as const;

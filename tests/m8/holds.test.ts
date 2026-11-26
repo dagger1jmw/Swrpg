@@ -392,6 +392,22 @@ describe('an NPC holds while the player gets away', () => {
     expect([through > 5, trail === through]).toEqual([true, true]);
   });
 
+  it('BBY timer sweep (m8-skills, D-513): in 3,653 BBY a barred pursuer with no time comes through, never waits forever', () => {
+    const s = set(game('bby'), MASTER, 'malgus');
+    expect(toAbsSecond(s.clock.now)).toBeLessThan(0);
+    // Its own time still holds: behind the door until then.
+    const until = toAbsSecond(s.clock.now) + 600;
+    const waiting: GameState = { ...s, combat: { ...s.combat, pursuits: [{ foeId: FOE(s), kind: 'barred', untilAbs: until, withinId: s.locations.currentId, day: s.clock.now.day, search: 84, concealed: false }] } };
+    const early = advanceTime(REGISTRY, waiting, { seconds: 60, reason: 'x', source: 'turnDraft', requested: 60, occupation: 'rest' });
+    expect(early.state.combat.pending).toBeNull();
+    const late = advanceTime(REGISTRY, waiting, { seconds: 900, reason: 'x', source: 'turnDraft', requested: 900, occupation: 'rest' });
+    expect(late.state.combat.pending?.opponentRefs[0]).toBe(FOE(s));
+    // No time recorded (an old save): through at once. With `?? 0` it waited for year 1.
+    const untimed: GameState = { ...s, combat: { ...s.combat, pursuits: [{ foeId: FOE(s), kind: 'barred', untilAbs: null, withinId: s.locations.currentId, day: s.clock.now.day, search: 84, concealed: false }] } };
+    const now = advanceTime(REGISTRY, untimed, { seconds: 60, reason: 'x', source: 'turnDraft', requested: 60, occupation: 'rest' });
+    expect(now.state.combat.pending?.opponentRefs[0]).toBe(FOE(s));
+  });
+
   it('a lost trail can be found again within days, and goes cold after', () => {
     let found = 0;
     for (let i = 0; i < 60; i++) {

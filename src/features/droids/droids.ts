@@ -27,5 +27,7 @@ export const droidUnitSchema = z.object({
 export const droidsSliceSchema = z.object({
   units: z.array(droidUnitSchema),
   nextId: z.number().int().min(1),
+  /** A tool kit owned (m8-skills, D-513): the character's own repairs and upgrades need one. Absent = none. */
+  toolKit: z.boolean().optional(),
 });
 export type DroidsSlice = z.infer<typeof droidsSliceSchema>;

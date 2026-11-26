@@ -676,7 +676,7 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
           const fx = FORM_IDS.reduce((a, f) => a + (ss.credited[f] ?? 0), 0);
           if (fx <= 0) continue;
           // Spillover into forms from the other fixed blocks (the Force drills) is shared like the fill.
-          const src = ss.fill ? 'fill' : dayRow === 'initiate' ? 'order' : ss.activityId === 'padawanTraining' ? 'master' : dayRow === 'padawan' && FORM_IDS.includes(ss.skillId) ? 'solo' : 'fill';
+          const src = ss.fill ? 'fill' : dayRow === 'initiate' ? 'order' : ss.activityId === 'padawanTraining' || ss.activityId === 'apprenticeTraining' ? 'master' : dayRow === 'padawan' && FORM_IDS.includes(ss.skillId) ? 'solo' : 'fill';
           px['src:' + src] = (px['src:' + src] ?? 0) + fx;
           known += fx;
         }

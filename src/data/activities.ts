@@ -28,6 +28,8 @@ export const LOADS: Record<LoadCategory, Load> = {
 const PHYSICAL_FORCE: Load = { p: 1.2, m: 0.2, f: 0.6 };
 /** Niman drills (D-121): the saber drill with physical load 0.8. */
 const NIMAN_LOAD: Load = { p: 0.8, m: 0.4, f: 0 };
+/** Repair and maintenance work (m8-skills, D-513): hands-on and thinking in equal parts (invented). */
+const REPAIR_LOAD: Load = { p: 0.6, m: 0.6, f: 0 };
 
 /** progression-numbers §4. */
 export const DRILL_RATINGS = [10, 30, 50, 70, 90] as const;
@@ -72,7 +74,16 @@ export type Unlock =
   /** Restricted forms (D-370): Vaapad's teacher-or-records gate when the primary is Vaapad; known otherwise. */
   | { kind: 'formGate' }
   | { kind: 'hasApprentice' }
-  | { kind: 'partner' };
+  | { kind: 'partner' }
+  /** m8-skills (D-513): someone to talk it through with: a teacher, a partner or peers. */
+  | { kind: 'partnerOrTeacher' }
+  /**
+   * m8-skills (D-513): staff work and tradecraft: open to these archetypes, or to a character serving in one of these
+   * branches (ranks: the service ladder).
+   */
+  | { kind: 'service'; branches: readonly string[]; archetypes: readonly string[] }
+  /** m8-skills (D-513): a melee style session needs a teacher or a recorded source of that style (data/martialStyles.ts). */
+  | { kind: 'styleSource' };
 
 export type ActivityGroup = 'forms' | 'force' | 'meditation' | 'physical' | 'study' | 'career';
 
@@ -93,6 +104,15 @@ export interface ActivityDef {
   sparring?: boolean;
   /** Dark-tagged: dark pressure per alignment.md §3 (M6). */
   dark?: boolean;
+  /**
+   * m8-skills (D-513): the XP factor without a teacher (talking tactics over with a peer: half the base rate; with a master
+   * the teacher's multiplier applies as usual).
+   */
+  peerRate?: number;
+  /** m8-skills (D-513): the session trains the request's melee style too (styleId; data/martialStyles.ts). */
+  style?: boolean;
+  /** m8-skills (D-513): studying a culture's art or history (the request's culture): insight against its forces. */
+  insight?: boolean;
 }
 
 const fixed = (skill: string): PrimarySpec => ({ kind: 'skill', skill });
@@ -101,6 +121,10 @@ const ALWAYS: readonly Unlock[] = [{ kind: 'always' }];
 const known = (skill = '$primary'): Unlock => ({ kind: 'known', skill });
 const learnable = (skill = '$primary'): Unlock => ({ kind: 'knownOrTeacher', skill });
 const level = (min: number, skill = '$primary'): Unlock => ({ kind: 'level', skill, min });
+/** Staff work: officers, staff postings and the intelligence services (m8-skills, D-513). */
+const STAFF: Unlock = { kind: 'service', branches: ['army', 'navy', 'intelligence'], archetypes: ['officer', 'navalOfficer', 'intelAnalyst', 'intelAgent'] };
+/** Tradecraft: the intelligence services (m8-skills, D-513). */
+const TRADECRAFT: Unlock = { kind: 'service', branches: ['intelligence'], archetypes: ['intelAnalyst', 'intelAgent'] };
 
 function act(
   id: string,
@@ -146,7 +170,14 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   act('sparring', 'Combat sparring (partner)', 'forms', S, 'intense', { kind: 'anyForm' }, { agility: 0.5, endurance: 0.5, strength: 0.4, forceSense: 0.3 }, [{ kind: 'partner' }], {
     sparring: true,
   }),
-  act('padawanTraining', 'Padawan training with master', 'forms', S, 'standard', { kind: 'anyForm' }, { forceControl: 0.4, willpower: 0.3 }, [
+  // m8-skills (D-513): the master's session includes hand-to-hand (the Temple's unarmed training, Ilena Xan; the Korriban
+  // martial classes): a Melee weight of 0.1 (invented).
+  act('padawanTraining', 'Padawan training with master', 'forms', S, 'standard', { kind: 'anyForm' }, { forceControl: 0.4, willpower: 0.3, melee: 0.1 }, [
+    { kind: 'rank', ranks: ['padawan', 'apprentice'] },
+  ]),
+  // The Sith apprentice's session (m8-skills, D-513): the Padawan session without the Melee weight. The brief's weight is for
+  // Padawans and acolytes; the Sith take theirs as acolytes (the warblade class), not twice.
+  act('apprenticeTraining', 'Apprentice training with master', 'forms', S, 'standard', { kind: 'anyForm' }, { forceControl: 0.4, willpower: 0.3 }, [
     { kind: 'rank', ranks: ['padawan', 'apprentice'] },
   ]),
   // Forms with no bank entry use the basics pattern of their nearest form (§4 note; D-108).
@@ -209,6 +240,24 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   act('medicalTraining', 'Medical training', 'career', T, 'standard', fixed('medicine'), { intelligence: 0.4 }, ALWAYS),
   act('professionWork', 'Profession work', 'career', T, 'standard', fixed('profession'), { intelligence: 0.2 }, ALWAYS),
   act('socialPractice', 'Social practice', 'career', T, 'standard', fixed('charisma'), { intelligence: 0.3, willpower: 0.2 }, ALWAYS),
+
+  // m8-skills (D-513; spec/skills-m8.md section 4). Loads by category; the gunnery simulator is study like the flight
+  // simulator, repair work a mixed load (invented), hunting physical.
+  act('gunneryRange', 'Gunnery range and simulator', 'career', T, 'standard', fixed('gunnery'), { agility: 0.3, intelligence: 0.2 }, ALWAYS),
+  act('repairWork', 'Repair and maintenance work', 'career', REPAIR_LOAD, 'standard', fixed('repair'), { intelligence: 0.3 }, ALWAYS),
+  act('staffWork', 'Staff work (planning, logistics, intelligence analysis)', 'career', T, 'standard', fixed('intelligence'), { tactics: 0.5 }, [STAFF]),
+  act('negotiation', 'Negotiation and political work', 'career', T, 'standard', fixed('charisma'), { intelligence: 0.3 }, ALWAYS),
+  act('hunting', 'Hunting', 'career', P, 'standard', fixed('stealth'), { tracking: 1 }, ALWAYS),
+  act('tradecraft', 'Tradecraft', 'career', T, 'standard', fixed('investigation'), { stealth: 0.3, charisma: 0.3 }, [TRADECRAFT]),
+  // Cultural insight (Jared: Intelligence 80+, the Thrawn model): a culture's art or history, read for how its forces fight.
+  act('cultureStudy', "Studying a culture's art and history", 'study', T, 'standard', fixed('tactics'), { intelligence: 0.4 }, [level(80, 'intelligence')], { insight: true }),
+  act('tacticsDiscussion', 'Discussing tactics', 'study', T, 'casual', fixed('tactics'), { intelligence: 0.2 }, [{ kind: 'partnerOrTeacher' }], { peerRate: 0.5 }),
+  act('styleTraining', 'Melee style training', 'career', P, 'standard', fixed('melee'), { strength: 0.4, agility: 0.4, endurance: 0.2 }, [{ kind: 'styleSource' }], { style: true }),
+  // The Korriban acolyte's martial class with the warblade (D-427, ranks §1a): Shii-Cho basics with a Melee weight
+  // (m8-skills: the Jedi and Sith curricula get a Melee weight; invented 0.2).
+  act('warbladeTraining', 'Warblade training (Korriban)', 'forms', S, 'standard', fixed('shiiCho'), { strength: 0.4, agility: 0.3, endurance: 0.2, forceControl: 0.15, melee: 0.2 }, [
+    { kind: 'supervisedOrLevel', skill: 'shiiCho', min: 15 },
+  ]),
 ];
 
 export const ACTIVITY_BY_ID: ReadonlyMap<string, ActivityDef> = new Map(ACTIVITIES.map((a) => [a.id, a]));
@@ -285,4 +334,6 @@ export const DEFAULT_ACTIVITY: Readonly<Record<string, string>> = {
   investigation: 'investigationCasework',
   medicine: 'medicalTraining',
   profession: 'professionWork',
+  gunnery: 'gunneryRange',
+  repair: 'repairWork',
 };

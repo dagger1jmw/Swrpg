@@ -33,8 +33,11 @@ export const relationshipsFeature: FeatureModule<RelationshipsSlice, GameState> 
         if (!selectNpc(ctx.state, id)) return { reject: `unknown npc ${id}` };
         const prev = slice.byNpcId[id]?.value ?? 0;
         const value = Math.max(-RELATIONSHIP_RANGE, Math.min(RELATIONSHIP_RANGE, prev + Number(e['delta']) * RELATIONSHIP_POINTS_PER_DELTA));
+        // A relationship that changes is a social line the code logs (m8-skills, D-513): Charisma XP, falling off by the day.
+        const delta = Math.abs(Number(e['delta']));
         return {
           slice: { byNpcId: { ...slice.byNpcId, [id]: { value, lastDay: selectNow(ctx.state).day, lastReason: String(e['reason']) } } },
+          ...(value !== prev && delta > 0 ? { emit: [{ type: 'playXpEarned', source: 'socialLine', stakes: delta >= 3 ? 'major' : delta >= 2 ? 'notable' : 'minor', why: 'a relationship changed' }] } : {}),
           notes: [`${id} relationship ${prev} -> ${value}`],
         };
       },

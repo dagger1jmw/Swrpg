@@ -2,6 +2,9 @@ import { FATE_CHOICE_EXPIRY } from '../../data/combat.config';
 import { toAbsSecond } from '../../engine/calendar';
 import type { DuelState } from '../../engine/duel';
 import { planReady } from '../../engine/who';
+import { crewFromLevels, type Crew } from '../../engine/ships';
+import { selectNpcLevels } from '../npcs/selectors';
+import { selectLevelExact, selectPerformance } from '../progression/selectors';
 import type { GameState } from '../../state/gameState';
 import type { ActiveFight, CombatSlice, FightSummary, PendingFight } from './combat';
 import { buildPlayerFighter } from './build';
@@ -24,3 +27,10 @@ export { npcPursuer, resolveHoldTurn, selectConcealment, selectHoldSetting, sele
 export type { ActiveFight, FightSummary, PendingFight } from './combat';
 /** The level the player fights at with their loadout's skill (a form, the blaster, melee or Agility). */
 export const selectPlayerFightingLevel = (s: GameState): number => buildPlayerFighter(s).level;
+/**
+ * The player as a ship's crew for the combat-scales rolls (m8-skills, D-513): Piloting, Gunnery for their shots and Repair,
+ * at their performance levels. The dogfight and fleet callers use it in place of the Piloting and Blaster stand-ins.
+ */
+export const selectShipCrew = (s: GameState): Crew => crewFromLevels({ piloting: selectPerformance(s, 'piloting'), gunnery: selectPerformance(s, 'gunnery'), repair: selectPerformance(s, 'repair'), forceSense: selectLevelExact(s, 'forceSense') });
+/** An NPC as a ship's crew, or as a turret gunner (Gunnery, never Blaster; D-513). */
+export const selectNpcShipCrew = (s: GameState, id: string): Crew => crewFromLevels(selectNpcLevels(s, id));

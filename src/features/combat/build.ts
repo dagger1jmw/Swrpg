@@ -32,6 +32,8 @@ import { selectCurrentLocation } from '../locations/selectors';
 import { npcLevelsFor, selectNpc, selectNpcGen, selectNpcLevels } from '../npcs/selectors';
 import { capacityEndurance, selectCapacities, selectGriefMult, selectLevelExact, selectPerformance, selectRust, selectStateOfMind } from '../progression/selectors';
 import { selectRank } from '../ranks/selectors';
+import { selectStyles } from '../progression/selectors';
+import { fightStyle } from '../../engine/martialStyles';
 
 /** The fighting skill for a loadout: the best of the given forms for sabers, blaster, melee, or Agility unarmed. */
 function fightingSkill(loadout: Loadout, levelOf: (id: string) => number, preferredForm: string | null): { skillId: string; form: string | null } {
@@ -44,7 +46,9 @@ function fightingSkill(loadout: Loadout, levelOf: (id: string) => number, prefer
   }
   if (kind === 'blaster') return { skillId: 'blaster', form: null };
   if (kind === 'melee') return { skillId: 'melee', form: null };
-  return { skillId: 'agility', form: null };
+  // Unarmed (m8-skills, D-513): Melee covers unarmed combat (skills-and-activities §2); a fighter trained in it fights with
+  // it, else on Agility as before.
+  return { skillId: levelOf('melee') > levelOf('agility') ? 'melee' : 'agility', form: null };
 }
 
 /** The player's state of mind as a combat modifier key (rolls §5); lingering grief counts when nothing stronger is active. */
@@ -98,10 +102,18 @@ export function buildPlayerFighter(s: GameState): Fighter {
     forceTraits: speciesForceTraits(c.speciesId),
     speciesId: c.speciesId,
     weaponHand: c.dominantHand,
+    ...styleFor(selectStyles(s), loadout.weapon, skillId, selectLevelExact(s, 'melee')),
   };
 }
 
-function fighterFromLevels(id: string, name: string, levels: Readonly<Record<string, number>>, loadout: Loadout, opts: { minion: boolean; vitalityLost: number; wounds: readonly Wound[]; lasting: readonly LastingInjury[]; shatterpoint: number; lightSide: boolean; forceBody?: number }): Fighter {
+/** The melee style fought with (m8-skills, D-513): only for melee or unarmed fighting on Melee, never sabers or blasters. */
+function styleFor(held: Readonly<Record<string, number>>, weapon: WeaponKind, skillId: string, melee: number): { style?: NonNullable<Fighter['style']> } {
+  if (skillId !== 'melee' && !(weapon === 'unarmed' && skillId === 'agility')) return {};
+  const st = fightStyle(held, weapon === 'unarmed', melee);
+  return st ? { style: st } : {};
+}
+
+function fighterFromLevels(id: string, name: string, levels: Readonly<Record<string, number>>, loadout: Loadout, opts: { minion: boolean; vitalityLost: number; wounds: readonly Wound[]; lasting: readonly LastingInjury[]; shatterpoint: number; lightSide: boolean; forceBody?: number; styles?: Readonly<Record<string, number>> }): Fighter {
   const lv = (k: string): number => levels[k] ?? 0;
   const { skillId, form } = fightingSkill(loadout, lv, null);
   // The Force in the body, as the player's is (D-495).
@@ -135,6 +147,7 @@ function fighterFromLevels(id: string, name: string, levels: Readonly<Record<str
     lasting: opts.lasting,
     meters: { p: 0, f: 0 },
     caps: { p: caps.p, f: caps.f },
+    ...(opts.styles ? styleFor(opts.styles, loadout.weapon, skillId, lv('melee')) : {}),
     position: 0,
     disarmedFor: 0,
     insightUsed: false,
@@ -180,6 +193,7 @@ export function buildNpcFighter(s: GameState, npcId: string, live = true): { fig
     shatterpoint: canon?.specialTalents?.includes('shatterpointPerception') ? (levels['forceSense'] ?? 0) : 0,
     lightSide: gen.path === 'jedi',
     ...(canon ? { forceBody: namedForceBody(canon) } : {}),
+    ...(npc.styles ? { styles: npc.styles } : {}),
   });
   const blade = loadout.weapon === 'lightsaber' ? (canon?.bladeColor ?? bladeColorFor(gen.path, archetype, gen.seed)) : null;
   // The weapon's and the armor's own names from the description, or the Vong caste's (pass 4 issue 12).

@@ -79,13 +79,14 @@ export const ORDER_REQUIREMENTS: Readonly<Record<string, readonly RequirementBlo
   // apprenticeship), Force work and the meditation chambers with the Overseers, the Sith Code and history; then the
   // apprenticeship: forms, Force Control and awareness with the master.
   acolyte: [
-    { activityId: 'shiiChoBasics', hours: 2, instructor: 'instructor' },
+    // m8-skills (D-513): the warblade class with a Melee weight (Shii-Cho basics plus hand-to-hand; activities.ts).
+    { activityId: 'warbladeTraining', hours: 2, instructor: 'instructor' },
     { activityId: 'forceControlDrill', hours: 0.5, instructor: 'instructor', primary: 'forceControl' },
     { activityId: 'basicCentering', hours: 0.5, instructor: 'instructor' },
     { activityId: 'forceLore', hours: 1, instructor: 'instructor' },
   ],
   apprentice: [
-    { activityId: 'padawanTraining', hours: 2, instructor: 'master', primary: '$planMaster' },
+    { activityId: 'apprenticeTraining', hours: 2, instructor: 'master', primary: '$planMaster' },
     { activityId: '$formBasics', hours: 1, instructor: 'solo', primary: '$planSolo', hoursByAge: PADAWAN_SOLO_HOURS },
     { activityId: 'forceControlDrill', hours: 1, instructor: 'master', primary: 'forceControl', hoursByAge: PADAWAN_FORCE_HOURS },
     // Channelling with the master (D-431, Jared: the Force Output block is back; the paces are re-measured with it).

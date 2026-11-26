@@ -31,6 +31,13 @@ export const ranksSliceSchema = z.object({
   reputationPenalty: z.number().min(0).optional(),
   /** Covert learning the Order discovered: the power and the day (D-436). */
   covertDiscoveries: z.array(z.object({ abilityId: z.string(), day: z.number().int() })).optional(),
+  /**
+   * A non-Force career's service (m8-skills, D-513; ranks.md section 3a): the ladder (data/serviceRanks.ts), the rung held,
+   * the day it was reached and the deeds recorded since joining.
+   */
+  service: z.object({ ladderId: z.string(), rung: z.number().int().min(0), since: z.number().int(), deeds: z.number().int().min(0) }).optional(),
+  /** A training programme the character is enrolled in (m8-skills, D-513; data/trainingProgrammes.ts), to its end day. */
+  programme: z.object({ id: z.string(), startDay: z.number().int(), endDay: z.number().int() }).optional(),
 });
 export type RanksSlice = z.infer<typeof ranksSliceSchema>;
 

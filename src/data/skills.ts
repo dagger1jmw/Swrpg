@@ -128,6 +128,12 @@ export const SKILLS: readonly SkillDef[] = [
   career('investigation', 'Investigation', 'academic'),
   career('tactics', 'Tactics', 'academic'),
   career('medicine', 'Medicine', 'academic'),
+  // m8-skills (D-513): any weapon fired from a mount (fighter guns, turrets, batteries, vehicle guns, emplacements, the
+  // crew-served E-Web); carried weapons, heavy ones included, stay under Blaster and the weapon proficiencies.
+  career('gunnery', 'Gunnery', 'technique'),
+  // m8-skills (D-513): anything mechanical (ships, vehicles, droids, weapon and armour condition; modifying and upgrading
+  // at higher levels). Slicing stays separate.
+  career('repair', 'Repair', 'technique'),
   // Profession:<kind> (civilian archetype) is one skill in M3; kinds are story flavor (D-108).
   career('profession', 'Profession', 'technique'),
 ];

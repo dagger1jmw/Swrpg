@@ -1,5 +1,7 @@
 // Progression selectors: every level, tier, capacity and effective level is derived here, never
 // stored (architecture §2 "Derived, never stored").
+import { styleNow } from '../../engine/martialStyles';
+import { insightBonus } from '../../engine/playXp';
 import { SKILLS, SKILL_BY_ID, type PhysicalStat } from '../../data/skills';
 import { levelWithNatural, tierOf, xpForLevel } from '../../engine/curve';
 import { drillCeiling } from '../../engine/appliedExperience';
@@ -126,3 +128,12 @@ export const selectCI = (s: GameState, abilityId: string): number => s.progressi
 /** Drill ceiling = 25 + E. */
 export const selectDrillCeiling = (s: GameState, formId: string): number => drillCeiling(selectE(s, formId));
 export const selectBank = (s: GameState, formId: string): number => s.progression.bank[formId] ?? 0;
+
+/** Melee styles held now (m8-skills, D-513): proficiency after fading, by style id. */
+export function selectStyles(s: GameState): Record<string, number> {
+  const day = s.clock.now.day;
+  return Object.fromEntries(Object.entries(s.progression.styles ?? {}).map(([id, st]) => [id, styleNow(st, day)]));
+}
+
+/** The insight bonus against a culture's forces (m8-skills, D-513: Intelligence 80+ study; +1, at most +2). */
+export const selectInsight = (s: GameState, culture: string): number => insightBonus(s.progression.insight?.[culture] ?? 0);

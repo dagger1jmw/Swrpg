@@ -82,6 +82,14 @@ export const progressionSliceSchema = z.object({
     .object({ bodyAge: z.number().min(0), loss: z.object({ strength: z.number().min(0).max(1), agility: z.number().min(0).max(1), endurance: z.number().min(0).max(1) }) })
     .nullable()
     .optional(),
+  /** Melee styles held (m8-skills, D-513): proficiency 0-1, its peak and the last day used (engine/martialStyles). */
+  styles: z.record(z.string(), z.object({ p: z.number().min(0).max(1), peak: z.number().min(0).max(1), lastDay: z.number().int().nullable() })).optional(),
+  /** Hours spent studying each culture's art and history at Intelligence 80+ (m8-skills, D-513: cultural insight). */
+  insight: z.record(z.string(), z.number().min(0)).optional(),
+  /** Social lines the code logged today (m8-skills, D-513: later lines the same day earn less). Reset at midnight. */
+  socialToday: z.number().int().min(0).optional(),
+  /** XP from play before M credited today per source and skill, for the daily caps (m8-skills, D-513). Reset at midnight. */
+  playToday: z.record(z.string(), z.number().min(0)).optional(),
 });
 export type ProgressionSlice = z.infer<typeof progressionSliceSchema>;
 
