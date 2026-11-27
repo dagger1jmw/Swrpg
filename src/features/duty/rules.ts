@@ -1,5 +1,5 @@
 // Duty rules (opt-2 D; spec/duty.md): the daily mission roll, the injury check, all hands on deck. Pure (Golden Rule 2).
-import { ALL_HANDS_TAIL_DAYS, DUTY_INJURY, MISSION_ROLL, MISSION_SCALE_BY_CAREER, MISSION_SCALE_BY_RANK } from '../../data/duty.config';
+import { ALL_HANDS_TAIL_DAYS, DUTY_INJURY, MISSION_ROLL, MISSION_ROLL_FRONT, MISSION_SCALE_BY_CAREER, MISSION_SCALE_BY_RANK } from '../../data/duty.config';
 import { factionAtWar } from '../../data/wars';
 import { WORLD_NETWORK, type WorldNetwork } from '../../data/worldNetwork';
 import { PLANETS } from '../../data/galaxyMap';
@@ -27,18 +27,32 @@ export const atWar = (s: GameState): boolean => factionAtWar(selectDutySide(s), 
 
 /** The median days off duty before an assignment, for this character now; null = no missions. */
 export function missionMedian(s: GameState): number | null {
-  // A Padawan with a master shares the master's assignments (m9-missions B7): the master's scale, not the Padawan's own.
+  return missionRoll(s)?.median ?? null;
+}
+
+/** On a front (m9-release A7): posted, not on leave, at the forward base. */
+export const onFront = (s: GameState): boolean => s.duty.posting !== null && s.duty.leave === null && s.duty.posting.arrived !== false;
+
+/**
+ * The daily roll's numbers for this character now (opt-2 D2; m9-release A7): the Temple's (or home's) cadence, or a front's 2-5
+ * days while posted. Null = no missions. A Padawan with a master shares the master's scale (m9-missions B7).
+ */
+export function missionRoll(s: GameState): { median: number; quietDays: number; shape: number } | null {
   const scale = missionScaleFor(s, missionScale(s));
   if (scale === null) return null;
-  return (atWar(s) ? MISSION_ROLL.medianWar : MISSION_ROLL.medianPeace) * scale;
+  if (onFront(s)) {
+    const f = MISSION_ROLL_FRONT;
+    return { median: f.quietDays + (f.median - f.quietDays) * scale, quietDays: f.quietDays, shape: f.shape };
+  }
+  return { median: (atWar(s) ? MISSION_ROLL.medianWar : MISSION_ROLL.medianPeace) * scale, quietDays: MISSION_ROLL.quietDays, shape: MISSION_ROLL.shape };
 }
 
 /**
  * The chance of an assignment on the day that ends `daysOff` days at home (opt-2 D2): the Weibull hazard between days
  * daysOff - 1 and daysOff, zero in the first quiet days. Smooth and rising; half are assigned by the median.
  */
-export function missionChance(daysOff: number, median: number): number {
-  const { quietDays, shape } = MISSION_ROLL;
+export function missionChance(daysOff: number, median: number, profile: { quietDays: number; shape: number } = MISSION_ROLL): number {
+  const { quietDays, shape } = profile;
   if (daysOff <= quietDays) return 0;
   const lambda = Math.max(1e-6, median - quietDays) / Math.pow(Math.LN2, 1 / shape);
   const H = (t: number): number => (t <= quietDays ? 0 : Math.pow((t - quietDays) / lambda, shape));

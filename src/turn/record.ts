@@ -56,6 +56,8 @@ export interface CallRecord {
   model: string;
   usage: Usage | null;
   outcome: 'ok' | string;
+  /** Wall-clock milliseconds the call took (m9-release A1), so a slow turn shows which call held it. */
+  ms?: number;
 }
 
 export interface TurnRecord {

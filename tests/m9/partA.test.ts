@@ -56,8 +56,9 @@ describe('A1: the war list', () => {
     expect(warYearsFor('jediMaster', 'jediOrder', 50, 4, -1032, 'jediGuardian')).toBe(10);
   });
 
-  it('every war has an intensity; the total wars are the five ruled', () => {
-    expect(WARS.filter((w) => w.intensity === 'total').map((w) => w.id).sort()).toEqual(['cloneWars', 'galacticWar', 'greatGalacticWar', 'lightAndDarknessWar', 'yuuzhanVongWar']);
+  // m9-release A14: the Great Sith War and the Jedi Civil War are total too (Jared, 27 Nov 2026).
+  it('every war has an intensity; the total wars are the seven ruled', () => {
+    expect(WARS.filter((w) => w.intensity === 'total').map((w) => w.id).sort()).toEqual(['cloneWars', 'galacticWar', 'greatGalacticWar', 'greatSithWar', 'jediCivilWar', 'lightAndDarknessWar', 'yuuzhanVongWar']);
   });
 });
 

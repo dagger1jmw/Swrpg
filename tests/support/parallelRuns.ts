@@ -23,7 +23,7 @@ export const SHARDS = 8;
 export const KEEP_RUNS = 5;
 
 /** Environment settings that change what a run measures; recorded in run.json. */
-export const RUN_ENV_KEYS = ['CANDIDATE', 'FORCE_XP', 'PRECOG_M6', 'D158_N', 'D158_PATTERNS', 'TRACE_YEARS', 'TRACE_SEED', 'TRACE_PLAIN'] as const;
+export const RUN_ENV_KEYS = ['LIFETIME_MISSIONS', 'CANDIDATE', 'FORCE_XP', 'PRECOG_M6', 'D158_N', 'D158_PATTERNS', 'TRACE_YEARS', 'TRACE_SEED', 'TRACE_PLAIN'] as const;
 
 export interface Job<R> {
   /** Stable order of the merged output (configuration, then seed). */
@@ -110,8 +110,8 @@ export function jobsOfShard<R>(jobs: readonly Job<R>[], shard: number, shards = 
 }
 
 /** Runs a shard's jobs and writes each result as `<order>.json` in the run's folder. */
-export function runShard<R>(suite: string, jobs: readonly Job<R>[], shard: number, dir = currentRunDir(suite)): number {
-  const mine = jobsOfShard(jobs, shard);
+export function runShard<R>(suite: string, jobs: readonly Job<R>[], shard: number, dir = currentRunDir(suite), shards = SHARDS): number {
+  const mine = jobsOfShard(jobs, shard, shards);
   for (const j of mine) writeFileSync(join(dir, `${String(j.order).padStart(6, '0')}.json`), JSON.stringify(j.run()));
   return mine.length;
 }
@@ -133,3 +133,10 @@ export function readRunInfo(dir: string): RunInfo {
 }
 
 export const cores = (): number => availableParallelism();
+
+/** runShard for jobs that return a promise (the missions measure plays its years through async campaign creation). */
+export async function runShardAsync<R>(suite: string, jobs: readonly Job<Promise<R>>[], shard: number, dir = currentRunDir(suite)): Promise<number> {
+  const mine = jobsOfShard(jobs, shard);
+  for (const j of mine) writeFileSync(join(dir, `${String(j.order).padStart(6, '0')}.json`), JSON.stringify(await j.run()));
+  return mine.length;
+}

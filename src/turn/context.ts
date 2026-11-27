@@ -493,7 +493,11 @@ export function describeJump(r: MontageReport): string[] {
   const lines = [
     `${name}: ${r.fromLabel} to ${r.toLabel}, ${r.daysCompleted} of ${r.requestedDays} days (${r.trainingDays} training day${r.trainingDays === 1 ? '' : 's'}, ${r.restDays} rest or recovery day${r.restDays === 1 ? '' : 's'}, ${r.hoursTrained} hours of training).`,
   ];
-  if (r.interrupted) lines.push(`Interrupted on ${r.interrupted.label}: ${r.interrupted.reason}. End the narration at the moment this begins.`);
+  // An order that stops the skip (m9-release A5): the scene of it arriving, not one line; the code's choices follow.
+  const order = r.interrupted && /^(?:A mission assignment|Posted to)/.test(r.interrupted.reason);
+  if (r.interrupted) lines.push(order
+    ? `Interrupted on ${r.interrupted.label}: ${r.interrupted.reason}. End with a short scene of the order arriving: who brings it (a messenger, a Master of the Council, the commander), where, and what it asks, with the code's details from the DUTY and MISSION or POSTING lines. Do not begin the trip or the mission: the code's choices (set out, travel to the front, or a day to settle affairs first) come with this turn.`
+    : `Interrupted on ${r.interrupted.label}: ${r.interrupted.reason}. End the narration at the moment this begins.`);
   const skills = r.skills.slice(0, JUMP_REPORT_MAX_SKILLS).map((s) => `${s.name} ${s.levelBefore === s.levelAfter ? `${s.levelAfter} (progress)` : `${s.levelBefore} -> ${s.levelAfter}`}`);
   if (skills.length) lines.push(`Growth: ${skills.join(', ')}.`);
   if (r.breakthroughs) lines.push(`Breakthrough sessions: ${r.breakthroughs}.`);

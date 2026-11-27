@@ -9,11 +9,11 @@
     "build": "tsc --noEmit && vite build",
     "prebuild": "npm run lore",
     "preview": "vite preview",
-    "test": "vitest run --exclude \"tests/lifetime/**\" --exclude \"tests/sweep/**\" --exclude \"tests/spread/**\" --exclude \"tests/severs/**\" --exclude \"tests/mortals/**\" --exclude \"tests/forcexp/**\" --exclude \"tests/paces/**\"",
+    "test": "vitest run --exclude \"tests/lifetime/**\" --exclude \"tests/sweep/**\" --exclude \"tests/spread/**\" --exclude \"tests/severs/**\" --exclude \"tests/mortals/**\" --exclude \"tests/forcexp/**\" --exclude \"tests/paces/**\" --exclude \"tests/missions/**\" --exclude \"tests/lifegap/**\"",
     "pretest": "npm run lore",
     "test:lifetime": "vitest run tests/lifetime",
     "pretest:lifetime": "npm run lore",
-    "test:all": "vitest run --exclude \"tests/sweep/**\" --exclude \"tests/spread/**\" --exclude \"tests/severs/**\" --exclude \"tests/mortals/**\" --exclude \"tests/forcexp/**\" --exclude \"tests/paces/**\"",
+    "test:all": "vitest run --exclude \"tests/sweep/**\" --exclude \"tests/spread/**\" --exclude \"tests/severs/**\" --exclude \"tests/mortals/**\" --exclude \"tests/forcexp/**\" --exclude \"tests/paces/**\" --exclude \"tests/missions/**\" --exclude \"tests/lifegap/**\"",
     "pretest:all": "npm run lore",
     "sweep": "vitest run tests/sweep --silent=false",
     "presweep": "npm run lore",
@@ -26,6 +26,8 @@
     "typecheck": "tsc --noEmit",
     "pretypecheck": "npm run lore",
     "lint": "eslint .",
+    "lifegap": "vitest run --config vitest.lifegap.config.ts --silent=false",
+    "missions": "vitest run --config vitest.missions.config.ts --silent=false",
     "lore": "node scripts/build-lore.ts"
   },
   "dependencies": {

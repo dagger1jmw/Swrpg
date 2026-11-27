@@ -1,9 +1,9 @@
 // Mission rules (m9-missions B; spec/missions.md). Pure (Golden Rule 2): who gets which mission and where, the stages, which
 // approach a turn takes to a stage and what it rolls, the Council's best, postings and leave, and the old saves' migration.
-import { APPROACHES, CHAIN, COUNCIL_BEST, FORCE_APPROACHES, FRONTS, MISSION_TYPES, MISSION_TYPE_WEIGHTS, MISSION_WORLDS, MISSION_WOUNDS, POSTING, STAGE_RULES, type ApproachId, type FrontDef, type MissionTypeDef, type StageDef } from '../../data/missions.config';
+import { APPROACHES, CHAIN, COUNCIL_BEST, FORCE_APPROACHES, FRONTS, MISSION_TYPES, MISSION_TYPE_WEIGHTS, MISSION_WORLDS, MISSION_WOUNDS, NON_FIELD_WORDS, POSTING, STAGE_RULES, type ApproachId, type FrontDef, type MissionTypeDef, type StageDef } from '../../data/missions.config';
 import { MISSION_SCALE_BY_RANK } from '../../data/duty.config';
-import { factionWar, type War } from '../../data/wars';
-import { MENTION_ONLY, PLANETS } from '../../data/galaxyMap';
+import { factionWar, WAR_YEAR_SHARE, type War } from '../../data/wars';
+import { closedWorlds, mapSide, MENTION_ONLY, PLANETS } from '../../data/galaxyMap';
 import { FORM_IDS } from '../../data/skills';
 import { dateFromAbsDay } from '../../engine/calendar';
 import { gridDistance } from '../../engine/travel';
@@ -12,13 +12,30 @@ import type { Wound } from '../../engine/wounds';
 import type { GameState } from '../../state/gameState';
 import { selectLevelExact } from '../progression/selectors';
 import { selectNpc, selectNpcLevel } from '../npcs/selectors';
-import { selectDutySide } from './home';
+import { selectAtPlace, selectDutySide } from './home';
 import { emptyRecord, type DutySlice, type Mission, type MissionStage, type Posting } from './duty';
 
 const yearOf = (s: GameState): number => dateFromAbsDay(s.clock.now.day).year;
 /** A world on the galaxy map (charted, or mentioned with a grid square: Ruusan), as travel reads it. */
 const WORLDS = [...PLANETS, ...MENTION_ONLY];
 const mapWorld = (name: string) => WORLDS.find((p) => p.name.toLowerCase() === name.toLowerCase()) ?? null;
+
+const PATH_FACTION: Readonly<Record<string, string>> = { jedi: 'jediOrder', sith: 'sithEmpire' };
+const OFF_ROUTE = /wild space|unknown regions/i;
+
+/**
+ * A world the code may send the character to (m9-release A11): on the map, open to the character's side this year (the galaxy
+ * map's gates, as travel reads them), and on the charted routes (no liner flies off them). Missions, follow-ups, a manhunt's next
+ * world, postings, proposals and leads go only to such worlds, so no assignment waits on a trip the travel rules refuse.
+ */
+export function worldOpen(s: GameState, name: string): boolean {
+  const w = mapWorld(name);
+  if (!w || OFF_ROUTE.test(w.region)) return false;
+  const faction = s.character.start?.faction ?? PATH_FACTION[s.character.path] ?? 'unknown';
+  const bby = -yearOf(s);
+  const n = w.name.toLowerCase();
+  return !closedWorlds(mapSide(faction), bby).some((g) => g.place.toLowerCase() === n || n.startsWith(`${g.place.toLowerCase()} `));
+}
 
 /** The war the character's side fights today (the one war list), or null in peace. */
 export const selectSideWar = (s: GameState): War | null => factionWar(selectDutySide(s), yearOf(s));
@@ -39,13 +56,20 @@ export function selectMissionPadawan(s: GameState): string | null {
   return n && n.status !== 'deceased' ? id : null;
 }
 
+/** A field path (m9-release A10): the archetype counts war years, or (no archetype) no archivist's or scholar's words. */
+export function fieldPath(archetype: string | null | undefined, words: string): boolean {
+  if (archetype) return (WAR_YEAR_SHARE[archetype] ?? 0) > 0;
+  const w = words.toLowerCase();
+  return !NON_FIELD_WORDS.some((x) => w.includes(x));
+}
+
 const bestForm = (level: (id: string) => number): number => Math.max(0, ...FORM_IDS.filter((f) => f !== 'jarKai').map(level));
 
 /** An NPC master as the Council's best (B6a for an NPC, B7): a Jedi Master or Sith Lord, or a Knight whose best form is 70+. */
 export function npcIsCouncilBest(s: GameState, id: string): boolean {
   const n = selectNpc(s, id);
   if (!n) return false;
-  if (n.role === 'jediMaster') return true;
+  if (n.role === 'jediMaster') return fieldPath(n.gen?.archetype, `${n.role} ${n.description ?? ''}`);
   return bestForm((f) => selectNpcLevel(s, id, f)) >= COUNCIL_BEST.topCombat;
 }
 
@@ -58,7 +82,7 @@ export function councilBestReason(s: GameState, standing: number): string | null
   const master = selectMissionMaster(s);
   if (master) return npcIsCouncilBest(s, master) ? 'your master is among the Council\'s best' : null;
   const rank = s.ranks.rank;
-  if (rank === 'master') return 'a Jedi Master';
+  if (rank === 'master') return fieldPath(s.character.archetype, '') ? 'a Jedi Master on a field path' : null;
   if (rank !== 'knight' && rank !== 'lord') return null;
   const main = s.character.mainFormId ? selectLevelExact(s, s.character.mainFormId) : bestForm((f) => selectLevelExact(s, f));
   if (main >= COUNCIL_BEST.topCombat) return `top-tier combat (main form ${main.toFixed(0)})`;
@@ -87,8 +111,8 @@ export function postingEligible(s: GameState): boolean {
 }
 
 /** The fronts of a war running in a year for a side. */
-export function frontsFor(warId: string, side: string, year: number): FrontDef[] {
-  return FRONTS.filter((f) => f.warId === warId && f.sides.includes(side) && year >= -f.fromBby && year <= -f.toBby && mapWorld(f.world) !== null);
+export function frontsFor(warId: string, side: string, year: number, s?: GameState): FrontDef[] {
+  return FRONTS.filter((f) => f.warId === warId && f.sides.includes(side) && year >= -f.fromBby && year <= -f.toBby && mapWorld(f.world) !== null && (!s || worldOpen(s, f.world)));
 }
 
 /** A front still has its war events running (B5b: a posting ends when they end). */
@@ -102,20 +126,26 @@ export function postingFor(s: GameState, u: number, leaveU: number, except?: str
   const war = selectSideWar(s);
   const side = selectDutySide(s);
   if (!war || war.intensity !== 'total' || !side) return null;
-  const all = frontsFor(war.id, side, yearOf(s)).filter((f) => f.id !== except);
+  const all = frontsFor(war.id, side, yearOf(s), s).filter((f) => f.id !== except);
   if (!all.length) return null;
   const f = all[Math.min(all.length - 1, Math.floor(u * all.length))]!;
   const day = s.clock.now.day;
   const [lo, hi] = POSTING.leaveEvery;
-  return { frontId: f.id, front: f.name, warId: war.id, base: { name: f.base, planet: f.world }, sinceDay: day, nextLeaveDay: day + Math.round(lo + leaveU * (hi - lo)) };
+  // Leave from the war's first posting (m9-release A8): a later posting in the same war keeps the clock while it runs ahead.
+  const clock = s.duty.leaveClock;
+  const nextLeaveDay = clock && clock.warId === war.id && clock.nextLeaveDay > day ? clock.nextLeaveDay : day + Math.round(lo + leaveU * (hi - lo));
+  const base = { name: f.base, planet: f.world };
+  return { frontId: f.id, front: f.name, warId: war.id, base, sinceDay: day, nextLeaveDay, arrived: selectAtPlace(s, base) };
 }
 
 // ---- Building a mission (B1, B2, B4) ----
 
+/** The weights' row (m9-release A11: by the path's archetype; an outsider trains as a Jedi archetype). */
 const pathSet = (s: GameState): keyof typeof MISSION_TYPE_WEIGHTS => {
   const path = s.character.path;
-  if (path === 'jedi' || path === 'sith') return path;
   const a = s.character.archetype ?? '';
+  if (path === 'jedi' || path === 'outsider') return a === 'jediConsular' || a === 'jediSentinel' ? a : 'jediGuardian';
+  if (path === 'sith') return a === 'sithInquisitor' ? 'sithInquisitor' : 'sithWarrior';
   return a === 'smuggler' || a === 'bountyHunter' ? 'jobs' : 'military';
 };
 
@@ -141,14 +171,14 @@ export function pickWorld(s: GameState, base: { planet: string | null }, u: numb
   const posting = s.duty.posting;
   if (posting && !s.duty.leave) {
     const home = mapWorld(posting.base.planet);
-    const near = home ? PLANETS.filter((p) => (gridDistance(p.grid, home.grid) ?? 99) <= POSTING.localSquares && /Rim|Colonies|Core|Expansion|Slice/.test(p.region)) : [];
+    const near = home ? PLANETS.filter((p) => (gridDistance(p.grid, home.grid) ?? 99) <= POSTING.localSquares && /Rim|Colonies|Core|Expansion|Slice/.test(p.region) && worldOpen(s, p.name)) : [];
     const list = [posting.base.planet, ...near.map((p) => p.name).filter((n) => n !== posting.base.planet).slice(0, 8)];
     return list[Math.min(list.length - 1, Math.floor(u * list.length))]!;
   }
   const war = selectSideWar(s);
   const side = selectDutySide(s);
-  const fronts = war && side ? frontsFor(war.id, side, yearOf(s)).map((f) => f.world) : [];
-  const pool = (fronts.length && u < 0.5 ? fronts : MISSION_WORLDS).filter((w) => mapWorld(w) !== null && w !== base.planet);
+  const fronts = war && side ? frontsFor(war.id, side, yearOf(s), s).map((f) => f.world) : [];
+  const pool = (fronts.length && u < 0.5 ? fronts : MISSION_WORLDS).filter((w) => worldOpen(s, w) && w !== base.planet);
   const v = fronts.length && u < 0.5 ? u * 2 : fronts.length ? (u - 0.5) * 2 : u;
   return pool[Math.min(pool.length - 1, Math.floor(v * pool.length))] ?? 'Alderaan';
 }
@@ -193,7 +223,7 @@ export function buildMission(s: GameState, o: { type: MissionTypeDef; world: str
     if (d.kind === 'travel' && d.elsewhere) {
       let u: number;
       [u, r] = nextFloat(r);
-      const pool = MISSION_WORLDS.filter((w) => w !== o.world && w !== o.base.planet && mapWorld(w) !== null);
+      const pool = MISSION_WORLDS.filter((w) => w !== o.world && w !== o.base.planet && worldOpen(s, w));
       world = pool[Math.min(pool.length - 1, Math.floor(u * pool.length))] ?? null;
     }
     stages.push(stageFromDef(d, world));

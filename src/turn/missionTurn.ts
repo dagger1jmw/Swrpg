@@ -5,13 +5,13 @@
 import type { Choice } from '../ai/schemas/compose';
 import type { Intent } from '../ai/schemas/intent';
 import { MENTION_ONLY, PLANETS } from '../data/galaxyMap';
-import { APPROACHES, MISSION_TYPES, type ApproachId } from '../data/missions.config';
+import { APPROACHES, MISSION_TYPES, STAGE_RULES, type ApproachId } from '../data/missions.config';
 import { minionKindForYear } from '../data/npcGen.config';
 import { dateFromAbsDay } from '../engine/calendar';
 import { efficiency } from '../engine/fatigue';
 import { nextFloat, type RngState } from '../engine/rng';
 import { checkRating, type CheckCard } from '../engine/rolls';
-import { allHandsNow, allHandsWorld, allyBonus, approachFor, approachRating, buildMission, chainRoll, complicationLine, councilBestReason, currentStage, failsMission, frontsFor, pickMissionType, postingFor, selectCurrentWorld, selectDutySide, selectHomeBase, selectSideWar, stageFoeCount, woundVerdict, type Mission } from '../features/duty/selectors';
+import { allHandsNow, allHandsWorld, allyBonus, approachFor, approachRating, buildMission, chainRoll, complicationLine, councilBestReason, currentStage, failsMission, frontsFor, pickMissionType, postingFor, selectCurrentWorld, selectDutySide, selectHomeBase, selectSideWar, stageFoeCount, woundVerdict, worldOpen, type Mission } from '../features/duty/selectors';
 import { selectFatigue, selectIsSpent, selectLastingPenalty, selectWoundPenalty, selectWounds } from '../features/health/selectors';
 import { selectPerformance, selectRust } from '../features/progression/selectors';
 import { selectStanding } from '../features/ranks/selectors';
@@ -150,7 +150,7 @@ export function tryMissionStage(registry: Registry<GameState>, state: GameState,
       vitalitySpent: selectIsSpent(state),
       fatigueEfficiency: efficiency(selectFatigue(state).p),
     },
-    modifiers: help.value ? [{ source: `help from ${help.who.join(', ')}`, value: help.value }] : [],
+    modifiers: [...(help.value ? [{ source: `help from ${help.who.join(', ')}`, value: help.value }] : []), ...(STAGE_RULES.experience[state.ranks.rank] ? [{ source: 'field experience', value: STAGE_RULES.experience[state.ranks.rank]! }] : [])],
     rating,
     notes: [fit ? 'an approach that fits the stage' : 'a poor fit for this stage (harder)', ...(stage.harder ? [`${stage.harder} complication(s) make it harder`] : [])],
   });
@@ -188,22 +188,6 @@ function startFight(run: ReturnType<typeof runner>, m: Mission, stage: NonNullab
 const WORLDS = [...PLANETS, ...MENTION_ONLY];
 const isMapWorld = (name: string | null | undefined): name is string => !!name && WORLDS.some((p) => p.name.toLowerCase() === name.toLowerCase());
 
-/** The worlds a code move goes to after a trip (B4): the mission's target, a travel stage's world, the base; a posting's base; home on leave. */
-function moveWorlds(s: GameState): string[] {
-  const out: string[] = [];
-  const m = s.duty.mission;
-  if (m) {
-    out.push(m.targetWorld);
-    const st = m.stages[m.current];
-    if (st?.kind === 'travel' && st.world) out.push(st.world);
-    if (m.base.planet) out.push(m.base.planet);
-  }
-  const home = selectHomeBase(s);
-  if (home?.planet) out.push(home.planet);
-  if (s.duty.posting) out.push(s.duty.posting.base.planet);
-  return out.filter(isMapWorld);
-}
-
 /** The engine's move to a map world (created when new): a mission's travel ends there in code (B4). */
 function moveTo(s: GameState, world: string): GameEvent[] {
   const id = resolveLocationRef(s, world);
@@ -220,9 +204,10 @@ function moveTo(s: GameState, world: string): GameEvent[] {
 export function missionAfterTurn(registry: Registry<GameState>, state: GameState, travel: TravelOutcome | null, arrived: boolean, atStart: { id: string; outcome: string | null } | null = null): MissionStep {
   const run = runner(registry, state);
   const { apply, out } = run;
-  // The trip's end (B4): the character is moved to the world, and a mission's arrival is recorded.
-  if (travel?.ok && arrived && moveWorlds(out.state).some((w) => w.toLowerCase() === travel.to.toLowerCase())) {
-    apply(moveTo(out.state, travel.to));
+  // The trip's end (B4; m9-release A12: every trip, not only the code's own): the code moves the character to the world, and a
+  // mission's arrival is recorded. The narrator never moves the character between worlds.
+  if (travel?.ok && arrived && isMapWorld(travel.to)) {
+    if (selectCurrentWorld(out.state)?.toLowerCase() !== travel.to.toLowerCase()) apply(moveTo(out.state, travel.to));
     const m = out.state.duty.mission;
     if (m && m.phase === 'outbound' && m.targetWorld.toLowerCase() === travel.to.toLowerCase()) apply([{ type: 'missionArrived', where: 'target' }]);
     const st = m ? currentStage(m) : null;
@@ -275,9 +260,13 @@ export function missionAfterTurn(registry: Registry<GameState>, state: GameState
   // The work done this turn (the mission the turn began with, with no outcome then).
   const doneNow = atStart !== null ? atStart.id === m2?.id && atStart.outcome === null : !m0?.outcome;
   if (m2 && m2.outcome === 'success' && m2.phase === 'return' && doneNow) {
-    const best = councilBestReason(out.state, selectStanding(out.state)) !== null;
-    const how = chainRoll(out.state, best, run.draw(), run.draw(), allHandsNow(out.state) !== null);
-    if (how) chain(run, how);
+    // A lead past the job (m9-release A13): the follow-up on the same thread, for anyone.
+    if (m2.followUp) chain(run, 'followUp', m2.followUp.world);
+    else {
+      const best = councilBestReason(out.state, selectStanding(out.state)) !== null;
+      const how = chainRoll(out.state, best, run.draw(), run.draw(), allHandsNow(out.state) !== null);
+      if (how) chain(run, how);
+    }
   }
   // Back at base with the work done or failed: the mission ends at once (B4).
   const m3 = out.state.duty.mission;
@@ -289,12 +278,12 @@ export function missionAfterTurn(registry: Registry<GameState>, state: GameState
 }
 
 /** Sent straight on (B6b): a follow-up on the same thread to the next world, another front, or an urgent recall. */
-function chain(run: ReturnType<typeof runner>, how: 'followUp' | 'front' | 'recall'): void {
+function chain(run: ReturnType<typeof runner>, how: 'followUp' | 'front' | 'recall', leadWorld: string | null = null): void {
   const s = run.out.state;
   const m = s.duty.mission!;
   const here = selectCurrentWorld(s);
   let base = m.base;
-  let world: string | null = null;
+  let world: string | null = leadWorld;
   let type = MISSION_TYPES[m.type]!;
   if (how === 'front') {
     const p = postingFor(s, run.draw(), run.draw(), s.duty.posting?.frontId);
@@ -312,8 +301,8 @@ function chain(run: ReturnType<typeof runner>, how: 'followUp' | 'front' | 'reca
     // A follow-up: the plot leads on to the next world (a curated world, or a front of the war), the same story thread.
     const side = selectDutySide(s);
     const war = selectSideWar(s);
-    const fronts = war && side ? frontsFor(war.id, side, yearOf(s)).map((f) => f.world) : [];
-    const pool = [...fronts, 'Alderaan', 'Ord Mantell', 'Taris', 'Nar Shaddaa', 'Tatooine', 'Corellia', 'Ryloth', 'Dantooine'].filter((w) => isMapWorld(w) && w.toLowerCase() !== (here ?? '').toLowerCase());
+    const fronts = war && side ? frontsFor(war.id, side, yearOf(s), s).map((f) => f.world) : [];
+    const pool = [...fronts, 'Alderaan', 'Ord Mantell', 'Taris', 'Nar Shaddaa', 'Tatooine', 'Corellia', 'Ryloth', 'Dantooine'].filter((w) => worldOpen(s, w) && w.toLowerCase() !== (here ?? '').toLowerCase());
     world = pool[Math.min(pool.length - 1, Math.floor(run.draw() * pool.length))]!;
     if (how === 'followUp') type = pickMissionType(s, run.draw());
   }
@@ -355,6 +344,10 @@ export function missionChoices(s: GameState): Choice[] {
   const p = s.duty.posting;
   const home = selectHomeBase(s);
   if (p && s.duty.leave && home?.planet && here !== home.planet.toLowerCase()) out.push(travel(`Go home on leave to ${home.name}`, home.planet));
-  else if (p && !s.duty.leave && here !== p.base.planet.toLowerCase()) out.push(travel(`Travel to ${p.front} (${p.base.name})`, p.base.planet));
+  else if (p && !s.duty.leave && here !== p.base.planet.toLowerCase()) {
+    out.push(travel(`Travel to ${p.front} (${p.base.name})`, p.base.planet));
+    // A new posting not yet taken up (m9-release A5): a day to settle affairs at home first.
+    if (p.arrived === false && s.duty.status === 'home') out.push({ label: 'Take a day to settle your affairs first', intent: { actionType: 'rest' }, pacingHint: 'montage', spanDays: 1 });
+  }
   return out;
 }

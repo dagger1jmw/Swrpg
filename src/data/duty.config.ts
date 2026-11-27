@@ -17,6 +17,14 @@ export const MISSION_ROLL = {
 } as const;
 
 /**
+ * Days off on a front (Jared, 27 Nov 2026, m9-release A7: "a front line won't give you 10-11 days of peace"): while posted at a
+ * forward base in a total war, the gap between missions is 2-5 days. The same Weibull roll with its own numbers (invented): none
+ * on the first day back, median 3.5 days, shape 4 (tight: about 1 in 10 come by day 2, 9 in 10 by day 5). The rank's scale
+ * stretches the part after the quiet day. The Temple's cadence (MISSION_ROLL) is unchanged.
+ */
+export const MISSION_ROLL_FRONT = { quietDays: 1, shape: 4, median: 3.5 } as const;
+
+/**
  * The median's scale by rank, path and posting (opt-2 D2; Jared: a Jedi Knight more than a Padawan at the Temple; a soldier by
  * posting). Larger = rarer. Null = no missions (Initiates and acolytes train at home; civilians have no posting).
  */

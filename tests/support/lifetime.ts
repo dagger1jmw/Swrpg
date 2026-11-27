@@ -19,6 +19,7 @@ import { levelExact } from '../../src/engine/curve';
 import { selectCapacities, selectE, selectForceBoost, selectLevelExact, selectPerformance } from '../../src/features/progression/selectors';
 import type { Priority } from '../../src/features/routines/selectors';
 import { advanceByRoutine, nextWakeAbs, type DayLog } from '../../src/state/advanceRoutine';
+import { dutyNeedsPlayer, playDutyTurn } from './dutyPlayer';
 import { applyEvents } from '../../src/state/applyEvents';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
@@ -199,6 +200,11 @@ export interface LifeResult {
 
 const START_DAY = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 
+/** m9-release A15 (report only): duty on, its missions played by the duty player. Never set by npm test or test:all. */
+const MISSIONS_ON = process.env['LIFETIME_MISSIONS'] === 'on';
+/** Missions-on counts for the report (per life). */
+export const missionStats = { missions: 0, success: 0, failure: 0, cutShort: 0, missionDays: 0, turns: 0 };
+
 export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
   const plan = p.formPlan ?? { padawan: { [p.mainForm]: 2, [p.secondForm]: 1 }, knight: { [p.mainForm]: 2, [p.secondForm]: 1 } };
   const rank = rankFor(p, p.startAge);
@@ -225,8 +231,9 @@ export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
     ...(p.startingXp ? { startingXp: p.startingXp } : {}),
   });
   // The lifetime runs measure the training routine alone: duty is switched off (m9-missions B; a mission's days have no free
-  // day, and its travel and stages are played by the player, which no profile does).
-  const quiet: GameState = { ...s, duty: { ...s.duty, off: true } };
+  // day, and its travel and stages are played by the player, which no profile does). LIFETIME_MISSIONS=on (m9-release A15, report
+  // only) keeps duty on and plays the missions with the duty player.
+  const quiet: GameState = MISSIONS_ON ? s : { ...s, duty: { ...s.duty, off: true } };
   return setRoutine(p, moveForAge(p, quiet, p.startAge), rank);
 }
 
@@ -596,8 +603,28 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       const want = rankFor(p, age);
       if (s.ranks.rank !== want) s = setRoutine(p, applyEvents(REGISTRY, s, [{ type: 'rankSet', rank: want }], { source: 'engine' }).state, want);
     }
-    // Where the life is today (D-445: the Temple, Dagobah, the field).
-    s = moveForAge(p, s, age);
+    // Where the life is today (D-445: the Temple, Dagobah, the field). With missions on (A15), duty decides where the life is while
+    // a mission or a posting holds it.
+    if (MISSIONS_ON && (s.duty.status === 'mission' || s.duty.posting !== null)) {
+      // Duty's own turns until it needs no one (the trip, the stages, the fights), then the routine for the rest of the day.
+      const d0 = s.clock.now.day;
+      const r0 = s.duty.record;
+      for (let k = 0; k < 60 && dutyNeedsPlayer(s); k++) {
+        const t = playDutyTurn(s);
+        if (!t) break;
+        s = t.state;
+        missionStats.turns++;
+      }
+      if (s.duty.status === 'mission') missionStats.missionDays += Math.max(1, s.clock.now.day - d0);
+      const r1 = s.duty.record;
+      missionStats.missions += r1.missions - r0.missions;
+      missionStats.success += r1.successes - r0.successes;
+      missionStats.failure += r1.failures - r0.failures;
+      missionStats.cutShort += r1.cutShort - r0.cutShort;
+      // The days a trip took are days of the life: the loop's day follows the clock.
+      day = Math.max(day, s.clock.now.day - (opts.startDate ? absDayFromDate(opts.startDate) : START_DAY));
+      day = Math.min(day, total - 1);
+    } else s = moveForAge(p, s, age);
     const before = { ...s.progression.skills };
     const dayRow = rowOf(age);
     const dayTransfer: Record<string, number> = {};
@@ -701,7 +728,8 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       const l = levelOf(s, k);
       for (const t of ts) if (cross[`${k}>=${t}`] === undefined && l >= t) cross[`${k}>=${t}`] = ageEnd;
     }
-    if ((day + 1) % DAYS === 0) {
+    // Each year's end (a loop: with missions on, A15, a trip can carry the day past a year's end; off, exactly one a year as before).
+    while (mainByYear.length < Math.floor((day + 1) / DAYS)) {
       const best = Object.entries(yearXp).sort((a, b) => b[1] - a[1])[0];
       yearMain.push(best ? best[1] : 0);
       yearCombat.push(best ? (yearFightXp[best[0]] ?? 0) : 0);

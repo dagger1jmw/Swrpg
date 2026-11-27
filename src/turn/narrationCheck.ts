@@ -16,7 +16,7 @@ import type { CombatDraft } from './combatTurn';
 import { careApplied } from './context';
 import type { TurnDraft } from './resolve';
 
-export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms' | 'gearNotInBlock' | 'stepFailed' | 'groundReversed' | 'survivorCount' | 'lastingState' | 'captorsWrong' | 'missionOffered';
+export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms' | 'gearNotInBlock' | 'stepFailed' | 'groundReversed' | 'survivorCount' | 'lastingState' | 'captorsWrong' | 'missionOffered' | 'stageNarrated';
 export interface NarrationIssue {
   kind: NarrationIssueKind;
   /** The correction for the retry, and the log line. */
@@ -473,6 +473,8 @@ export interface KnownWounds {
   lasting?: readonly LastingView[];
   /** The player's captors while a prisoner (D-242): their kind and its noun. */
   captors?: { kind: string | null; noun: string; group: string } | null;
+  /** A mission's check stage that waited this turn and was not rolled (m9-release A2): its label. */
+  stageWaiting?: string | null;
 }
 
 function misplacedIssues(narrative: string, draft: TurnDraft, known: KnownWounds): NarrationIssue[] {
@@ -693,11 +695,33 @@ function healingIssues(narrative: string, draft: TurnDraft): NarrationIssue[] {
  * assigned none (invented list).
  */
 const MISSION_HINT = /\b(?:your|a|the|another)\s+(?:next|new|fresh|upcoming|coming)\s+(?:assignment|mission|posting)\b|\b(?:regarding|about|concerning)\s+(?:your|a|another)\s+(?:next\s+|new\s+)?(?:assignment|mission|posting)\b|\b(?:you\s+are|you're|you\s+have\s+been|you've\s+been)\s+(?:being\s+)?(?:assigned|reassigned|posted|dispatched)\s+(?:to|on)\b|\b(?:a|another)\s+mission\s+(?:awaits|is\s+waiting|for\s+you)\b/i;
+/**
+ * A summons or a call from the Council or a commander (m9-release A4; invented list): "a summons from the High Council", "the
+ * Council has summoned you", "your presence is requested", "report to the Council Chamber", "new orders". It needs the summons
+ * word or the call's verb, so an ordinary line about the Council ("the Council chamber was quiet") is not caught.
+ */
+const MISSION_SUMMONS = /\bsummons\b|\bsummon(?:ed|ing|s)?\s+(?:you|him|her|them|the\s+knight|the\s+padawan)\b|\bsummon(?:ed|ing|s)?\b[^.!?]{0,40}\b(?:council|masters|command|general|commander)\b|\b(?:council|masters|commander|general)\b[^.!?]{0,30}\b(?:calls?\s+for\s+you|has\s+called\s+(?:for\s+)?you|requests?\s+your\s+presence|wish(?:es)?\s+to\s+see\s+you|wants?\s+to\s+see\s+you|asks?\s+(?:to\s+see|for)\s+you)\b|\byour\s+presence\s+is\s+(?:requested|required)\b|\breport\s+(?:at\s+once\s+|immediately\s+)?to\s+the\s+(?:high\s+)?(?:council|commander|general|command)\b|\b(?:new|fresh)\s+orders\b/i;
+
+/** Text that assigns, offers or hints at a mission (A7) or calls the character to one (m9-release A4): a narration's sentence or a choice. */
+export const hintsAtMission = (text: string): boolean => MISSION_HINT.test(text) || MISSION_SUMMONS.test(text);
+
+/**
+ * A waiting stage told as decided (m9-release A2): spotted, an alarm, slipping in unseen, when the code rolled nothing on the stage
+ * this turn. Being spotted is a failed check's complication, the code's (invented phrase list).
+ */
+const STAGE_TOLD = /\b(?:(?:you|they)(?:'ve|'re|\s+have|\s+are|\s+were|\s+had)?\s+(?:been\s+)?(?:spotted|seen|discovered|detected|noticed|caught)|(?:spots|spotted|sees|notices|noticed|detects|detected|discovers|discovered)\s+you|(?:raises?|raised|sounds?|sounded|trips?|tripped|triggers?|triggered)\s+(?:the|an)\s+alarm|alarms?\s+(?:blare|blares|sound|sounds|wail|wails|ring|rings|shriek|shrieks)|the\s+alarm\s+is\s+raised|(?:you|they)\s+(?:slip|slipped|get|got|make|made)\s+(?:it\s+)?(?:in|inside|past|through)\s+(?:unseen|undetected|unnoticed))\b/i;
+
+function stageIssues(narrative: string, stage: string | null | undefined): NarrationIssue[] {
+  if (!stage) return [];
+  const text = `the stage "${stage}" was not rolled this turn: never narrate its success, failure or a discovery (being spotted, an alarm); end before the attempt, and offer its approaches as choices`;
+  return sentencesOf(narrative).filter((x) => STAGE_TOLD.test(x)).map((sentence) => ({ kind: 'stageNarrated' as const, text, sentence }));
+}
+
 const MISSION_TEXT = 'only the code assigns missions: do not assign, offer or hint at a new mission, assignment or posting (none was assigned this turn)';
 
 function missionIssues(narrative: string, draft: TurnDraft): NarrationIssue[] {
   if (draft.applied.some((a) => a.event.type === 'missionAssigned')) return [];
-  return sentencesOf(narrative).filter((s) => MISSION_HINT.test(s)).map((sentence) => ({ kind: 'missionOffered' as const, text: MISSION_TEXT, sentence }));
+  return sentencesOf(narrative).filter((s) => hintsAtMission(s)).map((sentence) => ({ kind: 'missionOffered' as const, text: MISSION_TEXT, sentence }));
 }
 
 /**
@@ -713,6 +737,7 @@ export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHea
   issues.push(...lastingIssues(narrative, lastingViews(draft.combat && !draft.combat.quiet ? draft.combat : null, known.lasting ?? [])));
   issues.push(...captorIssues(narrative, known.captors ?? null));
   issues.push(...missionIssues(narrative, draft));
+  issues.push(...stageIssues(narrative, known.stageWaiting));
   return issues;
 }
 
@@ -742,7 +767,7 @@ export function rewordable(narrative: string, issues: readonly NarrationIssue[],
 export function settleNarration(narrative: string, draft: TurnDraft, issues: readonly NarrationIssue[], recheck: Recheck): NarrationSettled {
   const reworded = rewordable(narrative, issues, recheck);
   if (reworded !== null) return { narrative: reworded, how: 'reworded' };
-  const combatWrong = issues.some((i) => i.kind !== 'healingNotApplied' && i.kind !== 'missionOffered' && !(i.kind === 'woundMisplaced' && !draft.combat));
+  const combatWrong = issues.some((i) => i.kind !== 'healingNotApplied' && i.kind !== 'missionOffered' && i.kind !== 'stageNarrated' && !(i.kind === 'woundMisplaced' && !draft.combat));
   if (draft.combat && combatWrong) return { narrative: combatSummary(draft.combat).join(' '), how: 'summary' };
   const bad = new Set(issues.map((i) => i.sentence));
   // Paragraphs kept, as in the repair.

@@ -72,17 +72,17 @@ export const MISSION_TYPES: Readonly<Record<string, MissionTypeDef>> = {
   strike: {
     id: 'strike', name: 'a strike', objective: 'strike the target on {world} and get out', fromPosting: true,
     stages: [
-      S('in', 'get in', 'check', { approaches: ['stealth', 'pilot', 'tactics', 'sense'], rating: 35, hours: [3, 8] }),
+      S('in', 'get in', 'check', { approaches: ['stealth', 'pilot', 'tactics', 'sense'], rating: 25, hours: [3, 8] }),
       S('reach', 'reach the target', 'fight', { foes: { grade: 2, count: [3, 6] } }),
-      S('job', 'the job', 'check', { approaches: ['tech', 'tactics', 'reason'], rating: 40, hours: [1, 4] }),
-      S('out', 'get out', 'check', { approaches: ['stealth', 'pilot', 'athletics'], rating: 35, hours: [2, 6] }),
+      S('job', 'the job', 'check', { approaches: ['tech', 'tactics', 'reason'], rating: 30, hours: [1, 4] }),
+      S('out', 'get out', 'check', { approaches: ['stealth', 'pilot', 'athletics'], rating: 25, hours: [2, 6] }),
     ],
     complications: ['the alarm is raised', 'reinforcements arrive', 'the charges fail', 'the exit is cut off'],
   },
   frontline: {
     id: 'frontline', name: 'a front-line engagement', objective: 'hold the line on {world}', fromPosting: true,
     stages: [
-      S('brief', 'the briefing and the ground', 'check', { approaches: ['tactics', 'investigate', 'sense'], rating: 30, hours: [2, 6] }),
+      S('brief', 'the briefing and the ground', 'check', { approaches: ['tactics', 'investigate', 'sense'], rating: 20, hours: [2, 6] }),
       S('battle', 'the battle', 'battle', { battle: 'ground' }),
       S('hold', 'hold the position', 'fight', { foes: { grade: 2, count: [4, 8] } }),
     ],
@@ -91,7 +91,7 @@ export const MISSION_TYPES: Readonly<Record<string, MissionTypeDef>> = {
   fleet: {
     id: 'fleet', name: 'a fleet action', objective: 'meet the enemy fleet off {world}', fromPosting: true,
     stages: [
-      S('scout', 'find the enemy fleet', 'check', { approaches: ['pilot', 'tactics', 'investigate'], rating: 30, hours: [4, 12] }),
+      S('scout', 'find the enemy fleet', 'check', { approaches: ['pilot', 'tactics', 'investigate'], rating: 20, hours: [4, 12] }),
       S('battle', 'the fleet action', 'battle', { battle: 'ship' }),
     ],
     complications: ['the enemy jumps in early', 'a cruiser is crippled', 'the formation breaks'],
@@ -99,19 +99,19 @@ export const MISSION_TYPES: Readonly<Record<string, MissionTypeDef>> = {
   infiltration: {
     id: 'infiltration', name: 'an infiltration', objective: 'get inside on {world} and bring out what is there', fromPosting: false,
     stages: [
-      S('way', 'a way in', 'check', { approaches: ['persuade', 'stealth', 'tech'], rating: 35, hours: [4, 12] }),
-      S('cover', 'keep the cover', 'check', { approaches: ['persuade', 'endure', 'reason'], need: 2, rating: 35, hours: [20, 48] }),
-      S('objective', 'the objective inside', 'check', { approaches: ['investigate', 'tech', 'stealth'], rating: 40, hours: [2, 8] }),
-      S('exit', 'the exit', 'check', { approaches: ['stealth', 'persuade', 'athletics'], rating: 35, hours: [2, 6] }),
+      S('way', 'a way in', 'check', { approaches: ['persuade', 'stealth', 'tech'], rating: 25, hours: [4, 12] }),
+      S('cover', 'keep the cover', 'check', { approaches: ['persuade', 'endure', 'reason'], need: 2, rating: 25, hours: [20, 48] }),
+      S('objective', 'the objective inside', 'check', { approaches: ['investigate', 'tech', 'stealth'], rating: 30, hours: [2, 8] }),
+      S('exit', 'the exit', 'check', { approaches: ['stealth', 'persuade', 'athletics'], rating: 25, hours: [2, 6] }),
     ],
     complications: ['the cover is blown', 'a guard grows suspicious', 'the files are not where they should be', 'the exit is watched'],
   },
   manhunt: {
     id: 'manhunt', name: 'a manhunt', objective: 'track the quarry from {world} and take them', fromPosting: false,
     stages: [
-      S('trail', 'pick up the trail', 'check', { approaches: ['investigate', 'track', 'sense', 'persuade'], rating: 35, hours: [6, 24] }),
+      S('trail', 'pick up the trail', 'check', { approaches: ['investigate', 'track', 'sense', 'persuade'], rating: 25, hours: [6, 24] }),
       S('follow', 'follow it to the next world', 'travel', { elsewhere: true }),
-      S('close', 'close in', 'check', { approaches: ['track', 'stealth', 'tactics', 'sense'], need: 2, rating: 40, hours: [6, 24] }),
+      S('close', 'close in', 'check', { approaches: ['track', 'stealth', 'tactics', 'sense'], need: 2, rating: 30, hours: [6, 24] }),
       S('take', 'capture or kill', 'fight', { foes: { grade: 3, count: [1, 3] } }),
     ],
     complications: ['the trail goes cold', 'the quarry is warned', 'a false lead', 'hired guns stand in the way'],
@@ -119,9 +119,9 @@ export const MISSION_TYPES: Readonly<Record<string, MissionTypeDef>> = {
   investigation: {
     id: 'investigation', name: 'an investigation', objective: 'find out what is happening on {world}', fromPosting: false,
     stages: [
-      S('lead1', 'the first lead', 'check', { approaches: ['investigate', 'persuade', 'sense'], rating: 30, hours: [6, 24] }),
-      S('lead2', 'lead to lead', 'check', { approaches: ['investigate', 'persuade', 'reason', 'tech'], need: 2, rating: 35, hours: [6, 24] }),
-      S('plot', 'uncover the plot', 'check', { approaches: ['reason', 'investigate', 'sense'], rating: 40, hours: [4, 12] }),
+      S('lead1', 'the first lead', 'check', { approaches: ['investigate', 'persuade', 'sense'], rating: 20, hours: [6, 24] }),
+      S('lead2', 'lead to lead', 'check', { approaches: ['investigate', 'persuade', 'reason', 'tech'], need: 2, rating: 25, hours: [6, 24] }),
+      S('plot', 'uncover the plot', 'check', { approaches: ['reason', 'investigate', 'sense'], rating: 30, hours: [4, 12] }),
       S('confront', 'the confrontation', 'fight', { foes: { grade: 3, count: [2, 4] } }),
     ],
     complications: ['a witness disappears', 'the evidence is planted', 'someone powerful leans on the case', 'the plotters move first'],
@@ -129,48 +129,56 @@ export const MISSION_TYPES: Readonly<Record<string, MissionTypeDef>> = {
   escort: {
     id: 'escort', name: 'an escort', objective: 'see your charge safely to {world}', fromPosting: false, deadlineDays: 21,
     stages: [
-      S('route', 'plan the route', 'check', { approaches: ['tactics', 'pilot', 'investigate'], rating: 25, hours: [2, 6] }),
+      S('route', 'plan the route', 'check', { approaches: ['tactics', 'pilot', 'investigate'], rating: 15, hours: [2, 6] }),
       S('ambush', 'the ambush', 'fight', { foes: { grade: 2, count: [3, 6] } }),
-      S('deliver', 'the handover', 'check', { approaches: ['persuade', 'tactics', 'sense'], rating: 30, hours: [2, 6] }),
+      S('deliver', 'the handover', 'check', { approaches: ['persuade', 'tactics', 'sense'], rating: 20, hours: [2, 6] }),
     ],
     complications: ['the charge is hurt', 'the route is betrayed', 'the reception is hostile'],
   },
   rescue: {
     id: 'rescue', name: 'a rescue', objective: 'find and bring out the captives on {world}', fromPosting: true, deadlineDays: 14,
     stages: [
-      S('locate', 'locate them', 'check', { approaches: ['investigate', 'sense', 'persuade', 'track'], rating: 35, hours: [4, 12] }),
-      S('in', 'get in', 'check', { approaches: ['stealth', 'tactics', 'tech'], rating: 40, hours: [2, 6] }),
+      S('locate', 'locate them', 'check', { approaches: ['investigate', 'sense', 'persuade', 'track'], rating: 25, hours: [4, 12] }),
+      S('in', 'get in', 'check', { approaches: ['stealth', 'tactics', 'tech'], rating: 30, hours: [2, 6] }),
       S('free', 'free them', 'fight', { foes: { grade: 2, count: [3, 6] } }),
-      S('out', 'get them out', 'check', { approaches: ['pilot', 'stealth', 'athletics', 'tactics'], rating: 35, hours: [2, 6] }),
+      S('out', 'get them out', 'check', { approaches: ['pilot', 'stealth', 'athletics', 'tactics'], rating: 25, hours: [2, 6] }),
     ],
     complications: ['the captives have been moved', 'one of them is wounded', 'the guards are doubled', 'pursuit'],
   },
   recon: {
     id: 'recon', name: 'a reconnaissance', objective: 'scout the enemy on {world} and report', fromPosting: true,
     stages: [
-      S('approach', 'the approach', 'check', { approaches: ['stealth', 'pilot', 'athletics'], rating: 30, hours: [3, 8] }),
-      S('observe', 'watch and count', 'check', { approaches: ['investigate', 'tactics', 'sense', 'endure'], need: 2, rating: 35, hours: [8, 24] }),
-      S('back', 'get the report back', 'check', { approaches: ['stealth', 'pilot', 'tech'], rating: 30, hours: [2, 6] }),
+      S('approach', 'the approach', 'check', { approaches: ['stealth', 'pilot', 'athletics'], rating: 20, hours: [3, 8] }),
+      S('observe', 'watch and count', 'check', { approaches: ['investigate', 'tactics', 'sense', 'endure'], need: 2, rating: 25, hours: [8, 24] }),
+      S('back', 'get the report back', 'check', { approaches: ['stealth', 'pilot', 'tech'], rating: 20, hours: [2, 6] }),
     ],
     complications: ['a patrol passes close', 'the comlink is jammed', 'the scouts are spotted'],
   },
   diplomacy: {
     id: 'diplomacy', name: 'a diplomatic mission', objective: 'bring the parties on {world} to terms', fromPosting: false,
     stages: [
-      S('audience', 'the audience', 'check', { approaches: ['persuade', 'reason', 'sense'], rating: 30, hours: [3, 8] }),
-      S('talks', 'the talks', 'check', { approaches: ['persuade', 'reason', 'endure'], need: 2, rating: 40, hours: [8, 24] }),
-      S('spoiler', 'the spoiler', 'check', { approaches: ['investigate', 'sense', 'tactics'], rating: 35, hours: [4, 12] }),
-      S('accord', 'the accord', 'check', { approaches: ['persuade', 'reason'], rating: 40, hours: [3, 8] }),
+      S('audience', 'the audience', 'check', { approaches: ['persuade', 'reason', 'sense'], rating: 20, hours: [3, 8] }),
+      S('talks', 'the talks', 'check', { approaches: ['persuade', 'reason', 'endure'], need: 2, rating: 30, hours: [8, 24] }),
+      S('spoiler', 'the spoiler', 'check', { approaches: ['investigate', 'sense', 'tactics'], rating: 25, hours: [4, 12] }),
+      S('accord', 'the accord', 'check', { approaches: ['persuade', 'reason'], rating: 30, hours: [3, 8] }),
     ],
     complications: ['a delegate walks out', 'an assassin strikes', 'the terms leak', 'old grievances flare'],
   },
 };
 export const MISSION_TYPE_IDS = Object.keys(MISSION_TYPES);
 
-/** Which types come to whom, by path and war (weights). A posting's missions are drawn from the types launched from a posting. */
-export const MISSION_TYPE_WEIGHTS: Readonly<Record<'jedi' | 'sith' | 'military' | 'jobs', { peace: Readonly<Record<string, number>>; war: Readonly<Record<string, number>> }>> = {
-  jedi: { peace: { diplomacy: 3, investigation: 3, escort: 2, rescue: 1, manhunt: 1, recon: 1 }, war: { strike: 3, frontline: 3, rescue: 2, recon: 2, investigation: 1, escort: 1, infiltration: 1, fleet: 1 } },
-  sith: { peace: { manhunt: 3, investigation: 2, infiltration: 2, strike: 1, diplomacy: 1 }, war: { strike: 3, frontline: 3, manhunt: 2, infiltration: 1, recon: 1, fleet: 1 } },
+/**
+ * Which types come to whom, by path and war (weights; invented). A posting's missions are drawn from the types launched from a
+ * posting. m9-release A11 (Jared, 27 Nov 2026): the weights lean toward the path's strengths. A Guardian sees fewer pure skill-check
+ * investigations and diplomacy (more escorts, rescues, manhunts, the front line); a Consular more of them; a Sentinel the
+ * investigator's and infiltrator's share. A Sith Warrior the front line and the hunt; an Inquisitor infiltration and investigation.
+ */
+export const MISSION_TYPE_WEIGHTS: Readonly<Record<'jediGuardian' | 'jediSentinel' | 'jediConsular' | 'sithWarrior' | 'sithInquisitor' | 'military' | 'jobs', { peace: Readonly<Record<string, number>>; war: Readonly<Record<string, number>> }>> = {
+  jediGuardian: { peace: { escort: 3, rescue: 2, manhunt: 2, recon: 2, investigation: 1, diplomacy: 1 }, war: { frontline: 4, strike: 3, rescue: 2, recon: 1, escort: 1, fleet: 1 } },
+  jediSentinel: { peace: { investigation: 3, manhunt: 2, infiltration: 2, escort: 1, rescue: 1, recon: 1, diplomacy: 1 }, war: { strike: 3, recon: 2, infiltration: 2, rescue: 2, frontline: 2, investigation: 1 } },
+  jediConsular: { peace: { diplomacy: 4, investigation: 3, escort: 1, rescue: 1, recon: 1 }, war: { diplomacy: 2, rescue: 2, recon: 2, investigation: 2, frontline: 1, strike: 1, escort: 1, fleet: 1 } },
+  sithWarrior: { peace: { manhunt: 3, strike: 2, investigation: 1, infiltration: 1 }, war: { frontline: 4, strike: 3, manhunt: 2, fleet: 1 } },
+  sithInquisitor: { peace: { infiltration: 3, investigation: 3, manhunt: 2, diplomacy: 1 }, war: { infiltration: 3, strike: 2, manhunt: 2, recon: 2, frontline: 1 } },
   military: { peace: { recon: 3, escort: 3, rescue: 1, strike: 1 }, war: { frontline: 4, strike: 2, recon: 2, rescue: 1, fleet: 1 } },
   jobs: { peace: { escort: 3, manhunt: 2, infiltration: 2, recon: 1 }, war: { escort: 3, infiltration: 2, manhunt: 2, strike: 1 } },
 };
@@ -196,12 +204,26 @@ export const STAGE_RULES = {
   allyHoldsShare: 0.5,
   /** Days a mission can wait for the character to set out before the Order gives it to someone else. */
   setOutDays: 7,
+  /**
+   * Field experience on a stage's check, by rank (m9-release A11; invented): a Master's years of missions count. The closed form gives
+   * a Master little more than a Knight in the skills most checks read (Charisma, Intelligence, Tactics), so without it a Master
+   * failed missions as often as a Knight.
+   */
+  experience: { master: 1 } as Readonly<Record<string, number>>,
 } as const;
+
+/**
+ * Leads found in play (Jared, 27 Nov 2026, m9-release A13): the narrator may propose a lead on an investigation or a manhunt, and
+ * the code checks it: a lead here adds a stage (follow the lead), a lead to another world adds the trip and a stage there, a lead
+ * past the job becomes a follow-up mission on the same thread when this one succeeds. At most `maxPerMission` (invented).
+ */
+export const LEADS = { types: ['investigation', 'manhunt'] as readonly string[], maxPerMission: 2 } as const;
+export const LEAD_STAGE: StageDef = { id: 'lead', label: 'follow the lead', kind: 'check', approaches: ['investigate', 'persuade', 'track', 'sense'], rating: 25, hours: [4, 12] };
 
 /** The complication stages a bad failure inserts, by the stage's kind (B3). */
 export const COMPLICATION_STAGES: Readonly<Record<string, StageDef>> = {
   fight: S('clear', 'fight your way clear', 'fight', { foes: { grade: 2, count: [2, 5] } }),
-  check: S('recover', 'pick up the thread again', 'check', { approaches: ['investigate', 'track', 'persuade', 'sense', 'tactics'], rating: 35, hours: [6, 24] }),
+  check: S('recover', 'pick up the thread again', 'check', { approaches: ['investigate', 'track', 'persuade', 'sense', 'tactics'], rating: 25, hours: [6, 24] }),
 };
 
 /** Wounds on a mission (B8, Jared approved): a severe wound or worse ends the character's part; a moderate one carries on only in an
@@ -220,6 +242,13 @@ export const MISSION_HISTORY_MAX = 20;
  * in four of them successes). Sith Lords by the same test. An NPC master (B7): a Jedi Master, or a Knight whose best form is 70+.
  */
 export const COUNCIL_BEST = { topCombat: 70, standing: 70, minMissions: 5, successShare: 0.75 } as const;
+
+/**
+ * A Master is among the Council's best only on a field path (Jared, 27 Nov 2026, m9-release A10): archivists, scholars and the like
+ * (Jocasta Nu) are not chained between fronts. The path is the archetype's war-year share (data/wars.ts WAR_YEAR_SHARE: 0 is not
+ * a field path); a canon figure with no generated archetype is read from these words in their role or description (invented).
+ */
+export const NON_FIELD_WORDS: readonly string[] = ['archivist', 'archives', 'librarian', 'scholar', 'historian', 'chronicler', 'healer', 'archaeologist', 'researcher', 'lorekeeper'];
 
 /**
  * Sent straight on at a mission's end (B6b; invented): the chance for the Council's best, by war, and the kind drawn: a related
@@ -265,6 +294,12 @@ const EMP = ['sithEmpire', 'sith'] as const;
  * any year marked "reading" are invented.
  */
 export const FRONTS: readonly FrontDef[] = [
+  // The Great Sith War (4,000-3,996), total since m9-release A14. The bases and the spans marked "reading" are invented.
+  { id: 'gsw.krath', warId: 'greatSithWar', name: 'the war against the Krath', world: 'Empress Teta', base: 'the Republic fleet in the Empress Teta system', fromBby: 3998, toBby: 3996, sides: [...REP, 'sith'], source: 'a reading (SW_Characters_04-05_GreatSithWar: the Krath of the Empress Teta system; the years a reading)' },
+  { id: 'gsw.ossus', warId: 'greatSithWar', name: 'the defence of Ossus', world: 'Ossus', base: 'the Jedi enclave on Ossus', fromBby: 3996, toBby: 3996, sides: [...REP, 'sith', 'mandalorians'], source: 'SW_Characters_04-05_GreatSithWar (the Battle of Ossus, 3,996)' },
+  { id: 'gsw.yavin', warId: 'greatSithWar', name: 'the assault on Yavin 4', world: 'Yavin 4', base: 'the Jedi fleet over Yavin', fromBby: 3996, toBby: 3996, sides: [...REP, 'sith'], source: 'SW_Characters_04-05_GreatSithWar (Exar Kun defeated at Yavin 4, 3,996)' },
+  // The Jedi Civil War (3,959-3,956), total since m9-release A14.
+  { id: 'jcw.dantooine', warId: 'jediCivilWar', name: 'the Dantooine front', world: 'Dantooine', base: 'the Jedi Enclave on Dantooine', fromBby: 3959, toBby: 3956, sides: [...REP, 'sith'], source: 'a reading (the Enclave a Jedi base through the war; the span a reading)' },
   // The Great Galactic War (3,681-3,653).
   { id: 'ggw.balmorra', warId: 'greatGalacticWar', name: 'the Balmorra front', world: 'Balmorra', base: 'the forward base on Balmorra', fromBby: 3681, toBby: 3653, sides: [...REP, ...EMP], source: 'worldNetwork3661 E.3653.balmorra_ceded (Balmorra under occupation, left to the Empire in 3,653); the start year a reading' },
   { id: 'ggw.hydian', warId: 'greatGalacticWar', name: 'the Hydian Way front', world: 'Devaron', base: 'the fleet base at Devaron', fromBby: 3661, toBby: 3660, sides: [...REP, ...EMP, 'mandalorians'], source: 'worldNetwork3661 E.3661.blockade, the battle near Devaron, E.3660 the Battle on the Hydian Way' },

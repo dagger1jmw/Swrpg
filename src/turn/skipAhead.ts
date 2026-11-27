@@ -34,7 +34,8 @@ export function skipAheadChoice(s: GameState, choices: readonly Choice[]): (Choi
 /** "Resume the skip" (opt-2 D5b, D5d): offered first at home while a paused skip has days left; never on a mission. */
 export function resumeSkipChoice(s: GameState): (Choice & { spanDays: number }) | null {
   const r = s.duty.resume;
-  if (!r || s.duty.status !== 'home') return null;
+  // Not while a new posting waits to be taken up (m9-release A5): the order stands.
+  if (!r || s.duty.status !== 'home' || s.duty.posting?.arrived === false) return null;
   const left = r.targetDay - s.clock.now.day;
   if (left < 1) return null;
   return { label: `Resume the skip (${left} day${left === 1 ? '' : 's'} left)`, intent: { actionType: 'train' }, pacingHint: left >= 7 ? 'timeSkip' : 'montage', spanDays: left };

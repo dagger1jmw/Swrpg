@@ -39,8 +39,8 @@ export const WARS: readonly War[] = [
   {
     id: 'greatSithWar', name: 'the Great Sith War', fromBby: 4000, toBby: 3996,
     factions: ['republic', 'jediOrder', 'sith', 'mandalorians'],
-    // limited: a reading, flagged for Jared (the Order fought it at its own heart).
-    intensity: 'limited',
+    // total (Jared, 27 Nov 2026, m9-release A14; was a limited reading): the Order fought it at its own heart.
+    intensity: 'total',
     source: 'SW_Characters_04-05_GreatSithWar (4,000-3,996 BBY: Exar Kun\'s Brotherhood and the Krath; Ulic Qel-Droma led the Mandalorians after beating Mandalore the Indomitable)',
   },
   {
@@ -55,8 +55,8 @@ export const WARS: readonly War[] = [
     id: 'jediCivilWar', name: 'the Jedi Civil War', fromBby: 3959, toBby: 3956,
     // sith, not sithEmpire: Revan's and Malak's empire is not the Emperor's (a reading of the faction ids).
     factions: ['republic', 'jediOrder', 'sith'],
-    // limited: a reading, flagged for Jared.
-    intensity: 'limited',
+    // total (Jared, 27 Nov 2026, m9-release A14; was a limited reading).
+    intensity: 'total',
     source: 'SW_Characters_07_JediCivilWar (3,959-3,956 BBY)',
   },
   {

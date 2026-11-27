@@ -1,6 +1,6 @@
 // Duty selectors (opt-2 D; spec/duty.md): the side panel's duty and fitness lines, the narrator's state line, a home day's
 // people and places, and the "Resume the skip" choice. Read-only.
-import { APPROACHES, type ApproachId } from '../../data/missions.config';
+import { APPROACHES, LEADS, type ApproachId } from '../../data/missions.config';
 import type { GameState } from '../../state/gameState';
 import type { Mission } from './duty';
 import { selectWounds } from '../health/selectors';
@@ -36,6 +36,8 @@ export function selectDutyLine(s: GameState): string {
   const n = Math.max(0, s.clock.now.day - d.since);
   if (d.status === 'mission' && d.mission) return `On a mission: ${d.mission.title.replace(/^Mission: /, '')} (${stageWords(d.mission)}; ${days(n)})`;
   if (d.posting && d.leave) return `On leave from ${d.posting.front} until ${days(Math.max(0, d.leave.untilDay - s.clock.now.day))} from now`;
+  // Posted but not there yet (m9-release A6): the order stands, the trip is the player's to take.
+  if (d.posting && d.posting.arrived === false && !selectAtHome(s)) return `Posted to ${d.posting.front} (${d.posting.base.name}), not yet left`;
   const home = selectHomeBase(s);
   const where = home ? (selectAtHome(s) ? `at ${home.label}` : `away from ${home.label}`) : 'no home base now';
   return missionMedian(s) === null ? `Off duty, ${where} (no missions at this rank)` : `Off duty ${days(n)}, ${where}`;
@@ -94,10 +96,16 @@ export function selectMissionPromptLine(s: GameState): string | null {
   const m = s.duty.mission;
   if (!card || !m) return null;
   const st = m.phase === 'onSite' && m.outcome === null ? m.stages[m.current] : undefined;
-  const approaches = st?.kind === 'check' ? ` Approaches that fit: ${st.approaches.map((a) => APPROACHES[a as ApproachId]?.label.toLowerCase() ?? a).join('; ')}.` : st?.kind === 'fight' ? ' This stage is a fight (the code starts it when the player goes in).' : st?.kind === 'battle' ? ' This stage is a battle (the code opens it when the player takes their place).' : '';
+  // m9-release A2: each approach with its skill id, so a choice that takes it carries the id and clicking it rolls it.
+  const listed = st?.kind === 'check' ? st.approaches.map((a) => APPROACHES[a as ApproachId]).filter((a) => a && a.skill).map((a) => `${a!.label.toLowerCase()} (skillId ${a!.skill})`) : [];
+  const approaches = st?.kind === 'check'
+    ? ` Approaches that fit: ${listed.join('; ')}. Every choice either takes one of these approaches (its label names it and its intent carries that skillId: clicking it rolls it) or is pure story that does not attempt the stage. Never narrate this stage's success, failure or a discovery (being spotted, an alarm, slipping in unseen): the code's roll decides it, and a failed roll's complication is the code's. Never start a fight at this stage: forcing the way through is the player's choice.`
+    : st?.kind === 'fight' ? ' This stage is a fight (the code starts it when the player goes in; never start it yourself).' : st?.kind === 'battle' ? ' This stage is a battle (the code opens it when the player takes their place).' : '';
   const comp = card.complications.length ? ` Complications: ${card.complications.join('; ')}.` : '';
   const party = card.party.length ? ` With you: ${card.party.join(', ')}.` : '';
-  return `MISSION (the code's: narrate this stage only; never resolve a stage, move the character between worlds or end the mission; propose approaches to this stage as choices): ${card.title}. Objective: ${card.objective}. Now: ${card.stage}.${approaches}${comp}${party}`;
+  // Leads found in play (m9-release A13): proposed, never decided, by the narrator.
+  const leads = LEADS.types.includes(m.type) && m.phase === 'onSite' && m.outcome === null && (m.leads ?? 0) < LEADS.maxPerMission ? ' A lead found in play may be proposed with missionLeadFound (here, another world, or past the job as a follow-up); the code decides whether it is taken.' : '';
+  return `MISSION (the code's: narrate this stage only; never resolve a stage, move the character between worlds or end the mission; propose approaches to this stage as choices): ${card.title}. Objective: ${card.objective}. Now: ${card.stage}.${approaches}${comp}${party}${leads}`;
 }
 
 /** The narrator's POSTING line (B5): the front and the base, so home days and downtime are among the right people. */
@@ -142,8 +150,8 @@ export function selectHomeDayLine(s: GameState): string | null {
 }
 
 /** Re-exports for the world feature and the turn (features read each other through selectors). */
-export { selectAtHome, selectCurrentWorld, selectDutySide, selectHomeBase, touchesCharacter } from './home';
+export { mapWorldName, selectAtHome, selectCurrentWorld, selectDutySide, selectHomeBase, selectWorldOf, touchesCharacter } from './home';
 /** The mission rules the turn reads (m9-missions B; features read each other, and the turn reads them, through selectors). */
-export { allyBonus, approachFor, approachRating, buildMission, chainRoll, complicationLine, councilBestReason, currentStage, failsMission, frontsFor, missionBase, pickMissionType, pickWorld, postingFor, selectSideWar, stageFoeCount, woundVerdict } from './missions';
+export { allyBonus, approachFor, approachRating, buildMission, chainRoll, complicationLine, councilBestReason, currentStage, failsMission, frontsFor, missionBase, pickMissionType, pickWorld, postingFor, selectSideWar, stageFoeCount, woundVerdict, worldOpen } from './missions';
 export { allHandsNow, allHandsWorld } from './rules';
 export type { Mission } from './duty';

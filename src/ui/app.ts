@@ -120,6 +120,9 @@ export class App {
   private inFlight: TurnInput | null = null;
   /** The overload retry note (D-240), shown beside the busy label. */
   private retryNote: string | null = null;
+  /** The model call the turn waits on and since when (m9-release A1), and the timer that counts its seconds. */
+  private callWait: { text: string; since: number } | null = null;
+  private waitTimer: ReturnType<typeof setInterval> | null = null;
   private failed: FailedTurn | null = null;
   private loadError: string | null = null;
   private readonly provider: SimulatedOverload;
@@ -255,6 +258,11 @@ export class App {
         this.retryNote = text;
         this.render();
       },
+      // m9-release A1: what the turn waits on, with the seconds counted in the status line (a slow model is visible, not a freeze).
+      onCall: (c) => {
+        this.callWait = { text: `${c.callType === 'intent' ? 'reading your action' : c.callType === 'narrative' ? 'the narration' : c.callType} (${c.model})`, since: this.d.now() };
+        this.render();
+      },
     };
   }
 
@@ -361,9 +369,37 @@ export class App {
     this.render();
   }
 
+  /** The busy line (m9-release A1): what the turn does, the call it waits on with the seconds waited, and a retry note. */
+  private busyLabel(base: string): string {
+    const w = this.callWait;
+    const secs = w ? Math.floor((this.d.now() - w.since) / 1000) : 0;
+    const waiting = w && secs >= 3 ? ` · waiting for ${w.text}, ${secs} s` : '';
+    return `${base}${waiting}${this.retryNote ? ` · ${this.retryNote}` : ''}`;
+  }
+
+  /** Counts the waited seconds in the status line while a turn is busy, without redrawing the page (m9-release A1). */
+  private startWaitTimer(): void {
+    this.stopWaitTimer();
+    if (typeof setInterval !== 'function') return;
+    this.waitTimer = setInterval(() => {
+      const node = typeof document !== 'undefined' ? document.querySelector('.status.busy .status-text') : null;
+      if (!node || !this.callWait) return;
+      const text = node.textContent ?? '';
+      const base = text.split(' · ')[0] ?? text;
+      node.textContent = this.busyLabel(base);
+    }, 1000);
+  }
+
+  private stopWaitTimer(): void {
+    if (this.waitTimer !== null) clearInterval(this.waitTimer);
+    this.waitTimer = null;
+    this.callWait = null;
+  }
+
   private async runTurn(turnInput: TurnInput, pending?: PendingTurn): Promise<void> {
     if (!this.session || this.busy) return;
     this.busy = true;
+    this.startWaitTimer();
     this.inFlight = turnInput;
     this.failed = null;
     this.feedStick = true;
@@ -391,6 +427,7 @@ export class App {
       };
     } finally {
       this.stopPlayback();
+      this.stopWaitTimer();
       this.preview = null;
       this.busy = false;
       this.retryNote = null;
@@ -770,7 +807,7 @@ export class App {
       ]);
     } else if (this.busy) {
       const base = this.summarizing ? 'A chapter closed. Writing its summary…' : this.inFlight && this.inFlight.kind !== 'opening' ? `Resolving: ${describeInput(this.inFlight)}` : 'Writing the opening scene…';
-      const label = this.retryNote ? `${base} · ${this.retryNote}` : base;
+      const label = this.busyLabel(base);
       status = el('div', { class: 'status busy' }, [el('span', { class: 'spinner', attrs: { 'aria-hidden': 'true' } }), el('span', { class: 'status-text', text: label, attrs: { title: label } })]);
     } else if (noticeShown(this.devNote, this.session?.campaign.campaignId ?? null)) {
       const note = noticeShown(this.devNote, this.session?.campaign.campaignId ?? null)!;

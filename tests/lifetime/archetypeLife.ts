@@ -56,7 +56,7 @@ function closedMain(a: ArchetypeDef, order: boolean): number {
  * The archetype's life on its default routine (npc test 7's profile and seed): to 41 for a Force archetype (the Master check at
  * 40), else npc test 7's 25 years; Force Control and Force Sense tracked.
  */
-function runArchetype(a: ArchetypeDef): LifeResult {
+export function runArchetype(a: ArchetypeDef): LifeResult {
   const order = a.path === 'jedi' || a.path === 'sith';
   const years = a.path === 'career' ? ARCHETYPE_YEARS : Math.max(ARCHETYPE_YEARS, 41 - a.startAge);
   return runLifetime(

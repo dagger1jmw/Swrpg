@@ -118,7 +118,19 @@ export function touchesCharacter(s: GameState, e: Pick<WorldEventDef, 'places' |
 
 /** The map world the character stands on (m9-missions B4): the first place in the chain, its aliases or region, on the galaxy map. */
 export function selectCurrentWorld(s: GameState): string | null {
-  for (const l of selectLocationChain(s, s.locations.currentId)) {
+  return selectWorldOf(s, s.locations.currentId);
+}
+
+/** A map world by name (charted, or mentioned with a grid square), its map spelling; or null. */
+export function mapWorldName(name: string | null | undefined): string | null {
+  if (!name) return null;
+  const n = name.trim().toLowerCase();
+  return (PLANETS.find((p) => p.name.toLowerCase() === n) ?? MENTION_ONLY.find((p) => p.name.toLowerCase() === n))?.name ?? null;
+}
+
+/** The map world a place stands on (m9-release A12): the place or the first above it on the galaxy map, or null. */
+export function selectWorldOf(s: GameState, locId: string | null): string | null {
+  for (const l of selectLocationChain(s, locId)) {
     for (const n of [l.name, ...l.aliases]) {
       const w = PLANETS.find((p) => p.name.toLowerCase() === n.toLowerCase()) ?? MENTION_ONLY.find((p) => p.name.toLowerCase() === n.toLowerCase());
       if (w) return w.name;

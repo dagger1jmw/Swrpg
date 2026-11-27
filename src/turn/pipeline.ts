@@ -12,7 +12,9 @@ import { isDailyQuotaError, type ModelRouter } from '../ai/fallback';
 import { toGeminiSchema } from '../ai/jsonSchema';
 import { CALL_SETTINGS, OVERLOAD_RETRY, THINKING_HEADROOM_TOKENS, TRUNCATION_RETRY_FACTOR, overloadDelayMs } from '../ai/models.config';
 import { AiError, type CallOptions, type CallType, type Message, type ModelProvider, type StructuredResult, type Usage } from '../ai/provider';
-import { composeNarrativeSchema, narrativeEventTypes, type NarrativeReply } from '../ai/schemas/compose';
+import { composeNarrativeSchema, narrativeEventTypes, type Choice, type NarrativeReply } from '../ai/schemas/compose';
+import { APPROACHES } from '../data/missions.config';
+import { currentStage, mapWorldName, selectCurrentWorld, selectWorldOf } from '../features/duty/selectors';
 import { intentSchema, normalizeIntent, type Intent } from '../ai/schemas/intent';
 import { summaryReplySchema } from '../ai/schemas/summary';
 import type { Settings } from '../ai/settings';
@@ -22,7 +24,7 @@ import { SUMMARY_RETRIES_PER_CLOSE } from '../data/memory.config';
 import { PACING_OUTPUT_CAPS } from '../data/pacing.config';
 import { normalizeAlias } from '../engine/aliases';
 import { dateFromAbsDay } from '../engine/calendar';
-import { checkNarration, combatSummary, rewordable, settleNarration, type NarrationIssue } from './narrationCheck';
+import { checkNarration, combatSummary, hintsAtMission, rewordable, settleNarration, type NarrationIssue } from './narrationCheck';
 import { longPassageProseTokens } from './combatFacts';
 import { selectWounds } from '../features/health/selectors';
 import { selectNow } from '../features/clock/selectors';
@@ -74,6 +76,8 @@ export interface TurnDeps {
   onRequest?(request: DebugRequest): void;
   /** A status line while a call is retried (D-240: "Gemini is busy, retrying…"); null when it is over. */
   onStatus?(text: string | null): void;
+  /** A model call begins (m9-release A1): the status line names what the turn waits on and counts the seconds. */
+  onCall?(call: { callType: CallType; model: string }): void;
   /** Waits between overload retries (D-240); tests pass an instant one. Defaults to setTimeout. */
   sleep?(ms: number): Promise<void>;
   /** A number in [0, 1) for the retry jitter; defaults to the wall clock's milliseconds (pacing, not game dice). */
@@ -145,15 +149,18 @@ export const countsOnMeter = (e: unknown): boolean => !(e instanceof AiError && 
 
 /** One model call, recorded for the transcript and the usage meter. */
 async function tracked<T>(deps: TurnDeps, calls: CallRecord[], opts: CallOptions, run: () => Promise<{ data: T; usage: Usage }>): Promise<T> {
+  // m9-release A1: each call says what it waits on (the status line shows it with the seconds waited) and records how long it took.
+  const t0 = deps.wallClock().ms;
+  deps.onCall?.({ callType: opts.callType, model: opts.model });
   try {
     const r = await run();
-    calls.push({ callType: opts.callType, model: opts.model, usage: r.usage, outcome: 'ok' });
+    calls.push({ callType: opts.callType, model: opts.model, usage: r.usage, outcome: 'ok', ms: Math.max(0, deps.wallClock().ms - t0) });
     deps.recordCall?.(opts.model, r.usage);
     return r.data;
   } catch (e) {
     const usage = e instanceof AiError ? (e.usage ?? null) : null;
     const outcome = e instanceof AiError ? (e.kind === 'rateLimit' ? `rateLimit:${e.quotaScope ?? 'unknown'}` : e.kind) : 'error';
-    calls.push({ callType: opts.callType, model: opts.model, usage, outcome });
+    calls.push({ callType: opts.callType, model: opts.model, usage, outcome, ms: Math.max(0, deps.wallClock().ms - t0) });
     if (countsOnMeter(e)) deps.recordCall?.(opts.model, usage, outcome);
     throw e;
   }
@@ -255,6 +262,43 @@ function settleReport(deps: TurnDeps, req: BuiltRequest, calls: readonly CallRec
   return { ...req.report, model: last.model, actualInputTokens: last.usage.inputTokens };
 }
 
+/**
+ * A clicked choice that would attempt a waiting mission stage with no approach on it (m9-release A2): a check stage on site, a story
+ * choice (not travel, rest or sleep) with no mission approach and no skill an approach reads. Such a choice takes the intent call.
+ */
+export function untaggedStageChoice(s: GameState, c: Choice): boolean {
+  const st = currentStage(s.duty.mission);
+  if (!st || st.kind !== 'check' || st.fightId !== null || s.combat.active || s.combat.pending) return false;
+  if (c.intent.missionApproach || ['travel', 'rest', 'sleep'].includes(c.intent.actionType)) return false;
+  const skill = c.intent.skillId;
+  return !(skill && Object.values(APPROACHES).some((a) => a.skill === skill));
+}
+
+/**
+ * The other world a narrator's location event would move the character to (m9-release A12), or null: a locationChanged to a place
+ * on another map world, or a locationIntroduced with moveHere named for, or under, another world. Unknown places pass.
+ */
+export function narratorMoveWorld(s: GameState, e: GameEvent): string | null {
+  const here = selectCurrentWorld(s);
+  if (!here) return null;
+  let there: string | null = null;
+  if (e.type === 'locationChanged') {
+    const id = s.locations.byId[String(e['locationRef'])] ? String(e['locationRef']) : null;
+    there = id ? selectWorldOf(s, id) : null;
+  } else if (e.type === 'locationIntroduced' && e['moveHere'] === true) {
+    const parent = typeof e['parentRef'] === 'string' && s.locations.byId[e['parentRef']] ? e['parentRef'] : null;
+    there = mapWorldName(String(e['name'] ?? '')) ?? (parent ? selectWorldOf(s, parent) : null) ?? mapWorldName(typeof e['region'] === 'string' ? e['region'] : null);
+  }
+  return there !== null && there.toLowerCase() !== here.toLowerCase() ? there : null;
+}
+
+/** A narrator's fight is barred at this stage (m9-release A2): a stage waits on site and this turn failed no check on it. */
+export function stageFightBarred(s: GameState, draft: TurnDraft): boolean {
+  const st = currentStage(s.duty.mission);
+  if (!st || st.kind === 'travel') return false;
+  return !draft.applied.some((a) => a.event.type === 'missionStageResolved' && (a.event as { success?: boolean }).success === false);
+}
+
 /** a + b: intent (typed input only) and engine resolution. Rolls dice exactly once. */
 export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnInput): Promise<PendingTurn> {
   // Dev commands never reach the AI (D-180): they run in code through commitDevCommand.
@@ -279,6 +323,21 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
       const checked = resolveIntentRefs(raw, resolve, fightMinionRef(session.state));
       intent = checked.intent;
       intentNotes.push(...checked.notes);
+    } catch (e) {
+      throw new TurnError('intent', e, calls);
+    }
+    intentReport = settleReport(deps, req, calls, 'intent');
+  } else if (input.kind === 'choice' && untaggedStageChoice(session.state, input.choice)) {
+    // A narrator's choice that attempts a mission stage with no approach on it (m9-release A2): read like typed text, by the intent
+    // call, so the same approach rule (B3) applies ("Infiltrate the maintenance bay" is Stealth: slip in unseen).
+    const req = buildIntentRequest(session.state, input.choice.label, session.history, buildOpts(deps, 'intent', intentSchema));
+    deps.onRequest?.({ callType: 'intent', ...req });
+    const base = callOptions('intent', req.system, CALL_SETTINGS.intent.maxOutputTokens + THINKING_HEADROOM_TOKENS);
+    try {
+      const raw = normalizeIntent(await callModel(deps, calls, intentNotes, base, (opts) => deps.provider.generateStructured(intentSchema, req.messages, opts)));
+      const checked = resolveIntentRefs(raw, resolve, fightMinionRef(session.state));
+      intent = checked.intent;
+      intentNotes.push(`a choice with no approach during a mission stage: read by the intent call (m9-release A2)`, ...checked.notes);
     } catch (e) {
       throw new TurnError('intent', e, calls);
     }
@@ -436,7 +495,11 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     // The captors while the player is their prisoner (D-242): the kind's noun, as its label ends.
     const held = selectCaptors(resolved);
     const captors = held?.kind ? { kind: held.kind, group: held.group, noun: (MINION_KINDS.find((k) => k.id === held.kind)?.label ?? held.kind).toLowerCase().split(/\s+/).pop()!.replace(/s$/, '') } : null;
-    const known = { player: [...selectWounds(session.state), ...selectWounds(resolved)].map((w) => w.part), lasting, captors };
+    // A check stage that waited and was not rolled this turn (m9-release A2): its outcome is not the narrator's to tell.
+    const waiting = currentStage(session.state.duty.mission);
+    const rolled = draft.applied.some((a) => a.event.type === 'missionStageResolved' || a.event.type === 'missionStageStarted');
+    const stageWaiting = waiting && waiting.kind === 'check' && !rolled && !draft.combat ? waiting.label : null;
+    const known = { player: [...selectWounds(session.state), ...selectWounds(resolved)].map((w) => w.part), lasting, captors, stageWaiting };
     // The previous story reply (dev commands are not story): a narration that repeats it is a contradiction (D-210).
     const previous = [...session.history].reverse().find((r) => r.input.kind !== 'dev' && r.narrative)?.narrative ?? null;
     const recheck = (text: string): NarrationIssue[] => checkNarration(text, draft, woundedOrHealing, known, previous);
@@ -491,6 +554,19 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
       notLegal.push({ event: e, reason: `event type ${e.type} is not allowed this turn` });
       return false;
     }
+    // A fight during a mission stage (m9-release A2) only as the code's own: the fight approach, or a failed check's complication
+    // this turn. Otherwise the stage waits for the player's approach.
+    if (e.type === 'combatStarted' && stageFightBarred(resolved, draft)) {
+      notLegal.push({ event: e, reason: "combatStarted refused: during a mission stage a fight comes only from the code (the fight approach, or a failed check's complication) (m9-release A2)" });
+      return false;
+    }
+    // All travel is the code's (m9-release A12): the narrator never moves the character to another world; a trip goes through the
+    // travel rules (a travel choice or the player's words), and the code moves the character at its end.
+    const toWorld = narratorMoveWorld(resolved, e);
+    if (toWorld !== null) {
+      notLegal.push({ event: e, reason: `${e.type} refused: moving between worlds (to ${toWorld}) is the code's travel; offer a travel choice instead (m9-release A12)` });
+      return false;
+    }
     if (e.type === 'hazardOccurred' && !resolved.combat.active && (draft.combat !== null || engineHazard)) {
       notLegal.push({ event: e, reason: draft.combat ? 'hazardOccurred refused: during and right after a fight, hazards come only from the engine\'s terrain rolls (D-212)' : 'hazardOccurred refused: the engine already resolved a hazard this turn (D-212)' });
       return false;
@@ -535,7 +611,11 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     const id = t ? result.tempMap[t] : undefined;
     return id ? { ...c, intent: { ...c.intent, targetRef: id } } : c;
   });
-  const fc = choicesAfterTurn(state, draft.combat !== null, replyChoices);
+  // The narrator never offers a mission or a summons to one as a choice (m9-release A4): such a choice is dropped (the code's own
+  // mission choices come below).
+  const assigned = [...draft.applied, ...appliedAll].some((a) => a.event.type === 'missionAssigned' || a.event.type === 'postingAssigned');
+  const hinted = assigned ? [] : replyChoices.filter((c) => hintsAtMission(c.label));
+  const fc = choicesAfterTurn(state, draft.combat !== null, hinted.length ? replyChoices.filter((c) => !hinted.includes(c)) : replyChoices);
   // Opponents outside the Force (D-192; M5 final check): no Force push, choke, lightning or mind trick offered against
   // them, from the turn that starts the fight (pending or active).
   const immune = withoutForceOnImmune(state, fc.choices);
@@ -554,6 +634,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   if (!inBattle && !state.combat.active) choices.unshift(...missionChoices(state).filter((c) => !choices.some((x) => x.label === c.label)));
   const skip = inBattle ? null : skipAheadChoice(state, choices);
   const skipNotes: string[] = fc.dropped ? [`fight over: ${fc.dropped} tactical choice(s) dropped (D-181)`] : [];
+  if (hinted.length) skipNotes.push(`narrator's choice(s) offering a mission or a summons dropped (m9-release A4): ${hinted.map((c) => `"${c.label}"`).join(', ')}`);
   if (immune.dropped) skipNotes.push(`outside the Force (${outsideForceOpponents(state).join(', ')}): ${immune.dropped} Force choice(s) dropped`);
   if (skip) {
     choices.push(skip);

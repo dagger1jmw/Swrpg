@@ -54,6 +54,12 @@ export const missionSchema = z.object({
   chainLength: z.number().int().min(0),
   /** The character has left base since the assignment (opt-2's rule, kept). */
   leftHome: z.boolean(),
+  /** The trip out to the target has begun (m9-release A11): a mission set out for is never given to someone else on the way. */
+  setOut: z.boolean().optional(),
+  /** Leads the narrator proposed and the code took on this mission (m9-release A13). */
+  leads: z.number().int().min(0).optional(),
+  /** A lead past the job (m9-release A13): a follow-up on the same thread to this world when the mission succeeds. */
+  followUp: z.object({ world: z.string().max(80), why: z.string().max(160) }).nullable().optional(),
 });
 export type Mission = z.infer<typeof missionSchema>;
 
@@ -65,6 +71,8 @@ export const postingSchema = z.object({
   base: z.object({ name: z.string().max(80), planet: z.string().max(80) }),
   sinceDay: z.number().int(),
   nextLeaveDay: z.number().int(),
+  /** The character has reached the base (m9-release A6): false from the posting until arrival; absent on older saves (arrived). */
+  arrived: z.boolean().optional(),
 });
 export type Posting = z.infer<typeof postingSchema>;
 
@@ -93,6 +101,8 @@ export const dutySliceSchema = z.object({
   proposalDay: z.number().int().nullable(),
   /** A narrator's proposal the code accepted, assigned at the next passage of time (B10). */
   proposal: z.object({ type: z.string().max(40), world: z.string().max(80), why: z.string().max(160) }).nullable(),
+  /** Leave is counted from the first posting of a war (m9-release A8): the war and the next leave's day, kept across postings. */
+  leaveClock: z.object({ warId: z.string().max(40), nextLeaveDay: z.number().int() }).nullable().optional(),
   /** /allhands on|off (m9-missions A6, dev only): all hands on deck for the character's side, whatever the timeline says. */
   devAllHands: z.boolean().optional(),
   /** Duty switched off: a harness that measures the training routine alone (the lifetime runs). Never set in play. */

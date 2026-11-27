@@ -5,7 +5,7 @@
 // suggests (missionProposed), which the code checks.
 import { z } from 'zod';
 import { DUTY_LOG_MAX } from '../../data/duty.config';
-import { COMPLICATION_STAGES, MISSION_HISTORY_MAX, MISSION_STANDING, MISSION_TYPES, MISSION_TYPE_IDS, POSTING, STAGE_RULES } from '../../data/missions.config';
+import { COMPLICATION_STAGES, LEAD_STAGE, LEADS, MISSION_HISTORY_MAX, MISSION_STANDING, MISSION_TYPES, MISSION_TYPE_IDS, POSTING, STAGE_RULES } from '../../data/missions.config';
 import { PLANETS } from '../../data/galaxyMap';
 import { dateFromAbsDay, fromAbsSecond } from '../../engine/calendar';
 import { nextFloat } from '../../engine/rng';
@@ -15,8 +15,8 @@ import { selectWounds } from '../health/selectors';
 import { selectLocationChain } from '../locations/selectors';
 import { dutySliceSchema, emptyRecord, missionSchema, postingSchema, type DutySlice, type Mission } from './duty';
 import { selectAtHome, selectAtPlace, selectCurrentWorld, selectHomeBase } from './home';
-import { buildMission, frontRunning, migrateDutyV2, missionBase, pickMissionType, pickWorld, postingEligible, postingFor, stageFromDef, stageNeedsPlayer } from './missions';
-import { allHandsNow, injuryBlock, missionChance, missionMedian } from './rules';
+import { buildMission, worldOpen, frontRunning, migrateDutyV2, missionBase, pickMissionType, pickWorld, postingEligible, postingFor, stageFromDef, stageNeedsPlayer } from './missions';
+import { allHandsNow, injuryBlock, missionChance, missionMedian, missionRoll } from './rules';
 import { selectDutyLine, selectDutyPromptLine, selectFitnessLine, selectHomeDayLine, selectMissionPromptLine, selectPostingPromptLine } from './selectors';
 
 type R = { slice: DutySlice; notes?: string[] } | { reject: string };
@@ -97,6 +97,16 @@ export const dutyFeature: FeatureModule<DutySlice, GameState> = {
         if (m.phase !== 'onSite' || st?.kind !== 'travel') return { reject: 'no travel stage now' };
         const next = advanced({ ...m, leftHome: true });
         return { slice: { ...slice, mission: next, log: logged(slice, day, `${st.label}: reached ${st.world ?? 'the next world'}`) }, notes: [`${st.label}: done`] };
+      },
+    },
+    /** Engine only (m9-release A11): the trip out to the target begins; a long trip no longer reads as never setting out. */
+    missionSetOut: {
+      schema: z.object({ type: z.literal('missionSetOut') }),
+      sources: ['engine'],
+      handle: (slice): R => {
+        const m = slice.mission;
+        if (slice.status !== 'mission' || !m || m.phase !== 'outbound') return { reject: 'no mission to set out for' };
+        return { slice: { ...slice, mission: { ...m, setOut: true } } };
       },
     },
     /** Engine only: a fight or battle begun for the current stage (B3). */
@@ -193,7 +203,7 @@ export const dutyFeature: FeatureModule<DutySlice, GameState> = {
       sources: ['engine'],
       handle: (slice, e, ctx): R => {
         const p = e['posting'] as DutySlice['posting'] & object;
-        return { slice: { ...slice, posting: p, leave: null, log: logged(slice, ctx.state.clock.now.day, `posted to ${p.front}`) }, notes: [`posted to ${p.front} (${p.base.name})`] };
+        return { slice: { ...slice, posting: p, leave: null, leaveClock: { warId: p.warId, nextLeaveDay: p.nextLeaveDay }, log: logged(slice, ctx.state.clock.now.day, `posted to ${p.front}`) }, notes: [`posted to ${p.front} (${p.base.name})`] };
       },
     },
     /** Engine only (B5b): the posting ends: its front's war events ended, a recall, or an evacuation. */
@@ -222,7 +232,7 @@ export const dutyFeature: FeatureModule<DutySlice, GameState> = {
       sources: ['engine'],
       handle: (slice, e, ctx): R => {
         if (!slice.posting || !slice.leave) return { reject: 'not on leave' };
-        return { slice: { ...slice, leave: null, posting: { ...slice.posting, nextLeaveDay: Number(e['nextLeaveDay']) }, log: logged(slice, ctx.state.clock.now.day, 'leave over') }, notes: ['leave is over: back to the front'] };
+        return { slice: { ...slice, leave: null, posting: { ...slice.posting, nextLeaveDay: Number(e['nextLeaveDay']) }, leaveClock: { warId: slice.posting.warId, nextLeaveDay: Number(e['nextLeaveDay']) }, log: logged(slice, ctx.state.clock.now.day, 'leave over') }, notes: ['leave is over: back to the front'] };
       },
     },
     /**
@@ -244,7 +254,46 @@ export const dutyFeature: FeatureModule<DutySlice, GameState> = {
         if (slice.proposalDay !== null && day - slice.proposalDay < 7) return { reject: 'a proposal was taken this week' };
         const world = PLANETS.find((p) => p.name.toLowerCase() === String(e['world']).trim().toLowerCase());
         if (!world) return { reject: `${String(e['world'])} is not a world on the map` };
+        if (!worldOpen(s, world.name)) return { reject: `${world.name} is not open to the character by the travel rules (closed this year, or off the charted routes)` };
         return { slice: { ...slice, proposal: { type: String(e['missionType']), world: world.name, why: String(e['why']) }, proposalDay: day }, notes: [`the code will assign it: ${MISSION_TYPES[String(e['missionType'])]!.name} on ${world.name}`] };
+      },
+    },
+    /**
+     * The narrator's lead (m9-release A13): found in play on an investigation or a manhunt, checked like other proposals. "here" adds
+     * a stage after the current one (follow the lead); "world" adds the trip to another map world and a stage there; "followUp" sets
+     * a follow-up mission on the same thread, assigned by the code when this one succeeds. Never decides or ends a stage.
+     */
+    missionLeadFound: {
+      schema: z.object({ type: z.literal('missionLeadFound'), lead: z.enum(['here', 'world', 'followUp']), world: z.string().max(60).optional(), why: z.string().min(1).max(160) }),
+      sources: ['ai'],
+      narrative: (s) => {
+        const m = s.duty.mission;
+        return s.duty.status === 'mission' && m !== null && m.phase === 'onSite' && m.outcome === null && LEADS.types.includes(m.type) && (m.leads ?? 0) < LEADS.maxPerMission;
+      },
+      handle: (slice, e, ctx): R => {
+        const m = slice.mission;
+        if (slice.status !== 'mission' || !m || m.phase !== 'onSite' || m.outcome !== null) return { reject: 'no mission on site' };
+        if (!LEADS.types.includes(m.type)) return { reject: `leads are followed on investigations and manhunts, not ${MISSION_TYPES[m.type]?.name ?? m.type}` };
+        if ((m.leads ?? 0) >= LEADS.maxPerMission) return { reject: `this mission has taken its ${LEADS.maxPerMission} leads` };
+        const st = m.stages[m.current];
+        if (st?.fightId || st?.battleFrom !== null && st?.battleFrom !== undefined) return { reject: 'not in the middle of a fight or battle' };
+        const why = String(e['why']);
+        const lead = String(e['lead']);
+        const day = ctx.state.clock.now.day;
+        const here = selectCurrentWorld(ctx.state);
+        const world = e['world'] !== undefined ? PLANETS.find((p) => p.name.toLowerCase() === String(e['world']).trim().toLowerCase())?.name ?? null : null;
+        if (lead !== 'here' && !world) return { reject: `${String(e['world'] ?? 'no world')} is not a world on the map` };
+        if (lead !== 'here' && !worldOpen(ctx.state, world!)) return { reject: `${world} is not open to the character by the travel rules (closed this year, or off the charted routes)` };
+        if (lead === 'world' && here && world!.toLowerCase() === here.toLowerCase()) return { reject: 'that lead is on this world: a lead here' };
+        const n = (m.leads ?? 0) + 1;
+        if (lead === 'followUp') {
+          return { slice: { ...slice, mission: { ...m, leads: n, followUp: { world: world!, why } }, log: logged(slice, day, `a lead past the job: ${world} (${why})`) }, notes: [`lead: a follow-up on ${world} when this succeeds`] };
+        }
+        const add = lead === 'world' ? [stageFromDef({ id: 'leadTrip', label: 'follow the lead', kind: 'travel' }, world, why), stageFromDef(LEAD_STAGE, null, why)] : [stageFromDef(LEAD_STAGE, null, why)];
+        if (m.stages.length + add.length > 12) return { reject: 'the mission has no room for another stage' };
+        const stages = [...m.stages];
+        stages.splice(m.current + 1, 0, ...add);
+        return { slice: { ...slice, mission: { ...m, stages, leads: n }, log: logged(slice, day, `a lead: ${why}${lead === 'world' ? ` (to ${world})` : ''}`) }, notes: [`lead taken: ${add.map((x) => x.label).join(', ')}`] };
       },
     },
     /** Dev only (/allhands, m9-missions A6): all hands on deck for the character's side, on or off. */
@@ -294,7 +343,7 @@ export const dutyFeature: FeatureModule<DutySlice, GameState> = {
       } else if (atBase && m.outcome === null && m.leftHome && !local && m.phase !== 'outbound') {
         emit.push({ type: 'missionEnded', how: 'came back with the work undone', outcome: 'failure' });
         notices.push(`Duty: ${short(m)} is over: you came back with the work undone.`);
-      } else if (step.endsDay && m.outcome === null && m.phase === 'outbound' && day - m.assignedDay > STAGE_RULES.setOutDays) {
+      } else if (step.endsDay && m.outcome === null && m.phase === 'outbound' && m.setOut !== true && day - m.assignedDay > STAGE_RULES.setOutDays) {
         emit.push({ type: 'missionEnded', how: 'never set out: given to someone else', outcome: 'failure' });
         notices.push(`Duty: ${short(m)} was given to someone else (you never set out).`);
       } else if (step.endsDay && m.outcome === null && m.deadlineDay !== null && day > m.deadlineDay) {
@@ -309,7 +358,12 @@ export const dutyFeature: FeatureModule<DutySlice, GameState> = {
     const year = yearOfDay(day);
     // Postings and leave, at midnight (B5b, B5c).
     if (next.posting) {
-      const p = next.posting;
+      let p = next.posting;
+      // The posting's base reached (m9-release A6): from now on the line reads "at" or "away from" the base.
+      if (p.arrived === false && selectAtPlace(sx, p.base)) {
+        p = { ...p, arrived: true };
+        next = { ...next, posting: p };
+      }
       if (!frontRunning(p.frontId, year)) {
         emit.push({ type: 'postingEnded', why: "the front's war events have ended" });
         notices.push(`Duty: the posting to ${p.front} ends: its war events are over.`);
@@ -322,7 +376,7 @@ export const dutyFeature: FeatureModule<DutySlice, GameState> = {
         notices.push(`Duty: leave is over; back to ${p.base.name}.`);
         return { slice: next, rng, emit, notices, interrupt: 'Leave is over: back to the front' };
       }
-      if (!next.leave && day >= p.nextLeaveDay && canBeAssigned(s)) {
+      if (!next.leave && p.arrived !== false && day >= p.nextLeaveDay && canBeAssigned(s)) {
         [u, rng] = nextFloat(rng);
         const [lo, hi] = POSTING.leaveDays;
         emit.push({ type: 'leaveStarted', untilDay: day + Math.round(lo + u * (hi - lo)) });
@@ -354,10 +408,10 @@ export const dutyFeature: FeatureModule<DutySlice, GameState> = {
       return { slice: next, rng, emit, notices, interrupt: `A mission assignment: ${short(built.mission)}` };
     }
     // The daily roll, at midnight, while at base and off duty: story days and skips alike.
-    const median = missionMedian(sx);
-    if (median === null || !canBeAssigned(s) || !selectAtHome(sx)) return { slice: next, ...(rng !== s.meta.rngState ? { rng } : {}) };
+    const roll = missionRoll(sx);
+    if (roll === null || !canBeAssigned(s) || !selectAtHome(sx)) return { slice: next, ...(rng !== s.meta.rngState ? { rng } : {}) };
     [u, rng] = nextFloat(rng);
-    if (u >= missionChance(day - next.since, median)) return { slice: next, rng };
+    if (u >= missionChance(day - next.since, roll.median, roll)) return { slice: next, rng };
     // The injury check on every assignment (opt-2 D3).
     const hands = allHandsNow(sx);
     const block = injuryBlock(selectWounds(s), hands !== null);

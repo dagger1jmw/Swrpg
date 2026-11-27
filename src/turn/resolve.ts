@@ -151,7 +151,12 @@ export const isJumpLevel = (l: PacingLevel | undefined): l is JumpLevel => l !==
  * The pacing level for a span (D-72, extended in M4): the requested level when the span fits its range,
  * else the smallest level whose range holds it; spans past 10 years clamp to the time-skip maximum.
  */
-export function pacingForSpan(seconds: number, requested?: PacingLevel): { level: PacingLevel; seconds: number; clampedFrom?: number } {
+export function pacingForSpan(seconds: number, requested?: PacingLevel, exact = false): { level: PacingLevel; seconds: number; clampedFrom?: number } {
+  // A trip's time is the travel rules', never clamped (m9-release A3): past a scene's 12 h it is told as a montage of its own length.
+  if (exact) {
+    if (seconds <= PACING_RANGES.scene.max) return { level: seconds <= PACING_RANGES.moment.max ? 'moment' : 'scene', seconds };
+    return { level: seconds <= PACING_RANGES.montage.max ? 'montage' : 'timeSkip', seconds };
+  }
   const fit = (level: PacingLevel) => {
     const r = PACING_RANGES[level];
     const s = Math.min(r.max, Math.max(r.min, seconds));
@@ -177,6 +182,13 @@ export function jumpTargetDay(fromDay: number, seconds: number, span?: Requested
     if (Number.isInteger(months) && months > 0) return addCalendarMonths(fromDay, months);
   }
   return fromDay + Math.max(1, Math.round(seconds / 86_400));
+}
+
+/** The morning a trip of `seconds` ends on (m9-release A3): the wake time nearest the arrival, at least the next morning. */
+export function tripTargetDay(s: GameState, seconds: number): number {
+  const wake = s.routines.active.wakeSecond;
+  const arrive = s.clock.now.day * 86_400 + s.clock.now.second + seconds;
+  return Math.max(s.clock.now.day + 1, Math.round((arrive - wake) / 86_400));
 }
 
 export function resolveJump(registry: Registry<GameState>, initial: GameState, level: JumpLevel, targetDay: number, reason: string, rest = false, homeDays = false) {
@@ -478,6 +490,9 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       travel = leg.travel;
       if (travel.ok) apply([...leg.events]);
     }
+    // The trip out to a mission's target begins (m9-release A11): recorded before the days pass, so a long trip is not "never set out".
+    const outbound = state.duty.mission;
+    if (travel?.ok && outbound?.phase === 'outbound' && outbound.setOut !== true && outbound.targetWorld.toLowerCase() === travel.to.toLowerCase()) apply([{ type: 'missionSetOut' }]);
     if (travel?.ok) {
       if (intent.requestedSpan) report.push(`travel time is the engine's (${travel.hours} h), not the requested span`);
       spanSeconds = Math.round(travel.hours! * 3600);
@@ -493,12 +508,15 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
 
     // Montage and time skip (M4): the routine runs day by day to the target morning; checks and a
     // single training session do not apply (the routine is the training, D-139).
-    const jumpSpan = spanSeconds !== null ? pacingForSpan(spanSeconds, intent.requestedPacing) : null;
+    // A trip (m9-release A3): the travel rules' hours stand; the narrator's scene-span clamp never cuts them.
+    const trip = travel?.ok === true && !(watch && !('refused' in watch));
+    const jumpSpan = spanSeconds !== null ? pacingForSpan(spanSeconds, trip ? undefined : intent.requestedPacing, trip) : null;
     if (jumpSpan && isJumpLevel(jumpSpan.level)) {
       const level = jumpSpan.level;
       if (jumpSpan.clampedFrom !== undefined) report.push(`requested span ${jumpSpan.clampedFrom}s clamped to ${jumpSpan.seconds}s (${level})`);
       const reason = intent.requestedSpan ? `${level} for ${intent.requestedSpan.amount} ${intent.requestedSpan.unit}` : level;
-      const target = jumpTargetDay(state.clock.now.day, jumpSpan.seconds, intent.requestedSpan, jumpSpan.clampedFrom !== undefined);
+      // A trip ends on the morning nearest its arrival (m9-release A3; a montage runs the days to a wake time).
+      const target = trip ? tripTargetDay(state, jumpSpan.seconds) : jumpTargetDay(state.clock.now.day, jumpSpan.seconds, intent.requestedSpan, jumpSpan.clampedFrom !== undefined);
       // Rest and care over days (D-199): the care period starts first, and the days are rest and recovery, not training.
       const resting = intent.actionType === 'rest' || intent.actionType === 'heal' || intent.actionType === 'sleep' || intent.healing !== undefined;
       // Care over the jump (medicine.md, D-511): the events, the surgery roll and the bill come from the care plan.
@@ -544,7 +562,7 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
       }
     }
 
-    const span = spanSeconds !== null ? pacingForSpan(spanSeconds) : null;
+    const span = spanSeconds !== null ? pacingForSpan(spanSeconds, undefined, trip) : null;
     const wantedLevel = span?.level ?? intent.requestedPacing;
     if (wantedLevel && wantedLevel !== selectPacingLevel(state)) apply([{ type: 'pacingSet', level: wantedLevel }]);
 

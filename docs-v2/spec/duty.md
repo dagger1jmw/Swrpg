@@ -4,6 +4,8 @@ Jared, 26 Nov 2026 (opt-2 D). Decision: D-538. Report: docs-v2/reports/opt-2.md 
 
 **Amended by m9-missions (27 Nov 2026; [missions.md](missions.md), D-547 to D-553):** a mission is now a code-owned record with stages, travel and an end at base (missions.md); its thread no longer ends it. While posted in a total war, home is the forward base. The daily roll runs only at home (at base) and not on leave. The Padawan scale is 1.2, and only for a Padawan without a master (a Padawan with a master shares the master's). The DUTY line forbids assigning, offering or hinting at a mission. Dev: `/mission`, `/allhands`, `/home`.
 
+**Amended by m9-release (27 Nov 2026; [missions.md](missions.md), D-554 to D-558):** at a forward base the gap between missions is 2-5 days (section 3, `MISSION_ROLL_FRONT`); a posting reads "Posted to ..., not yet left" until the character arrives; a skip stopped by an order is told as the order arriving, with the code's choices and, for a posting, a day to settle affairs (section 6); the DUTY line's ban on summons is enforced on the opening too, with a summons phrase list, and a narrator's choice that offers a mission or a summons is dropped (section 7).
+
 Code:
 - Data: `src/data/duty.config.ts` (the roll, the scales, the mission names, the injury threshold, the all-hands tail); `src/data/worldNetwork.ts` (`turnFor`, `allHands` on timeline events; set in worldNetwork3661.ts).
 - Feature: `src/features/duty/` (slice, events, the day hook; `home.ts` home base and "touches the character"; `rules.ts` the roll, the injury check, all hands; `selectors.ts` the side panel's and narrator's lines, a home day's people).
@@ -25,6 +27,7 @@ No mission, assignment or posting state. Missions were a rolled world event ("A 
 ## 3. The daily mission roll
 
 - At each midnight at home, off duty: the chance that day is a Weibull hazard of shape 2.5 in the days off duty, none in the first 2 days, scaled so half are assigned by the median. The same roll in story days and in skips: a skip stops on the day it comes up.
+- **On a front** (m9-release A7): while posted at the forward base, the roll uses its own numbers: none on the first day back, median 3.5 days, shape 4, so 9 in 10 gaps are 2-5 days. The rank's scale stretches the part after the quiet day.
 - **Medians:** a Jedi Knight 35 days in peace, 10 at war (the character's side at war by the one war list). Scales: a Padawan or apprentice 1.2 without a master (m9-missions A2, B7; was 1.6), a Knight or Lord 1, a Master 1.2; soldiers, officers, pilots, gunners, snipers, agents and Mandalorians 1, analysts 1.2, smugglers and bounty hunters 1.3; Initiates, acolytes and civilians none. A career's side is its start's faction or its service (the Republic Army is the Republic's).
 - No roll while dead, held, in a fight or in a battle.
 - **Retired:** the rolled world event "A mission is offered" (one source of missions).
@@ -59,6 +62,7 @@ No mission, assignment or posting state. Missions were a rolled world event ("A 
 | Number | Where |
 | --- | --- |
 | No assignment in the first 2 days; Weibull shape 2.5 | `MISSION_ROLL` |
+| On a front: none the first day, median 3.5, shape 4 (m9-release A7) | `MISSION_ROLL_FRONT` |
 | Medians 35 days (peace), 10 (war) | `MISSION_ROLL` |
 | Scales by rank and career | `MISSION_SCALE_BY_RANK`, `MISSION_SCALE_BY_CAREER` |
 | Mission names by path and war | `MISSION_KINDS` |

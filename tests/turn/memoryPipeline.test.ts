@@ -12,6 +12,7 @@ import { REGISTRY } from '../../src/state/registry';
 import { createCampaign, DEFAULT_START_SECOND, openingPending, resumeCampaign } from '../../src/turn/campaign';
 import { playTurn, summarizeChapters, type DebugRequest, type Session, type TurnDeps } from '../../src/turn/pipeline';
 import openingM2 from '../fixtures/ai/opening-m2.json';
+import { selectCurrentWorld } from '../../src/features/duty/selectors';
 
 function setup(steps: FixtureStep[]) {
   const provider = createFixtureProvider(steps);
@@ -185,22 +186,29 @@ describe('M2 pipeline: memory and lore', () => {
     expect(retried.session.state.memory.chapters[0]!.summary).toBe('Recovered.');
   });
 
+  // m9-release A12: the move between worlds is the code's trip (the narrator's own move to another world is refused, below).
   it('moving to another planet closes the chapter before the arrival turn', async () => {
     const { deps } = setup([
       { callType: 'narrative', data: openingM2 },
       { callType: 'narrative', data: quiet() },
-      {
-        callType: 'narrative',
-        data: quiet([
-          { type: 'locationIntroduced', key: 'tmp:1', name: 'Tython', kind: 'planet', region: 'Deep Core', description: '', moveHere: true },
-        ]),
-      },
+      { callType: 'narrative', data: quiet() },
       { callType: 'summary', data: { chapterSummary: 'Temple days.', arcSummary: 'Arc.' } },
     ]);
     let s = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
     s = (await playTurn(deps, s, { kind: 'choice', choice: restChoice })).session;
-    const r = await playTurn(deps, s, { kind: 'choice', choice: restChoice });
+    const r = await playTurn(deps, s, { kind: 'choice', choice: { label: 'Travel to Alderaan', intent: { actionType: 'travel', targetRef: 'Alderaan' } } });
     expect(r.record.chapterClosed).toMatchObject({ turnRange: [0, 2] });
     expect(r.session.state.memory.current.startTurn).toBe(3);
+  });
+
+  it("the narrator's own move to another world is refused (m9-release A12)", async () => {
+    const { deps } = setup([
+      { callType: 'narrative', data: openingM2 },
+      { callType: 'narrative', data: quiet([{ type: 'locationIntroduced', key: 'tmp:1', name: 'Tython', kind: 'planet', region: 'Deep Core', description: '', moveHere: true }]) },
+    ]);
+    const s = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
+    const r = await playTurn(deps, s, { kind: 'choice', choice: restChoice });
+    expect(r.record.rejected.some((x) => /moving between worlds \(to Tython\) is the code's travel/.test(x.reason))).toBe(true);
+    expect(selectCurrentWorld(r.session.state)).toBe('Coruscant');
   });
 });
