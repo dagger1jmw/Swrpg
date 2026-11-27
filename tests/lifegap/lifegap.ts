@@ -25,6 +25,9 @@ export interface GapRow {
   forms: Record<string, { level: number; xp: number }>;
   skills: Record<string, number>;
   missions: typeof missionStats;
+  /** Days with a moderate or worse wound, and days in a bacta tank, over the life. */
+  woundedDays: number;
+  tankDays: number;
   seconds: number;
 }
 
@@ -65,7 +68,9 @@ export const GAP_JOBS: Job<GapRow>[] = GAP_ARCHETYPES.flatMap((id, i) =>
         forceSense: fs,
         forms,
         skills,
-        missions: { ...m, types: { ...m.types }, dutyFormXp: Math.round(m.dutyFormXp), routineHours: Math.round(m.routineHours), routineFormXp: Math.round(m.routineFormXp), dutyXpBy: rounded(m.dutyXpBy), routineFormXpBy: rounded(m.routineFormXpBy) },
+        woundedDays: Object.values(r.woundedDaysByAge).reduce((x, y) => x + y, 0),
+        tankDays: r.tankDays,
+        missions: { ...m, dutyTrainedHours: Math.round(m.dutyTrainedHours), types: { ...m.types }, dutyFormXp: Math.round(m.dutyFormXp), routineHours: Math.round(m.routineHours), routineFormXp: Math.round(m.routineFormXp), dutyXpBy: rounded(m.dutyXpBy), routineFormXpBy: rounded(m.routineFormXpBy) },
         seconds: Math.round((Date.now() - t) / 1000),
       };
     },
@@ -98,6 +103,11 @@ export function summarize(rows: readonly GapRow[]): Record<string, unknown>[] {
       dutyFormXp: mean(rs.map((r) => r.missions.dutyFormXp)),
       dutyXpBy: avg((r) => r.missions.dutyXpBy),
       routineHours: mean(rs.map((r) => r.missions.routineHours)),
+      dutyTrainedHours: mean(rs.map((r) => r.missions.dutyTrainedHours)),
+      dutyFights: mean(rs.map((r) => r.missions.dutyFights)),
+      postedDays: mean(rs.map((r) => r.missions.postedDays)),
+      woundedDays: mean(rs.map((r) => r.woundedDays)),
+      tankDays: mean(rs.map((r) => r.tankDays)),
       routineFormXp: mean(rs.map((r) => r.missions.routineFormXp)),
       routineFormXpBy: avg((r) => r.missions.routineFormXpBy),
       types: avg((r) => r.missions.types),

@@ -214,11 +214,15 @@ export const missionStats = {
   /** m9-tune A1: the XP duty's turns gave each skill (forms and the rest: fights, stage checks, battles), and the routine's form XP by form. */
   dutyXpBy: {} as Record<string, number>,
   routineFormXpBy: {} as Record<string, number>,
+  /** Training hours inside duty's turns (a long trip runs the routine), the fights duty's turns fought, the days posted. */
+  dutyTrainedHours: 0,
+  dutyFights: 0,
+  postedDays: 0,
 };
 
 /** Zeroes the missions-on counts before a life (the lifegap jobs). */
 export function resetMissionStats(): void {
-  Object.assign(missionStats, { missions: 0, success: 0, failure: 0, cutShort: 0, missionDays: 0, turns: 0, types: {}, dutyDays: 0, dutyFormXp: 0, routineHours: 0, routineFormXp: 0, dutyXpBy: {}, routineFormXpBy: {} });
+  Object.assign(missionStats, { missions: 0, success: 0, failure: 0, cutShort: 0, missionDays: 0, turns: 0, types: {}, dutyDays: 0, dutyFormXp: 0, routineHours: 0, routineFormXp: 0, dutyXpBy: {}, routineFormXpBy: {}, dutyTrainedHours: 0, dutyFights: 0, postedDays: 0 });
 }
 
 export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
@@ -637,6 +641,10 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
         }
         const t = playDutyTurn(s);
         if (!t) break;
+        for (const ap of t.draft.applied) {
+          if (ap.event.type === 'activityResolved') missionStats.dutyTrainedHours += Number(ap.event['hours'] ?? 0);
+          if (ap.event.type === 'fightResolved') missionStats.dutyFights++;
+        }
         s = t.state;
         missionStats.turns++;
       }
@@ -647,6 +655,7 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
         if (d > 0) missionStats.dutyXpBy[k] = (missionStats.dutyXpBy[k] ?? 0) + d;
       }
       if (s.duty.status === 'mission') missionStats.missionDays += Math.max(1, s.clock.now.day - d0);
+      if (s.duty.posting) missionStats.postedDays += Math.max(1, s.clock.now.day - d0);
       const r1 = s.duty.record;
       missionStats.missions += r1.missions - r0.missions;
       missionStats.success += r1.successes - r0.successes;
