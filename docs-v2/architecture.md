@@ -710,6 +710,11 @@ chapter summary runs on the light model, only at chapter close. Models per call 
 config. Since D-531 (Flash for the big moments, a Settings switch, on by default) an ordinary story
 turn uses Flash-Lite with Flash as the last fallback, and the turns the code picks (the opening, a
 fight's or battle's end, a time skip, a major world event) and chapter summaries try Flash first.
+The slow-call cap (m9-tune C, D-565): that first Flash try gets one attempt of at most 25 s
+(`PREMIUM_WAIT`), with no retries on it; with no reply by then the call goes once to the call type's
+main model (Flash-Lite) with its usual retries, and the status line's counter names the model it now
+waits on. A narration check's retry always uses the main model. `/simulate slow <n>` (dev) stalls the
+next n requests until their time limit.
 A few typed phrases ("I wait", "continue") skip the intent call (D-530 C5). No continuation calls and no stitching; the only automatic extra call is the
 truncation retry (section 4).
 

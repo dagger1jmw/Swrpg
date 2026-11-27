@@ -25,6 +25,8 @@ export interface CallOptions {
   wireSchema?: ZodType;
   /** A big moment (opt-1 D): why the router may pick the stronger model. Never sent to the model. */
   premium?: string;
+  /** This call's own time limit (m9-tune C: the stronger model's capped try); else the provider's (REQUEST_TIMEOUT_MS). Never sent. */
+  timeoutMs?: number;
 }
 
 export interface Usage {

@@ -29,6 +29,7 @@ import { SPARRING_DEFAULT_BY_RANK, moraleFor, strikeIntentFor, withdrawChanceFor
 import { HEAL_MULT, SEVERITIES } from '../../src/data/health.config';
 import { sparGroupLevel } from '../../src/engine/appliedExperience';
 import { baseHealDays } from '../../src/engine/healing';
+import type { Wound } from '../../src/engine/wounds';
 import { advanceTime } from '../../src/state/advanceTime';
 import { MINION_KINDS } from '../../src/data/npcGen.config';
 import { currentTarget, disengageContest, fighterEffectiveLevel, runUntilBeat, startDuel, type DuelContext, type DuelState, type ExchangeRecord, type Fighter } from '../../src/engine/duel';
@@ -150,6 +151,30 @@ function moveForAge(p: LifeProfile, s: GameState, age: number): GameState {
     : [{ type: 'locationIntroduced', name: want.name, kind: 'planet', region: want.region, description: 'training ground', moveHere: true }];
   const r = applyEvents(REGISTRY, s, events, { source: 'engine' });
   if (r.rejected.length) throw new Error(`could not move to ${want.name}: ${JSON.stringify(r.rejected[0])}`);
+  // m9-tune A6 (missions on): the harness moves a Sith life to its new seat by date (Korriban, then Dromund Kaas), so duty's home
+  // moves with it. Duty records a non-Jedi home once, where it first sees the character; left there, the life was never "at home"
+  // after the move and the daily roll never fired. (A Jedi's home is the Order's seat of the year, read by date already.)
+  if (MISSIONS_ON && p.path !== 'jedi' && want.planet) return { ...r.state, duty: { ...r.state.duty, home: { name: want.planet, planet: want.planet } } };
+  return r.state;
+}
+
+/**
+ * m9-tune A6 (missions on): a career life's side and home (invented: the harness's career profiles had no place and no side, so
+ * duty saw no home and gave no missions). A soldier is a Republic Army trooper (the faction as the trooper start sets it; the
+ * service ladders are officer ladders, entered at Tactics 10) in a barracks on Coruscant.
+ */
+const CAREER_HOME: Readonly<Record<string, { optionId: string; faction: string; world: string }>> = { soldier: { optionId: 'republic-trooper', faction: 'republic', world: 'Coruscant' } };
+
+function careerService(p: LifeProfile, s0: GameState): GameState {
+  const c = CAREER_HOME[p.archetype];
+  if (!MISSIONS_ON || p.path !== 'career' || !c) return s0;
+  const s: GameState = { ...s0, character: { ...s0.character, start: { optionId: c.optionId, faction: c.faction, imperialBorn: false } } };
+  const region = planetByName(c.world)?.region ?? c.world;
+  const r = applyEvents(REGISTRY, s, [
+    { type: 'locationIntroduced', key: 'tmp:p', name: c.world, kind: 'planet', region, description: 'home world', moveHere: false },
+    { type: 'locationIntroduced', key: 'tmp:b', name: 'the barracks', kind: 'building', region: c.world, parentRef: 'tmp:p', description: 'the barracks', moveHere: true },
+  ], { source: 'engine' });
+  if (r.rejected.length) throw new Error(`career home: ${JSON.stringify(r.rejected[0])}`);
   return r.state;
 }
 
@@ -218,11 +243,14 @@ export const missionStats = {
   dutyTrainedHours: 0,
   dutyFights: 0,
   postedDays: 0,
+  /** m9-tune A1: Dying states stabilized on a mission, and care given after a mission's wounds. */
+  stabilized: 0,
+  cared: 0,
 };
 
 /** Zeroes the missions-on counts before a life (the lifegap jobs). */
 export function resetMissionStats(): void {
-  Object.assign(missionStats, { missions: 0, success: 0, failure: 0, cutShort: 0, missionDays: 0, turns: 0, types: {}, dutyDays: 0, dutyFormXp: 0, routineHours: 0, routineFormXp: 0, dutyXpBy: {}, routineFormXpBy: {}, dutyTrainedHours: 0, dutyFights: 0, postedDays: 0 });
+  Object.assign(missionStats, { missions: 0, success: 0, failure: 0, cutShort: 0, missionDays: 0, turns: 0, types: {}, dutyDays: 0, dutyFormXp: 0, routineHours: 0, routineFormXp: 0, dutyXpBy: {}, routineFormXpBy: {}, dutyTrainedHours: 0, dutyFights: 0, postedDays: 0, stabilized: 0, cared: 0 });
 }
 
 export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
@@ -254,7 +282,7 @@ export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
   // day, and its travel and stages are played by the player, which no profile does). LIFETIME_MISSIONS=on (m9-release A15, report
   // only) keeps duty on and plays the missions with the duty player.
   const quiet: GameState = MISSIONS_ON ? s : { ...s, duty: { ...s.duty, off: true } };
-  return setRoutine(p, moveForAge(p, quiet, p.startAge), rank);
+  return setRoutine(p, careerService(p, moveForAge(p, quiet, p.startAge)), rank);
 }
 
 const LADDER = { jedi: ['initiate', 'padawan', 'knight'], sith: ['acolyte', 'apprentice', 'lord'] } as const;
@@ -633,6 +661,7 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       const formXp = (st: GameState): number => FORM_IDS.reduce((a, f) => a + (st.progression.skills[f]?.xp ?? 0), 0);
       const x0 = formXp(s);
       const skills0 = s.progression.skills;
+      const wounds0 = new Set(s.health.wounds.map((w) => w.id));
       for (let k = 0; k < 60 && dutyNeedsPlayer(s); k++) {
         const m = s.duty.mission;
         if (m && !seenMissions.has(m.id + m.assignedDay)) {
@@ -647,6 +676,26 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
         }
         s = t.state;
         missionStats.turns++;
+        // m9-tune A1: a mission fight's Dying character is stabilized, as in the harness's own fights (D-143 B: a medic is present).
+        if (s.health.dying && !s.health.death) {
+          s = applyEvents(REGISTRY, s, [{ type: 'woundsStabilized', by: 'a field medic' }], { source: 'engine' }).state;
+          fightStats.stabilized += 1;
+          missionStats.stabilized += 1;
+        }
+      }
+      // m9-tune A1: care after a mission's wounds, as after the harness's own fights (D-162): a bacta tank in the profile's war years,
+      // else medical care (30 days) for the worst new wound. The duty player had never asked for care, so a mission's wound healed
+      // untreated for months while the routine trained around it.
+      {
+        const serious = s.health.wounds.filter((w) => !wounds0.has(w.id) && w.severity !== 'minor');
+        if (serious.length && !s.health.death) {
+          missionStats.cared += 1;
+          if (inWar(p, age)) {
+            const hours = Math.ceil((Math.max(...serious.map((w) => baseHealDays(w as Wound))) * 24) / HEAL_MULT.bacta);
+            s = applyEvents(REGISTRY, s, [{ type: 'careStarted', kind: 'bacta', hours }], { source: 'engine' }).state;
+            tankDays = Math.max(tankDays, Math.ceil(hours / 24));
+          } else if (p.path !== 'outsider') s = applyEvents(REGISTRY, s, [{ type: 'careStarted', kind: 'medical', hours: 30 * 24 }], { source: 'engine' }).state;
+        }
       }
       missionStats.dutyDays += s.clock.now.day - d0;
       missionStats.dutyFormXp += formXp(s) - x0;
@@ -798,8 +847,10 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
         paceRates.push(row);
       }
     }
-    // The clock is at the next wake: be where that day is spent before the hook looks (the seat changes on its date).
-    s = moveForAge(p, s, ageEnd);
+    // The clock is at the next wake: be where that day is spent before the hook looks (the seat changes on its date). With missions
+    // on (m9-tune A6), not while duty holds the life (a mission, or a posting): the move sent a posted character back to the Temple
+    // every night, and each morning began with the trip back to the front.
+    if (!(MISSIONS_ON && (s.duty.status === 'mission' || s.duty.posting !== null))) s = moveForAge(p, s, ageEnd);
     if (opts.onDay) s = opts.onDay(s, { day, age: ageEnd }) ?? s;
   }
   const xp = Object.fromEntries(Object.entries(s.progression.skills).map(([k, v]) => [k, v.xp]));

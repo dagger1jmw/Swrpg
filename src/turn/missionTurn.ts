@@ -5,7 +5,7 @@
 import type { Choice } from '../ai/schemas/compose';
 import type { Intent } from '../ai/schemas/intent';
 import { MENTION_ONLY, PLANETS } from '../data/galaxyMap';
-import { APPROACHES, MISSION_TYPES, STAGE_RULES, type ApproachId } from '../data/missions.config';
+import { APPROACHES, FORCE_APPROACHES, MISSION_TYPES, STAGE_RULES, type ApproachId } from '../data/missions.config';
 import { minionKindForYear } from '../data/npcGen.config';
 import { dateFromAbsDay } from '../engine/calendar';
 import { efficiency } from '../engine/fatigue';
@@ -13,14 +13,15 @@ import { nextFloat, type RngState } from '../engine/rng';
 import { checkRating, type CheckCard } from '../engine/rolls';
 import { allHandsNow, allHandsWorld, allyBonus, approachFor, approachRating, buildMission, chainRoll, complicationLine, councilBestReason, currentStage, failsMission, frontsFor, pickMissionType, postingFor, selectCurrentWorld, selectDutySide, selectHomeBase, selectSideWar, stageFoeCount, woundVerdict, worldOpen, type Mission } from '../features/duty/selectors';
 import { selectFatigue, selectIsSpent, selectLastingPenalty, selectWoundPenalty, selectWounds } from '../features/health/selectors';
-import { selectPerformance, selectRust } from '../features/progression/selectors';
+import { selectLevelExact, selectPerformance, selectRust } from '../features/progression/selectors';
+import { DIFFICULTY_STAKES } from '../data/skillXp.config';
 import { selectStanding } from '../features/ranks/selectors';
 import { resolveLocationRef } from '../features/locations/selectors';
 import { advanceTime } from '../state/advanceTime';
+import { fieldPractice } from '../state/fieldPractice';
 import { applyEvents, type AppliedEvent, type RejectedEvent } from '../state/applyEvents';
 import type { GameState } from '../state/gameState';
 import type { GameEvent, Registry } from '../state/types';
-import { playXpFromCheck } from './resolve';
 import { planTravel, type TravelOutcome } from './travel';
 
 /** What a mission step did to the turn: the state after it and what to add to the draft. */
@@ -49,7 +50,18 @@ function runner(registry: Registry<GameState>, initial: GameState) {
     for (const a of r.applied) out.report.push(...a.notes);
     return r.applied;
   };
-  /** Hours pass on the mission: work by day, a night's sleep between (no free day on a mission, B11). */
+  /** A short session on the routine's plan after the day's work, when the day allows one (m9-tune A2; state/fieldPractice.ts). */
+  const practice = (): void => {
+    const p = fieldPractice(registry, out.state);
+    if (!p.line) return;
+    out.state = p.state;
+    out.applied.push(...p.applied);
+    out.rejected.push(...p.rejected);
+    out.notices.push(...p.notices);
+    out.seconds += p.seconds;
+    out.report.push(`mission: ${p.line}`);
+  };
+  /** Hours pass on the mission: work by day, a night's sleep between (no free day on a mission, B11); a working day ends with practice. */
   const pass = (hours: number, occupation: 'activity' | 'rest', why: string): void => {
     let left = Math.max(0, hours);
     while (left > 0) {
@@ -62,6 +74,7 @@ function runner(registry: Registry<GameState>, initial: GameState) {
       out.seconds += r.secondsAdvanced;
       left -= chunk;
       if (left > 0) {
+        if (occupation === 'activity') practice();
         const z = advanceTime(registry, out.state, { seconds: 8 * 3600, reason: `${why}: the night`, source: 'turnDraft', occupation: 'sleep' });
         out.state = z.state;
         out.applied.push(...z.applied);
@@ -81,7 +94,7 @@ function runner(registry: Registry<GameState>, initial: GameState) {
     setRng(r);
     return u;
   };
-  return { out, apply, pass, rng, setRng, draw };
+  return { out, apply, pass, practice, rng, setRng, draw };
 }
 
 /** The enemy a mission's fight stage meets, by the side's war and the year (B3): a minion kind of the era. */
@@ -164,12 +177,32 @@ export function tryMissionStage(registry: Registry<GameState>, state: GameState,
     const fail = failsMission(m);
     apply([{ type: 'missionStageResolved', success: false, why: `${a.label} failed (margin ${card.margin.toFixed(1)})`, complication: comp, ...(fail ? { failMission: true } : card.margin <= -5 ? { insert: true } : {}) }]);
   }
-  // XP from what was done (B9; the existing sources): a Stealth roll is field use, a persuasion with no one named a social line.
-  const xp = playXpFromCheck(run.out.state, { actionType: approach === 'persuade' ? 'dialogue' : 'other', skillId: skill, difficulty: card.difficulty, success: card.success, rating: card.rating, npcTargets: [] });
-  if (xp.length) apply(xp);
+  // XP from the roll (m9-tune A4; before, only a Stealth roll taught anything): the skill it read learns from field use.
+  apply(stageXp(run.out.state, approach as ApproachId, skill, card));
   run.pass(hours, 'activity', `mission: ${stage.label}`);
   run.out.report.push(`mission: ${stage.label}: ${a.label.toLowerCase()} rolled ${card.total.toFixed(1)} against DC ${card.dc.toFixed(1)} (${card.success ? 'success' : 'failure'}); ${hours} h`);
+  run.practice();
   return run.out;
+}
+
+/** The approaches that are talk (m9-tune A4): a conversation with something at stake, so a social line (Charisma) as well. */
+const SOCIAL_APPROACHES: readonly ApproachId[] = ['persuade', 'influence', 'read'];
+
+/**
+ * XP from a stage's roll (m9-tune A4): Stealth by its field-use rule, Charisma by the persuasion rule (the stage's rating as the
+ * resistance), every other skill by the field-check rule; a social approach on another skill (influence, read them) adds a
+ * social line. Stakes from the check's difficulty; the gap is the rating against the skill.
+ */
+export function stageXp(s: GameState, approach: ApproachId, skill: string, card: CheckCard): GameEvent[] {
+  const stakes = DIFFICULTY_STAKES[card.difficulty] ?? 'notable';
+  const gap = card.rating - selectLevelExact(s, skill);
+  const base = { type: 'playXpEarned', success: card.success, stakes, gap } as const;
+  const out: GameEvent[] = [];
+  if (skill === 'stealth') out.push({ ...base, source: 'stealth', why: 'stealth in the field' });
+  else if (skill === 'charisma') out.push({ ...base, source: 'persuasion', why: 'talking your way through a mission' });
+  else out.push({ ...base, source: 'fieldCheck', skillId: skill, why: `${APPROACHES[approach].label.toLowerCase()} on a mission`.slice(0, 120) });
+  if (SOCIAL_APPROACHES.includes(approach) && skill !== 'charisma') out.push({ type: 'playXpEarned', source: 'socialLine', stakes, why: "a mission's talks" });
+  return out;
 }
 
 /** A fight stage begun (B3: the combat engine decides it): minions of the era, a share held by the allies on the mission (B7). */
@@ -334,9 +367,12 @@ export function missionChoices(s: GameState): Choice[] {
     if (st.kind === 'fight') return [{ label: `Go in: ${st.label} (a fight)`, intent: { actionType: 'other', missionApproach: 'go' } }];
     if (st.kind === 'battle') return [{ label: `Take your place: ${st.label} (${st.battle === 'ship' ? 'a fleet action' : 'a battle'})`, intent: { actionType: 'other', missionApproach: 'battle' } }];
     const fu = forceUser(s);
-    for (const a of st.approaches.slice(0, 4)) {
+    // Up to four of the stage's ordinary approaches, then its Force approaches for a Force user (m9-tune B1: influence, read them).
+    const isForce = (a: string): boolean => FORCE_APPROACHES.includes(a as ApproachId);
+    const shown = [...st.approaches.filter((a) => !isForce(a)).slice(0, 4), ...(fu ? st.approaches.filter(isForce) : [])];
+    for (const a of shown) {
       const def = APPROACHES[a as ApproachId];
-      if (!def || (!fu && a === 'sense')) continue;
+      if (!def) continue;
       out.push({ label: `${st.label[0]!.toUpperCase()}${st.label.slice(1)}: ${def.label.toLowerCase()}`, intent: { actionType: 'other', missionApproach: a } });
     }
     return out;

@@ -106,7 +106,7 @@ export function createGeminiProvider(deps: GeminiDeps): ModelProvider {
       const url = `${base}/models/${encodeURIComponent(opts.model)}:generateContent`;
       // A stalled request must not leave the game waiting forever: abort after the timeout and
       // surface it as an error with a Retry button (no automatic call, D-16).
-      const timeoutMs = deps.timeoutMs ?? REQUEST_TIMEOUT_MS;
+      const timeoutMs = opts.timeoutMs ?? deps.timeoutMs ?? REQUEST_TIMEOUT_MS;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       let res: Response;

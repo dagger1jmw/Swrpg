@@ -327,6 +327,8 @@ export class App {
       this.session = r.session;
       // /simulate 503 n (D-250): the next n requests of this page fail as 503.
       if (r.simulate503 !== undefined) this.provider.arm(r.simulate503);
+      // /simulate slow n (m9-tune C): the next n requests stall until their time limit.
+      if (r.simulateSlow !== undefined) this.provider.armSlow(r.simulateSlow);
       this.draft = '';
       this.devNote = null;
       this.feedStick = true;

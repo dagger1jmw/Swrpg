@@ -29,6 +29,8 @@ export interface CombatInput {
   /** Fights this skill was used in earlier today. */
   fightsToday(skill: string): number;
   clamp(skill: string, wanted: number): { credited: number; discarded: number };
+  /** A field fight (m9-tune A3): this factor on each exchange's XP, before the daily cap and the later-fight factor. */
+  fieldMult?: number;
 }
 
 export interface CombatResult {
@@ -53,7 +55,9 @@ export function computeCombatXp(input: CombatInput): CombatResult {
   const outcome = session.surrendered ? COMBAT_XP.surrendered : COMBAT_XP.outcome[session.outcome];
   const notes: string[] = [];
   const rawBySkill: Record<string, number> = {};
-  for (const ex of session.exchanges) rawBySkill[ex.skillId] = (rawBySkill[ex.skillId] ?? 0) + COMBAT_XP.perExchange * combatChallenge(ex.gap) * stakes * outcome;
+  const field = input.fieldMult ?? 1;
+  if (field !== 1) notes.push(`a field fight: x${field} on the exchanges`);
+  for (const ex of session.exchanges) rawBySkill[ex.skillId] = (rawBySkill[ex.skillId] ?? 0) + COMBAT_XP.perExchange * combatChallenge(ex.gap) * stakes * outcome * field;
   const forceBySkill: Record<string, number> = {};
   for (const u of session.forceUses) forceBySkill[u.abilityId] = (forceBySkill[u.abilityId] ?? 0) + COMBAT_XP.perForceUse * combatChallenge(u.gap) * stakes;
 

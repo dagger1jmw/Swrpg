@@ -565,7 +565,8 @@ function dayHook(slice: EconomySlice, ended: number, ctx: ApplyCtx<GameState>): 
       const text = after.stage === 'warning' ? `${LOAN_TERMS[l.lender].name} sends a warning: a payment of ${fmt(due)} cr was missed` : after.stage === 'collectors' ? `collectors from ${LOAN_TERMS[l.lender].name} come for ${fmt(after.balance)} cr` : `${LOAN_TERMS[l.lender].name} puts a bounty on the debtor (${fmt(after.balance)} cr owed)`;
       notices.push(text);
       if (after.stage === 'collectors' || after.stage === 'bounty') interrupt = text;
-      if (after.stage === 'bounty') emit.push({ type: 'flagSet', flag: `debtBounty:${l.lender}` });
+      // One flag per lender (m9-tune: two loans from the same lender reaching the bounty on one day set it twice, a rejected duplicate).
+      if (after.stage === 'bounty' && !emit.some((x) => x['flag'] === `debtBounty:${l.lender}`)) emit.push({ type: 'flagSet', flag: `debtBounty:${l.lender}` });
     }
     if (after.balance > 0) loans.push(after);
     else notices.push(`the debt to ${LOAN_TERMS[l.lender].name} is paid off`);

@@ -57,6 +57,7 @@ export const DEV_HELP: readonly string[] = [
   '/scenario <text>: the next narration starts exactly in that situation',
   '/truce [terms]: the opponent offers a truce (the Accept truce button answers it). /fall: the fight\'s terrain accidents are rolled now',
   '/simulate 503 <n>: the next n AI requests fail as HTTP 503 (busy), to see the retries, the busy note and the next model (D-250); 0 clears it',
+  '/simulate slow <n>: the next n AI requests get no reply until their time limit, to see the slow-call cap (25 s on the stronger model) and the main model taking over (m9-tune C); 0 clears it',
   '/mission start [type] [world]: a mission now (types: strike, frontline, infiltration, manhunt, investigation, escort, rescue, recon, diplomacy). /mission end [success|failure|cutShort]: the current mission ended now',
   '/allhands on|off: all hands on deck for your side (a minor wound no longer holds an assignment back)',
   '/home: put the character at their home base (the Temple, or the forward base while posted)',
@@ -204,6 +205,8 @@ export interface DevOutcome {
   draft: Partial<Pick<TurnDraft, 'combat' | 'jump' | 'timeAdvanced' | 'pacingLevel' | 'training' | 'checks'>>;
   /** /simulate 503 n (D-250): the caller arms its provider so the next n requests return 503. */
   simulate503?: number;
+  /** /simulate slow n (m9-tune C): the caller arms its provider so the next n requests stall until their time limit. */
+  simulateSlow?: number;
 }
 /** At most this many simulated 503s at once: 5 is a full narrative fallback (3 retries, the next model, its failure). */
 export const SIMULATE_503_MAX = 10;
@@ -256,7 +259,8 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
     case 'simulate': {
       // D-250: the next n model requests fail as 503 (the app arms its provider; nothing in the save changes).
       const n = Number(args[1]);
-      if (args[0] !== '503' || !Number.isInteger(n) || n < 0 || n > SIMULATE_503_MAX) return fail(`/simulate 503 <0-${SIMULATE_503_MAX}>`);
+      if ((args[0] !== '503' && args[0] !== 'slow') || !Number.isInteger(n) || n < 0 || n > SIMULATE_503_MAX) return fail(`/simulate 503 <0-${SIMULATE_503_MAX}> or /simulate slow <0-${SIMULATE_503_MAX}>`);
+      if (args[0] === 'slow') return { ...out(true, n ? `the next ${n} AI request${n > 1 ? 's' : ''} get no reply until their time limit (simulated; the slow-call cap and the main model follow as for a real one)` : 'no simulated slow requests'), simulateSlow: n };
       return { ...out(true, n ? `the next ${n} AI request${n > 1 ? 's' : ''} return 503 (simulated; retries and the fallback follow as for a real one)` : 'no simulated 503s'), simulate503: n };
     }
 
@@ -378,7 +382,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       const stay = state.pacing.scene.presentNpcIds.filter((id) => opponentRefs.includes(id) || !state.npcs.byId[id]?.devLevels || openFate.has(id));
       if (stay.length !== state.pacing.scene.presentNpcIds.length) state = { ...state, pacing: { ...state.pacing, scene: { ...state.pacing.scene, presentNpcIds: stay } } };
       const before = state;
-      apply([{ type: 'fightBegun', fromPending: false, opponentRefs, minionGroups, stakes, terrainTags: tags, ...(mode ? { sparringMode: mode } : {}), ...(stakes === 'spar' ? { playOut: true } : {}), ...(alive && opponentRefs.length ? { wantAliveRefs: opponentRefs } : {}) }], 'engine');
+      apply([{ type: 'fightBegun', fromPending: false, opponentRefs, minionGroups, stakes, terrainTags: tags, dev: true, ...(mode ? { sparringMode: mode } : {}), ...(stakes === 'spar' ? { playOut: true } : {}), ...(alive && opponentRefs.length ? { wantAliveRefs: opponentRefs } : {}) }], 'engine');
       // A dying player's fight ends at once (D-242): begun and over in the same command.
       const endedAtOnce = !state.combat.active && state.combat.last !== null && state.combat.last.id !== before.combat.last?.id;
       if (!state.combat.active && !endedAtOnce) return fail(refused() ?? 'the fight did not begin');
@@ -703,7 +707,7 @@ export async function commitDevCommand(
   deps: { registry: Registry<GameState>; storage: Storage; wallClock: () => { iso: string } },
   session: Session,
   text: string,
-): Promise<{ session: Session; record: TurnRecord | null; ok: boolean; line: string; simulate503?: number }> {
+): Promise<{ session: Session; record: TurnRecord | null; ok: boolean; line: string; simulate503?: number; simulateSlow?: number }> {
   const o = runDevCommand(deps.registry, session.state, text);
   // Outside a test campaign nothing is recorded: the save stays as it was (D-180).
   if (!selectIsTestCharacter(session.state)) return { session, record: null, ok: false, line: o.line };
@@ -744,7 +748,7 @@ export async function commitDevCommand(
   const entry: TranscriptEntry<TurnRecord> = { campaignId: state.meta.campaignId, branchId: state.meta.branchId, turn: state.meta.turn, savedAt: wall.iso, data: record };
   const campaign: CampaignRecord = { ...session.campaign, lastPlayedAt: wall.iso };
   await deps.storage.commitTurn(makeEnvelope(deps.registry, state, wall.iso), campaign, entry);
-  return { session: { state, history: [...session.history, record], campaign }, record, ok: o.ok, line: o.line, ...(o.simulate503 !== undefined ? { simulate503: o.simulate503 } : {}) };
+  return { session: { state, history: [...session.history, record], campaign }, record, ok: o.ok, line: o.line, ...(o.simulate503 !== undefined ? { simulate503: o.simulate503 } : {}), ...(o.simulateSlow !== undefined ? { simulateSlow: o.simulateSlow } : {}) };
 }
 
 /**

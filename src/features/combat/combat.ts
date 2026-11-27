@@ -77,6 +77,8 @@ export const activeFightSchema = z.object({
   planned: z.array(z.string()).optional(),
   /** A truce the narrator offered (D-181): the player accepts it with a beat button; any other action declines it. */
   truceOffer: z.string().nullable().default(null),
+  /** A field fight (m9-tune A3): begun on a mission, real stakes, not a dev fight. Absent on older saves (not one). */
+  field: z.boolean().optional(),
 });
 export type ActiveFight = z.infer<typeof activeFightSchema>;
 

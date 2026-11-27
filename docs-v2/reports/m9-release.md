@@ -390,6 +390,6 @@ Jared asked for the breakdown behind A15 before any fix. The life-gap counters a
   - it never stabilizes a dying character (D-143 B does, for the harness's own fights).
 - **Posted lives went home every night.** The harness moved the life to its seat at each day's end, also while posted. So every morning of a posting began with the trip back to the front (posted days were always days away from the base).
 - **The Sith and the soldier got no missions.** The Sith: duty records a non-Jedi home once (Korriban), and at 13 the harness moves the life to Dromund Kaas, so it is never "at home" again. The soldier: the career profile has no place and no side, so duty sees no home.
-- **Mission fights win back little.** Duty's form XP (3,459-6,315) against a routine loss of 11,000-11,300 form XP.
+- **Mission fights win back about half for the Guardian and the Sentinel.** Duty's form XP against the routine's lost form XP: Guardian 5,643 against 11,251, Sentinel 6,315 against 10,925. For the Consular it is 3,459 against 3,642, so its forms hardly move; what it loses is study.
 
 What m9-tune changed is in reports/m9-tune.md.

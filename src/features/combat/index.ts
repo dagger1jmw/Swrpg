@@ -228,7 +228,7 @@ function conclude(slice: CombatSlice, s: GameState, active: ActiveFight, outcome
   // The strongest opponent's form (D-427: learning by dueling a stronger opponent).
   const strongest = [...faced].sort((x, y) => y.level - x.level)[0];
   const opponentForm = strongest && FORM_IDS.includes(strongest.skillId) ? strongest.skillId : null;
-  if (exchanges.length || forceUses.length) emit.push({ type: 'fightResolved', stakes: active.stakes, outcome, exchanges, forceUses, opponentGap, ...(opponentForm ? { opponentForm } : {}), ...(reason === 'surrendered' ? { surrendered: true } : {}) });
+  if (exchanges.length || forceUses.length) emit.push({ type: 'fightResolved', stakes: active.stakes, outcome, exchanges, forceUses, opponentGap, ...(opponentForm ? { opponentForm } : {}), ...(reason === 'surrendered' ? { surrendered: true } : {}), ...(active.field ? { field: true } : {}) });
   // m8-skills (D-513): strikes earned by reaching +3 on the advantage track teach a little Tactics; a style fought with grows;
   // a serious or lethal fight won is a deed on a service record.
   const earned = duel.log.filter((r) => r.kind === 'strike' && r.striker === 'A' && !r.surprise && r.advBefore >= STRIKE_AT).length;
@@ -528,6 +528,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         playOut: z.boolean().optional(),
         /** Opponents who want the player alive (D-260; dev /fight ... alive). */
         wantAliveRefs: z.array(z.string()).optional(),
+        /** A dev command's fight (m9-tune A3: never a field fight). */
+        dev: z.boolean().optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
@@ -539,7 +541,10 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         const id = `fight-${slice.seq}`;
         const r = startFight(ctx.state, spec, id);
         if (!r.active.duel.opponents.length) return { reject: 'no opponent could join the fight' };
-        const active = e['playOut'] === true && r.active.session ? { ...r.active, session: { ...r.active.session, playing: true } } : r.active;
+        const played = e['playOut'] === true && r.active.session ? { ...r.active, session: { ...r.active.session, playing: true } } : r.active;
+        // A field fight (m9-tune A3): begun on a mission, with real stakes, not a dev command's.
+        const field = ctx.state.duty?.status === 'mission' && played.stakes !== 'spar' && e['dev'] !== true;
+        const active = field ? { ...played, field: true } : played;
         // A new fight closes every fate choice still open (issue 18).
         const begun = { ...slice, pending: null, active, fates: [], seq: slice.seq + 1 };
         // A player who is dying cannot fight (D-242; pass 3: a typed attack ended the fight at exchange 0, a dev fight let

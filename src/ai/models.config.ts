@@ -73,6 +73,13 @@ export const USAGE_WARN_FRACTION = 0.8;
 export const REQUEST_TIMEOUT_MS = 90_000;
 
 /**
+ * The slow-call cap (Jared, 27 Nov 2026, m9-tune C; the likely cause of the m9-release A1 freeze): on a big moment the stronger model
+ * gets one try of at most `timeoutMs` (invented: about 25 s), with no retries on it; with no reply by then the turn falls back to
+ * the main model once (the call type's own first model), with its usual retries. A narration check's retry always uses the main model.
+ */
+export const PREMIUM_WAIT = { timeoutMs: 25_000 } as const;
+
+/**
  * Gemini overload (D-240; combat pass 3: about 100 replies of 503 "high demand" in one session). A 5xx reply or a
  * timeout is retried on the same model up to `retries` times, waiting baseMs x factor^(n-1) (capped at maxMs) with
  * +/- jitter, then tried once on the next model in the call type's fallback order; after that the turn shows Retry.

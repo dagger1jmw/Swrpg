@@ -274,13 +274,17 @@ const ACTION_APPROACH: Readonly<Record<string, ApproachId>> = { investigate: 'in
  * first (it names the approach); else the intent's skill when an approach reads that skill; else the intent's action (investigate,
  * persuade, the Force; a fight with no one named forces the way through); else none (the turn is story, the stage waits).
  */
-export function approachFor(stage: MissionStage, intent: { actionType: string; skillId?: string | undefined; targets?: readonly string[] } | null, explicit: string | null, forceUser: boolean): ApproachId | null {
+export function approachFor(stage: MissionStage, intent: { actionType: string; skillId?: string | undefined; targets?: readonly string[]; forceAbility?: string | undefined } | null, explicit: string | null, forceUser: boolean): ApproachId | null {
   const allowed = (a: ApproachId): boolean => forceUser || !FORCE_APPROACHES.includes(a);
   if (explicit && explicit in APPROACHES && allowed(explicit as ApproachId)) return explicit as ApproachId;
   if (!intent) return null;
   if (stage.kind === 'fight' && intent.actionType === 'fight') return 'fight';
-  const bySkill = intent.skillId ? (Object.entries(APPROACHES).find(([, a]) => a.skill === intent.skillId)?.[0] as ApproachId | undefined) : undefined;
-  if (bySkill && allowed(bySkill)) return bySkill;
+  // The intent's skill: the stage's own approach on that skill first (m9-tune B1: Willpower is "hold your nerve" or "influence",
+  // Force Sense "reach out" or "read them"), else the first approach on it. A mind trick or Force persuasion is influence.
+  const onSkill = intent.skillId ? (Object.keys(APPROACHES) as ApproachId[]).filter((a) => APPROACHES[a].skill === intent.skillId && allowed(a)) : [];
+  const bySkill = onSkill.find((a) => stage.approaches.includes(a)) ?? onSkill[0];
+  if (bySkill) return bySkill;
+  if ((intent.forceAbility === 'mindTrick' || intent.forceAbility === 'forcePersuasion') && allowed('influence') && stage.approaches.includes('influence')) return 'influence';
   if (intent.actionType === 'fight' && !(intent.targets ?? []).length) return 'fight';
   const byAction = ACTION_APPROACH[intent.actionType];
   return byAction && allowed(byAction) ? byAction : null;

@@ -29,6 +29,8 @@ export interface GapRow {
   woundedDays: number;
   tankDays: number;
   seconds: number;
+  /** The life ended early (a death the harness could not stop): its message. The means leave such a life out and count it. */
+  ended?: string;
 }
 
 const AGES = [20, 25, 30, 35, 41];
@@ -37,15 +39,24 @@ export const STAGE_SKILLS = ['charisma', 'investigation', 'stealth', 'tracking',
 const r2 = (x: number): number => Math.round(x * 100) / 100;
 const rounded = (o: Record<string, number>): Record<string, number> => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, Math.round(v)]));
 
-export const GAP_JOBS: Job<GapRow>[] = GAP_ARCHETYPES.flatMap((id, i) =>
+/** LIVES (a comma list of archetype ids) narrows the run to those lives, all 20 seeds each (a candidate's look; the final run has all). */
+const LIVES = process.env['LIVES']?.split(',').filter(Boolean) ?? null;
+
+export const GAP_JOBS: Job<GapRow>[] = GAP_ARCHETYPES.filter((id) => !LIVES || LIVES.includes(id)).flatMap((id) =>
   Array.from({ length: GAP_SEEDS }, (_, n) => ({
-    order: i * 1000 + n,
+    order: GAP_ARCHETYPES.indexOf(id) * 1000 + n,
     cost: id === 'soldier' ? 1 : 2,
     run: (): GapRow => {
       const a = ARCHETYPE_BY_ID.get(id)!;
       resetMissionStats();
       const t = Date.now();
-      const r = runArchetype(a, n === 0 ? a.id : `${a.id}-${n}`);
+      let r: ReturnType<typeof runArchetype>;
+      try {
+        r = runArchetype(a, n === 0 ? a.id : `${a.id}-${n}`);
+      } catch (e) {
+        // One life's end must not lose the shard's other lives (m9-tune: a death on a mission threw and took 12 more with it).
+        return { id, seed: n, mode: process.env['LIFETIME_MISSIONS'] === 'on' ? 'missions on' : 'missions off', startAge: a.startAge, main: {}, forceSense: {}, forms: {}, skills: {}, missions: { ...missionStats }, woundedDays: 0, tankDays: 0, seconds: Math.round((Date.now() - t) / 1000), ended: e instanceof Error ? e.message : String(e) };
+      }
       const main: Record<number, number> = {};
       const fs: Record<number, number> = {};
       for (const age of AGES) {
@@ -82,7 +93,8 @@ export function summarize(rows: readonly GapRow[]): Record<string, unknown>[] {
   const mean = (xs: readonly number[]): number => (xs.length ? r2(xs.reduce((a, b) => a + b, 0) / xs.length) : 0);
   const out: Record<string, unknown>[] = [];
   for (const id of GAP_ARCHETYPES) {
-    const rs = rows.filter((r) => r.id === id);
+    const ended = rows.filter((r) => r.id === id && r.ended);
+    const rs = rows.filter((r) => r.id === id && !r.ended);
     if (!rs.length) continue;
     const keysOf = (pick: (r: GapRow) => Record<string, unknown>): string[] => [...new Set(rs.flatMap((r) => Object.keys(pick(r))))];
     const avg = (pick: (r: GapRow) => Record<string, number>): Record<string, number> => Object.fromEntries(keysOf(pick).map((k) => [k, mean(rs.map((r) => pick(r)[k] ?? 0))]));
@@ -90,6 +102,9 @@ export function summarize(rows: readonly GapRow[]): Record<string, unknown>[] {
     out.push({
       id,
       seeds: rs.length,
+      ended: ended.map((r) => `seed ${r.seed}: ${r.ended}`),
+      stabilized: mean(rs.map((r) => r.missions.stabilized ?? 0)),
+      cared: mean(rs.map((r) => r.missions.cared ?? 0)),
       main: avg((r) => r.main),
       main41Range: [sorted41[0], sorted41[sorted41.length - 1]],
       forceSense41: mean(rs.map((r) => r.forceSense[41] ?? 0)),

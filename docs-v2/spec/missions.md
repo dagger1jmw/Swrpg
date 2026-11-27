@@ -4,6 +4,8 @@ Jared, 27 Nov 2026 (m9-missions B; revised ~1:45 a.m.: total-war postings). Exte
 
 **Amended by m9-release Part A (27 Nov 2026; D-554 to D-558; report docs-v2/reports/m9-release.md):** the narrator's choices and fights during a stage (section 4), all travel the code's (section 5), days off on a front, leave from the war's first posting and the forward base's medics (sections 6 and 8), the Council's best on a field path (section 9), leads found in play (section 11), the type weights by archetype, the ratings 10 lower, a Master's field experience, and only reachable worlds (sections 2-4), the Great Sith War and the Jedi Civil War total (section 6).
 
+**Amended by m9-tune (27 Nov 2026; D-560 to D-565; report docs-v2/reports/m9-tune.md):** field practice on a mission's working days, field fights teach more, every stage roll teaches the skill it used (section 4 and 4a), influence and reading people for Force users on the social and investigation stages (section 4), the slow-call cap (architecture section 7).
+
 Missions are where most turns go. A mission is code-owned and multi-turn: the code builds it, decides each stage, moves the character on its travel and ends it; the narrator tells it.
 
 Code:
@@ -12,7 +14,7 @@ Code:
 - Turn: `src/turn/missionTurn.ts` (a stage's attempt, the after-turn step, the mission's choices), wired in `turn/resolve.ts` (the attempt before the intent's other work; the after-turn step in every turn's `finish`) and `turn/pipeline.ts` (the code's choices first; a choice's approach).
 - UI: `src/ui/missionCard.ts` (the mission and posting card, on the Character tab above the health card).
 - Dev: `/mission start [type] [world]`, `/mission end [success|failure|cutShort]`, `/allhands on|off`, `/home`.
-- Tests: `tests/m9/missions.test.ts` (with the scripted mission through the pipeline), `tests/m9/partA.test.ts`, `tests/opt2/duty.test.ts`. Tests also in `tests/m9/release.test.ts` (m9-release A). Measurement: `npm run missions` (`tests/missions/`, parallel shards; m9-release A16) and the report-only lifetime comparison `npm run lifegap` (`tests/lifegap/`, A15); the mid-mission save fixture from `tests/measure/saveFixture.measure.ts`.
+- Tests: `tests/m9/missions.test.ts` (with the scripted mission through the pipeline), `tests/m9/partA.test.ts`, `tests/opt2/duty.test.ts`. Tests also in `tests/m9/release.test.ts` (m9-release A) and `tests/m9/tune.test.ts` (m9-tune). Measurement: `npm run missions` (`tests/missions/`, parallel shards; m9-release A16) and the report-only lifetime comparison `npm run lifegap` (`tests/lifegap/`, A15); the mid-mission save fixture from `tests/measure/saveFixture.measure.ts`.
 
 ## 1. The mission record (B1)
 
@@ -57,12 +59,21 @@ The player chooses the approach; the narrator describes it and proposes approach
 - **The narrator never tells a stage's outcome** (A2): not its success, failure or a discovery. A narration check (`stageNarrated`; an invented phrase list: spotted, seen or detected, an alarm, slipping in unseen) catches it on a turn that rolled no stage: one retry, then the sentences are removed. Being spotted is a failed check's complication, the code's.
 - **A narrator's fight during a stage** (A2) is refused unless a failed check this turn brought it (a complication). Otherwise forcing the way through is the player's approach.
 - **Approaches** (`APPROACHES`), each on one skill: slip in unseen (Stealth), read the scene (Investigation), follow the trail (Tracking), talk your way through (Charisma), fly it (Piloting), plan it like a commander (Tactics), reach out with the Force (Force Sense; Force users only), work the systems (Repair), think it through (Intelligence), climb, run and jump (Agility), hold your nerve (Willpower), force the way through (a fight).
+- **The Consular's Force approaches** (Jared, m9-tune B1; Force users only): influence them through the Force (the Force persuasion of the Legends Consulars, on Willpower) and read them through the Force (their intent, a lie, the room; Force Sense). They fit diplomacy (influence on every stage; reading people on the talks and the accord), negotiation (an infiltration's way in, cover and exit), interrogation (a manhunt's trail, a rescue's "locate them", a lead, picking the thread up again) and investigation (the first lead; lead to lead takes both). The code's choices show up to four of a stage's ordinary approaches, then its Force approaches for a Force user. The narrator's choice on Willpower or Force Sense takes the stage's own approach on that skill; a mind trick or Force persuasion is influence.
 - **A check stage:** the approach's skill (wounds, rust, fatigue as any roll) against the stage's rating (DC = 10 + rating / 10), +10 a complication on it, +20 for an approach that does not fit the stage; +2 for each ally better at the skill (at most +4); +1 field experience for a Master (m9-release A11). The ratings are 15-30 (m9-release A11: 10 lower than m9-missions' 25-40).
 - **A fight stage:** a real fight (the combat engine): minions of the era (`enemyKind`: Sith troopers in the Great War, B1s in the Clone Wars, Yuuzhan Vong warriors, thugs in peace), a count drawn from the stage; a master or Padawan on the mission holds half of them. Won: the stage is done. Fled: a complication. Lost: the mission fails.
 - **A battle stage:** a ground battle's planning scene (the site is the world; a front-line engagement defends) or a fleet action, opened by the code; the battle engine's result stands (won: done; drawn, lost or stood down: a complication). If the battle cannot be opened, it is fought in the line as a fight.
 - **A travel stage:** decided by the travel rules: arriving at its world.
 - **Failure brings complications, not the end:** the stage gets harder (+10) and a complication line is recorded; a failure by 5 or more first inserts a complication stage (a fight to get clear after a check, picking the thread up again after a fight). **The mission fails only when the code says so:** a stage failed with 4 complications already on the mission, a fight lost, or a deadline passed.
-- **XP** from what was done (the existing sources): a Stealth roll is Stealth in the field; a persuasion with no one named a social line; fights and battles give theirs.
+- **XP** from what was done (m9-tune A4; before, only a Stealth roll taught anything: a persuasion needed someone named, which a stage never has):
+  - each stage roll teaches the skill it used: Stealth by its field-use rule, Charisma by the persuasion rule (the stage's rating as the resistance), every other skill by the field-check rule (`FIELD_CHECK`, stealth's numbers: 0.5 a roll, half on a failure, by the stakes and the challenge of the rating against the skill);
+  - a social approach (talk, influence, read them) is a conversation with something at stake as well: a social line (Charisma), so a Consular's missions grow Charisma;
+  - fights and battles give theirs; **a field fight teaches more** (Jared, m9-tune A3: complicated maneuvers are learned from your master or in the field): a real fight begun on a mission (a stage's, a complication's, any fight while on one) gives its fighting skills `FIELD_FIGHT.mult` per exchange, before the daily cap and the later-fight factor. Not a spar, not a dev command's fight, not a fight at home.
+
+### 4a. Field practice (m9-tune A2)
+
+Jedi keep training in the field (Jared). A day of a mission's stage work ends with a short session on the routine's plan (`FIELD_PRACTICE`: 1.5 h, shared over the day's plan's biggest blocks in half-hour steps, so a Guardian drills its forms and a Consular studies), through the routine's own training rules (state/fieldPractice.ts). None on a day with a fight or a battle, none while a moderate or worse wound is less than three-quarters healed, one a day (a day the routine already trained is not a field day). A stage attempt that runs past a day has one each evening. The turn's log shows it ("field practice after the day's work (1.5 h): ...").
+- A trip past 12 hours was already a montage, and a montage runs the routine day by day: those travel days have the whole routine, not a short session. Quiet days on a posting run the routine at the forward base (it is home). Neither changed here.
 
 ## 5. Travel (B4)
 
@@ -120,6 +131,10 @@ The record counts missions, successes, failures, missions cut short and chains; 
 | --- | --- |
 | The stage lists, their ratings (15-30 since m9-release A11), successes needed, hours per attempt, foes | `MISSION_TYPES` |
 | A Master's field experience +1 on a stage's check (m9-release A11) | `STAGE_RULES.experience` |
+| Field practice 1.5 h a working day of a mission, in half-hour steps (m9-tune A2) | `FIELD_PRACTICE` |
+| A field fight x1.5 on its exchanges (m9-tune A3) | `FIELD_FIGHT` (progression.config) |
+| A stage roll's field-check XP: 0.5, half on a failure, stealth's shape (m9-tune A4) | `FIELD_CHECK` (skillXp.config) |
+| Which stages take influence and reading people (m9-tune B1) | `MISSION_TYPES`, `LEAD_STAGE`, `COMPLICATION_STAGES` |
 | Days off on a front: none the first day, median 3.5, shape 4 (m9-release A7) | `MISSION_ROLL_FRONT` (duty.config) |
 | Leads: investigations and manhunts, 2 a mission; the lead stage's approaches and rating 25 (m9-release A13) | `LEADS`, `LEAD_STAGE` |
 | The non-field words for a canon Master (m9-release A10) | `NON_FIELD_WORDS` |

@@ -18,14 +18,21 @@ export const APPROACHES = {
   reason: { label: 'Think it through', skill: 'intelligence' },
   athletics: { label: 'Climb, run and jump for it', skill: 'agility' },
   endure: { label: 'Hold your nerve', skill: 'willpower' },
+  /**
+   * The Force approaches of the Legends Consular (Jared, 27 Nov 2026, m9-tune B1; Force users only): influence, the Force persuasion,
+   * on Willpower; reading people (their intent, a lie, the mood of the room) on Force Sense. They fit diplomacy, negotiation,
+   * interrogation and investigation stages.
+   */
+  influence: { label: 'Influence them through the Force', skill: 'willpower' },
+  read: { label: 'Read them through the Force', skill: 'forceSense' },
   /** Force the way through: turns the stage into a fight (the combat engine decides it). */
   fight: { label: 'Force the way through', skill: null },
 } as const;
 export type ApproachId = keyof typeof APPROACHES;
 export const APPROACH_IDS = Object.keys(APPROACHES) as ApproachId[];
 
-/** The Force approach is for Force users only. */
-export const FORCE_APPROACHES: readonly ApproachId[] = ['sense'];
+/** The Force approaches are for Force users only. */
+export const FORCE_APPROACHES: readonly ApproachId[] = ['sense', 'influence', 'read'];
 
 export interface StageDef {
   id: string;
@@ -99,17 +106,17 @@ export const MISSION_TYPES: Readonly<Record<string, MissionTypeDef>> = {
   infiltration: {
     id: 'infiltration', name: 'an infiltration', objective: 'get inside on {world} and bring out what is there', fromPosting: false,
     stages: [
-      S('way', 'a way in', 'check', { approaches: ['persuade', 'stealth', 'tech'], rating: 25, hours: [4, 12] }),
-      S('cover', 'keep the cover', 'check', { approaches: ['persuade', 'endure', 'reason'], need: 2, rating: 25, hours: [20, 48] }),
+      S('way', 'a way in', 'check', { approaches: ['persuade', 'stealth', 'tech', 'influence'], rating: 25, hours: [4, 12] }),
+      S('cover', 'keep the cover', 'check', { approaches: ['persuade', 'endure', 'reason', 'influence', 'read'], need: 2, rating: 25, hours: [20, 48] }),
       S('objective', 'the objective inside', 'check', { approaches: ['investigate', 'tech', 'stealth'], rating: 30, hours: [2, 8] }),
-      S('exit', 'the exit', 'check', { approaches: ['stealth', 'persuade', 'athletics'], rating: 25, hours: [2, 6] }),
+      S('exit', 'the exit', 'check', { approaches: ['stealth', 'persuade', 'athletics', 'influence'], rating: 25, hours: [2, 6] }),
     ],
     complications: ['the cover is blown', 'a guard grows suspicious', 'the files are not where they should be', 'the exit is watched'],
   },
   manhunt: {
     id: 'manhunt', name: 'a manhunt', objective: 'track the quarry from {world} and take them', fromPosting: false,
     stages: [
-      S('trail', 'pick up the trail', 'check', { approaches: ['investigate', 'track', 'sense', 'persuade'], rating: 25, hours: [6, 24] }),
+      S('trail', 'pick up the trail', 'check', { approaches: ['investigate', 'track', 'sense', 'persuade', 'influence'], rating: 25, hours: [6, 24] }),
       S('follow', 'follow it to the next world', 'travel', { elsewhere: true }),
       S('close', 'close in', 'check', { approaches: ['track', 'stealth', 'tactics', 'sense'], need: 2, rating: 30, hours: [6, 24] }),
       S('take', 'capture or kill', 'fight', { foes: { grade: 3, count: [1, 3] } }),
@@ -119,8 +126,8 @@ export const MISSION_TYPES: Readonly<Record<string, MissionTypeDef>> = {
   investigation: {
     id: 'investigation', name: 'an investigation', objective: 'find out what is happening on {world}', fromPosting: false,
     stages: [
-      S('lead1', 'the first lead', 'check', { approaches: ['investigate', 'persuade', 'sense'], rating: 20, hours: [6, 24] }),
-      S('lead2', 'lead to lead', 'check', { approaches: ['investigate', 'persuade', 'reason', 'tech'], need: 2, rating: 25, hours: [6, 24] }),
+      S('lead1', 'the first lead', 'check', { approaches: ['investigate', 'persuade', 'sense', 'influence'], rating: 20, hours: [6, 24] }),
+      S('lead2', 'lead to lead', 'check', { approaches: ['investigate', 'persuade', 'reason', 'tech', 'read', 'influence'], need: 2, rating: 25, hours: [6, 24] }),
       S('plot', 'uncover the plot', 'check', { approaches: ['reason', 'investigate', 'sense'], rating: 30, hours: [4, 12] }),
       S('confront', 'the confrontation', 'fight', { foes: { grade: 3, count: [2, 4] } }),
     ],
@@ -131,14 +138,14 @@ export const MISSION_TYPES: Readonly<Record<string, MissionTypeDef>> = {
     stages: [
       S('route', 'plan the route', 'check', { approaches: ['tactics', 'pilot', 'investigate'], rating: 15, hours: [2, 6] }),
       S('ambush', 'the ambush', 'fight', { foes: { grade: 2, count: [3, 6] } }),
-      S('deliver', 'the handover', 'check', { approaches: ['persuade', 'tactics', 'sense'], rating: 20, hours: [2, 6] }),
+      S('deliver', 'the handover', 'check', { approaches: ['persuade', 'tactics', 'sense', 'influence'], rating: 20, hours: [2, 6] }),
     ],
     complications: ['the charge is hurt', 'the route is betrayed', 'the reception is hostile'],
   },
   rescue: {
     id: 'rescue', name: 'a rescue', objective: 'find and bring out the captives on {world}', fromPosting: true, deadlineDays: 14,
     stages: [
-      S('locate', 'locate them', 'check', { approaches: ['investigate', 'sense', 'persuade', 'track'], rating: 25, hours: [4, 12] }),
+      S('locate', 'locate them', 'check', { approaches: ['investigate', 'sense', 'persuade', 'track', 'influence'], rating: 25, hours: [4, 12] }),
       S('in', 'get in', 'check', { approaches: ['stealth', 'tactics', 'tech'], rating: 30, hours: [2, 6] }),
       S('free', 'free them', 'fight', { foes: { grade: 2, count: [3, 6] } }),
       S('out', 'get them out', 'check', { approaches: ['pilot', 'stealth', 'athletics', 'tactics'], rating: 25, hours: [2, 6] }),
@@ -157,10 +164,10 @@ export const MISSION_TYPES: Readonly<Record<string, MissionTypeDef>> = {
   diplomacy: {
     id: 'diplomacy', name: 'a diplomatic mission', objective: 'bring the parties on {world} to terms', fromPosting: false,
     stages: [
-      S('audience', 'the audience', 'check', { approaches: ['persuade', 'reason', 'sense'], rating: 20, hours: [3, 8] }),
-      S('talks', 'the talks', 'check', { approaches: ['persuade', 'reason', 'endure'], need: 2, rating: 30, hours: [8, 24] }),
-      S('spoiler', 'the spoiler', 'check', { approaches: ['investigate', 'sense', 'tactics'], rating: 25, hours: [4, 12] }),
-      S('accord', 'the accord', 'check', { approaches: ['persuade', 'reason'], rating: 30, hours: [3, 8] }),
+      S('audience', 'the audience', 'check', { approaches: ['persuade', 'reason', 'sense', 'influence'], rating: 20, hours: [3, 8] }),
+      S('talks', 'the talks', 'check', { approaches: ['persuade', 'reason', 'endure', 'influence', 'read'], need: 2, rating: 30, hours: [8, 24] }),
+      S('spoiler', 'the spoiler', 'check', { approaches: ['investigate', 'sense', 'tactics', 'influence'], rating: 25, hours: [4, 12] }),
+      S('accord', 'the accord', 'check', { approaches: ['persuade', 'reason', 'influence', 'read'], rating: 30, hours: [3, 8] }),
     ],
     complications: ['a delegate walks out', 'an assassin strikes', 'the terms leak', 'old grievances flare'],
   },
@@ -213,17 +220,24 @@ export const STAGE_RULES = {
 } as const;
 
 /**
+ * Field practice (Jared, 27 Nov 2026, m9-tune A2: Jedi keep training in the field; invented hours): a day of a mission's stage work
+ * leaves room for a short session on the routine's plan (`hours`, shared over the plan's biggest blocks in half-hour steps).
+ * None on a day with a fight or a battle, none while wounded past minor, one a day.
+ */
+export const FIELD_PRACTICE = { hours: 1.5 } as const;
+
+/**
  * Leads found in play (Jared, 27 Nov 2026, m9-release A13): the narrator may propose a lead on an investigation or a manhunt, and
  * the code checks it: a lead here adds a stage (follow the lead), a lead to another world adds the trip and a stage there, a lead
  * past the job becomes a follow-up mission on the same thread when this one succeeds. At most `maxPerMission` (invented).
  */
 export const LEADS = { types: ['investigation', 'manhunt'] as readonly string[], maxPerMission: 2 } as const;
-export const LEAD_STAGE: StageDef = { id: 'lead', label: 'follow the lead', kind: 'check', approaches: ['investigate', 'persuade', 'track', 'sense'], rating: 25, hours: [4, 12] };
+export const LEAD_STAGE: StageDef = { id: 'lead', label: 'follow the lead', kind: 'check', approaches: ['investigate', 'persuade', 'track', 'sense', 'influence'], rating: 25, hours: [4, 12] };
 
 /** The complication stages a bad failure inserts, by the stage's kind (B3). */
 export const COMPLICATION_STAGES: Readonly<Record<string, StageDef>> = {
   fight: S('clear', 'fight your way clear', 'fight', { foes: { grade: 2, count: [2, 5] } }),
-  check: S('recover', 'pick up the thread again', 'check', { approaches: ['investigate', 'track', 'persuade', 'sense', 'tactics'], rating: 25, hours: [6, 24] }),
+  check: S('recover', 'pick up the thread again', 'check', { approaches: ['investigate', 'track', 'persuade', 'sense', 'tactics', 'influence'], rating: 25, hours: [6, 24] }),
 };
 
 /** Wounds on a mission (B8, Jared approved): a severe wound or worse ends the character's part; a moderate one carries on only in an

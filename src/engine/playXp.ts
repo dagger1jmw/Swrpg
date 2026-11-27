@@ -4,6 +4,7 @@
 import {
   COMMAND,
   CULTURAL_INSIGHT,
+  FIELD_CHECK,
   FIELD_OP,
   FIELD_TACTICS_INTELLIGENCE,
   GUNNERY_SHOT,
@@ -88,6 +89,9 @@ export function fieldOpXp(stakes: CombatStakes, outcome: CommandOutcome): XpMap 
   const total = FIELD_OP.base * COMBAT_XP.stakes[stakes] * FIELD_OP.outcome[outcome];
   return Object.fromEntries(Object.entries(FIELD_OP.split).map(([k, w]) => [k, total * w]));
 }
+
+/** A mission stage's roll (m9-tune A4): field use of the skill it read, by success, stakes and the challenge of the rating. */
+export const fieldCheckXp = (skill: string, success: boolean, stakes: PlayStakes, gap: number): XpMap => ({ [skill]: FIELD_CHECK.base * (success ? FIELD_CHECK.success : FIELD_CHECK.failure) * STAKES_FACTOR[stakes] * challengeFactor(gap) });
 
 /** Stealth from field use: a stealth check or contest that matters. */
 export const stealthXp = (success: boolean, stakes: PlayStakes, gap: number): XpMap => ({ stealth: STEALTH_USE.base * (success ? STEALTH_USE.success : STEALTH_USE.failure) * STAKES_FACTOR[stakes] * challengeFactor(gap) });

@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { DISTRACTED, OVERTRAINING, PASSION_DAYS, STATE_STRENGTH, CENTERED_MEDITATION_HOURS, EMOTION_TO_STATE, FATIGUE_WILLPOWER, type StateOfMind } from '../../data/progression.config';
 import { SKILL_BY_ID, CATEGORY_RULES, PHYSICAL_STATS } from '../../data/skills';
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY } from '../../data/activities';
-import { COMBAT_OUTCOMES, COMBAT_STAKES, COMBAT_XP } from '../../data/progression.config';
+import { COMBAT_OUTCOMES, COMBAT_STAKES, COMBAT_XP, FIELD_FIGHT } from '../../data/progression.config';
 import { computeCombatXp, strongerDuelXp, type CombatSession } from '../../engine/combatXp';
 import { selectCharacter, selectPath } from '../character/selectors';
 import { eGainFor, gainCI, gainE, releaseBank, releaseUntil, splitDrillXp } from '../../engine/appliedExperience';
@@ -28,7 +28,7 @@ import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressio
 import { ageingStep } from '../../engine/ageing';
 import { PRIME_H } from '../../data/ageing.config';
 import { selectAgeing, selectBodyAgeNow, selectCapacities, selectLevelExact, selectNatural, selectSkillViews, selectStateOfMind, selectTierBeats } from './selectors';
-import { commandXp, fieldFightXp, fieldOpXp, gunneryXp, persuasionXp, pilotingXp, repairXp, socialLineXp, stealthXp, strikeTacticsXp, type XpMap } from '../../engine/playXp';
+import { commandXp, fieldCheckXp, fieldFightXp, fieldOpXp, gunneryXp, persuasionXp, pilotingXp, repairXp, socialLineXp, stealthXp, strikeTacticsXp, type XpMap } from '../../engine/playXp';
 import { styleGain } from '../../engine/martialStyles';
 import { STYLE, STYLE_BY_ID } from '../../data/martialStyles';
 import { COMMAND, PLAY_STAKES, type CommandOutcome, type CommandSize, type PlayStakes } from '../../data/skillXp.config';
@@ -340,6 +340,8 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
         surrendered: z.boolean().optional(),
         /** The strongest opponent's lightsaber form (D-427: learning by dueling a stronger opponent). */
         opponentForm: z.string().optional(),
+        /** A field fight (m9-tune A3): FIELD_FIGHT.mult on its exchanges, before the daily cap. */
+        field: z.boolean().optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
@@ -361,6 +363,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
           todayBeforeM: (k) => slice.combatXpToday[k] ?? 0,
           fightsToday: (k) => slice.fightsToday[k] ?? 0,
           clamp: (_k, wanted) => ({ credited: wanted, discarded: 0 }),
+          ...(e['field'] === true && session.stakes !== 'spar' ? { fieldMult: FIELD_FIGHT.mult } : {}),
         });
         const fightsToday = { ...slice.fightsToday };
         for (const k of used) fightsToday[k] = (fightsToday[k] ?? 0) + 1;
@@ -402,7 +405,9 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
     playXpEarned: {
       schema: z.object({
         type: z.literal('playXpEarned'),
-        source: z.enum(['socialLine', 'persuasion', 'command', 'strikes', 'gunnery', 'piloting', 'repair', 'fieldOp', 'stealth', 'fieldFight']),
+        source: z.enum(['socialLine', 'persuasion', 'command', 'strikes', 'gunnery', 'piloting', 'repair', 'fieldOp', 'stealth', 'fieldFight', 'fieldCheck']),
+        /** fieldCheck: the skill a mission stage's roll read (m9-tune A4). */
+        skillId: z.string().optional(),
         stakes: z.string().optional(),
         outcome: z.string().optional(),
         size: z.string().optional(),
@@ -440,6 +445,14 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
             const st = playStakes(e['stakes']);
             if (!st || typeof e['success'] !== 'boolean') return { reject: `${src} needs stakes and success` };
             raw = (src === 'persuasion' ? persuasionXp : stealthXp)(e['success'] as boolean, st, Number(e['gap'] ?? 0));
+            break;
+          }
+          case 'fieldCheck': {
+            // A mission stage's roll (m9-tune A4): the skill it read learns from field use.
+            const st = playStakes(e['stakes']);
+            const skill = String(e['skillId'] ?? '');
+            if (!st || typeof e['success'] !== 'boolean' || !SKILL_BY_ID.has(skill)) return { reject: 'a field check needs a known skill, stakes and success' };
+            raw = fieldCheckXp(skill, e['success'] as boolean, st, Number(e['gap'] ?? 0));
             break;
           }
           case 'command':

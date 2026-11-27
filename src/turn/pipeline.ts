@@ -10,7 +10,7 @@
 import type { ZodType } from 'zod';
 import { isDailyQuotaError, type ModelRouter } from '../ai/fallback';
 import { toGeminiSchema } from '../ai/jsonSchema';
-import { CALL_SETTINGS, OVERLOAD_RETRY, THINKING_HEADROOM_TOKENS, TRUNCATION_RETRY_FACTOR, overloadDelayMs } from '../ai/models.config';
+import { CALL_SETTINGS, OVERLOAD_RETRY, PREMIUM_WAIT, THINKING_HEADROOM_TOKENS, TRUNCATION_RETRY_FACTOR, overloadDelayMs } from '../ai/models.config';
 import { AiError, type CallOptions, type CallType, type Message, type ModelProvider, type StructuredResult, type Usage } from '../ai/provider';
 import { composeNarrativeSchema, narrativeEventTypes, type Choice, type NarrativeReply } from '../ai/schemas/compose';
 import { APPROACHES } from '../data/missions.config';
@@ -219,8 +219,24 @@ async function callModel<T>(
       const note = `${base.callType}: using fallback ${choice.model} (${why})`;
       if (!notes.includes(note)) notes.push(note);
     }
-    const opts: CallOptions = { ...base, model: choice.model };
+    // The slow-call cap (m9-tune C): the stronger model on a big moment gets one try of PREMIUM_WAIT.timeoutMs; no reply by then and
+    // the main model (the call type's own first) takes the call once, with its usual retries.
+    const main = base.premium !== undefined ? deps.router.choose(base.callType, false).model : null;
+    const capped = main !== null && main !== choice.model && !tried.has(main);
+    const opts: CallOptions = { ...base, model: choice.model, ...(capped ? { timeoutMs: PREMIUM_WAIT.timeoutMs } : {}) };
     try {
+      if (capped) {
+        try {
+          return await tracked(deps, calls, opts, () => run(opts));
+        } catch (e) {
+          if (!(e instanceof AiError && e.kind === 'timeout')) throw e;
+          tried.add(main);
+          notes.push(`${base.callType}: ${choice.model} gave no reply in ${Math.round(PREMIUM_WAIT.timeoutMs / 1000)} s (the slow-call cap); the main model ${main} instead`);
+          const { premium: _big, ...plain } = base;
+          const mainOpts: CallOptions = { ...plain, model: main };
+          return await withOverloadRetry(deps, notes, main, () => tracked(deps, calls, mainOpts, () => run(mainOpts)), OVERLOAD_RETRY.retries, OVERLOAD_RETRY.busyRetries);
+        }
+      }
       return await withOverloadRetry(deps, notes, choice.model, () => tracked(deps, calls, opts, () => run(opts)), OVERLOAD_RETRY.retries, OVERLOAD_RETRY.busyRetries);
     } catch (e) {
       // Busy (m8-fixes E2: at once) or still timing out after the retries (D-240): the next model in the order, which keeps the
@@ -514,9 +530,10 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
       // The quote is the offending sentence; an omission has none, so its correction is shown.
       const quoted = issues.find((i) => i.sentence)?.sentence ?? issues[0]!.text;
       modelNotes.push(`narration check: ${issues.length} contradiction(s) with RESOLVED (${kindsOf(issues)}): "${quoted.slice(0, 160)}"; retrying once`);
-      const retryReq = buildNarrativeRequest(resolved, draft, pending.input, session.history, { ...buildOpts(deps, 'narrative', schemas.wire, premium !== null), correction: issues.map((i) => i.text), ...(turnInfo.parts ? { parts: turnInfo.parts } : {}) });
+      // The retry uses the main model (m9-tune C): a big moment's stronger model is tried once, never twice in a turn.
+      const retryReq = buildNarrativeRequest(resolved, draft, pending.input, session.history, { ...buildOpts(deps, 'narrative', schemas.wire, false), correction: issues.map((i) => i.text), ...(turnInfo.parts ? { parts: turnInfo.parts } : {}) });
       deps.onRequest?.({ callType: 'narrative', ...retryReq });
-      const retryOpts: BaseOptions = { ...callOptions('narrative', retryReq.system, budget), wireSchema: schemas.wire, ...(premium ? { premium } : {}) };
+      const retryOpts: BaseOptions = { ...callOptions('narrative', retryReq.system, budget), wireSchema: schemas.wire };
       let second: typeof reply | null = null;
       try {
         second = await callModel(deps, calls, modelNotes, retryOpts, (opts: CallOptions) => deps.provider.generateStructured(schemas.parse, retryReq.messages, opts));

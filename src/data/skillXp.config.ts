@@ -70,3 +70,11 @@ export const FIELD_OP = { base: 3, outcome: { won: 1.0, drawn: 0.75, lost: 0.5 }
 
 /** Stealth from field use (a stealth check or contest that matters): XP per use by stakes, challenge and outcome (invented). */
 export const STEALTH_USE = { base: 0.5, success: 1.0, failure: 0.5 } as const;
+
+/**
+ * A mission stage's roll teaches the skill it used (Jared, 27 Nov 2026, m9-tune A4: Investigation on a scene, Piloting, Tactics,
+ * Willpower, Force Sense...): field use on stealth's shape (invented: the same numbers), by the stage's stakes and the challenge of
+ * its rating against the skill. Stealth keeps STEALTH_USE and Charisma the persuasion rule; a social approach (talk, influence,
+ * read them) is also a conversation with something at stake (a social line, Charisma).
+ */
+export const FIELD_CHECK = { base: 0.5, success: 1.0, failure: 0.5 } as const;

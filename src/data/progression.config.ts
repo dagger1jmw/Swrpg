@@ -342,6 +342,14 @@ export const COMBAT_XP = {
   zeroAt: -35,
 } as const;
 
+/**
+ * Field fights teach (Jared, 27 Nov 2026, m9-tune A3: complicated maneuvers are learned from your master or in the field): a real fight
+ * on a mission (a stage's fight, a complication's, any fight while on one) gives its fighting skills this much more XP per exchange
+ * than the same fight elsewhere (invented). Not for spars or dev fights; the daily cap and the later-fight factor still apply, so it
+ * cannot be farmed.
+ */
+export const FIELD_FIGHT = { mult: 1.5 } as const;
+
 // ---- Applied experience E, combat integration CI, the drill ceiling and bank (progression-numbers §7, §8;
 // combat-xp §3; D-45; Order classes as sparring, D-143 A). Built in M5. ----
 /**
