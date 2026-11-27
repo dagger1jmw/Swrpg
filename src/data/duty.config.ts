@@ -23,8 +23,9 @@ export const MISSION_ROLL = {
 export const MISSION_SCALE_BY_RANK: Readonly<Record<string, number | null>> = {
   initiate: null,
   acolyte: null,
-  padawan: 1.6,
-  apprentice: 1.6,
+  // 1.6 -> 1.2 (Jared, 27 Nov 2026, m9-missions A2): applies only to a Padawan or apprentice without a master (B7).
+  padawan: 1.2,
+  apprentice: 1.2,
   knight: 1,
   lord: 1,
   master: 1.2,

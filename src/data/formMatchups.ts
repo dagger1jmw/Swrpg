@@ -47,3 +47,6 @@ export const FORM_STAMINA: Readonly<Record<string, number>> = Object.fromEntries
 
 /** Niman halves the combat-integration penalty for Force abilities used while fighting in it (D-122). */
 export const NIMAN_CI_FACTOR = 0.5;
+
+/** Jar'Kai needs Niman 30+ (D-122): every session whose primary is Jar'Kai is refused below it (m9-missions A4). */
+export const JARKAI_NIMAN_MIN = 30;

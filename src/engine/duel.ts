@@ -17,6 +17,7 @@ import {
   BUILD_UP,
   CIRCUMSTANCE,
   CONTROLLED_ACCIDENT,
+  DISENGAGE,
   CUT_DOWN_MARGIN,
   DEFLECT_REDIRECT_MARGIN,
   EXCHANGE_SECONDS,
@@ -615,12 +616,16 @@ export function capturedNow(s: DuelState): boolean {
 }
 
 /**
- * The disengage contest (rolls §5 tactics): d20 + Agility / 10 (+ position) against d20 + the current opponent's skill /
- * 10; a win ends the fight as fled. The same contest for the player's typed tactic and the lifetime harness (D-264).
+ * The disengage contest (rolls §5 tactics): d20 + Agility / 10 (+ position, - 1 a step behind on the advantage track) against
+ * d20 + the current opponent's skill / 10; a win ends the fight as fled. The same contest for the player's typed tactic and the lifetime harness (D-264).
  */
 export function disengageContest(d: DuelState): { ok: boolean; mine: BasicRoll; theirs: BasicRoll; duel: DuelState } {
   const target = currentTarget(d)!;
-  const [mine, r1] = basicRoll(d.rng, fighterAgility(d.a), d.a.position ? [{ source: 'position', value: d.a.position }] : []);
+  // Losing ground costs the escape (the ruling behind the old DISENGAGE constant, applied in m9-missions A4): -1 a step the
+  // opponent is ahead on the advantage track; being ahead gives no bonus (the position bonus is the fighter's edge).
+  const behind = Math.max(0, -d.advantage) * DISENGAGE.advantagePenaltyPerStep;
+  const mods = [...(d.a.position ? [{ source: 'position', value: d.a.position }] : []), ...(behind ? [{ source: 'losing ground', value: -behind }] : [])];
+  const [mine, r1] = basicRoll(d.rng, fighterAgility(d.a), mods);
   const [theirs, r2] = basicRoll(r1, target.level, []);
   return { ok: mine.total > theirs.total, mine, theirs, duel: { ...d, rng: r2 } };
 }

@@ -44,6 +44,7 @@ export function missionChance(daysOff: number, median: number): number {
 
 /** An all-hands-on-deck situation for the character's side today (opt-2 D3), from the timeline: its title, or null. */
 export function allHandsNow(s: GameState, net: WorldNetwork = WORLD_NETWORK): string | null {
+  if (s.duty?.devAllHands === true) return 'all hands on deck (dev)';
   const sides = selectSides(s);
   if (!sides.length) return null;
   const st = selectNetworkState(s, net);

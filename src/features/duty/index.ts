@@ -67,6 +67,15 @@ export const dutyFeature: FeatureModule<DutySlice, GameState> = {
       sources: ['engine'],
       handle: (slice, e, ctx): R => ({ slice: { ...slice, log: logged(slice, ctx.state.clock.now.day, `held back: ${String(e['why'])}`) } }),
     },
+    /** Dev only (/allhands, m9-missions A6): all hands on deck for the character's side, on or off. */
+    devAllHandsSet: {
+      schema: z.object({ type: z.literal('devAllHandsSet'), on: z.boolean() }),
+      sources: ['dev'],
+      handle: (slice, e): R => {
+        const { devAllHands: _drop, ...rest } = slice;
+        return { slice: e['on'] === true ? { ...rest, devAllHands: true } : rest };
+      },
+    },
     /** Engine only: where a skip was going when it stopped (for "Resume the skip"); null when a skip ran to its end. */
     skipResumePoint: {
       schema: z.object({ type: z.literal('skipResumePoint'), targetDay: z.number().int().nullable() }),

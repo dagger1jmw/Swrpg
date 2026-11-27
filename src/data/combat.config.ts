@@ -141,6 +141,12 @@ export const isNarratedBeat = (r: BeatReason): boolean => (NARRATED_BEATS as rea
 export const DUEL_CALL_BUDGET = { exchanges: 150, maxCalls: 12 } as const;
 
 // ---- Contests used by tactics (rolls §5) ----
+/**
+ * Disengage: d20 + Agility/10 (+ position) vs d20 + the opponent's form/10; success ends the fight as fled (D-143). The ruling
+ * deleted unread in opt-2 and applied in m9-missions A4: -1 on the disengager's roll for each step the opponent is ahead on the
+ * advantage track.
+ */
+export const DISENGAGE = { advantagePenaltyPerStep: 1 } as const;
 
 // ---- Ranged (rolls §4) ----
 /** A defender margin this high redirects a bolt (Soresu / Shien per the lore). */

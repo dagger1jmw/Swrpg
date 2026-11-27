@@ -347,7 +347,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     deathSource: 'lore',
     unmapped: ['Precognition 70%', 'Force Body 75'],
     note: "the \"Plain Jedi\" from Rishi; mentor of the Hero of Tython; killed by Angral personally aboard the Oppressor in 3,643 BBY, persists as a Force spirit (lore batch 19, SW_Characters_09_GGW_ColdWar)",
-    anchors: [{ bby: 3643, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(64, 72, 70, 86, 78, 80), ...force(82, 80, 82, 84, 78), djemSo: 78, shien: 78, shiiCho: 74, soresu: 74, ataru: 70, telekinesis: 80, forcePush: pct(80, 0.72), forceSpeed: pct(75, 0.7) } }, { bby: 3675, complete: false, basis: 'sheet', sources: 'hand set (Jared, 26 Nov 2026, opt-2 A3; invented value): fought the Sith offensive in the Minos Cluster "during much of" the war, a Master from 3,675 (SW_Characters_09_GGW_ColdWar; the year is a reading)', levels: { tactics: 65 } }],
+    anchors: [{ bby: 3643, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(64, 72, 70, 86, 78, 80), ...force(82, 80, 82, 84, 78), djemSo: 78, shien: 78, shiiCho: 74, soresu: 74, ataru: 70, telekinesis: 80, forcePush: pct(80, 0.72), forceSpeed: pct(75, 0.7) } }, { bby: 3681, complete: false, basis: 'sheet', sources: 'hand set (Jared, 26 Nov 2026, opt-2 A3; invented value): fought the Sith offensive in the Minos Cluster "during much of" the war (SW_Characters_09_GGW_ColdWar). The lore files date no command, so the value applies from the start of the war, 3,681 (Jared, 27 Nov 2026, m9-missions A3)', levels: { tactics: 65 } }],
   },
   {
     canonId: 'lore:darnala',
@@ -430,7 +430,7 @@ const NPCS: readonly Omit<CanonNpc, 'ranks'>[] = [
     deathSource: 'lore',
     note: 'led the doomed mission to redeem the Emperor and fell; died 3,640 BBY',
     facts: { alignment: 'fell to the dark side in 3,640 BBY (lore batch 19; M6 checklist item 14)' },
-    anchors: [{ bby: 3655, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { tactics: 60, ...core(62, 66, 66, 86, 80, 82), ...force(84, 84, 84, 82, 80), soresu: 78, niman: 74, battleMeditation: 80, forceBarrier: 82 } }],
+    anchors: [{ bby: 3655, complete: true, basis: 'sheet', sources: 'the hand-set sheet (lore batch 19; SW_Characters_09_GGW_ColdWar)', levels: { ...core(62, 66, 66, 86, 80, 82), ...force(84, 84, 84, 82, 80), soresu: 78, niman: 74, battleMeditation: 80, forceBarrier: 82 } }, { bby: 3641, complete: false, basis: 'sheet', sources: 'hand set (Jared, 26 Nov 2026, opt-2 A3; invented value): his first recorded command is the strike team sent to capture and redeem the Emperor (SW_Characters_09_GGW_ColdWar), undated beyond his fall in 3,640, so the value applies from the start of that war, the Galactic War, 3,641 (Jared, 27 Nov 2026, m9-missions A3)', levels: { tactics: 60 } }],
   },
   {
     canonId: 'lore:syo-bakarn',

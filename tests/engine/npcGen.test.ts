@@ -60,8 +60,9 @@ describe('war years (npc-generation §1)', () => {
     expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -3661)).toBe(14);
     expect(warYearsFor('merchant', 'jediOrder', 30, 4, -3661)).toBe(0);
     expect(warYearsFor('jediKnight', 'civilian', 30, 4, -3661)).toBe(0);
-    // The one war list (opt-2 A1): 1,032 BBY is in the New Sith Wars; 500 BBY is peace.
-    expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -1032)).toBe(14);
+    // The one war list (opt-2 A1): 1,032 BBY is in the New Sith Wars, split into dated campaigns (m9-missions A1f): served from
+    // 1,046, the Grumani campaigns 1,042-1,032 give 10 war years; 500 BBY is peace.
+    expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -1032)).toBe(10);
     expect(warYearsFor('jediKnight', 'jediOrder', 30, 4, -500)).toBe(0);
   });
   it('war years by role (opt-2 A2): Guardians and Sentinels every year, Consulars half, scholars none; a Clone Wars Jedi General has them', () => {

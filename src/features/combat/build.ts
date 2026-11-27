@@ -266,6 +266,12 @@ export function buildContext(_s: GameState, terrainTags: readonly string[], stak
     if (tag.cover) cover = true;
     if (tag.forceNegation) forceNegated = true;
   }
+  // The sparring accident's floor (D-143; the constant deleted unread in opt-2, applied in m9-missions A4): a spar whose terrain
+  // carries no hazard of its own is on a flat floor, about 1 in 200 bouts for a minor injury (the flat floor's hazard, D-185).
+  if (sparring !== null && hazards.length === 0) {
+    const floor = TERRAIN_BY_ID.get('flatFloor')!;
+    hazards.push({ ...floor.hazard!, label: floor.label });
+  }
   // A sparring bout rolls its terrain once; a real fight every TERRAIN_HAZARD_EVERY exchanges (D-185).
   return { sparring, situations: [...situations], footing, dyingRiskStakes: stakes === 'lethal' || stakes === 'serious', hazards, positionAttempt, hazardEvery: stakes === 'spar' ? null : TERRAIN_HAZARD_EVERY, ...(cover ? { cover } : {}), ...(forceNegated ? { forceNegated } : {}) };
 }

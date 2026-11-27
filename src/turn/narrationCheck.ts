@@ -16,7 +16,7 @@ import type { CombatDraft } from './combatTurn';
 import { careApplied } from './context';
 import type { TurnDraft } from './resolve';
 
-export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms' | 'gearNotInBlock' | 'stepFailed' | 'groundReversed' | 'survivorCount' | 'lastingState' | 'captorsWrong';
+export type NarrationIssueKind = 'sever' | 'hitNotInLog' | 'minionNotHit' | 'stepNotReached' | 'healingNotApplied' | 'woundOmitted' | 'woundMisplaced' | 'repeated' | 'slipNoHazard' | 'mechanicalTerms' | 'gearNotInBlock' | 'stepFailed' | 'groundReversed' | 'survivorCount' | 'lastingState' | 'captorsWrong' | 'missionOffered';
 export interface NarrationIssue {
   kind: NarrationIssueKind;
   /** The correction for the retry, and the log line. */
@@ -688,6 +688,19 @@ function healingIssues(narrative: string, draft: TurnDraft): NarrationIssue[] {
 }
 
 /**
+ * A new mission assigned, offered or hinted at in the prose (m9-missions A7; the opt-2 browser check closed on "a message from the
+ * Council regarding your next assignment"). Only the code assigns missions: the words are checked only on a turn whose draft
+ * assigned none (invented list).
+ */
+const MISSION_HINT = /\b(?:your|a|the|another)\s+(?:next|new|fresh|upcoming|coming)\s+(?:assignment|mission|posting|orders|task)\b|\b(?:regarding|about|concerning)\s+(?:your|a|another)\s+(?:next\s+|new\s+)?(?:assignment|mission|posting)\b|\b(?:you\s+are|you're|you\s+have\s+been|you've\s+been)\s+(?:being\s+)?(?:assigned|reassigned|posted|dispatched)\s+(?:to|on)\b|\b(?:a|another)\s+mission\s+(?:awaits|is\s+waiting|for\s+you)\b/i;
+const MISSION_TEXT = 'only the code assigns missions: do not assign, offer or hint at a new mission, assignment or posting (none was assigned this turn)';
+
+function missionIssues(narrative: string, draft: TurnDraft): NarrationIssue[] {
+  if (draft.applied.some((a) => a.event.type === 'missionAssigned')) return [];
+  return sentencesOf(narrative).filter((s) => MISSION_HINT.test(s)).map((sentence) => ({ kind: 'missionOffered' as const, text: MISSION_TEXT, sentence }));
+}
+
+/**
  * The contradictions between a narration and the turn's resolved block. `woundedOrHealing`: the character has wounds or
  * the turn is a time jump or a healing action (only then is healing prose checked).
  */
@@ -699,6 +712,7 @@ export function checkNarration(narrative: string, draft: TurnDraft, woundedOrHea
   issues.push(...misplacedIssues(narrative, draft, known));
   issues.push(...lastingIssues(narrative, lastingViews(draft.combat && !draft.combat.quiet ? draft.combat : null, known.lasting ?? [])));
   issues.push(...captorIssues(narrative, known.captors ?? null));
+  issues.push(...missionIssues(narrative, draft));
   return issues;
 }
 
@@ -728,7 +742,7 @@ export function rewordable(narrative: string, issues: readonly NarrationIssue[],
 export function settleNarration(narrative: string, draft: TurnDraft, issues: readonly NarrationIssue[], recheck: Recheck): NarrationSettled {
   const reworded = rewordable(narrative, issues, recheck);
   if (reworded !== null) return { narrative: reworded, how: 'reworded' };
-  const combatWrong = issues.some((i) => i.kind !== 'healingNotApplied' && !(i.kind === 'woundMisplaced' && !draft.combat));
+  const combatWrong = issues.some((i) => i.kind !== 'healingNotApplied' && i.kind !== 'missionOffered' && !(i.kind === 'woundMisplaced' && !draft.combat));
   if (draft.combat && combatWrong) return { narrative: combatSummary(draft.combat).join(' '), how: 'summary' };
   const bad = new Set(issues.map((i) => i.sentence));
   // Paragraphs kept, as in the repair.

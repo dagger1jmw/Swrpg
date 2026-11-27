@@ -19,7 +19,7 @@ import {
   ROLE_RANK,
   TALENT_ROLL_ORDERS,
 } from '../data/npcGen.config';
-import { WAR_YEAR_SHARE, WARS } from '../data/wars';
+import { factionWarYears, WAR_YEAR_SHARE, WARS } from '../data/wars';
 import type { TalentLevel } from '../data/progression.config';
 import { TALENT_DOMAINS, type TalentDomain } from '../data/skills';
 import { nextFloat, seedRng, type RngState } from './rng';
@@ -60,9 +60,10 @@ export function warYearsFor(role: string, faction: string, age: number, startAge
   const serviceFrom = year - (age - Math.max(16, startAge));
   let total = 0;
   for (const w of WARS) {
-    if (!w.factions.includes(faction)) continue;
-    const from = Math.max(serviceFrom, -w.fromBby);
-    const to = Math.min(year, -w.toBby);
+    const y = factionWarYears(w, faction);
+    if (!y) continue;
+    const from = Math.max(serviceFrom, y.from);
+    const to = Math.min(year, y.to);
     if (to > from) total += to - from;
   }
   return total * share;

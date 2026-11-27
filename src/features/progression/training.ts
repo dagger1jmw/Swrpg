@@ -10,6 +10,7 @@ import { sparringE, splitDrillXp, type SparE } from '../../engine/appliedExperie
 import { ACTIVITIES, ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, type ActivityDef, type Intensity, type Unlock } from '../../data/activities';
 import { FORM_TRANSFER_SHARE, PASSION_DARK_PRESSURE_PER_HOUR, STEP_HOURS } from '../../data/progression.config';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../data/skills';
+import { JARKAI_NIMAN_MIN } from '../../data/formMatchups';
 import {
   STUB_ALIGNMENT_MULT,
   STUB_DARK_PRESSURE,
@@ -49,7 +50,7 @@ import type { GameEvent } from '../../state/types';
 import { selectCharacter, selectExactAge, selectPath, selectTrainingAge } from '../character/selectors';
 import { selectTraitLearning } from '../traits/selectors';
 import { selectNow } from '../clock/selectors';
-import { selectMeters } from '../health/selectors';
+import { selectIsDying, selectIsIncapacitated, selectMeters } from '../health/selectors';
 import { selectNpc, selectNpcAgeOrDefault, selectNpcLevel } from '../npcs/selectors';
 import { covertDiscoveryChance, selectOrderPowerVerdict, selectRank } from '../ranks/selectors';
 import { selectRelationship } from '../relationships/selectors';
@@ -409,6 +410,17 @@ const INSTRUCTOR_PLACE = /temple|academy|enclave|praxeum|barracks|training/i;
  * teacher actually at hand (the master when present, the instructors of a Temple or academy, else nobody) through the same rules
  * the session uses, and greyed with the reason when it would be refused (an unknown power: "needs a teacher who knows it").
  */
+/** Why the character cannot train at all now (m9-missions A5): dead, dying, or too badly hurt to fight; null when they can. */
+export function trainingUnfit(s: GameState): string | null {
+  if (s.health.death) return 'no training: the character is dead';
+  if (selectIsDying(s)) return 'no training while dying';
+  if (selectIsIncapacitated(s)) return 'no training while too badly hurt to fight';
+  return null;
+}
+
+/** The student ranks: a session gated to them is hidden once the character has moved past them (m9-missions A5). */
+const STUDENT_RANKS: readonly string[] = ['initiate', 'padawan', 'acolyte', 'apprentice'];
+
 export function selectTrainOptions(s: GameState): TrainOption[] {
   const path = selectPath(s);
   const master = s.ranks.masterId;
@@ -421,6 +433,9 @@ export function selectTrainOptions(s: GameState): TrainOption[] {
     if (pathGate && !pathGate.paths.includes(path)) continue;
     const power = a.primary.kind === 'skill' ? a.primary.skill : null;
     if (a.dark && path === 'jedi' && !(power && known(s, power))) continue;
+    // A student's session (the Padawan's with the master) is not shown once the character has moved past the student ranks.
+    const rankGate = a.unlock.find((u): u is Extract<Unlock, { kind: 'rank' }> => u.kind === 'rank');
+    if (rankGate && rankGate.ranks.every((r) => STUDENT_RANKS.includes(r)) && !STUDENT_RANKS.includes(selectRank(s))) continue;
     const plan = resolveTraining(s, { activityId: a.id, hours: 1, source });
     if (plan.ok) out.push({ id: a.id, name: a.name, group: a.group, open: true });
     else {
@@ -436,6 +451,9 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   let s = initial;
   const a = ACTIVITY_BY_ID.get(req.activityId);
   if (!a) return { ok: false, reason: `unknown activity "${req.activityId}" (no nearby activity is used)` };
+  // No training while dying or unable to fight (Jared, 27 Nov 2026, m9-missions A5): the Train list shows the reason.
+  const unfit = trainingUnfit(s);
+  if (unfit) return { ok: false, reason: `${a.name}: ${unfit}` };
   const prim = resolvePrimaries(s, a, req.skillId);
   if (typeof prim === 'string') return { ok: false, reason: `${a.name}: ${prim}` };
   for (const id of Object.keys(prim)) if (!SKILL_BY_ID.has(id)) return { ok: false, reason: `${a.name}: unknown skill ${id}` };
@@ -507,6 +525,9 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   const teacherKnows = record !== undefined || source?.kind === 'instructor' || source?.kind === 'master' || (teacherId !== null && selectNpcLevel(s, teacherId, primary) >= 1);
   const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teaching, partner: partnered, transfer, vaapadTeacher: vaapadTeacherOf(s, teacherId), recordId: record?.id ?? null, styleRefusal, teacherKnows };
   const selfStudyStart: string[] = [];
+  // Jar'Kai needs Niman 30 (D-122; the ruling deleted unread in opt-2, applied in m9-missions A4): any session whose primary is
+  // Jar'Kai, from the basics on, whatever else unlocks it.
+  if (Object.keys(prim).includes('jarKai') && levelAfterTransfer(ctx, 'niman') < JARKAI_NIMAN_MIN) return { ok: false, reason: `${a.name} is locked: Jar'Kai needs Niman ${JARKAI_NIMAN_MIN}` };
   for (const u of a.unlock) {
     const fail = unlockFails(u, ctx);
     // Self-study (D-126): an unknown form's basics drill opens without a teacher; slow (solo x0.90 and

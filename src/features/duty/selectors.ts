@@ -35,7 +35,7 @@ export function selectFitnessLine(s: GameState): string {
 
 /** The narrator's state line (opt-2 D6): it narrates duty and fitness; it never changes them. */
 export function selectDutyPromptLine(s: GameState): string {
-  return `DUTY (the code's; narrate it, never change it: missions are assigned and ended by the code): ${selectDutyLine(s)}. ${selectFitnessLine(s)}.`;
+  return `DUTY (the code's; narrate it, never change it: missions are assigned and ended by the code; never assign, offer or hint at a new mission, assignment or posting, not even a summons about one): ${selectDutyLine(s)}. ${selectFitnessLine(s)}.`;
 }
 
 /** A home day now: off duty at home, the day after a mission or a skip paused at home (opt-2 D5). */
@@ -68,4 +68,4 @@ export function selectHomeDayLine(s: GameState): string | null {
 }
 
 /** Re-exports for the world feature and the turn (features read each other through selectors). */
-export { selectAtHome, touchesCharacter } from './home';
+export { selectAtHome, selectHomeBase, touchesCharacter } from './home';

@@ -24,5 +24,7 @@ export const dutySliceSchema = z.object({
   /** A home base recorded when duty first saw the character (not for a Jedi: the Order's seat of the year is theirs). */
   home: z.object({ name: z.string().max(80), planet: z.string().max(80).nullable() }).nullable(),
   log: z.array(z.object({ day: z.number().int(), what: z.string().max(160) })),
+  /** /allhands on|off (m9-missions A6, dev only): all hands on deck for the character's side, whatever the timeline says. */
+  devAllHands: z.boolean().optional(),
 });
 export type DutySlice = z.infer<typeof dutySliceSchema>;

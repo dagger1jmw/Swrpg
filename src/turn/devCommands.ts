@@ -18,6 +18,7 @@ import { selectCharacter, selectIsTestCharacter, selectPath } from '../features/
 import { selectNow } from '../features/clock/selectors';
 import { resolveLocationRef } from '../features/locations/selectors';
 import { selectPacingLevel } from '../features/pacing/selectors';
+import { selectHomeBase } from '../features/duty/selectors';
 import { selectLevelExact } from '../features/progression/selectors';
 import { makeEnvelope } from '../persist/envelope';
 import type { CampaignRecord, Storage, TranscriptEntry } from '../persist/storage';
@@ -53,6 +54,9 @@ export const DEV_HELP: readonly string[] = [
   '/scenario <text>: the next narration starts exactly in that situation',
   '/truce [terms]: the opponent offers a truce (the Accept truce button answers it). /fall: the fight\'s terrain accidents are rolled now',
   '/simulate 503 <n>: the next n AI requests fail as HTTP 503 (busy), to see the retries, the busy note and the next model (D-250); 0 clears it',
+  '/mission start [type] [world]: a mission now (types: strike, frontline, infiltration, manhunt, investigation, escort, rescue, recon, diplomacy). /mission end [success|failure|cutShort]: the current mission ended now',
+  '/allhands on|off: all hands on deck for your side (a minor wound no longer holds an assignment back)',
+  '/home: put the character at their home base (the Temple, or the forward base while posted)',
   '/help: this list',
 ];
 
@@ -620,6 +624,45 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       const failed = movePlace(name);
       if (failed) return fail(failed);
       return out(true, `moved to ${state.locations.byId[resolveLocationRef(state, name) ?? '']?.name ?? name}`);
+    }
+
+    case 'mission': {
+      // m9-missions A6: a mission now, or the current one ended, through the duty feature's own engine events.
+      const sub = (args[0] ?? '').toLowerCase();
+      if (sub === 'start') {
+        if (state.duty.status === 'mission') return fail('already on a mission (/mission end first)');
+        const kind = args.slice(1).join(' ').trim() || 'a dev mission';
+        const title = `Mission: ${kind}`.slice(0, 80);
+        apply([{ type: 'threadOpened', title, stakes: 'A mission started with a dev command.', entityRefs: [] }, { type: 'missionAssigned', title, threadTitle: title }], 'engine');
+        if (refused()) return fail(refused()!);
+        return out(true, `mission started: ${kind}`);
+      }
+      if (sub === 'end') {
+        if (state.duty.status !== 'mission') return fail('not on a mission');
+        const how = args.slice(1).join(' ').trim() || 'ended with a dev command';
+        apply([{ type: 'missionEnded', how }], 'engine');
+        if (refused()) return fail(refused()!);
+        return out(true, `mission ended (${how})`);
+      }
+      return fail('/mission start [type] [world], /mission end [outcome]');
+    }
+
+    case 'allhands': {
+      // m9-missions A6: all hands on deck for the character's side, on or off (the duty feature's all-hands reading).
+      const on = (args[0] ?? '').toLowerCase();
+      if (on !== 'on' && on !== 'off') return fail('/allhands on|off');
+      apply([{ type: 'devAllHandsSet', on: on === 'on' }], 'dev');
+      if (refused()) return fail(refused()!);
+      return out(true, `all hands on deck ${on}`);
+    }
+
+    case 'home': {
+      // m9-missions A6: the character at their home base (created when new).
+      const home = selectHomeBase(state);
+      if (!home) return fail('no home base now (the Order is homeless, or duty has not seen the character yet)');
+      const failed = movePlace(home.name);
+      if (failed) return fail(failed);
+      return out(true, `at home: ${home.label}`);
     }
 
     default:
