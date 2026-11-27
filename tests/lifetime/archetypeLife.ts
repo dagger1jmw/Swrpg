@@ -56,7 +56,8 @@ function closedMain(a: ArchetypeDef, order: boolean): number {
  * The archetype's life on its default routine (npc test 7's profile and seed): to 41 for a Force archetype (the Master check at
  * 40), else npc test 7's 25 years; Force Control and Force Sense tracked.
  */
-export function runArchetype(a: ArchetypeDef): LifeResult {
+/** `seed` (m9-tune: the lifegap's 20 seeds) replaces the archetype's own; absent, the life is npc test 7's. */
+export function runArchetype(a: ArchetypeDef, seed: string = a.id): LifeResult {
   const order = a.path === 'jedi' || a.path === 'sith';
   const years = a.path === 'career' ? ARCHETYPE_YEARS : Math.max(ARCHETYPE_YEARS, 41 - a.startAge);
   return runLifetime(
@@ -71,7 +72,7 @@ export function runArchetype(a: ArchetypeDef): LifeResult {
       effort: 'standard',
       mainForm: 'soresu',
       secondForm: 'ataru',
-      seed: a.id,
+      seed,
       // Jedi and Sith archetypes keep the Average's one real mission a year from Padawan (D-143 A, D-159): without real fights the
       // drill ceiling holds every form at 40.
       ...(order ? { fights: schedule([{ from: 12, to: 200, perYear: 1, stakes: 'skirmish', gap: -20, opponent: 'trooper', count: 4 }]) } : {}),

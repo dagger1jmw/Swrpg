@@ -203,7 +203,23 @@ const START_DAY = absDayFromDate({ year: TEST_YEAR, month: 1, day: 1 });
 /** m9-release A15 (report only): duty on, its missions played by the duty player. Never set by npm test or test:all. */
 const MISSIONS_ON = process.env['LIFETIME_MISSIONS'] === 'on';
 /** Missions-on counts for the report (per life). */
-export const missionStats = { missions: 0, success: 0, failure: 0, cutShort: 0, missionDays: 0, turns: 0 };
+export const missionStats = {
+  missions: 0, success: 0, failure: 0, cutShort: 0, missionDays: 0, turns: 0,
+  /** Mission types assigned, the clock days spent in duty's own turns, the form XP those turns earned (all forms), the routine's hours. */
+  types: {} as Record<string, number>,
+  dutyDays: 0,
+  dutyFormXp: 0,
+  routineHours: 0,
+  routineFormXp: 0,
+  /** m9-tune A1: the XP duty's turns gave each skill (forms and the rest: fights, stage checks, battles), and the routine's form XP by form. */
+  dutyXpBy: {} as Record<string, number>,
+  routineFormXpBy: {} as Record<string, number>,
+};
+
+/** Zeroes the missions-on counts before a life (the lifegap jobs). */
+export function resetMissionStats(): void {
+  Object.assign(missionStats, { missions: 0, success: 0, failure: 0, cutShort: 0, missionDays: 0, turns: 0, types: {}, dutyDays: 0, dutyFormXp: 0, routineHours: 0, routineFormXp: 0, dutyXpBy: {}, routineFormXpBy: {} });
+}
 
 export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
   const plan = p.formPlan ?? { padawan: { [p.mainForm]: 2, [p.secondForm]: 1 }, knight: { [p.mainForm]: 2, [p.secondForm]: 1 } };
@@ -555,6 +571,7 @@ let lifeDiscard: Record<string, number> = {};
 
 export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = {}): LifeResult {
   const statsBefore = { ...fightStats };
+  const seenMissions = new Set<string>();
   lifeDiscard = {};
   const paceRates: Record<string, { xp: number; hours: number; banked: number }>[] = [];
   // Drill XP banked by the ceiling, by day (the per-hour table counts it: the ceiling is its own rule, D-45, D-457).
@@ -609,11 +626,25 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       // Duty's own turns until it needs no one (the trip, the stages, the fights), then the routine for the rest of the day.
       const d0 = s.clock.now.day;
       const r0 = s.duty.record;
+      const formXp = (st: GameState): number => FORM_IDS.reduce((a, f) => a + (st.progression.skills[f]?.xp ?? 0), 0);
+      const x0 = formXp(s);
+      const skills0 = s.progression.skills;
       for (let k = 0; k < 60 && dutyNeedsPlayer(s); k++) {
+        const m = s.duty.mission;
+        if (m && !seenMissions.has(m.id + m.assignedDay)) {
+          seenMissions.add(m.id + m.assignedDay);
+          missionStats.types[m.type] = (missionStats.types[m.type] ?? 0) + 1;
+        }
         const t = playDutyTurn(s);
         if (!t) break;
         s = t.state;
         missionStats.turns++;
+      }
+      missionStats.dutyDays += s.clock.now.day - d0;
+      missionStats.dutyFormXp += formXp(s) - x0;
+      for (const [k, v] of Object.entries(s.progression.skills)) {
+        const d = v.xp - (skills0[k]?.xp ?? 0);
+        if (d > 0) missionStats.dutyXpBy[k] = (missionStats.dutyXpBy[k] ?? 0) + d;
       }
       if (s.duty.status === 'mission') missionStats.missionDays += Math.max(1, s.clock.now.day - d0);
       const r1 = s.duty.record;
@@ -672,6 +703,14 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
       for (const f of FORM_IDS) {
         drillTotal += (cred[f] ?? 0) + (banked[f] ?? 0);
         bankedTotal += banked[f] ?? 0;
+      }
+    }
+    if (r) {
+      for (const d of r.days) missionStats.routineHours += d.hoursTrained;
+      missionStats.routineFormXp += FORM_IDS.reduce((a, f) => a + (r.state.progression.skills[f]?.xp ?? 0) - (s.progression.skills[f]?.xp ?? 0), 0);
+      for (const f of FORM_IDS) {
+        const d = (r.state.progression.skills[f]?.xp ?? 0) - (s.progression.skills[f]?.xp ?? 0);
+        if (d !== 0) missionStats.routineFormXpBy[f] = (missionStats.routineFormXpBy[f] ?? 0) + d;
       }
     }
     if (r) s = r.state;
