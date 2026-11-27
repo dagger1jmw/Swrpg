@@ -254,7 +254,8 @@ export function planDay(s: GameState, routine: Routine, fillCredit: Readonly<Rec
   const credit: Record<string, number> = { ...fillCredit };
   const empty = (trainingDay: boolean, recovery: boolean): DayPlan => ({ trainingDay, recovery, items: [], budget, fillCredit: credit, projectedEndF: 0, notes });
   if (selectCharacter(s).trainingStartAge === null && !routine.priorities?.length && !routine.lockedBlocks.length) return empty(false, false);
-  if (!isTrainingDay(day, routine.daysPerWeek)) return empty(false, false);
+  // No free day on a mission (m9-missions B11; the opt-2 rule): every day of a mission is a working day.
+  if (!isTrainingDay(day, routine.daysPerWeek) && s.duty?.status !== 'mission') return empty(false, false);
   if (selectOvertrainStreak(s) >= 2) {
     notes.push('overtraining streak of 2+ days: today is a recovery day (training-routines §6)');
     return empty(true, true);

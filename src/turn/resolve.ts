@@ -37,6 +37,7 @@ import { tryPlan } from './planning';
 import { resolveHoldTurn, type HoldTurn } from '../features/combat/selectors';
 import { carePlan } from './medicine';
 import { planTravel, runTravelBlockade, shipTrip, watchTravelBlockade, type TravelOutcome } from './travel';
+import { missionAfterTurn, tryMissionStage } from './missionTurn';
 import type { GameEvent, Registry, ResolvedAction } from '../state/types';
 import { selectCheckTraitMod, selectNpcMindTrickResist } from '../features/traits/selectors';
 import { selectActiveBattle, selectBattleStep, selectBattleWaitsOnFight, selectGroundBattle, selectGroundWaitsOnFight, selectLastEndedBattle, selectLastGround } from '../features/battles/selectors';
@@ -221,7 +222,7 @@ function isSparringActivityIntent(intent: Intent | null): boolean {
   return id !== undefined && ACTIVITY_BY_ID.get(id)?.sparring === true;
 }
 
-export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput; text?: string; homeDays?: boolean; battle?: { orders?: Readonly<Record<string, unknown>>; auto?: boolean; repairs?: boolean; ground?: GroundInput } } = {}): Resolution {
+export function resolveTurn(registry: Registry<GameState>, initial: GameState, intent: Intent | null, opts: { beat?: CombatActionInput; text?: string; homeDays?: boolean; mission?: string; battle?: { orders?: Readonly<Record<string, unknown>>; auto?: boolean; repairs?: boolean; ground?: GroundInput } } = {}): Resolution {
   let state = initial;
   const report: string[] = [];
   const applied: AppliedEvent[] = [];
@@ -238,6 +239,17 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   let battle: BattleDraft | null = null;
 
   const finish = (): Resolution => {
+    // Missions after the turn (m9-missions B3, B4, B6, B8): the trip's end moves the character, a stage's fight or battle that ended
+    // is decided, a bad wound cuts the mission short, the mission ends back at base, the Council's best are sent straight on.
+    const arrived = travel?.ok === true && timeAdvanced !== null && timeAdvanced.interrupted === undefined;
+    const m0 = initial.duty.mission;
+    const after = missionAfterTurn(registry, state, travel, arrived, m0 ? { id: m0.id, outcome: m0.outcome } : null);
+    state = after.state;
+    applied.push(...after.applied);
+    rejected.push(...after.rejected);
+    notices.push(...after.notices);
+    report.push(...after.report);
+    if (after.seconds > 0) timeAdvanced = { seconds: (timeAdvanced?.seconds ?? 0) + after.seconds, requested: (timeAdvanced?.requested ?? 0) + after.seconds, reason: timeAdvanced ? `${timeAdvanced.reason}; the mission` : 'the mission' };
     const draft: TurnDraft = Object.freeze({
       intent,
       checks: Object.freeze(checks),
@@ -398,6 +410,20 @@ export function resolveTurn(registry: Registry<GameState>, initial: GameState, i
   }
 
   if (intent) {
+    // A mission's stage (m9-missions B3): the player's approach decides it in code: a skill roll, a fight or a battle begun.
+    const stage = tryMissionStage(registry, state, intent, opts.mission ?? null);
+    if (stage) {
+      state = stage.state;
+      applied.push(...stage.applied);
+      rejected.push(...stage.rejected);
+      notices.push(...stage.notices);
+      report.push(...stage.report);
+      checks.push(...stage.checks);
+      if (stage.seconds > 0) timeAdvanced = { seconds: stage.seconds, requested: stage.seconds, reason: 'the mission' };
+      narrationLevel = stage.seconds > 12 * 3600 ? 'montage' : 'scene';
+      if (narrationLevel !== selectPacingLevel(state)) apply([{ type: 'pacingSet', level: narrationLevel }]);
+      return finish();
+    }
     // A train / study intent with an activity (or a skill with a default activity) is a session (M3).
     const trainingReq = trainingRequest(intent);
     // A span of days with no activity named follows the routine (a montage or /skip): nothing to report there (issue 20).

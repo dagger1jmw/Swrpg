@@ -45,13 +45,7 @@ export const MISSION_SCALE_BY_CAREER: Readonly<Record<string, number>> = {
   bountyHunter: 1.3,
 };
 
-/** What a mission is called, by path and war (the thread's title: "Mission: an escort"). */
-export const MISSION_KINDS: Readonly<Record<'jedi' | 'sith' | 'military' | 'jobs', { peace: readonly string[]; war: readonly string[] }>> = {
-  jedi: { peace: ['an escort', 'a mediation', 'an investigation', 'a relief mission', 'a diplomatic mission'], war: ['a front-line posting', 'a strike mission', 'an escort through the war zone', 'a relief mission'] },
-  sith: { peace: ['an errand for your master', 'a hunt', 'an investigation', 'an assignment from the Ministry'], war: ['a front-line posting', 'a strike mission', 'a hunt behind the lines'] },
-  military: { peace: ['a patrol', 'an escort', 'a deployment', 'a reconnaissance'], war: ['a combat deployment', 'a raid', 'a reconnaissance in force', 'a convoy escort'] },
-  jobs: { peace: ['a job', 'a run', 'a contract'], war: ['a job in the war zone', 'a blockade run', 'a contract'] },
-};
+// Mission names and types moved to data/missions.config.ts (m9-missions B2: MISSION_TYPES, MISSION_TYPE_WEIGHTS).
 
 /**
  * The injury check on every assignment (opt-2 D3): an unhealed wound blocks assignment until it is healed enough. "Minor" is the

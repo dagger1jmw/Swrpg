@@ -1,0 +1,2018 @@
+{
+ "format": "swrpg-v2",
+ "envelopeVersion": 1,
+ "featureVersions": {
+  "clock": 1,
+  "character": 5,
+  "locations": 2,
+  "memory": 1,
+  "flags": 1,
+  "routines": 1,
+  "health": 2,
+  "combat": 1,
+  "progression": 5,
+  "npcs": 2,
+  "relationships": 1,
+  "threads": 1,
+  "ranks": 2,
+  "world": 5,
+  "economy": 1,
+  "droids": 1,
+  "traits": 1,
+  "battles": 2,
+  "ships": 1,
+  "tactics": 2,
+  "possessions": 1,
+  "duty": 2,
+  "pacing": 2
+ },
+ "savedAt": "2026-11-27T00:00:00.000Z",
+ "state": {
+  "meta": {
+   "schemaVersion": 1,
+   "campaignId": "fixture-campaign",
+   "branchId": "fixture-branch",
+   "turn": 0,
+   "rngState": [
+    1255699189,
+    3812223712,
+    59681622,
+    1117543606
+   ]
+  },
+  "clock": {
+   "now": {
+    "day": -184304,
+    "second": 33120
+   },
+   "lastAdvance": {
+    "seconds": 11520,
+    "reason": "mission: the approach",
+    "source": "turnDraft"
+   },
+   "startDay": -184306
+  },
+  "character": {
+   "id": "character:fixture-campaign",
+   "name": "Kael Voss",
+   "birthDay": -195346,
+   "speciesId": "human",
+   "path": "jedi",
+   "archetype": "jediGuardian",
+   "focusWeights": {
+    "soresu": 0.3636363636363636,
+    "ataru": 0.1818181818181818,
+    "forceControl": 0.09090909090909091,
+    "forceSense": 0.07575757575757576,
+    "strength": 0.07575757575757576,
+    "agility": 0.07575757575757576,
+    "endurance": 0.07575757575757576,
+    "willpower": 0.060606060606060615
+   },
+   "mainFormId": "soresu",
+   "secondFormId": "ataru",
+   "trainingStartAge": 4,
+   "talents": {},
+   "dominantHand": "right",
+   "unbalanced": false,
+   "formPlan": {
+    "padawan": {
+     "soresu": 2,
+     "ataru": 1
+    },
+    "knight": {
+     "soresu": 2,
+     "ataru": 1
+    }
+   },
+   "testCharacter": true
+  },
+  "locations": {
+   "byId": {
+    "loc:coruscant": {
+     "id": "loc:coruscant",
+     "name": "Coruscant",
+     "aliases": [],
+     "kind": "planet",
+     "region": "Core Worlds",
+     "parentId": null,
+     "description": "",
+     "firstVisitDay": null,
+     "introducedTurn": 1
+    },
+    "loc:the-jedi-temple": {
+     "id": "loc:the-jedi-temple",
+     "name": "the Jedi Temple",
+     "aliases": [],
+     "kind": "building",
+     "region": "Core Worlds",
+     "parentId": "loc:coruscant",
+     "description": "",
+     "firstVisitDay": -184306,
+     "introducedTurn": 1
+    },
+    "loc:taris": {
+     "id": "loc:taris",
+     "name": "Taris",
+     "aliases": [],
+     "kind": "planet",
+     "region": "Outer Rim Territories",
+     "parentId": null,
+     "description": "",
+     "firstVisitDay": -184304,
+     "introducedTurn": 1
+    }
+   },
+   "currentId": "loc:taris",
+   "currentSinceDay": -184304
+  },
+  "memory": {
+   "facts": [
+    {
+     "id": "fact:1",
+     "aboutRef": "pc",
+     "text": "Kael Voss is a Human, born in 530 BBY.",
+     "turn": 0,
+     "day": -184306,
+     "importance": "major"
+    },
+    {
+     "id": "fact:2",
+     "aboutRef": "pc",
+     "text": "Began training at age 4 at the Jedi Temple on Coruscant.",
+     "turn": 0,
+     "day": -184306,
+     "importance": "major"
+    },
+    {
+     "id": "fact:3",
+     "aboutRef": "pc",
+     "text": "Trains as a Jedi Guardian; main lightsaber form Soresu.",
+     "turn": 0,
+     "day": -184306,
+     "importance": "major"
+    },
+    {
+     "id": "fact:4",
+     "aboutRef": "pc",
+     "text": "Became a Padawan at about age 12.",
+     "turn": 0,
+     "day": -184306,
+     "importance": "major"
+    },
+    {
+     "id": "fact:5",
+     "aboutRef": "pc",
+     "text": "Knighted at about age 25.",
+     "turn": 0,
+     "day": -184306,
+     "importance": "major"
+    },
+    {
+     "id": "fact:6",
+     "aboutRef": "pc",
+     "text": "Learned Shii-Cho as an Initiate; as a Padawan trained Soresu 2 h, Ataru 1 h a day.",
+     "turn": 0,
+     "day": -184306,
+     "importance": "major"
+    }
+   ],
+   "playerPins": [],
+   "chapters": [],
+   "arc": null,
+   "current": {
+    "startTurn": 0,
+    "startDay": -184306,
+    "signals": []
+   },
+   "review": [],
+   "nextSeq": 7
+  },
+  "flags": {
+   "set": []
+  },
+  "routines": {
+   "active": {
+    "priorities": null,
+    "effort": "standard",
+    "daysPerWeek": 6,
+    "wakeSecond": 21600,
+    "sleepHours": 8,
+    "lockedBlocks": [],
+    "masterRef": null,
+    "fillSource": null
+   },
+   "templates": [],
+   "suggested": null,
+   "fillCredit": {
+    "soresu": 0.18181818181818166,
+    "ataru": 0.09090909090909083,
+    "forceControl": 0.045454545454545414,
+    "forceSense": -0.045454545454545414,
+    "strength": -0.045454545454545414,
+    "agility": -0.045454545454545414,
+    "endurance": -0.045454545454545414,
+    "willpower": -0.1363636363636363
+   },
+   "nextSeq": 1
+  },
+  "health": {
+   "meters": {
+    "p": 0,
+    "m": 0,
+    "f": 0
+   },
+   "sleepCarry": 0,
+   "vitalityLost": 0,
+   "wounds": [],
+   "lasting": [],
+   "dying": null,
+   "death": null,
+   "care": null,
+   "suppression": [],
+   "woundSeq": 1,
+   "pendingHazards": []
+  },
+  "combat": {
+   "pending": null,
+   "active": null,
+   "fates": [],
+   "last": null,
+   "seq": 1
+  },
+  "progression": {
+   "skills": {
+    "endurance": {
+     "xp": 2002.7761379495937,
+     "rust": 0,
+     "lastPracticedDay": -184305
+    },
+    "strength": {
+     "xp": 1559.1643331695384,
+     "rust": 0,
+     "lastPracticedDay": -184305
+    },
+    "agility": {
+     "xp": 1628.15274426597,
+     "rust": 0,
+     "lastPracticedDay": -184305
+    },
+    "forceControl": {
+     "xp": 10577.295194892467,
+     "rust": 0,
+     "lastPracticedDay": -184305
+    },
+    "forceSense": {
+     "xp": 10036.17793469266,
+     "rust": 0,
+     "lastPracticedDay": -184305
+    },
+    "willpower": {
+     "xp": 13187.050684929593,
+     "rust": 0,
+     "lastPracticedDay": -184305
+    },
+    "meditation": {
+     "xp": 2048.59251447951,
+     "rust": 0,
+     "lastPracticedDay": -184305
+    },
+    "forceKnowledge": {
+     "xp": 1507.4449923428724,
+     "rust": 0,
+     "lastPracticedDay": -184305
+    },
+    "melee": {
+     "xp": 301.0793193535326,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "telekinesis": {
+     "xp": 8461.24719750155,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "forcePush": {
+     "xp": 6345.935398126166,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "forceJump": {
+     "xp": 4759.451548594625,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "mindTrick": {
+     "xp": 3701.79564890693,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "forceSpeed": {
+     "xp": 5288.279498438471,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "tactics": {
+     "xp": 2133.0611202969885,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "shiiCho": {
+     "xp": 3760.425485341633,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "makashi": {
+     "xp": 2257.9546442325714,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "soresu": {
+     "xp": 13195.95177231025,
+     "rust": 0,
+     "lastPracticedDay": -184305
+    },
+    "ataru": {
+     "xp": 5494.516274330158,
+     "rust": 0,
+     "lastPracticedDay": -184305
+    },
+    "shien": {
+     "xp": 2230.668264434907,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "djemSo": {
+     "xp": 2230.522231072881,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "niman": {
+     "xp": 1838.7150865748424,
+     "rust": 0,
+     "lastPracticedDay": -184306
+    },
+    "stealth": {
+     "xp": 0.07083275836447012,
+     "rust": 0,
+     "lastPracticedDay": null
+    }
+   },
+   "stateOfMind": {
+    "kind": "centered",
+    "intensity": 1,
+    "sinceDay": -184305,
+    "untilDay": -184304
+   },
+   "grief": null,
+   "paceWindow": {
+    "soresu": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      1.46
+     ],
+     "dh": [
+      1.5
+     ]
+    },
+    "endurance": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      0.743
+     ],
+     "dh": [
+      0.828
+     ]
+    },
+    "willpower": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      1.983
+     ],
+     "dh": [
+      3.515
+     ]
+    },
+    "forceSense": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      0.846
+     ],
+     "dh": [
+      0.566
+     ]
+    },
+    "forceControl": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      0.735
+     ],
+     "dh": [
+      0.581
+     ]
+    },
+    "niman": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      0.216
+     ],
+     "dh": [
+      0.223
+     ]
+    },
+    "shien": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      0.146
+     ],
+     "dh": [
+      0.148
+     ]
+    },
+    "ataru": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      0.701
+     ],
+     "dh": [
+      0.75
+     ]
+    },
+    "agility": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      0.459
+     ],
+     "dh": [
+      0.541
+     ]
+    },
+    "strength": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      0.416
+     ],
+     "dh": [
+      0.532
+     ]
+    },
+    "meditation": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      0.357
+     ],
+     "dh": [
+      0.621
+     ]
+    },
+    "forceKnowledge": {
+     "w0": 0,
+     "wx": [],
+     "wh": [],
+     "dd": [
+      -184305
+     ],
+     "dx": [
+      0.47
+     ],
+     "dh": [
+      0.75
+     ]
+    }
+   },
+   "overtrainStreak": 0,
+   "willpowerToday": 0,
+   "today": {
+    "hoursByActivity": {},
+    "postWindow": 0,
+    "lastPhysicalHeavy": false,
+    "meditationHours": 0,
+    "trainingHours": 0
+   },
+   "tierBeatsPending": [],
+   "nextSeq": 1,
+   "formsStarted": [
+    "shiiCho",
+    "makashi",
+    "soresu",
+    "ataru",
+    "shien",
+    "djemSo",
+    "niman"
+   ],
+   "selfTaught": [],
+   "fightsToday": {},
+   "combatXpToday": {},
+   "E": {
+    "shiiCho": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    },
+    "makashi": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    },
+    "soresu": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    },
+    "ataru": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    },
+    "shienDjemSo": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    },
+    "niman": {
+     "E": 56.998856068217634,
+     "eSpar": 54.306884556708155
+    }
+   },
+   "CI": {
+    "forcePush": {
+     "CI": 20,
+     "ciSpar": 20
+    },
+    "telekinesis": {
+     "CI": 20,
+     "ciSpar": 20
+    },
+    "mindTrick": {
+     "CI": 20,
+     "ciSpar": 20
+    }
+   },
+   "bank": {},
+   "bankReleaseUntil": null,
+   "reviewBuff": null,
+   "lastReviewDay": null,
+   "specialtyTransfer": "creation",
+   "ageing": {
+    "bodyAge": 30.0045114703553,
+    "loss": {
+     "strength": 0,
+     "agility": 0.00000811412358849984,
+     "endurance": 0
+    }
+   },
+   "socialToday": 0,
+   "playToday": {
+    "stealth:stealth": 0.06875
+   }
+  },
+  "npcs": {
+   "byId": {}
+  },
+  "relationships": {
+   "byNpcId": {}
+  },
+  "threads": {
+   "byId": {
+    "thread:mission-a-reconnaissance-on-taris": {
+     "id": "thread:mission-a-reconnaissance-on-taris",
+     "title": "Mission: a reconnaissance on Taris",
+     "stakes": "A mission started with a dev command.",
+     "status": "open",
+     "deadlineDay": null,
+     "escalation": 0,
+     "notes": [],
+     "entityRefs": [],
+     "openedDay": -184306,
+     "openedTurn": 1,
+     "closedDay": null,
+     "lastTurn": 1
+    }
+   }
+  },
+  "ranks": {
+   "rank": "knight",
+   "since": null,
+   "masterId": null,
+   "trials": {},
+   "corps": null,
+   "padawansKnighted": 0,
+   "pendingChoice": false
+  },
+  "world": {
+   "log": [
+    {
+     "id": "world:1",
+     "day": -184304,
+     "kind": "rumor",
+     "significant": false,
+     "refs": [],
+     "summary": "Rumors reach the character",
+     "narratedTurn": null
+    }
+   ],
+   "nextSeq": 2,
+   "network": {
+    "cursorDay": -184304,
+    "events": {
+     "E.3661.blockade": {
+      "status": "standing",
+      "day": -1347616,
+      "endedDay": -1347616,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3661.riots": {
+      "status": "standing",
+      "day": -1347616,
+      "endedDay": -1347616,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3661.devaron": {
+      "status": "standing",
+      "day": -1347545,
+      "endedDay": -1347543,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3661.satele_recall": {
+      "status": "standing",
+      "day": -1347492,
+      "endedDay": -1347492,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3661.belsavis_shange": {
+      "status": "standing",
+      "day": -1347461,
+      "endedDay": -1347461,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3661.raxxus": {
+      "status": "standing",
+      "day": -1347430,
+      "endedDay": -1347430,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3661.theron": {
+      "status": "standing",
+      "day": -1347399,
+      "endedDay": -1347399,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3661.rim_campaign": {
+      "status": "standing",
+      "day": -1347338,
+      "endedDay": -1347338,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3660.hydian_battle": {
+      "status": "standing",
+      "day": -1347234,
+      "endedDay": -1347234,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3660.riots_end": {
+      "status": "standing",
+      "day": -1347217,
+      "endedDay": -1347217,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3660.ord_radama": {
+      "status": "standing",
+      "day": -1347186,
+      "endedDay": -1347186,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3660.ashas_serenno": {
+      "status": "standing",
+      "day": -1347124,
+      "endedDay": -1347124,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3660.ziost": {
+      "status": "standing",
+      "day": -1347062,
+      "endedDay": -1347062,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3660.korriban": {
+      "status": "standing",
+      "day": -1347031,
+      "endedDay": -1347011,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3660.great_hunt": {
+      "status": "standing",
+      "day": -1346970,
+      "endedDay": -1346970,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3660.crusader_schism": {
+      "status": "standing",
+      "day": -1346940,
+      "endedDay": -1346940,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3660.barrows_seventh": {
+      "status": "standing",
+      "day": -1346910,
+      "endedDay": -1344579,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3659.visz_rumour": {
+      "status": "standing",
+      "day": -1346880,
+      "endedDay": -1346880,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3658.xandret": {
+      "status": "standing",
+      "day": -1346512,
+      "endedDay": -1346512,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3655.odacer": {
+      "status": "standing",
+      "day": -1345408,
+      "endedDay": -1345408,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3654.peace_offer": {
+      "status": "standing",
+      "day": -1344885,
+      "endedDay": -1344885,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3654.minos_end": {
+      "status": "standing",
+      "day": -1344866,
+      "endedDay": -1344610,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3654.trant_narshaddaa": {
+      "status": "standing",
+      "day": -1344823,
+      "endedDay": -1344823,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3654.rhen_var": {
+      "status": "standing",
+      "day": -1344792,
+      "endedDay": -1344641,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.druckenwell": {
+      "status": "standing",
+      "day": -1344641,
+      "endedDay": -1344641,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.dantooine": {
+      "status": "standing",
+      "day": -1344548,
+      "endedDay": -1344548,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.alderaan_conference": {
+      "status": "standing",
+      "day": -1344517,
+      "endedDay": -1344517,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.temple_strike": {
+      "status": "standing",
+      "day": -1344498,
+      "endedDay": -1344497,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.sacking": {
+      "status": "standing",
+      "day": -1344497,
+      "endedDay": -1344495,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.treaty": {
+      "status": "standing",
+      "day": -1344495,
+      "endedDay": -1344495,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.deaths": {
+      "status": "standing",
+      "day": -1344493,
+      "endedDay": -1344493,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.riots_after": {
+      "status": "standing",
+      "day": -1344486,
+      "endedDay": -1344486,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.senate_blame": {
+      "status": "standing",
+      "day": -1344485,
+      "endedDay": -1344485,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.temple_shelved": {
+      "status": "standing",
+      "day": -1344477,
+      "endedDay": -1344477,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.zym": {
+      "status": "standing",
+      "day": -1344472,
+      "endedDay": -1344472,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.chancellor": {
+      "status": "standing",
+      "day": -1344455,
+      "endedDay": -1344455,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.decimus": {
+      "status": "standing",
+      "day": -1344424,
+      "endedDay": -1344424,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.hutt_treaty": {
+      "status": "standing",
+      "day": -1344415,
+      "endedDay": -1344415,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.ord_mantell_fleet": {
+      "status": "standing",
+      "day": -1344385,
+      "endedDay": -1344385,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.balmorra_ceded": {
+      "status": "standing",
+      "day": -1344364,
+      "endedDay": -1344364,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.alderaan_secession": {
+      "status": "standing",
+      "day": -1344304,
+      "endedDay": -1344304,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3653.ord_mantell_war": {
+      "status": "standing",
+      "day": -1344304,
+      "endedDay": -1344304,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3651.tython": {
+      "status": "standing",
+      "day": -1343936,
+      "endedDay": -1343936,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3650.tython_begun": {
+      "status": "standing",
+      "day": -1343568,
+      "endedDay": -1343568,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3650.trant_director": {
+      "status": "standing",
+      "day": -1343568,
+      "endedDay": -1343568,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3650.mindor": {
+      "status": "standing",
+      "day": -1343568,
+      "endedDay": -1343568,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3649.janarus": {
+      "status": "standing",
+      "day": -1343200,
+      "endedDay": -1343200,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3649.starbender": {
+      "status": "standing",
+      "day": -1343200,
+      "endedDay": -1343200,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3648.taris": {
+      "status": "standing",
+      "day": -1342832,
+      "endedDay": -1342832,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3648.makeb": {
+      "status": "standing",
+      "day": -1342832,
+      "endedDay": -1342832,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3647.tython_temple": {
+      "status": "standing",
+      "day": -1342464,
+      "endedDay": -1342464,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3645.odacer_sickness": {
+      "status": "standing",
+      "day": -1341728,
+      "endedDay": -1341728,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3645.blackstar": {
+      "status": "standing",
+      "day": -1341728,
+      "endedDay": -1341728,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3644.krikthasi": {
+      "status": "standing",
+      "day": -1341360,
+      "endedDay": -1341360,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3643.quesh": {
+      "status": "standing",
+      "day": -1340973,
+      "endedDay": -1340952,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3643.sebaddon": {
+      "status": "standing",
+      "day": -1340930,
+      "endedDay": -1340930,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3643.flesh_raiders": {
+      "status": "standing",
+      "day": -1340899,
+      "endedDay": -1340899,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3643.desolator": {
+      "status": "standing",
+      "day": -1340837,
+      "endedDay": -1340837,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3643.exchange_out": {
+      "status": "standing",
+      "day": -1340775,
+      "endedDay": -1340775,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3643.esseles": {
+      "status": "standing",
+      "day": -1340744,
+      "endedDay": -1340744,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3643.council_changes": {
+      "status": "standing",
+      "day": -1340714,
+      "endedDay": -1340714,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3642.balmorra_freed": {
+      "status": "standing",
+      "day": -1340593,
+      "endedDay": -1340569,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3642.taris_invasion": {
+      "status": "standing",
+      "day": -1340531,
+      "endedDay": -1340507,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3642.maelstrom": {
+      "status": "standing",
+      "day": -1340469,
+      "endedDay": -1340469,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3642.plan_zero": {
+      "status": "standing",
+      "day": -1340376,
+      "endedDay": -1340194,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3641.treaty_collapse": {
+      "status": "standing",
+      "day": -1340087,
+      "endedDay": -1340087,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3641.braga": {
+      "status": "standing",
+      "day": -1340039,
+      "endedDay": -1340039,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3641.baras_council": {
+      "status": "standing",
+      "day": -1340008,
+      "endedDay": -1340008,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3641.belsavis": {
+      "status": "standing",
+      "day": -1339978,
+      "endedDay": -1339954,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3641.chancellor_vote": {
+      "status": "standing",
+      "day": -1339964,
+      "endedDay": -1339964,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3641.fronts": {
+      "status": "standing",
+      "day": -1339948,
+      "endedDay": -1339948,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3640.corellia": {
+      "status": "standing",
+      "day": -1339857,
+      "endedDay": -1339857,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3640.ilum": {
+      "status": "standing",
+      "day": -1339795,
+      "endedDay": -1339795,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3640.voss": {
+      "status": "standing",
+      "day": -1339764,
+      "endedDay": -1339764,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3640.voice": {
+      "status": "standing",
+      "day": -1339702,
+      "endedDay": -1339702,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3640.council_deaths": {
+      "status": "standing",
+      "day": -1339671,
+      "endedDay": -1339550,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3640.janarus_dies": {
+      "status": "standing",
+      "day": -1339640,
+      "endedDay": -1339640,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     },
+     "E.3640.karrid": {
+      "status": "standing",
+      "day": -1339580,
+      "endedDay": -1339580,
+      "broken": [],
+      "substitutes": [],
+      "toldTurn": 0
+     }
+    },
+    "tags": {},
+    "progress": {},
+    "outcomes": {
+     "O.blockade_active": {
+      "state": "produced",
+      "day": -1347616
+     },
+     "O.coruscant_riots": {
+      "state": "produced",
+      "day": -1347616
+     },
+     "O.devaron_failed": {
+      "state": "produced",
+      "day": -1347545
+     },
+     "O.satele_on_coruscant": {
+      "state": "produced",
+      "day": -1347492
+     },
+     "O.shange_imprisoned": {
+      "state": "produced",
+      "day": -1347461
+     },
+     "O.raxxus_imprisoned": {
+      "state": "produced",
+      "day": -1347430
+     },
+     "O.theron_trained": {
+      "state": "produced",
+      "day": -1347399
+     },
+     "O.rim_campaign": {
+      "state": "produced",
+      "day": -1347338
+     },
+     "O.blockade_broken": {
+      "state": "produced",
+      "day": -1347234
+     },
+     "O.visz_famous": {
+      "state": "produced",
+      "day": -1347234
+     },
+     "O.riots_ended": {
+      "state": "produced",
+      "day": -1347217
+     },
+     "O.ord_radama_republic": {
+      "state": "produced",
+      "day": -1347186
+     },
+     "O.venemal_dead": {
+      "state": "produced",
+      "day": -1347186
+     },
+     "O.korriban_imperial": {
+      "state": "produced",
+      "day": -1347031
+     },
+     "O.korriban_fallen": {
+      "state": "broken",
+      "day": -1347031
+     },
+     "O.new_mandalore": {
+      "state": "produced",
+      "day": -1346970
+     },
+     "O.mandalorian_schism": {
+      "state": "produced",
+      "day": -1346940
+     },
+     "O.barrows_fleet": {
+      "state": "produced",
+      "day": -1346910
+     },
+     "O.visz_gone": {
+      "state": "produced",
+      "day": -1346880
+     },
+     "O.xandret_defected": {
+      "state": "produced",
+      "day": -1346512
+     },
+     "O.odacer_academy": {
+      "state": "produced",
+      "day": -1345408
+     },
+     "O.peace_talks": {
+      "state": "produced",
+      "day": -1344885
+     },
+     "O.minos_quiet": {
+      "state": "produced",
+      "day": -1344866
+     },
+     "O.trant_sis": {
+      "state": "produced",
+      "day": -1344823
+     },
+     "O.rhen_var_imperial": {
+      "state": "produced",
+      "day": -1344792
+     },
+     "O.republic_distracted": {
+      "state": "produced",
+      "day": -1344517
+     },
+     "O.temple_destroyed": {
+      "state": "produced",
+      "day": -1344498
+     },
+     "O.temple_saved": {
+      "state": "broken",
+      "day": -1344498
+     },
+     "O.weak_ground_control": {
+      "state": "broken",
+      "day": -1344498
+     },
+     "O.grid_down": {
+      "state": "produced",
+      "day": -1344498
+     },
+     "O.zallow_dead": {
+      "state": "produced",
+      "day": -1344498
+     },
+     "O.coruscant_occupied": {
+      "state": "produced",
+      "day": -1344497
+     },
+     "O.berooken_dead": {
+      "state": "produced",
+      "day": -1344497
+     },
+     "O.treaty_signed": {
+      "state": "produced",
+      "day": -1344495
+     },
+     "O.systems_ceded": {
+      "state": "produced",
+      "day": -1344495
+     },
+     "O.darnala_dead": {
+      "state": "produced",
+      "day": -1344493
+     },
+     "O.eleena_dead": {
+      "state": "produced",
+      "day": -1344493
+     },
+     "O.adraas_dead": {
+      "state": "produced",
+      "day": -1344493
+     },
+     "O.coruscant_unrest": {
+      "state": "produced",
+      "day": -1344486
+     },
+     "O.senate_distrusts_jedi": {
+      "state": "produced",
+      "day": -1344485
+     },
+     "O.rebuilding_postponed": {
+      "state": "produced",
+      "day": -1344477
+     },
+     "O.temple_rebuilding": {
+      "state": "broken",
+      "day": -1344477
+     },
+     "O.grand_master_vacant": {
+      "state": "produced",
+      "day": -1344472
+     },
+     "O.janarus_chancellor": {
+      "state": "produced",
+      "day": -1344455
+     },
+     "O.decimus_council": {
+      "state": "produced",
+      "day": -1344424
+     },
+     "O.hutt_neutral": {
+      "state": "produced",
+      "day": -1344415
+     },
+     "O.ord_mantell_abandoned": {
+      "state": "produced",
+      "day": -1344385
+     },
+     "O.balmorra_imperial": {
+      "state": "produced",
+      "day": -1344364
+     },
+     "O.alderaan_civil_war": {
+      "state": "produced",
+      "day": -1344304
+     },
+     "O.ord_mantell_war": {
+      "state": "produced",
+      "day": -1344304
+     },
+     "O.tython_found": {
+      "state": "produced",
+      "day": -1343936
+     },
+     "O.grand_master_set": {
+      "state": "produced",
+      "day": -1343936
+     },
+     "O.order_on_tython": {
+      "state": "produced",
+      "day": -1343568
+     },
+     "O.trant_director": {
+      "state": "produced",
+      "day": -1343568
+     },
+     "O.taris_resettled": {
+      "state": "produced",
+      "day": -1342832
+     },
+     "O.makeb_regulators": {
+      "state": "produced",
+      "day": -1342832
+     },
+     "O.tython_temple": {
+      "state": "produced",
+      "day": -1342464
+     },
+     "O.hutt_treaty_cracked": {
+      "state": "produced",
+      "day": -1340973
+     },
+     "O.sebaddon_incident": {
+      "state": "produced",
+      "day": -1340930
+     },
+     "O.uphrades_destroyed": {
+      "state": "produced",
+      "day": -1340837
+     },
+     "O.angral_dead": {
+      "state": "produced",
+      "day": -1340837
+     },
+     "O.exchange_weakened": {
+      "state": "produced",
+      "day": -1340775
+     },
+     "O.council_shift_3643": {
+      "state": "produced",
+      "day": -1340714
+     },
+     "O.balmorra_republic": {
+      "state": "produced",
+      "day": -1340593
+     },
+     "O.taris_imperial": {
+      "state": "produced",
+      "day": -1340531
+     },
+     "O.revan_free": {
+      "state": "produced",
+      "day": -1340469
+     },
+     "O.foundry_malgus": {
+      "state": "produced",
+      "day": -1340469
+     },
+     "O.kilran_dead": {
+      "state": "produced",
+      "day": -1340469
+     },
+     "O.plan_zero": {
+      "state": "produced",
+      "day": -1340376
+     },
+     "O.galactic_war": {
+      "state": "produced",
+      "day": -1340087
+     },
+     "O.braga_turned": {
+      "state": "produced",
+      "day": -1340039
+     },
+     "O.baras_council": {
+      "state": "produced",
+      "day": -1340008
+     },
+     "O.dread_masters_free": {
+      "state": "produced",
+      "day": -1339978
+     },
+     "O.fronts_3641": {
+      "state": "produced",
+      "day": -1339948
+     },
+     "O.corellia_contested": {
+      "state": "produced",
+      "day": -1339857
+     },
+     "O.malgus_defeated": {
+      "state": "produced",
+      "day": -1339795
+     },
+     "O.ilum_contested": {
+      "state": "produced",
+      "day": -1339795
+     },
+     "O.emperor_trapped": {
+      "state": "produced",
+      "day": -1339764
+     },
+     "O.dark_council_rules": {
+      "state": "produced",
+      "day": -1339702
+     },
+     "O.council_deaths_3640": {
+      "state": "produced",
+      "day": -1339671
+     },
+     "O.saresh_chancellor": {
+      "state": "produced",
+      "day": -1339640
+     }
+    },
+    "plotPoints": {},
+    "shifts": {},
+    "control": []
+   },
+   "blockades": {
+    "runs": [],
+    "watched": {},
+    "heat": {},
+    "pending": null,
+    "shipOutside": null,
+    "ledger": [],
+    "impounded": null,
+    "shipDamagedDay": null
+   },
+   "captivity": null,
+   "captivityNews": null
+  },
+  "economy": {
+   "wallet": {
+    "republic": 0,
+    "imperial": 0,
+    "hutt": 0
+   },
+   "orderFunds": 0,
+   "lifestyle": "provided",
+   "job": {
+    "kind": "order"
+   },
+   "loans": [],
+   "nextLoan": 1,
+   "rewards": [],
+   "possessions": 0,
+   "looted": {},
+   "darkChoices": [],
+   "destituteSince": null,
+   "log": []
+  },
+  "droids": {
+   "units": [],
+   "nextId": 1
+  },
+  "traits": {
+   "held": [],
+   "counts": {},
+   "quiz": {
+    "status": "never",
+    "seed": ""
+   },
+   "alignmentNudge": 0,
+   "darkPressureNudge": 0,
+   "standing": {},
+   "leans": {},
+   "history": []
+  },
+  "battles": {
+   "active": null,
+   "last": null,
+   "step": null,
+   "seq": 0,
+   "history": [],
+   "ships": {},
+   "lastShipId": null,
+   "reputation": [],
+   "darkChoices": [],
+   "planning": null,
+   "ground": null,
+   "lastGround": null
+  },
+  "ships": {
+   "ships": {},
+   "activeId": null,
+   "nextId": 1,
+   "nextCrewId": 1,
+   "gone": [],
+   "lastCustoms": null,
+   "news": []
+  },
+  "tactics": {
+   "known": {
+    "frontalAssault": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -184306
+    },
+    "defenceInDepth": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -184306
+    },
+    "fightingWithdrawal": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -184306
+    },
+    "exchange": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -184306
+    },
+    "screen": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -184306
+    },
+    "withdraw": {
+     "source": "the Order: the initiate years: basic ground and fleet tactics",
+     "day": -184306
+    },
+    "fly": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "break": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "jink": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "scissors": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "stall": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "koiogran": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "powerPivot": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "reverseThrottleHop": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "tallonRoll": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "loopBack": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "trap": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "pass": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "battleSpread": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "luftberry": {
+     "source": "the Order: flight school: the core dogfight manoeuvres",
+     "day": -184306
+    },
+    "brawl": {
+     "source": "anyone can order these",
+     "day": -184306
+    },
+    "rollShip": {
+     "source": "anyone can order these",
+     "day": -184306
+    }
+   },
+   "seen": {},
+   "practice": {}
+  },
+  "possessions": {
+   "items": [
+    {
+     "id": "item-1",
+     "priceId": "clothes",
+     "name": "a set of ordinary clothes",
+     "size": "worn",
+     "where": {
+      "kind": "carried"
+     },
+     "issued": true,
+     "day": -184306
+    },
+    {
+     "id": "item-2",
+     "priceId": "utilityBelt",
+     "name": "a utility belt",
+     "size": "worn",
+     "where": {
+      "kind": "carried"
+     },
+     "issued": true,
+     "day": -184306
+    },
+    {
+     "id": "item-3",
+     "priceId": "comlink",
+     "name": "a comlink",
+     "size": "small",
+     "where": {
+      "kind": "carried"
+     },
+     "issued": true,
+     "day": -184306
+    },
+    {
+     "id": "item-4",
+     "priceId": "lightsaber",
+     "name": "a lightsaber",
+     "size": "small",
+     "where": {
+      "kind": "carried"
+     },
+     "issued": true,
+     "day": -184306
+    }
+   ],
+   "nextId": 5
+  },
+  "duty": {
+   "status": "mission",
+   "since": -184306,
+   "mission": {
+    "id": "m1",
+    "type": "recon",
+    "title": "Mission: a reconnaissance on Taris",
+    "objective": "scout the enemy on Taris and report",
+    "threadTitle": "Mission: a reconnaissance on Taris",
+    "targetWorld": "Taris",
+    "targetPlace": null,
+    "base": {
+     "name": "the Jedi Temple",
+     "planet": "Coruscant"
+    },
+    "deadlineDay": null,
+    "stages": [
+     {
+      "id": "clear",
+      "label": "fight your way clear",
+      "kind": "fight",
+      "approaches": [],
+      "need": 1,
+      "progress": 0,
+      "rating": 35,
+      "hours": [
+       2,
+       6
+      ],
+      "harder": 0,
+      "foes": {
+       "grade": 2,
+       "count": [
+        2,
+        5
+       ]
+      },
+      "battle": null,
+      "world": null,
+      "fightId": null,
+      "battleFrom": null,
+      "status": "active",
+      "addedBy": "the comlink is jammed"
+     },
+     {
+      "id": "approach",
+      "label": "the approach",
+      "kind": "check",
+      "approaches": [
+       "stealth",
+       "pilot",
+       "athletics"
+      ],
+      "need": 1,
+      "progress": 0,
+      "rating": 30,
+      "hours": [
+       3,
+       8
+      ],
+      "harder": 1,
+      "foes": null,
+      "battle": null,
+      "world": null,
+      "fightId": null,
+      "battleFrom": null,
+      "status": "pending",
+      "addedBy": null
+     },
+     {
+      "id": "observe",
+      "label": "watch and count",
+      "kind": "check",
+      "approaches": [
+       "investigate",
+       "tactics",
+       "sense",
+       "endure"
+      ],
+      "need": 2,
+      "progress": 0,
+      "rating": 35,
+      "hours": [
+       8,
+       24
+      ],
+      "harder": 0,
+      "foes": null,
+      "battle": null,
+      "world": null,
+      "fightId": null,
+      "battleFrom": null,
+      "status": "pending",
+      "addedBy": null
+     },
+     {
+      "id": "back",
+      "label": "get the report back",
+      "kind": "check",
+      "approaches": [
+       "stealth",
+       "pilot",
+       "tech"
+      ],
+      "need": 1,
+      "progress": 0,
+      "rating": 30,
+      "hours": [
+       2,
+       6
+      ],
+      "harder": 0,
+      "foes": null,
+      "battle": null,
+      "world": null,
+      "fightId": null,
+      "battleFrom": null,
+      "status": "pending",
+      "addedBy": null
+     }
+    ],
+    "current": 0,
+    "complications": [
+     "the comlink is jammed"
+    ],
+    "phase": "onSite",
+    "outcome": null,
+    "assignedDay": -184306,
+    "party": {
+     "masterId": null,
+     "padawanId": null,
+     "allyIds": []
+    },
+    "chainOf": null,
+    "chainLength": 0,
+    "leftHome": true
+   },
+   "homeDay": null,
+   "resume": null,
+   "home": null,
+   "log": [
+    {
+     "day": -184306,
+     "what": "assigned: a reconnaissance on Taris"
+    },
+    {
+     "day": -184304,
+     "what": "arrived at Taris"
+    },
+    {
+     "day": -184304,
+     "what": "complication: the comlink is jammed"
+    }
+   ],
+   "posting": null,
+   "leave": null,
+   "record": {
+    "missions": 0,
+    "successes": 0,
+    "failures": 0,
+    "cutShort": 0,
+    "chains": 0,
+    "standing": 0
+   },
+   "history": [],
+   "seq": 1,
+   "proposalDay": null,
+   "proposal": null
+  },
+  "pacing": {
+   "level": "scene",
+   "scene": {
+    "moodTags": [],
+    "presentNpcIds": []
+   }
+  }
+ }
+}

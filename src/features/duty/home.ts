@@ -1,6 +1,7 @@
 // Home base and "does this touch the character" (opt-2 D; spec/duty.md). Pure selectors; no world-feature imports (the world
 // feature reads these to decide whether a timeline event stops a skip).
 import { ORDER_SEATS } from '../../data/orderSeats';
+import { MENTION_ONLY, PLANETS } from '../../data/galaxyMap';
 import type { WorldEventDef } from '../../data/worldNetwork';
 import { dateFromAbsDay } from '../../engine/calendar';
 import type { GameState } from '../../state/gameState';
@@ -45,6 +46,9 @@ function labelFor(s: GameState, name: string): string {
  * else's is the place recorded when duty first saw them (the start's world: the academy, the barracks, the home port).
  */
 export function selectHomeBase(s: GameState): HomeBase | null {
+  // While posted (m9-missions B5b), the forward base or flagship; on leave, the Temple (or the path's home) again.
+  const posting = s.duty?.posting;
+  if (posting && !s.duty.leave) return { name: posting.base.name, planet: posting.base.planet, label: `${posting.base.name} (${posting.front})` };
   if (s.character.path === 'jedi') {
     const h = orderHome(dateFromAbsDay(s.clock.now.day).year);
     return h ? { name: h.name, planet: h.planet, label: h.name } : null;
@@ -62,7 +66,11 @@ export const selectHereNames = (s: GameState): string[] => selectLocationChain(s
  */
 export function selectAtHome(s: GameState): boolean {
   const home = selectHomeBase(s);
-  if (!home) return false;
+  return home ? selectAtPlace(s, home) : false;
+}
+
+/** At a base (a mission's, m9-missions B4): the current place or one above it is the base, or the character is on its world at large. */
+export function selectAtPlace(s: GameState, home: { name: string; planet: string | null }): boolean {
   const chain = selectLocationChain(s, s.locations.currentId);
   if (chain.some((l) => sameNamed(l.name, home.name))) return true;
   const here = chain[0];
@@ -105,5 +113,16 @@ export function touchesCharacter(s: GameState, e: Pick<WorldEventDef, 'places' |
   if (who) return `${who.label}, someone you know`;
   const sides = selectSides(s);
   if ((e.turnFor ?? []).some((f) => sides.includes(f))) return 'a turn for your side';
+  return null;
+}
+
+/** The map world the character stands on (m9-missions B4): the first place in the chain, its aliases or region, on the galaxy map. */
+export function selectCurrentWorld(s: GameState): string | null {
+  for (const l of selectLocationChain(s, s.locations.currentId)) {
+    for (const n of [l.name, ...l.aliases]) {
+      const w = PLANETS.find((p) => p.name.toLowerCase() === n.toLowerCase()) ?? MENTION_ONLY.find((p) => p.name.toLowerCase() === n.toLowerCase());
+      if (w) return w.name;
+    }
+  }
   return null;
 }

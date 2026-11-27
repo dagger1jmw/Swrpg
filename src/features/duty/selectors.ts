@@ -1,6 +1,8 @@
 // Duty selectors (opt-2 D; spec/duty.md): the side panel's duty and fitness lines, the narrator's state line, a home day's
 // people and places, and the "Resume the skip" choice. Read-only.
+import { APPROACHES, type ApproachId } from '../../data/missions.config';
 import type { GameState } from '../../state/gameState';
+import type { Mission } from './duty';
 import { selectWounds } from '../health/selectors';
 import { selectLocationChain } from '../locations/selectors';
 import { selectRelationship } from '../relationships/selectors';
@@ -12,11 +14,28 @@ import { allHandsNow, injuryBlock, missionMedian } from './rules';
 const days = (n: number): string => `${n} day${n === 1 ? '' : 's'}`;
 const PART: Readonly<Record<string, string>> = { torso: 'torso', head: 'head', leftArm: 'left arm', rightArm: 'right arm', leftLeg: 'left leg', rightLeg: 'right leg', leftHand: 'left hand', rightHand: 'right hand' };
 
+/** The current stage in words: "stage 2 of 4: reach the target (progress 1 of 2)". */
+function stageWords(m: Mission): string {
+  if (m.outcome !== null) return m.outcome === 'success' ? 'the work is done: head back' : m.outcome === 'failure' ? 'the mission has failed: head back' : 'cut short';
+  if (m.phase === 'outbound') return `set out for ${m.targetWorld}`;
+  const st = m.stages[m.current];
+  if (!st) return 'on site';
+  const prog = st.need > 1 ? ` (progress ${st.progress} of ${st.need})` : '';
+  const where = st.kind === 'travel' && st.world ? ` to ${st.world}` : '';
+  return `stage ${m.current + 1} of ${m.stages.length}: ${st.label}${where}${prog}`;
+}
+
+/** Who is on the mission besides the character (B1, B7), by name. */
+function partyNames(s: GameState, m: Mission): string[] {
+  return [m.party.masterId, m.party.padawanId, ...m.party.allyIds].filter((x): x is string => !!x).map((id) => s.npcs.byId[id]?.name ?? id);
+}
+
 /** The duty status in words (the side panel). */
 export function selectDutyLine(s: GameState): string {
   const d = s.duty;
   const n = Math.max(0, s.clock.now.day - d.since);
-  if (d.status === 'mission' && d.mission) return `On a mission: ${d.mission.title.replace(/^Mission: /, '')} (${days(n)})`;
+  if (d.status === 'mission' && d.mission) return `On a mission: ${d.mission.title.replace(/^Mission: /, '')} (${stageWords(d.mission)}; ${days(n)})`;
+  if (d.posting && d.leave) return `On leave from ${d.posting.front} until ${days(Math.max(0, d.leave.untilDay - s.clock.now.day))} from now`;
   const home = selectHomeBase(s);
   const where = home ? (selectAtHome(s) ? `at ${home.label}` : `away from ${home.label}`) : 'no home base now';
   return missionMedian(s) === null ? `Off duty, ${where} (no missions at this rank)` : `Off duty ${days(n)}, ${where}`;
@@ -31,6 +50,61 @@ export function selectFitnessLine(s: GameState): string {
   const minor = injuryBlock(wounds, false);
   if (minor) return `Recovering from a minor wound; fit for an assignment (all hands: ${hands})`;
   return hands ? `Fit for duty (all hands: ${hands})` : 'Fit for duty';
+}
+
+/** The mission card (B11): objective, stage and progress, complications, who is with the character, days away. Null off duty. */
+export interface MissionCard {
+  title: string;
+  objective: string;
+  stage: string;
+  stages: { label: string; status: string }[];
+  complications: string[];
+  party: string[];
+  daysAway: number;
+  deadline: string | null;
+}
+export function selectMissionCard(s: GameState): MissionCard | null {
+  const m = s.duty.mission;
+  if (s.duty.status !== 'mission' || !m) return null;
+  const today = s.clock.now.day;
+  return {
+    title: m.title.replace(/^Mission: /, ''),
+    objective: m.objective,
+    stage: stageWords(m),
+    stages: m.stages.map((st) => ({ label: st.kind === 'travel' && st.world ? `${st.label} (${st.world})` : st.label, status: st.status })),
+    complications: [...m.complications],
+    party: partyNames(s, m),
+    daysAway: Math.max(0, today - m.assignedDay),
+    deadline: m.deadlineDay !== null ? (m.deadlineDay >= today ? `${days(m.deadlineDay - today)} left` : 'passed') : null,
+  };
+}
+
+/** The posting card (B11): front, base, months posted, next leave. Null when not posted. */
+export function selectPostingCard(s: GameState): { front: string; base: string; months: number; leave: string } | null {
+  const p = s.duty.posting;
+  if (!p) return null;
+  const today = s.clock.now.day;
+  const leave = s.duty.leave ? `on leave until ${days(Math.max(0, s.duty.leave.untilDay - today))} from now` : `next leave in ${days(Math.max(0, p.nextLeaveDay - today))}`;
+  return { front: p.front, base: p.base.name, months: Math.round(((today - p.sinceDay) / (368 / 12)) * 10) / 10, leave };
+}
+
+/** The narrator's MISSION line (B10): the current stage so it narrates the right one; it never resolves, moves or ends anything. */
+export function selectMissionPromptLine(s: GameState): string | null {
+  const card = selectMissionCard(s);
+  const m = s.duty.mission;
+  if (!card || !m) return null;
+  const st = m.phase === 'onSite' && m.outcome === null ? m.stages[m.current] : undefined;
+  const approaches = st?.kind === 'check' ? ` Approaches that fit: ${st.approaches.map((a) => APPROACHES[a as ApproachId]?.label.toLowerCase() ?? a).join('; ')}.` : st?.kind === 'fight' ? ' This stage is a fight (the code starts it when the player goes in).' : st?.kind === 'battle' ? ' This stage is a battle (the code opens it when the player takes their place).' : '';
+  const comp = card.complications.length ? ` Complications: ${card.complications.join('; ')}.` : '';
+  const party = card.party.length ? ` With you: ${card.party.join(', ')}.` : '';
+  return `MISSION (the code's: narrate this stage only; never resolve a stage, move the character between worlds or end the mission; propose approaches to this stage as choices): ${card.title}. Objective: ${card.objective}. Now: ${card.stage}.${approaches}${comp}${party}`;
+}
+
+/** The narrator's POSTING line (B5): the front and the base, so home days and downtime are among the right people. */
+export function selectPostingPromptLine(s: GameState): string | null {
+  const p = selectPostingCard(s);
+  if (!p) return null;
+  return `POSTING (the code's): ${p.front}, based at ${p.base}, ${p.months} months; ${p.leave}. Downtime is among the officers, the other Jedi on this front and the local people.`;
 }
 
 /** The narrator's state line (opt-2 D6): it narrates duty and fitness; it never changes them. */
@@ -68,4 +142,8 @@ export function selectHomeDayLine(s: GameState): string | null {
 }
 
 /** Re-exports for the world feature and the turn (features read each other through selectors). */
-export { selectAtHome, selectHomeBase, touchesCharacter } from './home';
+export { selectAtHome, selectCurrentWorld, selectDutySide, selectHomeBase, touchesCharacter } from './home';
+/** The mission rules the turn reads (m9-missions B; features read each other, and the turn reads them, through selectors). */
+export { allyBonus, approachFor, approachRating, buildMission, chainRoll, complicationLine, councilBestReason, currentStage, failsMission, frontsFor, missionBase, pickMissionType, pickWorld, postingFor, selectSideWar, stageFoeCount, woundVerdict } from './missions';
+export { allHandsNow, allHandsWorld } from './rules';
+export type { Mission } from './duty';

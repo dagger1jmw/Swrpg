@@ -86,9 +86,9 @@ Code:
 - **XP:** command XP (Tactics with the Intelligence share, `commandXp`) for planning and commanding, by the size commanded; a sector leader's for their sector (a company); field XP for the player's own fighting at the front (the piloting exchange rule on their best combat skill, `fieldFightXp`).
 - **Tactics seen:** the enemy's manoeuvre is recorded as seen (ship-life section 10): recognised from then on.
 
-## 10. Wartime postings (item 11, not built)
+## 10. Wartime postings (item 11; the character's posting built in m9-missions, the hooks below not yet)
 
-Item 11 stays story-only. When it is built, a posting hooks in at three places: who plans (`playerMayPlanGround` reads the posting's command), the forces (a posting's unit becomes `ours` and its bond and fear the units' own, replacing the 50 / 0 defaults), and the start (a posting's orders open the planning scene from the posting's calendar instead of only the narrator's event).
+m9-missions (D-551; [missions.md](missions.md) section 6) posts the character to a front in a total war, with a forward base as home, and a front-line engagement's battle stage opens a planning scene at the mission's world (the player defending). The three hooks are still to wire: a posting hooks in at three places: who plans (`playerMayPlanGround` reads the posting's command), the forces (a posting's unit becomes `ours` and its bond and fear the units' own, replacing the 50 / 0 defaults), and the start (a posting's orders open the planning scene from the posting's calendar instead of only the narrator's event).
 
 ## 11. Readings for Jared
 

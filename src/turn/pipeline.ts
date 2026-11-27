@@ -50,6 +50,7 @@ import { resolveTurn, type Resolution, type TurnDraft } from './resolve';
 import { resumeSkipChoice, skipAheadChoice } from './skipAhead';
 import { choicesAfterTurn, outsideForceOpponents, withoutForceOnImmune } from './fightChoices';
 import { blockadeChoices } from './travel';
+import { missionChoices } from './missionTurn';
 import { escapeChoices } from './escape';
 import { holdChoices } from './holdFacts';
 import { selectWorldIdsToTell } from '../features/world/selectors';
@@ -300,7 +301,9 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
   const text = input.kind === 'typed' ? input.text : input.kind === 'choice' ? input.choice.label : undefined;
   // Home days (opt-2 D5a): the Settings switch reaches the skip as an option; the state never holds it.
   const homeDays = deps.getSettings().stopOnHomeDays === true ? { homeDays: true } : {};
-  const resolution = resolveTurn(deps.registry, session.state, intent, { ...(input.kind === 'beat' ? { beat: input.action } : input.kind === 'battle' ? { battle: { ...(input.orders ? { orders: input.orders } : {}), ...(input.auto !== undefined ? { auto: input.auto } : {}), ...(input.repairs ? { repairs: true } : {}), ...(input.ground ? { ground: input.ground } : {}) } } : text !== undefined ? { text } : {}), ...homeDays });
+  // A mission's stage approach from the code's own choice (m9-missions B3).
+  const missionApproach = input.kind === 'choice' && input.choice.intent.missionApproach ? { mission: input.choice.intent.missionApproach } : {};
+  const resolution = resolveTurn(deps.registry, session.state, intent, { ...missionApproach, ...(input.kind === 'beat' ? { beat: input.action } : input.kind === 'battle' ? { battle: { ...(input.orders ? { orders: input.orders } : {}), ...(input.auto !== undefined ? { auto: input.auto } : {}), ...(input.repairs ? { repairs: true } : {}), ...(input.ground ? { ground: input.ground } : {}) } } : text !== undefined ? { text } : {}), ...homeDays });
   return { input, intent, resolution, calls, intentNotes, ...(intentReport ? { intentReport } : {}) };
 }
 
@@ -547,6 +550,8 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   // home off duty.
   const resume = inBattle ? null : resumeSkipChoice(state);
   if (resume) choices.unshift(resume);
+  // A mission's own choices (m9-missions B3, B4, B5): the code's, first; while a fight or battle runs, its panel holds them.
+  if (!inBattle && !state.combat.active) choices.unshift(...missionChoices(state).filter((c) => !choices.some((x) => x.label === c.label)));
   const skip = inBattle ? null : skipAheadChoice(state, choices);
   const skipNotes: string[] = fc.dropped ? [`fight over: ${fc.dropped} tactical choice(s) dropped (D-181)`] : [];
   if (immune.dropped) skipNotes.push(`outside the Force (${outsideForceOpponents(state).join(', ')}): ${immune.dropped} Force choice(s) dropped`);

@@ -22,19 +22,28 @@ const ev = (s: GameState, events: object[], source: 'ai' | 'engine' = 'ai') => a
 const wound = (severity: Wound['severity'], healProgress = 0): Wound => ({ id: `w-${severity}`, part: 'leftArm', severity, W: 5, stabilized: false, healProgress, day: 0, source: 'test' }) as Wound;
 const hurt = (s: GameState, w: Wound): GameState => ({ ...s, health: { ...s.health, wounds: [...s.health.wounds, w] as GameState['health']['wounds'] } });
 
+/** At the posting's forward base (m9-missions B5: a 3,661 BBY Knight is posted first, and the roll runs at base). */
+function atBase(s: GameState): GameState {
+  const p = s.duty.posting;
+  if (!p || selectAtHome(s)) return s;
+  return ev(s, [{ type: 'locationIntroduced', name: p.base.planet, kind: 'planet', region: 'Colonies', description: '', moveHere: true }], 'engine').state;
+}
 /** Skips in pieces until the duty roll assigns a mission (or forty skips pass). */
 function untilAssigned(s0: GameState): { s: GameState; reason: string | undefined } {
   let s = s0;
   for (let i = 0; i < 40; i++) {
-    const r = resolveTurn(REGISTRY, s, skip(365));
+    const r = resolveTurn(REGISTRY, atBase(s), skip(365));
     s = r.state;
     if (s.duty.status === 'mission') return { s, reason: r.draft.timeAdvanced?.interrupted };
   }
   return { s, reason: undefined };
 }
+/** The code ends the mission (as /mission end does): back at base, or ended by the engine. */
+const ended = (s: GameState): GameState => ev(s, [{ type: 'missionEnded', how: 'done', outcome: 'success' }], 'engine').state;
 /** Time passing after a reply: the code checks the mission's end on the next passage of time (the reply's own time runs first). */
 const later = (s: GameState): GameState => ev(s, [{ type: 'timeElapsed', seconds: 1800, reason: 'time passes' }]).state;
 const missionThreadId = (s: GameState): string => Object.values(s.threads.byId).find((t) => t.title === s.duty.mission!.threadTitle && t.status === 'open')!.id;
+void later;
 
 describe('D2: the daily mission roll', () => {
   it('is zero in the first days home, rises smoothly, and half are assigned by the median', () => {
@@ -71,25 +80,31 @@ describe('D1: duty status, owned by the code', () => {
 
   it('the narrator can neither assign nor end a mission', () => {
     const s = base();
-    expect(ev(s, [{ type: 'missionAssigned', title: 'Mission: x', threadTitle: 'Mission: x' }]).rejected).toHaveLength(1);
-    expect(ev(s, [{ type: 'missionEnded', how: 'done' }]).rejected).toHaveLength(1);
+    const { s: on } = untilAssigned(base());
+    expect(ev(s, [{ type: 'missionAssigned', mission: on.duty.mission }]).rejected).toHaveLength(1);
+    expect(ev(on, [{ type: 'missionEnded', how: 'done' }]).rejected).toHaveLength(1);
   });
 
-  it('a mission ends when its thread is resolved, and the next day is a home day', () => {
+  it("the narrator resolving the mission's thread no longer ends it (m9-missions B1); the code's end makes the next day a home day", () => {
     const { s } = untilAssigned(base());
-    const done = later(ev(s, [{ type: 'threadResolved', threadRef: missionThreadId(s), outcome: 'resolved', note: 'done' }]).state);
+    const told = later(ev(s, [{ type: 'threadResolved', threadRef: missionThreadId(s), outcome: 'resolved', note: 'done' }]).state);
+    expect(told.duty.status).toBe('mission');
+    const done = ended(s);
     expect(done.duty.status).toBe('home');
     expect(done.duty.homeDay).toBe(done.clock.now.day + 1);
   });
 
-  it('a mission ends when the character comes home after leaving', () => {
+  it('a mission ends when the character comes back to base after reaching the target (with the work undone: a failure)', () => {
     const { s } = untilAssigned(base());
-    const away = ev(s, [{ type: 'locationIntroduced', name: 'Alderaan', kind: 'planet', region: 'Core Worlds', description: '', moveHere: true }, { type: 'timeElapsed', seconds: 1800, reason: 'time passes' }]).state;
+    const m = s.duty.mission!;
+    const there = ev(ev(s, [{ type: 'locationIntroduced', name: m.targetWorld, kind: 'planet', region: 'Mid Rim', description: '', moveHere: true }], 'engine').state, [{ type: 'missionArrived', where: 'target' }], 'engine').state;
+    const away = later(there);
     expect(selectAtHome(away)).toBe(false);
     expect(away.duty.status).toBe('mission');
-    const coruscant = Object.values(away.locations.byId).find((l) => l.name === 'Coruscant')!.id;
-    const back = later(ev(away, [{ type: 'locationChanged', locationRef: coruscant }]).state);
+    const home = Object.values(away.locations.byId).find((l) => l.name === (m.base.planet ?? 'Coruscant'))!.id;
+    const back = later(ev(away, [{ type: 'locationChanged', locationRef: home }]).state);
     expect(back.duty.status).toBe('home');
+    expect(back.duty.history.at(-1)?.outcome).toBe('failure');
   });
 });
 
@@ -126,7 +141,7 @@ describe('D4: what stops a skip', () => {
 describe('D5: home days', () => {
   it('the day after a mission stops a skip, with "Resume the skip" first; the player may stay as long as they like', () => {
     const { s } = untilAssigned(base());
-    const done = later(ev(s, [{ type: 'threadResolved', threadRef: missionThreadId(s), outcome: 'resolved', note: 'done' }]).state);
+    const done = ended(atBase(s));
     const r = resolveTurn(REGISTRY, done, skip(60));
     expect(r.draft.timeAdvanced?.interrupted).toBe('A home day after the mission');
     expect(r.state.clock.now.day).toBe(done.duty.homeDay);
@@ -155,8 +170,10 @@ describe('D5: home days', () => {
 
   it('no home day on a mission', () => {
     const { s } = untilAssigned(base());
-    const r = resolveTurn(REGISTRY, s, skip(30), { homeDays: true });
-    expect(r.draft.timeAdvanced?.interrupted ?? '').not.toMatch(/home/);
+    // Five days (a mission never set out for goes to someone else after seven, m9-missions B4).
+    const r = resolveTurn(REGISTRY, s, skip(5), { homeDays: true });
+    expect(r.state.duty.status).toBe('mission');
+    expect(r.draft.timeAdvanced?.interrupted ?? '').not.toMatch(/home day|free day/i);
   });
 });
 

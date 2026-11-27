@@ -29,8 +29,11 @@ export const sceneSchema = z.object({
   presentNpcRefs: z.array(z.string().max(80)).max(12),
 });
 
-/** `blockade`, `escape` and `escapePlan` are set only by the engine's own choices (D-469, D-471, D-496); the AI's schema does not have them. */
-export type CompactIntent = z.infer<typeof compactIntentSchema> & { blockade?: BlockadeAction; escape?: boolean; escapePlan?: EscapeStep[] };
+/**
+ * `blockade`, `escape`, `escapePlan` and `missionApproach` are set only by the engine's own choices (D-469, D-471, D-496; m9-missions
+ * B3: the approach to a mission's stage, or 'go' / 'battle'); the AI's schema does not have them.
+ */
+export type CompactIntent = z.infer<typeof compactIntentSchema> & { blockade?: BlockadeAction; escape?: boolean; escapePlan?: EscapeStep[]; missionApproach?: string };
 export type Choice = Omit<z.infer<typeof choiceSchema>, 'intent'> & { intent: CompactIntent };
 
 export interface NarrativeReply {

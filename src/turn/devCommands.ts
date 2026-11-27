@@ -18,7 +18,10 @@ import { selectCharacter, selectIsTestCharacter, selectPath } from '../features/
 import { selectNow } from '../features/clock/selectors';
 import { resolveLocationRef } from '../features/locations/selectors';
 import { selectPacingLevel } from '../features/pacing/selectors';
-import { selectHomeBase } from '../features/duty/selectors';
+import { buildMission, missionBase, pickMissionType, pickWorld, selectCurrentWorld, selectHomeBase } from '../features/duty/selectors';
+import { MISSION_TYPES } from '../data/missions.config';
+import { PLANETS } from '../data/galaxyMap';
+import { nextFloat } from '../engine/rng';
 import { selectLevelExact } from '../features/progression/selectors';
 import { makeEnvelope } from '../persist/envelope';
 import type { CampaignRecord, Storage, TranscriptEntry } from '../persist/storage';
@@ -76,6 +79,8 @@ const SEVERITY_W: Readonly<Record<Severity, number>> = { minor: 5, moderate: 15,
 const TIMES_OF_DAY: Readonly<Record<string, number>> = { midnight: 0, dawn: 6 * 3600, morning: 8 * 3600, noon: 12 * 3600, midday: 12 * 3600, afternoon: 15 * 3600, evening: 19 * 3600, dusk: 19 * 3600, night: 22 * 3600 };
 const SPAN_UNIT: Readonly<Record<string, RequestedSpan['unit']>> = { d: 'days', day: 'days', days: 'days', w: 'weeks', week: 'weeks', weeks: 'weeks', m: 'months', mo: 'months', month: 'months', months: 'months', y: 'years', year: 'years', years: 'years' };
 const MAX_DUELISTS = 4;
+/** /mission start's type words (m9-missions A6): the brief's names for the mission types. */
+const MISSION_TYPE_ALIASES: Readonly<Record<string, string>> = { sabotage: 'strike', engagement: 'frontline', 'front-line': 'frontline', battle: 'frontline', tracking: 'manhunt', hunt: 'manhunt', protection: 'escort', negotiation: 'diplomacy', reconnaissance: 'recon' };
 /** /fatigue's top value (D-241): past the physical collapse at 4x (D-208). */
 const DEV_FATIGUE_MAX = 5;
 /** /fight weapon words for a minion group (D-215). */
@@ -627,24 +632,36 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
     }
 
     case 'mission': {
-      // m9-missions A6: a mission now, or the current one ended, through the duty feature's own engine events.
+      // m9-missions A6: a mission now (the code builds it as the daily roll would), or the current one ended.
       const sub = (args[0] ?? '').toLowerCase();
       if (sub === 'start') {
         if (state.duty.status === 'mission') return fail('already on a mission (/mission end first)');
-        const kind = args.slice(1).join(' ').trim() || 'a dev mission';
-        const title = `Mission: ${kind}`.slice(0, 80);
-        apply([{ type: 'threadOpened', title, stakes: 'A mission started with a dev command.', entityRefs: [] }, { type: 'missionAssigned', title, threadTitle: title }], 'engine');
+        const typeWord = (args[1] ?? '').toLowerCase();
+        const typeId = MISSION_TYPE_ALIASES[typeWord] ?? (typeWord in MISSION_TYPES ? typeWord : null);
+        if (typeWord && !typeId) return fail(`unknown mission type ${typeWord} (${Object.keys(MISSION_TYPES).join(', ')})`);
+        const worldWords = args.slice(typeId ? 2 : 1).join(' ').trim();
+        const world = worldWords ? PLANETS.find((p) => p.name.toLowerCase() === worldWords.toLowerCase())?.name : undefined;
+        if (worldWords && !world) return fail(`${worldWords} is not a world on the map`);
+        const [u, r1] = nextFloat(state.meta.rngState);
+        const [w, r2] = nextFloat(r1);
+        const base = missionBase(state, selectHomeBase(state));
+        const type = typeId ? MISSION_TYPES[typeId]! : pickMissionType(state, u);
+        const built = buildMission(state, { type, world: world ?? pickWorld(state, base, w), base, id: `m${state.duty.seq + 1}`, here: selectCurrentWorld(state) }, r2);
+        state = { ...state, meta: { ...state.meta, rngState: built.rng } };
+        apply([{ type: 'threadOpened', title: built.mission.threadTitle, stakes: 'A mission started with a dev command.', entityRefs: [] }, { type: 'missionAssigned', mission: built.mission }], 'engine');
         if (refused()) return fail(refused()!);
-        return out(true, `mission started: ${kind}`);
+        return out(true, `mission started: ${built.mission.title.replace(/^Mission: /, '')} (${built.mission.stages.map((st) => st.label).join(', ')})`);
       }
       if (sub === 'end') {
         if (state.duty.status !== 'mission') return fail('not on a mission');
-        const how = args.slice(1).join(' ').trim() || 'ended with a dev command';
-        apply([{ type: 'missionEnded', how }], 'engine');
+        const word = (args[1] ?? 'success').toLowerCase();
+        const outcome = word === 'failure' || word === 'failed' ? 'failure' : word === 'cutshort' || word === 'cut' ? 'cutShort' : word === 'success' ? 'success' : null;
+        if (!outcome) return fail('/mission end [success|failure|cutShort]');
+        apply([{ type: 'missionEnded', how: 'ended with a dev command', outcome }], 'engine');
         if (refused()) return fail(refused()!);
-        return out(true, `mission ended (${how})`);
+        return out(true, `mission ended (${outcome})`);
       }
-      return fail('/mission start [type] [world], /mission end [outcome]');
+      return fail('/mission start [type] [world], /mission end [success|failure|cutShort]');
     }
 
     case 'allhands': {
@@ -660,8 +677,19 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
       // m9-missions A6: the character at their home base (created when new).
       const home = selectHomeBase(state);
       if (!home) return fail('no home base now (the Order is homeless, or duty has not seen the character yet)');
-      const failed = movePlace(home.name);
-      if (failed) return fail(failed);
+      // The base stands on its world (so travel knows where the character is): the world first, then the base inside it.
+      const existing = resolveLocationRef(state, home.name);
+      if (existing) apply([{ type: 'locationChanged', locationRef: existing }], 'dev');
+      else {
+        const world = home.planet ? PLANETS.find((w) => w.name.toLowerCase() === home.planet!.toLowerCase()) : undefined;
+        let parent = home.planet ? resolveLocationRef(state, home.planet) : null;
+        if (home.planet && !parent) {
+          apply([{ type: 'locationIntroduced', name: home.planet, kind: 'planet', region: world?.region || 'Core Worlds', description: '', moveHere: false }], 'engine');
+          parent = resolveLocationRef(state, home.planet);
+        }
+        apply([{ type: 'locationIntroduced', name: home.name, kind: 'building', region: world?.region || 'Core Worlds', description: '', ...(parent ? { parentRef: parent } : {}), moveHere: true }], 'engine');
+      }
+      if (refused()) return fail(refused()!);
       return out(true, `at home: ${home.label}`);
     }
 

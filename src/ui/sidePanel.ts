@@ -28,6 +28,7 @@ import { selectOpenThreads, selectThreads } from '../features/threads/selectors'
 import type { GameState } from '../state/gameState';
 import type { GameEvent } from '../state/types';
 import { renderHealthCard } from './healthCard';
+import { renderMissionCard } from './missionCard';
 import { selectTraitRows, selectTraitsEmptyNote } from '../features/traits/selectors';
 import { KNIGHT_TRIAL_IDS, TRIALS, type TrialId } from '../data/ranks.config';
 import { selectMayTakePadawan, selectStanding, selectTrialBlock } from '../features/ranks/selectors';
@@ -355,6 +356,7 @@ function character(p: SidePanelProps): HTMLElement[] {
       beats.length ? kv('Pending beats', beats.map((b) => (b.tier === 0 ? b.skillId : `${SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId} reached ${b.tier}`)).join('; ')) : null,
     ]),
     traitsCard(s),
+    ...[renderMissionCard(s)].filter((x): x is HTMLElement => x !== null),
     renderHealthCard(s, (events) => p.playerEvents(events)),
     ...ordersCard(p),
     routineCard(p),

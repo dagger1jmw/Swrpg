@@ -224,7 +224,10 @@ export function profileState(p: LifeProfile, startDay = START_DAY): GameState {
     rank,
     ...(p.startingXp ? { startingXp: p.startingXp } : {}),
   });
-  return setRoutine(p, moveForAge(p, s, p.startAge), rank);
+  // The lifetime runs measure the training routine alone: duty is switched off (m9-missions B; a mission's days have no free
+  // day, and its travel and stages are played by the player, which no profile does).
+  const quiet: GameState = { ...s, duty: { ...s.duty, off: true } };
+  return setRoutine(p, moveForAge(p, quiet, p.startAge), rank);
 }
 
 const LADDER = { jedi: ['initiate', 'padawan', 'knight'], sith: ['acolyte', 'apprentice', 'lord'] } as const;

@@ -125,7 +125,9 @@ export function selectStanding(s: GameState, size?: number): number {
   // Less the standing lost to discovered covert learning (D-436); plus the little standing a Jedi's formative quiz gave with
   // the Order (M8 item 16: QUIZ_ORDER_STANDING points a step, at most +-4 steps).
   const quiz = s.character.path === 'jedi' ? selectFormativeStanding(s, 'order') * QUIZ_ORDER_STANDING : 0;
-  return Math.max(0, standing({ percentile: selectSkillPercentile(s, size), deeds: selectDeedCount(s), relationships: selectSeniorRelationships(s) }) - (s.ranks.reputationPenalty ?? 0) + quiz);
+  // And what missions earned (m9-missions B9: up with success, down with failure; clamped in the duty record).
+  const missions = s.duty?.record?.standing ?? 0;
+  return Math.max(0, standing({ percentile: selectSkillPercentile(s, size), deeds: selectDeedCount(s), relationships: selectSeniorRelationships(s) }) - (s.ranks.reputationPenalty ?? 0) + quiz + missions);
 }
 
 export { covertDiscoveryChance } from './rules';

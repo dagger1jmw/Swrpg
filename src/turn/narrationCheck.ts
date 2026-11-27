@@ -692,7 +692,7 @@ function healingIssues(narrative: string, draft: TurnDraft): NarrationIssue[] {
  * Council regarding your next assignment"). Only the code assigns missions: the words are checked only on a turn whose draft
  * assigned none (invented list).
  */
-const MISSION_HINT = /\b(?:your|a|the|another)\s+(?:next|new|fresh|upcoming|coming)\s+(?:assignment|mission|posting|orders|task)\b|\b(?:regarding|about|concerning)\s+(?:your|a|another)\s+(?:next\s+|new\s+)?(?:assignment|mission|posting)\b|\b(?:you\s+are|you're|you\s+have\s+been|you've\s+been)\s+(?:being\s+)?(?:assigned|reassigned|posted|dispatched)\s+(?:to|on)\b|\b(?:a|another)\s+mission\s+(?:awaits|is\s+waiting|for\s+you)\b/i;
+const MISSION_HINT = /\b(?:your|a|the|another)\s+(?:next|new|fresh|upcoming|coming)\s+(?:assignment|mission|posting)\b|\b(?:regarding|about|concerning)\s+(?:your|a|another)\s+(?:next\s+|new\s+)?(?:assignment|mission|posting)\b|\b(?:you\s+are|you're|you\s+have\s+been|you've\s+been)\s+(?:being\s+)?(?:assigned|reassigned|posted|dispatched)\s+(?:to|on)\b|\b(?:a|another)\s+mission\s+(?:awaits|is\s+waiting|for\s+you)\b/i;
 const MISSION_TEXT = 'only the code assigns missions: do not assign, offer or hint at a new mission, assignment or posting (none was assigned this turn)';
 
 function missionIssues(narrative: string, draft: TurnDraft): NarrationIssue[] {

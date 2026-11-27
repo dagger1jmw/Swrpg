@@ -97,7 +97,7 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
         outcome: z.enum(THREAD_OUTCOMES),
         note: z.string().max(LIMITS.note),
       }),
-      sources: ['ai'],
+      sources: ['ai', 'engine'],
       targetField: 'threadRef',
       refFields: ['threadRef'],
       refKinds: threadRefKinds,
