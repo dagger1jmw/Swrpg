@@ -1,7 +1,7 @@
 // The health card on the character sheet (health.md §3-8): Vitality, status, wounds with their healing, lasting
 // injuries with adaptation, the dying timer, death. Rendering only; everything shown is derived by selectors.
 import { partText } from '../engine/duel';
-import { selectDeath, selectIsDying, selectLasting, selectMaxVitality, selectStatusLabel, selectVitality, selectWoundPenalty, selectWounds } from '../features/health/selectors';
+import { selectDeath, selectIsDying, selectLasting, selectMaxVitality, selectStatusLabel, selectVitality, selectWoundPenalty, selectWounds, selectWoundTag } from '../features/health/selectors';
 import type { GameState } from '../state/gameState';
 import { el } from './dom';
 
@@ -25,6 +25,7 @@ export function renderHealthCard(s: GameState): HTMLElement {
   const wounds = selectWounds(s);
   const lasting = selectLasting(s);
   const penalty = selectWoundPenalty(s, s.character.mainFormId ?? 'agility');
+  const woundTag = selectWoundTag(s, partText);
   const now = s.clock.now.day * 86_400 + s.clock.now.second;
   return el('div', { class: 'card health' }, [
     el('div', { class: 'card-title' }, [el('strong', { text: 'Health' }), el('span', { class: 'rel', text: selectStatusLabel(s) })]),
@@ -34,6 +35,8 @@ export function renderHealthCard(s: GameState): HTMLElement {
       el('span', { class: 'hc-label', text: 'Vitality' }),
       el('span', { class: 'vbar', attrs: { role: 'meter', 'aria-valuemin': '0', 'aria-valuemax': String(Math.round(max)), 'aria-valuenow': String(Math.round(v)), 'aria-label': 'Vitality' } }, [el('span', { class: 'vfill', attrs: { style: `width:${pct.toFixed(0)}%` } })]),
       el('span', { class: 'hc-num', text: `${Math.round(v)} / ${Math.round(max)}${v <= 0 ? ' (spent)' : ''}` }),
+      // The active wounds beside the bar (m8-fixes D2): wounds do not lower Vitality (health.md section 3), so the bar alone would hide them.
+      woundTag ? el('span', { class: 'hc-wound', text: woundTag, attrs: { title: 'Wounds do not lower Vitality: they weaken you through the wound penalty until they heal.' } }) : null,
     ]),
     penalty > 0 ? el('div', { class: 'hint hc-row', text: `Wound penalty on your main form: -${Math.round(penalty * 100)}%` }) : null,
     el('div', { class: 'hc-list' }, [

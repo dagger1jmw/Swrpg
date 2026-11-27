@@ -148,17 +148,18 @@ describe('/simulate 503 n (D-250)', () => {
     const meteredBefore = busy.metered.length;
     busy.provider.arm(2);
     const tb = await playTurn(busy.deps, b, beat('fightOn'));
-    expect(busy.status.filter((x) => x !== null)).toEqual(['Gemini is busy, retrying… (1 of 3)', 'Gemini is busy, retrying… (2 of 3)']);
+    // m8-fixes E2: the first busy reply switches to the next model at once; the next model retries once and answers.
+    expect(busy.status.filter((x) => x !== null)).toEqual([expect.stringMatching(/^Gemini is busy, trying /), 'Gemini is busy, retrying… (1 of 3)']);
     expect(busy.metered.length - meteredBefore).toBe(1);
     expect(tb.record.calls.map((c) => c.outcome)).toEqual(['http', 'http', 'ok']);
-    expect(tb.record.draft.report.join('\n')).toMatch(/busy \(503\); retry 1 of 3/);
+    expect(tb.record.draft.report.join('\n')).toMatch(/busy \(503\); switching to .* at once/);
     // The draft is resolved once before any call (D-240): identical dice, exchanges and state.
     expect(dice(tb.record as never)).toBe(dice(ta.record as never));
     expect(dice(tb.record as never).length).toBeGreaterThan(0);
     expect((tb.session.state.combat.active?.duel as DuelState | undefined)?.exchange).toBe((ta.session.state.combat.active?.duel as DuelState | undefined)?.exchange);
     expect(tb.session.state.meta.rngState).toEqual(ta.session.state.meta.rngState);
   });
-  it('four simulated 503s: three retries on the first model, then one try on the next model, which answers', async () => {
+  it('four simulated 503s: one on the first model, then the next model at once, which answers after its retries (m8-fixes E2)', async () => {
     const { deps, provider, inner } = setup([said(), said()]);
     const s = await knightVsB1(deps, 'next');
     const first = inner.calls[inner.calls.length - 1]!.opts.model;
@@ -166,9 +167,10 @@ describe('/simulate 503 n (D-250)', () => {
     const t = await playTurn(deps, s, beat('narrate'));
     expect(t.record.calls.map((c) => c.outcome)).toEqual(['http', 'http', 'http', 'http', 'ok']);
     const models = t.record.calls.map((c) => c.model);
-    expect(new Set(models.slice(0, 4))).toEqual(new Set([first]));
-    expect(models[4]).not.toBe(first);
-    expect(t.record.draft.report.join('\n')).toMatch(/still busy after 3 retries; one try on /);
+    expect(models[0]).toBe(first);
+    expect(new Set(models.slice(1))).toEqual(new Set([models[1]]));
+    expect(models[1]).not.toBe(first);
+    expect(t.record.draft.report.join('\n')).toMatch(/switching to .* at once/);
     expect(provider.pending).toBe(0);
   });
 });

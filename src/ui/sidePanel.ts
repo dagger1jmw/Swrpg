@@ -14,7 +14,7 @@ import type { ReviewItem } from '../features/memory/selectors';
 import { traitsOf } from '../data/speciesTraits';
 import { selectCharacter } from '../features/character/selectors';
 import { selectFatigue } from '../features/health/selectors';
-import { selectAgeing, selectGriefMult, selectSkillViews, selectStateOfMind, selectTierBeats, type SkillView } from '../features/progression/selectors';
+import { selectAgeing, selectGriefMult, selectSkillViews, selectStateOfMind, selectTierBeats, selectTrainOptions, type SkillView } from '../features/progression/selectors';
 import { selectRankName } from '../features/ranks/selectors';
 import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
 import { selectAge, selectBirthDay, selectCharacterName } from '../features/character/selectors';
@@ -28,6 +28,7 @@ import { selectOpenThreads, selectThreads } from '../features/threads/selectors'
 import type { GameState } from '../state/gameState';
 import type { GameEvent } from '../state/types';
 import { renderHealthCard } from './healthCard';
+import { selectTraitRows } from '../features/traits/selectors';
 import { KNIGHT_TRIAL_IDS, TRIALS, type TrialId } from '../data/ranks.config';
 import { selectMayTakePadawan, selectStanding, selectTrialBlock } from '../features/ranks/selectors';
 import { el } from './dom';
@@ -160,13 +161,24 @@ function trainPanel(p: SidePanelProps): HTMLElement {
   const known = (id: string): boolean => (views.get(id)?.level ?? 0) >= 1;
   const groups = ['forms', 'force', 'meditation', 'physical', 'study', 'career'] as const;
   const groupLabel: Record<string, string> = { forms: 'Lightsaber forms', force: 'Force', meditation: 'Meditation', physical: 'Physical', study: 'Study', career: 'Careers' };
+  // Only what the character's path and teachers make available (m8-fixes G6): the path's own activities, greyed with the reason when
+  // they would be refused now; another path's are left out.
+  const offered = selectTrainOptions(s);
   const activity = el(
     'select',
     { attrs: { 'aria-label': 'Activity' } },
-    groups.map((g) => el('optgroup', { attrs: { label: groupLabel[g]! } }, ACTIVITIES.filter((a) => a.group === g).map((a) => el('option', { text: a.name, attrs: { value: a.id } })))),
+    groups.map((g) =>
+      el('optgroup', { attrs: { label: groupLabel[g]! } }, offered.filter((a) => a.group === g).map((a) => {
+        const o = el('option', { text: a.open ? a.name : `${a.name} (${a.why})`, attrs: { value: a.id } });
+        o.disabled = !a.open;
+        return o;
+      })),
+    ),
   );
   const c = selectCharacter(s);
-  activity.value = c.mainFormId && c.mainFormId === 'shiiCho' ? 'shiiChoBasics' : (ACTIVITIES.find((a) => a.primary.kind === 'skill' && a.primary.skill === c.mainFormId)?.id ?? 'shiiChoBasics');
+  const openIds = new Set(offered.filter((a) => a.open).map((a) => a.id));
+  const wanted = c.mainFormId && c.mainFormId === 'shiiCho' ? 'shiiChoBasics' : (ACTIVITIES.find((a) => a.primary.kind === 'skill' && a.primary.skill === c.mainFormId)?.id ?? 'shiiChoBasics');
+  activity.value = openIds.has(wanted) ? wanted : (offered.find((a) => a.open)?.id ?? wanted);
   const primary = el('select', { attrs: { 'aria-label': 'Skill' } });
   const hours = el('select', { attrs: { 'aria-label': 'Hours' } }, [0.5, 1, 1.5, 2, 3, 4].map((h) => el('option', { text: `${h} h`, attrs: { value: String(h) } })));
   hours.value = '1';
@@ -268,6 +280,26 @@ function ordersCard(p: SidePanelProps): HTMLElement[] {
 }
 
 /** Character tab: the M3 sheet (identity, condition, skills, Train) plus who and where. */
+/** The character's traits (m8-fixes G3): each with its upside and downside, and the person it is tied to. */
+function traitsCard(s: GameState): HTMLElement {
+  const rows = selectTraitRows(s);
+  const src: Readonly<Record<string, string>> = { creation: 'chosen at creation', quiz: 'from the formative years', event: 'from the story' };
+  return el('div', { class: 'card traits' }, [
+    el('div', { class: 'card-title' }, [el('strong', { text: 'Traits' })]),
+    ...(rows.length
+      ? rows.map((r) =>
+          el('div', { class: 'trait-row' }, [
+            el('div', {}, [el('strong', { text: r.name }), el('span', { class: 'hint', text: ` · ${r.kind} · ${src[r.source] ?? r.source}` })]),
+            el('div', { class: 'hint', text: r.note }),
+            kv('Upside', r.good),
+            kv('Downside', r.bad),
+            r.tie ? kv('Tied to', `${r.tie.name}${r.tie.npcId ? (() => { const n = s.npcs.byId[r.tie!.npcId!]; return n ? `${n.relation ? ` (your ${n.relation})` : ''}${n.status === 'deceased' ? ', dead' : ''}` : ''; })() : ' (not met yet)'}`) : null,
+          ]),
+        )
+      : [el('p', { class: 'hint', text: 'No traits recorded (a save from before traits existed).' })]),
+  ]);
+}
+
 function character(p: SidePanelProps): HTMLElement[] {
   const s = p.state;
   const now = selectNow(s);
@@ -286,7 +318,7 @@ function character(p: SidePanelProps): HTMLElement[] {
     el('div', { class: 'card' }, [
       el('div', { class: 'card-title' }, [el('strong', { text: selectCharacterName(s) }), el('span', { class: 'rel', text: `age ${selectAge(s)}` })]),
       kv('Species', speciesDef(c.speciesId).name),
-      speciesTraits.length ? kv('Traits', speciesTraits.join('; ')) : null,
+      speciesTraits.length ? kv('Species traits', speciesTraits.join('; ')) : null,
       ageing.bodyAge > PRIME_H ? kv('Body', `past its prime: reads as a Human of ${Math.round(ageing.bodyAge)}`) : null,
       kv('Path', `${c.path}, ${archetypeDef(c.archetype).name}`),
       kv('Rank', selectRankName(s)),
@@ -313,6 +345,7 @@ function character(p: SidePanelProps): HTMLElement[] {
       s.progression.overtrainStreak ? kv('Overtrained', `${s.progression.overtrainStreak} day(s) in a row`) : null,
       beats.length ? kv('Pending beats', beats.map((b) => (b.tier === 0 ? b.skillId : `${SKILL_BY_ID.get(b.skillId)?.name ?? b.skillId} reached ${b.tier}`)).join('; ')) : null,
     ]),
+    traitsCard(s),
     renderHealthCard(s),
     ...ordersCard(p),
     routineCard(p),

@@ -30,9 +30,9 @@ import {
   type KnownSite,
   type Weather,
 } from '../../data/groundCommand.config';
-import { TACTIC_BY_ID } from '../../data/tactics';
+import { SEEN_TACTIC_PENALTY, TACTIC_BY_ID } from '../../data/tactics';
 import type { DuelTier } from '../../data/who';
-import { forceLeft, groundForce, groundPhase, groundUnit, killLeader, killMeditator, sector, sectorSide, standing, startGround, unitDef, unitQuality, type GroundBattle, type GroundForce, type Sector, type SectorLeader } from '../../engine/groundBattle';
+import { forceLeft, groundForce, groundPhase, groundUnit, killLeader, killMeditator, sector, sectorSide, standing, startGround, unitDef, unitQuality, type GroundBattle, type GroundForce, type PhaseRecord, type Sector, type SectorLeader } from '../../engine/groundBattle';
 import { nextFloat, nextInt, type RngState } from '../../engine/rng';
 import { basicRoll, type Modifier } from '../../engine/rolls';
 import { contest } from '../../engine/track';
@@ -145,8 +145,10 @@ export interface GroundPlanning {
   leaders: GLeader[];
   /** The player as a leader at the front. */
   me: GLeader & { meditation: number; canMeditate: boolean };
-  /** The tactics the player knows (ground ones). */
+  /** The tactics the player may order (ground ones): known, and seen ones at a penalty (m8-fixes B4). */
   known: string[];
+  /** Of those, the ones seen and not practised (m8-fixes B4): ordered at -SEEN_TACTIC_PENALTY. Absent in scenes saved before. */
+  seenOnly?: string[];
   /** What the one who plans knows: the player when they command, else the NPC commander (an army's officers). */
   planKnows?: string[];
   /** What the enemy's commanders know. */
@@ -180,6 +182,10 @@ export interface GroundState {
   pending: PendingOrder[];
   /** A delayed change carries its penalty in the phase it lands. */
   penaltyAt: number | null;
+  /** Our side's manoeuvres in this battle (m8-fixes B3b, B6). Absent in battles saved before. */
+  used?: string[];
+  /** Seen manoeuvres the player ordered and that went well (phases won on balance): known at the end (m8-fixes B3b). */
+  learned?: string[];
   auto: boolean;
   log: string[];
   map: string;
@@ -402,6 +408,53 @@ export function deployEnemy(units: readonly GUnit[], map: GMap, plan: Plan, defe
 export const planOfTactic = (id: string | null): Plan | null => (id ? (TACTIC_PLAN[id] ?? null) : null);
 export const tacticOfPlan = (p: Plan): string => Object.entries(TACTIC_PLAN).find(([, v]) => v === p)?.[0] ?? p;
 
+/**
+ * Which way a sector's phase went, from our side (A): +1 ours, -1 theirs, 0 even (m8-fixes C2). A strike that landed goes to its
+ * striker (the track then resets to 0); otherwise the track's own movement decides, so a line can never say "neither side gains"
+ * while the track moved.
+ */
+export function phaseDirection(rec: Pick<PhaseRecord, 'before' | 'after' | 'by'>): 1 | -1 | 0 {
+  if (rec.by) return rec.by === 'A' ? 1 : -1;
+  return Math.sign(rec.after - rec.before) as 1 | -1 | 0;
+}
+
+/**
+ * The plain-English line for one sector's phase (m8-fixes C1, C2): the one function the battle log uses, made from the same record
+ * as the track's movement. Every result code has its own words; nothing internal reaches the screen. `own` is the player's own
+ * fight in that sector this phase, told in the same sentence so the two cannot contradict each other.
+ */
+export function phaseLine(rec: Pick<PhaseRecord, 'before' | 'after' | 'by' | 'result' | 'notes'>, square: string, own?: 'won' | 'held' | 'lost' | null): string {
+  const dir = phaseDirection(rec);
+  const ours = rec.by === 'A';
+  let what: string;
+  switch (rec.result) {
+    case 'light':
+      what = ours ? 'we gain ground' : 'the enemy gain ground';
+      break;
+    case 'positionTaken':
+      what = ours ? 'we take the position' : 'the enemy take the position';
+      break;
+    case 'rout':
+      what = ours ? 'the enemy break and run; we take the position' : 'our troops break and run; the enemy take the position';
+      break;
+    case 'collapse':
+      what = ours ? "the enemy's line collapses; we take the position" : 'our line collapses; the enemy take the position';
+      break;
+    case 'held':
+      // A strike that did not land: the side that had the edge was held, and the track fell back toward even.
+      what = rec.before >= 0 ? 'our push is held; the enemy steady their line' : "we hold the enemy's push";
+      break;
+    default:
+      what = dir > 0 ? 'we gain the upper hand' : dir < 0 ? 'the enemy gain the upper hand' : 'neither side gains';
+  }
+  // Morale checks and units routing elsewhere in the sector: the engine's own notes, already in words (the take and gain notes
+  // are said above).
+  const extra = rec.notes.filter((n: string) => !/ take | gain ground in | collapses$/.test(` ${n}`) && !/^[a-z]+[A-Z]\w*$/.test(n));
+  const lead = own === 'won' ? `At ${square} you break the enemy in front of you` : own === 'lost' ? `At ${square} the fight goes against you` : own === 'held' ? `At ${square} you hold your own` : null;
+  const joined = lead ? `${lead}${(own === 'won' && dir <= 0) || (own === 'lost' && dir >= 0) ? ', but' : ';'} ${what}` : `${square}: ${what}`;
+  return `${joined}${extra.length ? ` (${extra.join('; ')})` : ''}.`;
+}
+
 /** What is wrong with a plan, or nothing (Jared: objectives, a known manoeuvre, sectors, support, a reserve, two contingencies). */
 export function planProblems(p: GroundPlanning, plan: GroundPlan = p.plan): string[] {
   const out: string[] = [];
@@ -620,6 +673,8 @@ export function beginGround(p: GroundPlanning, rng: RngState): GroundState | { r
     reserve: [...plan.reserve],
     pending: [],
     penaltyAt: null,
+    used: plan.manoeuvre ? [plan.manoeuvre] : [],
+    learned: [],
     auto: false,
     log: [],
     map: '',
@@ -864,8 +919,10 @@ export function stepGround(g0: GroundState, orders: GroundOrders, ctx: GroundCtx
     g = { ...g, penaltyAt: phaseNo };
   }
   g = { ...g, pending: g.pending.filter((x) => x.lands > phaseNo) };
-  // The player's own fight in their sector: a personal fight's result, else a quick roll against the troops there.
+  // The player's own fight in their sector: a personal fight's result, else a quick roll against the troops there. Told with the
+  // sector's own line after the phase (m8-fixes C2), so the two never contradict each other.
   let rng = g.battle.rng;
+  let ownTold: { square: string; own: 'won' | 'held' | 'lost' } | null = null;
   if (g.playerSector) {
     const s = g.battle.sectors.find((x) => x.square === g.playerSector);
     if (s && !s.decided) {
@@ -879,28 +936,37 @@ export function stepGround(g0: GroundState, orders: GroundOrders, ctx: GroundCtx
         g = { ...g, xp: { gaps: [...g.xp.gaps, Math.round(q - ctx.playerCombat)].slice(-200) } };
       }
       g = { ...g, fight: g.fight ? { ...g.fight, result: null, fightId: null } : null, battle: { ...g.battle, sectors: g.battle.sectors.map((x) => (x.square === s.square ? { ...x, a: { ...x.a, ownFight: own } } : x)) } };
-      lines.push(own === 'won' ? `At ${s.square} you break the enemy in front of you.` : own === 'lost' ? `At ${s.square} the fight goes against you.` : `At ${s.square} you hold your own.`);
+      ownTold = { square: s.square, own };
     }
   }
   // The commanders' roll, weather, a delayed change's penalty.
   const [ma, mb, r2, margin] = commandRoll(g, ctx, rng);
   rng = r2;
   const penalty: Modifier[] = g.penaltyAt === phaseNo ? [{ source: 'a change without contact', value: CHANGE.penalty }] : [];
-  g = { ...g, battle: { ...g.battle, rng, a: { ...g.battle.a, modifiers: [...ma, ...weatherMods(g, 'A'), ...penalty] }, b: { ...g.battle.b, modifiers: [...mb, ...weatherMods(g, 'B')] } } };
+  // A manoeuvre the player ordered from one only seen, not practised (m8-fixes B4).
+  const planNow = tacticOfPlan(g.battle.a.plan);
+  const seenPlan = g.planning.role === 'commander' && (g.planning.seenOnly ?? []).includes(planNow);
+  const seenPen: Modifier[] = seenPlan ? [{ source: 'a tactic seen, not practised', value: -SEEN_TACTIC_PENALTY }] : [];
+  g = { ...g, battle: { ...g.battle, rng, a: { ...g.battle.a, modifiers: [...ma, ...weatherMods(g, 'A'), ...penalty, ...seenPen] }, b: { ...g.battle.b, modifiers: [...mb, ...weatherMods(g, 'B')] } } };
   if (Math.abs(margin) >= 4) lines.push(`${margin > 0 ? 'Your' : 'The enemy\'s'} command reads the battle better this phase.`);
   // The engine's phase.
   const before = g.battle;
   const after = groundPhase(before);
   const phaseLog = after.log.slice(before.log.length);
   g = { ...g, battle: after };
+  // Used, and learned when a seen manoeuvre's phase went our way on balance (m8-fixes B3b).
+  const used = g.used ?? [];
+  g = { ...g, used: used.includes(planNow) ? used : [...used, planNow] };
+  if (seenPlan && phaseLog.reduce((t, r) => t + r.margin, 0) > 0 && !(g.learned ?? []).includes(planNow)) g = { ...g, learned: [...(g.learned ?? []), planNow] };
   for (const rec of phaseLog) {
     const s = after.sectors.find((x) => x.id === rec.sector)!;
     // Whose line broke (the engine's note names only the sector).
     const whose = rec.by === 'A' ? "the enemy's line" : 'our line';
     rec.notes = rec.notes.map((n) => (n === `${s.name} collapses` ? `${s.square}: ${whose} collapses` : n));
-    const tell = rec.notes.length ? rec.notes.join('; ') : rec.result === 'steady' ? `${s.square}: neither side gains` : rec.result === 'held' ? `${s.square}: a push is held` : `${s.square}: ${rec.result}`;
-    lines.push(`${tell}.`);
-    if (rec.result === 'positionTaken' || rec.result === 'rout' || rec.result === 'collapse') big.push(`${s.square}: ${rec.notes.join('; ') || rec.result}.`);
+    // One line per sector from the same record as the track's movement (m8-fixes C1, C2).
+    const tell = phaseLine(rec, s.square, ownTold?.square === s.square ? ownTold.own : null);
+    lines.push(tell);
+    if (rec.result === 'positionTaken' || rec.result === 'rout' || rec.result === 'collapse') big.push(tell);
   }
   // Leaders caught in a rout or a collapse fall (invented chance); the player's sector collapsing round them is a hazard.
   rng = g.battle.rng;
@@ -945,10 +1011,13 @@ export function stepGround(g0: GroundState, orders: GroundOrders, ctx: GroundCtx
   // Leaders already told about are marked so a contingency does not fire twice on the same fall.
   g = { ...g, fallen: [...g.fallen, ...g.battle.sectors.filter((x) => x.a.leader && !x.a.leader.alive).map((x) => `seen:${x.square}`).filter((k) => !g.fallen.includes(k))] };
   g = endCheck(g);
-  if (g.end) big.push(`The battle ends: ${g.end.winner === 'player' ? 'victory' : g.end.winner === 'enemy' ? 'defeat' : 'neither side carries the field'} (${g.end.reason}).`);
+  if (g.end) big.push(`The battle ends: ${g.end.winner === 'player' ? 'victory' : g.end.winner === 'enemy' ? 'defeat' : 'neither side carries the field'} (${GROUND_END_WORDS[g.end.reason] ?? 'it is over'}).`);
   const map = drawMap(g.planning, g, `BATTLE · ${g.planning.site} · phase ${g.battle.phase}`);
   return { ground: { ...g, map, log: [...g.log, ...lines].slice(-40) }, lines, big, seconds: PHASE_HOURS * 3600, handoff: null };
 }
+
+/** Why a ground battle ended, in words (m8-fixes C1: no code on screen). */
+export const GROUND_END_WORDS: Readonly<Record<string, string>> = { objectives: 'the sectors settled', collapse: 'the line collapsed', time: 'night and exhaustion ended it', withdrawn: 'the order to withdraw', routed: 'one side broke and fled' };
 
 /** Objectives held decide it when the sectors are settled or the time is out; a side with nothing standing loses at once. */
 export function endCheck(g: GroundState): GroundState {

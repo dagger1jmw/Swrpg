@@ -106,7 +106,8 @@ describe('starting E at creation (character-creation §2)', () => {
     const e = Object.values(pad.startingE)[0]!;
     expect(e.E).toBeCloseTo(highest + 5, 0);
     expect(e.eSpar).toBeCloseTo(e.E, 6);
-    const war = computeCreation({ ...base, rank: 'padawan', warYears: 3 });
+    // War years are served from 14 (m8-fixes D1): at 16, two.
+    const war = computeCreation({ ...base, rank: 'padawan', warYears: 2 });
     expect(Object.values(war.startingE)[0]!.E).toBeGreaterThan(e.E);
   });
   it('an Initiate sparred the stub instructors (10 ahead): stronger partners, but level - 15 is below 15, so E stops at 15', () => {

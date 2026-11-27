@@ -19,7 +19,7 @@ import { SERVICE_LADDER_BY_ID, SERVICE_LADDER_IDS, ladderExists } from '../../da
 import { PROGRAMME_BY_ID } from '../../data/trainingProgrammes';
 import { serviceEntryCheck, servicePromotionCheck } from '../../engine/serviceRanks';
 import { programmeEndDay, programmeEntry } from '../../engine/programmes';
-import { PROGRAMME_TACTICS } from '../../data/tactics';
+import { PAST_INITIATE, PROGRAMME_TACTICS } from '../../data/tactics';
 import { DAYS_PER_YEAR } from '../../engine/calendar';
 import { selectCharacter } from '../character/selectors';
 import type { SpeciesId } from '../../data/entities.config';
@@ -40,6 +40,13 @@ import {
 } from './selectors';
 
 const RANK_IDS = [...RANK_BY_ID.keys()] as [string, ...string[]];
+
+/** Leaving the initiate stage (m8-fixes B2): the initiate years' basic tactics (the Academy's for a Sith acolyte; a proposal). */
+function initiateTactics(from: string, to: string): { emit?: GameEvent[] } {
+  if (from !== 'initiate' && from !== 'acolyte') return {};
+  const set = PAST_INITIATE[to];
+  return set ? { emit: [{ type: 'tacticsLearned', sets: [set], source: from === 'initiate' ? 'the Order: the initiate years' : 'the Academy: the acolyte years' }] } : {};
+}
 const TRIAL_ID_LIST = ['initiate', ...KNIGHT_TRIAL_IDS] as [TrialId, ...TrialId[]];
 
 /** A rank change's slice update: the new rank from today; a new Knight's trials are done with. */
@@ -60,7 +67,7 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
     rankSet: {
       schema: z.object({ type: z.literal('rankSet'), rank: z.string() }),
       sources: ['engine'],
-      handle: (slice, e, ctx) => (RANK_BY_ID.has(String(e['rank'])) ? { slice: promote(slice, String(e['rank']), ctx.state.clock.now.day) } : { reject: `unknown rank ${String(e['rank'])}` }),
+      handle: (slice, e, ctx) => (RANK_BY_ID.has(String(e['rank'])) ? { slice: promote(slice, String(e['rank']), ctx.state.clock.now.day), ...initiateTactics(slice.rank, String(e['rank'])) } : { reject: `unknown rank ${String(e['rank'])}` }),
     },
     /**
      * The AI proposes a promotion the story reached (ranks.md: "the AI can only propose"). The engine checks every
@@ -76,7 +83,7 @@ export const ranksFeature: FeatureModule<RanksSlice, GameState> = {
         const to = String(e['rank']);
         const c = selectPromotionCheck(ctx.state, to);
         if (!c.ok) return { reject: `promotion to ${RANK_BY_ID.get(to)?.name ?? to} refused: ${c.reasons.join('; ')}` };
-        return { slice: promote(slice, to, ctx.state.clock.now.day), notes: [`promoted: ${selectRankName(ctx.state)} -> ${RANK_BY_ID.get(to)!.name}${e['reason'] ? ` (${String(e['reason'])})` : ''}`] };
+        return { slice: promote(slice, to, ctx.state.clock.now.day), notes: [`promoted: ${selectRankName(ctx.state)} -> ${RANK_BY_ID.get(to)!.name}${e['reason'] ? ` (${String(e['reason'])})` : ''}`], ...initiateTactics(slice.rank, to) };
       },
     },
     /**

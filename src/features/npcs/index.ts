@@ -131,6 +131,20 @@ export const npcsFeature: FeatureModule<NpcsSlice, GameState> = {
         return { slice: r.slice, mintedId: r.id, ...(notes.length ? { notes } : {}) };
       },
     },
+    // Engine: what the player said of a person (a formative quiz's note; m8-fixes G4): relation, homeworld, the note in words.
+    npcBackgroundSet: {
+      schema: z.object({ type: z.literal('npcBackgroundSet'), npcRef: z.string(), relation: z.string().max(60).optional(), homeworld: z.string().max(60).optional(), playerNote: z.string().max(200).optional() }),
+      sources: ['engine'],
+      refFields: ['npcRef'],
+      refKinds: npcRefKinds,
+      handle: (slice, e) => {
+        const id = String(e['npcRef']);
+        if (!slice.byId[id]) return { reject: `unknown NPC ${id}` };
+        const patch: Partial<Npc> = {};
+        for (const k of ['relation', 'homeworld', 'playerNote'] as const) if (typeof e[k] === 'string' && e[k]) patch[k] = String(e[k]);
+        return { slice: update(slice, id, patch) };
+      },
+    },
     // A player settles an NPC's species from the review queue (m8-fixes A1).
     npcSpeciesSet: {
       schema: z.object({ type: z.literal('npcSpeciesSet'), npcRef: z.string(), species: z.enum(SPECIES) }),

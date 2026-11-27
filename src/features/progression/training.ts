@@ -5,7 +5,7 @@
 import { ACCELERATED_PATH, FORCE_RICH_FACTOR, INSTRUCTOR_SHARE, INTENSITY, MAJOR_NEXUS_FACTOR, NEXUS_SITE_FACTOR, ORDER_SPARRING_CLASSES, RECORDING_REVIEW_BONUS } from '../../data/progression.config';
 import { forceFraction } from '../../engine/forceMeter';
 import { sparringE, splitDrillXp, type SparE } from '../../engine/appliedExperience';
-import { ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, type ActivityDef, type Intensity, type Unlock } from '../../data/activities';
+import { ACTIVITIES, ACTIVITY_BY_ID, DRILL_RATINGS, DRILL_RATING_NAMES, isPhysicalActivity, type ActivityDef, type Intensity, type Unlock } from '../../data/activities';
 import { FORM_TRANSFER_SHARE, PASSION_DARK_PRESSURE_PER_HOUR, STEP_HOURS } from '../../data/progression.config';
 import { CATEGORY_RULES, FORM_IDS, SKILL_BY_ID } from '../../data/skills';
 import {
@@ -381,6 +381,48 @@ export function clampFor(s: GameState): (skill: string, wanted: number, sessionH
 
 /** The intensity and effort for a session (training-routines §3: push picks gap +10..+20). */
 const effortFor = (i: Intensity): Effort => (i === 'intense' || i === 'extreme' ? 'push' : 'standard');
+
+/** One Train-list entry (m8-fixes G6): open, or greyed with the reason; entries the path closes are left out. */
+export interface TrainOption {
+  id: string;
+  name: string;
+  group: string;
+  open: boolean;
+  why?: string;
+}
+
+/** Places that keep instructors (the Temple, an academy, a training hall): a session there has a teacher at hand. */
+const INSTRUCTOR_PLACE = /temple|academy|enclave|praxeum|barracks|training/i;
+
+/**
+ * What the Train list offers (m8-fixes G6: a Jedi Padawan was offered Warblade training on Korriban, Force Lightning and Force
+ * Choke control). The rule: an activity the character's path closes is left out (a path-only activity of another path; a
+ * dark-side power a Jedi does not already know, which the Order never teaches); every other activity is tried with the
+ * teacher actually at hand (the master when present, the instructors of a Temple or academy, else nobody) through the same rules
+ * the session uses, and greyed with the reason when it would be refused (an unknown power: "needs a teacher who knows it").
+ */
+export function selectTrainOptions(s: GameState): TrainOption[] {
+  const path = selectPath(s);
+  const master = s.ranks.masterId;
+  const present = (s.pacing?.scene?.presentNpcIds ?? []) as readonly string[];
+  const here = selectLocationChain(s, selectCurrentLocationId(s)).map((l) => l.name).join(' ');
+  const source: TrainingSource = master && present.includes(master) ? { kind: 'npc', id: master } : INSTRUCTOR_PLACE.test(here) ? { kind: 'instructor' } : { kind: 'solo' };
+  const out: TrainOption[] = [];
+  for (const a of ACTIVITIES) {
+    const pathGate = a.unlock.find((u): u is Extract<Unlock, { kind: 'path' }> => u.kind === 'path');
+    if (pathGate && !pathGate.paths.includes(path)) continue;
+    const power = a.primary.kind === 'skill' ? a.primary.skill : null;
+    if (a.dark && path === 'jedi' && !(power && known(s, power))) continue;
+    const plan = resolveTraining(s, { activityId: a.id, hours: 1, source });
+    if (plan.ok) out.push({ id: a.id, name: a.name, group: a.group, open: true });
+    else {
+      const raw = plan.reason.replace(new RegExp(`^${a.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?: is locked)?: `), '');
+      const why = /is not known yet$/.test(raw) && power && SKILL_BY_ID.get(power)?.kind === 'forceAbility' ? 'needs a teacher who knows it' : raw;
+      out.push({ id: a.id, name: a.name, group: a.group, open: false, why });
+    }
+  }
+  return out;
+}
 
 export function resolveTraining(initial: GameState, req: TrainingRequest): TrainingPlan {
   let s = initial;

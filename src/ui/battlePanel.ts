@@ -3,7 +3,7 @@
 // strong and weak against and what it costs, and the map (redrawn only when something changed). "Let it play out" hands the
 // rest to the code; "Take the controls" takes it back.
 import { brokenSystems } from '../features/battles';
-import { selectActiveBattle, selectBattleMenu, selectBattleWaitsOnFight, selectLastEndedBattle, selectOwnShipCondition } from '../features/battles/selectors';
+import { selectActiveBattle, selectBattleMenu, selectBattleWaitsOnFight, selectEndedBattleToShow, selectGroundBattle, selectGroundPlanning, selectLastEndedBattle, selectOwnShipCondition } from '../features/battles/selectors';
 import type { MenuOption } from '../features/battles/selectors';
 import type { GameState } from '../state/gameState';
 import type { TurnInput } from '../turn/record';
@@ -36,13 +36,17 @@ export function renderBattlePanel(p: BattlePanelProps): HTMLElement | null {
   const b = selectActiveBattle(s);
   const dis = p.busy ? { disabled: 'true' } : {};
   if (!b) {
-    // After a battle: the wrap-up, and field repairs for a ship that needs them.
+    // After a battle (m8-fixes C3): the wrap-up on the turn it ended only; field repairs while the ship needs them and no battle runs.
     const last = selectLastEndedBattle(s);
     const cond = selectOwnShipCondition(s);
-    const broken = cond ? brokenSystems(cond) : [];
-    if (!last || s.clock.now.day - (s.battles.history.at(-1)?.day ?? -99) > 2) return null;
-    const items: HTMLElement[] = [el('strong', { text: `${last.kind === 'fleet' ? 'Fleet battle' : 'Dogfight'} over` })];
-    if (last.map) items.push(el('pre', { class: 'battle-map', text: last.map }));
+    const broken = cond && selectGroundBattle(s) === null && selectGroundPlanning(s) === null && s.clock.now.day - (cond.day ?? -99) <= 2 ? brokenSystems(cond) : [];
+    const showWrap = last !== null && selectEndedBattleToShow(s) === 'ship';
+    if (!showWrap && !broken.length) return null;
+    const items: HTMLElement[] = [];
+    if (showWrap) {
+      items.push(el('strong', { text: `${last!.kind === 'fleet' ? 'Fleet battle' : 'Dogfight'} over` }));
+      if (last!.map) items.push(el('pre', { class: 'battle-map', text: last!.map }));
+    } else items.push(el('strong', { text: 'Your ship needs repairs' }));
     if (broken.length) items.push(el('button', { class: 'small', text: `Field repairs (${broken.join(', ')})`, attrs: dis, on: { click: () => p.act({ kind: 'battle', label: 'Field repairs', repairs: true }) } }));
     return el('section', { class: 'box duel battle' }, [el('div', { class: 'box-body duel-body' }, items)]);
   }

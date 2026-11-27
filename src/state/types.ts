@@ -216,7 +216,8 @@ export interface FeatureModule<Slice = unknown, S extends BaseState = BaseState>
    */
   resolveRef?(state: S, ref: string): string | null;
   promptSection?(state: S): string | null;
-  migrations?: Record<number, (old: unknown) => unknown>;
+  /** Slice migrations; `state` is the whole raw save being loaded (other slices as stored), for a migration that reads them. */
+  migrations?: Record<number, (old: unknown, state?: Record<string, unknown>) => unknown>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- registries hold heterogeneous slices

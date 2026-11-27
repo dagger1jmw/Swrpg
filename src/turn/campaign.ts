@@ -168,7 +168,15 @@ export function startErrors(input: NewCampaignInput): string[] {
  * character in the innermost; and its opening threads, tied to that place. Engine events, validated like any other.
  */
 export function startEvents(o: StartOption, bby: number, extraThreads: readonly StartThread[] = []): unknown[] {
-  const events: unknown[] = o.places.map((p, i) => ({
+  const events: unknown[] = startPlaceEvents(o, bby);
+  const here = `tmp:start${o.places.length - 1}`;
+  for (const th of [...startThreadsAt(o, bby), ...extraThreads]) events.push({ type: 'threadOpened', title: th.title, stakes: th.stakes, entityRefs: o.places.length ? [here] : [] });
+  return events;
+}
+
+/** A start option's places only (outermost first, the character in the innermost). */
+export function startPlaceEvents(o: StartOption, bby: number): unknown[] {
+  return o.places.map((p, i) => ({
     type: 'locationIntroduced',
     key: `tmp:start${i}`,
     name: p.name,
@@ -178,9 +186,15 @@ export function startEvents(o: StartOption, bby: number, extraThreads: readonly 
     description: startPlaceDescription(p, bby),
     moveHere: i === o.places.length - 1,
   }));
-  const here = `tmp:start${o.places.length - 1}`;
-  for (const th of [...startThreadsAt(o, bby), ...extraThreads]) events.push({ type: 'threadOpened', title: th.title, stakes: th.stakes, entityRefs: o.places.length ? [here] : [] });
-  return events;
+}
+
+/**
+ * Where a free start begins (m8-fixes C4/G7: the header showed no place for a free Jedi start): the places of the first start option
+ * of the year that fits the path, rank and archetype (a Jedi in 3,661 BBY: Coruscant, the Jedi Temple). None fits: no place, and
+ * the opening's own locationIntroduced sets it.
+ */
+export function freeStartPlaces(year: number, c: { path: string; rank: string; archetype: string }): StartOption | null {
+  return startOptionsFor(year).find((o) => o.paths.includes(c.path as never) && (!o.ranks.length || o.ranks.includes(c.rank)) && (!o.archetypes.length || o.archetypes.includes(c.archetype))) ?? null;
 }
 
 /** True when the campaign was created but its opening turn never committed (e.g. a reload mid-call). */
@@ -242,6 +256,13 @@ export async function createCampaign(
     const r = applyEvents(registry, state, startEvents(startOption, -input.startDate.year, role ? [role] : []), { source: 'engine' });
     if (r.rejected.length) throw new Error(`The start could not be seeded: ${r.rejected.map((x) => x.reason).join('; ')}`);
     state = r.state;
+  } else if (cr) {
+    // A free start still begins somewhere (m8-fixes C4/G7): the fitting start option's places, without its threads.
+    const where = freeStartPlaces(input.startDate.year, cr);
+    if (where) {
+      const r = applyEvents(registry, state, startPlaceEvents(where, -input.startDate.year), { source: 'engine' });
+      if (!r.rejected.length) state = r.state;
+    }
   }
   // Starting traits (M8 item 16): the ties' people, then the formative quiz taken at creation; every one must apply.
   if (input.traits) {

@@ -31,6 +31,8 @@ export const battleRecordSchema = z.object({
   forceId: z.string().optional(),
   /** A ground battle's objectives at the end (m8-ground, D-522): taken or held, and by whom. */
   objectives: z.array(z.object({ square: z.string(), holder: z.enum(['player', 'enemy']), primary: z.boolean() })).max(12).optional(),
+  /** The tactics the player chose in it (m8-fixes B6): absent in records made before. */
+  tacticsUsed: z.array(z.string()).max(40).optional(),
 });
 export type BattleRecord = z.infer<typeof battleRecordSchema>;
 
@@ -56,6 +58,11 @@ export const battlesSliceSchema = z.object({
   step: z.object({ lines: z.array(z.string()), big: z.array(z.string()), wrap: z.string().nullable(), seconds: z.number().min(0) }).nullable(),
   seq: z.number().int().min(0),
   history: z.array(battleRecordSchema).max(30),
+  /**
+   * The battle that ended last and the turn it ended in (m8-fixes C3): its panel shows the result on that turn only, then clears.
+   * Absent in saves made before (no wrap-up shown).
+   */
+  ended: z.object({ kind: z.enum(['ship', 'ground']), turn: z.number().int() }).nullable().optional(),
   /** The player's ships by id: the last one flown or commanded is the one a blockade run takes. */
   ships: z.record(z.string(), shipConditionSchema),
   lastShipId: z.string().nullable(),

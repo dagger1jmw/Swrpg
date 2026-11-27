@@ -5,8 +5,8 @@
 // taking control back.
 import { ACTION_LABEL, CONTINGENCY_ACTIONS, CONTINGENCY_TRIGGERS, MAX_CONTINGENCIES, SCOUTING, TRIGGER_LABEL, type ContingencyAction, type ContingencyTrigger } from '../data/groundCommand.config';
 import { PLAN_LABEL } from '../data/ground.config';
-import { TACTIC_BY_ID } from '../data/tactics';
-import { drawMap, planProblems, selectGroundBattle, selectGroundMenu, selectGroundPlanning, selectGroundWaitsOnFight, selectLastGround, type GroundPlan, type GroundPlanning } from '../features/battles/selectors';
+import { SEEN_TACTIC_PENALTY, TACTIC_BY_ID } from '../data/tactics';
+import { drawMap, planProblems, selectActiveBattle, selectEndedBattleToShow, selectGroundBattle, selectGroundMenu, selectGroundPlanning, selectGroundWaitsOnFight, selectLastGround, type GroundPlan, type GroundPlanning } from '../features/battles/selectors';
 import type { GameState } from '../state/gameState';
 import type { TurnInput } from '../turn/record';
 import { el } from './dom';
@@ -50,9 +50,25 @@ function moveUnit(plan: GroundPlan, id: string, to: string): GroundPlan {
   return { ...plan, sectors: sectors.filter((s) => s.units.length || s.leader), reserve };
 }
 
+/**
+ * The planning step's layout (m8-fixes F; Jared will judge it): 'full' gives it the page's height with sections that fold away
+ * (objectives, units, sector leaders, contingencies, scouting); 'compact' is the old box, the combat panel's size. One switch, so
+ * the change is easy to reverse. The combat and battle layouts are untouched.
+ */
+export const PLANNING_LAYOUT: 'full' | 'compact' = 'full';
+/** Which planning sections the player folded away (kept across redraws; the page redraws on every change). */
+const folded = new Set<string>();
+function fold(key: string, title: string, children: (HTMLElement | null)[]): HTMLElement {
+  if (PLANNING_LAYOUT === 'compact') return el('div', {}, children);
+  const d = el('details', { class: 'plan-fold', attrs: folded.has(key) ? {} : { open: 'true' } }, [el('summary', { text: title }), el('div', { class: 'plan-fold-body' }, children)]) as HTMLDetailsElement;
+  d.addEventListener('toggle', () => (d.open ? folded.delete(key) : folded.add(key)));
+  return d;
+}
+
 function planEditor(p: GroundPlanning, draft: { plan: GroundPlan; atPost: boolean }, set: (d: { plan: GroundPlan; atPost: boolean }) => void, busy: boolean): HTMLElement[] {
   const plan = draft.plan;
-  const out: HTMLElement[] = [];
+  const sections: Record<'objectives' | 'units' | 'leaders' | 'contingencies', HTMLElement[]> = { objectives: [], units: [], leaders: [], contingencies: [] };
+  let out = sections.objectives;
   const positions = p.map.positions.map((sq) => [sq, `${sq}${p.map.squares[sq]?.note ? ` (${p.map.squares[sq]!.note})` : ''}`] as const);
   // Objectives.
   out.push(el('div', { class: 'battle-group' }, [
@@ -61,16 +77,18 @@ function planEditor(p: GroundPlanning, draft: { plan: GroundPlan; atPost: boolea
     el('span', { class: 'hint', text: ' Secondary: ' }),
     select([['', 'none'], ...positions], plan.secondary ?? '', (v) => set({ ...draft, plan: { ...plan, secondary: v || null } }), busy),
   ]));
-  // The manoeuvre: only known ground tactics.
+  // The manoeuvre: the character's own list (the Tactics tab's); a seen one, not practised, is marked with its penalty (m8-fixes B4).
   out.push(el('div', { class: 'battle-group' }, [
     el('span', { class: 'hint', text: 'Manoeuvre: ' }),
     ...p.known.map((t) => {
       const def = TACTIC_BY_ID.get(t);
       const chosen = plan.manoeuvre === t;
-      return el('button', { class: `small${chosen ? ' chosen' : ''}`, text: def?.name ?? t, attrs: { title: def ? `Strong: ${def.strong}\nWeak: ${def.weak}` : '', 'aria-pressed': chosen ? 'true' : 'false', ...(busy ? { disabled: 'true' } : {}) }, on: { click: () => set({ ...draft, plan: { ...plan, manoeuvre: t } }) } });
+      const seen = (p.seenOnly ?? []).includes(t);
+      return el('button', { class: `small${chosen ? ' chosen' : ''}`, text: `${def?.name ?? t}${seen ? ` (seen, -${SEEN_TACTIC_PENALTY})` : ''}`, attrs: { title: def ? `Strong: ${def.strong}\nWeak: ${def.weak}${seen ? `\nSeen, not practised: -${SEEN_TACTIC_PENALTY} on the roll` : ''}` : '', 'aria-pressed': chosen ? 'true' : 'false', ...(busy ? { disabled: 'true' } : {}) }, on: { click: () => set({ ...draft, plan: { ...plan, manoeuvre: t } }) } });
     }),
   ]));
   // Sectors: each unit to a position, the reserve, or support.
+  out = sections.units;
   const where = [...positions, ['reserve', 'the reserve'] as const, ['none', 'not used'] as const];
   out.push(el('div', { class: 'battle-known' }, [
     el('span', { class: 'hint', text: 'Units (where each goes):' }),
@@ -85,6 +103,7 @@ function planEditor(p: GroundPlanning, draft: { plan: GroundPlan; atPost: boolea
     }),
   ]));
   // Leaders.
+  out = sections.leaders;
   const leaderOpts: (readonly [string, string])[] = [['', 'its own officers'], ...(draft.atPost ? [] : [['player', 'you'] as const]), ...p.leaders.map((l) => [l.npcId!, l.name] as const)];
   out.push(el('div', { class: 'battle-known' }, [
     el('span', { class: 'hint', text: 'Who leads each sector:' }),
@@ -94,6 +113,7 @@ function planEditor(p: GroundPlanning, draft: { plan: GroundPlan; atPost: boolea
   const post = el('input', { attrs: { type: 'checkbox', ...(draft.atPost ? { checked: 'true' } : {}), ...(busy ? { disabled: 'true' } : {}) }, on: { change: (e) => set({ atPost: (e.target as HTMLInputElement).checked, plan: (e.target as HTMLInputElement).checked ? { ...plan, sectors: plan.sectors.map((x) => (x.leader === 'player' ? { ...x, leader: null } : x)) } : plan }) } });
   out.push(el('label', { class: 'check' }, [post, ' Command from the post (the whole picture; you do not fight or raise morale at the front)']));
   // Contingencies.
+  out = sections.contingencies;
   const cRows = [...plan.contingencies];
   const setC = (i: number, c: GroundPlan['contingencies'][number] | null): void => {
     const next = [...cRows];
@@ -115,7 +135,12 @@ function planEditor(p: GroundPlanning, draft: { plan: GroundPlan; atPost: boolea
     ])),
     cRows.length < MAX_CONTINGENCIES ? el('button', { class: 'small secondary', text: 'Add a contingency', attrs: busy ? { disabled: 'true' } : {}, on: { click: () => set({ ...draft, plan: { ...plan, contingencies: [...cRows, { when: 'sectorFalling', then: plan.reserve.length ? 'commitReserve' : 'fallBack' }] } }) } }) : null,
   ]));
-  return out;
+  return [
+    fold('objectives', 'Objectives and manoeuvre', sections.objectives),
+    fold('units', 'Units', sections.units),
+    fold('leaders', 'Sector leaders and your place', sections.leaders),
+    fold('contingencies', 'Contingencies', sections.contingencies),
+  ];
 }
 
 export function renderGroundPanel(p: GroundPanelProps): HTMLElement | null {
@@ -124,8 +149,9 @@ export function renderGroundPanel(p: GroundPanelProps): HTMLElement | null {
   const planning = selectGroundPlanning(s);
   const dis = p.busy ? { disabled: 'true' } : {};
   if (!g && !planning) {
+    // The wrap-up on the turn the battle ended only (m8-fixes C3), and never beside another battle.
     const last = selectLastGround(s);
-    if (!last || s.clock.now.day - (s.battles.history.at(-1)?.day ?? -99) > 1 || s.battles.history.at(-1)?.id !== last.id) return null;
+    if (!last || selectEndedBattleToShow(s) !== 'ground' || selectActiveBattle(s) !== null) return null;
     return el('section', { class: 'box duel battle' }, [el('div', { class: 'box-body duel-body' }, [el('strong', { text: `The battle at ${last.planning.site} is over` }), el('pre', { class: 'battle-map', text: last.map })])]);
   }
   if (planning && !g) {
@@ -136,18 +162,23 @@ export function renderGroundPanel(p: GroundPanelProps): HTMLElement | null {
       el('p', { class: 'battle-now', text: `${planning.ours.name} against ${planning.enemy.name}${planning.defending ? ', holding the positions' : ', attacking'} · weather: ${planning.weather} · ${planning.role === 'commander' ? 'you plan it' : `${planning.ours.commander.name} plans it; you ${planning.role === 'leader' ? 'lead a sector' : 'fight in the line'}`}` }),
       el('pre', { class: 'battle-map', text: drawMap(shown, null, `PLAN · ${planning.site}`) }),
     ];
-    if (planning.scouting.planKnown) body.push(el('p', { class: 'hint', text: `The enemy's likely plan: ${PLAN_LABEL[planning.enemy.plan]}` }));
-    for (const l of planning.scouting.log.slice(-2)) body.push(el('div', { class: 'hint', text: l }));
+    const left = SCOUTING.tries - planning.scouting.tries;
+    // Scouting: its own section (m8-fixes F), what it found and the two tries.
+    body.push(fold('scouting', `Scouting (${left} ${left === 1 ? 'try' : 'tries'} left)`, [
+      planning.scouting.planKnown ? el('p', { class: 'hint', text: `The enemy's likely plan: ${PLAN_LABEL[planning.enemy.plan]}` }) : null,
+      ...planning.scouting.log.slice(-2).map((l) => el('div', { class: 'hint', text: l })),
+      el('div', { class: 'battle-go' }, [
+        el('button', { class: 'small secondary', text: `Scout the ground (${left} left)`, attrs: left > 0 && !p.busy ? {} : { disabled: 'true' }, on: { click: () => p.act({ kind: 'battle', label: 'Scout the ground', ground: { act: 'scout', how: 'recon' } }) } }),
+        el('button', { class: 'small secondary', text: 'Read their intentions', attrs: left > 0 && !p.busy ? {} : { disabled: 'true' }, on: { click: () => p.act({ kind: 'battle', label: 'Read the enemy\'s intentions', ground: { act: 'scout', how: 'intelligence' } }) } }),
+      ]),
+    ]));
     if (planning.role === 'commander') body.push(...planEditor(planning, draft, (d) => p.setDraft({ id: planning.id, ...d }), p.busy));
     if (problems.length) body.push(el('div', { class: 'battle-log' }, problems.map((x) => el('div', { class: 'hint', text: `· ${x}` }))));
-    const left = SCOUTING.tries - planning.scouting.tries;
     body.push(el('div', { class: 'battle-go' }, [
-      el('button', { class: 'small secondary', text: `Scout the ground (${left} left)`, attrs: left > 0 && !p.busy ? {} : { disabled: 'true' }, on: { click: () => p.act({ kind: 'battle', label: 'Scout the ground', ground: { act: 'scout', how: 'recon' } }) } }),
-      el('button', { class: 'small secondary', text: 'Read their intentions', attrs: left > 0 && !p.busy ? {} : { disabled: 'true' }, on: { click: () => p.act({ kind: 'battle', label: 'Read the enemy\'s intentions', ground: { act: 'scout', how: 'intelligence' } }) } }),
       el('button', { class: 'small', text: planning.role === 'commander' ? 'Begin the battle' : 'Into battle', attrs: problems.length || p.busy ? { disabled: 'true' } : {}, on: { click: () => { p.setDraft(null); p.act({ kind: 'battle', label: 'Begin the battle', ground: planning.role === 'commander' ? { act: 'begin', plan: { ...draft.plan }, atPost: draft.atPost } : { act: 'begin' } }); } } }),
       el('button', { class: 'small secondary', text: 'Stand down', attrs: dis, on: { click: () => p.act({ kind: 'battle', label: 'Stand down', ground: { act: 'standDown' } }) } }),
     ]));
-    return el('section', { class: 'box duel battle' }, [el('div', { class: 'box-head' }, [el('strong', { text: `Planning: ${planning.site}` })]), el('div', { class: 'box-body duel-body' }, body)]);
+    return el('section', { class: PLANNING_LAYOUT === 'full' ? 'box battle planning-full' : 'box duel battle' }, [el('div', { class: 'box-head' }, [el('strong', { text: `Planning: ${planning.site}` })]), el('div', { class: PLANNING_LAYOUT === 'full' ? 'box-body planning-body' : 'box-body duel-body' }, body)]);
   }
   if (!g) return null;
   if (selectGroundWaitsOnFight(s) && s.combat.active) return el('section', { class: 'box duel battle' }, [el('div', { class: 'box-body duel-body' }, [el('strong', { text: 'Your own fight comes first' }), el('p', { class: 'hint', text: 'The battle goes on round you; your sector feels the result next phase.' })])]);

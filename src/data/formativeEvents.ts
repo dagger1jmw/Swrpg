@@ -564,8 +564,11 @@ export const QUIZ_STAGES: Readonly<Record<QuizTrack, readonly { from: number; to
     { from: 14, to: 18, sets: ['$upbringing', 'anyone'] },
   ],
 };
-/** A stage counts as covered once this share of it is behind the character (invented). */
-export const STAGE_COVER_SHARE = 0.5;
+/**
+ * A stage counts as lived once this many years of it are behind the character (m8-fixes G1; invented: a quarter year). It replaced
+ * "half the stage behind" (0.5 of its length), under which a 14-year-old Padawan drew no Padawan scene.
+ */
+export const STAGE_LIVED_MIN = 0.25;
 /** Careers that take the military set (cadet and early service); every other career and outsider takes the civilian one. */
 export const MILITARY_ARCHETYPES: readonly string[] = ['soldier', 'officer', 'navalOfficer', 'starfighterPilot', 'shipGunner', 'sniper', 'intelAgent', 'intelAnalyst'];
 /** The civilian upbringing from the origin trait (the catalog: street kid, noble child, spacer kid). */

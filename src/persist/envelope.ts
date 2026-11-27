@@ -65,7 +65,7 @@ export function loadEnvelope<S extends BaseState>(
       for (let v = from + 1; v <= f.version; v++) {
         const m = f.migrations?.[v];
         if (!m) return { ok: false, error: `No migration for feature ${f.id} to version ${v}.` };
-        migrated[f.id] = m(migrated[f.id]);
+        migrated[f.id] = m(migrated[f.id], migrated);
       }
     } catch (e) {
       return { ok: false, error: `Migration of ${f.id} failed: ${e instanceof Error ? e.message : String(e)}` };

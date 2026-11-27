@@ -26,7 +26,7 @@ import {
   QUIZ_LIMITS,
   QUIZ_STAGES,
   SET_STANDING,
-  STAGE_COVER_SHARE,
+  STAGE_LIVED_MIN,
   UPBRINGING_BY_ORIGIN,
   YOUNGLING_START_AGE,
   type FormativeChoice,
@@ -121,10 +121,21 @@ function needsMet(need: NonNullable<TraitDef['gate']>['needs'], ctx: TraitContex
   }
 }
 
+/** The first creation requirement a trait does not meet (m8-fixes D1), as its short reason, or null. */
+export function traitRequirementUnmet(def: TraitDef, ctx: Pick<TraitContext, 'warYears' | 'birthYear' | 'startYear'>): string | null {
+  for (const r of def.requires ?? []) {
+    const v = r.field === 'warYears' ? (ctx.warYears ?? 0) : ctx.startYear - ctx.birthYear;
+    if ((r.above !== undefined && !(v > r.above)) || (r.atLeast !== undefined && !(v >= r.atLeast))) return r.reason;
+  }
+  return null;
+}
+
 /** Why a trait is closed to the character, or null when it is open. */
 export function traitRefusal(id: string, ctx: TraitContext): string | null {
   const def = TRAIT_BY_ID.get(id);
   if (!def) return `unknown trait ${id}`;
+  const unmet = traitRequirementUnmet(def, ctx);
+  if (unmet) return `${def.name} ${unmet}`;
   const g = def.gate;
   if (!g) return null;
   if (g.paths && !g.paths.includes(ctx.path)) return `${def.name} is only for ${g.paths.join(' or ')}`;
@@ -133,6 +144,21 @@ export function traitRefusal(id: string, ctx: TraitContext): string | null {
   if (g.templeArrivalBefore !== undefined && !(ctx.trainingStartAge < g.templeArrivalBefore)) return `${def.name} needs arrival at the Temple before age ${g.templeArrivalBefore} (arrived at ${ctx.trainingStartAge}): take an ordinary origin for the life before`;
   if (!needsMet(g.needs, ctx)) return `${def.name} needs ${g.needs === 'war' ? 'war years' : g.needs === 'massacre' ? 'to have lived through a massacre (the Sacking of Coruscant, Order 66, the Massacre at Ossus)' : g.needs === 'sithEmpire' ? 'an Imperial birth in the Sith Empire' : g.needs === 'coruscant3653' ? 'to have been on Coruscant in 3,653 BBY' : g.needs === 'jediAttachmentRules' ? "the Order's rule against attachment" : g.needs}`;
   return null;
+}
+
+/**
+ * A trait closed only by a number the player sets on the form (m8-fixes D1: war years, the start age, the Temple arrival age): its
+ * short reason, so the form greys it out instead of hiding it. Null when it is open, or closed by path, species or date (hidden).
+ */
+export function traitGreyReason(id: string, ctx: TraitContext): string | null {
+  const def = TRAIT_BY_ID.get(id);
+  if (!def || traitRefusal(id, ctx) === null) return null;
+  const unmet = traitRequirementUnmet(def, ctx);
+  const g = def.gate;
+  const other = g ? traitRefusal(id, { ...ctx, warYears: 99, birthYear: ctx.startYear - 99, trainingStartAge: 0 }) : null;
+  if (other) return null;
+  if (unmet) return unmet;
+  return g?.templeArrivalBefore !== undefined ? `needs Temple arrival before age ${g.templeArrivalBefore}` : null;
 }
 
 /** The traits open to the character, by kind. */
@@ -337,41 +363,127 @@ function shuffled<T>(xs: readonly T[], rng: RngState): [T[], RngState] {
 }
 
 /**
- * The quiz's scenes: two per stage the window covers (a stage counts once STAGE_COVER_SHARE of it is behind; a shorter window
- * takes the stage it overlaps most), dated events first where they fit, the total held to 4-8; topped up from the track's
- * other events in the window when short. Empty when the window touches no stage (too young to have a past to ask about).
+ * How many scenes each stage lived gets (m8-fixes G1): at least one each, the rest weighted toward the latest stage (a stage's
+ * weight is its place in the order, 1 for the oldest; the highest weight per scene already given goes next, the later stage on a
+ * tie). More stages than scenes: the latest ones.
+ */
+export function stageAllocation(stages: number, want: number): number[] {
+  const n = Math.min(stages, want);
+  const alloc = Array.from({ length: stages }, (_, i) => (i >= stages - n ? 1 : 0));
+  let left = want - n;
+  while (left-- > 0) {
+    let best = stages - 1;
+    for (let i = stages - 1; i >= 0; i--) if (alloc[i]! > 0 && (i + 1) / (alloc[i]! + 1) > (best + 1) / (alloc[best]! + 1)) best = i;
+    alloc[best]!++;
+  }
+  return alloc;
+}
+
+/**
+ * The quiz's scenes (m8-fixes G1; a 14-year-old Padawan drew four Initiate scenes and no Padawan one): every stage the character
+ * has lived through counts (STAGE_LIVED_MIN of it behind), two scenes a stage held to 4-8, shared out weighted toward the latest
+ * stage (stageAllocation); dated events first where they fit; topped up from the latest stages first when a stage runs short.
+ * Empty when the window touches no stage (too young to have a past to ask about).
  */
 export function quizPlan(q: QuizInput): QuizPlan {
   const overlap = (st: { from: number; to: number }): number => Math.min(q.toAge, st.to) - Math.max(q.fromAge, st.from);
-  let stages = QUIZ_STAGES[q.track].filter((st) => overlap(st) >= STAGE_COVER_SHARE * (st.to - st.from));
-  // A window shorter than half a stage (a youngling's first long skip) still covers the stage it overlaps most.
+  const all = QUIZ_STAGES[q.track];
+  let stages = all.filter((st) => overlap(st) >= STAGE_LIVED_MIN);
+  // A window shorter than that (a youngling's first long skip) still covers the stage it overlaps most.
   if (!stages.length) {
-    const best = [...QUIZ_STAGES[q.track]].sort((a, b) => overlap(b) - overlap(a))[0];
+    const best = [...all].sort((a, b) => overlap(b) - overlap(a))[0];
     if (best && overlap(best) > 0) stages = [best];
   }
   if (!stages.length) return { events: [], stages: 0 };
   const want = Math.max(QUIZ_LIMITS.minScenes, Math.min(QUIZ_LIMITS.maxScenes, 2 * stages.length));
+  const alloc = stageAllocation(stages.length, want);
   let rng = seedRng(`quiz:${q.seed}`);
   const chosen: string[] = [];
   const setOf = (s: string): FormativeSet => (s === '$upbringing' ? upbringingOf(q.origin) : (s as FormativeSet));
   const pool = (sets: readonly string[], lo: number, hi: number): FormativeEvent[] => FORMATIVE_EVENTS.filter((e) => sets.map(setOf).includes(e.set) && !chosen.includes(e.id) && eventFits(e, q, lo, hi));
-  const perStage = Math.max(1, Math.floor(want / stages.length));
-  for (const st of stages) {
-    const lo = Math.max(q.fromAge, st.from);
-    const hi = Math.min(q.toAge, st.to);
-    const fits = pool(st.sets, lo, hi);
+  const window = (st: { from: number; to: number }): [number, number] => [Math.max(q.fromAge, st.from), Math.min(q.toAge, st.to)];
+  // The latest stage first, so a scarce event goes to the stage the character lived last.
+  for (let i = stages.length - 1; i >= 0; i--) {
+    const st = stages[i]!;
+    const fits = pool(st.sets, ...window(st));
     const dated = fits.filter((e) => e.needs === 'sacking' || e.needs === 'war');
     const [rest, r] = shuffled(fits.filter((e) => !dated.includes(e)), rng);
     rng = r;
-    for (const e of [...dated, ...rest].slice(0, perStage)) chosen.push(e.id);
+    for (const e of [...dated, ...rest].slice(0, alloc[i])) chosen.push(e.id);
+  }
+  // Short: the latest stages' other events first (their sets, the whole window), then the track's.
+  for (let i = stages.length - 1; i >= 0 && chosen.length < want; i--) {
+    const [more, r] = shuffled(pool(stages[i]!.sets, q.fromAge, q.toAge), rng);
+    rng = r;
+    for (const e of more) if (chosen.length < want) chosen.push(e.id);
   }
   if (chosen.length < want) {
-    const sets = [...new Set(QUIZ_STAGES[q.track].flatMap((st) => st.sets))];
+    const sets = [...new Set(all.flatMap((st) => st.sets))];
     const [more] = shuffled(pool(sets, q.fromAge, q.toAge), rng);
     for (const e of more) if (chosen.length < want) chosen.push(e.id);
   }
   const events = chosen.slice(0, QUIZ_LIMITS.maxScenes).sort((a, b) => FORMATIVE_EVENT_BY_ID.get(a)!.ages[0] - FORMATIVE_EVENT_BY_ID.get(b)!.ages[0]);
   return { events, stages: stages.length };
+}
+
+// ---------------------------------------------------------------- the quiz's people (m8-fixes G4, G5)
+
+/** Who a quiz person is to the character now: someone the same age, younger, an elder, or someone outside the Order. */
+export type QuizPersonKind = 'peer' | 'younger' | 'elder' | 'outside';
+
+/**
+ * A quiz person's kind (m8-fixes G4): a tie from outside or family is outside the Order (never an initiate), a ward is younger,
+ * an officer, sergeant, patron, Sith Lord or agent is an elder, everyone else (a clanmate, a rival, a friend, a squadmate) the
+ * same age as the character.
+ */
+export function quizPersonKind(p: { who: string; tie?: string }): QuizPersonKind {
+  if (p.tie === 'familyTie' || /outside the order|parent|sibling|family/i.test(p.who)) return 'outside';
+  if (p.tie === 'ward') return 'younger';
+  if (p.tie === 'patron' || /sergeant|officer|sith lord|agent|dockmaster|pirate|servant|gang that/i.test(p.who)) return 'elder';
+  return 'peer';
+}
+
+/** What the player's note says plainly about a person (m8-fixes G4): a relation ("older sister") and a homeworld ("from Alderaan"). */
+export interface PersonNote {
+  relation?: string;
+  /** Years older than the character (negative: younger), from the relation. */
+  ageOffset?: number;
+  homeworld?: string;
+}
+const RELATIONS: readonly (readonly [RegExp, number])[] = [
+  [/grand(?:mother|father|ma|pa|parent)/, 50],
+  [/mother|father|mum|mom|dad|parent|aunt|uncle/, 25],
+  [/sister|brother|sibling|cousin/, 0],
+  [/friend/, 0],
+];
+/**
+ * Reads a note for what code can read reliably: a family relation or a friend, with older or younger, and a homeworld only when the
+ * note says "from", "on" or "back on" a world the galaxy map knows. Anything else stays as plain words for the narrator.
+ */
+export function readPersonNote(note: string, worldOf: (name: string) => string | null): PersonNote {
+  const out: PersonNote = {};
+  const m = /\b(older|elder|big|younger|little|baby|twin)?\s*(grand(?:mother|father|ma|pa|parent)|mother|father|mum|mom|dad|parent|aunt|uncle|sister|brother|sibling|cousin|best friend|friend)s?\b/i.exec(note);
+  if (m) {
+    const age = m[1]?.toLowerCase();
+    const rel = m[2]!.toLowerCase();
+    out.relation = `${age ? `${age} ` : ''}${rel}`;
+    const base = RELATIONS.find(([re]) => re.test(rel))?.[1] ?? 0;
+    out.ageOffset = base + (age === 'older' || age === 'elder' || age === 'big' ? 4 : age === 'younger' || age === 'little' || age === 'baby' ? -4 : 0);
+  }
+  const w = /\b(?:from|on|back on|lives on|living on)\s+([A-Z][A-Za-z' -]{1,30}?)(?=[.,;!?]|\s+(?:and|but|who|where|still|now|with)\b|$)/.exec(note);
+  const world = w ? worldOf(w[1]!.trim()) : null;
+  if (world) out.homeworld = world;
+  return out;
+}
+
+/**
+ * A quiz person's age now (m8-fixes G5: a clanmate from a 14-year-old's Initiate years was made 11): a peer is the character's age
+ * now; a younger ward 4 years under (invented, as before); an elder 20 over (invented); someone outside the Order the note's
+ * relation, else 5 over (invented: an older relative or friend).
+ */
+export function quizPersonAge(kind: QuizPersonKind, ageNow: number, note: PersonNote): number {
+  if (note.ageOffset !== undefined) return Math.max(1, ageNow + note.ageOffset);
+  return Math.max(1, ageNow + { peer: 0, younger: -4, elder: 20, outside: 5 }[kind]);
 }
 
 export interface QuizAnswer {

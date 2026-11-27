@@ -70,7 +70,12 @@ export const REQUEST_TIMEOUT_MS = 90_000;
  * The same TurnDraft is used throughout (the dice never change), and none of these count on the usage meter (D-226).
  * Design defaults: 2 s, 4 s, 8 s, about 14 s in all.
  */
-export const OVERLOAD_RETRY = { retries: 3, baseMs: 2000, factor: 2, maxMs: 10_000, jitter: 0.25, nextModel: true } as const;
+/**
+ * Overload retries (D-240). m8-fixes E2 (Jared, 26 Nov 2026): a busy reply (a 5xx) on the first model switches to the next model at
+ * once (`busyRetries` 0) instead of after three retries; the next model, the last one tried, keeps the retries. A timeout (no
+ * reply at all) keeps the old path on every model: `retries` with backoff, then the next model.
+ */
+export const OVERLOAD_RETRY = { retries: 3, busyRetries: 0, baseMs: 2000, factor: 2, maxMs: 10_000, jitter: 0.25, nextModel: true } as const;
 
 /** The wait before overload retry n (1-based), with jitter from u in [0, 1). */
 export function overloadDelayMs(n: number, u: number, cfg: { baseMs: number; factor: number; maxMs: number; jitter: number } = OVERLOAD_RETRY): number {

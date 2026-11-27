@@ -137,3 +137,6 @@ export function selectStyles(s: GameState): Record<string, number> {
 
 /** The insight bonus against a culture's forces (m8-skills, D-513: Intelligence 80+ study; +1, at most +2). */
 export const selectInsight = (s: GameState, culture: string): number => insightBonus(s.progression.insight?.[culture] ?? 0);
+
+// The Train list (m8-fixes G6): what the path and the teachers at hand make available, for the UI.
+export { selectTrainOptions, type TrainOption } from './training';

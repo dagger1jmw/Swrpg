@@ -101,8 +101,13 @@ export const tacticInUse = (t: TacticDef, year: number): boolean => (t.from === 
 
 /** What every pilot knows (Jared): the break, the jink, the head-on pass; a strafing pass at a big ship. */
 export const PILOT_BASICS: readonly string[] = ['fly', 'break', 'jink', 'pass'];
-/** What any commander can order without training (a reading, invented): the line, the brawl, withdrawing, rolling the ship. */
+/**
+ * What anyone can order without training (a reading, invented): the line, the brawl, withdrawing, rolling the ship. Since m8-fixes
+ * B1 these are in every character's own list (the Tactics tab and the battle menus read the one list), not added by the menus.
+ */
 export const COMMAND_BASICS: readonly string[] = ['exchange', 'brawl', 'withdraw', 'rollShip'];
+/** On the ground, likewise (D-522's reading, in every list since m8-fixes B1): a frontal assault and a fighting withdrawal. */
+export const COMMON_GROUND: readonly string[] = ['frontalAssault', 'fightingWithdrawal'];
 
 /** Sets a programme, an archetype, a rank or a teacher gives (readings of the design notes; the split is invented). */
 export const TACTIC_SETS: Readonly<Record<string, { label: string; ids: readonly string[] }>> = {
@@ -113,7 +118,33 @@ export const TACTIC_SETS: Readonly<Record<string, { label: string; ids: readonly
   groundOfficer: { label: 'an officer academy: ground command', ids: ['frontalAssault', 'flanking', 'envelopment', 'defenceInDepth', 'ambush', 'feint', 'siege', 'infiltration', 'fightingWithdrawal'] },
   smugglerFlying: { label: 'a smuggler\'s flying', ids: ['fly', 'break', 'jink', 'scissors', 'stall', 'koiogran', 'powerPivot', 'loopBack', 'terrain', 'corkscrew'] },
   irregularGround: { label: 'irregular fighting', ids: ['ambush', 'infiltration', 'fightingWithdrawal', 'feint'] },
+  // m8-fixes B2 (Jared, 26 Nov 2026): most Jedi get basic ground and fleet tactics; initiates learn only enough not to be lost.
+  jediInitiate: { label: 'the initiate years: basic ground and fleet tactics', ids: ['frontalAssault', 'defenceInDepth', 'fightingWithdrawal', 'exchange', 'screen', 'withdraw'] },
+  // A proposal (m8-fixes B2): the Sith Academy teaches its acolytes the same basics.
+  sithAcademy: { label: 'the Academy: basic ground and fleet tactics', ids: ['frontalAssault', 'defenceInDepth', 'fightingWithdrawal', 'exchange', 'screen', 'withdraw'] },
+  // Proposals (m8-fixes B2): a pilot flies screens; a Jedi at the front has seen ground war up close.
+  pilotFleet: { label: 'squadron service: flying a screen', ids: ['screen'] },
+  frontLine: { label: 'service at the front: field manoeuvres', ids: ['flanking', 'ambush'] },
 };
+
+/**
+ * How hard a tactic is to teach (m8-fixes B3a; invented): the basics anyone or the initiate years give, the advanced ones a veteran's
+ * (the ace's manoeuvres, the hardest formations and ground operations), the rest standard.
+ */
+export type TacticTier = 'basic' | 'standard' | 'advanced';
+const BASIC_IDS = new Set<string>(['fly', 'break', 'jink', 'pass', 'exchange', 'brawl', 'withdraw', 'rollShip', 'screen', 'frontalAssault', 'defenceInDepth', 'fightingWithdrawal', 'flanking']);
+const ADVANCED_IDS = new Set<string>(['terrain', 'corellianSlip', 'slipJaws', 'underSplit', 'feintBackstab', 'corkscrew', 'skim', 'trench', 'novaFlare', 'hitAndRun', 'capT', 'slash', 'pincer', 'vanjervalisChain', 'hullShieldedLaunch', 'slashingTheDeck', 'envelopment', 'siege', 'infiltration']);
+export const tacticTier = (id: string): TacticTier => (BASIC_IDS.has(id) ? 'basic' : ADVANCED_IDS.has(id) ? 'advanced' : 'standard');
+/**
+ * The teacher's Tactics a tier needs (m8-fixes B3a; invented): anyone teaches the basics; standard tactics need some military
+ * experience (Tactics 20: a sergeant's 22); advanced ones a seasoned commander (Tactics 50: a major's 74, a general's 91). Generated
+ * Jedi Masters have no Tactics of their own, so they teach the basics only unless their sheet gives Tactics.
+ */
+export const TEACH_NEEDS: Readonly<Record<TacticTier, number>> = { basic: 0, standard: 20, advanced: 50 };
+/** A teacher the story names but the game does not know (no NPC): an instructor of middling experience (invented). */
+export const UNKNOWN_TEACHER_TACTICS = 30;
+/** A seen tactic, not practised, chosen in battle (m8-fixes B4; invented): -2 on its roll. */
+export const SEEN_TACTIC_PENALTY = 2;
 
 /** Programmes (m8-skills, D-513) that give sets on graduation. */
 export const PROGRAMME_TACTICS: Readonly<Record<string, readonly string[]>> = {
@@ -147,12 +178,15 @@ export const ARCHETYPE_TACTICS: Readonly<Record<string, readonly string[]>> = {
 };
 /** Start options that imply a set beyond the archetype's (a pilot start is a pilot; a naval officer start knows the formations). */
 export const START_TACTICS: Readonly<Record<string, readonly string[]>> = {
-  'republic-pilot': ['flightSchool'],
+  'republic-pilot': ['flightSchool', 'pilotFleet'],
+  'jedi-front': ['frontLine'],
   'imperial-officer': ['officerAcademy'],
   'mandalorian-blockade': ['flightSchool'],
 };
 /** Force-path ranks that imply the core flying (a reading: Knights and Lords fly their own fighters). */
 export const RANK_TACTICS: Readonly<Record<string, readonly string[]>> = { knight: ['flightSchool'], master: ['flightSchool'], lord: ['flightSchool'], darth: ['flightSchool'] };
+/** Ranks past the initiate stage (m8-fixes B2): the initiate years' basics (Jedi), the Academy's (Sith; a proposal). */
+export const PAST_INITIATE: Readonly<Record<string, string>> = { padawan: 'jediInitiate', knight: 'jediInitiate', master: 'jediInitiate', apprentice: 'sithAcademy', lord: 'sithAcademy', darth: 'sithAcademy' };
 
 /** NPC pilots and commanders by crew kind (shipBattles.config GENERIC_CREW kinds; invented). */
 export const NPC_TACTICS: Readonly<Record<string, readonly string[]>> = {

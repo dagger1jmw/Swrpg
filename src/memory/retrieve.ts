@@ -101,6 +101,10 @@ export function memoryItems(state: GameState, rawFromTurn: number | null): Memor
       `${n.speciesId}, ${n.factionId}, ${n.role}${age !== null ? `, about ${age}` : ''}, ${n.status}`,
       `relationship ${selectRelationshipLabel(state, n.id)}${rel ? ` (${rel.lastReason})` : ''}`,
       n.description,
+      // What the player said of this person (m8-fixes G4): the relation and homeworld read from it, and the words themselves.
+      n.relation ? `the character's ${n.relation}` : '',
+      n.homeworld ? `homeworld ${n.homeworld}` : '',
+      n.playerNote ? `the player says: "${n.playerNote}"` : '',
       `last seen ${formatDate(n.lastSeenDay)}${n.lastLocationId ? ` at ${name(n.lastLocationId)}` : ''}`,
     ];
     items.push({ kind: 'npc', id: n.id, tags: [n.id, ...(n.lastLocationId ? [n.lastLocationId] : [])], turn: n.introducedTurn, text: parts.filter(Boolean).join('; ') });

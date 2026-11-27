@@ -4,25 +4,75 @@
 // for old saves), being taught or studying (the narrator's words on the droid event, "tactic: taught the Corellian Slip by
 // Master Sel"), and practice after seeing it. Battles send what each side flew (tacticsSeen).
 import { z } from 'zod';
-import { ARCHETYPE_TACTICS, NPC_TACTICS, PILOT_BASICS, PRACTICE_TO_KNOW, RANK_TACTICS, START_TACTICS, TACTICS, TACTIC_BY_ID, TACTIC_SETS, tacticsOfSets } from '../../data/tactics';
+import { ARCHETYPE_TACTICS, COMMAND_BASICS, COMMON_GROUND, NPC_TACTICS, PAST_INITIATE, PILOT_BASICS, PRACTICE_TO_KNOW, RANK_TACTICS, START_TACTICS, TACTICS, TACTIC_BY_ID, TACTIC_SETS, TEACH_NEEDS, UNKNOWN_TEACHER_TACTICS, tacticTier, tacticsOfSets } from '../../data/tactics';
+import { TACTIC_PLAN } from '../../data/groundCommand.config';
+import { normalizeAlias } from '../../engine/aliases';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, HandleResult, InitCtx } from '../../state/types';
+import { selectNpcLevel } from '../npcs/selectors';
+import { selectPresentNpcIds } from '../pacing/selectors';
 import { emptyTactics, tacticsSliceSchema, type TacticsSlice } from './tactics';
 import { selectTacticLines } from './selectors';
 
 type R = HandleResult<TacticsSlice>;
 
-/** What a character's own career, start and rank imply (old saves and new characters alike), with the source of each. */
+/**
+ * What a character's own career, start and rank imply (old saves and new characters alike), with the source of each. One list per
+ * character (m8-fixes B1): the Tactics tab and every battle menu read it, so what anyone can order is in it too.
+ */
 export function impliedTactics(c: { archetype?: string; path?: string; start?: { optionId: string } }, rank: string | null, day: number): TacticsSlice['known'] {
   const out: TacticsSlice['known'] = {};
   const add = (ids: readonly string[], source: string): void => {
     for (const id of ids) if (!out[id] && TACTIC_BY_ID.has(id)) out[id] = { source, day };
   };
-  add(PILOT_BASICS, 'every pilot knows these');
   for (const set of ARCHETYPE_TACTICS[c.archetype ?? ''] ?? []) add(TACTIC_SETS[set]!.ids, `training: ${TACTIC_SETS[set]!.label}`);
   for (const set of START_TACTICS[c.start?.optionId ?? ''] ?? []) add(TACTIC_SETS[set]!.ids, `service: ${TACTIC_SETS[set]!.label}`);
+  // Past the initiate stage (m8-fixes B2): the initiate years' basics for a Jedi, the Academy's for a Sith (a proposal).
+  const initiate = (c.path === 'jedi' || c.path === 'sith') && rank ? PAST_INITIATE[rank] : undefined;
+  if (initiate) add(TACTIC_SETS[initiate]!.ids, `${c.path === 'jedi' ? 'the Order' : 'the Academy'}: ${TACTIC_SETS[initiate]!.label}`);
   if ((c.path === 'jedi' || c.path === 'sith') && rank) for (const set of RANK_TACTICS[rank] ?? []) add(TACTIC_SETS[set]!.ids, `${c.path === 'jedi' ? 'the Order' : 'the Academy'}: ${TACTIC_SETS[set]!.label}`);
+  add(PILOT_BASICS, 'every pilot knows these');
+  add([...COMMAND_BASICS, ...COMMON_GROUND], 'anyone can order these');
   return out;
+}
+
+/** Tactics the player used in battles before m8-fixes (old saves, B6): the last ship battle's formation and the ground plans. */
+export function usedInOldBattles(battles: unknown): string[] {
+  const b = (battles ?? {}) as { last?: { fleet?: { a?: { formation?: string } }; role?: string } | null; active?: { fleet?: { a?: { formation?: string } }; role?: string } | null; lastGround?: { planning?: { role?: string; plan?: { manoeuvre?: string | null } }; battle?: { a?: { plan?: string } } } | null; ground?: { planning?: { role?: string; plan?: { manoeuvre?: string | null } }; battle?: { a?: { plan?: string } } } | null; planning?: unknown; history?: { tacticsUsed?: string[] }[] };
+  const out = new Set<string>();
+  for (const r of b.history ?? []) for (const id of r.tacticsUsed ?? []) out.add(id);
+  for (const x of [b.last, b.active]) if (x?.role === 'commander' && x.fleet?.a?.formation) out.add(x.fleet.a.formation);
+  for (const g of [b.lastGround, b.ground]) {
+    if (g?.planning?.role !== 'commander') continue;
+    if (g.planning.plan?.manoeuvre) out.add(g.planning.plan.manoeuvre);
+    const plan = g.battle?.a?.plan;
+    const id = plan ? Object.entries(TACTIC_PLAN).find(([, v]) => v === plan)?.[0] : undefined;
+    if (id) out.add(id);
+  }
+  return [...out].filter((id) => TACTIC_BY_ID.has(id));
+}
+
+/** Old saves (B6): the starting set for the character's background, plus every tactic already used in a battle. */
+function forOldSave(raw: Record<string, unknown>, known: TacticsSlice['known']): TacticsSlice['known'] {
+  const c = (raw['character'] ?? {}) as { archetype?: string; path?: string; start?: { optionId: string } };
+  const rank = ((raw['ranks'] ?? {}) as { rank?: string }).rank ?? null;
+  const day = ((raw['clock'] ?? { now: { day: 0 } }) as { now: { day: number } }).now.day;
+  const out = { ...impliedTactics(c, rank, day), ...known };
+  for (const id of usedInOldBattles(raw['battles'])) if (!out[id]) out[id] = { source: 'used in a battle', day };
+  return out;
+}
+
+/** Who teaches, from the words ("taught by Master Sel") or the master in the scene: an NPC's Tactics, else an unknown instructor's. */
+function teacherOf(s: GameState, by: string | undefined): { name: string; tactics: number } | null {
+  const npcs = Object.values(s.npcs.byId);
+  if (by) {
+    const w = normalizeAlias(by);
+    const n = npcs.find((x) => [x.name, ...x.aliases].some((a) => normalizeAlias(a) === w)) ?? npcs.find((x) => [x.name, ...x.aliases].some((a) => { const k = normalizeAlias(a); return k.length >= 3 && (k.includes(w) || w.includes(k)); }));
+    return n ? { name: n.name, tactics: selectNpcLevel(s, n.id, 'tactics') } : { name: by, tactics: UNKNOWN_TEACHER_TACTICS };
+  }
+  const master = s.ranks.masterId;
+  if (master && selectPresentNpcIds(s).includes(master) && s.npcs.byId[master]) return { name: s.npcs.byId[master]!.name, tactics: selectNpcLevel(s, master, 'tactics') };
+  return null;
 }
 
 /** An NPC's tactics: its crew kind's sets with the basics (data/tactics NPC_TACTICS). */
@@ -48,15 +98,11 @@ function learn(slice: TacticsSlice, ids: readonly string[], source: string, day:
 
 export const tacticsFeature: FeatureModule<TacticsSlice, GameState> = {
   id: 'tactics',
-  version: 1,
+  version: 2,
   initialState: (ctx: InitCtx) => ({ ...emptyTactics(), known: impliedTactics(ctx.character, ctx.rank ?? null, ctx.start.day) }),
-  // Old saves: the tactics their recorded training implies (archetype, start, rank).
-  emptyState: (raw) => {
-    const c = (raw['character'] ?? {}) as { archetype?: string; path?: string; start?: { optionId: string } };
-    const rank = ((raw['ranks'] ?? {}) as { rank?: string }).rank ?? null;
-    const day = ((raw['clock'] ?? { now: { day: 0 } }) as { now: { day: number } }).now.day;
-    return { ...emptyTactics(), known: impliedTactics(c, rank, day) };
-  },
+  // Old saves (m8-fixes B6): the starting set their recorded background implies (archetype, start, rank), plus what they used.
+  emptyState: (raw) => ({ ...emptyTactics(), known: forOldSave(raw, {}) }),
+  migrations: { 2: (old, raw) => ({ ...(old as TacticsSlice), known: forOldSave(raw ?? {}, (old as TacticsSlice).known) }) },
   stateSchema: tacticsSliceSchema,
   events: {
     /** Engine (a programme's graduation), player or dev: tactics learned, by set or by id, with the source. */
@@ -111,7 +157,14 @@ export const tacticsFeature: FeatureModule<TacticsSlice, GameState> = {
           return { slice: r.slice, notes: [`${t.name} is known now (practice after seeing it)`] };
         }
         const by = /\b(?:by|from)\s+([a-z][a-z' -]{1,40})/i.exec(String(e['what']))?.[1]?.trim();
-        const how = /\bstud|\bmanual|\bread|\bcampaign|\bhistor|\barchive|\brecord/.test(words) ? `studied${/\bmanual/.test(words) ? ' (a tactics manual)' : /\bcampaign|\bhistor/.test(words) ? ' (historical campaigns)' : ''}` : `taught${by ? ` by ${by}` : ''}`;
+        const studied = /\bstud|\bmanual|\bread|\bcampaign|\bhistor|\barchive|\brecord/.test(words);
+        // Taught (m8-fixes B3a): the teacher's own Tactics decides how hard a tactic they can pass on (a master with military
+        // experience teaches more); a commander in the field teaches the same way.
+        const teacher = studied ? null : teacherOf(ctx.state, by);
+        const tier = tacticTier(id);
+        const teacherTactics = teacher?.tactics ?? UNKNOWN_TEACHER_TACTICS;
+        if (!studied && teacherTactics < TEACH_NEEDS[tier]) return { reject: `${teacher?.name ?? 'the teacher'} (Tactics ${Math.round(teacherTactics)}) cannot teach ${t.name}: ${tier === 'advanced' ? 'an advanced tactic needs a seasoned commander' : 'it needs a teacher with military experience'} (Tactics ${TEACH_NEEDS[tier]}); it can be learned in the field` };
+        const how = studied ? `studied${/\bmanual/.test(words) ? ' (a tactics manual)' : /\bcampaign|\bhistor/.test(words) ? ' (historical campaigns)' : ''}` : `taught${teacher ? ` by ${teacher.name}` : by ? ` by ${by}` : ''}`;
         const r = learn(slice, [id], how, day);
         return { slice: r.slice, notes: [`${t.name} learned (${how})`] };
       },

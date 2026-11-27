@@ -82,18 +82,25 @@ A new side-panel tab, by where things are:
 
 **Items:** until the equipment item (spec 22) builds items as data, an item is a price-catalog row with a size tag: the start kit (from the loadout stub, a comlink, clothes and a belt) and trade (bought, sold, issued). Everything is visible from anywhere; only what is carried can be used (`selectUsableItems`). The page shows; the story acts: moving an item is `item:` words, and fetching one needs the character where it is (aboard the ship docked here, or on that world).
 
-## 10. Tactics as knowledge and the Tactics tab (Jared, 26 Nov 2026)
+## 10. Tactics as knowledge and the Tactics tab (Jared, 26 Nov 2026; amended by m8-fixes Part B, D-524)
 
-- **The catalogue** (`data/tactics.ts`) is one dated list: the dogfight manoeuvres, attack runs and fleet formations the engines fly (their ids are the engine's), the lore's story tactics (the Under Split, Feint and Backstab, the Luftberry circle, the nova flare, targeted barrages, the Vanjervalis Chain and more), and the nine ground manoeuvres of "Ground command" (m8-ground uses them). Each with a description, strong against, weak against, requirements and dates.
-- **Two levels:** known (usable; offered in the battle menu) and seen (watched in use, by an enemy or an ally: recognised when used against the character, worth the existing +1 for a known enemy formation; not usable).
-- **Learning:**
-  - every pilot knows the head-on pass, the break, the jink and a strafing pass; any commander can order the line, the brawl, withdrawing and rolling the ship;
-  - training: a programme's graduation gives its sets (flight school the core dogfight manoeuvres; an officer academy the fleet formations and ground command; army training the ground basics); a career's own training implies them (pilots, naval officers, officers, soldiers, smugglers, Mandalorians, bounty hunters); Jedi Knights and Masters and Sith Lords learned to fly;
-  - study (a tactics manual, historical campaigns) or being taught (a master, an officer, a veteran pilot): known at once (`tactic:` words);
-  - practice after seeing it: three sessions move a seen tactic to known.
-- **In battle:** the menu offers only known tactics (dogfight manoeuvres, attack-run approaches, formations); an order for an unknown one is refused; letting it play out flies only known ones. NPC pilots and commanders fly only what their crew kind knows (navy: flight school and the formations; elite: the aces' manoeuvres too; pirates: smugglers' flying; militia: the basics). A manoeuvre or formation the character recognises, flown against them, gives +1 (the dogfight roll; the fleet's known-formation modifier). What each side flew is recorded as seen at the end.
-- **The tab:** Space and Ground sections; each entry with its description, strong and weak against, requirements, known or seen, and how it was learned (seen ones show how often, and practice so far).
-- **Old saves** get the tactics their recorded training implies (archetype, start, rank).
+- **The catalogue** (`data/tactics.ts`) is one dated list: the dogfight manoeuvres, attack runs and fleet formations the engines fly (their ids are the engine's), the lore's story tactics (the Under Split, Feint and Backstab, the Luftberry circle, the nova flare, targeted barrages, the Vanjervalis Chain and more), and the nine ground manoeuvres of "Ground command". Each with a description, strong against, weak against, requirements and dates, and a teaching tier (basic, standard, advanced; `tacticTier`).
+- **One list per character** (D-524): the tactics slice. The Tactics tab and every battle menu (dogfight, attack run, fleet command, ground planning and phases) read it, so they never disagree. What anyone can order (the line, the brawl, withdrawing and rolling the ship; a frontal assault and a fighting withdrawal on the ground) is in the list itself ("anyone can order these"), no longer added by the menus.
+- **Two levels:** known, and seen but not practised (watched in a battle the character took part in, by an enemy or an ally). A seen one is recognised when used against the character (the +1 of a known enemy formation), shown on the tab as "seen, not practised", and can be ordered in battle at -2 (`SEEN_TACTIC_PENALTY`, invented) on its roll: the dogfight position roll, the attack run, the fleet round, the ground side's sector rolls.
+- **Starting sets** (D-524):
+  - every pilot knows the head-on pass, the break, the jink and a strafing pass;
+  - anyone who went through the Jedi initiate stage (a Padawan, Knight or Master; an initiate when promoted to Padawan): frontal assault, defence in depth (holding a position), fighting withdrawal; the line, a starfighter screen, withdrawing (`jediInitiate`). The Sith Academy the same for an apprentice or Lord (`sithAcademy`, a proposal);
+  - Knights, Masters and Sith Lords learned to fly (flight school);
+  - backgrounds: a soldier the army's ground basics; an officer ground command; a naval officer the fleet formations; a pilot flight school and flying a screen (`pilotFleet`); a Jedi at the front flanking and ambushes (`frontLine`, a proposal); smugglers, Mandalorians, bounty hunters and agents their own sets.
+- **Learning more:**
+  - a programme's graduation gives its sets (as before);
+  - taught (`tacticStudied`, "taught ... by <name>"): the teacher's own Tactics decides how hard a tactic they can pass on: anyone teaches the basics, standard tactics need Tactics 20 (military experience), advanced ones 50 (a seasoned commander) (`TEACH_NEEDS`, invented). The master in the scene teaches when the words name nobody; a named teacher the game does not know counts as Tactics 30 (invented). Generated Jedi Masters have no Tactics, so they teach the basics only; a master with military experience teaches more. A commander in the field teaches the same way;
+  - studied (a manual, historical campaigns): known at once;
+  - in the field: a seen tactic used successfully in battle (a dogfight turn won on position, a strike that reached the hull or a system, a fleet round won, a ground phase won on balance) is known at the battle's end ("used successfully in battle");
+  - practice after seeing it: three sessions (as before).
+- **NPCs** fly only what their crew kind knows (as before). What each side flew is recorded as seen at the end; under an NPC commander on the ground, our own side's manoeuvres are seen too. The battle record keeps the tactics the player chose (`tacticsUsed`).
+- **The tab:** Space and Ground sections; each entry with its description, strong and weak against, requirements, known or seen-not-practised, and how it was learned.
+- **Old saves** (D-524): the starting set for their background (archetype, start, rank), plus every tactic already used in a battle (the battle records' `tacticsUsed`, the last ship battle's formation in command, the last ground battle's manoeuvres in command); the tactics slice's migration v2.
 
 ## 11. Tests
 
@@ -125,6 +132,7 @@ A new side-panel tab, by where things are:
 | Start ships, their mods and names | `START_SHIPS_BY_OPTION` |
 | Carry slots: belt 4 (6 with a utility belt), hips 2, back 1, pockets 2, backpack 6 / 3 / 2 / 1, hands 2 | `CARRY` |
 | Tactic sets and who knows them (archetypes, starts, ranks, programmes, NPC crew kinds); command basics; practice 3 | `TACTIC_SETS`, `ARCHETYPE_TACTICS`, `START_TACTICS`, `RANK_TACTICS`, `PROGRAMME_TACTICS`, `NPC_TACTICS`, `COMMAND_BASICS`, `PRACTICE_TO_KNOW` |
+| m8-fixes B (D-524): the Jedi initiate set and the Sith Academy's (a proposal); the pilot's screen and the Jedi front-line set (proposals); the anyone-can-order basics in every list; teaching tiers (which tactics are basic, standard, advanced) and the teacher's Tactics 0 / 20 / 50; an unknown teacher 30; a seen tactic at -2; "used successfully" (a won position roll, a strike on the hull or a system, a won fleet round, a ground phase won on balance) | `TACTIC_SETS.jediInitiate`, `sithAcademy`, `pilotFleet`, `frontLine`, `PAST_INITIATE`, `COMMON_GROUND`, `tacticTier`, `TEACH_NEEDS`, `UNKNOWN_TEACHER_TACTICS`, `SEEN_TACTIC_PENALTY`, `usedTactic` (battles/rules.ts), `stepGround` |
 | Ground tactics' strong and weak against | `TACTICS` (ground) |
 | Part A: the next senior captain's Tactics (the better of the fleet's crews and the first officer's); escape DC 15 against the better of Piloting and Stealth; 3 captors; survival 50% destroyed, 85% abandoned | `commandPassesOn`, `AFTERMATH` |
 

@@ -22,7 +22,7 @@ import { SUMMARY_RETRIES_PER_CLOSE } from '../data/memory.config';
 import { PACING_OUTPUT_CAPS } from '../data/pacing.config';
 import { normalizeAlias } from '../engine/aliases';
 import { dateFromAbsDay } from '../engine/calendar';
-import { checkNarration, rewordable, settleNarration, type NarrationIssue } from './narrationCheck';
+import { checkNarration, combatSummary, rewordable, settleNarration, type NarrationIssue } from './narrationCheck';
 import { longPassageProseTokens } from './combatFacts';
 import { selectWounds } from '../features/health/selectors';
 import { selectNow } from '../features/clock/selectors';
@@ -167,7 +167,7 @@ export const isOverload = (e: unknown): boolean => e instanceof AiError && (e.ki
  * One model on overload (D-240): the call, then up to OVERLOAD_RETRY.retries retries with backoff and jitter, the busy
  * note shown while waiting. Any other error is thrown at once. The same request every time: the turn's draft is fixed.
  */
-async function withOverloadRetry<T>(deps: TurnDeps, notes: string[], model: string, call: () => Promise<T>, retries: number): Promise<T> {
+async function withOverloadRetry<T>(deps: TurnDeps, notes: string[], model: string, call: () => Promise<T>, retries: number, busyRetries: number = retries): Promise<T> {
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   for (let n = 0; ; n++) {
     try {
@@ -175,14 +175,16 @@ async function withOverloadRetry<T>(deps: TurnDeps, notes: string[], model: stri
       if (n > 0) deps.onStatus?.(null);
       return out;
     } catch (e) {
-      if (!isOverload(e) || n >= retries) {
+      // A busy reply (5xx) and no reply at all (a timeout) each have their own limit (m8-fixes E2).
+      const limit = e instanceof AiError && e.kind === 'timeout' ? retries : busyRetries;
+      if (!isOverload(e) || n >= limit) {
         if (n > 0) deps.onStatus?.(null);
         throw e;
       }
       // Jitter from the wall clock's milliseconds: pacing only, never game dice (which stay on the seeded RNG).
       const wait = overloadDelayMs(n + 1, deps.jitter ? deps.jitter() : (deps.wallClock().ms % 1000) / 1000);
-      notes.push(`${model}: ${e instanceof AiError && e.kind === 'timeout' ? 'no reply in time' : `busy (${(e as AiError).status ?? 'server error'})`}; retry ${n + 1} of ${retries} in ${(wait / 1000).toFixed(1)} s`);
-      deps.onStatus?.(`Gemini is busy, retrying… (${n + 1} of ${retries})`);
+      notes.push(`${model}: ${e instanceof AiError && e.kind === 'timeout' ? 'no reply in time' : `busy (${(e as AiError).status ?? 'server error'})`}; retry ${n + 1} of ${limit} in ${(wait / 1000).toFixed(1)} s`);
+      deps.onStatus?.(`Gemini is busy, retrying… (${n + 1} of ${limit})`);
       await sleep(wait);
     }
   }
@@ -208,18 +210,20 @@ async function callModel<T>(
     }
     const opts: CallOptions = { ...base, model: choice.model };
     try {
-      return await withOverloadRetry(deps, notes, choice.model, () => tracked(deps, calls, opts, () => run(opts)), OVERLOAD_RETRY.retries);
+      return await withOverloadRetry(deps, notes, choice.model, () => tracked(deps, calls, opts, () => run(opts)), OVERLOAD_RETRY.retries, OVERLOAD_RETRY.busyRetries);
     } catch (e) {
-      // Still overloaded after the retries (D-240): one try on the next model in the order, then the turn's Retry.
+      // Busy (m8-fixes E2: at once) or still timing out after the retries (D-240): the next model in the order, which keeps the
+      // retries (it is the last one tried), then the turn's Retry.
       if (isOverload(e) && OVERLOAD_RETRY.nextModel) {
         const next = deps.router.next?.(base.callType, choice.model) ?? null;
         if (!next || tried.has(next)) throw e;
         tried.add(next);
-        notes.push(`${base.callType}: ${choice.model} still busy after ${OVERLOAD_RETRY.retries} retries; one try on ${next}`);
+        const timedOut = e instanceof AiError && e.kind === 'timeout';
+        notes.push(timedOut ? `${base.callType}: ${choice.model} still no reply after ${OVERLOAD_RETRY.retries} retries; trying ${next}` : `${base.callType}: ${choice.model} busy (${(e as AiError).status ?? 'server error'}); switching to ${next} at once`);
         deps.onStatus?.(`Gemini is busy, trying ${next}…`);
         const nextOpts: CallOptions = { ...base, model: next };
         try {
-          return await tracked(deps, calls, nextOpts, () => run(nextOpts));
+          return await withOverloadRetry(deps, notes, next, () => tracked(deps, calls, nextOpts, () => run(nextOpts)), OVERLOAD_RETRY.retries);
         } finally {
           deps.onStatus?.(null);
         }
@@ -341,6 +345,22 @@ export function narrativeTurnInfo(state: GameState, draft: TurnDraft, input: Tur
   return { ...base, parts: activeParts(state, base) };
 }
 
+/**
+ * The code's own telling of a turn whose state the code already decided (m8-fixes E1): a battle step's lines (and its wrap-up), or
+ * a fight's code-written summary. Null for a turn that needs the narrator (the story itself).
+ */
+export function codeOnlyNarrative(draft: TurnDraft): string | null {
+  if (draft.battle) {
+    const lines = [...draft.battle.lines, ...draft.battle.big.filter((x) => !draft.battle!.lines.includes(x)), ...(draft.battle.wrap ? [draft.battle.wrap] : [])];
+    return lines.length ? lines.join(' ') : null;
+  }
+  if (draft.combat && !draft.combat.quiet) {
+    const lines = combatSummary(draft.combat);
+    return lines.length ? lines.join(' ') : null;
+  }
+  return null;
+}
+
 /** c + d: narrate (with the one truncation retry), validate, apply, commit. Safe to retry. */
 export async function narrateTurn(deps: TurnDeps, session: Session, pending: PendingTurn): Promise<{ session: Session; record: TurnRecord }> {
   const calls: CallRecord[] = [...pending.calls];
@@ -356,6 +376,8 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   // The narrate-every-turn setting (m8-ship-life Part A2, D-518; off by default) sends every battle turn to the narrator.
   const quietBattle = draft.battle !== undefined && draft.battle.quiet && settings.narrateEveryBattleTurn !== true;
   const quiet = draft.combat?.quiet === true || quietBattle;
+  // The narration failed and the code's own lines stand (m8-fixes E1): no events, no scene change, no narration check.
+  let codeOnly = false;
   if (!reply && quiet) reply = { narrative: quietBattle ? draft.battle!.lines.join(' ') : (draft.combat!.quietLine ?? ''), choices: [], scene: { moodTags: [], presentNpcRefs: [] }, events: [] };
   // The turn's schema parts (D-520): worked out once, for the schema sent and for the events the reply may carry.
   const turnInfo = narrativeTurnInfo(resolved, draft, pending.input);
@@ -377,9 +399,15 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
         reply = await callModel(deps, calls, modelNotes, second, narrate);
       }
     } catch (e) {
-      throw new TurnError('narrate', e, calls, { ...pending, calls });
+      // A state the code already decided (m8-fixes E1: a battle's step, a resolved fight): the code's own lines stand and the
+      // turn commits, so the battle stays playable. Anything else keeps the Retry.
+      const fallback = codeOnlyNarrative(draft);
+      if (!fallback) throw new TurnError('narrate', e, calls, { ...pending, calls });
+      modelNotes.push(`narration failed (${e instanceof Error ? e.message.slice(0, 120) : 'error'}); the code's own lines stand (m8-fixes E1)`);
+      reply = { narrative: fallback, choices: [], scene: { moodTags: [], presentNpcRefs: [] }, events: [] };
+      codeOnly = true;
     }
-    narrativeReport = settleReport(deps, req, calls, 'narrative');
+    if (!codeOnly) narrativeReport = settleReport(deps, req, calls, 'narrative');
 
     // The narration check (D-197): a narration that contradicts the resolved block is retried once with the same
     // TurnDraft and the contradictions listed; if the retry still contradicts it, code-written lines replace it.
@@ -396,7 +424,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     const previous = [...session.history].reverse().find((r) => r.input.kind !== 'dev' && r.narrative)?.narrative ?? null;
     const recheck = (text: string): NarrationIssue[] => checkNarration(text, draft, woundedOrHealing, known, previous);
     const kindsOf = (list: readonly NarrationIssue[]): string => list.map((i) => i.kind).join(', ');
-    let issues = recheck(reply.narrative);
+    let issues = codeOnly ? [] : recheck(reply.narrative);
     // Engine terms that a swap of words settles (D-236): reworded in code, checked again, no retry call.
     const reworded = rewordable(reply.narrative, issues, recheck);
     if (reworded !== null) {
@@ -452,7 +480,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     }
     return true;
   });
-  const events: unknown[] = quiet ? [] : [...replyEvents, { type: 'sceneUpdated', moodTags: reply.scene.moodTags, presentNpcRefs: reply.scene.presentNpcRefs }];
+  const events: unknown[] = quiet || codeOnly ? [] : [...replyEvents, { type: 'sceneUpdated', moodTags: reply.scene.moodTags, presentNpcRefs: reply.scene.presentNpcRefs }];
   const result = applyEvents(deps.registry, resolved, events, { source: 'ai', resolved: draft.resolvedActions });
   const rejected: RejectedEvent[] = [...notLegal, ...result.rejected];
   const appliedAll: AppliedEvent[] = [...result.applied];

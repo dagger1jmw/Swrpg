@@ -35,6 +35,13 @@ export const npcSchema = z.object({
   /** The only store of NPC death (D-46); deceased comes only from the engine (D-33). */
   status: z.enum(NPC_STATES),
   description: z.string().max(LIMITS.description),
+  /**
+   * What the player said of this person (m8-fixes G4: a quiz note, "My older sister still writes from Alderaan"): the relation and
+   * homeworld the code could read, and the note itself in plain words for the narrator. Absent for everyone else.
+   */
+  relation: z.string().max(60).optional(),
+  homeworld: z.string().max(60).optional(),
+  playerNote: z.string().max(200).optional(),
   firstMetDay: z.number().int(),
   lastSeenDay: z.number().int(),
   lastLocationId: z.string().nullable(),

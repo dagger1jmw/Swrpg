@@ -396,13 +396,15 @@ describe('tactics as knowledge and the Tactics tab', () => {
     const k = impliedTactics({ archetype: 'starfighterPilot', path: 'career' }, 'career', 0);
     for (const id of TACTIC_SETS['flightSchool']!.ids) expect(k[id], id).toBeDefined();
     const civ = impliedTactics({ archetype: 'civilian', path: 'career' }, 'career', 0);
-    expect(Object.keys(civ).sort()).toEqual(['break', 'fly', 'jink', 'pass']);
+    // m8-fixes B1: what anyone can order is in the one list too (the tab and the menus read the same list).
+    expect(Object.keys(civ).sort()).toEqual(['break', 'exchange', 'fightingWithdrawal', 'fly', 'frontalAssault', 'jink', 'pass', 'rollShip', 'brawl', 'withdraw'].sort());
     let s = fresh({ path: 'career', archetype: 'civilian' });
     s = ev(s, [{ type: 'tacticsSeen', ids: ['tallonRoll', 'capT'], by: 'enemy' }]).state;
-    s = words(s, 'tactic: taught the Corellian Slip by Commander Hale').state;
+    // An instructor the game does not know teaches standard tactics, not advanced ones (m8-fixes B3a).
+    s = words(s, 'tactic: taught Scissors by Commander Hale').state;
     const rows = selectTacticRows(s);
     expect(rows.find((r) => r.def.id === 'tallonRoll')).toMatchObject({ status: 'seen' });
-    expect(rows.find((r) => r.def.id === 'corellianSlip')).toMatchObject({ status: 'known', source: expect.stringMatching(/taught by commander hale/i) });
+    expect(rows.find((r) => r.def.id === 'scissors')).toMatchObject({ status: 'known', source: expect.stringMatching(/taught by commander hale/i) });
     expect(rows.some((r) => r.def.scale === 'ground') || rows.every((r) => r.def.scale !== 'ground')).toBe(true);
   });
   it('practice after seeing it moves a seen tactic to known', () => {

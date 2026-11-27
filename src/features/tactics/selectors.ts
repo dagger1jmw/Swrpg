@@ -7,6 +7,11 @@ import type { TacticsSlice } from './tactics';
 const slice = (s: GameState): TacticsSlice | undefined => (s as { tactics?: TacticsSlice }).tactics;
 
 export const selectKnownTactics = (s: GameState): ReadonlySet<string> => new Set(Object.keys(slice(s)?.known ?? {}));
+/** Seen, not practised (m8-fixes B4): usable in battle at a penalty, marked so on the tab. */
+export const selectSeenTactics = (s: GameState): ReadonlySet<string> => {
+  const sl = slice(s);
+  return new Set(Object.keys(sl?.seen ?? {}).filter((id) => !sl?.known[id]));
+};
 /** Seen or known: what the character recognises when an enemy uses it. */
 export const selectRecognisedTactics = (s: GameState): ReadonlySet<string> => new Set([...Object.keys(slice(s)?.known ?? {}), ...Object.keys(slice(s)?.seen ?? {})]);
 

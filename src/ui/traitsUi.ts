@@ -3,7 +3,8 @@
 // every effect when the campaign is created or the quiz event is applied.
 import { FORMATIVE_EVENT_BY_ID } from '../data/formativeEvents';
 import { TRAIT_BY_ID, type TraitDef, type TraitKind } from '../data/traits';
-import { backstoryLeans, CONFLICTS, eligibleTraits, scoreQuiz, suggestTraits, type QuizAnswer, type QuizPlan, type TraitChoice, type TraitContext } from '../features/traits/selectors';
+import { backstoryLeans, CONFLICTS, eligibleTraits, scoreQuiz, suggestTraits, traitGreyReason, type QuizAnswer, type QuizPlan, type TraitChoice, type TraitContext } from '../features/traits/selectors';
+import { TRAITS } from '../data/traits';
 import { SKILL_BY_ID } from '../data/skills';
 import { el, input } from './dom';
 
@@ -34,9 +35,16 @@ export function traitsStep(ctxOf: () => TraitContext | null): TraitsStep {
     const c = ctxOf();
     return c ? { ...c, origin: origin.value || undefined, ...(homeworld.value.trim() ? { homeworld: homeworld.value.trim() } : {}) } as TraitContext : null;
   };
-  const fill = (sel: HTMLSelectElement, list: TraitDef[], blank?: string): void => {
+  // Open traits, then (greyed, not chosen) the ones a number on the form closes, with the short reason (m8-fixes D1). A trait that
+  // closes is un-ticked: the selection moves to the first open one.
+  const fill = (sel: HTMLSelectElement, list: TraitDef[], blank?: string, greyed: readonly { def: TraitDef; why: string }[] = []): void => {
     const keep = sel.value;
-    sel.replaceChildren(...(blank ? [option('', blank)] : []), ...list.map((t) => option(t.id, t.name)));
+    const grey = greyed.map((g) => {
+      const o = option(g.def.id, `${g.def.name} (${g.why})`);
+      o.disabled = true;
+      return o;
+    });
+    sel.replaceChildren(...(blank ? [option('', blank)] : []), ...list.map((t) => option(t.id, t.name)), ...grey);
     sel.value = list.some((t) => t.id === keep) ? keep : blank ? '' : (list[0]?.id ?? '');
   };
   const describeAll = (): void => {
@@ -48,18 +56,20 @@ export function traitsStep(ctxOf: () => TraitContext | null): TraitsStep {
   const refresh = (): void => {
     const c = ctxOf();
     if (!c) return;
-    const of = (k: TraitKind[]): TraitDef[] => k.flatMap((x) => eligibleTraits({ ...c, origin: origin.value || undefined, ...(homeworld.value.trim() ? { homeworld: homeworld.value.trim() } : {}) } as TraitContext, x));
-    fill(origin, of(['origin']));
-    fill(temperament, of(['temperament']));
-    fill(scarOrTie, of(['scar', 'tie']));
-    fill(fourth, of(['temperament', 'scar', 'tie']).filter((t) => t.flawHeavy), 'None');
+    const full = { ...c, origin: origin.value || undefined, ...(homeworld.value.trim() ? { homeworld: homeworld.value.trim() } : {}) } as TraitContext;
+    const of = (k: TraitKind[]): TraitDef[] => k.flatMap((x) => eligibleTraits(full, x));
+    const greyed = (k: TraitKind[]): { def: TraitDef; why: string }[] => TRAITS.filter((t) => k.includes(t.kind)).map((def) => ({ def, why: traitGreyReason(def.id, full) ?? '' })).filter((g) => g.why);
+    fill(origin, of(['origin']), undefined, greyed(['origin']));
+    fill(temperament, of(['temperament']), undefined, greyed(['temperament']));
+    fill(scarOrTie, of(['scar', 'tie']), undefined, greyed(['scar', 'tie']));
+    fill(fourth, of(['temperament', 'scar', 'tie']).filter((t) => t.flawHeavy), 'None', greyed(['temperament', 'scar', 'tie']).filter((g) => g.def.flawHeavy));
     describeAll();
   };
   for (const s of [origin, temperament, scarOrTie, fourth, mentorField]) s.addEventListener('change', () => (s === origin ? refresh() : describeAll()));
   homeworld.addEventListener('input', refresh);
   const apply = (s: { temperament?: string | null; scarOrTie?: string | null }): void => {
-    if (s.temperament && [...temperament.options].some((o) => o.value === s.temperament)) temperament.value = s.temperament;
-    if (s.scarOrTie && [...scarOrTie.options].some((o) => o.value === s.scarOrTie)) scarOrTie.value = s.scarOrTie;
+    if (s.temperament && [...temperament.options].some((o) => o.value === s.temperament && !o.disabled)) temperament.value = s.temperament;
+    if (s.scarOrTie && [...scarOrTie.options].some((o) => o.value === s.scarOrTie && !o.disabled)) scarOrTie.value = s.scarOrTie;
     describeAll();
   };
   const suggest = el('button', {

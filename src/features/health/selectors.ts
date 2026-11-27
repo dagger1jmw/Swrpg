@@ -2,6 +2,7 @@ import { tirednessLabel, type Meters } from '../../engine/fatigue';
 import { forceFraction } from '../../engine/forceMeter';
 import type { GameState } from '../../state/gameState';
 import { SKILL_BY_ID, SKILL_IDS } from '../../data/skills';
+import { SEVERITIES } from '../../data/health.config';
 import { aidCap, lastingAffects, lastingPenalty, type LastingInjury } from '../../engine/lasting';
 import { maxVitality, maxVitalityWithLasting } from '../../engine/vitality';
 import { isDying, isIncapacitated, locationPenalty, statusLabel, woundLoad, woundPenalty, type Wound } from '../../engine/wounds';
@@ -44,6 +45,18 @@ export function selectMaxVitality(s: GameState): number {
 export const selectVitality = (s: GameState): number => Math.max(0, selectMaxVitality(s) - s.health.vitalityLost);
 export const selectIsSpent = (s: GameState): boolean => selectVitality(s) <= 0;
 export const selectWounds = (s: GameState): readonly Wound[] => s.health.wounds as readonly Wound[];
+/**
+ * The active wounds in a few words, worst first, for beside the Vitality bar (m8-fixes D2): health.md section 3 keeps wounds and
+ * Vitality apart on purpose (M5 balance row 19: a clean saber hit can make a mortal wound and leave Vitality full), so the bar
+ * itself does not show a wound; this line does. Null with no wounds.
+ */
+export function selectWoundTag(s: GameState, partText: (part: string) => string = (p) => p): string | null {
+  const ws = [...selectWounds(s)].sort((a, b) => SEVERITIES.indexOf(b.severity) - SEVERITIES.indexOf(a.severity));
+  const w = ws[0];
+  if (!w) return null;
+  const sev = w.stabilized && w.severity === 'mortal' ? 'stabilized critical' : w.severity;
+  return `${sev} wound (${partText(w.part)})${ws.length > 1 ? ` +${ws.length - 1} more` : ''}`;
+}
 export const selectLasting = (s: GameState): readonly LastingInjury[] => s.health.lasting as readonly LastingInjury[];
 export const selectStatusLabel = (s: GameState): string => (s.health.death ? 'Dead' : statusLabel(selectWounds(s)));
 export const selectWoundLoad = (s: GameState): number => woundLoad(selectWounds(s));

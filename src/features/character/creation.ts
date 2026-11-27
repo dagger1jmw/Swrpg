@@ -27,6 +27,9 @@ import { ageLoss, bodyAgeFromH } from '../../engine/ageing';
 import { ageFromTraining, bodyCapAt, humanEquivalentAge, naturalLevel, speciesLearning, trainingAge, trainingAgeFactor, trainingIntegral } from '../../engine/species';
 import { crossTalentMult, isForceXpSkill, isOutsideForce, talentMult, type Talents } from '../../engine/speed';
 
+
+/** War years are served from this age (Human-equivalent; invented, the traits' veteran age; m8-fixes D1). */
+export const WAR_SERVICE_FROM_AGE = 14;
 export interface CreationInput {
   name: string;
   birthDay: number;
@@ -232,6 +235,10 @@ export function computeCreation(input: CreationInput): CreationResult {
   const [lo, hi] = PATH_START_RANGE[input.path];
   if (!(tStartIn >= lo - 1e-9 && tStartIn <= hi + 1e-9)) errors.push(`Training start age must be ${lo}-${hi} (Human-equivalent) for this path.`);
   if (input.trainingStartAge > age) errors.push('Training cannot start after the campaign start.');
+  // m8-fixes D1 (a background option's requirement, invented): war years are served from age 14 (Human-equivalent), as the traits'
+  // veteran age; a 14-year-old has none to give.
+  const warMax = Math.max(0, Math.floor(tNow - WAR_SERVICE_FROM_AGE + 1e-9));
+  if (!input.npc && (input.warYears ?? 0) > warMax) errors.push(`War years are served from age ${WAR_SERVICE_FROM_AGE}: at most ${warMax} at this age.`);
   if (!input.ignoreTalentLimit && !input.npc && talentCost(input.talents) > TALENT_POINTS) errors.push(`Talents cost ${talentCost(input.talents)} points; the limit is ${TALENT_POINTS}.`);
   const padawanPlan: Record<string, number> = { ...(input.padawanPlan ?? defaultFormPlan(input.archetype)) };
   const knightPlan: Record<string, number> = { ...(input.knightPlan ?? padawanPlan) };

@@ -22,6 +22,12 @@ export const locationIntroducedSchema = z.object({
   moveHere: z.boolean().describe('The player is now here'),
 });
 
+/** A ship or ground battle is being fought (read loosely: a state built by a test may lack the battles slice). */
+const battleRunning = (s: GameState): boolean => {
+  const b = (s as { battles?: { active: unknown; ground: unknown } }).battles;
+  return !!b && (b.active !== null || b.ground !== null);
+};
+
 function moveTo(slice: LocationsSlice, id: string, day: number): LocationsSlice {
   const loc = slice.byId[id]!;
   const visited = loc.firstVisitDay === null ? { ...loc, firstVisitDay: day } : loc;
@@ -62,6 +68,8 @@ export const locationsFeature: FeatureModule<LocationsSlice, GameState> = {
         }
         const parent = typeof e['parentRef'] === 'string' ? e['parentRef'] : null;
         if (parent !== null && !slice.byId[parent]) return { reject: `unknown parent ${parent}` };
+        // While a battle runs, its site wins (m8-fixes C4): a place the narrator introduces is kept, but the player does not move.
+        if (ctx.source === 'ai' && e['moveHere'] === true && battleRunning(ctx.state)) e = { ...e, moveHere: false };
         const id = mintId('loc', name, (x) => x in slice.byId);
         const loc: Location = {
           id,
@@ -80,7 +88,8 @@ export const locationsFeature: FeatureModule<LocationsSlice, GameState> = {
     },
     locationChanged: {
       schema: z.object({ type: z.literal('locationChanged'), locationRef: z.string() }),
-      sources: ['ai', 'dev'],
+      // engine: a battle's end puts the player where they end up (m8-fixes C4).
+      sources: ['ai', 'dev', 'engine'],
       targetField: 'locationRef',
       refFields: ['locationRef'],
       refKinds: { locationRef: ['loc'] },
@@ -88,6 +97,8 @@ export const locationsFeature: FeatureModule<LocationsSlice, GameState> = {
       handle: (slice, e, ctx) => {
         const id = String(e['locationRef']);
         if (!slice.byId[id]) return { reject: `unknown location ${id}` };
+        // While a battle runs, its site wins (m8-fixes C4): the narrator cannot move the player elsewhere.
+        if (ctx.source === 'ai' && battleRunning(ctx.state)) return { reject: 'a battle is being fought: the player stays at its site until it ends' };
         if (slice.currentId === id) return { slice, notes: [`already at ${id}`] };
         return { slice: moveTo(slice, id, selectNow(ctx.state).day) };
       },

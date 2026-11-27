@@ -53,7 +53,7 @@ const day = (bby: number): number => absDayFromDate({ year: -bby, month: 1, day:
 const holds = (...ids: string[]): TraitHolding[] => ids.map((id) => ({ id, since: 0, source: 'creation' as const }));
 const jediCtx = (o: Partial<TraitContext> = {}): TraitContext => ({ path: 'jedi', speciesId: 'human', archetype: 'jediGuardian', birthYear: -3685, startYear: -3661, trainingStartAge: 4, ...o });
 
-function jediInput(o: { name?: string; age?: number; startBby?: number; rank?: string; start?: number; traits?: NewCampaignInput['traits']; formative?: NewCampaignInput['formative'] } = {}): NewCampaignInput {
+function jediInput(o: { name?: string; age?: number; startBby?: number; rank?: string; start?: number; warYears?: number; traits?: NewCampaignInput['traits']; formative?: NewCampaignInput['formative'] } = {}): NewCampaignInput {
   const startBby = o.startBby ?? 3661;
   const age = o.age ?? 24;
   return {
@@ -61,7 +61,7 @@ function jediInput(o: { name?: string; age?: number; startBby?: number; rank?: s
     birthDate: { year: -(startBby + age), month: 1, day: 1 },
     startDate: { year: -startBby, month: 1, day: 1 },
     startSecond: 7 * 3600,
-    creation: { speciesId: 'human', path: 'jedi', archetype: 'jediGuardian', rank: o.rank ?? 'knight', trainingStartAge: o.start ?? 4, talents: {}, dominantHand: 'right' },
+    creation: { speciesId: 'human', path: 'jedi', archetype: 'jediGuardian', rank: o.rank ?? 'knight', trainingStartAge: o.start ?? 4, talents: {}, dominantHand: 'right', ...(o.warYears ? { warYears: o.warYears } : {}) },
     ...(o.traits !== undefined ? { traits: o.traits } : { traits: { origin: 'templeRaised', temperament: 'patient', scarOrTie: 'rival' } }),
     ...(o.formative !== undefined ? { formative: o.formative } : {}),
   };
@@ -138,7 +138,9 @@ describe('gates', () => {
   });
   it('Order 66 opens the scar for a Jedi of 19 BBY; war veteran needs war years', () => {
     expect(traitRefusal('massacreSurvivor', jediCtx({ birthYear: -35, startYear: -10 }))).toBeNull();
-    expect(traitRefusal('warVeteran', jediCtx({ birthYear: -3685, startYear: -3661 }))).toBeNull(); // the Great War
+    // m8-fixes D1 (Jared): war years above 0, even in the Great War's years (the form's own number decides).
+    expect(traitRefusal('warVeteran', jediCtx({ birthYear: -3685, startYear: -3661 }))).toMatch(/war years above 0/);
+    expect(traitRefusal('warVeteran', jediCtx({ birthYear: -3685, startYear: -3661, warYears: 1 }))).toBeNull(); // the Great War
     expect(traitRefusal('warVeteran', jediCtx({ birthYear: -3630, startYear: -3600 }))).not.toBeNull(); // peace
     expect(traitRefusal('warVeteran', jediCtx({ birthYear: -3630, startYear: -3600, warYears: 2 }))).toBeNull();
   });
@@ -350,7 +352,7 @@ describe('the formative quiz', () => {
 
 describe('change in play: only recorded events', () => {
   it('a fear faced three times is overcome; a massacre adds a scar; a tie ends when the person dies', async () => {
-    const s0 = await prepare({ name: 'Change One', traits: { origin: 'frontierWorld', temperament: 'hotHeaded', scarOrTie: 'warVeteran' } });
+    const s0 = await prepare({ name: 'Change One', warYears: 2, traits: { origin: 'frontierWorld', temperament: 'hotHeaded', scarOrTie: 'warVeteran' } });
     let s = s0;
     for (let i = 0; i < 2; i++) s = applyEvents(REGISTRY, s, [{ type: 'traitMoment', moment: 'fearFaced', traitId: 'warVeteran' }], { source: 'ai' }).state;
     expect(s.traits.held.find((h) => h.id === 'warVeteran')!.overcome).toBeUndefined();

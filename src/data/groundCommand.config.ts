@@ -201,8 +201,8 @@ export const TACTIC_PLAN: Readonly<Record<string, Plan>> = {
   infiltration: 'raid',
   fightingWithdrawal: 'fightingWithdrawal',
 };
-/** What any commander can order without ground training (a reading, invented, like the fleet's line and brawl). */
-export const GROUND_COMMAND_BASICS: readonly string[] = ['frontalAssault', 'fightingWithdrawal'];
+/** What any commander can order without ground training (a reading, invented; in every character's list since m8-fixes B1). */
+export { COMMON_GROUND as GROUND_COMMAND_BASICS } from './tactics';
 /** Manoeuvres for a side that holds the positions, and for one that attacks them (the NPC commander picks from these). */
 export const DEFENDING_PLANS: readonly Plan[] = ['defenceInDepth', 'ambush', 'fightingWithdrawal', 'feint'];
 export const ATTACKING_PLANS: readonly Plan[] = ['frontal', 'flanking', 'envelopment', 'feint', 'siege', 'raid'];

@@ -1,5 +1,5 @@
-// D-240 (combat pass 3: about 100 Gemini 503s in one session): a 5xx or a timeout is retried on the same model up to 3
-// times with backoff and jitter, then tried once on the next model in the fallback order, then the turn shows Retry.
+// D-240 (combat pass 3: about 100 Gemini 503s in one session), amended by m8-fixes E2: a 5xx switches to the next model at once
+// (which keeps the retries with backoff and jitter); a timeout is retried on the same model up to 3 times, then the next model.
 // The busy note shows while waiting; none of these count on the usage meter; the same draft is used throughout.
 import { describe, expect, it } from 'vitest';
 import { LORE_TEST_DATE as TEST_START_DATE, LORE_TEST_YEAR as TEST_YEAR } from '../support/dates';
@@ -44,32 +44,37 @@ const ok = (model?: string): FixtureStep => ({ callType: 'narrative', ...(model 
 const PRIMARY = 'gemini-3.8-flash';
 const NEXT = 'gemini-3.5-flash-lite';
 
-describe('Gemini overload: retries, then the next model, then Retry (D-240)', () => {
-  it('two 503s then a reply: three calls on the same model, backoff 2 s then 4 s, the busy note, one call on the meter', async () => {
-    const { deps, provider, slept, status, metered } = setup([busy(PRIMARY), busy(PRIMARY), ok(PRIMARY)]);
+describe('Gemini overload: a busy reply switches to the next model at once (m8-fixes E2), which keeps the retries (D-240)', () => {
+  it('one 503 on the first model: straight to the next model, no wait; one call on the meter', async () => {
+    const { deps, provider, slept, status, metered } = setup([busy(PRIMARY), ok(NEXT)]);
     const t = await playTurn(deps, await session(deps), { kind: 'opening', premise: '' });
-    expect(provider.calls.map((c) => c.opts.model)).toEqual([PRIMARY, PRIMARY, PRIMARY]);
-    expect(slept).toEqual([2000, 4000]);
-    expect(status).toEqual(['Gemini is busy, retrying… (1 of 3)', 'Gemini is busy, retrying… (2 of 3)', null]);
-    expect(metered).toEqual([PRIMARY]);
-    expect(t.record.draft.report.join('\n')).toMatch(/gemini-3\.8-flash: busy \(503\); retry 1 of 3 in 2\.0 s/);
-    expect(t.record.calls.map((c) => c.outcome)).toEqual(['http', 'http', 'ok']);
-  });
-  it('still busy after 3 retries: one try on the next model in the order, which answers', async () => {
-    const { deps, provider, slept, metered } = setup([busy(PRIMARY), busy(PRIMARY), busy(PRIMARY), busy(PRIMARY), ok(NEXT)]);
-    const t = await playTurn(deps, await session(deps), { kind: 'opening', premise: '' });
-    expect(provider.calls.map((c) => c.opts.model)).toEqual([PRIMARY, PRIMARY, PRIMARY, PRIMARY, NEXT]);
-    expect(slept).toEqual([2000, 4000, 8000]);
+    expect(provider.calls.map((c) => c.opts.model)).toEqual([PRIMARY, NEXT]);
+    expect(slept).toEqual([]);
+    expect(status).toEqual([`Gemini is busy, trying ${NEXT}…`, null]);
     expect(metered).toEqual([NEXT]);
-    expect(t.record.draft.report.join('\n')).toMatch(/narrative: gemini-3\.8-flash still busy after 3 retries; one try on gemini-3\.5-flash-lite/);
+    expect(t.record.draft.report.join('\n')).toMatch(/narrative: gemini-3\.8-flash busy \(503\); switching to gemini-3\.5-flash-lite at once/);
+    expect(t.record.calls.map((c) => c.outcome)).toEqual(['http', 'ok']);
   });
-  it('the next model busy too: the turn fails with the last error (the UI shows Retry); nothing on the meter', async () => {
-    const { deps, provider, metered } = setup([busy(PRIMARY), busy(PRIMARY), busy(PRIMARY), busy(PRIMARY), busy(NEXT)]);
+  it('the next model busy too: it retries with backoff (2 s, then 4 s) and answers', async () => {
+    const { deps, provider, slept, metered } = setup([busy(PRIMARY), busy(NEXT), busy(NEXT), ok(NEXT)]);
+    const t = await playTurn(deps, await session(deps), { kind: 'opening', premise: '' });
+    expect(provider.calls.map((c) => c.opts.model)).toEqual([PRIMARY, NEXT, NEXT, NEXT]);
+    expect(slept).toEqual([2000, 4000]);
+    expect(metered).toEqual([NEXT]);
+    expect(t.record.draft.report.join('\n')).toMatch(/gemini-3\.5-flash-lite: busy \(503\); retry 1 of 3 in 2\.0 s/);
+  });
+  it('the next model still busy after its retries: the turn fails with the last error (the UI shows Retry); nothing on the meter', async () => {
+    const { deps, provider, metered } = setup([busy(PRIMARY), busy(NEXT), busy(NEXT), busy(NEXT), busy(NEXT)]);
     await expect(playTurn(deps, await session(deps), { kind: 'opening', premise: '' })).rejects.toBeInstanceOf(TurnError);
     expect(provider.calls).toHaveLength(5);
     expect(metered).toEqual([]);
   });
-  it('a timeout is an overload; a 400 and a 429 are not retried here', async () => {
+  it('the wait before the fallback answers, before and after (reported): 14 s of backoff and four failed calls, now none and one', () => {
+    const before = [1, 2, 3].reduce((t, n) => t + overloadDelayMs(n, 0.5), 0);
+    expect(before).toBe(14_000);
+    expect(OVERLOAD_RETRY.busyRetries).toBe(0);
+  });
+  it('a timeout is an overload and keeps its retries on the same model; a 400 and a 429 are not retried here', async () => {
     const timeout = setup([{ callType: 'narrative', error: { kind: 'timeout', message: 'No reply' } }, ok(PRIMARY)]);
     await playTurn(timeout.deps, await session(timeout.deps), { kind: 'opening', premise: '' });
     expect(timeout.provider.calls).toHaveLength(2);

@@ -123,6 +123,30 @@ export function selectQuizPlan(s: GameState): QuizPlan | null {
   return q ? quizPlan(q) : null;
 }
 
+/** One trait as the Character tab shows it (m8-fixes G3): its upside, downside, and the person it is tied to, if any. */
+export interface TraitRow {
+  id: string;
+  name: string;
+  kind: string;
+  good: string;
+  bad: string;
+  note: string;
+  /** The tied person: their name, and their NPC id when they are in play. */
+  tie: { name: string; npcId: string | null } | null;
+  /** How it came: chosen at creation, from the formative quiz, or from an event in play. */
+  source: string;
+}
+
+/** The character's traits for the Character tab (m8-fixes G3), in the order origin, temperament, scar, tie. */
+export function selectTraitRows(s: GameState): TraitRow[] {
+  const order = ['origin', 'temperament', 'scar', 'tie'];
+  return selectTraitHoldings(s)
+    .map((h) => ({ h, d: TRAIT_BY_ID.get(h.id) }))
+    .filter((x): x is { h: TraitHolding; d: NonNullable<typeof x.d> } => x.d !== undefined)
+    .sort((a, b) => order.indexOf(a.d.kind) - order.indexOf(b.d.kind))
+    .map(({ h, d }) => ({ id: d.id, name: d.name, kind: d.kind, good: d.good, bad: d.bad, note: d.note, tie: h.tieName ? { name: h.tieName, npcId: selectTieNpcId(s, d.id) } : null, source: h.source }));
+}
+
 /** A tie's NPC id (its name resolved by alias), or null. */
 export function selectTieNpcId(s: GameState, traitId: string): string | null {
   const h = selectTraitHoldings(s).find((x) => x.id === traitId);
@@ -167,6 +191,7 @@ export {
   scoreQuiz,
   suggestTraits,
   traitChoiceErrors,
+  traitGreyReason,
   traitRollMod,
   traitStartMoney,
 } from './rules';

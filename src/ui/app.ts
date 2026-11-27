@@ -58,7 +58,7 @@ import { renderCombatDraft, renderDuelPanel } from './duelPanel';
 import { renderBattlePanel } from './battlePanel';
 import { renderGroundPanel, type GroundPanelProps } from './groundPanel';
 import { fightCalls, fightView } from '../turn/fightChoices';
-import { commitDevCommand, isDevCommand } from '../turn/devCommands';
+import { commitDevCommand, COMMANDS_NEED_DEV, slashRoute } from '../turn/devCommands';
 import { withSimulatedOverload, type SimulatedOverload } from '../ai/simulateOverload';
 import { selectIsTestCharacter } from '../features/character/selectors';
 import { renderJumpPlayback, renderJumpReport } from './jumpCard';
@@ -146,6 +146,11 @@ export class App {
   private takeBack = false;
   /** The last dev command's refusal or failure (D-180), shown in the status line. */
   private devNote: string | null = null;
+  /**
+   * The state the code already decided for the turn in flight (m8-fixes E1): shown at once (the battle panel, the header, the side
+   * panel) while the narration is pending, with the code's own lines. Cleared when the turn commits or fails.
+   */
+  private preview: { state: GameState; lines: readonly string[] } | null = null;
   /** Full request texts, this session only (D-87). */
   private debugRequests: DebugRequest[] = [];
   private summaryLog: SummaryOutcome[] = [];
@@ -361,6 +366,9 @@ export class App {
     try {
       const p = pending ?? (await prepareTurn(deps, this.session, turnInput));
       if (p.resolution.draft.jump) this.startPlayback(p.resolution.draft.jump.report);
+      // Show what the code decided before the narration arrives (m8-fixes E1).
+      this.preview = { state: p.resolution.state, lines: p.resolution.draft.battle?.lines ?? [] };
+      this.render();
       const { session, record } = await narrateTurn(deps, this.session, p);
       this.session = session;
       closed = record.chapterClosed !== undefined;
@@ -374,6 +382,7 @@ export class App {
       };
     } finally {
       this.stopPlayback();
+      this.preview = null;
       this.busy = false;
       this.retryNote = null;
       this.inFlight = null;
@@ -491,7 +500,7 @@ export class App {
     root.append(this.renderTopBar(), this.renderMain());
     if (this.session && this.panelOpen) {
       root.append(el('div', { class: 'backdrop', on: { click: () => ((this.panelOpen = false), this.render()) } }));
-      root.append(this.renderPanel(this.session));
+      root.append(this.renderPanel(this.preview ? { ...this.session, state: this.preview.state } : this.session));
     }
     if (this.modal) root.append(this.renderModal(this.modal));
     // Restore inner scroll positions; the feed follows new turns only while stuck to the bottom.
@@ -515,7 +524,7 @@ export class App {
   }
 
   private renderTopBar(): HTMLElement {
-    const state = this.session?.state;
+    const state = this.preview?.state ?? this.session?.state;
     const ms = this.d.now();
     const narrativeModel = primaryModel(this.settings, 'narrative');
     const models = [...new Set([...KNOWN_MODELS, narrativeModel])];
@@ -591,9 +600,15 @@ export class App {
   private renderMain(): HTMLElement {
     const session = this.session;
     const turns = session ? session.history.map((r) => this.renderTurn(r)) : [];
+    // The turn in flight: the player's line, the jump playback, and (m8-fixes E1) the code's own lines with the narration pending.
     const pendingLine =
       this.busy && this.inFlight && this.inFlight.kind !== 'opening'
-        ? el('div', { class: 'turn pending' }, [el('div', { class: 'player', text: describeInput(this.inFlight) }), this.playback ? renderJumpPlayback(this.playback.report, this.playback.shown) : null])
+        ? el('div', { class: 'turn pending' }, [
+            el('div', { class: 'player', text: describeInput(this.inFlight) }),
+            this.playback ? renderJumpPlayback(this.playback.report, this.playback.shown) : null,
+            ...(this.preview?.lines ?? []).map((l) => el('p', { class: 'battle-line', text: l })),
+            this.preview ? el('p', { class: 'hint', text: 'The narration is on its way…' }) : null,
+          ])
         : null;
     const failedLine = !this.busy && this.failed && this.failed.input.kind !== 'opening' ? el('div', { class: 'turn pending' }, [el('div', { class: 'player', text: describeInput(this.failed.input) })]) : null;
     const emptyFeed = session && !session.history.length && !this.busy ? el('p', { class: 'hint center', text: 'The story begins here.' }) : null;
@@ -650,10 +665,12 @@ export class App {
           },
         })
       : null;
-    // A ship battle (D-517): its panel holds the turn's choices; story choices wait until it is over.
-    const battle = session && !session.state.combat.active ? renderBattlePanel({ state: session.state, busy: this.busy, act: (input) => void this.runTurn(input), picks: this.battlePicks, pick: (group, index) => ((index === null ? delete this.battlePicks[group] : (this.battlePicks[group] = index)), this.render()), takingControl: this.takeBack, takeControl: () => (this.busy ? ((this.takeBack = true), this.render()) : void this.runTurn({ kind: 'battle', label: 'Take the controls', auto: false })) }) : null;
-    const ground = session && !session.state.combat.active ? renderGroundPanel({ state: session.state, busy: this.busy, act: (input) => void this.runTurn(input), draft: this.groundDraft, setDraft: (d) => ((this.groundDraft = d), this.render()), takingControl: this.takeBack, takeControl: () => (this.busy ? ((this.takeBack = true), this.render()) : void this.runTurn({ kind: 'battle', label: 'Take control', ground: { act: 'takeBack' } })) }) : null;
-    if (session?.state.battles.active || session?.state.battles.ground) choiceItems = [];
+    // A ship battle (D-517): its panel holds the turn's choices; story choices wait until it is over. The panels show what the code
+    // already decided while the narration is pending (m8-fixes E1).
+    const shown = this.preview?.state ?? session?.state;
+    const battle = session && shown && !shown.combat.active ? renderBattlePanel({ state: shown, busy: this.busy, act: (input) => void this.runTurn(input), picks: this.battlePicks, pick: (group, index) => ((index === null ? delete this.battlePicks[group] : (this.battlePicks[group] = index)), this.render()), takingControl: this.takeBack, takeControl: () => (this.busy ? ((this.takeBack = true), this.render()) : void this.runTurn({ kind: 'battle', label: 'Take the controls', auto: false })) }) : null;
+    const ground = session && shown && !shown.combat.active ? renderGroundPanel({ state: shown, busy: this.busy, act: (input) => void this.runTurn(input), draft: this.groundDraft, setDraft: (d) => ((this.groundDraft = d), this.render()), takingControl: this.takeBack, takeControl: () => (this.busy ? ((this.takeBack = true), this.render()) : void this.runTurn({ kind: 'battle', label: 'Take control', ground: { act: 'takeBack' } })) }) : null;
+    if (shown?.battles.active || shown?.battles.ground) choiceItems = [];
     const choices = choiceItems.length ? el('section', { class: 'box choices' }, [el('div', { class: 'box-body', attrs: { 'data-scroll': 'choices' } }, choiceItems)]) : null;
 
     // In a fight the story and the duel panel split the column (50/50 by default); a handle between them resizes it.
@@ -692,7 +709,8 @@ export class App {
       });
       return el('main', { class: 'main' }, [feed, handle, duel, choices, this.renderInput()]);
     }
-    return el('main', { class: 'main' }, [feed, battle, ground, duel, choices, this.renderInput()]);
+    // The planning step has its own layout (m8-fixes F): the page's height, the story above it kept short.
+    return el('main', { class: shown?.battles.planning && !shown.battles.ground ? 'main planning' : 'main' }, [feed, battle, ground, duel, choices, this.renderInput()]);
   }
 
   private renderInput(): HTMLElement {
@@ -702,9 +720,14 @@ export class App {
     const send = (): void => {
       const t = text.value.trim();
       if (!t) return;
-      // Dev sandbox (D-180): in dev mode a slash command runs in code, never through the AI.
-      if (devFlag(globalThis.location?.search ?? '') && isDevCommand(t)) void this.runDev(t);
-      else void this.runTurn({ kind: 'typed', text: t });
+      // A slash command never goes to the AI (m8-fixes E3): in dev mode it runs in code (D-180; an unknown one gets the list);
+      // outside dev mode it is refused on screen.
+      const route = slashRoute(t, devFlag(globalThis.location?.search ?? ''));
+      if (route === 'dev') void this.runDev(t);
+      else if (route === 'refuse') {
+        this.devNote = COMMANDS_NEED_DEV;
+        this.render();
+      } else void this.runTurn({ kind: 'typed', text: t });
     };
     text.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -1015,6 +1038,9 @@ export class App {
     const ts = traitsStep(traitCtx);
     const quizBox = el('div');
     let formative: NewCampaignInput['formative'] | undefined;
+    // The quiz's accepted suggestions (m8-fixes G2): shown in the trait dropdowns; at Begin, a slot still holding the suggestion is
+    // sent as the quiz's swap (so a tie links to the quiz's person), one the player changed again as their own choice.
+    let accepted: { before: { temperament: string; scarOrTie: string }; after: { temperament?: string; scarOrTie?: string } } | null = null;
     // Start options (D-401 [2]): mechanical starts for the start date, or a free start. Choosing one fills the premise.
     const startPick = el('select', { attrs: { 'aria-label': 'Start' } });
     const imperialBorn = input({ type: 'checkbox' });
@@ -1054,13 +1080,31 @@ export class App {
       fillStarts();
       ts.refresh();
       formative = undefined;
+      accepted = null;
     };
     for (const i of [...birth.all, ...startD.all, name]) i.addEventListener('input', updateAge);
     updateAge();
 
+    const beginBtn = el('button', { text: this.session ? 'Begin (replaces the current campaign)' : 'Begin', on: { click: () => void begin() } });
     const begin = async (): Promise<void> => {
-      const traits = ts.read();
-      const req: NewCampaignInput = { name: name.value, birthDate: birth.read(), startDate: startD.read(), startSecond: readTime(), premise: premise.value, creation: cf.read(), ...(startPick.value ? { start: { optionId: startPick.value, imperialBorn: imperialBorn.checked } } : {}), ...(traits ? { traits } : {}), ...(formative ? { formative } : {}) };
+      const chosen = ts.read();
+      let traits = chosen;
+      let quizTraits: { temperament?: string; scarOrTie?: string } | undefined;
+      if (chosen && accepted && formative && formative !== 'declined') {
+        const sw: { temperament?: string; scarOrTie?: string } = {};
+        const t = { ...chosen };
+        for (const slot of ['temperament', 'scarOrTie'] as const) {
+          const after = accepted.after[slot];
+          if (after && chosen[slot] === after) {
+            t[slot] = accepted.before[slot];
+            sw[slot] = after;
+          }
+        }
+        traits = t;
+        quizTraits = Object.keys(sw).length ? sw : undefined;
+      }
+      const form = formative && formative !== 'declined' ? { answers: formative.answers, ...(quizTraits ? { traits: quizTraits } : {}) } : formative;
+      const req: NewCampaignInput = { name: name.value, birthDate: birth.read(), startDate: startD.read(), startSecond: readTime(), premise: premise.value, creation: cf.read(), ...(startPick.value ? { start: { optionId: startPick.value, imperialBorn: imperialBorn.checked } } : {}), ...(traits ? { traits } : {}), ...(form ? { formative: form } : {}) };
       if (!traits) {
         err.textContent = 'Choose the traits: one origin, one temperament, one scar or tie.';
         return;
@@ -1076,21 +1120,29 @@ export class App {
       const ctx = traitCtx();
       if (q && plan?.events.length && ctx) {
         err.textContent = '';
+        // Begin waits while the quiz runs (m8-fixes G2); the quiz returns to the form, and only Begin starts the campaign.
+        beginBtn.disabled = true;
+        const before = { temperament: traits.temperament, scarOrTie: traits.scarOrTie };
+        const traitName = (id: string | undefined): string => (id ? (TRAIT_BY_ID.get(id)?.name ?? id) : 'none');
         quizBox.replaceChildren(
           quizScreens(plan, {
             seed: q.seed,
             ctx,
             origin: traits.origin,
-            current: { temperament: traits.temperament, scarOrTie: traits.scarOrTie },
+            current: before,
             onDone: (d) => {
-              formative = { answers: d.answers, ...(d.traits ? { traits: d.traits } : {}) };
-              quizBox.replaceChildren(el('p', { class: 'hint', text: 'Formative years done. Beginning...' }));
-              void begin();
+              formative = { answers: d.answers };
+              accepted = d.traits ? { before, after: d.traits } : null;
+              if (d.traits) ts.apply(d.traits);
+              const changes = (['temperament', 'scarOrTie'] as const).filter((k) => d.traits?.[k] && d.traits[k] !== before[k]).map((k) => `${k === 'temperament' ? 'Temperament' : 'Scar or tie'}: ${traitName(before[k])} -> ${traitName(d.traits![k])}`);
+              quizBox.replaceChildren(el('p', { class: 'hint', text: changes.length ? `Formative years done. Changed in the traits above: ${changes.join('; ')}. Check them, then press Begin.` : 'Formative years done. Your traits are kept as chosen. Press Begin when ready.' }));
+              beginBtn.disabled = false;
             },
             onDecline: () => {
               formative = 'declined';
-              quizBox.replaceChildren();
-              void begin();
+              accepted = null;
+              quizBox.replaceChildren(el('p', { class: 'hint', text: 'Formative years skipped. Press Begin when ready.' }));
+              beginBtn.disabled = false;
             },
           }),
         );
@@ -1122,14 +1174,13 @@ export class App {
       el('div', { class: 'field' }, [el('label', { text: 'Start' }), startPick]),
       startNote,
       el('label', { class: 'check' }, [imperialBorn, document.createTextNode(' Imperial-born (a Sith Pureblood outside the Empire must be)')]),
-      el('div', { on: { change: () => ts.refresh() } }, cf.fields),
+      // Any change to the form (war years included, as they are typed) re-checks the traits (m8-fixes D1).
+      el('div', { on: { change: () => ts.refresh(), input: () => ts.refresh() } }, cf.fields),
       ...ts.fields,
       el('div', { class: 'field' }, [el('label', { text: 'Premise' }), premise]),
       err,
       quizBox,
-      el('div', { class: 'row actions' }, [
-        el('button', { text: this.session ? 'Begin (replaces the current campaign)' : 'Begin', on: { click: () => void begin() } }),
-      ]),
+      el('div', { class: 'row actions' }, [beginBtn]),
       ...(devFlag(globalThis.location?.search ?? '') ? this.renderTestStart(name, startD, readTime, err) : []),
     ];
   }

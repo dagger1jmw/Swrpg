@@ -110,6 +110,12 @@ export interface TraitDef {
   /** Eligible as the optional fourth trait (a flaw-heavy one; the reading is in spec/traits.md section 2). */
   flawHeavy?: true;
   gate?: TraitGate;
+  /**
+   * What the character's own creation choices must show (m8-fixes D1; Jared, 26 Nov 2026: War veteran needs war years above 0).
+   * Unlike the gates (path, species, dates), these read the numbers the player sets on the form; an unmet one greys the trait out
+   * with its short reason, and un-ticks it.
+   */
+  requires?: readonly TraitRequirement[];
   rolls?: readonly RollHook[];
   learning?: readonly LearnHook[];
   reactions?: readonly ReactionHook[];
@@ -120,6 +126,19 @@ export interface TraitDef {
   fear?: string;
   /** A tie: the kind of person it links to, and whether a canon figure may stand in where the lore allows. */
   tie?: { who: string; bond: 'bond' | 'rival' | 'debt' | 'patron' | 'family' | 'ward' | 'love' | 'mentor' };
+}
+
+/** A creation number a trait needs (m8-fixes D1): war years, or the age at the start (whole years). */
+export interface TraitRequirement {
+  field: 'warYears' | 'startAge';
+  /** Strictly above this. */
+  above?: number;
+  /** At least this. */
+  atLeast?: number;
+  /** The short reason shown beside a greyed-out trait. */
+  reason: string;
+  /** Who set it: Jared's ruling, or invented. */
+  source: string;
 }
 
 const ALL_FORCE = ['jedi', 'sith', 'outsider'] as const;
@@ -285,7 +304,7 @@ export const TRAITS: readonly TraitDef[] = [
   {
     id: 'warVeteran', name: 'War veteran', kind: 'scar',
     good: '+2 Willpower against fear in battle', bad: 'Nightmares: a little more fatigue; -1 under bombardment', note: 'Has seen the front',
-    gate: { needs: 'war' },
+    requires: [{ field: 'warYears', above: 0, reason: 'needs war years above 0', source: 'Jared, 26 Nov 2026 (m8-fixes D1)' }],
     rolls: [{ situation: 'battleFear', mod: 2 }, { situation: 'bombardment', mod: -1 }],
     fear: 'bombardment',
   },
@@ -328,6 +347,7 @@ export const TRAITS: readonly TraitDef[] = [
   {
     id: 'firstKill', name: 'First kill, young', kind: 'scar', flawHeavy: true,
     good: 'Steadier in a first lethal fight', bad: "Guilt; weighs on a Jedi's alignment", note: 'Remembers the face',
+    requires: [{ field: 'startAge', atLeast: 8, reason: 'needs a start age of 8 or more', source: 'invented (m8-fixes D1)' }],
     rolls: [{ situation: 'firstLethal', mod: 1 }],
     pressure: { guilt: 2 },
   },
@@ -351,6 +371,7 @@ export const TRAITS: readonly TraitDef[] = [
   {
     id: 'oldDebt', name: 'Old debt', kind: 'tie',
     good: 'Start money, gear or a ship', bad: 'A creditor (economy debt rules)', note: 'Someone is owed',
+    requires: [{ field: 'startAge', atLeast: 16, reason: 'needs a start age of 16 or more (a creditor lends to an adult)', source: 'invented (m8-fixes D1)' }],
     gate: { notPaths: ['jedi'] },
     startMoney: 3,
     tie: { who: 'a creditor', bond: 'debt' },
@@ -374,12 +395,14 @@ export const TRAITS: readonly TraitDef[] = [
   {
     id: 'ward', name: 'Ward', kind: 'tie',
     good: '+2 Willpower defending them', bad: 'They can be threatened or taken', note: 'Someone depends on you',
+    requires: [{ field: 'startAge', atLeast: 12, reason: 'needs a start age of 12 or more (someone to look after)', source: 'invented (m8-fixes D1)' }],
     rolls: [{ situation: 'defendWard', mod: 2 }],
     tie: { who: 'a younger sibling or an orphan', bond: 'ward' },
   },
   {
     id: 'forbiddenBond', name: 'Forbidden bond', kind: 'tie', flawHeavy: true,
     good: "Strong motive; Willpower when they're in danger", bad: 'Heavy attachment pressure; must stay secret', note: "A love the Order wouldn't allow",
+    requires: [{ field: 'startAge', atLeast: 14, reason: 'needs a start age of 14 or more', source: 'invented (m8-fixes D1)' }],
     gate: { paths: ['jedi'], needs: 'jediAttachmentRules' },
     rolls: [{ situation: 'lovedOne', mod: 2 }],
     pressure: { attachment: 1.5 },

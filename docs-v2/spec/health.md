@@ -45,6 +45,9 @@ Force meter (replaces Force strain):
     (bypass 1) can make a mortal wound and leave Vitality full. Dying, stabilizing (the mortal wound
     marked stabilized) and healing leave Vitality as it is; it recovers by the rates above. A wound's
     weakness is its wound penalty (section 6), not Vitality.
+  On screen (m8-fixes D2, D-525): the health card shows the active wounds beside the Vitality bar (the worst, and how many
+    more), so a full bar never hides a severe wound. A severe wound capping Vitality until it heals (Jared's and the report's
+    recommendation) waits for the realistic-damage build: it would undo balance row 19.
 
 ## 4. Damage
   Damage D = weapon base * hit quality - armor (minimum 0)

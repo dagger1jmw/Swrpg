@@ -10,7 +10,8 @@ import { seedRng, nextFloat } from '../../engine/rng';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent, HandleResult, InitCtx } from '../../state/types';
 import { selectPresentNpcIds } from '../pacing/selectors';
-import { quizAnswerErrors, quizPlan, scoreQuiz, traitChoiceErrors, type QuizPerson, type TraitHolding } from './rules';
+import { quizAnswerErrors, quizPersonAge, quizPersonKind, quizPlan, readPersonNote, scoreQuiz, traitChoiceErrors, type QuizPerson, type QuizPersonKind, type TraitHolding } from './rules';
+import { planetByName } from '../../data/galaxyMap';
 import { selectQuizInput, selectTraitContext, selectTraitLines } from './selectors';
 import { emptyTraits, traitsSliceSchema, type TraitsSlice } from './traits';
 
@@ -90,12 +91,33 @@ export function traitCreationEvents(s: GameState): GameEvent[] {
     const d = TRAIT_BY_ID.get(h.id);
     if (!d?.tie || !h.tieName) continue;
     const bond = d.tie.bond === 'rival' ? -25 : d.tie.bond === 'debt' ? -5 : 30;
-    out.push(...personEvents(s, h.tieName, d.tie.who, bond, tieRole(d.tie.bond, s.character.path), d.tie.bond === 'patron' || d.tie.bond === 'debt' ? 'independent' : (FACTION_BY_PATH[s.character.path] ?? 'civilian'), d.tie.bond === 'ward' ? Math.max(4, ageNow(s) - 5) : d.tie.bond === 'family' || d.tie.bond === 'patron' || d.tie.bond === 'mentor' ? ageNow(s) + 25 : ageNow(s)));
+    out.push(...personEvents(s, h.tieName, d.tie.who, bond, tieRole(d.tie.bond, s.character.path), d.tie.bond === 'patron' || d.tie.bond === 'debt' ? 'independent' : d.tie.bond === 'family' || d.tie.bond === 'ward' ? 'civilian' : (FACTION_BY_PATH[s.character.path] ?? 'civilian'), d.tie.bond === 'ward' ? Math.max(4, ageNow(s) - 5) : d.tie.bond === 'family' || d.tie.bond === 'patron' || d.tie.bond === 'mentor' ? ageNow(s) + 25 : ageNow(s)));
   }
   return out;
 }
 
 const QUIZ_ROLE: Readonly<Record<string, string>> = { initiate: 'initiate', padawan: 'padawan', sith: 'sithAcolyte', military: 'soldier', street: 'civilian', noble: 'civilian', spacer: 'civilian', anyone: 'civilian' };
+
+/**
+ * A quiz person's role and faction now (m8-fixes G4): someone outside the Order is a civilian; an elder by their words (a sergeant
+ * a soldier, an officer an officer, a Sith Lord, an agent or pirate a criminal, a servant); a peer of the Order's sets is what the
+ * character's age makes them now (an initiate clanmate of a 14-year-old is a Padawan too).
+ */
+function quizPersonPlace(kind: QuizPersonKind, set: string, who: string, path: string, age: number): { role: string; faction: string } {
+  const own = FACTION_BY_PATH[path] ?? 'civilian';
+  if (kind === 'outside') return { role: 'civilian', faction: 'civilian' };
+  if (kind === 'elder') {
+    if (/sergeant/i.test(who)) return { role: 'soldier', faction: own === 'civilian' ? 'republic' : own };
+    if (/officer/i.test(who)) return { role: 'officer', faction: path === 'sith' ? 'sithEmpire' : own === 'civilian' ? 'republic' : own };
+    if (/sith lord/i.test(who)) return { role: 'sithLord', faction: 'sith' };
+    if (/agent|pirate|gang/i.test(who)) return { role: 'criminal', faction: 'underworld' };
+    if (/servant/i.test(who)) return { role: 'servant', faction: 'civilian' };
+    if (/dockmaster/i.test(who)) return { role: 'merchant', faction: 'civilian' };
+    return { role: 'official', faction: 'independent' };
+  }
+  const role = set === 'initiate' && age >= 13 ? 'padawan' : (QUIZ_ROLE[set] ?? 'civilian');
+  return { role, faction: set === 'initiate' || set === 'padawan' ? 'jediOrder' : set === 'sith' ? 'sith' : set === 'military' ? (own === 'civilian' ? 'republic' : own) : 'civilian' };
+}
 
 function handleQuiz(slice: TraitsSlice, e: GameEvent, s: GameState): R {
   if (slice.quiz.status !== 'due') return { reject: slice.quiz.status === 'taken' ? 'the formative quiz was already taken: it is never taken again' : slice.quiz.status === 'never' ? 'this save has no formative quiz' : 'the formative quiz is not due yet (a youngling takes it at the first long skip)' };
@@ -121,8 +143,15 @@ function handleQuiz(slice: TraitsSlice, e: GameEvent, s: GameState): R {
     const name = tieName(`${slice.quiz.seed}:${p.eventId}`, used);
     used.push(name);
     named.push({ ...p, name });
-    const age = Math.max(q.fromAge, Math.min(q.toAge, (ev.ages[0] + ev.ages[1]) / 2));
-    emit.push(...personEvents(s, name, p.who, p.bond, QUIZ_ROLE[ev.set] ?? 'civilian', FACTION_BY_PATH[s.character.path] ?? 'civilian', ageNow(s) - (q.toAge - age) + (p.tie === 'ward' ? -4 : 0)));
+    // The person fits the scene and the tie (m8-fixes G4), at the age they are now (G5); the player's note on that scene is
+    // read for a relation and a homeworld, and kept on the NPC as plain words for the narrator.
+    const kind = quizPersonKind(p);
+    const note = answers.find((a) => a.eventId === p.eventId)?.note?.trim() ?? '';
+    const read = note ? readPersonNote(note, (w) => planetByName(w)?.name ?? null) : {};
+    const who = kind === 'outside' && read.relation ? `${p.who}: their ${read.relation}` : p.who;
+    const { role, faction } = quizPersonPlace(kind, ev.set, p.who, s.character.path, ageNow(s));
+    emit.push(...personEvents(s, name, who, p.bond, role, faction, quizPersonAge(kind, ageNow(s), read)));
+    if (note || read.relation || read.homeworld) emit.push({ type: 'npcBackgroundSet', npcRef: name, ...(read.relation ? { relation: read.relation } : {}), ...(read.homeworld ? { homeworld: read.homeworld } : {}), ...(note ? { playerNote: note.slice(0, 200) } : {}) });
   }
   let held = [...slice.held];
   const history = [...slice.history];
@@ -149,7 +178,9 @@ function handleQuiz(slice: TraitsSlice, e: GameEvent, s: GameState): R {
       if (tieN && !link) {
         used.push(tieN);
         const d = TRAIT_BY_ID.get(id)!;
-        emit.push(...personEvents(s, tieN, d.tie!.who, d.tie!.bond === 'rival' ? -25 : 30, tieRole(d.tie!.bond, s.character.path), FACTION_BY_PATH[s.character.path] ?? 'civilian', ageNow(s)));
+        // Family and wards are outside the Order (m8-fixes G4), at a sensible age.
+        const fam = d.tie!.bond === 'family' || d.tie!.bond === 'ward';
+        emit.push(...personEvents(s, tieN, d.tie!.who, d.tie!.bond === 'rival' ? -25 : 30, tieRole(d.tie!.bond, s.character.path), fam ? 'civilian' : (FACTION_BY_PATH[s.character.path] ?? 'civilian'), d.tie!.bond === 'ward' ? Math.max(4, ageNow(s) - 5) : d.tie!.bond === 'family' ? ageNow(s) + 5 : ageNow(s)));
       }
       held.push({ id, since: day, source: 'quiz', ...(tieN ? { tieName: tieN } : {}) });
       history.push({ day, change: old ? 'replaced' : 'added', id, why: old ? `the formative quiz's suggestion, in place of ${TRAIT_BY_ID.get(old)?.name ?? old}` : "the formative quiz's suggestion" });

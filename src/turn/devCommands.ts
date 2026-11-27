@@ -129,6 +129,17 @@ const squash = (x: string): string => x.toLowerCase().replace(/[^a-z0-9]+/g, '')
 /** True when the text is a dev command (the chat box sends it here, not to the intent call, in dev mode). */
 export const isDevCommand = (text: string): boolean => /^\/[a-z]/i.test(text.trim());
 
+/**
+ * Where typed text goes (m8-fixes E3): anything starting with "/" is a command and never reaches Gemini. Outside dev mode it is
+ * refused on screen; in dev mode it runs in code, and an unknown one answers "Unknown command" with the list.
+ */
+export function slashRoute(text: string, devMode: boolean): 'story' | 'refuse' | 'dev' {
+  if (!text.trim().startsWith('/')) return 'story';
+  return devMode ? 'dev' : 'refuse';
+}
+/** The on-screen refusal outside dev mode (m8-fixes E3). */
+export const COMMANDS_NEED_DEV = 'Commands need dev mode. Nothing was sent.';
+
 /** A skill id from the player's words: the id, or the skill's name ("Force Push", "shii-cho"). */
 export function skillFromWords(words: string): string | null {
   const q = squash(words);
@@ -613,7 +624,7 @@ export function runDevCommand(registry: Registry<GameState>, initial: GameState,
     }
 
     default:
-      return out(false, `unknown command /${cmd}. Commands:\n${DEV_HELP.join('\n')}`);
+      return out(false, `Unknown command /${cmd}. Commands:\n${DEV_HELP.join('\n')}`);
   }
 }
 

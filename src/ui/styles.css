@@ -450,6 +450,7 @@ label.check { display: flex; gap: var(--pad-s); align-items: center; margin: var
 .hc-vital .vbar { height: 8px; }
 .hc-label { color: var(--muted); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em; }
 .hc-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hc-wound { grid-column: 2 / -1; color: var(--bad); font-size: var(--fs-s); }
 .hc-list { display: flex; flex-direction: column; gap: 2px; }
 .card.health .wound { font-size: 0.9rem; }
 .card.health .wound.lasting { color: var(--warn); }
@@ -514,3 +515,15 @@ button.act.risky { border: 1px solid var(--bad); }
 .battle .battle-go { display: flex; gap: 6px; margin-top: 6px; }
 .battle .battle-log { margin: 4px 0; }
 .battle .duel-body > * { flex-shrink: 0; }
+
+/* The ground-battle planning step (m8-fixes F; for Jared to judge): its own layout, the page's height, sections that fold away.
+   The combat panel keeps its compact layout. To go back, set PLANNING_LAYOUT to 'compact' in ui/groundPanel.ts. */
+.planning-full { flex: 1 1 0; min-height: 0; }
+.main.planning .feed { flex: 0 1 auto; max-height: 22vh; min-height: 4rem; }
+.planning-body { display: flex; flex-direction: column; gap: 8px; padding: var(--pad-s) var(--pad); }
+.planning-body > * { flex-shrink: 0; }
+.plan-fold { border: 1px solid var(--line); border-radius: var(--r-inner); padding: 0 var(--pad-s); }
+.plan-fold > summary { cursor: pointer; min-height: var(--touch); display: flex; align-items: center; font-weight: 600; }
+.plan-fold-body { display: flex; flex-direction: column; gap: 6px; padding: 0 0 var(--pad-s); }
+.plan-fold-body select { max-width: 100%; }
+.plan-fold-body .battle-known > div { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }

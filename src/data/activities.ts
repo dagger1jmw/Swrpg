@@ -255,7 +255,9 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   act('styleTraining', 'Melee style training', 'career', P, 'standard', fixed('melee'), { strength: 0.4, agility: 0.4, endurance: 0.2 }, [{ kind: 'styleSource' }], { style: true }),
   // The Korriban acolyte's martial class with the warblade (D-427, ranks §1a): Shii-Cho basics with a Melee weight
   // (m8-skills: the Jedi and Sith curricula get a Melee weight; invented 0.2).
+  // m8-fixes G6: the Korriban Academy's class, so the Sith path's (the Train list offered it to a Jedi Padawan).
   act('warbladeTraining', 'Warblade training (Korriban)', 'forms', S, 'standard', fixed('shiiCho'), { strength: 0.4, agility: 0.3, endurance: 0.2, forceControl: 0.15, melee: 0.2 }, [
+    { kind: 'path', paths: ['sith'] },
     { kind: 'supervisedOrLevel', skill: 'shiiCho', min: 15 },
   ]),
 ];

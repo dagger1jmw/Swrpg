@@ -16,7 +16,7 @@ import { selectNpc, selectNpcLevel, selectNpcs } from '../npcs/selectors';
 import { uniqueAliasMatch } from '../../engine/aliases';
 import { selectPresentNpcIds } from '../pacing/selectors';
 import { selectLevelExact, selectPerformance } from '../progression/selectors';
-import { selectKnownTactics } from '../tactics/selectors';
+import { selectKnownTactics, selectSeenTactics } from '../tactics/selectors';
 import { selectDuelTier } from '../world/selectors';
 import { buildMap, defaultPlan, deployEnemy, enemyPlan, gridSize, unitsFromWords, type GLeader, type GroundPlanning, type GroundRole, type GSide } from './ground';
 import { opposite, playerFaction, troopsFor, yearOf } from './setup';
@@ -103,10 +103,14 @@ function leaderOf(s: GameState, id: string): GLeader | null {
   return { name: n.name, npcId: n.id, tactics: selectNpcLevel(s, n.id, 'tactics'), forceUser: fu, tier: n.role === 'jediMaster' || n.role === 'sithLord' ? 'master' : 'below' };
 }
 
-/** The ground manoeuvres the character knows, with what any commander can order (data/groundCommand.config.ts). */
-export function knownGround(s: GameState, commanding: boolean): string[] {
+/**
+ * The ground manoeuvres the character may order: the one list's known ones (what anyone can order is in it since m8-fixes B1), then
+ * the seen ones, not practised, ordered at a penalty (B4).
+ */
+export function knownGround(s: GameState): { known: string[]; seenOnly: string[] } {
   const known = [...selectKnownTactics(s)].filter((t) => TACTIC_PLAN[t]);
-  return [...new Set([...known, ...(commanding ? GROUND_COMMAND_BASICS : [])])];
+  const seenOnly = [...selectSeenTactics(s)].filter((t) => TACTIC_PLAN[t] && !known.includes(t));
+  return { known, seenOnly };
 }
 
 /** What an NPC side's commanders know by its kind (readings, invented): armies the officer's set, irregulars their own fighting. */
@@ -164,7 +168,8 @@ export function planningFromProposal(s: GameState, p: GroundProposal, id: string
     deploy,
   };
   const weather: Weather = p.weather && p.weather in WEATHER ? p.weather : 'clear';
-  const known = knownGround(s, role === 'commander');
+  const mineT = knownGround(s);
+  const known = [...mineT.known, ...mineT.seenOnly];
   // A leader or a soldier fights under the NPC commander's plan: the plan is made from what an army's officers know.
   const planKnows = role === 'commander' ? known : enemyGroundKnowledge('navy');
   const atPost = role === 'commander' ? defaultAtPost(s) : false;
@@ -178,7 +183,8 @@ export function planningFromProposal(s: GameState, p: GroundProposal, id: string
     meditation: selectLevelExact(s, 'meditation'),
     canMeditate,
   };
-  const base = { map, ours, known: planKnows, defending, role, atPost, weather };
+  // The suggested plan uses only what the planner truly knows (never a seen tactic's penalty by default).
+  const base = { map, ours, known: role === 'commander' ? mineT.known : planKnows, defending, role, atPost, weather };
   // A leader or a soldier fights under the NPC commander's plan; a commander starts from a suggestion and changes it.
   const plan = defaultPlan(base, role !== 'soldier' && !atPost);
   return {
@@ -202,6 +208,7 @@ export function planningFromProposal(s: GameState, p: GroundProposal, id: string
       leaders,
       me,
       known,
+      seenOnly: mineT.seenOnly,
       planKnows,
       enemyKnows,
     },

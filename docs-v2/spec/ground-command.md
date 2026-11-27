@@ -26,7 +26,7 @@ Code:
 ## 3. The plan (set in the planning scene, then fixed)
 
 - **Objectives:** a primary and an optional secondary, from the front positions.
-- **The manoeuvre:** from the ground tactics the character knows (ship-life section 10), plus what any commander can order (a frontal assault, a fighting withdrawal; a reading). Matchups as built (`PLAN_BEATS`, D-505).
+- **The manoeuvre:** from the character's one list of tactics (ship-life section 10; m8-fixes D-524): the known ground tactics (what any commander can order, a frontal assault and a fighting withdrawal, is in every list), then the seen ones, not practised, at -2 on the side's sector rolls. The suggested plan uses only known ones. Matchups as built (`PLAN_BEATS`, D-505).
 - **Sectors:** which unit goes to which position, and who leads each: the player (not from the post), an NPC present (their Tactics; a Jedi or Sith raises morale there), or the unit's own officers (the troops' quality).
 - **Support:** artillery, armour and air, each given to a sector where the force has a free unit of that kind (air not in a storm or fog).
 - **A reserve** to commit later.
@@ -45,12 +45,14 @@ Code:
 - **Known sites take their features from the lore files** (Jared): Ruusan (1,002-1,000 BBY: the Jedi's forest the Brotherhood set ablaze, the plains the Jedi were driven onto, Hoth's caves, the thought bomb's valley, the Brotherhood's camp), Geonosis (22-19 BBY: the Petranaki arena, the droid foundries, Point Rain), Jabiim (22-19 BBY: Cobalt Station, the mines, the Nationalists' stronghold). The features are the lore's; where they sit on the grid is invented, and so are the extras marked so.
 - **Elsewhere the narrator proposes them** (the details line's `terrain:`), read to features and placed on the grid by the seed, **tagged invented** on the key; with no words, the code's own few (a low ridge, a stand of woods, a fortified outpost), invented too. They stay fixed once shown (saved with the scene).
 - **Redrawn only when something changes:** after each phase and after a personal fight.
+- **The player's place** (m8-fixes C4, D-525): beginning the battle moves the player to its site (a map world the site names becomes its parent, else the world they are on); while it runs the narrator cannot move them; a battle lost or withdrawn from takes them back to the base they planned from, a field won or held keeps them on it.
 
 ## 6. The battle
 
 - **Phases of 1.5 hours** (D-505), at most 12 (18 hours). Each phase: the player's orders (section 7), the player's own fight in their sector, the **commanders' Tactics roll** (the player's when they command, else the NPC commander's, against the enemy's: +1 to the winner's side for each 4 of margin, at most 2; out of contact it does not reach the sectors), weather, then the engine's sector rolls: plans, units, support, terrain, morale (bond or fear), battle meditation, Force users at the front and the player's own fight, as built.
 - **Breakthroughs and morale** as built (D-505); the lines say whose line broke. A sector leader caught in a rout or a collapse may fall (named NPCs die; canon figures never, by the tag-map rules); the player in a sector that routs or collapses round them takes a hazard (an explosion, severity 1 or 2).
 - **The player chooses each phase:** change the manoeuvre (the commander, known tactics only), commit the reserve, fall back from their own sector (when they lead it), fight it out in person (anyone at the front; someone in the line fights in the first sector of the plan), withdraw (the commander); or "Next phase" with the plan as it stands. **"Let it play out"** (Jared) plays up to three phases on the plan, stopping at a big moment, and goes on by itself until the player takes control back.
+- **The phase lines** (m8-fixes C1, C2, D-525): one function (`phaseLine`) writes each sector's line from the same record as the track's movement: every result code in words (no code reaches the screen), the direction the track moved (a strike to its striker), and the player's own fight in the same sentence.
 - **Narration** (Jared, as the ship battles): ordinary phases are the code's own lines (no AI call); the start, the big moments (a position taken, a rout, a sector collapsing, a leader or the meditator killed, a contingency) and the end go to the narrator in the BATTLE block. The narrate-every-turn setting (now "every battle turn, ship or ground") sends every phase.
 - **Saved whole:** the planning scene and the battle live in the battles slice; a game saved mid-battle loads into the same phase, and the same orders give the same phase (tested).
 
@@ -80,7 +82,7 @@ Item 11 stays story-only. When it is built, a posting hooks in at three places: 
 
 ## 11. Readings for Jared
 
-- **What any commander can order** on the ground without training: a frontal assault and a fighting withdrawal (as the fleet's line and brawl).
+- **What any commander can order** on the ground without training: a frontal assault and a fighting withdrawal (as the fleet's line and brawl). Since m8-fixes (D-524) these are in every character's list, so the Tactics tab shows them.
 - **Who plans:** army officers of every rung (the design notes' "every scale"), naval officers from captain (landing forces), Jedi Knights and Masters, Sith Lords. Padawans and acolytes lead a sector unless the story hands them command.
 - **The commanders' Tactics roll** each phase is the reading of "the commander's Tactics roll" in the brief; sector rolls still use each sector leader's Tactics or the troops' quality (D-505).
 - **Known sites:** the lore gives the features, not their layout; the grid squares are invented. Jabiim's lore names no terrain, only places (Cobalt Station, the mines); its "churned ground" is invented and marked so.
@@ -100,7 +102,8 @@ Item 11 stays story-only. When it is built, a posting hooks in at three places: 
 | Scouting: 3 tries, an hour each, DC 13, recon units +3, 2 squares + 1 for each 3 of margin, the plan at +3, seen at -5 | `SCOUTING` |
 | A sector losing: the track at -2 | `FALLING_AT` |
 | Contingency triggers and actions (the kinds) | `CONTINGENCY_TRIGGERS`, `CONTINGENCY_ACTIONS` |
-| What any commander can order: a frontal assault, a fighting withdrawal | `GROUND_COMMAND_BASICS` |
+| What any commander can order: a frontal assault, a fighting withdrawal (in every list since D-524) | `GROUND_COMMAND_BASICS` = `COMMON_GROUND` |
+| A seen manoeuvre ordered at -2; learned when its phase is won on balance (m8-fixes B, D-524) | `SEEN_TACTIC_PENALTY`, `stepGround` |
 | NPC manoeuvres for holding and for attacking; an NPC side's knowledge by kind | `DEFENDING_PLANS`, `ATTACKING_PLANS`, `enemyGroundKnowledge` |
 | Enemy deployment: objectives first, a quarter of units to the first target; an attacker's targets by manoeuvre | `deployEnemy` |
 | Changes without contact: a phase late, -1; improvising at bond 60 | `CHANGE` |

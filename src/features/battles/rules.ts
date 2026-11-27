@@ -25,7 +25,7 @@ import {
 } from '../../data/shipBattles.config';
 import { BREAK_UP, DOGFIGHT, FLEET, FORMATIONS, FORMATION_BEATS, FORMATION_LABEL, MANOEUVRE, MANOEUVRES, PLANNED_CHANGES, REPAIR_DC, ROUND_MINUTES, TURN_SECONDS, type Formation, type Manoeuvre, type ShipSystem } from '../../data/shipCombat.config';
 import type { Facing } from '../../data/ships';
-import { COMMAND_BASICS } from '../../data/tactics';
+import { COMMAND_BASICS, SEEN_TACTIC_PENALTY } from '../../data/tactics';
 
 // ---- the battle ----
 
@@ -131,7 +131,16 @@ export interface Battle {
    * or seen: the +1 of a known enemy formation), what the enemy's pilots and commanders know, and what each side was seen to
    * use (recorded at the end). Absent in battles saved before it: everything open, as before.
    */
-  tactics?: { known: string[]; recognised: string[] };
+  tactics?: {
+    known: string[];
+    recognised: string[];
+    /** Seen, not practised (m8-fixes B4): in `known` for the menus, flown at -SEEN_TACTIC_PENALTY. Absent in battles saved before. */
+    seenOnly?: string[];
+    /** Seen tactics the player used successfully here: known at the end (m8-fixes B3b). */
+    learned?: string[];
+    /** Every tactic the player chose here (the battle record keeps it; old saves read it, B6). */
+    used?: string[];
+  };
   enemyTactics?: string[];
   seenUsed?: { enemy: string[]; ally: string[] };
   xp: BattleXp;
@@ -504,8 +513,29 @@ function earlyEvacOption(b: Battle): MenuOption[] {
 }
 
 /** The tactics menu for this turn or round. */
-/** The player knows this tactic (old battles without the record: everything is open). */
-export const knows = (b: Battle, id: string): boolean => !b.tactics || id === 'fly' || b.tactics.known.includes(id) || (COMMAND_BASICS.includes(id) && b.role === 'commander');
+/**
+ * The player may fly this tactic: known, or seen and not practised (at a penalty). The list is the character's own (m8-fixes B1);
+ * a battle saved before it (no `seenOnly`) still opens the basics to a commander, as it did. Old battles without the record: all.
+ */
+export const knows = (b: Battle, id: string): boolean => !b.tactics || id === 'fly' || b.tactics.known.includes(id) || (b.tactics.seenOnly === undefined && COMMAND_BASICS.includes(id) && b.role === 'commander');
+/** A seen tactic, not practised (m8-fixes B4). */
+const seenOnly = (b: Battle, id: string | undefined): boolean => !!id && (b.tactics?.seenOnly ?? []).includes(id);
+const SEEN_MOD = { source: 'a tactic seen, not practised', value: -SEEN_TACTIC_PENALTY };
+/** The player chose this tactic: kept in `used`; a seen one that went well is learned (m8-fixes B3b). */
+function usedTactic(b: Battle, id: string | undefined, wentWell: boolean): Battle {
+  if (!id || id === 'fly' || !b.tactics) return b;
+  const used = b.tactics.used ?? [];
+  const learned = b.tactics.learned ?? [];
+  const learn = wentWell && seenOnly(b, id) && !learned.includes(id);
+  return { ...b, tactics: { ...b.tactics, used: used.includes(id) ? used : [...used, id], ...(learn ? { learned: [...learned, id] } : {}) } };
+}
+/** The menu marks a seen tactic's option with its penalty. */
+function markSeen(b: Battle, opts: MenuOption[]): MenuOption[] {
+  return opts.map((o) => {
+    const id = o.orders.manoeuvre ?? o.orders.approach ?? o.orders.formation;
+    return seenOnly(b, id) ? { ...o, cost: [o.cost, `seen, not practised: -${SEEN_TACTIC_PENALTY}`].filter(Boolean).join('; ') } : o;
+  });
+}
 const npcMay = (b: Battle, id: string): boolean => !b.enemyTactics || id === 'fly' || b.enemyTactics.includes(id);
 const seen = (b: Battle, who: 'enemy' | 'ally', id: string | undefined): Battle => {
   if (!id || id === 'fly') return b;
@@ -520,11 +550,11 @@ export function battleMenu(b: Battle): BattleMenu {
     known.push(`${e.name}: ${shipClass(e.classId).name}; ${shieldsText(e)}`);
     if (b.queue.length) known.push(`${b.queue.length} more waiting`);
     const mine = b.dog.a.ship;
-    return { title: 'Dogfight', now: `${{ onTail: 'On their tail', tailed: 'They are on your tail', ahead: 'You have the edge', behind: 'They have the edge', headOn: 'Head-on', brokenOff: 'Apart' }[positionOf(b.dog)]} · range ${b.dog.range} · your ship: ${shieldsText(mine)}`, known, options: [...dogfightOptions(b, b.dog), ...earlyEvacOption(b)], watching: false };
+    return { title: 'Dogfight', now: `${{ onTail: 'On their tail', tailed: 'They are on your tail', ahead: 'You have the edge', behind: 'They have the edge', headOn: 'Head-on', brokenOff: 'Apart' }[positionOf(b.dog)]} · range ${b.dog.range} · your ship: ${shieldsText(mine)}`, known, options: markSeen(b, [...dogfightOptions(b, b.dog), ...earlyEvacOption(b)]), watching: false };
   }
   if (b.run) {
     known.push(`${b.run.target.name}: ${shipClass(b.run.target.classId).name}; ${shieldsText(b.run.target)}`);
-    return { title: 'Attack run', now: `${['Long range', 'Medium range', 'Close', 'Under the guns'][b.run.step]} · your ship: ${shieldsText(b.run.flyer.ship)}`, known, options: runOptions(b.run).filter((o) => o.group !== 'approach' || knows(b, o.orders.approach ?? 'pass')), watching: false };
+    return { title: 'Attack run', now: `${['Long range', 'Medium range', 'Close', 'Under the guns'][b.run.step]} · your ship: ${shieldsText(b.run.flyer.ship)}`, known, options: markSeen(b, runOptions(b.run).filter((o) => o.group !== 'approach' || knows(b, o.orders.approach ?? 'pass'))), watching: false };
   }
   const f = b.fleet!;
   for (const s of f.b.ships.filter(inFight)) known.push(`${s.name} (${shipClass(s.classId).name}): ${damageState(s)}`);
@@ -534,7 +564,7 @@ export function battleMenu(b: Battle): BattleMenu {
   else known.push('their formation: not known (scouts or sensor ships would show it)');
   const now = `Round ${f.round} · ${FORMATION_LABEL[formationNow(f.a)]}${f.a.reform ? ` (reforming, ${f.a.reform.rounds} round${f.a.reform.rounds === 1 ? '' : 's'})` : ''} · range ${f.range}`;
   if (fliesInFleet(b) && !b.out) return { title: 'Fleet battle: your engagement', now, known, options: engageOptions(b), watching: false };
-  if (commanding(b)) return { title: 'Fleet battle: your command', now, known, options: [...fleetOptions(f).filter((o) => o.group !== 'formation' || knows(b, o.orders.formation ?? 'exchange')), ...earlyEvacOption(b)], watching: false };
+  if (commanding(b)) return { title: 'Fleet battle: your command', now, known, options: markSeen(b, [...fleetOptions(f).filter((o) => o.group !== 'formation' || knows(b, o.orders.formation ?? 'exchange')), ...earlyEvacOption(b)]), watching: false };
   return { title: b.out ? 'Fleet battle: it goes on without you' : `Fleet battle: under ${b.player.commander.name}`, now, known, options: earlyEvacOption(b), watching: true };
 }
 
@@ -620,11 +650,16 @@ function dogStep(w: Work, o: BattleOrders): void {
   const raw = autoDogOrders(d, 'B');
   const theirs = raw.manoeuvre && !npcMay(b, raw.manoeuvre) ? { ...raw, manoeuvre: (MANOEUVRE[raw.manoeuvre].use === 'defensive' && npcMay(b, 'break') ? 'break' : 'fly') as Manoeuvre } : raw;
   const spotted = theirs.manoeuvre && theirs.manoeuvre !== 'fly' && b.tactics?.recognised.includes(theirs.manoeuvre);
-  const dd = spotted ? { ...d, a: { ...d.a, modifiers: [...(d.a.modifiers ?? []), { source: 'recognised their manoeuvre', value: FLEET.intel }] } } : d;
+  // A manoeuvre only seen, not practised, flies at a penalty (m8-fixes B4).
+  const seenMove = b.role === 'pilot' && seenOnly(b, mine.manoeuvre);
+  const turnMods = [...(spotted ? [{ source: 'recognised their manoeuvre', value: FLEET.intel }] : []), ...(seenMove ? [SEEN_MOD] : [])];
+  const dd = turnMods.length ? { ...d, a: { ...d.a, modifiers: [...(d.a.modifiers ?? []), ...turnMods] } } : d;
   const turned = dogfightTurn(dd, mine, theirs);
-  const next = spotted ? { ...turned, a: { ...turned.a, modifiers: d.a.modifiers ?? [] } } : turned;
+  const next = turnMods.length ? { ...turned, a: { ...turned.a, modifiers: d.a.modifiers ?? [] } } : turned;
   b = seen(b, 'enemy', theirs.manoeuvre);
   const t = next.log[next.log.length - 1]!;
+  // The player's own choice (m8-fixes B3b): a seen manoeuvre that won the position roll is learned.
+  if (b.role === 'pilot') b = usedTactic(b, mine.manoeuvre, t.margin > 0);
   w.seconds += TURN_SECONDS;
   // XP lines: the player's own rolls (D-513 gunnery; piloting as field use).
   if (b.role === 'pilot') b = { ...b, xp: { ...b.xp, piloting: [...b.xp.piloting, d.b.ship.crew.piloting - d.a.ship.crew.piloting] } };
@@ -741,9 +776,15 @@ function fleetStep(w: Work, o: BattleOrders, ctx?: StepCtx): void {
   const theirF = f.b.reform ? 'brawl' : formationNow(f.b);
   const intel0 = f.a.intel;
   if (!intel0 && b.tactics?.recognised.includes(theirF)) f = { ...f, a: { ...f.a, intel: true } };
+  // A formation only seen, not practised, is held at a penalty (m8-fixes B4); the player's own formation counts as used.
+  const myF = commanding(b) ? (mine.change ?? formationNow(f.a)) : null;
+  const pen = myF !== null && seenOnly(b, myF);
+  if (pen) f = { ...f, a: { ...f.a, modifiers: [...f.a.modifiers, SEEN_MOD] } };
   const before = f;
-  const rolled = fleetRound(f, mine, autoFleetOrders(f, 'B'));
+  const rolled0 = fleetRound(f, mine, autoFleetOrders(f, 'B'));
+  const rolled = pen ? { ...rolled0, a: { ...rolled0.a, modifiers: rolled0.a.modifiers.filter((m) => m !== SEEN_MOD && m.source !== SEEN_MOD.source) } } : rolled0;
   const next = rolled.a.intel === intel0 ? rolled : { ...rolled, a: { ...rolled.a, intel: intel0 } };
+  if (myF !== null) b = usedTactic(b, myF, (next.log[next.log.length - 1]?.margin ?? 0) > 0);
   b = seen(b, 'enemy', theirF);
   if (!commanding(b)) b = seen(b, 'ally', formationNow(f.a));
   const rec = next.log[next.log.length - 1]!;
@@ -958,8 +999,14 @@ function runStep(w: Work, o: BattleOrders): void {
     return endEngagement(w, false);
   }
   const ro = runOrdersOf(o);
-  const next = runTurn(r, ro);
+  // An approach only seen, not practised, flies at a penalty (m8-fixes B4).
+  const approach = runApproach(r, ro);
+  const pen = seenOnly(w.b, approach);
+  const run0 = pen ? { ...r, flyer: { ...r.flyer, modifiers: [...(r.flyer.modifiers ?? []), SEEN_MOD] } } : r;
+  const ran = runTurn(run0, ro);
+  const next = pen ? { ...ran, flyer: { ...ran.flyer, modifiers: r.flyer.modifiers ?? [] } } : ran;
   const t = next.log[next.log.length - 1]!;
+  w.b = usedTactic(w.b, approach, !!t.strike && (t.strike.toHull > 0 || !!t.strike.system));
   w.seconds += TURN_SECONDS;
   w.b = { ...w.b, run: next, turnsThisRound: w.b.turnsThisRound + 1, xp: { ...w.b.xp, piloting: [...w.b.xp.piloting, r.target.crew.gunnery - r.flyer.ship.crew.piloting], gunnery: t.strike ? [...w.b.xp.gunnery, t.strike.margin] : w.b.xp.gunnery } };
   const label = { pass: 'A strafing pass', skim: 'Skimming the hull', trench: 'Down the trench' }[runApproach(r, ro)];

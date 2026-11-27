@@ -54,6 +54,15 @@ export function selectBattleLines(s: GameState): string[] {
 export const selectGroundPlanning = (s: GameState): GroundPlanning | null => (slice(s)?.planning as GroundPlanning | null | undefined) ?? null;
 export const selectGroundBattle = (s: GameState): GroundState | null => (slice(s)?.ground as GroundState | null | undefined) ?? null;
 export const selectLastGround = (s: GameState): GroundState | null => (slice(s)?.lastGround as GroundState | null | undefined) ?? null;
+/**
+ * The wrap-up of a battle that ended on the turn just played (m8-fixes C3): shown once, cleared by the next turn, and never while
+ * another battle or a planning scene is on (the side panel shows only the battle that is running).
+ */
+export function selectEndedBattleToShow(s: GameState): 'ship' | 'ground' | null {
+  const sl = slice(s);
+  if (!sl?.ended || selectActiveBattle(s) !== null || selectGroundBattle(s) !== null || selectGroundPlanning(s) !== null) return null;
+  return sl.ended.turn === s.meta.turn ? sl.ended.kind : null;
+}
 /** A ship or ground battle is being fought: the battle panel holds the turn's choices. */
 export const selectInBattle = (s: GameState): boolean => selectActiveBattle(s) !== null || selectGroundBattle(s) !== null;
 /** The ground battle waits on the player's personal fight in their sector. */

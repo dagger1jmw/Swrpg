@@ -14,11 +14,12 @@ import { basicRoll } from '../../engine/rolls';
 import { patchSystem, shipClass, systemState } from '../../engine/ships';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule, GameEvent, HandleResult } from '../../state/types';
-import { selectNow } from '../clock/selectors';
+import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { selectPerformance } from '../progression/selectors';
 import { selectCaptivity, selectFightSecurity } from '../world/selectors';
 import { selectNpc } from '../npcs/selectors';
-import { selectKnownTactics, selectRecognisedTactics } from '../tactics/selectors';
+import { selectKnownTactics, selectRecognisedTactics, selectSeenTactics } from '../tactics/selectors';
+import { backTo, groundSiteEvents, heldBy, moveToPlace, shipSiteEvents } from './location';
 import { npcTactics } from '../tactics';
 import { SHIP_RENOWN } from '../../data/shipLife.config';
 import { selectPresentNpcIds } from '../pacing/selectors';
@@ -29,7 +30,7 @@ import { boardingFought, buildBattle, commandSize, isMajor, knows, outcomeOf, pl
 import { selectBattleLines } from './selectors';
 import { blockadeById, opposite, parseProposal, playerFaction, setupFromBlockade, setupFromProposal, troopsFor, yearOf, type Proposal } from './setup';
 import { CONTINGENCY_ACTIONS, CONTINGENCY_TRIGGERS, GROUND_BATTLE_MORALE, GROUND_MAJOR_UNITS, GROUND_SIZE_BY_UNITS, MEN_PER_UNIT } from '../../data/groundCommand.config';
-import { beginGround, drawMap, groundFightFought, lossShare, objectivesHeld, playOutGround, scout, stepGround, tacticOfPlan, type GroundCtx, type GroundOrders, type GroundPlan, type GroundPlanning, type GroundState, type GroundStep } from './ground';
+import { beginGround, drawMap, GROUND_END_WORDS, groundFightFought, lossShare, objectivesHeld, playOutGround, scout, stepGround, tacticOfPlan, type GroundCtx, type GroundOrders, type GroundPlan, type GroundPlanning, type GroundState, type GroundStep } from './ground';
 import { planningFromProposal, playerCombat, proposalFromWords, scoutLevel } from './groundSetup';
 
 type R = HandleResult<BattlesSlice>;
@@ -147,6 +148,7 @@ function conclude(slice: BattlesSlice, s: GameState, b: Battle): { slice: Battle
     captured: b.tally.captured,
     evacuated: b.tally.evacuated,
     fighters: b.tally.fighters,
+    ...(b.tactics?.used?.length ? { tacticsUsed: b.tactics.used.slice(0, 40) } : {}),
     casualties: { player: casualties(b, 'player'), enemy: casualties(b, 'enemy') },
     morale,
     leftCrew: b.leftCrew,
@@ -171,9 +173,17 @@ function conclude(slice: BattlesSlice, s: GameState, b: Battle): { slice: Battle
   else delete ships[b.ownShipId];
   const after = aftermath(b, s, s.meta.rngState);
   emit.push(...after.emit);
+  // Where the player ends up (m8-fixes C4): held by the enemy, picked up by their own side, or still aboard their ship.
+  if (after.emit.some((x) => x.type === 'captivityBegan') || b.end?.reason === 'captured' || b.left === 'captured') emit.push(...heldBy(s, b.enemy.name));
+  else if (b.left === 'abandoned' || b.left === 'ejected' || b.left === 'disabled' || b.left === 'evacuatedEarly') {
+    const rescuer = b.fleet?.a.ships.find((x) => x.id !== b.ownShipId && !x.destroyed && !x.gone);
+    emit.push(...(rescuer ? shipSiteEvents(s, rescuer.name, b.placeName) : moveToPlace(s, b.placeName, 'other', 'where the character was picked up after the battle')));
+  }
   // What each side was seen to use: the character recognises it from now on (m8-ship-life part G).
   if (b.seenUsed?.enemy.length) emit.push({ type: 'tacticsSeen', ids: b.seenUsed.enemy, by: 'enemy' });
   if (b.seenUsed?.ally.length) emit.push({ type: 'tacticsSeen', ids: b.seenUsed.ally, by: 'ally' });
+  // A seen tactic used successfully here is known now (m8-fixes B3b).
+  if (b.tactics?.learned?.length) emit.push({ type: 'tacticsLearned', ids: b.tactics.learned, source: 'used successfully in battle' });
   // The character's own ship (the ships feature): lost with the battle, or renown from a battle won in it.
   const owned = (s as { ships?: { ships: Record<string, unknown> } }).ships?.ships[b.ownShipId];
   if (owned) {
@@ -193,6 +203,7 @@ function conclude(slice: BattlesSlice, s: GameState, b: Battle): { slice: Battle
       active: null,
       last: b,
       history: [...slice.history, record].slice(-30),
+      ended: { kind: 'ship' as const, turn: selectTurnInPlay(s) },
       ships,
       lastShipId: cond ? cond.id : slice.lastShipId === b.ownShipId ? null : slice.lastShipId,
       reputation: b.leftCrew ? [...slice.reputation, { day, crew: (b.fleet?.a.ships.find((x) => x.id === b.ownShipId)?.name ?? 'the crew').slice(0, 80), side: b.player.faction, kind: 'abandonedCrew' as const }].slice(-50) : slice.reputation,
@@ -283,9 +294,14 @@ function blocked(s: GameState): string | null {
 function start(slice: BattlesSlice, made: { setup: Parameters<typeof buildBattle>[0] } | { reject: string }, s: GameState): R {
   if ('reject' in made) return { reject: made.reject };
   // Tactics as knowledge (m8-ship-life part G): what the player knows and recognises, and what the enemy's crews know.
-  const b = { ...buildBattle(made.setup), tactics: { known: [...selectKnownTactics(s)], recognised: [...selectRecognisedTactics(s)] }, enemyTactics: [...npcTactics(made.setup.enemy.kind)], seenUsed: { enemy: [], ally: [] } };
+  // The character's one list (m8-fixes B1): known tactics, and seen ones flown at a penalty (B4).
+  const seenOnly = [...selectSeenTactics(s)];
+  const b = { ...buildBattle(made.setup), tactics: { known: [...selectKnownTactics(s), ...seenOnly], recognised: [...selectRecognisedTactics(s)], seenOnly, learned: [], used: [] }, enemyTactics: [...npcTactics(made.setup.enemy.kind)], seenUsed: { enemy: [], ally: [] } };
   const line = `${b.kind === 'fleet' ? 'Fleet battle' : 'Dogfight'} begins: ${b.player.name} against ${b.enemy.name} (${b.role}${b.forceId ? ', a standing force' : ''}).`;
-  return { slice: { ...slice, active: { ...b, log: [line] }, seq: slice.seq + 1, step: { lines: [line], big: [], wrap: null, seconds: 0 } }, notes: [line] };
+  // The player is aboard their ship, at the battle (m8-fixes C4).
+  const own = [...(b.fleet?.a.ships ?? []), ...(b.dog ? [b.dog.a.ship] : [])].find((x) => x.id === b.ownShipId);
+  const emit = own ? shipSiteEvents(s, own.name, b.placeName) : [];
+  return { slice: { ...slice, active: { ...b, log: [line] }, seq: slice.seq + 1, step: { lines: [line], big: [], wrap: null, seconds: 0 } }, notes: [line], ...(emit.length ? { emit } : {}) };
 }
 
 // ---- ground command (m8-ground, M8 checklist item 14; D-522; spec/ground-command.md) ----
@@ -309,7 +325,7 @@ export function groundWrapUp(g: GroundState): string {
   const won = g.end?.winner === 'player';
   const held = objectivesHeld(g);
   const obj = held.map((o) => `${o.square}${o.primary ? ' (primary)' : ''} ${o.holder === 'player' ? (g.planning.defending ? 'held' : 'taken') : g.planning.defending ? 'lost' : "still the enemy's"}`).join(', ');
-  const how = { objectives: 'the sectors settled', collapse: 'the line collapsed', time: 'night and exhaustion ended it', withdrawn: 'the order to withdraw', routed: 'one side broke and fled' }[g.end?.reason ?? 'time'];
+  const how = GROUND_END_WORDS[g.end?.reason ?? 'time'];
   return `${won ? 'Victory' : g.end?.winner === 'enemy' ? 'Defeat' : 'No victory'}: ${how}. Objectives: ${obj || 'none'}. Losses: ours ${Math.round(lossShare(g, 'A') * 100)}%, theirs ${Math.round(lossShare(g, 'B') * 100)}%.`;
 }
 
@@ -344,6 +360,7 @@ function concludeGround(slice: BattlesSlice, s: GameState, g: GroundState, step:
     morale: GROUND_BATTLE_MORALE[outcome] * (major ? 2 : 1),
     leftCrew: false,
     objectives: held.map((o) => ({ square: o.square, holder: o.holder, primary: o.primary })),
+    ...(g.used?.length && p.role === 'commander' ? { tacticsUsed: g.used.slice(0, 40) } : {}),
   };
   const emit: GameEvent[] = [];
   const stakes = 'lethal';
@@ -352,8 +369,15 @@ function concludeGround(slice: BattlesSlice, s: GameState, g: GroundState, step:
   else if (p.role === 'leader' && g.playerSector !== null) emit.push({ type: 'playXpEarned', source: 'command', stakes, outcome, size: 'company', why: 'leading a sector' });
   // Field XP for the player's own fighting at the front.
   if (g.xp.gaps.length) emit.push({ type: 'playXpEarned', source: 'fieldFight', gaps: g.xp.gaps.slice(-500), stakes, outcome, why: 'fighting at the front' });
-  // What the enemy was seen to use (m8-ship-life part G): recognised from now on.
+  // Where the player ends up (m8-fixes C4): a battle lost or withdrawn from takes them back to the base they planned from; a field
+  // won or held keeps them on it.
+  if (outcome === 'lost' || g.end?.reason === 'withdrawn') emit.push(...backTo(s, p.placeId));
+  // What the enemy was seen to use (m8-ship-life part G): recognised from now on. Under an NPC commander, our own side's manoeuvres
+  // are seen too (m8-fixes B3b: a tactic seen used in a battle the character took part in).
   emit.push({ type: 'tacticsSeen', ids: [tacticOfPlan(p.enemy.plan)], by: 'enemy' });
+  if (p.role !== 'commander' && g.used?.length) emit.push({ type: 'tacticsSeen', ids: g.used, by: 'ally' });
+  // A seen manoeuvre the player used to good effect is known now (m8-fixes B3b).
+  if (g.learned?.length) emit.push({ type: 'tacticsLearned', ids: g.learned, source: 'used successfully in battle' });
   // Named leaders who fell (never a canon figure: only the player breaks tags).
   for (const id of g.fallen.filter((x) => !x.startsWith('seen:'))) {
     const n = selectNpc(s, id);
@@ -361,7 +385,7 @@ function concludeGround(slice: BattlesSlice, s: GameState, g: GroundState, step:
   }
   const notes = [`ground battle ${g.id} ended: ${outcome} (${g.end?.reason ?? 'time'})${major ? ', a major battle' : ''}; casualties ${record.casualties.player} / ${record.casualties.enemy}`];
   return {
-    slice: { ...slice, ground: null, lastGround: g, planning: null, history: [...slice.history, record].slice(-30), step: { lines: step.lines, big: step.big, wrap: groundWrapUp(g), seconds: step.seconds } },
+    slice: { ...slice, ground: null, lastGround: g, planning: null, history: [...slice.history, record].slice(-30), ended: { kind: 'ground' as const, turn: selectTurnInPlay(s) }, step: { lines: step.lines, big: step.big, wrap: groundWrapUp(g), seconds: step.seconds } },
     emit,
     notes,
   };
@@ -552,7 +576,8 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
         const g = beginGround(p, ctx.state.meta.rngState);
         if ('reject' in g) return { reject: g.reject };
         const line = `The battle at ${p.site} begins: ${p.ours.name} against ${p.enemy.name}.`;
-        return { slice: { ...slice, ground: { ...g, log: [line] }, step: { lines: [line], big: [line], wrap: null, seconds: 0 } }, notes: [line] };
+        // The player is at the battle's site (m8-fixes C4).
+        return { slice: { ...slice, ground: { ...g, log: [line] }, step: { lines: [line], big: [line], wrap: null, seconds: 0 } }, notes: [line], emit: groundSiteEvents(ctx.state, p.site) };
       },
     },
     /** Player: stand down: the planning scene closes without a battle. */

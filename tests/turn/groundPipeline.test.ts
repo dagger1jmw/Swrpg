@@ -65,3 +65,23 @@ describe('ground battle turns through the pipeline', () => {
     }
   });
 });
+
+describe('m8-fixes E1: a battle the code has set up does not wait on the narration', () => {
+  it('the narration failing completely: the code\'s own lines stand, the turn commits and the battle is playable', async () => {
+    const t = setup(false);
+    const dead = createFixtureProvider(Array.from({ length: 12 }, () => ({ error: { kind: 'http' as const, status: 400, message: 'bad request' } })));
+    const deps = { ...t.deps, provider: dead };
+    const begin = await playTurn(deps, t.session, { kind: 'battle', label: 'Begin the battle', ground: { act: 'begin' } });
+    expect(begin.session.state.battles.ground).not.toBeNull();
+    expect(begin.record.narrative).toContain('The battle at the Aldera plains begins');
+    expect(begin.record.draft.report.join('\n')).toMatch(/the code's own lines stand/);
+    // Still playable: the next phase resolves.
+    const next = await playTurn(deps, begin.session, { kind: 'battle', label: 'Next phase', ground: { act: 'order' } });
+    expect(next.session.state.battles.ground?.battle.phase ?? 99).toBeGreaterThan(0);
+  });
+  it('a story turn whose narration fails still offers Retry (nothing decided to fall back on)', async () => {
+    const { codeOnlyNarrative } = await import('../../src/turn/pipeline');
+    expect(codeOnlyNarrative({ battle: undefined, combat: null } as never)).toBeNull();
+    expect(codeOnlyNarrative({ battle: { lines: ['A.'], big: ['B.'], wrap: 'C.', quiet: false, map: null }, combat: null } as never)).toBe('A. B. C.');
+  });
+});
