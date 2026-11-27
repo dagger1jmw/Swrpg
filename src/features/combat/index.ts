@@ -15,6 +15,7 @@ import { COMBAT_STAKES, type CombatOutcome, type CombatStakes } from '../../data
 import { SEQUENCE_SCHEMA_MAX, SEQUENCE_STEP_KINDS } from '../../data/sequence.config';
 import { FORM_IDS } from '../../data/skills';
 import { TERRAIN_BY_ID, TERRAIN_IDS, type ObjectSize } from '../../data/terrain';
+import { DEFAULT_MINION_KIND, minionKindFromWords, terrainFromWords } from '../../data/entityWords';
 import { FORCE_ACTION_ABILITY, FORCE_ACTION_KINDS, type ForceActionKind } from '../../engine/combatForce';
 import { cannotDuel, cannotStandText, disengageContest, startDuel, tryShatterpoint, type DuelState, type ExchangeRecord, type Fighter, type RunMode } from '../../engine/duel';
 import { rollMinionGrade } from '../../engine/npcGen';
@@ -448,13 +449,15 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
       schema: z.object({
         type: z.literal('combatStarted'),
         opponentRefs: z.array(z.string()).max(6),
-        minionGroups: z.array(z.object({ kind: z.enum(MINION_KIND_IDS as [string, ...string[]]), count: z.number().int().min(1).max(99), wantAlive: z.boolean().optional().describe('Sent to take the player alive') })).max(4).optional(),
+        // The minion kind and the terrain as plain words (opt-1 A1, D-529; the D-523 species pattern): the code resolves an exact id
+        // or label, then a word list (data/entityWords.ts). Field notes are in contract.md, not here (schema characters).
+        minionGroups: z.array(z.object({ kind: z.string().min(1).max(40), count: z.number().int().min(1).max(99), wantAlive: z.boolean().optional() })).max(4).optional(),
         stakes: z.enum(COMBAT_STAKES),
-        terrainTags: z.array(z.enum(TERRAIN_IDS as [string, ...string[]])).max(5),
+        terrainTags: z.array(z.string().max(40)).max(5),
         ambushClaim: z.boolean().optional(),
         engagedElsewhereRefs: z.array(z.string()).max(6).optional(),
-        sparringMode: z.enum(SPARRING_MODES).optional().describe("Spar only: a master's harsher stakes"),
-        wantAliveRefs: z.array(z.string()).max(6).optional().describe('Opponents who want the player alive: they subdue, not kill'),
+        sparringMode: z.enum(SPARRING_MODES).optional(),
+        wantAliveRefs: z.array(z.string()).max(6).optional(),
         // A battle between ships, in plain words (m8-ship-battles, D-517): one field, so the response schema stays under its cap.
         ships: z.string().max(200).optional(),
       }),
@@ -472,24 +475,41 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
         const ships = typeof e['ships'] === 'string' ? e['ships'].trim() : '';
         if (ships) return { slice, emit: [{ type: 'shipBattleProposed', what: ships }], notes: ['a ship battle proposed (the battles feature checks it)'] };
         const notes: string[] = [];
+        // Words the code could not read (opt-1 A1): never refused; the fight uses the default kind or leaves the terrain out, and the
+        // word goes to the review queue so the word lists can grow.
+        const unread: GameEvent[] = [];
         const groups = ((e['minionGroups'] as { kind: string; count: number; wantAlive?: boolean }[] | undefined) ?? []).map((g) => {
           const count = Math.min(MINION_COUNT.max, Math.max(MINION_COUNT.min, g.count));
           if (count !== g.count) notes.push(`minion count ${g.count} clamped to ${count}`);
-          return { kind: g.kind, count, ...(g.wantAlive ? { wantAlive: true } : {}) };
+          const read = minionKindFromWords(g.kind);
+          if (read === null) {
+            const used = MINION_KINDS.find((k) => k.id === DEFAULT_MINION_KIND)!.label;
+            notes.push(`minion kind "${g.kind}" not recognised; fought as ${used} and queued for review`);
+            unread.push({ type: 'reviewQueued', name: g.kind.slice(0, 80), context: `a fight's minion kind (combatStarted): fought as ${used}`, kind: 'minion' });
+          }
+          return { kind: read ?? DEFAULT_MINION_KIND, count, ...(g.wantAlive ? { wantAlive: true } : {}) };
         });
+        const terrainTags: string[] = [];
+        for (const w of (e['terrainTags'] as string[] | undefined) ?? []) {
+          const t = terrainFromWords(w);
+          if (t === null) {
+            notes.push(`terrain "${w}" not recognised; left out and queued for review`);
+            unread.push({ type: 'reviewQueued', name: w.slice(0, 80), context: "a fight's terrain (combatStarted): left out", kind: 'terrain' });
+          } else if (!terrainTags.includes(t)) terrainTags.push(t);
+        }
         const opponentRefs = e['opponentRefs'] as string[];
         if (!opponentRefs.length && !groups.length) return { reject: 'combatStarted needs opponents' };
         const pending = pendingFightSchema.parse({
           opponentRefs,
           minionGroups: groups,
           stakes: e['stakes'],
-          terrainTags: e['terrainTags'],
+          terrainTags,
           ambushClaim: e['ambushClaim'] === true,
           engagedElsewhere: (e['engagedElsewhereRefs'] as string[] | undefined) ?? [],
           sparringMode: e['stakes'] === 'spar' ? ((e['sparringMode'] as PendingFight['sparringMode'] | undefined) ?? null) : null,
           wantAlive: ((e['wantAliveRefs'] as string[] | undefined) ?? []).filter((r) => opponentRefs.includes(r)),
         });
-        return { slice: { ...slice, pending }, notes: [...notes, 'fight deferred to the next turn (D-29)'] };
+        return { slice: { ...slice, pending }, notes: [...notes, 'fight deferred to the next turn (D-29)'], ...(unread.length ? { emit: unread } : {}) };
       },
     },
     /** Engine: begins the pending fight, or a fight intent's fight (step b). */
@@ -736,9 +756,9 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
     combatEnded: {
       schema: z.object({
         type: z.literal('combatEnded'),
-        reason: z.enum(['fled', 'surrendered', 'interrupted', 'truce']).describe('Only interrupted'),
-        category: z.enum(INTERRUPT_CATEGORIES).optional().describe('With interrupted; its cause in the same reply'),
-        why: z.string().min(1).max(200).optional().describe('With interrupted: the outside event'),
+        reason: z.enum(['fled', 'surrendered', 'interrupted', 'truce']),
+        category: z.enum(INTERRUPT_CATEGORIES).optional(),
+        why: z.string().min(1).max(200).optional(),
       }),
       sources: ['ai', 'engine'],
       // Applied after the rest of the reply, so the handler sees the event that caused an interruption (D-196).
@@ -880,7 +900,7 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
      * declines it. Not in a sparring session (its bouts end it).
      */
     truceOffered: {
-      schema: z.object({ type: z.literal('truceOffered'), why: z.string().min(1).max(200).describe('Who offers it, on what terms') }),
+      schema: z.object({ type: z.literal('truceOffered'), why: z.string().min(1).max(200) }),
       // dev: /truce makes the opponent offer one, for testing (D-215).
       sources: ['ai', 'dev'],
       narrative: (s) => s.combat.active !== null && !s.combat.active.session,
@@ -931,8 +951,8 @@ export const combatFeature: FeatureModule<CombatSlice, GameState> = {
     holdBegun: {
       schema: z.object({
         type: z.literal('holdBegun'),
-        holderRef: z.string().describe('Who steps in'),
-        foeRef: z.string().describe('Whom they hold off'),
+        holderRef: z.string(),
+        foeRef: z.string(),
       }),
       sources: ['ai', 'engine'],
       // After the rest of the reply, so someone who arrives in it can step in.

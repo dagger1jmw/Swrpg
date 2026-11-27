@@ -78,7 +78,8 @@ describe('montage turns', () => {
     if (!jump.report.interrupted) expect(s1.state.clock.now.day).toBe(s0.state.clock.now.day + 92);
     // One time writer (D-30), the montage prompt and report, and the pacing after the jump.
     expect(JSON.stringify(provider.calls[0]!.opts.wireSchema)).not.toContain('timeElapsed');
-    expect(provider.calls[0]!.opts.system).toContain('Pacing: montage');
+    // The pacing rules go in the turn's own message (opt-1 C1), after the history.
+    expect(provider.calls[0]!.messages.at(-1)!.text).toContain('Pacing: montage');
     expect(provider.calls[0]!.messages.at(-1)!.text).toContain('MONTAGE REPORT');
     expect(s1.state.pacing.level).toBe(jump.report.interrupted ? 'moment' : 'scene');
     expect(record.draft.pacingLevel).toBe('montage');

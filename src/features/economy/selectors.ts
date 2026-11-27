@@ -243,6 +243,17 @@ function walletText(w: Wallet): string {
 }
 
 /** ECONOMY lines for the state block: the wallet, what the place takes, living, the job, debts, and what is owed now. */
+/**
+ * How the narrator reports money (opt-1 B1): sent with the goods part only (the economy events are in it), not in the state block
+ * every turn. The amounts themselves stay in the state block (never state an amount the engine did not give: core-gm and contract).
+ */
+export function selectEconomyRule(s: GameState): string[] {
+  return [
+    'ECONOMY rule: the engine owns every credit: report trades, pay, bribes, loans and fines with the economy events, and never state an amount the engine did not give.',
+    ...(selectIsJedi(s) ? ["The character is a Jedi: the Order provides room, board and gear (trade dir issue); mission funds are returned; a reward kept is the player's choice (money kind reward)."] : []),
+  ];
+}
+
 export function selectEconomyLines(s: GameState): string[] {
   const e = s.economy;
   const a = selectAcceptance(s);
@@ -250,7 +261,7 @@ export function selectEconomyLines(s: GameState): string[] {
   const takes = [a.hutt ? 'Hutt coin' : null, a.republic ? CURRENCY_NAMES.republic : null, a.imperial ? CURRENCY_NAMES.imperial : null].filter(Boolean).join(', ');
   const refused = !a.republic ? CURRENCY_NAMES.republic : !a.imperial ? CURRENCY_NAMES.imperial : null;
   const lines = [
-    `ECONOMY (the engine owns every credit: report trades, pay, bribes, loans and fines with the economy events, and never state an amount the engine did not give): ${walletText(e.wallet)}${e.orderFunds ? `; the Order's mission funds ${e.orderFunds.toLocaleString('en-US')} cr (to be returned)` : ''}; spendable here ${Math.floor(spendable(e.wallet, a)).toLocaleString('en-US')} cr.`,
+    `Money: ${walletText(e.wallet)}${e.orderFunds ? `; the Order's mission funds ${e.orderFunds.toLocaleString('en-US')} cr (to be returned)` : ''}; spendable here ${Math.floor(spendable(e.wallet, a)).toLocaleString('en-US')} cr.`,
     `Money here: takes ${takes}${refused ? `; ${refused} refused` : ''}${a.creditMarkup > 1 ? `; credits at a ${Math.round((a.creditMarkup - 1) * 100)}% markup` : ''}${a.changer ? '; a money changer can be found' : ''}; restricted goods only on the black market (x${blackMarketX(p.zone)}).`,
     `Living: ${e.lifestyle}${e.lifestyle === 'provided' ? ' (room and board provided)' : ` (${selectLivingCost(s)} cr a day)`}; job: ${jobText(s)}.`,
   ];
@@ -258,7 +269,6 @@ export function selectEconomyLines(s: GameState): string[] {
   for (const l of e.loans) lines.push(`Debt: ${l.balance.toLocaleString('en-US')} cr to ${LOAN_TERMS[l.lender].name}, next payment ${monthlyDue(l).toLocaleString('en-US')} cr due ${formatDate(l.nextDueDay)}${l.stage !== 'current' ? `; ${stageText(l.stage)}` : ''}.`);
   const untold = e.log.filter((x) => x.toldTurn === null).slice(-6);
   if (untold.length) lines.push(`Money since last told (engine amounts; narrate these, no others): ${untold.map((x) => `${x.credits > 0 ? '+' : ''}${x.credits.toLocaleString('en-US')} ${x.currency === 'hutt' ? 'cr in Hutt coin' : 'cr'} (${x.reason})`).join('; ')}.`);
-  if (selectIsJedi(s)) lines.push("The character is a Jedi: the Order provides room, board and gear (trade dir issue); mission funds are returned; a reward kept is the player's choice (money kind reward).");
   const keepers = selectPresentNpcIds(s).filter((id) => selectNpcJediMayKeep(s, id)).map((id) => s.npcs.byId[id]!.name);
   if (keepers.length) lines.push(`${keepers.join(', ')}: a Jedi less firmly light, who might keep a reward now and then (rare).`);
   return lines;

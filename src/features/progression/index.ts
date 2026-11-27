@@ -2,8 +2,9 @@
 // the state of mind, grief, the overtraining streak, today's training state and pending tier beats.
 // XP enters only through activityResolved (engine, from computeXp); the AI proposes emotionalEvent
 // and milestoneBeatAcknowledged and never sets a number.
+import { addToStore, storedHours } from '../../engine/paceStore';
 import { z } from 'zod';
-import { DISTRACTED, OVERTRAINING, PACE_WINDOW_DAYS, PASSION_DAYS, STATE_STRENGTH, CENTERED_MEDITATION_HOURS, EMOTION_TO_STATE, FATIGUE_WILLPOWER, type StateOfMind } from '../../data/progression.config';
+import { DISTRACTED, OVERTRAINING, PASSION_DAYS, STATE_STRENGTH, CENTERED_MEDITATION_HOURS, EMOTION_TO_STATE, FATIGUE_WILLPOWER, type StateOfMind } from '../../data/progression.config';
 import { SKILL_BY_ID, CATEGORY_RULES, PHYSICAL_STATS } from '../../data/skills';
 import { ACTIVITY_BY_ID, DEFAULT_ACTIVITY } from '../../data/activities';
 import { COMBAT_OUTCOMES, COMBAT_STAKES, COMBAT_XP } from '../../data/progression.config';
@@ -23,7 +24,7 @@ import type { FeatureModule, GameEvent } from '../../state/types';
 import { selectNow } from '../clock/selectors';
 import { selectLasting, selectMaxFraction } from '../health/selectors';
 import { selectOpenThreads } from '../threads/selectors';
-import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressionV1, migrateProgressionV2, migrateProgressionV3, progressionSliceSchema, type ProgressionSlice, type StateOfMindRecord } from './progression';
+import { EMPTY_TODAY, activeState, easeDays, emptyProgression, migrateProgressionV1, migrateProgressionV2, migrateProgressionV3, migrateProgressionV4, progressionSliceSchema, type ProgressionSlice, type StateOfMindRecord } from './progression';
 import { ageingStep } from '../../engine/ageing';
 import { PRIME_H } from '../../data/ageing.config';
 import { selectAgeing, selectBodyAgeNow, selectCapacities, selectLevelExact, selectNatural, selectSkillViews, selectStateOfMind, selectTierBeats } from './selectors';
@@ -104,15 +105,8 @@ function creditXp(
   // Pace window (D-48, D-104): today's credited XP and training hours per skill (hours by XP share, D-109).
   const paceWindow = { ...slice.paceWindow };
   const touch = paced ? new Set([...Object.keys(credited), ...Object.keys(windowHours)]) : new Set<string>();
-  for (const id of touch) {
-    const entries = (paceWindow[id] ?? []).filter((w) => w.day > day - PACE_WINDOW_DAYS);
-    const last = entries[entries.length - 1];
-    const addXp = credited[id] ?? 0;
-    const addHours = windowHours[id] ?? 0;
-    if (last && last.day === day) entries[entries.length - 1] = { day, xp: last.xp + addXp, hours: last.hours + addHours };
-    else entries.push({ day, xp: addXp, hours: addHours });
-    paceWindow[id] = entries;
-  }
+  // Stored compactly (opt-1 F, D-533): week sums plus the current week's days (engine/paceStore.ts).
+  for (const id of touch) paceWindow[id] = addToStore(paceWindow[id], day, credited[id] ?? 0, windowHours[id] ?? 0);
   return { slice: { ...slice, skills, tierBeatsPending: beats, nextSeq: seq, paceWindow }, emit, notes };
 }
 
@@ -158,8 +152,8 @@ function gainForGroups(E: ProgressionSlice['E'], forms: readonly string[], sourc
 
 export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
   id: 'progression',
-  version: 4,
-  migrations: { 2: migrateProgressionV1, 3: migrateProgressionV2, 4: migrateProgressionV3 },
+  version: 5,
+  migrations: { 2: migrateProgressionV1, 3: migrateProgressionV2, 4: migrateProgressionV3, 5: migrateProgressionV4 },
   initialState: (ctx) => ({
     ...emptyProgression(ctx.start.day, ctx.startingXp ?? {}),
     E: { ...(ctx.startingE ?? {}) },
@@ -659,7 +653,7 @@ export const progressionFeature: FeatureModule<ProgressionSlice, GameState> = {
 
     // The body past its prime (D-472): the loss grows with each day's decline, slowed by the last year's training.
     const bodyNow = selectBodyAgeNow(s);
-    const ageing = bodyNow > PRIME_H || next.ageing ? ageingStep(selectAgeing(s), bodyNow, (stat) => (next.paceWindow[stat] ?? []).reduce((h, w) => h + w.hours, 0)) : null;
+    const ageing = bodyNow > PRIME_H || next.ageing ? ageingStep(selectAgeing(s), bodyNow, (stat) => storedHours(next.paceWindow[stat])) : null;
 
     return {
       slice: { ...next, ...(ageing ? { ageing } : {}), skills, bank, overtrainStreak: streak, stateOfMind, grief, willpowerToday: 0, today: EMPTY_TODAY, fightsToday: {}, combatXpToday: {}, ...(next.socialToday ? { socialToday: 0 } : {}), ...(next.playToday ? { playToday: {} } : {}) },

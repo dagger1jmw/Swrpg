@@ -7,11 +7,21 @@ import type { CallType, ThinkingSetting } from './provider';
  * Narrative: 3.8-flash (D-79), then 3.5-flash-lite, the fastest model with its own daily quota.
  */
 export const DEFAULT_MODEL_LISTS: Record<CallType, readonly string[]> = {
+  // With Flash routing on (opt-1 D, D-531; the default) an ordinary story turn runs this list with Flash moved to the end, so
+  // Flash-Lite is the main model and Flash is kept for the big moments (FLASH_ROUTING) and as the last fallback.
   narrative: ['gemini-3.8-flash', 'gemini-3.5-flash-lite'],
   intent: ['gemini-3.5-flash-lite'],
   summary: ['gemini-3.5-flash-lite'],
   ooc: ['gemini-3.5-flash-lite'],
 }
+
+/**
+ * Flash for the big moments (opt-1 D, D-531): with the setting on, an ordinary story turn uses the narrative list without this model,
+ * and a turn the code marks as a big moment (src/turn/premium.ts) or a chapter summary tries it first. When its day is spent (a
+ * daily-quota reply, or its requests-per-day limit on the meter) the router falls through to the rest of the list. One call per turn
+ * still. Settings can turn it off or name another model.
+ */
+export const FLASH_ROUTING = { on: true, model: 'gemini-3.8-flash' } as const;
 
 /** Suggested in the header picker when the Flash daily quota runs low (fastest; thinner prose, D-78). */
 export const FALLBACK_NARRATIVE_MODEL = 'gemini-3.5-flash-lite';
@@ -50,8 +60,7 @@ export const CALL_SETTINGS: Record<CallType, CallSettings> = {
   ooc: { temperature: 0.5, maxOutputTokens: 1000, thinking: { level: 'low' } },
 };
 
-/** JSON overhead (choices, scene, events, keys) added on top of the narrative cap (D-58). */
-export const JSON_OVERHEAD_TOKENS = 300;
+/* The JSON overhead on top of the narrative cap (D-58's flat 300) is sized per turn since opt-1 E: src/turn/outputBudget.ts. */
 /** Headroom for thinking tokens, which count against maxOutputTokens on Gemini (D-68 live test). */
 export const THINKING_HEADROOM_TOKENS = 1024;
 /** The one automatic retry after truncation gets this much more budget (D-16). */

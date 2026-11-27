@@ -84,6 +84,12 @@ export function selectShipCards(s: GameState): ShipCard[] {
 }
 
 /** The narrator's STATE lines: the ships, how to report ship acts, and news not yet told. */
+/**
+ * How the narrator reports ship business (opt-1 B1): sent with the ship part only (shipAct is in it), not in the state block every
+ * turn.
+ */
+export const SHIP_RULE = "SHIPS rule: the engine owns the character's ships. Buy or sell with trade naming the class; everything else with the shipAct event: salvaged, won, stole, issued, renamed, the transponder altered or removed, a mod fitted 'at a shipyard' or 'with a kit', shipyard repairs, an overhaul, crew hired or dismissed, cargo loaded or unloaded 'in a hidden compartment', pushed.";
+
 export function selectShipLines(s: GameState): string[] {
   const sl = slice(s);
   if (!sl) return [];
@@ -91,7 +97,7 @@ export function selectShipLines(s: GameState): string[] {
   const ships = selectShips(s);
   if (ships.length) {
     out.push(
-      `SHIPS (the engine owns them: buy or sell with trade naming the class; everything else with the shipAct event (where it is not offered, the droid event's words starting "ship:") — salvaged, won, stole, issued, renamed, the transponder altered or removed, a mod fitted "at a shipyard" or "with a kit", shipyard repairs, an overhaul, crew hired or dismissed, cargo loaded or unloaded "in a hidden compartment", pushed): ${ships
+      `Ships owned: ${ships
         .map((x) => {
           const c = selectShipCondition(s, x.id);
           const hurt = c ? Object.entries(c.systems).filter(([, v]) => v !== 'working').map(([k, v]) => `${k} ${v}`) : [];

@@ -10,7 +10,7 @@
 import type { ZodType } from 'zod';
 import { isDailyQuotaError, type ModelRouter } from '../ai/fallback';
 import { toGeminiSchema } from '../ai/jsonSchema';
-import { CALL_SETTINGS, JSON_OVERHEAD_TOKENS, OVERLOAD_RETRY, THINKING_HEADROOM_TOKENS, TRUNCATION_RETRY_FACTOR, overloadDelayMs } from '../ai/models.config';
+import { CALL_SETTINGS, OVERLOAD_RETRY, THINKING_HEADROOM_TOKENS, TRUNCATION_RETRY_FACTOR, overloadDelayMs } from '../ai/models.config';
 import { AiError, type CallOptions, type CallType, type Message, type ModelProvider, type StructuredResult, type Usage } from '../ai/provider';
 import { composeNarrativeSchema, narrativeEventTypes, type NarrativeReply } from '../ai/schemas/compose';
 import { intentSchema, normalizeIntent, type Intent } from '../ai/schemas/intent';
@@ -38,10 +38,13 @@ import { applyEvents, type AppliedEvent, type RejectedEvent, type UnknownRef } f
 import type { GameState } from '../state/gameState';
 import type { GameEvent, NarrativeTurnInfo, Registry } from '../state/types';
 import { activeParts } from '../ai/schemas/parts';
-import { buildIntentRequest, buildNarrativeRequest, buildSummaryRequest, lastingStates, playerTextOf, selectCaptors, type BuiltRequest, type ContextReport } from './context';
+import { buildIntentRequest, buildNarrativeRequest, buildSummaryRequest, lastingStates, playerTextOf, worldOf, selectCaptors, type BuiltRequest, type ContextReport } from './context';
 import { MINION_KINDS } from '../data/npcGen.config';
 import { expandChoice } from './expandChoice';
 import type { CallRecord, TurnInput, TurnRecord } from './record';
+import { typedShortcut } from './shortcuts';
+import { premiumReason, SUMMARY_PREMIUM } from './premium';
+import { jsonAllowance } from './outputBudget';
 import { fightMinionRef, refResolver, resolveIntentRefs } from './refs';
 import { resolveTurn, type Resolution, type TurnDraft } from './resolve';
 import { skipAheadChoice } from './skipAhead';
@@ -61,7 +64,7 @@ export interface TurnDeps {
   /** Wall-clock time for savedAt and the usage meter (not game time). */
   wallClock(): { ms: number; iso: string };
   /** Called once per model request that reached the API (usage meter). */
-  recordCall?(model: string, usage: Usage | null): void;
+  recordCall?(model: string, usage: Usage | null, outcome?: string): void;
   /** Calibrated characters-per-token per model (D-86); default 4. */
   getTokenRatios?(): TokenRatios;
   /** One calibration observation: characters sent and Gemini's promptTokenCount. */
@@ -150,7 +153,7 @@ async function tracked<T>(deps: TurnDeps, calls: CallRecord[], opts: CallOptions
     const usage = e instanceof AiError ? (e.usage ?? null) : null;
     const outcome = e instanceof AiError ? (e.kind === 'rateLimit' ? `rateLimit:${e.quotaScope ?? 'unknown'}` : e.kind) : 'error';
     calls.push({ callType: opts.callType, model: opts.model, usage, outcome });
-    if (countsOnMeter(e)) deps.recordCall?.(opts.model, usage);
+    if (countsOnMeter(e)) deps.recordCall?.(opts.model, usage, outcome);
     throw e;
   }
 }
@@ -200,7 +203,7 @@ async function callModel<T>(
   const tried = new Set<string>();
   let lastDaily: unknown = null;
   for (;;) {
-    const choice = deps.router.choose(base.callType);
+    const choice = deps.router.choose(base.callType, base.premium !== undefined);
     if (tried.has(choice.model)) throw lastDaily;
     tried.add(choice.model);
     if (choice.model !== choice.primary) {
@@ -215,7 +218,7 @@ async function callModel<T>(
       // Busy (m8-fixes E2: at once) or still timing out after the retries (D-240): the next model in the order, which keeps the
       // retries (it is the last one tried), then the turn's Retry.
       if (isOverload(e) && OVERLOAD_RETRY.nextModel) {
-        const next = deps.router.next?.(base.callType, choice.model) ?? null;
+        const next = deps.router.next?.(base.callType, choice.model, base.premium !== undefined) ?? null;
         if (!next || tried.has(next)) throw e;
         tried.add(next);
         const timedOut = e instanceof AiError && e.kind === 'timeout';
@@ -238,8 +241,8 @@ async function callModel<T>(
 const schemaChars = (schema: ZodType): number => JSON.stringify(toGeminiSchema(schema)).length;
 
 /** Build options for a call type: the ratio of the model the router will use first. */
-function buildOpts(deps: TurnDeps, callType: CallType, schema: ZodType): { model: string; ratio: number; schemaChars: number } {
-  const model = deps.router.choose(callType).model;
+function buildOpts(deps: TurnDeps, callType: CallType, schema: ZodType, premium = false): { model: string; ratio: number; schemaChars: number } {
+  const model = deps.router.choose(callType, premium).model;
   return { model, ratio: ratioFor(deps.getTokenRatios?.() ?? {}, model), schemaChars: schemaChars(schema) };
 }
 
@@ -261,7 +264,12 @@ export async function prepareTurn(deps: TurnDeps, session: Session, input: TurnI
   let intentReport: ContextReport | undefined;
   const resolve = refResolver(deps.registry, session.state);
 
-  if (input.kind === 'typed') {
+  const shortcut = input.kind === 'typed' ? typedShortcut(session.state, input.text) : null;
+  if (input.kind === 'typed' && shortcut) {
+    // A typed phrase a choice would cover (opt-1 C5): read by the code, no intent call.
+    intent = shortcut;
+    intentNotes.push(`typed shortcut "${input.text.trim()}": ${shortcut.actionType}, no intent call (opt-1 C5)`);
+  } else if (input.kind === 'typed') {
     const req = buildIntentRequest(session.state, input.text, session.history, buildOpts(deps, 'intent', intentSchema));
     deps.onRequest?.({ callType: 'intent', ...req });
     const base = callOptions('intent', req.system, CALL_SETTINGS.intent.maxOutputTokens + THINKING_HEADROOM_TOKENS);
@@ -306,7 +314,7 @@ function reviewFollowUps(registry: Registry<GameState>, state: GameState, unknow
     if (resolve(name) === null) out.push({ type: 'reviewQueued', name: name.slice(0, 80), context: `player input (${intent!.actionType})` });
   }
   for (const r of selectOpenReview(state)) {
-    if (r.kind === 'species') continue; // a species word is settled by the player, never by a name match
+    if (r.kind && r.kind !== 'name') continue; // a word item (species, role, faction, minion, terrain) is settled by the player, never by a name match
     const id = resolve(r.name);
     if (id !== null) out.push({ type: 'reviewResolved', reviewId: r.id, resolution: 'mapped', entityRef: id });
   }
@@ -383,12 +391,16 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
   const turnInfo = narrativeTurnInfo(resolved, draft, pending.input);
   if (!reply) {
     const schemas = composeNarrativeSchema(deps.registry, resolved, turnInfo);
-    const req = buildNarrativeRequest(resolved, draft, pending.input, session.history, buildOpts(deps, 'narrative', schemas.wire));
+    // A big moment (opt-1 D): the router may give this one call the stronger model.
+    const premium = premiumReason(resolved, draft, pending.input);
+    if (premium) modelNotes.push(`a big moment (${premium}): the stronger model first when routing is on (opt-1 D)`);
+    const req = buildNarrativeRequest(resolved, draft, pending.input, session.history, { ...buildOpts(deps, 'narrative', schemas.wire, premium !== null), ...(turnInfo.parts ? { parts: turnInfo.parts } : {}) });
     deps.onRequest?.({ callType: 'narrative', ...req });
     // A long fight passage asks for up to four paragraphs (D-271): its prose budget replaces the pacing cap when larger.
     const longFight = draft.combat && !draft.combat.quiet ? longPassageProseTokens(draft.combat.narrate.length) : 0;
-    const budget = Math.max(PACING_OUTPUT_CAPS[draft.pacingLevel], longFight) + JSON_OVERHEAD_TOKENS + THINKING_HEADROOM_TOKENS;
-    const first: BaseOptions = { ...callOptions('narrative', req.system, budget), wireSchema: schemas.wire };
+    // The JSON allowance from what the turn can carry (opt-1 E): an opening or an arrival gets more than D-58's flat 300.
+    const budget = Math.max(PACING_OUTPUT_CAPS[draft.pacingLevel], longFight) + jsonAllowance(draft, pending.input, turnInfo.parts ?? new Set()) + THINKING_HEADROOM_TOKENS;
+    const first: BaseOptions = { ...callOptions('narrative', req.system, budget), wireSchema: schemas.wire, ...(premium ? { premium } : {}) };
     const narrate = (opts: CallOptions) => deps.provider.generateStructured(schemas.parse, req.messages, opts);
     try {
       try {
@@ -434,9 +446,9 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
       // The quote is the offending sentence; an omission has none, so its correction is shown.
       const quoted = issues.find((i) => i.sentence)?.sentence ?? issues[0]!.text;
       modelNotes.push(`narration check: ${issues.length} contradiction(s) with RESOLVED (${kindsOf(issues)}): "${quoted.slice(0, 160)}"; retrying once`);
-      const retryReq = buildNarrativeRequest(resolved, draft, pending.input, session.history, { ...buildOpts(deps, 'narrative', schemas.wire), correction: issues.map((i) => i.text) });
+      const retryReq = buildNarrativeRequest(resolved, draft, pending.input, session.history, { ...buildOpts(deps, 'narrative', schemas.wire, premium !== null), correction: issues.map((i) => i.text), ...(turnInfo.parts ? { parts: turnInfo.parts } : {}) });
       deps.onRequest?.({ callType: 'narrative', ...retryReq });
-      const retryOpts: BaseOptions = { ...callOptions('narrative', retryReq.system, budget), wireSchema: schemas.wire };
+      const retryOpts: BaseOptions = { ...callOptions('narrative', retryReq.system, budget), wireSchema: schemas.wire, ...(premium ? { premium } : {}) };
       let second: typeof reply | null = null;
       try {
         second = await callModel(deps, calls, modelNotes, retryOpts, (opts: CallOptions) => deps.provider.generateStructured(schemas.parse, retryReq.messages, opts));
@@ -562,6 +574,7 @@ export async function narrateTurn(deps: TurnDeps, session: Session, pending: Pen
     rejected,
     calls,
     clockAfter: { ...selectNow(state) },
+    worldAfter: worldOf(state),
     context: { ...(pending.intentReport ? { intent: pending.intentReport } : {}), ...(narrativeReport ? { narrative: narrativeReport } : {}) },
   };
 
@@ -617,9 +630,10 @@ export async function summarizeChapters(deps: TurnDeps, session: Session): Promi
   for (const chapter of selectPendingChapters(session.state).slice(0, SUMMARY_RETRIES_PER_CLOSE)) {
     const calls: CallRecord[] = [];
     const notes: string[] = [];
-    const req = buildSummaryRequest(current.state, chapter, current.history, buildOpts(deps, 'summary', summaryReplySchema));
+    // A chapter summary writes the campaign's memory: a big moment for the router (opt-1 D).
+    const req = buildSummaryRequest(current.state, chapter, current.history, buildOpts(deps, 'summary', summaryReplySchema, true));
     deps.onRequest?.({ callType: 'summary', ...req });
-    const base = callOptions('summary', req.system, CALL_SETTINGS.summary.maxOutputTokens + THINKING_HEADROOM_TOKENS);
+    const base: BaseOptions = { ...callOptions('summary', req.system, CALL_SETTINGS.summary.maxOutputTokens + THINKING_HEADROOM_TOKENS), premium: SUMMARY_PREMIUM };
     try {
       const data = await callModel(deps, calls, notes, base, (opts) => deps.provider.generateStructured(summaryReplySchema, req.messages, opts));
       const event = { type: 'chapterSummarized', chapterId: chapter.id, chapterSummary: data.chapterSummary, arcSummary: data.arcSummary };

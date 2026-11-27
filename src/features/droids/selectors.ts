@@ -86,16 +86,21 @@ export function droidLine(s: GameState, u: DroidUnit): string {
 
 /** The narrator's droid lines (the engine owns droids: the events report, the code decides). */
 export function selectDroidLines(s: GameState): string[] {
-  const year = dateFromAbsDay(today(s)).year;
   const units = selectDroids(s);
+  return units.length ? ['Owned droids:', ...units.map((u) => droidLine(s, u))] : [];
+}
+
+/**
+ * How the narrator reports droid business (opt-1 B1): sent only when droids are in the scene's business (owned droids, a droid
+ * present, buying, or the player's words of droids), not in the state block every turn.
+ */
+export function selectDroidRule(s: GameState): string[] {
+  const year = dateFromAbsDay(today(s)).year;
   const sold = DROID_MODELS.filter((m) => !m.generic && m.price !== null && modelInService(m, year)).map((m) => m.name);
   const lines = [
-    `DROIDS (property and companions, never playable; the engine owns them: buy new or sell with trade; second-hand, salvage, gifts, theft, wipes, bolts, orders, upgrades, repairs, damage and losses with the droid event). Models sold this year: ${sold.length ? sold.join(', ') : 'generic protocol, astromech, medical, labour and security droids'}.`,
+    `DROIDS rule: property and companions, never playable; the engine owns them: buy new or sell with trade; second-hand, salvage, gifts, theft, wipes, bolts, orders, upgrades, repairs, damage and losses with the droid event. Models sold this year: ${sold.length ? sold.join(', ') : 'generic protocol, astromech, medical, labour and security droids'}.`,
   ];
-  if (units.length) {
-    lines.push('Owned droids:', ...units.map((u) => droidLine(s, u)));
-    lines.push('A memory wipe is a hard choice, not a dark-side act; droids are not people for alignment; companions may react to how droids are treated; droid rights is a contested movement.');
-  }
+  if (selectDroids(s).length) lines.push('A memory wipe is a hard choice, not a dark-side act; droids are not people for alignment; companions may react to how droids are treated; droid rights is a contested movement.');
   return lines;
 }
 

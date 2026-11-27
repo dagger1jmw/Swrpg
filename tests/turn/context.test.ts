@@ -61,7 +61,10 @@ describe('request builder (architecture §5)', () => {
     const s = world();
     const { draft } = resolveTurn(REGISTRY, s, null);
     const req = buildNarrativeRequest(s, draft, { kind: 'typed', text: 'I ask Master Orren about Satele Shan' }, [], opts);
-    const text = req.messages.at(-1)!.text;
+    // MEMORY stays in the turn's own message; LORE opens the request before the history (opt-1 C1).
+    const text = req.messages.map((m) => m.text).join('\n');
+    expect(req.messages.at(-1)!.text).toContain('MEMORY');
+    expect(req.messages[0]!.text).toContain('LORE (Star Wars Legends, true at this date)');
     expect(text).toContain('MEMORY');
     expect(text).toContain('Orren lost his first apprentice at Alderaan.');
     expect(text).toContain('LORE (Star Wars Legends, true at this date)');

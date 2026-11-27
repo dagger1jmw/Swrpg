@@ -6,7 +6,7 @@ import { normalizeAlias } from '../../engine/aliases';
 import type { GameState } from '../../state/gameState';
 import type { FeatureModule } from '../../state/types';
 import { selectNow, selectTurnInPlay } from '../clock/selectors';
-import { memorySliceSchema, type Chapter, type MemorySlice, type ReviewItem } from './memory';
+import { memorySliceSchema, REVIEW_KINDS, type Chapter, type MemorySlice, type ReviewItem, type ReviewKind } from './memory';
 import { selectFacts, selectOpenReview } from './selectors';
 
 const emptyMemory = (startTurn: number, startDay: number): MemorySlice => ({
@@ -42,10 +42,10 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
     factLearned: {
       schema: z.object({
         type: z.literal('factLearned'),
-        aboutRef: z.string().describe('"pc" for the player character'),
-        fact: z.string().min(1).max(MEMORY_LIMITS.fact).describe('One sentence'),
+        aboutRef: z.string(),
+        fact: z.string().min(1).max(MEMORY_LIMITS.fact),
         importance: z.enum(['minor', 'major']),
-        vision: z.boolean().optional().describe('From a vision or the Force'),
+        vision: z.boolean().optional(),
       }),
       // engine: tier-beat facts from progression (M3).
       sources: ['ai', 'engine'],
@@ -93,15 +93,15 @@ export const memoryFeature: FeatureModule<MemorySlice, GameState> = {
         name: z.string().min(1).max(80),
         context: z.string().max(MEMORY_LIMITS.reviewContext),
         // m8-fixes A1: an NPC's species word the code could not read (the NPC kept as "other" meanwhile).
-        kind: z.enum(['name', 'species']).optional(),
+        kind: z.enum(REVIEW_KINDS).optional(),
         npcId: z.string().optional(),
       }),
       sources: ['engine'],
       handle: (slice, e, ctx) => {
         const name = String(e['name']).trim();
-        const kind = e['kind'] === 'species' ? 'species' : undefined;
+        const kind = typeof e['kind'] === 'string' && e['kind'] !== 'name' ? (e['kind'] as ReviewKind) : undefined;
         const npcId = typeof e['npcId'] === 'string' ? e['npcId'] : undefined;
-        const same = (r: ReviewItem): boolean => r.status === 'open' && normalizeAlias(r.name) === normalizeAlias(name) && (r.kind === 'species') === (kind === 'species') && r.npcId === npcId;
+        const same = (r: ReviewItem): boolean => r.status === 'open' && normalizeAlias(r.name) === normalizeAlias(name) && (r.kind ?? 'name') === (kind ?? 'name') && r.npcId === npcId;
         if (slice.review.some(same)) return { slice, notes: [`"${name}" is already awaiting review`] };
         const item: ReviewItem = { id: `review:${slice.nextSeq}`, name, turn: selectTurnInPlay(ctx.state), context: String(e['context']), status: 'open', entityId: null, ...(kind ? { kind } : {}), ...(npcId ? { npcId } : {}) };
         return { slice: { ...slice, review: [...slice.review, item], nextSeq: slice.nextSeq + 1 } };

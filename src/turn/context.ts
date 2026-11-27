@@ -1,23 +1,25 @@
 // Context building (architecture §5, M2): prompt sections + state + recent raw turns + memory +
 // lore + arc, each section held to its token cap (src/ai/context.config.ts), with a per-section
 // report for the debug view. Pure; never mutates state. Replaces the minimal M1 builder (D-74).
-import { CONTEXT_CAPS, JUMP_CAPS, JUMP_REPORT_MAX_EVENTS, JUMP_REPORT_MAX_SKILLS, HISTORY_NARRATIVE_MAX_CHARS, MAX_RAW_TURNS, SUMMARY_INPUT_CAP_TOKENS, type SectionName } from '../ai/context.config';
+import { CONTEXT_CAPS, HISTORY_STEP, JUMP_CAPS, JUMP_REPORT_MAX_EVENTS, JUMP_REPORT_MAX_SKILLS, HISTORY_NARRATIVE_MAX_CHARS, MAX_RAW_TURNS, SUMMARY_INPUT_CAP_TOKENS, type SectionName } from '../ai/context.config';
 import type { MontageReport } from '../state/montageReport';
 import { handoffLines, selectCanonInCampaign, selectCaptivity, selectCaptivityNews, selectEraRules, selectShipImpounded, selectControl, selectLeaders, selectOrderSeat, selectTimelineHandoff, selectUntoldWorldEvents } from '../features/world/selectors';
 import { PROMPTS } from '../ai/prompts';
 import type { CallType, Message } from '../ai/provider';
 import { makeEstimator } from '../ai/tokenRatio';
 import { normalizeAlias, normalizeText } from '../engine/aliases';
-import { dateFromAbsDay, formatClock, formatDate, timeOfDayLabel } from '../engine/calendar';
+import { dateFromAbsDay, formatClock, formatDate, formatYear, timeOfDayLabel } from '../engine/calendar';
 import { COVERT_ESCALATION, ORDER_POWER_RULES } from '../data/orderPowerRules';
 import { onRecordAt, onRecordFor } from '../data/canonPlacements';
 import { blockadeLines, describeTravel } from './travel';
-import { selectDroidLines } from '../features/droids/selectors';
+import { selectDroidLines, selectDroidRule, selectDroids } from '../features/droids/selectors';
 import { selectBattleLines } from '../features/battles/selectors';
-import { selectShipLines } from '../features/ships/selectors';
+import { SHIP_RULE, selectShipLines } from '../features/ships/selectors';
 import { selectTacticLines } from '../features/tactics/selectors';
 import { selectTraitLines } from '../features/traits/selectors';
-import { selectEconomyLines } from '../features/economy/selectors';
+import { selectEconomyLines, selectEconomyRule } from '../features/economy/selectors';
+import { AI_FLAGS } from '../features/flags';
+import { activeParts } from '../ai/schemas/parts';
 import { rankErasAt } from '../data/eraRanks';
 import { closedWorlds, mapSide, WORLD_STATES, worldStateAt } from '../data/galaxyMap';
 import { healingFluidAt } from '../data/health.config';
@@ -50,7 +52,6 @@ import { selectCurrentLocationId, selectLocationChain, selectLocations } from '.
 import { selectArc, type Chapter } from '../features/memory/selectors';
 import { selectNpcs } from '../features/npcs/selectors';
 import { selectMoodTags, selectPacingLevel, selectPresentNpcIds, selectSettlingIn, selectStaleness } from '../features/pacing/selectors';
-import type { PacingLevel } from '../data/pacing.config';
 import { selectOpenThreads } from '../features/threads/selectors';
 import { LORE_INDEX } from '../lore';
 import type { LoreIndex } from '../lore/parse';
@@ -106,6 +107,8 @@ export interface BuildOptions {
   lore?: LoreIndex;
   /** A retry after the narration check (D-197): the contradictions found in the discarded narration. */
   correction?: readonly string[];
+  /** The turn's schema parts when the caller has them (D-520); else worked out here the same way. */
+  parts?: ReadonlySet<string>;
 }
 
 type Estimate = (text: string) => number;
@@ -143,6 +146,8 @@ function focusIds(state: GameState, referencedIds: readonly string[], playerText
     ...mentionedEntityIds(state, playerText),
     ...selectLocationChain(state, selectCurrentLocationId(state)).map((l) => l.id),
     ...selectOpenThreads(state).map((t) => t.id),
+    // The character's master, present or not (opt-1 B3): a focus ID that always fits.
+    ...(state.ranks.masterId ? [state.ranks.masterId] : []),
   ];
 }
 
@@ -291,15 +296,31 @@ export function activitiesLine(): string {
   return `VALID ACTIVITIES (for train or study; id = name): ${ACTIVITIES.map((a) => `${a.id} = ${a.name}`).join('; ')}`;
 }
 
+/** What a state block carries beyond the turn's own state (opt-1 B). */
+export interface StateBlockOptions {
+  /**
+   * The day-stable world lines (the Order's seat, rank names, leaders, control, canon figures here, closed worlds, the era rules of the
+   * character's side). The narrative call sends them in its WORLD block before the history instead (opt-1 C1); the intent call keeps
+   * them here. Default true.
+   */
+  world?: boolean;
+  /** VALID SKILLS (opt-1 B2): only when the reply may name a skill by id. Default true (the intent call names skills). */
+  validSkills?: boolean;
+}
+
 export function stateBlock(
   state: GameState,
   est: Estimate,
   cap: number = CONTEXT_CAPS.state,
   focus: readonly string[] = [],
   playerText = '',
+  opts: StateBlockOptions = {},
 ): { text: string; report: SectionReport } {
+  const withWorld = opts.world !== false;
   const now = selectNow(state);
   const chain = selectLocationChain(state, selectCurrentLocationId(state));
+  const placeNames = chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean));
+  const bby = -dateFromAbsDay(now.day).year;
   const present = selectPresentNpcIds(state).map((id) => `${state.npcs.byId[id]?.name ?? id} (${id})`);
   const mood = selectMoodTags(state);
   const base = [
@@ -315,47 +336,74 @@ export function stateBlock(
     skillsLine(state),
     ...beatsLines(state),
     `Date: ${formatDate(now.day)}`,
-    `Jedi Order: ${selectOrderSeat(state) ?? 'no standing Temple at this date'}`,
-    ...rankLines(dateFromAbsDay(now.day).year),
+    ...(withWorld ? worldStableLines(state) : []),
     ...(orderPowersLine(state) ? [orderPowersLine(state)!] : []),
-    ...worldLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean))),
     ...blockadeLines(state),
     ...selectEconomyLines(state),
     ...selectDroidLines(state),
     // A ship battle (m8-ship-battles, D-517): what the engine has, and crews that remember.
     ...selectBattleLines(state),
-    // Ships and tactics (m8-ship-life, D-519): the character's ships, customs and ship news; how to report a tactic learned.
+    // Ships (m8-ship-life, D-519): the character's ships, customs and ship news. The SHIPS, DROIDS, TACTICS and ECONOMY rules go with
+    // their schema part (opt-1 B1: turnRules), not here.
     ...selectShipLines(state),
-    ...selectTacticLines(state),
+    ...(withWorld ? selectTacticLines(state) : []),
     // Starting traits (M8 item 16): the character's and the present NPCs', each with its narrator note.
     ...selectTraitLines(state, selectPresentNpcIds(state)),
-    ...boardLines(state, -dateFromAbsDay(now.day).year, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), namedCanonIds(state, focus, playerText, -dateFromAbsDay(now.day).year)),
-    ...holocronLines(state, chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean)), playerText),
+    ...boardSceneLines(state, bby, namedCanonIds(state, focus, playerText, bby)),
+    ...holocronLines(state, placeNames, playerText),
     `Time: ${formatClock(now.second)} (${timeOfDayLabel(now.second)})`,
     `Location: ${chain.length ? chain.map((l) => `${l.name} (${l.id})`).join(', in ') : 'not recorded yet (introduce it with locationIntroduced)'}`,
     `Present: ${present.length ? present.join(', ') : 'nobody recorded'}`,
     `Pacing: ${selectPacingLevel(state)}`,
     ...storyFlowLines(state),
     `Scene mood: ${mood.length ? mood.join(', ') : 'not set'}`,
-    `VALID SKILLS: ${SKILL_IDS.join(', ')}`,
+    ...(opts.validSkills !== false ? [`VALID SKILLS: ${SKILL_IDS.join(', ')}`] : []),
     'VALID IDS (use only these, or temp keys you create in this reply):',
     `${PC_REF} = ${selectCharacterName(state)} (the player character)`,
   ];
   const lines = [...base];
+  // The fixed lines count against the cap (opt-1 B3). The focus IDs always go (the floor): the present NPCs, the current place and
+  // the places above it, the open threads, the master and whoever the player named. Every other known ID fills what is left.
   let tokens = est(lines.join('\n'));
   const included: ContextItem[] = [];
   const dropped: ContextItem[] = [];
+  const floor = new Set(focus);
   for (const [id, line] of idLines(state, focus)) {
     const t = est(`\n${line}`);
-    if (tokens + t <= cap) {
+    if (floor.has(id) || tokens + t <= cap) {
       lines.push(line);
       tokens += t;
-      included.push({ id, tokens: t });
+      included.push({ id, tokens: t, ...(floor.has(id) ? { note: 'focus' } : {}) });
     } else dropped.push({ id, tokens: t });
   }
   if (dropped.length) lines.push(`(${dropped.length} more known entities not listed; do not reintroduce them by name)`);
   const text = lines.join('\n');
   return { text, report: section('state', cap, text, est, included, dropped) };
+}
+
+/**
+ * The lines that stay the same all day at one place (opt-1 C1): the Order's seat, the era's rank names, leaders and control, the
+ * canon figures on record here, closed worlds and world states, and the era rules for the character's own side at this place. The
+ * narrative call sends them as the WORLD block before the history, so a repeated request starts with the same text.
+ */
+function worldStableLines(state: GameState): string[] {
+  const now = selectNow(state);
+  const chain = selectLocationChain(state, selectCurrentLocationId(state));
+  const placeNames = chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean));
+  const bby = -dateFromAbsDay(now.day).year;
+  return [
+    `Jedi Order: ${selectOrderSeat(state) ?? 'no standing Temple at this date'}`,
+    ...rankLines(dateFromAbsDay(now.day).year),
+    ...worldLines(state, placeNames),
+    ...boardStableLines(state, bby, placeNames),
+  ];
+}
+
+/** The WORLD block (opt-1 C1): day-stable, sent before the history in the narrative call. */
+export function worldBlock(state: GameState, est: Estimate): { text: string; report: SectionReport } {
+  const lines = worldStableLines(state);
+  const text = lines.length ? ['WORLD (this year and this place)', ...lines].join('\n') : '';
+  return { text, report: section('world', CONTEXT_CAPS.world, text, est) };
 }
 
 // ---------------------------------------------------------------- recent turns
@@ -368,6 +416,7 @@ export function historyWindow(
   records: readonly TurnRecord[],
   capTokens: number,
   est: Estimate,
+  step: number = HISTORY_STEP,
 ): { messages: Message[]; report: SectionReport; fromTurn: number | null } {
   const out: Message[][] = [];
   const included: ContextItem[] = [];
@@ -387,6 +436,18 @@ export function historyWindow(
     out.unshift(pair);
     included.unshift({ id: `turn ${turnOf(r, i)}`, tokens: cost });
     fromTurn = turnOf(r, i);
+  }
+  // Slide in steps (opt-1 C2): start at the oldest kept turn whose number is 1 more than a multiple of the step, so the history opens
+  // with the same turns for up to `step` calls. A window with no such turn (the first turns of a campaign) is kept whole.
+  const turnAt = (k: number): number => Number(included[k]!.id.slice('turn '.length));
+  let first = 0;
+  while (step > 1 && first < included.length && (turnAt(first) - 1) % step !== 0) first++;
+  if (first > 0 && first < included.length) {
+    const cut = included.splice(0, first);
+    out.splice(0, first);
+    used -= cut.reduce((a, c) => a + c.tokens, 0);
+    fromTurn = turnAt(0);
+    return { messages: out.flat(), report: { name: 'recentTurns', cap: capTokens, tokens: used, included, dropped: cut.map((c) => ({ ...c, note: `history step ${step}` })) }, fromTurn };
   }
   return { messages: out.flat(), report: { name: 'recentTurns', cap: capTokens, tokens: used, included, dropped: [] }, fromTurn };
 }
@@ -669,12 +730,48 @@ function memorySection(
   return { text, report: section('memory', cap, text, est, sel.included.map(item), sel.dropped.map(item)) };
 }
 
+/** The player's words that ask about the world, so the year's timeline rows come in full (opt-1 C3; a small list, invented). */
+const LORE_ASK = /\b(?:history|news|holonet|war|wars|galaxy|politics|front|events?|happening|happened|rumou?rs?|this year|what do (?:you|we|they) know|tell me about)\b/i;
+
+/** The world the character is on: the outermost place of the chain (opt-1 C3). */
+export function worldOf(state: GameState): string | null {
+  return selectLocationChain(state, selectCurrentLocationId(state)).at(-1)?.id ?? null;
+}
+
+/**
+ * Full or brief lore this turn (opt-1 C3, D-530): the year's timeline rows in full on the opening, when the year changed or the
+ * player reached a new world since the last story turn, or when the player's words ask about the world; otherwise a one-line summary
+ * of this year. Rows that name someone or somewhere in play, and the people's own entries, are sent either way.
+ */
+export function loreMode(state: GameState, input: TurnInput, history: readonly TurnRecord[], playerText: string): { brief: boolean; why: string } {
+  if (input.kind === 'opening') return { brief: false, why: 'the opening' };
+  const prev = [...history].reverse().find((r) => r.input.kind !== 'dev');
+  if (!prev) return { brief: false, why: 'the first story turn' };
+  if (dateFromAbsDay(prev.clockAfter.day).year !== dateFromAbsDay(selectNow(state).day).year) return { brief: false, why: 'a new year' };
+  if (prev.worldAfter === undefined || prev.worldAfter !== worldOf(state)) return { brief: false, why: 'a new world' };
+  if (LORE_ASK.test(playerText)) return { brief: false, why: 'the player asks' };
+  return { brief: true, why: 'same year, same world' };
+}
+
+/** One line for this year's events (opt-1 C3): the first rows, each shortened, and how many more there are. */
+function yearLine(year: number, rows: readonly { text: string }[]): string | null {
+  const events = rows.flatMap((r) => r.text.split('\n').filter((l) => l.startsWith('- ')));
+  if (!events.length) return null;
+  const short = (l: string): string => {
+    const body = l.replace(/^- (?:by |c\. )?[\d,–-]+ (?:BBY|ABY)(?:[–-][\d,]+ (?:BBY|ABY))?: /, '').replace(/ \([^()]*\)$/, '');
+    return body.length > 110 ? `${body.slice(0, body.lastIndexOf(' ', 107))}...` : body;
+  };
+  const shown = events.slice(0, 3).map(short);
+  return `This year (${formatYear(year)}) on record: ${shown.join('; ')}${events.length > shown.length ? ` (and ${events.length - shown.length} more)` : ''}.`;
+}
+
 function loreSection(
   state: GameState,
   referencedIds: readonly string[],
   playerText: string,
   est: Estimate,
   index: LoreIndex,
+  brief = false,
 ): { text: string; report: SectionReport } {
   const header = 'LORE (Star Wars Legends, true at this date)';
   const ids = new Set([...selectPresentNpcIds(state), ...referencedIds]);
@@ -682,22 +779,27 @@ function loreSection(
   const chain = selectLocationChain(state, selectCurrentLocationId(state));
   const locationNames = new Set<string>();
   for (const l of chain) for (const n of [l.name, ...l.aliases, l.region]) if (n) locationNames.add(normalizeText(n));
+  const year = dateFromAbsDay(selectNow(state).day).year;
   const sel = retrieveLore(
     index,
     {
-      year: dateFromAbsDay(selectNow(state).day).year,
+      year,
       canonIds: npcs.map((n) => n.canonId).filter((c): c is string => c !== null),
       names: npcs.map((n) => normalizeAlias(n.name)),
       locationNames: [...locationNames],
       playerText: normalizeText(playerText),
+      ...(brief ? { brief: true } : {}),
     },
     CONTEXT_CAPS.lore - est(header),
     est,
   );
   const item = (s: (typeof sel.included)[number]): ContextItem => ({ id: s.chunk.id, tokens: s.tokens, score: s.score, note: s.why.join('; ') });
-  if (sel.included.length === 0) return { text: '', report: section('lore', CONTEXT_CAPS.lore, '', est, [], sel.dropped.map(item)) };
-  const text = [header, ...sel.included.map((s) => s.text)].join('\n\n');
-  return { text, report: section('lore', CONTEXT_CAPS.lore, text, est, sel.included.map(item), sel.dropped.map(item)) };
+  const summary = brief ? yearLine(year, sel.yearRows ?? []) : null;
+  const held = [...(sel.yearRows ?? []), ...(sel.heldBack ?? [])].map((s) => ({ ...item(s), note: 'brief: summarized or held back (opt-1 C3)' }));
+  const body = [...sel.included.map((s) => s.text), ...(summary ? [summary] : [])];
+  if (body.length === 0) return { text: '', report: section('lore', CONTEXT_CAPS.lore, '', est, [], [...sel.dropped.map(item), ...held]) };
+  const text = [header, ...body].join('\n\n');
+  return { text, report: section('lore', CONTEXT_CAPS.lore, text, est, [...sel.included.map(item), ...(summary ? [{ id: 'this year (summary)', tokens: est(summary) }] : [])], [...sel.dropped.map(item), ...held]) };
 }
 
 function arcSection(state: GameState, est: Estimate): { text: string; report: SectionReport } {
@@ -709,9 +811,53 @@ function arcSection(state: GameState, est: Estimate): { text: string; report: Se
 
 // ---------------------------------------------------------------- requests
 
-export function narrativeSystemPrompt(state: GameState, opening: boolean, level: PacingLevel = selectPacingLevel(state), combat = false): string {
-  const pacing = PROMPTS.pacing[level];
-  return [PROMPTS.coreGm, PROMPTS.contract, pacing, ...(combat ? [PROMPTS.combatNarration] : []), ...(opening ? [PROMPTS.opening] : [])].join('\n\n');
+/**
+ * The narrator's standing rules (opt-1 C1): the same every turn, so a repeated request starts with the same text. The rules for this
+ * turn (pacing, combat, the parts' rules, the opening) go after the history, in the turn's own message (turnRules).
+ */
+export function narrativeSystemPrompt(): string {
+  return [PROMPTS.coreGm, PROMPTS.contract, `STORY FLAGS (flagSet): ${AI_FLAGS.join(', ')}`].join('\n\n');
+}
+
+/** The droids' business is in this scene (opt-1 B1): owned droids, a droid here, dealing, or the player's words of droids. */
+function droidCue(state: GameState, parts: ReadonlySet<string>, playerText: string): boolean {
+  return selectDroids(state).length > 0 || parts.has('goods') || /\bdroids?\b/i.test(playerText) || selectPresentNpcIds(state).some((id) => state.npcs.byId[id]?.role === 'droid');
+}
+
+/**
+ * The rules for this turn (opt-1 B1, C1, C4): the pacing level's, the fight's (combat-narration.md and only the parts this fight
+ * needs), the opening's, and the rules of each schema part sent (SHIPS with the ship part, TACTICS with training or command, ECONOMY
+ * with goods, DROIDS when droids are the scene's business).
+ */
+export function turnRules(state: GameState, draft: TurnDraft, input: TurnInput, parts: ReadonlySet<string>): { text: string; ids: string[] } {
+  const playerText = playerTextOf(input);
+  const combat = draft.combat !== null || draft.hold !== undefined || state.combat.active !== null;
+  const out: [string, string][] = [[`pacing-${draft.pacingLevel}`, PROMPTS.pacing[draft.pacingLevel]]];
+  if (combat) {
+    out.push(['combat-narration', PROMPTS.combatNarration]);
+    if (draft.combat && !draft.combat.quiet && draft.combat.narrate.length >= NARRATION_LENGTH.highlightsFrom) out.push(['combat-long', PROMPTS.combatLong]);
+    if (draft.combat?.ended || draft.combat?.session) out.push(['combat-end', PROMPTS.combatEnd]);
+    // holdBegun's own test: someone here, no hold yet, not a sparring session.
+    if (draft.hold !== undefined || (parts.has('people') && !state.combat.hold && state.combat.active?.session == null)) out.push(['combat-hold', PROMPTS.combatHold]);
+  }
+  if (input.kind === 'opening') out.push(['opening', PROMPTS.opening]);
+  // The event rules that left contract.md (opt-1 C4): only when the schema offers the event (combatStarted's own test; its ships
+  // field with the ship or command part; groundBattlePlanned with the command part).
+  const mayStart = state.combat.active === null && state.combat.pending === null;
+  if (mayStart) out.push(['combatStarted', PROMPTS.events.combatStarted]);
+  if (mayStart && (parts.has('ship') || parts.has('command'))) out.push(['shipBattle', PROMPTS.events.shipBattle]);
+  if (parts.has('command')) out.push(['groundBattle', PROMPTS.events.groundBattle]);
+  if (parts.has('ship')) out.push(['ships', SHIP_RULE]);
+  if (parts.has('training') || parts.has('command')) out.push(['tactics', selectTacticLines(state).join('\n')]);
+  if (parts.has('goods')) out.push(['economy', selectEconomyRule(state).join('\n')]);
+  if (droidCue(state, parts, playerText)) out.push(['droids', selectDroidRule(state).join('\n')]);
+  const body = out.map(([, t]) => t).filter(Boolean);
+  return { text: ['RULES FOR THIS TURN', ...body].join('\n\n'), ids: out.map(([id]) => id) };
+}
+
+/** The turn's schema parts, as the pipeline works them out (D-520). */
+export function partsFor(state: GameState, draft: TurnDraft, input: TurnInput): ReadonlySet<string> {
+  return activeParts(state, { timeAdvancedByDraft: draft.timeAdvanced !== null, text: playerTextOf(input), ...(draft.intent ? { intentAction: draft.intent.actionType } : {}) });
 }
 
 /** The player's own words for this turn (scanned for names; D-85). */
@@ -731,37 +877,55 @@ export function devScenarioBlock(state: GameState, scenario: string | null, open
   ].join('\n');
 }
 
+/**
+ * The narrative request (architecture §5; opt-1 C1 order, D-530). The stable text comes first so a repeated request starts the same:
+ * the standing rules (system), then the WORLD block, the year's LORE and the ARC (one exchange before the history), then the history
+ * (sliding in steps), then the turn itself: this turn's rules, the STATE, MEMORY, RESOLVED and the player's action.
+ */
 export function buildNarrativeRequest(state: GameState, draft: TurnDraft, input: TurnInput, history: readonly TurnRecord[], opts: BuildOptions): BuiltRequest {
   const est = makeEstimator(opts.ratio);
-  const system = narrativeSystemPrompt(state, input.kind === 'opening', draft.pacingLevel, draft.combat !== null || draft.hold !== undefined || state.combat.active !== null);
+  const system = narrativeSystemPrompt();
   const caps = draft.jump ? JUMP_CAPS : CONTEXT_CAPS;
   const referenced = draft.intent ? [...draft.intent.targets, ...draft.intent.references] : [];
   const playerText = playerTextOf(input);
+  const parts = opts.parts ?? partsFor(state, draft, input);
 
   const recent = historyWindow(history, caps.recentTurns, est);
-  const st = stateBlock(state, est, caps.state, focusIds(state, referenced, playerText), playerText);
+  const rules = turnRules(state, draft, input, parts);
+  const world = worldBlock(state, est);
+  const st = stateBlock(state, est, caps.state, focusIds(state, referenced, playerText), playerText, { world: false, validSkills: parts.has('training') });
   const arc = arcSection(state, est);
   const mem = memorySection(state, referenced, playerText, recent.fromTurn, est, caps.memory);
-  const lore = loreSection(state, referenced, playerText, est, opts.lore ?? LORE_INDEX);
+  const mode = loreMode(state, input, history, playerText);
+  const lore = loreSection(state, referenced, playerText, est, opts.lore ?? LORE_INDEX, mode.brief);
   const resolved = resolvedBlock(draft, opts.correction ?? [], dateFromAbsDay(selectNow(state).day).year);
   const playerLine = input.kind === 'opening' ? `OPENING${input.premise ? `\nPlayer premise: ${input.premise}` : ''}` : `PLAYER ACTION: ${describeInput(input)}`;
 
   const scenario = devScenarioBlock(state, input.kind === 'opening' ? (input.scenario ?? null) : pendingScenario(history), input.kind === 'opening');
 
-  const finalText = [st.text, arc.text, mem.text, lore.text, resolved, scenario, playerLine].filter(Boolean).join('\n\n');
-  const messages: Message[] = [...recent.messages, { role: 'user', text: finalText }];
+  const stable = [world.text, lore.text, arc.text].filter(Boolean).join('\n\n');
+  const finalText = [rules.text, st.text, mem.text, resolved, scenario, playerLine].filter(Boolean).join('\n\n');
+  // The stable block opens the conversation as a user turn the model answers with a short acknowledgement, so the turns alternate.
+  const head: Message[] = stable ? [{ role: 'user', text: stable }, { role: 'model', text: STABLE_ACK }] : [];
+  const messages: Message[] = [...head, ...recent.messages, { role: 'user', text: finalText }];
+  const loreReport = { ...lore.report, included: lore.report.included.map((i, k) => (k === 0 ? { ...i, note: `${i.note ?? ''}${i.note ? '; ' : ''}lore ${mode.brief ? 'brief' : 'full'} (${mode.why})` } : i)) };
+  const rulesText = `${system}\n\n${rules.text}`;
   const sections: SectionReport[] = [
-    section('gmRules', CONTEXT_CAPS.gmRules, system, est, [{ id: input.kind === 'opening' ? 'core-gm + contract + pacing + opening' : 'core-gm + contract + pacing', tokens: est(system) }]),
+    section('gmRules', CONTEXT_CAPS.gmRules, rulesText, est, [{ id: ['core-gm', 'contract', ...rules.ids].join(' + '), tokens: est(rulesText) }]),
+    world.report,
     st.report,
     recent.report,
     mem.report,
-    lore.report,
+    loreReport,
     arc.report,
     section('resolved', null, resolved, est),
     section('input', null, playerLine, est),
   ];
   return { system, messages, report: finishReport('narrative', opts, sections, system, messages) };
 }
+
+/** The model's side of the stable opening exchange (opt-1 C1). */
+export const STABLE_ACK = 'Understood.';
 
 export function buildIntentRequest(state: GameState, text: string, history: readonly TurnRecord[], opts: BuildOptions): BuiltRequest {
   const est = makeEstimator(opts.ratio);
@@ -861,25 +1025,63 @@ const PATH_FACTION: Readonly<Record<string, string>> = { jedi: 'jediOrder', sith
  * board), a warning for each story NPC named after a canon figure who is off the board now (the link was refused), and
  * the era rules for this place and the factions in play. No full roster is sent.
  */
-function boardLines(state: GameState, bby: number, placeNames: readonly string[], named: readonly string[] = []): string[] {
-  const lines: string[] = [];
-  // D-420 (Jared): every on-record whereabouts at this place (not only the D-401 placements), for figures on the board
-  // (or held here); never a full list. A figure the campaign has diverged from (D-419) is left out: the lore's
-  // whereabouts no longer apply to them.
+function boardFigure(state: GameState) {
   const diverged = new Set(selectNpcs(state).filter((n) => n.canonId && n.canonDiverged).map((n) => n.canonId!));
   // A figure whose recorded death did not come about in this campaign is on the board (D-467).
   const figure = (canonId: string): ReturnType<typeof selectCanonInCampaign> | undefined => {
     const n = CANON_BY_ID.get(canonId);
     return n ? selectCanonInCampaign(state, n) : undefined;
   };
+  return { diverged, figure };
+}
+
+/** The character's own side for era rules and closed worlds (D-401 [8]). */
+function ownFaction(state: GameState): string | undefined {
+  const c = selectCharacter(state);
+  return c.start?.faction ?? PATH_FACTION[c.path];
+}
+
+/** The figures the lore places here this year who are on the board (D-401 [3], D-420). */
+function canonHere(state: GameState, bby: number, placeNames: readonly string[]): ReturnType<typeof onRecordAt> {
+  const { diverged, figure } = boardFigure(state);
   const onBoard = (canonId: string): boolean => {
     const n = canonId ? figure(canonId) : undefined;
     return !n || canonOffBoard(n, bby) === null;
   };
-  const here = onRecordAt(placeNames, bby).filter((p) => !diverged.has(p.canonId) && (onBoard(p.canonId) || p.imprisoned));
+  return onRecordAt(placeNames, bby).filter((p) => !diverged.has(p.canonId) && (onBoard(p.canonId) || p.imprisoned));
+}
+
+/**
+ * The board at this place that stays the same all day (D-401 [3], [4], [8]; opt-1 C1 moved it to the WORLD block): the canon
+ * figures on record here this year, the era rules for this place and the character's own side, closed worlds and world states.
+ */
+function boardStableLines(state: GameState, bby: number, placeNames: readonly string[]): string[] {
+  const lines: string[] = [];
+  // D-420 (Jared): every on-record whereabouts at this place, for figures on the board (or held here); never a full list. A figure
+  // the campaign has diverged from (D-419) is left out: the lore's whereabouts no longer apply to them.
+  const here = canonHere(state, bby, placeNames);
   if (here.length) lines.push(`Canon figures here (on record this year; introduce them only as the story reaches them): ${here.map((p) => `${p.name}: ${p.doing}`).join('; ')}`);
-  // D-420: the on-record whereabouts of any canon figure named this turn (the player's words, the people referenced).
-  const hereIds = new Set(here.map((p) => p.canonId));
+  const own = ownFaction(state);
+  for (const r of selectEraRules(state, placeNames, own ? [own] : [])) lines.push(`Era rule: ${r.text}`);
+  // Closed worlds for the character's side (D-402 [5]-[8]): names only, plus the reason when the scene is at one.
+  const closed = closedWorlds(mapSide(own), bby);
+  if (closed.length) lines.push(`Closed worlds this year (no known route, secret, or not yet existing; the character can't travel there without a story reason): ${closed.map((g) => g.place).join(', ')}`);
+  for (const g of closed) if (placeNames.some((n) => ` ${n.toLowerCase()} `.includes(` ${g.place.toLowerCase()} `))) lines.push(`Closed world here: ${g.place}: ${g.reason}${g.storyException ? ` (allowed with a story reason: ${g.storyException})` : ''}`);
+  // Destroyed worlds (D-440): the map shows debris, not a planet, from the year on.
+  for (const w of WORLD_STATES) if (worldStateAt(w.place, bby) && placeNames.some((n) => ` ${n.toLowerCase()} `.includes(` ${w.place.toLowerCase()} `))) lines.push(`World state here: ${w.place} is an ${w.kind} in the ${w.system} (${w.reason}), not a planet.`);
+  return lines;
+}
+
+/**
+ * The board lines that follow the scene and the player's words (D-401 [4], D-420): the whereabouts of a canon figure named this turn,
+ * a warning for each story NPC named after a canon figure who is off the board now, and the era rules the factions present add.
+ */
+function boardSceneLines(state: GameState, bby: number, named: readonly string[] = []): string[] {
+  const lines: string[] = [];
+  const chain = selectLocationChain(state, selectCurrentLocationId(state));
+  const placeNames = chain.flatMap((l) => [l.name, ...l.aliases, l.region ?? ''].filter(Boolean));
+  const { diverged, figure } = boardFigure(state);
+  const hereIds = new Set(canonHere(state, bby, placeNames).map((p) => p.canonId));
   const namedLines: string[] = [];
   for (const id of named) {
     if (hereIds.has(id) || diverged.has(id) || namedLines.length >= NAMED_ON_RECORD_MAX) continue;
@@ -904,18 +1106,12 @@ function boardLines(state: GameState, bby: number, placeNames: readonly string[]
     if (canon && off) warned.push(`${n.name} (${n.id}) is not the canon ${canon.name}, who is ${OFF_BOARD_TEXT[off]} this year; treat them as someone else, or correct the story`);
   }
   for (const w of warned) lines.push(`Board warning: ${w}`);
-  const factions = new Set<string>();
-  const c = selectCharacter(state);
-  const own = c.start?.faction ?? PATH_FACTION[c.path];
-  if (own) factions.add(own);
+  // The era rules the factions present add to the character's own side's (those are in the WORLD block).
+  const own = ownFaction(state);
+  const factions = new Set<string>(own ? [own] : []);
   for (const id of selectPresentNpcIds(state)) { const f = state.npcs.byId[id]?.factionId; if (f) factions.add(f); }
-  for (const r of selectEraRules(state, placeNames, [...factions])) lines.push(`Era rule: ${r.text}`);
-  // Closed worlds for the character's side (D-402 [5]-[8]): names only, plus the reason when the scene is at one.
-  const closed = closedWorlds(mapSide(own), bby);
-  if (closed.length) lines.push(`Closed worlds this year (no known route, secret, or not yet existing; the character can't travel there without a story reason): ${closed.map((g) => g.place).join(', ')}`);
-  for (const g of closed) if (placeNames.some((n) => ` ${n.toLowerCase()} `.includes(` ${g.place.toLowerCase()} `))) lines.push(`Closed world here: ${g.place}: ${g.reason}${g.storyException ? ` (allowed with a story reason: ${g.storyException})` : ''}`);
-  // Destroyed worlds (D-440): the map shows debris, not a planet, from the year on.
-  for (const w of WORLD_STATES) if (worldStateAt(w.place, bby) && placeNames.some((n) => ` ${n.toLowerCase()} `.includes(` ${w.place.toLowerCase()} `))) lines.push(`World state here: ${w.place} is an ${w.kind} in the ${w.system} (${w.reason}), not a planet.`);
+  const ownRules = new Set(selectEraRules(state, placeNames, own ? [own] : []).map((r) => r.text));
+  for (const r of selectEraRules(state, placeNames, [...factions])) if (!ownRules.has(r.text)) lines.push(`Era rule: ${r.text}`);
   return lines;
 }
 

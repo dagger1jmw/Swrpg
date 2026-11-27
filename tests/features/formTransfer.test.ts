@@ -1,5 +1,6 @@
 // Fundamentals transfer at run time (D-119): a lightsaber form's first session as the primary starts it
 // at 0.75 x the highest form's XP, once per form, outside the 4.0x clamp; never for Force abilities.
+import { windowSums } from '../../src/engine/paceStore';
 import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { FORM_TRANSFER_SHARE } from '../../src/data/progression.config';
@@ -44,7 +45,7 @@ describe('fundamentals transfer at run time (D-119)', () => {
     expect(first.state.progression.skills['makashi']!.xp).toBeCloseTo(transfer + credited, 6);
     expect(first.state.progression.formsStarted).toContain('makashi');
     // The pace window holds only the session's credited XP, not the transfer.
-    expect(first.state.progression.paceWindow['makashi']!.reduce((a, e) => a + e.xp, 0)).toBeCloseTo(credited, 6);
+    expect(windowSums(first.state.progression.paceWindow['makashi'], first.state.clock.now.day).xp).toBeCloseTo(credited, 3); // kept to 0.001 (opt-1 F)
     expect(first.plan.ok && first.plan.card.notes.some((n) => n.includes('fundamentals transfer'))).toBe(true);
 
     const second = train(first.state, 'makashiBasics');

@@ -9,7 +9,7 @@ import { archetypeDef } from '../data/archetypes';
 import { FORM_IDS, SKILLS, SKILL_BY_ID } from '../data/skills';
 import { PRIME_H } from '../data/ageing.config';
 import { SPECIES_BY_ID, speciesDef } from '../data/species';
-import { SPECIES as SPECIES_IDS } from '../data/entities.config';
+import { FACTIONS, NPC_ROLES, SPECIES as SPECIES_IDS } from '../data/entities.config';
 import type { ReviewItem } from '../features/memory/selectors';
 import { traitsOf } from '../data/speciesTraits';
 import { selectCharacter } from '../features/character/selectors';
@@ -480,27 +480,51 @@ function review(p: SidePanelProps): HTMLElement[] {
     ...selectNpcs(s).map((n) => ({ id: n.id, label: `${n.name} (person)`, kind: 'npc' as const })),
     ...selectLocations(s).map((l) => ({ id: l.id, label: `${l.name} (place)`, kind: 'loc' as const })),
   ];
-  return items.map((r) => (r.kind === 'species' ? speciesReview(p, r) : nameReview(p, r, entities)));
+  return items.map((r) => (r.kind && r.kind !== 'name' ? wordReview(p, r) : nameReview(p, r, entities)));
 }
 
-/** An NPC's species word the code could not read (m8-fixes A1): pick the species, or dismiss to keep "other". */
-function speciesReview(p: SidePanelProps, r: ReviewItem): HTMLElement {
+/** Labels for the role and faction pickers (opt-1 A1): the ids read as words. */
+const wordLabel = (id: string): string => id.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase());
+
+/**
+ * A word the code could not read (m8-fixes A1, opt-1 A1). An NPC's species, role or faction: pick one, or dismiss to keep it as it
+ * is ("other" / "unknown"). A fight's minion kind or terrain word: shown with what the code used, dismiss only.
+ */
+function wordReview(p: SidePanelProps, r: ReviewItem): HTMLElement {
   const npc = r.npcId ? p.state.npcs.byId[r.npcId] : undefined;
-  const select = el('select', { attrs: { 'aria-label': `Species for ${npc?.name ?? r.name}` } }, [
-    el('option', { text: 'Species...', attrs: { value: '' } }),
-    ...SPECIES_IDS.filter((x) => x !== 'unknown' && x !== 'other').map((x) => el('option', { text: speciesLabel(x), attrs: { value: x } })),
+  const dismiss = (text: string): HTMLButtonElement => {
+    const b = el('button', { class: 'secondary', text, on: { click: () => p.playerEvents([{ type: 'reviewResolved', reviewId: r.id, resolution: 'dismissed' }]) } });
+    b.disabled = p.busy;
+    return b;
+  };
+  if (r.kind === 'minion' || r.kind === 'terrain') {
+    return el('div', { class: 'card' }, [
+      el('div', { class: 'card-title' }, [el('strong', { text: `${r.kind === 'minion' ? 'Fighters' : 'Terrain'} "${r.name}"` })]),
+      el('div', { class: 'hint', text: `turn ${r.turn} · ${r.context}` }),
+      el('div', { class: 'row' }, [dismiss('Dismiss')]),
+    ]);
+  }
+  const pickers: Record<'species' | 'role' | 'faction', { ids: readonly string[]; label: (x: string) => string; event: (id: string, v: string) => GameEvent; kept: string }> = {
+    species: { ids: SPECIES_IDS.filter((x) => x !== 'unknown' && x !== 'other'), label: speciesLabel, event: (id, v) => ({ type: 'npcSpeciesSet', npcRef: id, species: v }), kept: 'other' },
+    role: { ids: NPC_ROLES.filter((x) => x !== 'other'), label: wordLabel, event: (id, v) => ({ type: 'npcRoleSet', npcRef: id, role: v }), kept: 'other' },
+    faction: { ids: FACTIONS.filter((x) => x !== 'unknown'), label: wordLabel, event: (id, v) => ({ type: 'npcFactionSet', npcRef: id, faction: v }), kept: 'unknown' },
+  };
+  const kind = (r.kind ?? 'species') as keyof typeof pickers;
+  const k = pickers[kind];
+  const title = kind[0]!.toUpperCase() + kind.slice(1);
+  const select = el('select', { attrs: { 'aria-label': `${title} for ${npc?.name ?? r.name}` } }, [
+    el('option', { text: `${title}...`, attrs: { value: '' } }),
+    ...k.ids.map((x) => el('option', { text: k.label(x), attrs: { value: x } })),
   ]);
-  const set = el('button', { class: 'secondary', text: 'Set species', on: { click: () => {
+  const set = el('button', { class: 'secondary', text: `Set ${kind}`, on: { click: () => {
     if (!select.value || !npc) return;
-    p.playerEvents([{ type: 'npcSpeciesSet', npcRef: npc.id, species: select.value }, { type: 'reviewResolved', reviewId: r.id, resolution: 'mapped', entityRef: npc.id }]);
+    p.playerEvents([k.event(npc.id, select.value), { type: 'reviewResolved', reviewId: r.id, resolution: 'mapped', entityRef: npc.id }]);
   } } });
-  const dismiss = el('button', { class: 'secondary', text: 'Keep as other', on: { click: () => p.playerEvents([{ type: 'reviewResolved', reviewId: r.id, resolution: 'dismissed' }]) } });
   set.disabled = p.busy || !npc;
-  dismiss.disabled = p.busy;
   return el('div', { class: 'card' }, [
-    el('div', { class: 'card-title' }, [el('strong', { text: `Species "${r.name}"` })]),
-    el('div', { class: 'hint', text: `turn ${r.turn} · ${npc ? `${npc.name}, kept as "other" until settled` : r.context}` }),
-    el('div', { class: 'row' }, [select, set, dismiss]),
+    el('div', { class: 'card-title' }, [el('strong', { text: `${title} "${r.name}"` })]),
+    el('div', { class: 'hint', text: `turn ${r.turn} · ${npc ? `${npc.name}, kept as "${k.kept}" until settled` : r.context}` }),
+    el('div', { class: 'row' }, [select, set, dismiss(`Keep as ${k.kept}`)]),
   ]);
 }
 

@@ -138,7 +138,7 @@ export const tacticsFeature: FeatureModule<TacticsSlice, GameState> = {
      */
     tacticStudied: {
       // Its own AI event since m8-ground (D-520): the schema's parts made the room; the droid event's "tactic:" words still route here.
-      schema: z.object({ type: z.literal('tacticStudied'), what: z.string().max(120).describe('Taught, studied or practised, by name') }),
+      schema: z.object({ type: z.literal('tacticStudied'), what: z.string().max(120) }),
       sources: ['ai', 'engine', 'player', 'dev'],
       narrative: () => true,
       part: 'training',

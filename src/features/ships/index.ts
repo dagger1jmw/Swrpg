@@ -555,7 +555,7 @@ export const shipsFeature: FeatureModule<ShipsSlice, GameState> = {
     /** Engine (the droid event's "ship:" words) or player: an act on a ship in plain words. */
     shipAct: {
       // Its own AI event since m8-ground (D-520): the schema's parts made the room; the droid event's "ship:" words still route here.
-      schema: z.object({ type: z.literal('shipAct'), what: z.string().max(120).describe('A ship act in plain words (STATE: SHIPS)') }),
+      schema: z.object({ type: z.literal('shipAct'), what: z.string().max(120) }),
       sources: ['ai', 'engine', 'player', 'dev'],
       narrative: () => true,
       part: 'ship',

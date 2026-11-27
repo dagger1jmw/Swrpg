@@ -4,6 +4,7 @@ import type { Choice } from '../ai/schemas/compose';
 import { intentSchema, type Intent } from '../ai/schemas/intent';
 import { DEFAULT_ACTIVITY } from '../data/activities';
 import { isSkillId } from '../data/skills';
+import { skillFromWords } from '../data/entityWords';
 
 /** A train / study choice runs its skill's default activity for 1 hour (M3 plan). */
 export const DEFAULT_TRAINING_HOURS = 1;
@@ -25,7 +26,9 @@ export function expandChoice(choice: Choice, resolve: RefResolver): { intent: In
       if (choice.intent.blockade === undefined) notes.push(`choice targetRef ${targetRef} is not a valid ID; dropped`);
     }
   }
-  const skill = skillId !== undefined && skillId.trim() ? skillId.trim() : undefined;
+  // The skill in words or as an id (opt-1 B2): the id when it names one; otherwise the word as written (an unknown skill, as before).
+  const raw = skillId !== undefined && skillId.trim() ? skillId.trim() : undefined;
+  const skill = raw !== undefined ? (skillFromWords(raw) ?? raw) : undefined;
   let activity: { activityId: string } | undefined;
   if ((actionType === 'train' || actionType === 'study') && skill !== undefined) {
     const activityId = isSkillId(skill) ? DEFAULT_ACTIVITY[skill] : undefined;

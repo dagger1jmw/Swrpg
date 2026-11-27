@@ -20,7 +20,7 @@ export const relationshipsFeature: FeatureModule<RelationshipsSlice, GameState> 
       schema: z.object({
         type: z.literal('relationshipChanged'),
         npcRef: z.string(),
-        delta: z.number().int().min(-3).max(3).describe('-3 much worse .. +3 much better'),
+        delta: z.number().int().min(-3).max(3),
         reason: z.string().max(LIMITS.reason),
       }),
       sources: ['ai'],

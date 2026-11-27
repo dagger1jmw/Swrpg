@@ -23,6 +23,8 @@ export interface CallOptions {
   thinking?: ThinkingSetting;
   /** The schema sent to the model when it differs from the parse schema (see compose.ts). */
   wireSchema?: ZodType;
+  /** A big moment (opt-1 D): why the router may pick the stronger model. Never sent to the model. */
+  premium?: string;
 }
 
 export interface Usage {
@@ -30,6 +32,8 @@ export interface Usage {
   outputTokens: number;
   thoughtTokens: number;
   totalTokens: number;
+  /** Input tokens Gemini served from its implicit cache (usageMetadata.cachedContentTokenCount; opt-1 C1). Absent when none. */
+  cachedTokens?: number;
 }
 
 export type FinishReason = 'stop' | 'maxTokens' | 'safety' | 'other';

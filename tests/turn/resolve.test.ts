@@ -4,7 +4,8 @@ import { absDayFromDate } from '../../src/engine/calendar';
 import type { GameState } from '../../src/state/gameState';
 import { REGISTRY } from '../../src/state/registry';
 import { createInitialState } from '../../src/state/registryTools';
-import { historyMessages, resolvedBlock } from '../../src/turn/context';
+import { historyMessages, historyWindow, resolvedBlock } from '../../src/turn/context';
+import { makeEstimator } from '../../src/ai/tokenRatio';
 import { expandChoice } from '../../src/turn/expandChoice';
 import type { TurnRecord } from '../../src/turn/record';
 import { DEFAULT_SLEEP_SECONDS, pacingForSpan, resolveTurn } from '../../src/turn/resolve';
@@ -77,9 +78,11 @@ describe('context (D-74)', () => {
 
   it('keeps the newest whole turns that fit the cap, oldest first, never split', () => {
     const records = [rec(1, 400), rec(2, 400), rec(3, 400)];
-    const msgs = historyMessages(records, 230); // each pair costs about 104 tokens
+    // The fit rule alone (step 1); opt-1 C2's step then starts the window at a turn 1 more than a multiple of the step.
+    const msgs = historyWindow(records, 230, makeEstimator(4), 1).messages; // each pair costs about 104 tokens
     expect(msgs.map((m) => m.role)).toEqual(['user', 'model', 'user', 'model']);
     expect(msgs[0]?.text).toBe('PLAYER: action 2');
+    expect(historyWindow(records, 230, makeEstimator(4), 2).messages[0]?.text).toBe('PLAYER: action 3');
     expect(historyMessages(records, 50)).toEqual([]);
   });
 });

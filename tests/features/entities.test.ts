@@ -42,12 +42,16 @@ describe('npcs', () => {
     const g = ai(s, [{ ...orren, key: undefined, name: 'Y', species: 'gungan' }]);
     expect(g.rejected).toEqual([]);
     expect(g.state.memory.review.some((x) => x.kind === 'species' && x.name === 'gungan')).toBe(true);
+    // Faction and role words are not refused either (opt-1 A1): an unread word keeps "unknown" / "other" and goes to review.
     const r = ai(s, [
-      { ...orren, name: 'X', faction: 'gungans' },
+      { ...orren, key: undefined, name: 'X', faction: 'gungans', role: 'swamp oracle' },
       { type: 'npcStatusChanged', npcRef: 'npc:orren-vash', state: 'deceased' },
     ]);
-    expect(r.applied).toHaveLength(0);
-    expect(r.rejected).toHaveLength(2);
+    expect(r.applied.filter((a) => a.event.type === 'npcIntroduced')).toHaveLength(1);
+    expect(r.rejected).toHaveLength(1);
+    const x = Object.values(r.state.npcs.byId).find((n) => n.name === 'X')!;
+    expect([x.factionId, x.role]).toEqual(['unknown', 'other']);
+    expect(r.state.memory.review.filter((i) => i.npcId === x.id).map((i) => [i.kind, i.name]).sort()).toEqual([['faction', 'gungans'], ['role', 'swamp oracle']]);
   });
   it('status changes resolve refs by alias; unknown refs go to unknownRefs', () => {
     const s = ai(fresh(), [orren]).state;

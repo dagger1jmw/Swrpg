@@ -170,7 +170,7 @@ test 2 generalized).
 | grief | {intensity 1-3, sinceDay, easesByDay} or null; lingers under any stateOfMind (D-46) | engine |
 | fightsToday | per skill count, reset by the day hook (moved from combat, D-47) | engine |
 | combatXpToday | per skill XP before M, for the 12 XP daily cap, reset by the day hook (D-47) | engine |
-| paceWindow | per skill ring of daily credited XP and training hours (365 days) for the 4.0x clamp (D-48; hours by XP share, D-104 / D-109) | engine |
+| paceWindow | per skill credited XP and training hours of the rolling 365 days for the 4.0x clamp (D-48; hours by XP share, D-104 / D-109), stored as week sums plus the current week's days (D-533, engine/paceStore.ts; progression v5) | engine |
 | today | the day's training state: hours per activity, post-workout window, meditation and training hours (reset at midnight; M3, D-107) | engine |
 | overtrainStreak | int >= 0 | engine |
 | willpowerToday | 0-3.0 | engine |
@@ -348,6 +348,14 @@ the schema and for which events the reply may carry. The wire leaves out
 `tests/ai/schemaParts.test.ts` (every situation under the cap; no situation loses an event it
 needs).
 
+**Plain words and field notes (D-523, D-529, opt-1).** Species, faction and role (npcIntroduced),
+a minion group's kind and the terrain tags (combatStarted) and a choice's skill are plain words
+the code resolves (`src/data/entityWords.ts`: an exact id or name, then word lists); an unread
+word is never refused and goes to the review queue. No field carries a description in the wire:
+the field notes are in contract.md and the turn's rules. An event may narrow its wire for the
+state (`EventDef.wire`: traitMoment sends only the moments that can fire). Sizes: the core at its
+largest 49% of the cap, every situation at most 66% (reports/opt-1.md).
+
 ### Intent call schema
 This section is the single source for the AI schemas; `spec/ai-events.md` is superseded
 history (D-31).
@@ -405,10 +413,11 @@ events: Event[]         // discriminated union on "type", filtered per turn
 - A clicked choice's compact intent is expanded by the engine (default activity, span from
   pacingHint, default difficulty for the action type) and validated before step b (D-14 as
   amended by D-58).
-- **Output budget (D-58).** The per-level output cap (§8) is the narrative length budget.
-  JSON overhead (choices, scene, events, keys) is budgeted separately in config
-  (`jsonOverheadTokens`, starting at 300) and added to `maxOutputTokens`, so structure
-  never eats into the narrative.
+- **Output budget (D-58, D-532).** The per-level output cap (§8) is the narrative length budget.
+  JSON overhead (choices, scene, events, keys) is budgeted separately and added to
+  `maxOutputTokens`, so structure never eats into the narrative: sized from the turn since
+  opt-1 (`src/turn/outputBudget.ts`: opening 900, arrival 600, montage or skip 500, scene 500,
+  command 400, otherwise 300).
 
 ### Event catalog (AI-sourced, narrative reply), by owning feature
 The narrative reply carries only events with no dice, plus two deferred events (D-29).
@@ -422,7 +431,7 @@ tacticDeclared and healingReceived. They are intent fields now (above).
 | pacingSuggested {level, reason} | pacing | applied only if level = moment; else shown as a choice |
 | locationIntroduced {key?, name, kind, region, parentRef?, description, moveHere} | locations | creation event; exact alias match to an existing place first; parent must exist (D-84) |
 | locationChanged {locationRef} | locations | place exists; the only writer of currentId (D-84) |
-| npcIntroduced {key?, name, species, faction, role, ageApprox, description} | npcs | enums registered; exact alias match to existing/canon first |
+| npcIntroduced {key?, name, species, faction, role, ageApprox, description} | npcs | species, faction and role are plain words the code resolves, unread words to the review queue (D-523, D-529); exact alias match to existing/canon first |
 | npcStatusChanged {npcRef, state: active / dormant / departed} | npcs | the AI may not set deceased; deceased comes only from the health model (a resolved fight or hazard), a player choice at incapacitation, or a code-run Legends timeline event (engine source); deceased is one-way; `witnessed` removed (D-33); active added (D-65) |
 | relationshipChanged {npcRef, delta -3..+3, reason} | relationships | npc exists; cap 1 per NPC per turn |
 | factLearned {aboutRef, fact, importance, vision?} | memory | ref exists; cap 5 per turn |
@@ -596,13 +605,21 @@ that the state block supplies. Prompt files use plain quotes, never backticks.
 ### Request sections and token caps (config, `src/ai/context.config.ts`)
 | Section | Cap (tokens) | Contents |
 |---|---|---|
-| gmRules | 5,000 | core-gm + contract + pacing section + active feature sections |
-| state | 1,500 | character summary, derived levels for relevant skills, health status, clock, pacing, scene, combat state, valid IDs list |
+| gmRules | 5,000 | core-gm + contract + the turn's rules (pacing section, the fight's sections, the opening, the parts' and events' rules) |
+| world | 1,000 | the day-stable lines (D-530): the Order's seat, rank names, leaders and control, canon figures here, the era rules of the character's side, closed worlds; reported, never cut |
+| state | 1,500 | character summary, derived levels for relevant skills, health status, clock, pacing, scene, combat state, valid IDs list; the focus IDs always fit (D-530) |
 | recentTurns | 8,000 | the newest 10-15 raw turns that fit, never split |
 | memory | 4,000 | retrieved facts, chapter summaries, pinned facts (section 7) |
 | lore | 3,000 | retrieved lore chunks |
 | arc | 1,000 | arc summary |
 | (uncapped, small) | | resolved block (TurnDraft), player input, tier beats pending |
+
+**Order (D-530, opt-1 C1).** The stable text comes first, so a repeated request starts the same
+(Gemini's implicit cache): the system text is the standing rules (core-gm, contract, the story
+flags); one exchange before the history carries WORLD, LORE and ARC; then the history (sliding in
+steps of `HISTORY_STEP`); then the turn's message: RULES FOR THIS TURN, STATE, MEMORY, RESOLVED and
+the player's action. The year's timeline rows go in full on the opening, a new year, a new world or
+when the player asks; otherwise one line for the year (the rows about who and where is in play stay).
 
 The builder estimates tokens as characters / ratio. The ratio starts at 4 and is calibrated
 per model from Gemini `usageMetadata.promptTokenCount` (no countTokens request; D-26). It
@@ -690,7 +707,10 @@ Weights, the recency rule for unrelated items and the name-mention signal are in
 ### Call budget
 Normally 1-2 calls per turn (intent on the light model when needed, narrative on Flash). The
 chapter summary runs on the light model, only at chapter close. Models per call type are
-config. No continuation calls and no stitching; the only automatic extra call is the
+config. Since D-531 (Flash for the big moments, a Settings switch, on by default) an ordinary story
+turn uses Flash-Lite with Flash as the last fallback, and the turns the code picks (the opening, a
+fight's or battle's end, a time skip, a major world event) and chapter summaries try Flash first.
+A few typed phrases ("I wait", "continue") skip the intent call (D-530 C5). No continuation calls and no stitching; the only automatic extra call is the
 truncation retry (section 4).
 
 ### Usage meter

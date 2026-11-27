@@ -561,9 +561,9 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
       schema: z.object({
         type: z.literal('groundBattlePlanned'),
         site: z.string().min(1).max(60),
-        enemy: z.string().min(1).max(200).describe('Enemy forces, e.g. "six Sith infantry, armour, artillery"'),
+        enemy: z.string().min(1).max(200),
         ours: z.string().max(200).optional(),
-        details: z.string().max(300).optional().describe('e.g. "defending; terrain: a ridge, a river with a bridge; weather: fog; commander: <name>; meditator: <name>; command: <why handed>; jammed"'),
+        details: z.string().max(300).optional(),
       }),
       sources: ['ai', 'engine', 'dev'],
       part: 'command',

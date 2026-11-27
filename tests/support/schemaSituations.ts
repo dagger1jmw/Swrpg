@@ -109,3 +109,16 @@ export function situations(): Situation[] {
     { name: 'the player speaks of capture', state: rich, turn: turn('I want him taken alive') },
   ];
 }
+
+/** A late campaign (audit C2): 150 NPCs, 60 places, 25 threads, 200 facts, an arc at its cap. */
+export function lateCampaign(s0: GameState): GameState {
+  const ev: unknown[] = [];
+  for (let i = 0; i < 60; i++) ev.push({ type: 'locationIntroduced', name: `Place ${i} of the Outer Rim`, kind: 'district', region: 'Outer Rim', description: '', moveHere: false });
+  for (let i = 0; i < 150; i++) ev.push({ type: 'npcIntroduced', name: `Person Number${i} Varn`, species: 'human', faction: 'civilian', role: 'civilian', description: 'A face from the road.' });
+  for (let i = 0; i < 25; i++) ev.push({ type: 'threadOpened', title: `The matter of thread ${i}`, stakes: 'trust', entityRefs: [] });
+  let s = applyEvents(REGISTRY, s0, ev, { source: 'ai' }).state;
+  const facts: unknown[] = [];
+  for (let i = 0; i < 200; i++) facts.push({ type: 'factLearned', aboutRef: 'pc', fact: `The character learned fact number ${i}, a lasting detail about the road and the people on it.`, importance: i % 10 === 0 ? 'major' : 'minor' });
+  for (let i = 0; i < facts.length; i += 5) s = applyEvents(REGISTRY, s, facts.slice(i, i + 5), { source: 'ai' }).state;
+  return { ...s, memory: { ...s.memory, arc: { text: 'The story so far. '.repeat(220).slice(0, 4000), atChapter: 'chapter:1' } } };
+}

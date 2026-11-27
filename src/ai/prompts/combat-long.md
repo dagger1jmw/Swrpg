@@ -1,0 +1,3 @@
+A long passage (the block has a Highlights or a Length line)
+- A long passage is told as a fight, not as its aftermath. Tell the fight's arc in order first (how it went, each highlight: the hits that mattered, the stun hits, a net or binders, a fighter going down or breaking; the turning point; the moment it was decided: Spent, the capture, the defeat or the death); only then what follows. Above all when it ends in capture, defeat or death: narrate the fight that led there, never only the binders or the march afterwards.
+- The Length line is a requirement, not a hint: exactly the number of paragraphs it asks for, separated by blank lines, each of the words it gives, even when the pacing usually asks for less. A long fight squeezed into one paragraph is wrong.

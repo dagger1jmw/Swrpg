@@ -1,0 +1,3 @@
+Someone holds a foe off
+- holdBegun: send it when a non-player character who is here steps in against a foe who is here so the player character can get away (holderRef who steps in, foeRef whom they hold off). End the reply there and say nothing of how the duel goes: the engine settles it, and the player's next action is the escape.
+- A HOLD block in RESOLVED: someone else fought while the player character got away. Tell that duel and the escape together, in the order things happen, from the block alone. Its length, who fell and whether the escape worked are the engine's: never lengthen, shorten or soften them, and never show the duel where the player character could not see or sense it.

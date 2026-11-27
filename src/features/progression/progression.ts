@@ -1,6 +1,7 @@
 // Progression slice (architecture §2 "progression"; progression-numbers §2-17). XP is stored;
 // levels, tiers, capacities and effective levels are derived by selectors. M3 fields only: E, CI,
 // bank, combat counters and the review buff arrive with combat (M5).
+import { storeFromEntries } from '../../engine/paceStore';
 import { z } from 'zod';
 import { EASE_DAYS, GRIEF_MULT, STATES_OF_MIND, STATE_MULT, type StateOfMind } from '../../data/progression.config';
 import { FORM_IDS } from '../../data/skills';
@@ -14,6 +15,15 @@ export const skillStateSchema = z.object({
 export type SkillState = z.infer<typeof skillStateSchema>;
 
 export const windowEntrySchema = z.object({ day: z.number().int(), xp: z.number().min(0), hours: z.number().min(0) });
+/** One skill's pace window, stored compactly (opt-1 F, D-533; engine/paceStore.ts): week sums plus the current week's days. */
+export const paceSkillStoreSchema = z.object({
+  w0: z.number().int(),
+  wx: z.array(z.number().min(0)),
+  wh: z.array(z.number().min(0)),
+  dd: z.array(z.number().int()),
+  dx: z.array(z.number().min(0)),
+  dh: z.array(z.number().min(0)),
+});
 
 export const stateOfMindSchema = z.object({
   kind: z.enum(STATES_OF_MIND),
@@ -45,8 +55,11 @@ export const progressionSliceSchema = z.object({
   skills: z.record(z.string(), skillStateSchema),
   stateOfMind: stateOfMindSchema,
   grief: griefSchema.nullable(),
-  /** Per skill: daily credited XP and training hours in the rolling 365-day window (D-48, D-104). */
-  paceWindow: z.record(z.string(), z.array(windowEntrySchema)),
+  /**
+   * Per skill: credited XP and training hours in the rolling 365-day window (D-48, D-104), as week sums plus the current week's
+   * days (opt-1 F, D-533: was one object per skill per day, about 97% of the save at a year). Read through engine/paceStore.ts.
+   */
+  paceWindow: z.record(z.string(), paceSkillStoreSchema),
   overtrainStreak: z.number().int().min(0),
   /** Fatigue Willpower credited today (cap 3.0). */
   willpowerToday: z.number().min(0).max(3),
@@ -125,6 +138,12 @@ export function emptyProgression(day: number, startingXp: Readonly<Record<string
 export type M5Fields = 'E' | 'CI' | 'bank' | 'bankReleaseUntil' | 'reviewBuff' | 'lastReviewDay';
 
 /** v3 -> v4 (M5): applied experience, combat integration, the bank and the review buff start empty. */
+/** v4 -> v5 (opt-1 F, D-533): the pace window's daily entries become the compact store (week sums plus the current week's days). */
+export function migrateProgressionV4(old: unknown): ProgressionSlice {
+  const o = old as Omit<ProgressionSlice, 'paceWindow'> & { paceWindow: Record<string, { day: number; xp: number; hours: number }[]> };
+  return { ...o, paceWindow: Object.fromEntries(Object.entries(o.paceWindow ?? {}).map(([k, es]) => [k, storeFromEntries(es)])) };
+}
+
 export function migrateProgressionV3(old: unknown): ProgressionSlice {
   return { ...(old as Omit<ProgressionSlice, M5Fields>), E: {}, CI: {}, bank: {}, bankReleaseUntil: null, reviewBuff: null, lastReviewDay: null };
 }

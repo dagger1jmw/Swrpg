@@ -1,8 +1,6 @@
-// npc test 7, part 4 (archetypeCase.ts; D-462, Jared): the careers that start before 15 besides the Mandalorian, with the
-// career youth phase (D-461).
+// npc test 7, part 4 (archetypeLife.ts; D-462, Jared): the careers that start before 15 besides the Mandalorian, with the career youth
+// phase (D-461).
 import { describe } from 'vitest';
-import { archetypeCase } from './archetypeCase';
+import { archetypeLife } from './archetypeLife';
 
-describe('npc test 7: the young-start careers are reachable by their own routine', () => {
-  for (const id of ['warrior', 'yuuzhanVongWarrior']) archetypeCase(id);
-});
+for (const id of ['warrior', 'yuuzhanVongWarrior']) describe(`npc test 7: ${id}`, () => archetypeLife(id));

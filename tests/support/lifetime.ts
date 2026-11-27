@@ -8,6 +8,7 @@
 // through fightResolved. Replaces the M4 scripted fights (STUB_SCRIPTED_COMBAT). Care after a wounding fight (D-162, a
 // harness input): in a profile's war years a bacta tank for the worst new wound (x4; the tank days replace the routine),
 // otherwise Order and military profiles get 30 days of medical care. Spars may be against 2-3 partners (D-163).
+import { windowSums } from '../../src/engine/paceStore';
 import { TEST_YEAR } from './dates';
 import { FORM_IDS, SKILLS } from '../../src/data/skills';
 import { PACE_WINDOW_DAYS } from '../../src/data/progression.config';
@@ -710,9 +711,8 @@ export function runLifetime(p: LifeProfile, years: number, opts: LifetimeOpts = 
         const row: Record<string, { xp: number; hours: number; banked: number }> = {};
         bankLog = bankLog.filter((b) => b.day > today - PACE_WINDOW_DAYS);
         for (const [k, es] of Object.entries(s.progression.paceWindow)) {
-          const inWin = es.filter((e) => e.day > today - PACE_WINDOW_DAYS && e.day <= today);
-          const xp = inWin.reduce((a, e) => a + e.xp, 0);
-          const hours = inWin.reduce((a, e) => a + e.hours, 0);
+          // The compact store (opt-1 F): the same sums the clamp reads.
+          const { xp, hours } = windowSums(es, today);
           const banked = bankLog.filter((b) => b.k === k && b.day <= today).reduce((a, b) => a + b.x, 0);
           if (xp > 0 || hours > 0) row[k] = { xp, hours, banked };
         }

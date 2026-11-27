@@ -18,15 +18,15 @@ export const compactIntentSchema = z.object({
 export const choiceSchema = z.object({
   // Gemini strips maxLength (D-68), so the parse limit is generous; one long label must not fail
   // the whole reply (D-92, live 2026-11-17: a 100+ character label did).
-  label: z.string().min(1).max(200).describe('Under 80 characters'),
+  label: z.string().min(1).max(200),
   intent: compactIntentSchema,
   pacingHint: z.enum(PACING_LEVELS).optional(),
-  spanDays: z.number().int().min(1).max(3680).optional().describe('Days, for montage or timeSkip'),
+  spanDays: z.number().int().min(1).max(3680).optional(),
 });
 
 export const sceneSchema = z.object({
   moodTags: z.array(z.string().max(30)).max(5),
-  presentNpcRefs: z.array(z.string().max(80)).max(12).describe('NPCs present at the end'),
+  presentNpcRefs: z.array(z.string().max(80)).max(12),
 });
 
 /** `blockade`, `escape` and `escapePlan` are set only by the engine's own choices (D-469, D-471, D-496); the AI's schema does not have them. */
@@ -71,10 +71,11 @@ function omitFields(schema: z.ZodObject, fields: readonly string[]): z.ZodObject
 }
 
 /** The event's wire schema this turn: its situational fields only when their part applies (D-520). */
-function wireOf<S extends BaseState>(def: EventDef<unknown, S>, parts: ReadonlySet<string>): ZodType {
+function wireOf<S extends BaseState>(def: EventDef<unknown, S>, parts: ReadonlySet<string>, state: S): ZodType {
+  const base = def.wire ? def.wire(state) : def.schema;
   const drop = Object.entries(def.partFields ?? {}).filter(([, part]) => !(typeof part === 'string' ? [part] : part).some((x) => parts.has(x))).map(([field]) => field);
-  if (!drop.length) return def.schema;
-  return omitFields(def.schema as unknown as z.ZodObject, drop);
+  if (!drop.length) return base;
+  return omitFields(base as unknown as z.ZodObject, drop);
 }
 
 /** The event types legal this turn, in registry order. */
@@ -101,7 +102,7 @@ export function composeNarrativeSchema<S extends BaseState>(registry: Registry<S
   const parts = activeParts(state, turn);
   const eventSchemas: ZodType[] = [];
   for (const f of registry) {
-    for (const def of Object.values(f.events)) if (sent(def as EventDef<unknown, S>, state, turn, parts)) eventSchemas.push(wireOf(def as EventDef<unknown, S>, parts));
+    for (const def of Object.values(f.events)) if (sent(def as EventDef<unknown, S>, state, turn, parts)) eventSchemas.push(wireOf(def as EventDef<unknown, S>, parts, state));
   }
   const [first, second, ...rest] = eventSchemas;
   const eventSchema: ZodType | null = first === undefined ? null : second === undefined ? first : z.union([first, second, ...rest]);

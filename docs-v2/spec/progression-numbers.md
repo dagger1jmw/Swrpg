@@ -102,6 +102,8 @@ Speed multiplier M = talent * cross-talent * instruction (sec 15, 19) * age (sec
     Average's most-trained form; any other skill it does not train reads the Average's
     whole-training rate (design default). The excess is discarded and logged. Banked drill
     XP released after combat is excluded (it does not count toward the window).
+    Storage (D-533): the window is kept as week sums plus the current week's days; a finished week counts
+    whole when 4 of its 7 days are inside the window (the edge moves at most 3 days), values to 0.001.
     Y_avg(age) below is no longer the cap: it stays the reference of the "within 4.0x"
     lifetime floor (D-235) and the Average's yearly table gate.
     Y_avg(age), K = 11.683 (computed by docs-v2/calc/progression-sim.mjs, per 365 days; the

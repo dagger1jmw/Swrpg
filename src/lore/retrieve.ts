@@ -19,6 +19,11 @@ export interface LoreQuery {
   locationNames: readonly string[];
   /** The player's input, normalized (normalizeText), scanned for lore names. */
   playerText?: string;
+  /**
+   * Brief (opt-1 C3, D-530): timeline rows that score only for their year are not sent; the rows of the current year come back in
+   * `yearRows` for a one-line summary. Rows that name someone or somewhere in play, or the player's words, are still sent.
+   */
+  brief?: boolean;
 }
 
 export interface ScoredChunk {
@@ -35,7 +40,14 @@ export interface LoreSelection {
   /** Eligible, scored chunks that did not fit. */
   dropped: ScoredChunk[];
   tokens: number;
+  /** Brief only: this year's timeline chunks held back for the summary line (opt-1 C3). */
+  yearRows?: ScoredChunk[];
+  /** Brief only: earlier years' timeline chunks held back (reported as dropped by brief). */
+  heldBack?: ScoredChunk[];
 }
+
+/** A reason that is only the row's date (scoreChunk's timeline reasons). */
+const dateOnly = (why: readonly string[]): boolean => why.every((w) => w === 'this year' || / years? ago$/.test(w));
 
 /** Era filter: character and note chunks by era range; timeline rows only up to the current year. */
 export function isEligible(c: LoreChunk, year: number): boolean {
@@ -81,12 +93,19 @@ export function chunkTextAt(c: LoreChunk, year: number): string {
 
 export function retrieveLore(index: LoreIndex, q: LoreQuery, capTokens: number, estimate: (text: string) => number): LoreSelection {
   const scored: ScoredChunk[] = [];
+  const yearRows: ScoredChunk[] = [];
+  const heldBack: ScoredChunk[] = [];
   for (const chunk of index.chunks) {
     if (!isEligible(chunk, q.year)) continue;
     const { score, why } = scoreChunk(chunk, q);
     if (score <= 0) continue;
     const text = chunkTextAt(chunk, q.year);
-    scored.push({ chunk, text, score, why, tokens: estimate(text) });
+    const s = { chunk, text, score, why, tokens: estimate(text) };
+    if (q.brief && chunk.kind === 'timeline' && dateOnly(why)) {
+      (chunk.toYear >= q.year ? yearRows : heldBack).push(s);
+      continue;
+    }
+    scored.push(s);
   }
   scored.sort((a, b) => b.score - a.score || (a.chunk.id < b.chunk.id ? -1 : a.chunk.id > b.chunk.id ? 1 : 0));
   const included: ScoredChunk[] = [];
@@ -98,7 +117,7 @@ export function retrieveLore(index: LoreIndex, q: LoreQuery, capTokens: number, 
       tokens += s.tokens;
     } else dropped.push(s);
   }
-  return { included, dropped, tokens };
+  return { included, dropped, tokens, ...(q.brief ? { yearRows, heldBack } : {}) };
 }
 
 /** Canon match for npcIntroduced (D-81): an in-era lore person with this exact normalized alias. */

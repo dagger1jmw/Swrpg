@@ -1,9 +1,14 @@
 // Request sections and token caps (architecture §5). Montage and timeSkip change them in M4.
 
-export type SectionName = 'gmRules' | 'state' | 'recentTurns' | 'memory' | 'lore' | 'arc';
+export type SectionName = 'gmRules' | 'world' | 'state' | 'recentTurns' | 'memory' | 'lore' | 'arc';
 
 export const CONTEXT_CAPS: Record<SectionName, number> = {
   gmRules: 5000,
+  /**
+   * The WORLD block (opt-1 C1, D-530): the day-stable lines that left the state block (the Order's seat, rank names, leaders and
+   * control, canon figures here, the era rules of the character's side, closed worlds). Reported, never cut; invented.
+   */
+  world: 1000,
   state: 1500,
   recentTurns: 8000,
   memory: 4000,
@@ -40,3 +45,12 @@ export const DEBUG_REQUESTS_KEPT = 10;
 export const JUMP_CAPS: Record<SectionName, number> = { ...CONTEXT_CAPS, recentTurns: 4000, memory: 6000 };
 export const JUMP_REPORT_MAX_EVENTS = 20;
 export const JUMP_REPORT_MAX_SKILLS = 12;
+
+/**
+ * The history slides in steps (opt-1 C2, D-530): the oldest turn kept is always one whose number is 1 more than a multiple of this,
+ * so the same turns open the history for several calls in a row (Gemini's implicit cache discounts a repeated start of the request).
+ * The cost is up to STEP - 1 fewer turns than fit. Measured (reports/opt-1.md C2): step 2 keeps the same start on 50% of calls for
+ * about 270 history tokens (3.5%), step 4 on 75% for about 840 (11%). 2 while Jared plays on the free tier, where Flash-Lite has no
+ * cache discount; 4 is the choice on a paid tier. Invented.
+ */
+export const HISTORY_STEP = 2;

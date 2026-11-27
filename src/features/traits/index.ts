@@ -201,6 +201,33 @@ function addTrait(slice: TraitsSlice, id: string, day: number, why: string): R {
   return { slice: { ...slice, held: [...slice.held, { id, since: day, source: 'event' }], history: [...slice.history, { day, change: 'added', id, why: why.slice(0, 160) }] }, notes: [`trait added: ${TRAIT_BY_ID.get(id)!.name} (${why})`] };
 }
 
+const traitMomentSchema = z.object({
+  type: z.literal('traitMoment'),
+  moment: z.enum(TRAIT_MOMENTS),
+  traitId: z.string().max(40).optional(),
+  toward: z.string().max(40).optional(),
+  why: z.string().max(120).optional(),
+});
+
+/**
+ * The moments that can change something for this character now (opt-1 A2), in the handler's own terms: a scar not yet held (a brush
+ * with the dark side only on a Force path); a fear faced for a held scar whose fear is not overcome; an ideal broken for Idealistic;
+ * a temperament tested for a held temperament; a rival outdoing them for a held Rival tie.
+ */
+export function momentsThatCanFire(s: GameState): Moment[] {
+  const held = s.traits.held;
+  const has = (id: string): boolean => held.some((h) => h.id === id);
+  return TRAIT_MOMENTS.filter((m) => {
+    const scar = MOMENT_SCAR[m];
+    if (scar) return !has(scar) && !(scar === 'brushWithDark' && s.character.path === 'career');
+    if (m === 'fearFaced') return held.some((h) => !h.overcome && TRAIT_BY_ID.get(h.id)?.fear !== undefined);
+    if (m === 'idealBroken') return has('idealistic');
+    if (m === 'temperamentTested') return held.some((h) => TRAIT_BY_ID.get(h.id)?.kind === 'temperament');
+    if (m === 'rivalOutdid') return has('rival');
+    return true;
+  });
+}
+
 function handleMoment(slice: TraitsSlice, e: GameEvent, s: GameState): R {
   const moment = e['moment'] as Moment;
   const day = s.clock.now.day;
@@ -279,15 +306,18 @@ export const traitsFeature: FeatureModule<TraitsSlice, GameState> = {
      * idealBroken, temperamentTested (traitId and toward), rivalOutdid.
      */
     traitMoment: {
-      schema: z.object({
-        type: z.literal('traitMoment'),
-        moment: z.enum(TRAIT_MOMENTS),
-        traitId: z.string().max(40).optional(),
-        toward: z.string().max(40).optional(),
-        why: z.string().max(120).optional(),
-      }),
+      schema: traitMomentSchema,
       sources: ['ai', 'engine'],
-      narrative: (s) => (s as { traits?: TraitsSlice }).traits !== undefined && s.traits.quiz.status !== 'never',
+      // opt-1 A2 (Jared, 26 Nov 2026; D-529): sent only when a moment can fire for this character, with only those moments (and
+      // traitId / toward only when a moment that names a held trait is among them). Nothing that could fire is left out, so no
+      // outcome changes: a scar already held, Idealistic not held and the like were refused or a no-op before.
+      narrative: (s) => (s as { traits?: TraitsSlice }).traits !== undefined && s.traits.quiz.status !== 'never' && momentsThatCanFire(s).length > 0,
+      wire: (s) => {
+        const can = momentsThatCanFire(s);
+        const named = can.some((m) => m === 'fearFaced' || m === 'temperamentTested');
+        const base = z.object({ type: z.literal('traitMoment'), moment: z.enum(can as [Moment, ...Moment[]]), why: z.string().max(120).optional() });
+        return named ? base.extend({ traitId: z.string().max(40).optional(), toward: z.string().max(40).optional() }) : base;
+      },
       handle: (slice, e, ctx) => handleMoment(slice, e, ctx.state),
     },
     /** Engine: a tie's person died (npcs' npcDied): the tie ends. */

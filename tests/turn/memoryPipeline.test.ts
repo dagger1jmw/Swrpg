@@ -100,18 +100,20 @@ describe('M2 pipeline: memory and lore', () => {
     let s = (await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' })).session;
     s = (await playTurn(deps, s, { kind: 'typed', text: 'We fly to Dantooine to find Tarsk' })).session;
     expect(s.state.memory.review.map((r) => [r.name, r.status])).toEqual([['Tarsk', 'open']]);
-    s = (await playTurn(deps, s, { kind: 'typed', text: 'I look around' })).session;
+    // Not a typed shortcut (opt-1 C5: "I look around" no longer makes an intent call), so the fixture's intent call runs.
+    s = (await playTurn(deps, s, { kind: 'typed', text: 'I ask the dockhands about him' })).session;
     expect(s.state.memory.review[0]).toMatchObject({ name: 'Tarsk', status: 'mapped', entityId: 'npc:tarsk' });
   });
 
   it('lore for the current era reaches the GM, with a per-section token report', async () => {
     const { deps, requests } = setup([{ callType: 'narrative', data: openingM2 }]);
     const { record } = await playTurn(deps, await newSession(deps), { kind: 'opening', premise: '' });
-    const text = requests[0]!.messages.at(-1)!.text;
+    // The lore goes in the stable opening exchange now (opt-1 C1), before the history.
+    const text = requests[0]!.messages.map((m) => m.text).join('\n');
     expect(text).toContain('Great Galactic War');
     expect(text).toContain('Blockade of the Hydian Way begins');
     const report = record.context!.narrative!;
-    expect(report.sections.map((x) => x.name)).toEqual(['gmRules', 'state', 'recentTurns', 'memory', 'lore', 'arc', 'resolved', 'input', 'schema']);
+    expect(report.sections.map((x) => x.name)).toEqual(['gmRules', 'world', 'state', 'recentTurns', 'memory', 'lore', 'arc', 'resolved', 'input', 'schema']);
     expect(report.actualInputTokens).toBe(100); // fixture usage
     expect(report.sections.find((x) => x.name === 'lore')!.included.map((i) => i.id)).toContain('tl:great-galactic-war:overview');
   });

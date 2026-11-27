@@ -1,6 +1,7 @@
 // D-460 (Jared): the saber gate covers all of a Jedi Initiate's lightsaber training (free training included), and the
 // Padawan specialty transfer: the main form's first session past Initiate starts it at max(its XP, 0.75 x Form I's XP),
 // once in a life, outside the pace window.
+import { windowSums } from '../../src/engine/paceStore';
 import { TEST_YEAR } from '../support/dates';
 import { describe, expect, it } from 'vitest';
 import { FORM_TRANSFER_SHARE } from '../../src/data/progression.config';
@@ -74,7 +75,7 @@ describe('the Padawan specialty transfer (D-460)', () => {
     expect(sp.xp).toBeCloseTo(FORM_TRANSFER_SHARE * formI - before, 6);
     const credited = (first.event['credited'] as Record<string, number>)['soresu']!;
     expect(first.state.progression.skills['soresu']!.xp).toBeCloseTo(before + sp.xp + credited, 6);
-    expect(first.state.progression.paceWindow['soresu']!.reduce((a, e) => a + e.xp, 0)).toBeCloseTo(credited, 6);
+    expect(windowSums(first.state.progression.paceWindow['soresu'], first.state.clock.now.day).xp).toBeCloseTo(credited, 3); // kept to 0.001 (opt-1 F)
     expect(first.state.progression.specialtyTransfer).toBe('soresu');
     expect(first.notes.some((n) => n.includes('specialty transfer'))).toBe(true);
     // Once in a life.

@@ -16,10 +16,10 @@ export const locationIntroducedSchema = z.object({
   key: z.string().optional(),
   name: z.string().min(1).max(LIMITS.name),
   kind: z.enum(LOCATION_KINDS),
-  region: z.string().max(LIMITS.region).describe('Planet or sector'),
-  parentRef: z.string().optional().describe('The place this is inside'),
+  region: z.string().max(LIMITS.region),
+  parentRef: z.string().optional(),
   description: z.string().max(LIMITS.description),
-  moveHere: z.boolean().describe('The player is now here'),
+  moveHere: z.boolean(),
 });
 
 /** A ship or ground battle is being fought (read loosely: a state built by a test may lack the battles slice). */

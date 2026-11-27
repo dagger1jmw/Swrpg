@@ -85,7 +85,7 @@ export const routinesFeature: FeatureModule<RoutinesSlice, GameState> = {
           .min(1)
           .max(8),
         effort: z.enum(EFFORTS),
-        spanHint: z.string().max(LIMITS.reason).describe('How long, in words'),
+        spanHint: z.string().max(LIMITS.reason),
       }),
       sources: ['ai'],
       narrative: (s) => s.routines.suggested === null,

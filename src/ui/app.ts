@@ -5,7 +5,7 @@
 import { noticeShown, type Notice } from './notices';
 import { DEBUG_REQUESTS_KEPT } from '../ai/context.config';
 import { createModelRouter, type ModelRouter, type QuotaState } from '../ai/fallback';
-import { FALLBACK_NARRATIVE_MODEL, KNOWN_MODELS } from '../ai/models.config';
+import { FALLBACK_NARRATIVE_MODEL, FLASH_ROUTING, KNOWN_MODELS } from '../ai/models.config';
 import type { CallType, ModelProvider, Usage } from '../ai/provider';
 import {
   loadQuota,
@@ -190,6 +190,8 @@ export class App {
         saveQuota(this.d.kv, q);
       },
       now: () => this.d.now(),
+      // opt-1 D: Flash for the big moments, unless Settings turned it off.
+      getRouting: () => ({ on: this.settings.flashRouting !== false, model: this.settings.premiumModel ?? FLASH_ROUTING.model }),
     });
     this.panelOpen = !window.matchMedia(DRAWER_QUERY).matches;
   }
@@ -236,8 +238,8 @@ export class App {
         const ms = this.d.now();
         return { ms, iso: new Date(ms).toISOString() };
       },
-      recordCall: (model: string, usage: Usage | null) => {
-        this.usage = recordRequest(this.usage, model, usage?.inputTokens ?? 0, this.d.now());
+      recordCall: (model: string, usage: Usage | null, outcome?: string) => {
+        this.usage = recordRequest(this.usage, model, usage?.inputTokens ?? 0, this.d.now(), { truncated: outcome === 'truncated', ...(usage?.cachedTokens ? { cachedTokens: usage.cachedTokens } : {}) });
         saveUsage(this.d.kv, this.usage);
       },
       getTokenRatios: () => this.tokenRatios,
@@ -563,7 +565,12 @@ export class App {
     const allModels = [...new Set((['narrative', 'intent', 'summary', 'ooc'] as CallType[]).map((ct) => this.router.choose(ct).model))];
     const warnings = [...this.router.notices(), ...allModels.flatMap((m) => summarizeUsage(this.usage, m, this.settings.limits[m] ?? {}, ms).warnings)];
     const meterText = use.limits.rpd !== undefined ? `${use.requestsToday}/${use.limits.rpd}` : `${use.requestsToday} today`;
-    const meter = el('span', { class: `tb-meter${warnings.length ? ' warn' : ''}`, attrs: { title: [`${inUse}: ${meterText} requests today`, ...warnings].join('\n') } }, [
+    // Replies cut short and input served from Gemini's cache today (opt-1 C, E), per model, when there are any.
+    const counts = allModels.flatMap((m) => {
+      const u = summarizeUsage(this.usage, m, this.settings.limits[m] ?? {}, ms);
+      return u.truncatedToday || u.cachedTokensToday ? [`${m}: ${u.truncatedToday} cut short, ${u.cachedTokensToday.toLocaleString('en-US')} input tokens from cache today`] : [];
+    });
+    const meter = el('span', { class: `tb-meter${warnings.length ? ' warn' : ''}`, attrs: { title: [`${inUse}: ${meterText} requests today`, ...counts, ...warnings].join('\n') } }, [
       warnings.length ? el('span', { class: 'badge', text: '!' }) : null,
       meterText,
     ]);
@@ -879,6 +886,11 @@ export class App {
     autoRetry.checked = s.autoRetry;
     const narrateBattles = input({ type: 'checkbox' });
     narrateBattles.checked = s.narrateEveryBattleTurn === true;
+    const flashRouting = input({ type: 'checkbox' });
+    flashRouting.checked = s.flashRouting !== false;
+    const premiumModel = input({ type: 'text' });
+    premiumModel.value = s.premiumModel ?? FLASH_ROUTING.model;
+    premiumModel.setAttribute('aria-label', 'Model for the big moments');
 
     const save = (): void => {
       const k = validateApiKey(keyInput.value);
@@ -886,7 +898,7 @@ export class App {
         err.textContent = k.error;
         return;
       }
-      let next: Settings = { ...this.settings, apiKey: k.key, autoRetry: autoRetry.checked, narrateEveryBattleTurn: narrateBattles.checked };
+      let next: Settings = { ...this.settings, apiKey: k.key, autoRetry: autoRetry.checked, narrateEveryBattleTurn: narrateBattles.checked, flashRouting: flashRouting.checked, premiumModel: premiumModel.value.trim() || FLASH_ROUTING.model };
       for (const f of modelFields) next = withModelList(next, f.ct, f.inp.value.split(','));
       const num = (i: HTMLInputElement): number | undefined => {
         const n = Number(i.value);
@@ -928,6 +940,12 @@ export class App {
       el('h3', { text: 'Behavior' }),
       el('label', { class: 'check' }, [autoRetry, ' Retry once automatically when a reply is cut off (uses one extra request)']),
       el('label', { class: 'check' }, [narrateBattles, ' Narrate every battle turn, ship or ground (otherwise only big moments and the end; each turn becomes a request)']),
+      el('label', { class: 'check' }, [flashRouting, ' Use the stronger model for the big moments only']),
+      el('div', { class: 'field' }, [el('label', { text: 'Model for the big moments' }), premiumModel]),
+      el('p', {
+        class: 'hint',
+        text: 'On: ordinary story turns use the narrative list with this model moved to the end (the last fallback). The game picks the big moments and they try this model first: a campaign opening, the end of a fight or a battle, a time skip, a major world event, and chapter summaries. When its daily limit is spent they fall back to the list. Off: every story turn uses the narrative list in order.',
+      }),
       err,
       el('div', { class: 'row actions' }, [el('button', { text: 'Save', on: { click: save } })]),
     ];

@@ -34,7 +34,7 @@ interface GeminiPart {
 interface GeminiResponse {
   candidates?: { content?: { parts?: GeminiPart[] }; finishReason?: string }[];
   promptFeedback?: { blockReason?: string };
-  usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number; totalTokenCount?: number };
+  usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number; totalTokenCount?: number; cachedContentTokenCount?: number };
   modelVersion?: string;
 }
 
@@ -63,7 +63,8 @@ function readUsage(r: GeminiResponse): Usage {
   const inputTokens = u.promptTokenCount ?? 0;
   const outputTokens = u.candidatesTokenCount ?? 0;
   const thoughtTokens = u.thoughtsTokenCount ?? 0;
-  return { inputTokens, outputTokens, thoughtTokens, totalTokens: u.totalTokenCount ?? inputTokens + outputTokens + thoughtTokens };
+  const cached = u.cachedContentTokenCount ?? 0;
+  return { inputTokens, outputTokens, thoughtTokens, totalTokens: u.totalTokenCount ?? inputTokens + outputTokens + thoughtTokens, ...(cached > 0 ? { cachedTokens: cached } : {}) };
 }
 
 function mapFinish(reason: string | undefined): FinishReason {

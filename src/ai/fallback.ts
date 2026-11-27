@@ -101,10 +101,30 @@ export function nextModelAfter(list: readonly string[], after: string, quota: Qu
   return null;
 }
 
+/** Flash for the big moments (opt-1 D, D-531): on or off, and which model. */
+export interface Routing {
+  on: boolean;
+  model: string;
+}
+
+/**
+ * The model order for one call (opt-1 D): with routing on, a big moment (narrative) or a chapter summary tries the premium model
+ * first, then the rest of the list; an ordinary story turn runs the list with the premium model moved to the end (the last fallback,
+ * when every other model's day is spent). Off, or for the other call types, the list as set.
+ */
+export function routedList(list: readonly string[], callType: CallType, premium: boolean, routing: Routing | undefined): readonly string[] {
+  if (!routing?.on || (callType !== 'narrative' && callType !== 'summary')) return list;
+  const rest = list.filter((m) => m !== routing.model);
+  if (premium) return [routing.model, ...rest];
+  if (callType === 'narrative' && rest.length) return list.includes(routing.model) ? [...rest, routing.model] : rest;
+  return list;
+}
+
 export interface ModelRouter {
-  choose(callType: CallType): ModelChoice;
+  /** `premium`: a big moment or a chapter summary (opt-1 D); the routing decides what it changes. */
+  choose(callType: CallType, premium?: boolean): ModelChoice;
   /** The next usable model after this one in the call type's order (D-240). Absent on older routers. */
-  next?(callType: CallType, after: string): string | null;
+  next?(callType: CallType, after: string, premium?: boolean): string | null;
   markExhausted(model: string): void;
   notices(): string[];
 }
@@ -116,12 +136,14 @@ export interface RouterDeps {
   getQuota(): QuotaState;
   setQuota(q: QuotaState): void;
   now(): number;
+  /** Flash for the big moments (opt-1 D); absent = off. */
+  getRouting?(): Routing;
 }
 
 export function createModelRouter(d: RouterDeps): ModelRouter {
   return {
-    choose: (callType) => chooseModel(d.getLists()[callType], d.getQuota(), d.getUsage(), d.getLimits(), d.now()),
-    next: (callType, after) => nextModelAfter(d.getLists()[callType], after, d.getQuota(), d.getUsage(), d.getLimits(), d.now()),
+    choose: (callType, premium = false) => chooseModel(routedList(d.getLists()[callType], callType, premium, d.getRouting?.()), d.getQuota(), d.getUsage(), d.getLimits(), d.now()),
+    next: (callType, after, premium = false) => nextModelAfter(routedList(d.getLists()[callType], callType, premium, d.getRouting?.()), after, d.getQuota(), d.getUsage(), d.getLimits(), d.now()),
     markExhausted: (model) => d.setQuota(markExhausted(d.getQuota(), model, d.now())),
     notices: () => fallbackNotices(d.getLists(), d.getQuota(), d.getUsage(), d.getLimits(), d.now()),
   };

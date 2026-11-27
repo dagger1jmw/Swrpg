@@ -142,7 +142,8 @@ describe('a long fight told in full: the pass-5 capture fight (D-271)', () => {
   });
   it('the prompt asks for the arc before the aftermath', async () => {
     const { readFileSync } = await import('node:fs');
-    const prompt = readFileSync('src/ai/prompts/combat-narration.md', 'utf8');
+    // opt-1 C4: the long-passage rules are their own section, sent when the block has a Highlights or Length line.
+    const prompt = readFileSync('src/ai/prompts/combat-long.md', 'utf8');
     expect(prompt).toMatch(/A long passage is told as a fight, not as its aftermath\./);
     expect(prompt).toMatch(/never only the binders or the march afterwards/);
   });

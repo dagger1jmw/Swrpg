@@ -7,8 +7,11 @@ import type { FeatureModule } from '../../state/types';
 import { flagsSliceSchema, type FlagsSlice } from './flags';
 import { selectFlags } from './selectors';
 
-
-const AI_FLAGS = FLAGS.filter((f) => f.sources.includes('ai')).map((f) => (f.param ? `${f.id}:<id>` : f.id));
+/**
+ * The flags the narrator may set. Sent in the narrator's rules (the field notes, opt-1 A1) rather than as the field's description in
+ * the response schema, where it cost schema characters every turn.
+ */
+export const AI_FLAGS = FLAGS.filter((f) => f.sources.includes('ai')).map((f) => (f.param ? `${f.id}:<id>` : f.id));
 
 export const flagsFeature: FeatureModule<FlagsSlice, GameState> = {
   id: 'flags',
@@ -18,7 +21,7 @@ export const flagsFeature: FeatureModule<FlagsSlice, GameState> = {
   stateSchema: flagsSliceSchema,
   events: {
     flagSet: {
-      schema: z.object({ type: z.literal('flagSet'), flag: z.string().max(120).describe(`A registered story flag: ${AI_FLAGS.join(', ')}`) }),
+      schema: z.object({ type: z.literal('flagSet'), flag: z.string().max(120) }),
       sources: ['ai', 'engine', 'player'],
       narrative: () => true,
       targetField: 'flag',

@@ -49,6 +49,7 @@ The alignment system is not built yet (M6); traits store what it will read (`sel
 ## 6. Change in play
 
 Only through recorded events (`traitMoment` from the narrator, `tieEnded` from the engine); the narrator names a moment, the code counts and decides:
+- **What the narrator is offered (D-529):** only the moments that can change something for this character now: the scars not yet held (a brush with the dark only on a Force path), a fear faced for a held unovercome fear, an ideal broken for Idealistic, a temperament tested for a held temperament, a rival outdoing them for Rival.
 - **A fear faced:** a held scar with a fear (War veteran: bombardment; Former prisoner: confinement; Disaster survivor: the disaster) is overcome after 3 recorded faces: its bad side and pressures go, its good side stays.
 - **A betrayal, a massacre, family lost, prison, a brush with the dark, a first kill, a public failure, a disaster, exile:** each adds its scar if not held.
 - **A broken ideal** ends Idealistic. **A temperament tested** toward another 3 times gives way to it. **The rival outdoes you:** the spur.

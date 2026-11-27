@@ -43,5 +43,5 @@ export function selectTacticLines(s: GameState): string[] {
   const sl = slice(s);
   if (!sl) return [];
   const story = Object.keys(sl.known).map((id) => TACTIC_BY_ID.get(id)).filter((t): t is TacticDef => t !== undefined && !t.engine);
-  return [`TACTICS (knowledge the engine tracks; report being taught, studying a manual or campaigns, or practising one with the tacticStudied event (where it is not offered, the droid event's words starting "tactic:")): ${story.length ? `story tactics known: ${story.map((t) => t.name).join(', ')}` : 'no story tactics known beyond the battle menu'}.`];
+  return [`TACTICS rule: knowledge the engine tracks; report being taught, studying a manual or campaigns, or practising one with the tacticStudied event. ${story.length ? `Story tactics known: ${story.map((t) => t.name).join(', ')}` : 'No story tactics known beyond the battle menu'}.`];
 }

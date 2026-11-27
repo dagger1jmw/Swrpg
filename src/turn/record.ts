@@ -78,6 +78,8 @@ export interface TurnRecord {
   calls: CallRecord[];
   /** In-game time after the turn, for the feed. */
   clockAfter: { day: number; second: number };
+  /** The world (the outermost place) the turn ended on (opt-1 C3: the lore's timeline rows come again on a new world). Absent on older records. */
+  worldAfter?: string | null;
   /** What was sent and its token counts, per call (debug view; M2). */
   context?: { intent?: ContextReport; narrative?: ContextReport };
   /** Set when this turn closed a chapter (M2). */

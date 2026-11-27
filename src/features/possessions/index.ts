@@ -132,7 +132,7 @@ export const possessionsFeature: FeatureModule<PossessionsSlice, GameState> = {
      */
     itemMoved: {
       // Its own AI event since m8-ground (D-520): the schema's parts made the room; the droid event's "item:" words still route here.
-      schema: z.object({ type: z.literal('itemMoved'), what: z.string().max(120).describe('Stored or fetched, and where') }),
+      schema: z.object({ type: z.literal('itemMoved'), what: z.string().max(120) }),
       sources: ['ai', 'engine', 'player', 'dev'],
       narrative: () => true,
       part: 'goods',

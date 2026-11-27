@@ -117,6 +117,11 @@ export interface EventDef<Slice, S extends BaseState = BaseState> {
    * path reaches a field of an array's items ("minionGroups.wantAlive", m8-fixes A2).
    */
   partFields?: Readonly<Record<string, string | readonly string[]>>;
+  /**
+   * The wire schema for this state, when it is narrower than `schema` (opt-1 A2: traitMoment's moments filtered to the character's
+   * traits). Only what is sent to the model; the reply is still checked against `schema` and the handler.
+   */
+  wire?: (state: S) => ZodType;
   phase?: EventPhase;
   /** Field holding the event's target, for de-duplication, per-target caps and resolved-action checks. */
   targetField?: string;

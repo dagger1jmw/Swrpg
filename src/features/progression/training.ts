@@ -33,7 +33,8 @@ import { computeTrainingXp, type SessionSplit, type TrainingResult } from '../..
 import { levelExact, tierOf, levelWithNatural, xpForLevel } from '../../engine/curve';
 import { tirednessLabel } from '../../engine/fatigue';
 import { instructionFactor } from '../../engine/instruction';
-import { clampCredit, inWindow, paceCap } from '../../engine/paceClamp';
+import { clampCredit, paceCap } from '../../engine/paceClamp';
+import { windowSums } from '../../engine/paceStore';
 import { nextFloat, type RngState } from '../../engine/rng';
 import { bodyDecline, isPhysicalStat } from '../../engine/ageing';
 import { humanEquivalentAge, speciesLearning } from '../../engine/species';
@@ -375,9 +376,10 @@ export function clampFor(s: GameState): (skill: string, wanted: number, sessionH
   const windowAge = humanEquivalentAge(speciesDef(c.speciesId), selectExactAge(s) - 365 / 368);
   const accelerated = c.trainingPath === 'accelerated';
   return (skill, wanted, sessionHours) => {
-    const entries = inWindow(win[skill] ?? [], today);
-    const skillHours = entries.reduce((x, e) => x + e.hours, 0) + sessionHours;
-    const used = entries.reduce((x, e) => x + e.xp, 0);
+    // The window's sums from the compact store (opt-1 F, D-533): the edge week counts whole with 4 of its days inside.
+    const sums = windowSums(win[skill], today);
+    const skillHours = sums.hours + sessionHours;
+    const used = sums.xp;
     // The accelerated path is the only condition allowed past the 4.0x ceiling (D-418).
     return clampCredit(wanted, used, conditionedCap(paceCap(skill, windowAge, skillHours), skill, accelerated));
   };

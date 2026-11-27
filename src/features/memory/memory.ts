@@ -27,6 +27,14 @@ export const chapterSchema = z.object({
   status: z.enum(['closed', 'summaryPending']),
 });
 
+/**
+ * What a review item is about (m8-fixes A1, opt-1 A1): a name that matches nobody (absent or 'name'); an NPC's species, role or
+ * faction word the code could not read (the player picks); a minion kind or terrain word a fight could not read (shown with what
+ * the code used, dismiss only).
+ */
+export const REVIEW_KINDS = ['name', 'species', 'role', 'faction', 'minion', 'terrain'] as const;
+export type ReviewKind = (typeof REVIEW_KINDS)[number];
+
 export const reviewItemSchema = z.object({
   id: z.string().regex(/^review:/),
   name: z.string(),
@@ -35,8 +43,8 @@ export const reviewItemSchema = z.object({
   status: z.enum(['open', 'mapped', 'created', 'dismissed']),
   entityId: z.string().nullable(),
   /** What is under review (m8-fixes A1): a name that matches nobody (absent), or an NPC's species word the code could not read. */
-  kind: z.enum(['name', 'species']).optional(),
-  /** For a species item: the NPC it belongs to (kept as "other" until the player picks a species or dismisses it). */
+  kind: z.enum(REVIEW_KINDS).optional(),
+  /** For a species, role or faction item: the NPC it belongs to (kept as "other" / "unknown" until the player picks or dismisses it). */
   npcId: z.string().optional(),
 });
 

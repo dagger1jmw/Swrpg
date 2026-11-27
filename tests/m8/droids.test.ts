@@ -35,7 +35,7 @@ import { seedRng } from '../../src/engine/rng';
 import { crewOf } from '../../src/engine/ships';
 import { computeCreation } from '../../src/features/character/creation';
 import { howFromWords, skillFromWords, weaponFromWords } from '../../src/features/droids';
-import { selectAstromech, selectDroidLines } from '../../src/features/droids/selectors';
+import { selectAstromech, selectDroidLines, selectDroidRule } from '../../src/features/droids/selectors';
 import { canonFigureLevelsAt } from '../../src/features/npcs/selectors';
 import { applyEvents } from '../../src/state/applyEvents';
 import type { GameState } from '../../src/state/gameState';
@@ -253,9 +253,11 @@ describe('companions and roles (spec §6)', () => {
     let s = fresh();
     s = ai(s, [{ type: 'trade', dir: 'buy', item: 'a T7 astromech' }]).state;
     const t = selectDroidLines(s).join('\n');
-    expect(t).toMatch(/Models sold this year: .*T7 astromech droid/);
     expect(t).toMatch(/T7 astromech droid, class 2\); personality basic/);
-    expect(t).toMatch(/not a dark-side act/);
+    // The DROIDS rule (opt-1 B1) carries the models and the wipe note; it goes with the scene's droid business, not every turn.
+    const rule = selectDroidRule(s).join('\n');
+    expect(rule).toMatch(/Models sold this year: .*T7 astromech droid/);
+    expect(rule).toMatch(/not a dark-side act/);
   });
 });
 

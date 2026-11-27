@@ -3,7 +3,7 @@
 import { parseRatios, type TokenRatios } from './tokenRatio';
 import { z } from 'zod';
 import type { QuotaState } from './fallback';
-import { DEFAULT_LIMITS, DEFAULT_MODEL_LISTS } from './models.config';
+import { DEFAULT_LIMITS, DEFAULT_MODEL_LISTS, FLASH_ROUTING } from './models.config';
 import type { CallType } from './provider';
 import { EMPTY_USAGE_LOG, type UsageLog } from './usage';
 
@@ -36,6 +36,10 @@ export const settingsSchema = z.object({
    * the end. Off by default (each turn is then an AI call); absent in settings saved before it.
    */
   narrateEveryBattleTurn: z.boolean().optional(),
+  /** Flash for the big moments (opt-1 D, D-531): on by default; absent in settings saved before it (= on). */
+  flashRouting: z.boolean().optional(),
+  /** The model the big moments use (default FLASH_ROUTING.model). */
+  premiumModel: z.string().min(1).optional(),
 });
 
 export type Settings = z.infer<typeof settingsSchema>;
@@ -71,6 +75,8 @@ export function defaultSettings(): Settings {
     limits: structuredClone(DEFAULT_LIMITS) as Settings['limits'],
     autoRetry: true,
     narrateEveryBattleTurn: false,
+    flashRouting: FLASH_ROUTING.on,
+    premiumModel: FLASH_ROUTING.model,
   };
 }
 

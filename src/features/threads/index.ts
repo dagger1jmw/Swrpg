@@ -33,9 +33,9 @@ export const threadsFeature: FeatureModule<ThreadsSlice, GameState> = {
       schema: z.object({
         type: z.literal('threadOpened'),
         key: z.string().optional(),
-        title: z.string().min(1).max(LIMITS.threadTitle).describe('Short name'),
+        title: z.string().min(1).max(LIMITS.threadTitle),
         stakes: z.string().max(LIMITS.threadStakes),
-        deadlineHint: z.enum(DEADLINE_HINTS).optional().describe('Only with time pressure'),
+        deadlineHint: z.enum(DEADLINE_HINTS).optional(),
         entityRefs: z.array(z.string()).max(8),
       }),
       // engine: a start option opens its threads (D-401 [2]).
