@@ -31,7 +31,7 @@ describe('Vaapad: a teacher or records (D-370)', () => {
     expect(vaapadAccess({ ...base, year: 12, records: true })).toEqual({ ok: true, via: 'records', corruptionRisk: false });
     // Through the training pipeline: a Jedi Knight in 12 ABY with Juyo 65 starts Vaapad from the Form VII records.
     const s = at(12, 'jedi', { juyo: xpForLevel(65), shiiCho: xpForLevel(50) });
-    const plan = resolveTraining(s, { activityId: 'juyoVaapadBasics', skillId: 'vaapad', hours: 1, source: { kind: 'record', id: 'record:njoFormVII' } });
+    const plan = resolveTraining(s, { activityId: 'vaapadBasics', skillId: 'vaapad', hours: 1, source: { kind: 'record', id: 'record:njoFormVII' } });
     expect(plan.ok, plan.ok ? '' : plan.reason).toBe(true);
   });
 
@@ -41,7 +41,7 @@ describe('Vaapad: a teacher or records (D-370)', () => {
     }
     // The records don't exist then either.
     const s = at(-1000, 'jedi', { juyo: xpForLevel(65) });
-    const plan = resolveTraining(s, { activityId: 'juyoVaapadBasics', skillId: 'vaapad', hours: 1, source: { kind: 'record', id: 'record:njoFormVII' } });
+    const plan = resolveTraining(s, { activityId: 'vaapadBasics', skillId: 'vaapad', hours: 1, source: { kind: 'record', id: 'record:njoFormVII' } });
     expect(plan.ok).toBe(false);
   });
 
@@ -60,7 +60,7 @@ describe('Vaapad: a teacher or records (D-370)', () => {
 
   it('the Sith archives no longer hold Vaapad; Juyo keeps its known-only drill', () => {
     const sith = at(-3661, 'sith', { juyo: xpForLevel(70) });
-    expect(resolveTraining(sith, { activityId: 'juyoVaapadBasics', skillId: 'vaapad', hours: 1, source: { kind: 'record', id: 'record:sithArchiveForms' } }).ok).toBe(false);
+    expect(resolveTraining(sith, { activityId: 'vaapadBasics', skillId: 'vaapad', hours: 1, source: { kind: 'record', id: 'record:sithArchiveForms' } }).ok).toBe(false);
     expect(resolveTraining(sith, { activityId: 'juyoVaapadBasics', skillId: 'juyo', hours: 1 }).ok).toBe(true);
   });
 });

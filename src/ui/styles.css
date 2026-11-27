@@ -520,6 +520,10 @@ button.act.risky { border: 1px solid var(--bad); }
    The combat panel keeps its compact layout. To go back, set PLANNING_LAYOUT to 'compact' in ui/groundPanel.ts. */
 .planning-full { flex: 1 1 0; min-height: 0; }
 .main.planning .feed { flex: 0 1 auto; max-height: 22vh; min-height: 4rem; }
+/* A running battle (m8-audit A5): the panel takes the column, the story above kept to about a quarter of the view. */
+.main.battle-on .feed { flex: 0 1 auto; max-height: 26vh; min-height: 4rem; }
+.main.battle-on .duel.battle { flex: 1 1 0; max-height: none; min-height: 0; }
+.battle .battle-why { margin: 0 0 4px 0.5rem; }
 .planning-body { display: flex; flex-direction: column; gap: 8px; padding: var(--pad-s) var(--pad); }
 .planning-body > * { flex-shrink: 0; }
 .plan-fold { border: 1px solid var(--line); border-radius: var(--r-inner); padding: 0 var(--pad-s); }

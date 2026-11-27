@@ -341,6 +341,9 @@ function eventFits(e: FormativeEvent, q: QuizInput, lo: number, hi: number): boo
       return q.atCoruscant3653 && age >= Math.max(lo, e.ages[0]) && age <= Math.min(hi, e.ages[1]);
     }
     case 'war':
+      // A scene that implies war years (m8-audit A3: a first battle) fits only when the form could record them by the start: a war
+      // year begun from the veteran age (exactly 14 at the start has none yet).
+      if (e.implies?.warYears && Math.ceil(q.toAge - VETERAN_AGE - 1e-9) < e.implies.warYears) return false;
       return warsLived({ birthYear: q.birthYear, startYear: q.birthYear + hi }, Math.max(lo, e.ages[0]), Math.min(hi, e.ages[1])).length > 0;
     case 'forceSensitive':
       return q.forceSensitive;
@@ -491,6 +494,13 @@ export interface QuizAnswer {
   choiceId: string;
   /** The player's own line: narrator colour only. */
   note?: string;
+}
+
+/** What the scenes answered imply for the form's numbers (m8-audit A3): the largest of each (war years 0 when none). */
+export function quizImplies(answers: readonly QuizAnswer[]): { warYears: number } {
+  let warYears = 0;
+  for (const a of answers) warYears = Math.max(warYears, FORMATIVE_EVENT_BY_ID.get(a.eventId)?.implies?.warYears ?? 0);
+  return { warYears };
 }
 
 export interface QuizPerson extends FormativePerson {

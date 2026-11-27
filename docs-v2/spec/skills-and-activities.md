@@ -85,7 +85,8 @@ skill. Unlock is from the bank unless noted.
 | Ataru acrobatic sequences | Ataru | Agility 0.7, Endurance 0.4, Strength 0.3, Force Control 0.3 | intense | Ataru 21 |
 | Shien / Djem So basics | Shien or Djem So | Strength 0.7, Endurance 0.4, Force Control 0.25, Agility 0.2 | intense | form known |
 | Niman basics (physical load 0.8, D-121) | Niman | Force Control 0.5, Willpower 0.4, Agility 0.3, Strength 0.2 | standard | form known, or a teacher (D-119) |
-| Juyo / Vaapad basics | Juyo or Vaapad | Willpower 0.6, Agility 0.5, Strength 0.4, Force Control 0.3 | intense | form known; not for Initiates |
+| Juyo basics (id `juyoVaapadBasics`, kept for saved routines) | Juyo | Willpower 0.6, Agility 0.5, Strength 0.4, Force Control 0.3 | intense | known, or a teacher who knows it (an NPC with the form, the instructors or the master's session, a record); not for Initiates (m8-audit A6c, D-528) |
+| Vaapad basics | Vaapad | Willpower 0.6, Agility 0.5, Strength 0.4, Force Control 0.3 | intense | Vaapad's gate (D-370: from its creation by Windu and Bulq); not for Initiates (m8-audit A6c, D-528) |
 | Dual saber practice | highest form | second form 0.6, Agility 0.5, Strength 0.3 | standard | two forms known |
 | Form combination drills | form A and form B (0.375 each of the 0.75) | Agility 0.4, Force Control 0.3 | standard | both forms 21+ |
 | Combat sparring (partner) | form used | Agility 0.5, Endurance 0.5, Strength 0.4, Force Sense 0.3 | intense | always; also gives E (progression-numbers §7) and is ceiling-limited (D-45) |

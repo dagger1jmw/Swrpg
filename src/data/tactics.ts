@@ -120,9 +120,9 @@ export const TACTIC_SETS: Readonly<Record<string, { label: string; ids: readonly
   irregularGround: { label: 'irregular fighting', ids: ['ambush', 'infiltration', 'fightingWithdrawal', 'feint'] },
   // m8-fixes B2 (Jared, 26 Nov 2026): most Jedi get basic ground and fleet tactics; initiates learn only enough not to be lost.
   jediInitiate: { label: 'the initiate years: basic ground and fleet tactics', ids: ['frontalAssault', 'defenceInDepth', 'fightingWithdrawal', 'exchange', 'screen', 'withdraw'] },
-  // A proposal (m8-fixes B2): the Sith Academy teaches its acolytes the same basics.
+  // m8-fixes B2, approved (m8-audit A1, D-526): the Sith Academy teaches its acolytes the same basics.
   sithAcademy: { label: 'the Academy: basic ground and fleet tactics', ids: ['frontalAssault', 'defenceInDepth', 'fightingWithdrawal', 'exchange', 'screen', 'withdraw'] },
-  // Proposals (m8-fixes B2): a pilot flies screens; a Jedi at the front has seen ground war up close.
+  // m8-fixes B2, approved (m8-audit A1, D-526): a pilot flies screens; a Jedi at the front has seen ground war up close.
   pilotFleet: { label: 'squadron service: flying a screen', ids: ['screen'] },
   frontLine: { label: 'service at the front: field manoeuvres', ids: ['flanking', 'ambush'] },
 };
@@ -185,7 +185,7 @@ export const START_TACTICS: Readonly<Record<string, readonly string[]>> = {
 };
 /** Force-path ranks that imply the core flying (a reading: Knights and Lords fly their own fighters). */
 export const RANK_TACTICS: Readonly<Record<string, readonly string[]>> = { knight: ['flightSchool'], master: ['flightSchool'], lord: ['flightSchool'], darth: ['flightSchool'] };
-/** Ranks past the initiate stage (m8-fixes B2): the initiate years' basics (Jedi), the Academy's (Sith; a proposal). */
+/** Ranks past the initiate stage (m8-fixes B2): the initiate years' basics (Jedi), the Academy's (Sith; approved, D-526). */
 export const PAST_INITIATE: Readonly<Record<string, string>> = { padawan: 'jediInitiate', knight: 'jediInitiate', master: 'jediInitiate', apprentice: 'sithAcademy', lord: 'sithAcademy', darth: 'sithAcademy' };
 
 /** NPC pilots and commanders by crew kind (shipBattles.config GENERIC_CREW kinds; invented). */

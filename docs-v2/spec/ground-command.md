@@ -69,6 +69,16 @@ Code:
 - **The player's own fight** (Jared, as dogfights feed a fleet): each phase at the front, the better of their combat levels against the enemy troops' quality there: won at +3 (+2 to the sector), lost at -3 (-2), else held (0). "Fight it out in person" hands off to personal combat (four of the sector's enemy troops, lethal); the battle waits, and the result counts for the sector the next phase.
 - **Battle meditation** as built (+1 at 40, +2 at 80, +3 at 120 on every roll of the side). An NPC of ours named as meditator meditates at the post. An enemy raid that breaks through anywhere reaches the meditator a quarter of the time: killed, the whole side checks (Mizra) and loses 15 morale.
 
+## 8a. The wounded commander (m8-audit A4, D-527; Jared, 26 Nov 2026)
+
+- **Out of the fight** (dying, or incapacitated: health §6) a commander hands command to the next in line **at once**: the best named leader of ours still leading a sector, else a second-in-command (Tactics 40, invented). A sector leader hands their sector to its unit's officers. A severe wound that leaves them in the fight keeps command, with the wound's penalty in their performance (the commanders' roll reads it).
+- The panel shows it at once ("Ground battle: command has passed"): no manoeuvre, reserve or withdrawal, no own fight or falling back. The first order after it records the hand-over and plays no phase, so the player can choose.
+- **Medical help:** when the battle next moves on, the medics reach the player if our troops still stand (a dying player is stabilized, `woundsStabilized` by a field medic); otherwise no one can reach them yet.
+- **The exception, the player's choice only:** "Stay at your post" (its cost in words beside it): command (or the sector) stays theirs, no medic comes, and the dying clock keeps running. The narrator never forces it.
+- **NPC commanders** follow the same rule: one out of the fight by its wounds rolls the commanders' roll as a second-in-command (40). Canon fates stay with the tag rules.
+- Ship battles the same (ship-battles.md): the first officer takes the fleet, the medical bay takes the player while their ship stands.
+- Tests: `tests/m8/auditA.test.ts` A4.
+
 ## 9. The end and the results
 
 - **The code ends it:** every contested sector settled, the time out (12 phases), a side with nothing standing, or the commander's order to withdraw (a defeat). The winner holds more objectives (the primary counts double).
@@ -119,5 +129,6 @@ Item 11 stays story-only. When it is built, a posting hooks in at three places: 
 | The commander's place: the officer archetype and army colonels and up at the post | `defaultAtPost` |
 | An NPC leader's duelist tier: a Jedi Master or Sith Lord a master, others below | `leaderOf` (groundSetup) |
 | A sector leader's command XP: a company | `concludeGround` |
+| The wounded commander: a second-in-command nobody named at Tactics 40; the medics reach the player when our troops stand; the hand-over plays no phase (m8-audit A4) | `SECOND_IN_COMMAND_TACTICS`, `groundHelpReaches`, `groundCommandCheck` |
 
 From the engine and not new here (D-505): every sector-roll number, the plan matchups, unit matchups, breakthrough bands, morale, meditation, Force users at the front, out of contact. Morale after a battle is the fleets' (+5 / 0 / -8, doubled for a major battle).

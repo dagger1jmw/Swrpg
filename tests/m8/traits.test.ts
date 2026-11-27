@@ -37,7 +37,7 @@ import {
   type TraitContext,
   type TraitHolding,
 } from '../../src/features/traits/rules';
-import { selectCheckTraitMod, selectQuizPlan, selectTraitLines } from '../../src/features/traits/selectors';
+import { quizImplies, selectCheckTraitMod, selectQuizPlan, selectTraitLines } from '../../src/features/traits/selectors';
 import { traitsFeature } from '../../src/features/traits';
 import { loadEnvelope, makeEnvelope } from '../../src/persist/envelope';
 import { createMemoryStorage } from '../../src/persist/storage';
@@ -53,6 +53,8 @@ const day = (bby: number): number => absDayFromDate({ year: -bby, month: 1, day:
 const holds = (...ids: string[]): TraitHolding[] => ids.map((id) => ({ id, since: 0, source: 'creation' as const }));
 const jediCtx = (o: Partial<TraitContext> = {}): TraitContext => ({ path: 'jedi', speciesId: 'human', archetype: 'jediGuardian', birthYear: -3685, startYear: -3661, trainingStartAge: 4, ...o });
 
+/** A campaign input with the quiz answered (m8-audit A3: a first battle among the scenes means war years of at least 1). */
+const withQuiz = (input: NewCampaignInput, answers: { eventId: string; choiceId: string }[]): NewCampaignInput => ({ ...input, creation: { ...input.creation!, warYears: Math.max(input.creation?.warYears ?? 0, quizImplies(answers).warYears) }, formative: { answers } });
 function jediInput(o: { name?: string; age?: number; startBby?: number; rank?: string; start?: number; warYears?: number; traits?: NewCampaignInput['traits']; formative?: NewCampaignInput['formative'] } = {}): NewCampaignInput {
   const startBby = o.startBby ?? 3661;
   const age = o.age ?? 24;
@@ -293,7 +295,7 @@ describe('the formative quiz', () => {
     const input = jediInput({ name: 'Quiz One' });
     const q = creationQuizInput(input)!;
     const answers = firstAnswers(q);
-    const s = (await createCampaign(REGISTRY, createMemoryStorage(), { ...input, formative: { answers } }, { campaignId: 'quiz1', branchId: 'b' }, 'x')).state;
+    const s = (await createCampaign(REGISTRY, createMemoryStorage(), withQuiz(input, answers), { campaignId: 'quiz1', branchId: 'b' }, 'x')).state;
     expect(s.traits.quiz.status).toBe('taken');
     expect(s.memory.facts.length).toBeGreaterThan(answers.length - 1);
     expect(Math.abs(s.traits.alignmentNudge)).toBeLessThanOrEqual(10);
@@ -334,7 +336,7 @@ describe('the formative quiz', () => {
       const withPerson = e.choices.find((c) => c.person) ?? e.choices[0]!;
       return { eventId: id, choiceId: withPerson.id };
     });
-    const s = (await createCampaign(REGISTRY, createMemoryStorage(), { ...input, formative: { answers } }, { campaignId: 'bond1', branchId: 'b' }, 'x')).state;
+    const s = (await createCampaign(REGISTRY, createMemoryStorage(), withQuiz(input, answers), { campaignId: 'bond1', branchId: 'b' }, 'x')).state;
     const people = scoreQuiz(answers, s.traits.quiz.seed).people;
     expect(people.length).toBeGreaterThan(0);
     expect(Object.keys(s.relationships.byNpcId).length).toBeGreaterThanOrEqual(people.length);
@@ -344,7 +346,7 @@ describe('the formative quiz', () => {
     const input = jediInput({ name: 'Flag One' });
     const plan = quizPlan(creationQuizInput(input)!);
     const answers = plan.events.map((id) => ({ eventId: id, choiceId: id === 'init.forbiddenText' ? 'try' : FORMATIVE_EVENT_BY_ID.get(id)!.choices[0]!.id }));
-    const s = (await createCampaign(REGISTRY, createMemoryStorage(), { ...input, formative: { answers } }, { campaignId: 'flag1', branchId: 'b' }, 'x')).state;
+    const s = (await createCampaign(REGISTRY, createMemoryStorage(), withQuiz(input, answers), { campaignId: 'flag1', branchId: 'b' }, 'x')).state;
     if (plan.events.includes('init.forbiddenText')) expect(selectFlags(s)).toContain('knowsOfTechnique:choke');
     expect(s.progression.skills['forceChoke']?.xp ?? 0).toBe(0);
   });

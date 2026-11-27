@@ -27,7 +27,7 @@ export function impliedTactics(c: { archetype?: string; path?: string; start?: {
   };
   for (const set of ARCHETYPE_TACTICS[c.archetype ?? ''] ?? []) add(TACTIC_SETS[set]!.ids, `training: ${TACTIC_SETS[set]!.label}`);
   for (const set of START_TACTICS[c.start?.optionId ?? ''] ?? []) add(TACTIC_SETS[set]!.ids, `service: ${TACTIC_SETS[set]!.label}`);
-  // Past the initiate stage (m8-fixes B2): the initiate years' basics for a Jedi, the Academy's for a Sith (a proposal).
+  // Past the initiate stage (m8-fixes B2): the initiate years' basics for a Jedi, the Academy's for a Sith (approved, D-526).
   const initiate = (c.path === 'jedi' || c.path === 'sith') && rank ? PAST_INITIATE[rank] : undefined;
   if (initiate) add(TACTIC_SETS[initiate]!.ids, `${c.path === 'jedi' ? 'the Order' : 'the Academy'}: ${TACTIC_SETS[initiate]!.label}`);
   if ((c.path === 'jedi' || c.path === 'sith') && rank) for (const set of RANK_TACTICS[rank] ?? []) add(TACTIC_SETS[set]!.ids, `${c.path === 'jedi' ? 'the Order' : 'the Academy'}: ${TACTIC_SETS[set]!.label}`);

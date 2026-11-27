@@ -157,8 +157,8 @@ function resolvePrimaries(s: GameState, a: ActivityDef, skillId: string | undefi
       return { [first]: 1, [second]: 1 };
     }
     case 'anyAbility': {
-      if (!skillId) return 'the generic ability drill needs the ability to drill (skillId)';
-      if (SKILL_BY_ID.get(skillId)?.kind !== 'forceAbility') return `${skillId} is not a Force ability`;
+      if (!skillId) return 'name the Force ability to drill';
+      if (SKILL_BY_ID.get(skillId)?.kind !== 'forceAbility') return `${SKILL_BY_ID.get(skillId)?.name ?? 'that'} is not a Force ability`;
       return { [skillId]: 1 };
     }
   }
@@ -198,6 +198,8 @@ interface UnlockCtx {
   recordId: string | null;
   /** m8-skills (D-513): why this session cannot train its melee style (styleSource), or null when it can. */
   styleRefusal: string | null;
+  /** m8-audit A6c: this session's teacher knows the primary (teacherKnows). */
+  teacherKnows: boolean;
 }
 
 /** A named NPC teacher as a Vaapad teacher (D-370): Windu (teaching is his permission), Bulq, or a Vaapad master. */
@@ -255,8 +257,10 @@ function unlockFails(u: Unlock, ctx: UnlockCtx): string | null {
       });
       return a.ok ? null : a.reason;
     }
+    case 'teacherKnows':
+      return known(s, ctx.primary) || ctx.teacherKnows ? null : `needs a teacher who knows ${name(ctx.primary)}`;
     case 'hasApprentice':
-      return s.ranks.apprenticeId ? null : 'needs a Padawan of your own (apprenticeTaken)';
+      return s.ranks.apprenticeId ? null : `needs ${selectPath(s) === 'sith' ? 'an apprentice' : 'a Padawan'} of your own`;
     case 'partner':
       return ctx.partner ? null : 'needs a training partner present';
     case 'partnerOrTeacher':
@@ -434,7 +438,7 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   const primary = Object.keys(prim)[0]!;
   // The saber gate covers all of a Jedi Initiate's lightsaber training, free training included (D-459, D-460).
   if (Object.keys(prim).some((id) => SKILL_BY_ID.get(id)?.kind === 'form') && selectPath(s) === 'jedi' && selectRank(s) === 'initiate' && !saberGateOpen((id) => selectLevelExact(s, id)))
-    return { ok: false, reason: `${a.name}: the Initiate saber classes are not open yet (basic Force Control and study first, D-459)` };
+    return { ok: false, reason: `${a.name}: the Initiate saber classes are not open yet (basic Force Control and study first)` };
   const source: TrainingSource | null =
     req.source ?? (req.teacherId ? { kind: 'npc', id: req.teacherId } : req.partnerId ? { kind: 'partner', id: req.partnerId } : null);
   const teacherId = source?.kind === 'npc' ? source.id : null;
@@ -483,7 +487,7 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
   const styleId = a.style ? (req.styleId ?? null) : null;
   let styleRefusal: string | null = null;
   if (a.style) {
-    if (!styleId || !STYLE_BY_ID.has(styleId)) styleRefusal = `name the style to train (${STYLE_IDS.join(', ')})`;
+    if (!styleId || !STYLE_BY_ID.has(styleId)) styleRefusal = `name the style to train (${STYLE_IDS.map((id) => STYLE_BY_ID.get(id)!.name).join(', ')})`;
     else if ((s.progression.styles?.[styleId]?.p ?? 0) <= 0) {
       const npc = teacherId ? selectNpc(s, teacherId) : null;
       styleRefusal = styleAccess(styleId, {
@@ -494,7 +498,10 @@ export function resolveTraining(initial: GameState, req: TrainingRequest): Train
       });
     }
   }
-  const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teaching, partner: partnered, transfer, vaapadTeacher: vaapadTeacherOf(s, teacherId), recordId: record?.id ?? null, styleRefusal };
+  // A teacher who knows the primary (m8-audit A6c): a record that covers it (checked above), the instructors or the master's session,
+  // or a named teacher with the skill.
+  const teacherKnows = record !== undefined || source?.kind === 'instructor' || source?.kind === 'master' || (teacherId !== null && selectNpcLevel(s, teacherId, primary) >= 1);
+  const ctx: UnlockCtx = { state: s, primary, primaries: prim, teacher: teaching, partner: partnered, transfer, vaapadTeacher: vaapadTeacherOf(s, teacherId), recordId: record?.id ?? null, styleRefusal, teacherKnows };
   const selfStudyStart: string[] = [];
   for (const u of a.unlock) {
     const fail = unlockFails(u, ctx);

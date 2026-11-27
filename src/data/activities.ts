@@ -73,6 +73,11 @@ export type Unlock =
   | { kind: 'path'; paths: readonly string[] }
   /** Restricted forms (D-370): Vaapad's teacher-or-records gate when the primary is Vaapad; known otherwise. */
   | { kind: 'formGate' }
+  /**
+   * Known, or a teacher who knows it (m8-audit A6c: Juyo): an NPC teacher with the form, the Order's or the Academy's instructors or
+   * the master's session (they teach the forms of their day), or a record that covers it.
+   */
+  | { kind: 'teacherKnows' }
   | { kind: 'hasApprentice' }
   | { kind: 'partner' }
   /** m8-skills (D-513): someone to talk it through with: a teacher, a partner or peers. */
@@ -161,7 +166,13 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   act('shienDjemSoBasics', 'Shien / Djem So basics', 'forms', S, 'intense', options('shien', 'djemSo'), { strength: 0.7, endurance: 0.4, forceControl: 0.25, agility: 0.2 }, [learnable()]),
   // Niman drills are lighter: physical load 0.8 instead of 1.0 (D-121).
   act('nimanBasics', 'Niman basics', 'forms', NIMAN_LOAD, 'standard', fixed('niman'), { forceControl: 0.5, willpower: 0.4, agility: 0.3, strength: 0.2 }, [learnable()]),
-  act('juyoVaapadBasics', 'Juyo / Vaapad basics', 'forms', S, 'intense', options('juyo', 'vaapad'), { willpower: 0.6, agility: 0.5, strength: 0.4, forceControl: 0.3 }, [
+  // m8-audit A6c (Jared): Juyo and Vaapad apart. Juyo exists in 3,661 BBY and is learned from a teacher who knows it; Vaapad only
+  // from its creation by Windu and Bulq (D-370). The Juyo entry keeps the old id (juyoVaapadBasics) so saved routines still read.
+  act('juyoVaapadBasics', 'Juyo basics', 'forms', S, 'intense', fixed('juyo'), { willpower: 0.6, agility: 0.5, strength: 0.4, forceControl: 0.3 }, [
+    { kind: 'teacherKnows' },
+    { kind: 'notRank', ranks: ['initiate', 'acolyte'] },
+  ]),
+  act('vaapadBasics', 'Vaapad basics', 'forms', S, 'intense', fixed('vaapad'), { willpower: 0.6, agility: 0.5, strength: 0.4, forceControl: 0.3 }, [
     { kind: 'formGate' },
     { kind: 'notRank', ranks: ['initiate', 'acolyte'] },
   ]),
@@ -172,19 +183,23 @@ export const ACTIVITIES: readonly ActivityDef[] = [
   }),
   // m8-skills (D-513): the master's session includes hand-to-hand (the Temple's unarmed training, Ilena Xan; the Korriban
   // martial classes): a Melee weight of 0.1 (invented).
+  // m8-audit A6b: each path's own session (a Jedi Padawan was offered the Sith apprentice's).
   act('padawanTraining', 'Padawan training with master', 'forms', S, 'standard', { kind: 'anyForm' }, { forceControl: 0.4, willpower: 0.3, melee: 0.1 }, [
-    { kind: 'rank', ranks: ['padawan', 'apprentice'] },
+    { kind: 'path', paths: ['jedi'] },
+    { kind: 'rank', ranks: ['padawan'] },
   ]),
   // The Sith apprentice's session (m8-skills, D-513): the Padawan session without the Melee weight. The brief's weight is for
   // Padawans and acolytes; the Sith take theirs as acolytes (the warblade class), not twice.
   act('apprenticeTraining', 'Apprentice training with master', 'forms', S, 'standard', { kind: 'anyForm' }, { forceControl: 0.4, willpower: 0.3 }, [
-    { kind: 'rank', ranks: ['padawan', 'apprentice'] },
+    { kind: 'path', paths: ['sith'] },
+    { kind: 'rank', ranks: ['apprentice'] },
   ]),
   // Forms with no bank entry use the basics pattern of their nearest form (§4 note; D-108).
   act('trakataBasics', 'Tràkata basics', 'forms', S, 'standard', fixed('trakata'), { agility: 0.6, willpower: 0.3, forceControl: 0.3, strength: 0.1 }, [learnable()]),
   act('jarKaiBasics', "Jar'Kai basics", 'forms', S, 'standard', fixed('jarKai'), { $secondForm: 0.6, agility: 0.5, strength: 0.3 }, [learnable()]),
   act('sokanBasics', 'Sokan basics', 'forms', S, 'intense', fixed('sokan'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [learnable()]),
-  act('dunMochBasics', 'Dun Möch basics', 'forms', S, 'standard', fixed('dunMoch'), { agility: 0.6, willpower: 0.3, forceControl: 0.3, strength: 0.1, charisma: 0.3 }, [learnable()]),
+  // Dun Möch is a Sith technique (m8-audit A6b: a Jedi Padawan was offered it); a Jedi who already knows it keeps it, untrained here.
+  act('dunMochBasics', 'Dun Möch basics', 'forms', S, 'standard', fixed('dunMoch'), { agility: 0.6, willpower: 0.3, forceControl: 0.3, strength: 0.1, charisma: 0.3 }, [{ kind: 'path', paths: ['sith'] }, learnable()]),
   act('zeroGBasics', 'Zero-G combat basics', 'forms', S, 'intense', fixed('zeroG'), { agility: 0.7, endurance: 0.4, strength: 0.3, forceControl: 0.3 }, [learnable()]),
   act('saberstaffBasics', 'Saberstaff basics', 'forms', S, 'standard', fixed('saberstaff'), { strength: 0.4, agility: 0.3, endurance: 0.2, forceControl: 0.15 }, [learnable()]),
 
@@ -293,7 +308,7 @@ export const DEFAULT_ACTIVITY: Readonly<Record<string, string>> = {
   djemSo: 'shienDjemSoBasics',
   niman: 'nimanBasics',
   juyo: 'juyoVaapadBasics',
-  vaapad: 'juyoVaapadBasics',
+  vaapad: 'vaapadBasics',
   trakata: 'trakataBasics',
   jarKai: 'jarKaiBasics',
   sokan: 'sokanBasics',

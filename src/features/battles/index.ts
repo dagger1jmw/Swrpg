@@ -17,7 +17,7 @@ import type { FeatureModule, GameEvent, HandleResult } from '../../state/types';
 import { selectNow, selectTurnInPlay } from '../clock/selectors';
 import { selectPerformance } from '../progression/selectors';
 import { selectCaptivity, selectFightSecurity } from '../world/selectors';
-import { selectNpc } from '../npcs/selectors';
+import { selectNpc, selectNpcOutOfFight } from '../npcs/selectors';
 import { selectKnownTactics, selectRecognisedTactics, selectSeenTactics } from '../tactics/selectors';
 import { backTo, groundSiteEvents, heldBy, moveToPlace, shipSiteEvents } from './location';
 import { npcTactics } from '../tactics';
@@ -26,11 +26,12 @@ import { selectPresentNpcIds } from '../pacing/selectors';
 import { nextFloat, type RngState } from '../../engine/rng';
 import { toAbsSecond } from '../../engine/calendar';
 import { battlesSliceSchema, emptyBattles, type BattleRecord, type BattlesSlice, type ShipCondition } from './battles';
-import { boardingFought, buildBattle, commandSize, isMajor, knows, outcomeOf, playOut, runToEnd, stepBattle, type Battle, type BattleOrders, type StepCtx, type StepResult } from './rules';
-import { selectBattleLines } from './selectors';
+import { boardingFought, buildBattle, commandPassing, commandSize, handShipCommand, isMajor, knows, outcomeOf, playOut, runToEnd, shipHelpReaches, stepBattle, type Battle, type BattleOrders, type StepCtx, type StepResult } from './rules';
+import { SECOND_IN_COMMAND_TACTICS, mayStayAtPost, outOfFight } from './command';
+import { commanderCondition, selectBattleLines } from './selectors';
 import { blockadeById, opposite, parseProposal, playerFaction, setupFromBlockade, setupFromProposal, troopsFor, yearOf, type Proposal } from './setup';
 import { CONTINGENCY_ACTIONS, CONTINGENCY_TRIGGERS, GROUND_BATTLE_MORALE, GROUND_MAJOR_UNITS, GROUND_SIZE_BY_UNITS, MEN_PER_UNIT } from '../../data/groundCommand.config';
-import { beginGround, drawMap, GROUND_END_WORDS, groundFightFought, lossShare, objectivesHeld, playOutGround, scout, stepGround, tacticOfPlan, type GroundCtx, type GroundOrders, type GroundPlan, type GroundPlanning, type GroundState, type GroundStep } from './ground';
+import { beginGround, commandingGround, drawMap, GROUND_END_WORDS, groundFightFought, groundHelpReaches, handedNow, handGroundCommand, lossShare, objectivesHeld, playOutGround, scout, stepGround, tacticOfPlan, type GroundCtx, type GroundOrders, type GroundPlan, type GroundPlanning, type GroundState, type GroundStep } from './ground';
 import { planningFromProposal, playerCombat, proposalFromWords, scoutLevel } from './groundSetup';
 
 type R = HandleResult<BattlesSlice>;
@@ -273,6 +274,7 @@ const ordersSchema = z.object({
   roll: z.boolean().optional(),
   warheads: z.boolean().optional(),
   holdFire: z.boolean().optional(),
+  stayAtPost: z.boolean().optional(),
   board: z.string().optional(),
   leadBoarding: z.boolean().optional(),
   breakOff: z.boolean().optional(),
@@ -315,7 +317,45 @@ function groundBlocked(s: GameState): string | null {
 /** The phase's inputs from the state: the player's fight level, the commanders' Tactics. */
 function groundCtx(s: GameState, g: GroundState): GroundCtx {
   const p = g.planning;
-  return { playerCombat: playerCombat(s), commanderTactics: { player: p.role === 'commander' ? selectPerformance(s, 'tactics') : p.ours.commander.tactics, enemy: p.enemy.commander.tactics } };
+  const cond = commanderCondition(s);
+  // The wounded commander (m8-audit A4): the one who has the command rolls for it (the player while they keep it, a wound's penalty
+  // included in their performance; else the next in line).
+  const handed = handedNow(g, cond);
+  // An NPC commander out of the fight hands over the same way (the rule is the same for everyone): a second-in-command rolls.
+  const npcTactics = (c: GroundPlanning['ours']['commander']): number => (c.npcId && selectNpcOutOfFight(s, c.npcId) ? SECOND_IN_COMMAND_TACTICS : c.tactics);
+  const player = p.role === 'commander' ? (handed ? handed.tactics : selectPerformance(s, 'tactics')) : npcTactics(p.ours.commander);
+  return { playerCombat: playerCombat(s), playerOut: outOfFight(cond), commanderTactics: { player, enemy: npcTactics(p.enemy.commander) } };
+}
+
+/**
+ * The wounded commander in a ground battle (m8-audit A4): out of the fight and not staying, command (or the sector) passes at once,
+ * recorded the first time it is seen (no phase plays then, so the player can choose to stay); after that, the medics reach a
+ * dying player the next time the battle moves on, if our troops still stand.
+ */
+function groundCommandCheck(g: GroundState, s: GameState, orders: GroundOrders): { ground: GroundState; lines: string[]; stop: boolean; emit: GameEvent[] } {
+  const cond = commanderCondition(s);
+  if (orders.stayAtPost || g.stayAtPost || !outOfFight(cond) || cond.dead) return { ground: g, lines: [], stop: false, emit: [] };
+  if (!g.handedTo) {
+    if (!handedNow(g, cond)) return { ground: g, lines: [], stop: false, emit: [] };
+    const r = handGroundCommand(g);
+    return { ground: r.ground, lines: [...r.lines, groundHelpReaches(r.ground) ? 'Medics are on their way to you.' : 'No one can reach you yet.'], stop: true, emit: [] };
+  }
+  if (g.medicReached || !groundHelpReaches(g)) return { ground: g, lines: [], stop: false, emit: [] };
+  const line = cond.dying ? 'The medics reach you and stabilize you; you are carried back to the aid station.' : 'The medics carry you back to the aid station.';
+  return { ground: { ...g, medicReached: true, log: [...g.log, line].slice(-40) }, lines: [line], stop: false, emit: cond.dying ? [{ type: 'woundsStabilized', by: 'a field medic' }] : [] };
+}
+
+/** The same in a ship battle (m8-audit A4): the first officer takes the fleet; the medical bay takes a dying player next round. */
+function shipCommandCheck(b: Battle, s: GameState, orders: BattleOrders): { battle: Battle; lines: string[]; stop: boolean; emit: GameEvent[] } {
+  const cond = commanderCondition(s);
+  if (orders.stayAtPost || b.stayAtPost || !outOfFight(cond) || cond.dead) return { battle: b, lines: [], stop: false, emit: [] };
+  if (commandPassing(b, cond)) {
+    const r = handShipCommand(b);
+    return { battle: r.battle, lines: [...r.lines, shipHelpReaches(r.battle) ? 'You are carried to the medical bay.' : 'No one can reach you yet.'], stop: true, emit: [] };
+  }
+  if (!b.woundedOut || b.medicReached || !shipHelpReaches(b)) return { battle: b, lines: [], stop: false, emit: [] };
+  const line = cond.dying ? 'In the medical bay they stabilize you.' : 'You are in the medical bay.';
+  return { battle: { ...b, medicReached: true }, lines: [line], stop: false, emit: cond.dying ? [{ type: 'woundsStabilized', by: "the ship's medical bay" }] : [] };
 }
 
 const groundSize = (units: number): string => [...GROUND_SIZE_BY_UNITS].reverse().find(([n]) => units >= n)?.[1] ?? 'squad';
@@ -422,7 +462,7 @@ const groundPlanSchema = z.object({
   reserve: z.array(z.string().max(8)).max(24),
   contingencies: z.array(contingencySchema).max(4),
 });
-const groundOrdersSchema = z.object({ manoeuvre: z.string().max(40).optional(), commit: z.string().max(3).optional(), move: z.object({ unit: z.string().max(8), to: z.string().max(3) }).optional(), fallBack: z.boolean().optional(), fightInPerson: z.boolean().optional(), withdraw: z.boolean().optional() });
+const groundOrdersSchema = z.object({ manoeuvre: z.string().max(40).optional(), commit: z.string().max(3).optional(), move: z.object({ unit: z.string().max(8), to: z.string().max(3) }).optional(), fallBack: z.boolean().optional(), fightInPerson: z.boolean().optional(), withdraw: z.boolean().optional(), stayAtPost: z.boolean().optional() });
 
 const asPlan = (x: unknown): GroundPlan => {
   const p = x as z.infer<typeof groundPlanSchema>;
@@ -500,8 +540,15 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
         const orders = (e['orders'] ?? {}) as BattleOrders;
         // Only known tactics can be ordered (m8-ship-life part G).
         if (ctx.source === 'player') for (const t of [orders.manoeuvre, orders.approach, orders.formation]) if (t && !knows(b, t)) return { reject: `${t} is not a tactic the character knows` };
-        const r = auto === true || b.auto ? playOut(b, stepCtx(ctx.state)) : stepBattle(b, orders, stepCtx(ctx.state));
-        return settle(slice, ctx.state, r);
+        const cond = commanderCondition(ctx.state);
+        if (orders.stayAtPost && !((b.woundedOut || commandPassing(b, cond)) && mayStayAtPost(cond, b.stayAtPost === true))) return { reject: 'staying at your post is for a commander out of the fight' };
+        // The wounded commander (m8-audit A4): the first officer takes the fleet at once (no round plays), or the medical bay the player.
+        const check = shipCommandCheck(b, ctx.state, orders);
+        if (check.stop) return { slice: { ...slice, active: check.battle, step: { lines: check.lines, big: check.lines, wrap: null, seconds: 0 } }, notes: check.lines };
+        const b1 = check.battle;
+        const r = auto === true || b1.auto ? playOut(b1, stepCtx(ctx.state)) : stepBattle(b1, orders, stepCtx(ctx.state));
+        const settled = settle(slice, ctx.state, { ...r, lines: [...check.lines, ...r.lines] });
+        return 'reject' in settled || !check.emit.length ? settled : { ...settled, emit: [...check.emit, ...(settled.emit ?? [])] };
       },
     },
     /**
@@ -596,14 +643,23 @@ export const battlesFeature: FeatureModule<BattlesSlice, GameState> = {
         if (g.fight?.fightId && ctx.state.combat.active) return { reject: 'the fight in your sector comes first' };
         if (e['auto'] === false) return { slice: { ...slice, ground: { ...g, auto: false }, step: { lines: ['You take control back.'], big: [], wrap: null, seconds: 0 } }, notes: ['ground battle: control taken back'] };
         const orders = (e['orders'] ?? {}) as GroundOrders;
+        const cond = commanderCondition(ctx.state);
+        if (orders.stayAtPost && !(handedNow(g, cond) && mayStayAtPost(cond, g.stayAtPost === true))) return { reject: 'staying at your post is for a commander or sector leader out of the fight' };
+        // The wounded commander (m8-audit A4): command passes at once (no phase plays), or the medics reach the player.
+        const check = groundCommandCheck(g, ctx.state, orders);
+        if (check.stop) return { slice: { ...slice, ground: { ...check.ground, map: drawMap(check.ground.planning, check.ground, `BATTLE · ${check.ground.planning.site} · phase ${check.ground.battle.phase}`) }, step: { lines: check.lines, big: check.lines, wrap: null, seconds: 0 } }, notes: check.lines };
+        const g1 = check.ground;
+        const commands = commandingGround(g1, cond);
         if (orders.manoeuvre && ctx.source === 'player') {
-          if (g.planning.role !== 'commander') return { reject: 'only the commander changes the plan' };
-          if (!g.planning.known.includes(orders.manoeuvre)) return { reject: `${orders.manoeuvre} is not a tactic the character knows` };
+          if (!commands) return { reject: 'only the commander changes the plan' };
+          if (!g1.planning.known.includes(orders.manoeuvre)) return { reject: `${orders.manoeuvre} is not a tactic the character knows` };
         }
-        if ((orders.commit || orders.move || orders.withdraw) && g.planning.role !== 'commander') return { reject: 'only the commander gives that order' };
-        if (orders.fallBack && !g.battle.sectors.some((x) => x.square === g.playerSector && x.a.leader?.name === g.planning.me.name)) return { reject: 'only the one leading the sector orders it back' };
-        const r = e['auto'] === true || g.auto ? playOutGround(g, groundCtx(ctx.state, g)) : stepGround(g, orders, groundCtx(ctx.state, g));
-        return settleGround(slice, ctx.state, r);
+        if ((orders.commit || orders.move || orders.withdraw) && !commands) return { reject: 'only the commander gives that order' };
+        if (orders.fallBack && (outOfFight(cond) || !g1.battle.sectors.some((x) => x.square === g1.playerSector && x.a.leader?.name === g1.planning.me.name))) return { reject: 'only the one leading the sector orders it back' };
+        if (orders.fightInPerson && outOfFight(cond)) return { reject: 'you are out of the fight' };
+        const r = e['auto'] === true || g1.auto ? playOutGround(g1, groundCtx(ctx.state, g1)) : stepGround(g1, orders, groundCtx(ctx.state, g1));
+        const settled = settleGround(slice, ctx.state, { ...r, lines: [...check.lines, ...r.lines] });
+        return 'reject' in settled || !check.emit.length ? settled : { ...settled, emit: [...check.emit, ...(settled.emit ?? [])] };
       },
     },
     /** Engine: the player's personal fight in their sector ended (the combat feature's result): it counts for the next phase. */

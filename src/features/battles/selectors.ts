@@ -6,6 +6,11 @@ import { SERVICE_LADDER_BY_ID } from '../../data/serviceRanks';
 import { PLAN_LABEL } from '../../data/ground.config';
 import { selectHasFlag } from '../flags/selectors';
 import { groundMenu, objectivesHeld, type GroundPlanning, type GroundState } from './ground';
+import { selectDeath, selectIsDying, selectIsIncapacitated } from '../health/selectors';
+import type { CommanderCondition } from './command';
+
+/** What the wounded-commander rule reads of the player's health (m8-audit A4). */
+export const commanderCondition = (s: GameState): CommanderCondition => ({ dying: selectIsDying(s), incapacitated: selectIsIncapacitated(s), dead: selectDeath(s) !== null });
 export { drawMap, planProblems, type GroundPlan } from './ground';
 
 const slice = (s: GameState): BattlesSlice | undefined => (s as { battles?: BattlesSlice }).battles;
@@ -15,7 +20,7 @@ export const selectLastEndedBattle = (s: GameState): Battle | null => (slice(s)?
 export const selectBattleStep = (s: GameState): BattlesSlice['step'] => slice(s)?.step ?? null;
 export const selectBattleMenu = (s: GameState): BattleMenu | null => {
   const b = selectActiveBattle(s);
-  return b && !suspended(b) ? battleMenu(b) : null;
+  return b && !suspended(b) ? battleMenu(b, commanderCondition(s)) : null;
 };
 export const selectBattleHistory = (s: GameState): readonly BattleRecord[] => slice(s)?.history ?? [];
 /** The ship the player flew last, with the damage it carries. */
@@ -72,7 +77,7 @@ export const selectGroundWaitsOnFight = (s: GameState): string | null => {
 };
 export const selectGroundMenu = (s: GameState): ReturnType<typeof groundMenu> | null => {
   const g = selectGroundBattle(s);
-  return g && !g.end && !selectGroundWaitsOnFight(s) ? groundMenu(g) : null;
+  return g && !g.end && !selectGroundWaitsOnFight(s) ? groundMenu(g, commanderCondition(s)) : null;
 };
 
 /**

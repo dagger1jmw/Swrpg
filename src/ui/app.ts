@@ -2,6 +2,7 @@
 // calls the turn pipeline; no game rules here. Layout (D-100): one fixed app shell (top bar, main
 // column with feed / choices / input, side panel), settings and campaigns in a modal; nothing
 // scrolls the page, each region scrolls inside its own box.
+import { noticeShown, type Notice } from './notices';
 import { DEBUG_REQUESTS_KEPT } from '../ai/context.config';
 import { createModelRouter, type ModelRouter, type QuotaState } from '../ai/fallback';
 import { FALLBACK_NARRATIVE_MODEL, KNOWN_MODELS } from '../ai/models.config';
@@ -49,7 +50,7 @@ import type { TrainingOutcome } from '../turn/resolve';
 import { SKILL_BY_ID } from '../data/skills';
 import { creationForm } from './creationForm';
 import { quizScreens, traitsStep } from './traitsUi';
-import { quizPlan, type TraitContext } from '../features/traits/selectors';
+import { quizImplies, quizPlan, type TraitContext } from '../features/traits/selectors';
 import { selectQuizInput, selectQuizPlan, selectTraitContext } from '../features/traits/selectors';
 import { TRAIT_BY_ID } from '../data/traits';
 import { clear, el, input, paragraphs } from './dom';
@@ -145,7 +146,8 @@ export class App {
   /** The player pressed "Take the controls" while a played-out turn was in flight (D-517). */
   private takeBack = false;
   /** The last dev command's refusal or failure (D-180), shown in the status line. */
-  private devNote: string | null = null;
+  /** A status-line notice, tied to the campaign it was raised in (m8-audit A8). */
+  private devNote: Notice | null = null;
   /**
    * The state the code already decided for the turn in flight (m8-fixes E1): shown at once (the battle panel, the header, the side
    * panel) while the narration is pending, with the code's own lines. Cleared when the turn commits or fails.
@@ -275,11 +277,16 @@ export class App {
   }
 
   /** Player events (pins, review resolutions): applied through applyEvents and committed. */
+  /** A notice for the campaign now open (m8-audit A8). */
+  private notice(text: string): Notice {
+    return { text, campaignId: this.session?.campaign.campaignId ?? null };
+  }
+
   /** A dev sandbox command (D-180): test campaigns only; recorded as a "[DEV]" turn, no AI call. */
   private async runDev(text: string): Promise<void> {
     if (!this.session || this.busy) return;
     if (!selectIsTestCharacter(this.session.state)) {
-      this.devNote = 'Dev commands work only in a test campaign (the dev test start). Nothing was sent.';
+      this.devNote = this.notice('Dev commands work only in a test campaign (the dev test start). Nothing was sent.');
       this.render();
       return;
     }
@@ -292,7 +299,7 @@ export class App {
       this.devNote = null;
       this.feedStick = true;
     } catch (e) {
-      this.devNote = `Dev command failed: ${e instanceof Error ? e.message : String(e)}`;
+      this.devNote = this.notice(`Dev command failed: ${e instanceof Error ? e.message : String(e)}`);
     }
     this.render();
   }
@@ -670,7 +677,9 @@ export class App {
     const shown = this.preview?.state ?? session?.state;
     const battle = session && shown && !shown.combat.active ? renderBattlePanel({ state: shown, busy: this.busy, act: (input) => void this.runTurn(input), picks: this.battlePicks, pick: (group, index) => ((index === null ? delete this.battlePicks[group] : (this.battlePicks[group] = index)), this.render()), takingControl: this.takeBack, takeControl: () => (this.busy ? ((this.takeBack = true), this.render()) : void this.runTurn({ kind: 'battle', label: 'Take the controls', auto: false })) }) : null;
     const ground = session && shown && !shown.combat.active ? renderGroundPanel({ state: shown, busy: this.busy, act: (input) => void this.runTurn(input), draft: this.groundDraft, setDraft: (d) => ((this.groundDraft = d), this.render()), takingControl: this.takeBack, takeControl: () => (this.busy ? ((this.takeBack = true), this.render()) : void this.runTurn({ kind: 'battle', label: 'Take control', ground: { act: 'takeBack' } })) }) : null;
-    if (shown?.battles.active || shown?.battles.ground) choiceItems = [];
+    // While a battle is planned or runs, its panel holds the turn's choices (m8-audit A5): the story choices from before it are hidden
+    // so the panel has the space (the planning panel took a third of the screen under them).
+    if (shown?.battles.active || shown?.battles.ground || shown?.battles.planning) choiceItems = [];
     const choices = choiceItems.length ? el('section', { class: 'box choices' }, [el('div', { class: 'box-body', attrs: { 'data-scroll': 'choices' } }, choiceItems)]) : null;
 
     // In a fight the story and the duel panel split the column (50/50 by default); a handle between them resizes it.
@@ -710,7 +719,9 @@ export class App {
       return el('main', { class: 'main' }, [feed, handle, duel, choices, this.renderInput()]);
     }
     // The planning step has its own layout (m8-fixes F): the page's height, the story above it kept short.
-    return el('main', { class: shown?.battles.planning && !shown.battles.ground ? 'main planning' : 'main' }, [feed, battle, ground, duel, choices, this.renderInput()]);
+    // A running battle (ship or ground) takes the column's space too (m8-audit A5), the story above kept short.
+    const layout = shown?.battles.planning && !shown.battles.ground ? 'main planning' : battle || ground ? 'main battle-on' : 'main';
+    return el('main', { class: layout }, [feed, battle, ground, duel, choices, this.renderInput()]);
   }
 
   private renderInput(): HTMLElement {
@@ -725,7 +736,7 @@ export class App {
       const route = slashRoute(t, devFlag(globalThis.location?.search ?? ''));
       if (route === 'dev') void this.runDev(t);
       else if (route === 'refuse') {
-        this.devNote = COMMANDS_NEED_DEV;
+        this.devNote = this.notice(COMMANDS_NEED_DEV);
         this.render();
       } else void this.runTurn({ kind: 'typed', text: t });
     };
@@ -754,9 +765,10 @@ export class App {
       const base = this.summarizing ? 'A chapter closed. Writing its summary…' : this.inFlight && this.inFlight.kind !== 'opening' ? `Resolving: ${describeInput(this.inFlight)}` : 'Writing the opening scene…';
       const label = this.retryNote ? `${base} · ${this.retryNote}` : base;
       status = el('div', { class: 'status busy' }, [el('span', { class: 'spinner', attrs: { 'aria-hidden': 'true' } }), el('span', { class: 'status-text', text: label, attrs: { title: label } })]);
-    } else if (this.devNote) {
+    } else if (noticeShown(this.devNote, this.session?.campaign.campaignId ?? null)) {
+      const note = noticeShown(this.devNote, this.session?.campaign.campaignId ?? null)!;
       status = el('div', { class: 'status error' }, [
-        el('span', { class: 'status-text', text: this.devNote, attrs: { title: this.devNote } }),
+        el('span', { class: 'status-text', text: note, attrs: { title: note } }),
         el('button', { class: 'small secondary', text: 'Dismiss', on: { click: () => ((this.devNote = null), this.render()) } }),
       ]);
     } else {
@@ -1135,7 +1147,10 @@ export class App {
               accepted = d.traits ? { before, after: d.traits } : null;
               if (d.traits) ts.apply(d.traits);
               const changes = (['temperament', 'scarOrTie'] as const).filter((k) => d.traits?.[k] && d.traits[k] !== before[k]).map((k) => `${k === 'temperament' ? 'Temperament' : 'Scar or tie'}: ${traitName(before[k])} -> ${traitName(d.traits![k])}`);
-              quizBox.replaceChildren(el('p', { class: 'hint', text: changes.length ? `Formative years done. Changed in the traits above: ${changes.join('; ')}. Check them, then press Begin.` : 'Formative years done. Your traits are kept as chosen. Press Begin when ready.' }));
+              // A scene that implies a form number (m8-audit A3): a first battle raises war years to at least 1.
+              const war = cf.raiseWarYears(quizImplies(d.answers).warYears);
+              if (war) changes.push(`War years: ${war.before} -> ${war.after} (your first battle)`);
+              quizBox.replaceChildren(el('p', { class: 'hint', text: changes.length ? `Formative years done. Changed on the form above: ${changes.join('; ')}. Check them, then press Begin.` : 'Formative years done. Your traits are kept as chosen. Press Begin when ready.' }));
               beginBtn.disabled = false;
             },
             onDecline: () => {

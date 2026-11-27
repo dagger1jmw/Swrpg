@@ -21,6 +21,8 @@ export interface ClosedFormInput {
   /** Talent, species, state: multiplies every phase pace (each phase capped at 4.0). */
   mult?: number;
   warYears?: number;
+  /** A row's own pace for a war year (the Order's Tactics, m8-audit A2); absent = the general war term on the pace now. */
+  warPace?: number;
   /** The species' age-weighted years and learning factor (engine/species); absent = a Human's. */
   years?: AgeYears;
 }
@@ -34,7 +36,7 @@ export const HUMAN_YEARS: AgeYears = { integral: ageIntegral, factor: ageFactor 
 
 /** level = 41 * ((sum of pace * A(row, phase within [start, age]) + 0.3 * war * pace now * a(age)) / A_ref)^(1/1.75). */
 export function closedFormLevel(input: ClosedFormInput): number {
-  const { row, startAge, age, phases, mult = 1, warYears = 0, years = HUMAN_YEARS } = input;
+  const { row, startAge, age, phases, mult = 1, warYears = 0, warPace, years = HUMAN_YEARS } = input;
   let s = 0;
   let paceNow = 0;
   for (const ph of phases) {
@@ -44,7 +46,7 @@ export function closedFormLevel(input: ClosedFormInput): number {
     if (b > a) s += p * years.integral(row, a, b);
     if (age > ph.from && age <= ph.to) paceNow = p;
   }
-  s += CLOSED_FORM.warFactor * warYears * paceNow * years.factor(row, age);
+  s += warPace !== undefined ? warYears * Math.min(PACE_CAP, warPace * mult) * years.factor(row, age) : CLOSED_FORM.warFactor * warYears * paceNow * years.factor(row, age);
   return CLOSED_FORM.referenceLevel * Math.pow(Math.max(0, s / A_REF), 1 / CURVE_EXP);
 }
 

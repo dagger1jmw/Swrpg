@@ -35,6 +35,8 @@ export interface CreationForm {
   read(): CreationChoices;
   /** Recompute the preview for the given birth and start days. */
   update(birthDay: number | null, startDay: number | null, name: string): void;
+  /** Raise war years to at least n (m8-audit A3: the quiz's first battle); the change, or null when already enough. */
+  raiseWarYears(n: number): { before: number; after: number } | null;
 }
 
 export function creationForm(): CreationForm {
@@ -308,6 +310,13 @@ export function creationForm(): CreationForm {
   return {
     fields,
     read,
+    raiseWarYears: (n) => {
+      const before = Math.max(0, Math.trunc(Number(war.value) || 0));
+      if (before >= n) return null;
+      war.value = String(n);
+      refresh();
+      return { before, after: n };
+    },
     update: (birthDay, startDay, name) => {
       last = { birthDay, startDay, name };
       fillSpecies(startDay);

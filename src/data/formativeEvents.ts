@@ -55,6 +55,11 @@ export interface FormativeEvent {
   ages: readonly [number, number];
   /** A dated or conditional event. */
   needs?: 'sacking' | 'war' | 'forceSensitive' | 'birthFamily';
+  /**
+   * What the scene means for the numbers the form records (m8-audit A3): a first battle is war service, so war years at least 1.
+   * The form is raised to it after the quiz (shown in its "what changed" line), and a campaign is refused with less.
+   */
+  implies?: { warYears?: number };
   choices: readonly FormativeChoice[];
 }
 
@@ -233,7 +238,7 @@ export const FORMATIVE_EVENTS: readonly FormativeEvent[] = [
     ],
   },
   {
-    id: 'pad.firstBattle', set: 'padawan', title: 'Your first battle', ages: [14, 20], needs: 'war',
+    id: 'pad.firstBattle', set: 'padawan', title: 'Your first battle', ages: [14, 20], needs: 'war', implies: { warYears: 1 },
     text: 'The Padawan years fall in a war, and you see your first battle.',
     choices: [
       { id: 'front', label: 'Lead from the front', leans: ['reckless', 'proud'], scar: 'warVeteran', fact: 'Led from the front in their first battle as a Padawan.' },
@@ -316,7 +321,7 @@ export const FORMATIVE_EVENTS: readonly FormativeEvent[] = [
     ],
   },
   {
-    id: 'sith.firstBattle', set: 'sith', title: 'Your first battle', ages: [14, 18], needs: 'war',
+    id: 'sith.firstBattle', set: 'sith', title: 'Your first battle', ages: [14, 18], needs: 'war', implies: { warYears: 1 },
     text: 'The academy years fall in a war, and you see your first battle.',
     choices: [
       { id: 'charge', label: 'Lead the charge', leans: ['reckless', 'proud'], scar: 'warVeteran', fact: 'Led the charge in their first battle as an acolyte.' },
@@ -399,7 +404,7 @@ export const FORMATIVE_EVENTS: readonly FormativeEvent[] = [
     ],
   },
   {
-    id: 'mil.firstBattle', set: 'military', title: 'Your first battle', ages: [16, 20], needs: 'war',
+    id: 'mil.firstBattle', set: 'military', title: 'Your first battle', ages: [16, 20], needs: 'war', implies: { warYears: 1 },
     text: 'Service falls in a war, and you see your first battle.',
     choices: [
       { id: 'front', label: 'Lead from the front', leans: ['reckless', 'proud'], scar: 'warVeteran', fact: 'Led from the front in their first battle.' },

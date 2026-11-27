@@ -2,6 +2,7 @@
 // the planning scene (the map and its key, scouting, the plan), the battle phase by phase on the engine's sector rolls
 // (engine/groundBattle.ts, D-505), plan changes by command-post contact, contingencies, the player's own fight, battle
 // meditation and its loss, and the end. The feature's index reads the state into these inputs and raises the events.
+import { FIT, SECOND_IN_COMMAND_TACTICS, keepsCommand, mayStayAtPost, outOfFight, stayAtPostLabel, type CommanderCondition } from './command';
 import { GROUND_UNITS, PHASE_HOURS, PLAN_LABEL, PLAN_BEATS, type Plan } from '../../data/ground.config';
 import {
   ACTION_LABEL,
@@ -167,6 +168,8 @@ export interface GroundOrders {
   /** Fight it out in person in the player's sector (personal combat). */
   fightInPerson?: boolean;
   withdraw?: boolean;
+  /** Out of the fight, keep command (or the sector) by the player's own choice (m8-audit A4). */
+  stayAtPost?: boolean;
 }
 
 export interface PendingOrder {
@@ -200,6 +203,14 @@ export interface GroundState {
   end: { winner: 'player' | 'enemy' | null; reason: 'objectives' | 'collapse' | 'time' | 'withdrawn' | 'routed' } | null;
   /** Hazards to the player (a sector collapsing round them). */
   hazards: { severity: number; cause: string }[];
+  /**
+   * The wounded commander (m8-audit A4): the player out of the fight handed command (or their sector) to the next in line, and
+   * whether the medics have reached them. Absent in battles saved before.
+   */
+  handedTo?: { name: string; tactics: number } | null;
+  medicReached?: boolean;
+  /** The player chose to stay at their post while out of the fight (the sacrifice; the dying clock keeps running). */
+  stayAtPost?: boolean;
 }
 
 export interface GroundStep {
@@ -717,10 +728,58 @@ export const delayed = (g: GroundState, o: GroundOrders): boolean => {
   return !(units.length && units.every((u) => u.bond >= CHANGE.improviseBond));
 };
 
-export function groundMenu(g: GroundState): { title: string; now: string; options: GroundMenuOption[]; known: string[] } {
+/** Who takes over (m8-audit A4): the best named leader of ours still on the field, else a second-in-command (invented Tactics). */
+export function nextInLine(g: GroundState): { name: string; tactics: number } {
+  const p = g.planning;
+  if (p.role !== 'commander') {
+    const sq = g.playerSector;
+    return { name: sq ? `the officers at ${sq}` : 'the officers', tactics: SECOND_IN_COMMAND_TACTICS };
+  }
+  const named = p.leaders.filter((l) => l.name !== p.me.name && !(l.npcId && g.fallen.includes(l.npcId)) && g.battle.sectors.some((s) => s.a.leader?.name === l.name));
+  const best = [...named].sort((a, b) => b.tactics - a.tactics)[0];
+  return best ? { name: best.name, tactics: best.tactics } : { name: 'your second-in-command', tactics: SECOND_IN_COMMAND_TACTICS };
+}
+
+/** The one who has the command now, when the player is out of it (recorded, or about to be: the rule acts at once). */
+export function handedNow(g: GroundState, cond: CommanderCondition): { name: string; tactics: number } | null {
+  if (g.handedTo) return g.handedTo;
+  if (g.stayAtPost || !outOfFight(cond)) return null;
+  if (g.planning.role === 'soldier') return null;
+  if (g.planning.role === 'leader' && !g.playerSector) return null;
+  return nextInLine(g);
+}
+
+/** The player commands this battle now: the commander's role, not handed over (staying at the post keeps it). */
+export const commandingGround = (g: GroundState, cond: CommanderCondition = FIT): boolean => g.planning.role === 'commander' && handedNow(g, cond) === null && keepsCommand(cond, g.stayAtPost === true);
+
+/**
+ * Command passes (m8-audit A4): to the next in line; a sector the player led goes to its unit's officers. The player leaves the
+ * front (carried to the medics); the battle goes on without their own fight.
+ */
+export function handGroundCommand(g: GroundState): { ground: GroundState; lines: string[] } {
+  const to = nextInLine(g);
+  const sq = g.playerSector;
+  const me = g.planning.me.name;
+  const sectors = g.battle.sectors.map((s) => (s.square === sq && s.a.leader?.name === me ? { ...s, a: { ...s.a, leader: null } } : s));
+  const line = g.planning.role === 'commander' ? `You are out of the fight. Command passes to ${to.name}.` : `You are out of the fight. ${to.name.charAt(0).toUpperCase()}${to.name.slice(1)} take your sector.`;
+  return { ground: { ...g, handedTo: to, playerSector: null, battle: { ...g.battle, sectors }, log: [...g.log, line].slice(-40) }, lines: [line] };
+}
+
+/** The player's choice (m8-audit A4): stay at the post while out of the fight. Command (or the sector) is theirs again. */
+export function stayAtPost(g: GroundState): { ground: GroundState; lines: string[] } {
+  const line = g.planning.role === 'commander' ? 'You stay at your post. You keep command, and no one carries you from the field.' : 'You stay at your post. You hold your sector, and no one carries you from the field.';
+  return { ground: { ...g, handedTo: null, stayAtPost: true, log: [...g.log, line].slice(-40) }, lines: [line] };
+}
+
+/** Medical help can reach the player on the field: our side still has troops standing (their medics). */
+export const groundHelpReaches = (g: GroundState): boolean => g.battle.sectors.some((s) => s.a.units.some(standing)) || g.reserve.length > 0;
+
+export function groundMenu(g: GroundState, cond: CommanderCondition = FIT): { title: string; now: string; options: GroundMenuOption[]; known: string[] } {
   const p = g.planning;
   const opts: GroundMenuOption[] = [];
-  const commanding = p.role === 'commander';
+  // The wounded commander (m8-audit A4): out of the fight, command passes at once unless the player stays at their post.
+  const handed = handedNow(g, cond);
+  const commanding = commandingGround(g, cond);
   const plan = g.battle.a.plan;
   const lag = !g.battle.a.contact ? ' (no command post in contact: lands next phase, -1)' : '';
   if (commanding) {
@@ -733,7 +792,11 @@ export function groundMenu(g: GroundState): { title: string; now: string; option
       opts.push({ group: 'reserve', label: `Commit the reserve to ${s.square}`, orders: { commit: s.square }, available: g.reserve.length > 0, ...(why ? { why } : {}) });
     }
   }
-  if (g.playerSector) {
+  if (handed && mayStayAtPost(cond, g.stayAtPost === true)) {
+    const w = stayAtPostLabel(cond);
+    opts.push({ group: 'command', label: w.label, orders: { stayAtPost: true }, available: true, why: w.why });
+  }
+  if (g.playerSector && !outOfFight(cond)) {
     const mine = g.battle.sectors.find((s) => s.square === g.playerSector);
     if (mine && !mine.decided) {
       const leads = mine.a.leader?.name === p.me.name;
@@ -742,7 +805,7 @@ export function groundMenu(g: GroundState): { title: string; now: string; option
     }
   }
   if (commanding) opts.push({ group: 'battle', label: 'Withdraw from the field', orders: { withdraw: true }, available: true });
-  const where = g.playerSector ? `you lead ${g.playerSector}` : commanding ? 'you command from the post' : 'you fight in the line';
+  const where = handed ? `you are out of the fight: ${handed.name} ${p.role === 'commander' ? 'commands' : 'leads your sector'}${g.medicReached ? '; the medics have you' : ''}` : outOfFight(cond) && g.stayAtPost ? `you are out of the fight and stay at your post${g.playerSector ? ` at ${g.playerSector}` : ''}` : g.playerSector ? `you lead ${g.playerSector}` : commanding ? 'you command from the post' : 'you fight in the line';
   const contact = g.battle.a.contact ? 'the officers\' lines are open' : 'no command post in contact';
   const seen = visibleSquares(g);
   const sectorText = g.battle.sectors
@@ -750,7 +813,7 @@ export function groundMenu(g: GroundState): { title: string; now: string; option
     .map((s) => `${s.square} ${s.decided ? (s.controller === 'A' ? 'held' : 'lost') : `track ${s.track > 0 ? '+' : ''}${s.track}`}`)
     .join(', ');
   return {
-    title: commanding ? 'Ground battle: your command' : 'Ground battle: your sector',
+    title: commanding ? 'Ground battle: your command' : handed ? 'Ground battle: command has passed' : 'Ground battle: your sector',
     now: `Phase ${g.battle.phase}${g.battle.phase ? '' : ' (about to begin)'} · ${PLAN_LABEL[plan]} against ${p.scouting.planKnown || g.battle.phase > 0 ? PLAN_LABEL[p.enemy.plan] : 'an unknown plan'} · ${where}; ${contact}. ${sectorText}${g.reserve.length ? ` · reserve: ${g.reserve.length}` : ''}`,
     options: opts,
     known: p.scouting.planKnown ? [`The enemy's plan: ${PLAN_LABEL[p.enemy.plan]}`] : [],
@@ -851,6 +914,8 @@ function contingencies(g0: GroundState, phaseLog: GroundBattle['log'], lines: st
 export interface GroundCtx {
   /** The player's personal fight level (the better of their combat levels) for their own fight each phase. */
   playerCombat: number;
+  /** The player is out of the fight (m8-audit A4): no own fight in their sector. */
+  playerOut?: boolean;
   /** The commander's Tactics on each side (the phase's command roll). */
   commanderTactics: { player: number; enemy: number };
 }
@@ -891,6 +956,11 @@ export function stepGround(g0: GroundState, orders: GroundOrders, ctx: GroundCtx
   const big: string[] = [];
   if (g.end) return { ground: g, lines: ['The battle is over.'], big: [], seconds: 0, handoff: null };
   const phaseNo = g.battle.phase + 1;
+  // Staying at one's post while out of the fight (m8-audit A4): command (or the sector) comes back at once; no phase passes.
+  if (orders.stayAtPost) {
+    const back = stayAtPost(g);
+    return { ground: back.ground, lines: back.lines, big: back.lines, seconds: 0, handoff: null };
+  }
   // Withdrawing ends it at once; falling back and the personal fight are the player's own sector (at once).
   if (orders.withdraw) {
     lines.push('The order goes out: withdraw from the field.');
@@ -923,7 +993,7 @@ export function stepGround(g0: GroundState, orders: GroundOrders, ctx: GroundCtx
   // sector's own line after the phase (m8-fixes C2), so the two never contradict each other.
   let rng = g.battle.rng;
   let ownTold: { square: string; own: 'won' | 'held' | 'lost' } | null = null;
-  if (g.playerSector) {
+  if (g.playerSector && !ctx.playerOut) {
     const s = g.battle.sectors.find((x) => x.square === g.playerSector);
     if (s && !s.decided) {
       let own: 'won' | 'held' | 'lost';
@@ -945,7 +1015,7 @@ export function stepGround(g0: GroundState, orders: GroundOrders, ctx: GroundCtx
   const penalty: Modifier[] = g.penaltyAt === phaseNo ? [{ source: 'a change without contact', value: CHANGE.penalty }] : [];
   // A manoeuvre the player ordered from one only seen, not practised (m8-fixes B4).
   const planNow = tacticOfPlan(g.battle.a.plan);
-  const seenPlan = g.planning.role === 'commander' && (g.planning.seenOnly ?? []).includes(planNow);
+  const seenPlan = g.planning.role === 'commander' && !g.handedTo && (g.planning.seenOnly ?? []).includes(planNow);
   const seenPen: Modifier[] = seenPlan ? [{ source: 'a tactic seen, not practised', value: -SEEN_TACTIC_PENALTY }] : [];
   g = { ...g, battle: { ...g.battle, rng, a: { ...g.battle.a, modifiers: [...ma, ...weatherMods(g, 'A'), ...penalty, ...seenPen] }, b: { ...g.battle.b, modifiers: [...mb, ...weatherMods(g, 'B')] } } };
   if (Math.abs(margin) >= 4) lines.push(`${margin > 0 ? 'Your' : 'The enemy\'s'} command reads the battle better this phase.`);

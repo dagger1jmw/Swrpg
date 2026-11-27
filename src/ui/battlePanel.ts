@@ -86,6 +86,8 @@ export function renderBattlePanel(p: BattlePanelProps): HTMLElement | null {
     });
     const picked = p.picks[g] !== undefined ? menu.options[p.picks[g]!] : undefined;
     body.push(el('div', { class: 'battle-group' }, [el('span', { class: 'hint', text: `${g[0]!.toUpperCase()}${g.slice(1)}: ` }), ...row]));
+    // Staying at one's post (m8-audit A4) says its cost on screen, not only in a tooltip (touch has no hover).
+    for (const { o } of opts) if (o.orders.stayAtPost && o.why) body.push(el('p', { class: 'hint battle-why', text: o.why }));
     if (picked && (picked.strong || picked.weak || picked.cost)) body.push(el('div', { class: 'hint battle-detail', text: [picked.strong ? `Strong: ${picked.strong}` : '', picked.weak ? `Weak: ${picked.weak}` : '', picked.cost ? `Cost: ${picked.cost}` : ''].filter(Boolean).join(' · ') }));
   }
   const go = GO_LABEL[menu.title] ?? 'Next round';

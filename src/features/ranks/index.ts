@@ -41,7 +41,7 @@ import {
 
 const RANK_IDS = [...RANK_BY_ID.keys()] as [string, ...string[]];
 
-/** Leaving the initiate stage (m8-fixes B2): the initiate years' basic tactics (the Academy's for a Sith acolyte; a proposal). */
+/** Leaving the initiate stage (m8-fixes B2): the initiate years' basic tactics (the Academy's for a Sith acolyte; approved, D-526). */
 function initiateTactics(from: string, to: string): { emit?: GameEvent[] } {
   if (from !== 'initiate' && from !== 'acolyte') return {};
   const set = PAST_INITIATE[to];

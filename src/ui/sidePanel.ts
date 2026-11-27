@@ -28,7 +28,7 @@ import { selectOpenThreads, selectThreads } from '../features/threads/selectors'
 import type { GameState } from '../state/gameState';
 import type { GameEvent } from '../state/types';
 import { renderHealthCard } from './healthCard';
-import { selectTraitRows } from '../features/traits/selectors';
+import { selectTraitRows, selectTraitsEmptyNote } from '../features/traits/selectors';
 import { KNIGHT_TRIAL_IDS, TRIALS, type TrialId } from '../data/ranks.config';
 import { selectMayTakePadawan, selectStanding, selectTrialBlock } from '../features/ranks/selectors';
 import { el } from './dom';
@@ -296,7 +296,7 @@ function traitsCard(s: GameState): HTMLElement {
             r.tie ? kv('Tied to', `${r.tie.name}${r.tie.npcId ? (() => { const n = s.npcs.byId[r.tie!.npcId!]; return n ? `${n.relation ? ` (your ${n.relation})` : ''}${n.status === 'deceased' ? ', dead' : ''}` : ''; })() : ' (not met yet)'}`) : null,
           ]),
         )
-      : [el('p', { class: 'hint', text: 'No traits recorded (a save from before traits existed).' })]),
+      : [el('p', { class: 'hint', text: selectTraitsEmptyNote(s) })]),
   ]);
 }
 

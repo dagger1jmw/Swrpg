@@ -83,6 +83,10 @@ Physical stats use the same formula, then min(level, body cap for age and specie
 Skills an NPC stopped training (retired, changed role) keep their level and gain rust
   (progression spec section 13).
 
+### 1a. The Order's Tactics (m8-audit A2, D-526)
+
+The measured Jedi and Sith paces have no Tactics row, so a generated Jedi Master had Tactics 0 and could teach only the basic tactics (m8-fixes B3). A closed-form row on top, no hours moved (the D-191 pattern; `ORDER_TACTICS_PACE`, data/archetypes.ts; invented, tuned on the generator): 0.22 a year in the Padawan (apprentice) phase, 0.42 in the Knight (Lord) phase, none for initiates and acolytes; a war year served counts at 1.4 (it replaces the general war term, 0.3 x the pace now, for this row). Medians of 21 generated NPCs (reports/m8-audit.md): a Knight at 30 Tactics 20 in peace, 50 in the Great War (14 war years); a Master at 50 35 in peace, 67 in the war. A sheet that gives Tactics keeps it; canon lines without one take the row.
+
 ## 2. Talent distribution (per domain, rolled once per NPC)
   Force-trained orders (Jedi, Sith): none 70% | gifted (x1.25) 22% | prodigy (x1.5) 7% |
     exceptional (x1.8) 1%

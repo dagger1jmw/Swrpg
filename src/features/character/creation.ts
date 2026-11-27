@@ -9,7 +9,7 @@ import { orderHomelessAt, orderSeatAt } from '../../data/orderSeats';
 import { playerDroidRefusal } from '../../engine/droids';
 import { STUB_INSTRUCTOR_LEAD, STUB_MASTER_LEAD } from '../../data/stubs';
 import { gainE, sparringE } from '../../engine/appliedExperience';
-import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, mainShareOf, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
+import { ARCHETYPE_BY_ID, ARCHETYPE_FORCE_ABILITIES, NPC_ARCHETYPES, ORDER_TACTICS_PACE, PATH_ARCHETYPES, PATH_START_RANGE, focusShares, mainShareOf, type ArchetypeDef, type CharacterPath, type Phase } from '../../data/archetypes';
 import { BUDGET, CAREER_YOUTH_TO, FORM_TRANSFER_SHARE, LONG_LIFE, K, TALENT_COST, TALENT_POINTS, type TalentLevel } from '../../data/progression.config';
 import { orderHoursAt } from '../../data/orderRequirements';
 import { INITIATE_CURRICULUM, closedFormCurriculum } from '../../data/initiateCurriculum';
@@ -237,7 +237,8 @@ export function computeCreation(input: CreationInput): CreationResult {
   if (input.trainingStartAge > age) errors.push('Training cannot start after the campaign start.');
   // m8-fixes D1 (a background option's requirement, invented): war years are served from age 14 (Human-equivalent), as the traits'
   // veteran age; a 14-year-old has none to give.
-  const warMax = Math.max(0, Math.floor(tNow - WAR_SERVICE_FROM_AGE + 1e-9));
+  // A war year begun counts (m8-audit A3): a 14.5-year-old who fought a first battle has served 1; exactly 14 none.
+  const warMax = Math.max(0, Math.ceil(tNow - WAR_SERVICE_FROM_AGE - 1e-9));
   if (!input.npc && (input.warYears ?? 0) > warMax) errors.push(`War years are served from age ${WAR_SERVICE_FROM_AGE}: at most ${warMax} at this age.`);
   if (!input.ignoreTalentLimit && !input.npc && talentCost(input.talents) > TALENT_POINTS) errors.push(`Talents cost ${talentCost(input.talents)} points; the limit is ${TALENT_POINTS}.`);
   const padawanPlan: Record<string, number> = { ...(input.padawanPlan ?? defaultFormPlan(input.archetype)) };
@@ -318,6 +319,9 @@ export function computeCreation(input: CreationInput): CreationResult {
   // Order-trained Force abilities (D-191): a share of the parent stat's pace; an ability the archetype measures stays measured.
   const derived = ARCHETYPE_FORCE_ABILITIES[a.id] ?? {};
   for (const id of Object.keys(derived)) if (SKILL_BY_ID.has(id) && !keysBySkill.has(id)) keysBySkill.set(id, id);
+  // The Order's Tactics (m8-audit A2): a row on top for the Jedi and Sith lines, with its own war-year pace; a measured row stays.
+  const orderTactics = (input.path === 'jedi' || input.path === 'sith') && !ages.onePhase && !keysBySkill.has('tactics');
+  if (orderTactics) keysBySkill.set('tactics', 'tactics');
 
   // How much of each phase's day is player-directed fill (budget minus Order hours), relative to the
   // Knight+ day the focus formula is measured on (D-115). Initiates and Padawans fill only a little.
@@ -342,14 +346,15 @@ export function computeCreation(input: CreationInput): CreationResult {
   for (const [skill, key] of keysBySkill) {
     const d = a.paces.knight?.[key] !== undefined || a.paces.padawan?.[key] !== undefined || a.paces.initiate?.[key] !== undefined ? undefined : derived[key];
     // The daily-life blocks (D-427) are in the measured paces since D-431 (measured on the day loop with them).
-    const pace = (ph: Phase): number => (d ? d.share * ownPace(d.of, ph) : ownPace(key, ph));
+    const tacticsRow = orderTactics && key === 'tactics';
+    const pace = (ph: Phase): number => (tacticsRow ? (ph === 'initiate' ? 0 : ORDER_TACTICS_PACE[ph]) + ownPace(key, ph) : d ? d.share * ownPace(d.of, ph) : ownPace(key, ph));
     const mult = talentMult(talents, skill) * crossTalentMult(talents, skill) * speciesLearning(species.id, skill) * (input.variance?.(skill) ?? 1) * (ownWillpower && skill === 'willpower' ? (NPC_WILLPOWER_PACE[a.id] ?? 1) : 1);
     const youthPace = youth ? (d ? d.share * ownYouth(d.of) : ownYouth(key)) : undefined;
     const phases = phasesFor({ initiate: pace('initiate'), padawan: pace('padawan'), knight: pace('knight'), ...(youthPace !== undefined ? { youth: youthPace } : {}) }, hAges, ages.onePhase);
     for (const ph of phases) if (ph.to > hStart && ph.from < h) maxPace = Math.max(maxPace, Math.min(4, ph.pace * mult));
     const row = CATEGORY_RULES[SKILL_BY_ID.get(skill)!.category].ageRow;
     const own = skill === 'willpower' ? willpowerYears : years;
-    const trainedAt = (age: number, war: number): number => xpForLevel(closedFormLevel({ row, startAge: hStart, age, phases, mult, warYears: war, ...(own ? { years: own } : {}) }));
+    const trainedAt = (age: number, war: number): number => xpForLevel(closedFormLevel({ row, startAge: hStart, age, phases, mult, warYears: war, ...(tacticsRow ? { warPace: ORDER_TACTICS_PACE.front } : {}), ...(own ? { years: own } : {}) }));
     const trained = trainedAt(h, warYears);
     if (trained > 0) startingXp[skill] = trained;
     if (skill === 'forceSense' || skill === 'forceControl') stretch[skill] = stretchEnds.map((x) => trainedAt(x, x === h ? warYears : 0));

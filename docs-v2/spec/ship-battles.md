@@ -103,3 +103,7 @@ Destroyed, disabled, broken off, withdrawn (the fleet engine's withdraw formatio
 | After a battle (D-518): the next senior captain's Tactics; escape DC 15; 3 captors; survival 50% / 85% | `commandPassesOn`, `AFTERMATH` |
 
 From the engines and not new here: every roll, hit, shield, damage and formation number (combat-scales, D-505), and the XP rules (m8-skills, D-513; the Piloting line reuses combat XP's exchange rule).
+
+## The wounded commander (m8-audit A4, D-527)
+
+A fleet commander out of the fight (dying or incapacitated) hands the fleet to the first officer at once (their Tactics in the fleet's rolls); the menu shows "Fleet battle: command has passed". The first order after it records the hand-over and plays no round. The medical bay takes the player the next round while their ship stands (a dying player is stabilized). "Stay at your post" is the player's own choice: command comes back, no medic, the dying clock keeps running. It fits the boarding rule (a commander keeps command unless out of the fight). Code: `src/features/battles/command.ts`, `commandPassing`, `handShipCommand`, `stayShipPost` (rules.ts), `shipCommandCheck` (index.ts). Test: `tests/m8/auditA.test.ts`.

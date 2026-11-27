@@ -1,3 +1,4 @@
+import { isDying, isIncapacitated, type Wound } from '../../engine/wounds';
 import { withForceSpeed } from '../../data/canon/sheetScale';
 import { uniqueAliasMatch } from '../../engine/aliases';
 import { ageInYears } from '../../engine/calendar';
@@ -235,3 +236,12 @@ export function selectNpcLevels(s: GameState, id: string): Readonly<Record<strin
 }
 
 export const selectNpcLevel = (s: GameState, id: string, skillId: string): number => selectNpcLevels(s, id)[skillId] ?? 0;
+
+/** A named NPC out of the fight (m8-audit A4, the wounded commander): dying or incapacitated by its wounds, or dead. */
+export function selectNpcOutOfFight(s: GameState, id: string): boolean {
+  const n = s.npcs.byId[id];
+  if (!n) return false;
+  if (n.status === 'deceased') return true;
+  const w = (n.health?.wounds ?? []) as Wound[];
+  return isDying(w) || isIncapacitated(w);
+}

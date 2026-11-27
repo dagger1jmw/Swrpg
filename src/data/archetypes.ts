@@ -87,6 +87,18 @@ export const ARCHETYPE_FORCE_ABILITIES: Readonly<Record<string, Readonly<Record<
   sithInquisitor: { ...SITH_CORE, mindTrick: { of: 'forceControl', share: 0.45 } },
 };
 
+/**
+ * The Order's Tactics (m8-audit A2, Jared's rule, 26 Nov 2026: harder manoeuvres are taught by a master or learned in the field;
+ * targets: a generated Knight about Tactics 15-25, a Master 30-40, a Jedi who served at the front in a war 50 or more). The
+ * measured paces have no Tactics row (the routine has no tactics block), so a generated Jedi Master had Tactics 0 and could teach
+ * only the basics (m8-fixes B3). A closed-form row on top, no hours moved (the D-191 pattern): missions with the master, the
+ * Temple's briefings and military history (`padawan`), a Knight's own missions (`knight`); and `front`, the pace of a war year
+ * served (it replaces the general war term for this row: commanding in the field teaches tactics far faster than the curriculum).
+ * The Sith lines take the same shape (acolyte = initiate row, apprentice = padawan row: the Academy shares the basics since m8-audit
+ * A1). All invented, tuned on the generator (reports/m8-audit.md). A sheet that gives Tactics keeps it.
+ */
+export const ORDER_TACTICS_PACE: Readonly<Record<'padawan' | 'knight' | 'front', number>> = { padawan: 0.22, knight: 0.42, front: 1.4 };
+
 export type FormSource = 'order' | 'master' | 'solo' | 'fill';
 
 const JEDI_RANGE = [2, 5] as const;

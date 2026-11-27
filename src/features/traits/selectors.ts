@@ -178,6 +178,12 @@ export function selectTraitLines(s: GameState, presentNpcIds: readonly string[])
   return out;
 }
 
+/**
+ * What the Traits card says when no trait is held (m8-audit A7): a test start skips the trait choice, so it says so; otherwise the
+ * save is from before traits existed.
+ */
+export const selectTraitsEmptyNote = (s: GameState): string => (s.character.testCharacter === true ? 'Test character: no traits (a test start skips the trait choice).' : 'No traits recorded (a save from before traits existed).');
+
 // The pure rules the turn and the UI read (the import rule: they go through the feature's selectors).
 export {
   backstoryLeans,
@@ -186,6 +192,7 @@ export {
   isYounglingStart,
   onCoruscant3653,
   quizAnswerErrors,
+  quizImplies,
   quizPlan,
   quizTrack,
   scoreQuiz,

@@ -98,12 +98,15 @@ describe('B2: starting sets', () => {
 });
 
 describe('B3: learning more', () => {
-  it('a teacher passes on what their own Tactics allows: a Jedi Master without military experience the basics, an officer more', () => {
+  it('a teacher passes on what their own Tactics allows: a teacher without military experience the basics, an officer more', () => {
     const { s, id } = meet(fresh({ rank: 'padawan', age: 14 }), 'Master Orren Vash', 'jediMaster', 'jediOrder', 60);
     const withMaster = { ...s, ranks: { ...s.ranks, masterId: id } };
-    // Flanking is basic: any teacher. Ambush is standard: needs military experience.
+    // Flanking is basic: any teacher. Ambush is standard: needs military experience. Since m8-audit A2 a generated Jedi Master of
+    // the Great War (3,661 BBY) has served at the front and teaches it; a scholar with no Tactics does not.
     expect(ev(withMaster, [{ type: 'tacticStudied', what: 'taught flanking by Master Orren Vash' }], 'ai').rejected).toEqual([]);
-    const r = ev(withMaster, [{ type: 'tacticStudied', what: 'taught the ambush by Master Orren Vash' }], 'ai');
+    expect(ev(withMaster, [{ type: 'tacticStudied', what: 'taught the ambush by Master Orren Vash' }], 'ai').rejected).toEqual([]);
+    const { s: s1 } = meet(withMaster, 'Archivist Dela', 'scholar', 'civilian', 60);
+    const r = ev(s1, [{ type: 'tacticStudied', what: 'taught the ambush by Archivist Dela' }], 'ai');
     expect(r.rejected[0]?.reason).toMatch(/military experience/);
     const { s: s2 } = meet(withMaster, 'General Tarsk', 'officer', 'republic', 60);
     const taught = ev(s2, [{ type: 'tacticStudied', what: 'taught envelopment by General Tarsk' }], 'ai');

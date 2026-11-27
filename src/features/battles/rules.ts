@@ -2,6 +2,7 @@
 // combat-scales engines (D-505). One battle at a time: a dogfight (the player flies or crews a fighter or freighter, one enemy
 // at a time, the rest waiting), or a fleet battle (the player commands, flies in it, or serves aboard). The code decides every
 // position, hit and result; the narrator describes the lines built here. Pure; seeded RNG; no DOM.
+import { FIT, keepsCommand, mayStayAtPost, stayAtPostLabel, type CommanderCondition } from './command';
 import { autoRunOrders, breakOffRun, runApproach, runTurn, startRun, type AttackRun, type RunApproach, type RunOrders } from '../../engine/attackRun';
 import { autoDogOrders, breakOff, dogfightModifier, dogfightTurn, flown, positionOf, startDogfight, type DogOrders, type Dogfight, type Flyer } from '../../engine/dogfight';
 import { autoFleetOrders, changeFormation, fleetMap, fleetRound, formationMatchup, formationNow, fullStrength, shipStrength, sideStrength, type FleetBattle, type FleetOrders, type FleetSide } from '../../engine/fleetBattle';
@@ -112,6 +113,13 @@ export interface Battle {
   fleet: FleetBattle | null;
   /** Who gives the player's side its orders. */
   command: 'player' | 'npc' | 'firstOfficer';
+  /**
+   * The wounded commander (m8-audit A4): out of the fight, the player handed the fleet to the first officer (their own Tactics kept
+   * to give back), whether the medical bay has them, and whether they chose to stay at their post. Absent in battles saved before.
+   */
+  woundedOut?: { tactics: number } | null;
+  medicReached?: boolean;
+  stayAtPost?: boolean;
   auto: boolean;
   boarding: Boarding | null;
   /** The player's part is over (lost fighter, evacuated, captured, left early): the rest resolves under the NPC commander. */
@@ -159,6 +167,8 @@ export interface Battle {
 
 /** The player's orders for one turn or round (the tactics menu's picks). */
 export interface BattleOrders {
+  /** Out of the fight, keep command by the player's own choice (m8-audit A4). */
+  stayAtPost?: boolean;
   manoeuvre?: Manoeuvre;
   boost?: 'lasers' | 'shields' | 'engines';
   weaken?: 'lasers' | 'shields' | 'engines';
@@ -543,7 +553,42 @@ const seen = (b: Battle, who: 'enemy' | 'ally', id: string | undefined): Battle 
   return u[who].includes(id) ? b : { ...b, seenUsed: { ...u, [who]: [...u[who], id] } };
 };
 
-export function battleMenu(b: Battle): BattleMenu {
+/** The player commands the fleet now but is out of the fight and has not chosen to stay (m8-audit A4): command passes at once. */
+export const commandPassing = (b: Battle, cond: CommanderCondition): boolean => commanding(b) && !keepsCommand(cond, b.stayAtPost === true);
+
+/** Command passes to the first officer (m8-audit A4); the player is carried to the medical bay. */
+export function handShipCommand(b: Battle): { battle: Battle; lines: string[] } {
+  if (!b.fleet || b.role !== 'commander' || b.command !== 'player') return { battle: b, lines: [] };
+  const line = `You are out of the fight. ${b.player.firstOfficer.name} takes command.`;
+  const battle: Battle = { ...b, command: 'firstOfficer', woundedOut: { tactics: b.fleet.a.tactics }, fleet: { ...b.fleet, a: { ...b.fleet.a, tactics: b.player.firstOfficer.tactics } }, log: clip([...b.log, line]) };
+  return { battle, lines: [line] };
+}
+
+/** The player's choice (m8-audit A4): stay at the post while out of the fight; command is theirs again. */
+export function stayShipPost(b: Battle): { battle: Battle; lines: string[] } {
+  const line = 'You stay at your post. You keep command, and no one carries you to the medical bay.';
+  const tactics = b.woundedOut?.tactics ?? b.fleet?.a.tactics ?? 0;
+  const battle: Battle = { ...b, command: 'player', woundedOut: null, stayAtPost: true, ...(b.fleet ? { fleet: { ...b.fleet, a: { ...b.fleet.a, tactics } } } : {}), log: clip([...b.log, line]) };
+  return { battle, lines: [line] };
+}
+
+/** The medical bay can take the player: their own ship still stands (a fleet commander's flagship). */
+export const shipHelpReaches = (b: Battle): boolean => !b.out && (ownShipStanding(b));
+
+function ownShipStanding(b: Battle): boolean {
+  const f = b.fleet;
+  if (!f) return false;
+  const own = f.a.ships.find((s) => s.id === f.a.flagId) ?? f.a.ships[0];
+  return !!own && !own.destroyed && !own.gone;
+}
+
+function stayOption(b: Battle, cond: CommanderCondition): MenuOption[] {
+  if (!(b.woundedOut || commandPassing(b, cond)) || !mayStayAtPost(cond, b.stayAtPost === true)) return [];
+  const w = stayAtPostLabel(cond);
+  return [{ group: 'battle', label: w.label, orders: { stayAtPost: true }, available: true, why: w.why }];
+}
+
+export function battleMenu(b: Battle, cond: CommanderCondition = FIT): BattleMenu {
   const known: string[] = [];
   if (b.dog) {
     const e = b.dog.b.ship;
@@ -564,7 +609,9 @@ export function battleMenu(b: Battle): BattleMenu {
   else known.push('their formation: not known (scouts or sensor ships would show it)');
   const now = `Round ${f.round} · ${FORMATION_LABEL[formationNow(f.a)]}${f.a.reform ? ` (reforming, ${f.a.reform.rounds} round${f.a.reform.rounds === 1 ? '' : 's'})` : ''} · range ${f.range}`;
   if (fliesInFleet(b) && !b.out) return { title: 'Fleet battle: your engagement', now, known, options: engageOptions(b), watching: false };
-  if (commanding(b)) return { title: 'Fleet battle: your command', now, known, options: markSeen(b, [...fleetOptions(f).filter((o) => o.group !== 'formation' || knows(b, o.orders.formation ?? 'exchange')), ...earlyEvacOption(b)]), watching: false };
+  if (commanding(b) && !commandPassing(b, cond)) return { title: 'Fleet battle: your command', now, known, options: markSeen(b, [...fleetOptions(f).filter((o) => o.group !== 'formation' || knows(b, o.orders.formation ?? 'exchange')), ...earlyEvacOption(b)]), watching: false };
+  // Out of the fight (m8-audit A4): the first officer commands; the player may stay at their post instead.
+  if (b.woundedOut || commandPassing(b, cond)) return { title: 'Fleet battle: command has passed', now: `${now} · ${b.player.firstOfficer.name} commands${b.medicReached ? '; you are in the medical bay' : ''}`, known, options: stayOption(b, cond), watching: true };
   return { title: b.out ? 'Fleet battle: it goes on without you' : `Fleet battle: under ${b.player.commander.name}`, now, known, options: earlyEvacOption(b), watching: true };
 }
 
@@ -1072,6 +1119,11 @@ function evacuateEarly(w: Work): void {
 export function stepBattle(battle: Battle, orders: BattleOrders, ctx: StepCtx): StepResult {
   const w: Work = { b: { ...battle, turn: battle.turn + 1 }, lines: [], big: [], handoff: null, hazard: null, seconds: 0 };
   if (battle.end || suspended(battle)) return { battle, lines: [], big: [], handoff: null, hazard: null, seconds: 0 };
+  // Staying at one's post (m8-audit A4): command comes back at once; no round passes.
+  if (orders.stayAtPost) {
+    const r = stayShipPost(battle);
+    return { battle: r.battle, lines: r.lines, big: r.lines, handoff: null, hazard: null, seconds: 0 };
+  }
   if (orders.surrender) {
     finish(w, 'enemy', 'surrendered', `${battle.player.name} surrender.`);
   } else if (orders.evacuateEarly && earlyEvacOption(battle).length) {

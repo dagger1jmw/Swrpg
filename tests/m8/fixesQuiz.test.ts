@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { FORMATIVE_EVENT_BY_ID } from '../../src/data/formativeEvents';
 import { selectTrainOptions } from '../../src/features/progression/selectors';
-import { quizPlan, selectTraitRows, type QuizInput } from '../../src/features/traits/selectors';
+import { quizImplies, quizPlan, selectTraitRows, type QuizInput } from '../../src/features/traits/selectors';
 import { quizPersonKind, readPersonNote, stageAllocation } from '../../src/features/traits/rules';
 import { createMemoryStorage } from '../../src/persist/storage';
 import type { GameState } from '../../src/state/gameState';
@@ -62,7 +62,7 @@ describe('G4, G5: the quiz people fit the scene, the tie and the note', () => {
     expect(input).not.toBeNull();
     const plan = quizPlan(creationQuizInput(input!)!);
     const answers = plan.events.map((id) => (id === 'init.outsideTie' ? { eventId: id, choiceId: 'secret', note: 'My older sister still writes from Alderaan' } : { eventId: id, choiceId: FORMATIVE_EVENT_BY_ID.get(id)!.choices[0]!.id }));
-    const s: GameState = (await createCampaign(REGISTRY, createMemoryStorage(), { ...input!, formative: { answers } }, { campaignId: 'g4', branchId: 'b' }, 'x')).state;
+    const s: GameState = (await createCampaign(REGISTRY, createMemoryStorage(), { ...input!, creation: { ...input!.creation!, warYears: quizImplies(answers).warYears }, formative: { answers } }, { campaignId: 'g4', branchId: 'b' }, 'x')).state;
     const npcs = Object.values(s.npcs.byId);
     const sister = npcs.find((n) => n.relation === 'older sister')!;
     expect(sister).toBeDefined();

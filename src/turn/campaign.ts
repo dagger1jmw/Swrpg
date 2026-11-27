@@ -2,7 +2,7 @@
 // always holds the current campaign (legacy save bug 4: New Game undone by a reload).
 import { absDayFromDate, DAYS_PER_YEAR, isValidDate, type CalendarDate } from '../engine/calendar';
 import { traitCreationEvents } from '../features/traits';
-import { isYounglingStart, onCoruscant3653, quizAnswerErrors, quizPlan, quizTrack, traitChoiceErrors, type QuizAnswer, type QuizInput, type TraitChoice, type TraitContext } from '../features/traits/selectors';
+import { isYounglingStart, onCoruscant3653, quizAnswerErrors, quizImplies, quizPlan, quizTrack, traitChoiceErrors, type QuizAnswer, type QuizInput, type TraitChoice, type TraitContext } from '../features/traits/selectors';
 import { computeCreation, type CreationInput, type CreationResult } from '../features/character/selectors';
 import { loadEnvelope, makeEnvelope } from '../persist/envelope';
 import { AUTOSAVE_SLOT, type CampaignRecord, type Storage } from '../persist/storage';
@@ -131,6 +131,9 @@ export function traitErrors(input: NewCampaignInput): string[] {
     const q = creationQuizInput(input);
     if (!q) errors.push('No formative quiz runs at creation for this start (a youngling takes it at the first long skip).');
     else errors.push(...quizAnswerErrors(quizPlan(q), f.answers).map((x) => `Quiz: ${x}.`));
+    // A scene that implies a form number (m8-audit A3: a first battle is war service) keeps the form, the trait and its gate agreeing.
+    const need = quizImplies(f.answers).warYears;
+    if (need > (input.creation?.warYears ?? 0)) errors.push(`Your first battle (formative years) means war years of at least ${need}.`);
   }
   return errors;
 }
